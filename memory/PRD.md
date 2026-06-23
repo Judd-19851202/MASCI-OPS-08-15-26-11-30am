@@ -10,7 +10,31 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-23 · TRACK 15.71 · Final Production Deployment Gate · 🟢 GO · ✅ 13/15 questions GREEN · 🟡 2/15 operator-action by design)
+## Latest Track (2026-06-23 · TRACK 15.72A · Email Routing Observability + Self-Certification · 🟢 GO)
+
+### Mission
+**Close the observability gap exposed by Track 15.69K — make Email Routing V2 self-certifying from inside the MASCI Hub admin UI. No Mongo creds, Atlas, DevTools, curl, or pasted admin tokens required.**
+
+### Verdict
+🟢 **GO** — Six pillars 6/6 GREEN. All 10 final-certification questions YES.
+
+### What shipped
+- Backend: `GET  /api/admin/email-routing/v2/status` (read-only snapshot — flag state, route counts, critical health, audit recency, computed band, rollback target)
+- Backend: `POST /api/admin/email-routing/v2/self-check` (dry-run resolver across all 19 routes — no Resend sends, no route mutations, append-only diagnostic audit rows)
+- Frontend: `RoutingStatusPanel.jsx` — first card on Admin → Email & Routing. Header band + mode badge + 12-cell stat grid + V2-module recency sub-cards + latest 5 audit rows (counts only) + Run Self-Check button + rollback hint
+- 12 deliverable docs + master at `/app/memory/TRACK_15_72A_OBSERVABILITY_DELIVERY.md`
+
+### Hard rules honoured
+0 recipients exposed · 0 senders changed · 0 routes mutated · 0 emails sent · 0 secrets leaked · admin-gated on both endpoints · only append-only `dry_run=True` audit rows on operator click
+
+### Operator workflow (after deploy)
+Sign into mascidocs.com → Admin → Email & Routing → top card is Routing Status → confirm mode badge + green band + Critical OK ratio + click Run Self-Check → certification done in ≤30 sec. No tokens pasted. No engineer asked.
+
+### Previous track summary preserved below
+
+---
+
+## Track 15.71 (2026-06-23 · Final Production Deployment Gate · 🟢 GO · ✅ 13/15 questions GREEN · 🟡 2/15 operator-action by design)
 
 ### Mission
 **Deploy the completed platform code to MASCI production with feature flags OFF such that MASCI users cannot tell anything changed.**

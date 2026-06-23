@@ -13697,6 +13697,330 @@ async def admin_v2_route_health(_: bool = Depends(require_admin)):
 
 
 # ─────────────────────────────────────────────────────────────────────────
+# Track 15.72A — Email Routing V2 self-observability.
+# Two read-only diagnostic endpoints so a MASCI admin can verify routing
+# mode, resolver health, and rollback readiness directly from the UI —
+# without needing Mongo creds, DevTools, Atlas, or pasting admin tokens.
+# Append-only at most (no recipient/route doc mutations, no Resend sends).
+# ─────────────────────────────────────────────────────────────────────────
+
+def _status_health_band(critical_empty: int, recent_errors_24h: int,
+                        last_v2_audit_age_min: Optional[float],
+                        flag_active: bool) -> tuple[str, str]:
+    """Compute a single green/amber/red band and human reason for the
+    Routing Status card. Pure function — no side effects."""
+    if critical_empty > 0:
+        return ("red", f"{critical_empty} critical route(s) have no recipients")
+    if recent_errors_24h > 0:
+        return ("red", f"{recent_errors_24h} resolver error(s) in last 24h")
+    if not flag_active:
+        return ("green", "Legacy routing — V2 flag is OFF (safe baseline)")
+    if last_v2_audit_age_min is None:
+        return ("amber", "V2 flag is ON but no V2 audit rows observed yet — first scheduler tick pending")
+    if last_v2_audit_age_min > 120:
+        return ("amber", f"Last V2 audit row is {int(last_v2_audit_age_min)} min old — scheduler may be slow")
+    return ("green", "V2 routing healthy")
+
+
+@_email_router.get("/admin/email-routing/v2/status")
+async def admin_v2_status(_: bool = Depends(require_admin)):
+    """Track 15.72A · Routing-status snapshot.
+
+    Read-only, admin-gated. Reads `EMAIL_ROUTING_V2` env, scans the audit
+    collection for recency/error counters, and produces the data the
+    Admin > Email & Routing > Routing Status card needs.
+
+    Returns NO secrets, NO recipient emails, NO connection strings, NO
+    tokens. Recipient *counts* only; raw recipients live in the existing
+    `routes` endpoint that already gates on admin.
+    """
+    from email_routing_v2 import routing_v2_enabled  # noqa: PLC0415
+
+    tk = _current_tenant_key()
+    now = datetime.now(timezone.utc)
+    one_hour_ago_iso = (now - timedelta(hours=1)).isoformat()
+    one_day_ago_iso  = (now - timedelta(hours=24)).isoformat()
+    flag_active = routing_v2_enabled()
+    raw_flag = (os.environ.get("EMAIL_ROUTING_V2") or "").strip()
+
+    # ── Routes & critical-health ──
+    routes = await db.email_routes.find(
+        {"tenant_key": tk},
+        {"_id": 0, "route_key": 1, "enabled": 1, "critical": 1,
+         "to": 1, "cc": 1, "bcc": 1, "display_name": 1},
+    ).to_list(100)
+    route_counts = {
+        "total": len(routes),
+        "enabled": sum(1 for r in routes if r.get("enabled", True)),
+        "disabled": sum(1 for r in routes if not r.get("enabled", True)),
+        "critical_total": sum(1 for r in routes if r.get("critical", False)),
+        "critical_populated": sum(
+            1 for r in routes
+            if r.get("critical", False)
+            and r.get("enabled", True)
+            and len(r.get("to") or []) > 0
+        ),
+        "critical_empty": sum(
+            1 for r in routes
+            if r.get("critical", False)
+            and r.get("enabled", True)
+            and len(r.get("to") or []) == 0
+        ),
+        "empty_non_critical": sum(
+            1 for r in routes
+            if not r.get("critical", False)
+            and r.get("enabled", True)
+            and len(r.get("to") or []) == 0
+            and r["route_key"] not in ("ACCOUNT_INVITES_FROM", "PASSWORD_RESET_MONITORING_TO")
+        ),
+    }
+    # Names of critical routes that would silently drop email — most
+    # important field for an admin to see.
+    critical_empty_keys = sorted(
+        r["route_key"] for r in routes
+        if r.get("critical", False) and r.get("enabled", True)
+        and len(r.get("to") or []) == 0
+    )
+
+    # ── Audit recency / error counters ──
+    total_audit          = await db.email_routing_audit_v2.count_documents({"tenant_key": tk})
+    audit_last_hour      = await db.email_routing_audit_v2.count_documents(
+        {"tenant_key": tk, "ts": {"$gte": one_hour_ago_iso}}
+    )
+    audit_last_24h       = await db.email_routing_audit_v2.count_documents(
+        {"tenant_key": tk, "ts": {"$gte": one_day_ago_iso}}
+    )
+    errors_last_24h      = await db.email_routing_audit_v2.count_documents(
+        {"tenant_key": tk, "ts": {"$gte": one_day_ago_iso},
+         "status": {"$in": ["failed", "error"]}}
+    )
+    db_source_last_24h   = await db.email_routing_audit_v2.count_documents(
+        {"tenant_key": tk, "ts": {"$gte": one_day_ago_iso}, "source": "db"}
+    )
+    legacy_source_last_24h = await db.email_routing_audit_v2.count_documents(
+        {"tenant_key": tk, "ts": {"$gte": one_day_ago_iso}, "source": "legacy"}
+    )
+
+    # Latest 5 audit rows (no recipients, just counts + module + status).
+    latest_rows_raw = await db.email_routing_audit_v2.find(
+        {"tenant_key": tk},
+        {"_id": 0, "ts": 1, "route_key": 1, "source": 1, "status": 1,
+         "to_count": 1, "cc_count": 1, "bcc_count": 1, "calling_module": 1,
+         "dry_run": 1},
+    ).sort("ts", -1).limit(5).to_list(5)
+
+    # ── Per-V2-module recency (the 3 actually-V2-aware code paths) ──
+    async def _last_for(module_name: str) -> Optional[Dict[str, Any]]:
+        d = await db.email_routing_audit_v2.find_one(
+            {"tenant_key": tk, "calling_module": module_name},
+            sort=[("ts", -1)],
+        )
+        if not d:
+            return None
+        return {
+            "ts": d.get("ts"),
+            "route_key": d.get("route_key"),
+            "source": d.get("source"),
+            "status": d.get("status"),
+            "to_count": d.get("to_count"),
+        }
+
+    last_health_monitor = await _last_for("health_monitor")
+    last_outage_alerts  = await _last_for("outage_alerts")
+    last_safety_digest  = await _last_for("safety_digest")
+
+    # Latest V2 audit-row age — used for amber/green banding.
+    latest_v2 = await db.email_routing_audit_v2.find_one(
+        {"tenant_key": tk, "source": "db"},
+        sort=[("ts", -1)],
+    )
+    last_v2_audit_age_min: Optional[float] = None
+    if latest_v2 and latest_v2.get("ts"):
+        try:
+            t = datetime.fromisoformat(str(latest_v2["ts"]).replace("Z", "+00:00"))
+            last_v2_audit_age_min = (now - t).total_seconds() / 60.0
+        except Exception:
+            last_v2_audit_age_min = None
+
+    band, band_reason = _status_health_band(
+        critical_empty=route_counts["critical_empty"],
+        recent_errors_24h=errors_last_24h,
+        last_v2_audit_age_min=last_v2_audit_age_min,
+        flag_active=flag_active,
+    )
+
+    # Container info (proves operator looking at fresh build, not stale
+    # cached page). Pulled directly from `_version_payload` so we never
+    # drift away from /api/version.
+    app_env  = os.environ.get("APP_ENV", "unknown")
+    db_name  = os.environ.get("DB_NAME", "unknown")
+    started_at_iso = _STARTUP_TS.isoformat() if isinstance(_STARTUP_TS, datetime) else str(_STARTUP_TS)
+    uptime_s = max(0, int((now - _STARTUP_TS).total_seconds())) if isinstance(_STARTUP_TS, datetime) else None
+
+    return {
+        "ts": now.isoformat(),
+        "tenant_key": tk,
+        "mode": "v2" if flag_active else "legacy",
+        "flag_active": flag_active,
+        "flag_raw_value": raw_flag if raw_flag else "<unset>",
+        "app_env": app_env,
+        "db_name": db_name,
+        "backend_started_at": started_at_iso,
+        "backend_uptime_s": uptime_s,
+        "route_counts": route_counts,
+        "critical_empty_route_keys": critical_empty_keys,
+        "audit_counters": {
+            "total":             total_audit,
+            "last_hour":         audit_last_hour,
+            "last_24h":          audit_last_24h,
+            "errors_last_24h":   errors_last_24h,
+            "db_source_last_24h":     db_source_last_24h,
+            "legacy_source_last_24h": legacy_source_last_24h,
+        },
+        "latest_audit_rows": latest_rows_raw,
+        "v2_module_recency": {
+            "health_monitor": last_health_monitor,
+            "outage_alerts":  last_outage_alerts,
+            "safety_digest":  last_safety_digest,
+        },
+        "last_v2_audit_age_minutes": last_v2_audit_age_min,
+        "rollback_target": {
+            "current_flag_value": raw_flag if raw_flag else "<unset>",
+            "reverse_value":      "false" if flag_active else "true",
+            "mechanism":          "edit backend/.env line `EMAIL_ROUTING_V2=` then Re-deploy",
+            "estimated_minutes":  5,
+        },
+        "band":        band,
+        "band_reason": band_reason,
+    }
+
+
+@_email_router.post("/admin/email-routing/v2/self-check")
+async def admin_v2_self_check(_: bool = Depends(require_admin)):
+    """Track 15.72A · End-to-end self-check.
+
+    Dry-runs the resolver for every route (NO Resend send, NO route doc
+    mutation, NO recipient change). Writes ≤1 append-only audit row per
+    route with `dry_run=True` and `calling_module='self_check'` so the
+    operator's status card can see the activity timestamp advance.
+
+    Returns a single PASS/FAIL banner plus per-route findings.
+    """
+    from email_routing_v2 import (  # noqa: PLC0415
+        routing_v2_enabled, resolve, write_audit as _v2_audit,
+    )
+
+    tk = _current_tenant_key()
+    now = datetime.now(timezone.utc)
+    flag_active = routing_v2_enabled()
+
+    routes = await db.email_routes.find(
+        {"tenant_key": tk}, {"_id": 0}
+    ).sort("route_key", 1).to_list(100)
+
+    results: List[Dict[str, Any]] = []
+    summary = {"green": 0, "amber": 0, "red": 0, "db_source": 0,
+               "legacy_source": 0, "env_source": 0, "disabled_source": 0}
+
+    for r in routes:
+        rk = r["route_key"]
+        critical = bool(r.get("critical", False))
+        enabled  = bool(r.get("enabled", True))
+        # Resolver dry-run (no send, no mutation)
+        try:
+            res = await resolve(db, rk, legacy_provider=lambda: [])
+            err: Optional[str] = None
+        except Exception as e:  # noqa: BLE001
+            class _R:
+                to: List[str] = []
+                cc: List[str] = []
+                bcc: List[str] = []
+                source = "error"
+                from_email = None
+            res = _R()
+            err = repr(e)[:200]
+
+        tc, cc, bc = len(res.to or []), len(res.cc or []), len(res.bcc or [])
+        source = getattr(res, "source", "unknown") or "unknown"
+        summary[f"{source}_source"] = summary.get(f"{source}_source", 0) + 1
+
+        # Classify
+        if err:
+            status = "red"
+            reason = f"resolver error: {err}"
+        elif critical and enabled and tc == 0:
+            status = "red"
+            reason = "critical route resolved to empty TO"
+        elif flag_active and source == "legacy" and enabled and rk in (
+            "HEALTH_ALERTS", "OUTAGE_ALERTS", "SAFETY_DIGEST_TO"
+        ):
+            # The 3 V2-aware code paths SHOULD be hitting source=db when
+            # the flag is on. If they fall back to legacy, something
+            # changed in the DB doc (probably empty or disabled).
+            status = "amber"
+            reason = "V2 active but route falling back to legacy source"
+        elif not enabled and not critical:
+            status = "amber"
+            reason = "route explicitly disabled (non-critical)"
+        elif enabled and tc + cc + bc == 0 and rk not in (
+            "ACCOUNT_INVITES_FROM", "PASSWORD_RESET_MONITORING_TO",
+            "INCIDENT_SEVERE_CC", "BACKUP_ALERTS",
+        ):
+            status = "amber"
+            reason = "route has zero recipients"
+        else:
+            status = "green"
+            reason = "healthy"
+
+        summary[status] += 1
+
+        # Append-only diagnostic audit row (best-effort; never blocks)
+        try:
+            await _v2_audit(
+                db, route_key=rk, tenant_key=tk, source=source,
+                to_count=tc, cc_count=cc, bcc_count=bc,
+                subject="[SELF-CHECK] dry-run", status="dry_run",
+                calling_module="self_check", dry_run=True,
+                error=err,
+            )
+        except Exception:
+            pass
+
+        results.append({
+            "route_key": rk,
+            "display_name": r.get("display_name"),
+            "critical": critical, "enabled": enabled,
+            "source": source,
+            "to_count": tc, "cc_count": cc, "bcc_count": bc,
+            "from_email_set": bool(getattr(res, "from_email", None)),
+            "status": status, "reason": reason,
+        })
+
+    # Overall banner
+    if summary["red"] > 0:
+        overall = "red"
+        overall_reason = f"{summary['red']} route(s) failed self-check"
+    elif summary["amber"] > 0:
+        overall = "amber"
+        overall_reason = f"{summary['amber']} route(s) need attention"
+    else:
+        overall = "green"
+        overall_reason = "all routes resolve healthy"
+
+    return {
+        "ts": now.isoformat(),
+        "tenant_key": tk,
+        "flag_active": flag_active,
+        "mode": "v2" if flag_active else "legacy",
+        "total_routes": len(routes),
+        "summary": summary,
+        "overall": overall,
+        "overall_reason": overall_reason,
+        "results": results,
+    }
+
+
+# ─────────────────────────────────────────────────────────────────────────
 # Photo Storage (iter64): S3-compatible cloud storage admin endpoints.
 # Lets admin: (1) check connectivity to R2/S3, (2) run a dry-run migration
 # preview, (3) run a real migration in capped batches, (4) inspect progress.

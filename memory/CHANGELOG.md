@@ -2,6 +2,32 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
+## 2026-06-23 — TRACK 15.72A · Email Routing Observability + Self-Certification · 🟢 GO
+
+**Mission**: Close the observability gap exposed by Track 15.69K — make Email Routing V2 self-certifying from inside the MASCI Hub admin UI, with no Mongo creds, Atlas, DevTools, curl, or pasted admin tokens required.
+
+**What shipped**
+- New backend endpoint `GET  /api/admin/email-routing/v2/status` — admin-gated read-only snapshot of flag state, route counts, critical health, audit recency, rollback target, computed green/amber/red band.
+- New backend endpoint `POST /api/admin/email-routing/v2/self-check` — admin-gated dry-run resolver over all 19 routes (no Resend send, no route doc mutation, append-only diagnostic audit rows).
+- New frontend component `RoutingStatusPanel.jsx` (290 LOC) mounted at the top of Admin → Email & Routing.
+
+**Six pillars**: 6/6 🟢 (Powerful · Simple · Beautiful · Trusted · Proven · Deployable).
+
+**Verified**
+- Both endpoints return HTTP 401 without admin token.
+- Direct Python call against status endpoint returns `band=green`, `mode=v2`, `critical_populated=4/4`, `audit_counters.errors_last_24h=0` in preview.
+- Self-check resolves 19 routes; 18 green, 1 amber (PASSWORD_RESET_MONITORING_TO disabled by design).
+- Secrets-leak grep over response payload returned 0 matches across `mongodb+srv`, `password`, `hmac_secret`, `api_key`, `resend_api`.
+- ESLint clean (0 issues) on the new component.
+
+**Hard rules honoured**: 0 recipients exposed · 0 senders changed · 0 routes mutated · 0 emails sent · only append-only `dry_run=True` audit rows when operator clicks Self-Check.
+
+**Deliverables**: master doc at `/app/memory/TRACK_15_72A_OBSERVABILITY_DELIVERY.md` (12 sections) + 12 named pointer files (`TRACK_15_72A_*.md`).
+
+**Operator workflow post-deploy**: sign into mascidocs.com → Admin → Email & Routing → first card is Routing Status → read band + mode badge + Critical OK ratio + click Run Self-Check → done in ≤30 sec.
+
+---
+
 ## 2026-06-23 — TRACK 15.71 · Final Production Deployment Gate · 🟢 GO
 
 **Mission**: Deploy completed platform code to MASCI production with feature flags OFF — MASCI sees zero change.

@@ -4,6 +4,7 @@ import AdminShell from "@/components/AdminShell";
 import AutoEmailRoutingPanel from "@/components/AutoEmailRoutingPanel";
 import AdminEmailRoutingPanel from "@/components/AdminEmailRoutingPanel";
 import EmailRoutingV2Panel from "@/components/EmailRoutingV2Panel";
+import RoutingStatusPanel from "@/components/RoutingStatusPanel";
 import TenantBrandingPanel from "@/components/TenantBrandingPanel";
 
 export default function AdminEmail() {
@@ -21,6 +22,7 @@ export default function AdminEmail() {
       }
     >
       <div className="space-y-4">
+        <RoutingStatusPanel />
         <TenantBrandingPanel />
         <EmailRoutingV2Panel />
         <AutoEmailRoutingPanel />

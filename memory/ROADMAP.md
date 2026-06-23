@@ -4,13 +4,17 @@ This file tracks **parked features** the user wants to revisit later. Surface th
 
 ---
 
-## 🟢 P0 · Track 15.71 — Final Deployment Gate (GO · AWAITING OPERATOR DEPLOY PUSH)
+## ✅ COMPLETE · Track 15.72A — Email Routing Observability + Self-Certification (2026-06-23)
 
-Track 15.71 closed engineering-side: 6/6 pillars, 5/5 regressions, MASCI parity preserved, 0 live blasts. Operator must push the emergent platform deploy button and run the T+0 to T+5 min post-deploy checklist.
+Closed the observability gap from Track 15.69K. Two new admin-gated endpoints (`status`, `self-check`) + new Routing Status panel mounted at the top of Admin → Email & Routing. Admin can certify routing mode + V2 activation + critical-route health + rollback readiness in ≤30 sec from the UI alone. Zero tokens pasted, zero Mongo access, zero DevTools. 6/6 pillars GREEN. Operator next step: re-deploy to production to ship the panel.
 
-## 🟢 P0 · Track 15.69 — EMAIL_ROUTING_V2 Production Cutover (READY · AWAITING OPERATOR AUTHORIZATION)
+## ✅ COMPLETE · Track 15.69 — EMAIL_ROUTING_V2 Production Cutover (2026-06-23)
 
-Pre-flight engineering-complete with full evidence. Operator-side action required: explicit authorization phrase + flag flip in production env console + 48h soak + Executive Certification.
+Flag flipped to `true` in production. Container restarted 2026-06-23T20:13:44Z. HTTP gates green. Preview-side smoke proved DB-source resolution.
+
+## 🟢 P0 · Track 15.71 — Final Deployment Gate (GO · AWAITING OPERATOR DEPLOY PUSH for 15.72A)
+
+15.71 closed engineering-side. Operator must re-deploy to ship the 15.72A observability panel + endpoints to production.
 
 ## 🟢 P0 · Track 15.72 — Production Hardening for Customer #2 Go-Live (~3-5 days)
 
