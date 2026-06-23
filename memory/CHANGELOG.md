@@ -2,7 +2,29 @@
 
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
-## 2026-06-22 — TRACK 15.69 · EMAIL_ROUTING_V2 Production Cutover · 🟡 READY-AWAITING-AUTHORIZATION
+## 2026-06-22 — TRACK 15.69 (re-issued, deep-evidence) · EMAIL_ROUTING_V2 Production Cutover · 🟡 READY-AWAITING-AUTHORIZATION
+
+**Deep-evidence pre-flight executed live in preview.**
+
+**Evidence**
+- Failure modes: **7/7 PASS** (critical-empty hard-fail, route-missing fallback, sender resolved, critical-disabled, tenant-missing, audit shape, DB-outage fallback).
+- Workflow validation: **23/23 PASS** across the 12 required workflows + 11 supplementary routes.
+- Rollback simulation: **0.033s in-process · 0 drift across 19 routes** (production ≈140s with backend restart, well under 5-min budget).
+- Routing parity: 19/19 match · 0 mismatch · 0 critical-empty.
+- Route inventory + ownership audit complete.
+- Database protection: 3-layer (local zips, R2, Atlas PIT). Cutover is read-only — zero DB mutation.
+
+**Cutover success criteria**: 8/10 ✅ pre-flight · 2/10 deferred to operator soak (Q6 user-no-change, Q8 monitoring-execution).
+
+**12 deep-evidence deliverables in `/app/memory/TRACK_15_69_*.md`** + 3 reusable execution scripts in `/app/backend/scripts/`.
+
+**Hard rules honoured**: 0 production code changes · 0 architecture changes · 0 live blasts · 0 recipient drift · 0 sender drift · all intrusive test mutations restored.
+
+**Final answer**: 🟡 **READY — awaiting operator authorization.**
+
+---
+
+## 2026-06-22 — TRACK 15.69 (first issue) · EMAIL_ROUTING_V2 Production Cutover · 🟡 READY-AWAITING-AUTHORIZATION
 
 **Status**: Engineering-complete. Pre-flight Phases 1-8 + Rollback runbook + 24h monitoring plan all PASS. Phase 9 (flag flip) deferred awaiting operator authorization.
 

@@ -1,0 +1,44 @@
+{
+  "results": [
+    {
+      "test": "FM1_critical_empty_recipient",
+      "result": "PASS",
+      "evidence": "raised UnconfiguredCriticalRouteError: Critical route masci::BACKUP_ALERTS resolved to empty recipient list."
+    },
+    {
+      "test": "FM2_route_missing_falls_to_legacy",
+      "result": "PASS",
+      "evidence": "source=legacy to=['fallback@example.com']"
+    },
+    {
+      "test": "FM3_sender_resolution",
+      "result": "PASS",
+      "evidence": "from_email=noreply@mascidocs.com source=env_masci_only"
+    },
+    {
+      "test": "FM4_critical_disabled_returns_disabled",
+      "result": "PASS",
+      "evidence": "source=disabled to=[]"
+    },
+    {
+      "test": "FM5_tenant_missing_falls_to_legacy",
+      "result": "PASS",
+      "evidence": "source=legacy to=['fallback@example.com']"
+    },
+    {
+      "test": "FM6_audit_row_shape",
+      "result": "PASS",
+      "evidence": "keys=['_id', 'calling_module', 'dry_run', 'error', 'resend_message_id', 'resolved_bcc_count', 'resolved_cc_count', 'resolved_to_count', 'route_key', 'sender_email', 'source', 'status', 'subject', 'tenant_key', 'ts']"
+    },
+    {
+      "test": "FM7_db_unavailable_falls_to_legacy",
+      "result": "PASS",
+      "evidence": "source=legacy to=['legacy-fallback@example.com'] error=None"
+    }
+  ],
+  "summary": {
+    "pass": 7,
+    "fail": 0,
+    "total": 7
+  }
+}

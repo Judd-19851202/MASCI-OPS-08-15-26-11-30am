@@ -10,7 +10,54 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## Latest Track (2026-06-22 · TRACK 15.69 · EMAIL_ROUTING_V2 Production Cutover · 🟡 READY-AWAITING-AUTHORIZATION · ✅ Pre-flight PASS · 🟢 GO for cutover when operator authorizes)
+## Latest Track (2026-06-22 · TRACK 15.69 · EMAIL_ROUTING_V2 Production Cutover · 🟡 READY-AWAITING-AUTHORIZATION · ✅ Pre-flight 8/10 PASS · ✅ Six-Pillar 6/6 engineering-complete)
+
+### Track Status
+**Engineering-complete with full evidence. Awaiting operator authorization for production flag flip.**
+
+### Deep-evidence execution (preview, this session)
+- **Failure mode certification**: 7/7 PASS (`track_15_69_failure_modes.json`). Critical-empty hard-fails, route-missing falls to legacy, sender resolves, critical-disabled returns `source=disabled`, tenant-missing falls to legacy, audit row shape verified (15 keys), DB-outage falls to legacy.
+- **Workflow validation matrix**: 23/23 PASS (`track_15_69_workflow_matrix.json`). Every workflow from Safety Digest to Outage Alert to Dead-Letter resolves with `source=db` under flag-on with the correct sender, recipient set, and audit shape.
+- **Rollback simulation**: **0.033s** in-process (≈140s production with backend restart) · **0 drift** across 19 routes between T0 (pre-flip) and T2 (post-rollback). `track_15_69_rollback_simulation.json`.
+- **Route inventory**: 19 routes catalogued · `track_15_69_route_inventory.json`.
+- **Route ownership audit**: every route mapped to business owner + code reference.
+- **Database protection**: 3-layer backup (local zips, Cloudflare R2, Atlas PIT). Cutover is read-only — zero DB mutation; rollback requires zero data restoration.
+
+### Cutover success criteria (per directive)
+| Criterion | Verdict |
+|---|---|
+| 1. MASCI workflow behavior identical | ✅ |
+| 2. MASCI recipients identical | ✅ (Δ=0 across 19 routes) |
+| 3. MASCI senders identical | ✅ |
+| 4. MASCI PDFs identical | ✅ (Track 15.68A) |
+| 5. MASCI branding identical | ✅ (Track 15.68D walkthrough) |
+| 6. MASCI users report no change | 🟡 (pending 48h soak) |
+| 7. Rollback succeeds | ✅ (0.033s · 0 drift) |
+| 8. Monitoring succeeds | 🟡 (plan ready · pending Phase 11) |
+| 9. Audit logging succeeds | ✅ (15-key audit row shape) |
+| 10. No workflow failures | ✅ (23/23 + 7/7) |
+
+**8 / 10 ✅ pre-flight · 2 / 10 deferred to operator-side execution.**
+
+### 12 deliverables (Phase 1-12) all filed in `/app/memory/TRACK_15_69_*.md`
+ROUTE_INVENTORY · ROUTE_OWNERSHIP_AUDIT · DATABASE_PROTECTION_CERTIFICATION · WORKFLOW_VALIDATION_MATRIX · ROUTING_PARITY_CERTIFICATION · FAILURE_MODE_CERTIFICATION · ROLLBACK_CERTIFICATION · PRODUCTION_CUTOVER_RUNBOOK · 48_HOUR_MONITORING_PLAN · EXECUTIVE_CERTIFICATION · SIX_PILLAR_CERTIFICATION · FINAL_CLOSEOUT.
+
+Plus the original READY pack from the first 15.69 run (15 deliverables): PRODUCTION_ENV_SAFETY_CHECK, PRODUCTION_SEED_VERIFICATION, FLAG_OFF_PARITY, V2_DRY_RUN_PARITY, ROUTE_HEALTH_PROOF, CONTROLLED_SEND_PROOF, ROLLBACK_RUNBOOK, CUTOVER_DECISION_GATE, FLAG_FLIP_PROOF, POST_FLIP_SMOKE, 24H_MONITORING_PLAN, POST_CUTOVER_CERTIFICATION, FINAL_EXECUTIVE_SUMMARY.
+
+### Reusable execution scripts
+- `backend/scripts/track_15_69_failure_mode_tests.py`
+- `backend/scripts/track_15_69_workflow_matrix.py`
+- `backend/scripts/track_15_69_rollback_simulation.py`
+
+### Hard rules honoured
+0 files changed in production code · 0 architecture changes · 0 live blasts · 0 recipient drift · 0 sender drift · 0 audit deletions · 0 flag flips from non-prod pod · all intrusive test mutations restored via `finally` blocks.
+
+### Next step
+Operator provides explicit authorization phrase ("Proceed with production cutover" / "Flip EMAIL_ROUTING_V2" / "Authorize Track 15.69 cutover" / "Go live with V2 routing"), then performs Phase 9 in the production env console per `TRACK_15_69_PRODUCTION_CUTOVER_RUNBOOK.md`.
+
+---
+
+## Previous Track (2026-06-22 · TRACK 15.69 first issue · EMAIL_ROUTING_V2 Production Cutover · 🟡 READY-AWAITING-AUTHORIZATION · ✅ Pre-flight PASS · 🟢 GO for cutover when operator authorizes)
 
 ### Track Status
 **Engineering-complete. Awaiting operator authorization for production flag flip.**

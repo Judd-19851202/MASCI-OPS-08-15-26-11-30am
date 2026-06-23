@@ -1,0 +1,447 @@
+{
+  "summary": {
+    "pass": 23,
+    "fail": 0,
+    "total": 23
+  },
+  "workflows": [
+    {
+      "workflow": "Safety Digest",
+      "route_key": "SAFETY_DIGEST_TO",
+      "code_ref": "safety_digest.py:89",
+      "source": "db",
+      "enabled": true,
+      "critical": false,
+      "to": [
+        "safety@mascigc.com"
+      ],
+      "cc": [],
+      "bcc": [],
+      "from_email": "noreply@mascidocs.com",
+      "reply_to": "jaymn.judd@mascigc.com",
+      "sender_source": "env_masci_only",
+      "audit_shape_ok": true,
+      "delivery_target": "Resend HTTP API (re_CfH...A8kW configured)",
+      "verdict": "PASS"
+    },
+    {
+      "workflow": "Health Monitor",
+      "route_key": "HEALTH_ALERTS",
+      "code_ref": "health_monitor.py:67",
+      "source": "db",
+      "enabled": true,
+      "critical": true,
+      "to": [
+        "jaymn.judd@mascigc.com"
+      ],
+      "cc": [],
+      "bcc": [],
+      "from_email": "noreply@mascidocs.com",
+      "reply_to": "jaymn.judd@mascigc.com",
+      "sender_source": "env_masci_only",
+      "audit_shape_ok": true,
+      "delivery_target": "Resend HTTP API (re_CfH...A8kW configured)",
+      "verdict": "PASS"
+    },
+    {
+      "workflow": "Operator Digest",
+      "route_key": "OPERATOR_DIGEST_RECIPIENTS",
+      "code_ref": "lib/operator_digest.py:336",
+      "source": "db",
+      "enabled": true,
+      "critical": false,
+      "to": [
+        "safety@mascigc.com"
+      ],
+      "cc": [],
+      "bcc": [],
+      "from_email": "noreply@mascidocs.com",
+      "reply_to": "jaymn.judd@mascigc.com",
+      "sender_source": "env_masci_only",
+      "audit_shape_ok": true,
+      "delivery_target": "Resend HTTP API (re_CfH...A8kW configured)",
+      "verdict": "PASS"
+    },
+    {
+      "workflow": "Daily Report Notification",
+      "route_key": "SAFETY_FORMS_TO",
+      "code_ref": "routes/safety_forms.py:817 (legacy: safety_forms_to)",
+      "source": "db",
+      "enabled": true,
+      "critical": false,
+      "to": [
+        "safety@mascigc.com",
+        "jaymn.judd@mascigc.com"
+      ],
+      "cc": [],
+      "bcc": [],
+      "from_email": "noreply@mascidocs.com",
+      "reply_to": "jaymn.judd@mascigc.com",
+      "sender_source": "env_masci_only",
+      "audit_shape_ok": true,
+      "delivery_target": "Resend HTTP API (re_CfH...A8kW configured)",
+      "verdict": "PASS"
+    },
+    {
+      "workflow": "Incident Notification",
+      "route_key": "SAFETY_FORMS_TO",
+      "code_ref": "routes/safety_forms.py:817 + INCIDENT_SEVERE_CC for severe",
+      "source": "db",
+      "enabled": true,
+      "critical": false,
+      "to": [
+        "safety@mascigc.com",
+        "jaymn.judd@mascigc.com"
+      ],
+      "cc": [],
+      "bcc": [],
+      "from_email": "noreply@mascidocs.com",
+      "reply_to": "jaymn.judd@mascigc.com",
+      "sender_source": "env_masci_only",
+      "audit_shape_ok": true,
+      "delivery_target": "Resend HTTP API (re_CfH...A8kW configured)",
+      "verdict": "PASS"
+    },
+    {
+      "workflow": "Incident Severe CC",
+      "route_key": "INCIDENT_SEVERE_CC",
+      "code_ref": "server.py:12884 (legacy: severe_incident_cc)",
+      "source": "db",
+      "enabled": true,
+      "critical": false,
+      "to": [],
+      "cc": [],
+      "bcc": [],
+      "from_email": "noreply@mascidocs.com",
+      "reply_to": "jaymn.judd@mascigc.com",
+      "sender_source": "env_masci_only",
+      "audit_shape_ok": true,
+      "delivery_target": "Resend HTTP API (re_CfH...A8kW configured)",
+      "verdict": "PASS"
+    },
+    {
+      "workflow": "QAQC Notification",
+      "route_key": "SAFETY_FORMS_TO",
+      "code_ref": "routes/qaqc.py (uses safety_forms_to legacy chain)",
+      "source": "db",
+      "enabled": true,
+      "critical": false,
+      "to": [
+        "safety@mascigc.com",
+        "jaymn.judd@mascigc.com"
+      ],
+      "cc": [],
+      "bcc": [],
+      "from_email": "noreply@mascidocs.com",
+      "reply_to": "jaymn.judd@mascigc.com",
+      "sender_source": "env_masci_only",
+      "audit_shape_ok": true,
+      "delivery_target": "Resend HTTP API (re_CfH...A8kW configured)",
+      "verdict": "PASS"
+    },
+    {
+      "workflow": "Inspection Notification",
+      "route_key": "SAFETY_FORMS_TO",
+      "code_ref": "routes/site_inspection_lifecycle.py (safety_forms_to)",
+      "source": "db",
+      "enabled": true,
+      "critical": false,
+      "to": [
+        "safety@mascigc.com",
+        "jaymn.judd@mascigc.com"
+      ],
+      "cc": [],
+      "bcc": [],
+      "from_email": "noreply@mascidocs.com",
+      "reply_to": "jaymn.judd@mascigc.com",
+      "sender_source": "env_masci_only",
+      "audit_shape_ok": true,
+      "delivery_target": "Resend HTTP API (re_CfH...A8kW configured)",
+      "verdict": "PASS"
+    },
+    {
+      "workflow": "Safety Meeting Notification",
+      "route_key": "SAFETY_FORMS_TO",
+      "code_ref": "safety_meetings (safety_forms_to)",
+      "source": "db",
+      "enabled": true,
+      "critical": false,
+      "to": [
+        "safety@mascigc.com",
+        "jaymn.judd@mascigc.com"
+      ],
+      "cc": [],
+      "bcc": [],
+      "from_email": "noreply@mascidocs.com",
+      "reply_to": "jaymn.judd@mascigc.com",
+      "sender_source": "env_masci_only",
+      "audit_shape_ok": true,
+      "delivery_target": "Resend HTTP API (re_CfH...A8kW configured)",
+      "verdict": "PASS"
+    },
+    {
+      "workflow": "Equipment Notification",
+      "route_key": "DISPATCH_ROLE_TO",
+      "code_ref": "routes/equipment.py / dispatch chain",
+      "source": "db",
+      "enabled": true,
+      "critical": false,
+      "to": [
+        "jaymn.judd@mascigc.com"
+      ],
+      "cc": [],
+      "bcc": [],
+      "from_email": "noreply@mascidocs.com",
+      "reply_to": "jaymn.judd@mascigc.com",
+      "sender_source": "env_masci_only",
+      "audit_shape_ok": true,
+      "delivery_target": "Resend HTTP API (re_CfH...A8kW configured)",
+      "verdict": "PASS"
+    },
+    {
+      "workflow": "Backup Alert",
+      "route_key": "BACKUP_ALERTS",
+      "code_ref": "server.py:6448 (legacy: backup_email_to)",
+      "source": "db",
+      "enabled": true,
+      "critical": true,
+      "to": [
+        "jaymn.judd@mascigc.com"
+      ],
+      "cc": [],
+      "bcc": [],
+      "from_email": "noreply@mascidocs.com",
+      "reply_to": "jaymn.judd@mascigc.com",
+      "sender_source": "env_masci_only",
+      "audit_shape_ok": true,
+      "delivery_target": "Resend HTTP API (re_CfH...A8kW configured)",
+      "verdict": "PASS"
+    },
+    {
+      "workflow": "Dead Letter Route",
+      "route_key": "ADMIN_DEAD_LETTER_TO",
+      "code_ref": "pm_routing.py:370 + lib/field_submitter_identity.py:189",
+      "source": "db",
+      "enabled": true,
+      "critical": false,
+      "to": [
+        "safety@mascigc.com"
+      ],
+      "cc": [],
+      "bcc": [],
+      "from_email": "noreply@mascidocs.com",
+      "reply_to": "jaymn.judd@mascigc.com",
+      "sender_source": "env_masci_only",
+      "audit_shape_ok": true,
+      "delivery_target": "Resend HTTP API (re_CfH...A8kW configured)",
+      "verdict": "PASS"
+    },
+    {
+      "workflow": "Outage Alert",
+      "route_key": "OUTAGE_ALERTS",
+      "code_ref": "outage_alerts.py:108",
+      "source": "db",
+      "enabled": true,
+      "critical": true,
+      "to": [
+        "jaymn.judd@mascigc.com"
+      ],
+      "cc": [],
+      "bcc": [],
+      "from_email": "noreply@mascidocs.com",
+      "reply_to": "jaymn.judd@mascigc.com",
+      "sender_source": "env_masci_only",
+      "audit_shape_ok": true,
+      "delivery_target": "Resend HTTP API (re_CfH...A8kW configured)",
+      "verdict": "PASS"
+    },
+    {
+      "workflow": "Field Leadership Always-To",
+      "route_key": "FIELD_LEADERSHIP_ALWAYS_TO",
+      "code_ref": "routes/field_leadership.py:769 (legacy: leadership_always_to)",
+      "source": "db",
+      "enabled": true,
+      "critical": false,
+      "to": [
+        "jaymn.judd@mascigc.com",
+        "safety@mascigc.com"
+      ],
+      "cc": [],
+      "bcc": [],
+      "from_email": "noreply@mascidocs.com",
+      "reply_to": "jaymn.judd@mascigc.com",
+      "sender_source": "env_masci_only",
+      "audit_shape_ok": true,
+      "delivery_target": "Resend HTTP API (re_CfH...A8kW configured)",
+      "verdict": "PASS"
+    },
+    {
+      "workflow": "Compliance Always-CC",
+      "route_key": "COMPLIANCE_ALWAYS_CC",
+      "code_ref": "pm_routing.py:277 + env COMPLIANCE_ALWAYS_CC",
+      "source": "db",
+      "enabled": true,
+      "critical": false,
+      "to": [
+        "jaymn.judd@mascigc.com",
+        "safety@mascigc.com"
+      ],
+      "cc": [],
+      "bcc": [],
+      "from_email": "noreply@mascidocs.com",
+      "reply_to": "jaymn.judd@mascigc.com",
+      "sender_source": "env_masci_only",
+      "audit_shape_ok": true,
+      "delivery_target": "Resend HTTP API (re_CfH...A8kW configured)",
+      "verdict": "PASS"
+    },
+    {
+      "workflow": "Pre-Op Fail Fallback",
+      "route_key": "PRE_OP_FAIL_FALLBACK",
+      "code_ref": "pre-op chain (legacy: shop_manager_fallback)",
+      "source": "db",
+      "enabled": true,
+      "critical": false,
+      "to": [
+        "shopmanager@mascigc.com"
+      ],
+      "cc": [],
+      "bcc": [],
+      "from_email": "noreply@mascidocs.com",
+      "reply_to": "jaymn.judd@mascigc.com",
+      "sender_source": "env_masci_only",
+      "audit_shape_ok": true,
+      "delivery_target": "Resend HTTP API (re_CfH...A8kW configured)",
+      "verdict": "PASS"
+    },
+    {
+      "workflow": "Trench Safety Pulse (Safety)",
+      "route_key": "TRENCH_SAFETY_PULSE_SAFETY",
+      "code_ref": "trench safety pulse digest",
+      "source": "db",
+      "enabled": true,
+      "critical": false,
+      "to": [
+        "safety@mascigc.com"
+      ],
+      "cc": [],
+      "bcc": [],
+      "from_email": "noreply@mascidocs.com",
+      "reply_to": "jaymn.judd@mascigc.com",
+      "sender_source": "env_masci_only",
+      "audit_shape_ok": true,
+      "delivery_target": "Resend HTTP API (re_CfH...A8kW configured)",
+      "verdict": "PASS"
+    },
+    {
+      "workflow": "Trench Safety Pulse (Shop)",
+      "route_key": "TRENCH_SAFETY_PULSE_SHOP",
+      "code_ref": "trench safety pulse digest",
+      "source": "db",
+      "enabled": true,
+      "critical": false,
+      "to": [
+        "shopmanager@mascigc.com"
+      ],
+      "cc": [],
+      "bcc": [],
+      "from_email": "noreply@mascidocs.com",
+      "reply_to": "jaymn.judd@mascigc.com",
+      "sender_source": "env_masci_only",
+      "audit_shape_ok": true,
+      "delivery_target": "Resend HTTP API (re_CfH...A8kW configured)",
+      "verdict": "PASS"
+    },
+    {
+      "workflow": "Payroll Variance Alert",
+      "route_key": "PAYROLL_VARIANCE_TO",
+      "code_ref": "payroll variance alert",
+      "source": "db",
+      "enabled": true,
+      "critical": false,
+      "to": [
+        "jaymn.judd@mascigc.com"
+      ],
+      "cc": [],
+      "bcc": [],
+      "from_email": "noreply@mascidocs.com",
+      "reply_to": "jaymn.judd@mascigc.com",
+      "sender_source": "env_masci_only",
+      "audit_shape_ok": true,
+      "delivery_target": "Resend HTTP API (re_CfH...A8kW configured)",
+      "verdict": "PASS"
+    },
+    {
+      "workflow": "Account Invites Sender",
+      "route_key": "ACCOUNT_INVITES_FROM",
+      "code_ref": "account invite sender identity only",
+      "source": "db",
+      "enabled": true,
+      "critical": false,
+      "to": [],
+      "cc": [],
+      "bcc": [],
+      "from_email": "noreply@mascidocs.com",
+      "reply_to": "jaymn.judd@mascigc.com",
+      "sender_source": "route",
+      "audit_shape_ok": true,
+      "delivery_target": "Resend HTTP API (re_CfH...A8kW configured)",
+      "verdict": "PASS"
+    },
+    {
+      "workflow": "Executive Digest",
+      "route_key": "EXECUTIVE_DIGEST",
+      "code_ref": "executive digest",
+      "source": "db",
+      "enabled": true,
+      "critical": false,
+      "to": [
+        "jaymn.judd@mascigc.com"
+      ],
+      "cc": [],
+      "bcc": [],
+      "from_email": "noreply@mascidocs.com",
+      "reply_to": "jaymn.judd@mascigc.com",
+      "sender_source": "env_masci_only",
+      "audit_shape_ok": true,
+      "delivery_target": "Resend HTTP API (re_CfH...A8kW configured)",
+      "verdict": "PASS"
+    },
+    {
+      "workflow": "Super Admin Alerts",
+      "route_key": "SUPER_ADMIN_TO",
+      "code_ref": "super admin escalation",
+      "source": "db",
+      "enabled": true,
+      "critical": true,
+      "to": [
+        "jaymn.judd@mascigc.com"
+      ],
+      "cc": [],
+      "bcc": [],
+      "from_email": "noreply@mascidocs.com",
+      "reply_to": "jaymn.judd@mascigc.com",
+      "sender_source": "env_masci_only",
+      "audit_shape_ok": true,
+      "delivery_target": "Resend HTTP API (re_CfH...A8kW configured)",
+      "verdict": "PASS"
+    },
+    {
+      "workflow": "Password Reset Monitor",
+      "route_key": "PASSWORD_RESET_MONITORING_TO",
+      "code_ref": "intentionally disabled",
+      "source": "disabled",
+      "enabled": false,
+      "critical": false,
+      "to": [],
+      "cc": [],
+      "bcc": [],
+      "from_email": "noreply@mascidocs.com",
+      "reply_to": "jaymn.judd@mascigc.com",
+      "sender_source": "env_masci_only",
+      "audit_shape_ok": true,
+      "delivery_target": "Resend HTTP API (re_CfH...A8kW configured)",
+      "verdict": "PASS"
+    }
+  ]
+}

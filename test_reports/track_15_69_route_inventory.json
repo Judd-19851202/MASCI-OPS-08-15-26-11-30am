@@ -1,0 +1,265 @@
+[
+  {
+    "route_key": "ACCOUNT_INVITES_FROM",
+    "display_name": "Account Invites Sender",
+    "critical": false,
+    "enabled": true,
+    "to": [],
+    "cc": [],
+    "bcc": [],
+    "from_email": "noreply@mascidocs.com",
+    "reply_to": "jaymn.judd@mascigc.com",
+    "description": "Per-portal welcome / invite sender + reply-to."
+  },
+  {
+    "route_key": "ADMIN_DEAD_LETTER_TO",
+    "display_name": "Admin Dead-Letter",
+    "critical": false,
+    "enabled": true,
+    "to": [
+      "safety@mascigc.com"
+    ],
+    "cc": [],
+    "bcc": [],
+    "from_email": "",
+    "reply_to": "",
+    "description": "Unresolved field-submitter identity dead-letter."
+  },
+  {
+    "route_key": "BACKUP_ALERTS",
+    "display_name": "Backup Pipeline Alerts",
+    "critical": true,
+    "enabled": true,
+    "to": [
+      "jaymn.judd@mascigc.com"
+    ],
+    "cc": [],
+    "bcc": [],
+    "from_email": "",
+    "reply_to": "",
+    "description": "Daily auto-backup and manual backup email destination."
+  },
+  {
+    "route_key": "COMPLIANCE_ALWAYS_CC",
+    "display_name": "Compliance Always-CC",
+    "critical": false,
+    "enabled": true,
+    "to": [
+      "jaymn.judd@mascigc.com",
+      "safety@mascigc.com"
+    ],
+    "cc": [],
+    "bcc": [],
+    "from_email": "",
+    "reply_to": "",
+    "description": "Office CC on every Inspection / Meeting / JHA / Daily Report / Incident / QA-QC submission."
+  },
+  {
+    "route_key": "DISPATCH_ROLE_TO",
+    "display_name": "Dispatch Role Alerts",
+    "critical": false,
+    "enabled": true,
+    "to": [
+      "jaymn.judd@mascigc.com"
+    ],
+    "cc": [],
+    "bcc": [],
+    "from_email": "",
+    "reply_to": "",
+    "description": "Dispatch-role fan-out (trench safety + dispatch board)."
+  },
+  {
+    "route_key": "EXECUTIVE_DIGEST",
+    "display_name": "Executive Digest",
+    "critical": false,
+    "enabled": true,
+    "to": [
+      "jaymn.judd@mascigc.com"
+    ],
+    "cc": [],
+    "bcc": [],
+    "from_email": "",
+    "reply_to": "",
+    "description": "Weekly exec digest (post-Wave 1 wiring)."
+  },
+  {
+    "route_key": "FIELD_LEADERSHIP_ALWAYS_TO",
+    "display_name": "Field Leadership Always-CC",
+    "critical": false,
+    "enabled": true,
+    "to": [
+      "jaymn.judd@mascigc.com",
+      "safety@mascigc.com"
+    ],
+    "cc": [],
+    "bcc": [],
+    "from_email": "",
+    "reply_to": "",
+    "description": "CC for the 10 Field Leadership form types."
+  },
+  {
+    "route_key": "HEALTH_ALERTS",
+    "display_name": "Platform Health Alerts",
+    "critical": true,
+    "enabled": true,
+    "to": [
+      "jaymn.judd@mascigc.com"
+    ],
+    "cc": [],
+    "bcc": [],
+    "from_email": "",
+    "reply_to": "",
+    "description": "Scheduler dead / backup stale / DB unreachable alerts."
+  },
+  {
+    "route_key": "INCIDENT_SEVERE_CC",
+    "display_name": "Severe Incident CC",
+    "critical": false,
+    "enabled": true,
+    "to": [],
+    "cc": [],
+    "bcc": [],
+    "from_email": "",
+    "reply_to": "",
+    "description": "Extra CCs for WV / PI / severe incidents."
+  },
+  {
+    "route_key": "OPERATOR_DIGEST_RECIPIENTS",
+    "display_name": "Daily Operator Digest",
+    "critical": false,
+    "enabled": true,
+    "to": [
+      "safety@mascigc.com"
+    ],
+    "cc": [],
+    "bcc": [],
+    "from_email": "",
+    "reply_to": "",
+    "description": "Daily operator status digest."
+  },
+  {
+    "route_key": "OUTAGE_ALERTS",
+    "display_name": "Platform Outage Alerts",
+    "critical": true,
+    "enabled": true,
+    "to": [
+      "jaymn.judd@mascigc.com"
+    ],
+    "cc": [],
+    "bcc": [],
+    "from_email": "",
+    "reply_to": "",
+    "description": "Platform-wide outage notifications."
+  },
+  {
+    "route_key": "PASSWORD_RESET_MONITORING_TO",
+    "display_name": "Password Reset Monitoring",
+    "critical": false,
+    "enabled": false,
+    "to": [],
+    "cc": [],
+    "bcc": [],
+    "from_email": "",
+    "reply_to": "",
+    "description": "Optional CC on portal reset-link sends. Off by default."
+  },
+  {
+    "route_key": "PAYROLL_VARIANCE_TO",
+    "display_name": "Payroll Variance Digest",
+    "critical": false,
+    "enabled": true,
+    "to": [
+      "jaymn.judd@mascigc.com"
+    ],
+    "cc": [],
+    "bcc": [],
+    "from_email": "",
+    "reply_to": "",
+    "description": "Weekly payroll-variance summary."
+  },
+  {
+    "route_key": "PRE_OP_FAIL_FALLBACK",
+    "display_name": "Pre-Op Fail Fallback",
+    "critical": false,
+    "enabled": true,
+    "to": [
+      "shopmanager@mascigc.com"
+    ],
+    "cc": [],
+    "bcc": [],
+    "from_email": "",
+    "reply_to": "",
+    "description": "Single fallback when shop_users collection is empty (Pre-Op fail / OOS)."
+  },
+  {
+    "route_key": "SAFETY_DIGEST_TO",
+    "display_name": "Weekly Safety Digest",
+    "critical": false,
+    "enabled": true,
+    "to": [
+      "safety@mascigc.com"
+    ],
+    "cc": [],
+    "bcc": [],
+    "from_email": "",
+    "reply_to": "",
+    "description": "Monday 14:00 UTC digest of safety metrics."
+  },
+  {
+    "route_key": "SAFETY_FORMS_TO",
+    "display_name": "Safety Forms Distribution",
+    "critical": false,
+    "enabled": true,
+    "to": [
+      "safety@mascigc.com",
+      "jaymn.judd@mascigc.com"
+    ],
+    "cc": [],
+    "bcc": [],
+    "from_email": "",
+    "reply_to": "",
+    "description": "Equipment Issuance / Training / Return \u2014 admin-edited 2026-06-22"
+  },
+  {
+    "route_key": "SUPER_ADMIN_TO",
+    "display_name": "Super Admin Escalation",
+    "critical": true,
+    "enabled": true,
+    "to": [
+      "jaymn.judd@mascigc.com"
+    ],
+    "cc": [],
+    "bcc": [],
+    "from_email": "",
+    "reply_to": "",
+    "description": "Platform-admin escalation channel."
+  },
+  {
+    "route_key": "TRENCH_SAFETY_PULSE_SAFETY",
+    "display_name": "Trench Safety Pulse \u00b7 safety role",
+    "critical": false,
+    "enabled": true,
+    "to": [
+      "safety@mascigc.com"
+    ],
+    "cc": [],
+    "bcc": [],
+    "from_email": "",
+    "reply_to": "",
+    "description": "Trench-safety pulse fan-out for the safety role."
+  },
+  {
+    "route_key": "TRENCH_SAFETY_PULSE_SHOP",
+    "display_name": "Trench Safety Pulse \u00b7 shop role",
+    "critical": false,
+    "enabled": true,
+    "to": [
+      "shopmanager@mascigc.com"
+    ],
+    "cc": [],
+    "bcc": [],
+    "from_email": "",
+    "reply_to": "",
+    "description": "Trench-safety pulse fan-out for the shop role."
+  }
+]

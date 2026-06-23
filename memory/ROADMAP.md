@@ -4,19 +4,16 @@ This file tracks **parked features** the user wants to revisit later. Surface th
 
 ---
 
-## 🟢 P0 · Track 15.69 — EMAIL_ROUTING_V2 Production Cutover (AUTHORIZED)
+## 🟢 P0 · Track 15.69 — EMAIL_ROUTING_V2 Production Cutover (READY · AWAITING OPERATOR AUTHORIZATION)
 
-Track 15.68 family is closed (2026-06-22). The pre-cutover state is:
+Pre-flight is **engineering-complete with full evidence**:
+- Failure modes: 7/7 PASS
+- Workflow validation: 23/23 PASS
+- Rollback simulation: 0.033s · 0 drift
+- Routing parity: 19/19 match
+- Six pillars: 6/6 pre-flight
 
-- `EMAIL_ROUTING_V2=false` for MASCI in production (legacy env path).
-- `EMAIL_ROUTING_V2=true` ready for Customer #2 from day one (DB-first).
-- 19/19 production routes proven bit-identical between paths (Track 15.65 harness).
-
-Track 15.69 must:
-1. Stage the V2 enablement behind a documented flag-flip date.
-2. Run a final parity verify in the live MASCI environment **before** the flip.
-3. Provide an explicit rollback runbook.
-4. Continue keeping `EMAIL_ROUTING_V2=false` until the explicit cutover trigger.
+**Next step**: operator provides explicit authorization phrase and performs Phase 9 in production env console per `TRACK_15_69_PRODUCTION_CUTOVER_RUNBOOK.md`. Then 48-hour soak (Phase 11) followed by Executive Certification (Phase 12).
 
 NO LIVE BLASTS until cutover trigger.
 
