@@ -4,18 +4,48 @@ This file tracks **parked features** the user wants to revisit later. Surface th
 
 ---
 
+## 🟢 P0 · Track 15.71 — Final Deployment Gate (GO · AWAITING OPERATOR DEPLOY PUSH)
+
+Track 15.71 closed engineering-side: 6/6 pillars, 5/5 regressions, MASCI parity preserved, 0 live blasts. Operator must push the emergent platform deploy button and run the T+0 to T+5 min post-deploy checklist.
+
 ## 🟢 P0 · Track 15.69 — EMAIL_ROUTING_V2 Production Cutover (READY · AWAITING OPERATOR AUTHORIZATION)
 
-Pre-flight is **engineering-complete with full evidence**:
-- Failure modes: 7/7 PASS
-- Workflow validation: 23/23 PASS
-- Rollback simulation: 0.033s · 0 drift
-- Routing parity: 19/19 match
-- Six pillars: 6/6 pre-flight
+Pre-flight engineering-complete with full evidence. Operator-side action required: explicit authorization phrase + flag flip in production env console + 48h soak + Executive Certification.
 
-**Next step**: operator provides explicit authorization phrase and performs Phase 9 in production env console per `TRACK_15_69_PRODUCTION_CUTOVER_RUNBOOK.md`. Then 48-hour soak (Phase 11) followed by Executive Certification (Phase 12).
+## 🟢 P0 · Track 15.72 — Production Hardening for Customer #2 Go-Live (~3-5 days)
 
-NO LIVE BLASTS until cutover trigger.
+(Renumbered from 15.71 since 15.71 was reframed as a deploy gate.) Closes the 3 BLOCKED items from Track 15.70:
+1. Gate `auth.py:59-63` MASCI owner seed by tenant_key/env (~10 LOC)
+2. Refactor `server.py:2384` and `server.py:3719` to use `branding_resolver.format_from_field()` (~12 LOC)
+3. Build manifest-driven provisioning CLI (~120 LOC)
+4. First Customer #2 dress rehearsal on a fresh Atlas cluster
+
+---
+
+---
+
+## 🟡 P1 · Track 16.x — Module Gating + Tier-2 Chrome + Backend Schema Rename (~4-6 weeks)
+
+### 16.A — Module Enablement Framework (~270 LOC)
+Backend `tenant_branding.modules_enabled` + `require_module()` FastAPI dependency + frontend `useBranding().modules` feature flag. Enables tiered SKU sales ("Safety-only", "PM + Dispatch", "Full Suite"). See `TRACK_15_70_MODULE_CERTIFICATION.md`.
+
+### 16.B — Tier-2 White-Label Deep-Content Migration (~180 files)
+- `AdminGuide.jsx` (16 hits), `MapCanvas.jsx` (13), `AssignmentCreateDrawer.jsx` (8), `OperationalGuidanceCenter.jsx` (6), `TrainingHub.jsx`, `NewMeeting.jsx`, `PublicTrenchSafetyDashboard.jsx`, `V2Compare.jsx`, ~170 more
+- Apply the `TermsOfService.jsx` `isMasci` gate pattern
+
+### 16.C — Backend Schema Rename
+- `masci_equipment_id` / `masci_employee_id` → `internal_*` with backwards-compat shim
+- 30-day deprecation soak then drop alias
+
+### 16.D — Single-Cluster Multi-Tenant Support (OPTIONAL)
+Adding `tenant_key` to the 178 currently-unscoped collections would enable shared-cluster deployment for cost-sensitive customers. Major effort. Only do if a customer specifically requires it (e.g., shared-tenant SaaS economics demand it).
+
+---
+
+## 🟡 P2 · Resend webhook listener
+40-LOC FastAPI handler at `/api/webhooks/resend` mirroring delivery events into `email_routing_audit_v2`. Turns audit drawer into real-time delivery dashboard.
+
+---
 
 ---
 

@@ -24,7 +24,7 @@
     },
     {
       "event": "t1_flipped_to_on",
-      "elapsed_s": 1.001,
+      "elapsed_s": 0.967,
       "sources": {
         "db": 18,
         "disabled": 1
@@ -32,7 +32,7 @@
     },
     {
       "event": "t2_rolled_back_to_off",
-      "elapsed_s": 1.034,
+      "elapsed_s": 0.999,
       "rollback_duration_s": 0.033,
       "sources": {
         "legacy": 19

@@ -1,10 +1,10 @@
 # TRACK 15.67 · Customer #2 Contamination Scan
 
-_Generated 2026-06-22T19:06:09.938810+00:00_
+_Generated 2026-06-23T12:30:15.514594+00:00_
 
 ## Summary
 
-- Total MASCI-flavour hits: **12269**
+- Total MASCI-flavour hits: **12805**
 - Disallowed customer-visible surface hits: **425**
 - Verdict: **❌ FAIL**
 
@@ -12,10 +12,10 @@ _Generated 2026-06-22T19:06:09.938810+00:00_
 
 | Category | Hits | Allowed? |
 |---|---:|:--:|
-| historical_migration | 6940 | YES |
-| test_fixture | 1796 | YES |
+| historical_migration | 7378 | YES |
+| test_fixture | 1891 | YES |
 | backend_internal | 1153 | YES (docstrings/comments) |
-| masci_tenant_config | 1001 | YES |
+| masci_tenant_config | 1004 | YES |
 | uncategorized | 979 | REVIEW |
 | masci_data_library | 400 | YES (asset/i18n library) |
 
@@ -449,7 +449,7 @@ _Generated 2026-06-22T19:06:09.938810+00:00_
 
 ## Sample Allowed Hits
 
-### historical_migration (6940)
+### historical_migration (7378)
 
 - `backend/scripts/seed_pm_demo_fixture.py`
 - `backend/scripts/track_15_65_parity_verify.py`
@@ -460,7 +460,7 @@ _Generated 2026-06-22T19:06:09.938810+00:00_
 - `memory/ACCOUNTABILITY_ENGINE_AUDIT.md`
 - `memory/ACTIVE_FINDINGS_VERIFICATION.md`
 
-### test_fixture (1796)
+### test_fixture (1891)
 
 - `backend/tests/odr/test_m1_option_c.py`
 - `backend/tests/odr/test_odr_m02.py`
@@ -482,7 +482,7 @@ _Generated 2026-06-22T19:06:09.938810+00:00_
 - `backend/data/equipment_master.20260428-030440.bak.json`
 - `backend/data/equipment_master.20260428-212813.bak.json`
 
-### masci_tenant_config (1001)
+### masci_tenant_config (1004)
 
 - `backend/auth.py`
 - `backend/backup_verification.py`

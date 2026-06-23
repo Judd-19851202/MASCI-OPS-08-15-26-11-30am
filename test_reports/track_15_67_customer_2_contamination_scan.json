@@ -1,5 +1,5 @@
 {
-  "ts": "2026-06-22T19:06:09.938810+00:00",
+  "ts": "2026-06-23T12:30:15.514594+00:00",
   "needles": [
     "MASCI",
     "mascigc\\.com",
@@ -14,7 +14,7 @@
   ],
   "by_category": {
     "masci_tenant_config": {
-      "count": 1001,
+      "count": 1004,
       "samples": [
         "backend/auth.py",
         "backend/backup_verification.py",
@@ -49,7 +49,7 @@
       ]
     },
     "test_fixture": {
-      "count": 1796,
+      "count": 1891,
       "samples": [
         "backend/tests/odr/test_m1_option_c.py",
         "backend/tests/odr/test_odr_m02.py",
@@ -99,7 +99,7 @@
       ]
     },
     "historical_migration": {
-      "count": 6940,
+      "count": 7378,
       "samples": [
         "backend/scripts/seed_pm_demo_fixture.py",
         "backend/scripts/track_15_65_parity_verify.py",
@@ -204,7 +204,7 @@
       ]
     }
   },
-  "total_hits": 12269,
+  "total_hits": 12805,
   "disallowed_hits": [
     {
       "path": "frontend/src/design-system/PortalShell.jsx",
