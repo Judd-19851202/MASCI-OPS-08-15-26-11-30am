@@ -1,0 +1,60 @@
+{
+  "ts": "2026-06-23T16:20:02.375084+00:00",
+  "base_url": "https://safety-audit-mobile-1.preview.emergentagent.com",
+  "checks": {
+    "health_full": {
+      "status": 200,
+      "body": {
+        "ok": true,
+        "mongo": true,
+        "scheduler": true,
+        "backup_recent": true
+      }
+    },
+    "branding_current": {
+      "status": 200,
+      "body": {
+        "tenant_key": "masci",
+        "company_name": "MASCI",
+        "platform_display_name": "MASCI Operations Platform",
+        "platform_short_name": "MASCI Hub",
+        "support_email": "safety@mascigc.com",
+        "safety_email": "safety@mascigc.com",
+        "hr_email": "",
+        "operations_email": "",
+        "logo_url": "",
+        "primary_color": "#C8102E",
+        "marketing_url": "https://mascidocs.com"
+      }
+    },
+    "email_routes_count": 19,
+    "email_routes_keys": [
+      "ACCOUNT_INVITES_FROM",
+      "ADMIN_DEAD_LETTER_TO",
+      "BACKUP_ALERTS",
+      "COMPLIANCE_ALWAYS_CC",
+      "DISPATCH_ROLE_TO",
+      "EXECUTIVE_DIGEST",
+      "FIELD_LEADERSHIP_ALWAYS_TO",
+      "HEALTH_ALERTS",
+      "INCIDENT_SEVERE_CC",
+      "OPERATOR_DIGEST_RECIPIENTS",
+      "OUTAGE_ALERTS",
+      "PASSWORD_RESET_MONITORING_TO",
+      "PAYROLL_VARIANCE_TO",
+      "PRE_OP_FAIL_FALLBACK",
+      "SAFETY_DIGEST_TO",
+      "SAFETY_FORMS_TO",
+      "SUPER_ADMIN_TO",
+      "TRENCH_SAFETY_PULSE_SAFETY",
+      "TRENCH_SAFETY_PULSE_SHOP"
+    ],
+    "email_routes_recipients_sha256": "14da1e3c6e1a9055ce8f08ce3bb24a1b595bc330c75abc7fe400e562826d2c10",
+    "email_routing_audit_v2_total": 20,
+    "email_routing_audit_v2_last_hour": 0,
+    "users_count": 5,
+    "tenant_branding_count": 3,
+    "incidents_count": 70
+  },
+  "pass": true
+}
