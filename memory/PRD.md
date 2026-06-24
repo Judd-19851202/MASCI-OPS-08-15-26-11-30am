@@ -11,6 +11,42 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-06-24 · TRACK 15.76 · Platform Trust Spine Completion · 🟢 GO)
+
+### Mission
+Every operational workflow continuously proves it is healthy via a published lifecycle. One admin dashboard answers "is the platform healthy?" in under a minute. No fake green. No silent failures.
+
+### Verdict
+🟢 **GO** — 11 workflows onboarded · Platform Trust Dashboard mounted at `/admin/email` · P0 silent-failure defect surfaced + fixed (`render_email_html` NameError on `_wl`) · 19 regression tests added (backend 100%) · No fake green.
+
+### What shipped
+- `lib/trust_spine.py` extended with `emit_record_created`, `emit_workflow_stage`, `attach_correlation`, `WORKFLOW_EXPECTED_STAGES`.
+- `routes/admin_trust_spine.py` rewritten with no-fake-green band logic + drill-in endpoint (`/api/admin/trust-spine/workflow/{workflow}`).
+- `server.py` `_dispatch_auto_email` instrumented with full lifecycle emits (routing_resolved → recipients_built → notification_queued → provider_accepted → audit_written → completed). Threads correlation_id from record across all stages.
+- `emit_record_created` hooks added to: daily_reports, safety (inspection/meeting/jha/incident), qaqc, equipment (pre-op + dvir), employee_requests (hr-request), dispatch_lifecycle (dispatch-assignment), fleet_ops (shop-defect).
+- `PlatformTrustDashboard.jsx` — new single-page operator surface mounted above `PlatformTrustValidator` in `AdminEmail.jsx`. Universal band · per-workflow table · click-to-expand drill-in with expected stages + missing stages + failure stage + remediation + 50 newest events.
+- `pdf_render.py` — P0 fix: `render_email_html` now resolves `_wl` locally (was a silent NameError breaking every meeting/incident email).
+- 19 regression tests: `test_track_15_76_trust_spine.py` (5) + `test_track_15_76_trust_spine_extended.py` (5) + `test_track_15_76_email_render_wl_regression.py` (9).
+
+### Six pillars
+- **Powerful**: 11 workflows publishing 5-to-9-stage lifecycles; exact failure stage + record_id surfaced.
+- **Simple**: one screen, one truth — no shell scripts, no Mongo queries, no DevTools.
+- **Beautiful**: calm slate/amber/rose palette; drill-in panels render in operational language.
+- **Trusted**: 19 tests enforce no-fake-green; failure path always emits a visible `completed` event.
+- **Proven**: P0 defect already caught by the spine on day one.
+- **Deployable**: additive, rollbackable; best-effort emit helpers never break workflows.
+
+### Backlog
+- P1 Master Data Protection — drift detection on employees/equipment/projects/PM assignments.
+- P1 Track 15.72 Provisioning CLI / Manifest (Customer #2 Atlas, R2, Resend).
+- P2 Track 16.x Module Gating (SKU tiering).
+- Data hygiene: 247/705 equipment_master rows missing `unit_number` (operator action).
+
+### Files
+`/app/memory/TRACK_15_76_FINAL_CERTIFICATION.md` for full audit trail.
+
+
+
 ## Latest Track (2026-02-11 · TRACK 15.73Q · DR PM-Email Coverage Restoration · 🟢 GO)
 
 ### Mission
