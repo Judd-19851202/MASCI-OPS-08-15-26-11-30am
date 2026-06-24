@@ -1,0 +1,52 @@
+{
+  "summary": "TRACK 15.75C universal email-audit-parity certification CERTIFIED. Full combined regression suite (15.75C + 15.75B + 15.75A + 15.74 + 15.73Q) = 32/32 backend tests PASSED in 13.33s. All 15 new 15.75C tests pass: 12 parametrized (6 kinds [daily-report, meeting, incident, qaqc, jha, inspection] x 2 outcomes [sent, failed]) + 3 contract guards (shop kind preserved distinct calling_module, universal audit row distinct from routing-decision row, v2/status endpoint includes sent rows). Live admin probes: GET /api/admin/email-routing/v2/status -> 200 with mode='v2', flag_active=true, critical_empty_route_keys=[], band='green'. GET /api/admin/pm-email-coverage -> 200 with track='15.75A' and the full summary{} counters block (active_total=30, active_with_pm_email=23, active_missing_pm_email=7). Backend-only as requested.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_track_15_75c_universal_audit_parity.py",
+    "/app/backend/tests/test_track_15_75b_shop_delivery.py",
+    "/app/backend/tests/test_track_15_75a_roster_pm_routing.py",
+    "/app/backend/tests/test_track_15_74_dead_letter_audit_trust.py",
+    "/app/backend/tests/test_track_15_73q_pm_email_coverage.py",
+    "/app/test_reports/pytest/track_15_75c_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "TRACK 15.75C is purely additive in server._dispatch_auto_email: the universal per-send audit-row block replaces the kind-gated 15.75B block, so EVERY workflow kind (daily-report, meeting, incident, qaqc, jha, inspection) now writes an email_routing_audit_v2 row on both success ('sent' + resend_message_id) and failure ('failed' + error). The 15.75B shop-specific semantics (calling_module='shop_preop_dispatch', route_key='PRE_OP_FAIL_FALLBACK') are preserved under the if kind=='equipment-inspection' branch; non-shop kinds get calling_module='auto_email_dispatch:{kind}' and route_key='AUTO_EMAIL_REPORTS'. Contract-guard test test_shop_kind_still_uses_distinct_calling_module confirms the shop path is not regressed.",
+    "Allowed-status enforcement holds: every test row written ('sent', 'failed') is in the locked allowed set {sent, failed, dry_run, resolved, routed_to_dead_letter, dead_letter_unconfigured, shop_recipient_unconfigured, escalated_to_admin_dead_letter}. The /api/admin/email-routing/v2/status endpoint surfaces these rows via audit_counters (total=125, last_24h=104, errors_last_24h=0).",
+    "Best-effort observability respected: per-send audit-row write is wrapped in try/except so a Mongo failure to record the audit row cannot block the actual Resend send. No regression risk to the email delivery path itself.",
+    "Live preview-env health is green: critical_empty_route_keys=[], band='green', flag_active=true, mode='v2'. No empty critical routes, no errors_last_24h, db_source_last_24h=103 (audit writes are landing in the canonical v2 collection, not legacy).",
+    "PM-email-coverage endpoint correctly NOT version-bumped (track='15.75A' as called out in the request) — 15.75C is an audit-row trust pass and does not change roster resolution shape; the summary{} block (active_total=30, active_missing_pm_email=7, active_with_co_pm_email_only=2) is unchanged from the 15.75A coverage contract.",
+    "Test isolation is clean: all 15 new 15.75C tests use unique resend_message_id/subject keys and self-clean via delete_many in try/finally fixtures. No orphan rows accumulated in email_routing_audit_v2 (audit_counters last_hour=0 confirms a quiet baseline after test run)."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "100% (32/32)",
+    "frontend": "N/A (backend-only test request)"
+  },
+  "test_credentials": "Super-admin token generated at runtime via user_directory.make_directory_admin_token() against jaymn.judd@mascigc.com user row (password_hash bound). Token format <user_id>.<hmac_hex>, 101 chars. Regenerate via the snippet in the original request; not persisted here for security.",
+  "seed_data_creation": "None. 15.75C tests insert disposable rows into email_routing_audit_v2 keyed by unique TEST_ subjects + resend_message_ids and self-clean on teardown. Live admin endpoint probes were read-only.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "TRACK 15.75C extends the per-send audit-row contract from shop/equipment-inspection only (15.75B) to ALL workflow kinds (daily-report, meeting, incident, qaqc, jha, inspection). Implementation lives in server._dispatch_auto_email: the universal audit-write block runs after the Resend call regardless of kind, with kind=='equipment-inspection' selecting calling_module='shop_preop_dispatch' + route_key='PRE_OP_FAIL_FALLBACK', otherwise calling_module='auto_email_dispatch:{kind}' + route_key='AUTO_EMAIL_REPORTS'. Statuses extended to {sent, failed} on this path; full allowed set locked at {sent, failed, dry_run, resolved, routed_to_dead_letter, dead_letter_unconfigured, shop_recipient_unconfigured, escalated_to_admin_dead_letter}. No PM routing logic touched, no Email Routing V2 flag toggled, no iter238 shop directive changed. The pm-email-coverage endpoint stays at track='15.75A' (intentionally not version-bumped). Combined regression: 32/32 PASS in 13.33s. Live env band='green', critical_empty_route_keys=[].",
+  "live_endpoint_verification": {
+    "GET /api/admin/email-routing/v2/status (super-admin token)": "HTTP 200, mode='v2', flag_active=true, app_env='preview', db_name='masci_safety_preview', critical_empty_route_keys=[], band='green', band_reason='V2 routing healthy', audit_counters.total=125, last_24h=104, errors_last_24h=0",
+    "GET /api/admin/pm-email-coverage (super-admin token)": "HTTP 200, track='15.75A', summary{active_total:30, active_with_pm_email:23, active_missing_pm_email:7, active_with_pm_name_no_email:0, active_with_co_pm_email_only:2, active_total_no_pm_no_copm:5, active_malformed_pm_email:0}, missing_rows_top_25 populated with 7 entries (pm_email_blank), remediation_note references TRACK 15.75A roster resolver."
+  },
+  "regression_test_breakdown": {
+    "TRACK 15.75C universal audit parity": "15/15 PASS (6 kinds x 2 outcomes = 12 parametrized + 3 contract guards)",
+    "TRACK 15.75B shop delivery": "6/6 PASS",
+    "TRACK 15.75A roster PM routing": "6/6 PASS",
+    "TRACK 15.74 dead-letter audit trust": "2/2 PASS",
+    "TRACK 15.73Q PM email coverage": "3/3 PASS",
+    "TOTAL": "32/32 PASS in 13.33s"
+  },
+  "rca of the issue": "N/A — no defects found in this certification. Main agent's TRACK 15.75C fix correctly closes the final log-only audit gap by extending the per-send/per-failure audit-row contract from kind=='equipment-inspection' (15.75B) to all six workflow kinds. The shop_preop_dispatch / PRE_OP_FAIL_FALLBACK semantics for equipment-inspection are preserved exactly (verified by test_shop_kind_still_uses_distinct_calling_module). Universal audit rows for non-shop kinds use calling_module='auto_email_dispatch:{kind}' + route_key='AUTO_EMAIL_REPORTS', and are distinct from routing-decision rows (verified by test_universal_audit_row_distinct_from_routing_decision). All audit writes land in the canonical email_routing_audit_v2 collection (db_source_last_24h=103 vs legacy_source_last_24h=0). Live admin endpoint shape and counters match the spec verbatim."
+}
