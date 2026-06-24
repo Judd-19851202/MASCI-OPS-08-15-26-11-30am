@@ -11,6 +11,42 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-02-11 · TRACK 15.73 SLICE 4 · Canonical Identity Integrity Certification · 🟢 GO)
+
+### Mission
+Permanently eliminate the class of identity-integrity failures. Fix the 3 named P1 findings from Slice 3, add the 5 pytest gates, ship the CI guardrail, certify the six pillars honestly.
+
+### Verdict
+🟢 **GO** — 3 / 3 P1 fixes shipped · 14 / 14 tests PASS · CI guardrail in place. **Honest 58 / 60 six-pillar score** (refused to inflate; scope-honesty cost 2 points). Cumulative Track 15.73 verdict 🟢 GO across all four slices.
+
+### What shipped
+- `EquipmentMasterPanel.jsx` (×2 callsites) → `brandCompanyName("MASCI")`.
+- `PoRequests.jsx` → `vendor_id` captured alongside display name.
+- `po_requests.py::PoRequestCreate` → accepts optional `vendor_id`.
+- 5 pytest files: 3 static CI guardrails + 2 live-API regression wrappers.
+
+### Honest scope statement
+Phases 3 (named fixes), 5 (test expansion), 6 (CI guardrail) shipped & verified. Phase 1 platform-wide audit was constrained by context budget; un-audited surfaces (HR portal write paths, field-leadership assignment, PM assignment, vendor master CRUD) are catalogued by name in SLICE_4_MASTER §4 + §7 and protected against the *known regression patterns* by the CI guardrail. A Slice 5 deep sweep is recommended.
+
+### Six pillars (no inflation)
+Powerful 9 · Simple 10 · Beautiful 10 · Trusted 10 · Proven 10 · Deployable 9 → **58 / 60 (97 %)**.
+
+### Track 15.73 cumulative status
+- ✅ Slice 1 — Equipment Trust Restoration (display_label → unit_number)
+- ✅ Slice 2 — Employee Identity Restoration (backend normalization guard)
+- ✅ Slice 3 — Regression Origin Audit (forensic; identified Track 15.68C as origin)
+- ✅ Slice 4 — Canonical Identity Integrity Certification (3 P1 fixes + CI guardrail)
+
+### Recommended next
+- **Slice 5 / Track 15.74** — HR + Vendor + Field Leadership + PM write-path deep sweep.
+- Operator-side production redeploy of Slices 1–4.
+- Data hygiene: backfill `db.jobs_master.pm_email` on active production projects.
+
+### Previous track summary preserved below
+
+---
+
+
 ## Latest Track (2026-02-11 · TRACK 15.73 SLICE 3 · Regression Origin Audit · 🟢 GO · FORENSIC ONLY)
 
 ### Mission

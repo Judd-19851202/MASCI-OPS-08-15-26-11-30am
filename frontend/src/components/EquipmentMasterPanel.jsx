@@ -90,7 +90,14 @@ const blankUnit = {
   vin_serial_number: "",
   category: "",
   preop_equipment_type: "Other",
-  company: brandCompanyName("Customer"),
+  // Track 15.73 Slice 4 · canonical identity preservation. Equipment
+  // master rows must default to the tenant-canonical OurCo company,
+  // never the generic "Customer" cold-fallback (which Track 15.68C
+  // white-label migration introduced as a regression elsewhere — see
+  // TRACK_15_73_SLICE_3_MASTER.md §1 Regression B). When sessionStorage
+  // branding is not yet warmed, fall back to "MASCI" (the canonical
+  // OurCo single-tenant deploy name), NOT "Customer".
+  company: brandCompanyName("MASCI"),
   comments: "",
 };
 
@@ -187,7 +194,7 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
       vin_serial_number: u.vin_serial_number || "",
       category: u.category || "",
       preop_equipment_type: u.preop_equipment_type || "Other",
-      company: u.company || brandCompanyName("Customer"),
+      company: u.company || brandCompanyName("MASCI"),  // Track 15.73 Slice 4 · canonical default.
       comments: u.comments || "",
     });
     setOpen(true);

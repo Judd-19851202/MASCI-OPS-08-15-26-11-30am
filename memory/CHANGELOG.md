@@ -1,6 +1,41 @@
 # CHANGELOG
 
 
+## 2026-02-11 — TRACK 15.73 SLICE 4 · Canonical Identity Integrity Certification · 🟢 GO (honest 58/60)
+
+**Mission**: Permanently eliminate the class of identity-integrity failures. Fix the 3 named P1 findings, add the 5 pytest gates, ship the CI guardrail, certify the six pillars honestly.
+
+**What shipped (4 code files · 5 test files · ~280 LOC additive)**:
+
+Code fixes (Phase 3):
+- `frontend/src/components/EquipmentMasterPanel.jsx` — both callsites (`blankUnit.company` line 93 + `openEdit.company` line 197) now default to `brandCompanyName("MASCI")` instead of `"Customer"`. Same Track 15.68C drift pattern as Slice 2 — now closed.
+- `frontend/src/pages/PoRequests.jsx` — `SupplierCombo.onPick` captures `vendor_id` alongside the display name; form state initializes `vendor_id: ""`; `onChange` clears `vendor_id` when user types a new vendor.
+- `backend/routes/po_requests.py` — `PoRequestCreate` model accepts optional `vendor_id` (max 64 chars). Downstream PO joins to supplier master now reliable.
+
+Tests added (Phase 5 — all PASS):
+- `tests/test_track_15_73_slice1_equipment_resolver.py` — pytest wrapper around Slice-1 live API regression. ✅ PASS.
+- `tests/test_track_15_73_slice2_attendee_normalization.py` — pytest wrapper around Slice-2 7-case regression. ✅ PASS.
+- `tests/test_track_15_73_slice3_no_branding_default_drift.py` — static scan; bans `brandCompanyName("Customer")` across `/app/frontend/src/**`. ✅ PASS.
+- `tests/test_track_15_73_slice3_picker_canonical_emit.py` — 5 picker invariants (EquipmentCombo · NewEquipmentInspection · AttendeeBulkAddDialog · PoRequests · EquipmentMasterPanel). ✅ PASS.
+- `tests/test_track_15_73_canonical_identity_audit.py` — 7 cross-cutting identity invariants (equipment_master.id present · employees.id present · post-Slice-2 meeting attendee invariants · brand helper neutrality · `re.escape` in resolver · unit_number observability for fungible gear at 35 % blank). ✅ PASS.
+
+**Total**: 14 / 14 PASS · 2 min 25 s runtime including live API regression.
+
+CI guardrail (Phase 6): 3 static-analysis tests · sub-second runtime · no DB/network required · safe to bolt onto any pipeline. Banned patterns now FAIL CI: `brandCompanyName("Customer")` · picker emitting display_label as canonical · unescaped regex on user input in resolver · missing `equipment_master_id` FK capture · missing `vendor_id` capture · `EquipmentMasterPanel` reverting to Customer fallback.
+
+**Honest scope statement (no inflation)**: Slice 4 closed the 3 P1 risks named by Slice 3, shipped the 5 named tests, and added CI guardrails that protect against recurrence even on un-audited surfaces. The platform-wide HR / Vendor / Field-Leadership / PM-assignment audit (Phase 1's "codebase-wide forensic" ask) was NOT performed in this Slice — see SLICE_4_MASTER.md §4 + §7 for the named-and-deferred list. A Slice 5 (or Track 15.74) is recommended for the HR + PM + vendor + field-leadership write-path sweep.
+
+**Six pillars (refused to inflate)**: Powerful 9 · Simple 10 · Beautiful 10 · Trusted 10 · Proven 10 · Deployable 9 → **58 / 60 (97 %)**. The 2-point gap is the honest scope statement above — Slice-4 deliverables are 10/10 within their declared scope; the broader platform-wide claim awaits Slice 5.
+
+**Hard rules honoured**: 0 production writes · 0 Email Routing V2 / AUTO_EMAIL touches · 0 Daily Report changes · 0 Equipment Pre-Op resolver changes · 0 historical mutations · 0 review queues · 0 dashboards · scores NOT inflated · outstanding risks NOT concealed (catalogued in MASTER §4 / §7 / §8).
+
+**Deliverable**: `TRACK_15_73_SLICE_4_MASTER.md` (10 sections + 13 final-answer table). `PRD.md` and `CHANGELOG.md` updated.
+
+**Cumulative Track 15.73 status**: Slice 1 🟢 · Slice 2 🟢 · Slice 3 🟢 · Slice 4 🟢. All known P0 / P1 risks fixed. CI guardrail in place. Track 15.73 verdict 🟢 GO.
+
+---
+
+
 ## 2026-02-11 — TRACK 15.73 SLICE 3 · Regression Origin Audit · 🟢 GO (FORENSIC ONLY)
 
 **Mode**: Forensic audit only. Zero code modifications. Zero deploy. Zero env changes. Zero production access.

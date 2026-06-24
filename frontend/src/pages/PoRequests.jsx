@@ -420,7 +420,7 @@ function SummaryTile({ label, value, icon: Icon, accent }) {
 function AddDialog({ open, setOpen, onSaved }) {
   const { t } = useT();
   const empty = {
-    project_number: "", project_name: "", vendor: "", description: "",
+    project_number: "", project_name: "", vendor: "", vendor_id: "", description: "",
     estimated_amount: "", category: "Materials", urgency: "Normal",
     needed_by_date: "", notes: "", supervisor_signature: "",
   };
@@ -478,8 +478,17 @@ function AddDialog({ open, setOpen, onSaved }) {
             <Label>{t("Vendor / Subcontractor")} *</Label>
             <SupplierCombo
               value={form.vendor}
-              onChange={(v) => setForm((f) => ({ ...f, vendor: v }))}
-              onPick={(sup) => setForm((f) => ({ ...f, vendor: sup?.name || f.vendor }))}
+              onChange={(v) => setForm((f) => ({ ...f, vendor: v, vendor_id: "" }))}
+              onPick={(sup) => setForm((f) => ({
+                ...f,
+                // Track 15.73 Slice 4 · canonical identity preservation.
+                // Persist `vendor_id` alongside the display name so
+                // downstream PO reporting can join back to the vendor
+                // master record reliably. The display name remains for
+                // UX, but the resolver-preferred key is `vendor_id`.
+                vendor: sup?.name || f.vendor,
+                vendor_id: sup?.id || sup?.vendor_id || "",
+              }))}
               placeholder={t("Search vendors or add a new one…")}
               testId="po-add-vendor"
               className="mt-1"

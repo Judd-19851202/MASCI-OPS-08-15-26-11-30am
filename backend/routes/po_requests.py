@@ -62,6 +62,12 @@ RECEIPT_GRACE_DAYS = int(os.environ.get("PO_RECEIPT_GRACE_DAYS", "7"))
 class PoRequestCreate(BaseModel):
     project_number: str = Field(..., min_length=1, max_length=64)
     vendor: str = Field(..., min_length=1, max_length=120)
+    # Track 15.73 Slice 4 · canonical identity preservation. Optional
+    # vendor master record reference. UI populates this when the user
+    # picks a vendor from the SupplierCombo dropdown. Display name
+    # stays in `vendor` for human-readable PDFs / lists; `vendor_id` is
+    # the resolver-preferred key for downstream joins.
+    vendor_id: Optional[str] = Field(default=None, max_length=64)
     description: str = Field(..., min_length=1, max_length=2000)
     estimated_amount: float = Field(..., ge=0)
     category: str = Field(default="Materials")
