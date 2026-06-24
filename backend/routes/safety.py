@@ -118,6 +118,11 @@ class MeetingAttendee(BaseModel):
     `acknowledged` is REQUIRED to be True at submit-time. Accept
     `acknowledged_at` (ISO timestamp) as supplementary proof. Signature
     image-data is required.
+
+    Track 15.73 Slice 2 · derived identity fields are populated by the
+    backend `normalize_meeting_attendees` guard on submit; clients SHOULD
+    NOT set them directly (they are recomputed authoritatively from the
+    canonical `employees` collection).
     """
     model_config = ConfigDict(extra="allow")
     name: str
@@ -128,6 +133,13 @@ class MeetingAttendee(BaseModel):
     signature: str  # data:image/* — required
     acknowledged: bool = False
     acknowledged_at: Optional[str] = ""
+    # Track 15.73 Slice 2 · canonical identity discriminators (backend-owned).
+    attendee_type: Optional[str] = ""           # "employee" | "subcontractor" | "manual"
+    source: Optional[str] = ""                  # "employee_master" | "subcontractor_directory" | "manual"
+    is_masci_employee: Optional[bool] = False
+    is_subcontractor: Optional[bool] = False
+    is_manual: Optional[bool] = False
+    review_status: Optional[str] = ""           # "" | "needs_review"
 
     @field_validator("name")
     @classmethod
@@ -595,6 +607,21 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
     async def create_meeting(payload: MeetingCreate):
         meeting = Meeting(**payload.model_dump())
         doc = meeting.model_dump()
+        # Track 15.73 Slice 2 · authoritative attendee identity normalization.
+        # Recompute attendee_type / source / is_* flags from the trusted
+        # `employees` collection so the frontend cannot misclassify a
+        # roster-selected MASCI employee as manual/subcontractor (or vice
+        # versa). Also dedupes by employee_id within the meeting.
+        try:
+            from lib.meeting_identity import normalize_meeting_attendees  # noqa: PLC0415
+            doc["attendees"] = await normalize_meeting_attendees(
+                db, doc.get("attendees") or [],
+            )
+            meeting.attendees = doc["attendees"]
+        except Exception:
+            # Identity normalization is additive — if it fails we still
+            # persist the raw client payload so the meeting is not lost.
+            pass
         from doc_ids import ensure_doc_id
         await ensure_doc_id(db, doc, "MTG", when=doc.get("meeting_date") or doc.get("created_at"))
         meeting.doc_id = doc["doc_id"]

@@ -494,20 +494,50 @@ def register_asset_spine_routes(
         Safety · Reports) can call this with either a unit_number (e.g.
         ``TB-01``) or an equipment_master id (UUID) and get back the
         canonical classification + verification state. No fabrication.
+
+        Track 15.73 Slice 1 · resolver hardened to tolerate display_label
+        payloads (e.g. ``"RG007-0869 — 2025 JOHN DEERE 672G"``) that
+        historic callers stored in ``equipment_inspections.equipment_unit``
+        before the frontend fix. The leading token before the em-dash /
+        hyphen separator is extracted and retried so existing audit data
+        resolves to its canonical equipment_master record without
+        re-keying.
         """
         from services.asset_taxonomy import resolve_classification
+        import re as _re
         # Try id first, then unit_number (case-insensitive).
         doc = await db.equipment_master.find_one(
             {"id": unit_or_id}, {"_id": 0}
         )
+        resolution_source = "id" if doc else None
         if not doc:
             doc = await db.equipment_master.find_one(
-                {"unit_number": {"$regex": f"^{unit_or_id}$", "$options": "i"}}, {"_id": 0}
+                {"unit_number": {"$regex": f"^{_re.escape(unit_or_id)}$", "$options": "i"}},
+                {"_id": 0},
             )
+            if doc:
+                resolution_source = "unit_number"
+        # Track 15.73 Slice 1 · graceful fallback: extract the leading
+        # token before an em-dash / hyphen separator. Real submissions
+        # like "RG007-0869 — 2025 JOHN DEERE 672G" → "RG007-0869".
+        if not doc:
+            leading = unit_or_id
+            for sep in (" \u2014 ", " - ", "\u2014", "\u2013"):
+                if sep in leading:
+                    leading = leading.split(sep, 1)[0].strip()
+                    break
+            if leading and leading != unit_or_id:
+                doc = await db.equipment_master.find_one(
+                    {"unit_number": {"$regex": f"^{_re.escape(leading)}$", "$options": "i"}},
+                    {"_id": 0},
+                )
+                if doc:
+                    resolution_source = "display_label_strip"
         if not doc:
             return {
                 "found": False,
                 "unit_number": unit_or_id,
+                "resolution_source": "not_found",
                 **resolve_classification(None),
             }
         classification = resolve_classification(doc)
@@ -516,6 +546,7 @@ def register_asset_spine_routes(
             "id": doc.get("id"),
             "unit_number": doc.get("unit_number") or "",
             "display_label": doc.get("display_label") or doc.get("label") or "",
+            "resolution_source": resolution_source,
             **classification,
         }
 

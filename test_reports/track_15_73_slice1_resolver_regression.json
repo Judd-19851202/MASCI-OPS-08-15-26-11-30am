@@ -1,0 +1,136 @@
+{
+  "real_total": 297,
+  "synthetic_total": 54,
+  "real_resolution": {
+    "unit_number": 3,
+    "display_label_strip": 13,
+    "id": 0,
+    "not_found": 281,
+    "error": 0
+  },
+  "synthetic_resolution": {
+    "unit_number": 0,
+    "display_label_strip": 0,
+    "id": 0,
+    "not_found": 50,
+    "error": 0
+  },
+  "real_rescued_examples": [
+    {
+      "submitted": "DZ007-1583 \u2014 2025 JOHN DEERE 700 P-TIER",
+      "resolved_unit_number": "DZ007-1583",
+      "asset_type": "Dozer"
+    },
+    {
+      "submitted": "EXC-0189 \u2014 2024 HITACHI ZX50U-5N",
+      "resolved_unit_number": "EXC-0189",
+      "asset_type": "Excavator"
+    },
+    {
+      "submitted": "EXC-0364 \u2014 2022 HYUNDAI HX210A",
+      "resolved_unit_number": "EXC-0364",
+      "asset_type": "Excavator"
+    },
+    {
+      "submitted": "EXC-1490 \u2014 2023 LINK BELT 75X3",
+      "resolved_unit_number": "EXC-1490",
+      "asset_type": "Excavator"
+    },
+    {
+      "submitted": "LDR015-2020 \u2014 2012 John Deere 544K",
+      "resolved_unit_number": "LDR015-2020",
+      "asset_type": "Loader"
+    },
+    {
+      "submitted": "LDR020-6291 \u2014 2017 Case 521F Rubber Tired",
+      "resolved_unit_number": "LDR020-6291",
+      "asset_type": "Loader"
+    },
+    {
+      "submitted": "RG007-0869 \u2014 2025 JOHN DEERE 672G",
+      "resolved_unit_number": "RG007-0869",
+      "asset_type": "Motor Grader"
+    },
+    {
+      "submitted": "RL-1065 \u2014 2012 HAMM HD 70",
+      "resolved_unit_number": "RL-1065",
+      "asset_type": "Roller"
+    },
+    {
+      "submitted": "RL-3880 \u2014 2022 DYNAPAC CA3500D",
+      "resolved_unit_number": "RL-3880",
+      "asset_type": "Roller"
+    },
+    {
+      "submitted": "SKD-4046 \u2014 2023 JOHN DEERE 325G",
+      "resolved_unit_number": "SKD-4046",
+      "asset_type": "Skid Steer"
+    },
+    {
+      "submitted": "SKD-6239 \u2014 2021 JOHN DEERE 325G RUBBER TRACK",
+      "resolved_unit_number": "SKD-6239",
+      "asset_type": "Skid Steer"
+    },
+    {
+      "submitted": "SKD-7685 \u2014 2025 JOHN DEERE 325G",
+      "resolved_unit_number": "SKD-7685",
+      "asset_type": "Loader"
+    },
+    {
+      "submitted": "SWP-4320 \u2014 2013 Lay Mor SM300",
+      "resolved_unit_number": "SWP-4320",
+      "asset_type": "Other Truck"
+    }
+  ],
+  "real_not_found_examples": [
+    "325g",
+    "D52-BACKHOE-0aa48fa8",
+    "D52-BACKHOE-0b1aa8bd",
+    "D52-BACKHOE-30457167",
+    "D52-BACKHOE-447b20f4",
+    "D52-BACKHOE-91edb3a1",
+    "D52-BACKHOE-92ac66d2",
+    "D52-BACKHOE-9455fc78",
+    "D52-BACKHOE-a9f87377",
+    "D52-BACKHOE-c6ab3f71",
+    "D52-BACKHOE-d519795e",
+    "D52-BACKHOE-d5f2d89e",
+    "D52-BACKHOE-db3af9d8",
+    "D52-BACKHOE-db6dee3e",
+    "D52-BACKHOE-e711f991",
+    "D52-BACKHOE-ed200371",
+    "D52-BACKHOE-f0d1b3c8",
+    "D52-BACKHOE-f30ffd27",
+    "D52-BACKHOE-f8112b10",
+    "D52-COMPACTO-039c9889",
+    "D52-COMPACTO-23964d87",
+    "D52-COMPACTO-69f1189e",
+    "D52-COMPACTO-8700314d",
+    "D52-COMPACTO-96ccbe3d",
+    "D52-COMPACTO-a9d7f99b",
+    "D52-COMPACTO-c2c1d11c",
+    "D52-COMPACTO-c88ea9c8",
+    "D52-COMPACTO-f63624c0",
+    "D52-DOZER-0bb4cf37",
+    "D52-DOZER-0ef38a86"
+  ],
+  "synthetic_false_positives": [],
+  "target_unit_rg007_0869": {
+    "RG007-0869": {
+      "found": true,
+      "unit_number": "RG007-0869",
+      "asset_type": "Motor Grader",
+      "resolution_source": "unit_number"
+    },
+    "RG007-0869 \u2014 2025 JOHN DEERE 672G": {
+      "found": true,
+      "unit_number": "RG007-0869",
+      "asset_type": "Motor Grader",
+      "resolution_source": "display_label_strip"
+    }
+  },
+  "pass_target_unit": true,
+  "pass_no_synthetic_false_positives": true,
+  "pass_rescued_at_least_10_units": true,
+  "overall_pass": true
+}

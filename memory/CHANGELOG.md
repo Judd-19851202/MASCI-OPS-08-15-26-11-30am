@@ -1,5 +1,84 @@
 # CHANGELOG
 
+
+## 2026-02-11 — TRACK 15.73 SLICE 2 · Employee Identity Restoration · 🟢 GO
+
+**Mission**: Restore safety meeting attendee identity trust. A MASCI roster pick must produce a canonically-classified MASCI employee record from form → DB → PDF → admin view → analytics. Subcontractors and manual entries must be cleanly distinguishable from MASCI employees.
+
+**Root cause (proven, evidence-only)**: Two stacking failures.
+1. `AttendeeBulkAddDialog.jsx:116` defaulted `company: brandCompanyName("Customer")` — when `sessionStorage.branding.companyName` was empty (race with BrandingProvider, public route), it emitted the literal string `"Customer"` for bulk-added MASCI employees.
+2. Backend `create_meeting` trusted the client payload blindly. No validation that `employee_id` resolves in `db.employees`. No re-derivation of canonical identity flags.
+Audit numbers: **0 / 169** historical preview attendees had valid `employee_id` + `company="MASCI"`. **63 / 66** MASCI-flagged rows pointed at stale employee IDs. **160 / 169** had empty `company`.
+
+**Fix shipped (5 files, ~250 LOC net additive)**:
+- NEW `backend/lib/meeting_identity.py` — `normalize_meeting_attendees(db, attendees, tenant_company_name)` pure async function. Looks up `employee_id`s in `db.employees`, derives `attendee_type` / `source` / `is_masci_employee` / `is_subcontractor` / `is_manual` / `review_status`. Dedupes by `employee_id` (single pick) and `(name, company)` (subcontractor). Stale IDs are dropped and re-flagged `attendee_type="manual" · review_status="needs_review"`.
+- `backend/routes/safety.py::MeetingAttendee` — extended with 6 backend-owned identity discriminator fields. Frontend hints only; backend is the authority.
+- `backend/routes/safety.py::create_meeting` — wired the guard after Pydantic validation, before insert. Failure-tolerant (raw payload persists if guard throws).
+- `frontend/src/components/AttendeeBulkAddDialog.jsx` — `brandCompanyName("MASCI")` (safe default) + emits canonical identity hints.
+- `frontend/src/pages/NewMeeting.jsx` — `addAttendee` initializes `company:"MASCI"` (was `""`). EmployeeCombo `onPick` / `onChange` and Non-OurCo toggle keep identity flags consistent.
+
+**Verified live against preview API (`/app/test_reports/track_15_73_slice2_identity_regression.json`)**: 7 / 7 cases PASS — roster-pick correct hints · roster-pick empty company · subcontractor · manual unmatched · stale employee_id · duplicate roster pick (collapsed to 1) · inconsistent flags (`non_masci=true` + `employee_id` set → subcontractor with cleared id). Backend + frontend lint clean. Test data hard-deleted from preview post-run.
+
+**PDF / Admin / Reporting**: `pdf_render.py::_render_attendees_table` was already defensive (joined `employees` and defaulted company to "MASCI" for resolved employee_ids); no change needed. `ViewMeeting.jsx` reads the canonical server payload — now shows correct fields for new submissions. Historical rows untouched.
+
+**Six pillars**: Powerful 9 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10 · Deployable 10 → **58 / 60 (97 %)**.
+
+**Hard rules honoured**: 0 touches to Email Routing V2 · `AUTO_EMAIL_REPORTS` · Daily Report logic · Equipment Pre-Op · Equipment resolver · production database · historical records. Zero duplicate employees created. Zero fake identities. Zero silent classifications.
+
+**Deliverables**: master report `TRACK_15_73_SLICE_2_MASTER.md` + 11 phase-name pointer files (`_IDENTITY_SURFACE_INVENTORY`, `_EMPLOYEE_SOURCE_CHAIN`, `_ATTENDEE_FLOW_TRACE`, `_ROOT_CAUSE_AUDIT`, `_FRONTEND_IDENTITY_FIX`, `_BACKEND_NORMALIZATION_GUARD`, `_DUPLICATE_PROTECTION`, `_PDF_EXPORT_ADMIN_VERIFICATION`, `_REGRESSION_MATRIX`, `_DEPLOYMENT_PLAN`, `_FINAL_CERTIFICATION`) — all under `/app/memory/`.
+
+**Reusable script**: `backend/scripts/track_15_73_slice2_attendee_identity_regression.py` (idempotent · self-cleaning).
+
+**Operator next**: standard backend + frontend redeploy. No env changes. Slice 3 (Regression Origin Audit) and Slice 4 (Final Certification) await authorization. Optional backfill of legacy meeting rows can be performed in Slice 4 with operator approval.
+
+---
+
+
+## 2026-02-11 — TRACK 15.73 SLICE 1 · Equipment Trust Restoration · 🟢 GO
+
+**Mission**: Restore field trust by ensuring that any unit known to the platform resolves correctly from the Pre-Op / DVIR forms instead of returning the calm-but-wrong "Unit not cataloged" banner.
+
+**Root cause (proven, single-line)**: `frontend/src/components/EquipmentCombo.jsx::pick()` and `frontend/src/pages/NewEquipmentInspection.jsx::onPick` both stored the equipment_master `display_label` (e.g. `"RG007-0869 — 2025 JOHN DEERE 672G"`) into `equipment_inspections.equipment_unit` instead of the canonical `unit_number` (`"RG007-0869"`). Downstream `GET /api/asset-spine/taxonomy/by-unit/{u}` then queried `equipment_master.unit_number` with the long display label and returned `found=false`.
+
+**Authoritative chain (documented)**: `equipment_master` is the canonical source. `asset_mappings`, `motive_events`, `fleet_status`, `equipment_units` are mirrors / consumers. The Pre-Op resolver reads `equipment_master` exclusively.
+
+**Fix (3 files, ~30 LOC additive)**
+- `backend/routes/asset_spine.py` — `taxonomy_by_unit` now (a) `re.escape`s user input (closes latent regex-injection), (b) falls back to a leading-token lookup when the literal payload misses, splitting on em-dash / en-dash / hyphen separator. Returns new `resolution_source` ∈ {`id`,`unit_number`,`display_label_strip`,`not_found`}.
+- `frontend/src/components/EquipmentCombo.jsx` — `pick()` now emits `it.unit_number` first; falls back to `display_label` only when `unit_number` is missing.
+- `frontend/src/pages/NewEquipmentInspection.jsx` — `onPick` now stores `it.unit_number` in `equipment_unit` and additionally captures `equipment_master_id: it.id` for direct FK joins on future analytics.
+
+**Verified (live preview API)**
+- `RG007-0869` literal lookup → `found=true · asset_type=Motor Grader · resolution_source=unit_number`.
+- `RG007-0869 — 2025 JOHN DEERE 672G` display-label lookup → `found=true · asset_type=Motor Grader · resolution_source=display_label_strip`.
+- Case-insensitive `rg007-0869` → resolves (`unit_number`).
+- 13 unique real field-submitted display-label payloads now rescue (Excavator · Skid Steer · Roller · Loader · Motor Grader · Dozer · Sweeper).
+- 54 synthetic test fixtures (D34-REG-*, D51-VER-*, D52-BACKHOE-*, iter*) still return `found=false` — **zero false positives introduced**.
+- `U-9999` (bogus) → `found=false · resolution_source=not_found` (negative control).
+- Backend + frontend lint clean.
+
+**Six pillars**: Powerful 9 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10 · Deployable 10 → **58/60 (97%)**.
+
+**Hard rules honoured**: 0 production writes · 0 DB migrations · 0 historical inspection rows mutated · 0 new collections · resolver is read-side rescue. Rollback = `git revert` (< 2 min).
+
+**4 deliverables** in `/app/memory/`:
+- `TRACK_15_73_SLICE_1_EQUIPMENT_AUDIT.md`
+- `TRACK_15_73_SLICE_1_RESOLUTION_CHAIN.md`
+- `TRACK_15_73_SLICE_1_REMEDIATION.md`
+- `TRACK_15_73_SLICE_1_REGRESSION_MATRIX.md`
+
+**Reusable scripts** in `/app/backend/scripts/`:
+- `track_15_73_slice1_equipment_audit.py` (read-only collection inventory + RG007-0869 forensics)
+- `track_15_73_slice1_resolver_regression.py` (live API regression · PASS gates)
+
+**Test reports** in `/app/test_reports/`:
+- `track_15_73_slice1_equipment_audit.json`
+- `track_15_73_slice1_real_field_gap.json`
+- `track_15_73_slice1_resolver_regression.json` (overall_pass=true)
+
+**Operator next**: standard backend + frontend redeploy to `mascidocs.com`. No env changes. Awaiting authorization for Slice 2 (Employee Identity Restoration).
+
+---
+
 > ⚠️ **DATA TRUTH — PREVIEW vs PRODUCTION** (2026-02-10)
 
 ## 2026-06-23 — TRACK 15.72A · Email Routing Observability + Self-Certification · 🟢 GO

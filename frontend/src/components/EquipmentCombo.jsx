@@ -138,7 +138,13 @@ export const EquipmentCombo = ({
   );
 
   const pick = (it) => {
-    const label = it.display_label || it.make_model || "";
+    // Track 15.73 Slice 1 · trust fix · emit canonical unit_number (not
+    // display_label). Storing the long human label as the unit identifier
+    // broke every downstream lookup that keys on equipment_master.unit_number
+    // (Pre-Op classification chip, canonical inspection template, fleet
+    // aggregator). Fallback chain preserves backwards-compatibility for
+    // legacy equipment_master rows that lack a unit_number.
+    const label = it.unit_number || it.display_label || it.make_model || "";
     onChange?.(label);
     onPick?.(it);
     setOpen(false);

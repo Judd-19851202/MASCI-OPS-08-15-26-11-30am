@@ -113,11 +113,24 @@ export function AttendeeBulkAddDialog({ onAdd, existing = [] }) {
         name: e.name || e.full_name || "",
         employee_id: id,
         non_masci: false,
-        company: brandCompanyName("Customer"),
+        // Track 15.73 Slice 2 · default to MASCI (the canonical OurCo
+        // name), not "Customer". The roster picker only loads MASCI
+        // employees (GET /api/employees is the OurCo-scoped endpoint),
+        // so a bulk-added person from this list is, by definition, a
+        // MASCI employee. The backend `normalize_meeting_attendees`
+        // guard re-verifies and locks this value at submit time.
+        company: brandCompanyName("MASCI"),
         trade: e.trade || e.role || e.position || e.job_title || "",
         signature: "",
         acknowledged: false,
         acknowledged_at: "",
+        // Track 15.73 Slice 2 · derived identity hints (backend re-derives
+        // these authoritatively from the canonical `employees` lookup).
+        attendee_type: "employee",
+        source: "employee_master",
+        is_masci_employee: true,
+        is_subcontractor: false,
+        is_manual: false,
       });
     }
     if (additions.length === 0) {

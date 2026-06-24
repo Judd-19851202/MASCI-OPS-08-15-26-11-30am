@@ -191,8 +191,18 @@ export default function NewMeeting({ publicMode = false }) {
       ...p,
       attendees: [...p.attendees, {
         name: "", employee_id: "", non_masci: false,
-        company: "", trade: "", signature: "",
+        // Track 15.73 Slice 2 · default company to MASCI (the OurCo
+        // canonical name). User toggling "Non-OurCo / Subcontractor"
+        // clears it. Backend `normalize_meeting_attendees` is still
+        // the final authority on the saved value.
+        company: "MASCI", trade: "", signature: "",
         acknowledged: false, acknowledged_at: "",
+        // Track 15.73 Slice 2 · identity hints (backend re-derives).
+        attendee_type: "manual",
+        source: "manual",
+        is_masci_employee: false,
+        is_subcontractor: false,
+        is_manual: true,
       }],
     }));
   };
@@ -893,9 +903,22 @@ export default function NewMeeting({ publicMode = false }) {
                         updateAttendee(i, "employee_id", "");
                         // Don't auto-fill company; user must type it.
                         if (a.company === "MASCI") updateAttendee(i, "company", "");
+                        // Track 15.73 Slice 2 · identity flags follow toggle.
+                        updateAttendee(i, "attendee_type", "subcontractor");
+                        updateAttendee(i, "source", "subcontractor_directory");
+                        updateAttendee(i, "is_masci_employee", false);
+                        updateAttendee(i, "is_subcontractor", true);
+                        updateAttendee(i, "is_manual", false);
                       } else {
                         // Returning to MASCI path — default company
                         if (!a.company) updateAttendee(i, "company", "MASCI");
+                        // Track 15.73 Slice 2 · revert identity flags;
+                        // backend re-derives the final classification.
+                        updateAttendee(i, "attendee_type", a.employee_id ? "employee" : "manual");
+                        updateAttendee(i, "source", a.employee_id ? "employee_master" : "manual");
+                        updateAttendee(i, "is_masci_employee", !!a.employee_id);
+                        updateAttendee(i, "is_subcontractor", false);
+                        updateAttendee(i, "is_manual", !a.employee_id);
                       }
                     }}
                     data-testid={`attendee-nonmasci-${i}`}
@@ -921,17 +944,33 @@ export default function NewMeeting({ publicMode = false }) {
                     updateAttendee(i, "name", v);
                     if (a.employee_id && v !== a.name) {
                       updateAttendee(i, "employee_id", "");
+                      // Track 15.73 Slice 2 · clearing the identity drops
+                      // the row back to manual until the user picks
+                      // again from the roster.
+                      updateAttendee(i, "attendee_type", "manual");
+                      updateAttendee(i, "source", "manual");
+                      updateAttendee(i, "is_masci_employee", false);
+                      updateAttendee(i, "is_manual", true);
                     }
                   }}
                   onPick={(emp) => {
                     // iter362 + SAFETY-MEETING-CERT · capture canonical id +
                     // auto-fill company (MASCI) and trade from HR record.
+                    // Track 15.73 Slice 2 · also set canonical identity
+                    // flags so downstream analytics can classify without
+                    // re-deriving. Backend normalize_meeting_attendees
+                    // re-asserts these at submit time.
                     if (emp.id || emp.employee_id) {
                       updateAttendee(i, "employee_id", emp.id || emp.employee_id);
                     }
                     updateAttendee(i, "company", "MASCI");
                     const trade = emp.trade || emp.role || emp.position || emp.job_title || "";
                     if (trade) updateAttendee(i, "trade", trade);
+                    updateAttendee(i, "attendee_type", "employee");
+                    updateAttendee(i, "source", "employee_master");
+                    updateAttendee(i, "is_masci_employee", true);
+                    updateAttendee(i, "is_subcontractor", false);
+                    updateAttendee(i, "is_manual", false);
                   }}
                   placeholder={t("Type or pick an employee…")}
                   testId={`attendee-name-${i}`}

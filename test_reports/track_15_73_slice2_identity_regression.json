@@ -1,0 +1,51 @@
+{
+  "cases": [
+    {
+      "case": "1\u00b7roster-pick MASCI \u00b7 correct hints",
+      "expected_rows": 1,
+      "pass": true,
+      "actual_count": 1
+    },
+    {
+      "case": "2\u00b7roster-pick MASCI \u00b7 empty company (frontend bug)",
+      "expected_rows": 1,
+      "pass": true,
+      "actual_count": 1
+    },
+    {
+      "case": "3\u00b7subcontractor \u00b7 correct hints",
+      "expected_rows": 1,
+      "pass": true,
+      "actual_count": 1
+    },
+    {
+      "case": "4\u00b7manual entry \u00b7 no roster match",
+      "expected_rows": 1,
+      "pass": true,
+      "actual_count": 1
+    },
+    {
+      "case": "5\u00b7stale employee_id (not in employees)",
+      "expected_rows": 1,
+      "pass": true,
+      "actual_count": 1
+    },
+    {
+      "case": "6\u00b7duplicate roster pick (same id twice)",
+      "expected_rows": 1,
+      "pass": true,
+      "actual_count": 1
+    },
+    {
+      "case": "7\u00b7inconsistent flags (non_masci=true with employee_id)",
+      "expected_rows": 1,
+      "pass": true,
+      "actual_count": 1
+    }
+  ],
+  "all_pass": true,
+  "cleanup": {
+    "created": 7,
+    "deleted_or_404": 0
+  }
+}

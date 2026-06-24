@@ -1,0 +1,261 @@
+{
+  "real_unit_count": 331,
+  "exact_em_match": 3,
+  "case_normalized_match": 0,
+  "em_id_resolved_unit_mismatch": 0,
+  "not_in_em_count": 328,
+  "not_in_em_top_50": [
+    {
+      "submitted": "U-9999",
+      "count": 10,
+      "sample_operator": "iter363 Subby Driver"
+    },
+    {
+      "submitted": "U-iter364",
+      "count": 10,
+      "sample_operator": "iter364 Pre-Op Operator"
+    },
+    {
+      "submitted": "SKD-6239 \u2014 2021 JOHN DEERE 325G RUBBER TRACK",
+      "count": 9,
+      "sample_operator": "James Pudder"
+    },
+    {
+      "submitted": "D51-VER-a67f4cc5",
+      "count": 8,
+      "sample_operator": "D5.1 Tester"
+    },
+    {
+      "submitted": "D51-VER-3e8fec18",
+      "count": 8,
+      "sample_operator": "D5.1 Tester"
+    },
+    {
+      "submitted": "D51-VER-8b903a19",
+      "count": 8,
+      "sample_operator": "D5.1 Tester"
+    },
+    {
+      "submitted": "D51-VER-b63f72c0",
+      "count": 8,
+      "sample_operator": "D5.1 Tester"
+    },
+    {
+      "submitted": "D51-VER-5823c952",
+      "count": 8,
+      "sample_operator": "D5.1 Tester"
+    },
+    {
+      "submitted": "D51-VER-2e2b9811",
+      "count": 8,
+      "sample_operator": "D5.1 Tester"
+    },
+    {
+      "submitted": "D51-VER-86cb1bb0",
+      "count": 8,
+      "sample_operator": "D5.1 Tester"
+    },
+    {
+      "submitted": "D51-VER-40af7fab",
+      "count": 8,
+      "sample_operator": "D5.1 Tester"
+    },
+    {
+      "submitted": "D51-VER-e7af44ce",
+      "count": 8,
+      "sample_operator": "D5.1 Tester"
+    },
+    {
+      "submitted": "D51-VER-f25c7426",
+      "count": 8,
+      "sample_operator": "D5.1 Tester"
+    },
+    {
+      "submitted": "D51-VER-ac037895",
+      "count": 8,
+      "sample_operator": "D5.1 Tester"
+    },
+    {
+      "submitted": "D51-VER-befb5f0e",
+      "count": 8,
+      "sample_operator": "D5.1 Tester"
+    },
+    {
+      "submitted": "D51-VER-50bd6cac",
+      "count": 8,
+      "sample_operator": "D5.1 Tester"
+    },
+    {
+      "submitted": "D51-VER-c7d378bf",
+      "count": 8,
+      "sample_operator": "D5.1 Tester"
+    },
+    {
+      "submitted": "D51-VER-a36b70df",
+      "count": 8,
+      "sample_operator": "D5.1 Tester"
+    },
+    {
+      "submitted": "D51-VER-f74ea03b",
+      "count": 8,
+      "sample_operator": "D5.1 Tester"
+    },
+    {
+      "submitted": "D51-VER-39c2f779",
+      "count": 8,
+      "sample_operator": "D5.1 Tester"
+    },
+    {
+      "submitted": "D51-VER-821e6369",
+      "count": 8,
+      "sample_operator": "D5.1 Tester"
+    },
+    {
+      "submitted": "EXC-0364 \u2014 2022 HYUNDAI HX210A",
+      "count": 8,
+      "sample_operator": "Phillip R May"
+    },
+    {
+      "submitted": "EXC-0189 \u2014 2024 HITACHI ZX50U-5N",
+      "count": 4,
+      "sample_operator": "Zac England"
+    },
+    {
+      "submitted": "DZ007-1583 \u2014 2025 JOHN DEERE 700 P-TIER",
+      "count": 4,
+      "sample_operator": "Zac England"
+    },
+    {
+      "submitted": "LDR015-2020 \u2014 2012 John Deere 544K",
+      "count": 3,
+      "sample_operator": "James Pudder"
+    },
+    {
+      "submitted": "325g",
+      "count": 2,
+      "sample_operator": "Phillip may "
+    },
+    {
+      "submitted": "Deere 544",
+      "count": 2,
+      "sample_operator": "Georgeshannis "
+    },
+    {
+      "submitted": "D51-VER-f122b22c",
+      "count": 2,
+      "sample_operator": "T"
+    },
+    {
+      "submitted": "Exc 1490",
+      "count": 1,
+      "sample_operator": "Georgeshannis "
+    },
+    {
+      "submitted": "SKD-7685 \u2014 2025 JOHN DEERE 325G",
+      "count": 1,
+      "sample_operator": "George Shannis"
+    },
+    {
+      "submitted": "EXC-1490 \u2014 2023 LINK BELT 75X3",
+      "count": 1,
+      "sample_operator": "George Shannis"
+    },
+    {
+      "submitted": "RL-1065 \u2014 2012 HAMM HD 70",
+      "count": 1,
+      "sample_operator": "Eric Burtnett"
+    },
+    {
+      "submitted": "PE-c3da95ac",
+      "count": 1,
+      "sample_operator": "PhaseE"
+    },
+    {
+      "submitted": "PE-8c60b8d8",
+      "count": 1,
+      "sample_operator": "PhaseE"
+    },
+    {
+      "submitted": "SS-TEST-79-f5e14e",
+      "count": 1,
+      "sample_operator": "Iter79 Tester"
+    },
+    {
+      "submitted": "PE-199e58fd",
+      "count": 1,
+      "sample_operator": "PhaseE"
+    },
+    {
+      "submitted": "PE-f82beb70",
+      "count": 1,
+      "sample_operator": "PhaseE"
+    },
+    {
+      "submitted": "SS-TEST-79-c42ae9",
+      "count": 1,
+      "sample_operator": "Iter79 Tester"
+    },
+    {
+      "submitted": "PE-9678ee9e",
+      "count": 1,
+      "sample_operator": "PhaseE"
+    },
+    {
+      "submitted": "PE-63d1543e",
+      "count": 1,
+      "sample_operator": "PhaseE"
+    },
+    {
+      "submitted": "SS-TEST-79-2227a4",
+      "count": 1,
+      "sample_operator": "Iter79 Tester"
+    },
+    {
+      "submitted": "TEST_CAT320_INSP_1753a7",
+      "count": 1,
+      "sample_operator": "TEST_Operator"
+    },
+    {
+      "submitted": "TEST_CAT320_INSP_b95f3b",
+      "count": 1,
+      "sample_operator": "TEST_Operator"
+    },
+    {
+      "submitted": "TEST_CAT320_INSP_afdd0e",
+      "count": 1,
+      "sample_operator": "TEST_Operator"
+    },
+    {
+      "submitted": "TEST_CAT320_INSP_d85f9e",
+      "count": 1,
+      "sample_operator": "TEST_Operator"
+    },
+    {
+      "submitted": "TEST_CAT320_INSP_9033af",
+      "count": 1,
+      "sample_operator": "TEST_Operator"
+    },
+    {
+      "submitted": "TEST_CAT320_INSP_a0a5e8",
+      "count": 1,
+      "sample_operator": "TEST_Operator"
+    },
+    {
+      "submitted": "PE-84e18f0b",
+      "count": 1,
+      "sample_operator": "PhaseE"
+    },
+    {
+      "submitted": "PE-571432ea",
+      "count": 1,
+      "sample_operator": "PhaseE"
+    },
+    {
+      "submitted": "SS-TEST-79-ec2c30",
+      "count": 1,
+      "sample_operator": "Iter79 Tester"
+    }
+  ],
+  "case_mismatch_full": [],
+  "em_id_resolved_but_unit_mismatch_full": []
+}

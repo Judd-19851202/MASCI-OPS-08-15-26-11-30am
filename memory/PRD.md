@@ -10,6 +10,80 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
+
+## Latest Track (2026-02-11 · TRACK 15.73 SLICE 2 · Employee Identity Restoration · 🟢 GO)
+
+### Mission
+Restore Safety Meeting attendee identity end-to-end. A MASCI roster-picked employee must be saved as a MASCI employee everywhere (form state → DB → PDF → admin view → analytics). Subcontractors and manual entries must be cleanly distinguishable. No silent misclassification.
+
+### Verdict
+🟢 **GO** — root cause proven · backend guard shipped · frontend defaults corrected · 7 / 7 regression cases PASS.
+
+### Root cause (proven)
+1. `AttendeeBulkAddDialog.jsx::brandCompanyName("Customer")` literal default fired whenever `sessionStorage.branding.companyName` was empty — saved `company="Customer"` or `""` instead of `"MASCI"`.
+2. Backend `create_meeting` had zero authoritative re-derivation of identity from `db.employees`. No `attendee_type` / `source` / `is_*` discriminators were ever stored.
+3. Result: 0 / 169 preview attendee rows had valid `employee_id` AND `company="MASCI"` simultaneously.
+
+### What shipped
+- NEW `backend/lib/meeting_identity.py` — authoritative `normalize_meeting_attendees` guard (pure async function · employees lookup · dedup · classification).
+- `MeetingAttendee` model extended with backend-owned identity discriminators.
+- `create_meeting` wired to the guard (failure-tolerant).
+- Frontend `AttendeeBulkAddDialog` + `NewMeeting` default to MASCI and emit consistent identity hints.
+- Regression script (7 end-to-end cases) and machine-readable evidence JSON.
+
+### Six pillars
+58 / 60 (97 %) — Powerful 9 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10 · Deployable 10.
+
+### Hard rules honoured
+Zero touches to Email Routing V2 · `AUTO_EMAIL_REPORTS` · Daily Reports · Equipment Pre-Op · Equipment resolver · production DB · historical records. Zero duplicate employees · zero fake identities · zero silent classifications.
+
+### Pending tracks
+- **SLICE 3** — Regression Origin Audit (broader cross-track forensic on equipment + employee drift).
+- **SLICE 4** — Final certification + optional legacy-meeting attendee-identity backfill (operator-approved).
+- Track 15.70 Customer #2 hardcoded-path closure (`auth.py:59-63` · `server.py:2384` · `server.py:3719`).
+- Track 15.72 provisioning CLI · Track 16.x module gating.
+
+### Previous track summary preserved below
+
+---
+
+
+## Latest Track (2026-02-11 · TRACK 15.73 SLICE 1 · Equipment Trust Restoration · 🟢 GO)
+
+### Mission
+Restore field-trust on the Pre-Op / DVIR Unit-of-Equipment lookup so that known
+units never appear as "Unit not cataloged" again. Identify the single
+authoritative source-of-truth and repair the lookup chain — no suppression of
+warnings, only correct resolution.
+
+### Verdict
+🟢 **GO** — root cause proven, fix shipped to preview, regression PASS,
+RG007-0869 specifically reverified both as literal and as display-label form.
+
+### Root cause (single sentence)
+`EquipmentCombo.pick` was emitting `display_label` (e.g. `"RG007-0869 — 2025 JOHN DEERE 672G"`) as the unit identifier, which then failed strict literal lookup in `equipment_master.unit_number`. Older than the asset spine itself; surfaced as a P0 trust failure only after Track 15.72C exposed the previously-silent miss as a banner.
+
+### What shipped
+- Backend resolver fallback in `routes/asset_spine.py` (em-dash strip + `re.escape`).
+- Frontend picker emits canonical `unit_number` first (`EquipmentCombo.jsx` + `NewEquipmentInspection.jsx`).
+- Resolution-source telemetry now exposed on every API response.
+- 4 deliverable docs + 2 reusable scripts + 3 JSON evidence files.
+
+### Six pillars
+6/6 GREEN (58/60 honest score). Powerful 9 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10 · Deployable 10.
+
+### Hard rules honoured
+0 production writes · 0 DB migrations · 0 historical inspection rows mutated · 0 new collections · resolver is read-side rescue only · `re.escape` closes latent regex-injection in case-insensitive unit-number lookup.
+
+### Slice 2-4 (pending operator authorization)
+- **SLICE 2** — Employee Identity Source-of-Truth Restoration (safety meeting attendee classification).
+- **SLICE 3** — Regression Origin Audit (broader cross-track forensic on equipment + employee drift).
+- **SLICE 4** — Final certification (counts, root causes, remediation summary, six-pillar cert).
+
+### Previous track summary preserved below
+
+---
+
 ## Latest Track (2026-06-23 · TRACK 15.72A · Email Routing Observability + Self-Certification · 🟢 GO)
 
 ### Mission

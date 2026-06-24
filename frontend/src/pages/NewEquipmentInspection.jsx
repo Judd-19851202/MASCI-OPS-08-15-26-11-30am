@@ -842,7 +842,11 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                     onPick={(it) => {
                       setData((p) => ({
                         ...p,
-                        equipment_unit: it.display_label || it.make_model || "",
+                        // Track 15.73 Slice 1 · store canonical unit_number,
+                        // not display_label. equipment_master_id captures the
+                        // doc reference; equipment_make holds the human label.
+                        equipment_unit: it.unit_number || it.display_label || it.make_model || "",
+                        equipment_master_id: it.id || p.equipment_master_id,
                         equipment_make: it.make_model || p.equipment_make,
                         equipment_serial: it.vin_serial_number || p.equipment_serial,
                       }));
