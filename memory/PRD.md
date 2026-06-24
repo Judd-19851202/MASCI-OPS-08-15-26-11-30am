@@ -4376,5 +4376,26 @@ Close Executive YELLOW by building a read-only `ExecutiveOverview.jsx` that aggr
 
 **Regression:** 40/40 tests continue to pass (Tracks 15.28c, 15.73 all slices, 15.73D, 15.73Q, 15.74).
 
+
+---
+## Track 15.75A (2026-02) — PM / Co-PM Routing Forensics + Restoration (P0 fix-as-you-go)
+
+**Operator-reported P0:** Production Job Master UI showed PM/Co-PM assignments (20-07 PM=David Jewett, 26-07 PM=Jaymn Judd, etc.) but submitted Daily Reports were dead-lettering to `safety@mascigc.com`.
+
+**Root cause (proven, not guessed):** Parallel-source-of-truth mismatch. The Job Master "Team Roster" UI (`POST /api/admin/jobs/{pn}/team`) writes assignments to `project_team_assignments` (`assignment_role='pm'`, `is_primary=true`, `active=true`), while the routing resolver `pm_routing.resolve_pm_for_record_async` was reading **only** `jobs_master.pm_email` / `project_manager`. The two surfaces never spoke.
+
+**Fix (pure read-expansion · backward compatible):**
+- `pm_routing.py` — new helpers `_resolve_roster_pm` + `_resolve_roster_co_pms`. The resolver now consults `project_team_assignments` as authoritative fallback when legacy columns are blank. Legacy `jobs_master.pm_email` ALWAYS wins when present. Inactive / non-primary roster rows ignored.
+- `routes/admin_pm_coverage.py` — bumped to `track='15.75A'`; new `pm_email_ok_via_roster` status; new per-row `roster_pm_email` / `roster_co_pm_emails` fields. Missing-PM count no longer counts projects whose roster resolves the gap.
+- 6 new regression tests in `test_track_15_75a_roster_pm_routing.py` cover backward-compat, roster resolution, no-PM dead-letter, co-PM union, inactive-row protection, non-primary-row protection.
+
+**Workflows restored by one fix:** Daily Reports · Safety Meetings · Equipment Pre-Ops · Incidents · QA/QC · Inspections · JHA — all share `recipients_for_record_async`.
+
+**Testing:** `testing_agent_v3_fork` confirmed **28/28 PASS** (15.75A + 15.74 + 15.73Q + 15.73D + 15.73 slices) and live-verified the admin endpoint shape. Live synthetic-roster trace proved 26-07 → `jaymn.judd@mascigc.com` and 20-07 → `davidjewett@mascigc.com` after fix.
+
+**Cert artifacts:** `/app/memory/TRACK_15_75A_PHASE_{1..9}_*.md` + `TRACK_15_75A_FINAL_CERTIFICATION.md`. Test report: `/app/test_reports/iteration_track_15_75a_certification.json`.
+
+**Verdict:** 🟢 **GO** — P0 source-chain mismatch fixed and locked. No production data write performed; resolver works with whatever roster data already exists in prod.
+
 **Verdict:** 🟢 **GO** — platform certified TRUSTED for production. Operator action pending on 7 PM-email backfills only.
 
