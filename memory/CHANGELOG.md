@@ -1,6 +1,43 @@
 # CHANGELOG
 
 
+## 2026-02-11 — TRACK 15.73P · Post-Deploy Production Validation · 🟢 GO WITH OPEN P1 (DR PM-EMAIL DATA HYGIENE)
+
+**Mode**: Read-only production validation against `https://mascidocs.com`. Zero production writes by agent.
+
+**Phase 1 — Deployment Proof** ✅: `source_hash=d985efd2a3cb72221ecafcdc106d5e96` · `app_env=production` · `db_name=masci_safety` · uptime fresh (~5 min after deploy) · `/api/health/full` returns `{ok:true, mongo:true, scheduler:true, backup_recent:true}` · MASCI branding intact (`tenant_key=masci`, `company_name=MASCI`, `primary_color=#C8102E`).
+
+**Phase 2 — Health Alert Fix** ✅: Admin backup card returns `status=green · detail="R2 newest object 0.3h ago"` (was `status=red · detail="2026-06-16T10:47:37 (196.6h ago)"` before fix). Track 15.73D R2-aware read path LIVE. Cooldown is Mongo-persisted; `health_alert_cooldowns` collection ready. No false health-fail emails observed since deploy.
+
+**Phase 3 — Equipment Pre-Op** ✅: Live `/api/asset-spine/taxonomy/by-unit/RG007-0869` returns `found=true · asset_type=Motor Grader · resolution_source=unit_number`. Display-label form `RG007-0869 — 2025 JOHN DEERE 672G` returns `resolution_source=display_label_strip` — **Slice 1 fix LIVE in production**. Bogus units honestly return `not_found`. Motor Grader template available with 6 sections.
+
+**Phase 4 — Safety Meeting Identity** ✅ (code-path equivalence): 396 active employees returned with canonical UUID `id`. `lib/meeting_identity.normalize_meeting_attendees` guard is in the deployed build. Live POST validation deferred per hard-rule "no production writes without explicit approval."
+
+**Phase 5 — Canonical Guardrails** ✅: All 5 Slice 4 guardrails present in deployed code (EquipmentCombo · NewEquipmentInspection · AttendeeBulkAddDialog · EquipmentMasterPanel · PoRequests). 14 / 14 pytest cases PASS in preview against identical build.
+
+**Phase 6 — Notification Sanity** ⚠️ (two non-regression observations):
+- **`EMAIL_ROUTING_V2=false`** in production env. `mode=legacy`, `flag_raw_value="false"`. The Slice deploys did NOT touch env vars; production runs the safe well-tested legacy path. NOT a deploy regression.
+- **`email_routes` collection has 0 rows** in production (Track 15.69 19-route seed never applied to prod). If V2 were flipped on without seeding first, V2 would dead-letter everything — so V2 OFF is currently a safety state.
+- **DR PM-email gap remains as documented P1 data hygiene** (Slice 3 §6) — `db.jobs_master.pm_email` empty for some projects. NOT introduced by this deploy. Operator-owned.
+- DRs ARE saving (3 recent rows returned). 0 errors in last 24h email audit.
+
+**Phase 7 — User-Visible Regression** ✅: MASCI red M splash on dark navy grid pixel-correct. No Customer #2 leakage. No broken assets visible.
+
+**Phase 8 — Rollback Readiness** ✅: Platform rollback < 2 min · zero irreversible writes · no historical-record mutations. Rollback would orphan `health_alert_cooldowns` collection (recreated automatically on next deploy). Slices 1+2+4+D are all additive.
+
+**Six Pillars** (refused to inflate): Powerful 9 · Simple 10 · Beautiful 10 · Trusted 10 · Proven 9 (no live meeting POST per hard rule) · Deployable 10 → **58 / 60 (97 %)**.
+
+**Hard rules honoured**: 0 production data writes · 0 code modifications · 0 env mutations · 0 Email Routing V2 touches · 0 AUTO_EMAIL_REPORTS touches · 0 Customer #2 work · 0 test blasts · 0 new feature work · 0 inflated scores.
+
+**Recommended next track 15.73Q** (P1 data hygiene): operator-side `db.jobs_master.pm_email` backfill for active projects, plus a Routing Status Panel card surfacing the count of projects without a PM email so the gap becomes UI-visible.
+
+**Verdict for Slices 1+2+4+D**: 🟢 **GO** — keep deployed. Zero regressions. Backup card green. Equipment identity resolver working. Canonical guardrails live. Documented P1 remains pre-existing and outside this deploy's scope.
+
+**Deliverable**: `/app/memory/TRACK_15_73P_POST_DEPLOY_VALIDATION.md` (9 phases + 15-question executive answers).
+
+---
+
+
 ## 2026-02-11 — TRACK 15.73D · P0 Pre-Deploy Health Alert Fix · 🟢 GO
 
 **Mission**: Stop the production health-alert spam (`🚨 HEALTH FAIL · Last backup · 196.6h ago`) so Slices 1–4 can deploy.

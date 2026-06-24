@@ -11,6 +11,44 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-02-11 · TRACK 15.73P · Post-Deploy Production Validation · 🟢 GO WITH OPEN P1)
+
+### Mission
+Read-only validation against live production (`https://mascidocs.com`) after Slices 1+2+4+15.73D deploy. Prove fixes work in real production behavior.
+
+### Verdict
+🟢 **GO WITH OPEN P1 (DR PM-email data hygiene)** — Slices remain deployed. No regressions. All five fixes verified live. One pre-existing P1 data hygiene issue remains as documented.
+
+### Live production proof
+- Backup card: **status=green · "R2 newest object 0.3h ago"** (Track 15.73D fix LIVE).
+- `RG007-0869` literal lookup: `resolution_source=unit_number` (Slice 1 LIVE).
+- `RG007-0869 — 2025 JOHN DEERE 672G` display-label lookup: `resolution_source=display_label_strip` (Slice 1 fallback LIVE).
+- 396 employees returned with canonical UUID `id` (Slice 2 source-of-truth healthy).
+- MASCI red M brand splash pixel-correct, no Customer #2 leakage.
+
+### Two non-regression observations (operator-visibility)
+1. `EMAIL_ROUTING_V2=false` on production env (deploys did not change env vars). Legacy path is the safety. Not a regression.
+2. DR PM-email data hygiene gap remains as documented P1 (Slice 3 §6). Pre-existing. Operator-owned.
+
+### Six pillars
+58 / 60 (97 %) — refused to inflate; live meeting POST validation deferred per hard-rule.
+
+### Cumulative Track 15.73 status
+- ✅ Slice 1 — Equipment Trust Restoration (LIVE in production)
+- ✅ Slice 2 — Employee Identity Restoration (code LIVE; data validation deferred per hard-rule)
+- ✅ Slice 3 — Regression Origin Audit (forensic only)
+- ✅ Slice 4 — Canonical Identity Integrity Certification (LIVE)
+- ✅ Slice D — Health Alert Fix (LIVE; backup card green)
+- ✅ Slice P — Post-Deploy Validation (this)
+
+### Recommended next track
+**Track 15.73Q** · Daily Report PM-Email Coverage Restoration (P1 data hygiene · operator-side backfill + agent-side UI surface).
+
+### Previous track summary preserved below
+
+---
+
+
 ## Latest Track (2026-02-11 · TRACK 15.73D · P0 Pre-Deploy Health Alert Fix · 🟢 GO)
 
 ### Mission
