@@ -4399,3 +4399,25 @@ Close Executive YELLOW by building a read-only `ExecutiveOverview.jsx` that aggr
 
 **Verdict:** 🟢 **GO** — platform certified TRUSTED for production. Operator action pending on 7 PM-email backfills only.
 
+
+---
+## Track 15.75B (2026-02) — Shop / Pre-Op / DVIR Delivery Certification (P0 + P1 fix-as-you-go)
+
+**Mission:** Prove the Shop Manager receives + sees every Equipment Pre-Op and DVIR record, with truthful audit and no silent failures.
+
+**Defects found & fixed in-pass:**
+- 🔴→🟢 **P0 silent failure** — `_dispatch_auto_email` for `kind="equipment-inspection"` could produce `recipients=[]` when no active Shop Manager user existed AND no `PRE_OP_FAIL_FALLBACK` route AND no `SHOP_MANAGER_EMAIL` env. Resend would 400 and the dispatcher's `except` block would only `logger.exception` — alert lost, no audit, no escalation. Fix: empty-recipient path now escalates to `ADMIN_DEAD_LETTER_TO` AND writes a truthful audit row (`status='shop_recipient_unconfigured'` or `'escalated_to_admin_dead_letter'`).
+- 🟡→🟢 **P1 audit gap** — successful Pre-Op / DVIR sends only wrote `logger.info`, never an `email_routing_audit_v2` row. Operator could not prove delivery. Fix: per-send audit row with `status='sent'` + `resend_message_id` on success, `status='failed'` + `error` on failure. Scoped to `kind="equipment-inspection"` only.
+
+**Workflows covered:** Pre-Op (`kind='pre_op'`, 535 rows) + DVIR (`kind='dvir'`, 293 rows) → both go through the same `schedule_auto_email("equipment-inspection", doc)` hard-override path which now produces an audit row for every send attempt.
+
+**Dashboard surfaces verified:** `/api/shop/command-feed` (fleet_defects 170 open), `notifications.recipient_role='shop'` (1 100 rows), `tasks.assignee_role='shop'` (318 rows), `asset_holds` (failed Pre-Op pending-maintenance), dispatch visibility via `notifications.recipient_role='dispatch'`.
+
+**iter238 directive preserved:** Pre-Op emails go to Shop Manager only — no PM, no office CC — the new audit/escalation logic only fires AFTER the hard-override.
+
+**Testing:** `testing_agent_v3_fork` confirmed **17/17 PASS** (15.75B + 15.75A + 15.74 + 15.73Q). Live `/api/shop/command-feed`: 401 without token, 200 with super-admin token, body carries `ok=true`, `tenant_id='masci'`, counts.
+
+**Cert artifact:** `/app/memory/TRACK_15_75B_FINAL_CERTIFICATION.md`. Test report: `/app/test_reports/iteration_track_15_75b_certification.json`.
+
+**Verdict:** 🟢 **GO** — Shop / Pre-Op / DVIR delivery is now silent-failure-proof and fully auditable.
+
