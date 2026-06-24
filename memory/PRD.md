@@ -4334,3 +4334,24 @@ Close Executive YELLOW by building a read-only `ExecutiveOverview.jsx` that aggr
 **Frontend follow-up:** ~200 lines React across TeamRosterPage · RemoveReasonDialog · AssignmentHistoryDrawer. Backend complete — no further backend work needed.
 
 **Verdict:** 🟢 GREEN on backend · ⏭ frontend pending.
+
+
+---
+## Track 15.74 (2026-02) — Full Platform Trust Restoration & Certification
+
+**Scope:** Six-Pillar (Powerful · Simple · Beautiful · Trusted · Proven · Deployable) certification across all 181 preview collections, 139 route modules, all major workflows, notifications, integrations, and admin gates. Zero score inflation; fix-as-you-go.
+
+**Findings:**
+- 🟢 Identity write paths · 100% canonical-key coverage on `id`/`doc_id`/`unit_number`/`project_number` (initial RED audit was checking deprecated fields; corrected with code-truth keys).
+- 🟢 Admin auth gates · 14/14 sampled `/api/admin/*` endpoints return 401 without token.
+- 🟢 Integration health · keys masked, last-sync timestamps present, demo_mode honest.
+- 🟢 Health/Backup/Routing dashboards · 4/4 critical email routes populated, 0 errors last 24h.
+- 🔴→🟢 **P1 trust defect (FIXED IN-PASS):** `pm_routing._audit_dead_letter` was writing `email_routing_audit_v2` rows with hardcoded `resolved_to_count=0`, `status="dry_run"` even when emails were actually being routed to `safety@mascigc.com`. Audit row now reports true counts and uses honest `routed_to_dead_letter` / `dead_letter_unconfigured` statuses.
+
+**Remediation Plan (operator action):** 7 `jobs_master` rows need `pm_email` backfill (2 with recent DRs: `20-07`, `26-07`). DRs already fall through to dead-letter (visible, not silent).
+
+**Regression:** 40/40 PASS — including 2 new tests in `test_track_15_74_dead_letter_audit_trust.py`.
+
+**Cert artifact:** `/app/memory/TRACK_15_74_CERTIFICATION.md`
+
+**Verdict:** 🟢 GREEN — Platform TRUSTED for production. One operator-owned data-hygiene backlog item.
