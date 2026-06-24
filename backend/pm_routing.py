@@ -177,6 +177,21 @@ async def resolve_pm_for_record_async(
             if pm_name in PM_TABLE:
                 return (pm_name, str(PM_TABLE[pm_name]["email"]))
 
+    # TRACK 15.75A · project_team_assignments source-of-truth fallback.
+    # The Job Master "Team Roster" UI writes the live PM/Co-PM
+    # assignment to the `project_team_assignments` collection
+    # (assignment_role='pm', is_primary=True, active=True), NOT to
+    # `jobs_master.pm_email` / `project_manager`. When the legacy
+    # fields are blank but a roster PM exists, route to that PM —
+    # otherwise the UI shows a PM assigned while the resolver
+    # dead-letters silently. Pure read expansion · backward compatible:
+    # legacy `jobs_master.pm_email` still wins when present.
+    canonical_pn = (job or {}).get("project_number") or pn_raw
+    if canonical_pn:
+        roster_pm = await _resolve_roster_pm(db, canonical_pn)
+        if roster_pm:
+            return roster_pm
+
     # Final fallback — legacy table by name (project_name string match)
     rec_name = (record.get("project_name") or "").strip().lower()
     if rec_name:
@@ -187,6 +202,96 @@ async def resolve_pm_for_record_async(
                     return (pm_name, str(data["email"]))
 
     return None
+
+
+async def _resolve_roster_pm(
+    db, project_number: str
+) -> Optional[Tuple[str, str]]:
+    """TRACK 15.75A — return (name, email) of the active primary PM
+    from ``project_team_assignments`` (the Job Master Team Roster
+    source of truth), or None if no resolvable primary PM. Best-
+    effort; never raises."""
+    try:
+        cur = db.project_team_assignments.find(
+            {
+                "project_number": project_number,
+                "assignment_role": "pm",
+                "active": True,
+                "is_primary": True,
+            },
+            {"_id": 0, "email": 1, "display_name": 1, "user_id": 1,
+             "employee_id": 1, "assigned_at": 1},
+        ).sort("assigned_at", -1)
+        async for row in cur:
+            email = (row.get("email") or "").strip().lower()
+            name = (row.get("display_name") or "").strip()
+            if email:
+                return (name or email, email)
+            # Roster row carries user_id/employee_id but no inline email —
+            # walk to user_directory / employees to fish out the email.
+            uid = row.get("user_id")
+            if uid:
+                ud = await db.user_directory.find_one(
+                    {"id": uid}, {"_id": 0, "email": 1, "name": 1}
+                )
+                if ud and ud.get("email"):
+                    return (
+                        (ud.get("name") or name or ud["email"]),
+                        str(ud["email"]).strip().lower(),
+                    )
+            eid = row.get("employee_id")
+            if eid:
+                emp = await db.employees.find_one(
+                    {"id": eid}, {"_id": 0, "email": 1, "name": 1}
+                )
+                if emp and emp.get("email"):
+                    return (
+                        (emp.get("name") or name or emp["email"]),
+                        str(emp["email"]).strip().lower(),
+                    )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("[pm_routing] roster PM lookup failed: %s", exc)
+    return None
+
+
+async def _resolve_roster_co_pms(
+    db, project_number: str
+) -> List[str]:
+    """TRACK 15.75A — return active co-PM emails from
+    ``project_team_assignments``. Best-effort; never raises."""
+    out: List[str] = []
+    try:
+        cur = db.project_team_assignments.find(
+            {
+                "project_number": project_number,
+                "assignment_role": "co_pm",
+                "active": True,
+            },
+            {"_id": 0, "email": 1, "user_id": 1, "employee_id": 1},
+        )
+        async for row in cur:
+            email = (row.get("email") or "").strip().lower()
+            if not email:
+                uid = row.get("user_id")
+                if uid:
+                    ud = await db.user_directory.find_one(
+                        {"id": uid}, {"_id": 0, "email": 1}
+                    )
+                    if ud and ud.get("email"):
+                        email = str(ud["email"]).strip().lower()
+                if not email:
+                    eid = row.get("employee_id")
+                    if eid:
+                        emp = await db.employees.find_one(
+                            {"id": eid}, {"_id": 0, "email": 1}
+                        )
+                        if emp and emp.get("email"):
+                            email = str(emp["email"]).strip().lower()
+            if email and email not in out:
+                out.append(email)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("[pm_routing] roster co-PM lookup failed: %s", exc)
+    return out
 
 
 def _re_escape(s: str) -> str:
@@ -244,6 +349,18 @@ async def recipients_for_record_async(
                     if em and em not in seen:
                         seen.add(em)
                         co_pm_emails.append(em)
+
+        # TRACK 15.75A · union roster co-PMs (project_team_assignments)
+        # so the Job Master Team Roster co-PM chips are honored even
+        # when the legacy `jobs_master.co_pm_emails` array is stale or
+        # empty. Pure additive — never drops a legacy co-PM.
+        primary_lower = (pm_email or "").lower()
+        already = {primary_lower} if primary_lower else set()
+        already.update(co_pm_emails)
+        for roster_email in await _resolve_roster_co_pms(db, pn_raw):
+            if roster_email not in already:
+                already.add(roster_email)
+                co_pm_emails.append(roster_email)
 
     is_pm_only = kind in PM_ONLY_KINDS
 

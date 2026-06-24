@@ -1,0 +1,70 @@
+{
+  "summary": "TRACK 15.75A roster-PM routing fix CERTIFIED. Ran the full regression matrix called out by main agent (TRACK 15.75A + 15.74 + 15.73Q + 15.73 all slices + 15.73D) = 28/28 tests PASSED. Live admin endpoint /api/admin/pm-email-coverage verified: 401 without X-Admin-Token, 200 with valid super-admin token generated via user_directory.make_directory_admin_token for jaymn.judd@mascigc.com. Response shape correct: track='15.75A', summary counters block present, every row in missing_rows_top_25 carries the new roster_pm_email and roster_co_pm_emails fields. Backend-only testing as requested.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_track_15_75a_roster_pm_routing.py",
+    "/app/backend/tests/test_track_15_74_dead_letter_audit_trust.py",
+    "/app/backend/tests/test_track_15_73q_pm_email_coverage.py",
+    "/app/backend/tests/test_track_15_73_canonical_identity_audit.py",
+    "/app/backend/tests/test_track_15_73_slice1_equipment_resolver.py",
+    "/app/backend/tests/test_track_15_73_slice2_attendee_normalization.py",
+    "/app/backend/tests/test_track_15_73_slice3_no_branding_default_drift.py",
+    "/app/backend/tests/test_track_15_73_slice3_picker_canonical_emit.py",
+    "/app/backend/tests/test_track_15_73d_health_alert_trust.py",
+    "/app/test_reports/pytest/track_15_75a_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "pm_routing.resolve_pm_for_record_async correctly preserves backward compatibility: legacy jobs_master.pm_email continues to win when present, roster is consulted only as a fallback (verified by test_legacy_pm_email_still_wins_when_present).",
+    "Inactive and non-primary roster rows are correctly ignored in both resolve_pm and recipients_for_record (verified by test_inactive_roster_pm_is_ignored and test_non_primary_roster_pm_is_ignored).",
+    "admin_pm_coverage.py pre-builds roster lookup dicts (roster_pm_by_pn / roster_co_pm_by_pn) outside the per-row loop -- avoids N+1 query pattern. Good.",
+    "Track value correctly bumped to '15.75A' in response payload (live verified).",
+    "No PII leakage: endpoint admin-gated; 401 returned without X-Admin-Token (live verified)."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "100% (28/28)",
+    "frontend": "N/A (backend-only test request)"
+  },
+  "test_credentials": "Super-admin token generated at runtime from /app/backend/user_directory.make_directory_admin_token() against jaymn.judd@mascigc.com user row (password_hash bound). Token format: <user_id>.<hmac_hex>. Token not persisted in this report for security; regenerate via the snippet in the original request.",
+  "seed_data_creation": "None. TRACK 15.75A tests use isolated TRACK-15-75A-TEST-* project_numbers in jobs_master + project_team_assignments and self-clean on teardown (verified -- no orphans). The live admin endpoint was hit read-only against the existing preview DB state.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "TRACK 15.75A is a pure read-expansion fix in /app/backend/pm_routing.py (resolve_pm_for_record_async + recipients_for_record_async) and /app/backend/routes/admin_pm_coverage.py. Legacy jobs_master.pm_email ALWAYS wins when present; roster (project_team_assignments where assignment_role='pm', is_primary=True, active=True) is the authoritative fallback; co-PMs are unioned. Inactive / non-primary roster rows are ignored. The live preview DB currently shows 7 missing-pm-email rows including 20-07 and 26-07; their roster rows have an active primary PM but the PM's user_directory/employees row does not carry a resolvable email yet -- so the rows still show status='pm_email_blank' (not pm_email_ok_via_roster). This is consistent with the spec: pm_email_ok_via_roster is only emitted when the roster ACTUALLY resolves to a usable email. Main agent should not interpret the all-blank status as a regression -- the test suite covers the resolve-success path and it passes.",
+  "live_endpoint_verification": {
+    "GET /api/admin/pm-email-coverage without X-Admin-Token": "HTTP 401 (correct)",
+    "GET /api/admin/pm-email-coverage with valid super-admin token": "HTTP 200",
+    "track field value": "15.75A (correct)",
+    "summary block present": true,
+    "summary counters": {"active_total": 30, "active_with_pm_email": 23, "active_missing_pm_email": 7, "active_with_pm_name_no_email": 0, "active_with_co_pm_email_only": 2, "active_total_no_pm_no_copm": 5, "active_malformed_pm_email": 0},
+    "missing_rows_top_25 every row carries roster_pm_email field": true,
+    "missing_rows_top_25 every row carries roster_co_pm_emails field": true,
+    "rows observed": [
+      {"project_number": "20-07", "status": ["pm_email_blank"], "roster_pm_email": "", "roster_co_pm_emails": ["pm.demo@mascigc.com"]},
+      {"project_number": "26-07", "status": ["pm_email_blank"], "roster_pm_email": "", "roster_co_pm_emails": []},
+      {"project_number": "21-06", "status": ["pm_email_blank"], "roster_pm_email": "", "roster_co_pm_emails": ["pm.demo@mascigc.com"]}
+    ],
+    "note_on_pm_email_ok_via_roster_status": "Not observed in any current missing row because the roster's active primary PM rows for these projects do not yet resolve to a concrete email via user_directory/employees in the preview DB. Spec wording is MAY -- not required. The pm_routing unit test test_roster_pm_resolves_when_legacy_blank covers the resolution path end-to-end and passes."
+  },
+  "regression_test_breakdown": {
+    "TRACK 15.75A roster PM routing": "6/6 PASS",
+    "TRACK 15.74 dead-letter audit trust": "2/2 PASS",
+    "TRACK 15.73Q PM email coverage": "3/3 PASS",
+    "TRACK 15.73 canonical identity audit": "6/6 PASS",
+    "TRACK 15.73 slice1 equipment resolver": "1/1 PASS",
+    "TRACK 15.73 slice2 attendee normalization": "1/1 PASS",
+    "TRACK 15.73 slice3 no-branding default drift": "1/1 PASS",
+    "TRACK 15.73 slice3 picker canonical emit": "5/5 PASS",
+    "TRACK 15.73D health alert trust": "3/3 PASS",
+    "TOTAL": "28/28 PASS in 141.58s"
+  },
+  "rca of the issue": "N/A -- no bugs found. TRACK 15.75A fix is correctly scoped (pure read-expansion, legacy precedence preserved, inactive/non-primary rows ignored, co-PMs unioned). Implementation, regression matrix, and live admin endpoint behavior all align with the spec."
+}

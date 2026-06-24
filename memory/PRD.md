@@ -4355,3 +4355,26 @@ Close Executive YELLOW by building a read-only `ExecutiveOverview.jsx` that aggr
 **Cert artifact:** `/app/memory/TRACK_15_74_CERTIFICATION.md`
 
 **Verdict:** 🟢 GREEN — Platform TRUSTED for production. One operator-owned data-hygiene backlog item.
+
+---
+## Track 15.75 (2026-02) — Operational Delivery Restoration & Six-Pillar Certification
+
+**Scope:** End-to-end certification across 21 operational workflows (Daily Reports · Safety Meetings · Pre-Ops · Incidents · QA/QC · Inspections · JHA · HR · Dispatch · Shop · Trench Safety · Health · Backup · Outage · Auto Email · Dead-letter), verifying every workflow saves, routes to the correct responsible party, surfaces on the right dashboard, and produces a truthful audit row — with no silent failures permitted.
+
+**Findings:**
+- 🟢 0 new P0 / P1 code defects discovered during this pass.
+- 🟢 Daily Report routing live-traced for 6 representative projects (24-06, 25-02, 20-07, 21-06, 26-07, NOTAJOB): DIRECT_PM and DEAD_LETTER paths both produce expected outcomes; co-PMs are visibly CC'd; nothing routes silently.
+- 🟢 Safety Meeting / Incident / QAQC / JHA compliance routing verified (PM + ALWAYS_CC).
+- 🟢 Equipment Pre-Op routing verified (PM_ONLY → no office CC; `PRE_OP_FAIL_FALLBACK` for defects).
+- 🟢 Audit-truth aggregate: 39 truthful `routed_to_dead_letter` rows post-Track-15.74 fix, 0 `failed`/`error` rows in 118 audit rows.
+- 🟢 EMAIL_ROUTING_V2 confirmed ON and certified as the intentional state; all 4 critical routes populated for `masci`; tenants 2 + 3 also configured.
+
+**Operator-owned items (Phase 12 Remediation Plan):**
+- 7 active `jobs_master` rows need `pm_email` backfill (priority: `20-07` 53 DRs, `26-07` 16 DRs). Visible via `/api/admin/pm-email-coverage` and `RoutingStatusPanel`. Dead-letter routing prevents silent loss in the interim.
+
+**Deliverables (`/app/memory/TRACK_15_75_*.md`):** 15 phase reports including `FINAL_CERTIFICATION` with GO/NO-GO answers to all 15 mandated questions.
+
+**Regression:** 40/40 tests continue to pass (Tracks 15.28c, 15.73 all slices, 15.73D, 15.73Q, 15.74).
+
+**Verdict:** 🟢 **GO** — platform certified TRUSTED for production. Operator action pending on 7 PM-email backfills only.
+
