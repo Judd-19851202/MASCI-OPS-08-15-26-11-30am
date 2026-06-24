@@ -4421,3 +4421,22 @@ Close Executive YELLOW by building a read-only `ExecutiveOverview.jsx` that aggr
 
 **Verdict:** 🟢 **GO** — Shop / Pre-Op / DVIR delivery is now silent-failure-proof and fully auditable.
 
+
+---
+## Track 15.75C (2026-02) — Universal Delivery / Routing / Notification / Audit Trust Restoration
+
+**Mission:** Eliminate every silent / log-only path across all workflow auto-emails. Close the last audit-truth gap from Track 15.75B (which only covered `equipment-inspection`).
+
+**Defect found & fixed in-pass:**
+- 🟡→🟢 **P1 universal audit gap** — `_dispatch_auto_email` wrote `email_routing_audit_v2` rows only when `kind="equipment-inspection"` (Track 15.75B). The other six workflow kinds (daily-report · meeting · incident · qaqc · jha · inspection) wrote only `logger.info` on success / `logger.exception` on failure. Operator dashboards could not prove a single Daily Report / Meeting / Incident / QAQC / JHA / Inspection email was delivered. Fixed by extending the audit-row block to fire for every kind, tagged via `calling_module="auto_email_dispatch:{kind}"` and `route_key="AUTO_EMAIL_REPORTS"`. The 15.75B `shop_preop_dispatch` + `PRE_OP_FAIL_FALLBACK` semantics are preserved exactly for the equipment-inspection kind (verified by `test_shop_kind_still_uses_distinct_calling_module`).
+
+**Allowed audit statuses (locked by `test_email_routing_v2_status_endpoint_includes_sent_rows`):** `sent`, `failed`, `dry_run`, `resolved`, `routed_to_dead_letter`, `dead_letter_unconfigured`, `shop_recipient_unconfigured`, `escalated_to_admin_dead_letter`. Any new/unknown status will fail the regression sweep.
+
+**Master-data drift check:** 3 unique employees with email-but-not-in-user_directory were confirmed to be synthetic test fixtures (`iter316.pytest.dupe@…`, `track1540@mascicert.local`, `a@b.com`). Real platform identities are clean — `employees` (HR-side, 396 rows mostly without email) and `user_directory` (162 portal users) serve different purposes by design.
+
+**Testing:** `testing_agent_v3_fork` confirmed **32/32 PASS** across all trust tracks (15.75C 15 + 15.75B 6 + 15.75A 6 + 15.74 2 + 15.73Q 3). Live `/api/admin/email-routing/v2/status` and `/api/admin/pm-email-coverage` both 200 with super-admin token, `mode='v2'`, `critical_empty=0`, `errors_last_24h=0`.
+
+**Cert artifact:** `/app/memory/TRACK_15_75C_FINAL_CERTIFICATION.md`. Test report: `/app/test_reports/iteration_track_15_75c_certification.json`.
+
+**Verdict:** 🟢 **GO** — Platform is now operationally trustworthy across every audited workflow. No silent-failure path remains for any auto-email kind. Every send produces a truthful audit row filterable by workflow.
+
