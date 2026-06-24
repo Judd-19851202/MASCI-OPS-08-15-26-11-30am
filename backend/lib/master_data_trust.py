@@ -88,6 +88,7 @@ async def _pm_assignment_findings(db) -> List[Dict[str, Any]]:
         out.append({
             "code": "pm_missing_route",
             "band": "red",
+            "severity": "critical",
             "count": len(missing),
             "summary": (
                 f"{len(missing)} active project(s) have no resolvable "
@@ -100,7 +101,14 @@ async def _pm_assignment_findings(db) -> List[Dict[str, Any]]:
                 "project listed below. (Legacy fallback: set pm_email "
                 "on the jobs_master row.)"
             ),
-            "samples": missing[:5],
+            "remediation_link": "/admin/people-and-access",
+            "samples": missing[:10],
+            "estimated_remediation_seconds": 30 * len(missing),
+            "impact": (
+                "Restores Daily Reports, Safety Meetings, Incidents, "
+                "QA/QC, JHA, Pre-Op, and DVIR notifications for these "
+                "projects."
+            ),
         })
     return out
 
@@ -121,6 +129,7 @@ async def _equipment_findings(db) -> List[Dict[str, Any]]:
             out.append({
                 "code": "equipment_missing_unit_number",
                 "band": "amber",
+                "severity": "cleanup",
                 "count": len(missing_un),
                 "summary": (
                     f"{len(missing_un)} equipment row(s) missing canonical "
@@ -132,7 +141,13 @@ async def _equipment_findings(db) -> List[Dict[str, Any]]:
                     "or remove inactive rows via the Asset Administration "
                     "→ Canonical Taxonomy review queue."
                 ),
-                "samples": missing_un[:5],
+                "remediation_link": "/admin/equipment-suppliers",
+                "samples": missing_un[:10],
+                "estimated_remediation_seconds": 15 * min(len(missing_un), 200),
+                "impact": (
+                    "Data hygiene only — no live workflow is currently "
+                    "blocked by this drift."
+                ),
             })
     except Exception:
         pass
@@ -159,6 +174,7 @@ async def _employee_findings(db) -> List[Dict[str, Any]]:
             out.append({
                 "code": "employee_missing_id",
                 "band": "amber",
+                "severity": "cleanup",
                 "count": len(missing),
                 "summary": (
                     f"{len(missing)} active employee(s) saved without a "
@@ -168,7 +184,13 @@ async def _employee_findings(db) -> List[Dict[str, Any]]:
                     "Open Admin → People & Access → Employee Master and "
                     "assign the canonical employee_id to each row below."
                 ),
-                "samples": missing[:5],
+                "remediation_link": "/admin/people-and-access",
+                "samples": missing[:10],
+                "estimated_remediation_seconds": 20 * min(len(missing), 100),
+                "impact": (
+                    "Data hygiene — no live workflow is blocked, but "
+                    "employee identity is at risk of drift."
+                ),
             })
     except Exception:
         pass
@@ -204,6 +226,7 @@ async def _route_findings(db) -> List[Dict[str, Any]]:
             out.append({
                 "code": "critical_route_missing",
                 "band": "red",
+                "severity": "critical",
                 "count": len(missing),
                 "summary": (
                     f"{len(missing)} critical email route(s) are not "
@@ -213,7 +236,13 @@ async def _route_findings(db) -> List[Dict[str, Any]]:
                     "Open Admin → Email & Routing → Auto-Routing Rules "
                     "and configure: " + "; ".join(missing) + "."
                 ),
+                "remediation_link": "/admin/email",
                 "samples": missing,
+                "estimated_remediation_seconds": 60 * len(missing),
+                "impact": (
+                    "Without these routes, dispatch/safety/dead-letter "
+                    "failures will not reach any inbox."
+                ),
             })
     except Exception:
         pass

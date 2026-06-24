@@ -1,27 +1,33 @@
 /**
- * <OperationsTrustCenter> — Track 15.76A capstone.
+ * <OperationsTrustCenter> — Track 15.76B finalization.
  *
- * Single read-only screen the operator can open to answer:
- *   "Is the platform healthy right now?  Why?  What needs action?"
- * in under one minute. No shell scripts. No DevTools. No Mongo.
+ * Single operator screen that answers
  *
- * Consumes:
- *   GET /api/admin/operations-trust-center
+ *   "Can I trust this platform to run operations today?"
  *
- * Surfaces (in order, top-to-bottom):
- *   1. Trust Score band (0-100) + headline reason
- *   2. Executive summary strip (workflows trusted / amber / idle / red,
- *      last success, last failure, master-data band, audit health)
- *   3. Master-data trust card (operator-readable findings + remediation)
- *   4. Per-workflow table with operator-friendly summary + remediation
- *      on every red/amber row; click-to-expand drill-in still available.
+ * in under 30 seconds, with every claim backed by Trust Spine
+ * evidence. Layout (top to bottom):
  *
- * Hard rules honoured:
- *   - No fake green: red caps at 59, amber caps at 84.
- *   - Every red/amber row shows what failed, why, and what to do.
- *   - Idle workflows render as "No activity 24h" (amber tone), never green.
+ *   1. Executive Status Header — band + narrative + ETA
+ *   2. Trust Score with 7-category breakdown
+ *   3. Trend sparkline (24h / 7d / 30d toggle)
+ *   4. Critical Operational Problems  (live blocking issues)
+ *   5. Operational Warnings           (attention needed)
+ *   6. Data Improvement Opportunities (pure hygiene)
+ *   7. Operator Action Panel          (sorted, with deep links)
+ *   8. Subsystem Health Cards
+ *   9. Workflow Lifecycle table       (drill-down)
+ *
+ * Reads:
+ *   GET /api/admin/operations-trust-center?trend_hours={24|168|720}
+ *   GET /api/admin/trust-spine/workflow/{workflow}
  */
-import React, { useState, useCallback, useEffect } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   ShieldCheck,
   AlertTriangle,
@@ -33,7 +39,15 @@ import {
   ChevronDown,
   Hourglass,
   Database,
+  Zap,
+  Wrench,
+  Sparkles,
+  ExternalLink,
+  TrendingUp,
+  TrendingDown,
+  Minus,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
@@ -41,27 +55,39 @@ import { toast } from "sonner";
 const BAND_STYLE = {
   green: {
     tone: "bg-emerald-50 border-emerald-200",
+    softTone: "bg-emerald-50/50",
     pill: "bg-emerald-100 text-emerald-800 border-emerald-300",
+    bar: "bg-emerald-500",
     Icon: ShieldCheck,
     label: "Trusted",
+    headlineColor: "#059669",
   },
   amber: {
     tone: "bg-amber-50 border-amber-200",
+    softTone: "bg-amber-50/50",
     pill: "bg-amber-100 text-amber-800 border-amber-300",
+    bar: "bg-amber-500",
     Icon: AlertTriangle,
     label: "Missing evidence",
+    headlineColor: "#d97706",
   },
   "amber-no-activity": {
     tone: "bg-slate-50 border-slate-200",
+    softTone: "bg-slate-50/50",
     pill: "bg-slate-100 text-slate-700 border-slate-300",
+    bar: "bg-slate-400",
     Icon: Hourglass,
     label: "No activity 24h",
+    headlineColor: "#475569",
   },
   red: {
     tone: "bg-rose-50 border-rose-200",
+    softTone: "bg-rose-50/50",
     pill: "bg-rose-100 text-rose-800 border-rose-300",
+    bar: "bg-rose-500",
     Icon: XCircle,
     label: "Failing",
+    headlineColor: "#dc2626",
   },
 };
 
@@ -93,122 +119,314 @@ function fmtPct(rate) {
   return `${Math.round(rate * 1000) / 10}%`;
 }
 
+function fmtEta(seconds) {
+  if (!seconds) return "—";
+  if (seconds < 60) return `${seconds}s`;
+  const m = Math.round(seconds / 60);
+  if (m < 60) return `${m} min`;
+  return `${Math.round(m / 60)}h`;
+}
+
 function ScoreRing({ score, band }) {
   const cfg = BAND_STYLE[band] || BAND_STYLE.amber;
-  const colour =
-    band === "green"
-      ? "#059669"
-      : band === "amber"
-      ? "#d97706"
-      : band === "red"
-      ? "#dc2626"
-      : "#475569";
-  const circumference = 2 * Math.PI * 42;
-  const offset = circumference - (Math.max(0, Math.min(100, score)) / 100) * circumference;
+  const circ = 2 * Math.PI * 46;
+  const offset = circ - (Math.max(0, Math.min(100, score)) / 100) * circ;
   return (
     <div
       className="relative inline-flex items-center justify-center"
       data-testid="otc-score-ring"
     >
-      <svg width="108" height="108" className="-rotate-90">
-        <circle cx="54" cy="54" r="42" stroke="#e2e8f0" strokeWidth="10" fill="none" />
+      <svg width="120" height="120" className="-rotate-90">
+        <circle cx="60" cy="60" r="46" stroke="#e2e8f0" strokeWidth="10" fill="none" />
         <circle
-          cx="54"
-          cy="54"
-          r="42"
-          stroke={colour}
+          cx="60"
+          cy="60"
+          r="46"
+          stroke={cfg.headlineColor}
           strokeWidth="10"
           strokeLinecap="round"
           fill="none"
-          strokeDasharray={circumference}
+          strokeDasharray={circ}
           strokeDashoffset={offset}
           style={{ transition: "stroke-dashoffset 600ms ease-out" }}
         />
       </svg>
       <div className="absolute flex flex-col items-center">
         <div
-          className="text-3xl font-bold"
-          style={{ color: colour }}
+          className="text-4xl font-bold"
+          style={{ color: cfg.headlineColor }}
           data-testid="otc-score-value"
         >
           {score}
         </div>
-        <div className="text-xs uppercase tracking-wide text-slate-500">
-          {cfg.label}
+        <div className="text-[10px] uppercase tracking-wider text-slate-500">
+          / 100
         </div>
       </div>
     </div>
   );
 }
 
-function MasterDataCard({ master }) {
-  if (!master) return null;
-  const findings = master.findings || [];
-  const band = master.band || "green";
+function TrendSparkline({ points, height = 40 }) {
+  if (!points || points.length < 2) {
+    return (
+      <div className="text-xs text-slate-400 italic">
+        Trend will appear once more snapshots are collected.
+      </div>
+    );
+  }
+  const w = 400;
+  const h = height;
+  const ys = points.map((p) => p.score ?? 0);
+  const min = Math.min(...ys, 60);
+  const max = 100;
+  const span = max - min || 1;
+  const stepX = w / (points.length - 1);
+  const path = points
+    .map((p, i) => {
+      const x = i * stepX;
+      const y = h - ((p.score - min) / span) * (h - 6) - 3;
+      return `${i === 0 ? "M" : "L"} ${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+  const last = points[points.length - 1].score;
+  const first = points[0].score;
+  const delta = last - first;
+  const TrendIcon =
+    delta > 0 ? TrendingUp : delta < 0 ? TrendingDown : Minus;
+  return (
+    <div className="flex items-center gap-3" data-testid="otc-trend-spark">
+      <svg
+        width="100%"
+        viewBox={`0 0 ${w} ${h}`}
+        preserveAspectRatio="none"
+        className="h-10 flex-1 max-w-md"
+      >
+        <path d={path} stroke="#0f172a" strokeWidth="1.5" fill="none" />
+      </svg>
+      <div
+        className={`flex items-center gap-1 text-xs ${
+          delta > 0
+            ? "text-emerald-700"
+            : delta < 0
+            ? "text-rose-700"
+            : "text-slate-500"
+        }`}
+      >
+        <TrendIcon size={14} />
+        {delta > 0 ? "+" : ""}
+        {delta} pts
+      </div>
+    </div>
+  );
+}
+
+function CategoryBar({ id, label, score, band, headline, onClick }) {
   const cfg = BAND_STYLE[band] || BAND_STYLE.amber;
   return (
-    <div
-      className={`rounded-2xl border p-4 ${cfg.tone}`}
-      data-testid="otc-master-data-card"
+    <button
+      type="button"
+      onClick={onClick}
+      data-testid={`otc-category-${id}`}
+      className="w-full text-left rounded-lg border border-slate-200 bg-white px-3 py-2 hover:border-slate-300 transition-colors"
     >
-      <div className="flex items-center justify-between gap-2 mb-3">
-        <div className="flex items-center gap-2">
-          <Database size={16} className="text-slate-700" />
-          <h4 className="text-sm font-semibold text-slate-900">
-            Master Data Trust
-          </h4>
+      <div className="flex items-center justify-between gap-2 mb-1">
+        <div className="text-xs font-medium text-slate-700">{label}</div>
+        <div className="text-xs font-semibold text-slate-900">{score}</div>
+      </div>
+      <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+        <div
+          className={`h-full ${cfg.bar}`}
+          style={{ width: `${Math.max(2, score)}%`, transition: "width 500ms" }}
+        />
+      </div>
+      <div className="text-[11px] text-slate-500 mt-1 truncate" title={headline}>
+        {headline || "all clear"}
+      </div>
+    </button>
+  );
+}
+
+function FindingItem({ f, testid }) {
+  const cfg = BAND_STYLE[f.band] || BAND_STYLE.amber;
+  return (
+    <li
+      className="flex items-start gap-3 p-3 rounded-lg bg-white border border-slate-200"
+      data-testid={testid}
+    >
+      <cfg.Icon
+        size={16}
+        className={`mt-0.5 ${
+          f.band === "red" ? "text-rose-600" : "text-amber-600"
+        }`}
+      />
+      <div className="flex-1 min-w-0">
+        <div className="text-sm font-medium text-slate-900">{f.summary}</div>
+        <div className="text-xs text-slate-600 italic mt-0.5">
+          → {f.remediation}
         </div>
-        <Badge band={band} />
+        {f.impact && (
+          <div className="text-xs text-slate-500 mt-1">
+            <span className="font-medium">Impact:</span> {f.impact}
+          </div>
+        )}
+        {f.samples && f.samples.length > 0 && (
+          <div className="text-xs text-slate-500 mt-1 font-mono truncate">
+            Examples: {f.samples.slice(0, 6).join(" · ")}
+          </div>
+        )}
+        {f.remediation_link && (
+          <Link
+            to={f.remediation_link}
+            className="inline-flex items-center gap-1 text-xs text-slate-700 hover:text-slate-900 underline mt-2"
+          >
+            Open fix-it page <ExternalLink size={11} />
+          </Link>
+        )}
+      </div>
+      <Badge band={f.band} />
+    </li>
+  );
+}
+
+function FindingSection({ id, title, Icon, findings, emptyText, tone }) {
+  return (
+    <div
+      className={`rounded-2xl border p-4 ${tone}`}
+      data-testid={`otc-section-${id}`}
+    >
+      <div className="flex items-center gap-2 mb-3">
+        <Icon size={16} className="text-slate-700" />
+        <h4 className="text-sm font-semibold text-slate-900">{title}</h4>
+        <span className="text-xs text-slate-500">({findings.length})</span>
       </div>
       {findings.length === 0 ? (
-        <div className="text-xs text-slate-500">
-          All master-data sources clean — no drift detected.
-        </div>
+        <div className="text-xs text-slate-500 italic">{emptyText}</div>
       ) : (
         <ul className="space-y-2">
-          {findings.map((f, i) => {
-            const fcfg = BAND_STYLE[f.band] || BAND_STYLE.amber;
-            return (
-              <li
-                key={`${f.code}-${i}`}
-                className="flex items-start gap-3 p-3 rounded-lg bg-white border border-slate-200"
-                data-testid={`otc-md-finding-${f.code}`}
-              >
-                <fcfg.Icon
-                  size={16}
-                  className={
-                    f.band === "red"
-                      ? "text-rose-600 mt-0.5"
-                      : "text-amber-600 mt-0.5"
-                  }
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-slate-900">
-                    {f.summary}
-                  </div>
-                  <div className="text-xs text-slate-600 italic mt-0.5">
-                    → {f.remediation}
-                  </div>
-                  {f.samples && f.samples.length > 0 && (
-                    <div className="text-xs text-slate-500 mt-1 font-mono truncate">
-                      Examples: {f.samples.slice(0, 5).join(" · ")}
-                    </div>
-                  )}
-                </div>
-                <Badge band={f.band} />
-              </li>
-            );
-          })}
+          {findings.map((f, i) => (
+            <FindingItem
+              key={`${f.code}-${i}`}
+              f={f}
+              testid={`otc-${id}-${f.code}`}
+            />
+          ))}
         </ul>
       )}
     </div>
   );
 }
 
+function OperatorActionPanel({ actions, totalEtaSeconds }) {
+  if (!actions || actions.length === 0) {
+    return (
+      <div
+        className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4"
+        data-testid="otc-action-panel-empty"
+      >
+        <div className="flex items-center gap-2">
+          <ShieldCheck size={16} className="text-emerald-700" />
+          <h4 className="text-sm font-semibold text-emerald-900">
+            No operator action required
+          </h4>
+        </div>
+        <p className="text-xs text-emerald-800 mt-1">
+          Every operational subsystem is healthy and every monitored
+          workflow has fresh evidence.
+        </p>
+      </div>
+    );
+  }
+  return (
+    <div
+      className="rounded-2xl border border-slate-200 bg-white p-4"
+      data-testid="otc-action-panel"
+    >
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <div className="flex items-center gap-2">
+          <Zap size={16} className="text-amber-600" />
+          <h4 className="text-sm font-semibold text-slate-900">
+            What should I do right now?
+          </h4>
+        </div>
+        {totalEtaSeconds > 0 && (
+          <div
+            className="text-xs text-slate-600"
+            data-testid="otc-action-eta"
+          >
+            critical work: ~{fmtEta(totalEtaSeconds)}
+          </div>
+        )}
+      </div>
+      <ol className="space-y-2">
+        {actions.map((a, idx) => (
+          <li
+            key={a.id}
+            className="flex items-start gap-3 p-3 rounded-lg bg-white border border-slate-200"
+            data-testid={`otc-action-${a.id}`}
+          >
+            <div
+              className={`shrink-0 inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold border ${
+                a.priority === "critical"
+                  ? "bg-rose-100 text-rose-800 border-rose-300"
+                  : a.priority === "warning"
+                  ? "bg-amber-100 text-amber-800 border-amber-300"
+                  : "bg-slate-100 text-slate-700 border-slate-300"
+              }`}
+            >
+              {idx + 1}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-medium text-slate-900">
+                {a.title}
+              </div>
+              <div className="text-xs text-slate-600 italic mt-0.5">
+                → {a.remediation}
+              </div>
+              <div className="text-xs text-slate-500 mt-1">
+                <span className="font-medium">Impact:</span> {a.impact} ·{" "}
+                <span className="font-medium">Est:</span>{" "}
+                {fmtEta(a.estimated_remediation_seconds)}
+              </div>
+            </div>
+            {a.remediation_link && (
+              <Link
+                to={a.remediation_link}
+                className="shrink-0 inline-flex items-center gap-1 text-xs text-slate-700 hover:text-slate-900 underline self-start"
+              >
+                Open <ExternalLink size={11} />
+              </Link>
+            )}
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+function SubsystemCards({ subsystems }) {
+  if (!subsystems || subsystems.length === 0) return null;
+  return (
+    <div
+      className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2"
+      data-testid="otc-subsystems"
+    >
+      {subsystems.map((s) => (
+        <CategoryBar
+          key={s.id}
+          id={s.id}
+          label={s.label}
+          score={s.score}
+          band={s.band}
+          headline={s.headline}
+        />
+      ))}
+    </div>
+  );
+}
+
 function WorkflowRow({ row, expanded, onToggle, drill }) {
   const cfg = BAND_STYLE[row.band] || BAND_STYLE.amber;
-  const ls = row.last_success?.ts;
-  const lf = row.last_failure?.ts;
   return (
     <>
       <tr
@@ -223,9 +441,6 @@ function WorkflowRow({ row, expanded, onToggle, drill }) {
         </td>
         <td className="px-3 py-2 text-sm font-medium text-slate-900">
           {row.workflow_label || row.workflow}
-          <div className="text-xs text-slate-500 font-mono">
-            {row.workflow}
-          </div>
         </td>
         <td className="px-3 py-2">
           <Badge band={row.band} />
@@ -253,35 +468,15 @@ function WorkflowRow({ row, expanded, onToggle, drill }) {
         </td>
       </tr>
       {expanded && (
-        <tr className={cfg.tone}>
+        <tr className={cfg.softTone}>
           <td colSpan={7} className="px-4 py-3">
-            <div
-              data-testid={`otc-drill-${row.workflow}`}
-              className="space-y-3"
-            >
+            <div data-testid={`otc-drill-${row.workflow}`} className="space-y-3">
               <div className="text-xs text-slate-700">
                 <span className="font-semibold">Expected stages:</span>{" "}
                 <code className="text-slate-600">
                   {(row.expected_stages || []).join(" → ") || "—"}
                 </code>
               </div>
-              {row.missing_stages && row.missing_stages.length > 0 && (
-                <div
-                  data-testid={`otc-missing-${row.workflow}`}
-                  className="text-xs text-amber-800"
-                >
-                  <span className="font-semibold">
-                    Missing in last 24h:
-                  </span>{" "}
-                  {row.missing_stages.join(", ")}
-                </div>
-              )}
-              {row.failure_stage && (
-                <div className="text-xs text-rose-800">
-                  <span className="font-semibold">Failure stage:</span>{" "}
-                  <code>{row.failure_stage}</code>
-                </div>
-              )}
               <DrillTable drill={drill} workflow={row.workflow} />
             </div>
           </td>
@@ -302,10 +497,7 @@ function DrillTable({ drill, workflow }) {
   }
   if (!drill.events?.length) {
     return (
-      <div
-        data-testid={`otc-drill-empty-${workflow}`}
-        className="text-xs text-slate-500 italic"
-      >
+      <div className="text-xs text-slate-500 italic">
         No lifecycle events recorded for this workflow yet.
       </div>
     );
@@ -313,7 +505,7 @@ function DrillTable({ drill, workflow }) {
   return (
     <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
       <table className="w-full text-xs">
-        <thead className="bg-slate-50 text-slate-500 uppercase tracking-wide text-xs">
+        <thead className="bg-slate-50 text-slate-500 uppercase tracking-wide text-[10px]">
           <tr>
             <th className="text-left px-2 py-1">When</th>
             <th className="text-left px-2 py-1">Stage</th>
@@ -328,7 +520,6 @@ function DrillTable({ drill, workflow }) {
             <tr
               key={`${e.correlation_id}-${e.stage}-${i}`}
               className="border-t border-slate-100"
-              data-testid={`otc-drill-row-${workflow}-${i}`}
             >
               <td className="px-2 py-1 text-slate-600 whitespace-nowrap">
                 {fmtTs(e.ts)}
@@ -356,9 +547,7 @@ function DrillTable({ drill, workflow }) {
                   <div className="text-rose-700">{e.failure_reason}</div>
                 )}
                 {e.remediation && (
-                  <div className="italic text-slate-500">
-                    → {e.remediation}
-                  </div>
+                  <div className="italic text-slate-500">→ {e.remediation}</div>
                 )}
                 {!e.failure_reason && !e.remediation && "—"}
               </td>
@@ -370,30 +559,43 @@ function DrillTable({ drill, workflow }) {
   );
 }
 
+const TREND_OPTIONS = [
+  { label: "24h", hours: 24 },
+  { label: "7d", hours: 168 },
+  { label: "30d", hours: 720 },
+];
+
 export default function OperationsTrustCenter() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [lastRun, setLastRun] = useState("");
+  const [trendHours, setTrendHours] = useState(24);
   const [expandedRow, setExpandedRow] = useState(null);
   const [drill, setDrill] = useState(null);
   const [drillLoading, setDrillLoading] = useState(false);
+  const [showScoreDetail, setShowScoreDetail] = useState(false);
 
-  const run = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const res = await api.get("/admin/operations-trust-center");
-      setData(res.data);
-      setLastRun(new Date().toLocaleString());
-    } catch (e) {
-      const msg = e?.response?.data?.detail || e?.message || "load failed";
-      setError(String(msg));
-      toast.error(`Trust Center: ${msg}`);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const run = useCallback(
+    async (hours = trendHours) => {
+      setLoading(true);
+      setError("");
+      try {
+        const res = await api.get(
+          `/admin/operations-trust-center?trend_hours=${hours}`
+        );
+        setData(res.data);
+        setLastRun(new Date().toLocaleString());
+      } catch (e) {
+        const msg = e?.response?.data?.detail || e?.message || "load failed";
+        setError(String(msg));
+        toast.error(`Trust Center: ${msg}`);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [trendHours]
+  );
 
   const loadDrill = useCallback(async (workflow) => {
     setDrillLoading(true);
@@ -422,8 +624,17 @@ export default function OperationsTrustCenter() {
   );
 
   useEffect(() => {
-    run();
-  }, [run]);
+    run(trendHours);
+  }, [trendHours, run]);
+
+  const band = data?.score_band || "amber";
+  const cfg = BAND_STYLE[band] || BAND_STYLE.amber;
+  const summary = data?.summary || {};
+
+  const categoryRows = useMemo(() => {
+    if (!data?.categories) return [];
+    return data.subsystems || [];
+  }, [data]);
 
   if (loading && !data) {
     return (
@@ -445,7 +656,7 @@ export default function OperationsTrustCenter() {
       >
         <strong>Trust Center unavailable:</strong> {error}
         <div className="mt-2">
-          <Button size="sm" variant="outline" onClick={run} data-testid="otc-retry">
+          <Button size="sm" variant="outline" onClick={() => run(trendHours)} data-testid="otc-retry">
             <RotateCw size={14} className="mr-1" /> Retry
           </Button>
         </div>
@@ -455,43 +666,41 @@ export default function OperationsTrustCenter() {
 
   if (!data) return null;
 
-  const summary = data.summary || {};
-  const band = data.score_band || "amber";
-  const cfg = BAND_STYLE[band] || BAND_STYLE.amber;
-
   return (
     <div data-testid="operations-trust-center" className="space-y-4">
-      {/* 1 · Headline trust score + reason */}
+      {/* 1 · Executive Status Header — read in 15 seconds */}
       <div
-        className={`rounded-2xl border p-4 ${cfg.tone}`}
+        className={`rounded-2xl border p-5 ${cfg.tone}`}
         data-testid="otc-headline"
       >
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5">
+          <div className="flex items-start gap-5 flex-1 min-w-0">
             <ScoreRing score={data.trust_score ?? 0} band={band} />
-            <div>
-              <h3 className="text-base font-semibold text-slate-900">
-                Operations Trust Center
-              </h3>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-semibold text-slate-900">
+                  Operations Trust Center
+                </h3>
+                <Badge band={band} />
+              </div>
               <p className="text-xs text-slate-500 mt-0.5">
-                Track 15.76A · workflow + routing + audit + master-data
+                Track 15.76B · workflow + routing + audit + master-data
                 continuous verification
               </p>
               <p
-                className="text-sm text-slate-800 mt-2 max-w-xl"
-                data-testid="otc-headline-reason"
+                className="text-sm text-slate-800 mt-2"
+                data-testid="otc-narrative"
               >
                 <strong>{data.score_band_label}.</strong>{" "}
-                {data.score_reason}
+                {data.executive_narrative}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge band={band} />
+          <div className="flex items-center gap-2 shrink-0">
             <Button
               size="sm"
               variant="outline"
-              onClick={run}
+              onClick={() => run(trendHours)}
               disabled={loading}
               data-testid="otc-refresh"
             >
@@ -504,117 +713,122 @@ export default function OperationsTrustCenter() {
           </div>
         </div>
 
-        {/* Why is the score what it is? — top 3 penalty inputs visible. */}
+        {/* Why isn't this 100? */}
         {data.score_inputs && data.score_inputs.length > 0 && (
-          <div
-            className="mt-3 text-xs text-slate-700 grid grid-cols-1 sm:grid-cols-3 gap-2"
-            data-testid="otc-score-inputs"
-          >
-            {data.score_inputs.slice(0, 3).map((i, idx) => (
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={() => setShowScoreDetail((v) => !v)}
+              className="text-xs text-slate-700 underline hover:text-slate-900"
+              data-testid="otc-why-toggle"
+            >
+              {showScoreDetail
+                ? "Hide trust score breakdown"
+                : "Why isn't this 100?"}
+            </button>
+            {showScoreDetail && (
               <div
-                key={idx}
-                className="rounded-lg border border-white bg-white/70 px-3 py-2"
+                className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2"
+                data-testid="otc-score-inputs"
               >
-                <div className="font-semibold text-slate-800">
-                  −{i.penalty}
-                </div>
-                <div className="text-slate-600">{i.reason}</div>
+                {data.score_inputs.map((i, idx) => (
+                  <div
+                    key={idx}
+                    className="rounded-lg border border-white bg-white/80 px-3 py-2 text-xs"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-rose-700">
+                        −{i.penalty}
+                      </span>
+                      <span className="text-[10px] uppercase tracking-wider text-slate-500">
+                        {i.category}
+                      </span>
+                    </div>
+                    <div className="text-slate-700 mt-1">{i.reason}</div>
+                    {Array.isArray(i.evidence) && i.evidence.length > 0 && (
+                      <div className="text-[11px] text-slate-500 mt-1 font-mono truncate">
+                        {i.evidence.slice(0, 5).join(" · ")}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
           </div>
         )}
       </div>
 
-      {/* 2 · Executive summary strip */}
+      {/* 2 · Subsystem health cards (8 compact tiles) */}
+      <SubsystemCards subsystems={categoryRows} />
+
+      {/* 3 · Trend sparkline */}
       <div
         className="rounded-2xl border border-slate-200 bg-white p-4"
-        data-testid="otc-summary-strip"
+        data-testid="otc-trend"
       >
-        <div className="grid grid-cols-2 sm:grid-cols-6 gap-3">
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2">
-            <div className="text-xs text-emerald-700">Trusted</div>
-            <div
-              className="text-lg font-semibold text-emerald-900"
-              data-testid="otc-stat-trusted"
-            >
-              {summary.workflows_trusted ?? 0}
-            </div>
+        <div className="flex items-center justify-between gap-3 mb-2">
+          <div className="flex items-center gap-2">
+            <TrendingUp size={16} className="text-slate-600" />
+            <h4 className="text-sm font-semibold text-slate-900">
+              Trust Score Trend
+            </h4>
           </div>
-          <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2">
-            <div className="text-xs text-amber-700">Missing evidence</div>
-            <div
-              className="text-lg font-semibold text-amber-900"
-              data-testid="otc-stat-amber"
-            >
-              {summary.workflows_amber ?? 0}
-            </div>
-          </div>
-          <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-            <div className="text-xs text-slate-600">Idle 24h</div>
-            <div
-              className="text-lg font-semibold text-slate-900"
-              data-testid="otc-stat-idle"
-            >
-              {summary.workflows_idle ?? 0}
-            </div>
-          </div>
-          <div className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2">
-            <div className="text-xs text-rose-700">Failing</div>
-            <div
-              className="text-lg font-semibold text-rose-900"
-              data-testid="otc-stat-red"
-            >
-              {summary.workflows_red ?? 0}
-            </div>
-          </div>
-          <div className="rounded-xl border border-slate-200 bg-white px-3 py-2">
-            <div className="text-xs text-slate-500">Master data</div>
-            <div data-testid="otc-stat-master-data">
-              <Badge band={summary.master_data_band || "green"} />
-            </div>
-          </div>
-          <div className="rounded-xl border border-slate-200 bg-white px-3 py-2">
-            <div className="text-xs text-slate-500">Events 24h</div>
-            <div
-              className="text-lg font-semibold text-slate-900"
-              data-testid="otc-stat-events"
-            >
-              {summary.events_24h ?? 0}
-              {summary.failed_24h > 0 && (
-                <span className="ml-1 text-xs text-rose-700">
-                  · {summary.failed_24h} failed
-                </span>
-              )}
-            </div>
+          <div className="flex gap-1">
+            {TREND_OPTIONS.map((o) => (
+              <button
+                key={o.hours}
+                type="button"
+                onClick={() => setTrendHours(o.hours)}
+                data-testid={`otc-trend-${o.label}`}
+                className={`text-xs px-2 py-0.5 rounded-full border ${
+                  trendHours === o.hours
+                    ? "bg-slate-900 text-white border-slate-900"
+                    : "bg-white text-slate-600 border-slate-200"
+                }`}
+              >
+                {o.label}
+              </button>
+            ))}
           </div>
         </div>
-        <div className="mt-3 text-xs text-slate-600 flex flex-wrap items-center gap-4">
-          <span className="flex items-center gap-1">
-            <Activity size={12} />
-            Last success:{" "}
-            <strong className="text-slate-800">
-              {fmtTs(summary.last_success_at)}
-            </strong>
-          </span>
-          <span
-            className={`flex items-center gap-1 ${
-              summary.last_failure_at ? "text-rose-700" : "text-slate-500"
-            }`}
-          >
-            <XCircle size={12} />
-            Last failure:{" "}
-            <strong>{fmtTs(summary.last_failure_at)}</strong>
-          </span>
-          <span className="flex items-center gap-1 text-slate-500">
-            <Clock size={12} /> {lastRun && `refreshed ${lastRun}`}
-          </span>
-        </div>
+        <TrendSparkline points={data.trend || []} />
       </div>
 
-      {/* 3 · Master Data Trust card */}
-      <MasterDataCard master={data.master_data} />
+      {/* 4 · Operator Action Panel — what to do RIGHT NOW */}
+      <OperatorActionPanel
+        actions={data.operator_actions || []}
+        totalEtaSeconds={data.estimated_remediation_seconds || 0}
+      />
 
-      {/* 4 · Per-workflow lifecycle table */}
+      {/* 5 · Three-tier sections: critical / warnings / cleanup */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <FindingSection
+          id="critical"
+          title="Critical Operational Problems"
+          Icon={XCircle}
+          findings={data.critical_problems || []}
+          emptyText="No production-blocking issues right now."
+          tone="bg-rose-50/50 border-rose-200"
+        />
+        <FindingSection
+          id="warnings"
+          title="Operational Warnings"
+          Icon={AlertTriangle}
+          findings={data.operational_warnings || []}
+          emptyText="No warnings — drift is within tolerance."
+          tone="bg-amber-50/50 border-amber-200"
+        />
+        <FindingSection
+          id="cleanup"
+          title="Data Improvement Opportunities"
+          Icon={Wrench}
+          findings={data.cleanup_opportunities || []}
+          emptyText="All master-data sources clean."
+          tone="bg-slate-50 border-slate-200"
+        />
+      </div>
+
+      {/* 6 · Workflow Lifecycle table (drill-in) */}
       <div
         className="rounded-2xl border border-slate-200 bg-white"
         data-testid="otc-workflow-table"
@@ -624,6 +838,9 @@ export default function OperationsTrustCenter() {
           <h4 className="text-sm font-semibold text-slate-900">
             Workflow Lifecycle Health
           </h4>
+          <span className="text-xs text-slate-500">
+            click a row to drill into the last 50 events
+          </span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -655,6 +872,20 @@ export default function OperationsTrustCenter() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Footer · meta */}
+      <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 px-2">
+        <span className="flex items-center gap-1">
+          <Sparkles size={12} /> Track 15.76B finalization
+        </span>
+        <span className="flex items-center gap-1">
+          <Clock size={12} /> refreshed {lastRun}
+        </span>
+        <span className="flex items-center gap-1">
+          <Database size={12} /> master-data band:{" "}
+          <Badge band={summary.master_data_band || "green"} />
+        </span>
       </div>
     </div>
   );

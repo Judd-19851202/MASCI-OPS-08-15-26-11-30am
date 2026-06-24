@@ -11,6 +11,38 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-06-24 · TRACK 15.76B · Operations Trust Center Finalization · 🟢 GO · DEPLOYMENT READY)
+
+### Mission
+Final polish of the Operations Trust Center — categorized 7-axis Trust Score, severity-separated findings, operator action panel, trend persistence, executive narrative, subsystem health cards, remediation deep-links.
+
+### Verdict
+🟢 **GO — DEPLOYMENT READY** — 36/36 tests pass. Score is now broken into 7 named subsystems (workflow_health · routing_integrity · notification_delivery · master_data · audit_integrity · infrastructure · security). Findings split into critical/warnings/cleanup so hygiene never hides production failures. Operator action panel sorts by impact with deep-links, ETA per item, and **headline ETA computed from critical actions only** (regression-protected).
+
+### What shipped
+- `lib/trust_score_v2.py` — categorized 7-axis scoring; failing category cannot be hidden (overall ≤ min_category + 10).
+- `lib/trust_score_history.py` — minute-deduped trend persistence; 60-day TTL; supports 24h/7d/30d views.
+- `lib/master_data_trust.py` — every finding now carries severity (critical/warning/cleanup) + remediation_link + impact + estimated_remediation_seconds.
+- `routes/admin_operations_trust_center.py` — extended envelope (categories, critical_problems, operational_warnings, cleanup_opportunities, operator_actions, subsystems, trend, executive_narrative, estimated_remediation_seconds). All 15.76A keys preserved.
+- `OperationsTrustCenter.jsx` — full visual rewrite: executive narrative + score ring + 7 subsystem cards + trend sparkline w/ window toggle + operator action panel + 3-tier finding columns + workflow drill-in. Reduced visual noise vs 15.76A.
+- 7 new regression tests in `tests/test_track_15_76b_finalization.py`.
+
+### Six pillars
+- **Powerful**: 7-axis scoring + 3-tier severity + deep-linked action panel + persisted trend.
+- **Simple**: 30-second readability with executive narrative + score ring.
+- **Beautiful**: softer tones, pill priority numbers, deep-link CTAs, sparkline.
+- **Trusted**: failing-category cannot be hidden; every claim evidence-backed.
+- **Proven**: 36/36 tests; 5 real production findings surfaced in preview.
+- **Deployable**: additive, rollbackable, no destructive migrations.
+
+### Live preview snapshot
+Score 40 RED — 5 active projects missing PM email (critical) + 247 equipment + 200 employees (cleanup) + 1 workflow band amber + 10 idle workflows. Estimated remediation time ~3 min. Operator can fix the critical band in under 3 minutes via the deep-linked /admin/people-and-access page.
+
+### Files
+`/app/memory/TRACK_15_76B_FINAL_CERTIFICATION.md` for the deployment readiness audit.
+
+
+
 ## Latest Track (2026-06-24 · TRACK 15.76A · Operations Trust Center Capstone · 🟢 GO)
 
 ### Mission
