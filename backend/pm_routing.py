@@ -261,7 +261,8 @@ async def recipients_for_record_async(
             # Phase 3: never silently fall back to a MASCI office address.
             to = await _dead_letter_recipients(db)
             await _audit_dead_letter(db, kind=kind or "operational",
-                                     record=record, reason="no_primary_pm")
+                                     record=record, reason="no_primary_pm",
+                                     dead_letter_to=to, dead_letter_cc=cc)
     else:
         # Compliance kinds: co-PMs FIRST, then office CC. De-dup the
         # always-cc list against both the primary and the co-PMs so
@@ -291,7 +292,8 @@ async def recipients_for_record_async(
             # ADMIN_DEAD_LETTER_TO in To: and keep the office CC.
             to = await _dead_letter_recipients(db)
             await _audit_dead_letter(db, kind=kind or "compliance",
-                                     record=record, reason="no_primary_pm")
+                                     record=record, reason="no_primary_pm",
+                                     dead_letter_to=to, dead_letter_cc=cc)
 
     seen = set()
     all_unique: List[str] = []
@@ -356,23 +358,38 @@ async def _dead_letter_recipients(db) -> List[str]:
     return []
 
 
-async def _audit_dead_letter(db, *, kind: str, record: dict, reason: str) -> None:
+async def _audit_dead_letter(
+    db,
+    *,
+    kind: str,
+    record: dict,
+    reason: str,
+    dead_letter_to: Optional[List[str]] = None,
+    dead_letter_cc: Optional[List[str]] = None,
+) -> None:
     """Write a routing audit row + admin notification when a PM event
-    falls through to the dead-letter route. Never raises."""
+    falls through to the dead-letter route. Records the **actual**
+    resolved dead-letter recipient counts so operator dashboards
+    reflect what really got routed (TRACK 15.74 P1 trust fix —
+    previously this row hardcoded ``to_count=0`` and made dead-letter
+    dispatch look like a silent drop). Never raises."""
     try:
         from tenant_context import resolve_tenant_key
         tk = resolve_tenant_key()
     except Exception:
         tk = "masci"
+    dl_to = list(dead_letter_to or [])
+    dl_cc = list(dead_letter_cc or [])
     try:
         from email_routing_v2 import write_audit as _v2_audit  # noqa: PLC0415
         await _v2_audit(
             db, route_key="ADMIN_DEAD_LETTER_TO", tenant_key=tk,
-            source="db", to_count=0, cc_count=0, bcc_count=0,
+            source="db",
+            to_count=len(dl_to), cc_count=len(dl_cc), bcc_count=0,
             subject=f"[PM UNRESOLVED] {kind}",
-            status="dry_run",
+            status="routed_to_dead_letter" if dl_to else "dead_letter_unconfigured",
             calling_module="pm_routing_dead_letter",
-            dry_run=True,
+            dry_run=False,
         )
     except Exception:
         pass
@@ -386,6 +403,9 @@ async def _audit_dead_letter(db, *, kind: str, record: dict, reason: str) -> Non
             "reason": reason,
             "project_number": (record.get("project_number") or "")[:64],
             "project_name": (record.get("project_name") or "")[:128],
+            "dead_letter_to_count": len(dl_to),
+            "dead_letter_cc_count": len(dl_cc),
+            "dead_letter_configured": bool(dl_to),
         })
     except Exception:
         pass
