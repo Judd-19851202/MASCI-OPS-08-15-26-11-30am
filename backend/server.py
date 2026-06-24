@@ -10817,6 +10817,9 @@ app.include_router(build_operational_signals_router(db, require_admin))
 # backfill. Workflow-impact-free by design.
 from routes.admin_pm_coverage import make_router as _pm_cov_make_router  # noqa: E402
 app.include_router(_pm_cov_make_router(db, require_admin))
+# TRACK 15.75D · In-app Platform Trust Validator (admin-gated, read-only).
+from routes.admin_platform_trust import make_router as _trust_make_router  # noqa: E402
+app.include_router(_trust_make_router(db, require_admin))
 
 
 

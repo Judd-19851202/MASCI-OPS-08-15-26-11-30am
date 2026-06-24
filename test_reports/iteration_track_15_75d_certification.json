@@ -1,0 +1,46 @@
+{
+  "summary": "TRACK 15.75D Platform Trust Validator — backend fully GREEN (37/37 tests pass, live 401/200 contract confirmed). Frontend card is MOUNTED on /admin/email but FAILS to render the validator body — it shows the error fallback 'Trust validator unavailable: Not Found' instead. None of the 7 expected sub-card testids render.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "PlatformTrustValidator (/app/frontend/src/components/PlatformTrustValidator.jsx)",
+        "issue": "Card renders the [data-testid='platform-trust-error'] fallback with 'Trust validator unavailable: Not Found' on /admin/email when signed in as super-admin jaymn.judd@mascigc.com. The api.get('/api/admin/platform-trust/validate') call returns 404 from the SPA's perspective even though the same URL returns 200 via curl with the X-Admin-Token from POST /api/auth/multi-login. Likely cause: the shared `api` http client used by the component is not attaching X-Admin-Token (or attaches the wrong token header, or rewrites the path). None of: platform-trust-loading, trust-card-system, trust-card-routing, trust-card-audit, trust-card-pm-coverage, trust-card-workflows, trust-card-dead-letter, platform-trust-run render.",
+        "selector": "[data-testid='platform-trust-validator']",
+        "priority": "HIGH"
+      }
+    ],
+    "integration_issues": [
+      {
+        "flow": "Admin -> Email & Routing -> Platform Trust Validator card",
+        "issue": "Frontend api client returns 404 for /api/admin/platform-trust/validate while curl with X-Admin-Token (portal_tokens.admin from /api/auth/multi-login) returns 200 with full payload (final_band, 7 workflow rows, audit_status_integrity, pm_email_coverage, etc.). Suggests the api helper used by PlatformTrustValidator.jsx is not attaching the admin token header. Inspect line 93 of PlatformTrustValidator.jsx and the `api` import (likely /app/frontend/src/lib/api.js or similar) — confirm it injects X-Admin-Token from localStorage('masci.admin.token').",
+        "affected_selectors": ["[data-testid='platform-trust-validator']", "[data-testid='platform-trust-error']"]
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_track_15_75d_platform_trust_validator.py",
+    "/app/test_reports/pytest/track_15_75d_results.xml",
+    "/app/test_reports/track_15_75d_admin_email.jpg"
+  ],
+  "action_items": [
+    "Fix the api client used in /app/frontend/src/components/PlatformTrustValidator.jsx so that GET /api/admin/platform-trust/validate sends X-Admin-Token (mirror what AdminEmail.jsx itself uses to fetch routing-status — those calls work, this one doesn't). Likely the component is using a generic axios instance that doesn't have the admin interceptor. Once fixed, re-verify all 7 trust-card testids render and final_band badge is visible."
+  ],
+  "critical_code_review_comments": [
+    "Backend route /api/admin/platform-trust/validate is correctly mounted in server.py at line 10822, returns 401 without token and 200 with admin portal token from multi-login — backend contract is solid.",
+    "Frontend PlatformTrustValidator uses an `api` helper for the call (line 93) but evidently it isn't the same helper that AdminEmail's other panels use (routing-status panel renders fine in same page). Recommend reusing the existing fetch helper that AdminEmail.jsx already uses for /api/admin/email-routing-v2/* (which works) — that helper injects the admin token correctly.",
+    "Live final_band is 'red' due to one workflow with silent_missing_audit (auto_email_dispatch:meeting). This is a TRUE positive — preview has a meeting row in source collection but no audit row in last 24h. Not a bug, the validator is doing exactly what it was designed to do."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "20%"},
+  "test_credentials": "Super-admin via POST /api/auth/multi-login with jaymn.judd@mascigc.com / Maddix123! — returns portal_tokens.admin (101-char) which works on the endpoint. The python make_directory_admin_token() helper documented in the original task DOES NOT work against the live endpoint (returns 401 with X-Admin-Token, X-Directory-Token, or Authorization Bearer) — use multi-login instead.",
+  "seed_data_creation": "None (the silent-failure test creates+tears-down a TRUST-VALIDATOR-15-75D daily_reports row in try/finally; the critical-route-empty test snapshots and restores masci::ADMIN_DEAD_LETTER_TO). Both confirmed clean post-run.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "All 37 pytest assertions pass. Backend endpoint is healthy. The ONLY failure is the frontend card displaying 'Not Found' error fallback instead of the trust band + 4 summary cards + workflow table + dead-letter card. Fix is on the frontend side — the api helper used in PlatformTrustValidator.jsx (line 93) is not sending X-Admin-Token while other admin/email panels on the same page do. Once main agent fixes the api helper (probably just swapping the import to match AdminEmail.jsx's existing helper), retest by signing in to /admin and visiting /admin/email — expect 'Platform Trust Validator' card at TOP with band badge (likely red in current preview data), 4 summary cards, 7 workflow rows, dead-letter card, and a Re-run button.",
+  "rca of the issue": "Backend: solid. Frontend: PlatformTrustValidator.jsx calls api.get() which returns 404 from the SPA's perspective. curl with the same admin token returns 200. Hypothesis: the imported `api` instance does not attach X-Admin-Token (vs the rest of AdminEmail.jsx which fetches admin endpoints successfully). Reproduction: sign in at /admin/login as jaymn.judd@mascigc.com / Maddix123!, navigate to /admin/email, observe red error block reading 'Trust validator unavailable: Not Found' at top of page. Mitigation: align the api helper to the one used by the working routing-status panel in the same file (or explicitly inject the X-Admin-Token header from localStorage 'masci.admin.token')."
+}
