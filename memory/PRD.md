@@ -11,6 +11,37 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-02-11 · TRACK 15.73 SLICE 3 · Regression Origin Audit · 🟢 GO · FORENSIC ONLY)
+
+### Mission
+Find exactly when, where, and why the master-data trust failures were introduced. Forensic-only audit; no code changes, no deploy, no env mutation.
+
+### Verdict
+🟢 **GO** — origins identified with commit-level evidence · no similar P0 identity-chain risks discovered · notification routing code verified correct · 3 P1 risks scoped for Slice 4.
+
+### Confirmed regression origins
+- Equipment: `EquipmentCombo.jsx` file-birth commit `fa074217` (2026-04-28). Day-1 design flaw — picker emitted `display_label` from inception. Not a regression.
+- Employee: `AttendeeBulkAddDialog.jsx` commit `e09d3de5` (2026-06-22) under **Track 15.68C** white-label migration — replaced `company: "MASCI"` → `company: brandCompanyName("Customer")`. **Confirmed regression**.
+
+### Shared failure pattern
+"Write path stored a display value or brand-variable default instead of the canonical ID, with no backend normalization guard." Two sub-patterns: picker-emits-display-value (Slice 1) and branding-fallback-leak (Slice 2).
+
+### Open P1 risks (Slice 4 scope)
+- `EquipmentMasterPanel.jsx:93,190` brand default drift (same Track 15.68C pattern as Slice 2).
+- `PoRequests.jsx:482` vendor identity lost (only `name` stored, no `vendor_id`).
+- Daily Report PM/Co-PM email gap is **data hygiene** (`jobs_master.pm_email` empty for some projects), not a code regression.
+
+### Six pillars
+58 / 60 (97 %).
+
+### Pending tracks
+- **SLICE 4** — Final certification + 3 P1 fixes + 4 pytest additions + optional legacy attendee backfill.
+
+### Previous track summary preserved below
+
+---
+
+
 ## Latest Track (2026-02-11 · TRACK 15.73 SLICE 2 · Employee Identity Restoration · 🟢 GO)
 
 ### Mission

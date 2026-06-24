@@ -1,6 +1,49 @@
 # CHANGELOG
 
 
+## 2026-02-11 — TRACK 15.73 SLICE 3 · Regression Origin Audit · 🟢 GO (FORENSIC ONLY)
+
+**Mode**: Forensic audit only. Zero code modifications. Zero deploy. Zero env changes. Zero production access.
+
+**Confirmed origins (commit-level evidence)**:
+- **Equipment identity drift**: file-birth commit `fa074217` (2026-04-28) — `EquipmentCombo.jsx::pick()` emitted `it.display_label \|\| it.make_model` from inception. Day-1 design flaw, not a regression. Surfaced as P0 only after Track 13.31B-D5 (asset spine resolver) and Track 15.72C (banner exposure).
+- **Employee identity drift**: commit `e09d3de5` (2026-06-22) under **Track 15.68C** ("Data-seed defaults migrated"). White-label migration replaced `company: "MASCI"` → `company: brandCompanyName("Customer")` in `AttendeeBulkAddDialog.jsx`. **Confirmed regression**, introduced by branding sweep.
+
+**Shared failure pattern**: "Write path stored a display value or brand-variable default instead of the canonical ID, with no backend normalization guard." Two sub-patterns: (2A) picker emits display value as key; (2B) branding fallback string leaks.
+
+**Notification trust audit (operator's DR-no-email concern)**: Code path verified correct (`routes/daily_reports.py:383` → `schedule_auto_email("daily-report", doc)` → `recipients_for_record_async` → `pm_routing.resolve_pm_for_record_async` → Resend). Failure mode is **data hygiene** — `db.jobs_master.pm_email` empty for some projects (e.g., DR-2026-01132 documented in handoff). NOT a code regression.
+
+**Display-value misuse scan**:
+- ✅ Closed: `EquipmentCombo` · `NewEquipmentInspection` (Slice 1) · `AttendeeBulkAddDialog` · `NewMeeting` (Slice 2)
+- ❌ Open P1: `EquipmentMasterPanel.jsx:93,190` uses `brandCompanyName("Customer")` for equipment seed company. Could save `company="Customer"`. Slice 4 candidate.
+- ❌ Open P1: `PoRequests.jsx:482` stores `vendor: sup?.name` only (no `vendor_id`). Vendor identity lost on PO records. Slice 4 candidate.
+- ✅ Correct pattern: `NewIncident` · `SafetyCorrectiveActions` · `PublicExcavationForm` (all store ID + label separately).
+
+**Default / fallback drift scan**: 5 `brandCompanyName(...)` call sites audited. `AttendeeBulkAddDialog` and `EquipmentMasterPanel` were unsafe (`"Customer"` fallback). `EmailReportDialog` is safe (display-only, no DB write). View pages (`ViewIncident/Inspection/Meeting/DailyReport`) use cosmetic `\|\| "MASCI"` fallbacks — Track 15.68D i18n already handles most surfaces; 4 file touches would close the rest (P3 cleanup).
+
+**Test gap audit**: 4 missing pytest files identified for Slice 4:
+- `test_track_15_73_slice1_equipment_resolver.py` (wrap Slice-1 regression script)
+- `test_track_15_73_slice2_attendee_normalization.py` (wrap Slice-2 regression script)
+- `test_track_15_73_slice3_picker_canonical_emit.py` (Playwright: pickers emit canonical key)
+- `test_track_15_73_slice3_no_branding_default_drift.py` (assert every `brandCompanyName(...)` callsite uses tenant-canonical default)
+
+**Systemic risk list**:
+- P0: none.
+- P1: R-EQUIP-PANEL · R-PO-VENDOR · R-DR-PM-HYGIENE (data, not code) — all Slice-4 scope.
+- P2: R-LEGACY-MEETING-BACKFILL (160 / 169 historical attendees lack contract fields).
+- P3: R-VIEW-COSMETIC-FALLBACKS · R-RESOLVER-SOURCE-PANEL · R-ATTENDEE-REVIEW-QUEUE.
+
+**Six pillars**: Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10 · Deployable 9 → **58 / 60 (97 %)**.
+
+**Hard rules honoured**: 0 code modifications · 0 deploy · 0 env changes · 0 production access · 0 historical mutations. Pure forensic.
+
+**Deliverables**: `TRACK_15_73_SLICE_3_MASTER.md` (10 sections + final answers + required response) + 10 phase-name pointer files (`_SCOPE_DEFINITION`, `_GIT_FORENSICS`, `_CANONICAL_CHAIN_AUDIT`, `_DISPLAY_VALUE_MISUSE_SCAN`, `_DEFAULT_FALLBACK_DRIFT_SCAN`, `_NOTIFICATION_TRUST_AUDIT`, `_TEST_GAP_AUDIT`, `_REGRESSION_ORIGIN_SUMMARY`, `_SYSTEMIC_RISK_LIST`, `_FINAL_ANSWERS`) — all under `/app/memory/`.
+
+**Operator next**: authorize Slice 4 (final certification + 3 P1 fixes + 4 pytest additions + optional legacy attendee backfill).
+
+---
+
+
 ## 2026-02-11 — TRACK 15.73 SLICE 2 · Employee Identity Restoration · 🟢 GO
 
 **Mission**: Restore safety meeting attendee identity trust. A MASCI roster pick must produce a canonically-classified MASCI employee record from form → DB → PDF → admin view → analytics. Subcontractors and manual entries must be cleanly distinguishable from MASCI employees.
