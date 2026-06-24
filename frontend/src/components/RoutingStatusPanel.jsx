@@ -304,6 +304,148 @@ export default function RoutingStatusPanel() {
           <strong>Rollback:</strong> {status.rollback_target.mechanism}. Reverse value = <code className="font-mono">{status.rollback_target.reverse_value}</code>. Estimated time ≤ {status.rollback_target.estimated_minutes} min.
         </div>
       )}
+
+      {/* Track 15.73Q · PM-Email Coverage Card */}
+      <PmEmailCoverageCard />
     </section>
+  );
+}
+
+/**
+ * <PmEmailCoverageCard> — Track 15.73Q
+ *
+ * Surfaces which active jobs_master rows lack a pm_email so the operator
+ * can prioritise data-hygiene backfill without needing DB access.
+ *
+ * Reads from GET /api/admin/pm-email-coverage (admin-gated).
+ */
+function PmEmailCoverageCard() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setErr(null);
+    try {
+      const r = await api.get("/admin/pm-email-coverage");
+      setData(r.data);
+    } catch (e) {
+      setErr(e?.response?.data?.detail || e?.message || "Failed to load");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  if (loading && !data) {
+    return (
+      <div className="text-[11px] text-slate-500 border-t border-slate-200 pt-2" data-testid="pm-email-coverage-loading">
+        Loading PM-email coverage…
+      </div>
+    );
+  }
+  if (err) {
+    return (
+      <div className="text-[11px] text-rose-700 border-t border-slate-200 pt-2" data-testid="pm-email-coverage-error">
+        PM-email coverage unavailable: {err}
+      </div>
+    );
+  }
+  if (!data) return null;
+
+  const missingActive = data.active_projects_missing_pm_email || 0;
+  const drImpacted = data.active_projects_with_recent_drs_and_no_pm_email || 0;
+  const total = data.active_projects_total || 0;
+  const coverage = total > 0 ? ((total - missingActive) / total) * 100 : 100;
+  const band = drImpacted > 0 ? "red" : missingActive > 0 ? "amber" : "green";
+  const bs = BAND_STYLES[band] || BAND_STYLES.amber;
+  const BandIcon = bs.icon;
+
+  return (
+    <div
+      className={`rounded-lg border ${bs.row} p-3 space-y-2`}
+      data-testid="pm-email-coverage-card"
+    >
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2">
+          <BandIcon className={`h-4 w-4 ${band === "green" ? "text-emerald-600" : band === "amber" ? "text-amber-600" : "text-rose-600"}`} />
+          <span className="text-sm font-semibold text-slate-900">Daily Report PM-Email Coverage</span>
+        </div>
+        <Pill band={band}>{bs.label}</Pill>
+        <span className="text-xs text-slate-600">{coverage.toFixed(0)}% of active projects covered</span>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={load}
+          disabled={loading}
+          className="ml-auto"
+          data-testid="pm-email-coverage-refresh"
+        >
+          <RotateCw className={`h-3 w-3 mr-1 ${loading ? "animate-spin" : ""}`} />
+          Refresh
+        </Button>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+        <div data-testid="pm-cov-total">
+          <div className="text-slate-500">Active projects</div>
+          <div className="font-mono font-semibold">{total}</div>
+        </div>
+        <div data-testid="pm-cov-missing">
+          <div className="text-slate-500">Missing PM email</div>
+          <div className={`font-mono font-semibold ${missingActive > 0 ? "text-amber-700" : ""}`}>{missingActive}</div>
+        </div>
+        <div data-testid="pm-cov-impacted">
+          <div className="text-slate-500">With recent DRs &amp; no PM</div>
+          <div className={`font-mono font-semibold ${drImpacted > 0 ? "text-rose-700" : ""}`}>{drImpacted}</div>
+        </div>
+        <div>
+          <div className="text-slate-500">Has Co-PM only</div>
+          <div className="font-mono font-semibold">{data.summary?.active_with_co_pm_email_only ?? 0}</div>
+        </div>
+      </div>
+      {data.missing_rows_top_25 && data.missing_rows_top_25.length > 0 && (
+        <details className="text-xs">
+          <summary className="cursor-pointer text-slate-600 hover:text-slate-900" data-testid="pm-cov-toggle-list">
+            Show {data.missing_rows_top_25.length} affected project(s)
+          </summary>
+          <div className="mt-2 overflow-x-auto">
+            <table className="w-full text-[11px]">
+              <thead className="text-slate-500">
+                <tr>
+                  <th className="text-left font-medium py-1 pr-2">project_number</th>
+                  <th className="text-left font-medium py-1 pr-2">project_name</th>
+                  <th className="text-right font-medium py-1 pr-2">recent DRs</th>
+                  <th className="text-left font-medium py-1 pr-2">last DR</th>
+                  <th className="text-left font-medium py-1 pr-2">status</th>
+                  <th className="text-left font-medium py-1">co_pm_emails</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.missing_rows_top_25.map((r, i) => (
+                  <tr key={i} className="border-t border-slate-100" data-testid={`pm-cov-row-${r.project_number}`}>
+                    <td className="font-mono py-1 pr-2">{r.project_number}</td>
+                    <td className="py-1 pr-2 text-slate-700 truncate max-w-[260px]">{r.project_name}</td>
+                    <td className="py-1 pr-2 text-right font-mono">{r.recent_dr_count}</td>
+                    <td className="py-1 pr-2 font-mono text-slate-600">{r.last_dr_date || "—"}</td>
+                    <td className="py-1 pr-2">
+                      {r.status?.map((s, j) => (
+                        <span key={j} className="inline-block mr-1 px-1.5 py-0.5 rounded text-[10px] bg-amber-100 text-amber-800">{s}</span>
+                      ))}
+                    </td>
+                    <td className="py-1 text-slate-600 font-mono text-[10px]">{(r.co_pm_emails || []).join(", ") || "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      )}
+      {data.remediation_note && (
+        <div className="text-[10px] text-slate-500 italic">{data.remediation_note}</div>
+      )}
+    </div>
   );
 }

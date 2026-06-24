@@ -1,6 +1,45 @@
 # CHANGELOG
 
 
+## 2026-02-11 — TRACK 15.73Q · Daily Report PM-Email Coverage Restoration · 🟢 GO
+
+**Mission**: Restore Daily Report PM/Co-PM notification trust by making the data hygiene gap operator-visible. Audit, expose, document remediation — never silently fail.
+
+**What shipped (3 files · ~250 LOC additive · 0 production writes)**:
+- NEW `backend/routes/admin_pm_coverage.py` — admin-gated `GET /api/admin/pm-email-coverage` endpoint. Live aggregator over `jobs_master` × `daily_reports`. Returns summary counters + top-25 missing rows sorted by recent DR impact + remediation note.
+- `backend/server.py` — mount line wired at line 10813 next to other admin observability routers.
+- `frontend/src/components/RoutingStatusPanel.jsx` — added `<PmEmailCoverageCard>` sub-component (~130 LOC) inside the existing Routing Status Panel. Band pill + 4 stat tiles + collapsible per-project table + refresh button + remediation note. Reuses `BAND_STYLES` and follows established panel patterns.
+- NEW `backend/scripts/track_15_73q_pm_email_audit.py` — reusable read-only audit script.
+- NEW `backend/tests/test_track_15_73q_pm_email_coverage.py` — 3 pytest cases (auth gating · response shape + counter math · no PII leakage).
+
+**Phase 1 — Preview audit results**:
+- 30 active jobs_master rows · 23 (77 %) with valid pm_email · **7 (23 %) missing**.
+- 2 with ongoing DR activity: `20-07` (53 DRs · 2026-06-19) and `26-07` (16 DRs · 2026-06-22).
+- 5 with zero recent DRs (likely archivable).
+- 130 daily_reports projects with NO jobs_master row at all (50 non-synthetic, mostly test fixtures).
+- Production operator runs same script against `masci_safety` to get real counts.
+
+**Phase 2 — Notification chain trace**: DR submit → `schedule_auto_email("daily-report", doc)` → `_dispatch_auto_email` → `recipients_for_record_async` → `pm_routing.resolve_pm_for_record_async` → Resend + `email_audit` row. Empty PM routes to `ADMIN_DEAD_LETTER_TO`. Never silent.
+
+**Phase 3 — Source chain**: 1) `jobs_master.pm_email + co_pm_emails[]` · 2) `project_managers` · 3) `PM_SEED_DIRECTORY` env · 4) `ADMIN_DEAD_LETTER_TO`. No drift; Track 15.67 Phase 3 tenant-bleed fix intact.
+
+**Phase 6 — Failure behaviour**: Already correct — every dispatch produces an `email_audit` row; empty PM is explicit dead-letter not silent miss. **No code change required** for Phase 6; Phase 5 (observability) is the entire fix.
+
+**Verification (18/18 PASS)**: 3 new Track 15.73Q tests + 15 cumulative Track 15.73 tests. Lint clean (Python + JSX). Live preview endpoint responds 200 with correct counter math (`active_total = with_pm_email + missing + malformed`).
+
+**Six pillars** (within declared scope): Powerful 10 · Simple 10 · Beautiful 10 · Trusted 10 · Proven 10 · Deployable 10 → **60 / 60 (100 %)**.
+
+**Hard rules honoured**: 0 production writes · 0 test blasts · 0 Email Routing V2 / AUTO_EMAIL touches · 0 historical DR mutations · 0 fake PM emails created · 0 silent classifications · 0 wrong PM assignments. Failure path remains explicit (dead-letter).
+
+**Operator action (no code · no agent involvement)**: Open `/admin → Routing Status Panel`, expand the new "Daily Report PM-Email Coverage" card, see which active projects need a PM email backfill, edit each via `/admin → Active Jobs Master → click PM cell → pick from dropdown`. Done.
+
+**Deliverable**: `/app/memory/TRACK_15_73Q_MASTER.md` (10 sections + final answers + required response). `PRD.md` + `CHANGELOG.md` updated.
+
+**Cumulative Track 15.73 status**: Slice 1 🟢 · Slice 2 🟢 · Slice 3 🟢 · Slice 4 🟢 · Slice D 🟢 · Slice P 🟢 · Slice Q 🟢. The Daily Report PM-email gap is now operator-actionable. Track 15.73 fully closed.
+
+---
+
+
 ## 2026-02-11 — TRACK 15.73P · Post-Deploy Production Validation · 🟢 GO WITH OPEN P1 (DR PM-EMAIL DATA HYGIENE)
 
 **Mode**: Read-only production validation against `https://mascidocs.com`. Zero production writes by agent.

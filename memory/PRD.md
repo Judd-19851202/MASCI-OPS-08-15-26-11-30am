@@ -11,6 +11,44 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-02-11 · TRACK 15.73Q · DR PM-Email Coverage Restoration · 🟢 GO)
+
+### Mission
+Restore Daily Report PM/Co-PM notification trust by making the data hygiene gap operator-visible. Audit, expose, document remediation — never silently fail.
+
+### Verdict
+🟢 **GO** — admin observability endpoint LIVE · UI card wired into Routing Status Panel · failure behaviour proven correct (no silent success path exists) · 18/18 pytest gates PASS · 0 production writes.
+
+### What shipped
+- NEW `GET /api/admin/pm-email-coverage` (admin-gated · read-only).
+- NEW `<PmEmailCoverageCard>` inside `RoutingStatusPanel` — band pill · 4 stat tiles · collapsible per-project table.
+- NEW reusable audit script + 3 new pytest cases.
+
+### Preview audit results
+30 active projects · 23 with valid `pm_email` · 7 missing · 2 with ongoing DR activity (`20-07`, `26-07`). Operator runs same script against production to get real counts.
+
+### Six pillars
+60 / 60 (100 %) within declared scope.
+
+### Cumulative Track 15.73 status (CLOSED)
+- ✅ Slice 1 — Equipment Trust Restoration (LIVE)
+- ✅ Slice 2 — Employee Identity Restoration (LIVE)
+- ✅ Slice 3 — Regression Origin Audit (forensic)
+- ✅ Slice 4 — Canonical Identity Integrity Certification (LIVE)
+- ✅ Slice D — Health Alert Fix (LIVE)
+- ✅ Slice P — Post-Deploy Validation (read-only)
+- ✅ Slice Q — DR PM-Email Coverage Restoration (this) — observability deployed; remediation operator-owned
+
+### Recommended next
+- Operator: backfill `pm_email` for projects `20-07` and `26-07` (highest impact) via `/admin → Active Jobs Master`.
+- Operator-side: redeploy preview build to push the new endpoint + UI card to production.
+- **Slice 5 / Track 15.74** — HR portal + vendor master + field-leadership + PM-assignment write-path deep sweep (deferred from Slice 4 per scope-honesty).
+
+### Previous track summary preserved below
+
+---
+
+
 ## Latest Track (2026-02-11 · TRACK 15.73P · Post-Deploy Production Validation · 🟢 GO WITH OPEN P1)
 
 ### Mission

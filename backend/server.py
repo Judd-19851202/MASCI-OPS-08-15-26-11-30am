@@ -10811,6 +10811,14 @@ app.include_router(build_promo_assets_router(db, require_admin_strict))
 from routes.operational_signals import build_operational_signals_router  # noqa: E402
 app.include_router(build_operational_signals_router(db, require_admin))
 
+# ─── Track 15.73Q · Daily Report PM-Email Coverage Observability ──────
+# Admin-gated, read-only endpoint that surfaces which active jobs_master
+# rows lack pm_email so the operator can prioritise data-hygiene
+# backfill. Workflow-impact-free by design.
+from routes.admin_pm_coverage import make_router as _pm_cov_make_router  # noqa: E402
+app.include_router(_pm_cov_make_router(db, require_admin))
+
+
 
 # ─── Phase V-Prelude · Wave 1 · Substrate ─────────────────────────────
 # operational_links · operational_constraints · operational_timeline ·
