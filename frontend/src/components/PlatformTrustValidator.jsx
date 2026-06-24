@@ -90,7 +90,7 @@ export default function PlatformTrustValidator() {
     setLoading(true);
     setError("");
     try {
-      const res = await api.get("/api/admin/platform-trust/validate");
+      const res = await api.get("/admin/platform-trust/validate");
       setData(res.data);
       setLastRun(new Date().toLocaleString());
     } catch (e) {
