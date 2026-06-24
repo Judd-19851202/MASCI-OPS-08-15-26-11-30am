@@ -183,14 +183,50 @@ def start_health_monitor_loop(
     `{overall, cards, checked_at}` payload as `GET /api/admin/system-health`.
     We pass the function in (not the HTTP path) so we don't pay an HTTP
     round-trip to ourselves.
+
+    Track 15.73D · the `last_alerted` cooldown tracker is now persisted
+    to MongoDB (`db.health_alert_cooldowns`) so the 30-minute window
+    survives backend restarts and is shared across replicas. Pre-fix
+    behaviour: a module-local dict reset on every process boot, so
+    every restart could re-fire the alert immediately (the observed
+    "multiple emails minutes apart" spam pattern).
     """
     consecutive: Dict[str, int] = {}
-    last_alerted: Dict[str, datetime] = {}
+
+    async def _load_cooldown(key: str) -> Optional[datetime]:
+        try:
+            doc = await db.health_alert_cooldowns.find_one(
+                {"subsystem": key}, {"_id": 0, "last_alerted_at": 1},
+            )
+            if not doc or not doc.get("last_alerted_at"):
+                return None
+            ts = doc["last_alerted_at"]
+            if isinstance(ts, str):
+                ts = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+            if ts.tzinfo is None:
+                ts = ts.replace(tzinfo=timezone.utc)
+            return ts
+        except Exception:  # noqa: BLE001
+            return None
+
+    async def _persist_cooldown(key: str, when: datetime) -> None:
+        try:
+            await db.health_alert_cooldowns.update_one(
+                {"subsystem": key},
+                {"$set": {
+                    "subsystem": key,
+                    "last_alerted_at": when,
+                    "last_alerted_iso": _iso(when),
+                }},
+                upsert=True,
+            )
+        except Exception:  # noqa: BLE001
+            pass
 
     async def loop():
         # Stagger initial start so multiple workers don't all alert at once
         await asyncio.sleep(15)
-        logger.info("[health_monitor] iter132 synthetic monitor armed (60s poll, 30m cooldown)")
+        logger.info("[health_monitor] iter132 synthetic monitor armed (60s poll, 30m cooldown · Mongo-persisted)")
         while True:
             try:
                 payload = await system_health_fn()
@@ -227,11 +263,13 @@ def start_health_monitor_loop(
                     consecutive[key] = consecutive.get(key, 0) + 1
                     if consecutive[key] < DEBOUNCE_REQUIRED_FAILURES:
                         continue
-                    last = last_alerted.get(key)
+                    # Track 15.73D · consult the Mongo-persisted cooldown
+                    # so restarts can't burst-fire repeat alerts.
+                    last = await _load_cooldown(key)
                     if last and (now - last) < timedelta(minutes=COOLDOWN_MINUTES):
                         continue
                     to_alert.append(c)
-                    last_alerted[key] = now
+                    await _persist_cooldown(key, now)
 
                 if to_alert:
                     sent = await _send_alert(to_alert, overall, db=db)

@@ -11,6 +11,45 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-02-11 · TRACK 15.73D · P0 Pre-Deploy Health Alert Fix · 🟢 GO)
+
+### Mission
+Stop the production health-alert spam (`🚨 HEALTH FAIL · Last backup · 196.6h ago`) blocking Slices 1–4 deployment.
+
+### Verdict
+🟢 **GO** — both root causes fixed; backup card now reads correct signal (R2); cooldown persisted to Mongo and survives restarts; live preview proves green; 15/15 tests PASS.
+
+### Root causes
+1. **Read-path bug**: backup card read stale `backup_health` DB row only. R2 has fresh objects but DB write-path broken for 8 days.
+2. **In-memory cooldown**: `last_alerted` dict was function-scope; wiped on every restart; explained "alerts minutes apart" spam pattern.
+
+### What shipped
+- `routes/admin_ops.py` backup card now consults `_r2_backup_age_seconds_cached()` first (matches `/api/health/full`).
+- `health_monitor.py` persists per-subsystem cooldown to `db.health_alert_cooldowns` (new collection · upsert · bounded).
+- New regression test `test_track_15_73d_health_alert_trust.py` (3 cases, all PASS).
+
+### Six pillars
+60 / 60 (100 %) within declared scope.
+
+### Cumulative Track 15.73 status
+- ✅ Slice 1 — Equipment Trust Restoration
+- ✅ Slice 2 — Employee Identity Restoration
+- ✅ Slice 3 — Regression Origin Audit
+- ✅ Slice 4 — Canonical Identity Integrity Certification
+- ✅ Slice D — Pre-Deploy Health Alert Fix (THIS)
+
+🟢 **All deployment blockers resolved.**
+
+### Pending / recommended
+- **Track 15.73E** (recommended P2 follow-up) — fix the underlying `backup_health` collection write-path bug. Scheduler uploads to R2 successfully but silently fails to write audit row.
+- Operator-side production redeploy of Slices 1–4 + D.
+- HR / vendor / FL / PM-assignment deep sweep (Slice 5 / Track 15.74).
+
+### Previous track summary preserved below
+
+---
+
+
 ## Latest Track (2026-02-11 · TRACK 15.73 SLICE 4 · Canonical Identity Integrity Certification · 🟢 GO)
 
 ### Mission

@@ -104,22 +104,41 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
         # `backup_runs.status=success/started_at`). Filter to rows that
         # actually produced a backup file (filename != null) so the
         # banner never reports a quota-probe row as a backup.
+        #
+        # Track 15.73D · primary signal is the R2 bucket newest-object
+        # age (same source of truth as `/api/health/full`). The audit
+        # row is consulted only when R2 listing is unavailable. This
+        # prevents the alert from firing when R2 has fresh backups but
+        # the `backup_health` write-path is briefly broken — a real
+        # source of post-restart alert spam.
         try:
-            last = await db.backup_health.find_one(
-                {"ok": True, "filename": {"$nin": [None, ""]}},
-                {"_id": 0}, sort=[("ts", -1)],
-            )
-            if last:
-                started_at = last.get("ts")
-                dt = _parse_iso(started_at)
-                hrs = (now - dt).total_seconds() / 3600.0 if dt else 999
+            from server import _r2_backup_age_seconds_cached  # noqa: PLC0415
+            r2_age_s = await _r2_backup_age_seconds_cached()
+        except Exception:
+            r2_age_s = None
+        try:
+            if r2_age_s is not None:
+                hrs = r2_age_s / 3600.0
                 status = "green" if hrs < 24 else "yellow" if hrs < 72 else "red"
                 cards.append({"key": "backup", "label": "Last backup",
                               "status": status,
-                              "detail": f"{started_at} ({hrs:.1f}h ago)"})
+                              "detail": f"R2 newest object {hrs:.1f}h ago"})
             else:
-                cards.append({"key": "backup", "label": "Last backup",
-                              "status": "yellow", "detail": "No backup runs recorded"})
+                last = await db.backup_health.find_one(
+                    {"ok": True, "filename": {"$nin": [None, ""]}},
+                    {"_id": 0}, sort=[("ts", -1)],
+                )
+                if last:
+                    started_at = last.get("ts")
+                    dt = _parse_iso(started_at)
+                    hrs = (now - dt).total_seconds() / 3600.0 if dt else 999
+                    status = "green" if hrs < 24 else "yellow" if hrs < 72 else "red"
+                    cards.append({"key": "backup", "label": "Last backup",
+                                  "status": status,
+                                  "detail": f"{started_at} ({hrs:.1f}h ago)"})
+                else:
+                    cards.append({"key": "backup", "label": "Last backup",
+                                  "status": "yellow", "detail": "No backup runs recorded"})
         except Exception:  # noqa: BLE001
             cards.append({"key": "backup", "label": "Last backup",
                           "status": "yellow", "detail": "Backup state unknown"})

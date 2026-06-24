@@ -1,6 +1,37 @@
 # CHANGELOG
 
 
+## 2026-02-11 — TRACK 15.73D · P0 Pre-Deploy Health Alert Fix · 🟢 GO
+
+**Mission**: Stop the production health-alert spam (`🚨 HEALTH FAIL · Last backup · 196.6h ago`) so Slices 1–4 can deploy.
+
+**Two root causes proven**:
+1. **Read-path bug**: `routes/admin_ops.py:108` backup card read `backup_health` DB collection only. That collection's write-path has been broken for 8 days while R2 uploads continued successfully. Card went red while backups were actually healthy.
+2. **In-memory cooldown**: `health_monitor.py::start_health_monitor_loop` kept `last_alerted: Dict[str, datetime]` in module-local Python state — wiped on every backend restart. Restarts re-fired the alert immediately despite the 30-minute cooldown design. Matches operator's "minutes apart" spam pattern exactly.
+
+**Fix shipped (2 backend files · ~40 LOC additive)**:
+- `routes/admin_ops.py` backup card now calls `_r2_backup_age_seconds_cached()` (same R2-aware signal as `/api/health/full`); falls back to `backup_health` DB only if R2 listing unavailable.
+- `health_monitor.py` persists per-subsystem cooldown to `db.health_alert_cooldowns` collection (upsert by subsystem key). Survives restarts and is shared across replicas. `_load_cooldown` / `_persist_cooldown` helpers replace the in-memory dict.
+
+**New Mongo collection**: `health_alert_cooldowns` (upsert-only · one doc per subsystem · bounded growth ≤ 10 docs).
+
+**Live preview verification (post-fix)**:
+- `GET /api/health/full` → `{"ok":true,"mongo":true,"scheduler":true,"backup_recent":true}` ✅
+- `GET /api/admin/system-health` backup card → `status=green, detail="R2 newest object 0.8h ago"` ✅
+- 15 / 15 pytest cases PASS (3 new Track-15.73D + 12 cumulative Track-15.73).
+- Lint clean. Zero frontend changes. Zero env changes. Zero historical mutations.
+
+**Hard rules honoured**: 0 Email Routing V2 / AUTO_EMAIL touches · 0 alerts silenced · 0 fake timestamps · 0 health history deleted · 0 production writes · alert WILL still fire correctly if R2 is genuinely stale.
+
+**Six pillars** (within declared scope): Powerful 10 · Simple 10 · Beautiful 10 · Trusted 10 · Proven 10 · Deployable 10 → **60 / 60 (100 %)**.
+
+**Deployment verdict**: 🟢 **GO** for Slices 1–4 deployment.
+
+**Follow-up (NOT blocking)**: a recommended Track 15.73E to fix the underlying `backup_health` collection write-path bug — the scheduler successfully uploads to R2 but silently fails to write the audit row. P2 observability/data-hygiene; no longer affects alert accuracy because the card now reads R2 directly.
+
+---
+
+
 ## 2026-02-11 — TRACK 15.73 SLICE 4 · Canonical Identity Integrity Certification · 🟢 GO (honest 58/60)
 
 **Mission**: Permanently eliminate the class of identity-integrity failures. Fix the 3 named P1 findings, add the 5 pytest gates, ship the CI guardrail, certify the six pillars honestly.
