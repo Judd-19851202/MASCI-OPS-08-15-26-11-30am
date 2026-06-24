@@ -82,9 +82,22 @@ export default function CanonicalInspectionSections({
       try {
         const lookup = await api.get(`/asset-spine/taxonomy/by-unit/${encodeURIComponent(u)}`);
         if (cancelled) return;
+        const found = !!lookup.data?.found;
         const at = lookup.data?.asset_type;
+        // Track 15.72C · trust fix · distinguish 3 honest states instead of
+        // collapsing them all into "missing_template":
+        //   1. unit_not_in_registry  — asset doesn't exist (template state unknown)
+        //   2. missing_template      — asset exists, but no template for its type
+        //   3. available              — asset exists AND template exists
+        if (!found) {
+          setState({ loading: false, asset_type: null, sections: [], status: "unit_not_in_registry" });
+          setResults({});
+          return;
+        }
         if (!at) {
-          setState({ loading: false, asset_type: null, sections: [], status: "missing_template" });
+          // Found in registry but no asset_type resolved → still a catalog gap,
+          // not a missing template per se.
+          setState({ loading: false, asset_type: null, sections: [], status: "unit_not_in_registry" });
           setResults({});
           return;
         }
@@ -115,7 +128,9 @@ export default function CanonicalInspectionSections({
         if (e?.response?.status === 401 || e?.response?.status === 403) {
           setState({ loading: false, asset_type: null, sections: [], status: null });
         } else {
-          setState({ loading: false, asset_type: null, sections: [], status: "missing_template" });
+          // Track 15.72C · honest "temporarily unavailable" state instead of
+          // claiming the template doesn't exist when we don't actually know.
+          setState({ loading: false, asset_type: null, sections: [], status: "lookup_unavailable" });
         }
         setResults({});
       }
@@ -174,6 +189,38 @@ export default function CanonicalInspectionSections({
     );
   }
 
+  if (state.status === "unit_not_in_registry") {
+    return (
+      <div
+        data-testid={`${testidPrefix}-unit-not-in-registry`}
+        className="mt-3 px-3 py-2 rounded border border-amber-300 bg-amber-50 text-amber-900 text-xs font-mono"
+      >
+        <div className="inline-flex items-center gap-2 font-bold uppercase tracking-[0.14em]">
+          <AlertTriangle className="w-3.5 h-3.5" /> Unit not cataloged yet
+        </div>
+        <div className="mt-1 normal-case font-sans text-amber-900">
+          You can continue with a general inspection. Asset Admin will review this unit and connect it to the equipment registry.
+        </div>
+      </div>
+    );
+  }
+
+  if (state.status === "lookup_unavailable") {
+    return (
+      <div
+        data-testid={`${testidPrefix}-lookup-unavailable`}
+        className="mt-3 px-3 py-2 rounded border border-amber-300 bg-amber-50 text-amber-900 text-xs font-mono"
+      >
+        <div className="inline-flex items-center gap-2 font-bold uppercase tracking-[0.14em]">
+          <AlertTriangle className="w-3.5 h-3.5" /> Asset lookup temporarily unavailable
+        </div>
+        <div className="mt-1 normal-case font-sans text-amber-900">
+          Continue with a general inspection. Asset Admin will review.
+        </div>
+      </div>
+    );
+  }
+
   if (state.status === "missing_template") {
     return (
       <div
@@ -181,10 +228,10 @@ export default function CanonicalInspectionSections({
         className="mt-3 px-3 py-2 rounded border border-amber-300 bg-amber-50 text-amber-900 text-xs font-mono"
       >
         <div className="inline-flex items-center gap-2 font-bold uppercase tracking-[0.14em]">
-          <AlertTriangle className="w-3.5 h-3.5" /> Template not built yet for this asset type
+          <AlertTriangle className="w-3.5 h-3.5" /> Template not available yet for {state.asset_type || "this asset type"}
         </div>
         <div className="mt-1 normal-case font-sans text-amber-900">
-          Continue with the general inspection. Asset Admin can review the missing-template backlog.
+          Continue with a general inspection. Asset Admin can add a template.
         </div>
       </div>
     );

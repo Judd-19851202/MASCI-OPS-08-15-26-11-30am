@@ -12,7 +12,7 @@
 // is the same chip vocabulary the Asset Admin queue uses.
 
 import { useEffect, useState } from "react";
-import { ShieldCheck, AlertTriangle, HelpCircle, Loader2 } from "lucide-react";
+import { ShieldCheck, AlertTriangle, Loader2 } from "lucide-react";
 import { api } from "@/lib/api";
 
 export default function SmartUnitClassificationChip({ unitNumber, testidPrefix = "smart-class" }) {
@@ -64,15 +64,13 @@ export default function SmartUnitClassificationChip({ unitNumber, testidPrefix =
     );
   }
 
-  // Unit not in equipment_master
+  // Unit not in equipment_master.
+  // Track 15.72C · trust fix · suppress this chip when the unit isn't
+  // found — the calmer "Unit not cataloged yet" banner rendered by
+  // <CanonicalInspectionSections> handles this state with the operator's
+  // approved copy. Showing both produced duplicate/contradictory warnings.
   if (state.found === false) {
-    return (
-      <div data-testid={`${testidPrefix}-unmatched`}
-           className="mt-2 inline-flex items-center gap-2 px-2.5 py-1 rounded border border-amber-300 bg-amber-50 text-amber-900 text-xs font-mono uppercase tracking-[0.14em] font-bold">
-        <HelpCircle className="w-3.5 h-3.5" />
-        Unit not found · enter manually · Asset Admin will review later
-      </div>
-    );
+    return null;
   }
 
   // Verified canonical
