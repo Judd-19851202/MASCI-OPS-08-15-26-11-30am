@@ -1,0 +1,53 @@
+{
+  "summary": "TRACK 15.75B Shop/Pre-Op/DVIR delivery certification CERTIFIED. Full regression matrix called out by main agent (15.75B + 15.75A + 15.74 + 15.73Q) = 17/17 backend tests PASSED in 7.72s. Live admin endpoint /api/shop/command-feed verified: 401 'Portal authentication required' without X-Admin-Token, 401 with bogus token, 200 with valid super-admin token generated via user_directory.make_directory_admin_token for jaymn.judd@mascigc.com — response body carries ok=true, tenant_id='masci', counts block (needs_attention=149, dvir_fails=149, safety_equipment_fails=67, oos_units=128, defect_open_units=20, equipment_master_oos=1), and a populated needs_attention[] array with DVIR_FAIL entries. Backend-only testing as requested.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_track_15_75b_shop_delivery.py",
+    "/app/backend/tests/test_track_15_75a_roster_pm_routing.py",
+    "/app/backend/tests/test_track_15_74_dead_letter_audit_trust.py",
+    "/app/backend/tests/test_track_15_73q_pm_email_coverage.py",
+    "/app/test_reports/pytest/track_15_75b_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "TRACK 15.75B fix is surgically scoped: the shop_routing_unresolved escalation block and the shop_preop_dispatch audit-write block both fire only AFTER the iter238 hard-override has executed, preserving the 'Pre-Op emails go to Shop Manager only — no PM, no office CC' contract.",
+    "Both audit-write paths (success branch writing status='sent' with resend_message_id, failure branch writing status='failed' with error string) close the previous P1 'log-only' trust gap — every Pre-Op / DVIR send now produces an email_routing_audit_v2 row the operator can prove.",
+    "The P0 silent-failure case (empty recipients + no PRE_OP_FAIL_FALLBACK + no SHOP_MANAGER_EMAIL env) is now defended by the shop_routing_unresolved branch: a truthful audit row is written and ADMIN_DEAD_LETTER_TO is consulted via pm_routing._dead_letter_recipients before Resend is invoked, so a 400 'no recipients' can no longer be swallowed silently.",
+    "Live preview DB carries the canonical fixtures: an active 'Shop Manager' role user with email shopmanager@mascigc.com (asserted in test_shop_manager_resolution_prefers_active_role_user) AND a non-empty masci::PRE_OP_FAIL_FALLBACK route document (asserted in test_pre_op_fail_fallback_route_configured), so the escalation chain is functionally exercisable in production.",
+    "Admin gate on /api/shop/command-feed correctly enforces portal authentication: 401 'Portal authentication required' for both unauth and bogus-token requests, 200 only for a valid super-admin X-Admin-Token. No PII leak path identified.",
+    "Test isolation is clean: every audit-row test self-cleans via delete_one in a try/finally block, no orphan rows left in email_routing_audit_v2."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "100% (17/17)",
+    "frontend": "N/A (backend-only test request)"
+  },
+  "test_credentials": "Super-admin token generated at runtime via user_directory.make_directory_admin_token() against jaymn.judd@mascigc.com user row (password_hash bound). Token format: <user_id>.<hmac_hex>, length 101 chars. Not persisted in this report for security; regenerate via the snippet in the original request.",
+  "seed_data_creation": "None. TRACK 15.75B tests write disposable rows into email_routing_audit_v2 with unique calling_module/subject/resend_message_id keys and self-clean on teardown. Live /api/shop/command-feed call was read-only.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "TRACK 15.75B is a surgical fix in server._dispatch_auto_email scoped to kind=='equipment-inspection' only. Two blocks added: (1) shop_routing_unresolved escalation immediately after the iter238 hard-override that sets recipients=list(shop_manager_emails) — if empty, escalates via pm_routing._dead_letter_recipients and writes a truthful audit row (status='shop_recipient_unconfigured' or 'escalated_to_admin_dead_letter'); (2) post-Resend audit-write — status='sent' with resend_message_id on success, status='failed' with error on exception. No PM routing logic touched, no historical record mutation. The live /api/shop/command-feed admin gate is 'Portal authentication required' (returns 401 with detail message even for bogus tokens) and 200 with a valid super-admin X-Admin-Token, returning ok=true + counts{} + needs_attention[] (149 entries observed in preview DB at certification time).",
+  "live_endpoint_verification": {
+    "GET /api/shop/command-feed without X-Admin-Token": "HTTP 401, detail='Portal authentication required'",
+    "GET /api/shop/command-feed with bogus token": "HTTP 401, detail='Portal authentication required'",
+    "GET /api/shop/command-feed with valid super-admin token": "HTTP 200",
+    "response shape": "ok=true, tenant_id='masci', generated_at ISO ts, counts{} block, needs_attention[] array populated",
+    "counts observed": {"needs_attention": 149, "active_recovery": 0, "waiting_on_parts": 0, "returned_today": 0, "dvir_fails": 149, "weekly_lead_fails": 0, "safety_equipment_fails": 67, "oos_units": 128, "defect_open_units": 20, "equipment_master_oos": 1}
+  },
+  "regression_test_breakdown": {
+    "TRACK 15.75B shop delivery": "6/6 PASS",
+    "TRACK 15.75A roster PM routing": "6/6 PASS",
+    "TRACK 15.74 dead-letter audit trust": "2/2 PASS",
+    "TRACK 15.73Q PM email coverage": "3/3 PASS",
+    "TOTAL": "17/17 PASS in 7.72s"
+  },
+  "rca of the issue": "N/A — no defects found in this audit. Main agent's TRACK 15.75B fix correctly closes both the P0 (silent Resend 400 on empty recipients) and P1 (sent path was log-only, no audit row) gaps. Implementation respects the iter238 Shop-Manager-only routing constraint, scopes all new behavior under kind=='equipment-inspection', writes truthful audit rows for sent/failed/escalated/unconfigured branches, and leaves the Resend integration untouched. Live admin endpoint behavior matches spec."
+}

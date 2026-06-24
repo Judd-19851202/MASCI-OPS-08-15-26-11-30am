@@ -12883,6 +12883,45 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
             # shop users. Per operator: "no other emails just shop manager".
             recipients = list(shop_manager_emails)
 
+            # TRACK 15.75B · P0 silent-failure guard. If no Shop Manager
+            # email resolves (no Shop Manager user, no PRE_OP_FAIL_FALLBACK
+            # route, no SHOP_MANAGER_EMAIL env), escalate to
+            # ADMIN_DEAD_LETTER_TO AND write a truthful audit row so the
+            # operator can see the gap on the routing dashboard instead
+            # of having Pre-Op alerts vanish into a logger.exception.
+            if not recipients:
+                try:
+                    from pm_routing import _dead_letter_recipients  # noqa: PLC0415
+                    dead_to = await _dead_letter_recipients(db)
+                except Exception:  # noqa: BLE001
+                    dead_to = []
+                try:
+                    from email_routing_v2 import write_audit as _v2_audit  # noqa: PLC0415
+                    from tenant_context import resolve_tenant_key  # noqa: PLC0415
+                    try:
+                        _tk = resolve_tenant_key()
+                    except Exception:
+                        _tk = "masci"
+                    await _v2_audit(
+                        db,
+                        route_key="PRE_OP_FAIL_FALLBACK",
+                        tenant_key=_tk,
+                        source="db",
+                        to_count=len(dead_to),
+                        cc_count=0,
+                        bcc_count=0,
+                        subject=f"[SHOP UNRESOLVED] {kind}",
+                        status=(
+                            "escalated_to_admin_dead_letter"
+                            if dead_to else "shop_recipient_unconfigured"
+                        ),
+                        calling_module="shop_routing_unresolved",
+                        dry_run=False,
+                    )
+                except Exception:  # noqa: BLE001
+                    pass
+                recipients = list(dead_to)
+
         # Severity fan-out for incidents (Major/Severe currently mirrors the
         # always-CC; future ops/GC list can be appended here from env.)
         if kind == "incident" and _is_severe_incident(record):
@@ -12989,8 +13028,62 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
             f"auto-email sent: kind={kind} id={record.get('id')} pm={pm_name} "
             f"to={recipients} resend_id={(result or {}).get('id')}"
         )
+        # TRACK 15.75B · per-send audit row for equipment-inspection
+        # (Pre-Op / DVIR shop-bound emails). Closes the "no audit on
+        # successful send" trust gap for the shop pipeline. Best-
+        # effort; never block on audit write.
+        if kind == "equipment-inspection":
+            try:
+                from email_routing_v2 import write_audit as _v2_audit  # noqa: PLC0415
+                from tenant_context import resolve_tenant_key  # noqa: PLC0415
+                try:
+                    _tk = resolve_tenant_key()
+                except Exception:
+                    _tk = "masci"
+                await _v2_audit(
+                    db,
+                    route_key="PRE_OP_FAIL_FALLBACK",
+                    tenant_key=_tk,
+                    source="db",
+                    to_count=len(recipients or []),
+                    cc_count=0,
+                    bcc_count=0,
+                    subject=subject,
+                    sender_email=sender_email,
+                    resend_message_id=(result or {}).get("id"),
+                    status="sent",
+                    calling_module="shop_preop_dispatch",
+                    dry_run=False,
+                )
+            except Exception:  # noqa: BLE001
+                pass
     except Exception as e:  # noqa: BLE001
         logger.exception(f"auto-email failed for {kind} {record.get('id')}: {e}")
+        # TRACK 15.75B · per-send audit row for failure (equipment-inspection).
+        if kind == "equipment-inspection":
+            try:
+                from email_routing_v2 import write_audit as _v2_audit  # noqa: PLC0415
+                from tenant_context import resolve_tenant_key  # noqa: PLC0415
+                try:
+                    _tk = resolve_tenant_key()
+                except Exception:
+                    _tk = "masci"
+                await _v2_audit(
+                    db,
+                    route_key="PRE_OP_FAIL_FALLBACK",
+                    tenant_key=_tk,
+                    source="db",
+                    to_count=len(recipients or []) if "recipients" in dir() else 0,
+                    cc_count=0,
+                    bcc_count=0,
+                    subject=f"[SHOP SEND FAILED] {kind}",
+                    status="failed",
+                    error=str(e)[:240],
+                    calling_module="shop_preop_dispatch",
+                    dry_run=False,
+                )
+            except Exception:  # noqa: BLE001
+                pass
 
 
 def schedule_auto_email(kind: str, record: dict) -> None:
