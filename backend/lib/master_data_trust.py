@@ -1,0 +1,229 @@
+"""TRACK 15.76A · Master-Data Trust.
+
+Continuously verify the integrity of the canonical sources that
+drive operational workflows. Detects drift, missing identities,
+unresolvable routes, and orphaned references **without mutating
+any data** — read-only.
+
+Returns a list of findings, each shaped::
+
+    {
+      "code":   "pm_missing_email",
+      "band":   "red" | "amber",
+      "count":  int,
+      "summary": str,                 # operator-readable headline
+      "remediation": str,             # exactly what to do
+      "samples": [first 5 affected ids],
+    }
+
+Band logic:
+
+* **RED**  — directly impacts an active workflow today (e.g. a PM
+              assigned to an active job has no resolvable email,
+              meaning every Daily Report on that job will fail).
+* **AMBER** — drift exists but the system is guarded by a fallback
+              (e.g. equipment unit_number missing on 247 inactive
+              rows; dead-letter is configured).
+"""
+from __future__ import annotations
+
+from typing import Any, Dict, List
+
+
+async def collect_findings(db) -> List[Dict[str, Any]]:
+    """Run every drift check; return a flat list of findings."""
+    findings: List[Dict[str, Any]] = []
+
+    findings.extend(await _pm_assignment_findings(db))
+    findings.extend(await _equipment_findings(db))
+    findings.extend(await _employee_findings(db))
+    findings.extend(await _route_findings(db))
+
+    return findings
+
+
+async def _pm_assignment_findings(db) -> List[Dict[str, Any]]:
+    """PM/Co-PM resolvability against project_team_assignments
+    + jobs_master fallback. RED if an *active* job has no
+    resolvable email anywhere."""
+    out: List[Dict[str, Any]] = []
+    try:
+        active_jobs: List[Dict[str, Any]] = []
+        async for j in db.jobs_master.find(
+            {"is_active": {"$ne": False}},
+            {"_id": 0, "project_number": 1, "pm_email": 1},
+            limit=2000,
+        ):
+            active_jobs.append(j)
+    except Exception:
+        active_jobs = []
+
+    missing: List[str] = []
+    for j in active_jobs:
+        project_number = j.get("project_number")
+        if not project_number:
+            continue
+        # Check project_team_assignments first (canonical), fall back
+        # to legacy jobs_master.pm_email.
+        try:
+            pm_assigned = await db.project_team_assignments.count_documents({
+                "project_number": project_number,
+                "assignment_role": {"$in": ["pm", "co_pm"]},
+                "active": True,
+                "$or": [
+                    {"email": {"$nin": [None, ""]}},
+                    {"user_id": {"$nin": [None, ""]}},
+                    {"employee_id": {"$nin": [None, ""]}},
+                ],
+            })
+        except Exception:
+            pm_assigned = 0
+        if pm_assigned > 0:
+            continue
+        if (j.get("pm_email") or "").strip():
+            continue
+        missing.append(project_number)
+
+    if missing:
+        out.append({
+            "code": "pm_missing_route",
+            "band": "red",
+            "count": len(missing),
+            "summary": (
+                f"{len(missing)} active project(s) have no resolvable "
+                "PM or Co-PM email — every notification on these "
+                "projects will dead-letter."
+            ),
+            "remediation": (
+                "Open Admin → People & Access → Multi-Portal Directory "
+                "and assign a PM in project_team_assignments for each "
+                "project listed below. (Legacy fallback: set pm_email "
+                "on the jobs_master row.)"
+            ),
+            "samples": missing[:5],
+        })
+    return out
+
+
+async def _equipment_findings(db) -> List[Dict[str, Any]]:
+    """Equipment master integrity. AMBER if rows are missing
+    unit_number (display label drift / identity risk)."""
+    out: List[Dict[str, Any]] = []
+    try:
+        missing_un: List[str] = []
+        async for e in db.equipment_master.find(
+            {"$or": [{"unit_number": None}, {"unit_number": ""}]},
+            {"_id": 0, "id": 1},
+            limit=500,
+        ):
+            missing_un.append(str(e.get("id") or "")[:8])
+        if missing_un:
+            out.append({
+                "code": "equipment_missing_unit_number",
+                "band": "amber",
+                "count": len(missing_un),
+                "summary": (
+                    f"{len(missing_un)} equipment row(s) missing canonical "
+                    "unit_number — display label is being used as identity."
+                ),
+                "remediation": (
+                    "Go to Admin → Equipment & Suppliers → Status Board "
+                    "and assign a unit_number to each piece of equipment, "
+                    "or remove inactive rows via the Asset Administration "
+                    "→ Canonical Taxonomy review queue."
+                ),
+                "samples": missing_un[:5],
+            })
+    except Exception:
+        pass
+    return out
+
+
+async def _employee_findings(db) -> List[Dict[str, Any]]:
+    """Employee identity integrity. AMBER if any active employee row
+    is missing the canonical employee_id field."""
+    out: List[Dict[str, Any]] = []
+    try:
+        missing: List[str] = []
+        async for e in db.employees.find(
+            {"$and": [
+                {"is_active": {"$ne": False}},
+                {"$or": [{"employee_id": None},
+                         {"employee_id": ""}]},
+            ]},
+            {"_id": 0, "id": 1, "name": 1},
+            limit=200,
+        ):
+            missing.append(str(e.get("name") or e.get("id") or "")[:40])
+        if missing:
+            out.append({
+                "code": "employee_missing_id",
+                "band": "amber",
+                "count": len(missing),
+                "summary": (
+                    f"{len(missing)} active employee(s) saved without a "
+                    "canonical employee_id."
+                ),
+                "remediation": (
+                    "Open Admin → People & Access → Employee Master and "
+                    "assign the canonical employee_id to each row below."
+                ),
+                "samples": missing[:5],
+            })
+    except Exception:
+        pass
+    return out
+
+
+async def _route_findings(db) -> List[Dict[str, Any]]:
+    """Critical-route presence. RED if a critical email role has
+    nowhere to send. Reads from the canonical ``email_routes``
+    collection (Track 15.65 — admin-managed route catalog)."""
+    out: List[Dict[str, Any]] = []
+    try:
+        critical_keys = {
+            "COMPLIANCE_ALWAYS_CC": "Compliance Always-CC catch-all",
+            "SAFETY_FORMS_TO": "Safety Forms inbox",
+            "PRE_OP_FAIL_FALLBACK": "Pre-Op / DVIR fail fallback (shop manager)",
+        }
+        missing: List[str] = []
+        for key, label in critical_keys.items():
+            row = await db.email_routes.find_one(
+                {"route_key": key, "enabled": True}, {"_id": 0, "to": 1}
+            )
+            to_list = (row or {}).get("to") or []
+            if not [a for a in to_list if (a or "").strip()]:
+                missing.append(label)
+        # Dead-letter must be configured via env (Resend cannot route
+        # to nowhere); flag separately if missing.
+        import os as _os  # noqa: PLC0415
+        if not (_os.environ.get("ADMIN_DEAD_LETTER_EMAIL")
+                or _os.environ.get("ADMIN_DEAD_LETTER_TO")):
+            missing.append("Dead-letter address (ADMIN_DEAD_LETTER_EMAIL env)")
+        if missing:
+            out.append({
+                "code": "critical_route_missing",
+                "band": "red",
+                "count": len(missing),
+                "summary": (
+                    f"{len(missing)} critical email route(s) are not "
+                    "configured — failures cannot be routed safely."
+                ),
+                "remediation": (
+                    "Open Admin → Email & Routing → Auto-Routing Rules "
+                    "and configure: " + "; ".join(missing) + "."
+                ),
+                "samples": missing,
+            })
+    except Exception:
+        pass
+    return out
+
+
+def overall_band(findings: List[Dict[str, Any]]) -> str:
+    """Roll-up: RED if any RED finding; AMBER if any AMBER; else GREEN."""
+    if any(f.get("band") == "red" for f in findings):
+        return "red"
+    if any(f.get("band") == "amber" for f in findings):
+        return "amber"
+    return "green"

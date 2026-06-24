@@ -10828,6 +10828,11 @@ from lib.trust_spine import ensure_indexes as _spine_ensure_indexes  # noqa: E40
 async def _startup_trust_spine_indexes():  # noqa: D401
     await _spine_ensure_indexes(db)
 
+# TRACK 15.76A · Operations Trust Center — capstone trust-score +
+# master-data drift + red-alert hook + operator remediation copy.
+from routes.admin_operations_trust_center import make_router as _otc_make_router  # noqa: E402
+app.include_router(_otc_make_router(db, require_admin))
+
 
 
 # ─── Phase V-Prelude · Wave 1 · Substrate ─────────────────────────────

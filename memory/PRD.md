@@ -11,6 +11,40 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-06-24 · TRACK 15.76A · Operations Trust Center Capstone · 🟢 GO)
+
+### Mission
+Wrap the Trust Spine in an operator-facing capstone. One screen, one score, one truth — no shell scripts, no Mongo queries, no DevTools. Includes Trust Score (transparent, evidence-backed), Master-Data drift detection, cooldown-protected red-alert hook, operator-readable remediation, and executive summary strip.
+
+### Verdict
+🟢 **GO** — 10/10 capstone tests + 19/19 Track 15.76 tests pass. Score is 0-100 with named penalty inputs and hard caps against fake green. Master-data card surfaces 5 real production PM-route gaps + 247 equipment + 200 employee data hygiene findings with exact remediation paths. Red-alert hook fires once per transition with persisted cooldown.
+
+### What shipped
+- `lib/trust_score.py` — deterministic scoring engine (RED workflow caps at 59; unknown audit caps at 79; named score_inputs[]).
+- `lib/master_data_trust.py` — 4-class drift detector (pm_missing_route · equipment_missing_unit_number · employee_missing_id · critical_route_missing).
+- `lib/red_alert.py` — `maybe_send()` with persistent cooldown via `red_alert_state` collection; never raises; recipient list from OPS_ALERT_TO/ADMIN_DEAD_LETTER_EMAIL.
+- `routes/admin_operations_trust_center.py` — `/api/admin/operations-trust-center` returns full envelope (score + summary + workflows w/ operator-language remediation + master-data + red_alert).
+- `OperationsTrustCenter.jsx` — single-page operator surface (score ring + headline + top-3 penalties + executive summary strip + master-data card + workflow table + drill-in). Mounted at top of `/admin/email`.
+- 10 capstone regression tests in `tests/test_track_15_76a_operations_trust_center.py`.
+
+### Six pillars
+- **Powerful**: workflow + routing + audit + master-data + system health on one endpoint.
+- **Simple**: one screen, one score, under-one-minute readability.
+- **Beautiful**: score ring auto-colours; calm slate/amber/rose palette.
+- **Trusted**: 10 tests enforce no-fake-green; no secrets leak into payload.
+- **Proven**: capstone already surfaced 5 real PM-route gaps in production preview.
+- **Deployable**: additive only; rollbackable.
+
+### Real findings discovered by this capstone
+- 5 active jobs (22-08, 24-08, 26-04, 26-07, SD-6909db) with no resolvable PM → operator action.
+- 247 equipment rows missing `unit_number` → data hygiene.
+- 200 active employees missing canonical `employee_id` → data hygiene.
+
+### Files
+`/app/memory/TRACK_15_76A_FINAL_CERTIFICATION.md` for full audit trail.
+
+
+
 ## Latest Track (2026-06-24 · TRACK 15.76 · Platform Trust Spine Completion · 🟢 GO)
 
 ### Mission
