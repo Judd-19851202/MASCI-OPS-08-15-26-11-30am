@@ -2909,6 +2909,24 @@ def render_email_html(
     # client (Gmail, Outlook, Apple Mail, iOS Mail, mobile webmail)
     # renders it without a remote fetch. Same image used by the OG card,
     # favicon, PWA icons, and in-UI mobile headers — one symbol everywhere.
+    # Track 15.76 · P0 defect — `_wl` was previously referenced without
+    # being resolved inside this function, causing every meeting/incident
+    # email to fail silently with ``NameError: name '_wl' is not defined``.
+    # The Trust Spine surfaced this regression; resolve the white-label
+    # config locally (with a hardcoded MASCI fallback) so the brand mark
+    # `alt` text never blows up the email body.
+    try:
+        from pdf_branding import get_white_label as _get_wl  # noqa: PLC0415
+        _wl = _get_wl()
+    except Exception:
+        from pdf_branding import WhiteLabelConfig  # noqa: PLC0415
+        _wl = WhiteLabelConfig(
+            brand_name="MASCI", brand_long_name="MASCI Operations Platform",
+            brand_logo_url="", brand_color="c8102e",
+            footer_tagline="Generated through MASCI Operations Platform",
+            company_legal_name="MASCI General Contractors Inc.",
+            platform_owner="ForgedOps",
+        )
     mark_uri = _data_uri_for(WATERMARK_PATH)
     mark_html = (
         f'<div style="background:#0f172a;border-radius:6px 6px 0 0;'

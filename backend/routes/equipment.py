@@ -227,6 +227,18 @@ def register_equipment_routes(
                 )
             except Exception:
                 pass
+        # TRACK 15.76 · Trust Spine — open record lifecycle. Workflow
+        # is "equipment-inspection" for pre-op (default) and "dvir"
+        # when ``insp.kind == "dvir"`` (iter251 split).
+        try:
+            from lib.trust_spine import emit_record_created  # noqa: PLC0415
+            _wf = "dvir" if (doc.get("kind") or "").lower() == "dvir" else "equipment-inspection"
+            await emit_record_created(
+                db, workflow=_wf, record=doc,
+                module="routes/equipment.py:create_inspection",
+            )
+        except Exception:  # noqa: BLE001
+            pass
         schedule_auto_email("equipment-inspection", doc)
 
         # ── Failed Pre-Op → Pending Maintenance Hold (iter128) ──

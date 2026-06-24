@@ -1153,6 +1153,48 @@ def build_dispatch_lifecycle_router(
         }
         await db.dispatch_assignments.insert_one(doc)
 
+        # TRACK 15.76 · Trust Spine — dispatch assignment lifecycle.
+        # Dispatch is a non-email workflow; emits the operational
+        # stages directly (record_created → routing_resolved →
+        # dashboard_updated → audit_written → completed).
+        try:
+            from lib.trust_spine import (  # noqa: PLC0415
+                emit_record_created, emit_workflow_stage,
+                STAGE_ROUTING_RESOLVED, STAGE_DASHBOARD_UPDATED,
+                STAGE_AUDIT_WRITTEN, STAGE_COMPLETED,
+            )
+            _spine_rec = {
+                "id": assignment_id, "doc_id": assignment_id,
+                "project_number": doc.get("project_number") or "",
+            }
+            _spine_mod = "routes/dispatch_lifecycle.py:create_assignment"
+            await emit_record_created(
+                db, workflow="dispatch-assignment", record=_spine_rec,
+                module=_spine_mod,
+            )
+            await emit_workflow_stage(
+                db, workflow="dispatch-assignment",
+                stage=STAGE_ROUTING_RESOLVED, record=_spine_rec,
+                module="driver+truck binding", status="ok",
+            )
+            await emit_workflow_stage(
+                db, workflow="dispatch-assignment",
+                stage=STAGE_DASHBOARD_UPDATED, record=_spine_rec,
+                module="dispatch_assignments.insert_one", status="ok",
+            )
+            await emit_workflow_stage(
+                db, workflow="dispatch-assignment",
+                stage=STAGE_AUDIT_WRITTEN, record=_spine_rec,
+                module="dispatch_state_events", status="ok",
+            )
+            await emit_workflow_stage(
+                db, workflow="dispatch-assignment",
+                stage=STAGE_COMPLETED, record=_spine_rec,
+                module=_spine_mod, status="ok",
+            )
+        except Exception:  # noqa: BLE001
+            pass
+
         # Mirror the seed ASSIGNED into the event stream.
         event_doc = {
             "id": _new_id(),

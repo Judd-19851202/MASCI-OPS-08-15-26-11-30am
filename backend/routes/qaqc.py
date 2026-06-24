@@ -211,6 +211,15 @@ def register_qaqc_routes(api_router: APIRouter, db, require_admin, rate_limit_pu
             await index_record_photos(db, "qaqc", doc)
         except Exception:
             pass
+        # TRACK 15.76 · Trust Spine — open record lifecycle.
+        try:
+            from lib.trust_spine import emit_record_created  # noqa: PLC0415
+            await emit_record_created(
+                db, workflow="qaqc", record=doc,
+                module="routes/qaqc.py:create_qaqc",
+            )
+        except Exception:  # noqa: BLE001
+            pass
         # Route to assigned PM via the existing auto-email pipeline.
         # The kind passed downstream is "qaqc" — pdf_render maps it to a
         # generic QA/QC PDF and the email subject already reads

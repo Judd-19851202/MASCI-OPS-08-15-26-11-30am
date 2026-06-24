@@ -10820,6 +10820,13 @@ app.include_router(_pm_cov_make_router(db, require_admin))
 # TRACK 15.75D · In-app Platform Trust Validator (admin-gated, read-only).
 from routes.admin_platform_trust import make_router as _trust_make_router  # noqa: E402
 app.include_router(_trust_make_router(db, require_admin))
+# TRACK 15.76 · Platform Trust Spine — lifecycle event observability.
+from routes.admin_trust_spine import make_router as _spine_make_router  # noqa: E402
+app.include_router(_spine_make_router(db, require_admin))
+from lib.trust_spine import ensure_indexes as _spine_ensure_indexes  # noqa: E402
+@app.on_event("startup")
+async def _startup_trust_spine_indexes():  # noqa: D401
+    await _spine_ensure_indexes(db)
 
 
 
@@ -12832,17 +12839,61 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
     Wrapped in a broad try/except so a missing API key, Resend outage, or PDF
     error never causes the original POST to fail. Logs at WARNING level when
     skipped and ERROR when something unexpected breaks.
+
+    TRACK 15.76 · Trust Spine — this is the universal dispatcher for every
+    email-bound workflow (daily-report, meeting, jha, incident, qaqc,
+    inspection, equipment-inspection). It emits the lifecycle stages
+    (routing_resolved → recipients_built → notification_queued →
+    provider_accepted → completed) onto ``trust_spine_events`` using the
+    correlation_id attached to ``record`` at submit-time. A failure at any
+    stage is emitted with ``status="failed"`` + a truthful failure_reason,
+    flipping that workflow's dashboard band to RED.
     """
+    from lib.trust_spine import (  # noqa: PLC0415
+        attach_correlation, emit_workflow_stage,
+        STAGE_ROUTING_RESOLVED, STAGE_RECIPIENTS_BUILT,
+        STAGE_NOTIFICATION_QUEUED, STAGE_PROVIDER_ACCEPTED,
+        STAGE_AUDIT_WRITTEN, STAGE_COMPLETED,
+    )
+    # Thread / attach the cid before any branch so every stage in
+    # this dispatch shares one correlation_id.
+    _spine_cid = attach_correlation(record)
+    _spine_module = f"auto_email_dispatch:{kind}"
     try:
         if not auto_email_enabled():
             logger.info(
                 "auto-email skipped (RESEND_API_KEY missing or AUTO_EMAIL_REPORTS=false) "
                 f"— {kind} {record.get('id')}"
             )
+            await emit_workflow_stage(
+                db, workflow=kind, stage=STAGE_NOTIFICATION_QUEUED,
+                record=record, module=_spine_module, status="skipped",
+                failure_reason=(
+                    "auto-email disabled (RESEND_API_KEY missing or AUTO_EMAIL_REPORTS=false)"
+                ),
+                remediation=(
+                    "Set RESEND_API_KEY and AUTO_EMAIL_REPORTS=true in backend env."
+                ),
+            )
             return
 
         dist = await recipients_for_record_async(db, record, kind)
         recipients: List[str] = list(dist["all"])  # type: ignore[arg-type]
+        # Trust Spine — routing resolution stage. Status is "ok" if at
+        # least one recipient resolved, otherwise "failed".
+        await emit_workflow_stage(
+            db, workflow=kind, stage=STAGE_ROUTING_RESOLVED,
+            record=record, module="pm_routing.recipients_for_record_async",
+            status="ok" if recipients else "failed",
+            failure_reason=(
+                None if recipients
+                else f"no recipients resolved (kind={kind})"
+            ),
+            remediation=(
+                None if recipients
+                else "Assign a PM in project_team_assignments or set ADMIN_DEAD_LETTER_TO."
+            ),
+        )
 
         # iter238 — Equipment Pre-Op routing simplification (operator
         # directive 2026-05-18):
@@ -12948,7 +12999,23 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
 
         if not recipients:
             logger.warning(f"auto-email: no recipients resolved for {kind} {record.get('id')}")
+            await emit_workflow_stage(
+                db, workflow=kind, stage=STAGE_RECIPIENTS_BUILT,
+                record=record, module=_spine_module, status="failed",
+                failure_reason=(
+                    f"no recipients after dead-letter fallback (kind={kind})"
+                ),
+                remediation=(
+                    "Configure ADMIN_DEAD_LETTER_TO or assign a PM to this project."
+                ),
+            )
             return
+
+        # Trust Spine — recipient list finalized.
+        await emit_workflow_stage(
+            db, workflow=kind, stage=STAGE_RECIPIENTS_BUILT,
+            record=record, module=_spine_module, status="ok",
+        )
 
         import resend  # noqa: E402
         resend.api_key = os.environ["RESEND_API_KEY"]
@@ -13026,7 +13093,26 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
         if reply_to:
             params["reply_to"] = reply_to
 
+        # Trust Spine — about to call provider.
+        await emit_workflow_stage(
+            db, workflow=kind, stage=STAGE_NOTIFICATION_QUEUED,
+            record=record, module=_spine_module, status="ok",
+        )
         result = await asyncio.to_thread(resend.Emails.send, params)
+        # Trust Spine — provider accepted (Resend returned an id).
+        await emit_workflow_stage(
+            db, workflow=kind, stage=STAGE_PROVIDER_ACCEPTED,
+            record=record, module="resend.Emails.send",
+            status="ok" if (result or {}).get("id") else "failed",
+            failure_reason=(
+                None if (result or {}).get("id")
+                else "resend returned no message id"
+            ),
+            remediation=(
+                None if (result or {}).get("id")
+                else "Inspect RESEND_API_KEY validity + Resend status."
+            ),
+        )
         logger.info(
             f"auto-email sent: kind={kind} id={record.get('id')} pm={pm_name} "
             f"to={recipients} resend_id={(result or {}).get('id')}"
@@ -13068,10 +13154,36 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
                 calling_module=_calling_module,
                 dry_run=False,
             )
+            # TRACK 15.76 · Trust Spine — audit_written + completed
+            # stages using the *threaded* correlation_id so the
+            # dashboard can stitch the lifecycle end-to-end.
+            await emit_workflow_stage(
+                db, workflow=kind, stage=STAGE_AUDIT_WRITTEN,
+                record=record, module=_calling_module, status="ok",
+            )
+            await emit_workflow_stage(
+                db, workflow=kind, stage=STAGE_COMPLETED,
+                record=record, module=_spine_module, status="ok",
+            )
         except Exception:  # noqa: BLE001
             pass
     except Exception as e:  # noqa: BLE001
         logger.exception(f"auto-email failed for {kind} {record.get('id')}: {e}")
+        # TRACK 15.76 · Trust Spine — flip this workflow's band to RED
+        # via a `completed`-failure event so the dashboard surfaces the
+        # exact failure point + a remediation hint.
+        try:
+            await emit_workflow_stage(
+                db, workflow=kind, stage=STAGE_COMPLETED,
+                record=record, module=_spine_module, status="failed",
+                failure_reason=str(e)[:240],
+                remediation=(
+                    "Inspect backend logs for stack; check Resend status and "
+                    "PDF rendering for this kind."
+                ),
+            )
+        except Exception:  # noqa: BLE001
+            pass
         # TRACK 15.75C · UNIVERSAL per-send failure audit row.
         try:
             from email_routing_v2 import write_audit as _v2_audit  # noqa: PLC0415

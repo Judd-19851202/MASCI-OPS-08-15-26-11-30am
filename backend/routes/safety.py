@@ -457,6 +457,15 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
             await index_record_photos(db, "inspection", doc)
         except Exception:
             pass
+        # TRACK 15.76 · Trust Spine — open record lifecycle.
+        try:
+            from lib.trust_spine import emit_record_created  # noqa: PLC0415
+            await emit_record_created(
+                db, workflow="inspection", record=doc,
+                module="routes/safety.py:create_inspection",
+            )
+        except Exception:  # noqa: BLE001
+            pass
         schedule_auto_email("inspection", doc)
 
         # Phase E · Cross-system fan-out — audit deficiencies / auto-fails /
@@ -635,6 +644,15 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
             pass
         await db.meetings.insert_one(doc)
         doc.pop("_id", None)
+        # TRACK 15.76 · Trust Spine — open record lifecycle.
+        try:
+            from lib.trust_spine import emit_record_created  # noqa: PLC0415
+            await emit_record_created(
+                db, workflow="meeting", record=doc,
+                module="routes/safety.py:create_meeting",
+            )
+        except Exception:  # noqa: BLE001
+            pass
         schedule_auto_email("meeting", doc)
         # BATCH K · OMEGA-8 / NEW-GAP-A — fan-out task + bell to safety.
         try:
@@ -739,6 +757,15 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
             pass
         await db.jhas.insert_one(doc)
         doc.pop("_id", None)
+        # TRACK 15.76 · Trust Spine — open record lifecycle.
+        try:
+            from lib.trust_spine import emit_record_created  # noqa: PLC0415
+            await emit_record_created(
+                db, workflow="jha", record=doc,
+                module="routes/safety.py:create_jha",
+            )
+        except Exception:  # noqa: BLE001
+            pass
         schedule_auto_email("jha", doc)
         # BATCH K · OMEGA-7 — fan-out task + bell to safety.
         try:
@@ -850,6 +877,15 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
                 pass
             await db.incidents.insert_one(doc)
             doc.pop("_id", None)
+            # TRACK 15.76 · Trust Spine — open record lifecycle.
+            try:
+                from lib.trust_spine import emit_record_created  # noqa: PLC0415
+                await emit_record_created(
+                    db, workflow="incident", record=doc,
+                    module="routes/safety.py:create_incident",
+                )
+            except Exception:  # noqa: BLE001
+                pass
             schedule_auto_email("incident", doc)
 
             # iter452.5 Tier 1 · Field Submitter Identity binding.

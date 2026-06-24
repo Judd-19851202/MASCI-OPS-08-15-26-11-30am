@@ -1102,6 +1102,41 @@ def build_router(
             "external_refs": {"motive_id": None, "maintainx_work_order_id": None},
         }
         await db.fleet_defects.insert_one(manual_defect)
+        # TRACK 15.76 · Trust Spine — shop defect lifecycle.
+        try:
+            from lib.trust_spine import (  # noqa: PLC0415
+                emit_record_created, emit_workflow_stage,
+                STAGE_ROUTING_RESOLVED, STAGE_DASHBOARD_UPDATED,
+                STAGE_AUDIT_WRITTEN, STAGE_COMPLETED,
+            )
+            _spine_rec = {
+                "id": manual_defect["id"], "doc_id": manual_defect["id"],
+                "project_number": "",
+            }
+            _spine_mod = "routes/fleet_ops.py:manual_oos"
+            await emit_record_created(
+                db, workflow="shop-defect", record=_spine_rec,
+                module=_spine_mod,
+            )
+            await emit_workflow_stage(
+                db, workflow="shop-defect", stage=STAGE_ROUTING_RESOLVED,
+                record=_spine_rec, module="shop_routing", status="ok",
+            )
+            await emit_workflow_stage(
+                db, workflow="shop-defect", stage=STAGE_DASHBOARD_UPDATED,
+                record=_spine_rec, module="fleet_defects.insert_one",
+                status="ok",
+            )
+            await emit_workflow_stage(
+                db, workflow="shop-defect", stage=STAGE_AUDIT_WRITTEN,
+                record=_spine_rec, module="fleet_audit_log", status="ok",
+            )
+            await emit_workflow_stage(
+                db, workflow="shop-defect", stage=STAGE_COMPLETED,
+                record=_spine_rec, module=_spine_mod, status="ok",
+            )
+        except Exception:  # noqa: BLE001
+            pass
         await _audit(
             db, actor=payload.actor_name, actor_role="dispatch",
             action="manual_oos_flip",

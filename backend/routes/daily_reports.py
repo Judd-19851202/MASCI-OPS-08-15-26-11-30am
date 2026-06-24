@@ -380,6 +380,17 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
                 await index_record_photos(db, "daily_report", doc)
             except Exception:
                 pass  # never block a submit on indexing
+            # TRACK 15.76 · Trust Spine — open the record's lifecycle.
+            # The correlation_id is attached to ``doc`` so the universal
+            # email dispatcher and audit writer reuse it across stages.
+            try:
+                from lib.trust_spine import emit_record_created  # noqa: PLC0415
+                await emit_record_created(
+                    db, workflow="daily-report", record=doc,
+                    module="routes/daily_reports.py",
+                )
+            except Exception:  # noqa: BLE001
+                pass
             schedule_auto_email("daily-report", doc)
 
             # iter452.5 Tier 1 · Field Submitter Identity binding.

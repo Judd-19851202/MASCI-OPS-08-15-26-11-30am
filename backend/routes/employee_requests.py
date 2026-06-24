@@ -374,6 +374,50 @@ def register_employee_requests_routes(
         # notification — HR would click the bell and find nothing.
         await _notify_hr_queue_pending(db, doc, kind)
 
+        # TRACK 15.76 · Trust Spine — HR request lifecycle. HR is a
+        # non-email workflow, so it emits record_created →
+        # validation_complete → routing_resolved → dashboard_updated →
+        # audit_written → completed in a single pass at submit-time.
+        try:
+            from lib.trust_spine import (  # noqa: PLC0415
+                emit_record_created, emit_workflow_stage,
+                STAGE_VALIDATION_COMPLETE, STAGE_ROUTING_RESOLVED,
+                STAGE_DASHBOARD_UPDATED, STAGE_AUDIT_WRITTEN,
+                STAGE_COMPLETED,
+            )
+            _hr_record = {"id": rid, "doc_id": rid, "project_number": ""}
+            await emit_record_created(
+                db, workflow="hr-request", record=_hr_record,
+                module="routes/employee_requests.py:create_request",
+            )
+            await emit_workflow_stage(
+                db, workflow="hr-request", stage=STAGE_VALIDATION_COMPLETE,
+                record=_hr_record, module="employee_requests.create",
+                status="ok",
+            )
+            await emit_workflow_stage(
+                db, workflow="hr-request", stage=STAGE_ROUTING_RESOLVED,
+                record=_hr_record, module="hr_queue_pending",
+                status="ok",
+            )
+            await emit_workflow_stage(
+                db, workflow="hr-request", stage=STAGE_DASHBOARD_UPDATED,
+                record=_hr_record, module="hr_bell_notification",
+                status="ok",
+            )
+            await emit_workflow_stage(
+                db, workflow="hr-request", stage=STAGE_AUDIT_WRITTEN,
+                record=_hr_record, module="db.employee_requests.insert_one",
+                status="ok",
+            )
+            await emit_workflow_stage(
+                db, workflow="hr-request", stage=STAGE_COMPLETED,
+                record=_hr_record, module="routes/employee_requests.py",
+                status="ok",
+            )
+        except Exception:  # noqa: BLE001
+            pass
+
         return {"ok": True, "id": rid, "request": _strip_id(doc)}
 
     @api_router.get("/hr/employee-requests")

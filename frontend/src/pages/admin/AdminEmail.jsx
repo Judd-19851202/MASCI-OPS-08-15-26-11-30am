@@ -6,6 +6,7 @@ import AdminEmailRoutingPanel from "@/components/AdminEmailRoutingPanel";
 import EmailRoutingV2Panel from "@/components/EmailRoutingV2Panel";
 import RoutingStatusPanel from "@/components/RoutingStatusPanel";
 import PlatformTrustValidator from "@/components/PlatformTrustValidator";
+import PlatformTrustDashboard from "@/components/PlatformTrustDashboard";
 import TenantBrandingPanel from "@/components/TenantBrandingPanel";
 
 export default function AdminEmail() {
@@ -23,6 +24,7 @@ export default function AdminEmail() {
       }
     >
       <div className="space-y-4">
+        <PlatformTrustDashboard />
         <PlatformTrustValidator />
         <RoutingStatusPanel />
         <TenantBrandingPanel />
