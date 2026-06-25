@@ -771,7 +771,8 @@ def build_operations_center_command_router(
                                   trust_state="asset_transfer",
                                   source_system="asset_transfers"),
                 })
-        except Exception: pass
+        except Exception as _exc:  # noqa: BLE001
+            logger.warning("[ops-feed] source skipped: %s", _exc)
         # dispatch state events
         try:
             async for e in db.dispatch_state_events.find(
@@ -788,7 +789,8 @@ def build_operations_center_command_router(
                                   trust_state="dispatch_state_event",
                                   source_system="dispatch_state_events"),
                 })
-        except Exception: pass
+        except Exception as _exc:  # noqa: BLE001
+            logger.warning("[ops-feed] source skipped: %s", _exc)
         # incidents
         try:
             async for i in db.incidents.find({"occurred_at": {"$gte": cutoff}},
@@ -802,7 +804,8 @@ def build_operations_center_command_router(
                                   trust_state=f"incident_{_safety_tier(i)}",
                                   source_system="incidents"),
                 })
-        except Exception: pass
+        except Exception as _exc:  # noqa: BLE001
+            logger.warning("[ops-feed] source skipped: %s", _exc)
         events.sort(key=lambda x: x.get("timestamp") or "", reverse=True)
         return {"ok": True, "as_of": _now_iso(),
                  "events": events[:limit]}

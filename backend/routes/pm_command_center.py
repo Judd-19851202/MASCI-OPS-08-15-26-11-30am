@@ -862,7 +862,8 @@ def build_pm_command_center_router(
                                   trust_state="asset_transfer",
                                   source_system="asset_transfers"),
                 })
-        except Exception: pass
+        except Exception as _exc:  # noqa: BLE001
+            logger.warning("[ops-feed] source skipped: %s", _exc)
 
         # Dispatch state events
         try:
@@ -882,7 +883,8 @@ def build_pm_command_center_router(
                                   trust_state="dispatch_state_event",
                                   source_system="dispatch_state_events"),
                 })
-        except Exception: pass
+        except Exception as _exc:  # noqa: BLE001
+            logger.warning("[ops-feed] source skipped: %s", _exc)
 
         # Incidents
         try:
@@ -899,7 +901,8 @@ def build_pm_command_center_router(
                                   trust_state="incident",
                                   source_system="incidents"),
                 })
-        except Exception: pass
+        except Exception as _exc:  # noqa: BLE001
+            logger.warning("[ops-feed] source skipped: %s", _exc)
 
         events.sort(key=lambda x: x.get("timestamp") or "", reverse=True)
         events = events[:limit]

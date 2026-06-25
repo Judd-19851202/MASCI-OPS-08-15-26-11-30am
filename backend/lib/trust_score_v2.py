@@ -75,7 +75,9 @@ def compute_categorized_score(
             "penalty": pen,
             "label": (
                 f"{len(red)} workflow(s) failing: "
-                + ", ".join(w.get("workflow") for w in red[:4])
+                + ", ".join(
+                    (w.get("workflow") or "unknown") for w in red[:4]
+                )
             ),
             "evidence": [w.get("workflow") for w in red],
         })
@@ -86,7 +88,9 @@ def compute_categorized_score(
             "penalty": pen,
             "label": (
                 f"{len(amber)} workflow(s) missing expected stages: "
-                + ", ".join(w.get("workflow") for w in amber[:4])
+                + ", ".join(
+                    (w.get("workflow") or "unknown") for w in amber[:4]
+                )
             ),
             "evidence": [w.get("workflow") for w in amber],
         })
@@ -101,7 +105,16 @@ def compute_categorized_score(
             ),
             "evidence": [w.get("workflow") for w in idle],
         })
-    categories["workflow_health"] = _cat(wh, wh_inputs)
+    # TRACK 15.77 · Gate 6 — any RED workflow forces workflow_health
+    # into the RED band regardless of the residual numeric score. The
+    # alternative (relying on the numeric drop) allowed a single
+    # failing workflow to leak through as GREEN.
+    wh_cat = _cat(wh, wh_inputs)
+    if red:
+        wh_cat["band"] = "red"
+        if wh_cat["score"] > 59:
+            wh_cat["score"] = 59
+    categories["workflow_health"] = wh_cat
 
     # ── 2 · Routing Integrity ────────────────────────────────────
     ri = 100
