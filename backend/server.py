@@ -10833,6 +10833,10 @@ async def _startup_trust_spine_indexes():  # noqa: D401
 from routes.admin_operations_trust_center import make_router as _otc_make_router  # noqa: E402
 app.include_router(_otc_make_router(db, require_admin))
 
+# TRACK 15.78 · Deployment Readiness — pass/fail gate for CI/CD.
+from routes.admin_deployment_readiness import make_router as _gate_make_router  # noqa: E402
+app.include_router(_gate_make_router(db, require_admin))
+
 
 
 # ─── Phase V-Prelude · Wave 1 · Substrate ─────────────────────────────

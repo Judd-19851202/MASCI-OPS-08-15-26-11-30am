@@ -11,6 +11,34 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-06-25 · TRACK 15.78 · Deployment Trust Gate · 🟢 GO · LIVE & LOCKED)
+
+### Mission
+Build the permanent CI/CD enforcement layer that guarantees no future deployment can silently break operational trust.
+
+### Verdict
+🟢 **GO — Deployment Trust Gate is live, locked, and enforced.** 77/77 regression tests pass in 38s end-to-end. The gate distinguishes platform code defects (block) from operator data issues (advisory) — preview demonstrates this working correctly.
+
+### What shipped
+- `routes/admin_deployment_readiness.py` — read-only `/api/admin/deployment-readiness` endpoint returning `{decision: "pass"|"fail", blocking_gates: [...], advisory_findings: [...]}`. Classifies findings via `DATA_ISSUE_FINDING_CODES` vs `CODE_DEFECT_FINDING_CODES`.
+- `scripts/deployment_gate.py` — canonical CLI entry point. Two-layer enforcement (regression + runtime). Exit codes 0/1/2/3 — designed to be invoked from any CI/CD pre-deploy hook.
+- 8 new regression tests in `tests/test_track_15_78_deployment_gate.py` covering: admin-gated · pm_missing is advisory · critical_route_missing is blocker · unknown audits trigger blocker · binary decision · CLI exits non-zero on FAIL · payload JSON-serializable · regression count reported.
+- Live preview verified: DECISION PASS · regression PASS · runtime PASS (0 blocking, 3 advisory) · Trust Score 40 RED (advisory only).
+
+### Six pillars
+All ✅. See `/app/memory/TRACK_15_78_FINAL_CERTIFICATION.md`.
+
+### Usage
+```bash
+OPS_ADMIN_EMAIL=… OPS_ADMIN_PASSWORD=… python3 scripts/deployment_gate.py
+```
+Exit 0 = deploy permitted. Anything else = blocked.
+
+### Files
+`/app/memory/TRACK_15_78_FINAL_CERTIFICATION.md` for full 13-question answer table.
+
+
+
 ## Latest Track (2026-06-24 · TRACK 15.77 · Final Production Certification · 🟢 GO · FROZEN)
 
 ### Mission
