@@ -64,6 +64,10 @@ REGRESSION_FILES = [
     # asyncio.create_task weak-reference fix that closed the
     # "saved DR · no email · no audit row" silent failure).
     "/app/backend/tests/test_track_15_79c_dispatch_task_retention.py",
+    # TRACK 15.79E · continuous production certification — per-workflow
+    # VERIFIED / FAILED / NOT_YET_EXERCISED state derived from
+    # trust_spine_events. Locks the "never auto-clear RED" rule.
+    "/app/backend/tests/test_track_15_79e_production_certification.py",
 ]
 
 DEFAULT_BASE_URL = (

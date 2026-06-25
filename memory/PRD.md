@@ -11,6 +11,37 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-06-25 · TRACK 15.79E · Continuous Production Certification · 🟢 GO · SELF-CERTIFYING)
+
+### Mission
+Convert the Trust Center from a snapshot into a continuous, self-certifying operational instrument. Every workflow automatically reports VERIFIED / NOT_YET_EXERCISED / FAILED based on real production lifecycle events — no operator-injected fake records, no DevTools required.
+
+### Verdict
+🟢 **GO** — endpoint shipped to preview, 8/8 regression gates pass, full Track 15.76–15.79E family **112/112 passing** in 107 s. Trust Gate exits 0.
+
+### What shipped
+- `lib/production_certification.py` — pure-read builder that derives per-workflow status from existing `trust_spine_events`. No dual-write, no drift.
+- `routes/admin_production_certification.py` — `GET /api/admin/production-certification` · admin-gated, read-only.
+- Closed-set 3-state machine: VERIFIED (most recent completed=ok) · FAILED (most recent completed=failed, **NEVER auto-clears**) · NOT_YET_EXERCISED (no completed event).
+- Operator + engineering remediation mapping for known failure_reason patterns (`_wl`, `no recipients`, `auto-email disabled`, `resend returned no message id`, `shop_recipient_unconfigured`).
+- `tests/test_track_15_79e_production_certification.py` — 8 gates including the core RED-never-auto-clears rule (gate 4) and the closed-set status enforcement (gates 6 + 8).
+- Wired into `deployment_gate.py` REGRESSION_FILES + GitHub Actions trust-gate-regression. No deploy can ship without these 8 gates passing.
+
+### What this answers
+The four platform-rule questions are answered automatically:
+1. **What has actually been proven in production?** → `workflows[].status == VERIFIED`
+2. **What has not yet been exercised?** → `NOT_YET_EXERCISED` (informational, not a defect)
+3. **What failed?** → `FAILED` (RED stays RED until next natural success)
+4. **What was fixed?** → transition observable via `last_failure` (older) + `last_verified_at` (newer)
+
+### Operator next step
+Save → GitHub → Redeploy. Post-redeploy, `daily-report` will immediately report `VERIFIED` (the 10:12Z natural submission proves it). Every other workflow auto-flips to VERIFIED or FAILED as it gets its first natural submission.
+
+### Files
+`/app/memory/TRACK_15_79E_FINAL_CERTIFICATION.md` — full state-machine contract, gate matrix, remediation map, production run instructions.
+
+
+
 ## Latest Track (2026-06-25 · TRACK 15.79C · DR Notification Failure Root-Cause + Fix · 🟢 GO · TASK RETENTION LOCKED)
 
 ### Mission

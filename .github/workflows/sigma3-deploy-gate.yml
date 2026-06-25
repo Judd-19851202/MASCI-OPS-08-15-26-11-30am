@@ -168,6 +168,7 @@ jobs:
             backend/tests/test_track_15_79_pipeline_lock.py \
             backend/tests/test_track_15_79b_dr_forensics.py \
             backend/tests/test_track_15_79c_dispatch_task_retention.py \
+            backend/tests/test_track_15_79e_production_certification.py \
             ; do
             test -f "$f" || { echo "❌ Missing required regression file: $f"; exit 1; }
             echo "✅ Found: $f"

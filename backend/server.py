@@ -10856,6 +10856,14 @@ from routes.admin_dr_delivery_forensics import (  # noqa: E402
 )
 app.include_router(_dr_forensics_make_router(db, require_admin))
 
+# TRACK 15.79E · Continuous Production Certification — read-only,
+# admin-gated, derived from trust_spine_events. Surfaces which
+# workflows have been PROVEN end-to-end by real production traffic.
+from routes.admin_production_certification import (  # noqa: E402
+    make_router as _prod_cert_make_router,
+)
+app.include_router(_prod_cert_make_router(db, require_admin))
+
 
 
 # ─── Phase V-Prelude · Wave 1 · Substrate ─────────────────────────────
