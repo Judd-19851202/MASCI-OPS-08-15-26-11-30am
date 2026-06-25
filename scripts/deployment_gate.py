@@ -57,6 +57,13 @@ REGRESSION_FILES = [
     "/app/backend/tests/test_track_15_76b_finalization.py",
     "/app/backend/tests/test_track_15_77_production_lock.py",
     "/app/backend/tests/test_track_15_78_deployment_gate.py",
+    # TRACK 15.79B · Daily Report delivery forensics (read-only proof
+    # that ``schedule_auto_email`` is reaching the dispatcher).
+    "/app/backend/tests/test_track_15_79b_dr_forensics.py",
+    # TRACK 15.79C · schedule_auto_email task retention (the
+    # asyncio.create_task weak-reference fix that closed the
+    # "saved DR · no email · no audit row" silent failure).
+    "/app/backend/tests/test_track_15_79c_dispatch_task_retention.py",
 ]
 
 DEFAULT_BASE_URL = (

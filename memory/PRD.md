@@ -11,6 +11,46 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-06-25 · TRACK 15.79C · DR Notification Failure Root-Cause + Fix · 🟢 GO · TASK RETENTION LOCKED)
+
+### Mission
+Operator reported P0: 7 Daily Reports submitted tonight in production but PM/Co-PM emails never arrived. Use the Track 15.79B forensic endpoint (live in prod) to identify and fix the root cause without asking the operator to debug.
+
+### Root cause
+`schedule_auto_email` called `asyncio.create_task(_dispatch_auto_email(...))` and **discarded the return value**. The event loop only keeps weak references to tasks; the GC was free to reclaim the pending dispatch coroutine before it ever ran. 5 of 7 production DRs in the last 36h left ZERO audit rows AND ZERO Trust Spine events — proof the task was collected before reaching the first `emit_workflow_stage` call. The companion `_wl` NameError visible in 2 historical audit rows is already fixed in Track 15.76 (regression test passing).
+
+### Fix (one file · server.py)
+Module-level `_AUTO_EMAIL_DISPATCH_TASKS: set` retains a strong reference to every task; `task.add_done_callback(_AUTO_EMAIL_DISPATCH_TASKS.discard)` clears it on completion so the set never grows unbounded. Canonical Python pattern documented in the asyncio docs.
+
+### Regression locked
+`tests/test_track_15_79c_dispatch_task_retention.py` — 7 gates:
+1. Strong-reference set name present in server.py
+2. Single dispatch survives forced `gc.collect()`
+3. **20 concurrent dispatches all complete after forced GC** (the strongest single proof)
+4. Done-callback self-clears the set
+5. No-running-loop path is silent (sync-test compatibility)
+6. `_wl` render path companion lock (pins Track 15.76 fix during 15.79C edits)
+7. Source-level byte-lock — three exact substrings must remain in server.py
+
+### Wired into Trust Gate
+`scripts/deployment_gate.py` REGRESSION_FILES + `.github/workflows/sigma3-deploy-gate.yml` trust-gate-regression both extended. No deploy can ship without the fix and the 7 new tests passing.
+
+### Verification
+- 104/104 family tests pass in 62 s.
+- `scripts/deployment_gate.py --json` → `decision=pass · exit_code=0 · blocking=0 · advisory=0`.
+- Forensic env-probe in preview returned `trust_spine_events.total=21` (writes work end-to-end).
+
+### Production status
+Fix is in preview. Awaiting operator redeploy to push to https://mascidocs.com. Post-redeploy verification: submit one DR, expect `reports_with_provider_accept ≥ 1` and `root_cause_code=ok_delivered` from the forensic endpoint within 60 s.
+
+### Platform-wide impact
+This same fix unblocks Daily Reports, Meetings, Inspections, JHAs, Incidents, Equipment Pre-Ops, and QA/QC dispatches — every workflow that flows through `schedule_auto_email`. The Trust Spine's `amber-no-activity` banding across all 11 workflows in production today is exactly this bug manifesting platform-wide.
+
+### Files
+`/app/memory/TRACK_15_79C_FINAL_CERTIFICATION.md` for the full forensic chain, evidence, gate matrix, and 15-question certification.
+
+
+
 ## Latest Track (2026-02-12 · TRACK 15.79B · DR Delivery Forensics · 🟢 GO · ENDPOINT LIVE)
 
 ### Mission

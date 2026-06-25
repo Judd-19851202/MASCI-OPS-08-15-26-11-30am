@@ -224,6 +224,17 @@ def make_router(db, require_admin_dep) -> APIRouter:
         since_hours: int = Query(36, ge=1, le=168),
         project_number: Optional[str] = Query(None, max_length=64),
         limit: int = Query(50, ge=1, le=200),
+        include_environment_probe: bool = Query(
+            False,
+            description=(
+                "When true, the response includes a NON-SECRET "
+                "environment fingerprint: presence-flags for "
+                "AUTO_EMAIL_REPORTS / RESEND_API_KEY and recent doc "
+                "counts in trust_spine_events / email_routing_audit_v2 "
+                "/ daily_reports. Boolean flags only — no secret "
+                "values, no URLs, no keys."
+            ),
+        ),
         _: Any = Depends(require_admin_dep),
     ) -> Dict[str, Any]:
         # Lazy imports keep startup cost low and avoid circular refs.
@@ -732,11 +743,105 @@ def make_router(db, require_admin_dep) -> APIRouter:
             "project_number_filter": project_number,
             "tenant_dead_letter_configured": dead_letter_configured,
             "expected_stage_contract": EXPECTED_STAGES_DAILY_REPORT,
+            "environment_probe": (
+                await _environment_probe(db, since_dt)
+                if include_environment_probe else None
+            ),
             **counters,
             "reports": rows,
         }
 
     return router
+
+
+async def _environment_probe(db, since_dt: datetime) -> Dict[str, Any]:
+    """Return a NON-SECRET environment fingerprint for diagnostics.
+
+    Surfaces presence-flags (booleans only) and recent doc counts so
+    the operator can verify the dispatcher is actually reaching Mongo
+    in production. NEVER returns API keys, URLs, or secret values."""
+    import os  # noqa: PLC0415
+    since_iso = since_dt.isoformat()
+    counts: Dict[str, Any] = {}
+    for coll in (
+        "trust_spine_events", "email_routing_audit_v2",
+        "platform_audit", "daily_reports",
+        "project_team_assignments", "jobs_master",
+    ):
+        try:
+            total = await db[coll].count_documents({})
+            recent = await db[coll].count_documents(
+                {"$or": [
+                    {"ts": {"$gte": since_iso}},
+                    {"created_at": {"$gte": since_iso}},
+                ]}
+            )
+            counts[coll] = {"total": total, "recent_in_window": recent}
+        except Exception as exc:  # noqa: BLE001
+            counts[coll] = {
+                "total": None, "recent_in_window": None,
+                "error": str(exc)[:200],
+            }
+    # Sample the most-recent trust_spine_event so we can see if ANY
+    # write has ever landed.
+    try:
+        last_spine = await db.trust_spine_events.find_one(
+            {}, sort=[("ts", -1)],
+            projection={"_id": 0, "ts": 1, "workflow": 1, "stage": 1,
+                        "status": 1, "module": 1},
+        )
+    except Exception as exc:  # noqa: BLE001
+        last_spine = {"error": str(exc)[:200]}
+    # Sample the most-recent email_routing_audit_v2 row likewise.
+    try:
+        last_audit = await db.email_routing_audit_v2.find_one(
+            {}, sort=[("ts", -1)],
+            projection={"_id": 0, "ts": 1, "status": 1,
+                        "calling_module": 1, "resolved_to_count": 1},
+        )
+    except Exception as exc:  # noqa: BLE001
+        last_audit = {"error": str(exc)[:200]}
+    # Sample the 5 most recent FAILED audit rows so the operator can
+    # see Resend's exact error strings without DB access. We strip
+    # potentially-secret fields (sender_email, recipients) and only
+    # surface the calling_module + ts + truncated error string.
+    try:
+        recent_failures: List[Dict[str, Any]] = []
+        async for row in db.email_routing_audit_v2.find(
+            {"status": {"$in": ["failed", "error", "rejected"]}},
+            projection={"_id": 0, "ts": 1, "status": 1,
+                        "calling_module": 1, "route_key": 1,
+                        "error": 1, "subject": 1, "dry_run": 1},
+        ).sort("ts", -1).limit(5):
+            # Truncate any error string to 240 chars (already done at
+            # write-site, but be defensive).
+            err = row.get("error")
+            if isinstance(err, str):
+                row["error"] = err[:240]
+            # Truncate subject (no PII expected, but cap length).
+            subj = row.get("subject")
+            if isinstance(subj, str):
+                row["subject"] = subj[:160]
+            recent_failures.append(row)
+    except Exception as exc:  # noqa: BLE001
+        recent_failures = [{"error_querying_failures": str(exc)[:200]}]
+    return {
+        "auto_email_reports_env_truthy": (
+            (os.environ.get("AUTO_EMAIL_REPORTS") or "")
+            .strip().lower() in ("true", "1", "yes")
+        ),
+        "resend_api_key_configured": bool(
+            (os.environ.get("RESEND_API_KEY") or "").strip()
+        ),
+        "admin_dead_letter_to_configured": bool(
+            (os.environ.get("ADMIN_DEAD_LETTER_TO") or "").strip()
+        ),
+        "app_env": (os.environ.get("APP_ENV") or "").strip() or None,
+        "collection_counts": counts,
+        "last_trust_spine_event": last_spine,
+        "last_email_routing_audit_v2": last_audit,
+        "recent_audit_failures": recent_failures,
+    }
 
 
 __all__ = ["make_router", "ROOT_CAUSE_CODES"]

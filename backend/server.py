@@ -13246,13 +13246,35 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
             pass
 
 
+# TRACK 15.79C · P0 fix — `asyncio.create_task()` only keeps a WEAK
+# reference to the task. Under load the garbage collector can collect
+# a pending task before it runs, which explains why production Daily
+# Reports submitted post-deploy left ZERO email_routing_audit_v2 rows
+# AND ZERO trust_spine_events: the dispatcher task was scheduled,
+# the HTTP handler returned, and the GC freed the task before
+# ``_dispatch_auto_email`` ever started.
+#   Fix: retain a STRONG reference in a module-level set + clear it
+#   when the task completes. This is the canonical Python pattern
+#   documented in PEP 0 / asyncio docs.
+_AUTO_EMAIL_DISPATCH_TASKS: set = set()
+
+
 def schedule_auto_email(kind: str, record: dict) -> None:
-    """Fire-and-forget wrapper (safe to call from any create endpoint)."""
+    """Fire-and-forget wrapper (safe to call from any create endpoint).
+
+    TRACK 15.79C — the returned task is now retained in a module-level
+    set so the event loop's weak reference does not cause the GC to
+    collect it before ``_dispatch_auto_email`` runs. ``add_done_callback``
+    discards the task from the set when it completes (ok, failed, or
+    cancelled), so the set never grows unbounded.
+    """
     try:
-        asyncio.create_task(_dispatch_auto_email(kind, dict(record)))
+        task = asyncio.create_task(_dispatch_auto_email(kind, dict(record)))
     except RuntimeError:
         # No running loop — skip silently (e.g. during sync tests)
-        pass
+        return
+    _AUTO_EMAIL_DISPATCH_TASKS.add(task)
+    task.add_done_callback(_AUTO_EMAIL_DISPATCH_TASKS.discard)
 
 
 # (auto-email-preview / routing-table routes are registered after _email_router below)

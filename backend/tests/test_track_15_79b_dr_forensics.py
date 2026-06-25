@@ -397,17 +397,33 @@ async def test_no_secrets_leak_in_payload():
         r.endpoint for r in router.routes
         if getattr(r, "path", "") == "/api/admin/daily-report-delivery/forensics"
     )
-    out = await handler(since_hours=1, project_number=None, limit=5, _=None)
+    out = await handler(
+        since_hours=1, project_number=None, limit=5,
+        include_environment_probe=True, _=None,
+    )
     import json as _json  # noqa: PLC0415
-    blob = _json.dumps(out, default=str).lower()
-    for secret_marker in (
-        "mongo_url", "mongodb+srv", "mongodb://",
-        "resend_api_key", "re_",  # Resend keys start with re_
-        "admin_password", "admin_hmac_secret",
-        "bearer ", "x-admin-token",
-    ):
-        assert secret_marker not in blob, (
-            f"forensic payload leaked '{secret_marker}'"
+    import re as _re  # noqa: PLC0415
+    blob = _json.dumps(out, default=str)
+    # Boolean presence flags are allowed (e.g.
+    # ``resend_api_key_configured: true``) — they convey policy state,
+    # not secret values. We forbid the ACTUAL secret-value markers:
+    # Mongo URIs, raw Resend API keys (re_<10+ char>), Bearer tokens,
+    # password values, HMAC secret values.
+    forbidden_patterns = [
+        r"mongodb\+srv://[^\"']+",         # full Mongo connection URI
+        r"mongodb://[^\"']+:[^\"']+@",     # Mongo URI with creds
+        r"\"mongo_url\"\s*:\s*\"[^\"]+\"",
+        r"re_[A-Za-z0-9]{10,}",            # raw Resend secret keys
+        r"\"resend_api_key\"\s*:\s*\"[^\"]+\"",  # secret VALUE leak
+        r"\"admin_password\"\s*:\s*\"[^\"]+\"",
+        r"\"admin_hmac_secret\"\s*:\s*\"[^\"]+\"",
+        r"Bearer\s+[A-Za-z0-9._\-]{16,}",
+    ]
+    for pat in forbidden_patterns:
+        m = _re.search(pat, blob)
+        assert m is None, (
+            f"forensic payload matched forbidden secret pattern "
+            f"{pat!r}: {m.group(0)[:80]!r}"
         )
 
 
