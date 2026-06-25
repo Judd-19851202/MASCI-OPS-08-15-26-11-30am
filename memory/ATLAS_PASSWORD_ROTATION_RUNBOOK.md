@@ -117,16 +117,24 @@ After ~60 seconds, refresh `/admin/system` and confirm the new archive appears i
 In a fresh terminal (or right here, message me):
 
 ```
+# secret-scan: allow-line
 python3 -c "
 from pymongo import MongoClient
+import os
+OLD = os.environ.get('OLD_ATLAS_URL')  # operator supplies via env var · never commit
 try:
-    c = MongoClient('mongodb+srv://admin_db_user:f3Dv7FBQZMFY4JRp@masci-prod.1nduwmg.mongodb.net/?appName=MASCI-prod', serverSelectionTimeoutMS=5000)
+    c = MongoClient(OLD, serverSelectionTimeoutMS=5000)
     c.admin.command('ping')
     print('🔴 OLD PASSWORD STILL WORKS — rotation NOT complete')
 except Exception as e:
     print(f'🟢 Old password rejected: {type(e).__name__}')
 "
 ```
+
+**How to run**: export `OLD_ATLAS_URL` in your shell with the
+pre-rotation connection string (then `unset` it afterwards — never
+commit). Track 15.80 forensic remediation removed the previously
+literal connection string that lived on this line.
 
 Expected: 🟢 **Authentication failed** (this is what we want — confirms the old password is dead).
 

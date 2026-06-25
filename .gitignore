@@ -812,6 +812,20 @@ frontend/node_modules/.cache/default-development/16.pack_
 .env
 .env.*
 *.env
+# TRACK 15.80 — secret-file pattern lock. Block historical class of
+# files that have leaked production secrets into git (e.g.
+# PRODUCTION_SECRETS_SEALED.env.template). Never commit anything
+# matching these patterns; the secret-scanner regression test
+# `test_track_15_80_no_secrets_in_repo.py` enforces this on every CI
+# run.
+*.env.template
+*_SECRETS_*.env*
+*_SECRETS_*.template
+*SEALED*.env*
+*SEALED*.template
+secrets.env*
+.secrets/
+secret_rotation_evidence_*.txt
 backend/backups/MASCI_full_backup_2026-06-08_214855Z.zip.tmp.63dacc97
 frontend/node_modules/.cache/default-development/3.pack_
 frontend/node_modules/.cache/default-development/4.pack_

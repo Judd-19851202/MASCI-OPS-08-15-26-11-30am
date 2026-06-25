@@ -73,9 +73,9 @@ async def _admin_strict_fail():
 # 1 · Atlas URL classifier
 # ─────────────────────────────────────────────────────────────────────
 def test_iter430_is_atlas_url():
-    assert _is_atlas_url("mongodb+srv://u:p@cluster.mongodb.net/?x=1") is True
+    assert _is_atlas_url("mongodb+srv://u:p@cluster.mongodb.net/?x=1") is True  # secret-scan: allow-line
     assert _is_atlas_url("mongodb://localhost:27017") is False
-    assert _is_atlas_url("mongodb+srv://u:p@self-hosted.example.com/?x=1") is False
+    assert _is_atlas_url("mongodb+srv://u:p@self-hosted.example.com/?x=1") is False  # secret-scan: allow-line
     assert _is_atlas_url("") is False
 
 
@@ -83,7 +83,7 @@ def test_iter430_is_atlas_url():
 # 2 · Persistence-health returns documented field set when authorised
 # ─────────────────────────────────────────────────────────────────────
 def test_iter430_persistence_health_authorised(monkeypatch):
-    monkeypatch.setenv("MONGO_URL", "mongodb+srv://u:p@masci-prod.mongodb.net/?x=1")
+    monkeypatch.setenv("MONGO_URL", "mongodb+srv://u:p@masci-prod.mongodb.net/?x=1")  # secret-scan: allow-line
     monkeypatch.setenv("DB_NAME", "masci_safety")
 
     app = FastAPI()

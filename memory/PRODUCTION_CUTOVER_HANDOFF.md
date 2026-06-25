@@ -50,12 +50,16 @@ SENDER_EMAIL=noreply@mascidocs.com
 REPLY_TO_EMAIL=safety@mascigc.com
 BACKUP_EMAIL_TO=safety@mascigc.com
 
-# Generated production secrets (from PRODUCTION_SECRETS_SEALED.env.template):
-JWT_SECRET=7ea29eb0004abcdc10c17cfe63388a7163375e12875137b6921f7731a4d1c28e
-ADMIN_HMAC_SECRET=Ed6WQDpkdxytL3pA6o9vWhFyljSZdM2sLCN73vg5HSNxIEdrN4TkWy93fxIG8xejOf9NBM+qmYlDAymIxy5f1A==
-MFA_ENCRYPTION_KEY=V7YGlO_7uPzkBKG3TbzhFvA3_fBH41Ow7vlExjUXBhM=
-SUPER_ADMIN_BOOTSTRAP_PASSWORD=vMSIGaN9RTdD0_kRqUVa-nRTsAFi32xH2a9wo51Q41E
-ADMIN_PASSWORD=kOkfFEaHH97f5t8aEWWW-XxV2a8
+# Generated production secrets (REDACTED 2026-06-25 · TRACK 15.80
+# forensic remediation — actual values were rotated and removed from
+# this repo. Live values held in production env vars only. See
+# /app/memory/PRODUCTION_CREDENTIAL_ROTATION_RUNBOOK.md for current
+# rotation procedure.):
+JWT_SECRET=<rotated · production-env-only · never recommitted>
+ADMIN_HMAC_SECRET=<rotated · production-env-only · never recommitted>
+MFA_ENCRYPTION_KEY=<rotated · production-env-only · never recommitted>
+SUPER_ADMIN_BOOTSTRAP_PASSWORD=<rotated · production-env-only · never recommitted>
+ADMIN_PASSWORD=<rotated · production-env-only · never recommitted>
 
 RATE_LIMITING=on
 SCHEDULER_ENABLED=true
@@ -81,7 +85,7 @@ PROD_MONGO_URL="$MONGO_URL" PROD_DB_NAME="$DB_NAME" \
 From any operator workstation OR the production pod:
 ```bash
 PROD_API_BASE="https://safety-audit-mobile-1.emergent.host" \
-PROD_ADMIN_PASSWORD="kOkfFEaHH97f5t8aEWWW-XxV2a8" \
+PROD_ADMIN_PASSWORD="<rotated · pull from production env · never paste here>" \
   python3 /app/backend/scripts/production_smoke_test.py
 ```
 

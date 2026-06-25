@@ -75,11 +75,16 @@ S3_ENDPOINT_URL=<keep current Cloudflare R2 endpoint>
 
 RESEND_API_KEY=<operator-pasted from new Resend production key>
 
-# Secrets — values were generated in PRODUCTION_SECRETS_SEALED.env.template
-JWT_SECRET=7ea29eb0004abcdc10c17cfe63388a7163375e12875137b6921f7731a4d1c28e
-ADMIN_HMAC_SECRET=Ed6WQDpkdxytL3pA6o9vWhFyljSZdM2sLCN73vg5HSNxIEdrN4TkWy93fxIG8xejOf9NBM+qmYlDAymIxy5f1A==
-MFA_ENCRYPTION_KEY=V7YGlO_7uPzkBKG3TbzhFvA3_fBH41Ow7vlExjUXBhM=
-SUPER_ADMIN_BOOTSTRAP_PASSWORD=vMSIGaN9RTdD0_kRqUVa-nRTsAFi32xH2a9wo51Q41E
+# Secrets — values are REDACTED here (TRACK 15.80 forensic remediation,
+# 2026-06-25). They were rotated in production; the previously-committed
+# values have been removed. Generate fresh values via:
+#   python3 -c "import secrets; print(secrets.token_hex(32))"   # JWT
+#   python3 -c "import secrets; print(secrets.token_urlsafe(64))"  # HMAC
+#   python3 -c "import secrets; print(secrets.token_urlsafe(32))"  # MFA key
+JWT_SECRET=<rotated · production-env-only · never recommitted>
+ADMIN_HMAC_SECRET=<rotated · production-env-only · never recommitted>
+MFA_ENCRYPTION_KEY=<rotated · production-env-only · never recommitted>
+SUPER_ADMIN_BOOTSTRAP_PASSWORD=<rotated · production-env-only · never recommitted>
 
 # Operational
 RATE_LIMITING=on

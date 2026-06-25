@@ -68,6 +68,12 @@ REGRESSION_FILES = [
     # VERIFIED / FAILED / NOT_YET_EXERCISED state derived from
     # trust_spine_events. Locks the "never auto-clear RED" rule.
     "/app/backend/tests/test_track_15_79e_production_certification.py",
+    # TRACK 15.80 · permanent secret-exposure regression — scans every
+    # tracked file for high-entropy secret literals and fails the
+    # build if any are found. Locks the historical
+    # ``PRODUCTION_SECRETS_SEALED.env.template`` leak class out of
+    # the repo forever.
+    "/app/backend/tests/test_track_15_80_no_secrets_in_repo.py",
 ]
 
 DEFAULT_BASE_URL = (

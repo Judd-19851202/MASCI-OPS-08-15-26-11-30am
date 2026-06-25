@@ -102,10 +102,14 @@ S3_SECRET_KEY=<from Phase 1.2>
 S3_REGION=auto
 S3_ENDPOINT_URL=<from Phase 1.2>
 RESEND_API_KEY=<from Phase 2.1>
-JWT_SECRET=7ea29eb0004abcdc10c17cfe63388a7163375e12875137b6921f7731a4d1c28e
-ADMIN_HMAC_SECRET=Ed6WQDpkdxytL3pA6o9vWhFyljSZdM2sLCN73vg5HSNxIEdrN4TkWy93fxIG8xejOf9NBM+qmYlDAymIxy5f1A==
-MFA_ENCRYPTION_KEY=V7YGlO_7uPzkBKG3TbzhFvA3_fBH41Ow7vlExjUXBhM=
-SUPER_ADMIN_BOOTSTRAP_PASSWORD=vMSIGaN9RTdD0_kRqUVa-nRTsAFi32xH2a9wo51Q41E
+# TRACK 15.80 forensic remediation 2026-06-25: previously-committed
+# literals have been removed from this runbook. Production values are
+# rotated and held in env vars only. Generate fresh secrets per
+# /app/memory/PRODUCTION_CREDENTIAL_ROTATION_RUNBOOK.md before deploy.
+JWT_SECRET=<rotated · production-env-only · never recommitted>
+ADMIN_HMAC_SECRET=<rotated · production-env-only · never recommitted>
+MFA_ENCRYPTION_KEY=<rotated · production-env-only · never recommitted>
+SUPER_ADMIN_BOOTSTRAP_PASSWORD=<rotated · production-env-only · never recommitted>
 RATE_LIMITING=on
 SCHEDULER_ENABLED=true
 SENDER_EMAIL=noreply@mascidocs.com
