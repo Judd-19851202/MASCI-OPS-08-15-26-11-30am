@@ -11,6 +11,31 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-02-12 · TRACK 15.79B · DR Delivery Forensics · 🟢 GO · ENDPOINT LIVE)
+
+### Mission
+Operator reported a P0: Daily Reports saved tonight in production but PM/Co-PM emails never arrived despite valid roster assignments. Preview pod cannot read production Mongo (Atlas user isolation working), so build the platform's own forensic instrument — an admin-gated, read-only endpoint the operator can call from production with their existing session.
+
+### Verdict
+🟢 **GO (Phase 1 endpoint shipped).** `GET /api/admin/daily-report-delivery/forensics` is live in preview · admin-gated · 12/12 regression gates · ZERO writes (locked by Gate 11) · ZERO secret leaks (locked by Gate 10). Preview probe classified the 3 standing DRs as `dead_letter_only` — matches the operator's exact symptom.
+
+### What shipped
+- `routes/admin_dr_delivery_forensics.py` — new endpoint. Re-runs the resolver locally without triggering `_audit_dead_letter` side-effects. Joins `daily_reports`, `jobs_master`, `project_team_assignments`, `trust_spine_events`, `email_routing_audit_v2` per record.
+- Closed-set 18-code root-cause classifier (`ok_delivered`, `dead_letter_only`, `project_number_mismatch`, `role_name_mismatch`, `inactive_assignment`, `primary_flag_mismatch`, `pm_identity_found_email_missing`, `copm_identity_found_email_missing`, `resolver_bypassed_roster`, `recipients_empty`, `auto_email_not_scheduled`, `dispatch_skipped`, `provider_rejected`, `audit_missing`, `trust_spine_missing_notification_stage`, `dead_letter_unconfigured`, `tenant_mismatch` reserved, `unknown`).
+- Diagnostic scan that surfaces `role_name_mismatch` / `inactive_assignment` / `project_number_mismatch` rows that exist but were silently excluded by the canonical query — closes the "PM assigned in UI but resolver doesn't see it" failure class.
+- `tests/test_track_15_79b_dr_forensics.py` — 12 named regression gates including a NO-WRITE guard that counts docs in 5 collections before/after a forensic call.
+
+### Total regression posture
+97 / 97 tests pass across Tracks 15.76–15.79B in 107 s.
+
+### Operator next step
+Redeploy production so the endpoint is live at `https://mascidocs.com/...`, then run one `fetch()` from the signed-in admin tab and paste the JSON back. Phases 2–8 of Track 15.79B (root-cause confirmation, fix, regression-lock) execute against that response.
+
+### Files
+`/app/memory/TRACK_15_79B_FORENSIC_ENDPOINT.md` — full contract, gate matrix, security review, production run instructions.
+
+
+
 ## Latest Track (2026-02-12 · TRACK 15.79 · Production Deployment Enforcement · 🟢 GO · PIPELINE LOCKED)
 
 ### Mission

@@ -10848,6 +10848,14 @@ app.include_router(_ledger_make_router(db, require_admin))
 async def _startup_deployment_ledger_indexes():  # noqa: D401
     await _ledger_indexes(db)
 
+# TRACK 15.79B · Daily Report delivery forensics — read-only admin
+# endpoint that traces, record-by-record, why PM/Co-PM emails did or
+# did not reach their assigned recipients.
+from routes.admin_dr_delivery_forensics import (  # noqa: E402
+    make_router as _dr_forensics_make_router,
+)
+app.include_router(_dr_forensics_make_router(db, require_admin))
+
 
 
 # ─── Phase V-Prelude · Wave 1 · Substrate ─────────────────────────────
