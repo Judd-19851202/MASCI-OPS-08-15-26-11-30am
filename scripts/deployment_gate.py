@@ -98,6 +98,69 @@ def fetch_runtime(base_url: str, admin_token: str | None) -> Dict[str, Any]:
         return json.load(resp)
 
 
+def append_to_ledger(
+    base_url: str,
+    admin_token: str | None,
+    report: Dict[str, Any],
+    duration_ms: int,
+) -> Dict[str, Any] | None:
+    """TRACK 15.79 — best-effort append to the immutable deployment
+    ledger. Never raises; the ledger is a forensic side-channel and
+    must not be allowed to block a passing gate from exiting cleanly."""
+    if not admin_token:
+        return None
+    runtime = report.get("runtime") or {}
+    blocking = runtime.get("blocking_gates") or []
+    advisory = runtime.get("advisory_findings") or []
+    try:
+        commit = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd="/app", capture_output=True, text=True, timeout=5,
+        ).stdout.strip()
+    except Exception:
+        commit = ""
+    try:
+        branch = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+            cwd="/app", capture_output=True, text=True, timeout=5,
+        ).stdout.strip()
+    except Exception:
+        branch = ""
+    payload = {
+        "decision": report.get("decision", "fail"),
+        "exit_code": int(report.get("exit_code", 1)),
+        "commit": commit,
+        "branch": branch,
+        "environment": os.environ.get("DEPLOY_ENV", "preview"),
+        "operator": (
+            os.environ.get("OPS_ADMIN_EMAIL")
+            or os.environ.get("DEPLOY_OPERATOR", "ci")
+        ),
+        "duration_ms": duration_ms,
+        "trust_score": int(runtime.get("trust_score") or 0),
+        "trust_band": runtime.get("trust_band") or "",
+        "blocking_count": len(blocking),
+        "advisory_count": len(advisory),
+        "regression_count": int(runtime.get("regression_gate_count") or 0),
+        "blocking_ids": [g.get("id") for g in blocking][:32],
+    }
+    try:
+        req = urllib.request.Request(
+            f"{base_url}/api/admin/deployment-readiness/snapshot",
+            data=json.dumps(payload).encode(),
+            headers={
+                "Content-Type": "application/json",
+                "X-Admin-Token": admin_token,
+                "User-Agent": "deployment-gate/15.79",
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            return json.load(resp)
+    except Exception:
+        return None
+
+
 def resolve_admin_token(base_url: str) -> str | None:
     """Best-effort admin token: try OPS_ADMIN_TOKEN env, then a super-
     admin multi-login if OPS_ADMIN_EMAIL/PASSWORD are available."""
@@ -132,14 +195,21 @@ def main() -> int:
     parser.add_argument("--no-runtime", action="store_true")
     parser.add_argument("--base-url", default=DEFAULT_BASE_URL)
     parser.add_argument("--json", dest="emit_json", action="store_true")
+    parser.add_argument(
+        "--no-ledger", action="store_true",
+        help="skip TRACK 15.79 append to deployment_decisions",
+    )
     args = parser.parse_args()
 
+    import time  # noqa: PLC0415
+    started_at = time.time()
     report: Dict[str, Any] = {
         "decision": "pass",
         "regression": None,
         "runtime": None,
         "exit_code": 0,
     }
+    admin_token: str | None = None
 
     # ── Regression layer ────────────────────────────────────────────
     if not args.no_regression:
@@ -152,8 +222,8 @@ def main() -> int:
     # ── Runtime layer ───────────────────────────────────────────────
     if not args.no_runtime and report["exit_code"] == 0:
         try:
-            tok = resolve_admin_token(args.base_url)
-            payload = fetch_runtime(args.base_url, tok)
+            admin_token = resolve_admin_token(args.base_url)
+            payload = fetch_runtime(args.base_url, admin_token)
             report["runtime"] = payload
             if payload.get("decision") != "pass":
                 report["decision"] = "fail"
@@ -168,6 +238,20 @@ def main() -> int:
             report["runtime_error"] = str(exc)
             report["decision"] = "fail"
             report["exit_code"] = 3
+
+    duration_ms = int((time.time() - started_at) * 1000)
+    report["duration_ms"] = duration_ms
+
+    # ── TRACK 15.79 · Ledger append (best-effort, never blocks) ────
+    if not args.no_ledger and admin_token is None:
+        # If runtime layer was skipped via --no-runtime, still try to
+        # resolve a token so the ledger can record the regression-only
+        # invocation.
+        admin_token = resolve_admin_token(args.base_url)
+    if not args.no_ledger and admin_token:
+        report["ledger"] = append_to_ledger(
+            args.base_url, admin_token, report, duration_ms,
+        )
 
     if args.emit_json:
         print(json.dumps(report, indent=2, default=str))

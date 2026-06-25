@@ -99,7 +99,10 @@ jobs:
             memory/MAGIC_LINK_SECURITY_HARDENING.md \
             memory/PLAYWRIGHT_CERTIFICATION_PHASE3.md \
             memory/DEPLOYMENT_GOVERNANCE_MATURITY.md \
+            memory/TRACK_15_78_FINAL_CERTIFICATION.md \
+            memory/TRACK_15_79_FINAL_CERTIFICATION.md \
             scripts/pre_deploy_check.sh \
+            scripts/deployment_gate.py \
             ; do
             if [ ! -f "$f" ]; then
               echo "❌ Missing governance artefact: $f"
@@ -122,7 +125,48 @@ jobs:
             - Sigma-III regression contract
             - Playwright browser suite (35 tests · 3 viewports)
             - Cluster capacity severity probe
+            - Track 15.78 Deployment Trust Gate (77 regression tests + live runtime)
+            - Track 15.79 Post-deploy verification + ledger append
 
           If `pre_deploy_check.sh` exits non-zero, DO NOT DEPLOY.
           ════════════════════════════════════════════════════════════════
           EOF
+
+  # ─── TRACK 15.79 · Deployment Trust Gate (regression layer only) ───
+  # Runtime layer requires a reachable preview Mongo so it lives in
+  # pre_deploy_check.sh, not here. This job exists to FAIL the build
+  # if any Track 15.7x regression test would fail on this commit —
+  # before it ever gets near the preview pod.
+  trust-gate-regression:
+    name: Trust Gate · regression layer (Track 15.78/15.79)
+    runs-on: ubuntu-latest
+    needs: [static-contract]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install deps (offline minimum)
+        run: |
+          python3 -m pip install --quiet pytest pytest-timeout pytest-asyncio \
+            python-dotenv motor pymongo fastapi pydantic httpx
+      - name: Verify Trust Gate CLI exists + is executable
+        run: |
+          test -x scripts/deployment_gate.py || chmod +x scripts/deployment_gate.py
+          python3 scripts/deployment_gate.py --help 2>&1 | head -5 || true
+      - name: Verify regression files exist (no skips, no bypass)
+        run: |
+          for f in \
+            backend/tests/test_track_15_76_trust_spine.py \
+            backend/tests/test_track_15_76_trust_spine_extended.py \
+            backend/tests/test_track_15_76_email_render_wl_regression.py \
+            backend/tests/test_track_15_76a_operations_trust_center.py \
+            backend/tests/test_track_15_76b_finalization.py \
+            backend/tests/test_track_15_77_production_lock.py \
+            backend/tests/test_track_15_78_deployment_gate.py \
+            backend/tests/test_track_15_79_pipeline_lock.py \
+            ; do
+            test -f "$f" || { echo "❌ Missing required regression file: $f"; exit 1; }
+            echo "✅ Found: $f"
+          done

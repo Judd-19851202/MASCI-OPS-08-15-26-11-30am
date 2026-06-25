@@ -10837,6 +10837,17 @@ app.include_router(_otc_make_router(db, require_admin))
 from routes.admin_deployment_readiness import make_router as _gate_make_router  # noqa: E402
 app.include_router(_gate_make_router(db, require_admin))
 
+# TRACK 15.79 · Deployment ledger — append-only history of every
+# Trust Gate decision so operators can audit deployment outcomes.
+from routes.admin_deployment_ledger import (  # noqa: E402
+    make_router as _ledger_make_router,
+    ensure_indexes as _ledger_indexes,
+)
+app.include_router(_ledger_make_router(db, require_admin))
+@app.on_event("startup")
+async def _startup_deployment_ledger_indexes():  # noqa: D401
+    await _ledger_indexes(db)
+
 
 
 # ─── Phase V-Prelude · Wave 1 · Substrate ─────────────────────────────

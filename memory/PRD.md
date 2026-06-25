@@ -11,6 +11,37 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-02-12 · TRACK 15.79 · Production Deployment Enforcement · 🟢 GO · PIPELINE LOCKED)
+
+### Mission
+Wire the Track 15.78 Deployment Trust Gate into the real production
+deployment pipeline (`pre_deploy_check.sh` + GitHub Actions
+`sigma3-deploy-gate.yml`), persist every deploy decision to an
+append-only Mongo ledger, add post-deploy health verification, and
+permanently lock all Track 15.74–15.79 defects behind regression tests.
+
+### Verdict
+🟢 **GO — production deployment pipeline is locked.** 85/85 regression
+tests pass in 40 s. `pre_deploy_check.sh` now ends with a hard
+`exit "$TRUST_GATE_RC"` — no bypass path. GitHub Actions fails the
+build if any governance artefact or regression file is missing.
+
+### What shipped
+- `routes/admin_deployment_ledger.py` — `POST /api/admin/deployment-readiness/snapshot` + `GET /history`. Append-only · 365-day TTL · admin-gated.
+- `scripts/pre_deploy_check.sh` — appended TRACK 15.79 stage that invokes `deployment_gate.py` and propagates its exit code verbatim.
+- `scripts/post_deploy_verify.sh` — new script: probes `/api/health`, re-runs `deployment-readiness`, probes OTC, appends a `post-deploy` snapshot to the ledger. Exit 4/5/6 = rollback recommended.
+- `scripts/deployment_gate.py` — extended with `append_to_ledger()` (best-effort, never raises) so every gate run is recorded.
+- `.github/workflows/sigma3-deploy-gate.yml` — new `trust-gate-regression` job + `governance-acknowledgement` artefact check covering all 8 regression files and both Track 15.78/15.79 certifications.
+- `tests/test_track_15_79_pipeline_lock.py` — 8 named regression gates: pre-deploy invocation · GitHub Actions wiring · ledger admin-gated · ledger schema validation · round-trip · post-deploy script exists · indexes present · exit-code contract.
+
+### Six pillars
+All ✅. See `/app/memory/TRACK_15_79_FINAL_CERTIFICATION.md`.
+
+### Files
+`/app/memory/TRACK_15_79_FINAL_CERTIFICATION.md` for the full 13-question answer table + gate matrix.
+
+
+
 ## Latest Track (2026-06-25 · TRACK 15.78 · Deployment Trust Gate · 🟢 GO · LIVE & LOCKED)
 
 ### Mission

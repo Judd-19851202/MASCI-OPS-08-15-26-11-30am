@@ -527,6 +527,29 @@ if [[ "$FAIL" -gt 0 ]]; then
   exit 1
 fi
 
+# ─── TRACK 15.79 · Deployment Trust Gate — hard requirement ─────────
+# Wires Track 15.78's deployment_gate.py into the canonical pre-deploy
+# flow. Exit code is propagated verbatim. NO BYPASS.
+echo ""
+echo "  ─── Track 15.79 · Deployment Trust Gate ───────────────────"
+if [[ -f "$REPO_ROOT/scripts/deployment_gate.py" ]]; then
+  set +e
+  python3 "$REPO_ROOT/scripts/deployment_gate.py"
+  TRUST_GATE_RC=$?
+  set -e
+  if [[ "$TRUST_GATE_RC" -ne 0 ]]; then
+    echo ""
+    echo "  ❌ TRUST GATE FAILED (exit=$TRUST_GATE_RC) — DO NOT DEPLOY."
+    exit "$TRUST_GATE_RC"
+  fi
+  echo "  ✓ Trust Gate exit 0 — runtime + regression both PASS."
+else
+  echo ""
+  echo "  ❌ Track 15.78 deployment_gate.py is MISSING — refusing to deploy."
+  echo "     The Trust Gate is a hard requirement (Track 15.79)."
+  exit 1
+fi
+
 echo ""
 echo "  ✅ GATE PASSED — safe to click Emergent Deploy."
 
