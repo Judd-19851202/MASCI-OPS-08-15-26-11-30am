@@ -329,3 +329,302 @@ def test_is_valid_admin_token_docstring_documents_retirement():
         "Track 15.85 regression: _is_valid_admin_token docstring must "
         "point future readers at the current async validator."
     )
+
+
+
+# ─── Execution #4 · Hydration-warning lock (mixed `<option>` children) ──
+#
+# Track 15.85 Execution #4 root-caused the persistent React hydration
+# warning `<span> cannot be a child of <option>` observed on
+# /operations-map and /dispatch-portal. The cause was NOT operator code
+# — it was the Emergent dev source-tagger wrapping every JSX expression
+# island in a `<span style="display:contents" data-ve-dynamic>` for
+# source-location tracking. When an `<option>` had MIXED children (text
+# adjacent to expression, or multiple expressions separated by JSX
+# whitespace), the tagger landed a `<span>` inside the `<option>` —
+# valid HTML cannot have a `<span>` child of `<option>`, so React-DOM
+# raised the hydration warning every time.
+#
+# The fix collapses every `<option>` child to a SINGLE JS expression
+# (template literal), so the dev tagger only ever wraps ONE expression
+# and the wrapper goes around the option's expression-children
+# placeholder — never inside the option element itself.
+#
+# This static lock scans every .jsx in /app/frontend/src and asserts
+# every `<option>` has either:
+#   * a single string literal child, OR
+#   * a single JSX expression child.
+#
+# It catches any future regression where a developer re-introduces
+# mixed children inside `<option>` (text + expression, or multi-
+# expression separated by JSX whitespace), which would silently
+# re-introduce the hydration warning.
+
+
+def _option_children_have_mixed_jsx(inner: str) -> bool:
+    """Return True iff the `<option>` body contains more than one
+    distinct JSX child (text + expression, or multiple expressions
+    separated by JSX whitespace, etc.). Whitespace-only text between
+    expressions does NOT count as a separate child (JSX collapses it),
+    but the dev source-tagger DOES wrap each adjacent expression in a
+    `<span data-ve-dynamic>` — so any layout with >1 non-whitespace
+    token is the hazard."""
+    if not inner.strip():
+        return False
+    toks = []
+    i = 0
+    while i < len(inner):
+        if inner[i] == "{":
+            depth = 0
+            start = i
+            while i < len(inner):
+                ch = inner[i]
+                if ch == "{":
+                    depth += 1
+                elif ch == "}":
+                    depth -= 1
+                    if depth == 0:
+                        i += 1
+                        break
+                i += 1
+            toks.append(("EXPR", inner[start:i]))
+        else:
+            start = i
+            while i < len(inner) and inner[i] != "{":
+                i += 1
+            txt = inner[start:i]
+            if txt.strip():
+                toks.append(("TEXT", txt.strip()))
+    return len(toks) > 1
+
+
+def test_no_mixed_jsx_children_inside_option_tags():
+    """Track 15.85 Exec #4 · P1 hydration-warning regression lock.
+
+    Every `<option>...</option>` in the frontend must have a SINGLE
+    JSX child (one string literal OR one expression). Mixed children
+    cause the Emergent dev source-tagger to inject a
+    `<span data-ve-dynamic>` inside the `<option>` — invalid HTML
+    nesting that triggers React's `<span> cannot be a child of
+    <option>` hydration warning.
+
+    If this test fails, collapse the option's children to a single
+    template literal expression. Example:
+
+      BAD :   <option>{a} · {b}</option>
+      GOOD:   <option>{`${a} · ${b}`}</option>
+    """
+    bad = []
+    for path in FRONTEND_SRC.rglob("*.jsx"):
+        if ".test." in path.name:
+            continue
+        src = _read(path)
+        # Strip block + line + JSX comments before scanning.
+        cleaned = re.sub(r"/\*.*?\*/", "", src, flags=re.S)
+        cleaned = re.sub(r"\{/\*.*?\*/\}", "", cleaned, flags=re.S)
+        for m in re.finditer(r"<option\b[^>]*>(.*?)</option>", cleaned, re.S):
+            if _option_children_have_mixed_jsx(m.group(1)):
+                line_no = cleaned[: m.start()].count("\n") + 1
+                bad.append(
+                    f"{path.relative_to(FRONTEND_SRC)}:{line_no} -> "
+                    f"{m.group(1).strip()[:80]!r}"
+                )
+    assert not bad, (
+        "Track 15.85 Exec #4 regression: <option> with mixed JSX "
+        "children reintroduced — Emergent dev source-tagger will "
+        "inject a <span data-ve-dynamic> inside the option, breaking "
+        "HTML nesting and re-raising the React hydration warning. "
+        "Collapse to a single template literal expression. "
+        f"Offenders ({len(bad)}): {bad[:5]}"
+    )
+
+
+# ─── Execution #4 · Public Safety Tile (Trench Safety public surfaces) ──
+
+
+def test_public_trench_safety_dashboard_field_safe_chrome():
+    """Track 15.85 Exec #4 · Public Safety Tile certification.
+
+    The /trench-safety landing must remain field-safe:
+      * STOP-WORK AUTHORITY copy present
+      * Counts-only / no-PII badge present
+      * Asset Lookup + QR Scan guidance + Action tiles present
+      * No admin actions, no admin photos, no audit data
+    """
+    src = _read(PAGES_DIR / "trench_safety" / "PublicTrenchSafetyDashboard.jsx")
+    assert "Stop-Work Authority." in src, (
+        "Track 15.85 Exec #4: Public Trench Safety dashboard must keep "
+        "the Stop-Work Authority constitutional copy."
+    )
+    assert "Counts only · no PII" in src, (
+        "Track 15.85 Exec #4: Public dashboard must keep the "
+        "`Counts only · no PII` badge — public surface is intentionally "
+        "stat-only, no operator names, no events."
+    )
+    assert "Asset Lookup" in src and "QR Scan Guidance." in src, (
+        "Track 15.85 Exec #4: Public dashboard must surface Asset "
+        "Lookup + QR Scan guidance — both are primary field actions."
+    )
+    # Verify NO admin-only language leaked into the public surface.
+    forbidden = ["admin only", "Admin Only", "ADMIN ONLY", "admin-gated",
+                 "internal use", "preview only", "iter"]
+    for needle in forbidden:
+        assert needle.lower() not in src.lower() or "preview only" in needle.lower(), (
+            f"Track 15.85 Exec #4: forbidden admin/dev language `{needle}` "
+            "leaked into the public Trench Safety dashboard."
+        )
+
+
+def test_public_trench_safety_report_field_safe_chrome():
+    """Track 15.85 Exec #4 · Public Safety Tile · damage-report surface.
+
+    /trench-safety/report must keep its field-safe coaching: Safety
+    routing, no auto-status-change copy, plain English."""
+    src = _read(PAGES_DIR / "trench_safety" / "PublicTrenchSafetyReport.jsx")
+    assert "Report a Problem" in src
+    assert "Reports are routed to the Safety team immediately" in src, (
+        "Track 15.85 Exec #4: Public report surface must keep the "
+        "explicit Safety-routing coaching so a field user knows the "
+        "report goes to a human, not a void."
+    )
+    assert "They do not change the asset status automatically" in src, (
+        "Track 15.85 Exec #4: Public report surface must keep the "
+        "no-auto-status-change coaching so a field user does NOT "
+        "expect the box to auto-Hold when they submit a report."
+    )
+
+
+def test_qr_landing_serial_missing_action_required():
+    """Track 15.85 Exec #4 · QR landing surface · serial-missing
+    banner must remain prominent. A box without a verified serial
+    plate cannot be matched to its tabulated data — operator must be
+    told before the box goes in the ground."""
+    src = _read(PAGES_DIR / "trench_safety" / "TrenchSafetyQrLanding.jsx")
+    assert "Missing — Action Required" in src, (
+        "Track 15.85 Exec #4: QR landing must keep the explicit "
+        "`Missing — Action Required` serial-missing banner."
+    )
+    assert "Verify the physical serial plate before use" in src, (
+        "Track 15.85 Exec #4: QR landing must keep the verify-serial "
+        "coaching for the field crew."
+    )
+
+
+# ─── Execution #4 · Field / Public Forms · canonical mounts ────────
+
+
+_PUBLIC_FORM_ROUTES = [
+    "/daily/new", "/meetings/new", "/inspect/new", "/equipment/new",
+    "/incidents/new", "/fleet/dvir/new", "/jha",
+    "/trench-safety/excavation/new",
+    "/trench-safety/report", "/trench-safety/references",
+    "/trench-safety/tabulated-data",
+]
+
+
+def test_public_form_routes_remain_publicly_mounted():
+    """Track 15.85 Exec #4 · Public/field form gates must remain
+    intentionally accessible (Daily Reports, Safety Meetings, JHAs,
+    Pre-Ops, DVIRs, Incidents, Excavation Operations, public Trench
+    Safety surfaces).
+
+    Per the operator's preservation doctrine, these are PUBLIC by
+    design — accidentally wrapping them in an auth gate would break
+    field crews. If this test fails, someone has likely auth-gated a
+    public field workflow without going through the explicit
+    `private-form-gate` track."""
+    src = _read(APP_JS)
+    missing = []
+    for path in _PUBLIC_FORM_ROUTES:
+        # Match each path's Route definition.
+        if not re.search(r'<Route\s+path="' + re.escape(path), src):
+            missing.append(path)
+    assert not missing, (
+        f"Track 15.85 Exec #4 regression: public/field form route(s) "
+        f"missing from App.js — field crews hitting these URLs would "
+        f"see the 404 recovery page: {missing}"
+    )
+
+
+# ─── Execution #4 · Admin Portal Deep · canonical mounts ────────────
+
+
+_ADMIN_DEEP_ROUTES = [
+    "/admin", "/admin/system-health", "/admin/audit-log",
+    "/admin/email", "/admin/integrations", "/admin/governance",
+    "/admin/operations-dashboard", "/admin/operations-events",
+    "/admin/digest-config", "/admin/scheduler-runs",
+    "/admin/legacy-imports", "/admin/guide", "/admin/database",
+    "/admin/system", "/admin/compliance-findings",
+    "/admin/operational-language",
+]
+
+
+def test_admin_deep_canonical_routes_mounted():
+    """Track 15.85 Exec #4 · Admin Portal Deep certification.
+
+    Every documented admin-deep route must remain mounted in App.js.
+    These are the operator's trust + ops + governance surfaces — if
+    any one becomes unreachable, the operator's deep workflows break."""
+    src = _read(APP_JS)
+    missing = []
+    for path in _ADMIN_DEEP_ROUTES:
+        if not re.search(r'<Route\s+path="' + re.escape(path) + r'"', src):
+            missing.append(path)
+    assert not missing, (
+        f"Track 15.85 Exec #4 regression: admin-deep route(s) missing "
+        f"from App.js: {missing}"
+    )
+
+
+# ─── Execution #4 · Trust Center · canonical mounts ────────────────
+
+
+def test_trust_center_canonical_surfaces_mounted():
+    """Track 15.85 Exec #4 · Trust Center / Notifications UI cert.
+
+    Three canonical surfaces are required: `/notifications` (digest
+    + bell), `/admin/system-health` (subsystem health), and
+    `/admin/audit-log` (audit trail). Each must remain mounted."""
+    src = _read(APP_JS)
+    assert re.search(r'<Route\s+path="/notifications"', src), (
+        "Track 15.85 Exec #4: /notifications must remain mounted."
+    )
+    assert re.search(r'<Route\s+path="/admin/system-health"', src), (
+        "Track 15.85 Exec #4: /admin/system-health must remain mounted."
+    )
+    assert re.search(r'<Route\s+path="/admin/audit-log"', src), (
+        "Track 15.85 Exec #4: /admin/audit-log must remain mounted."
+    )
+
+
+# ─── Execution #4 · Shared Components · NotFound is the recovery floor ──
+
+
+def test_not_found_recovery_page_has_portal_switcher():
+    """Track 15.85 Exec #4 · Shared Components certification.
+
+    The 404 recovery page is the LAST line of defense for an operator
+    who hit a wrong URL. It must offer portal-switcher links so they
+    can navigate out without losing their session. If the portal
+    switcher disappears, every wrong-URL operator hits a dead-end.
+
+    The portal labels are sourced from `PORTAL_LABEL` in
+    `lib/permissions.js` and rendered via `others.map(...)`. We assert
+    both halves of the contract: the NotFound page must consume the
+    PORTAL_LABEL/PORTAL_HOME map, and the map must keep its required
+    portal entries."""
+    not_found = _read(PAGES_DIR / "NotFound.jsx")
+    assert "PORTAL_LABEL" in not_found and "PORTAL_HOME" in not_found, (
+        "Track 15.85 Exec #4: NotFound.jsx must keep its dependency "
+        "on PORTAL_LABEL + PORTAL_HOME — the portal-switcher recovery "
+        "links are rendered from those maps."
+    )
+    perms = _read(FRONTEND_SRC / "lib" / "permissions.js")
+    for needle in ["HR Portal", "Safety Portal", "PM Portal",
+                   "Shop Console", "Dispatch Portal", "Field Leadership"]:
+        assert needle in perms, (
+            f"Track 15.85 Exec #4: permissions.js must keep the "
+            f"`{needle}` PORTAL_LABEL entry — NotFound recovery page "
+            "renders the portal switcher from this map."
+        )

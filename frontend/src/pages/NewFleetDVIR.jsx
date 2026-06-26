@@ -586,7 +586,7 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
               <option value="">{t("— Pick your truck —")}</option>
               {truckSelectable.map((u) => (
                 <option key={u.id || u.unit_number} value={u.unit_number}>
-                  {u.unit_number} — {u.make_model || u.category}
+                  {`${u.unit_number} — ${u.make_model || u.category}`}
                 </option>
               ))}
             </select>
@@ -722,7 +722,7 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
                       <option value="">{t("— Pick trailer —")}</option>
                       {trailerSelectable.map((u) => (
                         <option key={u.id || u.unit_number} value={u.unit_number}>
-                          {u.unit_number} — {u.make_model || u.category}
+                          {`${u.unit_number} — ${u.make_model || u.category}`}
                         </option>
                       ))}
                     </select>

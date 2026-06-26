@@ -125,7 +125,7 @@ export default function PmSchedules() {
                         onChange={(e) => setForm(f => ({ ...f, template_id: e.target.value }))}
                         style={inpStyle}>
                   <option value="">Choose template…</option>
-                  {templates.map(t => <option key={t.id} value={t.id}>{t.name} · {t.asset_type} · {t.interval_value}{t.interval_type[0]}</option>)}
+                  {templates.map(t => <option key={t.id} value={t.id}>{`${t.name} · ${t.asset_type} · ${t.interval_value}${t.interval_type[0]}`}</option>)}
                 </select>
               </div>
               <div>

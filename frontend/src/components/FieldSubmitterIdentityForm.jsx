@@ -143,9 +143,7 @@ export const FieldSubmitterIdentityForm = ({
           <option value="">-- choose yourself --</option>
           {filteredTeam.map((t) => (
             <option key={t.id || t.employee_id || t.name} value={t.id || t.employee_id}>
-              {t.name}
-              {t.role ? ` · ${t.role}` : ""}
-              {t.trade ? ` · ${t.trade}` : ""}
+              {`${t.name}${t.role ? ` · ${t.role}` : ""}${t.trade ? ` · ${t.trade}` : ""}`}
             </option>
           ))}
         </select>

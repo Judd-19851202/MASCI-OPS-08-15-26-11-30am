@@ -41,10 +41,10 @@ export default function MapFilterRail({ filters, setTypes, setStatus, setDriver,
         data-testid="ops-map-filter-geofence"
         defaultValue=""
         style={{ marginBottom: 4 }}>
-        <option value="">All Geofences ({geofences?.length ?? 0})</option>
+        <option value="">{`All Geofences (${geofences?.length ?? 0})`}</option>
         {(geofences || []).slice(0, 200).map((g) => (
           <option key={g.id} value={g.id}>
-            {g.name} {g.category ? `· ${g.category}` : ""}
+            {g.category ? `${g.name} · ${g.category}` : g.name}
           </option>
         ))}
       </select>

@@ -60,7 +60,7 @@ function ShopUserPicker({ users, value, onChange, testid }) {
     >
       <option value="">Choose mechanic…</option>
       {users.map((u) => (
-        <option key={u.id} value={u.id}>{u.name} {u.role ? `· ${u.role}` : ""}</option>
+        <option key={u.id} value={u.id}>{u.role ? `${u.name} · ${u.role}` : u.name}</option>
       ))}
     </select>
   );

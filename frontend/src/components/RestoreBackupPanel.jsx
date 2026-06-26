@@ -298,7 +298,7 @@ export default function RestoreBackupPanel() {
                 <option value="">— Pick a cloud archive —</option>
                 {archives.backups.map((b) => (
                   <option key={b.key} value={b.key}>
-                    {b.filename} · {new Date(b.last_modified).toLocaleDateString()}
+                    {`${b.filename} · ${new Date(b.last_modified).toLocaleDateString()}`}
                   </option>
                 ))}
               </select>

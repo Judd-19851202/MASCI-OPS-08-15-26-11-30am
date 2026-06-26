@@ -566,7 +566,7 @@ function GovernanceItem({ item, jobs, onResolve, compact = false }) {
             <option value="">— Pick canonical project —</option>
             {jobs.map((j) => (
               <option key={j.id || j.project_number} value={j.id}>
-                #{j.project_number} · {j.project_name}
+                {`#${j.project_number} · ${j.project_name}`}
               </option>
             ))}
           </select>

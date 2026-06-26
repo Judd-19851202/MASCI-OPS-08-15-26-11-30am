@@ -70,7 +70,7 @@ export default function PmProjectSelector({ value, onChange }) {
         <option value="">{loading ? "Loading projects…" : "All my projects"}</option>
         {options.map((o) => (
           <option key={o.project_number} value={o.project_number}>
-            {o.project_number}{o.project_name ? ` · ${o.project_name}` : ""}
+            {o.project_name ? `${o.project_number} · ${o.project_name}` : o.project_number}
           </option>
         ))}
       </select>

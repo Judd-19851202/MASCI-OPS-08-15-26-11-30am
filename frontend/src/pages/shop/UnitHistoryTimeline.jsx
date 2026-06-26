@@ -337,7 +337,7 @@ export default function UnitHistoryTimeline() {
           >
             <option value="">All event types</option>
             {availableEventTypes.map((t) => (
-              <option key={t} value={t}>{t} · {(data && data.counts.by_event_type[t]) || 0}</option>
+              <option key={t} value={t}>{`${t} · ${(data && data.counts.by_event_type[t]) || 0}`}</option>
             ))}
           </select>
           <select
@@ -348,7 +348,7 @@ export default function UnitHistoryTimeline() {
           >
             <option value="">All sources</option>
             {availableSources.map((s) => (
-              <option key={s} value={s}>{s} · {(data && data.counts.by_source_system[s]) || 0}</option>
+              <option key={s} value={s}>{`${s} · ${(data && data.counts.by_source_system[s]) || 0}`}</option>
             ))}
           </select>
         </div>
