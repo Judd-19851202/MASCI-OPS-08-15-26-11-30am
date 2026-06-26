@@ -979,6 +979,14 @@ function App() {
             <Route path="/dispatch-portal/board" element={DP(<DispatchBoard />)} />
             <Route path="/dispatch-portal/command" element={DP(<DispatchCommandCenter />)} />
             <Route path="/dispatch-portal/fleet" element={DP(<FleetVisibility scope="dispatch" />)} />
+            {/* TRACK 15.81 — Dispatch-owned alias for the Live Operations Map.
+                Same `OperationsMapPage` component rendered under `RequireDispatch`
+                so Dispatch users (and Super Admins signed in via Dispatch) can
+                drill into asset detail / counts / "Open Full Live Map" without
+                being thrown into the Admin Console route and getting a 403.
+                Backend `/api/operations-map/*` already accepts any portal token
+                (see make_require_any_portal_token), so no RBAC was broadened. */}
+            <Route path="/dispatch-portal/map" element={DP(<OperationsMapPage />)} />
             {/* Track 13.21 · Phase C · Material Movement Ledger · Dispatch Companion.
                 Companion-only · OUTSIDE MapLibre canvas. /dispatch-portal remains map-first. */}
             <Route path="/dispatch-portal/haul-ledger" element={DP(<DispatchHaulLedger />)} />

@@ -74,6 +74,12 @@ REGRESSION_FILES = [
     # ``PRODUCTION_SECRETS_SEALED.env.template`` leak class out of
     # the repo forever.
     "/app/backend/tests/test_track_15_80_no_secrets_in_repo.py",
+    # TRACK 15.81 · Dispatch Map Portal Access Failure regression —
+    # static guards prove no Dispatch component links to the admin-
+    # only ``/operations-map`` URL, and live guards prove the Dispatch
+    # token is accepted on ``/api/operations-map/*`` so the Dispatch-
+    # owned ``/dispatch-portal/map`` page actually loads its data.
+    "/app/backend/tests/test_track_15_81_dispatch_map_portal.py",
 ]
 
 DEFAULT_BASE_URL = (

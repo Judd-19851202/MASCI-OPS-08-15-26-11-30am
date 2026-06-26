@@ -111,7 +111,7 @@ export default function DispatchLiveSnapshot({ className = "" }) {
       ) : tiles.length === 0 ? (
         <div className="text-sm text-slate-600 py-3">
           {t("No live fleet signal right now.")} {" "}
-          <Link to="/operations-map" className="text-orange-700 hover:underline font-bold">
+          <Link to="/dispatch-portal/map" className="text-orange-700 hover:underline font-bold">
             {t("Open full Live Map")} →
           </Link>
         </div>
@@ -123,7 +123,7 @@ export default function DispatchLiveSnapshot({ className = "" }) {
             return (
               <Link
                 key={tile.id}
-                to="/operations-map"
+                to="/dispatch-portal/map"
                 data-testid={`dispatch-snapshot-tile-${tile.id}`}
                 className={`group border rounded-md p-3 transition-colors hover:border-slate-400 ${cls}`}
               >
@@ -142,7 +142,7 @@ export default function DispatchLiveSnapshot({ className = "" }) {
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <Link
-          to="/operations-map"
+          to="/dispatch-portal/map"
           data-testid="dispatch-live-map-open"
           className="inline-flex items-center min-h-[48px] px-5 rounded-md bg-orange-600 hover:bg-orange-500 text-white font-black tracking-wide"
         >

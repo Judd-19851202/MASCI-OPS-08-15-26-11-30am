@@ -8,10 +8,16 @@
 //
 // Interaction model on the hero (kept deliberately simple to avoid
 // regression vs. the full /operations-map page):
-//   • Asset click → navigate to /operations-map?asset=<unit>
+//   • Asset click → navigate to /dispatch-portal/map?asset=<unit>
 //     (the full page already supports the `?asset=` deep-link)
-//   • Counts strip → click any tile to open /operations-map
+//   • Counts strip → click any tile to open /dispatch-portal/map
 //   • Two CTAs below the map: "Open Full Live Map" + "Open Board"
+//
+// TRACK 15.81 (2026-02-?) — All map CTAs target the Dispatch-owned
+// `/dispatch-portal/map` alias (RequireDispatch). The Admin-Console
+// `/operations-map` route is reserved for admin token holders.
+// Routing Dispatch clicks there caused the 403 "Access Restricted"
+// banner because RequireAdmin rejected the dispatch-only token.
 //
 // No editing on the preview map.
 
@@ -65,7 +71,7 @@ export default function DispatchMapHero({ className = "" }) {
 
   function handleAssetSelect(unit) {
     if (!unit) return;
-    navigate(`/operations-map?asset=${encodeURIComponent(unit)}`);
+    navigate(`/dispatch-portal/map?asset=${encodeURIComponent(unit)}`);
   }
 
   return (
@@ -127,7 +133,7 @@ export default function DispatchMapHero({ className = "" }) {
             return (
               <Link
                 key={tile.id}
-                to="/operations-map"
+                to="/dispatch-portal/map"
                 data-testid={`dispatch-map-tile-${tile.id}`}
                 className={`group border rounded-md p-2 transition-colors hover:border-slate-500 ${cls}`}
               >
@@ -147,7 +153,7 @@ export default function DispatchMapHero({ className = "" }) {
       {/* Hero CTAs */}
       <div className="flex flex-wrap items-center gap-2 px-4 py-3 border-t border-orange-200">
         <Link
-          to="/operations-map"
+          to="/dispatch-portal/map"
           data-testid="dispatch-map-open-full"
           className="inline-flex items-center min-h-[44px] px-4 rounded-md bg-orange-600 hover:bg-orange-500 text-white font-black tracking-wide text-sm"
         >
