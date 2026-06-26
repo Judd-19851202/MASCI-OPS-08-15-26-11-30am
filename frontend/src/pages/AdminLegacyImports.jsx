@@ -1,4 +1,4 @@
-// AdminLegacyImports.jsx — iter248 Phase A · Foundation reconciliation queue.
+// AdminLegacyImports.jsx — Phase A · Foundation reconciliation queue.
 // Phase A · Admin scope. HR/Safety can use the same backend endpoints when
 // operator activates per-portal reconciliation UI in Phase B+.
 //
@@ -81,7 +81,7 @@ export default function AdminLegacyImports() {
         <div className="flex items-start justify-between flex-wrap gap-3 mb-1">
           <div>
             <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-indigo-700 font-black">
-              iter248 · Phase {meta?.phase || "A"} · {meta?.phase === "B" ? "Equipment Checkout Pilot" : "Foundation"}
+              Phase {meta?.phase || "A"} · {meta?.phase === "B" ? "Equipment Checkout Pilot" : "Foundation"}
             </div>
             <h1 className="font-display text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
               Legacy Records · Reconciliation Queue

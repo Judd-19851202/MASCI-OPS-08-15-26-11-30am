@@ -102,6 +102,14 @@ REGRESSION_FILES = [
     # demo route hardening, parity regressions for 15.81 / 15.82B /
     # 15.83.
     "/app/backend/tests/test_track_15_83b_production_excellence_sweep.py",
+    # TRACK 15.84 · ForgedOps Production Excellence Certification —
+    # static guardrails preventing rendered iter### labels on
+    # production-facing pages (AdminLegacyImports, AdminGuide, broad
+    # pages/*.jsx sweep) and preserving every 15.81 / 15.82B / 15.83 /
+    # 15.83B parity. Honest scope: cross-portal six-pillar deep audit
+    # deferred (documented in track cert) — this file locks the
+    # discipline against regression.
+    "/app/backend/tests/test_track_15_84_forgedops_production_excellence_certification.py",
 ]
 
 DEFAULT_BASE_URL = (

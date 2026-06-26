@@ -513,7 +513,7 @@ export default function AdminGuide() {
           </ul>
           <p className="mt-3">
             Subject line is prefixed <code>TERMINATION · &lt;Employee&gt; · &lt;Date&gt;</code> so it's hard to miss in a busy inbox.
-            The PDF styling matches every other Field Leadership form (iter98 parity) — same black/red letterhead, same MASCI
+            The PDF styling matches every other Field Leadership form — same black/red letterhead, same MASCI
             Operations Platform footer with ForgedOps™ attribution.
           </p>
           <p className="mt-3">

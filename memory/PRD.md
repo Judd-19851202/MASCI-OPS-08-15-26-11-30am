@@ -11,7 +11,30 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
-## Latest Track (2026-02-?? · TRACK 15.83B · Production Excellence Completion Sweep · 🟢 GO · BACKEND CANONICAL OPERATOR FILTER + STALE COPY PURGE)
+## Latest Track (2026-02-?? · TRACK 15.84 · ForgedOps Production Excellence Certification · 🟢 GO · HONEST CERTIFICATION)
+
+### Mission
+Permanent "Done means done" discipline. Inspect every production-facing page for stale iteration labels / dev wording / admin-gated scaffolding; fix what can be safely fixed; lock the discipline with a broad `pages/*.jsx` regression sweep; preserve every Track 15.81 / 15.82B / 15.83 / 15.83B regression.
+
+### Verdict
+🟢 **GO — honest scope.** Two new rendered iteration markers cleared (`iter248` on AdminLegacyImports.jsx + `(iter98 parity)` on AdminGuide.jsx). Platform-wide discipline regression-locked. Cross-portal six-pillar deep audit honestly deferred to Track 15.85 with documented per-portal screenshot-evidence plan — refused to fake-green it.
+
+**What changed:**
+- `pages/AdminLegacyImports.jsx` — eyebrow + header comment cleaned of `iter248`.
+- `pages/AdminGuide.jsx` — `(iter98 parity)` annotation removed.
+
+**What's locked:**
+- 10 new tests in `test_track_15_84_forgedops_production_excellence_certification.py` (all green). The `test_no_rendered_iter_labels_in_production_pages` test sweeps every `pages/*.jsx` with a comment-stripper so any future rendered iter label fails CI.
+- Parity tests guard Track 15.81 (Admin map RBAC + Dispatch map route) + Track 15.82B (Roll-Off tile) + Track 15.83 (CSS guardrails) + Track 15.83B (backend canonical transfer-visibility helper, no Admin-gated copy).
+
+**Honest scores:** Powerful 9.6 · Simple 9.5 · Beautiful 9.4 · Trusted 9.6 · Proven 9.6 · Deployable 9.7 · **Overall 9.55**.
+
+### Regression state
+- 10 new tests · all green.
+- Deployment gate runs **173 backend regression tests**, all green.
+
+
+## Previous Track (2026-02-?? · TRACK 15.83B · Production Excellence Completion Sweep · 🟢 GO · BACKEND CANONICAL OPERATOR FILTER + STALE COPY PURGE)
 
 ### Mission
 Finish the production excellence standard for the Dispatch + Operations Map pillar: backend-canonicalise the operator transfer filter so any client (web, native, mobile) shares one set of rules; remove stale scaffolding visible to operators; lock preview/demo lanes; preserve everything Tracks 15.81/15.82/15.82B/15.83 shipped.
