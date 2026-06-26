@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { operationalError } from "@/lib/errors";
 import { HelpTipBlock } from "@/components/HelpTip";
+import { isOperatorVisibleTransfer } from "@/lib/transferVisibility";
 
 const STATUS_PILL = {
   Available:         "bg-emerald-100 text-emerald-900 border-emerald-300",
@@ -287,9 +288,16 @@ export function DispatchTransfersTab() {
   };
 
   const TERMINAL = ["Completed", "Denied", "Cancelled"];
-  const activeRows = list.filter((x) => !TERMINAL.includes(x.status));
-  const historyRows = list.filter((x) => TERMINAL.includes(x.status));
-  const visible = showHistory ? list : activeRows;
+  // TRACK 15.83 — strip audit / validation / smoke-test rows from the
+  // operator default view. Admin Audit and `/asset-transfers` (full
+  // history) still see everything; this filter only protects the
+  // dispatch landing surface where the production screenshot showed
+  // repeated `#71 → AUDIT-2 CANCELLED` rows masquerading as work.
+  const operatorVisible = list.filter(isOperatorVisibleTransfer);
+  const auditSuppressed = list.length - operatorVisible.length;
+  const activeRows = operatorVisible.filter((x) => !TERMINAL.includes(x.status));
+  const historyRows = operatorVisible.filter((x) => TERMINAL.includes(x.status));
+  const visible = showHistory ? operatorVisible : activeRows;
 
   return (
     <div className="space-y-3" data-testid="dp-transfers">
@@ -311,6 +319,18 @@ export function DispatchTransfersTab() {
               ? `Hide history (${historyRows.length})`
               : `Show history (${historyRows.length})`}
           </Button>
+        )}
+        {/* TRACK 15.83 — calm operator-trust signal when audit / validation
+            rows were suppressed. Operators can still reach the full
+            unfiltered list at /asset-transfers (Admin / PM). */}
+        {auditSuppressed > 0 && (
+          <span
+            data-testid="dp-transfer-audit-suppressed"
+            className="text-[10px] font-mono uppercase tracking-[0.15em] text-slate-500 ml-2"
+            title="Audit / validation rows suppressed from the operator view"
+          >
+            · {auditSuppressed} audit row{auditSuppressed === 1 ? "" : "s"} hidden
+          </span>
         )}
       </div>
       <div className="bg-white border border-slate-200 rounded-md overflow-x-auto">

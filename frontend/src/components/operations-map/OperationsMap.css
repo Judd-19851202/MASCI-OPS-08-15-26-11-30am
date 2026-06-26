@@ -141,6 +141,12 @@
 .ops-map-project-card-breakdown {
   display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: baseline;
   font-size: 11px; color: #475569;
+  /* TRACK 15.83 — keep individual stat chips ("0 Connected ·") together
+   * so a wrap never splits a number from its label. */
+  min-width: 0;
+}
+.ops-map-project-card-breakdown > span {
+  white-space: nowrap;
 }
 .ops-map-project-card-breakdown strong {
   font-weight: 900; font-variant-numeric: tabular-nums; color: #0f172a;
@@ -229,6 +235,17 @@
   border-top: 1px dashed #e2e8f0;
   font-size: 11px; color: #0f172a;
   line-height: 1.25;
+  /* TRACK 15.83 · iPad / tablet bleed fix —
+   * long next_action strings (e.g. "Dispatch confirm last known location
+   * before next assignment to Edgewater Drainage Phase 3") would overflow
+   * the fixed-width card on tablet portrait widths. Word-break + a
+   * 3-line clamp keeps cards aligned without truncating critical signal. */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .ops-map-project-card-next .next-prefix {
   font-weight: 900; color: #0f766e;
@@ -239,6 +256,8 @@
   font-size: 10px; color: #475569; font-weight: 700;
   letter-spacing: 0.04em; text-transform: uppercase;
   margin-top: 2px;
+  /* TRACK 15.83 · cap owner labels to a single readable line. */
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .ops-map-project-card.primary .ops-map-project-card-next .next-prefix { color: #be123c; }
 .ops-map-project-card.primary .ops-map-project-card-next { border-top-color: #fda4af; }
@@ -581,4 +600,52 @@
 [data-testid="shop-recovery-map-wrap"] .ops-map-canvas .maplibregl-canvas {
   width: 100% !important;
   height: 100% !important;
+}
+
+
+/* ── TRACK 15.83 · Production Excellence Lockup ───────────────────────
+ * Responsive guardrails for the Operations Map Project Intelligence
+ * strip. The production-reported defect was iPad/tablet bleed: long
+ * NEXT-action text and tight breakdown rows overflowed the 240px+ wide
+ * cards, and the rail consumed the full viewport at 1024px portrait.
+ * These rules tighten card widths and rail padding for tablet portrait
+ * + phone breakpoints WITHOUT touching desktop sizing.
+ */
+@media (max-width: 1024px) {
+  .ops-map-projects {
+    padding: 8px 12px;
+  }
+  .ops-map-project-card {
+    min-width: 220px;
+    max-width: 260px;
+  }
+  .ops-map-project-card.primary {
+    min-width: 280px;
+    max-width: 320px;
+  }
+  .ops-map-project-card-name {
+    font-size: 15px;
+  }
+  .ops-map-project-card.primary .ops-map-project-card-name {
+    font-size: 18px;
+  }
+}
+@media (max-width: 640px) {
+  .ops-map-projects {
+    padding: 6px 10px;
+  }
+  .ops-map-project-card {
+    min-width: 200px;
+    max-width: 240px;
+  }
+  .ops-map-project-card.primary {
+    min-width: 240px;
+    max-width: 280px;
+  }
+  .ops-map-project-card-name {
+    font-size: 14px;
+  }
+  .ops-map-project-card.primary .ops-map-project-card-name {
+    font-size: 16px;
+  }
 }

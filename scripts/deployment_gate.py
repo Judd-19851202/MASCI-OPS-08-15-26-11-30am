@@ -89,6 +89,12 @@ REGRESSION_FILES = [
     # closes the visible-UI gap left by 15.82 (taxonomy was added but
     # the dispatch home Issue Work card never rendered a Roll-Off tile).
     "/app/backend/tests/test_track_15_82b_dispatch_landing_rolloff_action.py",
+    # TRACK 15.83 · Production Excellence Lockup — Project Intelligence
+    # responsive guardrails (iPad/tablet bleed cure) + operator-visible
+    # transfer filter (audit/validation/AUDIT-2 row suppression on the
+    # dispatch operator surface). Does NOT delete production data; the
+    # full unfiltered list is still reachable at /asset-transfers.
+    "/app/backend/tests/test_track_15_83_production_excellence_lockup.py",
 ]
 
 DEFAULT_BASE_URL = (

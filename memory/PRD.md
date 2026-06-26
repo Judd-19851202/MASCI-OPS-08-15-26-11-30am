@@ -11,7 +11,46 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
-## Latest Track (2026-02-?? · TRACK 15.82B · Dispatch Landing Page + Roll-Off Action Button · 🟢 GO · VISIBLE-UI GAP CLOSED)
+## Latest Track (2026-02-?? · TRACK 15.83 · Production Excellence Lockup · 🟢 GO · iPad BLEED CURED + OPERATOR-VISIBLE TRANSFER FILTER)
+
+### Mission
+Two production-facing defects captured in operator screenshots:
+- **Defect A** — Dispatch Live Fleet Map / Operations Map: Project Intelligence cards bleed-over on iPad/tablet (long NEXT-action text + tight breakdown rows overflowed 240px cards, rail consumed full 1024px viewport).
+- **Defect B** — Dispatch Recent Transfers: repeated CANCELLED audit / validation residue ("#71 in Masci Equip list → AUDIT-2") appearing on the operator-facing surface as if it were real dispatch work.
+
+### Verdict
+🟢 **GO** — both defects fixed additively, no production data deleted, no RBAC drift.
+
+**Defect A cure (CSS-only):**
+- `.ops-map-project-card-next` clamped to 3 lines (`-webkit-line-clamp: 3 + overflow:hidden + overflow-wrap:anywhere`).
+- `.ops-map-project-card-owner` ellipsis (`overflow:hidden + text-overflow:ellipsis + white-space:nowrap`).
+- `.ops-map-project-card-breakdown > span` now `white-space:nowrap` so a wrap never splits a number from its label.
+- New `@media (max-width: 1024px)` and `@media (max-width: 640px)` blocks tighten card sizing for iPad portrait / phone.
+
+**Defect B cure (operator-visibility filter):**
+- New `frontend/src/lib/transferVisibility.js` exports `isOperatorVisibleTransfer(record)` + `filterOperatorVisibleTransfers(records)`. Conservative default-open policy filters by multiple signals: project number regex (`/^(AUDIT|TEST|DEMO|VALIDATION|VAL|SMOKE|SAMPLE)[-_]?\d*$/i`), reason text regex, created_by/source_system regex, and explicit flags (`is_audit`, `is_validation`, `is_test`).
+- `DispatchTransfersTab` (used on Dispatch landing) now strips audit/validation rows from the operator default view; counter `dp-transfer-audit-suppressed` surfaces a calm "N audit rows hidden" badge so the operator sees the trust signal. Full unfiltered list still available at `/asset-transfers`.
+
+### Browser-verified (preview)
+- iPad portrait 768×1024 — card max width 260px, **body overflow = 0**.
+- iPad landscape 1024×768 — cards align, no bleed.
+- Desktop 1920 — Dispatch landing transfers row now shows "No active transfers" with **"39 AUDIT ROWS HIDDEN"** calm indicator. Pre-existing AUDIT-2 rows are gone from the operator view.
+
+### Files changed
+- `frontend/src/components/operations-map/OperationsMap.css` — clamp + media queries
+- `frontend/src/lib/transferVisibility.js` — new helper (additive)
+- `frontend/src/pages/admin/AdminDispatch.jsx` — wires the filter + adds suppressed-count indicator
+- `backend/tests/test_track_15_83_production_excellence_lockup.py` — 9 regression tests (new · all green)
+- `scripts/deployment_gate.py` — wired
+- `memory/TRACK_15_83_PRODUCTION_EXCELLENCE_LOCKUP.md` — phase-by-phase deliverable
+
+### Regression state
+- 9 new tests + Tracks 15.81/15.82/15.82B parity tests = **38 green** for the Dispatch + Roll-Off + Excellence pillar.
+- Deployment gate now runs **145 regression tests**, all green.
+- Roll-Off Track 15.82B + Dispatch Map split Track 15.81 preserved (dedicated parity tests).
+
+
+## Previous Track (2026-02-?? · TRACK 15.82B · Dispatch Landing Page + Roll-Off Action Button · 🟢 GO · VISIBLE-UI GAP CLOSED)
 
 ### Mission
 Track 15.82 added Roll-Off taxonomy / aliases / map family / marker sprite — but the Dispatch Portal landing page still rendered only 4 Primary Action tiles. From the dispatcher's seat, Roll-Off didn't exist. 15.82B makes Roll-Off first-class on the visible Dispatch home.
