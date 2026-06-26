@@ -11,6 +11,58 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-06-26 · TRACK 15.90 · Pre-Deployment Certification Check + Operator Workflow Gate · ✅ GO)
+
+### Mission
+Final pre-production gate. Verify the platform passes every automated layer AND one complete end-to-end operator workflow on the live preview, exactly as a real MASCI employee would experience it (UI + API + DB + RBAC + Audit + Persistence).
+
+### Verdict
+✅ **GO — DEPLOY PERMITTED.**
+
+### Gate-by-gate evidence
+| Gate | Result | Evidence |
+|---|---|---|
+| Regression suite (`deployment_gate.py --no-runtime`) | PASS (exit=0) | 134 regression gates green |
+| Runtime gate (`/api/admin/deployment-readiness`) | PASS (blocking=0) | 3 advisory operator-data findings; non-blocking by design |
+| Browser smoke (`MASCI_SMOKE_BROWSER=1 pytest …test_track_15_86…`) | PASS in 48.82s | Playwright Chromium probe of live preview |
+| Backend `/api/health` | 200 OK | `{"ok":true,"service":"masci-hub"}` |
+| Live ASGI exceptions (last 15+ min) | 0 | Earlier startup-window cancellations resolved; backend stable for 38+ min |
+| Trust score | 40 · band: red (advisory data-quality only) | Gate logic correctly classifies as non-blocking |
+
+### Operator Workflow #1 — Super Admin (9/9 PASS, end-to-end)
+1. `/sign-in` renders with full testid coverage + preview banner visible
+2. Master multi-login (`jaymn.judd@mascigc.com`) granted all 8 portal tokens
+3. `/admin` AdminHubV2 rendered with live Operations Center
+4. `/admin/people` Access Control Center loaded 162 users / 161 grants via `/api/admin/directory`
+5. `/admin/audit` Unified Timeline showed 733 audit events across audit_events + admin_audit + operations_events
+6. Logout fired `POST /admin/logout` → recorded as `admin_logout` audit event at 18:07:49
+7. Re-login with same credentials succeeded
+8. **Persistence proof**: post-relogin, audit timeline still contains the 18:07:49 logout event from session 1 → MongoDB durability confirmed
+9. Zero console errors, zero 5xx, zero hydration warnings
+
+### Operator Workflow #2 — Dispatch (5/5 PASS, confirmation)
+- `/dispatch-portal/login` → `dispatch@mascigc.com / DispatchTest2026!` → live Fleet Map + Equipment Maintenance Issues (264) + 190 assets visualized
+- Logout → re-login → dispatcher hub re-loaded cleanly; session persistence verified
+
+### Browser validation
+- Preview banner ("PREVIEW ENVIRONMENT · DB: MASCI_SAFETY_PREVIEW") visible on every page
+- 0 React hydration warnings · 0 React errors
+- Responsive 390×844 mobile: `/sign-in` renders cleanly, no overflow
+- 4× expected 401 XHR probes pre-auth on dispatch login page — non-blocking
+
+### Decision rationale
+Every automated gate green. Both end-to-end operator workflows succeeded through the actual UI, API, RBAC, DB and audit-trail layers — no manual DB edits, no bypass endpoints, no shortcuts. The platform behaves exactly as a real MASCI employee would experience it. **Deploy is permitted.**
+
+### Files touched in this track
+None. Track 15.90 is read-only verification per the 15.89 stabilization lock.
+
+### Test reports created
+- `/app/test_reports/iteration_track_15_90_certification.json` — operator workflow proof
+- `/tmp/deployment_gate2.log` — full gate output (PASS)
+- `/tmp/browser_smoke.log` — Playwright smoke (PASS, 48.82s)
+
+
+
 ## Latest Track (2026-06-26 · TRACK 15.88 · People & Access Credential Usability Clarity · ✅ GO)
 
 ### Mission
