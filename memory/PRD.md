@@ -11,7 +11,42 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
-## Latest Track (2026-02-?? · TRACK 15.81 · Dispatch Map Portal Access Failure · 🟢 GO · LINK BUG REMEDIATED + REGRESSION-LOCKED)
+## Latest Track (2026-02-?? · TRACK 15.82 · Dispatch Portal Layout + Roll-Off Operations · 🟢 GO · ADDITIVE-ONLY)
+
+### Mission
+Two-part follow-on to Track 15.81: (1) make `/dispatch-portal/map` feel like part of Dispatch Portal (not Admin Console) with a Back-to-Hub breadcrumb, (2) add Roll-Off as a first-class dispatch asset/type/workflow without weakening RBAC or breaking existing assets.
+
+### Verdict
+🟢 **GO** — additive-only delivery:
+- **Dispatch Map Continuity** — new `DispatchOperationsMapPage` wrapper at `/dispatch-portal/map` paints a sticky orange breadcrumb with `← Back to Dispatch Hub`. Underlying `OperationsMapPage` canvas / filters / timeline / asset card all untouched. Admin route `/operations-map` keeps the bare page.
+- **Roll-Off Operations** — Canonical asset_type `"Roll-Off Truck"` under the `Truck` class with DOT-class behavior (registration / insurance / preop / map / inspection / renewal / DOT). 17 documented aliases (rolloff · roll-off · roll off · roll-off truck variants · container truck) collapse to one canonical key `roll_off_truck` via `normalize_asset_kind`. `FLEET_KINDS` accepts every alias so map family classification, count tiles, and filters treat Roll-Off trucks as fleet. V1 marker classifier renders them with the dump-truck sprite for immediate map visibility.
+
+### Files changed (additive)
+- `frontend/src/pages/DispatchOperationsMapPage.jsx` — new wrapper (38 lines)
+- `frontend/src/App.js` — added lazy import + swapped element on `/dispatch-portal/map`
+- `backend/services/asset_taxonomy.py` — `Roll-Off Truck` canonical entry + behavior + 17 crosswalk rows
+- `backend/routes/pm_command_center.py` — `ROLL_OFF_CANONICAL` + `ROLL_OFF_LEGACY_VALUES` + extended `normalize_asset_kind`
+- `backend/routes/operations_map_contract.py` — extended `FLEET_KINDS` with roll-off aliases + canonical key
+- `backend/routes/operations_map_v1.py` — `_asset_kind_for_marker` recognizes `ROLL` / `ROLLOFF` / `ROLL-OFF` / `ROLL OFF` / `CONTAINER` and `RO*` prefix
+- `backend/tests/test_track_15_82_dispatch_layout_rolloff.py` — 13 regression tests (added · all green)
+- `backend/tests/test_track_15_81_dispatch_map_portal.py` — updated route regex to accept the new wrapper
+- `scripts/deployment_gate.py` — Track 15.82 test file wired in
+- `memory/TRACK_15_82_FINAL_CERTIFICATION.md` — phase-by-phase deliverable
+
+### Browser-verified (preview)
+Pure Dispatcher path · desktop 1920 + tablet 1024 + phone 390:
+- Dispatch hero → click `Open Full Live Map` → lands on `/dispatch-portal/map` with sticky orange Dispatch breadcrumb.
+- Click `Back to Dispatch Hub` → returns to `/dispatch-portal`, `dispatch-hub` testid present.
+- Breadcrumb + back-link remain functional + non-overflowing at every breakpoint.
+- Map canvas, filter rail, project intelligence strip all render correctly through the wrapper.
+
+### Regression state
+- 13 new tests + 9 existing Track 15.81 tests = **22 green** for the Dispatch Map + Roll-Off pillar.
+- Deployment gate now runs **128 regression tests**, all green.
+- Three dedicated parity tests prove existing asset taxonomy / family / sprite classification is untouched.
+
+
+## Previous Track (2026-02-?? · TRACK 15.81 · Dispatch Map Portal Access Failure · 🟢 GO · LINK BUG REMEDIATED + REGRESSION-LOCKED)
 
 ### Mission
 Production screenshots showed a Super Admin in Dispatch Portal hitting `403 · Access Restricted · You don't have access to Admin Console` whenever they clicked any Live Fleet Map action. Trace exact cause, fix link/guard correctly, regression-lock, certify both Super Admin and Dispatcher paths.

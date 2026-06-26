@@ -45,18 +45,44 @@ ROAD_PLATE_LEGACY_VALUES = {
     "trench plate", "traffic plate", "roadplate", "road_plate",
 }
 
+# ════════════════════════════════════════════════════════════════════
+# TRACK 15.82 · Roll-Off canonical normalization
+# ════════════════════════════════════════════════════════════════════
+# Single source of truth for the seven roll-off aliases the operator
+# spelled out:
+#   rolloff · roll-off · roll off · roll off truck ·
+#   roll-off truck · rolloff truck · container truck
+# All resolve to the canonical lower-snake key ``roll_off_truck``.
+# Display label (for UI) is ``Roll-Off Truck`` to match the taxonomy
+# entry in ``services/asset_taxonomy.py``.
+ROLL_OFF_CANONICAL = "roll_off_truck"
+ROLL_OFF_DISPLAY_LABEL = "Roll-Off Truck"
+ROLL_OFF_LEGACY_VALUES = {
+    "rolloff", "roll-off", "roll off",
+    "roll-offs", "rolloffs",
+    "roll off truck", "roll-off truck", "rolloff truck",
+    "roll off trucks", "roll-off trucks", "rolloff trucks",
+    "container truck", "container trucks",
+    "roll_off", "roll_off_truck",
+}
+
 
 def normalize_asset_kind(raw: Optional[str]) -> Optional[str]:
-    """Lowercase + map legacy plate names → 'road_plate'.
+    """Lowercase + map legacy plate / roll-off names to canonical keys.
 
     Anything else returns the lowercased original (or None when empty)
     so callers can do simple equality comparisons.
+
+    Track 15.82 — Roll-Off aliases collapse to ``roll_off_truck`` so
+    map markers, dispatch counts, and filters all key off one value.
     """
     if not raw:
         return None
     v = str(raw).strip().lower()
     if v in ROAD_PLATE_LEGACY_VALUES:
         return ROAD_PLATE_CANONICAL
+    if v in ROLL_OFF_LEGACY_VALUES:
+        return ROLL_OFF_CANONICAL
     return v
 
 

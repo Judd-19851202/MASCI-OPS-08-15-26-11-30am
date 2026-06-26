@@ -80,6 +80,11 @@ REGRESSION_FILES = [
     # token is accepted on ``/api/operations-map/*`` so the Dispatch-
     # owned ``/dispatch-portal/map`` page actually loads its data.
     "/app/backend/tests/test_track_15_81_dispatch_map_portal.py",
+    # TRACK 15.82 · Dispatch Portal Layout + Roll-Off Operations —
+    # static + unit guards covering the Dispatch-themed map breadcrumb
+    # (Back to Dispatch Hub) and the Roll-Off taxonomy / alias / fleet-
+    # family / marker classification.
+    "/app/backend/tests/test_track_15_82_dispatch_layout_rolloff.py",
 ]
 
 DEFAULT_BASE_URL = (

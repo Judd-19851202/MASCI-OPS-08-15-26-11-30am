@@ -104,6 +104,12 @@ def _asset_kind_for_marker(equipment_type: Optional[str], unit_number: Optional[
         return "water_truck"
     if un.startswith("DPT"):
         return "dump_truck"
+    # Track 15.82 — Roll-Off Truck visibility on the map. Until a custom
+    # sprite ships, render Roll-Offs with the dump_truck silhouette
+    # (closest visual + already DOT-class hauler).
+    if "ROLL" in et or "ROLLOFF" in et or "ROLL-OFF" in et or "ROLL OFF" in et \
+            or "CONTAINER" in et or un.startswith("RO"):
+        return "dump_truck"
     if un.startswith("ST") or "SERVICE" in et:
         return "service_truck"
     if un.startswith("PKU") or "PICKUP" in et:

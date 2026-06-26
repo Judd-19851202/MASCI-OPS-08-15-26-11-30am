@@ -61,14 +61,21 @@ def _read(path: Path) -> str:
 def test_dispatch_portal_owned_map_route_exists():
     """``/dispatch-portal/map`` MUST be registered under the Dispatch
     guard (``DP(...)``) so Dispatch tokens can reach the live map page
-    without bouncing through ``RequireAdmin``."""
+    without bouncing through ``RequireAdmin``.
+
+    Track 15.82 update: the route now renders ``DispatchOperationsMapPage``
+    (a thin Dispatch-themed wrapper around the same ``OperationsMapPage``
+    canvas). Both forms satisfy this regression.
+    """
     src = _read(APP_JS)
     pattern = re.compile(
-        r'<Route\s+path="/dispatch-portal/map"\s+element=\{DP\(<OperationsMapPage\s*/>\)\}'
+        r'<Route\s+path="/dispatch-portal/map"\s+element=\{DP\('
+        r'<(?:OperationsMapPage|DispatchOperationsMapPage)\s*/>\)\}'
     )
     assert pattern.search(src), (
-        "Track 15.81 regression: `<Route path=\"/dispatch-portal/map\" "
-        "element={DP(<OperationsMapPage />)} />` is missing from App.js. "
+        "Track 15.81/15.82 regression: `<Route path=\"/dispatch-portal/map\" "
+        "element={DP(<DispatchOperationsMapPage />)} />` (or the legacy "
+        "OperationsMapPage form) is missing from App.js. "
         "Dispatch users will hit 403 again on map clicks."
     )
 

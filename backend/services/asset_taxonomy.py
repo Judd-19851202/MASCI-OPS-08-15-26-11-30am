@@ -46,6 +46,7 @@ ASSET_TYPES_BY_CLASS: Dict[str, Tuple[str, ...]] = {
     "Truck": (
         "Pickup Truck", "Dump Truck", "Fuel Truck", "Lube Truck",
         "Service Truck", "Water Truck", "Flatbed Truck", "Crew Truck",
+        "Roll-Off Truck",
         "Semi Tractor", "Other Truck",
     ),
     "Trailer": (
@@ -172,6 +173,9 @@ _BEHAVIOR_OVERRIDES: Dict[str, Dict[str, bool]] = {
     "Water Truck":   {"requires_registration": True, "requires_insurance": True, "requires_pm": True, "requires_preop": True, "appears_on_map": True, "inspection_required": True, "renewal_tracking_required": True, "dot_required": True},
     "Flatbed Truck": {"requires_registration": True, "requires_insurance": True, "requires_pm": True, "requires_preop": True, "appears_on_map": True, "inspection_required": True, "renewal_tracking_required": True, "dot_required": True},
     "Crew Truck":    {"requires_registration": True, "requires_insurance": True, "requires_pm": True, "requires_preop": True, "appears_on_map": True, "inspection_required": True, "renewal_tracking_required": True, "dot_required": False},
+    # Track 15.82 · Roll-Off Truck — DOT-class hauler. Same registration /
+    # insurance / preop / map / DOT footprint as Dump/Haul trucks.
+    "Roll-Off Truck": {"requires_registration": True, "requires_insurance": True, "requires_pm": True, "requires_preop": True, "appears_on_map": True, "inspection_required": True, "renewal_tracking_required": True, "dot_required": True},
     "Semi Tractor":  {"requires_registration": True, "requires_insurance": True, "requires_pm": True, "requires_preop": True, "appears_on_map": True, "inspection_required": True, "renewal_tracking_required": True, "dot_required": True},
     # Trailers — registration but no PM by default
     "Equipment Trailer": {"requires_registration": True, "requires_insurance": True, "requires_preop": True, "appears_on_map": True, "renewal_tracking_required": True, "inspection_required": True},
@@ -322,6 +326,17 @@ _CROSSWALK_CATEGORY: Dict[str, Tuple[str, str]] = {
     "supervisor / mgmt trucks":("Truck",           "Pickup Truck"),
     "tractor trailer trucks":  ("Truck",           "Semi Tractor"),
     "misc trucks":             ("Truck",           "Other Truck"),
+    # Track 15.82 — Roll-Off taxonomy. Legacy category strings.
+    "roll-off":                ("Truck",           "Roll-Off Truck"),
+    "rolloff":                 ("Truck",           "Roll-Off Truck"),
+    "roll off":                ("Truck",           "Roll-Off Truck"),
+    "roll-offs":               ("Truck",           "Roll-Off Truck"),
+    "rolloffs":                ("Truck",           "Roll-Off Truck"),
+    "roll-off trucks":         ("Truck",           "Roll-Off Truck"),
+    "rolloff trucks":          ("Truck",           "Roll-Off Truck"),
+    "roll off trucks":         ("Truck",           "Roll-Off Truck"),
+    "container truck":         ("Truck",           "Roll-Off Truck"),
+    "container trucks":        ("Truck",           "Roll-Off Truck"),
     "trailers":                ("Trailer",         "Other Trailer"),
     "compactors":              ("Heavy Equipment", "Compactor"),
     "air compressors":         ("Support Equipment", "Compressor"),
@@ -354,6 +369,14 @@ _CROSSWALK_PREOP: Dict[str, Tuple[str, str]] = {
     "haul truck":                ("Truck",           "Dump Truck"),
     "water truck":               ("Truck",           "Water Truck"),
     "plate compactor":           ("Heavy Equipment", "Compactor"),
+    # Track 15.82 — Roll-Off preop / equipment_type aliases.
+    "roll-off":                  ("Truck",           "Roll-Off Truck"),
+    "rolloff":                   ("Truck",           "Roll-Off Truck"),
+    "roll off":                  ("Truck",           "Roll-Off Truck"),
+    "roll-off truck":            ("Truck",           "Roll-Off Truck"),
+    "rolloff truck":             ("Truck",           "Roll-Off Truck"),
+    "roll off truck":            ("Truck",           "Roll-Off Truck"),
+    "container truck":           ("Truck",           "Roll-Off Truck"),
     "other":                     ("Other Asset",    "Other Asset"),
 }
 

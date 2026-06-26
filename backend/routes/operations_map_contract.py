@@ -64,6 +64,14 @@ FLEET_KINDS = {
     "water trucks", "water truck",
     "misc trucks", "supervisor / mgmt trucks",
     "trailer", "trailers", "semi", "semis",
+    # Track 15.82 · Roll-Off taxonomy — every documented alias maps into
+    # the fleet family so dispatch map markers, count tiles, and filters
+    # all see Roll-Off trucks as first-class fleet assets.
+    "roll-off", "rolloff", "roll off",
+    "roll-offs", "rolloffs", "roll-off truck", "rolloff truck",
+    "roll off truck", "roll-off trucks", "rolloff trucks",
+    "container truck", "container trucks",
+    "roll_off_truck",  # canonical key from normalize_asset_kind
 }
 HEAVY_EQUIPMENT_KINDS = {
     "excavator", "excavators",

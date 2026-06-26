@@ -312,6 +312,7 @@ const PmProjectRedirect = React.lazy(() => import("@/pages/PmProjectRedirect"));
 // ONE family member, NOT privileged).
 const OperationsCenterCommand = React.lazy(() => import("@/pages/OperationsCenterCommand"));
 const OperationsMapPage = React.lazy(() => import("@/pages/OperationsMapPage"));
+const DispatchOperationsMapPage = React.lazy(() => import("@/pages/DispatchOperationsMapPage"));
 const PmHomeRedirect = React.lazy(() => import("@/pages/PmHomeRedirect"));
 import AccessDenied from "@/pages/AccessDenied";
 import NotFound from "@/pages/NotFound";
@@ -985,8 +986,12 @@ function App() {
                 drill into asset detail / counts / "Open Full Live Map" without
                 being thrown into the Admin Console route and getting a 403.
                 Backend `/api/operations-map/*` already accepts any portal token
-                (see make_require_any_portal_token), so no RBAC was broadened. */}
-            <Route path="/dispatch-portal/map" element={DP(<OperationsMapPage />)} />
+                (see make_require_any_portal_token), so no RBAC was broadened.
+                TRACK 15.82 — Page now rendered through `DispatchOperationsMapPage`
+                which wraps the same canvas with a Dispatch-themed breadcrumb so
+                the "Back to Dispatch Hub" affordance is always visible. The
+                Admin route `/operations-map` keeps the bare page. */}
+            <Route path="/dispatch-portal/map" element={DP(<DispatchOperationsMapPage />)} />
             {/* Track 13.21 · Phase C · Material Movement Ledger · Dispatch Companion.
                 Companion-only · OUTSIDE MapLibre canvas. /dispatch-portal remains map-first. */}
             <Route path="/dispatch-portal/haul-ledger" element={DP(<DispatchHaulLedger />)} />
