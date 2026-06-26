@@ -59,14 +59,13 @@ export default function AdminDispatch() {
             </div>
             <div>
               <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold">
-                Dispatch Portal · iter124
+                Dispatch Portal
               </span>
               <h1 className="font-display text-2xl font-black tracking-tight mt-0.5">
                 Equipment Movement Command Center
               </h1>
               <p className="text-sm text-slate-600 mt-1">
-                Availability · transfers · holds · utilization. Admin-gated for now;
-                dedicated dispatch users (mirror of Safety / HR / Shop / PM portals) ship in the next pass.
+                Availability · transfers · holds · utilization.
               </p>
             </div>
           </div>
@@ -269,11 +268,34 @@ export function DispatchTransfersTab() {
   // Dispatcher sees only Submitted / Approved / Scheduled rows on the
   // active queue. "Show history" toggle reveals them when needed.
   const [showHistory, setShowHistory] = useState(false);
+  // TRACK 15.83B — backend-canonical suppressed count (from
+  // ?audience=operator response). 0 when admin/audit consumers call
+  // without the audience query (legacy contract preserved).
+  const [backendSuppressed, setBackendSuppressed] = useState(0);
 
   const load = async () => {
     setLoading(true);
-    try { setList((await api.get("/operations/transfers")).data || []); }
-    finally { setLoading(false); }
+    try {
+      // TRACK 15.83B — request the canonical operator audience so
+      // backend `lib/transfer_visibility.py` does the AUDIT/TEST/DEMO/
+      // VALIDATION/SMOKE/SAMPLE suppression. Response shape:
+      //   { items: [...], total, audience, suppressed_count }
+      // We continue accepting the legacy flat-list shape so this is a
+      // safe rollout (admin/audit callers without ?audience= still get
+      // the unfiltered list).
+      const r = await api.get("/operations/transfers?audience=operator");
+      const data = r.data;
+      if (Array.isArray(data)) {
+        setList(data);
+        setBackendSuppressed(0);
+      } else if (data && Array.isArray(data.items)) {
+        setList(data.items);
+        setBackendSuppressed(Number(data.suppressed_count || 0));
+      } else {
+        setList([]);
+        setBackendSuppressed(0);
+      }
+    } finally { setLoading(false); }
   };
   useEffect(() => { load(); }, []);
 
@@ -288,13 +310,16 @@ export function DispatchTransfersTab() {
   };
 
   const TERMINAL = ["Completed", "Denied", "Cancelled"];
-  // TRACK 15.83 — strip audit / validation / smoke-test rows from the
-  // operator default view. Admin Audit and `/asset-transfers` (full
-  // history) still see everything; this filter only protects the
-  // dispatch landing surface where the production screenshot showed
-  // repeated `#71 → AUDIT-2 CANCELLED` rows masquerading as work.
+  // TRACK 15.83 + 15.83B — backend canonical operator filter is applied
+  // upstream when we call `?audience=operator`. We still run the
+  // frontend `isOperatorVisibleTransfer` defensively so that if the
+  // backend ever falls back to the legacy flat list (older deploy,
+  // direct admin call, etc.) the dispatcher surface still hides
+  // obvious audit residue. `auditSuppressed` shown to operators is
+  // backend count + any defensive-only frontend hits.
   const operatorVisible = list.filter(isOperatorVisibleTransfer);
-  const auditSuppressed = list.length - operatorVisible.length;
+  const frontendSuppressed = list.length - operatorVisible.length;
+  const auditSuppressed = backendSuppressed + frontendSuppressed;
   const activeRows = operatorVisible.filter((x) => !TERMINAL.includes(x.status));
   const historyRows = operatorVisible.filter((x) => TERMINAL.includes(x.status));
   const visible = showHistory ? operatorVisible : activeRows;

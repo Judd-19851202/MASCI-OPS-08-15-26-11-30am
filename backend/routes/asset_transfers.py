@@ -328,6 +328,17 @@ def build_asset_transfers_router(db, require_any_portal_token) -> APIRouter:
         status: Optional[str] = Query(default=None),
         equipment_id: Optional[str] = Query(default=None),
         project_number: Optional[str] = Query(default=None),
+        audience: Optional[str] = Query(
+            default=None,
+            description=(
+                "Optional audience filter. `operator` strips audit / test / "
+                "demo / validation / smoke / sample residue using the canonical "
+                "`backend/lib/transfer_visibility.py` rules — see Track 15.83B. "
+                "Omit (or pass anything else) to receive the unfiltered list, "
+                "preserving the existing default behavior for admin/audit "
+                "callers."
+            ),
+        ),
         limit: int = Query(default=200, ge=1, le=500),
     ) -> Dict[str, Any]:
         q: Dict[str, Any] = {}
@@ -355,6 +366,22 @@ def build_asset_transfers_router(db, require_any_portal_token) -> APIRouter:
             q, {"_id": 0}
         ).sort("created_at", -1).limit(limit):
             items.append(d)
+
+        # TRACK 15.83B — opt-in operator audience filtering. Backend
+        # canonical so the dispatch landing surface (and any future
+        # native client) shares the same trust rules.
+        if (audience or "").strip().lower() == "operator":
+            from lib.transfer_visibility import (
+                filter_operator_visible_transfers,
+            )  # noqa: PLC0415 — local import keeps cold-import paths tiny
+            visible, suppressed = filter_operator_visible_transfers(items)
+            return {
+                "items": list(visible),
+                "total": len(visible),
+                "audience": "operator",
+                "suppressed_count": suppressed,
+            }
+
         return {"items": items, "total": len(items)}
 
     @router.get("/api/asset-transfers/{tid}")

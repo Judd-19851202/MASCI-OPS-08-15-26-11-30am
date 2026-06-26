@@ -984,6 +984,16 @@ def build_operations_router(db, require_admin, is_valid_admin_token=None) -> API
     async def list_transfers(
         status: Optional[str] = None,
         asset_id: Optional[str] = None,
+        audience: Optional[str] = Query(
+            default=None,
+            description=(
+                "Optional audience filter. `operator` strips audit / test / "
+                "demo / validation / smoke / sample residue using the "
+                "canonical `backend/lib/transfer_visibility.py` rules — "
+                "see Track 15.83B. Omit (or pass anything else) to receive "
+                "the unfiltered flat list (existing default contract)."
+            ),
+        ),
         limit: int = Query(200, ge=1, le=1000),
     ):
         q: dict = {}
@@ -992,6 +1002,25 @@ def build_operations_router(db, require_admin, is_valid_admin_token=None) -> API
         if asset_id:
             q["asset_id"] = asset_id
         rows = await db.transfer_requests.find(q, {"_id": 0}).sort("created_at", -1).to_list(limit)
+
+        # TRACK 15.83B — canonical operator audience filter. Backend now
+        # owns the AUDIT/TEST/DEMO/VALIDATION/SMOKE/SAMPLE residue
+        # suppression so the Dispatch landing surface and any future
+        # native client share the same trust rules. Default behavior
+        # (no audience query) returns the legacy flat-list contract
+        # unchanged.
+        if (audience or "").strip().lower() == "operator":
+            from lib.transfer_visibility import (
+                filter_operator_visible_transfers,
+            )  # noqa: PLC0415
+            visible, suppressed = filter_operator_visible_transfers(rows)
+            return {
+                "items": list(visible),
+                "total": len(visible),
+                "audience": "operator",
+                "suppressed_count": suppressed,
+            }
+
         return rows
 
     # ── Integration readiness (iter132) ──────────────────────────────

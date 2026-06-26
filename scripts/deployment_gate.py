@@ -95,6 +95,13 @@ REGRESSION_FILES = [
     # dispatch operator surface). Does NOT delete production data; the
     # full unfiltered list is still reachable at /asset-transfers.
     "/app/backend/tests/test_track_15_83_production_excellence_lockup.py",
+    # TRACK 15.83B · Production Excellence Completion Sweep — backend
+    # canonical operator transfer-visibility helper + `?audience=
+    # operator` opt-in on /api/operations/transfers and
+    # /api/asset-transfers, stale dispatch-banner copy removed, preview/
+    # demo route hardening, parity regressions for 15.81 / 15.82B /
+    # 15.83.
+    "/app/backend/tests/test_track_15_83b_production_excellence_sweep.py",
 ]
 
 DEFAULT_BASE_URL = (

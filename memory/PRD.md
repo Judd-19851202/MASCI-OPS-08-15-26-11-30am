@@ -11,7 +11,32 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
-## Latest Track (2026-02-?? · TRACK 15.83 · Production Excellence Lockup · 🟢 GO · iPad BLEED CURED + OPERATOR-VISIBLE TRANSFER FILTER)
+## Latest Track (2026-02-?? · TRACK 15.83B · Production Excellence Completion Sweep · 🟢 GO · BACKEND CANONICAL OPERATOR FILTER + STALE COPY PURGE)
+
+### Mission
+Finish the production excellence standard for the Dispatch + Operations Map pillar: backend-canonicalise the operator transfer filter so any client (web, native, mobile) shares one set of rules; remove stale scaffolding visible to operators; lock preview/demo lanes; preserve everything Tracks 15.81/15.82/15.82B/15.83 shipped.
+
+### Verdict
+🟢 **GO** — additive · opt-in · regression-locked.
+
+**Backend canonical operator filter:**
+- New `backend/lib/transfer_visibility.py` exports `is_audit_project_marker`, `is_operator_visible_transfer`, `filter_operator_visible_transfers`. Same regex set as the Track 15.83 frontend helper.
+- `GET /api/operations/transfers?audience=operator` and `GET /api/asset-transfers?audience=operator` now suppress AUDIT/TEST/DEMO/VALIDATION/SMOKE/SAMPLE residue and return `{items, total, audience, suppressed_count}`. Default contract (no `audience=`) returns the legacy flat list unchanged.
+
+**Dispatch landing now backend-canonical:**
+- `pages/admin/AdminDispatch.jsx` fetches `/operations/transfers?audience=operator`, reads the envelope, surfaces `suppressed_count`. Frontend defensive filter retained as safety net.
+- Stale copy removed: `Dispatch Portal · iter124` → `Dispatch Portal`; `Admin-gated for now; dedicated dispatch users ship in the next pass` line deleted.
+
+**Preview/demo route guardrail:**
+- Regression test enforces every `/_internal/*` route stays wrapped in `D(...)` (RequireDev). No demo / V2 / design-system path leaks into operator nav.
+
+### Regression state
+- 18 new tests · all green.
+- Deployment gate now runs **163 backend regression tests**, all green.
+- Track 15.81 / 15.82 / 15.82B / 15.83 parity tests still pass.
+
+
+## Previous Track (2026-02-?? · TRACK 15.83 · Production Excellence Lockup · 🟢 GO · iPad BLEED CURED + OPERATOR-VISIBLE TRANSFER FILTER)
 
 ### Mission
 Two production-facing defects captured in operator screenshots:
