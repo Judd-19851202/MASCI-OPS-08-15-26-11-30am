@@ -11,7 +11,31 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
-## Latest Track (2026-06-25 · TRACK 15.80 · Production Secrets Forensic Verification · 🟢 GO · LEAK REMEDIATED + LOCKED)
+## Latest Track (2026-02-?? · TRACK 15.81 · Dispatch Map Portal Access Failure · 🟢 GO · LINK BUG REMEDIATED + REGRESSION-LOCKED)
+
+### Mission
+Production screenshots showed a Super Admin in Dispatch Portal hitting `403 · Access Restricted · You don't have access to Admin Console` whenever they clicked any Live Fleet Map action. Trace exact cause, fix link/guard correctly, regression-lock, certify both Super Admin and Dispatcher paths.
+
+### Verdict
+🟢 **GO** — pure **link bug**, NOT a guard bug. Six dispatch-portal-rendered map links targeted the admin-only `/operations-map` URL. Fixed by adding a Dispatch-owned alias `/dispatch-portal/map` (under `RequireDispatch`) rendering the same `OperationsMapPage`, and repointing all six links. Admin Console RBAC untouched. Backend already accepted dispatch tokens via `make_require_any_portal_token`. 9/9 regression tests green + deployment_gate passes + browser-verified across Super Admin, pure Dispatcher, and anonymous flows.
+
+### Files changed
+- `frontend/src/App.js` — added `<Route path="/dispatch-portal/map" element={DP(<OperationsMapPage />)} />`
+- `frontend/src/components/DispatchMapHero.jsx` — 3 link targets repointed
+- `frontend/src/components/DispatchLiveSnapshot.jsx` — 3 link targets repointed
+- `backend/tests/test_track_15_81_dispatch_map_portal.py` — 9 regression tests (added)
+- `scripts/deployment_gate.py` — wired the new test file into the permanent gate list
+- `memory/test_credentials.md` — re-set `dispatch@mascigc.com / DispatchTest2026!` (stale fixture from prior rotation)
+- `memory/TRACK_15_81_FINAL_CERTIFICATION.md` — full phase-by-phase deliverable
+
+### Browser verification (preview)
+- Super Admin signs into `/dispatch-portal` → click map asset, every count tile, "Open Full Live Map" → all land on `/dispatch-portal/map` rendering `OperationsMapPage`. Zero 403.
+- Pure Dispatcher (`dispatch@mascigc.com`) reproduces the same flow → same success, zero 403.
+- Anonymous user → `/dispatch-portal/map` bounces to `/dispatch-portal/login`; `/operations-map` bounces to `/admin/login`. Both guards intact.
+- Pure Dispatcher navigating directly to `/operations-map` → AccessDenied page (admin route still gated). RBAC NOT weakened.
+
+
+## Previous Track (2026-06-25 · TRACK 15.80 · Production Secrets Forensic Verification · 🟢 GO · LEAK REMEDIATED + LOCKED)
 
 ### Mission
 Treat the SEC-001 security audit finding as unverified. Determine truth with evidence. If real → remediate completely. If false → produce evidence why.
