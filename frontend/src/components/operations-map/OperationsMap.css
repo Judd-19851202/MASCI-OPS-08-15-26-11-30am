@@ -551,9 +551,30 @@
     grid-template-rows: 60px auto 160px 1fr 140px;
   }
   .ops-map-rail { display: none; }
-  .ops-map-banner { grid-template-columns: repeat(3, 1fr); }
+  /* TRACK 15.95 · clamp banner tracks with minmax(0, 1fr) so long hint
+   * strings cannot push min-content past the viewport. Also clamp the
+   * tile itself with min-width:0 + overflow-wrap so single long words
+   * (e.g. "Overdue — Truck Boss / Dispatch") wrap instead of leaking. */
+  .ops-map-banner { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ops-map-banner .tile { min-width: 0; }
+  .ops-map-banner .tile .hint,
+  .ops-map-banner .tile .k { overflow-wrap: anywhere; word-break: break-word; }
   .ops-map-sheet { left: 8px; right: 8px; width: auto; top: 8px; bottom: 148px; }
   .ops-map-project-card { min-width: 200px; max-width: 240px; }
+}
+
+/* TRACK 15.95 · Operations Map · phone-width banner collapse.
+ * At <=480px viewports (phone), the 3-column banner is still too tight
+ * for the longer hint strings. Drop to a 2-column layout so each tile
+ * has real breathing room and zero overflow at 390px. Rail behavior
+ * preserved by Track 15.83's <=640px rules below. */
+@media (max-width: 480px) {
+  .ops-map-banner {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 8px 12px;
+  }
+  .ops-map-banner .tile { padding: 6px 10px 7px 10px; }
+  .ops-map-banner .tile .v { font-size: 20px; }
 }
 
 /* Track 13.4A · Dispatch Map Hero embed fix.

@@ -155,6 +155,13 @@ REGRESSION_FILES = [
     # `system_bootstrap_history`. Readiness gate blocks deploy when
     # bootstrap incomplete.
     "/app/backend/tests/test_track_15_93_zero_touch_bootstrap.py",
+    # TRACK 15.95 · Operations Map phone-overflow fix — closes
+    # PROD-15.94-BS01. Locks the .ops-map-banner mobile rule to use
+    # `repeat(3, minmax(0, 1fr))` and adds a <=480px 2-column
+    # collapse so the top stat banner cannot push past a phone-390
+    # viewport. Also asserts the Track 15.83 iPad bleed fix + 15.86
+    # smoke gate + 15.93 bootstrap remain intact (no weakening).
+    "/app/backend/tests/test_track_15_95_operations_map_phone_overflow.py",
 ]
 
 DEFAULT_BASE_URL = (
