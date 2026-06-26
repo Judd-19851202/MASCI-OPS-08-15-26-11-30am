@@ -117,6 +117,15 @@ REGRESSION_FILES = [
     # Trench Safety certified. Remaining portals tracked in
     # `memory/TRACK_15_85_MANDATORY_FULL_PLATFORM_PRODUCTION_EXCELLENCE_CERTIFICATION.md`.
     "/app/backend/tests/test_track_15_85_mandatory_full_platform_certification.py",
+    # TRACK 15.86 · Continuous Browser Smoke Regression Gate — STATIC
+    # meta-gate locking the shape of the headless Playwright runner at
+    # ``backend/tests/browser_smoke/run_browser_smoke.py``. The runner
+    # itself (real browser) is opt-in via MASCI_SMOKE_BROWSER=1 and
+    # invoked separately by the nightly tier — the meta-gate locks the
+    # canonical route list, breakpoints, every required assertion,
+    # RBAC preservation, and the forbidden-strings + hydration
+    # detector needles so the gate cannot silently weaken.
+    "/app/backend/tests/test_track_15_86_browser_smoke_gate.py",
 ]
 
 DEFAULT_BASE_URL = (

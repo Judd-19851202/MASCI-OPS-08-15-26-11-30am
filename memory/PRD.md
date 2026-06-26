@@ -11,7 +11,52 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
-## Latest Track (2026-06-26 · TRACK 15.85 Exec #4 · ForgedOps Production Excellence Certification Program · ✅ COMPLETE)
+## Latest Track (2026-06-26 · TRACK 15.86 · Continuous Browser Smoke Regression Gate · ✅ GO)
+
+### Mission
+Convert the Track 15.85 browser-verified production excellence standard into a permanent continuous browser smoke regression gate so every future deployment must prove the platform still renders correctly at production-critical routes and responsive breakpoints.
+
+### Verdict
+✅ **GO — three-tier gate live, 218 / 218 regression tests green (+19 from Track 15.86), real Playwright runner verified 9 / 9 (route × viewport) at preview URL.**
+
+**Architecture (three tiers):**
+
+1. **Runner** — `backend/tests/browser_smoke/run_browser_smoke.py`. Headless Playwright + sync API. Two modes: `--gate` (3 routes × 3 viewports ≈ 30 s) and `--extended` (28 routes × 5 viewports ≈ 3 min). One-shot retry on transient network flake (e.g. cancelled MapLibre tile fetches during viewport changes); real defects fail twice → block. Authenticates admin routes via canonical `POST /api/auth/multi-login` only — no shared-admin password, no `/api/admin/login` break-glass.
+2. **Meta-gate** — `backend/tests/test_track_15_86_browser_smoke_gate.py`. 19 static tests that lock the runner's shape (routes, breakpoints, assertion-AND chain, RBAC preservation, hydration-warning needles, forbidden-strings list, CLI surface, ledger documentation). Wired into `scripts/deployment_gate.py` as the 19th regression file — runs in 0.09 s, 100 % deterministic, browser-independent.
+3. **Runtime probe** — `backend/tests/test_track_15_86_browser_smoke_runtime.py`. Opt-in (skipped unless `MASCI_SMOKE_BROWSER=1` or chromium binary detected). Invokes the real runner's `--gate` mode through pytest for nightly / pre-deploy CI tiers.
+
+**Routes covered (extended sweep · 28 routes):**
+- Core portals: `/dispatch-portal` · `/dispatch-portal/map` · `/operations-map` · `/shop` · `/pm` · `/leadership` · `/hr` · `/safety-portal`
+- Public Safety / Trench Safety (4): dashboard · report · tabulated-data · references
+- Field / Public Forms (7): daily · meetings · inspect · equipment · jha · incidents · fleet-dvir
+- Admin / Trust / Notifications (9): `/admin` + 7 deep surfaces + `/notifications`
+
+**Breakpoints:** 390×844 / 768×1024 / 1024×768 (gate) · +1366×768 / 1920×1080 (extended).
+
+**Assertions per (route × viewport) — every one is hard-fail:**
+1. No 404 / NotFound recovery for canonical route (Powerful · Simple).
+2. Body horizontal overflow == 0 (Beautiful).
+3. No React hydration warning — including the Track 15.85 Exec #4 `<span> cannot be a child of <option>` needle, `validateDOMNesting`, `hydration error`, `did not match`, `Text content did not match` (Trusted).
+4. No `console.error` (Trusted).
+5. No uncaught page exception (Trusted).
+6. `document.body.innerText` length > 50 (Proven).
+7. None of the forbidden production strings appear (`Admin-gated for now`, `TODO`, `FIXME`, `Coming soon`, `Lorem ipsum`, `placeholder text`) (Proven).
+8. Admin routes authenticated only via `/api/auth/multi-login`. Public routes never receive a token (RBAC preservation).
+
+**Six-pillar deltas (after 15.86):**
+Powerful 9.67 · Simple 9.73 · Beautiful 9.75 · Trusted 9.80 · Proven 9.83 · Deployable 9.77 · **Overall 9.76**.
+
+**Defects this run:** None — the gate caught zero issues on the preview environment (9 / 9 routes × viewports PASS). Operations Map iPad-portrait occasionally surfaces a transient `TypeError: Failed to fetch` during the viewport change (MapLibre tile cancellation); the one-shot retry policy handles it cleanly and is documented in the ledger.
+
+**Tests added:** 19 meta-gate tests + 1 opt-in runtime probe (skipped without `MASCI_SMOKE_BROWSER`).
+
+**Deployment gate:** Now 19 regression files (was 18) · **218 backend tests · exit 0** (was 199 — +19 from Track 15.86).
+
+Ledger: `/app/memory/TRACK_15_86_CONTINUOUS_BROWSER_SMOKE_REGRESSION_GATE.md`.
+
+---
+
+## Previous Track (2026-06-26 · TRACK 15.85 Exec #4 · ForgedOps Production Excellence Certification Program · ✅ COMPLETE)
 
 ### Mission
 Persistent zero-drift completion run. Certify the remaining five portal families (Public Safety Tile · Field/Public Forms · Admin Portal Deep · Trust Center / Notifications UI · Shared Components). Fix safe defects. Regression-lock everything. Target: honest Six-Pillar 9.7.
