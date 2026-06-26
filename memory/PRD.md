@@ -11,6 +11,49 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-06-26 · TRACK 15.93 · Zero-Touch Production Deployment Hardening · ✅ GO)
+
+### Mission
+Permanently eliminate the manual production initialization that blocked Track 15.92. A freshly deployed platform must become operational with zero shell commands, zero seed scripts, zero tribal knowledge.
+
+### Verdict
+✅ **GO — 290/290 regression tests · 13/13 new 15.93 tests · runtime gate PASS · browser smoke PASS · live preview bootstrap verified.**
+
+### What's new
+* **`/app/backend/lib/system_bootstrap.py`** — canonical system bootstrap. ONE entry point: `run_system_bootstrap(db)`. Idempotent. Admin-safe. Re-uses `build_catalog()` from the existing seed script (no duplicate catalog). Never deletes. Never overwrites `source in {"admin","manual"}` rows. Critical-route safety enforced (refuses empty TO on critical routes). Persists state to `system_bootstrap_status` (`_id="latest"`) + appends `system_bootstrap_history`.
+* **`server.py` startup hook** — new `@app.on_event("startup")` `_track_15_93_run_system_bootstrap` registered immediately BEFORE the readiness flag flips. Source-position ordering is enforced by a static regression test.
+* **`routes/admin_deployment_readiness.py` integration** — response now publishes a `bootstrap: {version, completed_at, ok, missing_items, ran}` block. Two new blocking-gate IDs: `bootstrap_never_ran` and `bootstrap_incomplete`. If bootstrap fails on a fresh deploy, the readiness gate blocks deploy with explicit `missing_items` evidence.
+* **`tests/test_track_15_93_zero_touch_bootstrap.py`** — 13 regression tests covering: module exports, no-duplicate-catalog invariant, startup-hook ordering, readiness-endpoint wiring, deployment-gate inclusion, fresh-DB initialization, critical-route presence, idempotency (3 runs), partial-config fill-gap-only, admin-customized preservation, never-delete invariant, status+history persistence, critical-empty refusal.
+* **`scripts/deployment_gate.py`** — 15.93 regression file added to the permanent gate list.
+
+### Six-pillar deltas
+Simple +0.10 (operator never runs a script) · Trusted +0.08 (platform self-heals) · Proven +0.05 (8 behaviour tests + 5 static tests + live boot proof) · Deployable +0.12 (zero-touch deploy is now the contract). Powerful + Beautiful unchanged.
+
+### Customer-safety invariants (locked in tests)
+1. CREATE only — never DELETE.
+2. `source ∈ {"admin","manual"}` rows are NEVER overwritten.
+3. `admin_customized=True` rows are NEVER overwritten.
+4. Critical routes with empty TO are NEVER inserted (surfaced as `missing_items`).
+5. Idempotent across unlimited runs (3× verified).
+6. Non-catalog rows survive bootstrap untouched.
+
+### Live preview verification
+* Backend restart logs show: `[system-bootstrap] OK · version=1 · steps=history_indexes,email_routes` → `[iter453.6] startup-readiness gate FLIPPED` (correct order).
+* `GET /api/admin/email-routing/v2/routes` → `count=19`; `COMPLIANCE_ALWAYS_CC`, `SAFETY_FORMS_TO`, `PRE_OP_FAIL_FALLBACK` all present with non-empty TO. Pre-existing `source=admin` row preserved (`SAFETY_FORMS_TO` shows `source=admin` — proves admin-safety).
+* `GET /api/admin/deployment-readiness` → `decision=pass`, `blocking_gates=[]`, `bootstrap={version:1, ok:true, missing_items:[], ran:true}`.
+
+### Production effect
+On the next production deploy of this build, the startup hook will run the bootstrap automatically — the `db.email_routes` collection in `masci_safety` will be populated with the 19-route catalog from production env vars. The 3-route blocking finding from Track 15.91 will clear without any operator shell command. The deployment is zero-touch from this build forward.
+
+### Files touched
+* NEW `/app/backend/lib/system_bootstrap.py`
+* MOD `/app/backend/server.py` — startup hook
+* MOD `/app/backend/routes/admin_deployment_readiness.py` — bootstrap block + 2 new blocking gates
+* NEW `/app/backend/tests/test_track_15_93_zero_touch_bootstrap.py` — 13 tests
+* MOD `/app/scripts/deployment_gate.py` — gate list
+
+
+
 ## Latest Track (2026-06-26 · TRACK 15.90 · Pre-Deployment Certification Check + Operator Workflow Gate · ✅ GO)
 
 ### Mission

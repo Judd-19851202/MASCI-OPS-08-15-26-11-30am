@@ -145,6 +145,16 @@ REGRESSION_FILES = [
     # ones are blocked and why (never_issued · change_required ·
     # disabled · no_portal_access). Static-only, <100 ms.
     "/app/backend/tests/test_track_15_88_people_access_credential_usability_clarity.py",
+    # TRACK 15.93 · Zero-Touch Production Deployment Hardening —
+    # eliminates the manual seed dependency. On every startup the
+    # canonical bootstrap (`lib/system_bootstrap.py`) guarantees
+    # required system records exist (today: email_routes catalog)
+    # before the readiness flag flips. Idempotent. Admin-safe (never
+    # overwrites `source=admin` rows). Never deletes. Critical-route
+    # safety enforced. Persists to `system_bootstrap_status` +
+    # `system_bootstrap_history`. Readiness gate blocks deploy when
+    # bootstrap incomplete.
+    "/app/backend/tests/test_track_15_93_zero_touch_bootstrap.py",
 ]
 
 DEFAULT_BASE_URL = (

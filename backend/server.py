@@ -15172,6 +15172,46 @@ async def _iter453_6_readiness_gate(request, call_next):
     return await call_next(request)
 
 
+# ─────────────────────────────────────────────────────────────────────
+# TRACK 15.93 · Zero-Touch System Bootstrap
+# Runs BEFORE the readiness flag flips. Idempotent. Admin-safe.
+# Guarantees required system records exist so a fresh deploy reaches
+# operational state without any manual seed command.
+# ─────────────────────────────────────────────────────────────────────
+@app.on_event("startup")
+async def _track_15_93_run_system_bootstrap():
+    try:
+        from lib.system_bootstrap import run_system_bootstrap  # noqa: PLC0415
+        result = await run_system_bootstrap(db)
+        app.state.bootstrap_result = result
+        log = logging.getLogger(__name__)
+        if result.get("ok"):
+            log.info(
+                "[system-bootstrap] OK · version=%s · steps=%s",
+                result.get("version"),
+                ",".join(s.get("name", "?") for s in result.get("steps") or []),
+            )
+        else:
+            log.error(
+                "[system-bootstrap] FAILED · version=%s · missing=%s · errors=%s",
+                result.get("version"),
+                result.get("missing_items"),
+                [s for s in (result.get("steps") or []) if s.get("status") != "ok"],
+            )
+    except Exception as e:  # noqa: BLE001
+        # Non-fatal: log loudly. Readiness gate will surface this.
+        app.state.bootstrap_result = {
+            "version": None,
+            "ok": False,
+            "completed_at": None,
+            "missing_items": [f"bootstrap raised: {type(e).__name__}: {e}"],
+            "steps": [],
+        }
+        logging.getLogger(__name__).exception(
+            "[system-bootstrap] startup hook raised; bootstrap incomplete",
+        )
+
+
 @app.on_event("startup")
 async def _iter453_6_flip_ready_flag():
     """Final startup hook — flip the readiness gate AFTER all other

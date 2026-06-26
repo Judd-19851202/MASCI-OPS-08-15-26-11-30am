@@ -259,6 +259,67 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
                 ),
             })
 
+        # TRACK 15.93 · System bootstrap state. The platform must run
+        # its own canonical bootstrap on every startup; if that run
+        # was missing, failed, or reports missing items, the deploy
+        # is NOT ready. This is the gate that closes the manual-seed
+        # dependency permanently.
+        bootstrap_block: Dict[str, Any] = {
+            "version": None,
+            "completed_at": None,
+            "ok": False,
+            "missing_items": [],
+            "ran": False,
+        }
+        try:
+            from lib.system_bootstrap import read_latest_bootstrap_status  # noqa: PLC0415
+            bs = await read_latest_bootstrap_status(db)
+        except Exception:
+            bs = None
+        if bs:
+            bootstrap_block.update({
+                "version": bs.get("version"),
+                "completed_at": bs.get("completed_at"),
+                "ok": bool(bs.get("ok")),
+                "missing_items": list(bs.get("missing_items") or []),
+                "ran": True,
+            })
+        if not bootstrap_block["ran"]:
+            blocking.append({
+                "id": "bootstrap_never_ran",
+                "category": "platform",
+                "summary": (
+                    "System bootstrap has never executed on this "
+                    "deployment — required initialization is unverified."
+                ),
+                "evidence": (
+                    "db.system_bootstrap_status has no 'latest' doc"
+                ),
+                "remediation": (
+                    "Restart the backend so the @app.on_event('startup') "
+                    "bootstrap hook runs."
+                ),
+            })
+        elif not bootstrap_block["ok"]:
+            missing = bootstrap_block["missing_items"]
+            blocking.append({
+                "id": "bootstrap_incomplete",
+                "category": "platform",
+                "summary": (
+                    "System bootstrap completed with unresolved items "
+                    "— required initialization is incomplete."
+                ),
+                "evidence": (
+                    "missing_items=" + ", ".join(missing[:8])
+                    if missing else "bootstrap result ok=False"
+                ),
+                "remediation": (
+                    "Inspect /api/admin/deployment-readiness bootstrap "
+                    "block · check server logs for [system-bootstrap] "
+                    "errors · verify required env vars are set."
+                ),
+            })
+
         decision = "fail" if blocking else "pass"
 
         return {
@@ -267,6 +328,7 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
             "decision": decision,
             "blocking_gates": blocking,
             "advisory_findings": advisory,
+            "bootstrap": bootstrap_block,
             "summary": {
                 "blocking_count": len(blocking),
                 "advisory_count": len(advisory),
