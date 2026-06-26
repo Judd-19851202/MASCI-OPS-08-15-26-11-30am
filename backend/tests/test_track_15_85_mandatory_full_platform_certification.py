@@ -276,3 +276,56 @@ def test_canonical_portal_paths_are_protected_by_their_guards():
     assert "S(<ShopHubV2" in src or "S(<ShopHub" in src
     # Admin operations map
     assert "A(<OperationsMapPage" in src
+
+
+# ─── Execution #3 · Retired _is_valid_admin_token stub stays hard-False ──
+
+
+def test_is_valid_admin_token_remains_hard_false_stub():
+    """Track 15.85 Exec #3 · Track 15.32 retired the shared-ADMIN-
+    PASSWORD HMAC bypass. The synchronous helper
+    ``_is_valid_admin_token`` MUST remain a hard-False stub so a
+    future refactor cannot accidentally re-enable the shared HMAC
+    bypass. Real admin auth flows through
+    ``_is_valid_directory_admin_token_async`` (per-user DB lookup).
+
+    This is a P0 security regression lock — if this test fails, an
+    operator can suddenly use the shared admin password as an
+    unattributed bearer token across the platform.
+    """
+    import sys
+    sys.path.insert(0, "/app/backend")
+    from server import _is_valid_admin_token as fn  # type: ignore
+    # Every possible input must return False.
+    for tok in (None, "", "anything", "any.token", "x" * 200, " ", "ADMIN", "admin"):
+        assert fn(tok) is False, (
+            f"Track 15.85 P0 SECURITY REGRESSION: "
+            f"_is_valid_admin_token({tok!r}) returned {fn(tok)!r}. "
+            "Track 15.32 retired the shared-ADMIN-PASSWORD HMAC bypass. "
+            "This helper must remain a hard-False stub."
+        )
+
+
+def test_is_valid_admin_token_docstring_documents_retirement():
+    """Track 15.85 Exec #3 · The docstring on the retired stub must
+    remain truthful so future readers understand WHY it returns False.
+    Losing the docstring is a maintenance hazard."""
+    src = (Path("/app/backend/server.py")
+           .read_text(encoding="utf-8"))
+    # Find the function and assert the retirement narrative is preserved.
+    m = re.search(
+        r"def _is_valid_admin_token\(tok: Optional\[str\]\)\s*->\s*bool:\s*\"\"\"(.*?)\"\"\"",
+        src, re.S,
+    )
+    assert m, "_is_valid_admin_token docstring not found"
+    body = m.group(1)
+    assert "retired" in body.lower() or "track 15.32" in body.lower(), (
+        "Track 15.85 regression: _is_valid_admin_token must keep its "
+        "retirement narrative (mentions Track 15.32 and shared-ADMIN-"
+        "PASSWORD HMAC retirement) so future readers know WHY it is "
+        "hard-False."
+    )
+    assert "_is_valid_directory_admin_token_async" in body, (
+        "Track 15.85 regression: _is_valid_admin_token docstring must "
+        "point future readers at the current async validator."
+    )
