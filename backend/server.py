@@ -2109,6 +2109,43 @@ async def shop_login(body: AdminLoginRequest, request: Request):
     )
     user = await find_shop_user_by_email(db, body_email)
 
+    # Track 15.87 · directory `shop` grant fallback (Path 1.5).
+    # Tried BEFORE the admin fallback so a directory user with `shop`
+    # grant gets a Shop token (NOT admin). Mirrors multi-login.
+    async def _try_directory_shop_fallback():
+        try:
+            from lib.directory_portal_login import try_directory_portal_login  # noqa: WPS433
+            res = await try_directory_portal_login(
+                db,
+                email=body_email,
+                password=body.password,
+                required_portal="shop",
+                portal_token_minter=_directory_shop_token,
+                kind="shop",
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(f"shop_login track_15_87 directory-grant fallback error: {exc}")
+            return None
+        if not res:
+            return None
+        try:
+            await _reset_session_activity(
+                db, res["token"], "OPERATIONS",
+                user_id=res["user"].get("id"), email=res["user"].get("email"),
+                actor_label="shop_via_directory", ip=ip,
+                user_agent=request.headers.get("user-agent") or "",
+            )
+        except Exception:  # noqa: BLE001
+            pass
+        _reset_login_fails(ip)
+        return {
+            "ok": True,
+            "token": res["token"],
+            "kind": "shop",
+            "must_change_password": False,
+            "user": res["user"],
+        }
+
     # iter346-B · universal super-admin fallback (Path 2) — local
     # closure invoked when native shop auth fails.
     async def _try_directory_admin_fallback():
@@ -2138,6 +2175,9 @@ async def shop_login(body: AdminLoginRequest, request: Request):
         return None
 
     if not user:
+        fb = await _try_directory_shop_fallback()
+        if fb is not None:
+            return fb
         fb = await _try_directory_admin_fallback()
         if fb is not None:
             return fb
@@ -2149,6 +2189,9 @@ async def shop_login(body: AdminLoginRequest, request: Request):
     if not pwh:
         raise HTTPException(status_code=403, detail="No password set yet. Ask the admin to issue one.")
     if not verify_password(body.password, pwh):
+        fb = await _try_directory_shop_fallback()
+        if fb is not None:
+            return fb
         fb = await _try_directory_admin_fallback()
         if fb is not None:
             return fb
@@ -10334,6 +10377,9 @@ _hr_portal_router = build_hr_portal_router(
     # iter353c · shared accountability gate (HR + Safety + Admin) used
     # by the unified employee timeline + compliance brief endpoints.
     require_safety_or_hr_or_admin_dep=make_require_safety_or_hr_or_admin(db, _is_valid_admin_token),
+    # Track 15.87 · directory `hr` grant path — Admin People & Access
+    # checkbox now produces a working HR login (mints HR token).
+    directory_portal_minter=lambda row: _directory_hr_token(row),
 )
 app.include_router(_hr_portal_router)
 
@@ -10406,6 +10452,8 @@ _safety_router = build_safety_router(
     is_valid_admin_token=_is_valid_admin_token,
     # iter346-B · universal super-admin fallback
     directory_admin_minter=lambda row: _directory_admin_token(row),
+    # Track 15.87 · directory `safety` grant path.
+    directory_portal_minter=lambda row: _directory_safety_token(row),
 )
 app.include_router(_safety_router)
 
@@ -11151,6 +11199,8 @@ app.include_router(build_dispatch_router(
     directory_admin_minter=lambda row: _directory_admin_token(row),
     # iter353b · admin tokens accepted on the read-only DQ surface.
     is_valid_admin_token_fn=_is_valid_admin_token,
+    # Track 15.87 · directory `dispatch` grant path.
+    directory_portal_minter=lambda row: _directory_dispatch_token(row),
 ))
 
 
@@ -12518,6 +12568,10 @@ _pm_router = build_pm_router(
         "reset_session_activity_fn": _reset_session_activity,
         "clear_session_activity_fn": _clear_session_activity,
         "render_portal_email_fn": render_portal_email,
+        # Track 15.87 · directory `pm` grant path. Wrapped in a
+        # lambda so name resolution defers (_directory_pm_token is
+        # async + defined below).
+        "directory_pm_minter_fn": lambda row: _directory_pm_token(row),
     },
 )
 app.include_router(_pm_router)

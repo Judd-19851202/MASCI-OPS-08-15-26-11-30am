@@ -36,6 +36,7 @@ from .training import register_training_routes
 def build_safety_router(
     db, require_admin, send_email_fn=None, is_valid_admin_token=None,
     directory_admin_minter=None,
+    directory_portal_minter=None,
 ) -> APIRouter:
     """Build and return the Safety Portal router. Caller must
     `app.include_router(...)` the return value AFTER calling this — same
@@ -43,6 +44,10 @@ def build_safety_router(
 
     iter346-B · `directory_admin_minter` (optional) enables the universal
     super-admin login fallback (mirrors iter344 FL + iter346-B HR).
+
+    Track 15.87 · `directory_portal_minter` (optional) enables the
+    directory `safety` grant path — a People & Access checkbox now
+    produces a working Safety login (mint a Safety token, NOT admin).
     """
     api_router = APIRouter(prefix="/api", tags=["safety-portal"])
 
@@ -55,6 +60,7 @@ def build_safety_router(
         api_router, db, require_admin, require_safety_token,
         send_email_fn=send_email_fn,
         directory_admin_minter=directory_admin_minter,
+        directory_portal_minter=directory_portal_minter,
     )
     register_overview_routes(api_router, db, require_admin, require_safety_token)
     register_corrective_action_routes(api_router, db, require_safety_token)

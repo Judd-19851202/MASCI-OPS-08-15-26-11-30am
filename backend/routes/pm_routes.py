@@ -315,6 +315,10 @@ def build_pm_router(
     _directory_admin_token = login_deps["directory_admin_token_fn"]
     _reset_session_activity = login_deps["reset_session_activity_fn"]
     _clear_session_activity = login_deps["clear_session_activity_fn"]
+    # Track 15.87 · directory PM-grant minter. Optional — falls back
+    # to None which disables the new directory PM path (legacy
+    # behaviour). Provided by server.py wiring.
+    _directory_pm_minter = login_deps.get("directory_pm_minter_fn")
     # TRACK 15.32 — shared PM HMAC retired; the per-PM auth path uses
     # `pm_auth.make_pm_token` directly (see pm_login below).
     # TRACK 15.34 — the deprecated `pm_token_for_fn` login_deps key was
@@ -350,6 +354,48 @@ def build_pm_router(
         # ---- Per-PM auth path ----
         if email:
             pm = await find_pm_by_email(db, email)
+
+            # Track 15.87 · directory `pm` grant fallback.
+            # Tried BEFORE the admin fallback so a directory user with
+            # `pm` grant gets a PM token (not admin). Mirrors multi-
+            # login behaviour; mints via the same minter.
+            async def _try_directory_pm_fallback():
+                try:
+                    from lib.directory_portal_login import try_directory_portal_login  # noqa: PLC0415
+                    res = await try_directory_portal_login(
+                        db,
+                        email=email,
+                        password=password,
+                        required_portal="pm",
+                        portal_token_minter=_directory_pm_minter,
+                        kind="pm",
+                    )
+                except Exception as exc:  # noqa: BLE001
+                    logger.warning(f"pm_login track_15_87 directory-grant fallback error: {exc}")
+                    return None
+                if not res:
+                    return None
+                try:
+                    await _reset_session_activity(
+                        db, res["token"], "OPERATIONS",
+                        user_id=res["user"].get("id"),
+                        email=res["user"].get("email"),
+                        actor_label="pm_via_directory", ip=ip,
+                        user_agent=request.headers.get("user-agent") or "",
+                    )
+                except Exception:  # noqa: BLE001
+                    pass
+                _reset_login_fails(ip)
+                # PM legacy response uses `pm` (not `user`) — keep
+                # envelope identical to the native path.
+                return {
+                    "ok": True,
+                    "token": res["token"],
+                    "kind": "pm",
+                    "must_change_password": False,
+                    "pm": res["user"],
+                }
+
             # iter346-B · universal super-admin fallback.
             async def _try_directory_admin_fallback():
                 try:
@@ -378,6 +424,11 @@ def build_pm_router(
                 return None
 
             if not pm:
+                # Try directory PM grant first (Track 15.87), then
+                # admin fallback (iter346-B).
+                fb = await _try_directory_pm_fallback()
+                if fb is not None:
+                    return fb
                 fb = await _try_directory_admin_fallback()
                 if fb is not None:
                     return fb
@@ -395,6 +446,11 @@ def build_pm_router(
                     detail="No password set for this PM yet. Ask the admin to issue one.",
                 )
             if not verify_password(password, pwh):
+                # Try directory PM grant first (Track 15.87), then
+                # admin fallback.
+                fb = await _try_directory_pm_fallback()
+                if fb is not None:
+                    return fb
                 fb = await _try_directory_admin_fallback()
                 if fb is not None:
                     return fb

@@ -138,7 +138,7 @@ def make_require_dispatch_or_admin(
     return _require_dispatch_or_admin
 
 
-def build_dispatch_router(db, require_admin, directory_admin_minter: Optional[Callable] = None, is_valid_admin_token_fn: Optional[Callable[[str], bool]] = None) -> APIRouter:
+def build_dispatch_router(db, require_admin, directory_admin_minter: Optional[Callable] = None, is_valid_admin_token_fn: Optional[Callable[[str], bool]] = None, directory_portal_minter: Optional[Callable] = None) -> APIRouter:
     """Build the /api/dispatch/* + /api/admin/dispatch-users/* router.
 
     iter346-B · `directory_admin_minter` enables universal super-admin
@@ -184,6 +184,42 @@ def build_dispatch_router(db, require_admin, directory_admin_minter: Optional[Ca
                     must_change_password=bool(user.get("must_change_password")),
                     kind="dispatch",
                 )
+        # ── Path 1.5 · TRACK 15.87 · directory `dispatch` grant ──────
+        # P0 Multi-Portal Access Authority fix. If People & Access
+        # granted this user `dispatch` and the master password
+        # verifies, mint a Dispatch token (NOT an admin token).
+        try:
+            from lib.directory_portal_login import try_directory_portal_login  # noqa: PLC0415
+            _dir_result = await try_directory_portal_login(
+                db,
+                email=email,
+                password=body.password,
+                required_portal="dispatch",
+                portal_token_minter=directory_portal_minter,
+                kind="dispatch",
+            )
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"dispatch_login track_15_87 directory-grant fallback error: {e}")
+            _dir_result = None
+        if _dir_result:
+            try:
+                from session_timeout import reset_session_activity
+                await reset_session_activity(
+                    db, _dir_result["token"], "OPERATIONS",
+                    user_id=_dir_result["user"].get("id"),
+                    email=_dir_result["user"].get("email"),
+                    actor_label="dispatch_via_directory",
+                    ip=(request.client.host if request.client else ""),
+                    user_agent=request.headers.get("user-agent") or "",
+                )
+            except Exception:  # noqa: BLE001
+                pass
+            return DispatchLoginResponse(
+                token=_dir_result["token"],
+                user=_dir_result["user"],
+                must_change_password=False,
+                kind="dispatch",
+            )
         # ── Path 2 · iter346-B · universal super-admin fallback ──────
         if directory_admin_minter is not None:
             try:

@@ -11,7 +11,45 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
-## Latest Track (2026-06-26 · TRACK 15.86 · Continuous Browser Smoke Regression Gate · ✅ GO)
+## Latest Track (2026-06-26 · TRACK 15.87 · Multi-Portal Access Authority Fix · ✅ GO · P0 RESOLVED)
+
+### Mission
+Operator reported P0 trust/auth defect: Admin Console → People & Access lets admins grant PM / Shop / HR / Safety / Dispatch / Field Leadership access via checkboxes, but those grants did NOT produce working logins. Root-cause, fix, regression-lock, and certify end-to-end.
+
+### Verdict
+✅ **GO — P0 defect closed. 32 / 32 live RBAC matrix PASS. 33 / 33 static lock tests PASS. 251 / 251 deployment gate green.**
+
+### Root Cause
+Two parallel auth systems: (1) `POST /api/auth/multi-login` correctly reads `user_directory.portals[]` and mints per-portal tokens; (2) legacy `POST /api/{pm,shop,hr,safety,dispatch}/login` endpoints only checked their dedicated legacy collection (`project_managers`, `shop_users`, etc.) plus a narrow admin-only directory fallback. A user granted PM via the Access Control Center but without a row in `project_managers` was denied at `/pm/login` with "Wrong email or password" — even though Admin People & Access correctly showed them as PM-enabled.
+
+### Fix
+One canonical helper (`backend/lib/directory_portal_login.py` · `async try_directory_portal_login`) that authenticates against `user_directory`, requires the relevant portal in `portals[]`, rejects disabled + `must_change_password` users, and mints the **portal-specific** token (never admin) via the existing minter. Helper wired into all 5 portal-login endpoints: `pm`, `shop`, `hr`, `safety`, `dispatch` (Field Leadership already had it via iter345).
+
+Order: **directory-portal-grant fallback tried BEFORE the admin fallback** so a PM-only user gets a PM token, not admin. Super-admin global fallback (`admin in portals` → admin token at any portal URL) preserved as documented doctrine.
+
+### Live RBAC matrix verification (32 / 32 PASS)
+Seeded 8 directory users (5 single-portal, 1 multi-portal with 5 grants, 1 disabled, 1 `must_change_password=true`). Hit every (user × portal-login-endpoint) combination = 30 cells + 2 negative controls. Every granted login returned 200 with the right `kind`. Every ungranted login returned 401. Disabled + must_change_pw blocked. No privilege escalation observed.
+
+### Tests added (33 static)
+* Helper exists + correct shape · helper rejects disabled / must_change_password · helper requires `portals` entry · no shared-admin-password leak · every portal-login file imports the helper with the right `required_portal` + `kind` · every router wires its per-portal minter · Admin UI writes canonical portal keys · multi-login still reads `portals[]` · Track 15.32 retired stub stays hard-False · Track 15.85 + 15.86 preserved.
+
+### RBAC / Security
+* `required_portal in portals[]` enforced — granting Shop does NOT unlock PM.
+* Disabled users denied. `must_change_password=true` users denied portal tokens.
+* No shared admin password / `/api/admin/login` break-glass referenced.
+* Track 15.32 `_is_valid_admin_token` retired stub stays hard-False.
+* Token minted is portal-specific (never admin).
+
+### Deployment gate
+* Now 20 regression files (was 19) · **251 backend tests · exit 0** (was 218 · +33 from Track 15.87) · ~70 s.
+* Track 15.85 (26) + Track 15.86 (19) + Track 15.87 (33) all green.
+* Browser smoke runtime probe: 9 / 9 (route × viewport) PASS.
+
+Ledger: `/app/memory/TRACK_15_87_MULTI_PORTAL_ACCESS_AUTHORITY_FIX.md`.
+
+---
+
+## Previous Track (2026-06-26 · TRACK 15.86 · Continuous Browser Smoke Regression Gate · ✅ GO)
 
 ### Mission
 Convert the Track 15.85 browser-verified production excellence standard into a permanent continuous browser smoke regression gate so every future deployment must prove the platform still renders correctly at production-critical routes and responsive breakpoints.

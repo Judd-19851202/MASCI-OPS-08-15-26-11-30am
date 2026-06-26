@@ -53,6 +53,7 @@ def register_auth_routes(
     require_safety_token,
     send_email_fn: Optional[Callable] = None,
     directory_admin_minter: Optional[Callable] = None,
+    directory_portal_minter: Optional[Callable] = None,
 ) -> None:
     """Attach login + password + user-management endpoints to the
     given APIRouter. Caller owns the router (and lifecycle) — this
@@ -93,6 +94,42 @@ def register_auth_routes(
                     must_change_password=bool(user.get("must_change_password")),
                     kind="safety",
                 )
+        # ── Path 1.5 · TRACK 15.87 · directory `safety` grant ────────
+        # P0 Multi-Portal Access Authority fix. If People & Access
+        # granted this user `safety` and the master password
+        # verifies, mint a Safety token (NOT an admin token).
+        try:
+            from lib.directory_portal_login import try_directory_portal_login  # noqa: PLC0415
+            _dir_result = await try_directory_portal_login(
+                db,
+                email=email,
+                password=body.password,
+                required_portal="safety",
+                portal_token_minter=directory_portal_minter,
+                kind="safety",
+            )
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"safety_login track_15_87 directory-grant fallback error: {e}")
+            _dir_result = None
+        if _dir_result:
+            try:
+                from session_timeout import reset_session_activity
+                await reset_session_activity(
+                    db, _dir_result["token"], "OPERATIONS",
+                    user_id=_dir_result["user"].get("id"),
+                    email=_dir_result["user"].get("email"),
+                    actor_label="safety_via_directory",
+                    ip=(request.client.host if request.client else ""),
+                    user_agent=request.headers.get("user-agent") or "",
+                )
+            except Exception:  # noqa: BLE001
+                pass
+            return SafetyLoginResponse(
+                token=_dir_result["token"],
+                user=_dir_result["user"],
+                must_change_password=False,
+                kind="safety",
+            )
         # ── Path 2 · iter346-B · universal super-admin fallback ──────
         if directory_admin_minter is not None:
             try:

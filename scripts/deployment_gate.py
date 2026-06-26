@@ -126,6 +126,18 @@ REGRESSION_FILES = [
     # RBAC preservation, and the forbidden-strings + hydration
     # detector needles so the gate cannot silently weaken.
     "/app/backend/tests/test_track_15_86_browser_smoke_gate.py",
+    # TRACK 15.87 · Multi-Portal Access Authority Fix — P0 trust/auth
+    # defect. Before this track, Admin → People & Access could grant
+    # `pm` / `shop` / `hr` / `safety` / `dispatch` to a user but the
+    # corresponding legacy login endpoint (`POST /api/{portal}/login`)
+    # only checked the dedicated legacy collection plus an admin-only
+    # directory fallback, so a directory-granted user without a row
+    # in the legacy collection was denied with 401. This file locks
+    # the new canonical helper at `lib/directory_portal_login.py` and
+    # the wiring across all five portal-login endpoints + their
+    # routers, plus the RBAC invariant that granting one portal does
+    # NOT unlock another. Static-only (no DB writes), <100 ms.
+    "/app/backend/tests/test_track_15_87_multi_portal_access_authority.py",
 ]
 
 DEFAULT_BASE_URL = (

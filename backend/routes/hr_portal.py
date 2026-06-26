@@ -105,7 +105,7 @@ def _client_ip(req: Request) -> str:
         return ""
 
 
-def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optional[Callable] = None, directory_admin_minter: Optional[Callable] = None, require_safety_or_hr_or_admin_dep: Optional[Callable] = None) -> APIRouter:
+def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optional[Callable] = None, directory_admin_minter: Optional[Callable] = None, require_safety_or_hr_or_admin_dep: Optional[Callable] = None, directory_portal_minter: Optional[Callable] = None) -> APIRouter:
     """Assemble the HR portal router. `db` = motor db; `require_admin_dep`
     = the FastAPI admin-only dependency from server.py; `send_email_fn`
     = optional `async (to, subject, html) -> None` for credential
@@ -176,6 +176,39 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
         # master password verifies is signed in as Admin (same admin
         # token /api/admin/* routes accept). Only `admin` grant unlocks
         # the fallback — non-admin directory users still get 401.
+        # ── Path 1.5 · TRACK 15.87 · directory `hr` grant fallback ───
+        # P0 Multi-Portal Access Authority fix. If People & Access
+        # granted this user `hr` and the master password verifies,
+        # mint an HR token (NOT an admin token) so the operator's
+        # Admin People & Access checkbox actually produces working
+        # HR login. RBAC-safe: requires `hr` in `portals` array.
+        try:
+            from lib.directory_portal_login import try_directory_portal_login  # noqa: PLC0415
+            _dir_result = await try_directory_portal_login(
+                db,
+                email=email,
+                password=payload.password,
+                required_portal="hr",
+                portal_token_minter=directory_portal_minter,
+                kind="hr",
+            )
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"hr_login track_15_87 directory-grant fallback error: {e}")
+            _dir_result = None
+        if _dir_result:
+            try:
+                from session_timeout import reset_session_activity  # noqa: PLC0415
+                await reset_session_activity(
+                    db, _dir_result["token"], "ADMIN_HR",
+                    user_id=_dir_result["user"].get("id"),
+                    email=_dir_result["user"].get("email"),
+                    actor_label="hr_via_directory",
+                    ip=_client_ip(request),
+                    user_agent=request.headers.get("user-agent") or "",
+                )
+            except Exception:  # noqa: BLE001
+                pass
+            return _dir_result
         if directory_admin_minter is not None:
             try:
                 import user_directory as _ud  # noqa: WPS433
