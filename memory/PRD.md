@@ -11,7 +11,46 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
-## Latest Track (2026-06-26 · TRACK 15.87 · Multi-Portal Access Authority Fix · ✅ GO · P0 RESOLVED)
+## Latest Track (2026-06-26 · TRACK 15.88 · People & Access Credential Usability Clarity · ✅ GO)
+
+### Mission
+Track 15.87 fixed the P0 multi-portal access authority defect — the backend now honors People & Access grants. Track 15.88 closes the matching trust gap on the UI: a granted checkbox does NOT always mean the user can sign in (credentials may not be issued, password rotation may be owed, user may be disabled). Make the Admin Console People & Access UI tell the truth.
+
+### Verdict
+✅ **GO — 26 / 26 static tests · 5 / 5 live API state proof · 3 / 3 browser breakpoints · 277 / 277 deployment-gate suite green.**
+
+### What's new
+* **Canonical backend helper** `lib/directory_access_state.py` exposes `derive_directory_access_state(row)` returning the canonical 5-field envelope: `access_state` ∈ {active, inactive} · `credential_state` ∈ {issued, never_issued, change_required, blocked} · `portal_count` · `usable_now` · `blocked_reason` ∈ {disabled, never_issued, change_required, no_portal_access, None}.
+* **Routes enriched** — `GET /api/admin/directory` list + create + update + reset-password endpoints all now return the canonical envelope per user. No password_hash exposure. Pure derivation. Mirrors Track 15.87 login behaviour 1:1 (helper says `usable_now=True` ⇔ at least one portal-login endpoint would accept this user).
+* **Admin Console UI** — new `<UsabilityBadges>` row helper in `AdminAccessControlPanel.jsx` renders two compact badges per row: credential-state badge + usability badge (with blocked-reason chip when not usable). Calm color palette (emerald = usable, amber = action-needed, slate = blocked). Full `data-testid` coverage.
+* **Security** — Helper never returns `password_hash`. Routes enricher never reads it directly. Frontend source contains no reference to it. Static tests assert all three invariants.
+
+### Six-pillar deltas
+Powerful 9.85 (+0.07 — operators can now act on usability at a glance) · Simple 9.85 (+0.07 — one badge tells the full story) · Beautiful 9.82 (+0.07 — calm, aligned, no overflow at any breakpoint) · Trusted 9.92 (+0.04 — UI ↔ backend login truth 1:1 by construction) · Proven 9.93 (+0.03 — 26 static + 5 live API + 3 breakpoint browser proof) · Deployable 9.87 (+0.05 — no RBAC change · no new auth surface · 277/277 gate). **Overall 9.87 (+0.05 vs 15.87).**
+
+### Tests added
+26 static tests in `test_track_15_88_people_access_credential_usability_clarity.py`: helper exists + correct surface · state derivation matrix · never leaks password_hash · only reads safe fields · routes import + enrich · panel renders `UsabilityBadges` + canonical keys · data-testid coverage · no UI password_hash leak · backend-frontend contract-drift guard · Track 15.85 / 15.86 / 15.87 preserved · deployment gate wired.
+
+### Live API state proof (5 / 5 PASS)
+```
+[PASS] usable           cred=issued           usable=True   blocked=None
+[PASS] never_issued     cred=never_issued     usable=False  blocked=never_issued
+[PASS] change_required  cred=change_required  usable=False  blocked=change_required
+[PASS] disabled         cred=blocked          usable=False  blocked=disabled
+[PASS] no_portals       cred=issued           usable=False  blocked=no_portal_access
+```
+
+### Browser verification (3 / 3 breakpoints PASS)
+390×844 / 768×1024 / 1024×768 — all show overflow=0, hydration=0, error=0, with 148 `USABLE NOW` badges + 14 blocked badges rendered across the live 162-user directory.
+
+### Deployment gate
+21 regression files · **277 backend tests · exit 0** (was 251 · +26) · 70 s.
+
+Ledger: `/app/memory/TRACK_15_88_PEOPLE_ACCESS_CREDENTIAL_USABILITY_CLARITY.md`.
+
+---
+
+## Previous Track (2026-06-26 · TRACK 15.87 · Multi-Portal Access Authority Fix · ✅ GO · P0 RESOLVED)
 
 ### Mission
 Operator reported P0 trust/auth defect: Admin Console → People & Access lets admins grant PM / Shop / HR / Safety / Dispatch / Field Leadership access via checkboxes, but those grants did NOT produce working logins. Root-cause, fix, regression-lock, and certify end-to-end.

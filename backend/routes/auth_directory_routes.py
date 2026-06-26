@@ -28,8 +28,20 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Header, Request
 from pydantic import BaseModel, Field
 
 import user_directory as ud
+from lib.directory_access_state import derive_directory_access_state
 
 logger = logging.getLogger(__name__)
+
+
+def _enrich_with_access_state(view: Optional[Dict[str, Any]], raw_row: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    """Track 15.88 · Merge the canonical access-state envelope into
+    the admin-facing public view. Reads ``password_hash`` from the
+    raw row to compute ``has_credentials`` but NEVER exposes the hash
+    in the returned view."""
+    if view is None or raw_row is None:
+        return view
+    view.update(derive_directory_access_state(raw_row))
+    return view
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -488,7 +500,10 @@ def build_auth_directory_router(
         (RC1-LIVE-VERIFY · P2 defect fix · 2026-06-15)."""
         rows = []
         async for r in db.user_directory.find({}, {"_id": 0}).sort("created_at", -1):
-            rows.append(ud.public_view(r))
+            view = ud.public_view(r)
+            # Track 15.88 · access-state envelope (usable_now, blocked_reason, etc.)
+            _enrich_with_access_state(view, r)
+            rows.append(view)
         needle = (q or "").strip().lower()
         if needle:
             rows = [
@@ -522,6 +537,9 @@ def build_auth_directory_router(
             )
         except ValueError as ve:
             raise HTTPException(status_code=400, detail=str(ve))
+        # Track 15.88 · enrich with access-state envelope.
+        _raw = await ud.find_by_id(db, view.get("id"))
+        _enrich_with_access_state(view, _raw)
         email_sent = False
         if delivery == "email":
             email_sent = await _send_directory_welcome(
@@ -570,6 +588,9 @@ def build_auth_directory_router(
             )
         except ValueError as ve:
             raise HTTPException(status_code=400, detail=str(ve))
+        # Track 15.88 · enrich.
+        _raw = await ud.find_by_id(db, user_id)
+        _enrich_with_access_state(view, _raw)
         diff = {
             k: getattr(body, k)
             for k in ("name", "portals", "disabled")
@@ -633,6 +654,9 @@ def build_auth_directory_router(
             )
         except ValueError as ve:
             raise HTTPException(status_code=400, detail=str(ve))
+        # Track 15.88 · enrich.
+        _raw = await ud.find_by_id(db, user_id)
+        _enrich_with_access_state(view, _raw)
         email_sent = False
         if delivery == "email":
             email_sent = await _send_directory_welcome(

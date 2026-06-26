@@ -138,6 +138,13 @@ REGRESSION_FILES = [
     # routers, plus the RBAC invariant that granting one portal does
     # NOT unlock another. Static-only (no DB writes), <100 ms.
     "/app/backend/tests/test_track_15_87_multi_portal_access_authority.py",
+    # TRACK 15.88 · People & Access Credential Usability Clarity —
+    # surfaces backend-derived `credential_state` / `usable_now` /
+    # `blocked_reason` on every Admin People & Access row so admins
+    # can tell at a glance which users can actually sign in vs which
+    # ones are blocked and why (never_issued · change_required ·
+    # disabled · no_portal_access). Static-only, <100 ms.
+    "/app/backend/tests/test_track_15_88_people_access_credential_usability_clarity.py",
 ]
 
 DEFAULT_BASE_URL = (

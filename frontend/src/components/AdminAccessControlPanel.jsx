@@ -27,6 +27,91 @@ import { api } from "@/lib/api";
 import { IamStandardCells } from "@/components/iam/IamStandardCells";
 import { toast } from "sonner";
 
+// ─── Track 15.88 · Credential / usability badge contract ──────────
+//
+// Every row of the Access Control Center renders a small calm pair
+// of badges that tell the truth about whether the user can actually
+// sign in right now. The strings come from the backend canonical
+// helper `lib/directory_access_state.py` — keep these maps in sync
+// with that file. Drift would silently lie to the admin.
+
+const CREDENTIAL_BADGE = {
+  issued: {
+    label: "Credentials Issued",
+    cls: "bg-emerald-50 border-emerald-200 text-emerald-800",
+    title: "Master password is set on this account.",
+  },
+  never_issued: {
+    label: "Never Issued",
+    cls: "bg-amber-50 border-amber-300 text-amber-900",
+    title: "No master password has been issued — user cannot sign in until you issue credentials.",
+  },
+  change_required: {
+    label: "Password Change Required",
+    cls: "bg-amber-50 border-amber-300 text-amber-900",
+    title: "User must rotate their password at /sign-in before portal tokens are issued.",
+  },
+  blocked: {
+    label: "Credentials Blocked",
+    cls: "bg-slate-100 border-slate-300 text-slate-700",
+    title: "Account is disabled; credentials are inaccessible.",
+  },
+};
+
+const BLOCKED_REASON_COPY = {
+  disabled: "Disabled · cannot sign in",
+  never_issued: "Credentials not issued",
+  change_required: "Password change required",
+  no_portal_access: "No portal access granted",
+};
+
+function UsabilityBadges({ user }) {
+  // Backend (Track 15.88) ships `credential_state`, `usable_now`,
+  // `blocked_reason`. We defensively fall back when an older response
+  // payload is in transit (e.g. cached frontend ↔ pre-15.88 backend).
+  const credKey = user.credential_state || (user.must_change_password
+    ? "change_required"
+    : (user.disabled ? "blocked" : "issued"));
+  const cred = CREDENTIAL_BADGE[credKey] || CREDENTIAL_BADGE.issued;
+  const usable = user.usable_now ?? (!user.disabled && !user.must_change_password && (user.portals || []).length > 0);
+  const blockedKey = user.blocked_reason || null;
+  return (
+    <div
+      className="mt-1.5 flex flex-wrap items-center gap-1.5"
+      data-testid={`acc-row-state-${user.email}`}
+    >
+      <span
+        className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider ${cred.cls}`}
+        title={cred.title}
+        data-testid={`acc-row-credstate-${user.email}`}
+        data-credstate={credKey}
+      >
+        {cred.label}
+      </span>
+      {usable ? (
+        <span
+          className="inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider bg-emerald-700 border-emerald-700 text-white"
+          title="User can sign in to their granted portals right now."
+          data-testid={`acc-row-usable-${user.email}`}
+          data-usable="1"
+        >
+          Usable Now
+        </span>
+      ) : (
+        <span
+          className="inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider bg-slate-900 border-slate-900 text-amber-200"
+          title="User cannot sign in — see reason."
+          data-testid={`acc-row-blocked-${user.email}`}
+          data-usable="0"
+          data-blockedreason={blockedKey || "unknown"}
+        >
+          {BLOCKED_REASON_COPY[blockedKey] || "Blocked"}
+        </span>
+      )}
+    </div>
+  );
+}
+
 // iter332 · Phase A · expanded portal grid to include safety + dispatch.
 // These are already in backend ALLOWED_PORTALS, so this is the safe
 // bounded UI fix (no model changes, no auth changes). Field Leadership
@@ -255,6 +340,8 @@ export default function AdminAccessControlPanel() {
                         <div className="font-bold text-slate-900">{u.name || u.email.split("@")[0]}</div>
                         <div className="text-xs text-slate-500">{u.email}</div>
                         <IamStandardCells user={u} portal="access-control" compact />
+                        {/* Track 15.88 · credential + usability truth */}
+                        <UsabilityBadges user={u} />
                       </div>
                     </div>
                   </td>
