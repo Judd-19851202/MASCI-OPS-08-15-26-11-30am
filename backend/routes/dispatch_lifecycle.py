@@ -2091,6 +2091,9 @@ def build_dls_admin_health_router(
         assignments_created_today = 0
         haul_counts = {
             "Material": 0, "Equipment Move": 0,
+            # TRACK 15.82B — Roll-Off counted as a first-class haul type
+            # in the daily flow signal so dispatchers see Roll-Off volume.
+            "Roll-Off": 0,
             "Tanker / Liquid Asphalt": 0,
             "Spoils / Dump": 0, "Support / Misc": 0,
         }

@@ -26,6 +26,11 @@ from typing import List
 HAUL_TYPES: List[str] = [
     "Material",
     "Equipment Move",
+    # TRACK 15.82B — Roll-Off Truck as a first-class haul type so it
+    # shows up on the dispatch landing page Issue Work card and the
+    # assignment drawer haul-type picker. Same canonical lifecycle as
+    # Material / Tanker — feeds the dispatch board, map, and counts.
+    "Roll-Off",
     "Tanker / Liquid Asphalt",
     "Spoils / Dump",
     "Support / Misc",

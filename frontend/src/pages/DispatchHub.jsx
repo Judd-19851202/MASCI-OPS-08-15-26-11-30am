@@ -19,7 +19,7 @@ import { useNavigate, Link } from "react-router-dom";
 import {
   Truck, Send, ShieldAlert, Activity, LogOut, Clock,
   Plug, BookOpen, ShieldCheck, AlertTriangle, Wrench, Droplet, ArrowRight,
-  Package, Compass, ListChecks, ChevronDown, ChevronUp,
+  Package, Compass, ListChecks, ChevronDown, ChevronUp, Container,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -231,7 +231,7 @@ export default function DispatchHub() {
           subtitle={t("Create assignment once · downstream signals fan out automatically.")}
           dense
         >
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2" data-testid="ds-issue-grid">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2" data-testid="ds-issue-grid">
             <IssueButton
               testId="ds-issue-material"
               icon={Truck}
@@ -245,6 +245,16 @@ export default function DispatchHub() {
               title={t("Start Equipment Move")}
               sub={t("Lowboy / equipment haul")}
               onClick={() => issueWork("Equipment Move")}
+            />
+            {/* TRACK 15.82B — Roll-Off Truck as a first-class action.
+                Positioned next to Material / Equipment Move because it is
+                a hauling work-type, NOT buried under Support / Misc. */}
+            <IssueButton
+              testId="ds-issue-roll-off"
+              icon={Container}
+              title={t("Roll-Off Truck")}
+              sub={t("Container · Roll-Off · Haul")}
+              onClick={() => issueWork("Roll-Off")}
             />
             <IssueButton
               testId="ds-issue-tanker"

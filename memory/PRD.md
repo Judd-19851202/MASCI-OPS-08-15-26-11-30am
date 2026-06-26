@@ -11,7 +11,32 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
-## Latest Track (2026-02-?? · TRACK 15.82 · Dispatch Portal Layout + Roll-Off Operations · 🟢 GO · ADDITIVE-ONLY)
+## Latest Track (2026-02-?? · TRACK 15.82B · Dispatch Landing Page + Roll-Off Action Button · 🟢 GO · VISIBLE-UI GAP CLOSED)
+
+### Mission
+Track 15.82 added Roll-Off taxonomy / aliases / map family / marker sprite — but the Dispatch Portal landing page still rendered only 4 Primary Action tiles. From the dispatcher's seat, Roll-Off didn't exist. 15.82B makes Roll-Off first-class on the visible Dispatch home.
+
+### Verdict
+🟢 **GO** — additive-only:
+- **Dispatch Hub**: 5th `IssueButton` tile rendered next to Material / Equipment Move — label "Roll-Off Truck", sublabel "Container · Roll-Off · Haul", `Container` lucide icon, testid `ds-issue-roll-off`. Grid widened from `lg:grid-cols-4` → `lg:grid-cols-5`.
+- **Click behavior**: `issueWork("Roll-Off")` opens AssignmentCreateDrawer with the Roll-Off haul-type chip preselected.
+- **Backend** (`dispatch_assignment_seeds.HAUL_TYPES`): Added `"Roll-Off"` so the `/api/dispatch/driver/assignment-lookups` endpoint exposes it automatically.
+- **Drawer** (`AssignmentCreateDrawer.jsx`): Icon-for branch + fallback `haul_types` both updated to handle Roll-Off.
+- **Daily counts** (`dispatch_lifecycle.haul_counts`): Added `"Roll-Off": 0` slot so the dashboard tracks Roll-Off volume.
+- **Regression**: 8 new tests in `test_track_15_82b_dispatch_landing_rolloff_action.py`. Deployment gate now runs **133 tests**, all green.
+- **Browser-verified**: desktop 1920 / tablet 1024 / phone 390 — Roll-Off tile visible at every breakpoint, drawer opens with the chip preselected, existing 4 tiles preserved.
+
+### Files changed
+- `backend/dispatch_assignment_seeds.py` — HAUL_TYPES adds `"Roll-Off"`
+- `backend/routes/dispatch_lifecycle.py` — daily haul_counts seeds `"Roll-Off": 0`
+- `frontend/src/pages/DispatchHub.jsx` — new IssueButton tile + Container icon + 5-col grid
+- `frontend/src/components/dispatch/AssignmentCreateDrawer.jsx` — icon branch + fallback list
+- `backend/tests/test_track_15_82b_dispatch_landing_rolloff_action.py` — 8 regression tests (new)
+- `scripts/deployment_gate.py` — wired
+- `memory/TRACK_15_82B_FINAL_CERTIFICATION.md` — phase-by-phase deliverable
+
+
+## Previous Track (2026-02-?? · TRACK 15.82 · Dispatch Portal Layout + Roll-Off Operations · 🟢 GO · ADDITIVE-ONLY)
 
 ### Mission
 Two-part follow-on to Track 15.81: (1) make `/dispatch-portal/map` feel like part of Dispatch Portal (not Admin Console) with a Back-to-Hub breadcrumb, (2) add Roll-Off as a first-class dispatch asset/type/workflow without weakening RBAC or breaking existing assets.

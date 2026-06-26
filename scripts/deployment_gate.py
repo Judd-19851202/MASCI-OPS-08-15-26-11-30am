@@ -85,6 +85,10 @@ REGRESSION_FILES = [
     # (Back to Dispatch Hub) and the Roll-Off taxonomy / alias / fleet-
     # family / marker classification.
     "/app/backend/tests/test_track_15_82_dispatch_layout_rolloff.py",
+    # TRACK 15.82B · Dispatch landing-page Roll-Off Action Button —
+    # closes the visible-UI gap left by 15.82 (taxonomy was added but
+    # the dispatch home Issue Work card never rendered a Roll-Off tile).
+    "/app/backend/tests/test_track_15_82b_dispatch_landing_rolloff_action.py",
 ]
 
 DEFAULT_BASE_URL = (

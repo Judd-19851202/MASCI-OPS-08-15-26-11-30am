@@ -22,7 +22,7 @@
  *   - POST /api/dispatch/assignments                 (extended in iter408)
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { X, Send, Plus, Truck as TruckIcon, Wrench, ArrowRight, Package, Droplet, Building2 } from "lucide-react";
+import { X, Send, Plus, Truck as TruckIcon, Wrench, ArrowRight, Package, Droplet, Building2, Container } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getDispatchToken } from "@/lib/dispatchAuth";
 import { getAdminToken } from "@/lib/adminAuth";
@@ -226,6 +226,9 @@ function HaulTypePicker({ value, onChange, types }) {
     if (h === "Tanker / Liquid Asphalt") return Droplet;
     if (h === "Spoils / Dump") return Package;
     if (h === "Support / Misc") return ArrowRight;
+    // TRACK 15.82B — Roll-Off uses Container icon to mirror the
+    // dispatch home Issue Work card.
+    if (h === "Roll-Off") return Container;
     return TruckIcon;
   };
   return (
@@ -391,7 +394,7 @@ export default function AssignmentCreateDrawer({
         const j = await r.json().catch(() => ({}));
         if (cancelled) return;
         setL({
-          haul_types: j.haul_types || ["Material", "Equipment Move", "Tanker / Liquid Asphalt", "Spoils / Dump", "Support / Misc"],
+          haul_types: j.haul_types || ["Material", "Equipment Move", "Roll-Off", "Tanker / Liquid Asphalt", "Spoils / Dump", "Support / Misc"],
           drivers: j.drivers || [],
           trucks: j.trucks || [],
           trailers: j.trailers || [],
