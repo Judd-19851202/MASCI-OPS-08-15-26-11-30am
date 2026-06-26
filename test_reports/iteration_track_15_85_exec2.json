@@ -1,0 +1,38 @@
+{
+  "summary": "Track 15.85 Execution #2 · canonical portal landing verification. Super-admin signed in via /sign-in then visited all 9 canonical paths plus the operator-reported /shop-console. RESULT: every canonical landing rendered cleanly (no 404, no bounce to login, h-overflow=0 at iPad landscape 1024x768) and /shop-console correctly renders the 404 recovery surface with all portal switcher links visible.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "SafetyHub (/safety-portal)", "issue": "data-testid='safety-integrations-strip' NOT present on the rendered Safety hub (the header 'MASCI · SAFETY PORTAL' DOES render and the hub UI loads cleanly — page is NOT 404 and does NOT bounce to login). This is a test-id contract drift, not a landing failure. Per spec the hub is supposed to expose this testid.", "selector": "[data-testid=\"safety-integrations-strip\"]", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Investigate why [data-testid='safety-integrations-strip'] is missing on /safety-portal — either re-attach the testid on the integrations strip or update the test contract (the rest of the hub renders correctly).",
+    "Optional: address React hydration warning logged on /dispatch-portal and /operations-map ('In HTML, <span> cannot be a child of <option>') — cosmetic only, does not affect routing."
+  ],
+  "critical_code_review_comments": [
+    "React hydration error 'In HTML, <span> cannot be a child of <option>' observed in console during /dispatch-portal and /operations-map navigation; suggests a <Select>/<option> rendering a styled <span> child somewhere in App.js — non-blocking but should be cleaned up before prod."
+  ],
+  "updated_files": [],
+  "success_rate": {"frontend": "100% (10/10 canonical-routing checks pass)"},
+  "test_credentials": "Super admin multi-login jaymn.judd@mascigc.com / Maddix123! via /sign-in returned all 8 portal tokens (admin, pm, shop, hr, safety, dispatch, field_leadership, fl) — confirmed in localStorage after login.",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Track 15.85 canonical-landing browser cert is GREEN. The /shop-console URL the operator originally reported does correctly render the 404 recovery page with all portal switcher links (HR, Safety, PM, Shop, Dispatch, Back to Admin Console, Public Home) — this is intentional platform behavior because canonical Shop landing is /shop, which itself rendered the Shop Hub V2 with 'MASCI · SHOP PORTAL' header. The one outstanding observation is the missing [data-testid='safety-integrations-strip'] attribute on /safety-portal (the page itself loads cleanly; only the testid contract is drifted).",
+  "verification_matrix": {
+    "/dispatch-portal":      {"has_404": false, "bounced_to_login": false, "h_overflow_px": 0, "dispatch-hub_testid": true,  "ds-issue-roll-off_testid": true},
+    "/dispatch-portal/map":  {"has_404": false, "bounced_to_login": false, "h_overflow_px": 0, "dispatch-map-back-to-hub_testid": true, "operations_center_live_map_copy": true},
+    "/safety-portal":        {"has_404": false, "bounced_to_login": false, "h_overflow_px": 0, "safety-integrations-strip_testid": false, "MASCI_SAFETY_PORTAL_header": true},
+    "/trench-safety":        {"has_404": false, "bounced_to_login": false, "h_overflow_px": 0, "TRENCH_SAFETY_FIELD_COMMAND": true, "STOP_WORK_AUTHORITY": true},
+    "/shop":                 {"has_404": false, "bounced_to_login": false, "h_overflow_px": 0, "MASCI_SHOP_header": true},
+    "/pm":                   {"has_404": false, "bounced_to_login": false, "h_overflow_px": 0, "final_url": "/pm/command-center", "MASCI_PM_PORTAL_header": true},
+    "/leadership":           {"has_404": false, "bounced_to_login": false, "h_overflow_px": 0, "MASCI_FIELD_LEADERSHIP_header": true, "Field_Leadership_h1": true},
+    "/hr":                   {"has_404": false, "bounced_to_login": false, "h_overflow_px": 0, "MASCI_HR_PORTAL_header": true},
+    "/operations-map":       {"has_404": false, "bounced_to_login": false, "h_overflow_px": 0, "Operations_Center_Live_Map_copy": true},
+    "/shop-console":         {"has_404_recovery": true, "portal_switcher_links_present": ["HR Portal","Safety Portal","PM Portal","Shop Console","Dispatch Portal","Back to Admin Console","Public Home"]}
+  }
+}

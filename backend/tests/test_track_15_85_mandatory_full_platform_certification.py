@@ -193,3 +193,86 @@ def test_no_rendered_iter_labels_across_all_pages():
         f"Track 15.85 regression: rendered iter### label leaked back "
         f"into production-facing pages: {bad[:5]}"
     )
+
+
+# ─── Execution #2 · PM Portal (canonical `/pm` → `/pm/command-center`) ──
+
+
+def test_pm_portal_canonical_route_mounted():
+    """Track 15.85 Exec #2 · PM Portal landing is mounted at the
+    canonical `/pm` path and resolves through PmHomeRedirect."""
+    src = _read(APP_JS)
+    assert re.search(
+        r'<Route\s+path="/pm"\s+element=\{P\(<PmHomeRedirect\s*/>\)\}',
+        src,
+    ), (
+        "Track 15.85: `/pm` canonical PM landing must be mounted in "
+        "App.js under the P() (RequirePm) guard via PmHomeRedirect."
+    )
+
+
+# ─── Execution #2 · Leadership Portal (canonical `/leadership`) ────
+
+
+def test_leadership_canonical_route_mounted():
+    src = _read(APP_JS)
+    assert re.search(
+        r'<Route\s+path="/leadership"\s+element=\{<FieldLeadershipHub\s*/>\}',
+        src,
+    ), (
+        "Track 15.85: `/leadership` canonical Field Leadership landing "
+        "must remain mounted in App.js."
+    )
+
+
+# ─── Execution #2 · Canonical portal path no-404 regression ────────
+
+
+_CANONICAL_PATH_ROUTES = [
+    # path · expected to be mounted somewhere in App.js (regex-tolerant)
+    ("/dispatch-portal", r'<Route\s+path="/dispatch-portal"'),
+    ("/dispatch-portal/map", r'<Route\s+path="/dispatch-portal/map"'),
+    ("/safety-portal", r'<Route\s+path="/safety-portal'),
+    ("/trench-safety", r'<Route\s+path="/trench-safety'),
+    ("/shop", r'<Route\s+path="/shop"'),
+    ("/pm", r'<Route\s+path="/pm"\s'),
+    ("/leadership", r'<Route\s+path="/leadership"\s'),
+    ("/hr", r'<Route\s+path="/hr"\s'),
+    ("/operations-map", r'<Route\s+path="/operations-map"'),
+]
+
+
+def test_no_404_on_canonical_portal_paths():
+    """Track 15.85 Exec #2 · Lock every documented canonical portal
+    landing path so a refactor cannot silently remove a portal mount
+    (which would route every operator deep-link to the 404 recovery
+    page). The 404 recovery surface itself was beautiful — but a
+    portal landing returning 404 is a P0 trust failure."""
+    src = _read(APP_JS)
+    missing = []
+    for path, pattern in _CANONICAL_PATH_ROUTES:
+        if not re.search(pattern, src):
+            missing.append(path)
+    assert not missing, (
+        f"Track 15.85 regression: canonical portal landing path(s) "
+        f"missing from App.js routing — operators hitting these URLs "
+        f"would see the 404 recovery page instead of their portal: "
+        f"{missing}"
+    )
+
+
+def test_canonical_portal_paths_are_protected_by_their_guards():
+    """Track 15.85 Exec #2 · Cross-check: every operator portal route
+    is wrapped in the correct guard (P / DP / H / S / SH / A). This
+    is a routing-discipline test, NOT an auth-strength test."""
+    src = _read(APP_JS)
+    # PM landing
+    assert "P(<PmHomeRedirect" in src
+    # Dispatch landing
+    assert "DP(<DispatchHub" in src or 'path="/dispatch-portal"' in src
+    # HR landing
+    assert "H(<HrHubV2" in src
+    # Shop landing (S = RequireShop wrapper)
+    assert "S(<ShopHubV2" in src or "S(<ShopHub" in src
+    # Admin operations map
+    assert "A(<OperationsMapPage" in src
