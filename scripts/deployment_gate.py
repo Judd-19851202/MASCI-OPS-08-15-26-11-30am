@@ -162,6 +162,12 @@ REGRESSION_FILES = [
     # viewport. Also asserts the Track 15.83 iPad bleed fix + 15.86
     # smoke gate + 15.93 bootstrap remain intact (no weakening).
     "/app/backend/tests/test_track_15_95_operations_map_phone_overflow.py",
+    # TRACK 15.97 · GitHub Actions production-health-probe repair —
+    # consolidates the dual-workflow (real + PR noop) into one file,
+    # removes the job-level `if:` guard that produced the canonical
+    # GitHub "this check has no steps" empty-job failure, and locks
+    # step-level gating + secret-handling invariants.
+    "/app/backend/tests/test_track_15_97_github_actions_health_probe.py",
 ]
 
 DEFAULT_BASE_URL = (

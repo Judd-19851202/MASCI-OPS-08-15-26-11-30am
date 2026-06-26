@@ -1,92 +1,252 @@
 name: production-health-probe
 
-# Scheduled production smoke probe.
+# TRACK 15.97 · production-health-probe workflow consolidated.
 #
-# Runs the same checks as tools/verify-production.sh from GitHub-hosted
-# runners every 15 minutes. If any probe goes red on BOTH the initial pass
-# AND the 30-second soak re-verify, the workflow fails and GitHub sends
-# the standard "workflow failed" notification email.
+# Earlier history:
+#   * 15.34B added a real `schedule` + `workflow_dispatch` probe with a
+#     job-level `if:` guard.
+#   * 15.56 added a sibling PR-noop workflow with the same `name:` so the
+#     branch-protection required check would resolve on pull_request.
+#   * That setup triggered the canonical GitHub Actions UI failure
+#     "This check has no steps" — when two workflows share a `name`,
+#     GitHub's required-check resolution is non-deterministic and the
+#     job-level `if:` guard on the real probe would skip ALL steps,
+#     surfacing the empty-job failure on pull_request runs.
 #
-# TRACK 15.34B (2026-02) — hardened against alert storms:
-#   * The probe script now does a two-pass soak (see tools/verify-production.sh).
-#   * Single transient GitHub-runner DNS/TLS blips no longer trigger emails.
-#   * Failure output now includes curl exit code + error message + DNS/TLS
-#     timings + response body excerpt — the operator can immediately tell
-#     a real outage from a runner-side network hiccup.
+# 15.97 fix:
+#   * ONE workflow file, ONE workflow name, ONE job named `probe`.
+#   * Job has NO job-level `if:` guard. The job always runs to completion.
+#   * Step-level conditionals decide which probes run on which event
+#     (so a job never has zero executable steps).
+#   * Public probes ALWAYS run on every event (health + version).
+#   * Authenticated readiness probe runs only on schedule + manual
+#     (never on pull_request — secrets are not exposed to PR runs).
+#   * Diagnostic summary always published, on success and failure.
 #
-# Triggers (intentionally narrow — NO pull_request, NO push):
-#   * schedule */15 * * * *  → every 15 minutes
-#   * workflow_dispatch      → manual "Run workflow" button
-#
-# To wire this up:
-#   1. Push this file to the repo's default branch (auto-enabled on first push).
-#   2. Make sure your GitHub profile email notifications are enabled
-#      ("Actions" workflow runs failures).
-#   3. Optionally set the secret PROD_URL in repo settings if you ever
-#      move off mascidocs.com — default is mascidocs.com.
-#
-# To pause: comment out the `schedule:` block. workflow_dispatch always works.
+# Triggers:
+#   * schedule           → every 15 minutes (real production heartbeat)
+#   * workflow_dispatch  → manual "Run workflow" button
+#   * pull_request       → green check for branch-protection requirement
+#                          (runs ONLY the public probes, no secrets used)
 
 on:
   schedule:
-    - cron: "*/15 * * * *"   # every 15 minutes
-  workflow_dispatch: {}      # manual "Run workflow" button
+    - cron: "*/15 * * * *"
+  workflow_dispatch: {}
+  pull_request: {}
 
 permissions:
   contents: read
 
-# Defensive: even on a manual workflow_dispatch, never let two probes run
-# at once. cancel-in-progress: false so an in-flight 60s soak pass finishes
-# before the next 15-minute tick starts.
+# A pull_request run and a 15-minute schedule run can legitimately be in
+# flight at the same time — they are different shapes of probe and
+# should not cancel each other. We scope concurrency per event so that
+# repeated dispatches of the same kind coalesce, but cross-kind runs
+# proceed independently.
 concurrency:
-  group: production-health-probe
+  group: production-health-probe-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
   probe:
+    name: probe
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
-    # Defensive guard: this job MUST only run on schedule or manual trigger.
-    # Belt-and-suspenders in case someone later adds push/pull_request to
-    # the trigger block — keep this here so PR/push spam is impossible.
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    # NO job-level `if:` — every event runs at least the public probes,
+    # so the GitHub UI never has to render "this check has no steps."
+
+    env:
+      PROD_URL: ${{ secrets.PROD_URL || 'https://mascidocs.com' }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Run verify-production.sh
-        id: probe
-        env:
-          PROD_URL: ${{ secrets.PROD_URL || 'https://mascidocs.com' }}
-          SOAK_SECONDS: "30"
+      - name: Resolve event context
+        id: ctx
         run: |
-          chmod +x ./tools/verify-production.sh
-          # Tee the output so we can include it in the GitHub Step Summary
-          # on failure — operator sees the full diagnostic in the workflow
-          # UI without digging into log files.
-          ./tools/verify-production.sh 2>&1 | tee /tmp/probe.log
-          # Preserve the exit code from verify-production.sh, not from tee.
-          exit "${PIPESTATUS[0]}"
+          set -eu
+          echo "event=${{ github.event_name }}"
+          echo "ref=${{ github.ref }}"
+          echo "target=${PROD_URL}"
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "is_pr=true"  >> "$GITHUB_OUTPUT"
+          else
+            echo "is_pr=false" >> "$GITHUB_OUTPUT"
+          fi
+          {
+            echo "## production-health-probe · target ${PROD_URL}"
+            echo ""
+            echo "- event: \`${{ github.event_name }}\`"
+            echo "- ref:   \`${{ github.ref }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Publish diagnostic summary on failure
-        if: failure()
+      # ---------------------------------------------------------------
+      # PUBLIC PROBE 1 — /api/health
+      # Runs on EVERY event. No secrets required.
+      # ---------------------------------------------------------------
+      - name: GET /api/health
+        id: probe_health
+        run: |
+          set -eu
+          echo "→ GET ${PROD_URL}/api/health"
+          tmp=$(mktemp)
+          status=$(curl -sS --max-time 15 -o "$tmp" -w "%{http_code}" "${PROD_URL}/api/health" || echo "000")
+          body=$(cat "$tmp")
+          echo "  HTTP ${status}"
+          echo "  body: ${body}"
+          if [ "${status}" != "200" ]; then
+            echo "::error::/api/health returned HTTP ${status} (expected 200)"
+            exit 1
+          fi
+          # JSON sanity — must include ok=true
+          python3 - "$tmp" <<'PY'
+          import json, sys
+          j = json.load(open(sys.argv[1]))
+          assert j.get("ok") is True, f"/api/health missing ok=true: {j!r}"
+          print("✓ /api/health ok=true · service=" + str(j.get("service")))
+          PY
+
+      # ---------------------------------------------------------------
+      # PUBLIC PROBE 2 — /api/version
+      # Runs on EVERY event. Confirms the deployed build identifies
+      # itself as production with the canonical DB name.
+      # ---------------------------------------------------------------
+      - name: GET /api/version
+        id: probe_version
+        run: |
+          set -eu
+          echo "→ GET ${PROD_URL}/api/version"
+          tmp=$(mktemp)
+          status=$(curl -sS --max-time 15 -o "$tmp" -w "%{http_code}" "${PROD_URL}/api/version" || echo "000")
+          echo "  HTTP ${status}"
+          if [ "${status}" != "200" ]; then
+            echo "::error::/api/version returned HTTP ${status} (expected 200)"
+            cat "$tmp"
+            exit 1
+          fi
+          python3 - "$tmp" <<'PY'
+          import json, sys
+          j = json.load(open(sys.argv[1]))
+          app_env = j.get("app_env")
+          db_name = j.get("db_name")
+          release = j.get("release")
+          uptime  = j.get("uptime_s")
+          print(f"  app_env={app_env} · db_name={db_name} · release={release} · uptime_s={uptime}")
+          assert app_env == "production", f"app_env={app_env!r} (expected 'production')"
+          assert db_name == "masci_safety", f"db_name={db_name!r} (expected 'masci_safety')"
+          assert release, "release/source_hash is empty"
+          print("✓ /api/version OK")
+          PY
+
+      # ---------------------------------------------------------------
+      # PRIVATE PROBE — /api/admin/deployment-readiness
+      # Runs ONLY on schedule + workflow_dispatch. NEVER on PR.
+      # PR runs do not have access to production credentials.
+      # If credentials are not set even on scheduled runs (e.g. fresh
+      # repo install), the step is skipped with a clear notice — NOT
+      # a failure. The schedule still passes on public probes.
+      # ---------------------------------------------------------------
+      - name: Detect admin credentials availability
+        id: creds
+        if: steps.ctx.outputs.is_pr == 'false'
+        env:
+          _EMAIL: ${{ secrets.OPS_ADMIN_EMAIL }}
+          _PASS:  ${{ secrets.OPS_ADMIN_PASSWORD }}
+        run: |
+          if [ -n "${_EMAIL:-}" ] && [ -n "${_PASS:-}" ]; then
+            echo "have=true"  >> "$GITHUB_OUTPUT"
+            echo "Admin credentials present — authenticated readiness probe will run."
+          else
+            echo "have=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::OPS_ADMIN_EMAIL / OPS_ADMIN_PASSWORD secrets not configured — skipping authenticated readiness probe."
+          fi
+
+      - name: GET /api/admin/deployment-readiness
+        if: steps.ctx.outputs.is_pr == 'false' && steps.creds.outputs.have == 'true'
+        env:
+          OPS_ADMIN_EMAIL:    ${{ secrets.OPS_ADMIN_EMAIL }}
+          OPS_ADMIN_PASSWORD: ${{ secrets.OPS_ADMIN_PASSWORD }}
+        run: |
+          set -eu
+          echo "→ POST ${PROD_URL}/api/auth/multi-login"
+          login_tmp=$(mktemp)
+          status=$(curl -sS --max-time 20 -o "$login_tmp" -w "%{http_code}" \
+            -X POST "${PROD_URL}/api/auth/multi-login" \
+            -H "Content-Type: application/json" \
+            --data-binary @<(python3 -c 'import os,json;print(json.dumps({"email":os.environ["OPS_ADMIN_EMAIL"],"password":os.environ["OPS_ADMIN_PASSWORD"]}))') \
+            || echo "000")
+          echo "  HTTP ${status}"
+          if [ "${status}" != "200" ]; then
+            echo "::error::multi-login returned HTTP ${status}"
+            head -c 400 "$login_tmp"
+            exit 1
+          fi
+          admin_tok=$(python3 -c 'import json,sys;print((json.load(open(sys.argv[1])).get("portal_tokens") or {}).get("admin",""))' "$login_tmp")
+          if [ -z "$admin_tok" ]; then
+            echo "::error::multi-login response did not include an admin portal token"
+            exit 1
+          fi
+          echo "  admin token length: ${#admin_tok}"
+          # Now hit the readiness gate.
+          rdy_tmp=$(mktemp)
+          rstatus=$(curl -sS --max-time 20 -o "$rdy_tmp" -w "%{http_code}" \
+            -H "X-Admin-Token: ${admin_tok}" \
+            "${PROD_URL}/api/admin/deployment-readiness" || echo "000")
+          echo "  /api/admin/deployment-readiness HTTP ${rstatus}"
+          if [ "${rstatus}" != "200" ]; then
+            echo "::error::readiness gate returned HTTP ${rstatus}"
+            head -c 400 "$rdy_tmp"
+            exit 1
+          fi
+          python3 - "$rdy_tmp" <<'PY'
+          import json, sys
+          j = json.load(open(sys.argv[1]))
+          decision = j.get("decision")
+          blocking = j.get("blocking_gates") or []
+          bootstrap = j.get("bootstrap") or {}
+          score = j.get("trust_score")
+          band  = j.get("trust_band")
+          print(f"  decision={decision} · trust_score={score} · trust_band={band}")
+          print(f"  blocking_gates={len(blocking)}  bootstrap={{'ran': {bootstrap.get('ran')}, 'ok': {bootstrap.get('ok')}}}")
+          if decision != "pass":
+              for g in blocking[:5]:
+                  print(f"   BLOCK: {g.get('id')} · {g.get('summary')}")
+              raise SystemExit("readiness gate decision != pass")
+          if blocking:
+              raise SystemExit(f"readiness gate has {len(blocking)} blocking gate(s)")
+          if bootstrap and bootstrap.get("ran") is False:
+              raise SystemExit("Track 15.93 bootstrap never ran in production")
+          if bootstrap and bootstrap.get("ok") is False:
+              raise SystemExit("Track 15.93 bootstrap reported ok=false")
+          print("✓ readiness gate PASS")
+          PY
+
+      # ---------------------------------------------------------------
+      # SUMMARY — always runs, success or failure.
+      # ---------------------------------------------------------------
+      - name: Publish step summary
+        if: always()
         run: |
           {
-            echo "## ❌ Production health probe FAILED both passes"
             echo ""
-            echo "**Target:** \`${PROD_URL:-https://mascidocs.com}\`"
-            echo "**Time:** \`$(date -u +"%Y-%m-%dT%H:%M:%SZ")\`"
+            echo "### Results"
+            echo "- /api/health:  ${{ steps.probe_health.outcome }}"
+            echo "- /api/version: ${{ steps.probe_version.outcome }}"
+            if [ "${{ steps.ctx.outputs.is_pr }}" = "true" ]; then
+              echo "- /api/admin/deployment-readiness: skipped (pull_request — secrets not exposed)"
+            elif [ "${{ steps.creds.outputs.have }}" = "true" ]; then
+              echo "- /api/admin/deployment-readiness: ${{ steps.creds.outputs.have && 'ran' || 'skipped' }}"
+            else
+              echo "- /api/admin/deployment-readiness: skipped (no admin secrets configured)"
+            fi
             echo ""
-            echo "### Probe output"
-            echo '```'
-            cat /tmp/probe.log
-            echo '```'
-            echo ""
-            echo "### Operator triage steps"
-            echo "1. Visit https://mascidocs.com/api/health in a browser. If it returns \`{\"ok\":true,...}\`, the probe was transient noise — close the failed run."
-            echo "2. If \`/api/health\` is also down, check the Emergent deploy dashboard for the production pod status."
-            echo "3. Check \`MONGO_URL\` + \`DB_NAME\` env vars are current on production."
-            echo "4. Check the deploy log for \`Authentication failed\` or \`MongoServerSelectionError\`."
+            if [ "${{ job.status }}" = "success" ]; then
+              echo "**Probe result: ✅ PASS**"
+            else
+              echo "**Probe result: ❌ FAIL**"
+              echo ""
+              echo "### Operator triage"
+              echo "1. Open ${PROD_URL}/api/health — if it returns \`{\"ok\":true,...}\` the failure was transient runner-side noise."
+              echo "2. If health is also down, check the Emergent deploy dashboard for the production pod status."
+              echo "3. If readiness gate fails, inspect \`/api/admin/deployment-readiness\` directly with super-admin credentials."
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
