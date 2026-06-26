@@ -110,6 +110,13 @@ REGRESSION_FILES = [
     # deferred (documented in track cert) — this file locks the
     # discipline against regression.
     "/app/backend/tests/test_track_15_84_forgedops_production_excellence_certification.py",
+    # TRACK 15.85 · Mandatory Full-Platform Production Excellence
+    # Certification Program — PERSISTENT, multi-execution. Each
+    # execution adds tests for the portals it actually browser-
+    # verified at 3-breakpoint minimum. Execution #1: Safety Portal +
+    # Trench Safety certified. Remaining portals tracked in
+    # `memory/TRACK_15_85_MANDATORY_FULL_PLATFORM_PRODUCTION_EXCELLENCE_CERTIFICATION.md`.
+    "/app/backend/tests/test_track_15_85_mandatory_full_platform_certification.py",
 ]
 
 DEFAULT_BASE_URL = (
