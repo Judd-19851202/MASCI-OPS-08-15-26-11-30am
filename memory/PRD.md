@@ -11,6 +11,53 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-06-27 · TRACK 16.04 · MASCI Transportation Foundation Phase 1 · ✅ GO)
+
+### Mission
+Build the stable Phase 1 foundation for the MASCI Transportation & Logistics module: carriers, transport_persons, transport_trucks, eligibility skeleton. Phase 1 ONLY — no hauler packet uploads, no orientation engine, no quizzes, no certificates, no carrier portal, no public invite links, no intelligence dashboards.
+
+### Verdict
+✅ **GO** — 24/24 static regression tests pass · live RBAC + CRUD + duplicate-guard + eligibility smoke verified end-to-end via testing agent (100% backend · 100% frontend).
+
+### What shipped
+* `lib/transport_eligibility.py` — pure compute · status truth-table · HR-lifecycle override.
+* `lib/transport_identity.py` — async resolvers preventing duplicate MASCI-employee projection and duplicate leased-driver-by-license.
+* `routes/transportation.py` — admin-strict CRUD for `carriers / transport_persons / transport_trucks`, eligibility upsert on every write, dispatch read-only endpoints (`eligible-drivers / eligible-trucks / status`). Self-contained admin+dispatch gate (fixes a pre-existing legacy sync-validator gap for new-style admin tokens).
+* `frontend/src/pages/AdminTransportation.jsx` — `/admin/transportation` page with 4 Tabs (Carriers · Drivers · Trucks · Eligibility) and full `data-testid` coverage.
+* `tests/test_track_16_04_transportation_foundation.py` — 24 regression tests covering all 22 directive scenarios + 2 bonus identity-resolver shape checks.
+* `scripts/deployment_gate.py` — wired into permanent gate list.
+
+### Data model (Phase 1)
+* `carriers`: legal_name (unique active per tenant) · carrier_type ∈ {leased_hauler · owner_operator · supplier · masci_internal · other} · DOT/MC · contact · status · safety_hold · audit cols.
+* `transport_persons`: kind ∈ {masci_employee · leased_driver}; masci_employee requires employee_id and dedupes via active-projection check; leased_driver requires carrier_id and dedupes by (carrier_id, license_number).
+* `transport_trucks`: ownership ∈ {masci_owned · leased_carrier · owner_operator · unknown}; leased/owner-operator requires carrier_id; masci_owned may link equipment_id.
+* `transport_eligibility_state`: derived per (target_type, target_id, tenant); state ∈ {eligible · pending_review · needs_correction · expired · suspended · not_dispatchable}.
+
+### API surface
+* `GET/POST/PATCH /api/admin/transportation/carriers[/{id}]` (admin-strict)
+* `GET/POST/PATCH /api/admin/transportation/persons[/{id}]` (admin-strict)
+* `GET/POST/PATCH /api/admin/transportation/trucks[/{id}]` (admin-strict)
+* `GET /api/admin/transportation/eligibility/{target_type}/{target_id}` (admin-strict)
+* `GET /api/dispatch/transportation/eligible-drivers` (admin or dispatch)
+* `GET /api/dispatch/transportation/eligible-trucks` (admin or dispatch)
+* `GET /api/dispatch/transportation/status/{target_type}/{target_id}` (admin or dispatch)
+
+### Audit
+Every create/update writes to `db.audit_events` with `{kind, entity_type, entity_id, actor, old, new, ts, tenant, route, ip, ua}`. Audit kinds in this track: `transport_{carrier|person|truck}_{create|update}`.
+
+### MASCI Hauler Pack baseline preserved
+Every current packet item is mapped to either a Phase 1 field or an explicit Phase 2 deferral (W-9, COI, sunbiz, Clearinghouse, CDL/medical, signed agreement, tarp/CB/firearms acknowledgements, GPS/clock-in, ticketing rules). Phase 1 introduces no new legal copy and rewrites nothing in the existing packet. Full map in `memory/TRACK_16_04_TRANSPORTATION_FOUNDATION_PHASE_1.md`.
+
+### Deferrals (do NOT ship in Phase 1)
+Remote invite links · packet uploads · digital signature · Clearinghouse intake · CDL/medical expiration logic · no-skip orientation video · quizzes · certificates · dispatch hard-block enforcement · carrier portal · intelligence/scorecards · transportation email routes · bulk migration.
+
+### Next recommended track
+Track 16.05 — Phase 2 Hauler Packet (intake) · reuses R2 storage · extends eligibility via the `context` hook already in `compute_transport_eligibility`.
+
+Ledger: `/app/memory/TRACK_16_04_TRANSPORTATION_FOUNDATION_PHASE_1.md`.
+
+---
+
 ## Latest Track (2026-06-26 · TRACK 16.00 · GitHub Repository Lifecycle Hardening · ✅ implemented)
 
 ### Mission
