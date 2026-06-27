@@ -202,6 +202,43 @@ def test_cli_does_not_modify_active_repo():
         "CLI must not delete files in the active production repo"
 
 
+def test_cli_supports_audit_active_repo_mode():
+    """Track 16.01: the CLI must expose a read-only audit mode that
+    enumerates active vs snapshot repos and detects duplicate active
+    configuration. Read-only: requires PAT but never mutates GitHub
+    state."""
+    src = open(CLI, encoding="utf-8").read()
+    assert '"--audit-active-repo"' in src, (
+        "Track 16.01: --audit-active-repo flag missing from lifecycle CLI"
+    )
+    assert "_audit_active_repo" in src, (
+        "Track 16.01: _audit_active_repo helper missing"
+    )
+    assert "_get_repo_variable" in src, (
+        "Track 16.01: _get_repo_variable helper missing — the audit must "
+        "read the ACTIVE_PRODUCTION_SOURCE repo variable"
+    )
+    # Audit mode must guard against being combined with --apply (audit
+    # is read-only; combining with --apply would defeat the safety).
+    assert "--audit-active-repo cannot be combined with --apply" in src, (
+        "Track 16.01: audit mode must refuse to combine with --apply"
+    )
+
+
+def test_audit_mode_detects_duplicate_active_repos():
+    """The audit must explicitly classify two-or-more self-active
+    repos as a P1 lifecycle defect."""
+    src = open(CLI, encoding="utf-8").read()
+    assert "P1 LIFECYCLE DEFECT" in src, (
+        "Track 16.01: audit must emit a P1 defect notice when more "
+        "than one repo claims to be the active production source"
+    )
+    assert "more than one repo self-classifies as active" in src or \
+        "more than one repo" in src, (
+        "Track 16.01: duplicate-active-repo guard wording missing"
+    )
+
+
 def test_deployment_gate_includes_track_16_00():
     src = open("/app/scripts/deployment_gate.py", encoding="utf-8").read()
     assert "test_track_16_00_github_lifecycle_hardening.py" in src

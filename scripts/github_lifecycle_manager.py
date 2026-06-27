@@ -262,6 +262,149 @@ def _strip_required_check(
 # Main flow
 # ---------------------------------------------------------------------------
 
+def _get_repo_variable(
+    owner: str, repo: str, name: str, token: str
+) -> Tuple[int, Optional[str]]:
+    """Read a repository-level Actions variable. Returns (status, value).
+    GitHub returns 404 if the variable is not set."""
+    status, payload = _api_request(
+        "GET",
+        f"/repos/{owner}/{repo}/actions/variables/{name}",
+        token=token,
+    )
+    if status == 200 and isinstance(payload, dict):
+        return status, payload.get("value")
+    return status, None
+
+
+def _audit_active_repo(owner: str, active_full: str, token: str) -> int:
+    """Track 16.01 audit mode: walk every accessible repo under
+    ``owner`` and report:
+
+      * which repo(s) have ``ACTIVE_PRODUCTION_SOURCE`` set to their own slug
+        (must be exactly ONE — the active production repo);
+      * which repos are inactive snapshots (variable unset or mismatched);
+      * which repos have a ``production-health-probe`` workflow in any state.
+
+    Read-only. No mutations. Requires a PAT with ``repo`` + ``workflow``
+    scope (admin scope is NOT required for this audit).
+    """
+    repos = _list_repos(owner, token)
+    print(f"[audit] {len(repos)} repos enumerated under {owner}")
+    print(f"[audit] expected active production source: {active_full}")
+    print()
+
+    rows: List[Dict[str, Any]] = []
+    for r in sorted(repos, key=lambda x: x.get("name", "")):
+        full = r.get("full_name") or ""
+        name = r.get("name") or ""
+        cls = _classify(r, active_full)
+        if cls == "UNRELATED":
+            continue
+
+        # Read the variable that gates the workflow.
+        var_status, var_value = _get_repo_variable(
+            owner, name, "ACTIVE_PRODUCTION_SOURCE", token
+        )
+        if var_status == 200:
+            var_state = f"set='{var_value}'"
+            self_active = (var_value == full)
+        elif var_status == 404:
+            var_state = "unset"
+            self_active = False
+        elif var_status in (401, 403):
+            var_state = f"unable_to_read (HTTP {var_status})"
+            self_active = None
+        else:
+            var_state = f"unknown (HTTP {var_status})"
+            self_active = None
+
+        # Workflow state.
+        wfs = _list_workflows(owner, name, token)
+        probe = next(
+            (w for w in wfs if (w.get("path") or "").endswith(
+                ("production-health-probe.yml", "production-health-probe.yaml")
+            )),
+            None,
+        )
+        wf_state = (probe or {}).get("state") or "absent"
+
+        rows.append({
+            "repo": full,
+            "class": cls,
+            "var": var_state,
+            "self_active": self_active,
+            "workflow": wf_state,
+        })
+
+    print(f"{'Repo':<45} {'Class':<26} {'Variable':<32} {'Self-active':<11} {'Workflow':<14}")
+    print("-" * 132)
+    for row in rows:
+        print(
+            f"{row['repo']:<45} {row['class']:<26} {row['var']:<32} "
+            f"{str(row['self_active']):<11} {row['workflow']:<14}"
+        )
+    print()
+
+    # Duplicate-active-repo guard.
+    self_active_repos = [r["repo"] for r in rows if r["self_active"] is True]
+    if len(self_active_repos) == 0:
+        print(
+            "⚠  No repository self-classifies as active. The active "
+            "production probe will not run anywhere. Set the "
+            "ACTIVE_PRODUCTION_SOURCE variable on the active repo to "
+            "its own slug."
+        )
+        return 2
+    if len(self_active_repos) > 1:
+        print(
+            "❌  P1 LIFECYCLE DEFECT — more than one repo self-classifies as active:"
+        )
+        for s in self_active_repos:
+            print(f"   · {s}")
+        print(
+            "Only ONE repo may hold ACTIVE_PRODUCTION_SOURCE matching its "
+            "own slug. Resolve by removing the variable from the non-"
+            "active repos."
+        )
+        return 3
+
+    # Snapshot silence verification.
+    bad_snapshots = [
+        r for r in rows
+        if r["class"] == "INACTIVE_SNAPSHOT"
+        and r["workflow"] == "active"
+        and r["self_active"] is False
+        and r.get("var") == "unset"
+    ]
+    if bad_snapshots:
+        print(
+            f"ℹ  {len(bad_snapshots)} inactive snapshot(s) still have an "
+            f"`active` workflow state. The 16.00 self-silencing pattern "
+            f"WILL prevent them from running real probes (variable "
+            f"unset → workflow exits 0 with `is_active=false`). The "
+            f"workflow file itself is harmless. If you want them fully "
+            f"silent at the GitHub Actions level too, re-run this CLI "
+            f"with `--apply` to disable them entirely:"
+        )
+        for r in bad_snapshots:
+            print(f"   · {r['repo']}")
+        # Not an error — the workflow self-silences. Inform only.
+    else:
+        print(
+            "✓ Every accessible inactive snapshot either has its workflow "
+            "disabled OR will self-silence at runtime."
+        )
+
+    print()
+    print(f"✓ Track 16.01 audit complete · active production source: {self_active_repos[0]}")
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# Main flow
+# ---------------------------------------------------------------------------
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Track 16.00 GitHub lifecycle manager",
@@ -276,11 +419,22 @@ def main() -> int:
         "--strip-required-checks", action="store_true",
         help="remove obsolete required status checks (needs admin scope)"
     )
+    parser.add_argument(
+        "--audit-active-repo", action="store_true",
+        help="Track 16.01 read-only audit: list all repos, classify, "
+             "report ACTIVE_PRODUCTION_SOURCE variable state, detect "
+             "duplicate active configuration. Requires PAT but never "
+             "mutates anything.",
+    )
     args = parser.parse_args()
 
-    if args.dry_run == args.apply:
-        # require exactly one of --dry-run / --apply
-        parser.error("specify exactly one of --dry-run or --apply")
+    if args.audit_active_repo:
+        # Audit mode is mutually exclusive with --apply/--dry-run.
+        if args.apply:
+            parser.error("--audit-active-repo cannot be combined with --apply")
+    else:
+        if args.dry_run == args.apply:
+            parser.error("specify exactly one of --dry-run or --apply")
 
     token = os.environ.get("GITHUB_PAT") or os.environ.get("GITHUB_TOKEN") or ""
     owner = os.environ.get("GITHUB_OWNER", "").strip()
@@ -298,9 +452,12 @@ def main() -> int:
     if "/" not in active:
         active = f"{owner}/{active}"
 
-    print(f"[lifecycle] owner={owner}  active={active}  mode={'apply' if args.apply else 'dry-run'}")
+    print(f"[lifecycle] owner={owner}  active={active}  mode={'audit' if args.audit_active_repo else ('apply' if args.apply else 'dry-run')}")
     print(f"[lifecycle] token: <{len(token)} chars · redacted>")
     print()
+
+    if args.audit_active_repo:
+        return _audit_active_repo(owner, active, token)
 
     repos = _list_repos(owner, token)
     print(f"[lifecycle] {len(repos)} repos enumerated")
