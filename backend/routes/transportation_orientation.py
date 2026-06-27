@@ -202,11 +202,14 @@ async def notify(db, *, kind: str, summary: str, audience: List[str],
         await db.transport_notifications.insert_one(notif_row)
     except Exception:  # noqa: BLE001
         pass
-    # Best-effort Email Routing v2 audit (Phase 4 actually fires).
+    # Best-effort Email Routing v2 audit (Phase 4 actually fires emails).
     try:
         from email_routing_v2 import resolve_and_audit as _v2  # noqa: PLC0415
-        await _v2(db, channel=f"transport_{kind}",
-                  audience=audience, payload=notif_row)
+        await _v2(db, route_key=f"TRANSPORT_{kind.upper()}",
+                  legacy_provider=None,
+                  subject=summary,
+                  calling_module="transportation_orientation",
+                  dry_run=True)
     except Exception:  # noqa: BLE001
         pass
 
@@ -529,70 +532,7 @@ def register_transportation_orientation_routes(
             {"id": aid, "tenant": TENANT})
         if not a:
             raise HTTPException(404, "Assignment not found")
-        if a.get("status") not in ("watch_complete", "quiz_failed"):
-            raise HTTPException(409, "Video must be watched before quiz")
-        mod = await db.transport_orientation_modules.find_one(
-            {"id": a["module_id"], "tenant": TENANT})
-        if not mod:
-            raise HTTPException(404, "Module not found")
-        attempts = a.get("quiz_attempts") or []
-        if len(attempts) >= (mod.get("max_attempts") or QUIZ_MAX_ATTEMPTS_DEFAULT):
-            raise HTTPException(409, "Max quiz attempts reached")
-        # Grade.
-        qs = await db.transport_orientation_questions.find({
-            "tenant": TENANT, "module_id": a["module_id"],
-            "language": a["language"],
-        }).to_list(500)
-        qmap = {q["id"]: q for q in qs}
-        total = len(qmap)
-        if total == 0:
-            raise HTTPException(409, "No questions configured for this module/language")
-        correct = 0
-        for qid, choice in (body.answers or {}).items():
-            if qid in qmap and int(choice) == qmap[qid]["correct_index"]:
-                correct += 1
-        score = round(100 * correct / total)
-        attempt = {
-            "attempt": len(attempts) + 1, "score": score,
-            "ts": _now(), "answers": body.answers,
-        }
-        attempts.append(attempt)
-        best = max([attempt["score"]] + [int(a_.get("score") or 0)
-                                          for a_ in attempts])
-        passed = score >= (mod.get("passing_score") or PASSING_SCORE_DEFAULT)
-        new_status = "quiz_passed" if passed else "quiz_failed"
-        upd = {"quiz_attempts": attempts, "best_quiz_score": best,
-               "status": new_status,
-               "audit_version": (a.get("audit_version") or 1) + 1}
-        await db.transport_orientation_assignments.update_one(
-            {"_id": a["_id"]}, {"$set": upd})
-        await _audit(db, kind="transport_orientation_quiz_submit",
-                     entity_type="orientation_assignment", entity_id=aid,
-                     actor=actor, old=None,
-                     new={"score": score, "passed": passed,
-                          "attempt": attempt["attempt"]}, request=request)
-        if passed:
-            # Auto-generate certificate.
-            cert = await _issue_certificate(db, a, mod)
-            await db.transport_orientation_assignments.update_one(
-                {"_id": a["_id"]},
-                {"$set": {"status": "completed",
-                          "completed_at": _now(),
-                          "expires_at": (datetime.now(timezone.utc) +
-                                          timedelta(days=30 * ORIENTATION_VALID_MONTHS)).isoformat(),
-                          "certificate_id": cert["id"]}})
-            await notify(db, kind="driver_eligible",
-                         summary=f"Driver {a['transport_person_id']} completed {mod['key']} ({score}%)",
-                         audience=["admin", "dispatch"],
-                         meta={"assignment_id": aid, "certificate_id": cert["id"]})
-        else:
-            await notify(db, kind="orientation_reminder",
-                         summary=f"Quiz failed — retry available ({score}%)",
-                         audience=["admin"],
-                         meta={"assignment_id": aid})
-        return {"score": score, "passed": passed,
-                "attempt": attempt["attempt"],
-                "max_attempts": mod.get("max_attempts") or QUIZ_MAX_ATTEMPTS_DEFAULT}
+        return await _grade_and_finalize(db, a=a, body=body, request=request, actor=actor)
 
     # ============================ CERTIFICATES ============================
     @router.get("/admin/transportation/orientation/certificates/{cid}")
@@ -713,6 +653,279 @@ def register_transportation_orientation_routes(
                      meta={"invite_id": inv["id"], "carrier_id": inv["carrier_id"]})
         return {"ok": True, "invite_id": inv["id"], "status": "submitted"}
 
+    # ============================ DASHBOARD WIDGETS ============================
+    @router.get("/admin/transportation/orientation/dashboard")
+    async def orientation_dashboard(_: Any = Depends(require_admin_dep)):
+        # Required module count.
+        modules = await db.transport_orientation_modules.find(
+            {"tenant": TENANT, "active": True}).to_list(500)
+        required_modules = [m for m in modules if m.get("required")]
+        # Drivers in scope = transport_persons.
+        drivers = await db.transport_persons.find(
+            {"tenant": TENANT}).to_list(2000)
+        # Per-driver orientation status (lightweight inline compute).
+        from lib.transport_orientation_status import (  # noqa: PLC0415
+            derive_orientation_status,
+        )
+        per_driver = []
+        for d in drivers:
+            os_ = await derive_orientation_status(db, d.get("id"))
+            per_driver.append({"driver_id": d.get("id"), **os_})
+        total_drivers = len(drivers)
+        current = sum(1 for r in per_driver if r["orientation_status"] == "current")
+        missing = sum(1 for r in per_driver if r["orientation_status"] == "missing")
+        expired = sum(1 for r in per_driver if r["orientation_status"] == "expired")
+        failed = sum(1 for r in per_driver if r["orientation_status"] == "quiz_failed")
+        expiring = sum(1 for r in per_driver if r.get("expiring_soon"))
+        completion_pct = round(100.0 * current / total_drivers, 1) if total_drivers else 0.0
+        # Certificates.
+        certs = await db.transport_orientation_certificates.find(
+            {"tenant": TENANT}).to_list(5000)
+        thirty_iso = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
+        ninety_iso = (datetime.now(timezone.utc) - timedelta(days=90)).isoformat()
+        certs_30d = sum(1 for c in certs if (c.get("completed_at") or "") >= thirty_iso)
+        certs_90d = sum(1 for c in certs if (c.get("completed_at") or "") >= ninety_iso)
+        # Average quiz score (from assignments with best_quiz_score).
+        assigns = await db.transport_orientation_assignments.find(
+            {"tenant": TENANT, "best_quiz_score": {"$ne": None}}
+        ).to_list(5000)
+        avg_quiz = round(
+            sum(int(a.get("best_quiz_score") or 0) for a in assigns) /
+            max(1, len(assigns)), 1) if assigns else 0.0
+        return {
+            "modules_active": len(modules),
+            "modules_required": len(required_modules),
+            "drivers_total": total_drivers,
+            "drivers_orientation_current": current,
+            "drivers_orientation_missing": missing,
+            "drivers_orientation_expired": expired,
+            "drivers_orientation_quiz_failed": failed,
+            "drivers_expiring_soon": expiring,
+            "completion_pct": completion_pct,
+            "certificates_total": len(certs),
+            "certificates_30d": certs_30d,
+            "certificates_90d": certs_90d,
+            "average_quiz_score": avg_quiz,
+            "disclaimer": (
+                "MASCI Hauler Orientation — operational compliance for dispatch "
+                "eligibility. Not a replacement for DOT / FMCSA training."
+            ),
+        }
+
+    @router.get("/admin/transportation/orientation/certificates")
+    async def list_certificates(
+        person_id: Optional[str] = Query(None),
+        module_key: Optional[str] = Query(None),
+        limit: int = Query(500, ge=1, le=2000),
+        _: Any = Depends(require_admin_dep),
+    ):
+        q: Dict[str, Any] = {"tenant": TENANT}
+        if person_id:
+            q["transport_person_id"] = person_id
+        if module_key:
+            q["module_key"] = module_key
+        cur = db.transport_orientation_certificates.find(q).sort("completed_at", -1).limit(limit)
+        items = [_project(d) for d in await cur.to_list(limit)]
+        return {"count": len(items), "items": items}
+
+    # ============================ EXTERNAL PORTAL — ORIENTATION ============================
+    async def _invite_or_404(token: str) -> Dict[str, Any]:
+        token_hash = hashlib.sha256(token.encode()).hexdigest()
+        inv = await db.transport_invites.find_one(
+            {"token_hash": token_hash, "tenant": TENANT})
+        if not inv:
+            raise HTTPException(404, "Invite not found")
+        if inv.get("status") in ("expired", "revoked"):
+            raise HTTPException(410, f"Invite {inv['status']}")
+        if inv.get("expires_at") and inv["expires_at"] < _now():
+            await db.transport_invites.update_one(
+                {"_id": inv["_id"]},
+                {"$set": {"status": "expired"}})
+            raise HTTPException(410, "Invite expired")
+        return inv
+
+    @router.get("/transportation/invite/{token}/orientation/modules")
+    async def invite_list_modules(token: str):
+        await _invite_or_404(token)
+        cur = db.transport_orientation_modules.find(
+            {"tenant": TENANT, "active": True}).sort("key", 1)
+        items = []
+        for d in await cur.to_list(500):
+            items.append({
+                "id": d["id"], "key": d["key"], "title": d["title"],
+                "category": d["category"], "required": d.get("required", True),
+                "languages": d.get("languages") or list(LANGUAGES),
+                "runtime_seconds": d.get("runtime_seconds") or 0,
+                "passing_score": d.get("passing_score") or PASSING_SCORE_DEFAULT,
+                "placeholders": [
+                    {"language": ph["language"],
+                     "sky_asset_id": ph.get("sky_asset_id"),
+                     "runtime_seconds": ph.get("runtime_seconds") or 0,
+                     "thumbnail_url": ph.get("thumbnail_url"),
+                     "status": ph.get("status") or "placeholder"}
+                    for ph in (d.get("placeholders") or [])
+                ],
+            })
+        return {"items": items, "languages": list(LANGUAGES)}
+
+    @router.post("/transportation/invite/{token}/orientation/assignments")
+    async def invite_assign(token: str, body: AssignmentCreate, request: Request):
+        inv = await _invite_or_404(token)
+        if body.language not in LANGUAGES:
+            raise HTTPException(422, "language not supported")
+        person = await db.transport_persons.find_one(
+            {"id": body.transport_person_id, "tenant": TENANT})
+        if not person:
+            raise HTTPException(404, "Driver not found")
+        # Driver must belong to the carrier on the invite.
+        if person.get("carrier_id") != inv.get("carrier_id"):
+            raise HTTPException(403, "Driver not associated with invite carrier")
+        mod = await db.transport_orientation_modules.find_one(
+            {"key": body.module_key, "tenant": TENANT})
+        if not mod:
+            raise HTTPException(404, "Module not found")
+        # Idempotent — if already assigned and not completed, return existing.
+        existing = await db.transport_orientation_assignments.find_one({
+            "tenant": TENANT,
+            "transport_person_id": body.transport_person_id,
+            "module_key": body.module_key,
+            "status": {"$in": ["assigned", "in_progress", "watch_complete",
+                                "quiz_failed"]},
+        })
+        if existing:
+            return _project(existing)
+        now = _now()
+        doc = {
+            "id": uuid.uuid4().hex, "tenant": TENANT,
+            "transport_person_id": body.transport_person_id,
+            "module_id": mod["id"], "module_key": mod["key"],
+            "language": body.language, "status": "assigned",
+            "watch_seconds": 0.0, "position_seconds": 0.0,
+            "checkpoints_visited": [], "completion_pct": 0.0,
+            "quiz_attempts": [], "best_quiz_score": None,
+            "completed_at": None, "expires_at": None,
+            "certificate_id": None, "assigned_at": now, "due_at": None,
+            "assigned_by": f"invite:{inv['id']}",
+            "invite_id": inv["id"],
+            "audit_version": 1,
+        }
+        await db.transport_orientation_assignments.insert_one(doc.copy())
+        await _audit(db, kind="transport_orientation_assigned",
+                     entity_type="orientation_assignment", entity_id=doc["id"],
+                     actor={"email": f"invite:{inv['id']}"},
+                     old=None, new=_project(doc), request=request)
+        return _project(doc)
+
+    @router.get("/transportation/invite/{token}/orientation/assignments/{aid}")
+    async def invite_get_assignment(token: str, aid: str):
+        inv = await _invite_or_404(token)
+        a = await db.transport_orientation_assignments.find_one(
+            {"id": aid, "tenant": TENANT})
+        if not a:
+            raise HTTPException(404, "Assignment not found")
+        person = await db.transport_persons.find_one(
+            {"id": a.get("transport_person_id"), "tenant": TENANT})
+        if not person or person.get("carrier_id") != inv.get("carrier_id"):
+            raise HTTPException(403, "Assignment not associated with invite")
+        return _project(a)
+
+    @router.post("/transportation/invite/{token}/orientation/assignments/{aid}/heartbeat")
+    async def invite_heartbeat(token: str, aid: str, body: HeartbeatPayload,
+                                request: Request):
+        inv = await _invite_or_404(token)
+        a = await db.transport_orientation_assignments.find_one(
+            {"id": aid, "tenant": TENANT})
+        if not a:
+            raise HTTPException(404, "Assignment not found")
+        person = await db.transport_persons.find_one(
+            {"id": a.get("transport_person_id"), "tenant": TENANT})
+        if not person or person.get("carrier_id") != inv.get("carrier_id"):
+            raise HTTPException(403, "Assignment not associated with invite")
+        if a.get("status") in ("completed", "expired"):
+            return _project(a)
+        mod = await db.transport_orientation_modules.find_one(
+            {"id": a["module_id"], "tenant": TENANT})
+        rt = max(1, mod.get("runtime_seconds")
+                 or _placeholder_runtime(mod, a["language"]))
+        prior = float(a.get("watch_seconds") or 0.0)
+        # CRITICAL no-skip rule: never accept a jump > (last_position + 30s).
+        # We accept absolute watched_seconds but server clamps to monotonic
+        # increase capped at runtime. A client trying to skip simply has its
+        # value clamped back to (prior + 30s) maximum per heartbeat.
+        delta_cap = prior + 30.0
+        new_watched = min(max(prior, body.watched_seconds), delta_cap, rt)
+        completion_pct = round(new_watched / rt, 4)
+        checkpoints = sorted(set(a.get("checkpoints_visited") or [])
+                             | set(body.checkpoints_visited or []))
+        upd = {
+            "watch_seconds": new_watched,
+            "position_seconds": min(body.position_seconds, new_watched),
+            "checkpoints_visited": checkpoints,
+            "completion_pct": completion_pct,
+            "status": "in_progress" if completion_pct < COMPLETION_WATCH_THRESHOLD
+                      else "watch_complete",
+            "audit_version": (a.get("audit_version") or 1) + 1,
+        }
+        await db.transport_orientation_assignments.update_one(
+            {"_id": a["_id"]}, {"$set": upd})
+        return {**_project(a), **upd}
+
+    @router.get("/transportation/invite/{token}/orientation/assignments/{aid}/quiz")
+    async def invite_quiz_load(token: str, aid: str):
+        inv = await _invite_or_404(token)
+        a = await db.transport_orientation_assignments.find_one(
+            {"id": aid, "tenant": TENANT})
+        if not a:
+            raise HTTPException(404, "Assignment not found")
+        person = await db.transport_persons.find_one(
+            {"id": a.get("transport_person_id"), "tenant": TENANT})
+        if not person or person.get("carrier_id") != inv.get("carrier_id"):
+            raise HTTPException(403, "Assignment not associated with invite")
+        if a.get("status") not in ("watch_complete", "quiz_failed"):
+            raise HTTPException(409, "Video must be fully watched before quiz")
+        cur = db.transport_orientation_questions.find({
+            "tenant": TENANT, "module_id": a["module_id"],
+            "language": a["language"],
+        })
+        questions = await cur.to_list(500)
+        import random
+        rng = random.Random(a["id"])
+        rng.shuffle(questions)
+        sanitized = [{
+            "id": q["id"], "prompt": q["prompt"],
+            "choices": q["choices"], "language": q["language"],
+        } for q in questions]
+        return {"items": sanitized,
+                "attempts": len(a.get("quiz_attempts") or []),
+                "max_attempts": QUIZ_MAX_ATTEMPTS_DEFAULT}
+
+    @router.post("/transportation/invite/{token}/orientation/assignments/{aid}/quiz")
+    async def invite_quiz_submit(token: str, aid: str, body: QuizSubmit,
+                                  request: Request):
+        inv = await _invite_or_404(token)
+        a = await db.transport_orientation_assignments.find_one(
+            {"id": aid, "tenant": TENANT})
+        if not a:
+            raise HTTPException(404, "Assignment not found")
+        person = await db.transport_persons.find_one(
+            {"id": a.get("transport_person_id"), "tenant": TENANT})
+        if not person or person.get("carrier_id") != inv.get("carrier_id"):
+            raise HTTPException(403, "Assignment not associated with invite")
+        return await _grade_and_finalize(db, a=a, body=body, request=request,
+                                         actor={"email": f"invite:{inv['id']}"})
+
+    @router.get("/transportation/invite/{token}/orientation/certificates")
+    async def invite_list_certificates(token: str):
+        inv = await _invite_or_404(token)
+        # Drivers under carrier.
+        drivers = await db.transport_persons.find(
+            {"tenant": TENANT, "carrier_id": inv["carrier_id"]}).to_list(500)
+        pid_set = {d["id"] for d in drivers}
+        certs = await db.transport_orientation_certificates.find(
+            {"tenant": TENANT, "transport_person_id": {"$in": list(pid_set)}}
+        ).sort("completed_at", -1).to_list(500)
+        return {"count": len(certs), "items": [_project(c) for c in certs]}
+
     app.include_router(router)
     return router
 
@@ -753,3 +966,73 @@ async def _issue_certificate(db, assignment: Dict[str, Any],
     }
     await db.transport_orientation_certificates.insert_one(doc.copy())
     return doc
+
+
+async def _grade_and_finalize(db, *, a: Dict[str, Any], body: "QuizSubmit",
+                              request: Request, actor: Any) -> Dict[str, Any]:
+    """Shared quiz grading + certificate issuance for admin + invite paths."""
+    if a.get("status") not in ("watch_complete", "quiz_failed"):
+        raise HTTPException(409, "Video must be watched before quiz")
+    mod = await db.transport_orientation_modules.find_one(
+        {"id": a["module_id"], "tenant": TENANT})
+    if not mod:
+        raise HTTPException(404, "Module not found")
+    attempts = a.get("quiz_attempts") or []
+    if len(attempts) >= (mod.get("max_attempts") or QUIZ_MAX_ATTEMPTS_DEFAULT):
+        raise HTTPException(409, "Max quiz attempts reached")
+    qs = await db.transport_orientation_questions.find({
+        "tenant": TENANT, "module_id": a["module_id"],
+        "language": a["language"],
+    }).to_list(500)
+    qmap = {q["id"]: q for q in qs}
+    total = len(qmap)
+    if total == 0:
+        raise HTTPException(409, "No questions configured for this module/language")
+    correct = 0
+    for qid, choice in (body.answers or {}).items():
+        if qid in qmap and int(choice) == qmap[qid]["correct_index"]:
+            correct += 1
+    score = round(100 * correct / total)
+    attempt = {
+        "attempt": len(attempts) + 1, "score": score,
+        "ts": _now(), "answers": body.answers,
+    }
+    attempts.append(attempt)
+    best = max([attempt["score"]] +
+               [int(a_.get("score") or 0) for a_ in attempts])
+    passed = score >= (mod.get("passing_score") or PASSING_SCORE_DEFAULT)
+    new_status = "quiz_passed" if passed else "quiz_failed"
+    upd = {"quiz_attempts": attempts, "best_quiz_score": best,
+           "status": new_status,
+           "audit_version": (a.get("audit_version") or 1) + 1}
+    await db.transport_orientation_assignments.update_one(
+        {"_id": a["_id"]}, {"$set": upd})
+    await _audit(db, kind="transport_orientation_quiz_submit",
+                 entity_type="orientation_assignment", entity_id=a["id"],
+                 actor=actor, old=None,
+                 new={"score": score, "passed": passed,
+                      "attempt": attempt["attempt"]}, request=request)
+    cert_id = None
+    if passed:
+        cert = await _issue_certificate(db, a, mod)
+        cert_id = cert["id"]
+        await db.transport_orientation_assignments.update_one(
+            {"_id": a["_id"]},
+            {"$set": {"status": "completed",
+                      "completed_at": _now(),
+                      "expires_at": (datetime.now(timezone.utc) +
+                                      timedelta(days=30 * ORIENTATION_VALID_MONTHS)).isoformat(),
+                      "certificate_id": cert["id"]}})
+        await notify(db, kind="driver_eligible",
+                     summary=f"Driver {a['transport_person_id']} completed {mod['key']} ({score}%)",
+                     audience=["admin", "dispatch"],
+                     meta={"assignment_id": a["id"], "certificate_id": cert["id"]})
+    else:
+        await notify(db, kind="orientation_reminder",
+                     summary=f"Quiz failed — retry available ({score}%)",
+                     audience=["admin"],
+                     meta={"assignment_id": a["id"]})
+    return {"score": score, "passed": passed,
+            "attempt": attempt["attempt"],
+            "max_attempts": mod.get("max_attempts") or QUIZ_MAX_ATTEMPTS_DEFAULT,
+            "certificate_id": cert_id}

@@ -15,6 +15,7 @@ import {
   CarriersList, DriversList, TrucksList,
   CarrierWorkspace, DriverWorkspace, TruckWorkspace,
 } from "./_lists";
+import { OrientationCenter } from "./_orientation";
 
 export default function TransportationApp() {
   return (
@@ -32,6 +33,7 @@ export default function TransportationApp() {
           <Route path="compliance" element={<ComplianceDashboard />} />
           <Route path="documents" element={<DocumentCenter />} />
           <Route path="inspections" element={<InspectionCenter />} />
+          <Route path="orientation/*" element={<OrientationCenter />} />
           <Route path="rate-schedules" element={<RateScheduleCenter />} />
           <Route path="audit" element={<AuditTimeline />} />
           <Route path="reports" element={<ReportsView />} />

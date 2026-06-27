@@ -193,6 +193,7 @@ REGRESSION_FILES = [
     # Inspection wizard, drag-and-drop document upload, signature pad,
     # rate-create dialog, per-entity compliance timeline, packet checklist.
     "/app/backend/tests/test_track_16_07_transportation_workflow_activation.py",
+    "/app/backend/tests/test_track_16_08_transportation_orientation.py",
 ]
 
 DEFAULT_BASE_URL = (

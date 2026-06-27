@@ -249,4 +249,11 @@ def test_identity_resolver_no_license_returns_none():
         return await ident.find_existing_leased_driver(
             db=None, tenant="masci", carrier_id="x", license_number=None,
         )
-    assert asyncio.get_event_loop().run_until_complete(go()) is None
+    # Use a private event loop to avoid pollution from earlier tests that
+    # call asyncio.run() (which closes the global loop and breaks the
+    # deprecated asyncio.get_event_loop() pattern under Python 3.11+).
+    loop = asyncio.new_event_loop()
+    try:
+        assert loop.run_until_complete(go()) is None
+    finally:
+        loop.close()

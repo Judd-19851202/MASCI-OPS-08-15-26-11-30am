@@ -188,7 +188,20 @@ async def _upsert_eligibility(db, *, target_type: str, target_id: str,
     (target_type, target_id, tenant). Returns the upserted document."""
     record_type_map = {"carrier": "carrier", "person": "person", "truck": "truck"}
     rt = record_type_map[target_type]
-    result = compute_transport_eligibility(rt, record, context)
+    ctx = dict(context or {})
+    # TRACK 16.08 · Inject orientation status into the eligibility context
+    # for drivers. The pure compute function reads ``orientation_status``
+    # and may flip the state to ``not_dispatchable``.
+    if target_type == "person":
+        try:
+            from lib.transport_orientation_status import (  # noqa: PLC0415
+                derive_orientation_status,
+            )
+            os_ctx = await derive_orientation_status(db, target_id)
+            ctx.setdefault("orientation_status", os_ctx["orientation_status"])
+        except Exception:  # noqa: BLE001
+            pass
+    result = compute_transport_eligibility(rt, record, ctx)
     row = {
         "tenant": TENANT,
         "target_type": target_type,

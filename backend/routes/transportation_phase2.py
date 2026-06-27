@@ -895,6 +895,15 @@ def register_transportation_phase2_routes(
         pkt_ctx: Dict[str, Any] = {}
         if person.get("kind") == "leased_driver" and person.get("carrier_id"):
             pkt_ctx = await _packet_eligibility_context(db, person["carrier_id"])
+        # TRACK 16.08 · orientation rollup.
+        _orient_ctx: Dict[str, Any] = {"orientation_status": "missing"}
+        try:
+            from lib.transport_orientation_status import (  # noqa: PLC0415
+                derive_orientation_status,
+            )
+            _orient_ctx = await derive_orientation_status(db, person.get("id"))
+        except Exception:  # noqa: BLE001
+            pass
         # Driver doc rollup.
         docs = await db.driver_documents.find(
             {"tenant": TENANT, "transport_person_id": person["id"]}
@@ -927,6 +936,7 @@ def register_transportation_phase2_routes(
             "expired_required_docs": expired,
             "docs_needs_correction": needs_corr,
             "ppe_issue": ppe_issue,
+            "orientation_status": _orient_ctx.get("orientation_status", "missing"),
         }
 
     async def _upsert_elig_row(db, *, target_type: str, target_id: str,

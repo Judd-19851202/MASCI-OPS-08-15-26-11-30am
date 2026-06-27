@@ -51,6 +51,8 @@ import NewQaqcInspection from "@/pages/NewQaqcInspection";
 import ViewQaqcInspection from "@/pages/ViewQaqcInspection";
 import AdminQaqcList from "@/pages/AdminQaqcList";
 import AdminTransportation from "@/pages/AdminTransportation";
+import ExternalCarrierInvite from "@/pages/transportation/ExternalCarrierInvite";
+import CertificateVerify from "@/pages/transportation/CertificateVerify";
 import Dashboard from "@/pages/Dashboard";
 import Revise from "@/pages/Revise";
 import NewInspection from "@/pages/NewInspection";
@@ -507,6 +509,9 @@ function App() {
             <Route path="/trench-safety/report"         element={<PublicTrenchSafetyReport />} />
             {/* Phase 3 · Trench Safety Operations System — public mobile QR landing */}
             <Route path="/trench-safety/assets/:assetId" element={<TrenchSafetyQrLanding />} />
+            {/* TRACK 16.08 · Public External Carrier Invite Portal + Certificate Verify */}
+            <Route path="/transport-invite/:token" element={<ExternalCarrierInvite />} />
+            <Route path="/transport-verify/:cnum" element={<CertificateVerify />} />
 
             <Route path="/incidents/new" element={<NewIncident />} />
             <Route path="/incidents/submit" element={<NewIncident publicMode />} />

@@ -12854,6 +12854,29 @@ async def _track_16_05_bootstrap_on_startup():
             f"[track-16-05-bootstrap] non-fatal: {exc}")
 
 
+# TRACK 16.08 · Transportation Orientation, Notification & External
+# Onboarding Platform. Module catalog · video player heartbeat · quiz
+# engine · certificate engine · secure external invite portal. All
+# orientation routes mounted via this single router. Bootstrap seeds
+# 22 default modules across 4 languages.
+from routes.transportation_orientation import (  # noqa: E402
+    register_transportation_orientation_routes,
+    bootstrap_track_16_08,
+)
+register_transportation_orientation_routes(
+    app, db, require_admin_dep=require_admin_strict,
+)
+
+
+@app.on_event("startup")
+async def _track_16_08_bootstrap_on_startup():
+    try:
+        await bootstrap_track_16_08(db)
+    except Exception as exc:  # noqa: BLE001
+        logging.getLogger(__name__).warning(
+            f"[track-16-08-bootstrap] non-fatal: {exc}")
+
+
 # PROJECT-IDENTITY-005 · Project Identity Governance · /api/admin/project-identity/*
 # Detection-only drift sentinel. Never auto-mutates source records or jobs_master.
 # Operator controls every resolution (match / leave_unmatched / intentional / dismiss).
