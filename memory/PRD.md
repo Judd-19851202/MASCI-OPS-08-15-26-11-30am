@@ -11,6 +11,48 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-06-27 · TRACK 16.05 · Transportation Onboarding & Compliance Center Phase 2 · ✅ GO)
+
+### Mission
+Convert the existing MASCI hauler packet into a native digital workflow on top of the Track 16.04 foundation. Versioned rate schedule ($85/hr default), R2-backed carrier+driver document intake, full packet status machine, MASCI Hauler Truck Readiness Inspection (operational readiness only — explicitly NOT DOT/FMCSA replacement), real-time dashboard endpoints.
+
+### Verdict
+✅ **GO** — 74/74 regression tests pass (24 from 16.04 + 50 from 16.05) in 0.15 s · live end-to-end verified (bootstrap creates default $85/hr rate · v2 activation retires v1 · inspection complete derives `ready` with 12-month expiration · dispatch readiness-summary returns full buckets + disclaimer).
+
+### What shipped
+* `lib/transport_phase2.py` — constants, requirements catalog (15 entries), 40-item inspection checklist, disclaimer, idempotent `bootstrap_track_16_05(db)`.
+* `lib/transport_eligibility.py` — Phase-2 truth table extended for packet · rate ack · doc rollup · inspection result · driver PPE.
+* `routes/transportation_phase2.py` — rate schedules (CRUD + activate), packet workflow (8 endpoints with transition guards), carrier + driver document upload to R2 + review, MASCI Hauler Truck Readiness Inspection lifecycle, dispatch read-only dashboards.
+* `server.py` — startup hook calling `bootstrap_track_16_05(db)`; idempotent across restarts.
+* `tests/test_track_16_05_transportation_onboarding_compliance_center.py` — 50 regression tests.
+* `scripts/deployment_gate.py` — wired.
+* `memory/TRACK_16_05_TRANSPORTATION_ONBOARDING_COMPLIANCE_CENTER.md` — full deliverable.
+
+### Rate schedule
+Default $85.00/hour USD seeded at startup (idempotent). Versioned: new draft → `/activate` retires the prior active. Each packet locks the rate_schedule_id active at creation. Preserves exact MASCI language (0:15→2h · 2:01→4h · 4:01→6h · 6:01+ pays actual + 1h travel · standby 2h · ticket due 5 PM Tuesday · FleetWatcher-only · 0.15h unauthorized stop / 1h hot asphalt / loss-of-asphalt chargeback).
+
+### Packet workflow
+`transport_packet_submissions` per carrier. Closed-set transitions. Approval guards: rate locked · all required documents accepted · no expired or needs-correction required docs. Bell notifications on submitted + needs_correction.
+
+### Document intake
+`carrier_documents` + `driver_documents` collections. R2-backed via existing `photo_storage.upload_photo_bytes`. **No bytes in Mongo.** Review statuses: pending_review / accepted / needs_correction / expired / not_applicable. Audit on upload + review.
+
+### MASCI Hauler Truck Readiness Inspection
+`transport_truck_inspections` collection. Disclaimer stamped on every record AND every dispatch readiness response. 40-item checklist across 5 categories (Exterior · Lights · Markings · Cab · PPE) with 26 critical items. Item statuses: pass / needs_correction / not_applicable / not_observed. Result statuses: ready / pending_correction / not_ready / expired. **Never** failed/rejected/denied. Inspection triggers cover initial onboarding, annual recertification, random, safety, customer complaint, incident, vehicle replacement, major modification, management/dispatch/safety requested. Default expiration 12 months · configurable. Photo evidence stored as R2 keys.
+
+### Eligibility (Phase 2 truth-table additions)
+Leased truck without ready inspection → `not_dispatchable`. Inspection expired → `expired`. Inspection not_ready → `not_dispatchable`. Inspection pending_correction → `needs_correction`. Driver PPE issue on long-pants / shirt / boots / acknowledgement → `not_dispatchable`. Missing required docs → `needs_correction`. Expired required docs → `expired`. Needs-correction docs → `needs_correction`. Rate not acknowledged → blocks via `rate_not_acknowledged`.
+
+### Deferrals (do NOT ship in Phase 2)
+No-skip orientation video engine · orientation player · quizzes · certificates · carrier portal login · public invite links · external carrier emails (5 routes documented, not fired) · dispatch hard-block enforcement · payment calculator · carrier scorecards.
+
+### Next recommended track
+Track 16.06 — Phase 3: orientation engine + quizzes + certificates + carrier portal invite link + Email Routing v2 wiring for the 5 documented routes + UI surface for packet/documents/inspection.
+
+Ledger: `/app/memory/TRACK_16_05_TRANSPORTATION_ONBOARDING_COMPLIANCE_CENTER.md`.
+
+---
+
 ## Latest Track (2026-06-27 · TRACK 16.04 · MASCI Transportation Foundation Phase 1 · ✅ GO)
 
 ### Mission

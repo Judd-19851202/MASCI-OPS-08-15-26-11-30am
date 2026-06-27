@@ -181,6 +181,10 @@ REGRESSION_FILES = [
     # carriers / transport_persons / transport_trucks / eligibility
     # skeleton data model, identity dedup, audit, and RBAC posture.
     "/app/backend/tests/test_track_16_04_transportation_foundation.py",
+    # TRACK 16.05 · Transportation Onboarding & Compliance Center (Phase 2)
+    # — rate schedules, carrier+driver documents (R2), packet workflow,
+    # MASCI Hauler Truck Readiness Inspection, eligibility integration.
+    "/app/backend/tests/test_track_16_05_transportation_onboarding_compliance_center.py",
 ]
 
 DEFAULT_BASE_URL = (

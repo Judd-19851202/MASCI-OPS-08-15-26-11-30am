@@ -12824,6 +12824,27 @@ register_transportation_routes(
     require_dispatch_or_admin_dep=_shared_dispatch_or_admin,
 )
 
+# TRACK 16.05 · Transportation Onboarding & Compliance Center (Phase 2).
+# Rate schedules · carrier+driver documents · packet workflow · MASCI
+# Hauler Truck Readiness Inspection · dashboards. Idempotent bootstrap
+# of default rate schedule + requirements catalog at startup.
+from routes.transportation_phase2 import register_transportation_phase2_routes  # noqa: E402
+register_transportation_phase2_routes(
+    app, db,
+    require_admin_dep=require_admin_strict,
+    require_dispatch_or_admin_dep=_shared_dispatch_or_admin,
+)
+
+
+@app.on_event("startup")
+async def _track_16_05_bootstrap_on_startup():
+    try:
+        from lib.transport_phase2 import bootstrap_track_16_05
+        await bootstrap_track_16_05(db)
+    except Exception as exc:  # noqa: BLE001
+        logging.getLogger(__name__).warning(
+            f"[track-16-05-bootstrap] non-fatal: {exc}")
+
 
 # PROJECT-IDENTITY-005 · Project Identity Governance · /api/admin/project-identity/*
 # Detection-only drift sentinel. Never auto-mutates source records or jobs_master.

@@ -1,0 +1,32 @@
+{
+  "summary": "TRACK 16.05 Phase 2 backend live smoke + static regression PASSED. Verified all 21 features in review_request against preview backend with live admin (jaymn.judd@mascigc.com) and dispatch (dispatch@mascigc.com) tokens. 50 static tests + 19 live e2e tests (1 skipped) all green. End-to-end happy path executed: rate-schedule create→activate→retire→PATCH 409 · packet create with active rate_schedule_id + invalid-transition 409 + approve-missing-docs 409 · carrier+driver multipart upload returning file_key (no raw bytes) · doc review status validation (Rejected→422) · inspection start with full checklist + disclaimer + masci_hauler_readiness type · complete-all-pass→result=ready+expires_at · invalid item status (Failed)→422 · eligibility v2 truck without inspection→inspection_missing reason · eligibility v2 truck with ready inspection but no packet→rate-not-acknowledged · dispatch readiness endpoint (anon 401, dispatch 200, disclaimer present) · readiness-summary with by_target+policy_default_months=12+documents+disclaimer · packet-status with packet+eligibility+context · public routes /api/transportation/invite & /api/transportation/public→404.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/admin/transportation/carriers/{cid}/documents", "issue": "Document type names in implementation differ from review_request spec (review uses short names: 'sunbiz', 'mcs', 'insurance', 'lien', 'payment_pickup'; implementation uses descriptive long names: 'sunbiz_certificate', 'mcs_company_snapshot', 'insurance_certificate', 'lien_release_authorization', 'payment_pickup_authorization'). Functionality correct, naming is spec drift only — confirm with PM which is canonical."},
+      {"endpoint": "POST /api/admin/transportation/trucks/{tid}/inspections", "issue": "Checklist contains 42 items (not 40 per review_request spec). Additional items appear acceptable; confirm with PM whether spec or implementation is canonical."}
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_track_16_05_live_smoke.py",
+    "/app/backend/tests/test_track_16_05_transportation_onboarding_compliance_center.py",
+    "/app/test_reports/pytest/track_16_05_live_smoke.xml"
+  ],
+  "action_items": [
+    "Confirm canonical naming for carrier document_type enum (short vs long form) — update either review_request or impl",
+    "Confirm canonical checklist size (40 vs 42 items) — adjust spec or trim impl"
+  ],
+  "critical_code_review_comments": [
+    "transportation_phase2.py is 1021 lines — borderline of file-size guideline (>700 lines should split). Suggest splitting into rate-schedules, packets, documents, inspections, dashboards modules.",
+    "Audit endpoint not probed from a public-facing admin route (audit verified via static tests only). If exposed, consider documenting it for ops monitoring."
+  ],
+  "updated_files": ["/app/backend/tests/test_track_16_05_live_smoke.py"],
+  "success_rate": {"backend": "100% (69/69 executed; 1 skipped audit-probe)", "frontend": "n/a (backend only)"},
+  "test_credentials": "Admin: jaymn.judd@mascigc.com / Maddix123! (via POST /api/auth/multi-login → portal_tokens.admin). Dispatch: dispatch@mascigc.com / DispatchTest2026! (via POST /api/dispatch/login → token). Both confirmed working live.",
+  "seed_data_creation": "Live test created TEST_-prefixed rate schedules (draft v + activated), packet rows, carrier_documents + driver_documents, transport_trucks (leased_carrier+dump_truck), transport_persons (leased_driver), and transport_truck_inspections (initial_onboarding + safety_concern triggers). Cleanup-by-PATCH only per Phase 2 policy (no DELETE).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Live e2e is in /app/backend/tests/test_track_16_05_live_smoke.py. Run with `REACT_APP_BACKEND_URL=<url> pytest tests/test_track_16_05_live_smoke.py -v`. Uses real preview backend. Hit a couple of 502s from Cloudflare during testing — retry on transient failure. Document type strings ARE the long descriptive form ('sunbiz_certificate' etc.), checklist has 42 items not 40 — both noted as spec-vs-impl drift only.",
+  "rca of the issue": "No bugs found. Two spec-drift notes (doc type names, checklist count) flagged for PM clarification, not bugs."
+}
