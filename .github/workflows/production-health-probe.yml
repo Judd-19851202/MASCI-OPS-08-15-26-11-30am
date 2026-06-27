@@ -1,33 +1,47 @@
 name: production-health-probe
 
-# TRACK 15.97 · production-health-probe workflow consolidated.
+# TRACK 16.00 · GitHub Repository Lifecycle Hardening.
 #
-# Earlier history:
-#   * 15.34B added a real `schedule` + `workflow_dispatch` probe with a
-#     job-level `if:` guard.
-#   * 15.56 added a sibling PR-noop workflow with the same `name:` so the
-#     branch-protection required check would resolve on pull_request.
-#   * That setup triggered the canonical GitHub Actions UI failure
-#     "This check has no steps" — when two workflows share a `name`,
-#     GitHub's required-check resolution is non-deterministic and the
-#     job-level `if:` guard on the real probe would skip ALL steps,
-#     surfacing the empty-job failure on pull_request runs.
+# Permanent fix for the snapshot-repo notification noise. Replaces all
+# prior workflow shapes (15.34B job-level if, 15.56 noop sibling, 15.97
+# consolidated dual-workflow).
 #
-# 15.97 fix:
-#   * ONE workflow file, ONE workflow name, ONE job named `probe`.
-#   * Job has NO job-level `if:` guard. The job always runs to completion.
-#   * Step-level conditionals decide which probes run on which event
-#     (so a job never has zero executable steps).
-#   * Public probes ALWAYS run on every event (health + version).
-#   * Authenticated readiness probe runs only on schedule + manual
-#     (never on pull_request — secrets are not exposed to PR runs).
-#   * Diagnostic summary always published, on success and failure.
+# Mechanism
+# ---------
+# This workflow self-silences on every repository that is not the
+# active production source. The check uses a GitHub Actions repository
+# **variable** named ACTIVE_PRODUCTION_SOURCE:
 #
-# Triggers:
-#   * schedule           → every 15 minutes (real production heartbeat)
+#   * GitHub repository variables live at the repository-settings level,
+#     NOT in the source tree. They are NOT copied when Emergent's
+#     "Save to GitHub" snapshot mechanism clones a repo into a new
+#     dated snapshot. (Repository secrets behave the same way.)
+#   * Therefore: a freshly-created snapshot repo has NO variable set,
+#     this workflow's "am I the active source?" gate evaluates false,
+#     and only a single named status step runs. The cron + PR triggers
+#     still resolve so branch-protection required checks resolve green,
+#     but no probe HTTP calls fire and no failure email is generated.
+#   * The active production repo is the ONE repo where an operator (or
+#     the Emergent deploy pipeline) has explicitly set the variable to
+#     match `${{ github.repository }}`. That repo — and only that repo —
+#     runs the real probes.
+#
+# Bootstrap of the active variable on first deploy is documented in
+#   /app/memory/TRACK_16_00_GITHUB_LIFECYCLE.md
+# and a one-shot CLI is provided at
+#   /app/scripts/github_lifecycle_manager.py
+# to backfill snapshot repos that pre-date this change.
+#
+# Customer expectation: after the one-time backfill, ZERO manual
+# cleanup is ever required again — every future snapshot is silent
+# from the instant it is created.
+#
+# Triggers
+# --------
+#   * schedule           → real heartbeat every 15 min (active repo only)
 #   * workflow_dispatch  → manual "Run workflow" button
 #   * pull_request       → green check for branch-protection requirement
-#                          (runs ONLY the public probes, no secrets used)
+#                          (always runs the gate step; silent on snapshots)
 
 on:
   schedule:
@@ -38,11 +52,6 @@ on:
 permissions:
   contents: read
 
-# A pull_request run and a 15-minute schedule run can legitimately be in
-# flight at the same time — they are different shapes of probe and
-# should not cancel each other. We scope concurrency per event so that
-# repeated dispatches of the same kind coalesce, but cross-kind runs
-# proceed independently.
 concurrency:
   group: production-health-probe-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: false
@@ -53,37 +62,74 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
-    # NO job-level `if:` — every event runs at least the public probes,
-    # so the GitHub UI never has to render "this check has no steps."
+    # NO job-level `if:`. Step-level gating only — the job ALWAYS has
+    # at least one executable step, so the GitHub UI cannot render
+    # "this check has no steps" under any trigger.
 
     env:
       PROD_URL: ${{ secrets.PROD_URL || 'https://mascidocs.com' }}
+      ACTIVE_PRODUCTION_SOURCE: ${{ vars.ACTIVE_PRODUCTION_SOURCE }}
 
     steps:
-      - name: Resolve event context
-        id: ctx
+      # =====================================================
+      # STEP 1 — Lifecycle gate. ALWAYS runs. Single source of
+      # truth for "is this repo the active production source?"
+      # =====================================================
+      - name: Resolve repository lifecycle role
+        id: lifecycle
         run: |
           set -eu
-          echo "event=${{ github.event_name }}"
-          echo "ref=${{ github.ref }}"
-          echo "target=${PROD_URL}"
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "is_pr=true"  >> "$GITHUB_OUTPUT"
+          repo="${{ github.repository }}"
+          active="${ACTIVE_PRODUCTION_SOURCE:-}"
+          event="${{ github.event_name }}"
+          echo "event:  $event"
+          echo "repo:   $repo"
+          if [ -z "$active" ]; then
+            echo "is_active=false" >> "$GITHUB_OUTPUT"
+            echo "role=snapshot_or_unconfigured" >> "$GITHUB_OUTPUT"
+            echo "::notice::Repository variable ACTIVE_PRODUCTION_SOURCE is not set on this repo — classifying as snapshot / inactive. Probes will NOT run."
+            {
+              echo "## production-health-probe · silent (snapshot / inactive)"
+              echo ""
+              echo "- repo: \`$repo\`"
+              echo "- event: \`$event\`"
+              echo "- \`vars.ACTIVE_PRODUCTION_SOURCE\` is **unset** → this repo is operationally silent by design (Track 16.00)."
+              echo ""
+              echo "This is the **expected** state for every dated MASCI snapshot. No production probe runs here. No alert email will be generated."
+              echo ""
+              echo "If this repo IS supposed to be the active production source for mascidocs.com, set the repository variable in **Settings → Secrets and variables → Actions → Variables** to \`$repo\`."
+            } >> "$GITHUB_STEP_SUMMARY"
+          elif [ "$active" = "$repo" ]; then
+            echo "is_active=true" >> "$GITHUB_OUTPUT"
+            echo "role=active_production" >> "$GITHUB_OUTPUT"
+            echo "This repository IS the active production source. Probes will run."
+            {
+              echo "## production-health-probe · active production source"
+              echo ""
+              echo "- repo: \`$repo\`"
+              echo "- event: \`$event\`"
+              echo "- target: \`$PROD_URL\`"
+            } >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "is_pr=false" >> "$GITHUB_OUTPUT"
+            echo "is_active=false" >> "$GITHUB_OUTPUT"
+            echo "role=snapshot_explicit" >> "$GITHUB_OUTPUT"
+            echo "::notice::This repo is not the active production source (active = $active). Probes will NOT run."
+            {
+              echo "## production-health-probe · silent (non-active snapshot)"
+              echo ""
+              echo "- repo: \`$repo\`"
+              echo "- active production source per \`vars.ACTIVE_PRODUCTION_SOURCE\`: \`$active\`"
+              echo "- This repo is intentionally silent."
+            } >> "$GITHUB_STEP_SUMMARY"
           fi
-          {
-            echo "## production-health-probe · target ${PROD_URL}"
-            echo ""
-            echo "- event: \`${{ github.event_name }}\`"
-            echo "- ref:   \`${{ github.ref }}\`"
-          } >> "$GITHUB_STEP_SUMMARY"
 
-      # ---------------------------------------------------------------
-      # PUBLIC PROBE 1 — /api/health
-      # Runs on EVERY event. No secrets required.
-      # ---------------------------------------------------------------
+      # =====================================================
+      # The remaining steps run ONLY when the lifecycle gate
+      # classifies this repo as the active production source.
+      # =====================================================
+
       - name: GET /api/health
+        if: steps.lifecycle.outputs.is_active == 'true'
         id: probe_health
         run: |
           set -eu
@@ -97,7 +143,6 @@ jobs:
             echo "::error::/api/health returned HTTP ${status} (expected 200)"
             exit 1
           fi
-          # JSON sanity — must include ok=true
           python3 - "$tmp" <<'PY'
           import json, sys
           j = json.load(open(sys.argv[1]))
@@ -105,12 +150,8 @@ jobs:
           print("✓ /api/health ok=true · service=" + str(j.get("service")))
           PY
 
-      # ---------------------------------------------------------------
-      # PUBLIC PROBE 2 — /api/version
-      # Runs on EVERY event. Confirms the deployed build identifies
-      # itself as production with the canonical DB name.
-      # ---------------------------------------------------------------
       - name: GET /api/version
+        if: steps.lifecycle.outputs.is_active == 'true'
         id: probe_version
         run: |
           set -eu
@@ -126,28 +167,18 @@ jobs:
           python3 - "$tmp" <<'PY'
           import json, sys
           j = json.load(open(sys.argv[1]))
-          app_env = j.get("app_env")
-          db_name = j.get("db_name")
-          release = j.get("release")
-          uptime  = j.get("uptime_s")
-          print(f"  app_env={app_env} · db_name={db_name} · release={release} · uptime_s={uptime}")
-          assert app_env == "production", f"app_env={app_env!r} (expected 'production')"
-          assert db_name == "masci_safety", f"db_name={db_name!r} (expected 'masci_safety')"
-          assert release, "release/source_hash is empty"
-          print("✓ /api/version OK")
+          assert j.get("app_env") == "production", f"app_env={j.get('app_env')!r}"
+          assert j.get("db_name") == "masci_safety", f"db_name={j.get('db_name')!r}"
+          assert j.get("release"), "release/source_hash is empty"
+          print(f"✓ /api/version OK · release={j.get('release')[:12]}… · uptime_s={j.get('uptime_s')}")
           PY
 
-      # ---------------------------------------------------------------
-      # PRIVATE PROBE — /api/admin/deployment-readiness
-      # Runs ONLY on schedule + workflow_dispatch. NEVER on PR.
-      # PR runs do not have access to production credentials.
-      # If credentials are not set even on scheduled runs (e.g. fresh
-      # repo install), the step is skipped with a clear notice — NOT
-      # a failure. The schedule still passes on public probes.
-      # ---------------------------------------------------------------
+      # Authenticated readiness check — only runs on schedule/manual,
+      # AND only when this is the active repo, AND only when secrets
+      # are configured. Never on pull_request. Never on snapshots.
       - name: Detect admin credentials availability
+        if: steps.lifecycle.outputs.is_active == 'true' && github.event_name != 'pull_request'
         id: creds
-        if: steps.ctx.outputs.is_pr == 'false'
         env:
           _EMAIL: ${{ secrets.OPS_ADMIN_EMAIL }}
           _PASS:  ${{ secrets.OPS_ADMIN_PASSWORD }}
@@ -161,7 +192,7 @@ jobs:
           fi
 
       - name: GET /api/admin/deployment-readiness
-        if: steps.ctx.outputs.is_pr == 'false' && steps.creds.outputs.have == 'true'
+        if: steps.lifecycle.outputs.is_active == 'true' && github.event_name != 'pull_request' && steps.creds.outputs.have == 'true'
         env:
           OPS_ADMIN_EMAIL:    ${{ secrets.OPS_ADMIN_EMAIL }}
           OPS_ADMIN_PASSWORD: ${{ secrets.OPS_ADMIN_PASSWORD }}
@@ -186,7 +217,6 @@ jobs:
             exit 1
           fi
           echo "  admin token length: ${#admin_tok}"
-          # Now hit the readiness gate.
           rdy_tmp=$(mktemp)
           rstatus=$(curl -sS --max-time 20 -o "$rdy_tmp" -w "%{http_code}" \
             -H "X-Admin-Token: ${admin_tok}" \
@@ -203,10 +233,7 @@ jobs:
           decision = j.get("decision")
           blocking = j.get("blocking_gates") or []
           bootstrap = j.get("bootstrap") or {}
-          score = j.get("trust_score")
-          band  = j.get("trust_band")
-          print(f"  decision={decision} · trust_score={score} · trust_band={band}")
-          print(f"  blocking_gates={len(blocking)}  bootstrap={{'ran': {bootstrap.get('ran')}, 'ok': {bootstrap.get('ok')}}}")
+          print(f"  decision={decision} · trust_score={j.get('trust_score')} · band={j.get('trust_band')}")
           if decision != "pass":
               for g in blocking[:5]:
                   print(f"   BLOCK: {g.get('id')} · {g.get('summary')}")
@@ -219,34 +246,3 @@ jobs:
               raise SystemExit("Track 15.93 bootstrap reported ok=false")
           print("✓ readiness gate PASS")
           PY
-
-      # ---------------------------------------------------------------
-      # SUMMARY — always runs, success or failure.
-      # ---------------------------------------------------------------
-      - name: Publish step summary
-        if: always()
-        run: |
-          {
-            echo ""
-            echo "### Results"
-            echo "- /api/health:  ${{ steps.probe_health.outcome }}"
-            echo "- /api/version: ${{ steps.probe_version.outcome }}"
-            if [ "${{ steps.ctx.outputs.is_pr }}" = "true" ]; then
-              echo "- /api/admin/deployment-readiness: skipped (pull_request — secrets not exposed)"
-            elif [ "${{ steps.creds.outputs.have }}" = "true" ]; then
-              echo "- /api/admin/deployment-readiness: ${{ steps.creds.outputs.have && 'ran' || 'skipped' }}"
-            else
-              echo "- /api/admin/deployment-readiness: skipped (no admin secrets configured)"
-            fi
-            echo ""
-            if [ "${{ job.status }}" = "success" ]; then
-              echo "**Probe result: ✅ PASS**"
-            else
-              echo "**Probe result: ❌ FAIL**"
-              echo ""
-              echo "### Operator triage"
-              echo "1. Open ${PROD_URL}/api/health — if it returns \`{\"ok\":true,...}\` the failure was transient runner-side noise."
-              echo "2. If health is also down, check the Emergent deploy dashboard for the production pod status."
-              echo "3. If readiness gate fails, inspect \`/api/admin/deployment-readiness\` directly with super-admin credentials."
-            fi
-          } >> "$GITHUB_STEP_SUMMARY"

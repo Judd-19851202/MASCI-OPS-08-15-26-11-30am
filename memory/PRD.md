@@ -11,6 +11,41 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-06-26 · TRACK 16.00 · GitHub Repository Lifecycle Hardening · ✅ implemented)
+
+### Mission
+Permanently eliminate the customer-facing problem of dated MASCI snapshot repositories emitting GitHub Actions failure emails for `production-health-probe` ("This check has no steps"). Solve it once; never require customer GitHub cleanup again.
+
+### Permanent fix
+* The workflow now **self-silences** on every repo that is not the active production source. Gate: `vars.ACTIVE_PRODUCTION_SOURCE`.
+* GitHub repository variables are NOT copied to snapshots/forks, so every future Emergent snapshot is operationally silent from creation — zero customer action required.
+* The active production repo runs the real probes only when its `ACTIVE_PRODUCTION_SOURCE` variable equals `github.repository`. One-time bootstrap; no rotation needed.
+
+### Deliverables
+| Artefact | Path | Purpose |
+|---|---|---|
+| Self-silencing workflow | `/app/.github/workflows/production-health-probe.yml` | replaces Track 15.97 shape; lifecycle-gate first step always runs (no empty-job failure); probe steps gate on `steps.lifecycle.outputs.is_active == 'true'`. |
+| Lifecycle CLI | `/app/scripts/github_lifecycle_manager.py` | operator-facing one-shot backfill: enumerate repos under `Judd-19851202`, classify (active/snapshot/unrelated), disable stale probe workflows on inactive snapshots, optionally strip obsolete required-status checks. Env-only PAT; token never printed/stored. |
+| Regression suite | `/app/backend/tests/test_track_16_00_github_lifecycle_hardening.py` | 18 static guards: no job-level `if:`, lifecycle gate reads `vars.ACTIVE_PRODUCTION_SOURCE`, all probe steps step-gated, CLI never echoes PAT, CLI never modifies active repo. |
+| Doc | `/app/memory/TRACK_16_00_GITHUB_LIFECYCLE.md` | mechanism explanation + bootstrap procedure + one-time backfill instructions (UI + CLI). |
+| Gate wiring | `/app/scripts/deployment_gate.py` | Track 16.00 file appended to permanent regression list. |
+
+### Customer contract
+* Future snapshots (any new "Save to GitHub" from this build forward): **automatically silent. Zero customer work.**
+* Existing snapshots (predate Track 16.00): one-time five-minute cleanup via GitHub UI **or** one CLI invocation. After that single pass, the problem cannot recur.
+
+### Platform-level note
+Emergent's snapshot-creation flow could additionally disable Actions repo-wide on every new snapshot it creates (`PATCH /repos/{owner}/{repo} { has_actions: false }`). That would be a bullet-proof second layer outside MASCI's reach. Recommend Emergent Support consider implementing it. The workflow-level self-silencing implemented here is the maximum that can be guaranteed from the application side and is sufficient on its own.
+
+### Verification
+* Workflow YAML parses (PyYAML).
+* `jobs.probe.if` is absent — empty-job failure pattern impossible.
+* 18/18 Track 16.00 tests PASS · 16/16 updated Track 15.97 tests PASS.
+* Full deployment gate: PASS (333 tests).
+* MASCI app code: untouched.
+
+
+
 ## Latest Track (2026-06-26 · TRACK 15.93 · Zero-Touch Production Deployment Hardening · ✅ GO)
 
 ### Mission

@@ -168,6 +168,15 @@ REGRESSION_FILES = [
     # GitHub "this check has no steps" empty-job failure, and locks
     # step-level gating + secret-handling invariants.
     "/app/backend/tests/test_track_15_97_github_actions_health_probe.py",
+    # TRACK 16.00 · GitHub Repository Lifecycle Hardening — replaces
+    # the consolidated 15.97 workflow with a self-silencing pattern
+    # gated by the `vars.ACTIVE_PRODUCTION_SOURCE` GitHub variable.
+    # Repository variables are NOT copied to snapshots/forks so every
+    # future Emergent snapshot becomes operationally silent from
+    # creation, with zero customer cleanup ever required. Also locks
+    # the lifecycle-manager CLI contract (env-only token, no active-
+    # repo mutation, snapshot-only targeting).
+    "/app/backend/tests/test_track_16_00_github_lifecycle_hardening.py",
 ]
 
 DEFAULT_BASE_URL = (

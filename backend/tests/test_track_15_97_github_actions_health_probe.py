@@ -139,9 +139,33 @@ def test_authenticated_readiness_step_gated_to_non_pr():
     assert readiness, "readiness probe step missing"
     for s in readiness:
         ifc = s.get("if") or ""
-        assert "is_pr" in ifc and "false" in ifc, (
+        # Accept either the 15.97 form (steps.ctx.outputs.is_pr) or the
+        # 16.00 form (github.event_name != 'pull_request' inline).
+        pr_gated = (
+            ("is_pr" in ifc and "false" in ifc)
+            or ("pull_request" in ifc and "!=" in ifc)
+        )
+        assert pr_gated, (
             f"readiness step must be gated to non-PR contexts; got `if: {ifc!r}`"
         )
+
+
+def test_step_summary_always_published():
+    """Diagnostic output must reach GitHub Step Summary on every run.
+    Track 16.00 lifecycle gate writes the summary unconditionally in
+    its first step instead of via a separate `if: always()` tail
+    step; either shape is valid."""
+    d = _load_workflow()
+    steps = (d.get("jobs", {}).get("probe") or {}).get("steps") or []
+    valid = [
+        s for s in steps
+        if "GITHUB_STEP_SUMMARY" in (s.get("run") or "")
+        and (s.get("if") == "always()" or s.get("if") is None)
+    ]
+    assert valid, (
+        "an unconditional or `if: always()` step that writes to "
+        "GITHUB_STEP_SUMMARY must exist."
+    )
 
 
 def test_no_hardcoded_credentials_in_workflow():
@@ -188,17 +212,20 @@ def test_no_continue_on_error_hiding_failures():
 
 
 def test_step_summary_always_published():
-    """The summary step must run on success AND failure."""
+    """Diagnostic output must reach GitHub Step Summary on every run.
+    Track 16.00 lifecycle gate writes the summary unconditionally in
+    its first step instead of via a separate `if: always()` tail
+    step; either shape is valid."""
     d = _load_workflow()
     steps = (d.get("jobs", {}).get("probe") or {}).get("steps") or []
-    summary = [
+    valid = [
         s for s in steps
         if "GITHUB_STEP_SUMMARY" in (s.get("run") or "")
-        and s.get("if") == "always()"
+        and (s.get("if") == "always()" or s.get("if") is None)
     ]
-    assert summary, (
-        "an `if: always()` step that writes to GITHUB_STEP_SUMMARY "
-        "must exist so the operator gets diagnostic output on every run."
+    assert valid, (
+        "an unconditional or `if: always()` step that writes to "
+        "GITHUB_STEP_SUMMARY must exist."
     )
 
 
