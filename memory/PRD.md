@@ -11,6 +11,45 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-06-27 · TRACK 16.06 · Transportation Experience Layer · ✅ GO)
+
+### Mission
+Transform the Track 16.04 Phase-1 CRUD page into a true Transportation Compliance Center. One landing dashboard surfaces transportation health in 5 seconds; native sub-nav exposes 10 sections (Dashboard · Carriers · Drivers · Trucks · Compliance · Documents · Inspections · Rate Schedules · Audit Timeline · Reports). Workspace pages for each carrier/driver/truck. Read-only backend aggregation — no duplicate identity, no duplicate storage, no duplicate audit system, no new public surface.
+
+### Verdict
+✅ **GO** — 110/110 static regression (24+50+36) in 0.19s · testing agent retest 100% backend (19 live + 36 static + 93 Phase 1/2 regression with zero regression). Compliance score returns 0 on empty fleet (fixed misleading 100). Route-shadow bug discovered + fixed + locked by `test_36_experience_layer_registers_before_phase2_to_avoid_path_shadow`.
+
+### What shipped
+* Backend: `routes/transportation_experience.py` — 7 read-only aggregation endpoints (dashboard · documents queue · inspections queue · audit timeline · 3 workspace endpoints). Admin-strict, read-only. Compliance score returns 0 on empty fleet.
+* Frontend: `pages/transportation/TransportationApp.jsx` + `_shared.jsx` + `_views.jsx` + `_lists.jsx` — 12 surfaces, 4 reusable primitives (Chip, PageHeader, ComingSoon, EmptyState).
+* Mounting: `App.js` route changed to `/admin/transportation/*` (nested routing).
+* Tests: `test_track_16_06_transportation_experience_layer.py` — 36 regression tests. Wired into deployment_gate.
+
+### Routes added (all admin-strict, read-only)
+* `GET /api/admin/transportation/dashboard` — KPI tiles + compliance score + active rate + state buckets + disclaimer
+* `GET /api/admin/transportation/documents/queue` — unified carrier + driver document queue
+* `GET /api/admin/transportation/inspections/queue` — truck inspection queue + disclaimer
+* `GET /api/admin/transportation/audit-timeline` — transportation-scoped audit
+* `GET /api/admin/transportation/carriers/{id}/workspace` — carrier aggregate
+* `GET /api/admin/transportation/persons/{id}/workspace` — driver aggregate with HR linkage
+* `GET /api/admin/transportation/trucks/{id}/workspace` — truck aggregate with inspection history
+
+### UI surfaces
+12 sub-routes mounted under `/admin/transportation/*`: dashboard, carrier list + workspace (6 tabs), driver list + workspace, truck list + workspace, compliance, documents, inspections, rate-schedules, audit, reports. Every deferred capability surfaces as a `ComingSoon` chip — no clickable dead buttons.
+
+### Deferrals
+Orientation engine · quiz engine · certificates · Sky AI · carrier portal login · public invite · external carrier emails · dispatch hard-block · inline upload widget (API works; widget is 16.07) · inline packet checklist signature · inline rate-create flow · CSV exports.
+
+### Risks
+Route-ordering hazard between experience layer literal paths and Phase 2 `{iid}` paths — mitigated by `test_36` which statically asserts the registration order in `server.py`. Cloudflare WAF blocks the playwright pod from interactive frontend testing on the preview shell (operator-facing browser is the canonical UI smoke path).
+
+### Next recommended track
+**Track 16.07 — Transportation Workflow Activation**: inline drag-and-drop document upload · inline rate create/activate · inline packet checklist with digital signature · inline Readiness Inspection wizard · CSV exports · Email Routing v2 wiring for the 5 documented future routes.
+
+Ledger: `/app/memory/TRACK_16_06_TRANSPORTATION_EXPERIENCE_LAYER.md`.
+
+---
+
 ## Latest Track (2026-06-27 · TRACK 16.05 · Transportation Onboarding & Compliance Center Phase 2 · ✅ GO)
 
 ### Mission
