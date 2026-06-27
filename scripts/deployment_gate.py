@@ -189,6 +189,10 @@ REGRESSION_FILES = [
     # router, dashboard/document/inspection/audit aggregation endpoints,
     # carrier/driver/truck workspaces, no duplicate identity/storage/audit.
     "/app/backend/tests/test_track_16_06_transportation_experience_layer.py",
+    # TRACK 16.07 · Transportation Workflow Activation — inline Readiness
+    # Inspection wizard, drag-and-drop document upload, signature pad,
+    # rate-create dialog, per-entity compliance timeline, packet checklist.
+    "/app/backend/tests/test_track_16_07_transportation_workflow_activation.py",
 ]
 
 DEFAULT_BASE_URL = (

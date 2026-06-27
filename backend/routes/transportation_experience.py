@@ -254,6 +254,67 @@ def register_transportation_experience_routes(
         rows = [_project(d) for d in await cur.to_list(limit)]
         return {"count": len(rows), "items": rows}
 
+    # ─────────────────────── Per-entity Compliance Timeline ───────────────────────
+    @router.get("/admin/transportation/timeline/{entity_type}/{entity_id}")
+    async def entity_timeline(
+        entity_type: str, entity_id: str,
+        limit: int = Query(200, ge=1, le=1000),
+        _: Any = Depends(require_admin_dep),
+    ):
+        """TRACK 16.07 · Per-entity Compliance Timeline.
+
+        Returns the full audit lineage for one carrier, driver, or truck
+        — ordered ASC so the operator reads creation → current state."""
+        if entity_type not in ("carrier", "person", "truck"):
+            raise HTTPException(422, "entity_type must be carrier|person|truck")
+        # Collect direct audit rows for this entity.
+        cur = db.audit_events.find({
+            "tenant": TENANT, "entity_id": entity_id,
+        }).sort("ts", 1).limit(limit)
+        direct = [_project(d) for d in await cur.to_list(limit)]
+
+        # Plus indirect rows (e.g., documents/inspections/packet referencing
+        # this entity — we widen the timeline so the operator sees the
+        # whole onboarding story without context-switching).
+        related: List[Dict[str, Any]] = []
+        if entity_type == "carrier":
+            # Documents + packet + inspections-on-trucks-of-this-carrier.
+            doc_ids = [d["id"] async for d in db.carrier_documents.find(
+                {"tenant": TENANT, "carrier_id": entity_id}, {"id": 1})]
+            pkt_ids = [d["id"] async for d in db.transport_packet_submissions.find(
+                {"tenant": TENANT, "carrier_id": entity_id}, {"id": 1})]
+            truck_ids = [d["id"] async for d in db.transport_trucks.find(
+                {"tenant": TENANT, "carrier_id": entity_id}, {"id": 1})]
+            insp_ids = []
+            if truck_ids:
+                insp_ids = [d["id"] async for d in db.transport_truck_inspections.find(
+                    {"tenant": TENANT, "transport_truck_id": {"$in": truck_ids}}, {"id": 1})]
+            all_ids = list(set(doc_ids + pkt_ids + insp_ids))
+            if all_ids:
+                cur2 = db.audit_events.find({
+                    "tenant": TENANT, "entity_id": {"$in": all_ids}
+                }).sort("ts", 1).limit(limit)
+                related = [_project(d) for d in await cur2.to_list(limit)]
+        elif entity_type == "person":
+            doc_ids = [d["id"] async for d in db.driver_documents.find(
+                {"tenant": TENANT, "transport_person_id": entity_id}, {"id": 1})]
+            if doc_ids:
+                cur2 = db.audit_events.find({
+                    "tenant": TENANT, "entity_id": {"$in": doc_ids}
+                }).sort("ts", 1).limit(limit)
+                related = [_project(d) for d in await cur2.to_list(limit)]
+        elif entity_type == "truck":
+            insp_ids = [d["id"] async for d in db.transport_truck_inspections.find(
+                {"tenant": TENANT, "transport_truck_id": entity_id}, {"id": 1})]
+            if insp_ids:
+                cur2 = db.audit_events.find({
+                    "tenant": TENANT, "entity_id": {"$in": insp_ids}
+                }).sort("ts", 1).limit(limit)
+                related = [_project(d) for d in await cur2.to_list(limit)]
+        combined = direct + related
+        combined.sort(key=lambda r: r.get("ts") or "")
+        return {"count": len(combined), "items": combined}
+
     # ─────────────────────── Workspace aggregators ───────────────────────
     @router.get("/admin/transportation/carriers/{cid}/workspace")
     async def carrier_workspace(cid: str, _: Any = Depends(require_admin_dep)):

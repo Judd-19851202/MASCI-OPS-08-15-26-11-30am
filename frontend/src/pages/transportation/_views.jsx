@@ -10,7 +10,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import {
   Users, Building2, Truck as TruckIcon, AlertTriangle, CheckCircle2,
-  ClipboardCheck, FileText, DollarSign, History, RefreshCw, Search,
+  ClipboardCheck, FileText, DollarSign, History, RefreshCw, Search, Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,7 @@ import { Progress } from "@/components/ui/progress";
 import {
   Chip, PageHeader, ComingSoon, EmptyState, txGet, STATE_LABEL,
 } from "./_shared";
+import { RateCreateDialog, InspectionWizard } from "./_widgets";
 
 // ───────────────────────── Dashboard ─────────────────────────
 export function TransportationDashboard() {
@@ -257,26 +258,65 @@ export function DocumentCenter() {
                   <th className="px-3 py-2">Uploaded</th>
                   <th className="px-3 py-2">Expires</th>
                   <th className="px-3 py-2">Status</th>
+                  <th className="px-3 py-2 text-right">Review</th>
                 </tr>
               </thead>
               <tbody>
                 {items.map((d) => (
-                  <tr key={d.id} className="border-t border-slate-100" data-testid={`doc-row-${d.id}`}>
-                    <td className="px-3 py-2 font-medium">{d.document_type}</td>
-                    <td className="px-3 py-2 text-slate-600">{d.scope}</td>
-                    <td className="px-3 py-2 truncate max-w-xs" title={d.original_filename}>{d.original_filename || "—"}</td>
-                    <td className="px-3 py-2 text-slate-600">{(d.uploaded_at || "").slice(0, 10)}</td>
-                    <td className="px-3 py-2 text-slate-600">{d.expires_at ? d.expires_at.slice(0, 10) : "—"}</td>
-                    <td className="px-3 py-2"><Chip value={d.status} /></td>
-                  </tr>
+                  <DocRow key={d.id} doc={d} onChanged={load} />
                 ))}
               </tbody>
             </table>
           </div>
         )
       )}
-      <ComingSoon feature="In-line review actions (Accept / Needs Correction)" testid="doc-review-coming-soon" />
     </div>
+  );
+}
+
+function DocRow({ doc, onChanged }) {
+  const [busy, setBusy] = useState(false);
+  async function review(status) {
+    setBusy(true);
+    try {
+      const path = doc.scope === "carrier"
+        ? `/admin/transportation/documents/${doc.id}/review`
+        : `/admin/transportation/driver-documents/${doc.id}/review`;
+      const { api } = await import("@/lib/api");
+      const { adminHeaders } = await import("./_shared");
+      await api.patch(path, { status }, { headers: adminHeaders() });
+      onChanged && onChanged();
+    } finally { setBusy(false); }
+  }
+  return (
+    <tr className="border-t border-slate-100" data-testid={`doc-row-${doc.id}`}>
+      <td className="px-3 py-2 font-medium">{doc.document_type}</td>
+      <td className="px-3 py-2 text-slate-600">{doc.scope}</td>
+      <td className="px-3 py-2 truncate max-w-xs" title={doc.original_filename}>{doc.original_filename || "—"}</td>
+      <td className="px-3 py-2 text-slate-600">{(doc.uploaded_at || "").slice(0, 10)}</td>
+      <td className="px-3 py-2 text-slate-600">{doc.expires_at ? doc.expires_at.slice(0, 10) : "—"}</td>
+      <td className="px-3 py-2"><Chip value={doc.status} /></td>
+      <td className="px-3 py-2 text-right">
+        {doc.status !== "accepted" && (
+          <Button
+            size="sm" variant="ghost"
+            onClick={() => review("accepted")}
+            disabled={busy}
+            data-testid={`doc-accept-${doc.id}`}
+            className="text-emerald-700 hover:bg-emerald-50"
+          >Accept</Button>
+        )}
+        {doc.status !== "needs_correction" && (
+          <Button
+            size="sm" variant="ghost"
+            onClick={() => review("needs_correction")}
+            disabled={busy}
+            data-testid={`doc-needs-correction-${doc.id}`}
+            className="text-amber-700 hover:bg-amber-50"
+          >Needs Correction</Button>
+        )}
+      </td>
+    </tr>
   );
 }
 
@@ -287,6 +327,9 @@ export function InspectionCenter() {
   const [loading, setLoading] = useState(true);
   const [trigger, setTrigger] = useState("");
   const [result, setResult] = useState("");
+  const [trucks, setTrucks] = useState([]);
+  const [selectedTruck, setSelectedTruck] = useState("");
+  const [wizardOpen, setWizardOpen] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -297,6 +340,8 @@ export function InspectionCenter() {
       const r = await txGet("/admin/transportation/inspections/queue", params);
       setItems(r.data.items || []);
       setDisclaimer(r.data.disclaimer || "");
+      const t = await txGet("/admin/transportation/trucks");
+      setTrucks(t.data.items || []);
     } finally {
       setLoading(false);
     }
@@ -308,6 +353,25 @@ export function InspectionCenter() {
       <PageHeader
         title="Inspection Center"
         subtitle="MASCI Hauler Truck Readiness Inspections · operational readiness only."
+        right={
+          <div className="flex items-center gap-2">
+            <Select value={selectedTruck} onValueChange={setSelectedTruck}>
+              <SelectTrigger className="w-56" data-testid="insp-launcher-truck-select">
+                <SelectValue placeholder="Select truck…" />
+              </SelectTrigger>
+              <SelectContent>
+                {trucks.map((t) => <SelectItem key={t.id} value={t.id}>{t.truck_number} · {t.ownership}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Button
+              onClick={() => setWizardOpen(true)}
+              disabled={!selectedTruck}
+              data-testid="insp-launcher-start-btn"
+            >
+              <ClipboardCheck className="h-4 w-4 mr-1" />Start Inspection
+            </Button>
+          </div>
+        }
       />
       <div className="flex flex-wrap items-end gap-3" data-testid="insp-filters">
         <div>
@@ -375,6 +439,14 @@ export function InspectionCenter() {
           {disclaimer}
         </div>
       )}
+
+      <InspectionWizard
+        open={wizardOpen}
+        onClose={() => setWizardOpen(false)}
+        truckId={selectedTruck}
+        onComplete={() => load()}
+        testid="insp-center-wizard"
+      />
     </div>
   );
 }
@@ -383,6 +455,7 @@ export function InspectionCenter() {
 export function RateScheduleCenter() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -403,7 +476,12 @@ export function RateScheduleCenter() {
       <PageHeader
         title="Rate Schedules"
         subtitle="Versioned hourly rate. Historic packets always retain their original locked rate."
-        right={<Button variant="outline" onClick={load} data-testid="rate-refresh"><RefreshCw className="h-4 w-4 mr-1" />Refresh</Button>}
+        right={
+          <>
+            <Button variant="outline" onClick={load} data-testid="rate-refresh"><RefreshCw className="h-4 w-4 mr-1" />Refresh</Button>
+            <Button onClick={() => setDialogOpen(true)} data-testid="rate-new-btn"><Plus className="h-4 w-4 mr-1" />New Version</Button>
+          </>
+        }
       />
 
       {active && (
@@ -459,7 +537,11 @@ export function RateScheduleCenter() {
           </tbody>
         </table>
       </div>
-      <ComingSoon feature="Inline rate creation + activation" testid="rate-create-coming-soon" />
+      <RateCreateDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        onCreated={() => load()}
+      />
     </div>
   );
 }

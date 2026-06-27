@@ -1,0 +1,49 @@
+{
+  "summary": "TRACK 16.07 — Transportation Workflow Activation tested both backend + frontend. ONE real backend contract gap found: GET /api/admin/transportation/timeline/{entity_type}/{entity_id} returns 200 {count:0, items:[]} for an unknown id instead of the 404 promised by the review request and the agent-to-agent context note. All other contract bullets verified live: 401 anonymous, 422 bad entity_type, 200 with sorted combined events for carrier/person/truck. 41/41 static regression pass, 110/110 prior Track 16.04+16.05+16.06 static tests still pass, 38/38 Track 16.05+16.06 live smoke still pass (no regression). Frontend: all 5 widgets (PacketChecklist, DocumentDropzone, InspectionWizard, RateCreateDialog, ComplianceTimeline) verified rendered with their data-testids; zero *-coming-soon testids remain in the activated surfaces (carrier-packet-checklist-coming-soon, carrier-doc-upload-coming-soon, rate-create-coming-soon, doc-review-coming-soon all GONE).",
+  "backend_issues": {
+    "critical": [
+      {
+        "endpoint": "GET /api/admin/transportation/timeline/{entity_type}/{entity_id}",
+        "issue": "Unknown entity_id returns 200 {count:0, items:[]} instead of 404. Review request explicitly states '404 unknown id' and Track 16.06 workspace endpoints already enforce 404 for unknown ids — this new endpoint should match that contract. Repro: GET /api/admin/transportation/timeline/carrier/ghost-xyz-doesnt-exist with valid admin token → 200 (expected 404). Fix: add an existence check on the {entity_type} collection (carriers / transport_persons / transport_trucks) before assembling the timeline, raise HTTPException(404, ...) if not found.",
+        "priority": "HIGH"
+      }
+    ],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_track_16_07_transportation_workflow_activation.py",
+    "/app/backend/tests/test_track_16_07_live_smoke.py",
+    "/app/test_reports/pytest/track_16_07_static.xml",
+    "/app/test_reports/pytest/track_16_07_live.xml",
+    "/app/test_reports/pytest/track_16_phase12_regression.xml",
+    "/app/test_reports/pytest/track_16_phase12_live.xml"
+  ],
+  "action_items": [
+    "Backend: in /app/backend/routes/transportation_experience.py entity_timeline() (around line 268), look up the entity in the appropriate collection (db.carriers / db.transport_persons / db.transport_trucks) and raise HTTPException(404) when missing — to match the 'unknown id → 404' contract and parity with the existing carrier/driver/truck workspace endpoints (which already 404 correctly).",
+    "Update the static regression test_track_16_07 to add an AST/string check that the entity_timeline implementation calls find_one (or equivalent) and raises HTTPException(404) before building the timeline, so the contract is permanently locked.",
+    "Once 404 fix lands, re-run /app/backend/tests/test_track_16_07_live_smoke.py — test_timeline_unknown_id_returns_404 should flip to PASS (currently FAIL)."
+  ],
+  "critical_code_review_comments": [
+    "entity_timeline() in transportation_experience.py silently returns an empty list for non-existent entity_ids. This is dangerous in two ways: (1) operators can be misled into thinking 'no audit trail' for a typo'd id, and (2) it contradicts the 404 contract every other workspace endpoint in this surface enforces. Fix is a 4-line existence check.",
+    "Response shape is {count, items} — the static test_track_16_07 tests only string-match for the route registration, not for the shape, so future drift won't be caught. Recommend a static assertion that the function body still contains 'items' and 'count' keys (so the frontend ComplianceTimeline can't be silently broken by a key rename).",
+    "Frontend coverage is excellent: every activated surface (Carrier Packet/Documents, Truck Inspection start, Inspection Center launcher, Rate Center New Version, Document Center inline Accept/NeedsCorrection, all 3 workspace ComplianceTimelines) has data-testids and renders against real Phase 1/2 endpoints. No new write endpoints were introduced — verified via the registration-order regression test_36."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_track_16_07_live_smoke.py (new — 9 live tests against preview backend)"
+  ],
+  "success_rate": {
+    "backend": "8/9 live (89%) + 41/41 static + 110/110 prior-track regression + 38/38 prior-track live. Single live failure = the 404-on-unknown-id contract gap.",
+    "frontend": "100% structural — all 16.07 widgets/testids verified present in their surfaces; 0 *-coming-soon remain. (Workflow execution e.g. actual file-upload through dropzone not E2E exercised because the test environment lacks fake camera/file fixtures; widget contracts + testids verified.)"
+  },
+  "test_credentials": "Admin: jaymn.judd@mascigc.com / Maddix123! via POST /api/auth/multi-login → portal_tokens.admin (verified live; cookie session also lands on /admin and /admin/transportation cleanly).",
+  "seed_data_creation": "None — used existing carrier/driver/truck rows from prior Track 16.04+16.05 cycles. Live timeline verified against carrier 538a30f0de2543aa8b532e5fba45ce86 (returned ~14 timeline rows spanning carrier create, packet submit, document upload events).",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "After main agent adds the 404 existence check, retest only /app/backend/tests/test_track_16_07_live_smoke.py::test_timeline_unknown_id_returns_404 (it currently FAILS with 200). All other tests (41 static + 8 live + 110 regression + 38 prior live) already GREEN. UI testing requires admin login via /admin/login form using data-testid='admin-email-input' / 'admin-password-input' / 'admin-login-submit'. Routes verified: /admin/transportation, /admin/transportation/carriers, /admin/transportation/carriers/{id}, /admin/transportation/trucks, /admin/transportation/trucks/{id}, /admin/transportation/rate-schedules, /admin/transportation/documents, /admin/transportation/inspections. The Cloudflare WAF rate-limit warning in the review note did NOT block this run.",
+  "rca of the issue": "ROOT CAUSE: The new entity_timeline() handler in /app/backend/routes/transportation_experience.py (line 258-316) skips entity existence validation. It goes straight to db.audit_events.find({tenant, entity_id}) which returns an empty cursor for non-existent ids, then returns {count:0, items:[]}. REPRO: with valid admin token GET /api/admin/transportation/timeline/carrier/ghost-xyz → HTTP 200 (expected 404). MITIGATION: insert `entity = await db.{collection_for_type}.find_one({'id': entity_id, 'tenant': TENANT}); if not entity: raise HTTPException(404, f'{entity_type} not found')` right after the entity_type validation block (after line 269) — pattern is already used in carrier_workspace/driver_workspace/truck_workspace handlers immediately below in the same file. EVIDENCE: live curl + pytest /app/backend/tests/test_track_16_07_live_smoke.py::test_timeline_unknown_id_returns_404 fails AssertionError 200==404."
+}

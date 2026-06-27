@@ -16,6 +16,20 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Chip, PageHeader, ComingSoon, EmptyState, txGet,
 } from "./_shared";
+import {
+  DocumentDropzone, InspectionWizard, ComplianceTimeline, PacketChecklist,
+} from "./_widgets";
+
+const CARRIER_DOC_TYPES = [
+  "sunbiz_certificate", "mcs_company_snapshot", "w9", "insurance_certificate",
+  "hauling_agreement", "vehicle_registration", "lien_release_authorization",
+  "payment_pickup_authorization", "other",
+];
+const DRIVER_DOC_TYPES = [
+  "cdl", "medical_card", "clearinghouse", "driver_license",
+  "dot_certification", "drug_alcohol_acknowledgement",
+  "orientation_acknowledgement_placeholder", "other",
+];
 
 function useStateFilter() {
   const [params] = useSearchParams();
@@ -426,25 +440,24 @@ export function CarrierWorkspace() {
         </TabsContent>
 
         <TabsContent value="packet" className="mt-4" data-testid="carrier-pane-packet">
-          {data.packet ? (
-            <Card title="Latest Packet">
-              <Row label="Status" value={<Chip value={data.packet.status} />} />
-              <Row label="Packet Version" value={data.packet.packet_version} />
-              <Row label="Rate Schedule" value={data.packet.rate_schedule_id?.slice(0, 8) + "…"} />
-              <Row label="Created" value={(data.packet.created_at || "").slice(0, 10)} />
-              {data.packet.submitted_at && <Row label="Submitted" value={(data.packet.submitted_at || "").slice(0, 10)} />}
-              {data.packet.reviewed_by && <Row label="Reviewed by" value={data.packet.reviewed_by} />}
-              {data.packet.correction_notes && <Row label="Correction Notes" value={data.packet.correction_notes} />}
-            </Card>
-          ) : (
-            <EmptyState title="No packet started for this carrier yet" testid="carrier-no-packet" />
-          )}
-          <div className="mt-3"><ComingSoon feature="Packet checklist + digital signature flow" testid="carrier-packet-checklist-coming-soon" /></div>
+          <PacketChecklist
+            carrierId={id}
+            packet={data.packet}
+            onChanged={() => load()}
+          />
         </TabsContent>
 
         <TabsContent value="documents" className="mt-4" data-testid="carrier-pane-documents">
+          <DocumentDropzone
+            kind="carrier"
+            parentId={id}
+            documentTypes={CARRIER_DOC_TYPES}
+            onUploaded={() => load()}
+            testid="carrier-doc-dropzone"
+          />
+          <div className="mt-4">
           {data.documents?.length === 0 ? (
-            <EmptyState title="No carrier documents uploaded" testid="carrier-no-docs" />
+            <EmptyState title="No carrier documents uploaded yet" hint="Drag a file above to upload — every file streams directly to MASCI R2 storage." testid="carrier-no-docs" />
           ) : (
             <div className="overflow-x-auto border border-slate-200 rounded">
               <table className="w-full text-sm" data-testid="carrier-docs-table">
@@ -471,7 +484,7 @@ export function CarrierWorkspace() {
               </table>
             </div>
           )}
-          <div className="mt-3"><ComingSoon feature="Drag-and-drop upload" testid="carrier-doc-upload-coming-soon" /></div>
+          </div>
         </TabsContent>
 
         <TabsContent value="rates" className="mt-4" data-testid="carrier-pane-rates">
@@ -493,6 +506,8 @@ export function CarrierWorkspace() {
       <div className="text-xs text-slate-400 border-t border-slate-100 pt-3" data-testid="carrier-ws-disclaimer">
         {data.disclaimer}
       </div>
+
+      <ComplianceTimeline entityType="carrier" entityId={id} testid="carrier-ws-timeline" />
     </div>
   );
 }
@@ -562,8 +577,16 @@ export function DriverWorkspace() {
       )}
 
       <Card title="Documents" testid="driver-ws-docs">
+        <DocumentDropzone
+          kind="driver"
+          parentId={id}
+          documentTypes={DRIVER_DOC_TYPES}
+          onUploaded={() => load()}
+          testid="driver-doc-dropzone"
+        />
+        <div className="mt-4">
         {data.documents?.length === 0 ? (
-          <EmptyState title="No driver documents uploaded" testid="driver-no-docs" />
+          <EmptyState title="No driver documents uploaded yet" hint="Drag a file above (CDL, medical card, Clearinghouse query, etc.)." testid="driver-no-docs" />
         ) : (
           <table className="w-full text-sm" data-testid="driver-docs-table">
             <thead className="bg-slate-50 text-left">
@@ -586,7 +609,10 @@ export function DriverWorkspace() {
             </tbody>
           </table>
         )}
+        </div>
       </Card>
+
+      <ComplianceTimeline entityType="person" entityId={id} testid="driver-ws-timeline" />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <ComingSoon feature="Orientation engine" testid="driver-orientation-coming-soon" />
@@ -603,6 +629,7 @@ export function TruckWorkspace() {
   const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [wizardOpen, setWizardOpen] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -654,20 +681,25 @@ export function TruckWorkspace() {
       </div>
 
       <Card title="Latest Readiness Inspection" testid="truck-latest-insp-card">
-        {latest ? (
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <Chip value={latest.result} testid="truck-latest-insp-chip" />
-              <span className="text-xs text-slate-500">
-                {(latest.inspected_at || "").slice(0, 10)} · expires {latest.expires_at ? latest.expires_at.slice(0, 10) : "—"}
-              </span>
-            </div>
-            <div className="text-xs text-slate-500">Inspector: {latest.inspector_name || "—"}</div>
-            <div className="text-xs text-slate-500">Trigger: {(latest.trigger || "—").replace(/_/g, " ")}</div>
+        <div className="flex items-center justify-between mb-2">
+          <div>
+            {latest ? (
+              <>
+                <Chip value={latest.result} testid="truck-latest-insp-chip" />
+                <div className="text-xs text-slate-500 mt-1">
+                  {(latest.inspected_at || "").slice(0, 10)} · expires {latest.expires_at ? latest.expires_at.slice(0, 10) : "—"}
+                </div>
+                <div className="text-xs text-slate-500">Inspector: {latest.inspector_name || "—"}</div>
+                <div className="text-xs text-slate-500">Trigger: {(latest.trigger || "—").replace(/_/g, " ")}</div>
+              </>
+            ) : (
+              <div className="text-sm text-slate-500">A MASCI Hauler Truck Readiness Inspection is required before this truck can haul.</div>
+            )}
           </div>
-        ) : (
-          <EmptyState title="No inspections yet" hint="A MASCI Hauler Truck Readiness Inspection is required before this truck can haul." testid="truck-no-inspection" />
-        )}
+          <Button size="sm" onClick={() => setWizardOpen(true)} data-testid="truck-start-inspection-btn">
+            <ClipboardCheck className="h-4 w-4 mr-1" />Start New Inspection
+          </Button>
+        </div>
       </Card>
 
       {data.inspections && data.inspections.length > 1 && (
@@ -700,6 +732,16 @@ export function TruckWorkspace() {
       <div className="text-xs text-slate-400 border-t border-slate-100 pt-3" data-testid="truck-ws-disclaimer">
         {data.disclaimer}
       </div>
+
+      <ComplianceTimeline entityType="truck" entityId={id} testid="truck-ws-timeline" />
+
+      <InspectionWizard
+        open={wizardOpen}
+        onClose={() => setWizardOpen(false)}
+        truckId={id}
+        onComplete={() => load()}
+        testid="truck-inspection-wizard"
+      />
     </div>
   );
 }
