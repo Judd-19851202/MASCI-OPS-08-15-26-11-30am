@@ -1,0 +1,34 @@
+{
+  "summary": "Track 16.09 (Transportation Dispatch Gate + Controlled Email Activation) certified. All 44 backend pytest cases PASS (includes 11 live e2e against preview URL). Frontend: Email Pilot panel renders with 22 rows, 4 pilot toggles for the exact pilot keys, 18 non-pilot rows show 'requires future track approval' without toggle. AssignmentCreateDrawer at /dispatch-portal/board opens and is wired; tx-elig-row only renders when a transport-managed driver is selected (correct behavior).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_track_16_09_transportation_dispatch_gate_email_pilot.py",
+    "/app/test_reports/pytest/track_16_09_results.xml"
+  ],
+  "verified_assertions": [
+    "GET /api/admin/transportation/email-routes returns 22 items with 4 pilots: TRANSPORT_CARRIER_INVITE, TRANSPORT_PACKET_NEEDS_CORRECTION, TRANSPORT_ORIENTATION_ASSIGNED, TRANSPORT_ORIENTATION_EXPIRING (all enabled=true, is_pilot=true)",
+    "All 18 non-pilot routes: enabled=false and status='audit_only'",
+    "POST /api/dispatch/transportation/check unauth -> 401",
+    "Backend pytest 44/44 PASS (test_04..test_60 cover 409 block, override lifecycle, audit, pilot toggle, non-pilot 403, no SMS/Twilio references, deployment gate)",
+    "Frontend: /admin/transportation/orientation/emails -> tx-emails-panel renders with 22 tx-email-status-* pills and 4 tx-email-toggle-* buttons (exact pilot keys)",
+    "Frontend: Non-pilot row (TRANSPORT_PACKET_READY) has status pill but no toggle (correct)",
+    "Frontend: /dispatch-portal/board 'Create assignment' button opens the AssignmentCreateDrawer (truck/driver/carrier/project fields render)"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Auth: SPA admin gate uses localStorage key 'masci.admin.token' (not 'admin_token' or 'adminToken') -- this is documented in /app/auth_testing.md territory, so next testing agent should always set 'masci.admin.token' to bypass UI login via injected token.",
+    "tx-elig-row visibility is conditional on a transport-managed driver/truck being selected; without seeded transport_persons row a manual playwright probe cannot trigger the chip. Backend e2e tests cover this path (test_58/test_59)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100% (verifiable surfaces)"},
+  "test_credentials": "Admin: jaymn.judd@mascigc.com / Maddix123! (X-Admin-Token from /api/auth/multi-login -> portal_tokens.admin). Browser storage key: localStorage.setItem('masci.admin.token', token)",
+  "seed_data_creation": "None — pytest fixtures self-seed transport_persons / dispatch_overrides ephemerally and clean up.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Track 16.09 is fully certified. Backend has 44 pytest cases (test_track_16_09_transportation_dispatch_gate_email_pilot.py). Auth token storage key for admin SPA pages is 'masci.admin.token' (localStorage). Dispatch board lives at /dispatch-portal/board (not /dispatch — that returns 404). Email Pilot tab is the 5th sub-tab at /admin/transportation/orientation/emails. Pilot route keys (exact): TRANSPORT_CARRIER_INVITE, TRANSPORT_PACKET_NEEDS_CORRECTION, TRANSPORT_ORIENTATION_ASSIGNED, TRANSPORT_ORIENTATION_EXPIRING."
+}

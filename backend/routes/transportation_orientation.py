@@ -202,16 +202,111 @@ async def notify(db, *, kind: str, summary: str, audience: List[str],
         await db.transport_notifications.insert_one(notif_row)
     except Exception:  # noqa: BLE001
         pass
-    # Best-effort Email Routing v2 audit (Phase 4 actually fires emails).
+    # TRACK 16.09 · Controlled live-pilot email send. Only the 4 pilot
+    # routes are eligible for real SMTP send. Every other route stays
+    # in dry-run audit mode (matches Track 15.79E posture).
+    PILOT_ROUTE_KEYS = {
+        "TRANSPORT_CARRIER_INVITE",
+        "TRANSPORT_PACKET_NEEDS_CORRECTION",
+        "TRANSPORT_ORIENTATION_ASSIGNED",
+        "TRANSPORT_ORIENTATION_EXPIRING",
+    }
+    route_key = f"TRANSPORT_{kind.upper()}"
+    is_pilot = route_key in PILOT_ROUTE_KEYS
+    # Look up route enabled flag — operators flip this from the admin
+    # Email Routes Control Panel.
+    route_doc = None
     try:
-        from email_routing_v2 import resolve_and_audit as _v2  # noqa: PLC0415
-        await _v2(db, route_key=f"TRANSPORT_{kind.upper()}",
-                  legacy_provider=None,
-                  subject=summary,
-                  calling_module="transportation_orientation",
-                  dry_run=True)
+        route_doc = await db.email_routes.find_one(
+            {"tenant_key": TENANT, "route_key": route_key})
     except Exception:  # noqa: BLE001
         pass
+    route_enabled = bool((route_doc or {}).get("enabled"))
+    do_live_send = is_pilot and route_enabled
+    try:
+        from email_routing_v2 import resolve_and_audit as _v2  # noqa: PLC0415
+        resolution = await _v2(
+            db, route_key=route_key, legacy_provider=None,
+            subject=summary,
+            calling_module="transportation_orientation",
+            dry_run=not do_live_send,
+        )
+    except Exception:  # noqa: BLE001
+        resolution = None
+    # If pilot + enabled + recipients resolved, fire real SMTP send.
+    if do_live_send and resolution is not None:
+        recipients = (
+            list(resolution.to) if resolution.to else []
+        ) + (list(email_to or []))
+        # De-dup + clean.
+        recipients = [r for i, r in enumerate(recipients)
+                       if r and r not in recipients[:i]]
+        if not recipients:
+            # "Needs Configuration" — never crash, just record.
+            try:
+                await db.email_routing_audit_v2.insert_one({
+                    "route_key": route_key, "tenant_key": TENANT,
+                    "source": "transport_pilot",
+                    "resolved_to_count": 0,
+                    "subject": (summary or "")[:240],
+                    "status": "needs_configuration",
+                    "calling_module": "transportation_orientation",
+                    "dry_run": False, "ts": _now(),
+                })
+            except Exception:  # noqa: BLE001
+                pass
+        else:
+            try:
+                from lib.fsi_email_sender import (  # noqa: PLC0415
+                    fsi_send_email,
+                )
+                html = (
+                    "<div style='font-family:Helvetica,Arial,sans-serif;"
+                    "max-width:560px;margin:0 auto;padding:24px;"
+                    "border:1px solid #e2e8f0;border-radius:8px;'>"
+                    f"<h2 style='color:#92400e;margin:0 0 12px'>MASCI Transportation</h2>"
+                    f"<div style='font-size:14px;color:#0f172a'>{summary}</div>"
+                    "<hr style='border:none;border-top:1px solid #e2e8f0;"
+                    "margin:16px 0' />"
+                    "<div style='font-size:12px;color:#64748b'>"
+                    "This is an automated notice from the MASCI Operations "
+                    "Platform. Reply with any questions; this is not a "
+                    "request for credentials. Secure links inside this "
+                    "email expire automatically."
+                    "</div></div>"
+                )
+                for to_addr in recipients:
+                    try:
+                        provider = await fsi_send_email(
+                            to_addr, summary or "MASCI Transportation update",
+                            html, db=db,
+                        )
+                        await db.email_routing_audit_v2.insert_one({
+                            "route_key": route_key, "tenant_key": TENANT,
+                            "source": "transport_pilot",
+                            "resolved_to_count": 1,
+                            "subject": (summary or "")[:240],
+                            "status": "sent",
+                            "resend_message_id": (provider or {}).get("id"),
+                            "calling_module": "transportation_orientation",
+                            "dry_run": False, "ts": _now(),
+                        })
+                    except Exception as send_exc:  # noqa: BLE001
+                        try:
+                            await db.email_routing_audit_v2.insert_one({
+                                "route_key": route_key, "tenant_key": TENANT,
+                                "source": "transport_pilot",
+                                "resolved_to_count": 1,
+                                "subject": (summary or "")[:240],
+                                "status": "error",
+                                "error": str(send_exc)[:200],
+                                "calling_module": "transportation_orientation",
+                                "dry_run": False, "ts": _now(),
+                            })
+                        except Exception:  # noqa: BLE001
+                            pass
+            except Exception:  # noqa: BLE001
+                pass
 
 
 def _audit_hash(payload: Dict[str, Any]) -> str:

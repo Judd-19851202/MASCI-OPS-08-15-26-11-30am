@@ -11777,8 +11777,22 @@ async def _require_dispatch_or_admin(
     routes/dispatch_portal_auth.make_require_dispatch_or_admin so the
     gate has a SINGLE source of truth. The wrapper signature is preserved
     because fleet_ops.py wires this in via kwargs at router construction.
+
+    TRACK 16.09 · The shared factory's inner closure has ``request``
+    as a required positional argument (it calls
+    ``enforce_password_change_required(request, u)`` on dispatch tokens),
+    so we must pass it through. Earlier revisions dropped it, which
+    silently turned every admin-token-driven dispatch write into a
+    500 (TypeError). Admin tokens never matched the sync
+    ``_is_valid_admin_token`` shim so they fell into the dispatch
+    branch which then exploded.
     """
+    # Admin path: try the async directory validator FIRST so admin
+    # tokens get a clean answer without touching the inner closure.
+    if x_admin_token and await _is_valid_directory_admin_token_async(x_admin_token):
+        return {"role": "admin", "is_admin": True}
     return await _shared_dispatch_or_admin(
+        request=request,
         x_dispatch_token=x_dispatch_token,
         x_admin_token=x_admin_token,
     )
@@ -12875,6 +12889,31 @@ async def _track_16_08_bootstrap_on_startup():
     except Exception as exc:  # noqa: BLE001
         logging.getLogger(__name__).warning(
             f"[track-16-08-bootstrap] non-fatal: {exc}")
+
+
+# TRACK 16.09 · Transportation Dispatch Gate + Email Pilot. Wires the
+# hard-block, authorized override, and the 4 pilot real-send email
+# routes. Mounted via a dedicated router; emails fired through the
+# existing fsi_email_sender + email_routing_v2 primitives (no
+# duplicate sender, no SMS/push).
+from routes.transportation_dispatch_gate import (  # noqa: E402
+    register_track_16_09_routes,
+    bootstrap_track_16_09,
+)
+register_track_16_09_routes(
+    app, db,
+    require_dispatch_or_admin_dep=_require_dispatch_or_admin,
+    require_admin_dep=require_admin_strict,
+)
+
+
+@app.on_event("startup")
+async def _track_16_09_bootstrap_on_startup():
+    try:
+        await bootstrap_track_16_09(db)
+    except Exception as exc:  # noqa: BLE001
+        logging.getLogger(__name__).warning(
+            f"[track-16-09-bootstrap] non-fatal: {exc}")
 
 
 # PROJECT-IDENTITY-005 · Project Identity Governance · /api/admin/project-identity/*

@@ -44,6 +44,7 @@ export function OrientationCenter() {
         <Route path="modules/:mid" element={<ModuleDetail />} />
         <Route path="assignments" element={<AssignmentsView />} />
         <Route path="certificates" element={<CertificatesView />} />
+        <Route path="emails" element={<EmailRoutesPanel />} />
       </Routes>
     </div>
   );
@@ -54,6 +55,7 @@ const SUB_TABS = [
   { to: "modules", label: "Modules", testid: "tx-orient-tab-modules" },
   { to: "assignments", label: "Assignments", testid: "tx-orient-tab-assignments" },
   { to: "certificates", label: "Certificates", testid: "tx-orient-tab-certificates" },
+  { to: "emails", label: "Email Pilot", testid: "tx-orient-tab-emails" },
 ];
 
 function SubTabs() {
@@ -425,6 +427,109 @@ function CertificatesView() {
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────
+// TRACK 16.09 · Email Routes Control Panel · pilot status + toggles
+// ────────────────────────────────────────────────────────────────────
+function EmailRoutesPanel() {
+  const [data, setData] = useState(null);
+  const [err, setErr] = useState(null);
+  const [busy, setBusy] = useState(null);
+  const reload = useCallback(async () => {
+    try {
+      const r = await api.get("/admin/transportation/email-routes",
+        { headers: adminHeaders() });
+      setData(r.data);
+    } catch (e) {
+      setErr(e.message || String(e));
+    }
+  }, []);
+  useEffect(() => { reload(); }, [reload]);
+  const toggle = async (routeKey, enabled) => {
+    setBusy(routeKey);
+    try {
+      await api.patch(`/admin/transportation/email-routes/${routeKey}`,
+        { enabled: !enabled }, { headers: adminHeaders() });
+      await reload();
+    } catch (e) {
+      alert(e.response?.data?.detail || e.message || "Toggle failed");
+    } finally {
+      setBusy(null);
+    }
+  };
+  if (err) return <EmptyState title="Email routes unavailable" hint={err} testid="tx-emails-err" />;
+  if (!data) return <div data-testid="tx-emails-loading" className="text-slate-500 text-sm">Loading…</div>;
+  const pilotSet = new Set(data.pilot_route_keys || []);
+  const tone = {
+    active_send: "bg-emerald-50 text-emerald-800 border-emerald-200",
+    audit_only: "bg-slate-50 text-slate-700 border-slate-200",
+    needs_configuration: "bg-amber-50 text-amber-900 border-amber-200",
+  };
+  return (
+    <div data-testid="tx-emails-panel" className="space-y-3">
+      <div className="text-sm text-slate-600">
+        4 pilot routes are eligible for live SMTP send. Every other route stays in audit-only mode until a future track approves expansion.
+      </div>
+      <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
+        <table className="w-full text-sm">
+          <thead className="bg-slate-50 border-b border-slate-200">
+            <tr>
+              <th className="text-left px-3 py-2">Route key</th>
+              <th className="text-left px-3 py-2">Label</th>
+              <th className="text-left px-3 py-2">Pilot</th>
+              <th className="text-left px-3 py-2">Status</th>
+              <th className="text-left px-3 py-2">Recipients</th>
+              <th className="text-left px-3 py-2">Last audit</th>
+              <th className="text-left px-3 py-2"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {(data.items || []).map((row) => {
+              const isPilot = pilotSet.has(row.route_key);
+              return (
+                <tr key={row.route_key} data-testid={`tx-email-row-${row.route_key}`} className="border-b border-slate-100">
+                  <td className="px-3 py-2 font-mono text-xs">{row.route_key}</td>
+                  <td className="px-3 py-2">{row.label}</td>
+                  <td className="px-3 py-2 text-xs">{isPilot ? <span className="text-emerald-700 font-medium">PILOT</span> : <span className="text-slate-400">—</span>}</td>
+                  <td className="px-3 py-2 text-xs">
+                    <span data-testid={`tx-email-status-${row.route_key}`} className={`inline-block border rounded-full px-2 py-0.5 ${tone[row.status] || tone.audit_only}`}>
+                      {row.status}
+                    </span>
+                  </td>
+                  <td className="px-3 py-2 text-xs">
+                    to: {row.to_count} · cc: {row.cc_count} · bcc: {row.bcc_count}
+                  </td>
+                  <td className="px-3 py-2 text-xs text-slate-500">
+                    {row.last_audit_at ? (
+                      <>
+                        {row.last_audit_at.slice(0, 19).replace("T", " ")} ·
+                        {row.last_audit_dry_run ? " dry_run" : " live"}
+                      </>
+                    ) : "—"}
+                  </td>
+                  <td className="px-3 py-2 text-right">
+                    {isPilot ? (
+                      <button
+                        data-testid={`tx-email-toggle-${row.route_key}`}
+                        disabled={busy === row.route_key}
+                        onClick={() => toggle(row.route_key, row.enabled)}
+                        className={`text-xs px-2 py-1 rounded font-medium ${row.enabled ? "bg-emerald-700 text-white hover:bg-emerald-800" : "bg-slate-200 text-slate-800 hover:bg-slate-300"} disabled:opacity-50`}
+                      >
+                        {row.enabled ? "Live · click to pause" : "Audit only · enable"}
+                      </button>
+                    ) : (
+                      <span className="text-[10px] text-slate-400">requires future track approval</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

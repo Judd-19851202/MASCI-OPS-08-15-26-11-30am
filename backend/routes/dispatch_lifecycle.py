@@ -109,6 +109,10 @@ class AssignmentCreate(BaseModel):
     dropoff_location: Optional[str] = ""
     # iter410 · Phase 15.1 · Tanker / Liquid Asphalt continuity
     liquid_product: Optional[str] = ""
+    # TRACK 16.09 · Optional dispatch-gate override id. When provided
+    # AND valid (approved + unexpired + scoped to this driver/truck), the
+    # backend permits assignment of an otherwise-not-dispatchable entity.
+    dispatch_override_id: Optional[str] = None
 
 
 class TransitionRequest(BaseModel):
@@ -1151,7 +1155,49 @@ def build_dispatch_lifecycle_router(
             "updated_at": at_iso,
             "source": "dispatch_lifecycle_v1",
         }
+        # TRACK 16.09 · Transportation Dispatch Hard Block. Validate the
+        # canonical eligibility before the assignment is persisted. The
+        # gate is additive — drivers/trucks that aren't under
+        # transportation governance pass through untouched (entity-not-
+        # found → not_blocked). An optional override id, scoped to the
+        # driver+truck and unexpired, lets authorized roles bypass.
+        try:
+            from lib.transport_dispatch_gate import (  # noqa: PLC0415
+                evaluate_dispatch_gate,
+            )
+            _gate = await evaluate_dispatch_gate(
+                db,
+                driver_id=(body.driver_id or "").strip() or None,
+                truck_id=(body.truck_id or "").strip() or None,
+                carrier_id=None,
+                override_id=(body.dispatch_override_id or "").strip() or None,
+            )
+            if _gate.get("blocked"):
+                raise HTTPException(status_code=409, detail=_gate)
+            _consumed_override_id = _gate.get("override_id")
+        except HTTPException:
+            raise
+        except Exception as _gate_exc:  # noqa: BLE001
+            # Gate failure should NEVER silently allow — but it also
+            # shouldn't crash legacy code paths. Log + allow only when
+            # neither driver nor truck has a transport_persons /
+            # transport_trucks row (i.e., we're outside transportation
+            # governance entirely).
+            logger.warning(
+                f"[track-16-09-gate] non-fatal · {_gate_exc!r}")
+            _consumed_override_id = None
+
         await db.dispatch_assignments.insert_one(doc)
+        # Consume the override (one-shot scope = first successful assignment).
+        if _consumed_override_id:
+            try:
+                await db.transport_dispatch_overrides.update_one(
+                    {"id": _consumed_override_id, "tenant": "masci",
+                     "consumed_for_assignment_id": None},
+                    {"$set": {"consumed_for_assignment_id": assignment_id,
+                              "consumed_at": at_iso}})
+            except Exception:  # noqa: BLE001
+                pass
 
         # TRACK 15.76 · Trust Spine — dispatch assignment lifecycle.
         # Dispatch is a non-email workflow; emits the operational

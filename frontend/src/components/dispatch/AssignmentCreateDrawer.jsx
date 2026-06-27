@@ -30,6 +30,10 @@ import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { DraftRestorePrompt } from "@/lib/resiliency";
 import { JobPicker } from "@/components/JobPicker";
+import {
+  useTransportationGate, TransportationEligibilityChip,
+  OverrideRequiredModal, isOverrideAuthorized,
+} from "@/components/dispatch/TransportationGate";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -291,6 +295,10 @@ export default function AssignmentCreateDrawer({
   const [haulType, setHaulType] = useState("Material");
   const [truck, setTruck] = useState(null);
   const [driver, setDriver] = useState(null);
+  // TRACK 16.09 · Transportation gate state.
+  const txGate = useTransportationGate(driver?.refId || null, truck?.refId || null);
+  const [txBlock, setTxBlock] = useState(null);            // 409 detail payload
+  const [txOverrideId, setTxOverrideId] = useState(null);  // approved override id
   const [trailer, setTrailer] = useState(null);
   const [carrier, setCarrier] = useState({ label: "MASCI", refId: "", isTemp: false });
   // Track 15.68B · resolve tenant-aware default carrier label on mount.
@@ -575,6 +583,10 @@ export default function AssignmentCreateDrawer({
       project_number: project?.project_number || project?.label || "",
       project_name: projectName,
       note: note || "",
+      // TRACK 16.09 · Pass approved override (if any) so the dispatch
+      // gate can short-circuit a known-blocked driver/truck for a
+      // bounded, audited window.
+      dispatch_override_id: txOverrideId || undefined,
     };
 
     if (isEquipMove) {
@@ -609,6 +621,13 @@ export default function AssignmentCreateDrawer({
       });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) {
+        // TRACK 16.09 · Detect the dispatch-gate 409 block envelope
+        // and open the override drawer. The structured detail has
+        // {blocked:true, reason_codes, reason_labels, override_available}.
+        if (r.status === 409 && j?.detail?.blocked) {
+          setTxBlock(j.detail);
+          return;
+        }
         const msg = j.detail || j.message || `${t("Issuance failed")} (${r.status})`;
         setErrorMsg(typeof msg === "string" ? msg : t("Issuance failed"));
         return;
@@ -975,6 +994,27 @@ export default function AssignmentCreateDrawer({
 
         {/* Footer */}
         <footer className="px-5 py-4 border-t border-slate-200 sticky bottom-0 bg-white">
+          {/* TRACK 16.09 · Transportation eligibility chip + override hint */}
+          {(driver?.refId || truck?.refId) ? (
+            <div className="mb-2 flex items-center gap-2 text-xs" data-testid="tx-elig-row">
+              <TransportationEligibilityChip result={txGate.result} loading={txGate.loading} />
+              {txGate.result?.blocked ? (
+                <button
+                  type="button"
+                  onClick={() => setTxBlock(txGate.result)}
+                  data-testid="tx-elig-view-reasons"
+                  className="text-amber-700 underline hover:text-amber-900"
+                >
+                  View reasons / override
+                </button>
+              ) : null}
+              {txOverrideId ? (
+                <span className="text-sky-700" data-testid="tx-override-active">
+                  Override active for this assignment
+                </span>
+              ) : null}
+            </div>
+          ) : null}
           <Button
             type="button"
             onClick={submit}
@@ -996,6 +1036,23 @@ export default function AssignmentCreateDrawer({
           </p>
         </footer>
       </aside>
+      {/* TRACK 16.09 · Override modal opens when the gate returns a 409
+          block. Authorized roles (admin) can approve a scoped, expiring
+          override; everyone else sees a "contact" hint. */}
+      {txBlock ? (
+        <OverrideRequiredModal
+          block={txBlock}
+          driverRefId={driver?.refId || null}
+          truckRefId={truck?.refId || null}
+          isAuthorized={isOverrideAuthorized()}
+          onClose={() => setTxBlock(null)}
+          onApproved={(ov) => {
+            setTxOverrideId(ov?.id || null);
+            setTxBlock(null);
+            txGate.refresh();
+          }}
+        />
+      ) : null}
     </div>
   );
 }

@@ -11,6 +11,39 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-06-27 · TRACK 16.09 · Transportation Dispatch Gate + Controlled Email Activation · ✅ GO)
+
+### Mission
+Move Transportation from "compliance is tracked" to "compliance is enforced." Wire the existing eligibility engine into the dispatch assignment path as a hard backend block, ship an authorized + audited override flow, and activate real outbound email for the 4 safest, highest-value transportation routes only.
+
+### Verdict
+✅ **GO** — 561/561 deployment gate green · 44/44 new regression tests (22 static + 11 pure + 11 live e2e). Full end-to-end live smoke confirms: blocked driver → 409 with structured envelope → admin approves override → assignment succeeds → audit row written → revocation works → pilot route toggle restricted to the 4 keys only.
+
+### What shipped
+* **Backend hard-block** at `POST /api/dispatch/assignments` — calls `evaluate_dispatch_gate` immediately before persist. Returns 409 `{blocked:true, state, reason_codes, reason_labels, message, override_available}` when carrier / driver / truck is in any blocking state.
+* **Pure gate library** `lib/transport_dispatch_gate.py` — zero writes, reads `transport_eligibility_state` + active overrides; legacy free-text dispatch passes through.
+* **Override flow** — admin-only / ops-leadership / transport-admin. Required fields: reason_code, ≥10-char explanation, duration_hours (default 24, max 168), verbatim acknowledgement checkbox. Stored with IP / UA / approver / expiry / scope. Never mutates eligibility state.
+* **4-route Email Pilot** — `TRANSPORT_CARRIER_INVITE`, `TRANSPORT_PACKET_NEEDS_CORRECTION`, `TRANSPORT_ORIENTATION_ASSIGNED`, `TRANSPORT_ORIENTATION_EXPIRING` flagged `enabled=true` on bootstrap. Real send delegates to existing `lib/fsi_email_sender.fsi_send_email` (Resend); audit via `email_routing_audit_v2` with `dry_run=false`. Other 18 routes remain dry-run.
+* **Frontend gate UI** — `TransportationGate.jsx` (chip + hook + override modal) wired into `AssignmentCreateDrawer.jsx`. Six chip states (Eligible / Pending Review / Needs Correction / Expired / Suspended / Not Dispatchable + Override Approved). Non-punitive language only.
+* **Admin Email Pilot panel** — 5th Orientation Center sub-tab at `/admin/transportation/orientation/emails` with per-route status pill, recipient counts, last-audit timestamp, and toggle button restricted to the 4 pilot routes.
+* **Pre-existing bug fixed** — `_require_dispatch_or_admin` wrapper in server.py was dropping the FastAPI `Request` parameter when delegating to the inner closure. This silently broke admin-token dispatch writes; now corrected and short-circuited via the async directory admin validator.
+
+### APIs
+3 new admin / dispatch endpoints + 2 admin email-control endpoints + 1 modified dispatch lifecycle endpoint (added optional `dispatch_override_id` field on the existing model). Zero new audit systems; zero new senders.
+
+### Risks
+4 pilot routes are enabled-on-boot but have empty recipient lists — operators must paste recipient emails into `email_routes` for live SMTP. Until then, audit rows stamp `needs_configuration` (no crash, no traffic). `RESEND_API_KEY` env var must be set for real send; absent → audit error `resend_api_key_missing`.
+
+### Deferrals
+All 22 email kinds going live, SMS / push, scheduled reminder producer, scorecards, HR retraining automation, payment calculator.
+
+### Next recommended track
+**Track 16.10 — Annual Inspection Scheduled Reminder Producer.** Adds recurring producer for `TRANSPORT_ANNUAL_INSPECTION_REMINDER` / `_OVERDUE` through the same pilot infrastructure once recipients are configured.
+
+Ledger: `/app/memory/TRACK_16_09_TRANSPORTATION_DISPATCH_GATE_EMAIL_PILOT.md`.
+
+---
+
 ## Latest Track (2026-06-27 · TRACK 16.08 · Transportation Orientation, Notification & External Onboarding Platform · ✅ GO)
 
 ### Mission
