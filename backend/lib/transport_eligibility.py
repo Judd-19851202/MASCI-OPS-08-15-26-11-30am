@@ -96,6 +96,20 @@ def _ctx_reasons(ctx: Dict[str, Any], record_type: str) -> list:
             reasons.append({"code": "ppe_issue",
                             "label": "Driver PPE compliance issue",
                             "severity": "block", "source": "ppe"})
+        # Track 16.08 · orientation requirement (driver level).
+        ostat = ctx.get("orientation_status")
+        if ostat == "missing":
+            reasons.append({"code": "orientation_missing",
+                            "label": "Driver orientation not completed",
+                            "severity": "block", "source": "orientation"})
+        elif ostat == "expired":
+            reasons.append({"code": "orientation_expired",
+                            "label": "Driver orientation expired (annual refresher required)",
+                            "severity": "block", "source": "orientation"})
+        elif ostat == "quiz_failed":
+            reasons.append({"code": "orientation_quiz_failed",
+                            "label": "Orientation quiz not passed",
+                            "severity": "block", "source": "orientation"})
 
     return reasons
 
