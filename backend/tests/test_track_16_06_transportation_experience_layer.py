@@ -317,3 +317,21 @@ def test_35_dispatch_endpoints_unchanged_in_experience_layer():
     src = EXP_ROUTE.read_text()
     for m in re.finditer(r'@router\.\w+\("/dispatch', src):
         assert False, f"experience layer must not add /dispatch routes (found at {m.start()})"
+
+
+def test_36_experience_layer_registers_before_phase2_to_avoid_path_shadow():
+    """FastAPI matches routes in registration order. The experience-layer
+    endpoint `/admin/transportation/inspections/queue` is a literal path
+    that would otherwise be shadowed by Phase 2's `/admin/transportation/
+    inspections/{iid}`. Lock the registration order so the literal wins."""
+    src = SERVER.read_text()
+    exp_idx = src.find("register_transportation_experience_routes(")
+    p2_idx = src.find("register_transportation_phase2_routes(")
+    assert exp_idx > 0, "experience layer not registered"
+    assert p2_idx > 0, "phase 2 not registered"
+    assert exp_idx < p2_idx, (
+        "register_transportation_experience_routes(...) must be invoked "
+        "BEFORE register_transportation_phase2_routes(...) in server.py "
+        "to prevent Phase 2's /inspections/{iid} from shadowing the "
+        "literal /inspections/queue endpoint."
+    )

@@ -44,8 +44,9 @@ async def _count_states(db, target_type: str) -> Dict[str, int]:
 
 async def _compute_compliance_score(buckets_per_target: Dict[str, Dict[str, int]]
                                     ) -> int:
-    """Crude operator-friendly score · 0-100. Counts eligible vs total
-    across drivers + trucks + carriers."""
+    """Operator-friendly score · 0-100. Counts eligible vs total across
+    drivers + trucks + carriers. Returns 0 when no entities exist —
+    operators read an empty fleet as "nothing yet" rather than "100% OK"."""
     total = eligible = 0
     for buckets in buckets_per_target.values():
         for state, n in buckets.items():
@@ -53,7 +54,7 @@ async def _compute_compliance_score(buckets_per_target: Dict[str, Dict[str, int]
             if state == "eligible":
                 eligible += n
     if total == 0:
-        return 100
+        return 0
     return int(round((eligible / total) * 100))
 
 

@@ -12824,6 +12824,14 @@ register_transportation_routes(
     require_dispatch_or_admin_dep=_shared_dispatch_or_admin,
 )
 
+# TRACK 16.06 · Transportation Experience Layer — aggregation endpoints
+# (dashboard, document queue, inspection queue, audit timeline, workspace
+# aggregators). Read-only · admin-strict. Registered BEFORE Phase 2 so
+# literal paths like /admin/transportation/inspections/queue resolve to
+# this router rather than being captured by Phase 2's /inspections/{iid}.
+from routes.transportation_experience import register_transportation_experience_routes  # noqa: E402
+register_transportation_experience_routes(app, db, require_admin_dep=require_admin_strict)
+
 # TRACK 16.05 · Transportation Onboarding & Compliance Center (Phase 2).
 # Rate schedules · carrier+driver documents · packet workflow · MASCI
 # Hauler Truck Readiness Inspection · dashboards. Idempotent bootstrap
@@ -12834,12 +12842,6 @@ register_transportation_phase2_routes(
     require_admin_dep=require_admin_strict,
     require_dispatch_or_admin_dep=_shared_dispatch_or_admin,
 )
-
-# TRACK 16.06 · Transportation Experience Layer — aggregation endpoints
-# (dashboard, document queue, inspection queue, audit timeline, workspace
-# aggregators). Backend is read-only; the heavy lift in this track is UI.
-from routes.transportation_experience import register_transportation_experience_routes  # noqa: E402
-register_transportation_experience_routes(app, db, require_admin_dep=require_admin_strict)
 
 
 @app.on_event("startup")
