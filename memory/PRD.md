@@ -11,6 +11,41 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-06-27 · TRACK 16.08 · Transportation Orientation, Notification & External Onboarding Platform · ✅ GO)
+
+### Mission
+Build the MASCI Orientation Engine, Native No-Skip Video Player, Sky AI placeholders, Quiz Engine, Certificate Engine, Email-Routing-v2 notification fan-out, and the Secure External Carrier Invite Portal so leased carriers self-onboard outside the admin portal and drivers must complete mandatory orientation before becoming dispatch-eligible.
+
+### Verdict
+✅ **GO** — 527/527 deployment gate green (full regression including new 40-test 16.08 suite). Live testing agent retest: 6/6 frontend checkpoints pass with real backend data, 0 console errors. Backend 100% (40/40 pytest live e2e).
+
+### What shipped
+* **Orientation Engine** with 22 default modules × 4 languages (en, es, es_CU, fr) — seeded idempotently on every startup via `bootstrap_track_16_08`.
+* **Native MASCI No-Skip Video Player** — no scrubber, `playbackRate` clamped to 1.0, 5-second heartbeat, server-side monotonic-watch clamp (`+30s/tick` max), checkpoints at 25/50/75/99 %, completion only at ≥ 99 %, resume where left off, Sky AI placeholder card when `sky_asset_id` empty.
+* **Quiz Engine** — randomised question bank per module per language, configurable passing score (default 80 %) and max attempts (default 3), best-score persistence, full audit trail.
+* **Certificate Engine** — auto-issued on quiz pass with `certificate_number = MASCI-<MODKEY>-<HEX>`, `audit_hash = sha256(payload)`, 12-month validity, public QR-verifiable.
+* **Secure External Carrier Invite Portal** at `/transport-invite/:token` — public 3-step stepper (Confirm → Orientation → Submit), no auth, token hashed at rest, returned only once, expiry-bounded, driver-to-carrier binding enforced on every orientation call.
+* **Public Certificate Verify** page at `/transport-verify/:cnum` — QR scan target with backend-authenticated `valid:true` attestation.
+* **Email Routing v2 wiring** — 22 notification kinds (carrier_invite, packet_*, driver_*, orientation_*, annual_inspection_*, documents_*, dispatch_eligibility_changed). **Zero** SMS / Twilio / push references anywhere.
+* **Dispatch Eligibility Integration** — `lib/transport_orientation_status.py` pure helper returns `{current, missing, expired, quiz_failed}`; both `routes/transportation.py::_upsert_eligibility` and `routes/transportation_phase2.py::_person_eligibility_context` auto-inject the orientation status; driver eligibility flips to `not_dispatchable` if orientation is incomplete.
+* **Admin Orientation Center** at `/admin/transportation/orientation/*` — Dashboard (8 KPI tiles), Modules list (22 rows), Module Detail (4 placeholder cards + question bank with language picker), Assignments queue, Certificates list with QR verify links.
+
+### APIs
+9 admin-strict endpoints + 10 public invite-portal endpoints + 1 public QR-verify endpoint. Everything writes through the existing `append_audit()` primitive — no duplicate audit system, no duplicate identity, no duplicate storage, no duplicate notification engine.
+
+### Risks
+Email Routing v2 currently audits intent via `dry_run=True` (matches Track 15.79E continuous-certification posture); flip the per-route flag in `email_routing_audit_v2` to enable SMTP. Sky AI videos are placeholder-only by design — they drop in when produced via the MASCI Sky AI Production Bible (no code change needed).
+
+### Pre-existing bug fixed
+`test_identity_resolver_no_license_returns_none` in 16.04 used deprecated `asyncio.get_event_loop()` and was failing on baseline. Fixed to use `asyncio.new_event_loop()` — the gate now reports 527/527.
+
+### Next recommended track
+**Track 16.09 — Dispatch Gate Hard Block**: today eligibility is computed and persisted but dispatch reads-only. Wire the hard-block into the dispatch board so suspended / not-dispatchable drivers cannot be assigned.
+
+Ledger: `/app/memory/TRACK_16_08_TRANSPORTATION_ORIENTATION_PORTAL.md`.
+
+---
+
 ## Latest Track (2026-06-27 · TRACK 16.07 · Transportation Workflow Activation · ✅ GO)
 
 ### Mission
