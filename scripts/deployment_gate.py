@@ -177,6 +177,10 @@ REGRESSION_FILES = [
     # the lifecycle-manager CLI contract (env-only token, no active-
     # repo mutation, snapshot-only targeting).
     "/app/backend/tests/test_track_16_00_github_lifecycle_hardening.py",
+    # TRACK 16.04 · MASCI Transportation Foundation Phase 1 — locks the
+    # carriers / transport_persons / transport_trucks / eligibility
+    # skeleton data model, identity dedup, audit, and RBAC posture.
+    "/app/backend/tests/test_track_16_04_transportation_foundation.py",
 ]
 
 DEFAULT_BASE_URL = (

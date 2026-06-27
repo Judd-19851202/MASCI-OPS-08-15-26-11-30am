@@ -12814,6 +12814,16 @@ register_asset_care_routes(app, db, require_admin, require_admin_or_asset_admin_
 from routes.perf_snapshot import register_perf_snapshot_routes  # noqa: E402
 register_perf_snapshot_routes(app, db, require_admin)
 
+# TRACK 16.04 · Transportation Foundation Phase 1.
+# Carriers / transport_persons / transport_trucks / eligibility skeleton.
+# Admin CRUD (strict admin); dispatch read-only endpoints.
+from routes.transportation import register_transportation_routes  # noqa: E402
+register_transportation_routes(
+    app, db,
+    require_admin_dep=require_admin_strict,
+    require_dispatch_or_admin_dep=_shared_dispatch_or_admin,
+)
+
 
 # PROJECT-IDENTITY-005 · Project Identity Governance · /api/admin/project-identity/*
 # Detection-only drift sentinel. Never auto-mutates source records or jobs_master.

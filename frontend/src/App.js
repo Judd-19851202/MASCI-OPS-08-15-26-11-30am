@@ -50,6 +50,7 @@ import QaqcSection from "@/pages/QaqcSection";
 import NewQaqcInspection from "@/pages/NewQaqcInspection";
 import ViewQaqcInspection from "@/pages/ViewQaqcInspection";
 import AdminQaqcList from "@/pages/AdminQaqcList";
+import AdminTransportation from "@/pages/AdminTransportation";
 import Dashboard from "@/pages/Dashboard";
 import Revise from "@/pages/Revise";
 import NewInspection from "@/pages/NewInspection";
@@ -456,6 +457,7 @@ function App() {
             <Route path="/qaqc/:slug/new" element={<NewQaqcInspection />} />
             <Route path="/qaqc/:id" element={<ViewQaqcInspection />} />
             <Route path="/admin/qaqc" element={A(<AdminQaqcList />)} />
+            <Route path="/admin/transportation" element={A(<AdminTransportation />)} />
             <Route path="/admin/photos" element={A(<JobPhotosLibrary portalKey="admin" />)} />
 
             {/* Phase V-Prelude · Wave 1 · Operational Constraints.
