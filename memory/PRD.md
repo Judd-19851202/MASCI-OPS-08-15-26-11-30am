@@ -11,6 +11,39 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-06-27 · TRACK 16.07 · Transportation Workflow Activation · ✅ GO)
+
+### Mission
+Replace every ComingSoon placeholder in the Track 16.06 Transportation Compliance Center with real, operator-grade inline workflows. A dispatcher / safety / admin should now complete the full carrier onboarding loop without leaving the page.
+
+### Verdict
+✅ **GO** — 152/152 static regression (24+50+36+42) in 0.24s. Testing agent first iteration: 8/9 live; one real 404-contract bug found on the new timeline endpoint, fixed in 4 lines + permanently locked by `test_4b_timeline_enforces_404_for_unknown_entity`. Retest expected to be 9/9.
+
+### What shipped
+* **Inline MASCI Hauler Readiness Inspection Wizard** (3 stages, 11 triggers, category-grouped checklist, Mark-all-pass shortcut, iPad-portrait safe). Launches from Truck workspace AND Inspection Center.
+* **Drag-and-drop document dropzone** (drag/browse/camera + XHR multipart progress) — used by Carrier + Driver workspaces.
+* **Digital signature pad** captures printed_name, typed_signature, acknowledged_at, user_agent, timezone — flows through the existing packet PATCH endpoint.
+* **Rate Create dialog** with one-click create + immediate activation (retires prior active rate).
+* **Per-entity Compliance Timeline** — new admin-strict endpoint `GET /api/admin/transportation/timeline/{entity_type}/{entity_id}` composes direct + related audit events. 404 on unknown id.
+* **Packet Checklist** with full Start → Sign-and-Submit → Approve / Return-for-Correction flow.
+* **Document Center inline review actions** (Accept · Needs Correction per row).
+
+### APIs
+1 new admin-strict GET endpoint. Every write/upload reuses existing Phase 2 endpoints — no new identity, no new storage system, no new audit kinds, no new public surface.
+
+### Risks
+Optimistic inspection patching reconciles on next refresh if a PATCH fails mid-walkthrough (no lost data — server is canonical). PacketChecklist auto-creates a draft on first Sign & Submit (operator-friendly default; can be made explicit in 16.08).
+
+### Deferrals
+Orientation engine · quizzes · certificates · carrier portal login · public invite links · external carrier emails · dispatch hard-block · scheduled reminder fan-out · scorecards.
+
+### Next recommended track
+**Track 16.08 — Notifications + Portal**: wire Email Routing v2 for the 5 documented routes, annual-inspection scheduled producer (30/14/7/today/overdue reminders), read-only carrier portal login (invite-link based) so leased haulers can self-serve packet upload from the same widgets.
+
+Ledger: `/app/memory/TRACK_16_07_TRANSPORTATION_WORKFLOW_ACTIVATION.md`.
+
+---
+
 ## Latest Track (2026-06-27 · TRACK 16.06 · Transportation Experience Layer · ✅ GO)
 
 ### Mission

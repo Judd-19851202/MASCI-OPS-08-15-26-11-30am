@@ -76,6 +76,20 @@ def test_4_timeline_returns_combined_direct_and_related_events():
     assert 'driver_documents.find' in src
 
 
+def test_4b_timeline_enforces_404_for_unknown_entity():
+    """The timeline endpoint must perform an existence check and return
+    404 when the entity_id is unknown — matches the contract enforced by
+    every carrier/driver/truck workspace endpoint in this same file."""
+    src = EXP_ROUTE.read_text()
+    # find_one against the appropriate collection right after the
+    # entity_type validation; raise HTTPException(404) when missing.
+    assert "collection_for_type" in src
+    assert 'raise HTTPException(404, f"{entity_type} not found")' in src
+    # Response shape must remain {count, items} so the ComplianceTimeline
+    # UI can't be silently broken by a key rename.
+    assert "return {\"count\": len(combined), \"items\": combined}" in src
+
+
 # ───────────── Inspection Wizard ─────────────
 def test_5_inspection_wizard_component_exists():
     src = WIDGETS.read_text()

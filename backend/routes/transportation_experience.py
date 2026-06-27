@@ -267,6 +267,17 @@ def register_transportation_experience_routes(
         — ordered ASC so the operator reads creation → current state."""
         if entity_type not in ("carrier", "person", "truck"):
             raise HTTPException(422, "entity_type must be carrier|person|truck")
+        # Existence check — match the 404 contract enforced by the
+        # carrier/driver/truck workspace endpoints in this same file.
+        collection_for_type = {
+            "carrier": db.carriers,
+            "person": db.transport_persons,
+            "truck": db.transport_trucks,
+        }[entity_type]
+        entity = await collection_for_type.find_one(
+            {"id": entity_id, "tenant": TENANT})
+        if not entity:
+            raise HTTPException(404, f"{entity_type} not found")
         # Collect direct audit rows for this entity.
         cur = db.audit_events.find({
             "tenant": TENANT, "entity_id": entity_id,
