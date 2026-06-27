@@ -39,7 +39,7 @@ export default function MasciVideoPlayer({
   const postHeartbeat = useCallback(async () => {
     try {
       const r = await api.post(
-        `/api/transportation/invite/${token}/orientation/assignments/${assignment.id}/heartbeat`,
+        `/transportation/invite/${token}/orientation/assignments/${assignment.id}/heartbeat`,
         {
           position_seconds: position,
           watched_seconds: watchedRef.current,

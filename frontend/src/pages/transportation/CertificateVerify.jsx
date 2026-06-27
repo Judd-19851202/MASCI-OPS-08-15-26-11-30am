@@ -14,7 +14,7 @@ export default function CertificateVerify() {
   const [cert, setCert] = useState(null);
   const [err, setErr] = useState(null);
   useEffect(() => {
-    api.get(`/api/transportation/orientation/certificates/verify/${cnum}`)
+    api.get(`/transportation/orientation/certificates/verify/${cnum}`)
       .then(r => setCert(r.data))
       .catch(e => setErr(e.response?.data?.detail || e.message || "Not found"));
   }, [cnum]);

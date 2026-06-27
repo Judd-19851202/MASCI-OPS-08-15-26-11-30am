@@ -23,7 +23,7 @@ export default function ExternalCarrierInvite() {
   const [step, setStep] = useState(1);
 
   useEffect(() => {
-    api.get(`/api/transportation/invite/${token}`)
+    api.get(`/transportation/invite/${token}`)
       .then(r => setInvite(r.data))
       .catch(e => setErr(e.response?.data?.detail || e.message || "Invite invalid"));
   }, [token]);
@@ -141,7 +141,7 @@ function Step2Orientation({ invite, token, onNext }) {
   const [err, setErr] = useState(null);
 
   useEffect(() => {
-    api.get(`/api/transportation/invite/${token}/orientation/modules`)
+    api.get(`/transportation/invite/${token}/orientation/modules`)
       .then(r => setModules(r.data.items || []))
       .catch(e => setErr(e.message || String(e)));
   }, [token]);
@@ -222,7 +222,7 @@ function Step3Submit({ invite, token }) {
   const [signature, setSignature] = useState("");
   const submit = async () => {
     try {
-      await api.post(`/api/transportation/invite/${token}/submit`, {
+      await api.post(`/transportation/invite/${token}/submit`, {
         printed_name: signature,
         acknowledged_at: new Date().toISOString(),
         user_agent: navigator.userAgent,

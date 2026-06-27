@@ -86,7 +86,7 @@ function OrientationDashboard() {
   const [err, setErr] = useState(null);
   const load = useCallback(async () => {
     try {
-      const r = await api.get("/api/admin/transportation/orientation/dashboard",
+      const r = await api.get("/admin/transportation/orientation/dashboard",
         { headers: adminHeaders() });
       setData(r.data);
     } catch (e) {
@@ -136,7 +136,7 @@ function ModuleManager() {
   const [err, setErr] = useState(null);
   const load = useCallback(async () => {
     try {
-      const r = await api.get("/api/admin/transportation/orientation/modules",
+      const r = await api.get("/admin/transportation/orientation/modules",
         { headers: adminHeaders() });
       setItems(r.data.items || []);
     } catch (e) { setErr(e.message || String(e)); }
@@ -198,11 +198,11 @@ function ModuleDetail() {
   const [err, setErr] = useState(null);
   const reload = useCallback(async () => {
     try {
-      const list = (await api.get("/api/admin/transportation/orientation/modules",
+      const list = (await api.get("/admin/transportation/orientation/modules",
         { headers: adminHeaders() })).data.items || [];
       setMod(list.find((m) => m.id === mid) || null);
       const q = (await api.get(
-        `/api/admin/transportation/orientation/modules/${mid}/questions?language=${lang}`,
+        `/admin/transportation/orientation/modules/${mid}/questions?language=${lang}`,
         { headers: adminHeaders() })).data.items || [];
       setQuestions(q);
     } catch (e) { setErr(e.message || String(e)); }
@@ -213,14 +213,14 @@ function ModuleDetail() {
 
   const savePlaceholder = async (language, body) => {
     try {
-      await api.patch(`/api/admin/transportation/orientation/modules/${mid}/placeholder`,
+      await api.patch(`/admin/transportation/orientation/modules/${mid}/placeholder`,
         { language, ...body }, { headers: adminHeaders() });
       await reload();
     } catch (e) { alert("Save failed: " + e.message); }
   };
   const addQuestion = async (q) => {
     try {
-      await api.post(`/api/admin/transportation/orientation/modules/${mid}/questions`,
+      await api.post(`/admin/transportation/orientation/modules/${mid}/questions`,
         { ...q, language: lang }, { headers: adminHeaders() });
       await reload();
     } catch (e) { alert("Add question failed: " + e.message); }
@@ -345,7 +345,7 @@ function AssignmentsView() {
   const [items, setItems] = useState([]);
   const [err, setErr] = useState(null);
   useEffect(() => {
-    api.get("/api/admin/transportation/orientation/assignments",
+    api.get("/admin/transportation/orientation/assignments",
       { headers: adminHeaders() })
       .then(r => setItems(r.data.items || []))
       .catch(e => setErr(e.message || String(e)));
@@ -386,7 +386,7 @@ function CertificatesView() {
   const [items, setItems] = useState([]);
   const [err, setErr] = useState(null);
   useEffect(() => {
-    api.get("/api/admin/transportation/orientation/certificates",
+    api.get("/admin/transportation/orientation/certificates",
       { headers: adminHeaders() })
       .then(r => setItems(r.data.items || []))
       .catch(e => setErr(e.message || String(e)));
