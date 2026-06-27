@@ -192,7 +192,7 @@ def test_17_route_wired_into_server():
 # ───────────────────── 18. UI route exists ──────────────────────────────
 def test_18_admin_transportation_route_exists():
     app_src = APP_JS.read_text()
-    assert 'path="/admin/transportation"' in app_src
+    assert 'path="/admin/transportation' in app_src  # may be exact or splat
     assert "AdminTransportation" in app_src
     assert PAGE_FILE.exists()
 

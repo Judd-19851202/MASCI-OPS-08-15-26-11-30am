@@ -457,7 +457,7 @@ function App() {
             <Route path="/qaqc/:slug/new" element={<NewQaqcInspection />} />
             <Route path="/qaqc/:id" element={<ViewQaqcInspection />} />
             <Route path="/admin/qaqc" element={A(<AdminQaqcList />)} />
-            <Route path="/admin/transportation" element={A(<AdminTransportation />)} />
+            <Route path="/admin/transportation/*" element={A(<AdminTransportation />)} />
             <Route path="/admin/photos" element={A(<JobPhotosLibrary portalKey="admin" />)} />
 
             {/* Phase V-Prelude · Wave 1 · Operational Constraints.

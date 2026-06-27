@@ -12835,6 +12835,12 @@ register_transportation_phase2_routes(
     require_dispatch_or_admin_dep=_shared_dispatch_or_admin,
 )
 
+# TRACK 16.06 · Transportation Experience Layer — aggregation endpoints
+# (dashboard, document queue, inspection queue, audit timeline, workspace
+# aggregators). Backend is read-only; the heavy lift in this track is UI.
+from routes.transportation_experience import register_transportation_experience_routes  # noqa: E402
+register_transportation_experience_routes(app, db, require_admin_dep=require_admin_strict)
+
 
 @app.on_event("startup")
 async def _track_16_05_bootstrap_on_startup():

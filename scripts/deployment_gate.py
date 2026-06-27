@@ -185,6 +185,10 @@ REGRESSION_FILES = [
     # — rate schedules, carrier+driver documents (R2), packet workflow,
     # MASCI Hauler Truck Readiness Inspection, eligibility integration.
     "/app/backend/tests/test_track_16_05_transportation_onboarding_compliance_center.py",
+    # TRACK 16.06 · Transportation Experience Layer — Compliance Center UI
+    # router, dashboard/document/inspection/audit aggregation endpoints,
+    # carrier/driver/truck workspaces, no duplicate identity/storage/audit.
+    "/app/backend/tests/test_track_16_06_transportation_experience_layer.py",
 ]
 
 DEFAULT_BASE_URL = (

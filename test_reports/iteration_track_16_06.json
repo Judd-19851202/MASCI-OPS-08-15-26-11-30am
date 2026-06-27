@@ -1,0 +1,49 @@
+{
+  "summary": "TRACK 16.06 Transportation Experience Layer — backend live smoke surfaced ONE CRITICAL route-shadowing bug. 35/35 static regression tests pass. 17/19 live smoke tests pass. The critical bug: GET /api/admin/transportation/inspections/queue is unreachable — Phase 2 router (registered first in server.py at line 12831) defines GET /admin/transportation/inspections/{iid} which captures 'queue' as iid and returns 404 'Inspection not found'. Frontend interactive smoke was blocked by Cloudflare WAF on the preview pod (same as prior iteration); static JSX regression tests already validated structure.",
+  "backend_issues": {
+    "critical": [
+      {
+        "endpoint": "GET /api/admin/transportation/inspections/queue",
+        "issue": "Returns 404 {'detail':'Inspection not found'} instead of the queue payload. Route is shadowed by Phase 2's GET /admin/transportation/inspections/{iid} (registered earlier in server.py at line 12831). FastAPI matches in registration order so 'queue' is interpreted as inspection id. Documents queue is unaffected because Phase 2 uses /documents/carrier/{cid} and /documents/driver/{pid} (path-segment differs). Verified live: curl -H 'X-Admin-Token: ...' .../api/admin/transportation/inspections/queue → HTTP 404.",
+        "priority": "CRITICAL"
+      }
+    ],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Transportation Compliance Center → Inspections sub-nav",
+        "issue": "The /admin/transportation/inspections page will receive 404 from the queue endpoint because of the backend route-shadowing bug above. UI will render empty or error state once user navigates there.",
+        "affected_selectors": ["[data-testid=tx-inspection-center]", "[data-testid=insp-row-*]"]
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_track_16_06_transportation_experience_layer.py",
+    "/app/backend/tests/test_track_16_06_live_smoke.py",
+    "/app/test_reports/pytest/track_16_06_static.xml",
+    "/app/test_reports/pytest/track_16_06_live.xml"
+  ],
+  "action_items": [
+    "FIX (1-line): Move `register_transportation_experience_routes(...)` call ABOVE `register_transportation_phase2_routes(...)` in /app/backend/server.py (swap lines ~12831 and ~12841). FastAPI matches routes in registration order, so registering /inspections/queue before /inspections/{iid} resolves the shadowing. After swap, re-run live smoke to confirm test_10 + test_11 turn green. Alternative fix: rename the path to /admin/transportation/inspections-queue or add explicit `path_regex` exclusion in Phase 2."
+  ],
+  "critical_code_review_comments": [
+    "Route ordering hazard repeats: any future /admin/transportation/inspections/<literal> path added to the experience layer will be silently shadowed by Phase 2's /{iid}. Consider adding a regression test that asserts GET /admin/transportation/inspections/queue does NOT return 404 with a valid admin token.",
+    "transportation_experience.py is clean (343 lines, read-only, no audit writes, no UploadFile/boto3, no /dispatch/ routes, no /public/ or /invite/ paths) — passes all design constraints from the review_request.",
+    "_compute_compliance_score returns 100 when total==0 — review_request fixture note says score should be 0% when nothing eligible. Current implementation will show 100% on an empty/fresh tenant which could be misleading. Minor; not a blocker."
+  ],
+  "updated_files": ["/app/backend/tests/test_track_16_06_live_smoke.py"],
+  "success_rate": {
+    "backend": "89% (52/54 — 35/35 static + 17/19 live; 2 fails both rooted in the same route-shadowing bug)",
+    "frontend": "n/a (interactive smoke blocked by Cloudflare WAF; 100% on static regression suite)"
+  },
+  "test_credentials": "Admin: jaymn.judd@mascigc.com / Maddix123! via POST /api/auth/multi-login → portal_tokens.admin (verified live).",
+  "seed_data_creation": "None. Experience layer is read-only; tests use existing carrier/driver/truck rows seeded by prior Track 16.04 + 16.05 cycles.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "After main agent swaps the registration order in server.py (move register_transportation_experience_routes ABOVE register_transportation_phase2_routes), re-run: cd /app/backend && REACT_APP_BACKEND_URL=https://safety-audit-mobile-1.preview.emergentagent.com python -m pytest tests/test_track_16_06_live_smoke.py -v. Expect 19/19 green. The frontend interactive smoke (admin login → /admin/transportation) was blocked by Cloudflare WAF — the playwright pod could not auth into the preview shell. Static JSX tests cover the structural surface; for live UI verification, a different network path or local browser would be needed.",
+  "rca of the issue": "FastAPI matches routes in registration order. In /app/backend/server.py: line 12831 registers transportation_phase2 which contains @router.get('/admin/transportation/inspections/{iid}') (transportation_phase2.py:616). Line 12841 registers transportation_experience which contains @router.get('/admin/transportation/inspections/queue') (transportation_experience.py:209). Because Phase 2 wins the registration race, every GET to /admin/transportation/inspections/queue resolves to the Phase 2 detail endpoint with iid='queue', which then performs `db.transport_truck_inspections.find_one({'id':'queue'})` → None → 404 'Inspection not found'. Repro: curl -H 'X-Admin-Token: <admin>' 'https://safety-audit-mobile-1.preview.emergentagent.com/api/admin/transportation/inspections/queue' returns HTTP 404 {'detail':'Inspection not found'}. Mitigation: swap the two register_ calls in server.py so the experience layer registers FIRST. Phase 2's '{iid}' will still catch every real UUID-shaped id (since no Phase 2 endpoint uses 'queue' as a literal), and the experience layer's literal '/queue' will be reached. After the swap, re-run the live smoke — expect tests 10 + 11 to flip green."
+}
