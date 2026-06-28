@@ -11,6 +11,30 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-02-10 · TRACK 17.00 · Platform-Wide Trucking / Transportation Discovery Audit · ✅ GO · audit-only)
+
+### Mission
+Top-to-bottom platform scan to inventory every trucking / hauling / transportation surface across MASCI before any further Transportation Command Center work proceeds. Strictly audit-only: zero code changes, zero behavior changes, zero migrations.
+
+### Verdict
+✅ **GO** — full inventory complete. **193** backend endpoints across 3 domains (110 transportation + 68 dispatch + 15 fleet/equipment). **35** transportation collections. **24+** frontend transportation routes spread across 9 portals. **15 tracks** (16.04 → 16.16) form a coherent system with documented boundaries. **0 hidden / unreachable features**. **3 intentional surface mirrors** (all share a single source-of-truth engine). Dispatch must be preserved as a major operational workspace inside any future unified Transportation Command Center — never replaced.
+
+### What shipped (documentation only)
+* `/app/memory/TRACK_17_00_PLATFORM_WIDE_TRUCKING_TRANSPORTATION_AUDIT.md` — master audit document
+* `/app/memory/TRUCKING_TRANSPORTATION_FEATURE_INVENTORY.md` — feature × route × collection × visibility tables
+* `/app/memory/TRUCKING_TRANSPORTATION_ROUTE_MAP.md` — every frontend route + every backend endpoint
+* `/app/memory/TRUCKING_TRANSPORTATION_RBAC_MATRIX.md` — per-surface + per-collection RBAC
+* `/app/memory/TRUCKING_TRANSPORTATION_DUPLICATION_AND_HIDDEN_FEATURES.md` — duplication/overlap report (3 intentional mirrors, 0 orphans)
+* `/app/backend/tests/test_track_17_00_transportation_audit_artifacts.py` — 6 artifact-existence tests, wired into deployment gate
+
+### Recommended next track
+**Track 17.01 — Transportation Command Center Architecture Proposal** (no build, written design): define the unified Command Center nav tree using the inventory as source of truth; Dispatch preserved unchanged.
+
+### Documentation
+* See the 5 deliverables above.
+
+---
+
 ## Latest Track (2026-02-10 · TRACK 16.16 · Operations × Transportation Integration Layer · ✅ GO)
 
 ### Mission
