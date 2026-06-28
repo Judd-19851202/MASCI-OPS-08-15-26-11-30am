@@ -130,6 +130,11 @@ export function TransportationDashboard() {
       {/* TRACK 16.11A · HR Health widget — read-only snapshot of the
          HR ↔ Transportation sync engine. */}
       <HrHealthWidget />
+
+      {/* TRACK 16.15A · Top Cleanup Opportunity mirror. Pure UX bridge
+         — reads the Track 16.15 cleanup-signals endpoint and surfaces
+         the highest-priority signal directly inside Attention Required. */}
+      <TopCleanupOpportunityCard />
     </div>
   );
 }
