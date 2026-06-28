@@ -185,7 +185,7 @@ def register_track_16_10_routes(app, db, *, require_admin_dep,
         status: str = Query("open", pattern="^(open|in_progress|resolved|dismissed|all)$"),
         severity: Optional[str] = Query(None),
         limit: int = Query(200, ge=1, le=1000),
-        _: Any = Depends(require_admin_dep),
+        _: Any = Depends(require_dispatch_or_admin_dep),
     ):
         q: Dict[str, Any] = {"tenant": TENANT}
         if status != "all":
@@ -238,7 +238,7 @@ def register_track_16_10_routes(app, db, *, require_admin_dep,
 
     # ----- 30-day forecast -------------------------------------------------
     @router.get("/admin/transportation/automation/forecast")
-    async def admin_forecast(_: Any = Depends(require_admin_dep)):
+    async def admin_forecast(_: Any = Depends(require_dispatch_or_admin_dep)):
         """Reads events without inserting. Reuses the runner's scanners."""
         from lib.transport_automation import (
             _scan_truck_inspections, _scan_orientation, _scan_driver_documents,

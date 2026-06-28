@@ -18,14 +18,22 @@ import { api } from "@/lib/api";
 import { adminHeaders, Chip, PageHeader, EmptyState, useTxPathPrefix, txGet, isTxRestricted, txCatch } from "./_shared";
 import { TxOpsRestrictedData } from "@/components/transportation/TxOpsRestricted";
 
-const SUB_TABS = [
-  { to: "", label: "Morning Queue", end: true, testid: "tx-cq-tab-queue" },
-  { to: "health", label: "Automation Health", testid: "tx-cq-tab-health" },
-  { to: "forecast", label: "30-day Forecast", testid: "tx-cq-tab-forecast" },
+import { isAdmin } from "@/lib/adminAuth";
+
+const SUB_TABS_ALL = [
+  { to: "", label: "Morning Queue", end: true, testid: "tx-cq-tab-queue", dispatch: true },
+  { to: "health", label: "Automation Health", testid: "tx-cq-tab-health", dispatch: false },
+  { to: "forecast", label: "30-day Forecast", testid: "tx-cq-tab-forecast", dispatch: true },
 ];
 
 export function CommandQueueCenter() {
   const prefix = useTxPathPrefix();
+  // TRACK 18.12C · VISIBLE = USABLE. Hide admin-only sub-tabs from
+  // dispatch users. Automation Health renders HrSyncHealthCard +
+  // DigestCard which both depend on admin-strict /hr-sync + digest
+  // endpoints — not safe to surface to dispatch.
+  const admin = isAdmin();
+  const subTabs = admin ? SUB_TABS_ALL : SUB_TABS_ALL.filter((t) => t.dispatch);
   return (
     <div data-testid="tx-command-queue-center" className="space-y-4">
       <PageHeader
@@ -34,7 +42,7 @@ export function CommandQueueCenter() {
         testid="tx-cq-header"
       />
       <nav className="flex flex-wrap gap-1 border-b border-slate-200 pb-2 mb-4" data-testid="tx-cq-subtabs">
-        {SUB_TABS.map((t) => (
+        {subTabs.map((t) => (
           <NavLink
             key={t.label}
             to={`${prefix}/command-queue/${t.to}`}

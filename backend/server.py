@@ -12853,6 +12853,11 @@ register_transportation_experience_routes(
     app, db,
     require_admin_dep=require_admin_strict,
     require_portal_dep=_require_any_portal_token,
+    # TRACK 18.12C · Dispatcher-operational gate for Class A reads
+    # (documents queue, inspections queue, carrier/driver/truck
+    # workspaces, per-entity compliance timeline). Audit Timeline
+    # remains admin-strict.
+    require_dispatch_or_admin_dep=_require_dispatch_or_admin,
 )
 
 # TRACK 16.05 · Transportation Onboarding & Compliance Center (Phase 2).
@@ -12888,6 +12893,10 @@ from routes.transportation_orientation import (  # noqa: E402
 )
 register_transportation_orientation_routes(
     app, db, require_admin_dep=require_admin_strict,
+    # TRACK 18.12C · Dispatcher-operational reads (orientation dashboard,
+    # module list, assignments, certificates). All writes remain
+    # admin-strict.
+    require_dispatch_or_admin_dep=_require_dispatch_or_admin,
 )
 
 
@@ -12947,7 +12956,10 @@ from routes.transportation_intelligence import (  # noqa: E402
     register_track_16_12_routes,
 )
 register_track_16_12_routes(
-    app, db, require_admin_dep=require_admin_strict)
+    app, db, require_admin_dep=require_admin_strict,
+    # TRACK 18.12C · Cleanup signals are surfaced on Mission Control —
+    # dispatchers must read this feed.
+    require_dispatch_or_admin_dep=_require_dispatch_or_admin)
 
 # TRACK 16.13 · Dispatch Decision Surface — read-only recommendation
 # endpoint + interaction audit. Admin OR dispatch token.

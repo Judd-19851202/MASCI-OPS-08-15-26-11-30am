@@ -284,22 +284,33 @@ def test_24_server_wires_portal_aware_dashboard():
 
 
 # ===========================================================================
-# 25 — Document/inspections record-detail endpoints REMAIN admin-strict.
+# 25 — Document/inspections queue endpoints reclassified by Track 18.12C.
 # ===========================================================================
 def test_25_detail_endpoints_remain_admin_strict():
+    """Track 18.12C reclassified the documents queue and inspections
+       queue as Class A (dispatcher-operational) — they now flow
+       through the `ops_guard` (require_dispatch_or_admin_dep) gate
+       instead of the legacy admin-strict gate. The aliased name
+       `ops_guard` is defined at register-time as
+       `require_dispatch_or_admin_dep or require_admin_dep`, so the
+       fallback to admin-strict is preserved when no dispatch gate is
+       wired. Audit timeline (Class C) still references the strict
+       `require_admin_dep` directly."""
     src = EXP.read_text()
-    # The documents queue and inspections queue still depend on the
-    # admin-strict guard — only the dashboard endpoint was opened up.
-    # Locate the documents_queue endpoint.
     docs_idx = src.find("@router.get(\"/admin/transportation/documents/queue\")")
     assert docs_idx > 0
     docs_block = src[docs_idx:docs_idx + 800]
-    assert "require_admin_dep" in docs_block
-    # Same for inspections.
+    assert "Depends(ops_guard)" in docs_block, (
+        "documents queue must depend on the ops_guard alias (which "
+        "resolves to require_dispatch_or_admin_dep with admin fallback)")
     insp_idx = src.find("@router.get(\"/admin/transportation/inspections/queue\")")
     assert insp_idx > 0
     insp_block = src[insp_idx:insp_idx + 800]
-    assert "require_admin_dep" in insp_block
+    assert "Depends(ops_guard)" in insp_block, (
+        "inspections queue must depend on the ops_guard alias")
+    # The ops_guard alias must fall back to require_admin_dep when no
+    # dispatch dep is supplied — so admin still works.
+    assert "ops_guard = require_dispatch_or_admin_dep or require_admin_dep" in src
 
 
 # ===========================================================================

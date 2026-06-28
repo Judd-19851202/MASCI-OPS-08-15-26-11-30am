@@ -66,9 +66,18 @@ def register_transportation_experience_routes(
     # summary-count tiles (no record details — only operational
     # signals). When omitted, the legacy admin-strict guard is used.
     require_portal_dep: Optional[Callable] = None,
+    # TRACK 18.12C · Optional dispatch-or-admin gate. When supplied,
+    # operational read surfaces (carrier / driver / truck workspaces,
+    # documents queue, inspections queue, per-entity timeline) become
+    # dispatcher-operational alongside Super Admin. Track 18.12C
+    # reclassification: these are Class A workspaces — dispatchers
+    # genuinely need them to run trucking. Audit Timeline stays
+    # admin-strict (Class C governance).
+    require_dispatch_or_admin_dep: Optional[Callable] = None,
 ) -> APIRouter:
     router = APIRouter(prefix="/api", tags=["transportation-experience"])
     dashboard_guard = require_portal_dep or require_admin_dep
+    ops_guard = require_dispatch_or_admin_dep or require_admin_dep
 
     # ─────────────────────── Dashboard ───────────────────────
     @router.get("/admin/transportation/dashboard")
@@ -177,7 +186,7 @@ def register_transportation_experience_routes(
         person_id: Optional[str] = Query(None),
         expiring_within_days: Optional[int] = Query(None, ge=0, le=365),
         limit: int = Query(300, ge=1, le=1000),
-        _: Any = Depends(require_admin_dep),
+        _: Any = Depends(ops_guard),
     ):
         out: List[Dict[str, Any]] = []
         q: Dict[str, Any] = {"tenant": TENANT}
@@ -221,7 +230,7 @@ def register_transportation_experience_routes(
         due_within_days: Optional[int] = Query(None, ge=0, le=365),
         overdue: Optional[bool] = Query(None),
         limit: int = Query(300, ge=1, le=1000),
-        _: Any = Depends(require_admin_dep),
+        _: Any = Depends(ops_guard),
     ):
         q: Dict[str, Any] = {"tenant": TENANT}
         if trigger:
@@ -266,7 +275,7 @@ def register_transportation_experience_routes(
     async def entity_timeline(
         entity_type: str, entity_id: str,
         limit: int = Query(200, ge=1, le=1000),
-        _: Any = Depends(require_admin_dep),
+        _: Any = Depends(ops_guard),
     ):
         """TRACK 16.07 · Per-entity Compliance Timeline.
 
@@ -335,7 +344,7 @@ def register_transportation_experience_routes(
 
     # ─────────────────────── Workspace aggregators ───────────────────────
     @router.get("/admin/transportation/carriers/{cid}/workspace")
-    async def carrier_workspace(cid: str, _: Any = Depends(require_admin_dep)):
+    async def carrier_workspace(cid: str, _: Any = Depends(ops_guard)):
         carrier = await db.carriers.find_one({"id": cid, "tenant": TENANT})
         if not carrier:
             raise HTTPException(404, "Carrier not found")
@@ -363,7 +372,7 @@ def register_transportation_experience_routes(
         }
 
     @router.get("/admin/transportation/persons/{pid}/workspace")
-    async def driver_workspace(pid: str, _: Any = Depends(require_admin_dep)):
+    async def driver_workspace(pid: str, _: Any = Depends(ops_guard)):
         person = await db.transport_persons.find_one({"id": pid, "tenant": TENANT})
         if not person:
             raise HTTPException(404, "Driver not found")
@@ -425,7 +434,7 @@ def register_transportation_experience_routes(
         }
 
     @router.get("/admin/transportation/trucks/{tid}/workspace")
-    async def truck_workspace(tid: str, _: Any = Depends(require_admin_dep)):
+    async def truck_workspace(tid: str, _: Any = Depends(ops_guard)):
         truck = await db.transport_trucks.find_one({"id": tid, "tenant": TENANT})
         if not truck:
             raise HTTPException(404, "Truck not found")

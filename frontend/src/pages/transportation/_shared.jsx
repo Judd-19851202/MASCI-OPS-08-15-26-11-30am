@@ -16,11 +16,26 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { getAdminToken, isAdmin } from "@/lib/adminAuth";
+import { getDispatchToken } from "@/lib/dispatchAuth";
 
 export const TENANT = "masci";
 
 export function adminHeaders() {
   return { "X-Admin-Token": getAdminToken() || "" };
+}
+
+// TRACK 18.12C · Cross-role header bundle.
+// Transportation Operations is a SHARED operational doorway between
+// Super Admin and Dispatch users. Read-only endpoints under
+// `/api/admin/transportation/*` that have been migrated to the
+// `_local_dispatch_or_admin` gate accept EITHER header. We always send
+// both — the empty-string short-circuit is fine because the gate
+// requires a "." in the token, which empty strings don't have.
+export function txHeaders() {
+  return {
+    "X-Admin-Token": getAdminToken() || "",
+    "X-Dispatch-Token": getDispatchToken() || "",
+  };
 }
 
 export const STATE_LABEL = {
@@ -258,7 +273,7 @@ export function txGet(path, params) {
   // (or workspace-level <TxOpsRestricted />). Other HTTP errors still
   // throw, preserving real error reporting.
   return api
-    .get(path, { headers: adminHeaders(), params, skipSessionStatus: true })
+    .get(path, { headers: txHeaders(), params, skipSessionStatus: true })
     .catch((err) => {
       const status = err?.response?.status;
       if (status === 401 || status === 403) {
@@ -336,14 +351,41 @@ export function TxOpsLoaderRestricted({ workspace, testid }) {
   );
 }
 
-// TRACK 18.12B · Role-aware nav filter.
-// Administration is admin-governance only (Bucket C). Hide the whole
-// group for non-admin tokens so dispatchers never see a workspace
-// that immediately throws 401/403.
+// TRACK 18.12B/C · Role-aware nav filter — VISIBLE = USABLE.
+// Track 18.12C amendment: if a workspace is visible to a dispatcher it
+// MUST be usable. Any Class-C admin-governance surface must either be
+// hidden from the dispatch nav OR (for the rare deep-link case) render
+// a clean restricted state. This filter is the primary visibility gate.
+//
+// Dispatch-hidden items:
+//   • Administration group as a whole (Audit Timeline + Reports placeholder)
+//   • Operations Intelligence → Intelligence (admin-only deep analytics)
+//
+// Dispatch-visible items must back real data via OPS-GUARD endpoints:
+//   • Mission Control · Dispatch · Live Operations · Fleet · Drivers ·
+//     Carriers · Compliance · Orientation · Automation (Morning Queue +
+//     Forecast) · Cleanup
+const DISPATCH_HIDDEN_NAV_ITEMS = new Set([
+  // Class C admin-only deep analytics.
+  "txops-nav-intelligence",
+]);
+
 export function visibleTxOpsNavGroups() {
   const admin = isAdmin();
   if (admin) return TX_OPS_NAV_GROUPS;
-  return TX_OPS_NAV_GROUPS.filter((g) => g.key !== "administration");
+  return TX_OPS_NAV_GROUPS
+    // Drop entire admin-governance group.
+    .filter((g) => g.key !== "administration")
+    // Drop individual admin-only items from each retained group.
+    .map((g) => ({
+      ...g,
+      items: g.items.filter(
+        (it) => !DISPATCH_HIDDEN_NAV_ITEMS.has(it.testid),
+      ),
+    }))
+    // Drop now-empty groups (shouldn't happen given current shape, but
+    // keeps the SubNav from rendering a heading with no items).
+    .filter((g) => g.items && g.items.length > 0);
 }
 
 /**

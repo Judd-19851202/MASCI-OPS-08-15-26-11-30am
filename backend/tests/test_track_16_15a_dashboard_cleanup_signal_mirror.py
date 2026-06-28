@@ -305,13 +305,24 @@ def test_10_widget_uses_existing_txget_helper():
 # 11 — Underlying endpoint is admin-only (Dispatch must NOT see it).
 # ===========================================================================
 def test_11_endpoint_is_admin_only():
+    """TRACK 18.12C reclassified `/cleanup-signals` as Class B
+       (dispatcher-read-only summary) — the Mission Control Cleanup
+       card on `/transportation-operations` must load for dispatch
+       users. The endpoint now routes through the `ops_guard` alias
+       (`require_dispatch_or_admin_dep or require_admin_dep`), which
+       still rejects anonymous and still satisfies admin tokens. The
+       materialize POST remains admin-strict (asserted in
+       test_track_16_15_operational_cleanup_companion::test_21)."""
     src = ROUTE.read_text()
     block_start = src.find('@router.get("/cleanup-signals")')
-    # Look at the next ~12 lines for the dependency wiring.
     snippet = src[block_start : block_start + 600]
-    assert "require_admin_dep" in snippet, (
-        "Track 16.15A relies on the existing Track 16.15 endpoint, "
-        "which must remain admin-only (require_admin_dep) — no widening."
+    assert (
+        "Depends(require_admin_dep)" in snippet
+        or "Depends(ops_guard)" in snippet
+    ), (
+        "Track 16.15A relies on the cleanup-signals endpoint which "
+        "must be auth-gated — either via the legacy admin dep or the "
+        "Track 18.12C ops_guard alias that adds dispatch read-access."
     )
 
 

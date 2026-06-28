@@ -285,9 +285,15 @@ def test_23_dashboard_endpoint_portal_aware():
 
 
 # ===========================================================================
-# 24 — Record-detail endpoints remain admin-strict (Phase F doctrine).
+# 24 — Record-detail endpoints reclassified by Track 18.12C.
 # ===========================================================================
 def test_24_detail_endpoints_remain_admin_strict():
+    """Track 18.12C moved the documents queue, inspections queue, and
+       carrier/truck workspaces to Class A (dispatcher-operational) via
+       the `ops_guard` alias that resolves to
+       `require_dispatch_or_admin_dep` (with admin fallback when no
+       dispatch dep is supplied). Audit timeline stays admin-strict via
+       direct `require_admin_dep`."""
     src = EXP.read_text()
     for needle in (
         "@router.get(\"/admin/transportation/documents/queue\")",
@@ -298,8 +304,18 @@ def test_24_detail_endpoints_remain_admin_strict():
         idx = src.find(needle)
         assert idx > 0, f"endpoint missing: {needle}"
         block = src[idx:idx + 1200]
-        assert "require_admin_dep" in block, (
-            f"endpoint {needle} must stay admin-strict")
+        assert "Depends(ops_guard)" in block, (
+            f"endpoint {needle} must depend on the ops_guard alias "
+            f"(Track 18.12C)")
+    # Confirm the alias falls back to require_admin_dep when no
+    # dispatch dep is wired — so admin-strict callers retain access.
+    assert "ops_guard = require_dispatch_or_admin_dep or require_admin_dep" in src
+    # And the audit-timeline endpoint stays directly admin-strict.
+    audit_idx = src.find("@router.get(\"/admin/transportation/audit-timeline\")")
+    assert audit_idx > 0
+    audit_block = src[audit_idx:audit_idx + 600]
+    assert "Depends(require_admin_dep)" in audit_block, (
+        "Audit Timeline must remain admin-strict (Class C governance)")
 
 
 # ===========================================================================

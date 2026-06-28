@@ -321,11 +321,35 @@ def test_20_api_materialize_endpoint():
 # 21 — Endpoints are admin-gated
 # ===========================================================================
 def test_21_endpoints_admin_gated():
+    """Cleanup endpoints must be auth-gated.
+
+    TRACK 18.12C reclassified the read endpoints
+    (`/cleanup-signals` and `/cleanup-signals/{key}`) as Class B
+    (dispatcher-read-only summary) so the Mission Control Cleanup card
+    can load for dispatchers. Both now route through the `ops_guard`
+    alias (`require_dispatch_or_admin_dep or require_admin_dep`). The
+    materialize POST stays strict-admin via `require_admin_dep`. This
+    regression accepts either dep on the read endpoints; the write
+    endpoint must remain admin-strict.
+    """
     src = ROUTE.read_text()
-    # All three cleanup endpoints reference require_admin_dep.
     idx_block = src.find("# TRACK 16.15")
     block = src[idx_block:idx_block + 3500] if idx_block > 0 else ""
-    assert block.count("Depends(require_admin_dep)") >= 3
+    # Read endpoints accept ops_guard (which falls back to admin-strict)
+    # OR direct admin gate.
+    total = (
+        block.count("Depends(require_admin_dep)")
+        + block.count("Depends(ops_guard)")
+    )
+    assert total >= 3, (
+        f"cleanup endpoints must be auth-gated; found {total} guards "
+        f"(expected 3: 2 GETs + 1 POST)")
+    # The materialize POST must remain admin-strict.
+    mat_idx = block.find("/cleanup-signals/{signal_key}/materialize-actions")
+    assert mat_idx >= 0
+    mat_window = block[mat_idx:mat_idx + 500]
+    assert "Depends(require_admin_dep)" in mat_window, (
+        "cleanup materialize POST must remain admin-strict")
 
 
 # ===========================================================================

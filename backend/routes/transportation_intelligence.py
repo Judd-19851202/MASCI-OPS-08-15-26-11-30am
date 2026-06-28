@@ -13,9 +13,14 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 logger = logging.getLogger(__name__)
 
 
-def register_track_16_12_routes(app, db, *, require_admin_dep) -> APIRouter:
+def register_track_16_12_routes(app, db, *, require_admin_dep,
+                                require_dispatch_or_admin_dep=None) -> APIRouter:
     router = APIRouter(prefix="/api/admin/transportation/intelligence",
                        tags=["transportation-intelligence"])
+    # TRACK 18.12C · Cleanup signals are surfaced on Mission Control for
+    # dispatchers — they must read this feed. Falls back to admin-strict
+    # when no dispatch gate is supplied.
+    ops_guard = require_dispatch_or_admin_dep or require_admin_dep
 
     @router.get("/drivers/{driver_id}")
     async def driver_intelligence(
@@ -179,7 +184,7 @@ def register_track_16_12_routes(app, db, *, require_admin_dep) -> APIRouter:
     @router.get("/cleanup-signals")
     async def cleanup_signals(
         days: int = Query(30, ge=1, le=365),
-        _: Any = Depends(require_admin_dep),
+        _: Any = Depends(ops_guard),
     ) -> Dict[str, Any]:
         from lib.transport_cleanup_companion import (
             build_cleanup_signals, record_cleanup_view,
@@ -194,7 +199,7 @@ def register_track_16_12_routes(app, db, *, require_admin_dep) -> APIRouter:
     async def cleanup_signal_detail(
         signal_key: str,
         days: int = Query(30, ge=1, le=365),
-        _: Any = Depends(require_admin_dep),
+        _: Any = Depends(ops_guard),
     ) -> Dict[str, Any]:
         from lib.transport_cleanup_companion import (
             build_cleanup_signal_detail, record_cleanup_view,

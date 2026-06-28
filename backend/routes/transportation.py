@@ -339,7 +339,7 @@ def register_transportation_routes(
         q: Optional[str] = Query(None),
         status: Optional[str] = Query(None),
         limit: int = Query(200, ge=1, le=1000),
-        _: Any = Depends(require_admin_dep),
+        _: Any = Depends(require_dispatch_or_admin_dep),
     ):
         query: Dict[str, Any] = {"tenant": TENANT}
         if status:
@@ -406,7 +406,7 @@ def register_transportation_routes(
 
     @router.get("/admin/transportation/carriers/{cid}")
     async def get_carrier(cid: str = Path(...),
-                          _: Any = Depends(require_admin_dep)):
+                          _: Any = Depends(require_dispatch_or_admin_dep)):
         doc = await db.carriers.find_one({"id": cid, "tenant": TENANT})
         if not doc:
             raise HTTPException(404, "Carrier not found")
@@ -456,7 +456,7 @@ def register_transportation_routes(
         carrier_id: Optional[str] = Query(None),
         status: Optional[str] = Query(None),
         limit: int = Query(200, ge=1, le=1000),
-        _: Any = Depends(require_admin_dep),
+        _: Any = Depends(require_dispatch_or_admin_dep),
     ):
         query: Dict[str, Any] = {"tenant": TENANT}
         if kind:
@@ -541,7 +541,7 @@ def register_transportation_routes(
         return _project_doc(doc)
 
     @router.get("/admin/transportation/persons/{pid}")
-    async def get_person(pid: str, _: Any = Depends(require_admin_dep)):
+    async def get_person(pid: str, _: Any = Depends(require_dispatch_or_admin_dep)):
         doc = await db.transport_persons.find_one({"id": pid, "tenant": TENANT})
         if not doc:
             raise HTTPException(404, "Transport person not found")
@@ -588,7 +588,7 @@ def register_transportation_routes(
         carrier_id: Optional[str] = Query(None),
         status: Optional[str] = Query(None),
         limit: int = Query(200, ge=1, le=1000),
-        _: Any = Depends(require_admin_dep),
+        _: Any = Depends(require_dispatch_or_admin_dep),
     ):
         query: Dict[str, Any] = {"tenant": TENANT}
         if ownership:
@@ -654,7 +654,7 @@ def register_transportation_routes(
         return _project_doc(doc)
 
     @router.get("/admin/transportation/trucks/{tid}")
-    async def get_truck(tid: str, _: Any = Depends(require_admin_dep)):
+    async def get_truck(tid: str, _: Any = Depends(require_dispatch_or_admin_dep)):
         doc = await db.transport_trucks.find_one({"id": tid, "tenant": TENANT})
         if not doc:
             raise HTTPException(404, "Transport truck not found")
@@ -693,7 +693,7 @@ def register_transportation_routes(
     @router.get("/admin/transportation/eligibility/{target_type}/{target_id}")
     async def get_eligibility(
         target_type: str, target_id: str,
-        _: Any = Depends(require_admin_dep),
+        _: Any = Depends(require_dispatch_or_admin_dep),
     ):
         if target_type not in TARGET_TYPES:
             raise HTTPException(422, f"target_type must be one of {list(TARGET_TYPES)}")

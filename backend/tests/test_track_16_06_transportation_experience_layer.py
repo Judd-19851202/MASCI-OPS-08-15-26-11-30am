@@ -79,9 +79,13 @@ def test_6_all_experience_routes_are_admin_strict():
     TRACK 18.00 Phase F intentionally widened the dashboard tile feed to
     a portal-aware guard (`dashboard_guard` → `require_portal_dep or
     require_admin_dep`) so dispatch / leadership tokens can read summary
-    signals. Every other route stays admin-strict. This regression
-    accepts either the canonical admin guard or the documented
-    `dashboard_guard` alias.
+    signals. TRACK 18.12C reclassified the documents queue, inspections
+    queue, carrier/driver/truck workspaces, and per-entity timeline as
+    Class A (dispatcher-operational) — these now flow through
+    `ops_guard` (`require_dispatch_or_admin_dep or require_admin_dep`).
+    Audit Timeline stays strict via direct `require_admin_dep`. This
+    regression accepts the canonical admin guard or either of the
+    documented guard aliases.
     """
     src = EXP_ROUTE.read_text()
     for m in re.finditer(r"@router\.(get|post|patch|delete)\(", src):
@@ -89,7 +93,8 @@ def test_6_all_experience_routes_are_admin_strict():
         assert (
             "Depends(require_admin_dep)" in window
             or "Depends(dashboard_guard)" in window
-        ), f"experience-layer route at offset {m.start()} not admin-gated"
+            or "Depends(ops_guard)" in window
+        ), f"experience-layer route at offset {m.start()} not auth-gated"
 
 
 def test_7_no_new_audit_system():

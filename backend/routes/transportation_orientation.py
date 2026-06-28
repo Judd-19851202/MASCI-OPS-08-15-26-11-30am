@@ -356,13 +356,21 @@ async def bootstrap_track_16_08(db) -> Dict[str, Any]:
 
 # ─────────────────────── Router factory ───────────────────────
 def register_transportation_orientation_routes(
-    app, db, require_admin_dep: Callable
+    app, db, require_admin_dep: Callable,
+    # TRACK 18.12C · Dispatcher-operational reads (orientation dashboard,
+    # module list, assignments, certificates). Writes (POST/PATCH on
+    # modules / questions / certificates / assignments) remain admin
+    # strict. When omitted, the legacy admin-strict guard is used.
+    require_dispatch_or_admin_dep: Optional[Callable] = None,
 ) -> APIRouter:
     router = APIRouter(prefix="/api", tags=["transportation-orientation"])
+    # TRACK 18.12C · Operational read gate (falls back to admin-strict
+    # when the caller passes no dispatch-aware dependency).
+    ops_guard = require_dispatch_or_admin_dep or require_admin_dep
 
     # ============================ MODULES ============================
     @router.get("/admin/transportation/orientation/modules")
-    async def list_modules(_: Any = Depends(require_admin_dep)):
+    async def list_modules(_: Any = Depends(ops_guard)):
         cur = db.transport_orientation_modules.find({"tenant": TENANT}).sort("key", 1)
         items = [_project(d) for d in await cur.to_list(500)]
         return {"items": items, "languages": list(LANGUAGES)}
@@ -468,7 +476,7 @@ def register_transportation_orientation_routes(
     # ============================ QUESTIONS ============================
     @router.get("/admin/transportation/orientation/modules/{mid}/questions")
     async def list_questions(mid: str, language: str = Query("en"),
-                              _: Any = Depends(require_admin_dep)):
+                              _: Any = Depends(ops_guard)):
         cur = db.transport_orientation_questions.find({
             "tenant": TENANT, "module_id": mid, "language": language
         }).sort("created_at", 1)
@@ -545,7 +553,7 @@ def register_transportation_orientation_routes(
     async def list_assignments(
         status: Optional[str] = Query(None),
         person_id: Optional[str] = Query(None),
-        _: Any = Depends(require_admin_dep),
+        _: Any = Depends(ops_guard),
     ):
         q: Dict[str, Any] = {"tenant": TENANT}
         if status:
@@ -750,7 +758,7 @@ def register_transportation_orientation_routes(
 
     # ============================ DASHBOARD WIDGETS ============================
     @router.get("/admin/transportation/orientation/dashboard")
-    async def orientation_dashboard(_: Any = Depends(require_admin_dep)):
+    async def orientation_dashboard(_: Any = Depends(ops_guard)):
         # Required module count.
         modules = await db.transport_orientation_modules.find(
             {"tenant": TENANT, "active": True}).to_list(500)
@@ -812,7 +820,7 @@ def register_transportation_orientation_routes(
         person_id: Optional[str] = Query(None),
         module_key: Optional[str] = Query(None),
         limit: int = Query(500, ge=1, le=2000),
-        _: Any = Depends(require_admin_dep),
+        _: Any = Depends(ops_guard),
     ):
         q: Dict[str, Any] = {"tenant": TENANT}
         if person_id:

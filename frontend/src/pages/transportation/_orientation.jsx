@@ -17,8 +17,9 @@ import {
   Languages as LangIcon, ChevronRight, RefreshCw, ShieldCheck, Hash,
 } from "lucide-react";
 import { api } from "@/lib/api";
-import { adminHeaders, Chip, PageHeader, EmptyState, txGet, isTxRestricted, txCatch } from "./_shared";
+import { adminHeaders, Chip, PageHeader, EmptyState, txGet, isTxRestricted, txCatch, useTxPathPrefix } from "./_shared";
 import { TxOpsRestrictedData } from "@/components/transportation/TxOpsRestricted";
+import { isAdmin } from "@/lib/adminAuth";
 
 const LANGUAGES = [
   { code: "en", label: "English (Primary)" },
@@ -51,21 +52,26 @@ export function OrientationCenter() {
   );
 }
 
-const SUB_TABS = [
-  { to: "", label: "Dashboard", end: true, testid: "tx-orient-tab-dashboard" },
-  { to: "modules", label: "Modules", testid: "tx-orient-tab-modules" },
-  { to: "assignments", label: "Assignments", testid: "tx-orient-tab-assignments" },
-  { to: "certificates", label: "Certificates", testid: "tx-orient-tab-certificates" },
-  { to: "emails", label: "Email Pilot", testid: "tx-orient-tab-emails" },
+const SUB_TABS_ALL = [
+  { to: "", label: "Dashboard", end: true, testid: "tx-orient-tab-dashboard", dispatch: true },
+  { to: "modules", label: "Modules", testid: "tx-orient-tab-modules", dispatch: true },
+  { to: "assignments", label: "Assignments", testid: "tx-orient-tab-assignments", dispatch: true },
+  { to: "certificates", label: "Certificates", testid: "tx-orient-tab-certificates", dispatch: true },
+  // TRACK 18.12C · Email Pilot is admin-only CMS — hidden from dispatch
+  // (VISIBLE = USABLE).
+  { to: "emails", label: "Email Pilot", testid: "tx-orient-tab-emails", dispatch: false },
 ];
 
 function SubTabs() {
+  const prefix = useTxPathPrefix();
+  const admin = isAdmin();
+  const tabs = admin ? SUB_TABS_ALL : SUB_TABS_ALL.filter((t) => t.dispatch);
   return (
     <nav className="flex flex-wrap gap-1 border-b border-slate-200 pb-2 mb-4" data-testid="tx-orientation-subtabs">
-      {SUB_TABS.map((t) => (
+      {tabs.map((t) => (
         <NavLink
           key={t.label}
-          to={`/admin/transportation/orientation/${t.to}`}
+          to={`${prefix}/orientation/${t.to}`}
           end={t.end}
           data-testid={t.testid}
           className={({ isActive }) =>

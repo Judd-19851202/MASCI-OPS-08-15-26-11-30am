@@ -47,15 +47,24 @@ def test_1_timeline_endpoint_exists():
 
 
 def test_2_timeline_endpoint_is_admin_strict():
+    """Per-entity Compliance Timeline auth gate.
+
+    TRACK 18.12C reclassified this endpoint to Class A
+    (dispatcher-operational) — dispatchers need the per-entity
+    compliance timeline to operate. It now uses the `ops_guard` alias
+    which falls back to admin-strict when no dispatch dep is wired,
+    so admin callers still authenticate."""
     src = EXP_ROUTE.read_text()
-    # Find the timeline decorator and verify the next 1500 chars contain the admin gate.
     m = re.search(
         r'@router\.get\(\s*"/admin/transportation/timeline/\{entity_type\}/\{entity_id\}"',
         src,
     )
     assert m, "timeline decorator not found"
     window = src[m.start(): m.start() + 1600]
-    assert "Depends(require_admin_dep)" in window
+    assert (
+        "Depends(require_admin_dep)" in window
+        or "Depends(ops_guard)" in window
+    ), "timeline endpoint must be auth-gated (admin or ops_guard alias)"
 
 
 def test_3_timeline_validates_entity_type():
