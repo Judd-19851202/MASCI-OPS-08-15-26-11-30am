@@ -1,5 +1,37 @@
 # CHANGELOG
 
+## 2026-02-10 — TRACK 18.09 · Operational Friction Elimination · 🟢 GO
+
+### Scope
+Pure friction-elimination polish. No new features, no new collections, no auth/RBAC changes, no route changes. Strictly small, high-impact refinements.
+
+### Friction removed
+- `components/MasterListPanel.jsx` — replaced generic `placeholder="Search…"` with dynamic `placeholder={\`Search ${entitySingular}…\`}` so every reuse (employees, equipment, suppliers, parts, etc.) self-describes.
+- `pages/Tasks.jsx` — replaced title-only `placeholder="Search title…"` with `placeholder="Search title or description…"` matching the server-side `q` filter scope.
+
+### R8 linter rule — DEFERRED to 18.10
+Prototyped "duplicate CTA on a single card" rule (R8). Initial proximity-based matcher tripped on `aria-label`, status pills, dropdown items, and i18n catalog entries. Per directive (only ship rules with extremely low false-positive rates), R8 is deferred to Track 18.10 calibration. Deferral marker lives at the bottom of `tests/test_track_18_07_design_system_linter.py`.
+
+### Locks
+- New `backend/tests/test_track_18_09_operational_friction_elimination.py` — 8 assertions covering report integrity, R8 deferral discipline, deployment-gate wiring, and the two micro-polish edits.
+- `scripts/deployment_gate.py` — Track 18.09 lock wired into `REGRESSION_FILES`.
+
+### Audit documentation
+- `memory/TRACK_18_09_OPERATIONAL_FRICTION_ELIMINATION.md` (reconciled to honestly disclose R8 deferral)
+- `memory/TRACK_18_09_VISUAL_RHYTHM_REPORT.md`
+- `memory/TRACK_18_09_INFORMATION_HIERARCHY_REPORT.md`
+- `memory/TRACK_18_09_OPERATOR_EXPERIENCE_REPORT.md`
+
+### Regression
+- Full `scripts/deployment_gate.py` REGRESSION_FILES suite: **1481/1481 PASS** in 193.64s.
+- Track 18 family deterministic: 550/550 PASS in 32s.
+- `testing_agent_v3_fork` certified both backend regression and frontend smoke (Hub, Sign-In, Tasks placeholder, MasterListPanel dynamic placeholders).
+
+### Verdict
+🟢 GO. The interface disappears. The work remains.
+
+
+
 
 ## 2026-02-11 — TRACK 15.73Q · Daily Report PM-Email Coverage Restoration · 🟢 GO
 

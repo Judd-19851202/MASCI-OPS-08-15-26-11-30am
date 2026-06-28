@@ -6209,3 +6209,33 @@ Close Executive YELLOW by building a read-only `ExecutiveOverview.jsx` that aggr
 **Carve-outs preserved (verified by testing agent):** /api/admin/transportation prefix · X-Dispatch-Token header (3 occurrences) · /dispatch/login route · require_admin_dep guard · no new collections · no auth/RBAC changes.
 
 **Deployment gate:** Track 18.08 wired in (`scripts/deployment_gate.py` L225).
+
+---
+
+## Track 18.09 — Operational Friction Elimination (2026-02-10) — 🟢 GO
+
+**Mandate:** Audit every authenticated workspace for friction (clicks, scrolls, visual rhythm, table usability, microcopy, search placeholders). Make small, high-impact refinements without new features, architecture changes, or redesigns.
+
+**Friction removed:**
+- `components/MasterListPanel.jsx` — generic `placeholder="Search…"` → dynamic `placeholder={\`Search ${entitySingular}…\`}` so every reuse self-describes (employees, equipment, suppliers, parts, …).
+- `pages/Tasks.jsx` — title-only `placeholder="Search title…"` → `placeholder="Search title or description…"` matching the server-side `q` scope.
+
+**R8 linter rule (Duplicate CTA on a single card) — DEFERRED to 18.10:** prototyped this track; tripped on `aria-label`, status pills, dropdown items, i18n catalog entries. Deferral disposition lives at the bottom of `tests/test_track_18_07_design_system_linter.py`.
+
+**Audit reports (all 🟢):**
+- `/app/memory/TRACK_18_09_OPERATIONAL_FRICTION_ELIMINATION.md` (reconciled to honestly disclose R8 deferral)
+- `/app/memory/TRACK_18_09_VISUAL_RHYTHM_REPORT.md`
+- `/app/memory/TRACK_18_09_INFORMATION_HIERARCHY_REPORT.md`
+- `/app/memory/TRACK_18_09_OPERATOR_EXPERIENCE_REPORT.md`
+
+**Lock file:** `backend/tests/test_track_18_09_operational_friction_elimination.py` (8 assertions covering report integrity, R8 deferral discipline, deployment-gate wiring, and both micro-polish edits).
+
+**Tests:**
+- Full `scripts/deployment_gate.py` REGRESSION_FILES suite: **1481/1481 PASS** in 193.64s.
+- Track 18 family: **550/550 PASS** in 32s.
+- `testing_agent_v3_fork` certified backend + frontend smoke (Hub, Sign-In, Tasks placeholder, MasterListPanel dynamic placeholders).
+
+**Carve-outs preserved:** zero route changes · zero auth/RBAC changes · zero new collections · zero new endpoints · dispatch/driver workflows untouched.
+
+**Deployment gate:** Track 18.09 wired in (`scripts/deployment_gate.py` L226).
+
