@@ -94,6 +94,8 @@ import NewEquipmentInspection from "@/pages/NewEquipmentInspection";
 import NewFleetDVIR from "@/pages/NewFleetDVIR";
 import FleetDVIRConfirmation from "@/pages/FleetDVIRConfirmation";
 import FleetVisibility from "@/pages/FleetVisibility";
+// TRACK 18.00 · Phase G · Transportation Operations branding on dispatch fleet.
+import TransportationOpsTopBar from "@/components/transportation/TransportationOpsTopBar";
 import ViewEquipmentInspection from "@/pages/ViewEquipmentInspection";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminHub from "@/pages/AdminHub";
@@ -997,7 +999,7 @@ function App() {
             <Route path="/dispatch-portal/hub_v2" element={DP(<DispatchHubV2 />)} />
             <Route path="/dispatch-portal/board" element={DP(<DispatchBoard />)} />
             <Route path="/dispatch-portal/command" element={DP(<DispatchCommandCenter />)} />
-            <Route path="/dispatch-portal/fleet" element={DP(<FleetVisibility scope="dispatch" />)} />
+            <Route path="/dispatch-portal/fleet" element={DP(<><TransportationOpsTopBar /><FleetVisibility scope="dispatch" /></>)} />
             {/* TRACK 15.81 — Dispatch-owned alias for the Live Operations Map.
                 Same `OperationsMapPage` component rendered under `RequireDispatch`
                 so Dispatch users (and Super Admins signed in via Dispatch) can

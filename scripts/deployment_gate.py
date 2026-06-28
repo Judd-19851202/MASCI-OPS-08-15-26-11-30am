@@ -213,6 +213,7 @@ REGRESSION_FILES = [
     "/app/backend/tests/test_track_18_00_phase_e_portal_transformation.py",
     "/app/backend/tests/test_track_18_00e_fix_transportation_portal_rehome.py",
     "/app/backend/tests/test_track_18_00_phase_f_portal_aware_data_layer.py",
+    "/app/backend/tests/test_track_18_00_phase_g_final_polish.py",
 ]
 
 DEFAULT_BASE_URL = (

@@ -22,6 +22,11 @@ import {
 } from "./_shared";
 import { RateCreateDialog, InspectionWizard } from "./_widgets";
 import MissionControl from "./MissionControl";
+// TRACK 18.00 · Phase G · Transportation-scoped restricted state for
+// dispatch users hitting admin-strict data feeds (cleanup signals, HR
+// sync, etc.) — replaces the legacy "unavailable" inline copy with the
+// portal-branded variant.
+import { TxOpsRestrictedData } from "@/components/transportation/TxOpsRestricted";
 
 // ───────────────────────── Dashboard ─────────────────────────
 // TRACK 18.00 · Phase B — the Transportation Operations landing
@@ -72,12 +77,7 @@ function TopCleanupOpportunityCard() {
 
   if (err) {
     return (
-      <div
-        data-testid="tx-dashboard-top-cleanup-error"
-        className="text-xs text-slate-400"
-      >
-        Cleanup signals unavailable.
-      </div>
+      <TxOpsRestrictedData testid="tx-dashboard-top-cleanup-error" />
     );
   }
   if (!data) {
