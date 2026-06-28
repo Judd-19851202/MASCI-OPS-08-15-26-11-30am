@@ -129,3 +129,29 @@ patterns**. Additional rules to consider:
   paths)
 
 These are deferred to Track 18.08 unless drift is observed earlier.
+
+---
+
+## Track 18.08 additions
+
+### R6 — Status color without label
+**Forbidden:** `<span>`/`<div>` elements with `bg-red-{500-700}` /
+`bg-amber-{500-700}` Tailwind class AND empty inner text (no
+characters between `>` and `<`), unless they carry an `aria-label`.
+
+**Required:** every operational status must communicate by **color + label + icon** (Design System §5 + §20).
+
+### R7 — Hardcoded mobile-breaking widths
+**Forbidden:** `w-[Npx]` or `min-w-[Npx]` where N ≥ 800, unless the
+parent file uses `overflow-x-auto` or `overflow-x-scroll` (i.e. the
+wide content lives inside a controlled-scroll wrapper). The regex
+explicitly excludes `max-w-[Npx]` via a negative lookbehind.
+
+**Required:** wrap wide tables in `overflow-x-auto`, or use
+responsive sizing per Design System §19.
+
+**Allow-list (files with documented wide-table wrappers in a parent):**
+- `components/MasterListPanel.jsx`
+- `components/pm/PmJobsRead.jsx`
+- `components/admin/PmDocSelectorPanel.jsx`
+- `components/admin/UsersTable.jsx`

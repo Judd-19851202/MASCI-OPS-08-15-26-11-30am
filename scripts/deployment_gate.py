@@ -222,6 +222,7 @@ REGRESSION_FILES = [
     "/app/backend/tests/test_track_18_06_operational_design_system.py",
     "/app/backend/tests/test_track_18_07_design_system_linter.py",
     "/app/backend/tests/test_track_18_07_design_system_enforcement.py",
+    "/app/backend/tests/test_track_18_08_regression_stability_device_polish.py",
 ]
 
 DEFAULT_BASE_URL = (

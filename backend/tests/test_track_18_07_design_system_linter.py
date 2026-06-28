@@ -359,3 +359,94 @@ def test_allowlist_entries_resolve_to_real_files():
         assert target.exists(), (
             f"Linter allow-list entry references missing file: {suffix}"
         )
+
+
+# =====================================================================
+# R6 — Status color without label (Track 18.08)
+# =====================================================================
+#
+# Tailwind status-color classes that imply a state (bg-red-*, bg-amber-*,
+# bg-green-* for chip-style cards) must appear alongside an accompanying
+# text label. We allow status colors freely on hovers, focus rings, and
+# decorative panels; this rule only fires when a tightly-scoped chip
+# pattern surfaces a color-only "status" element.
+#
+# Scope: kept tight to avoid noise. Flags JSX where a <span> / <div>
+# has `bg-red-{500-700}` or `bg-amber-{500-700}` AND inner text is
+# empty (no characters between `>` and `<`). Allow-list permits
+# decorative ribbons and chips that have an `aria-label`.
+_STATUS_COLOR_PATTERNS = [
+    r'<span[^>]+bg-red-[567]00[^>]*>\s*</span>',
+    r'<span[^>]+bg-amber-[567]00[^>]*>\s*</span>',
+    r'<div[^>]+bg-red-[567]00[^>]*>\s*</div>',
+]
+
+
+def test_lint_no_status_color_without_label():
+    import re as _re
+    bad: List[Tuple[str, int, str]] = []
+    for f in _iter_user_facing_files():
+        text = _strip_comments(f.read_text(errors="replace"))
+        for i, line in enumerate(text.splitlines(), 1):
+            for pat in _STATUS_COLOR_PATTERNS:
+                if _re.search(pat, line) and "aria-label" not in line:
+                    bad.append((f.relative_to(ROOT).as_posix(), i,
+                                line.strip()[:140]))
+    assert not bad, (
+        "Status color without label detected. Status must communicate "
+        "by color + label + icon per OPERATIONAL_DESIGN_SYSTEM.md §5:\n"
+        + "\n".join(f"  {f}:{ln} → {snip}" for f, ln, snip in bad[:10])
+    )
+
+
+# =====================================================================
+# R7 — Hardcoded mobile-breaking widths (Track 18.08)
+# =====================================================================
+#
+# Tailwind arbitrary-value width classes that exceed common phone
+# viewports (≥ 800px) without an overflow-x-auto wrapper are likely to
+# break mobile. We flag `w-[Npx]` and `min-w-[Npx]` where N ≥ 800.
+# Allow-list permits intentional wide tables wrapped in overflow-x-auto.
+_WIDTH_OVERFLOW_PATTERNS = [
+    # w-[ Npx ] or min-w-[ Npx ] where N is 3 digits ≥ 800 or 4+ digits.
+    # Negative lookbehind avoids matching `max-w-[...]`.
+    r'(?<!max-)\bw-\[(8[0-9]{2}|9[0-9]{2}|\d{4,})px\]',
+    r'(?<!\w)min-w-\[(8[0-9]{2}|9[0-9]{2}|\d{4,})px\]',
+]
+
+# Allow-listed widths that live INSIDE a controlled overflow scroller —
+# documented in DESIGN_SYSTEM_LINTER_RULES.md.
+_WIDTH_OVERFLOW_FILE_ALLOWLIST = {
+    # Documented wide-table wrappers — each of these has an explicit
+    # overflow-x-auto wrapper in a PARENT component (linter scans
+    # per-file). Each entry has a code-review reference in
+    # DESIGN_SYSTEM_LINTER_RULES.md.
+    "components/MasterListPanel.jsx",
+    "components/pm/PmJobsRead.jsx",
+    "components/admin/PmDocSelectorPanel.jsx",
+    "components/admin/UsersTable.jsx",
+}
+
+
+def test_lint_no_hardcoded_mobile_breaking_widths():
+    import re as _re
+    bad: List[Tuple[str, int, str]] = []
+    for f in _iter_user_facing_files():
+        posix = f.as_posix()
+        if any(posix.endswith(s) for s in _WIDTH_OVERFLOW_FILE_ALLOWLIST):
+            continue
+        text = _strip_comments(f.read_text(errors="replace"))
+        # Quick reject for files that wrap their content in overflow.
+        wraps_overflow = "overflow-x-auto" in text or "overflow-x-scroll" in text
+        for i, line in enumerate(text.splitlines(), 1):
+            for pat in _WIDTH_OVERFLOW_PATTERNS:
+                m = _re.search(pat, line)
+                if m and not wraps_overflow:
+                    bad.append((f.relative_to(ROOT).as_posix(), i,
+                                line.strip()[:140]))
+    assert not bad, (
+        "Hardcoded width ≥ 800px without overflow-x-auto wrapper "
+        "detected. Wrap in `overflow-x-auto` or use responsive sizing "
+        "per OPERATIONAL_DESIGN_SYSTEM.md §19:\n"
+        + "\n".join(f"  {f}:{ln} → {snip}" for f, ln, snip in bad[:10])
+    )
