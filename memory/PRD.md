@@ -11,6 +11,36 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-02-10 · TRACK 18.00E-FIX · Transportation Portal Rehome · ✅ GO)
+
+### Defect
+Phase E TopBar's Mission Control CTA from `/dispatch-portal` pointed to `/admin/transportation`, which is gated by `RequireAdmin`. A dispatcher clicking it hit "You don't have access to Admin Console". Transportation Operations was effectively trapped behind the Admin gate.
+
+### Fix
+**Single shell, two access paths, RBAC determines content.** New dispatch-safe route `/transportation-operations/*` mounts the SAME `TransportationApp` module behind a new `RequireTransportationPortal` guard that accepts admin OR dispatch OR any portal token. Every TopBar link (Mission Control CTA, brand, Search, all 5 grouped nav rails, `/` shortcut) repointed. `AdminSideNavV2` now conditionally renders only when `isAdmin()`. `/admin/transportation/*` retained as admin-oversight alias. Phase D composer deep-link `route` strings repointed (API prefix unchanged → `schema_version=18.00D` preserved).
+
+### Verdict
+✅ **GO** — 30/30 fix unit tests · 161/161 Track-18 cross-track regression · live UI verified end-to-end by testing agent:
+- Dispatch login → /dispatch-portal → MC CTA → `/transportation-operations` with NO Admin Console denial ✓
+- AdminSideNavV2 hidden for dispatch user / visible for admin user (same shell) ✓
+- 12/12 TopBar nav-group hrefs repointed; ZERO `/admin/transportation` links remain ✓
+- All 5 dispatch deep routes preserved (board · command · map · haul-ledger · driver-qualification) ✓
+- `/` shortcut: dispatch-portal → `/transportation-operations` · inside shell focuses `txops-search-input` ✓
+- Admin alias `/admin/transportation` still serves admin oversight ✓
+- Phase D envelope live: `schema_version=18.00D`, `entity.route=/transportation-operations/drivers/...` ✓
+
+### Hard guarantees
+- No new collection · no new auth verb · no new token · no data migration.
+- Backend API prefix `/api/admin/transportation/related/*` UNCHANGED.
+- `RequireAdmin` · `RequireDispatch` · `X-Dispatch-Token` · multi-login portal tokens all preserved.
+- Phase A/B/C/D/E all preserved. Phase D RBAC matrix unchanged.
+
+### Documentation
+- `/app/memory/TRACK_18_00E_FIX_TRANSPORTATION_PORTAL_REHOME.md`
+- `/app/test_reports/iteration_track_18_00e_fix.json`
+
+---
+
 ## Latest Track (2026-02-10 · TRACK 18.00 Phase E · Transportation Operations Portal Transformation · ✅ GO)
 
 ### Mission
