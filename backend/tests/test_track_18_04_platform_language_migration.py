@@ -554,15 +554,29 @@ def test_44_hub_hero_uses_masci_operations_platform_kicker():
 
 
 def test_45_hub_hero_subtext_uses_transportation_operations():
+    """Hero subtext must not list bare 'dispatch' as a platform pillar.
+    Track 18.05 amendment further decided that the hero subtext uses
+    generic-category sentence-case phrasing (Option C), so the canonical
+    form lists 'transportation' (sentence case) alongside the other
+    generic categories. Lock both decisions here."""
     src = _read(HUB)
-    assert "Transportation Operations, and project operations" in src, (
-        "Hero subtext must use Transportation Operations, not bare 'dispatch'"
-    )
+    # Track 18.05 amendment: Option C generic-category phrasing.
+    assert (
+        "workforce accountability, transportation, and project operations"
+        in src
+    ), "Hero subtext must use Track 18.05 Option C generic-category wording"
     # Hero subtext key must NOT use bare 'dispatch' as a platform pillar.
     bad = ('"Field reporting, safety, quality, equipment, '
            'workforce accountability, dispatch, and project operations')
     assert bad not in src, (
         "Hero subtext still uses legacy 'dispatch' as platform pillar"
+    )
+    # Hero subtext must NOT mix Title Case workspace name with lowercase
+    # generic categories (the pre-amendment 18.04 wording).
+    pre_amendment_bad = ("workforce accountability, Transportation "
+                         "Operations, and project operations")
+    assert pre_amendment_bad not in src, (
+        "Hero subtext regressed to pre-18.05 mixed-case wording"
     )
 
 

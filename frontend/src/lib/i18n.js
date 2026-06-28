@@ -3582,9 +3582,10 @@ const ES = {
   // instead of generic department names. Field-readable Spanish.
   "End-of-day reports, safety enforcement, equipment tracking, quality control, and complete documentation — captured in the field, routed automatically, and stored in one operational system.":
     "Reportes de fin de día, cumplimiento de seguridad, control de equipo, control de calidad y documentación completa — capturado en campo, ruteado automáticamente y archivado en un solo sistema operativo.",
-  // ── Track 15.4 → 18.04 · Hero copy: Transportation Operations canonical
-  "Field reporting, safety, quality, equipment, workforce accountability, Transportation Operations, and project operations — captured once, routed automatically, and visible everywhere they matter.":
-    "Reportes de campo, seguridad, calidad, equipo, responsabilidad de personal, Operaciones de Transporte y operaciones de proyecto — capturado una vez, ruteado automáticamente y visible donde importa.",
+  // ── Track 15.4 → 18.04 → 18.05 · Hero copy: case-consistent generic
+  // category phrasing (Option C from the Track 18.05 amendment).
+  "Field reporting, safety, quality, equipment, workforce accountability, transportation, and project operations — captured once, routed automatically, and visible everywhere they matter.":
+    "Reportes de campo, seguridad, calidad, equipo, responsabilidad de personal, transporte y operaciones de proyecto — capturado una vez, ruteado automáticamente y visible donde importa.",
   "Connected Platforms": "Plataformas Conectadas",
   "Project Systems": "Sistemas de Proyecto",
   "Connected project platforms for communication, utility locating, and construction plans.":

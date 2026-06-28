@@ -267,7 +267,7 @@ export default function Hub() {
             )}
           </h1>
           <p className="text-slate-600 text-base sm:text-lg mt-3 max-w-3xl">
-            {t("Field reporting, safety, quality, equipment, workforce accountability, Transportation Operations, and project operations — captured once, routed automatically, and visible everywhere they matter.")}
+            {t("Field reporting, safety, quality, equipment, workforce accountability, transportation, and project operations — captured once, routed automatically, and visible everywhere they matter.")}
           </p>
         </div>
 

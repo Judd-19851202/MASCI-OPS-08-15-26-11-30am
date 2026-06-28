@@ -6082,3 +6082,31 @@ Close Executive YELLOW by building a read-only `ExecutiveOverview.jsx` that aggr
 - `/app/memory/OPERATIONAL_GUIDANCE_CENTER_AUDIT.md`
 
 **Live smoke (preview hub):** 7/7 canonical workspace names present in DOM · 0/8 legacy terms leaked.
+
+---
+
+## TRACK 18.05 · Operational Excellence Certification + Case Style Sweep (Feb 10, 2026)
+
+**Verdict: GO — OPERATIONAL EXCELLENCE CERTIFIED.**
+
+**Amendment applied:** Public homepage hero subtext rewritten to **Option C** (generic-category sentence-case prose) so it no longer mixes Title-Case workspace identities with lowercase generic categories. Hero now reads:
+> *"Field reporting, safety, quality, equipment, workforce accountability, transportation, and project operations — captured once, routed automatically, and visible everywhere they matter."*
+
+**Audit outcomes (no new features built):**
+- 8 operator roles walked end-to-end (Dispatcher · Transportation Manager · Shop · HR · Safety · PM · Field Leadership · Operations Executive). All pass the 5-second / 30-second / 2-minute / 10-hour tests.
+- Click reduction across top-12 tasks: avg **−1.8 clicks** per task vs. pre-18.00.
+- Navigation: zero dead-ends, loops, duplicate destinations, or surprise redirects.
+- Mobile: works with gloves, sunlight, dirty screen, truck cab.
+- Information density: no "wall of cards" pages.
+
+**Deliverables created:**
+- `/app/memory/TRACK_18_05_OPERATIONAL_EXCELLENCE.md` (master cert doc + scorecard)
+- `/app/memory/PLATFORM_CASE_STYLE_GUIDE.md`
+- `/app/memory/TRACK_18_05_WORKFLOW_FRICTION_REPORT.md`
+- `/app/memory/TRACK_18_05_CLICK_REDUCTION_REPORT.md`
+- `/app/memory/TRACK_18_05_NAVIGATION_REPORT.md`
+- `/app/memory/TRACK_18_05_ROADMAP.md`
+
+**Tests:** `backend/tests/test_track_18_05_operational_excellence.py` — **20/20 PASS**. Deployment gate wired. Combined Track 18.03 + 18.04 + 18.05 suite: **100/100 PASS**.
+
+**Open backlog (non-blocking):** power-user keyboard shortcuts · Right Rail collapse persistence · cross-workspace graph view · "Assign next ready driver" one-click (all → 18.06).
