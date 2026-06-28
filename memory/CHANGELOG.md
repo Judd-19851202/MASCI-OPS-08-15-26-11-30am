@@ -1,5 +1,52 @@
 # CHANGELOG
 
+## 2026-02-10 — TRACK 18.09A · TRUE Operational Friction Elimination Completion Pass · 🟢 GO
+
+### Why
+The original Track 18.09 shipped two micro-polish edits — correctly flagged by the user as insufficient. Track 18.09A is the **true completion pass**: a real platform-wide friction-elimination audit with documented per-workspace findings, shipped low-risk fixes, and 14 directive-mandated regression assertions.
+
+### Friction inventory
+`/app/memory/TRACK_18_09A_FRICTION_INVENTORY.md` — 17 workspace sections covering Public Hub, Sign-In, Mission Control, Dispatch Board, Live Operations Map, Haul Ledger, Project Management, Human Resources, Safety Operations, Shop Operations, Field Leadership, Administration, PO Requests, Operational Guidance Center, Tasks, Mobile/tablet, Desktop/large-screens. Each section documents: route, primary user, top 3 tasks, friction observed, click counts, improvements shipped, deferrals with reasons, regression protection.
+
+### Friction shipped (11 fixes, all low-risk)
+**Accessibility (8 fixes — icon-only buttons gained `aria-label` + `title`):**
+- `components/AdminSafetyUsersPanel.jsx` — Copy password button
+- `components/AdminHRUsersPanel.jsx` — Copy password button
+- `components/AdminFieldLeadershipUsersPanel.jsx` — Copy password button
+- `components/AdminDispatchUsersPanel.jsx` — Copy password button
+- `components/AdminShopUsersPanel.jsx` — Copy password button
+- `pages/admin/AdminDispatch.jsx` — Utilization refresh button (`aria-label="Refresh utilization"`)
+- `pages/admin/AdminDispatch.jsx` — Idle-list refresh button (`aria-label="Refresh idle list"`)
+- `pages/admin/AdminOperationsEvents.jsx` — Events refresh button (`aria-label="Refresh events"`)
+
+**Microcopy (3 fixes — PO Requests filter placeholders normalized):**
+- `Filter by supervisor / requester` → `Filter by supervisor or requester…`
+- `Filter by vendor` → `Filter by vendor…`
+- `Filter by project / job #` → `Filter by project # or name…`
+
+### Deferrals (with reasons traceable to hard rules)
+R8 linter rule (Track 18.10 calibration) · Keyboard shortcuts (feature) · Right Rail collapse persistence (architecture) · "Assign next ready driver" one-click (feature) · Saved searches (persistence + new endpoints) · Hub hover hints (keyboard feature) · Click-through "open as drawer" (architecture).
+
+### Locks
+- New `backend/tests/test_track_18_09a_true_completion_pass.py` — **21 assertions** (14 directive-required + 7 anchor assertions).
+- `scripts/deployment_gate.py` — Track 18.09A lock wired into `REGRESSION_FILES` (L227).
+
+### Testing
+- Full `scripts/deployment_gate.py` REGRESSION_FILES suite: **1502/1502 PASS** in 195s (second run; first run hit one known intermittent timeout flake — `test_track_15_93_zero_touch_bootstrap` — passes solo in 3.3s, unrelated to 18.09A scope).
+- 21/21 lock-file assertions PASS solo.
+- `testing_agent_v3_fork` certified: **backend 99.93% (1501/1502, single unrelated flake)** + **frontend 100% on every 18.09A-targeted smoke** (Hub, Sign-In, AdminDispatch refresh aria-labels, PO Requests microcopy).
+
+### Carve-outs preserved
+Zero route changes · zero auth/RBAC changes · zero new collections · zero new endpoints · zero new scoring · dispatch execution untouched · driver workflows untouched · search behavior preserved (placeholders only) · Right Rail preserved · Transportation Operations chrome preserved.
+
+### Testing-agent recommendation for Track 18.10
+Increase pytest `--timeout` from 30s to 60s or shard the regression suite — recurring intermittent flakes (`15_79e`, `15_93`) are runtime-envelope issues, not functional defects.
+
+### Verdict
+🟢 GO. True completion pass complete. The interface continues to disappear.
+
+
+
 ## 2026-02-10 — TRACK 18.09 · Operational Friction Elimination · 🟢 GO
 
 ### Scope

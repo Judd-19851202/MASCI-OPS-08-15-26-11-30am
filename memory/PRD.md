@@ -6239,3 +6239,28 @@ Close Executive YELLOW by building a read-only `ExecutiveOverview.jsx` that aggr
 
 **Deployment gate:** Track 18.09 wired in (`scripts/deployment_gate.py` L226).
 
+---
+
+## Track 18.09A — TRUE Operational Friction Elimination Completion Pass (2026-02-10) — 🟢 GO
+
+**Why this exists:** The original Track 18.09 shipped only two micro-polish edits and was correctly flagged by the user as insufficient. Track 18.09A is the **true completion pass** the directive demanded.
+
+**Friction inventory (real, per-workspace):**
+`/app/memory/TRACK_18_09A_FRICTION_INVENTORY.md` — 17 workspaces audited (Public Hub, Sign-In, Mission Control, Dispatch Board, Live Operations Map, Haul Ledger, Project Management, Human Resources, Safety Operations, Shop Operations, Field Leadership, Administration, PO Requests, Operational Guidance Center, Tasks, Mobile/tablet, Desktop/large-screens). Each row documents route, primary user, top 3 tasks, friction observed, clicks/scrolls/context switches, improvement shipped, deferral with reason, regression protection.
+
+**Fixes shipped (11 low-risk):**
+- **8 accessibility fixes** — Five admin user-panel Copy icon buttons (Safety, HR, Field Leadership, Dispatch, Shop) and three admin refresh icon buttons (AdminDispatch utilization, AdminDispatch idle-list, AdminOperationsEvents) gained `aria-label` + `title` attributes. Screen-reader parity restored, hover tooltips active.
+- **3 microcopy fixes** — `pages/PoRequests.jsx` filter placeholders normalized to platform convention (slash → conjunction + trailing ellipsis): "Filter by supervisor or requester…", "Filter by vendor…", "Filter by project # or name…".
+
+**Lock file:** `backend/tests/test_track_18_09a_true_completion_pass.py` — **21 assertions** covering the 14 directive requirements (inventory exists, every workspace audited, every workspace has top tasks, every workspace has friction findings, every fix listed, every deferral has reason, dispatch preserved, transportation preserved, search preserved, right rail preserved, no auth/RBAC change, gate includes 18.09A, gate compiles, smoke surfaces documented) plus 7 anchor assertions.
+
+**Tests:**
+- Full `scripts/deployment_gate.py` REGRESSION_FILES: **1502/1502 PASS** in 195s.
+- 21/21 lock-file assertions PASS solo.
+- `testing_agent_v3_fork` certified: backend 99.93% (single unrelated flake), frontend 100% on all 18.09A-targeted smoke checks.
+
+**Carve-outs preserved:** zero route changes · zero auth/RBAC changes · zero new collections · zero new endpoints · zero new scoring · dispatch execution untouched · driver workflows untouched · search behavior preserved (placeholders only) · Right Rail preserved · Transportation Operations chrome preserved.
+
+**Deployment gate:** Track 18.09A wired in (`scripts/deployment_gate.py` L227).
+
+
