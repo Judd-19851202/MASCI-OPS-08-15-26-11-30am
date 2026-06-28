@@ -12844,7 +12844,16 @@ register_transportation_routes(
 # literal paths like /admin/transportation/inspections/queue resolve to
 # this router rather than being captured by Phase 2's /inspections/{iid}.
 from routes.transportation_experience import register_transportation_experience_routes  # noqa: E402
-register_transportation_experience_routes(app, db, require_admin_dep=require_admin_strict)
+# TRACK 18.00 · Phase F — Mission Control summary tiles must load for
+# dispatch / leadership / pm / safety / fl / shop / hr tokens too, not
+# just admin. Pass the cross-portal helper so the dashboard endpoint
+# becomes portal-aware. Every other endpoint in this router remains
+# admin-strict (record-detail surfaces stay locked).
+register_transportation_experience_routes(
+    app, db,
+    require_admin_dep=require_admin_strict,
+    require_portal_dep=_require_any_portal_token,
+)
 
 # TRACK 16.05 · Transportation Onboarding & Compliance Center (Phase 2).
 # Rate schedules · carrier+driver documents · packet workflow · MASCI

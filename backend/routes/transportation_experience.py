@@ -59,13 +59,20 @@ async def _compute_compliance_score(buckets_per_target: Dict[str, Dict[str, int]
 
 
 def register_transportation_experience_routes(
-    app, db, require_admin_dep: Callable
+    app, db, require_admin_dep: Callable,
+    # TRACK 18.00 Phase F · Optional portal-aware dependency for the
+    # Mission Control dashboard tile feed. When supplied, dispatch /
+    # leadership / pm / safety / fl / shop / hr tokens can load the
+    # summary-count tiles (no record details — only operational
+    # signals). When omitted, the legacy admin-strict guard is used.
+    require_portal_dep: Optional[Callable] = None,
 ) -> APIRouter:
     router = APIRouter(prefix="/api", tags=["transportation-experience"])
+    dashboard_guard = require_portal_dep or require_admin_dep
 
     # ─────────────────────── Dashboard ───────────────────────
     @router.get("/admin/transportation/dashboard")
-    async def dashboard(_: Any = Depends(require_admin_dep)):
+    async def dashboard(_: Any = Depends(dashboard_guard)):
         carrier_buckets = await _count_states(db, "carrier")
         person_buckets = await _count_states(db, "person")
         truck_buckets = await _count_states(db, "truck")

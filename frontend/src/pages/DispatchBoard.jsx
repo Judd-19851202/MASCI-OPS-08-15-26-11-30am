@@ -33,6 +33,8 @@ import AssignmentCreateDrawer from "@/components/dispatch/AssignmentCreateDrawer
 import FocusBanner from "@/components/triage/FocusBanner";
 import { useT } from "@/lib/i18n";
 import { gpsBand, gpsBandClass } from "@/lib/gpsBand";
+// TRACK 18.00 · Phase F · Transportation Operations unified branding.
+import TransportationOpsTopBar from "@/components/transportation/TransportationOpsTopBar";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const DISPATCH_PAL = paletteFor("dispatch");
@@ -579,6 +581,7 @@ export default function DispatchBoard() {
 
   return (
     <div className="min-h-screen blueprint-bg flex flex-col" data-testid="dispatch-board">
+      <TransportationOpsTopBar />
       <div className="caution-stripe" />
       <header className={`bg-slate-900 text-white border-b-4 ${DISPATCH_PAL.hubHeaderBar}`}>
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center gap-3 flex-wrap">

@@ -27,6 +27,8 @@ import ShopFeedBoard from "@/components/dispatch/command/ShopFeedBoard";
 import CommunicationsTab from "@/components/dispatch/command/CommunicationsTab";
 import { commandApi } from "@/components/dispatch/command/commandApi";
 import { subscribeCommandAction } from "@/components/dispatch/command/commandActions";
+// TRACK 18.00 · Phase F · Transportation Operations unified branding.
+import TransportationOpsTopBar from "@/components/transportation/TransportationOpsTopBar";
 
 const SUMMARY_POLL_MS = 30000;
 
@@ -73,6 +75,8 @@ export default function DispatchCommandCenter() {
       sideNav={<DispatchSideNavV2 />}
     >
       <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4" data-testid="dispatch-command-center">
+        {/* TRACK 18.00 · Phase F · Transportation Operations branding. */}
+        <TransportationOpsTopBar />
         {/* Always-on command strip */}
         <CommandStrip
           summary={summary}

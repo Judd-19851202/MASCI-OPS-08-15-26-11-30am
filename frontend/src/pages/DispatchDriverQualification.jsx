@@ -8,6 +8,8 @@ import DispatchSideNavV2 from "@/components/dispatch/sidebar/DispatchSideNavV2";
 import DriverQualificationReadOnlyView from "@/components/DriverQualificationReadOnlyView";
 import { getDispatchToken } from "@/lib/dispatchAuth";
 import { useT } from "@/lib/i18n";
+// TRACK 18.00 · Phase F · Transportation Operations unified branding.
+import TransportationOpsTopBar from "@/components/transportation/TransportationOpsTopBar";
 
 export default function DispatchDriverQualification() {
   const { t } = useT();
@@ -22,6 +24,7 @@ export default function DispatchDriverQualification() {
       sideNav={<DispatchSideNavV2 />}
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5" data-testid="dispatch-driver-qualification-page">
+        <TransportationOpsTopBar />
         <DriverQualificationReadOnlyView
           endpoint="/dispatch/driver-qualification"
           authHeaders={authHeaders}

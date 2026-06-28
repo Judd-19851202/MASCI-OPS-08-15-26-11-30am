@@ -16,11 +16,14 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, Radar } from "lucide-react";
 import OperationsMapPage from "@/pages/OperationsMapPage";
 import { useT } from "@/lib/i18n";
+// TRACK 18.00 · Phase F · Transportation Operations unified branding.
+import TransportationOpsTopBar from "@/components/transportation/TransportationOpsTopBar";
 
 export default function DispatchOperationsMapPage() {
   const { t } = useT();
   return (
     <div data-testid="dispatch-operations-map-page" className="flex flex-col min-h-screen">
+      <TransportationOpsTopBar />
       {/* Dispatch breadcrumb — sticky, calm, field-readable. */}
       <div
         data-testid="dispatch-map-breadcrumb"

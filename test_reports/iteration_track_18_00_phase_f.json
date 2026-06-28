@@ -1,0 +1,45 @@
+{
+  "summary": "Track 18.00 Phase F (Portal-Aware Data Layer + Dispatch Surface Polish) end-to-end verification PASSED. Backend pytest suite (40/40) + live API + multi-portal browser flows all green. TopBar mounted on every dispatch surface, dashboard endpoint portal-aware, detail endpoints remain admin-strict, Admin TopBar group correctly admin-only, mobile hamburger toggle works, TxOpsRestricted component compliant, Phase D right rail intact, admin oversight preserved, no Admin Console wording anywhere for dispatch users, zero page errors on the 5 key surfaces.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_track_18_00_phase_f_portal_aware_data_layer.py",
+    "/app/test_reports/pytest/iter_track_18_00_phase_f.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Spec wording in the review request used testid prefix 'txops-portal-topbar-group-admin' but actual runtime DOM uses 'txops-topbar-group-admin' (no '-portal-' segment). The functional behavior is correct (admin group hidden for dispatch session, visible for admin) — only the documentation/spec text is mismatched. Phase F pytest test_15_topbar_admin_group_is_admin_only at static source level passes, so this is purely a doc discrepancy.",
+    "/admin/transportation shell renders the Transportation TopBar in expanded layout (section labels + inline links: 'OPERATIONS', 'PEOPLE', 'COMPLIANCE', 'OPERATIONS INTELLIGENCE', 'ADMINISTRATION · Reports, Administration') rather than the compact dropdown-button layout used at /dispatch-portal. The admin Administration section IS visible there — just not via the same testid pattern. This is by design (different mount context) but worth documenting for testing agents."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "Dispatcher: dispatch@mascigc.com / DispatchTest2026! (POST /api/dispatch/login). Admin multi-login: jaymn.judd@mascigc.com / Maddix123! (POST /api/auth/multi-login, response shape: {session_token, portal_tokens:{admin,dispatch,...}, user}).",
+  "seed_data_creation": "None.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Phase F is complete and stable. Key DOM contracts to remember: (1) Transportation TopBar root testid = 'txops-portal-topbar'. (2) Group buttons (compact/dispatch mount) = 'txops-topbar-group-{ops|people|compliance|intel|admin}' — note NO '-portal-' segment between 'txops' and 'topbar'. (3) Mobile hamburger = 'txops-portal-topbar-mobile-toggle' (hidden >=md, visible <md). (4) Mobile nav container = 'txops-portal-topbar-mobile-nav'. (5) Mobile nav items prefix = 'txops-topbar-mobile-item-*'. (6) Phase D right rail container = 'txops-right-rail' with 5 sections: 'txops-rail-recent-activity', 'txops-rail-timeline', 'txops-rail-related', 'txops-rail-open-actions', 'txops-rail-audit'. (7) Mission Control link in dispatch portal = 'txops-portal-topbar-mission-control' → href '/transportation-operations'. (8) /transportation-operations shell testid = 'admin-transportation-page'. (9) Admin sidenav testid on /admin/transportation = 'admin-side-nav-v2' (combined with class 'admin-side-nav'). (10) Multi-login response: tokens live under d.portal_tokens.admin and d.portal_tokens.dispatch; session_token is separate. localStorage keys: masci.admin.token, masci.dispatch.token, masci_jwt_v1, masci.directory.user. (11) /dispatch-portal/fleet is intentionally deferred (Phase G). (12) Background 401 noise on dispatch-context admin endpoints is expected and acceptable.",
+  "verification_evidence": {
+    "backend_pytest": "40/40 PASSED in 0.30s — backend/tests/test_track_18_00_phase_f_portal_aware_data_layer.py",
+    "live_api_dispatch_login": "POST /api/dispatch/login → 200, token len 101",
+    "live_api_dashboard_dispatch_token": "GET /api/admin/transportation/dashboard with X-Dispatch-Token → 200, keys=['active_rate','buckets','compliance_score','disclaimer','tiles'], compliance_score=41",
+    "live_api_dashboard_anonymous": "GET /api/admin/transportation/dashboard → 401",
+    "live_api_phase_d_related_dispatch": "GET /api/admin/transportation/related/driver/p1 with dispatch token → 200, schema_version=18.00D, no document/orientation keys",
+    "live_api_detail_admin_strict": "GET /api/admin/transportation/documents/queue with dispatch token → 401; GET /api/admin/transportation/inspections/queue with dispatch token → 401",
+    "ui_dispatch_surfaces": "All 6 surfaces show TopBar + their own testid: /dispatch-portal (dispatch-hub), /dispatch-portal/board (dispatch-board), /dispatch-portal/command (dispatch-command-center), /dispatch-portal/map (dispatch-operations-map-page with 1 canvas), /dispatch-portal/haul-ledger (dispatch-haul-ledger-title), /dispatch-portal/driver-qualification (dispatch-driver-qualification-page). No 'Admin Console' or 'Admin Portal' wording.",
+    "ui_mission_control_cta": "Click 'Mission Control →' (data-testid=txops-portal-topbar-mission-control) navigates from /dispatch-portal to /transportation-operations; admin-transportation-page testid present; no Admin Console wording.",
+    "ui_admin_group_dispatch_session": "data-testid=txops-topbar-group-admin NOT in DOM. Groups ops/people/compliance/intel ARE present and visible. Confirms adminOnly:true filter is working.",
+    "ui_mobile_hamburger": "At 390px viewport: txops-portal-topbar-mobile-toggle visible=True; clicking reveals txops-portal-topbar-mobile-nav with 11 items prefixed txops-topbar-mobile-item-*. At 1920px: hamburger hidden.",
+    "ui_admin_oversight": "/admin/transportation as admin: admin-transportation-page visible, admin-side-nav-v2 present (testid='admin-side-nav admin-side-nav-v2'), TopBar expanded layout shows 'ADMINISTRATION' section header with Reports + Administration links.",
+    "ui_phase_d_right_rail": "/transportation-operations/live-operations?entity_type=driver&entity_id=ghost — txops-right-rail visible with all 5 sections (recent-activity, timeline, related, open-actions, audit) + counts/empty states (17 testids total under rail).",
+    "ui_console_errors": "Zero page errors and zero real console errors on /dispatch-portal, /dispatch-portal/board, /dispatch-portal/map, /transportation-operations, /admin/transportation. Background 401 fetches on dispatch-context admin endpoints filtered out per spec (expected and acceptable).",
+    "ui_dispatch_routes_regression": "/dispatch-portal/forgot-password and /dispatch-portal/change-password both render (no 404, zero page errors).",
+    "tx_ops_restricted_source": "/app/frontend/src/components/transportation/TxOpsRestricted.jsx exists, lints clean, exports default TxOpsRestricted + named TxOpsRestrictedData, contains 'restricted for your role' (2x) and 'Transportation Operations' (2x), zero 'Admin Console' occurrences."
+  }
+}

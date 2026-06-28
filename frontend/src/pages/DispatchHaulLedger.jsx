@@ -22,6 +22,8 @@ import {
   Search, RefreshCcw,
 } from "lucide-react";
 import { getDispatchToken } from "@/lib/dispatchAuth";
+// TRACK 18.00 · Phase F · Transportation Operations unified branding.
+import TransportationOpsTopBar from "@/components/transportation/TransportationOpsTopBar";
 
 const API = `${process.env.REACT_APP_BACKEND_URL || ""}/api`;
 
@@ -145,6 +147,7 @@ export default function DispatchHaulLedger() {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <TransportationOpsTopBar />
       <header className="bg-white border-b border-slate-200 px-4 sm:px-6 py-3 flex items-center gap-3">
         <Link
           to="/dispatch-portal"
