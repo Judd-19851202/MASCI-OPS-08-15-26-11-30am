@@ -12948,6 +12948,23 @@ from routes.dispatch_decision_surface import (  # noqa: E402
 register_track_16_13_routes(
     app, db, require_dispatch_or_admin_dep=_require_dispatch_or_admin)
 
+# TRACK 16.16 · Operations × Transportation Integration Layer.
+# Thin read-only consumer endpoint that lets Operations surfaces
+# (project workspaces, Operations Center Command, PM Command Center)
+# render Transportation awareness without leaving their workspace.
+# Composes existing Track 16.06 / 16.10 / 16.11A / 16.12 / 16.15
+# engines — no new scoring, no new collections, no new audit kinds.
+from routes.operations_transportation_integration import (  # noqa: E402
+    register_track_16_16_routes,
+)
+from routes.integrations._deps import (  # noqa: E402
+    make_require_any_portal_token as _make_any_portal_track_16_16,
+)
+register_track_16_16_routes(
+    app, db,
+    require_any_portal_dep=_make_any_portal_track_16_16(db, _is_valid_admin_token),
+)
+
 _transport_automation_task: Optional[asyncio.Task] = None
 
 

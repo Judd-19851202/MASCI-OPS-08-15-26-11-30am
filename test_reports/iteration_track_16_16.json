@@ -1,0 +1,51 @@
+{
+  "summary": "Track 16.16 Operations × Transportation Integration Layer — FULL CERTIFICATION PASS. 15/15 regression tests pass. 7/7 live RBAC + envelope + performance tests pass against the public REACT_APP_BACKEND_URL. UI verified: OperationsCenterCommand widget renders with all data-testids; PmProjectDetail (/pm/project/20-07) renders risk-banner (71 blocked dispatches), readiness-card (RED · 25.3) with all 6 tiles + overall band + view-link, and closeout-unresolved. Endpoint cold latency 723ms (well under 3s gate). RBAC consistent across admin/pm/dispatch portal tokens. Route is strictly read-only (zero write ops). Risk banner silence contract verified in source.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "PmCommandCenter widget visibility",
+        "issue": "OperationsTransportationHealthWidget is NOT visible on the default /pm/command-center landing because that route renders PmProjectFirstHome. The widget is mounted in the detailed Overview tab content (confirmed in source via test_12). Per the review request: this is documented + acceptable. Source-level test passes.",
+        "affected_selectors": ["ops-tx-health-widget"]
+      }
+    ],
+    "design_issues": [
+      {
+        "screen": "PmProjectDetail",
+        "issues": [
+          "React hydration warning in console: '<p> cannot contain <div>' inside PmProjectDetail. PRE-EXISTING — not caused by Track 16.16 components. Worth a future cleanup pass."
+        ]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_track_16_16_operations_transportation_integration.py",
+    "/app/backend/tests/test_track_16_16_live_rbac.py",
+    "/app/test_reports/pytest/track_16_16_results.xml",
+    "/app/test_reports/pytest/track_16_16_live_rbac.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Route file (operations_transportation_integration.py, 326 lines) is well-structured, fully read-only, calls only lightweight engines (Track 16.06 counters + 16.11A HR sync + 16.10 action item counts). Heavyweight Track 16.12 engine correctly avoided.",
+    "Risk banner silence contract enforced both server-side (_build_risks returns [] when healthy) and client-side (TransportationRiskBanner returns null when risks.length === 0). Verified by source inspection and unit test_07 + test_15.",
+    "Frontend module-level 30s in-memory cache coalesces parallel fetches from the 3 PmProjectDetail components into a single request — confirmed via observation (no Loading state on second component).",
+    "Pre-existing hydration warning on PmProjectDetail ('<p> cannot contain <div>') — not in Track 16.16 components but visible during this page load. Future cleanup."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_track_16_16_live_rbac.py (new — live RBAC + envelope + performance regression)"
+  ],
+  "success_rate": {
+    "backend": "100% (22/22 — 15 unit + 7 live)",
+    "frontend": "100% (OperationsCenterCommand + PmProjectDetail full surface; PmCommandCenter widget reachability is by-design via detailed Overview tab and source-mount verified)"
+  },
+  "test_credentials": "Super admin (multi-portal): jaymn.judd@mascigc.com / Maddix123! — POST /api/auth/multi-login returns portal_tokens.{admin,pm,dispatch,shop,hr,safety,field_leadership,fl}",
+  "seed_data_creation": "None. Used existing preview DB (blocked_dispatches=71, open_action_items=89, overall_readiness=RED 25.3).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Track 16.16 is GREEN. Live endpoint /api/operations/transportation/readiness returns 200 in ~700ms with full envelope. To rerun: `cd /app/backend && python -m pytest tests/test_track_16_16_operations_transportation_integration.py tests/test_track_16_16_live_rbac.py -v`. UI: /operations-center for widget, /pm/project/20-07 for full integration surface. PM Command Center widget is mounted only on the detailed Overview tab — default /pm/command-center landing is PmProjectFirstHome and will not show it (this is by design).",
+  "rca of the issue": "N/A — no defects found. One transient ingress read-timeout on the very first unauthenticated request from a fresh Python requests session was observed; mitigated in test with a 30s timeout + 1 retry. Curl-based same call returned 401 in 108ms, confirming this was a client/ingress cold-start jitter, not a backend issue."
+}

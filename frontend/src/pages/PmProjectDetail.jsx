@@ -26,6 +26,11 @@ import PmShell from "@/components/PmShell";
 import OperationalTimelineSidecar from "@/components/operational/OperationalTimelineSidecar";
 import TrenchSafetyOnProjectPanel from "@/components/trench/TrenchSafetyOnProjectPanel";
 import JobTeamRosterPanel from "@/components/team/JobTeamRosterPanel";
+import {
+  TransportationReadinessCard,
+  TransportationRiskBanner,
+  TransportationCloseoutAwareness,
+} from "@/components/operations_transportation_integration";
 
 const API = `${process.env.REACT_APP_BACKEND_URL || ""}/api`;
 
@@ -575,6 +580,18 @@ export default function PmProjectDetail() {
 
       <OperationalTimelineSidecar projectNumber={pn} />
 
+      {/* TRACK 16.16 · Operations × Transportation Integration Layer.
+          Calm read-only awareness on the per-project workspace —
+          the project workspace consumes Transportation, never the
+          other way around. All four widgets share ONE fetch via
+          useTransportationReadiness. */}
+      {pn && (
+        <div data-testid="pm-project-tx-integration" className="mt-4 space-y-3">
+          <TransportationRiskBanner />
+          <TransportationReadinessCard />
+        </div>
+      )}
+
       {/* Track 14.0-PM-STAFFING-UI-DISCOVERABILITY-CLOSURE.
           Inline Project Team panel — always visible on PM Project Detail
           so PMs can manage staffing without leaving the project. */}
@@ -608,6 +625,15 @@ export default function PmProjectDetail() {
 
       {/* Phase 4A — Trench Safety Operations Integration */}
       <TrenchSafetyOnProjectPanel projectNumber={pn} />
+
+      {/* TRACK 16.16 · Project Closeout Awareness. Shows unresolved
+          Transportation items or the calm "Transportation Complete"
+          badge at the bottom of the project workspace. */}
+      {pn && (
+        <div data-testid="pm-project-tx-closeout" className="mt-4">
+          <TransportationCloseoutAwareness />
+        </div>
+      )}
     </PmShell>
   );
 }

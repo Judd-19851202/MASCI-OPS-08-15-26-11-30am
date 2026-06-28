@@ -34,6 +34,7 @@ import { PortalShell } from "@/design-system";
 import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { ocCommandApi } from "@/components/operations/command/ocCommandApi";
+import { OperationsTransportationHealthWidget } from "@/components/operations_transportation_integration";
 
 const POLL_MS = 60000;
 
@@ -135,6 +136,11 @@ export default function OperationsCenterCommand() {
         <Section title="Project Health" subtitle={`${ph?.counts?.red || 0} red · ${ph?.counts?.yellow || 0} yellow · ${ph?.counts?.green || 0} green`} testId="oc-cmd-project-health">
           <ProjectHealthTable rows={ph?.rows || []} />
         </Section>
+
+        {/* TRACK 16.16 · Operations Dashboard Awareness — small
+            Transportation Health widget. One glance · one click ·
+            no duplicate dashboard. */}
+        <OperationsTransportationHealthWidget />
 
         {/* L5 — Specialty Assets (raised in priority per directive) */}
         <Section title="Specialty Asset Command" subtitle={sp ? `${sp.totals.total} total · ${sp.totals.assigned} assigned · ${sp.totals.available} available` : "loading…"} testId="oc-cmd-specialty">

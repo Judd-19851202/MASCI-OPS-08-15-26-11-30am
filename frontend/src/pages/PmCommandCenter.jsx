@@ -35,6 +35,7 @@ import PmProjectFirstHome from "@/components/pm/command/PmProjectFirstHome";
 import JobTeamRosterPanel from "@/components/team/JobTeamRosterPanel";
 import { pmCommandApi } from "@/components/pm/command/pmCommandApi";
 import { Users } from "lucide-react";
+import { OperationsTransportationHealthWidget } from "@/components/operations_transportation_integration";
 
 const OVERVIEW_POLL_MS = 45000;
 
@@ -197,6 +198,12 @@ export default function PmCommandCenter() {
           </TabsList>
 
           <TabsContent value="overview" data-testid="pm-cc-tab-content-overview">
+            {/* TRACK 16.16 · Transportation Health widget — same
+                consumer envelope used on OperationsCenterCommand.
+                One glance · one click · no duplicate dashboard. */}
+            <div className="mb-4">
+              <OperationsTransportationHealthWidget />
+            </div>
             <PmOverviewPane overview={overview} loading={loadingOverview} onJumpTo={jumpTo} />
           </TabsContent>
           <TabsContent value="resources" data-testid="pm-cc-tab-content-resources">
