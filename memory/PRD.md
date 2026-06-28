@@ -11,6 +11,38 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-06-28 · TRACK 16.10 · Transportation Automation Engine · ✅ GO)
+
+### Mission
+Move transportation from a compliance database into a proactive operating system. Daily scheduled scanner that fans out reminders, materialises action items, recomputes eligibility, and surfaces a unified Command Queue + Health + 30-day Forecast.
+
+### Verdict
+✅ **GO** — Deployment gate PASS. 50/50 new regression tests; live testing agent confirms 100% backend + 100% frontend. Idempotent dedupe via deterministic event_key; dry-run never persists; per-record errors isolated; scheduler gated by `SCHEDULER_ENABLED` and singleton lock.
+
+### What shipped
+* `lib/transport_automation.py` — async runner + 6 scanners (truck inspections, orientation, driver docs, carrier docs, packets, overrides) + reminder windows (30/14/7/1/today/overdue, overdue re-emits every 7 days) + email send adapter that re-uses Email Routing v2 + `fsi_email_sender` (Resend) — **no new sender**.
+* `routes/transportation_automation.py` — 8 admin endpoints (run · dry-run · runs · health · actions · action-patch · forecast · events) + 1 dispatch read-only visibility endpoint + bootstrap (9 new dry-run route keys) + scheduler loop under singleton lock.
+* Frontend `_command_queue.jsx` — `/admin/transportation/command-queue` Center with **Morning Queue** (severity buckets · Resolve/Dismiss), **Automation Health** (last-run KPIs · live/dry-run route lists · manual Run + Dry-run · stale advisory @ 72 h), **30-day Forecast** (6 read-only sections).
+* New TX sub-nav entry "Command Queue".
+* `email_routes`: 9 new routes seeded `enabled=False`. Track 16.09's 4 pilot routes remain live.
+* 50 tests covering: every reminder window · deterministic event_key · per-item dedupe · no SMS/Twilio/push · scheduler env flag · admin RBAC · dispatch read-only · 10 live e2e against preview backend.
+
+### APIs
+9 new endpoints. No new audit system, no new email sender, no new eligibility engine. Re-uses `append_audit`, `email_routing_v2`, `fsi_send_email`, `singleton_scheduler`, `compute_transport_eligibility`.
+
+### Risks
+9 new routes default to dry-run with empty recipient lists; operators activate via the Track 16.09 Email Pilot panel. `SCHEDULER_ENABLED=false` is intentional in preview — production must flip it on for daily cycle.
+
+### Deferrals
+Predictive analytics, carrier scorecards, payment calculator, AI recommendations, advanced dispatch optimisation, SMS / push.
+
+### Next recommended track
+**Track 16.11 — HR Lifecycle Integration.** Wire HR events (hire/leave/termination/role-change) into eligibility so MASCI employee drivers move through `pending_review → active → suspended` automatically.
+
+Ledger: `/app/memory/TRACK_16_10_TRANSPORTATION_AUTOMATION_ENGINE.md`.
+
+---
+
 ## Latest Track (2026-06-27 · TRACK 16.09 · Transportation Dispatch Gate + Controlled Email Activation · ✅ GO)
 
 ### Mission
