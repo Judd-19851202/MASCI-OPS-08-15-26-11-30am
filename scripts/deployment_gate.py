@@ -206,6 +206,7 @@ REGRESSION_FILES = [
     "/app/backend/tests/test_track_16_15a_dashboard_cleanup_signal_mirror.py",
     "/app/backend/tests/test_track_16_16_operations_transportation_integration.py",
     "/app/backend/tests/test_track_17_00_transportation_audit_artifacts.py",
+    "/app/backend/tests/test_track_18_00_phase_a_universal_shell.py",
 ]
 
 DEFAULT_BASE_URL = (

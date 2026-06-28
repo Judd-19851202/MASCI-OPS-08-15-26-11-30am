@@ -1,10 +1,142 @@
 # Track 18.00 · Transportation Operations 2.0 — Master Platform Unification
 
-**Status:** 📐 ARCHITECTURE PROPOSAL · AWAITING APPROVAL · ZERO CODE WRITTEN
-**Date:** 2026-02-10
+**Status:** ✅ APPROVED WITH REQUIRED CHANGES · Phase A in progress
+**Date:** 2026-02-10 (revised after product review)
 **Doctrine:** Reorganize the experience, never the business logic.
-**Source of truth:** Track 17.00 platform-wide audit
-(`/app/memory/TRACK_17_00_PLATFORM_WIDE_TRUCKING_TRANSPORTATION_AUDIT.md`).
+**Source of truth:** Track 17.00 platform-wide audit.
+
+---
+
+## 0 · Approved revisions (locked overlay on the original spec)
+
+These six changes from leadership review **supersede** the
+matching sections later in this document. Implementation must
+respect these first.
+
+### Revision A · Navigation reorganized by operational groups
+
+Users think in **operations**, not workspaces. The flat 13-tab
+nav is replaced by a clustered tree:
+
+```
+Transportation Operations  (/admin/transportation)
+├── Overview                   (Mission Control · the landing page)
+├── Operations
+│   ├── Dispatch              (deep-link bridge to /dispatch-portal/*)
+│   ├── Live Operations       (active hauls + cross-portal mirror)
+│   └── Fleet                 (trucks · inspections · DVIR · fleet visibility)
+├── People
+│   ├── Drivers
+│   └── Carriers
+├── Compliance
+│   ├── Compliance            (docs · eligibility · rate schedules)
+│   └── Orientation
+├── Operations Intelligence
+│   ├── Intelligence
+│   ├── Automation
+│   └── Cleanup
+└── Administration
+    ├── Reports
+    └── Administration         (audit · email routes · settings)
+```
+
+### Revision B · "Overview" is **Mission Control**, not another dashboard
+
+Every card answers one of these eight operator-facing questions
+(no card outside this set ships):
+
+1. **Fleet Ready?** — overall fleet band + count of eligible trucks
+2. **Drivers Ready?** — overall driver band + count of eligible drivers
+3. **Carriers Ready?** — overall carrier band + count of eligible carriers
+4. **Dispatch Healthy?** — active hauls + blocked dispatches + decision-surface signals
+5. **Anything Blocking?** — Track 16.16 risk banner reused (silent when healthy)
+6. **What Changed?** — recent activity (universal timeline · last 10 events)
+7. **What Needs Attention?** — open action items + top cleanup signal
+8. **What Should We Do Next?** — top recommendation from Track 16.12 + morning brief from Track 16.10A
+
+If a card cannot answer one of these eight questions, it does
+not exist on Mission Control.
+
+### Revision C · Right rail standardized to **5 sections**, every workspace
+
+Every workspace renders the same right rail:
+
+* **Recent Activity** (workspace-scoped audit feed)
+* **Timeline** (universal timeline for current entity context)
+* **Related Records** (cross-linked entities)
+* **Open Actions** (action items filtered to current workspace)
+* **Audit** (link into the full administration audit timeline)
+
+### Revision D · Search is **RBAC-aware**, not admin-only
+
+One Transportation search endpoint · one index · per-request
+permission-filtered results. A PM hitting the search bar gets
+the subset they can already see (eligibility + project assignments);
+an admin gets everything. **No duplicated indexes.**
+
+* New endpoint: `GET /api/admin/transportation/search?q=...`
+  composer that fans out to existing collections and filters
+  rows by the calling user's portal-token capabilities (via
+  the existing `make_require_any_portal_token` + per-row
+  ACL projection — reusing the established Track 16.16
+  pattern).
+
+### Revision E · Universal cross-link relationships
+
+Every entity (Driver · Truck · Carrier · Project · Dispatch
+assignment · Employee · Equipment unit) becomes navigable
+from any related entity's workspace. The Track 16.16 readiness
+composer + the new `related/{entity_type}/{id}` composer
+provide the data.
+
+### Revision F · One design language
+
+A single shared design library is the building block for every
+workspace:
+
+* one card component (`TxOpsCard`)
+* one chip library (`TxOpsBand`, `TxOpsSeverity`, `TxOpsPill`)
+* one action bar (`TxOpsActionBar`)
+* one page header (`TxOpsHeader`)
+* one spacing scale + typography ramp + color system
+
+No bespoke styling per workspace.
+
+---
+
+## 0.1 · Approved phase sequence
+
+Sequential, no skipping:
+
+```
+Phase A · Universal shell + grouped nav + compatibility redirects
+     ↓
+Phase B · Mission Control upgrade (8 question-driven cards)
+     ↓
+Phase C · RBAC-aware universal search
+     ↓
+Phase D · Universal relationships + standardized right rail
+     ↓
+Phase E · Dispatch workspace bridge (deep-link only)
+     ↓
+Phase F · Live Operations workspace + Fleet polish
+     ↓
+Phase G · Design-language extraction (card · chip · header library)
+     ↓
+Phase H · Telemetry · keyboard shortcuts · skeletons
+```
+
+Each phase ships with its own `test_track_18_<phase>_*.py`
+regression file. Deployment gate must remain green before the
+next phase starts.
+
+---
+
+## 0.2 · Original architecture (unchanged below this line)
+
+The remainder of this document was the pre-approval architecture
+proposal. Revisions A–F above take precedence wherever they
+conflict.
 
 ---
 

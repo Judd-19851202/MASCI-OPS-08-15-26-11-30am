@@ -97,29 +97,106 @@ export const TX_NAV = [
   { to: "reports", icon: BarChart3, label: "Reports" },
 ];
 
+// TRACK 18.00 · Phase A · operational-group nav. Users think in
+// operations, not workspaces. Groups + items defined here drive
+// both the desktop sidebar nav and the compact top-strip nav.
+// Every group/item uses unique data-testid for QA + RBAC tests.
+export const TX_OPS_NAV_GROUPS = [
+  {
+    key: "overview",
+    label: "Overview",
+    testid: "txops-nav-group-overview",
+    items: [
+      { to: "", icon: LayoutDashboard, label: "Mission Control", end: true, testid: "txops-nav-overview" },
+    ],
+  },
+  {
+    key: "operations",
+    label: "Operations",
+    testid: "txops-nav-group-operations",
+    items: [
+      { to: "dispatch", icon: Truck, label: "Dispatch", testid: "txops-nav-dispatch" },
+      { to: "live-operations", icon: Activity, label: "Live Operations", testid: "txops-nav-live-operations" },
+      { to: "trucks", icon: Truck, label: "Fleet", testid: "txops-nav-fleet" },
+    ],
+  },
+  {
+    key: "people",
+    label: "People",
+    testid: "txops-nav-group-people",
+    items: [
+      { to: "drivers", icon: UserRound, label: "Drivers", testid: "txops-nav-drivers" },
+      { to: "carriers", icon: Building2, label: "Carriers", testid: "txops-nav-carriers" },
+    ],
+  },
+  {
+    key: "compliance",
+    label: "Compliance",
+    testid: "txops-nav-group-compliance",
+    items: [
+      { to: "compliance", icon: ShieldCheck, label: "Compliance", testid: "txops-nav-compliance" },
+      { to: "orientation", icon: GraduationCap, label: "Orientation", testid: "txops-nav-orientation" },
+    ],
+  },
+  {
+    key: "intelligence",
+    label: "Operations Intelligence",
+    testid: "txops-nav-group-intelligence",
+    items: [
+      { to: "intelligence", icon: Activity, label: "Intelligence", testid: "txops-nav-intelligence" },
+      { to: "command-queue", icon: ListChecks, label: "Automation", testid: "txops-nav-automation" },
+      { to: "intelligence/cleanup", icon: FileText, label: "Cleanup", testid: "txops-nav-cleanup" },
+    ],
+  },
+  {
+    key: "administration",
+    label: "Administration",
+    testid: "txops-nav-group-administration",
+    items: [
+      { to: "reports", icon: BarChart3, label: "Reports", testid: "txops-nav-reports" },
+      { to: "audit", icon: History, label: "Administration", testid: "txops-nav-administration" },
+    ],
+  },
+];
+
 export function TransportationSubNav() {
   return (
     <nav
-      className="flex flex-wrap items-center gap-1 border-b border-slate-200 pb-2 mb-4"
+      className="space-y-2 border-b border-slate-200 pb-3 mb-4"
       data-testid="transportation-subnav"
+      aria-label="Transportation Operations navigation"
     >
-      {TX_NAV.map((item) => (
-        <NavLink
-          key={item.label}
-          to={`/admin/transportation/${item.to}`}
-          end={item.end}
-          data-testid={`txnav-${item.to || "dashboard"}`}
-          className={({ isActive }) =>
-            `inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition-colors ${
-              isActive
-                ? "bg-slate-900 text-white"
-                : "text-slate-700 hover:bg-slate-100"
-            }`
-          }
+      {TX_OPS_NAV_GROUPS.map((group) => (
+        <div
+          key={group.key}
+          data-testid={group.testid}
+          className="flex flex-wrap items-center gap-1"
         >
-          <item.icon className="h-3.5 w-3.5" />
-          {item.label}
-        </NavLink>
+          <span
+            className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold mr-2 select-none"
+            data-testid={`${group.testid}-label`}
+          >
+            {group.label}
+          </span>
+          {group.items.map((item) => (
+            <NavLink
+              key={item.testid}
+              to={`/admin/transportation/${item.to}`}
+              end={item.end}
+              data-testid={item.testid}
+              className={({ isActive }) =>
+                `inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs transition-colors ${
+                  isActive
+                    ? "bg-slate-900 text-white"
+                    : "text-slate-700 hover:bg-slate-100"
+                }`
+              }
+            >
+              <item.icon className="h-3.5 w-3.5" />
+              {item.label}
+            </NavLink>
+          ))}
+        </div>
       ))}
     </nav>
   );
