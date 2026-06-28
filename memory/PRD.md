@@ -11,6 +11,45 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-02-10 · TRACK 18.00 Phase B · Mission Control · ✅ GO)
+
+### Mission
+Transportation Operations landing page is now Mission Control — 8 operational cards each answering ONE operator question, composed strictly from existing engines.
+
+### Verdict
+✅ **GO** — 13/13 new tests · 122 backend regression tests across 5 tracks all green · `testing_agent_v3_fork` FULL CERTIFICATION PASS (12/12 live). Mission Brief banner adapts tone from existing readiness band. Track 16.15A `<TopCleanupOpportunityCard />` preserved inside dashboard.
+
+### What shipped
+* `pages/transportation/MissionControl.jsx` — Mission Brief + 8 cards (Fleet · Drivers · Carriers · Dispatch · Blocking · Recent · Attention · Next) + refresh affordance. Composes `useTransportationReadiness` (Track 16.16) + `/api/admin/transportation/audit-timeline` (Track 16.07). Zero new backend.
+* `pages/transportation/_views.jsx` — `TransportationDashboard` is now `PageHeader` + `<MissionControl />` + `<TopCleanupOpportunityCard />`.
+* `backend/tests/test_track_18_00_phase_b_mission_control.py` — 13 regression tests, wired into deployment gate.
+
+### Hard guarantees
+* No new backend endpoints / collections / scoring.
+* Dispatch linked, NEVER embedded.
+* Phase A artifacts (nav groups, shell, dispatch bridge, live ops) all intact.
+* Track 16.15A contract preserved.
+
+---
+
+## Latest Track (2026-02-10 · TRACK 18.00 Phase A · Universal Shell · ✅ GO)
+
+### Mission
+Universal Transportation Operations shell + operational-group nav + compatibility redirects. First visible phase of the program-level unification (Track 18.00 architecture).
+
+### Verdict
+✅ **GO** — 15/15 Phase A tests · `testing_agent_v3_fork` FULL PASS (11/11 live). Every existing transportation URL still resolves via redirects.
+
+### What shipped
+* `TransportationWorkspaceShell.jsx` (universal layout · 5-section right rail).
+* `TX_OPS_NAV_GROUPS` (6 operational groups · 12 nav items).
+* `_dispatch_bridge.jsx` (deep-link only — 5 cards into `/dispatch-portal/*`).
+* `_live_operations.jsx` (admin mirror of Track 16.16 widgets).
+* Compatibility redirects for `/fleet/*`, `/compliance/*`, `/administration/*`.
+* Architecture doc with approved revisions A–F.
+
+---
+
 ## Latest Track (2026-02-10 · TRACK 17.00 · Platform-Wide Trucking / Transportation Discovery Audit · ✅ GO · audit-only)
 
 ### Mission
