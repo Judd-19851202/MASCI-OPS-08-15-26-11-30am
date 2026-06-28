@@ -21,119 +21,31 @@ import {
   Chip, PageHeader, ComingSoon, EmptyState, txGet, STATE_LABEL,
 } from "./_shared";
 import { RateCreateDialog, InspectionWizard } from "./_widgets";
+import MissionControl from "./MissionControl";
 
 // ───────────────────────── Dashboard ─────────────────────────
+// TRACK 18.00 · Phase B — the Transportation Operations landing
+// page is now Mission Control. The old compliance dashboard
+// remains accessible at /admin/transportation/compliance via the
+// existing ComplianceDashboard component. Mission Control is a
+// pure composer over existing engines (Tracks 16.06 / 16.07 /
+// 16.10 / 16.11A / 16.15 / 16.15A / 16.16) — zero new backend.
 export function TransportationDashboard() {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const r = await txGet("/admin/transportation/dashboard");
-      setData(r.data);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-  useEffect(() => { load(); }, [load]);
-
-  if (loading && !data) {
-    return <div data-testid="tx-dashboard-loading" className="text-slate-500">Loading…</div>;
-  }
-  if (!data) return null;
-  const t = data.tiles || {};
-  const score = data.compliance_score ?? 100;
-
-  const tiles = [
-    { key: "eligible_drivers", label: "Eligible Drivers", icon: Users, link: "drivers?state=eligible", value: t.eligible_drivers },
-    { key: "eligible_trucks", label: "Eligible Trucks", icon: TruckIcon, link: "trucks?state=eligible", value: t.eligible_trucks },
-    { key: "eligible_carriers", label: "Eligible Carriers", icon: Building2, link: "carriers?state=eligible", value: t.eligible_carriers },
-    { key: "drivers_pending_review", label: "Drivers Pending Review", icon: AlertTriangle, link: "drivers?status=pending_review", value: t.drivers_pending_review },
-    { key: "trucks_pending_inspection", label: "Trucks Pending Inspection", icon: ClipboardCheck, link: "inspections", value: t.trucks_pending_inspection },
-    { key: "documents_awaiting_review", label: "Documents Awaiting Review", icon: FileText, link: "documents?status=pending_review", value: t.documents_awaiting_review },
-    { key: "expiring_documents_30d", label: "Expiring Documents (30d)", icon: FileText, link: "documents?expiring=30", value: t.expiring_documents_30d },
-    { key: "annual_inspections_due_30d", label: "Annual Inspections Due (30d)", icon: ClipboardCheck, link: "inspections?due=30", value: t.annual_inspections_due_30d },
-    { key: "pending_corrections", label: "Pending Corrections", icon: AlertTriangle, link: "documents?status=needs_correction", value: t.pending_corrections },
-  ];
-
   return (
     <div data-testid="tx-dashboard" className="space-y-6">
       <PageHeader
         testid="tx-dashboard-header"
-        title="Transportation Compliance Center"
-        subtitle="Single source of truth for Dispatch, Safety, HR, Operations, and Administration."
-        right={<Button variant="outline" onClick={load} data-testid="tx-dashboard-refresh"><RefreshCw className="h-4 w-4 mr-1" />Refresh</Button>}
+        title="Transportation Operations · Mission Control"
+        subtitle="One screen · five-second operational awareness. Every card answers one operational question. Composed entirely from existing engines."
       />
 
-      {/* Top row: compliance score + active rate */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 border border-slate-200 rounded-md bg-white p-5" data-testid="tile-compliance-score">
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-sm font-medium text-slate-600">Overall Transportation Compliance</div>
-            <CheckCircle2 className={`h-5 w-5 ${score >= 80 ? "text-emerald-600" : score >= 50 ? "text-amber-600" : "text-rose-600"}`} />
-          </div>
-          <div className="flex items-baseline gap-3">
-            <div className="text-4xl font-semibold text-slate-900" data-testid="tx-score-value">{score}</div>
-            <div className="text-sm text-slate-500">/ 100</div>
-          </div>
-          <Progress value={score} className="mt-3 h-2" />
-          <div className="text-xs text-slate-500 mt-2">
-            Computed from eligibility states across all carriers, drivers, and trucks.
-          </div>
-        </div>
-        <div className="border border-slate-200 rounded-md bg-white p-5" data-testid="tile-active-rate">
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-sm font-medium text-slate-600">Active Rate Schedule</div>
-            <DollarSign className="h-5 w-5 text-slate-400" />
-          </div>
-          {data.active_rate ? (
-            <>
-              <div className="text-3xl font-semibold text-slate-900" data-testid="tx-active-rate-value">
-                ${Number(data.active_rate.hourly_rate).toFixed(2)}<span className="text-base text-slate-500">/hr</span>
-              </div>
-              <div className="text-xs text-slate-500 mt-1">
-                v{data.active_rate.version} · effective {(data.active_rate.effective_date || "").slice(0, 10)}
-              </div>
-              <Link to="rate-schedules" className="inline-block mt-2 text-xs text-blue-600 hover:underline" data-testid="tx-active-rate-link">
-                View history →
-              </Link>
-            </>
-          ) : (
-            <div className="text-sm text-slate-500" data-testid="tx-no-active-rate">No active rate schedule.</div>
-          )}
-        </div>
-      </div>
+      {/* Eight operational cards · mission brief · activity feed. */}
+      <MissionControl />
 
-      {/* KPI tile grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3" data-testid="tx-kpi-grid">
-        {tiles.map((tile) => (
-          <Link
-            key={tile.key}
-            to={tile.link}
-            className="border border-slate-200 rounded-md bg-white p-4 hover:border-slate-300 hover:shadow-sm transition-all"
-            data-testid={`kpi-${tile.key}`}
-          >
-            <div className="flex items-start justify-between">
-              <div className="text-xs font-medium uppercase tracking-wide text-slate-500">{tile.label}</div>
-              <tile.icon className="h-4 w-4 text-slate-400" />
-            </div>
-            <div className="text-2xl font-semibold text-slate-900 mt-2">{tile.value ?? 0}</div>
-          </Link>
-        ))}
-      </div>
-
-      <div className="text-xs text-slate-400 border-t border-slate-100 pt-3" data-testid="tx-dashboard-disclaimer">
-        {data.disclaimer}
-      </div>
-
-      {/* TRACK 16.11A · HR Health widget — read-only snapshot of the
-         HR ↔ Transportation sync engine. */}
-      <HrHealthWidget />
-
-      {/* TRACK 16.15A · Top Cleanup Opportunity mirror. Pure UX bridge
-         — reads the Track 16.15 cleanup-signals endpoint and surfaces
-         the highest-priority signal directly inside Attention Required. */}
+      {/* TRACK 16.15A · Top Cleanup Opportunity mirror remains mounted
+         inside TransportationDashboard so the 16.15A regression
+         contract holds. It surfaces the highest-priority cleanup
+         signal under Mission Control. */}
       <TopCleanupOpportunityCard />
     </div>
   );

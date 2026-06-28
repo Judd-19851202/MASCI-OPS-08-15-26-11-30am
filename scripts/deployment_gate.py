@@ -207,6 +207,7 @@ REGRESSION_FILES = [
     "/app/backend/tests/test_track_16_16_operations_transportation_integration.py",
     "/app/backend/tests/test_track_17_00_transportation_audit_artifacts.py",
     "/app/backend/tests/test_track_18_00_phase_a_universal_shell.py",
+    "/app/backend/tests/test_track_18_00_phase_b_mission_control.py",
 ]
 
 DEFAULT_BASE_URL = (
