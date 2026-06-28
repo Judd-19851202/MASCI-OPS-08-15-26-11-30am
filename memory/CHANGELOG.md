@@ -1,5 +1,45 @@
 # CHANGELOG
 
+## 2026-02-10 — TRACK 18.09C · Transportation Operations Ownership Rearchitecture · 🟢 GO
+
+### Constitutional amendment
+**Transportation Operations is the operational system of record. Administration is the governance system.**
+
+### Audit verdict (Phase 1)
+The hypothesized architectural defect — "Transportation was built under Administration and surfaced through Transportation Operations" — was **mostly invalidated by the audit**. The Transportation Experience Layer router (`pages/transportation/TransportationApp.jsx`) is already the single source of truth. `pages/AdminTransportation.jsx` is a 9-line thin re-export. Both doorways (`/admin/transportation/*` admin-strict + `/transportation-operations/*` TX-gated) render the same router with different auth contracts. Dispatch portal (`/dispatch-portal/*`) is its own operational SoR. Eight operational TX roles spend 0% of their workday in Administration. No backend logic, no data, no auth contracts were forked.
+
+### One concrete defect identified + closed
+**`pages/transportation/TransportationApp.jsx`** — six internal compat redirects hardcoded `to="/admin/transportation/..."`, silently bouncing dispatch-authenticated operational users into the admin shell on legacy URL hits. **Switched to `relative="path"`** so the same redirect target resolves to whichever doorway the operator entered. Live-verified by testing agent: `/transportation-operations/fleet/trucks` → `/transportation-operations/trucks`; `/admin/transportation/fleet/trucks` → `/admin/transportation/trucks`. Dual doorway preserved.
+
+### Seven required deliverables shipped
+1. `TRACK_18_09C_TRANSPORTATION_OWNERSHIP_AUDIT.md` — Executive verdict, ownership findings, GO recommendation, Six Pillars self-check.
+2. `TRANSPORTATION_FEATURE_OWNERSHIP_MATRIX.md` — Every TX capability classified OPERATIONAL / GOVERNANCE / SHARED (42 rows).
+3. `ADMINISTRATION_GOVERNANCE_MATRIX.md` — Every `/admin/*` route classified (41 rows; zero OPERATIONAL violations).
+4. `TRANSPORTATION_ROUTE_REHOME_PLAN.md` — One concrete rehome + explicit defer list with reasons.
+5. `TRANSPORTATION_OPERATIONAL_WORKFLOW_AUDIT.md` — 12 operational workflows walked; zero require Administration.
+6. `ROLE_WORKDAY_ANALYSIS.md` — 8 Transportation operational roles spend 0% of their workday in Administration.
+7. `TRANSPORTATION_REARCHITECTURE_IMPLEMENTATION.md` — Final shipped/preserved/deferred log.
+
+### Lock
+- New `backend/tests/test_track_18_09c_transportation_ownership.py` — **16 assertions** covering the 7 deliverables, single-source-of-truth contract, both doorway gates (`A` admin-strict + `TX`), path-relative redirects, dispatch/driver preservation, RBAC preservation, no new collections, governance-matrix discipline (no `/admin/*` page may classify as OPERATIONAL).
+- Wired into `scripts/deployment_gate.py` L228.
+
+### Testing
+- Full deployment gate (with `--timeout 60` per 18.09A testing-agent recommendation): **1518/1518 PASS** in 236s.
+- 16 18.09C assertions PASS solo.
+- `testing_agent_v3_fork`: backend 100% (62/62 on the named files), frontend 100% (all 6 live smoke checks including both doorway redirect verifications + unauthenticated graceful redirect to `/sign-in`).
+
+### Carve-outs preserved
+Zero route changes (only redirect *targets* relativized) · zero auth/RBAC changes · zero new collections · zero new endpoints · dispatch portal untouched · driver workflows untouched · `/admin/dispatch` / `AdminDriverIntel` / `AdminCompliance` etc. all preserved with documented SHARED/GOVERNANCE classifications.
+
+### Six Pillars status
+Powerful ✅ · Simple ✅ · Beautiful ✅ · Trusted ✅ · Proven ✅ · Operational ✅
+
+### Verdict
+🟢 GO. Transportation Operations is a self-contained operational workspace. Administration is a true governance workspace. The constitutional contract is locked.
+
+
+
 ## 2026-02-10 — TRACK 18.09A · TRUE Operational Friction Elimination Completion Pass · 🟢 GO
 
 ### Why

@@ -6263,4 +6263,37 @@ Close Executive YELLOW by building a read-only `ExecutiveOverview.jsx` that aggr
 
 **Deployment gate:** Track 18.09A wired in (`scripts/deployment_gate.py` L227).
 
+---
+
+## Track 18.09C — Transportation Operations Ownership Rearchitecture (2026-02-10) — 🟢 GO · CONSTITUTIONAL AMENDMENT
+
+**Constitutional rule codified:** Transportation Operations is the operational system of record. Administration is the governance system.
+
+**Audit-first verdict:** The hypothesized architectural defect was mostly invalidated. `pages/transportation/TransportationApp.jsx` is already the single source of truth. `pages/AdminTransportation.jsx` is a 9-line thin re-export. Both doorways (`/admin/transportation/*` admin-strict + `/transportation-operations/*` TX-gated) render the same router with different auth contracts. Dispatch portal owns its own operational SoR. Eight operational TX roles spend 0% in Administration. **No business logic was forked; no data was forked; no auth contract was forked.**
+
+**One concrete defect closed:** Six internal compat redirects in `TransportationApp.jsx` hardcoded `to="/admin/transportation/..."` and silently bounced dispatch-authenticated users into the admin shell. Switched to `relative="path"`. Live-verified: `/transportation-operations/fleet/trucks` → `/transportation-operations/trucks`; `/admin/transportation/fleet/trucks` → `/admin/transportation/trucks`. Dual doorway preserved.
+
+**Seven required deliverables in `/app/memory/`:**
+1. `TRACK_18_09C_TRANSPORTATION_OWNERSHIP_AUDIT.md`
+2. `TRANSPORTATION_FEATURE_OWNERSHIP_MATRIX.md` (42 capabilities classified)
+3. `ADMINISTRATION_GOVERNANCE_MATRIX.md` (41 admin routes classified; zero OPERATIONAL violations)
+4. `TRANSPORTATION_ROUTE_REHOME_PLAN.md`
+5. `TRANSPORTATION_OPERATIONAL_WORKFLOW_AUDIT.md` (12 workflows; zero Administration transitions)
+6. `ROLE_WORKDAY_ANALYSIS.md` (8 operational roles; 0% Admin workday)
+7. `TRANSPORTATION_REARCHITECTURE_IMPLEMENTATION.md`
+
+**Lock file:** `backend/tests/test_track_18_09c_transportation_ownership.py` — 16 assertions enforcing the 7 deliverables, single-source-of-truth contract, dual-doorway gating (`A` admin-strict + `TX`), path-relative redirects, dispatch/driver preservation, RBAC preservation, no-new-collections rule, and no-OPERATIONAL-in-admin discipline.
+
+**Tests:**
+- Full deployment gate with `--timeout 60`: **1518/1518 PASS** in 236s.
+- 16/16 lock assertions PASS solo.
+- `testing_agent_v3_fork` certified: backend 100%, frontend 100% on all 6 live smoke checks including both doorway redirect verifications.
+
+**Six Pillars:** Powerful ✅ Simple ✅ Beautiful ✅ Trusted ✅ Proven ✅ Operational ✅
+
+**Carve-outs preserved:** zero route changes (only redirect targets relativized) · zero auth/RBAC changes · zero new collections · zero new endpoints · dispatch portal untouched · driver workflows untouched.
+
+**Deployment gate:** Track 18.09C wired in (`scripts/deployment_gate.py` L228).
+
+
 
