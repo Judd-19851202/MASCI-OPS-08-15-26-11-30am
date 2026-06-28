@@ -6295,5 +6295,42 @@ Close Executive YELLOW by building a read-only `ExecutiveOverview.jsx` that aggr
 
 **Deployment gate:** Track 18.09C wired in (`scripts/deployment_gate.py` L228).
 
+---
+
+## Track 18.10 — Governance Boundary Linter (2026-02-10) — 🟢 GO · PERMANENT GUARDRAIL
+
+**Mission:** Permanently prevent the architecture drift that Track 18.09C had to clean up. CI-enforced rule replaces memory.
+
+**Constitutional rule enforced:** Administration governs. Operations execute. Every file under `frontend/src/pages/admin/` must classify as GOVERNANCE / READ_ONLY_OVERSIGHT / THIN_ALIAS — anything else (e.g., a new operational-execution page) fails the deployment gate.
+
+**Deliverables (`/app/memory/`):**
+- `TRACK_18_10_GOVERNANCE_BOUNDARY_LINTER.md` — executive summary, workstream results, GO certification, Six Pillars self-check.
+- `ADMIN_GOVERNANCE_BOUNDARY_AUDIT.md` — 43 admin files + 1 thin alias audited (44 total); 0 violations.
+- `GOVERNANCE_BOUNDARY_LINTER_RULES.md` — rules registry, classification key, allow-lists, 18 high-confidence operational-execution signals, 2-signal threshold, false-positive controls.
+
+**Lock file:** `backend/tests/test_track_18_10_governance_boundary_linter.py` — **34 directive-mandated assertions** covering: 7 deliverable contracts, every admin file classified, thin-alias discipline, no operational execution under pages/admin/ for 7 workspaces (Transportation/Dispatch/PM/HR/Safety/Shop/FieldLeadership), seeded-violation detection, false-positive avoidance, dual-doorway preservation, /api/admin/transportation/* preservation, RBAC/auth/dispatch/driver preservation, no new collections/endpoints, deployment-gate wiring, final certification.
+
+**Counts:** GOVERNANCE 36 · READ_ONLY_OVERSIGHT 7 · THIN_ALIAS 1 · FORBIDDEN 0.
+
+**False-positive controls:**
+1. Allow-list-first (every existing file grandfathered).
+2. Two-signal threshold on operational-execution content scan.
+3. Read-only oversight explicit allow-list.
+4. Thin alias rule matches a single canonical pattern (≤ 25 non-empty lines + single `export { default } from`).
+5. Allow-list lives in human-readable markdown.
+
+**Tests:**
+- 34/34 lock-file PASS in 0.21s.
+- Track 18 family 621/621 PASS in 32s.
+- Full deployment gate 1552/1552 PASS with `--timeout 60` in 238s.
+- `testing_agent_v3_fork`: backend 100%, frontend 4/4 smoke routes (Hub, /transportation-operations operational shell, /admin/transportation oversight doorway, /dispatch-portal/board operational SoR, unauthenticated graceful redirect).
+
+**Carve-outs preserved:** Zero runtime code changes · zero route changes · zero auth/RBAC changes · zero new collections · zero new endpoints · dispatch portal untouched · driver workflows untouched · Track 18.09C contract intact.
+
+**Six Pillars:** Powerful ✅ Simple ✅ Beautiful ✅ Trusted ✅ Proven ✅ Operational ✅
+
+**Deployment gate:** Track 18.10 wired in (`scripts/deployment_gate.py` L229).
+
+
 
 

@@ -1,5 +1,75 @@
 # CHANGELOG
 
+## 2026-02-10 — TRACK 18.10 · Governance Boundary Linter · 🟢 GO
+
+### Mission
+Permanently prevent the architecture drift that Track 18.09C had to clean up. **Administration governs. Operations execute.** A CI-enforced rule replaces memory.
+
+### Constitutional rule enforced by CI
+Every file under `frontend/src/pages/admin/` must classify as one of:
+- **GOVERNANCE** — platform settings, users, security, audit logs, system health, deployment, trust center, emergency override, etc.
+- **READ_ONLY_OVERSIGHT** — renders operational data via shared components; no forked logic.
+- **THIN_ALIAS** — ≤ 25 non-empty lines + single `export { default } from` import of an operational source of truth.
+
+Any new file that does not match one of these classifications **fails the deployment gate** with an actionable message.
+
+### Workstream results
+1. **Define governance vs operational ownership** → `GOVERNANCE_BOUNDARY_LINTER_RULES.md`
+2. **Audit existing admin pages** → `ADMIN_GOVERNANCE_BOUNDARY_AUDIT.md` (43 admin files + 1 thin alias = 44 audited; **0 violations**)
+3. **Build governance boundary linter** → `backend/tests/test_track_18_10_governance_boundary_linter.py` (34 assertions)
+4. **Thin alias validation** → `AdminTransportation.jsx` locked at ≤ 25 lines + single re-export
+5. **Read-only oversight validation** → 7 pages classified; no forked logic
+6. **Protect Transportation ownership** → Track 18.09C contract preserved
+7. **Protect future workspace ownership** → linter blocks new operational pages for Transportation, Dispatch, PM, HR, Safety, Shop, Field Leadership
+
+### Files audited (43 admin + 1 cross-tree alias)
+- **GOVERNANCE: 36** (AdminAnalytics, AdminAssetAdmin, AdminAuditLog, AdminCommandCenter, AdminCompliance, AdminComplianceFindings, AdminDatabase, AdminDigestConfig, AdminEmail, AdminGeofenceReconciliation, AdminGovernance, AdminGuidanceCoverage, AdminIntegrationCenter, AdminJobs, AdminJobTeam, AdminMfa, AdminOperationalInventory, AdminOperationalLanguage, AdminOperationsDashboard, AdminOperationsEvents, AdminPeople, AdminProfile, AdminProjectIdentityGovernance, AdminProjectStaffing, AdminPromoAssets, AdminRecovery, AdminRecoveryStream, AdminSessions, AdminSystem, AssetProfile, DeployRecovery, SelfProtection, SystemHealth, AdminMasterHistory, AdminAssetMapping, AdminAssetSpineHealth)
+- **READ_ONLY_OVERSIGHT: 7** (AdminDispatch, AdminDlsDay1Debrief, AdminDlsShiftQR, AdminDriverIntel, AdminEquipment, AdminJhaAcknowledgements, AdminTraining)
+- **THIN_ALIAS: 1** (pages/AdminTransportation.jsx)
+- **FORBIDDEN: 0** — zero current violations
+
+### False-positive controls
+1. Allow-list-first (every existing file grandfathered).
+2. Two-signal threshold on operational-execution content scan.
+3. Read-only oversight explicit allow-list.
+4. Thin alias rule matches a single canonical pattern.
+5. Allow-list lives in human-readable markdown.
+
+### Lock file
+`backend/tests/test_track_18_10_governance_boundary_linter.py` — **34 directive-mandated assertions**:
+* 7 deliverable contracts (audit doc, rules, executive doc exist)
+* Every admin file has a classification
+* Thin alias allow-list + read-only oversight allow-list
+* AdminTransportation thin-alias discipline (≤25 lines + single re-export + zero operational signals)
+* TransportationApp.jsx confirmed as operational source of truth
+* No operational execution under pages/admin/ for Transportation, Dispatch, PM, HR, Safety, Shop, Field Leadership (test_10–test_16)
+* Linter detects seeded operational-admin violation (test_18)
+* Linter allows documented thin aliases (test_19), governance pages (test_20), oversight pages (test_21)
+* Linter avoids known false positives on grandfathered files (test_22)
+* /transportation-operations/* + /admin/transportation/* + /api/admin/transportation/* preserved
+* No route / auth / RBAC changes
+* Dispatch + driver workflows preserved
+* No new collections / endpoints
+* Deployment gate includes 18.10
+* Final certification states "Administration governs / Operations execute"
+
+### Testing
+- **34/34 lock-file assertions PASS** in 0.21s.
+- **Track 18 family: 621/621 PASS** in 32s (now includes 18.10's 34).
+- **Full deployment gate: 1552/1552 PASS** in 238s.
+- `testing_agent_v3_fork` certified: **backend 100%** + **frontend 4/4** live smoke (Hub, /transportation-operations operational shell, /admin/transportation admin oversight, /dispatch-portal/board operational SoR, unauthenticated graceful redirect to /admin/login).
+
+### Carve-outs preserved
+Zero runtime code changes · zero route changes · zero auth/RBAC changes · zero new collections · zero new endpoints · dispatch portal untouched · driver workflows untouched · Track 18.09C contract intact.
+
+### Six Pillars
+Powerful ✅ · Simple ✅ · Beautiful ✅ · Trusted ✅ · Proven ✅ · Operational ✅
+
+### Verdict
+🟢 GO. Permanent guardrail in place. Future drift fails the gate.
+
+
+
 ## 2026-02-10 — TRACK 18.09C · Transportation Operations Ownership Rearchitecture · 🟢 GO
 
 ### Constitutional amendment
