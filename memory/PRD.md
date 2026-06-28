@@ -11,6 +11,35 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-02-10 · TRACK 18.00 Phase G · Final Polish + Restricted-State Cleanup · ✅ GO)
+
+### Mission
+Close the final Track 18.00 polish gaps after Phase F's portal-aware data layer: (1) mount TopBar on `/dispatch-portal/fleet`, (2) adopt `TxOpsRestrictedData` on the Transportation shell's first inline error state, (3) lock the rule (via static scan) that the Transportation shell carries zero "Admin Console" / "Admin Portal" copy, (4) verify nav has no clickable dead-ends, (5) preserve every preceding phase.
+
+### Verdict
+✅ **GO** — 40/40 Phase G tests · 241/241 cross-track Track-18 regression in 0.67 s.
+
+### What shipped
+- `App.js` — `/dispatch-portal/fleet` route inlines `<TransportationOpsTopBar />` above `<FleetVisibility scope="dispatch" />`; admin/shop/safety Fleet routes untouched.
+- `pages/transportation/_views.jsx` — `TopCleanupOpportunityCard` 401/403 fallback now renders `<TxOpsRestrictedData testid="tx-dashboard-top-cleanup-error" />` ("Transportation Operations · This Transportation data is not available for your role."). Same testid kept for backwards-compat.
+- 40 Phase G regression tests including a static scan across `/pages/transportation/**/*.jsx` and `/components/transportation/**/*.jsx` that **fails the build** if any user-facing "Admin Console" or "Admin Portal" string appears (comment-stripped scan).
+
+### Hard guarantees
+- No new collection · no new auth verb · no new permission predicate · no backend RBAC change.
+- Every record-detail endpoint (docs/queue · inspections/queue · carriers/{id}/workspace · trucks/{id}/workspace) remains admin-strict (locked by `test_24`).
+- Phase D `schema_version=18.00D` unchanged. Phase F portal-aware dashboard wiring preserved.
+- Every dispatch route preserved. Every auth helper preserved. Driver magic-link surfaces stay minimal.
+- Single TopBar module — no forks. Admin Fleet routes never get unintended TopBar drift.
+
+### Dispatch surface coverage (after Phase G)
+✅ Hub · Board · Command · Map · Haul Ledger · Driver Qualification · **Fleet (NEW)**.
+❌ Driver magic-link routes (intentional · driver-facing).
+
+### Documentation
+- `/app/memory/TRACK_18_00_PHASE_G_FINAL_POLISH_RESTRICTED_STATE_CLEANUP.md`
+
+---
+
 ## Latest Track (2026-02-10 · TRACK 18.00 Phase F · Portal-Aware Data Layer + Dispatch Surface Polish · ✅ GO)
 
 ### Defects corrected
