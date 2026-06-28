@@ -450,3 +450,16 @@ def test_lint_no_hardcoded_mobile_breaking_widths():
         "per OPERATIONAL_DESIGN_SYSTEM.md §19:\n"
         + "\n".join(f"  {f}:{ln} → {snip}" for f, ln, snip in bad[:10])
     )
+
+
+# =====================================================================
+# R8 — Duplicate CTA inside a single card (Track 18.09)
+# =====================================================================
+#
+# DEFERRED to Track 18.10 calibration. Initial implementation
+# surfaced too many false positives (aria-labels, status pills,
+# dropdown items, and i18n entries trigger the proximity check
+# inappropriately). Per the Track 18.09 directive, the linter only
+# ships rules with extremely low false-positive rates. R8 is in
+# active research; see TRACK_18_09_OPERATIONAL_FRICTION_ELIMINATION.md
+# for the deferral disposition.
