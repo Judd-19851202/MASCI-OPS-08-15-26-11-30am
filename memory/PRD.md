@@ -11,6 +11,30 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-02-10 · TRACK 18.00 Phase D · Universal Relationships + Live Right Rail · ✅ GO)
+
+### Mission
+Every Transportation Operations entity is now connected, explainable, and navigable. One composer endpoint `GET /api/admin/transportation/related/{entity_type}/{entity_id}` stitches relationships live from existing collections (no graph DB, no relationship index, no data migration). The right rail in every workspace now answers "What is this connected to?" in real time, filtered per portal role.
+
+### Verdict
+✅ **GO** — 40/40 Phase D tests · 91/91 cross-track (A+B+C+D) regression in 0.43s · live preview verified (401 anon · 200 admin with `schema_version=18.00D` · 5 sections · 400 unsupported type · clean `(not found)` envelope on missing entity).
+
+### What shipped
+* `routes/transportation_relationships.py` — single GET composer endpoint over 11 entity types. RBAC mirrors Phase C (`_actor` keyed). Section-bounded reads (5/8/10/5/8 · `MAX_LIMIT=25`). Graceful per-section failure via `_safe_find`. Unauthorized relations OMITTED, never redacted. Schema `18.00D`.
+* `pages/transportation/TransportationWorkspaceShell.jsx` — `useTransportationRelationships` hook with 30 s in-memory cache + 5 live sections (`txops-rail-recent-activity`, `-timeline`, `-related`, `-open-actions`, `-audit`) with loading / empty / error states. URL-driven context fallback (`?entity_type=&entity_id=`) lets Phase C search deep-link into a populated rail. Entity banner with deep-link.
+* 40 regression tests wired into deployment gate.
+
+### Hard guarantees
+* No new collection · no graph DB · no new index · no new business logic.
+* No source-record mutation (statically locked).
+* HR/dispatch/shop/safety/fl tokens never see relations outside their RBAC scope.
+* Phase A shell + Phase B Mission Control + Phase C Search all preserved.
+
+### Documentation
+* `/app/memory/TRACK_18_00_PHASE_D_UNIVERSAL_RELATIONSHIPS_RIGHT_RAIL.md`
+
+---
+
 ## Latest Track (2026-02-10 · TRACK 18.00 Phase C · RBAC-aware Universal Search · ✅ GO)
 
 ### Mission
