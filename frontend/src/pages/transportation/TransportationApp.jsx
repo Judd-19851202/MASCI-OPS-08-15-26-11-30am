@@ -23,8 +23,12 @@ import { IntelligenceCenter } from "./_intelligence";
 import DispatchBridgeWorkspace from "./_dispatch_bridge";
 import LiveOperationsWorkspace from "./_live_operations";
 import TransportationSearch from "./TransportationSearch";
+import { useTxOpsSlashShortcut } from "@/components/transportation/TransportationOpsTopBar";
 
 export default function TransportationApp() {
+  // TRACK 18.00 · Phase E — `/` keyboard shortcut focuses the Phase C
+  // search rail input wherever it's mounted in the shell.
+  useTxOpsSlashShortcut();
   return (
     <PortalShell portalName="MASCI" portalSubtitle="Transportation Operations" sideNav={<AdminSideNavV2 />}>
       <div className="space-y-2" data-testid="admin-transportation-page">

@@ -1,0 +1,193 @@
+/**
+ * TRACK 18.00 · Phase E · Transportation Operations Portal Transformation
+ *
+ * The unified top bar that re-frames the dispatcher's entry experience.
+ * Mounted at the top of `/dispatch-portal` (DispatchHub) so a dispatcher
+ * logging in sees TRANSPORTATION OPERATIONS — not "Dispatch app".
+ *
+ * Doctrine:
+ *   - Additive. NEVER mounts inside the dispatch board, map, command
+ *     center, or driver pages. It is a header strip, not a router.
+ *   - Reuses every existing route. Dispatch is one workspace inside
+ *     the grouped nav — not a separate product.
+ *   - `/` keyboard shortcut opens search (Phase C).
+ *   - No backend changes. No new auth. No collection drift.
+ */
+import React from "react";
+import { Link } from "react-router-dom";
+import { Search, ChevronDown } from "lucide-react";
+
+const NAV_GROUPS = [
+  {
+    id: "ops",
+    label: "Operations",
+    items: [
+      { label: "Mission Control", href: "/admin/transportation" },
+      { label: "Dispatch", href: "/dispatch-portal" },
+      { label: "Live Operations", href: "/admin/transportation/live-operations" },
+      { label: "Fleet", href: "/admin/transportation/trucks" },
+    ],
+  },
+  {
+    id: "people",
+    label: "People",
+    items: [
+      { label: "Drivers", href: "/admin/transportation/drivers" },
+      { label: "Carriers", href: "/admin/transportation/carriers" },
+    ],
+  },
+  {
+    id: "compliance",
+    label: "Compliance",
+    items: [
+      { label: "Compliance", href: "/admin/transportation/compliance" },
+      { label: "Orientation", href: "/admin/transportation/orientation" },
+    ],
+  },
+  {
+    id: "intel",
+    label: "Operations Intelligence",
+    items: [
+      { label: "Intelligence", href: "/admin/transportation/intelligence" },
+      { label: "Cleanup", href: "/admin/transportation/intelligence/cleanup" },
+      { label: "Automation", href: "/admin/transportation/intelligence/automation" },
+    ],
+  },
+  {
+    id: "admin",
+    label: "Administration",
+    items: [
+      { label: "Reports", href: "/admin/transportation/reports" },
+      { label: "Audit", href: "/admin/transportation/audit" },
+    ],
+  },
+];
+
+function NavMenu({ group, onItemClick }) {
+  const [open, setOpen] = React.useState(false);
+  const ref = React.useRef(null);
+
+  React.useEffect(() => {
+    function handle(e) {
+      if (!ref.current) return;
+      if (!ref.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        data-testid={`txops-topbar-group-${group.id}`}
+        onClick={() => setOpen((v) => !v)}
+        className="inline-flex items-center gap-1 text-[11px] uppercase tracking-wider font-semibold text-slate-300 hover:text-white px-2 py-1.5 rounded transition-colors"
+      >
+        {group.label}
+        <ChevronDown
+          className={`h-3 w-3 transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+      {open ? (
+        <div
+          data-testid={`txops-topbar-menu-${group.id}`}
+          className="absolute left-0 top-full mt-1 w-56 rounded-md border border-slate-700 bg-slate-900 shadow-xl z-50 overflow-hidden"
+        >
+          {group.items.map((item) => (
+            <Link
+              key={item.href}
+              to={item.href}
+              data-testid={`txops-topbar-item-${group.id}-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
+              onClick={() => { setOpen(false); onItemClick && onItemClick(item); }}
+              className="block px-3 py-2 text-xs text-slate-200 hover:bg-slate-800 hover:text-white"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * Open the universal Transportation search. If a Phase C search input
+ * is already on-page (`[data-testid="tx-search-input"]`), focus it
+ * directly. Otherwise navigate to Mission Control where the search
+ * rail lives. The `/` key fires when focus is not in an input.
+ */
+export function useTxOpsSlashShortcut() {
+  React.useEffect(() => {
+    function onKey(e) {
+      if (e.key !== "/") return;
+      const tag = (document.activeElement && document.activeElement.tagName) || "";
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(tag)) return;
+      if (document.activeElement && document.activeElement.isContentEditable) return;
+      const existing = document.querySelector('[data-testid="txops-search-input"]');
+      if (existing && typeof existing.focus === "function") {
+        e.preventDefault();
+        existing.focus();
+        return;
+      }
+      e.preventDefault();
+      window.location.assign("/admin/transportation");
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+}
+
+export default function TransportationOpsTopBar() {
+  useTxOpsSlashShortcut();
+  return (
+    <div
+      data-testid="txops-portal-topbar"
+      className="w-full bg-slate-950 border-b border-slate-800 text-slate-100"
+    >
+      <div className="flex flex-wrap items-center gap-3 px-4 py-2.5">
+        <Link
+          to="/admin/transportation"
+          data-testid="txops-portal-topbar-brand"
+          className="flex items-center gap-2"
+        >
+          <span className="inline-block h-2 w-2 rounded-full bg-amber-400" />
+          <span className="text-[11px] uppercase tracking-[0.18em] font-semibold text-white">
+            Transportation Operations
+          </span>
+        </Link>
+
+        <nav
+          data-testid="txops-portal-topbar-nav"
+          className="hidden md:flex items-center gap-1 ml-2"
+        >
+          {NAV_GROUPS.map((g) => (
+            <NavMenu key={g.id} group={g} />
+          ))}
+        </nav>
+
+        <div className="ml-auto flex items-center gap-2">
+          <Link
+            to="/admin/transportation"
+            data-testid="txops-portal-topbar-search"
+            className="inline-flex items-center gap-1.5 rounded bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 text-[11px] text-slate-200 transition-colors"
+            title="Open Transportation search ( / )"
+          >
+            <Search className="h-3 w-3" />
+            <span>Search</span>
+            <kbd className="ml-1 hidden lg:inline rounded border border-slate-600 px-1 text-[9px] font-mono text-slate-300">
+              /
+            </kbd>
+          </Link>
+          <Link
+            to="/admin/transportation"
+            data-testid="txops-portal-topbar-mission-control"
+            className="hidden sm:inline-flex items-center gap-1 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 px-2.5 py-1.5 text-[11px] font-semibold transition-colors"
+          >
+            Mission Control →
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}

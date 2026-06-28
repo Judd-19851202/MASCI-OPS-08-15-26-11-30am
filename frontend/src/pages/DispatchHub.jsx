@@ -44,6 +44,11 @@ import DispatchEquipmentMaintenanceIndicator from "@/components/dispatch/Dispatc
 import DispatchLiveSnapshot from "@/components/DispatchLiveSnapshot";
 import DispatchMapHero from "@/components/DispatchMapHero";
 import LastActivityLine from "@/components/admin/LastActivityLine";
+// TRACK 18.00 · Phase E · Transportation Operations Portal transformation.
+// Top-of-body brand strip that makes /dispatch-portal feel like the
+// Transportation Operations Portal — dispatch becomes one workspace
+// inside it. Strictly additive; every existing surface preserved.
+import TransportationOpsTopBar from "@/components/transportation/TransportationOpsTopBar";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const COACH_LS_KEY = "masci.dispatch.coaching.collapsed";
@@ -149,6 +154,13 @@ export default function DispatchHub() {
         <main className={sidebarV2
           ? "flex-1 space-y-4 w-full"
           : "space-y-4 flex-1 w-full"}>
+
+        {/* TRACK 18.00 · Phase E · Transportation Operations branded
+            top bar. Dispatchers land here on `/dispatch-portal` and
+            immediately see the unified ops portal — Dispatch is one
+            workspace inside it. Reuses existing routes; no auth
+            changes; no backend changes. */}
+        <TransportationOpsTopBar />
 
         {/* iter511 · MaintainX maintenance indicator (calm, count-only) */}
         <DispatchEquipmentMaintenanceIndicator />
