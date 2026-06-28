@@ -11,6 +11,48 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-02-15 · TRACK 18.12B · Transportation Operations Dispatcher Functionality Restore · ✅ GREEN)
+
+### Defect (P0)
+After Track 18.12 fixed `/transportation-operations/*` routing, the dispatcher portal still surfaced raw `Admin login required` text, `Request failed with status code 401` text, and React red-overlay runtime crashes across Drivers / Carriers / Trucks / Orientation / Intelligence / Automation / Audit Timeline. Dispatchers could SEE the workspaces but could not OPERATE them.
+
+### Root Cause
+Direct `api.get("/admin/transportation/...")` callsites in `_orientation.jsx`, `_intelligence.jsx`, `_command_queue.jsx`, and partial coverage in `_lists.jsx` / `_views.jsx`. Admin-strict endpoints return 401 with `detail = "Admin login required"` for non-admin tokens; loaders either rendered that string raw or threw an uncaught axios rejection that triggered React's dev runtime-error overlay.
+
+### Fix Shape (frontend-only, surgical)
+1. Single doorway `txGet` in `_shared.jsx` absorbs 401/403 and resolves with `{ data: { restricted: true, rows: [], items: [], signals: [], records: [] }, status, __txRestricted: true }`. Sets `skipSessionStatus: true` so no spurious "session expired" modal fires.
+2. New helpers `isTxRestricted(r)` and `txCatch(e)` — the latter strips forbidden tokens (`Admin login required`, `Request failed with status code 4xx`, `Forbidden`, `Unauthorized`) from any escaped error string.
+3. Every workspace loader rewired to use `txGet` + `isTxRestricted`; on restricted, renders `<TxOpsRestrictedData testid="<workspace>-restricted" />`.
+4. Role-aware nav: `visibleTxOpsNavGroups()` hides the Administration group for non-admin tokens.
+5. Workspace detail pages (CarrierWorkspace / DriverWorkspace / TruckWorkspace) branch to the restricted state before reading `data.carrier.*` so unguarded property access can never crash.
+
+### Files Touched
+- `/app/frontend/src/pages/transportation/_shared.jsx`
+- `/app/frontend/src/pages/transportation/_lists.jsx`
+- `/app/frontend/src/pages/transportation/_orientation.jsx`
+- `/app/frontend/src/pages/transportation/_intelligence.jsx`
+- `/app/frontend/src/pages/transportation/_command_queue.jsx`
+- `/app/frontend/src/pages/transportation/_views.jsx`
+- Zero backend changes. Zero new collections. Zero new endpoints. Zero RBAC weakening.
+
+### Tests
+- `/app/backend/tests/test_track_18_12b_transportation_dispatcher_functionality.py` — 47 PASS (AST + static-scan lock for: restricted-state rendering on every workspace, Administration nav filter, no forbidden user-facing copy, no raw `api.get` on admin-strict reads, classification doc + audit doc + auth matrix + walkthrough doc exist).
+- Track 18 family regression: 735 PASS (one test text-pattern updated to also accept `visibleTxOpsNavGroups()` per the 18.12B contract).
+- Live browser smoke (testing_agent_v3_fork): `/app/test_reports/iteration_track_18_12b_transportation_dispatcher_restore.json` — 19 dispatch surfaces clean, 16 distinct restricted testids confirmed, 0 forbidden strings, 0 React overlays, Administration nav group correctly hidden, admin oversight at `/admin/transportation` unchanged.
+
+### Documents shipped
+- `/app/memory/TRACK_18_12B_TRANSPORTATION_DISPATCHER_FUNCTIONALITY_RESTORE.md`
+- `/app/memory/TRANSPORTATION_DISPATCHER_FUNCTIONALITY_AUDIT.md`
+- `/app/memory/TRANSPORTATION_API_AUTH_MATRIX.md`
+- `/app/memory/TRANSPORTATION_DISPATCHER_OPERATOR_WALKTHROUGH.md`
+
+### Known follow-ups (NOT 18.12B regressions)
+- Pre-existing flake (Track 15.93 zero-touch bootstrap) only on heavy full-suite runs; passes solo.
+- Pre-existing admin /admin/transportation/intelligence Executive sub-tab cold-start slowness (no failure; just slow). Out of scope.
+
+---
+
+
 ## Latest Track (2026-02-10 · TRACK 18.02 · Human-First Operational Excellence Certification · ✅ CERTIFIED)
 
 ### Mission
