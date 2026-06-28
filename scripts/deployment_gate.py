@@ -195,6 +195,7 @@ REGRESSION_FILES = [
     "/app/backend/tests/test_track_16_07_transportation_workflow_activation.py",
     "/app/backend/tests/test_track_16_08_transportation_orientation.py",
     "/app/backend/tests/test_track_16_09_transportation_dispatch_gate_email_pilot.py",
+    "/app/backend/tests/test_track_16_10_transportation_automation_engine.py",
 ]
 
 DEFAULT_BASE_URL = (

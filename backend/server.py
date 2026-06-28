@@ -12916,6 +12916,44 @@ async def _track_16_09_bootstrap_on_startup():
             f"[track-16-09-bootstrap] non-fatal: {exc}")
 
 
+# TRACK 16.10 · Transportation Automation Engine. Scheduled reminders,
+# eligibility automation, action queue. Reuses singleton_scheduler +
+# email_routing_v2 + fsi_email_sender. No new sender, no SMS.
+from routes.transportation_automation import (  # noqa: E402
+    register_track_16_10_routes,
+    bootstrap_track_16_10,
+    transport_automation_scheduler_loop,
+)
+register_track_16_10_routes(
+    app, db,
+    require_admin_dep=require_admin_strict,
+    require_dispatch_or_admin_dep=_require_dispatch_or_admin,
+)
+
+_transport_automation_task: Optional[asyncio.Task] = None
+
+
+@app.on_event("startup")
+async def _track_16_10_bootstrap_on_startup():
+    global _transport_automation_task
+    try:
+        await bootstrap_track_16_10(db)
+    except Exception as exc:  # noqa: BLE001
+        logging.getLogger(__name__).warning(
+            f"[track-16-10-bootstrap] non-fatal: {exc}")
+    # Wire the daily scheduler under the singleton lock so we never run
+    # twice on multi-worker deployments.
+    try:
+        async def _wrapped(_db):
+            return await transport_automation_scheduler_loop(_db)
+        _transport_automation_task = asyncio.create_task(
+            run_with_singleton_lock(db, "transport_automation", _wrapped))
+        logger.info("[track-16-10] automation scheduler armed")
+    except Exception as exc:  # noqa: BLE001
+        logging.getLogger(__name__).warning(
+            f"[track-16-10-scheduler] non-fatal: {exc}")
+
+
 # PROJECT-IDENTITY-005 · Project Identity Governance · /api/admin/project-identity/*
 # Detection-only drift sentinel. Never auto-mutates source records or jobs_master.
 # Operator controls every resolution (match / leave_unmatched / intentional / dismiss).
