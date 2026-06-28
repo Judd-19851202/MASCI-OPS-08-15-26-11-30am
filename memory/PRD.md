@@ -11,6 +11,32 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-02-10 · TRACK 18.01 · Human Operability Review + Usability Hardening · ✅ GO)
+
+### Mission
+Verify Transportation Operations passes the 30-second test for every operator role and lock the human-readiness contract via regression. Zero new features.
+
+### Verdict
+✅ **GO — READY for real-user operation.** Every reviewed surface scores GREEN across nine usability dimensions (clarity · findability · actionability · speed · visual hierarchy · mobile · restricted-state · dead-end · training). Zero RED. One YELLOW (Reports CSV/PDF still ComingSoon) intentionally deferred.
+
+### Coverage
+Six role walkthroughs documented (Dispatch · Transportation Manager · Fleet/Shop · HR · Safety · PM/Operations). 18 surfaces scored. Findability matrix covers 15 core objects (each reachable via ≥2 obvious paths). Actionability matrix maps every state to its visual cue + copy.
+
+### What shipped
+- `TRACK_18_01_HUMAN_OPERABILITY_REVIEW.md` — full audit document with role checklists, scorecard, findability matrix, actionability matrix, final verdict.
+- 30 regression tests including static-scan locks: no Admin Console / Admin Portal copy · no raw error tokens (undefined/null/Forbidden/Unauthorized/JSON.stringify(err)) · search placeholder is human-readable · TopBar nav labels are operational · every visible CTA has an href · ComingSoon never on primary workflow surfaces.
+- `txops-rail-entity-subtitle` testid added to the right-rail entity banner for automated coverage of the human-readable entity context line.
+
+### Hard guarantees
+- No new feature · no new module · no new collection · no new auth verb · no backend changes.
+- Every Track-18 phase preserved (A through G + 18.00E-FIX).
+- 271/271 cross-track tests PASS.
+
+### Documentation
+- `/app/memory/TRACK_18_01_HUMAN_OPERABILITY_REVIEW.md`
+
+---
+
 ## Latest Track (2026-02-10 · TRACK 18.00 Phase G · Final Polish + Restricted-State Cleanup · ✅ GO)
 
 ### Mission
