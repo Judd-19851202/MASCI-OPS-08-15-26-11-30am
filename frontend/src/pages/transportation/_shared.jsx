@@ -12,7 +12,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Building2, UserRound, Truck, ShieldCheck,
   FileText, ClipboardCheck, DollarSign, History, BarChart3,
-  GraduationCap, ListChecks,
+  GraduationCap, ListChecks, Activity,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { getAdminToken } from "@/lib/adminAuth";
@@ -91,6 +91,7 @@ export const TX_NAV = [
   { to: "inspections", icon: ClipboardCheck, label: "Inspections" },
   { to: "orientation", icon: GraduationCap, label: "Orientation" },
   { to: "command-queue", icon: ListChecks, label: "Command Queue" },
+  { to: "intelligence", icon: Activity, label: "Intelligence" },
   { to: "rate-schedules", icon: DollarSign, label: "Rate Schedules" },
   { to: "audit", icon: History, label: "Audit Timeline" },
   { to: "reports", icon: BarChart3, label: "Reports" },

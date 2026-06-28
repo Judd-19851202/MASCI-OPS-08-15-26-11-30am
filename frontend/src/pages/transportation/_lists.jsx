@@ -647,12 +647,90 @@ export function DriverWorkspace() {
 
       <ComplianceTimeline entityType="person" entityId={id} testid="driver-ws-timeline" />
 
+      {/* TRACK 16.12 · Driver Operations Intelligence — read-only card
+          with explainable score breakdown. Reuses adminHeaders. */}
+      <DriverIntelligenceCard driverId={id} />
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <ComingSoon feature="Orientation engine" testid="driver-orientation-coming-soon" />
         <ComingSoon feature="Incident history" testid="driver-incident-coming-soon" />
         <ComingSoon feature="Retraining + certificates" testid="driver-retraining-coming-soon" />
       </div>
     </div>
+  );
+}
+
+// TRACK 16.12 · Driver intelligence card (read-only).
+function DriverIntelligenceCard({ driverId }) {
+  const [snap, setSnap] = useState(null);
+  const [err, setErr] = useState(null);
+  useEffect(() => {
+    if (!driverId) return;
+    txGet(`/admin/transportation/intelligence/drivers/${driverId}`)
+      .then((r) => setSnap(r.data))
+      .catch((e) => setErr(e.message));
+  }, [driverId]);
+
+  if (err || !snap) return null;
+  const palette = {
+    excellent: "bg-emerald-100 text-emerald-800 border-emerald-300",
+    strong: "bg-emerald-50 text-emerald-800 border-emerald-200",
+    fair: "bg-amber-100 text-amber-800 border-amber-300",
+    watch: "bg-amber-200 text-amber-900 border-amber-400",
+    critical: "bg-rose-100 text-rose-800 border-rose-300",
+  };
+  const overallCls = palette[snap.overall?.grade] || "bg-slate-100 text-slate-700 border-slate-300";
+
+  return (
+    <Card title="Operations Intelligence" testid="driver-ws-intelligence">
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-[11px] uppercase tracking-wider text-slate-500">
+          Overall · explainable score
+        </div>
+        <span
+          data-testid="driver-ws-intelligence-overall-chip"
+          className={`px-2 py-0.5 rounded-full border text-[11px] font-medium ${overallCls}`}
+        >
+          {Math.round(snap.overall?.score ?? 0)} · {snap.overall?.grade}
+        </span>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+        {Object.entries(snap.indices || {}).map(([k, v]) => (
+          <div key={k} className="rounded border border-slate-200 px-2 py-1.5"
+               data-testid={`driver-ws-intelligence-index-${k}`}>
+            <div className="text-[10px] uppercase tracking-wider text-slate-500">{k}</div>
+            <div className="text-sm font-semibold text-slate-900">{Math.round(v.score)} · {v.grade}</div>
+          </div>
+        ))}
+      </div>
+      {(snap.explanations || []).length > 0 && (
+        <div className="text-xs text-slate-700">
+          <div className="font-medium text-slate-700 mb-1">Why</div>
+          <ul className="space-y-1 max-h-48 overflow-y-auto">
+            {snap.explanations.slice(0, 12).map((e, i) => (
+              <li key={i} data-testid={`driver-ws-intelligence-expl-${i}`}
+                  className={`flex items-start justify-between rounded px-2 py-1 ${
+                    e.impact === "positive" ? "bg-emerald-50" :
+                    e.impact === "watch" ? "bg-amber-50" :
+                    e.impact === "negative" ? "bg-rose-50" : "bg-slate-50"}`}>
+                <div className="flex-1">
+                  <div className="text-slate-800">{e.label}</div>
+                  {e.fix && (
+                    <div className="text-[10px] text-slate-500 mt-0.5">Fix: {e.fix}</div>
+                  )}
+                </div>
+                <span className="ml-2 font-mono text-[10px] text-slate-500">
+                  Δ {e.delta > 0 ? "+" : ""}{e.delta}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <div className="text-[10px] uppercase tracking-wide text-slate-400 mt-3">
+        Schema {snap.schema_version} · Computed {(snap.computed_at || "").slice(0, 19).replace("T", " ")}
+      </div>
+    </Card>
   );
 }
 

@@ -12931,6 +12931,15 @@ register_track_16_10_routes(
     require_dispatch_or_admin_dep=_require_dispatch_or_admin,
 )
 
+# TRACK 16.12 · Transportation Operations Intelligence — read-only
+# intelligence engine routes (drivers / carriers / trucks / dashboard
+# / recommendations / predictions / operational-health).
+from routes.transportation_intelligence import (  # noqa: E402
+    register_track_16_12_routes,
+)
+register_track_16_12_routes(
+    app, db, require_admin_dep=require_admin_strict)
+
 _transport_automation_task: Optional[asyncio.Task] = None
 
 

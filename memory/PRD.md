@@ -11,7 +11,41 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
-## Latest Track (2026-02-10 · TRACK 16.11A · HR Visibility + Transportation Consistency Engine · ✅ GO)
+## Latest Track (2026-02-10 · TRACK 16.12 · Transportation Operations Intelligence · ✅ GO)
+
+### Mission
+Build the deterministic intelligence engine that powers every Transportation decision. Not a dashboard, not a scorecard — one engine, every decision derives from it.
+
+### Verdict
+✅ **GO** — 67/67 new tests · 474/474 transport-track tests green · backend healthy · zero source-record mutations · zero new schedulers · zero design drift.
+
+### What shipped
+* `lib/transport_intelligence_core.py` — shared deterministic helpers (clamp / grade / composite / explanations / audit).
+* `lib/transport_driver_intelligence.py` — per-driver scoring with 4 sub-indices (experience / compliance / safety / performance) + `operational_readiness`.
+* `lib/transport_carrier_intelligence.py` — fleet-aggregated carrier indices + `preferred_status`.
+* `lib/transport_truck_intelligence.py` — mechanical readiness + DOT compliance.
+* `lib/transport_prediction_engine.py` — deterministic 120-day forecast (overdue / due_this_week / 30 / 90 / beyond + carrier risk).
+* `lib/transport_recommendation_engine.py` — ranked driver / carrier / truck / triple recommendations with `why` + `watch`.
+* `lib/transport_operations_intelligence.py` — executive dashboard orchestrator with 30/90/365-day trends.
+* `routes/transportation_intelligence.py` — 8 read-only admin-gated GET endpoints.
+* Frontend `_intelligence.jsx` — new /intelligence center (Executive / Recommendations / Predictions tabs).
+* `_lists.jsx` — `DriverIntelligenceCard` inside Driver Workspace with full explanation breakdown.
+* `_shared.jsx` — sub-nav adds Intelligence tab.
+* New audit collection `transport_intelligence_audit` (8 kinds).
+* `backend/tests/test_track_16_12_transport_operations_intelligence.py` — 67 tests · wired into deployment gate.
+
+### Hard guarantees
+* HR, Transportation source records — read-only.
+* No duplicated business logic. Dashboard delegates to per-entity compute_* functions.
+* Schema versioned (`16.12.0`) on every snapshot.
+* No new scheduler. No SMS / push. No destructive Mongo ops.
+
+### Documentation
+* `/app/memory/TRACK_16_12_TRANSPORT_OPERATIONS_INTELLIGENCE.md`
+
+---
+
+## Previous Track (2026-02-10 · TRACK 16.11A · HR Visibility + Transportation Consistency Engine · ✅ GO)
 
 ### Mission
 Final hardening pass before Track 16.12 (Intelligence). HR gets immediate read-only visibility into Transportation readiness; Transportation continuously proves it remains synchronized with HR. HR-safe, additive only.
