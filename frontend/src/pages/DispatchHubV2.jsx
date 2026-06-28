@@ -160,7 +160,7 @@ export default function DispatchHubV2() {
     <div data-testid="dispatch-hub-v2-root" style={{ background: "var(--paper-base)", minHeight: "100vh" }}>
       <PortalShell
         portalName="MASCI"
-        portalRole="Dispatch Portal"
+        portalRole="Transportation Operations"
         pageTitle="What requires the dispatcher's attention right now?"
         subtitle="Every queue is a live count — open it to see what Dispatch needs to act on today. The Map command surface is one click away."
         primaryActions={

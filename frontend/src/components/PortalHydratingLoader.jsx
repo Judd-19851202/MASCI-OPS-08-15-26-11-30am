@@ -21,13 +21,13 @@ const ACCENT = {
 };
 
 const LABEL = {
-  admin: "Admin Console",
-  pm: "PM Portal",
-  hr: "HR Portal",
-  shop: "Shop Portal",
-  safety: "Safety Portal",
-  dispatch: "Dispatch Portal",
-  field_leadership: "Field Leadership Portal",
+  admin: "Administration",
+  pm: "Project Management",
+  hr: "Human Resources",
+  shop: "Shop Operations",
+  safety: "Safety Operations",
+  dispatch: "Transportation Operations",
+  field_leadership: "Field Leadership",
 };
 
 export default function PortalHydratingLoader({ portal = "admin" }) {

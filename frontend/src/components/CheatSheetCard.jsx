@@ -61,19 +61,19 @@ export default function CheatSheetCard() {
   const officePortals = [
     {
       icon: ClipboardList,
-      title: t("PM Portal"),
+      title: t("Project Management"),
       body: t("Project managers · active jobs · routing · fleet · staff."),
       accent: "indigo",
     },
     {
       icon: Wrench,
-      title: t("Shop"),
+      title: t("Shop Operations"),
       body: t("Mechanics · out-of-service queue · Pre-Op FAILs · sign-offs."),
       accent: "orange",
     },
     {
       icon: Users,
-      title: t("HR Portal"),
+      title: t("Human Resources"),
       body: t("Employee accountability · time verification · payroll cross-check."),
       accent: "purple",
     },
@@ -144,8 +144,8 @@ export default function CheatSheetCard() {
         ))}
       </div>
 
-      {/* Office Portals — 4 pills */}
-      <SectionHeader kicker="02" title={t("Office Portals")} subtitle={t("Sign-in required. Office staff, mechanics, HR.")} />
+      {/* Workspaces — 4 pills */}
+      <SectionHeader kicker="02" title={t("Operations")} subtitle={t("Sign-in required. Project management, shop, HR, and field leadership.")} />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 mb-7">
         {officePortals.map((p) => (
           <PortalPillPrint key={p.title} {...p} />

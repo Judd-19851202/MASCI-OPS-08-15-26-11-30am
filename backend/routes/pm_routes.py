@@ -579,7 +579,7 @@ def build_pm_router(
             params = {
                 "from": f"MASCI Operations Platform <{sender_email}>",
                 "to": [email],
-                "subject": "[MASCI] Reset your PM Portal password",
+                "subject": "[MASCI] Reset your Project Management password",
                 "html": html_body,
             }
             reply_to = (await _resolve_reply_to_email(db)) or ""

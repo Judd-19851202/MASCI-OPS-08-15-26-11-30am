@@ -54,7 +54,7 @@ function PmWorkOrderQueue() {
 
   return (
     <div data-testid="pm-work-orders-root" style={{ background: "var(--paper-base)", minHeight: "100vh" }}>
-      <PortalShell portalName="MASCI" portalRole="Shop Portal"
+      <PortalShell portalName="MASCI" portalRole="Shop Operations"
                    pageTitle="PM Work Orders"
                    subtitle={`Queue${filter ? ` · ${STATUS_TONE[filter]?.label || filter}` : ""}. PM completion does not RTS.`}>
         <BackToShopLink />
@@ -124,7 +124,7 @@ function PmWorkOrderDetail({ id }) {
 
   if (!wo) return (
     <div data-testid="pm-work-order-detail-root" style={{ background: "var(--paper-base)", minHeight: "100vh" }}>
-      <PortalShell portalName="MASCI" portalRole="Shop Portal" pageTitle="PM Work Order">
+      <PortalShell portalName="MASCI" portalRole="Shop Operations" pageTitle="PM Work Order">
         <BackToShopLink />
         {err ? <div style={{ padding: 12, background: "#fee2e2", color: "#7f1d1d", borderRadius: 4 }}>{err}</div>
              : <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>Loading…</div>}
@@ -138,7 +138,7 @@ function PmWorkOrderDetail({ id }) {
 
   return (
     <div data-testid="pm-work-order-detail-root" style={{ background: "var(--paper-base)", minHeight: "100vh" }}>
-      <PortalShell portalName="MASCI" portalRole="Shop Portal"
+      <PortalShell portalName="MASCI" portalRole="Shop Operations"
                    pageTitle={`PM · ${wo.unit_number}`}
                    subtitle={`${wo.pm_name} · due ${wo.due_basis}. PM completion does NOT return the unit to service.`}>
         <BackToShopLink />

@@ -160,42 +160,42 @@ const PORTAL_DIRECTORY = [
     accent: "bg-red-700", iconBg: "bg-red-50", iconColor: "text-red-700", border: "hover:border-red-700",
   },
   {
-    key: "hr", label: "HR Portal Training", labelEs: "Capacitación · Portal de RH",
+    key: "hr", label: "Human Resources Guidance", labelEs: "Guía · Recursos Humanos",
     loginUrl: "/hr/login", trainingArticle: "portal-hr-identity",
     purpose: "Onboarding, time verification, accountability, and HR workflow guidance.",
     purposeEs: "Orientación, verificación de tiempo, rendición de cuentas y flujos de RH.",
     accent: "bg-purple-700", iconBg: "bg-purple-50", iconColor: "text-purple-700", border: "hover:border-purple-700",
   },
   {
-    key: "safety", label: "Safety Portal Training", labelEs: "Capacitación · Portal de Seguridad",
+    key: "safety", label: "Safety Operations Guidance", labelEs: "Guía · Operaciones de Seguridad",
     loginUrl: "/safety-portal/login", trainingArticle: "portal-safety-identity",
     purpose: "Incident response, corrective actions, audits, and training compliance.",
     purposeEs: "Respuesta a incidentes, acciones correctivas, auditorías y cumplimiento.",
     accent: "bg-yellow-600", iconBg: "bg-yellow-50", iconColor: "text-yellow-700", border: "hover:border-yellow-600",
   },
   {
-    key: "shop", label: "Shop / Fleet Training", labelEs: "Capacitación · Taller / Flota",
+    key: "shop", label: "Shop Operations Guidance", labelEs: "Guía · Operaciones de Taller",
     loginUrl: "/shop/login", trainingArticle: "portal-shop-identity",
     purpose: "Pre-Op review, damage workflow, maintenance coordination, parts ordering.",
     purposeEs: "Revisión Pre-Op, daños, coordinación de mantenimiento y repuestos.",
     accent: "bg-orange-600", iconBg: "bg-orange-50", iconColor: "text-orange-700", border: "hover:border-orange-600",
   },
   {
-    key: "dispatch", label: "Dispatch Portal Training", labelEs: "Capacitación · Portal de Despacho",
+    key: "dispatch", label: "Transportation Operations Guidance", labelEs: "Guía · Operaciones de Transporte",
     loginUrl: "/dispatch-portal/login", trainingArticle: "portal-dispatch-identity",
     purpose: "Equipment movement, availability, holds, transfers, and dispatch workflows.",
     purposeEs: "Movimiento de equipo, disponibilidad, retenciones, transferencias y flujos.",
     accent: "bg-sky-700", iconBg: "bg-sky-50", iconColor: "text-sky-700", border: "hover:border-sky-700",
   },
   {
-    key: "pm", label: "PM Portal Training", labelEs: "Capacitación · Portal de PM",
+    key: "pm", label: "Project Management Guidance", labelEs: "Guía · Gestión de Proyectos",
     loginUrl: "/pm/login", trainingArticle: "portal-pm-identity",
     purpose: "Project review cadence, labor documentation, cross-portal coordination.",
     purposeEs: "Revisión de proyecto, documentación laboral, coordinación entre portales.",
     accent: "bg-amber-600", iconBg: "bg-amber-50", iconColor: "text-amber-700", border: "hover:border-amber-600",
   },
   {
-    key: "admin", label: "Admin Console Guidance", labelEs: "Guía · Consola de Admin",
+    key: "admin", label: "Administration Guidance", labelEs: "Guía · Administración",
     loginUrl: "/admin/login", trainingArticle: "portal-admin-identity",
     purpose: "Operator-level training — people, jobs, system, backups, governance.",
     purposeEs: "Capacitación de operador — personas, trabajos, sistema, respaldos, gobernanza.",
@@ -559,13 +559,13 @@ export default function OperationalGuidanceCenter() {
   // Then topic grid below. Operator directive: this page must teach
   // field crews + new hires too, not just authenticated portal users.
   const PORTAL_TRACKS = [
-    { key: "hr",         label: "HR Portal",                  accent: "blue",   matchPrefix: ["portal-hr", "hr-"] },
-    { key: "safety",     label: "Safety Portal",              accent: "red",    matchPrefix: ["portal-safety", "safety-"] },
-    { key: "shop",       label: "Shop / Fleet Portal",        accent: "orange", matchPrefix: ["portal-shop", "shop-"] },
-    { key: "dispatch",   label: "Dispatch Portal",            accent: "purple", matchPrefix: ["portal-dispatch", "dispatch-"] },
-    { key: "pm",         label: "PM Portal",                  accent: "teal",   matchPrefix: ["portal-pm", "pm-"] },
-    { key: "leadership", label: "Field Leadership Portal",    accent: "amber",  matchPrefix: ["portal-leadership", "field-"] },
-    { key: "admin",      label: "Admin Console",              accent: "slate",  matchPrefix: ["portal-admin", "admin-"] },
+    { key: "hr",         label: "Human Resources",            accent: "blue",   matchPrefix: ["portal-hr", "hr-"] },
+    { key: "safety",     label: "Safety Operations",          accent: "red",    matchPrefix: ["portal-safety", "safety-"] },
+    { key: "shop",       label: "Shop Operations",            accent: "orange", matchPrefix: ["portal-shop", "shop-"] },
+    { key: "dispatch",   label: "Transportation Operations",  accent: "purple", matchPrefix: ["portal-dispatch", "dispatch-"] },
+    { key: "pm",         label: "Project Management",         accent: "teal",   matchPrefix: ["portal-pm", "pm-"] },
+    { key: "leadership", label: "Field Leadership",           accent: "amber",  matchPrefix: ["portal-leadership", "field-"] },
+    { key: "admin",      label: "Administration",             accent: "slate",  matchPrefix: ["portal-admin", "admin-"] },
   ];
   const ACCENT_BAND = {
     blue:   "bg-blue-600",
@@ -720,7 +720,7 @@ export default function OperationalGuidanceCenter() {
           <div className="flex items-baseline justify-between mb-3">
             <div>
               <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-amber-700 font-bold">
-                {t("Sign-In Required · Your Portals")}
+                {t("Sign-In Required · Your Workspaces")}
               </div>
               <h2 className="font-display text-xl font-black tracking-tight">
                 {t("Portal Training")}

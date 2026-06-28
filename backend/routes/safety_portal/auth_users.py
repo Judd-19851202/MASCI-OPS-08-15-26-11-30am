@@ -258,13 +258,13 @@ def register_auth_routes(
         )
         html = render_portal_email(
             portal="Safety",
-            headline="Your MASCI Safety Portal account",
+            headline="Your MASCI Safety Operations account",
             body_inner_html=body_html,
         )
         try:
             await send_email_fn(
                 user_email,
-                "[MASCI] Your Safety Portal account — temporary password inside",
+                "[MASCI] Your Safety Operations account — temporary password inside",
                 html,
             )
         except Exception as e:  # noqa: BLE001

@@ -95,7 +95,7 @@ export default function PmCommandCenter() {
   return (
     <PortalShell
       portalName="MASCI"
-      portalRole="PM Portal"
+      portalRole="Project Management"
       pageTitle="Project Management Center"
       subtitle={headerSubtitle}
       showBack
@@ -113,7 +113,7 @@ export default function PmCommandCenter() {
             className="text-xs text-slate-600 hover:text-slate-900 font-mono uppercase tracking-widest"
             data-testid="pm-cc-back-hub"
           >
-            PM Hub
+            PM Home
           </Link>
         </div>
       }

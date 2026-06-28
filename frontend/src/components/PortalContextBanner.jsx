@@ -24,14 +24,14 @@ import { useT } from "@/lib/i18n";
 // links in each hub. Add new portals here as new origins surface.
 const PORTAL_REGISTRY = {
   safety: {
-    label: { en: "Safety Portal", es: "Portal de Seguridad" },
+    label: { en: "Safety Operations", es: "Operaciones de Seguridad" },
     to: "/safety-portal",
     accent: "cyan",
     stripeClass: "border-l-cyan-600",
     kickerClass: "text-cyan-700",
   },
   hr: {
-    label: { en: "HR Portal", es: "Portal de RH" },
+    label: { en: "Human Resources", es: "Recursos Humanos" },
     to: "/hr",
     accent: "purple",
     stripeClass: "border-l-purple-600",
@@ -45,14 +45,14 @@ const PORTAL_REGISTRY = {
     kickerClass: "text-red-700",
   },
   shop: {
-    label: { en: "Shop Portal", es: "Portal del Taller" },
+    label: { en: "Shop Operations", es: "Operaciones de Taller" },
     to: "/shop",
     accent: "amber",
     stripeClass: "border-l-amber-500",
     kickerClass: "text-amber-700",
   },
   dispatch: {
-    label: { en: "Dispatch Portal", es: "Portal de Despacho" },
+    label: { en: "Transportation Operations", es: "Operaciones de Transporte" },
     to: "/dispatch-portal",
     accent: "orange",
     stripeClass: "border-l-orange-500",

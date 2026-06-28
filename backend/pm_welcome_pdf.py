@@ -107,7 +107,7 @@ def render_pm_welcome_pdf(
 <html>
 <head>
 <meta charset="utf-8" />
-<title>Welcome — MASCI PM Portal</title>
+<title>Welcome — MASCI Project Management</title>
 <style>
   @page {{ size: Letter; margin: 0.5in; }}
   * {{ box-sizing: border-box; }}
@@ -177,7 +177,7 @@ def render_pm_welcome_pdf(
   <div class="header">
     <img class="lockup" src="{m_mark}" alt="{wl.brand_name}" style="width: 64px; height: auto;" />
     <div class="header-meta">
-      <div class="tag">PM Portal · Welcome</div>
+      <div class="tag">Project Management · Welcome</div>
       <div>Issued: {today}</div>
       <div>{portal}</div>
     </div>

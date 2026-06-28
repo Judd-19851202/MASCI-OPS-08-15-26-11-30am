@@ -247,7 +247,7 @@ export default function PmLogin() {
                 {t("Project Management")}
               </div>
               <h1 className="font-display text-2xl font-black text-slate-900 leading-none mt-1">
-                {t("PM Portal Sign In")}
+                {t("Project Management Sign In")}
               </h1>
             </div>
           </div>

@@ -139,7 +139,7 @@ export default function PmShell({ title, section, children, intro }) {
             <SheetContent side="left" className="bg-slate-900 border-r-2 border-amber-600 p-0 w-72 flex flex-col">
               <SheetHeader className="px-4 pt-4 pb-2 border-b border-slate-800 shrink-0">
                 <SheetTitle className="text-white font-display text-lg flex items-center gap-2">
-                  <Briefcase className="w-4 h-4 text-amber-400" /> PM Portal
+                  <Briefcase className="w-4 h-4 text-amber-400" /> Project Management
                 </SheetTitle>
               </SheetHeader>
               {/* iter437 Phase IV-BETA.1 · PM mobile sidebar scroll fix
@@ -169,13 +169,13 @@ export default function PmShell({ title, section, children, intro }) {
                     className="hover:text-white hover:underline underline-offset-2 transition-colors"
                     data-testid="pm-breadcrumb-home"
                   >
-                    PM Portal
+                    Project Management
                   </Link>
                   <span className="text-amber-500 opacity-60">›</span>
                   <span className="text-amber-200">{title}</span>
                 </>
               ) : (
-                <span>PM Portal</span>
+                <span>Project Management</span>
               )}
             </div>
             <div

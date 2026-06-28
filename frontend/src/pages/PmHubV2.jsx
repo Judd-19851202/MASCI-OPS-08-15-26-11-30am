@@ -319,7 +319,7 @@ export default function PmHubV2() {
     <div data-testid="pm-hub-v2-root" style={{ background: "var(--paper-base)", minHeight: "100vh" }}>
       <PortalShell
         portalName="MASCI"
-        portalRole="PM Portal"
+        portalRole="Project Management"
         pageTitle="What requires your attention today?"
         subtitle="PM purpose: build projects. Every queue below is a live count — open it to see what needs your attention today."
         sideNav={<PmSideNavV2 />}

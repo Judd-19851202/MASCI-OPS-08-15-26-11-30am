@@ -24,6 +24,13 @@ Usage:
         headline="Welcome to the MASCI PM Portal",
         body_inner_html="<p>Hi Chris,</p>... <table>credentials</table>...",
     )
+
+NOTE (Track 18.04): the canonical workspace names in the
+Platform Language Constitution are used in the user-facing
+sub-eyebrow strings below. Internal Python identifiers
+(portal="PM"/"Shop"/"HR"/"Safety"/"Dispatch") are unchanged
+for engineering stability — only the user-visible text
+follows the canonical names.
 """
 from __future__ import annotations
 
@@ -35,23 +42,23 @@ from operational_footer import render_operational_footer_html
 
 _PORTAL_THEMES: Dict[str, Dict[str, str]] = {
     "PM": {
-        "sub_eyebrow": "PM Portal · Account",
+        "sub_eyebrow": "Project Management · Account",
         "accent": "#c8102e",         # red — matches the PM accent in the UI
     },
     "Shop": {
-        "sub_eyebrow": "Shop Portal · Account",
+        "sub_eyebrow": "Shop Operations · Account",
         "accent": "#ea580c",         # amber-red — matches Shop accent
     },
     "HR": {
-        "sub_eyebrow": "HR Portal · Account",
+        "sub_eyebrow": "Human Resources · Account",
         "accent": "#7e22ce",         # purple — matches HR accent
     },
     "Safety": {
-        "sub_eyebrow": "Safety Portal · Account",
+        "sub_eyebrow": "Safety Operations · Account",
         "accent": "#0e7490",         # cyan-700 — matches Safety accent in the UI
     },
     "Dispatch": {
-        "sub_eyebrow": "Dispatch Portal · Account",
+        "sub_eyebrow": "Transportation Operations · Account",
         "accent": "#0891b2",         # cyan-600 — matches Dispatch accent
     },
 }

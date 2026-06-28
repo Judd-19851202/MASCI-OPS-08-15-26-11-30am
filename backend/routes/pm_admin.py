@@ -302,7 +302,7 @@ def build_pm_admin_router(
         )
 
         is_reset = bool(pm.get("password_hash"))
-        headline = "Your password has been reset" if is_reset else "Welcome to the MASCI PM Portal"
+        headline = "Your password has been reset" if is_reset else "Welcome to MASCI Project Management"
         body_inner = f"""
           <p style="margin:0 0 12px;font-size:15px;line-height:1.5">Hi {pm_name},</p>
           <p style="margin:0 0 12px;font-size:14px;line-height:1.55;color:#334155">

@@ -323,7 +323,7 @@ def build_field_leadership_portal_router(
                         )
                         await send_email_fn(
                             user["email"],
-                            "[MASCI] Reset your Field Leadership Portal password",
+                            "[MASCI] Reset your Field Leadership password",
                             html,
                         )
                     except Exception as e:  # noqa: BLE001
@@ -771,13 +771,13 @@ def build_field_leadership_portal_router(
         )
         html = render_portal_email(
             portal="Field Leadership",
-            headline="Your MASCI Field Leadership Portal account",
+            headline="Your MASCI Field Leadership account",
             body_inner_html=body_html,
         )
         try:
             await send_email_fn(
                 user_email,
-                "[MASCI] Your Field Leadership Portal account — temporary password inside",
+                "[MASCI] Your Field Leadership account — temporary password inside",
                 html,
             )
         except Exception as e:  # noqa: BLE001

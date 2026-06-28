@@ -141,8 +141,8 @@ export default function AdminDispatchUsersPanel() {
       return;
     }
     if (!window.confirm(
-      `Preview Dispatch Portal as ${u.name}?\n\n` +
-      `A dispatch session will be opened in a NEW TAB scoped to this user. ` +
+      `Preview Transportation Operations as ${u.name}?\n\n` +
+      `A Transportation Operations session will be opened in a NEW TAB scoped to this user. ` +
       `Your admin session in this tab stays intact. Audit logged.`,
     )) return;
     try {
@@ -153,7 +153,7 @@ export default function AdminDispatchUsersPanel() {
       // Stash the dispatch session so the new tab can read it from localStorage
       setDispatchToken(token, true);
       setDispatchUser(user || { id: u.id, email: u.email, name: u.name });
-      toast.success(`Opening dispatch portal as ${u.name}…`);
+      toast.success(`Opening Transportation Operations as ${u.name}…`);
       window.open("/dispatch-portal", "_blank", "noopener");
     } catch (err) {
       toast.error(err?.response?.data?.detail || "Could not start impersonation");
@@ -178,7 +178,7 @@ export default function AdminDispatchUsersPanel() {
           </div>
           <div>
             <span className="font-mono text-xs uppercase tracking-[0.2em] text-orange-700 font-bold">
-              Dispatch Portal
+              Transportation Operations
             </span>
             <h3 className="font-display text-xl sm:text-2xl font-black mt-1 leading-none">
               Dispatch Users & Logins
@@ -187,8 +187,8 @@ export default function AdminDispatchUsersPanel() {
               Add or remove Dispatch personnel and issue per-user passwords. Dispatch
               users sign in at <strong>/dispatch-portal/login</strong> and see the
               Operations Event Log, Holds, Transfers, Utilization, Idle Equipment
-              Alerts, and Unified Asset Profiles. Admins can preview the portal as any
-              dispatcher via the <em>View as Dispatcher</em> eye icon.
+              Alerts, and Unified Asset Profiles. Admins can preview Transportation
+              Operations as any dispatcher via the <em>View as Dispatcher</em> eye icon.
             </p>
           </div>
         </div>

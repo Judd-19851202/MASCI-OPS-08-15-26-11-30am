@@ -2426,7 +2426,7 @@ async def shop_forgot_password(body: ShopForgotPasswordBody, request: Request):
         params = {
             "from": f"MASCI Operations Platform <{sender_email}>",
             "to": [email],
-            "subject": "[MASCI] Reset your Shop Portal password",
+            "subject": "[MASCI] Reset your Shop Operations password",
             "html": html_body,
         }
         reply_to = (await _resolve_reply_to_email(db)) or ""
@@ -3706,9 +3706,9 @@ async def admin_shop_user_email_welcome(
             "first login."
         )
     else:
-        headline = "Your password has been reset" if is_reset else "Welcome to the MASCI Shop Portal"
+        headline = "Your password has been reset" if is_reset else "Welcome to MASCI Shop Operations"
         intro = (
-            "Your MASCI Shop Portal password has been reset. Use the temporary password below to "
+            "Your MASCI Shop Operations password has been reset. Use the temporary password below to "
             "sign in — you will be forced to choose your own on first login."
             if is_reset else
             f'You have a new account on the MASCI Shop Portal at '

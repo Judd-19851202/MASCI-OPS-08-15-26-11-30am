@@ -39,14 +39,16 @@ class TestOperationalFooterText:
         )
 
     def test_with_portal(self):
+        # Track 18.04 · portal code now resolves to canonical workspace
+        # name (HR → Human Resources, etc.).
         assert render_operational_footer_text(portal="HR") == (
-            "MASCI\nautomated operational notice · HR Portal\ndo-not-reply"
+            "MASCI\nautomated operational notice · Human Resources\ndo-not-reply"
         )
 
     def test_with_doc_id(self):
         s = render_operational_footer_text(portal="Admin", doc_id="backup-pass")
         assert s == (
-            "MASCI\nautomated operational notice · Admin Portal\n"
+            "MASCI\nautomated operational notice · Administration\n"
             "do-not-reply · backup-pass"
         )
 
@@ -59,7 +61,8 @@ class TestOperationalFooterHtml:
         html = render_operational_footer_html(portal="PM")
         assert "MASCI" in html
         assert "automated operational notice" in html
-        assert "PM Portal" in html
+        # Track 18.04 · canonical workspace name.
+        assert "Project Management" in html
         assert "do-not-reply" in html
 
     def test_uses_calm_color_palette(self):
@@ -84,9 +87,16 @@ class TestOperationalFooterHtml:
 # branded_portal_emails — every portal embeds the operational footer
 # ────────────────────────────────────────────────────────────────────
 @pytest.mark.parametrize(
-    "portal", ["PM", "HR", "Shop", "Safety", "Dispatch"]
+    "portal,workspace",
+    [
+        ("PM", "Project Management"),
+        ("HR", "Human Resources"),
+        ("Shop", "Shop Operations"),
+        ("Safety", "Safety Operations"),
+        ("Dispatch", "Transportation Operations"),
+    ],
 )
-def test_portal_email_includes_operational_footer(portal: str):
+def test_portal_email_includes_operational_footer(portal: str, workspace: str):
     html = render_portal_email(
         portal=portal,
         headline=f"Test headline for {portal}",
@@ -95,8 +105,9 @@ def test_portal_email_includes_operational_footer(portal: str):
     # All 3 lines must be present in the rendered HTML.
     assert "MASCI" in html
     assert "automated operational notice" in html
-    assert f"{portal} Portal" in html, (
-        f"Operational footer missing portal context for {portal}"
+    # Track 18.04 · canonical workspace name appears in the footer.
+    assert workspace in html, (
+        f"Operational footer missing workspace name for {portal}"
     )
     assert "do-not-reply" in html
 

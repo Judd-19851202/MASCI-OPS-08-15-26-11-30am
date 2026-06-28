@@ -77,7 +77,7 @@ export default function ShopAssetCare() {
   return (
     <PortalShell
       portalName="MASCI"
-      portalRole="Shop Portal"
+      portalRole="Shop Operations"
       pageTitle="Asset Care"
       subtitle="Readiness · documents · renewals · alerts across the asset spine."
       showBack

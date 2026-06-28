@@ -282,7 +282,7 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
                             headline="Reset your password",
                             body_inner_html=body_html,
                         )
-                        await send_email_fn(user["email"], "[MASCI] Reset your HR Portal password", html)
+                        await send_email_fn(user["email"], "[MASCI] Reset your Human Resources password", html)
                     except Exception as e:  # noqa: BLE001
                         logger.warning(f"hr forgot-password email failed: {e}")
                 else:
@@ -1680,11 +1680,11 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
         )
         html = render_portal_email(
             portal="HR",
-            headline="Your MASCI HR Portal account",
+            headline="Your MASCI Human Resources account",
             body_inner_html=body_html,
         )
         try:
-            await send_email_fn(user_email, "[MASCI] Your HR Portal account — temporary password inside", html)
+            await send_email_fn(user_email, "[MASCI] Your Human Resources account — temporary password inside", html)
         except Exception as e:  # noqa: BLE001
             logger.warning(f"hr welcome email failed: {e}")
 

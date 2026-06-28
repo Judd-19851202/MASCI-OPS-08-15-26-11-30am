@@ -63,7 +63,7 @@ export const DISPATCH_DOMAINS_V2 = [
     icon: ShieldEllipsis,
     routes: [
       { to: "/guidance?from=dispatch",            label: "Training Center",   desc: "Step-by-step Dispatch operator guides.",      icon: GraduationCap },
-      { to: "/dispatch-portal/change-password",   label: "Change Password",   desc: "Update your Dispatch Portal password.",       icon: KeyRound },
+      { to: "/dispatch-portal/change-password",   label: "Change Password",   desc: "Update your Transportation Operations password.",       icon: KeyRound },
     ],
   },
 ];

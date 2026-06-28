@@ -91,11 +91,11 @@ export default function SafetyShell({ title, kicker, children }) {
             className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-slate-600 hover:text-cyan-700 font-bold mb-4"
             data-testid="safety-back-link"
           >
-            <ArrowLeft className="w-3.5 h-3.5" /> {t("Safety Portal")}
+            <ArrowLeft className="w-3.5 h-3.5" /> {t("Safety Operations")}
           </Link>
           <div className="font-mono text-xs uppercase tracking-[0.2em] text-cyan-700">
             <ShieldAlert className="w-3.5 h-3.5 inline mr-1" />{" "}
-            {kicker || t("Safety Portal")}
+            {kicker || t("Safety Operations")}
             {user?.name ? ` · ${user.name}` : ""}
           </div>
           <h1 className="font-display text-3xl sm:text-4xl font-black mt-1 mb-6">

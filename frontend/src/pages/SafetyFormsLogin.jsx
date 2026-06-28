@@ -104,16 +104,16 @@ export default function SafetyFormsLogin() {
             data-testid="safety-forms-portal-notice"
           >
             <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-cyan-800 font-bold">
-              {t("Safety Portal Ownership")}
+              {t("Safety Operations Ownership")}
             </div>
             <p className="text-xs text-slate-700 mt-1">
-              {t("Safety Forms are now owned by the Safety Portal. Sign in there for the full review experience.")}{" "}
+              {t("Safety Forms are now owned by Safety Operations. Sign in there for the full review experience.")}{" "}
               <Link
                 to="/safety-portal/login?from=safety-forms"
                 className="font-bold text-cyan-800 underline"
                 data-testid="safety-forms-portal-cta"
               >
-                {t("Go to Safety Portal sign-in →")}
+                {t("Go to Safety Operations sign-in →")}
               </Link>
             </p>
           </div>

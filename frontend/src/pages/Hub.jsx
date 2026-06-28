@@ -338,33 +338,33 @@ export default function Hub() {
           <ProjectsCard testId="hub-section-projects" />
         </div>
 
-        {/* SECTION 3 — Office Portals (compact, sign-in required) */}
+        {/* SECTION 3 — Operations (compact, sign-in required) */}
         {(() => {
-          // Iter149: when a user is signed in, separate the portals they
-          // can actually use from the ones they can't — reduces visual
-          // overwhelm and prevents the "click the locked tile" frustration.
-          // Anonymous visitors keep the full 6-portal grid (it's the
-          // public front door).
+          // Iter149 → 18.04: when a user is signed in, separate the
+          // workspaces they can actually use from the ones they can't —
+          // reduces visual overwhelm and prevents the "click the locked
+          // tile" frustration. Anonymous visitors keep the full 6-tile
+          // grid (it's the public front door).
           const authed = isSignedInAnywhere() ? authorizedPortals() : null;
           const portalDefs = [
-            { kind: "pm", to: "/pm/login", icon: ClipboardList, title: t("PM Portal"),
+            { kind: "pm", to: "/pm/login", icon: ClipboardList, title: t("Project Management"),
               desc: t("Project management, PO requests, subcontractor administration, and project oversight."),
-              testId: "hub-section-pm", signedInLabel: t("Open Portal") },
-            { kind: "shop", to: "/shop/login", icon: Wrench, title: t("Shop"),
+              testId: "hub-section-pm", signedInLabel: t("Open Workspace") },
+            { kind: "shop", to: "/shop/login", icon: Wrench, title: t("Shop Operations"),
               desc: t("Fleet maintenance, inspections, repairs, parts, and equipment readiness."),
-              testId: "hub-section-shop", signedInLabel: t("Open Console") },
-            { kind: "hr", to: "/hr/login", icon: Users, title: t("HR Portal"),
+              testId: "hub-section-shop", signedInLabel: t("Open Workspace") },
+            { kind: "hr", to: "/hr/login", icon: Users, title: t("Human Resources"),
               desc: t("Employee records, onboarding, compliance, training, and workforce management."),
-              testId: "hub-section-hr", signedInLabel: t("Open Portal") },
-            { kind: "safety", to: session?.kind === "safety" ? "/safety-portal" : "/safety-portal/login", icon: ShieldAlert, title: t("Safety Portal"),
+              testId: "hub-section-hr", signedInLabel: t("Open Workspace") },
+            { kind: "safety", to: session?.kind === "safety" ? "/safety-portal" : "/safety-portal/login", icon: ShieldAlert, title: t("Safety Operations"),
               desc: t("Incidents, audits, inspections, JHPs, toolbox talks, and compliance workflows."),
-              testId: "hub-section-safety-portal", signedInLabel: t("Open Portal") },
-            { kind: "dispatch", to: session?.kind === "dispatch" ? "/dispatch-portal" : "/dispatch-portal/login", icon: Truck, title: t("Dispatch"),
-              desc: t("Equipment movement, scheduling, logistics, and fleet coordination."),
-              testId: "hub-section-dispatch-portal", signedInLabel: t("Open Portal") },
-            { kind: "admin", to: "/admin/login", icon: ClipboardList, title: t("Admin"),
+              testId: "hub-section-safety-portal", signedInLabel: t("Open Workspace") },
+            { kind: "dispatch", to: session?.kind === "dispatch" ? "/dispatch-portal" : "/dispatch-portal/login", icon: Truck, title: t("Transportation Operations"),
+              desc: t("Dispatch, live map, fleet, drivers, carriers, compliance, orientation, cleanup, and transportation coordination."),
+              testId: "hub-section-dispatch-portal", signedInLabel: t("Open Workspace") },
+            { kind: "admin", to: "/admin/login", icon: ClipboardList, title: t("Administration"),
               desc: t("System administration, user management, platform configuration, and reporting."),
-              testId: "hub-section-admin", signedInLabel: t("Open Console") },
+              testId: "hub-section-admin", signedInLabel: t("Open Workspace") },
           ];
           const yours = authed ? portalDefs.filter((p) => authed.includes(p.kind)) : portalDefs;
           const others = authed ? portalDefs.filter((p) => !authed.includes(p.kind)) : [];
@@ -373,8 +373,8 @@ export default function Hub() {
             <>
               <SectionHeader
                 kicker="03"
-                title={authed ? t("Your Portals") : t("Office Portals")}
-                subtitle={authed ? t("Sign-in required. Showing the portals you're authorized for.") : t("Sign-in required. Office, mechanic, HR, Safety, Dispatch, and Admin operations.")}
+                title={authed ? t("Your Workspaces") : t("Operations")}
+                subtitle={authed ? t("Sign-in required. Showing the workspaces you're authorized for.") : t("Sign-in required. Project management, shop operations, human resources, safety, transportation, and administration.")}
               />
               {/* Track 15.6 (2026-06-16) — premium 3-col / 2-row layout
                   replaces the cramped 6-col layout. Bigger cards, no
@@ -398,7 +398,7 @@ export default function Hub() {
               {others.length > 0 && (
                 <div className="mb-10" data-testid="hub-other-portals">
                   <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-400 font-bold mb-2.5 flex items-center gap-2">
-                    <Lock className="w-3 h-3" /> {t("Other Portals")} · {t("not in your access set")}
+                    <Lock className="w-3 h-3" /> {t("Other Workspaces")} · {t("not in your access set")}
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {others.map((p) => (

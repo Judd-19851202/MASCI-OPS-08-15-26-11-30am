@@ -75,7 +75,7 @@ export default function PmDashboard() {
     <div data-testid="pm-dashboard-root" style={{ background: "var(--paper-base)", minHeight: "100vh" }}>
       <PortalShell
         portalName="MASCI"
-        portalRole="Shop Portal"
+        portalRole="Shop Operations"
         pageTitle="Preventive Maintenance"
         subtitle="Due · overdue · in flight · pending review. PM completion does NOT return units to service."
         primaryActions={

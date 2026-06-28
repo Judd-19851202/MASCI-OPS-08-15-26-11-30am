@@ -33,12 +33,12 @@ import {
 import { ChevronDown, LayoutGrid } from "lucide-react";
 
 const PORTAL_LABEL = {
-  admin: "Admin Console",
-  pm: "PM Portal",
-  shop: "Shop Portal",
-  hr: "HR Portal",
-  safety: "Safety Portal",
-  dispatch: "Dispatch Portal",
+  admin: "Administration",
+  pm: "Project Management",
+  shop: "Shop Operations",
+  hr: "Human Resources",
+  safety: "Safety Operations",
+  dispatch: "Transportation Operations",
 };
 
 const PORTAL_HOME = {

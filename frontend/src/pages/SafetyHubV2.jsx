@@ -144,7 +144,7 @@ export default function SafetyHubV2() {
     <div data-testid="safety-hub-v2-root" style={{ background: "var(--paper-base)", minHeight: "100vh" }}>
       <PortalShell
         portalName="MASCI"
-        portalRole="Safety Portal"
+        portalRole="Safety Operations"
         pageTitle="What safety work requires attention right now?"
         subtitle="Every queue is a live count — open it to see what Safety needs to act on today. Trench Safety workflows live under Trench Safety."
         primaryActions={

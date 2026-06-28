@@ -28,10 +28,10 @@ import { isShop } from "@/lib/shopAuth";
 import { isHr } from "@/lib/hrAuth";
 
 function autoTarget() {
-  if (isAdmin()) return { to: "/admin", label: "Admin Console" };
-  if (isPm()) return { to: "/pm", label: "PM Hub" };
-  if (isHr()) return { to: "/hr", label: "HR Portal" };
-  if (isShop()) return { to: "/shop", label: "Shop Portal" };
+  if (isAdmin()) return { to: "/admin", label: "Administration" };
+  if (isPm()) return { to: "/pm", label: "Project Management" };
+  if (isHr()) return { to: "/hr", label: "Human Resources" };
+  if (isShop()) return { to: "/shop", label: "Shop Operations" };
   return { to: "/", label: "Hub" };
 }
 

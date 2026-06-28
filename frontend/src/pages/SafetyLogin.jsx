@@ -82,7 +82,7 @@ export default function SafetyLogin() {
       // Track 15.14A Layer 2 — persist must-change-password flag.
       const mustChange = !!r.data.must_change_password;
       setMustChange("safety", mustChange);
-      toast.success(t("Welcome to the Safety Portal"));
+      toast.success(t("Welcome to Safety Operations"));
       // iter322-B · honor redirect intent — bounce user back to the
       // protected workflow they originally clicked, not the hub root.
       const intended = location.state?.continuity?.continueTo
@@ -110,7 +110,7 @@ export default function SafetyLogin() {
       backHoverClass="hover:text-cyan-300"
       backTestId="safety-login-back"
       rootTestId="safety-portal-login"
-      footerLabel={t("MASCI · Safety Portal")}
+      footerLabel={t("MASCI · Safety Operations")}
     >
       {/* iter322-B · context-aware banner when redirected from a
           protected workflow (rendered only when state.continuity
@@ -126,7 +126,7 @@ export default function SafetyLogin() {
                 {t("Safety Operations")}
               </div>
               <h1 className="font-display text-2xl font-black text-slate-900 leading-none mt-1">
-                {t("Safety Portal Sign In")}
+                {t("Safety Operations Sign In")}
               </h1>
             </div>
           </div>

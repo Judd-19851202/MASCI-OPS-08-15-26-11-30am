@@ -6052,3 +6052,33 @@ Close Executive YELLOW by building a read-only `ExecutiveOverview.jsx` that aggr
 
 **Total tests added:** 8 (15.75D) + 15 (15.75C) + 6 (15.75B) + 6 (15.75A) + 2 (15.74) = **37 new regression tests**, all passing.
 
+
+---
+
+## TRACK 18.03 + 18.04 · Platform Language Constitution + Migration (Feb 10, 2026)
+
+**18.03 closeout:** `test_25_backend_admin_routes_preserved` realigned to assert the route prefix lives in `routes/transportation_relationships.py` (not `server.py`). Pre-existing 16.06 regressions (`test_6`, `test_14`) updated to reflect Track 18.00 F + E intentional changes. 18.03 → **30/30 PASS**.
+
+**18.04 cutover scope:**
+- Hub homepage: Office Portals → **Operations**; six workspace cards renamed (Transportation Operations, Project Management, Human Resources, Safety Operations, Shop Operations, Administration).
+- Login chrome: Dispatch / HR / PM / Safety / SafetyForms login titles + footer labels canonicalized.
+- Shells: AdminShell, PmShell, HrPageShell, SafetyShell, BackLink, PortalSwitcher, PortalHydratingLoader, PortalLoginHelp, PortalContextBanner (EN + ES).
+- Access management: AdminDispatchUsersPanel + HR + Safety + FieldLeadership panels eyebrow + helper copy canonicalized.
+- 12 `portalRole="…"` call sites swept across page modules.
+- Backend emails: `branded_portal_emails.py` sub-eyebrows; `operational_footer.py` portal-code → canonical-name mapping; subjects + headlines updated in `server.py`, `pm_routes`, `pm_admin`, `hr_portal`, `safety_portal/auth_users`, `field_leadership_portal`.
+- PDF: `pm_welcome_pdf.py` title + tag.
+- Guidance Center: 6 workspace-track titles + 6 identity-overview titles canonicalized; PORTAL_TRACKS chip labels updated.
+- i18n: new EN→ES entries added; legacy keys kept as harmless orphans.
+- `test_iter437_footer_standardization.py` updated to lock the new canonical-name contract (17 passed, 1 pre-existing skip).
+
+**Carve-out honored:** `/api/admin/*`, `/api/dispatch/*`, `X-*-Token` headers, localStorage keys, MongoDB collections, and testids unchanged.
+
+**Tests:** `backend/tests/test_track_18_04_platform_language_migration.py` — **43/43 PASS**. Deployment gate wired (Track 18 family runs end-to-end).
+
+**Deliverables:**
+- `/app/memory/TRACK_18_04_PLATFORM_LANGUAGE_MIGRATION.md`
+- `/app/memory/PLATFORM_LANGUAGE_CONSTITUTION_APPLIED_REGISTRY.md`
+- `/app/memory/PLATFORM_LANGUAGE_MIGRATION_INVENTORY.md`
+- `/app/memory/OPERATIONAL_GUIDANCE_CENTER_AUDIT.md`
+
+**Live smoke (preview hub):** 7/7 canonical workspace names present in DOM · 0/8 legacy terms leaked.

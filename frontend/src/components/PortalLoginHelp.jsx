@@ -23,13 +23,13 @@ import { BookOpen, LifeBuoy, GraduationCap } from "lucide-react";
 import { useT } from "@/lib/i18n";
 
 const PORTAL_LABELS = {
-  hr:         { en: "HR Portal",                 es: "Portal de RH" },
-  safety:     { en: "Safety Portal",             es: "Portal de Seguridad" },
-  shop:       { en: "Shop Portal",               es: "Portal de Taller" },
-  dispatch:   { en: "Dispatch Portal",           es: "Portal de Despacho" },
-  pm:         { en: "PM Portal",                 es: "Portal de PM" },
-  admin:      { en: "Admin Console",             es: "Consola de Admin" },
-  leadership: { en: "Field Leadership Portal",   es: "Portal de Liderazgo de Campo" },
+  hr:         { en: "Human Resources",           es: "Recursos Humanos" },
+  safety:     { en: "Safety Operations",         es: "Operaciones de Seguridad" },
+  shop:       { en: "Shop Operations",           es: "Operaciones de Taller" },
+  dispatch:   { en: "Transportation Operations", es: "Operaciones de Transporte" },
+  pm:         { en: "Project Management",        es: "Gestión de Proyectos" },
+  admin:      { en: "Administration",            es: "Administración" },
+  leadership: { en: "Field Leadership",          es: "Liderazgo de Campo" },
 };
 
 // Pass 5a/5b/5c complete: every protected portal has the full identity

@@ -397,7 +397,7 @@ _ARTICLES: list[dict] = [
     {
         "id": "portal-hr",
         "section": "portals",
-        "title": "HR Portal Training",
+        "title": "Human Resources Guidance",
         "summary": "What HR owns, who uses it, and how the work connects to every other portal.",
         "scopes": ["hr", "admin"],
         "tags": ["hr portal", "human resources", "onboarding", "time", "payroll"],
@@ -461,7 +461,7 @@ _ARTICLES: list[dict] = [
     {
         "id": "portal-safety",
         "section": "portals",
-        "title": "Safety Portal Training",
+        "title": "Safety Operations Guidance",
         "summary": "Incidents, corrective actions, audits, training compliance — and why none of it is paperwork.",
         "scopes": ["safety", "admin"],
         "tags": ["safety portal", "incidents", "audits", "compliance"],
@@ -524,7 +524,7 @@ _ARTICLES: list[dict] = [
     {
         "id": "portal-shop",
         "section": "portals",
-        "title": "Shop / Fleet Portal Training",
+        "title": "Shop Operations Guidance",
         "summary": "Equipment health, Pre-Op review, damage workflow, maintenance coordination — the back-end of fleet operations.",
         "scopes": ["shop", "admin"],
         "tags": ["shop portal", "fleet", "mechanic", "maintenance"],
@@ -587,7 +587,7 @@ _ARTICLES: list[dict] = [
     {
         "id": "portal-admin",
         "section": "portals",
-        "title": "Admin Console Guidance",
+        "title": "Administration Guidance",
         "summary": "The control plane — people, roles, system health, backups, governance.",
         "scopes": ["admin"],
         "tags": ["admin portal", "operator", "control plane"],
@@ -3501,7 +3501,7 @@ _ARTICLES: list[dict] = [
     {
         "id": "portal-dispatch",
         "section": "portals",
-        "title": "Dispatch Portal Training",
+        "title": "Transportation Operations Guidance",
         "summary": "Equipment movement, availability, holds, transfers, and field coordination — the upstream of every asset decision.",
         "scopes": ["dispatch", "admin"],
         "tags": ["dispatch", "portal", "equipment", "coordination"],
@@ -3732,7 +3732,7 @@ _ARTICLES: list[dict] = [
     {
         "id": "portal-pm",
         "section": "portals",
-        "title": "PM Portal Training",
+        "title": "Project Management Guidance",
         "summary": "Project oversight, report review, labor documentation, and cross-portal coordination — the project-level lens.",
         "scopes": ["pm", "admin"],
         "tags": ["pm", "project manager", "portal"],
@@ -4292,7 +4292,7 @@ _ARTICLES: list[dict] = [
     {
         "id": "portal-hr-identity",
         "section": "portals",
-        "title": "HR Portal — Overview",
+        "title": "Human Resources — Overview",
         "summary": "What HR is for and how to access it. Operational HR training requires HR sign-in.",
         "scopes": ["public"],
         "tags": ["hr", "identity", "portal"],
@@ -4318,7 +4318,7 @@ _ARTICLES: list[dict] = [
     {
         "id": "portal-safety-identity",
         "section": "portals",
-        "title": "Safety Portal — Overview",
+        "title": "Safety Operations — Overview",
         "summary": "What the Safety Portal is for and how to access it. Operational Safety training requires Safety sign-in.",
         "scopes": ["public"],
         "tags": ["safety", "identity", "portal"],
@@ -4349,8 +4349,8 @@ _ARTICLES: list[dict] = [
     {
         "id": "portal-shop-identity",
         "section": "portals",
-        "title": "Shop / Fleet Portal — Overview",
-        "summary": "What the Shop Portal is for and how to access it. Operational Shop training requires Shop sign-in.",
+        "title": "Shop Operations — Overview",
+        "summary": "What Shop Operations is for and how to access it. Operational Shop training requires Shop sign-in.",
         "scopes": ["public"],
         "tags": ["shop", "fleet", "identity", "portal"],
         "body": [
@@ -4381,7 +4381,7 @@ _ARTICLES: list[dict] = [
     {
         "id": "portal-dispatch-identity",
         "section": "portals",
-        "title": "Dispatch Portal — Overview",
+        "title": "Transportation Operations — Overview",
         "summary": "What the Dispatch Portal is for and how to access it. Operational Dispatch training requires Dispatch sign-in.",
         "scopes": ["public"],
         "tags": ["dispatch", "identity", "portal"],
@@ -4411,7 +4411,7 @@ _ARTICLES: list[dict] = [
     {
         "id": "portal-pm-identity",
         "section": "portals",
-        "title": "PM Portal — Overview",
+        "title": "Project Management — Overview",
         "summary": "What the PM Portal is for and how to access it. Operational PM training requires PM sign-in.",
         "scopes": ["public"],
         "tags": ["pm", "identity", "portal", "project manager"],
@@ -4442,7 +4442,7 @@ _ARTICLES: list[dict] = [
     {
         "id": "portal-admin-identity",
         "section": "portals",
-        "title": "Admin Console — Overview",
+        "title": "Administration — Overview",
         "summary": "What the Admin Console is for and how to access it. Operational Admin training is admin-only.",
         "scopes": ["public"],
         "tags": ["admin", "identity", "console", "operator"],

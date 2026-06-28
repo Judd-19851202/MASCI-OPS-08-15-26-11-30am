@@ -191,7 +191,7 @@ export default function HrHubV2() {
     <div data-testid="hr-hub-v2-root" style={{ background: "var(--paper-base)", minHeight: "100vh" }}>
       <PortalShell
         portalName="MASCI"
-        portalRole="HR Portal"
+        portalRole="Human Resources"
         pageTitle="What requires your attention today?"
         subtitle="HR purpose: keep the workforce ready. Every queue below is a live count — open it to see who needs your attention today."
         primaryActions={

@@ -54,7 +54,7 @@ const SECTIONS = [
   { key: "po",         to: "/po-requests",       icon: ClipboardCheck,  label: "PO Requests",     desc: "Field POs · approvals · receipt tracking" },
   { key: "project-health", to: "/project-health", icon: Activity,        label: "Project Health",  desc: "Operational friction by job · per-project status" },
   { key: "asset-transfers", to: "/asset-transfers", icon: Truck,         label: "Asset Transfers", desc: "Equipment movement · lifecycle · receiving" },
-  { key: "dispatch",   to: "/admin/dispatch",   icon: Truck,           label: "Dispatch Portal", desc: "Transfers · Holds · Utilization" },
+  { key: "dispatch",   to: "/admin/dispatch",   icon: Truck,           label: "Transportation Operations", desc: "Transfers · Holds · Utilization" },
   { key: "events",     to: "/admin/operations-events", icon: Activity, label: "Operations Events", desc: "Append-only log · platform history" },
   { key: "odr-center", to: "/odr/center", icon: NotebookPen, label: "Operational Daily Records", desc: "Field-day system of record · FLL-aware ODR rollups" },
   { key: "operational-records", to: "/operational-records", icon: NotebookPen, label: "Operational Records", desc: "Cross-portal field-day records · Phase V.1" },
@@ -159,7 +159,7 @@ export default function AdminShell({ title, section, children, intro }) {
             </SheetTrigger>
             <SheetContent side="left" className="bg-slate-900 border-r-2 border-red-700 p-0 w-72 flex flex-col">
               <SheetHeader className="px-4 pt-4 pb-2 border-b border-slate-800 shrink-0">
-                <SheetTitle className="text-white font-display text-lg">Admin Console</SheetTitle>
+                <SheetTitle className="text-white font-display text-lg">Administration</SheetTitle>
               </SheetHeader>
               {/* iter437 Phase IV-A · mobile sidebar scroll fix
                   Root cause: SheetContent is `fixed inset-y-0 h-full`
@@ -189,13 +189,13 @@ export default function AdminShell({ title, section, children, intro }) {
                     className="hover:text-white hover:underline underline-offset-2 transition-colors"
                     data-testid="admin-breadcrumb-home"
                   >
-                    Admin Console
+                    Administration
                   </Link>
                   <span className="text-red-500 opacity-60">›</span>
                   <span className="text-red-200">{title}</span>
                 </>
               ) : (
-                <span>Admin Console</span>
+                <span>Administration</span>
               )}
             </div>
             <div

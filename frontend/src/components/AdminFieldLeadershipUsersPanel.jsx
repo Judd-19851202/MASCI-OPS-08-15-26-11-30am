@@ -193,7 +193,7 @@ export default function AdminFlUsersPanel() {
           </div>
           <div>
             <span className="font-mono text-xs uppercase tracking-[0.2em] text-purple-700 font-bold">
-              HR Portal
+              Human Resources
             </span>
             <h3 className="font-display text-xl sm:text-2xl font-black mt-1 leading-none">
               Field Leadership Users & Logins

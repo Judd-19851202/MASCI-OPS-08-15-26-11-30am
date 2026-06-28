@@ -94,7 +94,7 @@ export default function DispatchLogin() {
       backHoverClass="hover:text-orange-300"
       backTestId="dispatch-login-back"
       rootTestId="dispatch-portal-login"
-      footerLabel={t("MASCI · Dispatch Portal")}
+      footerLabel={t("MASCI · Transportation Operations")}
     >
       <AuthRequiredBanner />
       <div className="bg-white border border-slate-200 rounded-md p-7 sm:p-9 shadow-xl">
@@ -107,7 +107,7 @@ export default function DispatchLogin() {
                 {t("Operations · Fleet Movement")}
               </div>
               <h1 className="font-display text-2xl font-black text-slate-900 leading-none mt-1">
-                {t("Dispatch Portal Sign In")}
+                {t("Transportation Operations Sign In")}
               </h1>
             </div>
           </div>

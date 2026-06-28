@@ -260,7 +260,7 @@ export default function HrLogin() {
                 {t("Human Resources")}
               </div>
               <h1 className="font-display text-2xl font-black text-slate-900 leading-none mt-1">
-                {t("HR Portal Sign In")}
+                {t("Human Resources Sign In")}
               </h1>
             </div>
           </div>

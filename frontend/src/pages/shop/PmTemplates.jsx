@@ -90,7 +90,7 @@ export default function PmTemplates() {
 
   return (
     <div data-testid="pm-templates-root" style={{ background: "var(--paper-base)", minHeight: "100vh" }}>
-      <PortalShell portalName="MASCI" portalRole="Shop Portal"
+      <PortalShell portalName="MASCI" portalRole="Shop Operations"
                    pageTitle="PM Templates"
                    subtitle="Operator-defined PM intervals by asset type. No fake manufacturer schedules.">
         <BackToShopLink />

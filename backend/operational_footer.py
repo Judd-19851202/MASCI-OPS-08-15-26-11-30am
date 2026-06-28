@@ -12,10 +12,12 @@ Contract (locked by tests/test_iter437_footer_standardization.py):
     do-not-reply
 
 When a portal context is provided (e.g. `portal="HR"`, `portal="PM"`),
-the second line becomes `automated operational notice · {Portal} Portal`
-so an operator scanning a long thread can identify which surface
-produced the message. Optional `doc_id` adds an inbox-Cmd-F target on
-line 3.
+the second line becomes `automated operational notice · {Workspace}`,
+where {Workspace} is the canonical Track 18.04 user-facing workspace
+name resolved from the internal code (HR → Human Resources,
+Dispatch → Transportation Operations, etc.) so an operator scanning a
+long thread can identify which workspace produced the message.
+Optional `doc_id` adds an inbox-Cmd-F target on line 3.
 
 No frontend changes. No notification engine changes. Pure helper.
 """
@@ -25,21 +27,33 @@ from html import escape as _esc
 from typing import Optional
 
 
+# Track 18.04 · Internal portal codes → canonical user-facing workspace
+# names. Unknown codes fall back to `{code} Workspace` so legacy callers
+# don't break.
+_WORKSPACE_NAME = {
+    "PM": "Project Management",
+    "HR": "Human Resources",
+    "Shop": "Shop Operations",
+    "Safety": "Safety Operations",
+    "Dispatch": "Transportation Operations",
+    "Admin": "Administration",
+    "Leadership": "Field Leadership",
+}
+
+
+def _workspace_label(code: str) -> str:
+    return _WORKSPACE_NAME.get(code, f"{code} Workspace")
+
+
 def render_operational_footer_html(
     *,
     portal: Optional[str] = None,
     doc_id: Optional[str] = None,
 ) -> str:
-    """Return the canonical 3-line footer as restrained inline-styled HTML.
-
-    Used by non-PM email renderers that don't already inherit the
-    `render_email_html` chrome from `pdf_render.py`. Layout is
-    deliberately calm (slate text, no borders bigger than 1px, no
-    spacing larger than 16px above).
-    """
+    """Return the canonical 3-line footer as restrained inline-styled HTML."""
     line2 = "automated operational notice"
     if portal:
-        line2 = f"{line2} \u00b7 {_esc(portal)} Portal"
+        line2 = f"{line2} \u00b7 {_esc(_workspace_label(portal))}"
     line3 = "do-not-reply"
     if doc_id:
         line3 = f"{line3} \u00b7 {_esc(doc_id)}"
@@ -66,7 +80,7 @@ def render_operational_footer_text(
     governance test assertions."""
     line2 = "automated operational notice"
     if portal:
-        line2 = f"{line2} \u00b7 {portal} Portal"
+        line2 = f"{line2} \u00b7 {_workspace_label(portal)}"
     line3 = "do-not-reply"
     if doc_id:
         line3 = f"{line3} \u00b7 {doc_id}"

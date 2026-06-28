@@ -598,6 +598,40 @@ const ES = {
   "Role-based training · task-based help · troubleshooting · why each workflow matters. Filtered to your portal access.":
     "Capacitación por rol · ayuda por tarea · solución de problemas · por qué importa cada flujo. Filtrado por su acceso al portal.",
   //
+  // ── Track 18.04 · Platform Language Migration · canonical workspace
+  // names mapped to Spanish. Old keys (HR Portal, etc.) above are kept
+  // as orphaned passthroughs — harmless, and protect any operator
+  // bookmarks still rendering legacy strings during overlap. ─────────
+  "Transportation Operations": "Operaciones de Transporte",
+  "Project Management": "Gestión de Proyectos",
+  "Human Resources": "Recursos Humanos",
+  "Safety Operations": "Operaciones de Seguridad",
+  "Shop Operations": "Operaciones de Taller",
+  "Administration": "Administración",
+  "Operations": "Operaciones",
+  "Your Workspaces": "Sus Espacios de Trabajo",
+  "Other Workspaces": "Otros Espacios de Trabajo",
+  "Open Workspace": "Abrir Espacio",
+  "Transportation Operations Sign In": "Iniciar Sesión · Operaciones de Transporte",
+  "Human Resources Sign In": "Iniciar Sesión · Recursos Humanos",
+  "Project Management Sign In": "Iniciar Sesión · Gestión de Proyectos",
+  "Safety Operations Sign In": "Iniciar Sesión · Operaciones de Seguridad",
+  "MASCI · Transportation Operations": "MASCI · Operaciones de Transporte",
+  "MASCI · Safety Operations": "MASCI · Operaciones de Seguridad",
+  "Welcome to Safety Operations": "Bienvenido a Operaciones de Seguridad",
+  "Safety Operations Ownership": "Propiedad de Operaciones de Seguridad",
+  "Safety Forms are now owned by Safety Operations. Sign in there for the full review experience.":
+    "Los Formularios de Seguridad ahora son propiedad de Operaciones de Seguridad. Inicie sesión allí para la experiencia completa de revisión.",
+  "Go to Safety Operations sign-in →": "Ir al inicio de sesión de Operaciones de Seguridad →",
+  "Sign-in required. Showing the workspaces you're authorized for.":
+    "Inicio de sesión requerido. Mostrando los espacios de trabajo para los que está autorizado.",
+  "Sign-in required. Project management, shop operations, human resources, safety, transportation, and administration.":
+    "Inicio de sesión requerido. Gestión de proyectos, operaciones de taller, recursos humanos, seguridad, transporte y administración.",
+  "Sign-in required. Project management, shop, HR, and field leadership.":
+    "Inicio de sesión requerido. Gestión de proyectos, taller, RH y liderazgo de campo.",
+  "Sign-In Required · Your Workspaces": "Inicio de Sesión Requerido · Sus Espacios de Trabajo",
+
+
   // ── End iter241 entries ──
 
   // ────────────────────────────────────────────────────────────────────

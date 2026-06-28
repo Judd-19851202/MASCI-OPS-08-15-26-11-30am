@@ -53,7 +53,7 @@ export default function HrPageShell({ title, kicker, children }) {
             <ArrowLeft className="w-3.5 h-3.5" /> {t("HR Hub")}
           </Link>
           <div className="font-mono text-xs uppercase tracking-[0.2em] text-purple-700">
-            <ShieldCheck className="w-3.5 h-3.5 inline mr-1" /> {kicker || t("HR Portal")} {user?.name ? `· ${user.name}` : ""}
+            <ShieldCheck className="w-3.5 h-3.5 inline mr-1" /> {kicker || t("Human Resources")} {user?.name ? `· ${user.name}` : ""}
           </div>
           <h1 className="font-display text-3xl sm:text-4xl font-black mt-1 mb-6">{t(title)}</h1>
           {children}

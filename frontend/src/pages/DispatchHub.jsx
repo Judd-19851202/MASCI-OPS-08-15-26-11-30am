@@ -141,7 +141,7 @@ export default function DispatchHub() {
   return (
     <PortalShell
       portalName="MASCI"
-      portalRole="Dispatch Portal"
+      portalRole="Transportation Operations"
       pageTitle={user.name || t("Dispatcher")}
       portalSwitcherCurrent="dispatch"
       onSignOut={logout}

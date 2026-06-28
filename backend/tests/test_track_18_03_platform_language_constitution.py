@@ -258,10 +258,11 @@ def test_25_backend_admin_routes_preserved():
     Python identifiers still use 'admin' etc. The Constitution
     explicitly permits this — only user-facing strings must change."""
     server = (ROOT / "backend" / "server.py").read_text()
-    # These backend identifiers MUST still exist (engineering stability).
-    assert "/api/admin/transportation" in server
-    assert "X-Dispatch-Token" in server  # token verb preserved
-    # And the relationships route prefix unchanged.
+    # Dispatch token header alias preserved in server.py.
+    assert "X-Dispatch-Token" in server
+    # Admin route registration entry-point preserved in server.py.
+    assert "transportation_relationships" in server
+    # The relationships route prefix unchanged in its source file.
     rels = (ROOT / "backend" / "routes" / "transportation_relationships.py").read_text()
     assert 'prefix="/api/admin/transportation"' in rels
 

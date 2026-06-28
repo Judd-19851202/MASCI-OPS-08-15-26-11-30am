@@ -633,7 +633,7 @@ export default function ShopHubV2() {
     <div data-testid="shop-hub-v2-root" style={{ background: "var(--paper-base)", minHeight: "100vh" }}>
       <PortalShell
         portalName="MASCI"
-        portalRole="Shop Portal"
+        portalRole="Shop Operations"
         pageTitle="Shop Command Center"
         subtitle="What needs attention · what's assigned · what's waiting. Repair complete still requires RTS verification by Dispatch."
         primaryActions={

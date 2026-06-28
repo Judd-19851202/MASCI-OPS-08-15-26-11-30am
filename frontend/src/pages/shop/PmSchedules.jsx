@@ -104,7 +104,7 @@ export default function PmSchedules() {
 
   return (
     <div data-testid="pm-schedules-root" style={{ background: "var(--paper-base)", minHeight: "100vh" }}>
-      <PortalShell portalName="MASCI" portalRole="Shop Portal"
+      <PortalShell portalName="MASCI" portalRole="Shop Operations"
                    pageTitle="PM Schedules"
                    subtitle="Per-unit PM cadence. Status recomputes live from latest meter/odometer.">
         <BackToShopLink />

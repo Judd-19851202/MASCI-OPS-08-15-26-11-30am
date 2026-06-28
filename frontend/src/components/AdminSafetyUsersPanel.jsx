@@ -184,7 +184,7 @@ export default function AdminSafetyUsersPanel() {
           </div>
           <div>
             <span className="font-mono text-xs uppercase tracking-[0.2em] text-cyan-700 font-bold">
-              Safety Portal
+              Safety Operations
             </span>
             <h3 className="font-display text-xl sm:text-2xl font-black mt-1 leading-none">
               Safety Users & Logins
@@ -192,7 +192,7 @@ export default function AdminSafetyUsersPanel() {
             <p className="text-sm text-slate-600 mt-1 max-w-xl">
               Add or remove Safety personnel and issue per-user passwords. Safety
               users sign in at <strong>/safety-portal/login</strong>. New users
-              receive a branded Safety Portal welcome email containing their
+              receive a branded Safety Operations welcome email containing their
               temp password and sign-in link — they're prompted to choose their
               own password on first login.
             </p>
@@ -357,7 +357,7 @@ export default function AdminSafetyUsersPanel() {
               {pwChoice.user?.has_password ? `Reset password for ${pwChoice.user?.name}` : `Issue password for ${pwChoice.user?.name}`}
             </DialogTitle>
             <DialogDescription className="leading-relaxed text-sm">
-              Two ways to issue (or reset) this Safety user's password. <strong>Email to User</strong> auto-generates a temp pw and sends a branded Safety Portal welcome email. <strong>Show on Screen</strong> reveals a temp pw in a copy dialog. Or type a <strong>custom</strong> password below. The user must rotate to their own on first login regardless.
+              Two ways to issue (or reset) this Safety user's password. <strong>Email to User</strong> auto-generates a temp pw and sends a branded Safety Operations welcome email. <strong>Show on Screen</strong> reveals a temp pw in a copy dialog. Or type a <strong>custom</strong> password below. The user must rotate to their own on first login regardless.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 pt-1">
