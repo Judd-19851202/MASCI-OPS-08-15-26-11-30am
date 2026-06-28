@@ -314,7 +314,10 @@ export function TxOpsRightRail({
             {payload.entity.title}
           </Link>
           {payload.entity.subtitle ? (
-            <div className="text-[11px] text-slate-500 truncate">
+            <div
+              data-testid="txops-rail-entity-subtitle"
+              className="text-[11px] text-slate-500 truncate"
+            >
               {payload.entity.subtitle}
             </div>
           ) : null}

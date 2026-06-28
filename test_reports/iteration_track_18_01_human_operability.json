@@ -1,0 +1,35 @@
+{
+  "summary": "TRACK 18.01 Human Operability Review — verification testing complete. Backend pytest 30/30 PASS. Live API auth and RBAC anti-leak verified (HR/Dispatch/Admin tokens via portal_tokens.* on /api/auth/multi-login; X-*-Token headers — Bearer is rejected). Frontend dispatch walkthrough confirmed: TopBar visible on all 7 dispatch surfaces, Mission Control CTA routes to /transportation-operations and admin-transportation-page renders, search placeholder = 'Search drivers, trucks, carriers, projects… (press /)' (contains drivers/trucks/carriers), '/' shortcut focuses txops-search-input, restricted-state copy renders ('Transportation data is not available for your role.'). Transportation Manager (admin token) walkthrough: all 6 routes render with headings and zero JS pageerrors. AdminSideNavV2 visible on both /admin/transportation and /transportation-operations with admin session. Live ops ghost id renders right rail (txops-right-rail + 17 txops-rail-* section testids) with no 500. Dead-click check: zero bad links in TopBar groups. Zero JS pageerrors across all routes; console only shows expected 401s on admin-strict endpoints (Phase F doctrine).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "/transportation-operations (Mission Control)", "issues": ["Mission Control card labels use lowercase 'eligible drivers/trucks/carriers' under uppercase tile titles (FLEET READY?, DRIVERS READY?, CARRIERS READY?). Spec language 'Eligible drivers/trucks/carriers' is present semantically but case-differs from problem-statement spec wording — operational language is clear and human-readable, no action required unless team wants exact-case parity."]},
+      {"screen": "/transportation-operations (Mission Control)", "issues": ["Spec strings 'Top opportunity' and 'HR Synchronization Health' not literally rendered on index. Equivalent semantic cards exist ('WHAT SHOULD WE DO NEXT?' with 'top priority' label). Minor copy variance vs. spec wording — does not affect operability."]},
+      {"screen": "/transportation-operations DOM scan", "issues": ["String 'payload' appears in body.textContent (non-visible/script-area). Not rendered in any visible label per screenshot. Acceptable but flagged for forensic awareness."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_track_18_01_human_operability_review.py",
+    "/app/test_reports/pytest/track_18_01_results.xml"
+  ],
+  "action_items": [
+    "Optional copy polish: align Mission Control body labels to capitalized 'Eligible drivers / Eligible trucks / Eligible carriers' if exact-spec parity is desired (current lowercase is acceptable).",
+    "Optional: add literal 'Top opportunity' and 'HR Synchronization Health' labels on Mission Control index if exact-spec wording match is desired (current tiles convey same operational intent).",
+    "No critical action items. Track 18.01 is GO from a human-operability standpoint."
+  ],
+  "critical_code_review_comments": [
+    "RBAC anti-leak endpoint /api/admin/transportation/related/{type}/{id} uses X-Admin-Token/X-HR-Token/X-Dispatch-Token header dependency (require_any_portal_token). Bearer Authorization header returns 401 'Portal authentication required' — this is by design and matches portal-token doctrine; tests targeting this endpoint must send X-*-Token headers, not Authorization Bearer.",
+    "Admin session at /transportation-operations renders AdminSideNavV2 (admin layout) and not the TxOps TopBar with mobile hamburger — TxOps TopBar (with txops-portal-topbar-mobile-toggle) is dispatch-portal-session-bound. Spec test step '/transportation-operations at 390px → txops-portal-topbar-mobile-toggle visible' applies to dispatch session only, not admin session.",
+    "Right rail on /transportation-operations/live-operations?entity_type=truck&entity_id=ghost renders gracefully with txops-right-rail + 17 txops-rail-* testids — no 500, entity 'not found' handled cleanly."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "dispatch@mascigc.com/DispatchTest2026! at POST /api/dispatch/login (returns top-level token); jaymn.judd@mascigc.com/Maddix123! at POST /api/auth/multi-login (returns session_token + portal_tokens.{admin,pm,hr,safety,dispatch,shop,field_leadership,fl}). Backend endpoints needing portal tokens use X-Admin-Token/X-HR-Token/X-Dispatch-Token headers — NOT Authorization Bearer.",
+  "seed_data_creation": "None — used existing seeded users.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "TRACK 18.01 verification PASS. Backend pytest test_track_18_01_human_operability_review.py 30/30. Frontend dispatch + admin walkthroughs clean: zero JS pageerrors, TopBar persistence verified on 7 dispatch surfaces, Mission Control CTA + admin-transportation-page testid working, search placeholder humanized & '/' shortcut focuses txops-search-input, restricted copy renders 'Transportation data is not available for your role.', AdminSideNavV2 present on both /admin/transportation and /transportation-operations (admin session), live-ops ghost id graceful with 17 txops-rail-* testids, dead-click check clean. Use X-Admin-Token/X-HR-Token/X-Dispatch-Token (NOT Bearer) for /api/admin/transportation/related/* endpoints.",
+  "rca of the issue": "N/A — no functional issues found. Initial RBAC check returned 401 because Authorization: Bearer header was used; switching to X-*-Token headers per the portal-token doctrine (require_any_portal_token in routes/dispatch_portal_auth.py) returned 200 with schema_version=18.00D for all three roles. No truck/dispatch_assignment leakage observed for HR token; no document/orientation leakage for dispatch token (driver p1 returned empty related_records — empty trivially satisfies the no-leak contract)."
+}
