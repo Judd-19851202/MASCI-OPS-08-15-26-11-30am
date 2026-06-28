@@ -11,7 +11,47 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
-## Latest Track (2026-02-15 · TRACK 18.12B · Transportation Operations Dispatcher Functionality Restore · ✅ GREEN)
+## Latest Track (2026-02-15 · TRACK 18.12C · Transportation Role Permissions REAL Functionality Fix + VISIBLE = USABLE · ✅ GREEN)
+
+### Defect (P0 — 18.12B rejected)
+18.12B silenced 401 errors behind restricted banners but left core operational workspaces unusable. A Super Admin saw "not available for your role" on Carriers/Orientation/Intelligence/Automation/Trucks; a dispatcher had ZERO usable surfaces. The platform was treating Drivers/Carriers/Trucks/Orientation/Compliance as admin governance instead of operational workspaces. User amendment: **VISIBLE = USABLE** — if it's visible to dispatchers it must work; otherwise hide it.
+
+### Root Cause
+Read endpoints for the 12 core operational surfaces were guarded by `Depends(require_admin_dep)` only. The `_local_dispatch_or_admin` gate existed in the same files but wasn't wired into the read GETs. Frontend `adminHeaders()` sent only `X-Admin-Token`, never `X-Dispatch-Token`.
+
+### Fix Shape
+1. **Backend** — 23 read endpoints reclassified from admin-strict to `ops_guard` / `require_dispatch_or_admin_dep`:
+   - Carriers/Drivers/Trucks list+read+workspace
+   - Eligibility, Documents queue, Inspections queue, Per-entity timeline
+   - Compliance dashboard summary, Orientation dashboard/modules/assignments/certificates
+   - Morning Queue, 30-day Forecast, Intelligence cleanup-signals + drill-down
+   All admin-only writes, audit timeline, intelligence deep analytics, HR sync, email routes, automation health/digest, materialize-actions POST remain admin-strict.
+2. **Frontend** — `txHeaders()` helper added to `_shared.jsx` sending BOTH `X-Admin-Token` AND `X-Dispatch-Token`. Every `txGet(...)` routes through it.
+3. **VISIBLE = USABLE doctrine** — `visibleTxOpsNavGroups()` drops the Administration group AND filters `DISPATCH_HIDDEN_NAV_ITEMS` (Intelligence). Within `_orientation.jsx` and `_command_queue.jsx`, `SUB_TABS_ALL` uses a `dispatch: bool` flag — Email Pilot tab and Automation Health tab are hidden from dispatchers.
+4. **Zero** RBAC weakening, new collections, route breakage, or auth changes to /dispatch-portal/* or driver magic-link.
+
+### Files Touched
+- BACKEND: `routes/transportation.py`, `routes/transportation_experience.py`, `routes/transportation_orientation.py`, `routes/transportation_automation.py`, `routes/transportation_intelligence.py`, `server.py`
+- FRONTEND: `pages/transportation/_shared.jsx`, `_orientation.jsx`, `_command_queue.jsx`
+- TESTS: 6 historical tests updated to recognize the new ops_guard alias + 1 new lock test
+
+### Tests
+- **NEW** `/app/backend/tests/test_track_18_12c_transportation_role_permissions.py` — 43/43 PASS
+- Track 18 family regression: **778/778 PASS**
+- Track 16 + 17 + 18 combined: **1429 PASS / 1 skip**
+- Live browser smoke (testing_agent_v3_fork) at `/app/test_reports/iteration_track_18_12c_transportation_role_permissions.json` — GREEN: dispatch sees 171 drivers / 200 carriers / 12 trucks / real compliance / real orientation / real morning queue / real cleanup; Intelligence/Reports/Administration nav items hidden (count=0); Email Pilot + Automation Health sub-tabs hidden (count=0); audit-timeline + intelligence deep analytics + hr-sync + email-routes still REJECT dispatch tokens with 401.
+
+### Documents shipped
+- `/app/memory/TRACK_18_12C_TRANSPORTATION_ROLE_PERMISSIONS_FIX.md`
+- `/app/memory/TRANSPORTATION_ROLE_PERMISSION_MATRIX.md` (45+ endpoints classified)
+- `/app/memory/TRANSPORTATION_WORKSPACE_FUNCTIONALITY_AUDIT.md` (28 surfaces audited)
+
+### Known follow-ups (NOT 18.12C regressions)
+- Admin Intelligence dashboard/recommendations/predictions slow on cold Mongo (>30s). Functional, just slow. Backlog: add caching/index.
+
+---
+
+
 
 ### Defect (P0)
 After Track 18.12 fixed `/transportation-operations/*` routing, the dispatcher portal still surfaced raw `Admin login required` text, `Request failed with status code 401` text, and React red-overlay runtime crashes across Drivers / Carriers / Trucks / Orientation / Intelligence / Automation / Audit Timeline. Dispatchers could SEE the workspaces but could not OPERATE them.
