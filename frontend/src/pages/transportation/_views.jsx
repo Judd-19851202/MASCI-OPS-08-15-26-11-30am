@@ -139,6 +139,134 @@ export function TransportationDashboard() {
   );
 }
 
+// TRACK 16.15A · Top Cleanup Opportunity mirror.
+//
+// Pure UX bridge — reads the existing Track 16.15 cleanup-signals
+// endpoint (no new API, no new scoring) and surfaces only the
+// highest-priority signal directly inside the Transportation
+// Dashboard's Attention Required area.
+//
+// Signals are already sorted server-side: action_required first, then
+// by affected_count desc, so signals[0] IS the top opportunity.
+function TopCleanupOpportunityCard() {
+  const [data, setData] = useState(null);
+  const [err, setErr] = useState(null);
+
+  useEffect(() => {
+    txGet("/admin/transportation/intelligence/cleanup-signals", { days: 30 })
+      .then((r) => setData(r.data))
+      .catch((e) => setErr(e.message));
+  }, []);
+
+  if (err) {
+    return (
+      <div
+        data-testid="tx-dashboard-top-cleanup-error"
+        className="text-xs text-slate-400"
+      >
+        Cleanup signals unavailable.
+      </div>
+    );
+  }
+  if (!data) {
+    return (
+      <div
+        data-testid="tx-dashboard-top-cleanup-loading"
+        className="text-xs text-slate-400"
+      >
+        Loading top cleanup signal…
+      </div>
+    );
+  }
+
+  const signals = data.signals || [];
+  const top = signals[0];
+  const cleanupHref = "/admin/transportation/intelligence/cleanup";
+
+  if (!top) {
+    return (
+      <section
+        data-testid="tx-dashboard-top-cleanup-empty"
+        className="rounded-md border border-emerald-200 bg-emerald-50 p-4"
+      >
+        <div className="flex items-center gap-2">
+          <CheckCircle2 className="h-5 w-5 text-emerald-700" />
+          <div className="text-sm font-medium text-emerald-900">
+            No cleanup signals detected. Transportation data is currently in a healthy state.
+          </div>
+        </div>
+        <div className="text-[10px] uppercase tracking-wide text-emerald-700 mt-2">
+          Source: Cleanup Companion · {data.note}
+        </div>
+      </section>
+    );
+  }
+
+  const sev = top.severity || "watch";
+  const sevPalette = sev === "action_required"
+    ? "border-rose-300 bg-rose-50 text-rose-800"
+    : "border-amber-300 bg-amber-50 text-amber-800";
+
+  return (
+    <section
+      data-testid="tx-dashboard-top-cleanup"
+      className="rounded-lg border border-amber-300 bg-amber-50 p-4"
+    >
+      <div className="flex items-center justify-between mb-2">
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-amber-800 font-semibold">
+            Attention required · Top cleanup opportunity
+          </div>
+          <div
+            className="text-lg font-semibold text-amber-900 mt-0.5"
+            data-testid="tx-dashboard-top-cleanup-title"
+          >
+            {top.title}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span
+            data-testid="tx-dashboard-top-cleanup-severity"
+            className={`text-[11px] px-2 py-0.5 rounded-full border ${sevPalette}`}
+          >
+            {String(sev).replace("_", " ")}
+          </span>
+          <span
+            data-testid="tx-dashboard-top-cleanup-count"
+            className="text-[11px] px-2 py-0.5 rounded-full border border-amber-400 bg-amber-100 text-amber-900"
+          >
+            {top.affected_count} affected
+          </span>
+        </div>
+      </div>
+      <div
+        className="text-xs text-amber-900"
+        data-testid="tx-dashboard-top-cleanup-description"
+      >
+        {top.description}
+      </div>
+      <div
+        className="text-xs text-amber-900 mt-1"
+        data-testid="tx-dashboard-top-cleanup-recommended"
+      >
+        <span className="font-medium">Recommended action: </span>{top.recommended_action}
+      </div>
+      <div className="mt-3">
+        <Link
+          to={cleanupHref}
+          data-testid="tx-dashboard-top-cleanup-link"
+          className="inline-flex items-center rounded bg-amber-700 hover:bg-amber-800 text-white px-3 py-1.5 text-xs font-medium"
+        >
+          View in Cleanup Companion →
+        </Link>
+      </div>
+      <div className="text-[10px] uppercase tracking-wide text-amber-700 mt-2">
+        Source: Cleanup Companion · signal_key={top.signal_key}
+      </div>
+    </section>
+  );
+}
+
 // TRACK 16.11A · HR ↔ Transportation Sync Health · dashboard widget.
 function HrHealthWidget() {
   const [data, setData] = useState(null);

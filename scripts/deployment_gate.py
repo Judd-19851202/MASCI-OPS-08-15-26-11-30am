@@ -203,6 +203,7 @@ REGRESSION_FILES = [
     "/app/backend/tests/test_track_16_13_dispatch_decision_surface.py",
     "/app/backend/tests/test_track_16_14_dispatcher_learning_loop.py",
     "/app/backend/tests/test_track_16_15_operational_cleanup_companion.py",
+    "/app/backend/tests/test_track_16_15a_dashboard_cleanup_signal_mirror.py",
 ]
 
 DEFAULT_BASE_URL = (

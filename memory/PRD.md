@@ -11,6 +11,31 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-02-10 · TRACK 16.15A · Dashboard Top Cleanup Signal Mirror · ✅ GO)
+
+### Mission
+Pure UX bridge — surface the highest-priority cleanup signal directly on the Transportation Dashboard's *Attention Required* area without forcing operators into the Cleanup Companion tab. No new backend, no new scoring, no duplicate logic.
+
+### Verdict
+✅ **GO** — 12/12 new tests · 52/52 combined Track 16.15 + 16.15A · live dashboard verified on preview (top signal "Carrier packet needs correction · 91 affected · action_required"). Zero backend changes.
+
+### What shipped
+* `pages/transportation/_views.jsx` — new `TopCleanupOpportunityCard` component (≈110 LOC) mounted inside `TransportationDashboard`. Reuses the existing Track 16.15 `/api/admin/transportation/intelligence/cleanup-signals` endpoint via `txGet`; renders `signals[0]` with empty + error + loading states. CTA routes to existing `/admin/transportation/intelligence/cleanup`.
+* `backend/tests/test_track_16_15a_dashboard_cleanup_signal_mirror.py` — 12 regression tests (component defined + mounted in dashboard, no new endpoint/lib/scoring, reuses txGet, testid coverage, severity inheritance, admin-only RBAC, gate wiring).
+* `scripts/deployment_gate.py` — 22nd transport-track regression file wired.
+
+### Hard guarantees
+* Zero new backend routes / libraries / scoring functions.
+* Top signal semantics inherit from existing `build_cleanup_signals` ordering.
+* Admin-only RBAC inherited (dispatch cannot see the card).
+* Empty-state copy mirrors Cleanup Companion verbatim.
+* Non-punitive vocabulary maintained.
+
+### Documentation
+* `/app/memory/TRACK_16_15A_DASHBOARD_TOP_CLEANUP_SIGNAL_MIRROR.md`
+
+---
+
 ## Latest Track (2026-02-10 · TRACK 16.15 · Operational Cleanup Companion · ✅ GO)
 
 ### Mission
