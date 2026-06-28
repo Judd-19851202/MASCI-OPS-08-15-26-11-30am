@@ -14140,7 +14140,11 @@ async def public_branding_current(request: Request):
         defaults = {
             "company_name": "MASCI",
             "platform_display_name": "MASCI Operations Platform",
-            "platform_short_name": "MASCI Hub",
+            # TRACK 18.04 · Constitution-canonical platform short name.
+            # The legacy "MASCI Hub" caused the `_brandSubst` chain to
+            # double-emit "Hub" tokens (MASCI Hub Hub Hub Operations
+            # Platform). Canonical short name is now just "MASCI".
+            "platform_short_name": "MASCI",
             "support_email": doc.get("support_email") or "safety@mascigc.com",
             "safety_email": doc.get("safety_email") or "safety@mascigc.com",
             "hr_email": doc.get("hr_email") or "",

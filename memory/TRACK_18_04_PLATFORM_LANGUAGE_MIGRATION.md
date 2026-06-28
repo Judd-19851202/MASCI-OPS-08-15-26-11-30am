@@ -150,3 +150,44 @@ Identity articles (`portal-hr-identity`, `portal-safety-identity`, `portal-shop-
 **Deployment gate: WIRED.**
 
 The platform speaks one vocabulary. Future drift is blocked by static-scan regression.
+
+---
+
+## AMENDMENT (post-merge defect) — 2026-02-10
+
+**Defect found on public homepage:** hero kicker rendered as
+`MASCI HUB HUB HUB OPERATIONS PLATFORM` — triple-Hub token bleed
+caused by the `_brandSubst` i18n chain when the backend branding
+served `platform_short_name = "MASCI Hub"` and the chain
+re-substituted `MASCI` → `MASCI Hub` repeatedly.
+
+**Fixes applied:**
+1. `backend/server.py` — MASCI tenant defaults: `platform_short_name`
+   changed from `"MASCI Hub"` → `"MASCI"`. Backend now serves canonical
+   short name.
+2. `frontend/src/lib/BrandingProvider.jsx` — neutral fallback short name
+   changed from `"Ops Hub"` → `"Ops"`. No "Hub" in fallbacks.
+3. `frontend/src/lib/i18n.js` — `_brandSubst()` made idempotent. Even
+   if a legacy tenant doc still holds `"MASCI Hub"` in DB,
+   `cleanBrand`/`cleanCompany` strip the `MASCI` prefix from the brand
+   variable before chaining so we never double-emit tokens.
+4. `frontend/src/pages/Hub.jsx` — hero subtext refreshed to use
+   `Transportation Operations` instead of bare `dispatch` as a top-level
+   platform pillar. EN + ES dictionary keys updated.
+5. `frontend/src/data/training.js` — Field-101 lesson + cross-portal
+   references renamed `MASCI Hub` → `MASCI Operations Platform`.
+
+**New regression locks (`test_track_18_04_platform_language_migration.py`):**
+- `test_44_hub_hero_uses_masci_operations_platform_kicker`
+- `test_45_hub_hero_subtext_uses_transportation_operations`
+- `test_46_backend_branding_returns_masci_short_name`
+- `test_47_no_user_facing_hub_in_homepage_kicker_or_section`
+- `test_48_no_legacy_office_portals_anywhere_in_hub`
+- `test_49_brand_subst_chain_is_idempotent_against_brand_containing_masci`
+- `test_50_training_data_uses_masci_operations_platform_not_hub`
+
+**Total Track 18.04 regression: 50/50 PASS.**
+
+**Live smoke (post-fix):** Hero reads `MASCI OPERATIONS PLATFORM` (single
+clean kicker) and subtext uses `Transportation Operations`. Hub
+verified at `https://safety-audit-mobile-1.preview.emergentagent.com/`.

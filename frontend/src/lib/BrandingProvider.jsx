@@ -35,7 +35,9 @@ const NEUTRAL_DEFAULTS = {
   tenant_key: "",
   company_name: "Customer",
   platform_display_name: "Operations Platform",
-  platform_short_name: "Ops Hub",
+  // TRACK 18.04 · "Hub" eliminated from user-facing branding fallback.
+  // Falls back to the company name when present; otherwise just "Ops".
+  platform_short_name: "Ops",
   support_email: "",
   safety_email: "",
   hr_email: "",

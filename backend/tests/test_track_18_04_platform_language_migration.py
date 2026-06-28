@@ -537,3 +537,87 @@ def test_43_guidance_articles_have_body():
         assert idx >= 0
         window = src[idx: idx + 800]
         assert '"body":' in window
+
+
+# ===========================================================================
+# 12 · Public homepage hero — "Hub" eliminated, Transportation
+#       Operations adopted (Track 18.04 Amendment).
+# ===========================================================================
+def test_44_hub_hero_uses_masci_operations_platform_kicker():
+    """Hero kicker must read exactly 'MASCI Operations Platform' —
+    never 'MASCI Hub', 'Hub Operations Platform', or duplicated tokens.
+    """
+    src = _read(HUB)
+    assert 't("MASCI Operations Platform")' in src, (
+        "Hero kicker must wrap the canonical 'MASCI Operations Platform' string"
+    )
+
+
+def test_45_hub_hero_subtext_uses_transportation_operations():
+    src = _read(HUB)
+    assert "Transportation Operations, and project operations" in src, (
+        "Hero subtext must use Transportation Operations, not bare 'dispatch'"
+    )
+    # Hero subtext key must NOT use bare 'dispatch' as a platform pillar.
+    bad = ('"Field reporting, safety, quality, equipment, '
+           'workforce accountability, dispatch, and project operations')
+    assert bad not in src, (
+        "Hero subtext still uses legacy 'dispatch' as platform pillar"
+    )
+
+
+def test_46_backend_branding_returns_masci_short_name():
+    """The MASCI tenant branding defaults must return
+    platform_short_name='MASCI' (not 'MASCI Hub'). Avoids the
+    triple-Hub bleed through `_brandSubst`."""
+    src = SERVER.read_text()
+    # The default block for `tenant_is_masci` must declare the canonical
+    # short name.
+    assert '"platform_short_name": "MASCI"' in src
+    # Legacy default must not be present anymore.
+    assert '"platform_short_name": "MASCI Hub"' not in src
+
+
+def test_47_no_user_facing_hub_in_homepage_kicker_or_section():
+    """Beyond comments, Hub.jsx must NOT show 'MASCI Hub' or
+    'Hub Operations Platform' anywhere user-visible. Section headers,
+    breadcrumbs, and CTA strings must all use canonical names."""
+    src = _strip_comments(_read(HUB))
+    for bad in ("MASCI Hub", "Hub Operations Platform",
+                "Open Hub", "Your Hub"):
+        assert bad not in src, (
+            f"Hub.jsx still has legacy '{bad}' in user-visible content"
+        )
+
+
+def test_48_no_legacy_office_portals_anywhere_in_hub():
+    src = _strip_comments(_read(HUB))
+    assert "Office Portals" not in src
+
+
+def test_49_brand_subst_chain_is_idempotent_against_brand_containing_masci():
+    """If a tenant's stored `platform_short_name` accidentally contains
+    'MASCI' (legacy data), the i18n brand-substitution must not bleed
+    the brand token multiple times. We assert the guard exists."""
+    src = (FRONTEND_SRC / "lib" / "i18n.js").read_text()
+    assert "cleanBrand" in src and "cleanCompany" in src, (
+        "i18n.js _brandSubst must include the 18.04 idempotent guard "
+        "(cleanBrand/cleanCompany strip MASCI from brand var)"
+    )
+
+
+def test_50_training_data_uses_masci_operations_platform_not_hub():
+    """Training lessons referencing the platform must use the canonical
+    name, not 'MASCI Hub'."""
+    src = (FRONTEND_SRC / "data" / "training.js").read_text()
+    visible_legacy = re.findall(r'"[^"]*MASCI Hub[^"]*"', src)
+    # All remaining occurrences of "MASCI Hub" must live in code
+    # comments / non-user-facing identifiers, not visible training copy.
+    # The Field-101 lesson + HR-portal-access + FL-hub-access lessons
+    # have been updated; assert their canonical replacements.
+    assert "MASCI Operations Platform home screen" in src
+    assert "Navigating the MASCI Operations Platform" in src
+    assert not visible_legacy, (
+        f"Training data still contains user-facing 'MASCI Hub' references: "
+        f"{visible_legacy[:3]}"
+    )

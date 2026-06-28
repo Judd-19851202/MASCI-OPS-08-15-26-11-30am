@@ -89,19 +89,19 @@ const FIELD_LESSONS = [
     slug: "field-01-hub-navigation",
     track: "field",
     order: 1,
-    title: "Lesson 1 — Navigating the MASCI Hub",
-    why: "Everything starts here. If you can find the Hub on your phone, you can file any form the company needs in under 2 minutes.",
+    title: "Lesson 1 — Navigating the MASCI Operations Platform",
+    why: "Everything starts here. If you can find the platform on your phone, you can file any form the company needs in under 2 minutes.",
     duration: "~4 min",
     steps: [
-      "Point your phone camera at the QR code posted inside the site trailer — the MASCI Hub opens in your browser automatically. No app to install, no login for Field forms.",
-      "On the Hub home page you'll see 8 tiles: Field, QA/QC, Safety, Projects, PM Portal, Shop, Training Hub, and Admin. Field, QA/QC, and Safety are the three you'll use every day.",
+      "Point your phone camera at the QR code posted inside the site trailer — the MASCI Operations Platform opens in your browser automatically. No app to install, no login for Field forms.",
+      "On the home page you'll see 8 tiles: Field, QA/QC, Safety, Projects, Project Management, Shop Operations, Training Hub, and Administration. Field, QA/QC, and Safety are the three you'll use every day.",
       "Tap the language toggle in the top-right to switch between EN and ES — your choice is remembered on this phone.",
       "Tap 'Company Info' in the top-right to see MASCI's office address and phone numbers if you need to call HQ from the field.",
-      "Tap 'Add to Home Screen' in your browser menu once — after that the Hub opens like a real app with one tap.",
+      "Tap 'Add to Home Screen' in your browser menu once — after that the platform opens like a real app with one tap.",
     ],
     tips: [
       "If GPS doesn't grab on the first try, type the address in the Location field instead — same result.",
-      "The Hub works offline for reading, but submitting a form needs a signal — save and retry when you get bars.",
+      "The platform works offline for reading, but submitting a form needs a signal — save and retry when you get bars.",
     ],
     cheatSheet: [
       "Scan the QR → Hub opens → Pick Field or Safety → Fill → Sign → Submit.",
@@ -1124,7 +1124,7 @@ const LEADERSHIP_LESSONS = [
     why: "Field Leadership is the supervisor toolkit for documenting people decisions: write-ups, coaching, recognition, attendance, equipment, evaluations, training gaps, and supervisor notes. Done right, every conversation is on the record, defensible, and routed to the right people automatically.",
     duration: "~5 min",
     steps: [
-      "From the MASCI Hub home screen, tap the red 'Field Leadership' tile.",
+      "From the MASCI Operations Platform home screen, tap the red 'Field Leadership' tile.",
       "Enter the Field Leadership password: MASCIGC. The password is shared with foremen, superintendents, PMs, Safety, and Admin — not the general crew.",
       "Once unlocked, you see 11 tiles: 10 supervisor forms + 1 link back to the existing Safety Equipment Issuance form. The hub stays unlocked for 12 hours per device.",
       "Every form auto-fills your active job, picks the employee from the master roster (or lets you add one inline), captures supervisor + employee signatures, and routes a PDF to the assigned PM, jaymn.judd@mascigc.com, and safety@mascigc.com.",
@@ -1268,7 +1268,7 @@ const HR_LESSONS = [
     why: "The HR Portal is an isolated, read-only scope. HR sees employee records and payroll data — never PM/financial surfaces. Admin tokens do NOT satisfy HR routes; HR users log in with their own email + password.",
     duration: "~4 min",
     steps: [
-      "Open https://mascidocs.com/hr/login (or click the HR Portal card on the public MASCI Hub).",
+      "Open https://mascidocs.com/hr/login (or click the Human Resources card on the public MASCI Operations Platform).",
       "Sign in with your email + password. First-time accounts land on Change Password.",
       "HR Hub shows 5 tiles: Field Leadership Records · Employee Accountability · Time Verification · Payroll Variance · Training Records.",
       "Click your name area (top right) to sign out at any time. Sessions auto-clear when you navigate away from /hr.",

@@ -3582,9 +3582,9 @@ const ES = {
   // instead of generic department names. Field-readable Spanish.
   "End-of-day reports, safety enforcement, equipment tracking, quality control, and complete documentation — captured in the field, routed automatically, and stored in one operational system.":
     "Reportes de fin de día, cumplimiento de seguridad, control de equipo, control de calidad y documentación completa — capturado en campo, ruteado automáticamente y archivado en un solo sistema operativo.",
-  // ── Track 15.4 (2026-06-16) · Hero copy refresh ─────────────────
-  "Field reporting, safety, quality, equipment, workforce accountability, dispatch, and project operations — captured once, routed automatically, and visible everywhere they matter.":
-    "Reportes de campo, seguridad, calidad, equipo, responsabilidad de personal, despacho y operaciones de proyecto — capturado una vez, ruteado automáticamente y visible donde importa.",
+  // ── Track 15.4 → 18.04 · Hero copy: Transportation Operations canonical
+  "Field reporting, safety, quality, equipment, workforce accountability, Transportation Operations, and project operations — captured once, routed automatically, and visible everywhere they matter.":
+    "Reportes de campo, seguridad, calidad, equipo, responsabilidad de personal, Operaciones de Transporte y operaciones de proyecto — capturado una vez, ruteado automáticamente y visible donde importa.",
   "Connected Platforms": "Plataformas Conectadas",
   "Project Systems": "Sistemas de Proyecto",
   "Connected project platforms for communication, utility locating, and construction plans.":
@@ -6605,20 +6605,31 @@ function _brandSubst(s) {
     }
   } catch { /* sessionStorage may be unavailable */ }
   if (brand === "MASCI" && company === "MASCI") return s;
+  // Track 18.04 · idempotent substitution guard. If the configured brand
+  // itself contains "MASCI", the legacy chain below double-replaces
+  // tokens (e.g. brand="MASCI Hub" caused "MASCI Operations Platform"
+  // → "MASCI Hub Operations Platform" → "MASCI Hub Hub Operations
+  // Platform" → … "MASCI Hub Hub Hub Operations Platform"). Stripping
+  // MASCI from the brand variable before chaining keeps each pass
+  // first-write-wins.
+  const cleanBrand = brand.replace(/\bMASCI\s*/g, "").trim() || brand;
+  const cleanCompany = company.replace(/\bMASCI\s*/g, "").trim() || company;
+  const finalBrand = cleanBrand === brand ? brand : cleanBrand;
+  const finalCompany = cleanCompany === company ? company : cleanCompany;
   // Order matters — replace the longest match first.
   return s
-    .replace(/MASCI General Contractors Inc\.?/g, company)
-    .replace(/MASCI Operations Platform/g, `${brand} Operations Platform`)
-    .replace(/MASCI Safety Hub/g, `${brand} Safety Hub`)
+    .replace(/MASCI General Contractors Inc\.?/g, finalCompany)
+    .replace(/MASCI Operations Platform/g, `${finalBrand} Operations Platform`)
+    .replace(/MASCI Safety Hub/g, `${finalBrand} Safety Hub`)
     .replace(/MASCI Trench Safety/g, "Trench Safety")
-    .replace(/MASCI Hub/g, `${brand} Hub`)
-    .replace(/MASCI Safety/g, `${brand} Safety`)
-    .replace(/MASCI Field/g, `${brand} Field`)
+    .replace(/MASCI Hub/g, `${finalBrand} Hub`)
+    .replace(/MASCI Safety/g, `${finalBrand} Safety`)
+    .replace(/MASCI Field/g, `${finalBrand} Field`)
     .replace(/MASCI Crews/g, "Crews")
     .replace(/MASCI Job\b/g, "Job")
-    .replace(/Centro MASCI/g, `Centro ${brand}`)
+    .replace(/Centro MASCI/g, `Centro ${finalBrand}`)
     .replace(/Cuadrillas MASCI/g, "Cuadrillas")
-    .replace(/\bMASCI\b/g, brand);
+    .replace(/\bMASCI\b/g, finalBrand);
 }
 
 export function tStr(key) {
