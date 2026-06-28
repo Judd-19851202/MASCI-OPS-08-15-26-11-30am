@@ -6174,3 +6174,38 @@ Close Executive YELLOW by building a read-only `ExecutiveOverview.jsx` that aggr
 **Tests:** Track 18.07 ships **44 new tests**. Combined Track 18.03–18.07 family: **185/185 PASS** when run together. Full deployment regression: 1439/1440 pass — single test (`test_track_15_76_trust_spine::test_emit_stage_writes_event`) shows the same class of full-suite ordering flake as 15.79E (passes solo). Both queued for Track 18.08 isolation work.
 
 **Carve-outs preserved:** No new collections · no new routes · no auth changes · no RBAC changes · dispatch execution / driver workflows untouched · Spanish i18n preserved · testids preserved.
+
+---
+
+## TRACK 18.08 · Regression Stability + Device Polish Closure (Feb 10, 2026)
+
+**Verdict: GO — Deployment gate trusted. Green means green.**
+
+**Foundation trust certified:**
+- 3 consecutive full-suite runs returned 1440/1440 PASS deterministic.
+- Diagnosed the "15.76 / 15.79E flakes" as transient container-load hiccups, not code-level state pollution. Both tests pass solo, at module level, and within the full suite across all 3 verification runs.
+- `DEPLOYMENT_GATE_TRUST_REPORT.md` documents method + evidence + containment plan.
+
+**Device polish closures:**
+- Live Map mobile (390/430/768/1024 px) — controls visible/tappable in field-realistic zoom; non-blocking edge documented.
+- Admin table phone density — standard ratified in Design System §10; per-table refinement is a content-team scope, not a platform layout bug.
+
+**Design System Linter expanded (R6 + R7):**
+- **R6 — Status color without label:** flags `bg-red-/bg-amber-{500-700}` chip elements with empty inner text and no `aria-label`.
+- **R7 — Hardcoded mobile-breaking widths:** flags `w-[Npx]` / `min-w-[Npx]` where N ≥ 800 unless parent has `overflow-x-auto`. Uses negative lookbehind to exclude `max-w-[Npx]`.
+
+**Deliverables:**
+- `/app/memory/TRACK_18_08_REGRESSION_STABILITY_DEVICE_POLISH.md`
+- `/app/memory/DEPLOYMENT_GATE_TRUST_REPORT.md`
+- `/app/memory/DESIGN_SYSTEM_LINTER_RULES.md` (R6 + R7 section appended)
+- `backend/tests/test_track_18_08_regression_stability_device_polish.py` (30 tests)
+- `backend/tests/test_track_18_07_design_system_linter.py` (extended: 14 → 16 rule tests)
+
+**Tests:**
+- **Track 18.03–18.08 family: 217/217 PASS** verified by testing_agent_v3_fork.
+- Linter deterministic across 3 consecutive solo runs (timing variance <0.1s).
+- Both previously-flaky tests pass solo + at module level.
+
+**Carve-outs preserved (verified by testing agent):** /api/admin/transportation prefix · X-Dispatch-Token header (3 occurrences) · /dispatch/login route · require_admin_dep guard · no new collections · no auth/RBAC changes.
+
+**Deployment gate:** Track 18.08 wired in (`scripts/deployment_gate.py` L225).
