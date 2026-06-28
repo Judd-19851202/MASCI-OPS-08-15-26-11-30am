@@ -11,6 +11,37 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-02-10 · TRACK 18.00 Phase F · Portal-Aware Data Layer + Dispatch Surface Polish · ✅ GO)
+
+### Defects corrected
+1. Mission Control dashboard endpoint (`/api/admin/transportation/dashboard`) was admin-strict — dispatchers landing on `/transportation-operations` saw 403 on the primary data source. Phase F makes this endpoint portal-aware; record-detail endpoints (docs queue, inspections queue, drivers/{id}, carriers/{id}, trucks/{id}) REMAIN admin-strict.
+2. TopBar was only on `/dispatch-portal` hub. Now mounted on Board · Command · Map · Haul Ledger · Driver Qualification.
+3. No Transportation-scoped restricted state — `TxOpsRestricted` + `TxOpsRestrictedData` ship with the required wording.
+4. TopBar Administration group visible to every role — now `adminOnly: true` and filtered by `isAdmin()`.
+5. No mobile usable navigation — hamburger toggle (`txops-portal-topbar-mobile-toggle` / `-mobile-nav`) ships.
+
+### Verdict
+✅ **GO** — 40/40 Phase F tests · 201/201 cross-track Track-18 regression · live curl confirms dispatch token loads dashboard (HTTP 200, `compliance_score=41`, full tile payload).
+
+### What shipped
+- `backend/routes/transportation_experience.py` — optional `require_portal_dep` parameter; only the `dashboard` endpoint uses it.
+- `backend/server.py` — wires `_require_any_portal_token` as `require_portal_dep`.
+- `frontend/src/components/transportation/TxOpsRestricted.jsx` (NEW) — Transportation-branded restricted states.
+- `frontend/src/components/transportation/TransportationOpsTopBar.jsx` — admin-only nav filter + mobile hamburger.
+- TopBar mounted on 5 additional dispatch surfaces (Board, Command, Map, Haul Ledger, Driver Qualification).
+
+### Hard guarantees
+- No new collection · no new auth verb · no new token · no new permission predicate.
+- Backend API prefixes unchanged. Phase D `schema_version=18.00D` unchanged.
+- Every dispatch route preserved. Every auth helper preserved.
+- Phase D RBAC matrix unchanged — HR/dispatch/etc. never see relations outside their scope.
+- Single TopBar module — no forks.
+
+### Documentation
+- `/app/memory/TRACK_18_00_PHASE_F_PORTAL_AWARE_DATA_LAYER.md`
+
+---
+
 ## Latest Track (2026-02-10 · TRACK 18.00E-FIX · Transportation Portal Rehome · ✅ GO)
 
 ### Defect
