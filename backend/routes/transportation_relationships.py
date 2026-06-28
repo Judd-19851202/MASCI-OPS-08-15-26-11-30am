@@ -89,37 +89,37 @@ def _bounded(limit: Optional[int], section: str) -> int:
 # the right rail can still render an "(not found)" entity banner.
 # ---------------------------------------------------------------------------
 _ENTITY_MAP = {
-    "driver": ("transport_persons", "name", "/admin/transportation/drivers/{id}"),
-    "carrier": ("carriers", "name", "/admin/transportation/carriers/{id}"),
-    "truck": ("transport_trucks", "unit_number", "/admin/transportation/trucks/{id}"),
+    "driver": ("transport_persons", "name", "/transportation-operations/drivers/{id}"),
+    "carrier": ("carriers", "name", "/transportation-operations/carriers/{id}"),
+    "truck": ("transport_trucks", "unit_number", "/transportation-operations/trucks/{id}"),
     "dispatch_assignment": (
         "dispatch_assignments", "assignment_id",
-        "/admin/transportation/dispatch"),
+        "/transportation-operations/dispatch"),
     "project": ("projects", "project_number", "/pm/project/{id}"),
     "certificate": (
         "transport_orientation_certificates", "certificate_number",
-        "/admin/transportation/orientation"),
+        "/transportation-operations/orientation"),
     "document": (
         "carrier_documents", "document_type",
-        "/admin/transportation/documents"),
+        "/transportation-operations/documents"),
     "orientation": (
         "transport_orientation_assignments", "id",
-        "/admin/transportation/orientation"),
+        "/transportation-operations/orientation"),
     "inspection": (
         "transport_truck_inspections", "id",
-        "/admin/transportation/inspections"),
+        "/transportation-operations/inspections"),
     "action_item": (
         "transport_action_items", "title",
-        "/admin/transportation/command-queue"),
+        "/transportation-operations/command-queue"),
     "cleanup_signal": (
         None, None,
-        "/admin/transportation/intelligence/cleanup"),
+        "/transportation-operations/intelligence/cleanup"),
 }
 
 
 async def _load_entity(db, etype: str, eid: str) -> Dict[str, Any]:
     coll_name, title_field, route_tpl = _ENTITY_MAP.get(
-        etype, (None, None, "/admin/transportation"))
+        etype, (None, None, "/transportation-operations"))
     if not coll_name:
         return {
             "type": etype, "id": eid, "title": eid,
@@ -178,7 +178,7 @@ async def _related_for_driver(db, eid: str, allowed: set,
                     "subtitle": "Driver of record",
                     "status": c.get("status") or "active",
                     "source": "carriers",
-                    "route": f"/admin/transportation/carriers/{c.get('id')}",
+                    "route": f"/transportation-operations/carriers/{c.get('id')}",
                 })
     if _permits(allowed, "dispatch"):
         for r in await _safe_find(db.dispatch_assignments, {"driver_id": eid}, lim):
@@ -188,7 +188,7 @@ async def _related_for_driver(db, eid: str, allowed: set,
                 "subtitle": r.get("project_number") or "",
                 "status": r.get("state") or "active",
                 "source": "dispatch_assignments",
-                "route": "/admin/transportation/dispatch",
+                "route": "/transportation-operations/dispatch",
             })
     if _permits(allowed, "documents"):
         for r in await _safe_find(db.driver_documents,
@@ -199,7 +199,7 @@ async def _related_for_driver(db, eid: str, allowed: set,
                 "subtitle": r.get("status") or "",
                 "status": r.get("status") or "unknown",
                 "source": "driver_documents",
-                "route": "/admin/transportation/documents",
+                "route": "/transportation-operations/documents",
             })
     if _permits(allowed, "orientation"):
         for r in await _safe_find(db.transport_orientation_assignments,
@@ -210,7 +210,7 @@ async def _related_for_driver(db, eid: str, allowed: set,
                 "subtitle": r.get("status") or "",
                 "status": r.get("status") or "unknown",
                 "source": "transport_orientation_assignments",
-                "route": "/admin/transportation/orientation",
+                "route": "/transportation-operations/orientation",
             })
     return out[:lim]
 
@@ -229,7 +229,7 @@ async def _related_for_truck(db, eid: str, allowed: set,
                     "subtitle": "Truck owner",
                     "status": c.get("status") or "active",
                     "source": "carriers",
-                    "route": f"/admin/transportation/carriers/{c.get('id')}",
+                    "route": f"/transportation-operations/carriers/{c.get('id')}",
                 })
     if _permits(allowed, "trucks"):
         for r in await _safe_find(db.transport_truck_inspections,
@@ -240,7 +240,7 @@ async def _related_for_truck(db, eid: str, allowed: set,
                 "subtitle": r.get("result") or r.get("status") or "",
                 "status": r.get("status") or "unknown",
                 "source": "transport_truck_inspections",
-                "route": "/admin/transportation/inspections",
+                "route": "/transportation-operations/inspections",
             })
     if _permits(allowed, "dispatch"):
         for r in await _safe_find(db.dispatch_assignments, {"truck_id": eid}, lim):
@@ -250,7 +250,7 @@ async def _related_for_truck(db, eid: str, allowed: set,
                 "subtitle": r.get("driver_name") or "",
                 "status": r.get("state") or "active",
                 "source": "dispatch_assignments",
-                "route": "/admin/transportation/dispatch",
+                "route": "/transportation-operations/dispatch",
             })
     return out[:lim]
 
@@ -266,7 +266,7 @@ async def _related_for_carrier(db, eid: str, allowed: set,
                 "subtitle": "Driver of carrier",
                 "status": r.get("status") or "active",
                 "source": "transport_persons",
-                "route": f"/admin/transportation/drivers/{r.get('id')}",
+                "route": f"/transportation-operations/drivers/{r.get('id')}",
             })
     if _permits(allowed, "trucks"):
         for r in await _safe_find(db.transport_trucks, {"carrier_id": eid}, lim):
@@ -276,7 +276,7 @@ async def _related_for_carrier(db, eid: str, allowed: set,
                 "subtitle": r.get("vin") or "",
                 "status": r.get("status") or "active",
                 "source": "transport_trucks",
-                "route": f"/admin/transportation/trucks/{r.get('id')}",
+                "route": f"/transportation-operations/trucks/{r.get('id')}",
             })
     if _permits(allowed, "documents"):
         for r in await _safe_find(db.carrier_documents, {"carrier_id": eid}, lim):
@@ -286,7 +286,7 @@ async def _related_for_carrier(db, eid: str, allowed: set,
                 "subtitle": r.get("status") or "",
                 "status": r.get("status") or "unknown",
                 "source": "carrier_documents",
-                "route": "/admin/transportation/documents",
+                "route": "/transportation-operations/documents",
             })
     if _permits(allowed, "dispatch"):
         for r in await _safe_find(db.dispatch_assignments,
@@ -297,7 +297,7 @@ async def _related_for_carrier(db, eid: str, allowed: set,
                 "subtitle": r.get("driver_name") or "",
                 "status": r.get("state") or "active",
                 "source": "dispatch_assignments",
-                "route": "/admin/transportation/dispatch",
+                "route": "/transportation-operations/dispatch",
             })
     return out[:lim]
 
@@ -314,7 +314,7 @@ async def _related_for_project(db, eid: str, allowed: set,
                 "subtitle": r.get("driver_name") or "",
                 "status": r.get("state") or "active",
                 "source": "dispatch_assignments",
-                "route": "/admin/transportation/dispatch",
+                "route": "/transportation-operations/dispatch",
             })
     return out[:lim]
 
@@ -334,7 +334,7 @@ async def _related_for_dispatch_assignment(db, eid: str, allowed: set,
                 "subtitle": "Assigned driver",
                 "status": d.get("status") or "active",
                 "source": "transport_persons",
-                "route": f"/admin/transportation/drivers/{d.get('id')}",
+                "route": f"/transportation-operations/drivers/{d.get('id')}",
             })
     if _permits(allowed, "trucks") and asg.get("truck_id"):
         t = await db.transport_trucks.find_one({"id": asg["truck_id"]})
@@ -345,7 +345,7 @@ async def _related_for_dispatch_assignment(db, eid: str, allowed: set,
                 "subtitle": "Assigned truck",
                 "status": t.get("status") or "active",
                 "source": "transport_trucks",
-                "route": f"/admin/transportation/trucks/{t.get('id')}",
+                "route": f"/transportation-operations/trucks/{t.get('id')}",
             })
     if _permits(allowed, "carriers") and asg.get("carrier_id"):
         c = await db.carriers.find_one({"id": asg["carrier_id"]})
@@ -356,7 +356,7 @@ async def _related_for_dispatch_assignment(db, eid: str, allowed: set,
                 "subtitle": "Hauling carrier",
                 "status": c.get("status") or "active",
                 "source": "carriers",
-                "route": f"/admin/transportation/carriers/{c.get('id')}",
+                "route": f"/transportation-operations/carriers/{c.get('id')}",
             })
     if _permits(allowed, "projects") and asg.get("project_number"):
         out.append({
@@ -386,7 +386,7 @@ async def _related_for_document(db, eid: str, allowed: set,
                 "subtitle": "Document owner",
                 "status": c.get("status") or "active",
                 "source": "carriers",
-                "route": f"/admin/transportation/carriers/{c.get('id')}",
+                "route": f"/transportation-operations/carriers/{c.get('id')}",
             })
     return out[:lim]
 
@@ -407,7 +407,7 @@ async def _related_for_certificate(db, eid: str, allowed: set,
                 "subtitle": "Certificate holder",
                 "status": d.get("status") or "active",
                 "source": "transport_persons",
-                "route": f"/admin/transportation/drivers/{d.get('id')}",
+                "route": f"/transportation-operations/drivers/{d.get('id')}",
             })
     return out[:lim]
 
@@ -427,7 +427,7 @@ async def _related_for_inspection(db, eid: str, allowed: set,
                 "subtitle": "Inspected unit",
                 "status": t.get("status") or "active",
                 "source": "transport_trucks",
-                "route": f"/admin/transportation/trucks/{t.get('id')}",
+                "route": f"/transportation-operations/trucks/{t.get('id')}",
             })
     return out[:lim]
 
@@ -457,7 +457,7 @@ async def _audit_rows(db, eid: str, allowed: set,
         "at": r.get("at") or r.get("created_at") or "",
         "actor": r.get("actor") or "",
         "source": "audit_events",
-        "route": "/admin/transportation/administration/audit",
+        "route": "/transportation-operations/administration/audit",
     } for r in (rows or [])][:lim]
 
 
@@ -483,7 +483,7 @@ async def _open_actions(db, eid: str, allowed: set,
         "subtitle": r.get("event_key") or r.get("severity") or "",
         "status": r.get("status") or "open",
         "source": "transport_action_items",
-        "route": "/admin/transportation/command-queue",
+        "route": "/transportation-operations/command-queue",
     } for r in rows][:lim]
 
 

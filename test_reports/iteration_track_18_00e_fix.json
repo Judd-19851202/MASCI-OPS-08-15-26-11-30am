@@ -1,0 +1,41 @@
+{
+  "summary": "TRACK 18.00E-FIX — Emergency rehome of TransportationApp shell to /transportation-operations/* with dispatch-safe guard: PASS. Backend regression 30/30 PASS in 0.31s (tests/test_track_18_00e_fix_transportation_portal_rehome.py). Live curl on Phase D envelope: GET /api/admin/transportation/related/driver/ghost (X-Admin-Token) returns schema_version=18.00D and entity.route=/transportation-operations/drivers/ghost (deep-link successfully repointed). Live UI validated end-to-end: (1) Dispatch login dispatch@mascigc.com/DispatchTest2026! → /dispatch-portal hub loads with dispatch-hub + txops-portal-topbar testids. (2) Mission Control CTA href is /transportation-operations (NOT /admin/transportation). Clicking it navigates to /transportation-operations with no 'Admin Console' / 'Access Restricted' copy. admin-transportation-page testid renders. (3) AdminSideNavV2 is HIDDEN for dispatch user on /transportation-operations (element absent — conditional `isAdmin() ? <AdminSideNavV2/> : null`). (4) All 5 TopBar nav-groups (ops/people/compliance/intel/admin) open on /dispatch-portal — 13 nav items total, 12 hrefs prefixed /transportation-operations, ZERO /admin/transportation links remain. (5) Admin multi-login (jaymn.judd@mascigc.com/Maddix123!) on /admin/transportation: AdminSideNavV2 VISIBLE + admin-transportation-page renders. (6) Admin on /transportation-operations: AdminSideNavV2 VISIBLE (same shell, RBAC drives content). (7) Slash on /dispatch-portal navigates to /transportation-operations (NOT /admin/transportation). (8) Slash on /transportation-operations focuses txops-search-input (activeElement.data-testid=txops-search-input). (9) All five dispatch deep routes (/dispatch-portal/board, /command, /map, /haul-ledger, /driver-qualification) load with HTTP 200 and remain authenticated (no /login redirect). (10) Zero page errors and zero non-401 console errors across all surfaces.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "validations_performed": {
+    "backend_unit_regression": "30/30 PASS (tests/test_track_18_00e_fix_transportation_portal_rehome.py, 0.31s, junit at /app/test_reports/pytest/track_18_00e_fix.xml)",
+    "phase_d_envelope_live": "PASS — GET /api/admin/transportation/related/driver/ghost with X-Admin-Token returns schema_version=18.00D AND entity.route=/transportation-operations/drivers/ghost",
+    "mission_control_cta_dispatch": "PASS — href=/transportation-operations; click lands on /transportation-operations; no AccessDenied; admin-transportation-page testid present",
+    "admin_side_nav_hidden_dispatch": "PASS — dispatch user sees no [data-testid*='admin-side-nav'] on /transportation-operations",
+    "admin_side_nav_visible_admin": "PASS — admin user has admin-side-nav-v2 VISIBLE on BOTH /admin/transportation AND /transportation-operations (single shell, two access paths)",
+    "nav_group_hrefs_repointed": "PASS — 5 groups (ops/people/compliance/intel/admin), 13 nav items, 12 hrefs to /transportation-operations, 0 to /admin/transportation",
+    "slash_shortcut_hub": "PASS — '/' on /dispatch-portal navigates to /transportation-operations (no longer /admin/transportation)",
+    "slash_shortcut_tx_ops": "PASS — '/' on /transportation-operations focuses txops-search-input",
+    "dispatch_deep_routes": "PASS — /board, /command, /map, /haul-ledger, /driver-qualification all status 200, authed=True",
+    "admin_alias_preserved": "PASS — /admin/transportation still renders Mission Control with sidenav for admin user",
+    "console_clean": "PASS — page errors=0; only background 401s on dispatch-context data fetches (expected; not a regression)"
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_track_18_00e_fix_transportation_portal_rehome.py",
+    "/app/test_reports/pytest/track_18_00e_fix.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "RequireTransportationPortal guard (NEW) correctly accepts admin OR dispatch OR any portal token, contains no Admin Console copy and does not import AccessDenied — verified by tests #03/#04/#29 and live behavior (no denial page for dispatcher).",
+    "TransportationOpsTopBar Mission Control CTA, Search button, brand link and slash-shortcut fallback all target /transportation-operations exclusively. All NAV_GROUPS items use /transportation-operations prefix (12/12 verified live).",
+    "TransportationApp.jsx correctly gates AdminSideNavV2 via `showAdminSideNav = isAdmin()`; dispatcher session renders no sidebar while admin renders the full SideNavV2 — verified live in both dispatch and admin sessions.",
+    "Backend /api/admin/transportation/related/* prefix unchanged. Only string fields entity.route + composer route deep-links repointed to /transportation-operations/* (verified live for driver/ghost). No new collection, no new auth verb — confirmed by tests #20/#24.",
+    "Phase D schema_version=18.00D preserved (test #21 + live curl). Phase A/B/C/D RBAC matrix unchanged (test #23). Phase E TopBar testid contract unchanged (txops-portal-topbar / -brand / -nav / -search / -mission-control all still present).",
+    "Single-shell reuse — both /admin/transportation/* and /transportation-operations/* render the SAME AdminTransportation module that re-exports TransportationApp (test #08/#30 + live: admin-transportation-page testid present on both routes). No duplicate Mission Control surface."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "100% (30/30 fix unit tests PASS; Phase D 18.00D envelope verified live; deep-link route in entity.route correctly /transportation-operations/drivers/ghost)",
+    "frontend": "100% on every review_request item: dispatch login → hub → MC CTA → /transportation-operations (no denial), admin-transportation-page testid present, sidenav correctly hidden for dispatch / visible for admin, 12/12 nav-group hrefs repointed, slash shortcut repointed, all 5 dispatch deep routes preserved, /admin/transportation alias still serves admin"
+  },
+  "test_credentials": "Dispatcher: dispatch@mascigc.com / DispatchTest2026! via POST /api/dispatch/login returns {token,user,must_change_password,kind}; SPA localStorage key=masci.dispatch.token. Admin multi-login: jaymn.judd@mascigc.com / Maddix123! via POST /api/auth/multi-login returns portal_tokens.{admin,dispatch,pm,shop,hr,safety,fl} + session_token + user; SPA keys masci.admin.token, masci.dispatch.token, masci_jwt_v1, masci.directory.user. Phase D endpoint uses X-Admin-Token header (NOT Authorization Bearer).",
+  "seed_data_creation": "None — no DB writes performed.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "TRACK 18.00E-FIX ships clean. The previous Phase E finding that dispatcher saw 'Access Restricted' on Mission Control CTA is RESOLVED — the CTA now points to /transportation-operations which is wrapped by RequireTransportationPortal (dispatch-safe). Both routes (/admin/transportation/* legacy admin oversight alias AND /transportation-operations/* new dispatch-safe path) render the SAME TransportationApp shell. AdminSideNavV2 conditionally hides for non-admin via isAdmin() check in TransportationApp.jsx. To live-test: (1) inject masci.dispatch.token into localStorage (from POST /api/dispatch/login) and visit /dispatch-portal — click txops-portal-topbar-mission-control to verify URL becomes /transportation-operations with no denial; (2) inject masci.admin.token + masci.dispatch.token + masci_jwt_v1 + masci.directory.user (from POST /api/auth/multi-login) and verify /admin/transportation AND /transportation-operations both render with admin-side-nav-v2 visible. Phase D deep-link verification: curl -H 'X-Admin-Token: <admin>' /api/admin/transportation/related/driver/ghost → schema_version=18.00D, entity.route=/transportation-operations/drivers/ghost."
+}

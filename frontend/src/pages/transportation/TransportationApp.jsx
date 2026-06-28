@@ -8,6 +8,7 @@ import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { PortalShell } from "@/design-system";
 import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
+import { isAdmin } from "@/lib/adminAuth";
 import { TransportationSubNav } from "./_shared";
 import {
   TransportationDashboard, ComplianceDashboard, DocumentCenter,
@@ -29,8 +30,13 @@ export default function TransportationApp() {
   // TRACK 18.00 · Phase E — `/` keyboard shortcut focuses the Phase C
   // search rail input wherever it's mounted in the shell.
   useTxOpsSlashShortcut();
+  // TRACK 18.00E-FIX — dispatch-authenticated users now reach this
+  // shell through `/transportation-operations/*` without holding the
+  // admin token. Suppress the admin-only side nav when admin is not
+  // signed in so the experience never reads as "Admin Console".
+  const showAdminSideNav = isAdmin();
   return (
-    <PortalShell portalName="MASCI" portalSubtitle="Transportation Operations" sideNav={<AdminSideNavV2 />}>
+    <PortalShell portalName="MASCI" portalSubtitle="Transportation Operations" sideNav={showAdminSideNav ? <AdminSideNavV2 /> : null}>
       <div className="space-y-2" data-testid="admin-transportation-page">
         <div
           data-testid="txops-search-rail"

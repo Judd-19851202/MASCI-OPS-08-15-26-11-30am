@@ -322,6 +322,7 @@ import NotFound from "@/pages/NotFound";
 import GlobalFooter from "@/components/GlobalFooter";
 import ScrollToTop from "@/components/ScrollToTop";
 import { RequireAdmin } from "@/components/RequireAdmin";
+import { RequireTransportationPortal } from "@/components/RequireTransportationPortal";
 import { RequireAdminOrPm } from "@/components/RequireAdminOrPm";
 import { RequireAdminPmOrSafety } from "@/components/RequireAdminPmOrSafety";
 import { RequirePm } from "@/components/RequirePm";
@@ -370,6 +371,11 @@ const InspectionLegacyRedirect = () => (
 );
 
 const A = (el) => <RequireAdmin>{el}</RequireAdmin>;
+// TRACK 18.00E-FIX · Dispatch-accessible Transportation Operations shell.
+// Wraps `/transportation-operations/*` so dispatchers reach Mission
+// Control without an Admin Console gate. RBAC inside the shell is
+// already enforced by the backend composers (Phase C/D + Track 16.16).
+const TX = (el) => <RequireTransportationPortal>{el}</RequireTransportationPortal>;
 const AP = (el) => <RequireAdminOrPm>{el}</RequireAdminOrPm>;
 // iter322 — Admin · PM · Safety read-only review for the three
 // Safety detail views (inspections / meetings / incidents). All
@@ -460,6 +466,11 @@ function App() {
             <Route path="/qaqc/:id" element={<ViewQaqcInspection />} />
             <Route path="/admin/qaqc" element={A(<AdminQaqcList />)} />
             <Route path="/admin/transportation/*" element={A(<AdminTransportation />)} />
+            {/* TRACK 18.00E-FIX — Dispatch-accessible Transportation
+                Operations canonical route. Same shell, dispatch-safe
+                gate. /admin/transportation/* remains an alias for
+                admin-only oversight bookmarks. */}
+            <Route path="/transportation-operations/*" element={TX(<AdminTransportation />)} />
             <Route path="/admin/photos" element={A(<JobPhotosLibrary portalKey="admin" />)} />
 
             {/* Phase V-Prelude · Wave 1 · Operational Constraints.

@@ -22,43 +22,43 @@ const NAV_GROUPS = [
     id: "ops",
     label: "Operations",
     items: [
-      { label: "Mission Control", href: "/admin/transportation" },
+      { label: "Mission Control", href: "/transportation-operations" },
       { label: "Dispatch", href: "/dispatch-portal" },
-      { label: "Live Operations", href: "/admin/transportation/live-operations" },
-      { label: "Fleet", href: "/admin/transportation/trucks" },
+      { label: "Live Operations", href: "/transportation-operations/live-operations" },
+      { label: "Fleet", href: "/transportation-operations/trucks" },
     ],
   },
   {
     id: "people",
     label: "People",
     items: [
-      { label: "Drivers", href: "/admin/transportation/drivers" },
-      { label: "Carriers", href: "/admin/transportation/carriers" },
+      { label: "Drivers", href: "/transportation-operations/drivers" },
+      { label: "Carriers", href: "/transportation-operations/carriers" },
     ],
   },
   {
     id: "compliance",
     label: "Compliance",
     items: [
-      { label: "Compliance", href: "/admin/transportation/compliance" },
-      { label: "Orientation", href: "/admin/transportation/orientation" },
+      { label: "Compliance", href: "/transportation-operations/compliance" },
+      { label: "Orientation", href: "/transportation-operations/orientation" },
     ],
   },
   {
     id: "intel",
     label: "Operations Intelligence",
     items: [
-      { label: "Intelligence", href: "/admin/transportation/intelligence" },
-      { label: "Cleanup", href: "/admin/transportation/intelligence/cleanup" },
-      { label: "Automation", href: "/admin/transportation/intelligence/automation" },
+      { label: "Intelligence", href: "/transportation-operations/intelligence" },
+      { label: "Cleanup", href: "/transportation-operations/intelligence/cleanup" },
+      { label: "Automation", href: "/transportation-operations/intelligence/automation" },
     ],
   },
   {
     id: "admin",
     label: "Administration",
     items: [
-      { label: "Reports", href: "/admin/transportation/reports" },
-      { label: "Audit", href: "/admin/transportation/audit" },
+      { label: "Reports", href: "/transportation-operations/reports" },
+      { label: "Audit", href: "/transportation-operations/audit" },
     ],
   },
 ];
@@ -131,7 +131,7 @@ export function useTxOpsSlashShortcut() {
         return;
       }
       e.preventDefault();
-      window.location.assign("/admin/transportation");
+      window.location.assign("/transportation-operations");
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -147,7 +147,7 @@ export default function TransportationOpsTopBar() {
     >
       <div className="flex flex-wrap items-center gap-3 px-4 py-2.5">
         <Link
-          to="/admin/transportation"
+          to="/transportation-operations"
           data-testid="txops-portal-topbar-brand"
           className="flex items-center gap-2"
         >
@@ -168,7 +168,7 @@ export default function TransportationOpsTopBar() {
 
         <div className="ml-auto flex items-center gap-2">
           <Link
-            to="/admin/transportation"
+            to="/transportation-operations"
             data-testid="txops-portal-topbar-search"
             className="inline-flex items-center gap-1.5 rounded bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 text-[11px] text-slate-200 transition-colors"
             title="Open Transportation search ( / )"
@@ -180,7 +180,7 @@ export default function TransportationOpsTopBar() {
             </kbd>
           </Link>
           <Link
-            to="/admin/transportation"
+            to="/transportation-operations"
             data-testid="txops-portal-topbar-mission-control"
             className="hidden sm:inline-flex items-center gap-1 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 px-2.5 py-1.5 text-[11px] font-semibold transition-colors"
           >

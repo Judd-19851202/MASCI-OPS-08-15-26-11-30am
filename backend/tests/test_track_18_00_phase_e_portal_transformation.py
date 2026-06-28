@@ -67,7 +67,8 @@ def test_03_topbar_has_five_grouped_nav_rails():
 def test_04_topbar_operations_includes_dispatch_and_mission_control():
     src = TOPBAR.read_text()
     assert "/dispatch-portal" in src
-    assert "/admin/transportation" in src
+    # TRACK 18.00E-FIX — canonical Transportation Operations route.
+    assert "/transportation-operations" in src
     assert "live-operations" in src
     assert "trucks" in src  # Fleet
 
@@ -77,8 +78,8 @@ def test_04_topbar_operations_includes_dispatch_and_mission_control():
 # ===========================================================================
 def test_05_topbar_people_includes_drivers_and_carriers():
     src = TOPBAR.read_text()
-    assert "/admin/transportation/drivers" in src
-    assert "/admin/transportation/carriers" in src
+    assert "/transportation-operations/drivers" in src
+    assert "/transportation-operations/carriers" in src
 
 
 # ===========================================================================
@@ -86,8 +87,8 @@ def test_05_topbar_people_includes_drivers_and_carriers():
 # ===========================================================================
 def test_06_topbar_compliance_groups():
     src = TOPBAR.read_text()
-    assert "/admin/transportation/compliance" in src
-    assert "/admin/transportation/orientation" in src
+    assert "/transportation-operations/compliance" in src
+    assert "/transportation-operations/orientation" in src
 
 
 # ===========================================================================
