@@ -74,33 +74,38 @@ export default function TransportationApp() {
           <Route path="audit" element={<AuditTimeline />} />
 
           {/* TRACK 18.00 Phase A · Compatibility redirects. Every old
-              URL still resolves so admin bookmarks never break. */}
+              URL still resolves so admin bookmarks never break.
+              TRACK 18.09C · Made `relative="path"` so the redirects
+              keep the active prefix (`/admin/transportation` for
+              admin oversight, `/transportation-operations` for
+              dispatch-authenticated operational use) and never
+              bounce an operational user into the admin shell. */}
           <Route path="documents" element={<DocumentCenter />} />
           <Route path="inspections" element={<InspectionCenter />} />
           <Route path="rate-schedules" element={<RateScheduleCenter />} />
           <Route
             path="compliance/documents"
-            element={<Navigate to="/admin/transportation/documents" replace />}
+            element={<Navigate to="../documents" replace relative="path" />}
           />
           <Route
             path="compliance/rate-schedules"
-            element={<Navigate to="/admin/transportation/rate-schedules" replace />}
+            element={<Navigate to="../rate-schedules" replace relative="path" />}
           />
           <Route
             path="fleet"
-            element={<Navigate to="/admin/transportation/trucks" replace />}
+            element={<Navigate to="../trucks" replace relative="path" />}
           />
           <Route
             path="fleet/trucks"
-            element={<Navigate to="/admin/transportation/trucks" replace />}
+            element={<Navigate to="../../trucks" replace relative="path" />}
           />
           <Route
             path="fleet/inspections"
-            element={<Navigate to="/admin/transportation/inspections" replace />}
+            element={<Navigate to="../../inspections" replace relative="path" />}
           />
           <Route
             path="administration/audit"
-            element={<Navigate to="/admin/transportation/audit" replace />}
+            element={<Navigate to="../audit" replace relative="path" />}
           />
         </Routes>
       </div>
