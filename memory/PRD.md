@@ -11,7 +11,32 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
-## Latest Track (2026-02-10 · TRACK 16.12 · Transportation Operations Intelligence · ✅ GO)
+## Latest Track (2026-02-10 · TRACK 16.13 · Dispatch Decision Surface · ✅ GO)
+
+### Mission
+Surface the Track 16.12 intelligence engine inside the dispatcher assignment flow. Read-only, explainable, never weakens the Track 16.09 dispatch gate, never duplicates intelligence.
+
+### Verdict
+✅ **GO** — 32/32 new tests · 506/506 transport-track tests green · live endpoint returns 401 unauthenticated · backend healthy.
+
+### What shipped
+* `routes/dispatch_decision_surface.py` — `GET /api/dispatch/transportation/recommendation` (admin OR dispatch) + `POST /recommendation/audit` for viewed / selected / non_recommended_selected / ignored events.
+* Frontend `components/dispatch/DispatchDecisionChip.jsx` — chip + Why drawer + ranked alternatives + excluded section, mounted at the top of the existing AssignmentDrawer. Selecting populates `setNewDriverId` / `setNewTruckId` without bypassing the gate.
+* New audit collection `transport_dispatch_recommendation_audit` (5 kinds + failure kind).
+* `backend/tests/test_track_16_13_dispatch_decision_surface.py` — 32 tests, wired into deployment gate.
+
+### Hard guarantees
+* Track 16.09 dispatch hard-block untouched — final assignment still passes the unchanged gate.
+* Zero duplicated scoring logic — delegates to Track 16.12 recommendation engine.
+* Engine failure → `ok=false` graceful fallback with documented message; dispatch never blocked.
+* No SMS / push. No punitive vocabulary.
+
+### Documentation
+* `/app/memory/TRACK_16_13_DISPATCH_DECISION_SURFACE.md`
+
+---
+
+## Previous Track (2026-02-10 · TRACK 16.12 · Transportation Operations Intelligence · ✅ GO)
 
 ### Mission
 Build the deterministic intelligence engine that powers every Transportation decision. Not a dashboard, not a scorecard — one engine, every decision derives from it.

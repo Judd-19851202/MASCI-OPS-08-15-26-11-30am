@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import AttachmentStrip from "@/components/dispatch/AttachmentStrip";
 import OperationalMomentsRail from "@/components/dispatch/OperationalMomentsRail";
+import DispatchDecisionChip from "@/components/dispatch/DispatchDecisionChip";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -438,6 +439,18 @@ export default function AssignmentDrawer({
         </header>
 
         <section className="px-5 py-4 space-y-3">
+          {/* TRACK 16.13 · Dispatch Decision Surface · recommendation
+              chip + Why drawer. Read-only intelligence — never blocks
+              the existing assignment flow. */}
+          <DispatchDecisionChip
+            carrierId={assignment.carrier_id}
+            currentDriverId={assignment.driver_id}
+            currentTruckId={assignment.truck_id}
+            onSelectRecommendation={(triple) => {
+              if (triple?.driver?.driver_id) setNewDriverId(triple.driver.driver_id);
+              if (triple?.truck?.truck_id) setNewTruckId(triple.truck.truck_id);
+            }}
+          />
           <div className="grid grid-cols-2 gap-3 text-xs">
             <div>
               <div className="uppercase tracking-widest text-slate-400">{t("Current state")}</div>

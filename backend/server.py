@@ -12940,6 +12940,14 @@ from routes.transportation_intelligence import (  # noqa: E402
 register_track_16_12_routes(
     app, db, require_admin_dep=require_admin_strict)
 
+# TRACK 16.13 · Dispatch Decision Surface — read-only recommendation
+# endpoint + interaction audit. Admin OR dispatch token.
+from routes.dispatch_decision_surface import (  # noqa: E402
+    register_track_16_13_routes,
+)
+register_track_16_13_routes(
+    app, db, require_dispatch_or_admin_dep=_require_dispatch_or_admin)
+
 _transport_automation_task: Optional[asyncio.Task] = None
 
 
