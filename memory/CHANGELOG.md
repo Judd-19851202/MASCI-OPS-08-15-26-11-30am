@@ -1,5 +1,49 @@
 # CHANGELOG
 
+## 2026-02-10 — TRACK 18.11 · R8 Duplicate CTA Linter Calibration · 🟢 GO
+
+### Mission
+Finish the long-deferred R8 design-system rule with an allow-list-first, high-confidence, conservative scanner. R8 was first attempted in Track 18.09 (correctly deferred when naive proximity matching tripped on aria-labels, status pills, dropdown items, i18n catalog entries). Track 18.11 ships it properly.
+
+### R8 rule definition
+A `<Card>...</Card>` block is flagged when, **after** stripping exempt subtrees (Tables, DropdownMenus, Tabs, NavigationMenu, Pagination, Breadcrumb, Popover, Select, Sheet, Dialog, AlertDialog), it contains **≥ 2** `<Button>` elements that all pass the **primary-CTA signature**:
+- No `variant=` attribute matching `outline | ghost | link | secondary | destructive`
+- No dynamic `variant={...}` JSX expression (filter/toggle buttons)
+
+### Audit findings (15 workspaces)
+- **HrDriverQualificationDashboard.jsx** filter buttons initially flagged — confirmed as toggle filters with dynamic `variant={X ? "default" : "outline"}`. Scanner upgraded to recognize dynamic variant expressions as non-primary. **No code change required.**
+- **FieldLeadershipFormPage.jsx** inline "Add new employee" sub-panel — allow-listed with documented justification (conditional `{showInlineNewEmp && ...}` sub-panel doesn't visually compete with the main form submit at runtime; Cancel button on L842 is already outline, satisfying the paired-decision pattern within the sub-panel).
+- **All other 13 workspaces:** zero violations. Hub workspace cards each have exactly one "ENTER →" primary CTA — canonical R8-compliant pattern.
+
+### Files shipped
+- `backend/tests/r8_duplicate_cta.py` — R8 scanner module (allow-list-first, high-confidence, dynamic-variant detection, exempt-subtree stripping).
+- `backend/tests/test_track_18_07_design_system_linter.py` lines 455-525 — Live `test_lint_no_duplicate_cta_in_card` rule replaces the historical deferral marker. Reads allow-list from `R8_DUPLICATE_CTA_ALLOWLIST.md` at runtime.
+- `backend/tests/test_track_18_11_r8_duplicate_cta_linter.py` — **30 directive-mandated assertions** (audit/registry/allow-list existence, R8 implementation, 4 should-fail + 8 should-not-fail seeded fixtures, allow-list justification, actionable error message, R1–R7 preservation, route/auth/RBAC preservation, dispatch/driver preservation, no new collections, deployment-gate wiring, Track 18 family compilation, final certification).
+- `backend/tests/test_track_18_09_operational_friction_elimination.py` — Updated R8 deferral-anchor assertion to verify the 18.11 supersession is documented (no orphaned guard).
+
+### Documents
+- `memory/TRACK_18_11_R8_DUPLICATE_CTA_LINTER.md` — Executive summary, R8 rule definition, workstream results, GO certification.
+- `memory/R8_CTA_PATTERN_AUDIT.md` — 15-workspace audit, CTA hierarchy registry, audit findings table.
+- `memory/R8_DUPLICATE_CTA_ALLOWLIST.md` — Allow-list (1 entry: FieldLeadershipFormPage inline sub-panel), addition process, forbidden rationales.
+
+### Tests
+- **30/30 lock assertions PASS** in 0.10s.
+- Live R8 rule (`test_lint_no_duplicate_cta_in_card`) **PASS in 0.12s** on the real codebase.
+- **Track 18 family: 652/652 PASS** in 49s.
+- Full deployment gate: 1582/1583 PASS (single failure = known intermittent `test_track_15_93_zero_touch_bootstrap` timeout flake; passes solo in 2.04s).
+- `testing_agent_v3_fork`: **backend 100%, frontend 100%** — Hub workspace tiles each show single CTA, Mission Control renders with intact "Open X + View details →" pattern (primary + secondary), Dispatch Board renders, admin oversight doorway renders, no console errors.
+
+### Carve-outs preserved
+Zero runtime code changes · zero route changes · zero auth/RBAC changes · zero new endpoints · zero new collections · dispatch portal untouched · driver workflows untouched · R1–R7 + Track 18.09C + 18.10 contracts intact.
+
+### Six Pillars
+Powerful ✅ · Simple ✅ · Beautiful ✅ · Trusted ✅ · Proven ✅ · Operational ✅
+
+### Verdict
+🟢 GO. R8 is active. Future CTA drift fails the gate.
+
+
+
 ## 2026-02-10 — TRACK 18.10 · Governance Boundary Linter · 🟢 GO
 
 ### Mission

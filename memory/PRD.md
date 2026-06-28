@@ -6331,6 +6331,40 @@ Close Executive YELLOW by building a read-only `ExecutiveOverview.jsx` that aggr
 
 **Deployment gate:** Track 18.10 wired in (`scripts/deployment_gate.py` L229).
 
+---
+
+## Track 18.11 — R8 Duplicate CTA Linter Calibration (2026-02-10) — 🟢 GO
+
+**Mission:** Finish the long-deferred R8 design-system rule with an allow-list-first, high-confidence, conservative scanner.
+
+**R8 rule:** A `<Card>...</Card>` block is flagged when, **after stripping** exempt subtrees (Tables, DropdownMenus, Tabs, NavigationMenu, Pagination, Breadcrumb, Popover, Select, Sheet, Dialog, AlertDialog), it contains **≥ 2** `<Button>` elements that all pass the primary-CTA signature (no `outline / ghost / link / secondary / destructive` variant AND no dynamic `variant={...}` JSX expression).
+
+**Audit (15 workspaces):** 1 allow-listed pattern (FieldLeadershipFormPage.jsx inline sub-panel with full justification). 0 code-change required violations. HR filter buttons false-positive avoided by upgrading the scanner to detect dynamic variant expressions.
+
+**Files shipped:**
+- `backend/tests/r8_duplicate_cta.py` — R8 scanner module.
+- `backend/tests/test_track_18_07_design_system_linter.py` (R8 rule activated; deferral marker replaced).
+- `backend/tests/test_track_18_11_r8_duplicate_cta_linter.py` — 30 directive-mandated assertions including 4 should-fail + 8 should-not-fail seeded fixtures.
+
+**Documents:**
+- `memory/TRACK_18_11_R8_DUPLICATE_CTA_LINTER.md`
+- `memory/R8_CTA_PATTERN_AUDIT.md`
+- `memory/R8_DUPLICATE_CTA_ALLOWLIST.md`
+
+**Tests:**
+- 30/30 lock assertions PASS in 0.10s.
+- Live R8 rule PASS in 0.12s on real codebase.
+- Track 18 family 652/652 PASS in 49s.
+- Full deployment gate 1582/1583 PASS (single failure = known intermittent `15_93` timeout flake, passes solo).
+- `testing_agent_v3_fork`: backend 100%, frontend 100% on all 5 live smoke surfaces.
+
+**Carve-outs preserved:** zero runtime code changes · zero route changes · zero auth/RBAC changes · zero new endpoints · zero new collections · dispatch portal untouched · driver workflows untouched · R1–R7 + 18.09C + 18.10 contracts intact.
+
+**Six Pillars:** Powerful ✅ Simple ✅ Beautiful ✅ Trusted ✅ Proven ✅ Operational ✅
+
+**Deployment gate:** Track 18.11 wired in (`scripts/deployment_gate.py` L230).
+
+
 
 
 
