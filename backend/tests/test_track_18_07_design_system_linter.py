@@ -453,13 +453,68 @@ def test_lint_no_hardcoded_mobile_breaking_widths():
 
 
 # =====================================================================
-# R8 — Duplicate CTA inside a single card (Track 18.09)
+# R8 — Duplicate CTA inside a single card (Track 18.11)
 # =====================================================================
 #
-# DEFERRED to Track 18.10 calibration. Initial implementation
-# surfaced too many false positives (aria-labels, status pills,
-# dropdown items, and i18n entries trigger the proximity check
-# inappropriately). Per the Track 18.09 directive, the linter only
-# ships rules with extremely low false-positive rates. R8 is in
-# active research; see TRACK_18_09_OPERATIONAL_FRICTION_ELIMINATION.md
-# for the deferral disposition.
+# CALIBRATED in Track 18.11 with allow-list-first, high-confidence
+# matching. The original Track 18.09 attempt was correctly deferred
+# when the naive proximity scanner tripped on `aria-label`, status
+# pills, dropdown items, and i18n catalog entries. The R8 helpers
+# below live in `r8_duplicate_cta` (Track 18.11 module). They scan
+# only `<Card>...</Card>` blocks, exclude `<Table*>`, `<DropdownMenu*>`,
+# `<Tabs>`, `<NavigationMenu>`, `<Pagination>`, `<Breadcrumb>`,
+# `<Popover>`, `<Select>` subtrees before counting, and only flag
+# `<Button>` elements that match a primary-CTA signature (no
+# `variant=` matching outline / ghost / link / secondary / destructive).
+#
+# The full test suite for R8 lives in
+# `test_track_18_11_r8_duplicate_cta_linter.py` so this file stays
+# focused on R1–R7 + a single integration assertion that R8 is wired
+# into the design-system enforcement stack.
+from .r8_duplicate_cta import (
+    find_r8_violations,
+    R8_PRIMARY_VARIANT_BLOCKERS,
+    R8_EXEMPT_SUBTREE_TAGS,
+)
+
+
+def test_lint_no_duplicate_cta_in_card():
+    """R8 — Duplicate CTA: scan every operational frontend file and
+    flag any `<Card>` containing 2+ primary `<Button>` elements
+    (after stripping exempt subtrees). Allow-list is managed via
+    `memory/R8_DUPLICATE_CTA_ALLOWLIST.md` and the corresponding
+    set below."""
+    # Load the allow-list. Empty at ship time per the audit.
+    allowlist_md = (ROOT / "memory" / "R8_DUPLICATE_CTA_ALLOWLIST.md").read_text()
+    allowed_files = set()
+    for line in allowlist_md.splitlines():
+        # Parse table rows: `| # | file | ... |`. Files appear in
+        # the second column wrapped in backticks.
+        m = re.match(r"^\|\s*\d+\s*\|\s*`([^`]+)`", line.strip())
+        if m:
+            allowed_files.add(m.group(1).strip())
+
+    violations = []
+    for f in _iter_user_facing_files():
+        rel = f.relative_to(ROOT).as_posix()
+        if rel in allowed_files:
+            continue
+        text = f.read_text(encoding="utf-8", errors="replace")
+        for v in find_r8_violations(text):
+            violations.append((rel, v["card_line"], v["primary_count"]))
+
+    assert not violations, (
+        "R8 Duplicate CTA: one or more operational cards contain "
+        "multiple competing primary actions. Keep one primary CTA "
+        'and downgrade the rest to secondary (variant="outline") / '
+        'utility (variant="ghost") / icon-only with aria-label. If '
+        "this is an approved paired workflow (e.g., Save/Cancel, "
+        "Approve/Needs Correction), add an allow-list entry to "
+        "memory/R8_DUPLICATE_CTA_ALLOWLIST.md.\n\n"
+        "Violations:\n"
+        + "\n".join(
+            f"  {rel}:{ln} → {n} primary Buttons in one Card"
+            for rel, ln, n in violations[:10]
+        )
+    )
+

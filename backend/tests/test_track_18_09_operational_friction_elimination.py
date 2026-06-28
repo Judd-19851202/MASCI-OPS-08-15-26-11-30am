@@ -128,23 +128,35 @@ def test_tasks_search_placeholder_matches_server_scope():
 
 
 # =====================================================================
-# R8 deferral discipline
+# R8 deferral discipline — Track 18.11 superseded this contract
 # =====================================================================
 def test_r8_duplicate_cta_rule_is_deferred_not_shipped():
-    """Track 18.09 deferred R8. The linter file must carry the
-    deferral comment AND must not contain a callable
-    `test_lint_no_duplicate_cta_in_card` rule yet."""
+    """Track 18.09 deferred R8. Track 18.11 then shipped R8 with a
+    conservative, allow-list-first, high-confidence implementation
+    (`backend/tests/r8_duplicate_cta.py`). This assertion is kept as
+    a historical anchor and updated to verify the supersession is
+    documented in the Track 18.09 report and the linter has now
+    moved past the deferral marker."""
     linter = TESTS_DIR / "test_track_18_07_design_system_linter.py"
     src = linter.read_text()
-    assert "R8" in src and "DEFERRED" in src.upper(), (
-        "R8 deferral disposition must be documented inline in the linter "
-        "file. Did Track 18.10 prematurely ship R8 without removing the "
-        "deferral marker?"
+    # The historical "R8" reference still exists (now as the live
+    # rule comment + import).
+    assert "R8" in src, "R8 anchor missing from the design-system linter."
+    # The live R8 rule is in place.
+    assert "test_lint_no_duplicate_cta_in_card" in src, (
+        "Track 18.11 should have shipped R8. The live rule "
+        "`test_lint_no_duplicate_cta_in_card` is missing from "
+        "the design-system linter."
     )
-    assert "def test_lint_no_duplicate_cta_in_card" not in src, (
-        "R8 rule shipped without the deferral being closed — coordinate "
-        "with the 18.10 calibration before shipping."
-    )
+    # The Track 18.09 report disclosed the deferral — verify the
+    # historical disclosure is still there for audit-trail integrity.
+    track_18_09_report = MEMORY / "TRACK_18_09_OPERATIONAL_FRICTION_ELIMINATION.md"
+    if track_18_09_report.exists():
+        body = track_18_09_report.read_text()
+        assert "R8" in body and "deferred" in body.lower(), (
+            "Track 18.09 report no longer discloses the historical R8 "
+            "deferral. Audit trail broken."
+        )
 
 
 # =====================================================================
