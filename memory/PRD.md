@@ -11,7 +11,33 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
-## Latest Track (2026-02-10 · TRACK 16.13 · Dispatch Decision Surface · ✅ GO)
+## Latest Track (2026-02-10 · TRACK 16.14 · Dispatcher Learning Loop · ✅ GO)
+
+### Mission
+Convert the Track 16.13 recommendation audit collection into team-level operational learning. Admin-only, read-only, non-punitive, no emails, no individual scorekeeping.
+
+### Verdict
+✅ **GO** — 40/40 new tests · 546/546 transport-track tests green · live endpoint returns 401 unauthenticated · backend healthy.
+
+### What shipped
+* `lib/transport_dispatch_learning.py` — six read-only async builders + `record_learning_view` audit hook. SCHEMA_VERSION="16.14.0", default 30 days, cap 365.
+* `GET /api/admin/transportation/intelligence/dispatch-learning` (admin only) with `days`, `start`, `end`. Writes a `transport_dispatch_learning_viewed` audit row per view.
+* Frontend `pages/transportation/_intelligence.jsx` — new **Learning Loop** tab (`tx-intel-tab-learning`). Six summary cards · adoption trend · alternative-selection patterns · watch items · excluded patterns · engine tuning signals. Team-level disclaimer rendered.
+* `backend/tests/test_track_16_14_dispatcher_learning_loop.py` — 40 tests wired into deployment gate.
+
+### Hard guarantees
+* No per-dispatcher ranking. No individual performance language.
+* No emails / SMS / push.
+* No recommendation scoring duplication.
+* No assignment gate changes. No HR changes.
+* Forbidden punitive vocabulary absent from library + UI.
+
+### Documentation
+* `/app/memory/TRACK_16_14_DISPATCHER_LEARNING_LOOP.md`
+
+---
+
+## Previous Track (2026-02-10 · TRACK 16.13 · Dispatch Decision Surface · ✅ GO)
 
 ### Mission
 Surface the Track 16.12 intelligence engine inside the dispatcher assignment flow. Read-only, explainable, never weakens the Track 16.09 dispatch gate, never duplicates intelligence.

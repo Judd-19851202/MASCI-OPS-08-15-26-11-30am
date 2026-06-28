@@ -115,5 +115,63 @@ def register_track_16_12_routes(app, db, *, require_admin_dep) -> APIRouter:
             r.pop("_id", None)
         return {"count": len(rows), "items": rows}
 
+    @router.get("/dispatch-learning")
+    async def dispatch_learning(
+        days: int = Query(30, ge=1, le=365),
+        start: Optional[str] = Query(None),
+        end: Optional[str] = Query(None),
+        actor: Any = Depends(require_admin_dep),
+    ) -> Dict[str, Any]:
+        """TRACK 16.14 · Dispatcher Learning Loop.
+
+        Team-level operational insight derived from the existing
+        recommendation audit collection. Admin-gated, read-only,
+        non-punitive. Records a `transport_dispatch_learning_viewed`
+        audit row per view."""
+        from lib.transport_dispatch_learning import (
+            build_dispatch_learning_summary,
+            build_recommendation_adoption_trends,
+            build_common_alternative_reasons,
+            build_common_watch_items,
+            build_excluded_reason_patterns,
+            build_engine_tuning_signals,
+            record_learning_view,
+            SCHEMA_VERSION as LEARNING_SCHEMA,
+        )
+        summary_block = await build_dispatch_learning_summary(
+            db, start=start, end=end, days=days)
+        adoption = await build_recommendation_adoption_trends(db, days=days)
+        alt_reasons = await build_common_alternative_reasons(db, days=days)
+        watch_items = await build_common_watch_items(db, days=days)
+        excluded = await build_excluded_reason_patterns(db, days=days)
+        tuning = await build_engine_tuning_signals(db, days=days)
+        out = {
+            "ok": True,
+            "range": summary_block["range"],
+            "summary": summary_block["summary"],
+            "adoption": adoption,
+            "alternative_reasons": alt_reasons,
+            "watch_items": watch_items,
+            "excluded_patterns": excluded,
+            "tuning_signals": tuning,
+            "notes": [
+                "Team-level only — no individual scorekeeping.",
+                "Read-only derived analytics. Source: "
+                "transport_dispatch_recommendation_audit.",
+            ],
+            "schema_version": LEARNING_SCHEMA,
+            "generated_at": __import__("datetime").datetime.now(
+                __import__("datetime").timezone.utc).isoformat(),
+        }
+        # Best-effort view audit.
+        viewer_role = ((actor or {}).get("role")
+                        if isinstance(actor, dict) else "admin") or "admin"
+        viewer_id = ((actor or {}).get("id")
+                      if isinstance(actor, dict) else None)
+        await record_learning_view(
+            db, viewer_role=viewer_role, viewer_id=viewer_id,
+            range_info=out["range"], summary_counts=out["summary"])
+        return out
+
     app.include_router(router)
     return router

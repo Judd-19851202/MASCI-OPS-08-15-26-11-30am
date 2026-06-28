@@ -13,7 +13,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { NavLink, Routes, Route } from "react-router-dom";
 import {
   Activity, ListChecks, TrendingUp, RefreshCw, ShieldCheck, Star,
-  AlertTriangle, Users, Building2, Truck as TruckIcon,
+  AlertTriangle, Users, Building2, Truck as TruckIcon, GraduationCap,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { adminHeaders, PageHeader, EmptyState } from "./_shared";
@@ -25,6 +25,8 @@ const SUB_TABS = [
     testid: "tx-intel-tab-recs", icon: Star },
   { to: "predictions", label: "Predictions",
     testid: "tx-intel-tab-pred", icon: TrendingUp },
+  { to: "learning", label: "Learning Loop",
+    testid: "tx-intel-tab-learning", icon: GraduationCap },
 ];
 
 const BAND_PALETTE = {
@@ -75,6 +77,7 @@ export function IntelligenceCenter() {
         <Route index element={<ExecutiveDashboard />} />
         <Route path="recommendations" element={<RecommendationsPanel />} />
         <Route path="predictions" element={<PredictionsPanel />} />
+        <Route path="learning" element={<LearningLoopPanel />} />
       </Routes>
     </div>
   );
@@ -429,3 +432,201 @@ function ForecastList({ title, items, testid }) {
     </section>
   );
 }
+
+
+// ────────────────────────── Learning Loop ──────────────────────────
+// TRACK 16.14 · Team-level operational learning. NO individual
+// scorekeeping. NO emails. Read-only insight surface.
+function LearningLoopPanel() {
+  const [data, setData] = useState(null);
+  const [err, setErr] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [days, setDays] = useState(30);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const r = await api.get(
+        `/admin/transportation/intelligence/dispatch-learning?days=${days}`,
+        { headers: adminHeaders() });
+      setData(r.data); setErr(null);
+    } catch (e) {
+      setErr(e.response?.data?.detail || e.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [days]);
+  useEffect(() => { load(); }, [load]);
+
+  if (loading && !data) return <div data-testid="tx-intel-learning-loading" className="text-sm text-slate-500">Loading…</div>;
+  if (err) return <div data-testid="tx-intel-learning-error" className="text-sm text-rose-700">{err}</div>;
+  if (!data) return <EmptyState title="No dispatcher learning data yet" testid="tx-intel-learning-empty" />;
+
+  const s = data.summary || {};
+  const empty = !s.recommendations_generated;
+
+  return (
+    <div data-testid="tx-intel-learning" className="space-y-4">
+      <div className="flex items-center gap-2 text-sm">
+        <span className="text-slate-500">Window:</span>
+        {[7, 30, 90].map((n) => (
+          <button
+            key={n}
+            type="button"
+            onClick={() => setDays(n)}
+            className={`px-2 py-1 rounded text-xs border ${
+              days === n
+                ? "border-blue-600 text-blue-700 bg-blue-50"
+                : "border-slate-200 text-slate-600 hover:bg-slate-50"}`}
+            data-testid={`tx-intel-learning-days-${n}`}
+          >
+            {n} days
+          </button>
+        ))}
+        <button onClick={load} className="ml-auto inline-flex items-center gap-1 text-blue-600 hover:underline text-xs" data-testid="tx-intel-learning-refresh">
+          <RefreshCw className="h-3.5 w-3.5" /> Refresh
+        </button>
+      </div>
+
+      <div className="text-[10px] uppercase tracking-wide text-slate-400 -mt-1" data-testid="tx-intel-learning-disclaimer">
+        Team-level operational learning · no individual scorekeeping
+      </div>
+
+      {empty && (
+        <div className="rounded border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600" data-testid="tx-intel-learning-empty-state">
+          No dispatcher recommendation interactions captured yet in this window. Once dispatchers use the Decision Surface, insights will appear here.
+        </div>
+      )}
+
+      <section className="grid grid-cols-2 lg:grid-cols-6 gap-3" data-testid="tx-intel-learning-summary">
+        <SummaryCard label="Generated" value={s.recommendations_generated ?? 0} testid="tx-intel-learning-generated" />
+        <SummaryCard label="Viewed" value={s.recommendations_viewed ?? 0} testid="tx-intel-learning-viewed" />
+        <SummaryCard label="Recommended selected" value={s.recommended_selected ?? 0} accent="emerald" testid="tx-intel-learning-selected" />
+        <SummaryCard label="Eligible alternative" value={s.eligible_alternative_selected ?? 0} accent="amber" testid="tx-intel-learning-alt" />
+        <SummaryCard label="Ignored" value={s.ignored ?? 0} testid="tx-intel-learning-ignored" />
+        <SummaryCard label="Unavailable" value={s.recommendation_unavailable ?? 0} accent="rose" testid="tx-intel-learning-unavailable" />
+      </section>
+
+      <section className="border border-slate-200 rounded-md bg-white p-4" data-testid="tx-intel-learning-adoption">
+        <h3 className="font-semibold text-slate-800 mb-2">Adoption Trend</h3>
+        {(data.adoption?.points || []).length === 0 ? (
+          <div className="text-xs text-slate-500">No data points in this window.</div>
+        ) : (
+          <ul className="space-y-1 text-xs max-h-60 overflow-y-auto">
+            {data.adoption.points.map((p) => (
+              <li key={p.date} className="flex items-center justify-between border-b border-slate-100 py-1"
+                  data-testid={`tx-intel-learning-adoption-${p.date}`}>
+                <span className="text-slate-700">{p.date}</span>
+                <span className="font-mono text-[11px] text-slate-600">
+                  {p.generated} gen · {p.selected} sel · {p.non_recommended_selected} alt · {p.ignored} ign · {p.adoption_pct == null ? "—" : `${p.adoption_pct}%`}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <PatternList
+        title="Common alternative-selection patterns"
+        emptyLabel="No alternative-selection notes captured."
+        items={(data.alternative_reasons?.patterns || []).map((p) => ({
+          label: p.label, count: p.count, suffix: `${p.share_pct ?? 0}% of alt-selections`,
+        }))}
+        testid="tx-intel-learning-alt-reasons"
+      />
+
+      <PatternList
+        title="Watch item patterns"
+        emptyLabel="No watch items captured yet."
+        items={(data.watch_items?.patterns || []).map((p) => ({
+          label: p.label, count: p.count,
+        }))}
+        testid="tx-intel-learning-watch"
+      />
+
+      <PatternList
+        title="Excluded option patterns"
+        emptyLabel="No excluded entries yet."
+        items={(data.excluded_patterns?.patterns || []).map((p) => ({
+          label: p.label, count: p.count,
+        }))}
+        footer={data.excluded_patterns?.total_excluded_entities
+          ? `${data.excluded_patterns.total_excluded_entities} excluded entities`
+          : null}
+        testid="tx-intel-learning-excluded"
+      />
+
+      <section className="border border-slate-200 rounded-md bg-white p-4" data-testid="tx-intel-learning-tuning">
+        <h3 className="font-semibold text-slate-800 mb-2">Engine Tuning Signals</h3>
+        {(data.tuning_signals?.signals || []).length === 0 ? (
+          <div className="text-xs text-slate-500">No tuning signals — system is operating within expected ranges.</div>
+        ) : (
+          <ul className="space-y-2 text-xs">
+            {data.tuning_signals.signals.map((sig) => (
+              <li key={sig.code}
+                  className="rounded border border-slate-200 px-3 py-2"
+                  data-testid={`tx-intel-learning-tuning-${sig.code}`}>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase tracking-wider text-slate-500">{sig.kind}</span>
+                  <span className="font-mono text-[10px] text-slate-500">count {sig.count}{sig.share_pct != null ? ` · ${sig.share_pct}%` : ""}</span>
+                </div>
+                <div className="text-slate-900 font-medium mt-0.5">{sig.label}</div>
+                <div className="text-slate-600 mt-0.5">{sig.detail}</div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <div className="text-[10px] uppercase tracking-wide text-slate-400">
+        Schema {data.schema_version} · Window {data.range?.days} days · Generated {(data.generated_at || "").slice(0, 19).replace("T", " ")}
+      </div>
+      {(data.notes || []).length > 0 && (
+        <ul className="text-[10px] text-slate-500 list-disc pl-4" data-testid="tx-intel-learning-notes">
+          {data.notes.map((n, i) => (<li key={i}>{n}</li>))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function SummaryCard({ label, value, accent, testid }) {
+  const palette = {
+    emerald: "border-emerald-300 bg-emerald-50 text-emerald-900",
+    amber: "border-amber-300 bg-amber-50 text-amber-900",
+    rose: "border-rose-300 bg-rose-50 text-rose-900",
+  }[accent] || "border-slate-200 bg-white text-slate-900";
+  return (
+    <div className={`rounded-md border px-3 py-2 ${palette}`} data-testid={testid}>
+      <div className="text-[10px] uppercase tracking-wider opacity-80">{label}</div>
+      <div className="text-xl font-semibold mt-0.5">{value}</div>
+    </div>
+  );
+}
+
+function PatternList({ title, items, emptyLabel, footer, testid }) {
+  return (
+    <section className="border border-slate-200 rounded-md bg-white p-4" data-testid={testid}>
+      <h3 className="font-semibold text-slate-800 mb-2">{title}</h3>
+      {(!items || items.length === 0) ? (
+        <div className="text-xs text-slate-500">{emptyLabel}</div>
+      ) : (
+        <ul className="space-y-1 text-xs">
+          {items.map((it, i) => (
+            <li key={i} className="flex items-center justify-between border-b border-slate-100 py-1"
+                data-testid={`${testid}-item-${i}`}>
+              <span className="text-slate-800">{it.label}</span>
+              <span className="font-mono text-[11px] text-slate-600">
+                {it.count}{it.suffix ? ` · ${it.suffix}` : ""}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {footer && (
+        <div className="text-[10px] uppercase tracking-wide text-slate-400 mt-2">{footer}</div>
+      )}
+    </section>
+  );
+}
+
