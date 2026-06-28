@@ -11,6 +11,32 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-02-10 · TRACK 18.00 Phase C · RBAC-aware Universal Search · ✅ GO)
+
+### Mission
+One search bar across the Transportation Operations parent shell. Single composer endpoint `GET /api/admin/transportation/search` fans out across existing collections (drivers · carriers · trucks · dispatch_assignments · projects · documents · orientation · action_items), filters per portal-token RBAC, returns grouped deep-linked results.
+
+### Verdict
+✅ **GO** — 23/23 Phase C tests · 55/55 cross-track regression (Phase A + B + 16.15A + 16.16) · `testing_agent_v3_fork` FULL BACKEND PASS · 15/15 live RBAC matrix tests verified against deployed preview with all 7 portal tokens · `retest_needed=false`.
+
+### What shipped
+* `routes/transportation_search.py` — composer endpoint with `_types_for_role` RBAC keyed off the `_actor` field set by `make_require_any_portal_token`. Schema version `18.00C`. Safe `re.escape()` · default limit 20 · max 50.
+* `pages/transportation/TransportationSearch.jsx` — debounced 300 ms search bar with `/` keyboard shortcut, grouped drawer, status chips, deep-link click handlers, empty/error/loading/clear affordances.
+* Mounted at top of Transportation Operations shell on every workspace via `txops-search-rail`.
+* Audit row inserted into `audit_events` with `kind=transportation_search_performed`, PII-safe (`query_prefix` first 3 chars + `query_length`, NOT full query). Verified live in Mongo.
+* 23 regression tests, wired into deployment gate.
+
+### Hard guarantees
+* No new collection · no new index · no new business logic.
+* Exactly ONE insert per search (audit row only).
+* HR cannot leak trucks group (verified).
+* Phase A shell + Phase B Mission Control preserved.
+
+### Documentation
+* `/app/memory/TRACK_18_00_PHASE_C_RBAC_AWARE_UNIVERSAL_SEARCH.md`
+
+---
+
 ## Latest Track (2026-02-10 · TRACK 18.00 Phase B · Mission Control · ✅ GO)
 
 ### Mission
