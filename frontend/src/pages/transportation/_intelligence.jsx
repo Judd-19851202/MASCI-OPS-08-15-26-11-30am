@@ -221,7 +221,7 @@ function PerformerList({ title, data, negative, testid }) {
               </li>
             ))}
             {(!data?.[cat] || data[cat].length === 0) && (
-              <li className="text-[11px] text-slate-400">No data</li>
+              <li className="text-[11px] text-slate-400">No {cat} scored yet</li>
             )}
           </ul>
         </div>

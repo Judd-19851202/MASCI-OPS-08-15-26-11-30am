@@ -50,7 +50,7 @@ const TRANSFER_PILL = {
 export default function AdminDispatch() {
   const [tab, setTab] = useState("overview");
   return (
-    <AdminShell title="Dispatch Portal">
+    <AdminShell title="Transportation Operations">
       <div className="max-w-7xl mx-auto" data-testid="admin-dispatch-page">
         <div className="bg-white border border-slate-200 rounded-md p-5 mb-4">
           <div className="flex items-start gap-3">

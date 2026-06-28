@@ -152,7 +152,7 @@ export default function DeployRecovery() {
             <ol className="ml-5 list-decimal space-y-1">
               <li>Hit <code>GET /api/health</code> → expect 200.</li>
               <li>Hit <code>POST /api/auth/multi-login</code> with the super-admin account → expect all 6 portal tokens.</li>
-              <li>Open <Link to="/admin/dispatch" className="font-bold underline">Dispatch Portal</Link> → confirm Utilization renders.</li>
+              <li>Open <Link to="/admin/dispatch" className="font-bold underline">Transportation Operations</Link> → confirm Utilization renders.</li>
               <li>Open this page → confirm overall System Health is green.</li>
               <li>If all green for 60 s straight, announce "deploy stable" to the team.</li>
             </ol>

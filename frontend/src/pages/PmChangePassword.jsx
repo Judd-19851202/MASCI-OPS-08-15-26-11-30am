@@ -109,7 +109,7 @@ export default function PmChangePassword() {
             className="inline-flex items-center text-white hover:text-amber-300 text-sm font-bold uppercase tracking-wide"
             data-testid="pm-change-pw-back"
           >
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("PM Portal")}
+            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Project Management")}
           </Link>
           <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/pm" />
           <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/pm" />

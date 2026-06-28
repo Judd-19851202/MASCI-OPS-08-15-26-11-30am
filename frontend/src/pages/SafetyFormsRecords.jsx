@@ -135,7 +135,7 @@ export default function SafetyFormsRecords() {
             <Package className="w-6 h-6 mt-1 text-slate-700 shrink-0" />
             <div className="min-w-0 flex-1">
               <span className="font-mono text-xs uppercase tracking-[0.22em] text-cyan-700 font-bold">
-                {t("Safety Portal")}
+                {t("Safety Operations")}
               </span>
               <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight mt-0.5">
                 {t("Equipment & PPE Accountability")}

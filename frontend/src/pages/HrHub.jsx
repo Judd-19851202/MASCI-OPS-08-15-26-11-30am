@@ -233,7 +233,7 @@ export default function HrHub() {
 
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-8">
         <div className={`font-mono text-xs uppercase tracking-[0.2em] ${HR_PAL.hubKicker}`}>
-          <ShieldCheck className="w-3.5 h-3.5 inline mr-1" /> {t("HR Portal")} · {user?.name || ""}
+          <ShieldCheck className="w-3.5 h-3.5 inline mr-1" /> {t("Human Resources")} · {user?.name || ""}
         </div>
         <h1 className="font-display text-3xl sm:text-4xl font-black mt-1">{t("Employee Records & Accountability")}</h1>
         <p className="text-slate-600 mt-2 max-w-2xl">

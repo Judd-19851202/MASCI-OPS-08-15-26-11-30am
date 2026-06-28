@@ -115,7 +115,7 @@ export default function HrChangePassword() {
             className="inline-flex items-center text-white hover:text-purple-300 text-sm font-bold uppercase tracking-wide"
             data-testid="hr-change-pw-back"
           >
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("HR Portal")}
+            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Human Resources")}
           </Link>
           <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/hr" />
           <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/hr" />

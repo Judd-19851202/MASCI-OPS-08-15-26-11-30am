@@ -41,7 +41,7 @@ export default function FieldLeadershipRecords() {
   // locally and pass `to` + `label` explicitly.
   const backTo = admin ? "/admin" : pm ? "/pm" : "/leadership";
   const backLabel = admin
-    ? t("Admin Console")
+    ? t("Administration")
     : pm
     ? t("PM Hub")
     : t("Field Leadership");

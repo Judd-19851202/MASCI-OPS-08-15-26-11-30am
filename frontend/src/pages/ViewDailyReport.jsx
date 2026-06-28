@@ -281,7 +281,7 @@ export default function ViewDailyReport() {
             className="no-print -mt-2 text-[11px] font-mono uppercase tracking-[0.18em] text-slate-500"
           >
             <Link to="/pm/command-center" className="hover:text-red-700 hover:underline font-bold">
-              {t("PM Portal")}
+              {t("Project Management")}
             </Link>
             <span className="mx-1 text-slate-400">/</span>
             <Link to="/pm/command-center" className="hover:text-red-700 hover:underline font-bold">

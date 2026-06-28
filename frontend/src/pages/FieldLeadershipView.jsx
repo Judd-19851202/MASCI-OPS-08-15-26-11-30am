@@ -114,7 +114,7 @@ export default function FieldLeadershipView() {
             data-testid="leadership-view-back-hub"
           >
             <ArrowLeft className="w-3.5 h-3.5" />{" "}
-            {isAdmin() ? t("Admin Console") : getPmToken() ? t("PM Hub") : t("Field Leadership")}
+            {isAdmin() ? t("Administration") : getPmToken() ? t("Project Management") : t("Field Leadership")}
           </Link>
         </div>
 

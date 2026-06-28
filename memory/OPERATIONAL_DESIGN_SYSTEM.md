@@ -281,3 +281,18 @@ Track 18.06 audited every authenticated workspace against this system. See
 
 Every future track must reference this document. Drift is blocked by
 `backend/tests/test_track_18_06_operational_design_system.py`.
+
+---
+
+## §22 — Audit Timeline Date Format (Track 18.07 addition)
+
+| Recency | Pattern | Example |
+|---|---|---|
+| Today | `Today · h:mm A` | `Today · 2:14 PM` |
+| Older this year | `MMM d · h:mm A` | `Jun 28 · 2:14 PM` |
+| Prior years | `MMM d, yyyy · h:mm A` | `Jun 28, 2025 · 2:14 PM` |
+| Detailed audit view | adds timezone abbreviation when available | `Jun 28 · 2:14 PM EST` |
+
+**Banned:** raw ISO strings · uncontextualized "ago" without absolute date on hover · inconsistent month casing (must be `Jun`, not `JUN` or `jun`).
+
+Applies across Transportation, Admin, Operations, HR, Safety, PM, Shop, and Right Rail audit/timeline surfaces.

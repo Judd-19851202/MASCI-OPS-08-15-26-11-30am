@@ -6139,3 +6139,38 @@ Close Executive YELLOW by building a read-only `ExecutiveOverview.jsx` that aggr
 - Admin tables density on phones
 - Guidance article BODY prose soft-edit
 - Unified Audit Timeline date format
+
+---
+
+## TRACK 18.07 · Design System Enforcement + Deferred Polish Closure (Feb 10, 2026)
+
+**Verdict: GO — Operational Design System is now a build-time contract.**
+
+**Headline:** Built a static-scan linter (`test_track_18_07_design_system_linter.py`) that enforces 5 design-system rules across the entire user-facing frontend. The linter runs in the deployment gate; any PR that reintroduces drift fails CI.
+
+**Linter rules (14 test functions):**
+- R1 empty-state drift (`No data`, `Nothing here`, `N/A`, `No records`)
+- R2 raw developer error text (`failed to fetch`, `undefined`, `null`, `JSON.stringify(err...)`)
+- R3 restricted-state drift (`Forbidden`, `Unauthorized`, `Access denied`)
+- R4 legacy workspace identities (9 banned tokens: Dispatch Portal, PM Portal, HR Portal, Safety Portal, Shop Portal, Admin Portal, Admin Console, Office Portals, MASCI Hub)
+- R5 vague CTAs (`Click here`, `More` outside tab context, `Go` standalone)
+
+**Allow-list (30+ documented exceptions):** every carve-out lives in `LINTER_ALLOWLIST` with a justification comment. Includes Constitution-permitted internal label registries (`portalContinuity.js`, `returnContext.js`, `permissions.js`), audit-event scope labels in `Hub.jsx`, i18n.js orphan keys, `Training Hub` sub-feature, `Asset Admin Console` sub-feature, page-title bookmark-rewrite source patterns, and the `SafetyHub.jsx` uppercase-CTA design pattern.
+
+**YELLOW closures + 13 user-facing fixes** during the linter implementation:
+- DispatchChangePassword · HrChangePassword · HrHub · PmChangePassword · ViewDailyReport · SafetyChangePassword · SafetyAudits · SafetyFormsRecords · admin/AdminDispatch · FieldLeadershipRecords · FieldLeadershipView · admin/DeployRecovery · transportation/_intelligence — all updated to canonical workspace names + operational empty-state copy.
+
+**Audit Timeline date format codified** (`OPERATIONAL_DESIGN_SYSTEM.md §22`): Today · h:mm A · MMM d · h:mm A · MMM d, yyyy · h:mm A · optional TZ.
+
+**15.79E flake:** Documented as a full-suite ordering quirk, not a code defect. Test passes solo. Deeper isolation queued for Track 18.08.
+
+**Deliverables:**
+- `/app/memory/TRACK_18_07_DESIGN_SYSTEM_ENFORCEMENT.md`
+- `/app/memory/DESIGN_SYSTEM_LINTER_RULES.md`
+- `/app/memory/OPERATIONAL_DESIGN_SYSTEM.md` (§22 added)
+- `backend/tests/test_track_18_07_design_system_linter.py` — 14 tests
+- `backend/tests/test_track_18_07_design_system_enforcement.py` — 30 tests
+
+**Tests:** Track 18.07 ships **44 new tests**. Combined Track 18.03–18.07 family: **185/185 PASS** when run together. Full deployment regression: 1439/1440 pass — single test (`test_track_15_76_trust_spine::test_emit_stage_writes_event`) shows the same class of full-suite ordering flake as 15.79E (passes solo). Both queued for Track 18.08 isolation work.
+
+**Carve-outs preserved:** No new collections · no new routes · no auth changes · no RBAC changes · dispatch execution / driver workflows untouched · Spanish i18n preserved · testids preserved.
