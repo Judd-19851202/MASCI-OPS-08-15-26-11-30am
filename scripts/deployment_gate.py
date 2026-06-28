@@ -219,6 +219,7 @@ REGRESSION_FILES = [
     "/app/backend/tests/test_track_18_03_platform_language_constitution.py",
     "/app/backend/tests/test_track_18_04_platform_language_migration.py",
     "/app/backend/tests/test_track_18_05_operational_excellence.py",
+    "/app/backend/tests/test_track_18_06_operational_design_system.py",
 ]
 
 DEFAULT_BASE_URL = (

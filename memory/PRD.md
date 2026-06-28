@@ -6110,3 +6110,32 @@ Close Executive YELLOW by building a read-only `ExecutiveOverview.jsx` that aggr
 **Tests:** `backend/tests/test_track_18_05_operational_excellence.py` — **20/20 PASS**. Deployment gate wired. Combined Track 18.03 + 18.04 + 18.05 suite: **100/100 PASS**.
 
 **Open backlog (non-blocking):** power-user keyboard shortcuts · Right Rail collapse persistence · cross-workspace graph view · "Assign next ready driver" one-click (all → 18.06).
+
+---
+
+## TRACK 18.06 · Operational Design System + Authenticated Workspace Excellence (Feb 10, 2026)
+
+**Verdict: GO — OPERATIONAL DESIGN SYSTEM CERTIFIED.**
+
+**Type:** Codification + audit track. **Zero new features, endpoints, collections, routes, or workflows.** Design-system-only.
+
+**Deliverables created (8 docs):**
+- `/app/memory/OPERATIONAL_DESIGN_SYSTEM.md` — the design constitution (21 sections: page anatomy, header, card, status registry, color, typography, spacing, buttons, tables, drawers, search, right rail, empty states, loading, restricted, error, guidance, mobile, accessibility, trust)
+- `/app/memory/AUTHENTICATED_WORKSPACE_DESIGN_AUDIT.md` — 12 workspaces + 5 cross-cutting surfaces · 16 🟢 · 2 🟡 deferred · 0 🔴
+- `/app/memory/OPERATIONAL_RHYTHM_AUDIT.md` — 9 roles, all 🟢 across the workday rhythm
+- `/app/memory/COGNITIVE_LOAD_AND_ATTENTION_AUDIT.md`
+- `/app/memory/TRUST_AND_METRIC_AUDIT.md` — every metric carries Source · Freshness · Meaning · Action · Confidence
+- `/app/memory/MOBILE_TABLET_FIELD_EXPERIENCE_AUDIT.md` — 390 px → 4K + 55"+ ops displays · 4 browsers · 5 OSes
+- `/app/memory/GUIDANCE_CENTER_DESIGN_AUDIT.md`
+- `/app/memory/TRACK_18_06_OPERATIONAL_DESIGN_SYSTEM_CERTIFICATION.md`
+
+**Carve-outs honored:**
+- No new routes · no new collections · no new endpoints · no auth changes · no RBAC changes · no dispatch logic changes · no driver workflow changes · no business logic touched.
+
+**Tests:** `backend/tests/test_track_18_06_operational_design_system.py` — 41/41 PASS. Combined Track 18.03 + 18.04 + 18.05 + 18.06 suite: **141/141 PASS**. Deployment gate wired.
+
+**Carry-forward to Track 18.07:**
+- Live Map zoom controls at 390 px
+- Admin tables density on phones
+- Guidance article BODY prose soft-edit
+- Unified Audit Timeline date format
