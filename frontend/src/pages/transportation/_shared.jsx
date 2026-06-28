@@ -12,10 +12,10 @@ import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Building2, UserRound, Truck, ShieldCheck,
   FileText, ClipboardCheck, DollarSign, History, BarChart3,
-  GraduationCap, ListChecks, Activity,
+  GraduationCap, ListChecks, Activity, Lock,
 } from "lucide-react";
 import { api } from "@/lib/api";
-import { getAdminToken } from "@/lib/adminAuth";
+import { getAdminToken, isAdmin } from "@/lib/adminAuth";
 
 export const TENANT = "masci";
 
@@ -161,13 +161,14 @@ export const TX_OPS_NAV_GROUPS = [
 
 export function TransportationSubNav() {
   const prefix = useTxPathPrefix();
+  const groups = visibleTxOpsNavGroups();
   return (
     <nav
       className="space-y-2 border-b border-slate-200 pb-3 mb-4"
       data-testid="transportation-subnav"
       aria-label="Transportation Operations navigation"
     >
-      {TX_OPS_NAV_GROUPS.map((group) => (
+      {groups.map((group) => (
         <div
           key={group.key}
           data-testid={group.testid}
@@ -242,24 +243,107 @@ export function EmptyState({ title, hint, testid }) {
 }
 
 export function txGet(path, params) {
-  // TRACK 18.12B · Restricted-state plumbing.
+  // TRACK 18.12B · Restricted-state plumbing — the single 401/403-safe
+  // doorway for every Transportation Operations data loader.
   //
-  // Every Transportation Operations data loader calls into admin-strict
+  // Every Transportation Operations workspace calls admin-strict
   // /api/admin/transportation/* endpoints. For dispatch / non-admin
   // transportation tokens those endpoints return 401/403. Letting the
   // raw axios rejection bubble up triggers React's dev runtime-error
-  // overlay across Drivers / Carriers / Orientation / Intelligence /
-  // Audit / Automation. Loaders ALREADY render TxOpsRestrictedData
-  // when they receive a `restricted` marker — so we silence 401/403
-  // here and resolve with an empty, restricted-tagged payload. Other
-  // HTTP errors still throw, preserving real error reporting.
-  return api.get(path, { headers: adminHeaders(), params }).catch((err) => {
-    const status = err?.response?.status;
-    if (status === 401 || status === 403) {
-      return { data: { restricted: true, rows: [], items: [], signals: [], records: [] }, __txRestricted: true };
-    }
-    throw err;
-  });
+  // overlay AND surfaces raw "Admin login required" / "Request failed
+  // with status code 401" copy in the operational chrome — both
+  // forbidden by Track 18.12B doctrine. We silence 401/403 here and
+  // resolve with a restricted-tagged payload. Loaders inspect the
+  // marker via `isTxRestricted()` and render <TxOpsRestrictedData />
+  // (or workspace-level <TxOpsRestricted />). Other HTTP errors still
+  // throw, preserving real error reporting.
+  return api
+    .get(path, { headers: adminHeaders(), params, skipSessionStatus: true })
+    .catch((err) => {
+      const status = err?.response?.status;
+      if (status === 401 || status === 403) {
+        return {
+          data: {
+            restricted: true,
+            rows: [],
+            items: [],
+            signals: [],
+            records: [],
+          },
+          status,
+          __txRestricted: true,
+        };
+      }
+      throw err;
+    });
+}
+
+// TRACK 18.12B · Detection helper.
+// True when the response was synthesised by txGet's 401/403 absorption
+// path. Loaders use it to render a Transportation-branded restricted
+// state instead of an empty grid / silent failure.
+export function isTxRestricted(r) {
+  if (!r) return false;
+  if (r.__txRestricted === true) return true;
+  if (r.data && r.data.restricted === true) return true;
+  return false;
+}
+
+// TRACK 18.12B · txCatch — error-message normaliser for legacy loaders
+// that wrap their own try/catch. Strips the forbidden "Admin login
+// required" / "Request failed with status code 4xx" / "Forbidden" /
+// "Unauthorized" tokens before they hit any user-facing surface.
+// Returns null for absorbed auth failures (caller should render a
+// restricted state); returns a human-safe message string otherwise.
+export function txCatch(err) {
+  const status = err?.response?.status;
+  if (status === 401 || status === 403) return null;
+  const raw =
+    err?.response?.data?.detail ||
+    err?.message ||
+    "Unable to load right now.";
+  const safe = String(raw)
+    .replace(/Admin login required\.?/gi, "")
+    .replace(/Request failed with status code 4\d{2}/gi, "")
+    .replace(/^Forbidden$/i, "")
+    .replace(/^Unauthorized$/i, "")
+    .trim();
+  return safe || "Unable to load right now.";
+}
+
+// TRACK 18.12B · TxOpsRestricted helpers re-exported so Transportation
+// loaders can adopt them without a new import line. Kept thin —
+// rendering is owned by /components/transportation/TxOpsRestricted.
+export function TxOpsLoaderRestricted({ workspace, testid }) {
+  return (
+    <div
+      data-testid={testid || "txops-loader-restricted"}
+      className="rounded-md border border-amber-300/40 bg-amber-50/60 px-4 py-6 text-center"
+    >
+      <Lock className="mx-auto h-5 w-5 text-amber-700 mb-2" aria-hidden />
+      <div className="text-[11px] uppercase tracking-wider font-semibold text-amber-800">
+        Transportation Operations
+      </div>
+      <p className="mt-1 text-sm text-slate-700 max-w-md mx-auto">
+        {workspace
+          ? `This Transportation workspace (${workspace}) is restricted for your role.`
+          : "This Transportation data is not available for your role."}
+      </p>
+      <p className="mt-1 text-xs text-slate-500">
+        Contact your dispatcher lead or operations manager to request access.
+      </p>
+    </div>
+  );
+}
+
+// TRACK 18.12B · Role-aware nav filter.
+// Administration is admin-governance only (Bucket C). Hide the whole
+// group for non-admin tokens so dispatchers never see a workspace
+// that immediately throws 401/403.
+export function visibleTxOpsNavGroups() {
+  const admin = isAdmin();
+  if (admin) return TX_OPS_NAV_GROUPS;
+  return TX_OPS_NAV_GROUPS.filter((g) => g.key !== "administration");
 }
 
 /**

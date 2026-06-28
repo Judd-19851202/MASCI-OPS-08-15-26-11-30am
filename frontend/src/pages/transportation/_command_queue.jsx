@@ -15,7 +15,8 @@ import {
   CheckCircle2, X,
 } from "lucide-react";
 import { api } from "@/lib/api";
-import { adminHeaders, Chip, PageHeader, EmptyState, useTxPathPrefix } from "./_shared";
+import { adminHeaders, Chip, PageHeader, EmptyState, useTxPathPrefix, txGet, isTxRestricted, txCatch } from "./_shared";
+import { TxOpsRestrictedData } from "@/components/transportation/TxOpsRestricted";
 
 const SUB_TABS = [
   { to: "", label: "Morning Queue", end: true, testid: "tx-cq-tab-queue" },
@@ -61,15 +62,18 @@ export function CommandQueueCenter() {
 // ────────────────────────────────────────────────────────────────────
 function MorningQueue() {
   const [data, setData] = useState(null);
+  const [restricted, setRestricted] = useState(false);
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(null);
   const load = useCallback(async () => {
     try {
-      const r = await api.get("/admin/transportation/automation/actions?status=open",
-        { headers: adminHeaders() });
+      const r = await txGet("/admin/transportation/automation/actions", { status: "open" });
+      if (isTxRestricted(r)) { setRestricted(true); return; }
       setData(r.data);
     } catch (e) {
-      setErr(e.response?.data?.detail || e.message);
+      const safe = txCatch(e);
+      if (safe == null) { setRestricted(true); return; }
+      setErr(safe);
     }
   }, []);
   useEffect(() => { load(); }, [load]);
@@ -81,12 +85,13 @@ function MorningQueue() {
         { status }, { headers: adminHeaders() });
       await load();
     } catch (e) {
-      alert(e.response?.data?.detail || e.message);
+      alert(txCatch(e) || "Permission denied.");
     } finally {
       setBusy(null);
     }
   };
 
+  if (restricted) return <TxOpsRestrictedData testid="tx-cq-restricted" />;
   if (err) return <EmptyState title="Command queue unavailable" hint={err} testid="tx-cq-err" />;
   if (!data) return <div data-testid="tx-cq-loading" className="text-slate-500 text-sm">Loading…</div>;
 
@@ -174,16 +179,19 @@ function AutomationHealth() {
 
 function AutomationHealthCore() {
   const [data, setData] = useState(null);
+  const [restricted, setRestricted] = useState(false);
   const [err, setErr] = useState(null);
   const [running, setRunning] = useState(false);
   const [runResult, setRunResult] = useState(null);
   const load = useCallback(async () => {
     try {
-      const r = await api.get("/admin/transportation/automation/health",
-        { headers: adminHeaders() });
+      const r = await txGet("/admin/transportation/automation/health");
+      if (isTxRestricted(r)) { setRestricted(true); return; }
       setData(r.data);
     } catch (e) {
-      setErr(e.response?.data?.detail || e.message);
+      const safe = txCatch(e);
+      if (safe == null) { setRestricted(true); return; }
+      setErr(safe);
     }
   }, []);
   useEffect(() => { load(); }, [load]);
@@ -199,12 +207,13 @@ function AutomationHealthCore() {
       setRunResult(r.data);
       await load();
     } catch (e) {
-      setRunResult({ ok: false, error: e.response?.data?.detail || e.message });
+      setRunResult({ ok: false, error: txCatch(e) || "Permission denied." });
     } finally {
       setRunning(false);
     }
   };
 
+  if (restricted) return <TxOpsRestrictedData testid="tx-cq-health-restricted" />;
   if (err) return <EmptyState title="Health unavailable" hint={err} testid="tx-cq-health-err" />;
   if (!data) return <div data-testid="tx-cq-health-loading" className="text-slate-500 text-sm">Loading…</div>;
   const last = data.last_run;
@@ -310,13 +319,21 @@ function Row({ label, value }) {
 // ────────────────────────────────────────────────────────────────────
 function ComplianceForecast() {
   const [data, setData] = useState(null);
+  const [restricted, setRestricted] = useState(false);
   const [err, setErr] = useState(null);
   useEffect(() => {
-    api.get("/admin/transportation/automation/forecast",
-      { headers: adminHeaders() })
-      .then(r => setData(r.data))
-      .catch(e => setErr(e.response?.data?.detail || e.message));
+    txGet("/admin/transportation/automation/forecast")
+      .then(r => {
+        if (isTxRestricted(r)) { setRestricted(true); return; }
+        setData(r.data);
+      })
+      .catch(e => {
+        const safe = txCatch(e);
+        if (safe == null) { setRestricted(true); return; }
+        setErr(safe);
+      });
   }, []);
+  if (restricted) return <TxOpsRestrictedData testid="tx-cq-forecast-restricted" />;
   if (err) return <EmptyState title="Forecast unavailable" hint={err} testid="tx-cq-forecast-err" />;
   if (!data) return <div data-testid="tx-cq-forecast-loading" className="text-slate-500 text-sm">Loading…</div>;
   const sections = [
@@ -376,15 +393,19 @@ function HrSyncHealthCard() {
   const [data, setData] = useState(null);
   const [report, setReport] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [restricted, setRestricted] = useState(false);
   const [err, setErr] = useState(null);
   const [showReport, setShowReport] = useState(false);
 
   const load = useCallback(async () => {
     try {
-      const r = await api.get("/admin/transportation/hr-sync", { headers: adminHeaders() });
+      const r = await txGet("/admin/transportation/hr-sync");
+      if (isTxRestricted(r)) { setRestricted(true); return; }
       setData(r.data);
     } catch (e) {
-      setErr(e.response?.data?.detail || e.message);
+      const safe = txCatch(e);
+      if (safe == null) { setRestricted(true); return; }
+      setErr(safe);
     }
   }, []);
   useEffect(() => { load(); }, [load]);
@@ -392,18 +413,25 @@ function HrSyncHealthCard() {
   const runScan = async () => {
     setBusy(true);
     try {
-      const r = await api.get("/admin/transportation/hr-sync/report?run=true",
-        { headers: adminHeaders() });
+      const r = await txGet("/admin/transportation/hr-sync/report", { run: true });
+      if (isTxRestricted(r)) { setRestricted(true); return; }
       setReport(r.data);
       setShowReport(true);
       await load();
     } catch (e) {
-      alert(e.response?.data?.detail || e.message);
+      alert(txCatch(e) || "Permission denied.");
     } finally {
       setBusy(false);
     }
   };
 
+  if (restricted) {
+    return (
+      <section className="bg-white border border-slate-200 rounded-lg p-4" data-testid="tx-cq-hr-sync-card">
+        <TxOpsRestrictedData testid="tx-cq-hr-sync-restricted" />
+      </section>
+    );
+  }
   if (err) {
     return (
       <section className="bg-white border border-slate-200 rounded-lg p-4" data-testid="tx-cq-hr-sync-card">
@@ -498,19 +526,22 @@ function HrSyncHealthCard() {
 function DigestCard() {
   const [preview, setPreview] = useState(null);
   const [history, setHistory] = useState([]);
+  const [restricted, setRestricted] = useState(false);
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
   const load = useCallback(async () => {
     try {
-      const r1 = await api.get("/admin/transportation/automation/digest/preview",
-        { headers: adminHeaders() });
+      const r1 = await txGet("/admin/transportation/automation/digest/preview");
+      if (isTxRestricted(r1)) { setRestricted(true); return; }
       setPreview(r1.data);
-      const r2 = await api.get("/admin/transportation/automation/digest/runs?limit=5",
-        { headers: adminHeaders() });
+      const r2 = await txGet("/admin/transportation/automation/digest/runs", { limit: 5 });
+      if (isTxRestricted(r2)) { setRestricted(true); return; }
       setHistory(r2.data.items || []);
     } catch (e) {
-      setErr(e.response?.data?.detail || e.message);
+      const safe = txCatch(e);
+      if (safe == null) { setRestricted(true); return; }
+      setErr(safe);
     }
   }, []);
   useEffect(() => { load(); }, [load]);
@@ -524,12 +555,17 @@ function DigestCard() {
       await api.post(url, {}, { headers: adminHeaders() });
       await load();
     } catch (e) {
-      alert(e.response?.data?.detail || e.message);
+      alert(txCatch(e) || "Permission denied.");
     } finally {
       setBusy(null);
     }
   };
 
+  if (restricted) return (
+    <section className="bg-white border border-slate-200 rounded-lg p-4" data-testid="tx-cq-digest-card">
+      <TxOpsRestrictedData testid="tx-cq-digest-restricted" />
+    </section>
+  );
   if (err) return (
     <section className="bg-white border border-slate-200 rounded-lg p-4" data-testid="tx-cq-digest-card">
       <div className="text-sm text-red-700">{err}</div>

@@ -18,7 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import {
-  Chip, PageHeader, ComingSoon, EmptyState, txGet, STATE_LABEL, useTxPathPrefix,
+  Chip, PageHeader, ComingSoon, EmptyState, txGet, STATE_LABEL, useTxPathPrefix, isTxRestricted,
 } from "./_shared";
 import { RateCreateDialog, InspectionWizard } from "./_widgets";
 import MissionControl from "./MissionControl";
@@ -239,12 +239,15 @@ function HrHealthWidget() {
 // ───────────────────────── Compliance dashboard ─────────────────────────
 export function ComplianceDashboard() {
   const [data, setData] = useState(null);
+  const [restricted, setRestricted] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const r = await txGet("/admin/transportation/dashboard");
+      if (isTxRestricted(r)) { setRestricted(true); setData(null); return; }
+      setRestricted(false);
       setData(r.data);
     } finally {
       setLoading(false);
@@ -253,6 +256,7 @@ export function ComplianceDashboard() {
   useEffect(() => { load(); }, [load]);
 
   if (loading && !data) return <div data-testid="compliance-loading">Loading…</div>;
+  if (restricted) return <TxOpsRestrictedData testid="tx-compliance-restricted" />;
   if (!data) return null;
 
   return (
@@ -300,6 +304,7 @@ function ComplianceColumn({ title, testid, buckets, link }) {
 // ───────────────────────── Document Center ─────────────────────────
 export function DocumentCenter() {
   const [items, setItems] = useState([]);
+  const [restricted, setRestricted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState("");
   const [scope, setScope] = useState("all");
@@ -311,6 +316,8 @@ export function DocumentCenter() {
       if (status) params.status = status;
       if (scope && scope !== "all") params.scope = scope;
       const r = await txGet("/admin/transportation/documents/queue", params);
+      if (isTxRestricted(r)) { setRestricted(true); setItems([]); return; }
+      setRestricted(false);
       setItems(r.data.items || []);
     } finally {
       setLoading(false);
@@ -321,6 +328,8 @@ export function DocumentCenter() {
   return (
     <div data-testid="tx-document-center" className="space-y-4">
       <PageHeader title="Document Center" subtitle="Review queue across all carrier and driver documents." />
+      {restricted ? <TxOpsRestrictedData testid="tx-doc-center-restricted" /> : (
+      <>
       <div className="flex flex-wrap items-end gap-3" data-testid="doc-filters">
         <div>
           <Label className="text-xs">Status</Label>
@@ -375,6 +384,8 @@ export function DocumentCenter() {
             </table>
           </div>
         )
+      )}
+      </>
       )}
     </div>
   );
@@ -655,12 +666,15 @@ export function RateScheduleCenter() {
 // ───────────────────────── Audit Timeline ─────────────────────────
 export function AuditTimeline() {
   const [items, setItems] = useState([]);
+  const [restricted, setRestricted] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const r = await txGet("/admin/transportation/audit-timeline");
+      if (isTxRestricted(r)) { setRestricted(true); setItems([]); return; }
+      setRestricted(false);
       setItems(r.data.items || []);
     } finally {
       setLoading(false);
@@ -675,7 +689,9 @@ export function AuditTimeline() {
         subtitle="Transportation-scoped view of the platform's unified audit ledger. Read-only."
         right={<Button variant="outline" onClick={load} data-testid="audit-refresh"><RefreshCw className="h-4 w-4 mr-1" />Refresh</Button>}
       />
-      {loading ? <div data-testid="audit-loading">Loading…</div> : (
+      {restricted ? (
+        <TxOpsRestrictedData testid="tx-audit-restricted" />
+      ) : loading ? <div data-testid="audit-loading">Loading…</div> : (
         items.length === 0 ? (
           <EmptyState title="No audit events yet" hint="Audit events appear as carriers, drivers, trucks, packets, documents, and inspections are created or updated." testid="audit-empty" />
         ) : (

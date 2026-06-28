@@ -117,8 +117,14 @@ def test_05_nav_items_present():
 # ===========================================================================
 def test_06_subnav_renders_groups():
     src = SHARED.read_text()
-    # Subnav must iterate over TX_OPS_NAV_GROUPS.
-    assert "TX_OPS_NAV_GROUPS.map(" in src
+    # Subnav must iterate over the nav group list. Track 18.12B added a
+    # role-aware filter (`visibleTxOpsNavGroups()`) that wraps the raw
+    # `TX_OPS_NAV_GROUPS` so dispatch users do not see Administration —
+    # either invocation satisfies the contract.
+    assert (
+        "TX_OPS_NAV_GROUPS.map(" in src
+        or "visibleTxOpsNavGroups()" in src
+    ), "Subnav must iterate over the operational nav group list"
     # Every group testid should appear.
     for tid in (
         "txops-nav-group-overview",

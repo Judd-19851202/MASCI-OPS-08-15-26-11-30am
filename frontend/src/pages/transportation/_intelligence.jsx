@@ -16,7 +16,8 @@ import {
   AlertTriangle, Users, Building2, Truck as TruckIcon, GraduationCap,
 } from "lucide-react";
 import { api } from "@/lib/api";
-import { adminHeaders, PageHeader, EmptyState } from "./_shared";
+import { adminHeaders, PageHeader, EmptyState, txGet, isTxRestricted, txCatch } from "./_shared";
+import { TxOpsRestrictedData } from "@/components/transportation/TxOpsRestricted";
 
 const SUB_TABS = [
   { to: "", label: "Executive", end: true, testid: "tx-intel-tab-exec",
@@ -90,18 +91,21 @@ export function IntelligenceCenter() {
 // ───────────────────────────── Executive ─────────────────────────────
 function ExecutiveDashboard() {
   const [data, setData] = useState(null);
+  const [restricted, setRestricted] = useState(false);
   const [err, setErr] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const r = await api.get("/admin/transportation/intelligence/dashboard",
-        { headers: adminHeaders() });
+      const r = await txGet("/admin/transportation/intelligence/dashboard");
+      if (isTxRestricted(r)) { setRestricted(true); setErr(null); return; }
       setData(r.data);
       setErr(null);
     } catch (e) {
-      setErr(e.response?.data?.detail || e.message);
+      const safe = txCatch(e);
+      if (safe == null) { setRestricted(true); return; }
+      setErr(safe);
     } finally {
       setLoading(false);
     }
@@ -109,6 +113,7 @@ function ExecutiveDashboard() {
   useEffect(() => { load(); }, [load]);
 
   if (loading && !data) return <div data-testid="tx-intel-exec-loading" className="text-sm text-slate-500">Loading…</div>;
+  if (restricted) return <TxOpsRestrictedData testid="tx-intel-exec-restricted" />;
   if (err) return <div data-testid="tx-intel-exec-error" className="text-sm text-rose-700">{err}</div>;
   if (!data) return <EmptyState title="No intelligence yet" testid="tx-intel-exec-empty" />;
 
@@ -235,23 +240,30 @@ function PerformerList({ title, data, negative, testid }) {
 function RecommendationsPanel() {
   const [scope, setScope] = useState("triple");
   const [data, setData] = useState(null);
+  const [restricted, setRestricted] = useState(false);
   const [err, setErr] = useState(null);
   const [loading, setLoading] = useState(true);
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const r = await api.get(
-        `/admin/transportation/intelligence/recommendations?scope=${scope}&limit=10`,
-        { headers: adminHeaders() });
+      const r = await txGet(
+        "/admin/transportation/intelligence/recommendations",
+        { scope, limit: 10 }
+      );
+      if (isTxRestricted(r)) { setRestricted(true); setErr(null); return; }
       setData(r.data);
       setErr(null);
     } catch (e) {
-      setErr(e.response?.data?.detail || e.message);
+      const safe = txCatch(e);
+      if (safe == null) { setRestricted(true); return; }
+      setErr(safe);
     } finally {
       setLoading(false);
     }
   }, [scope]);
   useEffect(() => { load(); }, [load]);
+
+  if (restricted) return <TxOpsRestrictedData testid="tx-intel-recs-restricted" />;
 
   return (
     <div data-testid="tx-intel-recs" className="space-y-4">
@@ -342,20 +354,23 @@ function RecommendationCard({ kind, item, testid }) {
 // ─────────────────────────── Predictions ───────────────────────────
 function PredictionsPanel() {
   const [data, setData] = useState(null);
+  const [restricted, setRestricted] = useState(false);
   const [err, setErr] = useState(null);
   const load = useCallback(async () => {
     try {
-      const r = await api.get(
-        "/admin/transportation/intelligence/predictions",
-        { headers: adminHeaders() });
+      const r = await txGet("/admin/transportation/intelligence/predictions");
+      if (isTxRestricted(r)) { setRestricted(true); setErr(null); return; }
       setData(r.data);
       setErr(null);
     } catch (e) {
-      setErr(e.response?.data?.detail || e.message);
+      const safe = txCatch(e);
+      if (safe == null) { setRestricted(true); return; }
+      setErr(safe);
     }
   }, []);
   useEffect(() => { load(); }, [load]);
 
+  if (restricted) return <TxOpsRestrictedData testid="tx-intel-pred-restricted" />;
   if (err) return <div className="text-sm text-rose-700">{err}</div>;
   if (!data) return <div className="text-sm text-slate-500">Loading…</div>;
 
@@ -442,6 +457,7 @@ function ForecastList({ title, items, testid }) {
 // scorekeeping. NO emails. Read-only insight surface.
 function LearningLoopPanel() {
   const [data, setData] = useState(null);
+  const [restricted, setRestricted] = useState(false);
   const [err, setErr] = useState(null);
   const [loading, setLoading] = useState(true);
   const [days, setDays] = useState(30);
@@ -449,12 +465,16 @@ function LearningLoopPanel() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const r = await api.get(
-        `/admin/transportation/intelligence/dispatch-learning?days=${days}`,
-        { headers: adminHeaders() });
+      const r = await txGet(
+        "/admin/transportation/intelligence/dispatch-learning",
+        { days }
+      );
+      if (isTxRestricted(r)) { setRestricted(true); setErr(null); return; }
       setData(r.data); setErr(null);
     } catch (e) {
-      setErr(e.response?.data?.detail || e.message);
+      const safe = txCatch(e);
+      if (safe == null) { setRestricted(true); return; }
+      setErr(safe);
     } finally {
       setLoading(false);
     }
@@ -462,6 +482,7 @@ function LearningLoopPanel() {
   useEffect(() => { load(); }, [load]);
 
   if (loading && !data) return <div data-testid="tx-intel-learning-loading" className="text-sm text-slate-500">Loading…</div>;
+  if (restricted) return <TxOpsRestrictedData testid="tx-intel-learning-restricted" />;
   if (err) return <div data-testid="tx-intel-learning-error" className="text-sm text-rose-700">{err}</div>;
   if (!data) return <EmptyState title="No dispatcher learning data yet" testid="tx-intel-learning-empty" />;
 
@@ -638,6 +659,7 @@ function PatternList({ title, items, emptyLabel, footer, testid }) {
 // ────────────────────── Cleanup Companion (Track 16.15) ──────────────────────
 function CleanupCompanionPanel() {
   const [signals, setSignals] = useState(null);
+  const [restricted, setRestricted] = useState(false);
   const [err, setErr] = useState(null);
   const [openSignal, setOpenSignal] = useState(null);
   const [detail, setDetail] = useState(null);
@@ -646,12 +668,16 @@ function CleanupCompanionPanel() {
 
   const load = useCallback(async () => {
     try {
-      const r = await api.get(
-        "/admin/transportation/intelligence/cleanup-signals?days=30",
-        { headers: adminHeaders() });
+      const r = await txGet(
+        "/admin/transportation/intelligence/cleanup-signals",
+        { days: 30 }
+      );
+      if (isTxRestricted(r)) { setRestricted(true); setErr(null); return; }
       setSignals(r.data); setErr(null);
     } catch (e) {
-      setErr(e.response?.data?.detail || e.message);
+      const safe = txCatch(e);
+      if (safe == null) { setRestricted(true); return; }
+      setErr(safe);
     }
   }, []);
   useEffect(() => { load(); }, [load]);
@@ -659,12 +685,18 @@ function CleanupCompanionPanel() {
   const openDetail = async (key) => {
     setOpenSignal(key); setDetail(null); setMaterialized(null);
     try {
-      const r = await api.get(
-        `/admin/transportation/intelligence/cleanup-signals/${key}?days=30`,
-        { headers: adminHeaders() });
+      const r = await txGet(
+        `/admin/transportation/intelligence/cleanup-signals/${key}`,
+        { days: 30 }
+      );
+      if (isTxRestricted(r)) {
+        setDetail({ ok: false, restricted: true });
+        return;
+      }
       setDetail(r.data);
     } catch (e) {
-      setDetail({ ok: false, error: e.message });
+      const safe = txCatch(e);
+      setDetail({ ok: false, error: safe || "Detail unavailable." });
     }
   };
 
@@ -679,12 +711,13 @@ function CleanupCompanionPanel() {
       // refresh detail so the existing_action_item_id annotations update.
       await openDetail(openSignal);
     } catch (e) {
-      alert(e.response?.data?.detail || e.message);
+      alert(txCatch(e) || "Permission denied.");
     } finally {
       setBusy(false);
     }
   };
 
+  if (restricted) return <TxOpsRestrictedData testid="tx-intel-cleanup-restricted" />;
   if (err) return <div data-testid="tx-intel-cleanup-error" className="text-sm text-rose-700">{err}</div>;
   if (!signals) return <div data-testid="tx-intel-cleanup-loading" className="text-sm text-slate-500">Loading…</div>;
 

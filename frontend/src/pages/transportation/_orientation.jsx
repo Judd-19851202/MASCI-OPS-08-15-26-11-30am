@@ -17,7 +17,8 @@ import {
   Languages as LangIcon, ChevronRight, RefreshCw, ShieldCheck, Hash,
 } from "lucide-react";
 import { api } from "@/lib/api";
-import { adminHeaders, Chip, PageHeader, EmptyState } from "./_shared";
+import { adminHeaders, Chip, PageHeader, EmptyState, txGet, isTxRestricted, txCatch } from "./_shared";
+import { TxOpsRestrictedData } from "@/components/transportation/TxOpsRestricted";
 
 const LANGUAGES = [
   { code: "en", label: "English (Primary)" },
@@ -85,17 +86,21 @@ function SubTabs() {
 // ────────────────────────────────────────────────────────────────────
 function OrientationDashboard() {
   const [data, setData] = useState(null);
+  const [restricted, setRestricted] = useState(false);
   const [err, setErr] = useState(null);
   const load = useCallback(async () => {
     try {
-      const r = await api.get("/admin/transportation/orientation/dashboard",
-        { headers: adminHeaders() });
+      const r = await txGet("/admin/transportation/orientation/dashboard");
+      if (isTxRestricted(r)) { setRestricted(true); return; }
       setData(r.data);
     } catch (e) {
-      setErr(e.message || String(e));
+      const safe = txCatch(e);
+      if (safe == null) { setRestricted(true); return; }
+      setErr(safe);
     }
   }, []);
   useEffect(() => { load(); }, [load]);
+  if (restricted) return <TxOpsRestrictedData testid="tx-orient-dashboard-restricted" />;
   if (err) return <EmptyState title="Orientation dashboard unavailable" hint={err} testid="tx-orient-dashboard-err" />;
   if (!data) return <div data-testid="tx-orient-dashboard-loading" className="text-slate-500 text-sm">Loading…</div>;
   const Tile = ({ icon: Icon, label, value, sub, testid, tone = "slate" }) => (
@@ -135,15 +140,21 @@ function OrientationDashboard() {
 // ────────────────────────────────────────────────────────────────────
 function ModuleManager() {
   const [items, setItems] = useState([]);
+  const [restricted, setRestricted] = useState(false);
   const [err, setErr] = useState(null);
   const load = useCallback(async () => {
     try {
-      const r = await api.get("/admin/transportation/orientation/modules",
-        { headers: adminHeaders() });
+      const r = await txGet("/admin/transportation/orientation/modules");
+      if (isTxRestricted(r)) { setRestricted(true); return; }
       setItems(r.data.items || []);
-    } catch (e) { setErr(e.message || String(e)); }
+    } catch (e) {
+      const safe = txCatch(e);
+      if (safe == null) { setRestricted(true); return; }
+      setErr(safe);
+    }
   }, []);
   useEffect(() => { load(); }, [load]);
+  if (restricted) return <TxOpsRestrictedData testid="tx-orient-modules-restricted" />;
   if (err) return <EmptyState title="Modules unavailable" hint={err} testid="tx-orient-modules-err" />;
   return (
     <div data-testid="tx-orient-modules" className="space-y-2">
@@ -197,19 +208,28 @@ function ModuleDetail() {
   const [mod, setMod] = useState(null);
   const [lang, setLang] = useState("en");
   const [questions, setQuestions] = useState([]);
+  const [restricted, setRestricted] = useState(false);
   const [err, setErr] = useState(null);
   const reload = useCallback(async () => {
     try {
-      const list = (await api.get("/admin/transportation/orientation/modules",
-        { headers: adminHeaders() })).data.items || [];
+      const lr = await txGet("/admin/transportation/orientation/modules");
+      if (isTxRestricted(lr)) { setRestricted(true); return; }
+      const list = lr.data.items || [];
       setMod(list.find((m) => m.id === mid) || null);
-      const q = (await api.get(
-        `/admin/transportation/orientation/modules/${mid}/questions?language=${lang}`,
-        { headers: adminHeaders() })).data.items || [];
-      setQuestions(q);
-    } catch (e) { setErr(e.message || String(e)); }
+      const qr = await txGet(
+        `/admin/transportation/orientation/modules/${mid}/questions`,
+        { language: lang }
+      );
+      if (isTxRestricted(qr)) { setRestricted(true); return; }
+      setQuestions(qr.data.items || []);
+    } catch (e) {
+      const safe = txCatch(e);
+      if (safe == null) { setRestricted(true); return; }
+      setErr(safe);
+    }
   }, [mid, lang]);
   useEffect(() => { reload(); }, [reload]);
+  if (restricted) return <TxOpsRestrictedData testid="tx-orient-module-restricted" />;
   if (err) return <EmptyState title="Module unavailable" hint={err} testid="tx-orient-module-err" />;
   if (!mod) return <div data-testid="tx-orient-module-loading" className="text-slate-500 text-sm">Loading…</div>;
 
@@ -218,14 +238,14 @@ function ModuleDetail() {
       await api.patch(`/admin/transportation/orientation/modules/${mid}/placeholder`,
         { language, ...body }, { headers: adminHeaders() });
       await reload();
-    } catch (e) { alert("Save failed: " + e.message); }
+    } catch (e) { alert("Save failed: " + (txCatch(e) || "permission denied")); }
   };
   const addQuestion = async (q) => {
     try {
       await api.post(`/admin/transportation/orientation/modules/${mid}/questions`,
         { ...q, language: lang }, { headers: adminHeaders() });
       await reload();
-    } catch (e) { alert("Add question failed: " + e.message); }
+    } catch (e) { alert("Add question failed: " + (txCatch(e) || "permission denied")); }
   };
 
   return (
@@ -345,13 +365,21 @@ function QuestionAddForm({ onAdd }) {
 // ────────────────────────────────────────────────────────────────────
 function AssignmentsView() {
   const [items, setItems] = useState([]);
+  const [restricted, setRestricted] = useState(false);
   const [err, setErr] = useState(null);
   useEffect(() => {
-    api.get("/admin/transportation/orientation/assignments",
-      { headers: adminHeaders() })
-      .then(r => setItems(r.data.items || []))
-      .catch(e => setErr(e.message || String(e)));
+    txGet("/admin/transportation/orientation/assignments")
+      .then(r => {
+        if (isTxRestricted(r)) { setRestricted(true); return; }
+        setItems(r.data.items || []);
+      })
+      .catch(e => {
+        const safe = txCatch(e);
+        if (safe == null) { setRestricted(true); return; }
+        setErr(safe);
+      });
   }, []);
+  if (restricted) return <TxOpsRestrictedData testid="tx-orient-assignments-restricted" />;
   if (err) return <EmptyState title="Assignments unavailable" hint={err} testid="tx-orient-assignments-err" />;
   if (items.length === 0) return <EmptyState title="No assignments yet" hint="Drivers will appear here as orientation modules are assigned." testid="tx-orient-assignments-empty" />;
   return (
@@ -386,13 +414,21 @@ function AssignmentsView() {
 
 function CertificatesView() {
   const [items, setItems] = useState([]);
+  const [restricted, setRestricted] = useState(false);
   const [err, setErr] = useState(null);
   useEffect(() => {
-    api.get("/admin/transportation/orientation/certificates",
-      { headers: adminHeaders() })
-      .then(r => setItems(r.data.items || []))
-      .catch(e => setErr(e.message || String(e)));
+    txGet("/admin/transportation/orientation/certificates")
+      .then(r => {
+        if (isTxRestricted(r)) { setRestricted(true); return; }
+        setItems(r.data.items || []);
+      })
+      .catch(e => {
+        const safe = txCatch(e);
+        if (safe == null) { setRestricted(true); return; }
+        setErr(safe);
+      });
   }, []);
+  if (restricted) return <TxOpsRestrictedData testid="tx-orient-certs-restricted" />;
   if (err) return <EmptyState title="Certificates unavailable" hint={err} testid="tx-orient-certs-err" />;
   if (items.length === 0) return <EmptyState title="No certificates yet" hint="They are issued automatically when a driver passes a module quiz." testid="tx-orient-certs-empty" />;
   return (
@@ -436,15 +472,18 @@ function CertificatesView() {
 // ────────────────────────────────────────────────────────────────────
 function EmailRoutesPanel() {
   const [data, setData] = useState(null);
+  const [restricted, setRestricted] = useState(false);
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(null);
   const reload = useCallback(async () => {
     try {
-      const r = await api.get("/admin/transportation/email-routes",
-        { headers: adminHeaders() });
+      const r = await txGet("/admin/transportation/email-routes");
+      if (isTxRestricted(r)) { setRestricted(true); return; }
       setData(r.data);
     } catch (e) {
-      setErr(e.message || String(e));
+      const safe = txCatch(e);
+      if (safe == null) { setRestricted(true); return; }
+      setErr(safe);
     }
   }, []);
   useEffect(() => { reload(); }, [reload]);
@@ -455,11 +494,12 @@ function EmailRoutesPanel() {
         { enabled: !enabled }, { headers: adminHeaders() });
       await reload();
     } catch (e) {
-      alert(e.response?.data?.detail || e.message || "Toggle failed");
+      alert(txCatch(e) || "Toggle failed");
     } finally {
       setBusy(null);
     }
   };
+  if (restricted) return <TxOpsRestrictedData testid="tx-emails-restricted" />;
   if (err) return <EmptyState title="Email routes unavailable" hint={err} testid="tx-emails-err" />;
   if (!data) return <div data-testid="tx-emails-loading" className="text-slate-500 text-sm">Loading…</div>;
   const pilotSet = new Set(data.pilot_route_keys || []);

@@ -14,11 +14,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
-  Chip, PageHeader, ComingSoon, EmptyState, txGet,
+  Chip, PageHeader, ComingSoon, EmptyState, txGet, isTxRestricted,
 } from "./_shared";
 import {
   DocumentDropzone, InspectionWizard, ComplianceTimeline, PacketChecklist,
 } from "./_widgets";
+import { TxOpsRestrictedData } from "@/components/transportation/TxOpsRestricted";
 
 const CARRIER_DOC_TYPES = [
   "sunbiz_certificate", "mcs_company_snapshot", "w9", "insurance_certificate",
@@ -50,6 +51,7 @@ function buildEligibilityMap(target_type, items, dashboard) {
 // ───────────────────────── Carriers list ─────────────────────────
 export function CarriersList() {
   const [rows, setRows] = useState([]);
+  const [restricted, setRestricted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const { status } = useStateFilter();
@@ -61,6 +63,8 @@ export function CarriersList() {
       if (status) params.status = status;
       if (q) params.q = q;
       const r = await txGet("/admin/transportation/carriers", params);
+      if (isTxRestricted(r)) { setRestricted(true); setRows([]); return; }
+      setRestricted(false);
       setRows(r.data.items || []);
     } finally {
       setLoading(false);
@@ -75,6 +79,8 @@ export function CarriersList() {
         subtitle="Leased haulers, owner-operators, suppliers, and MASCI-internal carriers."
         right={<Button variant="outline" onClick={load} data-testid="carriers-list-refresh"><RefreshCw className="h-4 w-4 mr-1" />Refresh</Button>}
       />
+      {restricted ? <TxOpsRestrictedData testid="tx-carriers-list-restricted" /> : (
+        <>
       <div className="flex items-center gap-2">
         <div className="relative">
           <Search className="h-4 w-4 absolute left-2 top-2.5 text-slate-400" />
@@ -124,6 +130,8 @@ export function CarriersList() {
           </div>
         )
       )}
+        </>
+      )}
     </div>
   );
 }
@@ -131,6 +139,7 @@ export function CarriersList() {
 // ───────────────────────── Drivers list ─────────────────────────
 export function DriversList() {
   const [rows, setRows] = useState([]);
+  const [restricted, setRestricted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const { status } = useStateFilter();
@@ -142,6 +151,8 @@ export function DriversList() {
       if (status) params.status = status;
       if (q) params.q = q;
       const r = await txGet("/admin/transportation/persons", params);
+      if (isTxRestricted(r)) { setRestricted(true); setRows([]); return; }
+      setRestricted(false);
       setRows(r.data.items || []);
     } finally {
       setLoading(false);
@@ -154,6 +165,8 @@ export function DriversList() {
       <PageHeader title="Drivers" subtitle="MASCI employees and leased drivers." right={
         <Button variant="outline" onClick={load} data-testid="drivers-list-refresh"><RefreshCw className="h-4 w-4 mr-1" />Refresh</Button>
       } />
+      {restricted ? <TxOpsRestrictedData testid="tx-drivers-list-restricted" /> : (
+        <>
       <div className="flex items-center gap-2">
         <div className="relative">
           <Search className="h-4 w-4 absolute left-2 top-2.5 text-slate-400" />
@@ -205,6 +218,8 @@ export function DriversList() {
           </div>
         )
       )}
+        </>
+      )}
     </div>
   );
 }
@@ -212,6 +227,7 @@ export function DriversList() {
 // ───────────────────────── Trucks list ─────────────────────────
 export function TrucksList() {
   const [rows, setRows] = useState([]);
+  const [restricted, setRestricted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const { status } = useStateFilter();
@@ -223,6 +239,8 @@ export function TrucksList() {
       if (status) params.status = status;
       if (q) params.q = q;
       const r = await txGet("/admin/transportation/trucks", params);
+      if (isTxRestricted(r)) { setRestricted(true); setRows([]); return; }
+      setRestricted(false);
       setRows(r.data.items || []);
     } finally {
       setLoading(false);
@@ -235,6 +253,8 @@ export function TrucksList() {
       <PageHeader title="Trucks" subtitle="MASCI-owned and leased trucks." right={
         <Button variant="outline" onClick={load} data-testid="trucks-list-refresh"><RefreshCw className="h-4 w-4 mr-1" />Refresh</Button>
       } />
+      {restricted ? <TxOpsRestrictedData testid="tx-trucks-list-restricted" /> : (
+        <>
       <div className="flex items-center gap-2">
         <div className="relative">
           <Search className="h-4 w-4 absolute left-2 top-2.5 text-slate-400" />
@@ -286,6 +306,8 @@ export function TrucksList() {
           </div>
         )
       )}
+        </>
+      )}
     </div>
   );
 }
@@ -295,12 +317,15 @@ export function CarrierWorkspace() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [data, setData] = useState(null);
+  const [restricted, setRestricted] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const r = await txGet(`/admin/transportation/carriers/${id}/workspace`);
+      if (isTxRestricted(r)) { setRestricted(true); setData(null); return; }
+      setRestricted(false);
       setData(r.data);
     } finally {
       setLoading(false);
@@ -309,6 +334,7 @@ export function CarrierWorkspace() {
   useEffect(() => { load(); }, [load]);
 
   if (loading && !data) return <div data-testid="carrier-ws-loading">Loading…</div>;
+  if (restricted) return <TxOpsRestrictedData testid="tx-carrier-ws-restricted" />;
   if (!data) return null;
   const c = data.carrier || {};
 
@@ -517,12 +543,15 @@ export function DriverWorkspace() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [data, setData] = useState(null);
+  const [restricted, setRestricted] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const r = await txGet(`/admin/transportation/persons/${id}/workspace`);
+      if (isTxRestricted(r)) { setRestricted(true); setData(null); return; }
+      setRestricted(false);
       setData(r.data);
     } finally {
       setLoading(false);
@@ -531,6 +560,7 @@ export function DriverWorkspace() {
   useEffect(() => { load(); }, [load]);
 
   if (loading && !data) return <div data-testid="driver-ws-loading">Loading…</div>;
+  if (restricted) return <TxOpsRestrictedData testid="tx-driver-ws-restricted" />;
   if (!data) return null;
   const d = data.driver || {};
 
@@ -739,6 +769,7 @@ export function TruckWorkspace() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [data, setData] = useState(null);
+  const [restricted, setRestricted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [wizardOpen, setWizardOpen] = useState(false);
 
@@ -746,6 +777,8 @@ export function TruckWorkspace() {
     setLoading(true);
     try {
       const r = await txGet(`/admin/transportation/trucks/${id}/workspace`);
+      if (isTxRestricted(r)) { setRestricted(true); setData(null); return; }
+      setRestricted(false);
       setData(r.data);
     } finally {
       setLoading(false);
@@ -754,6 +787,7 @@ export function TruckWorkspace() {
   useEffect(() => { load(); }, [load]);
 
   if (loading && !data) return <div data-testid="truck-ws-loading">Loading…</div>;
+  if (restricted) return <TxOpsRestrictedData testid="tx-truck-ws-restricted" />;
   if (!data) return null;
   const t = data.truck || {};
   const latest = data.inspections?.[0];
