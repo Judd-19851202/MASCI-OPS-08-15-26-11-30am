@@ -1142,6 +1142,19 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
         # supplied value is treated as a change.
         await _mirror_driver_doc_expirations(db, doc["id"], doc, {})
 
+        # TRACK 16.11 · HR-safe lifecycle hook. Transportation reads HR
+        # and updates its own projection. HR write is already complete
+        # at this point; sync failure CANNOT block the HR response.
+        try:
+            from lib.transport_hr_lifecycle import safe_sync_after_hr_write  # noqa: PLC0415
+            await safe_sync_after_hr_write(
+                db, doc.get("employee_id") or doc.get("id"),
+                trigger="hr.employee_created",
+                actor=(actor or {}).get("email") or (actor or {}).get("name"),
+            )
+        except Exception as _e:  # noqa: BLE001
+            logger.warning("transport_hr_lifecycle hook (create) failed: %s", _e)
+
         out = _strip_id(doc) or {}
         out["tenure_days"] = _tenure_days(out)
         return out
@@ -1246,6 +1259,19 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
         # driver-qualification expirations the same as every other
         # tracked document. NEVER create a second expiration system.
         await _mirror_driver_doc_expirations(db, employee_id, incoming, existing)
+
+        # TRACK 16.11 · HR-safe lifecycle hook (PATCH). Fires AFTER
+        # the HR write has been persisted. Never raises into the HR
+        # response.
+        try:
+            from lib.transport_hr_lifecycle import safe_sync_after_hr_write  # noqa: PLC0415
+            await safe_sync_after_hr_write(
+                db, existing.get("employee_id") or employee_id,
+                trigger="hr.employee_updated",
+                actor=(actor or {}).get("email") or (actor or {}).get("name"),
+            )
+        except Exception as _e:  # noqa: BLE001
+            logger.warning("transport_hr_lifecycle hook (patch) failed: %s", _e)
 
         doc = await db.employees.find_one(
             {"id": employee_id}, {"_id": 0})
@@ -1397,6 +1423,19 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
                 {"id": employee_id}, {"_id": 0})
             tasks_created = await _fan_out_offboarding_playbook(
                 db, employee or {}, body.lifecycle_status, body.reason, actor)
+
+        # TRACK 16.11 · HR-safe lifecycle hook (status change). HR
+        # transition is already persisted; this fires after.
+        try:
+            from lib.transport_hr_lifecycle import safe_sync_after_hr_write  # noqa: PLC0415
+            await safe_sync_after_hr_write(
+                db, existing.get("employee_id") or employee_id,
+                trigger=f"hr.status_changed.{body.lifecycle_status}",
+                actor=(actor or {}).get("email") or (actor or {}).get("name"),
+            )
+        except Exception as _e:  # noqa: BLE001
+            logger.warning("transport_hr_lifecycle hook (status) failed: %s", _e)
+
         doc = await db.employees.find_one(
             {"id": employee_id}, {"_id": 0})
         out = _strip_id(doc) or {}
@@ -1493,6 +1532,18 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
             )
         except Exception:
             pass
+
+        # TRACK 16.11 · HR-safe lifecycle hook (reactivate).
+        try:
+            from lib.transport_hr_lifecycle import safe_sync_after_hr_write  # noqa: PLC0415
+            await safe_sync_after_hr_write(
+                db, existing.get("employee_id") or employee_id,
+                trigger="hr.employee_reactivated",
+                actor=(actor or {}).get("email") or (actor or {}).get("name"),
+            )
+        except Exception as _e:  # noqa: BLE001
+            logger.warning("transport_hr_lifecycle hook (reactivate) failed: %s", _e)
+
         doc = await db.employees.find_one(
             {"id": employee_id}, {"_id": 0})
         out = _strip_id(doc) or {}

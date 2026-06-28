@@ -39,6 +39,23 @@ HUMAN_REASONS: Dict[str, str] = {
     "docs_needs_correction": "Documents need correction",
     "ppe_issue": "PPE requirement open",
     "hr_lifecycle_terminated": "HR lifecycle marks driver terminated",
+    # TRACK 16.11 · HR-lifecycle reason codes surfaced via the
+    # eligibility projection. Human-readable, dispatcher-facing.
+    "hr_lifecycle_inactive":  "HR employment is not active",
+    "hr_status_active":       "HR employment is active",
+    "hr_status_terminated":   "Employee is terminated in HR",
+    "hr_status_inactive":     "Employee is inactive in HR",
+    "hr_status_resigned":     "Employee has resigned in HR",
+    "hr_status_retired":      "Employee has retired in HR",
+    "hr_status_suspended":    "Employee is suspended in HR",
+    "hr_status_on_leave":     "Employee is on leave in HR",
+    "hr_status_pending_hire": "Employee is pending hire in HR",
+    "hr_status_seasonal":     "Employee is seasonal (active) in HR",
+    "hr_status_unknown":      "HR lifecycle status unknown — review required",
+    "hr_employee_missing":    "Linked HR employee record not found",
+    "hr_linkage_missing":     "Transport driver has no HR employee linkage",
+    "hr_role_not_driver":     "Employee role requires Transportation review",
+    "hr_sync_stale":          "HR lifecycle sync stale — review required",
     # Truck
     "truck_status_inactive": "Truck status is inactive",
     "truck_status_suspended": "Truck is suspended",

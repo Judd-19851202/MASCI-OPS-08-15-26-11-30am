@@ -571,8 +571,41 @@ export function DriverWorkspace() {
       {data.hr_linkage && (
         <Card title="HR linkage" testid="driver-hr-linkage">
           <Row label="Employee ID" value={data.hr_linkage.employee_id || data.hr_linkage.id} />
-          <Row label="Name" value={`${data.hr_linkage.first_name || ""} ${data.hr_linkage.last_name || ""}`.trim() || "—"} />
-          <Row label="HR status" value={data.hr_linkage.status || data.hr_linkage.lifecycle_status || "—"} />
+          <Row label="Name" value={data.hr_linkage.name || `${data.hr_linkage.first_name || ""} ${data.hr_linkage.last_name || ""}`.trim() || "—"} />
+          <Row label="HR status" value={data.hr_linkage.lifecycle_status || data.hr_linkage.status || "—"} />
+          <Row label="Role / Trade" value={[data.hr_linkage.role, data.hr_linkage.trade].filter(Boolean).join(" · ") || "—"} />
+          <Row label="Department" value={data.hr_linkage.department || "—"} />
+          <Row label="Driver status" value={data.hr_linkage.driver_status || "—"} />
+          {data.hr_linkage.updated_at && (
+            <Row label="HR updated" value={data.hr_linkage.updated_at.slice(0, 19).replace("T", " ")} />
+          )}
+        </Card>
+      )}
+
+      {data.hr_projection && (
+        <Card title="HR lifecycle projection" testid="driver-hr-lifecycle-panel">
+          <div className="text-xs text-slate-500 mb-2" data-testid="driver-hr-lifecycle-disclaimer">
+            Read-only snapshot. HR is the source of truth — manage all
+            lifecycle changes in HR.
+          </div>
+          <Row
+            label="Transport projection"
+            value={<Chip value={data.hr_projection.transport_state} testid="driver-hr-projection-chip" />}
+          />
+          <Row label="HR source status" value={data.hr_projection.source_status || "—"} />
+          {(data.hr_projection.reason_labels || []).length > 0 && (
+            <div className="mt-2 text-xs text-slate-600">
+              <div className="font-medium text-slate-700 mb-1">Eligibility impact</div>
+              {(data.hr_projection.reason_labels || []).map((label, i) => (
+                <div key={i} data-testid={`driver-hr-reason-${i}`}>• {label}</div>
+              ))}
+            </div>
+          )}
+          {data.hr_projection.synced_at && (
+            <div className="mt-2 text-xs text-slate-400" data-testid="driver-hr-synced-at">
+              Last synced: {data.hr_projection.synced_at.slice(0, 19).replace("T", " ")} ({data.hr_projection.synced_trigger || "auto"})
+            </div>
+          )}
         </Card>
       )}
 

@@ -371,14 +371,40 @@ def register_transportation_experience_routes(
             {"tenant": TENANT, "target_type": "person", "target_id": pid})
         # HR linkage hint (read-only).
         hr_link = None
+        hr_projection = None
         if person.get("kind") == "masci_employee" and person.get("employee_id"):
             try:
                 hr = await db.employees.find_one(
                     {"$or": [{"employee_id": person["employee_id"]},
-                             {"id": person["employee_id"]}]},
-                    {"_id": 0, "id": 1, "employee_id": 1, "first_name": 1,
-                     "last_name": 1, "status": 1, "lifecycle_status": 1})
-                hr_link = hr
+                             {"id": person["employee_id"]}],
+                     "deleted_at": None},
+                    {"_id": 0},
+                )
+                if hr:
+                    # Minimal identity surface for the panel.
+                    hr_link = {
+                        "id": hr.get("id"),
+                        "employee_id": hr.get("employee_id"),
+                        "name": hr.get("name"),
+                        "first_name": hr.get("first_name") or hr.get("legal_first_name"),
+                        "last_name": hr.get("last_name") or hr.get("legal_last_name"),
+                        "status": hr.get("status"),
+                        "lifecycle_status": hr.get("lifecycle_status"),
+                        "role": hr.get("role"),
+                        "trade": hr.get("trade"),
+                        "department": hr.get("department"),
+                        "driver_status": hr.get("driver_status"),
+                        "updated_at": hr.get("updated_at"),
+                    }
+                # TRACK 16.11 · projection (read-only). Prefer the
+                # snapshot stored on the transport_person itself; if
+                # absent (e.g. legacy person row), recompute on the fly.
+                hr_projection = person.get("hr_projection")
+                if not hr_projection and hr:
+                    from lib.transport_hr_lifecycle import (
+                        map_hr_lifecycle_to_transport,
+                    )
+                    hr_projection = map_hr_lifecycle_to_transport(hr)
             except Exception:  # noqa: BLE001
                 pass
         return {
@@ -387,6 +413,7 @@ def register_transportation_experience_routes(
             "documents": [_project(d) for d in docs],
             "eligibility": _project(elig),
             "hr_linkage": hr_link,
+            "hr_projection": hr_projection,
             "disclaimer": INSPECTION_DISCLAIMER,
         }
 

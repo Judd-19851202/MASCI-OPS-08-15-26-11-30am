@@ -167,9 +167,36 @@ def compute_transport_eligibility(
         reasons.append({"code": "pending_review", "label": "Pending review",
                         "severity": "warn", "source": "status"})
 
-    # MASCI-employee person: HR-terminated/leave overrides everything to not_dispatchable.
+    # MASCI-employee person: HR projection (TRACK 16.11) overrides
+    # everything when HR says the employee is not currently
+    # dispatch-eligible. The richer projection (codes + labels + source
+    # status) lets the dispatch gate surface human-readable reasons
+    # directly to the operator. Legacy callers that only set
+    # ``hr_lifecycle_active`` continue to work.
     if record_type == "person" and (record or {}).get("kind") == "masci_employee":
-        if ctx.get("hr_lifecycle_active") is False:
+        hr_state = ctx.get("hr_transport_state")
+        hr_codes = ctx.get("hr_reason_codes") or []
+        hr_labels = ctx.get("hr_reason_labels") or []
+        hr_status_src = ctx.get("hr_source_status")
+        if hr_state in ("not_dispatchable", "suspended", "needs_correction"):
+            # Pair each code with its mapped label (1:1 alignment).
+            paired = list(zip(hr_codes, hr_labels)) if hr_labels else [
+                (c, c.replace("_", " ").capitalize()) for c in hr_codes
+            ]
+            state = hr_state
+            reasons = [
+                {"code": code, "label": label, "severity": "block",
+                 "source": "hr_lifecycle"}
+                for code, label in paired
+            ] or [{"code": "hr_status_unknown",
+                   "label": "HR lifecycle status unknown — review required",
+                   "severity": "block", "source": "hr_lifecycle"}]
+            # Stamp the source HR status so consumers (gate envelopes,
+            # UI panels) can render it verbatim.
+            for r in reasons:
+                r["hr_source_status"] = hr_status_src
+        elif ctx.get("hr_lifecycle_active") is False:
+            # Legacy boolean fallback. Kept for backwards compatibility.
             state = "not_dispatchable"
             reasons = [{"code": "hr_lifecycle_inactive",
                         "label": "HR employment is not active",

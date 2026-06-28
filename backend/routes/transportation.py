@@ -228,30 +228,50 @@ async def _upsert_eligibility(db, *, target_type: str, target_id: str,
 
 
 async def _hr_lifecycle_active(db, employee_id: Optional[str]) -> Optional[bool]:
-    """Resolve HR lifecycle for a MASCI employee. Returns ``True`` /
-    ``False`` / ``None`` (unknown). Phase 1 reads the canonical
-    ``employees`` collection; if no row exists we return ``None`` (do
-    not flip eligibility based on absence)."""
+    """Backwards-compat boolean — Track 16.04. New callers should
+    prefer :func:`_hr_lifecycle_context` which returns the full
+    projection introduced in Track 16.11."""
+    ctx = await _hr_lifecycle_context(db, employee_id)
+    if ctx is None:
+        return None
+    return ctx.get("hr_lifecycle_active")
+
+
+async def _hr_lifecycle_context(
+    db, employee_id: Optional[str],
+) -> Optional[Dict[str, Any]]:
+    """TRACK 16.11 · Resolve the HR projection for a MASCI employee
+    driver. Returns a dict suitable to merge into the eligibility
+    context, or ``None`` when no employee_id is supplied."""
     if not employee_id:
         return None
     try:
+        from lib.transport_hr_lifecycle import map_hr_lifecycle_to_transport
         row = await db.employees.find_one(
-            {"$or": [{"employee_id": employee_id}, {"id": employee_id}]},
-            {"_id": 0, "status": 1, "is_active": 1, "terminated": 1,
-             "lifecycle_status": 1},
+            {"$or": [{"employee_id": employee_id}, {"id": employee_id}],
+             "deleted_at": None},
+            {"_id": 0},
         )
     except Exception:  # noqa: BLE001
         return None
     if not row:
-        return None
-    if row.get("terminated") is True:
-        return False
-    if row.get("is_active") is False:
-        return False
-    lc = (row.get("lifecycle_status") or row.get("status") or "").lower()
-    if lc in ("terminated", "inactive", "on_leave", "leave", "separated"):
-        return False
-    return True
+        # Surface a needs_correction projection so the eligibility
+        # engine can flag the linkage gap without inventing a status.
+        return {
+            "hr_lifecycle_active": None,
+            "hr_transport_state": "needs_correction",
+            "hr_reason_codes": ["hr_employee_missing"],
+            "hr_reason_labels": ["Linked HR employee record not found"],
+            "hr_source_status": None,
+        }
+    proj = map_hr_lifecycle_to_transport(row)
+    return {
+        "hr_lifecycle_active": proj["hr_active"],
+        "hr_transport_state": proj["transport_state"],
+        "hr_reason_codes": proj["reason_codes"],
+        "hr_reason_labels": proj["reason_labels"],
+        "hr_source_status": proj["source_status"],
+    }
 
 
 def _validate_status(v: Optional[str]) -> None:
@@ -513,8 +533,9 @@ def register_transportation_routes(
                      request=request)
         ctx = {}
         if doc["kind"] == "masci_employee":
-            ctx["hr_lifecycle_active"] = await _hr_lifecycle_active(db,
-                                                                   doc["employee_id"])
+            hr_ctx = await _hr_lifecycle_context(db, doc["employee_id"])
+            if hr_ctx:
+                ctx.update(hr_ctx)
         await _upsert_eligibility(db, target_type="person",
                                   target_id=doc["id"], record=doc, context=ctx)
         return _project_doc(doc)
@@ -552,8 +573,9 @@ def register_transportation_routes(
                      new=_project_doc(new_doc), request=request)
         ctx = {}
         if new_doc.get("kind") == "masci_employee":
-            ctx["hr_lifecycle_active"] = await _hr_lifecycle_active(db,
-                                                                   new_doc.get("employee_id"))
+            hr_ctx = await _hr_lifecycle_context(db, new_doc.get("employee_id"))
+            if hr_ctx:
+                ctx.update(hr_ctx)
         await _upsert_eligibility(db, target_type="person",
                                   target_id=pid, record=new_doc, context=ctx)
         return _project_doc(new_doc)
@@ -681,8 +703,9 @@ def register_transportation_routes(
             raise HTTPException(404, f"{target_type} {target_id} not found")
         ctx = {}
         if target_type == "person" and record.get("kind") == "masci_employee":
-            ctx["hr_lifecycle_active"] = await _hr_lifecycle_active(db,
-                                                                   record.get("employee_id"))
+            hr_ctx = await _hr_lifecycle_context(db, record.get("employee_id"))
+            if hr_ctx:
+                ctx.update(hr_ctx)
         row = await _upsert_eligibility(db, target_type=target_type,
                                         target_id=target_id, record=record,
                                         context=ctx)
@@ -759,8 +782,10 @@ def register_transportation_routes(
                 raise HTTPException(404, f"{target_type} {target_id} not found")
             ctx = {}
             if target_type == "person" and record.get("kind") == "masci_employee":
-                ctx["hr_lifecycle_active"] = await _hr_lifecycle_active(
+                hr_ctx = await _hr_lifecycle_context(
                     db, record.get("employee_id"))
+                if hr_ctx:
+                    ctx.update(hr_ctx)
             row = await _upsert_eligibility(db, target_type=target_type,
                                             target_id=target_id, record=record,
                                             context=ctx)

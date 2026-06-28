@@ -11,7 +11,37 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
-## Latest Track (2026-06-28 · TRACK 16.10A · Monday-morning Transportation Command Digest · ✅ GO)
+## Latest Track (2026-02-10 · TRACK 16.11 · Transportation HR Lifecycle Integration · ✅ GO)
+
+### Mission
+Connect existing MASCI HR lifecycle state to Transportation eligibility for MASCI employee drivers. HR-safe, additive only — HR remains the absolute source of truth.
+
+### Verdict
+✅ **GO** — 34/34 new regression tests · 354 transport-track tests green · zero HR route mutations · zero employee duplication.
+
+### What shipped
+* `lib/transport_hr_lifecycle.py` — pure mapper `map_hr_lifecycle_to_transport` + sync helper `sync_transport_person_from_hr` + fire-and-forget `safe_sync_after_hr_write` shim.
+* `lib/transport_eligibility.py` — extended to consume the richer HR context (`hr_transport_state`, `hr_reason_codes/labels`, `hr_source_status`) and emit human-readable dispatch reasons.
+* `lib/transport_dispatch_gate.py` — `HUMAN_REASONS` map extended with HR codes (terminated / on leave / unknown / role mismatch / linkage missing).
+* `routes/employee_lifecycle.py` — 4 additive post-success hooks on create / patch / status-change / reactivate. Wrapped in try/except — HR write cannot be blocked.
+* `routes/transportation.py` — eligibility recompute now uses the full HR projection instead of a boolean.
+* `routes/transportation_experience.py` — `/admin/transportation/persons/{id}/workspace` returns `hr_projection` for the new UI panel.
+* Frontend `pages/transportation/_lists.jsx` — read-only **HR lifecycle projection** card in `DriverWorkspace` with test IDs `driver-hr-lifecycle-panel`, `driver-hr-projection-chip`, `driver-hr-reason-*`, `driver-hr-synced-at`.
+* `backend/tests/test_track_16_11_transport_hr_lifecycle_integration.py` — 34 tests · all 32 mandated requirements + 2 bonus end-to-end assertions.
+* `scripts/deployment_gate.py` — wired in.
+
+### Hard guarantees
+* HR data models, fields, routes are unchanged. Hooks are post-success only.
+* No new employee identity collection. No transport-side employee duplication.
+* No SMS / external email enabled. Optional route key `TRANSPORT_HR_LIFECYCLE_SYNC_ALERT` is internal-only + dry-run.
+* Forbidden vocabulary (rejected/denied/failed) absent from user-facing labels.
+
+### Documentation
+* `/app/memory/TRACK_16_11_TRANSPORT_HR_LIFECYCLE_INTEGRATION.md`
+
+---
+
+## Previous Track (2026-06-28 · TRACK 16.10A · Monday-morning Transportation Command Digest · ✅ GO)
 
 ### Mission
 Small additive track: one internal weekly email summarising the current Transportation Command Queue for Dispatch / Safety / Transportation Admin / Operations leadership.
