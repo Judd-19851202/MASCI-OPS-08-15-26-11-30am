@@ -40,6 +40,10 @@ NEW_ROUTE_KEYS = (
     ("TRANSPORT_ELIGIBILITY_CHANGED", "Dispatch eligibility changed", False),
     ("TRANSPORT_OVERRIDE_APPROVED", "Dispatch override approved", False),
     ("TRANSPORT_OVERRIDE_EXPIRING", "Dispatch override expiring", False),
+    # TRACK 16.10A · Internal weekly digest. Marked internal_only =
+    # carriers never receive this. Defaults dry-run + disabled until
+    # operators populate the internal recipient list.
+    ("TRANSPORT_COMMAND_DIGEST_WEEKLY", "Monday-morning Transportation Command Digest", False),
 )
 
 
@@ -58,7 +62,9 @@ async def bootstrap_track_16_10(db) -> Dict[str, Any]:
             "to": [], "cc": [], "bcc": [],
             "enabled": default_enabled,
             "is_transportation_pilot": False,
-            "track": "16.10",
+            "internal_only": route_key == "TRANSPORT_COMMAND_DIGEST_WEEKLY",
+            "pilot_safe": route_key == "TRANSPORT_COMMAND_DIGEST_WEEKLY",
+            "track": "16.10A" if route_key == "TRANSPORT_COMMAND_DIGEST_WEEKLY" else "16.10",
             "created_at": datetime.now(timezone.utc).isoformat(),
             "updated_at": datetime.now(timezone.utc).isoformat(),
         })
@@ -308,6 +314,37 @@ def register_track_16_10_routes(app, db, *, require_admin_dep,
                       "command queue to take action."),
         }
 
+    # =========================================================
+    # TRACK 16.10A · Monday-morning Transportation Command Digest
+    # =========================================================
+    @router.get("/admin/transportation/automation/digest/preview")
+    async def digest_preview(_: Any = Depends(require_admin_dep)):
+        from lib.transport_command_digest import build_transport_command_digest
+        return await build_transport_command_digest(db)
+
+    @router.post("/admin/transportation/automation/digest/dry-run")
+    async def digest_dry_run(_: Any = Depends(require_admin_dep)):
+        from lib.transport_command_digest import send_transport_command_digest
+        return await send_transport_command_digest(
+            db, dry_run=True, triggered_by="admin-dryrun")
+
+    @router.post("/admin/transportation/automation/digest/send-now")
+    async def digest_send_now(force: bool = Query(False),
+                                _: Any = Depends(require_admin_dep)):
+        from lib.transport_command_digest import send_transport_command_digest
+        return await send_transport_command_digest(
+            db, dry_run=False, force=force, triggered_by="admin")
+
+    @router.get("/admin/transportation/automation/digest/runs")
+    async def digest_run_history(
+        limit: int = Query(20, ge=1, le=200),
+        _: Any = Depends(require_admin_dep),
+    ):
+        cur = db.transport_command_digest_runs.find(
+            {"tenant": TENANT}).sort("ts", -1).limit(limit)
+        items = [_strip_id(d) for d in await cur.to_list(limit)]
+        return {"count": len(items), "items": items}
+
     app.include_router(router)
     return router
 
@@ -348,3 +385,37 @@ async def transport_automation_scheduler_loop(db) -> None:
             logger.exception(f"[transport-automation] loop exception: {e}")
         # 24-hour cadence.
         await asyncio.sleep(24 * 3600)
+
+
+# ===========================================================================
+# TRACK 16.10A · Weekly digest scheduler loop
+# ===========================================================================
+async def transport_command_digest_scheduler_loop(db) -> None:
+    """Monday-morning cadence. Wakes every hour, fires the digest once
+    per ISO week when (a) it's Monday 07:00–10:00 UTC, (b)
+    SCHEDULER_ENABLED is true, and (c) the weekly dedupe key has not
+    already recorded a sent / needs_configuration run."""
+    while True:
+        try:
+            if os.environ.get("SCHEDULER_ENABLED", "true").lower() == "false":
+                await asyncio.sleep(3600)
+                continue
+            now = datetime.now(timezone.utc)
+            # Monday=0; fire between 07:00 and 10:00 UTC so prod east-
+            # coast operators see it at start of day.
+            is_monday_morning = (now.weekday() == 0 and 7 <= now.hour < 10)
+            if is_monday_morning:
+                from lib.transport_command_digest import (  # noqa: PLC0415
+                    send_transport_command_digest,
+                )
+                res = await send_transport_command_digest(
+                    db, dry_run=False, triggered_by="scheduler")
+                logger.info(
+                    f"[transport-command-digest] tick · status={res.get('status')} "
+                    f"· dry_run={res.get('dry_run')} · skipped={res.get('skipped')}")
+        except Exception as e:  # noqa: BLE001
+            logger.exception(
+                f"[transport-command-digest] loop exception: {e}")
+        # One-hour cadence — keeps the Monday window narrow without
+        # busy-spinning. Weekly dedupe key prevents duplicate sends.
+        await asyncio.sleep(3600)

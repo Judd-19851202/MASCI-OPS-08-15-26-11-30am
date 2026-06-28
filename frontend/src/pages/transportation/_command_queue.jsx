@@ -162,6 +162,15 @@ function MorningQueue() {
 
 // ────────────────────────────────────────────────────────────────────
 function AutomationHealth() {
+  return (
+    <div className="space-y-4">
+      <AutomationHealthCore />
+      <DigestCard />
+    </div>
+  );
+}
+
+function AutomationHealthCore() {
   const [data, setData] = useState(null);
   const [err, setErr] = useState(null);
   const [running, setRunning] = useState(false);
@@ -354,6 +363,130 @@ function ComplianceForecast() {
           </section>
         );
       })}
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────
+// TRACK 16.10A · Weekly Command Digest status card + admin controls
+// ────────────────────────────────────────────────────────────────────
+function DigestCard() {
+  const [preview, setPreview] = useState(null);
+  const [history, setHistory] = useState([]);
+  const [err, setErr] = useState(null);
+  const [busy, setBusy] = useState(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const load = useCallback(async () => {
+    try {
+      const r1 = await api.get("/admin/transportation/automation/digest/preview",
+        { headers: adminHeaders() });
+      setPreview(r1.data);
+      const r2 = await api.get("/admin/transportation/automation/digest/runs?limit=5",
+        { headers: adminHeaders() });
+      setHistory(r2.data.items || []);
+    } catch (e) {
+      setErr(e.response?.data?.detail || e.message);
+    }
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const fire = async (which) => {
+    setBusy(which);
+    try {
+      const url = which === "dry"
+        ? "/admin/transportation/automation/digest/dry-run"
+        : "/admin/transportation/automation/digest/send-now";
+      await api.post(url, {}, { headers: adminHeaders() });
+      await load();
+    } catch (e) {
+      alert(e.response?.data?.detail || e.message);
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  if (err) return (
+    <section className="bg-white border border-slate-200 rounded-lg p-4" data-testid="tx-cq-digest-card">
+      <div className="text-sm text-red-700">{err}</div>
+    </section>
+  );
+
+  const lastRun = history[0];
+  return (
+    <section className="bg-white border border-slate-200 rounded-lg p-4" data-testid="tx-cq-digest-card">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <CalendarRange className="h-4 w-4 text-amber-700" />
+          <h3 className="font-semibold">Weekly Command Digest (Track 16.10A)</h3>
+        </div>
+        <div className="text-xs text-slate-500" data-testid="tx-cq-digest-week">
+          {preview?.week_key || "—"}
+        </div>
+      </div>
+
+      {lastRun ? (
+        <dl className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm mb-3" data-testid="tx-cq-digest-last">
+          <Row label="Last run" value={(lastRun.ts || "").slice(0, 19).replace("T", " ")} />
+          <Row label="Status" value={lastRun.status} />
+          <Row label="Dry-run" value={lastRun.dry_run ? "Yes" : "No"} />
+          <Row label="Recipients" value={lastRun.recipients_count ?? 0} />
+        </dl>
+      ) : (
+        <div className="text-sm text-slate-500 mb-3">No digest run recorded yet.</div>
+      )}
+
+      {preview ? (
+        <dl className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-xs mb-3 bg-slate-50 border border-slate-200 rounded p-2" data-testid="tx-cq-digest-summary">
+          <SmallStat label="Open" value={preview.summary.open_total} />
+          <SmallStat label="Blocking" value={preview.summary.blocking} tone="text-red-700" />
+          <SmallStat label="Urgent" value={preview.summary.urgent} tone="text-orange-700" />
+          <SmallStat label="Action" value={preview.summary.action_required} tone="text-amber-700" />
+          <SmallStat label="Due 7d" value={preview.summary.due_this_week} tone="text-sky-700" />
+          <SmallStat label="Overdue" value={preview.summary.overdue} tone="text-red-700" />
+        </dl>
+      ) : null}
+
+      <div className="flex gap-2">
+        <button
+          data-testid="tx-cq-digest-dry"
+          disabled={busy !== null}
+          onClick={() => fire("dry")}
+          className="bg-slate-200 hover:bg-slate-300 disabled:opacity-50 text-slate-800 text-sm px-3 py-1.5 rounded inline-flex items-center gap-1"
+        >
+          <Eye className="h-3.5 w-3.5" /> Dry-run digest
+        </button>
+        <button
+          data-testid="tx-cq-digest-send"
+          disabled={busy !== null}
+          onClick={() => fire("send")}
+          className="bg-amber-700 hover:bg-amber-800 disabled:opacity-50 text-white text-sm px-3 py-1.5 rounded inline-flex items-center gap-1"
+        >
+          <PlayCircle className="h-3.5 w-3.5" /> Send digest now
+        </button>
+        <button
+          data-testid="tx-cq-digest-preview-toggle"
+          onClick={() => setShowPreview((v) => !v)}
+          className="bg-slate-100 hover:bg-slate-200 text-slate-800 text-sm px-3 py-1.5 rounded inline-flex items-center gap-1"
+        >
+          {showPreview ? "Hide preview" : "Preview email"}
+        </button>
+      </div>
+
+      {showPreview && preview ? (
+        <div className="mt-3 border border-slate-200 rounded" data-testid="tx-cq-digest-preview-body">
+          <div className="px-3 py-2 border-b border-slate-200 text-xs text-slate-600 font-mono">{preview.subject}</div>
+          <div className="p-2 max-h-96 overflow-y-auto" dangerouslySetInnerHTML={{ __html: preview.body_html }} />
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+function SmallStat({ label, value, tone = "text-slate-900" }) {
+  return (
+    <div>
+      <div className="text-[10px] uppercase tracking-wide text-slate-500">{label}</div>
+      <div className={`font-semibold ${tone}`}>{value}</div>
     </div>
   );
 }

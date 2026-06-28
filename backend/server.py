@@ -12923,6 +12923,7 @@ from routes.transportation_automation import (  # noqa: E402
     register_track_16_10_routes,
     bootstrap_track_16_10,
     transport_automation_scheduler_loop,
+    transport_command_digest_scheduler_loop,
 )
 register_track_16_10_routes(
     app, db,
@@ -12952,6 +12953,19 @@ async def _track_16_10_bootstrap_on_startup():
     except Exception as exc:  # noqa: BLE001
         logging.getLogger(__name__).warning(
             f"[track-16-10-scheduler] non-fatal: {exc}")
+
+    # TRACK 16.10A · Monday-morning Command Digest. Singleton-locked
+    # so multi-worker prod fires exactly once per Monday window.
+    try:
+        async def _wrapped_digest(_db):
+            return await transport_command_digest_scheduler_loop(_db)
+        asyncio.create_task(
+            run_with_singleton_lock(db, "transport_command_digest",
+                                     _wrapped_digest))
+        logger.info("[track-16-10a] command-digest scheduler armed")
+    except Exception as exc:  # noqa: BLE001
+        logging.getLogger(__name__).warning(
+            f"[track-16-10a-scheduler] non-fatal: {exc}")
 
 
 # PROJECT-IDENTITY-005 · Project Identity Governance · /api/admin/project-identity/*
