@@ -11,6 +11,31 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-02-10 · TRACK 16.16 · Operations × Transportation Integration Layer · ✅ GO)
+
+### Mission
+Thin operational integration — Operations consumes Transportation read-only across PmProjectDetail + OperationsCenterCommand + PmCommandCenter. Transportation never consumes Operations. Strictly additive: zero new business logic, zero new scoring, zero new collections, zero new audit kinds.
+
+### Verdict
+✅ **GO** — 15/15 new tests · 7/7 live RBAC + performance tests · 134/134 combined Track 16.12 + 16.15 + 16.15A + 16.16 tests green. Endpoint cold latency **723 ms**. Cross-portal RBAC verified (admin/pm/dispatch all 200, no-auth 401). Risk banner silence contract locked.
+
+### What shipped
+* `routes/operations_transportation_integration.py` — `GET /api/operations/transportation/readiness` (cross-portal read). Pure composer over Track 16.06 / 16.10 / 16.11A engines + count-based eligibility bands. Performance discipline: NEVER calls `build_operational_health` (Track 16.12) or `build_cleanup_signals` (Track 16.15) from this hot path.
+* `components/operations_transportation_integration.jsx` — four read-only awareness components: `TransportationReadinessCard`, `TransportationRiskBanner` (silent when no risks), `OperationsTransportationHealthWidget`, `TransportationCloseoutAwareness`. Shared `useTransportationReadiness` hook with 30 s in-memory cache coalesces parallel fetches.
+* Mounts: `PmProjectDetail.jsx` (banner + readiness + closeout), `OperationsCenterCommand.jsx` (health widget below Project Health), `PmCommandCenter.jsx` (health widget at top of Overview tab).
+* `tests/test_track_16_16_operations_transportation_integration.py` — 15 regression tests, wired into deployment gate.
+
+### Hard guarantees
+* No new collections / scoring / audit kinds / emails / schedulers.
+* Endpoint is strictly read-only (no `.insert_one` / `.update_one` / etc.).
+* Risk banner returns `null` when `risks.length === 0` (no warning fatigue).
+* Cross-portal read; PMs and Dispatchers see the same operational awareness.
+
+### Documentation
+* `/app/memory/TRACK_16_16_OPERATIONS_TRANSPORTATION_INTEGRATION.md`
+
+---
+
 ## Latest Track (2026-02-10 · TRACK 16.15A · Dashboard Top Cleanup Signal Mirror · ✅ GO)
 
 ### Mission
