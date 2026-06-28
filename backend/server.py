@@ -12977,6 +12977,18 @@ register_track_18_00_phase_c_routes(
     require_any_portal_dep=_make_any_portal_track_16_16(db, _is_valid_admin_token),
 )
 
+# TRACK 18.00 · Phase D · Universal Relationships + Live Right Rail.
+# Composer endpoint that returns related records, open actions, and
+# audit trail for any Transportation Operations entity. RBAC-aware,
+# read-only, no new collections.
+from routes.transportation_relationships import (  # noqa: E402
+    register_track_18_00_phase_d_routes,
+)
+register_track_18_00_phase_d_routes(
+    app, db,
+    require_any_portal_dep=_make_any_portal_track_16_16(db, _is_valid_admin_token),
+)
+
 _transport_automation_task: Optional[asyncio.Task] = None
 
 

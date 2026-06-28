@@ -1,0 +1,43 @@
+{
+  "summary": "TRACK 18.00 Phase D Universal Relationships + Live Right Rail — GO. Backend 40/40 unit tests PASS, 8/8 live RBAC matrix tests PASS against the deployed preview (anon=401, admin=200/18.00D, unsupported_entity_type→400, unknown-id→clean envelope with entity.title='(not found)', dispatch RBAC strips document+orientation, HR RBAC strips truck+dispatch_assignment, cross-portal helper wired, all 11 entity types respond 200 with full envelope). Frontend right rail verified live on the workspace shell route: txops-workspace-shell + txops-workspace-body + txops-search-rail + txops-right-rail all mounted, all 5 section testids (txops-rail-recent-activity, txops-rail-timeline, txops-rail-related, txops-rail-open-actions, txops-rail-audit) visible, entity banner shows '(not found)' for ghost id, empty-state copy 'No recent activity.', 'No related records.', 'No open actions.' all present.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "validations_performed": {
+    "phase_d_unit_regression": "40/40 PASS (tests/test_track_18_00_phase_d_universal_relationships.py, 0.33s)",
+    "phase_d_live_rbac": "8/8 PASS (tests/test_track_18_00_phase_d_live_rbac.py, 35.8s) — anon 401 · admin envelope shape (entity+sections+counts+schema_version=18.00D) · unsupported_entity_type:alien · unknown-id clean envelope · dispatch strips document+orientation · HR strips truck+dispatch_assignment · cross-portal anon-vs-admin · all 11 entity types respond 200",
+    "envelope_shape_verified_live_curl": "{ok, entity{type,id,title,subtitle,status,route}, sections{recent_activity,timeline,related_records,open_actions,audit}, counts{...}, schema_version='18.00D'}",
+    "frontend_right_rail_live": "PASS — /admin/transportation/live-operations?entity_type=driver&entity_id=ghost renders txops-workspace-shell + txops-workspace-body + txops-right-rail with all 5 section testids visible. Entity banner shows '(not found)'. Empty state text 'No recent activity.' / 'No related records.' / 'No open actions.' present (timeline/audit use 'No timeline events.' / 'No audit events.' phrasing).",
+    "phase_a_preserved": "PASS — txops-workspace-shell + txops-workspace-body still mounted in shell",
+    "phase_c_search_rail_preserved": "PASS — txops-search-rail still mounted in shell"
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_track_18_00_phase_d_universal_relationships.py",
+    "/app/backend/tests/test_track_18_00_phase_d_live_rbac.py",
+    "/app/test_reports/pytest/phase_d.xml",
+    "/app/test_reports/pytest/phase_d_live.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Composer doctrine cleanly upheld: routes/transportation_relationships.py is a pure fanout over existing collections, no new collection introduced (verified by phase_d unit test_15_no_new_relationship_collection + grep).",
+    "_allowed() RBAC matrix is strict default-deny (empty set → 403); unauthorized relation GROUPS are OMITTED entirely from sections + counts (anti-leak doctrine — confirmed live for HR/dispatch).",
+    "SECTION_LIMITS bounded (5/8/10/5/8) with MAX_LIMIT=25 cap — prevents oversized payloads.",
+    "Envelope is stable: {ok, entity, sections, counts, schema_version='18.00D'} — review_request prose described sections at top-level but they are correctly nested under `sections`. This is the intended contract per route code and is what the frontend hook consumes. Phase A right-rail testids unchanged, so existing UI continues working.",
+    "MINOR — review_request URL '/admin/transportation/dashboard?entity_type=…&entity_id=…' is NOT where the shell mounts. The shell wraps /admin/transportation/live-operations and /admin/transportation/dispatch (per /app/frontend/src/pages/transportation/TransportationApp.jsx). Dashboard index route renders TransportationDashboard (Phase B Mission Control), NOT the WorkspaceShell. Right rail correctly renders on /live-operations and /dispatch — confirmed live. Recommend updating the test recipe (and possibly mounting the shell at /dashboard too if that's the intended landing for the right rail)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_track_18_00_phase_d_live_rbac.py (new — 8 live RBAC matrix tests against deployed preview)"
+  ],
+  "success_rate": {
+    "backend": "100% (40/40 unit + 8/8 live = 48/48)",
+    "frontend": "100% (all required testids visible on /admin/transportation/live-operations; entity banner + 3 of 5 empty-state strings present, 2 sections use 'events' phrasing which is acceptable)"
+  },
+  "test_credentials": "Super admin via /api/auth/multi-login: jaymn.judd@mascigc.com / Maddix123! — returns portal_tokens.{admin, dispatch, hr, pm, safety, shop, fl, ...}. Dispatch direct login dispatch@mascigc.com / DispatchTest2026! works. HR direct login hrmanager@mascigc.com / HRTesting2026! returned 401 'Invalid email or password' on preview (stale per memory note iter323); the live RBAC test correctly falls back to portal_tokens.hr from multi-login.",
+  "seed_data_creation": "None — endpoint is composer-only and uses 'ghost' entity ids that resolve to clean '(not found)' envelopes without writing any rows.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Phase D regression locked at /app/backend/tests/test_track_18_00_phase_d_universal_relationships.py (40 unit, 0.33s) and /app/backend/tests/test_track_18_00_phase_d_live_rbac.py (8 live, ~36s). The right rail renders on /admin/transportation/live-operations and /admin/transportation/dispatch routes — NOT /admin/transportation/dashboard (which is the Phase B Mission Control index). HR direct login on preview returns 401 (stale credential per memory) — use multi-login portal_tokens.hr fan-out instead, as the live RBAC test does. Envelope shape: sections are nested under `sections` key (NOT top-level)."
+}
