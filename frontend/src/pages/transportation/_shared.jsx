@@ -160,6 +160,7 @@ export const TX_OPS_NAV_GROUPS = [
 ];
 
 export function TransportationSubNav() {
+  const prefix = useTxPathPrefix();
   return (
     <nav
       className="space-y-2 border-b border-slate-200 pb-3 mb-4"
@@ -181,7 +182,7 @@ export function TransportationSubNav() {
           {group.items.map((item) => (
             <NavLink
               key={item.testid}
-              to={`/admin/transportation/${item.to}`}
+              to={`${prefix}/${item.to}`}
               end={item.end}
               data-testid={item.testid}
               className={({ isActive }) =>
@@ -244,7 +245,29 @@ export function txGet(path, params) {
   return api.get(path, { headers: adminHeaders(), params });
 }
 
+/**
+ * TRACK 18.12 · Mission Control access repair.
+ *
+ * Returns the active Transportation routing prefix based on the
+ * current URL — `/transportation-operations` for dispatch /
+ * transportation users, `/admin/transportation` for admin oversight.
+ * Both doorways mount the SAME `TransportationApp` router (Track
+ * 18.09C single source of truth), so the only thing we need to do
+ * to keep dispatch users inside Transportation Operations is to use
+ * the prefix-aware builder for every user-facing route.
+ */
+export function useTxPathPrefix() {
+  const loc = useLocation();
+  if (loc.pathname.startsWith("/transportation-operations")) {
+    return "/transportation-operations";
+  }
+  return "/admin/transportation";
+}
+
 export function useTxLocation() {
   const loc = useLocation();
-  return loc.pathname.replace("/admin/transportation", "").replace(/^\/+/, "");
+  return loc.pathname
+    .replace(/^\/transportation-operations/, "")
+    .replace(/^\/admin\/transportation/, "")
+    .replace(/^\/+/, "");
 }

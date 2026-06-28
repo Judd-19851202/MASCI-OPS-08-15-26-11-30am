@@ -18,6 +18,7 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Loader2, X } from "lucide-react";
 import { api } from "@/lib/api";
+import { useTxPathPrefix } from "./_shared";
 
 const ENDPOINT = "/admin/transportation/search";
 const DEBOUNCE_MS = 300;
@@ -67,6 +68,7 @@ export default function TransportationSearch() {
   const inputRef = useRef(null);
   const containerRef = useRef(null);
   const navigate = useNavigate();
+  const prefix = useTxPathPrefix();
 
   // Keyboard shortcut: "/" focuses search when not already in an input.
   useEffect(() => {
@@ -122,7 +124,15 @@ export default function TransportationSearch() {
     setOpen(false);
     setQ("");
     setResults([]);
-    if (route) navigate(route);
+    if (!route) return;
+    // TRACK 18.12 · Rewrite backend-emitted /admin/transportation
+    // routes to the active prefix so dispatch users stay inside
+    // /transportation-operations on every search result deep-link.
+    let target = route;
+    if (typeof target === "string" && target.startsWith("/admin/transportation")) {
+      target = prefix + target.slice("/admin/transportation".length);
+    }
+    navigate(target);
   };
 
   const buckets = groupResults(results);

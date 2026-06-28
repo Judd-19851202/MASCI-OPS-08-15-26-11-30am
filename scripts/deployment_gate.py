@@ -228,6 +228,7 @@ REGRESSION_FILES = [
     "/app/backend/tests/test_track_18_09c_transportation_ownership.py",
     "/app/backend/tests/test_track_18_10_governance_boundary_linter.py",
     "/app/backend/tests/test_track_18_11_r8_duplicate_cta_linter.py",
+    "/app/backend/tests/test_track_18_12_mission_control_access_layout.py",
 ]
 
 DEFAULT_BASE_URL = (

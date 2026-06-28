@@ -15,7 +15,7 @@ import {
   CheckCircle2, X,
 } from "lucide-react";
 import { api } from "@/lib/api";
-import { adminHeaders, Chip, PageHeader, EmptyState } from "./_shared";
+import { adminHeaders, Chip, PageHeader, EmptyState, useTxPathPrefix } from "./_shared";
 
 const SUB_TABS = [
   { to: "", label: "Morning Queue", end: true, testid: "tx-cq-tab-queue" },
@@ -24,6 +24,7 @@ const SUB_TABS = [
 ];
 
 export function CommandQueueCenter() {
+  const prefix = useTxPathPrefix();
   return (
     <div data-testid="tx-command-queue-center" className="space-y-4">
       <PageHeader
@@ -35,7 +36,7 @@ export function CommandQueueCenter() {
         {SUB_TABS.map((t) => (
           <NavLink
             key={t.label}
-            to={`/admin/transportation/command-queue/${t.to}`}
+            to={`${prefix}/command-queue/${t.to}`}
             end={t.end}
             data-testid={t.testid}
             className={({ isActive }) =>

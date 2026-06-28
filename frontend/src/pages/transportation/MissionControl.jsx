@@ -26,7 +26,7 @@ import {
   Truck, Users, Building2, Activity, ShieldAlert, Clock, Inbox,
   Sparkles, RefreshCw, ChevronRight, CheckCircle2, AlertTriangle,
 } from "lucide-react";
-import { txGet } from "./_shared";
+import { txGet, useTxPathPrefix } from "./_shared";
 import { useTransportationReadiness } from "@/components/operations_transportation_integration";
 
 const BAND_PALETTE = {
@@ -167,7 +167,7 @@ function useRecentActivity(limit = 6) {
   return rows;
 }
 
-function RecentActivityCard() {
+function RecentActivityCard({ prefix }) {
   const rows = useRecentActivity(6);
   const count = rows == null ? null : rows.length;
   const summary = rows == null
@@ -184,9 +184,56 @@ function RecentActivityCard() {
       primaryLabel="recent events"
       summary={summary}
       actionLabel="Open audit timeline"
-      actionHref="/admin/transportation/audit"
-      drillHref="/admin/transportation/audit"
+      actionHref={`${prefix}/audit`}
+      drillHref={`${prefix}/audit`}
     />
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────
+// TRACK 18.12 · Workspace Actions strip.
+//
+// Consistent, role-aware navigation chips so operators can jump
+// between operational workspaces from Mission Control without
+// re-routing through the sub-nav. The strip mirrors the sub-nav
+// ordering but renders as premium cards: icon + label + short
+// status hint + one obvious primary action per chip. Prefix-aware
+// so dispatch users stay inside `/transportation-operations/*`
+// and admin users stay inside `/admin/transportation/*`.
+// ─────────────────────────────────────────────────────────────────
+const WORKSPACE_STRIP = [
+  { to: "dispatch", icon: Activity, label: "Dispatch", hint: "Open Dispatch" },
+  { to: "drivers", icon: Users, label: "Drivers", hint: "Driver readiness" },
+  { to: "carriers", icon: Building2, label: "Carriers", hint: "Carrier readiness" },
+  { to: "trucks", icon: Truck, label: "Fleet", hint: "Truck readiness" },
+  { to: "orientation", icon: Inbox, label: "Orientation", hint: "Onboarding queue" },
+  { to: "compliance", icon: ShieldAlert, label: "Compliance", hint: "Document review" },
+  { to: "live-operations", icon: Activity, label: "Live Operations", hint: "Real-time view" },
+  { to: "intelligence/cleanup", icon: Sparkles, label: "Cleanup", hint: "Top opportunities" },
+];
+
+function WorkspaceStrip({ prefix }) {
+  return (
+    <section
+      data-testid="mc-workspace-strip"
+      aria-label="Operational workspaces"
+      className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2"
+    >
+      {WORKSPACE_STRIP.map((w) => (
+        <Link
+          key={w.to}
+          to={`${prefix}/${w.to}`}
+          data-testid={`mc-workspace-${w.to.replace(/\//g, "-")}`}
+          className="group flex flex-col items-start gap-1 rounded-md border border-slate-200 bg-white px-3 py-2.5 hover:border-slate-900 hover:shadow-sm transition-colors min-h-[68px]"
+        >
+          <div className="flex items-center gap-1.5 text-slate-900">
+            <w.icon className="h-4 w-4" />
+            <span className="text-xs font-semibold tracking-tight">{w.label}</span>
+          </div>
+          <span className="text-[10.5px] text-slate-500 leading-tight">{w.hint}</span>
+        </Link>
+      ))}
+    </section>
   );
 }
 
@@ -194,6 +241,7 @@ function RecentActivityCard() {
 // Mission Control.
 // ─────────────────────────────────────────────────────────────────
 export default function MissionControl() {
+  const prefix = useTxPathPrefix();
   const { data, error, loading, reload } = useTransportationReadiness();
 
   if (loading && !data) {
@@ -229,16 +277,20 @@ export default function MissionControl() {
     ? topPriority.label
     : "All clear — continue routine operations.";
   const nextActionHref = topPriority?.code === "blocked_dispatches"
-    ? "/admin/transportation/dispatch"
+    ? `${prefix}/dispatch`
     : topPriority?.code === "hr_mismatch"
-      ? "/admin/transportation/command-queue"
+      ? `${prefix}/command-queue`
       : topPriority
-        ? "/admin/transportation/intelligence/cleanup"
-        : "/admin/transportation/intelligence";
+        ? `${prefix}/intelligence/cleanup`
+        : `${prefix}/intelligence`;
 
   return (
     <div data-testid="mc-mission-control" className="space-y-4">
       <MissionBrief overall={overall} riskCount={riskCount} />
+
+      {/* TRACK 18.12 · Workspace Actions strip — consistent
+          role-aware navigation into every operational workspace. */}
+      <WorkspaceStrip prefix={prefix} />
 
       {/* Eight operational cards — one question each. */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -254,8 +306,8 @@ export default function MissionControl() {
           secondaryLabel="docs expiring 30d"
           summary="Truck eligibility + inspection state, composed from existing fleet engines."
           actionLabel="Open Fleet"
-          actionHref="/admin/transportation/trucks"
-          drillHref="/admin/transportation/inspections"
+          actionHref={`${prefix}/trucks`}
+          drillHref={`${prefix}/inspections`}
         />
 
         {/* Card 2 · Drivers Ready? */}
@@ -270,8 +322,8 @@ export default function MissionControl() {
           secondaryLabel="pending reviews"
           summary="Driver eligibility composed from HR lifecycle + Transportation compliance."
           actionLabel="Open Drivers"
-          actionHref="/admin/transportation/drivers"
-          drillHref="/admin/transportation/intelligence"
+          actionHref={`${prefix}/drivers`}
+          drillHref={`${prefix}/intelligence`}
         />
 
         {/* Card 3 · Carriers Ready? */}
@@ -286,8 +338,8 @@ export default function MissionControl() {
           secondaryLabel="docs awaiting review"
           summary="Carrier eligibility + packet state from the Compliance Center."
           actionLabel="Open Carriers"
-          actionHref="/admin/transportation/carriers"
-          drillHref="/admin/transportation/compliance"
+          actionHref={`${prefix}/carriers`}
+          drillHref={`${prefix}/compliance`}
         />
 
         {/* Card 4 · Dispatch Healthy? */}
@@ -302,8 +354,8 @@ export default function MissionControl() {
           secondaryLabel="readiness"
           summary="Dispatch never embedded — link only. Dispatch remains the operational system of record."
           actionLabel="Open Dispatch"
-          actionHref="/admin/transportation/dispatch"
-          drillHref="/admin/transportation/live-operations"
+          actionHref={`${prefix}/dispatch`}
+          drillHref={`${prefix}/live-operations`}
         />
 
         {/* Card 5 · Anything Blocking? */}
@@ -322,12 +374,12 @@ export default function MissionControl() {
             ? "Nothing is blocking. Transportation is clear."
             : risks.slice(0, 2).map((r) => r.label).join(" · ")}
           actionLabel="Open Live Operations"
-          actionHref="/admin/transportation/live-operations"
-          drillHref="/admin/transportation/intelligence/cleanup"
+          actionHref={`${prefix}/live-operations`}
+          drillHref={`${prefix}/intelligence/cleanup`}
         />
 
         {/* Card 6 · What Changed Today? */}
-        <RecentActivityCard />
+        <RecentActivityCard prefix={prefix} />
 
         {/* Card 7 · What Needs Attention? */}
         <McCard
@@ -340,8 +392,8 @@ export default function MissionControl() {
           secondaryLabel="materialized cleanup items"
           summary="Surfaced from the existing Cleanup Companion + Automation action queue. No new ranking engine."
           actionLabel="Open Cleanup"
-          actionHref="/admin/transportation/intelligence/cleanup"
-          drillHref="/admin/transportation/command-queue"
+          actionHref={`${prefix}/intelligence/cleanup`}
+          drillHref={`${prefix}/command-queue`}
         />
 
         {/* Card 8 · What Should We Do Next? */}
@@ -356,7 +408,7 @@ export default function MissionControl() {
           summary={nextLabel}
           actionLabel="Open the workflow"
           actionHref={nextActionHref}
-          drillHref={topPriority ? "/admin/transportation/live-operations" : null}
+          drillHref={topPriority ? `${prefix}/live-operations` : null}
         />
       </div>
 

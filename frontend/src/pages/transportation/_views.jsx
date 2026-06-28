@@ -18,7 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import {
-  Chip, PageHeader, ComingSoon, EmptyState, txGet, STATE_LABEL,
+  Chip, PageHeader, ComingSoon, EmptyState, txGet, STATE_LABEL, useTxPathPrefix,
 } from "./_shared";
 import { RateCreateDialog, InspectionWizard } from "./_widgets";
 import MissionControl from "./MissionControl";
@@ -68,6 +68,7 @@ export function TransportationDashboard() {
 function TopCleanupOpportunityCard() {
   const [data, setData] = useState(null);
   const [err, setErr] = useState(null);
+  const prefix = useTxPathPrefix();
 
   useEffect(() => {
     txGet("/admin/transportation/intelligence/cleanup-signals", { days: 30 })
@@ -93,7 +94,7 @@ function TopCleanupOpportunityCard() {
 
   const signals = data.signals || [];
   const top = signals[0];
-  const cleanupHref = "/admin/transportation/intelligence/cleanup";
+  const cleanupHref = `${prefix}/intelligence/cleanup`;
 
   if (!top) {
     return (

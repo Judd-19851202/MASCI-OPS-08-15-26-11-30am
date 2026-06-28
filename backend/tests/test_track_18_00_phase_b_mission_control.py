@@ -162,8 +162,17 @@ def test_07_each_card_has_action():
 # ===========================================================================
 def test_08_dispatch_card_is_link_only():
     src = MC.read_text()
-    # The Dispatch card must point to the bridge OR the dispatch portal.
-    assert "/admin/transportation/dispatch" in src
+    # The Dispatch card must point to the dispatch bridge route. Per
+    # Track 18.12, Mission Control links are now prefix-aware
+    # (`${prefix}/dispatch`) so dispatch users stay inside
+    # `/transportation-operations/*` while admin users stay inside
+    # `/admin/transportation/*`. Either literal admin reference OR
+    # the prefix-aware variant is acceptable.
+    assert "/admin/transportation/dispatch" in src or "${prefix}/dispatch" in src, (
+        "Mission Control's Dispatch card must link to the dispatch "
+        "bridge route (literal admin reference or prefix-aware "
+        "variant)."
+    )
     # And must NOT embed any dispatch live component.
     for forbidden in (
         "<DispatchBoard",

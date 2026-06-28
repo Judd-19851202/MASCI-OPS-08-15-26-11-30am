@@ -29,7 +29,7 @@ import { Link, useLocation } from "react-router-dom";
 import {
   Activity, History, Inbox, Link2, Sparkles,
 } from "lucide-react";
-import { txGet } from "./_shared";
+import { txGet, useTxPathPrefix } from "./_shared";
 
 /* ─────────────────────────────────────────────────────────────────
  * One shared header.
@@ -159,10 +159,22 @@ export function useTransportationRelationships(entityContext) {
 /* ─────────────────────────────────────────────────────────────────
  * Row primitives.
  * ────────────────────────────────────────────────────────────── */
+function _rewriteToPrefix(target, prefix) {
+  // TRACK 18.12 · Rewrite any backend-emitted /admin/transportation
+  // user-facing route to the active prefix so dispatch-authenticated
+  // users never bounce into the admin shell.
+  if (typeof target !== "string") return target;
+  if (target.startsWith("/admin/transportation")) {
+    return prefix + target.slice("/admin/transportation".length);
+  }
+  return target;
+}
+
 function RelatedRow({ row, testid }) {
+  const prefix = useTxPathPrefix();
   return (
     <Link
-      to={row.route || "#"}
+      to={_rewriteToPrefix(row.route, prefix) || "#"}
       data-testid={testid}
       className="block hover:bg-slate-50 rounded px-2 py-1.5 -mx-2"
     >
@@ -185,9 +197,11 @@ function RelatedRow({ row, testid }) {
 }
 
 function AuditRow({ row, testid }) {
+  const prefix = useTxPathPrefix();
+  const target = _rewriteToPrefix(row.route, prefix) || `${prefix}/administration/audit`;
   return (
     <Link
-      to={row.route || "/admin/transportation/administration/audit"}
+      to={target}
       data-testid={testid}
       className="block hover:bg-slate-50 rounded px-2 py-1 -mx-2"
     >

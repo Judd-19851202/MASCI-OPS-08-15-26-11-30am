@@ -1,0 +1,22 @@
+{
+  "summary": "TRACK 18.12 — Mission Control Access + Layout Repair: CERTIFIED GO. Backend regression 36/36 PASS in 0.08s. Live super-admin browser walkthrough on the preview URL passed ALL 27 assertions: workspace strip rendered, 8 workspace chips, 8 card actions, 8 sub-nav links — none bounced to /admin/transportation/, no Admin Console/Portal forbidden copy observed inside /transportation-operations/. /transportation-operations/fleet/trucks correctly compat-redirects to /transportation-operations/trucks. Admin doorway parity verified: mc-workspace-trucks at /admin/transportation routes to /admin/transportation/trucks. Dual-doorway prefix-aware contract holds.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_track_18_12_mission_control_access_layout.py",
+    "/app/test_reports/pytest/track_18_12_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "useTxPathPrefix hook in _shared.jsx is the single source of truth for prefix selection — all 5 surface files (MissionControl, _views, _command_queue, TransportationSearch, TransportationWorkspaceShell) import and use it; pattern is sound.",
+    "Admin /admin/login form submit at /admin/login did not authenticate the super-admin during the first walkthrough attempt (page stayed on /admin/login). The /sign-in multi-portal flow with the same credentials worked immediately and granted access to both doorways. Not a defect for this track but worth noting for future Admin Console login automation."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (36/36)", "frontend": "100% (27/27 live walkthrough)"},
+  "test_credentials": "Super admin: jaymn.judd@mascigc.com / Maddix123! — authenticated via /sign-in (multi-portal). Same token satisfied both /transportation-operations/* (TX gate) and /admin/transportation/* (A gate).",
+  "seed_data_creation": "None.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Mission Control workspace strip (data-testid='mc-workspace-strip') with 8 chips and 8 card actions is fully prefix-aware. Live proof recorded under both doorways. If TRACK 18.12 regresses in future, re-run the live walkthrough — chips must keep the URL under /transportation-operations/ when entered via that doorway, and under /admin/transportation/ when entered via the admin doorway. The /sign-in form is the most reliable login path for this super-admin account on preview; the legacy /admin/login form had a flaky first-submit during this run.",
+  "rca of the issue": "Prior iterations hardcoded /admin/transportation/... hrefs across MissionControl cards, sub-nav, command queue tabs, search results, and right-rail rows. Track 18.12 fix introduces useTxPathPrefix() in _shared.jsx that returns the active prefix (/transportation-operations or /admin/transportation) based on useLocation(); every user-facing href is now built as `${prefix}/...`. Live walkthrough confirms the prefix is correctly preserved in both doorways."
+}
