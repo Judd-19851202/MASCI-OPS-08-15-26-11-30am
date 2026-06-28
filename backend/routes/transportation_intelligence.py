@@ -173,5 +173,55 @@ def register_track_16_12_routes(app, db, *, require_admin_dep) -> APIRouter:
             range_info=out["range"], summary_counts=out["summary"])
         return out
 
+    # =========================================================
+    # TRACK 16.15 · Operational Cleanup Companion
+    # =========================================================
+    @router.get("/cleanup-signals")
+    async def cleanup_signals(
+        days: int = Query(30, ge=1, le=365),
+        _: Any = Depends(require_admin_dep),
+    ) -> Dict[str, Any]:
+        from lib.transport_cleanup_companion import (
+            build_cleanup_signals, record_cleanup_view,
+        )
+        out = await build_cleanup_signals(db, days=days)
+        await record_cleanup_view(
+            db, kind="transport_cleanup_signal_viewed",
+            viewer_role="admin")
+        return out
+
+    @router.get("/cleanup-signals/{signal_key}")
+    async def cleanup_signal_detail(
+        signal_key: str,
+        days: int = Query(30, ge=1, le=365),
+        _: Any = Depends(require_admin_dep),
+    ) -> Dict[str, Any]:
+        from lib.transport_cleanup_companion import (
+            build_cleanup_signal_detail, record_cleanup_view,
+        )
+        out = await build_cleanup_signal_detail(db, signal_key, days=days)
+        if not out.get("ok", True):
+            raise HTTPException(404, "Unknown signal")
+        await record_cleanup_view(
+            db, kind="transport_cleanup_detail_viewed",
+            signal_key=signal_key, viewer_role="admin")
+        return out
+
+    @router.post("/cleanup-signals/{signal_key}/materialize-actions")
+    async def cleanup_materialize(
+        signal_key: str,
+        days: int = Query(30, ge=1, le=365),
+        actor: Any = Depends(require_admin_dep),
+    ) -> Dict[str, Any]:
+        from lib.transport_cleanup_companion import (
+            materialize_cleanup_actions,
+        )
+        actor_email = (actor or {}).get("email") if isinstance(actor, dict) else None
+        out = await materialize_cleanup_actions(
+            db, signal_key, actor=actor_email or "admin", days=days)
+        if not out.get("ok", True):
+            raise HTTPException(404, "Unknown signal")
+        return out
+
     app.include_router(router)
     return router

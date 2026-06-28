@@ -11,7 +11,34 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
-## Latest Track (2026-02-10 · TRACK 16.14 · Dispatcher Learning Loop · ✅ GO)
+## Latest Track (2026-02-10 · TRACK 16.15 · Operational Cleanup Companion · ✅ GO)
+
+### Mission
+Close the operator loop by turning Track 16.12 intelligence + Track 16.14 learning signals into focused, source-counted action lists. No new scoring. Read-only against source records — only `transport_action_items` written.
+
+### Verdict
+✅ **GO** — 40/40 new tests · 578/578 transport-track tests green · live endpoint returns 401 unauthenticated · backend healthy.
+
+### What shipped
+* `lib/transport_cleanup_companion.py` — 12 cleanup signals (insurance / inspection / orientation / docs / packet / hr_sync / route_config / truck_readiness / carrier_docs / repeated_watch / frequent_excluded) with deterministic affected-record loaders. `materialize_cleanup_actions` writes idempotent `transport_action_items` rows keyed by `cleanup::<signal>::<entity_id>`.
+* 3 new admin-only endpoints: `GET /cleanup-signals`, `GET /cleanup-signals/{key}`, `POST /cleanup-signals/{key}/materialize-actions`.
+* Frontend `_intelligence.jsx` — new **Cleanup Companion** tab with Top Signal Card, signal grid, Affected Records Drawer, Create Cleanup Actions button, empty-state, native styling.
+* New audit kinds: `transport_cleanup_signal_viewed`, `transport_cleanup_detail_viewed`, `transport_cleanup_actions_materialized` — all stamped `schema_version="16.15.0"`.
+* `backend/tests/test_track_16_15_operational_cleanup_companion.py` — 40 tests wired into deployment gate.
+
+### Hard guarantees
+* No new scoring · no duplicate intelligence · no source-record mutation.
+* No emails · no SMS · no push · no punitive language.
+* No dispatch assignment behavior changes · no HR changes.
+* Materialize is idempotent (deduped by event_key).
+* Admin-only RBAC; dispatch users do not see this surface.
+
+### Documentation
+* `/app/memory/TRACK_16_15_OPERATIONAL_CLEANUP_COMPANION.md`
+
+---
+
+## Previous Track (2026-02-10 · TRACK 16.14 · Dispatcher Learning Loop · ✅ GO)
 
 ### Mission
 Convert the Track 16.13 recommendation audit collection into team-level operational learning. Admin-only, read-only, non-punitive, no emails, no individual scorekeeping.

@@ -686,10 +686,18 @@ def test_54_api_routes_admin_gated():
 
 def test_55_api_routes_read_only():
     src = ROUTE.read_text()
-    # No router.post / patch / delete in the intelligence router.
-    for verb in ("@router.post", "@router.patch", "@router.delete",
-                  "@router.put"):
+    # No router.patch / delete / put on the intelligence router.
+    # Track 16.15 introduces ONE narrow POST that only writes to
+    # ``transport_action_items`` (materialize cleanup actions); it is
+    # allowed because it does not mutate any source intelligence
+    # record. Every other route must remain a GET.
+    for verb in ("@router.patch", "@router.delete", "@router.put"):
         assert verb not in src
+    # Allowed POST is the materialize endpoint only.
+    post_count = src.count("@router.post(")
+    assert post_count <= 1
+    if post_count:
+        assert "materialize-actions" in src
 
 
 def test_56_router_registered_in_server():

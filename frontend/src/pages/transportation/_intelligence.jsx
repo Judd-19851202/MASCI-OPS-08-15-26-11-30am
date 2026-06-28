@@ -27,6 +27,8 @@ const SUB_TABS = [
     testid: "tx-intel-tab-pred", icon: TrendingUp },
   { to: "learning", label: "Learning Loop",
     testid: "tx-intel-tab-learning", icon: GraduationCap },
+  { to: "cleanup", label: "Cleanup Companion",
+    testid: "tx-intel-tab-cleanup", icon: ListChecks },
 ];
 
 const BAND_PALETTE = {
@@ -78,6 +80,7 @@ export function IntelligenceCenter() {
         <Route path="recommendations" element={<RecommendationsPanel />} />
         <Route path="predictions" element={<PredictionsPanel />} />
         <Route path="learning" element={<LearningLoopPanel />} />
+        <Route path="cleanup" element={<CleanupCompanionPanel />} />
       </Routes>
     </div>
   );
@@ -627,6 +630,260 @@ function PatternList({ title, items, emptyLabel, footer, testid }) {
         <div className="text-[10px] uppercase tracking-wide text-slate-400 mt-2">{footer}</div>
       )}
     </section>
+  );
+}
+
+
+
+// ────────────────────── Cleanup Companion (Track 16.15) ──────────────────────
+function CleanupCompanionPanel() {
+  const [signals, setSignals] = useState(null);
+  const [err, setErr] = useState(null);
+  const [openSignal, setOpenSignal] = useState(null);
+  const [detail, setDetail] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [materialized, setMaterialized] = useState(null);
+
+  const load = useCallback(async () => {
+    try {
+      const r = await api.get(
+        "/admin/transportation/intelligence/cleanup-signals?days=30",
+        { headers: adminHeaders() });
+      setSignals(r.data); setErr(null);
+    } catch (e) {
+      setErr(e.response?.data?.detail || e.message);
+    }
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const openDetail = async (key) => {
+    setOpenSignal(key); setDetail(null); setMaterialized(null);
+    try {
+      const r = await api.get(
+        `/admin/transportation/intelligence/cleanup-signals/${key}?days=30`,
+        { headers: adminHeaders() });
+      setDetail(r.data);
+    } catch (e) {
+      setDetail({ ok: false, error: e.message });
+    }
+  };
+
+  const materialize = async () => {
+    if (!openSignal) return;
+    setBusy(true);
+    try {
+      const r = await api.post(
+        `/admin/transportation/intelligence/cleanup-signals/${openSignal}/materialize-actions?days=30`,
+        null, { headers: adminHeaders() });
+      setMaterialized(r.data);
+      // refresh detail so the existing_action_item_id annotations update.
+      await openDetail(openSignal);
+    } catch (e) {
+      alert(e.response?.data?.detail || e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (err) return <div data-testid="tx-intel-cleanup-error" className="text-sm text-rose-700">{err}</div>;
+  if (!signals) return <div data-testid="tx-intel-cleanup-loading" className="text-sm text-slate-500">Loading…</div>;
+
+  const list = signals.signals || [];
+  const top = list[0];
+
+  return (
+    <div data-testid="tx-intel-cleanup" className="space-y-4">
+      <div className="text-[10px] uppercase tracking-wide text-slate-400" data-testid="tx-intel-cleanup-disclaimer">
+        Source-counted action lists · no new scoring · {signals.note}
+      </div>
+
+      {list.length === 0 ? (
+        <div data-testid="tx-intel-cleanup-empty" className="rounded border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+          No cleanup signals detected. Transportation data is currently in a healthy state.
+        </div>
+      ) : (
+        <>
+          {/* Top Cleanup Signal Card */}
+          {top && (
+            <section
+              className="rounded-lg border border-amber-300 bg-amber-50 p-4"
+              data-testid="tx-intel-cleanup-top-card"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <div className="text-[10px] uppercase tracking-wider text-amber-800 font-semibold">
+                    Top cleanup opportunity
+                  </div>
+                  <div className="text-lg font-semibold text-amber-900 mt-0.5" data-testid="tx-intel-cleanup-top-title">
+                    {top.title}
+                  </div>
+                </div>
+                <span className="text-[11px] px-2 py-0.5 rounded-full border border-amber-400 bg-amber-100 text-amber-900">
+                  {top.affected_count} affected
+                </span>
+              </div>
+              <div className="text-xs text-amber-900">{top.description}</div>
+              <div className="text-xs text-amber-900 mt-1">
+                <span className="font-medium">Recommended action: </span>{top.recommended_action}
+              </div>
+              <div className="mt-3 flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => openDetail(top.signal_key)}
+                  data-testid="tx-intel-cleanup-top-view"
+                  className="rounded bg-amber-700 hover:bg-amber-800 text-white px-3 py-1.5 text-xs font-medium"
+                >
+                  View affected records
+                </button>
+              </div>
+            </section>
+          )}
+
+          {/* Signal list */}
+          <ul className="grid grid-cols-1 lg:grid-cols-2 gap-3" data-testid="tx-intel-cleanup-list">
+            {list.map((s) => (
+              <li
+                key={s.signal_key}
+                className="rounded border border-slate-200 bg-white p-3"
+                data-testid={`tx-intel-cleanup-signal-${s.signal_key}`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <div className="text-sm font-semibold text-slate-900">{s.title}</div>
+                  <span className={`text-[11px] px-2 py-0.5 rounded-full border ${
+                    s.severity === "action_required"
+                      ? "border-rose-300 bg-rose-50 text-rose-800"
+                      : "border-amber-300 bg-amber-50 text-amber-800"}`}>
+                    {s.severity.replace("_", " ")}
+                  </span>
+                </div>
+                <div className="text-xs text-slate-600">{s.description}</div>
+                <div className="text-[11px] text-slate-500 mt-1">
+                  {s.affected_count} affected · source: {s.source}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => openDetail(s.signal_key)}
+                  data-testid={`tx-intel-cleanup-open-${s.signal_key}`}
+                  className="mt-2 text-xs text-blue-600 hover:underline"
+                >
+                  View affected records →
+                </button>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      {openSignal && (
+        <AffectedDrawer
+          signal={openSignal}
+          detail={detail}
+          busy={busy}
+          materialized={materialized}
+          onClose={() => { setOpenSignal(null); setDetail(null); setMaterialized(null); }}
+          onMaterialize={materialize}
+        />
+      )}
+
+      <div className="text-[10px] uppercase tracking-wide text-slate-400">
+        Schema {signals.schema_version} · Generated {(signals.generated_at || "").slice(0, 19).replace("T", " ")}
+      </div>
+    </div>
+  );
+}
+
+function AffectedDrawer({ signal, detail, busy, materialized, onClose, onMaterialize }) {
+  return (
+    <>
+      <div className="fixed inset-0 bg-slate-950/50 z-[60]" onClick={onClose}
+           data-testid="tx-intel-cleanup-drawer-scrim" />
+      <aside
+        data-testid="tx-intel-cleanup-affected-drawer"
+        className="fixed inset-y-0 right-0 w-full sm:w-[600px] bg-white shadow-2xl z-[70] overflow-y-auto"
+      >
+        <header className="sticky top-0 bg-white border-b border-slate-200 px-5 py-4 flex items-start justify-between">
+          <div>
+            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-amber-700 font-bold">Cleanup detail</div>
+            <div className="text-lg font-black text-slate-900 mt-1" data-testid="tx-intel-cleanup-detail-title">
+              {detail?.signal?.title || signal}
+            </div>
+            {detail?.signal?.recommended_action && (
+              <div className="text-xs text-slate-600 mt-0.5">{detail.signal.recommended_action}</div>
+            )}
+          </div>
+          <button type="button" onClick={onClose}
+                  data-testid="tx-intel-cleanup-detail-close"
+                  className="inline-flex items-center justify-center h-10 w-10 -mr-2 text-slate-500 hover:text-slate-900">
+            ×
+          </button>
+        </header>
+        <section className="px-5 py-4 space-y-3 text-xs">
+          {!detail && <div className="text-slate-500">Loading affected records…</div>}
+          {detail && detail.ok === false && (
+            <div className="text-rose-700">Couldn&apos;t load detail.</div>
+          )}
+          {detail?.ok && (
+            <>
+              <div className="flex items-center justify-between">
+                <div className="text-slate-700">
+                  <strong>{detail.affected?.length || 0}</strong> affected entities
+                </div>
+                <button
+                  type="button"
+                  onClick={onMaterialize}
+                  disabled={busy || !detail.affected?.length}
+                  data-testid="tx-intel-cleanup-materialize-btn"
+                  className="rounded bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 text-xs font-medium disabled:opacity-50"
+                >
+                  {busy ? "Creating…" : "Create cleanup actions"}
+                </button>
+              </div>
+              {materialized && (
+                <div className="rounded border border-emerald-300 bg-emerald-50 px-3 py-2 text-emerald-900"
+                     data-testid="tx-intel-cleanup-materialized-result">
+                  Created {materialized.created} action{materialized.created === 1 ? "" : "s"} ·
+                  reused {materialized.existing_action_count} existing ·
+                  skipped {materialized.skipped_duplicates} duplicate{materialized.skipped_duplicates === 1 ? "" : "s"}
+                </div>
+              )}
+              <ul className="space-y-2">
+                {(detail.affected || []).map((it, i) => (
+                  <li key={it.entity_id || i}
+                      data-testid={`tx-intel-cleanup-affected-${i}`}
+                      className="border border-slate-200 rounded px-3 py-2">
+                    <div className="flex items-center justify-between">
+                      <div className="font-medium text-slate-900">{it.display_name}</div>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full border ${
+                        it.severity === "action_required"
+                          ? "border-rose-300 bg-rose-50 text-rose-800"
+                          : "border-amber-300 bg-amber-50 text-amber-800"}`}>
+                        {it.severity.replace("_", " ")}
+                      </span>
+                    </div>
+                    <div className="text-slate-600 mt-0.5">{it.reason}</div>
+                    <div className="flex items-center justify-between mt-1 text-[11px] text-slate-500">
+                      <span>
+                        {it.due_date ? `Due: ${it.due_date.slice(0, 10)}` : "No due date"}
+                        {it.existing_action_item_id && ` · action ${it.action_status}`}
+                      </span>
+                      {it.direct_link && (
+                        <a href={it.direct_link} className="text-blue-600 hover:underline"
+                           data-testid={`tx-intel-cleanup-link-${i}`}>
+                          Open record →
+                        </a>
+                      )}
+                    </div>
+                  </li>
+                ))}
+                {(!detail.affected || detail.affected.length === 0) && (
+                  <li className="text-slate-500">No affected records.</li>
+                )}
+              </ul>
+            </>
+          )}
+        </section>
+      </aside>
+    </>
   );
 }
 
