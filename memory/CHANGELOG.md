@@ -1,5 +1,51 @@
 # CHANGELOG
 
+## 2026-02-10 — TRACK 18.12 · Mission Control Access + Layout Repair · 🟢 GO
+
+### Severity
+**P0 CRITICAL.** Fourth occurrence of this defect. Dispatch / transportation users clicking visible Mission Control actions were silently routed to `/admin/transportation/*` and hit Admin Console denial.
+
+### Root cause
+Mission Control + the SubNav + Right Rail + Search + Command Queue tabs **hardcoded user-facing routes** with the `/admin/transportation/...` prefix. Track 18.09C had made the router shared between two doorways, but the chrome inside that shared component still emitted admin-prefixed `<Link to=>` hrefs.
+
+### Fix (5 surface files + 1 helper)
+1. **New `useTxPathPrefix()` hook** in `pages/transportation/_shared.jsx` — returns `/transportation-operations` or `/admin/transportation` based on the active URL.
+2. **`useTxLocation()` updated** to strip *either* prefix.
+3. **`MissionControl.jsx`** — every operator-question card now uses `${prefix}/...`. NEW: Workspace Actions strip (8 ODS-compliant chips: Dispatch / Drivers / Carriers / Fleet / Orientation / Compliance / Live Operations / Cleanup) between Mission Brief and the card grid.
+4. **`_shared.jsx::TransportationSubNav`** — NavLink uses `${prefix}/${item.to}`.
+5. **`_views.jsx::TopCleanupOpportunityCard`** — `cleanupHref = ${prefix}/intelligence/cleanup`.
+6. **`_command_queue.jsx::CommandQueueCenter`** — sub-tabs use `${prefix}/command-queue/${t.to}`.
+7. **`TransportationSearch.jsx::onPickResult`** — rewrites backend-emitted `/admin/transportation/...` to active prefix before navigating.
+8. **`TransportationWorkspaceShell.jsx`** — shared `_rewriteToPrefix` helper applied to `RelatedRow` + `AuditRow` (right rail).
+
+### Layout repair (P1)
+New **Workspace Actions strip** under Mission Brief. 8 consistent chips, single CTA per chip (icon + label + short hint), R8-compliant, responsive (2/4/8 cols across mobile/tablet/desktop), premium hover state.
+
+### Documentation
+- `memory/TRACK_18_12_MISSION_CONTROL_ACCESS_LAYOUT_REPAIR.md` — Executive summary, root cause, 16-step dispatch walkthrough, admin walkthrough, GO certification.
+- `memory/MISSION_CONTROL_CLICK_PATH_AUDIT.md` — 26-click matrix with pre-fix / post-fix behavior per component.
+- `memory/MISSION_CONTROL_LAYOUT_REPAIR_REPORT.md` — Workspace strip design + responsive grid + Six Pillars self-check.
+
+### Lock file
+`backend/tests/test_track_18_12_mission_control_access_layout.py` — **36 lock assertions** (35 directive-mandated + 1 anchor) covering: 7 audit-document existence assertions, no hardcoded admin user-nav, prefix-aware sub-nav + TopBar, workspace strip existence + ODS labels + prefix-aware routes + no forbidden Admin Console copy, dispatch can open Drivers/Carriers/Fleet/Dispatch, restricted state Transportation-branded, dual doorway preserved, /api/admin/transportation/* preserved, admin side-nav preserved, RBAC preserved, dispatch + driver routes preserved, no new collections, no auth changes, no route removals, R8 + governance boundary preserved, deployment gate wiring, final certification requires live walkthrough.
+
+### Tests
+- **36/36 lock assertions PASS** in 0.08s.
+- **Track 18 family: 688/688 PASS** in 51s.
+- **Full deployment gate: 1619/1619 PASS** with `--timeout 60` in 243s.
+- `testing_agent_v3_fork` **LIVE WALKTHROUGH** certified: 27/27 dispatch+admin browser clicks PASS. Every Mission Control workspace chip + card action + sub-nav link + Command Queue tab kept the URL under the active doorway. `/transportation-operations/fleet/trucks` correctly compat-redirected to `/transportation-operations/trucks`. Admin doorway parity verified.
+
+### Carve-outs preserved
+Zero auth/RBAC changes · zero route removals · zero new endpoints · zero new collections · `/admin/transportation/*` admin-strict preserved · `/transportation-operations/*` TX-gated preserved · `/dispatch-portal/*` untouched · `/dr/*` driver routes untouched · `/api/admin/transportation/*` API prefix preserved · admin side nav preserved · admin-only record endpoints remain admin-strict · R8 CTA hierarchy preserved · governance boundary linter preserved.
+
+### Six Pillars
+Powerful ✅ Simple ✅ Beautiful ✅ Trusted ✅ Proven ✅ Operational ✅
+
+### Verdict
+🟢 GO. Transportation Operations is **usable**. Mission Control **looks like it belongs**. Verified live by a real dispatch-user browser walkthrough — not assumptions, not code inspection, not backend tests alone.
+
+
+
 ## 2026-02-10 — TRACK 18.11 · R8 Duplicate CTA Linter Calibration · 🟢 GO
 
 ### Mission

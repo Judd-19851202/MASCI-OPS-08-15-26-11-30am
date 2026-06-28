@@ -6364,6 +6364,44 @@ Close Executive YELLOW by building a read-only `ExecutiveOverview.jsx` that aggr
 
 **Deployment gate:** Track 18.11 wired in (`scripts/deployment_gate.py` L230).
 
+---
+
+## Track 18.12 — Mission Control Access + Layout Repair (2026-02-10) — 🟢 GO · P0 CRITICAL FIX (4th occurrence)
+
+**Defect:** Dispatch / transportation users clicking visible Mission Control actions were silently routed to `/admin/transportation/*` and hit Admin Console denial.
+
+**Root cause:** Mission Control + SubNav + Right Rail + Search + Command Queue tabs hardcoded `/admin/transportation/...` user-facing hrefs. Track 18.09C made the router shared between two doorways but the chrome inside still emitted admin-prefixed `<Link to=>` hrefs.
+
+**Fix:** New `useTxPathPrefix()` hook in `pages/transportation/_shared.jsx` returns the active prefix (`/transportation-operations` or `/admin/transportation`). Every user-facing href across 5 surface files now uses `${prefix}/...`:
+- `MissionControl.jsx` — 8 operator-question cards + NEW Workspace Actions strip (8 ODS chips).
+- `_shared.jsx::TransportationSubNav` — NavLink.
+- `_views.jsx::TopCleanupOpportunityCard` — cleanupHref.
+- `_command_queue.jsx::CommandQueueCenter` — sub-tabs.
+- `TransportationSearch.jsx::onPickResult` — rewrites backend-emitted admin routes.
+- `TransportationWorkspaceShell.jsx::RelatedRow` + `AuditRow` — shared `_rewriteToPrefix` helper.
+
+**Layout repair (P1):** New Workspace Actions strip under Mission Brief — 8 consistent ODS-compliant chips (Dispatch / Drivers / Carriers / Fleet / Orientation / Compliance / Live Operations / Cleanup), R8-compliant, responsive 2/4/8 col grid across mobile/tablet/desktop.
+
+**Documents (`/app/memory/`):**
+- `TRACK_18_12_MISSION_CONTROL_ACCESS_LAYOUT_REPAIR.md`
+- `MISSION_CONTROL_CLICK_PATH_AUDIT.md` (26-click matrix)
+- `MISSION_CONTROL_LAYOUT_REPAIR_REPORT.md`
+
+**Lock file:** `backend/tests/test_track_18_12_mission_control_access_layout.py` — **36 assertions** (35 directive-mandated + 1 anchor).
+
+**Tests:**
+- 36/36 lock PASS in 0.08s.
+- Track 18 family 688/688 PASS in 51s.
+- Full deployment gate 1619/1619 PASS with `--timeout 60` in 243s.
+- `testing_agent_v3_fork` LIVE WALKTHROUGH: 27/27 browser clicks PASS under BOTH doorways. No URL bounces. No Admin Console denial.
+
+**Carve-outs preserved:** Zero auth/RBAC changes · zero route removals · zero new endpoints · zero new collections · `/api/admin/transportation/*` preserved · admin side nav preserved · admin-only endpoints admin-strict · R8 + governance linter preserved · dispatch portal untouched · driver workflows untouched.
+
+**Six Pillars:** Powerful ✅ Simple ✅ Beautiful ✅ Trusted ✅ Proven ✅ Operational ✅
+
+**Deployment gate:** Track 18.12 wired in (`scripts/deployment_gate.py` L231).
+
+
 
 
 
