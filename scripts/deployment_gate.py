@@ -216,6 +216,7 @@ REGRESSION_FILES = [
     "/app/backend/tests/test_track_18_00_phase_g_final_polish.py",
     "/app/backend/tests/test_track_18_01_human_operability_review.py",
     "/app/backend/tests/test_track_18_02_human_excellence.py",
+    "/app/backend/tests/test_track_18_03_platform_language_constitution.py",
 ]
 
 DEFAULT_BASE_URL = (
