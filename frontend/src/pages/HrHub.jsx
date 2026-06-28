@@ -320,6 +320,14 @@ export default function HrHub() {
           <ExpirationsSummary title="Employee Document & Certification Expirations" />
         </div>
 
+        {/* TRACK 16.11A · Transportation Readiness · read-only KPI
+           snapshot. Sources from the HR Sync Monitor endpoint. HR is
+           the source of truth — this widget never writes to
+           Transportation. */}
+        <div className="mt-6" data-testid="hr-transportation-readiness-section">
+          <TransportationReadinessWidget />
+        </div>
+
         {/* Track 13.4A · HR Cleanup — removed `IntegrationHealthCard`
             (Motive / MaintainX sync plumbing — admin/ops concern, not
             HR). `OperationsActionsTile` also removed: it duplicated
@@ -338,6 +346,79 @@ export default function HrHub() {
           />
         </div>
       </main>
+    </div>
+  );
+}
+
+
+// TRACK 16.11A · Read-only Transportation Readiness widget.
+function TransportationReadinessWidget() {
+  const [data, setData] = React.useState(null);
+  const [err, setErr] = React.useState(null);
+  React.useEffect(() => {
+    const tok = getHrToken();
+    if (!tok && (typeof window === "undefined" || !window.localStorage?.getItem("masci.admin.token"))) {
+      setData(null);
+      return;
+    }
+    const headers = {
+      "X-HR-Token": tok || "",
+      "X-Admin-Token": (typeof window !== "undefined" && window.localStorage)
+        ? (window.localStorage.getItem("masci.admin.token") || "")
+        : "",
+    };
+    fetch(`${API}/admin/hr/transportation-readiness`, { headers })
+      .then(async (r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then(setData)
+      .catch((e) => setErr(e.message));
+  }, []);
+
+  if (err || !data) return null;
+  const s = data.states || {};
+  return (
+    <section
+      className="rounded-lg border border-slate-200 bg-white p-4"
+      data-testid="hr-transportation-readiness-widget"
+    >
+      <div className="flex items-center justify-between mb-3">
+        <div className="font-mono text-xs uppercase tracking-[0.18em] text-slate-700">
+          Transportation Readiness
+        </div>
+        <Link
+          to="/admin/transportation"
+          className="text-xs text-blue-600 hover:underline"
+          data-testid="hr-tx-readiness-view-link"
+        >
+          View Transportation →
+        </Link>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
+        <ReadinessTile label="Eligible" value={s.eligible ?? 0} accent="emerald" testid="hr-tx-readiness-eligible" />
+        <ReadinessTile label="Pending Review" value={s.pending_review ?? 0} accent="amber" testid="hr-tx-readiness-pending" />
+        <ReadinessTile label="Suspended" value={s.suspended ?? 0} accent="rose" testid="hr-tx-readiness-suspended" />
+        <ReadinessTile label="Needs Correction" value={s.needs_correction ?? 0} accent="amber" testid="hr-tx-readiness-correction" />
+        <ReadinessTile label="Not Dispatchable" value={s.not_dispatchable ?? 0} accent="rose" testid="hr-tx-readiness-blocked" />
+      </div>
+      <div className="text-[10px] uppercase tracking-wide text-slate-400 mt-3">
+        Last eligibility compute: {data.last_eligibility_compute ? data.last_eligibility_compute.slice(0, 19).replace("T", " ") : "—"} · Read-only
+      </div>
+    </section>
+  );
+}
+
+function ReadinessTile({ label, value, accent, testid }) {
+  const palette = {
+    emerald: "border-emerald-300 text-emerald-900 bg-emerald-50",
+    amber: "border-amber-300 text-amber-900 bg-amber-50",
+    rose: "border-rose-300 text-rose-900 bg-rose-50",
+  }[accent] || "border-slate-300 text-slate-800 bg-slate-50";
+  return (
+    <div className={`rounded-md border ${palette} px-3 py-2`} data-testid={testid}>
+      <div className="font-mono text-[9px] uppercase tracking-[0.18em] opacity-80">{label}</div>
+      <div className="font-display text-xl font-black mt-0.5 leading-none">{value}</div>
     </div>
   );
 }

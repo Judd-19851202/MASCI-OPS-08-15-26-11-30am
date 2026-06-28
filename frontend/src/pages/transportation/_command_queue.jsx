@@ -165,6 +165,7 @@ function AutomationHealth() {
   return (
     <div className="space-y-4">
       <AutomationHealthCore />
+      <HrSyncHealthCard />
       <DigestCard />
     </div>
   );
@@ -366,6 +367,129 @@ function ComplianceForecast() {
     </div>
   );
 }
+
+// ────────────────────────────────────────────────────────────────────
+// TRACK 16.11A · HR ↔ Transportation Sync Health card
+// ────────────────────────────────────────────────────────────────────
+function HrSyncHealthCard() {
+  const [data, setData] = useState(null);
+  const [report, setReport] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState(null);
+  const [showReport, setShowReport] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      const r = await api.get("/admin/transportation/hr-sync", { headers: adminHeaders() });
+      setData(r.data);
+    } catch (e) {
+      setErr(e.response?.data?.detail || e.message);
+    }
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const runScan = async () => {
+    setBusy(true);
+    try {
+      const r = await api.get("/admin/transportation/hr-sync/report?run=true",
+        { headers: adminHeaders() });
+      setReport(r.data);
+      setShowReport(true);
+      await load();
+    } catch (e) {
+      alert(e.response?.data?.detail || e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (err) {
+    return (
+      <section className="bg-white border border-slate-200 rounded-lg p-4" data-testid="tx-cq-hr-sync-card">
+        <div className="text-sm text-red-700">{err}</div>
+      </section>
+    );
+  }
+
+  const counts = data?.counts || {};
+  const healthChip = {
+    healthy: "bg-emerald-100 text-emerald-800 border-emerald-300",
+    warning: "bg-amber-100 text-amber-800 border-amber-300",
+    critical: "bg-rose-100 text-rose-800 border-rose-300",
+    unknown: "bg-slate-100 text-slate-600 border-slate-300",
+  }[data?.health || "unknown"];
+
+  return (
+    <section className="bg-white border border-slate-200 rounded-lg p-4" data-testid="tx-cq-hr-sync-card">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="h-4 w-4 text-emerald-700" />
+          <h3 className="font-semibold">HR Synchronization Health (Track 16.11A)</h3>
+        </div>
+        <span
+          data-testid="tx-cq-hr-sync-chip"
+          className={`text-[11px] px-2 py-0.5 rounded-full border ${healthChip}`}
+        >
+          {data?.health || "unknown"}
+        </span>
+      </div>
+      <dl className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm mb-3" data-testid="tx-cq-hr-sync-stats">
+        <Row label="Mismatches" value={counts.sync_mismatches ?? 0} />
+        <Row label="Projection failures" value={counts.projection_failures ?? 0} />
+        <Row label="Dispatch risks" value={counts.dispatch_risks ?? 0} />
+        <Row label="Unknown identities" value={counts.unknown_identities ?? 0} />
+        <Row label="Drivers checked" value={counts.drivers_checked ?? 0} />
+        <Row label="Employees checked" value={counts.employees_checked ?? 0} />
+        <Row label="Avg sync age (d)" value={data?.average_sync_age_days ?? "—"} />
+        <Row label="Oldest sync age (d)" value={data?.oldest_sync_age_days ?? "—"} />
+      </dl>
+      <div className="flex items-center gap-2 text-xs">
+        <button
+          data-testid="tx-cq-hr-sync-run"
+          disabled={busy}
+          onClick={runScan}
+          className="px-2 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-50"
+        >
+          {busy ? "Scanning…" : "View synchronization report"}
+        </button>
+        <span className="text-slate-500">
+          Last run: {data?.last_run_at ? data.last_run_at.slice(0, 19).replace("T", " ") : "—"}
+        </span>
+      </div>
+      {showReport && report && (
+        <div className="mt-3 border-t border-slate-200 pt-3 text-xs" data-testid="tx-cq-hr-sync-report">
+          <div className="flex items-center justify-between mb-2">
+            <div className="font-semibold text-slate-700">Mismatch detail ({(report.mismatches || []).length})</div>
+            <button onClick={() => setShowReport(false)} className="text-slate-500 hover:text-slate-800">close</button>
+          </div>
+          {(report.mismatches || []).length === 0 ? (
+            <div className="text-emerald-700">HR ↔ Transportation are fully synchronized.</div>
+          ) : (
+            <ul className="space-y-1.5 max-h-80 overflow-y-auto">
+              {(report.mismatches || []).slice(0, 100).map((m, i) => (
+                <li key={i} data-testid={`tx-cq-hr-sync-mismatch-${i}`}
+                    className={`rounded px-2 py-1 border ${
+                      m.severity === "critical" ? "border-rose-300 bg-rose-50" :
+                      m.severity === "block" ? "border-amber-300 bg-amber-50" :
+                      "border-slate-200 bg-slate-50"}`}>
+                  <div className="font-medium text-slate-800">{m.reason}</div>
+                  <div className="text-[11px] text-slate-500">
+                    {m.code} · {m.severity}
+                    {m.employee_id ? ` · emp ${m.employee_id}` : ""}
+                  </div>
+                  {m.recommended_action && (
+                    <div className="text-[11px] text-slate-600 mt-0.5">{m.recommended_action}</div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
 
 // ────────────────────────────────────────────────────────────────────
 // TRACK 16.10A · Weekly Command Digest status card + admin controls

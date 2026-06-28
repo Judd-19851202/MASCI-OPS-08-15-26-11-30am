@@ -126,6 +126,66 @@ export function TransportationDashboard() {
       <div className="text-xs text-slate-400 border-t border-slate-100 pt-3" data-testid="tx-dashboard-disclaimer">
         {data.disclaimer}
       </div>
+
+      {/* TRACK 16.11A · HR Health widget — read-only snapshot of the
+         HR ↔ Transportation sync engine. */}
+      <HrHealthWidget />
+    </div>
+  );
+}
+
+// TRACK 16.11A · HR ↔ Transportation Sync Health · dashboard widget.
+function HrHealthWidget() {
+  const [data, setData] = useState(null);
+  const [err, setErr] = useState(null);
+  useEffect(() => {
+    txGet("/admin/transportation/hr-sync")
+      .then((r) => setData(r.data))
+      .catch((e) => setErr(e.message));
+  }, []);
+  if (err) return null;
+  if (!data) return (
+    <div data-testid="tx-dashboard-hr-health-loading" className="text-xs text-slate-400">
+      Loading HR sync health…
+    </div>
+  );
+  const counts = data.counts || {};
+  const palette = {
+    healthy: "bg-emerald-100 text-emerald-800 border-emerald-300",
+    warning: "bg-amber-100 text-amber-800 border-amber-300",
+    critical: "bg-rose-100 text-rose-800 border-rose-300",
+    unknown: "bg-slate-100 text-slate-600 border-slate-300",
+  };
+  const cls = palette[data.health || "unknown"];
+  return (
+    <div className="border border-slate-200 rounded-md bg-white p-4" data-testid="tx-dashboard-hr-health">
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-sm font-semibold text-slate-700">HR Synchronization Health</div>
+        <span className={`text-[11px] px-2 py-0.5 rounded-full border ${cls}`} data-testid="tx-dashboard-hr-health-chip">
+          {data.health || "unknown"}
+        </span>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-slate-600">
+        <div data-testid="tx-dashboard-hr-mismatches">
+          <div className="uppercase tracking-wide text-[10px] text-slate-500">Mismatches</div>
+          <div className="text-base font-semibold text-slate-900">{counts.sync_mismatches ?? 0}</div>
+        </div>
+        <div>
+          <div className="uppercase tracking-wide text-[10px] text-slate-500">Dispatch risks</div>
+          <div className="text-base font-semibold text-slate-900">{counts.dispatch_risks ?? 0}</div>
+        </div>
+        <div>
+          <div className="uppercase tracking-wide text-[10px] text-slate-500">Avg sync age</div>
+          <div className="text-base font-semibold text-slate-900">{data.average_sync_age_days ?? "—"}d</div>
+        </div>
+        <div>
+          <div className="uppercase tracking-wide text-[10px] text-slate-500">Oldest sync age</div>
+          <div className="text-base font-semibold text-slate-900">{data.oldest_sync_age_days ?? "—"}d</div>
+        </div>
+      </div>
+      <div className="text-[10px] uppercase tracking-wide text-slate-400 mt-3">
+        Last scan: {data.last_run_at ? data.last_run_at.slice(0, 19).replace("T", " ") : "—"}
+      </div>
     </div>
   );
 }

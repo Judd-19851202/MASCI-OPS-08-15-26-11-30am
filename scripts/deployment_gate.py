@@ -198,6 +198,7 @@ REGRESSION_FILES = [
     "/app/backend/tests/test_track_16_10_transportation_automation_engine.py",
     "/app/backend/tests/test_track_16_10a_transport_command_digest.py",
     "/app/backend/tests/test_track_16_11_transport_hr_lifecycle_integration.py",
+    "/app/backend/tests/test_track_16_11A_transport_sync_monitor.py",
 ]
 
 DEFAULT_BASE_URL = (

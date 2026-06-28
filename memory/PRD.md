@@ -11,7 +11,39 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
-## Latest Track (2026-02-10 · TRACK 16.11 · Transportation HR Lifecycle Integration · ✅ GO)
+## Latest Track (2026-02-10 · TRACK 16.11A · HR Visibility + Transportation Consistency Engine · ✅ GO)
+
+### Mission
+Final hardening pass before Track 16.12 (Intelligence). HR gets immediate read-only visibility into Transportation readiness; Transportation continuously proves it remains synchronized with HR. HR-safe, additive only.
+
+### Verdict
+✅ **GO** — 45/45 new regression tests · 407/407 transport-track tests green · zero HR mutations · no new scheduler.
+
+### What shipped
+* `lib/transport_sync_monitor.py` — pure classifier `classify_mismatch` + async `scan_hr_transport_consistency` + `derive_employee_transport_status` + dashboard KPI builders. 10+ mismatch codes with severity grading (info / warn / block / critical).
+* `routes/transportation_automation.py` — 4 new **read-only** GET endpoints: `/admin/transportation/hr-sync`, `/admin/transportation/hr-sync/report`, `/admin/hr/transportation-status`, `/admin/hr/transportation-readiness`. Scanner runs inside the existing automation scheduler — **no new scheduler**.
+* New route key `TRANSPORT_HR_SYNC_MONITOR_ALERT` bootstrapped `internal_only=True`, `enabled=False`.
+* Frontend `pages/HrHub.jsx` — Transportation Readiness widget (`hr-transportation-readiness-widget`) on the HR Hub.
+* Frontend `pages/HrEmployees.jsx` — new **Transportation** tab in the Employee Drawer (`hremp-tab-transportation`, `hremp-tx-panel`).
+* Frontend `pages/transportation/_views.jsx` — `HrHealthWidget` on the Transportation Dashboard.
+* Frontend `pages/transportation/_command_queue.jsx` — `HrSyncHealthCard` on the Automation Health tab with run-on-demand "View synchronization report".
+* `backend/tests/test_track_16_11A_transport_sync_monitor.py` — 45 tests · wired into `deployment_gate.py`.
+
+### Hard guarantees
+* HR data models / routes / vocabulary unchanged.
+* No new HR identity collection. No transport_person duplication / auto-create / auto-delete.
+* Daily scan piggybacks on the existing Track 16.10 scheduler.
+* Action items are idempotent (`related_event_key`).
+* All sync writes wrapped in try/except — HR writes can never regress.
+* No SMS / Twilio / push. No external email enabled.
+* No punitive vocabulary (rejected / denied / failed) in user-facing labels.
+
+### Documentation
+* `/app/memory/TRACK_16_11A_TRANSPORT_SYNC_MONITOR.md`
+
+---
+
+## Previous Track (2026-02-10 · TRACK 16.11 · Transportation HR Lifecycle Integration · ✅ GO)
 
 ### Mission
 Connect existing MASCI HR lifecycle state to Transportation eligibility for MASCI employee drivers. HR-safe, additive only — HR remains the absolute source of truth.

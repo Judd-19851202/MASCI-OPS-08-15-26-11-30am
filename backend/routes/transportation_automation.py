@@ -44,6 +44,10 @@ NEW_ROUTE_KEYS = (
     # carriers never receive this. Defaults dry-run + disabled until
     # operators populate the internal recipient list.
     ("TRANSPORT_COMMAND_DIGEST_WEEKLY", "Monday-morning Transportation Command Digest", False),
+    # TRACK 16.11A · HR Sync Monitor alert. Internal-only, dry-run,
+    # disabled by default — exists so action items can reference a
+    # canonical route_key even though no external send is enabled.
+    ("TRANSPORT_HR_SYNC_MONITOR_ALERT", "HR ↔ Transportation sync monitor alert", False),
 )
 
 
@@ -62,9 +66,13 @@ async def bootstrap_track_16_10(db) -> Dict[str, Any]:
             "to": [], "cc": [], "bcc": [],
             "enabled": default_enabled,
             "is_transportation_pilot": False,
-            "internal_only": route_key == "TRANSPORT_COMMAND_DIGEST_WEEKLY",
-            "pilot_safe": route_key == "TRANSPORT_COMMAND_DIGEST_WEEKLY",
-            "track": "16.10A" if route_key == "TRANSPORT_COMMAND_DIGEST_WEEKLY" else "16.10",
+            "internal_only": route_key == "TRANSPORT_COMMAND_DIGEST_WEEKLY" or route_key == "TRANSPORT_HR_SYNC_MONITOR_ALERT",
+            "pilot_safe": route_key == "TRANSPORT_COMMAND_DIGEST_WEEKLY" or route_key == "TRANSPORT_HR_SYNC_MONITOR_ALERT",
+            "track": (
+                "16.10A" if route_key == "TRANSPORT_COMMAND_DIGEST_WEEKLY"
+                else "16.11A" if route_key == "TRANSPORT_HR_SYNC_MONITOR_ALERT"
+                else "16.10"
+            ),
             "created_at": datetime.now(timezone.utc).isoformat(),
             "updated_at": datetime.now(timezone.utc).isoformat(),
         })
@@ -345,6 +353,64 @@ def register_track_16_10_routes(app, db, *, require_admin_dep,
         items = [_strip_id(d) for d in await cur.to_list(limit)]
         return {"count": len(items), "items": items}
 
+    # =========================================================
+    # TRACK 16.11A · HR Visibility + Sync Monitor (read-only)
+    # =========================================================
+    @router.get("/admin/transportation/hr-sync")
+    async def hr_sync_health(_: Any = Depends(require_admin_dep)):
+        """Live HR-health snapshot for the Transportation Dashboard /
+        Command Queue widgets."""
+        from lib.transport_sync_monitor import (
+            transportation_dashboard_hr_health,
+        )
+        return await transportation_dashboard_hr_health(db)
+
+    @router.get("/admin/transportation/hr-sync/report")
+    async def hr_sync_report(
+        run: bool = Query(False),
+        stale_days: Optional[int] = Query(None, ge=1, le=120),
+        _: Any = Depends(require_admin_dep),
+    ):
+        """Return the most recent consistency report. When ``run=true``,
+        execute a fresh scan first (read-only by default, action items
+        are still created — that is the whole point of the engine)."""
+        from lib.transport_sync_monitor import (
+            scan_hr_transport_consistency,
+        )
+        if run:
+            return await scan_hr_transport_consistency(
+                db, stale_days=stale_days)
+        last = await db.transport_hr_sync_runs.find_one(
+            {"tenant": TENANT}, sort=[("generated_at", -1)])
+        if not last:
+            # Cold start — run once. Idempotent.
+            return await scan_hr_transport_consistency(
+                db, stale_days=stale_days)
+        return _strip_id(last)
+
+    @router.get("/admin/hr/transportation-status")
+    async def hr_transportation_status(
+        employee_id: str = Query(...),
+        _: Any = Depends(require_admin_dep),
+    ):
+        """Read-only single-employee Transportation status surface
+        consumed by the HR Employee Profile drawer."""
+        from lib.transport_sync_monitor import (
+            derive_employee_transport_status,
+        )
+        return await derive_employee_transport_status(db, employee_id)
+
+    @router.get("/admin/hr/transportation-readiness")
+    async def hr_transportation_readiness(
+        _: Any = Depends(require_admin_dep),
+    ):
+        """KPI bag for the HR Dashboard 'Transportation Readiness'
+        widget. Read-only."""
+        from lib.transport_sync_monitor import (
+            hr_dashboard_transport_readiness,
+        )
+        return await hr_dashboard_transport_readiness(db)
+
     app.include_router(router)
     return router
 
@@ -381,6 +447,22 @@ async def transport_automation_scheduler_loop(db) -> None:
                 f"emails_sent={res['counts']['emails_sent']} · "
                 f"needs_cfg={res['counts']['emails_needs_configuration']} · "
                 f"errors={res['counts']['errors']}")
+            # TRACK 16.11A · Daily HR ↔ Transportation consistency scan
+            # piggybacks on the existing automation cadence. No new
+            # scheduler is introduced. Read-only against HR.
+            try:
+                from lib.transport_sync_monitor import (
+                    scan_hr_transport_consistency,
+                )
+                sync_res = await scan_hr_transport_consistency(db)
+                logger.info(
+                    "[transport-hr-sync-monitor] daily tick · "
+                    f"health={sync_res['health']} · "
+                    f"mismatches={sync_res['counts']['sync_mismatches']} · "
+                    f"actions_created={sync_res['counts']['actions_created']}")
+            except Exception as _sync_e:  # noqa: BLE001
+                logger.warning(
+                    f"[transport-hr-sync-monitor] tick failed: {_sync_e}")
         except Exception as e:  # noqa: BLE001
             logger.exception(f"[transport-automation] loop exception: {e}")
         # 24-hour cadence.

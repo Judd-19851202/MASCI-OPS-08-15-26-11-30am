@@ -857,6 +857,7 @@ function EmployeeDrawer({ id, onClose, initialTab = "details" }) {
                 <TabsTrigger value="details" data-testid="hremp-tab-details">Details</TabsTrigger>
                 <TabsTrigger value="status" data-testid="hremp-tab-status">Status</TabsTrigger>
                 <TabsTrigger value="offboarding" data-testid="hremp-tab-offboarding">Offboarding Summary</TabsTrigger>
+                <TabsTrigger value="transportation" data-testid="hremp-tab-transportation">Transportation</TabsTrigger>
               </TabsList>
               <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4 text-sm">
                 <TabsContent value="details" className="mt-0 space-y-3">
@@ -1313,6 +1314,9 @@ function EmployeeDrawer({ id, onClose, initialTab = "details" }) {
                     )}
                   </Section>
                 </TabsContent>
+                <TabsContent value="transportation" className="mt-0 space-y-3">
+                  <TransportationStatusPanel employeeId={employee.employee_id || employee.id} />
+                </TabsContent>
               </div>
               {/* iter453.7 · Sticky drawer footer · Status tab only.
                  Pinned outside the scrollable region so HR can always
@@ -1479,6 +1483,127 @@ function MiniStat({ label, value, icon: Icon, accent }) {
         <span className="font-mono text-[9px] uppercase tracking-[0.18em] font-bold opacity-80">{label}</span>
       </div>
       <div className="font-display text-xl font-black mt-0.5 leading-none">{value}</div>
+    </div>
+  );
+}
+
+// TRACK 16.11A · HR-side Transportation Status panel. Read-only.
+// No controls. Mounted inside the HR Employee Drawer "Transportation"
+// tab. Never writes back into Transportation.
+function TransportationStatusPanel({ employeeId }) {
+  const [data, setData] = useState(null);
+  const [err, setErr] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!employeeId) {
+      setData(null);
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    const API = process.env.REACT_APP_BACKEND_URL;
+    const headers = {
+      "X-Admin-Token": (typeof window !== "undefined" && window.localStorage)
+        ? (window.localStorage.getItem("masci.admin.token") || "")
+        : "",
+      "X-HR-Token": (typeof window !== "undefined" && window.localStorage)
+        ? (window.localStorage.getItem("masci.hr.token") || "")
+        : "",
+    };
+    fetch(`${API}/api/admin/hr/transportation-status?employee_id=${encodeURIComponent(employeeId)}`, { headers })
+      .then(async (r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((body) => { if (!cancelled) { setData(body); setErr(null); } })
+      .catch((e) => { if (!cancelled) setErr(e.message || "load failed"); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [employeeId]);
+
+  if (loading) {
+    return <div data-testid="hremp-tx-loading" className="text-xs text-slate-500">Loading Transportation status…</div>;
+  }
+  if (err) {
+    return <div data-testid="hremp-tx-error" className="text-xs text-rose-600">Couldn't load Transportation status ({err}).</div>;
+  }
+  if (!data || data.linked === false) {
+    return (
+      <div data-testid="hremp-tx-not-linked" className="rounded-md border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
+        <div className="font-semibold text-slate-800 mb-1">Transportation: not linked</div>
+        <div>
+          {data?.reason === "hr_employee_missing"
+            ? "HR employee not found."
+            : "This employee is not linked to a Transportation driver record."}
+        </div>
+        <div className="mt-1 text-[11px] text-slate-500">HR is the source of truth — link via Transportation admin if this employee should be dispatch-eligible.</div>
+      </div>
+    );
+  }
+
+  const chipPalette = {
+    eligible: "bg-emerald-100 text-emerald-800 border-emerald-300",
+    pending_review: "bg-amber-100 text-amber-800 border-amber-300",
+    needs_correction: "bg-amber-100 text-amber-800 border-amber-300",
+    suspended: "bg-rose-100 text-rose-800 border-rose-300",
+    not_dispatchable: "bg-rose-100 text-rose-800 border-rose-300",
+  };
+  const chipClass = chipPalette[data.transport_status] || "bg-slate-100 text-slate-700 border-slate-300";
+
+  return (
+    <div data-testid="hremp-tx-panel" className="space-y-3">
+      <div className="rounded-md border border-slate-200 bg-white p-3">
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-600">Transportation Eligibility</div>
+          <span
+            data-testid="hremp-tx-status-chip"
+            className={`px-2 py-0.5 rounded-full border text-[11px] font-medium ${chipClass}`}
+          >
+            {(data.transport_status || "unknown").replace("_", " ")}
+          </span>
+        </div>
+        <Row2 label="HR status" value={data.hr_status || "—"} />
+        <Row2 label="Driver qualification" value={data.driver_qualification || "—"} />
+        <Row2 label="Approved company driver" value={data.approved_company_driver ? "Yes" : "No"} />
+        <Row2 label="Projection state" value={data.projection_state || "—"} />
+        <Row2 label="Last Transportation sync" value={data.last_sync_at ? data.last_sync_at.slice(0, 19).replace("T", " ") : "—"} testid="hremp-tx-last-sync" />
+        <Row2 label="Last orientation completion" value={data.last_orientation_completion ? data.last_orientation_completion.slice(0, 10) : "—"} />
+        <Row2 label="Next orientation expiration" value={data.next_orientation_expiration ? data.next_orientation_expiration.slice(0, 10) : "—"} />
+        {data.active_override && (
+          <Row2 label="Active dispatch override" value={`Expires ${(data.active_override.expires_at || "").slice(0, 10) || "—"}`} testid="hremp-tx-override" />
+        )}
+        {(data.transport_reasons || []).length > 0 && (
+          <div className="mt-2 text-[11px] text-slate-600">
+            <div className="font-semibold text-slate-700 mb-1">Eligibility reasons</div>
+            {data.transport_reasons.map((r, i) => (
+              <div key={i} data-testid={`hremp-tx-reason-${i}`}>• {r}</div>
+            ))}
+          </div>
+        )}
+      </div>
+      {data.view_workspace_path && (
+        <Link
+          to={data.view_workspace_path}
+          data-testid="hremp-tx-view-workspace"
+          className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline"
+        >
+          View Transportation profile →
+        </Link>
+      )}
+      <div className="text-[10px] uppercase tracking-wide text-slate-400">
+        Read-only · HR is the source of truth · Transportation is reactive
+      </div>
+    </div>
+  );
+}
+
+function Row2({ label, value, testid }) {
+  return (
+    <div className="flex items-center justify-between py-1 text-[12px] text-slate-700" data-testid={testid}>
+      <span className="text-slate-500">{label}</span>
+      <span className="font-medium text-slate-900">{value}</span>
     </div>
   );
 }
