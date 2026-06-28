@@ -226,6 +226,7 @@ REGRESSION_FILES = [
     "/app/backend/tests/test_track_18_09_operational_friction_elimination.py",
     "/app/backend/tests/test_track_18_09a_true_completion_pass.py",
     "/app/backend/tests/test_track_18_09c_transportation_ownership.py",
+    "/app/backend/tests/test_track_18_10_governance_boundary_linter.py",
 ]
 
 DEFAULT_BASE_URL = (
