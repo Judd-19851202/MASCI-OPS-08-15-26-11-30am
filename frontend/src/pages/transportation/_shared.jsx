@@ -242,7 +242,24 @@ export function EmptyState({ title, hint, testid }) {
 }
 
 export function txGet(path, params) {
-  return api.get(path, { headers: adminHeaders(), params });
+  // TRACK 18.12B · Restricted-state plumbing.
+  //
+  // Every Transportation Operations data loader calls into admin-strict
+  // /api/admin/transportation/* endpoints. For dispatch / non-admin
+  // transportation tokens those endpoints return 401/403. Letting the
+  // raw axios rejection bubble up triggers React's dev runtime-error
+  // overlay across Drivers / Carriers / Orientation / Intelligence /
+  // Audit / Automation. Loaders ALREADY render TxOpsRestrictedData
+  // when they receive a `restricted` marker — so we silence 401/403
+  // here and resolve with an empty, restricted-tagged payload. Other
+  // HTTP errors still throw, preserving real error reporting.
+  return api.get(path, { headers: adminHeaders(), params }).catch((err) => {
+    const status = err?.response?.status;
+    if (status === 401 || status === 403) {
+      return { data: { restricted: true, rows: [], items: [], signals: [], records: [] }, __txRestricted: true };
+    }
+    throw err;
+  });
 }
 
 /**
