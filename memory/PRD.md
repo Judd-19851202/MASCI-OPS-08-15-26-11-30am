@@ -11,6 +11,31 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-06-28 · TRACK 16.10A · Monday-morning Transportation Command Digest · ✅ GO)
+
+### Mission
+Small additive track: one internal weekly email summarising the current Transportation Command Queue for Dispatch / Safety / Transportation Admin / Operations leadership.
+
+### Verdict
+✅ **GO** — Deployment gate PASS · 42/42 new regression tests · 100% live verification by testing agent. Zero console errors, zero design drift.
+
+### What shipped
+* `lib/transport_command_digest.py` — builder + sender. Plain-text + HTML bodies, executive summary, blocking / urgent / due-soon / overdue lists, email route health, direct links back to the Command Queue.
+* 4 new admin endpoints `/api/admin/transportation/automation/digest/{preview, dry-run, send-now, runs}`.
+* `TRANSPORT_COMMAND_DIGEST_WEEKLY` route bootstrapped `enabled=False`, `internal_only=True`, `pilot_safe=True`.
+* `transport_command_digest_scheduler_loop` — Monday 07:00–10:00 UTC singleton-locked cycle, dedup via deterministic `transport_command_digest:YYYY-WW` key.
+* Frontend `DigestCard` inside Automation Health view with Dry-run / Send-now / Preview buttons + inline HTML preview.
+
+### Risks
+Route ships with empty recipients — operators populate via the email_routes collection before the scheduler will actually send mail. `RESEND_API_KEY` + `SCHEDULER_ENABLED=true` required in prod for the Monday cycle to fire.
+
+### Next recommended track
+**Track 16.11 — HR Lifecycle Integration.**
+
+Ledger: `/app/memory/TRACK_16_10A_TRANSPORTATION_COMMAND_DIGEST.md`.
+
+---
+
 ## Latest Track (2026-06-28 · TRACK 16.10 · Transportation Automation Engine · ✅ GO)
 
 ### Mission
