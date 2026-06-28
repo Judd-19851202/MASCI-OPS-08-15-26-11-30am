@@ -224,6 +224,7 @@ REGRESSION_FILES = [
     "/app/backend/tests/test_track_18_07_design_system_enforcement.py",
     "/app/backend/tests/test_track_18_08_regression_stability_device_polish.py",
     "/app/backend/tests/test_track_18_09_operational_friction_elimination.py",
+    "/app/backend/tests/test_track_18_09a_true_completion_pass.py",
 ]
 
 DEFAULT_BASE_URL = (

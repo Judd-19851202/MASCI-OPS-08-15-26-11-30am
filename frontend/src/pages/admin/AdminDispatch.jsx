@@ -219,7 +219,7 @@ export function DispatchUtilizationTab() {
             <Search className="absolute left-2 top-2.5 w-3.5 h-3.5 text-slate-400" />
             <Input placeholder="Search unit / name" className="pl-7 h-8 w-56" value={search} onChange={(e) => setSearch(e.target.value)} data-testid="util-search" />
           </div>
-          <Button onClick={load} size="sm" variant="outline" className="h-8"><RefreshCcw className="w-3.5 h-3.5" /></Button>
+          <Button onClick={load} size="sm" variant="outline" className="h-8" aria-label="Refresh utilization" title="Refresh"><RefreshCcw className="w-3.5 h-3.5" /></Button>
         </div>
       </div>
       <div className="bg-white border border-slate-200 rounded-md overflow-x-auto">
@@ -767,7 +767,7 @@ export function DispatchIdleAlertsTab() {
             &gt; {d} days {totals[`d${d}`] ? <span className="ml-1 font-mono text-[10px]">({totals[`d${d}`]})</span> : null}
           </Button>
         ))}
-        <Button onClick={load} size="sm" variant="outline" className="h-8 ml-auto"><RefreshCcw className="w-3.5 h-3.5" /></Button>
+        <Button onClick={load} size="sm" variant="outline" className="h-8 ml-auto" aria-label="Refresh idle list" title="Refresh"><RefreshCcw className="w-3.5 h-3.5" /></Button>
       </div>
 
       <div className="bg-white border border-slate-200 rounded-md overflow-x-auto">

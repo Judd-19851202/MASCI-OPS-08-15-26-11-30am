@@ -336,7 +336,7 @@ export default function AdminHRUsersPanel() {
                 <div className="font-mono text-base flex-1 bg-amber-50 border-2 border-amber-300 rounded px-3 py-2 select-all" data-testid="admin-hr-pw-reveal">
                   {pwReveal.password}
                 </div>
-                <Button onClick={copyPw} className="h-10" variant="outline"><Copy className="w-4 h-4" /></Button>
+                <Button onClick={copyPw} className="h-10" variant="outline" aria-label="Copy password" title="Copy password"><Copy className="w-4 h-4" /></Button>
               </div>
             </div>
             <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded px-3 py-2">

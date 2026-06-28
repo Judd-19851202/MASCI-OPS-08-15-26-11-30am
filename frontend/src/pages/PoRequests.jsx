@@ -318,7 +318,7 @@ export default function PoRequests() {
               <Input
                 value={supervisorFilter}
                 onChange={(e) => setSupervisorFilter(e.target.value)}
-                placeholder="Filter by supervisor / requester"
+                placeholder="Filter by supervisor or requester…"
                 className="pl-8 h-9 text-xs"
                 data-testid="po-supervisor-filter"
               />
@@ -328,7 +328,7 @@ export default function PoRequests() {
               <Input
                 value={vendorFilter}
                 onChange={(e) => setVendorFilter(e.target.value)}
-                placeholder="Filter by vendor"
+                placeholder="Filter by vendor…"
                 className="pl-8 h-9 text-xs"
                 data-testid="po-vendor-filter"
               />
@@ -338,7 +338,7 @@ export default function PoRequests() {
               <Input
                 value={projectFilter}
                 onChange={(e) => setProjectFilter(e.target.value)}
-                placeholder="Filter by project / job #"
+                placeholder="Filter by project # or name…"
                 className="pl-8 h-9 text-xs"
                 data-testid="po-project-filter"
               />

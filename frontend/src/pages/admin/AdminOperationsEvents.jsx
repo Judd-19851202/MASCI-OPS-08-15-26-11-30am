@@ -129,7 +129,7 @@ export default function AdminOperationsEvents() {
           <div className="flex items-center gap-2">
             <Button size="sm" variant="outline" disabled={offset === 0 || loading} onClick={() => setOffset(Math.max(0, offset - limit))}><ChevronLeft className="w-3.5 h-3.5" /></Button>
             <Button size="sm" variant="outline" disabled={offset + limit >= data.total || loading} onClick={() => setOffset(offset + limit)}><ChevronRight className="w-3.5 h-3.5" /></Button>
-            <Button size="sm" variant="outline" onClick={load}><RefreshCcw className="w-3.5 h-3.5" /></Button>
+            <Button size="sm" variant="outline" onClick={load} aria-label="Refresh events" title="Refresh"><RefreshCcw className="w-3.5 h-3.5" /></Button>
           </div>
         </div>
       </div>

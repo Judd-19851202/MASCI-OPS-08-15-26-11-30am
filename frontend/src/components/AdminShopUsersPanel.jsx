@@ -377,7 +377,7 @@ export default function AdminShopUsersPanel() {
                 <div className="font-mono text-base flex-1 bg-amber-50 border-2 border-amber-300 rounded px-3 py-2 select-all" data-testid="admin-shop-pw-reveal">
                   {pwReveal.password}
                 </div>
-                <Button onClick={copyPw} className="h-10" variant="outline"><Copy className="w-4 h-4" /></Button>
+                <Button onClick={copyPw} className="h-10" variant="outline" aria-label="Copy password" title="Copy password"><Copy className="w-4 h-4" /></Button>
               </div>
             </div>
             {pwReveal.must_change && (
