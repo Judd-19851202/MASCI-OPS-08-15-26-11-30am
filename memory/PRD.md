@@ -11,6 +11,31 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-02-10 · TRACK 18.00 Phase E · Transportation Operations Portal Transformation · ✅ GO)
+
+### Mission
+The dispatcher's entry experience at `/dispatch-portal` now opens with a unified **TRANSPORTATION OPERATIONS** brand and grouped operational navigation. Dispatch becomes one workspace inside Transportation Operations — not a separate product. Every existing dispatch route, capability, login flow, token verb, and bookmark is preserved exactly as-is. Frontend-only · additive · zero migrations · zero auth changes.
+
+### Verdict
+✅ **GO** — 40/40 Phase E unit tests · 131/131 cross-track Track-18 regression · live UI verified by testing agent (16/16 testids, 5/5 dispatch deep routes, `/` shortcut, MC CTA both gated and ungated paths, logout flow, zero console errors, Phase A/B/C/D all preserved).
+
+### What shipped
+* **`components/transportation/TransportationOpsTopBar.jsx`** (NEW) — Unified brand strip with 5 grouped nav rails (Operations · People · Compliance · Operations Intelligence · Administration), Search button, Mission Control CTA, exported `useTxOpsSlashShortcut` hook.
+* **`pages/DispatchHub.jsx`** — TopBar mounted at the top of the hub body. Every existing dispatch surface preserved untouched below.
+* **`pages/transportation/TransportationApp.jsx`** — `useTxOpsSlashShortcut()` mounted so `/` focuses Phase C search input across the shell.
+
+### Hard guarantees
+* No backend changes · no new route file · no new collection · no RBAC drift.
+* `RequireDispatch`, `X-Dispatch-Token`, multi-login portal tokens — all preserved.
+* `DispatchHub`, `DispatchBoard`, `DispatchCommandCenter`, `DispatchOperationsMapPage`, `DispatchHaulLedger`, `DispatchDriverQualification`, `DispatchMapHero`, `DispatchSideNavV2` — all unchanged in behavior.
+* Phase A/B/C/D regression locks held — Phase D `SCHEMA_VERSION == "18.00D"` still emitted.
+
+### Documentation
+* `/app/memory/TRACK_18_00_PHASE_E_PORTAL_TRANSFORMATION.md`
+* `/app/test_reports/iteration_track_18_00_phase_e.json`
+
+---
+
 ## Latest Track (2026-02-10 · TRACK 18.00 Phase D · Universal Relationships + Live Right Rail · ✅ GO)
 
 ### Mission
