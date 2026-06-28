@@ -12965,6 +12965,18 @@ register_track_16_16_routes(
     require_any_portal_dep=_make_any_portal_track_16_16(db, _is_valid_admin_token),
 )
 
+# TRACK 18.00 · Phase C · RBAC-aware Universal Search composer.
+# One thin composer endpoint that fans out across existing
+# transportation collections, filters per portal token, and returns
+# grouped + deep-linked results. No new collection. No new index.
+from routes.transportation_search import (  # noqa: E402
+    register_track_18_00_phase_c_routes,
+)
+register_track_18_00_phase_c_routes(
+    app, db,
+    require_any_portal_dep=_make_any_portal_track_16_16(db, _is_valid_admin_token),
+)
+
 _transport_automation_task: Optional[asyncio.Task] = None
 
 

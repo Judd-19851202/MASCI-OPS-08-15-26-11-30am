@@ -22,11 +22,18 @@ import { CommandQueueCenter } from "./_command_queue";
 import { IntelligenceCenter } from "./_intelligence";
 import DispatchBridgeWorkspace from "./_dispatch_bridge";
 import LiveOperationsWorkspace from "./_live_operations";
+import TransportationSearch from "./TransportationSearch";
 
 export default function TransportationApp() {
   return (
     <PortalShell portalName="MASCI" portalSubtitle="Transportation Operations" sideNav={<AdminSideNavV2 />}>
       <div className="space-y-2" data-testid="admin-transportation-page">
+        <div
+          data-testid="txops-search-rail"
+          className="flex justify-end mb-1"
+        >
+          <TransportationSearch />
+        </div>
         <TransportationSubNav />
         <Routes>
           {/* Overview · Mission Control */}
