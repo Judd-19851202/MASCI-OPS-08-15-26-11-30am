@@ -1,6 +1,6 @@
 # TRACK 18.09 · Operational Friction Elimination
 
-**Status:** ✅ GO · Friction audit complete · Linter R8 added · Regression-locked
+**Status:** ✅ GO · Friction audit complete · R8 deferred to 18.10 · Regression-locked
 **Date:** 2026-02-10
 
 ---
@@ -15,12 +15,16 @@ across 9 roles and 17 surfaces was **no**.
 
 Friction observed during the audit was minor and either (a) already
 addressed by an earlier Track 18 phase, (b) closed by this track's
-focused polish, or (c) explicitly deferred to a content-team pass with
-a documented disposition.
+focused micro-polish, or (c) explicitly deferred to a content-team
+pass with a documented disposition.
 
-One additional **design-system linter rule (R8 — duplicate CTA on a
-single card)** ships with this track, calibrated to zero false
-positives on the current codebase.
+A candidate **design-system linter rule (R8 — duplicate CTA on a
+single card)** was prototyped during this track and **deferred to
+Track 18.10** because the initial implementation surfaced false
+positives on `aria-label`s, status pills, dropdown items, and i18n
+entries. Per directive, the linter only ships rules with extremely
+low false-positive rates. R8 stays in active research; the
+deferral comment lives in `tests/test_track_18_07_design_system_linter.py`.
 
 ---
 
@@ -28,6 +32,8 @@ positives on the current codebase.
 
 | Item | Before | After | Surface |
 |---|---|---|---|
+| Generic search placeholder on the shared master-list panel | `"Search…"` | dynamic `"Search {entity}…"` (employees / equipment / suppliers / parts / etc.) | `components/MasterListPanel.jsx` |
+| Tasks search hinted only "title" | `"Search title…"` | `"Search title or description…"` matches the actual server-side `q` scope | `pages/Tasks.jsx` |
 | Empty-state language drift | `"No data"` | `"No {category} scored yet"` | Transportation intelligence panel (closed in 18.07) |
 | Mixed-case hero copy | `…Transportation Operations, and project operations` | `…transportation, and project operations` (Option C) | Hub hero subtext (closed in 18.05 amendment) |
 | Legacy workspace language in primary chrome | 13 user-facing strings | canonical Title Case | Cross-platform (closed in 18.07) |
@@ -35,7 +41,6 @@ positives on the current codebase.
 | Live Map mobile zoom controls | possible 390 px overlap | verified usable across breakpoints | Dispatch Map (closed in 18.08) |
 | Status color without label | unflagged | linter R6 active | Cross-platform (closed in 18.08) |
 | Hardcoded mobile-breaking widths | unflagged | linter R7 active with `max-w-` exclusion | Cross-platform (closed in 18.08) |
-| **Duplicate CTA on a single card** | unflagged | **linter R8 active** | **closed in this track** |
 
 ---
 
@@ -64,14 +69,21 @@ See `TRACK_18_09_OPERATOR_EXPERIENCE_REPORT.md`. Verdict: 🟢 first-day-employe
 
 ---
 
-## Design system expansion · R8
+## Design system expansion · R8 (DEFERRED to 18.10)
 
-**R8 — Duplicate CTA on a single card.** Flags cards that surface two
-identical primary CTAs (same source text inside the same `<Card>` /
-`<div className*="card">` wrapper). Catches "Open · Open" / "View · View"
-drift where a card duplicates its action affordance.
+**R8 — Duplicate CTA on a single card.** The intent is to flag cards
+that surface two identical primary CTAs (same source text inside the
+same `<Card>` / `<div className*="card">` wrapper). Catches
+"Open · Open" / "View · View" drift where a card duplicates its
+action affordance.
 
-Confidence: high. False-positive rate on current codebase: 0.
+**Status:** **deferred** to Track 18.10. Initial proximity-based
+implementation tripped on `aria-label`, status pills, dropdown items,
+and i18n catalog entries, producing too many false positives. Per the
+Track 18.09 directive, the linter only ships rules with extremely
+low false-positive rates. R8 stays under active research. The
+deferral disposition lives at the bottom of
+`tests/test_track_18_07_design_system_linter.py`.
 
 ---
 
@@ -84,19 +96,19 @@ Re-confirmed from Track 18.06 Mobile/Tablet/Field audit:
 ---
 
 ## Regression results
-- Track 18.09 file: 30 new tests passing.
-- Combined Track 18.03–18.09 family: **247/247 PASS** in the focused suite.
-- Linter R8 active alongside R1–R7.
+- Track 18.09 lock file (`test_track_18_09_operational_friction_elimination.py`) passing.
+- Combined Track 18 family deterministic across runs.
+- Linter R1–R7 active; R8 deferred to 18.10.
 
 ---
 
 ## Deployment gate
-Track 18.09 wired into `scripts/deployment_gate.py`. Combined Track 18 family now spans 8 lock files + the design-system linter.
+Track 18.09 wired into `scripts/deployment_gate.py`. Combined Track 18 family now spans 8 lock files + the design-system linter (R1–R7).
 
 ---
 
 ## Routes preserved · Auth/RBAC · Dispatch/driver preservation
-✅ Zero route changes. Zero auth changes. Zero RBAC changes. Dispatch execution + driver workflows untouched. No new collections. No new endpoints. **Strictly observational + linter expansion only** per the directive.
+✅ Zero route changes. Zero auth changes. Zero RBAC changes. Dispatch execution + driver workflows untouched. No new collections. No new endpoints. **Strictly observational + two micro-polish edits + linter research** per the directive.
 
 ---
 
@@ -104,6 +116,7 @@ Track 18.09 wired into `scripts/deployment_gate.py`. Combined Track 18 family no
 None.
 
 ## Deferrals (Track 18.10+)
+- R8 linter rule (Duplicate CTA on a single card) — calibration pending
 - Power-user keyboard shortcuts (`g+m`, `/`, `?`)
 - Right Rail collapse persistence (intentionally not implemented this track to avoid the "another navigation system" trap the directive calls out)
 - "Assign next ready driver" one-click on Mission Control

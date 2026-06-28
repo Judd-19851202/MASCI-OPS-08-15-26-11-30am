@@ -155,7 +155,7 @@ export default function Tasks() {
               <Input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Search title…"
+                placeholder="Search title or description…"
                 className="pl-8 h-9 text-xs w-full"
                 data-testid="tasks-search-input"
               />

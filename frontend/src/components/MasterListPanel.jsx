@@ -436,7 +436,7 @@ export default function MasterListPanel({
             <Input
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              placeholder="Search…"
+              placeholder={`Search ${entitySingular}…`}
               className="h-9 border-2 max-w-md"
               data-testid={`${testIdPrefix}-search`}
             />
