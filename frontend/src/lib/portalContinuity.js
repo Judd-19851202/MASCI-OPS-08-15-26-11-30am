@@ -16,14 +16,19 @@
 // Portal → display label / hub path / return identity. The keys here
 // match the values that `PortalContextBanner.PORTAL_REGISTRY` uses
 // and the `?from=<key>` query parameter the hub Guides links emit.
+//
+// TRACK 18.01/18.07 canonical naming: the human-facing portal labels
+// must use the operations names ("Human Resources" / "Project Management"
+// / "Safety Operations" / "Shop Operations" / "Field Leadership"),
+// NOT the legacy "* Portal" labels.
 const PORTAL = {
-  safety:     { roleLabel: "Safety Portal",   hub: "/safety-portal" },
-  hr:         { roleLabel: "HR Portal",       hub: "/hr" },
-  shop:       { roleLabel: "Shop Portal",     hub: "/shop" },
-  admin:      { roleLabel: "Admin Portal",    hub: "/admin" },
-  pm:         { roleLabel: "PM Portal",       hub: "/pm" },
-  dispatch:   { roleLabel: "Dispatch Portal", hub: "/dispatch-portal" },
-  leadership: { roleLabel: "Field Leadership", hub: "/leadership" },
+  safety:     { roleLabel: "Safety Operations",   hub: "/safety-portal" },
+  hr:         { roleLabel: "Human Resources",     hub: "/hr" },
+  shop:       { roleLabel: "Shop Operations",     hub: "/shop" },
+  admin:      { roleLabel: "Administration",      hub: "/admin" },
+  pm:         { roleLabel: "Project Management",  hub: "/pm" },
+  dispatch:   { roleLabel: "Transportation Operations", hub: "/dispatch-portal" },
+  leadership: { roleLabel: "Field Leadership",    hub: "/leadership" },
 };
 
 // Path-segment → workflow label registry. Order matters — first match
