@@ -1229,42 +1229,91 @@ def register_transportation_orientation_routes(
     # ============================ DASHBOARD WIDGETS ============================
     @router.get("/admin/transportation/orientation/dashboard")
     async def orientation_dashboard(_: Any = Depends(ops_guard)):
-        # Required module count.
+        # Track 19.02 perf hardening — was N+1 (one derive call per driver).
+        # Now: one pass for modules, one pass for assignments, one pass for
+        # certificates, status computed in-memory.
         modules = await db.transport_orientation_modules.find(
             {"tenant": TENANT, "active": True}).to_list(500)
         required_modules = [m for m in modules if m.get("required")]
-        # Drivers in scope = transport_persons.
+        required_keys = {m["key"] for m in required_modules}
+
         drivers = await db.transport_persons.find(
             {"tenant": TENANT}).to_list(2000)
-        # Per-driver orientation status (lightweight inline compute).
-        from lib.transport_orientation_status import (  # noqa: PLC0415
-            derive_orientation_status,
-        )
-        per_driver = []
-        for d in drivers:
-            os_ = await derive_orientation_status(db, d.get("id"))
-            per_driver.append({"driver_id": d.get("id"), **os_})
-        total_drivers = len(drivers)
-        current = sum(1 for r in per_driver if r["orientation_status"] == "current")
-        missing = sum(1 for r in per_driver if r["orientation_status"] == "missing")
-        expired = sum(1 for r in per_driver if r["orientation_status"] == "expired")
-        failed = sum(1 for r in per_driver if r["orientation_status"] == "quiz_failed")
-        expiring = sum(1 for r in per_driver if r.get("expiring_soon"))
+        driver_ids = [d.get("id") for d in drivers if d.get("id")]
+
+        # Single bulk fetch of every assignment for every driver in scope.
+        assigns_all = await db.transport_orientation_assignments.find(
+            {"tenant": TENANT,
+             "transport_person_id": {"$in": driver_ids}}
+        ).sort("assigned_at", -1).to_list(20000)
+        per_driver_assigns: Dict[str, List[Dict[str, Any]]] = {}
+        for a in assigns_all:
+            per_driver_assigns.setdefault(
+                a.get("transport_person_id"), []).append(a)
+
+        now_iso = datetime.now(timezone.utc).isoformat()
+        thirty_days = (datetime.now(timezone.utc)
+                       + timedelta(days=30)).isoformat()
+
+        current = missing = expired = failed = expiring = 0
+        for did in driver_ids:
+            rows = per_driver_assigns.get(did, [])
+            latest_per_module: Dict[str, Dict[str, Any]] = {}
+            for a in rows:  # already sorted desc by assigned_at
+                k = a.get("module_key")
+                if k and k not in latest_per_module:
+                    latest_per_module[k] = a
+            completed = 0
+            any_expired = False
+            any_failed = False
+            any_expiring = False
+            for key in required_keys:
+                a = latest_per_module.get(key)
+                if not a:
+                    continue
+                status_a = a.get("status")
+                expires_at = a.get("expires_at")
+                if status_a == "completed" and expires_at and expires_at < now_iso:
+                    any_expired = True
+                    continue
+                if status_a == "completed":
+                    completed += 1
+                    if expires_at and expires_at < thirty_days:
+                        any_expiring = True
+                elif status_a == "quiz_failed":
+                    any_failed = True
+            if not required_keys or completed == 0:
+                missing += 1
+            elif completed == len(required_keys):
+                current += 1
+                if any_expiring:
+                    expiring += 1
+            elif any_expired:
+                expired += 1
+            elif any_failed:
+                failed += 1
+            else:
+                missing += 1
+
+        total_drivers = len(driver_ids)
         completion_pct = round(100.0 * current / total_drivers, 1) if total_drivers else 0.0
-        # Certificates.
-        certs = await db.transport_orientation_certificates.find(
-            {"tenant": TENANT}).to_list(5000)
-        thirty_iso = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
-        ninety_iso = (datetime.now(timezone.utc) - timedelta(days=90)).isoformat()
-        certs_30d = sum(1 for c in certs if (c.get("completed_at") or "") >= thirty_iso)
-        certs_90d = sum(1 for c in certs if (c.get("completed_at") or "") >= ninety_iso)
-        # Average quiz score (from assignments with best_quiz_score).
-        assigns = await db.transport_orientation_assignments.find(
-            {"tenant": TENANT, "best_quiz_score": {"$ne": None}}
-        ).to_list(5000)
+
+        # Certificates summary (single query).
+        thirty_back = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
+        ninety_back = (datetime.now(timezone.utc) - timedelta(days=90)).isoformat()
+        certs_total = await db.transport_orientation_certificates.count_documents(
+            {"tenant": TENANT})
+        certs_30d = await db.transport_orientation_certificates.count_documents(
+            {"tenant": TENANT, "completed_at": {"$gte": thirty_back}})
+        certs_90d = await db.transport_orientation_certificates.count_documents(
+            {"tenant": TENANT, "completed_at": {"$gte": ninety_back}})
+
+        # Average quiz score from assignments with a best_quiz_score.
+        scored = [a for a in assigns_all
+                  if a.get("best_quiz_score") is not None]
         avg_quiz = round(
-            sum(int(a.get("best_quiz_score") or 0) for a in assigns) /
-            max(1, len(assigns)), 1) if assigns else 0.0
+            sum(int(a.get("best_quiz_score") or 0) for a in scored) /
+            max(1, len(scored)), 1) if scored else 0.0
         return {
             "modules_active": len(modules),
             "modules_required": len(required_modules),
@@ -1275,7 +1324,7 @@ def register_transportation_orientation_routes(
             "drivers_orientation_quiz_failed": failed,
             "drivers_expiring_soon": expiring,
             "completion_pct": completion_pct,
-            "certificates_total": len(certs),
+            "certificates_total": certs_total,
             "certificates_30d": certs_30d,
             "certificates_90d": certs_90d,
             "average_quiz_score": avg_quiz,

@@ -1210,8 +1210,8 @@ def api_version():
         sentry["release"] = _SOURCE_HASH[:16]
     return {
         "service": "masci-hub",
-        "commit": os.environ.get("GIT_COMMIT", "unknown"),
-        "built_at": os.environ.get("BUILT_AT", "unknown"),
+        "commit": os.environ.get("GIT_COMMIT") or _SOURCE_HASH[:12],
+        "built_at": os.environ.get("BUILT_AT") or _STARTUP_TS.isoformat(),
         "source_hash": _SOURCE_HASH,
         "release": sentry["release"],
         "started_at": _STARTUP_TS.isoformat(),

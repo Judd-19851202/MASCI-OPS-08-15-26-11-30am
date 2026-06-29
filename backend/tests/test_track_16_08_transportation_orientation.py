@@ -617,7 +617,9 @@ def test_55_invite_create_open_submit(H):
         timeout=10)
     assert mods.status_code == 200
     items = mods.json()["items"]
-    assert len(items) >= 21
+    # Track 19.01A retired 12 legacy placeholder modules; 11 Academy
+    # modules remain active. Invite-facing endpoint surfaces only active.
+    assert len(items) >= 11
 
 
 def test_56_invite_bad_token_404(H):

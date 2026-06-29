@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
-  Chip, PageHeader, ComingSoon, EmptyState, txGet, isTxRestricted,
+  Chip, PageHeader, ComingSoon, EmptyState, txGet, txPost, isTxRestricted,
 } from "./_shared";
 import {
   DocumentDropzone, InspectionWizard, ComplianceTimeline, PacketChecklist,
@@ -52,6 +52,42 @@ function buildEligibilityMap(target_type, items, dashboard) {
 }
 
 // ───────────────────────── Carriers list ─────────────────────────
+function CarrierStatusSummary({ rows }) {
+  if (!rows || rows.length === 0) return null;
+  const counts = rows.reduce((acc, c) => {
+    const k = c.status || "unknown";
+    acc[k] = (acc[k] || 0) + 1;
+    acc.holds = (acc.holds || 0) + (c.safety_hold ? 1 : 0);
+    return acc;
+  }, {});
+  const total = rows.length;
+  const pending = counts.pending_review || 0;
+  return (
+    <div className="flex flex-wrap items-center gap-2 text-xs" data-testid="tx-carriers-summary">
+      <span className="px-2 py-1 rounded bg-slate-50 border border-slate-200" data-testid="tx-carriers-summary-total">
+        <strong className="text-slate-900">{total}</strong> <span className="text-slate-500">total</span>
+      </span>
+      <span className="px-2 py-1 rounded bg-emerald-50 border border-emerald-200 text-emerald-800">
+        <strong>{counts.active || 0}</strong> active
+      </span>
+      {pending > 0 && (
+        <span
+          className="px-2 py-1 rounded bg-amber-50 border border-amber-300 text-amber-900 font-medium"
+          data-testid="tx-carriers-summary-pending"
+          title="Carriers awaiting documentation, insurance, or driver linkage"
+        >
+          <strong>{pending}</strong> pending review
+        </span>
+      )}
+      {(counts.holds || 0) > 0 && (
+        <span className="px-2 py-1 rounded bg-rose-50 border border-rose-200 text-rose-900" data-testid="tx-carriers-summary-holds">
+          <strong>{counts.holds}</strong> on safety hold
+        </span>
+      )}
+    </div>
+  );
+}
+
 export function CarriersList() {
   const [rows, setRows] = useState([]);
   const [restricted, setRestricted] = useState(false);
@@ -91,6 +127,7 @@ export function CarriersList() {
       />
       {restricted ? <TxOpsRestrictedData testid="tx-carriers-list-restricted" /> : (
         <>
+      <CarrierStatusSummary rows={rows} />
       <div className="flex items-center gap-2">
         <div className="relative">
           <Search className="h-4 w-4 absolute left-2 top-2.5 text-slate-400" />
@@ -252,83 +289,164 @@ export function DriversList() {
   );
 }
 
-// ───────────────────────── Trucks list ─────────────────────────
+// ───────────────────────── Trucks list (Track 19.02 Fleet projection) ─────────────────────────
+// Reads from the projection endpoint that joins equipment_master +
+// equipment_units + transport_trucks overlay. The Transportation Trucks
+// page is a VIEW into the MASCI fleet, not a separate fleet database.
 export function TrucksList() {
-  const [rows, setRows] = useState([]);
+  const [items, setItems] = useState([]);
+  const [summary, setSummary] = useState(null);
   const [restricted, setRestricted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [ownershipFilter, setOwnershipFilter] = useState("");
   const { status } = useStateFilter();
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const params = {};
+      const params = { limit: 1000 };
       if (status) params.status = status;
       if (q) params.q = q;
-      const r = await txGet("/admin/transportation/trucks", params);
-      if (isTxRestricted(r)) { setRestricted(true); setRows([]); return; }
+      if (categoryFilter) params.category = categoryFilter;
+      if (ownershipFilter) params.ownership = ownershipFilter;
+      const r = await txGet("/admin/transportation/fleet/equipment", params);
+      if (isTxRestricted(r)) { setRestricted(true); setItems([]); setSummary(null); return; }
       setRestricted(false);
-      setRows(r.data.items || []);
+      setItems(r.data.items || []);
+      setSummary(r.data.summary || null);
     } finally {
       setLoading(false);
     }
-  }, [q, status]);
+  }, [q, status, categoryFilter, ownershipFilter]);
   useEffect(() => { load(); }, [load]);
+
+  const categories = summary?.categories || [];
+  const adoptedPct = summary && summary.masci_fleet_total
+    ? Math.round(100 * summary.masci_fleet_adopted / summary.masci_fleet_total)
+    : 0;
 
   return (
     <div data-testid="tx-trucks-list" className="space-y-4">
-      <PageHeader title="Trucks" subtitle="MASCI-owned and leased trucks." right={
-        <Button variant="outline" onClick={load} data-testid="trucks-list-refresh"><RefreshCw className="h-4 w-4 mr-1" />Refresh</Button>
-      } />
+      <PageHeader
+        title="Fleet"
+        subtitle="Transportation view of the MASCI fleet · one asset, one source of truth."
+        right={
+          <Button variant="outline" onClick={load} data-testid="trucks-list-refresh">
+            <RefreshCw className="h-4 w-4 mr-1" />Refresh
+          </Button>
+        }
+      />
+      {summary && !restricted && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3" data-testid="tx-fleet-summary">
+          <div className="rounded border border-slate-200 px-3 py-2" data-testid="tx-fleet-summary-masci">
+            <div className="text-xs text-slate-500">MASCI fleet (transport-capable)</div>
+            <div className="text-2xl font-semibold text-slate-900">{summary.masci_fleet_total}</div>
+          </div>
+          <div className="rounded border border-slate-200 px-3 py-2" data-testid="tx-fleet-summary-adopted">
+            <div className="text-xs text-slate-500">Adopted into Transportation</div>
+            <div className="text-2xl font-semibold text-slate-900">
+              {summary.masci_fleet_adopted}
+              <span className="text-sm text-slate-500 font-normal"> · {adoptedPct}%</span>
+            </div>
+          </div>
+          <div className="rounded border border-slate-200 px-3 py-2" data-testid="tx-fleet-summary-leased">
+            <div className="text-xs text-slate-500">Leased / owner-operator</div>
+            <div className="text-2xl font-semibold text-slate-900">{summary.leased_total}</div>
+          </div>
+          <div className="rounded border border-slate-200 px-3 py-2" data-testid="tx-fleet-summary-total">
+            <div className="text-xs text-slate-500">Surfaced in this view</div>
+            <div className="text-2xl font-semibold text-slate-900">{items.length}</div>
+          </div>
+        </div>
+      )}
       {restricted ? <TxOpsRestrictedData testid="tx-trucks-list-restricted" /> : (
         <>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <div className="relative">
           <Search className="h-4 w-4 absolute left-2 top-2.5 text-slate-400" />
           <Input
             data-testid="trucks-search"
-            placeholder="Search truck #, VIN, plate…"
+            placeholder="Search asset #, VIN, plate, make/model…"
             className="pl-8 w-72"
             value={q}
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && load()}
           />
         </div>
+        <select
+          data-testid="tx-fleet-filter-category"
+          className="border border-slate-200 rounded px-2 py-2 text-sm"
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+        >
+          <option value="">All categories</option>
+          {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <select
+          data-testid="tx-fleet-filter-ownership"
+          className="border border-slate-200 rounded px-2 py-2 text-sm"
+          value={ownershipFilter}
+          onChange={(e) => setOwnershipFilter(e.target.value)}
+        >
+          <option value="">All ownership</option>
+          <option value="masci_owned">MASCI-owned</option>
+          <option value="leased_carrier">Leased carrier</option>
+          <option value="owner_operator">Owner-operator</option>
+        </select>
       </div>
       {loading ? <div data-testid="trucks-list-loading">Loading…</div> : (
-        rows.length === 0 ? (
-          <EmptyState title="No trucks match" testid="trucks-list-empty" />
+        items.length === 0 ? (
+          <EmptyState title="No fleet assets match" testid="trucks-list-empty" />
         ) : (
           <div className="overflow-x-auto border border-slate-200 rounded">
             <table className="w-full text-sm" data-testid="trucks-list-table">
               <thead className="bg-slate-50 text-left">
                 <tr>
-                  <th className="px-3 py-2">Truck #</th>
-                  <th className="px-3 py-2">Type</th>
+                  <th className="px-3 py-2">Asset</th>
+                  <th className="px-3 py-2">Category</th>
                   <th className="px-3 py-2">Ownership</th>
-                  <th className="px-3 py-2">Reference</th>
-                  <th className="px-3 py-2">Status</th>
+                  <th className="px-3 py-2">VIN / Reference</th>
+                  <th className="px-3 py-2">Transport status</th>
                   <th className="px-3 py-2"></th>
                 </tr>
               </thead>
               <tbody>
-                {rows.map((t) => (
-                  <tr key={t.id} className="border-t border-slate-100" data-testid={`trucks-list-row-${t.id}`}>
-                    <td className="px-3 py-2 font-medium">{t.truck_number}</td>
-                    <td className="px-3 py-2 text-slate-600">{t.truck_type}</td>
-                    <td className="px-3 py-2 text-slate-600">{t.ownership}</td>
-                    <td className="px-3 py-2 font-mono text-xs">
-                      {t.ownership === "masci_owned" ? (t.equipment_id || "—") : (t.carrier_id || "—")}
-                    </td>
-                    <td className="px-3 py-2"><Chip value={t.status} /></td>
-                    <td className="px-3 py-2 text-right">
-                      <Link to={`/admin/transportation/trucks/${t.id}`} className="text-blue-600 hover:underline text-xs" data-testid={`truck-open-${t.id}`}>
-                        Open <ExternalLink className="inline h-3 w-3" />
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
+                {items.map((t) => {
+                  const overlay = t.transport_overlay || {};
+                  const rowKey = `${t.source}-${t.id}`;
+                  const detailHref = overlay.exists && overlay.truck_id
+                    ? `/admin/transportation/trucks/${overlay.truck_id}`
+                    : null;
+                  return (
+                    <tr key={rowKey} className="border-t border-slate-100" data-testid={`trucks-list-row-${rowKey}`}>
+                      <td className="px-3 py-2">
+                        <div className="font-medium text-slate-900">{t.unit_number || t.asset_id || "—"}</div>
+                        <div className="text-xs text-slate-500">{t.label || t.make_model || ""}</div>
+                      </td>
+                      <td className="px-3 py-2 text-slate-600">{t.category}</td>
+                      <td className="px-3 py-2 text-slate-600">{(t.ownership || "").replace(/_/g, " ")}</td>
+                      <td className="px-3 py-2 font-mono text-xs">{t.vin || t.plate || "—"}</td>
+                      <td className="px-3 py-2">
+                        {overlay.exists ? (
+                          <Chip value={overlay.status || "pending_review"} />
+                        ) : (
+                          <span className="text-xs text-slate-500">not adopted</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        {detailHref ? (
+                          <Link to={detailHref} className="text-blue-600 hover:underline text-xs" data-testid={`truck-open-${overlay.truck_id}`}>
+                            Open <ExternalLink className="inline h-3 w-3" />
+                          </Link>
+                        ) : (
+                          <AdoptButton equipmentId={t.id} onAdopted={load} />
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -337,6 +455,30 @@ export function TrucksList() {
         </>
       )}
     </div>
+  );
+}
+
+function AdoptButton({ equipmentId, onAdopted }) {
+  const [busy, setBusy] = useState(false);
+  const click = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await txPost(`/admin/transportation/fleet/equipment/${equipmentId}/adopt`, {});
+      onAdopted && onAdopted();
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <button
+      onClick={click}
+      disabled={busy}
+      className="text-xs text-blue-600 hover:underline disabled:opacity-50"
+      data-testid={`tx-fleet-adopt-${equipmentId}`}
+    >
+      {busy ? "Adopting…" : "Adopt into Transportation"}
+    </button>
   );
 }
 

@@ -48,6 +48,25 @@ TRUCK_TYPES = ("dump_truck", "flow_boy", "lowboy", "tanker",
                "roll_off", "service_truck", "other")
 TARGET_TYPES = ("carrier", "person", "truck")
 
+# Track 19.02 — Fleet projection.
+# Transportation Operations is a READ-MOSTLY view into the MASCI fleet
+# (`equipment_master` / `equipment_units` remain the source of truth).
+# The categories below define which `equipment_master.category` values
+# the Transportation Trucks page surfaces. The selection is conservative
+# (omits Trench Safety, Excavators, Loaders, etc. that are not driver-
+# operated on-road haulers) and can be expanded without a schema change.
+TRANSPORT_CAPABLE_CATEGORIES = (
+    "Dump Trucks",
+    "Tractor Trailer Trucks",
+    "Service Trucks",
+    "Water Trucks",
+    "Misc Trucks",
+    "Flatbed Trucks",
+    "Supervisor / Mgmt Trucks",
+    "Trailers",
+    "Pickup Trucks",
+)
+
 
 # ---------------------------------------------------------------------------
 # Pydantic input shapes (output uses dict projections; never raw Mongo docs)
@@ -854,6 +873,226 @@ def register_transportation_routes(
         await _upsert_eligibility(db, target_type="truck",
                                   target_id=tid, record=new_doc)
         return _project_doc(new_doc)
+
+    # ─────────────────────── FLEET PROJECTION · admin ───────────────────────
+    # Track 19.02 · Fleet view, not fleet database.
+    # `equipment_master` + `equipment_units` remain the SINGLE source of
+    # truth for asset identity. Transportation projects a join over them
+    # plus the `transport_trucks` overlay (which carries Transportation-side
+    # operational state: status, safety_hold, carrier_id, notes).
+    @router.get("/admin/transportation/fleet/equipment")
+    async def list_fleet_equipment(
+        q: Optional[str] = Query(None),
+        category: Optional[str] = Query(
+            None, description="Specific transport-capable category"),
+        status: Optional[str] = Query(
+            None, description="Transportation overlay status filter"),
+        ownership: Optional[str] = Query(
+            None, description="masci_owned | leased_carrier | owner_operator"),
+        limit: int = Query(500, ge=1, le=2000),
+        _: Any = Depends(require_dispatch_or_admin_dep),
+    ):
+        # 1. MASCI-owned fleet (equipment_master, transport-capable subset).
+        em_query: Dict[str, Any] = {
+            "category": {"$in": list(TRANSPORT_CAPABLE_CATEGORIES)},
+            "is_active": {"$ne": False},
+        }
+        if category and category in TRANSPORT_CAPABLE_CATEGORIES:
+            em_query["category"] = category
+        if q:
+            em_query["$or"] = [
+                {"asset_id": {"$regex": q, "$options": "i"}},
+                {"unit_number": {"$regex": q, "$options": "i"}},
+                {"make_model": {"$regex": q, "$options": "i"}},
+                {"vin_serial_number": {"$regex": q, "$options": "i"}},
+                {"plate": {"$regex": q, "$options": "i"}},
+                {"display_label": {"$regex": q, "$options": "i"}},
+            ]
+        # Pull all transport overlays once, build a lookup by equipment_id.
+        overlays = await db.transport_trucks.find(
+            {"tenant": TENANT}).to_list(2000)
+        overlay_by_eq = {o["equipment_id"]: o for o in overlays
+                         if o.get("equipment_id")}
+
+        items: List[Dict[str, Any]] = []
+        masci_total = 0
+        async for em in db.equipment_master.find(em_query).limit(limit):
+            masci_total += 1
+            overlay = overlay_by_eq.get(em.get("id"))
+            tx_status = (overlay or {}).get("status")
+            tx_safety_hold = bool((overlay or {}).get("safety_hold"))
+            if status and tx_status != status:
+                continue
+            if ownership and ownership != "masci_owned":
+                continue
+            items.append({
+                "id": em.get("id"),
+                "source": "equipment_master",
+                "asset_id": em.get("asset_id"),
+                "unit_number": em.get("unit_number") or em.get("asset_id"),
+                "label": em.get("display_label") or em.get("label"),
+                "make": em.get("make"),
+                "model": em.get("model"),
+                "year": em.get("year"),
+                "make_model": em.get("make_model"),
+                "vin": em.get("vin_serial_number"),
+                "plate": em.get("plate"),
+                "category": em.get("category"),
+                "preop_equipment_type": em.get("preop_equipment_type"),
+                "ownership": "masci_owned",
+                "carrier_id": (overlay or {}).get("carrier_id"),
+                "operational_status": em.get("operational_status")
+                    or em.get("status"),
+                "current_project": em.get("current_project_name"),
+                "current_location": em.get("current_location"),
+                "last_inspection_at": em.get("last_inspection_at"),
+                "last_inspection_result": em.get("last_inspection_result"),
+                "next_inspection_due": em.get("next_inspection_due"),
+                "transport_overlay": {
+                    "exists": overlay is not None,
+                    "truck_id": (overlay or {}).get("id"),
+                    "truck_number": (overlay or {}).get("truck_number"),
+                    "truck_type": (overlay or {}).get("truck_type"),
+                    "status": tx_status,
+                    "safety_hold": tx_safety_hold,
+                    "notes": (overlay or {}).get("notes"),
+                },
+            })
+
+        # 2. Leased / owner-operator fleet (lives only in transport_trucks).
+        leased_total = 0
+        for o in overlays:
+            own = o.get("ownership")
+            if own in ("leased_carrier", "owner_operator"):
+                leased_total += 1
+                if category:  # MASCI fleet filter — exclude leased rows
+                    continue
+                if ownership and own != ownership:
+                    continue
+                if status and o.get("status") != status:
+                    continue
+                if q:
+                    blob = " ".join(str(v or "") for v in (
+                        o.get("truck_number"), o.get("vin"),
+                        o.get("plate"), o.get("truck_type"),
+                    )).lower()
+                    if q.lower() not in blob:
+                        continue
+                items.append({
+                    "id": o.get("id"),
+                    "source": "transport_trucks",
+                    "asset_id": o.get("truck_number"),
+                    "unit_number": o.get("truck_number"),
+                    "label": (
+                        f"{o.get('truck_number')} · "
+                        f"{(o.get('truck_type') or 'truck').replace('_',' ').title()}"
+                    ),
+                    "make": None,
+                    "model": None,
+                    "year": None,
+                    "make_model": None,
+                    "vin": o.get("vin"),
+                    "plate": o.get("plate"),
+                    "category": "Leased / Owner-Operator",
+                    "preop_equipment_type": "Haul Truck",
+                    "ownership": own,
+                    "carrier_id": o.get("carrier_id"),
+                    "operational_status": o.get("status"),
+                    "current_project": None,
+                    "current_location": None,
+                    "last_inspection_at": None,
+                    "last_inspection_result": None,
+                    "next_inspection_due": None,
+                    "transport_overlay": {
+                        "exists": True,
+                        "truck_id": o.get("id"),
+                        "truck_number": o.get("truck_number"),
+                        "truck_type": o.get("truck_type"),
+                        "status": o.get("status"),
+                        "safety_hold": bool(o.get("safety_hold")),
+                        "notes": o.get("notes"),
+                    },
+                })
+
+        # Adopted summary (MASCI rows with a transport overlay).
+        adopted = sum(1 for it in items
+                      if it["source"] == "equipment_master"
+                      and it["transport_overlay"]["exists"])
+        return {
+            "count": len(items),
+            "items": items,
+            "summary": {
+                "masci_fleet_total": masci_total,
+                "masci_fleet_adopted": adopted,
+                "leased_total": leased_total,
+                "categories": list(TRANSPORT_CAPABLE_CATEGORIES),
+            },
+        }
+
+    # Per-equipment "Adopt into Transportation" overlay creation.
+    @router.post(
+        "/admin/transportation/fleet/equipment/{equipment_id}/adopt")
+    async def adopt_equipment_into_transport(
+        equipment_id: str, request: Request,
+        actor: Any = Depends(require_admin_dep),
+    ):
+        em = await db.equipment_master.find_one({"id": equipment_id})
+        if not em:
+            raise HTTPException(404, "equipment_master row not found")
+        if em.get("category") not in TRANSPORT_CAPABLE_CATEGORIES:
+            raise HTTPException(
+                422,
+                f"equipment category '{em.get('category')}' is not "
+                "transportation-capable")
+        existing = await db.transport_trucks.find_one(
+            {"tenant": TENANT, "equipment_id": equipment_id})
+        if existing:
+            return {"already_adopted": True, **_project_doc(existing)}
+        # Derive truck_type heuristically; operator can refine via PATCH.
+        cat = (em.get("category") or "").lower()
+        if "dump" in cat:
+            truck_type = "dump_truck"
+        elif "tractor" in cat:
+            truck_type = "other"
+        elif "water" in cat:
+            truck_type = "tanker"
+        elif "service" in cat:
+            truck_type = "service_truck"
+        elif "trailer" in cat:
+            truck_type = "lowboy"
+        else:
+            truck_type = "other"
+        now = _now()
+        doc = {
+            "id": uuid.uuid4().hex,
+            "tenant": TENANT,
+            "ownership": "masci_owned",
+            "equipment_id": equipment_id,
+            "carrier_id": None,
+            "truck_number": em.get("asset_id")
+                or em.get("unit_number")
+                or f"EQ-{equipment_id[:6]}",
+            "vin": em.get("vin_serial_number"),
+            "plate": em.get("plate"),
+            "truck_type": truck_type,
+            "status": "pending_review",
+            "safety_hold": False,
+            "notes": (
+                f"Adopted from equipment_master · {em.get('display_label') or em.get('label')}"
+            ),
+            "created_at": now,
+            "updated_at": now,
+            "created_by": _actor_label(actor),
+            "updated_by": _actor_label(actor),
+        }
+        await db.transport_trucks.insert_one(doc.copy())
+        await _audit(db, kind="transport_truck_adopt",
+                     entity_type="truck", entity_id=doc["id"],
+                     actor=actor, old=None, new=_project_doc(doc),
+                     request=request)
+        await _upsert_eligibility(db, target_type="truck",
+                                  target_id=doc["id"], record=doc)
+        return {"already_adopted": False, **_project_doc(doc)}
 
     # ─────────────────────── ELIGIBILITY · admin ───────────────────────
     @router.get("/admin/transportation/eligibility/{target_type}/{target_id}")
