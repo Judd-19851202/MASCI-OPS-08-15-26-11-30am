@@ -2,8 +2,8 @@
 // FV-7.2 · When role="competent" we pull from the dedicated
 // designated-CP roster (`/api/employees/competent-persons`) so the
 // foreman cannot pick an undesignated employee from the normal list.
-// All other roles still pull from the certified `/api/employees`
-// public roster.
+// All other roles still pull from the canonical HR roster
+// (`/api/hr/employee-roster` — Track 19.03 · HR is gospel).
 import React, { useEffect, useMemo, useState } from "react";
 import { Check, ChevronsUpDown, Search, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,26 +11,18 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
+import { fetchHrRoster, subscribeHrRoster } from "@/lib/hrRoster";
 
-let _employeeCache = null;
-let _employeePromise = null;
-async function loadEmployees() {
-  if (_employeeCache) return _employeeCache;
-  if (_employeePromise) return _employeePromise;
-  _employeePromise = api.get("/employees")
-    .then((r) => { _employeeCache = Array.isArray(r.data?.items) ? r.data.items : []; return _employeeCache; })
-    .catch(() => { _employeeCache = []; return _employeeCache; });
-  return _employeePromise;
-}
-
-let _cpCache = null;
+// Competent-persons roster: separate Trench Safety endpoint backed by
+// `db.employees`. Less volatile than the main roster — short-lived
+// in-flight de-dup only, no persistent cache (Track 19.03 doctrine).
 let _cpPromise = null;
 async function loadCompetentPersons() {
-  if (_cpCache) return _cpCache;
   if (_cpPromise) return _cpPromise;
   _cpPromise = api.get("/employees/competent-persons")
-    .then((r) => { _cpCache = Array.isArray(r.data?.items) ? r.data.items : []; return _cpCache; })
-    .catch(() => { _cpCache = []; return _cpCache; });
+    .then((r) => Array.isArray(r.data?.items) ? r.data.items : [])
+    .catch(() => [])
+    .finally(() => { _cpPromise = null; });
   return _cpPromise;
 }
 
@@ -41,8 +33,16 @@ export default function EmployeePicker({ value, onSelect, placeholder = "Select�
   const isCpMode = (role || "").toLowerCase() === "competent";
 
   useEffect(() => {
-    if (isCpMode) loadCompetentPersons().then(setRoster);
-    else loadEmployees().then(setRoster);
+    let alive = true;
+    if (isCpMode) {
+      loadCompetentPersons().then((items) => { if (alive) setRoster(items); });
+      return () => { alive = false; };
+    }
+    // Canonical HR roster — live updates via `hr:roster-changed` bus.
+    const apply = (items) => { if (alive) setRoster(items || []); };
+    const unsub = subscribeHrRoster(apply);
+    fetchHrRoster().then(apply);
+    return () => { alive = false; unsub(); };
   }, [isCpMode]);
 
   const filtered = useMemo(() => {

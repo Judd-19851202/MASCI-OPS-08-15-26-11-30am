@@ -3972,15 +3972,107 @@ async def list_employees():
     returned on this public endpoint. The full record set remains
     available to authenticated callers via /api/hr/employees and
     /api/admin/employees/*. No employee data was modified.
+
+    TRACK 19.03 · HR-IS-GOSPEL hardening:
+    Filter now matches the canonical HR roster contract:
+      • If `lifecycle_status` is set, only `_ACTIVE_STATUSES`
+        ({Active, Pending Hire, Seasonal, Leave of Absence}) appear.
+      • Legacy rows without `lifecycle_status` fall back to
+        `is_active != False`.
+      • Offboarded statuses ({Terminated, Resigned, Retired}) and
+        explicit Inactive are HIDDEN from new-form pickers regardless
+        of `is_active`.
+    HR Save is the only mutator of these fields. No cache. No TTL.
     """
+    from routes.employee_lifecycle import _ACTIVE_STATUSES  # noqa: PLC0415
     await _purge_expired("employees")
+    canonical_active_clause = {"$or": [
+        {"lifecycle_status": {"$in": list(_ACTIVE_STATUSES)}},
+        {"lifecycle_status": {"$exists": False}, "is_active": {"$ne": False}},
+        {"lifecycle_status": None, "is_active": {"$ne": False}},
+    ]}
     cursor = db.employees.find(
-        {"$and": [ACTIVE_FILTER, {"is_active": {"$ne": False}}]},
-        {"_id": 0, "id": 1, "name": 1, "employee_id": 1,
-         "crew": 1, "role": 1, "trade": 1, "is_active": 1},
+        {"$and": [ACTIVE_FILTER, canonical_active_clause]},
+        {"_id": 0, "id": 1, "name": 1, "preferred_name": 1,
+         "employee_id": 1, "crew": 1, "role": 1, "trade": 1,
+         "department": 1, "lifecycle_status": 1, "is_active": 1},
     ).sort("name", 1)
-    docs = await cursor.to_list(2000)
+    docs = await cursor.to_list(5000)
     return {"items": docs, "count": len(docs)}
+
+
+@api_router.get("/hr/employee-roster")
+async def hr_employee_roster(
+    q: Optional[str] = None,
+    role: Optional[str] = None,
+    department: Optional[str] = None,
+    include_inactive: bool = False,
+    limit: int = 5000,
+):
+    """TRACK 19.03 · Canonical HR Employee Roster (HR is gospel).
+
+    The single source of truth for operational employee selection
+    across the entire MASCI platform: Daily Reports, Safety Meetings,
+    Pre-Ops, JHP/Safety, Dispatch, Fleet, Training, Academy, Incident
+    Reports, Near Misses, Equipment Assignments — every employee
+    picker reads from here.
+
+    Filter semantics (matches `/api/employees` exactly):
+      • Active (`_ACTIVE_STATUSES`) → visible by default.
+      • Inactive/Terminated/Resigned/Retired → hidden unless
+        `include_inactive=true` (operator-gated for investigations).
+      • Legacy rows without `lifecycle_status` fall back to
+        `is_active != False`.
+
+    Safe projection — no CDL, no medical card, no email, no phone, no
+    SSN, no DOB. Field workflows never receive private HR data.
+    """
+    from routes.employee_lifecycle import _ACTIVE_STATUSES  # noqa: PLC0415
+    await _purge_expired("employees")
+    canonical_active_clause = {"$or": [
+        {"lifecycle_status": {"$in": list(_ACTIVE_STATUSES)}},
+        {"lifecycle_status": {"$exists": False}, "is_active": {"$ne": False}},
+        {"lifecycle_status": None, "is_active": {"$ne": False}},
+    ]}
+    clauses: List[Dict[str, Any]] = [ACTIVE_FILTER]
+    if not include_inactive:
+        clauses.append(canonical_active_clause)
+    if role:
+        clauses.append({"role": {"$regex": f"^{role}$", "$options": "i"}})
+    if department:
+        clauses.append({"department": {"$regex": f"^{department}$", "$options": "i"}})
+    if q:
+        q_re = {"$regex": q, "$options": "i"}
+        clauses.append({"$or": [
+            {"name": q_re}, {"preferred_name": q_re},
+            {"employee_id": q_re}, {"role": q_re},
+        ]})
+    cursor = db.employees.find(
+        {"$and": clauses},
+        {"_id": 0, "id": 1, "name": 1, "preferred_name": 1,
+         "employee_id": 1, "crew": 1, "role": 1, "trade": 1,
+         "department": 1, "lifecycle_status": 1, "is_active": 1,
+         "supervisor_name": 1, "supervisor_id": 1, "updated_at": 1},
+    ).sort("name", 1).limit(limit)
+    docs = await cursor.to_list(limit)
+    # Provide a derived `active` boolean so the frontend can render an
+    # unambiguous chip without re-deriving the contract.
+    for d in docs:
+        ls = d.get("lifecycle_status")
+        if ls is None:
+            d["active"] = d.get("is_active") is not False
+        else:
+            d["active"] = ls in _ACTIVE_STATUSES
+    return {
+        "items": docs,
+        "count": len(docs),
+        "contract_version": "19.03",
+        "filter": {
+            "active_only": not include_inactive,
+            "active_statuses": sorted(_ACTIVE_STATUSES),
+            "source": "db.employees (HR is gospel)",
+        },
+    }
 
 
 @api_router.get("/admin/employees/status")

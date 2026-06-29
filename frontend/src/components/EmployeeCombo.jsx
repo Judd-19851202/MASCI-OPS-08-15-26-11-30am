@@ -1,10 +1,18 @@
 import { useEffect, useMemo, useState, useRef } from "react";
 import { ChevronsUpDown, User, Plus, Loader2 } from "lucide-react";
-import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
+// TRACK 19.03 · HR is gospel. Pickers consume the canonical HR roster
+// endpoint (`GET /api/hr/employee-roster`) via the shared event-bus
+// client so every HR Save propagates instantly to every picker on
+// the page without a reload or stale module cache.
+import {
+  fetchHrRoster,
+  subscribeHrRoster,
+  invalidateHrRoster,
+} from "@/lib/hrRoster";
 // TRACK 15.60 · P0 field-trust fix — Request-to-Add reliability.
 // Route the inline new-hire request through the same offline queue
 // used by NewIncident / NewDailyReport submissions so a flaky 4G or
@@ -15,7 +23,9 @@ import { enqueueUpload, mintIdempotencyKey } from "@/lib/resiliency";
 /**
  * EmployeeCombo
  * -------------
- * Searchable picker for the MASCI employee roster (GET /api/employees).
+ * Searchable picker for the MASCI employee roster — Track 19.03
+ * canonical HR endpoint `GET /api/hr/employee-roster`. HR Save
+ * propagates live via `hr:roster-changed` bus event.
  * Mirrors the EquipmentCombo UX so all forms feel uniform.
  *
  * Props
@@ -30,43 +40,21 @@ import { enqueueUpload, mintIdempotencyKey } from "@/lib/resiliency";
  * roster is uploaded by the admin).
  */
 /**
- * Module-level cache. See SupplierCombo for the same defensive pattern:
- *
- *   - `_cache` holds the LAST SUCCESSFUL response. Empty fallbacks are NEVER
- *     stored, so a transient CORS / network blip doesn't permanently poison
- *     every later render.
- *   - The next mount after a failure gets a fresh fetch.
+ * Track 19.03 doctrine:
+ *   - NO permanent module-level cache.
+ *   - All pickers subscribe to the shared `hr:roster-changed` bus.
+ *   - HR Save → invalidateHrRoster() → live re-fetch → pickers update
+ *     without a page reload.
+ *   - Inactive / Terminated / Resigned / Retired employees are hidden
+ *     by the server endpoint contract.
  */
-let _cache = null;
-let _cachePromise = null;
 
-async function loadRoster() {
-  if (_cache && Array.isArray(_cache.items) && _cache.items.length > 0) {
-    return _cache;
-  }
-  if (_cachePromise) return _cachePromise;
-  _cachePromise = api
-    .get("/employees", { timeout: 30000 })
-    .then((r) => {
-      if (Array.isArray(r?.data?.items)) {
-        _cache = r.data;
-        return _cache;
-      }
-      return { items: [], count: 0 };
-    })
-    .catch(() => {
-      return { items: [], count: 0 };
-    })
-    .finally(() => {
-      _cachePromise = null;
-    });
-  return _cachePromise;
-}
-
-/** Allow other modules to bust the cache after an admin upload. */
+/** Back-compat shim: legacy callers used `clearEmployeeCache()` after
+ *  an admin upload. The new bus does this automatically on every HR
+ *  write, but external code may still call this — keep it as a thin
+ *  proxy to the canonical invalidator. */
 export function clearEmployeeCache() {
-  _cache = null;
-  _cachePromise = null;
+  invalidateHrRoster();
 }
 
 export const EmployeeCombo = ({
@@ -86,13 +74,20 @@ export const EmployeeCombo = ({
   useEffect(() => {
     let alive = true;
     let retryTimer = null;
+    const apply = (items) => {
+      if (!alive) return;
+      setData({ items: items || [], count: (items || []).length });
+    };
+    // Subscribe to the canonical HR roster bus — instant updates on
+    // any HR Save anywhere in the app.
+    const unsub = subscribeHrRoster(apply);
     const tryLoad = (attempt) => {
-      loadRoster().then((d) => {
+      fetchHrRoster().then((items) => {
         if (!alive) return;
-        setData(d);
+        apply(items);
         // Auto-retry up to 2x if the first load returns empty — handles
         // transient CORS / network blips on combo mount.
-        if ((d?.items?.length || 0) === 0 && attempt < 2) {
+        if ((items?.length || 0) === 0 && attempt < 2) {
           retryTimer = setTimeout(() => tryLoad(attempt + 1), 1500 * (attempt + 1));
         }
       });
@@ -100,6 +95,7 @@ export const EmployeeCombo = ({
     tryLoad(0);
     return () => {
       alive = false;
+      unsub();
       if (retryTimer) clearTimeout(retryTimer);
     };
   }, []);
@@ -264,10 +260,13 @@ export const EmployeeCombo = ({
           className="h-11 w-11 border-2 border-slate-300 hover:border-red-700 hover:text-red-700 shrink-0"
           onClick={() => {
             // Self-recover: if the cache loaded empty, force a re-fetch
-            // when the user clicks the chevron.
+            // when the user clicks the chevron. With Track 19.03 there
+            // is no persistent cache — we simply invalidate + re-fetch.
             if ((data?.items?.length || 0) === 0) {
-              clearEmployeeCache();
-              loadRoster().then((d) => setData(d));
+              invalidateHrRoster();
+              fetchHrRoster().then((items) =>
+                setData({ items: items || [], count: (items || []).length })
+              );
             }
             setOpen((v) => !v);
           }}

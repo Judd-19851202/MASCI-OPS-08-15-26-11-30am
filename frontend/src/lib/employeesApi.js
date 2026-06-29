@@ -1,5 +1,11 @@
 // employeesApi.js — Iter152 (Phase C). Thin client for HR employee
 // lifecycle management.
+//
+// TRACK 19.03 · HR is gospel. Every successful HR write here emits
+// the `hr:roster-changed` bus event so every employee picker on the
+// page (EmployeeCombo, trench EmployeePicker, every dropdown that
+// subscribes to `lib/hrRoster.js`) re-fetches the canonical roster
+// instantly — no page reload, no stale cache, no delayed sync.
 import axios from "axios";
 import { getAdminToken } from "@/lib/adminAuth";
 import { getHrToken } from "@/lib/hrAuth";
@@ -7,6 +13,7 @@ import { getSafetyToken } from "@/lib/safetyAuth";
 import { getPmToken } from "@/lib/pmAuth";
 import { getShopToken } from "@/lib/shopAuth";
 import { getDispatchToken } from "@/lib/dispatchAuth";
+import { emitHrRosterChanged } from "@/lib/hrRoster";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -37,6 +44,7 @@ export async function createHrEmployee(body, opts = {}) {
     body,
     { headers: authHeaders(), params: force ? { force: "true" } : {} },
   );
+  emitHrRosterChanged();
   return r.data;
 }
 
@@ -48,10 +56,12 @@ export async function reactivateHrEmployee(id, body) {
     body,
     { headers: authHeaders() },
   );
+  emitHrRosterChanged();
   return r.data;
 }
 export async function patchHrEmployee(id, patch) {
   const r = await axios.patch(`${API}/hr/employees/${id}`, patch, { headers: authHeaders() });
+  emitHrRosterChanged();
   return r.data;
 }
 export async function changeHrEmployeeStatus(id, lifecycle_status, reason, extra) {
@@ -62,6 +72,7 @@ export async function changeHrEmployeeStatus(id, lifecycle_status, reason, extra
   body.reason = reason;
   const r = await axios.post(`${API}/hr/employees/${id}/status`,
     body, { headers: authHeaders() });
+  emitHrRosterChanged();
   return r.data;
 }
 export async function offboardingSummary(id) {
