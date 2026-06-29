@@ -6711,3 +6711,58 @@ bulk-adopt, verify, retest.
 * Adoption preview drill-down rows in the modal (counts shown; per-row table is in the JSON only).
 * Bulk overlay update (multi-select + edit at once) — left out per directive ("operational, not destructive").
 
+
+---
+
+## TRACK 19.02C · INFRASTRUCTURE & DISK HYGIENE SWEEP (2026-06-29) ✅
+
+**Status:** GO · Disk utilization reduced from 74% → 57% safely.
+
+### What shipped
+
+* **`/app` filesystem cleaned from 7.2 G → 5.6 G (−1.6 GB reclaimed).**
+  Webpack/babel dev cache (~1.5 G) + stale DR/Track-13 archives (217 M)
+  + Python bytecode (29 M) + Playwright artifacts older than 14 days
+  (9 M) + pytest cache (2 M). Zero production data touched.
+* **11 audit + plan markdown files** in `/app/memory/TRACK_19_02C_*.md`:
+  `DISK_BASELINE`, `DISK_SIZE_AUDIT`, `CLEANUP_CLASSIFICATION`,
+  `CLEANUP_PLAN`, `BACKUP_STORAGE_AUDIT`, `LOG_STORAGE_AUDIT`,
+  `ARTIFACT_AUDIT`, `CACHE_AUDIT`, `POST_CLEANUP_VALIDATION`,
+  `FINAL_DISK_REPORT`, `FUTURE_DISK_HYGIENE_PLAN`.
+* **30-assertion pytest lock-file** at
+  `/app/backend/tests/test_track_19_02c_disk_hygiene.py` verifying
+  every required report exists and contains the mandatory clauses
+  (protected paths, no rm -rf, retention policies, before/after,
+  GO/NO-GO).
+* **Transportation regression GREEN**: 118/118 assertions pass across
+  Track 19.02A, 19.02, 19.01, 19.00, 18.12C suites after cleanup.
+* **All services running**: backend, frontend, mongodb,
+  nginx-code-proxy. No restarts triggered.
+
+### Protected (NOT touched) — verified intact
+
+* `/app/backend/storage/project_docs/24-12/*.pdf` (533 M, 13 files)
+* `/app/backend/static/training-videos/*.mp4` (281 M, 10 files)
+* `/app/backend/static/safety-cards/*.pdf` (14 M)
+* `/app/backend/backups/*.zip` (7.9 M, 4 backup snapshots)
+* `/app/.git/**` (1.3 G — platform-managed)
+* All source code, env files, current track records
+* MongoDB collections (off-filesystem)
+
+### Why 57% is the safe floor
+
+The remaining bulk on `/app` is: `.git` 1.3 G + node_modules 537 M +
+customer uploads 533 M + production training videos 281 M. Touching
+any of these would require platform-level or business-policy approval.
+
+### Future hygiene actions captured
+
+* Weekly cron: clear `__pycache__` and `.pytest_cache`.
+* Monthly cron: clear webpack cache + trim Playwright >14 days.
+* Pre-deploy disk gate at 70% utilization.
+* R2-only archives once R2 upload manifest exists.
+
+### Tests
+
+* `tests/test_track_19_02c_disk_hygiene.py` — 30 assertions, all pass.
+

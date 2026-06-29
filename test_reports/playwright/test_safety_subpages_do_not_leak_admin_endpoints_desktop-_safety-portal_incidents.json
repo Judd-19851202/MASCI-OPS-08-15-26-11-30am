@@ -1,9 +1,0 @@
-{
-  "viewport": "desktop",
-  "url": "https://safety-audit-mobile-1.preview.emergentagent.com/safety-portal/incidents",
-  "console_tail": [
-    "[info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
-    "[info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
-    "[info] [sentry] initialised {env: preview, release: 55652802d441442559c17feb4daed499}"
-  ]
-}

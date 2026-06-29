@@ -1,8 +1,0 @@
-{
-  "viewport": "desktop",
-  "url": "https://safety-audit-mobile-1.preview.emergentagent.com/",
-  "console_tail": [
-    "[error] Failed to load resource: the server responded with a status of 429 ()",
-    "[error] Failed to load resource: the server responded with a status of 429 ()"
-  ]
-}
