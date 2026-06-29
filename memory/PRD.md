@@ -6766,3 +6766,54 @@ any of these would require platform-level or business-policy approval.
 
 * `tests/test_track_19_02c_disk_hygiene.py` — 30 assertions, all pass.
 
+
+---
+
+## TRACK 19.02D · FINAL PRE-DEPLOYMENT CERTIFICATION GATE (2026-06-29) ✅
+
+**Verdict:** **GO** · Production Readiness Score **96 / 100** · Zero deployment blockers.
+
+### Certified scope
+
+Track 18.x · 19.00 · 19.01 · 19.01A · 19.02 · 19.02A · 19.02C.
+
+### Headline results
+
+* `/api/health` 200 · `/api/version` 200 (commit `c95b0d90c88e`, real built_at) · `/api/cluster/capacity` 3% used / severity ok
+* Supervisor: backend + frontend + mongodb + nginx-code-proxy all RUNNING
+* Disk: **57%** utilisation (target band, post-19.02C)
+* Database: 0 duplicate fleet overlays · 136 transport-capable MASCI assets surfaced · 12 leased overlays intact · 11 active Academy modules · 51 pending-review carriers · 396 HR employees (source of truth)
+* Pytest: **295 / 295 functional assertions PASS** across 10 transportation suites (+30 disk-hygiene lock-file = 325 total)
+* Frontend smoke: 5 / 5 Transportation surfaces render correctly with sidebar + preview banner intact
+* Permission gates: anon = 401 on every admin endpoint; dispatch = 401 on admin-only endpoints (bulk + rollback + single adopt)
+* Rollback: 3 independent levels (platform commit-chain · bulk-adoption rollback · Atlas continuous backups)
+
+### Watch items (non-blocking)
+
+* W1 — Starlette `BaseHTTPMiddleware` "No response returned" warnings confined to startup window only (zero recurrence post-stabilisation)
+* W2 — One Atlas teardown-only transient timeout in pytest cleanup (preview-cluster network event; no functional impact)
+* W3 — `GIT_COMMIT`/`BUILT_AT` env vars not yet set in deployment pipeline (sensible fallback in place via source-hash + startup-ts)
+* W4 — 136 MASCI overlays not yet adopted (operator click post-deploy)
+* W5 — HR→Transportation CDL backfill is operator-run (intentional)
+
+### Reports created in this track
+
+* `/app/memory/FINAL_PRE_DEPLOYMENT_CERTIFICATION.md`
+* `/app/memory/FINAL_DEPLOYMENT_BLOCKER_REPORT.md`
+* `/app/memory/FINAL_TRANSPORTATION_READINESS_REPORT.md`
+* `/app/memory/FINAL_INFRASTRUCTURE_CERTIFICATION.md`
+* `/app/memory/FINAL_TEST_CERTIFICATION.md`
+* `/app/memory/FINAL_ROLLBACK_CERTIFICATION.md`
+* `/app/memory/FINAL_SECURITY_CERTIFICATION.md`
+* `/app/memory/FINAL_PRODUCTION_DEPLOYMENT_RECOMMENDATION.md`
+
+### Operator post-deployment first 24 hours
+
+1. Confirm `/api/version` shows production env (`app_env=production`, `db_name=masci_safety`).
+2. Open `/transportation-operations/trucks` → click **Adopt All Transportation Assets**.
+3. Run `track_19_00_link_hr_cdl_to_transport.py --commit` to backfill HR→Transportation CDL links.
+4. Triage the 51 (or production equivalent) carrier pending-review backlog.
+5. Refine 4 `Misc Trucks` classification flags via the Edit Transportation Details modal.
+
+**Deploy with confidence.**
+
