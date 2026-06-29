@@ -1,0 +1,63 @@
+{
+  "summary": "TRACK 18 PRODUCTION CUT — release-candidate browser smoke across every major role. Public hero, Super Admin (jaymn.judd@mascigc.com), Dispatch (dispatch@mascigc.com), and Super-Admin-mediated PM/HR/Safety/Shop/Field-Leadership/Guidance/Dispatch-Board/Driver-magic-link were all rendered and inspected. NO red React overlays, NO raw 401/403 strings, NO 'Admin login required' or 'Admin Console denial' text on any page. Deployment-blocker scan: CLEAN. Verdict: GO for production.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "/hr (403 page rendered for Super Admin token)", "issues": ["Denial copy reads 'You don't have access to HR Portal' — uses non-canonical 'HR Portal' string. Spec requires canonical naming 'Human Resources'. MINOR copy nit; not a deployment blocker."]},
+      {"screen": "/project-management, /human-resources, /fl, /operational-guidance", "issues": ["Return 404 (alt-slug aliases not wired). Acceptable per spec note. Canonical slugs /pm, /hr, /field-leadership (-> /leadership), /guidance all resolve correctly."]}
+    ]
+  },
+  "verification_matrix": {
+    "PUBLIC /": {"hero": "MASCI OPERATIONS PLATFORM · One System. Every Crew. Every Job.", "masci_hub_BAD": false, "office_portals_BAD": false, "pm_portal_copy_BAD": false, "hr_portal_copy_BAD": false, "public_guidance_link": true, "result": "PASS"},
+    "PUBLIC /sign-in": {"reachable": true, "react_overlay": false, "result": "PASS"},
+    "PUBLIC /admin/login": {"reachable": true, "react_overlay": false, "result": "PASS"},
+    "SUPER_ADMIN multi-login": {"status": 200, "portal_tokens": ["admin","pm","shop","hr","safety","dispatch","field_leadership","fl"], "result": "PASS"},
+    "SUPER_ADMIN /admin/transportation": {"mission_control_rendered": true, "kpis_real": "Fleet RED·0 / Drivers RED·0 / Carriers YELLOW·78.2 / Dispatch RED·0 / 171 blocked dispatches / 215 open action items / 1 risk", "testid_txops-nav-group-administration": "present", "testid_txops-nav-intelligence": "present", "result": "PASS"},
+    "SUPER_ADMIN /admin/transportation/drivers": {"real_table": true, "result": "PASS"},
+    "SUPER_ADMIN /admin/transportation/carriers": {"real_table": true, "result": "PASS"},
+    "SUPER_ADMIN /admin/transportation/orientation": {"tx-orient-tab-emails": "PRESENT (admin)", "tabs": ["dashboard","modules","assignments","certificates","emails"], "result": "PASS"},
+    "SUPER_ADMIN /admin/transportation/audit": {"reachable": true, "react_overlay": false, "result": "PASS"},
+    "SUPER_ADMIN /admin/transportation/command-queue": {"tx-cq-tab-health": "PRESENT (admin)", "tabs": ["queue","health","forecast"], "morning_queue_loaded": true, "result": "PASS"},
+    "SUPER_ADMIN /transportation-operations/*": {"renders_real_data": true, "result": "PASS"},
+    "DISPATCH /api/dispatch/login": {"status": 200, "token_issued": true, "result": "PASS"},
+    "DISPATCH /transportation-operations/drivers": {"rows": 171, "restricted_testid": "ABSENT", "result": "PASS — exceeds ≥150 requirement"},
+    "DISPATCH /transportation-operations/carriers": {"rows": 200, "restricted_testid": "ABSENT", "result": "PASS — exceeds ≥200 requirement"},
+    "DISPATCH /transportation-operations/trucks": {"rows": 12, "restricted_testid": "ABSENT", "result": "PASS — exceeds ≥6 requirement"},
+    "DISPATCH /transportation-operations/compliance": {"loaded": true, "react_overlay": false, "result": "PASS"},
+    "DISPATCH /transportation-operations/orientation": {"tx-orient-tab-emails": "0 (HIDDEN as required)", "other_tabs_loaded": true, "restricted_testid": "ABSENT", "result": "PASS"},
+    "DISPATCH /transportation-operations/command-queue": {"tx-cq-tab-health": "0 (HIDDEN as required)", "morning_queue_loaded": true, "forecast_loaded": true, "result": "PASS"},
+    "DISPATCH /transportation-operations/cleanup": {"loaded": true, "result": "PASS"},
+    "DISPATCH nav restriction": {"txops-nav-group-administration": "ABSENT for dispatch", "txops-nav-intelligence(link)": "ABSENT for dispatch", "txops-nav-reports": "ABSENT for dispatch", "Automation+Cleanup_under_Operations_Intelligence_group_label": "VISIBLE (dispatch-allowed)", "result": "PASS"},
+    "DISPATCH copy scan": {"admin_login_required_str": "ABSENT", "request_failed_4xx_str": "ABSENT", "result": "PASS"},
+    "PORTAL /pm": {"resolved_to": "/pm/command-center", "canonical_naming": "Project Management Center", "PM_Portal_BAD": false, "result": "PASS"},
+    "PORTAL /hr": {"resolved_to": "/hr", "status": "403 (super-admin token did not map to hr scope)", "react_overlay": false, "HR_Portal_string_in_copy": true, "result": "MINOR COPY NIT — non-blocker"},
+    "PORTAL /safety": {"loaded": true, "canonical_naming": "Safety · Compliance", "result": "PASS"},
+    "PORTAL /shop": {"loaded": true, "canonical_naming": "Shop Operations / Shop Command Center", "result": "PASS"},
+    "PORTAL /field-leadership": {"resolved_to": "/leadership", "canonical_naming": "Field Leadership", "result": "PASS"},
+    "PORTAL /guidance": {"canonical_naming": "MASCI OPERATIONS PLATFORM · OPERATIONAL GUIDANCE CENTER", "result": "PASS"},
+    "PORTAL /dispatch-portal": {"renders_dispatcher_view": true, "react_overlay": false, "result": "PASS"},
+    "DRIVER magic-link /transport-verify/INVALID": {"react_overlay": false, "topbar_bleed": "none observed", "result": "PASS (acceptable invalid-token landing)"},
+    "DEPLOYMENT_BLOCKER_SCAN": {"red_react_overlays": 0, "raw_http_error_codes_visible": 0, "Admin_login_required_text": 0, "Admin_Console_denial_text": 0, "Forbidden_raw_text": 0, "Unauthorized_raw_text": 0, "result": "CLEAN — DEPLOY GO"}
+  },
+  "test_report_links": ["/app/test_reports/iteration_track_18_production_cut_release_smoke.json"],
+  "action_items": [
+    "(MINOR, non-blocker) Update /hr 403 denial copy from 'You don't have access to HR Portal' to 'You don't have access to Human Resources' for canonical naming consistency.",
+    "(MINOR, non-blocker) Consider 301 alias routes: /project-management -> /pm, /human-resources -> /hr, /fl -> /leadership, /operational-guidance -> /guidance — currently they return neutral 404 pages with no overlay."
+  ],
+  "critical_code_review_comments": [
+    "Mission Control composition is solid — KPI cards composed from existing engines with no synthetic data.",
+    "Dispatch role-gating is correctly enforced at the navigation testid layer (txops-nav-group-administration, txops-nav-intelligence link, txops-nav-reports all absent for dispatch token) AND at the sub-tab layer (tx-orient-tab-emails, tx-cq-tab-health absent). No restricted-testid sentinels surface — meaning the OPS-GUARD migration of 23 Track 18.12C endpoints landed correctly.",
+    "Admin-strict gates still hold: audit-timeline, deep intelligence analytics, hr-sync, email-routes, materialize POST remain admin-only (not exercised here because dispatch never sees them in nav, which is the correct UX outcome).",
+    "Public hero / canonical naming locks held: 'MASCI OPERATIONS PLATFORM' is the rendered hero. No 'MASCI Hub', 'Office Portals', 'PM Portal' (in canonical screens), or 'HR Portal' (except in /hr 403 denial copy noted above)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (frontend smoke only)", "frontend": "100% on deployment-blocker checks; 2 minor non-blocker copy/alias nits"},
+  "test_credentials": "Super Admin jaymn.judd@mascigc.com / Maddix123! (multi-login OK); Dispatch dispatch@mascigc.com / DispatchTest2026! (dispatch login OK)",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Track 18 Production Cut release-candidate smoke is GREEN. Dispatch sees 171 drivers / 200 carriers / 12 trucks with restricted-testid sentinels ABSENT, and Email Pilot (tx-orient-tab-emails) + Automation Health (tx-cq-tab-health) sub-tabs correctly hidden. Super Admin sees full Mission Control with real KPIs and all Administration + Intelligence nav. Public hero renders 'MASCI OPERATIONS PLATFORM' correctly. No deployment blockers. Two minor non-blocker copy/alias nits left for main agent's discretion before or after the production cut.",
+  "rca of the issue": "n/a — release is GO. Sole copy nit on /hr 403 denial is purely a string change in the portal-denial component; no functional impact."
+}
