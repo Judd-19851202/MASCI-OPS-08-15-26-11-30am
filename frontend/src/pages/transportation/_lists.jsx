@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
-  Chip, PageHeader, ComingSoon, EmptyState, txGet, txPost, isTxRestricted,
+  Chip, PageHeader, ComingSoon, EmptyState, txGet, txPost, txPatch, isTxRestricted,
 } from "./_shared";
 import {
   DocumentDropzone, InspectionWizard, ComplianceTimeline, PacketChecklist,
@@ -293,6 +293,7 @@ export function DriversList() {
 // Reads from the projection endpoint that joins equipment_master +
 // equipment_units + transport_trucks overlay. The Transportation Trucks
 // page is a VIEW into the MASCI fleet, not a separate fleet database.
+// Track 19.02A adds the bulk adoption flow + per-row operational editor.
 export function TrucksList() {
   const [items, setItems] = useState([]);
   const [summary, setSummary] = useState(null);
@@ -301,6 +302,8 @@ export function TrucksList() {
   const [q, setQ] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [ownershipFilter, setOwnershipFilter] = useState("");
+  const [showBulk, setShowBulk] = useState(false);
+  const [editTarget, setEditTarget] = useState(null); // row to edit
   const { status } = useStateFilter();
 
   const load = useCallback(async () => {
@@ -333,9 +336,17 @@ export function TrucksList() {
         title="Fleet"
         subtitle="Transportation view of the MASCI fleet · one asset, one source of truth."
         right={
-          <Button variant="outline" onClick={load} data-testid="trucks-list-refresh">
-            <RefreshCw className="h-4 w-4 mr-1" />Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => setShowBulk(true)}
+              data-testid="tx-fleet-bulk-adopt-btn"
+            >
+              Adopt All Transportation Assets
+            </Button>
+            <Button variant="outline" onClick={load} data-testid="trucks-list-refresh">
+              <RefreshCw className="h-4 w-4 mr-1" />Refresh
+            </Button>
+          </div>
         }
       />
       {summary && !restricted && (
@@ -436,13 +447,24 @@ export function TrucksList() {
                         )}
                       </td>
                       <td className="px-3 py-2 text-right">
-                        {detailHref ? (
-                          <Link to={detailHref} className="text-blue-600 hover:underline text-xs" data-testid={`truck-open-${overlay.truck_id}`}>
-                            Open <ExternalLink className="inline h-3 w-3" />
-                          </Link>
-                        ) : (
-                          <AdoptButton equipmentId={t.id} onAdopted={load} />
-                        )}
+                        <div className="flex items-center gap-3 justify-end">
+                          {overlay.exists && t.source === "equipment_master" && (
+                            <button
+                              onClick={() => setEditTarget(t)}
+                              className="text-xs text-blue-600 hover:underline"
+                              data-testid={`tx-fleet-edit-${t.id}`}
+                            >
+                              Edit Transportation Details
+                            </button>
+                          )}
+                          {detailHref ? (
+                            <Link to={detailHref} className="text-blue-600 hover:underline text-xs" data-testid={`truck-open-${overlay.truck_id}`}>
+                              Open <ExternalLink className="inline h-3 w-3" />
+                            </Link>
+                          ) : (
+                            <AdoptButton equipmentId={t.id} onAdopted={load} />
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -453,6 +475,19 @@ export function TrucksList() {
         )
       )}
         </>
+      )}
+      {showBulk && (
+        <FleetBulkAdoptionModal
+          onClose={() => setShowBulk(false)}
+          onCompleted={() => { setShowBulk(false); load(); }}
+        />
+      )}
+      {editTarget && (
+        <FleetOverlayEditModal
+          row={editTarget}
+          onClose={() => setEditTarget(null)}
+          onSaved={() => { setEditTarget(null); load(); }}
+        />
       )}
     </div>
   );
@@ -479,6 +514,338 @@ function AdoptButton({ equipmentId, onAdopted }) {
     >
       {busy ? "Adopting…" : "Adopt into Transportation"}
     </button>
+  );
+}
+
+// ───────── Track 19.02A · Bulk Adoption modal (preview-first) ─────────
+function FleetBulkAdoptionModal({ onClose, onCompleted }) {
+  const [preview, setPreview] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [executing, setExecuting] = useState(false);
+  const [result, setResult] = useState(null);
+
+  const loadPreview = useCallback(async () => {
+    setLoading(true);
+    try {
+      const r = await txGet("/admin/transportation/fleet/adoption-preview", {});
+      setPreview(r.data || null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+  useEffect(() => { loadPreview(); }, [loadPreview]);
+
+  const execute = async () => {
+    if (executing) return;
+    setExecuting(true);
+    try {
+      const r = await txPost("/admin/transportation/fleet/adoption-bulk", {});
+      setResult(r.data || null);
+    } finally {
+      setExecuting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-slate-900/60 flex items-center justify-center p-4"
+         data-testid="tx-fleet-bulk-adopt-modal" onClick={onClose}>
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+           onClick={(e) => e.stopPropagation()}>
+        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold">Transportation Fleet Adoption</h2>
+            <p className="text-xs text-slate-500">
+              Preview before execution · equipment records will NOT be duplicated.
+            </p>
+          </div>
+          <button onClick={onClose} className="text-slate-500 hover:text-slate-800" data-testid="tx-fleet-bulk-close">✕</button>
+        </div>
+
+        {loading ? (
+          <div className="p-8 text-center text-slate-500" data-testid="tx-fleet-bulk-loading">Loading preview…</div>
+        ) : result ? (
+          <div className="p-6 space-y-3" data-testid="tx-fleet-bulk-result">
+            <div className="text-emerald-700 text-sm font-medium">
+              ✓ Adoption complete
+            </div>
+            <Row2 k="Scanned" v={result.scanned} />
+            <Row2 k="Created" v={result.created} testid="tx-fleet-bulk-result-created" />
+            <Row2 k="Already adopted" v={result.skipped_already_adopted} />
+            <Row2 k="Retired (skipped)" v={result.skipped_retired} />
+            <Row2 k="Errors" v={result.errors} />
+            <Row2 k="Elapsed (ms)" v={result.elapsed_ms} />
+            <Row2 k="Batch ID" v={<span className="font-mono text-xs">{result.batch_id}</span>} />
+            <p className="text-xs text-slate-500 pt-2">
+              If you need to undo this batch, an administrator can rollback via{" "}
+              <code className="text-xs">POST /admin/transportation/fleet/adoption-bulk/&#123;batch_id&#125;/rollback</code>
+            </p>
+            <div className="flex justify-end gap-2 pt-3">
+              <Button onClick={onCompleted} data-testid="tx-fleet-bulk-done">Done</Button>
+            </div>
+          </div>
+        ) : preview ? (
+          <div className="p-6 space-y-4" data-testid="tx-fleet-bulk-preview">
+            <div className="grid grid-cols-3 gap-3 text-sm">
+              <Tile label="Already adopted" value={preview.summary.already_adopted} />
+              <Tile label="Would adopt" value={preview.summary.would_adopt} accent="emerald" testid="tx-fleet-bulk-would-adopt" />
+              <Tile label="Skipped (retired/inactive)" value={preview.summary.skipped_retired + preview.summary.skipped_inactive} />
+              <Tile label="Conflicts" value={preview.summary.conflicts} accent={preview.summary.conflicts ? "rose" : null} />
+              <Tile label="Missing equipment ID" value={preview.summary.missing_equipment_id} />
+              <Tile label="Needs operator classification" value={preview.summary.unknown_classification} accent={preview.summary.unknown_classification ? "amber" : null} />
+            </div>
+            <div className="text-xs text-slate-500">
+              Categories in scope: {(preview.categories_in_scope || []).join(" · ")}
+            </div>
+            <div className="rounded bg-slate-50 border border-slate-200 px-3 py-2 text-xs text-slate-700">
+              This operation is completely safe. Equipment records will NOT be
+              duplicated. Transportation overlays will simply be created where
+              missing. The operation is idempotent — running it again will
+              produce zero new overlays.
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={onClose} data-testid="tx-fleet-bulk-cancel">Cancel</Button>
+              <Button variant="outline" onClick={loadPreview} data-testid="tx-fleet-bulk-preview-again">Preview Again</Button>
+              <Button onClick={execute} disabled={executing || preview.summary.would_adopt === 0} data-testid="tx-fleet-bulk-execute">
+                {executing ? "Adopting…" : `Adopt ${preview.summary.would_adopt} assets`}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="p-8 text-center text-rose-600">Failed to load preview.</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Tile({ label, value, accent, testid }) {
+  const colors = {
+    emerald: "bg-emerald-50 border-emerald-200 text-emerald-900",
+    amber: "bg-amber-50 border-amber-200 text-amber-900",
+    rose: "bg-rose-50 border-rose-200 text-rose-900",
+  };
+  const cls = accent ? colors[accent] : "bg-slate-50 border-slate-200 text-slate-900";
+  return (
+    <div className={`rounded border px-3 py-2 ${cls}`} data-testid={testid}>
+      <div className="text-xs opacity-75">{label}</div>
+      <div className="text-2xl font-semibold">{value}</div>
+    </div>
+  );
+}
+
+function Row2({ k, v, testid }) {
+  return (
+    <div className="flex items-center justify-between text-sm">
+      <span className="text-slate-500">{k}</span>
+      <span className="text-slate-900" data-testid={testid}>{v}</span>
+    </div>
+  );
+}
+
+// ───── Track 19.02A · Per-row Edit Transportation Details modal ─────
+const CLASSIFICATIONS = [
+  "heavy_haul", "end_dump", "transfer", "day_cab", "sleeper",
+  "lowboy", "equipment_hauler", "equipment_trailer", "tag_trailer",
+  "flatbed", "water_truck", "fuel_truck", "service_truck",
+  "pole_trailer", "jeep_dolly", "other",
+];
+const STATUSES = ["pending_review", "active", "on_hold", "inactive", "retired", "out_of_service"];
+
+function FleetOverlayEditModal({ row, onClose, onSaved }) {
+  const overlay = row.transport_overlay || {};
+  const [form, setForm] = useState({
+    transportation_classification: overlay.transportation_classification || "other",
+    truck_type: overlay.truck_type || "other",
+    status: overlay.status || "pending_review",
+    safety_hold: !!overlay.safety_hold,
+    dispatch_ready: !!overlay.dispatch_ready,
+    active_for_transport: overlay.active_for_transport !== false,
+    primary_division: overlay.primary_division || "",
+    transportation_notes: overlay.transportation_notes || "",
+    operational_tags: (overlay.operational_tags || []).join(", "),
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+
+  const save = async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      const payload = {
+        transportation_classification: form.transportation_classification,
+        truck_type: form.truck_type,
+        status: form.status,
+        safety_hold: form.safety_hold,
+        dispatch_ready: form.dispatch_ready,
+        active_for_transport: form.active_for_transport,
+        primary_division: form.primary_division || null,
+        transportation_notes: form.transportation_notes || null,
+        operational_tags: form.operational_tags
+          .split(",").map((s) => s.trim()).filter(Boolean),
+      };
+      const r = await txPatch(
+        `/admin/transportation/fleet/equipment/${row.id}/overlay`,
+        payload);
+      if (r.error) {
+        setError(typeof r.error === "string" ? r.error :
+          (r.error.message || JSON.stringify(r.error)));
+      } else {
+        onSaved && onSaved();
+      }
+    } catch (e) {
+      const detail = e?.response?.data?.detail;
+      if (detail && typeof detail === "object" && detail.message) {
+        setError(detail.message);
+      } else if (typeof detail === "string") {
+        setError(detail);
+      } else {
+        setError(String(e?.message || e));
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-slate-900/60 flex items-center justify-center p-4"
+         data-testid="tx-fleet-edit-modal" onClick={onClose}>
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+           onClick={(e) => e.stopPropagation()}>
+        <div className="px-6 py-4 border-b border-slate-200 flex items-start justify-between">
+          <div>
+            <h2 className="text-lg font-semibold">Edit Transportation Details</h2>
+            <p className="text-xs text-slate-500">
+              Asset {row.unit_number || row.asset_id} · {row.label || row.make_model}
+            </p>
+            <p className="text-xs text-slate-400 mt-1">
+              Enterprise asset fields (VIN · make · model · year · purchase data) are managed by the MASCI Equipment platform.
+            </p>
+          </div>
+          <button onClick={onClose} className="text-slate-500 hover:text-slate-800" data-testid="tx-fleet-edit-close">✕</button>
+        </div>
+
+        <div className="p-6 space-y-6">
+          <section>
+            <h3 className="text-sm font-semibold mb-2 text-slate-700">Transportation Classification</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Transportation classification">
+                <select
+                  className="w-full border border-slate-200 rounded px-2 py-1.5 text-sm"
+                  value={form.transportation_classification}
+                  onChange={(e) => setForm({ ...form, transportation_classification: e.target.value })}
+                  data-testid="tx-fleet-edit-classification"
+                >
+                  {CLASSIFICATIONS.map((c) => <option key={c} value={c}>{c.replace(/_/g, " ")}</option>)}
+                </select>
+              </Field>
+              <Field label="Truck type">
+                <select
+                  className="w-full border border-slate-200 rounded px-2 py-1.5 text-sm"
+                  value={form.truck_type}
+                  onChange={(e) => setForm({ ...form, truck_type: e.target.value })}
+                  data-testid="tx-fleet-edit-truck-type"
+                >
+                  {["dump_truck", "flow_boy", "lowboy", "tanker", "roll_off", "service_truck", "other"].map((c) =>
+                    <option key={c} value={c}>{c.replace(/_/g, " ")}</option>)}
+                </select>
+              </Field>
+            </div>
+          </section>
+
+          <section>
+            <h3 className="text-sm font-semibold mb-2 text-slate-700">Dispatch Operations</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Operational status">
+                <select
+                  className="w-full border border-slate-200 rounded px-2 py-1.5 text-sm"
+                  value={form.status}
+                  onChange={(e) => setForm({ ...form, status: e.target.value })}
+                  data-testid="tx-fleet-edit-status"
+                >
+                  {STATUSES.map((s) => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
+                </select>
+              </Field>
+              <Field label="Primary operating division">
+                <Input
+                  value={form.primary_division}
+                  onChange={(e) => setForm({ ...form, primary_division: e.target.value })}
+                  placeholder="e.g. North Yard"
+                  data-testid="tx-fleet-edit-division"
+                />
+              </Field>
+              <Field label="Dispatch ready" inline>
+                <input
+                  type="checkbox"
+                  checked={form.dispatch_ready}
+                  onChange={(e) => setForm({ ...form, dispatch_ready: e.target.checked })}
+                  data-testid="tx-fleet-edit-dispatch-ready"
+                />
+              </Field>
+              <Field label="Active for transport" inline>
+                <input
+                  type="checkbox"
+                  checked={form.active_for_transport}
+                  onChange={(e) => setForm({ ...form, active_for_transport: e.target.checked })}
+                  data-testid="tx-fleet-edit-active"
+                />
+              </Field>
+              <Field label="Safety hold" inline>
+                <input
+                  type="checkbox"
+                  checked={form.safety_hold}
+                  onChange={(e) => setForm({ ...form, safety_hold: e.target.checked })}
+                  data-testid="tx-fleet-edit-safety-hold"
+                />
+              </Field>
+            </div>
+          </section>
+
+          <section>
+            <h3 className="text-sm font-semibold mb-2 text-slate-700">Transportation Notes</h3>
+            <Field label="Operational tags (comma-separated)">
+              <Input
+                value={form.operational_tags}
+                onChange={(e) => setForm({ ...form, operational_tags: e.target.value })}
+                placeholder="e.g. heavy_haul, yard_a, night_shift"
+                data-testid="tx-fleet-edit-tags"
+              />
+            </Field>
+            <Field label="Notes">
+              <textarea
+                className="w-full border border-slate-200 rounded px-2 py-1.5 text-sm"
+                rows={3}
+                value={form.transportation_notes}
+                onChange={(e) => setForm({ ...form, transportation_notes: e.target.value })}
+                placeholder="Operational context for dispatch and Transportation leadership."
+                data-testid="tx-fleet-edit-notes"
+              />
+            </Field>
+          </section>
+
+          {error && (
+            <div className="text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded px-3 py-2" data-testid="tx-fleet-edit-error">
+              {error}
+            </div>
+          )}
+
+          <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
+            <Button variant="outline" onClick={onClose} data-testid="tx-fleet-edit-cancel">Cancel</Button>
+            <Button onClick={save} disabled={saving} data-testid="tx-fleet-edit-save">
+              {saving ? "Saving…" : "Save Transportation Details"}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, children, inline }) {
+  return (
+    <div className={inline ? "flex items-center justify-between" : ""}>
+      <label className="text-xs text-slate-500 block mb-1">{label}</label>
+      {children}
+    </div>
   );
 }
 

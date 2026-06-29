@@ -6655,3 +6655,59 @@ viewports (deferred to Track 18.08 lock).
 - Global relationship graph visualization.
 - Operations-display dark mode.
 
+
+---
+
+## TRACK 19.02A · TRANSPORTATION FLEET ADOPTION HARDENING (2026-06-29) ✅
+
+**Status:** SHIPPED · 189/189 transportation tests pass · 0 regressions.
+
+**Directive:** Transportation Fleet must be the operational view of the
+existing MASCI fleet — not a second fleet database. Audit, preview,
+bulk-adopt, verify, retest.
+
+### What shipped
+
+* **Adoption preview** — `GET /admin/transportation/fleet/adoption-preview` returns categorized buckets (already_adopted, would_adopt, skipped_inactive, skipped_retired, conflicts, missing_equipment_id, unknown_classification, leased_only_overlays) without writing anything.
+* **Bulk adoption** — `POST /admin/transportation/fleet/adoption-bulk` (admin-only, idempotent via `(tenant, equipment_id)` uniqueness; ~93 ms for 136 overlays).
+* **Bulk rollback** — `POST /admin/transportation/fleet/adoption-bulk/{batch_id}/rollback` removes only overlays tagged with that batch_id. Never touches equipment_master, equipment_units, maintenance, documents, GPS, Motive, or assignments.
+* **Operational overlay PATCH** — `PATCH /admin/transportation/fleet/equipment/{id}/overlay`. Editable allow-list: `truck_type · transportation_classification · status · safety_hold · carrier_id · driver_id · dispatch_ready · primary_division · operational_tags · active_for_transport · transportation_notes`. Protected enterprise fields (`vin · make · model · year · plate · purchase_price · engine_hours · category · is_active · operational_status · etc.`) are hard-rejected with HTTP 422 and a clear "Enterprise Equipment system" message.
+* **Classification standard** — `TRANSPORT_CAPABLE_CATEGORIES` narrowed from 9 → 7 (removed Pickup Trucks + Supervisor/Mgmt Trucks per directive). New `TRANSPORT_CLASSIFICATIONS` enum (`heavy_haul · end_dump · transfer · day_cab · sleeper · lowboy · equipment_hauler · equipment_trailer · tag_trailer · flatbed · water_truck · fuel_truck · service_truck · pole_trailer · jeep_dolly · other`).
+* **Frontend** — Fleet page `Adopt All Transportation Assets` button + preview-first modal with 6 status tiles, Cancel / Preview Again / Adopt CTAs, and a success summary that exposes the batch_id for rollback. Per-row `Edit Transportation Details` modal with grouped sections (Transportation Classification · Dispatch Operations · Notes).
+* **Audit kinds** — `transport_asset_adopt` (per overlay) · `transport_bulk_adoption_completed` (per batch) · `transport_bulk_adoption_rolled_back` (per batch) · `transport_overlay_update` (per PATCH).
+* **Tests** — `test_track_19_02a_fleet_adoption_hardening.py` (21 tests across preview · bulk · rollback · overlay PATCH · audit · performance).
+
+### Live fleet inventory (preview DB)
+
+136 MASCI transport-capable assets surfaced (Dump 41 · Tractor Trailer 12 · Service 17 · Water 6 · Misc 4 · Flatbed 3 · Trailers 53) + 12 leased = 148 total operational fleet rows. 4 Misc Trucks flagged for operator classification.
+
+### Files touched
+
+* `/app/backend/routes/transportation.py` — `TRANSPORT_CAPABLE_CATEGORIES` (7 categories) · `TRANSPORT_OVERLAY_EDITABLE_FIELDS` · `TRANSPORT_OVERLAY_PROTECTED_FIELDS` · `TRANSPORT_CLASSIFICATIONS` · `TRUCK_STATUSES` · `_derive_truck_type` · `_derive_transportation_classification` · `_build_overlay_doc` · `fleet_adoption_preview` · `fleet_adoption_bulk` · `fleet_adoption_rollback` · `adopt_equipment_into_transport` (refactored) · `patch_overlay_by_equipment`.
+* `/app/frontend/src/pages/transportation/_lists.jsx` — `FleetBulkAdoptionModal` · `FleetOverlayEditModal` · `Tile` · `Row2` · `Field` helpers · TrucksList header + per-row Edit CTA.
+* `/app/backend/tests/test_track_19_02a_fleet_adoption_hardening.py` — 21 new tests.
+
+### Reports created
+
+* `/app/memory/TRANSPORTATION_FLEET_ADOPTION_ARCHITECTURE.md`
+* `/app/memory/TRANSPORTATION_FLEET_ADOPTION_AUDIT.md`
+* `/app/memory/TRANSPORTATION_FLEET_ADOPTION_ROLLBACK.md`
+* `/app/memory/TRANSPORTATION_FLEET_CLASSIFICATION_STANDARD.md`
+* `/app/memory/TRANSPORTATION_FLEET_PERFORMANCE_REPORT.md`
+* `/app/memory/TRANSPORTATION_FLEET_TEST_REPORT.md`
+* `/app/memory/TRANSPORTATION_DEPLOYMENT_READINESS_ADDENDUM.md`
+
+### Operator instructions
+
+1. Open `/transportation-operations/trucks`.
+2. Click `Adopt All Transportation Assets` → preview shows 136 ready.
+3. Click `Adopt 136 assets` → all 136 MASCI haulers attached to Transportation in ~100ms.
+4. Refine the 4 flagged `Misc Trucks` via `Edit Transportation Details`.
+5. If an undo is ever needed: `POST /admin/transportation/fleet/adoption-bulk/{batch_id}/rollback`.
+
+### Deferred (out of Track 19.02A scope)
+
+* Driver / Carrier assignment from the Fleet edit modal — current modal accepts the IDs but no picker UI yet.
+* Adoption preview drill-down rows in the modal (counts shown; per-row table is in the JSON only).
+* Bulk overlay update (multi-select + edit at once) — left out per directive ("operational, not destructive").
+

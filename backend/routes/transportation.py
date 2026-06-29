@@ -46,15 +46,23 @@ PERSON_KINDS = ("masci_employee", "leased_driver")
 TRUCK_OWNERSHIPS = ("masci_owned", "leased_carrier", "owner_operator", "unknown")
 TRUCK_TYPES = ("dump_truck", "flow_boy", "lowboy", "tanker",
                "roll_off", "service_truck", "other")
+TRUCK_STATUSES = ("pending_review", "active", "on_hold", "inactive",
+                  "retired", "out_of_service")
 TARGET_TYPES = ("carrier", "person", "truck")
 
 # Track 19.02 — Fleet projection.
 # Transportation Operations is a READ-MOSTLY view into the MASCI fleet
 # (`equipment_master` / `equipment_units` remain the source of truth).
 # The categories below define which `equipment_master.category` values
-# the Transportation Trucks page surfaces. The selection is conservative
-# (omits Trench Safety, Excavators, Loaders, etc. that are not driver-
-# operated on-road haulers) and can be expanded without a schema change.
+# the Transportation Trucks page surfaces.
+#
+# Track 19.02A · Classification Standard:
+#   • INCLUDE  on-road haul-capable, dispatch-able operational assets.
+#   • EXCLUDE  passenger / office / executive / management vehicles
+#              (per directive, "Pickup Trucks" and "Supervisor / Mgmt
+#              Trucks" categories are passenger/light-duty and do NOT
+#              participate in dispatchable Transportation Operations).
+# This list can be expanded without a schema change.
 TRANSPORT_CAPABLE_CATEGORIES = (
     "Dump Trucks",
     "Tractor Trailer Trucks",
@@ -62,9 +70,41 @@ TRANSPORT_CAPABLE_CATEGORIES = (
     "Water Trucks",
     "Misc Trucks",
     "Flatbed Trucks",
-    "Supervisor / Mgmt Trucks",
     "Trailers",
-    "Pickup Trucks",
+)
+
+# Track 19.02A · Operational overlay field policy.
+# Transportation may edit only the operational metadata it owns;
+# enterprise asset identity remains owned by the Equipment platform.
+TRANSPORT_OVERLAY_EDITABLE_FIELDS = (
+    "truck_type",
+    "transportation_classification",
+    "status",
+    "safety_hold",
+    "carrier_id",
+    "driver_id",
+    "dispatch_ready",
+    "primary_division",
+    "operational_tags",
+    "active_for_transport",
+    "transportation_notes",
+)
+# Fields owned by Equipment Master / Units — never editable from the
+# Transportation overlay. If a client tries to PATCH any of these, the
+# overlay PATCH endpoint responds 422 with a clear message.
+TRANSPORT_OVERLAY_PROTECTED_FIELDS = (
+    "vin", "vin_serial_number", "asset_id", "unit_number",
+    "make", "model", "year", "make_model", "plate",
+    "purchase_price", "purchase_date", "depreciation",
+    "engine_hours", "meter_reading", "ownership",
+    "category", "is_active", "operational_status",
+)
+# Valid transportation_classification values.
+TRANSPORT_CLASSIFICATIONS = (
+    "heavy_haul", "end_dump", "transfer", "day_cab", "sleeper",
+    "lowboy", "equipment_hauler", "equipment_trailer", "tag_trailer",
+    "flatbed", "water_truck", "fuel_truck", "service_truck",
+    "pole_trailer", "jeep_dolly", "other",
 )
 
 
@@ -1029,6 +1069,311 @@ def register_transportation_routes(
             },
         }
 
+    # Track 19.02A · helpers for adoption + classification.
+    def _derive_truck_type(category: str) -> str:
+        cat = (category or "").lower()
+        if "dump" in cat:
+            return "dump_truck"
+        if "water" in cat:
+            return "tanker"
+        if "service" in cat:
+            return "service_truck"
+        if "trailer" in cat:
+            return "lowboy"
+        if "flatbed" in cat:
+            return "other"
+        if "tractor" in cat:
+            return "other"
+        return "other"
+
+    def _derive_transportation_classification(em: dict) -> str:
+        """Best-effort default classification. Operator can refine via PATCH."""
+        cat = (em.get("category") or "").lower()
+        peq = (em.get("preop_equipment_type") or "").lower()
+        if "dump" in cat:
+            return "end_dump"
+        if "tractor" in cat:
+            return "day_cab"
+        if "water" in cat or "water" in peq:
+            return "water_truck"
+        if "service" in cat:
+            return "service_truck"
+        if "flatbed" in cat:
+            return "flatbed"
+        if "trailer" in cat:
+            return "equipment_trailer"
+        return "other"
+
+    def _build_overlay_doc(em: dict, actor: Any, batch_id: Optional[str] = None) -> dict:
+        now = _now()
+        truck_type = _derive_truck_type(em.get("category") or "")
+        tx_class = _derive_transportation_classification(em)
+        return {
+            "id": uuid.uuid4().hex,
+            "tenant": TENANT,
+            "ownership": "masci_owned",
+            "equipment_id": em.get("id"),
+            "carrier_id": None,
+            "driver_id": None,
+            "truck_number": em.get("asset_id")
+                or em.get("unit_number")
+                or f"EQ-{(em.get('id') or '')[:6]}",
+            "vin": em.get("vin_serial_number"),
+            "plate": em.get("plate"),
+            "truck_type": truck_type,
+            "transportation_classification": tx_class,
+            "status": "pending_review",
+            "safety_hold": False,
+            "dispatch_ready": False,
+            "active_for_transport": True,
+            "primary_division": None,
+            "operational_tags": [],
+            "transportation_notes": None,
+            "notes": (
+                f"Adopted from equipment_master · "
+                f"{em.get('display_label') or em.get('label') or em.get('make_model') or ''}"
+            ),
+            "bulk_adoption_batch_id": batch_id,
+            "created_at": now,
+            "updated_at": now,
+            "created_by": _actor_label(actor),
+            "updated_by": _actor_label(actor),
+        }
+
+    # ─────────── Adoption Preview (READ-ONLY · no writes) ───────────
+    @router.get("/admin/transportation/fleet/adoption-preview")
+    async def fleet_adoption_preview(
+        include_inactive: bool = Query(False),
+        _: Any = Depends(require_dispatch_or_admin_dep),
+    ):
+        em_query: Dict[str, Any] = {
+            "category": {"$in": list(TRANSPORT_CAPABLE_CATEGORIES)},
+        }
+        if not include_inactive:
+            em_query["is_active"] = {"$ne": False}
+        existing_overlays = await db.transport_trucks.find(
+            {"tenant": TENANT}).to_list(2000)
+        overlay_by_eq: Dict[str, dict] = {}
+        for o in existing_overlays:
+            eq_id = o.get("equipment_id")
+            if eq_id:
+                # Track duplicate-overlay risk: multiple overlays per eq.
+                overlay_by_eq.setdefault(eq_id, []).append(o)
+
+        already: List[dict] = []
+        would_adopt: List[dict] = []
+        skipped_inactive: List[dict] = []
+        skipped_retired: List[dict] = []
+        conflicts: List[dict] = []
+        missing_equipment_id: List[dict] = []
+        unknown_classification: List[dict] = []
+        category_totals: Dict[str, int] = {}
+
+        async for em in db.equipment_master.find(em_query):
+            cat = em.get("category")
+            category_totals[cat] = category_totals.get(cat, 0) + 1
+            eq_id = em.get("id")
+            row = {
+                "equipment_id": eq_id,
+                "asset_id": em.get("asset_id"),
+                "category": cat,
+                "make_model": em.get("make_model"),
+                "vin": em.get("vin_serial_number"),
+                "is_active": em.get("is_active"),
+                "operational_status": em.get("operational_status"),
+                "proposed_truck_type": _derive_truck_type(cat),
+                "proposed_classification":
+                    _derive_transportation_classification(em),
+            }
+            if not eq_id:
+                missing_equipment_id.append(row)
+                continue
+            overlays = overlay_by_eq.get(eq_id, [])
+            if len(overlays) > 1:
+                conflicts.append({**row,
+                    "reason": "multiple existing overlays",
+                    "overlay_ids": [o.get("id") for o in overlays]})
+                continue
+            if overlays:
+                already.append({**row, "overlay_id": overlays[0].get("id")})
+                continue
+            op_status = em.get("operational_status")
+            if op_status == "Retired":
+                skipped_retired.append({**row, "reason": "Retired"})
+                continue
+            if em.get("is_active") is False:
+                skipped_inactive.append({**row, "reason": "is_active=False"})
+                continue
+            # Classification can't be derived → flag.
+            if row["proposed_classification"] == "other" \
+                    and cat in ("Misc Trucks",):
+                unknown_classification.append({
+                    **row, "reason":
+                    "category 'Misc Trucks' needs operator classification"})
+            would_adopt.append(row)
+
+        # Existing leased-only rows (no equipment_id) — list for visibility.
+        leased_only = [
+            {"overlay_id": o.get("id"),
+             "truck_number": o.get("truck_number"),
+             "ownership": o.get("ownership"),
+             "status": o.get("status")}
+            for o in existing_overlays
+            if not o.get("equipment_id")
+        ]
+
+        return {
+            "snapshot_at": _now(),
+            "categories_in_scope": list(TRANSPORT_CAPABLE_CATEGORIES),
+            "category_totals": category_totals,
+            "summary": {
+                "already_adopted": len(already),
+                "would_adopt": len(would_adopt),
+                "skipped_inactive": len(skipped_inactive),
+                "skipped_retired": len(skipped_retired),
+                "conflicts": len(conflicts),
+                "missing_equipment_id": len(missing_equipment_id),
+                "unknown_classification": len(unknown_classification),
+                "leased_only_overlays": len(leased_only),
+            },
+            "buckets": {
+                "already_adopted": already,
+                "would_adopt": would_adopt,
+                "skipped_inactive": skipped_inactive,
+                "skipped_retired": skipped_retired,
+                "conflicts": conflicts,
+                "missing_equipment_id": missing_equipment_id,
+                "unknown_classification": unknown_classification,
+                "leased_only_overlays": leased_only,
+            },
+            "disclaimer": (
+                "Read-only preview · no records were modified. "
+                "Equipment Master remains the source of truth."
+            ),
+        }
+
+    # ─────────── Bulk Adoption (admin-only · idempotent) ───────────
+    @router.post("/admin/transportation/fleet/adoption-bulk")
+    async def fleet_adoption_bulk(
+        request: Request,
+        actor: Any = Depends(require_admin_dep),
+    ):
+        body = {}
+        try:
+            body = await request.json()
+        except Exception:  # noqa: BLE001
+            pass
+        include_inactive = bool(body.get("include_inactive", False))
+        dry_run = bool(body.get("dry_run", False))
+
+        em_query: Dict[str, Any] = {
+            "category": {"$in": list(TRANSPORT_CAPABLE_CATEGORIES)},
+        }
+        if not include_inactive:
+            em_query["is_active"] = {"$ne": False}
+
+        # Build lookup of existing overlays so we never duplicate.
+        existing = await db.transport_trucks.find(
+            {"tenant": TENANT,
+             "equipment_id": {"$ne": None, "$exists": True}},
+        ).to_list(5000)
+        adopted_eq_ids = {o.get("equipment_id") for o in existing
+                          if o.get("equipment_id")}
+
+        batch_id = uuid.uuid4().hex
+        t0 = datetime.now(timezone.utc)
+        created_docs: List[dict] = []
+        skipped = 0
+        retired = 0
+        scanned = 0
+
+        async for em in db.equipment_master.find(em_query):
+            scanned += 1
+            eq_id = em.get("id")
+            if not eq_id:
+                skipped += 1
+                continue
+            if eq_id in adopted_eq_ids:
+                skipped += 1
+                continue
+            if em.get("operational_status") == "Retired":
+                retired += 1
+                continue
+            doc = _build_overlay_doc(em, actor, batch_id=batch_id)
+            created_docs.append(doc)
+            adopted_eq_ids.add(eq_id)
+
+        elapsed_ms = int(
+            (datetime.now(timezone.utc) - t0).total_seconds() * 1000)
+
+        if dry_run or not created_docs:
+            summary = {
+                "scanned": scanned,
+                "created": 0 if dry_run else 0,
+                "skipped_already_adopted": skipped,
+                "skipped_retired": retired,
+                "errors": 0,
+                "elapsed_ms": elapsed_ms,
+                "dry_run": dry_run,
+                "batch_id": None if dry_run else batch_id,
+                "would_create": len(created_docs) if dry_run else 0,
+            }
+            return {"success": True, **summary, "created_overlays": []}
+
+        # Batch insert.
+        try:
+            await db.transport_trucks.insert_many(
+                [d.copy() for d in created_docs], ordered=False)
+        except Exception as exc:  # noqa: BLE001
+            # Partial-failure recovery: fall back to per-doc upsert with
+            # the (tenant, equipment_id) uniqueness contract.
+            for d in created_docs:
+                try:
+                    await db.transport_trucks.update_one(
+                        {"tenant": TENANT, "equipment_id": d["equipment_id"]},
+                        {"$setOnInsert": d}, upsert=True)
+                except Exception:  # noqa: BLE001
+                    continue
+            await _audit(db, kind="transport_bulk_adoption_completed",
+                         entity_type="bulk", entity_id=batch_id,
+                         actor=actor, old=None, request=request,
+                         new={"error": str(exc)[:240],
+                              "scanned": scanned, "elapsed_ms": elapsed_ms})
+        # Per-overlay audit + eligibility init.
+        for d in created_docs:
+            await _audit(db, kind="transport_asset_adopt",
+                         entity_type="truck", entity_id=d["id"],
+                         actor=actor, old=None, new=_project_doc(d),
+                         request=request)
+            await _upsert_eligibility(db, target_type="truck",
+                                      target_id=d["id"], record=d)
+        await _audit(db, kind="transport_bulk_adoption_completed",
+                     entity_type="bulk", entity_id=batch_id,
+                     actor=actor, old=None, request=request,
+                     new={
+                         "scanned": scanned,
+                         "created": len(created_docs),
+                         "skipped_already_adopted": skipped,
+                         "skipped_retired": retired,
+                         "elapsed_ms": elapsed_ms,
+                     })
+
+        return {
+            "success": True,
+            "scanned": scanned,
+            "created": len(created_docs),
+            "skipped_already_adopted": skipped,
+            "skipped_retired": retired,
+            "errors": 0,
+            "elapsed_ms": elapsed_ms,
+            "dry_run": False,
+            "batch_id": batch_id,
+            "created_overlays": [
+                {"id": d["id"], "equipment_id": d["equipment_id"],
+                 "truck_number": d["truck_number"]} for d in created_docs
+            ],
+        }
+
     # Per-equipment "Adopt into Transportation" overlay creation.
     @router.post(
         "/admin/transportation/fleet/equipment/{equipment_id}/adopt")
@@ -1048,51 +1393,135 @@ def register_transportation_routes(
             {"tenant": TENANT, "equipment_id": equipment_id})
         if existing:
             return {"already_adopted": True, **_project_doc(existing)}
-        # Derive truck_type heuristically; operator can refine via PATCH.
-        cat = (em.get("category") or "").lower()
-        if "dump" in cat:
-            truck_type = "dump_truck"
-        elif "tractor" in cat:
-            truck_type = "other"
-        elif "water" in cat:
-            truck_type = "tanker"
-        elif "service" in cat:
-            truck_type = "service_truck"
-        elif "trailer" in cat:
-            truck_type = "lowboy"
-        else:
-            truck_type = "other"
-        now = _now()
-        doc = {
-            "id": uuid.uuid4().hex,
-            "tenant": TENANT,
-            "ownership": "masci_owned",
-            "equipment_id": equipment_id,
-            "carrier_id": None,
-            "truck_number": em.get("asset_id")
-                or em.get("unit_number")
-                or f"EQ-{equipment_id[:6]}",
-            "vin": em.get("vin_serial_number"),
-            "plate": em.get("plate"),
-            "truck_type": truck_type,
-            "status": "pending_review",
-            "safety_hold": False,
-            "notes": (
-                f"Adopted from equipment_master · {em.get('display_label') or em.get('label')}"
-            ),
-            "created_at": now,
-            "updated_at": now,
-            "created_by": _actor_label(actor),
-            "updated_by": _actor_label(actor),
-        }
+        doc = _build_overlay_doc(em, actor)
         await db.transport_trucks.insert_one(doc.copy())
-        await _audit(db, kind="transport_truck_adopt",
+        await _audit(db, kind="transport_asset_adopt",
                      entity_type="truck", entity_id=doc["id"],
                      actor=actor, old=None, new=_project_doc(doc),
                      request=request)
         await _upsert_eligibility(db, target_type="truck",
                                   target_id=doc["id"], record=doc)
         return {"already_adopted": False, **_project_doc(doc)}
+
+    # ─────────── Bulk Adoption Rollback (admin-only) ───────────
+    @router.post(
+        "/admin/transportation/fleet/adoption-bulk/{batch_id}/rollback")
+    async def fleet_adoption_rollback(
+        batch_id: str, request: Request,
+        actor: Any = Depends(require_admin_dep),
+    ):
+        if not batch_id or len(batch_id) < 8:
+            raise HTTPException(422, "invalid batch_id")
+        # Only remove overlays produced by the named bulk batch.
+        overlays = await db.transport_trucks.find(
+            {"tenant": TENANT,
+             "bulk_adoption_batch_id": batch_id}).to_list(5000)
+        if not overlays:
+            return {"success": True, "batch_id": batch_id,
+                    "removed": 0,
+                    "message": "no overlays match this batch_id"}
+        ids = [o.get("id") for o in overlays]
+        await db.transport_trucks.delete_many(
+            {"tenant": TENANT,
+             "bulk_adoption_batch_id": batch_id})
+        await db.transport_eligibility_state.delete_many(
+            {"target_type": "truck", "target_id": {"$in": ids}})
+        await _audit(db, kind="transport_bulk_adoption_rolled_back",
+                     entity_type="bulk", entity_id=batch_id,
+                     actor=actor, old={"overlay_count": len(ids)},
+                     new={"removed": len(ids)}, request=request)
+        return {"success": True, "batch_id": batch_id,
+                "removed": len(ids),
+                "removed_overlay_ids": ids}
+
+    # ─────────── Operational Overlay PATCH (Track 19.02A Amendment) ───────────
+    @router.patch(
+        "/admin/transportation/fleet/equipment/{equipment_id}/overlay")
+    async def patch_overlay_by_equipment(
+        equipment_id: str, request: Request,
+        actor: Any = Depends(require_dispatch_or_admin_dep),
+    ):
+        body = {}
+        try:
+            body = await request.json()
+        except Exception:  # noqa: BLE001
+            raise HTTPException(400, "invalid JSON body")
+        if not body:
+            return {"success": True, "no_changes": True}
+
+        # Block any attempt to edit enterprise-owned fields.
+        protected_hit = [k for k in body.keys()
+                         if k in TRANSPORT_OVERLAY_PROTECTED_FIELDS]
+        if protected_hit:
+            raise HTTPException(
+                422,
+                {
+                    "message": (
+                        "These fields are managed by the Enterprise "
+                        "Equipment system and cannot be edited from "
+                        "Transportation."
+                    ),
+                    "protected_fields": protected_hit,
+                })
+        # Restrict to known editable fields (silent drop unknown keys).
+        updates: Dict[str, Any] = {
+            k: v for k, v in body.items()
+            if k in TRANSPORT_OVERLAY_EDITABLE_FIELDS
+        }
+        if not updates:
+            raise HTTPException(
+                422,
+                {"message": "no editable fields supplied",
+                 "editable_fields":
+                 list(TRANSPORT_OVERLAY_EDITABLE_FIELDS)})
+        # Validate enums.
+        if "transportation_classification" in updates and \
+                updates["transportation_classification"] \
+                not in TRANSPORT_CLASSIFICATIONS:
+            raise HTTPException(
+                422, f"invalid transportation_classification; allowed: "
+                f"{list(TRANSPORT_CLASSIFICATIONS)}")
+        if "truck_type" in updates and \
+                updates["truck_type"] not in TRUCK_TYPES:
+            raise HTTPException(
+                422, f"invalid truck_type; allowed: {list(TRUCK_TYPES)}")
+        if "status" in updates and \
+                updates["status"] not in TRUCK_STATUSES:
+            raise HTTPException(
+                422, f"invalid status; allowed: {list(TRUCK_STATUSES)}")
+
+        existing = await db.transport_trucks.find_one(
+            {"tenant": TENANT, "equipment_id": equipment_id})
+        if not existing:
+            # Auto-adopt-on-edit not allowed — operator must adopt first.
+            raise HTTPException(
+                404,
+                "No Transportation overlay exists for this equipment. "
+                "Adopt it into Transportation first.")
+        # Compute diff for audit.
+        before = {k: existing.get(k) for k in updates.keys()}
+        after = dict(updates)
+        if before == after:
+            return {"success": True, "no_changes": True,
+                    **_project_doc(existing)}
+        updates["updated_at"] = _now()
+        updates["updated_by"] = _actor_label(actor)
+        await db.transport_trucks.update_one(
+            {"tenant": TENANT, "equipment_id": equipment_id},
+            {"$set": updates})
+        new_doc = await db.transport_trucks.find_one(
+            {"tenant": TENANT, "equipment_id": equipment_id})
+        await _audit(db, kind="transport_overlay_update",
+                     entity_type="truck", entity_id=existing.get("id"),
+                     actor=actor, old=before,
+                     new={**after,
+                          "_equipment_id": equipment_id,
+                          "_changed_fields": list(after.keys())},
+                     request=request)
+        await _upsert_eligibility(db, target_type="truck",
+                                  target_id=existing.get("id"),
+                                  record=new_doc or existing)
+        return {"success": True, **_project_doc(new_doc or existing)}
 
     # ─────────────────────── ELIGIBILITY · admin ───────────────────────
     @router.get("/admin/transportation/eligibility/{target_type}/{target_id}")
