@@ -237,13 +237,25 @@ def test_admin_transportation_routes_still_mounted():
 
 
 # ─── (8) RBAC preservation — admin gate still wired on writes ─────────────
-def test_carrier_write_endpoints_remain_admin_strict():
+def test_carrier_write_endpoints_opened_to_dispatch_or_admin_track_19_00():
+    """Track 19.00 (operator-approved) intentionally opened
+    POST/PATCH /carriers from admin-only to `require_dispatch_or_admin_dep`.
+    Visible = Usable doctrine: dispatchers must be able to manage the
+    carrier base from inside Transportation Operations. Admin-only
+    governance endpoints (audit timeline, intelligence admin, automation
+    health, email pilot, HR sync) are NOT affected by this change."""
     body = _read(BE_ROUTES / "transportation.py")
-    # POST /carriers must be admin-strict.
     idx = body.find('@router.post("/admin/transportation/carriers")')
     assert idx > 0
     window = body[idx:idx + 800]
-    assert "Depends(require_admin_dep)" in window
+    assert "Depends(require_dispatch_or_admin_dep)" in window, (
+        "Track 19.00 expects carrier POST to accept dispatch OR admin."
+    )
+    # PATCH must also be dispatch+admin.
+    idx2 = body.find('@router.patch("/admin/transportation/carriers/{cid}")')
+    assert idx2 > 0
+    window2 = body[idx2:idx2 + 800]
+    assert "Depends(require_dispatch_or_admin_dep)" in window2
 
 
 def test_truck_write_endpoints_remain_admin_strict():
