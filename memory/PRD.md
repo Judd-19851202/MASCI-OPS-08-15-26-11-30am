@@ -6574,3 +6574,38 @@ viewports (deferred to Track 18.08 lock).
 1. Redeploy the preview build so Track 19.00 lands on prod.
 2. Run backfill dry-run against the production Atlas DB; review with dispatch lead; `--commit` after sign-off.
 
+---
+
+## Track 19.01 + 19.01A · Transportation Academy (2026-06-29)
+
+**Status:** Backend + Frontend + Tests + Docs complete in preview.
+**Test gate:** 21/21 pytest GREEN.
+**Live smoke:** Super Admin smoke screenshot passed — all 11 cards, Module 1 video plays, Module 3 In Development panel renders.
+
+### What was built
+- Track 19.01: HR-uploaded MP4 videos integrated as Modules 1 + 2 of the new Transportation Academy. New per-placeholder `video_url` field; `MasciVideoPlayer` renders native `<video src controls>` when present. Legacy "Sky AI video placeholder" copy removed from the Academy user-facing path.
+- Track 19.01A: Permanent 11-module Transportation Academy curriculum. Hybrid migration (Option C) — 9 legacy keys reused as canonical Academy keys, 2 new keys created (`driver_qualification_compliance`, `final_review_certification`), 12 unused legacy keys retired (`active=false`, `curriculum_track="legacy_track_16_08_retired"`).
+- New endpoint: `GET /api/admin/transportation/academy/modules` (dispatch + admin).
+- New frontend page: `/transportation-operations/academy` (list) + `/transportation-operations/academy/:moduleKey` (detail).
+- Sidebar entry: "Transportation Academy" inside the Compliance group alongside the existing Orientation entry.
+
+### Doctrine enforced
+- HR identity preserved (no employee writes).
+- Legacy historic E2E references preserved (no `delete_many`).
+- Idempotent bootstrap (`bootstrap_track_19_01a`).
+- "Visible = Usable" — every Academy module is interactive (Published → Watch, In Development → polished detail panel with topics + objectives, never an empty card or "Coming Soon" graphic).
+
+### Reports created
+- `/app/memory/TRACK_19_01_LEGACY_22_MODULE_AUDIT.md`
+- `/app/memory/TRACK_19_01_TRANSPORTATION_ORIENTATION_VIDEO_INTEGRATION.md`
+- `/app/memory/TRACK_19_01A_TRANSPORTATION_ACADEMY_CURRICULUM.md`
+- `/app/memory/TRANSPORTATION_ACADEMY_CURRICULUM_STRUCTURE.md`
+- `/app/memory/TRANSPORTATION_ACADEMY_MODULE_STANDARD.md`
+- `/app/memory/TRANSPORTATION_ACADEMY_PLACEHOLDER_ARCHITECTURE.md`
+- `/app/memory/TRANSPORTATION_ACADEMY_TEST_REPORT.md`
+
+### Operator follow-ups
+1. Redeploy the preview build so Track 19.01 + 19.01A land on `https://mascidocs.com`.
+2. (Optional) Re-host the two MP4s on R2 / a MASCI-controlled CDN and patch `placeholders.en.video_url` accordingly — no code change required.
+3. When Modules 3-11 videos are produced, patch each module: set `status="published"`, `published=true`, `placeholders.en.video_url=...`. No new module entries should ever need to be created.
+

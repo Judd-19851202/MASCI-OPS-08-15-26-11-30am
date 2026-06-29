@@ -34,7 +34,12 @@ export default function MasciVideoPlayer({
     (p) => p.language === assignment?.language,
   );
   const runtime = Math.max(1, module?.runtime_seconds || placeholder?.runtime_seconds || 60);
+  // TRACK 19.01A · Prefer the per-language `video_url` (uploaded mp4 /
+  // public asset). Fall back to legacy `sky_asset_id` mode for content
+  // that hasn't been migrated yet.
+  const videoUrl = placeholder?.video_url || module?.video_url || null;
   const skyAssetId = placeholder?.sky_asset_id || null;
+  const hasRealVideo = Boolean(videoUrl);
 
   const postHeartbeat = useCallback(async () => {
     try {
@@ -90,7 +95,17 @@ export default function MasciVideoPlayer({
   return (
     <div className="bg-black rounded-lg shadow-xl overflow-hidden" data-testid="masci-video-player">
       <div className="relative aspect-video bg-gradient-to-br from-slate-900 via-amber-950 to-slate-900 flex items-center justify-center">
-        {skyAssetId ? (
+        {hasRealVideo ? (
+          <video
+            ref={videoRef}
+            className="w-full h-full"
+            playsInline
+            controls
+            preload="metadata"
+            src={videoUrl}
+            data-testid="masci-video-element"
+          />
+        ) : skyAssetId ? (
           <video
             ref={videoRef}
             className="w-full h-full"
@@ -100,11 +115,12 @@ export default function MasciVideoPlayer({
             data-testid="masci-video-element"
           />
         ) : (
-          <div className="text-center p-8 text-amber-100">
+          <div className="text-center p-8 text-amber-100" data-testid="masci-video-placeholder">
             <ShieldCheck className="h-16 w-16 mx-auto mb-3 opacity-80" />
-            <h3 className="text-2xl font-semibold">MASCI Transportation Instructor</h3>
-            <p className="opacity-70 mt-1 text-sm">Sky AI video placeholder · {module?.title}</p>
-            <p className="opacity-50 mt-1 text-xs">Asset publishes automatically when ready · language: {assignment?.language}</p>
+            <h3 className="text-2xl font-semibold">Transportation Academy module in production</h3>
+            <p className="opacity-80 mt-2 text-sm max-w-md mx-auto">
+              This Transportation Academy module is currently in production and will be published in a future platform release. Continue completing the currently available modules while additional training becomes available.
+            </p>
           </div>
         )}
         {/* Disable native context menu (right-click "Save Video") */}

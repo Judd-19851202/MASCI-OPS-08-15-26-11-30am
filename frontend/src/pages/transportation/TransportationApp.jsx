@@ -19,6 +19,7 @@ import {
   CarrierWorkspace, DriverWorkspace, TruckWorkspace,
 } from "./_lists";
 import { OrientationCenter } from "./_orientation";
+import { TransportationAcademy, TransportationAcademyModule } from "./TransportationAcademy";
 import { CommandQueueCenter } from "./_command_queue";
 import { IntelligenceCenter } from "./_intelligence";
 import DispatchBridgeWorkspace from "./_dispatch_bridge";
@@ -64,6 +65,8 @@ export default function TransportationApp() {
           {/* Compliance group */}
           <Route path="compliance" element={<ComplianceDashboard />} />
           <Route path="orientation/*" element={<OrientationCenter />} />
+          <Route path="academy" element={<TransportationAcademy />} />
+          <Route path="academy/:moduleKey" element={<TransportationAcademyModule />} />
 
           {/* Operations Intelligence group */}
           <Route path="intelligence/*" element={<IntelligenceCenter />} />

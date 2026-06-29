@@ -318,6 +318,353 @@ def _audit_hash(payload: Dict[str, Any]) -> str:
     return hashlib.sha256(src.encode()).hexdigest()
 
 
+# ─────────────────────── Track 19.01A · Transportation Academy ───────────
+# Canonical 11-module Transportation Academy curriculum. Module keys
+# REUSE the 9 best-matching legacy Track 16.08 keys so historic E2E
+# references stay intact. 2 new module keys are introduced for Modules 4
+# and 11. The remaining 10 legacy keys are retired (active=false,
+# curriculum_track="legacy_track_16_08_retired"). See
+# /app/memory/TRACK_19_01_LEGACY_22_MODULE_AUDIT.md for the full
+# decision record.
+ACADEMY_TRACK = "transportation_academy_v1"
+LEGACY_RETIRED_TRACK = "legacy_track_16_08_retired"
+
+# Public video URLs for the two published modules (uploaded artifacts).
+ACADEMY_VIDEO_M1_EN = (
+    "https://customer-assets.emergentagent.com/job_safety-audit-mobile-1"
+    "/artifacts/gsq6iqsz_MASCI%20Vid%201%20Transport%20.mp4"
+)
+ACADEMY_VIDEO_M2_EN = (
+    "https://customer-assets.emergentagent.com/job_safety-audit-mobile-1"
+    "/artifacts/t0nuqy4b_MASCI%20Vid%202%20Transport%20%202.mp4"
+)
+
+ACADEMY_CURRICULUM: List[Dict[str, Any]] = [
+    {
+        "key": "welcome_to_masci",
+        "curriculum_order": 1,
+        "title": "Welcome to MASCI Transportation Operations",
+        "category": "intro",
+        "status": "published",
+        "estimated_runtime_minutes": 12,
+        "description": (
+            "An introduction to MASCI heavy-civil Transportation Operations. "
+            "Sets the tone for the Transportation Academy and explains how "
+            "drivers fit into the broader operating system."
+        ),
+        "learning_objectives": [
+            "Understand the role of Transportation Operations at MASCI.",
+            "Recognize the MASCI safety culture and operating principles.",
+            "Know where to go for dispatch, HR, and safety support.",
+        ],
+        "topics": [
+            "MASCI Transportation overview",
+            "Operating principles",
+            "Driver support resources",
+        ],
+        "video_url": ACADEMY_VIDEO_M1_EN,
+    },
+    {
+        "key": "driver_expectations",
+        "curriculum_order": 2,
+        "title": "Driver Expectations & Professional Standards",
+        "category": "expectations",
+        "status": "published",
+        "estimated_runtime_minutes": 14,
+        "description": (
+            "Sets professional expectations for MASCI drivers in the field, "
+            "including conduct, customer interaction, and accountability."
+        ),
+        "learning_objectives": [
+            "Demonstrate professional conduct on every haul.",
+            "Represent MASCI to customers and the public.",
+            "Maintain personal accountability for safety and performance.",
+        ],
+        "topics": [
+            "Professional conduct",
+            "Customer interaction",
+            "Personal accountability",
+            "MASCI driver image",
+        ],
+        "video_url": ACADEMY_VIDEO_M2_EN,
+    },
+    {
+        "key": "safety_culture",
+        "curriculum_order": 3,
+        "title": "Transportation Safety Fundamentals",
+        "category": "safety",
+        "status": "in_development",
+        "estimated_runtime_minutes": 20,
+        "description": (
+            "Core transportation safety expectations covering PPE, vehicle "
+            "inspections, hours-of-service, and driver fatigue management."
+        ),
+        "learning_objectives": [
+            "Perform compliant pre-trip and post-trip inspections.",
+            "Track and respect hours-of-service requirements.",
+            "Recognize driver fatigue and respond safely.",
+        ],
+        "topics": [
+            "PPE",
+            "Daily Vehicle Inspections",
+            "Pre-Trip Inspections",
+            "Post-Trip Inspections",
+            "Hours of Service",
+            "Driver Fatigue",
+            "Safe Operating Expectations",
+        ],
+    },
+    {
+        "key": "driver_qualification_compliance",
+        "curriculum_order": 4,
+        "title": "Driver Qualification & Regulatory Compliance",
+        "category": "compliance",
+        "status": "in_development",
+        "estimated_runtime_minutes": 25,
+        "description": (
+            "DOT / FMCSA driver qualification expectations, clearinghouse "
+            "requirements, medical card maintenance, and accident / incident "
+            "reporting standards."
+        ),
+        "learning_objectives": [
+            "Maintain a complete driver qualification file.",
+            "Comply with FMCSA Clearinghouse and medical-card requirements.",
+            "Report accidents and incidents to MASCI per policy.",
+        ],
+        "topics": [
+            "Driver Qualification Files",
+            "DOT Compliance",
+            "FMCSA Regulations",
+            "Federal Motor Carrier Safety Administration Clearinghouse",
+            "Medical Cards",
+            "CDL Requirements",
+            "Accident Reporting",
+            "Incident Reporting",
+        ],
+    },
+    {
+        "key": "backing_procedures",
+        "curriculum_order": 5,
+        "title": "Safe Driving Operations",
+        "category": "operations",
+        "status": "in_development",
+        "estimated_runtime_minutes": 18,
+        "description": (
+            "Defensive driving, blind-spot management, safe following "
+            "distances, and the use of spotters for backing maneuvers."
+        ),
+        "learning_objectives": [
+            "Apply defensive-driving techniques on every haul.",
+            "Manage blind spots and use spotters for backing.",
+            "Maintain a safe following distance under load.",
+        ],
+        "topics": [
+            "Defensive Driving",
+            "Load Securement",
+            "Spotters",
+            "Backing Procedures",
+            "Blind Spots",
+            "Safe Following Distance",
+        ],
+    },
+    {
+        "key": "traffic_control",
+        "curriculum_order": 6,
+        "title": "Jobsite Traffic Control & Site Operations",
+        "category": "operations",
+        "status": "in_development",
+        "estimated_runtime_minutes": 15,
+        "description": (
+            "Entering and exiting jobsites safely, internal traffic flow, "
+            "flagger awareness, and managing public traffic at active sites."
+        ),
+        "learning_objectives": [
+            "Enter and exit jobsites safely and predictably.",
+            "Follow flagger instructions and recognize site signals.",
+            "Manage interactions with public traffic at active sites.",
+        ],
+        "topics": [
+            "Entering Job Sites",
+            "Exiting Job Sites",
+            "Internal Traffic Flow",
+            "Flagger Awareness",
+            "Public Traffic",
+            "Site Hazards",
+            "Communication",
+        ],
+    },
+    {
+        "key": "loading_procedures",
+        "curriculum_order": 7,
+        "title": "Equipment Loading, Heavy Haul & Transport Operations",
+        "category": "operations",
+        "status": "in_development",
+        "estimated_runtime_minutes": 20,
+        "description": (
+            "Loading and unloading equipment, lowboy operations, heavy-haul "
+            "expectations, and tie-down / securement requirements."
+        ),
+        "learning_objectives": [
+            "Load and unload equipment safely.",
+            "Operate lowboy and heavy-haul configurations correctly.",
+            "Apply correct tie-down and securement requirements.",
+        ],
+        "topics": [
+            "Equipment Loading",
+            "Equipment Unloading",
+            "Lowboy Operations",
+            "Heavy Haul",
+            "Tie Downs",
+            "Securement",
+        ],
+    },
+    {
+        "key": "dumping_procedures",
+        "curriculum_order": 8,
+        "title": "Dump Truck & End Dump Operations",
+        "category": "operations",
+        "status": "in_development",
+        "estimated_runtime_minutes": 18,
+        "description": (
+            "Safe operation of dump trucks and end dumps, including tailgate "
+            "operation, rollover prevention, soft-ground awareness, and "
+            "overhead hazard management."
+        ),
+        "learning_objectives": [
+            "Operate dump and end-dump configurations safely.",
+            "Prevent rollovers on soft or uneven ground.",
+            "Recognize and avoid overhead hazards during dumping.",
+        ],
+        "topics": [
+            "Dump Truck Operations",
+            "End Dump Operations",
+            "Safe Dumping",
+            "Tailgate Operations",
+            "Rollovers",
+            "Soft Ground",
+            "Overhead Hazards",
+        ],
+    },
+    {
+        "key": "communications",
+        "curriculum_order": 9,
+        "title": "Transportation Communication & Technology",
+        "category": "operations",
+        "status": "in_development",
+        "estimated_runtime_minutes": 15,
+        "description": (
+            "Dispatch communications, Motive ELDs, transportation "
+            "technology, documentation, customer service, and "
+            "professionalism in the field."
+        ),
+        "learning_objectives": [
+            "Use Motive ELDs and dispatch communications correctly.",
+            "Capture and submit accurate transportation documentation.",
+            "Deliver professional customer service in the field.",
+        ],
+        "topics": [
+            "Dispatch Communications",
+            "Motive",
+            "Electronic Logging Devices",
+            "Transportation Technology",
+            "Documentation",
+            "Customer Service",
+            "Professionalism",
+        ],
+    },
+    {
+        "key": "emergency_procedures",
+        "curriculum_order": 10,
+        "title": "Emergency Response & Environmental Responsibilities",
+        "category": "safety",
+        "status": "in_development",
+        "estimated_runtime_minutes": 15,
+        "description": (
+            "Emergency response, breakdown procedures, accident handling, "
+            "spill response, environmental protection, and incident "
+            "escalation paths."
+        ),
+        "learning_objectives": [
+            "Respond to breakdowns and accidents per MASCI policy.",
+            "Contain and report spills correctly.",
+            "Escalate incidents through the correct notification path.",
+        ],
+        "topics": [
+            "Emergencies",
+            "Breakdowns",
+            "Accidents",
+            "Spill Response",
+            "Environmental Protection",
+            "Emergency Notifications",
+            "Incident Escalation",
+        ],
+    },
+    {
+        "key": "final_review_certification",
+        "curriculum_order": 11,
+        "title": "Transportation Operations Final Review & Certification",
+        "category": "certification",
+        "status": "in_development",
+        "estimated_runtime_minutes": 10,
+        "description": (
+            "Final review of MASCI Transportation Academy expectations and "
+            "knowledge check leading to Transportation Academy certification."
+        ),
+        "learning_objectives": [
+            "Review every Transportation Academy module.",
+            "Demonstrate operating-readiness knowledge.",
+            "Earn Transportation Academy certification.",
+        ],
+        "topics": [
+            "Final Review",
+            "Operational Expectations",
+            "Knowledge Review",
+            "Final Certification",
+        ],
+    },
+]
+
+# Keys retired by the Track 19.01A hybrid migration. These rows are
+# kept (active=false, curriculum_track=LEGACY_RETIRED_TRACK) so any
+# historic E2E assignments / certificates remain queryable.
+ACADEMY_RETIRED_KEYS = [
+    "customer_expectations",
+    "ppe",
+    "near_miss_reporting",
+    "incident_reporting",
+    "hauling_procedures",
+    "jobsite_arrival",
+    "asphalt_plant_operations",
+    "equipment_awareness",
+    "truck_readiness",
+    "environmental_responsibilities",
+    "end_of_shift",
+    "annual_refresher",
+]
+
+
+def _academy_placeholders(entry: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Build the per-language placeholder array for an Academy module."""
+    out: List[Dict[str, Any]] = []
+    runtime_s = max(60, int(entry.get("estimated_runtime_minutes", 10)) * 60)
+    for lang in LANGUAGES:
+        is_published_en = (
+            lang == "en" and entry.get("status") == "published"
+            and entry.get("video_url")
+        )
+        out.append({
+            "language": lang,
+            "sky_asset_id": None,
+            "video_url": entry.get("video_url") if is_published_en else None,
+            "runtime_seconds": runtime_s if is_published_en else 0,
+            "thumbnail_url": None,
+            "version": "1",
+            "status": "published" if is_published_en else "placeholder",
+            "uploaded_at": _now() if is_published_en else None,
+        })
+    return out
+
+
 # ─────────────────────── Bootstrap (idempotent) ───────────────────────
 async def bootstrap_track_16_08(db) -> Dict[str, Any]:
     """Seed the 22 default modules + a placeholder per language. Safe
@@ -354,6 +701,98 @@ async def bootstrap_track_16_08(db) -> Dict[str, Any]:
     return {"modules_seeded": seeded}
 
 
+async def bootstrap_track_19_01a(db) -> Dict[str, Any]:
+    """TRACK 19.01A · Hybrid migration. Idempotent. Promotes 9 legacy
+    keys + creates 2 new keys into the Transportation Academy v1
+    curriculum, attaches Module 1 and Module 2 video URLs, and retires
+    the 10 unused legacy keys via `active=false`. Preserves all historic
+    assignment / certificate references. Safe on every startup."""
+    promoted = 0
+    inserted = 0
+    retired = 0
+    now = _now()
+
+    for entry in ACADEMY_CURRICULUM:
+        key = entry["key"]
+        existing = await db.transport_orientation_modules.find_one(
+            {"tenant": TENANT, "key": key})
+        runtime_s = max(60, int(entry["estimated_runtime_minutes"]) * 60)
+        academy_fields = {
+            "title": entry["title"],
+            "category": entry["category"],
+            "required": True,
+            "active": True,
+            "curriculum_track": ACADEMY_TRACK,
+            "curriculum_order": entry["curriculum_order"],
+            "academy_module_number": entry["curriculum_order"],
+            "status": entry["status"],
+            "published": entry["status"] == "published",
+            "description": entry["description"],
+            "learning_objectives": list(entry["learning_objectives"]),
+            "topics": list(entry["topics"]),
+            "estimated_runtime_minutes": entry["estimated_runtime_minutes"],
+            "runtime_seconds": runtime_s,
+            "quiz_enabled": False,
+            "quiz_required": False,
+            "question_count": 5,
+            "passing_score": PASSING_SCORE_DEFAULT,
+            "quiz_status": "reserved",
+            "updated_at": now,
+            "updated_by": "track_19_01a_bootstrap",
+        }
+        if existing:
+            await db.transport_orientation_modules.update_one(
+                {"_id": existing["_id"]},
+                {"$set": {**academy_fields,
+                          "placeholders": _academy_placeholders(entry)}},
+            )
+            promoted += 1
+        else:
+            doc = {
+                "id": uuid.uuid4().hex, "tenant": TENANT, "key": key,
+                **academy_fields,
+                "version": "1",
+                "max_attempts": QUIZ_MAX_ATTEMPTS_DEFAULT,
+                "languages": list(LANGUAGES),
+                "placeholders": _academy_placeholders(entry),
+                "created_at": now,
+                "created_by": "track_19_01a_bootstrap",
+            }
+            await db.transport_orientation_modules.insert_one(doc.copy())
+            inserted += 1
+
+    # Retire the unused legacy keys (audit-only — no destruction).
+    for key in ACADEMY_RETIRED_KEYS:
+        existing = await db.transport_orientation_modules.find_one(
+            {"tenant": TENANT, "key": key})
+        if not existing:
+            continue
+        if existing.get("curriculum_track") == LEGACY_RETIRED_TRACK:
+            # Already retired — idempotent skip.
+            continue
+        await db.transport_orientation_modules.update_one(
+            {"_id": existing["_id"]},
+            {"$set": {
+                "active": False,
+                "curriculum_track": LEGACY_RETIRED_TRACK,
+                "updated_at": now,
+                "updated_by": "track_19_01a_bootstrap",
+            }},
+        )
+        retired += 1
+
+    logger.info(
+        "[track-19-01a-bootstrap] academy=%d promoted=%d inserted=%d retired=%d",
+        promoted + inserted, promoted, inserted, retired,
+    )
+    return {
+        "academy_total": promoted + inserted,
+        "promoted": promoted,
+        "inserted": inserted,
+        "retired": retired,
+    }
+
+
 # ─────────────────────── Router factory ───────────────────────
 def register_transportation_orientation_routes(
     app, db, require_admin_dep: Callable,
@@ -374,6 +813,37 @@ def register_transportation_orientation_routes(
         cur = db.transport_orientation_modules.find({"tenant": TENANT}).sort("key", 1)
         items = [_project(d) for d in await cur.to_list(500)]
         return {"items": items, "languages": list(LANGUAGES)}
+
+    # TRACK 19.01A · Transportation Academy curriculum endpoint.
+    # Returns ONLY the 11 canonical Academy modules (curriculum_track =
+    # transportation_academy_v1), ordered by curriculum_order. Retired
+    # legacy modules are excluded from the user-facing Academy view.
+    @router.get("/admin/transportation/academy/modules")
+    async def list_academy_modules(_: Any = Depends(ops_guard)):
+        cur = db.transport_orientation_modules.find({
+            "tenant": TENANT,
+            "curriculum_track": ACADEMY_TRACK,
+            "active": True,
+        }).sort("curriculum_order", 1)
+        rows = await cur.to_list(50)
+        items: List[Dict[str, Any]] = []
+        for d in rows:
+            proj = _project(d)
+            # Surface the published English video_url at the top level
+            # so the frontend can render the player without poking the
+            # placeholders array.
+            en_ph = next((p for p in (d.get("placeholders") or [])
+                          if p.get("language") == "en"), None) or {}
+            proj["video_url"] = en_ph.get("video_url")
+            items.append(proj)
+        return {
+            "curriculum_track": ACADEMY_TRACK,
+            "total": len(items),
+            "published": sum(1 for x in items if x.get("status") == "published"),
+            "in_development": sum(1 for x in items
+                                  if x.get("status") == "in_development"),
+            "items": items,
+        }
 
     @router.post("/admin/transportation/orientation/modules")
     async def create_module(body: ModuleCreate, request: Request,

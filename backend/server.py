@@ -12890,6 +12890,7 @@ async def _track_16_05_bootstrap_on_startup():
 from routes.transportation_orientation import (  # noqa: E402
     register_transportation_orientation_routes,
     bootstrap_track_16_08,
+    bootstrap_track_19_01a,
 )
 register_transportation_orientation_routes(
     app, db, require_admin_dep=require_admin_strict,
@@ -12907,6 +12908,11 @@ async def _track_16_08_bootstrap_on_startup():
     except Exception as exc:  # noqa: BLE001
         logging.getLogger(__name__).warning(
             f"[track-16-08-bootstrap] non-fatal: {exc}")
+    try:
+        await bootstrap_track_19_01a(db)
+    except Exception as exc:  # noqa: BLE001
+        logging.getLogger(__name__).warning(
+            f"[track-19-01a-bootstrap] non-fatal: {exc}")
 
 
 # TRACK 16.09 · Transportation Dispatch Gate + Email Pilot. Wires the

@@ -151,6 +151,7 @@ export const TX_OPS_NAV_GROUPS = [
     items: [
       { to: "compliance", icon: ShieldCheck, label: "Compliance", testid: "txops-nav-compliance" },
       { to: "orientation", icon: GraduationCap, label: "Orientation", testid: "txops-nav-orientation" },
+      { to: "academy", icon: GraduationCap, label: "Transportation Academy", testid: "txops-nav-academy" },
     ],
   },
   {

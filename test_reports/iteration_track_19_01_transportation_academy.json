@@ -1,0 +1,34 @@
+{
+  "summary": "TRACK 19.01 + 19.01A Transportation Academy hybrid migration verified end-to-end. Backend pytest 21/21 GREEN; live API contract validated against preview pod with dispatch + admin portal tokens; idempotent bootstrap confirmed via supervisor restart with zero drift; UI flows confirmed for list, Module 1 published video, Module 2 published video, Module 3 In-Development, Module 11 last-module; banned 'Sky AI video placeholder' copy is 0 on all 11 academy routes; regression on Orientation + Drivers + Carriers (Track 18.12C / 19.00) is intact; DB-safety counts preserved (assignments=45, certificates=45).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_track_19_01_transportation_academy.py"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Academy detail prev/next testids are rendered as buttons (no href anchor) — they perform programmatic navigation. This is fine but if any future test relies on href introspection it should be adjusted to read data-testid 'academy-detail-next' / '-prev' presence + click rather than href.",
+    "Module card list renders both 'academy-card-{key}' AND 'academy-card-{key}-status' testids per module (22 elements total for 11 modules). Acceptance contract satisfied (one card per module_key); secondary -status chip testid is supplemental and not in violation."
+  ],
+  "updated_files": [],
+  "verified_evidence": {
+    "pytest_gate": "21 passed in 1.13s — /app/backend/tests/test_track_19_01_transportation_academy.py",
+    "endpoint_contract": "GET /api/admin/transportation/academy/modules → curriculum_track='transportation_academy_v1', total=11, published=2, in_development=9; all 11 items have curriculum_order 1..11 ascending, populated topics/learning_objectives/description/estimated_runtime_minutes, and quiz reservation metadata (quiz_enabled=false, quiz_required=false, question_count=5, passing_score=80, quiz_status='reserved'); Modules 1+2 carry video_url, Modules 3-11 do not.",
+    "auth": "anonymous → 401; X-Dispatch-Token (portal_tokens.dispatch from /api/auth/multi-login) → 200; X-Admin-Token (portal_tokens.admin) → 200.",
+    "idempotent_restart": "PRE academy_active=11, retired_inactive=12, assignments=45, certs=45 → supervisorctl restart backend + /api/health=200 → POST academy_active=11, retired_inactive=12, assignments=45, certs=45; module ids identical across the restart.",
+    "ui_list": "data-testid='transportation-academy-page' present; data-testid='academy-progress-strip' text contains '2 of 11 modules available'; 11 unique module_key cards rendered; data-testid='txops-nav-academy' present in Compliance group; zero restricted/401/403 banners; zero 'Sky AI video placeholder' copy.",
+    "ui_module_1": "Detail testid='academy-detail-welcome_to_masci' renders, 'academy-published-video' renders, native <video data-testid='academy-video-element'> src=https://customer-assets.emergentagent.com/job_safety-audit-mobile-1/artifacts/gsq6iqsz_MASCI Vid 1 Transport .mp4; 'Published' chip present; prev button absent (first module); next button present.",
+    "ui_module_2": "Video element renders with M2 customer-assets MP4 src=https://customer-assets.emergentagent.com/job_safety-audit-mobile-1/artifacts/t0nuqy4b_MASCI Vid 2 Transport  2.mp4; zero banned copy.",
+    "ui_module_3_safety_culture": "data-testid='academy-in-development-panel' present with EXACT canonical copy 'This Transportation Academy module is currently in production and will be published in a future platform release.'; 'In Development' chip present; <video data-testid='academy-video-element'> NOT rendered; zero 'Sky AI video placeholder' copy.",
+    "ui_module_11_final_review_certification": "in-development panel present; prev testid present; next testid absent (last module); zero banned copy.",
+    "banned_copy_sweep": "All 11 module routes scanned — 'sky ai video placeholder' count = 0 on every route.",
+    "regression": "/transportation-operations/orientation loads (no restricted banner); /transportation-operations/drivers shows data-testid 'drivers-list-link-hr' + 'drivers-list-add-leased'; /transportation-operations/carriers shows data-testid 'carriers-list-add'. Track 18.12C + 19.00 acceptance is preserved."
+  },
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "jaymn.judd@mascigc.com / Maddix123! (Super Admin via /api/auth/multi-login → portal_tokens.admin + .dispatch)",
+  "seed_data_creation": "None — bootstrap_track_19_01a is automatic on startup and idempotent.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "TRACK 19.01/19.01A Transportation Academy is GREEN. The Academy endpoint key is /api/admin/transportation/academy/modules (returns key 'items', not 'modules'). Authentication requires portal_tokens from POST /api/auth/multi-login — pass token via header X-Dispatch-Token (dispatch portal) or X-Admin-Token (admin portal). The Academy list page emits two testids per module ('academy-card-{key}' and 'academy-card-{key}-status') — count unique module_keys, not raw selector matches. Prev/next nav buttons on detail pages are <button> with programmatic onClick (no href attribute) — assert presence via testid, not href. Historic transport_orientation_assignments and transport_orientation_certificates counts are 45 each — bootstrap MUST preserve them.",
+  "rca of the issue": "N/A — no issues observed."
+}
