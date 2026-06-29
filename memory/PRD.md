@@ -11,6 +11,50 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-02-16 · TRACK 19.03 · HR Employee Source-of-Truth Roster Propagation Fix · ✅ GREEN · CLOSED)
+
+### Defect (P0 data integrity)
+New HR employees did not appear in operational pickers (Daily Reports / Safety Meetings / Pre-Ops / JHPs / Trench Safety / QA/QC / Incident / Training) until a full page reload. Two competing lifecycle indicators (`is_active` vs `lifecycle_status`) had been allowed to drift, and the two shared picker components (`EmployeeCombo`, `trench/EmployeePicker`) kept a permanent module-level cache that was never invalidated on HR Save.
+
+### Root Cause
+1. **Backend**: `/api/employees` filtered only on `is_active != False`. Legacy rows could carry `lifecycle_status="Active"` while `is_active=False` (or vice-versa for terminated employees), producing drift in either direction.
+2. **Frontend**: `EmployeeCombo._cache` and `trench/EmployeePicker._employeeCache` were SPA-lifetime module-level variables with no TTL and no invalidation event. The first picker mount of the SPA session loaded the roster; every subsequent picker reused that same in-memory blob even after HR added/terminated employees.
+
+### Fix Shape
+1. **Backend** — `/api/employees` (`server.py:3963`) rewritten to use the canonical lifecycle clause: `lifecycle_status ∈ {Active, Pending Hire, Seasonal, Leave of Absence}` OR (legacy rows: `lifecycle_status` missing AND `is_active != False`). New canonical endpoint `GET /api/hr/employee-roster` (`server.py:4004`) with `contract_version="19.03"`, safe projection (no email/phone/SSN/DOB/CDL/medical_card), and `?include_inactive=true` operator-gated escape hatch.
+2. **Frontend** — NEW `/app/frontend/src/lib/hrRoster.js`: event-bus client with `fetchHrRoster`, `subscribeHrRoster`, `invalidateHrRoster`, `emitHrRosterChanged`, and a global `hr:roster-changed` window event. **NO permanent cache** — only an in-flight de-dup for thundering-herd mounts. Last-good snapshot exposed to subscribers so picker mounts render immediately; HR writes invalidate the snapshot before the next read.
+3. **Frontend picker migration** — `EmployeeCombo.jsx` and `trench/EmployeePicker.jsx` rewritten to consume `subscribeHrRoster` / `fetchHrRoster`. Module-level `_cache` / `_employeeCache` variables deleted.
+4. **HR write events** — `lib/employeesApi.js` emits `emitHrRosterChanged()` after every `createHrEmployee` / `patchHrEmployee` / `changeHrEmployeeStatus` / `reactivateHrEmployee`. Every subscribed picker on the page invalidates + re-fetches instantly — no page reload.
+5. **Historical snapshot preservation** — already in place: submitted records persist denormalized `{name, employee_id, role, trade}` blobs. HR mutations never rewrite prior submissions. Documented in `/app/memory/TRACK_19_03_HISTORICAL_SNAPSHOT_RULES.md`.
+
+### Files Touched
+- BACKEND: `server.py` (already patched in prior session — `/api/employees` lifecycle-aware, new `/api/hr/employee-roster`)
+- FRONTEND (this session):
+  - NEW: `lib/hrRoster.js`
+  - `components/EmployeeCombo.jsx`
+  - `components/trench/EmployeePicker.jsx`
+  - `lib/employeesApi.js`
+- TESTS: `tests/test_track_19_03_hr_roster_source_of_truth.py` (27 assertions, all green)
+- DOCS: 8 markdown reports in `/app/memory/` (`HR_EMPLOYEE_ROSTER_CONTRACT.md`, `TRACK_19_03_HR_ROSTER_SOURCE_AUDIT.md`, `TRACK_19_03_DAILY_REPORT_ROSTER_FAILURE_REPRODUCTION.md`, `TRACK_19_03_ROSTER_CACHE_SYNC_AUDIT.md`, `TRACK_19_03_FORM_PICKER_AUDIT.md`, `TRACK_19_03_PERMISSION_PRIVACY_REVIEW.md`, `TRACK_19_03_HISTORICAL_SNAPSHOT_RULES.md`, `TRACK_19_03_TEST_REPORT.md`)
+
+### Tests
+- `tests/test_track_19_03_hr_roster_source_of_truth.py` — **27/27 PASS**
+- Live testing_agent_v3_fork verification: HR Save → `POST /api/hr/employees` → `GET /api/hr/employee-roster` refetch fires automatically (event bus proven), test employee `ZZTrack1903 JODWK` appears in operational picker without page reload. Test report: `/app/test_reports/iteration_track_19_03_hr_roster_source_of_truth.json`.
+- Canonical contract response sample: `contract_version="19.03"`, `count=384`, `filter.active_statuses=["Active", "Leave of Absence", "Pending Hire", "Seasonal"]`, `filter.source="db.employees (HR is gospel)"`, no private field leakage across all 384 items.
+
+### Doctrine locked
+- **HR Save is the only mutator of employee identity.** Pickers re-read; they never duplicate truth.
+- **NO permanent frontend cache.** Pickers subscribe to a live bus.
+- **Historical records preserve their captured snapshot.** HR mutations never rewrite prior submissions.
+- **Safe projection enforced server-side.** Pickers never see private HR data.
+
+### Known follow-ups (NOT 19.03 regressions)
+- `HrSafetyRecords.jsx` / `SafetyTrainingRecords.jsx` / `SafetyEmployeeProfiles.jsx` still call `/api/employees` directly for records-display contexts (intentional — they need historical employees as well as active). Out of scope for Track 19.03 picker contract.
+- Track 19.04 candidate: change_streams-driven projection if MASCI ever crosses ~50K active employees. Not needed at current scale.
+
+---
+
+
 ## Latest Track (2026-02-15 · TRACK 18.12C · Transportation Role Permissions REAL Functionality Fix + VISIBLE = USABLE · ✅ GREEN)
 
 ### Defect (P0 — 18.12B rejected)

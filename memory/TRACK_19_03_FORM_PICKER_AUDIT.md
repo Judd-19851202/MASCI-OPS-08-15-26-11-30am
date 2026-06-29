@@ -26,17 +26,28 @@
 **All field pickers consume the canonical contract.** No stale seeded
 roster path remains. No competing employee databases exist.
 
-## Architectural decision — keep `GET /api/employees`
+## Architectural decision — canonical migration completed
 
-Frontend has ~80 call sites that already use `/api/employees` (via
-`lib/employeesApi.js` and `components/EmployeeCombo.jsx`). Rather
-than rewrite 80 components, the canonical filter contract was
-applied at the endpoint. Existing callers automatically benefit
-from the fix.
+Track 19.03 closeout migrated the two shared picker components
+(`components/EmployeeCombo.jsx` and `components/trench/EmployeePicker.jsx`)
+to the canonical endpoint `GET /api/hr/employee-roster` via the new
+event-bus client `lib/hrRoster.js`. ~80 dependent call sites that
+mount `<EmployeeCombo />` are therefore transitively on the canonical
+contract without per-site rewrites.
 
-New code SHOULD prefer `/api/hr/employee-roster` for richer metadata
-(`active` derived field, `supervisor_*`, contract version), but
-existing `/api/employees` callers remain correct.
+Legacy `GET /api/employees` remains backward-compatible with the
+same lifecycle-aware filter (Track 19.03 backend patch) for non-
+picker historical/records pages that intentionally need the legacy
+shape. New pickers MUST use `lib/hrRoster.js`.
+
+## Live event bus — HR Save → picker refresh
+
+`lib/employeesApi.js` emits `window.dispatchEvent(new CustomEvent("hr:roster-changed"))`
+after every successful HR write (`createHrEmployee`, `patchHrEmployee`,
+`changeHrEmployeeStatus`, `reactivateHrEmployee`). The bus subscriber
+in `lib/hrRoster.js` invalidates the snapshot and refetches; every
+mounted picker subscribed via `subscribeHrRoster(cb)` receives the
+fresh items array within milliseconds.
 
 ## No stale paths
 
@@ -58,8 +69,17 @@ are:
 * Mobile/iPad picker layout uses the same combobox component which
   already handles touch.
 
-## What did NOT change
+## What changed in this closeout
 
-No frontend file was modified in Track 19.03. The fix was strictly
-backend-contract. All ~80 picker call sites continue to use the same
-endpoints and now receive the correct lifecycle-aware results.
+Track 19.03 frontend closeout introduced:
+* `lib/hrRoster.js` — canonical roster client with `hr:roster-changed`
+  event bus, NO permanent module-level cache.
+* `components/EmployeeCombo.jsx` — migrated off the legacy `_cache`
+  module variable; now consumes `subscribeHrRoster` + `fetchHrRoster`.
+* `components/trench/EmployeePicker.jsx` — same migration.
+* `lib/employeesApi.js` — emits `emitHrRosterChanged()` after every
+  HR write so every mounted picker live-updates without a reload.
+
+All ~80 picker call sites that wrap `<EmployeeCombo />` or
+`<EmployeePicker />` transitively inherit the new canonical contract
+and the live event bus.
