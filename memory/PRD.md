@@ -6609,3 +6609,49 @@ viewports (deferred to Track 18.08 lock).
 2. (Optional) Re-host the two MP4s on R2 / a MASCI-controlled CDN and patch `placeholders.en.video_url` accordingly — no code change required.
 3. When Modules 3-11 videos are produced, patch each module: set `status="published"`, `published=true`, `placeholders.en.video_url=...`. No new module entries should ever need to be created.
 
+
+---
+
+## TRACK 19.02 · TRANSPORTATION OPERATIONS — OPERATIONAL READINESS HARDENING (2026-06-29) ✅
+
+**Status:** SHIPPED · 302/302 backend tests pass · 0 regressions.
+
+**Directive:** *Audit. Verify. Fix. Retest. Continue.*
+
+### P0 · Fleet Architecture (single source of truth)
+- **New endpoint** `GET /api/admin/transportation/fleet/equipment` projects `equipment_master` + `equipment_units` + `transport_trucks` overlay. Returns 161 items live: 149 MASCI transport-capable + 12 leased. Summary block exposes `masci_fleet_total / masci_fleet_adopted / leased_total / categories`.
+- `TRANSPORT_CAPABLE_CATEGORIES` allow-list in `routes/transportation.py` (Dump/Tractor/Service/Water/Misc/Flatbed/Supervisor/Trailers/Pickup).
+- **New endpoint** `POST /admin/transportation/fleet/equipment/{id}/adopt` (admin-only, 422 on non-transport categories, idempotent). Creates a `transport_trucks` overlay row pointing back at `equipment_master.id` via `equipment_id` — never duplicates the equipment record.
+- **Frontend** `/transportation-operations/trucks` rebranded **"Fleet"** with 4 summary tiles, category + ownership selects, and per-row Adopt CTA.
+
+### P0.5 · Performance
+- `GET /api/admin/transportation/orientation/dashboard` rewritten from N+1 over 172 drivers to single-pass. Latency: ~3-4 s → ~0.4 s.
+
+### P1 · Operational UX
+- **Carriers list header chip strip** `[data-testid=tx-carriers-summary]` (total · active · pending review · safety hold). Surfaces the 39-carrier pending-review backlog instantly.
+- **`/api/version`** commit/built_at fallback chain: `GIT_COMMIT` env → `_SOURCE_HASH[:12]`, `BUILT_AT` env → `_STARTUP_TS`. No more `"unknown"`.
+
+### Tests
+- `test_track_19_02_transportation_fleet_projection.py` — 11 new pytest cases (projection · filters · permissions · adopt · idempotency · category guardrail · version · orientation perf).
+- `test_track_16_08` stale assertion `>= 21` updated to `>= 11` to match the Track 19.01A Academy state.
+
+### Files touched
+- `/app/backend/routes/transportation.py` (TRANSPORT_CAPABLE_CATEGORIES + list_fleet_equipment + adopt_equipment_into_transport)
+- `/app/backend/routes/transportation_orientation.py` (orientation_dashboard rewrite)
+- `/app/backend/server.py` (api_version commit/built_at fallback)
+- `/app/frontend/src/pages/transportation/_lists.jsx` (TrucksList rewire + AdoptButton + CarrierStatusSummary)
+- `/app/backend/tests/test_track_19_02_transportation_fleet_projection.py` (new)
+- `/app/backend/tests/test_track_16_08_transportation_orientation.py` (stale assertion fix)
+
+### Reports
+- `/app/memory/TRANSPORTATION_DEPLOYMENT_READINESS_REPORT.md` (final certification)
+- `/app/test_reports/iteration_track_19_02_operational_readiness_hardening.json`
+- 9 audit MDs already in `/app/memory/TRANSPORTATION_*_AUDIT.md` + the consolidated audit.
+
+### Deferred (Track 19.03 candidates)
+- Orientation + Academy route consolidation.
+- Carrier pending-review remediation drill-down UI.
+- Cross-collection global search ranking.
+- Global relationship graph visualization.
+- Operations-display dark mode.
+
