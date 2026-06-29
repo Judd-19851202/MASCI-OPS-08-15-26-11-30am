@@ -304,6 +304,20 @@ export function isTxRestricted(r) {
   return false;
 }
 
+// TRACK 19.00 · Write helpers for Transportation Operations.
+// Dispatcher + Admin tokens are accepted by the underlying endpoints
+// (Track 19.00 opened POST/PATCH for /persons, /carriers, plus the
+// new link-from-hr route). Both headers are sent so the request works
+// for either role without the caller needing to know which token is
+// present.
+export function txPost(path, body) {
+  return api.post(path, body, { headers: txHeaders(), skipSessionStatus: true });
+}
+
+export function txPatch(path, body) {
+  return api.patch(path, body, { headers: txHeaders(), skipSessionStatus: true });
+}
+
 // TRACK 18.12B · txCatch — error-message normaliser for legacy loaders
 // that wrap their own try/catch. Strips the forbidden "Admin login
 // required" / "Request failed with status code 4xx" / "Forbidden" /

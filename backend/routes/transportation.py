@@ -107,6 +107,12 @@ class PersonPatch(BaseModel):
     notes: Optional[str] = None
 
 
+class LinkFromHRBody(BaseModel):
+    employee_id: str = Field(..., min_length=1, max_length=120)
+    status: Optional[str] = "pending_review"
+    notes: Optional[str] = None
+
+
 class TruckCreate(BaseModel):
     ownership: str
     equipment_id: Optional[str] = None
@@ -357,7 +363,7 @@ def register_transportation_routes(
     @router.post("/admin/transportation/carriers")
     async def create_carrier(
         body: CarrierCreate, request: Request,
-        actor: Any = Depends(require_admin_dep),
+        actor: Any = Depends(require_dispatch_or_admin_dep),
     ):
         if body.carrier_type not in CARRIER_TYPES:
             raise HTTPException(422,
@@ -414,7 +420,7 @@ def register_transportation_routes(
 
     @router.patch("/admin/transportation/carriers/{cid}")
     async def patch_carrier(cid: str, body: CarrierPatch, request: Request,
-                            actor: Any = Depends(require_admin_dep)):
+                            actor: Any = Depends(require_dispatch_or_admin_dep)):
         existing = await db.carriers.find_one({"id": cid, "tenant": TENANT})
         if not existing:
             raise HTTPException(404, "Carrier not found")
@@ -478,7 +484,7 @@ def register_transportation_routes(
 
     @router.post("/admin/transportation/persons")
     async def create_person(body: PersonCreate, request: Request,
-                            actor: Any = Depends(require_admin_dep)):
+                            actor: Any = Depends(require_dispatch_or_admin_dep)):
         if body.kind not in PERSON_KINDS:
             raise HTTPException(422, f"kind must be one of {list(PERSON_KINDS)}")
         _validate_status(body.status)
@@ -549,7 +555,7 @@ def register_transportation_routes(
 
     @router.patch("/admin/transportation/persons/{pid}")
     async def patch_person(pid: str, body: PersonPatch, request: Request,
-                           actor: Any = Depends(require_admin_dep)):
+                           actor: Any = Depends(require_dispatch_or_admin_dep)):
         existing = await db.transport_persons.find_one({"id": pid, "tenant": TENANT})
         if not existing:
             raise HTTPException(404, "Transport person not found")
@@ -579,6 +585,166 @@ def register_transportation_routes(
         await _upsert_eligibility(db, target_type="person",
                                   target_id=pid, record=new_doc, context=ctx)
         return _project_doc(new_doc)
+
+    # ─────────────── TRACK 19.00 · HR CDL → Transportation link ───────────────
+    @router.get("/admin/transportation/eligible-hr-cdl-drivers")
+    async def list_eligible_hr_cdl_drivers(
+        q: Optional[str] = Query(None),
+        include_linked: bool = Query(False),
+        limit: int = Query(200, ge=1, le=1000),
+        _: Any = Depends(require_dispatch_or_admin_dep),
+    ):
+        """Track 19.00 · List HR employees who are CDL holders and are
+        Transportation-eligible candidates. Excludes:
+          · non-CDL `approved_company_driver`-only employees (they are
+            HR-approved company drivers, not haul drivers)
+          · employees already linked to a non-deleted `transport_persons`
+            record (unless `include_linked=true`)
+          · soft-deleted employees
+        """
+        query: Dict[str, Any] = {
+            "deleted_at": None,
+            "cdl_holder": True,
+        }
+        if q:
+            query["$or"] = [
+                {"name": {"$regex": q, "$options": "i"}},
+                {"employee_id": {"$regex": q, "$options": "i"}},
+                {"cdl_license_number": {"$regex": q, "$options": "i"}},
+            ]
+        projection = {
+            "_id": 0, "id": 1, "employee_id": 1, "name": 1,
+            "lifecycle_status": 1, "driver_status": 1,
+            "cdl_holder": 1, "approved_company_driver": 1,
+            "cdl_class": 1, "cdl_state": 1, "cdl_license_number": 1,
+            "cdl_expiration_date": 1,
+            "medical_card_expiration_date": 1,
+            "cdl_endorsements": 1,
+        }
+        cur = db.employees.find(query, projection).sort("name", 1).limit(limit * 4)
+        rows = await cur.to_list(limit * 4)
+        # Build linked set
+        linked_ids = set()
+        if not include_linked:
+            link_cur = db.transport_persons.find(
+                {"tenant": TENANT, "kind": "masci_employee"},
+                {"_id": 0, "id": 1, "employee_id": 1},
+            )
+            async for lp in link_cur:
+                if lp.get("employee_id"):
+                    linked_ids.add(str(lp["employee_id"]))
+        items: List[Dict[str, Any]] = []
+        for r in rows:
+            emp_id = str(r.get("employee_id") or r.get("id") or "")
+            already = emp_id in linked_ids if emp_id else False
+            if already and not include_linked:
+                continue
+            items.append({
+                "employee_id": emp_id,
+                "name": r.get("name"),
+                "lifecycle_status": r.get("lifecycle_status"),
+                "driver_status": r.get("driver_status"),
+                "cdl_holder": bool(r.get("cdl_holder")),
+                "approved_company_driver": bool(r.get("approved_company_driver")),
+                "cdl_class": r.get("cdl_class"),
+                "cdl_state": r.get("cdl_state"),
+                "cdl_license_number": r.get("cdl_license_number"),
+                "cdl_expiration_date": r.get("cdl_expiration_date"),
+                "medical_card_expiration_date": r.get("medical_card_expiration_date"),
+                "cdl_endorsements": r.get("cdl_endorsements"),
+                "already_linked": already,
+            })
+            if len(items) >= limit:
+                break
+        return {"count": len(items), "items": items}
+
+    @router.post("/admin/transportation/persons/link-from-hr")
+    async def link_person_from_hr(
+        body: LinkFromHRBody, request: Request,
+        actor: Any = Depends(require_dispatch_or_admin_dep),
+    ):
+        """Track 19.00 · Idempotently link an HR CDL employee into
+        Transportation Operations as a `masci_employee` driver. HR remains
+        the source of truth for identity; this creates the operational
+        shell record only. Rejects non-CDL approved-only employees.
+        """
+        emp_id_raw = (body.employee_id or "").strip()
+        if not emp_id_raw:
+            raise HTTPException(422, "employee_id is required")
+        _validate_status(body.status)
+        # Find the HR employee by employee_id (preferred) or id
+        emp = await db.employees.find_one(
+            {"employee_id": emp_id_raw, "deleted_at": None})
+        if not emp:
+            emp = await db.employees.find_one(
+                {"id": emp_id_raw, "deleted_at": None})
+        if not emp:
+            raise HTTPException(404, f"HR employee {emp_id_raw!r} not found")
+        if not bool(emp.get("cdl_holder")):
+            raise HTTPException(
+                422,
+                "Employee is not a CDL holder. Non-CDL approved drivers "
+                "cannot be linked into the Transportation haul-driver list. "
+                "If this employee should drive trucks, HR must set "
+                "cdl_holder=true and the CDL credential fields.",
+            )
+        canonical_emp_id = str(emp.get("employee_id") or emp.get("id") or emp_id_raw)
+        # Idempotent — return the existing link if present
+        existing = await db.transport_persons.find_one({
+            "tenant": TENANT,
+            "kind": "masci_employee",
+            "employee_id": canonical_emp_id,
+        })
+        if existing:
+            return {
+                "already_linked": True,
+                **_project_doc(existing),
+            }
+        # Build the operational shell from HR identity
+        full_name = (emp.get("name") or "").strip()
+        first, last = "", ""
+        if full_name:
+            parts = full_name.split(None, 1)
+            first = parts[0]
+            last = parts[1] if len(parts) > 1 else ""
+        first = first or emp.get("first_name") or "Employee"
+        last = last or emp.get("last_name") or canonical_emp_id
+        now = _now()
+        doc = {
+            "id": uuid.uuid4().hex,
+            "tenant": TENANT,
+            "kind": "masci_employee",
+            "employee_id": canonical_emp_id,
+            "carrier_id": None,
+            "first_name": first[:120],
+            "last_name": last[:120],
+            "phone": emp.get("phone"),
+            "email": emp.get("email"),
+            "license_number": emp.get("cdl_license_number"),
+            "cdl_class": emp.get("cdl_class"),
+            "status": body.status or "pending_review",
+            "safety_hold": False,
+            "notes": body.notes,
+            "linked_from_hr_at": now,
+            "linked_from_hr_by": _actor_label(actor),
+            "created_at": now,
+            "updated_at": now,
+            "created_by": _actor_label(actor),
+            "updated_by": _actor_label(actor),
+        }
+        await db.transport_persons.insert_one(doc.copy())
+        await _audit(
+            db, kind="transport_person_link_from_hr",
+            entity_type="person", entity_id=doc["id"],
+            actor=actor, old=None, new=_project_doc(doc),
+            request=request,
+        )
+        hr_ctx = await _hr_lifecycle_context(db, canonical_emp_id) or {}
+        await _upsert_eligibility(
+            db, target_type="person",
+            target_id=doc["id"], record=doc, context=hr_ctx,
+        )
+        return {"already_linked": False, **_project_doc(doc)}
 
     # ─────────────────────── TRUCKS · admin ───────────────────────
     @router.get("/admin/transportation/trucks")

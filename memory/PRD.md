@@ -6540,3 +6540,37 @@ viewports (deferred to Track 18.08 lock).
 - Full-text external search engine, fuzzy ranking engine, saved searches
 - Operations-display dark mode
 
+---
+
+## Track 19.00 · Transportation Driver + Carrier Operations Foundation (2026-06-29)
+
+**Status:** Backend + Frontend + Tests + Docs complete in preview.
+**Test gate:** 22/22 pytest GREEN.
+**Verdict:** GO at preview · ships to prod at next redeploy.
+
+### What was built
+- Opened `POST/PATCH /api/admin/transportation/persons` and `/carriers` to dispatcher + admin (Track 19.00 permission decision: "Dispatcher can write" per Visible = Usable).
+- New endpoint `GET /api/admin/transportation/eligible-hr-cdl-drivers` — lists HR `cdl_holder=true` employees not yet linked to `transport_persons`.
+- New endpoint `POST /api/admin/transportation/persons/link-from-hr` — idempotent HR CDL → Transportation linker. Refuses non-CDL approved-only employees with HTTP 422.
+- Frontend modals (`/app/frontend/src/pages/transportation/_modals.jsx`): `LinkHRDriverModal`, `AddLeasedDriverModal`, `AddCarrierModal`, `EditCarrierModal`.
+- CTAs on Drivers + Carriers list pages: `Link MASCI CDL Driver` · `Add Leased Driver` · `Add Carrier` · per-row `Edit`.
+- Backfill script `/app/backend/scripts/track_19_00_link_hr_cdl_to_transport.py` — dry-run default, `--commit` opt-in, NOT wired to boot.
+
+### Doctrine enforced
+- HR `employees` remains source of truth for identity + CDL credential record.
+- Transportation `transport_persons` owns operational readiness (status, safety_hold, notes).
+- CDL drivers (`cdl_holder=true`) are the only HR rows linkable into the Transportation haul-driver list. Non-CDL `approved_company_driver` employees stay in HR.
+
+### Reports created
+- `/app/memory/TRACK_19_00_TRANSPORTATION_DRIVER_CARRIER_FOUNDATION.md`
+- `/app/memory/TRACK_19_00_HR_DRIVER_MODEL_AUDIT.md`
+- `/app/memory/TRACK_19_00_TRANSPORTATION_DRIVER_MODEL_AUDIT.md`
+- `/app/memory/TRACK_19_00_CARRIER_MODEL_AUDIT.md`
+- `/app/memory/TRANSPORTATION_DRIVER_CLASSIFICATION_STANDARD.md`
+- `/app/memory/TRANSPORTATION_DRIVER_CARRIER_PERMISSION_MATRIX.md`
+- `/app/memory/TRANSPORTATION_DRIVER_CARRIER_BACKFILL_PLAN.md`
+
+### Operator follow-ups
+1. Redeploy the preview build so Track 19.00 lands on prod.
+2. Run backfill dry-run against the production Atlas DB; review with dispatch lead; `--commit` after sign-off.
+

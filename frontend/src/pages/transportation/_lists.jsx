@@ -8,7 +8,7 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import {
   Building2, UserRound, Truck as TruckIcon, ArrowLeft, ExternalLink,
   RefreshCw, Phone, Mail, FileText, ClipboardCheck, DollarSign,
-  ShieldCheck, Search,
+  ShieldCheck, Search, UserPlus, Pencil, Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,9 @@ import {
   DocumentDropzone, InspectionWizard, ComplianceTimeline, PacketChecklist,
 } from "./_widgets";
 import { TxOpsRestrictedData } from "@/components/transportation/TxOpsRestricted";
+import {
+  LinkHRDriverModal, AddLeasedDriverModal, AddCarrierModal, EditCarrierModal,
+} from "./_modals";
 
 const CARRIER_DOC_TYPES = [
   "sunbiz_certificate", "mcs_company_snapshot", "w9", "insurance_certificate",
@@ -54,6 +57,8 @@ export function CarriersList() {
   const [restricted, setRestricted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
+  const [showAdd, setShowAdd] = useState(false);
+  const [editing, setEditing] = useState(null);
   const { status } = useStateFilter();
 
   const load = useCallback(async () => {
@@ -77,7 +82,12 @@ export function CarriersList() {
       <PageHeader
         title="Carriers"
         subtitle="Leased haulers, owner-operators, suppliers, and MASCI-internal carriers."
-        right={<Button variant="outline" onClick={load} data-testid="carriers-list-refresh"><RefreshCw className="h-4 w-4 mr-1" />Refresh</Button>}
+        right={
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={load} data-testid="carriers-list-refresh"><RefreshCw className="h-4 w-4 mr-1" />Refresh</Button>
+            <Button onClick={() => setShowAdd(true)} data-testid="carriers-list-add"><Plus className="h-4 w-4 mr-1" />Add Carrier</Button>
+          </div>
+        }
       />
       {restricted ? <TxOpsRestrictedData testid="tx-carriers-list-restricted" /> : (
         <>
@@ -118,7 +128,15 @@ export function CarriersList() {
                     <td className="px-3 py-2 text-slate-600">{c.dot_number || "—"}</td>
                     <td className="px-3 py-2"><Chip value={c.status} /></td>
                     <td className="px-3 py-2 text-slate-600">{c.safety_hold ? "Yes" : "No"}</td>
-                    <td className="px-3 py-2 text-right">
+                    <td className="px-3 py-2 text-right space-x-2">
+                      <button
+                        type="button"
+                        className="text-blue-600 hover:underline text-xs"
+                        onClick={() => setEditing(c)}
+                        data-testid={`carrier-edit-${c.id}`}
+                      >
+                        <Pencil className="inline h-3 w-3" /> Edit
+                      </button>
                       <Link to={`/admin/transportation/carriers/${c.id}`} className="text-blue-600 hover:underline text-xs" data-testid={`carrier-open-${c.id}`}>
                         Open <ExternalLink className="inline h-3 w-3" />
                       </Link>
@@ -132,6 +150,8 @@ export function CarriersList() {
       )}
         </>
       )}
+      <AddCarrierModal open={showAdd} onClose={() => setShowAdd(false)} onCreated={() => load()} />
+      <EditCarrierModal open={!!editing} carrier={editing} onClose={() => setEditing(null)} onUpdated={() => load()} />
     </div>
   );
 }
@@ -142,6 +162,8 @@ export function DriversList() {
   const [restricted, setRestricted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
+  const [showLink, setShowLink] = useState(false);
+  const [showAddLeased, setShowAddLeased] = useState(false);
   const { status } = useStateFilter();
 
   const load = useCallback(async () => {
@@ -162,8 +184,12 @@ export function DriversList() {
 
   return (
     <div data-testid="tx-drivers-list" className="space-y-4">
-      <PageHeader title="Drivers" subtitle="MASCI employees and leased drivers." right={
-        <Button variant="outline" onClick={load} data-testid="drivers-list-refresh"><RefreshCw className="h-4 w-4 mr-1" />Refresh</Button>
+      <PageHeader title="Drivers" subtitle="MASCI CDL employees and leased / carrier drivers." right={
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={load} data-testid="drivers-list-refresh"><RefreshCw className="h-4 w-4 mr-1" />Refresh</Button>
+          <Button variant="outline" onClick={() => setShowAddLeased(true)} data-testid="drivers-list-add-leased"><Plus className="h-4 w-4 mr-1" />Add Leased Driver</Button>
+          <Button onClick={() => setShowLink(true)} data-testid="drivers-list-link-hr"><UserPlus className="h-4 w-4 mr-1" />Link MASCI CDL Driver</Button>
+        </div>
       } />
       {restricted ? <TxOpsRestrictedData testid="tx-drivers-list-restricted" /> : (
         <>
@@ -220,6 +246,8 @@ export function DriversList() {
       )}
         </>
       )}
+      <LinkHRDriverModal open={showLink} onClose={() => setShowLink(false)} onLinked={() => load()} />
+      <AddLeasedDriverModal open={showAddLeased} onClose={() => setShowAddLeased(false)} onCreated={() => load()} />
     </div>
   );
 }
