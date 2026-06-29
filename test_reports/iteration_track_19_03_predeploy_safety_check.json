@@ -1,0 +1,69 @@
+{
+  "summary": "Track 19.03 PRE-DEPLOYMENT SAFETY CHECK — PARTIAL PASS / CONDITIONAL NO-GO. HR login + HR Employees portal verified (385 Active rendered, Add Employee button present). Daily Report form (/daily/new) renders without React overlay and no console errors. However: (a) EmployeeCombo input could not be located on /daily/new after full-height scroll (5792px) and Crew-section expansion attempts; (b) canonical Track 19.03 endpoint /api/hr/employee-roster was NEVER observed firing in network during this session — only the legacy /api/hr/employees?show_inactive=false was called from HR list; (c) Safety Meeting submit path (/safety/meetings/new, /safety/meetings) returns 404; (d) JHP route (/safety/jhp, /jhp) returns 404. /safety/jha → /jha renders (not 404). /login (root) returns 404; portal-specific logins (/hr/login) are the only entry. Submitted Daily Report blocked by NEED 6 PHOTOS validation in this preview env.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "EmployeeCombo on /daily/new", "issue": "data-testid='employee-combo-input' not found after full-height scroll (5792px) and clicking 'Why the crew section matters' expansion buttons. May require a different gesture to reveal the Crew/Attendees input row, or the testid is not rendered until a parent toggle is opened.", "selector": "[data-testid='employee-combo-input']", "priority": "HIGH"},
+      {"component": "Safety Meeting route", "issue": "GET /safety/meetings/new and /safety/meetings render 404 'We couldn't find that page' from the SPA shell. Cannot execute Safety Meeting submit regression.", "selector": "(route)", "priority": "HIGH"},
+      {"component": "JHP route", "issue": "GET /safety/jhp and /jhp both return SPA 404. Only /jha (and /safety/jha → /jha) actually renders.", "selector": "(route)", "priority": "HIGH"},
+      {"component": "/login route", "issue": "Root /login returns 404. Login is portal-scoped (/hr/login, etc.). Not a regression risk, but the review_request assumes a generic Super Admin login at /login that does not exist.", "selector": "(route)", "priority": "LOW"}
+    ],
+    "integration_issues": [
+      {"flow": "Pickers → canonical roster endpoint", "issue": "ZERO requests to /api/hr/employee-roster were observed across HR portal navigation, /daily/new load, route probes and HR list interaction. Only /api/hr/employees?show_inactive=false was called (from HR Employees list). Task requirement was: 'the network panel shows GET /api/hr/employee-roster being called by the pickers.' This regression must be re-verified once an employee-combo can actually be exposed on a form.", "affected_selectors": ["[data-testid='employee-combo-input']"]}
+    ],
+    "design_issues": []
+  },
+  "test_evidence": {
+    "login_path": "/hr/login (root /login returns 404). HR portal login with jaymn.judd@mascigc.com / Maddix123! → lands on /hr/employees.",
+    "hr_employees_page": {"total_in_view": 385, "active_displayed": 385, "add_employee_button_visible": true},
+    "route_probes": {
+      "/daily/new": "200 (Daily Job Report renders, no overlay, no console errors)",
+      "/daily": "→ /admin/daily (200)",
+      "/safety/meetings/new": "404",
+      "/safety/meetings": "404",
+      "/safety": "200 (renders Safety landing)",
+      "/safety/jha": "→ /jha (200)",
+      "/safety/jhp": "404",
+      "/jha": "200",
+      "/jhp": "404",
+      "/admin": "200",
+      "/login": "404 (no root login route)"
+    },
+    "network_observations": {
+      "employee_roster_calls_total": 0,
+      "employees_legacy_calls_observed": ["GET /api/hr/employees?show_inactive=false → 200 (x2 from HR list)"],
+      "react_overlay_count": 0,
+      "console_errors_count": 0,
+      "raw_401_or_403_strings_visible": false
+    },
+    "employee_create": "Add Employee button is present on /hr/employees, but the create flow was NOT executed in this run because the EmployeeCombo verification on /daily/new could not locate the input — running the create-then-propagate test without a working assertion target would not have produced a meaningful signal."
+  },
+  "test_report_links": [
+    "/app/test_reports/predeploy_after_login.jpg",
+    "/app/test_reports/predeploy_hr_landing.jpg",
+    "/app/test_reports/predeploy_combo_panel.jpg",
+    "/app/test_reports/track_19_03_predeploy_dailynew.jpg",
+    "/app/test_reports/track_19_03_predeploy_after_create.jpg"
+  ],
+  "action_items": [
+    "GO/NO-GO recommendation: NO-GO until two items are clarified by main agent: (1) confirm the actual page/section where EmployeeCombo is rendered on /daily/new (it was not visible at any of 0..5792px scroll positions; clicking 'Why the crew section matters' did not expose it) and verify the data-testid='employee-combo-input' is actually emitted, (2) provide the correct routes for Safety Meeting and JHP — current routes /safety/meetings/new, /safety/meetings, /safety/jhp, /jhp all 404. /jha works.",
+    "Investigate why /api/hr/employee-roster was not observed in network despite navigating /daily/new (per task: 'pickers should call /api/hr/employee-roster, not /api/employees'). Possible causes: picker not mounted because Crew section requires explicit user action, or endpoint subscription only fires after first focus on the combo input.",
+    "Restore /login route or document that all logins are portal-scoped. The review_request assumed a generic Super Admin login.",
+    "Daily Report submit is gated by 'Need 6 photos' minimum — this is correct product behavior but means a real submit-path smoke requires either uploading 6 photos or a test-mode bypass."
+  ],
+  "critical_code_review_comments": [
+    "PASS: HR portal sign-in flow is clean, fast, no console errors, no overlay, server-side session restored on hr/employees navigation.",
+    "PASS: Daily Job Report form renders completely (Sections 1..11 visible, sign-off, distribution list, submit gate) with zero console errors and zero React overlay — UI shell is healthy.",
+    "FAIL/UNVERIFIED: Canonical Track 19.03 picker endpoint /api/hr/employee-roster was not triggered by any UI interaction observed in this run. Prior iteration (track_19_03_hr_roster_source_of_truth) reported it firing immediately after HR Save — this could not be reproduced here. Recommend main agent confirm the picker is actually mounted on /daily/new (search for EmployeeCombo usages and verify the route is not dead-code).",
+    "OBSERVATION: SPA-level 404 page is well-designed (shows path, Sign In + Public Home actions) — good UX but easy to mistake for a real route returning content. Confirm with main agent that Safety Meeting and JHP have moved to a different URL — these were listed as P1 regression targets in the review_request.",
+    "OBSERVATION: Daily Report SUBMIT button is correctly disabled until 6 photos uploaded — this is correct gating but blocks a true submit-path smoke without test photo seeding."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (frontend-only run)", "frontend": "60% (HR portal + Daily form shell pass; picker mount + roster endpoint + Safety Meeting + JHP routes unverified/404)"},
+  "test_credentials": "Super Admin: jaymn.judd@mascigc.com / Maddix123! — works only via /hr/login (not /login).",
+  "seed_data_creation": "None — Add Employee modal flow was deferred because the downstream EmployeeCombo assertion target could not be located. No test rows added to MASCI_SAFETY_PREVIEW in this run.",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Login is portal-scoped: use /hr/login (not /login, which 404s). After HR login, /hr/employees lists 385 employees with Add Employee CTA. On /daily/new the EmployeeCombo testid 'employee-combo-input' was NOT visible at any scroll y in 0..5792px even after clicking the coaching-tip 'Why the crew section matters' rows — main agent must verify the picker is actually mounted on /daily/new and provide the exact gesture (likely a Section-04 or Crew/Attendees expand) to reveal it. Safety Meeting (/safety/meetings/new) and JHP (/safety/jhp, /jhp) return 404 — the review_request URLs are stale. /safety/jha works (renders /jha). No console errors, no React overlay, no raw 401/403 visible — UI shell is healthy. The canonical /api/hr/employee-roster endpoint was not observed firing in this session — main agent should confirm where the picker is mounted and re-run.",
+  "go_no_go_recommendation": "NO-GO for production deploy on this run. Two blocking gaps: (a) EmployeeCombo could not be exercised on /daily/new, so the picker-propagation P0 test was not actually verified end-to-end in UI for this iteration (only via prior backend pytest 27/27 and the prior 19.03 iteration); (b) Safety Meeting and JHP routes 404 — both listed as required regression targets. Recommend main agent confirm correct URLs and picker mount, then re-test."
+}
