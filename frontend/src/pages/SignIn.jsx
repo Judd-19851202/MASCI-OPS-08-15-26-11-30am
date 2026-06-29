@@ -259,7 +259,7 @@ export default function SignIn() {
             </div>
           </div>
           <p className="text-slate-600 text-sm mt-2 mb-6">
-            {t("Multi-portal sign-in for accounts with access to more than one portal. Single-portal employees, use your portal's direct sign-in page (linked below).")}
+            {t("Multi-workspace sign-in for accounts with access to more than one workspace. Single-workspace employees, use your workspace's direct sign-in page (linked below).")}
           </p>
 
           {/* iter375 · MFA challenge UI — replaces the password form when a super-admin needs a TOTP code */}
@@ -411,29 +411,29 @@ export default function SignIn() {
 
           <div className="mt-8 pt-6 border-t border-slate-200">
             <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold mb-2">
-              {t("Single-Portal Sign-In")}
+              {t("Single-Workspace Sign-In")}
             </div>
             <div className="grid grid-cols-2 gap-2 text-sm">
               <Link to="/pm/login" className="inline-flex items-center min-h-[44px] py-1 text-red-700 hover:underline" data-testid="signin-pm-link">
-                PM Portal →
+                Project Management →
               </Link>
               <Link to="/shop/login" className="inline-flex items-center min-h-[44px] py-1 text-orange-700 hover:underline" data-testid="signin-shop-link">
-                Shop Portal →
+                Shop Operations →
               </Link>
               <Link to="/hr/login" className="inline-flex items-center min-h-[44px] py-1 text-purple-700 hover:underline" data-testid="signin-hr-link">
-                HR Portal →
+                Human Resources →
               </Link>
               <Link to="/safety-portal/login" className="inline-flex items-center min-h-[44px] py-1 text-yellow-700 hover:underline" data-testid="signin-safety-link">
-                Safety Portal →
+                Safety Operations →
               </Link>
               <Link to="/dispatch-portal/login" className="inline-flex items-center min-h-[44px] py-1 text-sky-700 hover:underline" data-testid="signin-dispatch-link">
-                Dispatch Portal →
+                Transportation Operations →
               </Link>
               <Link to="/leadership/login" className="inline-flex items-center min-h-[44px] py-1 text-red-700 hover:underline" data-testid="signin-leadership-link">
                 Field Leadership →
               </Link>
               <Link to="/admin/login" className="inline-flex items-center min-h-[44px] py-1 text-slate-900 hover:underline font-bold col-span-2" data-testid="signin-admin-link">
-                Admin Console →
+                Administration →
               </Link>
             </div>
           </div>

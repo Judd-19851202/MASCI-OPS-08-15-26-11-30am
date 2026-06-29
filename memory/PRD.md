@@ -6488,3 +6488,55 @@ Close Executive YELLOW by building a read-only `ExecutiveOverview.jsx` that aggr
 
 
 
+
+
+---
+
+## Track 18 · Post-Deployment Live Site Verification (2026-06-29)
+
+**Release:** MASCI Operations Platform · Track 18 Production Cut
+**Release SHA:** `d5a8a4848ecbb3bf5e3eca1477fdee5929b7a84c`
+**Verification verdict:** **GO WITH WATCH**
+**Operator:** Emergent E1 (preview pod) + human operator (live prod)
+
+### What was verified
+Backend health, /api/version, /api/cluster/capacity, disk, backup
+pipeline config, scheduler-off intent, public site, sign-in, all
+seven role workspaces, Transportation Operations dispatcher
+acceptance (Visible = Usable), log watch (~10 min), mobile/tablet
+viewports (deferred to Track 18.08 lock).
+
+### What was fixed in preview (ships at next redeploy)
+- **ISSUE-001 · P0 · Sign-In page canonical naming drift**
+  Replaced banned legacy labels on `/sign-in` Single-Workspace Sign-In
+  link grid (PM Portal → Project Management, Shop Portal → Shop
+  Operations, HR Portal → Human Resources, Safety Portal → Safety
+  Operations, Dispatch Portal → Transportation Operations, Admin
+  Console → Administration). Also rewrote the "Single-Portal Sign-In"
+  section header to "Single-Workspace Sign-In" and the body copy to
+  use "workspace". File: `/app/frontend/src/pages/SignIn.jsx`.
+  Banned-term DOM scan now returns zero matches.
+
+### Operator-only follow-ups
+1. Redeploy frontend so the SignIn fix lands on prod.
+2. Capture Atlas pre-deploy snapshot ID in PRODUCTION_DEPLOYMENT_EXECUTION_LOG §STEP 2.
+3. Seed/verify `dispatch@mascigc.com` on the production DB.
+4. T+24 h: flip `SCHEDULER_ENABLED=true` and re-run scheduler health check.
+5. Re-run the per-role live smoke against the production URL.
+
+### Required reports created this iteration
+- `/app/memory/POST_DEPLOYMENT_LIVE_SITE_VERIFICATION.md`
+- `/app/memory/POST_DEPLOYMENT_ROLE_SMOKE_REPORT.md`
+- `/app/memory/POST_DEPLOYMENT_TRANSPORTATION_ACCEPTANCE.md`
+- `/app/memory/POST_DEPLOYMENT_SYSTEM_HEALTH_REPORT.md`
+- `/app/memory/POST_DEPLOYMENT_ISSUES_AND_FIXES.md`
+
+### Backlog (unchanged · carried forward)
+- Request Access CTA
+- Global Graph visualization of relationships
+- Manual link/unlink relationship editing UI
+- AI relationship suggestions
+- Cross-platform global relationships outside Transportation
+- Full-text external search engine, fuzzy ranking engine, saved searches
+- Operations-display dark mode
+
