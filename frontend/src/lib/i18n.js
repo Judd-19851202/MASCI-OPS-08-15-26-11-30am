@@ -6740,6 +6740,56 @@ const ES = {
   "Driver signature captured.": "Firma del conductor capturada.",
   "Signature pending.": "Firma pendiente.",
 
+  // TRACK 19.13 · Safety Meeting modernization new strings. ES parity.
+  "Safety Meeting · Guidance": "Reunión de Seguridad · Orientación",
+  "Why this meeting matters": "Por qué importa esta reunión",
+  "Safety meetings are the field's frontline training. They document that the crew was warned, taught, and heard — before they picked up the tool. Do it right and everyone goes home.":
+    "Las reuniones de seguridad son la capacitación de primera línea del campo. Documentan que la cuadrilla fue advertida, capacitada y escuchada — antes de tomar la herramienta. Hágalo bien y todos vuelven a casa.",
+  "Who receives this": "Quién lo recibe",
+  "Safety, the PM, and (for high-risk topics) the safety director see every meeting. Attendance and acknowledgements become part of each attendee's training record.":
+    "Seguridad, el PM y (para temas de alto riesgo) el director de seguridad ven cada reunión. La asistencia y los reconocimientos se convierten en parte del registro de capacitación de cada asistente.",
+  "How attendance is documented": "Cómo se documenta la asistencia",
+  "Every attendee acknowledges the topic and hazards. Their name, timestamp, and (when signed) signature become the permanent training record.":
+    "Cada asistente reconoce el tema y los peligros. Su nombre, marca de tiempo y (cuando firma) su firma se convierten en el registro de capacitación permanente.",
+  "How knowledge is retained": "Cómo se retiene el conocimiento",
+  "Pick a Knowledge Check question at the end. It's not graded — it's a quick reinforcement that gives the crew one thing to remember on the walk to their truck.":
+    "Elija una pregunta de Verificación de Conocimiento al final. No se califica — es un refuerzo rápido que le da a la cuadrilla una cosa para recordar en el camino a su camión.",
+  "Legal documentation": "Documentación legal",
+  "If an incident happens, this meeting record is the evidence that the crew was trained on the exact hazard. Photos, references, and acknowledgements matter — attach them.":
+    "Si ocurre un incidente, este registro de reunión es la evidencia de que la cuadrilla fue capacitada sobre el peligro exacto. Las fotos, referencias y reconocimientos importan — adjúntelos.",
+  "Common meeting mistakes": "Errores comunes de reuniones",
+  "Skipping the topic-specific hazards, marking attendees without their acknowledgement, and not attaching photos of the whiteboard or job hazard reviewed. Every meeting deserves at least 2 photos.":
+    "Omitir los peligros específicos del tema, marcar asistentes sin su reconocimiento y no adjuntar fotos del pizarrón o del peligro laboral revisado. Cada reunión merece al menos 2 fotos.",
+  "Supervisor best practices": "Mejores prácticas del supervisor",
+  "Read the topic aloud. Ask two crew members to share a real example. Point at the hazard on the job. Sign the record only after every acknowledgement box is ticked.":
+    "Lea el tema en voz alta. Pídale a dos miembros de la cuadrilla que compartan un ejemplo real. Señale el peligro en el trabajo. Firme el registro sólo después de que se marque cada casilla de reconocimiento.",
+  "Crew engagement tips": "Consejos para involucrar a la cuadrilla",
+  "Ask the newest crew member what surprised them. Ask the oldest what has almost hurt them. Real stories beat generic bullet points every time.":
+    "Pregúntele al miembro más nuevo de la cuadrilla qué lo sorprendió. Pregúntele al más antiguo qué casi lo lesionó. Las historias reales le ganan a los puntos genéricos cada vez.",
+  "Info": "Información",
+  "Context": "Contexto",
+  "Topic": "Tema",
+  "Confirm the meeting summary before you submit. What happens next is listed below.":
+    "Confirme el resumen de la reunión antes de enviar. Lo que sucede después se enumera abajo.",
+  "Topic: ": "Tema: ",
+  "Topic pending.": "Tema pendiente.",
+  "attendees on the record": "asistentes en el registro",
+  "No attendees recorded yet.": "Aún no se han registrado asistentes.",
+  "photos attached": "fotos adjuntas",
+  "At least 2 photos required.": "Se requieren al menos 2 fotos.",
+  "Conductor signature captured.": "Firma del conductor de la reunión capturada.",
+  "Conductor signature pending.": "Firma del conductor de la reunión pendiente.",
+  "Attendance will be recorded in the training history.":
+    "La asistencia quedará registrada en el historial de capacitación.",
+  "Each attendee's training history is updated.":
+    "El historial de capacitación de cada asistente se actualiza.",
+  "The meeting is archived for legal and DOT/OSHA audit purposes.":
+    "La reunión se archiva para propósitos de auditoría legal y de DOT/OSHA.",
+  "A PDF record is generated for downstream distribution.":
+    "Se genera un registro en PDF para la distribución posterior.",
+  "A permanent audit record is created.":
+    "Se crea un registro de auditoría permanente.",
+
   // TRACK 19.11 AMENDMENT · SessionStatusOverlay bilingual strings.
   // (Previously the modal was English-only — bilingual gap fixed as
   // part of the session-expired loop repair.)

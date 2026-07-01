@@ -30,7 +30,16 @@ import { TOPIC_LIBRARY_ES } from "@/lib/topics/index.es";
 import { getDomainLabel } from "@/components/TopicPicker";
 import { composeIncidentScaffold } from "@/lib/composeIncidentScaffold";
 import { splitIncidentScaffold } from "@/lib/splitIncidentScaffold";
-import { HelpTipBlock } from "@/components/HelpTip";
+// TRACK 19.13 · HelpTipBlock retired from Safety Meeting — all 6
+// stacked coaching bands consolidated into the HelpDrawer below.
+// TRACK 19.13 · Safety Meeting modernization consumes the four
+// reusable platform primitives established in Track 19.11 MAIN and
+// proven at scale by DVIR (Track 19.12). Doctrine: configuration,
+// not reinvention. Topic Auto Load remains flagship — untouched.
+import { HelpDrawer } from "@/components/HelpDrawer";
+import { FormSection } from "@/components/FormSection";
+import { ProgressRail } from "@/components/ProgressRail";
+import { SubmitReviewPanel } from "@/components/SubmitReviewPanel";
 import { api } from "@/lib/api";
 import { isAdmin } from "@/lib/adminAuth";
 import { toast } from "sonner";
@@ -59,6 +68,8 @@ export default function NewMeeting({ publicMode = false }) {
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
   const [templateKey, setTemplateKey] = useState(CUSTOM_TOPIC_KEY);
+  // TRACK 19.13 · consolidated HelpDrawer state.
+  const [helpDrawerOpen, setHelpDrawerOpen] = useState(false);
 
   // TRACK 15.60 · Safety Meeting draft autosave (P0 field-trust fix).
   // Wires the shared resiliency layer (`useFormDraft`) so the entire
@@ -398,7 +409,7 @@ export default function NewMeeting({ publicMode = false }) {
   })();
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-32">
+    <div className="min-h-screen bg-slate-50 pb-32" data-testid="meeting-modernized">
       <div className="caution-stripe" />
       <header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
@@ -448,7 +459,76 @@ export default function NewMeeting({ publicMode = false }) {
           <h1 className="field-glance-anchor font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
             {t("Site Safety Meeting")}
           </h1>
+          {/* TRACK 19.13 · HelpDrawer — SINGLE coaching surface for
+              Safety Meeting. Bands consolidated from HelpTipBlock
+              defaults. Topic Auto Load remains untouched below. */}
+          <div className="mt-3">
+            <HelpDrawer
+              open={helpDrawerOpen}
+              onOpenChange={setHelpDrawerOpen}
+              triggerLabel={t("Open help")}
+              title={t("Safety Meeting · Guidance")}
+              testIdPrefix="meeting-help-drawer"
+              sections={[
+                {
+                  title: t("Why this meeting matters"),
+                  body: t("Safety meetings are the field's frontline training. They document that the crew was warned, taught, and heard — before they picked up the tool. Do it right and everyone goes home."),
+                },
+                {
+                  title: t("Who receives this"),
+                  body: t("Safety, the PM, and (for high-risk topics) the safety director see every meeting. Attendance and acknowledgements become part of each attendee's training record."),
+                },
+                {
+                  title: t("How attendance is documented"),
+                  body: t("Every attendee acknowledges the topic and hazards. Their name, timestamp, and (when signed) signature become the permanent training record."),
+                },
+                {
+                  title: t("How knowledge is retained"),
+                  body: t("Pick a Knowledge Check question at the end. It's not graded — it's a quick reinforcement that gives the crew one thing to remember on the walk to their truck."),
+                },
+                {
+                  title: t("Legal documentation"),
+                  body: t("If an incident happens, this meeting record is the evidence that the crew was trained on the exact hazard. Photos, references, and acknowledgements matter — attach them."),
+                },
+                {
+                  title: t("Common meeting mistakes"),
+                  body: t("Skipping the topic-specific hazards, marking attendees without their acknowledgement, and not attaching photos of the whiteboard or job hazard reviewed. Every meeting deserves at least 2 photos."),
+                },
+                {
+                  title: t("Supervisor best practices"),
+                  body: t("Read the topic aloud. Ask two crew members to share a real example. Point at the hazard on the job. Sign the record only after every acknowledgement box is ticked."),
+                },
+                {
+                  title: t("Crew engagement tips"),
+                  body: t("Ask the newest crew member what surprised them. Ask the oldest what has almost hurt them. Real stories beat generic bullet points every time."),
+                },
+              ]}
+            />
+          </div>
         </div>
+
+        {/* TRACK 19.13 · ProgressRail — 6-step compact flow tracker.
+            State-derived; primitive is stateless. */}
+        <ProgressRail
+          steps={[
+            { key: "info", label: t("Info") },
+            { key: "context", label: t("Context") },
+            { key: "topic", label: t("Topic") },
+            { key: "attendees", label: t("Attendees") },
+            { key: "photos", label: t("Photos") },
+            { key: "sign", label: t("Sign") },
+          ]}
+          currentIndex={(() => {
+            if (!data.project_name?.trim() || !data.conducted_by?.trim() || !data.category) return 0;
+            if (!data.crew_size) return 1;
+            if (!data.topic?.trim() && !(data.hazards_reviewed?.trim())) return 2;
+            if (!data.attendees || data.attendees.length === 0) return 3;
+            if ((data.photos || []).length < 2) return 4;
+            if (!data.conductor_signature) return 5;
+            return 5;
+          })()}
+          testId="meeting-progress-rail"
+        />
 
         {/* TRACK 15.60 · P0 field-trust fix — calm draft recovery prompt.
             Shown ONLY when an unsent meeting draft was found in IDB on
@@ -462,8 +542,9 @@ export default function NewMeeting({ publicMode = false }) {
         />
 
         <Section number="01" title={t("Meeting Information")}>
-          {/* iter270 · form-root coaching · counter shown above the meeting form */}
-          <HelpTipBlock formKey="meeting" className="mb-3" showCounter />
+          {/* TRACK 19.13 · HelpTipBlock default RETIRED. Consolidated
+              into the HelpDrawer above. Main screen = action;
+              drawer = explanation. */}
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
               {t("Job")}
@@ -601,8 +682,7 @@ export default function NewMeeting({ publicMode = false }) {
 
           {/* E1 · operational context captures (crew, shift, weather,
               subcontractor, high-risk flag). Lightweight, single-tap. */}
-          {/* iter270 · Section 01 context coaching (crew/shift/weather/high-risk) */}
-          <HelpTipBlock formKey="meeting.context" className="mt-6 mb-3" />
+          {/* TRACK 19.13 · HelpTipBlock "meeting.context" RETIRED — drawer. */}
           <div
             className="mt-2 pt-6 border-t border-slate-200 grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4"
             data-testid="meeting-context-row"
@@ -735,8 +815,7 @@ export default function NewMeeting({ publicMode = false }) {
         </Section>
 
         <Section number="02" title={t("Topic & Discussion")}>
-          {/* iter270 · Section 02 coaching family · supersedes the K6 strip */}
-          <HelpTipBlock formKey="meeting.topic" className="mb-3" />
+          {/* TRACK 19.13 · HelpTipBlock "meeting.topic" RETIRED — drawer. */}
           <div className="bg-red-50 border-2 border-red-200 rounded-md p-4">
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-red-700 font-bold flex items-center gap-2">
               <span className="inline-flex w-5 h-5 items-center justify-center rounded bg-red-700 text-white text-[10px] font-black">
@@ -863,7 +942,7 @@ export default function NewMeeting({ publicMode = false }) {
 
         <Section number="03" title={t("Attendees")}>
           {/* iter270 · Section 03 attendees coaching */}
-          <HelpTipBlock formKey="meeting.attendees" className="mb-3" />
+          {/* TRACK 19.13 · HelpTipBlock "meeting.attendees" RETIRED — drawer. */}
           <p className="text-sm text-slate-600">
             {t("Add every person who attended. Each attendee signs to confirm they were present and understood the topic.")}
           </p>
@@ -1071,8 +1150,7 @@ export default function NewMeeting({ publicMode = false }) {
         </Section>
 
         <Section number="04" title={t("Photos")}>
-          {/* iter270 · Section 04 photos coaching */}
-          <HelpTipBlock formKey="meeting.photos" className="mb-3" />
+          {/* TRACK 19.13 · HelpTipBlock "meeting.photos" RETIRED — drawer. */}
           <p className="text-xs text-slate-600 -mt-2 mb-2">
             {t("Photos: ")}
             <span
@@ -1094,8 +1172,7 @@ export default function NewMeeting({ publicMode = false }) {
         </Section>
 
         <Section number="05" title={t("Conductor Signature")}>
-          {/* iter270 · Section 05 conductor sign-off coaching */}
-          <HelpTipBlock formKey="meeting.signoff" className="mb-3" />
+          {/* TRACK 19.13 · HelpTipBlock "meeting.signoff" RETIRED — drawer. */}
           <p className="text-sm text-slate-600">
             {t("The person who ran the meeting signs to confirm the record is accurate.")}
           </p>
@@ -1124,6 +1201,47 @@ export default function NewMeeting({ publicMode = false }) {
             testId="conductor-sig"
           />
         </Section>
+
+        {/* TRACK 19.13 · Review & Submit — SubmitReviewPanel surfaces
+            attendance + photos + topic + downstream commitment before
+            the conductor signs and submits. Non-technical, operational
+            language. */}
+        <FormSection
+          number="R"
+          title={t("Review & Submit")}
+          subtitle={t("Confirm the meeting summary before you submit. What happens next is listed below.")}
+          testId="meeting-review-section"
+        >
+          <SubmitReviewPanel
+            passCount={(data.attendees || []).filter((a) => a && a.acknowledged).length}
+            failCount={(data.attendees || []).filter((a) => a && !a.acknowledged).length}
+            naCount={(data.photos || []).length}
+            outOfService={false}
+            extraSummaryRows={[
+              data.topic?.trim()
+                ? t("Topic: ") + data.topic
+                : t("Topic pending."),
+              (data.attendees || []).length > 0
+                ? `${(data.attendees || []).length} ${t("attendees on the record")}`
+                : t("No attendees recorded yet."),
+              (data.photos || []).length >= 2
+                ? `${(data.photos || []).length} ${t("photos attached")}`
+                : t("At least 2 photos required."),
+              data.conductor_signature
+                ? t("Conductor signature captured.")
+                : t("Conductor signature pending."),
+            ]}
+            commitments={[
+              { label: t("Attendance will be recorded in the training history.") },
+              { label: t("Safety and the PM will be notified per project routing.") },
+              { label: t("Each attendee's training history is updated.") },
+              { label: t("The meeting is archived for legal and DOT/OSHA audit purposes.") },
+              { label: t("A PDF record is generated for downstream distribution.") },
+              { label: t("A permanent audit record is created.") },
+            ]}
+            testId="meeting-review-panel"
+          />
+        </FormSection>
 
         <div className="pt-4">
           {missingHint && (

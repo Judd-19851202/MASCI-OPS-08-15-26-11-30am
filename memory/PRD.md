@@ -11,7 +11,61 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
-## Latest Track (2026-07-01 · TRACK 19.12 · DVIR Modernization · ✅ GREEN · CLOSED)
+## Latest Track (2026-07-01 · TRACK 19.13 · Safety Meeting & Knowledge Engine Modernization · ✅ GREEN · CLOSED)
+
+### Mode
+Third production consumer of the Track 19.11 MAIN reusable platform primitives. **Topic Auto Load flagship PRESERVED and expanded** (via 8-band HelpDrawer knowledge-engine). Doctrine: configuration, not reinvention. Frontend-only. Zero backend / schema / route / payload / PDF / email / notification / fail-cascade / Trust-Spine / Topic-Auto-Load drift.
+
+### Adoption
+* **HelpDrawer** wired below the Safety Meeting subtitle with **8 rich bands** (Why · Who · How attendance is documented · How knowledge is retained · Legal documentation · Common meeting mistakes · Supervisor best practices · Crew engagement tips) — richer than Equipment/DVIR to reflect the training-heavy nature. testIdPrefix `meeting-help-drawer`.
+* **ProgressRail** — 6-step flow (Info → Context → Topic → Attendees → Photos → Sign), state-derived. testId `meeting-progress-rail`.
+* **FormSection + SubmitReviewPanel** — Review & Submit block above Section 05. Custom 6-bullet commitment matrix (training history · Safety+PM notify · attendee history update · legal/DOT/OSHA archive · PDF · audit). testId `meeting-review-panel`.
+* **Six** stacked `<HelpTipBlock>` defaults retired (`meeting`, `meeting.context`, `meeting.topic`, `meeting.attendees`, `meeting.photos`, `meeting.signoff`). Import removed.
+* **Modernization marker** `data-testid="meeting-modernized"` on outer wrapper.
+
+### Topic Auto Load (flagship — PRESERVED)
+* `TOPIC_LIBRARY` + `TOPIC_LIBRARY_ES` imports intact
+* `templateKey` state + `CUSTOM_TOPIC_KEY` sentinel intact
+* `onSelectTopic` auto-populates category / topic / hazards / references / action items — intact
+* Bilingual topic hydration (`TOPIC_LIBRARY_ES[templateKey]`) intact
+* `data-testid="input-topic"` + `data-testid="meeting-domain-breadcrumb"` intact
+* Locked by 4 pytest assertions in the Track 19.13 suite
+
+### Preservation
+Attendee acknowledgement (`SAFETY-MEETING-CERT`, `acknowledged`, `acknowledged_at`, `attendee-ack-{i}`) · SignaturePad + `conductor-sig` · PhotoUpload + `meeting-photo-count` · POST `/api/meetings` route+payload · LangToggle · DraftRestorePrompt (Track 15.60) · BilingualConsent · High-risk toggle + weather chips + subcontractor · Session-expired ack-suppression (Track 19.11 Amendment).
+
+### Verification totals
+| Layer | Result |
+|---|---|
+| Pytest lock suite (NEW) | **57 / 57 ✅** |
+| Playwright live smoke | 7 assertions + 8-band drawer + Topic Auto Load preservation ✅ |
+| ES live smoke | `Reunión de Seguridad del Sitio` + Spanish 6-step ProgressRail ✅ |
+| Console errors | 0 |
+| Cross-form primitive parity (Equipment + DVIR + Safety Meeting) | ✅ same imports, same files |
+| Track 19.08 → 19.13 core regression | **420 / 420 ✅** |
+| Primitives untouched by adoption | ✅ enforced by pytest |
+
+### Bilingual parity
+25 new EN↔ES pairs added (drawer band titles + bodies · ProgressRail step labels · review section title · panel rows · 5 downstream commitment bullets). Zero EN-only additions.
+
+### Files touched
+* `frontend/src/pages/NewMeeting.jsx` — modernized (primitive imports · HelpDrawer 8 bands · ProgressRail · Review section · marker · 6 HelpTipBlock defaults retired · import removed)
+* `frontend/src/lib/i18n.js` — +25 ES translations
+* `backend/tests/test_track_19_13_safety_meeting_modernization.py` — NEW · 57 lock assertions
+* `memory/TRACK_19_13_SAFETY_MEETING_MODERNIZATION.md` — executive summary
+* `memory/TRACK_19_13_TEST_REPORT.md` — three-layer verification
+
+### Doctrine validated across THREE production consumers
+Equipment Pre-Op (19.11 MAIN) · DVIR (19.12) · Safety Meeting (19.13) — all consume the same 4 primitive files with only configuration differences. Primitives themselves are locked and untouched. This is the permanent ForgedOps Operational Forms standard.
+
+### Ready for Track 19.14 (Toolbox Meeting)
+Toolbox Meeting can now consume the same primitives with a shorter 4-step flow — configuration only.
+
+Six Pillars · 5:30 AM Foreman Test · Powerful · Simple · Beautiful · Trusted · Proven · Zero drift · Production-ready · **Done means done.**
+
+---
+
+## Previous Track (2026-07-01 · TRACK 19.12 · DVIR Modernization · ✅ GREEN · CLOSED)
 
 ### Mode
 Second production consumer of the Track 19.11 MAIN reusable platform primitives. Doctrine: **configuration, not reinvention.** DVIR imports the same four primitive files as Equipment Pre-Op (FormSection · ProgressRail · SubmitReviewPanel · HelpDrawer) and passes DVIR-specific props. Primitives themselves are untouched — locked by pytest.
