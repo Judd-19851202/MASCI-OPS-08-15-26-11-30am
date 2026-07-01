@@ -11,7 +11,87 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
-## Latest Track (2026-07-01 · TRACK 19.15 · Incident Intelligence Engine Forensic Audit + Architecture · ✅ GREEN · CLOSED)
+## Latest Track (2026-07-01 · TRACK 19.16 · Phase A · Incident Intelligence Engine (Domain Engine) · ✅ GREEN · CLOSED)
+
+### Track type
+**IMPLEMENTATION — Phase A only** of the multi-phase Incident Intelligence Engine (absorbs former 19.16 → 19.20). Backend domain engine + platform-primitive corrective actions + evidence engine + legacy read-through adapter. Zero frontend changes. Legacy `/api/incidents/*` surface UNTOUCHED (Zero-Drift Doctrine).
+
+### Constitution followed
+All six pillars asserted by lock tests:
+- **Powerful** — corrective_actions engine is consumer-agnostic (`consumer_kind`+`consumer_id`); future consumers plug in without redesign
+- **Simple** — FieldBlock carries only field-owned facts (test asserts osha/root-cause/investigator are NOT in FieldBlock)
+- **Beautiful** — 9 incident types ordered for progressive-disclosure UI in Phase B
+- **Trusted** — `field_block_locked=true` at every non-DRAFT state; every mutation writes to the event spine
+- **Proven** — 102 assertions across the new engine + 55 doctrine assertions from Track 19.15 + 20 command-center regression = **177/177 GREEN**
+- **Operational** — 8-role capability matrix (field/pm/safety/shop/fleet/ops/exec/admin) with capability-gated transitions
+
+### Deliverables (`/app/backend/incident_engine/`)
+- `__init__.py` — package doctrine + public exports
+- `constants.py` — 9 incident types · 8 case states · 8-edge transition graph · immutability set · 11 evidence types · 10 CA classes · 18 event types · role matrix · 10 cross-link kinds · isolated collection names
+- `models.py` — Pydantic: `FieldBlock` / `SafetyBlock` (strictly separated) · `IncidentCase` · `EvidenceItem` · `CorrectiveAction` (platform primitive) · `CaseEvent` · `CrossLink` — all with validators
+- `permissions.py` — role normalization + capability resolution
+- `state_machine.py` — pure transition validator with `illegal_transition`/`role_not_authorized`/`reason_required`/`unknown_transition` stable error codes
+- `events.py` — event spine (emit + list + count) — no coupling to notifications
+- `evidence.py` — typed evidence + chain-of-custody + soft withdrawal (row preserved forever)
+- `corrective_actions.py` — **shared platform primitive** (JHP/DR/QA/QC/Fleet/HR/Env/Customer ready via `consumer_kind`)
+- `legacy_adapter.py` — read-only `LegacyIncidentCase` projection (Zero-Drift; never writes)
+- `vocabulary.py` — bilingual EN↔ES exposed via `/api/incident-cases/vocabulary`
+- `case_service.py` — orchestration (create/patch/transition/cross-link/counters/exec-review)
+- `routes.py` — 17 new FastAPI endpoints registered via `register_incident_engine_routes`
+
+### Domain state machine
+`DRAFT → FIELD_SUBMITTED → SAFETY_INTAKE → UNDER_INVESTIGATION → CORRECTIVE_ACTIONS → VERIFICATION → CLOSED → REOPENED → UNDER_INVESTIGATION` (loop). Reopen requires reason.
+
+### New API surface (all `/api`-prefixed, all auth-gated via `safety_admin_or_pm` read gate, write authority narrowed inside service layer per capability)
+- `GET  /api/incident-cases/vocabulary`
+- `POST /api/incident-cases`
+- `GET  /api/incident-cases` (filter: state, incident_type, include_legacy)
+- `GET  /api/incident-cases/{id}`
+- `PATCH /api/incident-cases/{id}/field-block`  (409 field_block_immutable after submit)
+- `PATCH /api/incident-cases/{id}/safety-block`
+- `POST /api/incident-cases/{id}/transitions`
+- `GET  /api/incident-cases/{id}/timeline`
+- `GET  /api/incident-cases/{id}/audit`
+- `POST /api/incident-cases/{id}/evidence`
+- `GET  /api/incident-cases/{id}/evidence`
+- `POST /api/incident-cases/{id}/evidence/{ev_id}/withdraw`
+- `POST /api/incident-cases/{id}/cross-links`
+- `DELETE /api/incident-cases/{id}/cross-links/{link_id}`
+- `POST /api/incident-cases/{id}/executive-review`
+- `GET  /api/incident-cases/legacy/{incident_id}`
+- `POST /api/corrective-actions`  (platform primitive)
+- `GET  /api/corrective-actions`
+- `POST /api/corrective-actions/{id}/verify`
+- `POST /api/corrective-actions/{id}/cancel`
+
+### New collections (isolated from legacy)
+- `incident_cases`
+- `incident_case_events`   (unified timeline + audit + event spine)
+- `incident_case_evidence`
+- `corrective_actions`     (platform-wide)
+- Legacy `incidents` collection = READ-ONLY reference via adapter
+
+### Lock test suite — 102 assertions in `backend/tests/test_track_19_16_incident_engine_phase_a.py`
+Constants shape · models & validators · role matrix (7 non-admin + admin) · state machine legality + capability gates · event spine · evidence chain-of-custody · corrective action platform primitive · case service full-lifecycle walk · legacy adapter Zero-Drift · bilingual vocabulary · 6-pillar certification manifest · guard that no engine module writes to `db.incidents`.
+
+### Certification
+- `pytest test_track_19_16_incident_engine_phase_a.py` → **102 passed** (0.23s)
+- Combined with Track 19.15 audit lock + command_center regression: **177 passed** (0.46s)
+- Backend restart: clean · `/openapi.json` shows 17 new routes registered alongside untouched legacy `/api/incidents/*`
+- Legacy `/api/incidents` still returns 401 unchanged; new `/api/incident-cases` returns 401 (auth-gated)
+- Zero frontend / zero legacy schema / zero PDF / zero email / zero notification drift
+
+### Phase status
+- ✅ Phase A — Domain Engine (this session)
+- ⏳ Phase B — Dynamic Field Reporting UI (9 branches)
+- ⏳ Phase C — Safety Case Workspace
+- ⏳ Phase D — Executive Intelligence
+- ⏳ Phase E — Reporting Packages
+- ⏳ Phase F — Compliance Intelligence (OSHA 300/300A, case readiness)
+
+---
+
+## Track (2026-07-01 · TRACK 19.15 · Incident Intelligence Engine Forensic Audit + Architecture · ✅ GREEN · CLOSED)
 
 ### Track type
 **Audit + Architecture ONLY. NO IMPLEMENTATION.** Zero runtime source code changed — no frontend, no backend, no schemas, no routes, no payloads, no PDFs, no emails, no notifications, no permissions touched.

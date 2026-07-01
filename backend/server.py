@@ -2545,6 +2545,23 @@ register_incident_lifecycle_routes(
 )
 
 
+# ============================================================
+# TRACK 19.16 · Phase A · Incident Intelligence Engine
+# ------------------------------------------------------------
+# NEW namespace /api/incident-cases/*  and  /api/corrective-actions/*.
+# Legacy /api/incidents/* surface is UNTOUCHED (Zero-Drift Doctrine).
+# Uses the same Safety/Admin/PM read gate as incident_lifecycle above.
+# Write authority is narrowed inside the service layer per capability.
+# ============================================================
+from incident_engine.routes import register_incident_engine_routes  # noqa: E402
+register_incident_engine_routes(
+    api_router, db,
+    require_actor=__import__(
+        "routes.safety_portal._deps", fromlist=["make_require_safety_admin_or_pm"]
+    ).make_require_safety_admin_or_pm(db, _is_valid_admin_token, _is_valid_pm_token),
+)
+
+
 # ─── OMEGA · Phase 1A · iter452 · OC-002 Daily Report Office Review ──
 #     Additive transition endpoints. Uses the Safety/Admin/PM read gate
 #     so PMs, Office (Admin), and Safety reviewers can read the
