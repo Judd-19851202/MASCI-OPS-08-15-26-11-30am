@@ -11,7 +11,99 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
-## Latest Track (2026-07-01 · TRACK 19.16 · Phase D · Executive Intelligence Center · ✅ GREEN · CLOSED)
+## Latest Track (2026-07-01 · TRACK 19.16 · Phase E · Report Intelligence Engine · ✅ GREEN · CLOSED)
+
+### Track type
+**IMPLEMENTATION — Phase E** — one declarative, read-only report engine over the incident engine. Nine report packages + Weekly Executive Digest, all rendered from Phase A/B/C/D data. Reports never own data, never ask for input, never mutate anything. Zero-Drift preserved.
+
+### Constitution followed (Six Pillars)
+- **Powerful** — one `render_report` engine + one HTML renderer. Nine declarative report definitions replace ~9 report programs.
+- **Simple** — reports never ask users for additional info; audience + section list define everything.
+- **Beautiful** — print-ready HTML (@page Letter · Segoe/-apple typography · slate/emerald palette) + browser-print/PDF/share toolbar.
+- **Trusted** — every field HTML-escaped (XSS lock-tested); medical privacy modes enforced (`hidden` · `aggregate_only` · `authorized_only` · `full`); customer-facing filter strips internal event types and trims CAPA row shape.
+- **Proven** — 73 Phase E lock tests + **290/290 combined engine regression GREEN**.
+- **Operational** — every payload carries `generated_at` (version timestamp) · Evidence Index is reference-only · Weekly Digest reuses `compute_executive_brief` (never a second intelligence engine).
+
+### Deliverables
+
+**Backend (additive read-only):**
+- NEW `/app/backend/incident_engine/reports.py` — declarative engine (`REPORT_DEFINITIONS`), `render_report(...)`, `render_weekly_digest(...)`, 16 section renderers
+- NEW `/app/backend/incident_engine/report_render.py` — HTML document builder (base CSS + per-section renderers), `html_to_pdf_bytes(...)` via WeasyPrint
+- NEW `/app/backend/incident_engine/report_routes.py` — 5 additive GET routes
+- UPDATED `/app/backend/server.py` — additive `_register_ie_report_routes(...)`
+
+**Frontend (additive):**
+- NEW `/app/frontend/src/pages/IncidentReportViewer.jsx` — print-ready viewer at `/safety/cases/:caseId/reports/:reportType`
+- UPDATED `/app/frontend/src/App.js` — additive route + import
+- UPDATED `/app/frontend/src/lib/i18n.js` — 80+ new EN↔ES pairs
+
+### Nine report packages
+`executive_summary` · `insurance_package` · `witness_package` · `vehicle_package` · `utility_strike_package` · `employee_injury_package` · `customer_incident_report` · `management_review` · `osha_investigation_package`
+
+### New API surface (5 GET-only routes, all `/api`-prefixed, all Safety/Admin/PM gated)
+- `GET /api/incident-reports/types` — list report types + audiences + section maps + privacy flags
+- `GET /api/incident-cases/{case_id}/reports/{report_type}` — JSON payload (any of 9 reports)
+- `GET /api/incident-cases/{case_id}/reports/{report_type}.pdf` — server-rendered PDF via WeasyPrint
+- `GET /api/incident-intelligence/digest/weekly` — Weekly Executive Digest JSON (reuses Phase D brief)
+- `GET /api/incident-intelligence/digest/weekly.pdf` — Weekly Executive Digest PDF
+
+### Section renderer library (16 codes)
+`header · summary · executive_summary · timeline · evidence · witnesses · medical · agency · communications · corrective_actions · root_cause · vehicle · utility · injury · linked · lessons_learned`
+
+### Medical privacy modes (lock-tested)
+- **hidden** — section not rendered at all (witness/vehicle/utility/customer packages)
+- **aggregate_only** — counts + total lost days only (management review)
+- **authorized_only** — full rows for insurers/OSHA
+- **full** — full detail for HR/Safety injury package
+
+### Customer-facing gates (lock-tested)
+- Timeline strips internal events (only `case.created` · `case.field_submitted` · `case.state_changed` · `case.closed` · `corrective_action.verified` survive)
+- CAPA rows trimmed to `{title, action_class, state}` — no owner or dates
+- Communications filtered to `kind == "customer"` only
+- Witnesses and medical entries never appear
+
+### Frontend report viewer
+Route: `/safety/cases/:caseId/reports/:reportType`. Toolbar (no-print) with:
+- Back to case
+- Print (`window.print()` with @page Letter print CSS)
+- Download PDF (server-rendered)
+- Share (copies deep link to clipboard)
+
+Renders all 16 section codes with matching data-testids; shows customer-facing badge; ISO timestamp footer.
+
+### Testing
+- **Backend lock tests:** `pytest test_track_19_16_incident_engine_phase_e.py` → **73/73 GREEN** (parametrized across 9 reports × render walk × HTML + medical privacy + Zero-Drift + Six-Pillar)
+- **Combined engine regression:** 19.15 audit + 19.16 A + B2 + C + D + E = **290/290 GREEN** (0.60s)
+- **Live curl end-to-end:** all 9 report JSON endpoints + all 9 PDF endpoints + weekly digest JSON + weekly digest PDF returned `application/pdf` with `%PDF-1.7` header (17–22 KB each)
+- **Frontend Playwright smoke:** live executive_summary report renders with header, exec-summary, root-cause, lessons-learned, print/PDF/share buttons; 8/8 data-testids present; 0 console errors
+
+### Zero-Drift certification
+- 3 parametrized lock tests scan `reports.py`, `report_routes.py`, `report_render.py` for `insert_one`/`update_one`/`delete_one`/`replace_one` — none found
+- 3 files never reference `db["incidents"]` or `db.incidents`
+- Phase A/B/C/D files never import from `reports.*` (cycle-free)
+- Legacy `incident_lifecycle.py` byte-untouched
+- `git diff` = 3 new backend files + 1 new frontend file + additive registration in `server.py` + additive `<Route>` in `App.js` + i18n additions + PRD update
+
+### Six-Pillar certification (asserted directly by lock tests)
+- **Powerful** — one engine, nine declarative reports (source scan: one `async def render_report`)
+- **Simple** — no `input(`/`raw_input` in reports.py
+- **Beautiful** — HTML CSS has `@page`, `font-family`, `letter-spacing`
+- **Trusted** — case doc equality before/after render (pure aggregation); XSS test with `<script>` tag proves escaping
+- **Proven** — 73 assertions + 290 combined
+- **Operational** — `generated_at` ISO 8601 UTC on every payload
+
+### Phase status
+- ✅ Phase A — Domain Engine
+- ✅ Phase B1 — Dynamic Field Reporting UI
+- ✅ Phase B2 — Public Gate + Offline Reliability
+- ✅ Phase C — Safety Case Workspace
+- ✅ Phase D — Executive Intelligence Center
+- ✅ Phase E — Report Intelligence Engine (this session)
+- ⏳ Phase F — Compliance Intelligence (OSHA 300/300A, retention, case-readiness scoring)
+
+---
+
+
 
 ### Track type
 **IMPLEMENTATION — Phase D** — additive read-only intelligence layer over the incident engine. Consumes Phase A/B/C data; never owns data; never writes. Zero-Drift preserved.

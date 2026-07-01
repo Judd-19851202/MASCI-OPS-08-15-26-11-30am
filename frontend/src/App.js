@@ -89,6 +89,7 @@ import IncidentReport from "@/pages/IncidentReport";
 import NearMissKiosk from "@/pages/NearMissKiosk";
 import SafetyCaseWorkspace from "@/pages/SafetyCaseWorkspace";
 import ExecutiveIntelligence from "@/pages/ExecutiveIntelligence";
+import IncidentReportViewer from "@/pages/IncidentReportViewer";
 import ViewIncident from "@/pages/ViewIncident";
 import DailyReportsDashboard from "@/pages/DailyReportsDashboard";
 import NewDailyReport from "@/pages/NewDailyReport";
@@ -540,6 +541,8 @@ function App() {
             <Route path="/safety/cases/:caseId" element={<SafetyCaseWorkspace />} />
             {/* TRACK 19.16 · Phase D — Executive Intelligence Center. */}
             <Route path="/safety/executive-intelligence" element={<ExecutiveIntelligence />} />
+            {/* TRACK 19.16 · Phase E — Report Intelligence Engine viewer. */}
+            <Route path="/safety/cases/:caseId/reports/:reportType" element={<IncidentReportViewer />} />
 
             <Route path="/daily/new" element={<NewDailyReport />} />
             <Route path="/daily/submit" element={<NewDailyReport publicMode />} />
