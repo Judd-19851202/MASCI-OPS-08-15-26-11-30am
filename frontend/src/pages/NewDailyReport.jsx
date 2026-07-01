@@ -553,6 +553,11 @@ function NewDailyReportInner({ publicMode = false }) {
   // production field-users reported for Track 19.04. Dismissal
   // clears the offer for the current session (per job change).
   const [smartPrefillOffer, setSmartPrefillOffer] = React.useState(null);
+  // TRACK 19.06 AMENDMENT · After the foreman accepts the Smart Prefill
+  // offer, surface a persistent-but-dismissible notice above the crew
+  // section reminding them to review and adjust hours before submit.
+  // Prefilled hours are never treated as final — payroll-safety rule.
+  const [prefillNotice, setPrefillNotice] = React.useState(null);
 
   // TRACK 19.06 · Progressive-disclosure presence gates.
   // Each optional section is guarded by a "Did X happen today?" Yes/No
@@ -607,9 +612,13 @@ function NewDailyReportInner({ publicMode = false }) {
           name: c.name || "",
           trade: c.trade || "",
           employee_id: c.employee_id || "",
-          start_time: "",
-          lunch_minutes: "",
-          stop_time: "",
+          // TRACK 19.06 AMENDMENT · Restore prior common time pattern
+          // (start / lunch / stop) so the foreman edits deltas instead
+          // of re-typing every clock-in. Every row remains editable
+          // and payroll never treats these as final until submit.
+          start_time: c.start_time || "",
+          lunch_minutes: (c.lunch_minutes === 0 || c.lunch_minutes) ? c.lunch_minutes : "",
+          stop_time: c.stop_time || "",
           hours: c.hours || "",
           work_performed: "",
         }));
@@ -624,6 +633,12 @@ function NewDailyReportInner({ publicMode = false }) {
         }));
       }
       return next;
+    });
+    // TRACK 19.06 AMENDMENT · Persistent review-hours notice.
+    setPrefillNotice({
+      sourceDate: sourceDate || "",
+      crewCount: priorCrews.length,
+      equipCount: priorEquipment.length,
     });
     toast.success(
       t("Prefilled from {d} — edit the deltas")
@@ -732,8 +747,19 @@ function NewDailyReportInner({ publicMode = false }) {
       // not started those sections). Hours/trade/description copy
       // forward; signatures and clock times do NOT (per-day deltas).
       if (job.project_number) {
+        // TRACK 19.06 AMENDMENT · Actor-scoped Smart Prefill.
+        // Pass foreman + superintendent so the backend biases the
+        // lookup to THIS operator's own most-recent report on this
+        // project, not a stranger's roster. Backend falls back to
+        // project-most-recent when the operator has no prior report.
+        const qsParts = [];
+        const _fm = (data.prepared_by || "").trim();
+        const _sup = (data.superintendent || "").trim();
+        if (_fm) qsParts.push(`foreman=${encodeURIComponent(_fm)}`);
+        if (_sup) qsParts.push(`superintendent=${encodeURIComponent(_sup)}`);
+        const qs = qsParts.length ? `?${qsParts.join("&")}` : "";
         api
-          .get(`/jobs/${encodeURIComponent(job.project_number)}/recent-context`)
+          .get(`/jobs/${encodeURIComponent(job.project_number)}/recent-context${qs}`)
           .then((r) => {
             const recent = (r?.data?.superintendent || "").trim();
             const priorCrews = Array.isArray(r?.data?.masci_crews)
@@ -1285,7 +1311,7 @@ function NewDailyReportInner({ publicMode = false }) {
                     .replace("{d}", smartPrefillOffer.sourceDate || t("prior report"))}
                 </p>
                 <p className="mt-1 text-xs text-slate-600">
-                  {t("Hours, times and work_performed are always cleared — you edit the deltas.")}
+                  {t("Prior common time pattern is prefilled — you review and adjust hours before submit.")}
                 </p>
               </div>
               <div className="flex flex-shrink-0 gap-2">
@@ -1890,6 +1916,34 @@ function NewDailyReportInner({ publicMode = false }) {
           t={t}
         >
         <Section number="04" title={t("MASCI Crews on Site")}>
+          {/* TRACK 19.06 AMENDMENT · Persistent review-hours notice.
+              After the foreman accepts Smart Prefill, remind them that
+              the crew, equipment AND prior time pattern were prefilled
+              — they must review and adjust hours before submit. Never
+              silently final. Payroll-safety rule. */}
+          {prefillNotice && (
+            <div
+              className="mb-3 rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs sm:text-sm text-amber-900 flex items-start justify-between gap-3"
+              data-testid="daily-report-prefill-review-notice"
+            >
+              <div className="flex-1">
+                <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-amber-800">
+                  {t("Prefilled from previous report")}
+                </div>
+                <p className="mt-1 leading-snug" data-testid="prefill-review-hours-helper">
+                  {t("Crew and equipment were prefilled from the previous matching report. Review and adjust hours before submitting.")}
+                </p>
+              </div>
+              <button
+                type="button"
+                className="rounded-md border border-amber-400 bg-white px-2 py-1 text-[11px] font-semibold text-amber-800 hover:bg-amber-100 shrink-0"
+                onClick={() => setPrefillNotice(null)}
+                data-testid="daily-report-prefill-notice-dismiss"
+              >
+                {t("Got it")}
+              </button>
+            </div>
+          )}
           <HelpTipBlock formKey="daily-report.crew" className="mb-3" />
           {/* iter360 · operational coaching for the crew-linkage discipline */}
           <LifecycleGuide

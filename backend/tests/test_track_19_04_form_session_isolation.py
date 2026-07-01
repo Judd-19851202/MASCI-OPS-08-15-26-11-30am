@@ -60,7 +60,10 @@ def test_recent_context_contract_v19_04():
         r = c.get(f"{BASE}/jobs/UNKNOWN-PROJECT/recent-context")
     assert r.status_code == 200
     d = r.json()
-    assert d.get("contract_version") == "19.04"
+    # Track 19.06 amendment bumped the response envelope to 19.06.1 as a
+    # superset (adds start_time/stop_time/lunch_minutes + HR filter).
+    # The version lock is now "19.04-compatible" — accept either.
+    assert d.get("contract_version") in ("19.04", "19.06.1")
     assert "actor_scoped" in d
     assert d.get("actor_scoped") is False
     assert d.get("source", "").startswith("daily_reports"), d
@@ -76,7 +79,7 @@ def test_recent_context_empty_project_returns_empty_shape():
         r = c.get(f"{BASE}/jobs/ZZZ-19-04-EMPTY/recent-context")
     assert r.status_code == 200
     d = r.json()
-    assert d.get("contract_version") == "19.04"
+    assert d.get("contract_version") in ("19.04", "19.06.1")
     assert d.get("masci_crews") == []
 
 
@@ -88,7 +91,7 @@ def test_recent_context_accepts_foreman_query():
         )
     assert r.status_code == 200
     # actor_scoped false when no matching self-report exists — fine.
-    assert r.json().get("contract_version") == "19.04"
+    assert r.json().get("contract_version") in ("19.04", "19.06.1")
 
 
 # ---- Backend absence of global "latest draft" surface ----

@@ -3422,6 +3422,43 @@ async def jobs_recent_context(project_number: str, foreman: str = "", superinten
     latest_full = latest_full or {}
     raw_crews = latest_full.get("masci_crews") or []
     raw_equipment = latest_full.get("equipment") or []
+
+    # TRACK 19.06 AMENDMENT · Filter out inactive/terminated HR employees.
+    # Prior crew members whose HR record is *known inactive* (terminated,
+    # resigned, retired, on-leave-inactive) must not be silently prefilled
+    # into today's report — that is the exact payroll footgun the
+    # amendment guards against. Unknown employee_ids (legacy rows, free-
+    # typed custom names, or employees not yet mirrored into the HR
+    # collection) PASS through — the roster can't verify them either way,
+    # and the foreman still reviews and edits every row.
+    known_inactive_ids: set = set()
+    ids_to_check = [
+        (c.get("employee_id") or "").strip()
+        for c in raw_crews if isinstance(c, dict)
+    ]
+    ids_to_check = [x for x in ids_to_check if x]
+    if ids_to_check:
+        from routes.employee_lifecycle import _ACTIVE_STATUSES  # noqa: PLC0415
+        # Find rows that DO exist and are NOT active → drop these only.
+        inactive_clause = {"$and": [
+            {"employee_id": {"$in": ids_to_check}},
+            {"$or": [
+                {"lifecycle_status": {"$nin": list(_ACTIVE_STATUSES) + [None]}},
+                {"$and": [
+                    {"$or": [
+                        {"lifecycle_status": {"$exists": False}},
+                        {"lifecycle_status": None},
+                    ]},
+                    {"is_active": False},
+                ]},
+            ]},
+        ]}
+        cursor = db.employees.find(inactive_clause, {"_id": 0, "employee_id": 1})
+        async for e in cursor:
+            eid = (e.get("employee_id") or "").strip()
+            if eid:
+                known_inactive_ids.add(eid)
+
     masci_crews = []
     for c in raw_crews:
         if not isinstance(c, dict):
@@ -3429,13 +3466,25 @@ async def jobs_recent_context(project_number: str, foreman: str = "", superinten
         nm = (c.get("name") or "").strip()
         if not nm:
             continue
+        eid = (c.get("employee_id") or "").strip()
+        # HR filter: drop only KNOWN inactive employees. Unknown eids or
+        # free-typed names pass through — foreman still reviews every row.
+        if eid and eid in known_inactive_ids:
+            continue
         masci_crews.append({
             "name": nm,
             "trade": (c.get("trade") or "").strip(),
-            "employee_id": c.get("employee_id") or "",
+            "employee_id": eid,
             "hours": c.get("hours") or "",
-            # Times intentionally NOT copied — they belong to the prior
-            # shift. Foreman re-enters today's clock-in/out.
+            # TRACK 19.06 AMENDMENT · Include the prior day's common
+            # time pattern (start / lunch / stop) so the foreman edits
+            # deltas instead of re-typing every clock-in. The values
+            # are staged in the OFFER card and only hydrated on Apply;
+            # never silently final — foreman edits every row before
+            # submit (payroll-safety rule).
+            "start_time": (c.get("start_time") or ""),
+            "stop_time": (c.get("stop_time") or ""),
+            "lunch_minutes": c.get("lunch_minutes") if c.get("lunch_minutes") not in (None, "") else "",
         })
     equipment = []
     for e in raw_equipment:
@@ -3452,7 +3501,7 @@ async def jobs_recent_context(project_number: str, foreman: str = "", superinten
             "notes": "",
         })
     return {
-        "contract_version": "19.04",
+        "contract_version": "19.06.1",
         "source": "daily_reports.most-recent (project-scoped)",
         "actor_scoped": actor_scoped,
         "superintendent": (latest or {}).get("superintendent", "") or "",
