@@ -389,7 +389,7 @@ function GpsField({ value, onChange, testId }) {
 // ── Generic field renderer ───────────────────────────────────────────
 function FieldRenderer({ field, value, onChange, testIdPrefix }) {
   const { t } = useT();
-  const tid = `${testIdPrefix}-${field.key}`;
+  const tid = `${testIdPrefix}-field-${field.key}`;
   const commonProps = {
     "data-testid": `${tid}-input`,
     className: "w-full h-11 rounded-md border border-slate-300 px-3 text-base",
@@ -590,23 +590,31 @@ export default function IncidentReport() {
   const { t } = useT();
   const navigate = useNavigate();
 
-  // Draft persistence: hydrate on mount.
+  // Draft persistence. Resolve draft id + hydrate BEFORE first render
+  // (synchronous localStorage read) so reload lands back on the exact
+  // step the user was on with values restored.
   const draftIdRef = useRef(null);
-  if (!draftIdRef.current) {
-    draftIdRef.current = currentDraftId() || ensureActiveDraftId();
-  }
-  const initial = loadDraft(draftIdRef.current) || {};
-
-  const [draft, setDraft] = useState(initial);
-  const [phase, setPhase] = useState(initial.incident_type ? "steps" : "picker"); // picker | steps | review | submitting | done
-  const [stepIndex, setStepIndex] = useState(0);
+  const [draft, setDraft] = useState(() => {
+    const id = currentDraftId() || ensureActiveDraftId();
+    draftIdRef.current = id;
+    return loadDraft(id) || {};
+  });
+  const [phase, setPhase] = useState(() => {
+    const initial = loadDraft(draftIdRef.current) || {};
+    return initial.incident_type ? "steps" : "picker";
+  });
+  const [stepIndex, setStepIndex] = useState(() => {
+    const initial = loadDraft(draftIdRef.current) || {};
+    return Math.max(0, Number.isInteger(initial.__step_index__) ? initial.__step_index__ : 0);
+  });
   const [helpOpen, setHelpOpen] = useState(false);
   const [submitState, setSubmitState] = useState({ error: "", caseNumber: "", caseId: "" });
 
-  // Autosave draft on any change.
+  // Autosave draft on any change. Persist stepIndex alongside so the
+  // user resumes on the exact step they left.
   useEffect(() => {
-    saveDraft(draftIdRef.current, draft);
-  }, [draft]);
+    saveDraft(draftIdRef.current, { ...draft, __step_index__: stepIndex });
+  }, [draft, stepIndex]);
 
   const setField = (k, v) => setDraft((d) => ({ ...d, [k]: v }));
 

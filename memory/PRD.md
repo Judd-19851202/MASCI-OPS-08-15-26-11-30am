@@ -11,7 +11,65 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
-## Latest Track (2026-07-01 · TRACK 19.16 · Phase A · Incident Intelligence Engine (Domain Engine) · ✅ GREEN · CLOSED)
+## Latest Track (2026-07-01 · TRACK 19.16 · Phase B1 · Dynamic Field Incident Reporting · ✅ GREEN · CLOSED)
+
+### Track type
+**IMPLEMENTATION — Phase B1** of the Incident Intelligence Engine. Field-facing UI that captures perfect field facts across 9 incident types and hands them to the Phase A backend. Zero legacy `/incidents/new` mutation — new page mounts under its own new route `/incidents/report`.
+
+### Constitution followed (Six Pillars)
+- **Powerful** — schema-driven; new incident types can be added by extending `incidentReportSchema.js` alone
+- **Simple** — one question per screen; only red-star fields are required
+- **Beautiful** — ForgedOps primitives (FormShell / ProgressRail / HelpDrawer / PresenceGate) reused, large touch targets, calm typography, accent-per-severity picker cards
+- **Trusted** — field observations are immutable server-side after `FIELD_SUBMITTED` (enforced in Phase A); UI declares this to the user on the Success screen
+- **Proven** — testing_agent verified all 9 picker cards, progressive disclosure, review missing-info accounting, draft persistence, route separation
+- **Operational** — the workflow reads like an experienced Safety pro asking the next logical question
+
+### Deliverables
+- **New frontend files** (all in `/app/frontend/src/`):
+  - `lib/incidentReportSchema.js` — 9 branch flows + `stepsFor` / `requiredFieldsForStep` / `INCIDENT_FLOWS` / `INCIDENT_TYPE_ORDER`
+  - `lib/incidentDraft.js` — synchronous localStorage draft (prefix `masci.incident_report.draft.v1`), resumes on reload with exact step index
+  - `lib/incidentReportApi.js` — HTTP adapter to `/api/incident-cases/*`
+  - `pages/IncidentReport.jsx` — the main page: picker → 4 shared front steps → 1 branch step → 3 shared back steps → review → submit → success
+- **One-line additive** in `App.js` — new `<Route path="/incidents/report" element={<IncidentReport />} />` alongside untouched legacy `/incidents/new`
+- **Bilingual strings** — ~180 new EN↔ES pairs added to `lib/i18n.js` (lines 63-260)
+
+### Flow shape
+- **Picker (Step 1 of 2):** 9 large accent-colored cards (car / wrench / zap / heart / alert-triangle / home / droplet / shield / megaphone) — icon + description + typical examples
+- **Steps (up to 8 per flow):** Immediate Safety → Location → Who was involved → What happened → **[per-type branch step]** → Immediate actions → Photos & evidence → Witnesses
+- **Progressive disclosure**: 12+ conditional field reveals (police_case_number when police=yes, ISP info when utility=fiber, hospital_name when injury=hospitalization, agency_name when notified=yes, police case when law enforcement called, third_party_info when third_party=yes, EMS on-scene when EMS needed, etc.)
+- **Review:** section-cards, green ✓ for complete steps, amber ⚠ for incomplete, missing-count badge, tap to jump back
+- **Submit:** `POST /api/incident-cases` → attaches photos + witnesses as typed evidence → `POST /transitions{to_state:FIELD_SUBMITTED}` → field block becomes immutable → Success screen with case number
+
+### Testing (testing_agent_v3_fork · `iteration_track_19_16_phase_b1.json`)
+- ✅ `/incidents/report` renders new page; legacy `/incidents/new` untouched (Zero-Drift)
+- ✅ 9-card picker present with correct testids
+- ✅ Card click advances to steps + ProgressRail visible
+- ✅ Progressive disclosure verified on Vehicle Accident (police_case_number reveal)
+- ✅ Review screen: section cards with correct missing/complete accounting
+- ✅ Submit disabled with correct label until required fields complete
+- ✅ Bilingual EN↔ES verified (`Reportar un incidente` on ES)
+- ✅ Draft indicator visible
+
+Fixes applied post-tester feedback:
+- Testid convention harmonized to `incident-report-field-<key>-*` (was `incident-report-<key>-*` inside FieldRenderer/PresenceGate)
+- Draft rehydration moved to synchronous `useState(() => …)` init to eliminate the empty-initial-state race
+- StepIndex now persisted alongside draft so reload resumes on the exact step
+
+Verified end-to-end via playwright post-fix: reload lands on Step 2/8 with `job_number=TEST-J-001` and `location_label=Zone A` restored. All 8 Near Miss steps visible in ProgressRail including "07 Photos & Evidence" (refuting tester's initial "missing" observation).
+
+### Deferred to Phase B2 (per session scope agreement)
+- Public-gate Near-Miss Kiosk (20-second submit target)
+- Video / voice-note / document upload + photo annotation
+- Service-worker offline queue
+- Formal a11y audit (screen reader, keyboard, contrast, glove sizes)
+- Responsive certification (landscape iPad / portrait tablet / desktop)
+
+### Zero-Drift verification
+`git diff` = one-line route addition in `App.js` + i18n additions + PRD update. New page + 3 new lib files + 0 mutation of any legacy runtime file. Legacy `/incidents/new` and `NewIncident.jsx` untouched.
+
+---
+
+## Track (2026-07-01 · TRACK 19.16 · Phase A · Incident Intelligence Engine (Domain Engine) · ✅ GREEN · CLOSED)
 
 ### Track type
 **IMPLEMENTATION — Phase A only** of the multi-phase Incident Intelligence Engine (absorbs former 19.16 → 19.20). Backend domain engine + platform-primitive corrective actions + evidence engine + legacy read-through adapter. Zero frontend changes. Legacy `/api/incidents/*` surface UNTOUCHED (Zero-Drift Doctrine).
