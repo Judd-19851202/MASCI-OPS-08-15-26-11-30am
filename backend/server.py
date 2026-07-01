@@ -2578,6 +2578,16 @@ _register_ie_workspace_routes(
     ).make_require_safety_admin_or_pm(db, _is_valid_admin_token, _is_valid_pm_token),
 )
 
+# Executive Intelligence Center (Phase D). Additive read-only aggregations
+# over the incident engine. Never writes; never owns data.
+from incident_engine.intelligence_routes import register_intelligence_routes as _register_ie_intel_routes  # noqa: E402
+_register_ie_intel_routes(
+    api_router, db,
+    require_actor=__import__(
+        "routes.safety_portal._deps", fromlist=["make_require_safety_admin_or_pm"]
+    ).make_require_safety_admin_or_pm(db, _is_valid_admin_token, _is_valid_pm_token),
+)
+
 
 # ─── OMEGA · Phase 1A · iter452 · OC-002 Daily Report Office Review ──
 #     Additive transition endpoints. Uses the Safety/Admin/PM read gate

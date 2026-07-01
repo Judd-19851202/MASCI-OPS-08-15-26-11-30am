@@ -11,7 +11,78 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
-## Latest Track (2026-07-01 · TRACK 19.16 · Phase C · Safety Case Workspace · ✅ GREEN · CLOSED)
+## Latest Track (2026-07-01 · TRACK 19.16 · Phase D · Executive Intelligence Center · ✅ GREEN · CLOSED)
+
+### Track type
+**IMPLEMENTATION — Phase D** — additive read-only intelligence layer over the incident engine. Consumes Phase A/B/C data; never owns data; never writes. Zero-Drift preserved.
+
+### Constitution followed (Six Pillars)
+- **Powerful** — replaces weekly spreadsheet reviews with a live executive command screen; every KPI traces to source data
+- **Simple** — the header answers "what needs your attention today" in under 30 seconds
+- **Beautiful** — slate-900 header ribbon, 4 KPI cards, SLA chip row, action queue, dense secondary grid (RCA / CAPA / Projects / Fleet / Learning). Whitespace and hierarchy over pie charts
+- **Trusted** — every intelligence function is a pure aggregation with unit-tested arithmetic; no cached numbers; SLA computed live from `safety_block.target_ready_at`
+- **Proven** — 16 lock tests, 217 combined engine regression GREEN
+- **Operational** — Action Queue produces recommended actions (`review_immediately` · `assign_root_cause_owner` · `reallocate_investigator` · `escalate_to_safety_lead` · `verify_osha_paperwork`) and one-click deep-link to the Safety Case Workspace
+
+### Deliverables
+
+**Backend (additive, read-only):**
+- NEW `/app/backend/incident_engine/intelligence.py` — 9 pure aggregation functions (company health · action queue · root causes · CAPA · projects · fleet · learning · heatmap · executive brief) + `_sla_status` bucketing
+- NEW `/app/backend/incident_engine/intelligence_routes.py` — 8 additive HTTP routes
+- UPDATED `/app/backend/server.py` — additive registration block
+
+**Frontend (additive):**
+- NEW `/app/frontend/src/pages/ExecutiveIntelligence.jsx` — command screen at `/safety/executive-intelligence`
+- UPDATED `/app/frontend/src/App.js` — additive route
+- UPDATED `/app/frontend/src/lib/i18n.js` — 55+ new EN↔ES pairs
+
+### New API surface (8 GET-only routes)
+- `GET /api/incident-intelligence/home` — KPIs + SLA + Action Queue in one call
+- `GET /api/incident-intelligence/root-causes`
+- `GET /api/incident-intelligence/corrective-actions`
+- `GET /api/incident-intelligence/projects`
+- `GET /api/incident-intelligence/fleet`
+- `GET /api/incident-intelligence/learning`
+- `GET /api/incident-intelligence/heatmap`
+- `GET /api/incident-intelligence/brief` — full structured briefing
+
+### Case Health SLA (per constitution enhancement)
+- Optional `safety_block.target_ready_at` field (allowed via existing `SafetyBlock.extra=allow` — no schema migration)
+- Live-computed buckets: `ON_PACE` (>5 days) · `WATCH` (2–5 days) · `BEHIND` (<2 days) · `MISSED` (past target) · `NONE` (no target set or closed)
+- Rollup surfaced in header SLA chip row and inside every open-case entry in the action queue
+- Fully lock-tested via `test_sla_status_transitions` covering all four buckets
+
+### Action Queue (Leadership)
+Urgency-scored ranking that produces reasons + recommended_action:
+- Critical incident type (injury / utility strike / violence) → +30 · `assign_root_cause_owner`
+- OSHA recordable → +20 · `verify_osha_paperwork`
+- SLA `MISSED` → +25 · `review_immediately`; `BEHIND` → +15 · `reallocate_investigator`
+- Stale (>14 days, no root cause) → +10 · `escalate_to_safety_lead`
+- Sorted descending; top 20 returned. Zero synthetic urgency — every row traces to actual field values.
+
+### Testing
+- **Backend lock tests:** `pytest test_track_19_16_incident_engine_phase_d.py` → **16/16 GREEN**
+- **Combined engine regression:** 19.15 audit + 19.16 A + B2 + C + D = **217/217 GREEN** (0.50s)
+- Assertions include: SLA transitions across all 4 buckets · action queue prioritization by critical/recordable/SLA · CAPA aggregation counts and overdue detection · project ranking by criticality · fleet repeat-asset detection · learning peak-hour/near-miss counting · heatmap shape and non-zero cells · executive brief section presence · Zero-Drift (source scan proves no inserts/updates/deletes in intelligence modules) · frontend surface contracts (page + route)
+- **Frontend smoke:** route mounts, 401 renders clean error card with Back button
+
+### Zero-Drift certification
+- `test_intelligence_reads_only_never_writes` — source scan proves NO `insert_one`, `update_one`, `delete_one` etc. anywhere in intelligence.py or intelligence_routes.py
+- Legacy `incidents` collection untouched · legacy lifecycle file unchanged · Phase A/B/C files never import intelligence modules
+- `git diff` = 2 new backend files + 1 new frontend file + additive registration in `server.py` + additive `<Route>` in `App.js` + i18n additions + PRD update
+
+### Six-Pillar certification
+Asserted directly by the lock suite:
+- Powerful → 8 endpoints replace 8 spreadsheets
+- Simple → one home call returns KPIs + SLA + queue
+- Beautiful → uses ForgedOps type/color language
+- Trusted → source scan proves reads-only
+- Proven → 16 assertions + 217 combined
+- Operational → Action Queue produces `recommended_action` on every row
+
+---
+
+## Track (2026-07-01 · TRACK 19.16 · Phase C · Safety Case Workspace · ✅ GREEN · CLOSED)
 
 ### Track type
 **IMPLEMENTATION — Phase C** of the Incident Intelligence Engine. Command-center workspace consuming Phase A domain engine. Additive-only: 5 new satellite collections, 15 new backend routes, 1 new frontend page.

@@ -88,6 +88,7 @@ import NewIncident from "@/pages/NewIncident";
 import IncidentReport from "@/pages/IncidentReport";
 import NearMissKiosk from "@/pages/NearMissKiosk";
 import SafetyCaseWorkspace from "@/pages/SafetyCaseWorkspace";
+import ExecutiveIntelligence from "@/pages/ExecutiveIntelligence";
 import ViewIncident from "@/pages/ViewIncident";
 import DailyReportsDashboard from "@/pages/DailyReportsDashboard";
 import NewDailyReport from "@/pages/NewDailyReport";
@@ -537,6 +538,8 @@ function App() {
             <Route path="/near-miss" element={<NearMissKiosk />} />
             {/* TRACK 19.16 · Phase C — Safety Case Workspace (command center). */}
             <Route path="/safety/cases/:caseId" element={<SafetyCaseWorkspace />} />
+            {/* TRACK 19.16 · Phase D — Executive Intelligence Center. */}
+            <Route path="/safety/executive-intelligence" element={<ExecutiveIntelligence />} />
 
             <Route path="/daily/new" element={<NewDailyReport />} />
             <Route path="/daily/submit" element={<NewDailyReport publicMode />} />
