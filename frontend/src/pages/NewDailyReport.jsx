@@ -235,6 +235,17 @@ const useList = (data, set, key) => ({
         idx === i ? { ...row, [field]: value } : row
       ),
     })),
+  // TRACK 19.06 AMENDMENT · patch a single row with a partial object.
+  // Used by the per-row "Reset hours" affordance on Smart-Prefill rows
+  // — clears only that row's time fields in one setState so other
+  // rows never re-render or lose focus.
+  patch: (i, partial) =>
+    set((p) => ({
+      ...p,
+      [key]: (p[key] || []).map((row, idx) =>
+        idx === i ? { ...row, ...partial } : row
+      ),
+    })),
 });
 
 export default function NewDailyReport({ publicMode = false }) {
@@ -621,6 +632,12 @@ function NewDailyReportInner({ publicMode = false }) {
           stop_time: c.stop_time || "",
           hours: c.hours || "",
           work_performed: "",
+          // TRACK 19.06 AMENDMENT · per-row "Reset hours" affordance.
+          // Marks this row as originating from Smart Prefill so the
+          // row-level Reset button surfaces. The marker is stripped
+          // in `submit()` before the payload leaves the client — the
+          // persisted schema is unchanged.
+          _prefilled: true,
         }));
       }
       if (priorEquipment.length > 0 && (p.equipment || []).length === 0) {
@@ -1029,10 +1046,25 @@ function NewDailyReportInner({ publicMode = false }) {
     setSaving(true);
     try {
       const lang = getLang();
-      let payload = data;
+      // TRACK 19.06 AMENDMENT · Strip the UI-only `_prefilled` marker
+      // from every crew row before the payload leaves the client. The
+      // persisted schema is byte-identical to pre-amendment. The
+      // marker only lives in local React state to power the per-row
+      // "Reset hours" affordance.
+      const _cleanCrews = Array.isArray(data.masci_crews)
+        ? data.masci_crews.map((row) => {
+            if (row && typeof row === "object" && "_prefilled" in row) {
+              const { _prefilled, ...rest } = row;
+              void _prefilled;
+              return rest;
+            }
+            return row;
+          })
+        : data.masci_crews;
+      let payload = { ...data, masci_crews: _cleanCrews };
       if (lang === "es") {
         toast.info("Translating to English…");
-        payload = await translateUserInput(data, "es");
+        payload = await translateUserInput(payload, "es");
       }
       payload = { ...payload, submit_language: lang || "en" };
       if (!idempotencyKeyRef.current) {
@@ -1988,16 +2020,39 @@ function NewDailyReportInner({ publicMode = false }) {
                     <span className="font-mono text-xs uppercase tracking-[0.2em] text-red-700 font-bold">
                       {t("Crew Member")} {i + 1}
                     </span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => crews.remove(i)}
-                      className="text-slate-500 hover:text-red-600"
-                      data-testid={`crew-remove-${i}`}
-                    >
-                      <X className="w-4 h-4 mr-1" /> {t("Remove")}
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      {row._prefilled && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            crews.patch(i, {
+                              start_time: "",
+                              stop_time: "",
+                              lunch_minutes: "",
+                              hours: "",
+                              _prefilled: false,
+                            })
+                          }
+                          className="text-amber-700 hover:text-amber-900 hover:bg-amber-50"
+                          data-testid={`crew-reset-hours-${i}`}
+                          title={t("Clear this row's prefilled start / stop / lunch — name and trade stay.")}
+                        >
+                          {t("Reset hours")}
+                        </Button>
+                      )}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => crews.remove(i)}
+                        className="text-slate-500 hover:text-red-600"
+                        data-testid={`crew-remove-${i}`}
+                      >
+                        <X className="w-4 h-4 mr-1" /> {t("Remove")}
+                      </Button>
+                    </div>
                   </div>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
                     <div className="lg:col-span-2">

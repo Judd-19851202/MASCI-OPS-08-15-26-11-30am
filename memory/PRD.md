@@ -20,21 +20,16 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Persistent review-hours notice on the crew band: **"Crew and equipment were prefilled from the previous matching report. Review and adjust hours before submitting."** Dismissible.
 - Recent-context response contract bumped to `19.06.1` (superset — new fields added, no removals/renames). Track 19.04 lock updated to accept the superset.
 - Historical DRs are read-only; the amendment filters ONLY the live prefill offer, never persisted history.
-
-### Constraints honored
-- Zero schema-key drift (locked by amendment + 19.05 tests).
-- Zero payload contract break (recent-context is a superset; 19.04 tests accept both `19.04` and `19.06.1`).
-- No cost-code / payroll approval logic introduced.
-- No silent finalization: every prefilled row remains editable; foreman must submit.
+- **Per-row "Reset hours" affordance** (rule addition): appears only on rows populated by Smart Prefill; clears only that row's `start_time` / `stop_time` / `lunch_minutes` / auto `hours` + un-marks the row; leaves name / trade / employee_id / work_performed / other rows untouched. UI-only `_prefilled` marker is stripped from the payload before submit.
 
 ### Files touched
 - `backend/server.py` — recent-context endpoint extended with time-pattern fields + HR known-inactive filter.
-- `frontend/src/pages/NewDailyReport.jsx` — apply-prefill hydrates time pattern, offer card microcopy updated, persistent review-hours notice added above crew rows, actor-scoping query params on fetch.
-- `backend/tests/test_track_19_06_amendment_smart_prefill_crew_hours.py` — 16 lock assertions covering all 8 requested behaviors + doctrine wiring.
+- `frontend/src/pages/NewDailyReport.jsx` — apply-prefill hydrates time pattern, offer card microcopy updated, persistent review-hours notice added above crew rows, actor-scoping query params on fetch, `useList.patch(i, partial)` helper added, per-row Reset hours button, `_prefilled` submit-time strip.
+- `backend/tests/test_track_19_06_amendment_smart_prefill_crew_hours.py` — 21 lock assertions covering all 8 requested behaviors + doctrine wiring + 5 row-level reset locks.
 - `backend/tests/test_track_19_04_form_session_isolation.py` — three contract-version assertions relaxed to accept the superset `19.06.1`.
 
 ### Combined regression (Track 19.03 → 19.06 Amendment → 19.07)
-**202 / 202 PASS** — Tracks 19.03 (27) + 19.04 (33) + 19.05 (59) + 19.06 (44) + 19.06 Amendment (16) + 19.07 (23).
+**207 / 207 PASS** — Tracks 19.03 (27) + 19.04 (33) + 19.05 (59) + 19.06 (44) + 19.06 Amendment (21) + 19.07 (23).
 
 ---
 

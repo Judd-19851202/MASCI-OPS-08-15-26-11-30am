@@ -418,3 +418,73 @@ def test_no_schema_keys_removed_or_renamed_by_amendment():
 
 def test_recent_context_endpoint_still_present_after_amendment():
     assert "/jobs/{project_number}/recent-context" in _SERVER
+
+
+# --- Row-level "Reset hours" affordance (rule addition) ---------------------
+
+
+def test_reset_hours_button_only_on_prefilled_rows():
+    """The Reset hours button is guarded by `row._prefilled &&` so it only
+    surfaces on rows that Smart Prefill populated. Manual crew rows never
+    show it (they don't carry the marker)."""
+    assert "row._prefilled &&" in _UI
+    assert 'data-testid={`crew-reset-hours-${i}`}' in _UI
+
+
+def test_reset_hours_clears_only_time_fields():
+    """The button's onClick must patch exactly start_time / stop_time /
+    lunch_minutes / hours (auto) / _prefilled — no name, trade,
+    employee_id, work_performed, etc."""
+    # Extract the patch payload from the JSX and assert on its shape.
+    marker = "crews.patch(i, {"
+    idx = _UI.find(marker)
+    assert idx != -1, "reset-hours patch call missing"
+    # Take the smallest closing brace after the marker.
+    tail = _UI[idx : idx + 400]
+    close = tail.find("})")
+    assert close != -1, "reset-hours patch block not closed"
+    block = tail[: close + 2]
+    # Fields that MUST be present (cleared to "")
+    for key in ("start_time:", "stop_time:", "lunch_minutes:", "hours:", "_prefilled:"):
+        assert key in block, f"reset patch missing {key}: {block}"
+    # Fields that MUST NOT be touched by reset
+    for key in ("name:", "trade:", "employee_id:", "work_performed:"):
+        assert key not in block, (
+            f"reset patch mutates a non-hours field ({key}) — row-level "
+            f"scope violated: {block}"
+        )
+
+
+def test_reset_hours_patch_helper_uses_index_scoped_update():
+    """The list helper's `patch(i, partial)` must only touch the row at
+    index `i` — all other rows must pass through unchanged. Guarantees
+    row-level reset can never mutate sibling crew rows."""
+    # The useList helper's patch impl:
+    #   idx === i ? { ...row, ...partial } : row
+    # Fail loudly if that scoping ever regresses.
+    assert "idx === i ? { ...row, ...partial } : row" in _UI
+
+
+def test_prefilled_marker_stamped_by_apply():
+    """Smart Prefill's `onApplySmartPrefill` must stamp `_prefilled: true`
+    on every restored crew row so the Reset button can find them."""
+    # We look inside the crew mapping block to be robust to whitespace.
+    marker = "priorCrews.map((c) => ({"
+    idx = _UI.find(marker)
+    assert idx != -1, "priorCrews mapping missing"
+    block = _UI[idx : idx + 1600]
+    assert "_prefilled: true" in block, block
+
+
+def test_prefilled_marker_stripped_before_submit():
+    """The `_prefilled` marker is a UI-only affordance. It must never
+    leave the client — the submit path strips it from every crew row."""
+    # Find the submit()'s payload build and confirm the strip logic.
+    for expected in [
+        # We map crews and remove `_prefilled` before payload leaves.
+        "_prefilled",
+        "masci_crews: _cleanCrews",
+    ]:
+        assert expected in _UI, f"submit-time strip missing: {expected}"
+    # And the strip is via destructure-and-discard.
+    assert "const { _prefilled, ...rest } = row" in _UI
