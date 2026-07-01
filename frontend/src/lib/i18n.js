@@ -6661,6 +6661,63 @@ const ES = {
   "Open help": "Abrir ayuda",
   "Equipment Pre-Op · Guidance": "Pre-Operación de Equipo · Orientación",
 
+  // TRACK 19.11 MAIN · reusable platform primitives ES parity.
+  // FormSection · ProgressRail · SubmitReviewPanel · consolidated
+  // HelpDrawer content for Equipment Pre-Op. Every new string here
+  // has an ES translation — zero EN-only additions.
+  "Step": "Paso",
+  "Setup": "Preparación",
+  "Cameras": "Cámaras",
+  "Inspection": "Inspección",
+  "Notes": "Notas",
+  "Sign": "Firmar",
+  "Review": "Revisar",
+  "Who sees this":
+    "Quién lo ve",
+  "Safety, the PM on this job, and the shop team review every FAIL. Historical records are kept for audits.":
+    "Seguridad, el PM del trabajo y el equipo del taller revisan cada FALLA. Se conservan registros históricos para auditorías.",
+  "Safety and the PM will be notified per project routing. Failed items may mark this unit OUT OF SERVICE until shop clears it. A permanent historical record will be created.":
+    "Seguridad y el PM serán notificados según el enrutamiento del proyecto. Los ítems con falla pueden marcar esta unidad FUERA DE SERVICIO hasta que el taller la libere. Se creará un registro histórico permanente.",
+  "Clear the obstruction before operating. Camera visibility must be free and clear. If a critical fluid or major-safety item is failing, stop work and call your supervisor before continuing.":
+    "Elimine la obstrucción antes de operar. La visibilidad de las cámaras debe estar libre y despejada. Si un fluido crítico o un ítem de seguridad mayor está fallando, detenga el trabajo y llame a su supervisor antes de continuar.",
+  "Common pre-op mistakes": "Errores comunes de pre-operación",
+  "Skipping the fluid checks, marking N/A when you should mark FAIL, and leaving FAIL descriptions blank. Every FAIL needs a photo and at least 10 characters describing the issue.":
+    "Omitir las verificaciones de fluidos, marcar N/A cuando debería marcar FALLA y dejar en blanco las descripciones de FALLA. Cada FALLA necesita una foto y al menos 10 caracteres describiendo el problema.",
+  "Review & Submit": "Revisar y Enviar",
+  "Confirm the inspection summary before you submit. What happens next is listed below.":
+    "Confirme el resumen de la inspección antes de enviar. Lo que sucede después se enumera abajo.",
+  "PASS": "APROBADO",
+  "FAIL": "FALLA",
+  "N/A": "N/A",
+  "What happens after you submit": "Qué pasa después de enviar",
+  "Inspection will be recorded in the operational history.":
+    "La inspección quedará registrada en el historial operacional.",
+  "Failed items may mark this unit OUT OF SERVICE until shop clears it.":
+    "Los ítems con falla pueden marcar esta unidad FUERA DE SERVICIO hasta que el taller la libere.",
+  "The shop team may be notified per project routing.":
+    "El equipo del taller puede ser notificado según el enrutamiento del proyecto.",
+  "Your supervisor and safety may be notified per project routing.":
+    "Su supervisor y seguridad pueden ser notificados según el enrutamiento del proyecto.",
+  "Corrective action may be required before the unit is used again.":
+    "Puede requerirse acción correctiva antes de usar la unidad nuevamente.",
+  "A permanent historical record will be created for audits.":
+    "Se creará un registro histórico permanente para auditorías.",
+  "Cameras present and clear of obstructions.":
+    "Cámaras presentes y libres de obstrucciones.",
+  "This unit does not have a camera system.":
+    "Esta unidad no tiene sistema de cámaras.",
+  "Camera presence marked as not sure — flagged for review.":
+    "Presencia de cámaras marcada como no está seguro — marcada para revisión.",
+  "Camera obstruction present — submission blocked until cleared.":
+    "Obstrucción de cámara presente — envío bloqueado hasta que se despeje.",
+  "Camera check not yet answered.":
+    "Verificación de cámara aún no respondida.",
+  "Operator signature captured.":
+    "Firma del operador capturada.",
+  "Operator signature pending.":
+    "Firma del operador pendiente.",
+  "Out of Service": "Fuera de Servicio",
+
   // TRACK 19.11 AMENDMENT · SessionStatusOverlay bilingual strings.
   // (Previously the modal was English-only — bilingual gap fixed as
   // part of the session-expired loop repair.)

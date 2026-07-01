@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Save, Loader2, AlertOctagon, Plus, Wrench, Search, Camera } from "lucide-react";
+import { ArrowLeft, Save, Loader2, AlertOctagon, Wrench, Search, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,9 +26,18 @@ import { useT, getLang } from "@/lib/i18n";
 import { formatApiError } from "@/lib/apiErrors";
 import { api } from "@/lib/api";
 import { isAdmin } from "@/lib/adminAuth";
-import { WhyItMattersPanel } from "@/components/guidance";
-import { HelpTipBlock } from "@/components/HelpTip";
+// TRACK 19.11 MAIN — HelpTipBlock retired from Equipment Pre-Op.
+// All 5 coaching bands consolidated into the HelpDrawer below.
 import { HelpDrawer } from "@/components/HelpDrawer";
+// TRACK 19.11 MAIN — reusable platform primitives.
+// These primitives are the gold-standard blueprint for DVIR (19.12),
+// Safety Meeting (19.13) and Toolbox Talks — they should require
+// configuration, not reinvention. HelpDrawer + PresenceGate +
+// FormSection + ProgressRail + SubmitReviewPanel all stateless,
+// bilingual via useT(), and zero-drift on backend contracts.
+import { FormSection } from "@/components/FormSection";
+import { ProgressRail } from "@/components/ProgressRail";
+import { SubmitReviewPanel } from "@/components/SubmitReviewPanel";
 import { toast } from "sonner";
 
 const inputCls =
@@ -418,6 +427,45 @@ export default function NewEquipmentInspection({ publicMode = false }) {
     };
   }, [data.checklist]);
 
+  // TRACK 19.11 MAIN · Phase 2 · ProgressRail step derivation.
+  // Steps are STATELESS — computed from real form state. Order mirrors
+  // the 5:30 AM operational flow. This becomes the reusable blueprint
+  // for DVIR (19.12) and Safety Meeting (19.13) — each form declares
+  // its own steps + `done` predicate; the primitive is unchanged.
+  const progressSteps = useMemo(
+    () => [
+      { key: "setup", label: t("Setup") },
+      { key: "camera", label: t("Cameras") },
+      { key: "equipment", label: t("Equipment") },
+      { key: "inspection", label: t("Inspection") },
+      { key: "notes", label: t("Notes") },
+      { key: "sign", label: t("Sign") },
+      { key: "review", label: t("Review") },
+    ],
+    [t]
+  );
+  const progressCurrentIndex = useMemo(() => {
+    // 1) Setup complete → project_name, location, operator_name entered
+    if (!data.project_name?.trim() || !data.location?.trim() || !data.operator_name?.trim())
+      return 0;
+    // 2) Camera answered
+    if (!data.camera_system_present) return 1;
+    if (data.camera_system_present === "yes" && !data.camera_obstructions_clear) return 1;
+    // 3) Equipment core fields
+    if (!data.equipment_unit?.trim() || !String(data.hour_meter || "").trim())
+      return 2;
+    // 4) Every checklist item has a status
+    const itemsFlat = Object.values(data.checklist || {}).flatMap((s) => Object.values(s || {}));
+    const totalItems = itemsFlat.length;
+    const answeredItems = itemsFlat.filter((r) => r?.status).length;
+    if (totalItems === 0 || answeredItems < totalItems) return 3;
+    // 5) Notes (optional — considered complete when reached)
+    // 6) Signature
+    if (!data.operator_signature) return 5;
+    // 7) Review
+    return 6;
+  }, [data]);
+
   const submit = async () => {
     if (saving) return;
     if (!data.project_name) return toast.error("Project name is required");
@@ -581,7 +629,7 @@ export default function NewEquipmentInspection({ publicMode = false }) {
   const failCount = data.fail_count || 0;
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-32">
+    <div className="min-h-screen bg-slate-50 pb-32" data-testid="preop-modernized">
       {/* Critical-fluid / major-safety stop-work modal */}
       {criticalFluidAlert && (
         <div
@@ -701,8 +749,12 @@ export default function NewEquipmentInspection({ publicMode = false }) {
               "OSHA daily walk-around for the unit you're operating. Mark every item — anything FAIL tags the machine OUT OF SERVICE until shop verifies."
             )}
           </p>
-          {/* TRACK 19.10 · Phase 5 · HelpDrawer trigger (proof-of-concept).
-              Additive — the existing coaching-tip strip below stays live. */}
+          {/* TRACK 19.11 MAIN · Phase 5 · HelpDrawer as the SINGLE coaching
+              system for Equipment Pre-Op. The five bands that previously
+              stacked on top of the form (Why this Pre-Op matters / Who
+              sees this / What happens after submit / When to stop and
+              call / Common pre-op mistakes) are now consolidated inside
+              the drawer. Main screen = action. Drawer = explanation. */}
           <div className="mt-3">
             <HelpDrawer
               open={helpDrawerOpen}
@@ -718,21 +770,42 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                   ),
                 },
                 {
+                  title: t("Who sees this"),
+                  body: t(
+                    "Safety, the PM on this job, and the shop team review every FAIL. Historical records are kept for audits."
+                  ),
+                },
+                {
                   title: t("What happens after you submit"),
                   body: t(
-                    "Safety and the PM will be notified per project routing."
+                    "Safety and the PM will be notified per project routing. Failed items may mark this unit OUT OF SERVICE until shop clears it. A permanent historical record will be created."
                   ),
                 },
                 {
                   title: t("When to stop and call"),
                   body: t(
-                    "Clear the obstruction before operating. Camera visibility must be free and clear."
+                    "Clear the obstruction before operating. Camera visibility must be free and clear. If a critical fluid or major-safety item is failing, stop work and call your supervisor before continuing."
+                  ),
+                },
+                {
+                  title: t("Common pre-op mistakes"),
+                  body: t(
+                    "Skipping the fluid checks, marking N/A when you should mark FAIL, and leaving FAIL descriptions blank. Every FAIL needs a photo and at least 10 characters describing the issue."
                   ),
                 },
               ]}
             />
           </div>
         </div>
+
+        {/* TRACK 19.11 MAIN · Phase 2 · ProgressRail — compact progress
+            indicator. Steps are computed from real form state so the
+            operator always knows where they are without scrolling. */}
+        <ProgressRail
+          steps={progressSteps}
+          currentIndex={progressCurrentIndex}
+          testId="equipment-progress-rail"
+        />
 
         {failCount > 0 && (
           <div
@@ -751,7 +824,9 @@ export default function NewEquipmentInspection({ publicMode = false }) {
           </div>
         )}
 
-        <HelpTipBlock formKey="preop" className="mb-3" showCounter />
+        {/* TRACK 19.11 MAIN — HelpTipBlock (formKey="preop") retired.
+            All 5 coaching bands now live in the consolidated HelpDrawer
+            above. Main screen = action; drawer = explanation. */}
         <Section number="01" title={t("Project & Operator")}>
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
@@ -1095,8 +1170,9 @@ export default function NewEquipmentInspection({ publicMode = false }) {
             </>
         </Section>
 
-        {/* Checklist sections (one per OSHA category) */}
-        <HelpTipBlock formKey="preop.defects" className="mb-3" />
+        {/* Checklist sections (one per OSHA category).
+            TRACK 19.11 MAIN — HelpTipBlock (formKey="preop.defects")
+            retired; consolidated into HelpDrawer. */}
         {sections.map((sec, idx) => (
           <Section
             key={sec.title}
@@ -1308,7 +1384,8 @@ export default function NewEquipmentInspection({ publicMode = false }) {
         </Section>
 
         <Section number="99" title={t("Operator Sign-Off")}>
-          <HelpTipBlock formKey="preop.signoff" className="mb-3" />
+          {/* TRACK 19.11 MAIN — HelpTipBlock (formKey="preop.signoff")
+              retired; consolidated into HelpDrawer. */}
           <p className="text-sm text-slate-700 leading-relaxed">
             {t(
               "I certify that I performed this pre-shift inspection of the listed equipment and that the conditions noted above are true and accurate. I will not operate this unit if any item is marked FAIL."
@@ -1321,6 +1398,43 @@ export default function NewEquipmentInspection({ publicMode = false }) {
             testId="signature-operator"
           />
         </Section>
+
+        {/* TRACK 19.11 MAIN · Phase 8 · SubmitReviewPanel — pre-submit
+            summary + downstream commitment. Non-technical, operational
+            language. Reusable primitive: DVIR (19.12) and Safety
+            Meeting (19.13) will pass their own extraSummaryRows +
+            commitment overrides; the panel itself is unchanged. */}
+        <FormSection
+          number="R"
+          title={t("Review & Submit")}
+          subtitle={t(
+            "Confirm the inspection summary before you submit. What happens next is listed below."
+          )}
+          testId="equipment-review-section"
+        >
+          <SubmitReviewPanel
+            passCount={data.pass_count || 0}
+            failCount={data.fail_count || 0}
+            naCount={data.na_count || 0}
+            outOfService={data.out_of_service === "Yes"}
+            extraSummaryRows={[
+              data.camera_system_present === "yes" &&
+              data.camera_obstructions_clear === "yes"
+                ? t("Cameras present and clear of obstructions.")
+                : data.camera_system_present === "no"
+                ? t("This unit does not have a camera system.")
+                : data.camera_system_present === "unsure"
+                ? t("Camera presence marked as not sure — flagged for review.")
+                : data.camera_obstructions_clear === "no"
+                ? t("Camera obstruction present — submission blocked until cleared.")
+                : t("Camera check not yet answered."),
+              data.operator_signature
+                ? t("Operator signature captured.")
+                : t("Operator signature pending."),
+            ]}
+            testId="equipment-review-panel"
+          />
+        </FormSection>
 
         <div className="flex flex-col items-end gap-2">
           {failGating.blocked && (

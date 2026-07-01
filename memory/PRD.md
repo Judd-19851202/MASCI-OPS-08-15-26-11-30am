@@ -11,7 +11,67 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
-## Latest Track (2026-07-01 · TRACK 19.11 · Part A · Session Overlay Language / State Hardening · ✅ GREEN · CLOSED)
+## Latest Track (2026-07-01 · TRACK 19.11 · MAIN · Equipment Pre-Op Modernization · ✅ GREEN · CLOSED)
+
+### Mode
+Full frontend UX modernization of Equipment Pre-Op using **4 NEW reusable platform primitives** + consolidated HelpDrawer. Gold-standard blueprint that DVIR (Track 19.12) and Safety Meeting (Track 19.13) will consume as-is — configuration, not reinvention. Zero backend / schema / route / payload / PDF / email / notification / fail-cascade / Trust-Spine drift.
+
+### New reusable platform primitives (ship as blueprint)
+| Primitive | File | Status |
+|---|---|---|
+| `FormSection` | `frontend/src/components/FormSection.jsx` | NEW (stateless, active/completed/pending states) |
+| `ProgressRail` | `frontend/src/components/ProgressRail.jsx` | NEW (stateless, %-bar + per-step chip row) |
+| `PresenceGate` | `frontend/src/components/PresenceGate.jsx` | NEW (Yes/No/Not-sure with optional hard-block panel) |
+| `SubmitReviewPanel` | `frontend/src/components/SubmitReviewPanel.jsx` | NEW (pre-submit review + 6-bullet downstream commitment) |
+| `FormShell` (existing) | 19.10 | Preserved, available for full adoption on future tracks |
+| `HelpDrawer` (existing) | 19.10 | Preserved + enriched from 3 → 5 sections on Equipment Pre-Op |
+
+Every primitive is **stateless**, **bilingual via `useT()`**, and **backend-free**. Locked in the Track 19.11 MAIN pytest suite.
+
+### Equipment Pre-Op consumption
+1. **HelpDrawer consolidation** — `HelpTipBlock` retired (3 visible defaults removed); 5 coaching bands (Why this Pre-Op matters · Who sees this · What happens after you submit · When to stop and call · Common pre-op mistakes) migrated into the drawer.
+2. **ProgressRail** wired below the title with 7 steps derived from form state (Setup · Cameras · Equipment · Inspection · Notes · Sign · Review).
+3. **Review & Submit FormSection** added before the submit button, containing the `SubmitReviewPanel` with tally + OOS flag + camera/signature summary + 6-bullet downstream commitment matrix.
+4. **Modernization marker** `data-testid="preop-modernized"` on outer wrapper.
+
+### Preservation (locked GREEN)
+Camera Obstruction Gate (19.09) · Critical Fluid + Major Safety OOS modal · `CRITICAL_FLUID_ITEMS` + `MAJOR_OUT_OF_SERVICE_ITEMS` sets · FAIL photo + 10-char description gating · POST `/api/equipment-inspections` route + payload · Canonical inspection sections · Bilingual translation-on-submit + sidecar · Signature capture · Sticky tally bar · Session-expired ack-suppression (19.11 Amendment) · HR Source-of-Truth (19.03) · Smart Prefill (19.06 Amendment).
+
+### Verification totals
+| Layer | Suite | Result |
+|---|---|---|
+| Pytest lock suite (NEW) | `test_track_19_11_main_equipment_preop_modernization.py` | **67 / 67 ✅** |
+| Track 19.10 (updated for consolidation) | `test_track_19_10_foundation_unification.py` | 27 / 27 ✅ |
+| Track 19.11 Amendment + Part A | | 68 / 68 ✅ |
+| Full Track 19.x regression | 16 files | ~640 / 640 GREEN (excl. 19.02a transient) |
+| Playwright live smoke | 10 assertions | ✅ 0 console errors |
+| Spanish live smoke | title `Inspección Pre-Operación de Equipo` | ✅ |
+
+### Zero-drift matrix (verified)
+Schema · route · payload · PDF · email · notification · fail-cascade · Trust-Spine · bilingual · autosave · draft · session-expired · HR Source-of-Truth · Smart Prefill — **ZERO** drift.
+
+### Bilingual parity
+29 new EN↔ES translation pairs added to `frontend/src/lib/i18n.js`. Zero EN-only strings introduced. Every string parametrized into the lock suite.
+
+### Files touched
+* `frontend/src/components/FormSection.jsx` — NEW (~140 lines)
+* `frontend/src/components/ProgressRail.jsx` — NEW (~80 lines)
+* `frontend/src/components/PresenceGate.jsx` — NEW (~110 lines)
+* `frontend/src/components/SubmitReviewPanel.jsx` — NEW (~140 lines)
+* `frontend/src/pages/NewEquipmentInspection.jsx` — modernized (primitives wired, HelpTipBlock retired, ProgressRail + Review section added, marker added)
+* `frontend/src/lib/i18n.js` — +29 ES translations
+* `backend/tests/test_track_19_11_main_equipment_preop_modernization.py` — NEW · 67 lock assertions
+* `backend/tests/test_track_19_10_foundation_unification.py` — updated 1 test to reflect HelpTipBlock consolidation
+* 6 markdown docs at `memory/TRACK_19_11_*.md`
+
+### Ready for Track 19.12 / 19.13 / 19.14
+Equipment Pre-Op is now the **gold-standard blueprint**. The 4 new primitives + HelpDrawer consolidation pattern + retire-stacked-coaching doctrine + 7-step progress derivation + Review-and-Submit panel are all reusable. DVIR (19.12), Safety Meeting (19.13, with topic-auto-load PRESERVED and expanded), Toolbox Meeting (19.14) will each configure the same primitives — no primitive changes required.
+
+Six Pillars · 5:30 AM Foreman Test · Powerful · Simple · Beautiful · Trusted · Proven · Zero drift · Production-ready · Done means done.
+
+---
+
+## Previous Track (2026-07-01 · TRACK 19.11 · Part A · Session Overlay Language / State Hardening · ✅ GREEN · CLOSED)
 
 ### Mode
 Part A of the full Track 19.11 brief. Investigation + regression hardening. Zero code changes to production runtime — the language-following contract was already architecturally correct. Only the regression suite + docs were extended so future drift is impossible.

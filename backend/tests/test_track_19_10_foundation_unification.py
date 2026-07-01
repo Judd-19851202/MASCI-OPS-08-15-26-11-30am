@@ -79,16 +79,36 @@ def test_helpdrawer_wired_on_equipment_preop():
 
 
 def test_existing_coaching_systems_still_live_on_equipment_preop():
-    """Slice 1 doctrine: the drawer is proof-of-concept only. The
-    existing coaching layers stay live until validated in the field."""
-    # HelpTipBlock still imported and used
-    assert 'import { HelpTipBlock } from "@/components/HelpTip"' in _EQ
-    assert "HelpTipBlock" in _EQ
-    # Original page subtitle prose still present
+    """Slice 1 doctrine (Track 19.10): the drawer is proof-of-concept only.
+    Existing coaching layers stay live UNTIL a dedicated modernization
+    track consolidates them.
+
+    TRACK 19.11 MAIN UPDATE: HelpTipBlock is now retired on Equipment
+    Pre-Op — its 5 coaching bands have been fully migrated into the
+    HelpDrawer sections array. Main screen = action; drawer =
+    explanation. This is the intended end state per the Track 19.11
+    MAIN brief. We now assert the migration is complete rather than
+    that the old stacks are still live.
+    """
+    # HelpTipBlock retired on Equipment Pre-Op (consolidated into
+    # HelpDrawer). The import is removed and no visible band remains.
+    assert 'import { HelpTipBlock } from "@/components/HelpTip"' not in _EQ
+    assert 'HelpTipBlock formKey="preop"' not in _EQ
+    # Original page subtitle prose still present (canonical operator
+    # framing).
     assert (
         "OSHA daily walk-around for the unit you're operating."
         in _EQ
     )
+    # The 5 coaching bands now live inside the HelpDrawer sections.
+    for band in (
+        "Why this Pre-Op matters",
+        "Who sees this",
+        "What happens after you submit",
+        "When to stop and call",
+        "Common pre-op mistakes",
+    ):
+        assert band in _EQ, f"HelpDrawer missing consolidated band: {band}"
 
 
 # --- Deferred work MUST NOT have been rushed --------------------------------
