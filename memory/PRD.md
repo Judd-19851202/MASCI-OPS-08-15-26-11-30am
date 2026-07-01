@@ -11,7 +11,59 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
-## Latest Track (2026-07-01 · TRACK 19.10 · Slice 1 · Foundation Unification · ✅ GREEN · CLOSED)
+## Latest Track (2026-07-01 · TRACK 19.11 · Amendment · Session-Expired Modal Loop Fix · ✅ GREEN · CLOSED)
+
+### Mode
+Amendment track — bug fix issued before Track 19.11 MAIN could start, because the session-expired modal loop was a P0 field-usability blocker. Frontend-only. Zero backend / schema / route / payload / PDF / email / notification / fail-cascade drift.
+
+### Field bug
+On form pages (Daily Report, Equipment Pre-Op, DVIR) with an expired session, the "Session Expired" modal reopened repeatedly on virtually every keystroke — dismissing "Stay Here" briefly closed it, but the next background poll (roster refetch, health probe, background hydrator) re-fired the 401 outside the 800 ms debounce and reopened the modal. Unusable at 5:30 AM.
+
+### Root cause
+`sessionStatusBus.js` had only a debounce window (800 ms). Once the user dismissed via `clearSessionStatus()`, the debounce timestamp still ticked forward normally, so any 401 published >800 ms later re-flipped the overlay state. The user's dismissal was not "sticky."
+
+### Fix (frontend-only)
+1. **`frontend/src/lib/sessionStatusBus.js`** — Added sticky acknowledgment suppression for auth kinds (`session_expired`, `access_restricted`). Once the user dismisses, further publishes of that same kind are ignored until `success_loaded` fires OR `resetSessionAck()` is called. Retryable kinds (`network_unreachable`, `backend_unavailable`) remain non-sticky.
+2. **`frontend/src/components/SessionStatusOverlay.jsx`** — All 12 display strings routed through `useT()`. `onPrimary` for SESSION_EXPIRED now calls `resetSessionAck()` before navigating to login. `aria-label` on the X button is bilingual.
+3. **`frontend/src/lib/i18n.js`** — +12 ES translations (`Sesión Expirada`, `Volver a Iniciar Sesión`, `Quedarme Aquí`, `Acceso Restringido`, `Problema de Conexión`, `Servicios Temporalmente No Disponibles`, `Reintentar`, `Descartar`, plus 4 body strings).
+4. **`frontend/src/lib/sessionStatusBus.test.js`** — +7 Jest cases covering ack behavior.
+5. **`backend/tests/test_track_19_11_amendment_session_expired_loop_fix.py`** — NEW · 40 lock assertions.
+
+### Safety envelope (what the fix does NOT do)
+* Does NOT extend an invalid session · does NOT hide token clearing · does NOT weaken the 401/403 signal · does NOT touch autosave or draft state · does NOT disable inputs · does NOT hide a genuinely-new expiry after session recovery · retryable modal UX (5xx / network) remains unchanged.
+
+### Verification
+| Layer | Result |
+|---|---|
+| Jest bus contract | 15 / 15 ✅ (8 existing + 7 new) |
+| Pytest lock suite | 40 / 40 ✅ |
+| Playwright live smoke (preview URL) | 7 / 7 steps ✅ — including 5× re-publish at 1.2s intervals with modal staying closed, then `success_loaded` lifts ack, then a genuinely-new expiry surfaces again |
+| Spanish live smoke | `Sesión Expirada` / `VOLVER A INICIAR SESIÓN` / `QUEDARME AQUÍ` all render ✅ |
+| Full Track 19.x regression | **545 / 545 ✅** (505 baseline + 40 new) |
+
+### Zero-drift matrix (verified)
+Schema · route · payload · PDF · email · notification · fail-cascade · bilingual · Trust-Spine · autosave — all **ZERO** drift.
+
+### Acceptance checklist (from amendment brief) — 14 / 14 ✅
+Modal fires once per expired state · repeated 401s don't spawn repeated modals · typing after dismiss doesn't reopen · local draft persists · Stay Here works · Log Back In works · no raw 401/403 leak · DR usable after dismiss · Equipment Pre-Op usable after dismiss · Spanish translated · valid-session autosave unregressed · zero schema/payload/route drift.
+
+### Files touched
+* `frontend/src/lib/sessionStatusBus.js` — ack-suppression logic
+* `frontend/src/components/SessionStatusOverlay.jsx` — bilingual + reset-on-login-nav
+* `frontend/src/lib/sessionStatusBus.test.js` — +7 Jest cases
+* `frontend/src/lib/i18n.js` — +12 ES translations
+* `backend/tests/test_track_19_11_amendment_session_expired_loop_fix.py` — NEW · 40 lock assertions
+* `memory/TRACK_19_11_SESSION_EXPIRED_LOOP_FIX.md` — root cause + fix + doctrine
+* `memory/TRACK_19_11_SESSION_EXPIRY_TEST_REPORT.md` — three-layer verification report
+
+### Ready for Track 19.11 MAIN
+Amendment closed cleanly. Track 19.11 MAIN (Equipment Pre-Op full progressive-disclosure conversion consuming FormShell/HelpDrawer) is now unblocked and reserved for the next session with a full context budget.
+
+Six Pillars intact · 5:30 AM Foreman Test passes (operator can now dismiss the expired-session modal ONCE and finish typing without the modal slamming back on every keystroke) · Powerful · Simple · Beautiful · Trusted · Proven · Zero drift · Production-safe.
+
+---
+
+## Previous Track (2026-07-01 · TRACK 19.10 · Slice 1 · Foundation Unification · ✅ GREEN · CLOSED)
 
 ### Mode
 Execution track. Slice 1 of Bundle B. Additive, opt-in primitives only. ZERO backend / schema / route / payload / email / PDF / notification / fail-cascade / Trust-Spine drift. Full form rewrites (Equipment Pre-Op · DVIR · Safety Meeting) DEFERRED to Tracks 19.11 · 19.12 · 19.13.

@@ -9,18 +9,57 @@
 //   • Duplicate identical-kind events within DEBOUNCE_MS = 800 are
 //     collapsed (cards firing in parallel produce one modal).
 //   • A `success_loaded` event for ANY route clears any active overlay
-//     (the system has just proven it can talk to the backend).
+//     (the system has just proven it can talk to the backend) AND
+//     lifts any user-ack suppression (session recovered).
 //   • Callers can explicitly clear via `clearSessionStatus()` after a
 //     successful re-login.
+//
+// TRACK 19.11 AMENDMENT · SESSION-EXPIRED LOOP FIX
+// -----------------------------------------------------------------
+// Field bug: on form pages (Daily Report / Equipment Pre-Op), an
+// expired session caused the "Session Expired" modal to REOPEN on
+// every subsequent keystroke because background pollers / roster
+// refetches / autosaves fire 401s at intervals longer than the 800 ms
+// debounce window. The user could dismiss "Stay Here" only to have
+// the modal slam back in one second later.
+//
+// Fix: sticky **acknowledgment suppression** on auth-kind states.
+// When the user explicitly dismisses SESSION_EXPIRED (or ACCESS_
+// RESTRICTED) via `clearSessionStatus()`, remember the ack. Further
+// publishes of that same kind are suppressed until:
+//   1. A `success_loaded` event proves the session is repaired
+//      (typically after "Log Back In" completes)
+//   2. `resetSessionAck()` is called explicitly (login flows on
+//      landing, or a fresh page load re-initializing the bus)
+//
+// Security-safe: does NOT extend an invalid session, does NOT hide
+// the 401 from token-clearing logic in the interceptor. It only
+// prevents the *UX modal* from thrashing on top of the operator's
+// form work. All auth failures still result in tokens being cleared
+// and route guards still bounce to login on next protected click.
+//
+// Draft-safe: does NOT touch autosave, does NOT clear draft state,
+// does NOT block typing. Local drafts on the form page remain
+// exactly as the user left them.
 //
 // State exported as a plain object {kind, status, at} for React.
 
 const DEBOUNCE_MS = 800;
 
+// Auth-kind states that carry sticky user-acknowledgment (once the
+// user dismisses them, don't re-fire until the session recovers).
+const ACK_STICKY_KINDS = new Set([
+  "session_expired",
+  "access_restricted",
+]);
+
 let _state = { kind: null, status: null, at: 0 };
 const _listeners = new Set();
 let _lastEmitKind = null;
 let _lastEmitAt = 0;
+// Set of ack-suppressed kinds. Once the user dismisses an auth kind,
+// further publishes of THAT kind are ignored until session recovery.
+let _ackSuppressed = new Set();
 
 function _notify() {
   for (const cb of _listeners) {
@@ -52,6 +91,8 @@ export function publishSessionStatus(classification) {
   const kind = classification.kind;
 
   // success_loaded acts as an "all-clear" signal regardless of debounce.
+  // Also LIFTS any ack-suppression — the session is proven live again,
+  // so future 401s (a genuinely NEW expiry event) can fire the modal.
   if (kind === "success_loaded") {
     if (_state.kind !== null) {
       _state = { kind: null, status: null, at: Date.now() };
@@ -59,10 +100,23 @@ export function publishSessionStatus(classification) {
     }
     _lastEmitKind = null;
     _lastEmitAt = Date.now();
+    if (_ackSuppressed.size > 0) {
+      _ackSuppressed = new Set();
+    }
     return;
   }
   if (kind === "success_empty") {
     // Don't change overlay state; empty success is legitimate data.
+    return;
+  }
+
+  // TRACK 19.11 AMENDMENT — sticky ack-suppression. If the user has
+  // already dismissed this exact auth kind, don't re-open the modal.
+  // The condition that caused the 401 hasn't changed; the token wipe
+  // in the interceptor is already done; showing the modal again on
+  // every subsequent keystroke-triggered background 401 is pure UX
+  // noise and destroys form usability at 5:30 AM.
+  if (_ackSuppressed.has(kind)) {
     return;
   }
 
@@ -85,11 +139,46 @@ export function publishSessionStatus(classification) {
 /**
  * Explicit dismissal (e.g. user clicks "Stay Here" on Session Expired).
  * The overlay hides; the underlying error condition does not change.
+ *
+ * TRACK 19.11 AMENDMENT — dismissing an auth kind ALSO marks it as
+ * ack-suppressed so it doesn't re-open the modal on every subsequent
+ * background 401 while the operator finishes typing / signing.
  */
 export function clearSessionStatus() {
-  if (_state.kind === null) return;
+  const dismissedKind = _state.kind;
+  if (dismissedKind === null) return;
+  if (ACK_STICKY_KINDS.has(dismissedKind)) {
+    _ackSuppressed.add(dismissedKind);
+  }
   _state = { kind: null, status: null, at: Date.now() };
   _notify();
+}
+
+/**
+ * TRACK 19.11 AMENDMENT — explicit reset of ack-suppression.
+ *
+ * Called by:
+ *   • Login pages on mount (fresh auth attempt should be able to
+ *     re-open the modal if it fails again).
+ *   • Explicit "Log Back In" primary action (before nav).
+ *   • Tests.
+ *
+ * Does NOT clear overlay state — call `clearSessionStatus()` for that.
+ */
+export function resetSessionAck() {
+  if (_ackSuppressed.size > 0) {
+    _ackSuppressed = new Set();
+  }
+}
+
+/**
+ * Read-only introspection of the ack-suppression set.
+ * Exposed for tests and diagnostics; NOT for UI decisions.
+ */
+export function getSessionAckState() {
+  return {
+    suppressed: Array.from(_ackSuppressed),
+  };
 }
 
 // For tests only — reset internal counters between cases.
@@ -98,6 +187,7 @@ export const _testReset = () => {
   _listeners.clear();
   _lastEmitKind = null;
   _lastEmitAt = 0;
+  _ackSuppressed = new Set();
 };
 
 // TRUST-DIAGNOSTICS-001 · Expose a stable surface on window so ops
@@ -109,5 +199,7 @@ if (typeof window !== "undefined") {
     publish: publishSessionStatus,
     clear: clearSessionStatus,
     get: getSessionStatus,
+    resetAck: resetSessionAck,
+    getAck: getSessionAckState,
   });
 }

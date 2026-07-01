@@ -11,6 +11,8 @@ import {
   subscribeSessionStatus,
   getSessionStatus,
   clearSessionStatus,
+  resetSessionAck,
+  getSessionAckState,
   _testReset,
 } from "./sessionStatusBus";
 
@@ -86,5 +88,114 @@ describe("sessionStatusBus", () => {
     expect(cb).toHaveBeenCalledWith(
       expect.objectContaining({ kind: "backend_unavailable", status: 502 }),
     );
+  });
+
+  // TRACK 19.11 AMENDMENT — sticky ack-suppression on auth kinds.
+  describe("session-expired loop fix (Track 19.11 amendment)", () => {
+    test("after user dismiss, further session_expired publishes are suppressed", () => {
+      const cb = jest.fn();
+      subscribeSessionStatus(cb);
+      cb.mockClear();
+      // Initial 401 → modal opens.
+      publishSessionStatus({ kind: "session_expired", status: 401 });
+      expect(getSessionStatus().kind).toBe("session_expired");
+      // User taps "Stay Here" → bus clears + marks ack-suppressed.
+      clearSessionStatus();
+      expect(getSessionStatus().kind).toBeNull();
+      expect(getSessionAckState().suppressed).toEqual(["session_expired"]);
+      cb.mockClear();
+      // 800 ms passes, another background 401 fires — the modal must
+      // NOT re-open until the session recovers.
+      const later = Date.now() + 5000;
+      const origNow = Date.now;
+      global.Date.now = () => later;
+      try {
+        publishSessionStatus({ kind: "session_expired", status: 401 });
+        publishSessionStatus({ kind: "session_expired", status: 401 });
+        publishSessionStatus({ kind: "session_expired", status: 401 });
+      } finally {
+        global.Date.now = origNow;
+      }
+      expect(getSessionStatus().kind).toBeNull();
+      expect(cb).not.toHaveBeenCalled();
+    });
+
+    test("access_restricted dismissal is also ack-suppressed", () => {
+      publishSessionStatus({ kind: "access_restricted", status: 403 });
+      clearSessionStatus();
+      expect(getSessionAckState().suppressed).toContain("access_restricted");
+      const cb = jest.fn();
+      subscribeSessionStatus(cb);
+      cb.mockClear();
+      const later = Date.now() + 10000;
+      const origNow = Date.now;
+      global.Date.now = () => later;
+      try {
+        publishSessionStatus({ kind: "access_restricted", status: 403 });
+      } finally {
+        global.Date.now = origNow;
+      }
+      expect(getSessionStatus().kind).toBeNull();
+      expect(cb).not.toHaveBeenCalled();
+    });
+
+    test("success_loaded lifts ack-suppression so genuinely-new expiry can re-fire", () => {
+      publishSessionStatus({ kind: "session_expired", status: 401 });
+      clearSessionStatus();
+      expect(getSessionAckState().suppressed).toContain("session_expired");
+      // Session recovers (user logged back in, backend responds 2xx).
+      publishSessionStatus({ kind: "success_loaded", status: 200 });
+      expect(getSessionAckState().suppressed).toEqual([]);
+      // A NEW expiry event later can raise the modal again.
+      const later = Date.now() + 60000;
+      const origNow = Date.now;
+      global.Date.now = () => later;
+      try {
+        publishSessionStatus({ kind: "session_expired", status: 401 });
+      } finally {
+        global.Date.now = origNow;
+      }
+      expect(getSessionStatus().kind).toBe("session_expired");
+    });
+
+    test("resetSessionAck lifts suppression without touching overlay state", () => {
+      publishSessionStatus({ kind: "session_expired", status: 401 });
+      clearSessionStatus();
+      expect(getSessionAckState().suppressed).toContain("session_expired");
+      resetSessionAck();
+      expect(getSessionAckState().suppressed).toEqual([]);
+      expect(getSessionStatus().kind).toBeNull();
+    });
+
+    test("dismissing NETWORK_UNREACHABLE does NOT ack-suppress (retryable UX)", () => {
+      publishSessionStatus({ kind: "network_unreachable", status: null });
+      clearSessionStatus();
+      expect(getSessionAckState().suppressed).toEqual([]);
+      // Next unreachable event outside the debounce window should re-open.
+      const later = Date.now() + 5000;
+      const origNow = Date.now;
+      global.Date.now = () => later;
+      try {
+        publishSessionStatus({ kind: "network_unreachable", status: null });
+      } finally {
+        global.Date.now = origNow;
+      }
+      expect(getSessionStatus().kind).toBe("network_unreachable");
+    });
+
+    test("dismissing BACKEND_UNAVAILABLE does NOT ack-suppress (retryable UX)", () => {
+      publishSessionStatus({ kind: "backend_unavailable", status: 503 });
+      clearSessionStatus();
+      expect(getSessionAckState().suppressed).toEqual([]);
+    });
+
+    test("clearSessionStatus on empty state is a no-op", () => {
+      const cb = jest.fn();
+      subscribeSessionStatus(cb);
+      cb.mockClear();
+      clearSessionStatus();
+      expect(cb).not.toHaveBeenCalled();
+      expect(getSessionAckState().suppressed).toEqual([]);
+    });
   });
 });

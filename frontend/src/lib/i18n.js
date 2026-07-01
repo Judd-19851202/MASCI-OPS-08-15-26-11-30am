@@ -6660,6 +6660,26 @@ const ES = {
     "No hay orientación disponible para esta sección.",
   "Open help": "Abrir ayuda",
   "Equipment Pre-Op · Guidance": "Pre-Operación de Equipo · Orientación",
+
+  // TRACK 19.11 AMENDMENT · SessionStatusOverlay bilingual strings.
+  // (Previously the modal was English-only — bilingual gap fixed as
+  // part of the session-expired loop repair.)
+  "Session Expired": "Sesión Expirada",
+  "Your login session has expired. No data has been lost. Please log back in to continue.":
+    "Su sesión ha expirado. No se ha perdido información. Por favor, vuelva a iniciar sesión para continuar.",
+  "Log Back In": "Volver a Iniciar Sesión",
+  "Stay Here": "Quedarme Aquí",
+  "Access Restricted": "Acceso Restringido",
+  "Your account does not have permission to view this area.":
+    "Su cuenta no tiene permiso para ver esta área.",
+  "Connection Problem": "Problema de Conexión",
+  "Your device cannot reach platform services right now. Any drafts or pending uploads remain protected locally.":
+    "Su dispositivo no puede conectarse con los servicios de la plataforma en este momento. Los borradores y las cargas pendientes permanecen protegidos localmente.",
+  "Services Temporarily Unavailable": "Servicios Temporalmente No Disponibles",
+  "The server is reachable but returned an error. Try again shortly. Field drafts remain protected locally.":
+    "El servidor está disponible pero devolvió un error. Inténtelo de nuevo en un momento. Los borradores de campo permanecen protegidos localmente.",
+  "Retry": "Reintentar",
+  "Dismiss": "Descartar",
 };
 
 const DICTS = { es: ES, en: {} };

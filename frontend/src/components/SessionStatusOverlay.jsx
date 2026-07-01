@@ -21,8 +21,10 @@ import { AlertTriangle, Lock, WifiOff, ServerCrash, X } from "lucide-react";
 import {
   subscribeSessionStatus,
   clearSessionStatus,
+  resetSessionAck,
 } from "@/lib/sessionStatusBus";
 import { ERROR_KINDS } from "@/lib/errorClassification";
+import { useT } from "@/lib/i18n";
 
 // Routes where the overlay must NOT appear (would stack on top of an
 // active login form and confuse the user).
@@ -60,35 +62,35 @@ const ACCENT_FOR = {
   [ERROR_KINDS.BACKEND_UNAVAILABLE]: { ring: "border-red-500", bg: "bg-red-50", title: "text-red-900", icon: "text-red-600" },
 };
 
-function _copy(state) {
+function _copy(state, t) {
   switch (state.kind) {
     case ERROR_KINDS.SESSION_EXPIRED:
       return {
-        title: "Session Expired",
-        body: "Your login session has expired. No data has been lost. Please log back in to continue.",
-        primary: "Log Back In",
-        secondary: "Stay Here",
+        title: t("Session Expired"),
+        body: t("Your login session has expired. No data has been lost. Please log back in to continue."),
+        primary: t("Log Back In"),
+        secondary: t("Stay Here"),
       };
     case ERROR_KINDS.ACCESS_RESTRICTED:
       return {
-        title: "Access Restricted",
-        body: "Your account does not have permission to view this area.",
+        title: t("Access Restricted"),
+        body: t("Your account does not have permission to view this area."),
         primary: null,
-        secondary: "Dismiss",
+        secondary: t("Dismiss"),
       };
     case ERROR_KINDS.NETWORK_UNREACHABLE:
       return {
-        title: "Connection Problem",
-        body: "Your device cannot reach platform services right now. Any drafts or pending uploads remain protected locally.",
-        primary: "Retry",
-        secondary: "Dismiss",
+        title: t("Connection Problem"),
+        body: t("Your device cannot reach platform services right now. Any drafts or pending uploads remain protected locally."),
+        primary: t("Retry"),
+        secondary: t("Dismiss"),
       };
     case ERROR_KINDS.BACKEND_UNAVAILABLE:
       return {
-        title: "Services Temporarily Unavailable",
-        body: "The server is reachable but returned an error. Try again shortly. Field drafts remain protected locally.",
-        primary: "Retry",
-        secondary: "Dismiss",
+        title: t("Services Temporarily Unavailable"),
+        body: t("The server is reachable but returned an error. Try again shortly. Field drafts remain protected locally."),
+        primary: t("Retry"),
+        secondary: t("Dismiss"),
       };
     default:
       return null;
@@ -98,6 +100,7 @@ function _copy(state) {
 export default function SessionStatusOverlay() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useT();
   const [state, setState] = useState({ kind: null, status: null });
 
   useEffect(() => {
@@ -108,7 +111,11 @@ export default function SessionStatusOverlay() {
   const onDismiss = useCallback(() => { clearSessionStatus(); }, []);
   const onPrimary = useCallback(() => {
     if (state.kind === ERROR_KINDS.SESSION_EXPIRED) {
+      // TRACK 19.11 AMENDMENT — user is explicitly re-authenticating.
+      // Lift the ack-suppression so a genuinely fresh 401 after login
+      // can raise the modal again.
       clearSessionStatus();
+      resetSessionAck();
       navigate(_loginRouteForCurrent(location.pathname));
       return;
     }
@@ -122,7 +129,7 @@ export default function SessionStatusOverlay() {
 
   // Suppress on login / portal routes — the user is mid-auth.
   const suppressed = SUPPRESS_PREFIXES.some((p) => location.pathname.startsWith(p));
-  const copy = _copy(state);
+  const copy = _copy(state, t);
   if (!copy || suppressed) return null;
 
   const Icon = ICON_FOR[state.kind] || AlertTriangle;
@@ -159,7 +166,7 @@ export default function SessionStatusOverlay() {
             type="button"
             onClick={onDismiss}
             className="p-1 -mr-1 -mt-1 text-slate-500 hover:text-slate-900 hover:bg-white rounded transition-colors shrink-0"
-            aria-label="Close"
+            aria-label={t("Close")}
             data-testid="session-status-close"
           >
             <X className="w-5 h-5" />
