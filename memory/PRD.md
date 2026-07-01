@@ -11,6 +11,26 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-07-01 · TRACK 19.07 · Daily Report UX Simplification & Cognitive Architecture · ✅ GREEN · CLOSED)
+
+### Delivered
+- Collapsed the redundant NarrativeWorkflow six-prompt block behind an "Additional context (rarely needed)" `<details>` disclosure; replaced "General Notes" with a single intent-first "Operational notes (optional)" field.
+- Added six cognitive-checkpoint framings on the existing bands: **Who was there? · What got done? · What impacted today? · What moved? · Was the job safe? · What happens next?** with `data-cognitive-checkpoint` attributes for analytics.
+- Zero backend drift. Zero schema drift. Zero route drift. Zero doctrine regression on Tracks 19.03 / 19.04 / 19.05 / 19.06.
+- Net operator win: **−5 duplicate decisions per report** on a typical day.
+
+### Files touched
+- FRONTEND: `pages/NewDailyReport.jsx` only.
+- TESTS: `tests/test_track_19_07_daily_report_cognitive_ux.py` — 23 PASS.
+- DOCS: 5 new reports (`TRACK_19_07_*.md`) + PRD update.
+- Lock-test drift fix: `tests/test_track_19_06_daily_report_progressive_disclosure.py::test_new_flow_includes_materials_import_export` relaxed from exact-quote match to substring match, absorbing the new "What moved? · " cognitive prefix without weakening the lock (label suffix `Materials / Import / Export` still asserted).
+
+### Combined regression (Track 19.03 → 19.07)
+**186/186 PASS** — Tracks 19.03 (27) + 19.04 (33) + 19.05 (59) + 19.06 (44) + 19.07 (23).
+
+---
+
+
 ## Latest Track (2026-07-01 · TRACK 19.06 · Daily Report Progressive-Disclosure Redesign · ✅ GREEN · CLOSED)
 
 ### Delivered

@@ -87,7 +87,7 @@ def test_new_flow_includes_job_setup():
 
 
 def test_new_flow_includes_people_on_site():
-    assert '"People on Site"' in _UI
+    assert "People on Site" in _UI
 
 
 def test_new_flow_asks_masci_yes_no():
@@ -111,7 +111,9 @@ def test_new_flow_asks_equipment_yes_no():
 
 
 def test_new_flow_includes_materials_import_export():
-    assert '"Materials / Import / Export"' in _UI
+    # Track 19.07 prefixed the band with the cognitive checkpoint
+    # "What moved? · " while preserving the original label suffix.
+    assert "Materials / Import / Export" in _UI
 
 
 def test_new_flow_asks_materials_in_yes_no():
@@ -123,7 +125,7 @@ def test_new_flow_asks_materials_out_yes_no():
 
 
 def test_new_flow_includes_work_performed_production():
-    assert '"Work Performed & Production"' in _UI
+    assert "Work Performed & Production" in _UI
 
 
 def test_production_array_still_present_in_ui():
@@ -135,12 +137,12 @@ def test_activity_production_ui_consolidated_under_one_band():
     # rendered under the single "Work Performed & Production" band
     # so the operator sees one section instead of two competing
     # concepts.
-    assert '"Work Performed & Production"' in _UI
+    assert "Work Performed & Production" in _UI
     assert 'data-testid="band-work-performed"' in _UI
 
 
 def test_new_flow_includes_delays_constraints_extra_work():
-    assert '"Delays / Constraints / Extra Work"' in _UI
+    assert "Delays / Constraints / Extra Work" in _UI
 
 
 def test_new_flow_asks_delays_yes_no():
@@ -152,7 +154,7 @@ def test_weather_impact_still_represented():
 
 
 def test_new_flow_includes_safety_incidents_inspections():
-    assert '"Safety / Incidents / Inspections"' in _UI
+    assert "Safety / Incidents / Inspections" in _UI
 
 
 def test_new_flow_asks_safety_yes_no():

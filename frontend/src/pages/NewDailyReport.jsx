@@ -1587,8 +1587,9 @@ function NewDailyReportInner({ publicMode = false }) {
           <div
             className="mb-2 font-mono text-[10px] uppercase tracking-[0.3em] text-red-700 font-bold"
             data-testid="band-safety-incidents"
+            data-cognitive-checkpoint="was-the-job-safe"
           >
-            {t("Safety / Incidents / Inspections")}
+            {t("Was the job safe? · Safety / Incidents / Inspections")}
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
             <div>
@@ -1811,24 +1812,36 @@ function NewDailyReportInner({ publicMode = false }) {
           )}
           <div>
             <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
-              {t("General Notes")}
+              {t("Operational notes (optional)")}
             </Label>
+            <p className="text-[10px] text-slate-500 mb-1">
+              {t("What should someone reading this six months from now know that isn't already captured in production, materials, delays, safety, or photos?")}
+            </p>
             <Textarea
               value={data.general_notes}
               onChange={(e) => set("general_notes", e.target.value)}
               className="min-h-[100px] text-base border-2 border-slate-300"
-              placeholder={t("Anything else worth noting from today...")}
+              placeholder={t("Only unique operational context. Not another log.")}
               data-testid="input-general-notes"
             />
           </div>
 
-          {/* TRACK 15.62 · NarrativeWorkflow — six guided prompts that
-              capture the operational story of the day. Writes to
-              `narrative_sections` (additive optional schema). */}
-          <div className="mt-4 border-t pt-4">
-            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-red-700">
-              {t("Tell the story of the day")}
-            </Label>
+          {/* TRACK 19.07 · Cognitive redundancy fix — the six-prompt
+              NarrativeWorkflow duplicated production / materials /
+              delays / safety inputs. It is now collapsed behind an
+              "Additional context (rarely needed)" affordance so the
+              schema key `narrative_sections` remains available (Track
+              15.62 additive schema is unchanged) but the operator is
+              never asked to retell the report they just completed.
+              Historical DRs continue to render the field normally on
+              PDF / PM / email surfaces. */}
+          <details className="mt-3 rounded-md border border-slate-200 bg-slate-50 px-3 py-2" data-testid="dr-narrative-additional-context">
+            <summary className="cursor-pointer text-xs font-mono uppercase tracking-[0.2em] text-slate-500 hover:text-slate-800">
+              {t("Additional context (rarely needed)")}
+            </summary>
+            <p className="mt-2 text-[10px] text-slate-500">
+              {t("Only use this if the day requires structured narrative that production, materials, delays, safety, and photos cannot capture.")}
+            </p>
             <div className="mt-2">
               <NarrativeWorkflow
                 value={data.narrative_sections || {}}
@@ -1836,7 +1849,7 @@ function NewDailyReportInner({ publicMode = false }) {
                 testIdPrefix="dr-narrative"
               />
             </div>
-          </div>
+          </details>
 
           {/* Phase 10A-B · OMEGA Correction 1 — Excavation Activity Gate */}
           <div className="mt-3">
@@ -1859,8 +1872,9 @@ function NewDailyReportInner({ publicMode = false }) {
         <div
           className="mt-6 mb-2 font-mono text-[10px] uppercase tracking-[0.3em] text-red-700 font-bold"
           data-testid="band-people-on-site"
+          data-cognitive-checkpoint="who-was-there"
         >
-          {t("People on Site")}
+          {t("Who was there? · People on Site")}
         </div>
         {/* TRACK 19.06 · Progressive disclosure — foreman decides whether
             MASCI crew was on site today. The section stays fully visible
@@ -2228,6 +2242,7 @@ function NewDailyReportInner({ publicMode = false }) {
           <div
             className="mt-2 mb-2 font-mono text-[10px] uppercase tracking-[0.3em] text-red-700 font-bold"
             data-testid="band-equipment-resources"
+            data-cognitive-checkpoint="who-was-there"
           >
             {t("Equipment & Resources")}
           </div>
@@ -2291,8 +2306,9 @@ function NewDailyReportInner({ publicMode = false }) {
           <div
             className="mt-2 mb-2 font-mono text-[10px] uppercase tracking-[0.3em] text-red-700 font-bold"
             data-testid="band-materials"
+            data-cognitive-checkpoint="what-moved"
           >
-            {t("Materials / Import / Export")}
+            {t("What moved? · Materials / Import / Export")}
           </div>
           <_PresenceGate
             label={t("Were materials delivered or imported today?")}
@@ -2425,8 +2441,9 @@ function NewDailyReportInner({ publicMode = false }) {
           <div
             className="mt-4 mb-2 font-mono text-[10px] uppercase tracking-[0.3em] text-red-700 font-bold"
             data-testid="band-work-performed"
+            data-cognitive-checkpoint="what-got-done"
           >
-            {t("Work Performed & Production")}
+            {t("What got done? · Work Performed & Production")}
           </div>
           <CollapseCard
             title={t("Activity / Production Log")}
@@ -2520,8 +2537,9 @@ function NewDailyReportInner({ publicMode = false }) {
           <div
             className="mt-4 mb-2 font-mono text-[10px] uppercase tracking-[0.3em] text-red-700 font-bold"
             data-testid="band-delays-constraints"
+            data-cognitive-checkpoint="what-impacted-today"
           >
-            {t("Delays / Constraints / Extra Work")}
+            {t("What impacted today? · Delays / Constraints / Extra Work")}
           </div>
           <_PresenceGate
             label={t("Did anything delay, change, or impact production today?")}
@@ -2728,8 +2746,9 @@ function NewDailyReportInner({ publicMode = false }) {
           <div
             className="mb-2 font-mono text-[10px] uppercase tracking-[0.3em] text-red-700 font-bold"
             data-testid="band-tomorrow"
+            data-cognitive-checkpoint="what-happens-next"
           >
-            {t("Tomorrow / Follow-Up")}
+            {t("What happens next? · Tomorrow / Follow-Up")}
           </div>
           <p className="text-xs text-slate-600 mb-2">
             {t("What needs to happen next? Planned work, material or equipment needs, inspections, PM follow-up, or open issues.")}
