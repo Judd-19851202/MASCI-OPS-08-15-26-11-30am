@@ -28,6 +28,7 @@ import { api } from "@/lib/api";
 import { isAdmin } from "@/lib/adminAuth";
 import { WhyItMattersPanel } from "@/components/guidance";
 import { HelpTipBlock } from "@/components/HelpTip";
+import { HelpDrawer } from "@/components/HelpDrawer";
 import { toast } from "sonner";
 
 const inputCls =
@@ -212,6 +213,9 @@ export default function NewEquipmentInspection({ publicMode = false }) {
   const navigate = useNavigate();
   const { t } = useT();
   const [data, setData] = useState(buildDefaults());
+  // TRACK 19.10 · Phase 5 · HelpDrawer proof-of-concept (additive).
+  // Existing LifecycleGuide + HelpTipBlock coaching remains fully live.
+  const [helpDrawerOpen, setHelpDrawerOpen] = useState(false);
   const [equipmentTypes, setEquipmentTypes] = useState([]);
   const [checklists, setChecklists] = useState({});
   const [savedUnits, setSavedUnits] = useState([]);
@@ -697,6 +701,37 @@ export default function NewEquipmentInspection({ publicMode = false }) {
               "OSHA daily walk-around for the unit you're operating. Mark every item — anything FAIL tags the machine OUT OF SERVICE until shop verifies."
             )}
           </p>
+          {/* TRACK 19.10 · Phase 5 · HelpDrawer trigger (proof-of-concept).
+              Additive — the existing coaching-tip strip below stays live. */}
+          <div className="mt-3">
+            <HelpDrawer
+              open={helpDrawerOpen}
+              onOpenChange={setHelpDrawerOpen}
+              triggerLabel={t("Open help")}
+              title={t("Equipment Pre-Op · Guidance")}
+              testIdPrefix="equipment-help-drawer"
+              sections={[
+                {
+                  title: t("Why this Pre-Op matters"),
+                  body: t(
+                    "OSHA daily walk-around for the unit you're operating. Mark every item — anything FAIL tags the machine OUT OF SERVICE until shop verifies."
+                  ),
+                },
+                {
+                  title: t("What happens after you submit"),
+                  body: t(
+                    "Safety and the PM will be notified per project routing."
+                  ),
+                },
+                {
+                  title: t("When to stop and call"),
+                  body: t(
+                    "Clear the obstruction before operating. Camera visibility must be free and clear."
+                  ),
+                },
+              ]}
+            />
+          </div>
         </div>
 
         {failCount > 0 && (

@@ -6648,6 +6648,18 @@ const ES = {
   "What happens next": "Qué sigue",
   "Additional context (rarely needed)": "Contexto adicional (rara vez necesario)",
   "Operational notes (optional)": "Notas operacionales (opcional)",
+
+  // TRACK 19.10 · Phase 1 & 5 · FormShell + HelpDrawer primitives.
+  "Operational form · MASCI platform": "Formulario operacional · Plataforma MASCI",
+  "Help": "Ayuda",
+  "Help drawer": "Panel de ayuda",
+  "Guidance": "Orientación",
+  "Close": "Cerrar",
+  "Section": "Sección",
+  "No guidance available for this section.":
+    "No hay orientación disponible para esta sección.",
+  "Open help": "Abrir ayuda",
+  "Equipment Pre-Op · Guidance": "Pre-Operación de Equipo · Orientación",
 };
 
 const DICTS = { es: ES, en: {} };
