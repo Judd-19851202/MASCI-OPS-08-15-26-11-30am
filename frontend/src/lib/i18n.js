@@ -6579,6 +6579,75 @@ const ES = {
     "Cualquier reembolso o deducción de nómina se manejará de acuerdo con la ley aplicable de Florida y la Ley de Normas Justas de Trabajo (FLSA), y no ocurrirá sin la autorización adecuada cuando se requiera.",
   "Pick the category that BEST DESCRIBES THE EVENT — not the body part injured. Use Near Miss for events with no actual harm. Property Damage for asset-only impact. Use one type per report; file a second report if multiple distinct events occurred.":
     "Elija la categoría que MEJOR DESCRIBA EL EVENTO — no la parte del cuerpo lesionada. Use Cuasi Accidente para eventos sin daño real. Daño a la Propiedad para impacto que solo afecta al activo. Use un tipo por reporte; presente un segundo reporte si ocurrieron múltiples eventos distintos.",
+
+  // TRACK 19.09 · Bilingual parity block for Camera Obstruction Gate
+  // (Phases 3 + 5) · Submit-time downstream confirmation (Phase 8) ·
+  // Track 19.06 amendment strings that were missing Spanish parity.
+  // Every operator-facing string here has an ES equivalent so Spanish
+  // crews never see an English fallback.
+  "Camera System Safety Check": "Verificación de Seguridad del Sistema de Cámaras",
+  "Does this equipment have a camera system?":
+    "¿Este equipo tiene un sistema de cámaras?",
+  "Does this truck have a camera system?":
+    "¿Este camión tiene un sistema de cámaras?",
+  "Are the front-facing camera and interior-facing camera free and clear of obstructions?":
+    "¿Las cámaras delantera e interior están libres y despejadas de obstrucciones?",
+  "Yes": "Sí",
+  "No": "No",
+  "Not sure": "No estoy seguro",
+  "Yes — clear": "Sí — despejadas",
+  "No — obstruction present": "No — hay obstrucción",
+  "Safety-critical · Submission blocked": "Crítico de seguridad · Envío bloqueado",
+  "Clear the obstruction before operating. Camera visibility must be free and clear.":
+    "Despeje la obstrucción antes de operar. La visibilidad de las cámaras debe estar libre y clara.",
+  "Describe the obstruction (optional — for shop record)":
+    "Describa la obstrucción (opcional — para el registro del taller)",
+  "e.g. mud on lens, cracked housing, tape covering camera":
+    "p. ej., lodo en el lente, carcasa rota, cinta cubriendo la cámara",
+  "Answer the camera system question before submitting":
+    "Responda la pregunta del sistema de cámaras antes de enviar",
+  "Confirm whether the cameras are free and clear of obstructions":
+    "Confirme si las cámaras están libres y despejadas de obstrucciones",
+
+  // Submit-time downstream confirmation (Phase 8) — non-technical
+  // wording by default with expand-for-IDs affordance.
+  "Submitted — here's what happens next":
+    "Enviado — esto es lo que sigue",
+  "PDF is being rendered and stored.": "Se está generando y guardando el PDF.",
+  "Auto-emails have been queued.": "Los correos automáticos se pusieron en cola.",
+  "Shop and Dispatch will see any defects immediately.":
+    "El taller y despacho verán cualquier defecto de inmediato.",
+  "Safety and the PM will be notified per project routing.":
+    "Seguridad y el PM serán notificados según la ruta del proyecto.",
+  "Show technical details": "Mostrar detalles técnicos",
+  "Hide technical details": "Ocultar detalles técnicos",
+  "Correlation ID": "ID de correlación",
+  "PDF ID": "ID del PDF",
+  "Done": "Listo",
+
+  // Track 19.06 Amendment strings (previously EN-only). Bilingual parity.
+  "Prefilled from previous report": "Rellenado del informe anterior",
+  "Crew and equipment were prefilled from the previous matching report. Review and adjust hours before submitting.":
+    "La cuadrilla y el equipo se rellenaron desde el informe anterior coincidente. Revise y ajuste las horas antes de enviar.",
+  "Got it": "Entendido",
+  "Prior common time pattern is prefilled — you review and adjust hours before submit.":
+    "Se rellenó el patrón de horario previo común — usted revisa y ajusta las horas antes de enviar.",
+  "Reset hours": "Reiniciar horas",
+  "Clear this row's prefilled start / stop / lunch — name and trade stay.":
+    "Borra la entrada / salida / almuerzo rellenados de esta fila — el nombre y el oficio permanecen.",
+  "Prefilled from {d} — edit the deltas":
+    "Rellenado desde {d} — edite las diferencias",
+  "prior report": "informe anterior",
+
+  // Track 19.07 cognitive-checkpoint band labels (previously EN-only).
+  "Who was there": "Quiénes estuvieron",
+  "What got done": "Qué se hizo",
+  "What impacted today": "Qué impactó hoy",
+  "What moved": "Qué se movió",
+  "Was the job safe": "El trabajo fue seguro",
+  "What happens next": "Qué sigue",
+  "Additional context (rarely needed)": "Contexto adicional (rara vez necesario)",
+  "Operational notes (optional)": "Notas operacionales (opcional)",
 };
 
 const DICTS = { es: ES, en: {} };

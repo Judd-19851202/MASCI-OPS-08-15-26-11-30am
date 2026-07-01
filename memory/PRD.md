@@ -11,7 +11,50 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-07-01 · TRACK 19.09 · Operational Forms UX Modernization Foundation · Bundle A · ✅ GREEN · CLOSED)
+
+### Mode
+Execution track. Zero backend / schema / route / payload changes. Zero drift from Track 19.03–19.08 protections.
+
+### Delivered (Bundle A of the Track 19.09 brief)
+1. **Phase 3 · Equipment Pre-Op Camera Obstruction Safety Gate** — new "Section 01A" with three-way Yes/No/Not-sure presence question, progressive-disclosed follow-up when Yes, and **HARD BLOCK on submit** when cameras are obstructed. Optional obstruction description captured for shop record.
+2. **Phase 5 · DVIR Camera Obstruction Safety Gate** — identical doctrine on DVIR ("Section 03A" between Trailers and Sign & Submit). DOT compliance preserved.
+3. **Phase 8 · Submit-Time Downstream Commitment Confirmation** — reusable `<DownstreamCommitmentPanel>` component + inline standardized bullet list on `ThankYou.jsx` for Equipment/DVIR post-submit flow. Non-technical by default; expand-for-technical-IDs affordance (product-decision v).
+4. **Bilingual Parity Amendment** — 35 new Spanish translations covering Phase 3/5/8 + retro-fill for Track 19.06 Amendment (Reset hours, Prefilled from previous report, review-hours notice) and Track 19.07 cognitive-checkpoint band labels (Who was there / What got done / What impacted today / What moved / Was the job safe / What happens next / Additional context). Zero EN-only strings.
+
+### Regression
+**373 / 373 pytest assertions GREEN** — Tracks 19.03 (27) + 19.04 (33) + 19.05 (59) + 19.06 (44) + 19.06 Amendment (21) + 19.07 (23) + 19.08 Audit (112) + **19.09 (54 NEW)**. Live smoke on `/equipment/new` clean.
+
+### Preservation matrix (audited in `TRACK_19_09_FAIL_CASCADE_PRESERVATION.md`)
+All 16 documented fail-cascade / OSHA / DOT / PDF / email / audit / Trust-Spine / Motive-Samsara integration surfaces preserved unchanged. Track 19.08 forms-audit snapshot lock (112 assertions) fully GREEN post-19.09.
+
+### Documents
+Five audit documents at `memory/TRACK_19_09/`:
+* `TRACK_19_09_OPERATIONAL_FORMS_MODERNIZATION.md` — executive summary
+* `TRACK_19_09_CAMERA_OBSTRUCTION_GATE.md` — design & behaviour spec (both forms)
+* `TRACK_19_09_FAIL_CASCADE_PRESERVATION.md` — verification matrix
+* `TRACK_19_09_BILINGUAL_PARITY_REPORT.md` — 35-key coverage table
+* `TRACK_19_09_SPANISH_SUBMISSION_VALIDATION.md` — 5:30-AM foreman ES walkthrough
+* `TRACK_19_09_TEST_REPORT.md` — regression report
+
+### Files touched
+* `frontend/src/pages/NewEquipmentInspection.jsx` — camera-gate defaults + submit validation + Section 01A UI
+* `frontend/src/pages/NewFleetDVIR.jsx` — camera-gate state + submit validation + payload keys + Section 03A UI
+* `frontend/src/pages/ThankYou.jsx` — Phase 8 four-bullet downstream-commitment block
+* `frontend/src/components/DownstreamCommitmentPanel.jsx` — reusable modal (NEW)
+* `frontend/src/lib/i18n.js` — 35 new Spanish translations
+* `backend/tests/test_track_19_09_operational_forms_modernization.py` — 54 lock assertions (NEW)
+
+### Deferred to Track 19.10
+Phases 1 (FormShell primitive) · 2 (Equipment Pre-Op progressive-disclosure conversion) · 4 (DVIR progressive-disclosure) · 6 (Safety Meeting modernization — topic-auto-load PRESERVED) · 7 (help-drawer consolidation) · 10 (Smart Prefill on Equipment/DVIR) · 11 (cross-form terminology alignment). Each is a significant workstream and warrants its own track.
+
+---
+
+
+
 ## Latest Track (2026-07-01 · TRACK 19.08 · Operational Forms Forensic Intelligence Audit · ✅ COMPLETE · CLOSED)
+
+### Mode
 Audit-only. Zero code, schema, route, notification, PDF, email, permission, validation, or UI changes across the entire operational forms ecosystem.
 
 ### Delivered

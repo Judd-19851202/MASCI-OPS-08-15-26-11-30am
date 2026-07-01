@@ -234,6 +234,27 @@ export default function ThankYou() {
             </p>
           )}
 
+          {/* TRACK 19.09 · Phase 8 · Standardized downstream-commitment
+              bullet list. Non-technical operator wording; bilingual via
+              useT(). Reassures the 5:30-AM foreman that the submit
+              actually caused things to happen. */}
+          {v.showRecordId && (
+            <div
+              className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-left max-w-md mx-auto"
+              data-testid="thank-you-downstream-commitments"
+            >
+              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-emerald-900 font-bold mb-2">
+                {t("Submitted — here's what happens next")}
+              </div>
+              <ul className="list-disc list-inside space-y-1 text-sm text-slate-800">
+                <li data-testid="commitment-pdf">{t("PDF is being rendered and stored.")}</li>
+                <li data-testid="commitment-email">{t("Auto-emails have been queued.")}</li>
+                <li data-testid="commitment-shop">{t("Shop and Dispatch will see any defects immediately.")}</li>
+                <li data-testid="commitment-safety-pm">{t("Safety and the PM will be notified per project routing.")}</li>
+              </ul>
+            </div>
+          )}
+
           <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-x-4 gap-y-4">
             {v.buttons}
           </div>

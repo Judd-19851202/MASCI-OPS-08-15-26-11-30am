@@ -178,6 +178,17 @@ const buildDefaults = () => ({
   deficiency_notes: "",
   corrective_actions: "",
   out_of_service: "No",
+  // TRACK 19.09 · Phase 3 · Camera Obstruction Safety Gate.
+  // Three-state camera presence + Yes/No obstruction follow-up.
+  // Hard-block submission when a camera is present AND obstructed until
+  // the operator clears it. Preserves the fail-cascade payload shape:
+  // the answers persist as additional keys on the inspection record so
+  // downstream PDFs / emails / audit trails include them without any
+  // schema-breaking change (backend `equipment_inspections` accepts
+  // extra keys — this is additive by design).
+  camera_system_present: "",       // "yes" | "no" | "unsure" | ""
+  camera_obstructions_clear: "",   // "yes" | "no" | ""
+  camera_obstruction_note: "",     // required when camera_obstructions_clear === "no" at the moment they attempt submit
   photos: [],
   operator_signature: "",
 });
@@ -414,6 +425,24 @@ export default function NewEquipmentInspection({ publicMode = false }) {
       return toast.error("Hour Meter / Odometer reading is required");
     }
     if (!data.operator_signature) return toast.error("Operator signature is required");
+
+    // TRACK 19.09 · Camera obstruction hard-gate. A "Yes" on camera-system
+    // present requires a "Yes" on obstructions-clear. If obstructions
+    // remain, submission is blocked with a clear operator instruction —
+    // this is a safety-critical gate; there is no bypass.
+    if (data.camera_system_present === "") {
+      return toast.error(t("Answer the camera system question before submitting"));
+    }
+    if (data.camera_system_present === "yes") {
+      if (data.camera_obstructions_clear === "") {
+        return toast.error(t("Confirm whether the cameras are free and clear of obstructions"));
+      }
+      if (data.camera_obstructions_clear === "no") {
+        return toast.error(
+          t("Clear the obstruction before operating. Camera visibility must be free and clear.")
+        );
+      }
+    }
 
     // Make sure every checklist item has a status — fail-fast helps OSHA records
     const missing = [];
@@ -752,6 +781,138 @@ export default function NewEquipmentInspection({ publicMode = false }) {
                 )
               ) : null}
             </div>
+          </div>
+        </Section>
+
+        {/*
+          TRACK 19.09 · Camera Obstruction Safety Gate (Phase 3)
+          Bilingual (see /app/frontend/src/lib/i18n.js entries).
+          Progressive disclosure: obstruction question only renders when
+          camera_system_present === "yes". Submit is HARD-BLOCKED when
+          `yes + no` (obstructed) — safety-critical.
+        */}
+        <Section number="01A" title={t("Camera System Safety Check")}>
+          <div
+            className="rounded-xl border border-slate-200 bg-slate-50 p-3 sm:p-4 space-y-3"
+            data-testid="equipment-camera-gate"
+          >
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                {t("Does this equipment have a camera system?")}
+              </Label>
+              <div className="mt-2 grid grid-cols-3 gap-2">
+                {[
+                  { v: "yes", label: t("Yes"), testId: "camera-system-yes" },
+                  { v: "no", label: t("No"), testId: "camera-system-no" },
+                  { v: "unsure", label: t("Not sure"), testId: "camera-system-unsure" },
+                ].map((opt) => (
+                  <button
+                    key={opt.v}
+                    type="button"
+                    data-testid={opt.testId}
+                    onClick={() =>
+                      setData((p) => ({
+                        ...p,
+                        camera_system_present: opt.v,
+                        // Reset the follow-up when the primary answer changes.
+                        camera_obstructions_clear:
+                          opt.v === "yes" ? p.camera_obstructions_clear : "",
+                        camera_obstruction_note:
+                          opt.v === "yes" ? p.camera_obstruction_note : "",
+                      }))
+                    }
+                    className={`h-10 rounded-md font-mono text-xs uppercase tracking-[0.15em] border-2 transition-colors ${
+                      data.camera_system_present === opt.v
+                        ? "bg-slate-900 text-white border-transparent"
+                        : "bg-white text-slate-600 border-slate-300 hover:border-slate-500"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {data.camera_system_present === "yes" && (
+              <div
+                className="pt-2 border-t border-slate-200"
+                data-testid="equipment-camera-followup"
+              >
+                <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                  {t(
+                    "Are the front-facing camera and interior-facing camera free and clear of obstructions?"
+                  )}
+                </Label>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    data-testid="camera-clear-yes"
+                    onClick={() =>
+                      setData((p) => ({
+                        ...p,
+                        camera_obstructions_clear: "yes",
+                        camera_obstruction_note: "",
+                      }))
+                    }
+                    className={`h-10 rounded-md font-mono text-xs uppercase tracking-[0.15em] border-2 transition-colors ${
+                      data.camera_obstructions_clear === "yes"
+                        ? "bg-emerald-600 text-white border-transparent"
+                        : "bg-white text-slate-600 border-slate-300 hover:border-slate-500"
+                    }`}
+                  >
+                    {t("Yes — clear")}
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="camera-clear-no"
+                    onClick={() =>
+                      setData((p) => ({ ...p, camera_obstructions_clear: "no" }))
+                    }
+                    className={`h-10 rounded-md font-mono text-xs uppercase tracking-[0.15em] border-2 transition-colors ${
+                      data.camera_obstructions_clear === "no"
+                        ? "bg-red-600 text-white border-transparent"
+                        : "bg-white text-slate-600 border-slate-300 hover:border-slate-500"
+                    }`}
+                  >
+                    {t("No — obstruction present")}
+                  </button>
+                </div>
+
+                {data.camera_obstructions_clear === "no" && (
+                  <div
+                    className="mt-3 rounded-md border-2 border-red-400 bg-red-50 p-3"
+                    data-testid="camera-obstruction-block"
+                  >
+                    <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-red-800 font-bold">
+                      {t("Safety-critical · Submission blocked")}
+                    </div>
+                    <p className="mt-1 text-sm text-red-900 leading-snug">
+                      {t(
+                        "Clear the obstruction before operating. Camera visibility must be free and clear."
+                      )}
+                    </p>
+                    <Label className="mt-3 block font-mono text-[10px] uppercase tracking-[0.15em] text-red-800">
+                      {t("Describe the obstruction (optional — for shop record)")}
+                    </Label>
+                    <Textarea
+                      value={data.camera_obstruction_note}
+                      onChange={(e) =>
+                        setData((p) => ({
+                          ...p,
+                          camera_obstruction_note: e.target.value,
+                        }))
+                      }
+                      rows={2}
+                      data-testid="camera-obstruction-note"
+                      className="mt-1 bg-white text-sm"
+                      placeholder={t(
+                        "e.g. mud on lens, cracked housing, tape covering camera"
+                      )}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </Section>
 

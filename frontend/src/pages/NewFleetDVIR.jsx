@@ -239,6 +239,14 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
   const [notes, setNotes] = useState("");
   const [signature, setSignature] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  // TRACK 19.09 · DVIR camera obstruction safety gate (Phase 5).
+  // Same doctrine as Equipment Pre-Op: additive payload keys, progressive
+  // disclosure, HARD-BLOCK on obstructed cameras. Preserves DOT/DVIR
+  // required fields; no schema-breaking change (backend `fleet_audit`
+  // accepts extra keys).
+  const [cameraSystemPresent, setCameraSystemPresent] = useState("");   // "yes" | "no" | "unsure" | ""
+  const [cameraClear, setCameraClear] = useState("");                    // "yes" | "no" | ""
+  const [cameraObstructionNote, setCameraObstructionNote] = useState("");
   // Track 13.31B-D5.4 · structured canonical section capture for DVIR
   const [canonicalCapture, setCanonicalCapture] = useState(null);
   const canonicalAvailable =
@@ -349,6 +357,21 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
       if (errRef.current) errRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
+    // TRACK 19.09 · Camera obstruction hard-gate for DVIR. Same doctrine
+    // as Equipment Pre-Op — no bypass.
+    if (cameraSystemPresent === "") {
+      return toast.error(t("Answer the camera system question before submitting"));
+    }
+    if (cameraSystemPresent === "yes") {
+      if (cameraClear === "") {
+        return toast.error(t("Confirm whether the cameras are free and clear of obstructions"));
+      }
+      if (cameraClear === "no") {
+        return toast.error(
+          t("Clear the obstruction before operating. Camera visibility must be free and clear.")
+        );
+      }
+    }
     setSubmitting(true);
     const payload = {
       kind,
@@ -369,6 +392,12 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
       driver_signature: signature,
       notes,
       submitted_via: "public_tile",
+      // TRACK 19.09 · Camera answers persist alongside the existing DVIR
+      // payload. Backend `fleet_audit` accepts extra keys; audit trail
+      // + PDF renderer pick them up as additive fields.
+      camera_system_present: cameraSystemPresent,
+      camera_obstructions_clear: cameraClear,
+      camera_obstruction_note: cameraObstructionNote,
     };
     // D5.4 · attach structured canonical capture (additive · backend stores
     // it alongside legacy `truck_checklist` so existing routing keeps firing).
@@ -762,6 +791,119 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
           )}
         </Section>
         )}
+
+        {/* SECTION 04 — Sign & Submit */}
+        <Section number="03A" title={t("Camera System Safety Check")} className="mt-5">
+          {/* TRACK 19.09 · DVIR camera obstruction safety gate.
+              Progressive disclosure — obstruction question only renders
+              when camera_system_present === "yes". HARD-BLOCK submit
+              when "yes + no" (obstructed). Bilingual via useT(). */}
+          <div
+            className="rounded-xl border border-slate-200 bg-slate-50 p-3 sm:p-4 space-y-3"
+            data-testid="dvir-camera-gate"
+          >
+            <div>
+              <div className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700 mb-2">
+                {t("Does this truck have a camera system?")}
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { v: "yes", label: t("Yes"), testId: "dvir-camera-system-yes" },
+                  { v: "no", label: t("No"), testId: "dvir-camera-system-no" },
+                  { v: "unsure", label: t("Not sure"), testId: "dvir-camera-system-unsure" },
+                ].map((opt) => (
+                  <button
+                    key={opt.v}
+                    type="button"
+                    data-testid={opt.testId}
+                    onClick={() => {
+                      setCameraSystemPresent(opt.v);
+                      if (opt.v !== "yes") {
+                        setCameraClear("");
+                        setCameraObstructionNote("");
+                      }
+                    }}
+                    className={`h-10 rounded-md font-mono text-xs uppercase tracking-[0.15em] border-2 transition-colors ${
+                      cameraSystemPresent === opt.v
+                        ? "bg-slate-900 text-white border-transparent"
+                        : "bg-white text-slate-600 border-slate-300 hover:border-slate-500"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {cameraSystemPresent === "yes" && (
+              <div className="pt-2 border-t border-slate-200" data-testid="dvir-camera-followup">
+                <div className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700 mb-2">
+                  {t(
+                    "Are the front-facing camera and interior-facing camera free and clear of obstructions?"
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    data-testid="dvir-camera-clear-yes"
+                    onClick={() => {
+                      setCameraClear("yes");
+                      setCameraObstructionNote("");
+                    }}
+                    className={`h-10 rounded-md font-mono text-xs uppercase tracking-[0.15em] border-2 transition-colors ${
+                      cameraClear === "yes"
+                        ? "bg-emerald-600 text-white border-transparent"
+                        : "bg-white text-slate-600 border-slate-300 hover:border-slate-500"
+                    }`}
+                  >
+                    {t("Yes — clear")}
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="dvir-camera-clear-no"
+                    onClick={() => setCameraClear("no")}
+                    className={`h-10 rounded-md font-mono text-xs uppercase tracking-[0.15em] border-2 transition-colors ${
+                      cameraClear === "no"
+                        ? "bg-red-600 text-white border-transparent"
+                        : "bg-white text-slate-600 border-slate-300 hover:border-slate-500"
+                    }`}
+                  >
+                    {t("No — obstruction present")}
+                  </button>
+                </div>
+
+                {cameraClear === "no" && (
+                  <div
+                    className="mt-3 rounded-md border-2 border-red-400 bg-red-50 p-3"
+                    data-testid="dvir-camera-obstruction-block"
+                  >
+                    <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-red-800 font-bold">
+                      {t("Safety-critical · Submission blocked")}
+                    </div>
+                    <p className="mt-1 text-sm text-red-900 leading-snug">
+                      {t(
+                        "Clear the obstruction before operating. Camera visibility must be free and clear."
+                      )}
+                    </p>
+                    <label className="mt-3 block font-mono text-[10px] uppercase tracking-[0.15em] text-red-800">
+                      {t("Describe the obstruction (optional — for shop record)")}
+                    </label>
+                    <textarea
+                      value={cameraObstructionNote}
+                      onChange={(e) => setCameraObstructionNote(e.target.value)}
+                      rows={2}
+                      data-testid="dvir-camera-obstruction-note"
+                      className="mt-1 w-full rounded-md border border-slate-300 bg-white p-2 text-sm"
+                      placeholder={t(
+                        "e.g. mud on lens, cracked housing, tape covering camera"
+                      )}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </Section>
 
         {/* SECTION 04 — Sign & Submit */}
         <Section number="04" title={t("Sign & Submit")} className="mt-5">
