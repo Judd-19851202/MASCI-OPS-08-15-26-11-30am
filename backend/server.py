@@ -2567,6 +2567,17 @@ register_incident_engine_routes(
 from incident_engine.public_gate import register_public_routes as _register_ie_public_routes  # noqa: E402
 _register_ie_public_routes(api_router, db)
 
+# Safety Case Workspace (Phase C). Additive satellite endpoints
+# (communications / witnesses / medical / agency / tasks / health /
+# executive-snapshot). Uses the same Safety/Admin/PM read gate.
+from incident_engine.workspace_routes import register_workspace_routes as _register_ie_workspace_routes  # noqa: E402
+_register_ie_workspace_routes(
+    api_router, db,
+    require_actor=__import__(
+        "routes.safety_portal._deps", fromlist=["make_require_safety_admin_or_pm"]
+    ).make_require_safety_admin_or_pm(db, _is_valid_admin_token, _is_valid_pm_token),
+)
+
 
 # ─── OMEGA · Phase 1A · iter452 · OC-002 Daily Report Office Review ──
 #     Additive transition endpoints. Uses the Safety/Admin/PM read gate

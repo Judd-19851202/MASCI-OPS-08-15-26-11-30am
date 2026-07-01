@@ -11,7 +11,86 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
-## Latest Track (2026-07-01 · TRACK 19.16 · Phase B2 · Public Gate + Advanced Field Reliability · ✅ GREEN · CLOSED)
+## Latest Track (2026-07-01 · TRACK 19.16 · Phase C · Safety Case Workspace · ✅ GREEN · CLOSED)
+
+### Track type
+**IMPLEMENTATION — Phase C** of the Incident Intelligence Engine. Command-center workspace consuming Phase A domain engine. Additive-only: 5 new satellite collections, 15 new backend routes, 1 new frontend page.
+
+### Constitution followed (Six Pillars)
+- **Powerful** — one workspace, one case, one operational truth. Communications/witnesses/medical/agency/tasks all live in the case; no external spreadsheets
+- **Simple** — 10 tabs answer the 10 questions Safety asks; sidebar shows readiness + executive snapshot; nothing hunts
+- **Beautiful** — right-side sidebar with Executive Snapshot (slate-900) + Case Health with progress bar; tab bar with icons; timeline event cards
+- **Trusted** — every workspace mutation emits a domain event on the Phase A spine; Field Block stays immutable; nothing bypasses `safety_block.write` capability
+- **Proven** — 25 Phase C lock tests + 201 combined engine regression GREEN
+- **Operational** — status dropdowns on witnesses/tasks; one-click CAPA verify; case health surfaces blockers by name
+
+### Deliverables
+
+**Backend (additive):**
+- NEW `/app/backend/incident_engine/workspace.py` — 5 satellite models (Communication · Witness · MedicalEntry · AgencyContact · SafetyTask) + CRUD helpers + `compute_case_health` + `compute_executive_snapshot`
+- NEW `/app/backend/incident_engine/workspace_routes.py` — 15 additive HTTP routes under `/api/incident-cases/{id}/*`
+- UPDATED `/app/backend/server.py` — additive registration block
+
+**Frontend (additive):**
+- NEW `/app/frontend/src/pages/SafetyCaseWorkspace.jsx` — command-center page at `/safety/cases/:caseId`
+- NEW `/app/frontend/src/lib/caseWorkspaceApi.js` — client covering 8 satellite endpoints
+- UPDATED `/app/frontend/src/App.js` — additive route
+- UPDATED `/app/frontend/src/lib/i18n.js` — ~60 new EN↔ES pairs
+
+### New collections (all isolated)
+- `incident_case_communications` — call / email / meeting / customer / utility / insurance / agency / other
+- `incident_case_witnesses` — 6 witness kinds × 6 statuses × credibility notes (safety-only field)
+- `incident_case_medical_entries` — 7 medical kinds with lost-days tracking
+- `incident_case_agency_contacts` — police / utility / regulatory
+- `incident_case_tasks` — investigator task list with 5 statuses
+
+### New routes (15 additive, all `/api`-prefixed, all Safety/Admin/PM gated)
+- `POST/GET /api/incident-cases/{id}/communications`
+- `POST/GET /api/incident-cases/{id}/witnesses` · `PATCH /api/incident-cases/{id}/witnesses/{wid}`
+- `POST/GET /api/incident-cases/{id}/medical`
+- `POST/GET /api/incident-cases/{id}/agency-contacts`
+- `POST/GET /api/incident-cases/{id}/tasks` · `PATCH /api/incident-cases/{id}/tasks/{tid}`
+- `GET /api/incident-cases/{id}/health` — closure readiness + blocker list + counts
+- `GET /api/incident-cases/{id}/executive-snapshot` — 30-second leadership view
+
+### Workspace layout (per constitution)
+- **Case Header** (always visible): case number · type · state · location · job · reporter · days-open
+- **Left/Center**: tab bar (Timeline / Evidence / Witnesses / Medical / Police-Agency / Root Cause / Corrective Actions / Communications / Safety Tasks / Linked Records) with panel content
+- **Right sidebar**: Executive Snapshot + Case Health (completeness % + colored blocker list + count grid)
+
+### Case Health signals (blockers detected)
+`root_cause_missing` · `open_corrective_actions` · `open_tasks` · `recordability_unset` (injury cases) · `medical_entry_missing` (injury cases) · `police_contact_missing` (vehicle cases). Health percentage = (6 − blockers) / 6 × 100. Live-computed; never persisted.
+
+### Testing
+- **Backend lock tests:** `pytest test_track_19_16_incident_engine_phase_c.py` → **25/25 GREEN**
+- **Combined engine regression:** 19.15 audit + 19.16 A + B2 + C = **201/201 GREEN** (0.45s)
+- **Frontend smoke:** route mounts, error path handled (401 → clean error card + Back button), kiosk case #2026-00003 created via engine
+
+### Zero-Drift verification
+- Legacy `incidents` collection untouched (lock-tested: no forbidden write patterns)
+- Legacy `incident_lifecycle.py` file unchanged (byte-level assertion)
+- Phase A engine files never import workspace modules (verified via source scan)
+- `git diff` = 3 new backend files + 3 new frontend files + additive registration in `server.py` + additive `<Route>` in `App.js` + additive i18n keys + PRD update
+
+### Deferred to future tracks
+- Field-officer "Assigned to me" personal dashboard
+- Executive multi-case grid (Phase D dashboards)
+- Report package generators (Phase E)
+- OSHA 300/300A automation (Phase F)
+- Rich witness credibility ML scoring (AI-readiness slots reserved on `Witness.credibility_notes`)
+
+### Six-Pillar certification
+All six pillars asserted by lock tests directly or by traceable behavior:
+- Powerful → satellite collections consumed by ONE workspace (no duplication)
+- Simple → 10-tab bar with clear labels, empty-state text per panel
+- Beautiful → uses existing ForgedOps type/color language
+- Trusted → every mutation emits events on the Phase A spine; `field_block_locked` guarantee preserved
+- Proven → 25 new + 201 total assertions
+- Operational → status dropdowns, one-click CAPA verify, live-computed readiness
+
+---
+
+## Track (2026-07-01 · TRACK 19.16 · Phase B2 · Public Gate + Advanced Field Reliability · ✅ GREEN · CLOSED)
 
 ### Track type
 **IMPLEMENTATION — Phase B2** — additive-only reliability + public-gate extension of the Incident Intelligence Engine. Consumes Phase A domain engine; does NOT modify Phase A, B1, or legacy incident code.
