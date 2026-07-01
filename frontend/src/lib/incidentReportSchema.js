@@ -52,10 +52,16 @@ const STEP_LOCATION = {
   key: "location",
   label: "Location",
   fields: [
-    { key: "job_number", type: "text", label: "Job number", required: true },
+    // TRACK 19.16 · UX Hardening Batch 1 — Project Picker replaces
+    // manual job_number entry. `project_picker` renderer handles
+    // selection + auto-fill; `project_manual_toggle` reveals plain-text
+    // job_number for temporary / unlisted projects only.
+    { key: "job_number", type: "project_picker", label: "Project", required: true },
     { key: "location_label", type: "text", label: "Location description", required: true },
+    // GPS + weather auto-capture on the same step. Weather is derived
+    // from GPS via /api/incident-intelligence/weather (no typing).
     { key: "location_gps", type: "gps", label: "GPS coordinate" },
-    { key: "weather", type: "text", label: "Weather" },
+    { key: "weather", type: "weather_auto", label: "Weather" },
   ],
 };
 
@@ -64,7 +70,9 @@ const STEP_PEOPLE = {
   key: "people",
   label: "Who was involved",
   fields: [
-    { key: "reporter_name", type: "text", label: "Your name (reporter)", required: true },
+    // Auto-filled from the current directory session; user only
+    // confirms or overrides — never retypes.
+    { key: "reporter_name", type: "identity_confirm", label: "Reporter", required: true },
     { key: "reporter_role", type: "text", label: "Your role", required: true },
     { key: "personnel_present", type: "personnel_list", label: "Personnel present" },
   ],

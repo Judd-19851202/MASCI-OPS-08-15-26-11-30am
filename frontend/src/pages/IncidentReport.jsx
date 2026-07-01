@@ -28,18 +28,23 @@ import { HelpDrawer } from "@/components/HelpDrawer";
 import { PresenceGate } from "@/components/PresenceGate";
 import { INCIDENT_FLOWS, INCIDENT_TYPE_ORDER, hasValue, requiredFieldsForStep, stepsFor } from "@/lib/incidentReportSchema";
 import { clearDraft, currentDraftId, ensureActiveDraftId, loadDraft, saveDraft } from "@/lib/incidentDraft";
-import { createCase, patchFieldBlock, transitionCase, addEvidence } from "@/lib/incidentReportApi";
+import { createCase, patchFieldBlock, transitionCase, addEvidence, fetchDirectoryMe, fetchProjectContext, fetchWeather } from "@/lib/incidentReportApi";
 import { DraftResumeBanner } from "@/components/DraftResumeBanner";
+import { JobPicker } from "@/components/JobPicker";
 import {
   AlertTriangle,
   Car,
   Check,
   ChevronLeft,
+  CloudSun,
   Droplet,
   Heart,
   Home,
+  Lock,
   Megaphone,
+  Pencil,
   Shield,
+  UserCheck,
   Wrench,
   Zap,
 } from "lucide-react";
@@ -378,8 +383,183 @@ function GpsField({ value, onChange, testId }) {
   );
 }
 
+// ── TRACK 19.16 · UX Hardening Batch 1 ─────────────────────────────
+// Auto-fill field renderers. Selection beats typing. All three flag
+// the parent's `__auto__` map so the Review panel can distinguish
+// auto-filled values from typed ones.
+
+function ProjectPickerField({ value, onChange, testId, onSelectProject }) {
+  const { t } = useT();
+  const [manual, setManual] = useState(false);
+  const displayLabel = value || "";
+  return (
+    <div className="space-y-2" data-testid={testId}>
+      {!manual ? (
+        <>
+          <JobPicker
+            projectName=""
+            projectNumber={displayLabel}
+            onSelect={(job) => {
+              if (!job) return;
+              const num = job.project_number || "";
+              onChange(num);
+              try { onSelectProject && onSelectProject(job); } catch (_e) { /* noop */ }
+            }}
+            allowCustom={false}
+          />
+          <button
+            type="button"
+            onClick={() => setManual(true)}
+            className="text-xs font-mono uppercase tracking-[0.14em] text-slate-500 hover:text-slate-800 underline"
+            data-testid={`${testId}-manual-toggle`}
+          >
+            {t("Temporary or unlisted project — enter manually")}
+          </button>
+        </>
+      ) : (
+        <>
+          <input
+            type="text"
+            className="w-full h-11 rounded-md border border-slate-300 px-3 text-base"
+            placeholder={t("Job number")}
+            value={value || ""}
+            onChange={(e) => onChange(e.target.value)}
+            data-testid={`${testId}-manual-input`}
+          />
+          <button
+            type="button"
+            onClick={() => setManual(false)}
+            className="text-xs font-mono uppercase tracking-[0.14em] text-slate-500 hover:text-slate-800 underline"
+            data-testid={`${testId}-picker-toggle`}
+          >
+            {t("Back to project picker")}
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
+function IdentityConfirmField({ value, identity, onChange, testId }) {
+  const { t } = useT();
+  const [manual, setManual] = useState(false);
+  const suggestedName = identity?.name || identity?.email || "";
+  useEffect(() => {
+    // First-load suggestion: adopt the directory name if the field is empty.
+    if (!value && suggestedName && !manual) {
+      onChange(suggestedName);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [suggestedName]);
+
+  if (manual || !suggestedName) {
+    return (
+      <input
+        type="text"
+        className="w-full h-11 rounded-md border border-slate-300 px-3 text-base"
+        placeholder={t("Your name")}
+        value={value || ""}
+        onChange={(e) => onChange(e.target.value)}
+        data-testid={`${testId}-input`}
+      />
+    );
+  }
+
+  const matches = (value || "").trim() === suggestedName.trim();
+  return (
+    <div
+      className={`flex items-center gap-2 rounded-md border-2 p-3 ${
+        matches
+          ? "border-emerald-300 bg-emerald-50"
+          : "border-amber-300 bg-amber-50"
+      }`}
+      data-testid={testId}
+    >
+      <UserCheck className={`w-5 h-5 ${matches ? "text-emerald-700" : "text-amber-700"}`} />
+      <div className="flex-1 min-w-0">
+        <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-slate-500">
+          {t("Signed in as")}
+        </div>
+        <div className="font-bold text-slate-900 truncate">{suggestedName}</div>
+        {identity?.email ? (
+          <div className="text-xs text-slate-500 truncate">{identity.email}</div>
+        ) : null}
+      </div>
+      <button
+        type="button"
+        onClick={() => setManual(true)}
+        className="text-xs font-mono uppercase tracking-[0.14em] text-slate-600 hover:text-slate-900 underline"
+        data-testid={`${testId}-not-me`}
+      >
+        {t("Not me")}
+      </button>
+    </div>
+  );
+}
+
+function WeatherAutoField({ value, weatherAuto, onChange, onRefetch, testId }) {
+  const { t } = useT();
+  const auto = weatherAuto || null;
+  const [busy, setBusy] = useState(false);
+  const doRefetch = async () => {
+    if (!onRefetch) return;
+    setBusy(true);
+    try { await onRefetch(); } finally { setBusy(false); }
+  };
+  return (
+    <div className="space-y-2" data-testid={testId}>
+      {auto ? (
+        <div
+          className="rounded-md border-2 border-sky-300 bg-sky-50 p-3"
+          data-testid={`${testId}-auto`}
+        >
+          <div className="flex items-center gap-2">
+            <CloudSun className="w-5 h-5 text-sky-700" />
+            <div className="font-bold text-slate-900 truncate">{auto.summary || value || "—"}</div>
+          </div>
+          <div className="mt-1 grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs text-slate-700">
+            {auto.temperature_f != null && (
+              <span>{t("Temp")}: {Math.round(auto.temperature_f)}°F</span>
+            )}
+            {auto.wind_speed_mph != null && (
+              <span>{t("Wind")}: {Math.round(auto.wind_speed_mph)} mph</span>
+            )}
+            {auto.relative_humidity != null && (
+              <span>{t("Humidity")}: {Math.round(auto.relative_humidity)}%</span>
+            )}
+            {auto.precipitation_in != null && (
+              <span>{t("Rain")}: {auto.precipitation_in.toFixed(2)} in</span>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-md border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600" data-testid={`${testId}-empty`}>
+          {t("Capture GPS to auto-fetch weather.")}
+        </div>
+      )}
+      <input
+        type="text"
+        className="w-full h-11 rounded-md border border-slate-300 px-3 text-base"
+        placeholder={t("Weather (optional override)")}
+        value={value || ""}
+        onChange={(e) => onChange(e.target.value)}
+        data-testid={`${testId}-override`}
+      />
+      <button
+        type="button"
+        onClick={doRefetch}
+        disabled={busy || !onRefetch}
+        className="h-9 px-3 rounded-md border border-slate-300 text-slate-700 text-xs font-mono uppercase tracking-[0.14em] hover:border-slate-600 disabled:opacity-60"
+        data-testid={`${testId}-refetch`}
+      >
+        {busy ? t("Fetching…") : t("Refresh weather")}
+      </button>
+    </div>
+  );
+}
+
 // ── Generic field renderer ───────────────────────────────────────────
-function FieldRenderer({ field, value, onChange, testIdPrefix }) {
+function FieldRenderer({ field, value, onChange, testIdPrefix, ctx }) {
   const { t } = useT();
   const tid = `${testIdPrefix}-field-${field.key}`;
   const commonProps = {
@@ -442,12 +622,37 @@ function FieldRenderer({ field, value, onChange, testIdPrefix }) {
   if (field.type === "witnesses") return (
     <WitnessesField value={value} onChange={onChange} testId={tid} />
   );
+  if (field.type === "project_picker") return (
+    <ProjectPickerField
+      value={value}
+      onChange={onChange}
+      onSelectProject={ctx?.onSelectProject}
+      testId={tid}
+    />
+  );
+  if (field.type === "identity_confirm") return (
+    <IdentityConfirmField
+      value={value}
+      identity={ctx?.identity}
+      onChange={onChange}
+      testId={tid}
+    />
+  );
+  if (field.type === "weather_auto") return (
+    <WeatherAutoField
+      value={value}
+      weatherAuto={ctx?.weatherAuto}
+      onChange={onChange}
+      onRefetch={ctx?.onRefetchWeather}
+      testId={tid}
+    />
+  );
 
   return null;
 }
 
 // ── One step of the form ─────────────────────────────────────────────
-function StepPanel({ step, draft, setField, testIdPrefix }) {
+function StepPanel({ step, draft, setField, testIdPrefix, ctx, autoMap }) {
   const { t } = useT();
   return (
     <div className="space-y-4" data-testid={`${testIdPrefix}-step-${step.key}`}>
@@ -461,15 +666,26 @@ function StepPanel({ step, draft, setField, testIdPrefix }) {
           .filter((f) => (typeof f.showIf === "function" ? f.showIf(draft) : true))
           .map((f) => (
             <div key={f.key} className="space-y-1" data-testid={`${testIdPrefix}-field-${f.key}`}>
-              <label className="block text-sm font-semibold text-slate-800">
+              <label className="flex items-center gap-1.5 text-sm font-semibold text-slate-800">
                 {t(f.label)}
-                {f.required && <span className="ml-1 text-red-700">*</span>}
+                {f.required && <span className="text-red-700">*</span>}
+                {autoMap && autoMap[f.key] ? (
+                  <span
+                    className="ml-1 inline-flex items-center gap-0.5 rounded-full bg-emerald-100 text-emerald-800 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em]"
+                    data-testid={`${testIdPrefix}-field-${f.key}-auto-badge`}
+                    title={t("Auto-filled from platform data")}
+                  >
+                    <Lock className="w-2.5 h-2.5" />
+                    {t("auto")}
+                  </span>
+                ) : null}
               </label>
               <FieldRenderer
                 field={f}
                 value={draft[f.key]}
                 onChange={(v) => setField(f.key, v)}
                 testIdPrefix={testIdPrefix}
+                ctx={ctx}
               />
             </div>
           ))}
@@ -479,9 +695,11 @@ function StepPanel({ step, draft, setField, testIdPrefix }) {
 }
 
 // ── Review card ──────────────────────────────────────────────────────
-function ReviewCard({ draft, steps, missing, onEditStep }) {
+function ReviewCard({ draft, steps, missing, onEditStep, autoMap }) {
   const { t } = useT();
   const flow = INCIDENT_FLOWS[draft.incident_type];
+  const autoCount = Object.keys(autoMap || {}).length;
+  const projectCtx = draft.__project_context__ || null;
   return (
     <div className="space-y-4" data-testid="incident-report-review">
       <div className="rounded-xl border-2 border-slate-300 bg-white p-4 sm:p-5">
@@ -494,6 +712,36 @@ function ReviewCard({ draft, steps, missing, onEditStep }) {
         <p className="mt-1 text-sm text-slate-600">
           {t("Everything you entered. Tap a section to jump back.")}
         </p>
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+          <span
+            className="inline-flex items-center gap-1 rounded-full bg-emerald-100 text-emerald-800 px-2 py-0.5 font-mono uppercase tracking-[0.12em]"
+            data-testid="incident-report-review-auto-count"
+          >
+            <Lock className="w-3 h-3" />
+            {autoCount} {t("auto-filled")}
+          </span>
+          <span
+            className="inline-flex items-center gap-1 rounded-full bg-slate-100 text-slate-700 px-2 py-0.5 font-mono uppercase tracking-[0.12em]"
+            data-testid="incident-report-review-typed-count"
+          >
+            <Pencil className="w-3 h-3" />
+            {t("typed by you")}
+          </span>
+        </div>
+        {projectCtx ? (
+          <div className="mt-3 rounded-md border border-slate-200 bg-slate-50 p-3 text-sm"
+               data-testid="incident-report-review-project-context">
+            <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-slate-500">
+              {t("Project details")}
+            </div>
+            <div className="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-0.5 text-slate-800">
+              <span>{t("Project")}: <b>{projectCtx.project_name || "—"}</b></span>
+              <span>{t("Client")}: <b>{projectCtx.client || "—"}</b></span>
+              <span>{t("PM")}: <b>{projectCtx.project_manager || "—"}</b></span>
+              <span>{t("Superintendent")}: <b>{projectCtx.superintendent || "—"}</b></span>
+            </div>
+          </div>
+        ) : null}
       </div>
       {steps.map((step, i) => {
         const stepMissing = (missing[step.key] || []).length;
@@ -601,6 +849,106 @@ export default function IncidentReport() {
   });
   const [helpOpen, setHelpOpen] = useState(false);
   const [submitState, setSubmitState] = useState({ error: "", caseNumber: "", caseId: "" });
+
+  // TRACK 19.16 · UX Hardening Batch 1 ─────────────────────────────
+  // Auto-fill state. `identity` = current directory user (name/email).
+  // `weatherAuto` = last-fetched Open-Meteo payload. `autoMap` marks
+  // which draft fields were auto-populated so the Review shows a lock
+  // badge instead of pretending the user typed them.
+  const [identity, setIdentity] = useState(null);
+  const [weatherAuto, setWeatherAuto] = useState(null);
+  const [autoMap, setAutoMap] = useState({});
+  const markAuto = (keys) => setAutoMap((m) => {
+    const next = { ...m };
+    for (const k of keys) next[k] = true;
+    return next;
+  });
+  // On mount: fetch directory identity + default date/time to now.
+  useEffect(() => {
+    let alive = true;
+    fetchDirectoryMe().then((who) => { if (alive && who) setIdentity(who); });
+    setDraft((d) => {
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, "0");
+      const dd = String(now.getDate()).padStart(2, "0");
+      const hh = String(now.getHours()).padStart(2, "0");
+      const mi = String(now.getMinutes()).padStart(2, "0");
+      const patch = {};
+      const filled = [];
+      if (!d.occurred_at_date) { patch.occurred_at_date = `${yyyy}-${mm}-${dd}`; filled.push("occurred_at_date"); }
+      if (!d.occurred_at_time) { patch.occurred_at_time = `${hh}:${mi}`; filled.push("occurred_at_time"); }
+      if (filled.length) markAuto(filled);
+      return { ...d, ...patch };
+    });
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // When a project is picked, auto-fill location + weather (if GPS).
+  const onSelectProject = async (job) => {
+    if (!job) return;
+    // Auto-fill the human-readable location label if empty. Keep any
+    // user-authored value intact — never silently overwrite.
+    setDraft((d) => {
+      const patch = {};
+      const filled = [];
+      if (!d.location_label && job.location) {
+        patch.location_label = job.location;
+        filled.push("location_label");
+      }
+      if (filled.length) markAuto(filled);
+      return { ...d, ...patch };
+    });
+    // Deep project context (superintendent, client, PM) — attach as a
+    // sidecar; not persisted server-side because the field_block schema
+    // owns only project_number, but we expose it in Review.
+    try {
+      const ctx = await fetchProjectContext(job.project_number);
+      if (ctx) {
+        setDraft((d) => ({ ...d, __project_context__: ctx }));
+      }
+    } catch { /* silent */ }
+  };
+
+  // Refetch weather from current GPS coordinates.
+  const refetchWeatherFromGps = async () => {
+    const gps = draft.location_gps;
+    if (!gps || typeof gps.lat !== "number" || typeof gps.lng !== "number") return;
+    const w = await fetchWeather(gps.lat, gps.lng);
+    if (w) {
+      setWeatherAuto(w);
+      if (!draft.weather && w.summary) {
+        setDraft((d) => ({ ...d, weather: w.summary }));
+        markAuto(["weather"]);
+      }
+    }
+  };
+
+  // Auto-fetch weather whenever GPS lands and no manual override exists.
+  useEffect(() => {
+    const gps = draft.location_gps;
+    if (!gps || typeof gps.lat !== "number" || typeof gps.lng !== "number") return;
+    let alive = true;
+    fetchWeather(gps.lat, gps.lng).then((w) => {
+      if (!alive || !w) return;
+      setWeatherAuto(w);
+      if (!draft.weather && w.summary) {
+        setDraft((d) => (d.weather ? d : { ...d, weather: w.summary }));
+        markAuto(["weather"]);
+      }
+    });
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft.location_gps?.lat, draft.location_gps?.lng]);
+
+  const ctx = useMemo(() => ({
+    identity,
+    weatherAuto,
+    onSelectProject,
+    onRefetchWeather: refetchWeatherFromGps,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [identity, weatherAuto, draft.location_gps?.lat, draft.location_gps?.lng]);
 
   // Autosave draft on any change. Persist stepIndex alongside so the
   // user resumes on the exact step they left.
@@ -853,6 +1201,8 @@ export default function IncidentReport() {
           draft={draft}
           setField={setField}
           testIdPrefix="incident-report"
+          ctx={ctx}
+          autoMap={autoMap}
         />
       )}
       {phase === "review" && (
@@ -867,6 +1217,7 @@ export default function IncidentReport() {
             steps={steps}
             missing={missing}
             onEditStep={(i) => { setPhase("steps"); setStepIndex(i); }}
+            autoMap={autoMap}
           />
         </>
       )}

@@ -70,10 +70,64 @@ export async function addEvidence(caseId, payload) {
   return data;
 }
 
+// TRACK 19.16 · UX Hardening Batch 1 ────────────────────────────────
+// Auto-fill helpers. All read-only; degrade silently to null so the
+// form still works when a helper is unavailable (offline, unauthed).
+
+// Directory identity of the current user (name / email / role).
+export async function fetchDirectoryMe() {
+  try {
+    const directory = window.localStorage.getItem("masci.directory.token");
+    if (!directory) return null;
+    const c = axios.create({
+      baseURL: API,
+      headers: { "Content-Type": "application/json",
+                 "X-Directory-Token": directory },
+      timeout: 6000,
+    });
+    const { data } = await c.get("/auth/me-directory");
+    return data?.user || null;
+  } catch {
+    return null;
+  }
+}
+
+// Canonical project row + last-known superintendent.
+export async function fetchProjectContext(projectNumber) {
+  if (!projectNumber) return null;
+  try {
+    const c = _client();
+    const { data } = await c.get(
+      `/incident-intelligence/project-context/${encodeURIComponent(projectNumber)}`,
+    );
+    return data || null;
+  } catch {
+    return null;
+  }
+}
+
+// Auto-fetch weather at GPS coordinates. Returns compact structured
+// payload (summary/description/temp/wind). Silent-fail returns null.
+export async function fetchWeather(lat, lng) {
+  if (typeof lat !== "number" || typeof lng !== "number") return null;
+  try {
+    const c = _client();
+    const { data } = await c.get(
+      `/incident-intelligence/weather?lat=${lat}&lng=${lng}`,
+    );
+    return data || null;
+  } catch {
+    return null;
+  }
+}
+
 export default {
   fetchVocabulary,
   createCase,
   patchFieldBlock,
   transitionCase,
   addEvidence,
+  fetchDirectoryMe,
+  fetchProjectContext,
+  fetchWeather,
 };

@@ -9,14 +9,19 @@ Routes registered:
   GET /api/incident-cases/{case_id}/reports/{report_type}.pdf
   GET /api/incident-intelligence/digest/weekly
   GET /api/incident-intelligence/digest/weekly.pdf
+
+TRACK 19.16 · UX Hardening Batch 1 (additive, read-only):
+  GET /api/incident-intelligence/weather?lat=&lng=
+  GET /api/incident-intelligence/project-context/{project_number}
 """
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
 
 from . import reports
 from .report_render import render_report_html, render_digest_html, html_to_pdf_bytes
+from .weather import fetch_current_weather
 
 
 def register_report_routes(api_router: APIRouter, db, *, require_actor) -> None:
@@ -97,6 +102,63 @@ def register_report_routes(api_router: APIRouter, db, *, require_actor) -> None:
                 "X-Content-Type-Options": "nosniff",
             },
         )
+
+    # ── UX Hardening Batch 1 · Weather auto-fetch ────────────────────
+    @api_router.get("/incident-intelligence/weather")
+    async def weather_lookup(
+        lat: float = Query(..., ge=-90, le=90),
+        lng: float = Query(..., ge=-180, le=180),
+        actor=Depends(require_actor),
+    ):
+        try:
+            return await fetch_current_weather(lat, lng)
+        except Exception as e:
+            raise HTTPException(
+                status_code=502,
+                detail={"code": "weather_unavailable",
+                        "detail": str(e)[:200]},
+            )
+
+    # ── UX Hardening Batch 1 · Project auto-fill ─────────────────────
+    @api_router.get("/incident-intelligence/project-context/{project_number}")
+    async def project_context(
+        project_number: str,
+        actor=Depends(require_actor),
+    ):
+        """Read the canonical `jobs_master` row + last-known super
+        for a project so the incident form can auto-fill without asking
+        the crew to type anything."""
+        pn = (project_number or "").strip()
+        if not pn:
+            raise HTTPException(422, detail={"code": "project_number_required"})
+        row = await db.jobs_master.find_one({"project_number": pn}, {"_id": 0})
+        if not row:
+            raise HTTPException(404, detail={"code": "project_not_found",
+                                             "project_number": pn})
+        # Optional: last DR-known superintendent as fallback.
+        super_name = ""
+        try:
+            latest = await db.daily_reports.find_one(
+                {"project_number": pn,
+                 "superintendent": {"$nin": ["", None]}},
+                {"_id": 0, "superintendent": 1},
+                sort=[("created_at", -1)],
+            )
+            if latest:
+                super_name = latest.get("superintendent") or ""
+        except Exception:
+            pass
+        return {
+            "project_number":    row.get("project_number") or pn,
+            "project_name":      row.get("project_name") or "",
+            "location":          row.get("location") or "",
+            "client":            row.get("client") or "",
+            "project_manager":   row.get("project_manager") or "",
+            "pm_email":          row.get("pm_email") or "",
+            "co_pm_emails":      row.get("co_pm_emails") or [],
+            "superintendent":    super_name,
+            "active":            bool(row.get("active", True)),
+        }
 
 
 __all__ = ["register_report_routes"]

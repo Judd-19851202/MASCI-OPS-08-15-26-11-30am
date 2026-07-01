@@ -11,7 +11,53 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
-## Latest Track (2026-07-01 · TRACK 19.16 · Phase E · Legacy Retirement & Platform Cutover · ✅ GREEN · CLOSED)
+## Latest Track (2026-07-01 · TRACK 19.16 · UX Hardening Batch 1 · ✅ GREEN · CLOSED)
+
+### Track type
+**UX HARDENING — friction removal, not feature work.** Stop asking crews to type what the platform already knows. Additive-only; no schema changes, no engine changes, no report changes.
+
+### Batch 1 slices shipped
+1. **Header stability (FormShell)** — Progress rail moved into a dedicated band below a fixed-height (`h-14`) header row. Playwright verified header height is byte-identical (171 px) across 5 steps.
+2. **Project Picker** — the manual `job_number` text field is retired. Location step now renders the existing `<JobPicker>` (backed by `/api/jobs`). Selecting a project auto-fills `location_label` and hydrates a `__project_context__` sidecar (project name, client, PM, superintendent). "Temporary or unlisted project" toggle preserves manual entry for edge cases.
+3. **Reporter identity auto-fill** — Reporter step renders `<IdentityConfirmField>`. Directory user is fetched from `/api/auth/me-directory`; the first-load `useEffect` adopts the name, showing an emerald "Signed in as …" card with a **Not me** override button.
+4. **Date/Time defaults** — `occurred_at_date` and `occurred_at_time` default to now on first mount if empty.
+5. **Weather auto-fetch** — new backend endpoint `/api/incident-intelligence/weather?lat=&lng=` (Open-Meteo, no API key required). Whenever GPS lands, the location step's `<WeatherAutoField>` auto-populates a "Overcast · 86°F · wind 11 mph" summary; user may override via optional free-text field.
+6. **Review — auto-filled vs typed clarity** — every auto-filled field label gets an emerald `🔒 auto` badge. Review header carries an auto-filled count + project-details card (project / client / PM / superintendent).
+
+### Deliverables
+
+**Backend (additive read-only):**
+- NEW `/app/backend/incident_engine/weather.py` — Open-Meteo async helper
+- UPDATED `/app/backend/incident_engine/report_routes.py` — 2 new GET routes (`/weather`, `/project-context/{project_number}`)
+
+**Frontend (additive):**
+- UPDATED `/app/frontend/src/components/FormShell.jsx` — fixed-height header + dedicated progress band
+- UPDATED `/app/frontend/src/lib/incidentReportSchema.js` — location + reporter fields switched to picker/identity/weather field types
+- UPDATED `/app/frontend/src/lib/incidentReportApi.js` — `fetchDirectoryMe` · `fetchProjectContext` · `fetchWeather`
+- UPDATED `/app/frontend/src/pages/IncidentReport.jsx` — 3 new field renderers (`ProjectPickerField`, `IdentityConfirmField`, `WeatherAutoField`) + auto-fill orchestration (`autoMap`, `ctx`)
+- UPDATED `/app/frontend/src/lib/i18n.js` — 26 EN↔ES pairs
+
+### Testing
+- **NEW lock tests:** 13 assertions in `test_track_19_16_ux_hardening_batch_1.py` — endpoint registration, Zero-Drift source scans, schema shape, header contract, review counts, redirects preserved
+- **Combined engine + hardening regression:** **318/318 GREEN** (0.76s)
+- **Live curl:** `/weather?lat=28.7&lng=-81.3` → `Overcast · 86°F · wind 11 mph`; `/project-context/20-07` → real FDOT project row; `/me-directory` → super-admin user
+- **Playwright:** header height byte-identical across 5 steps; progress rail visible with all 8 step chips; project picker + manual toggle render on Location step
+
+### Zero-Drift
+- No changes to Phase A engine, workspace, intelligence, or reports files
+- Weather + project-context routes are strict-read (source scans lock out inserts / updates / deletes)
+- `reports.py` does not depend on either helper
+- All prior redirects, deep links, and lock tests still pass
+
+### Deferred to Batch 2
+- Employee / Equipment / Vehicle searchable selectors
+- Photo capture polish (thumbnail strip, reorder, preview)
+- Formal iPad/iPhone/desktop responsive certification
+- Accessibility audit (focus order, touch target, contrast, screen reader labels)
+
+---
+
+
 
 ### Track type
 **CUTOVER — routing only.** The Incident Intelligence Engine is now the sole production incident reporting system. The legacy incident UI is retired from every operational surface; historical URLs are transparently redirected. Zero-Drift preserved on all backend routes, data, engine, workspace, intelligence, and reports.
