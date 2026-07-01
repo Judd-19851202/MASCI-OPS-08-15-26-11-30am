@@ -531,8 +531,14 @@ function App() {
             <Route path="/transport-invite/:token" element={<ExternalCarrierInvite />} />
             <Route path="/transport-verify/:cnum" element={<CertificateVerify />} />
 
-            <Route path="/incidents/new" element={<NewIncident />} />
-            <Route path="/incidents/submit" element={<NewIncident publicMode />} />
+            {/* TRACK 19.16 · LEGACY RETIREMENT — /incidents/new and
+                /incidents/submit are retired. Any historical URL now
+                redirects to the Incident Intelligence Engine.
+                NewIncident component is no longer routed anywhere in
+                production; kept in source only for admin-only recovery
+                and as an unlinked backend-compatibility reference. */}
+            <Route path="/incidents/new" element={<Navigate to="/incidents/report" replace />} />
+            <Route path="/incidents/submit" element={<Navigate to="/incidents/report" replace />} />
             {/* TRACK 19.16 · Phase B1 — new engine-backed reporting flow. */}
             <Route path="/incidents/report" element={<IncidentReport />} />
             {/* TRACK 19.16 · Phase B2 — public no-auth Near-Miss Kiosk. */}

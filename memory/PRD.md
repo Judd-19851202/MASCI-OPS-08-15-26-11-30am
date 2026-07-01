@@ -11,7 +11,46 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
-## Latest Track (2026-07-01 · TRACK 19.16 · Phase E · Entrypoint Promotion Sweep · ✅ GREEN · CLOSED)
+## Latest Track (2026-07-01 · TRACK 19.16 · Phase E · Legacy Retirement & Platform Cutover · ✅ GREEN · CLOSED)
+
+### Track type
+**CUTOVER — routing only.** The Incident Intelligence Engine is now the sole production incident reporting system. The legacy incident UI is retired from every operational surface; historical URLs are transparently redirected. Zero-Drift preserved on all backend routes, data, engine, workspace, intelligence, and reports.
+
+### Cutover actions
+- `/app/frontend/src/App.js` — legacy routes replaced with `<Navigate>` redirects (component `NewIncident` is no longer mounted anywhere in production):
+  - `/incidents/new`    → `<Navigate to="/incidents/report" replace />`
+  - `/incidents/submit` → `<Navigate to="/incidents/report" replace />`
+- `/app/frontend/src/pages/NewIncident.jsx` — retired: transitional amber "Legacy form" banner removed (users can never reach the component now)
+- `/app/frontend/src/pages/IncidentsDashboard.jsx` — admin `ShareFormDialog` `path="/incidents/submit"` → `path="/near-miss"` (public anonymous submissions land on the modern kiosk; login-required flow stays at `/incidents/report`)
+
+### Live verification (Playwright against preview URL)
+- `/incidents/new` → 200 → auto-redirects to `/incidents/report` (Incident Intelligence picker renders with all 9 branches)
+- `/incidents/submit` → auto-redirects to `/incidents/report`
+- `/near-miss` → still loads (kiosk unaffected)
+- `/safety/executive-intelligence` → still loads
+- `/safety/cases/:caseId` → still mounted
+- `/safety/cases/:caseId/reports/:reportType` → still mounted
+
+### Lock tests (Phase E suite now 88 assertions)
+5 new + 5 updated from the earlier sweep:
+- `test_legacy_incidents_new_route_is_a_redirect_to_the_new_engine`
+- `test_legacy_incidents_submit_route_is_a_redirect_to_the_new_engine`
+- `test_legacy_newincident_component_no_longer_mounted_at_any_route`
+- `test_legacy_incident_form_deprecation_banner_removed`
+- `test_incidents_dashboard_share_dialog_targets_public_near_miss`
+- `test_no_operational_navigation_targets_legacy_incidents_new_or_submit` — file-tree scan proves ONLY App.js (redirect mount) + NewIncident.jsx (self references) reference either path
+- Deep-link mounts asserted: Safety Case Workspace, Executive Intelligence, Incident Report, Near-Miss Kiosk
+
+### Regression
+- **88/88 Phase E GREEN**
+- **305/305 combined engine regression GREEN** (19.15 audit + 19.16 A + B2 + C + D + E)
+
+### Zero-Drift
+No changes to any backend engine, workspace, intelligence, reports, or legacy `/api/incidents/*` route. Legacy `NewIncident.jsx` component source is preserved for administrative reference but is unreachable from production navigation.
+
+---
+
+
 
 ### Track type
 **IMPLEMENTATION — Phase E addendum** — promote `/incidents/report` (Incident Intelligence Engine) as the sole crew-facing incident entrypoint across the platform. Legacy `/incidents/new` preserved as fallback route.

@@ -579,7 +579,7 @@ def test_frontend_pdf_button_exists():
 
 
 # ═══════════════════════════════════════════════════════════════════
-# 11b · Entrypoint Promotion Sweep — crew-facing routes → /incidents/report
+# 11b · Entrypoint Promotion Sweep + Legacy Retirement Cutover
 # ═══════════════════════════════════════════════════════════════════
 def test_safety_portal_incident_reports_card_targets_new_engine():
     """The Safety portal Incident Reports tile must route to the new
@@ -631,41 +631,88 @@ def test_safety_incidents_field_cta_targets_new_engine():
     assert 'to="/incidents/report"' in window
 
 
-def test_no_crew_facing_component_routes_to_legacy_incidents_new():
-    """The only file allowed to reference /incidents/new is App.js
-    (route mount) and NewIncident.jsx (self-references). Every other
-    page/component must be clean."""
+def test_incidents_dashboard_share_dialog_targets_public_near_miss():
+    """The admin-generated public share link must not open the legacy
+    /incidents/submit route (which is now a redirect to /incidents/report
+    and requires auth). Public anonymous submissions belong on the
+    Near-Miss Kiosk at /near-miss."""
+    src = (FE_ROOT / "pages/IncidentsDashboard.jsx").read_text(encoding="utf-8")
+    assert 'testIdPrefix="share-incident"' in src
+    idx = src.index('testIdPrefix="share-incident"')
+    window = src[max(0, idx - 400): idx + 100]
+    assert 'path="/near-miss"' in window
+    assert 'path="/incidents/submit"' not in window
+    assert 'path="/incidents/new"' not in window
+
+
+def test_no_operational_navigation_targets_legacy_incidents_new_or_submit():
+    """After cutover, no crew-facing / operational component may route
+    to /incidents/new OR /incidents/submit. The only file allowed to
+    reference either path is App.js (redirect mount) and NewIncident.jsx
+    (self-references inside the retired component)."""
     allowed = {
-        FE_ROOT / "App.js",                       # route mount
-        FE_ROOT / "pages" / "NewIncident.jsx",    # legacy component itself
+        FE_ROOT / "App.js",                       # redirect mounts
+        FE_ROOT / "pages" / "NewIncident.jsx",    # retired component itself
     }
+    forbidden_needles = (
+        '"/incidents/new"', "'/incidents/new'",
+        '"/incidents/submit"', "'/incidents/submit'",
+    )
     hits = []
-    for path in FE_ROOT.rglob("*.jsx"):
-        if path in allowed:
-            continue
-        txt = path.read_text(encoding="utf-8", errors="ignore")
-        for needle in ('"/incidents/new"', "'/incidents/new'"):
-            if needle in txt:
-                hits.append(str(path))
-                break
-    for path in FE_ROOT.rglob("*.js"):
-        if path in allowed:
-            continue
-        txt = path.read_text(encoding="utf-8", errors="ignore")
-        for needle in ('"/incidents/new"', "'/incidents/new'"):
-            if needle in txt:
-                hits.append(str(path))
-                break
+    for pattern in ("*.jsx", "*.js"):
+        for path in FE_ROOT.rglob(pattern):
+            if path in allowed:
+                continue
+            txt = path.read_text(encoding="utf-8", errors="ignore")
+            for needle in forbidden_needles:
+                if needle in txt:
+                    hits.append((str(path), needle))
+                    break
     assert hits == [], (
-        f"Crew-facing components must not route to /incidents/new. "
-        f"Offenders: {hits}"
+        f"Operational navigation must not target /incidents/new or "
+        f"/incidents/submit. Offenders: {hits}"
     )
 
 
-def test_legacy_incidents_new_route_still_mounted():
-    """Do not delete the legacy fallback."""
+def test_legacy_incidents_new_route_is_a_redirect_to_the_new_engine():
+    """The historic /incidents/new URL still resolves, but only to
+    redirect users to /incidents/report — the retired UI is never
+    rendered."""
     txt = (FE_ROOT / "App.js").read_text(encoding="utf-8")
-    assert '<Route path="/incidents/new" element={<NewIncident />}' in txt
+    assert (
+        '<Route path="/incidents/new" element={<Navigate to="/incidents/report" replace />}'
+        in txt
+    ), "/incidents/new must be a Navigate redirect to /incidents/report"
+
+
+def test_legacy_incidents_submit_route_is_a_redirect_to_the_new_engine():
+    txt = (FE_ROOT / "App.js").read_text(encoding="utf-8")
+    assert (
+        '<Route path="/incidents/submit" element={<Navigate to="/incidents/report" replace />}'
+        in txt
+    ), "/incidents/submit must be a Navigate redirect to /incidents/report"
+
+
+def test_legacy_newincident_component_no_longer_mounted_at_any_route():
+    """The retired NewIncident component must NOT be mounted at any
+    route in App.js (redirects use <Navigate>, not <NewIncident />)."""
+    txt = (FE_ROOT / "App.js").read_text(encoding="utf-8")
+    # Import may remain for admin-only recovery, but no <NewIncident ... />
+    # JSX element should appear.
+    for pattern in ("<NewIncident />", "<NewIncident publicMode />",
+                    "<NewIncident/>"):
+        assert pattern not in txt, (
+            f"NewIncident must not be rendered anywhere in App.js. "
+            f"Offender pattern: {pattern}"
+        )
+
+
+def test_legacy_incident_form_deprecation_banner_removed():
+    """The transitional 'Legacy form' banner is retired now that the
+    UI itself is no longer routed."""
+    txt = (FE_ROOT / "pages/NewIncident.jsx").read_text(encoding="utf-8")
+    assert 'data-testid="legacy-incident-form-banner"' not in txt
+    assert 'Legacy form — kept for reference only' not in txt
 
 
 def test_incidents_report_route_still_mounted():
@@ -680,12 +727,14 @@ def test_near_miss_kiosk_route_still_mounted():
     assert '<Route path="/near-miss"' in txt
 
 
-def test_legacy_incident_form_shows_deprecation_banner():
-    """NewIncident.jsx should carry a clear legacy banner pointing
-    users to the new Incident Intelligence flow."""
-    txt = (FE_ROOT / "pages/NewIncident.jsx").read_text(encoding="utf-8")
-    assert 'data-testid="legacy-incident-form-banner"' in txt
-    assert 'href="/incidents/report"' in txt
+def test_safety_case_workspace_deep_link_still_mounted():
+    txt = (FE_ROOT / "App.js").read_text(encoding="utf-8")
+    assert '<Route path="/safety/cases/:caseId"' in txt
+
+
+def test_executive_intelligence_deep_link_still_mounted():
+    txt = (FE_ROOT / "App.js").read_text(encoding="utf-8")
+    assert '<Route path="/safety/executive-intelligence"' in txt
 
 
 def test_legacy_backend_incident_lifecycle_untouched_by_sweep():

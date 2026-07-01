@@ -92,9 +92,9 @@ export default function IncidentsDashboard() {
         <div className="flex items-center gap-2">
           <ShareFormDialog
             formType="incident"
-            path="/incidents/submit"
+            path="/near-miss"
             title="Share Incident Form"
-            description="Anyone with this link can report a Site Incident or Near Miss. No login required."
+            description="Anyone with this link can report a Near Miss on the public kiosk. No login required."
             testIdPrefix="share-incident"
           />
           <Button
