@@ -11,7 +11,57 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
-## Latest Track (2026-07-01 · TRACK 19.11 · MAIN · Equipment Pre-Op Modernization · ✅ GREEN · CLOSED)
+## Latest Track (2026-07-01 · TRACK 19.12 · DVIR Modernization · ✅ GREEN · CLOSED)
+
+### Mode
+Second production consumer of the Track 19.11 MAIN reusable platform primitives. Doctrine: **configuration, not reinvention.** DVIR imports the same four primitive files as Equipment Pre-Op (FormSection · ProgressRail · SubmitReviewPanel · HelpDrawer) and passes DVIR-specific props. Primitives themselves are untouched — locked by pytest.
+
+### Adoption
+* **HelpDrawer** wired below the DVIR subtitle with 5 consolidated bands (Why this DVIR matters · Who sees this · What happens after you submit · When to stop and call · Common DVIR mistakes). testIdPrefix `dvir-help-drawer`.
+* **ProgressRail** — 4-step flow (Driver → Cameras → Inspection → Review), state-derived. testId `dvir-progress-rail`.
+* **FormSection + SubmitReviewPanel** — Review & Submit block above the existing Sign & Submit section. Panel surfaces tally + OOS flag + camera/signature status + 6-bullet downstream commitment (Shop / Dispatch / Fleet / PM / audit / historical record).
+* **HelpTipBlock default retired** from DVIR — its noisy top-of-form coaching content is consolidated into the drawer. Field-adjacent `<HelpTip>` inline nudges preserved (contextual, next to specific decisions).
+* **Modernization marker** `data-modernized="dvir-modernized"` on the outer wrapper; legacy `data-testid="fleet-dvir-form"` preserved.
+
+### Preservation (all locked GREEN)
+Camera Obstruction Gate (Track 19.09 DVIR variant) · `blockReason` submit-blocker · `dvir-submit` button · `defect_details` + `SeverityRationale` pipeline · Camera payload keys (`camera_system_present`, `camera_obstructions_clear`, `camera_obstruction_note`) · DVIR variant modes (daily / weekly-lead / weekly-emergency) · Signature capture · Bilingual LangToggle · Session-expired ack-suppression (Track 19.11 Amendment) · Smart Prefill doctrine (Track 19.06 — preserved for future DVIR extension).
+
+### Verification totals
+| Layer | Result |
+|---|---|
+| Pytest lock suite (NEW) | 35 / 35 ✅ |
+| Playwright live smoke | 7 / 7 ✅, 0 console errors |
+| ES live smoke | `Inspección Vehicular Diaria` · Spanish ProgressRail chips ✅ |
+| Cross-form primitive parity (Equipment ↔ DVIR) | ✅ same imports, same files |
+| Track 19.08 → 19.12 core regression | **363 / 363 ✅** |
+
+### Bilingual parity
+13 new EN↔ES pairs added (Driver, DVIR · Guidance, all 5 drawer band titles + bodies, Review & Submit copy, 3 signature-captured variants + pending). Zero EN-only additions.
+
+### Files touched
+* `frontend/src/pages/NewFleetDVIR.jsx` — modernized (primitive imports · HelpDrawer wiring · ProgressRail · Review section · marker · HelpTipBlock retired)
+* `frontend/src/lib/i18n.js` — +13 ES translations
+* `backend/tests/test_track_19_12_dvir_modernization.py` — NEW · 35 lock assertions
+* `memory/TRACK_19_12_DVIR_MODERNIZATION.md` — executive summary
+* `memory/TRACK_19_12_TEST_REPORT.md` — test report
+
+### Doctrine established (permanent ForgedOps standard)
+1. **Primitives are form-agnostic** — configuration, not reinvention.
+2. **One coaching surface per form** — HelpDrawer; retire stacked defaults.
+3. **Progress is state-derived** — no hand-maintained current-step flags.
+4. **Review before submit** — SubmitReviewPanel is standard.
+5. **Every new string bilingual.**
+6. **Zero drift.**
+
+### Ready for Tracks 19.13 / 19.14
+* **Track 19.13** — Safety Meeting / Knowledge Engine modernization. Topic Auto Load PRESERVED and expanded per the brief.
+* **Track 19.14** — Toolbox Meeting modernization. Consumes the same primitives.
+
+Six Pillars · 5:30 AM Foreman Test · Powerful · Simple · Beautiful · Trusted · Proven · Zero drift · Production-ready · **Done means done.**
+
+---
+
+## Previous Track (2026-07-01 · TRACK 19.11 · MAIN · Equipment Pre-Op Modernization · ✅ GREEN · CLOSED)
 
 ### Mode
 Full frontend UX modernization of Equipment Pre-Op using **4 NEW reusable platform primitives** + consolidated HelpDrawer. Gold-standard blueprint that DVIR (Track 19.12) and Safety Meeting (Track 19.13) will consume as-is — configuration, not reinvention. Zero backend / schema / route / payload / PDF / email / notification / fail-cascade / Trust-Spine drift.

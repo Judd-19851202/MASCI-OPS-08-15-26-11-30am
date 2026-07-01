@@ -6718,6 +6718,28 @@ const ES = {
     "Firma del operador pendiente.",
   "Out of Service": "Fuera de Servicio",
 
+  // TRACK 19.12 · DVIR modernization new strings. ES parity per doctrine.
+  "Driver": "Conductor",
+  "DVIR · Guidance": "DVIR · Orientación",
+  "Why this DVIR matters": "Por qué importa este DVIR",
+  "Walk it before you roll it. Mark every item honestly. A FAIL today is a downed truck — and a tomorrow you can plan for, not one that surprises you.":
+    "Camínelo antes de rodarlo. Marque cada ítem honestamente. Una FALLA hoy es un camión detenido — y un mañana que puede planificar, no uno que lo sorprende.",
+  "Shop, Dispatch, Fleet, and the PM review every FAIL. Historical records are kept for DOT audits.":
+    "Taller, Despacho, Flota y el PM revisan cada FALLA. Se conservan registros históricos para auditorías DOT.",
+  "If anything is Out of Service, Shop is notified automatically and Dispatch will reassign. Monitor items go to the shop queue for repair scheduling. A permanent historical record is created.":
+    "Si algo está Fuera de Servicio, se notifica al Taller automáticamente y Despacho lo reasignará. Los ítems para monitorear van a la cola del taller para programar reparaciones. Se crea un registro histórico permanente.",
+  "If a critical defect appears or the camera view is obstructed, do not drive the truck. Tag it, call Shop, and get with your supervisor.":
+    "Si aparece un defecto crítico o la vista de la cámara está obstruida, no maneje el camión. Etiquételo, llame al Taller y busque a su supervisor.",
+  "Common DVIR mistakes": "Errores comunes de DVIR",
+  "Marking N/A when it should be FAIL, skipping the description on a FAIL, and not attaching a photo. Every FAIL needs a clear description Shop can act on.":
+    "Marcar N/A cuando debería ser FALLA, omitir la descripción en una FALLA y no adjuntar una foto. Cada FALLA necesita una descripción clara sobre la que el Taller pueda actuar.",
+  "Confirm the DVIR summary before you submit. What happens next is listed below.":
+    "Confirme el resumen del DVIR antes de enviar. Lo que sucede después se enumera abajo.",
+  "Lead inspector signature captured.": "Firma del inspector líder capturada.",
+  "Inspector signature captured.": "Firma del inspector capturada.",
+  "Driver signature captured.": "Firma del conductor capturada.",
+  "Signature pending.": "Firma pendiente.",
+
   // TRACK 19.11 AMENDMENT · SessionStatusOverlay bilingual strings.
   // (Previously the modal was English-only — bilingual gap fixed as
   // part of the session-expired loop repair.)

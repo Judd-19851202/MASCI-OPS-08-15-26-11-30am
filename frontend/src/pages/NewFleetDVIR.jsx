@@ -45,6 +45,15 @@ import { PhotoUpload } from "@/components/PhotoUpload";
 import { LangToggle } from "@/components/LangToggle";
 import { HelpTip, HelpTipBlock } from "@/components/HelpTip";
 import { EmployeeCombo } from "@/components/EmployeeCombo";
+// TRACK 19.12 · DVIR modernization consumes the four reusable
+// platform primitives established in Track 19.11 MAIN. HelpDrawer
+// consolidates the coaching bands; ProgressRail shows the 5:30 AM
+// operator where they are; SubmitReviewPanel surfaces the downstream
+// commitment before submit. Zero primitive reinvention.
+import { HelpDrawer } from "@/components/HelpDrawer";
+import { FormSection } from "@/components/FormSection";
+import { ProgressRail } from "@/components/ProgressRail";
+import { SubmitReviewPanel } from "@/components/SubmitReviewPanel";
 import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
 
@@ -249,6 +258,10 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
   const [cameraObstructionNote, setCameraObstructionNote] = useState("");
   // Track 13.31B-D5.4 · structured canonical section capture for DVIR
   const [canonicalCapture, setCanonicalCapture] = useState(null);
+  // TRACK 19.12 · HelpDrawer POC on DVIR — replaces the noisy
+  // HelpTipBlock default. Existing inline `<HelpTip>` field-adjacent
+  // nudges remain live; the drawer is the top-level coaching surface.
+  const [helpDrawerOpen, setHelpDrawerOpen] = useState(false);
   const canonicalAvailable =
     canonicalCapture?.template_status === "available" && !!canonicalCapture?.asset_type;
   const errRef = useRef(null);
@@ -491,8 +504,34 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
 
   const approvalVersion = meta?.severity_table_approval?.version || meta?.severity_table_version;
 
+  // TRACK 19.12 · ProgressRail step derivation. Steps mirror the
+  // operator's mental model at 5:30 AM. Stateless — derived from
+  // real form state — so DVIR requires no new state on the primitive.
+  const progressSteps = [
+    { key: "driver", label: t("Driver") },
+    { key: "camera", label: t("Cameras") },
+    { key: "inspect", label: t("Inspection") },
+    { key: "review", label: t("Review") },
+  ];
+  let progressCurrentIndex = 0;
+  if (!driverName?.trim() || !truckUnit?.trim()) {
+    progressCurrentIndex = 0;
+  } else if (!cameraSystemPresent || (cameraSystemPresent === "yes" && !cameraClear)) {
+    progressCurrentIndex = 1;
+  } else {
+    const truckItemsAnswered = Object.values(truckChecklist || {}).filter((v) => v).length;
+    const truckTotal = Object.keys(truckChecklist || {}).length;
+    if (truckTotal === 0 || truckItemsAnswered < truckTotal) {
+      progressCurrentIndex = 2;
+    } else if (!signature) {
+      progressCurrentIndex = 2;
+    } else {
+      progressCurrentIndex = 3;
+    }
+  }
+
   return (
-    <div className="min-h-screen blueprint-bg" data-testid="fleet-dvir-form">
+    <div className="min-h-screen blueprint-bg" data-testid="fleet-dvir-form" data-modernized="dvir-modernized">
       <div className="caution-stripe" />
 
       <header className="bg-slate-900 border-b-4 border-amber-600">
@@ -544,8 +583,48 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
             <p className="text-slate-600 text-sm sm:text-base mt-1.5">
               {formCopy.helpHeader || t("Walk it before you roll it. Mark every item honestly. A FAIL today is a downed truck — and a tomorrow you can plan for, not one that surprises you.")}
             </p>
+            {/* TRACK 19.12 · HelpDrawer trigger — single coaching
+                surface. Bands consolidated from HelpTipBlock defaults. */}
+            <div className="mt-3">
+              <HelpDrawer
+                open={helpDrawerOpen}
+                onOpenChange={setHelpDrawerOpen}
+                triggerLabel={t("Open help")}
+                title={t("DVIR · Guidance")}
+                testIdPrefix="dvir-help-drawer"
+                sections={[
+                  {
+                    title: t("Why this DVIR matters"),
+                    body: t("Walk it before you roll it. Mark every item honestly. A FAIL today is a downed truck — and a tomorrow you can plan for, not one that surprises you."),
+                  },
+                  {
+                    title: t("Who sees this"),
+                    body: t("Shop, Dispatch, Fleet, and the PM review every FAIL. Historical records are kept for DOT audits."),
+                  },
+                  {
+                    title: t("What happens after you submit"),
+                    body: t("If anything is Out of Service, Shop is notified automatically and Dispatch will reassign. Monitor items go to the shop queue for repair scheduling. A permanent historical record is created."),
+                  },
+                  {
+                    title: t("When to stop and call"),
+                    body: t("If a critical defect appears or the camera view is obstructed, do not drive the truck. Tag it, call Shop, and get with your supervisor."),
+                  },
+                  {
+                    title: t("Common DVIR mistakes"),
+                    body: t("Marking N/A when it should be FAIL, skipping the description on a FAIL, and not attaching a photo. Every FAIL needs a clear description Shop can act on."),
+                  },
+                ]}
+              />
+            </div>
           </div>
         </div>
+
+        {/* TRACK 19.12 · ProgressRail — compact 4-step flow tracker. */}
+        <ProgressRail
+          steps={progressSteps}
+          currentIndex={progressCurrentIndex}
+          testId="dvir-progress-rail"
+        />
 
         {metaError && (
           <div
@@ -558,8 +637,10 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
 
         {/* SECTION 01 — Driver & Truck */}
         <Section number="01" title={t("Driver & Truck")}>
-          {/* Phase 5 · contextual coaching from /api/guidance/tips */}
-          <HelpTipBlock formKey={formCopy.helpFormKey} className="mb-3" />
+          {/* TRACK 19.12 · HelpTipBlock default RETIRED on DVIR. Its
+              coaching content is consolidated into the top-level
+              HelpDrawer sections array. Main screen = action;
+              drawer = explanation. */}
           <HelpTip
             kind="why"
             title={t("Why we ask for your name")}
@@ -904,6 +985,44 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
             )}
           </div>
         </Section>
+
+        {/* TRACK 19.12 · Review & Submit — SubmitReviewPanel primitive
+            surfaces the tally, out-of-service flag, and 6-bullet
+            downstream commitment matrix (Shop / Dispatch / Fleet / PM
+            / audit / historical record) before the operator signs and
+            submits. Non-technical, operational language. */}
+        <FormSection
+          number="R"
+          title={t("Review & Submit")}
+          subtitle={t("Confirm the DVIR summary before you submit. What happens next is listed below.")}
+          testId="dvir-review-section"
+        >
+          <SubmitReviewPanel
+            passCount={Object.values(truckChecklist || {}).filter((v) => v === "pass").length}
+            failCount={Object.values(truckChecklist || {}).filter((v) => v === "fail").length}
+            naCount={Object.values(truckChecklist || {}).filter((v) => v === "na").length}
+            outOfService={!!blockReason}
+            extraSummaryRows={[
+              cameraSystemPresent === "yes" && cameraClear === "yes"
+                ? t("Cameras present and clear of obstructions.")
+                : cameraSystemPresent === "no"
+                ? t("This unit does not have a camera system.")
+                : cameraSystemPresent === "unsure"
+                ? t("Camera presence marked as not sure — flagged for review.")
+                : cameraClear === "no"
+                ? t("Camera obstruction present — submission blocked until cleared.")
+                : t("Camera check not yet answered."),
+              signature
+                ? (isWeeklyLead
+                    ? t("Lead inspector signature captured.")
+                    : isWeeklyEmergency
+                    ? t("Inspector signature captured.")
+                    : t("Driver signature captured."))
+                : t("Signature pending."),
+            ]}
+            testId="dvir-review-panel"
+          />
+        </FormSection>
 
         {/* SECTION 04 — Sign & Submit */}
         <Section number="04" title={t("Sign & Submit")} className="mt-5">
