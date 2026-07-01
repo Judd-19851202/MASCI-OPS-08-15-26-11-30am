@@ -240,6 +240,30 @@ const ES = {
   "Client": "Cliente",
   "PM": "PM",
   "Superintendent": "Superintendente",
+  // ── UX Hardening Batch 2 ─────────────────────────────────────────
+  "Selected from roster": "Seleccionado del roster",
+  "Selected from fleet": "Seleccionado de la flota",
+  "Crew": "Cuadrilla",
+  "Search or type. Selecting a name from the list auto-fills roster data.":
+    "Buscar o escribir. Seleccionar un nombre de la lista autocompleta los datos del roster.",
+  "Search employee…": "Buscar empleado…",
+  "Search by unit #, make, model, plate, VIN…":
+    "Buscar por unidad, marca, modelo, placa, VIN…",
+  "Third-party or unlisted vehicle? Type it in.":
+    "¿Vehículo de terceros o no listado? Escríbelo.",
+  "Third-party or unlisted equipment? Type it in.":
+    "¿Equipo de terceros o no listado? Escríbelo.",
+  "photo": "foto",
+  "platform-selected": "seleccionado de la plataforma",
+  "Platform-selected records": "Registros seleccionados de la plataforma",
+  "Tap to preview · use ↑↓ to reorder":
+    "Toca para previsualizar · usa ↑↓ para reordenar",
+  "Preview photo": "Previsualizar foto",
+  "Remove photo": "Eliminar foto",
+  "Move photo earlier": "Mover foto antes",
+  "Move photo later": "Mover foto después",
+  "Close preview": "Cerrar previsualización",
+  "Close": "Cerrar",
   "The active crew workflow is the new Incident Intelligence flow.":
     "El flujo activo de la cuadrilla es el nuevo flujo de Inteligencia de Incidentes.",
   "Open the new Incident Report": "Abrir el nuevo Reporte de Incidente",

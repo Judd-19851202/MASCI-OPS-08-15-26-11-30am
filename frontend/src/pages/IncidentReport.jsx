@@ -31,11 +31,15 @@ import { clearDraft, currentDraftId, ensureActiveDraftId, loadDraft, saveDraft }
 import { createCase, patchFieldBlock, transitionCase, addEvidence, fetchDirectoryMe, fetchProjectContext, fetchWeather } from "@/lib/incidentReportApi";
 import { DraftResumeBanner } from "@/components/DraftResumeBanner";
 import { JobPicker } from "@/components/JobPicker";
+import { EmployeeCombo } from "@/components/EmployeeCombo";
+import { EquipmentCombo } from "@/components/EquipmentCombo";
 import {
   AlertTriangle,
   Car,
   Check,
   ChevronLeft,
+  ChevronDown,
+  ChevronUp,
   CloudSun,
   Droplet,
   Heart,
@@ -46,6 +50,7 @@ import {
   Shield,
   UserCheck,
   Wrench,
+  X,
   Zap,
 } from "lucide-react";
 
@@ -130,43 +135,65 @@ function IncidentTypePicker({ onPick, draft, onResume, onDiscard }) {
 }
 
 // ── Personnel list editor (repeatable) ──────────────────────────────
-function PersonnelListField({ value, onChange, testId }) {
+function PersonnelListField({ value, onChange, testId, ctx }) {
   const { t } = useT();
   const rows = Array.isArray(value) ? value : [];
   const set = (i, patch) => {
     const next = rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r));
     onChange(next);
   };
-  const add = () => onChange([...rows, { name: "", role: "" }]);
+  const add = () => onChange([...rows, { name: "", role: "", __source__: "" }]);
   const remove = (i) => onChange(rows.filter((_, idx) => idx !== i));
   return (
     <div className="space-y-2" data-testid={testId}>
       {rows.map((r, i) => (
-        <div key={i} className="flex gap-2 items-center" data-testid={`${testId}-row-${i}`}>
-          <input
-            type="text"
-            className="flex-1 h-11 rounded-md border border-slate-300 px-3 text-base"
-            placeholder={t("Name")}
-            value={r.name || ""}
-            onChange={(e) => set(i, { name: e.target.value })}
-            data-testid={`${testId}-row-${i}-name`}
-          />
-          <input
-            type="text"
-            className="flex-1 h-11 rounded-md border border-slate-300 px-3 text-base"
-            placeholder={t("Role")}
-            value={r.role || ""}
-            onChange={(e) => set(i, { role: e.target.value })}
-            data-testid={`${testId}-row-${i}-role`}
-          />
-          <button
-            type="button"
-            className="h-11 px-3 rounded-md border border-slate-300 text-slate-600 hover:border-red-500 hover:text-red-700"
-            onClick={() => remove(i)}
-            data-testid={`${testId}-row-${i}-remove`}
-          >
-            {t("Remove")}
-          </button>
+        <div key={i} className="rounded-lg border border-slate-200 bg-slate-50 p-2 space-y-2" data-testid={`${testId}-row-${i}`}>
+          <div className="flex items-stretch gap-2">
+            <div className="flex-1 min-w-0">
+              <EmployeeCombo
+                value={r.name || ""}
+                testId={`${testId}-row-${i}-name`}
+                placeholder={t("Search or type…")}
+                onChange={(v) => set(i, { name: v, __source__: "" })}
+                onPick={(emp) => {
+                  if (!emp) return;
+                  set(i, {
+                    name: emp.name || "",
+                    role: r.role || emp.role || emp.trade || "",
+                    __source__: "employees",
+                    __employee_id__: emp.employee_id || "",
+                    __crew__: emp.crew || "",
+                  });
+                }}
+              />
+            </div>
+            <input
+              type="text"
+              className="w-32 h-11 rounded-md border border-slate-300 px-3 text-base"
+              placeholder={t("Role")}
+              value={r.role || ""}
+              onChange={(e) => set(i, { role: e.target.value })}
+              data-testid={`${testId}-row-${i}-role`}
+              aria-label={t("Role")}
+            />
+            <button
+              type="button"
+              className="h-11 px-3 rounded-md border border-slate-300 text-slate-600 hover:border-red-500 hover:text-red-700"
+              onClick={() => remove(i)}
+              data-testid={`${testId}-row-${i}-remove`}
+              aria-label={t("Remove")}
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          {r.__source__ === "employees" ? (
+            <p className="text-[10px] font-mono uppercase tracking-[0.14em] text-emerald-800"
+               data-testid={`${testId}-row-${i}-roster-hint`}>
+              <Lock className="w-2.5 h-2.5 inline mr-1" />
+              {t("Selected from roster")}
+              {r.__crew__ ? ` · ${t("Crew")} ${r.__crew__}` : ""}
+            </p>
+          ) : null}
         </div>
       ))}
       <button
@@ -195,7 +222,7 @@ function WitnessesField({ value, onChange, testId }) {
   const { t } = useT();
   const rows = Array.isArray(value) ? value : [];
   const set = (i, patch) => onChange(rows.map((r, idx) => idx === i ? { ...r, ...patch } : r));
-  const add = () => onChange([...rows, { kind: "internal_employee", name: "", contact: "", statement: "" }]);
+  const add = () => onChange([...rows, { kind: "internal_employee", name: "", contact: "", statement: "", __source__: "" }]);
   const remove = (i) => onChange(rows.filter((_, idx) => idx !== i));
   return (
     <div className="space-y-3" data-testid={testId}>
@@ -206,26 +233,55 @@ function WitnessesField({ value, onChange, testId }) {
               <button
                 key={k.v}
                 type="button"
-                onClick={() => set(i, { kind: k.v })}
-                className={`h-9 px-3 rounded-md text-xs font-mono uppercase tracking-[0.12em] border-2 ${
+                onClick={() => set(i, { kind: k.v, __source__: "" })}
+                className={`min-h-11 h-11 px-3 rounded-md text-xs font-mono uppercase tracking-[0.12em] border-2 ${
                   r.kind === k.v
                     ? "bg-slate-900 text-white border-transparent"
                     : "bg-white text-slate-600 border-slate-300 hover:border-slate-500"
                 }`}
                 data-testid={`${testId}-row-${i}-kind-${k.v}`}
+                aria-pressed={r.kind === k.v}
+                aria-label={t(k.en)}
               >
                 {t(k.en)}
               </button>
             ))}
           </div>
-          <input
-            type="text"
-            className="w-full h-11 rounded-md border border-slate-300 px-3 text-base"
-            placeholder={t("Name")}
-            value={r.name || ""}
-            onChange={(e) => set(i, { name: e.target.value })}
-            data-testid={`${testId}-row-${i}-name`}
-          />
+          {r.kind === "internal_employee" ? (
+            <div>
+              <EmployeeCombo
+                value={r.name || ""}
+                testId={`${testId}-row-${i}-name`}
+                placeholder={t("Search employee…")}
+                onChange={(v) => set(i, { name: v, __source__: "" })}
+                onPick={(emp) => {
+                  if (!emp) return;
+                  set(i, {
+                    name: emp.name || "",
+                    __source__: "employees",
+                    __employee_id__: emp.employee_id || "",
+                  });
+                }}
+              />
+              {r.__source__ === "employees" ? (
+                <p className="mt-1 text-[10px] font-mono uppercase tracking-[0.14em] text-emerald-800"
+                   data-testid={`${testId}-row-${i}-roster-hint`}>
+                  <Lock className="w-2.5 h-2.5 inline mr-1" />
+                  {t("Selected from roster")}
+                </p>
+              ) : null}
+            </div>
+          ) : (
+            <input
+              type="text"
+              className="w-full h-11 rounded-md border border-slate-300 px-3 text-base"
+              placeholder={t("Name")}
+              value={r.name || ""}
+              onChange={(e) => set(i, { name: e.target.value })}
+              data-testid={`${testId}-row-${i}-name`}
+              aria-label={t("Name")}
+            />
+          )}
           <input
             type="text"
             className="w-full h-11 rounded-md border border-slate-300 px-3 text-base"
@@ -233,6 +289,7 @@ function WitnessesField({ value, onChange, testId }) {
             value={r.contact || ""}
             onChange={(e) => set(i, { contact: e.target.value })}
             data-testid={`${testId}-row-${i}-contact`}
+            aria-label={t("Phone or email")}
           />
           <textarea
             className="w-full rounded-md border border-slate-300 px-3 py-2 text-base"
@@ -241,13 +298,15 @@ function WitnessesField({ value, onChange, testId }) {
             value={r.statement || ""}
             onChange={(e) => set(i, { statement: e.target.value })}
             data-testid={`${testId}-row-${i}-statement`}
+            aria-label={t("Statement / notes")}
           />
           <div className="flex justify-end">
             <button
               type="button"
-              className="h-9 px-3 rounded-md border border-slate-300 text-slate-600 hover:border-red-500 hover:text-red-700 text-sm"
+              className="h-11 px-3 rounded-md border border-slate-300 text-slate-600 hover:border-red-500 hover:text-red-700 text-sm"
               onClick={() => remove(i)}
               data-testid={`${testId}-row-${i}-remove`}
+              aria-label={t("Remove witness")}
             >
               {t("Remove witness")}
             </button>
@@ -257,7 +316,7 @@ function WitnessesField({ value, onChange, testId }) {
       <button
         type="button"
         onClick={add}
-        className="h-10 px-3 rounded-md border-2 border-dashed border-slate-300 text-slate-700 hover:border-slate-500 w-full"
+        className="h-11 px-3 rounded-md border-2 border-dashed border-slate-300 text-slate-700 hover:border-slate-500 w-full"
         data-testid={`${testId}-add`}
       >
         + {t("Add witness")}
@@ -271,6 +330,7 @@ function PhotoField({ value, onChange, testId }) {
   const { t } = useT();
   const photos = Array.isArray(value) ? value : [];
   const inputRef = useRef(null);
+  const [previewId, setPreviewId] = useState(null);
 
   const captureGps = () => new Promise((resolve) => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
@@ -298,6 +358,7 @@ function PhotoField({ value, onChange, testId }) {
         data_url: reader.result,
         captured_at: new Date().toISOString(),
         gps,
+        upload_state: "pending",
       });
       reader.readAsDataURL(f);
     })));
@@ -305,23 +366,89 @@ function PhotoField({ value, onChange, testId }) {
     if (inputRef.current) inputRef.current.value = "";
   };
 
-  const remove = (id) => onChange(photos.filter((p) => p.id !== id));
+  const remove = (id) => {
+    onChange(photos.filter((p) => p.id !== id));
+    if (previewId === id) setPreviewId(null);
+  };
+  const move = (id, delta) => {
+    const idx = photos.findIndex((p) => p.id === id);
+    if (idx < 0) return;
+    const next = idx + delta;
+    if (next < 0 || next >= photos.length) return;
+    const arr = photos.slice();
+    const [row] = arr.splice(idx, 1);
+    arr.splice(next, 0, row);
+    onChange(arr);
+  };
+
+  const preview = photos.find((p) => p.id === previewId) || null;
 
   return (
     <div className="space-y-3" data-testid={testId}>
-      <div className="grid grid-cols-3 gap-2">
-        {photos.map((p) => (
-          <div key={p.id} className="relative rounded-md overflow-hidden border border-slate-200" data-testid={`${testId}-photo-${p.id}`}>
-            <img src={p.data_url} alt="" className="w-full h-24 object-cover" />
-            <button
-              type="button"
-              onClick={() => remove(p.id)}
-              className="absolute top-1 right-1 h-6 w-6 rounded-full bg-white/90 text-red-700 text-xs font-bold shadow"
-              data-testid={`${testId}-photo-${p.id}-remove`}
-            >×</button>
-          </div>
-        ))}
+      <div className="flex items-center justify-between text-xs font-mono uppercase tracking-[0.14em] text-slate-500">
+        <span data-testid={`${testId}-count`}>
+          {photos.length} {photos.length === 1 ? t("photo") : t("photos")}
+        </span>
+        {photos.length > 0 ? (
+          <span className="text-slate-400">{t("Tap to preview · use ↑↓ to reorder")}</span>
+        ) : null}
       </div>
+      {photos.length > 0 && (
+        <div className="grid grid-cols-3 gap-2" data-testid={`${testId}-strip`}>
+          {photos.map((p, i) => (
+            <div
+              key={p.id}
+              className="relative rounded-md overflow-hidden border border-slate-200 group"
+              data-testid={`${testId}-photo-${p.id}`}
+            >
+              <button
+                type="button"
+                onClick={() => setPreviewId(p.id)}
+                className="block w-full focus:outline-none focus:ring-2 focus:ring-slate-900"
+                aria-label={t("Preview photo")}
+                data-testid={`${testId}-photo-${p.id}-preview`}
+              >
+                <img src={p.data_url} alt={p.name || `photo ${i + 1}`} className="w-full h-24 object-cover" />
+              </button>
+              <div className="absolute top-1 right-1 flex flex-col gap-1">
+                <button
+                  type="button"
+                  onClick={() => remove(p.id)}
+                  className="h-6 w-6 rounded-full bg-white/95 text-red-700 text-xs font-bold shadow flex items-center justify-center"
+                  data-testid={`${testId}-photo-${p.id}-remove`}
+                  aria-label={t("Remove photo")}
+                >×</button>
+              </div>
+              <div className="absolute bottom-1 left-1 right-1 flex justify-between">
+                <button
+                  type="button"
+                  onClick={() => move(p.id, -1)}
+                  disabled={i === 0}
+                  className="h-6 w-6 rounded-full bg-white/90 text-slate-700 shadow disabled:opacity-40 flex items-center justify-center"
+                  data-testid={`${testId}-photo-${p.id}-up`}
+                  aria-label={t("Move photo earlier")}
+                >
+                  <ChevronUp className="w-3.5 h-3.5" />
+                </button>
+                <span
+                  className="h-6 px-2 rounded-full bg-slate-900/85 text-white text-[10px] font-mono flex items-center"
+                  data-testid={`${testId}-photo-${p.id}-order`}
+                >{i + 1}</span>
+                <button
+                  type="button"
+                  onClick={() => move(p.id, +1)}
+                  disabled={i === photos.length - 1}
+                  className="h-6 w-6 rounded-full bg-white/90 text-slate-700 shadow disabled:opacity-40 flex items-center justify-center"
+                  data-testid={`${testId}-photo-${p.id}-down`}
+                  aria-label={t("Move photo later")}
+                >
+                  <ChevronDown className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       <input
         ref={inputRef}
         type="file"
@@ -331,18 +458,46 @@ function PhotoField({ value, onChange, testId }) {
         onChange={onFile}
         className="hidden"
         data-testid={`${testId}-input`}
+        aria-label={t("Add photo")}
       />
       <button
         type="button"
         onClick={() => inputRef.current && inputRef.current.click()}
-        className="h-11 w-full rounded-md border-2 border-dashed border-slate-400 text-slate-800 font-medium hover:border-slate-700"
+        className="min-h-11 h-11 w-full rounded-md border-2 border-dashed border-slate-400 text-slate-800 font-medium hover:border-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-900"
         data-testid={`${testId}-capture`}
+        aria-label={t("Add photo")}
       >
         + {t("Add photo")}
       </button>
       <p className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500">
         {t("GPS + timestamp are attached automatically.")}
       </p>
+
+      {preview ? (
+        <div
+          role="dialog"
+          aria-label={t("Preview photo")}
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          data-testid={`${testId}-preview-modal`}
+          onClick={() => setPreviewId(null)}
+        >
+          <div className="max-w-2xl w-full" onClick={(e) => e.stopPropagation()}>
+            <img src={preview.data_url} alt={preview.name || "preview"} className="w-full max-h-[70vh] object-contain rounded-md bg-black" />
+            <div className="mt-3 flex items-center justify-between text-xs text-slate-100">
+              <div className="truncate">{preview.name || "photo"}{preview.captured_at ? ` · ${preview.captured_at}` : ""}</div>
+              <button
+                type="button"
+                onClick={() => setPreviewId(null)}
+                className="h-9 px-3 rounded-md bg-white text-slate-900 text-sm font-semibold"
+                data-testid={`${testId}-preview-close`}
+                aria-label={t("Close preview")}
+              >
+                {t("Close")}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -558,6 +713,141 @@ function WeatherAutoField({ value, weatherAuto, onChange, onRefetch, testId }) {
   );
 }
 
+// ── TRACK 19.16 · UX Hardening Batch 2 ─────────────────────────────
+// Employee / Equipment / Vehicle picker renderers. Each stores the
+// human-readable label on the draft as a string (so the existing
+// field_block schema doesn't drift) but hydrates a sidecar map on
+// the draft (`__selected__[<field>] = { source, id, meta }`) so the
+// Review can distinguish platform-selected from typed values, and
+// downstream reports can show richer metadata via the sidecar.
+
+function _selMeta(draft, key) {
+  return (draft && draft.__selected__ && draft.__selected__[key]) || null;
+}
+
+function _writeSelMeta(setDraft, markAuto, key, meta) {
+  setDraft((d) => {
+    const map = { ...(d.__selected__ || {}) };
+    if (meta) map[key] = meta;
+    else delete map[key];
+    return { ...d, __selected__: map };
+  });
+  if (meta) markAuto([key]);
+}
+
+function EmployeePickerField({ value, onChange, testId, fieldKey, ctx }) {
+  const { t } = useT();
+  return (
+    <div data-testid={testId} className="space-y-1">
+      <EmployeeCombo
+        value={value || ""}
+        testId={testId}
+        onChange={(v) => {
+          onChange(v);
+          // Free-text edit — drop any prior selection metadata.
+          if (ctx?.setSelectedMeta) ctx.setSelectedMeta(fieldKey, null);
+        }}
+        onPick={(emp) => {
+          if (!emp) return;
+          const label = emp.preferred_name && emp.preferred_name !== emp.name
+            ? `${emp.name} (${emp.preferred_name})` : (emp.name || "");
+          onChange(label);
+          if (ctx?.setSelectedMeta) ctx.setSelectedMeta(fieldKey, {
+            source: "employees",
+            id: emp.id || null,
+            employee_id: emp.employee_id || "",
+            name: emp.name || "",
+            role: emp.role || "",
+            trade: emp.trade || "",
+            crew: emp.crew || "",
+          });
+        }}
+      />
+      {(() => {
+        const meta = _selMeta(ctx?.draft, fieldKey);
+        return meta ? (
+          <p className="text-[11px] font-mono uppercase tracking-[0.12em] text-emerald-800"
+             data-testid={`${testId}-selected-hint`}>
+            <Lock className="w-2.5 h-2.5 inline mr-1" />
+            {t("Selected from roster")}
+            {meta.role ? ` · ${meta.role}` : ""}
+            {meta.crew ? ` · ${t("Crew")} ${meta.crew}` : ""}
+          </p>
+        ) : (
+          <p className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500">
+            {t("Search or type. Selecting a name from the list auto-fills roster data.")}
+          </p>
+        );
+      })()}
+    </div>
+  );
+}
+
+// Vehicle-ish equipment categories in the master roster.
+const VEHICLE_CATEGORIES = [
+  "Pickup Trucks", "Dump Trucks", "Flatbed Trucks", "Service Trucks",
+  "Supervisor / Mgmt Trucks", "Tractor Trailer Trucks", "Water Trucks",
+  "Misc Trucks", "Sweepers",
+];
+
+function EquipmentPickerField({ value, onChange, testId, fieldKey, ctx, filterCategories }) {
+  const { t } = useT();
+  return (
+    <div data-testid={testId} className="space-y-1">
+      <EquipmentCombo
+        value={value || ""}
+        testId={testId}
+        placeholder={t("Search by unit #, make, model, plate, VIN…")}
+        filterCategories={filterCategories}
+        onChange={(v) => {
+          onChange(v);
+          if (ctx?.setSelectedMeta) ctx.setSelectedMeta(fieldKey, null);
+        }}
+        onPick={(unit) => {
+          if (!unit) return;
+          const bits = [];
+          if (unit.unit_number) bits.push(unit.unit_number);
+          if (unit.year) bits.push(unit.year);
+          if (unit.make) bits.push(unit.make);
+          if (unit.model) bits.push(unit.model);
+          if (unit.plate) bits.push(`plate ${unit.plate}`);
+          const label = bits.length ? bits.join(" · ") : (unit.display_label || unit.make_model || "");
+          onChange(label);
+          if (ctx?.setSelectedMeta) ctx.setSelectedMeta(fieldKey, {
+            source: "equipment_master",
+            id: unit.id || null,
+            unit_number: unit.unit_number || "",
+            category: unit.category || "",
+            make: unit.make || "",
+            model: unit.model || "",
+            year: unit.year || null,
+            plate: unit.plate || "",
+            vin: unit.vin_serial_number || "",
+            company: unit.company || "",
+          });
+        }}
+      />
+      {(() => {
+        const meta = _selMeta(ctx?.draft, fieldKey);
+        return meta ? (
+          <p className="text-[11px] font-mono uppercase tracking-[0.12em] text-emerald-800"
+             data-testid={`${testId}-selected-hint`}>
+            <Lock className="w-2.5 h-2.5 inline mr-1" />
+            {t("Selected from fleet")}
+            {meta.plate ? ` · plate ${meta.plate}` : ""}
+            {meta.vin ? ` · VIN ${meta.vin.slice(-6)}` : ""}
+          </p>
+        ) : (
+          <p className="text-[11px] font-mono uppercase tracking-[0.12em] text-slate-500">
+            {filterCategories ? t("Third-party or unlisted vehicle? Type it in.")
+                              : t("Third-party or unlisted equipment? Type it in.")}
+          </p>
+        );
+      })()}
+    </div>
+  );
+}
+
 // ── Generic field renderer ───────────────────────────────────────────
 function FieldRenderer({ field, value, onChange, testIdPrefix, ctx }) {
   const { t } = useT();
@@ -611,7 +901,7 @@ function FieldRenderer({ field, value, onChange, testIdPrefix, ctx }) {
     />
   );
   if (field.type === "personnel_list") return (
-    <PersonnelListField value={value} onChange={onChange} testId={tid} />
+    <PersonnelListField value={value} onChange={onChange} testId={tid} ctx={ctx} />
   );
   if (field.type === "gps") return (
     <GpsField value={value} onChange={onChange} testId={tid} />
@@ -621,6 +911,34 @@ function FieldRenderer({ field, value, onChange, testIdPrefix, ctx }) {
   );
   if (field.type === "witnesses") return (
     <WitnessesField value={value} onChange={onChange} testId={tid} />
+  );
+  if (field.type === "employee_picker") return (
+    <EmployeePickerField
+      value={value}
+      onChange={onChange}
+      testId={tid}
+      fieldKey={field.key}
+      ctx={ctx}
+    />
+  );
+  if (field.type === "equipment_picker") return (
+    <EquipmentPickerField
+      value={value}
+      onChange={onChange}
+      testId={tid}
+      fieldKey={field.key}
+      ctx={ctx}
+    />
+  );
+  if (field.type === "vehicle_picker") return (
+    <EquipmentPickerField
+      value={value}
+      onChange={onChange}
+      testId={tid}
+      fieldKey={field.key}
+      ctx={ctx}
+      filterCategories={VEHICLE_CATEGORIES}
+    />
   );
   if (field.type === "project_picker") return (
     <ProjectPickerField
@@ -700,6 +1018,10 @@ function ReviewCard({ draft, steps, missing, onEditStep, autoMap }) {
   const flow = INCIDENT_FLOWS[draft.incident_type];
   const autoCount = Object.keys(autoMap || {}).length;
   const projectCtx = draft.__project_context__ || null;
+  const selMap = draft.__selected__ || {};
+  const selectedCount = Object.keys(selMap).length;
+  const photoCount = Array.isArray(draft.photos) ? draft.photos.length : 0;
+  const witnessCount = Array.isArray(draft.witnesses) ? draft.witnesses.length : 0;
   return (
     <div className="space-y-4" data-testid="incident-report-review">
       <div className="rounded-xl border-2 border-slate-300 bg-white p-4 sm:p-5">
@@ -727,6 +1049,25 @@ function ReviewCard({ draft, steps, missing, onEditStep, autoMap }) {
             <Pencil className="w-3 h-3" />
             {t("typed by you")}
           </span>
+          <span
+            className="inline-flex items-center gap-1 rounded-full bg-sky-100 text-sky-800 px-2 py-0.5 font-mono uppercase tracking-[0.12em]"
+            data-testid="incident-report-review-selected-count"
+          >
+            <UserCheck className="w-3 h-3" />
+            {selectedCount} {t("platform-selected")}
+          </span>
+          <span
+            className="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-900 px-2 py-0.5 font-mono uppercase tracking-[0.12em]"
+            data-testid="incident-report-review-photo-count"
+          >
+            {photoCount} {t("photos")}
+          </span>
+          <span
+            className="inline-flex items-center gap-1 rounded-full bg-indigo-100 text-indigo-900 px-2 py-0.5 font-mono uppercase tracking-[0.12em]"
+            data-testid="incident-report-review-witness-count"
+          >
+            {witnessCount} {t("witnesses")}
+          </span>
         </div>
         {projectCtx ? (
           <div className="mt-3 rounded-md border border-slate-200 bg-slate-50 p-3 text-sm"
@@ -740,6 +1081,28 @@ function ReviewCard({ draft, steps, missing, onEditStep, autoMap }) {
               <span>{t("PM")}: <b>{projectCtx.project_manager || "—"}</b></span>
               <span>{t("Superintendent")}: <b>{projectCtx.superintendent || "—"}</b></span>
             </div>
+          </div>
+        ) : null}
+        {selectedCount > 0 ? (
+          <div className="mt-3 rounded-md border border-sky-200 bg-sky-50 p-3 text-sm"
+               data-testid="incident-report-review-selected-block">
+            <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-sky-700">
+              {t("Platform-selected records")}
+            </div>
+            <ul className="mt-1 space-y-1 text-slate-800">
+              {Object.entries(selMap).map(([k, m]) => (
+                <li key={k} data-testid={`incident-report-review-selected-${k}`}>
+                  <span className="font-mono text-[10px] uppercase text-slate-500">{k}</span>
+                  {" · "}
+                  <b>{m.name || m.unit_number || "—"}</b>
+                  {m.source === "employees" && m.employee_id ? ` · ID ${m.employee_id}` : ""}
+                  {m.source === "equipment_master" && m.plate ? ` · plate ${m.plate}` : ""}
+                  {m.source === "equipment_master" && m.vin ? ` · VIN ${m.vin.slice(-6)}` : ""}
+                  {m.role ? ` · ${m.role}` : ""}
+                  {m.crew ? ` · ${t("Crew")} ${m.crew}` : ""}
+                </li>
+              ))}
+            </ul>
           </div>
         ) : null}
       </div>
@@ -945,10 +1308,12 @@ export default function IncidentReport() {
   const ctx = useMemo(() => ({
     identity,
     weatherAuto,
+    draft,
     onSelectProject,
     onRefetchWeather: refetchWeatherFromGps,
+    setSelectedMeta: (key, meta) => _writeSelMeta(setDraft, markAuto, key, meta),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [identity, weatherAuto, draft.location_gps?.lat, draft.location_gps?.lng]);
+  }), [identity, weatherAuto, draft, draft.location_gps?.lat, draft.location_gps?.lng]);
 
   // Autosave draft on any change. Persist stepIndex alongside so the
   // user resumes on the exact step they left.

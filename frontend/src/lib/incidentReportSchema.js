@@ -139,8 +139,8 @@ const STEP_VEHICLE = {
   key: "vehicle",
   label: "Vehicle details",
   fields: [
-    { key: "vehicle_ids", type: "text", label: "Vehicle ID(s) or plates", required: true },
-    { key: "drivers", type: "text", label: "Driver name(s)", required: true },
+    { key: "vehicle_ids", type: "vehicle_picker", label: "Vehicle(s) involved", required: true },
+    { key: "drivers", type: "employee_picker", label: "Driver name(s)", required: true },
     { key: "passengers", type: "text", label: "Passenger name(s)" },
     { key: "police_response", type: "yesno", label: "Did police respond?", required: true },
     {
@@ -166,8 +166,8 @@ const STEP_EQUIPMENT = {
   key: "equipment",
   label: "Equipment details",
   fields: [
-    { key: "equipment_id", type: "text", label: "Equipment ID / asset tag", required: true },
-    { key: "operator_name", type: "text", label: "Operator name", required: true },
+    { key: "equipment_id", type: "equipment_picker", label: "Equipment involved", required: true },
+    { key: "operator_name", type: "employee_picker", label: "Operator name", required: true },
     {
       key: "damage_severity",
       type: "select",
@@ -218,7 +218,7 @@ const STEP_INJURY = {
   key: "injury",
   label: "Injury details",
   fields: [
-    { key: "injured_employee", type: "text", label: "Injured employee name", required: true },
+    { key: "injured_employee", type: "employee_picker", label: "Injured employee name", required: true },
     { key: "injury_body_part", type: "text", label: "Body part affected", required: true },
     {
       key: "injury_severity",

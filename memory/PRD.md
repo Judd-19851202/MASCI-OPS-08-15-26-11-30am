@@ -11,7 +11,71 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
-## Latest Track (2026-07-01 · TRACK 19.16 · UX Hardening Batch 1 · ✅ GREEN · CLOSED)
+## Latest Track (2026-07-01 · TRACK 19.16 · UX Hardening Batch 2 · ✅ GREEN · CLOSED)
+
+### Track type
+**UX HARDENING — selectors, photo UX, mobile cert, accessibility.** Zero-Drift additive: no backend engine, workspace, intelligence, or reports files were touched. Reuses existing `EmployeeCombo` (backed by `/api/employees`) and `EquipmentCombo` (backed by `/api/equipment-master`) — no duplicate data sources.
+
+### Batch 2 slices shipped
+
+**A · Employee selector** — new `employee_picker` field type + `EmployeePickerField` renderer. Wired into:
+- `injured_employee` (Employee Injury branch)
+- `drivers` (Vehicle Accident branch)
+- `operator_name` (Equipment Accident branch)
+- `PersonnelListField` rows (all branches — "Who was involved")
+- `WitnessesField` rows when `kind === "internal_employee"` (falls back to manual entry for contractor / visitor / public / police / utility_rep / EMS)
+
+Selection auto-fills name and adopts role/trade/crew; typed values drop the roster metadata (Trusted pillar — never guess).
+
+**B · Equipment selector** — new `equipment_picker` field type + `EquipmentPickerField` renderer. Wired into `equipment_id` (Equipment Accident branch). Selection auto-fills unit #, year, make, model, plate, VIN, category, company. Manual entry preserved for third-party / rental / unlisted equipment.
+
+**C · Vehicle selector** — same renderer with `filterCategories=VEHICLE_CATEGORIES` (Pickup / Dump / Flatbed / Service / Supervisor / Tractor Trailer / Water Trucks / Sweepers / Misc Trucks). Wired into `vehicle_ids` (Vehicle Accident branch). No parallel fleet model — reuses `equipment_master`.
+
+**D · Photo UX polish** — `PhotoField` upgraded with:
+- Photo count badge (`data-testid=…-count`)
+- Preview modal (`role="dialog"`, close button, close-on-overlay)
+- Reorder via ↑/↓ buttons per photo (order badge visible)
+- ARIA labels on every button (`Add photo`, `Remove photo`, `Preview photo`, `Move photo earlier/later`, `Close preview`)
+- Focus ring on photo tiles + capture button
+- Preserved: camera-open, multi-file, GPS + timestamp attachment, delete
+
+**E · Mobile / iPad certification** — Playwright certified across 4 viewports:
+- iPad landscape 1180×820 — header 171 px, no overflow, next in viewport, 44 px touch target
+- iPad portrait 820×1180 — header 171 px
+- iPhone 390×844 — header 103 px (compact but stable)
+- Desktop 1440×900 — header 171 px
+
+Header height is constant across steps on every viewport. Zero horizontal overflow. Next button always in viewport with ≥ 44 px height.
+
+**F · Accessibility** — `aria-label` on every icon-only button; `aria-pressed` on witness kind toggles; `role="dialog"` on the photo preview modal; ARIA labels on inputs that only carry placeholder text (personnel role, witness contact, witness statement); visible focus ring on photo tiles.
+
+**G · Review page** — three new counters + a platform-selected block:
+- `incident-report-review-selected-count` (platform-selected)
+- `incident-report-review-photo-count`
+- `incident-report-review-witness-count`
+- `incident-report-review-selected-block` — enumerates every selected employee / equipment / vehicle with roster / plate / VIN / role / crew metadata
+
+### Deliverables (frontend only)
+- UPDATED `/app/frontend/src/pages/IncidentReport.jsx` — 2 new renderers (`EmployeePickerField`, `EquipmentPickerField`), field-type routing, `VEHICLE_CATEGORIES`, ctx `setSelectedMeta`, PersonnelListField + WitnessesField now hydrate roster metadata, PhotoField polish, Review counters + selected-block
+- UPDATED `/app/frontend/src/lib/incidentReportSchema.js` — field types on vehicle/equipment/injury branches
+- UPDATED `/app/frontend/src/lib/i18n.js` — 22 EN↔ES pairs
+
+### Testing
+- **16 new lock tests** in `test_track_19_16_ux_hardening_batch_2.py` (schema wiring, renderer registration, personnel + witness combo reuse, photo count/preview/reorder/a11y, review counters, Zero-Drift source scan)
+- **Combined engine regression: 334/334 GREEN** (0.74s) — was 318
+- **Live curl:** `/api/employees` → 386 rows · `/api/equipment-master` → 705 rows across 28 categories
+- **Playwright:** vehicle picker live-verified opening a filtered dropdown ("DUMP TRUCKS (41)" with real VIN rows); all 4 viewports certified for header stability + horizontal overflow + touch targets
+
+### Zero-Drift
+- No backend files touched
+- Reuses `EmployeeCombo` and `EquipmentCombo` (zero duplicate logic)
+- Reuses `/api/employees` and `/api/equipment-master` (zero duplicate data sources)
+- Legacy redirects still intact (`/incidents/new` → `/incidents/report`, `/incidents/submit` → `/incidents/report`)
+- Report engine + weather helper + case service source scans pass
+
+---
+
+
 
 ### Track type
 **UX HARDENING — friction removal, not feature work.** Stop asking crews to type what the platform already knows. Additive-only; no schema changes, no engine changes, no report changes.
