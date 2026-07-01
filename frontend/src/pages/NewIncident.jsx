@@ -426,6 +426,23 @@ export default function NewIncident({ publicMode = false }) {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6">
+        {/* TRACK 19.16 · Phase E · Entrypoint Promotion Sweep — legacy notice. */}
+        <div
+          data-testid="legacy-incident-form-banner"
+          className="border-2 border-amber-400 bg-amber-50 text-amber-900 rounded-md p-3 flex items-start gap-2"
+        >
+          <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
+          <div className="text-sm leading-snug">
+            <span className="font-bold uppercase font-mono tracking-[0.14em] text-[10px]">
+              {t("Legacy form — kept for reference only.")}
+            </span>{" "}
+            {t("The active crew workflow is the new Incident Intelligence flow.")}{" "}
+            <a href="/incidents/report" className="underline font-semibold"
+               data-testid="legacy-incident-form-modern-link">
+              {t("Open the new Incident Report")}
+            </a>
+          </div>
+        </div>
         <div className="mb-2">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
             {t("New Report")}

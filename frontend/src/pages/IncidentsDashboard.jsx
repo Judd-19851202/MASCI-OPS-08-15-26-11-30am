@@ -98,7 +98,7 @@ export default function IncidentsDashboard() {
             testIdPrefix="share-incident"
           />
           <Button
-            onClick={() => navigate("/incidents/new")}
+            onClick={() => navigate("/incidents/report")}
             className="h-10 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-xs"
             data-testid="new-incident-btn"
           >
@@ -151,7 +151,7 @@ export default function IncidentsDashboard() {
                 Every near miss, injury, property damage, or environmental release belongs here. Small details written now save big problems later.
               </p>
               <Button
-                onClick={() => navigate("/incidents/new")}
+                onClick={() => navigate("/incidents/report")}
                 className="mt-6 h-12 px-6 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide"
                 data-testid="empty-cta"
               >

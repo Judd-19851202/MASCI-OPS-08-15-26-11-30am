@@ -579,6 +579,123 @@ def test_frontend_pdf_button_exists():
 
 
 # ═══════════════════════════════════════════════════════════════════
+# 11b · Entrypoint Promotion Sweep — crew-facing routes → /incidents/report
+# ═══════════════════════════════════════════════════════════════════
+def test_safety_portal_incident_reports_card_targets_new_engine():
+    """The Safety portal Incident Reports tile must route to the new
+    Incident Intelligence flow — NOT the legacy /incidents/new form."""
+    src = (FE_ROOT / "pages/SafetySection.jsx").read_text(encoding="utf-8")
+    # Locate the tile block containing the Incident Reports title.
+    assert 'title={t("Incident Reports")}' in src
+    # The block immediately above must set to="/incidents/report".
+    idx = src.index('title={t("Incident Reports")}')
+    window = src[max(0, idx - 400): idx]
+    assert 'to="/incidents/report"' in window, (
+        "Safety portal Incident Reports tile must target /incidents/report"
+    )
+    assert 'to="/incidents/new"' not in window
+    assert 'to="/incidents/submit"' not in window
+
+
+def test_daily_report_incident_followup_targets_new_engine():
+    """When Daily Report says an incident report is required, the CTA
+    must route to /incidents/report."""
+    src = (FE_ROOT / "pages/NewDailyReport.jsx").read_text(encoding="utf-8")
+    # Locate the STOP block for the Incident Report follow-up.
+    assert 'open-incident-form-link' in src
+    idx = src.index('open-incident-form-link')
+    window = src[max(0, idx - 400): idx + 200]
+    assert 'to="/incidents/report"' in window, (
+        "Daily Report incident follow-up CTA must target /incidents/report"
+    )
+    assert 'to="/incidents/new"' not in window
+
+
+def test_incidents_dashboard_new_report_targets_new_engine():
+    src = (FE_ROOT / "pages/IncidentsDashboard.jsx").read_text(encoding="utf-8")
+    # Both the header CTA and the empty-state CTA must go to /incidents/report.
+    for testid in ("new-incident-btn", "empty-cta"):
+        assert testid in src
+        idx = src.index(testid)
+        window = src[max(0, idx - 400): idx + 100]
+        assert 'navigate("/incidents/report")' in window, (
+            f"IncidentsDashboard.{testid} must navigate to /incidents/report"
+        )
+
+
+def test_safety_incidents_field_cta_targets_new_engine():
+    src = (FE_ROOT / "pages/SafetyIncidents.jsx").read_text(encoding="utf-8")
+    assert 'incidents-submit-field-cta' in src
+    idx = src.index('incidents-submit-field-cta')
+    window = src[max(0, idx - 400): idx + 100]
+    assert 'to="/incidents/report"' in window
+
+
+def test_no_crew_facing_component_routes_to_legacy_incidents_new():
+    """The only file allowed to reference /incidents/new is App.js
+    (route mount) and NewIncident.jsx (self-references). Every other
+    page/component must be clean."""
+    allowed = {
+        FE_ROOT / "App.js",                       # route mount
+        FE_ROOT / "pages" / "NewIncident.jsx",    # legacy component itself
+    }
+    hits = []
+    for path in FE_ROOT.rglob("*.jsx"):
+        if path in allowed:
+            continue
+        txt = path.read_text(encoding="utf-8", errors="ignore")
+        for needle in ('"/incidents/new"', "'/incidents/new'"):
+            if needle in txt:
+                hits.append(str(path))
+                break
+    for path in FE_ROOT.rglob("*.js"):
+        if path in allowed:
+            continue
+        txt = path.read_text(encoding="utf-8", errors="ignore")
+        for needle in ('"/incidents/new"', "'/incidents/new'"):
+            if needle in txt:
+                hits.append(str(path))
+                break
+    assert hits == [], (
+        f"Crew-facing components must not route to /incidents/new. "
+        f"Offenders: {hits}"
+    )
+
+
+def test_legacy_incidents_new_route_still_mounted():
+    """Do not delete the legacy fallback."""
+    txt = (FE_ROOT / "App.js").read_text(encoding="utf-8")
+    assert '<Route path="/incidents/new" element={<NewIncident />}' in txt
+
+
+def test_incidents_report_route_still_mounted():
+    """The new engine route must remain mounted."""
+    txt = (FE_ROOT / "App.js").read_text(encoding="utf-8")
+    assert '<Route path="/incidents/report"' in txt
+
+
+def test_near_miss_kiosk_route_still_mounted():
+    """The public near-miss kiosk must remain mounted."""
+    txt = (FE_ROOT / "App.js").read_text(encoding="utf-8")
+    assert '<Route path="/near-miss"' in txt
+
+
+def test_legacy_incident_form_shows_deprecation_banner():
+    """NewIncident.jsx should carry a clear legacy banner pointing
+    users to the new Incident Intelligence flow."""
+    txt = (FE_ROOT / "pages/NewIncident.jsx").read_text(encoding="utf-8")
+    assert 'data-testid="legacy-incident-form-banner"' in txt
+    assert 'href="/incidents/report"' in txt
+
+
+def test_legacy_backend_incident_lifecycle_untouched_by_sweep():
+    """Zero-Drift on the legacy backend."""
+    txt = (REPO_ROOT / "backend/routes/incident_lifecycle.py").read_text(
+        encoding="utf-8")
+    assert "register_incident_lifecycle_routes" in txt
+
+
+# ═══════════════════════════════════════════════════════════════════
 # 12 · Six-Pillar certification (asserted directly)
 # ═══════════════════════════════════════════════════════════════════
 def test_pillar_powerful_one_engine_many_reports():

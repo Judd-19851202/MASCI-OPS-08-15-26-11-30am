@@ -130,7 +130,7 @@ export default function SafetySection() {
             testId="safety-tile-meetings"
           />
           <SafetyTile
-            to="/incidents/submit"
+            to="/incidents/report"
             icon={AlertOctagon}
             title={t("Incident Reports")}
             desc={t("Document near misses, injuries, and damage. Severity tiers, root cause, witnesses, and follow-up — all in one record.")}

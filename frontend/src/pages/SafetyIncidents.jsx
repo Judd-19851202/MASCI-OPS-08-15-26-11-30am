@@ -1,8 +1,8 @@
 // SafetyIncidents — read-only roll-up of every incident & near-miss
 // report filed from the field. Safety reviewers can filter by
 // severity / status / type / date, drill into detail, and link out
-// to corrective actions. Writes happen in the public incident form
-// (/incidents/new); this view is review-only.
+// to corrective actions. Writes happen in the Incident Intelligence
+// engine flow at /incidents/report; this view is review-only.
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
@@ -105,7 +105,7 @@ export default function SafetyIncidents() {
               point was a hyperlink buried in body copy. Promote it to
               a real CTA on the right rail. */}
           <Link
-            to="/incidents/new"
+            to="/incidents/report"
             data-testid="incidents-submit-field-cta"
             className="hidden sm:inline-flex items-center gap-2 self-start px-4 py-2 rounded-md border-2 border-slate-800 text-slate-800 hover:bg-slate-800 hover:text-white transition-colors text-sm font-bold whitespace-nowrap"
           >

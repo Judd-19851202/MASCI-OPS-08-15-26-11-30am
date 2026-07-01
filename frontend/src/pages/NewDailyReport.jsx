@@ -1837,7 +1837,7 @@ function NewDailyReportInner({ publicMode = false }) {
                       )}
                     </div>
                     <Link
-                      to="/incidents/new"
+                      to="/incidents/report"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 mt-3 px-3 py-2 bg-white text-red-800 hover:bg-red-100 font-mono text-xs uppercase tracking-[0.2em] font-bold rounded"

@@ -11,7 +11,53 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
-## Latest Track (2026-07-01 · TRACK 19.16 · Phase E · Report Intelligence Engine · ✅ GREEN · CLOSED)
+## Latest Track (2026-07-01 · TRACK 19.16 · Phase E · Entrypoint Promotion Sweep · ✅ GREEN · CLOSED)
+
+### Track type
+**IMPLEMENTATION — Phase E addendum** — promote `/incidents/report` (Incident Intelligence Engine) as the sole crew-facing incident entrypoint across the platform. Legacy `/incidents/new` preserved as fallback route.
+
+### Files touched (frontend only)
+- `pages/SafetySection.jsx` — Incident Reports tile: `to="/incidents/submit"` → `to="/incidents/report"`
+- `pages/NewDailyReport.jsx` — Incident-report required STOP block Link: `to="/incidents/new"` → `to="/incidents/report"`
+- `pages/IncidentsDashboard.jsx` — header CTA + empty-state CTA: `navigate("/incidents/new")` → `navigate("/incidents/report")`
+- `pages/SafetyIncidents.jsx` — right-rail CTA + header comment updated to `/incidents/report`
+- `pages/NewIncident.jsx` — added additive legacy banner (amber, `data-testid="legacy-incident-form-banner"`) linking to `/incidents/report`. Legacy form logic untouched.
+- `lib/i18n.js` — 3 EN↔ES pairs for legacy banner strings
+
+### Zero-Drift preserved
+- Legacy `<Route path="/incidents/new" element={<NewIncident />} />` still mounted (verified live: /incidents/new loads).
+- Legacy `NewIncident.jsx` component logic completely untouched — only additive banner at the top of `<main>`.
+- Legacy backend `/api/incidents/*` routes and `incidents` collection: no changes.
+- `/incidents/report`, `/near-miss`, `/safety/cases/:caseId`, `/safety/executive-intelligence` all still mounted.
+
+### Lock tests added (10 new — inside `test_track_19_16_incident_engine_phase_e.py`)
+- `test_safety_portal_incident_reports_card_targets_new_engine`
+- `test_daily_report_incident_followup_targets_new_engine`
+- `test_incidents_dashboard_new_report_targets_new_engine`
+- `test_safety_incidents_field_cta_targets_new_engine`
+- `test_no_crew_facing_component_routes_to_legacy_incidents_new` — file-tree scan proves ONLY `App.js` (route mount) and `NewIncident.jsx` (self) reference `/incidents/new`
+- `test_legacy_incidents_new_route_still_mounted`
+- `test_incidents_report_route_still_mounted`
+- `test_near_miss_kiosk_route_still_mounted`
+- `test_legacy_incident_form_shows_deprecation_banner`
+- `test_legacy_backend_incident_lifecycle_untouched_by_sweep`
+
+### Verification
+- **Phase E lock tests:** 83/83 GREEN (was 73)
+- **Combined 19.15 + 19.16 A/B2/C/D/E regression:** **300/300 GREEN** (was 290)
+- **Playwright live smoke:** Safety portal card href = `/incidents/report` · click lands at `/incidents/report` · `/incidents/new` still loads and renders the amber "Legacy form" banner with visible "Open the new Incident Report" link.
+
+### Six-Pillar certification (asserted directly)
+- **Powerful** — crews land on the new engine everywhere
+- **Simple** — one obvious Incident Reports button per surface
+- **Beautiful** — no duplicate confusing CTAs
+- **Trusted** — legacy still available, banner tells users so
+- **Proven** — 10 new file-tree/route lock assertions
+- **Operational** — the 5:30 AM foreman gets the new workflow by default
+
+---
+
+
 
 ### Track type
 **IMPLEMENTATION — Phase E** — one declarative, read-only report engine over the incident engine. Nine report packages + Weekly Executive Digest, all rendered from Phase A/B/C/D data. Reports never own data, never ask for input, never mutate anything. Zero-Drift preserved.
@@ -171,6 +217,44 @@ Asserted directly by the lock suite:
 - Trusted → source scan proves reads-only
 - Proven → 16 assertions + 217 combined
 - Operational → Action Queue produces `recommended_action` on every row
+
+---
+
+## Track (2026-07-01 · TRACK 19.16 · Phase E · Report Intelligence Engine · ✅ GREEN · CLOSED)
+
+### Track type
+**IMPLEMENTATION — Phase E** — one declarative, read-only report engine over the incident engine. Nine report packages + Weekly Executive Digest, all rendered from Phase A/B/C/D data. Reports never own data, never ask for input, never mutate anything. Zero-Drift preserved.
+
+### Deliverables
+- NEW `/app/backend/incident_engine/reports.py` — declarative engine + 16 section renderers
+- NEW `/app/backend/incident_engine/report_render.py` — HTML/PDF renderer (WeasyPrint)
+- NEW `/app/backend/incident_engine/report_routes.py` — 5 additive GET routes
+- NEW `/app/frontend/src/pages/IncidentReportViewer.jsx` — print/PDF/share viewer
+- UPDATED `server.py`, `App.js`, `i18n.js` (80+ EN↔ES pairs)
+
+### Nine report packages
+`executive_summary` · `insurance_package` · `witness_package` · `vehicle_package` · `utility_strike_package` · `employee_injury_package` · `customer_incident_report` · `management_review` · `osha_investigation_package`
+
+### New API surface (5 GET routes, `/api`-prefixed, Safety/Admin/PM gated)
+- `GET /api/incident-reports/types`
+- `GET /api/incident-cases/{case_id}/reports/{report_type}` (JSON)
+- `GET /api/incident-cases/{case_id}/reports/{report_type}.pdf` (WeasyPrint PDF)
+- `GET /api/incident-intelligence/digest/weekly` (JSON, reuses Phase D brief)
+- `GET /api/incident-intelligence/digest/weekly.pdf`
+
+### Medical privacy modes (lock-tested)
+`hidden` · `aggregate_only` · `authorized_only` · `full`
+
+### Customer-facing gates
+Timeline strips internal events; CAPA rows trimmed to `{title, action_class, state}`; witnesses/medical never appear.
+
+### Testing
+- 73 Phase E lock tests · combined 290/290 GREEN
+- Live curl: all 9 report PDFs + weekly digest PDF returned `application/pdf` with `%PDF-1.7`
+- Playwright: viewer renders header/exec-summary/root-cause/lessons/print/PDF/share buttons
+
+### Zero-Drift
+Legacy `/api/incidents/*` untouched · source scans prove no writes on `reports.py`/`report_render.py`/`report_routes.py`.
 
 ---
 

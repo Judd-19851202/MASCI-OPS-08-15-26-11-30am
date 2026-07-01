@@ -213,6 +213,10 @@ const ES = {
   "Lessons Learned": "Lecciones Aprendidas",
   "Root cause": "Causa raíz",
   "Executive review notes": "Notas de revisión ejecutiva",
+  "Legacy form — kept for reference only.": "Formulario heredado — solo para referencia.",
+  "The active crew workflow is the new Incident Intelligence flow.":
+    "El flujo activo de la cuadrilla es el nuevo flujo de Inteligencia de Incidentes.",
+  "Open the new Incident Report": "Abrir el nuevo Reporte de Incidente",
   "Back": "Atrás",
 
   // ── Track 19.16 · Phase C · Safety Case Workspace ─────────────────
