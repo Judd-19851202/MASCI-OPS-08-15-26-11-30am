@@ -60,6 +60,67 @@ const subscribe = (cb) => {
 // before the Spanish translation lands.
 const ES = {
   // iter432 · Phase 30 · Part 6 · Field Memory glance (calm role-hub
+  // ── Track 19.16 · Phase B2 · Kiosk + Draft banner + Offline ───────
+  // Public Near-Miss Kiosk
+  "Public Near-Miss Reporting": "Reporte Público de Casi Accidente",
+  "Report a near miss": "Reportar un casi accidente",
+  "No login needed. Tell us what almost happened. It takes 20 seconds.":
+    "No se necesita inicio de sesión. Cuéntanos qué casi pasó. Toma 20 segundos.",
+  "What almost happened?": "¿Qué casi pasó?",
+  "Example: forklift almost struck a worker walking through the yard.":
+    "Ejemplo: montacargas casi golpea a un trabajador caminando por el patio.",
+  "Where did it happen?": "¿Dónde pasó?",
+  "Job site, area, or intersection": "Sitio, área o intersección",
+  "Capture location (optional)": "Capturar ubicación (opcional)",
+  "Is anyone in immediate danger right now?":
+    "¿Alguien está en peligro inmediato ahora?",
+  "Immediate danger": "Peligro inmediato",
+  "This form is not a replacement for emergency action.":
+    "Este formulario no reemplaza la acción de emergencia.",
+  "Move people away from the hazard now.":
+    "Aleje a las personas del peligro ahora.",
+  "Notify a supervisor immediately.":
+    "Notifique a un supervisor de inmediato.",
+  "Call 911 if there is an active emergency.":
+    "Llame al 911 si hay una emergencia activa.",
+  "Add your name or a photo (optional)":
+    "Agrega tu nombre o una foto (opcional)",
+  "Your name": "Tu nombre",
+  "Company (optional)": "Empresa (opcional)",
+  "Attached photo": "Foto adjunta",
+  "Remove photo": "Eliminar foto",
+  "Attach a photo": "Adjuntar una foto",
+  "Add photo (optional)": "Agregar foto (opcional)",
+  "Sending…": "Enviando…",
+  "Submit near-miss report": "Enviar reporte de casi accidente",
+  "Save & queue": "Guardar y encolar",
+  "Anonymous submissions are welcome. Nothing is shared with your employer beyond Safety.":
+    "Los envíos anónimos son bienvenidos. Nada se comparte con tu empleador más allá de Seguridad.",
+  "Online": "En línea",
+  "Offline": "Sin conexión",
+  "Report submitted": "Reporte enviado",
+  "Thank you. Safety has received your report.":
+    "Gracias. Seguridad recibió tu reporte.",
+  "We noticed this report was already submitted. We're keeping just one copy.":
+    "Notamos que este reporte ya fue enviado. Mantenemos solo una copia.",
+  "Submit another report": "Enviar otro reporte",
+  // Offline queue
+  "Saved and queued": "Guardado y en cola",
+  "This will submit when connection returns.":
+    "Esto se enviará cuando regrese la conexión.",
+  "Your report is saved on this device. Do not close this tab if possible — we will submit it automatically when the internet returns.":
+    "Tu reporte está guardado en este dispositivo. No cierres esta pestaña si es posible — lo enviaremos automáticamente cuando regrese el internet.",
+  "OK": "OK",
+  // Draft resume banner
+  "Unfinished report": "Reporte sin terminar",
+  "Untitled": "Sin título",
+  "Resume": "Continuar",
+  "Discard": "Descartar",
+  "Resume unfinished report": "Continuar reporte sin terminar",
+  "Discard unfinished report": "Descartar reporte sin terminar",
+  "just now": "ahora mismo",
+  "min": "min", "hr": "h", "day": "día", "ago": "atrás",
+
   // ── Track 19.16 · Phase B1 · Field Incident Report ─────────────────
   "Field Incident Report": "Reporte de Incidente de Campo",
   "Report an incident": "Reportar un incidente",

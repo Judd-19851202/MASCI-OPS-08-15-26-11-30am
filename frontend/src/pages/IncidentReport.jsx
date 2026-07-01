@@ -26,26 +26,10 @@ import { FormShell } from "@/components/FormShell";
 import { ProgressRail } from "@/components/ProgressRail";
 import { HelpDrawer } from "@/components/HelpDrawer";
 import { PresenceGate } from "@/components/PresenceGate";
-import {
-  INCIDENT_FLOWS,
-  INCIDENT_TYPE_ORDER,
-  hasValue,
-  requiredFieldsForStep,
-  stepsFor,
-} from "@/lib/incidentReportSchema";
-import {
-  clearDraft,
-  currentDraftId,
-  ensureActiveDraftId,
-  loadDraft,
-  saveDraft,
-} from "@/lib/incidentDraft";
-import {
-  createCase,
-  patchFieldBlock,
-  transitionCase,
-  addEvidence,
-} from "@/lib/incidentReportApi";
+import { INCIDENT_FLOWS, INCIDENT_TYPE_ORDER, hasValue, requiredFieldsForStep, stepsFor } from "@/lib/incidentReportSchema";
+import { clearDraft, currentDraftId, ensureActiveDraftId, loadDraft, saveDraft } from "@/lib/incidentDraft";
+import { createCase, patchFieldBlock, transitionCase, addEvidence } from "@/lib/incidentReportApi";
+import { DraftResumeBanner } from "@/components/DraftResumeBanner";
 import {
   AlertTriangle,
   Car,
@@ -81,10 +65,18 @@ const ACCENTS = {
 };
 
 // ── Incident-type picker ────────────────────────────────────────────
-function IncidentTypePicker({ onPick }) {
+function IncidentTypePicker({ onPick, draft, onResume, onDiscard }) {
   const { t } = useT();
+  const hasResumableDraft = draft && draft.incident_type;
   return (
     <div data-testid="incident-type-picker" className="space-y-4">
+      {hasResumableDraft && (
+        <DraftResumeBanner
+          draft={draft}
+          onResume={onResume}
+          onDiscard={onDiscard}
+        />
+      )}
       <div>
         <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">
           {t("Step 1 of 2")}
@@ -847,7 +839,14 @@ export default function IncidentReport() {
         )
       }
     >
-      {phase === "picker" && <IncidentTypePicker onPick={pickType} />}
+      {phase === "picker" && (
+        <IncidentTypePicker
+          onPick={pickType}
+          draft={hasValue(draft?.incident_type) ? draft : null}
+          onResume={() => { setPhase("steps"); setStepIndex(Math.max(0, draft.__step_index__ || 0)); }}
+          onDiscard={() => { clearDraft(draftIdRef.current); draftIdRef.current = ensureActiveDraftId(); setDraft({}); setStepIndex(0); }}
+        />
+      )}
       {phase === "steps" && steps[stepIndex] && (
         <StepPanel
           step={steps[stepIndex]}

@@ -86,6 +86,7 @@ import AllPostersPrint from "@/pages/AllPostersPrint";
 import IncidentsDashboard from "@/pages/IncidentsDashboard";
 import NewIncident from "@/pages/NewIncident";
 import IncidentReport from "@/pages/IncidentReport";
+import NearMissKiosk from "@/pages/NearMissKiosk";
 import ViewIncident from "@/pages/ViewIncident";
 import DailyReportsDashboard from "@/pages/DailyReportsDashboard";
 import NewDailyReport from "@/pages/NewDailyReport";
@@ -531,6 +532,8 @@ function App() {
             <Route path="/incidents/submit" element={<NewIncident publicMode />} />
             {/* TRACK 19.16 · Phase B1 — new engine-backed reporting flow. */}
             <Route path="/incidents/report" element={<IncidentReport />} />
+            {/* TRACK 19.16 · Phase B2 — public no-auth Near-Miss Kiosk. */}
+            <Route path="/near-miss" element={<NearMissKiosk />} />
 
             <Route path="/daily/new" element={<NewDailyReport />} />
             <Route path="/daily/submit" element={<NewDailyReport publicMode />} />

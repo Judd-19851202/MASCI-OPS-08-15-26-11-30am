@@ -2561,6 +2561,12 @@ register_incident_engine_routes(
     ).make_require_safety_admin_or_pm(db, _is_valid_admin_token, _is_valid_pm_token),
 )
 
+# Public-gate near-miss kiosk (Phase B2). Additive. No auth. Routes
+# submissions through the exact same Phase A domain engine + audit +
+# lifecycle. Legacy routes untouched.
+from incident_engine.public_gate import register_public_routes as _register_ie_public_routes  # noqa: E402
+_register_ie_public_routes(api_router, db)
+
 
 # ─── OMEGA · Phase 1A · iter452 · OC-002 Daily Report Office Review ──
 #     Additive transition endpoints. Uses the Safety/Admin/PM read gate
