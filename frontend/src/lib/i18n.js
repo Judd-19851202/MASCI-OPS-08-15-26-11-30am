@@ -60,6 +60,237 @@ const subscribe = (cb) => {
 // before the Spanish translation lands.
 const ES = {
   // iter432 · Phase 30 · Part 6 · Field Memory glance (calm role-hub
+  // ── Track 19.16 · Phase B1 · Field Incident Report ─────────────────
+  "Field Incident Report": "Reporte de Incidente de Campo",
+  "Report an incident": "Reportar un incidente",
+  "Report the facts you observed. Safety takes over from there.":
+    "Reporta los hechos que observaste. Seguridad se encarga desde ahí.",
+  "Step 1 of 2": "Paso 1 de 2",
+  "What happened?": "¿Qué pasó?",
+  "Pick the closest match. You can add detail on the next screen.":
+    "Elige la opción más cercana. Puedes añadir detalles en la próxima pantalla.",
+  // Incident type labels (mirror Phase A vocabulary)
+  "Vehicle Accident": "Accidente de Vehículo",
+  "Equipment Accident": "Accidente de Equipo",
+  "Utility Strike": "Impacto a Servicio Público",
+  "Employee Injury": "Lesión de Empleado",
+  "Near Miss": "Casi Accidente",
+  "Property Damage": "Daño a la Propiedad",
+  "Environmental": "Ambiental",
+  "Workplace Violence": "Violencia en el Trabajo",
+  "Public Complaint": "Queja del Público",
+  // Type descriptions & examples
+  "Company vehicle, third-party vehicle, or fleet asset collision.":
+    "Vehículo de la empresa, de un tercero o de flota involucrado en una colisión.",
+  "Rear-end collision · rollover · single-vehicle · third-party impact":
+    "Colisión trasera · vuelco · vehículo único · impacto con tercero",
+  "Heavy equipment or asset involved in an accident or damage event.":
+    "Equipo pesado o activo involucrado en un accidente o daño.",
+  "Excavator rollover · tipped loader · struck-by · dropped load":
+    "Vuelco de excavadora · cargador volcado · golpeado por · carga caída",
+  "Contact with underground or overhead utility line.":
+    "Contacto con línea de servicio público subterránea o aérea.",
+  "Gas line · electric · fiber · water · sewer · telecom":
+    "Gas · eléctrico · fibra · agua · alcantarillado · telecom",
+  "An employee was hurt or required medical attention.":
+    "Un empleado se lesionó o requirió atención médica.",
+  "Sprain · cut · fall · struck-by · heat illness":
+    "Esguince · corte · caída · golpeado por · enfermedad por calor",
+  "Something almost went wrong — no injury or damage occurred.":
+    "Algo estuvo a punto de salir mal — sin lesión ni daño.",
+  "Close call · unsafe act observed · potential hazard averted":
+    "Suceso cercano · acto inseguro observado · peligro evitado",
+  "Third-party or company property was damaged (no injury).":
+    "Propiedad de un tercero o de la empresa fue dañada (sin lesión).",
+  "Fence · driveway · landscaping · sign · gate":
+    "Cerca · entrada · jardinería · letrero · portón",
+  "Spill, release, or environmental exposure event.":
+    "Derrame, escape o exposición ambiental.",
+  "Fuel spill · hydraulic release · concrete washout · waterway impact":
+    "Derrame de combustible · escape hidráulico · lavado de concreto · impacto a curso de agua",
+  "Threat, assault, harassment, or violent conduct on site.":
+    "Amenaza, agresión, acoso o conducta violenta en el sitio.",
+  "Threat · assault · harassment · verbal escalation":
+    "Amenaza · agresión · acoso · escalada verbal",
+  "A member of the public raised a concern about the project.":
+    "Un miembro del público expresó una preocupación sobre el proyecto.",
+  "Noise · dust · traffic · property · conduct":
+    "Ruido · polvo · tráfico · propiedad · conducta",
+  // Steps
+  "Immediate Safety": "Seguridad Inmediata",
+  "Location": "Ubicación",
+  "Who was involved": "Quién estuvo involucrado",
+  "What happened": "Qué pasó",
+  "Immediate actions": "Acciones inmediatas",
+  "Photos & evidence": "Fotos y evidencia",
+  "Witnesses": "Testigos",
+  "Vehicle details": "Detalles del vehículo",
+  "Equipment details": "Detalles del equipo",
+  "Utility strike details": "Detalles del impacto",
+  "Injury details": "Detalles de la lesión",
+  "Near miss details": "Detalles del casi accidente",
+  "Property damage": "Daño a la propiedad",
+  "Environmental details": "Detalles ambientales",
+  "Workplace violence details": "Detalles de violencia laboral",
+  "Public complaint details": "Detalles de la queja pública",
+  // Immediate safety
+  "Is everyone currently safe on scene?": "¿Todos están seguros en el sitio ahora?",
+  "Was emergency medical response required?": "¿Se requirió atención médica de emergencia?",
+  "Is EMS on scene now?": "¿Está EMS en el sitio ahora?",
+  "Is the immediate hazard controlled?": "¿Está controlado el peligro inmediato?",
+  // Location
+  "Job number": "Número de trabajo",
+  "Location description": "Descripción de la ubicación",
+  "GPS coordinate": "Coordenada GPS",
+  "Weather": "Clima",
+  // People
+  "Your name (reporter)": "Tu nombre (reportante)",
+  "Your role": "Tu rol",
+  "Personnel present": "Personal presente",
+  // What happened
+  "Date of incident": "Fecha del incidente",
+  "Time of incident": "Hora del incidente",
+  "Describe what happened in your own words":
+    "Describe lo que pasó en tus propias palabras",
+  // Immediate actions
+  "What was done immediately after?": "¿Qué se hizo inmediatamente después?",
+  "Who was notified? (one per line)": "¿A quién se notificó? (uno por línea)",
+  // Vehicle
+  "Vehicle ID(s) or plates": "ID(s) o placa(s) del vehículo",
+  "Driver name(s)": "Nombre(s) del conductor",
+  "Passenger name(s)": "Nombre(s) del pasajero",
+  "Did police respond?": "¿Respondió la policía?",
+  "Police case number": "Número de caso policial",
+  "Is tow required?": "¿Se requiere grúa?",
+  "Is traffic control needed?": "¿Se necesita control de tráfico?",
+  "Third party involved?": "¿Terceros involucrados?",
+  "Third party name / contact / insurance":
+    "Nombre / contacto / seguro del tercero",
+  // Equipment
+  "Equipment ID / asset tag": "ID de equipo / etiqueta de activo",
+  "Operator name": "Nombre del operador",
+  "Damage severity": "Severidad del daño",
+  "Minor": "Menor", "Moderate": "Moderado", "Major": "Mayor", "Total loss": "Pérdida total",
+  "Mark equipment out of service?": "¿Marcar equipo fuera de servicio?",
+  "Describe the damage": "Describe el daño",
+  // Utility
+  "Utility type": "Tipo de servicio",
+  "Electric": "Eléctrico", "Gas": "Gas", "Water": "Agua",
+  "Sewer": "Alcantarillado", "Telecom / phone": "Telecom / teléfono",
+  "Fiber": "Fibra", "Cable / TV": "Cable / TV", "Other": "Otro",
+  "Utility owner / company": "Dueño / compañía del servicio",
+  "811 locate ticket number": "Número de boleto 811",
+  "Was the locate valid at time of strike?":
+    "¿Era válida la localización al momento del impacto?",
+  "Was service interrupted?": "¿Se interrumpió el servicio?",
+  "Was emergency response called?": "¿Se llamó a emergencias?",
+  "ISP information (for fiber)": "Información del ISP (para fibra)",
+  // Injury
+  "Injured employee name": "Nombre del empleado lesionado",
+  "Body part affected": "Parte del cuerpo afectada",
+  "Severity": "Severidad",
+  "First aid only": "Solo primeros auxilios",
+  "Medical treatment": "Tratamiento médico",
+  "Hospitalization": "Hospitalización",
+  "Fatality": "Fatal",
+  "Was first aid given on scene?": "¿Se dieron primeros auxilios en el sitio?",
+  "Did EMS transport the employee?": "¿EMS transportó al empleado?",
+  "Hospital name": "Nombre del hospital",
+  "Injury description": "Descripción de la lesión",
+  // Near miss
+  "Potential consequence if events had continued":
+    "Consecuencia potencial si hubiera continuado",
+  "What prevented an injury or damage?": "¿Qué previno una lesión o daño?",
+  "Potential severity": "Severidad potencial",
+  "Low": "Baja", "High": "Alta", "Catastrophic": "Catastrófica",
+  // Property damage
+  "Property owner": "Propietario",
+  "Owner contact": "Contacto del propietario",
+  "Affected assets": "Bienes afectados",
+  "Estimated damage (USD)": "Daño estimado (USD)",
+  "Damage description": "Descripción del daño",
+  // Environmental
+  "Material spilled": "Material derramado",
+  "Estimated volume (gallons / units)": "Volumen estimado (galones / unidades)",
+  "Is containment achieved?": "¿Se logró contención?",
+  "Any waterway or storm-drain impact?":
+    "¿Impacto a curso de agua o drenaje pluvial?",
+  "Was a regulatory agency notified?": "¿Se notificó a una agencia regulatoria?",
+  "Agency name": "Nombre de la agencia",
+  "Cleanup actions taken": "Acciones de limpieza tomadas",
+  // Violence
+  "Individuals involved": "Personas involucradas",
+  "Have individuals been separated?": "¿Se ha separado a las personas?",
+  "Was law enforcement called?": "¿Se llamó a las autoridades?",
+  "Police case / report number": "Número de caso / reporte policial",
+  "Is a restraining order in place?": "¿Hay una orden de restricción vigente?",
+  "Is the threat ongoing?": "¿Continúa la amenaza?",
+  // Complaint
+  "Citizen name": "Nombre del ciudadano",
+  "Citizen contact (phone / email)": "Contacto del ciudadano (teléfono / email)",
+  "Complaint category": "Categoría de la queja",
+  "Noise": "Ruido", "Dust": "Polvo", "Traffic / detour": "Tráfico / desvío",
+  "Property / driveway": "Propiedad / entrada",
+  "Alleged damage": "Daño alegado", "Employee conduct": "Conducta de empleado",
+  "Resolution attempted on scene": "Resolución intentada en el sitio",
+  // Witnesses
+  "Internal employee": "Empleado interno",
+  "Visitor": "Visitante",
+  "Contractor": "Contratista",
+  "Public": "Público",
+  "Police": "Policía",
+  "Utility representative": "Representante de servicio público",
+  "Statement / notes": "Declaración / notas",
+  "Remove witness": "Eliminar testigo",
+  "Add witness": "Agregar testigo",
+  // Photos
+  "Add photo": "Agregar foto",
+  "GPS + timestamp are attached automatically.":
+    "Se adjuntan automáticamente GPS y hora.",
+  "Photos": "Fotos",
+  // Generic controls
+  "Name": "Nombre", "Role": "Rol",
+  "Remove": "Eliminar", "Add person": "Agregar persona",
+  "Phone or email": "Teléfono o email",
+  "Choose…": "Elige…",
+  "Locating…": "Localizando…",
+  "Capture GPS": "Capturar GPS", "Update GPS": "Actualizar GPS",
+  "Section": "Sección", "Complete": "Completo", "missing": "faltantes",
+  "Everything you entered. Tap a section to jump back.":
+    "Todo lo que ingresaste. Toca una sección para volver.",
+  "Incident": "Incidente",
+  "Back": "Atrás", "Next": "Siguiente", "Review": "Revisar", "Edit": "Editar",
+  "Draft saved": "Borrador guardado",
+  "Autosaved on this device": "Autoguardado en este dispositivo",
+  "Submit report": "Enviar reporte",
+  "Complete required fields to submit": "Completa los campos requeridos para enviar",
+  "Submitting…": "Enviando…",
+  "We could not submit. Please try again.":
+    "No pudimos enviar. Intenta de nuevo por favor.",
+  // Success
+  "Report submitted": "Reporte enviado",
+  "Safety has received your report.": "Seguridad recibió tu reporte.",
+  "Case number": "Número de caso",
+  "Your field observations are locked and cannot be changed.":
+    "Tus observaciones de campo están bloqueadas y no pueden cambiarse.",
+  "Safety will begin intake and reach out if they need anything.":
+    "Seguridad iniciará la recepción y te contactará si necesita algo.",
+  "You can close this page — nothing else is required from you right now.":
+    "Puedes cerrar esta página — no se requiere nada más de ti ahora.",
+  "Done": "Listo",
+  // Help drawer
+  "How to fill this out": "Cómo llenar esto",
+  "Report only the facts you observed.":
+    "Reporta solo los hechos que observaste.",
+  "Field-owned observations are locked once you submit. Safety takes over investigation from there — you don't need to write conclusions.":
+    "Las observaciones de campo se bloquean al enviar. Seguridad se encarga de la investigación desde ahí — no necesitas escribir conclusiones.",
+  "Skip what you don't know.": "Salta lo que no sepas.",
+  "Only red-star fields are required. Leave anything else blank if you're not certain.":
+    "Solo los campos con estrella roja son obligatorios. Deja lo demás en blanco si no estás seguro.",
+  "Your draft is saved automatically.": "Tu borrador se guarda automáticamente.",
+  "Every keystroke is stored on this device. You can close the app and come back to finish.":
+    "Cada tecla se guarda en este dispositivo. Puedes cerrar la app y volver para terminar.",
+
   // additive operational-attention surface). Operational language only.
   "Recent field memory": "Memoria operacional reciente",
   "No recent operational notes.": "No hay notas operacionales recientes.",
