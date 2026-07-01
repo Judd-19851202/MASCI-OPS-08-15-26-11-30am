@@ -11,6 +11,27 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-07-01 · TRACK 19.06 · Daily Report Progressive-Disclosure Redesign · ✅ GREEN · CLOSED)
+
+### Delivered
+- Yes/No progressive-disclosure shell on top of the existing 11-section architecture. 8 gates + 10 band labels + Tomorrow/Follow-Up section wired into `NewDailyReport.jsx`.
+- Zero schema drift (verified by `test_no_schema_keys_removed_or_renamed`). Zero route drift. Zero doctrine regression on Tracks 19.03 / 19.04 / 19.05.
+- Explicit Smart Prefill offer chip + actor-scoped autosave + HR canonical roster + 6-photo minimum + excavation hard gate + unified attachment pipeline — all preserved.
+
+### The redesigned flow (top-to-bottom)
+1. Job Setup → 2. People on Site (3 gates) → 3. Equipment & Resources (1 gate) → 4. Materials / Import / Export (2 gates) → 5. Work Performed & Production → 6. Delays / Constraints / Extra Work (1 gate) → 7. Safety / Incidents / Inspections → 8. Photos & Attachments · Required Evidence → 9. Tomorrow / Follow-Up → 10. Sign-Off / Submit.
+
+### Files touched
+- FRONTEND: `pages/NewDailyReport.jsx` (+ `_PresenceGate` inline component + `presence` state + 8 gate wrappers + 10 band labels + Tomorrow section).
+- TESTS: `tests/test_track_19_06_daily_report_progressive_disclosure.py` — 44/44 PASS.
+- DOCS: 4 new reports (`TRACK_19_06_*`) + PRD update.
+
+### Combined regression
+163/163 PASS across Track 19.03 (27) + 19.04 (33) + 19.05 (59) + 19.06 (44).
+
+---
+
+
 ## Latest Track (2026-07-01 · TRACK 19.05 · Daily Report System Total Audit & Redesign Readiness Map · ✅ GREEN · CLOSED · AUDIT ONLY)
 
 ### Purpose

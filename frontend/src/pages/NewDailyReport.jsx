@@ -238,6 +238,99 @@ const useList = (data, set, key) => ({
 });
 
 export default function NewDailyReport({ publicMode = false }) {
+  // TRACK 19.06 · PresenceGate — the Yes/No shell for progressive
+  // disclosure. Each optional section is wrapped so the operator
+  // answers a single question ("Did X happen today?") first, then
+  // the detail UI only appears when the answer is Yes.
+  //
+  // Persistence: presence lives in local component state ONLY. The
+  // Daily Report schema is unchanged. A "No" answer means the array
+  // stays empty; a "Yes" answer reveals the same CollapseCard the
+  // operator would have opened manually before the redesign.
+  //
+  // Auto-answer Yes when data is already present (draft restore /
+  // Smart Prefill / manual entry) so re-hydration is never hidden.
+  // Never auto-answer No — the operator's explicit choice is
+  // sticky.
+  //
+  // Testid pattern: `presence-{key}-{yes|no|change|prompt}` — the
+  // testing agent + Track 19.06 pytest lock both consume these ids.
+  return <NewDailyReportInner publicMode={publicMode} />;
+}
+
+function _PresenceGate({ label, gateKey, presence, setPresence, testIdBase, hasData, children, t }) {
+  const state = presence[gateKey];
+  // Force Yes when the operator has already entered data — protects
+  // Smart Prefill Apply + draft restore from being hidden by a stale
+  // "not yet answered" gate.
+  const effective = state === null && hasData ? "yes" : state;
+  if (effective === "yes") {
+    return (
+      <div data-testid={`${testIdBase}-yes-block`}>
+        {children}
+        <button
+          type="button"
+          className="mt-1 text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500 hover:text-slate-800"
+          onClick={() => setPresence((p) => ({ ...p, [gateKey]: null }))}
+          data-testid={`${testIdBase}-change`}
+        >
+          {t("← Change answer")}
+        </button>
+      </div>
+    );
+  }
+  if (effective === "no") {
+    return (
+      <div
+        className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 flex items-center justify-between"
+        data-testid={`${testIdBase}-no-block`}
+      >
+        <span className="text-sm text-slate-600">
+          {t("No — skipped")} · <span className="font-mono text-xs">{label}</span>
+        </span>
+        <button
+          type="button"
+          className="text-xs font-semibold text-slate-700 hover:text-slate-900"
+          onClick={() => setPresence((p) => ({ ...p, [gateKey]: null }))}
+          data-testid={`${testIdBase}-change`}
+        >
+          {t("Change")}
+        </button>
+      </div>
+    );
+  }
+  // Unanswered — render the Yes/No prompt.
+  return (
+    <div
+      className="rounded-2xl border-2 border-slate-200 bg-white px-4 py-4"
+      data-testid={`${testIdBase}-prompt`}
+    >
+      <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-slate-700 mb-3">
+        {label}
+      </p>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          className="rounded-lg border-2 border-emerald-400 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800 hover:bg-emerald-100"
+          onClick={() => setPresence((p) => ({ ...p, [gateKey]: "yes" }))}
+          data-testid={`${testIdBase}-yes`}
+        >
+          {t("Yes")}
+        </button>
+        <button
+          type="button"
+          className="rounded-lg border-2 border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+          onClick={() => setPresence((p) => ({ ...p, [gateKey]: "no" }))}
+          data-testid={`${testIdBase}-no`}
+        >
+          {t("No")}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function NewDailyReportInner({ publicMode = false }) {
   const navigate = useNavigate();
   const { t } = useT();
   // iter148 — pre-fill last project_number from previous submission.
@@ -460,6 +553,50 @@ export default function NewDailyReport({ publicMode = false }) {
   // production field-users reported for Track 19.04. Dismissal
   // clears the offer for the current session (per job change).
   const [smartPrefillOffer, setSmartPrefillOffer] = React.useState(null);
+
+  // TRACK 19.06 · Progressive-disclosure presence gates.
+  // Each optional section is guarded by a "Did X happen today?" Yes/No
+  // gate. The persisted schema is UNCHANGED — presence is a UI-only
+  // signal derived from the row arrays. If the operator has already
+  // captured data (via Smart Prefill Apply, draft restore, or manual
+  // entry), the gate auto-answers "yes" so the redesign never hides
+  // existing content. "No" answers keep the section collapsed but
+  // do NOT clear the underlying array (still empty, still valid).
+  //
+  // The persisted schema key stays exactly as documented in the
+  // Track 19.05 protection matrix — this is a UI-layer redesign only.
+  const [presence, setPresence] = React.useState({
+    crews: null,
+    subs: null,
+    visitors: null,
+    equipment: null,
+    materials_in: null,
+    materials_out: null,
+    delays: null,
+    safety: null,
+  });
+  // Auto-answer Yes when data exists (Smart Prefill / draft restore /
+  // manual entry). Runs on every data change so re-hydration flips
+  // the gate open. Never flips a gate closed — the operator's
+  // explicit "No" or "Yes" always wins.
+  React.useEffect(() => {
+    setPresence((p) => {
+      const next = { ...p };
+      const flip = (k, has) => { if (has && next[k] === null) next[k] = "yes"; };
+      flip("crews", (data.masci_crews || []).length > 0);
+      flip("subs", (data.subcontractors || []).length > 0);
+      flip("visitors", (data.visitors || []).length > 0);
+      flip("equipment", (data.equipment || []).length > 0);
+      flip("materials_in", (data.materials || []).length > 0);
+      flip("materials_out", (data.outbound_materials || []).length > 0);
+      flip("delays", (data.constraints || []).length > 0
+        || data.schedule_delays === "Yes"
+        || data.weather_impact === "Yes");
+      flip("safety", data.safety_incidents_today === "Yes"
+        || data.injuries_reported === "Yes");
+      return next;
+    });
+  }, [data]);
   const onApplySmartPrefill = React.useCallback(() => {
     if (!smartPrefillOffer) return;
     const { priorCrews = [], priorEquipment = [], sourceDate } = smartPrefillOffer;
@@ -1237,6 +1374,18 @@ export default function NewDailyReport({ publicMode = false }) {
         />
 
         {/* 01 — Report info */}
+        {/* TRACK 19.06 · Section-band label so the redesigned flow
+            reads like a superintendent replaying the day:
+            Job Setup → People on Site → Equipment & Resources →
+            Materials / Import / Export → Work Performed & Production →
+            Delays / Constraints / Extra Work → Safety / Incidents / Inspections →
+            Photos & Attachments → Tomorrow / Follow-Up → Sign-Off / Submit. */}
+        <div
+          className="mt-4 mb-2 font-mono text-[10px] uppercase tracking-[0.3em] text-red-700 font-bold"
+          data-testid="band-job-setup"
+        >
+          {t("Job Setup")}
+        </div>
         <HelpTipBlock formKey="daily-report" className="mb-3" showCounter />
         <Section number="01" title={t("Report Information")}>
           <div>
@@ -1435,6 +1584,12 @@ export default function NewDailyReport({ publicMode = false }) {
 
         {/* 03 — General Info / Flags */}
         <Section number="03" title={t("General Information")}>
+          <div
+            className="mb-2 font-mono text-[10px] uppercase tracking-[0.3em] text-red-700 font-bold"
+            data-testid="band-safety-incidents"
+          >
+            {t("Safety / Incidents / Inspections")}
+          </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
@@ -1455,6 +1610,14 @@ export default function NewDailyReport({ publicMode = false }) {
                 onChange={(v) => set("weather_impact", v)}
                 testId="weather-impact"
               />
+            </div>
+            <div>
+              <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
+                {t("Any safety incidents, injuries, accidents, utility hits, near misses, or inspections today?")}
+              </Label>
+              <p className="text-[10px] text-slate-500 mb-1" data-testid="presence-safety-prompt">
+                {t("Answer the two questions below if Yes to any of the above.")}
+              </p>
             </div>
             <div>
               <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700">
@@ -1693,6 +1856,25 @@ export default function NewDailyReport({ publicMode = false }) {
         </Section>
 
         {/* 04 — MASCI Crews */}
+        <div
+          className="mt-6 mb-2 font-mono text-[10px] uppercase tracking-[0.3em] text-red-700 font-bold"
+          data-testid="band-people-on-site"
+        >
+          {t("People on Site")}
+        </div>
+        {/* TRACK 19.06 · Progressive disclosure — foreman decides whether
+            MASCI crew was on site today. The section stays fully visible
+            when Yes (existing behavior preserved). When No, the section
+            collapses into a "No — skipped" pill with a Change button. */}
+        <_PresenceGate
+          label={t("Did MASCI employees work on site today?")}
+          gateKey="crews"
+          presence={presence}
+          setPresence={setPresence}
+          testIdBase="presence-crews"
+          hasData={(data.masci_crews?.length || 0) > 0}
+          t={t}
+        >
         <Section number="04" title={t("MASCI Crews on Site")}>
           <HelpTipBlock formKey="daily-report.crew" className="mb-3" />
           {/* iter360 · operational coaching for the crew-linkage discipline */}
@@ -1926,6 +2108,7 @@ export default function NewDailyReport({ publicMode = false }) {
             )}
           </div>
         </Section>
+        </_PresenceGate>
 
         {/* iter383 · Phase 5C.1 — Smart Operational Disclosure.
             Each optional section remains VISIBLE as a CollapseCard with
@@ -1937,6 +2120,15 @@ export default function NewDailyReport({ publicMode = false }) {
             attachment_note) remain intact. */}
         <div className="space-y-2" data-testid="dr-collapse-cards">
 
+          <_PresenceGate
+            label={t("Were subcontractors on site today?")}
+            gateKey="subs"
+            presence={presence}
+            setPresence={setPresence}
+            testIdBase="presence-subs"
+            hasData={(data.subcontractors?.length || 0) > 0}
+            t={t}
+          >
           <CollapseCard
             title={t("Subcontractors on Site")}
             testId="dr-subcontractors"
@@ -1987,7 +2179,17 @@ export default function NewDailyReport({ publicMode = false }) {
               testIdBase="sub"
             />
           </CollapseCard>
+          </_PresenceGate>
 
+          <_PresenceGate
+            label={t("Were visitors or inspectors on site today?")}
+            gateKey="visitors"
+            presence={presence}
+            setPresence={setPresence}
+            testIdBase="presence-visitors"
+            hasData={(data.visitors?.length || 0) > 0}
+            t={t}
+          >
           <CollapseCard
             title={t("Site Visitors")}
             testId="dr-visitors"
@@ -2021,7 +2223,23 @@ export default function NewDailyReport({ publicMode = false }) {
               testIdBase="visitor"
             />
           </CollapseCard>
+          </_PresenceGate>
 
+          <div
+            className="mt-2 mb-2 font-mono text-[10px] uppercase tracking-[0.3em] text-red-700 font-bold"
+            data-testid="band-equipment-resources"
+          >
+            {t("Equipment & Resources")}
+          </div>
+          <_PresenceGate
+            label={t("Was MASCI equipment on site or used today?")}
+            gateKey="equipment"
+            presence={presence}
+            setPresence={setPresence}
+            testIdBase="presence-equipment"
+            hasData={(data.equipment?.length || 0) > 0}
+            t={t}
+          >
           <CollapseCard
             title={t("Equipment Log")}
             testId="dr-equipment"
@@ -2068,7 +2286,23 @@ export default function NewDailyReport({ publicMode = false }) {
               testIdBase="equipment"
             />
           </CollapseCard>
+          </_PresenceGate>
 
+          <div
+            className="mt-2 mb-2 font-mono text-[10px] uppercase tracking-[0.3em] text-red-700 font-bold"
+            data-testid="band-materials"
+          >
+            {t("Materials / Import / Export")}
+          </div>
+          <_PresenceGate
+            label={t("Were materials delivered or imported today?")}
+            gateKey="materials_in"
+            presence={presence}
+            setPresence={setPresence}
+            testIdBase="presence-materials-in"
+            hasData={(data.materials?.length || 0) > 0}
+            t={t}
+          >
           <CollapseCard
             title={t("Material Deliveries")}
             testId="dr-materials"
@@ -2107,8 +2341,18 @@ export default function NewDailyReport({ publicMode = false }) {
               testIdBase="material"
             />
           </CollapseCard>
+          </_PresenceGate>
 
           {/* MM-ENTRY-002 · K-MM-1 + K-MM-5 · Outbound Material Capture */}
+          <_PresenceGate
+            label={t("Were materials exported or hauled off today?")}
+            gateKey="materials_out"
+            presence={presence}
+            setPresence={setPresence}
+            testIdBase="presence-materials-out"
+            hasData={(data.outbound_materials?.length || 0) > 0}
+            t={t}
+          >
           <CollapseCard
             title={t("Outbound Materials / Hauled Off")}
             testId="dr-outbound-materials"
@@ -2176,7 +2420,14 @@ export default function NewDailyReport({ publicMode = false }) {
               testIdBase="outbound-material"
             />
           </CollapseCard>
+          </_PresenceGate>
 
+          <div
+            className="mt-4 mb-2 font-mono text-[10px] uppercase tracking-[0.3em] text-red-700 font-bold"
+            data-testid="band-work-performed"
+          >
+            {t("Work Performed & Production")}
+          </div>
           <CollapseCard
             title={t("Activity / Production Log")}
             testId="dr-activities"
@@ -2266,6 +2517,23 @@ export default function NewDailyReport({ publicMode = false }) {
               construction ("delays / extra work") while backend
               models / enums / APIs keep "constraint" terminology.
               Doctrine: CONSTRAINT_UI_CERTIFICATION.md */}
+          <div
+            className="mt-4 mb-2 font-mono text-[10px] uppercase tracking-[0.3em] text-red-700 font-bold"
+            data-testid="band-delays-constraints"
+          >
+            {t("Delays / Constraints / Extra Work")}
+          </div>
+          <_PresenceGate
+            label={t("Did anything delay, change, or impact production today?")}
+            gateKey="delays"
+            presence={presence}
+            setPresence={setPresence}
+            testIdBase="presence-delays"
+            hasData={(data.constraints?.length || 0) > 0
+              || data.schedule_delays === "Yes"
+              || data.weather_impact === "Yes"}
+            t={t}
+          >
           {(() => {
             // Phase V.2 · Weather Impact Cleanup — merged-gate logic.
             // The Delays / Extra Work card surfaces attention when
@@ -2400,11 +2668,18 @@ export default function NewDailyReport({ publicMode = false }) {
               </div>
           );
           })()}
+          </_PresenceGate>
 
         </div>
         {/* iter383 · End of Smart Operational Disclosure cards. */}
 
         {/* 10 — Photos (min 6) */}
+        <div
+          className="mt-6 mb-2 font-mono text-[10px] uppercase tracking-[0.3em] text-red-700 font-bold"
+          data-testid="band-photos-attachments"
+        >
+          {t("Photos & Attachments · Required Evidence")}
+        </div>
         <Section
           number="10"
           title={`${t("Photos")} (${photosCount}/${photoMin}${
@@ -2444,7 +2719,37 @@ export default function NewDailyReport({ publicMode = false }) {
           </div>
         </Section>
 
+        {/* TRACK 19.06 · Tomorrow / Follow-Up.
+            Writes to the existing `narrative_sections.tomorrow_plan`
+            schema field (Track 15.62 additive). No new schema keys.
+            Field-friendly bullet inputs for planned work, material /
+            equipment needs, inspections, and PM follow-up. */}
+        <Section number="10b" title={t("Tomorrow / Follow-Up")}>
+          <div
+            className="mb-2 font-mono text-[10px] uppercase tracking-[0.3em] text-red-700 font-bold"
+            data-testid="band-tomorrow"
+          >
+            {t("Tomorrow / Follow-Up")}
+          </div>
+          <p className="text-xs text-slate-600 mb-2">
+            {t("What needs to happen next? Planned work, material or equipment needs, inspections, PM follow-up, or open issues.")}
+          </p>
+          <Textarea
+            value={(data.narrative_sections || {}).tomorrow_plan || ""}
+            onChange={(e) => set("narrative_sections", { ...(data.narrative_sections || {}), tomorrow_plan: e.target.value })}
+            className="min-h-[120px] text-base border-2 border-slate-300"
+            placeholder={t("• Tomorrow's plan\n• Material needs\n• Equipment needs\n• Inspections needed\n• PM follow-up\n• Open issues")}
+            data-testid="input-tomorrow-plan"
+          />
+        </Section>
+
         {/* 11 — Sign-off */}
+        <div
+          className="mt-4 mb-2 font-mono text-[10px] uppercase tracking-[0.3em] text-red-700 font-bold"
+          data-testid="band-sign-off"
+        >
+          {t("Sign-Off / Submit")}
+        </div>
         <Section number="11" title={t("Sign-Off")}>
           <div>
             <DistributionList
