@@ -11,7 +11,76 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
-## Latest Track (2026-07-01 · TRACK 19.11 · Amendment · Session-Expired Modal Loop Fix · ✅ GREEN · CLOSED)
+## Latest Track (2026-07-01 · TRACK 19.11 · Part A · Session Overlay Language / State Hardening · ✅ GREEN · CLOSED)
+
+### Mode
+Part A of the full Track 19.11 brief. Investigation + regression hardening. Zero code changes to production runtime — the language-following contract was already architecturally correct. Only the regression suite + docs were extended so future drift is impossible.
+
+### Field concern investigated
+Operator saw a Spanish "Sesión Expirada" modal in preview. Concern: modal might render in Spanish while EN toggle is active (language-state bug), OR loop-fix might not be holding on production form pages, OR both.
+
+### Empirical finding
+The concern was **disproven by live testing**. The screenshot in question originated from my own ES-mode Playwright smoke during the Track 19.11 Amendment session. No production language-state bug exists. The modal is fully language-following via `useSyncExternalStore` in `useT()`.
+
+### Live smoke evidence (9 assertions, all GREEN)
+1. EN default → English modal (no ES leak)
+2. Switch to ES via LangToggle → `localStorage.masci.lang == 'es'`
+3. Fresh expiry after ES toggle → Spanish modal (no EN leak)
+4. Dismiss in ES + 10 spam publishes → modal stays closed
+5. Type 20 chars with concurrent 401s → modal closed, data safe
+6. `success_loaded` → ack lifted
+7. Switch back to EN → next expiry English
+8. Persisted ES lang across page reload → Spanish modal
+9. Cross-form smoke DR / Equipment Pre-Op / DVIR / Safety Meeting → all GREEN
+
+Console errors across all 12 test scenarios: **0**.
+
+### Hardening applied (defensive locks — even though no bug existed)
+28 NEW pytest assertions added on top of the 40 original Track 19.11 Amendment locks:
+* `useT()` uses `useSyncExternalStore` (reactive re-render on lang change)
+* `setLang` notifies all listeners
+* `setLang` persists to localStorage under `masci.lang`
+* `document.documentElement.lang` mirror for browser spell-check
+* Overlay render body ordering: `const { t } = useT();` precedes `_copy(state, t)` (no stale closure)
+* `useCallback(onDismiss,[])` does not (incorrectly) use `t`
+* `LangToggle` testids `lang-en` / `lang-es` locked for regression stability
+* `LangToggle` uses `useT()` (single-source-of-truth)
+* Exact EN↔ES dictionary pairs locked for all 7 overlay strings (parametrize)
+* Default language = `"en"` locked
+* `VALID = new Set(["en","es"])` locked (prevents accidental third-language drift)
+* `LangToggle` mounted on all 4 hero-form pages
+* `window.__masciSessionBus` full API surface (`publish`/`clear`/`get`/`resetAck`/`getAck`) locked
+* 9 parametrized live-smoke labels archived in `TRACK_19_11_SESSION_OVERLAY_REGRESSION_REPORT.md`
+
+### Verification totals
+| Layer | Suite | Result |
+|---|---|---|
+| Unit | Jest · `sessionStatusBus.test.js` | 15 / 15 ✅ |
+| Static locks | Pytest · `test_track_19_11_amendment_session_expired_loop_fix.py` | **68 / 68 ✅** (was 40, +28) |
+| Live end-to-end | Playwright | 8 / 8 ✅ |
+| Cross-form smoke | Playwright · DR/Equipment/DVIR/SafetyMeeting | 4 / 4 forms ✅ |
+| Console errors | Browser during all smoke | 0 |
+| **Full Track 19.x regression** | 16 test files | **573 / 573 ✅** |
+
+### Zero-drift matrix (verified)
+Schema · route · payload · PDF · email · notification · fail-cascade · bilingual · Trust-Spine · autosave · draft — **ZERO** drift.
+
+### Files touched
+* `backend/tests/test_track_19_11_amendment_session_expired_loop_fix.py` — +28 new lock assertions
+* `memory/TRACK_19_11_SESSION_LANGUAGE_STATE_FIX.md` — NEW · investigation + doctrine
+* `memory/TRACK_19_11_SESSION_OVERLAY_REGRESSION_REPORT.md` — NEW · three-layer verification report
+
+### P2 UX note (deferred, non-blocking)
+The modal's z-1000 backdrop blocks the header `LangToggle` while the modal is open (correct WAI-ARIA modal behavior). Nice-to-have: consider embedding a compact LangToggle inside the modal header so a Spanish-speaking operator can switch languages without dismissing. Ships with Track 19.11 MAIN when the FormShell consumes the overlay-adjacent header pattern.
+
+### Ready for Track 19.11 MAIN
+Part A closed cleanly. **Part B — Equipment Pre-Op full progressive-disclosure conversion consuming FormShell + HelpDrawer** is now unblocked and reserved for the next session with a full context budget.
+
+Six Pillars · 5:30 AM Foreman Test passes · Powerful · Simple · Beautiful · Trusted · Proven · Zero drift · Production-safe.
+
+---
+
+## Previous Track (2026-07-01 · TRACK 19.11 · Amendment · Session-Expired Modal Loop Fix · ✅ GREEN · CLOSED)
 
 ### Mode
 Amendment track — bug fix issued before Track 19.11 MAIN could start, because the session-expired modal loop was a P0 field-usability blocker. Frontend-only. Zero backend / schema / route / payload / PDF / email / notification / fail-cascade drift.
