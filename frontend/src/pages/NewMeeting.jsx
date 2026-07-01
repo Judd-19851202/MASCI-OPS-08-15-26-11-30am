@@ -459,6 +459,17 @@ export default function NewMeeting({ publicMode = false }) {
           <h1 className="field-glance-anchor font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1">
             {t("Site Safety Meeting")}
           </h1>
+          {/* TRACK 19.14 · Toolbox Talk terminology affordance. Same
+              form, two names in the field. Bilingual. This chip is
+              purely a wayfinding aid — no schema/route/payload change. */}
+          <div className="mt-1 flex items-center gap-2">
+            <span
+              className="inline-flex items-center rounded-full border border-slate-300 bg-white px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-[0.18em] text-slate-600"
+              data-testid="toolbox-talk-alias-chip"
+            >
+              {t("Also known as: Toolbox Talk")}
+            </span>
+          </div>
           {/* TRACK 19.13 · HelpDrawer — SINGLE coaching surface for
               Safety Meeting. Bands consolidated from HelpTipBlock
               defaults. Topic Auto Load remains untouched below. */}

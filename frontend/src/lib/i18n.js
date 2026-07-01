@@ -6790,6 +6790,9 @@ const ES = {
   "A permanent audit record is created.":
     "Se crea un registro de auditoría permanente.",
 
+  // TRACK 19.14 · Toolbox Talk terminology affordance.
+  "Also known as: Toolbox Talk": "También conocida como: Toolbox Talk",
+
   // TRACK 19.11 AMENDMENT · SessionStatusOverlay bilingual strings.
   // (Previously the modal was English-only — bilingual gap fixed as
   // part of the session-expired loop repair.)
