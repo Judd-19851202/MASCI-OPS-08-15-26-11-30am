@@ -695,16 +695,24 @@ def test_legacy_incidents_submit_route_is_a_redirect_to_the_new_engine():
 
 def test_legacy_newincident_component_no_longer_mounted_at_any_route():
     """The retired NewIncident component must NOT be mounted at any
-    route in App.js (redirects use <Navigate>, not <NewIncident />)."""
+    route in App.js (redirects use <Navigate>, not <NewIncident />).
+    After the Track 19.16 closeout the App.js import is also removed —
+    the component file is retained on disk purely as a pattern
+    reference for older lock tests (iter333/335/336)."""
     txt = (FE_ROOT / "App.js").read_text(encoding="utf-8")
-    # Import may remain for admin-only recovery, but no <NewIncident ... />
-    # JSX element should appear.
     for pattern in ("<NewIncident />", "<NewIncident publicMode />",
                     "<NewIncident/>"):
         assert pattern not in txt, (
             f"NewIncident must not be rendered anywhere in App.js. "
             f"Offender pattern: {pattern}"
         )
+    # Closeout: the dead App.js import must not carry the component
+    # into the production bundle. Commented references are fine.
+    for line in txt.splitlines():
+        stripped = line.lstrip()
+        if stripped.startswith("//") or stripped.startswith("*") or stripped.startswith("/*"):
+            continue
+        assert 'import NewIncident from "@/pages/NewIncident"' not in stripped
 
 
 def test_legacy_incident_form_deprecation_banner_removed():

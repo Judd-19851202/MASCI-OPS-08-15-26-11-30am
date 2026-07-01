@@ -11,7 +11,101 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
-## Latest Track (2026-07-01 · TRACK 19.16 · UX Hardening Batch 2 · ✅ GREEN · CLOSED)
+## TRACK 19.16 · INCIDENT INTELLIGENCE ENGINE · ✅ COMPLETE (2026-07-01)
+
+### Track status
+Track 19.16 is closed. The Incident Intelligence Engine is the sole production incident workflow at MASCI.
+
+### Completed components (in order)
+1. Incident Domain Engine (Phase A)
+2. Dynamic Field Reporting UI (Phase B1)
+3. Public Near-Miss Kiosk + Offline / Idempotency Reliability (Phase B2)
+4. Safety Case Workspace (Phase C)
+5. Executive Intelligence Center (Phase D)
+6. Report Intelligence Engine — 9 packages + Weekly Executive Digest (Phase E)
+7. Legacy Retirement & Platform Cutover
+8. Operational UX Hardening Batch 1 (Project Picker, Reporter auto-fill, Date/Time defaults, Weather auto-fetch, Header stability, Review auto/typed clarity)
+9. Operational UX Hardening Batch 2 (Employee, Equipment, Vehicle selectors, Photo UX polish, Mobile/iPad certification, Accessibility)
+10. Fleet / Equipment Cross-Link (this closeout)
+11. Final Certification (this closeout)
+
+### Regression baseline at close
+- **357/357 GREEN** across 9 track-19.15/16 lock-test files
+- Older regression suites (iter333/335/336 and platform-wide) continue to pass on unrelated files
+
+### Intentionally deferred — NOT part of Track 19.16
+- **Phase F · Compliance Intelligence** — including OSHA recordability automation, OSHA 300 / 300A automation, case-readiness scoring, corrective-action aging, missing-evidence detection, retention flows. Remains **future / backlog**.
+- No OSHA recordability logic shipped in this track.
+- No OSHA 300 / 300A automation shipped in this track.
+- No auto-notification workflows shipped.
+- No auto-status changes on equipment based on incidents.
+
+---
+
+## Latest Track (2026-07-01 · TRACK 19.16 · Final Operational Closeout · ✅ GREEN · CLOSED)
+
+### Track type
+**CLOSEOUT — reference-only cross-link + dead-code cleanup + final certification.** Zero-Drift additive. No Phase A engine changes, no reports changes, no legacy backend touched, no Phase F work.
+
+### Slices shipped
+
+**A · Fleet / Equipment cross-link (read-only, reference-only)**
+- NEW `/app/backend/incident_engine/fleet_crosslink.py` — 30-line pure aggregation over `incident_cases.field_block.selected_unit_numbers`. Projects only `case_id`, `case_number`, `state`, `incident_type`, `occurred_at`, `severity`, `submitted_at`. Zero writes. Zero legacy references.
+- NEW route `GET /api/equipment-status-board/incidents-by-unit?unit=X,Y,Z` (registered in `report_routes.py`, Safety/Admin/PM gated). Returns `{by_unit: {unit_number: [...]}, unit_count}`.
+- UPDATED `/app/frontend/src/pages/IncidentReport.jsx` — every equipment/vehicle picker selection now also writes a flat `selected_unit_numbers` array on `draft` (auto-derived from `__selected__` map). Backend joins on this.
+- UPDATED `/app/frontend/src/components/EquipmentStatusBoard.jsx` — new `RecentIncidentPill` component (Siren icon, case number + type + date) links to `/safety/cases/:caseId`. Zero incident narrative / medical / CAPA data on the pill.
+
+**Source of truth doctrine** — asserted by lock tests:
+- Pill projection never carries `observed_conditions`, `injury_body_part`, `root_cause_summary`, `witnesses`, `medical`, `corrective_actions`, or `photos`.
+- Board never adds `<textarea>`, `<input type="file">`, or "add witness" — no incident authoring on the Board.
+- Every pill is a `<Link>` back to the Safety Case Workspace.
+
+**B · Dead-code cleanup**
+- Removed the retired `NewIncident` import from `App.js` (commented-out with rationale). Component file itself retained on disk because 3 older lock-test files (iter333/335/336) scan it as a cross-form pattern reference — removing it would break unrelated tests outside this closeout scope. Rationale documented inline.
+
+**C · Final certification**
+- Live end-to-end verified: create case with `selected_unit_numbers` → transition FIELD_SUBMITTED → fleet cross-link returns the case → report PDF 200 → Executive brief 200 → weather / project-context / weekly digest all 200.
+- All production routes verified via lock tests: `/incidents/report`, `/incidents/new` → redirect, `/incidents/submit` → redirect, `/near-miss`, `/safety/cases/:caseId`, `/safety/executive-intelligence`, `/safety/cases/:caseId/reports/:reportType`.
+- Legacy `/api/incidents` backend still mounted and untouched.
+
+### Testing
+- **23 new closeout lock tests** in `test_track_19_16_final_closeout.py` covering:
+  - Cross-link recency, unit filtering, per-unit limit, empty-selection ignore
+  - Zero-write source scan on `fleet_crosslink.py`
+  - No legacy `incidents` collection reads
+  - Endpoint registration in `report_routes.py`
+  - Frontend picker writes `selected_unit_numbers`
+  - Status Board fetches + renders + links to Safety Case Workspace
+  - Pill has no narrative / CAPA leak (parametrized negative test)
+  - App.js has no live `import NewIncident` (comments allowed)
+  - `NewIncident.jsx` file retained on disk with documented reason
+  - All production routes still mounted
+  - Legacy backend still untouched
+  - Phase F scope guard — no `osha_300a_automation`, `osha_recordability_engine`, `compliance_engine`, `record_osha_recordable_case` anywhere in the engine
+  - Case service does not import fleet_crosslink / reports / report_routes
+  - Six-Pillar certification (Powerful / Simple / Beautiful / Trusted asserted directly)
+
+- **Regression at close: 357/357 GREEN** across the full Track 19.15/19.16 suite (0.83 s)
+
+### Zero-Drift final audit
+- No Phase A domain model changes
+- No workspace / intelligence / reports code touched
+- No legacy `/api/incidents` route touched
+- No new schema, no new Mongo collections, no new write path
+- Cross-link joins on a field the engine already accepts (`field_block.selected_unit_numbers` — `extra="allow"`)
+- Case service imports untouched (verified by lock test)
+
+### Six-Pillar certification (asserted by lock tests)
+- **Powerful** — vehicle / equipment incidents automatically surface at the Fleet planning surface where dispatch happens
+- **Simple** — one obvious "Recent Incident" pill; one workflow at `/incidents/report`
+- **Beautiful** — rounded-full Siren pill with tight styling, matches the existing StatusBadge palette
+- **Trusted** — Board is a pointer, never a duplicate; source scans prove the projection is reference-only
+- **Proven** — 357 lock tests + live end-to-end curl chain
+- **Operational** — Shop / Fleet see incident context while planning dispatch, repairs, or availability
+
+---
+
+
 
 ### Track type
 **UX HARDENING — selectors, photo UX, mobile cert, accessibility.** Zero-Drift additive: no backend engine, workspace, intelligence, or reports files were touched. Reuses existing `EmployeeCombo` (backed by `/api/employees`) and `EquipmentCombo` (backed by `/api/equipment-master`) — no duplicate data sources.

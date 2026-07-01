@@ -16,12 +16,15 @@ TRACK 19.16 · UX Hardening Batch 1 (additive, read-only):
 """
 from __future__ import annotations
 
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
 
 from . import reports
 from .report_render import render_report_html, render_digest_html, html_to_pdf_bytes
 from .weather import fetch_current_weather
+from .fleet_crosslink import list_incidents_by_unit
 
 
 def register_report_routes(api_router: APIRouter, db, *, require_actor) -> None:
@@ -159,6 +162,19 @@ def register_report_routes(api_router: APIRouter, db, *, require_actor) -> None:
             "superintendent":    super_name,
             "active":            bool(row.get("active", True)),
         }
+
+    # ── Closeout · Fleet / Equipment cross-link (read-only) ──────────
+    @api_router.get("/equipment-status-board/incidents-by-unit")
+    async def incidents_by_unit(
+        unit: Optional[str] = Query(default=None,
+                                    description="Comma-separated unit_numbers."),
+        actor=Depends(require_actor),
+    ):
+        unit_numbers = None
+        if unit:
+            unit_numbers = [u.strip() for u in unit.split(",") if u.strip()]
+        data = await list_incidents_by_unit(db, unit_numbers=unit_numbers)
+        return {"by_unit": data, "unit_count": len(data)}
 
 
 __all__ = ["register_report_routes"]

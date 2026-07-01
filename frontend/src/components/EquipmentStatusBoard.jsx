@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Wrench, AlertOctagon, ChevronDown, ChevronRight, Clock, CheckCircle2 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Wrench, AlertOctagon, ChevronDown, ChevronRight, Clock, CheckCircle2, Siren } from "lucide-react";
 import { api } from "@/lib/api";
 
 const formatDaysAgo = (n) => {
@@ -8,6 +9,28 @@ const formatDaysAgo = (n) => {
   if (n === 1) return "Yesterday";
   return `${n} days ago`;
 };
+
+// TRACK 19.16 · Closeout · Fleet cross-link pill.
+// Reference-only: shows case number, type, and date + link to the
+// Safety Case Workspace. Never shows narrative, medical, or CAPA.
+function RecentIncidentPill({ items, unitKey }) {
+  if (!items || !items.length) return null;
+  const top = items[0];
+  const date = top.occurred_at_date || (top.submitted_at || "").slice(0, 10);
+  const label = String(top.incident_type || "incident").replace(/_/g, " ");
+  return (
+    <Link
+      to={`/safety/cases/${encodeURIComponent(top.case_id)}`}
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 text-red-800 border border-red-300 text-xs font-mono uppercase tracking-[0.14em] hover:bg-red-100"
+      data-testid={`fleet-recent-incident-${unitKey}`}
+      title={`${top.case_number || top.case_id} · ${label} · ${date}`}
+    >
+      <Siren className="w-3 h-3" />
+      Recent incident · {top.case_number || "case"} · {date}
+      {items.length > 1 ? ` +${items.length - 1}` : ""}
+    </Link>
+  );
+}
 
 const StatusBadge = ({ status, daysAgo }) => {
   if (status === "fail") {
@@ -44,6 +67,8 @@ export default function EquipmentStatusBoard() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState("all"); // all | fail | overdue
+  // TRACK 19.16 · Closeout · unit_number → [incident summary rows].
+  const [incidentMap, setIncidentMap] = useState({});
 
   useEffect(() => {
     let alive = true;
@@ -56,7 +81,16 @@ export default function EquipmentStatusBoard() {
       } finally {
         if (alive) setLoading(false);
       }
+      // Read-only cross-link. Silent-fail so the Board still renders
+      // even if the engine endpoint is temporarily unreachable.
+      try {
+        const r = await api.get("/equipment-status-board/incidents-by-unit");
+        if (alive && r?.data?.by_unit) setIncidentMap(r.data.by_unit);
+      } catch {
+        /* ignore */
+      }
     })();
+    return () => { alive = false; };
   }, []);
 
   if (loading) return null;
@@ -186,6 +220,10 @@ export default function EquipmentStatusBoard() {
                         {u.equipment_type} · {u.equipment_unit}
                       </span>
                       <StatusBadge status={u.last_status} daysAgo={u.last_inspected_days_ago} />
+                      <RecentIncidentPill
+                        items={incidentMap[String(u.equipment_unit)]}
+                        unitKey={String(u.equipment_unit)}
+                      />
                     </div>
                     <div className="mt-1 text-sm text-slate-600">
                       {u.last_status === "never" ? (

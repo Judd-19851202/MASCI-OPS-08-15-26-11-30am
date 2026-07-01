@@ -730,7 +730,22 @@ function _writeSelMeta(setDraft, markAuto, key, meta) {
     const map = { ...(d.__selected__ || {}) };
     if (meta) map[key] = meta;
     else delete map[key];
-    return { ...d, __selected__: map };
+    // TRACK 19.16 · Closeout · Fleet cross-link.
+    // Maintain a flat, backend-visible list of every equipment_master
+    // unit_number the user has selected across any picker. The Fleet /
+    // Equipment Status Board joins on this to surface a "Recent
+    // Incident" pill without duplicating incident truth.
+    const units = new Set();
+    for (const m of Object.values(map)) {
+      if (m && m.source === "equipment_master" && m.unit_number) {
+        units.add(String(m.unit_number));
+      }
+    }
+    return {
+      ...d,
+      __selected__: map,
+      selected_unit_numbers: Array.from(units),
+    };
   });
   if (meta) markAuto([key]);
 }

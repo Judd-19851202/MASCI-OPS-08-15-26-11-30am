@@ -84,7 +84,13 @@ import TrenchBoxPoster from "@/pages/TrenchBoxPoster";
 import JhaPlansPoster from "@/pages/JhaPlansPoster";
 import AllPostersPrint from "@/pages/AllPostersPrint";
 import IncidentsDashboard from "@/pages/IncidentsDashboard";
-import NewIncident from "@/pages/NewIncident";
+// TRACK 19.16 · Closeout · retired NewIncident.jsx component. The file
+// itself is retained on disk because several older lock tests
+// (iter333/335/336) scan it as a cross-form pattern reference; removing
+// it would break unrelated tests outside this closeout scope. The
+// App.js import is removed because no <Route> or <Link> renders the
+// component in production — historic URLs are <Navigate> redirects.
+// import NewIncident from "@/pages/NewIncident"; // intentionally removed
 import IncidentReport from "@/pages/IncidentReport";
 import NearMissKiosk from "@/pages/NearMissKiosk";
 import SafetyCaseWorkspace from "@/pages/SafetyCaseWorkspace";
