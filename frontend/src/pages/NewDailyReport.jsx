@@ -23,6 +23,7 @@ import { YesNo } from "@/components/YesNo";
 import { SignaturePad } from "@/components/SignaturePad";
 import { CollapseCard } from "@/components/CollapseCard";
 import { PhotoUpload } from "@/components/PhotoUpload";
+import { AttachmentUpload } from "@/components/AttachmentUpload";
 import { JobPicker } from "@/components/JobPicker";
 import { LangToggle } from "@/components/LangToggle";
 import { DistributionList } from "@/components/DistributionList";
@@ -450,6 +451,53 @@ export default function NewDailyReport({ publicMode = false }) {
   // dismissible (Clear Saved Setup wipes it), never persisted.
   const [recentlyLoadedSetup, setRecentlyLoadedSetup] = React.useState(null);
 
+  // TRACK 19.04 · Explicit Smart Prefill offer (not silent auto-apply).
+  // When the foreman picks a job, we fetch `/jobs/{pn}/recent-context`
+  // and stage the prior crew + equipment as an OFFER card. The
+  // foreman must intentionally click "Apply" to hydrate them into the
+  // form. This preserves the Track 15.46 productivity gain while
+  // eliminating the "residue from another user's report" P0 that
+  // production field-users reported for Track 19.04. Dismissal
+  // clears the offer for the current session (per job change).
+  const [smartPrefillOffer, setSmartPrefillOffer] = React.useState(null);
+  const onApplySmartPrefill = React.useCallback(() => {
+    if (!smartPrefillOffer) return;
+    const { priorCrews = [], priorEquipment = [], sourceDate } = smartPrefillOffer;
+    setData((p) => {
+      const next = { ...p };
+      if (priorCrews.length > 0 && (p.masci_crews || []).length === 0) {
+        next.masci_crews = priorCrews.map((c) => ({
+          name: c.name || "",
+          trade: c.trade || "",
+          employee_id: c.employee_id || "",
+          start_time: "",
+          lunch_minutes: "",
+          stop_time: "",
+          hours: c.hours || "",
+          work_performed: "",
+        }));
+      }
+      if (priorEquipment.length > 0 && (p.equipment || []).length === 0) {
+        next.equipment = priorEquipment.map((e) => ({
+          description: e.description || "",
+          hours_used: e.hours_used || "",
+          time_delivered: "",
+          time_removed: "",
+          notes: e.notes || "",
+        }));
+      }
+      return next;
+    });
+    toast.success(
+      t("Prefilled from {d} — edit the deltas")
+        .replace("{d}", sourceDate || t("prior report"))
+    );
+    setSmartPrefillOffer(null);
+  }, [smartPrefillOffer, t]);
+  const onDismissSmartPrefill = React.useCallback(() => {
+    setSmartPrefillOffer(null);
+  }, []);
+
   const set = (k, v) => setData((p) => ({ ...p, [k]: v }));
 
   // Auto-fetch the next sequential report number on mount (or when the
@@ -558,48 +606,31 @@ export default function NewDailyReport({ publicMode = false }) {
               ? r.data.equipment
               : [];
             const sourceDate = r?.data?.source_report_date || "";
+            // TRACK 19.04 · Smart Prefill isolation: superintendent is
+            // safe to auto-fill (it's a single project attribute), but
+            // crew + equipment come from another crew's submitted work
+            // and MUST be operator-confirmed. Stage them as an OFFER
+            // that the foreman can accept, edit, or dismiss — never
+            // silently applied.
             setData((p) => {
-              const next = { ...p };
               if (recent && !jobSuper && !(p.superintendent && p.superintendent.trim())) {
-                next.superintendent = recent;
+                return { ...p, superintendent: recent };
               }
-              let prefilledLines = 0;
-              if (priorCrews.length > 0 && (p.masci_crews || []).length === 0) {
-                next.masci_crews = priorCrews.map((c) => ({
-                  name: c.name || "",
-                  trade: c.trade || "",
-                  employee_id: c.employee_id || "",
-                  start_time: "",
-                  lunch_minutes: "",
-                  stop_time: "",
-                  hours: c.hours || "",
-                  work_performed: "",
-                }));
-                prefilledLines += priorCrews.length;
-              }
-              if (priorEquipment.length > 0 && (p.equipment || []).length === 0) {
-                next.equipment = priorEquipment.map((e) => ({
-                  description: e.description || "",
-                  hours_used: e.hours_used || "",
-                  time_delivered: "",
-                  time_removed: "",
-                  notes: e.notes || "",
-                }));
-                prefilledLines += priorEquipment.length;
-              }
-              if (prefilledLines > 0) {
-                // Lightweight toast — fire outside the setState to keep
-                // it side-effect-free against React 18 strict mode.
-                setTimeout(() => {
-                  toast.success(
-                    t("Prefilled {n} rows from {d} — edit the deltas")
-                      .replace("{n}", String(prefilledLines))
-                      .replace("{d}", sourceDate || t("prior report")),
-                  );
-                }, 0);
-              }
-              return next;
+              return p;
             });
+            const canOffer = (
+              (priorCrews.length > 0 || priorEquipment.length > 0)
+              && (!data.masci_crews || data.masci_crews.length === 0)
+              && (!data.equipment || data.equipment.length === 0)
+            );
+            if (canOffer) {
+              setSmartPrefillOffer({
+                projectNumber: job.project_number,
+                sourceDate,
+                priorCrews,
+                priorEquipment,
+              });
+            }
           })
           .catch(() => { /* silent — keep the field empty for manual entry */ });
       }
@@ -1093,6 +1124,54 @@ export default function NewDailyReport({ publicMode = false }) {
             {t("One report per crew, per day. Capture labor, subs, materials, weather, and photos so payroll and PM coordination run clean tomorrow.")}
           </p>
         </div>
+
+        {/* TRACK 19.04 · Smart Prefill offer chip · explicit, not silent.
+            Rendered ONLY after the foreman picks a job AND the prior
+            report for that project carried crew or equipment. Prevents
+            "residue from another user's report" by requiring an
+            operator-confirmed Apply. Dismissal keeps the offer out of
+            the DOM for the rest of the session. */}
+        {smartPrefillOffer && (
+          <div
+            data-testid="daily-report-smart-prefill-offer"
+            className="mb-4 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4"
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-amber-800">
+                  {t("Smart Prefill · previous crew found")}
+                </p>
+                <p className="mt-1 text-sm text-slate-800">
+                  {t("Apply crew ({nc}) and equipment ({ne}) from {d}?")
+                    .replace("{nc}", String(smartPrefillOffer.priorCrews.length))
+                    .replace("{ne}", String(smartPrefillOffer.priorEquipment.length))
+                    .replace("{d}", smartPrefillOffer.sourceDate || t("prior report"))}
+                </p>
+                <p className="mt-1 text-xs text-slate-600">
+                  {t("Hours, times and work_performed are always cleared — you edit the deltas.")}
+                </p>
+              </div>
+              <div className="flex flex-shrink-0 gap-2">
+                <button
+                  type="button"
+                  className="rounded-lg border border-amber-400 bg-white px-3 py-1.5 text-sm font-semibold text-amber-800 hover:bg-amber-100"
+                  onClick={onDismissSmartPrefill}
+                  data-testid="daily-report-smart-prefill-dismiss"
+                >
+                  {t("No thanks")}
+                </button>
+                <button
+                  type="button"
+                  className="rounded-lg bg-amber-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-amber-700"
+                  onClick={onApplySmartPrefill}
+                  data-testid="daily-report-smart-prefill-apply"
+                >
+                  {t("Apply prefill")}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* iter437 · Phase 31.1 · device-local crew setup restore.
             Shown BEFORE the draft prompt because crew/equipment is the
@@ -2349,6 +2428,20 @@ export default function NewDailyReport({ publicMode = false }) {
             photos={data.photos}
             onChange={(photos) => set("photos", photos)}
           />
+          {/* TRACK 19.04 · Unified document attachments (PDF / Excel /
+              CSV). Reuses the SAME R2 storage the photo pipeline uses.
+              Grouped by category server-side so PM and email routing
+              see one attachment envelope. */}
+          <div className="mt-4 pt-4 border-t border-slate-200">
+            <Label className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700 mb-2 block">
+              {t("Documents (PDF, Excel)")}
+            </Label>
+            <AttachmentUpload
+              attachments={data.attachments || []}
+              onChange={(atts) => set("attachments", atts)}
+              testIdBase="daily-attachments"
+            />
+          </div>
         </Section>
 
         {/* 11 — Sign-off */}

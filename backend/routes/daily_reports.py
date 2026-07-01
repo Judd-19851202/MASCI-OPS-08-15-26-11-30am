@@ -152,6 +152,16 @@ class DailyReportCreate(BaseModel):
     superintendent_signature: Optional[str] = ""
     distribution_list: Optional[List[str]] = Field(default=None, max_length=20)
 
+    # TRACK 19.04 · Unified attachment envelope.
+    # `attachments[]` accepts already-uploaded document metadata blobs
+    # (see `/api/daily-reports/attachments/upload`). One list, all
+    # non-photo file kinds — PDFs, Excel, CSV. Photos continue to live
+    # in `photos[]` for backward compat and PDF-embed continuity.
+    # Each entry:
+    #   { attachment_ref, mime_type, extension, category, filename,
+    #     file_size, uploaded_at }
+    attachments: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
+
 
 class DailyReport(DailyReportCreate):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))

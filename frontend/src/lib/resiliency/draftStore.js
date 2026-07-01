@@ -48,11 +48,24 @@ function _idempotencyKey(actorId, formKey) {
 }
 
 // -------------------------------------------------------------------- save
-export async function saveDraft(actorId, formKey, form) {
+// Track 19.04 · Form Session Isolation: `savedByActor` fingerprints
+// the writing actor so a later read on the same device can skip
+// drafts that were saved by a different signed-in user. The device-
+// scoped IDB key is preserved so token rotation still recovers the
+// morning's draft — but a *different* portal actor on the same device
+// now correctly starts blank instead of being offered another user's
+// unfinished report.
+export async function saveDraft(actorId, formKey, form, opts = {}) {
   if (!formKey) return { ok: false, error: "formKey required", errorName: "ValueError" };
   const savedAt = Date.now();
+  const entry = {
+    form,
+    savedAt,
+    savedByActor: opts.savedByActor || null,
+    contract_version: "19.04",
+  };
   try {
-    await set(_draftKey(actorId, formKey), { form, savedAt });
+    await set(_draftKey(actorId, formKey), entry);
     return { ok: true, savedAt };
   } catch (e) {
     return {
@@ -83,8 +96,9 @@ export async function getDraft(actorId, formKey) {
   }
 }
 
-// Full envelope variant — `{ form, savedAt }` or null. Used by the
-// iter440 useFormDraft hook to render the truthful timestamp.
+// Full envelope variant — `{ form, savedAt, savedByActor }` or null.
+// Used by the iter440 useFormDraft hook to render the truthful
+// timestamp and (Track 19.04) to enforce actor-scoped restore.
 export async function getDraftEntry(actorId, formKey) {
   if (!formKey) return null;
   try {
@@ -94,7 +108,12 @@ export async function getDraftEntry(actorId, formKey) {
       try { await del(_draftKey(actorId, formKey)); } catch { /* ignore */ }
       return null;
     }
-    return { form: entry.form, savedAt: entry.savedAt || 0 };
+    return {
+      form: entry.form,
+      savedAt: entry.savedAt || 0,
+      savedByActor: entry.savedByActor || null,
+      contract_version: entry.contract_version || null,
+    };
   } catch {
     return null;
   }

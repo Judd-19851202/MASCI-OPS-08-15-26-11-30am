@@ -11,6 +11,81 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## Latest Track (2026-06-29 · TRACK 19.04 · Form Session Isolation + Daily Report Attachment Expansion · ✅ GREEN · CLOSED)
+
+### Objective
+P0 operational-trust fix: eliminate cross-user / cross-device / cross-session form data residue AND unify Daily Report attachments (Photos + PDFs + Excel + CSV) into a single storage + metadata pipeline.
+
+### Field Report
+Users on their own PCs / laptops opened `/daily/new` and saw residue from another user's report. Not a shared-device problem — a **cross-actor draft/prefill bleed** in a form ecosystem that had grown three overlapping restore surfaces (device draft, archive, project baseline).
+
+### Root Cause (surgical)
+1. **Silent Smart Prefill auto-apply** — `applyJob()` in `NewDailyReport.jsx` fetched `/api/jobs/{pn}/recent-context` and copied the returned crew + equipment directly into `data.masci_crews` / `data.equipment`. Any user picking a project silently inherited the previous user's crew. **[Primary vector.]**
+2. **Draft key device-only** — `useFormDraft` keyed drafts by `deviceId` alone, so a second signed-in actor on the same PC was OFFERED the first actor's draft via the restore prompt. Fixed by stamping `savedByActor` fingerprint on every write and gating restore on fingerprint match.
+
+### Fix Shape
+1. **`useFormDraft` actor gate** — new `savedByActor` field on each IDB entry, gated at load time by `getAuthActorFingerprint()`. Cross-actor drafts are silently hidden; legacy drafts (no stamp) surface with `isCrossToken=true` for the calm "unknown-author, confirm" prompt.
+2. **`draftStore.saveDraft` v19.04** — writes `{ form, savedAt, savedByActor, contract_version:"19.04" }`.
+3. **`getAuthActorFingerprint()`** — new pure function in `lib/resiliency/actorId.js`. Probes 7 portal tokens; returns `"anon"` for public flows.
+4. **Explicit Smart Prefill offer chip** — `smartPrefillOffer` state in `NewDailyReport.jsx` renders a yellow `daily-report-smart-prefill-offer` card with Apply / No thanks. Silent auto-apply deleted.
+5. **`/api/jobs/{pn}/recent-context` v19.04 contract** — response now carries `contract_version`, `actor_scoped`, `source`. Accepts optional `foreman` / `superintendent` query params to prefer the operator's own most-recent baseline over any other actor's.
+6. **Unified attachment pipeline** — `POST /api/daily-reports/attachments/upload`, `photo_storage.upload_document_data_url()`. Same R2 bucket / client / signed-URL helpers. Documents under `documents/YYYY/MM/<source>/<uuid>.<ext>`. Allow-list: PDF, XLSX, XLS, CSV. Deny-list: 20 dangerous extensions. Filename sanitised. 25 MiB cap. `attachments[]` on Daily Report model.
+7. **`AttachmentUpload.jsx`** — new component grouped by category (Photos / PDFs / Spreadsheets). Wired into Section 10 of Daily Report alongside PhotoUpload.
+
+### Files Touched
+- BACKEND
+  - `server.py` — `/api/jobs/{pn}/recent-context` v19.04, new `/api/daily-reports/attachments/upload`
+  - `photo_storage.py` — `upload_document_data_url`, `_safe_filename`, `_DANGEROUS_EXTS`, `_MAX_DOC_BYTES`, `_build_doc_key`
+  - `routes/daily_reports.py` — `attachments: List[Dict[str, Any]]` on `DailyReportCreate`
+- FRONTEND
+  - `lib/resiliency/actorId.js` — `getAuthActorFingerprint()`
+  - `lib/resiliency/draftStore.js` — `savedByActor` stamp
+  - `lib/resiliency/useFormDraft.js` — cross-actor gate
+  - `lib/dailyReportSchema.js` — `attachments: []` default
+  - `pages/NewDailyReport.jsx` — smart-prefill offer chip + AttachmentUpload mount
+  - `components/AttachmentUpload.jsx` — NEW unified attachment picker
+- TESTS
+  - `tests/test_track_19_04_form_session_isolation.py` — 17 assertions
+  - `tests/test_track_19_04_daily_report_attachments.py` — 16 assertions
+- DOCS (7 new + PRD update)
+  - `TRACK_19_04_FORM_SESSION_AUTOSAVE_AUDIT.md`
+  - `TRACK_19_04_DAILY_REPORT_RESIDUE_REPRODUCTION.md`
+  - `FORM_SESSION_ISOLATION_CONTRACT.md`
+  - `TRACK_19_04_PLATFORM_FORM_RESIDUE_AUDIT.md`
+  - `TRACK_19_04_DAILY_REPORT_ATTACHMENT_AUDIT.md`
+  - `TRACK_19_04_DAILY_REPORT_EMAIL_ATTACHMENT_ROUTING.md`
+  - `TRACK_19_04_SECURITY_REVIEW.md`
+  - `TRACK_19_04_TEST_REPORT.md`
+
+### Tests
+- `tests/test_track_19_04_form_session_isolation.py` — **17/17 PASS**
+- `tests/test_track_19_04_daily_report_attachments.py` — **16/16 PASS**
+- Track 19.03 HR roster regression — **27/27 PASS** (no regression)
+- Live smoke on `/daily/new`: compile-clean, ATTACH_ROOT=1, PICKER_INPUT=1, zero page errors, zero React overlay.
+
+### Preserved / not regressed
+- Autosave (debounce + 10 s force-flush + iOS lifecycle listeners).
+- Active draft recovery (restore prompt).
+- 24 h soft-delete archive.
+- Device ID (banner targeting, telemetry).
+- Smart Prefill (now explicit-offer instead of silent auto-apply).
+- HR roster golden source (Track 19.03 doctrine, 27/27 regression).
+- Photo upload (untouched).
+- Historical Daily Reports (immutable).
+
+### Known deferred (documented, non-blocking)
+1. Email provider `attachments[]` multipart wiring — the backend now stores and serves attachments; the email builder currently attaches only the PDF + photo embeds. Signed-URL fallback in the body is production-ready. Full multipart attach requires operator confirmation of production email provider. See `TRACK_19_04_DAILY_REPORT_EMAIL_ATTACHMENT_ROUTING.md`.
+2. Rate limiter on the attach endpoint. Standing risk is LOW (25 MiB cap + R2 quota alarms). See `TRACK_19_04_SECURITY_REVIEW.md` T8.
+
+### Doctrine locked
+- **Draft = actor + form + device**, never one of the three alone.
+- **No backend endpoint returns "latest draft" globally.**
+- **Smart Prefill is opt-in.** Silent auto-apply is a P0 residue vector, not a productivity feature.
+- **One attachment pipeline.** Photos and documents share R2, signed URLs, backup, and permissions.
+
+---
+
+
 ## Latest Track (2026-02-16 · TRACK 19.03 · HR Employee Source-of-Truth Roster Propagation Fix · ✅ GREEN · CLOSED)
 
 ### Defect (P0 data integrity)

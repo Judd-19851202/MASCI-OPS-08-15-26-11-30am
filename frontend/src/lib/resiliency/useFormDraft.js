@@ -44,7 +44,7 @@ import {
   migrateLegacyDrafts, storeIdempotencyKey, getIdempotencyKey,
   clearIdempotencyKey,
 } from "./draftStore";
-import { getDeviceScopedActorId, getLegacyActorIds } from "./actorId";
+import { getDeviceScopedActorId, getLegacyActorIds, getAuthActorFingerprint } from "./actorId";
 import { emitDraftEvent } from "./draftTelemetry";
 import { estimateQuota } from "./quotaProbe";
 import { markPriorUsage } from "./priorUsage";
@@ -105,20 +105,45 @@ export function useFormDraft(formKey, data, actorId) {
           } catch { /* migration must never crash mount */ }
         }
         const entry = await getDraftEntry(deviceActorId, formKey);
-        if (!cancelled && entry) {
+        // TRACK 19.04 · Form Session Isolation.
+        // Only OFFER the draft if it was saved by the currently
+        // signed-in portal actor. A draft saved by Actor A on this
+        // device is invisible to Actor B — Actor B starts blank.
+        // Legacy drafts (no `savedByActor` stamp) are treated as
+        // trusted for backward compat but flagged cross-token so
+        // the UI can render the "unknown author" affordance.
+        const currentAuthActor = getAuthActorFingerprint();
+        const draftAuthor = entry && entry.savedByActor;
+        const authorMismatch = Boolean(
+          entry && draftAuthor && draftAuthor !== currentAuthActor
+        );
+        if (!cancelled && entry && !authorMismatch) {
           setPendingDraft(entry.form);
           setPendingSavedAt(entry.savedAt);
           // We can't reliably know whether the draft was originally
           // saved under a different actorId after migration (we
           // already merged keys), so we treat any post-migration
           // recovery as "potentially cross-token" if the operator's
-          // current portal token differs from the device id.
-          setPendingIsCrossToken(actorId && actorId !== deviceActorId);
+          // current portal token differs from the device id, or if
+          // the draft has no author stamp (pre-19.04 legacy).
+          setPendingIsCrossToken(
+            (actorId && actorId !== deviceActorId) || !draftAuthor
+          );
           emitDraftEvent("draft.restore.offered", {
             formKey,
             ageSeconds: Math.floor((Date.now() - (entry.savedAt || 0)) / 1000),
             payloadBytes: JSON.stringify(entry.form || {}).length,
             isCrossToken: Boolean(actorId && actorId !== deviceActorId),
+            legacyAuthor: !draftAuthor,
+          });
+        } else if (!cancelled && entry && authorMismatch) {
+          // Actor B on the same device — do NOT offer Actor A's
+          // draft. Emit telemetry so we can measure how often the
+          // isolation actually blocks a cross-actor bleed.
+          emitDraftEvent("draft.restore.blocked_cross_actor", {
+            formKey,
+            ageSeconds: Math.floor((Date.now() - (entry.savedAt || 0)) / 1000),
+            payloadBytes: JSON.stringify(entry.form || {}).length,
           });
         }
       } finally {

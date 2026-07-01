@@ -69,6 +69,26 @@ export function getActorId() {
   return device;
 }
 
+// TRACK 19.04 · Form Session Isolation.
+// Fingerprint the currently signed-in portal actor so drafts saved
+// by Actor A on a device are NOT offered to Actor B on the same
+// device. Falls back to `"anon"` when no portal token is present
+// (public form flow — kept unscoped by design so a foreman on a
+// public submit page can still recover an in-progress draft).
+//
+// The fingerprint is portal-prefix + token slice — enough to
+// discriminate distinct signed-in identities without leaking the
+// full token into IDB. Two logins by the SAME user (same token)
+// produce the same fingerprint, so a passkey re-auth that mints a
+// new token WILL rotate the fingerprint. That is intentional: on
+// re-auth we prompt "Draft from earlier this session — restore?"
+// rather than silently applying the previous session's payload.
+export function getAuthActorFingerprint() {
+  const [prefix, tok] = _liveTokenPair();
+  if (prefix && tok) return `${prefix}.${tok}`;
+  return "anon";
+}
+
 // Returns the historical token-only actor ids that may exist as
 // legacy IDB keys. The draft-store migration helper uses this on
 // first mount to re-key any orphaned drafts under the new device-

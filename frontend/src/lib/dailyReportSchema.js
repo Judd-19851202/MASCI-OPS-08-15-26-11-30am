@@ -100,6 +100,11 @@ export function buildDailyReportDefaults() {
     photos: [],
     photo_min: 6,
 
+    // TRACK 19.04 · Unified document attachments (PDF, XLSX, XLS, CSV).
+    // Each entry is the metadata envelope returned by
+    // `POST /api/daily-reports/attachments/upload` — never raw bytes.
+    attachments: [],
+
     // Sign-off
     prepared_by_signature: "",
     superintendent_signature: "",

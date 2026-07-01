@@ -203,6 +203,144 @@ def _build_key(source_id: str, ext: str) -> str:
     return f"photos/{today:%Y/%m}/{safe_src}/{uuid.uuid4().hex}.{ext}"
 
 
+# TRACK 19.04 · Unified Attachment Pipeline
+# ─────────────────────────────────────────
+# Same R2 bucket, same client, same signed-URL helpers. Documents live
+# under `documents/<YYYY>/<MM>/<source>/<uuid>.<ext>` so a bucket
+# operator can see photos vs docs at a glance without introducing a
+# parallel storage service. See operator directive Track 19.04 —
+# "One upload pipeline. One storage provider. One permissions model."
+_DOC_MIME_TO_EXT = {
+    "application/pdf": "pdf",
+    "application/vnd.ms-excel": "xls",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
+    "text/csv": "csv",
+    "application/csv": "csv",
+}
+_ALLOWED_DOC_EXTS = {"pdf", "xls", "xlsx", "csv"}
+_DANGEROUS_EXTS = {
+    "exe", "bat", "cmd", "com", "cpl", "dll", "jar", "js", "jse",
+    "msi", "ps1", "psm1", "sh", "vbe", "vbs", "wsf", "wsh", "scr",
+    "app", "action", "workflow", "hta",
+}
+_MAX_DOC_BYTES = 25 * 1024 * 1024  # 25 MiB — matches email provider hard limits
+
+
+def _build_doc_key(source_id: str, ext: str) -> str:
+    today = _dt.datetime.now(_dt.timezone.utc)
+    safe_src = "".join(c if c.isalnum() or c in "-_." else "_" for c in (source_id or "unknown"))
+    return f"documents/{today:%Y/%m}/{safe_src}/{uuid.uuid4().hex}.{ext}"
+
+
+def _safe_filename(name: str) -> str:
+    """Strip path separators, control chars, and traversal segments.
+    Never accepts an absolute path. Length capped at 240 chars."""
+    name = (name or "").strip()
+    if not name:
+        return "attachment"
+    # Strip any directory components — the client MUST NOT choose the
+    # storage path.
+    name = name.replace("\\", "/").split("/")[-1]
+    # Drop control chars
+    name = "".join(ch for ch in name if ch.isprintable())
+    # Neutralise dot-only prefixes (`.htaccess`, `..`) — keep the ext.
+    name = name.lstrip(".") or "attachment"
+    if len(name) > 240:
+        # keep the extension when truncating
+        base, dot, ext = name.rpartition(".")
+        if dot and len(ext) <= 8:
+            name = base[: 240 - len(ext) - 1] + "." + ext
+        else:
+            name = name[:240]
+    return name
+
+
+def _doc_ext_from_data_url(data_url: str) -> tuple:
+    """Return (ext, mime) for a document data URL. Falls back to
+    ``(None, None)`` for unknown / disallowed types."""
+    try:
+        head = data_url.split(",", 1)[0]
+        mime = head.split(":", 1)[1].split(";", 1)[0].strip().lower()
+    except Exception:
+        return None, None
+    ext = _DOC_MIME_TO_EXT.get(mime)
+    return ext, mime
+
+
+async def upload_document_data_url(
+    data_url: str,
+    *,
+    source_id: str = "unknown",
+    original_filename: str = "",
+) -> dict:
+    """TRACK 19.04 · Unified attachment upload.
+
+    Accepts a ``data:application/pdf;base64,...`` (or Excel / CSV) data
+    URL, validates MIME + extension + size + filename, uploads to the
+    SAME R2 bucket used by photos, and returns a metadata envelope::
+
+        {
+          "attachment_ref": "photo://documents/2026/06/dr_abc/xyz.pdf",
+          "mime_type": "application/pdf",
+          "extension": "pdf",
+          "category": "PDF" | "Spreadsheet" | "Photo" | "Other",
+          "filename": "sanitised-original.pdf",
+          "file_size": 123456,
+          "uploaded_at": "2026-06-29T21:03:41Z",
+        }
+
+    Raises ``ValueError`` on any validation failure — never falls
+    through to storage silently.
+    """
+    ext, mime = _doc_ext_from_data_url(data_url or "")
+    if not ext or ext not in _ALLOWED_DOC_EXTS:
+        raise ValueError(f"Unsupported document type: {mime or 'unknown'}")
+    if ext in _DANGEROUS_EXTS:
+        raise ValueError(f"Blocked file extension: .{ext}")
+    try:
+        _, b64 = (data_url or "").split(",", 1)
+    except ValueError as e:
+        raise ValueError("Not a valid base64 data URL") from e
+    pad = (-len(b64)) % 4
+    if pad:
+        b64 = b64 + ("=" * pad)
+    raw = base64.b64decode(b64, validate=False)
+    if len(raw) > _MAX_DOC_BYTES:
+        raise ValueError(
+            f"File exceeds {_MAX_DOC_BYTES // (1024 * 1024)} MiB limit"
+        )
+    if not is_configured():
+        raise RuntimeError("photo_storage not configured (missing env vars)")
+    c = _client()
+    if c is None:
+        raise RuntimeError("photo_storage client failed to initialize")
+    key = _build_doc_key(source_id, ext)
+    import asyncio
+    await asyncio.to_thread(
+        c.put_object,
+        Bucket=_bucket(),
+        Key=key,
+        Body=raw,
+        ContentType=mime,
+        CacheControl="private, max-age=0, must-revalidate",
+    )
+    category = {
+        "pdf": "PDF",
+        "xls": "Spreadsheet",
+        "xlsx": "Spreadsheet",
+        "csv": "Spreadsheet",
+    }.get(ext, "Other")
+    return {
+        "attachment_ref": _build_ref(key),
+        "mime_type": mime,
+        "extension": ext,
+        "category": category,
+        "filename": _safe_filename(original_filename or f"attachment.{ext}"),
+        "file_size": len(raw),
+        "uploaded_at": _dt.datetime.now(_dt.timezone.utc).isoformat().replace("+00:00", "Z"),
+    }
+
+
 # ── Public API ────────────────────────────────────────────────────────
 async def upload_photo_bytes(
     data: bytes,

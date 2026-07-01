@@ -2638,6 +2638,50 @@ register_daily_reports_routes(
     require_admin_pm_or_hr_read=require_admin_pm_or_hr_read,
 )
 
+
+# ============================================================
+# TRACK 19.04 · Unified Daily Report Attachment Pipeline
+# ============================================================
+# Reuses the SAME R2 bucket / client / signed-URL infrastructure that
+# already backs photo uploads (see /app/backend/photo_storage.py).
+# Photos continue to use their existing pipeline. This endpoint
+# accepts documents (PDF, XLS, XLSX, CSV) so Daily Reports can carry
+# tickets, delivery slips, quantity spreadsheets, and CEI reports
+# alongside job photos with ONE metadata model, ONE permissions
+# model, ONE retrieval model.
+
+class DailyReportAttachmentUpload(BaseModel):
+    file_data: str  # data URL: "data:<mime>;base64,<...>"
+    filename: str = ""
+
+
+@api_router.post("/daily-reports/attachments/upload")
+async def daily_report_attachment_upload(payload: DailyReportAttachmentUpload):
+    """TRACK 19.04 · Unified attachment upload.
+
+    Validates MIME + extension + size + filename, uploads to R2, and
+    returns the metadata envelope for inclusion in the Daily Report
+    payload. Public — Daily Reports themselves are a public submit
+    surface (foremen submit in the field without a portal login).
+    The returned `attachment_ref` is only meaningful once linked to
+    a specific Daily Report body, so an orphan upload has no report
+    to leak into.
+    """
+    try:
+        from photo_storage import upload_document_data_url
+        meta = await upload_document_data_url(
+            payload.file_data,
+            source_id="dr_attachment",
+            original_filename=payload.filename or "",
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    meta["contract_version"] = "19.04"
+    return meta
+
+
 # ============================================================
 # TRACK 15.62 · Admin-tier Daily Report intelligence
 # ============================================================
@@ -3306,10 +3350,34 @@ async def list_jobs_public():
 # canonical store is filled.
 # Doctrine: /app/memory/DR_AUDIT_001_FULL_CONSTITUTIONAL_AUDIT.md R7
 @api_router.get("/jobs/{project_number}/recent-context")
-async def jobs_recent_context(project_number: str):
+async def jobs_recent_context(project_number: str, foreman: str = "", superintendent: str = ""):
+    """TRACK 19.04 · Smart Prefill contract v19.04.
+
+    Returns the most-recent Daily Report crew + equipment baseline for
+    the given project. Optional `foreman` / `superintendent` query
+    params bias the lookup to the operator's OWN most-recent report on
+    that project so the offer they see matches the crew they actually
+    ran yesterday — not a stranger's roster.
+
+    The response never carries per-day-ephemera (times, hours-used,
+    ticket_photos, notes, signatures). Frontend renders the payload as
+    an OFFER (not silent auto-apply) — see NewDailyReport.jsx
+    `smartPrefillOffer`.
+    """
     project_number = (project_number or "").strip()
+    foreman = (foreman or "").strip()
+    superintendent = (superintendent or "").strip()
+    empty = {
+        "contract_version": "19.04",
+        "source": "daily_reports.most-recent (project-scoped)",
+        "actor_scoped": False,
+        "superintendent": "",
+        "masci_crews": [],
+        "equipment": [],
+        "source_report_date": "",
+    }
     if not project_number:
-        return {"superintendent": "", "masci_crews": [], "equipment": []}
+        return empty
     latest = await db.daily_reports.find_one(
         {
             "project_number": project_number,
@@ -3323,11 +3391,35 @@ async def jobs_recent_context(project_number: str):
     # instead of re-typing the same 8-person crew + 4-piece spread
     # every morning. Sanitised: signatures and timestamps stripped so
     # nothing stale carries forward.
-    latest_full = await db.daily_reports.find_one(
-        {"project_number": project_number},
-        {"_id": 0, "masci_crews": 1, "equipment": 1, "report_date": 1, "created_at": 1},
-        sort=[("created_at", -1)],
-    ) or {}
+    #
+    # TRACK 19.04 · If the caller identifies themselves via `foreman`
+    # or `superintendent`, first try to find their OWN most-recent
+    # report on this project. Falls back to project-most-recent when
+    # no self-report exists. Never returns cross-project data.
+    latest_full = None
+    actor_scoped = False
+    if foreman or superintendent:
+        q_actor: Dict[str, Any] = {"project_number": project_number}
+        or_clauses: List[Dict[str, Any]] = []
+        if foreman:
+            or_clauses.append({"prepared_by": foreman})
+        if superintendent:
+            or_clauses.append({"superintendent": superintendent})
+        if or_clauses:
+            q_actor["$or"] = or_clauses
+        latest_full = await db.daily_reports.find_one(
+            q_actor,
+            {"_id": 0, "masci_crews": 1, "equipment": 1, "report_date": 1, "created_at": 1},
+            sort=[("created_at", -1)],
+        )
+        actor_scoped = bool(latest_full)
+    if not latest_full:
+        latest_full = await db.daily_reports.find_one(
+            {"project_number": project_number},
+            {"_id": 0, "masci_crews": 1, "equipment": 1, "report_date": 1, "created_at": 1},
+            sort=[("created_at", -1)],
+        )
+    latest_full = latest_full or {}
     raw_crews = latest_full.get("masci_crews") or []
     raw_equipment = latest_full.get("equipment") or []
     masci_crews = []
@@ -3360,6 +3452,9 @@ async def jobs_recent_context(project_number: str):
             "notes": "",
         })
     return {
+        "contract_version": "19.04",
+        "source": "daily_reports.most-recent (project-scoped)",
+        "actor_scoped": actor_scoped,
         "superintendent": (latest or {}).get("superintendent", "") or "",
         "masci_crews": masci_crews,
         "equipment": equipment,
