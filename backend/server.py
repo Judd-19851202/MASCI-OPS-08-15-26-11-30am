@@ -2588,6 +2588,15 @@ _register_ie_intel_routes(
     ).make_require_safety_admin_or_pm(db, _is_valid_admin_token, _is_valid_pm_token),
 )
 
+# Report Intelligence Engine (Phase E). Additive read-only report renderer.
+from incident_engine.report_routes import register_report_routes as _register_ie_report_routes  # noqa: E402
+_register_ie_report_routes(
+    api_router, db,
+    require_actor=__import__(
+        "routes.safety_portal._deps", fromlist=["make_require_safety_admin_or_pm"]
+    ).make_require_safety_admin_or_pm(db, _is_valid_admin_token, _is_valid_pm_token),
+)
+
 
 # ─── OMEGA · Phase 1A · iter452 · OC-002 Daily Report Office Review ──
 #     Additive transition endpoints. Uses the Safety/Admin/PM read gate
