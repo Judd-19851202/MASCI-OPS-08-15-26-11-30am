@@ -761,6 +761,11 @@ const ES = {
   "Any immediate hazard remaining?": "¿Queda algún peligro inmediato?",
 
   // additive operational-attention surface). Operational language only.
+  // ── TRACK 19.19 · Daily Report .xlsm attachment support ─────────────
+  "PDFs, Excel spreadsheets (.xlsx, .xls, .xlsm), and CSV files up to 25 MB each.":
+    "PDFs, hojas de Excel (.xlsx, .xls, .xlsm) y archivos CSV, hasta 25 MB cada uno.",
+  "Macro-enabled Excel workbook (.xlsm)":
+    "Libro de Excel con macros habilitadas (.xlsm)",
   // ── TRACK 19.18 · Safety Case Workspace polish ──────────────────────
   "Case story": "Historia del caso",
   "Next action": "Próxima acción",

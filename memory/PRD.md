@@ -11,6 +11,11 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.19 · Daily Report .xlsm Attachment Support · ✅ FIXED (2026-07-02)
+
+P0 field blocker: `.xlsm` (macro-enabled Excel workbook) now accepted by the Daily Report unified attachment pipeline. MIME `application/vnd.ms-excel.sheet.macroEnabled.12` allow-listed with filename-extension fallback for browsers reporting the ambiguous plain `application/vnd.ms-excel` MIME. Categorized as `Spreadsheet` — appears alongside `.xlsx` / `.xls` / `.csv` in every downstream surface. Server never opens, parses, or executes macros; workbook is opaque bytes. Dangerous extension blocklist untouched. 18/18 new lock tests · Track 19.04 attachment locks still green. Full details in `/app/memory/TRACK_19_19_XLSM_ATTACHMENT_SUPPORT.md`.
+
+
 ## 🟢 FINAL PRE-DEPLOYMENT OPERATIONAL READINESS · APPROVED (2026-07-02)
 
 **Status:** GO for field deployment.

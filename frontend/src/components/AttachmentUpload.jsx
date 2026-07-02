@@ -27,10 +27,27 @@ const ALLOWED_MIME = new Set([
   "application/pdf",
   "application/vnd.ms-excel",
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  // TRACK 19.19 · Macro-enabled Excel workbook (.xlsm) support.
+  // Passive attachment only — browser never opens the file for
+  // execution; server never parses macros. Some browsers report .xlsm
+  // under the plain application/vnd.ms-excel MIME (already allow-listed
+  // above) — the server-side filename fallback disambiguates.
+  "application/vnd.ms-excel.sheet.macroenabled.12",
+  "application/vnd.ms-excel.sheet.macroenabled",
   "text/csv",
   "application/csv",
 ]);
 const MAX_BYTES = 25 * 1024 * 1024; // matches server _MAX_DOC_BYTES
+
+// TRACK 19.19 · Filename-extension fallback lets .xlsm through even
+// when the browser reports application/octet-stream (rare, but seen on
+// some Windows installs after a Reset File Associations).
+const ALLOWED_EXT_FALLBACK = new Set(["pdf", "xls", "xlsx", "xlsm", "csv"]);
+
+function _fileExt(name) {
+  const m = /\.([a-z0-9]{1,8})$/i.exec(name || "");
+  return m ? m[1].toLowerCase() : "";
+}
 
 function _fileToDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -72,7 +89,14 @@ export const AttachmentUpload = ({
       try {
         // Client-side type gate — server validates too, but bounce
         // the operator early on obvious misclicks (.exe, .zip).
-        if (file.type && !ALLOWED_MIME.has(file.type.toLowerCase())) {
+        // TRACK 19.19 · Accept when EITHER the MIME is whitelisted OR
+        // the filename extension is a known safe office/spreadsheet
+        // extension. This lets .xlsm through on browsers that report
+        // it under the ambiguous application/vnd.ms-excel MIME (already
+        // allow-listed) or application/octet-stream.
+        const mimeOk = file.type && ALLOWED_MIME.has(file.type.toLowerCase());
+        const extOk = ALLOWED_EXT_FALLBACK.has(_fileExt(file.name));
+        if (!mimeOk && !extOk) {
           toast.error(
             t("Unsupported file type: {t}").replace("{t}", file.type || "unknown")
           );
@@ -141,7 +165,7 @@ export const AttachmentUpload = ({
           <input
             ref={inputRef}
             type="file"
-            accept=".pdf,.xls,.xlsx,.csv,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
+            accept=".pdf,.xls,.xlsx,.xlsm,.csv,application/pdf,application/vnd.ms-excel,application/vnd.ms-excel.sheet.macroEnabled.12,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
             multiple
             className="hidden"
             onChange={(e) => handleFiles(Array.from(e.target.files || []))}
@@ -149,7 +173,7 @@ export const AttachmentUpload = ({
           />
         </label>
         <p className="text-xs text-slate-500">
-          {t("PDFs, Excel spreadsheets, and CSV files up to 25 MB each.")}
+          {t("PDFs, Excel spreadsheets (.xlsx, .xls, .xlsm), and CSV files up to 25 MB each.")}
         </p>
       </div>
 

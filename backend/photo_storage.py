@@ -214,10 +214,22 @@ _DOC_MIME_TO_EXT = {
     "application/pdf": "pdf",
     "application/vnd.ms-excel": "xls",
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
+    # TRACK 19.19 · Macro-enabled Excel workbook (.xlsm).
+    # Passive attachment only — server NEVER opens / parses / executes
+    # macros. The workbook is treated as opaque bytes at rest and on
+    # download, identical to how .xlsx is handled.
+    # Note: the parser lower-cases the incoming MIME, so the map key
+    # MUST be lowercase — the canonical MIME as documented by IANA is
+    # `application/vnd.ms-excel.sheet.macroEnabled.12` (mixed case).
+    "application/vnd.ms-excel.sheet.macroenabled.12": "xlsm",
+    # Some browsers report .xlsm under the plain .xls MIME. We already
+    # accept that MIME above; the filename-extension fallback in
+    # `_doc_ext_from_data_url` will resolve to `xlsm` when the picker
+    # supplies a .xlsm filename.
     "text/csv": "csv",
     "application/csv": "csv",
 }
-_ALLOWED_DOC_EXTS = {"pdf", "xls", "xlsx", "csv"}
+_ALLOWED_DOC_EXTS = {"pdf", "xls", "xlsx", "xlsm", "csv"}
 _DANGEROUS_EXTS = {
     "exe", "bat", "cmd", "com", "cpl", "dll", "jar", "js", "jse",
     "msi", "ps1", "psm1", "sh", "vbe", "vbs", "wsf", "wsh", "scr",
@@ -255,15 +267,37 @@ def _safe_filename(name: str) -> str:
     return name
 
 
-def _doc_ext_from_data_url(data_url: str) -> tuple:
+def _doc_ext_from_data_url(data_url: str, filename: str = "") -> tuple:
     """Return (ext, mime) for a document data URL. Falls back to
-    ``(None, None)`` for unknown / disallowed types."""
+    ``(None, None)`` for unknown / disallowed types.
+
+    TRACK 19.19 · Filename extension is consulted when the browser
+    reports the generic ``application/vnd.ms-excel`` MIME for a file
+    whose picker-provided name ends in ``.xlsm``. This is necessary
+    because Chromium reports ``.xlsm`` under the plain ``.xls`` MIME
+    on some platforms, which would otherwise mis-tag the attachment.
+    The filename is ONLY used to disambiguate between whitelisted
+    spreadsheet extensions — it can never widen the allow-list.
+    """
     try:
         head = data_url.split(",", 1)[0]
         mime = head.split(":", 1)[1].split(";", 1)[0].strip().lower()
     except Exception:
         return None, None
     ext = _DOC_MIME_TO_EXT.get(mime)
+    # TRACK 19.19 · If the picker filename is a .xlsm and the MIME is
+    # the ambiguous plain .xls MIME (or the canonical macro-enabled
+    # MIME), prefer the .xlsm classification. This never widens the
+    # allow-list: both ``xls`` and ``xlsm`` are already permitted, and
+    # dangerous extensions are still blocked downstream.
+    fname_lower = (filename or "").lower()
+    if fname_lower.endswith(".xlsm") and mime in (
+        "application/vnd.ms-excel",
+        "application/vnd.ms-excel.sheet.macroenabled.12",
+        "application/vnd.ms-excel.sheet.macroenabled",
+        "application/octet-stream",
+    ):
+        ext = "xlsm"
     return ext, mime
 
 
@@ -292,7 +326,7 @@ async def upload_document_data_url(
     Raises ``ValueError`` on any validation failure — never falls
     through to storage silently.
     """
-    ext, mime = _doc_ext_from_data_url(data_url or "")
+    ext, mime = _doc_ext_from_data_url(data_url or "", original_filename or "")
     if not ext or ext not in _ALLOWED_DOC_EXTS:
         raise ValueError(f"Unsupported document type: {mime or 'unknown'}")
     if ext in _DANGEROUS_EXTS:
@@ -328,6 +362,7 @@ async def upload_document_data_url(
         "pdf": "PDF",
         "xls": "Spreadsheet",
         "xlsx": "Spreadsheet",
+        "xlsm": "Spreadsheet",   # TRACK 19.19 · macro-enabled Excel workbook.
         "csv": "Spreadsheet",
     }.get(ext, "Other")
     return {

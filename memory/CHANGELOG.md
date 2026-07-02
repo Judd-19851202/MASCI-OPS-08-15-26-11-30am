@@ -1,5 +1,37 @@
 # CHANGELOG
 
+## 2026-07-02 — TRACK 19.19 · Daily Report .xlsm Attachment Support · 🟢 P0 field blocker fixed
+
+### Fixed
+- `.xlsm` (macro-enabled Excel workbook) now accepted by the Daily Report unified attachment pipeline
+- MIME `application/vnd.ms-excel.sheet.macroEnabled.12` allow-listed (backend + frontend)
+- Filename-extension fallback added for browsers that report `.xlsm` under the ambiguous plain `application/vnd.ms-excel` MIME or `application/octet-stream`
+- Categorized as `Spreadsheet` — appears alongside `.xlsx`/`.xls`/`.csv` in PM portal, Admin portal, email attachment section, PDF export, signed download
+- 2 new EN→ES bilingual entries (label copy + macro-enabled workbook name)
+
+### Security preserved
+- Server NEVER opens, parses, or executes macros. Workbook stored as opaque bytes.
+- No `openpyxl`/`xlrd`/VBA imports in `photo_storage.py` — locked by source-audit test
+- Dangerous extension blocklist (`exe`/`js`/`bat`/`scr`/`ps1`/`sh`/`vbs`/…) untouched
+- Filename fallback scoped to spreadsheet-adjacent MIMEs only — cannot widen the allow-list
+- 25 MiB file-size cap preserved · filename sanitization preserved · R2 upload path preserved
+
+### Verified
+- 18/18 Track 19.19 lock tests GREEN
+- Live endpoint verification: 3 xlsm upload paths return HTTP 200; `.exe` upload returns 400
+- Track 19.04 Daily Report attachment locks PASS
+- Zero schema/route/payload drift · No PDF/email regression
+
+### Files
+- `backend/photo_storage.py` (+.xlsm MIME · ext · category · filename fallback)
+- `backend/tests/test_track_19_19_xlsm_attachment.py` (NEW · 18 lock tests)
+- `frontend/src/components/AttachmentUpload.jsx` (+ MIME · ext fallback · picker accept · label copy)
+- `frontend/src/lib/i18n.js` (+ 2 EN→ES entries)
+
+### Doc
+- `/app/memory/TRACK_19_19_XLSM_ATTACHMENT_SUPPORT.md` — root cause · fix · security posture · attachment support matrix · test report
+
+
 ## 2026-07-02 — 🟢 FINAL PRE-DEPLOYMENT OPERATIONAL READINESS CERTIFICATION · GO
 
 Final human-workflow certification gate PASSED. Platform is production-ready for field deployment.
