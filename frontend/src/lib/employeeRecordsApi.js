@@ -115,3 +115,79 @@ export async function reassignRecord(recordId, patch) {
   });
   return _json(res);
 }
+
+// Track 19.22 · Batches
+export async function createBatch(body) {
+  const res = await fetch(`${API}/batches`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify(body),
+  });
+  return _json(res);
+}
+
+export async function listBatches(lane) {
+  const p = new URLSearchParams();
+  if (lane) p.set("lane", lane);
+  const res = await fetch(`${API}/batches?${p.toString()}`, { headers: authHeaders() });
+  return _json(res);
+}
+
+export async function fetchBatch(batchId) {
+  const res = await fetch(`${API}/batches/${batchId}`, { headers: authHeaders() });
+  return _json(res);
+}
+
+export async function batchUpload(batchId, files) {
+  const fd = new FormData();
+  for (const f of files) fd.append("files", f);
+  const res = await fetch(`${API}/batches/${batchId}/uploads`, {
+    method: "POST",
+    body: fd,
+    headers: authHeaders(),
+  });
+  return _json(res);
+}
+
+export async function batchApply(batchId, patch) {
+  const res = await fetch(`${API}/batches/${batchId}/apply`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify(patch),
+  });
+  return _json(res);
+}
+
+export async function batchApproveAll(batchId) {
+  const res = await fetch(`${API}/batches/${batchId}/approve-all`, {
+    method: "POST",
+    headers: authHeaders(),
+  });
+  return _json(res);
+}
+
+// Track 19.22 · Package export URLs (opened in new tab; auth flows via
+// query token proxy or direct download — see Documents pane)
+export function packageDownloadUrl(empId, packageKey) {
+  return `${process.env.REACT_APP_BACKEND_URL}/api/employee-records/employees/${empId}/exports/${packageKey}.pdf`;
+}
+
+export async function downloadPackagePdf(empId, packageKey) {
+  const url = packageDownloadUrl(empId, packageKey);
+  const res = await fetch(url, { headers: authHeaders() });
+  if (!res.ok) {
+    let msg = `HTTP ${res.status}`;
+    try { const j = await res.json(); msg = j.detail || msg; } catch { /* ignore */ }
+    throw new Error(msg);
+  }
+  const blob = await res.blob();
+  const objUrl = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = objUrl;
+  a.target = "_blank";
+  a.rel = "noopener";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(objUrl), 60_000);
+}

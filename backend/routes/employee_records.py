@@ -202,6 +202,16 @@ class ReassignBody(BaseModel):
     notes: str = ""
 
 
+class BulkApplyBody(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    record_type: Optional[str] = None
+    employee_id: Optional[str] = None
+    employee_name_snapshot: Optional[str] = None
+    effective_date: Optional[str] = None
+    tags: Optional[List[str]] = None
+    only_unclassified: bool = True
+
+
 # ── Helpers ─────────────────────────────────────────────────────────
 def _actor_role(actor: Dict[str, Any]) -> str:
     return (actor.get("_actor") or actor.get("role") or "").lower()
@@ -413,10 +423,22 @@ def build_employee_records_router(*, db, require_actor):
         record_type: Optional[str] = Query(None),
         employee_id: Optional[str] = Query(None),
         batch_id: Optional[str] = Query(None),
+        # Track 19.22 · P1 · structured search filters (no OCR).
+        q: Optional[str] = Query(None, description="Substring on record_type/notes/tags/employee_name_snapshot/source_file_name"),
+        department: Optional[str] = Query(None),
+        uploader_email: Optional[str] = Query(None),
+        reviewer_email: Optional[str] = Query(None),
+        tag: Optional[str] = Query(None),
+        date_from: Optional[str] = Query(None),
+        date_to: Optional[str] = Query(None),
+        related_asset_id: Optional[str] = Query(None),
+        related_incident_case_id: Optional[str] = Query(None),
+        related_project_id: Optional[str] = Query(None),
+        related_training_id: Optional[str] = Query(None),
         limit: int = Query(200, ge=1, le=500),
         actor: Dict[str, Any] = _actor_dep(),
     ):
-        q: Dict[str, Any] = {}
+        q_mongo: Dict[str, Any] = {}
         # Lane scoping — enforce for non-HR.
         role = _actor_role(actor)
         if role not in {"hr", "admin"}:
@@ -425,19 +447,53 @@ def build_employee_records_router(*, db, require_actor):
                 raise HTTPException(403, "Not authorized")
             if lane and lane != own_lane:
                 raise HTTPException(403, "Not authorized for this lane")
-            q["ownership_lane"] = own_lane
+            q_mongo["ownership_lane"] = own_lane
         elif lane:
-            q["ownership_lane"] = lane
+            q_mongo["ownership_lane"] = lane
         if state:
-            q["approval_status"] = state
+            q_mongo["approval_status"] = state
         if record_type:
-            q["record_type"] = record_type
+            q_mongo["record_type"] = record_type
         if employee_id:
-            q["employee_id"] = employee_id
+            q_mongo["employee_id"] = employee_id
         if batch_id:
-            q["imported_batch_id"] = batch_id
+            q_mongo["imported_batch_id"] = batch_id
+        if department:
+            q_mongo["owning_department"] = department
+        if uploader_email:
+            q_mongo["created_by"] = uploader_email
+        if reviewer_email:
+            q_mongo["reviewed_by"] = reviewer_email
+        if tag:
+            q_mongo["tags"] = tag
+        if related_asset_id:
+            q_mongo["related_asset_id"] = related_asset_id
+        if related_incident_case_id:
+            q_mongo["related_incident_case_id"] = related_incident_case_id
+        if related_project_id:
+            q_mongo["related_project_id"] = related_project_id
+        if related_training_id:
+            q_mongo["related_training_id"] = related_training_id
+        if date_from or date_to:
+            rng: Dict[str, Any] = {}
+            if date_from:
+                rng["$gte"] = date_from
+            if date_to:
+                rng["$lte"] = date_to
+            q_mongo["effective_date"] = rng
+        if q:
+            # Structured substring on a handful of known-safe text fields.
+            # No full-text/OCR — this is a plain regex OR across metadata.
+            pat = {"$regex": q, "$options": "i"}
+            q_mongo["$or"] = [
+                {"record_type": pat},
+                {"notes": pat},
+                {"employee_name_snapshot": pat},
+                {"source_file_name": pat},
+                {"tags": pat},
+            ]
         items: List[Dict[str, Any]] = []
-        async for r in db.employee_records.find(q, {"_id": 0}).sort("created_at", -1).limit(limit):
+        async for r in db.employee_records.find(q_mongo, {"_id": 0}).sort("created_at", -1).limit(limit):
             items.append(r)
         return {"ok": True, "records": items, "count": len(items)}
 
@@ -709,7 +765,508 @@ def build_employee_records_router(*, db, require_actor):
         return {"ok": True, "source_file_ref": ref,
                 "source_file_name": rec.get("source_file_name")}
 
+    # ── Track 19.22 · P1 · Bulk batch operations ──────────────────
+    # Batch upload: many files → many staged records in a single batch.
+    # No OCR. No AI. Every record still requires manual employee link
+    # and manual record_type before approval.
+    @router.post("/batches/{batch_id}/uploads")
+    async def batch_upload(
+        batch_id: str,
+        files: List[UploadFile] = File(...),
+        actor: Dict[str, Any] = _actor_dep(),
+    ):
+        batch = await db.record_import_batches.find_one({"id": batch_id}, {"_id": 0})
+        if not batch:
+            raise HTTPException(404, "Batch not found")
+        lane = batch.get("ownership_lane")
+        if not _actor_can_read_lane(actor, lane or ""):
+            raise HTTPException(403, "Not authorized for this lane")
+        created: List[Dict[str, Any]] = []
+        for f in files:
+            raw = await f.read()
+            if len(raw) == 0:
+                continue
+            if len(raw) > MAX_UPLOAD_BYTES:
+                # Skip this file but keep processing the rest so a
+                # single bad file doesn't nuke the whole batch.
+                continue
+            name = f.filename or "upload.bin"
+            ext = (name.rsplit(".", 1)[-1] if "." in name else "").lower()
+            if ext not in ALLOWED_EXTS:
+                continue
+            digest = _sha256(raw)
+            ref = None
+            try:
+                from photo_storage import upload_photo_bytes, is_configured  # noqa: PLC0415
+                if is_configured():
+                    ref = await upload_photo_bytes(
+                        raw, ext=ext, source_id=f"emp-rec/{lane}/batch/{digest[:12]}",
+                        content_type=f.content_type or "application/octet-stream",
+                    )
+            except Exception as exc:
+                logger.warning("[employee_records] batch cloud upload failed: %s", exc)
+            if not ref:
+                import base64
+                b64 = base64.b64encode(raw).decode("ascii")
+                ct = f.content_type or "application/octet-stream"
+                ref = f"data:{ct};base64,{b64}"
+            # Stage the record with NO employee link and NO record_type
+            # so it lands in pending_match / pending_classification and
+            # a human must classify it in the batch detail view.
+            rec = {
+                "id": str(uuid.uuid4()),
+                "employee_id": None,
+                "employee_name_snapshot": None,
+                "record_type": None,
+                "record_category": None,
+                "ownership_lane": lane,
+                "owning_department": lane,
+                "created_by": actor.get("email") or actor.get("name"),
+                "created_by_role": _actor_role(actor),
+                "reviewed_by": None,
+                "approved_by": None,
+                "approval_status": "pending_classification",
+                "effective_date": None,
+                "source_type": "upload",
+                "source_file_ref": ref,
+                "source_file_name": name,
+                "source_file_hash": digest,
+                "imported_batch_id": batch_id,
+                "related_incident_case_id": None,
+                "related_training_id": None,
+                "related_asset_id": None,
+                "related_project_id": None,
+                "related_supervisor_id": None,
+                "tags": [],
+                "notes": "",
+                "status": "pending_classification",
+                "created_at": _now_iso(),
+                "updated_at": _now_iso(),
+            }
+            await db.employee_records.insert_one(rec)
+            await _write_audit(
+                db, record_id=rec["id"], event="record_created", actor=actor,
+                details={"state": "pending_classification", "batch_id": batch_id,
+                         "ownership_lane": lane},
+            )
+            rec.pop("_id", None)
+            created.append(rec)
+        await db.record_import_batches.update_one(
+            {"id": batch_id},
+            {"$inc": {"file_count": len(created), "record_count": len(created)}},
+        )
+        return {"ok": True, "created": len(created), "records": created}
+
+    # Bulk classify: apply the same record_type / employee_id / date to
+    # every still-unclassified record in a batch. Human-driven; no AI.
+    @router.post("/batches/{batch_id}/apply")
+    async def batch_bulk_apply(
+        batch_id: str,
+        body: BulkApplyBody = Body(...),
+        actor: Dict[str, Any] = _actor_dep(),
+    ):
+        batch = await db.record_import_batches.find_one({"id": batch_id}, {"_id": 0})
+        if not batch:
+            raise HTTPException(404, "Batch not found")
+        lane = batch.get("ownership_lane") or ""
+        if not _actor_can_read_lane(actor, lane):
+            raise HTTPException(403, "Not authorized for this lane")
+        if body.record_type is not None:
+            _validate_lane_and_type(lane, body.record_type)
+        patch: Dict[str, Any] = {"updated_at": _now_iso()}
+        if body.record_type is not None:
+            patch["record_type"] = body.record_type
+        if body.employee_id is not None:
+            patch["employee_id"] = body.employee_id
+            # Refresh the snapshot when we assign an employee.
+            snap = body.employee_name_snapshot
+            if not snap:
+                emp = await db.employees.find_one(
+                    {"$or": [{"id": body.employee_id}, {"employee_id": body.employee_id}]},
+                    {"_id": 0, "name": 1},
+                )
+                snap = (emp or {}).get("name") or ""
+            patch["employee_name_snapshot"] = snap
+        if body.effective_date is not None:
+            patch["effective_date"] = body.effective_date
+        if body.tags is not None:
+            patch["tags"] = body.tags
+        # Filter: only records in this batch that still need action.
+        q: Dict[str, Any] = {"imported_batch_id": batch_id}
+        if body.only_unclassified:
+            q["approval_status"] = {"$in": ["pending_classification", "pending_match"]}
+        # Compute new state per record after patch is applied.
+        modified_ids: List[str] = []
+        async for r in db.employee_records.find(q, {"_id": 0, "id": 1, "record_type": 1, "employee_id": 1}):
+            new_type = patch.get("record_type", r.get("record_type"))
+            new_emp = patch.get("employee_id", r.get("employee_id"))
+            if new_emp and new_type:
+                patch["approval_status"] = "pending_approval"
+                patch["status"] = "pending_approval"
+            elif not new_emp:
+                patch["approval_status"] = "pending_match"
+                patch["status"] = "pending_match"
+            else:
+                patch["approval_status"] = "pending_classification"
+                patch["status"] = "pending_classification"
+            await db.employee_records.update_one({"id": r["id"]}, {"$set": patch})
+            await _write_audit(
+                db, record_id=r["id"], event="record_batch_apply", actor=actor,
+                details={"batch_id": batch_id, "patch": {k: v for k, v in patch.items() if k != "updated_at"}},
+            )
+            modified_ids.append(r["id"])
+        return {"ok": True, "modified": len(modified_ids), "record_ids": modified_ids}
+
+    # Bulk approve every ready record in the batch. Approvers only.
+    @router.post("/batches/{batch_id}/approve-all")
+    async def batch_approve_all(
+        batch_id: str,
+        actor: Dict[str, Any] = _actor_dep(),
+    ):
+        batch = await db.record_import_batches.find_one({"id": batch_id}, {"_id": 0})
+        if not batch:
+            raise HTTPException(404, "Batch not found")
+        lane = batch.get("ownership_lane") or ""
+        if not _actor_can_approve(actor, lane):
+            raise HTTPException(403, "Not authorized to approve for this lane")
+        approved: List[str] = []
+        async for r in db.employee_records.find(
+            {"imported_batch_id": batch_id, "approval_status": "pending_approval"},
+            {"_id": 0, "id": 1, "employee_id": 1, "record_type": 1},
+        ):
+            if not r.get("employee_id") or not r.get("record_type"):
+                continue
+            await db.employee_records.update_one(
+                {"id": r["id"]},
+                {"$set": {
+                    "approval_status": "linked",
+                    "status": "linked",
+                    "approved_by": actor.get("email") or actor.get("name"),
+                    "reviewed_by": actor.get("email") or actor.get("name"),
+                    "updated_at": _now_iso(),
+                }},
+            )
+            await _write_audit(
+                db, record_id=r["id"], event="record_approved", actor=actor,
+                details={"batch_id": batch_id, "bulk": True},
+            )
+            approved.append(r["id"])
+        return {"ok": True, "approved": len(approved), "record_ids": approved}
+
+    @router.get("/batches/{batch_id}")
+    async def get_batch(
+        batch_id: str,
+        actor: Dict[str, Any] = _actor_dep(),
+    ):
+        batch = await db.record_import_batches.find_one({"id": batch_id}, {"_id": 0})
+        if not batch:
+            raise HTTPException(404, "Batch not found")
+        if not _actor_can_read_lane(actor, batch.get("ownership_lane") or ""):
+            raise HTTPException(403, "Not authorized for this lane")
+        records: List[Dict[str, Any]] = []
+        async for r in db.employee_records.find(
+            {"imported_batch_id": batch_id}, {"_id": 0},
+        ).sort("created_at", 1).limit(500):
+            records.append(r)
+        # Simple state breakdown for the UI.
+        counts: Dict[str, int] = {}
+        for r in records:
+            counts[r.get("approval_status", "unknown")] = counts.get(r.get("approval_status", "unknown"), 0) + 1
+        return {"ok": True, "batch": batch, "records": records, "counts": counts}
+
+    # ── Track 19.22 · Phase 3 · Export packages (PDF) ──────────────
+    # Six operational packages built from the existing employee data.
+    # Reuses HR timeline + records collection. Read-only. HR + admin
+    # get everything; Safety only Safety-related packages; Asset only
+    # Asset-related packages.
+    PACKAGE_CATEGORIES = {
+        "complete_file":       None,                              # everything
+        "training":            {"Training", "Driver Qualification"},
+        "discipline":          {"HR Lifecycle", "Field Leadership"},
+        "safety":              {"Incidents", "Field Leadership"},
+        "ppe_asset":           {"PPE & Equipment"},
+        "historical_records":  None,                              # from db.employee_records
+    }
+
+    PACKAGE_TITLE = {
+        "complete_file":       "Complete Employee File",
+        "training":            "Training Package",
+        "discipline":          "Discipline Package",
+        "safety":              "Safety Package",
+        "ppe_asset":           "PPE / Asset Package",
+        "historical_records":  "Historical Records Package",
+    }
+
+    PACKAGE_LANE_GATE = {
+        # HR + admin can pull every package.
+        # Safety can pull Safety Package.
+        # Asset admin can pull PPE / Asset package and historical (asset lane) records.
+        "safety":              {"hr", "admin", "safety"},
+        "ppe_asset":           {"hr", "admin", "asset_admin"},
+        "historical_records":  {"hr", "admin", "safety", "asset_admin"},
+        "complete_file":       {"hr", "admin"},
+        "training":            {"hr", "admin"},
+        "discipline":          {"hr", "admin"},
+    }
+
+    @router.get("/employees/{emp_id}/exports/{package}.pdf")
+    async def employee_package_pdf(
+        emp_id: str,
+        package: str,
+        actor: Dict[str, Any] = _actor_dep(),
+    ):
+        if package not in PACKAGE_TITLE:
+            raise HTTPException(404, f"Unknown package: {package}")
+        allowed = PACKAGE_LANE_GATE.get(package, {"hr", "admin"})
+        role = _actor_role(actor)
+        if role not in allowed:
+            raise HTTPException(403, "Not authorized for this package")
+
+        # Employee identity (single source of truth · db.employees).
+        emp = await db.employees.find_one(
+            {"$or": [{"id": emp_id}, {"employee_id": emp_id}]},
+            {"_id": 0},
+        )
+        if not emp:
+            raise HTTPException(404, "Employee not found")
+
+        # Timeline events (already exists; do not duplicate). Filter by
+        # the package's category set. `complete_file` includes all.
+        try:
+            hr_portal_mod = __import__("routes.hr_portal", fromlist=["hr_portal_router_factory"])
+            # We DON'T instantiate the whole router — we just want the
+            # aggregator function. It's defined inside the factory, but
+            # we can call the endpoint via the existing route through
+            # a lightweight direct fetch. Simpler: recompute a minimal
+            # events list by delegating to the collection scans that
+            # the timeline endpoint uses. To avoid duplication, we call
+            # the FastAPI endpoint via httpx if the app is running.
+            # For a self-contained package export we rebuild locally
+            # from the same primitives.
+            _ = hr_portal_mod  # noqa: F841 (kept for lint-clean reference)
+        except Exception:
+            pass
+
+        # Delegate to the timeline builder using the internal API in
+        # HR portal. The safe fast path: read `db.employee_records`
+        # + emit key HR/lifecycle events. Full timeline aggregation
+        # already lives in hr_portal — for exports we prefer local
+        # composition to keep this endpoint self-contained.
+        # Pull approved employee_records (source of truth for docs).
+        docs: List[Dict[str, Any]] = []
+        async for r in db.employee_records.find(
+            {"employee_id": emp_id, "approval_status": "linked"}, {"_id": 0},
+        ).sort("effective_date", -1).limit(500):
+            docs.append(r)
+
+        # Category filter.
+        cat_filter = PACKAGE_CATEGORIES.get(package)
+        # Also pull timeline events via internal call for richer packages.
+        events: List[Dict[str, Any]] = []
+        try:
+            from routes.hr_portal import _timeline_for_export  # noqa: PLC0415
+            events = await _timeline_for_export(db, emp_id)
+        except Exception:
+            events = []
+        if cat_filter is not None:
+            events = [e for e in events if e.get("category") in cat_filter]
+
+        # For historical_records package: only show employee_records.
+        if package == "historical_records":
+            events = []
+
+        pdf_bytes = _render_employee_package_pdf(
+            emp=emp,
+            package_key=package,
+            package_title=PACKAGE_TITLE[package],
+            events=events,
+            docs=docs,
+            actor_email=actor.get("email") or actor.get("name") or "system",
+            actor_role=role,
+        )
+        from fastapi.responses import Response  # noqa: PLC0415
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition":
+                    f'inline; filename="{emp.get("name","employee").replace(" ","_")}'
+                    f'_{package}.pdf"',
+            },
+        )
+
     return router
+
+
+def _render_employee_package_pdf(*, emp, package_key, package_title,
+                                 events, docs, actor_email, actor_role) -> bytes:
+    """Executive-quality package PDF · Track 19.22 · Phase 3+6.
+
+    Consistent typography · logical grouping · beautiful headers ·
+    professional footers · no N/A spam · single-column body for
+    readability. Uses ReportLab (already in requirements).
+    """
+    from io import BytesIO  # noqa: PLC0415
+    from reportlab.lib.pagesizes import letter  # noqa: PLC0415
+    from reportlab.lib import colors  # noqa: PLC0415
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle  # noqa: PLC0415
+    from reportlab.lib.units import inch  # noqa: PLC0415
+    from reportlab.platypus import (  # noqa: PLC0415
+        SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle,
+    )
+
+    buf = BytesIO()
+    doc = SimpleDocTemplate(
+        buf, pagesize=letter,
+        leftMargin=0.65 * inch, rightMargin=0.65 * inch,
+        topMargin=0.65 * inch, bottomMargin=0.7 * inch,
+        title=f"{package_title} — {emp.get('name') or 'Employee'}",
+    )
+    styles = getSampleStyleSheet()
+    accent = colors.HexColor("#5b21b6") if package_key != "safety" else colors.HexColor("#0f766e")
+    if package_key == "ppe_asset":
+        accent = colors.HexColor("#c2410c")
+    h1 = ParagraphStyle("h1", parent=styles["Heading1"], fontSize=20,
+                        textColor=accent, spaceAfter=2, leading=22)
+    h2 = ParagraphStyle("h2", parent=styles["Heading2"], fontSize=11,
+                        textColor=colors.HexColor("#0f172a"), spaceBefore=14,
+                        spaceAfter=4, fontName="Helvetica-Bold")
+    body = ParagraphStyle("body", parent=styles["BodyText"], fontSize=9, leading=12)
+    small = ParagraphStyle("small", parent=styles["BodyText"], fontSize=7.5,
+                           leading=10, textColor=colors.HexColor("#475569"))
+
+    story: List[Any] = []
+
+    # Header block
+    story.append(Paragraph(package_title, h1))
+    story.append(Paragraph(
+        f"<b>{emp.get('name') or '—'}</b> · "
+        f"{emp.get('trade') or '—'} · "
+        f"Employee ID {emp.get('employee_id') or emp.get('id') or '—'}",
+        body,
+    ))
+    story.append(Paragraph(
+        f"Generated {datetime.now(timezone.utc).isoformat()[:19].replace('T',' ')} UTC · "
+        f"By {actor_email} ({actor_role})",
+        small,
+    ))
+    story.append(Spacer(1, 10))
+
+    # Employee snapshot
+    story.append(Paragraph("Employee Snapshot", h2))
+    snap_rows = [
+        ["Lifecycle", emp.get("lifecycle_status") or "Active",
+         "Department", emp.get("department") or "—"],
+        ["Trade", emp.get("trade") or "—",
+         "Supervisor", emp.get("supervisor") or "—"],
+        ["Email", emp.get("email") or "—",
+         "Hire Date", emp.get("hire_date") or "—"],
+    ]
+    snap_style = TableStyle([
+        ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#f1f5f9")),
+        ("BACKGROUND", (2, 0), (2, -1), colors.HexColor("#f1f5f9")),
+        ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
+        ("FONTNAME", (2, 0), (2, -1), "Helvetica-Bold"),
+        ("FONTSIZE", (0, 0), (-1, -1), 8),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#e2e8f0")),
+        ("LEFTPADDING", (0, 0), (-1, -1), 5),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+        ("TOPPADDING", (0, 0), (-1, -1), 3),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+    ])
+    t_snap = Table(snap_rows, colWidths=[1.1 * inch, 2.4 * inch, 1.1 * inch, 2.4 * inch])
+    t_snap.setStyle(snap_style)
+    story.append(t_snap)
+
+    # Timeline events section (when applicable)
+    if events:
+        story.append(Paragraph(
+            f"Timeline · {len(events)} event(s)", h2))
+        rows = [["Category", "Date", "Title", "Detail"]]
+        for e in events[:400]:
+            title = str(e.get("title", ""))[:80]
+            desc = str(e.get("description", ""))[:120]
+            ts = str(e.get("ts", ""))[:10]
+            rows.append([str(e.get("category", "")), ts, title, desc])
+        tbl = Table(rows, colWidths=[1.1 * inch, 0.7 * inch, 2.2 * inch, 3.0 * inch],
+                    repeatRows=1)
+        tbl.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0f172a")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("FONTSIZE", (0, 0), (-1, -1), 7.5),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("ROWBACKGROUNDS", (0, 1), (-1, -1),
+             [colors.white, colors.HexColor("#f8fafc")]),
+            ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#e2e8f0")),
+            ("LEFTPADDING", (0, 0), (-1, -1), 4),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+            ("TOPPADDING", (0, 0), (-1, -1), 3),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+        ]))
+        story.append(tbl)
+
+    # Documents section (from db.employee_records)
+    if docs:
+        # Filter docs to the package's lane theme.
+        if package_key == "training":
+            docs = [d for d in docs if d.get("ownership_lane") == "safety"
+                    and "train" in (d.get("record_type") or "")]
+        elif package_key == "discipline":
+            docs = [d for d in docs if d.get("ownership_lane") == "hr"]
+        elif package_key == "safety":
+            docs = [d for d in docs if d.get("ownership_lane") == "safety"]
+        elif package_key == "ppe_asset":
+            docs = [d for d in docs if d.get("ownership_lane") == "asset"]
+        # complete_file & historical_records include everything.
+        if docs:
+            story.append(Paragraph(f"Attached Records · {len(docs)}", h2))
+            rows = [["Type", "Lane", "Effective", "File", "Status", "Uploader"]]
+            for d in docs[:300]:
+                rows.append([
+                    str(d.get("record_type") or "—").replace("_", " ")[:28],
+                    str(d.get("ownership_lane") or "—"),
+                    str(d.get("effective_date") or "—")[:10],
+                    str(d.get("source_file_name") or "—")[:40],
+                    str(d.get("approval_status") or "—"),
+                    str(d.get("created_by") or "—")[:30],
+                ])
+            tbl = Table(rows, colWidths=[1.4 * inch, 0.7 * inch, 0.75 * inch, 1.9 * inch, 0.8 * inch, 1.45 * inch],
+                        repeatRows=1)
+            tbl.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0f172a")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTSIZE", (0, 0), (-1, -1), 7.5),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1),
+                 [colors.white, colors.HexColor("#f8fafc")]),
+                ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#e2e8f0")),
+                ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                ("TOPPADDING", (0, 0), (-1, -1), 3),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+            ]))
+            story.append(tbl)
+
+    if not events and not docs:
+        story.append(Paragraph("Records", h2))
+        story.append(Paragraph(
+            "No records match this package for this employee yet.", body))
+
+    # Footer signature line
+    story.append(Spacer(1, 14))
+    story.append(Paragraph(
+        f"MASCI Operations Platform · {package_title} · "
+        f"This document is generated from the live Employee Records "
+        f"Intelligence Platform. All entries are traceable in the "
+        f"append-only audit ledger.",
+        small,
+    ))
+
+    doc.build(story)
+    return buf.getvalue()
 
 
 async def ensure_employee_records_indexes(db) -> None:

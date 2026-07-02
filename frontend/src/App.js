@@ -276,6 +276,8 @@ const SafetyEmployeeProfiles = React.lazy(() => import("@/pages/SafetyEmployeePr
 const EmployeeProfile = React.lazy(() => import("@/pages/EmployeeProfile"));
 const HistoricalRecordsIntake = React.lazy(() => import("@/pages/HistoricalRecordsIntake"));
 const HistoricalRecordsQueue = React.lazy(() => import("@/pages/HistoricalRecordsQueue"));
+const HistoricalRecordsBatches = React.lazy(() => import("@/pages/HistoricalRecordsBatches"));
+const HistoricalRecordsBatchDetail = React.lazy(() => import("@/pages/HistoricalRecordsBatchDetail"));
 const SafetyDigest = React.lazy(() => import("@/pages/SafetyDigest"));
 const SafetyIncidents = React.lazy(() => import("@/pages/SafetyIncidents"));
 const SafetyAudits = React.lazy(() => import("@/pages/SafetyAudits"));
@@ -1135,6 +1137,9 @@ function App() {
             {/* Track 19.21b · Historical Records Intake + Review Queue */}
             <Route path="/hr/historical-records/intake" element={H(<HistoricalRecordsIntake />)} />
             <Route path="/hr/historical-records/queue" element={H(<HistoricalRecordsQueue />)} />
+            {/* Track 19.22 · Bulk Batches */}
+            <Route path="/hr/historical-records/batches" element={H(<HistoricalRecordsBatches />)} />
+            <Route path="/hr/historical-records/batches/:batchId" element={H(<HistoricalRecordsBatchDetail />)} />
             {/* iter353f · HR OSHA & Labor — read-only incidents list */}
             <Route path="/hr/incidents" element={H(<HrIncidents />)} />
             {/* PO Requests — Iter153 (Phase 2.5 · Phase D) */}

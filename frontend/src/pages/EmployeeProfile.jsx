@@ -13,13 +13,17 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { getHrToken } from "@/lib/hrAuth";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import { getAdminToken } from "@/lib/adminAuth";
 import {
+  fetchEmployeeRecords, downloadPackagePdf,
+} from "@/lib/employeeRecordsApi";
+import {
   Activity, AlertTriangle, ArrowLeft, ClipboardList,
-  Download, FileText, HardHat, Inbox, Shield, Upload, User,
+  Download, FileText, HardHat, Inbox, Search, Shield, Upload, User,
 } from "lucide-react";
 
 // ── Category → dot colour ───────────────────────────────────────────
@@ -97,6 +101,47 @@ export default function EmployeeProfile() {
 
   useEffect(() => { load(); }, [load]);
 
+  // Track 19.22 · Phase 1+2 · Documents (approved employee records) + search
+  const [docs, setDocs] = useState([]);
+  const [docsLoading, setDocsLoading] = useState(false);
+  const [docQuery, setDocQuery] = useState("");
+  const [docLane, setDocLane] = useState("");
+
+  const loadDocs = useCallback(async () => {
+    setDocsLoading(true);
+    try {
+      const r = await fetchEmployeeRecords(empId, {
+        include_pending: false,
+        lane: docLane || undefined,
+      });
+      setDocs(r.records || []);
+    } catch (e) { toast.error(String(e.message || e)); }
+    finally { setDocsLoading(false); }
+  }, [empId, docLane]);
+
+  useEffect(() => { loadDocs(); }, [loadDocs]);
+
+  const filteredDocs = useMemo(() => {
+    if (!docQuery.trim()) return docs;
+    const q = docQuery.toLowerCase();
+    return docs.filter((d) => (
+      (d.record_type || "").toLowerCase().includes(q)
+      || (d.source_file_name || "").toLowerCase().includes(q)
+      || (d.notes || "").toLowerCase().includes(q)
+      || (d.tags || []).some((t) => (t || "").toLowerCase().includes(q))
+      || (d.created_by || "").toLowerCase().includes(q)
+    ));
+  }, [docs, docQuery]);
+
+  const docsByLane = useMemo(() => {
+    const g = { hr: [], safety: [], asset: [], corporate_import: [] };
+    filteredDocs.forEach((d) => {
+      const l = d.ownership_lane;
+      if (g[l]) g[l].push(d);
+    });
+    return g;
+  }, [filteredDocs]);
+
   const filteredEvents = useMemo(() => {
     if (!data) return [];
     if (tab === "timeline") return data.events || [];
@@ -152,6 +197,7 @@ export default function EmployeeProfile() {
 
   const tabs = [
     { key: "timeline",   label: "All timeline",        icon: Activity },
+    { key: "documents",  label: "Documents",           icon: FileText },
     { key: "training",   label: "Training",            icon: ClipboardList },
     { key: "ppe",        label: "PPE / Assets",        icon: HardHat },
     { key: "incidents",  label: "Incidents",           icon: AlertTriangle },
@@ -232,7 +278,23 @@ export default function EmployeeProfile() {
               ))}
             </div>
 
-            {/* Timeline spine — same pattern as SafetyCaseWorkspace */}
+            {/* Timeline spine · OR Documents view when tab==='documents' */}
+            {tab === "documents" ? (
+              <DocumentsPane
+                docs={filteredDocs}
+                docsByLane={docsByLane}
+                docQuery={docQuery}
+                setDocQuery={setDocQuery}
+                docLane={docLane}
+                setDocLane={setDocLane}
+                loading={docsLoading}
+                onOpenFile={(rid) => window.open(
+                  `${process.env.REACT_APP_BACKEND_URL}/api/employee-records/records/${rid}/file`,
+                  "_blank", "noopener",
+                )}
+                onAddNew={() => navigate(`/hr/historical-records/intake?employee_id=${empId}`)}
+              />
+            ) : (
             <div className="rounded-xl border-2 border-slate-300 bg-white p-4" data-testid="employee-profile-timeline-wrap">
               <div className="flex items-center justify-between mb-3">
                 <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">
@@ -280,6 +342,7 @@ export default function EmployeeProfile() {
                 </ol>
               )}
             </div>
+            )}
           </div>
 
           {/* Right rail */}
@@ -327,20 +390,41 @@ export default function EmployeeProfile() {
               </div>
             )}
 
-            {/* HR Compliance Brief PDF export (existing endpoint) */}
+            {/* Track 19.22 · Phase 3 · Operational export packages */}
             <div className="rounded-xl border-2 border-slate-300 bg-white p-4" data-testid="employee-profile-exports">
               <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500 mb-2">
-                {t("Exports")}
+                {t("Export packages")}
               </div>
-              <a
-                href={`${process.env.REACT_APP_BACKEND_URL}/api/hr/employees/${empId}/accountability/brief.pdf`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-md bg-slate-900 text-white px-3 py-1.5 text-sm font-semibold hover:bg-slate-800"
-                data-testid="employee-profile-brief-pdf"
-              >
-                <Download className="w-3.5 h-3.5" /> {t("HR Compliance Brief (PDF)")}
-              </a>
+              <div className="flex flex-col gap-1.5" data-testid="employee-profile-export-packages">
+                {[
+                  { key: "complete_file",      label: "Complete Employee File" },
+                  { key: "training",           label: "Training Package" },
+                  { key: "discipline",         label: "Discipline Package" },
+                  { key: "safety",             label: "Safety Package" },
+                  { key: "ppe_asset",          label: "PPE / Asset Package" },
+                  { key: "historical_records", label: "Historical Records Package" },
+                ].map(({ key, label }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => downloadPackagePdf(empId, key)
+                      .catch((e) => toast.error(String(e.message || e)))}
+                    className="inline-flex items-center gap-2 rounded-md bg-slate-900 text-white px-3 py-1.5 text-xs font-semibold hover:bg-slate-800"
+                    data-testid={`employee-profile-package-${key}`}
+                  >
+                    <Download className="w-3 h-3" /> {t(label)}
+                  </button>
+                ))}
+                <a
+                  href={`${process.env.REACT_APP_BACKEND_URL}/api/hr/employees/${empId}/accountability/brief.pdf`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-1 inline-flex items-center gap-2 rounded-md bg-white border-2 border-slate-300 text-slate-800 px-3 py-1.5 text-xs font-semibold hover:bg-slate-50"
+                  data-testid="employee-profile-brief-pdf"
+                >
+                  <Download className="w-3 h-3" /> {t("HR Compliance Brief")}
+                </a>
+              </div>
             </div>
 
             {/* Track 19.21b · Historical Records deep links */}
@@ -365,6 +449,14 @@ export default function EmployeeProfile() {
                 >
                   <Inbox className="w-3.5 h-3.5" /> {t("View Intake Queue")}
                 </button>
+                <button
+                  type="button"
+                  onClick={() => navigate("/hr/historical-records/batches")}
+                  className="inline-flex items-center gap-2 rounded-md bg-white border-2 border-slate-300 text-slate-800 px-3 py-1.5 text-sm font-semibold hover:bg-slate-50"
+                  data-testid="employee-profile-view-batches"
+                >
+                  <FileText className="w-3.5 h-3.5" /> {t("Bulk Batches")}
+                </button>
               </div>
             </div>
           </aside>
@@ -373,3 +465,141 @@ export default function EmployeeProfile() {
     </div>
   );
 }
+
+// Track 19.22 · Phase 1 · Documents pane
+// Renders APPROVED employee_records grouped by ownership lane with
+// structured search + open/download. Read-only; approval/reject live
+// in the review queue surface.
+const LANE_META = {
+  hr:               { label: "HR",                   color: "border-purple-300 bg-purple-50 text-purple-900" },
+  safety:           { label: "Safety",               color: "border-cyan-300 bg-cyan-50 text-cyan-900" },
+  asset:            { label: "Asset",                color: "border-orange-300 bg-orange-50 text-orange-900" },
+  corporate_import: { label: "Corporate Import",     color: "border-slate-300 bg-slate-50 text-slate-900" },
+};
+
+function DocumentsPane({
+  docs, docsByLane, docQuery, setDocQuery, docLane, setDocLane,
+  loading, onOpenFile, onAddNew,
+}) {
+  const { t } = useT();
+  const laneKeys = Object.keys(LANE_META);
+  return (
+    <div className="rounded-xl border-2 border-slate-300 bg-white p-4 space-y-3"
+         data-testid="employee-profile-documents">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">
+          {t("Documents")} · {docs.length} {t("approved")}
+        </div>
+        <button
+          type="button"
+          onClick={onAddNew}
+          className="inline-flex items-center gap-1.5 rounded-md bg-purple-700 text-white px-2.5 py-1 text-xs font-semibold hover:bg-purple-800"
+          data-testid="employee-profile-documents-add"
+        >
+          <Upload className="w-3 h-3" /> {t("Add Record")}
+        </button>
+      </div>
+
+      {/* Search + lane filter */}
+      <div className="flex flex-wrap gap-2">
+        <div className="relative flex-1 min-w-[220px]">
+          <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            value={docQuery}
+            onChange={(e) => setDocQuery(e.target.value)}
+            placeholder={t("Search type · file · notes · tag · uploader")}
+            className="w-full rounded-md border-2 border-slate-300 bg-white pl-8 pr-3 py-1.5 text-sm"
+            data-testid="employee-profile-documents-search"
+          />
+        </div>
+        <select
+          value={docLane}
+          onChange={(e) => setDocLane(e.target.value)}
+          className="rounded-md border-2 border-slate-300 bg-white px-2 py-1.5 text-sm font-mono"
+          data-testid="employee-profile-documents-lane-filter"
+        >
+          <option value="">{t("All lanes")}</option>
+          {laneKeys.map((k) => (
+            <option key={k} value={k}>{LANE_META[k].label}</option>
+          ))}
+        </select>
+      </div>
+
+      {loading && (
+        <div className="text-xs text-slate-500 font-mono">{t("Loading documents…")}</div>
+      )}
+      {!loading && docs.length === 0 && (
+        <div className="rounded-md border border-slate-200 bg-slate-50 p-6 text-center text-sm text-slate-500"
+             data-testid="employee-profile-documents-empty">
+          {t("No approved records yet. Use \"Add Record\" to upload the employee's first document.")}
+        </div>
+      )}
+
+      {laneKeys.filter((l) => (docLane ? l === docLane : true)).map((lane) => {
+        const list = docsByLane[lane] || [];
+        if (list.length === 0) return null;
+        const meta = LANE_META[lane];
+        return (
+          <section key={lane} className="space-y-2" data-testid={`employee-profile-documents-lane-${lane}`}>
+            <div className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest ${meta.color}`}>
+              {meta.label} · {list.length}
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {list.map((d) => (
+                <DocCard key={d.id} doc={d} onOpenFile={onOpenFile} />
+              ))}
+            </div>
+          </section>
+        );
+      })}
+    </div>
+  );
+}
+
+function DocCard({ doc, onOpenFile }) {
+  const { t } = useT();
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white p-2.5 hover:border-slate-400 transition-colors"
+         data-testid={`employee-profile-doc-${doc.id}`}>
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <div className="font-semibold text-sm text-slate-900 truncate">
+            {(doc.record_type || "—").replace(/_/g, " ")}
+          </div>
+          {doc.source_file_name && (
+            <div className="font-mono text-[11px] text-slate-500 truncate">{doc.source_file_name}</div>
+          )}
+        </div>
+        <span className="text-[10px] font-mono text-emerald-800 bg-emerald-100 border border-emerald-300 rounded px-1.5 py-0.5 shrink-0">
+          {doc.approval_status}
+        </span>
+      </div>
+      <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-slate-600">
+        {doc.effective_date && <span>{t("Eff")}: {doc.effective_date.slice(0, 10)}</span>}
+        <span>{t("By")}: {doc.created_by || "—"}</span>
+        {doc.approved_by && <span>{t("Appr")}: {doc.approved_by}</span>}
+      </div>
+      {doc.tags?.length ? (
+        <div className="mt-1 flex flex-wrap gap-1">
+          {doc.tags.slice(0, 5).map((tag) => (
+            <span key={tag} className="text-[9px] font-mono uppercase tracking-wider text-slate-600 bg-slate-100 border border-slate-200 rounded px-1 py-0.5">
+              {tag}
+            </span>
+          ))}
+        </div>
+      ) : null}
+      {doc.source_file_ref && (
+        <button
+          type="button"
+          onClick={() => onOpenFile(doc.id)}
+          className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 hover:text-slate-900"
+          data-testid={`employee-profile-doc-open-${doc.id}`}
+        >
+          <FileText className="w-3 h-3" /> {t("Open original")}
+        </button>
+      )}
+    </div>
+  );
+}
+
