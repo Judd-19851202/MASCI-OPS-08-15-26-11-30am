@@ -17,7 +17,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import {
   Activity, Users, Search, Clock, GraduationCap, Calculator,
   CalendarOff, Receipt, Truck, ClipboardList, ShieldCheck, BookOpen,
-  KeyRound, FileText, AlertTriangle,
+  KeyRound, FileText, AlertTriangle, Inbox, Upload,
 } from "lucide-react";
 
 // Domain groups · ordered by operational frequency (highest first).
@@ -63,6 +63,8 @@ export const HR_DOMAINS_V2 = [
       { to: "/hr/training-records",      label: "Training Records",     desc: "Completed tracks and certification roster.",      icon: GraduationCap },
       { to: "/hr/driver-qualification",  label: "Driver Qualification", desc: "CDL holders, endorsements, tanker capability.",   icon: Truck },
       { to: "/hr/safety-records",        label: "Safety Records",       desc: "Read-only Safety document library and per-employee training.", icon: ShieldCheck },
+      { to: "/hr/historical-records/intake", label: "Historical Records Intake", desc: "Upload legacy records — HR, Safety, Asset lanes.", icon: Upload },
+      { to: "/hr/historical-records/queue",  label: "Historical Records Queue",  desc: "Review, approve, reject staged records.",         icon: Inbox },
     ],
   },
   {

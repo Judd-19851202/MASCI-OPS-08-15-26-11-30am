@@ -420,6 +420,12 @@ export default function HrHubV2() {
             <Link to="/hr/employee-accountability" data-testid="hr-hub-v2-dest-accountability" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
               <Card title="Employee Accountability" description="Search by employee · coaching, training, equipment, safety brief" status={<StatusChip statusKey="verified" compact />} />
             </Link>
+            <Link to="/hr/historical-records/intake" data-testid="hr-hub-v2-dest-historical-intake" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+              <Card title="Historical Records Intake" description="Upload legacy files · classify · route to Review Queue" status={<StatusChip statusKey="verified" compact />} />
+            </Link>
+            <Link to="/hr/historical-records/queue" data-testid="hr-hub-v2-dest-historical-queue" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+              <Card title="Historical Records Queue" description="Approve, reject, reassign staged records across lanes" status={<StatusChip statusKey="verified" compact />} />
+            </Link>
           </div>
         </Section>
 

@@ -6545,3 +6545,33 @@ Zero drift. Locked architecture. Six pillars respected across every addition.
 - Zero email flood.
 - Zero data mutation of protected roster / incident collections.
 - Every persona (HR / Safety / Asset Admin / PM / Shop / Field / Executive) has a certified path or a documented least-privilege gate.
+
+---
+
+## 2026-07-02 · Track 19.24 · Live UI Wiring & Human Discoverability Audit
+
+**Nature:** Nav-wiring only. Zero new features. Zero backend change.
+
+### Root cause
+Historical Records Intake routes (Track 19.21b + 19.22) existed and worked, but were only reachable from the Employee 360° right rail — HR users starting from `/hr` had no visible path. That is a discoverability failure regardless of how correct the underlying implementation is.
+
+### Fix applied
+- `HrSideNavV2.jsx`: added `Historical Records Intake` + `Historical Records Queue` to the `compliance-records` group.
+- `HrHubV2.jsx`: added two matching destination tiles (`hr-hub-v2-dest-historical-intake`, `hr-hub-v2-dest-historical-queue`) to the "Always-on HR surfaces" grid.
+- `tests/test_track_19_24_hr_nav_wiring.py`: 7 new lock tests to prevent regression.
+
+### Verification
+- **92/92 backend lock tests GREEN** (7 new + 85 existing Track 19.21–19.22).
+- Playwright screenshot confirms both entry points render live in the preview.
+- Sidebar V2 (feature-flag `?hrSidebarV2=1`) shows both entries under Compliance & Records.
+- HR Hub V2 (`/hr`) destinations grid shows both tiles.
+
+### Zero drift
+- App.js routes: unchanged.
+- Backend: unchanged.
+- No new components.
+- No new pages.
+- Employee 360° right rail: unchanged (already had deep links).
+
+### Verdict
+🟢 GREEN.
