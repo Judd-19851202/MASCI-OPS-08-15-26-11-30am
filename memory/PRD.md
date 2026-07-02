@@ -11,6 +11,41 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.17 · INCIDENT INTELLIGENCE ENGINE · PDF EXCELLENCE + INTELLIGENT BRANCHING · ✅ COMPLETE (2026-07-02)
+
+### Track status
+Track 19.17 is closed. The Incident Intelligence Engine now ships **17 incident types**, professional cover-page PDFs, inline photograph rendering, empty-section suppression, and pencil-whip guardrails.
+
+### Delivered (this track)
+1. **8 additional intelligent incident branches** — public_injury, fire, threat, theft, vandalism, security ("Site Security"), hazard, other. Each has a bespoke details step + severity classification.
+2. **PDF Cover section** prepended to every executive report; case number, incident type, location, job, occurrence + report timestamps.
+3. **Inline photographs section** — renders base64 tiles with GPS + caption; suppressed entirely when the case has no photos.
+4. **Empty-section suppression** — any section returning empty HTML is omitted from the final PDF (no `<h2>` orphans).
+5. **Pencil-whip guardrails** — high-severity branches (fire, vehicle_accident, employee_injury, public_injury, utility_strike, workplace_violence, environmental) require photos; low-severity branches (near_miss, hazard) do not. Submit is gated when totalMissing>0.
+6. **Full EN/ES parity** — ~100 new translations covering 8 type labels, 8 descriptions, 8 example strings, 8 step titles, and every new field label.
+7. **Backend/Frontend Spanish label alignment** for "security" branch — both now emit "Site Security" / "Seguridad del Sitio".
+8. **Lock tests preserved & expanded** — 357/357 backend tests still GREEN. Track 19.16 baseline locks upgraded to subset checks so additive expansion doesn't drift the schema contract.
+
+### Files changed (Track 19.17)
+- `backend/incident_engine/constants.py` — INCIDENT_TYPES expanded to 17
+- `backend/incident_engine/reports.py` — SECTION_COVER prepended to all 9 reports
+- `backend/incident_engine/report_render.py` — cover renderer, photograph tiles (base64 + GPS), empty-section suppression
+- `backend/tests/test_track_19_16_incident_engine_phase_a.py` — baseline subset lock (≥9 types)
+- `backend/tests/test_track_19_16_incident_engine_phase_e.py` — sections[0] ∈ {header, cover}
+- `frontend/src/lib/incidentReportSchema.js` — 8 new INCIDENT_FLOWS branches + INCIDENT_TYPE_ORDER
+- `frontend/src/pages/IncidentReport.jsx` — HIGH_SEVERITY set + guardrail missing-map inflation + Submit gate
+- `frontend/src/lib/i18n.js` — ~100 EN→ES translations for new branch surface
+
+### Certification
+- **Backend:** 357/357 lock tests GREEN
+- **Frontend:** All 17 cards render with correct EN/ES labels; branch details wired; guardrails verified via source + smoke
+- **PDF pipeline:** valid `%PDF-` bytes; cover present; empty photographs suppressed
+- **Testing agent:** 100% pass (backend + frontend) — no critical/minor issues
+
+### Explicitly deferred (per user)
+- Phase F — Compliance Intelligence (OSHA Recordability, OSHA 300/300A, Corrective-Action Aging). NOT built. Do not build without new authorization.
+
+
 ## TRACK 19.16 · INCIDENT INTELLIGENCE ENGINE · ✅ COMPLETE (2026-07-01)
 
 ### Track status

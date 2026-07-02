@@ -37,7 +37,7 @@ INCIDENT_TYPES: Tuple[Tuple[str, str, str], ...] = (
     ("threat",               "Threat",                "Amenaza"),
     ("theft",                "Theft",                 "Robo"),
     ("vandalism",            "Vandalism",             "Vandalismo"),
-    ("security",             "Security",              "Seguridad"),
+    ("security",             "Site Security",         "Seguridad del Sitio"),
     ("hazard",               "Hazard",                "Peligro Identificado"),
     ("other",                "Other",                 "Otro"),
 )

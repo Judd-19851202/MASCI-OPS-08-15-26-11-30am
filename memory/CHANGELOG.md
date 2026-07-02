@@ -1,5 +1,37 @@
 # CHANGELOG
 
+## 2026-07-02 — TRACK 19.17 · Incident Intelligence Engine · PDF Excellence + Intelligent Branching · 🟢 CERTIFIED
+
+### Delivered
+- 8 additional intelligent incident branches (public_injury, fire, threat, theft, vandalism, site_security, hazard, other) — total 17 incident types
+- PDF cover section prepended to all 9 report definitions
+- Inline photograph tiles with GPS + caption (base64) inside PDF reports
+- Empty-section suppression across the WeasyPrint HTML pipeline
+- Pencil-whip guardrails (photos_required for high-severity, witness_or_attempted_contact_required for public exposure, immediate_actions_required for pre-medical injury)
+- Full EN/ES bilingual parity for all new labels/descriptions/examples/step titles/field labels
+- Backend/frontend Spanish label alignment for "security" → "Site Security" / "Seguridad del Sitio"
+
+### Lock test evolution (not drift)
+- `test_9_incident_types_present` → subset check on the baseline 9 (allows additive expansion)
+- `test_vocabulary_shape.incident_types` → `>= 9`
+- `test_every_report_has_title_audience_and_sections` → sections[0] ∈ {header, cover}; header still in top-2 when cover leads
+
+### Bug fixed while stabilizing
+- SyntaxError in `report_render.py` — backslash inside f-string expression (Python 3.11 doesn't allow it). Extracted the alt-text into a named local. Backend now imports cleanly.
+
+### Certification
+- 357/357 backend lock tests GREEN
+- Frontend: all 17 cards enumerate; EN & ES parity verified; branch title wiring correct; guardrail source verified
+- PDF: valid `%PDF-` bytes; cover renders; empty photographs section suppressed
+- testing_agent_v3_fork: 100% pass rate, no critical/minor issues
+
+### Explicitly deferred
+- Phase F Compliance Intelligence (OSHA Recordability, OSHA 300/300A, CAPA Aging) — NOT built. Do not build without new authorization.
+
+### Test report
+- `/app/test_reports/iteration_track_19_17.json`
+
+
 ## 2026-02-10 — TRACK 18.12 · Mission Control Access + Layout Repair · 🟢 GO
 
 ### Severity
