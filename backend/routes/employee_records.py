@@ -47,10 +47,57 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from fastapi import APIRouter, Body, Depends, File, Form, Header, HTTPException, Query, Request, UploadFile
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 logger = logging.getLogger(__name__)
+
+
+def make_employee_records_actor_gate(db, is_valid_admin_token):
+    """Auth gate for Track 19.21 Employee Records surface.
+
+    Accepts, in order of precedence:
+      * X-HR-Token       → HR (system owner)
+      * X-Safety-Token   → Safety (owns Safety lane operationally)
+      * X-Shop-Token     → Asset Administrator (if `is_asset_admin` flag)
+      * X-Admin-Token    → Admin (super-admin bypass)
+
+    Returns a dict `{..., "_actor": role, "email": ..., "name": ...}`
+    or raises 401. HR / Safety / Asset admin dicts carry lane semantics;
+    admin gets `{"_actor": "admin"}`.
+    """
+    async def _gate(
+        request: Request,
+        x_hr_token: str | None = Header(default=None, alias="X-HR-Token"),
+        x_safety_token: str | None = Header(default=None, alias="X-Safety-Token"),
+        x_shop_token: str | None = Header(default=None, alias="X-Shop-Token"),
+        x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
+    ):
+        # HR — system owner.
+        if x_hr_token:
+            from hr_users import is_valid_hr_user_token_async  # noqa: PLC0415
+            u = await is_valid_hr_user_token_async(db, x_hr_token)
+            if u:
+                return {**u, "_actor": "hr"}
+        # Safety.
+        if x_safety_token:
+            from routes.safety_portal._deps import is_valid_safety_user_token_async  # noqa: PLC0415
+            u = await is_valid_safety_user_token_async(db, x_safety_token)
+            if u:
+                return {**u, "_actor": "safety"}
+        # Asset Administrator (Shop portal with `is_asset_admin` flag).
+        if x_shop_token:
+            from shop_users import is_valid_shop_user_token_async  # noqa: PLC0415
+            u = await is_valid_shop_user_token_async(db, x_shop_token)
+            if u and (u.get("is_asset_admin") or "asset_admin" in [str(r).lower() for r in (u.get("roles") or [])]):
+                return {**u, "_actor": "asset_admin"}
+        # Admin (super-admin bypass; behaves as HR-equivalent for records).
+        if x_admin_token and is_valid_admin_token and is_valid_admin_token(x_admin_token):
+            return {"_actor": "admin", "name": "Admin"}
+        raise HTTPException(401, "HR, Safety, Asset Administrator, or Admin auth required")
+
+    return _gate
 
 
 # ── Doctrine · valid lanes / record types / states ──────────────────
@@ -220,6 +267,26 @@ def build_employee_records_router(*, db, require_actor):
 
     def _actor_dep():
         return Depends(require_actor)
+
+    # ── Vocabulary (public within the router) ─────────────────────
+    # Exposes lanes + valid record_types + approver matrix to the
+    # frontend. Read-only. Requires any authenticated actor.
+    @router.get("/vocabulary")
+    async def vocabulary(actor: Dict[str, Any] = _actor_dep()):
+        role = _actor_role(actor)
+        allowed_lanes = []
+        for lane in OWNERSHIP_LANES:
+            if _actor_can_read_lane(actor, lane):
+                allowed_lanes.append(lane)
+        return {
+            "ok": True,
+            "actor_role": role,
+            "ownership_lanes": list(OWNERSHIP_LANES),
+            "record_states": list(RECORD_STATES),
+            "record_types_by_lane": LANE_RECORD_TYPES,
+            "lane_approvers": {k: sorted(list(v)) for k, v in LANE_APPROVERS.items()},
+            "allowed_lanes_for_actor": allowed_lanes,
+        }
 
     # ── Intake batches ────────────────────────────────────────────
     @router.post("/batches")
@@ -558,6 +625,89 @@ def build_employee_records_router(*, db, require_actor):
         async for r in db.employee_records.find(q, {"_id": 0}).sort("effective_date", -1).limit(500):
             items.append(r)
         return {"ok": True, "records": items, "count": len(items)}
+
+    # ── File preservation (immutable) ─────────────────────────────
+    # Upload original file → R2 (or base64 fallback). Returns:
+    #   {source_file_ref, source_file_name, source_file_hash, size_bytes}
+    # The record itself is created afterwards via POST /records with
+    # those fields — the two operations are decoupled so callers can
+    # attach one file to N records if needed.
+    ALLOWED_EXTS = {
+        "pdf", "png", "jpg", "jpeg", "webp", "gif", "heic", "heif",
+        "doc", "docx", "xls", "xlsx", "xlsm", "csv", "txt", "rtf",
+    }
+    MAX_UPLOAD_BYTES = 25 * 1024 * 1024  # 25 MB
+
+    @router.post("/uploads")
+    async def upload_original_file(
+        lane: str = Form(...),
+        file: UploadFile = File(...),
+        actor: Dict[str, Any] = _actor_dep(),
+    ):
+        if not _actor_can_read_lane(actor, lane):
+            raise HTTPException(403, "Not authorized for this lane")
+        _validate_lane_and_type(lane, None)
+        raw = await file.read()
+        if len(raw) == 0:
+            raise HTTPException(400, "Empty file")
+        if len(raw) > MAX_UPLOAD_BYTES:
+            raise HTTPException(413, f"File exceeds {MAX_UPLOAD_BYTES // (1024 * 1024)} MB limit")
+        # Extension gate — no exotic types on the intake surface.
+        name = file.filename or "upload.bin"
+        ext = (name.rsplit(".", 1)[-1] if "." in name else "").lower()
+        if ext not in ALLOWED_EXTS:
+            raise HTTPException(400, f"Unsupported file type: .{ext}")
+        digest = _sha256(raw)
+        # Try cloud storage; fall back to base64 embed (dev/test).
+        ref = None
+        try:
+            from photo_storage import upload_photo_bytes, is_configured  # noqa: PLC0415
+            if is_configured():
+                ref = await upload_photo_bytes(
+                    raw, ext=ext, source_id=f"emp-rec/{lane}/{digest[:12]}",
+                    content_type=file.content_type or "application/octet-stream",
+                )
+        except Exception as exc:
+            logger.warning("[employee_records] cloud upload failed, fallback: %s", exc)
+        if not ref:
+            import base64
+            b64 = base64.b64encode(raw).decode("ascii")
+            ct = file.content_type or "application/octet-stream"
+            ref = f"data:{ct};base64,{b64}"
+        return {
+            "ok": True,
+            "source_file_ref": ref,
+            "source_file_name": name,
+            "source_file_hash": digest,
+            "content_type": file.content_type,
+            "size_bytes": len(raw),
+        }
+
+    @router.get("/records/{record_id}/file")
+    async def download_record_file(
+        record_id: str,
+        actor: Dict[str, Any] = _actor_dep(),
+    ):
+        rec = await db.employee_records.find_one({"id": record_id}, {"_id": 0})
+        if not rec:
+            raise HTTPException(404, "Record not found")
+        if not _actor_can_read_lane(actor, rec.get("ownership_lane") or ""):
+            raise HTTPException(403, "Not authorized for this lane")
+        ref = rec.get("source_file_ref")
+        if not ref:
+            raise HTTPException(404, "No file attached")
+        # Cloud storage → presigned URL redirect.
+        if ref.startswith("photo://"):
+            try:
+                from photo_storage import presigned_get_url  # noqa: PLC0415
+                url = await presigned_get_url(ref, ttl_seconds=900)
+                return RedirectResponse(url=url, status_code=302)
+            except Exception as exc:
+                logger.warning("[employee_records] presign failed: %s", exc)
+                raise HTTPException(500, "File temporarily unavailable")
+        # Base64 fallback → return raw JSON with the data URL.
+        return {"ok": True, "source_file_ref": ref,
+                "source_file_name": rec.get("source_file_name")}
 
     return router
 

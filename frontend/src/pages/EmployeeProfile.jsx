@@ -14,9 +14,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useT } from "@/lib/i18n";
+import { getHrToken } from "@/lib/hrAuth";
+import { getSafetyToken } from "@/lib/safetyAuth";
+import { getAdminToken } from "@/lib/adminAuth";
 import {
-  Activity, AlertTriangle, ArrowLeft, CheckCircle2, ClipboardList,
-  Download, FileText, HardHat, Shield, User, Wrench,
+  Activity, AlertTriangle, ArrowLeft, ClipboardList,
+  Download, FileText, HardHat, Inbox, Shield, Upload, User,
 } from "lucide-react";
 
 // ── Category → dot colour ───────────────────────────────────────────
@@ -58,11 +61,12 @@ function composeEmployeeStory(emp, current, t) {
   return `${t("Hired")} ${hire} ${t("as a")} ${trade}${dept}. ${t("Currently")} ${status}.${cdlBit}`;
 }
 
-function _tokenHeader() {
-  const token = localStorage.getItem("safetyToken")
-    || localStorage.getItem("adminToken")
-    || localStorage.getItem("pmToken");
-  return token ? { Authorization: `Bearer ${token}` } : {};
+function _authHeaders() {
+  const h = { "Content-Type": "application/json" };
+  const hr = getHrToken(); if (hr) h["X-HR-Token"] = hr;
+  const sf = getSafetyToken(); if (sf) h["X-Safety-Token"] = sf;
+  const ad = getAdminToken(); if (ad) h["X-Admin-Token"] = ad;
+  return h;
 }
 
 export default function EmployeeProfile() {
@@ -79,7 +83,7 @@ export default function EmployeeProfile() {
     try {
       const res = await fetch(
         `${process.env.REACT_APP_BACKEND_URL}/api/hr/employees/${empId}/accountability/timeline`,
-        { headers: { "Content-Type": "application/json", ..._tokenHeader() } },
+        { headers: _authHeaders() },
       );
       if (!res.ok) throw new Error(`Failed to load employee (${res.status})`);
       setData(await res.json());
@@ -337,6 +341,31 @@ export default function EmployeeProfile() {
               >
                 <Download className="w-3.5 h-3.5" /> {t("HR Compliance Brief (PDF)")}
               </a>
+            </div>
+
+            {/* Track 19.21b · Historical Records deep links */}
+            <div className="rounded-xl border-2 border-slate-300 bg-white p-4" data-testid="employee-profile-records-actions">
+              <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500 mb-2">
+                {t("Historical Records")}
+              </div>
+              <div className="flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={() => navigate(`/hr/historical-records/intake?employee_id=${empId}`)}
+                  className="inline-flex items-center gap-2 rounded-md bg-purple-700 text-white px-3 py-1.5 text-sm font-semibold hover:bg-purple-800"
+                  data-testid="employee-profile-add-historical-record"
+                >
+                  <Upload className="w-3.5 h-3.5" /> {t("Add Historical Record")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate("/hr/historical-records/queue")}
+                  className="inline-flex items-center gap-2 rounded-md bg-white border-2 border-slate-300 text-slate-800 px-3 py-1.5 text-sm font-semibold hover:bg-slate-50"
+                  data-testid="employee-profile-view-intake-queue"
+                >
+                  <Inbox className="w-3.5 h-3.5" /> {t("View Intake Queue")}
+                </button>
+              </div>
             </div>
           </aside>
         </div>

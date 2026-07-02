@@ -2603,12 +2603,11 @@ _register_ie_report_routes(
 from routes.employee_records import (  # noqa: E402
     build_employee_records_router,
     ensure_employee_records_indexes,
+    make_employee_records_actor_gate,
 )
 app.include_router(build_employee_records_router(
     db=db,
-    require_actor=__import__(
-        "routes.safety_portal._deps", fromlist=["make_require_safety_admin_or_pm"]
-    ).make_require_safety_admin_or_pm(db, _is_valid_admin_token, _is_valid_pm_token),
+    require_actor=make_employee_records_actor_gate(db, _is_valid_admin_token),
 ))
 
 
