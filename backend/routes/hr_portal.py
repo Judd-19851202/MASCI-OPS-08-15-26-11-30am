@@ -802,7 +802,7 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
                 src_doc=d,
             )
 
-        # 5 · Incidents
+        # 5 · Incidents (legacy `db.incidents` collection)
         try:
             async for d in db.incidents.find(q, {"_id": 0}).limit(500):
                 _push(
@@ -815,6 +815,64 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
                     src_doc=d,
                 )
         except Exception:  # collection may not exist in all envs
+            pass
+
+        # 5b · TRACK 19.21 · Incident Intelligence Engine cases (db.incident_cases)
+        # Employee is linked when they appear in any defensible role on the
+        # case: reporter, involved, witness, corrective-action owner. This
+        # keeps politically-weak "was present" signals OUT of the timeline
+        # until Track 19.22 explicitly authorizes passive presence linkage.
+        try:
+            incident_case_or = [
+                {"field_block.reporter_employee_id": emp_id},
+                {"field_block.involved_employee_ids": emp_id},
+                {"field_block.witness_employee_ids": emp_id},
+                {"safety_block.corrective_action_owner_ids": emp_id},
+            ]
+            if ename:
+                incident_case_or.append({"field_block.reporter_name": name_rx})
+            async for d in db.incident_cases.find(
+                {"$or": incident_case_or}, {"_id": 0}
+            ).limit(500):
+                fb = d.get("field_block") or {}
+                # Determine defensible role for this employee on this case.
+                role_bits: List[str] = []
+                if fb.get("reporter_employee_id") == emp_id:
+                    role_bits.append("Reporter")
+                if emp_id in (fb.get("involved_employee_ids") or []):
+                    role_bits.append("Involved")
+                if emp_id in (fb.get("witness_employee_ids") or []):
+                    role_bits.append("Witness")
+                sb = d.get("safety_block") or {}
+                if emp_id in (sb.get("corrective_action_owner_ids") or []):
+                    role_bits.append("Corrective Action Owner")
+                if not role_bits and ename and fb.get("reporter_name") == ename:
+                    role_bits.append("Reporter")
+                role_txt = " · ".join(role_bits) if role_bits else "Linked"
+                case_no = d.get("case_number") or d.get("id") or ""
+                title = (
+                    (fb.get("incident_type") or "Incident")
+                    .replace("_", " ").title()
+                    + (f" · Case #{case_no}" if case_no else "")
+                )
+                _push(
+                    ts=fb.get("occurred_at") or d.get("submitted_at") or d.get("created_at"),
+                    kind="incident_case", category="Incidents",
+                    title=title,
+                    description=(
+                        f"Role: {role_txt}"
+                        + (f" · State: {d.get('state')}" if d.get("state") else "")
+                        + (f" · {fb.get('location_label')}" if fb.get("location_label") else "")
+                    )[:220],
+                    source="incident_cases", source_id=d.get("id"),
+                    status=d.get("state"),
+                    src_doc={
+                        **d,
+                        "employee_role_on_case": role_bits,
+                        "case_number": case_no,
+                    },
+                )
+        except Exception:
             pass
 
         # 6 · Field Leadership records (write-ups, terminations, approved-driver forms, equipment checkouts, etc.)

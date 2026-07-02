@@ -1,5 +1,51 @@
 # CHANGELOG
 
+## 2026-07-02 — TRACK 19.21 · Employee Records Intelligence Platform · P0 Foundation · 🟢 SHIPPED
+
+### Shipped
+- **Universal Employee Record model** — new `db.employee_records` collection + `db.employee_record_audit` (append-only) + `db.record_import_batches`. All fields from Track 19.20 spec: employee_id, employee_name_snapshot, record_type, record_category, ownership_lane, created/reviewed/approved_by, approval_status, effective_date, source_type/ref/name/hash, imported_batch_id, related_incident_case_id/training_id/asset_id/project_id/supervisor_id, tags, notes, status, timestamps.
+- **10 new endpoints** at `/api/employee-records/*` — batches · records CRUD · approve · reject · reassign · queues · employee-scoped rollup. All gated by Safety/Admin/PM auth.
+- **HR timeline enhancement** — `/api/hr/employees/{id}/accountability/timeline` now fans out over `db.incident_cases` via defensible roles only (reporter · involved · witness · CAPA owner). Passive presence linkage explicitly deferred to Track 19.22+.
+- **Employee 360° UI** — new `/hr/employees/:empId/profile` page. Identity header · auto-composed Employee Story paragraph · Next-Action chip · 7-tab visual timeline spine (mirrors SafetyCaseWorkspace Track 19.18 pattern) · right-rail readiness one-liner · HR Compliance Brief PDF export button. Read-only (locked by test).
+- **4 ownership lanes** — `hr` · `safety` · `asset` · `corporate_import` with explicit LANE_RECORD_TYPES allow-lists.
+- **5 record states** — `pending_classification` · `pending_match` · `pending_approval` · `linked` · `rejected`.
+
+### Permission model
+- HR + Admin: read + approve every lane · unlimited reassign.
+- Safety: read + approve only Safety lane.
+- Asset Admin: read + approve only Asset lane.
+- Field roles: no access.
+Locked by 8 dedicated permission tests.
+
+### Doctrine preserved
+- `db.employees` is READ-ONLY from the new module (no insert/update/delete paths).
+- Legacy `/api/incidents` + `db.incidents` untouched.
+- Incident engine only READ from HR timeline; no write paths added.
+- Audit collection is append-only (no update/delete/replace paths).
+- No OCR / AI classification / fuzzy matching wired (deferred to Track 19.22+).
+
+### Tests
+- 26/26 Track 19.21 lock tests GREEN.
+- Companion suites verified in isolation: Track 19.19 (18/18) · Track 19.18 (11/11 + 8/8) · Track 19.16 (102/102 + 88/88 + 23/23). Combined 276/276 pass.
+- Cross-suite pytest-asyncio fixture bleed is pre-existing and unrelated.
+
+### Files
+- `backend/routes/employee_records.py` (NEW · 450 lines)
+- `backend/routes/hr_portal.py` (~80 lines added for incident_cases fan-out)
+- `backend/server.py` (~15 lines added: router mount + index bootstrap)
+- `backend/tests/test_track_19_21_employee_records_platform.py` (NEW · 26 lock tests)
+- `frontend/src/pages/EmployeeProfile.jsx` (NEW · ~280 lines)
+- `frontend/src/App.js` (route + lazy import)
+
+### Documentation
+- `TRACK_19_21_EMPLOYEE_RECORDS_INTELLIGENCE_PLATFORM.md`
+- `TRACK_19_21_EMPLOYEE_360_UI.md`
+- `TRACK_19_21_HISTORICAL_RECORDS_INTAKE_FOUNDATION.md`
+- `TRACK_19_21_PERMISSION_OWNERSHIP_MODEL.md`
+- `TRACK_19_21_ASSET_ADMINISTRATOR_INTAKE.md`
+- `TRACK_19_21_TEST_REPORT.md`
+
+
 ## 2026-07-02 — TRACK 19.20 · Employee Lifecycle & Historical Records Intelligence Audit · 🟢 COMPLETE
 
 Comprehensive audit of every HR + Safety + Operations employee record path.

@@ -11,6 +11,12 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.21 · Employee Records Intelligence Platform · P0 Foundation · ✅ SHIPPED (2026-07-02)
+
+Universal Employee Record model + Incident-case timeline linkage + Employee 360° UI. HR is system owner; Safety and Asset Administrator own their lanes operationally. 4 ownership lanes · 5 record states · 10 new endpoints · 26/26 lock tests GREEN. Zero drift on `db.employees`, `/api/incidents`, and the Incident Intelligence Engine. Full detail in `/app/memory/TRACK_19_21_*.md` (6 documents).
+
+**Next:** Track 19.21b (Review Queue UI + Historical Import upload page) · Track 19.22 (OCR + AI classification + fuzzy matching) · Track 19.23 (Discipline Package PDF · PPE expirations · full-text search).
+
 ## TRACK 19.20 · Employee Lifecycle & Historical Records Intelligence Audit · ✅ COMPLETE (2026-07-02)
 
 Comprehensive audit of every HR + Safety + Operations employee record path. **Headline verdict:** Foundation is exceptional. Backend Employee 360° already exists (`/api/hr/employees/{id}/accountability/timeline` + `/accountability/brief.pdf`). Six focused extensions bring the platform to complete Employee 360°. Full detail in `/app/memory/TRACK_19_20_EMPLOYEE_LIFECYCLE_AUDIT.md` (19 sections) + `/app/memory/TRACK_19_20_DELIVERABLES_INDEX.md`.

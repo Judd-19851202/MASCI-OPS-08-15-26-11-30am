@@ -273,6 +273,7 @@ const SafetyFireExtImport = React.lazy(() => import("@/pages/SafetyFireExtImport
 const SafetyDocuments = React.lazy(() => import("@/pages/SafetyDocuments"));
 const SafetyTrainingRecords = React.lazy(() => import("@/pages/SafetyTrainingRecords"));
 const SafetyEmployeeProfiles = React.lazy(() => import("@/pages/SafetyEmployeeProfiles"));
+const EmployeeProfile = React.lazy(() => import("@/pages/EmployeeProfile"));
 const SafetyDigest = React.lazy(() => import("@/pages/SafetyDigest"));
 const SafetyIncidents = React.lazy(() => import("@/pages/SafetyIncidents"));
 const SafetyAudits = React.lazy(() => import("@/pages/SafetyAudits"));
@@ -1127,6 +1128,8 @@ function App() {
             {/* iter353c · Unified Employee Accountability Timeline (HR + Safety + Admin)
                 The component does its own multi-role auth check (no H/SF wrapper). */}
             <Route path="/hr/employees/:id/accountability" element={H(<HrEmployeeAccountabilityTimeline />)} />
+            {/* Track 19.21 · Employee 360° · single-page consolidated profile */}
+            <Route path="/hr/employees/:empId/profile" element={H(<EmployeeProfile />)} />
             {/* iter353f · HR OSHA & Labor — read-only incidents list */}
             <Route path="/hr/incidents" element={H(<HrIncidents />)} />
             {/* PO Requests — Iter153 (Phase 2.5 · Phase D) */}

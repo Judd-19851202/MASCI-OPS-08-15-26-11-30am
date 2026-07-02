@@ -2597,6 +2597,20 @@ _register_ie_report_routes(
     ).make_require_safety_admin_or_pm(db, _is_valid_admin_token, _is_valid_pm_token),
 )
 
+# TRACK 19.21 · Employee Records Intelligence Platform · P0 foundation.
+# Universal Employee Record + intake batches + review queue + audit trail.
+# Additive · zero drift · HR is system owner across every lane.
+from routes.employee_records import (  # noqa: E402
+    build_employee_records_router,
+    ensure_employee_records_indexes,
+)
+app.include_router(build_employee_records_router(
+    db=db,
+    require_actor=__import__(
+        "routes.safety_portal._deps", fromlist=["make_require_safety_admin_or_pm"]
+    ).make_require_safety_admin_or_pm(db, _is_valid_admin_token, _is_valid_pm_token),
+))
+
 
 # ─── OMEGA · Phase 1A · iter452 · OC-002 Daily Report Office Review ──
 #     Additive transition endpoints. Uses the Safety/Admin/PM read gate
@@ -11635,6 +11649,12 @@ async def _bootstrap_integrations():
     logger.info("[document-expirations] indexes ensured")
     await ensure_employee_lifecycle_indexes(db)
     logger.info("[employee-lifecycle] indexes ensured")
+    # TRACK 19.21 · Employee Records Intelligence Platform indexes.
+    try:
+        await ensure_employee_records_indexes(db)
+        logger.info("[employee-records] indexes ensured (track 19.21)")
+    except Exception as _exc:
+        logger.warning("[employee-records] index bootstrap warn: %s", _exc)
     await ensure_employee_requests_indexes(db)
     logger.info("[employee-requests] indexes ensured")
     await ensure_po_requests_indexes(db)
