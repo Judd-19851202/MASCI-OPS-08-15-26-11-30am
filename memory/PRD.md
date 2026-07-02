@@ -8575,3 +8575,37 @@ Single-page Employee 360° profile + Universal Employee Record model + manual Hi
 
 ### Test-credentials pointer
 `/app/memory/test_credentials.md` — super-admin `jaymn.judd@mascigc.com / Maddix123!` signs in via `/sign-in` and receives every portal token (including HR).
+
+---
+
+## Track 19.22 · P1 Operational Completion (2026-07-02)
+
+### Delivered
+- Employee 360° gains a **Documents** tab that renders approved employee_records grouped by lane, with structured search + lane filter (no OCR).
+- **11 new structured filters** on `GET /api/employee-records/records` (q, department, uploader/reviewer email, tag, date range, 4 relation IDs).
+- **6 executive-quality PDF export packages** at `GET /api/employee-records/employees/{id}/exports/{package}.pdf`: complete_file, training, discipline, safety, ppe_asset, historical_records. RBAC via PACKAGE_LANE_GATE.
+- **Bulk Historical Intake**: create batch → upload many files (each staged with SHA-256 preservation) → bulk classify + assign employee → bulk approve. 3 new endpoints; 2 new pages (`/hr/historical-records/batches` and `/hr/historical-records/batches/:batchId`).
+- All new endpoints protected by the same actor gate as Track 19.21 (HR + Safety + Asset Admin + Admin). Audit ledger append-only. Zero mutation of `db.employees`.
+
+### Verification
+- 85/85 lock tests GREEN.
+- Testing agent v3: 29 lock + 17 live e2e + full Playwright walkthrough → 0 failures.
+- Six PDFs verified to render (magic bytes + size + content-type).
+- Full batch cycle verified: upload → classify → approve → visible on Employee 360°.
+- Permission matrix verified: Safety token → 403 on complete_file/discipline/training; 200 on safety.
+
+### Remaining Backlog
+- **P2** File preview inline (image thumbnail / PDF first-page render) inside DocumentsPane instead of external open. Low value; skip until real user asks.
+- **P2** Batch-level rejection UI (currently only per-record reject via Review Queue).
+- **P2** Package cover-sheet with employee photo (needs the photo pipeline surface).
+
+### Explicitly deferred (P2+ · future tracks · **do not build**)
+- OCR / text extraction.
+- AI classification / auto-lane assignment / auto record-type inference.
+- Fuzzy employee matching.
+- OSHA compliance intelligence engine.
+- Passive incident-presence scoring.
+- Any second employee roster source of truth.
+
+### Refactor debt (non-blocking)
+- pytest cross-suite asyncio bleed still present when running full suite. Isolated per-file execution is clean.
