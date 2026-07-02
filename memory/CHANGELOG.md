@@ -6624,3 +6624,24 @@ Create batch with provenance → upload 2 files → each inherits `intake_source
 
 ### Verdict
 🟢 GO.
+
+---
+
+## 2026-07-02 · Track 19.26 · Trench Safety Forensic UX Audit + Fix
+
+**Nature:** Field-UX fix on a single component (TrenchAssetPicker). Zero drift.
+
+### Root cause
+Real field users reported the trench excavation form "blocked the screen." Audit found `TrenchAssetPicker` rendered a 288-px always-open results list inline. Two instances stacked (Assigned Trench Safety Assets · Section 6, Road Plates · Section 6b) consumed ~576 px of iPad-portrait viewport before any operator interaction.
+
+### Fix
+`TrenchAssetPicker.jsx` — collapse-by-default with focus-open + sticky Done bar. Outside-click / outside-touch collapses. All original test hooks and multi-select capabilities preserved. `max-h-72` cap on the list body retained. Bilingual strings via `t()`.
+
+### Verification
+- 31/31 lock tests GREEN (10 new Track 19.26 + 21 pre-existing Track 19.24-19.25).
+- Playwright screenshots on iPad portrait (820×1180) confirm collapsed default + expanded-with-Done state.
+- Every payload key intact (`assigned_asset_ids`, `road_plate_ids`, `rated_depth_*`).
+- No backend / no schema / no route / no permission change.
+
+### Verdict
+🟢 GREEN.

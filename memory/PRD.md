@@ -8647,3 +8647,9 @@ Twelve certification docs under `/app/memory/TRACK_19_23_*.md`. Each covers one 
 
 ### Zero drift certified
 No new pages · no new routes · no new components · no schema migration · no ML libs · no mutation of employee/incident collections · audit ledger append-only.
+
+---
+
+## Track 19.26 · Trench Safety Forensic UX Audit + Fix (2026-07-02)
+
+Field-UX fix on `TrenchAssetPicker`: collapse-by-default results list eliminates the "screen-blocked" complaint on iPad/phone while preserving every multi-select capability, OSHA gate, rated-depth acknowledgement flow, and payload key. 31/31 backend lock tests GREEN. Verified via Playwright at iPad portrait.

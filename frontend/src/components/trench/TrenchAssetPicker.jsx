@@ -1,8 +1,15 @@
 // Phase 10A-B · Trench Asset Picker (Correction 4 + 5)
 // Multi-select pulled from /api/trench-safety/excavations/public/asset-roster.
 // Filterable by asset_type (Trench Box · Road Plate · End Panel · Spreader Bar · …).
-import React, { useEffect, useMemo, useState } from "react";
-import { X, Search, Loader2 } from "lucide-react";
+//
+// Track 19.26 · Field-UX fix: previously the results list rendered as an
+// always-open 288 px slab inline, which on iPad/phone consumed ~40 % of
+// the viewport per instance and made the form feel "blocked." The list
+// now stays collapsed until the operator taps into the search input or
+// types a query. Everything else (multi-select, chips, roster fetch,
+// data payload) is unchanged.
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { X, Search, Loader2, Check } from "lucide-react";
 import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
 
@@ -22,6 +29,8 @@ export default function TrenchAssetPicker({ selected = [], onChange, assetType, 
   const { t } = useT();
   const [q, setQ] = useState("");
   const [state, setState] = useState({ roster: [], loading: true });
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef(null);
   const { roster, loading } = state;
 
   useEffect(() => {
@@ -32,6 +41,21 @@ export default function TrenchAssetPicker({ selected = [], onChange, assetType, 
     return () => { alive = false; };
   }, [assetType]);
 
+  // Collapse list when the user taps anywhere outside this picker. Keeps
+  // clicks inside (row selects, chip removes, Done button) open.
+  useEffect(() => {
+    if (!open) return undefined;
+    const onDown = (e) => {
+      if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("touchstart", onDown, { passive: true });
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("touchstart", onDown);
+    };
+  }, [open]);
+
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
     if (!term) return roster.slice(0, maxItems);
@@ -40,15 +64,15 @@ export default function TrenchAssetPicker({ selected = [], onChange, assetType, 
       .slice(0, maxItems);
   }, [roster, q, maxItems]);
 
-  const toggle = (assetId) => {
+  const toggle = useCallback((assetId) => {
     if (selected.includes(assetId)) onChange(selected.filter((s) => s !== assetId));
     else onChange([...selected, assetId]);
-  };
+  }, [selected, onChange]);
 
   const selectedAssets = selected.map((id) => roster.find((a) => a.asset_id === id) || { asset_id: id, asset_type: "?", operational_status: "?" });
 
   return (
-    <div data-testid={testId}>
+    <div data-testid={testId} ref={rootRef}>
       {/* Selected chips */}
       {selectedAssets.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mb-2" data-testid={`${testId}-selected`}>
@@ -69,66 +93,101 @@ export default function TrenchAssetPicker({ selected = [], onChange, assetType, 
         <input
           type="text"
           value={q}
-          onChange={(e) => setQ(e.target.value)}
+          onChange={(e) => { setQ(e.target.value); setOpen(true); }}
+          onFocus={() => setOpen(true)}
           placeholder={t(assetType ? `Search ${assetType}s by ID, serial, or location…` : "Search assets by ID, serial, or location…")}
           className="pl-8 w-full h-11 border-2 border-slate-300 rounded font-mono uppercase text-sm focus:border-cyan-600 focus:outline-none"
           data-testid={`${testId}-search`}
         />
       </div>
 
-      {/* Roster results */}
-      <div className="mt-2 border border-slate-200 rounded max-h-72 overflow-y-auto" data-testid={`${testId}-list`}>
-        {loading ? (
-          <div className="p-3 text-sm text-slate-500 inline-flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> {t("Loading roster…")}</div>
-        ) : filtered.length === 0 ? (
-          <div className="p-3 text-sm text-slate-500 italic">{q ? t("No match in registry.") : t("Type to search the certified registry.")}</div>
-        ) : (
-          <ul>
-            {filtered.map((a) => {
-              const isSel = selected.includes(a.asset_id);
-              const statusColor =
-                a.operational_status === "Available" ? "text-emerald-700" :
-                a.operational_status === "Inspection Hold" ? "text-amber-700" :
-                a.operational_status === "Repair" ? "text-red-700" :
-                "text-slate-700";
-              return (
-                <li key={a.asset_id}>
-                  <button
-                    type="button"
-                    onClick={() => toggle(a.asset_id)}
-                    className={"w-full text-left px-3 py-2 border-b border-slate-100 last:border-0 flex items-start gap-2 " + (isSel ? "bg-cyan-50" : "hover:bg-slate-50")}
-                    data-testid={`${testId}-row-${a.asset_id}`}
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-mono font-black text-slate-900">{a.asset_id}</span>
-                        <span className="text-[10px] font-bold uppercase tracking-[0.12em] bg-slate-900 text-white px-1.5 py-0.5 rounded">{a.asset_type}</span>
-                        {a.size_label && <span className="text-[10px] text-slate-500 font-mono">{a.size_label}</span>}
-                        <span className={`text-[10px] font-bold uppercase tracking-[0.12em] ${statusColor}`}>{a.operational_status}</span>
-                        {a.open_holds_count > 0 && (
-                          <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-amber-800">· {a.open_holds_count} hold{a.open_holds_count !== 1 ? "s" : ""}</span>
-                        )}
-                        {a.tabulated_data_available && (
-                          <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-cyan-700">· Tab Data</span>
-                        )}
-                      </div>
-                      <div className="text-[11px] text-slate-500 mt-0.5">
-                        {[
-                          a.serial_number && `SN: ${a.serial_number}`,
-                          a.assigned_location && `Loc: ${a.assigned_location}`,
-                          a.condition && `Cond: ${a.condition}`,
-                          a.rated_depth_ft && `Rated: ${a.rated_depth_ft} ft`,
-                        ].filter(Boolean).join(" · ")}
-                      </div>
-                    </div>
-                    {isSel && <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-cyan-700 self-center">Selected ✓</span>}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
+      {/* Track 19.26 · Collapsed hint · shown when list is not open. */}
+      {!open && (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="mt-2 w-full text-left text-[11px] text-slate-500 hover:text-slate-800 italic"
+          data-testid={`${testId}-show-registry`}
+        >
+          {loading
+            ? t("Loading registry…")
+            : t("Tap search to browse {n} assets from the certified registry.").replace("{n}", String(roster.length || 0))}
+        </button>
+      )}
+
+      {/* Roster results — only rendered when open, keeping the form compact. */}
+      {open && (
+        <div className="mt-2 border border-slate-200 rounded overflow-hidden bg-white shadow-sm" data-testid={`${testId}-list`}>
+          <div className="max-h-72 overflow-y-auto">
+            {loading ? (
+              <div className="p-3 text-sm text-slate-500 inline-flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> {t("Loading roster…")}</div>
+            ) : filtered.length === 0 ? (
+              <div className="p-3 text-sm text-slate-500 italic">{q ? t("No match in registry.") : t("Type to search the certified registry.")}</div>
+            ) : (
+              <ul>
+                {filtered.map((a) => {
+                  const isSel = selected.includes(a.asset_id);
+                  const statusColor =
+                    a.operational_status === "Available" ? "text-emerald-700" :
+                    a.operational_status === "Inspection Hold" ? "text-amber-700" :
+                    a.operational_status === "Repair" ? "text-red-700" :
+                    "text-slate-700";
+                  return (
+                    <li key={a.asset_id}>
+                      <button
+                        type="button"
+                        onClick={() => toggle(a.asset_id)}
+                        className={"w-full text-left px-3 py-2 border-b border-slate-100 last:border-0 flex items-start gap-2 " + (isSel ? "bg-cyan-50" : "hover:bg-slate-50")}
+                        data-testid={`${testId}-row-${a.asset_id}`}
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-mono font-black text-slate-900">{a.asset_id}</span>
+                            <span className="text-[10px] font-bold uppercase tracking-[0.12em] bg-slate-900 text-white px-1.5 py-0.5 rounded">{a.asset_type}</span>
+                            {a.size_label && <span className="text-[10px] text-slate-500 font-mono">{a.size_label}</span>}
+                            <span className={`text-[10px] font-bold uppercase tracking-[0.12em] ${statusColor}`}>{a.operational_status}</span>
+                            {a.open_holds_count > 0 && (
+                              <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-amber-800">· {a.open_holds_count} hold{a.open_holds_count !== 1 ? "s" : ""}</span>
+                            )}
+                            {a.tabulated_data_available && (
+                              <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-cyan-700">· Tab Data</span>
+                            )}
+                          </div>
+                          <div className="text-[11px] text-slate-500 mt-0.5">
+                            {[
+                              a.serial_number && `SN: ${a.serial_number}`,
+                              a.assigned_location && `Loc: ${a.assigned_location}`,
+                              a.condition && `Cond: ${a.condition}`,
+                              a.rated_depth_ft && `Rated: ${a.rated_depth_ft} ft`,
+                            ].filter(Boolean).join(" · ")}
+                          </div>
+                        </div>
+                        {isSel && <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-cyan-700 self-center">Selected ✓</span>}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+          {/* Track 19.26 · Sticky Done bar — one-tap dismiss for mobile users
+              with gloves after multi-selecting. Never blocks the screen. */}
+          <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-3 py-1.5">
+            <span className="text-[10px] font-mono uppercase tracking-[0.16em] text-slate-500"
+                  data-testid={`${testId}-selected-count`}>
+              {selected.length} {t("selected")}
+            </span>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="inline-flex items-center gap-1 rounded bg-cyan-700 text-white text-xs font-bold uppercase tracking-[0.12em] px-3 py-1 hover:bg-cyan-800"
+              data-testid={`${testId}-done`}
+            >
+              <Check className="w-3 h-3" /> {t("Done")}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
