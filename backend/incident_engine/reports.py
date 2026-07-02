@@ -22,9 +22,11 @@ from .intelligence import _sla_status, compute_executive_brief
 
 # Sections available to a report definition.
 SECTION_HEADER          = "header"
+SECTION_COVER           = "cover"
 SECTION_SUMMARY         = "summary"
 SECTION_TIMELINE        = "timeline"
 SECTION_EVIDENCE        = "evidence"
+SECTION_PHOTOGRAPHS     = "photographs"
 SECTION_WITNESSES       = "witnesses"
 SECTION_MEDICAL         = "medical"
 SECTION_AGENCY          = "agency"
@@ -39,12 +41,17 @@ SECTION_EXEC_SUMMARY    = "executive_summary"
 SECTION_LESSONS_LEARNED = "lessons_learned"
 
 # Nine declarative reports. Ordering IS the report layout.
+# TRACK 19.17 · PDF Excellence — every report opens with a professional
+# cover page, and photographs render inline with captions (not just as
+# an evidence-index table). Empty sections are suppressed by the
+# renderer so PDFs never carry blank blocks.
 REPORT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
     "executive_summary": {
         "title": "Executive Summary",
         "audience": "executive",
         "sections": [
-            SECTION_HEADER, SECTION_EXEC_SUMMARY, SECTION_ROOT_CAUSE,
+            SECTION_COVER, SECTION_HEADER, SECTION_EXEC_SUMMARY, SECTION_SUMMARY,
+            SECTION_PHOTOGRAPHS, SECTION_ROOT_CAUSE,
             SECTION_CAPA, SECTION_LESSONS_LEARNED,
         ],
         "medical_privacy": "aggregate_only",
@@ -54,9 +61,10 @@ REPORT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "title": "Insurance Package",
         "audience": "insurer",
         "sections": [
-            SECTION_HEADER, SECTION_SUMMARY, SECTION_TIMELINE,
-            SECTION_EVIDENCE, SECTION_WITNESSES, SECTION_VEHICLE,
-            SECTION_AGENCY, SECTION_COMMUNICATIONS, SECTION_MEDICAL,
+            SECTION_COVER, SECTION_HEADER, SECTION_SUMMARY, SECTION_VEHICLE,
+            SECTION_INJURY, SECTION_TIMELINE, SECTION_WITNESSES,
+            SECTION_PHOTOGRAPHS, SECTION_EVIDENCE, SECTION_AGENCY,
+            SECTION_COMMUNICATIONS, SECTION_MEDICAL,
         ],
         "medical_privacy": "authorized_only",
         "internal_notes": False,
@@ -65,7 +73,8 @@ REPORT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "title": "Witness Package",
         "audience": "safety",
         "sections": [
-            SECTION_HEADER, SECTION_SUMMARY, SECTION_WITNESSES, SECTION_TIMELINE,
+            SECTION_COVER, SECTION_HEADER, SECTION_SUMMARY,
+            SECTION_WITNESSES, SECTION_TIMELINE, SECTION_PHOTOGRAPHS,
         ],
         "medical_privacy": "hidden",
         "internal_notes": False,
@@ -74,8 +83,9 @@ REPORT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "title": "Vehicle Package",
         "audience": "fleet",
         "sections": [
-            SECTION_HEADER, SECTION_VEHICLE, SECTION_TIMELINE,
-            SECTION_EVIDENCE, SECTION_AGENCY, SECTION_LINKED,
+            SECTION_COVER, SECTION_HEADER, SECTION_VEHICLE,
+            SECTION_TIMELINE, SECTION_PHOTOGRAPHS, SECTION_EVIDENCE,
+            SECTION_AGENCY, SECTION_LINKED,
         ],
         "medical_privacy": "hidden",
         "internal_notes": False,
@@ -84,8 +94,9 @@ REPORT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "title": "Utility Strike Package",
         "audience": "utility_coordinator",
         "sections": [
-            SECTION_HEADER, SECTION_UTILITY, SECTION_TIMELINE,
-            SECTION_EVIDENCE, SECTION_COMMUNICATIONS, SECTION_AGENCY,
+            SECTION_COVER, SECTION_HEADER, SECTION_UTILITY,
+            SECTION_TIMELINE, SECTION_PHOTOGRAPHS, SECTION_EVIDENCE,
+            SECTION_COMMUNICATIONS, SECTION_AGENCY,
         ],
         "medical_privacy": "hidden",
         "internal_notes": False,
@@ -94,8 +105,9 @@ REPORT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "title": "Employee Injury Package",
         "audience": "hr_safety",
         "sections": [
-            SECTION_HEADER, SECTION_INJURY, SECTION_MEDICAL,
-            SECTION_TIMELINE, SECTION_ROOT_CAUSE, SECTION_CAPA,
+            SECTION_COVER, SECTION_HEADER, SECTION_INJURY, SECTION_MEDICAL,
+            SECTION_TIMELINE, SECTION_WITNESSES, SECTION_PHOTOGRAPHS,
+            SECTION_EVIDENCE, SECTION_ROOT_CAUSE, SECTION_CAPA,
         ],
         "medical_privacy": "full",
         "internal_notes": False,
@@ -104,9 +116,11 @@ REPORT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "title": "Customer Incident Report",
         "audience": "customer",
         "sections": [
-            SECTION_HEADER, SECTION_SUMMARY, SECTION_TIMELINE, SECTION_CAPA,
+            SECTION_COVER, SECTION_HEADER, SECTION_SUMMARY,
+            SECTION_TIMELINE, SECTION_CAPA,
         ],
-        # No investigation notes, no credibility, no executive comments.
+        # No investigation notes, no credibility, no executive comments,
+        # no photographs (customer-facing keeps things terse).
         "medical_privacy": "hidden",
         "internal_notes": False,
         "customer_facing": True,
@@ -115,7 +129,8 @@ REPORT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "title": "Management Review",
         "audience": "management",
         "sections": [
-            SECTION_HEADER, SECTION_SUMMARY, SECTION_TIMELINE,
+            SECTION_COVER, SECTION_HEADER, SECTION_EXEC_SUMMARY,
+            SECTION_SUMMARY, SECTION_TIMELINE, SECTION_PHOTOGRAPHS,
             SECTION_ROOT_CAUSE, SECTION_CAPA, SECTION_COMMUNICATIONS,
             SECTION_LINKED, SECTION_LESSONS_LEARNED,
         ],
@@ -126,8 +141,9 @@ REPORT_DEFINITIONS: Dict[str, Dict[str, Any]] = {
         "title": "OSHA Investigation Package",
         "audience": "compliance",
         "sections": [
-            SECTION_HEADER, SECTION_SUMMARY, SECTION_INJURY, SECTION_MEDICAL,
-            SECTION_TIMELINE, SECTION_EVIDENCE, SECTION_ROOT_CAUSE,
+            SECTION_COVER, SECTION_HEADER, SECTION_SUMMARY, SECTION_INJURY,
+            SECTION_MEDICAL, SECTION_TIMELINE, SECTION_WITNESSES,
+            SECTION_PHOTOGRAPHS, SECTION_EVIDENCE, SECTION_ROOT_CAUSE,
             SECTION_CAPA, SECTION_COMMUNICATIONS,
         ],
         "medical_privacy": "authorized_only",
@@ -164,6 +180,45 @@ async def _render_section(db, *, case: Dict[str, Any], code: str,
                 "sla_status":     _sla_status(case),
             },
         }
+
+    if code == SECTION_COVER:
+        # TRACK 19.17 · Professional cover page. Loaded from field_block
+        # + the __project_context__ sidecar (populated by the picker so
+        # PDFs read like a professionally prepared investigation
+        # package, not exported application data).
+        ctx = fb.get("__project_context__") or {}
+        return {"code": code, "title": "Cover", "data": {
+            "case_number":     case.get("case_number") or "",
+            "case_id":         case.get("id"),
+            "incident_type":   fb.get("incident_type") or "",
+            "occurred_at_date": fb.get("occurred_at_date") or "",
+            "occurred_at_time": fb.get("occurred_at_time") or "",
+            "location_label":  fb.get("location_label") or "",
+            "job_number":      fb.get("job_number") or "",
+            "project_name":    ctx.get("project_name") or "",
+            "client":          ctx.get("client") or "",
+            "project_manager": ctx.get("project_manager") or "",
+            "superintendent":  ctx.get("superintendent") or "",
+            "reporter_name":   fb.get("reporter_name") or "",
+            "state":           case.get("state"),
+        }}
+
+    if code == SECTION_PHOTOGRAPHS:
+        # Inline images with captions + timestamps. Field-block photos
+        # carry data_url + captured_at + gps; evidence-attached photos
+        # (via /evidence) do not carry bytes here (reference-only).
+        photos = fb.get("photos") or []
+        gallery = []
+        for i, p in enumerate(photos):
+            gallery.append({
+                "index":       i + 1,
+                "data_url":    p.get("data_url") or "",
+                "name":        p.get("name") or "",
+                "caption":     p.get("caption") or "",
+                "captured_at": p.get("captured_at") or "",
+                "gps":         p.get("gps") or None,
+            })
+        return {"code": code, "title": "Photographs", "data": gallery}
 
     if code == SECTION_SUMMARY:
         return {"code": code, "title": "Summary", "data": {

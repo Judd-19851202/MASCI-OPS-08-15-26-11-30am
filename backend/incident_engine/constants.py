@@ -26,11 +26,20 @@ INCIDENT_TYPES: Tuple[Tuple[str, str, str], ...] = (
     ("equipment_accident",   "Equipment Accident",    "Accidente de Equipo"),
     ("utility_strike",       "Utility Strike",        "Impacto a Servicio Público"),
     ("employee_injury",      "Employee Injury",       "Lesión de Empleado"),
+    ("public_injury",        "Public Injury",         "Lesión al Público"),
     ("near_miss",            "Near Miss",             "Casi Accidente"),
     ("property_damage",      "Property Damage",       "Daño a la Propiedad"),
     ("environmental",        "Environmental",         "Ambiental"),
     ("workplace_violence",   "Workplace Violence",    "Violencia en el Trabajo"),
     ("public_complaint",     "Public Complaint",      "Queja del Público"),
+    # ── TRACK 19.17 · additional intelligent incident types ────────
+    ("fire",                 "Fire",                  "Incendio"),
+    ("threat",               "Threat",                "Amenaza"),
+    ("theft",                "Theft",                 "Robo"),
+    ("vandalism",            "Vandalism",             "Vandalismo"),
+    ("security",             "Security",              "Seguridad"),
+    ("hazard",               "Hazard",                "Peligro Identificado"),
+    ("other",                "Other",                 "Otro"),
 )
 
 INCIDENT_TYPE_CODES: FrozenSet[str] = frozenset(t[0] for t in INCIDENT_TYPES)

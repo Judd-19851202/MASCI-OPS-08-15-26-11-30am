@@ -12,17 +12,45 @@ from typing import Any, Dict, List, Optional
 
 
 _BASE_CSS = """
-@page { size: Letter; margin: 0.6in; }
+@page { size: Letter; margin: 0.75in 0.6in 0.85in 0.6in;
+        @bottom-left { content: "Confidential · Prepared for authorized recipients only";
+                       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                       font-size: 8pt; color: #94a3b8; }
+        @bottom-right { content: "Page " counter(page) " of " counter(pages);
+                        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                        font-size: 8pt; color: #64748b; } }
+@page :first { @bottom-left { content: ""; } @bottom-right { content: ""; } }
 * { box-sizing: border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
        "Helvetica Neue", Arial, sans-serif; color: #0f172a;
-       margin: 0; font-size: 11pt; line-height: 1.45; }
-h1 { font-size: 20pt; margin: 0 0 4pt 0; letter-spacing: -0.01em; }
-h2 { font-size: 13pt; margin: 18pt 0 6pt 0; padding-bottom: 3pt;
-     border-bottom: 1pt solid #cbd5e1; color: #0f172a; }
+       margin: 0; font-size: 10.5pt; line-height: 1.5; }
+h1 { font-size: 22pt; margin: 0 0 4pt 0; letter-spacing: -0.015em; line-height: 1.15; }
+h2 { font-size: 13pt; margin: 22pt 0 8pt 0; padding-bottom: 4pt;
+     border-bottom: 1.4pt solid #0f172a; color: #0f172a;
+     letter-spacing: -0.005em; page-break-after: avoid; }
+h2 + * { page-break-before: avoid; }
 .kicker { font-family: "SF Mono", ui-monospace, monospace;
           font-size: 8pt; letter-spacing: 0.22em; text-transform: uppercase;
           color: #64748b; }
+/* Cover page. */
+.cover { min-height: 9in; display: flex; flex-direction: column;
+         justify-content: space-between; page-break-after: always; padding: 12pt 0; }
+.cover .brand { border-bottom: 3pt solid #0f172a; padding-bottom: 8pt; }
+.cover .brand .k { font-family: "SF Mono", ui-monospace, monospace;
+                   font-size: 8pt; letter-spacing: 0.28em; text-transform: uppercase;
+                   color: #64748b; }
+.cover .brand h1 { font-size: 32pt; margin: 6pt 0 2pt 0; }
+.cover .brand .sub { color: #334155; font-size: 12pt; }
+.cover .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 12pt 24pt;
+               margin-top: 20pt; }
+.cover .meta .row { padding: 6pt 0; border-bottom: 0.5pt solid #cbd5e1; }
+.cover .meta .row b { display: block; font-family: "SF Mono", ui-monospace, monospace;
+                      font-size: 8pt; letter-spacing: 0.18em; text-transform: uppercase;
+                      color: #64748b; font-weight: 600; }
+.cover .meta .row span { color: #0f172a; font-size: 12pt; font-weight: 500; }
+.cover .stamp { border-top: 1.4pt solid #0f172a; padding-top: 8pt;
+                display: flex; justify-content: space-between; font-size: 8.5pt;
+                color: #475569; }
 .head { display: flex; justify-content: space-between; align-items: flex-end;
         border-bottom: 2pt solid #0f172a; padding-bottom: 8pt; margin-bottom: 10pt; }
 .badge { display: inline-block; padding: 2pt 8pt; border-radius: 999pt;
@@ -35,14 +63,18 @@ h2 { font-size: 13pt; margin: 18pt 0 6pt 0; padding-bottom: 3pt;
 .badge.unset   { background: #e2e8f0; color: #334155; }
 .card { border: 1pt solid #e2e8f0; border-radius: 6pt; padding: 8pt;
         background: #f8fafc; margin: 6pt 0; }
+.brief { border-left: 3pt solid #0f172a; padding: 4pt 0 4pt 12pt;
+         font-size: 11.5pt; line-height: 1.6; color: #0f172a; margin: 6pt 0 10pt 0; }
 .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8pt; }
 .kv { font-size: 10pt; }
 .kv b { color: #475569; font-weight: 600; text-transform: uppercase;
         font-size: 8pt; letter-spacing: 0.06em; display: block; }
 .kv span { color: #0f172a; }
 table { width: 100%; border-collapse: collapse; margin: 6pt 0;
-        font-size: 9.5pt; }
-th, td { border: 1pt solid #e2e8f0; padding: 4pt 6pt; text-align: left;
+        font-size: 9.5pt; page-break-inside: auto; }
+tr { page-break-inside: avoid; page-break-after: auto; }
+thead { display: table-header-group; }
+th, td { border: 0.6pt solid #e2e8f0; padding: 4pt 6pt; text-align: left;
          vertical-align: top; }
 th { background: #0f172a; color: #f8fafc; font-weight: 600;
      text-transform: uppercase; letter-spacing: 0.06em; font-size: 8pt; }
@@ -54,6 +86,18 @@ th { background: #0f172a; color: #f8fafc; font-weight: 600;
 .empty    { font-style: italic; color: #94a3b8; }
 ul { margin: 4pt 0 4pt 16pt; padding: 0; }
 li { margin: 1pt 0; }
+/* Photograph gallery. */
+.photos { display: grid; grid-template-columns: 1fr 1fr;
+          gap: 12pt; margin-top: 6pt; }
+.photos .p { page-break-inside: avoid; border: 0.6pt solid #cbd5e1;
+             border-radius: 4pt; padding: 6pt; background: #ffffff; }
+.photos .p img { width: 100%; height: 2.6in; object-fit: cover;
+                 border-radius: 2pt; }
+.photos .p .cap { font-size: 8.5pt; color: #334155; margin-top: 4pt;
+                  line-height: 1.35; }
+.photos .p .cap b { font-family: "SF Mono", ui-monospace, monospace;
+                    font-size: 7.5pt; letter-spacing: 0.14em;
+                    text-transform: uppercase; color: #64748b; display: inline; }
 """
 
 
@@ -87,6 +131,74 @@ def _sla_class(v: Optional[str]) -> str:
     return m.get(str(v).upper(), "unset")
 
 
+def _render_cover(section: Dict[str, Any], payload: Dict[str, Any]) -> str:
+    d = section.get("data") or {}
+    itype = _s(d.get("incident_type") or "").replace("_", " ").title() or "Incident"
+    occurred = " ".join(x for x in [d.get("occurred_at_date"), d.get("occurred_at_time")] if x)
+    return (
+        '<section class="cover">'
+        '<div class="brand">'
+        f'<div class="k">{_s(payload.get("title"))}</div>'
+        f'<h1>{itype}</h1>'
+        f'<div class="sub">Case {_s(d.get("case_number") or d.get("case_id"))}</div>'
+        '</div>'
+        '<div class="meta">'
+        + _cover_row("Occurred", occurred or "—")
+        + _cover_row("Location", d.get("location_label") or "—")
+        + _cover_row("Project", (d.get("project_name") or d.get("job_number") or "—"))
+        + _cover_row("Client", d.get("client") or "—")
+        + _cover_row("Project Manager", d.get("project_manager") or "—")
+        + _cover_row("Superintendent", d.get("superintendent") or "—")
+        + _cover_row("Reported by", d.get("reporter_name") or "—")
+        + _cover_row("Case State", d.get("state") or "—")
+        + '</div>'
+        '<div class="stamp">'
+        f'<div>Prepared for authorized recipients only</div>'
+        f'<div>Generated {_s(payload.get("generated_at"))}</div>'
+        '</div>'
+        '</section>'
+    )
+
+
+def _cover_row(label: str, value: Any) -> str:
+    return (f'<div class="row"><b>{_s(label)}</b>'
+            f'<span>{_s(value) or "—"}</span></div>')
+
+
+def _render_photographs(section: Dict[str, Any]) -> str:
+    photos = section.get("data") or []
+    if not photos:
+        return ""  # empty-section suppression handled by caller too
+    tiles: List[str] = []
+    for p in photos:
+        data_url = p.get("data_url") or ""
+        if not data_url:
+            continue
+        gps = p.get("gps") or {}
+        gps_txt = ""
+        if isinstance(gps, dict) and gps.get("lat") is not None:
+            gps_txt = f' · GPS {float(gps["lat"]):.4f}, {float(gps["lng"]):.4f}'
+        meta_bits = [f'#{p.get("index")}']
+        if p.get("captured_at"):
+            meta_bits.append(_s(p["captured_at"]))
+        cap = (p.get("caption") or p.get("name") or "").strip()
+        alt_text = cap or f'photo {p.get("index")}'
+        meta_joined = " · ".join(_s(b) for b in meta_bits)
+        caption_html = f'<br>{_s(cap)}' if cap else ""
+        tiles.append(
+            '<div class="p">'
+            f'<img src="{_s(data_url)}" alt="{_s(alt_text)}">'
+            '<div class="cap">'
+            f'<b>Photo {meta_joined}{_s(gps_txt)}</b>'
+            f'{caption_html}'
+            '</div></div>'
+        )
+    if not tiles:
+        return ""
+    return '<h2>Photographs</h2><div class="photos">' + "".join(tiles) + "</div>"
+
+
+# ── Generic field renderer ───────────────────────────────────────────
 def _render_header(section: Dict[str, Any], payload: Dict[str, Any]) -> str:
     d = section.get("data") or {}
     sla = d.get("sla_status") or "NONE"
@@ -122,20 +234,28 @@ def _render_summary(section: Dict[str, Any]) -> str:
 def _render_exec_summary(section: Dict[str, Any]) -> str:
     d = section.get("data") or {}
     blockers = d.get("blockers") or []
+    # Briefing paragraph — the 30-second-read block.
+    state = _s(d.get("state") or "—")
+    sla = _s(d.get("sla_status") or "—")
+    osha = d.get("osha_recordable")
+    osha_txt = ("OSHA-recordable" if osha is True
+                else ("not OSHA-recordable" if osha is False else "OSHA status pending"))
+    rc = "Root cause captured." if d.get("root_cause_present") else "Root cause investigation open."
+    readiness = int(d.get("readiness_pct") or 0)
+    briefing = (
+        f"Case is currently in <b>{state}</b> with SLA <b>{sla}</b>. "
+        f"Investigation readiness: <b>{readiness}%</b>. "
+        f"{_s(osha_txt)}. {_s(rc)}"
+    )
     blockers_html = (
-        "<ul>" + "".join(f"<li>{_s(b)}</li>" for b in blockers) + "</ul>"
-        if blockers else '<div class="empty">No blockers.</div>'
+        f'<div class="card"><b class="kicker">Open blockers</b>'
+        + "<ul>" + "".join(f"<li>{_s(b)}</li>" for b in blockers) + "</ul></div>"
+        if blockers else ""
     )
     return (
         '<h2>Executive Summary</h2>'
-        '<div class="grid">'
-        + _kv("Readiness", f'{d.get("readiness_pct", 0)}%')
-        + _kv("State", d.get("state"))
-        + _kv("SLA", d.get("sla_status"))
-        + _kv("OSHA recordable", d.get("osha_recordable"))
-        + _kv("Root cause captured", "Yes" if d.get("root_cause_present") else "No")
-        + '</div>'
-        + f'<div class="card"><b class="kicker">Blockers</b>{blockers_html}</div>'
+        f'<p class="brief">{briefing}</p>'
+        + blockers_html
     )
 
 
@@ -304,6 +424,8 @@ def _render_lessons(section: Dict[str, Any]) -> str:
 
 _RENDERERS = {
     "header": _render_header,
+    "cover": _render_cover,
+    "photographs": _render_photographs,
     "summary": _render_summary,
     "executive_summary": _render_exec_summary,
     "timeline": _render_timeline,
@@ -322,6 +444,43 @@ _RENDERERS = {
 }
 
 
+# Sections that never suppress themselves (always render even if data
+# is empty because they are structural — cover, header, exec summary
+# briefing).
+_ALWAYS_RENDER = {"cover", "header", "executive_summary"}
+
+
+def _section_is_empty(code: str, section: Dict[str, Any]) -> bool:
+    """Return True when a section carries no meaningful content and
+    should be dropped from the PDF (no orphan headings, no blank
+    blocks). Structural sections always render."""
+    if code in _ALWAYS_RENDER:
+        return False
+    data = section.get("data")
+    if data is None:
+        return True
+    if isinstance(data, list):
+        return len(data) == 0
+    if isinstance(data, dict):
+        # Redacted medical carries {redacted: True} — keep it (audiences
+        # need to see the redaction notice).
+        if data.get("redacted"):
+            return False
+        # Consider a dict empty if every scalar value is falsy AND every
+        # list value is empty.
+        for v in data.values():
+            if isinstance(v, (list, tuple, set)):
+                if v:
+                    return False
+            elif isinstance(v, dict):
+                if v:
+                    return False
+            elif v not in (None, "", 0, False):
+                return False
+        return True
+    return not bool(data)
+
+
 def render_report_html(payload: Dict[str, Any]) -> str:
     """Render a full HTML document for a report payload."""
     body_parts: List[str] = []
@@ -331,7 +490,11 @@ def render_report_html(payload: Dict[str, Any]) -> str:
         fn = _RENDERERS.get(code)
         if fn is None:
             continue
-        if code == "header":
+        # TRACK 19.17 · PDF Excellence — suppress empty sections so
+        # PDFs never carry orphan headings or blank blocks.
+        if _section_is_empty(code, section):
+            continue
+        if code in ("header", "cover"):
             body_parts.append(fn(section, payload))
         else:
             body_parts.append(fn(section))

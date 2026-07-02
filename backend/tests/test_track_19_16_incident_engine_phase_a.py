@@ -240,13 +240,19 @@ def _run(coro):
 # 1 · CONSTANTS — shape + completeness
 # ═══════════════════════════════════════════════════════════════════
 def test_9_incident_types_present():
-    assert len(INCIDENT_TYPES) == 9
+    # Track 19.16 baseline lock: the 9 original incident types must always
+    # remain present in the canon (Track 19.17 additively expanded the set —
+    # subset check preserves the original lock without blocking expansion).
     codes = {t[0] for t in INCIDENT_TYPES}
-    assert codes == {
+    baseline_9 = {
         "vehicle_accident", "equipment_accident", "utility_strike",
         "employee_injury", "near_miss", "property_damage",
         "environmental", "workplace_violence", "public_complaint",
     }
+    assert baseline_9.issubset(codes), (
+        f"Track 19.16 baseline incident types drifted; missing: {baseline_9 - codes}"
+    )
+    assert len(INCIDENT_TYPES) >= 9
 
 
 def test_every_incident_type_is_bilingual():
@@ -1046,7 +1052,7 @@ def test_vocabulary_shape():
         "roles", "event_types",
     ):
         assert key in v, key
-    assert len(v["incident_types"]) == 9
+    assert len(v["incident_types"]) >= 9  # Track 19.17 additively expanded
     assert len(v["case_states"]) == 8
     assert len(v["evidence_types"]) == 11
     assert len(v["action_classes"]) == 10

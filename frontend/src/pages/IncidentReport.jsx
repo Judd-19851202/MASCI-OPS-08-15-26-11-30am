@@ -1350,6 +1350,42 @@ export default function IncidentReport() {
       const need = requiredFieldsForStep(step, draft);
       out[step.key] = need.filter((k) => !hasValue(draft[k]));
     }
+    // TRACK 19.17 · Pencil-whip guardrails. High-severity branches
+    // (employee/public injury, fire, utility strike, vehicle accident)
+    // must ship with at least one photo. Injury cases must ship with a
+    // witness OR an explicit "attempted contact" note. These pseudo-
+    // requirements piggyback on the missing map so the Review already-
+    // built UX highlights them.
+    const t = draft.incident_type;
+    const HIGH_SEVERITY = new Set([
+      "employee_injury", "public_injury", "utility_strike",
+      "vehicle_accident", "fire",
+    ]);
+    const photos = Array.isArray(draft.photos) ? draft.photos : [];
+    if (HIGH_SEVERITY.has(t) && photos.length === 0) {
+      const key = t === "utility_strike" ? "utility" : (t === "fire" ? "fire" : (
+        t === "employee_injury" ? "injury" : (
+          t === "public_injury" ? "public_injury" : "vehicle"
+        )
+      ));
+      const list = out[key] || out.photos || [];
+      out[key] = [...(list || []), "photos_required"];
+    }
+    if (t === "employee_injury" || t === "public_injury") {
+      const w = Array.isArray(draft.witnesses) ? draft.witnesses : [];
+      const anyWitness = w.some((r) => (r?.name || "").trim() || (r?.contact || "").trim());
+      const attempted = String(draft.witness_attempted_contact_note || "").trim();
+      if (!anyWitness && !attempted) {
+        const key = "witnesses";
+        out[key] = [...(out[key] || []), "witness_or_attempted_contact_required"];
+      }
+    }
+    if (t === "employee_injury" || t === "utility_strike") {
+      if (!hasValue(draft.immediate_actions)) {
+        const key = "immediate";
+        out[key] = [...(out[key] || []), "immediate_actions_required"];
+      }
+    }
     return out;
   }, [steps, draft]);
 

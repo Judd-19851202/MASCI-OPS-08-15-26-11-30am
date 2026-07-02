@@ -632,6 +632,134 @@ const ES = {
   "Every keystroke is stored on this device. You can close the app and come back to finish.":
     "Cada tecla se guarda en este dispositivo. Puedes cerrar la app y volver para terminar.",
 
+  // ── TRACK 19.17 · 8 additional intelligent incident branches ────────
+  // Type labels
+  "Public Injury": "Lesión al Público",
+  "Fire": "Incendio",
+  "Threat": "Amenaza",
+  "Theft": "Robo",
+  "Vandalism": "Vandalismo",
+  "Site Security": "Seguridad del Sitio",
+  "Hazard Identified": "Peligro Identificado",
+  // Type descriptions
+  "A member of the public was hurt on or adjacent to the project.":
+    "Un miembro del público resultó herido en o cerca del proyecto.",
+  "Pedestrian fall · struck by material · trip on caution tape":
+    "Caída de peatón · golpeado por material · tropiezo con cinta de precaución",
+  "Any unplanned fire — equipment, structure, brush, vehicle.":
+    "Cualquier incendio no planeado — equipo, estructura, maleza, vehículo.",
+  "Equipment fire · brush fire · structure fire · vehicle fire":
+    "Incendio de equipo · incendio de maleza · incendio de estructura · incendio de vehículo",
+  "Verbal, written, or implied threat directed at personnel or the project.":
+    "Amenaza verbal, escrita o implícita dirigida al personal o al proyecto.",
+  "Verbal threat · phone threat · social-media threat":
+    "Amenaza verbal · amenaza telefónica · amenaza en redes sociales",
+  "Company or third-party property was stolen.":
+    "Propiedad de la empresa o de un tercero fue robada.",
+  "Tool theft · copper theft · fuel theft":
+    "Robo de herramientas · robo de cobre · robo de combustible",
+  "Intentional damage to company or project property.":
+    "Daño intencional a la propiedad de la empresa o del proyecto.",
+  "Graffiti · slashed tires · broken equipment · damaged signs":
+    "Grafiti · llantas rajadas · equipo dañado · letreros dañados",
+  "Unauthorized access, suspicious activity, or breach of site controls.":
+    "Acceso no autorizado, actividad sospechosa o violación de controles del sitio.",
+  "Trespass · fence breach · suspicious vehicle · camera tamper":
+    "Intrusión · violación de cerca · vehículo sospechoso · manipulación de cámara",
+  "A hazardous condition was identified before it caused harm.":
+    "Se identificó una condición peligrosa antes de que causara daño.",
+  "Open trench · exposed live wire · missing fall protection · fuel leak":
+    "Zanja abierta · cable energizado expuesto · falta de protección contra caídas · fuga de combustible",
+  "An event that doesn't fit the categories above. Safety will re-classify.":
+    "Un evento que no encaja en las categorías anteriores. Seguridad lo reclasificará.",
+  "Anything not listed": "Cualquier cosa no listada",
+  // Step labels
+  "Public injury details": "Detalles de la lesión al público",
+  "Fire details": "Detalles del incendio",
+  "Threat details": "Detalles de la amenaza",
+  "Theft details": "Detalles del robo",
+  "Vandalism details": "Detalles del vandalismo",
+  "Security event details": "Detalles del evento de seguridad",
+  "Hazard identified": "Peligro identificado",
+  "Incident details": "Detalles del incidente",
+  // Public injury fields
+  "Injured person name": "Nombre de la persona lesionada",
+  "Contact info (phone / email)": "Información de contacto (teléfono / email)",
+  "Approximate age": "Edad aproximada",
+  "Child (under 18)": "Niño (menor de 18)",
+  "Adult": "Adulto",
+  "Senior (65+)": "Mayor (65+)",
+  "Unknown": "Desconocido",
+  "Was the injured party transported by EMS?":
+    "¿La persona lesionada fue transportada por EMS?",
+  "Hospital / clinic (if known)": "Hospital / clínica (si se conoce)",
+  "Site / area conditions": "Condiciones del sitio / área",
+  // Fire fields
+  "Where did the fire start?": "¿Dónde comenzó el incendio?",
+  "Observed cause (if any)": "Causa observada (si alguna)",
+  "Was the fire department called?": "¿Se llamó a los bomberos?",
+  "Fire department report #": "Número de reporte de bomberos",
+  "How was it suppressed?": "¿Cómo se apagó?",
+  "Portable extinguisher": "Extintor portátil",
+  "Fire department": "Bomberos",
+  "Self-extinguished": "Se apagó solo",
+  "Still burning at time of report": "Aún ardiendo al momento del reporte",
+  "Structures / equipment involved": "Estructuras / equipos involucrados",
+  "Any injuries?": "¿Hay lesiones?",
+  "Was evacuation required?": "¿Se requirió evacuación?",
+  // Threat fields
+  "Who or what was threatened?": "¿A quién o qué se amenazó?",
+  "Who made the threat? (if known)": "¿Quién hizo la amenaza? (si se conoce)",
+  "How was the threat communicated?": "¿Cómo se comunicó la amenaza?",
+  "In person": "En persona",
+  "Phone": "Teléfono",
+  "Text / email": "Texto / email",
+  "Social media": "Redes sociales",
+  "Threat description (exact wording if remembered)":
+    "Descripción de la amenaza (palabras exactas si se recuerdan)",
+  "Was law enforcement notified?": "¿Se notificó a las autoridades?",
+  // Theft fields
+  "Items stolen": "Artículos robados",
+  "Estimated value (USD)": "Valor estimado (USD)",
+  "Last seen (date / time / location)": "Visto por última vez (fecha / hora / ubicación)",
+  "Signs of forced entry?": "¿Señales de entrada forzada?",
+  "Was the item(s) properly secured?": "¿Los artículos estaban debidamente asegurados?",
+  // Vandalism fields
+  "What was vandalized": "Qué fue vandalizado",
+  "Location on site": "Ubicación en el sitio",
+  "Graffiti present?": "¿Grafiti presente?",
+  // Security fields
+  "Event kind": "Tipo de evento",
+  "Trespass / unauthorized access": "Intrusión / acceso no autorizado",
+  "Suspicious person": "Persona sospechosa",
+  "Suspicious vehicle": "Vehículo sospechoso",
+  "Camera / alarm tamper": "Manipulación de cámara / alarma",
+  "Fence / barricade breach": "Violación de cerca / barricada",
+  "Individuals involved (description)": "Personas involucradas (descripción)",
+  "Vehicles involved (make / model / plate)":
+    "Vehículos involucrados (marca / modelo / placa)",
+  "Gate / area involved": "Portón / área involucrada",
+  "Was there any confrontation?": "¿Hubo alguna confrontación?",
+  // Hazard fields
+  "Hazard category": "Categoría del peligro",
+  "Electrical": "Eléctrico",
+  "Fall exposure": "Exposición a caídas",
+  "Excavation / trench": "Excavación / zanja",
+  "Traffic exposure": "Exposición al tráfico",
+  "Chemical": "Químico",
+  "Mechanical / equipment": "Mecánico / equipo",
+  "Housekeeping": "Orden y limpieza",
+  "Hazard description": "Descripción del peligro",
+  "Exposure potential": "Potencial de exposición",
+  "Imminent danger": "Peligro inminente",
+  "Was the hazard controlled on scene?": "¿Se controló el peligro en el sitio?",
+  "Control actions taken": "Acciones de control tomadas",
+  "Was work stopped?": "¿Se detuvo el trabajo?",
+  // Other fields
+  "Describe what happened": "Describe lo que pasó",
+  "Who was present?": "¿Quién estaba presente?",
+  "Any immediate hazard remaining?": "¿Queda algún peligro inmediato?",
+
   // additive operational-attention surface). Operational language only.
   "Recent field memory": "Memoria operacional reciente",
   "No recent operational notes.": "No hay notas operacionales recientes.",

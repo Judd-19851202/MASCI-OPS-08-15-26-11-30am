@@ -174,8 +174,12 @@ def test_every_report_has_title_audience_and_sections(code):
     assert d["title"] and isinstance(d["title"], str)
     assert d["audience"] and isinstance(d["audience"], str)
     assert isinstance(d["sections"], list) and d["sections"]
-    # header always first (report identity)
-    assert d["sections"][0] == "header"
+    # Report identity is always the leading block. Track 19.16 baseline
+    # placed `header` first; Track 19.17 PDF-excellence additively prepends
+    # a professional `cover` page. Both shapes preserve identity-first.
+    assert d["sections"][0] in ("header", "cover")
+    if d["sections"][0] == "cover":
+        assert "header" in d["sections"][:2]
 
 
 def test_customer_report_is_customer_facing_and_no_internal_notes():

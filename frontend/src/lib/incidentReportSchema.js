@@ -282,6 +282,135 @@ const STEP_NEAR_MISS = {
   ],
 };
 
+// ── TRACK 19.17 · Additional intelligent branches ─────────────────
+// Each step keeps only the questions that BELONG to that incident
+// type. Safety-only determinations (OSHA recordability, root cause,
+// severity classifications) stay out of the field flow entirely.
+
+const STEP_PUBLIC_INJURY = {
+  key: "public_injury",
+  label: "Public injury details",
+  fields: [
+    { key: "injured_person_name", type: "text", label: "Injured person name", required: true },
+    { key: "injured_person_contact", type: "text", label: "Contact info (phone / email)" },
+    { key: "injured_person_age_range", type: "select", label: "Approximate age", options: [
+      { v: "child", label: "Child (under 18)" }, { v: "adult", label: "Adult" }, { v: "senior", label: "Senior (65+)" }, { v: "unknown", label: "Unknown" },
+    ]},
+    { key: "injury_body_part", type: "text", label: "Body part affected", required: true },
+    { key: "first_aid_given", type: "yesno", label: "Was first aid given on scene?" },
+    { key: "ems_transported", type: "yesno", label: "Was the injured party transported by EMS?" },
+    { key: "hospital_name", type: "text", label: "Hospital / clinic (if known)", showIf: (d) => d.ems_transported === "yes" },
+    { key: "injury_description", type: "textarea", label: "What happened", required: true, rows: 4 },
+    { key: "public_area_condition", type: "textarea", label: "Site / area conditions", rows: 3 },
+  ],
+};
+
+const STEP_FIRE = {
+  key: "fire",
+  label: "Fire details",
+  fields: [
+    { key: "fire_origin", type: "text", label: "Where did the fire start?", required: true },
+    { key: "fire_cause_observed", type: "textarea", label: "Observed cause (if any)", rows: 3 },
+    { key: "fire_department_called", type: "yesno", label: "Was the fire department called?", required: true },
+    { key: "fire_department_report_number", type: "text", label: "Fire department report #", showIf: (d) => d.fire_department_called === "yes" },
+    { key: "fire_suppressed", type: "select", label: "How was it suppressed?", options: [
+      { v: "extinguisher", label: "Portable extinguisher" }, { v: "fire_dept", label: "Fire department" }, { v: "self_out", label: "Self-extinguished" }, { v: "still_burning", label: "Still burning at time of report" },
+    ]},
+    { key: "structures_involved", type: "textarea", label: "Structures / equipment involved", rows: 3 },
+    { key: "injuries_reported", type: "yesno", label: "Any injuries?" },
+    { key: "evacuation_required", type: "yesno", label: "Was evacuation required?" },
+  ],
+};
+
+const STEP_THREAT = {
+  key: "threat",
+  label: "Threat details",
+  fields: [
+    { key: "threat_target", type: "text", label: "Who or what was threatened?", required: true },
+    { key: "threat_source", type: "text", label: "Who made the threat? (if known)" },
+    { key: "threat_channel", type: "select", label: "How was the threat communicated?", required: true, options: [
+      { v: "in_person", label: "In person" }, { v: "phone", label: "Phone" }, { v: "text_email", label: "Text / email" }, { v: "social", label: "Social media" }, { v: "other", label: "Other" },
+    ]},
+    { key: "threat_description", type: "textarea", label: "Threat description (exact wording if remembered)", required: true, rows: 4 },
+    { key: "law_enforcement_called", type: "yesno", label: "Was law enforcement notified?", required: true },
+    { key: "police_case_number", type: "text", label: "Police case #", showIf: (d) => d.law_enforcement_called === "yes" },
+    { key: "threat_ongoing", type: "yesno_unsure", label: "Is the threat ongoing?", required: true },
+  ],
+};
+
+const STEP_THEFT = {
+  key: "theft",
+  label: "Theft details",
+  fields: [
+    { key: "items_stolen", type: "textarea", label: "Items stolen", required: true, rows: 3 },
+    { key: "estimated_value_usd", type: "number", label: "Estimated value (USD)" },
+    { key: "last_seen", type: "textarea", label: "Last seen (date / time / location)", rows: 2 },
+    { key: "signs_of_forced_entry", type: "yesno_unsure", label: "Signs of forced entry?" },
+    { key: "storage_secured", type: "yesno", label: "Was the item(s) properly secured?" },
+    { key: "law_enforcement_called", type: "yesno", label: "Was law enforcement notified?", required: true },
+    { key: "police_case_number", type: "text", label: "Police case #", showIf: (d) => d.law_enforcement_called === "yes" },
+  ],
+};
+
+const STEP_VANDALISM = {
+  key: "vandalism",
+  label: "Vandalism details",
+  fields: [
+    { key: "affected_assets", type: "textarea", label: "What was vandalized", required: true, rows: 3 },
+    { key: "damage_description", type: "textarea", label: "Damage description", required: true, rows: 3 },
+    { key: "estimated_damage_usd", type: "number", label: "Estimated damage (USD)" },
+    { key: "location_of_damage", type: "text", label: "Location on site" },
+    { key: "graffiti_present", type: "yesno", label: "Graffiti present?" },
+    { key: "law_enforcement_called", type: "yesno", label: "Was law enforcement notified?", required: true },
+    { key: "police_case_number", type: "text", label: "Police case #", showIf: (d) => d.law_enforcement_called === "yes" },
+  ],
+};
+
+const STEP_SECURITY = {
+  key: "security",
+  label: "Security event details",
+  fields: [
+    { key: "security_event_kind", type: "select", label: "Event kind", required: true, options: [
+      { v: "trespass", label: "Trespass / unauthorized access" }, { v: "suspicious_person", label: "Suspicious person" }, { v: "suspicious_vehicle", label: "Suspicious vehicle" }, { v: "camera_tamper", label: "Camera / alarm tamper" }, { v: "fence_breach", label: "Fence / barricade breach" }, { v: "other", label: "Other" },
+    ]},
+    { key: "individuals_involved", type: "textarea", label: "Individuals involved (description)", rows: 3 },
+    { key: "vehicles_involved", type: "textarea", label: "Vehicles involved (make / model / plate)", rows: 2 },
+    { key: "gate_or_area", type: "text", label: "Gate / area involved" },
+    { key: "confrontation", type: "yesno", label: "Was there any confrontation?" },
+    { key: "law_enforcement_called", type: "yesno", label: "Was law enforcement notified?", required: true },
+    { key: "police_case_number", type: "text", label: "Police case #", showIf: (d) => d.law_enforcement_called === "yes" },
+  ],
+};
+
+const STEP_HAZARD = {
+  key: "hazard",
+  label: "Hazard identified",
+  fields: [
+    { key: "hazard_category", type: "select", label: "Hazard category", required: true, options: [
+      { v: "electrical", label: "Electrical" }, { v: "fall", label: "Fall exposure" }, { v: "excavation", label: "Excavation / trench" }, { v: "traffic", label: "Traffic exposure" }, { v: "chemical", label: "Chemical" }, { v: "mechanical", label: "Mechanical / equipment" }, { v: "housekeeping", label: "Housekeeping" }, { v: "environmental", label: "Environmental" }, { v: "other", label: "Other" },
+    ]},
+    { key: "hazard_description", type: "textarea", label: "Hazard description", required: true, rows: 4 },
+    { key: "exposure_potential", type: "select", label: "Exposure potential", required: true, options: [
+      { v: "low", label: "Low" }, { v: "moderate", label: "Moderate" }, { v: "high", label: "High" }, { v: "imminent_danger", label: "Imminent danger" },
+    ]},
+    { key: "controlled_on_scene", type: "yesno", label: "Was the hazard controlled on scene?", required: true },
+    { key: "control_actions", type: "textarea", label: "Control actions taken", rows: 3, showIf: (d) => d.controlled_on_scene === "yes" },
+    { key: "work_stopped", type: "yesno", label: "Was work stopped?" },
+  ],
+};
+
+const STEP_OTHER = {
+  key: "other",
+  label: "Incident details",
+  fields: [
+    { key: "event_description", type: "textarea", label: "Describe what happened", required: true, rows: 5 },
+    { key: "who_was_present", type: "textarea", label: "Who was present?", rows: 2 },
+    { key: "immediate_hazard", type: "yesno", label: "Any immediate hazard remaining?" },
+  ],
+};
+
+// ── END Track 19.17 additional branches ─────────────────────────────
+
 const STEP_PROPERTY = {
   key: "property_damage",
   label: "Property damage",
@@ -441,6 +570,71 @@ export const INCIDENT_FLOWS = {
     examples: "Noise · dust · traffic · property · conduct",
     steps: [...BASE_FRONT, STEP_COMPLAINT, ...BASE_BACK],
   },
+  // ── TRACK 19.17 · Additional intelligent branches ──────────────
+  public_injury: {
+    label: "Public Injury",
+    icon: "heart",
+    accent: "red",
+    description: "A member of the public was hurt on or adjacent to the project.",
+    examples: "Pedestrian fall · struck by material · trip on caution tape",
+    steps: [...BASE_FRONT, STEP_PUBLIC_INJURY, ...BASE_BACK],
+  },
+  fire: {
+    label: "Fire",
+    icon: "alert-triangle",
+    accent: "red",
+    description: "Any unplanned fire — equipment, structure, brush, vehicle.",
+    examples: "Equipment fire · brush fire · structure fire · vehicle fire",
+    steps: [...BASE_FRONT, STEP_FIRE, ...BASE_BACK],
+  },
+  threat: {
+    label: "Threat",
+    icon: "shield",
+    accent: "red",
+    description: "Verbal, written, or implied threat directed at personnel or the project.",
+    examples: "Verbal threat · phone threat · social-media threat",
+    steps: [...BASE_FRONT, STEP_THREAT, ...BASE_BACK],
+  },
+  theft: {
+    label: "Theft",
+    icon: "shield",
+    accent: "amber",
+    description: "Company or third-party property was stolen.",
+    examples: "Tool theft · copper theft · fuel theft",
+    steps: [...BASE_FRONT, STEP_THEFT, ...BASE_BACK],
+  },
+  vandalism: {
+    label: "Vandalism",
+    icon: "home",
+    accent: "amber",
+    description: "Intentional damage to company or project property.",
+    examples: "Graffiti · slashed tires · broken equipment · damaged signs",
+    steps: [...BASE_FRONT, STEP_VANDALISM, ...BASE_BACK],
+  },
+  security: {
+    label: "Site Security",
+    icon: "shield",
+    accent: "slate",
+    description: "Unauthorized access, suspicious activity, or breach of site controls.",
+    examples: "Trespass · fence breach · suspicious vehicle · camera tamper",
+    steps: [...BASE_FRONT, STEP_SECURITY, ...BASE_BACK],
+  },
+  hazard: {
+    label: "Hazard Identified",
+    icon: "alert-triangle",
+    accent: "amber",
+    description: "A hazardous condition was identified before it caused harm.",
+    examples: "Open trench · exposed live wire · missing fall protection · fuel leak",
+    steps: [...BASE_FRONT, STEP_HAZARD, ...BASE_BACK],
+  },
+  other: {
+    label: "Other",
+    icon: "alert-triangle",
+    accent: "slate",
+    description: "An event that doesn't fit the categories above. Safety will re-classify.",
+    examples: "Anything not listed",
+    steps: [...BASE_FRONT, STEP_OTHER, ...BASE_BACK],
+  },
 };
 
 // Ordered tuple used by the picker; matches Phase A INCIDENT_TYPES order.
@@ -449,11 +643,19 @@ export const INCIDENT_TYPE_ORDER = [
   "equipment_accident",
   "utility_strike",
   "employee_injury",
+  "public_injury",
   "near_miss",
   "property_damage",
   "environmental",
   "workplace_violence",
   "public_complaint",
+  "fire",
+  "threat",
+  "theft",
+  "vandalism",
+  "security",
+  "hazard",
+  "other",
 ];
 
 // Utility: get the effective step list for a chosen type (guards against

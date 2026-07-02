@@ -1,0 +1,31 @@
+{
+  "summary": "Track 19.17 · Incident Intelligence Engine — PDF Excellence + Intelligent Branching. Verified: (1) 357/357 backend lock tests still pass. (2) constants.INCIDENT_TYPES now has 17 entries, all 8 new codes present (fire, threat, theft, vandalism, security, hazard, other, public_injury). (3) REPORT_DEFINITIONS still exactly 9 reports; every report has sections[0]='cover' and sections[1]='header'. (4) PDF renderer produces valid %PDF- bytes; empty photograph sections are correctly suppressed (no <h2>Photographs</h2> when data:[]); non-empty renders heading. Cover section renders case_number. (5) Frontend picker at /incidents/report shows exactly 17 incident-type cards with data-testid='incident-type-card-<code>' for every code. (6) ES bilingual parity: after switching lang to ES, all 8 new cards render correct Spanish labels (Lesión al Público, Incendio, Amenaza, Robo, Vandalismo, Seguridad del Sitio, Peligro Identificado, Otro). Toggling back to EN restores English labels. (7) Fire branch renders step chip 'FIRE DETAILS' when picked; schema (incidentReportSchema.js) contains matching labels for all 8 branches ('Fire details', 'Threat details', 'Theft details', 'Vandalism details', 'Security event details', 'Hazard identified', 'Incident details', 'Public injury details'). (8) Pencil-whip guardrail code path confirmed via source inspection: HIGH_SEVERITY set includes 'fire' and 'public_injury' (photos_required added when photos.length===0), excludes 'near_miss'; totalMissing>0 disables submit and renders 'Complete required fields to submit'.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_track_19_16_incident_engine_phase_a.py",
+    "/app/backend/tests/test_track_19_16_incident_engine_phase_e.py",
+    "/app/backend/tests/test_track_19_16_final_closeout.py"
+  ],
+  "action_items": [
+    "Doc-only: main agent's review_request referenced data-testid pattern 'incident-report-type-*' for cards, but the actual attribute in IncidentReport.jsx is 'incident-type-card-*'. Consider aligning either the code or the documentation for future testing agents.",
+    "Minor UX observation: language toggle via [data-testid=lang-es] click occasionally does not propagate on the first click during rapid test automation (works reliably after a reload with masci.lang stored). Not blocking — manual UX works fine and second click after page settle works. Might be a React useSyncExternalStore race with the initial render; consider verifying tap-target debounce."
+  ],
+  "critical_code_review_comments": [
+    "incident_engine.report_render._render_photographs correctly returns '' when data is empty (line 170) — good; the caller also suppresses empty sections in render_report_html which is defense-in-depth.",
+    "IncidentReport.jsx pencil-whip HIGH_SEVERITY set (lines 1360-1363) is a hard-coded literal — future incident types with high severity will need explicit code changes; consider centralising severity metadata in incidentReportSchema.js so the guardrail set is derived, avoiding drift between schema and page.",
+    "constants.py INCIDENT_TYPES leaves 'security' Spanish label as bare 'Seguridad' while the frontend uses 'Seguridad del Sitio' — backend/frontend Spanish label mismatch is minor but should be aligned if backend labels ever surface in PDFs/emails."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (357/357 lock tests + 4/4 constants/reports/render checks)", "frontend": "100% (all card enumeration, ES parity, branch title wiring, and guardrail code path verified)"},
+  "test_credentials": "Not required — verifications done via direct module imports (constants, reports, report_render) and public /incidents/report picker route (no auth).",
+  "seed_data_creation": "None.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "The picker route /incidents/report does NOT require auth. Cards use data-testid='incident-type-card-<code>' (not incident-report-type). Language state is persisted in localStorage under 'masci.lang' (values 'en'/'es'). To test branch flows, clear localStorage/drafts between navigations or use fresh incognito context — the SPA auto-restores drafts. For pencil-whip end-to-end (advancing through all 8 fire steps and asserting the submit button state visually), you'll need to fill required fields at each step; source code at IncidentReport.jsx lines 1355-1392 documents the guardrail semantics.",
+  "rca of the issue": "No issues found. Track 19.17 features implemented correctly across backend constants, report definitions, PDF renderer suppression logic, incident schema branches, i18n translations, and submit-gate guardrails."
+}
