@@ -1,5 +1,31 @@
 # CHANGELOG
 
+## 2026-07-02 — TRACK 19.18 · Operational Readiness Review · 🟢 CERTIFIED
+
+### Delivered
+- Safety Case Workspace polish: Case Story paragraph in header · Next Action chip · visual timeline spine + color-coded event dots · clickable blockers that jump to the resolving tab · one-liner executive readiness headline · empty-state elimination on health counts
+- PDF Excellence: MASCI wordmark on cover · incident-type banner + case-number pill · auto-composed Case Story paragraph in Executive Summary · narrative timeline (no more raw JSON payload column) · lettered contributing-factors ordered list · running header + per-page case-number footer + Attorney Work Product legal chrome
+- Empty-state elimination · Page-break protection across all professional-authored blocks
+- 10 new EN→ES translations for Case Story, Next Action, readiness labels
+- Technical cleanup: 4 dead `eslint-disable` directives removed from IncidentReport.jsx · backend/frontend "security" → "Site Security" / "Seguridad del Sitio" label alignment
+
+### New lock tests
+- `backend/tests/test_track_19_18_pdf_excellence.py` — 11 tests
+- `backend/tests/test_track_19_18_safety_case_workspace.py` — 8 tests
+
+### Certification
+- 376/376 backend lock tests GREEN (357 baseline + 19 new Track 19.18)
+- Frontend lint clean on all Track 19.18-touched files
+- PDF pipeline verified end-to-end (valid `%PDF-` bytes with all upgrades)
+- Frontend smoke: 17 incident-type cards render in EN + ES
+
+### Documents produced (9 artifacts in `/app/memory/`)
+`TRACK_19_18_EXECUTIVE_SUMMARY.md` · `TRACK_19_18_SAFETY_CASE_WORKSPACE_REVIEW.md` · `TRACK_19_18_PDF_EXCELLENCE_REPORT.md` · `TRACK_19_18_OPERATIONAL_CONSISTENCY_REPORT.md` · `TRACK_19_18_DOCUMENT_QUALITY_AUDIT.md` · `TRACK_19_18_TECHNICAL_CLEANUP_REPORT.md` · `TRACK_19_18_BILINGUAL_CERTIFICATION.md` · `TRACK_19_18_DEPLOYMENT_CERTIFICATION.md` · `TRACK_19_18_TEST_REPORT.md`
+
+### Zero drift · Six Pillars · Deployment approved
+Legacy `/api/incidents` untouched. No schema/route/payload changes. No email/notification/translation regression. Trust Spine / Smart Prefill / Session / Historical guarantees preserved. Ready for field deployment.
+
+
 ## 2026-07-02 — TRACK 19.17 · Incident Intelligence Engine · PDF Excellence + Intelligent Branching · 🟢 CERTIFIED
 
 ### Delivered

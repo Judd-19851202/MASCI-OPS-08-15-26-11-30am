@@ -1,5 +1,7 @@
 // Track 19.16 · Phase C · Safety Case Workspace.
 // The command center for post-report investigation.
+// Track 19.18 · Operational Readiness Review polish — Case Story,
+// Next Action, visual timeline spine, clickable blockers.
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -7,7 +9,7 @@ import { useT } from "@/lib/i18n";
 import * as api from "@/lib/caseWorkspaceApi";
 import { INCIDENT_FLOWS } from "@/lib/incidentReportSchema";
 import {
-  Activity, AlertTriangle, CheckCircle2, ChevronLeft, Clipboard,
+  Activity, AlertTriangle, ArrowRight, CheckCircle2, ChevronLeft, Clipboard,
   FileText, Heart, MessageSquare, Paperclip, Shield, Users, Wrench,
 } from "lucide-react";
 
@@ -19,17 +21,65 @@ const TABS = [
   { key: "agency",         label: "Police / Agency",    icon: Shield },
   { key: "rca",            label: "Root Cause",         icon: AlertTriangle },
   { key: "capa",           label: "Corrective Actions", icon: Wrench },
-  { key: "communications", label: "Communications",    icon: MessageSquare },
+  { key: "communications", label: "Communications",     icon: MessageSquare },
   { key: "tasks",          label: "Safety Tasks",       icon: Clipboard },
   { key: "linked",         label: "Linked Records",     icon: FileText },
 ];
+
+// Track 19.18 · which tab resolves which blocker key.
+// Safety Director should be able to jump to the resolving screen with one click.
+const BLOCKER_TAB = {
+  missing_root_cause: "rca",
+  missing_contributing_factors: "rca",
+  no_evidence: "evidence",
+  no_photos: "evidence",
+  no_witnesses: "witnesses",
+  missing_medical: "medical",
+  missing_agency: "agency",
+  missing_corrective_actions: "capa",
+  open_corrective_actions: "capa",
+  open_tasks: "tasks",
+  pending_communications: "communications",
+};
 
 function _fmt(dt) {
   if (!dt) return "—";
   try { return new Date(dt).toLocaleString(); } catch { return dt; }
 }
 
-function CaseHeader({ caseDoc }) {
+function _fmtDate(dt) {
+  if (!dt) return "";
+  try { return new Date(dt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }); } catch { return dt; }
+}
+
+function _fmtTime(dt) {
+  if (!dt) return "";
+  try { return new Date(dt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }); } catch { return ""; }
+}
+
+// Track 19.18 · Compose a one-paragraph "case story" straight from field_block.
+// Order matches the 12-question Complete Story Validation contract:
+// what → where → when → who → what-immediately.
+function composeCaseStory(caseDoc, t) {
+  if (!caseDoc) return "";
+  const fb = caseDoc.field_block || {};
+  const flow = INCIDENT_FLOWS[fb.incident_type];
+  const typeLabel = flow ? t(flow.label) : t("Incident");
+  const dateStr = fb.occurred_at_date ? _fmtDate(fb.occurred_at_date) : (caseDoc.submitted_at ? _fmtDate(caseDoc.submitted_at) : t("an unrecorded date"));
+  const timeStr = fb.occurred_at_time || (caseDoc.submitted_at ? _fmtTime(caseDoc.submitted_at) : "");
+  const when = timeStr ? `${dateStr} · ${timeStr}` : dateStr;
+  const where = fb.location_label ? fb.location_label : t("an unspecified location");
+  const job = fb.job_number ? ` (${t("Job")} ${fb.job_number})` : "";
+  const who = fb.reporter_name ? `${fb.reporter_name}${fb.reporter_role ? ` · ${fb.reporter_role}` : ""}` : t("the on-site reporter");
+  const detail = (fb.observed_conditions || "").trim();
+  const detailClip = detail.length > 220 ? `${detail.slice(0, 217).trim()}…` : detail;
+  const line1 = t("On {when}, a {type} was reported at {where}{job}.")
+    .replace("{when}", when).replace("{type}", typeLabel).replace("{where}", where).replace("{job}", job);
+  const line2 = t("Reported by {who}.").replace("{who}", who);
+  return detailClip ? `${line1} ${line2} ${detailClip}` : `${line1} ${line2}`;
+}
+
+function CaseHeader({ caseDoc, health, onJumpToBlocker }) {
   const { t } = useT();
   if (!caseDoc) return null;
   const fb = caseDoc.field_block || {};
@@ -37,6 +87,9 @@ function CaseHeader({ caseDoc }) {
   const daysOpen = caseDoc.submitted_at
     ? Math.max(0, Math.floor((Date.now() - new Date(caseDoc.submitted_at).getTime()) / 86400000))
     : 0;
+  const story = composeCaseStory(caseDoc, t);
+  const nextBlocker = (health?.blockers || [])[0] || null;
+  const nextLabel = nextBlocker ? t(nextBlocker.replace(/_/g, " ")) : "";
   return (
     <div className="rounded-xl border-2 border-slate-300 bg-white p-4 sm:p-5" data-testid="case-header">
       <div className="flex items-start justify-between gap-3">
@@ -63,11 +116,33 @@ function CaseHeader({ caseDoc }) {
           <div className="font-display text-2xl font-black text-slate-900" data-testid="case-header-days-open">{daysOpen}</div>
         </div>
       </div>
+      {/* Track 19.18 · Case Story · always-visible one-paragraph narrative */}
+      {story && (
+        <p
+          className="mt-3 text-[13.5px] leading-relaxed text-slate-700 border-l-4 border-slate-300 pl-3"
+          data-testid="case-header-story"
+        >
+          {story}
+        </p>
+      )}
+      {/* Track 19.18 · Next Action · clickable jump to the resolving tab */}
+      {nextBlocker && onJumpToBlocker && (
+        <button
+          type="button"
+          onClick={() => onJumpToBlocker(nextBlocker)}
+          className="mt-3 inline-flex items-center gap-2 rounded-md bg-amber-100 border border-amber-300 px-3 py-1.5 text-sm font-semibold text-amber-900 hover:bg-amber-200"
+          data-testid="case-header-next-action"
+        >
+          <AlertTriangle className="w-3.5 h-3.5" aria-hidden />
+          {t("Next action")}: {nextLabel}
+          <ArrowRight className="w-3.5 h-3.5" aria-hidden />
+        </button>
+      )}
     </div>
   );
 }
 
-function CaseHealth({ health }) {
+function CaseHealth({ health, onJumpToBlocker }) {
   const { t } = useT();
   if (!health) return null;
   const pct = health.completeness_pct || 0;
@@ -84,21 +159,36 @@ function CaseHealth({ health }) {
       {health.blockers && health.blockers.length > 0 && (
         <ul className="mt-3 space-y-1 text-sm" data-testid="case-health-blockers">
           {health.blockers.map((b) => (
-            <li key={b} className="flex items-center gap-2 text-amber-800">
-              <AlertTriangle className="w-4 h-4" aria-hidden />
-              <span data-testid={`case-health-blocker-${b}`}>{t(b.replace(/_/g, " "))}</span>
+            <li key={b}>
+              <button
+                type="button"
+                onClick={() => onJumpToBlocker && onJumpToBlocker(b)}
+                className="w-full flex items-center gap-2 text-left text-amber-800 hover:text-amber-900 hover:underline"
+                data-testid={`case-health-blocker-${b}`}
+              >
+                <AlertTriangle className="w-4 h-4 shrink-0" aria-hidden />
+                <span>{t(b.replace(/_/g, " "))}</span>
+                <ArrowRight className="w-3 h-3 ml-auto opacity-60" aria-hidden />
+              </button>
             </li>
           ))}
         </ul>
       )}
-      <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
-        {Object.entries(health.counts || {}).map(([k, v]) => (
-          <div key={k} className="rounded-md bg-slate-50 border border-slate-200 px-2 py-1">
-            <dt className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">{t(k.replace(/_/g, " "))}</dt>
-            <dd className="font-bold text-slate-900">{v}</dd>
-          </div>
-        ))}
-      </dl>
+      {/* Counts only render when there is at least one non-zero — Track 19.18 empty-state elimination */}
+      {(() => {
+        const nonZero = Object.entries(health.counts || {}).filter(([, v]) => v !== 0 && v !== null && v !== undefined);
+        if (nonZero.length === 0) return null;
+        return (
+          <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
+            {nonZero.map(([k, v]) => (
+              <div key={k} className="rounded-md bg-slate-50 border border-slate-200 px-2 py-1">
+                <dt className="font-mono text-[9px] uppercase tracking-[0.14em] text-slate-500">{t(k.replace(/_/g, " "))}</dt>
+                <dd className="font-bold text-slate-900">{v}</dd>
+              </div>
+            ))}
+          </dl>
+        );
+      })()}
     </div>
   );
 }
@@ -106,38 +196,68 @@ function CaseHealth({ health }) {
 function ExecutiveSnapshot({ snap }) {
   const { t } = useT();
   if (!snap) return null;
+  // Track 19.18 · Operational Confidence · single one-liner headline first.
+  const pct = snap.readiness?.completeness_pct || 0;
+  const readinessLabel = pct >= 80 ? t("Ready for closeout") : pct >= 50 ? t("Under investigation") : t("Early — evidence gathering");
   return (
     <div className="rounded-xl border-2 border-slate-900 bg-slate-900 text-white p-4" data-testid="case-exec-snapshot">
       <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-400">{t("Executive snapshot")}</div>
-      <div className="mt-1 grid gap-2 text-sm">
+      <div className="mt-1 font-display text-base font-black leading-snug" data-testid="case-exec-snapshot-headline">
+        {readinessLabel} · {pct}%
+      </div>
+      <div className="mt-3 grid gap-1.5 text-sm">
         <div><span className="text-slate-400">{t("Incident")}: </span><span className="font-semibold">{snap.incident_type?.replace(/_/g, " ")}</span></div>
-        <div><span className="text-slate-400">{t("OSHA recordable")}: </span><span className="font-semibold">{snap.osha_recordable == null ? t("Unset") : snap.osha_recordable ? t("Yes") : t("No")}</span></div>
-        <div><span className="text-slate-400">{t("Lost time (days)")}: </span><span className="font-semibold">{snap.lost_time_days || 0}</span></div>
+        {snap.osha_recordable != null && (
+          <div><span className="text-slate-400">{t("OSHA recordable")}: </span><span className="font-semibold">{snap.osha_recordable ? t("Yes") : t("No")}</span></div>
+        )}
+        {snap.lost_time_days > 0 && (
+          <div><span className="text-slate-400">{t("Lost time (days)")}: </span><span className="font-semibold">{snap.lost_time_days}</span></div>
+        )}
         <div><span className="text-slate-400">{t("Root cause")}: </span><span className="font-semibold">{snap.root_cause_summary ? "✓" : t("Pending")}</span></div>
-        <div><span className="text-slate-400">{t("Readiness")}: </span><span className="font-semibold">{snap.readiness?.completeness_pct || 0}%</span></div>
       </div>
     </div>
   );
 }
 
+// Track 19.18 · Timeline spine — vertical rail with dots color-coded by event kind.
+// Reads chronologically at a glance so a VP/OSHA investigator sees the story flow.
+function _timelineDotColor(evType) {
+  const t = (evType || "").toLowerCase();
+  if (t.includes("state") || t.includes("closed") || t.includes("submitted")) return "bg-slate-900";
+  if (t.includes("evidence") || t.includes("photo")) return "bg-blue-600";
+  if (t.includes("witness") || t.includes("statement")) return "bg-purple-600";
+  if (t.includes("medical") || t.includes("agency") || t.includes("police")) return "bg-red-600";
+  if (t.includes("capa") || t.includes("corrective") || t.includes("verified")) return "bg-emerald-600";
+  if (t.includes("comm") || t.includes("notif")) return "bg-amber-600";
+  return "bg-slate-500";
+}
+
 function TimelinePanel({ events }) {
   const { t } = useT();
+  if (!events || events.length === 0) {
+    return <p className="text-slate-500 text-sm" data-testid="case-timeline-empty">{t("No timeline entries yet.")}</p>;
+  }
   return (
-    <div className="space-y-3" data-testid="case-timeline">
-      {events.length === 0 && <p className="text-slate-500 text-sm">{t("No timeline entries yet.")}</p>}
+    <ol className="relative space-y-4 pl-6 before:absolute before:left-2 before:top-1 before:bottom-1 before:w-px before:bg-slate-200" data-testid="case-timeline">
       {events.map((e) => (
-        <div key={e.id} className="rounded-lg border border-slate-200 bg-white p-3" data-testid={`case-timeline-event-${e.id}`}>
-          <div className="flex items-center justify-between gap-2">
-            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-slate-500">{e.event_type}</span>
-            <span className="text-[11px] text-slate-500">{_fmt(e.at)}</span>
+        <li key={e.id} className="relative" data-testid={`case-timeline-event-${e.id}`}>
+          <span
+            className={`absolute -left-[18px] top-2 w-3 h-3 rounded-full ring-2 ring-white ${_timelineDotColor(e.event_type)}`}
+            aria-hidden
+          />
+          <div className="rounded-lg border border-slate-200 bg-white p-3">
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-slate-500">{e.event_type}</span>
+              <span className="text-[11px] text-slate-500">{_fmt(e.at)}</span>
+            </div>
+            <div className="text-sm text-slate-800 mt-1">
+              {e.actor_name || e.actor_role} · {e.from_state && `${e.from_state} → `}{e.to_state || ""}
+            </div>
+            {e.reason && <div className="text-xs text-slate-600 mt-1">{t("Reason")}: {e.reason}</div>}
           </div>
-          <div className="text-sm text-slate-800 mt-1">
-            {e.actor_name || e.actor_role} · {e.from_state && `${e.from_state} → `}{e.to_state || ""}
-          </div>
-          {e.reason && <div className="text-xs text-slate-600 mt-1">{t("Reason")}: {e.reason}</div>}
-        </div>
+        </li>
       ))}
-    </div>
+    </ol>
   );
 }
 
@@ -292,6 +412,12 @@ export default function SafetyCaseWorkspace() {
 
   useEffect(() => { refreshAll(); }, [refreshAll]);
 
+  // Track 19.18 · Clicking a blocker jumps to the tab that resolves it.
+  const jumpToBlocker = useCallback((blockerKey) => {
+    const target = BLOCKER_TAB[blockerKey];
+    if (target) setTab(target);
+  }, []);
+
   if (err) {
     return (
       <div className="min-h-screen bg-slate-50 p-6" data-testid="safety-case-workspace-error">
@@ -319,7 +445,7 @@ export default function SafetyCaseWorkspace() {
 
       <main className="max-w-7xl mx-auto p-4 sm:p-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-4">
-          <CaseHeader caseDoc={caseDoc} />
+          <CaseHeader caseDoc={caseDoc} health={health} onJumpToBlocker={jumpToBlocker} />
           <div className="rounded-xl border border-slate-200 bg-white overflow-x-auto">
             <div className="flex" role="tablist" aria-label={t("Case sections")}>
               {TABS.map((t0) => {
@@ -436,7 +562,7 @@ export default function SafetyCaseWorkspace() {
         </div>
         <aside className="space-y-4">
           <ExecutiveSnapshot snap={snap} />
-          <CaseHealth health={health} />
+          <CaseHealth health={health} onJumpToBlocker={jumpToBlocker} />
         </aside>
       </main>
     </div>

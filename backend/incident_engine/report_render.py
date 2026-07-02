@@ -13,13 +13,20 @@ from typing import Any, Dict, List, Optional
 
 _BASE_CSS = """
 @page { size: Letter; margin: 0.75in 0.6in 0.85in 0.6in;
-        @bottom-left { content: "Confidential · Prepared for authorized recipients only";
+        @top-right { content: string(case-header);
+                     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                     font-size: 8pt; color: #64748b; letter-spacing: 0.06em; }
+        @bottom-left { content: "Confidential · Attorney Work Product";
                        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
                        font-size: 8pt; color: #94a3b8; }
+        @bottom-center { content: string(case-footer);
+                         font-family: "SF Mono", ui-monospace, monospace;
+                         font-size: 8pt; color: #64748b; letter-spacing: 0.06em; }
         @bottom-right { content: "Page " counter(page) " of " counter(pages);
                         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
                         font-size: 8pt; color: #64748b; } }
-@page :first { @bottom-left { content: ""; } @bottom-right { content: ""; } }
+@page :first { @top-right { content: ""; } @bottom-left { content: ""; }
+               @bottom-center { content: ""; } @bottom-right { content: ""; } }
 * { box-sizing: border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
        "Helvetica Neue", Arial, sans-serif; color: #0f172a;
@@ -39,11 +46,21 @@ h2 + * { page-break-before: avoid; }
 .cover .brand .k { font-family: "SF Mono", ui-monospace, monospace;
                    font-size: 8pt; letter-spacing: 0.28em; text-transform: uppercase;
                    color: #64748b; }
+.cover .brand .wordmark { font-family: "SF Mono", ui-monospace, monospace;
+                          font-size: 10pt; letter-spacing: 0.34em; text-transform: uppercase;
+                          color: #0f172a; font-weight: 700; margin-bottom: 4pt; }
 .cover .brand h1 { font-size: 32pt; margin: 6pt 0 2pt 0; }
 .cover .brand .sub { color: #334155; font-size: 12pt; }
+.cover .brand .band { margin-top: 10pt; padding: 8pt 12pt; background: #0f172a;
+                      color: #f8fafc; border-radius: 4pt;
+                      display: flex; justify-content: space-between; align-items: baseline;
+                      font-family: "SF Mono", ui-monospace, monospace;
+                      font-size: 9pt; letter-spacing: 0.18em; text-transform: uppercase; }
+.cover .brand .band .num { font-size: 12pt; letter-spacing: 0.14em; }
 .cover .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 12pt 24pt;
                margin-top: 20pt; }
-.cover .meta .row { padding: 6pt 0; border-bottom: 0.5pt solid #cbd5e1; }
+.cover .meta .row { padding: 6pt 0; border-bottom: 0.5pt solid #cbd5e1;
+                    page-break-inside: avoid; }
 .cover .meta .row b { display: block; font-family: "SF Mono", ui-monospace, monospace;
                       font-size: 8pt; letter-spacing: 0.18em; text-transform: uppercase;
                       color: #64748b; font-weight: 600; }
@@ -51,8 +68,13 @@ h2 + * { page-break-before: avoid; }
 .cover .stamp { border-top: 1.4pt solid #0f172a; padding-top: 8pt;
                 display: flex; justify-content: space-between; font-size: 8.5pt;
                 color: #475569; }
+/* String-set targets: invisible elements carrying running-header text. */
+.rh { position: absolute; top: -9999pt; left: -9999pt; height: 0; overflow: hidden; }
+.rh.header { string-set: case-header content(); }
+.rh.footer { string-set: case-footer content(); }
 .head { display: flex; justify-content: space-between; align-items: flex-end;
-        border-bottom: 2pt solid #0f172a; padding-bottom: 8pt; margin-bottom: 10pt; }
+        border-bottom: 2pt solid #0f172a; padding-bottom: 8pt; margin-bottom: 10pt;
+        page-break-inside: avoid; }
 .badge { display: inline-block; padding: 2pt 8pt; border-radius: 999pt;
          font-size: 8pt; font-weight: 700; letter-spacing: 0.08em;
          text-transform: uppercase; }
@@ -62,10 +84,15 @@ h2 + * { page-break-before: avoid; }
 .badge.missed  { background: #fee2e2; color: #991b1b; }
 .badge.unset   { background: #e2e8f0; color: #334155; }
 .card { border: 1pt solid #e2e8f0; border-radius: 6pt; padding: 8pt;
-        background: #f8fafc; margin: 6pt 0; }
+        background: #f8fafc; margin: 6pt 0; page-break-inside: avoid; }
 .brief { border-left: 3pt solid #0f172a; padding: 4pt 0 4pt 12pt;
-         font-size: 11.5pt; line-height: 1.6; color: #0f172a; margin: 6pt 0 10pt 0; }
-.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8pt; }
+         font-size: 11.5pt; line-height: 1.6; color: #0f172a; margin: 6pt 0 10pt 0;
+         page-break-inside: avoid; }
+.story { border-left: 3pt solid #64748b; padding: 4pt 0 4pt 12pt;
+         font-size: 10.5pt; line-height: 1.65; color: #1e293b; margin: 6pt 0 10pt 0;
+         page-break-inside: avoid; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8pt;
+        page-break-inside: avoid; }
 .kv { font-size: 10pt; }
 .kv b { color: #475569; font-weight: 600; text-transform: uppercase;
         font-size: 8pt; letter-spacing: 0.06em; display: block; }
@@ -86,6 +113,18 @@ th { background: #0f172a; color: #f8fafc; font-weight: 600;
 .empty    { font-style: italic; color: #94a3b8; }
 ul { margin: 4pt 0 4pt 16pt; padding: 0; }
 li { margin: 1pt 0; }
+ol.factors { list-style: upper-alpha; margin: 4pt 0 4pt 22pt; }
+ol.factors li { margin: 3pt 0; padding-left: 4pt; }
+/* Timeline · narrative rows with type badge. */
+.tline { margin: 4pt 0; page-break-inside: avoid; }
+.tline .row { display: grid; grid-template-columns: 1.1in 0.85in 1fr;
+              gap: 6pt; padding: 5pt 0; border-bottom: 0.5pt solid #e2e8f0; }
+.tline .row .w { font-family: "SF Mono", ui-monospace, monospace;
+                 font-size: 8.5pt; color: #475569; }
+.tline .row .b { font-family: "SF Mono", ui-monospace, monospace;
+                 font-size: 8pt; letter-spacing: 0.08em; text-transform: uppercase;
+                 color: #0f172a; }
+.tline .row .n { color: #0f172a; font-size: 10pt; line-height: 1.4; }
 /* Photograph gallery. */
 .photos { display: grid; grid-template-columns: 1fr 1fr;
           gap: 12pt; margin-top: 6pt; }
@@ -133,17 +172,30 @@ def _sla_class(v: Optional[str]) -> str:
 
 def _render_cover(section: Dict[str, Any], payload: Dict[str, Any]) -> str:
     d = section.get("data") or {}
-    itype = _s(d.get("incident_type") or "").replace("_", " ").title() or "Incident"
-    occurred = " ".join(x for x in [d.get("occurred_at_date"), d.get("occurred_at_time")] if x)
+    itype_code = _s(d.get("incident_type") or "")
+    itype = itype_code.replace("_", " ").title() or "Incident"
+    case_num = _s(d.get("case_number") or d.get("case_id") or payload.get("case_number") or "—")
+    occurred = " ".join(x for x in [d.get("occurred_at_date"), d.get("occurred_at_time")] if x) or _s(d.get("occurred_at") or "—")
+    # String-set carriers for the running header and per-page footer.
+    rh_header_txt = f"{itype} · Case {case_num}"
+    rh_footer_txt = f"Case {case_num}"
     return (
         '<section class="cover">'
+        # Invisible carriers — WeasyPrint uses these to populate @top/@bottom areas.
+        f'<span class="rh header">{_s(rh_header_txt)}</span>'
+        f'<span class="rh footer">{_s(rh_footer_txt)}</span>'
         '<div class="brand">'
+        '<div class="wordmark">MASCI · Incident Intelligence</div>'
         f'<div class="k">{_s(payload.get("title"))}</div>'
         f'<h1>{itype}</h1>'
-        f'<div class="sub">Case {_s(d.get("case_number") or d.get("case_id"))}</div>'
+        f'<div class="sub">Case {case_num}</div>'
+        '<div class="band">'
+        f'<span>{_s(payload.get("audience") or "Executive Report").title()}</span>'
+        f'<span class="num">Case {case_num}</span>'
+        '</div>'
         '</div>'
         '<div class="meta">'
-        + _cover_row("Occurred", occurred or "—")
+        + _cover_row("Occurred", occurred)
         + _cover_row("Location", d.get("location_label") or "—")
         + _cover_row("Project", (d.get("project_name") or d.get("job_number") or "—"))
         + _cover_row("Client", d.get("client") or "—")
@@ -153,7 +205,7 @@ def _render_cover(section: Dict[str, Any], payload: Dict[str, Any]) -> str:
         + _cover_row("Case State", d.get("state") or "—")
         + '</div>'
         '<div class="stamp">'
-        f'<div>Prepared for authorized recipients only</div>'
+        '<div>Confidential — Attorney Work Product</div>'
         f'<div>Generated {_s(payload.get("generated_at"))}</div>'
         '</div>'
         '</section>'
@@ -231,7 +283,27 @@ def _render_summary(section: Dict[str, Any]) -> str:
     )
 
 
-def _render_exec_summary(section: Dict[str, Any]) -> str:
+def _compose_pdf_story(header_data: Dict[str, Any]) -> str:
+    """Track 19.18 · Auto-compose a Case Story paragraph from the header
+    section's field_block-derived data. Mirrors the frontend Case Story
+    so the on-screen narrative and the PDF narrative match verbatim."""
+    if not isinstance(header_data, dict):
+        return ""
+    itype = _s(header_data.get("incident_type") or "").replace("_", " ")
+    when = _s(header_data.get("occurred_at") or "—")
+    where = _s(header_data.get("location_label") or "an unspecified location")
+    job = _s(header_data.get("job_number") or "")
+    reporter = _s(header_data.get("reporter_name") or "the on-site reporter")
+    role = _s(header_data.get("reporter_role") or "")
+    job_clause = f" (Job {job})" if job and job != "—" else ""
+    who = f"{reporter} · {role}" if role else reporter
+    return (
+        f"On {when}, a {itype or 'incident'} was reported at {where}{job_clause}. "
+        f"Reported by {who}."
+    )
+
+
+def _render_exec_summary(section: Dict[str, Any], payload: Dict[str, Any] | None = None) -> str:
     d = section.get("data") or {}
     blockers = d.get("blockers") or []
     # Briefing paragraph — the 30-second-read block.
@@ -247,6 +319,17 @@ def _render_exec_summary(section: Dict[str, Any]) -> str:
         f"Investigation readiness: <b>{readiness}%</b>. "
         f"{_s(osha_txt)}. {_s(rc)}"
     )
+    # Track 19.18 · Case Story paragraph — the "one narrative" a VP reads first.
+    story_html = ""
+    if payload is not None:
+        header_section = next(
+            (s for s in (payload.get("sections") or []) if s.get("code") == "header"),
+            None,
+        )
+        header_data = header_section.get("data") if header_section else {}
+        story = _compose_pdf_story(header_data or {})
+        if story:
+            story_html = f'<p class="story">{_s(story)}</p>'
     blockers_html = (
         f'<div class="card"><b class="kicker">Open blockers</b>'
         + "<ul>" + "".join(f"<li>{_s(b)}</li>" for b in blockers) + "</ul></div>"
@@ -254,18 +337,42 @@ def _render_exec_summary(section: Dict[str, Any]) -> str:
     )
     return (
         '<h2>Executive Summary</h2>'
-        f'<p class="brief">{briefing}</p>'
+        + story_html
+        + f'<p class="brief">{briefing}</p>'
         + blockers_html
     )
 
 
 def _render_timeline(section: Dict[str, Any]) -> str:
+    """Track 19.18 · Timeline is now a narrative row list with time,
+    event-type badge, and actor. No more raw JSON payload column."""
     events = section.get("data") or []
-    rows = [[e.get("at") or "", e.get("event_type") or "",
-             e.get("actor_name") or "", (e.get("payload") or {})] for e in events]
-    return "<h2>Timeline</h2>" + _table(
-        ["When", "Event", "Actor", "Payload"], rows,
-    )
+    if not events:
+        return ""
+    rows: List[str] = []
+    for e in events:
+        when = _s(e.get("at") or "")
+        ev_type = _s(e.get("event_type") or "")
+        actor = _s(e.get("actor_name") or e.get("actor_role") or "—")
+        from_st = e.get("from_state")
+        to_st = e.get("to_state")
+        narrative_bits: List[str] = [actor]
+        if from_st or to_st:
+            narrative_bits.append(
+                f"{_s(from_st or '·')} → {_s(to_st or '·')}"
+            )
+        reason = e.get("reason")
+        if reason:
+            narrative_bits.append(_s(reason))
+        narrative = " · ".join(b for b in narrative_bits if b)
+        rows.append(
+            '<div class="row">'
+            f'<div class="w">{when}</div>'
+            f'<div class="b">{ev_type}</div>'
+            f'<div class="n">{narrative}</div>'
+            '</div>'
+        )
+    return '<h2>Timeline</h2><div class="tline">' + "".join(rows) + "</div>"
 
 
 def _render_evidence(section: Dict[str, Any]) -> str:
@@ -339,11 +446,15 @@ def _render_root_cause(section: Dict[str, Any]) -> str:
     d = section.get("data") or {}
     cats = d.get("categories") or []
     factors = d.get("contributing_factors") or []
+    factors_html = ""
+    if factors:
+        items = "".join(f"<li>{_s(f)}</li>" for f in factors)
+        factors_html = f'<div><b class="kicker">Contributing factors</b><ol class="factors">{items}</ol></div>'
     return (
         '<h2>Root Cause</h2>'
         + _kv("Summary", d.get("summary"))
-        + _kv("Categories", ", ".join(cats) if cats else "—")
-        + _kv("Contributing factors", ", ".join(factors) if factors else "—")
+        + (_kv("Categories", ", ".join(cats)) if cats else "")
+        + factors_html
     )
 
 
@@ -494,7 +605,7 @@ def render_report_html(payload: Dict[str, Any]) -> str:
         # PDFs never carry orphan headings or blank blocks.
         if _section_is_empty(code, section):
             continue
-        if code in ("header", "cover"):
+        if code in ("header", "cover", "executive_summary"):
             body_parts.append(fn(section, payload))
         else:
             body_parts.append(fn(section))

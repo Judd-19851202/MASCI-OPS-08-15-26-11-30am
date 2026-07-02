@@ -604,7 +604,6 @@ function IdentityConfirmField({ value, identity, onChange, testId }) {
     if (!value && suggestedName && !manual) {
       onChange(suggestedName);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [suggestedName]);
 
   if (manual || !suggestedName) {
@@ -1260,7 +1259,6 @@ export default function IncidentReport() {
       return { ...d, ...patch };
     });
     return () => { alive = false; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // When a project is picked, auto-fill location + weather (if GPS).
@@ -1317,7 +1315,6 @@ export default function IncidentReport() {
       }
     });
     return () => { alive = false; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draft.location_gps?.lat, draft.location_gps?.lng]);
 
   const ctx = useMemo(() => ({
@@ -1327,7 +1324,6 @@ export default function IncidentReport() {
     onSelectProject,
     onRefetchWeather: refetchWeatherFromGps,
     setSelectedMeta: (key, meta) => _writeSelMeta(setDraft, markAuto, key, meta),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [identity, weatherAuto, draft, draft.location_gps?.lat, draft.location_gps?.lng]);
 
   // Autosave draft on any change. Persist stepIndex alongside so the

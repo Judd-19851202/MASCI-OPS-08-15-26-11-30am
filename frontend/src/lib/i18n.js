@@ -761,6 +761,18 @@ const ES = {
   "Any immediate hazard remaining?": "¿Queda algún peligro inmediato?",
 
   // additive operational-attention surface). Operational language only.
+  // ── TRACK 19.18 · Safety Case Workspace polish ──────────────────────
+  "Case story": "Historia del caso",
+  "Next action": "Próxima acción",
+  "On {when}, a {type} was reported at {where}{job}.":
+    "El {when}, se reportó un {type} en {where}{job}.",
+  "Reported by {who}.": "Reportado por {who}.",
+  "Ready for closeout": "Listo para cierre",
+  "Under investigation": "Bajo investigación",
+  "Early — evidence gathering": "Etapa inicial — recolección de evidencia",
+  "an unrecorded date": "una fecha no registrada",
+  "an unspecified location": "una ubicación no especificada",
+  "the on-site reporter": "el reportero en el sitio",
   "Recent field memory": "Memoria operacional reciente",
   "No recent operational notes.": "No hay notas operacionales recientes.",
   "Project": "Proyecto",
