@@ -11,6 +11,22 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.20 · Employee Lifecycle & Historical Records Intelligence Audit · ✅ COMPLETE (2026-07-02)
+
+Comprehensive audit of every HR + Safety + Operations employee record path. **Headline verdict:** Foundation is exceptional. Backend Employee 360° already exists (`/api/hr/employees/{id}/accountability/timeline` + `/accountability/brief.pdf`). Six focused extensions bring the platform to complete Employee 360°. Full detail in `/app/memory/TRACK_19_20_EMPLOYEE_LIFECYCLE_AUDIT.md` (19 sections) + `/app/memory/TRACK_19_20_DELIVERABLES_INDEX.md`.
+
+**Prioritized roadmap:**
+- **P0-A:** Incident ↔ Employee canonical linkage — join `db.incident_cases` into HR timeline (~200 lines)
+- **P0-B:** Employee 360° single-page UI — new `EmployeeProfile.jsx` on top of existing aggregation endpoint (~400 lines)
+- **P1:** Historical Records Intake Phase 1 (upload + manual queue) · Employee-scoped full-text search · Discipline Package PDF · PPE expiration reminders (~1,050 lines total)
+- **P2:** Historical Records Intake Phase 2 (OCR + auto-classify via Gemini 3 Flash) · Fuzzy matching · Duplicate detection · Progressive discipline as first-class kinds (~650 lines total)
+- **P3:** Onboarding checklist · RTW workflow · acknowledgments library · platform-wide search · ML feedback loop
+
+**Total scope for full Employee 360°:** ~3,500 lines across 5 focused tracks · 6 weeks of tight iteration.
+
+**Zero drift:** every recommendation extends existing collections. No parallel employee records. Pydantic `extra="allow"` on `FieldBlock` permits P0-A additive fields with no schema drift.
+
+
 ## TRACK 19.19 · Daily Report .xlsm Attachment Support · ✅ FIXED (2026-07-02)
 
 P0 field blocker: `.xlsm` (macro-enabled Excel workbook) now accepted by the Daily Report unified attachment pipeline. MIME `application/vnd.ms-excel.sheet.macroEnabled.12` allow-listed with filename-extension fallback for browsers reporting the ambiguous plain `application/vnd.ms-excel` MIME. Categorized as `Spreadsheet` — appears alongside `.xlsx` / `.xls` / `.csv` in every downstream surface. Server never opens, parses, or executes macros; workbook is opaque bytes. Dangerous extension blocklist untouched. 18/18 new lock tests · Track 19.04 attachment locks still green. Full details in `/app/memory/TRACK_19_19_XLSM_ATTACHMENT_SUPPORT.md`.

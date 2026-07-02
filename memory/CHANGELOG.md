@@ -1,5 +1,52 @@
 # CHANGELOG
 
+## 2026-07-02 — TRACK 19.20 · Employee Lifecycle & Historical Records Intelligence Audit · 🟢 COMPLETE
+
+Comprehensive audit of every HR + Safety + Operations employee record path.
+
+### Headline verdict
+Foundation is exceptional. Backend Employee 360° already exists (`GET /api/hr/employees/{id}/accountability/timeline` + `/accountability/brief.pdf`). Two P0 extensions bring the platform to complete Employee 360°: (1) join new-engine `db.incident_cases` into the HR timeline (currently only legacy `db.incidents` is joined), and (2) build the single-page `EmployeeProfile.jsx` UI on top of the existing aggregation endpoint.
+
+### Verified canonical collections
+- `db.employees` (HR Source-of-Truth · Track 19.03)
+- `db.employee_lifecycle_events` (write-once name/status audit)
+- `db.safety_training_records` · `db.training_track_records`
+- `db.safety_equipment_issuances` · `db.safety_equipment_trainings`
+- `db.safety_documents` (R2/inline hybrid)
+- `db.field_leadership_records` (10 kinds: write_up, verbal_coaching, attendance, recognition, equipment_checkout, new_employee_eval, crew_eval, promotion_recommendation, training_deficiency, supervisor_notes, employee_termination — with auto-sync into `employees.status_history`)
+- `db.incident_cases` + 8 satellites (Track 19.16 Incident Engine)
+- `db.incidents` (legacy, still joined by HR timeline for backward compat)
+- `db.tasks` · `db.document_expirations` · `db.operational_attachments` · `db.email_routes` + audit
+
+### Prioritized roadmap (P0 → P3)
+- **P0-A:** Incident ↔ Employee canonical linkage (~200 lines)
+- **P0-B:** Employee 360° single-page UI (~400 lines)
+- **P1-A:** Historical Records Intake · Phase 1 · upload + audit + manual queue (~600 lines)
+- **P1-B:** Employee-scoped full-text search (~100 lines)
+- **P1-C:** Discipline Package PDF (~200 lines)
+- **P1-D:** PPE expiration reminders + inspection tracking (~150 lines)
+- **P2-A:** Historical Records Intake · Phase 2 · OCR + auto-classify (Gemini 3 Flash) (~400 lines)
+- **P2-B:** Fuzzy employee matching with RapidFuzz (~100 lines)
+- **P2-C:** Duplicate document detection (~50 lines)
+- **P2-D:** Progressive discipline as first-class kinds (~100 lines)
+- **P3:** Onboarding checklist · RTW workflow · acknowledgments library · platform-wide search · ML feedback loop
+
+Total scope for full Employee 360°: ~3,500 lines across 5 focused tracks · 6 weeks of tight iteration.
+
+### Industry comparison
+MASCI already exceeds Procore, Raken, and Autodesk Build on: single canonical employee record, 9-state HR lifecycle, automatic write-up → status sync, CDL/driver qualification, incident lifecycle with 17 branches, investigation timeline visualization, Attorney Work Product PDF chrome, bilingual EN/ES parity.
+
+### Documents produced
+- `/app/memory/TRACK_19_20_EMPLOYEE_LIFECYCLE_AUDIT.md` — master audit (19 sections)
+- `/app/memory/TRACK_19_20_DELIVERABLES_INDEX.md` — deliverables index
+
+### Zero-drift guarantee
+Every recommendation extends existing collections. No parallel employee records. No duplicate systems. Pydantic `extra="allow"` on `FieldBlock` permits P0-A additive fields with no schema drift.
+
+### Deployment recommendation
+🟢 Deploy the current platform to production as-is. Ship the P0/P1/P2 roadmap in subsequent tracks.
+
+
 ## 2026-07-02 — TRACK 19.19 · Daily Report .xlsm Attachment Support · 🟢 P0 field blocker fixed
 
 ### Fixed
