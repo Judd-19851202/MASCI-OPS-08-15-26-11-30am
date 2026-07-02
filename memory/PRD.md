@@ -8540,3 +8540,38 @@ Track 18.x · 19.00 · 19.01 · 19.01A · 19.02 · 19.02A · 19.02C.
 
 **The MASCI Operations Platform is live, isolated, and certified for real operational use.**
 
+
+---
+
+## Track 19.21 · Employee Records Intelligence Platform — P0 Foundation (2026-07-02)
+
+### Product summary
+Single-page Employee 360° profile + Universal Employee Record model + manual Historical Records Intake + Review Queue. HR is the ultimate system owner; Safety and Asset Administrators own their lanes operationally. All work is additive — no destructive migrations.
+
+### What's live now
+- Employee 360° at `/hr/employees/:empId/profile`: identity, story, 7-tab timeline, right-rail summary, HR Compliance Brief PDF, deep links to intake & queue.
+- Universal Employee Record: 4 lanes (`hr` · `safety` · `asset` · `corporate_import`), 5 states, full approve/reject/reassign lifecycle.
+- Incident cases join the HR timeline via defensible roles only.
+- Historical Records Intake at `/hr/historical-records/intake` with manual classification, original-file preservation (SHA-256, R2+base64 fallback), 25 MB cap, extension allowlist. Safety-lane reveals Incident Case ID field; Asset-lane reveals Asset ID field.
+- Review Queue at `/hr/historical-records/queue` with lane tabs (scoped to actor), approve/reject/reassign, reject requires reason, approval requires employee link + record type.
+- Backend auth gate `make_employee_records_actor_gate` accepts HR / Safety / Shop-with-`is_asset_admin` / Admin. Lane RBAC enforced end-to-end.
+
+### Backlog (unchanged priorities)
+- **P1** Employee 360° export placeholders (Complete File PDF · Training Package · Discipline Package).
+- **P1** Basic search + filter within Employee 360° timeline (date range, tag, source).
+- **P1** Bulk-batch intake UI (many files at once, one classification pass).
+- **P1** Records-by-lane pane inside Employee 360° that lists actual records (approved documents) with quick "view original" — currently only counts are shown; the intake+queue already produces records but the profile still only shows count aggregates.
+
+### Explicitly deferred (P2+ · future tracks · **do not build**)
+- OCR / any text extraction pipeline.
+- AI classification / auto-lane assignment / auto record-type inference.
+- Fuzzy employee matching / probabilistic employee link.
+- OSHA compliance intelligence engine.
+- Passive incident-presence scoring in the timeline.
+- Any second source of truth for the employee roster.
+
+### Refactor debt (non-blocking)
+- Pytest cross-suite asyncio bleed still present when running the entire suite. Individual track test files pass. Isolated fix owned by test-infra track.
+
+### Test-credentials pointer
+`/app/memory/test_credentials.md` — super-admin `jaymn.judd@mascigc.com / Maddix123!` signs in via `/sign-in` and receives every portal token (including HR).

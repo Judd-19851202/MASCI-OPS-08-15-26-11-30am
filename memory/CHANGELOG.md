@@ -6382,3 +6382,54 @@ Powerful 9 · Simple 10 · Beautiful 8 · Trusted 9 · Proven 9
 
 ### Verdict
 🟢 GREEN on backend · ⏭ frontend pending separate session.
+
+---
+
+## 2026-07-02 · Track 19.21 · Employee Records Intelligence Platform — P0 Foundation
+
+### Phase A (locked and browser-verified this session)
+- Universal Employee Record model wired: 4 ownership lanes (`hr`, `safety`, `asset`, `corporate_import`), 5 approval states (`pending_classification`, `pending_match`, `pending_approval`, `linked`, `rejected`), lane→types map, LANE_APPROVERS matrix.
+- Endpoints (all additive under `/api/employee-records/*`): `POST /records`, `GET /records`, `GET /records/{id}`, `POST /records/{id}/approve`, `POST /records/{id}/reject`, `POST /records/{id}/reassign`, `GET /queues/{lane}`, `GET /employees/{emp_id}/records`.
+- Incident Cases join the HR employee timeline via defensible roles only (reporter · involved · witness · CAPA owner). No passive presence scoring.
+- Frontend page `EmployeeProfile.jsx` at `/hr/employees/:empId/profile`: identity header, auto-composed Employee Story paragraph, 7 category tabs (All timeline, Training, PPE, Incidents, Discipline, Driver Qual, HR Lifecycle), color-coded timeline spine, right rail with Current State + Records-by-Category counts + HR Compliance Brief PDF link.
+- **Bug fixed this session:** EmployeeProfile.jsx was using wrong localStorage keys (`safetyToken` / `adminToken` / `pmToken` with `Authorization: Bearer` scheme). Now correctly uses `getHrToken()` / `getSafetyToken()` / `getAdminToken()` and sends `X-HR-Token` / `X-Safety-Token` / `X-Admin-Token` headers.
+
+### Phase B (Track 19.21b · Historical Records Intake — new this session)
+- New auth gate `make_employee_records_actor_gate` (in `routes/employee_records.py`) that accepts HR + Safety + Shop-with-`is_asset_admin` + Admin tokens. Server.py now wires this in place of the old `make_require_safety_admin_or_pm` (which lacked HR-token support).
+- New backend endpoints:
+  - `GET /api/employee-records/vocabulary` — lanes + types + allowed_lanes_for_actor.
+  - `POST /api/employee-records/uploads` — original-file preservation. Computes SHA-256, extension allowlist (pdf/docx/xlsm/office/images/text), 25 MB cap, R2 storage with base64 fallback for dev/test.
+  - `GET /api/employee-records/records/{id}/file` — presigned-redirect for R2 refs, data-URL passthrough for fallback refs. Lane-gated per actor.
+- New frontend pages:
+  - `HistoricalRecordsIntake.jsx` at `/hr/historical-records/intake` — manual lane picker (only allowed lanes rendered), record-type dropdown that swaps by lane, EmployeeCombo employee link, Safety-lane reveals Incident Case ID field, Asset-lane reveals Asset ID field, tags/notes/effective-date, file upload with size+type validation, "Stage for Approval" CTA. Banner explicitly declares: "Manual classification only · No OCR · No AI · No fuzzy matching".
+  - `HistoricalRecordsQueue.jsx` at `/hr/historical-records/queue` — lane tabs scoped to actor's allowed lanes, per-record approve / reject (with required reason) / reassign flow, in-line lane/type/employee reassignment, "View original" file preview.
+- Employee 360° deep links: "Add Historical Record" (seeds `?employee_id=`) and "View Intake Queue" buttons in the Employee 360° right rail.
+- New API client `frontend/src/lib/employeeRecordsApi.js` — pure fetch wrapper that forwards every portal token (HR / Safety / Shop / Admin).
+
+### Doctrine locks
+- HR is the system owner across every lane. Safety owns Safety lane. Asset Administrator owns Asset lane. Field/Public/PM CANNOT approve.
+- Approval requires both `employee_id` AND `record_type` (server enforced; UI mirrors + shows blocked banner).
+- Reassignment resets an already-`linked` record back to `pending_approval` (fresh decision).
+- Audit ledger writes are append-only (no update/delete paths).
+- Source file preservation is contractual: `source_file_ref`, `source_file_name`, `source_file_hash` all persisted.
+- Zero drift: Track 19.21/b modules do NOT insert/update/delete `db.employees` or `db.incident_cases`; roster and incident engine remain single-source-of-truth.
+- Explicitly deferred (not built, will not be built in this track): OCR · AI classification · fuzzy matching · OSHA compliance intelligence · passive incident-presence scoring · second employee record system.
+
+### Tests
+- `/app/backend/tests/test_track_19_21_employee_records_platform.py` — 26/26 GREEN (Phase A locks).
+- `/app/backend/tests/test_track_19_21b_historical_records_intake.py` — 30/30 GREEN (Phase B locks: gate factory, upload/download endpoints, extension allowlist, size cap, vocabulary, intake page manual-only banner, upload-then-create wiring, incident/asset link forwarding, queue approve/reject/reassign, approval prerequisites, reject reason required, deep links, portal token headers, route mounting, zero-drift sentinels).
+- Testing agent (Playwright + curl) full end-to-end: all lane tabs · lane switching · manual full flow (stage → approve · stage → reject · unlinked-then-approve · reassign) · permission gating (Safety 403 on HR lane, 200 on own; Shop-without-flag rejected; unauth 401) · file preservation round-trip · audit ledger inspection · disallowed extension rejected — all GREEN.
+- Regression: existing surfaces (Safety Executive Intelligence, Incident Case detail, /incidents/report) — no console errors.
+
+### Files changed
+- `/app/backend/routes/employee_records.py` (added gate factory, vocabulary/uploads/download endpoints, ALLOWED_EXTS/MAX_UPLOAD_BYTES)
+- `/app/backend/server.py` (rewired router to new gate)
+- `/app/frontend/src/pages/EmployeeProfile.jsx` (correct auth headers, deep-link buttons)
+- `/app/frontend/src/pages/HistoricalRecordsIntake.jsx` (NEW)
+- `/app/frontend/src/pages/HistoricalRecordsQueue.jsx` (NEW)
+- `/app/frontend/src/lib/employeeRecordsApi.js` (NEW)
+- `/app/frontend/src/App.js` (2 new routes)
+- `/app/backend/tests/test_track_19_21b_historical_records_intake.py` (NEW)
+
+### Verdict
+🟢 GREEN. Browser-verified. 56/56 lock tests pass. All 19 e2e scenarios pass. Zero drift confirmed.
