@@ -65,6 +65,7 @@ export const HR_DOMAINS_V2 = [
       { to: "/hr/safety-records",        label: "Safety Records",       desc: "Read-only Safety document library and per-employee training.", icon: ShieldCheck },
       { to: "/hr/historical-records/intake", label: "Historical Records Intake", desc: "Upload legacy records — HR, Safety, Asset lanes.", icon: Upload },
       { to: "/hr/historical-records/queue",  label: "Historical Records Queue",  desc: "Review, approve, reject staged records.",         icon: Inbox },
+      { to: "/hr/historical-records/batches", label: "Bulk Historical Intake",   desc: "Many files · one session · classify · approve.", icon: ClipboardList },
     ],
   },
   {

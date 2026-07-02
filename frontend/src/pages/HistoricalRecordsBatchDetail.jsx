@@ -167,6 +167,19 @@ export default function HistoricalRecordsBatchDetail() {
             <StatChip label={t("Approved")}    value={counts.linked || 0} tone="emerald" />
             <StatChip label={t("Rejected")}    value={counts.rejected || 0} tone="red" />
           </div>
+          {/* Track 19.25 · Intake Session provenance strip. */}
+          {(batch.source_name || batch.source_type || batch.source_location) && (
+            <div className="mt-3 flex flex-wrap items-center gap-2 rounded-md bg-slate-50 border border-slate-200 px-3 py-2 text-xs text-slate-700"
+                 data-testid="batch-detail-provenance">
+              <span className="font-mono uppercase tracking-widest text-[9px] text-slate-500">{t("Session")}</span>
+              {batch.source_name && <span><b>{batch.source_name}</b></span>}
+              {batch.source_type && <span className="text-slate-500">· {batch.source_type}</span>}
+              {batch.source_location && <span className="text-slate-500">· {batch.source_location}</span>}
+              <span className="ml-auto text-[10px] text-slate-500">
+                {t("Every file in this batch inherits this provenance.")}
+              </span>
+            </div>
+          )}
         </header>
 
         {/* Upload dropzone */}

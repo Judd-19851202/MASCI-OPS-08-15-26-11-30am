@@ -164,6 +164,11 @@ class CreateBatchBody(BaseModel):
     ownership_lane: str
     label: str = ""
     notes: str = ""
+    # Track 19.25 · Intake Session provenance (all optional, all inherited
+    # onto records so operators do not re-type provenance per file).
+    source_name: Optional[str] = None        # e.g. "2019 HR File Cabinet"
+    source_type: Optional[str] = None        # e.g. "cabinet · binder · box · folder · digital"
+    source_location: Optional[str] = None    # e.g. "University High School · trailer"
 
 
 class CreateRecordBody(BaseModel):
@@ -318,6 +323,10 @@ def build_employee_records_router(*, db, require_actor):
             "file_count": 0,
             "record_count": 0,
             "status": "open",  # open → closed by an admin action
+            # Track 19.25 · Intake Session provenance.
+            "source_name": body.source_name or "",
+            "source_type": body.source_type or "",
+            "source_location": body.source_location or "",
         }
         await db.record_import_batches.insert_one(batch)
         batch.pop("_id", None)
@@ -827,11 +836,16 @@ def build_employee_records_router(*, db, require_actor):
                 "approved_by": None,
                 "approval_status": "pending_classification",
                 "effective_date": None,
-                "source_type": "upload",
+                "source_type": batch.get("source_type") or "upload",
                 "source_file_ref": ref,
                 "source_file_name": name,
                 "source_file_hash": digest,
                 "imported_batch_id": batch_id,
+                # Track 19.25 · Session provenance inherited from batch.
+                "intake_source_name": batch.get("source_name") or "",
+                "intake_source_type": batch.get("source_type") or "",
+                "intake_source_location": batch.get("source_location") or "",
+                "intake_batch_label": batch.get("label") or "",
                 "related_incident_case_id": None,
                 "related_training_id": None,
                 "related_asset_id": None,

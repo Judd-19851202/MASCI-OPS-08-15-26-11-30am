@@ -196,6 +196,51 @@ export default function HistoricalRecordsIntake() {
           </div>
         </header>
 
+        {/* Track 19.25 · Human-facing guidance · answers "What can I upload?"
+             and "How does this work?" in ≤5 seconds. */}
+        <section className="grid gap-3 sm:grid-cols-2" data-testid="intake-guidance">
+          <div className="rounded-xl border-2 border-slate-300 bg-white p-4"
+               data-testid="intake-what-you-can-upload">
+            <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500 mb-2">
+              {t("What can I upload?")}
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                "Employee Write-Up", "Training Certificate", "Incident Report",
+                "Safety Document", "PPE Issue Record", "Tool Issue Record",
+                "Phone / Tablet / iPad", "Survey Equipment",
+                "Driver Qualification", "Policy Acknowledgement",
+                "Evaluation", "Recognition", "Termination", "Other",
+              ].map((label) => (
+                <span key={label}
+                      className="inline-flex items-center rounded-md bg-slate-100 border border-slate-200 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
+                  {t(label)}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-xl border-2 border-slate-300 bg-white p-4"
+               data-testid="intake-how-it-works">
+            <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500 mb-2">
+              {t("How it works")}
+            </div>
+            <ol className="space-y-1.5 text-sm text-slate-800">
+              <li className="flex items-start gap-2">
+                <span className="inline-flex items-center justify-center rounded-full bg-slate-900 text-white text-[10px] font-bold w-4 h-4 shrink-0 mt-0.5">1</span>
+                <span><b>{t("Upload")}</b> — {t("Attach the original file below.")}</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="inline-flex items-center justify-center rounded-full bg-slate-900 text-white text-[10px] font-bold w-4 h-4 shrink-0 mt-0.5">2</span>
+                <span><b>{t("Link")}</b> — {t("Pick the employee (and asset or incident if relevant).")}</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="inline-flex items-center justify-center rounded-full bg-slate-900 text-white text-[10px] font-bold w-4 h-4 shrink-0 mt-0.5">3</span>
+                <span><b>{t("Approve")}</b> — {t("Review in the queue. Approved records appear on the employee's 360°.")}</span>
+              </li>
+            </ol>
+          </div>
+        </section>
+
         {/* Form */}
         <section className="rounded-xl border-2 border-slate-300 bg-white p-4 sm:p-5 space-y-4"
                  data-testid="intake-form">

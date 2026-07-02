@@ -31,6 +31,9 @@ export default function HistoricalRecordsBatches() {
   const [busy, setBusy] = useState(false);
   const [newLane, setNewLane] = useState("");
   const [newLabel, setNewLabel] = useState("");
+  const [newSrcName, setNewSrcName] = useState("");
+  const [newSrcType, setNewSrcType] = useState("");
+  const [newSrcLoc, setNewSrcLoc] = useState("");
 
   useEffect(() => {
     fetchVocabulary()
@@ -58,9 +61,18 @@ export default function HistoricalRecordsBatches() {
     if (!newLane) { toast.error(t("Pick a lane.")); return; }
     setBusy(true);
     try {
-      const r = await createBatch({ ownership_lane: newLane, label: newLabel });
+      const r = await createBatch({
+        ownership_lane: newLane,
+        label: newLabel,
+        source_name: newSrcName,
+        source_type: newSrcType,
+        source_location: newSrcLoc,
+      });
       toast.success(t("Batch created."));
       setNewLabel("");
+      setNewSrcName("");
+      setNewSrcType("");
+      setNewSrcLoc("");
       navigate(`/hr/historical-records/batches/${r.batch.id}`);
     } catch (e) { toast.error(String(e.message || e)); }
     finally { setBusy(false); }
@@ -92,45 +104,103 @@ export default function HistoricalRecordsBatches() {
         </header>
 
         {/* New batch form */}
-        <div className="rounded-xl border-2 border-slate-300 bg-white p-4 flex flex-wrap items-end gap-3"
+        <div className="rounded-xl border-2 border-slate-300 bg-white p-4 space-y-3"
              data-testid="batches-new">
+          <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">
+            {t("New Intake Session")}
+          </div>
+          <div className="flex flex-wrap items-end gap-3">
+            <div>
+              <label className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">
+                {t("Lane")}
+              </label>
+              <select
+                value={newLane}
+                onChange={(e) => setNewLane(e.target.value)}
+                className="mt-1 rounded-md border-2 border-slate-300 bg-white px-2 py-1.5 text-sm font-mono"
+                data-testid="batches-new-lane"
+              >
+                {(vocab?.allowed_lanes_for_actor || []).map((l) => (
+                  <option key={l} value={l}>{LANE_LABEL[l] || l}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex-1 min-w-[220px]">
+              <label className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">
+                {t("Session label")}
+              </label>
+              <input
+                type="text"
+                value={newLabel}
+                onChange={(e) => setNewLabel(e.target.value)}
+                placeholder={t("e.g. 2024 Personnel Files")}
+                className="mt-1 w-full rounded-md border-2 border-slate-300 bg-white px-3 py-1.5 text-sm"
+                data-testid="batches-new-label"
+              />
+            </div>
+          </div>
+          {/* Track 19.25 · Session provenance — inherited by every file. */}
+          <div className="grid gap-3 sm:grid-cols-3" data-testid="batches-new-session-provenance">
+            <div>
+              <label className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">
+                {t("Source name")}
+              </label>
+              <input
+                type="text"
+                value={newSrcName}
+                onChange={(e) => setNewSrcName(e.target.value)}
+                placeholder={t("2019 HR file cabinet")}
+                className="mt-1 w-full rounded-md border-2 border-slate-300 bg-white px-3 py-1.5 text-sm"
+                data-testid="batches-new-source-name"
+              />
+            </div>
+            <div>
+              <label className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">
+                {t("Source type")}
+              </label>
+              <select
+                value={newSrcType}
+                onChange={(e) => setNewSrcType(e.target.value)}
+                className="mt-1 w-full rounded-md border-2 border-slate-300 bg-white px-3 py-1.5 text-sm font-mono"
+                data-testid="batches-new-source-type"
+              >
+                <option value="">{t("(pick)")}</option>
+                <option value="cabinet">{t("Cabinet")}</option>
+                <option value="binder">{t("Binder")}</option>
+                <option value="box">{t("Box")}</option>
+                <option value="folder">{t("Folder")}</option>
+                <option value="digital">{t("Digital archive")}</option>
+                <option value="other">{t("Other")}</option>
+              </select>
+            </div>
+            <div>
+              <label className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">
+                {t("Location")}
+              </label>
+              <input
+                type="text"
+                value={newSrcLoc}
+                onChange={(e) => setNewSrcLoc(e.target.value)}
+                placeholder={t("University High School · trailer")}
+                className="mt-1 w-full rounded-md border-2 border-slate-300 bg-white px-3 py-1.5 text-sm"
+                data-testid="batches-new-source-location"
+              />
+            </div>
+          </div>
           <div>
-            <label className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">
-              {t("Lane")}
-            </label>
-            <select
-              value={newLane}
-              onChange={(e) => setNewLane(e.target.value)}
-              className="mt-1 rounded-md border-2 border-slate-300 bg-white px-2 py-1.5 text-sm font-mono"
-              data-testid="batches-new-lane"
+            <button
+              type="button"
+              onClick={onCreate}
+              disabled={busy || !newLane}
+              className="inline-flex items-center gap-2 rounded-md bg-purple-700 text-white px-4 py-2 text-sm font-semibold hover:bg-purple-800 disabled:opacity-50"
+              data-testid="batches-create"
             >
-              {(vocab?.allowed_lanes_for_actor || []).map((l) => (
-                <option key={l} value={l}>{LANE_LABEL[l] || l}</option>
-              ))}
-            </select>
+              <Plus className="w-3.5 h-3.5" /> {t("Create batch")}
+            </button>
+            <span className="ml-3 text-[11px] text-slate-500">
+              {t("Provenance is inherited by every file in this batch.")}
+            </span>
           </div>
-          <div className="flex-1 min-w-[220px]">
-            <label className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">
-              {t("Label")}
-            </label>
-            <input
-              type="text"
-              value={newLabel}
-              onChange={(e) => setNewLabel(e.target.value)}
-              placeholder={t("e.g. 2024 Personnel Files")}
-              className="mt-1 w-full rounded-md border-2 border-slate-300 bg-white px-3 py-1.5 text-sm"
-              data-testid="batches-new-label"
-            />
-          </div>
-          <button
-            type="button"
-            onClick={onCreate}
-            disabled={busy || !newLane}
-            className="inline-flex items-center gap-2 rounded-md bg-purple-700 text-white px-4 py-2 text-sm font-semibold hover:bg-purple-800 disabled:opacity-50"
-            data-testid="batches-create"
-          >
-            <Plus className="w-3.5 h-3.5" /> {t("Create batch")}
-          </button>
         </div>
 
         {/* List */}

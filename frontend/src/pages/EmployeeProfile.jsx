@@ -580,6 +580,15 @@ function DocCard({ doc, onOpenFile }) {
         <span>{t("By")}: {doc.created_by || "—"}</span>
         {doc.approved_by && <span>{t("Appr")}: {doc.approved_by}</span>}
       </div>
+      {/* Track 19.25 · session provenance surfaces on Employee 360°. */}
+      {doc.intake_source_name && (
+        <div className="mt-1 text-[10px] text-slate-500 italic"
+             data-testid={`employee-profile-doc-source-${doc.id}`}>
+          {t("Source")}: {doc.intake_source_name}
+          {doc.intake_source_type ? ` · ${doc.intake_source_type}` : ""}
+          {doc.intake_source_location ? ` · ${doc.intake_source_location}` : ""}
+        </div>
+      )}
       {doc.tags?.length ? (
         <div className="mt-1 flex flex-wrap gap-1">
           {doc.tags.slice(0, 5).map((tag) => (

@@ -83,6 +83,9 @@ export const SAFETY_DOMAINS_V2 = [
       { to: "/safety-portal/fire-extinguishers", label: "Fire Extinguishers",   desc: "Monthly inspections and unit history.",   icon: Flame },
       { to: "/safety-portal/digest",             label: "Weekly Digest",        desc: "Monday email of open and overdue items.", icon: Mail },
       { to: "/safety-portal/reports",            label: "Reports & Exports",    desc: "OSHA 300, trend, executive roll-ups.",    icon: BarChart3 },
+      { to: "/hr/historical-records/intake",     label: "Safety Records Intake", desc: "Upload legacy safety records for an employee.", icon: FileText },
+      { to: "/hr/historical-records/queue",      label: "Safety Records Queue",  desc: "Approve or reject staged Safety-lane records.", icon: FileText },
+      { to: "/hr/historical-records/batches",    label: "Bulk Historical Intake", desc: "Many files · one session · Safety lane.",       icon: FileText },
     ],
   },
   {

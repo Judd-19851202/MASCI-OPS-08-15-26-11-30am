@@ -6575,3 +6575,52 @@ Historical Records Intake routes (Track 19.21b + 19.22) existed and worked, but 
 
 ### Verdict
 🟢 GREEN.
+
+---
+
+## 2026-07-02 · Track 19.25 · Historical Records Intake Discoverability + Intake Session Upgrade
+
+**Nature:** Additive discoverability + provenance metadata. Zero drift. No new pages. No new backend routes.
+
+### HR portal
+- HR Sidebar V2 · Compliance & Records: added **Bulk Historical Intake** entry (Intake + Queue already added in Track 19.24).
+
+### Safety portal
+- Safety Sidebar V2 · Compliance & Records: added **Safety Records Intake**, **Safety Records Queue**, **Bulk Historical Intake** (all routed to `/hr/historical-records/*`; backend `_actor_can_read_lane` confines Safety token to Safety lane).
+
+### Asset Administrator (Shop hub)
+- Shop Hub V2: added new section "09 · Asset Administrator · Historical Records" with 3 HubCards (Asset Records Intake · Asset Records Queue · Bulk Historical Intake). Backend `make_employee_records_actor_gate` promotes to `asset_admin` only when Shop user has `is_asset_admin=true`.
+
+### Intake landing page clarity
+- `HistoricalRecordsIntake.jsx` gained two guidance cards above the form:
+  - **"What can I upload?"** — 14 human-language chips (Employee Write-Up · Training Certificate · Incident Report · Safety Document · PPE Issue Record · Tool Issue Record · Phone / Tablet / iPad · Survey Equipment · Driver Qualification · Policy Acknowledgement · Evaluation · Recognition · Termination · Other).
+  - **"How it works"** — three-step visual (Upload → Link → Approve).
+
+### Intake Session foundation (Phase 6)
+Additive backend fields on `CreateBatchBody`:
+- `source_name`, `source_type`, `source_location` (all optional strings).
+
+Batch documents now store these three fields; every record created via `POST /batches/{id}/uploads` inherits:
+- `intake_source_name`, `intake_source_type`, `intake_source_location`, `intake_batch_label`.
+
+Surfaces:
+- Batches list `/hr/historical-records/batches`: create form gained 3 fields + hint "Provenance is inherited by every file in this batch."
+- Batch detail page: session provenance strip surfaces above records list.
+- Employee 360° · Documents tab: doc card shows subtle italic "Source: … · … · …" line when session provenance is present.
+
+### Tests
+- `test_track_19_25_discoverability_and_intake_session.py` · 14 new lock tests.
+- Fixed 1 pre-existing Track 19.22 test (window size · unchanged intent).
+- **106/106 lock tests GREEN across Tracks 19.21–19.25.**
+
+### Live curl end-to-end
+Create batch with provenance → upload 2 files → each inherits `intake_source_*` → bulk classify → bulk approve → records reach `linked` with session provenance intact and surface on Employee 360°.
+
+### Zero drift
+- No new routes. No new pages. No new components. No new dependencies.
+- `db.employees` mutations: **0**. `db.incident_cases` mutations: **0**. Audit ledger append-only: preserved.
+- No OCR / AI / fuzzy imports.
+- All new fields default to `""` — pre-Track-19.25 batches remain fully compatible.
+
+### Verdict
+🟢 GO.

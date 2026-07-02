@@ -868,6 +868,29 @@ export default function ShopHubV2() {
         {/* 08 · Map — secondary lens, lowest priority. */}
         <ShopRecoveryMap />
 
+        {/* 09 · Asset Administrator · Historical Records (Track 19.25 · nav-only).
+              Only functionally usable by shop users flagged `is_asset_admin`;
+              the backend gate enforces this even if others click through. */}
+        <section data-testid="shop-hub-v2-section-asset-records" style={{ marginBottom: 28 }}>
+          <SectionHeader
+            kicker="09 · Asset Administrator · Historical Records"
+            title="Upload · classify · approve"
+            caption="PPE, tools, phones/tablets/iPads, survey equipment, laser units, replacements. Manual only — no OCR."
+          />
+          <div data-testid="shop-hub-v2-asset-records-grid"
+               style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
+            <HubCard to="/hr/historical-records/intake" testid="shop-hub-v2-asset-intake"
+                     title="Asset Records Intake"
+                     body="Upload a signed acknowledgement, PPE / tool issue slip, or replacement doc." />
+            <HubCard to="/hr/historical-records/queue" testid="shop-hub-v2-asset-queue"
+                     title="Asset Records Queue"
+                     body="Approve, reject, or reassign staged Asset-lane records." />
+            <HubCard to="/hr/historical-records/batches" testid="shop-hub-v2-asset-batches"
+                     title="Bulk Historical Intake"
+                     body="Many files · one session · one lane · single classify pass." />
+          </div>
+        </section>
+
         {allZero && (
           <EmptyState
             testId="shop-hub-v2-all-clear"

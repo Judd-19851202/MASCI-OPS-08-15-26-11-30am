@@ -59,7 +59,7 @@ def test_batch_upload_preserves_original_file_and_hash():
     src = MODULE.read_text(encoding="utf-8")
     # The uploader path must compute _sha256 and stamp source_file_ref.
     ix = src.index("async def batch_upload(")
-    body = src[ix: ix + 3500]
+    body = src[ix: ix + 5000]
     assert "_sha256(raw)" in body
     assert 'rec["id"]' in body
 

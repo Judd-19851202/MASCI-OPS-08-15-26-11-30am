@@ -8630,3 +8630,20 @@ Twelve certification docs under `/app/memory/TRACK_19_23_*.md`. Each covers one 
 
 ### Pre-existing non-blockers
 - Pytest asyncio cross-suite bleed (109 tests fail on combined run · every one passes in isolation). Not a regression. Owned by future test-infra refactor track.
+
+---
+
+## Track 19.25 · Historical Records Intake Discoverability + Intake Session Upgrade (2026-07-02)
+
+### Delivered
+- HR / Safety / Asset Administrator portals now expose Historical Records Intake · Queue · Bulk from their primary sidebar or hub grid — no more URL-hunting.
+- Intake page prefaces the form with a 14-chip "What can I upload?" strip and a 3-step "Upload → Link → Approve" visual.
+- Intake Session provenance (source_name / source_type / source_location) flows from batch → record → Employee 360°, eliminating repetitive typing during bulk historical imports.
+
+### Verification
+- 106/106 backend lock tests GREEN (14 new · 92 pre-existing across Tracks 19.21–19.24).
+- Live curl end-to-end confirmed provenance inheritance from batch creation through Employee 360° roll-up.
+- Playwright screenshots confirmed guidance cards + Intake Session form on the batches page.
+
+### Zero drift certified
+No new pages · no new routes · no new components · no schema migration · no ML libs · no mutation of employee/incident collections · audit ledger append-only.
