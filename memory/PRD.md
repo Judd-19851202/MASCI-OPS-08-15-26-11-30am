@@ -11,6 +11,32 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.31 · Shop Portal Sidebar V2 Implementation · ✅ COMPLETE (2026-07-03)
+
+First feature track under the Track 19.30 Production Readiness Quality Gate. Passed clean.
+
+**What shipped:**
+- `frontend/src/components/shop/sidebar/domainMap.js` — 6 base domains (Recovery & Attention · Work Assignments · Fleet & Equipment · Preventive Maintenance · Service & Support · Asset Care) + 1 conditional Asset Administrator lane + footer rail (My Tasks · Guidance).
+- `frontend/src/components/shop/sidebar/ShopSideNavV2.jsx` — mirrors PM SideNavV2 shape · adds conditional Asset Administrator lane per Track 19.28 rule · feature-flag escape hatch (`?shopSidebarV2=0`).
+- `ShopHubV2.jsx` — wired `sideNav={<ShopSideNavV2 />}` into `PortalShell`. Tile-grid HubV2 body preserved intact.
+
+**Six Pillar Score: 57 / 60 · Production Strong.**
+- Powerful 9 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 9 · Operational 10.
+
+**Zero-drift proof:** 0 backend files touched · 0 schemas · 0 routes · 0 PDFs · 0 emails · 0 permissions · 0 audit events. Track 19.28 Section 09 asset-admin gate preserved intact.
+
+**Rollback:** feature flag off (`localStorage.masci.shop.sidebar.v2 = "0"` or `?shopSidebarV2=0`) · or full source revert (3 files) · `/shop/hub_legacy` untouched.
+
+**Testing:** live Playwright smoke against preview URL passed 14/14 assertions (desktop 1920×900 · mobile 390×844 · positive + negative asset-admin visibility). Frontend lint clean. Lock test authored at `backend/tests/test_track_19_31_shop_sidebar_v2.py`.
+
+**Docs:** `TRACK_19_31_SHOP_SIDEBAR_V2.md` · `TRACK_19_31_QUALITY_GATE_CLOSEOUT.md` · `TRACK_19_31_TEST_REPORT.md`.
+
+**Sidebar consistency across portals:** now **6 of 7** portals have Sidebar V2 (HR · Safety · Admin · PM · Dispatch · Shop). Transportation / Fleet remain P3-2 backlog.
+
+**Next:** P3-2 (Sidebar V2 for Transportation / Fleet) · HR polish items (P3-8 · P3-9 · P3-10) · TrenchAssetPicker polish (P3-3 · P3-4).
+
+
+
 ## TRACK 19.30 · Production Quality Gate + Operational Excellence Standard · ✅ COMPLETE (2026-07-03)
 
 Permanent "Done Means Done" enforcement system. Every future feature, fix, workflow, form, portal, PDF, integration, automation, report, dashboard, and operational module must now pass this gate before it can be called complete.

@@ -1,5 +1,38 @@
 # CHANGELOG
 
+## 2026-07-03 — TRACK 19.31 · Shop Portal Sidebar V2 Implementation · 🟢 SHIPPED (Production Strong · 57/60)
+
+### Shipped
+- **Shop Sidebar V2** — 6 base domains + 1 conditional Asset Administrator lane + footer rail:
+  - Recovery & Attention · Work Assignments · Fleet & Equipment · Preventive Maintenance · Service & Support · Asset Care.
+  - Asset Administrator lane conditional on `masci.is_asset_admin === "true"` OR admin token (mirrors Track 19.28 Section 09 rule).
+- **Feature flag** `isShopSidebarV2Enabled` — default ON · escape hatch via `?shopSidebarV2=0` sticky query param or `masci.shop.sidebar.v2 = "0"` localStorage.
+- **Files added:**
+  - `frontend/src/components/shop/sidebar/domainMap.js`
+  - `frontend/src/components/shop/sidebar/ShopSideNavV2.jsx`
+- **Files modified:**
+  - `frontend/src/pages/ShopHubV2.jsx` (wired `sideNav` prop · imports).
+- **Lock test:** `backend/tests/test_track_19_31_shop_sidebar_v2.py` (18 assertions).
+
+### Quality Gate compliance
+First feature track under the Track 19.30 Production Readiness Quality Gate. Passed all applicable categories:
+- **Six Pillar aggregate: 57/60 (Production Strong)** — no single pillar below 7.
+- **Zero-Drift Matrix: 16/16 categories unchanged** (schemas · routes · payloads · PDFs · emails · notifications · permissions · Trust Spine · audit events · HR SoT · autosave · historical records · bilingual · form primitives · incident architecture · rollback paths).
+- **Playwright smoke:** 14/14 assertions PASS live against preview URL.
+- **Frontend lint:** clean.
+- **Rollback path:** documented (feature flag + full source revert + `/shop/hub_legacy` untouched).
+
+### Impact
+Sidebar consistency across portals: **6 of 7 portals** now have Sidebar V2 (HR · Safety · Admin · PM · Dispatch · Shop). Transportation / Fleet remain P3-2 backlog.
+
+### Zero-drift proof
+0 backend files touched · 0 schemas · 0 routes · 0 PDFs · 0 emails · 0 permissions. Track 19.28 asset-admin visibility gate preserved intact.
+
+### Final verdict
+🟢 **GO.** Shop feels like the rest of the platform.
+
+
+
 ## 2026-07-03 — TRACK 19.30 · Production Quality Gate + Operational Excellence Standard · 🟢 SHIPPED (GATE ACTIVE)
 
 ### Shipped

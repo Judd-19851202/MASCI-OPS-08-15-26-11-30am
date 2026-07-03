@@ -20,6 +20,7 @@ import { Link } from "react-router-dom";
 import { getAdminToken } from "@/lib/adminAuth";
 import { getShopToken } from "@/lib/shopAuth";
 import { PortalShell, StatusChip, Card, EmptyState } from "../design-system";
+import ShopSideNavV2, { isShopSidebarV2Enabled } from "@/components/shop/sidebar/ShopSideNavV2";
 // Track 13.7B · Shop Recovery Map lens — reuse the certified
 // MapLibre engine + 15-s snapshot. NO new map system, NO new
 // backend, NO new provider. Truthful copy enforced below.
@@ -692,6 +693,7 @@ export default function ShopHubV2() {
             {s.loaded ? `Refreshed ${new Date(s.refreshedAt).toLocaleTimeString()}` : "Loading live signals…"}
           </span>
         }
+        sideNav={isShopSidebarV2Enabled() ? <ShopSideNavV2 /> : undefined}
       >
         {/* Global Unit Search · Track 13.30C — sits directly under the
             primary action row so it is visible without scrolling. */}
