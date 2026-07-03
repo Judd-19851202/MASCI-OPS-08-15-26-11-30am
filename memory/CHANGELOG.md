@@ -10,6 +10,22 @@
 
 # CHANGELOG
 
+## 2026-07-04 — TRACK 19.46 · Weekly Operations + History API + Audit API · 🟢 SHIPPED (11 of 11 products IMPLEMENTED · 0 CONTRACT_REGISTERED remain)
+
+### Shipped
+- **Weekly Operations Digest** (`weekly_operations_digest`) — IMPLEMENTED. Cross-domain WoW-delta report. Composes 9 domain digests via `engine.compose(...)` and diffs against `operational_intelligence_history`. Top-5 ranked by attention bucket then WoW delta magnitude. Recommendations are specific and actionable; no "monitor" filler. Every recommendation framed as a Monday operations meeting discussion prompt. Permission `admin_only`. Weekly Mon 13:00 UTC.
+- **History API** — `GET /api/operational-intelligence/history` and `/history/{id}`. Read-only, admin-only, paginated, filterable by product/period/since/until, sortable. List strips `rendered_html` for boardroom-fast Cockpit strips; detail opts in via `include_html=true`.
+- **Audit API** — `GET /api/operational-intelligence/audit`. Read-only, admin-only, paginated, filterable by product/event/actor/since/until. Defensive strip of `token`/`secret`/`password`/`api_key` payload fields.
+- **Lock test** `test_track_19_46_weekly_operations_and_apis.py` — 19 assertions.
+- **9 governance docs** shipped (`TRACK_19_46_*.md`).
+- Registry now **11/11 IMPLEMENTED · 0 CONTRACT_REGISTERED**.
+
+### Zero drift
+- 0 new collections · 0 new email provider · 0 new scheduler · 0 new recipient collection · 0 new renderer · 0 mutation endpoints.
+- Weekly Operations composes only via `engine.compose(db, product_id=X)`; no new data sources.
+- History + Audit endpoints project only from existing `operational_intelligence_history` / `operational_intelligence_audit` collections.
+
+
 ## 2026-07-04 — TRACK 19.45B · Shop Intelligence + Corporate Intelligence · 🟢 SHIPPED (60/60 · 10 of 11 products IMPLEMENTED)
 
 ### Shipped

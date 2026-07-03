@@ -436,10 +436,15 @@ def test_dispatch_dedupe_skips_second_send_and_writes_audit():
 
 
 def test_contract_registered_products_raise_not_implemented_on_compose():
+    """At Track 19.40, 8 products were contract-registered — this test
+    proves the engine correctly emits NotImplementedError for any that
+    remain contract-registered in later tracks. As tracks progress,
+    the contract set may shrink to empty (that's success, not a
+    regression). We only require: any product still contract-registered
+    MUST raise NotImplementedError."""
     from operational_intelligence import compose, list_products, ProductStatus
     contract_ids = [p.product_id for p in list_products()
                     if p.status == ProductStatus.CONTRACT_REGISTERED]
-    assert contract_ids, "expected 8 contract-registered products"
 
     fake_db = _FakeDb()
 

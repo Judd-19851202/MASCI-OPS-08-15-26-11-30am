@@ -2370,7 +2370,413 @@ register_product(Product(
 
 
 # ---------------------------------------------------------------------------
-# 11 · Contract-registered products — aggregators not yet implemented
+# 11 · Weekly Operations Digest (IMPLEMENTED — Track 19.46)
+# ---------------------------------------------------------------------------
+# Distinct from Corporate Intelligence:
+#   • Corporate  — "How is the company?" (weighted snapshot)
+#   • Weekly Ops — "What changed operationally this week?" (WoW deltas)
+#
+# Method: compose each implemented domain, then diff each domain's
+# overall_score against the most-recent prior history row for that
+# product (`operational_intelligence_history` collection). No new data
+# sources. No new email provider. No new scheduler. No new history
+# collection. Every signal earns its place by answering:
+#   "Would leadership make a worse Monday decision if this disappeared?"
+async def _agg_weekly_operations(db, **kwargs) -> Dict[str, Any]:
+    from .product_layout import build_standard_layout
+    from .score_model import (
+        score_from_contributors, Contributor, insufficient_data_score,
+        attention_from_score,
+    )
+    from .engine import compose as _oi_compose, COLLECTION_HISTORY
+
+    # Domains to fold into the weekly view. We exclude the Weekly digest
+    # itself (obviously) and Corporate (which itself already composes
+    # everything — including its own signal would double-count and
+    # create noise, violating the "every section must earn its place"
+    # rule).
+    DOMAINS = [
+        "safety_morning_digest",
+        "project_intelligence",
+        "fleet_intelligence",
+        "shop_intelligence",
+        "transportation_intelligence",
+        "hr_intelligence",
+        "training_intelligence",
+        "po_weekly_digest",
+        "executive_operations_brief",
+    ]
+
+    current: Dict[str, Dict[str, Any]] = {}
+    attention_by_domain: Dict[str, list] = {}
+    for pid in DOMAINS:
+        try:
+            d = await _oi_compose(db, product_id=pid)
+        except Exception:  # noqa: BLE001
+            continue
+        current[pid] = d.get("operational_intelligence_score") or {}
+        # Pull that domain's own attention items so we can bubble
+        # them up when the domain is declining or in HIGH/CRITICAL.
+        try:
+            att_sec = next(s for s in d["sections"]
+                           if s["section_key"] == "needs_immediate_attention")
+            items = [i for i in (att_sec.get("items") or [])
+                     if isinstance(i, str)
+                     and not i.startswith("— Not applicable")]
+            attention_by_domain[pid] = items
+        except Exception:  # noqa: BLE001
+            attention_by_domain[pid] = []
+
+    # Look up the most-recent prior history row per domain to compute
+    # WoW deltas. This is the ONE reason Weekly Ops exists.
+    prior: Dict[str, Dict[str, Any]] = {}
+    for pid in DOMAINS:
+        try:
+            row = await db[COLLECTION_HISTORY].find_one(
+                {"product_id": pid},
+                {"_id": 0, "digest_object.operational_intelligence_score": 1,
+                 "generated_at": 1, "period": 1},
+                sort=[("generated_at", -1)],
+            )
+            if row:
+                prior[pid] = ((row.get("digest_object") or {})
+                              .get("operational_intelligence_score") or {})
+        except Exception:  # noqa: BLE001
+            pass
+
+    # Filter to domains with a current real score (skip insufficient_data).
+    scored: Dict[str, int] = {}
+    for pid, sc in current.items():
+        conf = (sc or {}).get("confidence") or "insufficient_data"
+        if conf == "insufficient_data":
+            continue
+        scored[pid] = int(sc.get("overall_score") or 0)
+
+    # Compute deltas. Positive delta = improvement.
+    deltas: Dict[str, int] = {}
+    for pid, s in scored.items():
+        p = prior.get(pid) or {}
+        prev = p.get("overall_score")
+        if prev is None:
+            continue
+        try:
+            deltas[pid] = int(s) - int(prev)
+        except (TypeError, ValueError):
+            continue
+
+    improvers = [(pid, deltas[pid]) for pid in deltas if deltas[pid] > 0]
+    decliners = [(pid, deltas[pid]) for pid in deltas if deltas[pid] < 0]
+    high_crit_now = [pid for pid, s in scored.items() if s < 65]
+
+    # Insufficient-data guard — must have at least one scored domain
+    # to say anything meaningful about the week.
+    if not scored:
+        score = insufficient_data_score(
+            "No domain has sufficient data — Weekly Operations "
+            "cannot compute this week's change signals.")
+    else:
+        positives, negatives = [], []
+        if improvers:
+            positives.append(Contributor(
+                key="domains_improving",
+                label=f"{len(improvers)} domain(s) improved WoW",
+                impact=min(12, len(improvers) * 3),
+                detail="Score increase vs. last recorded period."))
+        if decliners:
+            negatives.append(Contributor(
+                key="domains_declining",
+                label=f"{len(decliners)} domain(s) declined WoW",
+                impact=-min(20, len(decliners) * 5),
+                detail="Score decrease vs. last recorded period."))
+        if high_crit_now:
+            negatives.append(Contributor(
+                key="domains_in_high_or_critical",
+                label=f"{len(high_crit_now)} domain(s) in HIGH/CRITICAL now",
+                impact=-min(25, len(high_crit_now) * 8),
+                detail=f"Domains: {', '.join(high_crit_now)}"))
+        elif scored:
+            positives.append(Contributor(
+                key="no_domains_in_high_or_critical",
+                label=f"No domain in HIGH/CRITICAL ({len(scored)} scored)",
+                impact=10,
+                detail="Every scored domain sits at LOW or MEDIUM attention."))
+
+        # Baseline = mean of current domain scores — Weekly Ops is a
+        # cross-domain view, not a weighted rollup (that's Corporate).
+        baseline = int(round(sum(scored.values()) / max(1, len(scored))))
+        # Trend percent = mean of per-domain deltas normalised to prior.
+        trend_percent = None
+        if deltas:
+            prior_scores = [((prior.get(pid) or {}).get("overall_score") or 0)
+                            for pid in deltas]
+            prior_mean = sum(prior_scores) / max(1, len(prior_scores))
+            curr_mean = sum(scored[pid] for pid in deltas) / max(1, len(deltas))
+            if prior_mean > 0:
+                trend_percent = round(
+                    ((curr_mean - prior_mean) / prior_mean) * 100.0, 1)
+
+        score = score_from_contributors(
+            baseline=baseline, positives=positives, negatives=negatives,
+            trend_percent=trend_percent,
+            confidence=("high" if (len(scored) >= 6 and deltas) else
+                        "medium" if len(scored) >= 3 else "low"),
+            data_freshness="live",
+            calculation_notes=(
+                "Weekly Operations score is a cross-domain execution "
+                "score for the reporting week. Baseline is the mean of "
+                "current domain scores. Positive contributor = number "
+                "of domains improving WoW. Negative contributors = "
+                "domains declining WoW + domains currently HIGH/CRITICAL. "
+                "Trend percent = WoW mean-score change. If no prior "
+                "history rows exist, trend renders honestly as →."
+            ),
+        )
+
+    # Top Wins — meaningful improvements (real deltas · not noise).
+    wins = []
+    for pid, d in sorted(improvers, key=lambda kv: -kv[1])[:4]:
+        p = _get(pid)
+        name = p.display_name if p else pid
+        wins.append(f"{name} ▲ {d} points WoW (score {scored[pid]}).")
+    if scored and not high_crit_now:
+        wins.append(f"No domain in HIGH/CRITICAL across "
+                    f"{len(scored)} scored domain(s).")
+    if not deltas and scored:
+        wins.append(
+            "First-run bootstrap — WoW deltas engage next period "
+            "once history rows accumulate."
+        )
+
+    # Needs Immediate Attention — real operational concerns only.
+    # Priority: current HIGH/CRITICAL domains first, then declining
+    # domains, then the actual attention items each declining domain
+    # already surfaces.
+    attention: list = []
+    for pid, s in sorted(
+            ((pid, scored[pid]) for pid in high_crit_now),
+            key=lambda kv: kv[1]):
+        p = _get(pid)
+        name = p.display_name if p else pid
+        d = deltas.get(pid)
+        d_str = f" · WoW ▼ {abs(d)}" if d and d < 0 else ""
+        attention.append(f"{name} — {attention_from_score(s)} (score {s}){d_str}.")
+    for pid, d in sorted(decliners, key=lambda kv: kv[1])[:4]:
+        if pid in high_crit_now:
+            continue
+        p = _get(pid)
+        name = p.display_name if p else pid
+        attention.append(f"{name} declined {abs(d)} points WoW (score now {scored[pid]}).")
+    # Bubble one concrete signal from the worst two declining domains.
+    for pid, _ in sorted(decliners, key=lambda kv: kv[1])[:2]:
+        for it in (attention_by_domain.get(pid) or [])[:1]:
+            attention.append(f"[{pid}] {it}")
+
+    # Top 5 — cross-domain operational priorities. Rows are ranked by
+    # attention severity first, then WoW delta magnitude. Not five rows
+    # from Mongo — five rows leadership should look at first.
+    ranked: list = []
+    for pid, s in scored.items():
+        p = _get(pid)
+        name = p.display_name if p else pid
+        d = deltas.get(pid)
+        # Priority score: lower = more urgent. HIGH/CRITICAL rank first,
+        # then within a bucket the biggest decliners.
+        att = attention_from_score(s)
+        att_rank = {"CRITICAL": 0, "HIGH": 1,
+                    "MEDIUM": 2, "LOW": 3}.get(att, 4)
+        delta_rank = (d or 0)   # negative deltas first
+        ranked.append((att_rank, delta_rank, name, s, att, d, pid))
+    ranked.sort()
+    top_5_rows = []
+    for att_rank, delta_rank, name, s, att, d, pid in ranked[:5]:
+        d_str = ("▲ " + str(d)) if d and d > 0 else \
+                ("▼ " + str(abs(d))) if d and d < 0 else "—"
+        top_5_rows.append([
+            name,
+            s,
+            att,
+            d_str,
+            {"href": f"/api/operational-intelligence/{pid}/preview",
+             "text": "Preview"},
+        ])
+
+    # Recommendations — every recommendation must be specific.
+    recommendations = []
+    for pid, s in sorted(
+            ((pid, scored[pid]) for pid in high_crit_now),
+            key=lambda kv: kv[1])[:3]:
+        p = _get(pid)
+        name = p.display_name if p else pid
+        recommendations.append(
+            f"Executive review of {name} (score {s} · "
+            f"{attention_from_score(s)}) at the Monday operations meeting.")
+    for pid, d in sorted(decliners, key=lambda kv: kv[1])[:2]:
+        if pid in high_crit_now:
+            continue
+        p = _get(pid)
+        name = p.display_name if p else pid
+        recommendations.append(
+            f"Investigate {name} — declined {abs(d)} points WoW; "
+            f"identify the root-cause signal before it becomes HIGH.")
+    if not recommendations:
+        recommendations.append(
+            "Operations steady across every scored domain — maintain "
+            "cadence and confirm next week's Monday agenda.")
+
+    # Upcoming Risks — emerging (not existing) issues. A "MEDIUM" domain
+    # that is declining is an emerging risk. A "LOW" domain that is
+    # improving is not a risk. This is the only place we surface
+    # "things about to become problems", not current problems.
+    upcoming_risks: list = []
+    for pid, d in decliners:
+        s = scored[pid]
+        att = attention_from_score(s)
+        if att == "MEDIUM" and d <= -3:
+            p = _get(pid)
+            name = p.display_name if p else pid
+            upcoming_risks.append(
+                f"{name} sliding toward HIGH (score {s}, ▼ {abs(d)} WoW).")
+
+    # Recent Changes — meaningful deltas.
+    recent_changes: list = []
+    if improvers:
+        recent_changes.append(
+            f"↑ {len(improvers)} domain(s) improved WoW (best: "
+            f"{improvers[0][0]} +{improvers[0][1]}).")
+    if decliners:
+        worst = min(decliners, key=lambda kv: kv[1])
+        recent_changes.append(
+            f"↓ {len(decliners)} domain(s) declined WoW (worst: "
+            f"{worst[0]} {worst[1]}).")
+    if not deltas and scored:
+        recent_changes.append(
+            "No prior history rows yet — WoW deltas engage next period.")
+
+    # Trend table — the last 4 recorded score rows per scored domain
+    # from the history collection. If a domain has < 2 rows the trend
+    # column honestly reads "insufficient".
+    trend_headers = ["Domain", "Score now", "Attention", "WoW Δ",
+                     "History (up to 4 latest)"]
+    trend_rows = []
+    for pid, s in sorted(scored.items(), key=lambda kv: kv[1]):
+        p = _get(pid)
+        name = p.display_name if p else pid
+        d = deltas.get(pid)
+        d_str = ("▲ " + str(d)) if d and d > 0 else \
+                ("▼ " + str(abs(d))) if d and d < 0 else "—"
+        history_cell = "insufficient"
+        try:
+            cursor = db[COLLECTION_HISTORY].find(
+                {"product_id": pid},
+                {"_id": 0,
+                 "digest_object.operational_intelligence_score.overall_score": 1,
+                 "period": 1},
+            ).sort([("generated_at", -1)]).limit(4)
+            hist_scores = []
+            async for row in cursor:
+                v = (((row.get("digest_object") or {})
+                      .get("operational_intelligence_score") or {})
+                     .get("overall_score"))
+                if v is not None:
+                    hist_scores.append(int(v))
+            if hist_scores:
+                history_cell = " → ".join(str(x) for x in reversed(hist_scores))
+        except Exception:  # noqa: BLE001
+            pass
+        trend_rows.append([name, s, attention_from_score(s), d_str, history_cell])
+
+    executive_summary = {
+        "Domains scored":         len(scored),
+        "Domains insufficient":   len(current) - len(scored),
+        "Improved WoW":           len(improvers),
+        "Declined WoW":           len(decliners),
+        "HIGH / CRITICAL now":    len(high_crit_now),
+        "Mean domain score":      (int(round(sum(scored.values()) /
+                                              max(1, len(scored))))
+                                    if scored else "insufficient_data"),
+    }
+
+    return build_standard_layout(
+        product_id="weekly_operations_digest",
+        subject="MASCI Weekly Operations Digest",
+        period_label="Weekly · Monday 13:30 UTC",
+        executive_summary=executive_summary,
+        score=score.to_dict(),
+        trend_direction={
+            "arrow": score.trend_direction,
+            "tone": {"▲": "up", "▼": "down", "→": "flat"}
+                    .get(score.trend_direction, "flat"),
+            "current": (int(round(sum(scored.values()) / max(1, len(scored))))
+                        if scored else None),
+            "previous": None,
+            "pct_change": score.trend_percent,
+        },
+        top_wins=wins,
+        needs_immediate_attention=attention,
+        top_5_items=({
+            "title": "Top 5 · Cross-Domain Priorities This Week",
+            "headers": ["Domain", "Score", "Attention", "WoW Δ", "Preview"],
+            "rows": top_5_rows,
+        } if top_5_rows else None),
+        core_metrics={
+            "Scored domains":         ", ".join(sorted(scored.keys())) or "—",
+            "Improvers":              ", ".join(pid for pid, _ in improvers) or "—",
+            "Decliners":              ", ".join(pid for pid, _ in decliners) or "—",
+        },
+        trend_table=({"headers": trend_headers, "rows": trend_rows}
+                     if trend_rows else None),
+        recommendations=recommendations,
+        upcoming_risks=upcoming_risks,
+        recent_changes=recent_changes,
+        deep_links=[
+            {"href": "/safety/cases", "text": "Safety Case Center"},
+            {"href": "/pm/projects", "text": "PM Project Center"},
+            {"href": "/fleet", "text": "Fleet Center"},
+            {"href": "/shop", "text": "Shop Console"},
+            {"href": "/admin/transportation/command-queue",
+             "text": "Transportation Command Queue"},
+            {"href": "/hr/employees", "text": "HR Directory"},
+            {"href": "/hr/training-records", "text": "Training Records"},
+            {"href": "/po-requests", "text": "Purchase Orders"},
+            {"href": "/admin/executive-dashboard", "text": "Executive Dashboard"},
+        ],
+        no_auto_decision_notice=(
+            "Weekly Operations is an attention signal only. Domain "
+            "owners (Safety · PM · Fleet · Shop · HR · Training · "
+            "Transportation · Procurement · Executive) own "
+            "investigation, classification, and disposition. The "
+            "platform does NOT determine fault, discipline, "
+            "preventability, OSHA recordability, liability, or "
+            "compliance status. Every recommendation is a discussion "
+            "prompt for the Monday operations meeting — never an "
+            "automatic executive decision."
+        ),
+        audit_footer=(
+            "Track 19.46 · Weekly Operations Digest · cross-domain WoW "
+            "delta report. Composes 9 domain products via "
+            "engine.compose() · diffs against prior history rows in "
+            "operational_intelligence_history. Zero new data sources · "
+            "zero drift."
+        ),
+    )
+
+
+register_product(Product(
+    product_id="weekly_operations_digest",
+    display_name="Weekly Operations Digest",
+    summary="What changed operationally this week · WoW deltas across every domain.",
+    permission_role="admin_only",
+    template_key="executive_v1",
+    schedule_freq="weekly",
+    schedule_iso_day=1, schedule_hour_utc=13,  # Monday 13:00 UTC
+    status=ProductStatus.IMPLEMENTED,
+    aggregator=_agg_weekly_operations,
+    tags=["operations", "weekly", "leadership", "delta"],
+))
+
+
+# ---------------------------------------------------------------------------
+# 12 · Contract-registered products — aggregators not yet implemented
 # ---------------------------------------------------------------------------
 async def _not_implemented(db, **kwargs):  # noqa: ARG001
     # The engine raises NotImplementedError before calling this — this
@@ -2378,16 +2784,7 @@ async def _not_implemented(db, **kwargs):  # noqa: ARG001
     raise NotImplementedError("aggregator not yet implemented")
 
 
-_CONTRACT_REGISTERED_PRODUCTS = [
-    Product(
-        product_id="weekly_operations_digest",
-        display_name="Weekly Operations Digest",
-        summary="Company-wide weekly rollup — projects · production · schedule · safety.",
-        permission_role="admin_only", template_key="executive_v1",
-        schedule_freq="weekly", schedule_iso_day=1, schedule_hour_utc=13,
-        tags=["operations", "weekly"],
-    ),
-]
+_CONTRACT_REGISTERED_PRODUCTS: list = []
 
 for _p in _CONTRACT_REGISTERED_PRODUCTS:
     register_product(Product(

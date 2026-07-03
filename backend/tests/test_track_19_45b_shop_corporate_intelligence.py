@@ -290,12 +290,15 @@ def test_corporate_weighted_rollup_with_populated_domains():
 
 
 def test_corporate_weight_model_covers_every_implemented_product():
-    """The weight table must include every IMPLEMENTED domain product."""
+    """The weight table must include every IMPLEMENTED domain product.
+    Meta-products (Corporate itself and Weekly Operations — which
+    already compose domains) are intentionally excluded."""
     from operational_intelligence import list_products, ProductStatus
     from operational_intelligence.products import CORPORATE_WEIGHTS
+    META_PRODUCTS = {"corporate_intelligence", "weekly_operations_digest"}
     implemented = {p.product_id for p in list_products()
                    if p.status == ProductStatus.IMPLEMENTED
-                   and p.product_id != "corporate_intelligence"}
+                   and p.product_id not in META_PRODUCTS}
     missing = implemented - set(CORPORATE_WEIGHTS.keys())
     assert not missing, f"weight table missing: {missing}"
     assert sum(CORPORATE_WEIGHTS.values()) == 100, sum(CORPORATE_WEIGHTS.values())
@@ -330,6 +333,10 @@ def test_corporate_no_auto_decision_notice_present():
 
 # ---------------------------------------------------- Registry integrity ---
 def test_registry_implemented_count_now_ten():
+    """At Track 19.45B close, the 10 named products were IMPLEMENTED.
+    Later tracks may add more IMPLEMENTED products (forward progress).
+    Assert the set is a superset — the 10 must remain IMPLEMENTED
+    forever."""
     from operational_intelligence import list_products, ProductStatus
     impl = {p.product_id for p in list_products()
             if p.status == ProductStatus.IMPLEMENTED}
@@ -339,14 +346,18 @@ def test_registry_implemented_count_now_ten():
                      "training_intelligence", "project_intelligence",
                      "shop_intelligence", "corporate_intelligence"):
         assert expected in impl, f"missing IMPLEMENTED: {expected}"
-    assert len(impl) == 10, sorted(impl)
+    assert len(impl) >= 10, sorted(impl)
 
 
 def test_registry_contract_registered_only_weekly_operations():
+    """At Track 19.45B close, only weekly_operations_digest was
+    contract-registered. Later tracks may IMPLEMENT it (Track 19.46
+    does), but must never re-contract any IMPLEMENTED product. Assert
+    the contract set is a subset."""
     from operational_intelligence import list_products, ProductStatus
     contract = {p.product_id for p in list_products()
                 if p.status == ProductStatus.CONTRACT_REGISTERED}
-    assert contract == {"weekly_operations_digest"}, contract
+    assert contract.issubset({"weekly_operations_digest"}), contract
 
 
 def test_registry_total_product_count_is_eleven():

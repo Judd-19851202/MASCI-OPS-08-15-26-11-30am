@@ -223,5 +223,145 @@ def register_operational_intelligence_routes(
             raise HTTPException(404, detail={"code": "group_not_found"})
         return {"ok": True, "group": g}
 
+    # ------------------------------------------------------------------
+    # TRACK 19.46 · Read-only History + Audit APIs (Cockpit foundation)
+    # ------------------------------------------------------------------
+    from .engine import COLLECTION_HISTORY, COLLECTION_AUDIT
+
+    @api_router.get("/operational-intelligence/history")
+    async def _oi_history(
+        product_id: str | None = Query(default=None),
+        period: str | None = Query(default=None),
+        since: str | None = Query(default=None,
+                                  description="ISO-8601 lower bound on generated_at"),
+        until: str | None = Query(default=None,
+                                  description="ISO-8601 upper bound on generated_at"),
+        limit: int = Query(default=100, le=500),
+        offset: int = Query(default=0, ge=0),
+        sort: str = Query(default="-generated_at",
+                          pattern="^-?(generated_at|product_id|period)$"),
+        actor=Depends(require_admin),
+    ):
+        """Read-only history — no writes, no mutations. Backs the
+        future Cockpit UI history strip."""
+        q: dict = {}
+        if product_id:
+            _gate_for(product_id)  # 404 for unknown product
+            q["product_id"] = product_id
+        if period:
+            q["period"] = period
+        if since or until:
+            gen: dict = {}
+            if since: gen["$gte"] = since
+            if until: gen["$lte"] = until
+            q["generated_at"] = gen
+        sort_key = sort.lstrip("-")
+        sort_dir = -1 if sort.startswith("-") else 1
+        total = await db[COLLECTION_HISTORY].count_documents(q)
+        cursor = db[COLLECTION_HISTORY].find(
+            q,
+            # Never expose the fully-rendered HTML in list mode — the
+            # Cockpit renders a slim summary and drills into the full
+            # digest via the preview endpoint.
+            {"_id": 0, "rendered_html": 0},
+        ).sort([(sort_key, sort_dir)]).skip(offset).limit(limit)
+        rows = []
+        async for row in cursor:
+            # Slim the digest_object down to the executive-summary +
+            # score payload so the list stays boardroom-fast.
+            dobj = row.get("digest_object") or {}
+            sc = dobj.get("operational_intelligence_score") or {}
+            rows.append({
+                "id": row.get("id"),
+                "product_id": row.get("product_id"),
+                "period": row.get("period"),
+                "generated_by": row.get("generated_by"),
+                "generated_at": row.get("generated_at"),
+                "subject": dobj.get("subject") or "",
+                "score": {
+                    "overall_score": sc.get("overall_score"),
+                    "attention_level": sc.get("attention_level"),
+                    "confidence": sc.get("confidence"),
+                    "trend_direction": sc.get("trend_direction"),
+                    "trend_percent": sc.get("trend_percent"),
+                },
+            })
+        return {"count": len(rows), "total": total,
+                "limit": limit, "offset": offset,
+                "sort": sort, "history": rows}
+
+    @api_router.get("/operational-intelligence/history/{history_id}")
+    async def _oi_history_detail(history_id: str,
+                                 include_html: bool = Query(default=False),
+                                 actor=Depends(require_admin)):
+        """Fetch a single history row (full digest_object). HTML is
+        opt-in to keep the default response light."""
+        projection = {"_id": 0}
+        if not include_html:
+            projection["rendered_html"] = 0
+        row = await db[COLLECTION_HISTORY].find_one({"id": history_id}, projection)
+        if not row:
+            raise HTTPException(404, detail={"code": "not_found",
+                                             "detail": history_id})
+        return {"ok": True, "history": row}
+
+    @api_router.get("/operational-intelligence/audit")
+    async def _oi_audit(
+        product_id: str | None = Query(default=None),
+        event: str | None = Query(default=None),
+        actor_email: str | None = Query(default=None,
+                                        alias="actor"),
+        since: str | None = Query(default=None),
+        until: str | None = Query(default=None),
+        limit: int = Query(default=100, le=500),
+        offset: int = Query(default=0, ge=0),
+        sort: str = Query(default="-at",
+                          pattern="^-?(at|product_id|event|actor)$"),
+        _admin=Depends(require_admin),
+    ):
+        """Read-only audit trail — dispatches, recipient/group changes,
+        preview/dry-run/live send, scheduler/manual origin."""
+        q: dict = {}
+        if product_id:
+            _gate_for(product_id)
+            q["product_id"] = product_id
+        if event:
+            q["event"] = event
+        if actor_email:
+            q["actor"] = actor_email
+        if since or until:
+            r: dict = {}
+            if since: r["$gte"] = since
+            if until: r["$lte"] = until
+            q["at"] = r
+        sort_key = sort.lstrip("-")
+        sort_dir = -1 if sort.startswith("-") else 1
+        total = await db[COLLECTION_AUDIT].count_documents(q)
+        cursor = db[COLLECTION_AUDIT].find(
+            q, {"_id": 0},
+        ).sort([(sort_key, sort_dir)]).skip(offset).limit(limit)
+        rows = []
+        async for row in cursor:
+            # Never expose secrets — the audit payload is already
+            # sanitized upstream (write_audit stores only structured
+            # metadata), but defensive-strip any *_secret/token fields
+            # that a caller might have inserted historically.
+            payload = row.get("payload") or {}
+            safe_payload = {k: v for k, v in payload.items()
+                            if not any(bad in k.lower()
+                                       for bad in ("token", "secret",
+                                                   "password", "api_key"))}
+            rows.append({
+                "id": row.get("id"),
+                "product_id": row.get("product_id"),
+                "event": row.get("event"),
+                "actor": row.get("actor"),
+                "at": row.get("at"),
+                "payload": safe_payload,
+            })
+        return {"count": len(rows), "total": total,
+                "limit": limit, "offset": offset,
+                "sort": sort, "audit": rows}
+
 
 __all__ = ["register_operational_intelligence_routes"]

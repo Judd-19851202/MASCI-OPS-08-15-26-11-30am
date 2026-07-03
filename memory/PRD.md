@@ -11,6 +11,35 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.46 · Weekly Operations + History API + Audit API · ✅ COMPLETE (2026-07-04)
+
+**Registry: 11/11 IMPLEMENTED · 0 CONTRACT_REGISTERED remain.**
+
+**Delta:** Final Operational Intelligence product shipped —
+`weekly_operations_digest` — plus two read-only APIs that form the
+foundation for the future Cockpit UI (Track 19.47).
+
+**Weekly Operations Digest** — cross-domain **WoW delta report** (not another snapshot). Composes 9 domain digests via `engine.compose(...)`, diffs each domain's `overall_score` against the most-recent prior row in `operational_intelligence_history`, and reports:
+- Improvers · Decliners · HIGH/CRITICAL-now signals
+- Top-5 cross-domain priorities ranked by attention bucket then WoW delta
+- Recommendations that are specific and actionable (no "monitor" / "keep watching")
+- Upcoming Risks limited to MEDIUM domains sliding toward HIGH (emerging, not existing)
+- Trend Table with up-to-4-week per-domain score history
+Permission `admin_only`. Weekly cadence Mon 13:00 UTC. Every recommendation framed as a Monday operations meeting discussion prompt — never an automatic executive decision.
+
+**History API** — `GET /api/operational-intelligence/history` and `/{history_id}`. Read-only, admin-only, paginated (`count`/`total`/`limit`/`offset`), sortable, filterable by product/period/since/until. List response strips `rendered_html` for boardroom-fast Cockpit strips; detail exposes it via `include_html=true`.
+
+**Audit API** — `GET /api/operational-intelligence/audit`. Read-only, admin-only, paginated, filterable by product/event/actor/since/until. Defensive strip of `token`/`secret`/`password`/`api_key` payload fields even if a caller historically inserted one.
+
+**Verification:** 19 lock assertions GREEN · full regression across Tracks 19.40–19.46 = **157/157 GREEN** · live smoke 8/8 gates GREEN on preview.
+
+**Zero drift proof:** 0 new collections · 0 new email provider · 0 new scheduler · 0 new recipient collection · 0 new renderer · 0 mutation endpoints added. Everything additive.
+
+**Rollback:** revert `products.py` (remove Weekly Ops aggregator) · revert `routes.py` (remove History + Audit endpoints) · delete lock test · delete 9 docs. HIGH.
+
+**Next:** Track 19.47 — Operational Intelligence Cockpit UI (React shell consuming the 11 product previews + history/audit APIs shipped here).
+
+
 ## TRACK 19.45B · Shop Intelligence + Corporate Intelligence · ✅ COMPLETE (2026-07-04)
 
 **Six Pillar: 60/60 · Zero Drift · One Engine.**
