@@ -10,6 +10,31 @@
 
 # CHANGELOG
 
+## 2026-07-05 — TRACK 20.4 · Vendor Operational Thread Forensic Audit · 🟡 PROMOTE + EXTEND (small)
+
+### Audit produced
+- 16 composite governance deliverables under `/app/memory/TRACK_20_4_*.md` (Executive Audit · Vendor Surface Inventory · Source-of-Truth Matrix · Role-Lens/Permission Matrix · Legacy Document Import Audit · Contract Future Issuance Audit · PO/AP/Project Relationship Audit · Safety/Compliance Relationship Audit · Universal Thread Fit · Relationship Graph Audit · Vendor Operational Health Concept Audit · Human Walkthrough · Noise/Duplicate/Defect Audit · Final Recommendation · Zero-Drift Certification · Test Report).
+- Track 20.4 lock test `test_track_20_4_vendor_thread_audit.py` — asserts all 16 docs, the PROMOTE + EXTEND verdict, HR/Admin ownership doctrine, 12-role lens matrix, W-9/contract/COI legacy upload audit, contract deferral, PO/AP/project relationship audit, safety/compliance audit, all 10 Universal Thread sections, vendor-health "no score / no percentage / no legal claim" rule, backend/OI inventory freezes, and prior track preservation.
+
+### Central finding
+Vendor is the **first Universal Thread candidate to require small EXTENSION** rather than pure ADAPTERS. Every other thread (Fleet · Employee · Project · Incident) shipped as a pure frontend promotion. Vendor requires the smallest possible schema addition (`entity_kind="vendor"` discriminator on Historical Records + ≤ 5 supplier status flags) because Documents / Audit sections cannot honestly be filled from today's collections.
+
+### Decision
+🟡 **PROMOTE + EXTEND (small).** Track 19.60 (proposed) delivers `AdminVendorThread.jsx` at `/admin/vendors/:vendorId/thread` under HR/Admin ownership with role-lensed views for consumers. Estimated ≤ 350 backend LOC + ~500 frontend LOC + 1 lock file.
+
+### High-risk certification
+- Vendor Health = pure client-side function (no score / no percent / no compliance certification / no legal defensibility claim). Four qualitative buckets only.
+- Ownership doctrine preserved: HR/Admin owns; PM/Safety/Shop/Fleet/Dispatch/Ops/Executive read via lenses.
+- PM never gains Tax ID / EIN / other PMs' contracts / write authority over vendor master.
+- Contract signing / renewal automation deferred to a later dedicated track.
+- No new AP / invoice / payment collection proposed by this audit.
+- No new OI product proposed.
+
+### Zero drift
+- Backend OI inventory unchanged (9 files).
+- OI component folder locked to 7 JSX + 1 JS.
+- No production code changed by Track 20.4.
+
 ## 2026-07-05 — TRACK 19.58 · Incident Operational Thread PROMOTION · 🟢 SHIPPED (Frontend only · zero backend drift)
 
 ### Shipped

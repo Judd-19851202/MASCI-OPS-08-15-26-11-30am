@@ -11,6 +11,28 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 20.4 · Vendor Operational Thread Forensic Audit · ✅ COMPLETE · 🟡 PROMOTE + EXTEND (small) (2026-07-05)
+
+**Type:** Forensic audit. 16 composite deliverables + 1 lock test. **Zero production code changes.**
+
+**Central finding:** Unlike Employee / Fleet / Project / Incident (all `PROMOTE + ADAPTERS` because every section had certified backends), the Vendor operational surface today is a **thin foundation with real gaps**. Certified pieces present: name-only `suppliers` master + 9 admin endpoints · rich `po_requests` router (12+ endpoints) referencing vendor by string · `SupplierCombo` / `SupplierMasterPanel` / `PmSuppliers` · `HistoricalRecordsIntake` (**employee-only lane**). Certified pieces absent: W-9 / COI / contract / license / prequalification / performance / do-not-use / invoice / payment / vendor audit. Filling Documents with adapters over today's schema would fabricate data — the mandate forbids that.
+
+**Decision:** 🟡 **PROMOTE + EXTEND (small).** Extend `HistoricalRecordsIntake` with a `entity_kind="vendor"` lane (backwards-compatible discriminator, zero risk to employee lane) and add ≤ 5 status flags to `suppliers` (W-9-on-file · COI-expiration · prequalification · approved · do-not-use). Then promote via `AdminVendorThread.jsx` at `/admin/vendors/:vendorId/thread` (Admin/HR owner portal) with role-lensed views for PM / Safety / Shop / Fleet / Dispatch / Trans / Executive. Estimated Track 19.60 build cost: ≤ 350 backend LOC + ≈ 500 frontend LOC + 1 lock file.
+
+**High-risk certification:**
+- Vendor Health is a **client-side pure function** — no score, no percentages, no compliance certification, no legal-defensibility claim. Four qualitative buckets (Excellent · Good · Attention Needed · Restricted).
+- Ownership doctrine preserved: **HR/Admin owns**, PM/Safety/Shop/Fleet/Dispatch/Ops/Executive **read via lenses**.
+- PM never sees Tax ID / EIN, never sees other PMs' contracts, never gains write authority over the vendor master.
+- Contract signing / renewal automation deferred to a later dedicated track.
+- No new AP / invoice / payment collection proposed.
+- No new OI product proposed.
+- No new PDF renderer.
+
+**Zero drift:** No production code changed by Track 20.4. Backend OI inventory frozen (9 files). OI component folder frozen (7 JSX + 1 JS). Every existing supplier / PO / historical-records surface preserved.
+
+**Docs:** 16 composite files under `TRACK_20_4_*.md` (Executive Audit · Vendor Surface Inventory · Source-of-Truth Matrix · Role-Lens/Permission Matrix · Legacy Document Import Audit · Contract Future Issuance Audit · PO/AP/Project Relationship Audit · Safety/Compliance Relationship Audit · Universal Thread Fit · Relationship Graph Audit · Vendor Operational Health Concept Audit · Human Walkthrough · Noise/Duplicate/Defect Audit · Final Recommendation · Zero-Drift Certification · Test Report).
+
+
 ## TRACK 19.58 · Incident Operational Thread PROMOTION · ✅ SHIPPED (2026-07-05)
 
 **Type:** Presentation promotion. Frontend only. Zero backend change.
