@@ -1,5 +1,30 @@
 # CHANGELOG
 
+## 2026-07-03 — TRACK 19.28 · 10/10 Platform Remediation & Elite Consistency Closeout · 🟢 SHIPPED
+
+### Shipped
+- **Admin Hub V1 · soft retire (P2-1).** `/admin` now renders `AdminHubV2` (Operations Control Center). Classic tile-grid `AdminHub` preserved at `/admin/hub_v1` (rollback URL). `/admin/hub_v2` canonicalized as `<Navigate to="/admin">`. AdminHubV2 preview banner + companion "Open Classic Admin Hub" back button retired; back button repointed to `/admin/hub_v1`. Trace note updated.
+- **Admin Sidebar V2 · route parity (closes Track 15 Phase 16 gaps G1 · G3 · project-identity).** `domainMap.js` Operations domain now includes `/admin/command-center` and `/operational-records`; Safety & Compliance now includes `/admin/project-identity`. V2 sidebar has feature parity with V1's flat sidebar.
+- **Shop Hub V2 · asset-admin visibility polish (P2-4).** Section 09 "Asset Administrator · Historical Records" is now hidden from non-`is_asset_admin` shop users. Admin token holders (super-admins) always see it. Backend permission gate unchanged — this is a purely cosmetic UX polish removing a "click-and-blocked" trap.
+- **Cheatsheet consolidation (P2-2).** Verified `/cheatsheet` canonical · `/cheat-sheet` → `<Navigate to="/cheatsheet">`. Legacy printed QR codes and bookmarks preserved via redirect.
+- **Legacy Hub.jsx retirement (P2-5).** RE-SCOPED — Hub.jsx is the operational public landing page at `/`, not legacy. All portal tile links audit-clean. Kept as operational.
+- **Guidance Center content freshness (P2-3).** Audited `OperationalGuidanceCenter.jsx`, `AdminGuide.jsx`, `OpsTrainingGuide.jsx`, and `backend/guidance/content.py` (5,870 lines). No user-facing article references a retired route. Content-refresh cadence moved to quarterly docs cycle.
+- **Testing certification:** 10/10 features PASS via testing_agent_v3_fork (100% success rate). Report: `/app/test_reports/iteration_track_19_28_frontend_cert.json`.
+
+### Zero-drift proof
+- **0 backend files touched.** No schemas · no API routes · no PDFs · no email/notification payloads · no permissions · no historical records intake changes.
+- All `_legacy` rollback URLs preserved.
+- `AdminHub.jsx` file kept (soft retire per user preference).
+
+### Files touched (5 frontend files)
+- `frontend/src/App.js` — Admin route soft-retire (3 lines).
+- `frontend/src/pages/AdminHubV2.jsx` — banner + back-button + trace-note cleanup.
+- `frontend/src/pages/ShopHubV2.jsx` — `isAssetAdmin` gate on Section 09.
+- `frontend/src/components/admin/sidebar/domainMap.js` — +3 routes.
+- `memory/TRACK_19_28_CLOSEOUT.md` (new closeout document).
+
+
+
 ## 2026-07-02 — TRACK 19.21 · Employee Records Intelligence Platform · P0 Foundation · 🟢 SHIPPED
 
 ### Shipped
