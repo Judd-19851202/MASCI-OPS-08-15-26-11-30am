@@ -11,6 +11,17 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 20.1 · Employee Experience Forensic Audit · ✅ COMPLETE · 🟢 PROMOTE EXISTING FOUNDATION (2026-07-05)
+
+**Type:** Forensic audit. 12 deliverables + 1 lock test. Zero production code changes.
+
+**Central finding:** The Employee Thread already exists inside the platform under the name **HR Employee Accountability Timeline**. Endpoint `GET /api/hr/employees/{id}/accountability/timeline` returns employee record + `current_state` + six-category `events[]` (Training · PPE & Equipment · Incidents · Field Leadership · HR Lifecycle · Driver Qualification) — every field the Universal Thread shell needs. PDF brief exports at `.../brief.pdf`. Multi-lens role gate (HR + Safety + Admin) already server-side filtered.
+
+**Decision:** 🟢 **PROMOTE EXISTING FOUNDATION.** Do not build a parallel Employee Thread. Track 19.56 becomes a promotion track: wrap the existing page in the Track 19.55 `OperationalThreadPage` shell + add OI Attention Strip + universal chips + Relationship Graph. Estimated new code: 0 backend LOC + ~ 250 frontend LOC.
+
+**Docs:** 12 files under `TRACK_20_1_*.md`.
+
+
 ## TRACK 20.0 · Production Readiness Certification · ✅ CERTIFIED · 🟢 DEPLOY (2026-07-05)
 
 **Type:** Executive certification track. Documentation + lock test only. Zero code changes.
