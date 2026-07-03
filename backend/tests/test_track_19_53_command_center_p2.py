@@ -139,12 +139,19 @@ def test_no_new_command_center_framework_added_by_1953():
 
 
 def test_no_new_oi_component_added():
-    """Only the shared OiAttentionStrip may live under the OI component
-    folder. If a new consumer/framework is added, Track 19.53 has
-    drifted."""
-    files = {f.name for f in FE_COMP_OI.glob("*.jsx")}
-    assert files == {"OiAttentionStrip.jsx"}, \
-        f"unexpected OI consumer components: {files}"
+    """OI-component folder inventory is locked to the Track 19.54
+    baseline: the shared strip + four Guidance-System primitives + one
+    map module. Any new consumer/framework file is a doctrine drift."""
+    expected_jsx = {"OiAttentionStrip.jsx", "GuidanceCard.jsx",
+                    "AttentionChip.jsx", "TrendChip.jsx",
+                    "OperationalThread.jsx"}
+    expected_js = {"guidanceMap.js"}
+    actual_jsx = {f.name for f in FE_COMP_OI.glob("*.jsx")}
+    actual_js  = {f.name for f in FE_COMP_OI.glob("*.js")}
+    assert actual_jsx == expected_jsx, \
+        f"unexpected OI JSX inventory: {actual_jsx ^ expected_jsx}"
+    assert actual_js == expected_js, \
+        f"unexpected OI JS inventory: {actual_js ^ expected_js}"
 
 
 def test_track_19_52_lock_preserved():

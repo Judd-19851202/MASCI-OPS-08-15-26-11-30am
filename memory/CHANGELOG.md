@@ -10,6 +10,25 @@
 
 # CHANGELOG
 
+## 2026-07-05 — TRACK 19.54 · Operational Guidance System (OGS) · 🟢 SHIPPED (Frontend only · zero backend drift)
+
+### Shipped
+- Universal `GuidanceCard.jsx` primitive under `/app/frontend/src/components/operational_intelligence/`. Ten mandated sections, always in order: Title · Operational Summary · Why It Matters · Primary Drivers · Recommended Actions (max 5) · Responsible Roles · Supporting Evidence · Deep Links · Relevant Guidance · Decision Boundary. Consumes `/summary` + `/history` + `/history/{id}` only.
+- Universal `AttentionChip.jsx` — the four-value vocabulary (CRITICAL / HIGH / MEDIUM / LOW).
+- Universal `TrendChip.jsx` — direction-first vocabulary (▲ Improving · → Stable · ▼ Declining).
+- `OperationalThread.jsx` — read-only chronological event-timeline primitive for subject-scoped views.
+- `guidanceMap.js` — static product_id → Responsible Roles + Deep Links map.
+- `OiAttentionStrip.jsx` rewired: tiles are now buttons that open the Guidance Card modal in place instead of hard-navigating to the Cockpit.
+- Track 19.54 lock test `test_track_19_54_operational_guidance.py` — 21 assertions.
+- 7 governance docs under `/app/memory/TRACK_19_54_*.md`.
+
+### Zero drift
+- Backend module inventory unchanged (9 files under `backend/operational_intelligence/`).
+- No new backend routes / score models / recommendation engines / notification systems.
+- No AI, no LLM, no ML.
+- No duplicate attention or trend vocabulary anywhere on the platform.
+- Prior Track 19.51 / 19.52 / 19.53 lock tests all preserved (57/57 combined GREEN).
+
 ## 2026-07-05 — TRACK 19.53 · P2 Command Center Remediation · 🟢 SHIPPED (Frontend only · zero backend drift)
 
 ### Shipped

@@ -38,6 +38,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Activity, ArrowRight } from "lucide-react";
 import { getAdminToken } from "@/lib/adminAuth";
+import GuidanceCard from "./GuidanceCard";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -83,6 +84,9 @@ export default function OiAttentionStrip({
   testId,
 }) {
   const [state, setState] = useState({ loaded: false, ok: false, status: 0, products: [] });
+  // Track 19.54 · OGS — clicking a tile opens the universal
+  // Guidance Card modal in place. No navigation.
+  const [openProduct, setOpenProduct] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -147,7 +151,12 @@ export default function OiAttentionStrip({
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
       >
         {state.products.map((p) => (
-          <OiProductTile key={p.product_id} product={p} rootTestId={rootTestId} />
+          <OiProductTile
+            key={p.product_id}
+            product={p}
+            rootTestId={rootTestId}
+            onOpen={() => setOpenProduct(p)}
+          />
         ))}
         {state.loaded && state.products.length === 0 && (
           <div
@@ -166,11 +175,14 @@ export default function OiAttentionStrip({
           </div>
         )}
       </div>
+      {openProduct && (
+        <GuidanceCard product={openProduct} onClose={() => setOpenProduct(null)} />
+      )}
     </section>
   );
 }
 
-function OiProductTile({ product, rootTestId }) {
+function OiProductTile({ product, rootTestId, onOpen }) {
   const tone = toneFor(product.attention_level);
   const hasScore = typeof product.score === "number";
   const label = product.top_attention_label;
@@ -178,10 +190,11 @@ function OiProductTile({ product, rootTestId }) {
   const hasError = !!product.error;
 
   return (
-    <Link
-      to="/admin/operational-intelligence"
+    <button
+      type="button"
+      onClick={onOpen}
       data-testid={tileTestId}
-      className={`block rounded-md border-2 ${tone.border} ${tone.bg} px-3 py-2.5 hover:shadow-sm transition-shadow`}
+      className={`block w-full text-left rounded-md border-2 ${tone.border} ${tone.bg} px-3 py-2.5 hover:shadow-sm transition-shadow`}
     >
       <div className="flex items-start justify-between gap-2 mb-1">
         <div className={`font-display text-sm font-bold ${tone.text} leading-snug truncate`}>
@@ -231,6 +244,6 @@ function OiProductTile({ product, rootTestId }) {
           No attention items — portal is calm.
         </div>
       )}
-    </Link>
+    </button>
   );
 }

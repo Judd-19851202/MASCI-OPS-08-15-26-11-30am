@@ -11,6 +11,21 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.54 · Operational Guidance System (OGS) · ✅ SHIPPED (2026-07-05)
+
+**Type:** Foundational platform primitive. Frontend only. Zero backend change.
+
+**Delta:** The Guidance Card — one universal 10-section primitive that opens whenever any OI Attention Strip tile is clicked, across all 8 portals. Answers the seven mandated operational questions (What happened / Why / Cause / Owner / Next / Evidence / Where). Recommendations extracted 1:1 from the certified digest's `recommendations` section, capped at 5. Universal `AttentionChip` (CRITICAL/HIGH/MEDIUM/LOW) and `TrendChip` (▲/→/▼) enforce one operational vocabulary platform-wide. `OperationalThread` primitive available for follow-up adoption of subject-scoped timelines.
+
+**Data sources:** `GET /operational-intelligence/summary`, `GET /operational-intelligence/history`, `GET /operational-intelligence/history/{id}` — all pre-existing, all certified in Tracks 19.46 / 19.50. No new backend routes.
+
+**Zero drift:** No new AI · no new recommendation engine · no new score model · no new command center · no duplicate attention or trend vocabulary. OI engine directory inventory unchanged. OI component folder locked to exactly 5 JSX + 1 JS files.
+
+**Testing:** `pytest /app/backend/tests/test_track_19_54_operational_guidance.py -v` → 21/21 GREEN. Combined 19.51–19.54: **57/57 GREEN**.
+
+**Docs:** 7 files under `TRACK_19_54_*.md`.
+
+
 ## TRACK 19.53 · P2 Command Center Remediation Execution · ✅ SHIPPED (2026-07-05)
 
 **Type:** Surgical portal-home fixes — the P2 layer of the Track 19.51 roadmap. Frontend only. Zero backend change.
