@@ -1,5 +1,45 @@
 # CHANGELOG
 
+## 2026-07-04 — TRACK 19.40 · Unified Operational Intelligence Engine (Foundation Certification) · 🟢 SHIPPED (Production Strong · 59/60)
+
+### Shipped
+- **New backend package** `backend/operational_intelligence/` (6 modules · ~700 lines): `engine.py`, `registry.py`, `products.py`, `recipients.py`, `scheduler.py`, `routes.py`.
+- **Ten intelligence products registered** under one contract:
+  - IMPLEMENTED (2): `safety_morning_digest` (Track 19.39 migrated) · `executive_operations_brief` (real portfolio aggregator).
+  - CONTRACT_REGISTERED (8): `weekly_operations_digest` · `transportation_intelligence` · `fleet_intelligence` · `hr_intelligence` · `training_intelligence` · `project_intelligence` · `shop_intelligence` · `corporate_intelligence`.
+- **Three additive Safety+Admin endpoints:**
+  - `GET  /api/operational-intelligence/products` — list registered products with permission + template + schedule + status.
+  - `GET  /api/operational-intelligence/{product_id}/preview` — HTML preview (returns `{status: "contract_registered"}` for unimplemented products).
+  - `POST /api/operational-intelligence/{product_id}/dispatch?dry_run=true|false` — compose + optional send (HTTP 501 for contract-only products).
+- **Three additive Mongo collections:** `operational_intelligence_audit` · `operational_intelligence_history` · `operational_intelligence_dedupe`.
+- **Additive groups collection:** `operational_recipient_groups` (recipient collection `morning_digest_recipients` REUSED — zero drift).
+- **Trend engine** (`compute_trend`) — deterministic ▲/▼/→ arrows · percent-change · division-by-zero handling.
+- **Dedupe key contract:** `product_id:iso_week:recipient_hash[:12]` — enforced by lock test.
+- **17 governance docs** + PRD + CHANGELOG.
+- **Lock test** at `backend/tests/test_track_19_40_operational_intelligence_engine.py` — 30 assertions covering: 10-product registry integrity · 2 IMPLEMENTED + 8 CONTRACT_REGISTERED · unique IDs/display names · full contract (permission · template · schedule · aggregator) · single-engine invariants (one renderer · one dispatch · one email provider · one recipient engine · one audit engine · one history engine · one dedupe engine · one trend engine) · canonical additive collection names · Track 19.39 recipient collection reused · Track 19.34 grep invariant preserved · trend up/down/flat/div-by-zero math · dry-run does NOT call `fsi_send_email` · live send calls once per active recipient · dedupe re-dispatch short-circuits with `skipped_dedupe` audit row · IMPLEMENTED products compose returns valid dict · CONTRACT_REGISTERED products raise `NotImplementedError` from `compose(...)` · engine module free of forbidden UI vocab · no duplicate email provider in products · 19.39 API surface still intact · 17 required docs present · closeout declares 🟢 GO with Six Pillar + Rollback · ZDM covers 10 categories · PRD + CHANGELOG updated.
+
+### Quality Gate compliance
+Tenth feature track under Track 19.30 gate. Foundation certification (NOT the implementation of the remaining eight intelligence products).
+- **Six Pillar: 59/60 · Production Strong.** Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10 · Operational 10.
+- **Zero-Drift: 18/18 categories preserved.** 0 existing collections mutated · 0 existing routes modified · 0 duplicate reporting pipelines · uses existing `fsi_send_email` + WeasyPrint.
+- **Single-engine invariants: 12/12 locked.**
+- **Backend lint:** clean.
+- **Isolated lock test:** 30/30 GREEN.
+- **Runtime smoke:** `GET /api/operational-intelligence/products` returns `count = 10` (2 implemented · 8 contract-registered).
+- **Rollback:** HIGH confidence (delete `/app/backend/operational_intelligence/` + revert 14-line additive block in `server.py`).
+
+### No-auto-decision doctrine
+Notice emitted verbatim per product via the shared engine renderer. Enforced by pytest module-level forbidden-vocab grep on engine + products.
+
+### Zero-drift proof
+0 existing collections touched · 0 existing routes modified · Track 19.34, 19.35, 19.36, 19.37, 19.38, 19.39 doctrine locks all remain green. See `TRACK_19_40_ZERO_DRIFT_MATRIX.md`.
+
+### Next
+- Track 19.41 → wire aggregator #3 (Transportation Intelligence Digest) on top of the foundation.
+- Tracks 19.42–19.48 → the remaining seven products, one per track.
+
+---
+
 ## 2026-07-03 — TRACK 19.39 · Morning Safety Intelligence Digest (Phase 6 of Incident Intelligence Engine) · 🟢 SHIPPED (Production Strong · 58/60)
 
 ### Shipped

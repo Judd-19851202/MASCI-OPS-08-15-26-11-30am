@@ -11,6 +11,37 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.40 · Unified Operational Intelligence Engine · Foundation Certification · ✅ COMPLETE (2026-07-04)
+
+**Six Pillar: 59/60 · Production Strong · Zero-Drift.** Foundation certification (not the implementation of the remaining eight intelligence products).
+
+**Delta:** Track 19.40 stands up the *permanent* engine every future operational briefing, digest, executive report, PDF, and dashboard is required to compose through. Ten intelligence products are registered under one contract; two ship IMPLEMENTED (Morning Safety migrated · Executive Operations Brief real aggregator), eight ship CONTRACT_REGISTERED (aggregators raise `NotImplementedError`). Zero drift: no new email provider, no new PDF renderer, no schema mutation. Track 19.39 morning-digest continues to work through its own routes; the engine reuses its recipient collection.
+
+**What shipped:**
+- `backend/operational_intelligence/` (new package · 6 modules · ~700 lines total): `engine.py`, `registry.py`, `products.py`, `recipients.py`, `scheduler.py`, `routes.py`.
+- Three additive `/api/operational-intelligence/*` routes: list products · preview product · dispatch product (Safety+Admin gated).
+- Three additive Mongo collections: `operational_intelligence_audit` · `operational_intelligence_history` · `operational_intelligence_dedupe`. Recipient collection (`morning_digest_recipients`) reused via existing `digest_type` column · zero drift.
+- Groups collection `operational_recipient_groups` (additive).
+- Trend engine (`compute_trend`) — deterministic ▲/▼/→ with division-by-zero handling.
+- Dedupe key contract: `product_id:iso_week:recipient_hash`.
+- `server.py` (+14 lines wiring one route module).
+
+**Ten registered products:**
+- IMPLEMENTED (2): `safety_morning_digest` (Track 19.39 migrated) · `executive_operations_brief` (real portfolio rollup).
+- CONTRACT_REGISTERED (8): `weekly_operations_digest` · `transportation_intelligence` · `fleet_intelligence` · `hr_intelligence` · `training_intelligence` · `project_intelligence` · `shop_intelligence` · `corporate_intelligence`.
+
+**Verification:** backend lint clean · isolated lock test 30/30 · Track 19.34/19.35/19.36/19.37/19.38/19.39 locks still green · runtime dry-run confirmed no `fsi_send_email` call · dedupe re-dispatch short-circuits · `NotImplementedError` raised on all 8 contract products · products endpoint smoke test returns `count = 10`.
+
+**Zero-drift proof:** 18/18 categories preserved · 0 existing collections mutated · 0 existing routes modified · 0 duplicate reporting pipelines. See `TRACK_19_40_ZERO_DRIFT_MATRIX.md`.
+
+**Rollback:** delete `/app/backend/operational_intelligence/` directory · revert 14-line additive block in `server.py`. HIGH confidence.
+
+**Docs (17):** ARCHITECTURE · OPERATIONAL_INTELLIGENCE_ENGINE · SCHEDULER · RECIPIENT_ENGINE · EMAIL_ENGINE · PDF_ENGINE · TEMPLATE_ENGINE · AUDIT_ENGINE · HISTORY_ENGINE · TREND_ENGINE · DASHBOARD · INDUSTRY_COMPARISON · TEST_REPORT · PERMISSION_CERTIFICATION · DEPLOYMENT_CERTIFICATION · **ZERO_DRIFT_MATRIX** · **QUALITY_GATE_CLOSEOUT**.
+
+**Next:** Track 19.41 → wire aggregator #3 (Transportation Intelligence Digest) on top of the foundation.
+
+---
+
 ## TRACK 19.39 · Morning Safety Intelligence Digest · Phase 6 of Incident Intelligence Engine · ✅ COMPLETE (2026-07-03)
 
 **Six Pillar: 58/60 · Production Strong · Zero-Drift.** Ninth feature track under Track 19.30 quality gate.
