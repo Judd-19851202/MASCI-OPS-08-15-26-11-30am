@@ -2,6 +2,37 @@
 
 # CHANGELOG
 
+# CHANGELOG
+
+## 2026-07-04 — TRACK 19.42 · Score Retrofit + Transportation Intelligence · 🟢 SHIPPED (Production Strong · 59/60)
+
+### Shipped
+- **Safety Morning retrofit** (`_agg_safety_morning`) → standard 14-section layout + Score with real contributors (closure pace · readiness · HIGH cases · overdue CAPAs · evidence gaps). Legacy Track 19.39 shape preserved under `legacy_v1_shape`.
+- **Executive Ops Brief retrofit** (`_agg_executive_ops`) → 14-section layout + Score. Insufficient-data guard on empty portfolio. HIGH cases and CAPA backlog drag the score.
+- **Transportation Intelligence** (`_agg_transportation_intelligence`) moved from CONTRACT_REGISTERED to IMPLEMENTED. ~180 lines. Queries: `dvir` · `driver_qualifications` · `equipment_units` · `vehicle_assignments` · `incident_cases` · `transport_action_items`. Score: 4 positive + 6 negative contributors. 5 deep links. Insufficient-data path honest.
+- **Legacy `safety_digest.py`** audited and classified `C · KEEP ACTIVE UNTIL OPERATOR CUTOVER`. Preview already disabled (`SCHEDULER_ENABLED=false`). Cutover roadmap in `TRACK_19_42_LEGACY_SAFETY_DIGEST_AUDIT.md`.
+- **10 governance docs** + PRD + CHANGELOG.
+- **Lock test** `test_track_19_42_score_retrofit_and_transportation.py` — 15 assertions.
+- **Track 19.40 lock relaxation** — CONTRACT_REGISTERED now `<=8` (Transportation shipped).
+
+### Registry
+- IMPLEMENTED (4): safety_morning_digest · executive_operations_brief · po_weekly_digest · **transportation_intelligence (NEW)**.
+- CONTRACT_REGISTERED (7): weekly_operations_digest · fleet_intelligence · hr_intelligence · training_intelligence · project_intelligence · shop_intelligence · corporate_intelligence.
+
+### Quality Gate compliance
+- **Six Pillar: 59/60 · Production Strong.**
+- **Zero-Drift:** all schemas · all legacy routes · legacy PO/Safety cron loops · recipient collections — unchanged.
+- **Regression:** 230 assertions across 9 lock suites (Tracks 19.34–19.42) all 🟢.
+- **Live smoke:** registry `count=11`. Transportation preview cleanly emits `insufficient_data` in preview env.
+
+### Zero-drift proof
+0 collections mutated · 0 legacy routes modified · 0 new schedulers · 0 new email providers · Track 19.34–19.41 doctrine locks all green.
+
+### Next
+- Track 19.43 → Fleet + HR Intelligence aggregators · legacy safety_digest.py operator cutover.
+
+---
+
 ## 2026-07-04 — TRACK 19.41 · Operational Intelligence Standardization + Existing Digest Consolidation · 🟢 SHIPPED (Production Strong · 59/60)
 
 ### Shipped

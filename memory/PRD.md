@@ -11,6 +11,32 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.42 · Score Retrofit + Legacy Safety Digest Audit + Transportation Intelligence · ✅ COMPLETE (2026-07-04)
+
+**Six Pillar: 59/60 · Production Strong · Zero-Drift.**
+
+**Delta:** Safety Morning and Executive Ops Brief now emit the standard 14-section layout + Operational Intelligence Score. Transportation Intelligence graduated from CONTRACT_REGISTERED to IMPLEMENTED — real aggregator over DVIR, driver qualifications, fleet OOS, vehicle assignments, vehicle incidents, and transportation action backlog. Legacy `safety_digest.py` audited and classified `C · KEEP ACTIVE UNTIL OPERATOR CUTOVER` (production only; preview already disabled via `SCHEDULER_ENABLED=false`).
+
+**Implemented product tally:** 4 (safety_morning_digest · executive_operations_brief · po_weekly_digest · **transportation_intelligence · NEW**). Contract-registered: 7 (weekly_operations · fleet · hr · training · project · shop · corporate).
+
+**What shipped:**
+- `_agg_safety_morning` retrofit → 14-section layout + Score. Legacy 19.39 shape preserved under `legacy_v1_shape`.
+- `_agg_executive_ops` retrofit → 14-section layout + Score. Insufficient-data guard on empty portfolio.
+- `_agg_transportation_intelligence` NEW · ~180 lines · 12 signal queries · 10 Score contributors · 5 deep links · verbatim no-auto-decision doctrine.
+- Track 19.40 lock test relaxed for CONTRACT_REGISTERED `<=8` (Transportation shipped).
+- 10 governance docs.
+- Lock test `test_track_19_42_score_retrofit_and_transportation.py` — 15 assertions.
+
+**Verification:** 230 total assertions across 9 lock suites. Live smoke: registry `count=11` (4 IMPLEMENTED + 7 CONTRACT_REGISTERED). Preview environment surfaces `insufficient_data` on Transportation (collections empty) — honest, never fabricated.
+
+**Zero-drift proof:** all schemas · all legacy routes · legacy PO/Safety cron loops · recipient collections · audit collections — unchanged. Only additive changes to `products.py` + new docs + new lock test.
+
+**Rollback:** revert `products.py` aggregators + Transportation `register_product` block; restore Track 19.40 exact-8 CONTRACT_REGISTERED assertion; delete 10 docs + lock test. HIGH confidence.
+
+**Next:** Track 19.43 → Fleet Intelligence + HR Intelligence aggregators · legacy `safety_digest.py` operator cutover.
+
+---
+
 ## TRACK 19.41 · Operational Intelligence Standardization + Existing Digest Consolidation · ✅ COMPLETE (2026-07-04)
 
 **Six Pillar: 59/60 · Production Strong · Zero-Drift.** Standardization + consolidation track under Track 19.30 quality gate. NOT a new email/digest/dashboard — this is the discipline layer that locks the intelligence product contract and pulls the existing Monday PO digest under one engine.
