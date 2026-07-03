@@ -10,6 +10,26 @@
 
 # CHANGELOG
 
+## 2026-07-04 — TRACK 19.51 · Portal Command Center Audit · 🟢 SHIPPED (Docs + Lock only · zero code drift)
+
+### Shipped
+- Full portal-home inventory across 13 surfaces (Admin v1/v2 · OI Cockpit · OI Recipients · Safety · HR · PM · Shop · Dispatch · Fleet · Field · Guidance · public entry).
+- Noise audit — 20 widgets flagged for removal/redesign.
+- 8-section Command Center canonical standard.
+- Persona walkthrough (11 personas).
+- Information Hierarchy audit.
+- OI Integration Map — every future Attention Strip must consume `GET /operational-intelligence/summary`; zero portal-specific scoring.
+- Mobile / iPad review.
+- Industry comparison (13 competitors).
+- 19-item P0–P3 Remediation Roadmap (0 P0, 5 P1, 7 P2, 7 P3).
+- Ecosystem Zero-Drift Matrix (Track 19.51 dimension).
+- Lock test `test_track_19_51_portal_audit.py` — 9 assertions including engine-file-inventory freeze.
+
+### Zero drift
+- 0 new backend routes · 0 new frontend routes · 0 engine changes.
+- Engine module inventory frozen (grep-locked to exact 8-file set).
+
+
 ## 2026-07-04 — TRACK 19.50 · Final Operational Intelligence Certification · 🟢 PRODUCTION READY · GO (Six-Pillar 60/60)
 
 ### Certified

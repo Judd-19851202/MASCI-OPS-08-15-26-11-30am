@@ -11,6 +11,21 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.51 · Operational Command Center Architecture + Portal Home Noise Audit · ✅ COMPLETE (2026-07-04)
+
+**Type:** Audit + architecture. Zero code changes to the engine.
+
+**Delta:** Full portal-home inventory + noise audit + Command Center standard + persona walkthrough + industry comparison + P0–P3 remediation roadmap. 13 governance docs shipped.
+
+**Findings:** 13 portal home surfaces classified. 20 noise-classified widgets identified. Zero P0 blockers. 5 P1 opportunities (Safety, HR, PM, Shop, Fleet — each needs an OI-powered Attention Strip). Reference implementation certified as the OI Cockpit at `/admin/operational-intelligence`.
+
+**Standard:** 8-section canonical Command Center (Mission Header · Attention Strip · Today Action Queue · OI Snapshot · Primary Workflows · Recent Activity · Guidance · Empty State) codified in `TRACK_19_51_COMMAND_CENTER_STANDARD.md`. Every future portal home must comply.
+
+**Zero drift:** 0 new backend, 0 new frontend routes, 0 new engine files (grep-locked: engine module inventory frozen). Rollback = delete 13 docs + 1 lock test.
+
+**Roadmap:** 5 P1 + 7 P2 + 7 P3 items ready to schedule. Recommended sequence: P1 items #1→#5 in one execution track (Safety → HR → PM → Shop → Fleet Attention Strips) — all Small-scope, all powered by the already-shipped `GET /summary` endpoint.
+
+
 ## TRACK 19.50 · Final Operational Intelligence Certification · ✅ PRODUCTION READY (2026-07-04)
 
 **Verdict:** **GO for deployment.** Ecosystem-wide certification complete. Six Pillars **60/60**. Zero drift. No P0/P1 open.
