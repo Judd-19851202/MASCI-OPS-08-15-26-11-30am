@@ -1,5 +1,38 @@
 # CHANGELOG
 
+## 2026-07-03 — TRACK 19.36 · Executive Intelligence Layer + Executive Case Report (Phase 3 of Incident Intelligence Engine) · 🟢 SHIPPED (Production Strong · 58/60)
+
+### Shipped
+- **Executive Intelligence Model** — one read-only assembler at `backend/incident_engine/executive_intelligence.py` (~470 lines) combining certified case data into a single JSON model. Every field carries a `source` naming the certified collection it came from.
+- **New JSON endpoint** `GET /api/incident-cases/{id}/executive-intelligence` — additive · Safety/Admin/PM read-gated.
+- **New PDF endpoint** `GET /api/incident-cases/{id}/executive-report.pdf` — boardroom-grade WeasyPrint output (Letter · 10.5pt body · slate palette · 11 sections including Why-It-Matters, Timeline, Evidence Chain, CAPA, Regulatory/Insurance/Legal review, Operational Intelligence, Readiness, Decision Records, Lessons Learned). Coexists with the Track 19.16 Phase E PDF (untouched).
+- **New frontend page** `/safety/cases/:caseId/executive-report` (`ExecutiveCaseReport.jsx`, ~300 lines) — single-screen boardroom view consuming the same model, with a "PDF" download button.
+- **Workspace bridge** — 1-line header button in `SafetyCaseWorkspace.jsx` (`data-testid="case-workspace-open-executive-report"`) navigating to the new page.
+- **8 governance documents** — executive intelligence · executive PDF · timeline · evidence chain · dashboard note · zero-drift matrix · quality gate closeout · test report.
+- **Lock test** at `backend/tests/test_track_19_36_executive_intelligence.py` — 30 assertions covering module existence, model version, read-only invariant (grep · zero writes), server wiring, existing Phase D/E route preservation, model shape via live-DB fixture, timeline/evidence traceability, Why-It-Matters completeness, 6 explainable readiness sub-scores, PDF renderer sections + missing-value protocol, frontend page + route + workspace link, doc completeness, and PRD/CHANGELOG updates.
+
+### Quality Gate compliance
+Sixth feature track under Track 19.30 gate. Passed all applicable categories:
+- **Six Pillar: 58/60 · Production Strong.** Powerful 10 · Simple 9 · Beautiful 10 · Trusted 10 · Proven 10 · Operational 9.
+- **Zero-Drift: 20/20 categories unchanged.** 0 collections mutated · Phase D dashboard + Phase E PDF preserved.
+- **Backend lint / frontend lint:** clean on all 5 touched/new modules.
+- **Runtime smoke:** live-DB assembler + renderer verified against case `2026-00001` (20 top-level model keys · 6 explainable sub-scores · 4 timeline events · 10.6 KB HTML).
+- **Rollback:** HIGH confidence (delete 3 backend + 1 frontend file · revert 3 additive edits).
+
+### One-source-of-truth architecture
+Every future executive surface (dashboards · KPI leaderboards · legal packages · insurance packages) should read from the Executive Intelligence Model rather than composing its own aggregation. The `model_version` field is bumped when the shape evolves.
+
+### Fact-based briefings
+The Why-It-Matters block distills each investigation into six deterministic sentences derived only from certified case fields. When a value is missing, the sentence explicitly says "Not documented yet." The `missing_fields` array is a machine-readable ledger of the same gaps.
+
+### Zero-drift proof
+0 collections touched · 0 existing routes modified · 0 permissions changed · 0 emails · 0 notifications · 0 audit-event schema changes · Phase D and Phase E surfaces byte-for-byte preserved.
+
+### Final verdict
+🟢 **GO.** Executive intelligence is production-ready. One model, many consumers. Every fact traceable. Boardroom-quality output.
+
+
+
 ## 2026-07-03 — TRACK 19.35 · Safety Case Workspace · Investigation Upgrades (Phase 2 of Incident Intelligence Engine) · 🟢 SHIPPED (Production Strong · 58/60)
 
 ### Shipped

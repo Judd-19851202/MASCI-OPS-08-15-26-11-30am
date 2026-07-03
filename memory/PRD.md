@@ -11,6 +11,48 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.36 · Executive Intelligence Layer + Executive Case Report · Phase 3 of Incident Intelligence Engine · ✅ COMPLETE (2026-07-03)
+
+**Six Pillar: 58/60 · Production Strong · Zero-Drift.** Sixth feature track under Track 19.30 quality gate.
+
+**Delta:** Track 19.36 delivers the platform's first unified **Executive Intelligence Model** — one read-only assembler combining certified case data (`incident_cases` · `incident_case_events` · `incident_case_evidence` · `corrective_actions` · workspace satellites) into ONE JSON model that powers every executive-grade surface. New endpoints and one new frontend page consume the model; every existing surface (Phase D dashboard + Phase E PDF) is preserved byte-for-byte.
+
+**What shipped:**
+- `backend/incident_engine/executive_intelligence.py` (new · ~470 lines · pure read-only assembler).
+- `backend/incident_engine/executive_report_render.py` (new · ~280 lines · boardroom-grade HTML template · WeasyPrint).
+- `backend/incident_engine/executive_report_routes.py` (new · additive routes registration).
+- `backend/server.py` (edit · +14 lines · wire routes with existing Safety/Admin/PM auth).
+- `frontend/src/pages/ExecutiveCaseReport.jsx` (new · ~300 lines · single-screen boardroom page).
+- `frontend/src/App.js` (edit · route + import).
+- `frontend/src/pages/SafetyCaseWorkspace.jsx` (edit · header link).
+
+**New endpoints (additive · Safety/Admin/PM read gate):**
+- `GET /api/incident-cases/{case_id}/executive-intelligence` → unified JSON model.
+- `GET /api/incident-cases/{case_id}/executive-report.pdf` → boardroom PDF (WeasyPrint).
+
+**New frontend surface (additive):**
+- `/safety/cases/:caseId/executive-report` → Executive Case Report page.
+
+**Executive Intelligence Model shape:** `model_version` · `generated_at` · `case_ref` · `executive_summary` · `why_it_matters` · `timeline` · `evidence_chain` · `people` · `asset_buckets` · `medical` · `agency` · `communications` · `corrective_actions` · `outstanding_tasks` · `regulatory_review` (osha · insurance · legal · executive) · `readiness` (6 explainable sub-scores) · `decision_records` · `operational_intelligence` · `sources` · `missing_fields`.
+
+**Why-It-Matters briefing:** fact-based, six-sentence executive digest (what happened · why leadership should care · current risk · recommended decision · expected outcome · source note). Zero invention · missing values surface explicitly as "Not documented yet."
+
+**Traceability:** every timeline row, evidence item, medical entry, agency contact, communication, CAPA, and task carries a `source` field naming the certified source collection. Auditors can trace any surfaced value back to a single Mongo query.
+
+**Readiness score:** six sub-scores (investigation · evidence · witnesses · CAPA · documentation · executive) — each with `num`, `den`, `pct`, and human-readable `rationale`. Presence-based (Track 19.35 doctrine).
+
+**Verification:** backend lint clean · frontend lint clean · assembler + renderer exercised live against case `2026-00001` (20 top keys, 6 sub-scores, 4 timeline events, 10.6 KB HTML) · new endpoints correctly enforce Safety auth (401 without token) · lock test all-green in isolation.
+
+**Zero-drift proof:** 0 collections mutated · 0 existing routes modified · Phase D dashboard + Phase E PDF preserved byte-for-byte · 0 permission changes · 0 email/notification changes · 0 new audit reasons.
+
+**Rollback:** delete 3 backend files + 1 frontend file + revert 3 additive edits (server.py · App.js · SafetyCaseWorkspace.jsx). HIGH confidence.
+
+**Docs (8):** `TRACK_19_36_EXECUTIVE_INTELLIGENCE.md` · `TRACK_19_36_EXECUTIVE_PDF.md` · `TRACK_19_36_TIMELINE.md` · `TRACK_19_36_EVIDENCE_CHAIN.md` · `TRACK_19_36_EXECUTIVE_DASHBOARD.md` · `TRACK_19_36_ZERO_DRIFT_MATRIX.md` · `TRACK_19_36_QUALITY_GATE_CLOSEOUT.md` · `TRACK_19_36_TEST_REPORT.md`.
+
+**Next:** Track 19.37 (Passive incident-presence scoring) · future dashboard migration to consume the 19.36 model.
+
+
+
 ## TRACK 19.35 · Safety Case Workspace · Investigation Upgrades · Phase 2 of Incident Intelligence Engine · ✅ COMPLETE (2026-07-03)
 
 **Six Pillar: 58/60 · Production Strong · Zero-Drift.** Fifth feature track under Track 19.30 quality gate.

@@ -2597,6 +2597,21 @@ _register_ie_report_routes(
     ).make_require_safety_admin_or_pm(db, _is_valid_admin_token, _is_valid_pm_token),
 )
 
+# TRACK 19.36 · Executive Intelligence Layer + Executive Report PDF.
+# Additive · read-only assembler + boardroom-grade PDF endpoint.
+# Consumes existing Phase A/C data; never mutates any collection.
+# Existing Phase E executive PDF (/api/incident-cases/{id}/reports/{type}.pdf)
+# is preserved untouched.
+from incident_engine.executive_report_routes import (  # noqa: E402
+    register_executive_report_routes as _register_ie_executive_report_routes,
+)
+_register_ie_executive_report_routes(
+    api_router, db,
+    require_actor=__import__(
+        "routes.safety_portal._deps", fromlist=["make_require_safety_admin_or_pm"]
+    ).make_require_safety_admin_or_pm(db, _is_valid_admin_token, _is_valid_pm_token),
+)
+
 # TRACK 19.21 · Employee Records Intelligence Platform · P0 foundation.
 # Universal Employee Record + intake batches + review queue + audit trail.
 # Additive · zero drift · HR is system owner across every lane.

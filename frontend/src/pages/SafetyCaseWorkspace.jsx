@@ -449,6 +449,14 @@ export default function SafetyCaseWorkspace() {
           <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">{t("Safety Case Workspace")}</div>
           <div className="font-display text-base font-black text-slate-900">{caseDoc?.case_number || "…"}</div>
         </div>
+        {/* Track 19.36 · deep-link to boardroom-grade Executive Case Report. */}
+        <button
+          onClick={() => navigate(`/safety/cases/${caseId}/executive-report`)}
+          className="ml-auto inline-flex items-center gap-1.5 h-9 px-3 rounded-md border border-slate-300 bg-white text-sm font-semibold text-slate-800 hover:bg-slate-50"
+          data-testid="case-workspace-open-executive-report"
+        >
+          <FileText className="w-3.5 h-3.5" aria-hidden /> {t("Executive Report")}
+        </button>
       </header>
 
       <main className="max-w-7xl mx-auto p-4 sm:p-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
