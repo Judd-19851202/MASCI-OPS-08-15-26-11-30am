@@ -11,6 +11,21 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.57 · Project Operational Thread PROMOTION · ✅ SHIPPED (2026-07-05)
+
+**Type:** Presentation promotion. Frontend only. Zero backend change.
+
+**Delta:** New page `PmProjectThread.jsx` at `/pm/project/:projectNumber/thread` (under existing `RequirePm` guard) consumes the 6 certified project endpoints identified by the Track 20.2 audit (`/api/pm/jobs`, `/api/jobs/{pn}/recent-context`, `/api/operational-events/project-day/{pn}/{date}`, `/api/material-movement/daily/{pn}/{date}`, `/api/job-hazard-files/by-project/{pn}`, `/api/operational-intelligence/summary` → `project_intelligence`) and renders through the Track 19.55 `OperationalThreadPage` shell. Six pure-function adapters (`missionAdapter` / `attentionAdapter` / `actionQueueAdapter` / `timelineAdapter` / `relationshipAdapter` / `documentsAdapter`) map the payloads into the shell's 10 sections. The classic `PmProjectDetail` at `/pm/project/:projectNumber` remains fully functional and now exposes a "Universal Thread" cross-link (Thread page carries a "Classic project view" link back).
+
+**Digital twin:** Golden operational questions (Is it healthy? Is it getting better or worse? What needs attention today? What changed recently? Who owns the issue? What is blocking production? Are there safety issues? Are there project / PO / constraint issues? What evidence supports this? Where do I click next?) all answered in a single scroll on desktop / iPad / mobile.
+
+**Zero drift:** No new backend module · no new backend route · no new score model · no new PDF · no new permission surface · no duplicate project system. Backend inventory frozen (9 files). OI component folder frozen (7 JSX + 1 JS). Health chip derives from `project_intelligence.attention_level` verbatim + plain-English "Why" derivation. Photos / History / Audit sections render honest empty states — the mandate forbids filling them with fake rows.
+
+**Testing:** `pytest /app/backend/tests/test_track_19_57_project_thread_promotion.py -v` → 16/16 GREEN. Combined 19.51 → 20.2 + 19.57: **all GREEN**.
+
+**Docs:** 9 files under `TRACK_19_57_*.md` (Executive Summary · Promotion Map · Digital Twin Map · Zero Duplication Matrix · Permission Certification · Human Walkthrough · Mobile/iPad Review · Zero Drift Matrix · Test Report).
+
+
 ## TRACK 20.2 · Project Operational Thread Forensic Audit · ✅ COMPLETE · 🟢 PROMOTE + ADAPTERS (2026-07-05)
 
 **Type:** Forensic audit. 4 composite deliverables + 1 lock test. Zero production code changes.

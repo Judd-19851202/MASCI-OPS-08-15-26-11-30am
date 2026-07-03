@@ -10,6 +10,26 @@
 
 # CHANGELOG
 
+## 2026-07-05 — TRACK 19.57 · Project Operational Thread PROMOTION · 🟢 SHIPPED (Frontend only · zero backend drift)
+
+### Shipped
+- `PmProjectThread.jsx` at `/pm/project/:projectNumber/thread` — promotes the certified project payload family into the Track 19.55 Universal Thread shell via six pure-function adapters (`missionAdapter` / `attentionAdapter` / `actionQueueAdapter` / `timelineAdapter` / `relationshipAdapter` / `documentsAdapter`).
+- Route wired in `App.js` behind the existing `RequirePm` (PM + Admin) auth gate — identical to the classic `PmProjectDetail`.
+- Cross-link added on the classic `PmProjectDetail` (`pm-project-detail-open-thread-link`); reciprocal `pm-project-thread-classic-link` on the Thread page.
+- Track 19.57 lock test `test_track_19_57_project_thread_promotion.py` — 16 assertions.
+- 9 governance docs under `/app/memory/TRACK_19_57_*.md` (Executive Summary · Promotion Map · Digital Twin Map · Zero Duplication Matrix · Permission Certification · Human Walkthrough · Mobile/iPad Review · Zero Drift Matrix · Test Report).
+
+### Certified endpoints consumed (zero new backend)
+`/api/pm/jobs` · `/api/jobs/{pn}/recent-context` · `/api/operational-events/project-day/{pn}/{date}` · `/api/material-movement/daily/{pn}/{date}` · `/api/job-hazard-files/by-project/{pn}` · `/api/operational-intelligence/summary` → `project_intelligence`.
+
+### Zero drift
+- Backend module inventory unchanged (9 files).
+- OI component folder locked to 7 JSX + 1 JS.
+- No new backend routes / score models / recommendation engines / notification systems / PDFs / permission surfaces / audit collections.
+- Classic PmProjectDetail page and route remain fully functional.
+- Follows the Track 20.2 audit recommendation verbatim ("PROMOTE + ADAPTERS").
+- Photos / History / Audit sections render honest empty states — the mandate forbids filling them with fake rows.
+
 ## 2026-07-05 — TRACK 20.2 · Project Operational Thread Forensic Audit · 🟢 PROMOTE + ADAPTERS
 
 ### Audit produced

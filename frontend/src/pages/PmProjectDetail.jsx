@@ -564,6 +564,15 @@ export default function PmProjectDetail() {
           >
             {pn || "—"}
           </span>
+          {pn && (
+            <Link
+              to={`/pm/project/${encodeURIComponent(pn)}/thread`}
+              data-testid="pm-project-detail-open-thread-link"
+              className="ml-2 inline-flex items-center px-2.5 py-1 text-[11px] font-mono font-bold uppercase tracking-widest border-2 border-slate-300 hover:border-slate-900 text-slate-900 rounded"
+            >
+              Universal Thread
+            </Link>
+          )}
           <Link
             to="/pm/jobs"
             data-testid="pm-project-detail-back"

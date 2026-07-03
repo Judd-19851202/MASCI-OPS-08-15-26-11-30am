@@ -325,6 +325,10 @@ import ConstraintDetail from "@/pages/ConstraintDetail";
 // Phase V-Prelude · Wave 1.1 — PM Project Detail (hosts the
 // Operational Timeline sidecar). Read-only, calm, single-project.
 const PmProjectDetail = React.lazy(() => import("@/pages/PmProjectDetail"));
+// Track 19.57 · Project Operational Thread PROMOTION — presentation
+// layer over certified project / recent-context / project-day /
+// material-movement / JHA / project_intelligence endpoints.
+const PmProjectThread = React.lazy(() => import("@/pages/PmProjectThread"));
 // PM Command Center · Phase 4B · 2026-02-10
 // One operational command screen for the PM (resources · hauls ·
 // materials · shop · safety · timeline). Reads strictly from the
@@ -805,6 +809,11 @@ function App() {
                 expose the inline project detail at /pm/project/{pn}
                 (singular) so external links / search results resolve. */}
             <Route path="/pm/project/:projectNumber" element={P(<PmProjectDetail />)} />
+            {/* Track 19.57 · Project Operational Thread PROMOTION.
+                Same PM auth as the classic detail page. Presents the
+                certified project payload through the Track 19.55
+                OperationalThreadPage shell. Zero backend drift. */}
+            <Route path="/pm/project/:projectNumber/thread" element={P(<PmProjectThread />)} />
             {/* PM Command Center · Phase 4B · 2026-02-10.
                 Backed by /api/pm/command-center/* (Phase 4A). One
                 page · seven tabs · iPad-friendly. */}
