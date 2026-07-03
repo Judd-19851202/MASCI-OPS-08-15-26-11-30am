@@ -64,6 +64,7 @@ const SECTIONS = [
   { key: "system-health", to: "/admin/system-health", icon: Activity,  label: "System Health",   desc: "Green/yellow/red operational probe" },
   { key: "database", to: "/admin/database", icon: Database, label: "Database",   desc: "Atlas capacity · 30-day storage trend · runway" },
   { key: "digest-config", to: "/admin/digest-config", icon: Mail,      label: "Weekly Digest",   desc: "Recipients · schedule · preview · send" },
+  { key: "operational-intelligence", to: "/admin/operational-intelligence", icon: Activity, label: "Operational Intelligence", desc: "Scores · previews · history · audit for all 11 intelligence products" },
   { key: "audit-log",  to: "/admin/audit-log",  icon: History,         label: "Audit Log",       desc: "Unified merged timeline" },
   { key: "sessions",   to: "/admin/sessions",   icon: Activity,        label: "Sessions",        desc: "Last 50 portal sessions · idle/abs status · forensic only" },
   { key: "deploy-recovery", to: "/admin/deploy-recovery", icon: Rocket, label: "Deploy Recovery", desc: "Rollback playbook · backup chain" },

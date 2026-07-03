@@ -171,6 +171,7 @@ const AdminDlsDay1Debrief = React.lazy(() => import("@/pages/admin/AdminDlsDay1D
 const AdminProfile = React.lazy(() => import("@/pages/admin/AdminProfile"));
 const AdminOperationsEvents = React.lazy(() => import("@/pages/admin/AdminOperationsEvents"));
 const AdminDigestConfig = React.lazy(() => import("@/pages/admin/AdminDigestConfig"));
+const AdminOperationalIntelligence = React.lazy(() => import("@/pages/admin/AdminOperationalIntelligence"));
 const SystemHealth = React.lazy(() => import("@/pages/admin/SystemHealth"));
 const AdminAuditLog = React.lazy(() => import("@/pages/admin/AdminAuditLog"));
 import AdminSchedulerRuns from "@/pages/AdminSchedulerRuns";  // iter445 · digest execution history
@@ -664,6 +665,7 @@ function App() {
             <Route path="/admin/profile" element={A(<AdminProfile />)} />
             <Route path="/admin/operations-events" element={A(<AdminOperationsEvents />)} />
             <Route path="/admin/digest-config" element={A(<AdminDigestConfig />)} />
+            <Route path="/admin/operational-intelligence" element={A(<AdminOperationalIntelligence />)} />
             <Route path="/admin/system-health" element={A(<SystemHealth />)} />
             <Route path="/admin/audit-log" element={A(<AdminAuditLog />)} />
             {/* iter445 · F-003 · operator-visible scheduler/digest history */}

@@ -10,6 +10,23 @@
 
 # CHANGELOG
 
+## 2026-07-04 — TRACK 19.47 · Operational Intelligence Cockpit UI · 🟢 SHIPPED
+
+### Shipped
+- **`/admin/operational-intelligence`** — first operator-facing surface over the completed engine. Admin-gated React page. Top strip (KPI buckets · worst/best · failures · dry-run notice) + 11-card product grid + Preview / Dry-run / History / Audit drawers.
+- **Additive backend endpoint** — `GET /api/operational-intelligence/summary`. Read-only, admin-only, partial-failure-safe. Composes 11 products, folds last-history + last-audit, returns compact per-product summary + attention buckets + extremes + recent failures. Never returns `rendered_html`.
+- **AdminShell nav entry** added below `Weekly Digest`.
+- **Preview drawer** — renders backend HTML inside `sandbox=""` iframe (safe against injected scripts).
+- **Live-send guard** — Cockpit send button hard-codes `dry_run: true`. Grep lock test rejects any `dry_run: false` literal.
+- **Recipient governance entry** — read-only JSON links to Track 19.45A endpoints. Full recipient CRUD UI intentionally deferred to a future track.
+- **Lock test** `test_track_19_47_cockpit_and_summary.py` — 17 assertions.
+- **9 governance docs** shipped (`TRACK_19_47_*.md`).
+
+### Zero drift
+- 0 new collections · 0 new email provider · 0 new scheduler · 0 new recipient collection · 0 mutation endpoints · 0 local score composition.
+- Rollback risk HIGH (clean · no schema touched).
+
+
 ## 2026-07-04 — TRACK 19.46 · Weekly Operations + History API + Audit API · 🟢 SHIPPED (11 of 11 products IMPLEMENTED · 0 CONTRACT_REGISTERED remain)
 
 ### Shipped

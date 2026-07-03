@@ -305,6 +305,127 @@ def register_operational_intelligence_routes(
                                              "detail": history_id})
         return {"ok": True, "history": row}
 
+    @api_router.get("/operational-intelligence/summary")
+    async def _oi_summary(_admin=Depends(require_admin)):
+        """One-shot Cockpit top-strip endpoint. Composes every
+        IMPLEMENTED product, folds a compact per-product summary
+        alongside its last history row + last audit row. Graceful
+        partial failure — one product's exception never breaks the
+        whole payload."""
+        from .registry import list_products as _lp, ProductStatus
+        from .engine import compose as _compose
+        results = []
+        buckets = {"LOW": 0, "MEDIUM": 0, "HIGH": 0, "CRITICAL": 0}
+        for p in _lp():
+            row: dict = {
+                "product_id": p.product_id,
+                "display_name": p.display_name,
+                "status": p.status,
+                "permission_role": p.permission_role,
+                "schedule": {
+                    "freq": p.schedule_freq,
+                    "iso_day": p.schedule_iso_day,
+                    "hour_utc": p.schedule_hour_utc,
+                },
+                "tags": list(p.tags or []),
+                "score": None,
+                "attention_level": None,
+                "trend_direction": None,
+                "trend_percent": None,
+                "confidence": None,
+                "data_freshness": None,
+                "top_attention_label": None,
+                "last_generated_at": None,
+                "last_sent_at": None,
+                "last_status": None,
+                "last_recipient_count": None,
+                "error": None,
+            }
+            if p.status != ProductStatus.IMPLEMENTED:
+                results.append(row)
+                continue
+            # Compose the digest (skip products that raise).
+            try:
+                d = await _compose(db, product_id=p.product_id)
+                sc = d.get("operational_intelligence_score") or {}
+                row["score"] = sc.get("overall_score")
+                row["attention_level"] = sc.get("attention_level")
+                row["trend_direction"] = sc.get("trend_direction")
+                row["trend_percent"] = sc.get("trend_percent")
+                row["confidence"] = sc.get("confidence")
+                row["data_freshness"] = sc.get("data_freshness")
+                # Top-line attention label (first item of
+                # needs_immediate_attention, if any).
+                try:
+                    att = next(s for s in d["sections"]
+                               if s["section_key"]
+                               == "needs_immediate_attention")
+                    items = [i for i in (att.get("items") or [])
+                             if isinstance(i, str)
+                             and not i.startswith("— Not applicable")]
+                    row["top_attention_label"] = items[0] if items else None
+                except Exception:  # noqa: BLE001
+                    pass
+                if row["attention_level"] in buckets:
+                    buckets[row["attention_level"]] += 1
+            except NotImplementedError:
+                row["error"] = "aggregator_not_implemented"
+            except Exception as e:  # noqa: BLE001
+                row["error"] = f"compose_failed: {type(e).__name__}: {str(e)[:120]}"
+            # Last history row.
+            try:
+                hist = await db[COLLECTION_HISTORY].find_one(
+                    {"product_id": p.product_id},
+                    {"_id": 0, "generated_at": 1},
+                    sort=[("generated_at", -1)],
+                )
+                if hist:
+                    row["last_generated_at"] = hist.get("generated_at")
+            except Exception:  # noqa: BLE001
+                pass
+            # Last audit row (dispatch event).
+            try:
+                aud = await db[COLLECTION_AUDIT].find_one(
+                    {"product_id": p.product_id, "event": "dispatch"},
+                    {"_id": 0, "at": 1, "payload": 1},
+                    sort=[("at", -1)],
+                )
+                if aud:
+                    row["last_sent_at"] = aud.get("at")
+                    pl = aud.get("payload") or {}
+                    row["last_status"] = pl.get("send_status")
+                    row["last_recipient_count"] = pl.get("recipient_count")
+            except Exception:  # noqa: BLE001
+                pass
+            results.append(row)
+
+        # Worst / best (skip rows with no score).
+        scored = [r for r in results if isinstance(r.get("score"), int)]
+        worst = min(scored, key=lambda r: r["score"]) if scored else None
+        best = max(scored, key=lambda r: r["score"]) if scored else None
+        recent_failures = [r for r in results if r.get("error")]
+
+        return {
+            "count": len(results),
+            "attention_buckets": buckets,
+            "worst_product": ({"product_id": worst["product_id"],
+                               "display_name": worst["display_name"],
+                               "score": worst["score"],
+                               "attention_level": worst["attention_level"]}
+                              if worst else None),
+            "best_product": ({"product_id": best["product_id"],
+                              "display_name": best["display_name"],
+                              "score": best["score"],
+                              "attention_level": best["attention_level"]}
+                             if best else None),
+            "recent_failures": [
+                {"product_id": r["product_id"], "error": r["error"]}
+                for r in recent_failures
+            ],
+            "dry_run_default": True,
+            "products": results,
+        }
+
     @api_router.get("/operational-intelligence/audit")
     async def _oi_audit(
         product_id: str | None = Query(default=None),

@@ -11,6 +11,29 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.47 · Operational Intelligence Cockpit UI · ✅ COMPLETE (2026-07-04)
+
+**Delta:** First operator-facing surface over the completed engine. `/admin/operational-intelligence` gives admins a single command view over all 11 intelligence products. Zero drift.
+
+**Cockpit:** admin-gated React page composed of a KPI top strip (LOW/MEDIUM/HIGH/CRITICAL buckets + worst/best product + recent failures + dry-run notice), a 11-card product grid (score chip + trend arrow + confidence + freshness + schedule + last-generated + last-sent + primary attention signal + 4 action buttons), and four right-side drawers (Preview via sandboxed iframe · Dry-run send · History · Audit). Every value comes from the backend — no local composition, no fake scores.
+
+**Summary endpoint:** additive read-only `GET /api/operational-intelligence/summary` composes all 11 IMPLEMENTED products with graceful partial-failure (one product's exception is captured into `error` field, never breaks the payload). Returns `attention_buckets`, `worst_product`, `best_product`, `recent_failures`, `dry_run_default`, and per-product score/attention/trend/last-generated/last-sent/recipient-count. Never returns `rendered_html` (kept lean).
+
+**Live-send guard:** Cockpit exposes ONLY the dry-run send path (`dry_run: true` hard-coded); a grep lock test asserts `dry_run: false` does not appear anywhere in the page source. Live-send remains CLI/cron/API-only.
+
+**Recipient governance:** Cockpit surfaces read-only entry links to the Track 19.45A recipient/group JSON endpoints. Full CRUD UI intentionally deferred to a future track (Track 19.48 · Recipient Management UI).
+
+**Permissions:** admin-only route (shared `A(...)` gate). Backend summary/history/audit endpoints all return JSON 401 for safety/unauth (never HTML).
+
+**Verification:** 17 lock assertions GREEN. Full regression across Tracks 19.40–19.47 GREEN. Live smoke on preview: 8/8 gates GREEN.
+
+**Zero drift:** 0 new collections · 0 new email provider · 0 new scheduler · 0 new recipient collection · 0 new renderer · 0 mutation endpoints. Everything additive.
+
+**Rollback:** revert `routes.py` (remove `/summary`) · revert `App.js` (remove lazy import + route) · revert `AdminShell.jsx` (remove nav entry) · delete `AdminOperationalIntelligence.jsx` · delete 9 docs + 1 lock test. HIGH.
+
+**Next:** Track 19.48 — Recipient Management UI (dedicated CRUD surface on top of Track 19.45A endpoints).
+
+
 ## TRACK 19.46 · Weekly Operations + History API + Audit API · ✅ COMPLETE (2026-07-04)
 
 **Registry: 11/11 IMPLEMENTED · 0 CONTRACT_REGISTERED remain.**
