@@ -11,6 +11,34 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 20.5 · Asset / Equipment Operational Thread Forensic Audit · ✅ COMPLETE (2026-08-02)
+
+**Type:** Forensic audit only. **Zero production code changed. Zero live emails. Zero HTTP calls in the lock test.**
+
+**Question:** Does the Asset / Equipment Operational Thread already exist, and if not, what is the smallest correct path?
+
+**Answer:** **PROMOTE + EXTEND (small).** The Fleet Unit Thread pilot (Track 19.55) at `/fleet/unit/:unit_number` already renders the 10-section Universal Operational Thread over the certified asset backbone (Track 13.26 `asset_service_events` + `asset_spine` + `asset_documents` + `asset_care`). The canonical Asset Taxonomy (Track 13.31B v1.0.0) already covers every class the user enumerated — Heavy Equipment, Trucks, Trailers, Trench Boxes / Road Plates, Roadway / Traffic Control, Survey (incl. Pipe Lasers, GPR, Utility Locators), GPS / Machine Control, Technology (Phones · Tablets · iPads · Laptops · Radios · Drones), Safety Equipment (PPE), Support Equipment, Facility Assets, Temporary / Rental, Other.
+
+**Track 19.61 scope (proposed, NOT executed here):**
+1. `entity_kind="asset"` lane on Historical Records (mirror of Track 19.59 vendor lane) — HR/Admin can upload legacy paper for assets.
+2. Universal Asset Identifier Resolver (asset_id · unit_number · serial · legacy id → canonical asset_id via `asset_spine`).
+3. `AdminAssetThread.jsx` at `/admin/assets/:asset_ref/thread` reusing `OperationalThreadPage` identically to Vendor / Employee / Project / Incident threads. Fleet lens alias remains `/fleet/unit/:unit_number` unchanged.
+4. Class-aware OI product routing (existing products only; graceful "no OI product yet" fallback). Zero new OI products.
+
+Estimated budget: ≤ 250 backend LOC · ≈ 550 frontend LOC · 1 lock file.
+
+**Deliverables (11 docs + 1 lock test):**
+`TRACK_20_5_EXECUTIVE_AUDIT.md` · `TRACK_20_5_ASSET_SURFACE_INVENTORY.md` · `TRACK_20_5_SOURCE_OF_TRUTH_MATRIX.md` · `TRACK_20_5_PERMISSION_MATRIX.md` · `TRACK_20_5_UNIVERSAL_THREAD_FIT.md` · `TRACK_20_5_RELATIONSHIP_GRAPH_AUDIT.md` · `TRACK_20_5_EMAIL_SAFETY_CERTIFICATION.md` · `TRACK_20_5_NOISE_DUPLICATE_DEFECT_AUDIT.md` · `TRACK_20_5_FINAL_RECOMMENDATION.md` · `TRACK_20_5_ZERO_DRIFT_CERTIFICATION.md` · `TRACK_20_5_TEST_REPORT.md` · lock test `backend/tests/test_track_20_5_asset_thread_audit.py`.
+
+**Email safety:** Track 20.5 sends no email, triggers no email-audit rows, imports no send function, and mounts no side-effect route. The lock test performs no HTTP calls, no DB writes, and no email-adjacent function imports. Re-running 100× produces zero inbox activity.
+
+**Zero-Drift:** No new asset collection · no new equipment master · no duplicate maintenance/DVIR/inspection/document/photo/timeline/PM/PDF/audit/email/score system.
+
+**Testing:** `pytest backend/tests/test_track_20_5_asset_thread_audit.py -v` → all assertions green. Full Operational Thread suite (19.55 → 20.5) remains re-verifiable in isolation.
+
+**Next:** Awaiting user directive to execute Track 19.61 (Asset Thread Promotion).
+
+
 ## TRACK 19.60 · Vendor Operational Thread PROMOTION (+ HR/Admin vendor management amendment) · ✅ SHIPPED (2026-07-05)
 
 **Type:** Presentation promotion **+ small additive backend extension** for HR/Admin vendor management. Zero drift.
