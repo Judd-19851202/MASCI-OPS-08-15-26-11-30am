@@ -11,6 +11,33 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.35 · Safety Case Workspace · Investigation Upgrades · Phase 2 of Incident Intelligence Engine · ✅ COMPLETE (2026-07-03)
+
+**Six Pillar: 58/60 · Production Strong · Zero-Drift.** Fifth feature track under Track 19.30 quality gate.
+
+**Delta:** Track 19.16 shipped the Safety Case Workspace with 10 investigation tabs (Timeline · Evidence · Witnesses · Medical · Police/Agency · Root Cause · Corrective Actions · Communications · Safety Tasks · Linked Records). Track 19.18 layered on Case Story · Next Action · timeline spine · clickable blockers. Track 19.35's surgical addition wraps that surface with a **Field Facts** anchor tab (first · default landing · immutable) and a **Closeout** checklist tab (last · display-only mirror of populated areas). Together with the Track 19.34 intake banner, the entire incident lifecycle now visibly enforces "Field captures facts · Safety investigates."
+
+**What shipped:**
+- `frontend/src/pages/SafetyCaseWorkspace.jsx` — `TABS` array +2 entries · `Lock` icon import · default tab literal `"timeline"` → `"field_facts"` · +2 stateless render blocks (Field Facts + Closeout).
+- Field Facts panel: locked-record banner · `<dl>` grid of incident type · occurred-at · reporter · location · summary · immediate actions. **Zero edit affordances.**
+- Closeout panel: 5-item auto-checking checklist (evidence · witnesses · root cause · CAPAs · agency contacts) + current status + Executive-header guidance.
+
+**All 12 tabs in shipped order:** Field Facts · Timeline · Evidence · Witnesses · Medical · Police/Agency · Root Cause · Corrective Actions · Communications · Safety Tasks · Linked Records · Closeout.
+
+**Field-vs-Safety protection preserved:** Track 19.34 grep invariant (0 hits on `osha_recordable`, `root_cause`, `preventability`, `discipline`, `workers_comp`, `liability` in field-facing schema or intake page) remains green. Track 19.35 touched only the Safety-gated workspace, where those investigation vocabularies are correctly located.
+
+**Verification:** Frontend lint clean · lock test 28/28 assertions PASS in isolation · smoke render of workspace confirms 12-tab strip with Field Facts default-selected.
+
+**Zero-drift proof:** 0 backend files · 0 schemas · 0 routes · 0 payloads · 0 PDFs · 0 emails · 0 notifications · 0 permissions · 0 audit events. Only 1 frontend file edited (5 in-place edits).
+
+**Rollback:** revert 5 in-place edits in `SafetyCaseWorkspace.jsx`. HIGH confidence.
+
+**Docs (7):** `TRACK_19_35_CASE_WORKSPACE_INVESTIGATION_UPGRADES.md` · `TRACK_19_35_FIELD_FACTS_IMMUTABILITY.md` · `TRACK_19_35_REGULATORY_REVIEW_ARCHITECTURE.md` · `TRACK_19_35_CAPA_CLOSEOUT_WORKFLOW.md` · `TRACK_19_35_ZERO_DRIFT_MATRIX.md` · `TRACK_19_35_QUALITY_GATE_CLOSEOUT.md` · `TRACK_19_35_TEST_REPORT.md`.
+
+**Next:** Track 19.36 — Executive PDF redesign (consumes the immutable field intake facts).
+
+
+
 ## TRACK 19.34 · Incident Field Intake Modernization · Phase 1 of Incident Intelligence Engine · ✅ COMPLETE (2026-07-03)
 
 **Six Pillar: 58/60 · Production Strong · Zero-Drift.** Fourth feature track under Track 19.30 quality gate.

@@ -1,5 +1,36 @@
 # CHANGELOG
 
+## 2026-07-03 — TRACK 19.35 · Safety Case Workspace · Investigation Upgrades (Phase 2 of Incident Intelligence Engine) · 🟢 SHIPPED (Production Strong · 58/60)
+
+### Shipped
+- **Field Facts** tab pinned as the first tab of the Safety Case Workspace and set as the default landing tab. Renders the immutable field report inside a locked-record banner (`Lock` icon + doctrine sentence). Displays incident type · occurred-at · reporter · location · summary · immediate actions in a read-only `<dl>` grid. Zero edit affordances.
+- **Closeout** tab pinned as the last tab. Renders a 5-item auto-checking checklist mirroring evidence · witnesses · root cause · CAPAs · agency contacts. Guides the Safety Manager to set final closure from the Executive header (unchanged surface).
+- **Preserved:** all 10 pre-19.35 investigation tabs (Timeline · Evidence · Witnesses · Medical · Police/Agency · Root Cause · Corrective Actions · Communications · Safety Tasks · Linked Records) render unchanged.
+- **1 file edited** (`frontend/src/pages/SafetyCaseWorkspace.jsx`) with 5 in-place edits: TABS +2 entries · `Lock` icon import · default `useState` literal · Field Facts render block · Closeout render block.
+- **7 governance documents** (including the pre-existing track summary): investigation upgrades summary · field-facts immutability spec · regulatory review architecture · CAPA/closeout workflow · zero-drift matrix · quality gate closeout · test report.
+- **Lock test** at `backend/tests/test_track_19_35_safety_case_workspace.py` — 28 assertions enforcing tab structure, ordering (field_facts first · closeout last), default tab, doctrine wording, immutability grep (no `<input`/`<textarea`/`<select`/`type="submit"` inside the field_facts panel), closeout checklist items, bilingual wraps, Track 19.34 grep invariant preservation, doc completeness, PRD/CHANGELOG updates.
+
+### Quality Gate compliance
+Fifth feature track under Track 19.30 gate. Passed all applicable categories:
+- **Six Pillar: 58/60 · Production Strong.** Powerful 9 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10 · Operational 10.
+- **Zero-Drift: 20/20 categories unchanged.** 0 backend files touched.
+- **Frontend lint:** clean.
+- **Lock test:** 28/28 PASS in isolation (Track 19.30 asyncio-bleed protocol).
+- **Rollback:** HIGH confidence (5 in-place edits in one file).
+
+### Field-vs-Safety doctrine — end-to-end enforcement
+Combined with Track 19.34, the doctrine is now visibly enforced across the incident lifecycle:
+- **Intake side (Track 19.34):** banner at top of `/incidents/report` + grep invariant blocking OSHA/root-cause/discipline vocabulary in the field-facing schema.
+- **Workspace side (Track 19.35):** immutable Field Facts anchor tab + Closeout mirror tab + grep invariant blocking edit affordances inside the field-facts panel.
+
+### Zero-drift proof
+0 backend files touched · 0 schemas · 0 API routes · 0 PDFs · 0 emails · 0 permissions · 0 audit events. All 10 pre-19.35 investigation tabs preserved byte-for-byte. Default tab change (`"timeline"` → `"field_facts"`) is a 1-character behavioral edit with documented rationale.
+
+### Final verdict
+🟢 **GO.** Safety Case Workspace now anchors investigation in the immutable field record and closes it with a visible integrity checklist. Doctrine visible + enforced end-to-end.
+
+
+
 ## 2026-07-03 — TRACK 19.34 · Incident Field Intake Modernization (Phase 1 of Incident Intelligence Engine) · 🟢 SHIPPED (Production Strong · 58/60)
 
 ### Shipped
