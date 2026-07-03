@@ -1,5 +1,49 @@
 # CHANGELOG
 
+## 2026-07-03 — TRACK 19.39 · Morning Safety Intelligence Digest (Phase 6 of Incident Intelligence Engine) · 🟢 SHIPPED (Production Strong · 58/60)
+
+### Shipped
+- **Digest generator** at `backend/incident_engine/morning_digest.py` (~400 lines) — composes from the Track 19.38 aggregator (which reuses the Track 19.37 scorer), renders boardroom-clean HTML, emits the required no-auto-decision notice verbatim.
+- **Five Safety+Admin endpoints:**
+  - `GET /api/incident-intelligence/morning-digest/preview` — HTML preview (no send).
+  - `GET /api/incident-intelligence/morning-digest/preview.json` — JSON preview.
+  - `POST /api/incident-intelligence/morning-digest/send?dry_run=true|false` — compose + optional send.
+  - `GET  /api/incident-intelligence/morning-digest/recipients` — list.
+  - `POST /api/incident-intelligence/morning-digest/recipients` — add.
+  - `PATCH /api/incident-intelligence/morning-digest/recipients/{id}` — update (`active` toggle · `notes` · `display_name` · `role_label` allow-list).
+- **Two additive Mongo collections:** `morning_digest_recipients` · `morning_digest_audit`.
+- **Default seed:** Jaymn + Safety placeholder · configurable via `MORNING_DIGEST_DEFAULT_RECIPIENTS` env var (`email|display_name|role_label` comma-separated).
+- **Uses existing `fsi_send_email`** — no new email provider.
+- **Dry-run default:** `send_digest(dry_run=True)` short-circuits before send, writes audit row, never calls `fsi_send_email`. Verified by mock in lock test.
+- **7 governance docs** + PRD + CHANGELOG.
+- **Lock test** at `backend/tests/test_track_19_39_morning_digest.py` — 27 assertions covering module existence, aggregator reuse, no scorer duplication, existing-provider-only, additive collection names, default seed contents (Jaymn + Safety), env override, dry-run does not call `fsi_send_email`, live send calls once per active recipient, response shape, audit row created, active-only filter excludes inactive, invalid email rejected, update allow-list, notice constant matches doctrine, no forbidden UI vocab in digest module, top cases sorted DESC (behavioural), Track 19.34 grep invariant preserved, docs completeness, PRD + CHANGELOG updated.
+
+### Quality Gate compliance
+Ninth feature track under Track 19.30 gate.
+- **Six Pillar: 58/60 · Production Strong.** Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10 · Operational 9.
+- **Zero-Drift: 18/18 categories preserved.** 0 existing collections mutated · 0 existing routes modified · uses existing email provider.
+- **Backend lint:** clean.
+- **Runtime dry-run smoke:** seeded 2 default recipients (Jaymn + Safety), composed digest (5 sections, top 5 cases), forbidden-vocab check on body GREEN, mock proved `fsi_send_email` un-called on dry-run, audit row created.
+- **Curl smoke:** all 5 endpoints return 401 to unauthenticated requests.
+- **Rollback:** HIGH confidence (delete 2 files · revert 1 additive edit).
+
+### No-auto-decision doctrine
+Notice emitted verbatim with every digest and rendered in email footer. Enforced by pytest constant check + module-level forbidden-vocab grep on digest UI copy.
+
+### Recipient management
+Admins add/deactivate/relabel via API without any code change. Deactivation preferred over deletion (history preserved in the collection and in the audit trail).
+
+### Scheduler
+Not wired in this track. Documented as Phase 2 (Track 19.40).
+
+### Zero-drift proof
+0 existing collections touched · 0 existing routes modified · Track 19.34, 19.35, 19.36, 19.37, 19.38 doctrine locks all remain green.
+
+### Final verdict
+🟢 **GO.** Morning Safety Intelligence Digest production-ready. Read-only, opt-in, permission-safe, dry-run-defaulted, audit-logged. Start with Jaymn + Safety, grow the list live, never touch code again to change recipients.
+
+
+
 ## 2026-07-03 — TRACK 19.38 · Cross-portal Read Fanout + Portfolio Attention Feed (Phase 5 of Incident Intelligence Engine) · 🟢 SHIPPED (Production Strong · 58/60)
 
 ### Shipped

@@ -2650,6 +2650,21 @@ _register_ie_portfolio_routes(
     ),
 )
 
+# TRACK 19.39 · Morning Safety Intelligence Digest.
+# Additive · opt-in · Safety+Admin gated. Uses existing fsi_send_email.
+# Dry-run mode by default; recipients live in an additive collection
+# (morning_digest_recipients) with an audit trail
+# (morning_digest_audit). No new email provider. No scheduler yet.
+from incident_engine.morning_digest_routes import (  # noqa: E402
+    register_morning_digest_routes as _register_ie_morning_digest_routes,
+)
+_register_ie_morning_digest_routes(
+    api_router, db,
+    require_safety_or_admin=_ie_portfolio_deps_mod.make_require_safety_or_admin(
+        db, _is_valid_admin_token,
+    ),
+)
+
 # TRACK 19.21 · Employee Records Intelligence Platform · P0 foundation.
 # Universal Employee Record + intake batches + review queue + audit trail.
 # Additive · zero drift · HR is system owner across every lane.

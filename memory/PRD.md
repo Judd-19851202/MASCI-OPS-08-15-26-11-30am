@@ -11,6 +11,35 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.39 · Morning Safety Intelligence Digest · Phase 6 of Incident Intelligence Engine · ✅ COMPLETE (2026-07-03)
+
+**Six Pillar: 58/60 · Production Strong · Zero-Drift.** Ninth feature track under Track 19.30 quality gate.
+
+**Delta:** Track 19.39 turns the certified stack (19.36 model · 19.37 scorer · 19.38 aggregator) into an opt-in, permission-safe, dry-run-defaulted Monday-morning email digest. Two additive Mongo collections manage recipients + audit. Five Safety+Admin endpoints expose preview / dry-run send / live send / recipient CRUD. Uses existing `fsi_send_email` — no new email provider.
+
+**What shipped:**
+- `backend/incident_engine/morning_digest.py` (new · ~400 lines · digest composer + HTML render + recipient CRUD + `send_digest(dry_run=…)`).
+- `backend/incident_engine/morning_digest_routes.py` (new · 5 endpoints · Safety+Admin gated).
+- `backend/server.py` (+14 lines wiring routes).
+- Two additive Mongo collections: `morning_digest_recipients` · `morning_digest_audit`.
+- Default seed: Jaymn + Safety placeholder · configurable via `MORNING_DIGEST_DEFAULT_RECIPIENTS` env var · admins add/deactivate/relabel via API (no code change).
+
+**Digest sections (5):** Executive Summary · Top 5 Attention Cases · Needs Attention Today · Portfolio Trends · No-Auto-Decision Notice (verbatim). Deep-links to Track 19.36 Executive Case Report.
+
+**Dry-run default:** `send_digest(dry_run=True)` never calls `fsi_send_email` · verified by mock in lock test. Audit row is written regardless.
+
+**Verification:** backend lint clean · runtime dry-run smoke against live DB (5 top cases · 2 default recipients · mock un-called · audit row created) · all 5 endpoints 401 without token · Track 19.39 lock 27/27 in isolation · Track 19.34/19.36/19.37/19.38 locks still green.
+
+**Zero-drift proof:** 0 existing collections mutated · 0 existing routes modified · uses existing email provider · Track 19.34/19.35/19.36/19.37/19.38 doctrine locks all remain green.
+
+**Rollback:** delete 2 backend files · revert 1 additive edit (server.py). HIGH confidence.
+
+**Docs (7):** `TRACK_19_39_MORNING_SAFETY_DIGEST.md` · `..._RECIPIENT_MANAGEMENT.md` · `..._EMAIL_ROUTING_AND_DRY_RUN.md` · `..._NO_AUTO_DECISION_DOCTRINE.md` · `..._ZERO_DRIFT_MATRIX.md` · `..._QUALITY_GATE_CLOSEOUT.md` · `..._TEST_REPORT.md`.
+
+**Next:** Track 19.40 (weekly scheduler + iso-week dedupe key) · Phase 2 · out of scope for 19.39.
+
+
+
 ## TRACK 19.38 · Cross-portal Read Fanout + Portfolio Attention Feed · Phase 5 of Incident Intelligence Engine · ✅ COMPLETE (2026-07-03)
 
 **Six Pillar: 58/60 · Production Strong · Zero-Drift.** Eighth feature track under Track 19.30 quality gate.
