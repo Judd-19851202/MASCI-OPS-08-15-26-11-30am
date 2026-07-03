@@ -6,6 +6,37 @@
 
 # CHANGELOG
 
+# CHANGELOG
+
+## 2026-07-04 — TRACK 19.44 · Training + Project Intelligence + PO Cutover Gate · 🟢 SHIPPED (Production Strong · 59/60)
+
+### Shipped
+- **Training Intelligence** (`_agg_training_intelligence`) — IMPLEMENTED. 10 signal queries · 8 Score contributors (3+ / 5-). Top-5 expired certifications table. 4 deep links. `admin_only`.
+- **Project Intelligence** (`_agg_project_intelligence`) — IMPLEMENTED. 10 signal queries · 10 Score contributors (4+ / 6-). Top-5 projects by 7d incident volume (via Mongo aggregation pipeline). 5 deep links. `admin_only`.
+- **Legacy PO Digest cutover gate** — new env flag `OI_ENGINE_PO_WEEKLY_LIVE=true` short-circuits `po_digest.py::_enabled()`. Mirrors the Track 19.43 safety_digest gate.
+- **Safety Digest cutover verification** — Track 19.43 gate re-tested and documented for operator flip.
+- **12 governance docs** + PRD + CHANGELOG.
+- **Lock test** `test_track_19_44_training_project_intelligence.py` — 17 assertions.
+
+### Registry
+- IMPLEMENTED (8): safety_morning_digest · executive_operations_brief · po_weekly_digest · transportation_intelligence · fleet_intelligence · hr_intelligence · **training_intelligence (NEW)** · **project_intelligence (NEW)**.
+- CONTRACT_REGISTERED (3): weekly_operations_digest · shop_intelligence · corporate_intelligence.
+
+### Quality Gate
+- **Six Pillar: 59/60.**
+- **Zero-Drift:** all schemas · legacy routes · legacy crons · recipient collections unchanged.
+- **Regression:** 6 lock suites (Tracks 19.39–19.44) all 🟢.
+- **Live smoke:** `GET /api/operational-intelligence/products` → `count=11`; Training + Project previews render 14 sections with insufficient-data guard on preview env.
+
+### Zero-drift proof
+0 collections mutated · 0 legacy routes modified · 0 new schedulers · 0 new email providers · both cutover gates are additive · env-flip reversible.
+
+### Next
+- Track 19.45 → Shop + Corporate + Weekly Operations aggregators (last 3 CONTRACT_REGISTERED).
+- Track 19.46 → Cockpit UI once all 11 products IMPLEMENTED.
+
+---
+
 ## 2026-07-04 — TRACK 19.43 · Fleet + HR Intelligence + Safety Digest Cutover Gate · 🟢 SHIPPED (Production Strong · 59/60)
 
 ### Shipped

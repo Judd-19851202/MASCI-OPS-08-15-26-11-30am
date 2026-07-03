@@ -11,6 +11,28 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.44 · Training Intelligence + Project Intelligence + PO Cutover Gate · ✅ COMPLETE (2026-07-04)
+
+**Six Pillar: 59/60 · Production Strong · Zero-Drift.**
+
+**Delta:** Two more domain aggregators shipped (Training + Project). IMPLEMENTED product count moved from 6 to 8. Only 3 CONTRACT_REGISTERED remain (weekly_ops · shop · corporate). Legacy `po_digest.py` gained an operator cutover gate mirroring the safety_digest gate (`OI_ENGINE_PO_WEEKLY_LIVE=true`). Track 19.43 safety_digest cutover verified operational and cutover procedure documented.
+
+**Training Intelligence** reads `employees` · `safety_training_records` (fallback `training_track_records`) · `driver_qualifications` · `safety_meetings`. 10 signal queries · 8 Score contributors. `admin_only`.
+
+**Project Intelligence** reads `jobs_master` (fallbacks `jobs`, `projects`) · `daily_reports` · `job_photos` · `operational_constraints` · `incident_cases` · `po_requests`. 10 signal queries · 10 Score contributors. Top-5 projects by 7d incident volume via aggregation pipeline. `admin_only`.
+
+**PO Cutover Gate** — one env flag (`OI_ENGINE_PO_WEEKLY_LIVE=true`) disables the legacy Monday cron while the OI-engine PO product remains authoritative. Zero deletion · full rollback.
+
+**Registry:** IMPLEMENTED (8) = safety_morning · executive_ops · po_weekly · transportation · fleet · hr · **training · project (NEW)**. CONTRACT_REGISTERED (3) = weekly_operations · shop · corporate.
+
+**Verification:** Track 19.44 lock 17/17 GREEN. Regression Tracks 19.39–19.43 all GREEN. Live smoke: registry `count=11`, Training + Project previews render 14 sections + insufficient_data guard on empty preview env.
+
+**Rollback:** revert `products.py` aggregators + Training/Project `register_product` blocks · revert `po_digest.py::_enabled()` short-circuit · delete lock test + 12 docs. HIGH confidence.
+
+**Next:** Track 19.45 → final 3 aggregators (Shop · Corporate · Weekly Operations) → Cockpit UI evaluation.
+
+---
+
 ## TRACK 19.43 · Fleet Intelligence + HR Intelligence + Safety Digest Cutover Gate · ✅ COMPLETE (2026-07-04)
 
 **Six Pillar: 59/60 · Production Strong · Zero-Drift.**

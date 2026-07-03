@@ -1238,6 +1238,482 @@ register_product(Product(
 
 
 # ---------------------------------------------------------------------------
+# 7 · Training Intelligence Digest (IMPLEMENTED — Track 19.44)
+# ---------------------------------------------------------------------------
+async def _agg_training_intelligence(db, **kwargs) -> Dict[str, Any]:
+    from datetime import datetime, timedelta, timezone
+    from .product_layout import build_standard_layout
+    from .score_model import (
+        score_from_contributors, Contributor, insufficient_data_score,
+    )
+
+    now = datetime.now(timezone.utc)
+    week_ago = (now - timedelta(days=7)).isoformat()
+    plus_30d = (now + timedelta(days=30)).isoformat()
+    plus_60d = (now + timedelta(days=60)).isoformat()
+
+    async def _c(name, q=None):
+        try:
+            return int(await db[name].count_documents(q or {}))
+        except Exception:  # noqa: BLE001
+            return 0
+
+    # Employee scope
+    active_emp = await _c("employees", {"active": True})
+    if active_emp == 0:
+        active_emp = await _c("employee_records", {"active": True})
+
+    # Training completion signals — use safety_training_records + training_track_records
+    completed_7d = await _c("safety_training_records", {"completed_at": {"$gte": week_ago}})
+    if completed_7d == 0:
+        completed_7d = await _c("training_track_records", {"created_at": {"$gte": week_ago}})
+    completed_total = await _c("safety_training_records", {})
+
+    # Expiring / expired across driver_qualifications (canonical cert store)
+    expired = await _c("driver_qualifications", {"expires_at": {"$lt": now.isoformat()}})
+    expiring_30d = await _c("driver_qualifications",
+                            {"expires_at": {"$lte": plus_30d, "$gte": now.isoformat()}})
+    expiring_60d = await _c("driver_qualifications",
+                            {"expires_at": {"$lte": plus_60d, "$gte": now.isoformat()}})
+
+    # Meeting attendance
+    meetings_7d = await _c("safety_meetings", {"held_at": {"$gte": week_ago}})
+    if meetings_7d == 0:
+        meetings_7d = await _c("meetings", {"held_at": {"$gte": week_ago}})
+
+    # Missing / pending signals
+    missing_records = await _c("training_track_records",
+                               {"status": {"$in": ["missing", "pending"]}})
+    pending_approval = await _c("training_track_records",
+                                {"status": "pending_approval"})
+
+    has_any = any([active_emp, completed_total, expired, expiring_30d,
+                    meetings_7d, missing_records])
+    if not has_any:
+        score = insufficient_data_score(
+            "No training collections populated in this environment.")
+    else:
+        positives, negatives = [], []
+        if completed_7d > 0:
+            positives.append(Contributor(
+                key="completion_activity",
+                label=f"{completed_7d} training completion(s) this week",
+                impact=8, detail="Active training engagement."))
+        if active_emp > 0 and expired == 0:
+            positives.append(Contributor(
+                key="no_expired",
+                label=f"All {active_emp} active employee(s) currently qualified",
+                impact=15, detail="No expired training/certifications."))
+        if meetings_7d > 0:
+            positives.append(Contributor(
+                key="meeting_attendance",
+                label=f"{meetings_7d} safety meeting(s) held this week",
+                impact=6, detail="Ongoing safety touchpoints."))
+        if expired > 0:
+            negatives.append(Contributor(
+                key="expired_certs",
+                label=f"{expired} expired certification(s)",
+                impact=-min(35, expired * 8),
+                detail="Safety-critical — remove employees from covered work."))
+        if expiring_30d > 0:
+            negatives.append(Contributor(
+                key="expiring_30d",
+                label=f"{expiring_30d} certification(s) expiring in 30 days",
+                impact=-min(20, expiring_30d * 3),
+                detail="Immediate renewal window."))
+        elif expiring_60d > 0:
+            negatives.append(Contributor(
+                key="expiring_60d",
+                label=f"{expiring_60d} certification(s) expiring in 60 days",
+                impact=-min(10, expiring_60d * 2),
+                detail="Renewal window approaching."))
+        if missing_records > 0:
+            negatives.append(Contributor(
+                key="missing_records",
+                label=f"{missing_records} missing/pending training record(s)",
+                impact=-min(15, missing_records * 3),
+                detail="Records not attached · attention required."))
+        if pending_approval > 5:
+            negatives.append(Contributor(
+                key="approval_backlog",
+                label=f"{pending_approval} record(s) pending approval",
+                impact=-min(12, pending_approval // 2),
+                detail="Approval backlog exceeds threshold."))
+
+        score = score_from_contributors(
+            baseline=100, positives=positives, negatives=negatives,
+            trend_percent=None,
+            confidence="high" if (active_emp >= 20 and completed_total >= 10) else "medium",
+            data_freshness="live",
+            calculation_notes=(
+                "Training score composed from completion activity · "
+                "certification currency · meeting attendance · record "
+                "completeness · approval backlog. Trend engages once "
+                "history rows accumulate."
+            ),
+        )
+
+    # Top-5 expired certifications
+    top_5_rows = []
+    if expired > 0:
+        try:
+            cursor = db["driver_qualifications"].find(
+                {"expires_at": {"$lt": now.isoformat()}},
+                {"_id": 0, "employee_name": 1, "employee_id": 1,
+                 "cert_type": 1, "expires_at": 1},
+            ).limit(5)
+            async for r in cursor:
+                emp = r.get("employee_name") or r.get("employee_id") or "—"
+                top_5_rows.append([
+                    {"href": f"/hr/employees/{r.get('employee_id','')}",
+                     "text": emp},
+                    r.get("cert_type") or "—",
+                    r.get("expires_at") or "—",
+                ])
+        except Exception:  # noqa: BLE001
+            pass
+
+    wins = []
+    if completed_7d > 0:
+        wins.append(f"{completed_7d} training completion(s) this week.")
+    if active_emp > 0 and expired == 0:
+        wins.append(f"All {active_emp} active employees currently qualified.")
+    if meetings_7d > 0:
+        wins.append(f"{meetings_7d} safety meeting(s) held this week.")
+
+    attention = []
+    if expired > 0:
+        attention.append(f"{expired} EXPIRED certification(s) — remove employees from covered work.")
+    if expiring_30d > 0:
+        attention.append(f"{expiring_30d} certification(s) expiring in the next 30 days.")
+    if missing_records > 0:
+        attention.append(f"{missing_records} missing / pending training record(s).")
+    if pending_approval > 0:
+        attention.append(f"{pending_approval} record(s) awaiting approval.")
+
+    return build_standard_layout(
+        product_id="training_intelligence",
+        subject="MASCI Training Intelligence Digest",
+        period_label="Weekly · Monday 13:00 UTC",
+        executive_summary={
+            "Active employees":       active_emp,
+            "Completions (7d)":       completed_7d,
+            "Total training records": completed_total,
+            "Expired certs":          expired,
+            "Expiring (30d)":         expiring_30d,
+            "Missing records":        missing_records,
+        },
+        score=score.to_dict(),
+        trend_direction={"arrow": "→", "tone": "flat",
+                         "current": expired, "previous": None, "pct_change": None},
+        top_wins=wins,
+        needs_immediate_attention=attention,
+        top_5_items=({
+            "title": "Top 5 · Expired Certifications",
+            "headers": ["Employee", "Cert Type", "Expired on"],
+            "rows": top_5_rows,
+        } if top_5_rows else None),
+        core_metrics={
+            "Meetings held (7d)":       meetings_7d,
+            "Records pending approval": pending_approval,
+            "Expiring (60d)":           expiring_60d,
+        },
+        recommendations=(
+            ([f"Renew {expired} EXPIRED certification(s) immediately."] if expired else []) +
+            ([f"Schedule renewal for {expiring_30d} cert(s) expiring in 30d."] if expiring_30d else []) +
+            ([f"Chase {missing_records} missing training record(s)."] if missing_records else []) +
+            ([f"Clear {pending_approval} record(s) pending approval."] if pending_approval else [])
+            or ["Training operations steady — maintain cadence."]
+        ),
+        upcoming_risks=(
+            [f"{expiring_30d} certification(s) expire in the next 30 days."] if expiring_30d else []
+        ) + (
+            [f"{expiring_60d} certification(s) expire in the next 60 days."]
+            if expiring_60d and not expiring_30d else []
+        ),
+        recent_changes=[
+            f"Completions last 7d: {completed_7d}",
+            f"Meetings last 7d: {meetings_7d}",
+        ],
+        deep_links=[
+            {"href": "/hr/training-records", "text": "Training Records"},
+            {"href": "/hr/employees", "text": "Employee Directory"},
+            {"href": "/meetings", "text": "Safety Meetings"},
+            {"href": "/hr/historical-records/queue", "text": "Historical Import Queue"},
+        ],
+        no_auto_decision_notice=(
+            "Attention signal only. HR · Safety own investigation and "
+            "classification. The platform does NOT determine discipline, "
+            "employment eligibility, OSHA recordability, or legal compliance "
+            "beyond surfacing missing/expired records."
+        ),
+        audit_footer=(
+            "Track 19.44 · Training Intelligence Digest · aggregator over "
+            "employees / safety_training_records / training_track_records / "
+            "driver_qualifications / safety_meetings."
+        ),
+    )
+
+
+register_product(Product(
+    product_id="training_intelligence",
+    display_name="Training Intelligence Digest",
+    summary="Training completion · expirations · meeting attendance · record gaps.",
+    permission_role="admin_only",
+    template_key="executive_v1",
+    schedule_freq="weekly", schedule_iso_day=1, schedule_hour_utc=13,
+    status=ProductStatus.IMPLEMENTED,
+    aggregator=_agg_training_intelligence,
+    tags=["training", "hr", "weekly"],
+))
+
+
+# ---------------------------------------------------------------------------
+# 8 · Project Intelligence Digest (IMPLEMENTED — Track 19.44)
+# ---------------------------------------------------------------------------
+async def _agg_project_intelligence(db, **kwargs) -> Dict[str, Any]:
+    from datetime import datetime, timedelta, timezone
+    from .product_layout import build_standard_layout
+    from .score_model import (
+        score_from_contributors, Contributor, insufficient_data_score,
+    )
+
+    now = datetime.now(timezone.utc)
+    week_ago = (now - timedelta(days=7)).isoformat()
+
+    async def _c(name, q=None):
+        try:
+            return int(await db[name].count_documents(q or {}))
+        except Exception:  # noqa: BLE001
+            return 0
+
+    # Project scope
+    active_projects = await _c("jobs_master", {"status": {"$in": ["active", "in_progress"]}})
+    if active_projects == 0:
+        active_projects = await _c("jobs", {"status": {"$in": ["active", "in_progress"]}})
+    if active_projects == 0:
+        active_projects = await _c("projects", {"status": {"$in": ["active", "in_progress"]}})
+
+    # Daily reports
+    reports_7d = await _c("daily_reports", {"submitted_at": {"$gte": week_ago}})
+    missing_reports = await _c("daily_reports",
+                               {"status": {"$in": ["missing", "overdue"]}})
+    photos_7d = await _c("job_photos", {"uploaded_at": {"$gte": week_ago}})
+
+    # Constraints / attention
+    open_constraints = await _c("operational_constraints",
+                                {"status": {"$in": ["open", "in_progress"]}})
+    aging_constraints = await _c("operational_constraints",
+                                 {"status": {"$in": ["open", "in_progress"]},
+                                  "opened_at": {"$lt": (now - timedelta(days=30)).isoformat()}})
+
+    # Project-linked incidents (last 7d)
+    project_incidents_7d = await _c("incident_cases",
+                                    {"submitted_at": {"$gte": week_ago},
+                                     "job_number": {"$exists": True, "$ne": None}})
+    high_attention_cases = await _c("incident_cases",
+                                    {"attention_level": "high",
+                                     "state": {"$ne": "CLOSED"}})
+
+    # PO backlog by project (already scoped in po_digest via project_managers)
+    open_pos = await _c("po_requests",
+                        {"status": {"$in": ["Submitted", "Pending Approval",
+                                             "Clarification Needed",
+                                             "Approved", "Pending Receipt",
+                                             "Overdue Receipt"]}})
+
+    has_any = any([active_projects, reports_7d, photos_7d, open_constraints,
+                    project_incidents_7d, high_attention_cases, open_pos])
+    if not has_any:
+        score = insufficient_data_score(
+            "No project collections populated in this environment.")
+    else:
+        positives, negatives = [], []
+        if reports_7d > 0 and active_projects > 0 and reports_7d >= active_projects * 3:
+            positives.append(Contributor(
+                key="strong_daily_report_coverage",
+                label=f"{reports_7d} daily report(s) across {active_projects} project(s)",
+                impact=10, detail="Robust field documentation cadence."))
+        if photos_7d > 0:
+            positives.append(Contributor(
+                key="photo_activity",
+                label=f"{photos_7d} job photo(s) uploaded this week",
+                impact=5, detail="Site documentation staying current."))
+        if project_incidents_7d == 0 and active_projects > 0:
+            positives.append(Contributor(
+                key="no_incidents",
+                label="Zero project incidents this week",
+                impact=10, detail="Clean safety period across active projects."))
+        if high_attention_cases == 0:
+            positives.append(Contributor(
+                key="no_high_attention",
+                label="No HIGH-attention project cases",
+                impact=8, detail="Project portfolio free of HIGH-scored cases."))
+        if high_attention_cases > 0:
+            negatives.append(Contributor(
+                key="high_attention_project_cases",
+                label=f"{high_attention_cases} HIGH-attention case(s)",
+                impact=-min(30, high_attention_cases * 10),
+                detail="High-attention cases still open."))
+        if missing_reports > 0:
+            negatives.append(Contributor(
+                key="missing_reports",
+                label=f"{missing_reports} missing / overdue daily report(s)",
+                impact=-min(20, missing_reports * 3),
+                detail="Daily documentation gap."))
+        if aging_constraints > 0:
+            negatives.append(Contributor(
+                key="aging_constraints",
+                label=f"{aging_constraints} constraint(s) open > 30 days",
+                impact=-min(15, aging_constraints * 3),
+                detail="Chronic unresolved constraints."))
+        elif open_constraints > 5:
+            negatives.append(Contributor(
+                key="constraint_load",
+                label=f"{open_constraints} open constraint(s)",
+                impact=-min(10, open_constraints // 2),
+                detail="High constraint load."))
+        if open_pos > 30 and active_projects > 0:
+            negatives.append(Contributor(
+                key="po_bottleneck",
+                label=f"{open_pos} open PO(s) across portfolio",
+                impact=-min(15, open_pos // 10),
+                detail="PO backlog impacting project throughput."))
+        if project_incidents_7d > 0:
+            negatives.append(Contributor(
+                key="project_incidents",
+                label=f"{project_incidents_7d} project incident(s) this week",
+                impact=-min(20, project_incidents_7d * 6),
+                detail="Project-linked safety incidents raised via intake."))
+
+        score = score_from_contributors(
+            baseline=100, positives=positives, negatives=negatives,
+            trend_percent=None,
+            confidence="high" if (active_projects >= 5 and reports_7d >= 5) else "medium",
+            data_freshness="live",
+            calculation_notes=(
+                "Project score composed from daily-report coverage · "
+                "photo activity · incident volume · attention-level distribution · "
+                "constraint age · PO backlog. Trend engages once history "
+                "rows accumulate."
+            ),
+        )
+
+    # Top-5 projects with the most incidents in the last 7d
+    top_5_rows = []
+    try:
+        # Aggregate incidents by job_number
+        cursor = db["incident_cases"].aggregate([
+            {"$match": {"submitted_at": {"$gte": week_ago},
+                        "job_number": {"$exists": True, "$ne": None}}},
+            {"$group": {"_id": "$job_number", "count": {"$sum": 1}}},
+            {"$sort": {"count": -1}},
+            {"$limit": 5},
+        ])
+        async for r in cursor:
+            job = r.get("_id") or "—"
+            top_5_rows.append([
+                {"href": f"/pm/projects/{job}", "text": str(job)},
+                r.get("count") or 0,
+            ])
+    except Exception:  # noqa: BLE001
+        pass
+
+    wins = []
+    if reports_7d > 0 and active_projects > 0:
+        wins.append(f"{reports_7d} daily report(s) across {active_projects} active project(s).")
+    if project_incidents_7d == 0 and active_projects > 0:
+        wins.append("Zero project incidents this week.")
+    if photos_7d > 0:
+        wins.append(f"{photos_7d} job photo(s) uploaded this week.")
+
+    attention = []
+    if high_attention_cases > 0:
+        attention.append(f"{high_attention_cases} HIGH-attention case(s) still open.")
+    if missing_reports > 0:
+        attention.append(f"{missing_reports} missing / overdue daily report(s).")
+    if aging_constraints > 0:
+        attention.append(f"{aging_constraints} constraint(s) open > 30 days.")
+    if project_incidents_7d > 0:
+        attention.append(f"{project_incidents_7d} project incident(s) this period.")
+
+    return build_standard_layout(
+        product_id="project_intelligence",
+        subject="MASCI Project Intelligence Digest",
+        period_label="Weekly · Monday 13:00 UTC",
+        executive_summary={
+            "Active projects":         active_projects,
+            "Daily reports (7d)":      reports_7d,
+            "Missing / overdue DRs":   missing_reports,
+            "Project incidents (7d)":  project_incidents_7d,
+            "HIGH-attention cases":    high_attention_cases,
+            "Open constraints":        open_constraints,
+        },
+        score=score.to_dict(),
+        trend_direction={"arrow": "→", "tone": "flat",
+                         "current": high_attention_cases,
+                         "previous": None, "pct_change": None},
+        top_wins=wins,
+        needs_immediate_attention=attention,
+        top_5_items=({
+            "title": "Top 5 · Projects by Incident Volume (7d)",
+            "headers": ["Project", "Incident count (7d)"],
+            "rows": top_5_rows,
+        } if top_5_rows else None),
+        core_metrics={
+            "Job photos (7d)":         photos_7d,
+            "Constraints > 30d":       aging_constraints,
+            "Portfolio open POs":      open_pos,
+        },
+        recommendations=(
+            ([f"Executive review of {high_attention_cases} HIGH case(s)."] if high_attention_cases else []) +
+            ([f"Chase {missing_reports} missing daily report(s)."] if missing_reports else []) +
+            ([f"Resolve {aging_constraints} aging constraint(s)."] if aging_constraints else []) +
+            ([f"Address {project_incidents_7d} project incident(s)."] if project_incidents_7d else [])
+            or ["Portfolio steady — maintain cadence."]
+        ),
+        upcoming_risks=[],
+        recent_changes=[
+            f"Daily reports last 7d: {reports_7d}",
+            f"Photos last 7d: {photos_7d}",
+            f"Project incidents last 7d: {project_incidents_7d}",
+        ],
+        deep_links=[
+            {"href": "/pm/projects", "text": "PM Project Center"},
+            {"href": "/pm/daily", "text": "Daily Reports"},
+            {"href": "/pm/photos", "text": "Job Photos"},
+            {"href": "/safety/cases", "text": "Safety Cases"},
+            {"href": "/pm/constraints", "text": "Constraints Board"},
+        ],
+        no_auto_decision_notice=(
+            "Attention signal only. Project Managers · Operations · Safety "
+            "own investigation, classification, and disposition. The platform "
+            "does NOT declare projects on-time or off-track, does NOT assign "
+            "blame, does NOT determine fault, and does NOT infer financial "
+            "overrun beyond surfacing what the underlying systems record."
+        ),
+        audit_footer=(
+            "Track 19.44 · Project Intelligence Digest · aggregator over "
+            "jobs_master / daily_reports / job_photos / operational_constraints / "
+            "incident_cases / po_requests."
+        ),
+    )
+
+
+register_product(Product(
+    product_id="project_intelligence",
+    display_name="Project Intelligence Digest",
+    summary="Daily reports · project incidents · constraints · photos · PO backlog.",
+    permission_role="admin_only",
+    template_key="executive_v1",
+    schedule_freq="weekly", schedule_iso_day=1, schedule_hour_utc=13,
+    status=ProductStatus.IMPLEMENTED,
+    aggregator=_agg_project_intelligence,
+    tags=["projects", "pm", "weekly"],
+))
+
+
+# ---------------------------------------------------------------------------
 # 3–10 · Contract-registered products — aggregators not yet implemented
 # ---------------------------------------------------------------------------
 async def _not_implemented(db, **kwargs):  # noqa: ARG001
@@ -1254,22 +1730,6 @@ _CONTRACT_REGISTERED_PRODUCTS = [
         permission_role="admin_only", template_key="executive_v1",
         schedule_freq="weekly", schedule_iso_day=1, schedule_hour_utc=13,
         tags=["operations", "weekly"],
-    ),
-    Product(
-        product_id="training_intelligence",
-        display_name="Training Intelligence Digest",
-        summary="Upcoming expirations · attendance · certifications · missing training.",
-        permission_role="admin_only", template_key="executive_v1",
-        schedule_freq="weekly", schedule_iso_day=1, schedule_hour_utc=13,
-        tags=["training", "hr"],
-    ),
-    Product(
-        product_id="project_intelligence",
-        display_name="Project Intelligence Digest",
-        summary="Project health · daily reports · risks · photos · schedule.",
-        permission_role="admin_only", template_key="executive_v1",
-        schedule_freq="weekly", schedule_iso_day=1, schedule_hour_utc=13,
-        tags=["projects"],
     ),
     Product(
         product_id="shop_intelligence",

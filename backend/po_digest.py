@@ -98,6 +98,16 @@ def _send_empty_scope_pms() -> bool:
 
 
 def _enabled() -> bool:
+    # TRACK 19.44 · Operator cutover gate.
+    # When `OI_ENGINE_PO_WEEKLY_LIVE=true`, the Track 19.41 `po_weekly_digest`
+    # product is the authoritative sender. The legacy PO cron short-circuits
+    # itself to prevent double-send — even if `PO_DIGEST_ENABLED=true` is
+    # still set. Single-env-flip cutover for operators, fully reversible.
+    oi_live = (os.environ.get("OI_ENGINE_PO_WEEKLY_LIVE") or "").strip().lower() in (
+        "1", "true", "yes", "on",
+    )
+    if oi_live:
+        return False
     return (os.environ.get("PO_DIGEST_ENABLED") or "true").strip().lower() in (
         "1", "true", "yes", "on",
     )
