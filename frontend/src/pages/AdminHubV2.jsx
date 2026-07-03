@@ -12,6 +12,7 @@ import { Link } from "react-router-dom";
 import { getAdminToken } from "@/lib/adminAuth";
 import { PortalShell, StatusChip, Card, EmptyState } from "../design-system";
 import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
+import OiAttentionStrip from "@/components/operational_intelligence/OiAttentionStrip";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -85,11 +86,25 @@ export default function AdminHubV2() {
         subtitle="Live cross-portal signals. Every queue opens a real existing admin / ops workflow."
         primaryActions={
           <div style={{ display: "flex", gap: 8 }}>
-            <Link to="/admin/hub_v1" data-testid="admin-hub-v2-back-classic" style={{ display: "inline-block", padding: "6px 12px", background: "var(--paper-card)", color: "var(--ink-strong)", border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)", fontSize: 12, fontWeight: 600, textDecoration: "none" }}>Open Classic Admin Hub (V1)</Link>
+            <Link to="/admin/operational-intelligence" data-testid="admin-hub-v2-open-cockpit" style={{ display: "inline-block", padding: "6px 12px", background: "var(--brand-primary)", color: "var(--brand-on-primary)", border: "1px solid var(--brand-primary)", borderRadius: "var(--radius-card)", fontSize: 12, fontWeight: 600, textDecoration: "none" }}>Open OI Cockpit →</Link>
           </div>
         }
         sideNav={<AdminSideNavV2 />}
       >
+        {/* Track 19.53 · P2 #6 — Admin Mission-Control OI Attention Strip.
+           Consumes corporate_intelligence + weekly_operations_digest +
+           executive_operations_brief signals. Zero-drift: pure consumer
+           of the certified OI summary payload. */}
+        <OiAttentionStrip
+          productIds={[
+            "corporate_intelligence",
+            "weekly_operations_digest",
+            "executive_operations_brief",
+          ]}
+          title="Corporate Intelligence · attention now"
+          testId="admin-hub-v2-oi-strip"
+        />
+
         <Section k="01 · System Health · live" t="Integration probes" c="Real probe results from /api/admin/integrations/health">
           <QC to="/admin/operations-dashboard" testid="admin-hub-v2-q-integrations-degraded" title="Degraded Integrations" why="Probes returning non-OK status" source="Source: integrations.health.probes" value={s.loaded ? degraded : null} loaded={s.loaded} />
           <QC to="/admin/asset-spine" testid="admin-hub-v2-q-asset-spine" title="Asset Spine Conflicts" why="Unresolved asset master conflicts" source="Source: dispatch.command.summary (spine)" value={ds.spine?.conflicts ?? null} loaded={s.loaded} />
@@ -163,8 +178,8 @@ export default function AdminHubV2() {
         </Section>
 
         <div data-testid="admin-hub-v2-trace-note" style={{ marginTop: 16, padding: "var(--pad-card)", background: "var(--paper-card)", border: "1px dashed var(--border-bold)", borderRadius: "var(--radius-card)", color: "var(--ink-soft)", fontSize: 12 }}>
-          <strong style={{ color: "var(--ink-strong)" }}>Admin Portal · Operations Control Center.</strong>{" "}
-          Every count traces to a real source; every card opens an existing workflow. Full section access is available in the sidebar; the classic tile-grid hub remains at <Link to="/admin/hub_v1" style={{ color: "var(--ink-strong)", textDecoration: "underline" }}>/admin/hub_v1</Link> for rollback if needed.
+          <strong style={{ color: "var(--ink-strong)" }}>Admin Portal · Mission Control.</strong>{" "}
+          Every count traces to a real source; every card opens an existing workflow. Full section access is available in the sidebar. The classic 34-tile hub (v1) is archived and reachable only at <Link to="/admin/hub_v1" style={{ color: "var(--ink-strong)", textDecoration: "underline" }} data-testid="admin-hub-v2-v1-archive-link">/admin/hub_v1</Link> for reference during Track 19.53 phased retirement.
         </div>
       </PortalShell>
     </div>

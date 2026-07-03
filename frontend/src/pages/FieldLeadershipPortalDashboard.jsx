@@ -130,6 +130,23 @@ export default function FieldLeadershipPortalDashboard() {
       onSignOut={signOut}
     >
       <div className="max-w-6xl w-full mx-auto px-4 py-6 space-y-4" data-testid="fl-portal-dashboard">
+        {/* Track 19.53 · P2 #8 + #11 — Today's Focus banner.
+           Aligns the Field Leadership / Superintendent dashboard with
+           the Command Center standard's "Today Action Queue" section.
+           No new backend · orders the existing widgets by urgency:
+           assignments → dispatch window → driver readiness → workflows. */}
+        <div
+          data-testid="fl-portal-today-focus"
+          className="rounded-md border-2 border-slate-200 bg-white px-4 py-3"
+        >
+          <div className="font-mono text-[11px] uppercase tracking-widest font-bold text-slate-700">
+            Today's focus · Field Leadership
+          </div>
+          <p className="mt-1 text-xs text-slate-600">
+            {t("Assigned jobs, today's dispatch window, and driver-readiness readouts — in that order. Everything else is one click below.")}
+          </p>
+        </div>
+
         <HelpTipBlock formKey="field-leadership.portal-dashboard" showCounter />
         <OperationsActionsTile />
         {error && (

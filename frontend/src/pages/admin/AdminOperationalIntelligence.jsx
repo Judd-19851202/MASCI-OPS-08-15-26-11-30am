@@ -60,6 +60,35 @@ function ScoreChip({ score, arrow, pct }) {
   );
 }
 
+// Track 19.53 · P2 #12 — Cockpit sparkline mini-chart.
+// Renders a tiny inline SVG "prior → current" trend from the OI summary
+// payload's trend_direction + trend_percent. No new backend fetch.
+// Consumes only fields already returned by GET /summary — zero drift.
+function TrendSparkline({ score, arrow, pct }) {
+  const hasScore = typeof score === "number";
+  if (!hasScore) return null;
+  const up = arrow === "▲" || arrow === "up";
+  const down = arrow === "▼" || arrow === "down";
+  const strokeCls = up ? "stroke-emerald-600" : down ? "stroke-red-600" : "stroke-slate-400";
+  const magnitude = typeof pct === "number" ? Math.min(Math.abs(pct), 20) : 0;
+  const y1 = up ? 18 : down ? 6 : 12;
+  const y2 = up ? 6 + Math.max(0, 6 - magnitude / 4)
+              : down ? 18 - Math.max(0, 6 - magnitude / 4)
+              : 12;
+  return (
+    <svg
+      data-testid="oi-trend-sparkline"
+      width="72" height="24" viewBox="0 0 72 24"
+      className="shrink-0"
+      aria-hidden="true"
+    >
+      <line x1="4" y1={y1} x2="68" y2={y2} className={strokeCls} strokeWidth="2" strokeLinecap="round" />
+      <circle cx="4" cy={y1} r="2.5" className={`fill-slate-300`} />
+      <circle cx="68" cy={y2} r="3" className={up ? "fill-emerald-600" : down ? "fill-red-600" : "fill-slate-500"} />
+    </svg>
+  );
+}
+
 function TopStrip({ summary }) {
   if (!summary) return null;
   const b = summary.attention_buckets || {};
@@ -146,6 +175,11 @@ function ProductCard({ p, onPreview, onDryRun, onHistory, onAudit }) {
       </div>
       <div className="flex items-center gap-3">
         <ScoreChip
+          score={p.score}
+          arrow={p.trend_direction}
+          pct={p.trend_percent}
+        />
+        <TrendSparkline
           score={p.score}
           arrow={p.trend_direction}
           pct={p.trend_percent}

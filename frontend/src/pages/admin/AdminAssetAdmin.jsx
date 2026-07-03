@@ -27,6 +27,7 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import AddAssetDialog from "@/components/asset/AddAssetDialog";
 import RequiredDocsEditor from "@/components/asset/RequiredDocsEditor";
+import OiAttentionStrip from "@/components/operational_intelligence/OiAttentionStrip";
 
 const SOURCE_PILL = {
   legacy_mapped: "bg-emerald-100 text-emerald-900 border-emerald-300",
@@ -133,6 +134,16 @@ export default function AdminAssetAdmin() {
   return (
     <AdminShell title="Asset Administration" section="equipment">
       <div className="max-w-6xl" data-testid="asset-admin-page">
+        {/* Track 19.53 · P2 #10 — Asset Administrator polish.
+           OI-powered attention pill for fleet holds / defects at the
+           top of the asset admin surface. Zero-drift: pure consumer of
+           GET /api/operational-intelligence/summary. */}
+        <OiAttentionStrip
+          productIds={["fleet_intelligence"]}
+          title="Fleet Intelligence · attention now"
+          testId="asset-admin-oi-strip"
+        />
+
         {/* Header */}
         <div className="flex items-start justify-between gap-3 mb-5 flex-wrap">
           <div>

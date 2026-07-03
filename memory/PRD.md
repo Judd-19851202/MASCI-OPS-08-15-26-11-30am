@@ -11,6 +11,21 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.53 · P2 Command Center Remediation Execution · ✅ SHIPPED (2026-07-05)
+
+**Type:** Surgical portal-home fixes — the P2 layer of the Track 19.51 roadmap. Frontend only. Zero backend change.
+
+**Delta:** 6 of 7 P2 items executed via the shared `OiAttentionStrip` primitive + one inline Cockpit sparkline. Admin becomes Mission Control; Dispatch, Asset Admin, and Field Leadership all now surface OI attention above the fold. Cockpit product cards gain a tiny inline SVG sparkline (no per-card fetch — reuses `trend_direction` + `trend_percent` from the summary payload).
+
+**Items:** #6 Admin Mission Control · #7 Dispatch strip · #8/#11 Field/Superintendent Today Focus · #10 Asset Admin polish · #12 Cockpit sparkline. **Deferred:** #9 Guidance Center role-based restructure (LARGE scope · needs new backend grouping · recorded in `TRACK_19_53_DEFERRED_ITEMS.md`).
+
+**Zero drift:** OI engine directory inventory unchanged. No new backend. No new frontend OI-consumer component (single shared primitive). Sparkline is a pure SVG with no additional HTTP calls. Every prior link, tab, workflow, and testid preserved.
+
+**Testing:** `pytest /app/backend/tests/test_track_19_53_command_center_p2.py -v` → 13/13 GREEN. Tracks 19.51 and 19.52 lock tests still GREEN.
+
+**Docs:** 8 files under `TRACK_19_53_*.md`.
+
+
 ## TRACK 19.52 · P1 Command Center Remediation Execution · ✅ SHIPPED (2026-07-05)
 
 **Type:** Surgical portal-home fixes. Frontend only. Zero backend change.

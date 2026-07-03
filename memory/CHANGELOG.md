@@ -10,6 +10,26 @@
 
 # CHANGELOG
 
+## 2026-07-05 — TRACK 19.53 · P2 Command Center Remediation · 🟢 SHIPPED (Frontend only · zero backend drift)
+
+### Shipped
+- AdminHubV2 (`/admin`): mounted OI Attention Strip consuming `corporate_intelligence` + `weekly_operations_digest` + `executive_operations_brief`; retired the prominent "Open Classic Admin Hub (V1)" primary action in favour of "Open OI Cockpit →" (Admin becomes Mission Control · V1 archived · rollback path preserved).
+- DispatchCommandCenter (`/dispatch-portal/command`): mounted OI Attention Strip consuming `transportation_intelligence` directly under the Transportation Ops branding bar and above the 8-tile CommandStrip.
+- FieldLeadershipPortalDashboard (`/field-leadership/portal`): added compact "Today's focus · Field Leadership" banner naming the assignment → dispatch → driver-readiness → workflows priority order (covers P2 #8 + #11).
+- AdminAssetAdmin (`/admin/asset-admin`): mounted OI Attention Strip consuming `fleet_intelligence`.
+- AdminOperationalIntelligence (`/admin/operational-intelligence`): added inline `TrendSparkline` SVG next to every product card's score. Zero additional HTTP calls — consumes ONLY `trend_direction` + `trend_percent` from the summary payload.
+- Track 19.53 lock test `test_track_19_53_command_center_p2.py` — 13 assertions.
+- 8 governance docs under `/app/memory/TRACK_19_53_*.md`.
+
+### Zero drift
+- Backend module inventory unchanged (9 files under `backend/operational_intelligence/`).
+- Single frontend OI consumer (`OiAttentionStrip.jsx`) — no new components under the OI folder.
+- No new backend routes / score models / email paths / schedulers / recipient systems.
+- Track 19.52 mounts (5 portals) verified intact by regression lock.
+
+### Deferred
+- P2 #9 Guidance Center role-based restructure — LARGE scope, needs new backend workflow grouping. Recorded in `TRACK_19_53_DEFERRED_ITEMS.md` with follow-up track proposal.
+
 ## 2026-07-05 — TRACK 19.52 · P1 Command Center Remediation · 🟢 SHIPPED (Frontend only · zero backend drift)
 
 ### Shipped

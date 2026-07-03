@@ -29,6 +29,7 @@ import { commandApi } from "@/components/dispatch/command/commandApi";
 import { subscribeCommandAction } from "@/components/dispatch/command/commandActions";
 // TRACK 18.00 · Phase F · Transportation Operations unified branding.
 import TransportationOpsTopBar from "@/components/transportation/TransportationOpsTopBar";
+import OiAttentionStrip from "@/components/operational_intelligence/OiAttentionStrip";
 
 const SUMMARY_POLL_MS = 30000;
 
@@ -77,6 +78,17 @@ export default function DispatchCommandCenter() {
       <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4" data-testid="dispatch-command-center">
         {/* TRACK 18.00 · Phase F · Transportation Operations branding. */}
         <TransportationOpsTopBar />
+
+        {/* Track 19.53 · P2 #7 — OI Attention Strip.
+           transportation_intelligence signal at the very top of the
+           Dispatch Command Center. Zero-drift: pure consumer of
+           GET /api/operational-intelligence/summary. */}
+        <OiAttentionStrip
+          productIds={["transportation_intelligence"]}
+          title="Transportation Intelligence · attention now"
+          testId="dcc-oi-strip"
+        />
+
         {/* Always-on command strip */}
         <CommandStrip
           summary={summary}
