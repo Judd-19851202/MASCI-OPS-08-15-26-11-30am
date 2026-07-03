@@ -11,6 +11,23 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.58 · Incident Operational Thread PROMOTION · ✅ SHIPPED (2026-07-05)
+
+**Type:** Presentation promotion. Frontend only. Zero backend change.
+
+**Delta:** New page `SafetyIncidentThread.jsx` at `/safety/incidents/:caseId/thread` (inheriting the same Safety JWT the existing `SafetyCaseWorkspace` uses via `caseWorkspaceApi.js`) consumes the certified incident-case endpoints identified by the Track 20.3 audit (`GET /incident-cases/{id}`, `/health`, `/executive-snapshot`, `/timeline`, `/evidence`, `/witnesses`, `/tasks` + `/operational-intelligence/summary` → `safety_morning_digest`) and renders through the Track 19.55 `OperationalThreadPage` shell. Six pure-function adapters (`missionAdapter` / `attentionAdapter` / `actionQueueAdapter` / `timelineAdapter` / `relationshipAdapter` / `documentsAdapter`) map the payloads into the shell's 10 sections plus the `evidenceReadiness()` pure function. The classic `SafetyCaseWorkspace` at `/safety/cases/:caseId` remains fully functional and now exposes a "Universal Thread" cross-link (Thread page carries a "Case workspace" link back).
+
+**Evidence Readiness (replaces "Chain of Custody" — mandate):** Four qualitative buckets (Excellent · Good · Needs Attention · Incomplete) derived only from `health.readiness_level` + `health.blockers.length`. Zero percentages · zero legal conclusions · zero compliance claims.
+
+**High-risk certification:** Medical / agency / communications / audit are **never fetched** by the thread — Track 20.3 mandates honest empty states so the thread cannot become a 403-timing leak vector. Witnesses render as text-only pills (no thread nodes). Executive Report deep-link is enforced server-side.
+
+**Zero drift:** No new backend module · no new backend route · no new score model · no new PDF · no new permission surface · no new OI product · no duplicate incident system. Backend inventory frozen (9 OI files + 7 Incident Engine route files). OI component folder frozen (7 JSX + 1 JS).
+
+**Testing:** `pytest test_track_19_58_incident_thread_promotion.py -v` → 19/19 GREEN. Combined 19.51 → 20.3 + 19.58: **all GREEN**.
+
+**Docs:** 10 files under `TRACK_19_58_*.md` (Executive Summary · Promotion Report · Source-of-Truth Matrix · Permission Certification · Evidence Readiness Certification · Zero-Drift Matrix · Human Walkthrough · Mobile Review · Testing Report · Final Certification).
+
+
 ## TRACK 20.3 · Incident Operational Thread Forensic Audit · ✅ COMPLETE · 🟢 PROMOTE + ADAPTERS (2026-07-05)
 
 **Type:** Forensic audit. 14 composite deliverables + 1 lock test. **Zero production code changes.**

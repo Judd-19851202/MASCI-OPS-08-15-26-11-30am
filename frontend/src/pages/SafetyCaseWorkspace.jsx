@@ -457,6 +457,14 @@ export default function SafetyCaseWorkspace() {
         >
           <FileText className="w-3.5 h-3.5" aria-hidden /> {t("Executive Report")}
         </button>
+        {/* Track 19.58 · deep-link to the Universal Incident Thread. */}
+        <button
+          onClick={() => navigate(`/safety/incidents/${caseId}/thread`)}
+          className="inline-flex items-center gap-1.5 h-9 px-3 rounded-md border border-slate-300 bg-white text-sm font-semibold text-slate-800 hover:bg-slate-50"
+          data-testid="safety-case-open-thread-link"
+        >
+          {t("Universal Thread")}
+        </button>
       </header>
 
       <main className="max-w-7xl mx-auto p-4 sm:p-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">

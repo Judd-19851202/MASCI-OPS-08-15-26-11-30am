@@ -94,6 +94,9 @@ import IncidentsDashboard from "@/pages/IncidentsDashboard";
 import IncidentReport from "@/pages/IncidentReport";
 import NearMissKiosk from "@/pages/NearMissKiosk";
 import SafetyCaseWorkspace from "@/pages/SafetyCaseWorkspace";
+// Track 19.58 · Incident Operational Thread PROMOTION — presentation
+// layer over certified incident-case + safety_morning_digest endpoints.
+import SafetyIncidentThread from "@/pages/SafetyIncidentThread";
 import ExecutiveIntelligence from "@/pages/ExecutiveIntelligence";
 import ExecutiveCaseReport from "@/pages/ExecutiveCaseReport";
 import IncidentReportViewer from "@/pages/IncidentReportViewer";
@@ -567,6 +570,11 @@ function App() {
             <Route path="/near-miss" element={<NearMissKiosk />} />
             {/* TRACK 19.16 · Phase C — Safety Case Workspace (command center). */}
             <Route path="/safety/cases/:caseId" element={<SafetyCaseWorkspace />} />
+            {/* Track 19.58 · Incident Operational Thread PROMOTION.
+                Read-only Universal Thread shell over the certified
+                incident-case endpoints. Auth inherited from the same
+                Safety JWT the workspace already uses. */}
+            <Route path="/safety/incidents/:caseId/thread" element={<SafetyIncidentThread />} />
             {/* TRACK 19.16 · Phase D — Executive Intelligence Center. */}
             <Route path="/safety/executive-intelligence" element={<ExecutiveIntelligence />} />
             {/* TRACK 19.16 · Phase E — Report Intelligence Engine viewer. */}

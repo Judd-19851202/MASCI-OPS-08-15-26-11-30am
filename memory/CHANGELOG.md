@@ -10,6 +10,35 @@
 
 # CHANGELOG
 
+## 2026-07-05 — TRACK 19.58 · Incident Operational Thread PROMOTION · 🟢 SHIPPED (Frontend only · zero backend drift)
+
+### Shipped
+- `SafetyIncidentThread.jsx` at `/safety/incidents/:caseId/thread` — promotes the certified Incident Engine payload family into the Track 19.55 Universal Thread shell via six pure-function adapters (`missionAdapter` / `attentionAdapter` / `actionQueueAdapter` / `timelineAdapter` / `relationshipAdapter` / `documentsAdapter`) + one pure function (`evidenceReadiness`).
+- Route wired in `App.js`. Inherits the Safety JWT via the shared `caseWorkspaceApi.js` axios client (same as SafetyCaseWorkspace).
+- Cross-link added on `SafetyCaseWorkspace` (`safety-case-open-thread-link`); reciprocal `safety-incident-thread-workspace-link` on the Thread page.
+- Track 19.58 lock test `test_track_19_58_incident_thread_promotion.py` — 19 assertions.
+- 10 governance docs under `/app/memory/TRACK_19_58_*.md` (Executive Summary · Promotion Report · Source-of-Truth Matrix · Permission Certification · Evidence Readiness Certification · Zero-Drift Matrix · Human Walkthrough · Mobile Review · Testing Report · Final Certification).
+
+### Certified endpoints consumed (zero new backend)
+`GET /api/incident-cases/{id}` · `/health` · `/executive-snapshot` · `/timeline` · `/evidence` · `/witnesses` · `/tasks` · `/executive-report.pdf` (deep-link only) · `/operational-intelligence/summary` → `safety_morning_digest`.
+
+### Evidence Readiness (not Chain of Custody)
+Four qualitative buckets: Excellent · Good · Needs Attention · Incomplete. Derived from `health.readiness_level` + `health.blockers.length` only. No percentages · no legal conclusions · no compliance claims.
+
+### High-risk zero-leak certification
+- Medical · agency · communications · audit are **never fetched** by the thread — Track 20.3 mandates honest empty states.
+- Witnesses render as text-only pills (no thread nodes).
+- Executive Report PDF is deep-linked; access enforced server-side.
+- 403 stays 403 — no placeholder that leaks the underlying error.
+
+### Zero drift
+- Backend OI inventory unchanged (9 files).
+- Incident Engine backend module inventory preserved (7 route files).
+- OI component folder locked to 7 JSX + 1 JS.
+- No new backend routes / score models / recommendation engines / notifications / PDFs / permission surfaces / audit collections / OI products.
+- Classic `SafetyCaseWorkspace` page and route remain fully functional.
+- Follows the Track 20.3 audit recommendation verbatim ("PROMOTE + ADAPTERS").
+
 ## 2026-07-05 — TRACK 20.3 · Incident Operational Thread Forensic Audit · 🟢 PROMOTE + ADAPTERS
 
 ### Audit produced
