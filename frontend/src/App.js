@@ -135,6 +135,8 @@ const PmJobs = React.lazy(() => import("@/pages/pm/PmSections").then(m => ({ def
 const PmFleet = React.lazy(() => import("@/pages/pm/PmSections").then(m => ({ default: m.PmFleet })));
 const PmPeople = React.lazy(() => import("@/pages/pm/PmSections").then(m => ({ default: m.PmPeople })));
 const PmSuppliers = React.lazy(() => import("@/pages/pm/PmSections").then(m => ({ default: m.PmSuppliers })));
+// Track 19.60 · Vendor Operational Thread PROMOTION.
+const AdminVendorThread = React.lazy(() => import("@/pages/AdminVendorThread"));
 const PmPosters = React.lazy(() => import("@/pages/pm/PmSections").then(m => ({ default: m.PmPosters })));
 const PmQaqcList = React.lazy(() => import("@/pages/PmQaqcList"));
 import ShopLogin from "@/pages/ShopLogin";
@@ -836,6 +838,11 @@ function App() {
             <Route path="/pm/fleet"              element={P(<PmFleet />)} />
             <Route path="/pm/people"             element={P(<PmPeople />)} />
             <Route path="/pm/suppliers"          element={P(<PmSuppliers />)} />
+            {/* Track 19.60 · Vendor Operational Thread PROMOTION.
+                Admin-owned initial route. HR/Admin see everything;
+                consumer role lenses (PM/Safety/Shop) deferred to a
+                later track per Track 20.4 doctrine. */}
+            <Route path="/admin/vendors/:vendorId/thread" element={A(<AdminVendorThread />)} />
             <Route path="/pm/posters"            element={P(<PmPosters />)} />
             <Route path="/pm/qaqc" element={P(<PmQaqcList />)} />
             <Route path="/pm/photos" element={P(<JobPhotosLibrary portalKey="pm" />)} />

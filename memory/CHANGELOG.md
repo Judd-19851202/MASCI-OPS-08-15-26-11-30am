@@ -10,6 +10,23 @@
 
 # CHANGELOG
 
+## 2026-07-05 — TRACK 19.60 (+ AMENDMENT) · Vendor Operational Thread PROMOTION with HR/Admin vendor management · 🟢 SHIPPED
+
+### Shipped
+- `AdminVendorThread.jsx` at `/admin/vendors/:vendorId/thread` — Universal Thread shell + 8 adapters + `vendorHealth` pure fn.
+- **AMENDMENT — HR/Admin vendor management inline on the thread:** Edit button opens a panel with 11 fields (Legal name · Display name · DBA · Vendor type · Primary contact · Phone · Email · Address · Notes · Active · Do-not-use). Save PUTs to `/api/admin/suppliers/{id}`.
+- **Backend additive extension:** `POST /api/admin/suppliers` + `PUT /api/admin/suppliers/{id}` extended to accept the richer fields plus `created_by` / `updated_by` provenance. Legacy `{name, is_active}` docs remain fully valid.
+- Cross-links: Edit vendor · Add vendor document · Vendor queue · Supplier master (all Admin-gated).
+- Lock test with 23 assertions (edit UI, PUT target, backend extension, Admin-only gate, no PM/Safety/Shop reachability, no new AP/invoice/payment/contract engine).
+
+### Zero drift
+- No new collection · no new supplier namespace · no HR-only vendor table.
+- No new AP / invoice / payment / contract / signature engine.
+- No new PDF / email / notification / scheduler / OI product / score model.
+- Only PUT allowed from the thread targets the certified `/api/admin/suppliers/{id}` — asserted by `test_thread_writes_limited_to_admin_supplier_endpoint`.
+- Non-Admin roles (PM / Safety / Shop / Fleet / Dispatch / Field / Public) never see the Edit button — the entire route is behind the Admin gate.
+- Track 19.58 + Track 19.59 sentinels remain GREEN.
+
 ## 2026-07-05 — TRACK 19.59 · Vendor Lane on Historical Records Intake · 🟢 SHIPPED (small foundation extension · zero drift)
 
 ### Shipped

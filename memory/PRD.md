@@ -11,6 +11,28 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.60 · Vendor Operational Thread PROMOTION (+ HR/Admin vendor management amendment) · ✅ SHIPPED (2026-07-05)
+
+**Type:** Presentation promotion **+ small additive backend extension** for HR/Admin vendor management. Zero drift.
+
+**Delta:** New page `AdminVendorThread.jsx` at `/admin/vendors/:vendorId/thread` (wrapped by `RequireAdmin`). Reads the certified `/api/suppliers` list + Track 19.59 vendor-lane records, renders through the Track 19.55 `OperationalThreadPage` shell via 8 pure-function adapters. **AMENDMENT:** HR/Admin can now edit vendors directly from the thread. An inline Edit panel (Edit vendor · Cancel · Save) surfaces the full vendor field set — Legal name · Display name · DBA · Vendor type · Primary contact · Phone · Email · Address · Notes · Active · Do-not-use — and PUTs to the certified `PUT /api/admin/suppliers/{id}` endpoint (extended additively to accept the richer fields + `updated_by` / `updated_at` provenance). No duplicate collection, no HR-only vendor system, no new supplier namespace.
+
+**Cross-links:** Edit vendor · Add vendor document (→ `/hr/historical-records/intake?entity_kind=vendor&vendor_id=<id>`) · Vendor queue (→ `/hr/historical-records/queue`) · Supplier master. All only reachable behind the Admin auth gate.
+
+**Vendor Health (qualitative only):** Excellent / Good / Attention Needed / Restricted — no numeric score, no percentage, no compliance / OSHA / court / "approved for all work" claims. Restricted is set when `is_active=false`.
+
+**Zero drift:**
+- No new backend collection · no new supplier namespace · no HR-only vendor table.
+- No new AP / invoice / payment / contract / signature engine.
+- No new PDF renderer / email path / notification / scheduler / OI product / score model.
+- Supplier POST + PUT extended **additively** — legacy `{name, is_active}` docs remain valid; every new field is optional.
+- Non-Admin roles (PM / Safety / Shop / Fleet / Dispatch / Field / Public) receive `AccessDenied` on the entire thread route — they never see the Edit button.
+
+**Testing:** `pytest test_track_19_60_vendor_thread_promotion.py -v` → 23/23 GREEN. Combined 19.51 → 20.4 + 19.58 + 19.59 + 19.60 → **all GREEN (306)**.
+
+**Docs:** 8 files under `TRACK_19_60_*.md`.
+
+
 ## TRACK 19.59 · Vendor Lane on Historical Records Intake · ✅ SHIPPED (2026-07-05)
 
 **Type:** Small foundation extension. Backend + frontend additive. Zero drift.

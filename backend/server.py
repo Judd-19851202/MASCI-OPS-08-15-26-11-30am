@@ -4919,12 +4919,26 @@ async def create_supplier(
     name = (payload.get("name") or "").strip()
     if not name:
         raise HTTPException(status_code=400, detail="Name is required")
+    # Track 19.60 · actor provenance — best-effort from payload.
+    actor = (str(payload.get("_actor") or "") or "admin").strip() or "admin"
+    now_iso = datetime.now(timezone.utc).isoformat()
     doc = {
         "id": str(uuid.uuid4()),
         "name": name,
+        "display_name": (payload.get("display_name") or "").strip() or None,
+        "dba": (payload.get("dba") or "").strip() or None,
+        "vendor_type": (payload.get("vendor_type") or "").strip() or None,
+        "primary_contact": (payload.get("primary_contact") or "").strip() or None,
+        "phone": (payload.get("phone") or "").strip() or None,
+        "email": (payload.get("email") or "").strip() or None,
+        "address": (payload.get("address") or "").strip() or None,
+        "notes": (payload.get("notes") or "").strip() or None,
+        "do_not_use": bool(payload.get("do_not_use")) if "do_not_use" in payload else False,
         "is_active": True,
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": now_iso,
+        "updated_at": now_iso,
+        "created_by": actor,
+        "updated_by": actor,
     }
     await db.suppliers.insert_one(doc)
     doc.pop("_id", None)
@@ -4937,13 +4951,18 @@ async def update_supplier(
     payload: Dict[str, Any],
     _: bool = Depends(require_admin),
 ):
-    """Inline edit a supplier — name + optional active toggle.
-    Soft-deleted rows are not editable — restore them first."""
-    allowed = {"name", "is_active"}
+    """Inline edit a supplier — HR/Admin-owned vendor management.
+    Track 19.60 extended the allowed field set additively. Soft-deleted
+    rows are not editable — restore them first."""
+    allowed = {"name", "is_active", "display_name", "dba", "vendor_type",
+               "primary_contact", "phone", "email", "address", "notes",
+               "do_not_use"}
     update = {k: payload[k] for k in allowed if k in payload}
-    if "name" in update and not (update["name"] or "").strip():
+    if "name" in update and not (str(update["name"]) or "").strip():
         raise HTTPException(status_code=400, detail="Name cannot be blank")
+    actor = (str(payload.get("_actor") or "") or "admin").strip() or "admin"
     update["updated_at"] = datetime.now(timezone.utc).isoformat()
+    update["updated_by"] = actor
     res = await db.suppliers.update_one(
         {"$and": [{"id": supplier_id}, ACTIVE_FILTER]},
         {"$set": update},
