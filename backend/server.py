@@ -2665,6 +2665,22 @@ _register_ie_morning_digest_routes(
     ),
 )
 
+# TRACK 19.40 · Unified Operational Intelligence Engine.
+# The permanent foundation for every operational briefing/digest/report.
+# Zero-drift: reuses existing collections + fsi_send_email + WeasyPrint.
+from operational_intelligence.routes import (  # noqa: E402
+    register_operational_intelligence_routes as _register_oi_routes,
+)
+_register_oi_routes(
+    api_router, db,
+    require_safety_or_admin=_ie_portfolio_deps_mod.make_require_safety_or_admin(
+        db, _is_valid_admin_token,
+    ),
+    require_admin=_ie_portfolio_deps_mod.make_require_safety_or_admin(
+        db, _is_valid_admin_token,
+    ),
+)
+
 # TRACK 19.21 · Employee Records Intelligence Platform · P0 foundation.
 # Universal Employee Record + intake batches + review queue + audit trail.
 # Additive · zero drift · HR is system owner across every lane.
