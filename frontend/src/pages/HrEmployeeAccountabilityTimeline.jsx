@@ -10,7 +10,7 @@
 // accountability between HR + Safety, iter353a).
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import {
   Download, FileText, ShieldCheck, AlertTriangle,
   Calendar, Truck, HardHat, Activity, History, FileCheck2,
@@ -181,6 +181,15 @@ export default function HrEmployeeAccountabilityTimeline() {
       sideNav={<HrSideNavV2 />}
       primaryActions={
         <div className="flex items-center gap-2" data-testid="acct-header-actions">
+          {/* Track 19.56 · promote to Universal Thread view. Same
+             payload, presented through the shared shell. */}
+          <Link
+            to={`/hr/employees/${encodeURIComponent(id)}/thread`}
+            data-testid="acct-open-thread-link"
+            className="inline-flex items-center px-3 py-1.5 text-xs font-mono font-bold uppercase tracking-widest border-2 border-slate-300 hover:border-slate-900 text-slate-900 rounded"
+          >
+            Universal Thread
+          </Link>
           <Button
             variant="outline" size="sm" onClick={load} disabled={loading}
             data-testid="acct-refresh-btn"

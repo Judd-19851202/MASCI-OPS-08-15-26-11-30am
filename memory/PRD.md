@@ -11,6 +11,19 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.56 · Employee Operational Thread PROMOTION · ✅ SHIPPED (2026-07-05)
+
+**Type:** Presentation promotion. Frontend only. Zero backend change.
+
+**Delta:** New page `HrEmployeeThread.jsx` at `/hr/employees/:id/thread` consumes the certified `/api/hr/employees/{id}/accountability/timeline` + `.../brief.pdf` + `/api/operational-intelligence/summary` and renders through the Track 19.55 `OperationalThreadPage` shell. Five pure-function adapters map the payload into the shell's slots. The classic Accountability page at `/hr/employees/:id/accountability` remains fully functional and now exposes a "Universal Thread" cross-link (Thread page has a "Classic view" link back).
+
+**Zero drift:** No new backend module · no new backend route · no new score model · no new PDF · no new permission surface · no duplicate employee system. Backend inventory frozen. OI component folder frozen. Same HR + Safety + Admin auth gate. Track 20.1 audit recommendation ("PROMOTE EXISTING FOUNDATION") followed verbatim.
+
+**Testing:** `pytest /app/backend/tests/test_track_19_56_employee_thread_promotion.py -v` → 15/15 GREEN. Combined 19.51 → 19.56: **120/120 GREEN**.
+
+**Docs:** 6 files under `TRACK_19_56_*.md`.
+
+
 ## TRACK 20.1 · Employee Experience Forensic Audit · ✅ COMPLETE · 🟢 PROMOTE EXISTING FOUNDATION (2026-07-05)
 
 **Type:** Forensic audit. 12 deliverables + 1 lock test. Zero production code changes.

@@ -242,6 +242,8 @@ const HrFieldLeadership = React.lazy(() => import("@/pages/HrFieldLeadership"));
 const HrFieldLeadershipUsers = React.lazy(() => import("@/pages/HrFieldLeadershipUsers"));
 const HrEmployeeAccountability = React.lazy(() => import("@/pages/HrEmployeeAccountability"));
 const HrEmployeeAccountabilityTimeline = React.lazy(() => import("@/pages/HrEmployeeAccountabilityTimeline"));
+// Track 19.56 · Employee Operational Thread PROMOTION.
+const HrEmployeeThread = React.lazy(() => import("@/pages/HrEmployeeThread"));
 const HrIncidents = React.lazy(() => import("@/pages/HrIncidents"));
 const HrTrainingRecords = React.lazy(() => import("@/pages/HrTrainingRecords"));
 // ROUTE-SPLIT-001 Wave 4 — HR Daily Reports (default + named-export wrapper) lazy.
@@ -1151,6 +1153,11 @@ function App() {
             {/* iter353c · Unified Employee Accountability Timeline (HR + Safety + Admin)
                 The component does its own multi-role auth check (no H/SF wrapper). */}
             <Route path="/hr/employees/:id/accountability" element={H(<HrEmployeeAccountabilityTimeline />)} />
+            {/* Track 19.56 · Promoted Universal Operational Thread view.
+               Renders the SAME certified accountability payload through
+               the Track 19.55 OperationalThreadPage shell. Auth = same
+               HR + Safety + Admin gate. Zero backend change. */}
+            <Route path="/hr/employees/:id/thread" element={H(<HrEmployeeThread />)} />
             {/* Track 19.21 · Employee 360° · single-page consolidated profile */}
             <Route path="/hr/employees/:empId/profile" element={H(<EmployeeProfile />)} />
             {/* Track 19.21b · Historical Records Intake + Review Queue */}
