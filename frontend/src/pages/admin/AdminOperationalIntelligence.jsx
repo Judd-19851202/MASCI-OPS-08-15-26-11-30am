@@ -445,9 +445,15 @@ export default function AdminOperationalIntelligence() {
                 Recipient/group CRUD is served by the Track 19.45A admin API
                 (<code>/api/operational-intelligence/recipients</code> ·{" "}
                 <code>/api/operational-intelligence/groups</code>).
-                A dedicated management UI is deferred to a future track.
+                Use the dedicated Recipient Management page below to
+                add, edit, deactivate, and reactivate recipients.
               </div>
               <div className="flex flex-col gap-1">
+                <a href="/admin/operational-intelligence/recipients"
+                   className="text-xs underline text-emerald-700 hover:text-emerald-900 font-semibold"
+                   data-testid="oi-recipients-manage-link">
+                  Manage Recipients →
+                </a>
                 <a href="/api/operational-intelligence/recipients"
                    target="_blank" rel="noreferrer"
                    className="text-xs underline text-slate-700 hover:text-slate-900"

@@ -10,6 +10,21 @@
 
 # CHANGELOG
 
+## 2026-07-04 — TRACK 19.48 · Recipient Management UI · 🟢 SHIPPED (Quality Gate 55/60 · GO)
+
+### Shipped
+- **`/admin/operational-intelligence/recipients`** — dedicated admin CRUD surface. Add / edit / deactivate / reactivate recipients across all 11 intelligence products. Search + product filter + active-only toggle.
+- **Cockpit link update** — "Manage Recipients →" replaces the "management UI deferred" copy in the Track 19.47 Recipient Governance entry.
+- **Lock test** `test_track_19_48_recipient_management_ui.py` — 16 assertions including delete-language ban, live-send ban, and Cockpit-link presence.
+- **5 governance docs** shipped (`TRACK_19_48_*.md`).
+
+### Zero drift
+- 0 new backend routes · 0 new collections · 0 new email code paths · 0 duplicate recipient systems.
+- UI consumes existing Track 19.45A endpoints only.
+- Live-send button intentionally absent (grep-locked).
+- Deactivate not delete — regulatory replay preserved.
+
+
 ## 2026-07-04 — TRACK 19.47 · Operational Intelligence Cockpit UI · 🟢 SHIPPED
 
 ### Shipped

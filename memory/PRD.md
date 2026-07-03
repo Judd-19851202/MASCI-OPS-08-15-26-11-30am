@@ -11,6 +11,23 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.48 · Recipient Management UI · ✅ COMPLETE (2026-07-04)
+
+**Delta:** Dedicated admin CRUD surface for Operational Intelligence recipients + groups at `/admin/operational-intelligence/recipients`. Full add / edit / deactivate / reactivate + search + filter + product picker. Zero backend drift — consumes existing Track 19.45A endpoints. Cockpit's Recipient Governance entry now links here.
+
+**UI:** dry-run safety banner · 5-stat summary strip · on-demand form · filter bar (search + product + active-only) · 8-column recipient table with per-row Edit/Deactivate/Reactivate · groups panel · governance note.
+
+**Guardrails:** No live-send path (grep-locked: no `/dispatch` reference). No hard delete (soft deactivation only; "Delete" language grep-banned). No raw 401/403 in UI. Confirm dialog on deactivate. Product picker prevents digest_type drift typos.
+
+**Quality Gate (Track 19.30):** **GO · 55/60** across the six pillars (Trusted 10/10; nothing below 9). No P0/P1 open.
+
+**Verification:** 16 lock assertions GREEN. Full regression: Tracks 19.40–19.47 all remain GREEN post-Track-19.48.
+
+**Rollback:** revert `App.js` route + lazy import · delete page component · revert Cockpit "Manage Recipients →" link · delete 5 docs + 1 lock test. Zero backend revert. HIGH.
+
+**Next:** Track 19.49 (candidate) — Bulk-import UI on top of the existing `POST /recipients/bulk-import` endpoint, and Group-membership editor.
+
+
 ## TRACK 19.47 · Operational Intelligence Cockpit UI · ✅ COMPLETE (2026-07-04)
 
 **Delta:** First operator-facing surface over the completed engine. `/admin/operational-intelligence` gives admins a single command view over all 11 intelligence products. Zero drift.
