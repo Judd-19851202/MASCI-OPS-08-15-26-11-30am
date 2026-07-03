@@ -11,6 +11,37 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.38 · Cross-portal Read Fanout + Portfolio Attention Feed · Phase 5 of Incident Intelligence Engine · ✅ COMPLETE (2026-07-03)
+
+**Six Pillar: 58/60 · Production Strong · Zero-Drift.** Eighth feature track under Track 19.30 quality gate.
+
+**Delta:** Track 19.38 closes the incident intelligence loop. The Track 19.37 deterministic scorer now powers **three new read-only endpoints** exposing role-scoped incident awareness across Safety, Admin, and PM portals. A **Portfolio Attention Feed** appears on the existing `/safety/executive-intelligence` dashboard, sorting open cases by attention score so the Safety Manager's first 60 seconds are directed to the cases that need attention. PM projection is a **strict allow-list** with a runtime leak-guard — no Safety-owned investigation content ever leaks to project managers.
+
+**What shipped:**
+- `backend/incident_engine/portfolio_intelligence.py` (new · ~330 lines · pure read-only aggregator · reuses `compute_presence_score`).
+- Three additive endpoints:
+  - `GET /api/incident-intelligence/portfolio-attention` — Safety + Admin.
+  - `GET /api/incident-intelligence/safety-priority` — Safety only.
+  - `GET /api/incident-intelligence/pm-project-cases?project_id=…` — Safety / Admin / PM · strict allow-list.
+- `backend/server.py` (+25 lines · route wiring with existing auth factories).
+- `frontend/src/pages/ExecutiveIntelligence.jsx` — additive Portfolio Attention Feed section + additive `portfolio` fetch in `loadAll()` (fails soft).
+
+**Permission matrix:** portfolio view (attention + top signals) for Safety/Admin · safety-priority (portfolio + `safety_preview`) for Safety only · PM view (strict 15-key allow-list · no signals, no rationales, no safety_block, no regulatory review) for Safety/Admin/PM. Every gate uses an existing `make_require_*` factory · no new gate written · no gate weakened.
+
+**PM leak-guard:** every PM response passes through `_view_pm()` which drops non-allow-listed keys and then `_assert_pm_safe()` which scans the projected payload for forbidden vocabulary (`safety_block`, `regulatory_review`, `osha_recordable`, `root_cause`, `liability`, `discipline`, `preventability`, `insurance`, `signal_rationale`, `rationale`). If any token would leak, the endpoint raises 500 with `code=pm_projection_leak` rather than serve.
+
+**Frontend Portfolio Attention Feed:** additive section on `/safety/executive-intelligence`. Renders up to 12 rows sorted by attention_score DESC · red/amber chips for medium/high · deep-links each row to the Track 19.36 Executive Case Report · neutral wording · bilingual via `useT()`.
+
+**Verification:** backend + frontend lint clean · runtime aggregator smoke against 5 live cases (top score 16, PM leak-check GREEN) · all three endpoints return 401 without token · Track 19.38 lock test all-green in isolation · Track 19.37/19.36/19.34 lock tests still green.
+
+**Zero-drift proof:** 0 collections mutated · 0 existing routes modified · Phase D endpoints, Track 19.36 endpoints, and Track 19.37 endpoints all preserved · 0 permission gates weakened · 0 emails · 0 notifications · 0 new audit reasons.
+
+**Rollback:** delete 1 backend file · revert 2 additive edits (server.py wiring + ExecutiveIntelligence.jsx section). HIGH confidence.
+
+**Docs (6):** `TRACK_19_38_CROSS_PORTAL_READ_FANOUT.md` · `TRACK_19_38_PORTFOLIO_ATTENTION_FEED.md` · `TRACK_19_38_PERMISSION_MATRIX.md` · `TRACK_19_38_ZERO_DRIFT_MATRIX.md` · `TRACK_19_38_QUALITY_GATE_CLOSEOUT.md` · `TRACK_19_38_TEST_REPORT.md`.
+
+
+
 ## TRACK 19.37 · Passive Incident-Presence Scoring · Phase 4 of Incident Intelligence Engine · ✅ COMPLETE (2026-07-03)
 
 **Six Pillar: 58/60 · Production Strong · Zero-Drift.** Seventh feature track under Track 19.30 quality gate.

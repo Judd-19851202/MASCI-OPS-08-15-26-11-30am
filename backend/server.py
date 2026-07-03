@@ -2625,6 +2625,31 @@ _register_ie_presence_score_routes(
     ).make_require_safety_admin_or_pm(db, _is_valid_admin_token, _is_valid_pm_token),
 )
 
+# TRACK 19.38 · Cross-portal read fanout + Portfolio Attention Feed.
+# Three additive read-only endpoints with three role gates.
+# Reuses Track 19.37 compute_presence_score (no duplicate scoring logic).
+from incident_engine.portfolio_intelligence import (  # noqa: E402
+    register_portfolio_intelligence_routes as _register_ie_portfolio_routes,
+)
+_ie_portfolio_deps_mod = __import__(
+    "routes.safety_portal._deps",
+    fromlist=[
+        "make_require_safety_or_admin",
+        "make_require_safety_token",
+        "make_require_safety_admin_or_pm",
+    ],
+)
+_register_ie_portfolio_routes(
+    api_router, db,
+    require_safety_or_admin=_ie_portfolio_deps_mod.make_require_safety_or_admin(
+        db, _is_valid_admin_token,
+    ),
+    require_safety_token=_ie_portfolio_deps_mod.make_require_safety_token(db),
+    require_safety_admin_or_pm=_ie_portfolio_deps_mod.make_require_safety_admin_or_pm(
+        db, _is_valid_admin_token, _is_valid_pm_token,
+    ),
+)
+
 # TRACK 19.21 · Employee Records Intelligence Platform · P0 foundation.
 # Universal Employee Record + intake batches + review queue + audit trail.
 # Additive · zero drift · HR is system owner across every lane.

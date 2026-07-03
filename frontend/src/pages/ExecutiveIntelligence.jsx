@@ -16,13 +16,13 @@ function _headers() {
     if (s) h["X-Safety-Token"] = s;
     if (a) h["X-Admin-Token"] = a;
     if (p) h["X-PM-Token"] = p;
-  } catch {}
+  } catch { /* ignore */ }
   return h;
 }
 const c = () => axios.create({ baseURL: API, headers: _headers(), timeout: 20000 });
 
 async function loadAll() {
-  const [home, rc, capa, projects, fleet, learn, brief] = await Promise.all([
+  const [home, rc, capa, projects, fleet, learn, brief, portfolio] = await Promise.all([
     c().get("/incident-intelligence/home").then(r => r.data),
     c().get("/incident-intelligence/root-causes").then(r => r.data).catch(() => null),
     c().get("/incident-intelligence/corrective-actions").then(r => r.data).catch(() => null),
@@ -30,8 +30,10 @@ async function loadAll() {
     c().get("/incident-intelligence/fleet").then(r => r.data).catch(() => null),
     c().get("/incident-intelligence/learning").then(r => r.data).catch(() => null),
     c().get("/incident-intelligence/brief").then(r => r.data).catch(() => null),
+    // Track 19.38 · additive · portfolio attention feed. Fails soft.
+    c().get("/incident-intelligence/portfolio-attention").then(r => r.data).catch(() => null),
   ]);
-  return { home, rc, capa, projects, fleet, learn, brief };
+  return { home, rc, capa, projects, fleet, learn, brief, portfolio };
 }
 
 function KpiCard({ label, value, sub, testId, tone }) {
@@ -249,6 +251,52 @@ export default function ExecutiveIntelligence() {
               </div>
             </div>
           </section>
+
+          {/* Track 19.38 · Portfolio Attention Feed — read-only rollup of
+              per-case attention signals. Cases sorted by attention_score
+              DESC. Deep-links into the Executive Case Report. */}
+          {data.portfolio && (data.portfolio.cases || []).length > 0 && (
+            <section className="rounded-xl border-2 border-slate-200 bg-white p-4 sm:p-6" data-testid="portfolio-attention-feed">
+              <div className="flex items-center gap-2 mb-3">
+                <AlertTriangle className="w-4 h-4 text-slate-700" aria-hidden />
+                <h2 className="font-display text-lg font-black tracking-tight text-slate-900">
+                  {t("Portfolio Attention Feed")}
+                </h2>
+                <span className="ml-auto font-mono text-[10px] uppercase tracking-widest text-slate-500" data-testid="portfolio-attention-count">
+                  {data.portfolio.count || 0} {t("cases")}
+                </span>
+              </div>
+              <ol className="space-y-1.5" data-testid="portfolio-attention-list">
+                {(data.portfolio.cases || []).slice(0, 12).map((row) => (
+                  <li key={row.case_id} className="rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-colors" data-testid={`portfolio-attention-row-${row.case_id}`}>
+                    <button
+                      onClick={() => navigate(`/safety/cases/${row.case_id}/executive-report`)}
+                      className="w-full text-left px-3 py-2 flex flex-wrap items-center gap-2"
+                    >
+                      <span className={`inline-flex items-center rounded-full border px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em] ${
+                        row.attention_level === "high" ? "border-red-300 bg-red-50 text-red-800" :
+                        row.attention_level === "medium" ? "border-amber-300 bg-amber-50 text-amber-800" :
+                        "border-slate-300 bg-white text-slate-700"
+                      }`}>
+                        {row.attention_score ?? 0} · {(row.attention_level || "low").toUpperCase()}
+                      </span>
+                      <span className="font-semibold text-slate-900 text-sm">#{row.case_number || row.case_id.slice(0, 8)}</span>
+                      <span className="font-mono text-[10px] uppercase tracking-widest text-slate-500">
+                        {row.incident_type} · {row.state}
+                      </span>
+                      <span className="font-mono text-[10px] uppercase tracking-widest text-slate-500 ml-auto">
+                        {t("Open")} {row.days_open ?? "—"}d · {t("CAPA open")} {row.capa_open || 0}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ol>
+              <p className="mt-3 text-[11px] italic text-slate-500 border-l-2 border-slate-200 pl-2" data-testid="portfolio-attention-notice">
+                {t("Attention signals prioritize review. Safety owns investigation and classification.")}
+              </p>
+            </section>
+          )}
+
         </div>
       </main>
     </div>

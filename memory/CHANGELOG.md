@@ -1,5 +1,40 @@
 # CHANGELOG
 
+## 2026-07-03 — TRACK 19.38 · Cross-portal Read Fanout + Portfolio Attention Feed (Phase 5 of Incident Intelligence Engine) · 🟢 SHIPPED (Production Strong · 58/60)
+
+### Shipped
+- **New aggregator** at `backend/incident_engine/portfolio_intelligence.py` (~330 lines) — pure read-only, role-scoped projections, reuses Track 19.37 `compute_presence_score` (no duplicate scoring logic).
+- **Three additive endpoints** with three distinct auth gates:
+  - `GET /api/incident-intelligence/portfolio-attention` (Safety + Admin) — portfolio rollup sorted by attention score DESC.
+  - `GET /api/incident-intelligence/safety-priority` (Safety only) — portfolio + `safety_preview` fields.
+  - `GET /api/incident-intelligence/pm-project-cases?project_id=…` (Safety / Admin / PM) — strict 15-key allow-list · no safety_block · no regulatory_review · no signals · no rationales. Runtime `_assert_pm_safe` scans the projected payload for forbidden tokens and raises 500 rather than leak.
+- **Frontend Portfolio Attention Feed** added as an additive section inside `ExecutiveIntelligence.jsx` — sorted by attention_score DESC · red/amber chips for medium/high · deep-links to the Track 19.36 boardroom Executive Case Report · bilingual · neutral wording.
+- **6 governance docs** + PRD + CHANGELOG.
+- **Lock test** at `backend/tests/test_track_19_38_portfolio_intelligence.py` — 23 assertions covering module existence, read-only invariant, scorer reuse (grep · no local reimplementation), PM allow-list purity, PM leak-guard runtime raise, portfolio/safety/PM view semantics, sort order, existing Phase D endpoint preservation, frontend feed existence + bilingual + deep-link, Track 19.34 doctrine regression, and doc/PRD/CHANGELOG completeness.
+
+### Quality Gate compliance
+Eighth feature track under Track 19.30 gate.
+- **Six Pillar: 58/60 · Production Strong.** Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10 · Operational 9.
+- **Zero-Drift: 17/17 categories preserved.** 0 collections mutated · 0 existing routes modified · Phase D + Track 19.36 + Track 19.37 all preserved.
+- **Backend + frontend lint:** clean.
+- **Runtime smoke:** aggregator exercised live against 5 open cases · portfolio/safety/PM projections verified · PM leak-check GREEN · sort order verified DESC.
+- **Curl smoke:** all three endpoints return 401 to unauthenticated requests.
+- **Rollback:** HIGH confidence (delete 1 file · revert 2 additive edits).
+
+### Cross-portal doctrine
+Safety sees full case intelligence. Executive/Admin sees the same portfolio rollup. PM sees project-scoped attention level and status but zero investigation content. Field/Public sees no new surface. Doctrine locked at compile time (allow-list) and runtime (leak-guard).
+
+### Scorer-reuse contract
+The aggregator imports `compute_presence_score` and never reimplements it. Lock test greps for local signal-rule function definitions inside `portfolio_intelligence.py` and asserts they are absent.
+
+### Zero-drift proof
+0 collections touched · 0 existing routes modified · Track 19.34, 19.35, 19.36, 19.37 doctrine locks all remain green.
+
+### Final verdict
+🟢 **GO.** Cross-portal read fanout production-ready. Read-only intelligence everywhere it belongs. Safety ownership preserved. PM sees what a PM should see and nothing more. Done means done.
+
+
+
 ## 2026-07-03 — TRACK 19.37 · Passive Incident-Presence Scoring (Phase 4 of Incident Intelligence Engine) · 🟢 SHIPPED (Production Strong · 58/60)
 
 ### Shipped
