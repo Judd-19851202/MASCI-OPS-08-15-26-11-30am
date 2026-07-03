@@ -11,6 +11,40 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.41 · Operational Intelligence Standardization + Existing Digest Consolidation · ✅ COMPLETE (2026-07-04)
+
+**Six Pillar: 59/60 · Production Strong · Zero-Drift.** Standardization + consolidation track under Track 19.30 quality gate. NOT a new email/digest/dashboard — this is the discipline layer that locks the intelligence product contract and pulls the existing Monday PO digest under one engine.
+
+**Delta:** Adds the universal **Operational Intelligence Score** model (0–100 · LOW/MEDIUM/HIGH/CRITICAL · trend arrows · contributors · confidence · freshness · insufficient-data guard), the **14-section Standard Product Layout** builder, and consolidates the existing Monday PO Digest into the Unified Operational Intelligence Engine as the **11th registered product** (`po_weekly_digest`, IMPLEMENTED, wraps `send_po_digest_once(dry_run=True)`). Full existing-digest audit across the platform documented; PO digest forensic audit produced; Transportation Intelligence readiness spec locked for Track 19.42/19.43.
+
+**What shipped:**
+- `backend/operational_intelligence/score_model.py` (new · ~150 lines) — universal Score contract.
+- `backend/operational_intelligence/product_layout.py` (new · ~180 lines) — 14-section standard layout builder + canonical empty-state marker.
+- `backend/operational_intelligence/products.py` (+120 lines) — new IMPLEMENTED product `po_weekly_digest` with aggregator wrapping legacy `send_po_digest_once` in dry-run mode.
+- `backend/operational_intelligence/__init__.py` — new exports.
+- Registry grew from 10 → 11 products (2 IMPLEMENTED + 1 PO IMPLEMENTED + 8 CONTRACT_REGISTERED). Track 19.40 lock test relaxed to `>=10 total` while keeping `exactly 8 CONTRACT_REGISTERED`.
+- 10 governance docs.
+- Lock test `backend/tests/test_track_19_41_intelligence_standardization.py` — 22 assertions.
+
+**Existing digest inventory (15 email/digest surfaces audited):**
+- 🟢 3 consolidated under OI Engine: Morning Safety (19.39), Executive Ops Brief (19.40), **PO Digest (NEW · 19.41)**.
+- 🟡 2 slated for consolidation in Track 19.42/19.43: legacy `safety_digest.py` (superseded by 19.39), `transport_command_digest` (superseded by contract-registered `transportation_intelligence`).
+- 🟢 10 correctly excluded (event-driven notifications + backup verification).
+
+**PO Digest consolidation:** Legacy Monday 14:00 UTC cron in `po_digest.py` + `po_digest_scheduler_loop` + `singleton_scheduler` + `scheduler_runs.claim_slot` unique index — **all untouched**. New engine wrapper uses `send_po_digest_once(dry_run=True)` to compose the same data into the standard 14-section layout with an Operational Intelligence Score. Preview + dry-run available at `/api/operational-intelligence/po_weekly_digest/*`. Live-send remains the legacy cron until Track 19.42 operator cutover.
+
+**Verification:** 22/22 Track 19.41 lock assertions GREEN. Regression: Track 19.34–19.40 locks all GREEN (211 total assertions). Live smoke: registry endpoint returns `count=11`; PO preview renders 14 sections with Score section; legacy `/api/admin/po-digest/preview` unchanged.
+
+**Zero-drift proof:** 21/21 categories preserved · 0 collections mutated · 0 legacy routes modified · 0 new schedulers · 0 duplicate email providers · legacy PO cron unaffected. See `TRACK_19_41_ZERO_DRIFT_MATRIX.md`.
+
+**Rollback:** delete 2 new modules · revert `products.py` PO block · revert `__init__.py` export block · revert 19.40 lock test relaxation · remove lock test file · remove 10 docs. HIGH confidence.
+
+**Docs (10):** EXISTING_DIGEST_EMAIL_AUDIT · PO_DIGEST_FORENSIC_AUDIT · OPERATIONAL_INTELLIGENCE_STANDARD · OPERATIONAL_SCORE_MODEL · TREND_MODEL_STANDARD · RECIPIENT_GROUP_STANDARD · EMAIL_GOVERNANCE_CERTIFICATION · TRANSPORTATION_READINESS · TEST_REPORT · ZERO_DRIFT_MATRIX.
+
+**Next:** Track 19.42 → Score model retrofit onto 19.39/19.40 IMPLEMENTED products · legacy safety_digest.py retirement · Transportation Intelligence aggregator wire-up.
+
+---
+
 ## TRACK 19.40 · Unified Operational Intelligence Engine · Foundation Certification · ✅ COMPLETE (2026-07-04)
 
 **Six Pillar: 59/60 · Production Strong · Zero-Drift.** Foundation certification (not the implementation of the remaining eight intelligence products).

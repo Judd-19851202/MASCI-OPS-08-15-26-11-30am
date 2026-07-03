@@ -46,6 +46,20 @@ from .scheduler import (
     schedule_definition_for,
     scheduler_enabled,
 )
+from .score_model import (
+    OperationalIntelligenceScore,
+    Contributor,
+    ATTENTION_LOW, ATTENTION_MEDIUM, ATTENTION_HIGH, ATTENTION_CRITICAL,
+    attention_from_score,
+    score_from_contributors,
+    insufficient_data_score,
+)
+from .product_layout import (
+    STANDARD_SECTION_ORDER,
+    EMPTY_STATE_ITEM,
+    build_standard_layout,
+    not_applicable_section,
+)
 
 # Importing ``products`` at package load registers every intelligence
 # product (2 implemented + 8 contract-registered) in the shared registry.
@@ -61,4 +75,9 @@ __all__ = [
     "write_audit", "write_history",
     "list_recipients_for", "list_groups", "add_group", "add_group_member",
     "schedule_definition_for", "scheduler_enabled",
+    "OperationalIntelligenceScore", "Contributor",
+    "ATTENTION_LOW", "ATTENTION_MEDIUM", "ATTENTION_HIGH", "ATTENTION_CRITICAL",
+    "attention_from_score", "score_from_contributors", "insufficient_data_score",
+    "STANDARD_SECTION_ORDER", "EMPTY_STATE_ITEM",
+    "build_standard_layout", "not_applicable_section",
 ]

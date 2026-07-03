@@ -2668,17 +2668,40 @@ _register_ie_morning_digest_routes(
 # TRACK 19.40 · Unified Operational Intelligence Engine.
 # The permanent foundation for every operational briefing/digest/report.
 # Zero-drift: reuses existing collections + fsi_send_email + WeasyPrint.
+#
+# TRACK 19.41 · Auth wiring fix — the sync `_is_valid_admin_token` was
+# retired in Track 15.32 and now always returns False, which locked
+# admin_only OI products (like `po_weekly_digest`) out for every real
+# admin. Route directly through the async directory-admin validator +
+# safety-user validator so `X-Admin-Token: <directory_admin_token>` and
+# `X-Safety-Token: <safety_token>` both work as intended.
 from operational_intelligence.routes import (  # noqa: E402
     register_operational_intelligence_routes as _register_oi_routes,
 )
+from fastapi import Header as _OiHeader, HTTPException as _OiHTTPException  # noqa: E402
+from safety_users import is_valid_safety_user_token_async as _oi_safety_valid  # noqa: E402
+
+
+def _make_oi_require_safety_or_admin():
+    async def _dep(
+        x_safety_token: Optional[str] = _OiHeader(default=None, alias="X-Safety-Token"),
+        x_admin_token: Optional[str] = _OiHeader(default=None, alias="X-Admin-Token"),
+    ):
+        if x_safety_token:
+            u = await _oi_safety_valid(db, x_safety_token)
+            if u:
+                return {**u, "_actor": "safety"}
+        if x_admin_token and await _is_valid_directory_admin_token_async(x_admin_token):
+            return {"_actor": "admin", "name": "Admin"}
+        raise _OiHTTPException(401, detail={"code": "unauthorized",
+                                            "detail": "Safety or Admin auth required"})
+    return _dep
+
+
 _register_oi_routes(
     api_router, db,
-    require_safety_or_admin=_ie_portfolio_deps_mod.make_require_safety_or_admin(
-        db, _is_valid_admin_token,
-    ),
-    require_admin=_ie_portfolio_deps_mod.make_require_safety_or_admin(
-        db, _is_valid_admin_token,
-    ),
+    require_safety_or_admin=_make_oi_require_safety_or_admin(),
+    require_admin=_make_oi_require_safety_or_admin(),
 )
 
 # TRACK 19.21 · Employee Records Intelligence Platform · P0 foundation.

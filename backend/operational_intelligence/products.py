@@ -170,6 +170,147 @@ register_product(Product(
 
 
 # ---------------------------------------------------------------------------
+# 3 · Purchase Order Weekly Digest (IMPLEMENTED — Track 19.41 consolidation)
+# ---------------------------------------------------------------------------
+# Wraps the existing standalone `po_digest.send_po_digest_once(...)` in
+# dry-run mode to produce section data. The legacy Monday-morning cron
+# in server.py continues to fire unchanged (zero drift). This aggregator
+# only exposes the same data through the Unified Operational Intelligence
+# engine's preview + dispatch endpoints so admins can view/dry-run the
+# same content under the standard product layout + Score + trend.
+async def _agg_po_digest(db, **kwargs) -> Dict[str, Any]:
+    from po_digest import send_po_digest_once, build_digest_subject
+    from .product_layout import build_standard_layout
+    from .score_model import score_from_contributors, Contributor
+
+    results = await send_po_digest_once(
+        db, send_email_fn=None, portal_url="", dry_run=True,
+    )
+    pms = results.get("pm") or []
+    hrs = results.get("hr") or []
+    skipped = results.get("skipped") or []
+
+    total_open = sum((r.get("total_open") or 0) for r in pms + hrs)
+    total_pms = len(pms)
+    total_hrs = len(hrs)
+    pms_with_openpos = sum(1 for r in pms if (r.get("total_open") or 0) > 0)
+
+    # Top-attention PMs — most open POs.
+    top_rows = sorted(
+        [r for r in pms if (r.get("total_open") or 0) > 0],
+        key=lambda r: -(r.get("total_open") or 0),
+    )[:5]
+
+    negatives = []
+    if total_open > 50:
+        negatives.append(Contributor(
+            key="high_open_po_volume",
+            label=f"{total_open} open POs across portfolio",
+            impact=-max(0, min(40, total_open // 5)),
+            detail="Aggregate open PO count exceeds 50.",
+        ))
+    if pms_with_openpos > (total_pms // 2 or 1):
+        negatives.append(Contributor(
+            key="wide_pm_impact",
+            label=f"{pms_with_openpos}/{total_pms} PMs have open POs",
+            impact=-8,
+            detail="More than half of PMs carry open PO load.",
+        ))
+
+    positives = []
+    if total_open == 0 and (total_pms + total_hrs) > 0:
+        positives.append(Contributor(
+            key="clean_slate", label="No open POs across scope",
+            impact=15, detail="Clean-slate week."))
+
+    score = score_from_contributors(
+        baseline=100,
+        positives=positives,
+        negatives=negatives,
+        trend_percent=None,   # first-run rollout — history required for trend
+        confidence="medium" if (total_pms + total_hrs) > 0 else "insufficient_data",
+        data_freshness="live" if (total_pms + total_hrs) > 0 else "insufficient_data",
+        calculation_notes=(
+            "PO Digest score derived from open PO volume across PM + HR "
+            "recipient scopes. Trend engaged from Track 19.42 onward once "
+            "history rows accumulate."
+        ),
+    )
+
+    return build_standard_layout(
+        product_id="po_weekly_digest",
+        subject=build_digest_subject(),
+        period_label="Weekly · Monday 14:00 UTC",
+        executive_summary={
+            "Total open POs (portfolio)": total_open,
+            "PMs with open POs":          f"{pms_with_openpos}/{total_pms}",
+            "HR recipients":              total_hrs,
+            "PMs skipped (empty scope)":  len(skipped),
+        },
+        score=score.to_dict(),
+        trend_direction={"arrow": score.trend_direction,
+                         "tone": {"▲": "up", "▼": "down", "→": "flat"}.get(score.trend_direction, "flat"),
+                         "current": total_open, "previous": None, "pct_change": None},
+        top_wins=(["Clean slate — no open POs this week."]
+                  if total_open == 0 else []),
+        needs_immediate_attention=[
+            f"{r.get('name') or r.get('email')} — {r.get('total_open')} open POs"
+            for r in top_rows if (r.get("total_open") or 0) >= 5
+        ],
+        top_5_items={
+            "title": "Top 5 PMs · Open PO Count",
+            "headers": ["PM", "Email", "Scoped Jobs", "Open POs"],
+            "rows": [[
+                r.get("name") or "",
+                r.get("email") or "",
+                r.get("scoped_jobs") or 0,
+                r.get("total_open") or 0,
+            ] for r in top_rows],
+        } if top_rows else None,
+        core_metrics={
+            "Active PM recipients":  total_pms,
+            "Active HR recipients":  total_hrs,
+            "Total open POs":        total_open,
+            "Skipped (empty scope)": len(skipped),
+        },
+        recommendations=[
+            "Review PMs with >5 open POs first · unblock approvals.",
+            "Confirm PO recipient list matches current PM roster before Monday.",
+        ] if total_open > 0 else ["No action required."],
+        upcoming_risks=[],
+        recent_changes=[],
+        deep_links=[
+            {"href": "/po-requests", "text": "Open PO Requests Center"},
+            {"href": "/admin/po-digest/preview", "text": "Legacy PO Digest Preview"},
+        ],
+        no_auto_decision_notice=(
+            "Attention signal only. PMs and HR own approval, receipt, and "
+            "clarification decisions. The platform does not decide vendor "
+            "selection, approval, or overdue liability."
+        ),
+        audit_footer=(
+            "Consolidated under Unified Operational Intelligence Engine · Track 19.41. "
+            "Legacy Monday cron continues unchanged for live send."
+        ),
+    )
+
+
+register_product(Product(
+    product_id="po_weekly_digest",
+    display_name="Weekly Purchase Order Digest",
+    summary="PMs + HR weekly rollup of open, pending, and overdue POs.",
+    permission_role="admin_only",
+    template_key="executive_v1",
+    schedule_freq="weekly",
+    schedule_iso_day=1,
+    schedule_hour_utc=14,
+    status=ProductStatus.IMPLEMENTED,
+    aggregator=_agg_po_digest,
+    tags=["procurement", "weekly", "po", "pm"],
+))
+
+
+# ---------------------------------------------------------------------------
 # 3–10 · Contract-registered products — aggregators not yet implemented
 # ---------------------------------------------------------------------------
 async def _not_implemented(db, **kwargs):  # noqa: ARG001

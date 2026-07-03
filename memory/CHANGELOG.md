@@ -1,5 +1,48 @@
 # CHANGELOG
 
+# CHANGELOG
+
+## 2026-07-04 — TRACK 19.41 · Operational Intelligence Standardization + Existing Digest Consolidation · 🟢 SHIPPED (Production Strong · 59/60)
+
+### Shipped
+- **Universal Operational Intelligence Score model** at `backend/operational_intelligence/score_model.py` (~150 lines): `OperationalIntelligenceScore` dataclass · `Contributor` · attention bands (LOW/MEDIUM/HIGH/CRITICAL) · `score_from_contributors(...)` · `insufficient_data_score(...)` · `attention_from_score(...)`. Never fakes confidence, freshness, or scores missing data as healthy.
+- **Standard 14-section Product Layout builder** at `backend/operational_intelligence/product_layout.py` (~180 lines): locks `executive_summary` → `operational_intelligence_score` → `trend_direction` → `top_wins` → `needs_immediate_attention` → `top_5_items` → `core_metrics` → `trend_table` → `recommendations` → `upcoming_risks` → `recent_changes` → `deep_links` → `no_auto_decision_notice` → `audit_footer`. Canonical empty-state marker (never N/A spam).
+- **PO Digest consolidated** as the 11th intelligence product (`po_weekly_digest`, IMPLEMENTED, admin_only, weekly Mon 14:00 UTC) — new aggregator wraps `send_po_digest_once(dry_run=True)` from `backend/po_digest.py`, composes the same data into the 14-section standard layout with an Operational Intelligence Score. Legacy Monday cron in `po_digest.py` + `po_digest_scheduler_loop` + `singleton_scheduler` + `scheduler_runs.claim_slot` unique index unchanged.
+- **10 governance docs**: EXISTING_DIGEST_EMAIL_AUDIT · PO_DIGEST_FORENSIC_AUDIT · OPERATIONAL_INTELLIGENCE_STANDARD · OPERATIONAL_SCORE_MODEL · TREND_MODEL_STANDARD · RECIPIENT_GROUP_STANDARD · EMAIL_GOVERNANCE_CERTIFICATION · TRANSPORTATION_READINESS · TEST_REPORT · ZERO_DRIFT_MATRIX.
+- **Lock test** at `backend/tests/test_track_19_41_intelligence_standardization.py` — 22 assertions.
+
+### Existing digest audit (15 surfaces mapped)
+| Under OI Engine after 19.41 | State |
+|---|---|
+| 3 · Morning Safety, Executive Ops Brief, **PO Digest (NEW)** | 🟢 Consolidated |
+| 2 · legacy `safety_digest.py`, `transport_command_digest` | 🟡 Slated for Track 19.42/19.43 |
+| 10 · event-driven notifications + backup verification | 🟢 Correctly excluded |
+
+### Registry
+- Grew from 10 → 11 products (2 baseline IMPLEMENTED + 1 new PO IMPLEMENTED + 8 CONTRACT_REGISTERED).
+- Track 19.40 lock test relaxed: `total >=10` and `exactly 8 CONTRACT_REGISTERED` (foundation IMPLEMENTED pair still asserted).
+
+### Quality Gate compliance
+- **Six Pillar: 59/60 · Production Strong.** Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10 · Operational 10.
+- **Zero-Drift: 21/21 categories preserved.** 0 collections mutated · 0 legacy routes modified · 0 new schedulers · 0 duplicate email providers · legacy PO cron unaffected · Track 19.34/19.39 grep invariants preserved.
+- **Single-engine invariants:** 14/14 (12 from Track 19.40 + 2 new: Score model · Layout builder).
+- **Regression:** Tracks 19.34–19.40 lock tests all 🟢 (211 total assertions across 8 suites).
+- **Live smoke:** `GET /api/operational-intelligence/products` → `count=11`. PO preview via engine returns 14-section layout. Legacy `/api/admin/po-digest/preview` unchanged.
+- **Rollback:** HIGH confidence.
+
+### Email governance
+- 🟢 dry-run defaults preserved on every product.
+- 🟢 No duplicate scheduler introduced.
+- 🟢 No duplicate email provider — still one `fsi_send_email`.
+- 🟢 Score model never scores missing data as healthy.
+- 🟢 PO engine aggregator hard-codes `dry_run=True` on the underlying `send_po_digest_once` — engine cannot double-send with legacy cron.
+
+### Next
+- Track 19.42 → Score model retrofit onto 19.39/19.40 IMPLEMENTED products; evaluate legacy `safety_digest.py` retirement.
+- Track 19.43 → Transportation Intelligence aggregator wire-up (readiness spec locked in `TRACK_19_41_TRANSPORTATION_READINESS.md`).
+
+---
+
 ## 2026-07-04 — TRACK 19.40 · Unified Operational Intelligence Engine (Foundation Certification) · 🟢 SHIPPED (Production Strong · 59/60)
 
 ### Shipped

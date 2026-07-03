@@ -112,18 +112,28 @@ def _registry_snapshot():
 
 
 def test_registry_has_exactly_ten_products():
+    """Foundation certification: 10 products registered at Track 19.40.
+    Track 19.41 adds `po_weekly_digest` as an 11th IMPLEMENTED product
+    (PO digest consolidation) — total registry grows to >=10 as new
+    aggregators land per Track 19.4x. The 8 contract-registered
+    products count remains locked."""
     prods, _ = _registry_snapshot()
-    assert len(prods) == 10, f"expected 10 products, got {len(prods)}"
+    assert len(prods) >= 10, f"expected >=10 products, got {len(prods)}"
 
 
 def test_registry_two_implemented_and_eight_contract():
+    """Track 19.40 foundation-implementation invariants (relaxed for
+    Track 19.41+): safety_morning_digest + executive_operations_brief
+    remain the two foundation IMPLEMENTED products; contract-registered
+    count stays exactly 8; total IMPLEMENTED may grow as Track 19.41+
+    ships new aggregators (currently: +po_weekly_digest)."""
     prods, PS = _registry_snapshot()
     impl = [p for p in prods if p.status == PS.IMPLEMENTED]
     contract = [p for p in prods if p.status == PS.CONTRACT_REGISTERED]
-    assert len(impl) == 2, f"expected 2 IMPLEMENTED, got {len(impl)}: {[p.product_id for p in impl]}"
+    assert len(impl) >= 2, f"expected >=2 IMPLEMENTED, got {len(impl)}: {[p.product_id for p in impl]}"
     assert len(contract) == 8, f"expected 8 CONTRACT_REGISTERED, got {len(contract)}"
     impl_ids = {p.product_id for p in impl}
-    assert impl_ids == {"safety_morning_digest", "executive_operations_brief"}, impl_ids
+    assert {"safety_morning_digest", "executive_operations_brief"}.issubset(impl_ids), impl_ids
     contract_ids = {p.product_id for p in contract}
     assert contract_ids == {
         "weekly_operations_digest", "transportation_intelligence",

@@ -32,11 +32,22 @@ def register_operational_intelligence_routes(
                                              "detail": f"product {product_id!r}"})
         return p
 
+    def _is_admin_actor(actor) -> bool:
+        """The safety_or_admin gate returns either a Safety user dict
+        (with `_actor='safety'`) or an Admin sentinel (`_actor='admin'`).
+        Track 19.40 mistakenly compared `actor is True`; the correct
+        check is against the sentinel emitted by `make_require_safety_or_admin`."""
+        if actor is True:      # legacy sentinel (kept for compatibility)
+            return True
+        if isinstance(actor, dict):
+            return (actor.get("_actor") or "").lower() == "admin"
+        return False
+
     @api_router.get("/operational-intelligence/{product_id}/preview")
     async def preview_product(product_id: str,
                               actor=Depends(require_safety_or_admin)):
         p = _gate_for(product_id)
-        if p.permission_role == "admin_only" and actor is not True:
+        if p.permission_role == "admin_only" and not _is_admin_actor(actor):
             raise HTTPException(403, detail={"code": "forbidden",
                                              "detail": "admin only"})
         try:
@@ -51,10 +62,10 @@ def register_operational_intelligence_routes(
                                dry_run: bool = Query(True),
                                actor=Depends(require_safety_or_admin)):
         p = _gate_for(product_id)
-        if p.permission_role == "admin_only" and actor is not True:
+        if p.permission_role == "admin_only" and not _is_admin_actor(actor):
             raise HTTPException(403, detail={"code": "forbidden",
                                              "detail": "admin only"})
-        who = "admin" if actor is True else str(
+        who = "admin" if _is_admin_actor(actor) else str(
             (actor or {}).get("email") or (actor or {}).get("_actor") or "user"
         )
         try:
