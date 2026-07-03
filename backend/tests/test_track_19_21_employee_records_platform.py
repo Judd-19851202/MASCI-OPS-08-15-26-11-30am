@@ -36,7 +36,9 @@ FE_PAGE = Path("/app/frontend/src/pages/EmployeeProfile.jsx")
 
 # ── Doctrine: lanes + states ────────────────────────────────────────
 def test_four_ownership_lanes_exist():
-    assert set(OWNERSHIP_LANES) == {"hr", "safety", "asset", "corporate_import"}
+    # Track 19.59 added the `vendor` lane as a fifth first-class lane.
+    # The four original lanes remain intact.
+    assert set(OWNERSHIP_LANES) == {"hr", "safety", "asset", "corporate_import", "vendor"}
 
 
 def test_five_record_states_exist():

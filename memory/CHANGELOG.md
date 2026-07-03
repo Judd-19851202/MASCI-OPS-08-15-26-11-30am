@@ -10,6 +10,27 @@
 
 # CHANGELOG
 
+## 2026-07-05 — TRACK 19.59 · Vendor Lane on Historical Records Intake · 🟢 SHIPPED (small foundation extension · zero drift)
+
+### Shipped
+- `backend/routes/employee_records.py` — additive extension: `vendor` lane, `entity_kind` discriminator, vendor identity fields, vendor approval gate, `entity_kind` filter on `list_records`, vocabulary update, batch discriminator persistence, audit-ledger discriminator persistence.
+- `frontend/src/pages/HistoricalRecordsIntake.jsx` — "Vendor (HR/Admin)" lane option, vendor identity block behind `intake-vendor-block`, conditional employee picker.
+- Track 19.59 lock test `test_track_19_59_vendor_lane_historical_records.py` — 22 assertions.
+- 9 governance docs under `/app/memory/TRACK_19_59_*.md` (Executive Summary · Vendor Lane Implementation · Entity Kind Discriminator · Vendor Document Type Catalog · Permission Certification · Employee Safety Sentinels · Vendor Thread Readiness Contract · Zero-Drift Matrix · Test Report).
+
+### Zero drift
+- No new backend module / router / collection / OI product / score model / PDF renderer / email path / scheduler.
+- No new AP / invoice / payment / contract engine.
+- No permission widening — HR/Admin only for the vendor lane.
+- No AI / OCR / fuzzy matching / automatic vendor creation.
+- Missing `entity_kind` on any record is treated as `employee` for backwards compatibility.
+- Vendor records never surface in default queries — `list_records()` filters to `entity_kind in ["employee", None]` unless explicitly opted-in.
+- Employee lane regression: `test_track_19_21_employee_records_platform.py` + `test_track_19_21b_historical_records_intake.py` + `test_track_19_22_operational_completion.py` → **all GREEN (85 tests)**.
+- Only the pre-existing `test_four_ownership_lanes_exist` was widened to acknowledge the fifth lane; every other assertion untouched.
+
+### Unlocks
+- Track 19.60 (Vendor Operational Thread Promotion) may now honestly render a Documents section against `GET /api/employee-records/records?entity_kind=vendor`.
+
 ## 2026-07-05 — TRACK 20.4 · Vendor Operational Thread Forensic Audit · 🟡 PROMOTE + EXTEND (small)
 
 ### Audit produced

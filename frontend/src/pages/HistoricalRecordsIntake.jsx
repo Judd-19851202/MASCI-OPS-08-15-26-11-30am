@@ -31,6 +31,8 @@ const LANE_LABEL = {
   safety: "Safety",
   asset: "Asset Administration",
   corporate_import: "Corporate Import",
+  // Track 19.59 · Vendor lane. HR/Admin-owned.
+  vendor: "Vendor (HR/Admin)",
 };
 
 const LANE_STYLE = {
@@ -38,6 +40,8 @@ const LANE_STYLE = {
   safety:           "border-cyan-300 bg-cyan-50 text-cyan-900",
   asset:            "border-orange-300 bg-orange-50 text-orange-900",
   corporate_import: "border-slate-300 bg-slate-50 text-slate-900",
+  // Track 19.59 · Vendor lane.
+  vendor:           "border-emerald-300 bg-emerald-50 text-emerald-900",
 };
 
 function _fmtBytes(b) {
@@ -61,6 +65,9 @@ export default function HistoricalRecordsIntake() {
   const [recordType, setRecordType] = useState("");
   const [employeeId, setEmployeeId] = useState(preEmployeeId);
   const [employeeName, setEmployeeName] = useState("");
+  // Track 19.59 · Vendor lane fields — populated only when lane==="vendor".
+  const [vendorName, setVendorName] = useState("");
+  const [vendorId, setVendorId] = useState("");
   const [effectiveDate, setEffectiveDate] = useState("");
   const [notes, setNotes] = useState("");
   const [tagsRaw, setTagsRaw] = useState("");
@@ -108,8 +115,12 @@ export default function HistoricalRecordsIntake() {
       const rec = await createRecord({
         ownership_lane: lane,
         record_type: recordType,
-        employee_id: employeeId || null,
-        employee_name_snapshot: employeeName || null,
+        // Track 19.59 · route employee vs vendor payload correctly.
+        entity_kind: lane === "vendor" ? "vendor" : "employee",
+        employee_id: lane === "vendor" ? null : (employeeId || null),
+        employee_name_snapshot: lane === "vendor" ? null : (employeeName || null),
+        vendor_id: lane === "vendor" ? (vendorId || null) : null,
+        vendor_name: lane === "vendor" ? (vendorName || null) : null,
         effective_date: effectiveDate || null,
         notes,
         tags,
@@ -135,8 +146,8 @@ export default function HistoricalRecordsIntake() {
     } finally {
       setBusy(false);
     }
-  }, [file, lane, recordType, employeeId, employeeName, effectiveDate,
-      notes, tagsRaw, relatedIncidentCaseId, relatedAssetId, t]);
+  }, [file, lane, recordType, employeeId, employeeName, vendorId, vendorName,
+      effectiveDate, notes, tagsRaw, relatedIncidentCaseId, relatedAssetId, t]);
 
   if (vocabErr) {
     return (
@@ -287,7 +298,8 @@ export default function HistoricalRecordsIntake() {
             </select>
           </div>
 
-          {/* Employee */}
+          {/* Employee (only when lane is not vendor) */}
+          {lane !== "vendor" && (
           <div>
             <label className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">
               {t("Employee link")} <span className="text-slate-500">({t("required before approval")})</span>
@@ -310,6 +322,42 @@ export default function HistoricalRecordsIntake() {
               </div>
             )}
           </div>
+          )}
+
+          {/* Track 19.59 · Vendor identity (only when lane is vendor) */}
+          {lane === "vendor" && (
+          <div data-testid="intake-vendor-block">
+            <label htmlFor="intake-vendor-name"
+                   className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">
+              {t("Vendor name")} <span className="text-slate-500">({t("required before approval")})</span>
+            </label>
+            <input
+              id="intake-vendor-name"
+              type="text"
+              value={vendorName}
+              onChange={(e) => setVendorName(e.target.value)}
+              placeholder={t("Type the vendor / supplier name…")}
+              data-testid="intake-vendor-name-input"
+              className="mt-2 w-full px-3 py-2 border-2 border-slate-300 rounded-md text-sm font-mono focus:outline-none focus:border-emerald-500"
+            />
+            <label htmlFor="intake-vendor-id"
+                   className="mt-3 block font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">
+              {t("Vendor ID")} <span className="text-slate-500">({t("optional — from supplier master")})</span>
+            </label>
+            <input
+              id="intake-vendor-id"
+              type="text"
+              value={vendorId}
+              onChange={(e) => setVendorId(e.target.value)}
+              placeholder={t("Vendor ID from supplier master (optional)")}
+              data-testid="intake-vendor-id-input"
+              className="mt-2 w-full px-3 py-2 border-2 border-slate-300 rounded-md text-sm font-mono focus:outline-none focus:border-emerald-500"
+            />
+            <p className="mt-2 text-xs text-emerald-900" data-testid="intake-vendor-owner-note">
+              {t("Vendor documents are owned by HR/Admin and preserved for the future Vendor Thread.")}
+            </p>
+          </div>
+          )}
 
           {/* Effective date + related IDs (lane-specific) */}
           <div className="grid gap-3 sm:grid-cols-2">

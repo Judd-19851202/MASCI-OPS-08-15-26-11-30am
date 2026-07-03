@@ -101,7 +101,15 @@ def make_employee_records_actor_gate(db, is_valid_admin_token):
 
 
 # ── Doctrine · valid lanes / record types / states ──────────────────
-OWNERSHIP_LANES = ("hr", "safety", "asset", "corporate_import")
+# Track 19.59: `vendor` added as a fourth first-class ownership lane.
+# Backwards-compatible — every existing record continues to sit in one
+# of the original four lanes and continues to behave identically.
+OWNERSHIP_LANES = ("hr", "safety", "asset", "corporate_import", "vendor")
+
+# Track 19.59: canonical entity discriminator. Records without this
+# field are treated as `"employee"` for backwards compatibility.
+ENTITY_KINDS = ("employee", "vendor")
+DEFAULT_ENTITY_KIND = "employee"
 
 RECORD_STATES = (
     "pending_classification",
@@ -119,6 +127,8 @@ LANE_APPROVERS: Dict[str, set] = {
     "safety":           {"safety", "hr", "admin"},
     "asset":            {"asset_admin", "hr", "admin"},
     "corporate_import": {"hr", "admin"},
+    # Track 19.59 · Vendor lane approvers.
+    "vendor":           {"hr", "admin"},
 }
 
 # Whitelisted record_type slugs per lane. Additive — new types may be
@@ -147,6 +157,26 @@ LANE_RECORD_TYPES: Dict[str, List[str]] = {
         "historical_archive", "acquisition_records", "legacy_conversion",
         "bulk_hr_archive", "unknown_mixed_records",
     ],
+    # Track 19.59 · Vendor document catalog. Human-readable slugs, no
+    # legal conclusions, no compliance-ready wording, no OSHA-ready
+    # wording. Additive — new types may be appended safely.
+    "vendor": [
+        "w9",
+        "certificate_of_insurance",
+        "contract_agreement",
+        "subcontract",
+        "rental_agreement",
+        "service_agreement",
+        "business_license",
+        "prequalification",
+        "vendor_packet",
+        "quote_proposal",
+        "pricing_sheet",
+        "safety_document",
+        "material_certification",
+        "correspondence",
+        "other_vendor_document",
+    ],
 }
 
 
@@ -169,6 +199,8 @@ class CreateBatchBody(BaseModel):
     source_name: Optional[str] = None        # e.g. "2019 HR File Cabinet"
     source_type: Optional[str] = None        # e.g. "cabinet · binder · box · folder · digital"
     source_location: Optional[str] = None    # e.g. "University High School · trailer"
+    # Track 19.59 · Entity discriminator. Missing → "employee".
+    entity_kind: Optional[str] = None
 
 
 class CreateRecordBody(BaseModel):
@@ -190,6 +222,12 @@ class CreateRecordBody(BaseModel):
     source_file_name: Optional[str] = None
     source_file_hash: Optional[str] = None
     imported_batch_id: Optional[str] = None
+    # Track 19.59 · Vendor-lane fields. Only meaningful when
+    # `ownership_lane == "vendor"` (or `entity_kind == "vendor"`).
+    entity_kind: Optional[str] = None
+    vendor_id: Optional[str] = None
+    vendor_name: Optional[str] = None
+    vendor_display_name: Optional[str] = None
 
 
 class ApproveBody(BaseModel):
@@ -301,6 +339,9 @@ def build_employee_records_router(*, db, require_actor):
             "record_types_by_lane": LANE_RECORD_TYPES,
             "lane_approvers": {k: sorted(list(v)) for k, v in LANE_APPROVERS.items()},
             "allowed_lanes_for_actor": allowed_lanes,
+            # Track 19.59 · entity discriminator vocabulary.
+            "entity_kinds": list(ENTITY_KINDS),
+            "default_entity_kind": DEFAULT_ENTITY_KIND,
         }
 
     # ── Intake batches ────────────────────────────────────────────
@@ -364,18 +405,46 @@ def build_employee_records_router(*, db, require_actor):
             raise HTTPException(403, "Not authorized for this lane")
         _validate_lane_and_type(body.ownership_lane, body.record_type)
 
-        # Determine initial state based on what the caller supplied.
-        if not body.employee_id:
-            state = "pending_match"
-        elif not body.record_type:
-            state = "pending_classification"
+        # Track 19.59 · resolve canonical entity_kind. `vendor` ownership
+        # lane implies vendor entity_kind; missing entity_kind defaults
+        # to employee (backwards-compatible).
+        if body.ownership_lane == "vendor":
+            entity_kind = "vendor"
+        elif body.entity_kind in ENTITY_KINDS:
+            entity_kind = body.entity_kind
         else:
-            state = "pending_approval"
+            entity_kind = DEFAULT_ENTITY_KIND
+        # Cross-lane consistency guard — never allow entity_kind=vendor
+        # inside a non-vendor lane (protects employee lanes).
+        if entity_kind == "vendor" and body.ownership_lane != "vendor":
+            raise HTTPException(
+                400, "entity_kind='vendor' is only permitted in the 'vendor' lane"
+            )
+        if entity_kind == "employee" and body.ownership_lane == "vendor":
+            raise HTTPException(
+                400, "'vendor' lane requires entity_kind='vendor'"
+            )
 
-        # Employee name snapshot — resolved once, at record creation, so
-        # historical rename doesn't drift the audit trail.
+        # Determine initial state.
+        if entity_kind == "vendor":
+            vendor_ident = (body.vendor_id or body.vendor_name or "").strip()
+            if not vendor_ident:
+                state = "pending_match"
+            elif not body.record_type:
+                state = "pending_classification"
+            else:
+                state = "pending_approval"
+        else:
+            if not body.employee_id:
+                state = "pending_match"
+            elif not body.record_type:
+                state = "pending_classification"
+            else:
+                state = "pending_approval"
+
+        # Employee name snapshot — vendor path leaves this null.
         name_snapshot = body.employee_name_snapshot
-        if body.employee_id and not name_snapshot:
+        if entity_kind == "employee" and body.employee_id and not name_snapshot:
             emp = await db.employees.find_one(
                 {"$or": [{"id": body.employee_id}, {"employee_id": body.employee_id}]},
                 {"_id": 0, "name": 1},
@@ -384,8 +453,14 @@ def build_employee_records_router(*, db, require_actor):
 
         rec = {
             "id": str(uuid.uuid4()),
-            "employee_id": body.employee_id,
-            "employee_name_snapshot": name_snapshot,
+            # Track 19.59 · canonical entity discriminator.
+            "entity_kind": entity_kind,
+            "employee_id": body.employee_id if entity_kind == "employee" else None,
+            "employee_name_snapshot": name_snapshot if entity_kind == "employee" else None,
+            # Track 19.59 · vendor identity fields (null for employee records).
+            "vendor_id": (body.vendor_id or None) if entity_kind == "vendor" else None,
+            "vendor_name": (body.vendor_name or None) if entity_kind == "vendor" else None,
+            "vendor_display_name": (body.vendor_display_name or None) if entity_kind == "vendor" else None,
             "record_type": body.record_type,
             "record_category": body.record_category,
             "ownership_lane": body.ownership_lane,
@@ -416,7 +491,14 @@ def build_employee_records_router(*, db, require_actor):
         rec.pop("_id", None)
         await _write_audit(
             db, record_id=rec["id"], event="record_created", actor=actor,
-            details={"state": state, "ownership_lane": body.ownership_lane},
+            details={
+                "state": state,
+                "ownership_lane": body.ownership_lane,
+                "entity_kind": entity_kind,
+                # Vendor identity kept in audit for traceability.
+                "vendor_id": rec.get("vendor_id"),
+                "vendor_name": rec.get("vendor_name"),
+            },
         )
         if body.imported_batch_id:
             await db.record_import_batches.update_one(
@@ -432,6 +514,10 @@ def build_employee_records_router(*, db, require_actor):
         record_type: Optional[str] = Query(None),
         employee_id: Optional[str] = Query(None),
         batch_id: Optional[str] = Query(None),
+        # Track 19.59 · vendor filter parameters.
+        entity_kind: Optional[str] = Query(None, description="employee | vendor"),
+        vendor_id: Optional[str] = Query(None),
+        vendor_name: Optional[str] = Query(None),
         # Track 19.22 · P1 · structured search filters (no OCR).
         q: Optional[str] = Query(None, description="Substring on record_type/notes/tags/employee_name_snapshot/source_file_name"),
         department: Optional[str] = Query(None),
@@ -465,6 +551,25 @@ def build_employee_records_router(*, db, require_actor):
             q_mongo["record_type"] = record_type
         if employee_id:
             q_mongo["employee_id"] = employee_id
+        # Track 19.59 · entity discriminator. Absent / "employee" → filter
+        # to employee records (safety sentinel — vendor records NEVER
+        # surface in employee views unless explicitly requested).
+        if entity_kind == "vendor":
+            q_mongo["entity_kind"] = "vendor"
+        elif entity_kind == "employee":
+            q_mongo["$or"] = q_mongo.get("$or") or []
+            q_mongo["entity_kind"] = {"$in": ["employee", None]}
+        elif lane == "vendor":
+            q_mongo["entity_kind"] = "vendor"
+        else:
+            # No entity_kind + no explicit vendor lane → default to
+            # employee for backwards compatibility. Vendor records are
+            # invisible to existing callers.
+            q_mongo["entity_kind"] = {"$in": ["employee", None]}
+        if vendor_id:
+            q_mongo["vendor_id"] = vendor_id
+        if vendor_name:
+            q_mongo["vendor_name"] = vendor_name
         if batch_id:
             q_mongo["imported_batch_id"] = batch_id
         if department:
@@ -536,10 +641,23 @@ def build_employee_records_router(*, db, require_actor):
         lane = rec.get("ownership_lane") or ""
         if not _actor_can_approve(actor, lane):
             raise HTTPException(403, "Not authorized to approve in this lane")
-        if not rec.get("employee_id"):
-            raise HTTPException(400, "Cannot approve — employee_id is required")
-        if not rec.get("record_type"):
-            raise HTTPException(400, "Cannot approve — record_type is required")
+        # Track 19.59 · vendor lane approval requires vendor identity +
+        # record_type. Employee lanes retain their existing rules.
+        entity_kind = rec.get("entity_kind") or (
+            "vendor" if lane == "vendor" else DEFAULT_ENTITY_KIND
+        )
+        if entity_kind == "vendor":
+            if not (rec.get("vendor_id") or rec.get("vendor_name")):
+                raise HTTPException(
+                    400, "Cannot approve — vendor_id or vendor_name is required"
+                )
+            if not rec.get("record_type"):
+                raise HTTPException(400, "Cannot approve — record_type is required")
+        else:
+            if not rec.get("employee_id"):
+                raise HTTPException(400, "Cannot approve — employee_id is required")
+            if not rec.get("record_type"):
+                raise HTTPException(400, "Cannot approve — record_type is required")
         now = _now_iso()
         await db.employee_records.update_one(
             {"id": record_id},

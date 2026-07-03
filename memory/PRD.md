@@ -11,6 +11,29 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.59 · Vendor Lane on Historical Records Intake · ✅ SHIPPED (2026-07-05)
+
+**Type:** Small foundation extension. Backend + frontend additive. Zero drift.
+
+**Delta:** The certified `/api/employee-records/*` router gained a fifth ownership lane (`vendor`) with a 15-item document-type catalog, a canonical `entity_kind` discriminator (`employee` default · `vendor` new), and vendor identity fields (`vendor_id` · `vendor_name` · `vendor_display_name`). `create_record`, `approve_record`, `list_records`, `vocabulary`, and `create_batch` are all vendor-aware. HR/Admin are the only vendor-lane approvers. Frontend: `HistoricalRecordsIntake.jsx` gained a "Vendor (HR/Admin)" lane; when selected, the Employee picker is hidden and a vendor identity block appears.
+
+**Backwards-compatibility guarantee:** Missing `entity_kind` on any record is treated as `employee`. Every existing employee query, timeline, export, and Employee Thread continues to behave bit-identically. Vendor records **never** surface in default queries — `list_records()` filters to `entity_kind in ["employee", None]` unless a caller explicitly opts into vendor scope.
+
+**High-risk certification:**
+- No new upload engine · no new storage · no new vendor master · no duplicate collection.
+- No AP / invoice / payment / contract-issuance / signature system.
+- No new OI product · no new score model · no new scheduler / email / PDF renderer.
+- No permission widening. Safety / Asset / PM / Field / Public all receive 403 on vendor-lane calls.
+- No AI / OCR / fuzzy matching / automatic vendor creation.
+- Cross-lane guard: vendor entity kind is only permitted in the vendor lane; employee entity kind is only permitted in the four employee lanes.
+
+**Track 19.60 unlock:** Ships a formal Vendor Thread Readiness Contract (`TRACK_19_59_VENDOR_THREAD_READINESS_CONTRACT.md`) that Track 19.60 can consume without backend changes.
+
+**Testing:** `pytest test_track_19_59_vendor_lane_historical_records.py -v` → 22/22 GREEN. Legacy employee-records regression (`test_track_19_21*` + `test_track_19_22_operational_completion.py`) → 85/85 GREEN.
+
+**Docs:** 9 files under `TRACK_19_59_*.md` (Executive Summary · Vendor Lane Implementation · Entity Kind Discriminator · Vendor Document Type Catalog · Permission Certification · Employee Safety Sentinels · Vendor Thread Readiness Contract · Zero-Drift Matrix · Test Report).
+
+
 ## TRACK 20.4 · Vendor Operational Thread Forensic Audit · ✅ COMPLETE · 🟡 PROMOTE + EXTEND (small) (2026-07-05)
 
 **Type:** Forensic audit. 16 composite deliverables + 1 lock test. **Zero production code changes.**
