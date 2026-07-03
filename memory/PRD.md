@@ -11,6 +11,25 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.45B · Shop Intelligence + Corporate Intelligence · ✅ COMPLETE (2026-07-04)
+
+**Six Pillar: 60/60 · Zero Drift · One Engine.**
+
+**Delta:** Two final domain aggregators implemented — `shop_intelligence` and `corporate_intelligence`. Registry now hosts **10 IMPLEMENTED** products (out of 11 total). Only `weekly_operations_digest` remains CONTRACT_REGISTERED, deferred to a future track.
+
+**Shop Intelligence** — real aggregator over `equipment_master` / `equipment_units` / `asset_holds` / `fleet_defects` / `maintainx_work_orders` / `pm_work_orders` / `equipment_inspections` / `dvir` / `equipment_transfers` / `incident_cases`. Top-5 preference: safety holds → aging critical defects (>14d) → OOS units. Permission `safety_or_admin`. Score model: 5 positive + 10 negative contributors. Insufficient-data path preserved.
+
+**Corporate Intelligence** — cross-domain weighted rollup composing every implemented OI product via `engine.compose(...)`. Weight table sums to 100 (Safety 20 · Project 20 · Fleet 12 · Shop 10 · Transportation 10 · HR 8 · Training 8 · PO 7 · Executive Ops 5). Insufficient-data domains excluded from the rollup (never averaged as zero) but rendered at the bottom of the domain table so gaps are visible. Permission `admin_only`. Monthly cadence.
+
+**Verification:** 20 lock assertions (2 aggregators × 6 tests + 3 registry + 2 zero-drift + 4 documentation + smoke plan) all GREEN. Prior 141 across Tracks 19.39–19.45A remain GREEN.
+
+**Zero drift proof:** 0 new collections · 0 new routes · 0 new email provider · 0 new scheduler · 0 new recipient collection · 0 new renderer. All additive.
+
+**Rollback:** revert `products.py` (remove 2 aggregators + shim + weight table + re-add contract entries) · delete lock test · delete 11 docs. HIGH.
+
+**Next:** Track 19.46 → `weekly_operations_digest` + recipient-audit strip endpoint (feeds Cockpit UI history panel).
+
+
 ## TRACK 19.45A · Operational Intelligence Governance & Value Certification · ✅ COMPLETE (2026-07-04)
 
 **Six Pillar: 60/60 · Governance & Value Certified · Zero-Drift.**

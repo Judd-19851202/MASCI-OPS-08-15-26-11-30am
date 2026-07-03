@@ -1714,7 +1714,663 @@ register_product(Product(
 
 
 # ---------------------------------------------------------------------------
-# 3–10 · Contract-registered products — aggregators not yet implemented
+# 9 · Shop Intelligence Digest (IMPLEMENTED — Track 19.45B)
+# ---------------------------------------------------------------------------
+# Real aggregator over the confirmed shop/maintenance/fleet-defect data
+# sources present in the codebase today. Zero drift — reuses existing
+# collections (asset_holds · fleet_defects · equipment_units /
+# equipment_master · equipment_inspections · maintainx_work_orders ·
+# pm_work_orders · dvir · incident_cases · equipment_transfers). If a
+# collection is empty the metric is 0 (honest) — never fabricated.
+async def _agg_shop_intelligence(db, **kwargs) -> Dict[str, Any]:
+    from datetime import datetime, timedelta, timezone
+    from .product_layout import build_standard_layout
+    from .score_model import (
+        score_from_contributors, Contributor, insufficient_data_score,
+    )
+
+    now = datetime.now(timezone.utc)
+    week_ago = (now - timedelta(days=7)).isoformat()
+    fourteen_days_ago = (now - timedelta(days=14)).isoformat()
+
+    async def _c(name, q=None):
+        try:
+            return int(await db[name].count_documents(q or {}))
+        except Exception:  # noqa: BLE001
+            return 0
+
+    # Fleet / asset scope
+    fleet_total = await _c("equipment_master", {})
+    if fleet_total == 0:
+        fleet_total = await _c("equipment_units", {})
+    oos_units = await _c("equipment_units",
+                         {"status": {"$in": ["OOS", "Down", "Out of Service"]}})
+
+    # Holds
+    safety_holds = await _c("asset_holds",
+                            {"hold_type": "safety", "status": "active"})
+    maint_holds = await _c("asset_holds",
+                           {"hold_type": {"$in": ["maintenance", "repair"]},
+                            "status": "active"})
+
+    # Defects
+    open_defects = await _c("fleet_defects",
+                            {"status": {"$in": ["open", "in_progress"]}})
+    critical_defects = await _c(
+        "fleet_defects",
+        {"severity": "critical",
+         "status": {"$in": ["open", "in_progress"]}})
+    aging_critical_defects = await _c(
+        "fleet_defects",
+        {"severity": "critical",
+         "status": {"$in": ["open", "in_progress"]},
+         "created_at": {"$lt": fourteen_days_ago}})
+    defects_opened_7d = await _c("fleet_defects",
+                                 {"created_at": {"$gte": week_ago}})
+    defects_closed_7d = await _c("fleet_defects",
+                                 {"status": {"$in": ["closed", "resolved"]},
+                                  "closed_at": {"$gte": week_ago}})
+
+    # Work orders (MaintainX + PM-scoped)
+    mx_wo_open = await _c(
+        "maintainx_work_orders",
+        {"status": {"$in": ["open", "in_progress", "OPEN", "IN_PROGRESS"]}})
+    pm_wo_open = await _c(
+        "pm_work_orders",
+        {"status": {"$in": ["open", "in_progress"]}})
+    work_orders_open = mx_wo_open + pm_wo_open
+
+    # Inspections + DVIR
+    insp_7d = await _c("equipment_inspections",
+                       {"submitted_at": {"$gte": week_ago}})
+    overdue_insp = await _c("equipment_inspections",
+                            {"next_due_at": {"$lt": now.isoformat()},
+                             "status": {"$in": ["due", "scheduled"]}})
+    dvir_open_defects = await _c("dvir", {"has_open_defects": True})
+
+    # Equipment-linked incidents
+    equip_incidents_7d = await _c(
+        "incident_cases",
+        {"incident_type": "equipment_damage",
+         "submitted_at": {"$gte": week_ago}})
+
+    # Recent transfers (informational — shop workload signal)
+    transfers_7d = await _c("equipment_transfers",
+                            {"created_at": {"$gte": week_ago}})
+
+    # Insufficient-data guard — every collection empty means we cannot score.
+    has_any = any([fleet_total, oos_units, safety_holds, maint_holds,
+                   open_defects, work_orders_open, insp_7d,
+                   dvir_open_defects, equip_incidents_7d, transfers_7d])
+    if not has_any:
+        score = insufficient_data_score(
+            "No shop / fleet / defect / work-order / inspection "
+            "collections populated in this environment.")
+    else:
+        positives, negatives = [], []
+        if fleet_total > 0 and oos_units == 0:
+            positives.append(Contributor(
+                key="full_availability",
+                label=f"Full availability · {fleet_total} unit(s)",
+                impact=10, detail="No OOS units."))
+        if safety_holds == 0 and fleet_total > 0:
+            positives.append(Contributor(
+                key="no_safety_holds",
+                label="Zero active safety holds",
+                impact=10, detail="No units flagged unsafe by field."))
+        if critical_defects == 0 and (open_defects > 0 or defects_closed_7d > 0):
+            positives.append(Contributor(
+                key="no_critical_defects",
+                label="No CRITICAL open defects",
+                impact=8, detail="No highest-severity blockers."))
+        if defects_closed_7d > 0 and defects_closed_7d >= defects_opened_7d:
+            positives.append(Contributor(
+                key="closing_pace",
+                label=f"Closed {defects_closed_7d} vs opened "
+                      f"{defects_opened_7d} defect(s) (7d)",
+                impact=8, detail="Closure pace ≥ open pace."))
+        if equip_incidents_7d == 0 and (fleet_total > 0 or work_orders_open > 0):
+            positives.append(Contributor(
+                key="no_equipment_incidents",
+                label="Zero equipment-damage incidents this week",
+                impact=8, detail="Clean equipment-safety period."))
+
+        if safety_holds > 0:
+            negatives.append(Contributor(
+                key="safety_holds",
+                label=f"{safety_holds} active safety hold(s)",
+                impact=-min(30, safety_holds * 8),
+                detail="Investigate immediately — units flagged unsafe."))
+        if aging_critical_defects > 0:
+            negatives.append(Contributor(
+                key="aging_critical_defects",
+                label=f"{aging_critical_defects} CRITICAL defect(s) open > 14 days",
+                impact=-min(35, aging_critical_defects * 10),
+                detail="Chronic critical defects · assign owner today."))
+        elif critical_defects > 0:
+            negatives.append(Contributor(
+                key="critical_defects",
+                label=f"{critical_defects} CRITICAL defect(s) open",
+                impact=-min(28, critical_defects * 8),
+                detail="Highest-severity defects blocking utilisation."))
+        if oos_units > 0:
+            negatives.append(Contributor(
+                key="oos_units",
+                label=f"{oos_units} unit(s) out-of-service",
+                impact=-min(20, oos_units * 3),
+                detail="Availability drag."))
+        if maint_holds > 0:
+            negatives.append(Contributor(
+                key="maint_holds",
+                label=f"{maint_holds} unit(s) on maintenance/repair hold",
+                impact=-min(12, maint_holds * 2),
+                detail="Availability drag."))
+        if open_defects > 10 and not aging_critical_defects and not critical_defects:
+            negatives.append(Contributor(
+                key="defect_backlog",
+                label=f"{open_defects} open defect(s) · backlog above threshold",
+                impact=-min(15, open_defects // 3),
+                detail="Aggregate defect backlog."))
+        if work_orders_open > 15:
+            negatives.append(Contributor(
+                key="work_order_backlog",
+                label=f"{work_orders_open} open work order(s)",
+                impact=-min(15, work_orders_open // 5),
+                detail="Repair backlog above threshold."))
+        if overdue_insp > 0:
+            negatives.append(Contributor(
+                key="overdue_inspections",
+                label=f"{overdue_insp} overdue inspection(s)",
+                impact=-min(12, overdue_insp * 3),
+                detail="Compliance & utilisation exposure."))
+        if dvir_open_defects > 0:
+            negatives.append(Contributor(
+                key="dvir_open_defects",
+                label=f"{dvir_open_defects} DVIR(s) with open defect(s)",
+                impact=-min(15, dvir_open_defects * 3),
+                detail="Field defects awaiting shop action."))
+        if equip_incidents_7d > 0:
+            negatives.append(Contributor(
+                key="equipment_incidents",
+                label=f"{equip_incidents_7d} equipment incident(s) this week",
+                impact=-min(25, equip_incidents_7d * 10),
+                detail="Equipment-damage incidents raised via intake."))
+
+        score = score_from_contributors(
+            baseline=100, positives=positives, negatives=negatives,
+            trend_percent=None,
+            confidence=("high" if (fleet_total >= 10 and
+                                    (open_defects + work_orders_open) >= 5)
+                        else "medium"),
+            data_freshness="live",
+            calculation_notes=(
+                "Shop score composed from safety-hold count · critical + "
+                "aging-critical defect count · OOS units · maintenance/"
+                "repair holds · defect backlog · work-order backlog · "
+                "overdue inspections · DVIR field defects · equipment "
+                "incidents · defect closure pace. Trend engages once "
+                "engine history rows accumulate."
+            ),
+        )
+
+    # Top 5 — preferred order: safety holds → aging critical defects → OOS units.
+    top_5_rows: list = []
+    top_5_title = "Top 5 · Shop Attention"
+    top_5_headers = ["Unit / Item", "Reason / Status", "Since / Age", "Detail"]
+    if safety_holds > 0:
+        try:
+            cursor = db["asset_holds"].find(
+                {"hold_type": "safety", "status": "active"},
+                {"_id": 0, "unit_number": 1, "asset_id": 1, "reason": 1,
+                 "opened_at": 1, "opened_by": 1},
+            ).limit(5)
+            async for h in cursor:
+                unit = h.get("unit_number") or (h.get("asset_id") or "")[:10] or "—"
+                top_5_rows.append([
+                    {"href": f"/fleet/units/{unit}", "text": unit},
+                    f"Safety hold — {h.get('reason') or 'no reason'}",
+                    h.get("opened_at") or "—",
+                    h.get("opened_by") or "—",
+                ])
+        except Exception:  # noqa: BLE001
+            pass
+    if not top_5_rows and aging_critical_defects > 0:
+        try:
+            cursor = db["fleet_defects"].find(
+                {"severity": "critical",
+                 "status": {"$in": ["open", "in_progress"]},
+                 "created_at": {"$lt": fourteen_days_ago}},
+                {"_id": 0, "unit_number": 1, "defect_title": 1,
+                 "created_at": 1, "assigned_to": 1},
+            ).limit(5)
+            async for d in cursor:
+                unit = d.get("unit_number") or "—"
+                top_5_rows.append([
+                    {"href": f"/fleet/units/{unit}", "text": unit},
+                    f"CRITICAL · {d.get('defect_title') or ''}",
+                    d.get("created_at") or "—",
+                    d.get("assigned_to") or "unassigned",
+                ])
+        except Exception:  # noqa: BLE001
+            pass
+    if not top_5_rows and oos_units > 0:
+        try:
+            cursor = db["equipment_units"].find(
+                {"status": {"$in": ["OOS", "Down", "Out of Service"]}},
+                {"_id": 0, "unit_number": 1, "status": 1, "oos_since": 1,
+                 "make": 1, "model": 1},
+            ).limit(5)
+            async for u in cursor:
+                top_5_rows.append([
+                    {"href": f"/fleet/units/{u.get('unit_number','')}",
+                     "text": u.get("unit_number") or "—"},
+                    u.get("status") or "OOS",
+                    u.get("oos_since") or "—",
+                    f"{u.get('make','')} {u.get('model','')}".strip() or "—",
+                ])
+        except Exception:  # noqa: BLE001
+            pass
+
+    wins = []
+    if fleet_total > 0 and oos_units == 0:
+        wins.append(f"Full fleet availability · {fleet_total} unit(s).")
+    if safety_holds == 0 and fleet_total > 0:
+        wins.append("Zero active safety holds this period.")
+    if defects_closed_7d > 0 and defects_closed_7d >= defects_opened_7d:
+        wins.append(f"Closed {defects_closed_7d} defect(s) — pace ≥ open pace.")
+    if equip_incidents_7d == 0 and (fleet_total > 0 or work_orders_open > 0):
+        wins.append("No equipment-damage incidents this week.")
+
+    attention = []
+    if safety_holds > 0:
+        attention.append(f"{safety_holds} active safety hold(s) — investigate immediately.")
+    if aging_critical_defects > 0:
+        attention.append(
+            f"{aging_critical_defects} CRITICAL defect(s) open > 14 days.")
+    elif critical_defects > 0:
+        attention.append(f"{critical_defects} CRITICAL defect(s) open.")
+    if oos_units > 0:
+        attention.append(f"{oos_units} unit(s) OOS — return to service.")
+    if dvir_open_defects > 0:
+        attention.append(f"{dvir_open_defects} DVIR(s) with open defect(s).")
+    if work_orders_open > 15:
+        attention.append(f"{work_orders_open} open work order(s) — backlog above threshold.")
+    if equip_incidents_7d > 0:
+        attention.append(f"{equip_incidents_7d} equipment incident(s) this week.")
+
+    return build_standard_layout(
+        product_id="shop_intelligence",
+        subject="MASCI Shop Intelligence Digest",
+        period_label="Weekly · Monday 13:00 UTC",
+        executive_summary={
+            "Fleet size":                fleet_total,
+            "OOS units":                 oos_units,
+            "Safety holds (active)":     safety_holds,
+            "Maint/repair holds":        maint_holds,
+            "Open defects":              open_defects,
+            "CRITICAL defects":          critical_defects,
+            "Open work orders":          work_orders_open,
+        },
+        score=score.to_dict(),
+        trend_direction={"arrow": "→", "tone": "flat",
+                         "current": safety_holds + critical_defects,
+                         "previous": None, "pct_change": None},
+        top_wins=wins,
+        needs_immediate_attention=attention,
+        top_5_items=({
+            "title": top_5_title,
+            "headers": top_5_headers,
+            "rows": top_5_rows,
+        } if top_5_rows else None),
+        core_metrics={
+            "Aging CRITICAL defects (>14d)": aging_critical_defects,
+            "Defects opened (7d)":           defects_opened_7d,
+            "Defects closed (7d)":           defects_closed_7d,
+            "Inspections (7d)":              insp_7d,
+            "Overdue inspections":           overdue_insp,
+            "DVIR w/ open defects":          dvir_open_defects,
+            "Equipment incidents (7d)":      equip_incidents_7d,
+            "Asset transfers (7d)":          transfers_7d,
+        },
+        recommendations=(
+            ([f"Investigate {safety_holds} safety hold(s) today."] if safety_holds else []) +
+            ([f"Resolve {aging_critical_defects} aging CRITICAL defect(s) — assign owners."]
+             if aging_critical_defects else []) +
+            ([f"Return {oos_units} OOS unit(s) to service."] if oos_units else []) +
+            ([f"Address {dvir_open_defects} DVIR field defect(s)."] if dvir_open_defects else []) +
+            ([f"Burn down {work_orders_open} open work order(s)."]
+             if work_orders_open > 15 else []) +
+            ([f"Review {equip_incidents_7d} equipment incident(s)."]
+             if equip_incidents_7d else [])
+            or ["Shop operations steady — maintain cadence."]
+        ),
+        upcoming_risks=(
+            ([f"{overdue_insp} inspection(s) overdue."] if overdue_insp else []) +
+            ([f"{maint_holds} unit(s) on maintenance/repair hold — plan return-to-service."]
+             if maint_holds else [])
+        ),
+        recent_changes=[
+            f"Defects opened last 7d: {defects_opened_7d}",
+            f"Defects closed last 7d: {defects_closed_7d}",
+            f"Inspections completed last 7d: {insp_7d}",
+            f"Asset transfers last 7d: {transfers_7d}",
+        ],
+        deep_links=[
+            {"href": "/shop", "text": "Shop Console"},
+            {"href": "/fleet", "text": "Fleet Center"},
+            {"href": "/fleet/holds", "text": "Active Holds"},
+            {"href": "/fleet/defects", "text": "Defect Board"},
+            {"href": "/fleet/inspections", "text": "Inspection Center"},
+            {"href": "/equipment-status-board", "text": "Equipment Status Board"},
+            {"href": "/safety/cases?type=equipment_damage",
+             "text": "Equipment-Damage Incidents"},
+        ],
+        no_auto_decision_notice=(
+            "Attention signal only. Shop · Fleet · Safety own investigation, "
+            "classification, and disposition. The platform does NOT determine "
+            "mechanic fault, operator fault, preventability, discipline, "
+            "return-to-service authorisation, or insurance liability."
+        ),
+        audit_footer=(
+            "Track 19.45B · Shop Intelligence Digest · aggregator over "
+            "equipment_master / equipment_units / asset_holds / fleet_defects / "
+            "maintainx_work_orders / pm_work_orders / equipment_inspections / "
+            "dvir / equipment_transfers / incident_cases. "
+            "Zero-drift — no new collections."
+        ),
+    )
+
+
+register_product(Product(
+    product_id="shop_intelligence",
+    display_name="Shop Intelligence Digest",
+    summary="Shop maintenance · repairs · open work · defects · holds · incidents.",
+    permission_role="safety_or_admin",
+    template_key="executive_v1",
+    schedule_freq="weekly", schedule_iso_day=1, schedule_hour_utc=13,
+    status=ProductStatus.IMPLEMENTED,
+    aggregator=_agg_shop_intelligence,
+    tags=["shop", "fleet", "maintenance", "weekly"],
+))
+
+
+# ---------------------------------------------------------------------------
+# 10 · Corporate Intelligence Digest (IMPLEMENTED — Track 19.45B)
+# ---------------------------------------------------------------------------
+# Cross-domain weighted rollup of every implemented OI product. Composes
+# each domain aggregator via `compose(db, product_id=X)` and folds
+# scores into a weighted corporate score. Insufficient-data domains are
+# skipped (weight redistributed) — never faked as healthy.
+CORPORATE_WEIGHTS = {
+    "safety_morning_digest":     20,
+    "project_intelligence":      20,
+    "fleet_intelligence":        12,
+    "shop_intelligence":         10,
+    "transportation_intelligence": 10,
+    "hr_intelligence":           8,
+    "training_intelligence":     8,
+    "po_weekly_digest":          7,
+    "executive_operations_brief": 5,
+}
+
+
+async def _agg_corporate_intelligence(db, **kwargs) -> Dict[str, Any]:
+    from .product_layout import build_standard_layout
+    from .score_model import (
+        score_from_contributors, Contributor, insufficient_data_score,
+        attention_from_score,
+    )
+    from .engine import compose as _oi_compose
+
+    # Compose every implemented domain digest. If one raises (should not
+    # after 19.45B, but defensive), we treat it as insufficient-data.
+    domain_scores: Dict[str, Dict[str, Any]] = {}
+    domain_attention_items: Dict[str, list] = {}
+    for pid in CORPORATE_WEIGHTS.keys():
+        try:
+            d = await _oi_compose(db, product_id=pid)
+        except Exception:  # noqa: BLE001
+            continue
+        sc = d.get("operational_intelligence_score") or {}
+        domain_scores[pid] = sc
+        # Grab that domain's attention items (5 max) for later top-5.
+        try:
+            att_sec = next(s for s in d["sections"]
+                           if s["section_key"] == "needs_immediate_attention")
+            items = [i for i in (att_sec.get("items") or [])
+                     if isinstance(i, str)
+                     and not i.startswith("— Not applicable")]
+            domain_attention_items[pid] = items[:5]
+        except Exception:  # noqa: BLE001
+            domain_attention_items[pid] = []
+
+    # Filter to domains with real (non-insufficient) confidence.
+    scored: Dict[str, int] = {}
+    weighted_total = 0.0
+    weighted_denom = 0.0
+    for pid, sc in domain_scores.items():
+        conf = (sc or {}).get("confidence") or "insufficient_data"
+        if conf == "insufficient_data":
+            continue
+        s = int(sc.get("overall_score") or 0)
+        w = int(CORPORATE_WEIGHTS.get(pid) or 0)
+        scored[pid] = s
+        weighted_total += s * w
+        weighted_denom += w
+
+    if weighted_denom == 0:
+        score = insufficient_data_score(
+            "No domain product has sufficient data — corporate score "
+            "cannot be computed this period."
+        )
+        corp_score = 0
+        attention_level = "CRITICAL"
+    else:
+        corp_score = int(round(weighted_total / weighted_denom))
+        attention_level = attention_from_score(corp_score)
+        positives, negatives = [], []
+        # Highest-scoring domain becomes a positive contributor.
+        top_domain = max(scored.items(), key=lambda kv: kv[1])
+        low_domain = min(scored.items(), key=lambda kv: kv[1])
+        if top_domain[1] >= 85:
+            positives.append(Contributor(
+                key="strong_domain",
+                label=f"{top_domain[0]} at score {top_domain[1]}",
+                impact=6,
+                detail=f"Strongest domain — {top_domain[0]}."))
+        high_crit_domains = [pid for pid, s in scored.items() if s < 65]
+        if not high_crit_domains:
+            positives.append(Contributor(
+                key="all_domains_healthy",
+                label=f"All {len(scored)} scored domain(s) at LOW/MEDIUM attention",
+                impact=10,
+                detail="No domain in HIGH/CRITICAL."))
+        else:
+            negatives.append(Contributor(
+                key="high_crit_domains",
+                label=f"{len(high_crit_domains)} domain(s) in HIGH/CRITICAL",
+                impact=-min(30, len(high_crit_domains) * 8),
+                detail=f"Domains: {', '.join(high_crit_domains)}"))
+        if low_domain[1] < 40:
+            negatives.append(Contributor(
+                key="lowest_domain_critical",
+                label=f"{low_domain[0]} at score {low_domain[1]} (CRITICAL)",
+                impact=-15,
+                detail=f"Lowest domain — {low_domain[0]} needs executive attention."))
+
+        score = score_from_contributors(
+            baseline=corp_score, positives=positives, negatives=negatives,
+            trend_percent=None,
+            confidence=("high" if len(scored) >= 6 else "medium"),
+            data_freshness="live",
+            calculation_notes=(
+                "Corporate score = weighted rollup of every domain "
+                "Operational Intelligence Score. Weights: "
+                + ", ".join(f"{k}={v}%"
+                            for k, v in CORPORATE_WEIGHTS.items())
+                + ". Domains with insufficient data are excluded from "
+                "the rollup (never scored as healthy)."
+            ),
+        )
+        # Preserve the underlying weighted rollup score explicitly (the
+        # contributor pass may have pushed it up/down slightly).
+        score.overall_score = corp_score
+        score.attention_level = attention_level
+
+    # Domain summary table (Top-5 semantic — sorted by lowest score first)
+    top_5_rows: list = []
+    for pid, s in sorted(scored.items(), key=lambda kv: kv[1]):
+        p = next((x for x in [_get(pid)] if x), None)
+        display = p.display_name if p else pid
+        top_5_rows.append([
+            display,
+            s,
+            attention_from_score(s),
+            {"href": f"/api/operational-intelligence/{pid}/preview",
+             "text": "Preview"},
+        ])
+    # Note: insufficient-data domains appear below the scored ones so the
+    # executive can see gaps at a glance (honest, not hidden).
+    for pid in CORPORATE_WEIGHTS.keys():
+        if pid in scored or pid not in domain_scores:
+            continue
+        p = next((x for x in [_get(pid)] if x), None)
+        display = p.display_name if p else pid
+        top_5_rows.append([
+            display,
+            "—",
+            "insufficient_data",
+            {"href": f"/api/operational-intelligence/{pid}/preview",
+             "text": "Preview"},
+        ])
+    top_5_rows = top_5_rows[:9]  # cap for boardroom cleanliness
+
+    # Highest-attention concrete signals — union of attention items from
+    # the lowest-scoring 3 domains.
+    attention_signals: list = []
+    for pid, _ in sorted(scored.items(), key=lambda kv: kv[1])[:3]:
+        for it in (domain_attention_items.get(pid) or []):
+            attention_signals.append(f"[{pid}] {it}")
+        if len(attention_signals) >= 8:
+            break
+    attention_signals = attention_signals[:8]
+
+    wins = []
+    if scored:
+        n_low_attention = sum(1 for s in scored.values() if s >= 85)
+        if n_low_attention:
+            wins.append(f"{n_low_attention} domain(s) at LOW attention "
+                        f"(score ≥ 85).")
+        if not any(s < 40 for s in scored.values()):
+            wins.append("No domain scored CRITICAL this period.")
+        n_scored = len(scored)
+        if n_scored >= 6:
+            wins.append(f"Cross-domain visibility across {n_scored} scored domains.")
+
+    executive_summary = {
+        "Corporate Score":              corp_score if weighted_denom else "insufficient_data",
+        "Attention Level":              attention_level,
+        "Domains scored":               len(scored),
+        "Domains w/ insufficient data": len(domain_scores) - len(scored),
+        "HIGH / CRITICAL domains":      sum(1 for s in scored.values() if s < 65),
+        "LOW attention domains":        sum(1 for s in scored.values() if s >= 85),
+    }
+
+    recommendations = []
+    if scored:
+        worst = sorted(scored.items(), key=lambda kv: kv[1])[:3]
+        for pid, s in worst:
+            if s < 65:
+                recommendations.append(
+                    f"Executive review of {pid} (score {s} · "
+                    f"{attention_from_score(s)}).")
+        if not recommendations:
+            recommendations.append(
+                "Portfolio steady across every scored domain — maintain cadence."
+            )
+    else:
+        recommendations.append(
+            "Populate domain data sources — corporate score cannot be "
+            "computed from insufficient-data domains alone."
+        )
+
+    return build_standard_layout(
+        product_id="corporate_intelligence",
+        subject="MASCI Corporate Intelligence Digest",
+        period_label="Monthly · First Monday 14:00 UTC",
+        executive_summary=executive_summary,
+        score=score.to_dict(),
+        trend_direction={"arrow": "→", "tone": "flat",
+                         "current": corp_score if weighted_denom else None,
+                         "previous": None, "pct_change": None},
+        top_wins=wins,
+        needs_immediate_attention=attention_signals,
+        top_5_items=({
+            "title": "Domain Scores (Lowest First)",
+            "headers": ["Domain", "Score", "Attention", "Preview"],
+            "rows": top_5_rows,
+        } if top_5_rows else None),
+        core_metrics={
+            "Weight model":
+                ", ".join(f"{k}={v}%" for k, v in CORPORATE_WEIGHTS.items()),
+        },
+        recommendations=recommendations,
+        upcoming_risks=[],
+        recent_changes=[
+            f"Domains composed: {len(domain_scores)}",
+            f"Domains scored: {len(scored)}",
+        ],
+        deep_links=[
+            {"href": "/safety/cases", "text": "Safety Case Center"},
+            {"href": "/pm/projects", "text": "PM Project Center"},
+            {"href": "/fleet", "text": "Fleet Center"},
+            {"href": "/shop", "text": "Shop Console"},
+            {"href": "/hr/employees", "text": "HR Directory"},
+            {"href": "/hr/training-records", "text": "Training Records"},
+            {"href": "/po-requests", "text": "Purchase Orders"},
+            {"href": "/admin/executive-dashboard", "text": "Executive Dashboard"},
+            {"href": "/api/operational-intelligence/products",
+             "text": "OI Product Registry"},
+        ],
+        no_auto_decision_notice=(
+            "Cross-domain attention signal only. Domain owners "
+            "(Safety · PM · Fleet · Shop · HR · Training · Transportation · "
+            "Procurement · Executive) own investigation, classification, "
+            "and disposition. The platform does NOT declare the company "
+            "compliant, does NOT declare legal risk conclusions, does NOT "
+            "determine liability, discipline, or issue automatic executive "
+            "decisions."
+        ),
+        audit_footer=(
+            "Track 19.45B · Corporate Intelligence Digest · weighted "
+            "rollup of every implemented OI product. Composes via "
+            "engine.compose() — zero new data sources · zero drift."
+        ),
+    )
+
+
+def _get(pid: str):
+    """Local shim — avoids re-importing get_product inside the aggregator."""
+    from .registry import get_product
+    return get_product(pid)
+
+
+register_product(Product(
+    product_id="corporate_intelligence",
+    display_name="Corporate Intelligence Digest",
+    summary="Cross-domain executive rollup — weighted score across every domain.",
+    permission_role="admin_only",
+    template_key="executive_v1",
+    schedule_freq="monthly",
+    schedule_iso_day=1, schedule_hour_utc=14,
+    status=ProductStatus.IMPLEMENTED,
+    aggregator=_agg_corporate_intelligence,
+    tags=["corporate", "executive", "monthly", "rollup"],
+))
+
+
+# ---------------------------------------------------------------------------
+# 11 · Contract-registered products — aggregators not yet implemented
 # ---------------------------------------------------------------------------
 async def _not_implemented(db, **kwargs):  # noqa: ARG001
     # The engine raises NotImplementedError before calling this — this
@@ -1730,22 +2386,6 @@ _CONTRACT_REGISTERED_PRODUCTS = [
         permission_role="admin_only", template_key="executive_v1",
         schedule_freq="weekly", schedule_iso_day=1, schedule_hour_utc=13,
         tags=["operations", "weekly"],
-    ),
-    Product(
-        product_id="shop_intelligence",
-        display_name="Shop Intelligence Digest",
-        summary="Shop maintenance · repairs · open work · assignments · inventory.",
-        permission_role="safety_or_admin", template_key="executive_v1",
-        schedule_freq="weekly", schedule_iso_day=1, schedule_hour_utc=13,
-        tags=["shop"],
-    ),
-    Product(
-        product_id="corporate_intelligence",
-        display_name="Corporate Intelligence Digest",
-        summary="Company-wide executive intelligence across every domain.",
-        permission_role="admin_only", template_key="executive_v1",
-        schedule_freq="monthly", schedule_iso_day=1, schedule_hour_utc=14,
-        tags=["corporate", "executive"],
     ),
 ]
 

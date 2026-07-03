@@ -264,13 +264,18 @@ def test_registry_implemented_count_now_eight():
 
 
 def test_registry_contract_registered_count_now_three():
+    """At Track 19.44 close, three products were contract-registered:
+    weekly_operations_digest, shop_intelligence, corporate_intelligence.
+    Later tracks may IMPLEMENT them, but must never re-contract an
+    IMPLEMENTED product. Assert the contract set is a subset of the
+    original three."""
     from operational_intelligence import list_products, ProductStatus
     contract = {p.product_id for p in list_products()
                 if p.status == ProductStatus.CONTRACT_REGISTERED}
-    assert contract == {
+    assert contract.issubset({
         "weekly_operations_digest", "shop_intelligence",
         "corporate_intelligence",
-    }, contract
+    }), contract
 
 
 def test_no_new_email_provider_or_scheduler_in_track_19_44():

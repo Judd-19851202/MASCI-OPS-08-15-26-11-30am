@@ -10,6 +10,20 @@
 
 # CHANGELOG
 
+## 2026-07-04 — TRACK 19.45B · Shop Intelligence + Corporate Intelligence · 🟢 SHIPPED (60/60 · 10 of 11 products IMPLEMENTED)
+
+### Shipped
+- **Shop Intelligence Digest** (`shop_intelligence`) — IMPLEMENTED. Real aggregator over `equipment_master` / `equipment_units` / `asset_holds` / `fleet_defects` / `maintainx_work_orders` / `pm_work_orders` / `equipment_inspections` / `dvir` / `equipment_transfers` / `incident_cases`. Top-5 preference: safety holds → aging critical defects → OOS units. 5 positive + 10 negative contributors. Permission `safety_or_admin`. Weekly cadence.
+- **Corporate Intelligence Digest** (`corporate_intelligence`) — IMPLEMENTED. Cross-domain weighted rollup (weights: Safety 20 · Project 20 · Fleet 12 · Shop 10 · Transportation 10 · HR 8 · Training 8 · PO 7 · Executive Ops 5 = 100). Insufficient-data domains excluded from the average but visible in the domain table. Permission `admin_only`. Monthly cadence.
+- **Lock test** `test_track_19_45b_shop_corporate_intelligence.py` — 20 assertions.
+- **11 governance docs** shipped (`TRACK_19_45B_*.md`).
+- Registry now 10/11 IMPLEMENTED. Only `weekly_operations_digest` remains CONTRACT_REGISTERED.
+
+### Zero drift
+- 0 new collections · 0 new routes · 0 new email provider · 0 new scheduler · 0 new recipient collection · 0 new renderer.
+- Corporate composes via `engine.compose(db, product_id=X)` — no new data sources.
+
+
 ## 2026-07-04 — TRACK 19.45A · Operational Intelligence Governance & Value Certification · 🟢 SHIPPED (60/60 · Six Pillar Complete)
 
 ### Shipped
