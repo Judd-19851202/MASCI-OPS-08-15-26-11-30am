@@ -27,6 +27,7 @@ import ShopSideNavV2, { isShopSidebarV2Enabled } from "@/components/shop/sidebar
 import MapCanvas from "@/components/operations-map/MapCanvas";
 import "@/components/operations-map/OperationsMap.css";
 import { useMapSnapshot } from "@/lib/operations-map/useMapSnapshot";
+import OiAttentionStrip from "@/components/operational_intelligence/OiAttentionStrip";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const EMPTY_MAP_FILTERS = { types: [], status: [], driver: null, project: null };
@@ -695,6 +696,15 @@ export default function ShopHubV2() {
         }
         sideNav={isShopSidebarV2Enabled() ? <ShopSideNavV2 /> : undefined}
       >
+        {/* Track 19.52 · P1 #4 — OI Attention Strip.
+           shop_intelligence signal at the top of the Shop Hub —
+           safety holds → aging critical defects → OOS. Zero-drift. */}
+        <OiAttentionStrip
+          productIds={["shop_intelligence"]}
+          title="Shop Intelligence · attention now"
+          testId="shop-hub-v2-oi-strip"
+        />
+
         {/* Global Unit Search · Track 13.30C — sits directly under the
             primary action row so it is visible without scrolling. */}
         <section data-testid="shop-hub-v2-unit-search-section"

@@ -36,6 +36,7 @@ import JobTeamRosterPanel from "@/components/team/JobTeamRosterPanel";
 import { pmCommandApi } from "@/components/pm/command/pmCommandApi";
 import { Users } from "lucide-react";
 import { OperationsTransportationHealthWidget } from "@/components/operations_transportation_integration";
+import OiAttentionStrip from "@/components/operational_intelligence/OiAttentionStrip";
 
 const OVERVIEW_POLL_MS = 45000;
 
@@ -124,6 +125,15 @@ export default function PmCommandCenter() {
       }
     >
       <div data-testid="pm-command-center" className="space-y-4">
+        {/* Track 19.52 · P1 #3 — OI Attention Strip.
+           project_intelligence signal at the very top of the PM
+           Command Center. Zero-drift: no new backend, no new score. */}
+        <OiAttentionStrip
+          productIds={["project_intelligence"]}
+          title="Project Intelligence · attention now"
+          testId="pm-cc-oi-strip"
+        />
+
         <div className="flex flex-wrap items-center justify-between gap-3">
           <PmProjectSelector value={projectNumber} onChange={setProjectNumber} />
           {overview ? (

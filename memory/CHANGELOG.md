@@ -10,6 +10,27 @@
 
 # CHANGELOG
 
+## 2026-07-05 — TRACK 19.52 · P1 Command Center Remediation · 🟢 SHIPPED (Frontend only · zero backend drift)
+
+### Shipped
+- New shared consumer component `OiAttentionStrip.jsx` under `/app/frontend/src/components/operational_intelligence/`. Pure read-only consumer of `GET /api/operational-intelligence/summary`.
+- SafetyHubV2 now mounts the strip with `safety_morning_digest` above the CAPA section.
+- HrHubV2 mounts the strip with `hr_intelligence` + `training_intelligence` above the HR Compliance At Risk widget.
+- PmCommandCenter mounts the strip with `project_intelligence` as the first child of the command-center body (`/pm` continues to redirect to `/pm/command-center`).
+- ShopHubV2 mounts the strip with `shop_intelligence` above Unit Search + Attention grid.
+- FleetVisibility mounts the strip with `fleet_intelligence` below FocusBanner across all three scopes (Shop, Safety, Dispatch).
+- Track 19.52 lock test `test_track_19_52_command_center_p1.py` — 14 assertions locking file inventory, mount points, product-id constants, testid roots, and 19.51 doc preservation.
+- 7 governance docs under `/app/memory/TRACK_19_52_*.md`.
+
+### Zero drift
+- Backend module inventory unchanged (9 files under `backend/operational_intelligence/`).
+- No new routes. No new score model. No new email path. No new scheduler. No new recipient system.
+- Every prior link, section, and workflow preserved on all five touched portals.
+
+### Deferred (still on roadmap)
+- P2 items #6–#12 (Admin v1 tile collapse · Dispatch strip formalisation · Field / Superintendent action queue · Guidance role restructure · Asset Admin polish · Cockpit sparkline).
+- P3 items #13–#19.
+
 ## 2026-07-04 — TRACK 19.51 · Portal Command Center Audit · 🟢 SHIPPED (Docs + Lock only · zero code drift)
 
 ### Shipped

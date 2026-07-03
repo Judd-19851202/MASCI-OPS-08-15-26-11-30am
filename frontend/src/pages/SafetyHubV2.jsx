@@ -24,6 +24,7 @@ import {
   EmptyState,
 } from "../design-system";
 import SafetySideNavV2 from "@/components/safety/sidebar/SafetySideNavV2";
+import OiAttentionStrip from "@/components/operational_intelligence/OiAttentionStrip";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -159,6 +160,17 @@ export default function SafetyHubV2() {
           </span>
         }
       >
+        {/* Track 19.52 · P1 #1 — OI Attention Strip.
+           Consumes GET /api/operational-intelligence/summary and
+           surfaces the safety_morning_digest signal (score · attention
+           level · top attention label) at the top of the Safety Hub.
+           Zero-drift: no new backend, no new score model. */}
+        <OiAttentionStrip
+          productIds={["safety_morning_digest"]}
+          title="Safety Intelligence · attention now"
+          testId="safety-hub-v2-oi-strip"
+        />
+
         {/* Section 1 — Corrective Actions (CAPAs). */}
         <section data-testid="safety-hub-v2-section-capas" style={{ marginBottom: 28 }}>
           <SectionHeader

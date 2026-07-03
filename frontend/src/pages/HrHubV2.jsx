@@ -24,6 +24,7 @@ import {
 } from "../design-system";
 import HrSideNavV2 from "@/components/hr/sidebar/HrSideNavV2";
 import HrComplianceAtRiskWidget from "@/components/hr/HrComplianceAtRiskWidget";
+import OiAttentionStrip from "@/components/operational_intelligence/OiAttentionStrip";
 import { getHrToken } from "@/lib/hrAuth";
 import { getAdminToken } from "@/lib/adminAuth";
 
@@ -207,6 +208,17 @@ export default function HrHubV2() {
           </span>
         }
       >
+        {/* Track 19.52 · P1 #2 — OI Attention Strip.
+           Combined hr_intelligence + training_intelligence signals
+           surfaced at the very top of the HR Hub so an HR director sees
+           workforce-readiness attention level before scrolling to the
+           search box or queue tiles. Zero-drift: pure OI consumer. */}
+        <OiAttentionStrip
+          productIds={["hr_intelligence", "training_intelligence"]}
+          title="HR Intelligence · attention now"
+          testId="hr-hub-v2-oi-strip"
+        />
+
         {/* Track 19.33 · HR Compliance At Risk — proactive attention widget.
             Consumes existing /api/operations/expirations/summary (Sprint A · read-only).
             Zero-drift: no new backend routes · no schema · no permission drift. */}

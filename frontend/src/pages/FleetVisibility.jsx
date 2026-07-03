@@ -38,6 +38,7 @@ import { getAdminToken } from "@/lib/adminAuth";
 import { RepairDrawer, RtsDrawer } from "@/components/FleetRepairDrawer";
 import { HelpTipBlock } from "@/components/HelpTip";
 import FocusBanner from "@/components/triage/FocusBanner";
+import OiAttentionStrip from "@/components/operational_intelligence/OiAttentionStrip";
 
 const API = process.env.REACT_APP_BACKEND_URL || "";
 
@@ -499,6 +500,16 @@ export default function FleetVisibility({ scope = "shop" }) {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 pb-16" data-testid="fleet-visibility">
         <FocusBanner />
+
+        {/* Track 19.52 · P1 #5 — OI Attention Strip.
+           fleet_intelligence signal at the top of Fleet Visibility —
+           active holds · critical defects · availability. Zero-drift:
+           pure consumer of the certified OI summary payload. */}
+        <OiAttentionStrip
+          productIds={["fleet_intelligence"]}
+          title="Fleet Intelligence · attention now"
+          testId="fleet-visibility-oi-strip"
+        />
 
         <div className="mb-6 flex items-start gap-3 sm:gap-4">
           <div

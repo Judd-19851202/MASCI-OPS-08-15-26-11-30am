@@ -11,6 +11,21 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.52 · P1 Command Center Remediation Execution · ✅ SHIPPED (2026-07-05)
+
+**Type:** Surgical portal-home fixes. Frontend only. Zero backend change.
+
+**Delta:** Five P1 items from the Track 19.51 remediation roadmap executed via a single shared consumer component `OiAttentionStrip.jsx`. The strip is mounted at the top of five portal homes (Safety, HR, PM Command Center, Shop, Fleet Visibility) and consumes `GET /api/operational-intelligence/summary` — no re-derived scoring, no duplicate framework, no new backend, no new email/scheduler/recipient path.
+
+**Portals fixed:** SafetyHubV2 (`safety_morning_digest`), HrHubV2 (`hr_intelligence` + `training_intelligence`), PmCommandCenter (`project_intelligence`), ShopHubV2 (`shop_intelligence`), FleetVisibility (`fleet_intelligence`).
+
+**Zero drift:** OI engine directory inventory unchanged (9 files, Track 19.50 baseline frozen). No new routes. No new backend. Every prior link, section, workflow preserved.
+
+**Testing:** `pytest /app/backend/tests/test_track_19_52_command_center_p1.py -v` → all lock tests GREEN. Track 19.51 audit lock test remains GREEN.
+
+**Docs:** 7 files under `TRACK_19_52_*` in `/app/memory/`.
+
+
 ## TRACK 19.51 · Operational Command Center Architecture + Portal Home Noise Audit · ✅ COMPLETE (2026-07-04)
 
 **Type:** Audit + architecture. Zero code changes to the engine.
