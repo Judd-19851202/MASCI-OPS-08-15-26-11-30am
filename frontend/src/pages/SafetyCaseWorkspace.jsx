@@ -10,10 +10,13 @@ import * as api from "@/lib/caseWorkspaceApi";
 import { INCIDENT_FLOWS } from "@/lib/incidentReportSchema";
 import {
   Activity, AlertTriangle, ArrowRight, CheckCircle2, ChevronLeft, Clipboard,
-  FileText, Heart, MessageSquare, Paperclip, Shield, Users, Wrench,
+  FileText, Heart, Lock, MessageSquare, Paperclip, Shield, Users, Wrench,
 } from "lucide-react";
 
 const TABS = [
+  // Track 19.35 · Field Facts tab — always first · always immutable.
+  // Anchors the Safety investigation in the original field report.
+  { key: "field_facts",    label: "Field Facts",        icon: Lock },
   { key: "timeline",       label: "Timeline",           icon: Activity },
   { key: "evidence",       label: "Evidence",           icon: Paperclip },
   { key: "witnesses",      label: "Witnesses",          icon: Users },
@@ -24,6 +27,8 @@ const TABS = [
   { key: "communications", label: "Communications",     icon: MessageSquare },
   { key: "tasks",          label: "Safety Tasks",       icon: Clipboard },
   { key: "linked",         label: "Linked Records",     icon: FileText },
+  // Track 19.35 · Closeout tab — final classification · safety approval · management review.
+  { key: "closeout",       label: "Closeout",           icon: CheckCircle2 },
 ];
 
 // Track 19.18 · which tab resolves which blocker key.
@@ -372,7 +377,10 @@ export default function SafetyCaseWorkspace() {
   const { caseId } = useParams();
   const navigate = useNavigate();
   const { t } = useT();
-  const [tab, setTab] = useState("timeline");
+  // Track 19.35 · Default tab is Field Facts (immutable anchor) so every
+  // Safety Manager opening a case starts by reviewing what the field said,
+  // not by jumping into investigation notes.
+  const [tab, setTab] = useState("field_facts");
   const [caseDoc, setCaseDoc] = useState(null);
   const [health, setHealth] = useState(null);
   const [snap, setSnap] = useState(null);
@@ -466,6 +474,26 @@ export default function SafetyCaseWorkspace() {
               })}
             </div>
             <div className="p-3 sm:p-4">
+              {/* Track 19.35 · Field Facts tab · immutable field report anchor. */}
+              {tab === "field_facts" && (
+                <div className="space-y-3" data-testid="case-field-facts">
+                  <div className="flex items-start gap-2 rounded-lg border border-slate-300 bg-slate-50 px-3 py-2">
+                    <Lock className="w-4 h-4 mt-0.5 shrink-0 text-slate-500" aria-hidden />
+                    <div className="text-[13px] leading-snug">
+                      <span className="font-semibold text-slate-800">{t("Original Field Report — locked record.")}</span>{" "}
+                      <span>{t("Facts captured by the field. Cannot be edited from the Safety workspace. Investigation notes, root cause, and OSHA review are recorded in the other tabs.")}</span>
+                    </div>
+                  </div>
+                  <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div><dt className="text-slate-500 text-xs uppercase tracking-widest font-mono">{t("Incident type")}</dt><dd className="font-semibold" data-testid="case-field-facts-type">{caseDoc?.incident_type ? t(INCIDENT_FLOWS[caseDoc.incident_type]?.label || caseDoc.incident_type) : "—"}</dd></div>
+                    <div><dt className="text-slate-500 text-xs uppercase tracking-widest font-mono">{t("Occurred at")}</dt><dd className="font-semibold">{_fmt(caseDoc?.occurred_at) || "—"}</dd></div>
+                    <div><dt className="text-slate-500 text-xs uppercase tracking-widest font-mono">{t("Reporter")}</dt><dd className="font-semibold">{caseDoc?.reporter_name || "—"}</dd></div>
+                    <div><dt className="text-slate-500 text-xs uppercase tracking-widest font-mono">{t("Location")}</dt><dd className="font-semibold">{caseDoc?.location || caseDoc?.gps || "—"}</dd></div>
+                    <div className="sm:col-span-2"><dt className="text-slate-500 text-xs uppercase tracking-widest font-mono">{t("Summary")}</dt><dd className="whitespace-pre-line">{caseDoc?.summary || caseDoc?.description || "—"}</dd></div>
+                    <div className="sm:col-span-2"><dt className="text-slate-500 text-xs uppercase tracking-widest font-mono">{t("Immediate actions")}</dt><dd className="whitespace-pre-line">{caseDoc?.immediate_actions || "—"}</dd></div>
+                  </dl>
+                </div>
+              )}
               {tab === "timeline" && <TimelinePanel events={events} />}
               {tab === "evidence" && <EvidencePanel evidence={evidence} />}
               {tab === "witnesses" && (
@@ -555,6 +583,29 @@ export default function SafetyCaseWorkspace() {
                   ) : (
                     <p className="text-slate-500 text-sm">{t("No linked records yet.")}</p>
                   )}
+                </div>
+              )}
+              {/* Track 19.35 · Closeout tab · final classification · Safety approval · management review. */}
+              {tab === "closeout" && (
+                <div className="space-y-3" data-testid="case-closeout">
+                  <div className="flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
+                    <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0 text-emerald-700" aria-hidden />
+                    <div className="text-[13px] leading-snug text-emerald-900">
+                      <span className="font-semibold">{t("Case closeout checklist.")}</span>{" "}
+                      <span>{t("Confirm each area before final closure. Original field report remains locked · closeout does not destroy history.")}</span>
+                    </div>
+                  </div>
+                  <ul className="space-y-2 text-sm" data-testid="case-closeout-checklist">
+                    <li className="flex items-start gap-2"><CheckCircle2 className={`w-4 h-4 mt-0.5 shrink-0 ${(evidence?.length || 0) > 0 ? "text-emerald-600" : "text-slate-300"}`} /><span>{t("Evidence collected")} {(evidence?.length || 0) > 0 ? "✓" : ""}</span></li>
+                    <li className="flex items-start gap-2"><CheckCircle2 className={`w-4 h-4 mt-0.5 shrink-0 ${(witnesses?.length || 0) > 0 ? "text-emerald-600" : "text-slate-300"}`} /><span>{t("Witness statements recorded")} {(witnesses?.length || 0) > 0 ? "✓" : ""}</span></li>
+                    <li className="flex items-start gap-2"><CheckCircle2 className={`w-4 h-4 mt-0.5 shrink-0 ${caseDoc?.safety_block?.root_cause ? "text-emerald-600" : "text-slate-300"}`} /><span>{t("Root cause / findings documented")} {caseDoc?.safety_block?.root_cause ? "✓" : ""}</span></li>
+                    <li className="flex items-start gap-2"><CheckCircle2 className={`w-4 h-4 mt-0.5 shrink-0 ${(capa?.length || 0) > 0 ? "text-emerald-600" : "text-slate-300"}`} /><span>{t("Corrective actions assigned")} {(capa?.length || 0) > 0 ? "✓" : ""}</span></li>
+                    <li className="flex items-start gap-2"><CheckCircle2 className={`w-4 h-4 mt-0.5 shrink-0 ${(agency?.length || 0) > 0 ? "text-emerald-600" : "text-slate-300"}`} /><span>{t("Regulatory / agency contacts logged")} {(agency?.length || 0) > 0 ? "✓" : ""}</span></li>
+                  </ul>
+                  <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-[13px] text-slate-700" data-testid="case-closeout-status">
+                    <div><strong>{t("Current status")}:</strong> {t(caseDoc?.status || "open")}</div>
+                    <div className="mt-1 text-slate-500 text-xs">{t("Final closure state is set from the Executive header. This tab surfaces what's still open.")}</div>
+                  </div>
                 </div>
               )}
             </div>
