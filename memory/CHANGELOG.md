@@ -4,6 +4,38 @@
 
 # CHANGELOG
 
+# CHANGELOG
+
+## 2026-07-04 — TRACK 19.43 · Fleet + HR Intelligence + Safety Digest Cutover Gate · 🟢 SHIPPED (Production Strong · 59/60)
+
+### Shipped
+- **Fleet Intelligence** (`_agg_fleet_intelligence`) — IMPLEMENTED. 11 signal queries · 11 Score contributors (4+ / 7-). Top-5 attention table (safety-hold rows preferred; falls back to OOS units). 5 deep links. `safety_or_admin`.
+- **HR Intelligence** (`_agg_hr_intelligence`) — IMPLEMENTED. 7 signal queries · 6 Score contributors (3+ / 3-). Top-5 expired qualifications table. 4 deep links. `admin_only`.
+- **Legacy Safety Digest cutover gate** — new env flag `OI_ENGINE_SAFETY_MORNING_LIVE=true` short-circuits `safety_digest.py::_enabled()`. Legacy cron immediately stops sending; Track 19.39 becomes the authoritative sender. Zero deletion.
+- **10 governance docs** + PRD + CHANGELOG.
+- **Lock test** `test_track_19_43_fleet_hr_intelligence.py` — 17 assertions.
+- **Track 19.40 lock test** comment updated (CONTRACT_REGISTERED remains `<=8`).
+
+### Registry
+- IMPLEMENTED (6): safety_morning_digest · executive_operations_brief · po_weekly_digest · transportation_intelligence · **fleet_intelligence (NEW)** · **hr_intelligence (NEW)**.
+- CONTRACT_REGISTERED (5): weekly_operations_digest · training_intelligence · project_intelligence · shop_intelligence · corporate_intelligence.
+
+### Quality Gate
+- **Six Pillar: 59/60 · Production Strong.**
+- **Zero-Drift:** all schemas / routes / cron loops / email providers / recipient collections unchanged.
+- **Regression:** 5 lock suites (Tracks 19.39/19.40/19.41/19.42/19.43) all 🟢.
+- **Live smoke:** `GET /api/operational-intelligence/products` → `count=11`; Fleet + HR previews render 14 sections with insufficient-data guard on preview env.
+
+### Zero-drift proof
+0 collections mutated · 0 legacy routes modified · 0 new schedulers · 0 new email providers · legacy `safety_digest.py` cron preserved (short-circuit gate is additive · env-flip is single-step reversible).
+
+### Next
+- Track 19.44 → Training Intelligence + Project Intelligence + legacy `po_digest.py` cutover gate.
+- Track 19.45+ → Shop · Corporate · Weekly Operations aggregators.
+- Optional: Cockpit UI (`/admin/operational-intelligence`) once all 11 products are IMPLEMENTED.
+
+---
+
 ## 2026-07-04 — TRACK 19.42 · Score Retrofit + Transportation Intelligence · 🟢 SHIPPED (Production Strong · 59/60)
 
 ### Shipped

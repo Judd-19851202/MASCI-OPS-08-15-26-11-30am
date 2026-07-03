@@ -772,6 +772,472 @@ register_product(Product(
 
 
 # ---------------------------------------------------------------------------
+# 5 · Fleet Intelligence Digest (IMPLEMENTED — Track 19.43)
+# ---------------------------------------------------------------------------
+async def _agg_fleet_intelligence(db, **kwargs) -> Dict[str, Any]:
+    from datetime import datetime, timedelta, timezone
+    from .product_layout import build_standard_layout
+    from .score_model import (
+        score_from_contributors, Contributor, insufficient_data_score,
+    )
+
+    now = datetime.now(timezone.utc)
+    week_ago = (now - timedelta(days=7)).isoformat()
+
+    async def _c(name, q=None):
+        try:
+            return int(await db[name].count_documents(q or {}))
+        except Exception:  # noqa: BLE001
+            return 0
+
+    total       = await _c("equipment_master", {})
+    if total == 0:
+        # fall back to equipment_units when master isn't populated
+        total = await _c("equipment_units", {})
+    oos         = await _c("equipment_units", {"status": {"$in": ["OOS", "Down", "Out of Service"]}})
+    safety_hold = await _c("asset_holds", {"hold_type": "safety", "status": "active"})
+    maint_hold  = await _c("asset_holds", {"hold_type": {"$in": ["maintenance", "repair"]}, "status": "active"})
+    open_defects = await _c("fleet_defects", {"status": {"$in": ["open", "in_progress"]}})
+    critical_defects = await _c("fleet_defects",
+                                 {"severity": "critical",
+                                  "status": {"$in": ["open", "in_progress"]}})
+    inspections_7d = await _c("equipment_inspections",
+                              {"submitted_at": {"$gte": week_ago}})
+    overdue_insp   = await _c("equipment_inspections",
+                              {"next_due_at": {"$lt": now.isoformat()},
+                               "status": {"$in": ["due", "scheduled"]}})
+    transfers_7d   = await _c("equipment_transfers",
+                              {"created_at": {"$gte": week_ago}})
+    equip_incidents = await _c("incident_cases",
+                               {"incident_type": "equipment_damage",
+                                "submitted_at": {"$gte": week_ago}})
+
+    has_any = any([total, oos, safety_hold, maint_hold, open_defects,
+                   inspections_7d, transfers_7d])
+    if not has_any:
+        score = insufficient_data_score(
+            "No fleet/equipment collections populated in this environment."
+        )
+    else:
+        positives, negatives = [], []
+        if total > 0 and oos == 0:
+            positives.append(Contributor(
+                key="full_availability",
+                label=f"All {total} unit(s) available",
+                impact=12, detail="No OOS units."))
+        if inspections_7d > 0 and open_defects == 0:
+            positives.append(Contributor(
+                key="clean_inspections",
+                label=f"{inspections_7d} inspection(s) · 0 open defects",
+                impact=8, detail="Clean inspection sweep."))
+        if safety_hold == 0 and maint_hold == 0 and total > 0:
+            positives.append(Contributor(
+                key="no_holds", label="No active holds on any unit",
+                impact=6, detail="No maintenance / safety holds."))
+        if equip_incidents == 0:
+            positives.append(Contributor(
+                key="no_equip_incidents",
+                label="Zero equipment-damage incidents this week",
+                impact=8, detail="Clean equipment-safety period."))
+
+        if critical_defects > 0:
+            negatives.append(Contributor(
+                key="critical_defects",
+                label=f"{critical_defects} CRITICAL defect(s) open",
+                impact=-min(35, critical_defects * 12),
+                detail="Highest-severity defects blocking utilisation."))
+        elif open_defects > 5:
+            negatives.append(Contributor(
+                key="defect_backlog",
+                label=f"{open_defects} open defect(s)",
+                impact=-min(20, open_defects // 2),
+                detail="Open defect backlog above threshold."))
+        if oos > 0:
+            negatives.append(Contributor(
+                key="oos_units", label=f"{oos} unit(s) out-of-service",
+                impact=-min(25, oos * 3),
+                detail="Availability drag."))
+        if safety_hold > 0:
+            negatives.append(Contributor(
+                key="safety_holds",
+                label=f"{safety_hold} unit(s) on safety hold",
+                impact=-min(25, safety_hold * 6),
+                detail="Safety hold — investigate immediately."))
+        if maint_hold > 0:
+            negatives.append(Contributor(
+                key="maint_holds",
+                label=f"{maint_hold} unit(s) on maintenance/repair hold",
+                impact=-min(15, maint_hold * 2),
+                detail="Availability drag."))
+        if overdue_insp > 0:
+            negatives.append(Contributor(
+                key="overdue_inspections",
+                label=f"{overdue_insp} overdue inspection(s)",
+                impact=-min(15, overdue_insp * 3),
+                detail="Compliance and utilisation exposure."))
+        if equip_incidents > 0:
+            negatives.append(Contributor(
+                key="equipment_incidents",
+                label=f"{equip_incidents} equipment incident(s) this period",
+                impact=-min(25, equip_incidents * 10),
+                detail="Equipment-damage incidents raised via intake."))
+
+        score = score_from_contributors(
+            baseline=100, positives=positives, negatives=negatives,
+            trend_percent=None,
+            confidence="high" if total >= 10 else "medium",
+            data_freshness="live",
+            calculation_notes=(
+                "Fleet score composed from OOS count · defect severity · "
+                "active holds · overdue inspections · equipment incidents. "
+                "Trend engages once history rows accumulate."
+            ),
+        )
+
+    # Top-5 units with active safety holds (or OOS if no holds populated)
+    top_5_rows = []
+    try:
+        cursor = db["asset_holds"].find(
+            {"hold_type": "safety", "status": "active"},
+            {"_id": 0, "unit_number": 1, "reason": 1, "opened_at": 1,
+             "opened_by": 1, "asset_id": 1},
+        ).limit(5)
+        async for h in cursor:
+            unit = h.get("unit_number") or (h.get("asset_id") or "")[:10]
+            top_5_rows.append([
+                {"href": f"/fleet/units/{unit}", "text": unit or "—"},
+                h.get("reason") or "",
+                h.get("opened_at") or "",
+                h.get("opened_by") or "",
+            ])
+    except Exception:  # noqa: BLE001
+        pass
+    if not top_5_rows and oos > 0:
+        # fallback: top 5 OOS units
+        try:
+            cursor = db["equipment_units"].find(
+                {"status": {"$in": ["OOS", "Down", "Out of Service"]}},
+                {"_id": 0, "unit_number": 1, "status": 1, "oos_since": 1,
+                 "make": 1, "model": 1},
+            ).limit(5)
+            async for u in cursor:
+                top_5_rows.append([
+                    {"href": f"/fleet/units/{u.get('unit_number','')}",
+                     "text": u.get("unit_number") or "—"},
+                    u.get("status") or "OOS",
+                    u.get("oos_since") or "",
+                    f"{u.get('make','')} {u.get('model','')}".strip(),
+                ])
+        except Exception:  # noqa: BLE001
+            pass
+
+    wins = []
+    if total > 0 and oos == 0:
+        wins.append(f"Full fleet availability · {total} unit(s).")
+    if inspections_7d > 0 and open_defects == 0:
+        wins.append(f"{inspections_7d} inspection(s) completed clean this week.")
+    if equip_incidents == 0 and total > 0:
+        wins.append("No equipment-damage incidents this period.")
+
+    attention = []
+    if critical_defects > 0:
+        attention.append(f"{critical_defects} CRITICAL defect(s) — address immediately.")
+    if safety_hold > 0:
+        attention.append(f"{safety_hold} unit(s) on safety hold.")
+    if oos > 0:
+        attention.append(f"{oos} unit(s) OOS — return to service.")
+    if overdue_insp > 0:
+        attention.append(f"{overdue_insp} inspection(s) overdue.")
+    if equip_incidents > 0:
+        attention.append(f"{equip_incidents} equipment incident(s) this period.")
+
+    return build_standard_layout(
+        product_id="fleet_intelligence",
+        subject="MASCI Fleet Intelligence Digest",
+        period_label="Weekly · Monday 13:00 UTC",
+        executive_summary={
+            "Total units":              total,
+            "OOS":                      oos,
+            "On safety hold":           safety_hold,
+            "On maint/repair hold":     maint_hold,
+            "Open defects":             open_defects,
+            "Critical defects":         critical_defects,
+            "Overdue inspections":      overdue_insp,
+        },
+        score=score.to_dict(),
+        trend_direction={"arrow": "→", "tone": "flat",
+                         "current": oos, "previous": None, "pct_change": None},
+        top_wins=wins,
+        needs_immediate_attention=attention,
+        top_5_items=({
+            "title": "Top 5 · Fleet Attention",
+            "headers": ["Unit", "Reason / Status", "Since", "Owner / Details"],
+            "rows": top_5_rows,
+        } if top_5_rows else None),
+        core_metrics={
+            "Inspections last 7d":  inspections_7d,
+            "Transfers last 7d":    transfers_7d,
+            "Equipment incidents":  equip_incidents,
+        },
+        recommendations=(
+            ([f"Resolve {critical_defects} CRITICAL defect(s) this week."] if critical_defects else []) +
+            ([f"Return {oos} OOS unit(s) to service."] if oos else []) +
+            ([f"Close {overdue_insp} overdue inspection(s)."] if overdue_insp else []) +
+            ([f"Investigate {safety_hold} safety hold(s)."] if safety_hold else [])
+            or ["Fleet operations steady — maintain cadence."]
+        ),
+        upcoming_risks=[],
+        recent_changes=[
+            f"Inspections submitted last 7d: {inspections_7d}",
+            f"Asset transfers last 7d: {transfers_7d}",
+        ],
+        deep_links=[
+            {"href": "/fleet", "text": "Fleet Center"},
+            {"href": "/fleet/holds", "text": "Active Holds"},
+            {"href": "/fleet/defects", "text": "Defect Board"},
+            {"href": "/fleet/inspections", "text": "Inspection Center"},
+            {"href": "/safety/cases?type=equipment_damage", "text": "Equipment Incidents"},
+        ],
+        no_auto_decision_notice=(
+            "Attention signal only. Fleet · Shop · Safety own investigation "
+            "and classification. The platform does NOT determine fault, "
+            "root cause, mechanic responsibility, insurance liability, or "
+            "return-to-service authorisation."
+        ),
+        audit_footer=(
+            "Track 19.43 · Fleet Intelligence Digest · aggregator over "
+            "equipment_master / equipment_units / asset_holds / fleet_defects / "
+            "equipment_inspections / incident_cases."
+        ),
+    )
+
+
+register_product(Product(
+    product_id="fleet_intelligence",
+    display_name="Fleet Intelligence Digest",
+    summary="Equipment · inspections · holds · defects · downtime signals.",
+    permission_role="safety_or_admin",
+    template_key="executive_v1",
+    schedule_freq="weekly", schedule_iso_day=1, schedule_hour_utc=13,
+    status=ProductStatus.IMPLEMENTED,
+    aggregator=_agg_fleet_intelligence,
+    tags=["fleet", "equipment", "weekly"],
+))
+
+
+# ---------------------------------------------------------------------------
+# 6 · HR Intelligence Digest (IMPLEMENTED — Track 19.43)
+# ---------------------------------------------------------------------------
+async def _agg_hr_intelligence(db, **kwargs) -> Dict[str, Any]:
+    from datetime import datetime, timedelta, timezone
+    from .product_layout import build_standard_layout
+    from .score_model import (
+        score_from_contributors, Contributor, insufficient_data_score,
+    )
+
+    now = datetime.now(timezone.utc)
+    week_ago = (now - timedelta(days=7)).isoformat()
+    plus_30d = (now + timedelta(days=30)).isoformat()
+
+    async def _c(name, q=None):
+        try:
+            return int(await db[name].count_documents(q or {}))
+        except Exception:  # noqa: BLE001
+            return 0
+
+    total_emp = await _c("employees", {"active": True})
+    if total_emp == 0:
+        total_emp = await _c("employee_records", {"active": True})
+    new_hires_7d = await _c("employee_lifecycle_events",
+                             {"event_type": "hired",
+                              "occurred_at": {"$gte": week_ago}})
+    terminations_7d = await _c("employee_lifecycle_events",
+                                {"event_type": {"$in": ["terminated", "resigned"]},
+                                 "occurred_at": {"$gte": week_ago}})
+
+    # Training / qualification expiries — reuse driver_qualifications
+    # collection because training records live there for driver + safety
+    # certs today (per Track 19.00 audit).
+    quals_expired = await _c("driver_qualifications",
+                             {"expires_at": {"$lt": now.isoformat()}})
+    quals_expiring_30d = await _c("driver_qualifications",
+                                  {"expires_at": {"$lte": plus_30d,
+                                                  "$gte": now.isoformat()}})
+
+    trainings_recent = await _c("training_hits",
+                                {"created_at": {"$gte": week_ago}})
+
+    # Orientation / onboarding hits
+    orientation_active = await _c("employee_lifecycle_events",
+                                  {"event_type": "orientation_started",
+                                   "status": "in_progress"})
+
+    has_any = any([total_emp, new_hires_7d, terminations_7d, quals_expired,
+                   quals_expiring_30d, trainings_recent, orientation_active])
+    if not has_any:
+        score = insufficient_data_score(
+            "No HR collections populated in this environment."
+        )
+    else:
+        positives, negatives = [], []
+        if total_emp > 0 and quals_expired == 0:
+            positives.append(Contributor(
+                key="all_current",
+                label=f"All {total_emp} active employee(s) currently qualified",
+                impact=15, detail="No expired qualifications on record."))
+        if trainings_recent > 0:
+            positives.append(Contributor(
+                key="training_activity",
+                label=f"{trainings_recent} training activit(y|ies) this week",
+                impact=6, detail="Active training engagement."))
+        if new_hires_7d > 0 and terminations_7d == 0:
+            positives.append(Contributor(
+                key="net_growth",
+                label=f"+{new_hires_7d} new hire(s) · 0 exits this week",
+                impact=5, detail="Net workforce growth."))
+        if quals_expired > 0:
+            negatives.append(Contributor(
+                key="expired_quals",
+                label=f"{quals_expired} employee qualification(s) EXPIRED",
+                impact=-min(35, quals_expired * 8),
+                detail="Safety-critical — remove from covered work assignments."))
+        if quals_expiring_30d > 0:
+            negatives.append(Contributor(
+                key="expiring_30d",
+                label=f"{quals_expiring_30d} qualification(s) expiring in 30d",
+                impact=-min(15, quals_expiring_30d * 2),
+                detail="Renewal window approaching."))
+        if terminations_7d > (new_hires_7d + 1):
+            negatives.append(Contributor(
+                key="net_churn",
+                label=f"{terminations_7d} exit(s) vs {new_hires_7d} new hire(s)",
+                impact=-8, detail="Net workforce contraction."))
+
+        score = score_from_contributors(
+            baseline=100, positives=positives, negatives=negatives,
+            trend_percent=None,
+            confidence="high" if total_emp >= 20 else "medium",
+            data_freshness="live",
+            calculation_notes=(
+                "HR score composed from qualification currency · renewal "
+                "backlog · net workforce movement · training engagement. "
+                "Trend engages once history rows accumulate."
+            ),
+        )
+
+    # Top-5 employees with expired qualifications
+    top_5_rows = []
+    if quals_expired > 0:
+        try:
+            cursor = db["driver_qualifications"].find(
+                {"expires_at": {"$lt": now.isoformat()}},
+                {"_id": 0, "employee_name": 1, "employee_id": 1,
+                 "cert_type": 1, "expires_at": 1},
+            ).limit(5)
+            async for r in cursor:
+                emp = r.get("employee_name") or r.get("employee_id") or "—"
+                top_5_rows.append([
+                    {"href": f"/hr/employees/{r.get('employee_id','')}",
+                     "text": emp},
+                    r.get("cert_type") or "—",
+                    r.get("expires_at") or "—",
+                ])
+        except Exception:  # noqa: BLE001
+            pass
+
+    wins = []
+    if total_emp > 0 and quals_expired == 0:
+        wins.append(f"All {total_emp} active employee qualification(s) current.")
+    if trainings_recent > 0:
+        wins.append(f"{trainings_recent} training activit(y|ies) logged this week.")
+    if new_hires_7d > 0 and terminations_7d == 0:
+        wins.append(f"+{new_hires_7d} new hire(s) · zero exits this week.")
+
+    attention = []
+    if quals_expired > 0:
+        attention.append(f"{quals_expired} employee qualification(s) EXPIRED.")
+    if quals_expiring_30d > 0:
+        attention.append(f"{quals_expiring_30d} qualification(s) expiring in the next 30 days.")
+    if orientation_active > 0:
+        attention.append(f"{orientation_active} orientation(s) in progress.")
+
+    return build_standard_layout(
+        product_id="hr_intelligence",
+        subject="MASCI HR Intelligence Digest",
+        period_label="Weekly · Monday 13:00 UTC",
+        executive_summary={
+            "Active employees":      total_emp,
+            "New hires (7d)":        new_hires_7d,
+            "Exits (7d)":            terminations_7d,
+            "Expired quals":         quals_expired,
+            "Expiring (30d)":        quals_expiring_30d,
+            "Orientations active":   orientation_active,
+        },
+        score=score.to_dict(),
+        trend_direction={"arrow": "→", "tone": "flat",
+                         "current": quals_expired, "previous": None,
+                         "pct_change": None},
+        top_wins=wins,
+        needs_immediate_attention=attention,
+        top_5_items=({
+            "title": "Top 5 · Expired Qualifications",
+            "headers": ["Employee", "Cert Type", "Expired on"],
+            "rows": top_5_rows,
+        } if top_5_rows else None),
+        core_metrics={
+            "Total active employees":     total_emp,
+            "Training activities (7d)":   trainings_recent,
+            "Orientations in progress":   orientation_active,
+        },
+        recommendations=(
+            ([f"Renew {quals_expired} expired qualification(s) immediately."] if quals_expired else []) +
+            ([f"Schedule renewal for {quals_expiring_30d} qualification(s) expiring in 30d."] if quals_expiring_30d else []) +
+            ([f"Follow up on {orientation_active} in-progress orientation(s)."] if orientation_active else [])
+            or ["HR operations steady — maintain cadence."]
+        ),
+        upcoming_risks=(
+            [f"{quals_expiring_30d} qualification(s) expire in the next 30 days."]
+            if quals_expiring_30d else []
+        ),
+        recent_changes=[
+            f"New hires last 7d: {new_hires_7d}",
+            f"Exits last 7d: {terminations_7d}",
+            f"Training activities last 7d: {trainings_recent}",
+        ],
+        deep_links=[
+            {"href": "/hr/employees", "text": "Employee Directory"},
+            {"href": "/hr/training-records", "text": "Training Records"},
+            {"href": "/hr/lifecycle", "text": "Lifecycle Events"},
+            {"href": "/hr/orientation", "text": "Orientation Center"},
+        ],
+        no_auto_decision_notice=(
+            "Attention signal only. HR · Safety own investigation, "
+            "classification, and disposition. The platform does NOT "
+            "determine termination cause, discipline, performance rating, "
+            "eligibility for rehire, or legal liability."
+        ),
+        audit_footer=(
+            "Track 19.43 · HR Intelligence Digest · aggregator over "
+            "employees / employee_lifecycle_events / driver_qualifications / "
+            "training_hits."
+        ),
+    )
+
+
+register_product(Product(
+    product_id="hr_intelligence",
+    display_name="HR Intelligence Digest",
+    summary="Employees · lifecycle · qualification currency · training · orientation.",
+    permission_role="admin_only",
+    template_key="executive_v1",
+    schedule_freq="weekly", schedule_iso_day=1, schedule_hour_utc=13,
+    status=ProductStatus.IMPLEMENTED,
+    aggregator=_agg_hr_intelligence,
+    tags=["hr", "training", "weekly"],
+))
+
+
+# ---------------------------------------------------------------------------
 # 3–10 · Contract-registered products — aggregators not yet implemented
 # ---------------------------------------------------------------------------
 async def _not_implemented(db, **kwargs):  # noqa: ARG001
@@ -788,22 +1254,6 @@ _CONTRACT_REGISTERED_PRODUCTS = [
         permission_role="admin_only", template_key="executive_v1",
         schedule_freq="weekly", schedule_iso_day=1, schedule_hour_utc=13,
         tags=["operations", "weekly"],
-    ),
-    Product(
-        product_id="fleet_intelligence",
-        display_name="Fleet Intelligence Digest",
-        summary="Equipment · inspections · maintenance · downtime · repair trends.",
-        permission_role="safety_or_admin", template_key="executive_v1",
-        schedule_freq="weekly", schedule_iso_day=1, schedule_hour_utc=13,
-        tags=["fleet", "equipment"],
-    ),
-    Product(
-        product_id="hr_intelligence",
-        display_name="HR Intelligence Digest",
-        summary="Training · expirations · lifecycle · recognition · compliance.",
-        permission_role="admin_only", template_key="executive_v1",
-        schedule_freq="weekly", schedule_iso_day=1, schedule_hour_utc=13,
-        tags=["hr"],
     ),
     Product(
         product_id="training_intelligence",

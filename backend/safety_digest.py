@@ -26,6 +26,17 @@ EmailFn = Callable[[str, str, str], Awaitable[None]]
 
 
 def _enabled() -> bool:
+    # TRACK 19.43 · Operator cutover gate.
+    # When `OI_ENGINE_SAFETY_MORNING_LIVE=true`, the Track 19.39 Morning
+    # Safety Intelligence product is the authoritative sender. The legacy
+    # `safety_digest.py` cron short-circuits itself to prevent double-send
+    # — even if `SAFETY_DIGEST_ENABLED=true` is still set. This gate lets
+    # operators cut over safely with a single env flip.
+    oi_live = (os.environ.get("OI_ENGINE_SAFETY_MORNING_LIVE") or "").strip().lower() in (
+        "1", "true", "yes", "on",
+    )
+    if oi_live:
+        return False
     return (os.environ.get("SAFETY_DIGEST_ENABLED") or "true").strip().lower() in (
         "1", "true", "yes", "on"
     )

@@ -11,6 +11,28 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.43 · Fleet Intelligence + HR Intelligence + Safety Digest Cutover Gate · ✅ COMPLETE (2026-07-04)
+
+**Six Pillar: 59/60 · Production Strong · Zero-Drift.**
+
+**Delta:** Two new domain aggregators shipped — Fleet Intelligence and HR Intelligence — bringing IMPLEMENTED product count from 4 to 6. Legacy `safety_digest.py` gains a single-env-flag operator cutover gate (`OI_ENGINE_SAFETY_MORNING_LIVE=true`) that short-circuits its `_enabled()` without deleting code. Zero drift · no new engine · all products flow through the existing Track 19.40/19.41 foundation.
+
+**Fleet Intelligence** reads `equipment_master` / `equipment_units` / `asset_holds` / `fleet_defects` / `equipment_inspections` / `equipment_transfers` / `incident_cases` — 11 signal queries · 11 Score contributors · Top-5 attention table falls back cleanly (safety holds → OOS units). `safety_or_admin` gate.
+
+**HR Intelligence** reads `employees` (fallback `employee_records`) / `employee_lifecycle_events` / `driver_qualifications` / `training_hits` — 7 signal queries · 6 Score contributors · Top-5 expired qualifications table. `admin_only` gate.
+
+**Legacy Safety Digest cutover** — one env flag disables the legacy cron the moment operators are ready. Zero deletion. Full rollback.
+
+**Registry:** IMPLEMENTED (6) = safety_morning · executive_ops · po_weekly · transportation · **fleet · hr (NEW)**. CONTRACT_REGISTERED (5) = weekly_operations · training · project · shop · corporate.
+
+**Verification:** Track 19.43 lock 17/17 GREEN. Regression Tracks 19.39/19.40/19.41/19.42 all GREEN (110+ assertions across 10 lock suites). Live smoke: registry `count=11`, Fleet + HR previews render 14 sections + insufficient_data guard on empty preview env.
+
+**Rollback:** revert `products.py` aggregators + Fleet/HR `register_product` blocks · revert `safety_digest.py::_enabled()` short-circuit · delete lock test + 10 docs. HIGH confidence.
+
+**Next:** Track 19.44 → Training Intelligence + Project Intelligence · legacy `po_digest.py` cutover gate · Cockpit UI evaluation.
+
+---
+
 ## TRACK 19.42 · Score Retrofit + Legacy Safety Digest Audit + Transportation Intelligence · ✅ COMPLETE (2026-07-04)
 
 **Six Pillar: 59/60 · Production Strong · Zero-Drift.**

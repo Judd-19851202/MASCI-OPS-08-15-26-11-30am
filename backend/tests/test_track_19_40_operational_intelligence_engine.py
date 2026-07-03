@@ -132,7 +132,7 @@ def test_registry_two_implemented_and_eight_contract():
     impl = [p for p in prods if p.status == PS.IMPLEMENTED]
     contract = [p for p in prods if p.status == PS.CONTRACT_REGISTERED]
     assert len(impl) >= 2, f"expected >=2 IMPLEMENTED, got {len(impl)}: {[p.product_id for p in impl]}"
-    # Track 19.42 moved transportation_intelligence out of contract set
+    # Track 19.42 moved transportation out; Track 19.43 moved fleet+hr out.
     assert len(contract) <= 8, f"expected <=8 CONTRACT_REGISTERED, got {len(contract)}"
     impl_ids = {p.product_id for p in impl}
     assert {"safety_morning_digest", "executive_operations_brief"}.issubset(impl_ids), impl_ids
