@@ -27,6 +27,7 @@ import { ProgressRail } from "@/components/ProgressRail";
 import { HelpDrawer } from "@/components/HelpDrawer";
 import { PresenceGate } from "@/components/PresenceGate";
 import { INCIDENT_FLOWS, INCIDENT_TYPE_ORDER, hasValue, requiredFieldsForStep, stepsFor } from "@/lib/incidentReportSchema";
+import IncidentFieldDoctrineBanner from "@/components/incident/IncidentFieldDoctrineBanner";
 import { clearDraft, currentDraftId, ensureActiveDraftId, loadDraft, saveDraft } from "@/lib/incidentDraft";
 import { createCase, patchFieldBlock, transitionCase, addEvidence, fetchDirectoryMe, fetchProjectContext, fetchWeather } from "@/lib/incidentReportApi";
 import { DraftResumeBanner } from "@/components/DraftResumeBanner";
@@ -80,6 +81,10 @@ function IncidentTypePicker({ onPick, draft, onResume, onDiscard }) {
   const hasResumableDraft = draft && draft.incident_type;
   return (
     <div data-testid="incident-type-picker" className="space-y-4">
+      {/* Track 19.34 · Field-vs-Safety doctrine banner.
+          Renders once at the picker screen so every field user starts with
+          the explicit expectation: field captures facts, Safety investigates. */}
+      <IncidentFieldDoctrineBanner />
       {hasResumableDraft && (
         <DraftResumeBanner
           draft={draft}

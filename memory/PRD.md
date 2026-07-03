@@ -11,6 +11,34 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.34 · Incident Field Intake Modernization · Phase 1 of Incident Intelligence Engine · ✅ COMPLETE (2026-07-03)
+
+**Six Pillar: 58/60 · Production Strong · Zero-Drift.** Fourth feature track under Track 19.30 quality gate.
+
+**Delta:** Track 19.16 already delivered a type-aware, progressive-disclosure incident intake at `/incidents/report` with 17 types, per-type step composition, autosave, drafts, bilingual, and legacy-route redirects. Track 19.34's surgical addition is the **Field-vs-Safety Doctrine Banner** at the top of the intake, plus comprehensive documentation and a regression lock test enforcing the doctrine going forward.
+
+**What shipped:**
+- `frontend/src/components/incident/IncidentFieldDoctrineBanner.jsx` (new · 30 lines · stateless banner).
+- `frontend/src/pages/IncidentReport.jsx` (2-line edit — import + render at top of type picker).
+- Wording: "You're capturing facts. Safety will investigate and decide OSHA · insurance · root cause. Just tell us what happened, where, when, who was involved, and what you did."
+- Bilingual via `useT()`. Mobile-first. Test ID `incident-field-doctrine-banner`.
+
+**All 10 required incident types verified live:** utility_strike · employee_injury · vehicle_accident · equipment_accident · property_damage · near_miss · environmental · workplace_violence · theft · other. Plus 7 preserved legacy types (public_injury · public_complaint · fire · threat · vandalism · security · hazard) — zero legacy values removed.
+
+**Field-vs-Safety protection audit (grep-clean):** 0 hits on `osha_recordable`, `recordable`, `reportable`, `root_cause`, `preventability`, `discipline`, `workers_comp`, `liability` in field-facing schema or intake page. Only OSHA reference is a doctrine comment at `incidentReportSchema.js:287`.
+
+**Verification:** 14/14 live Playwright smoke assertions PASS on mobile 390 × 844 · frontend lint clean · lock test 22/22 assertions PASS.
+
+**Zero-drift proof:** 0 backend files · 0 schemas · 0 routes · 0 payloads · 0 PDFs · 0 emails · 0 notifications · 0 permissions · 0 audit events. Only 1 new frontend file + 2-line edit.
+
+**Rollback:** delete 2 lines + 1 file. HIGH confidence.
+
+**Docs (6):** `TRACK_19_34_INCIDENT_FIELD_INTAKE_MODERNIZATION.md` · `TRACK_19_34_INCIDENT_TYPE_MAP.md` · `TRACK_19_34_FIELD_VS_SAFETY_PROTECTION.md` · `TRACK_19_34_ZERO_DRIFT_MATRIX.md` · `TRACK_19_34_QUALITY_GATE_CLOSEOUT.md` · `TRACK_19_34_TEST_REPORT.md`.
+
+**Next:** Track 19.35 — Case Workspace investigation upgrades (scope-locked in `TRACK_19_33_INCIDENT_ENGINE_READINESS_BRIDGE.md`).
+
+
+
 ## TRACK 19.33 · HR Compliance At Risk + Incident Intelligence Readiness Bridge · ✅ COMPLETE (2026-07-03)
 
 **Six Pillar: 58/60 · Production Strong · Zero-Drift.** Third feature track under Track 19.30 quality gate.
