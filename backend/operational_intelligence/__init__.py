@@ -41,6 +41,11 @@ from .recipients import (
     list_groups,
     add_group,
     add_group_member,
+    list_recipients,
+    add_recipient,
+    update_recipient,
+    deactivate_recipient,
+    bulk_import_recipients,
 )
 from .scheduler import (
     schedule_definition_for,
@@ -74,6 +79,8 @@ __all__ = [
     "dedupe_key_for", "compute_trend",
     "write_audit", "write_history",
     "list_recipients_for", "list_groups", "add_group", "add_group_member",
+    "list_recipients", "add_recipient", "update_recipient",
+    "deactivate_recipient", "bulk_import_recipients",
     "schedule_definition_for", "scheduler_enabled",
     "OperationalIntelligenceScore", "Contributor",
     "ATTENTION_LOW", "ATTENTION_MEDIUM", "ATTENTION_HIGH", "ATTENTION_CRITICAL",

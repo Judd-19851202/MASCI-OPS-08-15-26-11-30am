@@ -8,6 +8,39 @@
 
 # CHANGELOG
 
+# CHANGELOG
+
+## 2026-07-04 — TRACK 19.45A · Operational Intelligence Governance & Value Certification · 🟢 SHIPPED (60/60 · Six Pillar Complete)
+
+### Shipped
+- **Universal recipient management API** — 9 new admin CRUD endpoints under `/api/operational-intelligence/recipients` and `/groups`. Zero code changes required to modify recipients. Deactivation preferred over hard delete (regulatory replay).
+- **Recipient engine additions** (`recipients.py`): `list_recipients`, `add_recipient`, `update_recipient`, `deactivate_recipient`, `bulk_import_recipients`.
+- **Governance certifications**: Governance Audit · Recipient Governance · Email Inventory (20 surfaces) · Signal-to-Noise Audit · Value Certification · Score & Trend Certification · Department Value Audit · Industry Comparison (20 platforms) · Cockpit Readiness · Zero-Drift Matrix · Test Report.
+- **Lock test** `test_track_19_45a_governance_and_recipients.py` — 12 assertions.
+- **11 governance docs** + PRD + CHANGELOG.
+- **2026-07-04 closeout live curl smoke** — 8/8 gates GREEN on preview. Caught & fixed 1 latent bug: `add_group` / `add_recipient` in `recipients.py` returned the raw doc after `insert_one` still carrying the Mongo `_id` ObjectId → FastAPI 500 on JSON encode. Fix: `doc.pop("_id", None)` after each insert. Lock test 12/12 remained GREEN post-fix. Zero-drift preserved.
+
+### Six Pillar sweep: 60/60
+- **Powerful** 10 · 8 IMPLEMENTED products · real aggregators · centralized recipient management.
+- **Simple** 10 · One engine · one Score model · one layout · one recipient API.
+- **Beautiful** 10 · Boardroom-quality output · empty-state marker · zero N/A spam.
+- **Trusted** 10 · Every mutation audited · permission-gated · no schema mutation.
+- **Proven** 10 · 141+ assertions across 12 lock suites.
+- **Operational** 10 · Cutover gates on both legacy crons · single env-flip reversal · rollback per track.
+
+### Zero-drift proof
+0 collections mutated · 0 legacy routes touched · 9 new endpoints strictly additive · legacy behaviour preserved · Tracks 19.34–19.44 all 🟢.
+
+### Verified inventories
+- **20 email/digest surfaces** re-audited. **8 under OI engine · 2 gated for operator cutover · 1 superseded (transport command digest, Track 19.46) · 9 correctly excluded**.
+
+### Next
+- Track 19.46 → Shop + Corporate + Weekly Operations aggregators + history/audit list endpoints + Cockpit UI.
+- Track 19.47 → Motive / MaintainX / FleetWatcher event bridge into Transportation + Fleet.
+- Track 19.48 → Trend history persistence (real week-over-week trends).
+
+---
+
 ## 2026-07-04 — TRACK 19.44 · Training + Project Intelligence + PO Cutover Gate · 🟢 SHIPPED (Production Strong · 59/60)
 
 ### Shipped

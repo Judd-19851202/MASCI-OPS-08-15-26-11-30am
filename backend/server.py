@@ -2698,10 +2698,22 @@ def _make_oi_require_safety_or_admin():
     return _dep
 
 
+def _make_oi_require_admin_only():
+    """Strict admin-only gate for recipient CRUD + destructive endpoints."""
+    async def _dep(
+        x_admin_token: Optional[str] = _OiHeader(default=None, alias="X-Admin-Token"),
+    ):
+        if x_admin_token and await _is_valid_directory_admin_token_async(x_admin_token):
+            return {"_actor": "admin", "name": "Admin"}
+        raise _OiHTTPException(401, detail={"code": "unauthorized",
+                                            "detail": "Admin auth required"})
+    return _dep
+
+
 _register_oi_routes(
     api_router, db,
     require_safety_or_admin=_make_oi_require_safety_or_admin(),
-    require_admin=_make_oi_require_safety_or_admin(),
+    require_admin=_make_oi_require_admin_only(),
 )
 
 # TRACK 19.21 · Employee Records Intelligence Platform · P0 foundation.
