@@ -11,6 +11,21 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 20.3 · Incident Operational Thread Forensic Audit · ✅ COMPLETE · 🟢 PROMOTE + ADAPTERS (2026-07-05)
+
+**Type:** Forensic audit. 14 composite deliverables + 1 lock test. **Zero production code changes.**
+
+**Central finding:** The Incident Operational Thread already exists across the certified Incident Engine (`/api/incident-cases/*`, `/api/incident-intelligence/*`, `/api/corrective-actions`, `/api/public/near-miss`, `/api/incidents/{id}/lifecycle`). The **Safety Case Workspace** (`SafetyCaseWorkspace.jsx`) already exposes Case Story · Next Action · visual Timeline spine · Blockers · Evidence · Witnesses · Medical · Agency · Communications · Tasks (CAPA) · Health · Executive Snapshot · Cross-links · deep-link to Executive Case Report PDF. Every category the mandate lists (narrative · type · severity · reporter · involved · witnesses · photos · attachments · GPS · weather · medical · agency · evidence · CAPA · communications · timeline · status · reports · email routing · audit · linkages) already has an authoritative endpoint, collection, and page. Zero backend gaps. Zero duplicate storage. Zero permission widening required.
+
+**Decision:** 🟢 **PROMOTE + ADAPTERS.** Track 19.58 becomes a promotion track. New page `SafetyIncidentThread.jsx` at `/safety/incidents/:caseId/thread` under existing `RequireSafety` gate consumes the certified endpoints via pure adapters and renders through the Track 19.55 `OperationalThreadPage` shell. Estimated new code: 0 backend LOC + ~ 450 frontend LOC + 1 lock file.
+
+**High-risk certification:** The proposed Incident Thread never widens permissions, never surfaces medical / witness names / attorney work product to non-Safety roles, and never generates new PDFs — it links to the existing Executive Report and per-report-type packages that are already gated. The Safety Case Workspace remains as-is (write-capable investigation surface); the thread is the read-only "morning read" companion.
+
+**OI product plan:** Zero new OI product. Attention derives from `case.health.readiness_level` + `case.severity`. Trend + Guidance come from the certified `safety_morning_digest` OI product row. This mirrors the Fleet (Track 19.55) and Project (Track 19.57) promotions.
+
+**Docs:** 14 composite files under `TRACK_20_3_*.md` (Executive Audit · Incident Surface Inventory · Source-of-Truth Matrix · Safety Case Workspace Evaluation · Universal Thread Fit · Relationship Graph Audit · Permission/Redaction Matrix · PDF/Report Package Audit · OI/Guidance Audit · Human Walkthrough · Noise/Duplicate/Defect Audit · Final Recommendation · Zero-Drift Certification · Test Report).
+
+
 ## TRACK 19.57 · Project Operational Thread PROMOTION · ✅ SHIPPED (2026-07-05)
 
 **Type:** Presentation promotion. Frontend only. Zero backend change.
