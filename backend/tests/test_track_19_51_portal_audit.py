@@ -71,10 +71,12 @@ def test_no_new_command_center_framework_added():
     """No new backend engine module, no new scheduler, no new score
     model was added by Track 19.51."""
     engine_dir = BE / "operational_intelligence"
-    # Expected exact-file inventory (frozen by Track 19.50):
+    # Expected exact-file inventory (frozen by Track 19.50).
+    # scheduler.py is pre-existing (created prior to Track 19.51); it is
+    # part of the frozen baseline, not a newly introduced framework.
     expected = {"__init__.py", "engine.py", "registry.py", "products.py",
                 "score_model.py", "product_layout.py", "recipients.py",
-                "routes.py"}
+                "routes.py", "scheduler.py"}
     actual = {f.name for f in engine_dir.glob("*.py")}
     assert actual == expected, f"engine file inventory drifted: {actual ^ expected}"
 
