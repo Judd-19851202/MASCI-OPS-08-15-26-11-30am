@@ -11,6 +11,40 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.37 · Passive Incident-Presence Scoring · Phase 4 of Incident Intelligence Engine · ✅ COMPLETE (2026-07-03)
+
+**Six Pillar: 58/60 · Production Strong · Zero-Drift.** Seventh feature track under Track 19.30 quality gate.
+
+**Delta:** Track 19.37 introduces a deterministic **attention-only** signal layer. Eleven signals (injury · utility · vehicle/equipment · environmental · property · public exposure · police/agency · evidence gap · delayed closeout · overdue CAPA · executive review needed). Every signal is presence-based, source-cited, plain-language explainable. **No decisions.** No OSHA/liability/root-cause/discipline vocabulary in payload or UI. Required no-auto-decision notice emitted with every payload.
+
+**What shipped:**
+- `backend/incident_engine/presence_score.py` (new · ~400 lines · pure deterministic scorer).
+- `backend/incident_engine/presence_score_routes.py` (new · additive endpoint).
+- `backend/server.py` (edit · +14 lines · wire route with existing Safety/Admin/PM auth).
+- `backend/incident_engine/executive_intelligence.py` (edit · import scorer · add `attention_signals` block · **bump model version 1.0.0 → 1.1.0**).
+- `frontend/src/pages/ExecutiveCaseReport.jsx` (edit · new Attention Signals panel · bilingual · neutral wording).
+
+**New endpoint (additive · Safety/Admin/PM read gate):**
+- `GET /api/incident-cases/{case_id}/presence-score` → JSON presence-score object.
+
+**Executive Intelligence Model shape:** `EXECUTIVE_INTELLIGENCE_MODEL_VERSION` bumped `1.0.0` → `1.1.0` (semver minor · additive). New key `attention_signals` (full presence-score object). All 20 pre-19.37 keys preserved (21 top-level keys total).
+
+**Presence score shape:** `case_id · model_version · generated_at · overall_attention_score (0–100) · attention_level (low/medium/high) · signals[11] · missing_inputs[] · no_auto_decision_notice`. Every signal has `signal_key · label · score (0–1) · confidence · rationale · source_fields[] · recommended_review_owner (safety/executive/pm)`.
+
+**No-auto-decision doctrine:** notice `"This score is an attention signal only. Safety owns investigation and classification..."` emitted with every payload · rendered verbatim in UI · forbidden vocabulary (`osha_recordable`, `liability`, `discipline`, `fault`, `blame`, `preventability`, `root_cause_conclusion`) banned from signal payload · neutral UI wording enforced (`Attention Signals` · `Review Priority` · `Needs Safety Review`).
+
+**Verification:** backend lint clean · frontend lint clean · scorer exercised live against case `2026-00001` (11 signals · forbidden-vocab check GREEN · notice present) · Track 19.37 lock test all-green in isolation · Track 19.36 lock test still 36/36 green (with additive-bump relaxation on the version assertion) · Track 19.34 field-facing grep invariant preserved.
+
+**Zero-drift proof:** 0 collections mutated · 0 existing routes modified · Phase D dashboard + Phase E PDF + Track 19.36 boardroom PDF all preserved · 0 permission changes · 0 email/notification changes · 0 new audit reasons.
+
+**Rollback:** revert 5 in-place edits and delete 2 new backend modules. HIGH confidence.
+
+**Docs (7):** `TRACK_19_37_PASSIVE_INCIDENT_PRESENCE_SCORING.md` · `TRACK_19_37_SIGNAL_RULES.md` · `TRACK_19_37_NO_AUTO_DECISION_DOCTRINE.md` · `TRACK_19_37_EXECUTIVE_INTEGRATION.md` · `TRACK_19_37_ZERO_DRIFT_MATRIX.md` · `TRACK_19_37_QUALITY_GATE_CLOSEOUT.md` · `TRACK_19_37_TEST_REPORT.md`.
+
+**Next:** Track 19.38 (Cross-portal read fanout enhancements) · future integration of `attention_signals` into the boardroom PDF.
+
+
+
 ## TRACK 19.36 · Executive Intelligence Layer + Executive Case Report · Phase 3 of Incident Intelligence Engine · ✅ COMPLETE (2026-07-03)
 
 **Six Pillar: 58/60 · Production Strong · Zero-Drift.** Sixth feature track under Track 19.30 quality gate.

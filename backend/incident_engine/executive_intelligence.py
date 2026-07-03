@@ -33,13 +33,14 @@ from .events import list_events
 from .evidence import list_evidence
 from .corrective_actions import list_actions, summary_for_case
 from . import workspace as ws
+from .presence_score import compute_presence_score
 
 
 # ---------------------------------------------------------------------------
 # Model version — bump on any additive shape change.
 # Consumers may key their rendering off this.
 # ---------------------------------------------------------------------------
-EXECUTIVE_INTELLIGENCE_MODEL_VERSION = "1.0.0"
+EXECUTIVE_INTELLIGENCE_MODEL_VERSION = "1.1.0"
 
 
 # ---------------------------------------------------------------------------
@@ -713,6 +714,16 @@ async def assemble_executive_intelligence(
         "readiness": readiness,
         "decision_records": decisions,
         "operational_intelligence": ops,
+        # Track 19.37 · additive attention-only presence signals.
+        # Never a decision. Safety owns investigation and classification.
+        "attention_signals": compute_presence_score(
+            case,
+            evidence=evidence,
+            capa=capa_list,
+            medical=medical,
+            agency=agency,
+            tasks=tasks,
+        ),
         "sources": {
             "case":             "incident_cases",
             "timeline":         "incident_case_events",

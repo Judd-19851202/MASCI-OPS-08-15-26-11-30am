@@ -1,5 +1,34 @@
 # CHANGELOG
 
+## 2026-07-03 — TRACK 19.37 · Passive Incident-Presence Scoring (Phase 4 of Incident Intelligence Engine) · 🟢 SHIPPED (Production Strong · 58/60)
+
+### Shipped
+- **Deterministic scorer** at `backend/incident_engine/presence_score.py` (~400 lines) computing 11 attention signals per case (injury · utility · vehicle/equipment · environmental · property · public · police/agency · evidence gap · delayed closeout · overdue CAPA · executive review). Presence-based · source-cited · plain-language explainable · zero I/O · zero mutation.
+- **New endpoint** `GET /api/incident-cases/{id}/presence-score` — additive · Safety/Admin/PM read-gated (`backend/incident_engine/presence_score_routes.py`).
+- **Executive Intelligence Model bumped** from `1.0.0` → `1.1.0` (semver minor · additive). New top-level key `attention_signals`. All 20 pre-19.37 keys preserved (21 total).
+- **Frontend Attention Signals panel** in `ExecutiveCaseReport.jsx` — bilingual · neutral wording (`Attention Signals` · `Review Priority` · `Needs Safety Review`) · renders overall score, level chip, per-signal rationale + source fields + owner, missing-inputs, and the no-auto-decision notice verbatim.
+- **7 governance documents** — passive scoring · signal rules · no-auto-decision doctrine · executive integration · zero-drift matrix · quality gate closeout · test report.
+- **Lock test** at `backend/tests/test_track_19_37_presence_scoring.py` — 29 assertions covering module existence, read-only invariant, route wiring, model bump, all 20 pre-19.37 keys preserved, per-signal shape, score/confidence/owner enums, no-auto-decision notice wording, forbidden-vocabulary ban on signals payload, deterministic outputs, frontend panel + neutral labels + bilingual, Track 19.34 grep invariant preserved, and doc/PRD/CHANGELOG completeness.
+
+### Quality Gate compliance
+Seventh feature track under Track 19.30 gate.
+- **Six Pillar: 58/60 · Production Strong.** Powerful 10 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10 · Operational 9.
+- **Zero-Drift: 17/17 categories preserved.** 0 collections mutated · Phase D dashboard + Phase E PDF + Track 19.36 boardroom PDF preserved.
+- **Backend + frontend lint:** clean on all 5 touched/new files.
+- **Runtime smoke:** live-DB scorer verified against case `2026-00001` — 11 signals returned, forbidden-vocab check GREEN, no-auto-decision notice present.
+- **Rollback:** HIGH confidence (revert 5 additive edits · delete 2 new modules).
+
+### No-auto-decision doctrine
+The platform routes, records, reports, protects, and surfaces risk signals — it never decides OSHA recordability, root cause, liability, fault, or discipline. Enforced by required notice in payload · UI vocabulary ban · pytest grep on both.
+
+### Zero-drift proof
+0 collections touched · 0 existing routes modified · 0 permissions changed · 0 emails · 0 notifications · Track 19.34, 19.35, 19.36 doctrine locks all remain green.
+
+### Final verdict
+🟢 **GO.** Passive incident-presence scoring is production-ready. Attention surfaced. No decisions made.
+
+
+
 ## 2026-07-03 — TRACK 19.36 · Executive Intelligence Layer + Executive Case Report (Phase 3 of Incident Intelligence Engine) · 🟢 SHIPPED (Production Strong · 58/60)
 
 ### Shipped

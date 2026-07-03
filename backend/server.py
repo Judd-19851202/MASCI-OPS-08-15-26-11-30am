@@ -2612,6 +2612,19 @@ _register_ie_executive_report_routes(
     ).make_require_safety_admin_or_pm(db, _is_valid_admin_token, _is_valid_pm_token),
 )
 
+# TRACK 19.37 · Passive Incident-Presence Scoring — attention signals only.
+# Additive · read-only. Safety/Admin/PM gated (same as executive endpoints).
+# Never a legal, OSHA, liability, root-cause, or discipline decision.
+from incident_engine.presence_score_routes import (  # noqa: E402
+    register_presence_score_routes as _register_ie_presence_score_routes,
+)
+_register_ie_presence_score_routes(
+    api_router, db,
+    require_actor=__import__(
+        "routes.safety_portal._deps", fromlist=["make_require_safety_admin_or_pm"]
+    ).make_require_safety_admin_or_pm(db, _is_valid_admin_token, _is_valid_pm_token),
+)
+
 # TRACK 19.21 · Employee Records Intelligence Platform · P0 foundation.
 # Universal Employee Record + intake batches + review queue + audit trail.
 # Additive · zero drift · HR is system owner across every lane.

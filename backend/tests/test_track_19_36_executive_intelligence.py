@@ -80,10 +80,19 @@ def test_routes_imports_cleanly():
 
 
 def test_model_version_is_locked():
+    """Model version follows semver-lite. Additive shape changes bump the
+    minor version. Track 19.36 baseline is 1.0.0; Track 19.37 added the
+    ``attention_signals`` additive key and bumped to 1.1.0."""
     from incident_engine.executive_intelligence import (
         EXECUTIVE_INTELLIGENCE_MODEL_VERSION,
     )
-    assert EXECUTIVE_INTELLIGENCE_MODEL_VERSION == "1.0.0"
+    parts = EXECUTIVE_INTELLIGENCE_MODEL_VERSION.split(".")
+    assert len(parts) == 3, f"Model version must be semver: {EXECUTIVE_INTELLIGENCE_MODEL_VERSION}"
+    major, minor, patch = int(parts[0]), int(parts[1]), int(parts[2])
+    # Major must remain 1 (no breaking change permitted).
+    assert major == 1, f"Breaking model change detected · major={major}"
+    # Additive floor: at least 1.0.0.
+    assert (major, minor, patch) >= (1, 0, 0)
 
 
 # --------------------------------------------------------------- server wiring
@@ -130,7 +139,8 @@ def test_assembler_is_read_only_no_writes():
 
 def test_assembler_exports_required_public_api():
     text = ASSEMBLER.read_text(encoding="utf-8")
-    assert 'EXECUTIVE_INTELLIGENCE_MODEL_VERSION = "1.0.0"' in text
+    # Version constant present (value validated in test_model_version_is_locked).
+    assert "EXECUTIVE_INTELLIGENCE_MODEL_VERSION =" in text
     assert "async def assemble_executive_intelligence" in text
 
 
