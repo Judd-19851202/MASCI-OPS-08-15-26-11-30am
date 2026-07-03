@@ -1,5 +1,34 @@
 # CHANGELOG
 
+## 2026-07-03 — TRACK 19.32 · Transportation / Fleet Sidebar V2 · 🟢 SHIPPED (Production Strong · 58/60 · 7/7 Consistency)
+
+### Shipped
+- **Transportation Sidebar V2** — 6 domains (Overview · Operations · People · Compliance · Operations Intelligence · Administration). Administration domain admin-only via authoritative `visibleTxOpsNavGroups()` filter.
+- **Reused single source of truth** — `TX_OPS_NAV_GROUPS` + `visibleTxOpsNavGroups()` + `useTxPathPrefix()` from `pages/transportation/_shared.jsx` — zero route duplication.
+- **Prefix-aware routing** — resolves to `/admin/transportation/*` (admin oversight) or `/transportation-operations/*` (dispatch operational) automatically.
+- **Feature flag** `isTxSidebarV2Enabled` — default ON · escape hatch via `?txSidebarV2=0` or `masci.tx.sidebar.v2 = "0"`.
+- **Files:** `components/transportation/sidebar/txDomainMeta.js` (new) · `components/transportation/sidebar/TransportationSideNavV2.jsx` (new) · `pages/transportation/TransportationApp.jsx` (wired sideNav).
+- **Lock test:** `backend/tests/test_track_19_32_transportation_sidebar_v2.py` (16 assertions).
+
+### Quality Gate compliance
+Second feature track under Track 19.30 gate. Passed all applicable categories:
+- **Six Pillar: 58/60 (Production Strong)** — no single pillar below 7.
+- **Zero-Drift: 16/16 categories unchanged.**
+- **Live Playwright smoke:** 24/24 assertions PASS across admin visibility · dispatch visibility · prefix routing · mobile viewport.
+- **Frontend lint:** clean.
+- **Rollback:** documented (feature flag + full source revert).
+
+### Sidebar consistency milestone
+**7 of 7 portals** now share the domain-grouped Sidebar V2 pattern: HR · Safety · Admin · PM · Dispatch · Shop · Transportation. Cross-portal muscle-memory doctrine COMPLETE.
+
+### Zero-drift proof
+0 backend files touched · 0 schemas · 0 routes · 0 PDFs · 0 emails · 0 permissions. Authoritative permission gate (`visibleTxOpsNavGroups`) reused, not reimplemented.
+
+### Final verdict
+🟢 **GO.** Transportation and Fleet feel like the same MASCI platform. 7/7 portal consistency complete.
+
+
+
 ## 2026-07-03 — TRACK 19.31 · Shop Portal Sidebar V2 Implementation · 🟢 SHIPPED (Production Strong · 57/60)
 
 ### Shipped

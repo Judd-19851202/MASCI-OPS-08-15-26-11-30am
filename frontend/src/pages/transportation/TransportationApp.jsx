@@ -8,6 +8,7 @@ import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { PortalShell } from "@/design-system";
 import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
+import TransportationSideNavV2, { isTxSidebarV2Enabled } from "@/components/transportation/sidebar/TransportationSideNavV2";
 import { isAdmin } from "@/lib/adminAuth";
 import { TransportationSubNav } from "./_shared";
 import {
@@ -35,9 +36,20 @@ export default function TransportationApp() {
   // shell through `/transportation-operations/*` without holding the
   // admin token. Suppress the admin-only side nav when admin is not
   // signed in so the experience never reads as "Admin Console".
+  //
+  // TRACK 19.32 — Transportation / Fleet Sidebar V2 rollout. When the
+  // Sidebar V2 flag is ON (default), render the new domain-grouped
+  // TransportationSideNavV2 for BOTH admin and dispatch users
+  // (permission gating is inside `visibleTxOpsNavGroups()`). When the
+  // flag is OFF (escape hatch: `?txSidebarV2=0`), preserve the pre-19.32
+  // behavior — admin sees Admin V2 sidebar, dispatch sees no sidebar.
   const showAdminSideNav = isAdmin();
+  const txSidebarV2 = isTxSidebarV2Enabled();
+  const effectiveSideNav = txSidebarV2
+    ? <TransportationSideNavV2 />
+    : (showAdminSideNav ? <AdminSideNavV2 /> : null);
   return (
-    <PortalShell portalName="MASCI" portalSubtitle="Transportation Operations" sideNav={showAdminSideNav ? <AdminSideNavV2 /> : null}>
+    <PortalShell portalName="MASCI" portalSubtitle="Transportation Operations" sideNav={effectiveSideNav}>
       <div className="space-y-2" data-testid="admin-transportation-page">
         <div
           data-testid="txops-search-rail"

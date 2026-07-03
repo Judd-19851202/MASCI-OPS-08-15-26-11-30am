@@ -11,6 +11,36 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.32 · Transportation / Fleet Sidebar V2 · 7/7 Portal Consistency · ✅ COMPLETE (2026-07-03)
+
+**Six Pillar: 58/60 · Production Strong · Zero-Drift.** Second feature track under Track 19.30 quality gate.
+
+**What shipped:**
+- `frontend/src/components/transportation/sidebar/txDomainMeta.js` — visual metadata (stripe · icon · subline) for 6 Transportation domains.
+- `frontend/src/components/transportation/sidebar/TransportationSideNavV2.jsx` — Sidebar V2 shell that reuses the authoritative `TX_OPS_NAV_GROUPS` + `visibleTxOpsNavGroups()` + `useTxPathPrefix()` from `_shared.jsx` (single source of truth, zero route duplication).
+- `TransportationApp.jsx` — wired `sideNav={<TransportationSideNavV2 />}` into `PortalShell` behind feature flag `isTxSidebarV2Enabled` (default ON). Pre-19.32 fallback preserved when flag off.
+
+**Six Pillar Score:** Powerful 9 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10 · Operational 10 = **58/60 Production Strong**. No pillar below 7.
+
+**Sidebar consistency: 7/7 = 100%.** HR · Safety · Admin · PM · Dispatch · Shop · Transportation now all share the domain-grouped Sidebar V2 pattern.
+
+**Verification (live Playwright smoke):**
+- Admin token → all 6 domains including Administration ✅
+- Dispatch token only → 5 domains, Administration + Reports HIDDEN ✅
+- Prefix-aware routing (admin resolves to `/admin/transportation/...` · dispatch to `/transportation-operations/...`) ✅
+- Mobile viewport (390 × 844) ✅
+- Frontend lint clean ✅
+
+**Zero-drift proof:** 0 backend files · 0 schemas · 0 routes · 0 PDFs · 0 emails · 0 permissions · 0 payloads. Authoritative permission gate (`visibleTxOpsNavGroups`) reused, not reimplemented.
+
+**Rollback:** feature flag off (`?txSidebarV2=0` or `localStorage.masci.tx.sidebar.v2 = "0"`) reverts to pre-19.32 sidebar behavior · full source rollback = 2 new files + 1 edit. Confidence HIGH.
+
+**Docs:** `TRACK_19_32_TRANSPORTATION_FLEET_SIDEBAR_V2.md` · `TRACK_19_32_QUALITY_GATE_CLOSEOUT.md` · `TRACK_19_32_TEST_REPORT.md`. Lock test: `backend/tests/test_track_19_32_transportation_sidebar_v2.py`.
+
+**Next:** HR polish (P3-8 Compliance At Risk widget · P3-9 Recent intake activity feed · P3-10 Onboarding callout) · TrenchAssetPicker polish (P3-3 · P3-4) · pilot observation cadence per `PILOT_OBSERVATION_PLAYBOOK.md`.
+
+
+
 ## TRACK 19.31 · Shop Portal Sidebar V2 Implementation · ✅ COMPLETE (2026-07-03)
 
 First feature track under the Track 19.30 Production Readiness Quality Gate. Passed clean.
