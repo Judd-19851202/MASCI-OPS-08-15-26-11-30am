@@ -625,6 +625,26 @@ export default function ShopHubV2() {
     s.waiting_on_parts, s.returned_to_service_7d, s.defect_open_units,
   ].every((v) => v === null || v === 0);
 
+  // Track 19.28 · P0-3 · Shop Tile Visibility Polish.
+  // Asset Administrator · Historical Records section is a specialized
+  // workspace. Non-asset-admin shop users (mechanics, shop managers, etc.)
+  // should NOT see these tiles — the backend already blocks the workflow,
+  // but the tiles were creating confusing "click and blocked" UX.
+  //
+  // Visibility rule:
+  //   - Admin token holders (getAdminToken) → always see (super-admins).
+  //   - Shop users with masci.is_asset_admin=true → see it.
+  //   - Everyone else → hidden.
+  const isAssetAdmin = React.useMemo(() => {
+    try {
+      if (getAdminToken()) return true;
+      if (typeof window !== "undefined") {
+        return window.localStorage.getItem("masci.is_asset_admin") === "true";
+      }
+    } catch { /* noop */ }
+    return false;
+  }, []);
+
   // Live-count helpers
   const num = (v) => (s.loaded ? (v === null || v === undefined ? "—" : v) : "…");
   const tone = (v) => (!s.loaded ? "loading" : v === null ? "offline" : v > 0 ? "attention" : "verified");
@@ -870,7 +890,10 @@ export default function ShopHubV2() {
 
         {/* 09 · Asset Administrator · Historical Records (Track 19.25 · nav-only).
               Only functionally usable by shop users flagged `is_asset_admin`;
-              the backend gate enforces this even if others click through. */}
+              the backend gate enforces this even if others click through.
+              Track 19.28 · P0-3 · Visibility polish — hidden entirely from
+              non-asset-admin shop users to avoid "click and blocked" UX. */}
+        {isAssetAdmin && (
         <section data-testid="shop-hub-v2-section-asset-records" style={{ marginBottom: 28 }}>
           <SectionHeader
             kicker="09 · Asset Administrator · Historical Records"
@@ -890,6 +913,7 @@ export default function ShopHubV2() {
                      body="Many files · one session · one lane · single classify pass." />
           </div>
         </section>
+        )}
 
         {allZero && (
           <EmptyState

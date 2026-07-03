@@ -1,0 +1,89 @@
+{
+  "summary": "Track 19.28 · P0 frontend certification pass. All 10 features (F1-F10) verified against preview URL. Admin Hub V1 soft-retire, /admin/hub_v1 rollback, /admin/hub_v2 → /admin redirect, Admin Sidebar V2 parity, Shop Hub V2 asset-admin visibility gate (positive/negative/admin-override), Cheatsheet consolidation, and Public landing + 5 portal login pages all pass. Zero-drift confirmed — no backend routes changed.",
+  "feature_results": {
+    "F1_admin_hub_v1_soft_retire": {
+      "status": "PASS",
+      "url": "/admin",
+      "evidence": {
+        "admin-hub-v2-root testid present": true,
+        "admin-hub-v2-preview-banner absent (isPreview=false)": true,
+        "admin-hub-v2-trace-note present + references /admin/hub_v1": true,
+        "trace does NOT say 'preview'": true,
+        "back-classic link present (V1 rollback link in header)": true,
+        "sidebar testid: 'admin-side-nav admin-side-nav-v2' (V2 domain-grouped nav)": true
+      }
+    },
+    "F2_admin_hub_v1_rollback_url": {
+      "status": "PASS",
+      "url": "/admin/hub_v1",
+      "evidence": {
+        "admin-hub-v2-root absent": true,
+        "AdminShell flat sidebar (admin-side-nav testid, no v2 suffix)": true,
+        "35 admin-nav-* flat entries rendered": true,
+        "admin-tile-scheduler-runs (classic tile-grid indicator) present": true
+      }
+    },
+    "F3_admin_hub_v2_old_url_redirect": {
+      "status": "PASS",
+      "url_from": "/admin/hub_v2",
+      "url_to": "/admin",
+      "evidence": {"admin-hub-v2-root present at destination": true}
+    },
+    "F4_admin_sidebar_v2_parity": {
+      "status": "PASS",
+      "evidence": {
+        "/admin/command-center link present in Operations domain": true,
+        "/operational-records link present in Operations domain": true,
+        "/admin/project-identity link present in Safety & Compliance domain (verified after expanding domain)": true
+      }
+    },
+    "F5_shop_asset_admin_positive": {
+      "status": "PASS",
+      "setup": "logged in as testmech@mascigc.com; localStorage.setItem('masci.is_asset_admin', 'true'); reloaded /shop",
+      "evidence": {"shop-hub-v2-section-asset-records visible": true}
+    },
+    "F6_shop_asset_admin_negative": {
+      "status": "PASS",
+      "setup": "logged in as testmech@mascigc.com; removed is_asset_admin + any admin token; /shop",
+      "evidence": {"shop-hub-v2-section-asset-records NOT in DOM": true}
+    },
+    "F7_admin_token_override": {
+      "status": "PASS",
+      "setup": "logged in via /sign-in as jaymn.judd@mascigc.com super-admin (real masci.admin.token present); is_asset_admin unset; navigated to /shop",
+      "evidence": {"shop-hub-v2-section-asset-records visible despite is_asset_admin absent": true},
+      "note": "Fake/invalid admin tokens are wiped by validateStoredTokens() before ShopHubV2 mounts (expected token hygiene). A real, backend-validated admin token flows through correctly."
+    },
+    "F8_cheatsheet_consolidation": {
+      "status": "PASS",
+      "evidence": {
+        "/cheatsheet renders CheatSheet (cheatsheet-print-btn testid present)": true,
+        "/cheat-sheet redirects to /cheatsheet (URL ends with /cheatsheet, print-btn present)": true
+      }
+    },
+    "F9_public_landing": {
+      "status": "PASS",
+      "evidence": {"hero 'One System. Every Crew. Every Job.' visible on /": true}
+    },
+    "F10_portal_login_smoke": {
+      "status": "PASS",
+      "evidence": {"/hr/login, /pm/login, /shop/login, /safety-portal/login, /dispatch-portal/login all render email + password inputs": true}
+    }
+  },
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "critical_code_review_comments": [
+    "Minor: /app/frontend/src/components/admin/sidebar/SideNavV2.jsx line 125 uses a space-separated data-testid value ('admin-side-nav admin-side-nav-v2'). This is non-standard (data-testid should typically be a single token). Selectors like [data-testid='admin-side-nav-v2'] fail to match — must use [data-testid*='admin-side-nav-v2']. Cosmetic only; does not affect functionality."
+  ],
+  "action_items": [],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped per request)", "frontend": "100% (10/10 features)"},
+  "test_credentials": "Super-admin: jaymn.judd@mascigc.com / Maddix123! (via /sign-in); Shop mechanic: testmech@mascigc.com / ResetWorks2026!",
+  "seed_data_creation": "None. Test used localStorage direct manipulation for is_asset_admin per test brief.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Track 19.28 P0 frontend deltas all pass on preview. AdminHubV2 renders at canonical /admin, classic AdminHub at /admin/hub_v1 rollback URL. ShopHubV2 asset-admin visibility gate honors both is_asset_admin flag and admin token override. Note: SideNavV2 has a compound data-testid value ('admin-side-nav admin-side-nav-v2') — use partial-match selectors when targeting the V2 sidebar."
+}

@@ -617,9 +617,15 @@ function App() {
                 Safety Admin — unchanged
                 ============================================================ */}
             <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin" element={A(<AdminHub />)} />
+            {/* Track 19.28 · P0-1 · Admin Hub V1 soft-retire.
+                /admin now renders AdminHubV2 (Operations Control Center).
+                Classic tile-grid AdminHub remains available at /admin/hub_v1
+                as a rollback URL. All admin sub-routes (/admin/people, etc.)
+                are unchanged — they still use AdminShell / SideNavV2 per page. */}
+            <Route path="/admin" element={A(<AdminHubV2 />)} />
+            <Route path="/admin/hub_v1" element={A(<AdminHub />)} />
             {/* Track 13.6K · Phase 1 — Admin Hub V2 preview (Operations Control Center). */}
-            <Route path="/admin/hub_v2" element={A(<AdminHubV2 />)} />
+            <Route path="/admin/hub_v2" element={<Navigate to="/admin" replace />} />
             <Route path="/admin/executive-overview" element={A(<ExecutiveOverview />)} />
             {/* Track 13.22 · Phase D · Material Movement Ledger · Admin Data-Quality + CSV. */}
             <Route path="/admin/material-ledger-quality" element={A(<AdminMaterialLedgerQuality />)} />

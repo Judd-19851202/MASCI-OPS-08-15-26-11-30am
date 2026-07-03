@@ -63,7 +63,7 @@ export default function AdminHubV2() {
       .then(([i, e, d]) => { if (!cancelled) setS({ loaded: true, integ: i.body, exp: e.body, ds: d.body }); });
     return () => { cancelled = true; };
   }, []);
-  const isPreview = typeof window !== "undefined" && /preview/i.test(window.location.host);
+  const isPreview = false; // Track 19.28 · P0-1 · Hub V2 is now canonical /admin; preview banner retired.
   const probes = s.integ?.probes || [];
   const degraded = probes.filter(p => p.status && p.status !== "ok").length;
   const expC = s.exp?.counts || {};
@@ -80,12 +80,12 @@ export default function AdminHubV2() {
         </div>
       )}
       <PortalShell
-        portalName="MASCI" portalRole="Admin Portal · Hub V2"
+        portalName="MASCI" portalRole="Admin Portal"
         pageTitle="What requires admin action right now?"
         subtitle="Live cross-portal signals. Every queue opens a real existing admin / ops workflow."
         primaryActions={
           <div style={{ display: "flex", gap: 8 }}>
-            <Link to="/admin" data-testid="admin-hub-v2-back-classic" style={{ display: "inline-block", padding: "6px 12px", background: "var(--paper-card)", color: "var(--ink-strong)", border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)", fontSize: 12, fontWeight: 600, textDecoration: "none" }}>Open Classic Admin Hub</Link>
+            <Link to="/admin/hub_v1" data-testid="admin-hub-v2-back-classic" style={{ display: "inline-block", padding: "6px 12px", background: "var(--paper-card)", color: "var(--ink-strong)", border: "1px solid var(--border-bold)", borderRadius: "var(--radius-card)", fontSize: 12, fontWeight: 600, textDecoration: "none" }}>Open Classic Admin Hub (V1)</Link>
           </div>
         }
         sideNav={<AdminSideNavV2 />}
@@ -163,8 +163,8 @@ export default function AdminHubV2() {
         </Section>
 
         <div data-testid="admin-hub-v2-trace-note" style={{ marginTop: 16, padding: "var(--pad-card)", background: "var(--paper-card)", border: "1px dashed var(--border-bold)", borderRadius: "var(--radius-card)", color: "var(--ink-soft)", fontSize: 12 }}>
-          <strong style={{ color: "var(--ink-strong)" }}>Admin Hub V2 · Track 13.6K preview.</strong>{" "}
-          Operations Control Center · presentation-only. Every count traces to a real source; every card opens an existing workflow. Settings, users, integrations, and audit trails remain in the classic admin surface — no rebuild.
+          <strong style={{ color: "var(--ink-strong)" }}>Admin Portal · Operations Control Center.</strong>{" "}
+          Every count traces to a real source; every card opens an existing workflow. Full section access is available in the sidebar; the classic tile-grid hub remains at <Link to="/admin/hub_v1" style={{ color: "var(--ink-strong)", textDecoration: "underline" }}>/admin/hub_v1</Link> for rollback if needed.
         </div>
       </PortalShell>
     </div>

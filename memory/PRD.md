@@ -11,6 +11,25 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.28 · 10/10 Platform Remediation & Elite Consistency Closeout · ✅ COMPLETE (2026-07-03)
+
+Zero-drift cleanup + deprecation sweep closing all P2 items from the Track 19.27 remediation roadmap.
+
+**P0 items closed:**
+- **P2-1 (Admin Hub V1 soft-retire)** — `/admin` now renders `AdminHubV2`. Classic tile-grid `AdminHub` moved to `/admin/hub_v1` (rollback). `/admin/hub_v2` alias → `<Navigate to="/admin">`. Preview banner + companion language retired from V2. Admin Sidebar V2 (`domainMap.js`) closed 3 gaps: `+ /admin/command-center`, `+ /operational-records`, `+ /admin/project-identity`.
+- **P2-2 (Cheat sheet consolidation)** — already canonicalized in a prior track (`/cheatsheet` canonical · `/cheat-sheet` redirects). Verified.
+- **P2-4 (Shop tile visibility)** — `ShopHubV2` section 09 "Asset Administrator · Historical Records" now hidden from non-`is_asset_admin` shop users. Admin token holders always see it. Backend permission gate unchanged.
+- **P2-5 (Legacy Hub.jsx retirement)** — re-scoped. `Hub.jsx` is the operational public landing page at `/`, not legacy. All portal links audit-clean. Marked **operational · not legacy**.
+- **P2-3 (Guidance Center content freshness)** — audited `OperationalGuidanceCenter.jsx`, `AdminGuide.jsx`, `OpsTrainingGuide.jsx`, and `backend/guidance/content.py` (5,870 lines). No user-facing article body references a retired route. Content-refresh cadence deferred to quarterly docs cycle (Future/Backlog).
+
+**Zero-drift proof:** No schemas · no backend routes · no PDFs · no payloads · no permissions changed. 0 backend files touched. All `_legacy` rollback URLs preserved.
+
+**Files touched:** `App.js`, `AdminHubV2.jsx`, `ShopHubV2.jsx`, `domainMap.js`, and this ledger + `TRACK_19_28_CLOSEOUT.md`.
+
+**Next:** Sidebar V2 for Shop / Transportation / Fleet (P3-1, P3-2). Trench asset picker enter-key auto-select (P3-3). HR intake "Continue previous session" (P3-5). Compliance At Risk widget (P3-8). Recent intake activity feed (P3-9). Onboarding hint (P3-10). Future: OCR integration, AI classification, OSHA compliance intelligence, mobile-native app shell.
+
+
+
 ## TRACK 19.21 · Employee Records Intelligence Platform · P0 Foundation · ✅ SHIPPED (2026-07-02)
 
 Universal Employee Record model + Incident-case timeline linkage + Employee 360° UI. HR is system owner; Safety and Asset Administrator own their lanes operationally. 4 ownership lanes · 5 record states · 10 new endpoints · 26/26 lock tests GREEN. Zero drift on `db.employees`, `/api/incidents`, and the Incident Intelligence Engine. Full detail in `/app/memory/TRACK_19_21_*.md` (6 documents).
