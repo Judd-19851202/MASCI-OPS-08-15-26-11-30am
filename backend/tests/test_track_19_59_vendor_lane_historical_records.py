@@ -44,7 +44,11 @@ def test_docs_present():
 
 def test_entity_kind_discriminator_exists():
     assert hasattr(er, "ENTITY_KINDS"), "ENTITY_KINDS constant must exist"
-    assert set(er.ENTITY_KINDS) == {"employee", "vendor"}, \
+    # Track 19.59 requires `employee` + `vendor` to be present. Track 19.61
+    # additively introduces `asset` as a third discriminator — the 19.59
+    # doctrine still holds (vendor is a first-class entity_kind), so
+    # this assertion is a superset check to remain additive-safe.
+    assert {"employee", "vendor"} <= set(er.ENTITY_KINDS), \
         f"unexpected entity kinds: {er.ENTITY_KINDS}"
     assert er.DEFAULT_ENTITY_KIND == "employee", \
         "DEFAULT_ENTITY_KIND must be 'employee' for backwards compatibility"

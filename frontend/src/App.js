@@ -137,6 +137,7 @@ const PmPeople = React.lazy(() => import("@/pages/pm/PmSections").then(m => ({ d
 const PmSuppliers = React.lazy(() => import("@/pages/pm/PmSections").then(m => ({ default: m.PmSuppliers })));
 // Track 19.60 · Vendor Operational Thread PROMOTION.
 const AdminVendorThread = React.lazy(() => import("@/pages/AdminVendorThread"));
+const AdminAssetThread  = React.lazy(() => import("@/pages/AdminAssetThread"));
 const PmPosters = React.lazy(() => import("@/pages/pm/PmSections").then(m => ({ default: m.PmPosters })));
 const PmQaqcList = React.lazy(() => import("@/pages/PmQaqcList"));
 import ShopLogin from "@/pages/ShopLogin";
@@ -843,6 +844,7 @@ function App() {
                 consumer role lenses (PM/Safety/Shop) deferred to a
                 later track per Track 20.4 doctrine. */}
             <Route path="/admin/vendors/:vendorId/thread" element={A(<AdminVendorThread />)} />
+            <Route path="/admin/assets/:assetRef/thread" element={A(<AdminAssetThread />)} />
             <Route path="/pm/posters"            element={P(<PmPosters />)} />
             <Route path="/pm/qaqc" element={P(<PmQaqcList />)} />
             <Route path="/pm/photos" element={P(<JobPhotosLibrary portalKey="pm" />)} />

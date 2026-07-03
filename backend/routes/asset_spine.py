@@ -214,6 +214,51 @@ def register_asset_spine_routes(
             raise HTTPException(status_code=404, detail=f"Asset {asset_id} not found")
         return p
 
+    # ----- Track 19.61 · Universal Asset Identifier Resolver --------------
+    # Read-only helper that maps ANY of {canonical id, unit_number,
+    # asset_number, serial_number, VIN} to the canonical asset. No new
+    # collection, no duplicate storage — reads equipment_master via the
+    # spine's own indexes.
+    @router.get("/resolve")
+    async def resolve_asset_ref(
+        ref: str = Query(..., min_length=1, max_length=128,
+                         description="asset_id · unit_number · asset_number · "
+                                     "serial · vin · legacy identifier"),
+        _: Any = Depends(require_any_portal_dep),
+    ):
+        needle = (ref or "").strip()
+        if not needle:
+            raise HTTPException(422, "ref must not be empty")
+        import re as _re
+
+        def _ci(v: str) -> Dict[str, str]:
+            return {"$regex": f"^{_re.escape(v)}$", "$options": "i"}
+
+        query = {"$or": [
+            {"id": needle},
+            {"asset_id": needle},
+            {"unit_number": _ci(needle)},
+            {"asset_number": _ci(needle)},
+            {"serial_number": _ci(needle)},
+            {"vin": _ci(needle)},
+        ]}
+        doc = await db.equipment_master.find_one(query, {"_id": 0})
+        if not doc:
+            raise HTTPException(status_code=404,
+                                detail=f"No asset resolved for ref={ref!r}")
+        canonical_id = doc.get("id") or doc.get("asset_id")
+        return {
+            "ok": True,
+            "ref": needle,
+            "asset_id": canonical_id,
+            "unit_number": doc.get("unit_number") or doc.get("asset_number"),
+            "serial_number": doc.get("serial_number"),
+            "vin": doc.get("vin"),
+            "asset_class": doc.get("asset_class"),
+            "asset_type": doc.get("asset_type") or doc.get("type"),
+            "status": doc.get("status") or ("retired" if doc.get("retired_at") else "active"),
+        }
+
     # ----- WRITE (admin only, audited) -------------------------------------
 
     @router.post("/assets")

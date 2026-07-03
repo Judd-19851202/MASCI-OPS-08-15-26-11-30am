@@ -11,6 +11,41 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.61 · Asset / Equipment Operational Thread PROMOTION · ✅ SHIPPED (2026-08-02)
+
+**Type:** Presentation promotion **+ two small additive backend extensions**. Executes the Track 20.5 forensic-audit verdict (PROMOTE + EXTEND) exactly. Zero drift · zero live emails · zero duplicate systems.
+
+**Delta:**
+- New page `AdminAssetThread.jsx` at `/admin/assets/:assetRef/thread` (wrapped by `RequireAdmin`) renders the 10-section `OperationalThreadPage` shell identically to Vendor / Employee / Project / Incident threads.
+- New backend endpoint `GET /api/asset-spine/resolve?ref=…` — Universal Asset Identifier Resolver. Accepts `{asset_id · unit_number · asset_number · serial_number · vin · legacy id}` and returns canonical asset identity. Reads existing `equipment_master`; **zero new collection**.
+- Extension to `employee_records.py` — `ENTITY_KINDS` gains `"asset"` (third discriminator after `employee` + `vendor`). Cross-lane guard: `entity_kind="asset"` only permitted in the `asset` lane. `CreateRecordBody` gains `asset_id`, `asset_unit_number`, `asset_display_name`. `list_records` accepts `entity_kind=asset`, `asset_id`, `asset_unit_number`. Approval branches on `entity_kind="asset"` requiring asset identity + record_type. 12 additive record_type slugs added: `warranty · purchase_agreement · bill_of_sale · title_registration · insurance_policy · calibration_certificate · operator_manual · spec_sheet · historical_inspection_report · historical_maintenance_record · asset_photo · other_asset_document`. Backwards-compatible — every existing record without `entity_kind` continues to be treated as `"employee"`; every existing asset-lane issuance record continues to work identically (`entity_kind="employee"`, employee-issued equipment).
+
+**Class-aware OI routing (client-side, existing products only):** `Truck · Trailer · Heavy Equipment · Trench Safety · Roadway/Traffic Control → fleet_intelligence` · `Survey · GPS · Technology · Safety Equipment · Support · Facility · Temporary → shop_intelligence` · otherwise honest empty. **Zero new OI products.**
+
+**Fleet Unit Thread pilot (Track 19.55)** at `/fleet/unit/:unit_number` remains **byte-identical** — no changes to the pilot.
+
+**Cross-links:** Add asset document (→ `/hr/historical-records/intake?entity_kind=asset&asset_id=<id>`) · Fleet lens (→ `/fleet/unit/:unit_number`) · Asset master (→ `/admin/equipment`).
+
+**Universal Thread family (now six-strong):**
+- Fleet Unit — `/fleet/unit/:unit_number` (19.55)
+- Employee — `/admin/employees/:employeeId/thread` (19.56)
+- Project — `/pm/projects/:projectId/thread` (19.57)
+- Incident — `/safety/incidents/:incidentId/thread` (19.58)
+- Vendor — `/admin/vendors/:vendorId/thread` (19.60)
+- **Asset / Equipment — `/admin/assets/:assetRef/thread` (19.61)**
+
+All share one shell, one relationship graph, one guidance model, one attention language, one operational philosophy.
+
+**Deliverables (7 docs + 1 lock test):**
+`TRACK_19_61_EXECUTIVE_SUMMARY.md` · `TRACK_19_61_PROMOTION_MAP.md` · `TRACK_19_61_PERMISSION_CERTIFICATION.md` · `TRACK_19_61_ZERO_DRIFT_MATRIX.md` · `TRACK_19_61_HUMAN_WALKTHROUGH.md` · `TRACK_19_61_MOBILE_REVIEW.md` · `TRACK_19_61_TEST_REPORT.md` · lock test `backend/tests/test_track_19_61_asset_thread_promotion.py`.
+
+**Email safety:** AdminAssetThread page and the resolver endpoint contain **zero** `fsi_send_email` / `resend` / `phase4.send_email` references. Lock test performs no HTTP calls, no DB writes. Re-running 100× produces zero inbox activity.
+
+**Zero-Drift:** No new asset collection · no new equipment master · no duplicate timeline / PM / DVIR / inspection / photo / PDF / OI / score / email / notification system · no permission widening · no public URL.
+
+**Testing:** `pytest backend/tests/test_track_19_61_asset_thread_promotion.py -v` → all assertions green. Full Operational Thread suite (19.55 → 20.5 + 19.61) green.
+
+
 ## TRACK 20.5 · Asset / Equipment Operational Thread Forensic Audit · ✅ COMPLETE (2026-08-02)
 
 **Type:** Forensic audit only. **Zero production code changed. Zero live emails. Zero HTTP calls in the lock test.**

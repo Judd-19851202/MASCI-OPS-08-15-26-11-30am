@@ -108,7 +108,12 @@ OWNERSHIP_LANES = ("hr", "safety", "asset", "corporate_import", "vendor")
 
 # Track 19.59: canonical entity discriminator. Records without this
 # field are treated as `"employee"` for backwards compatibility.
-ENTITY_KINDS = ("employee", "vendor")
+# Track 19.61: `asset` added as a third entity_kind so Historical
+# Records can hold legacy paper about the physical asset itself
+# (warranties, purchase agreements, calibration certificates,
+# manuals, etc.) alongside the employee-issued equipment records
+# that already live in the `asset` lane.
+ENTITY_KINDS = ("employee", "vendor", "asset")
 DEFAULT_ENTITY_KIND = "employee"
 
 RECORD_STATES = (
@@ -152,6 +157,21 @@ LANE_RECORD_TYPES: Dict[str, List[str]] = {
         "survey_equipment_issued", "pipe_laser_issued",
         "rotating_laser_issued", "asset_acknowledgement",
         "damaged_asset", "lost_asset", "replacement_record",
+        # Track 19.61 · legacy paper about the physical asset itself
+        # (entity_kind="asset"). Additive; existing employee-issuance
+        # types above remain valid for entity_kind="employee".
+        "warranty",
+        "purchase_agreement",
+        "bill_of_sale",
+        "title_registration",
+        "insurance_policy",
+        "calibration_certificate",
+        "operator_manual",
+        "spec_sheet",
+        "historical_inspection_report",
+        "historical_maintenance_record",
+        "asset_photo",
+        "other_asset_document",
     ],
     "corporate_import": [
         "historical_archive", "acquisition_records", "legacy_conversion",
@@ -228,6 +248,15 @@ class CreateRecordBody(BaseModel):
     vendor_id: Optional[str] = None
     vendor_name: Optional[str] = None
     vendor_display_name: Optional[str] = None
+    # Track 19.61 · Asset-entity fields. Only meaningful when
+    # `entity_kind == "asset"` (physical asset paper — warranties,
+    # purchase agreements, calibration certs, manuals). Existing
+    # `related_asset_id` remains the cross-lane pointer; these fields
+    # are the snapshot identity used when the asset appears as the
+    # SUBJECT of the record rather than a related entity.
+    asset_id: Optional[str] = None
+    asset_unit_number: Optional[str] = None
+    asset_display_name: Optional[str] = None
 
 
 class ApproveBody(BaseModel):
@@ -408,6 +437,11 @@ def build_employee_records_router(*, db, require_actor):
         # Track 19.59 · resolve canonical entity_kind. `vendor` ownership
         # lane implies vendor entity_kind; missing entity_kind defaults
         # to employee (backwards-compatible).
+        # Track 19.61 · `asset` entity_kind (physical asset paper) is
+        # accepted only in the `asset` ownership lane. Missing
+        # entity_kind inside the asset lane continues to default to
+        # `employee` so the existing PPE / tool / phone issuance flows
+        # remain byte-identical.
         if body.ownership_lane == "vendor":
             entity_kind = "vendor"
         elif body.entity_kind in ENTITY_KINDS:
@@ -424,11 +458,26 @@ def build_employee_records_router(*, db, require_actor):
             raise HTTPException(
                 400, "'vendor' lane requires entity_kind='vendor'"
             )
+        # Track 19.61 · asset entity_kind guards.
+        if entity_kind == "asset" and body.ownership_lane != "asset":
+            raise HTTPException(
+                400, "entity_kind='asset' is only permitted in the 'asset' lane"
+            )
 
         # Determine initial state.
         if entity_kind == "vendor":
             vendor_ident = (body.vendor_id or body.vendor_name or "").strip()
             if not vendor_ident:
+                state = "pending_match"
+            elif not body.record_type:
+                state = "pending_classification"
+            else:
+                state = "pending_approval"
+        elif entity_kind == "asset":
+            asset_ident = (
+                body.asset_id or body.asset_unit_number or body.related_asset_id or ""
+            ).strip()
+            if not asset_ident:
                 state = "pending_match"
             elif not body.record_type:
                 state = "pending_classification"
@@ -461,6 +510,10 @@ def build_employee_records_router(*, db, require_actor):
             "vendor_id": (body.vendor_id or None) if entity_kind == "vendor" else None,
             "vendor_name": (body.vendor_name or None) if entity_kind == "vendor" else None,
             "vendor_display_name": (body.vendor_display_name or None) if entity_kind == "vendor" else None,
+            # Track 19.61 · asset identity snapshot (null for non-asset records).
+            "asset_id": (body.asset_id or None) if entity_kind == "asset" else None,
+            "asset_unit_number": (body.asset_unit_number or None) if entity_kind == "asset" else None,
+            "asset_display_name": (body.asset_display_name or None) if entity_kind == "asset" else None,
             "record_type": body.record_type,
             "record_category": body.record_category,
             "ownership_lane": body.ownership_lane,
@@ -498,6 +551,9 @@ def build_employee_records_router(*, db, require_actor):
                 # Vendor identity kept in audit for traceability.
                 "vendor_id": rec.get("vendor_id"),
                 "vendor_name": rec.get("vendor_name"),
+                # Track 19.61 · asset identity in audit for traceability.
+                "asset_id": rec.get("asset_id"),
+                "asset_unit_number": rec.get("asset_unit_number"),
             },
         )
         if body.imported_batch_id:
@@ -515,9 +571,12 @@ def build_employee_records_router(*, db, require_actor):
         employee_id: Optional[str] = Query(None),
         batch_id: Optional[str] = Query(None),
         # Track 19.59 · vendor filter parameters.
-        entity_kind: Optional[str] = Query(None, description="employee | vendor"),
+        entity_kind: Optional[str] = Query(None, description="employee | vendor | asset"),
         vendor_id: Optional[str] = Query(None),
         vendor_name: Optional[str] = Query(None),
+        # Track 19.61 · asset-entity filter parameters.
+        asset_id: Optional[str] = Query(None),
+        asset_unit_number: Optional[str] = Query(None),
         # Track 19.22 · P1 · structured search filters (no OCR).
         q: Optional[str] = Query(None, description="Substring on record_type/notes/tags/employee_name_snapshot/source_file_name"),
         department: Optional[str] = Query(None),
@@ -554,8 +613,12 @@ def build_employee_records_router(*, db, require_actor):
         # Track 19.59 · entity discriminator. Absent / "employee" → filter
         # to employee records (safety sentinel — vendor records NEVER
         # surface in employee views unless explicitly requested).
+        # Track 19.61 · `entity_kind=asset` is respected the same way —
+        # asset records never surface in employee views unless requested.
         if entity_kind == "vendor":
             q_mongo["entity_kind"] = "vendor"
+        elif entity_kind == "asset":
+            q_mongo["entity_kind"] = "asset"
         elif entity_kind == "employee":
             q_mongo["$or"] = q_mongo.get("$or") or []
             q_mongo["entity_kind"] = {"$in": ["employee", None]}
@@ -563,13 +626,18 @@ def build_employee_records_router(*, db, require_actor):
             q_mongo["entity_kind"] = "vendor"
         else:
             # No entity_kind + no explicit vendor lane → default to
-            # employee for backwards compatibility. Vendor records are
-            # invisible to existing callers.
+            # employee for backwards compatibility. Vendor / asset
+            # records are invisible to existing callers.
             q_mongo["entity_kind"] = {"$in": ["employee", None]}
         if vendor_id:
             q_mongo["vendor_id"] = vendor_id
         if vendor_name:
             q_mongo["vendor_name"] = vendor_name
+        # Track 19.61 · asset-entity filters.
+        if asset_id:
+            q_mongo["asset_id"] = asset_id
+        if asset_unit_number:
+            q_mongo["asset_unit_number"] = asset_unit_number
         if batch_id:
             q_mongo["imported_batch_id"] = batch_id
         if department:
@@ -643,6 +711,8 @@ def build_employee_records_router(*, db, require_actor):
             raise HTTPException(403, "Not authorized to approve in this lane")
         # Track 19.59 · vendor lane approval requires vendor identity +
         # record_type. Employee lanes retain their existing rules.
+        # Track 19.61 · asset entity approval requires asset identity +
+        # record_type.
         entity_kind = rec.get("entity_kind") or (
             "vendor" if lane == "vendor" else DEFAULT_ENTITY_KIND
         )
@@ -650,6 +720,19 @@ def build_employee_records_router(*, db, require_actor):
             if not (rec.get("vendor_id") or rec.get("vendor_name")):
                 raise HTTPException(
                     400, "Cannot approve — vendor_id or vendor_name is required"
+                )
+            if not rec.get("record_type"):
+                raise HTTPException(400, "Cannot approve — record_type is required")
+        elif entity_kind == "asset":
+            if not (
+                rec.get("asset_id")
+                or rec.get("asset_unit_number")
+                or rec.get("related_asset_id")
+            ):
+                raise HTTPException(
+                    400,
+                    "Cannot approve — asset_id, asset_unit_number, or "
+                    "related_asset_id is required",
                 )
             if not rec.get("record_type"):
                 raise HTTPException(400, "Cannot approve — record_type is required")

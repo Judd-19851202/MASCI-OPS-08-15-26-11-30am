@@ -10,6 +10,31 @@
 
 # CHANGELOG
 
+## 2026-08-02 — TRACK 19.61 · Asset / Equipment Operational Thread PROMOTION · 🟢 SHIPPED
+
+### Shipped
+- **New page:** `frontend/src/pages/AdminAssetThread.jsx` at `/admin/assets/:assetRef/thread` (Admin-gated). Renders the 10-section `OperationalThreadPage` shell identically to Vendor / Employee / Project / Incident threads.
+- **Route:** Registered in `frontend/src/App.js` under `A(...)` gate.
+- **New backend endpoint:** `GET /api/asset-spine/resolve?ref=…` — Universal Asset Identifier Resolver. Accepts asset_id / unit_number / asset_number / serial_number / vin / legacy id. Reads existing `equipment_master`. Zero new collection.
+- **Historical Records asset lane:** `entity_kind="asset"` added on `backend/routes/employee_records.py` (mirror of Track 19.59 vendor lane). Additive record_type slugs, asset identity fields on `CreateRecordBody`, filters on `list_records`, approval branch, cross-lane guard. Fully backwards-compatible — every existing record without `entity_kind` continues to behave as `entity_kind="employee"`.
+- **Class-aware OI product routing** (client-side): `fleet_intelligence` for trucks/heavy/trailers/trench/roadway; `shop_intelligence` for survey/gps/technology/safety/support/facility/temporary; honest empty otherwise. Zero new OI products.
+- **Fleet Unit Thread pilot** (`/fleet/unit/:unit_number`, Track 19.55) unchanged — byte-identical.
+- 7 audit / promotion docs under `/app/memory/TRACK_19_61_*.md`.
+- Lock test `backend/tests/test_track_19_61_asset_thread_promotion.py` (grep + file-content, no HTTP, no DB, no email).
+
+### Universal Thread family (now six-strong)
+Fleet Unit · Employee · Project · Incident · Vendor · **Asset / Equipment**. All share one shell, one relationship graph, one guidance model, one attention language.
+
+### Zero-Drift
+No new asset collection · no new equipment master · no duplicate maintenance / DVIR / inspection / documents / photos / scores / PDFs / audit / email / notification system · no permission widening · no public URL.
+
+### Email safety
+AdminAssetThread page and the resolver contain **zero** `fsi_send_email` / `resend` / `phase4.send_email` references. Lock test performs zero HTTP calls, zero DB writes, zero email-adjacent imports. Safe to run 100× with zero inbox activity.
+
+### Next
+Universal Thread family complete. Awaiting user directive for future work (P2: OCR + Gemini classification · P3: mobile shell · P3: executive PDF redesign · P3: OSHA compliance intelligence).
+
+
 ## 2026-08-02 — TRACK 20.5 · Asset / Equipment Operational Thread Forensic Audit · ✅ COMPLETE
 
 ### Ships
