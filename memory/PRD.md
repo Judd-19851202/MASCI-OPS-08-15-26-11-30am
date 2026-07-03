@@ -11,6 +11,30 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.49 · Bulk-Import + Group Membership + Platform Person Picker · ✅ COMPLETE (2026-07-04)
+
+**Delta:** Recipient governance now feels complete. Added bulk operations, group create/member editor, and a canonical **platform directory picker** — all in a single frontend track. Zero backend drift.
+
+**Bulk / Directory panel** with three tabs:
+- **From platform directory** (default & preferred) — live-search against `/api/admin/directory/k4/users` (canonical platform-user source, admin-only, read-only). Multi-select checkboxes; already-subscribed users are dimmed + disabled. Each directory-sourced recipient stores a `source_reference` (user_id) in notes for traceback.
+- **Paste email list** — freeform textarea. Supports plain email, CSV-style, and `Name <email>` format. Client-side email regex; invalid rows surfaced before submit.
+- **Copy from another product** — one-click copy of a source product's active recipients into a target product. Source ≠ target enforced.
+
+All three funnel through the single Track 19.45A `bulk-import` endpoint — no new backend paths, no second recipient system.
+
+**Groups:** "New group" button opens a `GroupCreatePanel` (id, name, multi-select products). Per-group "Members" button opens `GroupMemberEditor` (add + read-only member table). Member removal via API still deferred (documented honestly).
+
+**HR / User-account safety:** Grep-locked — no `/hr/*`, `/admin/employees/*`, or `/admin/directory/*` mutations. Directory picker is read-only. No platform-user creation. Traceback via `source_reference` in the recipient's `notes` field (no schema change).
+
+**Quality Gate (Track 19.30):** **GO · 58/60** across the six pillars (Powerful/Trusted/Proven/Operational all 10; nothing below 9). No P0/P1 open.
+
+**Verification:** 25 lock assertions GREEN including HR-mutation ban, user-account-mutation ban, live-send ban, delete-language ban, source_reference persistence, and dedupe-against-existing check. Full regression across Tracks 19.40–19.48 GREEN.
+
+**Rollback:** revert `AdminOperationalIntelligenceRecipients.jsx` (remove three panel components + wire changes) · delete 5 docs + 1 lock test. **No backend revert.** No schema migration. HIGH.
+
+**Recipient governance status:** COMPLETE. Single add · bulk add · directory-pick · copy from product · edit · deactivate · reactivate · group create · group member add.
+
+
 ## TRACK 19.48 · Recipient Management UI · ✅ COMPLETE (2026-07-04)
 
 **Delta:** Dedicated admin CRUD surface for Operational Intelligence recipients + groups at `/admin/operational-intelligence/recipients`. Full add / edit / deactivate / reactivate + search + filter + product picker. Zero backend drift — consumes existing Track 19.45A endpoints. Cockpit's Recipient Governance entry now links here.

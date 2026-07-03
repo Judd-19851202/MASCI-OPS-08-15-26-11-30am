@@ -10,6 +10,25 @@
 
 # CHANGELOG
 
+## 2026-07-04 — TRACK 19.49 · Bulk Import + Groups + Platform Person Picker · 🟢 SHIPPED (Quality Gate 58/60 · GO)
+
+### Shipped
+- **"Bulk / Directory" panel** on `/admin/operational-intelligence/recipients` with three tabs:
+  - **From platform directory** (default) — canonical K4 user picker (`GET /admin/directory/k4/users`) with live search, portal filter, multi-select, and existing-recipient dedupe hints. Stores `source_reference` (user_id) in notes for traceback.
+  - **Paste email list** — freeform textarea with client-side email validation and invalid-row surfacing.
+  - **Copy from another product** — one-click clone of active recipients between products.
+- **"New group" button** — `GroupCreatePanel` (group_id, name, multi-select products) → `POST /operational-intelligence/groups`.
+- **"Members" button per group row** — `GroupMemberEditor` with add form + read-only current-members table → `POST /operational-intelligence/groups/{id}/members`.
+- **Lock test** `test_track_19_49_bulk_and_groups_and_directory_picker.py` — 25 assertions.
+- **5 governance docs** shipped (`TRACK_19_49_*.md`).
+
+### Zero drift
+- 0 new backend routes · 0 new collections · 0 email code paths.
+- 0 HR mutations · 0 platform-user mutations · 0 directory mutations (all grep-locked).
+- All ingest paths funnel through the single Track 19.45A `bulk-import` endpoint.
+- Backend `operational_intelligence/recipients.py` untouched.
+
+
 ## 2026-07-04 — TRACK 19.48 · Recipient Management UI · 🟢 SHIPPED (Quality Gate 55/60 · GO)
 
 ### Shipped
