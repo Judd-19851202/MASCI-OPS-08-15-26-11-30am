@@ -150,12 +150,15 @@ def test_no_new_backend_module_added_by_1954():
 
 
 def test_oi_component_directory_inventory():
-    """The OI component folder now contains exactly the Track 19.54 set
-    plus the shared strip. If new consumers appear the doctrine has
-    drifted."""
+    """The OI component folder now contains the Track 19.55 baseline:
+    the shared strip + Track 19.54 primitives + Track 19.55 thread /
+    relationship-graph primitives. Any additional consumer or
+    framework file is a doctrine drift."""
     expected_jsx = {"OiAttentionStrip.jsx", "GuidanceCard.jsx",
                     "AttentionChip.jsx", "TrendChip.jsx",
-                    "OperationalThread.jsx"}
+                    "OperationalThread.jsx",
+                    "OperationalThreadPage.jsx",
+                    "RelationshipGraph.jsx"}
     expected_js = {"guidanceMap.js"}
     actual_jsx = {f.name for f in FE_COMP_OI.glob("*.jsx")}
     actual_js  = {f.name for f in FE_COMP_OI.glob("*.js")}

@@ -10,6 +10,26 @@
 
 # CHANGELOG
 
+## 2026-07-05 — TRACK 19.55 · Universal Operational Threads Foundation · 🟢 SHIPPED (Frontend only · zero backend drift)
+
+### Shipped
+- `OperationalThreadPage.jsx` — the universal 10-section thread shell (Mission · Attention · Guidance · Timeline · Relationships · Documents · Photos · OI · History · Audit) at `frontend/src/components/operational_intelligence/`. Reuses AttentionChip / TrendChip / GuidanceCard / OperationalThread + the new RelationshipGraph.
+- `RelationshipGraph.jsx` — the ONE reusable relationship visual (mobile-first vertical chain of clickable nodes).
+- `FleetUnitThread.jsx` at `frontend/src/pages/fleet/` — Fleet Unit Operational Thread pilot. Consumes `/api/assets/{n}/timeline` (Track 13.26 backbone) and the `fleet_intelligence` row from `/operational-intelligence/summary`. Operational Health derived explanatorily ("Why: …") · Universal Action Queue capped at 5.
+- Route `/fleet/unit/:unit_number` registered in App.js behind the existing Shop-portal auth gate.
+- Fleet Visibility unit-card title deep-links to the new thread page (`fleet-unit-card-<unit>-open-thread`) — expansion chevron still works.
+- Track 19.55 lock test `test_track_19_55_operational_threads.py` — 22 assertions.
+- 7 governance docs under `/app/memory/TRACK_19_55_*.md`.
+
+### Zero drift
+- Backend module inventory unchanged (9 files under `backend/operational_intelligence/`).
+- OI component folder locked to exactly 7 JSX + 1 JS via the directory-inventory lock test.
+- No new backend routes / score models / recommendation engines / notification systems.
+- Every Track 19.51 → 19.54 mount and lock assertion remains GREEN (combined 81/81).
+
+### Future adopters (documented, not built)
+- Track 19.56 Employee Thread · 19.57 Project Thread · 19.58 Incident Thread · 19.59 Vendor Thread · 19.60 Asset Thread — each inherits the same shell; only data sources change.
+
 ## 2026-07-05 — TRACK 19.54 · Operational Guidance System (OGS) · 🟢 SHIPPED (Frontend only · zero backend drift)
 
 ### Shipped

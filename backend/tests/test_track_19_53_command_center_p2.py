@@ -139,12 +139,15 @@ def test_no_new_command_center_framework_added_by_1953():
 
 
 def test_no_new_oi_component_added():
-    """OI-component folder inventory is locked to the Track 19.54
-    baseline: the shared strip + four Guidance-System primitives + one
-    map module. Any new consumer/framework file is a doctrine drift."""
+    """OI-component folder inventory is locked to the current baseline
+    (Track 19.55): the shared strip + Track 19.54 Guidance-System
+    primitives + Track 19.55 Thread / Relationship primitives. Any new
+    consumer/framework file is a doctrine drift."""
     expected_jsx = {"OiAttentionStrip.jsx", "GuidanceCard.jsx",
                     "AttentionChip.jsx", "TrendChip.jsx",
-                    "OperationalThread.jsx"}
+                    "OperationalThread.jsx",
+                    "OperationalThreadPage.jsx",
+                    "RelationshipGraph.jsx"}
     expected_js = {"guidanceMap.js"}
     actual_jsx = {f.name for f in FE_COMP_OI.glob("*.jsx")}
     actual_js  = {f.name for f in FE_COMP_OI.glob("*.js")}

@@ -39,6 +39,7 @@ import { RepairDrawer, RtsDrawer } from "@/components/FleetRepairDrawer";
 import { HelpTipBlock } from "@/components/HelpTip";
 import FocusBanner from "@/components/triage/FocusBanner";
 import OiAttentionStrip from "@/components/operational_intelligence/OiAttentionStrip";
+import { Link } from "react-router-dom";
 
 const API = process.env.REACT_APP_BACKEND_URL || "";
 
@@ -241,7 +242,19 @@ function UnitCard({ group, scope, t, expanded, onToggle, onRepairClick, onRtsCli
           </div>
           <div className="min-w-0">
             <div className="font-display text-base sm:text-lg font-bold text-slate-900 truncate">
-              {unit}{group.is_trailer ? ` · ${t("Trailer")}` : ""}
+              {/* Track 19.55 · Fleet Unit Operational Thread pilot —
+                 unit number opens the universal Thread page. Expansion
+                 chevron continues to work; only the number itself is a
+                 link. */}
+              <Link
+                to={`/fleet/unit/${encodeURIComponent(unit)}`}
+                data-testid={`fleet-unit-card-${unit}-open-thread`}
+                onClick={(e) => e.stopPropagation()}
+                className="hover:underline"
+              >
+                {unit}
+              </Link>
+              {group.is_trailer ? ` · ${t("Trailer")}` : ""}
             </div>
             <div className="font-mono text-[11px] uppercase tracking-wider text-slate-500 truncate">
               {[group.make_model, group.category, group.year]

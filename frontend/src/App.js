@@ -106,6 +106,8 @@ import NewEquipmentInspection from "@/pages/NewEquipmentInspection";
 import NewFleetDVIR from "@/pages/NewFleetDVIR";
 import FleetDVIRConfirmation from "@/pages/FleetDVIRConfirmation";
 import FleetVisibility from "@/pages/FleetVisibility";
+// Track 19.55 · Fleet Unit Operational Thread (pilot).
+const FleetUnitThread = React.lazy(() => import("@/pages/fleet/FleetUnitThread"));
 // TRACK 18.00 · Phase G · Transportation Operations branding on dispatch fleet.
 import TransportationOpsTopBar from "@/components/transportation/TransportationOpsTopBar";
 import ViewEquipmentInspection from "@/pages/ViewEquipmentInspection";
@@ -894,6 +896,10 @@ function App() {
             <Route path="/shop/pm/work-orders/:id"              element={S(<PmWorkOrders />)} />
             <Route path="/shop/trench-safety-repairs" element={S(<ShopTrenchSafetyRepairs />)} />
             <Route path="/shop/fleet" element={S(<FleetVisibility scope="shop" />)} />
+            {/* Track 19.55 · Fleet Unit Operational Thread pilot.
+                Reuses the same S() shop-portal auth gate as FleetVisibility
+                so entry from Fleet Visibility unit cards is friction-free. */}
+            <Route path="/fleet/unit/:unit_number" element={S(<FleetUnitThread />)} />
             {/* Phase V.5 · P0-2C — Shop pre-op visibility. The full pre-op list is
                 now reachable from /shop/equipment (was previously buried as a
                 disabled link in the ShopHub "More" footer). */}

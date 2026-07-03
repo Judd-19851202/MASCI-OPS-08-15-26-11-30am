@@ -11,6 +11,19 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.55 · Universal Operational Threads Foundation · ✅ SHIPPED (2026-07-05)
+
+**Type:** Foundational platform primitive + Fleet-Unit pilot. Frontend only. Zero backend change.
+
+**Delta:** The Universal Operational Thread standard is in. `OperationalThreadPage.jsx` is the ONE 10-section page shell every future core object (Employee · Project · Incident · Vendor · Asset) will inherit. `RelationshipGraph.jsx` is the ONE reusable relationship visual. `FleetUnitThread.jsx` at `/fleet/unit/:unit_number` is the certified pilot — consumes `/api/assets/{n}/timeline` (Track 13.26 backbone) + `fleet_intelligence` from the OI summary. Operational Health is derived client-side and always paired with a plain-English "Why: …" explanation (never a bare number). Universal Action Queue capped at 5 by the shell.
+
+**Zero drift:** Backend inventory unchanged. OI component folder locked to 7 JSX + 1 JS. All Track 19.51 → 19.54 mounts and primitives preserved. Every relationship node clickable; empty sections render honest empty states.
+
+**Testing:** `pytest /app/backend/tests/test_track_19_55_operational_threads.py -v` → 22/22 GREEN. Combined 19.51–19.55: **81/81 GREEN**.
+
+**Docs:** 7 files under `TRACK_19_55_*.md`.
+
+
 ## TRACK 19.54 · Operational Guidance System (OGS) · ✅ SHIPPED (2026-07-05)
 
 **Type:** Foundational platform primitive. Frontend only. Zero backend change.
