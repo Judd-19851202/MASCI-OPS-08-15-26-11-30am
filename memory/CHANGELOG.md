@@ -1,5 +1,33 @@
 # CHANGELOG
 
+## 2026-07-03 — TRACK 19.33 · HR Compliance At Risk + Incident Intelligence Readiness Bridge · 🟢 SHIPPED (Production Strong · 58/60)
+
+### Shipped
+**Part A · HR Compliance At Risk widget** (implementation)
+- New: `frontend/src/components/hr/HrComplianceAtRiskWidget.jsx` — read-only widget consuming existing `/api/operations/expirations/summary`.
+- Mounted at top of `HrHubV2` — surfaces expired/expiring documents, CDL, Medical, OSHA, TWIC, Safety training with severity chips (Critical · Warning · Info) and deep-links to Employee 360.
+- Bilingual · empty/loading/error states. Live smoke passed (79 at-risk items surfaced on live data · 8 top rows).
+
+**Part B · Incident Engine Readiness Bridge** (documentation-only)
+- New: `TRACK_19_33_INCIDENT_ENGINE_READINESS_BRIDGE.md`. Locks doctrine, Phase 1-5 track split, 10 incident types, preserved routes, data model protections, PDF principles, rollback + migration + risk + testing matrices.
+- **Doctrine locked:** Field captures facts · Safety investigates · Management decides · Platform routes/records/reports/protects.
+
+**Lock test:** `backend/tests/test_track_19_33_hr_compliance_at_risk.py` — 25 assertions.
+
+### Quality Gate compliance
+Third feature track under Track 19.30 gate. Passed:
+- **Six Pillar: 58/60 (Production Strong)** — Powerful 9 · Simple 10 · Beautiful 9 · Trusted 10 · Proven 10 · Operational 10.
+- **Zero-Drift: 16/16 categories unchanged.** 0 new backend routes · 0 new backend files · 0 schemas · 0 payloads · 0 permissions.
+- **Playwright smoke:** 12/12 PASS. **Frontend lint:** clean. **Rollback:** HIGH confidence.
+
+### Zero-drift proof
+0 backend files touched · 0 schemas · 0 API routes · 0 PDFs · 0 emails · 0 notifications · 0 permissions. Consumes existing endpoint that already has `require_actor` gate.
+
+### Final verdict
+🟢 **GO.** HR moves from reactive to proactive. Incident engine next-track scope is locked.
+
+
+
 ## 2026-07-03 — TRACK 19.32 · Transportation / Fleet Sidebar V2 · 🟢 SHIPPED (Production Strong · 58/60 · 7/7 Consistency)
 
 ### Shipped

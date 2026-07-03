@@ -23,6 +23,7 @@ import {
   EmptyState,
 } from "../design-system";
 import HrSideNavV2 from "@/components/hr/sidebar/HrSideNavV2";
+import HrComplianceAtRiskWidget from "@/components/hr/HrComplianceAtRiskWidget";
 import { getHrToken } from "@/lib/hrAuth";
 import { getAdminToken } from "@/lib/adminAuth";
 
@@ -206,6 +207,11 @@ export default function HrHubV2() {
           </span>
         }
       >
+        {/* Track 19.33 · HR Compliance At Risk — proactive attention widget.
+            Consumes existing /api/operations/expirations/summary (Sprint A · read-only).
+            Zero-drift: no new backend routes · no schema · no permission drift. */}
+        <HrComplianceAtRiskWidget authHeaders={authHeaders} />
+
         {/* 5:30 AM rule · large, visible employee directory search.
             Tired foreman should never need Cmd+K to find a person. */}
         <section

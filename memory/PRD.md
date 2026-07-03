@@ -11,6 +11,37 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.33 · HR Compliance At Risk + Incident Intelligence Readiness Bridge · ✅ COMPLETE (2026-07-03)
+
+**Six Pillar: 58/60 · Production Strong · Zero-Drift.** Third feature track under Track 19.30 quality gate.
+
+**Part A · HR Compliance At Risk widget (implementation):**
+- Added `frontend/src/components/hr/HrComplianceAtRiskWidget.jsx` — read-only widget consuming existing `GET /api/operations/expirations/summary` endpoint (`backend/routes/sprint_a.py`).
+- Mounted at top of HR portal home (`HrHubV2.jsx`).
+- Surfaces: expired documents · expiring ≤ 30 days · expiring 31–60 days · CDL / Medical / OSHA / TWIC / Safety training.
+- Renders total metric · 3 category chips · top 8 highest-risk rows with owner name, title, days overdue, severity chip (Critical / Warning / Info), and deep-link to Employee 360.
+- Bilingual · empty state · loading state · error state (`offline_feed`).
+- Live smoke: widget renders 79 at-risk items (60 expired · 19 expiring 30d · 9 expiring 60d) with 8 sample rows.
+
+**Part B · Incident Intelligence Readiness Bridge (documentation-only):**
+- Authored `TRACK_19_33_INCIDENT_ENGINE_READINESS_BRIDGE.md`.
+- Locked doctrine: **Field captures facts · Safety investigates · Management decides · Platform routes/records/reports/protects.** Field users must NEVER be prompted for OSHA recordability, insurance liability, root cause, preventability, or discipline.
+- Documented Phase 1 through Phase 5 track split (19.34 field intake modernization · 19.35 case workspace · 19.36 executive PDF redesign · 19.37 passive incident-presence scoring · 19.38 cross-portal read fanout).
+- 10 incident types locked: Utility Strike · Employee Injury · Vehicle Accident · Equipment Accident · Property Damage · Near Miss · Environmental Spill · Workplace Violence/Threat · Theft/Vandalism/Security · Other.
+- Preserved routes, data model protections, PDF redesign principles, rollback strategy, migration safety, risk matrix, testing matrix.
+
+**Zero-drift proof:** 0 new backend routes · 0 new backend files · 0 schemas · 0 payloads · 0 permissions · 0 PDFs · 0 emails · 0 audit events. Only 2 frontend files touched (1 new widget + 2-line edit in HR hub).
+
+**Verification:** 12/12 live Playwright smoke assertions PASS · frontend lint clean · lock test 25/25 assertions PASS.
+
+**Rollback:** delete widget file + revert 2 lines in HrHubV2. HIGH confidence.
+
+**Docs:** `TRACK_19_33_HR_COMPLIANCE_AT_RISK.md` · `TRACK_19_33_INCIDENT_ENGINE_READINESS_BRIDGE.md` · `TRACK_19_33_QUALITY_GATE_CLOSEOUT.md` · `TRACK_19_33_TEST_REPORT.md`.
+
+**Next:** Track 19.34 (Field Intake Modernization) is the recommended next major track — bridge doc locks scope, doctrine, and gate checklist.
+
+
+
 ## TRACK 19.32 · Transportation / Fleet Sidebar V2 · 7/7 Portal Consistency · ✅ COMPLETE (2026-07-03)
 
 **Six Pillar: 58/60 · Production Strong · Zero-Drift.** Second feature track under Track 19.30 quality gate.
