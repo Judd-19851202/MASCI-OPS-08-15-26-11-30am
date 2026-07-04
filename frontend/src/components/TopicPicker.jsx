@@ -95,7 +95,7 @@ export function TopicPicker({
     if (!value || value === customKey) return null;
     const found = topics.find((tt) => tt.key === value);
     return found ? titleFor(found) : null;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [value, topics, customKey, lang]);
 
   // Domain counts (over the full topic list, ignoring current filter)

@@ -86,7 +86,7 @@ export default function FieldLeadershipRecords() {
   };
 
   // Initial load + refetch on filter change
-  useEffect(() => { fetchRecords(); /* eslint-disable-next-line */ }, [filterKind]);
+  useEffect(() => { fetchRecords();   }, [filterKind]);
   // Manual refetch after typing — debounced via the search button instead
 
   const totalCount = useMemo(

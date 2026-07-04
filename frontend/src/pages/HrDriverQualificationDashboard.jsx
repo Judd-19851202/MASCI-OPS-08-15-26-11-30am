@@ -95,7 +95,7 @@ export default function HrDriverQualificationDashboard() {
 
   useEffect(() => {
     fetchRows();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   const toggleEndorsementFilter = (code) => {

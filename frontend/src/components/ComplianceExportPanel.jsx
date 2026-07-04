@@ -122,7 +122,7 @@ export default function ComplianceExportPanel({ hideBackupTools = false } = {}) 
 
   useEffect(() => {
     refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   const total = counts?.total ?? 0;
@@ -164,9 +164,9 @@ export default function ComplianceExportPanel({ hideBackupTools = false } = {}) 
       for (const k of KINDS) {
         if ((counts?.counts?.[k.key] ?? 0) > 0) {
           // Slight delay between downloads so the browser doesn't block them
-          // eslint-disable-next-line no-await-in-loop
+           
           await downloadCsv(k.key, start, end, k.label);
-          // eslint-disable-next-line no-await-in-loop
+           
           await new Promise((r) => setTimeout(r, 400));
         }
       }

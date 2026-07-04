@@ -51,7 +51,7 @@ export default function AdminAuditLog() {
     } finally { setLoading(false); }
   };
 
-  useEffect(() => { load({ offset: 0 }); /* eslint-disable-next-line */ }, []);
+  useEffect(() => { load({ offset: 0 });   }, []);
 
   const apply = () => { setOffset(0); load({ offset: 0 }); };
   const reset = () => { setQ(""); setActor(""); setAction(""); setSource(""); setOffset(0); load({ offset: 0 }); };

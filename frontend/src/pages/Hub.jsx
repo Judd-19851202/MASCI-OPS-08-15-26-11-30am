@@ -218,7 +218,7 @@ export default function Hub() {
 
   const session = useMemo(
     () => detectActiveSession(t, () => force((n) => n + 1)),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     [t, renderTick],
   );
 

@@ -72,7 +72,7 @@ export default function MasterLookupCombobox({
     })();
     return () => { alive = false; };
     // Only fire when value first appears; we don't want re-resolve loops
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [value, kind]);
 
   // Close on outside click

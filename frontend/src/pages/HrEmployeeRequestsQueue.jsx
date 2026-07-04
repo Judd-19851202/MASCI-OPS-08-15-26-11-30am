@@ -129,7 +129,7 @@ export default function HrEmployeeRequestsQueue() {
       }
     });
     // Only fire once per landing — subsequent re-fetches must not re-open.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [deepLinkRequestId, items.length]);
 
   const openApprove = (req) => {

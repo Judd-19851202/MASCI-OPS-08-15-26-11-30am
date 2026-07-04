@@ -94,7 +94,7 @@ export default function AdminSchedulerRuns() {
     } finally { setLoading(false); }
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [scheduler]);
+  useEffect(() => { load();   }, [scheduler]);
 
   const summary = useMemo(() => ({
     headline: scheduler

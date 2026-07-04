@@ -54,7 +54,7 @@ export default function OperationsActionDetail() {
     }
   };
 
-  // eslint-disable-next-line
+   
   useEffect(() => { load(); }, [id]);
 
   const saveEdits = async () => {

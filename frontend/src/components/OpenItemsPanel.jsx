@@ -33,7 +33,7 @@ const OpenItemsPanel = ({ baseHref = "/admin/equipment", testIdPrefix = "open-it
 
   useEffect(() => {
     load(severity);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   const onChangeSeverity = (s) => {

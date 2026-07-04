@@ -111,7 +111,7 @@ export default function SideNavV2({ onNavigate }) {
       setOpenDomains(next);
       writeOpenDomains(next);
     }
-  }, [activeDomainId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeDomainId]);  
 
   const toggle = (id) => {
     const next = openDomains.includes(id)

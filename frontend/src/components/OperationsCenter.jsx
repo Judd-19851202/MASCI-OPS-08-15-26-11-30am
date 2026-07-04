@@ -187,7 +187,7 @@ export default function OperationsCenter({ compact = false, className = "" }) {
     } finally { setLoading(false); }
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
+  useEffect(() => { load();   }, []);
 
   const visibleCards = useMemo(() => {
     if (!data?.cards) return [];

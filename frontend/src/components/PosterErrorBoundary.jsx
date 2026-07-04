@@ -34,7 +34,7 @@ export default class PosterErrorBoundary extends React.Component {
   componentDidCatch(error, info) {
     // Surface to the browser console so the team can see the stack
     // trace without DevTools React profiling enabled.
-    // eslint-disable-next-line no-console
+     
     console.error("PosterErrorBoundary caught:", error, info?.componentStack);
   }
 

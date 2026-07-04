@@ -124,7 +124,7 @@ export default function DriverQualificationReadOnlyView({
     }
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [params]);
+  useEffect(() => { load();   }, [params]);
 
   return (
     <div className="space-y-4" data-testid={`${testidPrefix}-view`}>

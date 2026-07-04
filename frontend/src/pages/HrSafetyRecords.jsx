@@ -262,7 +262,7 @@ export default function HrSafetyRecords() {
       setLoading(false);
     }
   };
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
+  useEffect(() => { load();   }, []);
 
   const filteredDocs = useMemo(() => {
     if (!search.trim()) return docs;

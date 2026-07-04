@@ -47,7 +47,7 @@ export default function IntegrationHealthCard({
       setLoading(false);
     }
   };
-  useEffect(() => { refresh(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
+  useEffect(() => { refresh();   }, []);
 
   const accentBorder = {
     slate:  "border-slate-700",

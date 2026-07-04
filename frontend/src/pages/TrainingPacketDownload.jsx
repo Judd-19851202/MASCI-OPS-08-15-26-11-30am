@@ -94,7 +94,7 @@ export default function TrainingPacketDownload() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [trackSlug, lang]);
 
   if (!track) return <Navigate to="/training" replace />;

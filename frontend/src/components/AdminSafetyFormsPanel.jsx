@@ -84,7 +84,7 @@ export default function AdminSafetyFormsPanel() {
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [tab]);
 
   const reset = () =>

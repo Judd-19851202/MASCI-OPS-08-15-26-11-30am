@@ -53,12 +53,12 @@ export default function OperationsActions() {
     }
   };
 
-  // eslint-disable-next-line
+   
   useEffect(() => { load(); }, [statusF, categoryF, priorityF, mine]);
   useEffect(() => {
     const id = setTimeout(load, 250);
     return () => clearTimeout(id);
-    // eslint-disable-next-line
+     
   }, [q]);
 
   const tiles = useMemo(() => {

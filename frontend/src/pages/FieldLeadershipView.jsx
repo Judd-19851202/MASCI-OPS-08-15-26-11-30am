@@ -37,7 +37,7 @@ export default function FieldLeadershipView() {
       .then((r) => setRec(r.data))
       .catch((err) => toast.error(err?.response?.data?.detail || t("Could not load record")))
       .finally(() => setLoading(false));
-    // eslint-disable-next-line
+     
   }, [id]);
 
   const kindLabel = (k) => {

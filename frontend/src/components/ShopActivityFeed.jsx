@@ -30,7 +30,7 @@ const ShopActivityFeed = ({ baseHref = "/shop/equipment", limit = 20, testIdPref
     }
   };
 
-  useEffect(() => { load(); }, []); // eslint-disable-line
+  useEffect(() => { load(); }, []);  
 
   const fmt = (iso) => {
     if (!iso) return "—";

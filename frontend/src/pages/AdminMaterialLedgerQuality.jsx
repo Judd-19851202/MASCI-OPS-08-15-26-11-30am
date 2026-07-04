@@ -149,7 +149,7 @@ export default function AdminMaterialLedgerQuality() {
         setState({ status: "error", body: null, err: e.message || "Fetch failed" });
       });
     return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [reqId]);
 
   const downloadCsv = React.useCallback(async () => {

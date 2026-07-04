@@ -79,7 +79,7 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
       }
     })();
     return () => { alive = false; };
-  }, [id, navigate]); // eslint-disable-line
+  }, [id, navigate]);  
 
   useEffect(() => {
     if (!loading && data) maybeAutoPrint();

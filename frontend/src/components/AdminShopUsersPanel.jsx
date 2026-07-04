@@ -86,7 +86,7 @@ export default function AdminShopUsersPanel() {
     }
   };
 
-  useEffect(() => { refresh(); /* eslint-disable-next-line */ }, []);
+  useEffect(() => { refresh();   }, []);
 
   const addUser = async () => {
     if (!form.name.trim()) return toast.error("Name required");

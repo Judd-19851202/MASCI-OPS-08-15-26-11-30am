@@ -58,7 +58,7 @@ export default function HrFieldLeadership() {
 
   useEffect(() => {
     fetchRows();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   const downloadPdf = async (rec) => {

@@ -736,7 +736,7 @@ export function DispatchIdleAlertsTab() {
       setData({ rows: [], totals: { d7: 0, d14: 0, d30: 0, matched: 0 }, min_days: minDays });
     } finally { setLoading(false); }
   };
-  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [minDays]);
+  useEffect(() => { load();   }, [minDays]);
 
   const totals = data?.totals || { d7: 0, d14: 0, d30: 0, matched: 0 };
   const rows = data?.rows || [];

@@ -125,7 +125,7 @@ export default function MasterListPanel({
 
   useEffect(() => {
     refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [listEndpoint]);
 
   // Track 20.9 — TD-20.9-A01 hardening. The "Restore to active list"

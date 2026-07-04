@@ -109,7 +109,7 @@ export default function OdrNew() {
       device_kind: deviceKind(),
       lang,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   React.useEffect(() => {
@@ -122,7 +122,7 @@ export default function OdrNew() {
       device_kind: deviceKind(),
       lang,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [step]);
 
   React.useEffect(() => {

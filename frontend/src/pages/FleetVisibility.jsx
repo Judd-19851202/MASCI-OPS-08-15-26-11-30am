@@ -439,7 +439,7 @@ export default function FleetVisibility({ scope = "shop" }) {
     }
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [scope]);
+  useEffect(() => { load();   }, [scope]);
 
   const groups = data?.groups || [];
   const counts = useMemo(() => ({

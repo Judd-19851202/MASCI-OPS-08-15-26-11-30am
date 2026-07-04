@@ -190,7 +190,7 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
     }
   };
 
-  useEffect(() => { reload(); /* eslint-disable-next-line */ }, [projectNumber, scope]);
+  useEffect(() => { reload();   }, [projectNumber, scope]);
 
   const grouped = useMemo(() => {
     const out = {};

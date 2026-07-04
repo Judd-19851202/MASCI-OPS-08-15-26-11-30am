@@ -82,7 +82,7 @@ export default function MaintainxDefectCoverageSection({
     }
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [endpoint]);
+  useEffect(() => { load();   }, [endpoint]);
 
   const totals = data?.totals || {};
   const breakdown = data?.breakdown || [];

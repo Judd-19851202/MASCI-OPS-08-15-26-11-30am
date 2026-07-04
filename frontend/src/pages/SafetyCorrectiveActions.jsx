@@ -159,7 +159,7 @@ export default function SafetyCorrectiveActions() {
     if (typeof window !== "undefined" && window.history?.replaceState) {
       window.history.replaceState(window.history.state, "", _location.pathname);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   const refresh = async () => {
@@ -177,7 +177,7 @@ export default function SafetyCorrectiveActions() {
     }
   };
 
-  useEffect(() => { refresh(); /* eslint-disable-next-line */ }, [filterEqId, filterEmpId]);
+  useEffect(() => { refresh();   }, [filterEqId, filterEmpId]);
 
   const counts = useMemo(() => {
     const c = { All: items.length, Overdue: 0 };

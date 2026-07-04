@@ -390,7 +390,7 @@ export default function DriverCommandProfile({ driverKey, className = "" }) {
     }
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [driverKey]);
+  useEffect(() => { load();   }, [driverKey]);
 
   if (!driverKey) return null;
   if (loading) return (

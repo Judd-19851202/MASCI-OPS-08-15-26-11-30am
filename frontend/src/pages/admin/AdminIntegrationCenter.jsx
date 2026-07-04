@@ -212,7 +212,7 @@ function ProviderTab({ provider }) {
     } catch { toast.error("Could not load settings"); }
     finally { setLoading(false); }
   };
-  useEffect(() => { refresh(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [provider]);
+  useEffect(() => { refresh();   }, [provider]);
 
   const save = async (patch) => {
     setSaving(true);
@@ -388,7 +388,7 @@ function MappingTab({ kind }) {
     } catch (e) { toast.error(operationalError(e, "Could not load")); }
     finally { setLoading(false); }
   };
-  useEffect(() => { refresh(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [kind]);
+  useEffect(() => { refresh();   }, [kind]);
 
   const openCreate = () => setDlg({ open: true, mode: "create", id: null, form: { [masciIdField]: "" } });
   const openEdit = (m) => {
@@ -634,7 +634,7 @@ function LogTable({ url, kind }) {
     } catch (e) { toast.error("Could not load logs"); }
     finally { setLoading(false); }
   };
-  useEffect(() => { refresh(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [filter, url]);
+  useEffect(() => { refresh();   }, [filter, url]);
 
   return (
     <div className="space-y-3" data-testid={`ic-${kind}-log-table`}>
@@ -1371,7 +1371,7 @@ function GeofencesTab() {
     } catch (e) { toast.error(operationalError(e, "Could not load geofences")); setRows([]); }
     finally { setLoading(false); }
   };
-  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [status, category]);
+  useEffect(() => { load();   }, [status, category]);
 
   const categories = ["all", ...Array.from(new Set((rows || []).map((g) => g.category).filter(Boolean)))];
   const totalActive = (rows || []).filter((g) => g.status === "active").length;

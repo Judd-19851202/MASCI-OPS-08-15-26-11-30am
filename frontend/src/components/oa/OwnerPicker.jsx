@@ -40,7 +40,7 @@ export default function OwnerPicker({ value, onChange, autoFocus = false }) {
   useEffect(() => {
     const query = q.trim();
     if (!query) {
-      // eslint-disable-next-line
+       
       setResults([]);
       return;
     }

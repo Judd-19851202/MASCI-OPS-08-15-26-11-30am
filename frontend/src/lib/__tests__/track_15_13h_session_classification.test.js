@@ -155,7 +155,7 @@ describe("TRACK 15.13H · api.js interceptor contract (smoke / source check)", (
     expect(src).toMatch(/TRACK 15\.13H/);
 
     // Pull just the `if (activePortal) { … } else {` block.
-    const activeBlock = src.match(/if \(activePortal\) \{[\s\S]*?\n        \} else \{/);
+    const activeBlock = src.match(/if \(activePortal\) \{[\s\S]*?\n {8}\} else \{/);
     expect(activeBlock).toBeTruthy();
     const text = activeBlock[0];
 

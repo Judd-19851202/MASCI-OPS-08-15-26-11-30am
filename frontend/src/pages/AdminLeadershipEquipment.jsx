@@ -49,7 +49,7 @@ export default function AdminLeadershipEquipment() {
     }
   };
 
-  useEffect(() => { refresh(); /* eslint-disable-next-line */ }, []);
+  useEffect(() => { refresh();   }, []);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();

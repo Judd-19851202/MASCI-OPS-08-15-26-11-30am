@@ -202,7 +202,7 @@ export default function ShopHub() {
       setRecoveryLoading(false);
     }
   };
-  useEffect(() => { loadRecovery(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
+  useEffect(() => { loadRecovery();   }, []);
 
   const onLogout = async () => {
     await clearAllSessions();

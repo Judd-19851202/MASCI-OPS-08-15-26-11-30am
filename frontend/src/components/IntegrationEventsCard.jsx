@@ -73,7 +73,7 @@ export default function IntegrationEventsCard({
       setLoading(false);
     }
   };
-  useEffect(() => { refresh(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [provider]);
+  useEffect(() => { refresh();   }, [provider]);
 
   const border = ACCENT_BORDER[accent] || ACCENT_BORDER.slate;
 

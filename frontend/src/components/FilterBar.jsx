@@ -35,7 +35,7 @@ export default function FilterBar({
   className = "",
   align = "end",
   // columns prop retained for compat but ignored — doctrine is 2-col max
-  // eslint-disable-next-line no-unused-vars
+   
   columns,
 }) {
   const alignClass = align === "end" ? "items-end" : "items-start";

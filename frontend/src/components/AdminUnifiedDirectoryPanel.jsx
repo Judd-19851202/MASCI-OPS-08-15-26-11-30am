@@ -114,7 +114,7 @@ export default function AdminUnifiedDirectoryPanel() {
 
   useEffect(() => {
     refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [portal, source]);
 
   const templateById = useMemo(() => {

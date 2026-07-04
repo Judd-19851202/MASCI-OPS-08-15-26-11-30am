@@ -89,7 +89,7 @@ export default function PartsCatalog() {
         toast.error(t("Could not load fleet list"));
       }
     })();
-  }, []); // eslint-disable-line
+  }, []);  
 
   const filteredFleet = useMemo(() => {
     const s = search.trim().toLowerCase();
@@ -445,7 +445,7 @@ const OrderCart = ({ cart, unit, removeFromCart, updateCartQty, requestedByDefau
 
   useEffect(() => {
     if (requestedByDefault && !requestedBy) setRequestedBy(requestedByDefault);
-  }, [requestedByDefault]); // eslint-disable-line
+  }, [requestedByDefault]);  
 
   const sendOrder = async () => {
     if (cart.length === 0) {

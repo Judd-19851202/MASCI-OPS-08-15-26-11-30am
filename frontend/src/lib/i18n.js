@@ -71,7 +71,6 @@ const ES = {
   "Open cases": "Casos abiertos",
   "Critical cases": "Casos críticos",
   "Avg readiness": "Preparación media",
-  "Open CAPAs": "CAPAs abiertas",
   "total": "total",
   "Case Health SLA": "SLA de Salud del Caso",
   "On pace": "A tiempo",
@@ -83,13 +82,11 @@ const ES = {
   "Nothing needs your attention right now. Nice.":
     "Nada requiere tu atención ahora mismo. Bien.",
   "Age": "Edad",
-  "Recommended": "Recomendado",
   "review immediately": "revisar inmediatamente",
   "assign root cause owner": "asignar dueño de causa raíz",
   "reallocate investigator": "reasignar investigador",
   "escalate to safety lead": "escalar al líder de seguridad",
   "verify osha paperwork": "verificar papeleo OSHA",
-  "review": "revisar",
   "critical incident type": "tipo de incidente crítico",
   "osha recordable": "registrable OSHA",
   "sla missed": "SLA vencido",
@@ -98,7 +95,6 @@ const ES = {
   "Root Cause Intelligence": "Inteligencia de Causa Raíz",
   "No root causes recorded yet.": "Aún no hay causas raíz registradas.",
   "Corrective Action Intelligence": "Inteligencia de Acciones Correctivas",
-  "Overdue": "Vencidas",
   "Avg completion (days)": "Tiempo medio de cierre (días)",
   "Project Intelligence": "Inteligencia de Proyectos",
   "No project data yet.": "Aún no hay datos de proyectos.",
@@ -111,80 +107,56 @@ const ES = {
   "Most-verified action classes": "Clases de acción más verificadas",
   "No verified actions yet.": "Aún no hay acciones verificadas.",
   "Peak occurrence hours": "Horas pico de ocurrencia",
-  "Verified": "Verificadas",
-  "open": "abiertos",
 
   // ── Track 19.16 · Phase E · Report Intelligence Engine ─────────
   "Loading report…": "Cargando reporte…",
   "Could not load report": "No se pudo cargar el reporte",
   "Back to case": "Volver al caso",
-  "Print": "Imprimir",
-  "Download PDF": "Descargar PDF",
   "Share": "Compartir",
   "Report link copied.": "Enlace del reporte copiado.",
   "Copy this link": "Copia este enlace",
   "Customer-facing report": "Reporte para el cliente",
-  "Generated": "Generado",
   "Occurred at": "Ocurrió en",
   "Reported at": "Reportado en",
   "Submitted at": "Enviado en",
   "State": "Estado",
-  "Executive Summary": "Resumen Ejecutivo",
-  "Readiness": "Preparación",
   "SLA": "SLA",
-  "OSHA recordable": "Registrable OSHA",
   "Root cause captured": "Causa raíz capturada",
   "Blockers": "Bloqueadores",
   "No blockers.": "Sin bloqueadores.",
-  "Summary": "Resumen",
   "Observed conditions": "Condiciones observadas",
-  "Immediate actions": "Acciones inmediatas",
   "When": "Cuándo",
-  "Event": "Evento",
   "Actor": "Actor",
   "Payload": "Datos",
   "No events yet.": "Aún no hay eventos.",
   "Evidence Index": "Índice de Evidencia",
   "ID": "ID",
-  "Type": "Tipo",
   "Label": "Etiqueta",
   "Added": "Añadido",
   "Custody": "Custodia",
   "steps": "pasos",
   "No evidence indexed.": "Sin evidencia indexada.",
-  "Witnesses": "Testigos",
-  "Name": "Nombre",
-  "Kind": "Tipo",
-  "Status": "Estado",
-  "Contact": "Contacto",
-  "Company": "Empresa",
   "No witnesses recorded.": "Sin testigos registrados.",
-  "Medical": "Médico",
   "Medical (aggregate)": "Médico (agregado)",
   "Redacted for this audience.": "Redactado para esta audiencia.",
   "Entries": "Entradas",
   "Total lost days": "Total de días perdidos",
   "Provider": "Proveedor",
-  "Lost days": "Días perdidos",
   "No medical entries.": "Sin entradas médicas.",
   "Agency": "Agencia",
   "Officer": "Oficial",
-  "Report #": "Reporte #",
   "No agency contacts logged.": "Sin contactos con agencia.",
   "Party": "Parte",
   "Subject": "Asunto",
   "Body": "Cuerpo",
   "No communications logged.": "Sin comunicaciones registradas.",
-  "Title": "Título",
   "Class": "Clase",
   "Assigned to": "Asignado a",
-  "Due": "Vence",
   "No corrective actions.": "Sin acciones correctivas.",
   "Categories": "Categorías",
   "Contributing factors": "Factores contribuyentes",
   "Vehicle Details": "Detalles del Vehículo",
   "Vehicle IDs": "IDs de Vehículo",
-  "Drivers": "Conductores",
   "Passengers": "Pasajeros",
   "Police response": "Respuesta policial",
   "Police case #": "Caso policial #",
@@ -193,7 +165,6 @@ const ES = {
   "Third party involved": "Tercero involucrado",
   "Third-party info": "Info del tercero",
   "Utility Strike Details": "Detalles del Golpe a Utilidad",
-  "Utility type": "Tipo de utilidad",
   "Utility owner": "Propietario de utilidad",
   "Locate ticket #": "Ticket de localización #",
   "Locate valid": "Localización válida",
@@ -203,11 +174,9 @@ const ES = {
   "Injury Details": "Detalles de Lesión",
   "Injured employee": "Empleado lesionado",
   "Body part": "Parte del cuerpo",
-  "Severity": "Severidad",
   "First aid given": "Primeros auxilios dados",
   "EMS transported": "Transportado por EMS",
   "Hospital": "Hospital",
-  "Description": "Descripción",
   "Target ID": "ID de destino",
   "No linked records.": "Sin registros vinculados.",
   "Lessons Learned": "Lecciones Aprendidas",
@@ -218,32 +187,21 @@ const ES = {
   "Temporary or unlisted project — enter manually":
     "Proyecto temporal o no listado — ingresar manualmente",
   "Back to project picker": "Volver al selector de proyecto",
-  "Job number": "Número de proyecto",
-  "Signed in as": "Sesión iniciada como",
   "Not me": "No soy yo",
-  "Your name": "Tu nombre",
   "Capture GPS to auto-fetch weather.":
     "Captura GPS para obtener el clima automáticamente.",
   "Weather (optional override)": "Clima (anulación opcional)",
   "Refresh weather": "Actualizar clima",
   "Fetching…": "Obteniendo…",
   "Temp": "Temp",
-  "Wind": "Viento",
   "Humidity": "Humedad",
-  "Rain": "Lluvia",
   "Auto-filled from platform data": "Autocompletado desde datos de la plataforma",
-  "auto": "auto",
   "auto-filled": "autocompletado",
   "typed by you": "escrito por ti",
   "Project details": "Detalles del proyecto",
-  "Project": "Proyecto",
-  "Client": "Cliente",
-  "PM": "PM",
-  "Superintendent": "Superintendente",
   // ── UX Hardening Batch 2 ─────────────────────────────────────────
   "Selected from roster": "Seleccionado del roster",
   "Selected from fleet": "Seleccionado de la flota",
-  "Crew": "Cuadrilla",
   "Search or type. Selecting a name from the list auto-fills roster data.":
     "Buscar o escribir. Seleccionar un nombre de la lista autocompleta los datos del roster.",
   "Search employee…": "Buscar empleado…",
@@ -259,27 +217,21 @@ const ES = {
   "Tap to preview · use ↑↓ to reorder":
     "Toca para previsualizar · usa ↑↓ para reordenar",
   "Preview photo": "Previsualizar foto",
-  "Remove photo": "Eliminar foto",
   "Move photo earlier": "Mover foto antes",
   "Move photo later": "Mover foto después",
   "Close preview": "Cerrar previsualización",
-  "Close": "Cerrar",
   "The active crew workflow is the new Incident Intelligence flow.":
     "El flujo activo de la cuadrilla es el nuevo flujo de Inteligencia de Incidentes.",
   "Open the new Incident Report": "Abrir el nuevo Reporte de Incidente",
-  "Back": "Atrás",
 
   // ── Track 19.16 · Phase C · Safety Case Workspace ─────────────────
   "Safety Case Workspace": "Espacio de Trabajo del Caso de Seguridad",
   "Case": "Caso",
   "Case sections": "Secciones del caso",
   "Days open": "Días abierto",
-  "Reporter": "Reportante",
-  "Job": "Trabajo",
   "Timeline": "Línea de tiempo",
   "Police / Agency": "Policía / Agencia",
   "Root Cause": "Causa raíz",
-  "Corrective Actions": "Acciones correctivas",
   "Communications": "Comunicaciones",
   "Safety Tasks": "Tareas de Seguridad",
   "Linked Records": "Registros vinculados",
@@ -288,7 +240,6 @@ const ES = {
   "OSHA recordable": "Registrable OSHA",
   "Unset": "Sin definir",
   "Lost time (days)": "Tiempo perdido (días)",
-  "Pending": "Pendiente",
   "Readiness": "Preparación",
   "No timeline entries yet.": "Aún no hay entradas en la línea de tiempo.",
   "No evidence yet.": "Aún no hay evidencia.",
@@ -298,17 +249,12 @@ const ES = {
   "No communications logged yet.": "Aún no hay comunicaciones registradas.",
   "No safety tasks yet.": "Aún no hay tareas de seguridad.",
   "No linked records yet.": "Aún no hay registros vinculados.",
-  "Witnesses": "Testigos",
   "Witness name": "Nombre del testigo",
   "Contact": "Contacto",
-  "Reason": "Razón",
   "Root cause summary": "Resumen de causa raíz",
   "Contributing factors (one per line)": "Factores contribuyentes (uno por línea)",
   "Save root cause": "Guardar causa raíz",
   "Withdrawn": "Retirado",
-  "Verify": "Verificar",
-  "Assigned": "Asignado",
-  "Due": "Fecha límite",
   "Lost days": "Días perdidos",
   "Could not load case": "No se pudo cargar el caso",
   "Error": "Error",
@@ -365,20 +311,15 @@ const ES = {
     "Llame al 911 si hay una emergencia activa.",
   "Add your name or a photo (optional)":
     "Agrega tu nombre o una foto (opcional)",
-  "Your name": "Tu nombre",
   "Company (optional)": "Empresa (opcional)",
   "Attached photo": "Foto adjunta",
   "Remove photo": "Eliminar foto",
   "Attach a photo": "Adjuntar una foto",
   "Add photo (optional)": "Agregar foto (opcional)",
-  "Sending…": "Enviando…",
   "Submit near-miss report": "Enviar reporte de casi accidente",
   "Save & queue": "Guardar y encolar",
   "Anonymous submissions are welcome. Nothing is shared with your employer beyond Safety.":
     "Los envíos anónimos son bienvenidos. Nada se comparte con tu empleador más allá de Seguridad.",
-  "Online": "En línea",
-  "Offline": "Sin conexión",
-  "Report submitted": "Reporte enviado",
   "Thank you. Safety has received your report.":
     "Gracias. Seguridad recibió tu reporte.",
   "We noticed this report was already submitted. We're keeping just one copy.":
@@ -390,15 +331,12 @@ const ES = {
     "Esto se enviará cuando regrese la conexión.",
   "Your report is saved on this device. Do not close this tab if possible — we will submit it automatically when the internet returns.":
     "Tu reporte está guardado en este dispositivo. No cierres esta pestaña si es posible — lo enviaremos automáticamente cuando regrese el internet.",
-  "OK": "OK",
   // Draft resume banner
   "Unfinished report": "Reporte sin terminar",
   "Untitled": "Sin título",
   "Resume": "Continuar",
-  "Discard": "Descartar",
   "Resume unfinished report": "Continuar reporte sin terminar",
   "Discard unfinished report": "Descartar reporte sin terminar",
-  "just now": "ahora mismo",
   "min": "min", "hr": "h", "day": "día", "ago": "atrás",
 
   // ── Track 19.16 · Phase B1 · Field Incident Report ─────────────────
@@ -413,9 +351,7 @@ const ES = {
   // Incident type labels (mirror Phase A vocabulary)
   "Vehicle Accident": "Accidente de Vehículo",
   "Equipment Accident": "Accidente de Equipo",
-  "Utility Strike": "Impacto a Servicio Público",
   "Employee Injury": "Lesión de Empleado",
-  "Near Miss": "Casi Accidente",
   "Property Damage": "Daño a la Propiedad",
   "Environmental": "Ambiental",
   "Workplace Violence": "Violencia en el Trabajo",
@@ -459,12 +395,10 @@ const ES = {
     "Ruido · polvo · tráfico · propiedad · conducta",
   // Steps
   "Immediate Safety": "Seguridad Inmediata",
-  "Location": "Ubicación",
   "Who was involved": "Quién estuvo involucrado",
   "What happened": "Qué pasó",
   "Immediate actions": "Acciones inmediatas",
   "Photos & evidence": "Fotos y evidencia",
-  "Witnesses": "Testigos",
   "Vehicle details": "Detalles del vehículo",
   "Equipment details": "Detalles del equipo",
   "Utility strike details": "Detalles del impacto",
@@ -483,7 +417,6 @@ const ES = {
   "Job number": "Número de trabajo",
   "Location description": "Descripción de la ubicación",
   "GPS coordinate": "Coordenada GPS",
-  "Weather": "Clima",
   // People
   "Your name (reporter)": "Tu nombre (reportante)",
   "Your role": "Tu rol",
@@ -511,9 +444,7 @@ const ES = {
   "Equipment ID / asset tag": "ID de equipo / etiqueta de activo",
   "Operator name": "Nombre del operador",
   "Damage severity": "Severidad del daño",
-  "Minor": "Menor", "Moderate": "Moderado", "Major": "Mayor", "Total loss": "Pérdida total",
   "Mark equipment out of service?": "¿Marcar equipo fuera de servicio?",
-  "Describe the damage": "Describe el daño",
   // Utility
   "Utility type": "Tipo de servicio",
   "Electric": "Eléctrico", "Gas": "Gas", "Water": "Agua",
@@ -529,7 +460,6 @@ const ES = {
   // Injury
   "Injured employee name": "Nombre del empleado lesionado",
   "Body part affected": "Parte del cuerpo afectada",
-  "Severity": "Severidad",
   "First aid only": "Solo primeros auxilios",
   "Medical treatment": "Tratamiento médico",
   "Hospitalization": "Hospitalización",
@@ -543,13 +473,11 @@ const ES = {
     "Consecuencia potencial si hubiera continuado",
   "What prevented an injury or damage?": "¿Qué previno una lesión o daño?",
   "Potential severity": "Severidad potencial",
-  "Low": "Baja", "High": "Alta", "Catastrophic": "Catastrófica",
   // Property damage
   "Property owner": "Propietario",
   "Owner contact": "Contacto del propietario",
   "Affected assets": "Bienes afectados",
   "Estimated damage (USD)": "Daño estimado (USD)",
-  "Damage description": "Descripción del daño",
   // Environmental
   "Material spilled": "Material derramado",
   "Estimated volume (gallons / units)": "Volumen estimado (galones / unidades)",
@@ -576,9 +504,7 @@ const ES = {
   "Resolution attempted on scene": "Resolución intentada en el sitio",
   // Witnesses
   "Internal employee": "Empleado interno",
-  "Visitor": "Visitante",
   "Contractor": "Contratista",
-  "Public": "Público",
   "Police": "Policía",
   "Utility representative": "Representante de servicio público",
   "Statement / notes": "Declaración / notas",
@@ -588,24 +514,16 @@ const ES = {
   "Add photo": "Agregar foto",
   "GPS + timestamp are attached automatically.":
     "Se adjuntan automáticamente GPS y hora.",
-  "Photos": "Fotos",
   // Generic controls
-  "Name": "Nombre", "Role": "Rol",
-  "Remove": "Eliminar", "Add person": "Agregar persona",
   "Phone or email": "Teléfono o email",
   "Choose…": "Elige…",
   "Locating…": "Localizando…",
   "Capture GPS": "Capturar GPS", "Update GPS": "Actualizar GPS",
-  "Section": "Sección", "Complete": "Completo", "missing": "faltantes",
   "Everything you entered. Tap a section to jump back.":
     "Todo lo que ingresaste. Toca una sección para volver.",
-  "Incident": "Incidente",
-  "Back": "Atrás", "Next": "Siguiente", "Review": "Revisar", "Edit": "Editar",
-  "Draft saved": "Borrador guardado",
   "Autosaved on this device": "Autoguardado en este dispositivo",
   "Submit report": "Enviar reporte",
   "Complete required fields to submit": "Completa los campos requeridos para enviar",
-  "Submitting…": "Enviando…",
   "We could not submit. Please try again.":
     "No pudimos enviar. Intenta de nuevo por favor.",
   // Success
@@ -618,7 +536,6 @@ const ES = {
     "Seguridad iniciará la recepción y te contactará si necesita algo.",
   "You can close this page — nothing else is required from you right now.":
     "Puedes cerrar esta página — no se requiere nada más de ti ahora.",
-  "Done": "Listo",
   // Help drawer
   "How to fill this out": "Cómo llenar esto",
   "Report only the facts you observed.":
@@ -689,7 +606,6 @@ const ES = {
   "Child (under 18)": "Niño (menor de 18)",
   "Adult": "Adulto",
   "Senior (65+)": "Mayor (65+)",
-  "Unknown": "Desconocido",
   "Was the injured party transported by EMS?":
     "¿La persona lesionada fue transportada por EMS?",
   "Hospital / clinic (if known)": "Hospital / clínica (si se conoce)",
@@ -756,7 +672,6 @@ const ES = {
   "Control actions taken": "Acciones de control tomadas",
   "Was work stopped?": "¿Se detuvo el trabajo?",
   // Other fields
-  "Describe what happened": "Describe lo que pasó",
   "Who was present?": "¿Quién estaba presente?",
   "Any immediate hazard remaining?": "¿Queda algún peligro inmediato?",
 
@@ -780,11 +695,7 @@ const ES = {
   "the on-site reporter": "el reportero en el sitio",
   "Recent field memory": "Memoria operacional reciente",
   "No recent operational notes.": "No hay notas operacionales recientes.",
-  "Project": "Proyecto",
-  "Equipment": "Equipo",
-  "Assignment": "Asignación",
   "Recovery": "Recuperación",
-  "Note": "Nota",
   "just now": "ahora",
   "min ago": "min atrás",
   "hr ago": "h atrás",
@@ -820,15 +731,12 @@ const ES = {
   "e.g. Paving Crew A": "p.ej. Cuadrilla de Pavimentación A",
   "Save name": "Guardar nombre",
   "saved": "guardada",
-  "today": "hoy",
   "yesterday": "ayer",
   "days ago": "días atrás",
   "crew member": "miembro de cuadrilla",
-  "crew members": "miembros de cuadrilla",
   "subcontractor": "subcontratista",
   "subcontractors": "subcontratistas",
   "equipment item": "equipo",
-  "equipment items": "equipos",
   "Crew setup loaded · edit anything as needed.":
     "Configuración cargada · edita lo que necesites.",
   "Saved setup cleared from this device.":
@@ -849,7 +757,6 @@ const ES = {
   "healthy": "sano",
   "a moment ago": "hace un momento",
   // iter440 · Last Activity line strings per portal write kind.
-  "Activity": "Actividad",
   "Assignment created": "Asignación creada",
   "Operational moment logged": "Momento operacional registrado",
   "Recovery moment logged": "Momento de recuperación registrado",
@@ -899,15 +806,10 @@ const ES = {
     "Reportes de campo, registros de seguridad, firmas del taller, espacios de proyecto, capacitación y la consola de oficina — cada flujo de MASCI en un solo lugar.",
   "Safety forms, field reports, project workspaces, and the office console — all under one roof.":
     "Formularios de seguridad, reportes de campo, espacios de proyecto y la consola de oficina — todo bajo un techo.",
-  "Safety": "Seguridad",
   "Field": "Campo",
-  "Projects": "Proyectos",
-  "Admin": "Admin",
   "Compliance": "Cumplimiento",
   "Quality Assurance": "Aseguramiento de Calidad",
-  "Quality Assurance · Quality Control": "Aseguramiento de Calidad · Control de Calidad",
   "Daily Ops": "Operaciones diarias",
-  "Project Workspaces": "Espacios de proyecto",
   "Office Console": "Consola de oficina",
   "Safety · Compliance": "Seguridad · Cumplimiento",
   "Field · Daily Ops": "Campo · Operaciones diarias",
@@ -951,17 +853,9 @@ const ES = {
   // Combo dropdowns (employee/supplier/equipment) — added 2026-04-29 in the
   // big rewrite that fixed the focus-stealing bug. The combos no longer have
   // a separate search input; the main input filters the list directly.
-  "Type or pick an employee…": "Escribe o elige un empleado…",
-  "Type or pick a supplier…": "Escribe o elige un proveedor…",
   "Type or pick equipment…": "Escribe o elige equipo…",
-  "Browse roster": "Ver lista",
-  "Browse supplier list": "Ver lista de proveedores",
-  "Browse fleet": "Ver flota",
-  "Roster not uploaded yet — type the name freely.":
     "Lista no cargada — escribe el nombre libremente.",
-  "Supplier list not uploaded yet — type freely.":
     "Lista de proveedores no cargada — escribe libremente.",
-  "Equipment list not loaded yet.":
     "Lista de equipo no cargada todavía.",
   "No matches — your typed name will be saved.":
     "Sin coincidencias — el nombre que escribiste se guardará.",
@@ -976,12 +870,10 @@ const ES = {
     "Protegido con contraseña · ver / imprimir / eliminar registros",
   "Backup · Restore · Auto-email routing · Posters":
     "Respaldo · Restaurar · Ruteo de correos · Carteles",
-  "MASCI Operations Platform": "MASCI · Plataforma de Operaciones",
   "MASCI · Safety · No Shortcuts · No Exceptions":
     "MASCI · Seguridad · Sin Atajos · Sin Excepciones",
   "MASCI · Field · No Shortcuts · No Exceptions":
     "MASCI · Campo · Sin Atajos · Sin Excepciones",
-  "One front door for every safety form.": "Una puerta de entrada para cada formulario de seguridad.",
   "Inspections. Meetings. Hazards. Incidents. Handled.":
     "Inspecciones. Reuniones. Peligros. Incidentes. Resueltos.",
   "Every field-safety form. One digital home.":
@@ -990,17 +882,11 @@ const ES = {
   // ============================================================
   // Daily Report
   // ============================================================
-  "Daily Reports": "Reportes Diarios",
   // Section 04 — MASCI Crews on Site (rebuilt 2026-04-28)
-  "Crew Member": "Miembro de Cuadrilla",
-  "Add Crew Member": "Agregar Miembro de Cuadrilla",
-  "Employee Name": "Nombre del Empleado",
-  "Trade / Role": "Oficio / Rol",
   "Hours": "Horas",
   "Start Time": "Hora de Inicio",
   "Stop Time": "Hora de Fin",
   "Lunch": "Almuerzo",
-  "auto": "auto",
   "Total crew hours today": "Horas Totales de la Cuadrilla Hoy",
   "Type or pick from roster…": "Escriba o elija de la lista…",
   // Photo picker (used everywhere)
@@ -1036,8 +922,6 @@ const ES = {
   "change the item from FAIL to PASS, then continue the inspection.":
     "cambie el ítem de FALLO a APROBADO y continúe con la inspección.",
   "I'll get my supervisor": "Voy por mi supervisor",
-  "Out of Service": "Fuera de Servicio",
-  "Needs Attention": "Requiere Atención",
 
   "Type or pick a supplier…": "Escriba o elija un proveedor…",
   "Browse supplier list": "Ver lista de proveedores",
@@ -1065,20 +949,13 @@ const ES = {
     "Archive uno antes de que la cuadrilla se vaya al final del día.",
   "File First Report": "Archivar Primer Reporte",
   "Recent Reports": "Reportes Recientes",
-  "on file": "en archivo",
-  "Prepared by": "Preparado por",
   "Prepared By *": "Preparado Por *",
   "Prepared By Signature": "Firma de Preparado Por",
-  "Prepared By": "Preparado Por",
   "Foreman / Superintendent": "Capataz / Superintendente",
-  "Superintendent": "Superintendente",
   "Superintendent Signature": "Firma del Superintendente",
-  "Report #": "Reporte #",
-  "View": "Ver",
   "crew": "cuadrilla",
   "subs": "subs",
   "visitors": "visitantes",
-  "Weather": "Clima",
   "Refresh Weather": "Actualizar Clima",
   "Capture GPS to auto-load today's weather. Refresh anytime.":
     "Capture GPS para cargar el clima de hoy automáticamente. Actualice cuando sea necesario.",
@@ -1122,17 +999,9 @@ const ES = {
   "Equipment Log": "Registro de Equipo",
   "Material Deliveries": "Entregas de Materiales",
   "Activity / Production Log": "Registro de Actividad / Producción",
-  "Crew": "Cuadrilla",
-  "Subcontractor": "Subcontratista",
   "Visitor": "Visitante",
-  "Equipment": "Equipo",
-  "Material": "Material",
-  "Activity": "Actividad",
-  "Trade": "Oficio",
-  "Foreman": "Capataz",
   "# of Workers": "# de Trabajadores",
   "Hours Worked": "Horas Trabajadas",
-  "Work Performed": "Trabajo Realizado",
   "Company": "Compañía",
   "Foreman / Lead": "Capataz / Líder",
   "Company / Agency": "Compañía / Agencia",
@@ -1143,20 +1012,12 @@ const ES = {
   "Hours Used": "Horas Usadas",
   "Time Delivered": "Hora de Entrega",
   "Time Removed": "Hora de Retiro",
-  "Notes": "Notas",
-  "Description": "Descripción",
-  "Quantity": "Cantidad",
-  "Unit": "Unidad",
-  "Supplier": "Proveedor",
-  "Ticket #": "Ticket #",
   "% Complete": "% Completo",
   "Station / Loc From": "Estación / Loc Desde",
   "Station / Loc To": "Estación / Loc Hasta",
   "Photo minimum met. Add more if helpful.":
     "Mínimo de fotos cumplido. Agregue más si es útil.",
   "Add at least": "Agregue al menos",
-  "more photo(s)": "foto(s) más",
-  "Sign-Off": "Firma de Cierre",
   "Submit Daily Report": "Enviar Reporte Diario",
   "Document compliance, run toolbox talks, and analyze hazards before every task. Print or save any record as a branded PDF — works from any device.":
     "Documente el cumplimiento, dirija charlas de seguridad y analice los peligros antes de cada tarea. Imprima o guarde cualquier registro como PDF — funciona en cualquier dispositivo.",
@@ -1186,14 +1047,11 @@ const ES = {
     "Un recorrido de 5 minutos para nuevos empleados: qué llenar, dónde y por qué.",
   "Quality assurance and quality control inspections for concrete, rebar, and subcontractor work — documented, signed, photographed, routed, and stored.":
     "Inspecciones de aseguramiento y control de calidad para concreto, varilla y trabajo de subcontratistas — documentadas, firmadas, fotografiadas, enrutadas y almacenadas.",
-  "Site Inspections": "Inspecciones de Obra",
   "Safety Meetings": "Reuniones de Seguridad",
   "Job Hazard Plan": "Plan de Peligros del Trabajo",
-  "Start Form": "Iniciar Formulario",
   "Open Library": "Abrir Biblioteca",
   "Open Plans": "Abrir Planes",
   "Open Cards": "Abrir Tarjetas",
-  "Incident Reports": "Reportes de Incidentes",
   "Daily and weekly job-site safety inspections. PPE, MOT, fall protection, electrical, and more — graded automatically.":
     "Inspecciones diarias y semanales del sitio. EPP, control de tránsito, protección contra caídas, eléctrico y más — calificadas automáticamente.",
   "Toolbox talks and daily huddles. 80+ heavy-civil topics with prefilled hazards — every crew member signs in.":
@@ -1214,19 +1072,12 @@ const ES = {
   "item(s) failed inspection. This unit will be tagged OUT OF SERVICE on the report.":
     "punto(s) fallaron. Esta unidad quedará marcada FUERA DE SERVICIO en el reporte.",
   "Project & Operator": "Proyecto y Operador",
-  "Equipment": "Equipo",
   "Equipment Type *": "Tipo de Equipo *",
   "Select equipment type": "Seleccione tipo de equipo",
-  "Loading…": "Cargando…",
   "Saved units": "Unidades guardadas",
   "Search saved units…": "Buscar unidades guardadas…",
-  "No matches.": "Sin resultados.",
   "Unit # / Label *": "Unidad # / Etiqueta *",
-  "Make": "Marca",
-  "Model": "Modelo",
-  "Serial #": "Número de Serie",
   "Hour Meter": "Horómetro",
-  "Odometer": "Odómetro",
   "Hour Meter / Odometer": "Horómetro / Odómetro",
   "Hour Meter / Odometer *": "Horómetro / Odómetro *",
   "Required — enter hours OR miles.": "Requerido — ingrese horas O millas.",
@@ -1234,15 +1085,10 @@ const ES = {
   "Leave blank if no odometer.": "Deje en blanco si no hay odómetro.",
   "Operator Name *": "Nombre del Operador *",
   "Your full name": "Su nombre completo",
-  "Pass": "Cumple",
-  "Fail": "No Cumple",
-  "PASS": "CUMPLE",
-  "N/A": "N/A",
   "Describe the issue (required for FAIL — min 10 characters)":
     "Describa el problema (requerido para NO CUMPLE — mínimo 10 caracteres)",
   "Description required for FAIL": "Descripción requerida para NO CUMPLE",
   "At least 10 characters required": "Mínimo 10 caracteres requeridos",
-  "Description": "Descripción",
   "Replace photo": "Reemplazar foto",
   "Add photo (required for FAIL)": "Agregar foto (requerida para NO CUMPLE)",
   "Tally": "Resumen",
@@ -1257,15 +1103,10 @@ const ES = {
   "I certify that I performed this pre-shift inspection of the listed equipment and that the conditions noted above are true and accurate. I will not operate this unit if any item is marked FAIL.":
     "Certifico que realicé esta inspección pre-turno del equipo listado y que las condiciones anotadas son verdaderas y precisas. No operaré esta unidad si algún punto está marcado FALLA.",
   "Operator Signature *": "Firma del Operador *",
-  "Submit Inspection": "Enviar Inspección",
   "New": "Nuevo",
-  "Good": "Bueno",
-  "Fair": "Regular",
-  "Condition": "Condición",
   "Initial Training": "Capacitación Inicial",
   "Refresher": "Repaso",
   "Retraining": "Reentrenamiento",
-  "Open": "Abrir",
   "report on file": "reporte en archivo",
   "reports on file": "reportes en archivo",
   "meeting logged": "reunión registrada",
@@ -1299,13 +1140,7 @@ const ES = {
   "New User Onboarding": "Orientación para Usuarios Nuevos",
   //
   // Operational Guidance Center — PORTAL_TRACKS labels.
-  "HR Portal": "Portal de RH",
-  "Safety Portal": "Portal de Seguridad",
   "Shop / Fleet Portal": "Portal de Taller / Flota",
-  "Dispatch Portal": "Portal de Despacho",
-  "PM Portal": "Portal de PM",
-  "Field Leadership Portal": "Portal de Liderazgo de Campo",
-  "Admin Console": "Consola de Administración",
   //
   // Training Hub — operational-guidance banner that links from
   // /training → /guidance.
@@ -1320,9 +1155,6 @@ const ES = {
   // as orphaned passthroughs — harmless, and protect any operator
   // bookmarks still rendering legacy strings during overlap. ─────────
   "Transportation Operations": "Operaciones de Transporte",
-  "Project Management": "Gestión de Proyectos",
-  "Human Resources": "Recursos Humanos",
-  "Safety Operations": "Operaciones de Seguridad",
   "Shop Operations": "Operaciones de Taller",
   "Administration": "Administración",
   "Operations": "Operaciones",
@@ -1395,7 +1227,6 @@ const ES = {
     "Responsabilidad del empleado · verificación de tiempo · cruce de nómina.",
   "Supervisor forms · crew accountability · equipment checkout.":
     "Formularios de supervisor · responsabilidad de cuadrilla · entrega de equipos.",
-  "Dispatch": "Despacho",
   "Quality & Compliance": "Calidad y Cumplimiento",
   "Public · no sign-in required.": "Público · sin inicio de sesión.",
   "Concrete · Rebar · Subcontractor Inspections. Sign on screen, submit, instant PDF + record.":
@@ -1418,23 +1249,19 @@ const ES = {
   "Signing in…": "Iniciando sesión…",
   "Sign-in failed": "Falló el inicio de sesión",
   "Sign-in failed — try again": "Falló el inicio de sesión — intente de nuevo",
-  "Invalid email or password": "Correo o contraseña inválidos",
   "Welcome": "Bienvenido",
   "Signed in to": "Sesión iniciada en",
   "Signed in as": "Sesión iniciada como",
 
   // Universal login form primitives (used across every portal)
   "Work Email": "Correo de Trabajo",
-  "Work email": "Correo de trabajo",
   "Remember me on this device": "Recordarme en este dispositivo",
   "Forgot password?": "¿Olvidó su contraseña?",
   "Forgot password": "Olvidó su contraseña",
   "Enter your work email": "Ingrese su correo de trabajo",
   "Enter your password": "Ingrese su contraseña",
-  "Enter your work email and password":
     "Ingrese su correo de trabajo y contraseña",
   "Sending…": "Enviando…",
-  "Saving…": "Guardando…",
   "Wrong email or password": "Correo o contraseña incorrectos",
   "Too many requests — wait a minute and try again":
     "Demasiadas solicitudes — espere un minuto e intente de nuevo",
@@ -1448,7 +1275,6 @@ const ES = {
   "Self-service reset": "Restablecimiento de autoservicio",
   "Send reset link": "Enviar enlace de restablecimiento",
   "Email reset link": "Enviar enlace por correo",
-  "If that email is on file, a reset link is on its way.":
     "Si ese correo está en nuestros registros, un enlace de restablecimiento está en camino.",
   "If this email belongs to a Dispatch user, a reset link is on its way. The link expires in 30 minutes.":
     "Si este correo pertenece a un usuario de Despacho, un enlace de restablecimiento está en camino. El enlace expira en 30 minutos.",
@@ -1496,7 +1322,6 @@ const ES = {
   "Save password &amp; sign in": "Guardar contraseña e iniciar sesión",
   "Password updated": "Contraseña actualizada",
   "Password updated — welcome back!": "Contraseña actualizada — ¡bienvenido de nuevo!",
-  "Update failed": "Falló la actualización",
   "Password rotation required — pick a new one":
     "Se requiere rotación de contraseña — elija una nueva",
   "Welcome — please choose a new password":
@@ -1637,8 +1462,6 @@ const ES = {
     "Esta sección pertenece a otro portal. Su sesión actual no puede abrirla, pero puede regresar a un portal al que sí tiene acceso a continuación. Si esto no es lo esperado, contacte a su administrador.",
   "You need to sign in to view this section. Pick the right portal sign-in below — or head back to the public home.":
     "Debe iniciar sesión para ver esta sección. Elija el inicio de sesión del portal correcto a continuación — o regrese a la página pública.",
-  "Back to": "Regresar a",
-  "Sign in": "Iniciar sesión",
   "Public Home": "Página Pública",
   "Other portals you can access": "Otros portales a los que tiene acceso",
   "Path:": "Ruta:",
@@ -1657,7 +1480,6 @@ const ES = {
   // ── End iter246 F1 entries ──
 
   // Crew Cheat Sheet
-  "Cheat Sheet": "Hoja de Referencia",
   "Crew Cheat Sheet": "Hoja de Referencia de Cuadrilla",
   "Crew Cheat Sheet · Field Safety Reporting Portal":
     "Hoja de Referencia · Portal de Reportes de Seguridad de Campo",
@@ -1703,11 +1525,9 @@ const ES = {
     "y consiga atención médica a cualquier trabajador lesionado.",
   "Call Safety immediately": "Llame a Seguridad inmediatamente",
   Open: "Abra",
-  "Incident Report": "Reporte de Incidente",
   "form on the Hub and fill it out as soon as the scene is stable.":
     "en el Hub y complételo tan pronto como la escena sea estable.",
   "Then complete your": "Luego complete su",
-  "Daily Report": "Reporte Diario",
   "— it will prompt you to confirm Safety was notified and the Incident Report was filed before you can submit.":
     "— le pedirá confirmar que se notificó a Seguridad y que se presentó el Reporte de Incidente antes de poder enviar.",
   "No Shortcuts · No Exceptions": "Sin Atajos · Sin Excepciones",
@@ -1715,22 +1535,12 @@ const ES = {
   // Common form chrome
   "New Report": "Nuevo Reporte",
   "Submit": "Enviar",
-  "Save": "Guardar",
   "Saving...": "Guardando...",
-  "Cancel": "Cancelar",
-  "Required": "Requerido",
-  "Optional": "Opcional",
-  "Yes": "Sí",
-  "No": "No",
-  "N/A": "N/A",
   "Unsure": "No estoy seguro",
-  "Remove": "Quitar",
-  "Add": "Agregar",
   "Add Attendee": "Agregar Asistente",
   "Add Witness": "Agregar Testigo",
   "Add Crew Member": "Agregar Miembro de Cuadrilla",
   "Add Task Step": "Agregar Paso de Tarea",
-  "Print / PDF": "Imprimir / PDF",
 
   // MASCI Job picker
   "MASCI Job": "Trabajo MASCI",
@@ -1740,21 +1550,15 @@ const ES = {
   "Search by job #, name, route, or city...":
     "Buscar por # de trabajo, nombre, ruta o ciudad...",
   "No job matches that search.": "Ningún trabajo coincide con esa búsqueda.",
-  "Custom": "Personalizado",
   "Custom Job": "Trabajo Personalizado",
   "Type the project name and number manually":
     "Escriba el nombre y número del proyecto manualmente",
 
   // Project / location fields
   "Project Name *": "Nombre del Proyecto *",
-  "Project Number": "Número de Proyecto",
   "Location *": "Ubicación *",
-  "Location": "Ubicación",
-  "Use GPS": "Usar GPS",
   "Date *": "Fecha *",
   "Time *": "Hora *",
-  "Date": "Fecha",
-  "Time": "Hora",
 
   // ============================================================
   // Site Inspection
@@ -1774,17 +1578,13 @@ const ES = {
   "What is the crew working on?": "¿En qué está trabajando la cuadrilla?",
   "PPE Compliance": "Cumplimiento de EPP",
   "Site Hazards": "Peligros del Sitio",
-  "Corrective Actions": "Acciones Correctivas",
-  "Photos": "Fotos",
   "Hazards Observed": "Peligros Observados",
   "Stop Work Issued": "Suspensión del Trabajo Emitida",
   "Corrected On Site": "Corregido en el Sitio",
   "Responsible Party": "Parte Responsable",
   "Corrective Action Notes": "Notas de Acción Correctiva",
-  "Inspector Signature": "Firma del Inspector",
   "Foreman Signature": "Firma del Capataz",
   "Live Grade": "Calificación en Vivo",
-  "Submit Inspection": "Enviar Inspección",
   "Saving Inspection...": "Guardando Inspección...",
 
   // ============================================================
@@ -1817,17 +1617,14 @@ const ES = {
   "Stretch & Flex": "Estiramiento y Flexibilidad",
 
   /* iter268 · Sprint 1 · K1·K2·K3·K9 · ViewMeeting + NewMeeting bilingual alignment */
-  "Topic": "Tema",
   "Pick a topic — Category & all fields below auto-fill":
     "Elija un tema — Categoría y los campos de abajo se autocompletan",
   "Add every person who attended":
     "Añada a todas las personas que asistieron",
 
   /* Weather chip values (used in ViewMeeting summary AND PDF) */
-  "Clear": "Despejado",
   "Hot": "Calor",
   "Cold": "Frío",
-  "Rain": "Lluvia",
   "Wind": "Viento",
   "Storm Risk": "Riesgo de Tormenta",
 
@@ -1837,8 +1634,6 @@ const ES = {
   "Report ID": "ID de Reporte",
   "Meetings": "Reuniones",
   "Print / PDF": "Imprimir / PDF",
-  "Email": "Correo",
-  "Loading…": "Cargando…",
 
   /* ViewMeeting field labels not already covered */
   "Topic / Subject": "Tema / Asunto",
@@ -1846,35 +1641,26 @@ const ES = {
   "Open in Maps": "Abrir en Mapas",
   "Yes (unnamed)": "Sí (sin nombre)",
   "No attendees listed.": "No hay asistentes registrados.",
-  "Attendee": "Asistente",
   "No signature": "Sin firma",
   "Safety Meeting": "Reunión de Seguridad",
-  "Generated": "Generado",
 
   /* ViewMeeting toasts / confirm dialogs */
   "Meeting not found": "Reunión no encontrada",
   "Delete this meeting? This cannot be undone.":
     "¿Eliminar esta reunión? Esto no se puede deshacer.",
-  "Delete failed": "Error al eliminar",
 
   /* NewMeeting toasts (K3) */
   "Job loaded: #{n}": "Trabajo cargado: #{n}",
-  "Location captured from GPS": "Ubicación capturada por GPS",
   "Got GPS coordinates, but couldn't look up address":
     "Se obtuvieron coordenadas GPS, pero no se pudo buscar la dirección",
-  "Could not get GPS location": "No se pudo obtener la ubicación GPS",
   "{field} is required": "{field} es obligatorio",
   "Conductor signature is required": "La firma del conductor es obligatoria",
   "Add at least one attendee": "Añada al menos un asistente",
-  "Translating to English…": "Traduciendo al inglés…",
   "Meeting saved": "Reunión guardada",
   "Could not save meeting": "No se pudo guardar la reunión",
-  "Weather": "Clima",
   "Subcontractor crew present": "Cuadrilla subcontratista presente",
   "Subcontractor name (optional)": "Nombre del subcontratista (opcional)",
-  "The person who ran the meeting signs to confirm the record is accurate.":
     "La persona que dirigió la reunión firma para confirmar que el registro es preciso.",
-  "Foreman / Supervisor": "Capataz / Supervisor",
   "Topic Category *": "Categoría del Tema *",
   "Topic & Discussion": "Tema y Discusión",
   "Topic Library — Pick a topic to prefill":
@@ -1933,7 +1719,6 @@ const ES = {
   "Hazard Plan": "Plan de Peligros",
   "Walk through each step of the task. For every step, list the potential hazards and the controls / safe practices to mitigate them.":
     "Recorra cada paso de la tarea. Para cada paso, liste los peligros potenciales y los controles / prácticas seguras para mitigarlos.",
-  "Step": "Paso",
   "Step Description": "Descripción del Paso",
   "What is the crew doing in this step?":
     "¿Qué está haciendo la cuadrilla en este paso?",
@@ -1974,18 +1759,15 @@ const ES = {
   "Incident Time *": "Hora del Incidente *",
   "Date Reported": "Fecha Reportada",
   "Reported By *": "Reportado Por *",
-  "Your name": "Su nombre",
   "Supervisor / Foreman On-Site": "Supervisor / Capataz en el Sitio",
   "Classification & Severity": "Clasificación y Severidad",
   "Incident Type *": "Tipo de Incidente *",
   "Severity Tier *": "Nivel de Severidad *",
   "Pick the actual outcome. For a near miss, choose Near Miss even if the potential was severe — note the potential in the description.":
     "Elija el resultado real. Para un cuasi-accidente, elija Cuasi-Accidente aunque el potencial haya sido severo — anote el potencial en la descripción.",
-  "Selected": "Seleccionado",
   "OSHA Recordable?": "¿Registrable por OSHA?",
   "Was Work Stopped?": "¿Se Suspendió el Trabajo?",
   // Severity labels & descriptions
-  "Near Miss": "Cuasi-Accidente",
   "First Aid": "Primeros Auxilios",
   "Medical Treatment": "Tratamiento Médico",
   "Restricted / Light Duty": "Trabajo Restringido / Liviano",
@@ -2008,13 +1790,10 @@ const ES = {
   "Property / Equipment Damage": "Daño a Propiedad / Equipo",
   "Vehicle / Mobile Equipment": "Vehículo / Equipo Móvil",
   "Environmental Release / Spill": "Derrame / Liberación Ambiental",
-  "Utility Strike": "Golpe a Servicio Subterráneo",
   "Public / Third Party": "Público / Tercero",
   "Security": "Seguridad (Robo)",
-  "Other": "Otro",
 
   "Person Involved": "Persona Involucrada",
-  "Name": "Nombre",
   "Role / Trade": "Rol / Oficio",
   "Laborer, Operator, Foreman...": "Obrero, Operador, Capataz...",
   "Employer": "Empleador",
@@ -2060,7 +1839,6 @@ const ES = {
   "Witnesses": "Testigos",
   "Add anyone who saw the event. Capture short statements while it's fresh.":
     "Agregue a cualquiera que vio el evento. Capture declaraciones cortas mientras está fresco.",
-  "Witness": "Testigo",
   "What they saw, in their words.": "Lo que vieron, en sus palabras.",
 
   "Corrective Actions & Follow-Up": "Acciones Correctivas y Seguimiento",
@@ -2078,7 +1856,6 @@ const ES = {
   "Confirm who was notified about this incident.":
     "Confirme a quién se notificó sobre este incidente.",
   "Safety Manager": "Gerente de Seguridad",
-  "Project Manager": "Gerente de Proyecto",
   "General Contractor": "Contratista General",
   "Owner / Agency": "Dueño / Agencia",
   "OSHA (if catastrophic)": "OSHA (si es catastrófico)",
@@ -2086,16 +1863,12 @@ const ES = {
   "Insurance, EAP, family...": "Seguro, EAP, familia...",
 
   "Photos / Evidence": "Fotos / Evidencia",
-  "Signatures": "Firmas",
   "Reporter Signature *": "Firma del Reportero *",
-  "Supervisor Signature": "Firma del Supervisor",
   "Reporter": "Reportero",
-  "Supervisor": "Supervisor",
   "Submit Incident Report": "Enviar Reporte de Incidente",
   "Saving Report...": "Guardando Reporte...",
 
   // Lang toggle copy
-  "Language": "Idioma",
   "English": "Inglés",
   "Español": "Español",
   "Forms can be filled in Spanish — submitted record stays in English.":
@@ -2112,28 +1885,18 @@ const ES = {
   "Job Hazard Plans": "Planes de Peligros del Trabajo",
   "Read your job's Hazard Plan PDF before crew breaks ground. One plan per active MASCI job — uploaded by the office.":
     "Lea el PDF del Plan de Peligros de su trabajo antes de que la cuadrilla comience. Un plan por cada trabajo MASCI activo — subido por la oficina.",
-  "Pick your job to view its Hazard Plan":
     "Elija su trabajo para ver su Plan de Peligros",
-  "Each MASCI job has its own Job Hazard Plan PDF. Open your job and read it before crew breaks ground. If your job has no plan yet, get with your PM.":
     "Cada trabajo MASCI tiene su propio PDF del Plan de Peligros. Abra su trabajo y léalo antes de que la cuadrilla comience. Si su trabajo aún no tiene plan, consulte con su Gerente de Proyecto.",
-  "Search by job number, name, or location…":
     "Buscar por número de trabajo, nombre o ubicación…",
   "Uploaded": "Subido",
   "View Plan": "Ver Plan",
-  "Not uploaded yet": "Aún no subido",
-  "No job matches your search.": "Ningún trabajo coincide con su búsqueda.",
-  "Download for offline use": "Descargar para uso sin conexión",
-  "On your phone, hold": "En su teléfono, mantenga presionado",
-  "Save to Files / Downloads": "Guardar en Archivos / Descargas",
   "to read it where there's no service.":
     "para leerlo donde no haya señal.",
-  "Hub": "Inicio",
 
   // ============================================================
   // FOCP Release 2 · TR-0001 — JHP Acknowledgement Ledger strings
   // ============================================================
   "Acknowledge": "Confirmar Recibido",
-  "Acknowledged": "Confirmado",
   "Acknowledge Job Hazard Plan": "Confirmar Plan de Peligros del Trabajo",
   "I have read this Hazard Plan and understand the site hazards, PPE requirements, and emergency response.":
     "He leído este Plan de Peligros y entiendo los peligros del sitio, los requisitos de EPP y la respuesta de emergencia.",
@@ -2185,7 +1948,6 @@ const ES = {
   "Link Existing Excavation Record": "Vincular Registro de Excavación Existente",
   "Linked Excavation Records": "Registros de Excavación Vinculados",
   "Suggestions for project": "Sugerencias para el proyecto",
-  "(set project to load)": "(elige el proyecto para cargar)",
   "No existing excavation records for this project.": "No hay registros de excavación para este proyecto.",
   "Excavation Activity Today is YES — create or link at least one Excavation Record before submitting the Daily Report.":
     "Excavación Hoy es SÍ — cree o vincule al menos un Registro de Excavación antes de enviar el Reporte Diario.",
@@ -2196,7 +1958,6 @@ const ES = {
   "Pull from the certified MASCI roster — no manual typing.": "Tomado de la lista oficial MASCI — sin tipeo manual.",
   "Foreman / Supervisor": "Capataz / Supervisor",
   "Leadman": "Jefe de Cuadrilla",
-  "Superintendent": "Superintendente",
   "Prepared By": "Preparado Por",
   "Multi-select from the certified MASCI trench registry. Status / serial / open holds shown.":
     "Selección múltiple del registro oficial de zanjas MASCI. Estado / serie / retenciones visibles.",
@@ -2221,7 +1982,6 @@ const ES = {
   "Utility Strike": "Golpe de Servicio",
   "Protective System Change": "Cambio de Sistema Protector",
   "Excavation Expansion": "Expansión de Excavación",
-  "Manual": "Manual",
   "Show Original": "Ver Original",
   "Show Translated": "Ver Traducido",
   "Add / Update English Translation": "Agregar / Actualizar Traducción al Inglés",
@@ -2252,14 +2012,9 @@ const ES = {
   "Excavation Today?": "¿Excavación hoy?",
   "What happened today?": "¿Qué pasó hoy?",
   "Normal Production": "Producción Normal",
-  "Subcontractors": "Subcontratistas",
-  "Visitors": "Visitantes",
-  "Equipment": "Equipo",
   "Deliveries": "Entregas",
   "Production": "Producción",
   "Delays / Extra": "Demoras / Extra",
-  "Weather": "Clima",
-  "Incident": "Incidente",
   "Injury": "Lesión",
   "Excavation": "Excavación",
   "Safety/Admin view": "Vista de Seguridad/Admin",
@@ -2320,19 +2075,11 @@ const ES = {
 
   "Loading dashboard…": "Cargando panel…",
   "Unable to load dashboard.": "No se pudo cargar el panel.",
-  "Active Assets": "Activos Activos",
-  "Available": "Disponible",
   "Inspection Hold": "Retención de Inspección",
-  "Open Repairs": "Reparaciones Abiertas",
   "By Type": "Por Tipo",
   "By Status": "Por Estado",
   "By Condition": "Por Condición",
   "Alerts": "Alertas",
-  "Missing Serial Number": "Falta Número de Serie",
-  "Missing Manufacturer": "Falta Fabricante",
-  "Needs Review": "Necesita Revisión",
-  "Inspections Due": "Inspecciones Pendientes",
-  "Missing Tabulated Data": "Faltan Datos Tabulados",
   "Trench Equipment": "Equipo de Zanjas",
   "Filterable list of every MASCI trench safety asset.":
     "Lista filtrable de cada activo de seguridad de zanjas de MASCI.",
@@ -2352,25 +2099,15 @@ const ES = {
   "Create Trench Safety Asset": "Crear Activo de Seguridad de Zanjas",
   "Asset ID is permanent. Choose deliberately — TB-01, EP-001, SP-001, etc.":
     "El ID del activo es permanente. Elija deliberadamente — TB-01, EP-001, SP-001, etc.",
-  "Asset Type": "Tipo de Activo",
-  "Manufacturer": "Fabricante",
-  "Model": "Modelo",
-  "Serial Number": "Número de Serie",
-  "Size": "Tamaño",
-  "Color": "Color",
   "Weight (lb)": "Peso (lb)",
   "Rated Depth (ft)": "Profundidad Nominal (ft)",
   "Rated Soil Type": "Tipo de Suelo Nominal",
-  "Condition": "Condición",
-  "Yard / Location": "Patio / Ubicación",
-  "Notes": "Notas",
   "This asset requires a certification (engineered shore, slide rail, etc.)":
     "Este activo requiere certificación (apuntalamiento de ingeniería, riel deslizante, etc.)",
   "Asset ID and Asset Type are required.": "El ID y el Tipo de Activo son obligatorios.",
   "Asset created.": "Activo creado.",
   "Create failed.": "Creación fallida.",
   "Create Asset": "Crear Activo",
-  "Cancel": "Cancelar",
   "Edit Asset": "Editar Activo",
   "Immutable": "Inmutable",
   "Save Changes": "Guardar Cambios",
@@ -2380,7 +2117,6 @@ const ES = {
   "Retirement is terminal.": "El retiro es definitivo.",
   "The asset will be removed from active service. Reactivation requires an admin edit.":
     "El activo se eliminará del servicio activo. La reactivación requiere edición de administrador.",
-  "Reason": "Motivo",
   "Asset retired.": "Activo retirado.",
   "Retire failed.": "Retiro fallido.",
   "Change Status": "Cambiar Estado",
@@ -2391,7 +2127,6 @@ const ES = {
   "Apply Status": "Aplicar Estado",
   "Status updated.": "Estado actualizado.",
   "Status change failed.": "Cambio de estado fallido.",
-  "Holds": "Retenciones",
   "Open Hold": "Abrir Retención",
   "No active holds.": "Sin retenciones activas.",
   "Loading holds…": "Cargando retenciones…",
@@ -2406,17 +2141,8 @@ const ES = {
   "Release reason": "Motivo de liberación",
   "Hold cleared.": "Retención liberada.",
   "Clear hold failed.": "Liberación de retención fallida.",
-  "Safety Hold": "Retención de Seguridad",
-  "Maintenance Hold": "Retención de Mantenimiento",
-  "Certification Hold": "Retención de Certificación",
   "Inspections": "Inspecciones",
   "Record Inspection": "Registrar Inspección",
-  "No inspections yet.": "Aún no hay inspecciones.",
-  "Loading…": "Cargando…",
-  "Type": "Tipo",
-  "Result": "Resultado",
-  "Severity": "Severidad",
-  "Inspector Name": "Nombre del Inspector",
   "Inspector name is required.": "Se requiere el nombre del inspector.",
   "Inspection recorded.": "Inspección registrada.",
   "Daily Visual": "Visual Diaria",
@@ -2427,7 +2153,6 @@ const ES = {
   "Return Inspection": "Inspección de Devolución",
 
   "Issuer is required.": "El emisor es obligatorio.",
-  "Manufacturer": "Fabricante",
   "Annual Inspection": "Inspección Anual",
   "Engineering Letter": "Carta de Ingeniería",
   "Repair Certification": "Certificación de Reparación",
@@ -2456,7 +2181,6 @@ const ES = {
   "What happened:": "Qué ocurrió:",
   "Why it matters:": "Por qué importa:",
   "What to do next:": "Qué hacer a continuación:",
-  "Open Asset": "Abrir Activo",
   "Review Inspection": "Revisar Inspección",
   // Digest section
   "Open Safety Holds": "Retenciones de Seguridad Abiertas",
@@ -2480,14 +2204,10 @@ const ES = {
   "Daily Posture": "Postura Diaria",
   "Loading posture…": "Cargando postura…",
   "Posture load failed.": "Carga de postura fallida.",
-  "Refresh": "Actualizar",
   // Repair Review filters
   "All Open": "Todas Abiertas",
-  "Awaiting Verification": "Esperando Verificación",
   "Vendor Repairs": "Reparaciones de Proveedor",
-  "Verify Repair": "Verificar Reparación",
   "Verify": "Verificar",
-  "Decision": "Decisión",
   "Approve · Release Inspection Hold": "Aprobar · Liberar Retención de Inspección",
   "Reject · Return to Shop": "Rechazar · Devolver al Taller",
   "Approve Repair": "Aprobar Reparación",
@@ -2510,10 +2230,6 @@ const ES = {
   "All Report Types": "Todos los Tipos de Reporte",
   "No field reports in this view.": "No hay reportes de campo en esta vista.",
   "Open Asset": "Abrir Activo",
-  "Damage": "Daño",
-  "Unsafe Condition": "Condición Insegura",
-  "Missing Pins": "Pasadores Faltantes",
-  "Missing Labels": "Etiquetas Faltantes",
   "Certification Concern": "Preocupación de Certificación",
   "Purpose: review every repair Shop completes before releasing the Inspection Hold. Why it matters: a finished repair is not a safe asset until Safety verifies. What happens next: Approve releases the Inspection Hold; Reject sends the repair back to Shop with a note.":
     "Propósito: revisar cada reparación que el Taller completa antes de liberar la Retención de Inspección. Por qué importa: una reparación terminada no es un activo seguro hasta que Seguridad verifique. Qué hacer a continuación: Aprobar libera la Retención de Inspección; Rechazar envía la reparación de vuelta al Taller con una nota.",
@@ -2521,8 +2237,6 @@ const ES = {
     "Propósito: revisar cada reporte que un miembro de la cuadrilla envía desde el campo. Por qué importa: los reportes son el indicador principal de condiciones inseguras. Qué hacer a continuación: abrir el activo, convertir a inspección o reparación, o cerrar con una nota.",
   // QR Management
   "QR Management": "Gestión de QR",
-  "Download": "Descargar",
-  "Print": "Imprimir",
   "Log Reprint": "Registrar Reimpresión",
   "Reprint logged.": "Reimpresión registrada.",
   "Reprint log failed.": "Registro de reimpresión fallido.",
@@ -2531,34 +2245,19 @@ const ES = {
   "QR label is MASCI-branded and embeds the asset ID, serial, last inspection, and current status.":
     "La etiqueta QR tiene marca MASCI e incluye ID del activo, serie, última inspección y estado actual.",
   // Photo Management
-  "Photos": "Fotos",
-  "Upload Photo": "Subir Foto",
   "Choose a photo first.": "Elija una foto primero.",
   "File": "Archivo",
-  "Category": "Categoría",
   "Visibility": "Visibilidad",
-  "Caption": "Leyenda",
-  "Internal Only": "Solo Interna",
-  "Field Safe": "Apta para Campo",
-  "Public": "Pública",
   "Photo uploaded.": "Foto subida.",
   "No photos yet.": "Sin fotos aún.",
   "Loading photos…": "Cargando fotos…",
   "Delete this photo?": "¿Eliminar esta foto?",
   "Photo deleted.": "Foto eliminada.",
-  "Delete failed.": "Eliminación fallida.",
   "Internal Only stays inside the Safety Portal. Field Safe + Public are surfaced on the public QR view.":
     "Solo Interna permanece dentro del Portal de Seguridad. Apta para Campo + Pública aparecen en la vista pública de QR.",
-  "Front": "Frente",
-  "Rear": "Atrás",
   "Left": "Izquierda",
   "Right": "Derecha",
   "Serial Plate": "Placa de Serie",
-  "Manufacturer Plate": "Placa de Fabricante",
-  "Inspection": "Inspección",
-  "Repair": "Reparación",
-  "Certification": "Certificación",
-  "Other": "Otro",
   // Daily Posture tiles
   "Safety Holds": "Retenciones de Seguridad",
   "Inspection Holds": "Retenciones de Inspección",
@@ -2572,16 +2271,11 @@ const ES = {
   "A Fail with Major or Critical severity automatically opens an Inspection Hold and stubs a repair recommendation.":
     "Un Fallo con severidad Mayor o Crítica abre automáticamente una Retención de Inspección y crea una recomendación de reparación.",
   "Daily": "Diaria",
-  "Monthly": "Mensual",
   "Annual": "Anual",
-  "Pass": "Aprobado",
-  "Fail": "Fallido",
   "Minor": "Menor",
   "Major": "Mayor",
-  "Critical": "Crítica",
   "Certifications": "Certificaciones",
   "Upload Certification": "Subir Certificación",
-  "Upload": "Subir",
   "No certifications on file.": "Sin certificaciones registradas.",
   "Certification Type": "Tipo de Certificación",
   "Issued At": "Emitida el",
@@ -2589,25 +2283,16 @@ const ES = {
   "Issuer": "Emisor",
   "Expires date is required.": "La fecha de expiración es obligatoria.",
   "Certification uploaded.": "Certificación subida.",
-  "Upload failed.": "Subida fallida.",
-  "Expires": "Expira",
   "Revoke": "Revocar",
   "Reason for revoking this certification?": "¿Motivo para revocar esta certificación?",
   "Certification revoked.": "Certificación revocada.",
   "Revoke failed.": "Revocación fallida.",
-  "Due Soon": "Vence Pronto",
-  "Expired": "Expirada",
   "Revoked": "Revocada",
   "OK": "OK",
   "Audit Timeline": "Línea de Tiempo de Auditoría",
   "Loading timeline…": "Cargando línea de tiempo…",
   "No audit events on file.": "Sin eventos de auditoría registrados.",
   "details": "detalles",
-  "Excellent": "Excelente",
-  "Good": "Bueno",
-  "Fair": "Regular",
-  "Poor": "Pobre",
-  "Out Of Service": "Fuera de Servicio",
 
 
   // Asset list
@@ -2616,22 +2301,13 @@ const ES = {
   "asset(s)": "activo(s)",
   "Search by ID, serial, size, location…": "Buscar por ID, serie, tamaño, ubicación…",
   "Asset Type": "Tipo de Activo",
-  "All Types": "Todos los Tipos",
-  "Status": "Estado",
-  "All Statuses": "Todos los Estados",
-  "Condition": "Condición",
   "All Conditions": "Todas las Condiciones",
-  "All": "Todas",
-  "Yes": "Sí",
-  "No": "No",
   "Loading assets…": "Cargando activos…",
   "No trench safety assets match the current filters.":
     "Ningún activo de seguridad de zanjas coincide con los filtros actuales.",
   "Asset ID": "ID de Activo",
-  "Size": "Tamaño",
   "Serial #": "N° Serie",
   "Color": "Color",
-  "Location": "Ubicación",
   "Last Inspection": "Última Inspección",
   "missing": "faltante",
   "never": "nunca",
@@ -2657,7 +2333,6 @@ const ES = {
   "Width (in)": "Ancho (pulg)",
   "Thickness (in)": "Espesor (pulg)",
   "Rated Capacity (lb)": "Capacidad Nominal (lb)",
-  "Material": "Material",
   "Markings": "Marcas",
   "Color / Markings": "Color / Marcas",
   "Surface Condition": "Condición de Superficie",
@@ -2666,8 +2341,6 @@ const ES = {
   "Anti-Skid Status": "Estado Antideslizante",
   "Present": "Presente",
   "Worn": "Desgastado",
-  "Missing": "Faltante",
-  "N/A": "N/A",
   "e.g., Yellow paint, MASCI stencil": "p. ej., Pintura amarilla, plantilla MASCI",
   // Road Plate checklist items
   "Bent Plate": "Placa Doblada",
@@ -2698,8 +2371,6 @@ const ES = {
   "Anti-Skid Restoration": "Restauración Antideslizante",
   // Road Plate dialog helpers
   "Asset ID is permanent. Suggested IDs follow the certified registry — TB-XX, RP-001, EP-001, etc.": "El ID del activo es permanente. Los IDs sugeridos siguen el registro certificado — TB-XX, RP-001, EP-001, etc.",
-  "Findings": "Hallazgos",
-  "Corrective Actions": "Acciones Correctivas",
   "I am the designated competent person for this inspection.": "Soy la persona competente designada para esta inspección.",
   "Competent person confirmation is required for this inspection type.": "Se requiere confirmación de persona competente para este tipo de inspección.",
   // Phase 8B — Operational Polish i18n
@@ -2723,13 +2394,9 @@ const ES = {
   "Missing Photos": "Fotos Faltantes",
   "Missing Serial Number": "Número de Serie Faltante",
   "No Project Assignment": "Sin Asignación de Proyecto",
-  "Needs Review": "Necesita Revisión",
   "Road Plates Missing Capacity": "Placas Sin Capacidad",
-  "Tabulated Data Missing": "Datos Tabulados Faltantes",
   "Open Asset Roster": "Abrir Lista de Activos",
   "Transport": "Transporte",
-  "Safety": "Seguridad",
-  "Inspection": "Inspección",
   "Maint": "Mantenim.",
   "Cert": "Cert.",
   "All Types": "Todos los Tipos",
@@ -2738,7 +2405,6 @@ const ES = {
   "Choose CSV File": "Elegir Archivo CSV",
   "Load sample": "Cargar muestra",
   "Limit 500 rows per file": "Límite 500 filas por archivo",
-  "Preview": "Vista Previa",
   "Commit Import": "Confirmar Importación",
   "Paste or upload a CSV first.": "Pega o sube un CSV primero.",
   "Preview failed.": "La vista previa falló.",
@@ -2751,13 +2417,10 @@ const ES = {
   "error": "error",
   "Row": "Fila",
   "Errors": "Errores",
-  "Close": "Cerrar",
   // Phase 8C — Operational Intelligence / Pulse
   "Operational Intelligence": "Inteligencia Operativa",
   "Trench Safety Pulse": "Pulso de Seguridad de Zanjas",
-  "Week of": "Semana del",
   "Last generated": "Última generación",
-  "Delivered": "Entregado",
   "View Current Pulse": "Ver Pulso Actual",
   "Generate Snapshot": "Generar Instantánea",
   "Generate + Send": "Generar + Enviar",
@@ -2765,13 +2428,11 @@ const ES = {
   "Pulse generated.": "Pulso generado.",
   "Pulse generated and dispatched": "Pulso generado y enviado",
   "recipient(s)": "destinatario(s)",
-  "History": "Historial",
   "Pulse History": "Historial de Pulsos",
   "No pulses generated yet. Press Generate Snapshot to create the first.": "Aún no se han generado pulsos. Presiona Generar Instantánea para crear el primero.",
   "Rendering pulse…": "Renderizando pulso…",
   "items requiring attention": "elementos requieren atención",
   "Needs Attention": "Necesita Atención",
-  "Critical": "Crítico",
   "sent": "enviado",
   "not_sent": "no enviado",
   "live_preview": "vista previa",
@@ -2781,7 +2442,6 @@ const ES = {
   // Phase 9A — Reports
   "Trench Safety Reports": "Reportes de Seguridad de Zanjas",
   "Operational reporting on certified data": "Reportes operativos sobre datos certificados",
-  "Reports": "Reportes",
   "Nine read-only operational reports computed from the certified asset registry. Apply filters once — they cascade across every report. CSV export available on each section.": "Nueve reportes operativos de solo lectura calculados desde el registro certificado de activos. Aplica filtros una vez — se propagan a todos los reportes. Exportación CSV disponible en cada sección.",
   "All figures are read directly from the certified Trench Safety registry, audit log, inspection/repair/hold collections, and the latest stored Pulse snapshot. No analytics engine, no separate data store.": "Todas las cifras se leen directamente del registro certificado, bitácora de auditoría, colecciones de inspección/reparación/retención y la última instantánea de Pulso. Sin motor analítico, sin almacén de datos separado.",
   "Global Filters": "Filtros Globales",
@@ -2789,7 +2449,6 @@ const ES = {
   "Date To": "Hasta",
   "Reset Filters": "Restablecer Filtros",
   "CSV": "CSV",
-  "Loading…": "Cargando…",
   "Executive Asset Health": "Salud Ejecutiva de Activos",
   "Road Plate Command": "Mando de Placas",
   "Inspection Compliance": "Cumplimiento de Inspección",
@@ -2805,28 +2464,21 @@ const ES = {
   "Activity Count": "Eventos",
   "Compliance Score": "Puntaje de Cumplimiento",
   "Due Soon": "Próximo a Vencer",
-  "Overdue": "Vencido",
   "Failed · 30d": "Fallidas · 30d",
   "Yard / Location": "Yarda / Ubicación",
   "Compliance %": "Cumplimiento %",
-  "Completed": "Completadas",
   "Avg Days Open": "Días Abiertos · Prom",
   "Avg Days to Close": "Días al Cierre · Prom",
   "Kind": "Tipo",
   "Repair Count": "Reparaciones",
-  "Active": "Activos",
   "Released": "Liberados",
-  "Maintenance": "Mantenim.",
   "Certification": "Cert",
   "Hold Count": "Retenciones",
   "Active Holds": "Retenciones Activas",
   "Idle": "Inactivos",
-  "Total": "Total",
   "In Use": "En Uso",
   "Util %": "Util %",
-  "Assets Deployed": "Activos Desplegados",
   "Capacity Bucket": "Categoría de Capacidad",
-  "Unknown": "Desconocido",
   "Trend · 30 Days": "Tendencia · 30 Días",
   "Repair Activity": "Actividad de Reparación",
   "Deployment Events": "Eventos de Despliegue",
@@ -2845,7 +2497,6 @@ const ES = {
   "Assets": "Activos",
   "Trench Boxes": "Cajas de Zanja",
   "Insp Due": "Insp Pend.",
-  "Holds": "Retenciones",
   "Health": "Salud",
   "Risk": "Riesgo",
   "Event Kind": "Tipo de Evento",
@@ -2867,12 +2518,9 @@ const ES = {
   "Subscription deleted.": "Suscripción eliminada.",
   "Subscription name is required.": "Se requiere el nombre de la suscripción.",
   "Update failed.": "La actualización falló.",
-  "Delete failed.": "La eliminación falló.",
   "Run Now": "Ejecutar Ahora",
   "Run complete": "Ejecución completa",
   "Run failed.": "La ejecución falló.",
-  "Disable": "Deshabilitar",
-  "Enable": "Habilitar",
   "Last run": "Última ejecución",
   "Next due": "Próxima",
   "Recipients (comma)": "Destinatarios (coma)",
@@ -2905,8 +2553,6 @@ const ES = {
   "Excavations": "Excavaciones",
   "Project / Job Information": "Proyecto / Información del Trabajo",
   "Excavation Dimensions": "Dimensiones de Excavación",
-  "Length (ft)": "Largo (ft)",
-  "Width (ft)": "Ancho (ft)",
   "Depth (ft)": "Profundidad (ft)",
   "Is excavation 4 feet or deeper?": "¿Excavación de 4 pies o más?",
   "Is excavation 5 feet or deeper?": "¿Excavación de 5 pies o más?",
@@ -2954,41 +2600,26 @@ const ES = {
   "Photos can be uploaded after submission via the asset photo workflow. (Phase 10A.2)": "Las fotos pueden subirse después del envío. (Fase 10A.2)",
   "Field Notes": "Notas de Campo",
   "Notes can be English or Spanish — both are preserved.": "Las notas pueden ser en inglés o español — ambas se conservan.",
-  "Yes": "Sí", "No": "No",
   "Project, Supervisor, and Submitted By are required.": "Proyecto, Supervisor y Enviado Por son obligatorios.",
-  "Submission failed.": "El envío falló.",
   "Coaching Flags": "Banderas de Coaching",
   "Back to Public Safety Tile": "Volver al Panel Público",
-  "Project Number": "Número de Proyecto",
-  "Location": "Ubicación",
   "Work Area": "Área de Trabajo",
   "Date of Work": "Fecha del Trabajo",
   "Supervisor / Foreman": "Supervisor / Capataz",
-  "Crew": "Cuadrilla",
   "Submitted By": "Enviado Por",
   "Contact Phone": "Teléfono de Contacto",
-  "Project": "Proyecto",
-  "Submitted": "Enviado",
   "Needs Review": "Necesita Revisión",
-  "Action Required": "Acción Requerida",
-  "Pending Verification": "Pendiente Verificación",
   "Reviewed": "Revisado",
-  "Closed": "Cerrado",
-  "Reopened": "Reabierto",
   "All Statuses": "Todos los Estados",
   "Project name": "Nombre del Proyecto",
-  "Supervisor": "Supervisor",
   "Min depth ft": "Profundidad mín ft",
   "no excavation records": "sin registros de excavación",
   "Coaching note (optional)": "Nota de coaching (opcional)",
   "Request Clarification": "Solicitar Aclaración",
   "Mark Reviewed": "Marcar Revisado",
-  "Review": "Revisar",
-  "Saved": "Guardado",
   "Depth": "Profundidad",
   "Protective": "Protección",
   "Soil": "Suelo",
-  "N/A": "N/A",
   "Type A": "Tipo A", "Type B": "Tipo B", "Type C": "Tipo C",
   "Stable Rock": "Roca Estable",
   "Unknown / Needs Review": "Desconocido / Necesita Revisión",
@@ -2999,18 +2630,12 @@ const ES = {
   "Combination": "Combinación",
   "Not Required": "No Requerido",
   "Needs Safety Review": "Necesita Revisión de Seguridad",
-  "Complete": "Completo",
-  "Pending": "Pendiente",
   "Conflict / Needs Review": "Conflicto / Necesita Revisión",
-  "Assigned": "Asignado",
-  "In Transport": "En Tránsito",
   "Repair": "Reparación",
   "Retired": "Retirado",
-  "Excellent": "Excelente",
   "Good": "Bueno",
   "Fair": "Regular",
   "Poor": "Malo",
-  "Out Of Service": "Fuera de Servicio",
 
   // Asset detail
   "Back to Trench Equipment": "Volver al Equipo de Zanjas",
@@ -3025,8 +2650,6 @@ const ES = {
     "Aún no se ha vinculado un PDF del fabricante a este activo. ",
   "Browse library": "Explorar biblioteca",
   "Identification": "Identificación",
-  "Manufacturer": "Fabricante",
-  "Model": "Modelo",
   "Operational": "Operativo",
   "Current Location": "Ubicación Actual",
   "Current Project": "Proyecto Actual",
@@ -3038,11 +2661,9 @@ const ES = {
   "Open QR Field View": "Abrir Vista QR de Campo",
   "Mobile-first read-only crew view. Safe to scan in the field.":
     "Vista de solo lectura optimizada para móvil. Segura para escanear en campo.",
-  "Reference": "Referencia",
   "Browse Tabulated Data Library": "Explorar Biblioteca de Datos Tabulados",
   "Manufacturer-engineered OSHA tabulated PDFs.":
     "PDFs de datos tabulados OSHA diseñados por el fabricante.",
-  "Recent Inspections": "Inspecciones Recientes",
   "Recent Repairs": "Reparaciones Recientes",
   "Recent Deployments": "Despliegues Recientes",
   "No inspections yet.": "Aún no hay inspecciones.",
@@ -3050,13 +2671,10 @@ const ES = {
   "No deployments recorded.": "Sin despliegues registrados.",
   "Pass": "Aprobado",
   "Fail": "Rechazado",
-  "Pending Review": "Revisión Pendiente",
-  "active": "activo",
   "Report damage before the box goes into the trench. A box on Inspection Hold is not available for use.":
     "Reporte daños antes de que la caja entre a la zanja. Una caja en Retención de Inspección no está disponible para uso.",
   "Inspection, repair, assign/return and edit actions land in later certified phases. This Phase 3 view is read-only.":
     "Las acciones de inspección, reparación, asignar/devolver y editar llegarán en fases certificadas posteriores. Esta vista de Fase 3 es de solo lectura.",
-  "Open": "Abrir",
 
   // Phase 4A — Equipment Inventory + Operations Integration
   "Assign to Project": "Asignar a Proyecto",
@@ -3068,18 +2686,8 @@ const ES = {
   "Returned By": "Devuelto Por",
   "Condition at Assignment": "Condición al Asignar",
   "Condition at Return": "Condición al Devolver",
-  "Source": "Origen",
-  "Project Number": "Número de Proyecto",
-  "Project Name": "Nombre del Proyecto",
-  "Project #": "Proyecto #",
   "Superintendent": "Superintendente",
   "Foreman": "Capataz",
-  "Notes": "Notas",
-  "Project": "Proyecto",
-  "Assigned": "Asignado",
-  "Returned": "Devuelto",
-  "Active": "Activo",
-  "Your name": "Su nombre",
   "Project Name is required": "El nombre del proyecto es obligatorio",
   "Assign failed": "Falló la asignación",
   "Return failed": "Falló la devolución",
@@ -3088,12 +2696,9 @@ const ES = {
   "Closes the active deployment and moves the asset back to Available.":
     "Cierra el despliegue activo y devuelve el activo a Disponible.",
   "Deployment History": "Historial de Despliegues",
-  "Assign": "Asignar",
-  "Cancel": "Cancelar",
   "Asset is": "El activo está",
   "clear before assigning": "libérelo antes de asignar",
   "Manual Assignment": "Asignación Manual",
-  "Daily Report": "Reporte Diario",
   "Project Equipment List": "Lista de Equipos del Proyecto",
   "Dispatch / Transport Log": "Registro de Despacho / Transporte",
   "Admin Adjustment": "Ajuste Administrativo",
@@ -3101,9 +2706,7 @@ const ES = {
   "Out Of Service": "Fuera de Servicio",
 
   // Phase 4B — Holds / Certifications / Alerts
-  "Maintenance Hold":   "Retención de Mantenimiento",
   "Certification Hold": "Retención de Certificación",
-  "Safety Hold":        "Retención de Seguridad",
   "This asset is under Maintenance. It is not available for the field.":
     "Este activo está en Mantenimiento. No está disponible para uso en campo.",
   "This asset's required certification is missing or expired. DO NOT USE.":
@@ -3116,9 +2719,6 @@ const ES = {
   "In Transport": "En Transporte",
   "Transfer Cancelled": "Transferencia Cancelada",
   "Hold Preserved": "Retención Preservada",
-  "From": "Desde",
-  "To": "Hasta",
-  "Delivered": "Entregado",
   "Received": "Recibido",
   "Moving a box does not clear a hold.": "Mover una caja no elimina una retención.",
   "A trench box on hold may be transported, but it is not available for use.":
@@ -3158,7 +2758,6 @@ const ES = {
   "Reprint Label": "Reimprimir Etiqueta",
   "Photo Gallery": "Galería de Fotos",
   "Upload Photo": "Subir Foto",
-  "Category": "Categoría",
   "Caption": "Leyenda",
   "Front": "Frente",
   "Rear": "Atrás",
@@ -3213,7 +2812,6 @@ const ES = {
   "Type an Asset ID printed on the box (TB-07, EP-001, SP-001…) to see its status, last inspection, and tabulated data.":
     "Escriba el ID de Activo impreso en la caja (TB-07, EP-001, SP-001…) para ver su estado, última inspección y datos tabulados.",
   "Enter Asset ID (e.g. TB-07)": "Ingrese ID de Activo (ej. TB-07)",
-  "Look Up": "Buscar",
   "Safety References": "Referencias de Seguridad",
   "Plain-English / Spanish primer · what tabulated data is and how to read it in the field.":
     "Manual claro · qué son los datos tabulados y cómo leerlos en el campo.",
@@ -3244,8 +2842,6 @@ const ES = {
   "Report Received": "Reporte Recibido",
   "Safety has been notified. The asset has NOT been moved or changed — Shop and Safety will review and take it from here.":
     "Seguridad ha sido notificada. El activo NO ha sido movido ni cambiado — Taller y Seguridad revisarán y se encargarán a partir de aquí.",
-  "Close": "Cerrar",
-  "Home": "Inicio",
   "Know Before You Dig": "Conozca Antes de Excavar",
   "This is where your trench shield's life-safety data lives. Every box in the MASCI fleet has a manufacturer-engineered data sheet that tells you exactly how deep you can dig, in what soil, with what spreaders, and under what conditions. Read it. Understand it. It's the difference between a safe shift and a collapse.":
     "Aquí viven los datos de seguridad de su escudo de zanja. Cada caja en la flota MASCI tiene una hoja de datos diseñada por el fabricante que le dice exactamente qué tan profundo puede excavar, en qué tipo de suelo, con qué separadores y bajo qué condiciones. Léala. Entiéndala. Es la diferencia entre un turno seguro y un colapso.",
@@ -3265,7 +2861,6 @@ const ES = {
   "An admin will add MASCI's trench-box fleet here. Once added, the data will be searchable on every device.":
     "Un administrador agregará la flota de cajas de zanja de MASCI aquí. Una vez agregadas, los datos se podrán buscar en cualquier dispositivo.",
   "Type": "Tipo",
-  "Length (ft)": "Largo (ft)",
   "Width Min/Max (ft)": "Ancho Mín/Máx (ft)",
   "Sidewall H × Thickness": "Altura × Espesor de Pared",
   "Weight (lbs)": "Peso (lbs)",
@@ -3381,18 +2976,13 @@ const ES = {
     "OSHA 1926 Subparte P. QR a especificaciones de escudos en vivo + referencia rápida de tipo de suelo.",
   "QR to Job Hazard Plans hub + job list + what-to-look-for cheat card.":
     "QR al Hub de Planes de Peligros + lista de trabajos + tarjeta de qué buscar.",
-  "Preview": "Vista Previa",
-  "Print": "Imprimir",
-  "Admin": "Admin",
   "Crew Hub": "Hub de Cuadrilla",
-  "Loading…": "Cargando…",
 
   // ============================================================
   // Shop Console (mechanics) — 2026-04-28
   // ============================================================
   "Shop": "Taller",
   "Mechanics & Shop": "Mecánicos y Taller",
-  "Shop Console": "Consola del Taller",
   "Shop Sign In": "Iniciar Sesión Taller",
   "Shop Password": "Contraseña del Taller",
   "Enter the shop password": "Ingrese la contraseña del taller",
@@ -3416,44 +3006,31 @@ const ES = {
   "Open Items": "Artículos Abiertos",
   "Trends": "Tendencias",
   "Recent Inspections": "Inspecciones Recientes",
-  "Equipment List": "Lista de Equipo",
-  "Recent Pre-Op Inspections": "Inspecciones Pre-Op Recientes",
   "No equipment inspections yet.": "Aún no hay inspecciones de equipo.",
   "MASCI Fleet": "Flota MASCI",
   "units": "unidades",
   "Search unit, make, model…": "Buscar unidad, marca, modelo…",
-  "All categories": "Todas las categorías",
   "No matching equipment.": "No hay equipo que coincida.",
   "Unit #": "# de Unidad",
   "Make": "Marca",
-  "Model": "Modelo",
-  "Category": "Categoría",
   "Could not load shop data": "No se pudo cargar los datos del taller",
-  "Sign out": "Cerrar sesión",
-  "Hub": "Hub",
 
   // Open Items panel
   "Open Shop Items": "Artículos Abiertos del Taller",
   "All severities": "Todas las severidades",
   "Out of Service only": "Solo Fuera de Servicio",
   "Needs Attention only": "Solo Atención Requerida",
-  "Refresh": "Actualizar",
   "All clear.": "Todo en orden.",
   "Every Pre-Op fail has been signed off by the shop.":
     "Toda falla Pre-Op ha sido firmada por el taller.",
-  "Severity": "Severidad",
-  "Unit": "Unidad",
   "Failed item": "Artículo fallido",
   "Operator": "Operador",
-  "Date": "Fecha",
   "Action": "Acción",
   "OUT OF SERVICE": "FUERA DE SERVICIO",
   "NEEDS ATTENTION": "ATENCIÓN REQUERIDA",
-  "OOS": "FDS",
   "ATTN": "ATN",
   "Sign Off": "Firmar",
   "signed": "firmado",
-  "FAIL": "NO CUMPLE",
 
   // Sign-off card
   "Shop Sign-Off": "Firma del Taller",
@@ -3472,8 +3049,6 @@ const ES = {
   "Reopened.": "Reabierto.",
   "Could not reopen.": "No se pudo reabrir.",
   "Shop signed off": "Taller firmó",
-  "By": "Por",
-  "Reopen": "Reabrir",
 
   // ViewEquipmentInspection
   "Inspection not found": "Inspección no encontrada",
@@ -3482,8 +3057,6 @@ const ES = {
   "Deleted": "Eliminado",
   "Could not delete": "No se pudo eliminar",
   "All Inspections": "Todas las Inspecciones",
-  "Email": "Correo",
-  "View": "Ver",
 
   // Auth shared
   "Login failed": "Inicio de sesión fallido",
@@ -3496,21 +3069,16 @@ const ES = {
     "El servidor está despertando — espere ~60 segundos e intente de nuevo",
   "Server error": "Error del servidor",
   "try again in a moment": "intente de nuevo en un momento",
-  "Request timed out — server is cold-starting, try again":
     "Tiempo de espera agotado — el servidor está iniciando, intente de nuevo",
   "Can't reach server — check your internet":
     "No se puede conectar al servidor — verifique su internet",
-  "Verifying…": "Verificando…",
-  "Sign In": "Iniciar Sesión",
 
   // Activity Feed + Parts Catalog (2026-04-28)
   "Activity Feed": "Bitácora de Actividad",
   "Shop Activity Feed": "Bitácora del Taller",
   "No sign-offs recorded yet. Once the shop closes out a FAIL it will appear here.":
     "Aún no hay firmas registradas. Cuando el taller cierre una FALLA aparecerá aquí.",
-  "Open": "Abrir",
   "Signed off": "Firmado",
-  "Parts Catalog": "Catálogo de Partes",
   "Pick a Unit": "Elija una Unidad",
   "Search unit, make, model, category…": "Buscar unidad, marca, modelo, categoría…",
   "No matching units.": "No hay unidades que coincidan.",
@@ -3518,8 +3086,6 @@ const ES = {
   "Search the 589-unit fleet above. Each unit has filters, cutting edges, wiper blades, tires, and other wear items.":
     "Busque la flota de 589 unidades. Cada unidad tiene filtros, cuchillas, plumas, llantas y otros artículos de desgaste.",
   "Last updated": "Última actualización",
-  "by": "por",
-  "Your name": "Su nombre",
   "Save Catalog": "Guardar Catálogo",
   "Catalog saved.": "Catálogo guardado.",
   "Could not save catalog.": "No se pudo guardar el catálogo.",
@@ -3534,10 +3100,7 @@ const ES = {
   "No parts on file. Click Add Part.": "No hay partes registradas. Haga clic en Agregar Parte.",
   "Part name": "Nombre de la parte",
   "Part #": "# de Parte",
-  "Qty": "Cant.",
-  "Notes": "Notas",
   "Size": "Tamaño",
-  "Position": "Posición",
   "Ply": "Capas",
   "Brand": "Marca",
   "Add to order list": "Agregar a la lista de pedido",
@@ -3549,7 +3112,6 @@ const ES = {
   "Order List": "Lista de Pedido",
   "Tap the cart icon next to a part to add it. Then send the list to the parts office.":
     "Toque el ícono del carrito al lado de una parte para agregarla. Luego envíe la lista a la oficina de partes.",
-  "Name": "Nombre",
   "Your name (mechanic)": "Su nombre (mecánico)",
   "Send to email(s) — comma-separated": "Enviar a correo(s) — separados por coma",
   "CC (optional)": "CC (opcional)",
@@ -3643,7 +3205,6 @@ const ES = {
   "Restore from": "Restaurar desde",
   "Every record inside this .zip will be merged into the live system — existing rows are overwritten with the backup's copy, new rows are added. Anything in the DB that isn't in the backup is left alone. This is safe to run.":
     "Cada registro adentro de este .zip se fusionará al sistema en vivo — las filas existentes se sobrescriben con la copia de seguridad, se agregan nuevas filas. Lo que no esté en la copia se deja intacto. Es seguro ejecutarlo.",
-  "Cancel": "Cancelar",
   "Yes, restore it": "Sí, restaurar",
 
   // ============================================================
@@ -3662,7 +3223,6 @@ const ES = {
   "Welcome back.": "Bienvenido de nuevo.",
   "Use the email address MASCI issued you.": "Use el correo electrónico que MASCI le emitió.",
   "Password": "Contraseña",
-  "Sign in": "Iniciar sesión",
   "First time?": "¿Primera vez?",
   "Your login is the @mascigc.com email MASCI issued you — not 'admin'. Temp password is Welcome2MASCI! — you'll be asked to change it right after sign-in. Forgot your password? An owner can reset it from the Users panel.":
     "Su inicio de sesión es el correo @mascigc.com que MASCI le emitió — no 'admin'. La contraseña temporal es Welcome2MASCI! — se le pedirá cambiarla justo después de iniciar sesión. ¿Olvidó su contraseña? Un propietario puede restablecerla desde el panel de Usuarios.",
@@ -3688,7 +3248,6 @@ const ES = {
     "Inspecciones · Juntas de Seguridad · Incidentes",
   "Job Hazard Plans · Trench Box Reference":
     "Planes de Peligros · Referencia de Cajas de Zanja",
-  "QA / QC": "QA / QC",
   "Quality Assurance and Quality Control workflows for the field team — pour cards, density logs, and inspection forms ready to fill out and turn in. More forms rolling out soon.":
     "Flujos de Aseguramiento y Control de Calidad para el equipo de campo — tarjetas de vaciado, registros de densidad y formularios de inspección listos para llenar y entregar. Más formularios próximamente.",
   "Asphalt density · core samples · roadway reports":
@@ -3698,7 +3257,6 @@ const ES = {
   "Daily QA / QC submittals · field-team turn-ins":
     "Entregas QA/QC diarias · entregas del equipo de campo",
   "Project Management": "Gestión de Proyectos",
-  "PM Portal": "Portal de Gestión",
   "The day-to-day project-management workspace — every job, every record, every master list, in one place.":
     "El espacio diario de gestión de proyectos — cada trabajo, cada registro, cada lista maestra, en un solo lugar.",
   "Active jobs · email routing · site posters":
@@ -3718,17 +3276,14 @@ const ES = {
   "Office staff only": "Solo personal de oficina",
 
   // ThankYou
-  "Submitted": "Enviado",
   "Thank you.": "Gracias.",
   "The MASCI safety team has been notified. Stay safe out there.":
     "El equipo de seguridad de MASCI fue notificado. Cuídese allá afuera.",
   "Submit Another": "Enviar Otro",
   "Close Window": "Cerrar Ventana",
-  "Inspection": "Inspección",
   "Meeting": "Reunión",
   "JHP": "JHP",
   "Incident": "Incidente",
-  "Daily Report": "Reporte Diario",
   "Equipment Inspection": "Inspección de Equipo",
 
   // PmLogin (2026-05-01)
@@ -3743,35 +3298,26 @@ const ES = {
   // ============================================================
   // Training Hub (2026-05-01)
   // ============================================================
-  "Training": "Capacitación",
   "Training Hub": "Centro de Capacitación",
-  "MASCI Training": "Capacitación MASCI",
   "Short lessons, printable cheat sheets, and video walk-throughs for Field, Shop, PMs, and Admins. New hires up to speed in an afternoon.":
     "Lecciones cortas, hojas imprimibles y videos tutoriales para Campo, Taller, Gerentes y Admins. Nuevos empleados al día en una tarde.",
   "Field Crew · Shop · PM · Admin tracks":
     "Tracks de Campo · Taller · Gerente · Admin",
   "Written guides + video slots + print-friendly":
     "Guías escritas + videos + listo para imprimir",
-  "Short, focused lessons for every role — Field Crews, Shop, Project Managers, and Admins. Written walk-throughs, printable cheat sheets, and video tutorials. Pick your track.":
     "Lecciones cortas y enfocadas para cada rol — Cuadrillas de Campo, Taller, Gerentes y Admins. Guías escritas, hojas imprimibles y videos tutoriales. Elija su track.",
-  "lessons": "lecciones",
-  "more…": "más…",
-  "Open track →": "Abrir track →",
   "Admin note": "Nota para admins",
   "Shop / PM / Admin tracks require their respective passwords. The Field Crew track is public — no login needed. Each lesson has a video slot; admins can paste YouTube / Loom / Vimeo URLs via the Admin console → Training Videos panel.":
     "Los tracks de Taller / Gerente / Admin requieren sus contraseñas. El track de Campo es público — sin inicio de sesión. Cada lección tiene un espacio para video; los admins pueden pegar URLs de YouTube / Loom / Vimeo desde la consola de Admin → panel de Videos de Capacitación.",
   "All Tracks": "Todos los Tracks",
   "Training Track": "Track de Capacitación",
   "Print all cheat sheets": "Imprimir todas las hojas",
-  "Why this matters": "Por qué importa",
-  "What happens next": "Qué pasa después",
   "Common mistakes": "Errores comunes",
   // iter202 — Operational Guidance Center landing translation
   "MASCI Operations Platform · Operational Guidance Center": "Plataforma de Operaciones MASCI · Centro de Guía Operacional",
   // iter203/iter204 — Portal Training Directory inside Guidance
   // (iter204 reframed cards from production-launchers → training-first)
   "Training & Onboarding · By Portal": "Capacitación y Orientación · Por Portal",
-  "Portal Training": "Capacitación de Portal",
   "Open each portal's training to learn what it does, who uses it, and how to operate it. Sign-in links are available if you already know your portal.": "Abra la capacitación de cada portal para aprender qué hace, quién lo usa y cómo operarlo. Los enlaces de inicio de sesión están disponibles si ya conoce su portal.",
   "Open Training": "Abrir Capacitación",
   "Go to portal sign-in": "Ir al inicio de sesión del portal",
@@ -3794,16 +3340,11 @@ const ES = {
   "Field Leadership Portal": "Portal de Liderazgo de Campo",
   "Field Leadership is the operational portal for Superintendents, Foremen, Field Leaders, and Operations Oversight — the people running crews on the ground.": "El Liderazgo de Campo es el portal operacional para Superintendentes, Capataces, Líderes de Campo y Supervisión de Operaciones — la gente que dirige las cuadrillas en el suelo.",
   "Uses a shared leadership password — every record you submit is individually signed inside the form (your name, your signature). Accountability is at the record, not the door.": "Usa una contraseña compartida de liderazgo — todo registro que envía se firma individualmente dentro del formulario (su nombre, su firma). La rendición de cuentas pasa al nivel del registro, no en la puerta.",
-  "Leadership Password": "Contraseña de Liderazgo",
-  "Verifying…": "Verificando…",
   "New to Field Leadership?": "¿Nuevo en Liderazgo de Campo?",
   "First-Week Onboarding": "Orientación de Primera Semana",
   "What does Field Leadership do?": "¿Qué hace el Liderazgo de Campo?",
   "Can't sign in?": "¿No puede iniciar sesión?",
   "Admin tokens and PM tokens also satisfy the Field Leadership gate — Operations Managers and PMs can read leadership records without re-signing in.": "Los tokens de Admin y PM también satisfacen la puerta de Liderazgo de Campo — los Gerentes de Operaciones y PMs pueden leer registros de liderazgo sin volver a iniciar sesión.",
-  "MASCI · Field Leadership Portal": "MASCI · Portal de Liderazgo de Campo",
-  "Access granted": "Acceso concedido",
-  "Incorrect password": "Contraseña incorrecta",
   "Step-by-step": "Paso a paso",
   "Tips": "Consejos",
   "Cheat Sheet": "Hoja de Referencia",
@@ -3836,7 +3377,6 @@ const ES = {
   "Three QR codes per poster — EN, ES, and EN+ES side-by-side. Print, tape, done. No typing URLs on phones.":
     "Tres códigos QR por cartel — EN, ES y EN+ES lado a lado. Imprima, pegue, listo. Sin escribir URLs en teléfonos.",
   "View": "Ver",
-  "Print": "Imprimir",
   "Coming soon": "Próximamente",
   "New Hire Onboarding": "Orientación de Nuevos Empleados",
   "A guided first-day checklist for every new MASCI hire: watch the core Field lessons, take a short quiz, sign an acknowledgement, and you're cleared for the site. HR gets a paper trail, the new hire gets confidence, insurance gets peace of mind.":
@@ -3880,11 +3420,7 @@ const ES = {
   "today": "hoy",
 
   // Track gating (2026-05-01)
-  "Password required": "Contraseña requerida",
-  "Internal track — covers back-office workflows. Sign in as":
     "Track interno — cubre flujos de oficina. Inicie sesión como",
-  "to see the lessons and packets.": "para ver las lecciones y paquetes.",
-  "Sign in →": "Iniciar sesión →",
   "Internal training · password required":
     "Capacitación interna · contraseña requerida",
   "This packet covers internal MASCI workflows and is only shared with office staff.":
@@ -3924,10 +3460,8 @@ const ES = {
   "Length (ft)": "Largo (pies)",
   "Width (ft)": "Ancho (pies)",
   "Thickness": "Espesor",
-  "Unit": "Unidad",
   "inches": "pulgadas",
   "feet": "pies",
-  "Material": "Material",
   "Density (lb/ft³)": "Densidad (lb/pie³)",
   "Override if mix/lab report differs.": "Sobrescriba si el reporte del laboratorio/mezcla difiere.",
   "Waste %": "Desperdicio %",
@@ -3942,7 +3476,6 @@ const ES = {
   "Direction": "Dirección",
   "Tons → Cubic Yards": "Toneladas → Yardas Cúbicas",
   "Cubic Yards → Tons": "Yardas Cúbicas → Toneladas",
-  "Quantity": "Cantidad",
   "Mixer capacity (cy)": "Capacidad del mezclador (yd³)",
   "Typical ready-mix truck ≈ 10 cy.": "Camión típico de concreto premezclado ≈ 10 yd³.",
   "Coarse aggregate % (optional)": "Agregado grueso % (opcional)",
@@ -3996,9 +3529,7 @@ const ES = {
 
   // Actions
   "Calculate": "Calcular",
-  "Reset": "Restablecer",
   "Save Calculation": "Guardar Cálculo",
-  "Saved": "Guardado",
   "Saved.": "Guardado.",
   "Calculate first, then save.": "Calcule primero, luego guarde.",
   "Could not save. Try again.": "No se pudo guardar. Intente de nuevo.",
@@ -4030,27 +3561,19 @@ const ES = {
   // ============================================================
 
   // Section titles
-  "Job": "Obra",
   "Subcontractor / Crew": "Subcontratista / Cuadrilla",
-  "Inspection": "Inspección",
   "Concrete Placement": "Vaciado de Concreto",
   "Required for every concrete-form inspection.":
     "Requerido en cada inspección de formaleta de concreto.",
   "Checklist": "Lista de Verificación",
   "Notes & Corrective Action": "Notas y Acción Correctiva",
-  "Photos": "Fotos",
-  "Sign-Off": "Firma",
 
   // Field labels
-  "Location": "Ubicación",
   "Project Manager": "Gerente de Proyecto",
   "Auto-filled from job": "Llenado automático desde la obra",
-  "Subcontractor": "Subcontratista",
   "Search or add a subcontractor / vendor…":
     "Buscar o agregar un subcontratista / proveedor…",
   "Crew / Company": "Cuadrilla / Empresa",
-  "Date": "Fecha",
-  "Time": "Hora",
   "Inspector Name": "Nombre del Inspector",
   "Work Area / Station": "Área de Trabajo / Estación",
   "Work Activity": "Actividad de Trabajo",
@@ -4067,10 +3590,8 @@ const ES = {
   "Corrective Actions Required": "Acciones Correctivas Requeridas",
   "Upload at least 4 photos of the work area.":
     "Suba al menos 4 fotos del área de trabajo.",
-  "Uploaded:": "Subidas:",
   "min 4 required": "mín. 4 requeridas",
   "Need 4 photos to submit": "Necesita 4 fotos para enviar",
-  "Need": "Necesita",
   "photos to submit": "fotos para enviar",
   "Photo required": "Foto requerida",
   "Add at least 1 photo to submit": "Agregue al menos 1 foto para enviar",
@@ -4083,7 +3604,6 @@ const ES = {
   "Daily Reports": "Reportes Diarios",
   "Site Inspections": "Inspecciones de Sitio",
   "QA/QC": "QA/QC",
-  "Total": "Total",
   "No photos yet — submit a Daily Report, Site Inspection, or QA/QC to populate.":
     "Aún no hay fotos — envíe un Reporte Diario, Inspección de Sitio o QA/QC.",
   "No photos match your filter.": "Ninguna foto coincide con su filtro.",
@@ -4092,8 +3612,6 @@ const ES = {
   "Select all week": "Seleccionar toda la semana",
   "Deselect week": "Deseleccionar semana",
   "Selected": "Seleccionadas",
-  "Clear": "Limpiar",
-  "Email": "Correo",
   "Download ZIP": "Descargar ZIP",
   "Re-index": "Re-indexar",
   "Re-indexed {n} photos.": "Re-indexadas {n} fotos.",
@@ -4105,20 +3623,15 @@ const ES = {
   "Enter a valid email": "Ingrese un correo válido",
   "Recipient email": "Correo del destinatario",
   "Subject (optional)": "Asunto (opcional)",
-  "Note (optional)": "Nota (opcional)",
   "Note: emails capped at 25MB. For larger packets use Download ZIP.":
     "Nota: los correos están limitados a 25MB. Para paquetes más grandes use Descargar ZIP.",
-  "Cancel": "Cancelar",
   "Send": "Enviar",
-  "PM Portal": "Portal PM",
-  "Admin": "Admin",
   "Clear search": "Borrar búsqueda",
   "Expand All": "Expandir Todo",
   "Collapse All": "Colapsar Todo",
   "Last activity:": "Última actividad:",
   "No jobs match": "Ningún trabajo coincide",
   "No records yet.": "Aún no hay registros.",
-  "(No Job)": "(Sin Trabajo)",
   "FAIL needs photo": "FALLA necesita foto",
   "FAILs need photos": "FALLAS necesitan fotos",
   "FAIL needs description": "FALLA necesita descripción",
@@ -4126,7 +3639,6 @@ const ES = {
   "Complete FAIL items to submit": "Complete las FALLAS para enviar",
   "Fix FAILs": "Arreglar FALLAS",
   "Photo Documentation": "Documentación Fotográfica",
-  "Add": "Agregue",
   "more photo to submit": "foto más para enviar",
   "more photos to submit": "fotos más para enviar",
   "Inspector Signature": "Firma del Inspector",
@@ -4145,25 +3657,20 @@ const ES = {
   "Work Area / Station required.": "Área de Trabajo / Estación requerida.",
   "Inspector name required.": "Nombre del Inspector requerido.",
   "Inspection notes required.": "Notas de Inspección requeridas.",
-  "Minimum 4 photos required.": "Se requieren mínimo 4 fotos.",
   "Inspector signature required.": "Firma del Inspector requerida.",
   "Every Fail item needs a deficiency note.":
     "Cada punto No Cumple necesita una nota de deficiencia.",
   "Mix Design required.": "Diseño de Mezcla requerido.",
   "Yards Ordered required.": "Yardas Pedidas requeridas.",
   "Concrete Vendor required.": "Proveedor de Concreto requerido.",
-  "Translating to English…": "Traduciendo al inglés…",
   "Submitted. Routing to assigned PM…":
     "Enviado. Enviando al Gerente de Proyecto asignado…",
   "Could not submit. Try again.":
     "No se pudo enviar. Intente de nuevo.",
   "Submit Inspection": "Enviar Inspección",
-  "Submitting…": "Enviando…",
-  "Use GPS": "Usar GPS",
   "Location captured from GPS": "Ubicación capturada por GPS",
   "Got GPS coordinates, but couldn't look up address":
     "Coordenadas GPS obtenidas, pero no se pudo encontrar la dirección",
-  "Could not get GPS location": "No se pudo obtener la ubicación GPS",
 
   // ----------------------------------------------------------------
   // Concrete-Form inspection checklist labels
@@ -4228,7 +3735,6 @@ const ES = {
   "Follow-up inspection required": "Se requiere inspección de seguimiento",
 
   // QA/QC navigation labels
-  "QA / QC": "QA / QC",
 
   // QA/QC view-page extras (read-only inspection summary + KV labels)
   "Inspection Summary": "Resumen de Inspección",
@@ -4236,8 +3742,6 @@ const ES = {
   "Fail Items": "No Cumple",
   "N/A Items": "N/A",
   "Project Number": "Número de Proyecto",
-  "Client": "Cliente",
-  "Weather": "Clima",
   "item(s) failed inspection": "elemento(s) no cumplen",
   "See deficiencies below.": "Vea las deficiencias abajo.",
   "Subcontractor Rep": "Rep. del Subcontratista",
@@ -4262,8 +3766,6 @@ const ES = {
     "Revise cada emisión de equipo y capacitación — cadena de custodia por empleado, devoluciones, daños y cargos.",
   "Every Equipment Issuance and Use & Care Training record filed through Safety Forms. Filter by employee, project, or date — drill in for the full PDF and check-in/return status.":
     "Cada registro de Emisión de Equipo y Capacitación filtrado por empleado, proyecto o fecha — abra para ver el PDF y el estado de devolución.",
-  "Safety Review": "Revisión de Seguridad",
-  "Safety Portal": "Portal de Seguridad",
   "Safety Portal Ownership": "Propiedad del Portal de Seguridad",
   "Safety Forms are now owned by the Safety Portal. Sign in there for the full review experience.":
     "Los Formularios de Seguridad ahora pertenecen al Portal de Seguridad. Inicie sesión allí para la experiencia completa de revisión.",
@@ -4276,13 +3778,11 @@ const ES = {
     "Buscar empleado, proyecto, instructor…",
   "Employee filter": "Filtro de Empleado",
   "Instructor": "Instructor",
-  "Training Type": "Tipo de Capacitación",
   "No records match these filters.":
     "Ningún registro coincide con estos filtros.",
   "records shown": "registros mostrados",
   "Failed to load Safety Forms records":
     "No se pudieron cargar los registros de Formularios de Seguridad",
-  "issued": "emitido",
   "returned": "devuelto",
   "damaged": "dañado",
   "lost": "perdido",
@@ -4360,7 +3860,6 @@ const ES = {
     "El resumen operativo de una página fijado en cada remolque de obra.",
 
   "Open Forms": "Abrir Formularios",
-  "Equipment Issuance": "Emisión de Equipo",
   "Use & Care Training": "Capacitación de Uso y Cuidado",
   "Issue safety equipment to employees with full chain of custody — itemized inventory, condition, photos, and dual signatures.":
     "Emita equipo de seguridad con cadena de custodia completa — inventario detallado, condición, fotos y firmas duales.",
@@ -4370,32 +3869,26 @@ const ES = {
     "Emita equipo con responsabilidad total y documente la capacitación — cada envío envía un PDF al correo safety@mascigc.com.",
   "MASCI · Safety Department": "MASCI · Departamento de Seguridad",
   "Start Form": "Iniciar Formulario",
-  "Safety Equipment Issuance & Accountability":
     "Emisión y Responsabilidad de Equipo de Seguridad",
-  "Employee": "Empleado",
   "Employee Name": "Nombre del Empleado",
   "Employee ID (optional)": "ID del Empleado (opcional)",
   "Issued By": "Emitido Por",
   "Project / Location": "Proyecto / Ubicación",
   "Date Issued": "Fecha de Emisión",
-  "Equipment": "Equipo",
   "Add every item being issued. Other allows a write-in description.":
     "Agregue cada artículo emitido. La opción 'Otro' permite escribir una descripción.",
   "Item Type": "Tipo de Artículo",
   "Specify Other": "Especificar Otro",
-  "Qty": "Cant.",
   "Unit $": "$ Unitario",
   "auto": "auto",
   "Asset / Serial #": "Activo / Serial #",
   "Line total": "Total de línea",
-  "Add Item": "Agregar Artículo",
   "Total Issued Value": "Valor Total Emitido",
   "Condition at Issuance": "Condición al Emitir",
   "New / Good auto-prices from the catalog. Fair / Damaged unlocks Unit $ so you can enter a depreciated value.":
     "Nuevo / Bueno se cotiza automáticamente desde el catálogo. Regular / Dañado desbloquea $ Unitario para ingresar un valor depreciado.",
   "Damage Note": "Nota de Daño",
   "Describe the damage": "Describa el daño",
-  "Photos": "Fotos",
   "Required — capture serial number and/or condition.":
     "Requerido — capture el número de serie y/o la condición.",
   "Uploaded:": "Subidas:",
@@ -4411,12 +3904,8 @@ const ES = {
   "If provided, the employee will receive a copy of the signed PDF along with the Safety Department.":
     "Si se proporciona, el empleado recibirá una copia del PDF firmado junto con el Departamento de Seguridad.",
   "Employee Email": "Correo del Empleado",
-  "Signatures": "Firmas",
-  "Employee Signature": "Firma del Empleado",
-  "Supervisor Signature": "Firma del Supervisor",
   "Auto-emails Safety dept on submit":
     "Envía correo automáticamente al Dept. de Seguridad",
-  "Submitting…": "Enviando…",
   "Submit & Email PDF": "Enviar y Mandar PDF",
   "Submitted — PDF emailed to Safety": "Enviado — PDF enviado a Seguridad",
   "Could not submit": "No se pudo enviar",
@@ -4424,7 +3913,6 @@ const ES = {
   "Type to filter…": "Escriba para filtrar…",
   "Select item": "Seleccione artículo",
   "Select equipment": "Seleccione equipo",
-  "Employee name required": "Nombre del empleado requerido",
   "Issued By required": "Emitido Por requerido",
   "Add at least one item": "Agregue al menos un artículo",
   "Each item needs a type": "Cada artículo necesita un tipo",
@@ -4435,7 +3923,6 @@ const ES = {
   "At least 1 photo required": "Se requiere al menos 1 foto",
   "You must acknowledge the terms": "Debe reconocer los términos",
   "Employee signature required": "Firma del empleado requerida",
-  "Supervisor signature required": "Firma del supervisor requerida",
   "Could not get GPS location": "No se pudo obtener la ubicación GPS",
   "Equipment Use & Care Training Documentation":
     "Documentación de Capacitación de Uso y Cuidado de Equipo",
@@ -4448,8 +3935,6 @@ const ES = {
     "Agregue cada equipo cubierto en esta sesión.",
   "Training Type": "Tipo de Capacitación",
   "Mfr / Model": "Fabricante / Modelo",
-  "Notes": "Notas",
-  "Add Equipment": "Agregar Equipo",
   "Topics Covered": "Temas Cubiertos",
   "Select every topic discussed during training.":
     "Seleccione cada tema discutido durante la capacitación.",
@@ -4459,7 +3944,6 @@ const ES = {
   "Storage": "Almacenamiento",
   "Limitations of Equipment": "Limitaciones del Equipo",
   "OSHA Compliance": "Cumplimiento de OSHA",
-  "Other": "Otro",
   "Specify Other Topic": "Especificar Otro Tema",
   "Acknowledgment": "Reconocimiento",
   "I acknowledge that I have received training on the equipment listed above and understand proper use, inspection, and safety requirements.":
@@ -4467,7 +3951,6 @@ const ES = {
   "Instructor Signature": "Firma del Instructor",
   "Instructor name required": "Nombre del instructor requerido",
   "Training date required": "Fecha de capacitación requerida",
-  "Add at least one equipment item": "Agregue al menos un artículo de equipo",
   "Each item needs equipment type": "Cada artículo necesita un tipo de equipo",
   "Specify the 'Other' equipment": "Especifique el equipo 'Otro'",
   "Each item needs training type": "Cada artículo necesita un tipo de capacitación",
@@ -4485,7 +3968,6 @@ const ES = {
   "Per-Item Return": "Devolución por Artículo",
   "Tap a status pill for each item. Notes required for Damaged or Lost.":
     "Toque un estado para cada artículo. Notas requeridas para Dañado o Perdido.",
-  "Issued": "Emitido",
   "Chargeback": "Cargo",
   "Returned OK": "Devuelto OK",
   "Damaged": "Dañado",
@@ -4514,7 +3996,6 @@ const ES = {
     "Pre-llenado desde la emisión original. Edite o borre para cambiar.",
   "If provided, the employee will receive a copy of the signed receipt along with the Safety Department.":
     "Si se proporciona, el empleado recibirá una copia del recibo firmado junto con el Departamento de Seguridad.",
-  "Submitted": "Enviado",
   "Equipment Out": "Equipo Fuera",
   "When this gear comes back, log the check-in to close the loop.":
     "Cuando este equipo regrese, registre la recepción para cerrar el ciclo.",
@@ -4522,7 +4003,6 @@ const ES = {
   "Check-In Receipt": "Recibo de Recepción",
   "Received by": "Recibido por",
   "Returned": "Devuelto",
-  "Item": "Artículo",
   "Mfr/Model": "Fabricante/Modelo",
   "Asset/Serial": "Activo/Serial",
   "Line $": "Línea $",
@@ -4530,15 +4010,12 @@ const ES = {
   "Download Return PDF": "Descargar PDF de Devolución",
   "Could not download PDF": "No se pudo descargar el PDF",
   "Confidential": "Confidencial",
-  "Generated": "Generado",
   "Not found": "No encontrado",
   "Use GPS": "Usar GPS",
   "Issuance": "Emisión",
   "Equipment Trained On": "Equipo Entrenado",
 
   // ---- Field Leadership module ------------------------------------------
-  "Field Leadership": "Liderazgo de Campo",
-  "Restricted": "Restringido",
   "Restricted · Crew Documentation": "Restringido · Documentación de Cuadrilla",
   "Restricted Form": "Formulario Restringido",
   "This section is restricted to MASCI field supervisors, foremen, superintendents, PMs, Safety, and Admin. Enter the leadership password to continue.":
@@ -4601,31 +4078,25 @@ const ES = {
   "Select a job…": "Seleccione un trabajo…",
   "Select an employee…": "Seleccione un empleado…",
   "Select…": "Seleccione…",
-  "Employee": "Empleado",
   "Search employee by name…": "Buscar empleado por nombre…",
   "Add new employee": "Agregar nuevo empleado",
   "New employee name": "Nombre del nuevo empleado",
   "Employee added": "Empleado agregado",
   "Could not add employee": "No se pudo agregar empleado",
   "Add": "Agregar",
-  "Cancel": "Cancelar",
   "Or type employee name (not in system)": "O escriba el nombre del empleado (no está en el sistema)",
   "Manual employee name": "Nombre manual del empleado",
-  "Position": "Puesto",
   "Supervisor / Foreman / Superintendent": "Supervisor / Capataz / Superintendente",
   "Date / Time": "Fecha / Hora",
   "Location / Work Area": "Ubicación / Área de Trabajo",
   "Photos / Documents": "Fotos / Documentos",
-  "(required if condition is Fair or Damaged)": "(requerido si la condición es Aceptable o Dañado)",
   "Employee signature acknowledges receipt of this document and does not necessarily indicate agreement with its contents.":
     "La firma del empleado reconoce la recepción de este documento y no necesariamente indica acuerdo con su contenido.",
   "Supervisor Signature": "Firma del Supervisor",
-  "Employee Signature": "Firma del Empleado",
   "Employee Signature (Optional)": "Firma del Empleado (Opcional)",
   "Witness Signature": "Firma del Testigo",
   "Witness Name": "Nombre del Testigo",
   "Employee refused to sign": "El empleado se negó a firmar",
-  "Submitting…": "Enviando…",
   "Submitted — assigned PM, jaymn, and safety have been notified.":
     "Enviado — el PM asignado, jaymn y seguridad han sido notificados.",
   "Submit failed": "El envío falló",
@@ -4641,21 +4112,14 @@ const ES = {
   // Records dashboard
   "Total": "Total",
   "Job # or Name": "Trabajo # o Nombre",
-  "Search": "Buscar",
   "Search…": "Buscar…",
-  "Clear": "Limpiar",
   "Export CSV": "Exportar CSV",
   "Could not load records": "No se pudieron cargar los registros",
   "Could not export CSV": "No se pudo exportar el CSV",
   "Form": "Formulario",
-  "Job": "Trabajo",
-  "Date": "Fecha",
   "Supervisor": "Supervisor",
-  "Actions": "Acciones",
-  "Loading…": "Cargando…",
   "No records yet for the current filters.": "Aún no hay registros para los filtros actuales.",
   "Permanently archive this record?": "¿Archivar permanentemente este registro?",
-  "Archived": "Archivado",
   "Could not archive": "No se pudo archivar",
 
   // View page
@@ -4665,7 +4129,6 @@ const ES = {
   "Language": "Idioma",
   "Summary": "Resumen",
   "Details": "Detalles",
-  "Photos": "Fotos",
   "Signatures": "Firmas",
   "Employee Refused": "El Empleado se Negó",
   "Witness": "Testigo",
@@ -4678,7 +4141,6 @@ const ES = {
   "MASCI · QA/QC": "MASCI · QA/QC",
   "Open Form": "Abrir Formulario",
   "None": "Ninguno",
-  "Location": "Ubicación",
   "Client": "Cliente",
   "Concrete Form Inspection": "Inspección de Formaleta de Concreto",
   "Rebar Inspection": "Inspección de Acero de Refuerzo",
@@ -4689,7 +4151,6 @@ const ES = {
 
   // ---- CompanyInfoDialog ------------------------------------------------
   "Company Info": "Información de la Empresa",
-  "Info": "Info",
   "Appears on the print/PDF footer of every safety report. Stored only on this device.":
     "Aparece en el pie de página impreso/PDF de cada informe de seguridad. Se guarda solo en este dispositivo.",
   "Appears on every printed report. Admin only — sign in as admin to make changes.":
@@ -4702,8 +4163,6 @@ const ES = {
   "Office Phone": "Teléfono de Oficina",
   "Email": "Correo Electrónico",
   "Website": "Sitio Web",
-  "Close": "Cerrar",
-  "Save": "Guardar",
   "Company info saved — appears on every printed report": "Información de la empresa guardada — aparece en cada informe impreso",
 
   // ---- Hub eyebrow / training hub additions -----------------------------
@@ -4745,9 +4204,7 @@ const ES = {
   "Serial / Asset ID": "Serie / ID de Activo",
   "Quantity": "Cantidad",
   "Replacement $": "Reemplazo $",
-  "Condition": "Condición",
   "Line Total": "Total de Línea",
-  "Notes": "Notas",
   "Photos (optional)": "Fotos (opcional)",
   "Total Replacement Value Issued": "Valor Total de Reemplazo Entregado",
   "item": "artículo",
@@ -4764,20 +4221,15 @@ const ES = {
   "Manage the searchable equipment list and manufacturer dropdown used by the Equipment Checkout & Accountability form. Disable old items instead of deleting to preserve historical record references.":
     "Gestione la lista de equipo y el desplegable de fabricantes usado por el formulario de Entrega de Equipo y Responsabilidad. Deshabilite artículos antiguos en lugar de eliminarlos para preservar las referencias históricas.",
   "Equipment Catalog": "Catálogo de Equipo",
-  "Refresh": "Actualizar",
   "Export Checkout CSV": "Exportar CSV de Entregas",
   "Add Item": "Agregar Artículo",
   "Search by name, make, or category…": "Buscar por nombre, marca o categoría…",
   "Default Make": "Marca Predeterminada",
-  "Category": "Categoría",
-  "Active": "Activo",
   "No items.": "Sin artículos.",
-  "Disabled": "Deshabilitado",
   "Manufacturers": "Fabricantes",
   "Add Make": "Agregar Marca",
   "Disable": "Deshabilitar",
   "Enable": "Habilitar",
-  "Edit": "Editar",
   "Edit Equipment": "Editar Equipo",
   "Add Equipment Item": "Agregar Artículo de Equipo",
   "Category (optional)": "Categoría (opcional)",
@@ -4801,9 +4253,7 @@ const ES = {
   "replacement value is required": "se requiere el valor de reemplazo",
   "condition is required": "se requiere la condición",
   "at least 2 photos are required per item": "se requieren al menos 2 fotos por artículo",
-  "Photos": "Fotos",
   "(Minimum 2 photos required)": "(Mínimo 2 fotos requeridas)",
-  "Need": "Faltan",
   "more photo(s)": "foto(s) más",
 
   // ---- Equipment Return form ------------------------------------------
@@ -4814,7 +4264,6 @@ const ES = {
   "Scan or type the serial / asset ID stamped on the equipment to pull the original checkout record.":
     "Escanee o escriba la serie / ID de activo del equipo para abrir el registro original de entrega.",
   "e.g. RL200-789": "ej. RL200-789",
-  "Searching…": "Buscando…",
   "Look Up": "Buscar",
   "Add Manual Entry": "Agregar Entrada Manual",
   "No items yet. Look up a serial or add a manual entry.": "Aún no hay artículos. Busque una serie o agregue una entrada manual.",
@@ -4827,9 +4276,7 @@ const ES = {
   "at least 2 return photos are required per item": "se requieren al menos 2 fotos de devolución por artículo",
   "Matched checkout": "Entrega coincidente",
   "Damage flagged": "Daño marcado",
-  "Equipment": "Equipo",
   "Manufacturer": "Fabricante",
-  "Qty": "Cant.",
   "Issued Cond.": "Cond. Entregada",
   "Return Condition": "Condición de Devolución",
   "Loss / Damage Amount": "Monto de Pérdida / Daño",
@@ -4844,13 +4291,11 @@ const ES = {
 
   // ---- Field Leadership login screen (matches Admin/PM/Shop chrome) ----
   "Restricted Area": "Área Restringida",
-  "Field Leadership Sign In": "Inicio de Sesión · Liderazgo de Campo",
   "Leadership Password": "Contraseña de Liderazgo",
   "Sign In": "Iniciar Sesión",
   "MASCI · Field Leadership · Restricted": "MASCI · Liderazgo de Campo · Restringido",
 
   // ---- Sub-hub + Field Leadership tile CTAs (iter106–iter108) ----------
-  "Home": "Inicio",
   "New entry": "Nueva entrada",
   "Open form": "Abrir formulario",
   "Open Tools": "Abrir Herramientas",
@@ -4883,7 +4328,6 @@ const ES = {
   "Coverage Plan / Who's Covering": "Plan de Cobertura / Quién Cubre",
   "Employee Signature": "Firma del Empleado",
   "Submit Time Off Request": "Enviar Solicitud de Tiempo Libre",
-  "Submitting…": "Enviando…",
   // Time Off reason options
   "Vacation": "Vacaciones",
   "Sick Leave": "Permiso por Enfermedad",
@@ -4893,7 +4337,6 @@ const ES = {
   "Jury Duty": "Jurado",
   "Military Leave": "Permiso Militar",
   "Personal": "Personal",
-  "Other": "Otro",
 
   // ---- Hub.jsx section headers + tile descriptions (iter110) ----------
   "Today in the Field": "Hoy en el Campo",
@@ -4902,7 +4345,6 @@ const ES = {
   "For foremen, supervisors, and superintendents in the field.": "Para capataces, supervisores y superintendentes en campo.",
   "Office Portals": "Portales de Oficina",
   "Sign-in required. For office staff, mechanics, and HR.": "Inicio de sesión requerido. Para personal de oficina, mecánicos y RRHH.",
-  "Reference": "Referencia",
   "Always available — no sign-in needed.": "Siempre disponible — sin necesidad de iniciar sesión.",
   "Enter →": "Entrar →",
   "The project-management workspace for MASCI office staff.": "El espacio de gestión de proyectos para personal de oficina de MASCI.",
@@ -4928,11 +4370,9 @@ const ES = {
   "Minimum 4 photos required.": "Mínimo 4 fotos requeridas.",
   "Photos: ": "Fotos: ",
   "min 2 required": "mín 2 requeridas",
-  "more photo(s) before you can submit": "foto(s) más antes de enviar",
   "photos added": "fotos agregadas",
   "No photos could be added": "No se pudieron agregar fotos",
   "Compressing": "Comprimiendo",
-  "of": "de",
   "jobs have plans uploaded": "trabajos tienen planes cargados",
   "file uploaded": "archivo cargado",
   "files uploaded": "archivos cargados",
@@ -4947,18 +4387,15 @@ const ES = {
   "Save to Files / Downloads": "Guardar en Archivos / Descargas",
   "to read it where there's no service.": "para leerlo donde no hay señal.",
   "No job matches your search.": "Ningún trabajo coincide con su búsqueda.",
-  "Download": "Descargar",
 
   // ─── iter251 Phase 2 · Trucking / DVIR ──────────────────────────
   "Trucking · Daily DVIR": "Camiones · DVIR Diario",
   "Daily Vehicle Inspection for trucks and trailers. Walk-around · PASS / FAIL each item · Shop sees defects automatically.": "Inspección Diaria del Vehículo para camiones y remolques. Recorrido · APROBADO / FALLA en cada elemento · el Taller ve los defectos automáticamente.",
   "Start DVIR": "Iniciar DVIR",
-  "Daily Vehicle Inspection": "Inspección Diaria del Vehículo",
   "Walk around your truck before you roll. Mark every item. Anything FAIL gets logged so Shop can keep us on the road.": "Camine alrededor de su camión antes de salir. Marque cada elemento. Cualquier FALLA se registra para que el Taller nos mantenga en la ruta.",
   "Driver & Truck": "Conductor y Camión",
   "Why we ask for your name": "Por qué pedimos su nombre",
   "Accountability — Shop and Dispatch need to know who walked this truck. Drivers who report defects honestly keep the whole crew safe.": "Responsabilidad — el Taller y Despacho necesitan saber quién revisó este camión. Los conductores que reportan defectos honestamente mantienen a toda la cuadrilla segura.",
-  "Driver name": "Nombre del conductor",
   "First and last name": "Nombre y apellido",
   "Date": "Fecha",
   "Time": "Hora",
@@ -4972,12 +4409,8 @@ const ES = {
   "How to walk a truck": "Cómo recorrer un camión",
   "Front · driver side · rear · passenger side. Look for leaks under the engine, listen for air, check lights with the 4-ways on, look at every tire's tread.": "Frente · lado del conductor · trasera · lado del pasajero. Busque fugas debajo del motor, escuche el aire, revise las luces con las intermitentes encendidas, mire la banda de cada llanta.",
   "Progress": "Progreso",
-  "PASS": "APROBADO",
-  "FAIL": "FALLA",
-  "N/A": "N/D",
   "Describe the defect — what you saw / heard / felt (10+ chars)": "Describa el defecto — qué vio / oyó / sintió (10+ caracteres)",
   "Photos (optional but helpful)": "Fotos (opcional pero útil)",
-  "Why this matters": "Por qué importa",
   "Out of Service if failed": "Fuera de Servicio si falla",
   "Monitor — shop will see this": "Monitor — el taller lo verá",
   "Safety-critical for road operation or worker protection. Shop will be notified and the truck will be tagged Out of Service for this defect.": "Crítico para la operación vial o la protección del trabajador. El Taller será notificado y el camión será etiquetado como Fuera de Servicio por este defecto.",
@@ -4986,10 +4419,8 @@ const ES = {
   "Trailer Walk-Around": "Recorrido del Remolque",
   "Add trailer": "Agregar remolque",
   "No trailer today? Skip this section.": "¿Sin remolque hoy? Omita esta sección.",
-  "Trailer": "Remolque",
   "— Pick trailer —": "— Elija remolque —",
   "Sign & Submit": "Firmar y Enviar",
-  "What happens next": "Qué pasa después",
   "Submit and you'll see your truck's status. If anything is Out of Service, Shop is notified automatically and Dispatch will reassign. If it's a Monitor item, Shop sees it and schedules a repair window.": "Envíe y verá el estado de su camión. Si algo está Fuera de Servicio, el Taller es notificado automáticamente y Despacho reasignará. Si es un elemento Monitor, el Taller lo ve y programa una ventana de reparación.",
   "Notes for Shop / Dispatch (optional)": "Notas para Taller / Despacho (opcional)",
   "Anything else worth flagging — sound, smell, vibration, recent fix?": "¿Algo más que valga la pena reportar — sonido, olor, vibración, reparación reciente?",
@@ -5014,7 +4445,6 @@ const ES = {
   "Severity table version": "Versión de la tabla de severidad",
 
   // ─── DVIR confirmation page ─────────────────────────────────────
-  "Out of Service": "Fuera de Servicio",
   "Repair required before return to service.": "Reparación requerida antes del regreso al servicio.",
   "Shop has been notified automatically. Dispatch will reassign as needed. Thank you for catching this before rolling.": "El Taller ha sido notificado automáticamente. Despacho reasignará según sea necesario. Gracias por detectar esto antes de salir.",
   "Defect Logged · Truck Still Available": "Defecto Registrado · Camión Aún Disponible",
@@ -5026,11 +4456,7 @@ const ES = {
   "DVIR submitted": "DVIR enviado",
   "Your inspection was received. This confirmation page only shows details right after submission · please start a fresh DVIR if you need to log another.": "Su inspección fue recibida. Esta página de confirmación solo muestra detalles justo después del envío · por favor inicie un DVIR nuevo si necesita registrar otro.",
   "Submitted": "Enviado",
-  "Truck": "Camión",
   "Defects": "Defectos",
-  "Status": "Estado",
-  "Driver": "Conductor",
-  "Available": "Disponible",
   "Defect Logged": "Defecto Registrado",
   "Unknown": "Desconocido",
   "Logged for Shop": "Registrado para el Taller",
@@ -5048,7 +4474,6 @@ const ES = {
   "Shop sees the defect on their queue. Repair gets scheduled within the operational window for the item. Drive normally until then.": "El Taller ve el defecto en su cola. La reparación se programa dentro de la ventana operacional del elemento. Conduzca normalmente hasta entonces.",
   "You're good to go. Submit another DVIR at the start of your next shift.": "Está listo para irse. Envíe otro DVIR al inicio de su próximo turno.",
   "Start another DVIR": "Iniciar otro DVIR",
-  "Home": "Inicio",
   "MASCI · Trucking · DVIR": "MASCI · Camiones · DVIR",
 
   // ─── Phase 3 · Fleet Visibility (Dispatch / Shop / Safety) ──────
@@ -5060,7 +4485,6 @@ const ES = {
   "Open defects across fleet": "Defectos abiertos en toda la flota",
   "Repair Required": "Reparación Requerida",
   "Repair In Progress": "Reparación en Progreso",
-  "Returned to Service": "Regresado al Servicio",
   "Monitor": "Monitor",
   "OOS": "FDS",
   "Latest DVIR": "Último DVIR",
@@ -5071,15 +4495,12 @@ const ES = {
   "Severity table approved": "Tabla de severidad aprobada",
   "Download printable reference": "Descargar referencia imprimible",
   "Units": "Unidades",
-  "Refresh": "Actualizar",
   "Loading…": "Cargando…",
   "Could not load fleet status.": "No se pudo cargar el estado de la flota.",
   "All clear": "Todo despejado",
   "No open defects across the fleet right now. Great job out there.": "No hay defectos abiertos en la flota en este momento. Excelente trabajo.",
   "Fleet unit": "Unidad de flota",
-  "(no item)": "(sin elemento)",
   "photo(s)": "foto(s)",
-  "Trucking · Fleet": "Camiones · Flota",
   "See defects grouped by truck · driver notes · current status · severity context. Mobile-friendly · operational clarity only.": "Ver defectos agrupados por camión · notas del conductor · estado actual · contexto de severidad. Compatible con móvil · solo claridad operacional.",
   "Open Fleet View": "Abrir vista de flota",
 
@@ -5099,8 +4520,6 @@ const ES = {
   "≥ 5 characters": "≥ 5 caracteres",
   "characters": "caracteres",
   "Repair photos (optional)": "Fotos de reparación (opcional)",
-  "Cancel": "Cancelar",
-  "Saving…": "Guardando…",
   "Logging the repair flags the defect as awaiting Dispatch Return-to-Service. The unit will not roll until Dispatch confirms.": "Registrar la reparación marca el defecto como pendiente de confirmación de Despacho. La unidad no rodará hasta que Despacho confirme.",
   "Shop repair note": "Nota de reparación del Taller",
   "by": "por",
@@ -5111,7 +4530,6 @@ const ES = {
   "I have reviewed the Shop repair record and confirm this unit is safe to return to service.": "He revisado el registro de reparación del Taller y confirmo que esta unidad es segura para regresar al servicio.",
   "Shop repair logged": "Reparación del Taller registrada",
   "Mechanic": "Mecánico",
-  "Open": "Abierto",
   "Shop acknowledged": "Taller reconocido",
   "Returned to service": "Regresado al servicio",
   "View audit trail": "Ver registro de auditoría",
@@ -5122,8 +4540,6 @@ const ES = {
   "Shop marked repaired": "Taller marcó como reparado",
   "Dispatch returned to service": "Despacho regresó al servicio",
   "Manual OOS by Dispatch": "FDS manual por Despacho",
-  "Driver": "Conductor",
-  "Trailer": "Remolque",
 
   // ─── Phase 5 · Weekly Lead + Emergency Equipment ──────────────
   "Weekly · Lead Inspection": "Semanal · Inspección del Líder",
@@ -5156,7 +4572,6 @@ const ES = {
   // closure. Mirrors the ViewMeeting Sprint 1 (iter268) pattern.
 
   /* shared chrome */
-  "Reports": "Reportes",
   "Incidents": "Incidentes",
 
   /* delete confirmations + toasts */
@@ -5211,10 +4626,6 @@ const ES = {
   "Time of Contact": "Hora del Contacto",
   "Incident Report Filed": "Reporte de Incidente Presentado",
   "Incident Report Time": "Hora del Reporte de Incidente",
-  "MASCI Crews": "Cuadrillas de MASCI",
-  "Subcontractors": "Subcontratistas",
-  "Subcontractor": "Subcontratista",
-  "Visitors": "Visitantes",
   "Materials": "Materiales",
   "Activity Log": "Bitácora de Actividades",
   "No MASCI crews on site.": "No hay cuadrillas de MASCI en el sitio.",
@@ -5238,7 +4649,6 @@ const ES = {
   "Delivered": "Entregado",
   "Removed": "Retirado",
   "Qty": "Cant.",
-  "Unit": "Unidad",
   "Supplier": "Proveedor",
   "Ticket #": "Ticket #",
   "% Done": "% Hecho",
@@ -5247,17 +4657,11 @@ const ES = {
   "#": "#",
   "Activity": "Actividad",
   "Sign-Off": "Firma de Cierre",
-  "Daily Report": "Reporte Diario",
 
   // ─── Document Expirations (iter276 · Sequence #7) ────────────────
   "Document Expirations": "Vencimientos de Documentos",
   "Compliance Tracker": "Rastreador de Cumplimiento",
-  "Back": "Atrás",
-  "Current": "Vigente",
   "Expiring Soon": "Por Vencer",
-  "Expired": "Vencido",
-  "All statuses": "Todos los estados",
-  "All categories": "Todas las categorías",
   "Employee documents": "Documentos del empleado",
   "Training certifications": "Certificaciones de capacitación",
   "Safety compliance": "Cumplimiento de seguridad",
@@ -5276,7 +4680,6 @@ const ES = {
   "Documents you upload with an expiration date will appear here. Try clearing filters.": "Los documentos que suba con una fecha de vencimiento aparecerán aquí. Intente borrar los filtros.",
   "Document": "Documento",
   "Linked To": "Vinculado a",
-  "Expires": "Vence",
   "Days": "Días",
   "Add Expiration Record": "Agregar Registro de Vencimiento",
   "Document type *": "Tipo de documento *",
@@ -5310,7 +4713,6 @@ const ES = {
   "Accepted columns: Employee Name (required), Regular Hours OR Total Hours (required), Overtime Hours, Employee ID, Week Ending. Comma, tab, or pipe-delimited.": "Columnas aceptadas: Nombre del Empleado (obligatorio), Horas Regulares O Horas Totales (obligatorio), Horas Extra, ID del Empleado, Semana Terminada. Separadas por coma, tab o pipe.",
   "Recent Variance Batches": "Lotes Recientes de Variación",
   "No variance batches yet. Paste a CSV above to create the first one.": "Todavía no hay lotes de variación. Pegue un CSV arriba para crear el primero.",
-  "Created": "Creado",
   "Matched": "Coincidente",
   "Flagged": "Marcado",
   "Active Batch · Week Ending": "Lote Activo · Semana Terminada",
@@ -5323,7 +4725,6 @@ const ES = {
   "Diff": "Dif",
   "Flag": "Marca",
   "Decision": "Decisión",
-  "Approve": "Aprobar",
   "Dispute": "Disputar",
 
   // ─── HR Employee Lifecycle Dates (iter285) ────────────────────
@@ -5352,7 +4753,6 @@ const ES = {
   "Update failed": "Falló la actualización",
 
   // ─── HR Driver Qualification (iter286) ────────────────────────
-  "Driver Qualification": "Calificación del Conductor",
   "CDL Holder": "Titular de CDL",
   "Approved Company Driver": "Conductor Aprobado por la Compañía",
   // ─── iter353c · Employee Accountability Timeline ─────────────
@@ -5367,20 +4767,16 @@ const ES = {
   "Employee Accountability Timeline.": "Línea de Tiempo de Responsabilidad del Empleado.",
   "Aggregated read-only view of training, PPE, incidents, CDL/medical, Field Leadership, and HR lifecycle events. Source records remain authoritative — corrections are made in their original portal.": "Vista agregada de solo lectura: capacitación, EPP, incidentes, CDL/médico, Liderazgo de Campo y ciclo de vida de RR. HH. Los registros fuente siguen siendo autoritativos — las correcciones se hacen en su portal original.",
   "Loading employee accountability…": "Cargando responsabilidad del empleado…",
-  "PPE": "EPP",
   "FL Records": "Registros de Liderazgo",
   "Driver Qual": "Calif. Conductor",
   "HR Lifecycle": "Ciclo de RR. HH.",
   "Expiration Watch": "Vigilancia de Vencimientos",
   "No events in this category yet.": "Aún no hay eventos en esta categoría.",
-  "Event": "Evento",
-  "Source": "Fuente",
   "By": "Por",
   "exp": "vence",
   "Aggregated view · source records remain authoritative · generated": "Vista agregada · registros fuente autoritativos · generado",
   "Employee Accountability Timeline": "Línea de Tiempo de Responsabilidad",
   "View Accountability Timeline": "Ver Línea de Tiempo de Responsabilidad",
-  "Accountability": "Responsabilidad",
   "Driver Status": "Estatus del Conductor",
   // ─── iter353b-availability · Drivers Available Right Now ─────
   "Drivers Available Right Now": "Conductores Disponibles Ahora",
@@ -5394,18 +4790,11 @@ const ES = {
   "Drivers in scope": "Conductores en alcance",
   "CDL expiring ≤30d": "CDL vence ≤30d",
   "Medical ≤30d": "Médico ≤30d",
-  "Restricted": "Restringido",
-  "Suspended": "Suspendido",
   "Name · employee ID · CDL #": "Nombre · ID empleado · CDL #",
-  "Any": "Cualquiera",
   "CDL holders only": "Solo titulares de CDL",
   "Non-CDL": "No-CDL",
   "Approved only": "Solo aprobados",
   "Not approved": "No aprobados",
-  "Inactive": "Inactivo",
-  "≤30d": "≤30d",
-  "Approved": "Aprobado",
-  "Endorsements": "Endosos",
   "Medical": "Médico",
   "No driver-qualified employees match the current filter.": "Ningún empleado calificado coincide con el filtro actual.",
   "Read-only · source roster owned by HR · last verified": "Solo lectura · roster fuente propiedad de RR. HH. · última verificación",
@@ -5449,15 +4838,11 @@ const ES = {
     "Visibilidad operacional de solo lectura · titulares de CDL · conductores aprobados · endosos · vencimientos · lista capaz de tanque",
   "Name · ID · CDL #": "Nombre · ID · # de CDL",
   "Any": "Cualquiera",
-  "Yes": "Sí",
-  "No": "No",
   "Endorsement": "Endoso",
   "No matching drivers": "No hay conductores que coincidan",
   "Adjust filters above, or add driver qualification data on an employee record in the HR portal.":
     "Ajuste los filtros arriba, o agregue datos de calificación de conductor en el registro de un empleado en el portal de RH.",
-  "Driver": "Conductor",
   "CDL": "CDL",
-  "Approved": "Aprobado",
   "Endorsements": "Endosos",
   "Restrictions": "Restricciones",
   "CDL Exp": "Venc. CDL",
@@ -5465,7 +4850,6 @@ const ES = {
   "Drivers": "Conductores",
   "Air Brake": "Freno de Aire",
   "Manual": "Manual",
-  "Expired": "Vencido",
   "Expiring soon": "Vence pronto",
   "Could not load driver qualification dashboard": "No se pudo cargar el tablero de calificación de conductor",
 
@@ -5478,7 +4862,6 @@ const ES = {
   // calculated? · Leave blank … · Defaults to signed-in safety user ·
   // Linked equipment (optional) · etc). iter293 adds ONLY the labels
   // that were genuinely missing from the registry.
-  "Fire Extinguishers": "Extintores",
   "SAFETY · FIRE EXTINGUISHER REGISTER": "SEGURIDAD · REGISTRO DE EXTINTORES",
   "Track every fire extinguisher unit across trucks, jobsites, and facilities. Monthly inspections push status + next-due date + the inspection log automatically.":
     "Lleve el control de cada extintor en camiones, obras e instalaciones. Las inspecciones mensuales actualizan estatus, próxima fecha y bitácora automáticamente.",
@@ -5493,12 +4876,10 @@ const ES = {
   "Add the first one above.": "Agregue el primero arriba.",
   "Try a different filter.": "Pruebe un filtro diferente.",
   // Tabs (Pass / Fail / Status already translated — Cumple / No Cumple / Estado)
-  "All": "Todos",
   "Needs Service": "Necesita Servicio",
   "Overdue": "Vencido",
   // Table headers
   "Unit": "Unidad",
-  "Location": "Ubicación",
   "Type / Size": "Tipo / Tamaño",
   "Last Inspect": "Última Inspección",
   "Next Due": "Próximo Vence",
@@ -5528,7 +4909,6 @@ const ES = {
   "Not available": "No disponible",
   "This guidance isn't available for your access level.": "Esta guía no está disponible para su nivel de acceso.",
   "Back to Guidance": "Regresar a la Guía",
-  "Section": "Sección",
   "No articles in this section for your access level.": "No hay artículos en esta sección para su nivel de acceso.",
   "Related guidance": "Guía relacionada",
 
@@ -5540,14 +4920,11 @@ const ES = {
 
   // A · SafetyHub.jsx
   "All time": "Todo el tiempo",
-  "Audits & Inspections": "Auditorías e Inspecciones",
   "Awaiting close-out": "En espera de cierre",
   "CA · Open": "AC · Abierta",
   "CA · Overdue": "AC · Vencida",
-  "Change Password": "Cambiar Contraseña",
   "Could not load metrics. Sign out and back in.": "No se pudieron cargar las métricas. Cierre sesión y vuelva a entrar.",
   "Cross-portal accountability engine. Track corrective actions, follow-ups, deficiencies, and approvals to closure.": "Motor de rendición de cuentas entre portales. Rastree acciones correctivas, seguimientos, deficiencias y aprobaciones hasta el cierre.",
-  "Employee Safety Profiles": "Perfiles de Seguridad del Empleado",
   "Employee certifications, training records, expiration tracking, sign-in sheets, and renewal alerts.": "Certificaciones del empleado, registros de capacitación, seguimiento de vencimientos, listas de firmas y alertas de renovación.",
   "Equipment Accountability": "Rendición de Cuentas del Equipo",
   "Field Leadership records": "Registros de Liderazgo de Campo",
@@ -5570,24 +4947,19 @@ const ES = {
   "Past due date": "Pasada la fecha de vencimiento",
   "Per-employee roll-up: trainings, certs, meeting attendance, incident involvement, retraining, and PPE issuance.": "Resumen por empleado: capacitaciones, certificaciones, asistencia a reuniones, participación en incidentes, recapacitación y entrega de EPP.",
   "Read-only roll-up of every incident report filed from the field. Filter by severity, project, employee, and date.": "Resumen de solo lectura de cada incidente enviado desde el campo. Filtre por severidad, proyecto, empleado y fecha.",
-  "Reports & Exports": "Reportes y Exportes",
-  "Safety Document Library": "Biblioteca de Documentos de Seguridad",
   "Site safety audits and jobsite inspections — same records the field submits, organized for Safety review and close-out.": "Auditorías de seguridad de la obra e inspecciones de campo — los mismos registros que envía el campo, organizados para revisión y cierre por Seguridad.",
   "Step-by-step operator guides for Safety Portal workflows — Corrective Actions, Incidents, Fire Extinguisher Bulk Import, Weekly Digest. Download any guide as PDF.": "Guías paso a paso para los flujos del Portal de Seguridad — Acciones Correctivas, Incidentes, Importación Masiva de Extintores, Resumen Semanal. Descargue cualquier guía en PDF.",
   "Tasks & Actions": "Tareas y Acciones",
   "Toolbox + huddles": "Reuniones de seguridad + huddles",
   "Topic Library · Operational Prep": "Biblioteca de Temas · Preparación Operacional",
-  "Training & Certifications": "Capacitación y Certificaciones",
   "Training Center & Guides": "Centro de Capacitación y Guías",
   "Training Deficiencies": "Deficiencias de Capacitación",
   "Training certifications, competent-person docs, fall protection, CPR/First Aid — visibility before they lapse.": "Certificaciones de capacitación, documentos de persona competente, protección contra caídas, CPR/Primeros Auxilios — visibilidad antes de que venzan.",
   "Update your Safety Portal password. Required for first login after Admin issues a temp password.": "Actualice su contraseña del Portal de Seguridad. Requerido en el primer inicio de sesión después de que Admin le emita una contraseña temporal.",
-  "Weekly Digest": "Resumen Semanal",
 
   // B · SafetyCorrectiveActions.jsx
   "Any employee": "Cualquier empleado",
   "Any equipment": "Cualquier equipo",
-  "Assigned": "Asignado",
   "Assigned to (email)": "Asignado a (correo)",
   "Assigned to (name)": "Asignado a (nombre)",
   "Completion notes": "Notas de cierre",
@@ -5607,11 +4979,8 @@ const ES = {
   "Nothing matches this filter yet. Try the 'All' tab to see every record.": "Nada coincide con este filtro todavía. Pruebe la pestaña 'Todas' para ver todos los registros.",
   "Open → In Progress → Pending Review → Closed": "Abierta → En Progreso → Pendiente de Revisión → Cerrada",
   "Optional — paste record ID": "Opcional — pegue el ID del registro",
-  "Priority": "Prioridad",
   "Priority drives WHEN we act — it controls the Open-queue ordering. Severity (set on the source incident or audit) describes the risk of the underlying finding itself.": "La prioridad determina CUÁNDO actuamos — controla el orden de la cola de abiertas. La severidad (fijada en el incidente o auditoría de origen) describe el riesgo del hallazgo en sí.",
   "Priority vs. Severity": "Prioridad vs. Severidad",
-  "Project": "Proyecto",
-  "Project number": "Número de proyecto",
   "Required to mark as Closed — what was done and when?": "Requerido para marcar como Cerrada — ¿qué se hizo y cuándo?",
   "Search by name / email / employee ID…": "Buscar por nombre / correo / ID de empleado…",
   "Search by unit / make / VIN…": "Buscar por unidad / marca / VIN…",
@@ -5619,7 +4988,6 @@ const ES = {
   "Source": "Origen",
   "Source record ID": "ID del registro de origen",
   "Submit for Review": "Enviar para Revisión",
-  "Track every safety deficiency to resolution. Auto-link CAs to incidents, audits, inspections, training records, and meetings. The pipeline is": "Rastree cada deficiencia de seguridad hasta su resolución. Vinculación automática de las AC con incidentes, auditorías, inspecciones, registros de capacitación y reuniones. La secuencia es",
   "What needs to happen and why?": "¿Qué tiene que pasar y por qué?",
 
   // C · SafetyTopicLibrary.jsx
@@ -5670,7 +5038,6 @@ const ES = {
   "Max 15 MB. Visible to Safety, HR, and Admin once uploaded.": "Máximo 15 MB. Visible para Seguridad, RH y Admin una vez subido.",
   "No documents": "Sin documentos",
   "Search title, filename, tags…": "Buscar título, nombre de archivo, etiquetas…",
-  "Upload": "Subir",
   "Upload Document": "Subir Documento",
   "Upload one with the button above.": "Suba uno con el botón de arriba.",
   "Upload safety document": "Subir documento de seguridad",
@@ -5762,7 +5129,6 @@ const ES = {
   "Truck number": "Número de camión",
   "Pick a truck or type unit number": "Selecciona un camión o escribe el número",
   "Trailer number": "Número de remolque",
-  "optional": "opcional",
   "If you're pulling one": "Si llevas uno",
   "Company / Hauler": "Compañía / Transportista",
   "Search or add": "Buscar o agregar",
@@ -5775,11 +5141,7 @@ const ES = {
   "change": "cambiar",
   "Looking…": "Buscando…",
   "Type at least 2 letters to search.": "Escribe al menos 2 letras para buscar.",
-  "No matches yet.": "Sin coincidencias todavía.",
   "Add temporary:": "Agregar temporal:",
-  "Add temporary driver:": "Agregar conductor temporal:",
-  "Add temporary truck:": "Agregar camión temporal:",
-  "Add temporary trailer:": "Agregar remolque temporal:",
   "Add carrier / hauler:": "Agregar transportista:",
   // DriverShift current-state labels
   "Current state": "Estado actual",
@@ -5792,28 +5154,20 @@ const ES = {
   "Arrived at job": "Llegada al trabajo",
   "Dumping": "Descargando",
   "Complete — start next cycle when dispatched": "Completo — inicia el siguiente ciclo cuando se asigne",
-  "Waiting": "Esperando",
   "On hold": "En espera",
   "Breakdown": "Avería",
   "Off shift": "Fuera de turno",
   // DriverShift body
-  "Connection failed — retrying…": "Falló la conexión — reintentando…",
-  "Could not record that. Try again.": "No se pudo registrar. Intenta de nuevo.",
-  "Connection failed — try again.": "Falló la conexión — intenta de nuevo.",
   "Loading your shift…": "Cargando tu turno…",
   "No active haul right now": "Sin acarreo activo ahora mismo",
   "Dispatch will assign your next cycle. This screen will update on its own — keep it open in your phone.": "Despacho asignará tu siguiente ciclo. Esta pantalla se actualizará sola — mantenla abierta en tu teléfono.",
-  "Sign out": "Cerrar sesión",
   "Driver shift": "Turno del conductor",
-  "Truck": "Camión",
   "Reason": "Motivo",
-  "Job": "Trabajo",
   "No next step — dispatch will pick this up.": "Sin siguiente paso — despacho lo retomará.",
   "Waiting…": "Esperando…",
   "Hold": "Espera",
   "End shift": "Terminar turno",
   "What are you waiting on?": "¿Qué estás esperando?",
-  "Cancel": "Cancelar",
   // Wait reasons (short labels)
   "Plant": "Planta",
   "Loader": "Cargador",
@@ -5836,10 +5190,8 @@ const ES = {
   "pattern": "patrón",
   "patterns": "patrones",
   // DispatchBoard summary tiles
-  "Active hauls": "Acarreos activos",
   "Stuck": "Atorado",
   // DispatchBoard state chips (short)
-  "Assigned": "Asignado",
   "En route · load": "En ruta · carga",
   "At load": "En carga",
   "En route · job": "En ruta · trabajo",
@@ -5867,7 +5219,6 @@ const ES = {
   "Live operational flow": "Flujo operativo en vivo",
   "Every active haul, one card. Tap a row to see history, issue a driver magic link, cancel, reassign, or revoke a session. Refreshes every": "Cada acarreo activo, una tarjeta. Toca una fila para ver el historial, emitir un enlace mágico, cancelar, reasignar o revocar una sesión. Se actualiza cada",
   "seconds.": "segundos.",
-  "Refresh": "Actualizar",
   // LifecycleGuide section labels + bodies
   "What this board is telling you": "Lo que este tablero te está diciendo",
   "Calm operational truth · forgiving transitions · governance signals": "Verdad operativa calmada · transiciones tolerantes · señales de gobernanza",
@@ -5875,7 +5226,6 @@ const ES = {
   "Every truck moves through 13 canonical states. Non-standard transitions are accepted but tagged so operations are never blocked. See the glossary for full definitions.": "Cada camión pasa por 13 estados canónicos. Las transiciones no estándar se aceptan pero se etiquetan, las operaciones nunca se bloquean. Consulta el glosario para definiciones completas.",
   "Findings": "Hallazgos",
   "Four signals only — BREAKDOWN_ACTIVE (critical), ASSIGNMENT_STUCK (≥30 min in non-terminal state), WAIT_THRESHOLD_EXCEEDED (≥20 min in WAITING), NON_STANDARD_TRANSITION_PATTERN (≥3 non-standard transitions in 2h per truck). Nothing else fires.": "Solo cuatro señales — BREAKDOWN_ACTIVE (crítica), ASSIGNMENT_STUCK (≥30 min en estado no terminal), WAIT_THRESHOLD_EXCEEDED (≥20 min en WAITING), NON_STANDARD_TRANSITION_PATTERN (≥3 transiciones no estándar en 2h por camión). Nada más se dispara.",
-  "Roles": "Roles",
   "Dispatch and Admin act here. Drivers act on the magic-link mobile screen. PM and Shop see project- and breakdown-scoped signals on their own hubs. Safety, FL, and HR remain operationally quiet on DLS by design — restraint until live operations tell us where signal-surfacing actually helps.": "Despacho y Admin actúan aquí. Los conductores actúan en la pantalla móvil del enlace mágico. PM y Taller ven señales con alcance por proyecto y por avería en sus propios centros. Seguridad, FL y RH permanecen silenciosos en DLS por diseño — moderación hasta que las operaciones en vivo nos digan dónde la visibilidad realmente ayuda.",
   "Restraint": "Moderación",
   "Read-only · refreshes every 5 seconds · no chat, no maps, no analytics. The lifecycle engine is the single source of operational truth — every action here delegates to it so nothing gets out of sync.": "Solo lectura · se actualiza cada 5 segundos · sin chat, sin mapas, sin analítica. El motor de ciclo de vida es la única fuente de verdad operativa — cada acción aquí delega en él para que nada se desincronice.",
@@ -5886,7 +5236,6 @@ const ES = {
   "No active hauls right now.": "Sin acarreos activos ahora mismo.",
   "Trucks will appear here the moment dispatch creates an assignment.": "Los camiones aparecerán aquí en el momento en que despacho cree una asignación.",
   // DispatchLifecycleTile (PM / Shop / FL scopes)
-  "Haul activity on your projects": "Actividad de acarreo en tus proyectos",
   "live dispatch signal · project-scoped": "señal de despacho en vivo · alcance por proyecto",
   "No haul activity currently affecting your projects.": "Sin actividad de acarreo afectando tus proyectos actualmente.",
   "Trucks in breakdown right now": "Camiones en avería ahora mismo",
@@ -5901,9 +5250,6 @@ const ES = {
   // AssignmentDrawer (high-visibility labels only)
   "Assignment": "Asignación",
   "No driver": "Sin conductor",
-  "Close": "Cerrar",
-  "Project": "Proyecto",
-  "Material": "Material",
   "Assigned at": "Asignado en",
   "START LEAD INSPECTION": "INICIAR INSPECCIÓN DEL LÍDER",
   "START EMERGENCY CHECK": "INICIAR CHEQUEO DE EMERGENCIA",
@@ -5938,7 +5284,6 @@ const ES = {
   "elevated access": "acceso elevado",
   "Safety Portal": "Portal de Seguridad",
   "HR Portal": "Portal de RH",
-  "Field Leadership": "Liderazgo de Campo",
   "Shop Portal": "Portal del Taller",
   "Dispatch Portal": "Portal de Despacho",
 
@@ -5971,7 +5316,6 @@ const ES = {
   "Field Leadership Records": "Registros de Liderazgo de Campo",
   "Field Leadership Accounts": "Cuentas de Liderazgo de Campo",
   "Time Off Requests": "Solicitudes de Tiempo Libre",
-  "Employee Accountability": "Responsabilidad del Empleado",
   "Time Verification": "Verificación de Tiempo",
   "Payroll Variance": "Variación de Nómina",
   "Training Records": "Registros de Capacitación",
@@ -5998,7 +5342,6 @@ const ES = {
   "Visitors": "Visitantes",
   "Date from": "Fecha desde",
   "Date to": "Fecha hasta",
-  "Project": "Proyecto",
   "Report number": "Número de reporte",
   "Project name or number": "Nombre o número de proyecto",
   "Crew member name": "Nombre del miembro de cuadrilla",
@@ -6009,21 +5352,17 @@ const ES = {
   "Sub company name": "Nombre de la empresa sub",
   "Vendor / Visitor": "Vendedor / Visitante",
   "Vendor name": "Nombre del vendedor",
-  "Apply": "Aplicar",
   "No daily reports match these filters.": "Ningún reporte diario coincide con estos filtros.",
   "Report #": "Reporte #",
   "Prepared by": "Preparado por",
   "Failed to load daily reports": "No se pudieron cargar los reportes diarios",
   "Failed to load report": "No se pudo cargar el reporte",
   "Report not found.": "Reporte no encontrado.",
-  "Daily Report": "Reporte Diario",
   "Weather": "Clima",
   "MASCI Crews": "Cuadrillas MASCI",
-  "Subcontractors": "Subcontratistas",
   "Crew size": "Tamaño de cuadrilla",
   "Visitors / Vendors": "Visitantes / Vendedores",
   "Narrative": "Narrativa",
-  "Photos": "Fotos",
   "Crew": "Cuadrilla",
   "This is a read-only HR view. To edit or send this report, the PM must use the PM Portal.": "Esta es una vista de solo lectura para RH. Para editar o enviar este reporte, el PM debe usar el Portal de PM.",
 
@@ -6038,7 +5377,6 @@ const ES = {
   "Every detail filed here protects the crew, the project, and the company. Write it the way you'd want to read it six months from now.": "Cada detalle archivado aquí protege a la cuadrilla, al proyecto y a la empresa. Escríbelo como te gustaría leerlo dentro de seis meses.",
   "One report per crew, per day. Capture labor, subs, materials, weather, and photos so payroll and PM coordination run clean tomorrow.": "Un reporte por cuadrilla, por día. Captura mano de obra, subs, materiales, clima y fotos para que la nómina y la coordinación del PM corran limpias mañana.",
   "A walking record of what's safe, what isn't, and what was fixed today. Honest grades drive better jobs.": "Un registro caminado de lo que es seguro, lo que no, y lo que se corrigió hoy. Las calificaciones honestas hacen mejores trabajos.",
-  "Walk it before you roll it. Mark every item honestly. A FAIL today is a downed truck — and a tomorrow you can plan for, not one that surprises you.": "Camínalo antes de moverlo. Marca cada ítem honestamente. Un FALLO hoy es un camión fuera — y un mañana que puedes planear, no uno que te sorprenda.",
   // ─ "What good looks like" placeholders ─
   "What happened, who was involved, what equipment or materials were present, and what was done in the moment. Write it like you'd brief the Safety Manager on a phone call.": "Qué pasó, quién estuvo involucrado, qué equipo o materiales estaban presentes, y qué se hizo en el momento. Escríbelo como si le informaras al Gerente de Seguridad por teléfono.",
   "Specific changes that prevent this from happening again — training, procedure updates, equipment fixes, supervision changes.": "Cambios específicos que previenen que esto vuelva a pasar — capacitación, actualizaciones de procedimiento, reparaciones de equipo, cambios de supervisión.",
@@ -6156,7 +5494,6 @@ const ES = {
   "Updated": "Actualizado",
   "Could not load crew compliance.": "No se pudo cargar el cumplimiento de la cuadrilla.",
   "Employee · training · equipment · CAPA": "Empleado · capacitación · equipo · CAPA",
-  "Refresh": "Actualizar",
   "Training": "Capacitación",
   "PPE": "EPP",
   "CAPAs": "CAPAs",
@@ -6167,21 +5504,15 @@ const ES = {
   "No PPE issuance records yet.": "Aún no hay registros de entrega de EPP.",
   "No open CAPAs involving crew.": "No hay CAPAs abiertas que involucren a la cuadrilla.",
   "Employee": "Empleado",
-  "Completed": "Completado",
   "Expires": "Vence",
   "Severity": "Severidad",
-  "Equipment": "Equipo",
   "Issued": "Entregado",
   "Condition": "Condición",
   "CAPA": "CAPA",
-  "Status": "Estado",
-  "Due": "Vence",
-  "Done": "Listo",
   "Exp": "Vence",
   "Current": "Vigente",
   "Expired": "Vencido",
   "≤30d": "≤30d",
-  "Search": "Buscar",
 
   // iter356 · Operational coaching standard (LifecycleGuide + CAPA lifecycle).
   "Lifecycle Guide": "Guía de Ciclo de Vida",
@@ -6259,7 +5590,6 @@ const ES = {
   "No roster match.": "Sin coincidencia en el roster.",
   "Linked to roster": "Vinculado al roster",
   "Not in roster": "No está en el roster",
-  "Saved as free-text. This will appear as an EMP_LINK_UNRESOLVABLE finding in Governance Health until you either pick from the roster or add this person to the employee master.": "Guardado como texto libre. Esto aparecerá como un hallazgo EMP_LINK_UNRESOLVABLE en Salud de Gobernanza hasta que selecciones del roster o agregues a esta persona al maestro de empleados.",
   "What does this mean?": "¿Qué significa esto?",
 
   // iter360 · Daily Report crew linkage.
@@ -6304,7 +5634,6 @@ const ES = {
 
   // iter368 · ViewIncident · "Linked CAPAs" reverse-link section.
   "Linked CAPAs": "CAPAs vinculadas",
-  "Owner": "Responsable",
   "Due": "Vence",
 
   // Phase 5D · P1 · ViewIncident follow-up awareness banner (rose/amber/emerald).
@@ -6342,7 +5671,6 @@ const ES = {
   "How operations uses this": "Cómo lo usa operaciones",
   "One QR per truck cab · scan · start shift · operate lifecycle":
     "Un QR por cabina · escanea · inicia turno · opera el ciclo",
-  "Print": "Imprimir",
   "Fill the optional truck and carrier labels so operations can tell stickers apart. Tap Print, then choose 'Save as PDF' or send to your printer.":
     "Completa las etiquetas opcionales de camión y transportista para que operaciones pueda distinguir las etiquetas. Toca Imprimir y luego elige 'Guardar como PDF' o envíalo a la impresora.",
   "Place": "Colocar",
@@ -6381,12 +5709,10 @@ const ES = {
   "Dispatch issuance": "Emisión de despacho",
   "Truck is required. Driver is optional — self-start can claim later. Pick a project and source so operational memory stays accurate. Wait reasons stay canonical (set later via the driver lifecycle).":
     "El camión es obligatorio. El conductor es opcional — el auto-inicio puede reclamarlo después. Elige un proyecto y origen para que la memoria operativa siga siendo precisa. Las razones de espera siguen siendo canónicas (se asignan después en el ciclo del conductor).",
-  "Truck": "Camión",
   "Type a truck number": "Escribe un número de camión",
   "Add temporary truck:": "Agregar camión temporal:",
   "No matching truck. Type the unit number to add a temporary one.":
     "Sin coincidencias. Escribe el número de unidad para agregar uno temporal.",
-  "Driver": "Conductor",
   "Type a driver name": "Escribe el nombre del conductor",
   "Add temporary driver:": "Agregar conductor temporal:",
   "No matching driver. Leave blank for self-start.":
@@ -6412,7 +5738,6 @@ const ES = {
   "Add temporary destination:": "Agregar destino temporal:",
   "Recent destinations appear here as operations build memory.":
     "Los destinos recientes aparecen aquí conforme operaciones acumula memoria.",
-  "Material": "Material",
   "e.g. Base Rock, RAP, Hot Mix": "ej. Base, RAP, Mezcla Caliente",
   "Add temporary material:": "Agregar material temporal:",
   "Recent materials appear here as operations build memory.":
@@ -6428,8 +5753,6 @@ const ES = {
   "Issue assignment": "Emitir asignación",
   "Truck appears on the board immediately. Driver lifecycle stays the source of operational truth.":
     "El camión aparece en el tablero de inmediato. El ciclo del conductor sigue siendo la fuente de verdad operativa.",
-  "Close": "Cerrar",
-  "Connection failed — try again.": "Conexión fallida — intenta de nuevo.",
   "No matches yet.": "Aún no hay coincidencias.",
 
   // ─── iter408 · Phase 14.1 + 14.2 · Haul Type + searchable rosters ──
@@ -6486,7 +5809,6 @@ const ES = {
   "Loads today": "Viajes hoy",
   "eq": "eq",
   "Active hauls": "Viajes activos",
-  "Equipment moves": "Mover equipo",
   "inbound + active": "entrante + activo",
   "Waiting on plant": "Esperando planta",
   "Waiting on site": "Esperando sitio",
@@ -6632,7 +5954,6 @@ const ES = {
   "Doctrine observations": "Observaciones de doctrina",
   "Did doctrine hold? Any restraint pressure points?": "¿Se mantuvo la doctrina? ¿Algún punto de presión sobre la restricción?",
   "Save Day-1 debrief": "Guardar informe Día-1",
-  "Saving…": "Guardando…",
   "Submission failed.": "Falló el envío.",
   "Admin sign-in required.": "Se requiere inicio de sesión de administrador.",
   "Debrief saved.": "Informe guardado.",
@@ -6645,7 +5966,6 @@ const ES = {
   "Tickets · photos · receipts": "Boletos · fotos · recibos",
   "How load proof works": "Cómo funciona la prueba de carga",
   "Attachment type": "Tipo de adjunto",
-  "Note (optional)": "Nota (opcional)",
   "Plant A scale · ticket #1421": "Báscula Planta A · boleto #1421",
   "Capture / Upload": "Capturar / Subir",
   "Uploading…": "Subiendo…",
@@ -6735,7 +6055,6 @@ const ES = {
   "Operational Test": "Prueba Operacional",
   "Waiting on parts": "Esperando piezas",
   "Truck": "Camión",
-  "Driver": "Conductor",
   "Equipment": "Equipo",
   "Event": "Evento",
   "None.": "Ninguno.",
@@ -6752,7 +6071,6 @@ const ES = {
   // iter424 · Phase 25.1 · Inline Recovery Continuity Actions
   "Set recovery state": "Establecer estado de recuperación",
   "Note (optional)": "Nota (opcional)",
-  "Save": "Guardar",
   "Saving…": "Guardando…",
   "Recovery state updated.": "Estado de recuperación actualizado.",
   "Already in that recovery state.": "Ya está en ese estado de recuperación.",
@@ -6788,8 +6106,6 @@ const ES = {
   "Description": "Descripción",
   "Due Date": "Fecha Límite",
   "Owner": "Responsable",
-  "Photos": "Fotos",
-  "Notes": "Notas",
   "History": "Historial",
   "Add a note": "Agregar una nota",
   "Add note": "Agregar nota",
@@ -6797,7 +6113,6 @@ const ES = {
   "OA Number": "Número OA",
   "Created By": "Creado Por",
   "Created": "Creado",
-  "Assigned": "Asignada",
   "Last Updated": "Última Actualización",
   "Current Owner": "Responsable Actual",
 
@@ -6815,11 +6130,9 @@ const ES = {
   "Other": "Otro",
 
   // Statuses (6 approved only)
-  "Open": "Abierta",
   "In Progress": "En Progreso",
   "Waiting": "En Espera",
   "Completed": "Completada",
-  "Closed": "Cerrada",
 
   // Priorities
   "Low": "Baja",
@@ -6832,14 +6145,10 @@ const ES = {
   "Cancel": "Cancelar",
   "Assign": "Asignar",
   "Reassign": "Reasignar",
-  "Update": "Actualizar",
   "Close Action": "Cerrar Acción",
   "Mark In Progress": "Marcar En Progreso",
   "Mark Waiting": "Marcar En Espera",
   "Mark Completed": "Marcar Completada",
-  "Reopen": "Reabrir",
-  "Upload": "Subir",
-  "Delete": "Eliminar",
   "Search owner…": "Buscar responsable…",
   "Search actions…": "Buscar acciones…",
   "Pick an owner": "Elige un responsable",
@@ -6922,7 +6231,6 @@ const ES = {
 
   // Common UI verbs and labels found untranslated
   "Open": "Abrir",
-  "Close": "Cerrar",
   "Closed": "Cerrado",
   "Reopen": "Reabrir",
   "Edit": "Editar",

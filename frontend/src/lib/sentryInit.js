@@ -183,13 +183,13 @@ export async function initSentryIfConfigured({ release } = {}) {
     _sentry = Sentry;
     _initialized = true;
     if (process.env.NODE_ENV !== "production") {
-      // eslint-disable-next-line no-console
+       
       console.info("[sentry] initialised", { env, release });
     }
     return true;
   } catch (err) {
     // Never let Sentry init blow up the app.
-    // eslint-disable-next-line no-console
+     
     console.warn("[sentry] init failed (non-fatal):", err);
     return false;
   }

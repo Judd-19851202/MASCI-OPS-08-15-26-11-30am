@@ -41,7 +41,7 @@ export default function AdminOperationsEvents() {
       setData(r.data);
     } finally { setLoading(false); }
   };
-  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [offset]);
+  useEffect(() => { load();   }, [offset]);
 
   const apply = () => { setOffset(0); load(); };
   const reset = () => { setFilters({ event_type: "", severity: "", status: "", source_module: "", asset_id: "" }); setTimeout(load, 0); };

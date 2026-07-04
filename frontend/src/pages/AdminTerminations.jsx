@@ -76,7 +76,7 @@ export default function AdminTerminations() {
     }
   };
 
-  useEffect(() => { refresh(); /* eslint-disable-next-line */ }, []);
+  useEffect(() => { refresh();   }, []);
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();

@@ -393,7 +393,7 @@ function NewDailyReportInner({ publicMode = false }) {
     if (eligible.some((r) => roleRaw === r)) {
       set("prepared_by", flUser.name);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   // iter434 · Phase 31 · Part 2 — manual draft recovery via calm prompt
@@ -688,7 +688,7 @@ function NewDailyReportInner({ publicMode = false }) {
     return () => {
       alive = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [data.report_date]);
 
   // Auto-calculate per-crew-member hours from start_time / lunch / stop_time

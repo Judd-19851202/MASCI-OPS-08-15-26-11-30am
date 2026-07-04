@@ -109,7 +109,7 @@ export default function HrDailyReports() {
     }
   };
 
-  useEffect(() => { fetchList(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { fetchList(); }, []);  
 
   const onApply = (e) => { e?.preventDefault?.(); fetchList(); };
   const onClear = () => {

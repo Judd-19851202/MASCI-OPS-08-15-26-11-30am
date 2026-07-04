@@ -54,7 +54,7 @@ export default function ProjectPnlPage() {
 
   useEffect(() => {
     loadProjects();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   const runPnl = async () => {
@@ -84,7 +84,7 @@ export default function ProjectPnlPage() {
   // to click a button to see numbers)
   useEffect(() => {
     if (projectNumber) runPnl();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [projectNumber]);
 
   const summary = data || {};

@@ -28,7 +28,7 @@ const EquipmentTrendsPanel = () => {
 
   useEffect(() => {
     load(days);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   const tabs = [

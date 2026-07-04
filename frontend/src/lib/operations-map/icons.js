@@ -1,4 +1,4 @@
-/* eslint-disable max-len */
+ 
 /* Phase 5B · Live Operations Map V1 · SVG sprite definitions
  * Eleven asset categories rendered as 24×24 status-ringed glyphs.
  * Color is applied at render-time via the `fill` token; the ring

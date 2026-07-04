@@ -42,7 +42,7 @@ export default function AssetProfile() {
       setData({ error: e?.response?.data?.detail || "Failed to load asset" });
     } finally { setLoading(false); }
   };
-  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [assetId]);
+  useEffect(() => { load();   }, [assetId]);
 
   if (loading) return (
     <AdminShell title="Asset Profile">

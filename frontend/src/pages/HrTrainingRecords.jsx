@@ -63,7 +63,7 @@ export default function HrTrainingRecords() {
 
   useEffect(() => {
     fetchRows();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [source]);
 
   const summary = useMemo(() => counts, [counts]);

@@ -31,7 +31,7 @@ export default function MaterialMovementTile({ projectNumber, reportDate }) {
       }
     })();
     return () => { cancelled = true; };
-    // eslint-disable-next-line
+     
   }, [projectNumber, reportDate]);
 
   if (loading) {
