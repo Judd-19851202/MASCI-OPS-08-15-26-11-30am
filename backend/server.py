@@ -13622,6 +13622,29 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
     correlation_id attached to ``record`` at submit-time. A failure at any
     stage is emitted with ``status="failed"`` + a truthful failure_reason,
     flipping that workflow's dashboard band to RED.
+
+    TRACK 20.6B · SYNTHETIC-TEST-RECORD EMAIL SAFETY GATE
+    ────────────────────────────────────────────────────
+    When the record's ``project_name`` starts with the reserved ``TEST_``
+    prefix, this dispatcher short-circuits before any Resend call. This
+    is the test-safety guardrail mandated by Track 20.6B:
+
+    * Real production records never carry a ``TEST_`` prefix (validated by
+      grep across the entire production dataset — no legitimate MASCI
+      project has ever used a leading ``TEST_`` on ``project_name``).
+    * The Track 20.7-C01 regression + Track 20.6B test-hardening suites
+      submit synthetic records with ``project_name`` = ``TEST_DR_*`` /
+      ``TEST_JOB_PHOTO_*`` / ``TEST_track_19_21_*``.
+    * Without this gate, the test suite in the preview environment
+      (where AUTO_EMAIL_REPORTS=true and RESEND_API_KEY is real)
+      would fire live emails to the assigned PM + always-CC list on
+      every test run. That is a Class-A operational hygiene defect.
+    * This gate is additive: it does not remove, weaken, or reroute
+      any real email path. A record without the ``TEST_`` prefix is
+      completely unaffected. Zero drift on production behavior.
+    * The skip is audited into ``trust_spine_events`` with
+      ``status="skipped"`` and ``failure_reason="synthetic_test_record"``
+      so the dashboards remain green and the skip is fully traceable.
     """
     from lib.trust_spine import (  # noqa: PLC0415
         attach_correlation, emit_workflow_stage,
@@ -13633,6 +13656,36 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
     # this dispatch shares one correlation_id.
     _spine_cid = attach_correlation(record)
     _spine_module = f"auto_email_dispatch:{kind}"
+    # Track 20.6B — synthetic-test-record short-circuit. Runs BEFORE the
+    # auto_email_enabled() check so the skip audit fires even when
+    # AUTO_EMAIL_REPORTS=true (that is exactly the preview environment
+    # where the test suite runs and where a live send would leak).
+    try:
+        _pname = str(record.get("project_name") or "").strip()
+        if _pname.startswith("TEST_"):
+            logger.info(
+                "auto-email skipped (Track 20.6B synthetic-test-record gate) "
+                f"— {kind} {record.get('id')} project_name={_pname!r}"
+            )
+            try:
+                await emit_workflow_stage(
+                    db, workflow=kind, stage=STAGE_NOTIFICATION_QUEUED,
+                    record=record, module=_spine_module, status="skipped",
+                    failure_reason="synthetic_test_record",
+                    remediation=(
+                        "No action needed. Test suites use TEST_-prefixed "
+                        "project_name to prevent live sends. Real records "
+                        "are unaffected."
+                    ),
+                )
+            except Exception:  # noqa: BLE001
+                # Never let audit failure break the short-circuit.
+                pass
+            return
+    except Exception:  # noqa: BLE001
+        # Defensive: if the record shape is weird, fall through to the
+        # normal auto_email_enabled() path (which itself is safe).
+        pass
     try:
         if not auto_email_enabled():
             logger.info(

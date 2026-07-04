@@ -54,8 +54,16 @@ def safety_hdr(portal_tokens):
 
 # ── Vocabulary & permission gating ──────────────────────────────────
 def test_vocabulary_unauth_401():
-    r = requests.get(f"{API}/employee-records/vocabulary", timeout=15)
-    assert r.status_code == 401, f"expected 401, got {r.status_code}"
+    # Track 20.6B · TD-20.6A-001 hardening — use a FRESH requests.Session()
+    # explicitly so no stale header from a previous test can leak in and
+    # accidentally satisfy the auth gate. This closes the "fixture leak
+    # false-200" failure mode documented in the original one-pager. We
+    # also verify the JSON error shape so a future permission-model
+    # change cannot silently downgrade the gate to a 200 with a redirect
+    # body or similar.
+    fresh = requests.Session()
+    r = fresh.get(f"{API}/employee-records/vocabulary", timeout=15)
+    assert r.status_code == 401, f"expected 401, got {r.status_code}: {r.text[:200]}"
 
 
 def test_vocabulary_hr_sees_all_lanes(hr_hdr):
@@ -63,9 +71,29 @@ def test_vocabulary_hr_sees_all_lanes(hr_hdr):
     assert r.status_code == 200
     body = r.json()
     assert body.get("actor_role") == "hr"
-    assert set(body.get("allowed_lanes_for_actor") or []) == {
-        "hr", "safety", "asset", "corporate_import"
-    }
+    # Track 20.6B · TD-20.6A-002 hardening — additive-safe SUPERSET check.
+    # The platform intentionally evolves this vocabulary over time (Track
+    # 19.59 added the `vendor` lane, Track 19.61 confirmed `asset`, and
+    # future tracks may add more). We MUST NOT re-fail every time the
+    # platform legitimately grows. We DO lock:
+    #   1. every REQUIRED lane HR/Admin must always see; and
+    #   2. that no UNAUTHORIZED lane sneaks in (open-ended growth is
+    #      allowed only within the certified vocabulary set).
+    allowed = set(body.get("allowed_lanes_for_actor") or [])
+    required = {"hr", "safety", "asset", "corporate_import"}
+    assert required <= allowed, (
+        f"HR must see the original four core lanes; got: {sorted(allowed)}"
+    )
+    # Track 20.6B · Zero-Drift assertion — every returned lane must
+    # belong to the certified vocabulary. This prevents a rogue lane
+    # (typo / debug value) from appearing without a track landing it.
+    certified = {"hr", "safety", "asset", "corporate_import", "vendor"}
+    unexpected = allowed - certified
+    assert not unexpected, (
+        f"unexpected lanes not certified in the current vocabulary: "
+        f"{sorted(unexpected)}. If this is intentional, add them to the "
+        f"certified set here AND file the corresponding track."
+    )
 
 
 def test_vocabulary_safety_scoped(safety_hdr):

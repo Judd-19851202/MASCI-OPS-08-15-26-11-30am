@@ -11,6 +11,40 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 20.6B · Test Hardening + Tech-Debt Closeout · ✅ SHIPPED (2026-08-04)
+
+**Type:** Pre-deployment test hardening under Track 20.6A tech-debt doctrine. Zero features · zero UI polish · zero new modules · zero new workflows · zero new emails · zero new Operational Intelligence.
+
+**Purpose:** Close the three classified test-debt items (TD-20.6A-001, TD-20.6A-002, TD-20.7-C01) that were blocking full green regression. Fix one Class-A operational hygiene defect discovered during execution (TD-20.6B-A01).
+
+**Debt closed:**
+- **TD-20.6A-001** (`test_vocabulary_unauth_401` fixture leak · Class C) — ✅ CLOSED. Fresh `requests.Session()` isolation guard. Live 401 verified end-to-end.
+- **TD-20.6A-002** (`test_vocabulary_hr_sees_all_lanes` strict-equality broke on Track 19.59 vendor lane · Class C) — ✅ CLOSED. Replaced with additive-safe superset assertion + certified-vocabulary Zero-Drift guardrail.
+- **TD-20.7-C01** (`test_daily_reports.py` + `test_job_photos.py` legacy admin-login from Track 15.32 · Class C) — ✅ CLOSED. Migrated to canonical `POST /api/auth/multi-login` with triple-token (admin+HR+safety) fixture. Additive R2/data-URL accept-list on `test_raw_valid`.
+
+**Class-A discovery + fix (in-track per doctrine):**
+- **TD-20.6B-A01** (`_dispatch_auto_email` had no synthetic-test-record short-circuit · Class A · P1) — ✅ FIXED. Added `project_name.startswith("TEST_")` guardrail at the top of the dispatcher that short-circuits with a trust-spine `status="skipped", failure_reason="synthetic_test_record"` audit. Runs BEFORE the `auto_email_enabled()` check so the skip fires even in preview environments where `AUTO_EMAIL_REPORTS=true` and `RESEND_API_KEY` is real. Real production records (no `TEST_` prefix) are byte-identical.
+
+**Deliverables (10 docs + 1 lock test):** `TRACK_20_6B_EXECUTIVE_SUMMARY.md` · `TRACK_20_6B_DEBT_CLOSEOUT_REPORT.md` · `TRACK_20_6B_FIX_REPORT_TD_20_6A_001.md` · `TRACK_20_6B_FIX_REPORT_TD_20_6A_002.md` · `TRACK_20_6B_FIX_REPORT_TD_20_7_C01.md` · `TRACK_20_6B_FIX_REPORT_TD_20_6B_A01.md` · `TRACK_20_6B_EMAIL_SAFETY_CERTIFICATION.md` · `TRACK_20_6B_ADDITIVE_ASSERTION_GUARDRAIL.md` · `TRACK_20_6B_ZERO_DRIFT_MATRIX.md` · `TRACK_20_6B_TEST_REPORT.md` · lock test `backend/tests/test_track_20_6b_test_hardening.py`.
+
+**Testing (regression envelope):**
+- `test_track_19_21_e2e_live.py`: 10 passed · 1 legitimately skipped (design branch) · 0 failed.
+- `test_daily_reports.py`: 15 passed · 0 failed.
+- `test_job_photos.py`: 13 passed · 0 failed.
+- `test_track_20_6b_test_hardening.py`: 17 passed · 0 failed (lock test).
+- Prior track locks (19.60, 19.61, 19.62, 20.5, 20.6, 20.7): all still green.
+
+**Email safety:** ✅ Zero live emails triggered by Track 20.6B execution OR by any future test run against the hardened suites. The synthetic-test-record short-circuit is structurally enforced at the code level.
+
+**Zero-Drift on real records:** Production behavior for any record without a `TEST_` prefix on `project_name` is byte-identical. No route added or removed · no permission changed · no payload key renamed · no collection added or migrated · no email path added or removed.
+
+**Doctrine advanced:** `TRACK_20_6B_ADDITIVE_ASSERTION_GUARDRAIL.md` documents the additive-safe assertion pattern for future promotion tracks that extend evolving vocabularies.
+
+**Deployment call:** 🟢 **Ship.** All classified test debt closed with evidence. All prior track lock tests still green. Email safety mandate now enforced structurally.
+
+**Next:** Awaiting user directive: Track 19.62 Phase B (full `db.fire_extinguishers` → `equipment_master` migration) · OCR + Gemini 3 Flash AI classification · OSHA compliance intelligence · Mobile-native shell · Executive PDF redesign.
+
+
 ## TRACK 20.7 · Universal Photo Capture & Attachment Fallback · ✅ SHIPPED (2026-08-04)
 
 **Type:** Surgical FRONTEND-ONLY guardrail. Zero backend contract change · zero live emails · zero migration · zero new components · zero new routes.

@@ -1,4 +1,14 @@
-"""Daily Job Report endpoint tests for /api/daily-reports CRUD + validation + regression."""
+"""Daily Job Report endpoint tests for /api/daily-reports CRUD + validation + regression.
+
+Track 20.6B · TD-20.7-C01 hardening
+────────────────────────────────────
+- Auth: uses the current canonical `POST /api/auth/multi-login` endpoint
+  (the pre-15.32 shared-password admin login is retired).
+- Email safety: relies on the Track 20.6B `_dispatch_auto_email` gate
+  which short-circuits when ``project_name.startswith("TEST_")``. Every
+  synthetic record created here uses that prefix, so no live email fires
+  even in the preview environment with `AUTO_EMAIL_REPORTS=true`.
+"""
 import os
 import pytest
 import requests
@@ -13,6 +23,36 @@ if not BASE_URL:
             BASE_URL = line.split("=", 1)[1].strip()
 BASE_URL = BASE_URL.rstrip("/")
 API = f"{BASE_URL}/api"
+
+SUPER_EMAIL = "jaymn.judd@mascigc.com"
+SUPER_PASS = "Maddix123!"
+
+
+@pytest.fixture(scope="module")
+def admin_headers():
+    """Track 20.6B · TD-20.7-C01 hardening — use the canonical multi-login
+    endpoint (replaces the retired shared-password admin login from
+    Track 15.32). Returns X-Admin-Token · X-HR-Token · X-Safety-Token
+    together so every downstream gate resolves — the `require_admin`
+    gate accepts directory admin tokens, `require_admin_pm_or_hr_read`
+    resolves via HR, and `require_safety_or_admin` (used by inspection
+    / meeting / jha / incident LIST endpoints) resolves via Safety."""
+    r = requests.post(
+        f"{API}/auth/multi-login",
+        json={"email": SUPER_EMAIL, "password": SUPER_PASS},
+        timeout=30,
+    )
+    if r.status_code != 200:
+        pytest.skip(f"multi-login unavailable: {r.status_code} {r.text[:200]}")
+    tokens = (r.json() or {}).get("portal_tokens") or {}
+    missing = [k for k in ("admin", "hr", "safety") if not tokens.get(k)]
+    if missing:
+        pytest.skip(f"multi-login response missing portal tokens: {missing}")
+    return {
+        "X-Admin-Token": tokens["admin"],
+        "X-HR-Token": tokens["hr"],
+        "X-Safety-Token": tokens["safety"],
+    }
 
 
 def _full_payload(prefix="TEST_DR"):
@@ -62,14 +102,17 @@ def _full_payload(prefix="TEST_DR"):
 
 
 @pytest.fixture(scope="module")
-def created_id():
+def created_id(admin_headers):
     payload = _full_payload()
     r = requests.post(f"{API}/daily-reports", json=payload, timeout=30)
     assert r.status_code == 200, r.text
     body = r.json()
     rid = body["id"]
     yield rid, body
-    # cleanup
+    # cleanup: DR delete is frozen at 410 (historical-immutable). We POST
+    # the cleanup attempt for parity with the historical contract; the
+    # 410 is expected and does not affect subsequent tests. No email
+    # fires because project_name starts with "TEST_" (Track 20.6B gate).
     requests.delete(f"{API}/daily-reports/{rid}", timeout=30)
 
 
@@ -92,9 +135,9 @@ class TestDailyReportCRUD:
         assert len(body["weather_snapshots"]) == 3
         assert "created_at" in body
 
-    def test_list_summary_no_id_and_counts(self, created_id):
+    def test_list_summary_no_id_and_counts(self, created_id, admin_headers):
         rid, _ = created_id
-        r = requests.get(f"{API}/daily-reports", timeout=30)
+        r = requests.get(f"{API}/daily-reports", headers=admin_headers, timeout=30)
         assert r.status_code == 200
         items = r.json()
         match = [x for x in items if x["id"] == rid]
@@ -109,9 +152,9 @@ class TestDailyReportCRUD:
         assert item["project_number"] == "TEST-25-23"
         assert item["prepared_by"] == "Test Foreman"
 
-    def test_get_full_doc_preserves_nested_arrays(self, created_id):
+    def test_get_full_doc_preserves_nested_arrays(self, created_id, admin_headers):
         rid, _ = created_id
-        r = requests.get(f"{API}/daily-reports/{rid}", timeout=30)
+        r = requests.get(f"{API}/daily-reports/{rid}", headers=admin_headers, timeout=30)
         assert r.status_code == 200
         body = r.json()
         assert "_id" not in body
@@ -126,11 +169,11 @@ class TestDailyReportCRUD:
         assert body["weather_snapshots"][1]["temp_f"] == 80
         assert body["prepared_by_signature"].startswith("data:image/png")
 
-    def test_get_404_for_unknown(self):
-        r = requests.get(f"{API}/daily-reports/does-not-exist", timeout=30)
+    def test_get_404_for_unknown(self, admin_headers):
+        r = requests.get(f"{API}/daily-reports/does-not-exist", headers=admin_headers, timeout=30)
         assert r.status_code == 404
 
-    def test_delete_and_verify_removed(self):
+    def test_delete_and_verify_removed(self, admin_headers):
         # DEPLOY-FIX-001 · Workstream C3 — DR delete is permanently frozen
         # at HTTP 410 Gone. Daily Reports are historical-immutable records
         # (see /app/backend/routes/daily_reports.py:580). Hard delete is
@@ -141,21 +184,22 @@ class TestDailyReportCRUD:
         r = requests.post(f"{API}/daily-reports", json=payload, timeout=30)
         assert r.status_code == 200
         rid = r.json()["id"]
-        d = requests.delete(f"{API}/daily-reports/{rid}", timeout=30)
+        d = requests.delete(f"{API}/daily-reports/{rid}", headers=admin_headers, timeout=30)
         assert d.status_code == 410, (
             f"DR delete must return 410 Gone (historical-immutable doctrine); got {d.status_code}"
         )
         # Record must STILL be present — deletion is forbidden.
-        g = requests.get(f"{API}/daily-reports/{rid}", timeout=30)
+        g = requests.get(f"{API}/daily-reports/{rid}", headers=admin_headers, timeout=30)
         assert g.status_code == 200, (
             f"DR record must persist after DELETE attempt; got {g.status_code}"
         )
 
-    def test_delete_404_for_unknown(self):
+    def test_delete_404_for_unknown(self, admin_headers):
         # DEPLOY-FIX-001 · Workstream C3 — even for unknown ids the
         # endpoint returns 410 (the operation itself is gone, not the
         # record). 404 is no longer reachable.
-        r = requests.delete(f"{API}/daily-reports/nope-{os.urandom(4).hex()}", timeout=30)
+        r = requests.delete(f"{API}/daily-reports/nope-{os.urandom(4).hex()}",
+                            headers=admin_headers, timeout=30)
         assert r.status_code == 410, (
             f"DR delete must return 410 Gone for any id; got {r.status_code}"
         )
@@ -173,28 +217,29 @@ class TestDailyReportValidation:
 
 # --- Regression on other modules ---
 class TestRegressionOtherModules:
-    def test_inspections_get_works(self):
-        r = requests.get(f"{API}/inspections", timeout=30)
+    def test_inspections_get_works(self, admin_headers):
+        r = requests.get(f"{API}/inspections", headers=admin_headers, timeout=30)
         assert r.status_code == 200
         assert isinstance(r.json(), list)
 
-    def test_meetings_get_works(self):
-        r = requests.get(f"{API}/meetings", timeout=30)
+    def test_meetings_get_works(self, admin_headers):
+        r = requests.get(f"{API}/meetings", headers=admin_headers, timeout=30)
         assert r.status_code == 200
         assert isinstance(r.json(), list)
 
-    def test_jhas_get_works(self):
-        r = requests.get(f"{API}/jhas", timeout=30)
+    def test_jhas_get_works(self, admin_headers):
+        r = requests.get(f"{API}/jhas", headers=admin_headers, timeout=30)
         assert r.status_code == 200
         assert isinstance(r.json(), list)
 
-    def test_incidents_get_works(self):
-        r = requests.get(f"{API}/incidents", timeout=30)
+    def test_incidents_get_works(self, admin_headers):
+        r = requests.get(f"{API}/incidents", headers=admin_headers, timeout=30)
         assert r.status_code == 200
         assert isinstance(r.json(), list)
 
-    def test_inspection_post_minimal(self):
-        # existing regression; quick smoke
+    def test_inspection_post_minimal(self, admin_headers):
+        # existing regression; quick smoke. Uses TEST_ prefix so the
+        # Track 20.6B auto-email gate short-circuits the send.
         payload = {
             "project_name": "TEST_DR_REG_INSP",
             "location": "Port Orange",
@@ -204,8 +249,8 @@ class TestRegressionOtherModules:
             "foreman_name": "Fore",
             "work_activity": "General",
         }
-        r = requests.post(f"{API}/inspections", json=payload, timeout=30)
+        r = requests.post(f"{API}/inspections", json=payload, headers=admin_headers, timeout=30)
         assert r.status_code == 200, r.text
         rid = r.json()["id"]
         # cleanup
-        requests.delete(f"{API}/inspections/{rid}", timeout=30)
+        requests.delete(f"{API}/inspections/{rid}", headers=admin_headers, timeout=30)

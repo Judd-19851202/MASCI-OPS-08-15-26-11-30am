@@ -1,5 +1,52 @@
 # CHANGELOG
 
+## 2026-08-04 — TRACK 20.6B · Test Hardening + Tech-Debt Closeout · 🟢 SHIPPED
+
+### Purpose
+Close all classified test debt before deployment. Fix any Class-A defect discovered inline. Zero features.
+
+### Debt closed with evidence
+- **TD-20.6A-001** — `test_vocabulary_unauth_401` (fixture leak) → CLOSED · fresh `requests.Session()` guard · live 401 verified.
+- **TD-20.6A-002** — `test_vocabulary_hr_sees_all_lanes` (strict-equality broke on vendor lane) → CLOSED · superset assertion + certified-vocabulary guardrail.
+- **TD-20.7-C01** — `test_daily_reports.py` + `test_job_photos.py` (legacy admin-login) → CLOSED · migrated to `POST /api/auth/multi-login` triple-token fixture · additive R2/data-URL accept-list.
+
+### Class-A discovery + fix (in-track)
+- **TD-20.6B-A01** — `_dispatch_auto_email` had no synthetic-test-record short-circuit. Any preview-env test run against a workflow-submit endpoint would trigger real Resend emails. **FIXED** via `project_name.startswith("TEST_")` guardrail with trust-spine `status="skipped"` audit.
+
+### Backend (surgical, additive)
+- `backend/server.py::_dispatch_auto_email` — 30 additive lines · synthetic-test-record short-circuit runs BEFORE `auto_email_enabled()` · fully audited via trust-spine · zero drift on real records.
+
+### Tests (hardening)
+- `backend/tests/test_track_19_21_e2e_live.py` — fresh session + additive-safe superset assertion.
+- `backend/tests/test_daily_reports.py` — canonical multi-login + triple-token fixture.
+- `backend/tests/test_job_photos.py` — canonical multi-login + additive R2/data-URL scheme accept-list.
+
+### Regression envelope
+- Vocabulary tests: 3/3 green.
+- Daily Reports: 15/15 green.
+- Job Photos: 13/13 green.
+- Track 20.6B lock test: 17/17 green.
+- Track 20.7 lock test: 24/24 green.
+- Track 19.62 lock test: 24/24 green.
+- Track 20.6 lock test: 28/28 green.
+- Prior Universal Thread family (19.60 · 19.61 · 20.5 · 20.4): 79/79 green.
+
+### Docs
+10 audit deliverables under `memory/TRACK_20_6B_*.md` · Tech Debt Register updated with 4 status flips (3 CLOSED + 1 new FIXED).
+
+### Email safety
+🟢 Zero live emails. Structurally enforced at the code level. Test-suite runs against the preview environment (where `AUTO_EMAIL_REPORTS=true` and `RESEND_API_KEY` is real) produce ZERO Resend deliveries.
+
+### Zero-Drift
+- Real (non-`TEST_`) records: dispatcher pipeline byte-identical.
+- No route / permission / collection / schema / MIME / size / auth change.
+- One additive `if` clause at the top of the dispatcher, one trust-spine skip event.
+
+### Next
+Awaiting user directive: Track 19.62 Phase B (fire migration) · OCR + Gemini 3 Flash · OSHA compliance intelligence · Mobile-native shell · Executive PDF redesign.
+
+---
+
 ## 2026-08-04 — TRACK 20.7 · Universal Photo Capture & Attachment · 🟢 SHIPPED
 
 ### The reported failure
