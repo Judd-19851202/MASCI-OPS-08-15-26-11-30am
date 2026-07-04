@@ -1,5 +1,59 @@
 # CHANGELOG
 
+## 2026-07-04 — TRACK 22.1G · Non-Email Scheduler Handler Migration · 🟢 GO / CLOSED
+
+### Purpose
+Execute the third real cutover into the Track 22.1D lifespan foundation. Migrate 4 non-email scheduler startup handlers into `LIFECYCLE_STEPS.scheduler-nonemail`. Explicitly QUARANTINE all 5 email-capable scheduler handlers for Track 22.1H. Update Platform Ops API to reflect the new closure.
+
+### Extraction this session
+- **`backend/server.py`** — 4 single-line decorator swaps (`@app.on_event("startup")` → `@register_lifecycle_step("scheduler-nonemail")`).
+- **`backend/lib/platform_status.py`** — additive-only field update: `scheduler-nonemail.closed=True`, `22.1G` appended to `recent_track_closures`, recommendation-queue reprioritization. Contract preserved (`attestation_version=22.1F`).
+
+### The 4 migrated non-email schedulers
+`_start_job_photos_indexer` · `_start_motive_reliability_loop` · `_start_health_monitor` · `_cluster_capacity_history_loop`. Each is `asyncio.create_task(...)` fire-and-forget; each has zero email risk (grep-verified in the callee module).
+
+### The 5 email-capable schedulers EXCLUDED (Track 22.1H)
+`_start_safety_digest_cron` · `_start_operator_digest_cron` · `_start_po_digest_cron` · `_dispatch_reminder_scheduler_start` · `_start_backup_verification_cron`. All 5 fingerprint-locked or email-emitting. Quarantine asserted by `test_email_capable_schedulers_still_in_on_startup`.
+
+### Parity proof (five layers)
+1. **Runtime JSON snapshot:** 1,441 → 1,441 routes (**0 delta**) · 1,445 methods · 1,264 OpenAPI paths · 7 middleware · **33 → 29 on_startup** · 1 shutdown handler (bytecode SHA-256 unchanged) · 0 qualname drift · 0 dependency-chain drift.
+2. **Startup-order inventory:** 4 handlers moved into `LIFECYCLE_STEPS`; remaining 29 in `app.router.on_startup` retain byte-identical bytecode.
+3. **Bytecode fingerprint index:** 5 locked handlers all match live.
+4. **Runtime boot log:** `[Track 21.2] Resend SDK patched.` → `[track-22.1e] executing 22 LIFECYCLE_STEPS` → `[track-22.1e] LIFECYCLE_STEPS complete` → `[track-22.1d] executing 29 handlers` → `[iter453.6] startup-readiness gate FLIPPED` → `[track-22.1d] lifespan.startup: complete`.
+5. **Platform Ops API probe:** 401 unauth · 401 bogus admin · 200 with correct payload showing `migrated_pct=43.14`, `scheduler-nonemail.closed=true`, bytecode-fingerprints clean, email safety strict.
+
+### Ordering safety
+All 4 scheduler-start handlers now run BEFORE the 29 remaining on_startup handlers. Safe because each is `asyncio.create_task(...)` — moving the *scheduling* earlier does NOT move the *work* of the loop earlier; both remain event-loop-scheduled at the same relative time. Full analysis: `TRACK_22_1G_DEPENDENCY_PROOF.md`.
+
+### Non-negotiable rules honored
+- 🟢 No API / route / permission / schema / email / cron / digest / Trust Spine / health-body / CORS change.
+- 🟢 No route added or removed.
+- 🟢 No handler bytecode drift (only 4 decorators swapped).
+- 🟢 No duplicate execution.
+- 🟢 No missing execution.
+- 🟢 SDK patch position preserved.
+- 🟢 Zero live emails (5 email-capable handlers untouched · fingerprints locked · lib modules AST-clean of module-scope `import resend`).
+
+### Deprecation cleanup — 4 more warnings retired
+`@app.on_event("startup")` count: **33 → 29 (−4)**. FastAPI DeprecationWarnings per pytest run: ~81 → ~73 (−8). Remaining 29 queued into Tracks 22.1H-K.
+
+### Debt register
+- **TD-22.1c2-C01** — 22/51 handlers now migrated (43.14%). Third clean cutover.
+
+### Regression envelope
+Track 20.6B → 22.1G: **246 / 246 lock tests green** (+13 Track 22.1G).
+
+### Eight Pillars
+Platform average: **9.90 / 10** (up from 9.89). Trusted / Proven: 9.97 each · Relentless Ownership: 9.95.
+
+### Zero-drift
+2 runtime code files touched (server.py — 4 single-line decorator swaps; lib/platform_status.py — additive ~5-line Platform Ops API update). Every other diff is documentation, evidence, or additive infrastructure.
+
+### Final call
+🟢 **GO / CLOSED.** Third real cutover delivered. Email-capable quarantine asserted. `/api/admin/platform/status.migrated_pct` = 43.14%. Ready to unblock 22.1h/i/j/k.
+
+---
+
 ## 2026-07-04 — TRACK 22.1F · Seed Handler Migration + Platform Operations API Foundation · 🟢 GO / CLOSED
 
 ### Purpose

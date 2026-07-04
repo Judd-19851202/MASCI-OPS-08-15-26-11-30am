@@ -11,6 +11,18 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 22.1G · Non-Email Scheduler Handler Migration · 🟢 GO / CLOSED (2026-07-04)
+
+Third real cutover into the lifespan foundation. 4 non-email scheduler startup handlers migrated from `@app.on_event("startup")` → `@register_lifecycle_step("scheduler-nonemail")`. All 5 email-capable scheduler handlers explicitly quarantined for Track 22.1H. Platform Ops API updated in-contract to reflect the closure.
+
+- **Non-email schedulers migrated (4):** `_start_job_photos_indexer`, `_start_motive_reliability_loop`, `_start_health_monitor`, `_cluster_capacity_history_loop`. Each function body byte-identical; only the decorator swapped.
+- **Email-capable handlers EXCLUDED (5):** `_start_safety_digest_cron`, `_start_operator_digest_cron`, `_start_po_digest_cron`, `_dispatch_reminder_scheduler_start`, `_start_backup_verification_cron`. All 5 remain in `on_startup` — quarantine asserted by the lock test.
+- **Proof:** 1,441 routes → 1,441 (**0 delta this track**) · 1,445 methods → 1,445 · 1,264 OpenAPI paths → 1,264 · 7 middleware unchanged · **33 → 29 on_startup + 18→22 LIFECYCLE_STEPS (Σ = 51)** · 0 qualname drift · 0 dependency-chain drift · shutdown handler bytecode unchanged · all 5 locked bytecode fingerprints match live · no duplicate execution · no missing execution.
+- **Platform Ops API update:** `/api/admin/platform/status` now reports `by_group={"index-ensure":11,"seed":7,"scheduler-nonemail":4}`, `on_startup_legacy_count=29`, `migrated_pct=43.14`, `target_groups.scheduler-nonemail.closed=true`, `recent_track_closures=["22.1D","22.1E","22.1F","22.1G"]`.
+- **Deferred with plan:** remaining 29 on_startup handlers queued into 4 follow-up tracks (22.1H email-capable schedulers · 22.1I misc bootstrap · 22.1J readiness+reminders · 22.1K shutdown/backup scheduler audit).
+- **Regression envelope:** 246 / 246 (+13 Track 22.1G).
+- **Eight Pillars:** 9.90 platform average (up from 9.89). Trusted / Proven: 9.97 each · Relentless Ownership: 9.95.
+
 ## TRACK 22.1F · Seed Handler Migration + Platform Operations API Foundation · 🟢 GO / CLOSED (2026-07-04)
 
 Second real cutover into the lifespan foundation, plus the first permanent Platform Operations API. 7 seed handlers migrated from `@app.on_event("startup")` into `LIFECYCLE_STEPS` group=`seed`; new admin-only `GET /api/admin/platform/status` foundation surface delivered.

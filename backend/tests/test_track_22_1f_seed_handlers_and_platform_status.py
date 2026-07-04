@@ -81,8 +81,10 @@ def test_lifecycle_steps_contains_7_seed_handlers():
 def test_lifecycle_steps_total_is_18():
     _load_server()
     from lib.lifespan_bootstrap import LIFECYCLE_STEPS  # type: ignore
-    assert len(LIFECYCLE_STEPS) == 18, (
-        f"expected 18 LIFECYCLE_STEPS (11 index-ensure + 7 seed), got {len(LIFECYCLE_STEPS)}"
+    # Track 22.1F guaranteed >= 18 (11 index-ensure + 7 seed). Later
+    # tracks (22.1G scheduler-nonemail, ...) grow this further.
+    assert len(LIFECYCLE_STEPS) >= 18, (
+        f"expected >= 18 LIFECYCLE_STEPS after Track 22.1F, got {len(LIFECYCLE_STEPS)}"
     )
 
 
@@ -97,8 +99,10 @@ def test_on_startup_no_longer_contains_migrated_seeds():
 
 def test_startup_handler_count_reduced_from_40_to_33():
     server = _load_server()
-    assert len(server.app.router.on_startup) == 33, (
-        f"expected 33 on_startup handlers after 7-seed migration, got {len(server.app.router.on_startup)}"
+    # Track 22.1F guaranteed <= 33 (40 − 7 seeds). Later tracks reduce
+    # further.
+    assert len(server.app.router.on_startup) <= 33, (
+        f"expected <= 33 on_startup handlers after Track 22.1F (7 seeds migrated), got {len(server.app.router.on_startup)}"
     )
 
 
@@ -188,10 +192,10 @@ def test_platform_status_payload_shape_no_secrets():
               "bytecode_fingerprints", "email_safety", "readiness",
               "recommended_next_actions", "recent_track_closures"):
         assert k in out, f"platform_status missing key: {k}"
-    # Lifecycle counts sane.
+    # Lifecycle counts sane (invariants held forward: at least 22.1F-seeded numbers).
     assert out["lifecycle"]["registry"]["by_group"].get("index-ensure") == 11
     assert out["lifecycle"]["registry"]["by_group"].get("seed") == 7
-    assert out["lifecycle"]["on_startup_legacy_count"] == 33
+    assert out["lifecycle"]["on_startup_legacy_count"] <= 33
     # Bytecode fingerprint status clean.
     assert out["bytecode_fingerprints"]["clean"] is True
     assert out["bytecode_fingerprints"]["drift_count"] == 0

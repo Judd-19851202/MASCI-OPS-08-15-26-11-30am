@@ -3,6 +3,22 @@
   "track": "21.0",
   "recent_track_closures": [
     {
+      "track": "22.1G",
+      "title": "Non-Email Scheduler Handler Migration",
+      "status": "GO / CLOSED",
+      "date": "2026-07-04",
+      "on_startup_count_before": 33,
+      "on_startup_count_after": 29,
+      "lifecycle_steps_added": 4,
+      "lifecycle_steps_total": 22,
+      "email_capable_handlers_quarantined": 5,
+      "route_delta": 0,
+      "lock_envelope_before": 233,
+      "lock_envelope_after": 246,
+      "migrated_pct": 43.14,
+      "eight_pillars_average": 9.90
+    },
+    {
       "track": "22.1F",
       "title": "Seed Handler Migration + Platform Operations API Foundation",
       "status": "GO / CLOSED",

@@ -10654,7 +10654,7 @@ async def _tune_asyncio_thread_pool():
         logger.warning(f"[concurrency] thread pool tune failed (non-fatal): {e}")
 
 
-@app.on_event("startup")
+@register_lifecycle_step("scheduler-nonemail")
 async def _start_job_photos_indexer():
     asyncio.create_task(_job_photos_indexer_loop(db))
 
@@ -10779,7 +10779,7 @@ async def _log_operational_hygiene_at_startup():
     await _log_operational_hygiene(reason="startup", db=db)
 
 
-@app.on_event("startup")
+@register_lifecycle_step("scheduler-nonemail")
 async def _start_motive_reliability_loop():
     """M-1R · Motive reliability supervisor.
 
@@ -11740,7 +11740,7 @@ app.include_router(build_notifications_router(
 from health_monitor import start_health_monitor_loop  # noqa: E402
 
 
-@app.on_event("startup")
+@register_lifecycle_step("scheduler-nonemail")
 async def _start_health_monitor():
     try:
         start_health_monitor_loop(db, _admin_ops_router.compute_system_health)
@@ -12642,7 +12642,7 @@ app.include_router(build_cluster_capacity_router(get_client=lambda: client))
 # iter437 · Phase Sigma-II · hourly cluster-capacity snapshot recorder.
 # Writes one row to `cluster_capacity_history` every hour with a 90-day
 # TTL. Powers `/api/cluster/capacity/history` + drift detection.
-@app.on_event("startup")
+@register_lifecycle_step("scheduler-nonemail")
 async def _cluster_capacity_history_loop() -> None:
     async def _loop():
         # Best-effort initial record + index ensure.
