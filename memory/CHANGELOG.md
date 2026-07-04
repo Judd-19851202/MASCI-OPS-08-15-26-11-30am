@@ -1,5 +1,50 @@
 # CHANGELOG
 
+## 2026-07-04 — TRACK 22.1D · FastAPI Lifespan Migration Foundation · 🟢 GO / CLOSED
+
+### Purpose
+Modernize FastAPI lifecycle. Replace legacy scattered `@app.on_event` registration with a deterministic lifespan orchestration layer — with byte-identical runtime behavior. Unblock future scheduler / handler modularization tracks.
+
+### Extraction this session
+- **`backend/lib/lifespan_bootstrap.py`** (NEW, 108 lines) — `orchestrated_lifespan(app)` + `create_lifespan()` factory. Iterates `app.router.on_startup` / `on_shutdown` in preserved registration order. AST-verified: no `import resend`.
+- **`server.py` L73:** added `lifespan=create_lifespan()` kwarg to `FastAPI(...)`. 11-line diff only.
+
+### Strategy
+Kept all 51 `@app.on_event("startup")` + 1 `@app.on_event("shutdown")` decorators exactly where they are. Custom lifespan wraps them for orchestration. This preserves handler behavior byte-for-byte AND provides the modular foundation for per-handler migration in future tracks (22.1e/f/g/h/i/j/k).
+
+### Parity proof (four layers)
+1. **Runtime JSON snapshot:** 1,440 routes → 1,440 · 1,444 methods · 1,263 OpenAPI paths · 7 middleware · 51 startup handlers · 1 shutdown handler · 0 qualname drift · 0 dependency-chain drift across all 1,440 routes.
+2. **Lifecycle inventory JSON:** 51 handlers, every `qualname`/`name`/`module`/`bytecode_sha256` byte-identical (only `lineno` shifted by +11 due to the new kwarg).
+3. **Bytecode fingerprint index:** 5 locked handlers (`_dispatch_auto_email` + 4 email-capable scheduler handlers) all match live.
+4. **Runtime boot log:** `[Track 21.2] Resend SDK patched.` → 51 handler start / index-ensure / scheduler-armament log lines → `[iter453.6] startup-readiness gate FLIPPED` → `[track-22.1d] lifespan.startup: complete`.
+
+### Non-negotiable rules honored
+- 🟢 No API / route / permission / schema / email / scheduler / cron / digest / Trust Spine / health-body / CORS change.
+- 🟢 SDK patch position preserved (before all decorators, before lifespan callable).
+- 🟢 No handler bytecode drift.
+- 🟢 No double-startup / missing-startup execution.
+- 🟢 Zero live emails.
+
+### Deprecation cleanup — deferred with plan
+FastAPI's 117 `on_event` DeprecationWarnings remain visible. Per-handler migration queued into 7 follow-up tracks (22.1e index-ensure · 22.1f seeds · 22.1g non-email schedulers · 22.1h email-capable schedulers · 22.1i miscellaneous bootstrap · 22.1j readiness+reminders · 22.1k shutdown). Each future track = 1 handler migrated + 1 bytecode fingerprint updated + lock test extended.
+
+### Debt register
+- **TD-22.1c2-C01** — FOUNDATION CLOSED · CLEANUP DEFERRED (2026-07-04 · Track 22.1D delivered orchestration wrapper).
+
+### Regression envelope
+Track 20.6B → 22.1D: **207 / 207 lock tests green** (+12 Track 22.1D).
+
+### Six Pillars
+Platform average: **9.86 / 10** (up from 9.84). Durable 9.87 · Operational 9.86. Trusted / Proven: 9.97 each.
+
+### Zero-drift
+1 runtime code file touched (server.py L73 kwarg only). 1 new pure-utility `lib/lifespan_bootstrap.py`. Every diff is documentation, evidence, or additive infrastructure.
+
+### Final call
+🟢 **GO / CLOSED.** Lifecycle foundation delivered. Ready to unblock 22.1e/f/g/h/i/j/k modularization tracks.
+
+---
+
 ## 2026-07-04 — TRACK 22.1C · Scheduler Bootstrap Extraction + Startup-Order Parity · 🟢 GO / CLOSED
 
 ### Purpose

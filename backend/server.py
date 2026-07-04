@@ -70,7 +70,18 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url, tz_aware=True)
 db = client[os.environ['DB_NAME']]
 
-app = FastAPI(title="MASCI Job Site Safety Inspection API")
+app = FastAPI(
+    title="MASCI Job Site Safety Inspection API",
+    # TRACK 22.1D · Deterministic FastAPI lifespan foundation.
+    # Wraps the 51 legacy `@app.on_event("startup")` / 1 `@app.on_event("shutdown")`
+    # decorators that follow in this file into a single controlled orchestration
+    # point. Byte-identical to Starlette's default lifespan dispatch (see
+    # `backend/lib/lifespan_bootstrap.py` — iterates `app.router.on_startup`
+    # / `on_shutdown` in registration order). This unblocks future scheduler /
+    # handler modularization (Track 22.1e/f) which was gated by decorator
+    # registration-order semantics per Track 22.1C.
+    lifespan=__import__("lib.lifespan_bootstrap", fromlist=["create_lifespan"]).create_lifespan(),
+)
 
 # ═══════════════════════════════════════════════════════════════════════════
 # TRACK 21.2 · CLASS-A EMAIL SAFETY HARDENING (2026-07-04)

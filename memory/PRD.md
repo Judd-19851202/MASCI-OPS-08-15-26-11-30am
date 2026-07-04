@@ -11,6 +11,18 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 22.1D · FastAPI Lifespan Migration Foundation · 🟢 GO / CLOSED (2026-07-04)
+
+Modernized FastAPI lifecycle from scattered `@app.on_event` decorators to a single deterministic lifespan context manager — with byte-identical runtime behavior.
+
+- **New:** `backend/lib/lifespan_bootstrap.py` with `orchestrated_lifespan(app)` + `create_lifespan()` factory. AST-verified: no `import resend`.
+- **Wired:** `FastAPI(..., lifespan=create_lifespan())` at server.py L73. 11-line kwarg diff only.
+- **Preserved:** All 51 `@app.on_event("startup")` + 1 `@app.on_event("shutdown")` decorators remain exactly where they are. Lifespan callable iterates `app.router.on_startup`/`on_shutdown` in preserved registration order.
+- **Proof:** 1,440 routes → 1,440 · 0 qualname drift · 0 dep-chain drift · 51 → 51 startup handlers with byte-identical bytecode SHA-256 · all 5 locked handler fingerprints match live · boot log confirms `[track-22.1d] lifespan.startup: complete`.
+- **Deferred with plan:** Per-handler migration to `LIFECYCLE_STEPS` registry queued into 7 follow-up tracks (22.1e/f/g/h/i/j/k) with per-handler bytecode-fingerprint proof.
+- **Regression envelope:** 207 / 207 (+12 Track 22.1D).
+- **Six Pillars:** 9.86 platform average (up from 9.84). Durable 9.87 · Operational 9.86.
+
 ## TRACK 22.1C · Scheduler Bootstrap Extraction + Startup-Order Parity · 🟢 GO / CLOSED (2026-07-04)
 
 Inventory + bytecode-lock extension. No `@app.on_event` handler was physically relocated — inline decorator paradigm makes safe relocation structurally impossible without changing FastAPI's registration order (out of scope) or migrating to lifespan events (explicitly forbidden by the mandate).

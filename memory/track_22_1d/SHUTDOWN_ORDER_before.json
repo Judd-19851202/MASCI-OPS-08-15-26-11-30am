@@ -1,0 +1,18 @@
+{
+  "shutdown_handler_count": 1,
+  "shutdown_handlers": [
+    {
+      "arg_count": 0,
+      "bytecode_sha256": "a7db2b0122a4d9405610d78c2b44de8cd8314531ae688d554116b83e332e7c9b",
+      "docstring_first_line": null,
+      "index": 0,
+      "is_coroutine": true,
+      "lineno": 15908,
+      "module": "server",
+      "name": "shutdown_db_client",
+      "qualname": "shutdown_db_client",
+      "side_effects": [],
+      "sourcefile": "/app/backend/server.py"
+    }
+  ]
+}
