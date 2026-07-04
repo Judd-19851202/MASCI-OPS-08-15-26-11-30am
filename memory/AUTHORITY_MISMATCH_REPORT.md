@@ -2,8 +2,8 @@
 
 _Phase GOVERNANCE-INFRA-1 · Workstream 1 · Authority Mismatch Probe._
 
-* Generated: 2026-07-04 12:46:22 UTC
-* Scan duration: 194 ms
+* Generated: 2026-07-04 22:54:33 UTC
+* Scan duration: 390 ms
 * Frontend tree: `/app/frontend/src`
 * Baseline: `/app/scripts/authority_pattern_baseline.json`
 

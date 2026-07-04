@@ -110,7 +110,7 @@ def build_equipment_detection_router(db) -> APIRouter:
     @router.get("/equipment-detection/{project_number}/{date}")
     async def detect(
         project_number: str = Path(..., min_length=1, max_length=64),
-        date: str = Path(..., regex=r"^\d{4}-\d{2}-\d{2}$"),
+        date: str = Path(..., pattern=r"^\d{4}-\d{2}-\d{2}$"),
     ):
         """Return equipment Motive observed at ``project_number`` on
         ``date`` (UTC day window). No DB writes. No notifications.

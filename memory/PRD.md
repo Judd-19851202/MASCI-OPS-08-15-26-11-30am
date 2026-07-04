@@ -11,6 +11,10 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 22.3 · Pydantic v2 Hygiene Sweep · 🟢 GO / CLOSED (2026-07-04)
+
+Eliminated all deprecated Pydantic v2 `regex=` usage in FastAPI parameter constraints — 12 mechanical `regex=` → `pattern=` renames across 8 files (`operations_map_contract.py`, `operational_events.py` ×3, `verification.py`, `operational_locations.py`, `asset_mapping_recon.py`, `sprint_a.py`, `integrations/autolink.py` ×3, `equipment_detection.py`). Zero validation drift · zero API contract change · zero warning suppression. Starlette CORS `allow_origin_regex=` explicitly preserved. Runtime probe reports 0 `regex=` DeprecationWarnings after the sweep. New AST-based permanent CI guardrail (`test_zero_pydantic_regex_kwarg_anywhere_in_backend`) prevents any future re-introduction. Routes/methods/OpenAPI/middleware/bytecode all unchanged. Lifecycle-complete attestation intact. Eight Pillars 9.98 platform average.
+
 ## 🎉 TRACK 22.1K · Final Lifecycle Completion · LIFECYCLE ARCHITECTURE COMPLETE · GO / CLOSED (2026-07-04)
 
 **MILESTONE — Startup + shutdown lifecycle is 100% owned by the Lifespan framework.** Zero `@app.on_event("startup")`, zero `@app.on_event("shutdown")`, zero `@router.on_event(...)` decorators exist anywhere in `backend/`. Two permanent CI guardrails prevent any future re-introduction.

@@ -1,0 +1,106 @@
+{
+  "track": "22.3",
+  "title": "Pydantic V2 Hygiene Sweep — regex= → pattern=",
+  "status": "PASS",
+  "date": "2026-02-04",
+  "iteration": "track_22_3",
+  "test_envelope": {
+    "track_22_3_lock_tests": {
+      "command": "pytest backend/tests/test_track_22_3_pydantic_v2_hygiene.py -v",
+      "result": "11 passed, 0 failed",
+      "duration_sec": 7.12
+    },
+    "full_track_22_regression": {
+      "command": "pytest backend/tests/test_track_22_*.py --timeout=90 -q",
+      "result": "242 passed, 0 failed, 2 out-of-scope warnings",
+      "duration_sec": 16.12,
+      "files_covered": [
+        "test_track_22_0_platform_excellence.py",
+        "test_track_22_1_server_modularization.py",
+        "test_track_22_1b_email_dispatch.py",
+        "test_track_22_1c_scheduler_bootstrap.py",
+        "test_track_22_1d_lifespan_migration.py",
+        "test_track_22_1e_index_handler_migration.py",
+        "test_track_22_1f_seed_handlers_and_platform_status.py",
+        "test_track_22_1g_non_email_scheduler_migration.py",
+        "test_track_22_1h_email_scheduler_migration.py",
+        "test_track_22_1i1_backup_scheduler_migration.py",
+        "test_track_22_1i_misc_bootstrap_migration.py",
+        "test_track_22_1j_readiness_last_migration.py",
+        "test_track_22_1k_shutdown_migration.py",
+        "test_track_22_1l_command_center_migration.py",
+        "test_track_22_3_pydantic_v2_hygiene.py"
+      ]
+    },
+    "live_smoke": {
+      "command": "curl $REACT_APP_BACKEND_URL/api/admin/platform/status",
+      "status_code": 200,
+      "response": "{\"detail\":\"Admin login required\"}",
+      "interpretation": "Endpoint reachable; auth-gate returns intended 200 response. Backend healthy."
+    },
+    "runtime_probe": {
+      "routes": 1441,
+      "methods": 1445,
+      "openapi_paths": 1264,
+      "lifecycle_complete": true,
+      "startup_migration_pct": 100.0,
+      "shutdown_migration_pct": 100.0,
+      "email_safety_mode": "strict",
+      "resend_sdk_patched": true,
+      "live_emails_possible": false,
+      "bytecode_drift": [],
+      "bytecode_missing": [],
+      "bytecode_checked": 9
+    }
+  },
+  "zero_drift": {
+    "routes_delta": 0,
+    "methods_delta": 0,
+    "openapi_paths_delta": 0,
+    "middleware_delta": 0,
+    "startup_legacy_delta": 0,
+    "shutdown_legacy_delta": 0,
+    "bytecode_drift_count": 0,
+    "cors_allow_origin_regex_preserved": true
+  },
+  "email_safety": {
+    "mode": "strict",
+    "resend_sdk_patched": true,
+    "live_emails_possible": false,
+    "note": "No live emails sent during Track 22.3 execution."
+  },
+  "artifacts": {
+    "test_lock_file": "/app/backend/tests/test_track_22_3_pydantic_v2_hygiene.py",
+    "deliverables": [
+      "/app/memory/TRACK_22_3_EXECUTIVE_SUMMARY.md",
+      "/app/memory/TRACK_22_3_WARNING_INVENTORY.md",
+      "/app/memory/TRACK_22_3_OPENAPI_VALIDATION_PARITY.md",
+      "/app/memory/TRACK_22_3_WARNING_REDUCTION.md",
+      "/app/memory/TRACK_22_3_ENGINEERING_AUDIT.md",
+      "/app/memory/TRACK_22_3_SAFETY_RECERTIFICATION.md",
+      "/app/memory/TRACK_22_3_ZERO_DRIFT_MATRIX.md",
+      "/app/memory/TRACK_22_3_TEST_REPORT.md",
+      "/app/memory/track_22_3/PYDANTIC_WARNING_INVENTORY_before.json",
+      "/app/memory/track_22_3/PYDANTIC_WARNING_INVENTORY_after.json"
+    ],
+    "prd_updated": true,
+    "changelog_updated": true
+  },
+  "warnings_out_of_scope": [
+    {
+      "file": "backend/routes/passkeys.py:131",
+      "warning": "PydanticDeprecatedSince20: class-based `config` deprecated",
+      "reason": "Not a `regex=` warning; belongs to future ConfigDict migration track. Zero suppression added."
+    },
+    {
+      "file": "starlette/formparsers.py:12",
+      "warning": "PendingDeprecationWarning: python_multipart import path",
+      "reason": "Upstream Starlette library; not a `regex=` warning; unaffected by Track 22.3."
+    }
+  ],
+  "next_steps": [
+    "Track 22.3 formally closed.",
+    "Await user's next directive.",
+    "All legacy startup/shutdown decorators remain at zero (Tracks 22.1I.1 / 22.1J / 22.1L / 22.1K)."
+  ]
+}

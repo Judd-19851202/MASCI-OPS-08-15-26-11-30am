@@ -374,7 +374,7 @@ def build_operational_locations_router(db, require_admin_dep: Callable) -> APIRo
     @router.get("/admin/locations/reconciliation-queue",
                 dependencies=[Depends(require_admin_dep)])
     async def reconciliation_queue(
-        band: Optional[str] = Query(default=None, regex="^(high|medium|low)$"),
+        band: Optional[str] = Query(default=None, pattern="^(high|medium|low)$"),
         status: Optional[str] = Query(default=None),
     ):
         """List candidate matches for operator review.

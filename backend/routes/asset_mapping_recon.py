@@ -244,7 +244,7 @@ def build_asset_mapping_router(db, require_admin_dep: Callable) -> APIRouter:
     @router.get("/admin/asset-mapping/queue",
                 dependencies=[Depends(require_admin_dep)])
     async def queue(band: Optional[str] = Query(default=None,
-                                                  regex="^(HIGH|MEDIUM|LOW|UNKNOWN)$"),
+                                                  pattern="^(HIGH|MEDIUM|LOW|UNKNOWN)$"),
                     status: Optional[str] = None):
         q: Dict[str, Any] = {}
         if band:

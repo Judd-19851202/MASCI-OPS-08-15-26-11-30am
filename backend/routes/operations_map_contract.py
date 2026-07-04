@@ -404,7 +404,7 @@ def build_operations_map_contract_router(
     async def contract(
         actor: Dict[str, Any] = Depends(require_any_portal_token_dep),
         scope: str = Query(default="operations",
-            regex="^(operations|dispatch|pm|shop|safety|admin)$"),
+            pattern="^(operations|dispatch|pm|shop|safety|admin)$"),
         project_number: Optional[str] = Query(default=None),
         asset_kind: Optional[str] = Query(default=None),
         asset_family: Optional[str] = Query(default=None,

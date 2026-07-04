@@ -322,7 +322,7 @@ def register_autolink_routes(api_router: APIRouter, db, require_admin) -> None:
         "/admin/integrations/motive/auto-link/preview",
         dependencies=[Depends(require_admin)],
     )
-    async def preview_autolink(kind: str = Query(..., regex="^(assets|drivers)$")):
+    async def preview_autolink(kind: str = Query(..., pattern="^(assets|drivers)$")):
         if kind == "assets":
             props = await _propose_asset_links(db)
         else:
@@ -336,7 +336,7 @@ def register_autolink_routes(api_router: APIRouter, db, require_admin) -> None:
         "/admin/integrations/motive/auto-link",
         dependencies=[Depends(require_admin)],
     )
-    async def execute_autolink(kind: str = Query(..., regex="^(assets|drivers)$")):
+    async def execute_autolink(kind: str = Query(..., pattern="^(assets|drivers)$")):
         if kind == "assets":
             props = await _propose_asset_links(db)
             result = await _apply_asset_links(db, props, triggered_by="admin_autolink")
@@ -395,7 +395,7 @@ def register_autolink_routes(api_router: APIRouter, db, require_admin) -> None:
         "/admin/integrations/motive/reliability-tick",
         dependencies=[Depends(require_admin)],
     )
-    async def force_reliability_tick(kind: str = Query(..., regex="^(events|assets|users|geofences)$")):
+    async def force_reliability_tick(kind: str = Query(..., pattern="^(events|assets|users|geofences)$")):
         from lib.motive_reliability import _tick, reliability_state_snapshot  # noqa: PLC0415
         await _tick(db, kind)
         snap = reliability_state_snapshot()

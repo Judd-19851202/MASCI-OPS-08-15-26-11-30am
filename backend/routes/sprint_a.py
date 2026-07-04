@@ -113,7 +113,7 @@ def register_sprint_a_routes(api_router: APIRouter, db, require_actor) -> None:
     @api_router.get("/operations/dispatch/by-day")
     async def dispatch_by_day(
         actor: Any = Depends(require_actor),
-        bucket: str = Query("today", regex="^(today|tomorrow|upcoming|all)$"),
+        bucket: str = Query("today", pattern="^(today|tomorrow|upcoming|all)$"),
         limit: int = Query(300, le=1000),
     ):
         now = datetime.now(timezone.utc)

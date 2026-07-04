@@ -321,7 +321,7 @@ def build_verification_router(db, require_admin_dep: Callable) -> APIRouter:
                 dependencies=[Depends(require_admin_dep)])
     async def verify_project_presence(
         project_number: str = Path(..., min_length=1),
-        date: str = Path(..., regex=r"^\d{4}-\d{2}-\d{2}$"),
+        date: str = Path(..., pattern=r"^\d{4}-\d{2}-\d{2}$"),
     ):
         day = datetime.fromisoformat(date).replace(tzinfo=timezone.utc)
         day_s = day.isoformat()

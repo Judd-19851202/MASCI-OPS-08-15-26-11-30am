@@ -528,7 +528,7 @@ def build_operational_events_router(db, require_admin_dep: Callable) -> APIRoute
     @router.get("/admin/operational-events/dashboard",
                 dependencies=[Depends(require_admin_dep)])
     async def dashboard(
-        date: Optional[str] = Query(default=None, regex=r"^\d{4}-\d{2}-\d{2}$"),
+        date: Optional[str] = Query(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$"),
     ):
         """Counts of distinct assets currently 'at' each category, where
         'at' = last operational_event for that asset is an ARRIVAL of
@@ -583,7 +583,7 @@ def build_operational_events_router(db, require_admin_dep: Callable) -> APIRoute
     @router.get("/operational-events/project-day/{project_number}/{date}")
     async def project_day(
         project_number: str = Path(..., min_length=1, max_length=64),
-        date: str = Path(..., regex=r"^\d{4}-\d{2}-\d{2}$"),
+        date: str = Path(..., pattern=r"^\d{4}-\d{2}-\d{2}$"),
     ):
         """List per-asset arrival/departure summaries for one project on
         one UTC day. Read-only. Used by the Daily Report MOTIVE
@@ -633,7 +633,7 @@ def build_operational_events_router(db, require_admin_dep: Callable) -> APIRoute
     @router.get("/operational-events/timeline/{detection_key}/{date}")
     async def timeline(
         detection_key: str = Path(..., min_length=1, max_length=128),
-        date: str = Path(..., regex=r"^\d{4}-\d{2}-\d{2}$"),
+        date: str = Path(..., pattern=r"^\d{4}-\d{2}-\d{2}$"),
     ):
         try:
             day = datetime.fromisoformat(date).replace(tzinfo=timezone.utc)

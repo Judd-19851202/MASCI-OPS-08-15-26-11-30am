@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## 2026-07-04 — TRACK 22.3 · Pydantic v2 Hygiene Sweep · 🟢 GO / CLOSED
+
+Mechanical `regex=` → `pattern=` migration for FastAPI Query/Path parameter constraints. 12 fixes across 8 files. Zero warning suppression. Zero validation drift. Zero API contract change. Starlette CORS `allow_origin_regex=` explicitly preserved.
+
+- **Files touched:** `routes/operations_map_contract.py`, `routes/operational_events.py` (3), `routes/verification.py`, `routes/operational_locations.py`, `routes/asset_mapping_recon.py`, `routes/sprint_a.py`, `routes/integrations/autolink.py` (3), `routes/equipment_detection.py`.
+- **Runtime warning probe:** `regex=` DeprecationWarnings dropped from 3+ per pytest run → **0**.
+- **CI guardrail (permanent):** `test_zero_pydantic_regex_kwarg_anywhere_in_backend` — AST-based scanner fails if any new `regex=` kwarg is passed to `Query`/`Path`/`Body`/`Field`/`Form`/`Header`/`Cookie`/`constr`.
+- **Parity:** 1,441 routes · 1,445 methods · 1,264 OpenAPI · 7 middleware · **0 on_startup · 0 on_shutdown · 51 LIFECYCLE_STEPS · 1 SHUTDOWN_STEPS** · 9/9 bytecode fingerprints clean · `lifecycle_complete=true`.
+- **Excluded (documented):** `backend/server.py:15831` — `allow_origin_regex=cors_origin_regex` (Starlette CORS, not Pydantic).
+- **Deliverables:** 8 markdown reports (`TRACK_22_3_*.md`) + 2 snapshots (`memory/track_22_3/*.json`) + new lock test with 11 assertions.
+- **Rollback:** revert 8 files (~30 lines total). Zero data change.
+- **Eight Pillars:** 9.98 platform average. Zero Drift 10.00.
+
+---
+
 ## 2026-07-04 — 🎉 TRACK 22.1K · Final Lifecycle Completion · LIFECYCLE ARCHITECTURE COMPLETE
 
 **MILESTONE — Unified lifecycle architecture is 100% complete.** Startup + shutdown are entirely owned by the Lifespan framework. Zero `@app.on_event(...)` and zero `@router.on_event(...)` decorators remain anywhere in `backend/`. Permanent CI guardrails prevent regression.
