@@ -1,5 +1,59 @@
 # CHANGELOG
 
+## 2026-08-04 — TRACK 20.9 · P1 Codebase Cleanup + Production Hardening · 🟢 GO
+
+### Purpose
+Non-behavioral cleanup pass. Zero features. Zero workflow / permission / schema / email-path changes. Nine surgical items from the public repo audit.
+
+### Real bugs fixed (Class A · inline per Track 20.6A doctrine)
+- **TD-20.9-A01** — `MasterListPanel.jsx::restoreRow` was called from the archive-tab restore button but never defined. Every click threw `ReferenceError`. **FIXED** by adding the missing async function using the pattern from other row mutations.
+- **TD-20.9-A02** — `TrenchBoxPosterCard.jsx` imported `useBranding` but never called it, then referenced `branding.*` in JSX. Every render threw `ReferenceError`. **FIXED** by adding `const branding = useBranding();`.
+
+Both bugs were caught by the new real ESLint 9 gate — validation of the "real lint enforcement" cleanup item paying off immediately.
+
+### Cleanup deliveries
+- **Frontend lint** — replaced fake stub with real ESLint 9 config + scripts (`yarn lint`, `yarn lint:strict`).
+- **Deployment checklist** — refreshed from iter142 to Track 20.9 standard (includes email-safety cert, photo-fallback smoke, Universal Threads smoke, post-deploy monitoring).
+- **README** — replaced 1-line boilerplate with full 11-section MASCI runbook.
+- **`.gitignore`** — cleaned from 862 lines (duplicated blocks + leaked cache filenames + `-e` heredoc fragments) to 140 concise lines. Every secret protection preserved. Track 15.80 pattern lock preserved.
+- **`backend/requirements.txt`** — audited, already conformant, zero changes.
+
+### Audits + Phase-2 plans (deferred to Track 21.x)
+- `server.py` (15,986 lines) — Phase-2 split plan documented; no pre-deploy refactor.
+- `App.js` (1,283 lines · 300+ routes) — Phase-2 route-group extraction plan documented; no pre-deploy refactor.
+- CORS — current config verified safe; Phase-2 tightening plan documented.
+
+### Public-repo security scan
+🟢 Zero secrets committed. `git ls-files` grep for `.env` / `credentials.json` / `.pem` / SEALED* / SECRETS_* returns only the secret-scanner test file itself.
+
+### Class-C tech debt registered (post-deploy work)
+- TD-20.9-C01 · 708 duplicate keys in `frontend/src/lib/i18n.js` (silent translation-loss bug).
+- TD-20.9-C02 · 188 `react/no-unescaped-entities` (cosmetic).
+- TD-20.9-C03 · 78 stale `eslint-disable` directives.
+- TD-20.9-C04 · 6 `react/no-unstable-nested-components` (perf).
+- TD-20.9-C05 · 5 `no-empty` on intentional storage `catch {}`.
+- TD-20.9-C06 · 6 misc lint findings.
+
+All logged in `TECHNICAL_DEBT_REGISTER.md` for Track 21.x execution.
+
+### Deliverables
+9 markdown docs under `memory/TRACK_20_9_*.md` + lock test `backend/tests/test_track_20_9_cleanup.py`.
+
+### Testing
+- Track 20.9 lock test: 20+ passed.
+- Track 20.8 regression envelope: 385+ passed · 0 skipped · 0 failed (unchanged from pre-Track-20.9 baseline).
+
+### Email safety
+🟢 Track 20.6B synthetic-test-record short-circuit untouched. Zero live emails triggered by Track 20.9 execution.
+
+### Zero-Drift
+Production runtime behavior byte-identical for all non-crashing paths. Two undefined-identifier fixes turn crashing paths into working paths per their obvious original intent.
+
+### Final call
+🟢 **DEPLOY.**
+
+---
+
 ## 2026-08-04 — TRACK 20.8 · Final Production Deployment Certification · 🟢 GO
 
 ### Purpose

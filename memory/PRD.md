@@ -11,6 +11,40 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 20.9 · P1 Codebase Cleanup + Production Hardening · 🟢 GO (2026-08-04)
+
+**Type:** Non-behavioral cleanup pass. Zero features · zero workflow changes · zero permission changes · zero schema changes · zero email path changes.
+
+**Outcome:** 🟢 **GO for production deployment.** Codebase is cleaner. Two real Class-A runtime bugs fixed. Zero platform behavior changed.
+
+**Nine surgical items:**
+1. ✅ Frontend lint — replaced fake stub with real ESLint 9 (`frontend/eslint.config.js`, `yarn lint` / `yarn lint:strict`).
+2. ✅ **Two Class-A runtime bugs fixed** — TD-20.9-A01 (`restoreRow` undefined in `MasterListPanel.jsx`) · TD-20.9-A02 (`branding` undefined in `TrenchBoxPosterCard.jsx`).
+3. ✅ `DEPLOYMENT_CHECKLIST.md` — refreshed from iter142 stale → Track 20.9 standard (email-safety cert · photo capture smoke · Universal Threads smoke · post-deploy monitoring).
+4. ✅ `README.md` — replaced 1-line boilerplate with full 11-section MASCI runbook.
+5. ✅ `backend/requirements.txt` — audited · already conformant · zero changes.
+6. ✅ `.gitignore` — cleaned from 862 lines of duplicated blocks + leaked cache filenames to 140 concise lines · every secret protection preserved · Track 15.80 pattern lock preserved.
+7. ✅ `server.py` audit — file is 15,986 lines · **no refactor pre-deploy** · Phase-2 split plan documented for Track 21.x.
+8. ✅ `App.js` audit — file is 1,283 lines defining 300+ routes · **no refactor pre-deploy** · Phase-2 route-group extraction plan documented for Track 21.y.
+9. ✅ CORS review — `allow_credentials=True` + regex + explicit prod list all correct · `allow_methods/headers=["*"]` intentional (7 portal-token headers, 6 HTTP methods across 300+ routes) · Phase-2 tightening plan documented.
+
+**Public repo security review:** ✅ `git ls-files` grep for `.env` / `credentials.json` / `.pem` / `SEALED*` / `SECRETS_*` returns zero real secret matches (only the secret-scanner test file itself).
+
+**Tech Debt Register at gate:**
+- Class A (P1, FIXED inline): TD-20.9-A01, TD-20.9-A02.
+- Class C (P2/P3, registered for Track 21.x): TD-20.9-C01 (708 i18n dupes) · TD-20.9-C02 (188 unescaped entities) · TD-20.9-C03 (78 stale eslint-disable) · TD-20.9-C04 (6 unstable nested components) · TD-20.9-C05 (5 storage catches) · TD-20.9-C06 (6 misc lint).
+
+**Deliverables:** 9 markdown docs under `memory/TRACK_20_9_*.md` + lock test `backend/tests/test_track_20_9_cleanup.py`.
+
+**Testing:** Track 20.9 lock test 20+/20+ passed · Track 20.8 regression envelope 385+ passed · 0 skipped · 0 failed (unchanged from pre-Track-20.9 baseline).
+
+**Zero-Drift on production:** No route, no permission, no schema, no email path, no env var interface changed. Two undefined-identifier fixes turn crashing UI paths into working UI paths per their obvious original intent (bug fix, not behavior change).
+
+**Email safety:** 🟢 Track 20.6B synthetic-test-record short-circuit byte-identical. Zero live emails triggered by Track 20.9 execution.
+
+**Final call:** 🟢 **DEPLOY.** Codebase is cleaner, tests remain green, no behavior changed, deployment risk lowered.
+
+
 ## TRACK 20.8 · Final Production Deployment Certification · 🟢 GO (2026-08-04)
 
 **Type:** Release gate. Certification-only. Zero features · zero redesigns · zero code changes.

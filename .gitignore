@@ -1,10 +1,28 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# MASCI Operations Platform — .gitignore
+# Locked 2026-08-04 (Track 20.9 cleanup). Previous file had grown to
+# 862 lines of duplicated `credentials.json` blocks and thousands of
+# leaked webpack cache pack filenames (`frontend/node_modules/.cache/
+# default-development/N.pack`). This rewrite:
+#   • preserves every secret protection line (env + credential + pem),
+#   • preserves the Track 15.80 secret-file pattern lock,
+#   • preserves the sensitive test-credentials guard
+#     (`memory/test_credentials.md`),
+#   • preserves the walkthrough_reports editorial-artifact rule,
+#   • folds all of `frontend/node_modules/.cache/**` and
+#     `backend/backups/**` under wildcard rules instead of listing
+#     individual filenames, and
+#   • removes the sh-heredoc-leakage `-e` fragments.
+#
+# Any future addition to this file MUST retain the "Secrets" and
+# "Track 15.80 secret pattern lock" sections. The regression test
+# `backend/tests/test_track_15_80_no_secrets_in_repo.py` enforces the
+# secret-scan side of this file.
 
-# IDE and editors
+# ── IDEs / editors ────────────────────────────────────────────────
 .idea/
 .vscode/
 
-# Dependencies
+# ── Dependencies / package managers ───────────────────────────────
 node_modules/
 /node_modules
 /.pnp
@@ -16,846 +34,110 @@ node_modules/
 !.yarn/releases
 !.yarn/versions
 
-# Testing
+# ── Testing / coverage ────────────────────────────────────────────
 /coverage
+.pytest_cache/
 
-# Next.js
+# ── Next.js ──────────────────────────────────────────────────────
 /.next/
 /out/
 next-env.d.ts
 *.tsbuildinfo
 
-# Production builds
+# ── Production builds ────────────────────────────────────────────
 /build
 dist/
 dist
 
-# Environment files (comprehensive coverage)
-
-*token.json*
-*credentials.json*
-
-# Logs and debug files
+# ── Logs / debug ─────────────────────────────────────────────────
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 dump.rdb
+*.log
+/var/log/
 
-# System files
+# ── System files ─────────────────────────────────────────────────
 .DS_Store
-*.pem
+Thumbs.db
 
-# Python
+# ── Python ───────────────────────────────────────────────────────
 __pycache__/
-*pyc*
+*.pyc
+*.pyo
+*.pyd
 venv/
 .venv/
 
-# Development tools
+# ── Development tools ────────────────────────────────────────────
 chainlit.md
 .chainlit
 .ipynb_checkpoints/
 .ac
 
-# Deployment
+# ── Deployment platforms ─────────────────────────────────────────
 .vercel
 
-# Data and databases
+# ── Data / archives / large binaries ─────────────────────────────
 agenthub/agents/youtube/db
-
-# Archive files and large assets
 **/*.zip
 **/*.tar.gz
 **/*.tar
 **/*.tgz
 *.pack
+*.pack_
 *.deb
 *.dylib
 
-# Build caches
+# ── Build caches ─────────────────────────────────────────────────
 .cache/
+frontend/node_modules/.cache/**
+frontend/node_modules/.cache
 
-memory/test_credentials.md
+# ── Backups (auto-generated · never commit) ──────────────────────
+backend/backups/**
+backend/storage/**
 
-# Mobile development
-android-sdk/frontend/node_modules/.cache/default-development/27.pack
-frontend/node_modules/.cache/default-development/27.pack
-frontend/node_modules/.cache/default-development/8.pack
-frontend/node_modules/.cache/default-development/13.pack
-frontend/node_modules/.cache/default-development/26.pack
-frontend/node_modules/.cache/default-development/29.pack
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-frontend/node_modules/.cache/default-development/31.pack
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-frontend/node_modules/.cache/default-development/19.pack
-frontend/node_modules/.cache/default-development/18.pack
-frontend/node_modules/.cache/default-development/28.pack
-frontend/node_modules/.cache/default-development/17.pack
-frontend/node_modules/.cache/default-development/25.pack
-frontend/node_modules/.cache/default-development/32.pack
-frontend/node_modules/.cache/default-development/33.pack
-frontend/node_modules/.cache/default-development/35.pack
-frontend/node_modules/.cache/default-development/37.pack
-frontend/node_modules/.cache/default-development/42.pack
-frontend/node_modules/.cache/default-development/16.pack
-frontend/node_modules/.cache/default-development/34.pack
-frontend/node_modules/.cache/default-development/36.pack
-frontend/node_modules/.cache/default-development/24.pack
-frontend/node_modules/.cache/default-development/43.pack
-frontend/node_modules/.cache/default-development/45.pack
-frontend/node_modules/.cache/default-development/47.pack
-frontend/node_modules/.cache/default-development/48.pack
-frontend/node_modules/.cache/default-development/50.pack
-frontend/node_modules/.cache/default-development/54.pack
-frontend/node_modules/.cache/default-development/51.pack
-backend/backups/MASCI_full_backup_2026-04-28_161949Z.zip
-backend/backups/MASCI_full_backup_2026-04-28_161858Z.zip
-backend/backups/MASCI_full_backup_2026-04-28_162219Z.zip
-backend/storage/project_docs/24-12/0d0e9933-cfa6-4efc-a790-ce6469ae188a.pdf
-backend/backups/MASCI_full_backup_2026-04-28_162906Z.zip
-backend/backups/MASCI_full_backup_2026-04-28_163022Z.zip
-backend/backups/MASCI_full_backup_2026-04-28_162739Z.zip
-backend/backups/MASCI_full_backup_2026-04-28_163809Z.zip
-backend/backups/MASCI_full_backup_2026-04-28_164514Z.zip
-backend/backups/MASCI_full_backup_2026-04-28_164033Z.zip
-backend/backups/MASCI_full_backup_2026-04-28_164258Z.zip
-frontend/node_modules/.cache/default-development/57.pack
-backend/backups/MASCI_full_backup_2026-04-28_172404Z.zip
-backend/backups/MASCI_full_backup_2026-04-28_172339Z.zip
-backend/backups/MASCI_full_backup_2026-04-28_171951Z.zip
-backend/backups/MASCI_full_backup_2026-04-28_172550Z.zip
-backend/backups/MASCI_full_backup_2026-04-28_172129Z.zip
-backend/backups/MASCI_full_backup_2026-04-28_172140Z.zip
-frontend/node_modules/.cache/default-development/59.pack
-backend/backups/MASCI_full_backup_2026-04-28_174223Z.zip
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-backend/backups/MASCI_full_backup_2026-04-28_183346Z.zip
-backend/backups/MASCI_full_backup_2026-04-28_183329Z.zip
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-backend/backups/MASCI_full_backup_2026-04-28_194535Z.zip
-frontend/node_modules/.cache/default-development/39.pack
-backend/backups/MASCI_full_backup_2026-04-28_201639Z.zip
-backend/backups/MASCI_full_backup_2026-04-28_201741Z.zip
-backend/backups/MASCI_full_backup_2026-04-28_201803Z.zip
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-backend/backups/MASCI_full_backup_2026-04-28_212828Z.zip
-backend/backups/MASCI_full_backup_2026-04-28_213741Z.zip
-backend/backups/MASCI_full_backup_2026-04-28_213842Z.zip
-frontend/node_modules/.cache/default-development/49.pack
-backend/backups/MASCI_full_backup_2026-04-28_215432Z.zip
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-backend/backups/MASCI_full_backup_2026-04-28_224112Z.zip
-backend/backups/MASCI_full_backup_2026-04-28_223759Z.zip
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-frontend/node_modules/.cache/default-development/61.pack
-frontend/node_modules/.cache/default-development/63.pack
-frontend/node_modules/.cache/default-development/1.pack
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-backend/backups/MASCI_full_backup_2026-04-29_143937Z.zip
-backend/backups/MASCI_full_backup_2026-04-29_150708Z.zip
-backend/backups/MASCI_full_backup_2026-04-29_151437Z.zip
-backend/backups/MASCI_full_backup_2026-04-29_165247Z.zip
-backend/backups/MASCI_full_backup_2026-04-29_164918Z.zip
-backend/backups/MASCI_full_backup_2026-04-29_165348Z.zip
-frontend/node_modules/.cache/default-development/66.pack
-backend/backups/MASCI_full_backup_2026-04-29_165919Z.zip
-backend/backups/MASCI_full_backup_2026-04-29_173215Z.zip
-backend/backups/MASCI_full_backup_2026-04-29_173155Z.zip
-backend/backups/MASCI_full_backup_2026-04-29_173527Z.zip
-backend/backups/MASCI_full_backup_2026-04-29_173233Z.zip
-backend/backups/MASCI_full_backup_2026-04-29_172910Z.zip
-backend/backups/MASCI_full_backup_2026-04-29_173803Z.zip
-backend/backups/MASCI_full_backup_2026-04-29_180252Z.zip
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-backend/backups/MASCI_full_backup_2026-04-29_181556Z.zip
-backend/backups/MASCI_full_backup_2026-04-29_181506Z.zip
-backend/backups/MASCI_full_backup_2026-04-29_194908Z.zip
-backend/backups/MASCI_full_backup_2026-04-29_194318Z.zip
-backend/backups/MASCI_full_backup_2026-04-29_194907Z.zip
-frontend/node_modules/.cache/default-development/53.pack
-backend/backups/MASCI_full_backup_2026-04-29_200429Z.zip
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-backend/backups/MASCI_full_backup_2026-04-29_204330Z.zip
-frontend/node_modules/.cache/default-development/70.pack
-backend/backups/MASCI_full_backup_2026-04-29_204938Z.zip
-backend/backups/MASCI_full_backup_2026-04-29_205329Z.zip
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-backend/backups/MASCI_full_backup_2026-04-29_214524Z.zip
-backend/backups/MASCI_full_backup_2026-04-29_215911Z.zip
-backend/backups/MASCI_full_backup_2026-04-29_215826Z.zip
-backend/backups/MASCI_full_backup_2026-04-29_215830Z.zip
-backend/backups/MASCI_full_backup_2026-04-29_221322Z.zip
-backend/backups/MASCI_full_backup_2026-04-29_221149Z.zip
-backend/backups/MASCI_full_backup_2026-04-29_221334Z.zip
-frontend/node_modules/.cache/default-development/65.pack
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-backend/backups/MASCI_full_backup_2026-04-29_232427Z.zip
-backend/backups/MASCI_full_backup_2026-04-29_232802Z.zip
-backend/backups/MASCI_full_backup_2026-04-29_232501Z.zip
-backend/backups/MASCI_full_backup_2026-04-29_230645Z.zip
-frontend/node_modules/.cache/default-development/0.pack
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-backend/backups/MASCI_full_backup_2026-04-30_111024Z.zip
-backend/backups/MASCI_full_backup_2026-04-30_112114Z.zip
-backend/backups/MASCI_full_backup_2026-04-30_111339Z.zip
-frontend/node_modules/.cache/default-development/4.pack
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-backend/backups/MASCI_full_backup_2026-04-30_180309Z.zip
-backend/backups/MASCI_full_backup_2026-04-30_202612Z.zip
-frontend/node_modules/.cache/default-development/9.pack
-frontend/node_modules/.cache/default-development/11.pack
-backend/backups/MASCI_full_backup_2026-04-30_235058Z.zip
-backend/backups/MASCI_full_backup_2026-04-30_235007Z.zip
-backend/backups/MASCI_full_backup_2026-04-30_235451Z.zip
-backend/backups/MASCI_full_backup_2026-04-30_235232Z.zip
-frontend/node_modules/.cache/default-development/15.pack
-frontend/node_modules/.cache/default-development/6.pack
-backend/backups/MASCI_full_backup_2026-05-01_003435Z.zip
-backend/backups/MASCI_full_backup_2026-05-01_005530Z.zip
-backend/backups/MASCI_full_backup_2026-05-01_005951Z.zip
-frontend/node_modules/.cache/default-development/2.pack
-backend/backups/MASCI_full_backup_2026-05-01_011602Z.zip
-frontend/node_modules/.cache/default-development/14.pack
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-backend/backups/MASCI_full_backup_2026-05-01_012158Z.zip
-backend/backups/MASCI_full_backup_2026-05-01_012610Z.zip
-backend/backups/MASCI_full_backup_2026-05-01_020033Z.zip
-frontend/node_modules/.cache/default-development/22.pack
-frontend/node_modules/.cache/default-development/21.pack
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-backend/backups/MASCI_full_backup_2026-05-02_020204Z.zip
-frontend/node_modules/.cache/default-development/10.pack
-frontend/node_modules/.cache/default-development/30.pack
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-backend/backups/MASCI_full_backup_2026-05-02_053846Z.zip
-backend/backups/MASCI_full_backup_2026-05-02_054022Z.zip
-backend/backups/MASCI_full_backup_2026-05-02_054259Z.zip
-backend/backups/MASCI_full_backup_2026-05-02_145328Z.zip
-backend/backups/MASCI_full_backup_2026-05-02_144430Z.zip
-backend/backups/MASCI_full_backup_2026-05-02_150239Z.zip
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-backend/backups/MASCI_full_backup_2026-05-02_161050Z.zip
-frontend/node_modules/.cache/default-development/20.pack
-backend/backups/MASCI_full_backup_2026-05-02_163509Z.zip
-backend/backups/MASCI_full_backup_2026-05-02_170117Z.zip
-backend/backups/MASCI_full_backup_2026-05-02_170117Z.zip
-frontend/node_modules/.cache/default-development/40.pack
-frontend/node_modules/.cache/default-development/40.pack
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-backend/backups/MASCI_full_backup_2026-05-02_202628Z.zip
-backend/backups/MASCI_full_backup_2026-05-02_202812Z.zip
-backend/backups/MASCI_full_backup_2026-05-02_202638Z.zip
-backend/backups/MASCI_full_backup_2026-05-03_010616Z.zip
-backend/backups/MASCI_full_backup_2026-05-03_015338Z.zip
-backend/backups/MASCI_full_backup_2026-05-03_015204Z.zip
-backend/backups/MASCI_full_backup_2026-05-03_020209Z.zip
-frontend/node_modules/.cache/default-development/44.pack
-frontend/node_modules/.cache/default-development/46.pack
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-backend/backups/MASCI_full_backup_2026-05-03_180001Z.zip
-frontend/node_modules/.cache/default-development/55.pack
-frontend/node_modules/.cache/default-development/41.pack
-frontend/node_modules/.cache/default-development/52.pack
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-frontend/node_modules/.cache/default-development/3.pack
-frontend/node_modules/.cache/default-development/7.pack
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-backend/backups/MASCI_full_backup_2026-05-04_180024Z.zip
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-frontend/node_modules/.cache/default-development/12.pack
-backend/backups/MASCI_full_backup_2026-05-05_013330Z.zip
-frontend/node_modules/.cache/default-development/5.pack
-backend/backups/MASCI_full_backup_2026-05-05_020155Z.zip
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-frontend/node_modules/.cache/default-development/23.pack
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-backend/backups/MASCI_full_backup_2026-05-07_094615Z.zip
-backend/backups/MASCI_full_backup_2026-05-07_095348Z.zip
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-backend/backups/MASCI_full_backup_2026-05-07_213848Z.zip
-backend/backups/MASCI_full_backup_2026-05-08_100933Z.zip
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-backend/backups/MASCI_full_backup_2026-05-11_093453Z.zip
-backend/backups/MASCI_full_backup_2026-05-11_093453Z.zip
-backend/backups/MASCI_full_backup_2026-05-11_110925Z.zip
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-backend/backups/MASCI_full_backup_2026-05-12_161104Z.zip
-backend/backups/MASCI_full_backup_2026-05-12_161557Z.zip
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-frontend/node_modules/.cache/default-development/38.pack
-frontend/node_modules/.cache/default-development/33.pack_
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-frontend/node_modules/.cache/default-development/56.pack
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-frontend/node_modules/.cache/default-development/58.pack
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-frontend/node_modules/.cache/default-development/60.pack
-frontend/node_modules/.cache/default-development/61.pack_
-frontend/node_modules/.cache/default-development/67.pack
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-frontend/node_modules/.cache/default-development/69.pack
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-frontend/node_modules/.cache/default-development/62.pack
-frontend/node_modules/.cache/default-development/73.pack
-frontend/node_modules/.cache/default-development/72.pack
-frontend/node_modules/.cache/default-development/74.pack
-frontend/node_modules/.cache/default-development/76.pack
-frontend/node_modules/.cache/default-development/75.pack
-backend/backups/MASCI_full_backup_2026-05-15_003149Z.zip
-frontend/node_modules/.cache/default-development/79.pack
-frontend/node_modules/.cache/default-development/85.pack
-frontend/node_modules/.cache/default-development/88.pack
-frontend/node_modules/.cache/default-development/89.pack
-frontend/node_modules/.cache/default-development/92.pack
-frontend/node_modules/.cache/default-development/93.pack
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-frontend/node_modules/.cache/default-development/97.pack
-frontend/node_modules/.cache/default-development/100.pack
-frontend/node_modules/.cache/default-development/71.pack
-frontend/node_modules/.cache/default-development/101.pack
-frontend/node_modules/.cache/default-development/105.pack
-frontend/node_modules/.cache/default-development/107.pack
-frontend/node_modules/.cache/default-development/109.pack
-frontend/node_modules/.cache/default-development/110.pack
-frontend/node_modules/.cache/default-development/77.pack
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-backend/backups/MASCI_full_backup_2026-05-16_021039Z.zip
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-frontend/node_modules/.cache/default-development/11.pack_
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-backend/backups/MASCI_full_backup_2026-05-18_105211Z.zip
-
-# iter217 — walkthrough screenshot + findings output (editorial artifact, not source)
+# ── Emergent walkthrough / editorial artifacts (not source) ──────
 walkthrough_reports/
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-backend/backups/MASCI_full_backup_2026-05-19_021232Z.zip
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-backend/backups/MASCI_full_backup_2026-05-19_154611Z.zip
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-backend/backups/MASCI_full_backup_2026-05-19_205819Z.zip
--e 
-# Environment and credential files
-credentials.json
-*.pem
-*.key
-.credentials
-frontend/node_modules/.cache/default-development/64.pack
-frontend/node_modules/.cache/default-development/68.pack
-backend/backups/MASCI_full_backup_2026-05-20_165423Z.zip
-frontend/node_modules/.cache/default-development/80.pack
-frontend/node_modules/.cache/default-development/84.pack
-frontend/node_modules/.cache/default-development/84.pack
-backend/backups/MASCI_full_backup_2026-05-22_020214Z.zip
-backend/backups/MASCI_full_backup_2026-05-22_150310Z.zip
-backend/backups/MASCI_full_backup_2026-05-22_145733Z.zip
-backend/backups/MASCI_full_backup_2026-05-23_212141Z.zip.tmp.e06bb45c
-backend/backups/MASCI_full_backup_2026-05-23_211550Z.zip
-backend/backups/MASCI_full_backup_2026-05-24_001532Z.zip
-backend/backups/MASCI_full_backup_2026-05-24_003635Z.zip
-frontend/node_modules/.cache/default-development/78.pack
-frontend/node_modules/.cache/default-development/82.pack
-frontend/node_modules/.cache/default-development/90.pack
-frontend/node_modules/.cache/default-development/86.pack
-frontend/node_modules/.cache/default-development/87.pack
-frontend/node_modules/.cache/default-development/91.pack
-frontend/node_modules/.cache/default-development/96.pack
-frontend/node_modules/.cache/default-development/94.pack
-frontend/node_modules/.cache/default-development/98.pack
-frontend/node_modules/.cache/default-development/103.pack
-frontend/node_modules/.cache/default-development/106.pack
-frontend/node_modules/.cache/default-development/99.pack
-frontend/node_modules/.cache/default-development/108.pack
-frontend/node_modules/.cache/default-development/112.pack
-frontend/node_modules/.cache/default-development/113.pack
-frontend/node_modules/.cache/default-development/111.pack
-frontend/node_modules/.cache/default-development/116.pack
-frontend/node_modules/.cache/default-development/118.pack
-frontend/node_modules/.cache/default-development/120.pack
-frontend/node_modules/.cache/default-development/119.pack
-frontend/node_modules/.cache/default-development/123.pack
-frontend/node_modules/.cache/default-development/124.pack
-frontend/node_modules/.cache/default-development/83.pack
-frontend/node_modules/.cache/default-development/117.pack
-frontend/node_modules/.cache/default-development/126.pack
-frontend/node_modules/.cache/default-development/127.pack
-frontend/node_modules/.cache/default-development/130.pack
-frontend/node_modules/.cache/default-development/129.pack
-frontend/node_modules/.cache/default-development/134.pack
-frontend/node_modules/.cache/default-development/135.pack
-frontend/node_modules/.cache/default-development/102.pack
-frontend/node_modules/.cache/default-development/138.pack
-frontend/node_modules/.cache/default-development/140.pack
-frontend/node_modules/.cache/default-development/141.pack
-backend/backups/MASCI_full_backup_2026-06-02_104310Z.zip
-frontend/node_modules/.cache/default-development/50.pack_
-frontend/node_modules/.cache/default-development/16.pack_
+
+# ── SECRETS — DO NOT REMOVE ANY LINE BELOW ───────────────────────
+# Environment files (all shapes)
 .env
 .env.*
 *.env
+env.local
+
+# Credential files
+credentials.json
+*credentials.json*
+*token.json*
+.credentials
+.secrets/
+
+# Certificate / key material
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Sensitive test credentials (checked at deploy time)
+memory/test_credentials.md
+
 # TRACK 15.80 — secret-file pattern lock. Block historical class of
 # files that have leaked production secrets into git (e.g.
 # PRODUCTION_SECRETS_SEALED.env.template). Never commit anything
 # matching these patterns; the secret-scanner regression test
-# `test_track_15_80_no_secrets_in_repo.py` enforces this on every CI
-# run.
+# `backend/tests/test_track_15_80_no_secrets_in_repo.py` enforces
+# this on every CI run.
 *.env.template
 *_SECRETS_*.env*
 *_SECRETS_*.template
 *SEALED*.env*
 *SEALED*.template
 secrets.env*
-.secrets/
 secret_rotation_evidence_*.txt
-backend/backups/MASCI_full_backup_2026-06-08_214855Z.zip.tmp.63dacc97
-frontend/node_modules/.cache/default-development/3.pack_
-frontend/node_modules/.cache/default-development/4.pack_
-memory/_archived/dr_migration_backups_2026-05-30.tar.gz
-frontend/node_modules/.cache/default-development/95.pack
-frontend/node_modules/.cache/default-development/104.pack
-frontend/node_modules/.cache/default-development/115.pack
-frontend/node_modules/.cache/default-development/122.pack
-frontend/node_modules/.cache/default-development/121.pack
-frontend/node_modules/.cache/default-development/136.pack
-frontend/node_modules/.cache/default-development/139.pack
-frontend/node_modules/.cache/default-development/143.pack
-frontend/node_modules/.cache/default-development/147.pack
-frontend/node_modules/.cache/default-development/150.pack
-frontend/node_modules/.cache/default-development/152.pack
-frontend/node_modules/.cache/default-development/137.pack
-frontend/node_modules/.cache/default-development/149.pack
-frontend/node_modules/.cache/default-development/151.pack
-frontend/node_modules/.cache/default-development/128.pack
-frontend/node_modules/.cache/default-development/145.pack
-frontend/node_modules/.cache/default-development/155.pack
-frontend/node_modules/.cache/default-development/156.pack
-frontend/node_modules/.cache/default-development/157.pack
-frontend/node_modules/.cache/default-development/164.pack
-frontend/node_modules/.cache/default-development/165.pack
-frontend/node_modules/.cache/default-development/166.pack
-frontend/node_modules/.cache/default-development/167.pack
-frontend/node_modules/.cache/default-development/168.pack
-frontend/node_modules/.cache/default-development/69.pack_
-frontend/node_modules/.cache/default-development/170.pack
-frontend/node_modules/.cache/default-development/173.pack
-frontend/node_modules/.cache/default-development/175.pack
-frontend/node_modules/.cache/default-development/81.pack
+backend/storage/project_docs/24-12/0d0e9933-cfa6-4efc-a790-ce6469ae188a.pdf
+frontend/node_modules/.cache/default-development/49.pack
+frontend/node_modules/.cache/default-development/6.pack

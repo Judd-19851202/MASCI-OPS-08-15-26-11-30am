@@ -128,6 +128,29 @@ export default function MasterListPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listEndpoint]);
 
+  // Track 20.9 — TD-20.9-A01 hardening. The "Restore to active list"
+  // button in the soft-deleted archive tab was calling `restoreRow(row)`
+  // which was never defined (caught by real ESLint 9 on Track 20.9).
+  // The archive UI has been shipped for months but every restore click
+  // would throw `ReferenceError: restoreRow is not defined` at runtime.
+  // Definition below matches the pattern used for other row mutations
+  // in this component: opt-in on `restoreEndpoint`, guard the row via
+  // `restoringId`, call the endpoint, refresh on success, toast on error.
+  const restoreRow = async (row) => {
+    if (!restoreEndpoint) return;
+    const id = row[itemKey];
+    setRestoringId(id);
+    try {
+      await api.post(restoreEndpoint.replace("{id}", id));
+      toast.success(`Restored ${entitySingular}`);
+      await refresh();
+    } catch (e) {
+      toast.error(operationalError(e, `Failed to restore ${entitySingular}`));
+    } finally {
+      setRestoringId(null);
+    }
+  };
+
   const requiredOk = (obj) =>
     fields.filter((f) => f.required).every((f) => (obj[f.key] || "").trim());
 

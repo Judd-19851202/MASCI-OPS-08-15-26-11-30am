@@ -63,7 +63,8 @@
   },
   "scripts": {
     "stamp-version": "node scripts/stamp-build-version.js",
-    "lint": "node -e \"console.log('CRA project — authoritative lint runs inside react-scripts build (gate stage 4). This stub exists so gate stage 3 (raw eslint v9) does not false-fail on missing CRA-internal plugins.')\"",
+    "lint": "eslint src",
+    "lint:strict": "eslint src --max-warnings=0",
     "prebuild": "node scripts/stamp-build-version.js",
     "start": "craco start",
     "build": "craco build",

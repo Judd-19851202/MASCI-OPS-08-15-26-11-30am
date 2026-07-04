@@ -18,6 +18,11 @@ import { useBranding } from "@/lib/BrandingProvider";
 export default function TrenchBoxPosterCard() {
   const { t } = useT();
   const hubHome = useHubHome();
+  // Track 20.9 — TD-20.9-A02 hardening. `useBranding` was imported at
+  // top of file but never called, so every `branding.*` reference in
+  // the JSX would throw `ReferenceError: branding is not defined` at
+  // render time. Caught by real ESLint 9 on Track 20.9.
+  const branding = useBranding();
 
   const trenchUrl = "https://mascidocs.com/trench-boxes";
 
