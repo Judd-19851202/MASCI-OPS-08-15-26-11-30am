@@ -10617,7 +10617,7 @@ async def _ensure_scheduler_lock_indexes_at_startup():
 from db_isolation_failsafe import assert_db_isolation as _assert_db_isolation  # noqa: E402
 
 
-@app.on_event("startup")
+@register_lifecycle_step("misc-bootstrap")
 async def _db_isolation_failsafe():
     try:
         await _assert_db_isolation(client)
@@ -10630,7 +10630,7 @@ async def _db_isolation_failsafe():
         logger.warning(f"[db-isolation] probe failed (non-fatal): {e}")
 
 
-@app.on_event("startup")
+@register_lifecycle_step("misc-bootstrap")
 async def _tune_asyncio_thread_pool():
     # iter441 · Phase 31.4 · concurrent-load hardening.
     # The asyncio default executor is ``ThreadPoolExecutor(max_workers=cpu+4)``
@@ -10711,7 +10711,7 @@ async def _ensure_project_team_assignments_indexes():
         logger.warning("[team-roster] index ensure failed: %s", exc)
 
 
-@app.on_event("startup")
+@register_lifecycle_step("misc-bootstrap")
 async def _deploy_fix_001_backup_orphan_sweep():
     """DEPLOY-FIX-001 · Workstream A4 — startup sweep.
 
@@ -10748,7 +10748,7 @@ async def _seed_hr_users():
     await seed_hr_users(db)
 
 
-@app.on_event("startup")
+@register_lifecycle_step("misc-bootstrap")
 async def _ensure_v_prelude_wave1_indexes():
     """Phase V-Prelude · Wave 1 — index ensure for new substrate
     collections (operational_links · operational_constraints) plus the
@@ -10774,7 +10774,7 @@ async def _ensure_v_prelude_wave1_indexes():
 # Emits a single structured line under tag `[ops-hygiene]` so operators can
 # grep startup logs for disk pressure + backup inventory + retention config.
 # NO new endpoints, NO new collections, NO alerts.
-@app.on_event("startup")
+@register_lifecycle_step("misc-bootstrap")
 async def _log_operational_hygiene_at_startup():
     await _log_operational_hygiene(reason="startup", db=db)
 
@@ -10802,7 +10802,7 @@ async def _start_motive_reliability_loop():
 
 
 
-@app.on_event("startup")
+@register_lifecycle_step("misc-bootstrap")
 async def _clear_super_admin_force_pw_change():
     """One-shot idempotent migration (iter117).
 
@@ -11384,7 +11384,7 @@ from routes.admin_deployment_ledger import (  # noqa: E402
     ensure_indexes as _ledger_indexes,
 )
 app.include_router(_ledger_make_router(db, require_admin))
-@app.on_event("startup")
+@register_lifecycle_step("misc-bootstrap")
 async def _startup_deployment_ledger_indexes():  # noqa: D401
     await _ledger_indexes(db)
 
@@ -11659,7 +11659,7 @@ async def _ensure_oa_indexes():
         logger.warning(f"[oa-1] index ensure failed: {e}")
 
 
-@app.on_event("startup")
+@register_lifecycle_step("misc-bootstrap")
 async def _oa_startup():
     await _ensure_oa_indexes()
 
@@ -11773,7 +11773,7 @@ async def _start_health_monitor():
 # Changing the value requires dropping + recreating the index — handled
 # safely below by detecting any existing TTL index and only mutating
 # when the configured value drifts.
-@app.on_event("startup")
+@register_lifecycle_step("misc-bootstrap")
 async def _arm_audit_ttl_indexes():
     try:
         days = int(os.environ.get("AUDIT_RETENTION_DAYS", "30"))
@@ -11813,7 +11813,7 @@ async def _arm_audit_ttl_indexes():
         logger.warning(f"[audit-ttl] startup hook failed: {e}")
 
 
-@app.on_event("startup")
+@register_lifecycle_step("misc-bootstrap")
 async def _bootstrap_operations():
     await ensure_operations_indexes(db)
     logger.info("[operations] indexes ensured")
@@ -11821,7 +11821,7 @@ async def _bootstrap_operations():
     logger.info("[dispatch-users] seed ready")
 
 
-@app.on_event("startup")
+@register_lifecycle_step("misc-bootstrap")
 async def _bootstrap_integrations():
     await ensure_integrations_indexes_and_seed(db)
     logger.info("[integrations] indexes + seed settings ready")
@@ -12023,7 +12023,7 @@ async def _start_operator_digest_cron():
 
 
 # iter431 · Phase 29 · Part 4 · TTL index ensures for transient surfaces.
-@app.on_event("startup")
+@register_lifecycle_step("misc-bootstrap")
 async def _ensure_stability_ttls():
     try:
         from lib.stability_governance import ensure_stability_ttls  # noqa: PLC0415
@@ -12189,7 +12189,7 @@ async def _li_ensure_indexes():
 _li_worker_task: Optional[asyncio.Task] = None
 
 
-@app.on_event("startup")
+@register_lifecycle_step("misc-bootstrap")
 async def _li_start_worker():
     global _li_worker_task
     # Register Phase B extractor + promoter for equipment_checkout BEFORE
@@ -12686,7 +12686,7 @@ app.include_router(build_field_memory_router(
 ))
 
 
-@app.on_event("startup")
+@register_lifecycle_step("misc-bootstrap")
 async def _ensure_field_memory_indexes_startup():
     try:
         await ensure_field_memory_indexes(db)
@@ -13212,7 +13212,7 @@ async def _maybe_send_weekly_variance_email():
         logger.warning(f"[payroll-variance] weekly email failed: {e}")
 
 
-@app.on_event("startup")
+@register_lifecycle_step("misc-bootstrap")
 async def _backfill_doc_ids() -> None:
     """One-shot backfill: every existing record across the registered
     submission collections gets a human-readable doc_id stamped if it
@@ -13369,7 +13369,7 @@ register_transportation_phase2_routes(
 )
 
 
-@app.on_event("startup")
+@register_lifecycle_step("misc-bootstrap")
 async def _track_16_05_bootstrap_on_startup():
     try:
         from lib.transport_phase2 import bootstrap_track_16_05
@@ -13398,7 +13398,7 @@ register_transportation_orientation_routes(
 )
 
 
-@app.on_event("startup")
+@register_lifecycle_step("misc-bootstrap")
 async def _track_16_08_bootstrap_on_startup():
     try:
         await bootstrap_track_16_08(db)
@@ -13428,7 +13428,7 @@ register_track_16_09_routes(
 )
 
 
-@app.on_event("startup")
+@register_lifecycle_step("misc-bootstrap")
 async def _track_16_09_bootstrap_on_startup():
     try:
         await bootstrap_track_16_09(db)
@@ -13516,7 +13516,7 @@ register_track_18_00_phase_d_routes(
 _transport_automation_task: Optional[asyncio.Task] = None
 
 
-@app.on_event("startup")
+@register_lifecycle_step("misc-bootstrap")
 async def _track_16_10_bootstrap_on_startup():
     global _transport_automation_task
     try:
@@ -16001,7 +16001,7 @@ async def _iter453_6_readiness_gate(request, call_next):
 # Guarantees required system records exist so a fresh deploy reaches
 # operational state without any manual seed command.
 # ─────────────────────────────────────────────────────────────────────
-@app.on_event("startup")
+@register_lifecycle_step("misc-bootstrap")
 async def _track_15_93_run_system_bootstrap():
     try:
         from lib.system_bootstrap import run_system_bootstrap  # noqa: PLC0415

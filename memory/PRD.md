@@ -11,6 +11,17 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 22.1I · Miscellaneous Bootstrap Handler Migration · 🟢 GO / CLOSED (2026-07-04)
+
+Largest single migration in the program — 20 miscellaneous bootstrap startup handlers cut over from `@app.on_event("startup")` → `@register_lifecycle_step("misc-bootstrap")`. Zero route/OpenAPI drift. Zero bytecode drift. Zero live emails.
+
+- **Migrated (20):** `_db_isolation_failsafe`, `_tune_asyncio_thread_pool`, `_deploy_fix_001_backup_orphan_sweep`, `_ensure_v_prelude_wave1_indexes`, `_log_operational_hygiene_at_startup`, `_clear_super_admin_force_pw_change`, `_startup_deployment_ledger_indexes`, `_oa_startup`, `_arm_audit_ttl_indexes`, `_bootstrap_operations`, `_bootstrap_integrations`, `_ensure_stability_ttls`, `_li_start_worker`, `_ensure_field_memory_indexes_startup`, `_backfill_doc_ids`, `_track_16_05/08/09/10_bootstrap_on_startup`, `_track_15_93_run_system_bootstrap`.
+- **EXCLUDED (3, documented):** `_startup` (from `routes.command_center` — router-hosted, Track 22.1L) · `_start_backup_scheduler` (backup safety audit, Track 22.1I.1) · `_iter453_6_flip_ready_flag` (readiness-last, Track 22.1J).
+- **Proof:** 1,441 routes → 1,441 (0 delta) · 1,445 methods · 1,264 OpenAPI · 7 middleware unchanged · **23 → 3 on_startup + 27 → 47 LIFECYCLE_STEPS (Σ = 50)** · 0 qualname drift · 0 dependency-chain drift · shutdown bytecode unchanged · 5 locked fingerprints match · 0 duplicates · readiness flip remains last.
+- **Platform Ops API:** `by_group={index-ensure:11, seed:7, scheduler-nonemail:4, email-scheduler:5, misc-bootstrap:20}`, `on_startup_legacy_count=3`, `migrated_pct=94.00`, `target_groups.misc-bootstrap.closed=true`, `recent_track_closures=["22.1D","22.1E","22.1F","22.1G","22.1H","22.1I"]`.
+- **Regression envelope:** 278 / 278 (+15 Track 22.1I).
+- **Eight Pillars:** 9.91 platform average.
+
 ## TRACK 22.1H · Email-Capable Scheduler Handler Migration · 🟢 GO / CLOSED (2026-07-04)
 
 Highest-risk cutover so far — 5 email-capable scheduler startup handlers migrated from `@app.on_event("startup")` → `@register_lifecycle_step("email-scheduler")`. All 5 SHA-256 bytecode fingerprints preserved. Zero live emails. Plus: closed a pre-existing double-registration defect on `_start_safety_digest_cron` that had been active since at least Track 22.1F.

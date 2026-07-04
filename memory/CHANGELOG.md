@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## 2026-07-04 — TRACK 22.1I · Miscellaneous Bootstrap Handler Migration · 🟢 GO / CLOSED
+
+Largest single migration in the program — 20 misc-bootstrap startup handlers cut over from `@app.on_event("startup")` → `@register_lifecycle_step("misc-bootstrap")`. Function bodies byte-identical. Excluded 3 handlers with owner + target track (`_startup` from `routes.command_center` → 22.1L · `_start_backup_scheduler` → 22.1I.1 backup safety audit · `_iter453_6_flip_ready_flag` → 22.1J readiness-last).
+
+- **Parity:** 1,441 routes unchanged · 1,445 methods · 1,264 OpenAPI · 7 middleware byte-equal · **23 → 3 on_startup · 27 → 47 LIFECYCLE_STEPS** · 5/5 bytecode fingerprints clean · 0 duplicate registrations · readiness flip remains last.
+- **Platform Ops API:** `migrated_pct` 54.00% → **94.00%** · `misc-bootstrap.closed=true`.
+- **Regression envelope:** 278 / 278 (+15 Track 22.1I).
+- **Zero live emails.**
+- **Eight Pillars:** 9.91 platform average.
+- **Debt update:** TD-22.1c2-C01 now 94% closed (47/50 unique handlers migrated).
+
+---
+
 ## 2026-07-04 — TRACK 22.1H · Email-Capable Scheduler Handler Migration · 🟢 GO / CLOSED
 
 ### Purpose

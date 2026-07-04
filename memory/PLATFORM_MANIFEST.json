@@ -3,6 +3,22 @@
   "track": "21.0",
   "recent_track_closures": [
     {
+      "track": "22.1I",
+      "title": "Miscellaneous Bootstrap Handler Migration",
+      "status": "GO / CLOSED",
+      "date": "2026-07-04",
+      "on_startup_count_before": 23,
+      "on_startup_count_after": 3,
+      "lifecycle_steps_added": 20,
+      "lifecycle_steps_total": 47,
+      "excluded_handlers": ["_startup (routes.command_center)", "_start_backup_scheduler", "_iter453_6_flip_ready_flag"],
+      "route_delta": 0,
+      "lock_envelope_before": 263,
+      "lock_envelope_after": 278,
+      "migrated_pct": 94.00,
+      "eight_pillars_average": 9.91
+    },
+    {
       "track": "22.1H",
       "title": "Email-Capable Scheduler Handler Migration",
       "status": "GO / CLOSED",
