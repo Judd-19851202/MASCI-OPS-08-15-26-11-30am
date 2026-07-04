@@ -148,6 +148,11 @@ def test_no_test_imports_resend_directly_outside_safety_test():
     safety-mode unit test."""
     allow = {
         "test_track_21_2e_email_safety.py",
+        # Track 22.1B · legitimate SDK-patch persistence verification, same
+        # safety category as the Track 21.2E test. Direct import is exactly
+        # how we probe that `resend.Emails.send` still routes to the
+        # `_blocked_send` stub after the email-dispatcher extraction.
+        "test_track_22_1b_email_dispatch.py",
     }
     offenders = []
     for tf in TESTS.rglob("test_*.py"):

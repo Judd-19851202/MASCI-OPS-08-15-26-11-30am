@@ -13590,33 +13590,24 @@ _KIND_TO_COLLECTION = {
 # ------------------------------------------------------------------
 # Auto-email on submit (fire-and-forget — never blocks the response)
 # ------------------------------------------------------------------
-def _filename_for(kind: str, record: dict) -> str:
-    project = record.get("project_name") or "MASCI"
-    date_part = (
-        record.get("report_date")
-        or record.get("inspection_date")
-        or record.get("meeting_date")
-        or record.get("jha_date")
-        or record.get("incident_date")
-        or ""
-    )
-    safe_proj = "".join(
-        c if c.isalnum() else "_" for c in str(project)[:40]
-    ).strip("_")
-    return f"MASCI-{kind}-{safe_proj}-{date_part}.pdf".replace("--", "-")
-
-
-def _is_severe_incident(record: dict) -> bool:
-    """Major/severe incident → always include OSHA-recordable + work-stopped flag."""
-    sev = (record.get("severity") or "").strip().lower()
-    severe = {"medical", "restricted", "lost_time", "fatality"}
-    if sev in severe:
-        return True
-    if (record.get("osha_recordable") or "").strip().lower() == "yes":
-        return True
-    if (record.get("work_stopped") or "").strip().lower() == "yes":
-        return True
-    return False
+# TRACK 22.1B — the safe leaf helpers (`_filename_for`, `_is_severe_incident`)
+# and the fire-and-forget scaffolding (`_AUTO_EMAIL_DISPATCH_TASKS`,
+# `schedule_auto_email`) have been extracted to `backend/lib/email_dispatch.py`
+# with byte-comparable parity proof. The 473-line `_dispatch_auto_email`
+# body remains here because it closes over ~8 server.py module-locals
+# (db, logger, _resolve_sender_email, _resolve_reply_to_email,
+# render_record_pdf, _maybe_enrich_for_pdf, build_email_subject,
+# render_email_html, _email_b64). See `TRACK_22_1B_EMAIL_ARCHITECTURE.md`.
+from lib.email_dispatch import (  # noqa: E402
+    _filename_for,
+    _is_severe_incident,
+    _AUTO_EMAIL_DISPATCH_TASKS,
+    schedule_auto_email,
+    register_dispatcher as _register_email_dispatcher,
+)
+# _KIND_TO_COLLECTION is also re-exported for callers that reference it via
+# the server module attribute (e.g. /api/auto-email-preview).
+from lib.email_dispatch import _KIND_TO_COLLECTION as _KIND_TO_COLLECTION_LIB  # noqa: E402, F401
 
 
 async def _dispatch_auto_email(kind: str, record: dict) -> None:
@@ -14095,35 +14086,13 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
             pass
 
 
-# TRACK 15.79C · P0 fix — `asyncio.create_task()` only keeps a WEAK
-# reference to the task. Under load the garbage collector can collect
-# a pending task before it runs, which explains why production Daily
-# Reports submitted post-deploy left ZERO email_routing_audit_v2 rows
-# AND ZERO trust_spine_events: the dispatcher task was scheduled,
-# the HTTP handler returned, and the GC freed the task before
-# ``_dispatch_auto_email`` ever started.
-#   Fix: retain a STRONG reference in a module-level set + clear it
-#   when the task completes. This is the canonical Python pattern
-#   documented in PEP 0 / asyncio docs.
-_AUTO_EMAIL_DISPATCH_TASKS: set = set()
-
-
-def schedule_auto_email(kind: str, record: dict) -> None:
-    """Fire-and-forget wrapper (safe to call from any create endpoint).
-
-    TRACK 15.79C — the returned task is now retained in a module-level
-    set so the event loop's weak reference does not cause the GC to
-    collect it before ``_dispatch_auto_email`` runs. ``add_done_callback``
-    discards the task from the set when it completes (ok, failed, or
-    cancelled), so the set never grows unbounded.
-    """
-    try:
-        task = asyncio.create_task(_dispatch_auto_email(kind, dict(record)))
-    except RuntimeError:
-        # No running loop — skip silently (e.g. during sync tests)
-        return
-    _AUTO_EMAIL_DISPATCH_TASKS.add(task)
-    task.add_done_callback(_AUTO_EMAIL_DISPATCH_TASKS.discard)
+# TRACK 22.1B · The strong-reference set + `schedule_auto_email` were
+# extracted to `backend/lib/email_dispatch.py`. Register this file's
+# `_dispatch_auto_email` as the dispatcher hook so `schedule_auto_email`
+# routes through the lib module while `_dispatch_auto_email` continues
+# to close over the same server.py module-locals as before. Byte-parity
+# certified in `TRACK_22_1B_DISPATCH_PARITY.md`.
+_register_email_dispatcher(_dispatch_auto_email)
 
 
 # (auto-email-preview / routing-table routes are registered after _email_router below)

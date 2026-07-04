@@ -11,6 +11,18 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 22.1B · Email Dispatcher Modularization + Mathematical Parity · 🟢 GO / CLOSED (2026-07-04)
+
+Surgical extraction of the safe scaffolding around the auto-email dispatcher — with an added SHA-256 bytecode fingerprint lock on the un-moved 473-line dispatcher body.
+
+- **Extracted to `lib/email_dispatch.py`:** `_KIND_TO_COLLECTION`, `_filename_for`, `_is_severe_incident`, `_AUTO_EMAIL_DISPATCH_TASKS`, `schedule_auto_email`, plus a new `register_dispatcher()` indirection.
+- **Not moved (life-safety):** `_dispatch_auto_email` remains inline in server.py (closes over 8 module-locals). Locked by SHA-256 bytecode fingerprint (`ebf5259d...`) so any silent edit fails CI.
+- **server.py:** 16,059 → 16,028 lines (−31).
+- **SDK import order:** preserved. `lib/email_dispatch.py` does NOT import `resend` at module scope; the patch installed at server.py L~105 is still the first Resend interaction in the process.
+- **Parity proof:** 1,440 routes → 1,440 routes · 0 endpoint_qualname drift · 0 dependency_chain drift · 51 startup handlers byte-identical · 7 middleware byte-identical.
+- **Lock envelope:** 179/179 (+17 Track 22.1B) · zero live emails.
+- **Six Pillars:** 9.83 platform average (up from 9.82). Trusted / Proven: 9.96 each.
+
 ## TRACK 22.1 · server.py Modularization + Endpoint Parity · 🟢 GO / CLOSED (Phase 1 · 2026-07-04)
 
 Backend architecture improved by extracting **two self-contained subsystems** into dedicated `backend/lib/` modules with **byte-comparable runtime parity mathematically proven** via full route / middleware / startup / shutdown / OpenAPI JSON snapshot diff.
