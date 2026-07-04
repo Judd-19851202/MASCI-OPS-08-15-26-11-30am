@@ -1,0 +1,1013 @@
+{
+  "generated": "2026-08-04",
+  "track": "21.0",
+  "counts": {
+    "files_tracked_git": 6936,
+    "backend_py_files": 1169,
+    "frontend_jsx_files": 679,
+    "frontend_js_files": 198,
+    "memory_md_files": 3374,
+    "root_md_files": 26,
+    "backend_route_modules": 152,
+    "backend_endpoints": 406,
+    "frontend_routes": 385,
+    "frontend_pages": 309,
+    "frontend_components": 364,
+    "shadcn_ui_primitives": 48,
+    "buttons": 1687,
+    "forms": 81,
+    "inputs": 1873,
+    "dialogs_drawers_sheets": 648,
+    "tables": 200,
+    "api_client_calls": 743,
+    "mongo_collections_unique": 170,
+    "auth_gate_call_sites": 355,
+    "portal_tokens": 7,
+    "background_schedulers_or_tasks": 39,
+    "email_dispatch_call_sites": 34,
+    "pdf_emitting_modules": 64,
+    "file_upload_endpoints": 70,
+    "test_files": 634,
+    "test_functions": 9183,
+    "storage_size_mb_backend_storage": 533,
+    "backups_size_kb": 32
+  },
+  "endpoints_sample_first_20": [
+    {
+      "id": "API-0001",
+      "method": "GET",
+      "path": "/api/admin/guidance/coverage",
+      "file": "backend/server.py",
+      "line": 806
+    },
+    {
+      "id": "API-0002",
+      "method": "GET",
+      "path": "/api/admin/guidance/workflow-coverage",
+      "file": "backend/server.py",
+      "line": 816
+    },
+    {
+      "id": "API-0003",
+      "method": "GET",
+      "path": "/api/health/full",
+      "file": "backend/server.py",
+      "line": 1006
+    },
+    {
+      "id": "API-0004",
+      "method": "GET",
+      "path": "/api/version",
+      "file": "backend/server.py",
+      "line": 1189
+    },
+    {
+      "id": "API-0005",
+      "method": "POST",
+      "path": "/api/dev/login",
+      "file": "backend/server.py",
+      "line": 1239
+    },
+    {
+      "id": "API-0006",
+      "method": "GET",
+      "path": "/api/dev/check",
+      "file": "backend/server.py",
+      "line": 1255
+    },
+    {
+      "id": "API-0007",
+      "method": "GET",
+      "path": "/api/dev/ops-manual.pdf",
+      "file": "backend/server.py",
+      "line": 1261
+    },
+    {
+      "id": "API-0008",
+      "method": "GET",
+      "path": "/api/dev/ops-manual.docx",
+      "file": "backend/server.py",
+      "line": 1277
+    },
+    {
+      "id": "API-0009",
+      "method": "GET",
+      "path": "/api/admin/ops-manual.pdf",
+      "file": "backend/server.py",
+      "line": 1300
+    },
+    {
+      "id": "API-0010",
+      "method": "GET",
+      "path": "/api/admin/ops-manual.docx",
+      "file": "backend/server.py",
+      "line": 1314
+    },
+    {
+      "id": "API-0011",
+      "method": "POST",
+      "path": "/api/dev/ops-manual/snapshot",
+      "file": "backend/server.py",
+      "line": 1335
+    },
+    {
+      "id": "API-0012",
+      "method": "GET",
+      "path": "/api/dev/ops-manual/snapshots",
+      "file": "backend/server.py",
+      "line": 1369
+    },
+    {
+      "id": "API-0013",
+      "method": "DELETE",
+      "path": "/api/dev/ops-manual/snapshots/{snap_id}",
+      "file": "backend/server.py",
+      "line": 1379
+    },
+    {
+      "id": "API-0014",
+      "method": "GET",
+      "path": "/api/dev/ops-manual/snapshots/{snap_id}.pdf",
+      "file": "backend/server.py",
+      "line": 1389
+    },
+    {
+      "id": "API-0015",
+      "method": "GET",
+      "path": "/api/dev/ops-manual/snapshots/{snap_id}.docx",
+      "file": "backend/server.py",
+      "line": 1410
+    },
+    {
+      "id": "API-0016",
+      "method": "GET",
+      "path": "/api/dev/source-bundle.zip",
+      "file": "backend/server.py",
+      "line": 1534
+    },
+    {
+      "id": "API-0017",
+      "method": "GET",
+      "path": "/api/dev/source-bundle.info",
+      "file": "backend/server.py",
+      "line": 1553
+    },
+    {
+      "id": "API-0018",
+      "method": "GET",
+      "path": "/api/admin/employees/export",
+      "file": "backend/server.py",
+      "line": 1665
+    },
+    {
+      "id": "API-0019",
+      "method": "GET",
+      "path": "/api/admin/suppliers/export",
+      "file": "backend/server.py",
+      "line": 1685
+    },
+    {
+      "id": "API-0020",
+      "method": "GET",
+      "path": "/api/admin/equipment-master/export",
+      "file": "backend/server.py",
+      "line": 1697
+    }
+  ],
+  "endpoints_total": 406,
+  "routes_sample_first_20": [
+    {
+      "id": "ROUTE-0001",
+      "path": "/"
+    },
+    {
+      "id": "ROUTE-0002",
+      "path": "/revise/:token"
+    },
+    {
+      "id": "ROUTE-0003",
+      "path": "/safety"
+    },
+    {
+      "id": "ROUTE-0004",
+      "path": "/safety/forms/login"
+    },
+    {
+      "id": "ROUTE-0005",
+      "path": "/safety/forms"
+    },
+    {
+      "id": "ROUTE-0006",
+      "path": "/safety/forms/equipment-issuance/new"
+    },
+    {
+      "id": "ROUTE-0007",
+      "path": "/safety/forms/equipment-issuance/:id"
+    },
+    {
+      "id": "ROUTE-0008",
+      "path": "/safety/forms/equipment-issuance/:id/return"
+    },
+    {
+      "id": "ROUTE-0009",
+      "path": "/safety/forms/equipment-training/new"
+    },
+    {
+      "id": "ROUTE-0010",
+      "path": "/safety/forms/equipment-training/:id"
+    },
+    {
+      "id": "ROUTE-0011",
+      "path": "/safety/cards"
+    },
+    {
+      "id": "ROUTE-0012",
+      "path": "/field"
+    },
+    {
+      "id": "ROUTE-0013",
+      "path": "/field/calculators"
+    },
+    {
+      "id": "ROUTE-0014",
+      "path": "/qaqc"
+    },
+    {
+      "id": "ROUTE-0015",
+      "path": "/qa-qc"
+    },
+    {
+      "id": "ROUTE-0016",
+      "path": "/qaqc/:slug/new"
+    },
+    {
+      "id": "ROUTE-0017",
+      "path": "/qaqc/:id"
+    },
+    {
+      "id": "ROUTE-0018",
+      "path": "/admin/qaqc"
+    },
+    {
+      "id": "ROUTE-0019",
+      "path": "/admin/transportation/*"
+    },
+    {
+      "id": "ROUTE-0020",
+      "path": "/transportation-operations/*"
+    }
+  ],
+  "routes_total": 385,
+  "collections": [
+    {
+      "id": "COLL-0001",
+      "name": "admin_audit"
+    },
+    {
+      "id": "COLL-0002",
+      "name": "admin_audit_log"
+    },
+    {
+      "id": "COLL-0003",
+      "name": "admin_users"
+    },
+    {
+      "id": "COLL-0004",
+      "name": "alert_events"
+    },
+    {
+      "id": "COLL-0005",
+      "name": "asset_assignments"
+    },
+    {
+      "id": "COLL-0006",
+      "name": "asset_holds"
+    },
+    {
+      "id": "COLL-0007",
+      "name": "asset_mapping_proposals"
+    },
+    {
+      "id": "COLL-0008",
+      "name": "asset_mappings"
+    },
+    {
+      "id": "COLL-0009",
+      "name": "asset_required_doc_overrides"
+    },
+    {
+      "id": "COLL-0010",
+      "name": "asset_spine_health_runs"
+    },
+    {
+      "id": "COLL-0011",
+      "name": "asset_transfers"
+    },
+    {
+      "id": "COLL-0012",
+      "name": "assets"
+    },
+    {
+      "id": "COLL-0013",
+      "name": "audit_events"
+    },
+    {
+      "id": "COLL-0014",
+      "name": "backup_drift_history"
+    },
+    {
+      "id": "COLL-0015",
+      "name": "backup_health"
+    },
+    {
+      "id": "COLL-0016",
+      "name": "bilingual_records"
+    },
+    {
+      "id": "COLL-0017",
+      "name": "calculator_runs"
+    },
+    {
+      "id": "COLL-0018",
+      "name": "carrier_documents"
+    },
+    {
+      "id": "COLL-0019",
+      "name": "carriers"
+    },
+    {
+      "id": "COLL-0020",
+      "name": "command"
+    },
+    {
+      "id": "COLL-0021",
+      "name": "command_center_calendar"
+    },
+    {
+      "id": "COLL-0022",
+      "name": "command_center_thresholds"
+    },
+    {
+      "id": "COLL-0023",
+      "name": "corrective_actions"
+    },
+    {
+      "id": "COLL-0024",
+      "name": "daily_reports"
+    },
+    {
+      "id": "COLL-0025",
+      "name": "deploy_version_history"
+    },
+    {
+      "id": "COLL-0026",
+      "name": "digest_runs"
+    },
+    {
+      "id": "COLL-0027",
+      "name": "digest_settings"
+    },
+    {
+      "id": "COLL-0028",
+      "name": "directory_sessions"
+    },
+    {
+      "id": "COLL-0029",
+      "name": "dispatch_assignments"
+    },
+    {
+      "id": "COLL-0030",
+      "name": "dispatch_broadcasts"
+    },
+    {
+      "id": "COLL-0031",
+      "name": "dispatch_continuity_events"
+    },
+    {
+      "id": "COLL-0032",
+      "name": "dispatch_driver_sessions"
+    },
+    {
+      "id": "COLL-0033",
+      "name": "dispatch_state_events"
+    },
+    {
+      "id": "COLL-0034",
+      "name": "dispatch_users"
+    },
+    {
+      "id": "COLL-0035",
+      "name": "document_expirations"
+    },
+    {
+      "id": "COLL-0036",
+      "name": "draft_telemetry"
+    },
+    {
+      "id": "COLL-0037",
+      "name": "drill_runs"
+    },
+    {
+      "id": "COLL-0038",
+      "name": "driver_documents"
+    },
+    {
+      "id": "COLL-0039",
+      "name": "driver_qualification_import_previews"
+    },
+    {
+      "id": "COLL-0040",
+      "name": "driver_qualification_imports"
+    },
+    {
+      "id": "COLL-0041",
+      "name": "email_routes"
+    },
+    {
+      "id": "COLL-0042",
+      "name": "email_routing_audit_v2"
+    },
+    {
+      "id": "COLL-0043",
+      "name": "employee_lifecycle_events"
+    },
+    {
+      "id": "COLL-0044",
+      "name": "employee_mappings"
+    },
+    {
+      "id": "COLL-0045",
+      "name": "employee_record_audit"
+    },
+    {
+      "id": "COLL-0046",
+      "name": "employee_records"
+    },
+    {
+      "id": "COLL-0047",
+      "name": "employee_requests"
+    },
+    {
+      "id": "COLL-0048",
+      "name": "employees"
+    },
+    {
+      "id": "COLL-0049",
+      "name": "equipment"
+    },
+    {
+      "id": "COLL-0050",
+      "name": "equipment_inspections"
+    },
+    {
+      "id": "COLL-0051",
+      "name": "equipment_master"
+    },
+    {
+      "id": "COLL-0052",
+      "name": "equipment_parts"
+    },
+    {
+      "id": "COLL-0053",
+      "name": "equipment_transfers"
+    },
+    {
+      "id": "COLL-0054",
+      "name": "equipment_units"
+    },
+    {
+      "id": "COLL-0055",
+      "name": "field_leadership_equipment_catalog"
+    },
+    {
+      "id": "COLL-0056",
+      "name": "field_leadership_equipment_makes"
+    },
+    {
+      "id": "COLL-0057",
+      "name": "field_leadership_records"
+    },
+    {
+      "id": "COLL-0058",
+      "name": "field_leadership_users"
+    },
+    {
+      "id": "COLL-0059",
+      "name": "field_memory_notes"
+    },
+    {
+      "id": "COLL-0060",
+      "name": "fire_ext_import_runs"
+    },
+    {
+      "id": "COLL-0061",
+      "name": "fire_extinguishers"
+    },
+    {
+      "id": "COLL-0062",
+      "name": "fleet_audit"
+    },
+    {
+      "id": "COLL-0063",
+      "name": "fleet_defect_items"
+    },
+    {
+      "id": "COLL-0064",
+      "name": "fleet_defects"
+    },
+    {
+      "id": "COLL-0065",
+      "name": "fleet_status"
+    },
+    {
+      "id": "COLL-0066",
+      "name": "fuel_lube_visits"
+    },
+    {
+      "id": "COLL-0067",
+      "name": "guidance_search_misses"
+    },
+    {
+      "id": "COLL-0068",
+      "name": "haul_cycles"
+    },
+    {
+      "id": "COLL-0069",
+      "name": "health_monitor_runs"
+    },
+    {
+      "id": "COLL-0070",
+      "name": "hr_users"
+    },
+    {
+      "id": "COLL-0071",
+      "name": "incident_cases"
+    },
+    {
+      "id": "COLL-0072",
+      "name": "incidents"
+    },
+    {
+      "id": "COLL-0073",
+      "name": "inspections"
+    },
+    {
+      "id": "COLL-0074",
+      "name": "integration_error_logs"
+    },
+    {
+      "id": "COLL-0075",
+      "name": "integration_health"
+    },
+    {
+      "id": "COLL-0076",
+      "name": "integration_settings"
+    },
+    {
+      "id": "COLL-0077",
+      "name": "integration_sync_logs"
+    },
+    {
+      "id": "COLL-0078",
+      "name": "integration_wizard_runs"
+    },
+    {
+      "id": "COLL-0079",
+      "name": "jha_acknowledgements"
+    },
+    {
+      "id": "COLL-0080",
+      "name": "jhas"
+    },
+    {
+      "id": "COLL-0081",
+      "name": "job_hazard_files"
+    },
+    {
+      "id": "COLL-0082",
+      "name": "job_hazard_plans"
+    },
+    {
+      "id": "COLL-0083",
+      "name": "job_photo_thumb_cache"
+    },
+    {
+      "id": "COLL-0084",
+      "name": "job_photos"
+    },
+    {
+      "id": "COLL-0085",
+      "name": "jobs_master"
+    },
+    {
+      "id": "COLL-0086",
+      "name": "legacy_import_audit"
+    },
+    {
+      "id": "COLL-0087",
+      "name": "legacy_imports"
+    },
+    {
+      "id": "COLL-0088",
+      "name": "list_collection_names"
+    },
+    {
+      "id": "COLL-0089",
+      "name": "meetings"
+    },
+    {
+      "id": "COLL-0090",
+      "name": "motive_events"
+    },
+    {
+      "id": "COLL-0091",
+      "name": "motive_geofences"
+    },
+    {
+      "id": "COLL-0092",
+      "name": "net"
+    },
+    {
+      "id": "COLL-0093",
+      "name": "notifications"
+    },
+    {
+      "id": "COLL-0094",
+      "name": "odr"
+    },
+    {
+      "id": "COLL-0095",
+      "name": "operational_attachments"
+    },
+    {
+      "id": "COLL-0096",
+      "name": "operational_constraints"
+    },
+    {
+      "id": "COLL-0097",
+      "name": "operational_events"
+    },
+    {
+      "id": "COLL-0098",
+      "name": "operational_links"
+    },
+    {
+      "id": "COLL-0099",
+      "name": "operational_locations"
+    },
+    {
+      "id": "COLL-0100",
+      "name": "operations_actions"
+    },
+    {
+      "id": "COLL-0101",
+      "name": "operations_events"
+    },
+    {
+      "id": "COLL-0102",
+      "name": "ops_manual_snapshots"
+    },
+    {
+      "id": "COLL-0103",
+      "name": "payroll_variance_batches"
+    },
+    {
+      "id": "COLL-0104",
+      "name": "payroll_variance_decisions"
+    },
+    {
+      "id": "COLL-0105",
+      "name": "pm_schedules"
+    },
+    {
+      "id": "COLL-0106",
+      "name": "pm_templates"
+    },
+    {
+      "id": "COLL-0107",
+      "name": "pm_work_orders"
+    },
+    {
+      "id": "COLL-0108",
+      "name": "po_requests"
+    },
+    {
+      "id": "COLL-0109",
+      "name": "project_identity_conflicts"
+    },
+    {
+      "id": "COLL-0110",
+      "name": "project_managers"
+    },
+    {
+      "id": "COLL-0111",
+      "name": "project_team_assignments"
+    },
+    {
+      "id": "COLL-0112",
+      "name": "projects"
+    },
+    {
+      "id": "COLL-0113",
+      "name": "qaqc_inspections"
+    },
+    {
+      "id": "COLL-0114",
+      "name": "r2_degraded_events"
+    },
+    {
+      "id": "COLL-0115",
+      "name": "record_import_batches"
+    },
+    {
+      "id": "COLL-0116",
+      "name": "role_templates"
+    },
+    {
+      "id": "COLL-0117",
+      "name": "safety_documents"
+    },
+    {
+      "id": "COLL-0118",
+      "name": "safety_equipment_issuances"
+    },
+    {
+      "id": "COLL-0119",
+      "name": "safety_equipment_trainings"
+    },
+    {
+      "id": "COLL-0120",
+      "name": "safety_forms"
+    },
+    {
+      "id": "COLL-0121",
+      "name": "safety_training_records"
+    },
+    {
+      "id": "COLL-0122",
+      "name": "scheduler_locks"
+    },
+    {
+      "id": "COLL-0123",
+      "name": "service_truck_reconciliations"
+    },
+    {
+      "id": "COLL-0124",
+      "name": "session_activity"
+    },
+    {
+      "id": "COLL-0125",
+      "name": "shop_users"
+    },
+    {
+      "id": "COLL-0126",
+      "name": "signatures"
+    },
+    {
+      "id": "COLL-0127",
+      "name": "suppliers"
+    },
+    {
+      "id": "COLL-0128",
+      "name": "system_bootstrap_status"
+    },
+    {
+      "id": "COLL-0129",
+      "name": "system_counters"
+    },
+    {
+      "id": "COLL-0130",
+      "name": "tasks"
+    },
+    {
+      "id": "COLL-0131",
+      "name": "tasks_notifications"
+    },
+    {
+      "id": "COLL-0132",
+      "name": "tenant_branding"
+    },
+    {
+      "id": "COLL-0133",
+      "name": "time_off_public_links"
+    },
+    {
+      "id": "COLL-0134",
+      "name": "training_guides"
+    },
+    {
+      "id": "COLL-0135",
+      "name": "training_records"
+    },
+    {
+      "id": "COLL-0136",
+      "name": "training_track_records"
+    },
+    {
+      "id": "COLL-0137",
+      "name": "transfer_requests"
+    },
+    {
+      "id": "COLL-0138",
+      "name": "transport_action_items"
+    },
+    {
+      "id": "COLL-0139",
+      "name": "transport_automation_events"
+    },
+    {
+      "id": "COLL-0140",
+      "name": "transport_automation_runs"
+    },
+    {
+      "id": "COLL-0141",
+      "name": "transport_command_digest_runs"
+    },
+    {
+      "id": "COLL-0142",
+      "name": "transport_dispatch_overrides"
+    },
+    {
+      "id": "COLL-0143",
+      "name": "transport_dispatch_recommendation_audit"
+    },
+    {
+      "id": "COLL-0144",
+      "name": "transport_eligibility_state"
+    },
+    {
+      "id": "COLL-0145",
+      "name": "transport_hr_sync_runs"
+    },
+    {
+      "id": "COLL-0146",
+      "name": "transport_intelligence_audit"
+    },
+    {
+      "id": "COLL-0147",
+      "name": "transport_invites"
+    },
+    {
+      "id": "COLL-0148",
+      "name": "transport_notifications"
+    },
+    {
+      "id": "COLL-0149",
+      "name": "transport_orientation_assignments"
+    },
+    {
+      "id": "COLL-0150",
+      "name": "transport_orientation_certificates"
+    },
+    {
+      "id": "COLL-0151",
+      "name": "transport_orientation_modules"
+    },
+    {
+      "id": "COLL-0152",
+      "name": "transport_orientation_questions"
+    },
+    {
+      "id": "COLL-0153",
+      "name": "transport_packet_requirements"
+    },
+    {
+      "id": "COLL-0154",
+      "name": "transport_packet_submissions"
+    },
+    {
+      "id": "COLL-0155",
+      "name": "transport_persons"
+    },
+    {
+      "id": "COLL-0156",
+      "name": "transport_rate_schedules"
+    },
+    {
+      "id": "COLL-0157",
+      "name": "transport_truck_inspections"
+    },
+    {
+      "id": "COLL-0158",
+      "name": "transport_trucks"
+    },
+    {
+      "id": "COLL-0159",
+      "name": "trench_boxes"
+    },
+    {
+      "id": "COLL-0160",
+      "name": "trench_excavations"
+    },
+    {
+      "id": "COLL-0161",
+      "name": "trench_safety_assets"
+    },
+    {
+      "id": "COLL-0162",
+      "name": "trench_safety_deployments"
+    },
+    {
+      "id": "COLL-0163",
+      "name": "trench_safety_holds"
+    },
+    {
+      "id": "COLL-0164",
+      "name": "trust_spine_events"
+    },
+    {
+      "id": "COLL-0165",
+      "name": "unmapped_external_records"
+    },
+    {
+      "id": "COLL-0166",
+      "name": "usage_events"
+    },
+    {
+      "id": "COLL-0167",
+      "name": "user_directory"
+    },
+    {
+      "id": "COLL-0168",
+      "name": "user_passkeys"
+    },
+    {
+      "id": "COLL-0169",
+      "name": "users"
+    },
+    {
+      "id": "COLL-0170",
+      "name": "webauthn_challenges"
+    }
+  ],
+  "tests_sample_first_10": [
+    {
+      "id": "TEST-0001",
+      "file": "backend/tests/test_accountability_executive_phase_1a4.py"
+    },
+    {
+      "id": "TEST-0002",
+      "file": "backend/tests/test_accountability_owner_fidelity_phase_1a5.py"
+    },
+    {
+      "id": "TEST-0003",
+      "file": "backend/tests/test_accountability_projection_phase_1a2.py"
+    },
+    {
+      "id": "TEST-0004",
+      "file": "backend/tests/test_accountability_service_phase_1a3.py"
+    },
+    {
+      "id": "TEST-0005",
+      "file": "backend/tests/test_admin_auth.py"
+    },
+    {
+      "id": "TEST-0006",
+      "file": "backend/tests/test_alert_env_001.py"
+    },
+    {
+      "id": "TEST-0007",
+      "file": "backend/tests/test_asset_spine_p0_1.py"
+    },
+    {
+      "id": "TEST-0008",
+      "file": "backend/tests/test_backup_fix_001.py"
+    },
+    {
+      "id": "TEST-0009",
+      "file": "backend/tests/test_backup_hours_iter27.py"
+    },
+    {
+      "id": "TEST-0010",
+      "file": "backend/tests/test_chronology_density_heuristics.py"
+    }
+  ],
+  "tests_total": 634,
+  "stale_root_docs_candidates_for_retire": [
+    "LEGACY_RECORDS_ARCHITECTURE_iter248.md",
+    "test_result.md",
+    "FLEET_SEVERITY_REVIEW_PACKAGE_iter251.md",
+    "HARD_USE_READINESS_AUDIT_iter240.md",
+    "FLEET_OPS_FOUNDATION_iter251_ARCHITECTURE.md",
+    "PORTAL_PARITY_AUDIT_iter244.md",
+    "PRODUCTION_R2_CUTOVER.md",
+    "LIVE_PRODUCTION_AUDIT_iter247.md",
+    "QA_PERF_AUDIT.md",
+    "QA_PERF_AUDIT_LIVE.md",
+    "QA_REPORT_PHASE1.md",
+    "FINAL_DEPLOYMENT_READINESS_LOCK.md",
+    "DEPLOY.md",
+    "ATLAS_MIGRATION.md",
+    "READINESS_AUDIT_iter256.md",
+    "image_testing.md",
+    "SEVERITY_RULINGS_iter251.md",
+    "auth_testing.md",
+    "HARD_USE_READINESS_AUDIT_iter246.md",
+    "QA_REPORT_MASTER_SOT.md",
+    "MASCI_IT_INTEGRATION_BRIEF.md",
+    "QA_PLATFORM_AUDIT.md",
+    "DEPLOYMENT_CHECKLIST.md",
+    "POST_DEPLOY_PRODUCTION_OBSERVATION.md",
+    "FINAL_PLATFORM_STABILIZATION_REPORT.md"
+  ]
+}

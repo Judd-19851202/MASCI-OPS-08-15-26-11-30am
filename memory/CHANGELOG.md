@@ -1,5 +1,36 @@
 # CHANGELOG
 
+## 2026-08-04 — TRACK 21.0 · Complete Platform Census + Forensic Quality Audit · 🟢 GO
+
+### Purpose
+Machine-generated census of the entire platform + per-category forensic audit with A/B/C/D classification. Zero features · zero refactors · zero runtime changes.
+
+### Machine counts (100% coverage · regenerable)
+- Files (git): 6,936 · Backend endpoints: 406 · Frontend routes: 385 · Pages: 309 · Components: 364.
+- Buttons 1,687 · Forms 81 · Inputs 1,873 · Dialogs 648 · Tables 200.
+- Collections 170 · Auth gates 355 sites · Portal tokens 7 · Schedulers 39 · Email paths 34 · PDF modules 64 · Upload endpoints 70.
+- Tests 634 files / 9,183 functions.
+
+### Classification results
+- Class A remaining: 0.
+- Class B: 0.
+- Class C registered: 8 new entries (TD-21.0-C01 → C08).
+- DELETE NOW: 0. RETIRE post-deploy: ~82 items. MERGE: 2 structural.
+
+### Deliverables
+`PLATFORM_MANIFEST.json` + 20 census/audit markdown deliverables under `memory/*.md` + `TECHNICAL_DEBT_REGISTER.md` update + lock test.
+
+### Zero-Drift
+No production code changed. Doc + manifest only.
+
+### Email safety
+🟢 Zero live emails. Track 20.6B gate byte-identical.
+
+### Final call
+🟢 **DEPLOY.**
+
+---
+
 ## 2026-08-04 — TRACK 20.9 · P1 Codebase Cleanup + Production Hardening · 🟢 GO
 
 ### Purpose

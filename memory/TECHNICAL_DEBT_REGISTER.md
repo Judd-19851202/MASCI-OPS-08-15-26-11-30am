@@ -37,6 +37,14 @@ classified into exactly one of:
 | TD-20.9-C04 | 6 `react/no-unstable-nested-components` errors (in-render component defs cause re-mount + state loss on every parent render). Real render-perf bugs but not runtime crashes. | **C** — Existing Tech Debt | Frontend team | P2 | 21.x (careful refactor) | **OPEN** |
 | TD-20.9-C05 | 5 `no-empty` in `GlobalSearch.jsx` — intentional `catch {}` around `localStorage` for private-browsing safety. Rewrite to `catch { /* storage unavailable */ }`. | **C** — Existing Tech Debt | Frontend team | P3 | 21.x | **OPEN** |
 | TD-20.9-C06 | 6 misc lint findings (3× `no-console`, 2× `no-await-in-loop`, 1× `no-unused-vars`, 1× `no-regex-spaces`, 1× `react/no-unknown-property`). | **C** — Existing Tech Debt | Frontend team | P3 | 21.x | **OPEN** |
+| TD-21.0-C01 | 25 stale root `.md` audit docs pending archive to `/app/memory/_archived/` | **C** — repo hygiene | Docs team | P3 | 21.z | **OPEN** |
+| TD-21.0-C02 | 12 legacy frontend pages behind `/legacy/*` router (no primary-nav link) | **C** — post-deploy retire | Frontend team | P3 | 21.y | **OPEN** |
+| TD-21.0-C03 | 5 legacy Mongo collections (`db.legacy_*` / `db.deprecated_*`) — historical reads only | **C** — post-deploy retire | Data team | P3 | 19.62 Phase B / 21.x | **OPEN** |
+| TD-21.0-C04 | ~40 iter### legacy test files using retired shared-password admin login (pre-Track-15.32) | **C** — test cleanup | Testing team | P3 | 21.x | **OPEN** |
+| TD-21.0-C05 | `backend/server.py` = 15,986 lines · Phase-2 modularization plan documented in Track 20.9 | **C** — architecture debt | Backend team | P2 | 21.x | **OPEN** |
+| TD-21.0-C06 | `frontend/src/App.js` = 1,283 lines · Phase-2 route-group extraction plan documented | **C** — architecture debt | Frontend team | P2 | 21.y | **OPEN** |
+| TD-21.0-C07 | CORS `allow_methods=["*"]` / `allow_headers=["*"]` tightening | **C** — Phase-2 hardening | Backend team | P3 | 21.a | **OPEN** |
+| TD-21.0-C08 | `require_admin_pm_or_hr_read` still uses retired sync-HMAC admin validator | **C** — auth cleanup | Backend team | P2 | 21.x | **OPEN** |
 
 ## Detail
 
