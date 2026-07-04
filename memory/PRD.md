@@ -11,6 +11,19 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 21.2E-1 · Test Payload Canonicalization + Permanent Guardrail · 🟢 CLOSED (2026-07-04)
+
+Final email/test-safety hardening. TD-21.2E-C01 permanently closed.
+- **Phase 2:** 59 non-`TEST_` `project_name` literals rewritten across 36 test files. Idempotent, deterministic transform.
+- **Phase 3:** Expanded scan across 14 workflow-payload field names → 0 remaining OFFENDERS. 3 `job_name` offenders in `test_iter250_subcontractor_photos.py` also fixed.
+- **Permanent guardrail:** `backend/tests/test_track_21_2e1_payload_canonicalization.py` — 15 assertions enforce the three-layer email safety envelope going forward (SDK kill switch + dispatcher gate + payload prefix). Zero HTTP calls; static + regex only.
+- **Regression envelope 20.6B → 21.2E-1:** 119 / 119 lock tests green.
+- **Zero-drift:** test-fixture literals + memory docs + one new lock test. `EMAIL_SAFETY_MODE=strict` (preview) & `off` (production) contract unchanged.
+- **Environment variable contract:** `EMAIL_SAFETY_MODE` — set to `strict|silent|test` in preview/staging/test pods to hard-block any Resend send; leave unset (or `off`) in production for normal operation.
+
+Track 21.2 platform bug hunt: **CLEARED TO RESUME.**
+
+
 ## TRACK 21.2 + 21.2E-1 · Complete Platform Forensic Audit + Canonicalization · 🟢 GO (2026-07-04)
 
 - Canonicalization: rewrote **59 non-`TEST_` project_name literals** across 36 test files. **0 residual** non-`TEST_` payloads. Track 20.6B in-code gate is now sufficient on its own; Track 21.2E SDK kill switch remains as the outermost env-gated backstop.

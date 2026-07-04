@@ -151,7 +151,7 @@ def test_subcontractor_section_renders_pdf_without_error():
     dr = {
         "id": "iter250-pdf",
         "report_date": "2024-08-15",
-        "job_name": "iter250 sub-photo pdf",
+        "job_name": "TEST_iter250_sub_photo_pdf",
         "job_number": "ITER250-PDF",
         "supervisor": "Test",
         "subcontractors": [
@@ -189,7 +189,7 @@ def test_subcontractor_section_pdf_omits_attachments_block_when_no_evidence():
     dr = {
         "id": "iter250-plain",
         "report_date": "2024-08-15",
-        "job_name": "Plain sub",
+        "job_name": "TEST_Plain_sub",
         "job_number": "ITER250-PLAIN",
         "supervisor": "Test",
         "subcontractors": [
@@ -210,7 +210,7 @@ def test_old_dr_without_sub_photos_still_renders():
     dr = {
         "id": "iter250-old",
         "report_date": "2023-01-01",
-        "job_name": "Old DR",
+        "job_name": "TEST_Old_DR",
         "job_number": "OLD-001",
         "supervisor": "Old Foreman",
         # Old subcontractor row shape · no photos/attachment_note keys

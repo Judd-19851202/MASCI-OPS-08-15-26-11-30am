@@ -1,5 +1,39 @@
 # CHANGELOG
 
+## 2026-07-04 — TRACK 21.2E-1 · Test Payload Canonicalization + Permanent Guardrail · 🟢 CLOSED
+
+### Purpose
+Final email/test-safety hardening pass before resuming Track 21.2 platform bug hunt. Close TD-21.2E-C01 and install a permanent guardrail so the class of defect can never re-enter the codebase.
+
+### Fixes
+- **Phase 2 canonicalization** — idempotent regex canonicalizer rewrote **59 non-`TEST_` `project_name` literals** across 36 test files (13 duplicates safely skipped). 0 residual.
+- **Phase 3 expanded scan** — swept every HTTP-submitting test file for `project_name` / `projectName` / `job_name` / `jobName` / `project` / `job` / `project_number` / `projectNumber` / `job_number` / `site_name` / `siteName` / `location` / `record_name` / `name` / `title`. Fixed 3 additional `job_name` offenders in `test_iter250_subcontractor_photos.py`. Final: 93 SAFE_TEST_PREFIXED · 140 FALSE_POSITIVE · 115 NON_WORKFLOW_LITERAL · **0 OFFENDERS**.
+- **Permanent guardrail** — new lock test `test_track_21_2e1_payload_canonicalization.py` (15 assertions) enforces the entire safety envelope going forward. Fails any PR that reintroduces an unsafe payload, weakens the SDK kill switch, hides an unsafe payload behind `pytest.skip`, or omits the required documentation.
+
+### Deliverables
+- `memory/TRACK_21_2E1_EXECUTIVE_SUMMARY.md`
+- `memory/TRACK_21_2E1_CANONICALIZATION_REPORT.md`
+- `memory/TRACK_21_2E1_SIDE_EFFECT_GUARDRAIL.md`
+- `memory/TRACK_21_2E1_EMAIL_SAFETY_RECERTIFICATION.md`
+- `memory/TRACK_21_2E1_ZERO_DRIFT_MATRIX.md`
+- `memory/TRACK_21_2E1_TEST_REPORT.md`
+- `memory/track_21_2e_1/EXPANDED_SCAN_REPORT.json` + `expanded_scan.py`
+- `backend/tests/test_track_21_2e1_payload_canonicalization.py` (permanent guardrail — 15/15 green)
+
+### Regression envelope
+Track 20.6B → 21.2E-1: **119 / 119 lock tests green**. Zero HTTP calls. Zero email dispatched.
+
+### Six Pillars
+Platform average: **9.8 / 10** (up from 9.7 post-21.2). Trusted +0.3, Proven +0.2, Simple +0.2.
+
+### Zero-drift statement
+Test-fixture literals + memory documentation + one new lock test. **Zero runtime code touched.** Production behavior byte-for-byte identical to pre-21.2E-1.
+
+### Final call
+🟢 **TD-21.2E-C01 CLOSED · Guardrail active · Track 21.2 platform bug hunt CLEARED TO RESUME.**
+
+---
+
 ## 2026-07-04 — TRACK 21.2 + 21.2E-1 · Complete Platform Forensic Audit + Defense-in-Depth Canonicalization · 🟢 GO
 
 ### Purpose
