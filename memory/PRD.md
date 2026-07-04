@@ -11,6 +11,18 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 22.1F · Seed Handler Migration + Platform Operations API Foundation · 🟢 GO / CLOSED (2026-07-04)
+
+Second real cutover into the lifespan foundation, plus the first permanent Platform Operations API. 7 seed handlers migrated from `@app.on_event("startup")` into `LIFECYCLE_STEPS` group=`seed`; new admin-only `GET /api/admin/platform/status` foundation surface delivered.
+
+- **Seeds migrated (7):** `_seed_field_leadership_equipment_catalog`, `_seed_shop_users`, `_seed_hr_users`, `_seed_field_leadership_users`, `_seed_safety_users`, `_bootstrap_user_directory`, `_seed_phase1`. Each function body byte-identical; only the decorator swapped.
+- **Platform Ops API (new):** `backend/lib/platform_status.py` + `GET /api/admin/platform/status`. Admin-only (`require_admin_strict`), read-only, zero secrets, no side effects. Returns route counts, lifecycle registry, bytecode-fingerprint status, email-safety posture, CORS posture, migration progress, recommended next actions.
+- **Proof:** 1,440 → 1,441 routes (+1 intentional admin surface) · 1,444 → 1,445 methods · 1,263 → 1,264 OpenAPI paths · 7 middleware unchanged · **40 → 33 on_startup + 11→18 LIFECYCLE_STEPS (Σ = 51)** · 0 qualname drift · 0 dependency-chain drift on shared 1,440 routes · shutdown handler bytecode unchanged · all 5 locked bytecode fingerprints match live · no duplicate execution (7 seeds in LIFECYCLE_STEPS, NOT in on_startup) · no missing execution.
+- **Security certified:** 401 on unauth · 401 on bogus admin · zero-secret payload (9 banned substrings absent) · `lib/platform_status.py` AST-verified no `import resend` at module scope · lib/lifespan_bootstrap.py still AST-verified no `import resend`.
+- **Deferred with plan:** remaining 33 on_startup handlers queued into 5 follow-up tracks (22.1G non-email schedulers · 22.1H email-capable schedulers · 22.1I misc bootstrap · 22.1J readiness+reminders · 22.1K shutdown).
+- **Regression envelope:** 233 / 233 (+15 Track 22.1F).
+- **Eight Pillars:** 9.89 platform average (up from 9.88) across both workstreams. Trusted / Proven: 9.97 each · Relentless Ownership: 9.95.
+
 ## TRACK 22.1E · Index-Ensure Handler Migration · 🟢 GO / CLOSED (2026-07-04)
 
 First real cutover into the Track 22.1D lifespan foundation. 11 index-ensure startup handlers migrated from legacy `@app.on_event("startup")` decorators into a new `LIFECYCLE_STEPS` registry hosted by `backend/lib/lifespan_bootstrap.py`. On boot, the orchestrator runs `LIFECYCLE_STEPS` first (in preserved source order), then the remaining 40 legacy on_startup handlers. Real migration — no permanent dual system.

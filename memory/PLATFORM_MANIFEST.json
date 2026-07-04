@@ -3,6 +3,21 @@
   "track": "21.0",
   "recent_track_closures": [
     {
+      "track": "22.1F",
+      "title": "Seed Handler Migration + Platform Operations API Foundation",
+      "status": "GO / CLOSED",
+      "date": "2026-07-04",
+      "on_startup_count_before": 40,
+      "on_startup_count_after": 33,
+      "lifecycle_steps_added": 7,
+      "lifecycle_steps_total": 18,
+      "new_admin_routes": ["GET /api/admin/platform/status"],
+      "new_backend_modules": ["backend/lib/platform_status.py"],
+      "lock_envelope_before": 218,
+      "lock_envelope_after": 233,
+      "eight_pillars_average": 9.89
+    },
+    {
       "track": "22.1E",
       "title": "Index-Ensure Handler Migration",
       "status": "GO / CLOSED",

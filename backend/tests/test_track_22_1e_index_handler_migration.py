@@ -88,8 +88,13 @@ def test_on_startup_no_longer_contains_migrated_handlers():
 
 def test_startup_handler_count_reduced_from_51_to_40():
     server = _load_server()
-    assert len(server.app.router.on_startup) == 40, (
-        f"expected 40 on_startup handlers after 11-handler migration, got {len(server.app.router.on_startup)}"
+    # Track 22.1E migrated 11 index-ensure handlers out of on_startup,
+    # reducing it from 51 to 40. Subsequent tracks (22.1F seeds → 33,
+    # then 22.1G-K) reduce it further, so the invariant this lock
+    # guarantees is `<= 40` (i.e., "the 11 index-ensure handlers left").
+    assert len(server.app.router.on_startup) <= 40, (
+        f"expected <= 40 on_startup handlers after Track 22.1E "
+        f"(11 index-ensure migrated), got {len(server.app.router.on_startup)}"
     )
 
 

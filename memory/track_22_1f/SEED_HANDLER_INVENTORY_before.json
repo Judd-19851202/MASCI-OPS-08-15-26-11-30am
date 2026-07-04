@@ -1,0 +1,75 @@
+{
+  "count": 7,
+  "handlers": [
+    {
+      "name": "_seed_field_leadership_equipment_catalog",
+      "FOUND": true,
+      "lineno": 10638,
+      "bytecode_sha256": "6aef109dac0bb8d9aefd481aba1ffed805a3e07d1648b208677f3f3abd52b9d3",
+      "is_coroutine": true,
+      "module": "server",
+      "sourcefile": "/app/backend/server.py",
+      "docstring": null
+    },
+    {
+      "name": "_seed_shop_users",
+      "FOUND": true,
+      "lineno": 10643,
+      "bytecode_sha256": "f4a0ac30a7792fffc34c7761ede173e0aa8078426f26e9dbf0decd57b4aba146",
+      "is_coroutine": true,
+      "module": "server",
+      "sourcefile": "/app/backend/server.py",
+      "docstring": null
+    },
+    {
+      "name": "_seed_hr_users",
+      "FOUND": true,
+      "lineno": 10721,
+      "bytecode_sha256": "f4a0ac30a7792fffc34c7761ede173e0aa8078426f26e9dbf0decd57b4aba146",
+      "is_coroutine": true,
+      "module": "server",
+      "sourcefile": "/app/backend/server.py",
+      "docstring": null
+    },
+    {
+      "name": "_seed_field_leadership_users",
+      "FOUND": true,
+      "lineno": 10862,
+      "bytecode_sha256": "f4a0ac30a7792fffc34c7761ede173e0aa8078426f26e9dbf0decd57b4aba146",
+      "is_coroutine": true,
+      "module": "server",
+      "sourcefile": "/app/backend/server.py",
+      "docstring": null
+    },
+    {
+      "name": "_seed_safety_users",
+      "FOUND": true,
+      "lineno": 11848,
+      "bytecode_sha256": "b553dcd21dc0282da2ba499b01b52d6a2cfd022d03e7c8ddb3eda6c9b1e4c8a8",
+      "is_coroutine": true,
+      "module": "server",
+      "sourcefile": "/app/backend/server.py",
+      "docstring": null
+    },
+    {
+      "name": "_bootstrap_user_directory",
+      "FOUND": true,
+      "lineno": 13093,
+      "bytecode_sha256": "c8f5a766faaf7879ed0a284719ba2df3a2b13a9861721588852be93d5c7c43c3",
+      "is_coroutine": true,
+      "module": "server",
+      "sourcefile": "/app/backend/server.py",
+      "docstring": "Seed the super-admin row on first deploy (idempotent \u2014 silent if"
+    },
+    {
+      "name": "_seed_phase1",
+      "FOUND": true,
+      "lineno": 15515,
+      "bytecode_sha256": "513aa17c06f09f5489a23271428debe2edb6b6af046cc28a6f3955119131f43f",
+      "is_coroutine": true,
+      "module": "server",
+      "sourcefile": "/app/backend/server.py",
+      "docstring": null
+    }
+  ]
+}

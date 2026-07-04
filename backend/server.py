@@ -854,6 +854,30 @@ async def admin_guidance_workflow_coverage(
 
 
 # ─────────────────────────────────────────────────────────────────────
+# TRACK 22.1F · Platform Operations API foundation
+# ─────────────────────────────────────────────────────────────────────
+# Read-only runtime attestation surface. Returns non-secret operational
+# metadata (route counts, lifecycle registry, bytecode-fingerprint
+# status, email safety, CORS status, migration progress).
+#
+# Contract:
+#   • Admin-only (require_admin_strict — PM tokens rejected).
+#   • Never returns a secret / token / API key / DB URI / PII.
+#   • Never performs a side effect (no DB writes, no email, no external calls).
+#   • Never returns per-user or per-record data.
+#
+# Full inventory of what is returned + the security contract lives in
+# `memory/TRACK_22_1F_PLATFORM_STATUS_API.md` and
+# `memory/TRACK_22_1F_PLATFORM_STATUS_SECURITY.md`.
+# ─────────────────────────────────────────────────────────────────────
+@api_router.get("/admin/platform/status")
+async def admin_platform_status(_admin: bool = Depends(require_admin_strict)):
+    """Track 22.1F · Runtime attestation. Admin-only, read-only."""
+    from lib.platform_status import platform_status
+    return platform_status(app)
+
+
+# ─────────────────────────────────────────────────────────────────────
 # Operational Inventory (Pass 2 — governance dashboard backend)
 # ─────────────────────────────────────────────────────────────────────
 # iter379 · The 4 inventory routes (full / portals / translation / drift)
@@ -10635,12 +10659,12 @@ async def _start_job_photos_indexer():
     asyncio.create_task(_job_photos_indexer_loop(db))
 
 
-@app.on_event("startup")
+@register_lifecycle_step("seed")
 async def _seed_field_leadership_equipment_catalog():
     await _seed_field_leadership_equipment(db)
 
 
-@app.on_event("startup")
+@register_lifecycle_step("seed")
 async def _seed_shop_users():
     from shop_users import seed_shop_users
     await seed_shop_users(db)
@@ -10718,7 +10742,7 @@ async def _deploy_fix_001_backup_orphan_sweep():
 
 
 
-@app.on_event("startup")
+@register_lifecycle_step("seed")
 async def _seed_hr_users():
     from hr_users import seed_hr_users
     await seed_hr_users(db)
@@ -10859,7 +10883,7 @@ app.include_router(_hr_portal_router)
 from routes.field_leadership_portal import build_field_leadership_portal_router  # noqa: E402
 
 
-@app.on_event("startup")
+@register_lifecycle_step("seed")
 async def _seed_field_leadership_users():
     from field_leadership_users import seed_field_leadership_users
     await seed_field_leadership_users(db)
@@ -11845,7 +11869,7 @@ async def _bootstrap_integrations():
         pass  # Sentry init must never break the app.
 
 
-@app.on_event("startup")
+@register_lifecycle_step("seed")
 async def _seed_safety_users():
     await seed_safety_users(db)
     try:
@@ -13090,7 +13114,7 @@ _admin_directory_k4_router = build_admin_directory_k4_router(
 app.include_router(_admin_directory_k4_router)
 
 
-@app.on_event("startup")
+@register_lifecycle_step("seed")
 async def _bootstrap_user_directory():
     """Seed the super-admin row on first deploy (idempotent — silent if
     already present). Driven by SUPER_ADMIN_EMAIL / SUPER_ADMIN_BOOTSTRAP_PASSWORD
@@ -15512,7 +15536,7 @@ _phase4_router = build_phase4_router(db, get_current_user)
 app.include_router(_phase4_router)
 
 
-@app.on_event("startup")
+@register_lifecycle_step("seed")
 async def _seed_phase1():
     try:
         await seed_initial_users(db)

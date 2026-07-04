@@ -1,0 +1,222 @@
+"""Track 22.1F · Platform Operations API foundation.
+
+Read-only runtime attestation surface. Returns non-secret operational
+metadata that lets admins/operators verify the platform's foundation
+health WITHOUT ever exposing secrets, tokens, API keys, DB URIs, or PII.
+
+Contract:
+    * NEVER return a secret (checked by tests + code review).
+    * NEVER perform a side effect (no DB writes, no email, no external calls).
+    * NEVER return per-user or per-record data.
+    * Only surfaces derivable-from-boot metadata + the LIFECYCLE_STEPS /
+      on_startup registry state + the bytecode fingerprint lock result.
+
+Used by:
+    * Ops dashboards
+    * Deploy readiness scripts
+    * Engineering audits during Track 22.1F-K migrations
+
+Route wiring (server.py) — mounted onto the existing `api_router`
+under `require_admin_strict`. Route path: /api/admin/platform/status.
+"""
+from __future__ import annotations
+
+import os
+from typing import Any, Dict
+
+
+_MIGRATION_TARGETS = {
+    # Groups that are already fully migrated (or will be, per roadmap)
+    # into `LIFECYCLE_STEPS`. Used to compute a "migration progress"
+    # percentage that any admin can read.
+    "index-ensure": {"track": "22.1E", "closed": True},
+    "seed": {"track": "22.1F", "closed": True},
+    "scheduler-nonemail": {"track": "22.1G", "closed": False},
+    "scheduler-email": {"track": "22.1H", "closed": False},
+    "bootstrap-misc": {"track": "22.1I", "closed": False},
+    "readiness": {"track": "22.1J", "closed": False},
+    "shutdown": {"track": "22.1K", "closed": False},
+}
+
+
+def _cors_status(app) -> Dict[str, Any]:
+    """Introspect the CORS middleware without leaking the origin list.
+
+    We deliberately return counts + booleans instead of the actual
+    origin strings — those live in .env and are considered ops data.
+    """
+    for m in app.user_middleware:
+        cls_name = getattr(m.cls, "__name__", "")
+        if cls_name == "CORSMiddleware":
+            opts = getattr(m, "kwargs", None) or getattr(m, "options", None) or {}
+            allow_origins = opts.get("allow_origins") or []
+            allow_methods = opts.get("allow_methods") or []
+            allow_origin_regex = opts.get("allow_origin_regex")
+            allow_headers = opts.get("allow_headers") or []
+            return {
+                "installed": True,
+                "explicit_origin_count": len(allow_origins) if isinstance(allow_origins, (list, tuple)) else 0,
+                "origin_regex_configured": bool(allow_origin_regex),
+                "wildcard_methods": allow_methods == ["*"],
+                "wildcard_headers": allow_headers == ["*"],
+                "credentials_allowed": bool(opts.get("allow_credentials", False)),
+                "method_count": len(allow_methods) if isinstance(allow_methods, (list, tuple)) else 0,
+                "header_count": len(allow_headers) if isinstance(allow_headers, (list, tuple)) else 0,
+            }
+    return {
+        "installed": False,
+        "explicit_origin_count": 0,
+        "origin_regex_configured": False,
+        "wildcard_methods": False,
+        "wildcard_headers": False,
+        "credentials_allowed": False,
+        "method_count": 0,
+        "header_count": 0,
+    }
+
+
+def _lifecycle_registry_summary() -> Dict[str, Any]:
+    from lib.lifespan_bootstrap import LIFECYCLE_STEPS
+    by_group: Dict[str, int] = {}
+    for step in LIFECYCLE_STEPS:
+        by_group[step.group] = by_group.get(step.group, 0) + 1
+    return {
+        "total": len(LIFECYCLE_STEPS),
+        "by_group": by_group,
+        "names_by_group": {
+            g: [s.name for s in LIFECYCLE_STEPS if s.group == g]
+            for g in sorted(by_group.keys())
+        },
+    }
+
+
+def _bytecode_fingerprint_summary(app) -> Dict[str, Any]:
+    try:
+        from lib.scheduler_bootstrap import verify_locked_bytecode
+        result = verify_locked_bytecode(app)
+        return {
+            "checked": result.get("checked", 0),
+            "ok_count": len(result.get("ok", [])),
+            "drift_count": len(result.get("drift", [])),
+            "missing_count": len(result.get("missing", [])),
+            "clean": (result.get("drift") == [] and result.get("missing") == []),
+        }
+    except Exception as exc:  # noqa: BLE001
+        return {"checked": 0, "ok_count": 0, "drift_count": 0, "missing_count": 0, "clean": False, "error": type(exc).__name__}
+
+
+def _email_safety_summary() -> Dict[str, Any]:
+    mode = (os.environ.get("EMAIL_SAFETY_MODE") or "").strip().lower()
+    patched = False
+    try:
+        import resend
+        send_fn = getattr(getattr(resend, "Emails", None), "send", None)
+        # The monkey-patch closure has `_blocked_send` in its qualname,
+        # OR the classic send was replaced with our closure. Either way,
+        # our patch names include "_blocked_send".
+        qn = getattr(send_fn, "__qualname__", "") or getattr(send_fn, "__name__", "")
+        patched = "_blocked_send" in qn
+    except Exception:  # noqa: BLE001
+        pass
+    return {
+        "mode": mode or "off",
+        "resend_sdk_patched": patched,
+        "live_emails_possible": (mode == "off") and not patched,
+    }
+
+
+def _routes_summary(app) -> Dict[str, Any]:
+    route_count = 0
+    method_count = 0
+    for r in app.routes:
+        if hasattr(r, "endpoint"):
+            route_count += 1
+            method_count += len(getattr(r, "methods", None) or [])
+    try:
+        oa_paths = len(app.openapi().get("paths", {}))
+    except Exception:  # noqa: BLE001
+        oa_paths = 0
+    return {
+        "route_count": route_count,
+        "route_methods_total": method_count,
+        "openapi_path_count": oa_paths,
+    }
+
+
+def _lifecycle_migration_progress(app) -> Dict[str, Any]:
+    from lib.lifespan_bootstrap import LIFECYCLE_STEPS
+    on_startup = len(app.router.on_startup)
+    lifecycle = len(LIFECYCLE_STEPS)
+    total = on_startup + lifecycle
+    return {
+        "on_startup_legacy_count": on_startup,
+        "lifecycle_steps_count": lifecycle,
+        "total_lifecycle_callables": total,
+        "migrated_pct": round((lifecycle / total) * 100.0, 2) if total else 0.0,
+        "target_groups": _MIGRATION_TARGETS,
+    }
+
+
+def _recommended_next_actions(app) -> list:
+    """Deterministic advice based on runtime state. No secrets."""
+    from lib.lifespan_bootstrap import LIFECYCLE_STEPS
+    groups_present = {s.group for s in LIFECYCLE_STEPS}
+    advice: list = []
+    if "index-ensure" in groups_present and "seed" in groups_present and "scheduler-nonemail" not in groups_present:
+        advice.append({
+            "priority": "P1",
+            "action": "Execute Track 22.1G — migrate non-email schedulers to LIFECYCLE_STEPS.",
+            "gate": "Non-email scheduler bytecode is not fingerprint-locked; safe to migrate directly.",
+        })
+    if "scheduler-email" not in groups_present:
+        advice.append({
+            "priority": "P1",
+            "action": "Track 22.1H — migrate 4 email-capable scheduler handlers (fingerprint-locked).",
+            "gate": "Must preserve all 5 locked SHA-256 fingerprints; run verify_locked_bytecode() after cutover.",
+        })
+    if "readiness" not in groups_present:
+        advice.append({
+            "priority": "P2",
+            "action": "Track 22.1J — migrate readiness flip + reminder-scheduler handlers last.",
+            "gate": "Must remain final in execution order; verify with startup-order snapshot.",
+        })
+    if len(app.router.on_startup) > 0:
+        advice.append({
+            "priority": "P2",
+            "action": f"Retire the remaining {len(app.router.on_startup)} @app.on_event('startup') decorators.",
+            "gate": "Track 22.1F-K roadmap.",
+        })
+    return advice
+
+
+def platform_status(app) -> Dict[str, Any]:
+    """Assemble the full platform status attestation payload.
+
+    Read-only. No side effects. No secrets.
+    """
+    return {
+        "service": "masci-hub",
+        "attestation_version": "22.1F",
+        "runtime": {
+            "app_env": (os.environ.get("APP_ENV") or "production").strip().lower(),
+            "worker_pid": os.getpid(),
+        },
+        "routes": _routes_summary(app),
+        "middleware": {
+            "count": len(app.user_middleware),
+            "cors": _cors_status(app),
+        },
+        "lifecycle": {
+            "on_startup_legacy_count": len(app.router.on_startup),
+            "on_shutdown_count": len(app.router.on_shutdown),
+            "registry": _lifecycle_registry_summary(),
+            "migration_progress": _lifecycle_migration_progress(app),
+        },
+        "bytecode_fingerprints": _bytecode_fingerprint_summary(app),
+        "email_safety": _email_safety_summary(),
+        "readiness": {
+            "ready_flag": bool(getattr(getattr(app, "state", None), "ready", False)),
+        },
+        "recent_track_closures": ["22.1D", "22.1E", "22.1F"],
+        "recommended_next_actions": _recommended_next_actions(app),
+    }
