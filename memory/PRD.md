@@ -11,6 +11,23 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 21.3 · Remaining Class-C Remediation Program · 🟢 GO (2026-07-04)
+
+Knocked out every open Class-C debt item that could be safely closed without a giant refactor.
+
+- **Phase A** — 168 env vars classified · `backend/.env.example` canonical template · TD-21.2-C05 CLOSED
+- **Phase B** — CORS methods/headers tightened (wildcard → explicit 7-method + 12-header + 4-expose allow-lists) · verified via safe preflight smoke under `EMAIL_SAFETY_MODE=strict` · TD-21.3-C01 CLOSED
+- **Phase C** — Storage janitor spec + Sentry env-tag plan · TD-21.2E1-C01 RETIRE-WITH-PLAN · TD-21.2E1-C02 DEFERRED to Track 21.2z
+- **Phase D** — 68 singleton collections classified · TD-21.2-C04 RECLASSIFIED
+- **Phase E-docs** — 5 component collision pairs analyzed · rename plan queued for Track 21.y · zero merges (behavior-parity policy)
+- **Phase H-partial** — 11 deliverables committed · `test_track_21_3_remaining_debt_remediation.py` 12/12
+- **Deferred (user directive):** App.js extraction (Track 21.y) · server.py modularization (Track 21.x)
+
+Regression envelope: **132 / 132 lock tests green.** Six Pillars platform average: **9.76** (up from 9.72). Trusted: **9.90** (up from 9.82).
+
+Zero-drift: only 1 runtime code block touched (CORS narrowing — safe echo-back verified).
+
+
 ## TRACK 21.2 · Phase 3 Final Certification · 🟢 GO (2026-07-04)
 
 Final forensic pass on top of Track 21.2 reconciliation matrix + Track 21.2E-1 guardrail. **No new runtime code changes** — evidence-backed classification only.

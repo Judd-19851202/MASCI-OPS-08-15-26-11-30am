@@ -1,5 +1,36 @@
 # CHANGELOG
 
+## 2026-07-04 — TRACK 21.3 · Remaining Class-C Remediation Program · 🟢 GO
+
+### Purpose
+Knock out every remaining known Class-C debt item that could be safely closed in a single session without a giant refactor. Explicitly deferred (per user directive): App.js extraction (Track 21.y) and server.py modularization (Track 21.x).
+
+### Phases executed
+- **A · Env census** — 168 env vars classified. `backend/.env.example` canonical template written. TD-21.2-C05 CLOSED.
+- **B · CORS methods/headers tightening** — wildcard `["*"]` replaced with explicit 7-method + 12-header + 4-expose allow-lists. Preflight verified via safe curl smoke under `EMAIL_SAFETY_MODE=strict` (no workflow POSTs, no email path). Rollback path = single one-line revert. TD-21.3-C01 CLOSED.
+- **C · Storage + Sentry hygiene** — TD-21.2E1-C01 RETIRE-WITH-PLAN (janitor spec written). TD-21.2E1-C02 DEFERRED to Track 21.2z (Sentry env-tag change owned by Ops).
+- **D · Singleton collection review** — 68 candidates classified. ~60 Class-D scanner artifacts. ~5 Class-E audit-only. ~3 Class-C RETIRE-LATER for Ops. TD-21.2-C04 RECLASSIFIED.
+- **E-docs · Component collisions** — 5 pairs analyzed per-pair. Zero merges (needs behavior-parity harness). Rename plan queued for Track 21.y. TD-21.2-C03 remains OPEN with detailed decisions documented.
+- **H-partial · Certification** — 11 deliverables committed. `test_track_21_3_remaining_debt_remediation.py` with 12 assertions.
+
+### Deferred with justification
+- **App.js route extraction** — user directive: not this session.
+- **server.py modularization** — user directive: not this session.
+
+### Zero-drift
+Only 1 runtime code block touched (CORS narrowing — echo-back verified). Every other change is documentation, test infrastructure, or a new `.env.example`. **Zero production behavior drift.**
+
+### Regression envelope
+Track 20.6B → 21.3: **132 / 132 lock tests green** (+12 Track 21.3 assertions). Zero HTTP POSTs to workflow endpoints. Zero emails.
+
+### Six Pillars
+Platform average: **9.76 / 10** (up from 9.72). Trusted: **9.90 / 10** (up from 9.82 — CORS tightening).
+
+### Final call
+🟢 **GO for standard deploy** · Class-C debt reduced from 8 open → 4 open (all with owner + target track).
+
+---
+
 ## 2026-07-04 — TRACK 21.2 · Phase 3 Deep Sweep + Final Certification · 🟢 GO
 
 ### Purpose

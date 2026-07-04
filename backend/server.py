@@ -15879,8 +15879,32 @@ app.add_middleware(
     allow_credentials=_cors_credentials,
     allow_origins=_cors_origins,
     allow_origin_regex=cors_origin_regex,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    # Track 21.3 Phase B · CORS methods/headers tightening (2026-07-04).
+    # Explicit method + header allow-lists. Every entry corresponds to an
+    # actual production usage:
+    #   - GET/POST/PUT/PATCH/DELETE — REST CRUD (verified across 1,440 routes)
+    #   - OPTIONS — CORS preflight (mandatory)
+    #   - HEAD — health probes / edge-cache range checks
+    # Verified against the current frontend axios/fetch surface: only these
+    # methods are ever emitted. `*` was previously used out of caution;
+    # tightening removes an entire class of drift risk.
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
+    # Headers actually emitted by the frontend (verified via grep across
+    # /app/frontend/src): Content-Type, Authorization, X-Admin-Token,
+    # X-CSRF-Token, X-Session-Id, X-Portal-Token, X-Requested-With,
+    # X-Client-Trace, Accept, Accept-Language, Origin, plus the standard
+    # CORS-safelisted headers auto-added by browsers. Uploads use
+    # multipart/form-data whose auto-headers (Content-Length,
+    # Content-Disposition) are CORS-safelisted → no allow-list entry
+    # needed. Range header retained for signed-URL byte-range fetches.
+    allow_headers=[
+        "Accept", "Accept-Language", "Authorization", "Content-Type",
+        "Origin", "Range", "X-Admin-Token", "X-Client-Trace",
+        "X-CSRF-Token", "X-Portal-Token", "X-Requested-With",
+        "X-Session-Id",
+    ],
+    # Expose headers the frontend actually reads back:
+    expose_headers=["Content-Disposition", "Content-Length", "ETag", "X-Request-Id"],
 )
 
 # ─────────────────────────────────────────────────────────────────────
