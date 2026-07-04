@@ -1,0 +1,560 @@
+{
+  "endpoints_total_decorator_sites": 1331,
+  "endpoints_without_auth": {
+    "count": 393,
+    "sample": [
+      {
+        "method": "POST",
+        "path": "/auth/login",
+        "file": "backend/auth.py",
+        "func": "login",
+        "has_auth": false
+      },
+      {
+        "method": "POST",
+        "path": "/auth/logout",
+        "file": "backend/auth.py",
+        "func": "logout",
+        "has_auth": false
+      },
+      {
+        "method": "POST",
+        "path": "/auth/refresh",
+        "file": "backend/auth.py",
+        "func": "refresh_access_token",
+        "has_auth": false
+      },
+      {
+        "method": "GET",
+        "path": "/doc-categories",
+        "file": "backend/tools.py",
+        "func": "doc_categories",
+        "has_auth": false
+      },
+      {
+        "method": "GET",
+        "path": "/health",
+        "file": "backend/server.py",
+        "func": "_probe_health",
+        "has_auth": false
+      },
+      {
+        "method": "GET",
+        "path": "/healthz",
+        "file": "backend/server.py",
+        "func": "_probe_healthz",
+        "has_auth": false
+      },
+      {
+        "method": "GET",
+        "path": "/health/full",
+        "file": "backend/server.py",
+        "func": "api_health_full",
+        "has_auth": false
+      },
+      {
+        "method": "GET",
+        "path": "/version",
+        "file": "backend/server.py",
+        "func": "api_version",
+        "has_auth": false
+      },
+      {
+        "method": "POST",
+        "path": "/dev/login",
+        "file": "backend/server.py",
+        "func": "dev_login",
+        "has_auth": false
+      },
+      {
+        "method": "POST",
+        "path": "/admin/login",
+        "file": "backend/server.py",
+        "func": "admin_login",
+        "has_auth": false
+      },
+      {
+        "method": "POST",
+        "path": "/admin/auth/verify-password",
+        "file": "backend/server.py",
+        "func": "admin_verify_password",
+        "has_auth": false
+      },
+      {
+        "method": "POST",
+        "path": "/calculators/save",
+        "file": "backend/server.py",
+        "func": "save_calculator_run",
+        "has_auth": false
+      },
+      {
+        "method": "POST",
+        "path": "/shop/login",
+        "file": "backend/server.py",
+        "func": "shop_login",
+        "has_auth": false
+      },
+      {
+        "method": "POST",
+        "path": "/shop/forgot-password",
+        "file": "backend/server.py",
+        "func": "shop_forgot_password",
+        "has_auth": false
+      },
+      {
+        "method": "POST",
+        "path": "/shop/reset-password",
+        "file": "backend/server.py",
+        "func": "shop_reset_password",
+        "has_auth": false
+      },
+      {
+        "method": "POST",
+        "path": "/daily-reports/attachments/upload",
+        "file": "backend/server.py",
+        "func": "daily_report_attachment_upload",
+        "has_auth": false
+      },
+      {
+        "method": "GET",
+        "path": "/job-hazard-plans",
+        "file": "backend/server.py",
+        "func": "list_job_hazard_plans",
+        "has_auth": false
+      },
+      {
+        "method": "GET",
+        "path": "/job-hazard-plans/{project_number}/file",
+        "file": "backend/server.py",
+        "func": "download_job_hazard_plan",
+        "has_auth": false
+      },
+      {
+        "method": "GET",
+        "path": "/job-hazard-files/public/grouped",
+        "file": "backend/server.py",
+        "func": "list_all_jha_files_public",
+        "has_auth": false
+      },
+      {
+        "method": "GET",
+        "path": "/job-hazard-files/by-project/{project_number}",
+        "file": "backend/server.py",
+        "func": "list_jha_files_for_project",
+        "has_auth": false
+      },
+      {
+        "method": "GET",
+        "path": "/job-hazard-files/{file_id}/download",
+        "file": "backend/server.py",
+        "func": "download_jha_file",
+        "has_auth": false
+      },
+      {
+        "method": "GET",
+        "path": "/trench-box-files",
+        "file": "backend/server.py",
+        "func": "list_trench_box_files_grouped",
+        "has_auth": false
+      },
+      {
+        "method": "GET",
+        "path": "/trench-box-files/by-box/{box_id}",
+        "file": "backend/server.py",
+        "func": "list_trench_box_files_for_box",
+        "has_auth": false
+      },
+      {
+        "method": "GET",
+        "path": "/trench-boxes",
+        "file": "backend/server.py",
+        "func": "list_trench_boxes",
+        "has_auth": false
+      },
+      {
+        "method": "GET",
+        "path": "/trench-boxes/{box_id}",
+        "file": "backend/server.py",
+        "func": "get_trench_box",
+        "has_auth": false
+      },
+      {
+        "method": "GET",
+        "path": "/trench-boxes/{box_id}/file",
+        "file": "backend/server.py",
+        "func": "download_trench_box_file",
+        "has_auth": false
+      },
+      {
+        "method": "GET",
+        "path": "/equipment-master",
+        "file": "backend/server.py",
+        "func": "list_equipment_master",
+        "has_auth": false
+      },
+      {
+        "method": "GET",
+        "path": "/equipment-types",
+        "file": "backend/server.py",
+        "func": "list_equipment_types",
+        "has_auth": false
+      },
+      {
+        "method": "GET",
+        "path": "/jobs",
+        "file": "backend/server.py",
+        "func": "list_jobs_public",
+        "has_auth": false
+      },
+      {
+        "method": "GET",
+        "path": "/jobs/{project_number}/recent-context",
+        "file": "backend/server.py",
+        "func": "jobs_recent_context",
+        "has_auth": false
+      },
+      {
+        "method": "POST",
+        "path": "/employees/add",
+        "file": "backend/server.py",
+        "func": "add_employee_from_form_deprecated",
+        "has_auth": false
+      },
+      {
+        "method": "POST",
+        "path": "/suppliers/add",
+        "file": "backend/server.py",
+        "func": "add_supplier_from_form",
+        "has_auth": false
+      },
+      {
+        "method": "GET",
+        "path": "/employees",
+        "file": "backend/server.py",
+        "func": "list_employees",
+        "has_auth": false
+      },
+      {
+        "method": "GET",
+        "path": "/hr/employee-roster",
+        "file": "backend/server.py",
+        "func": "hr_employee_roster",
+        "has_auth": false
+      },
+      {
+        "method": "GET",
+        "path": "/suppliers",
+        "file": "backend/server.py",
+        "func": "list_suppliers",
+        "has_auth": false
+      },
+      {
+        "method": "GET",
+        "path": "/jobs-master",
+        "file": "backend/server.py",
+        "func": "get_jobs_master",
+        "has_auth": false
+      },
+      {
+        "method": "POST",
+        "path": "/translate",
+        "file": "backend/server.py",
+        "func": "translate_strings",
+        "has_auth": false
+      },
+      {
+        "method": "GET",
+        "path": "/training/video/{filename}",
+        "file": "backend/server.py",
+        "func": "training_video_stream",
+        "has_auth": false
+      },
+      {
+        "method": "GET",
+        "path": "/training/videos",
+        "file": "backend/server.py",
+        "func": "training_videos_get",
+        "has_auth": false
+      },
+      {
+        "method": "GET",
+        "path": "/training/packet.pdf",
+        "file": "backend/server.py",
+        "func": "training_packet_pdf",
+        "has_auth": false
+      }
+    ]
+  },
+  "stale_hmac_admin_helper_users": {
+    "count": 3,
+    "list": [
+      {
+        "method": "GET",
+        "path": "/admin/daily-roll-up",
+        "file": "backend/routes/dr_admin_intel.py",
+        "func": "daily_roll_up"
+      },
+      {
+        "method": "GET",
+        "path": "/admin/daily-report-health",
+        "file": "backend/routes/dr_admin_intel.py",
+        "func": "daily_report_health"
+      },
+      {
+        "method": "GET",
+        "path": "/admin/material-vocabulary",
+        "file": "backend/routes/dr_admin_intel.py",
+        "func": "admin_material_vocabulary"
+      }
+    ]
+  },
+  "frontend_routes_total": 385,
+  "frontend_missing_lazy_imports": {
+    "count": 0,
+    "list": []
+  },
+  "email_dispatch_functions": {
+    "total": 2,
+    "ungated": [
+      {
+        "file": "backend/server.py",
+        "enclosing_function": "schedule_auto_email",
+        "gate_in_body": false,
+        "call_fn": "_dispatch_auto_email"
+      }
+    ],
+    "sample_gated": [
+      {
+        "file": "backend/server.py",
+        "enclosing_function": "_dispatch_auto_email",
+        "gate_in_body": true,
+        "call_fn": "_dispatch_auto_email"
+      }
+    ]
+  },
+  "upload_endpoints": {
+    "count": 46,
+    "without_auth": [
+      {
+        "method": "POST",
+        "path": "/daily-reports/attachments/upload",
+        "file": "backend/server.py",
+        "func": "daily_report_attachment_upload",
+        "has_auth": false
+      },
+      {
+        "method": "GET",
+        "path": "/documents",
+        "file": "backend/routes/safety_exports.py",
+        "func": "export_documents",
+        "has_auth": false
+      }
+    ]
+  },
+  "broken_test_imports": {
+    "count": 10,
+    "list": [
+      "backend/tests/test_pm_routing.py",
+      "backend/tests/test_pm_routing_db_iter28.py",
+      "backend/tests/test_iter139_master_lookup_filters.py",
+      "backend/tests/test_equipment_status_board.py",
+      "backend/tests/test_iter138_typeahead_bindings.py",
+      "backend/tests/test_equipment_inspections.py",
+      "backend/tests/test_health_check_iter12.py",
+      "backend/tests/test_sprint1c_incident_delete.py",
+      "backend/tests/test_compliance_exports.py",
+      "backend/tests/test_jha_files_iter28.py"
+    ]
+  },
+  "iter_tests": {
+    "total": 284,
+    "sample": [
+      "backend/tests/test_iter293_fire_extinguishers_convergence.py",
+      "backend/tests/test_iter303_airport_fod_control.py",
+      "backend/tests/test_signature_migration_iter75.py",
+      "backend/tests/test_iter198_operational_inventory.py",
+      "backend/tests/test_iter352_cdl_roster_importer.py",
+      "backend/tests/test_iter340_final_completion_hardening.py",
+      "backend/tests/test_iter353def_phase1_convergence.py",
+      "backend/tests/test_field_leadership_iter42.py",
+      "backend/tests/test_iter395_governance.py",
+      "backend/tests/test_iter424_recovery_inline_transition.py"
+    ]
+  },
+  "stale_root_md": {
+    "count": 0,
+    "list": []
+  },
+  "collections_singleton_refs": {
+    "count": 73,
+    "top_singletons": [
+      "mfa_audit_events",
+      "_unused",
+      "_source",
+      "_client",
+      "doc_id_counters",
+      "a74",
+      "transportation_",
+      "classification_records",
+      "project_health",
+      "_data",
+      "_alignment_guard_present_in_server",
+      "_name_uses_preview_suffix",
+      "_isolation_enabled",
+      "_errors",
+      "_returns_zero",
+      "_error",
+      "production_incidents",
+      "track_18_06_",
+      "design_system_",
+      "_failure",
+      "eefdeadbeef",
+      "_backed",
+      "eefcafe",
+      "oxed_iframe",
+      "daily_reports_hr",
+      "_record_holds_doc_ref_not_base64",
+      "track_18_08_",
+      "vendor_records",
+      "vendor_documents",
+      "vendors_master",
+      "ap_invoices",
+      "vendor_intelligence",
+      "_returns_zero_summary",
+      "transport_",
+      "_doc",
+      "_alignment_guard_intact",
+      "employee_directory",
+      "_name_refused",
+      "_exits_2",
+      "_introduced"
+    ],
+    "top_hot": [
+      [
+        "employees",
+        251
+      ],
+      [
+        "_name",
+        195
+      ],
+      [
+        "dispatch_assignments",
+        181
+      ],
+      [
+        "equipment_master",
+        171
+      ],
+      [
+        "incidents",
+        124
+      ],
+      [
+        "daily_reports",
+        123
+      ],
+      [
+        "fleet_defects",
+        122
+      ],
+      [
+        "asset_mappings",
+        116
+      ],
+      [
+        "jobs_master",
+        112
+      ],
+      [
+        "notifications",
+        111
+      ],
+      [
+        "user_directory",
+        105
+      ],
+      [
+        "project_team_assignments",
+        94
+      ],
+      [
+        "trench_safety_assets",
+        89
+      ],
+      [
+        "corrective_actions",
+        83
+      ],
+      [
+        "email_routes",
+        81
+      ]
+    ]
+  },
+  "tech_debt_markers": {
+    "totals": {
+      "TODO": 13,
+      "FIXME": 3,
+      "XXX": 16,
+      "HACK": 1
+    },
+    "top10_TODO": [
+      {
+        "file": "frontend/src/lib/topics/stop_work.es.js",
+        "count": 2
+      },
+      {
+        "file": "frontend/src/lib/topics/general.es.js",
+        "count": 2
+      },
+      {
+        "file": "backend/services/maintainx_service.py",
+        "count": 1
+      },
+      {
+        "file": "backend/tests/test_track_19_50_final_certification.py",
+        "count": 1
+      },
+      {
+        "file": "backend/tests/test_rc2_ops_map_contract.py",
+        "count": 1
+      },
+      {
+        "file": "backend/tests/browser_smoke/run_browser_smoke.py",
+        "count": 1
+      },
+      {
+        "file": "frontend/src/lib/topics/pipe.es.js",
+        "count": 1
+      },
+      {
+        "file": "frontend/src/lib/topics/office.es.js",
+        "count": 1
+      },
+      {
+        "file": "frontend/src/lib/topics/environmental.es.js",
+        "count": 1
+      },
+      {
+        "file": "frontend/src/lib/topics/shop.es.js",
+        "count": 1
+      }
+    ],
+    "top10_FIXME": [
+      {
+        "file": "backend/tests/test_track_19_50_final_certification.py",
+        "count": 1
+      },
+      {
+        "file": "backend/tests/test_rc2_ops_map_contract.py",
+        "count": 1
+      },
+      {
+        "file": "backend/tests/browser_smoke/run_browser_smoke.py",
+        "count": 1
+      }
+    ]
+  },
+  "generated_at": "2026-07-04T12:38:47.241663Z"
+}

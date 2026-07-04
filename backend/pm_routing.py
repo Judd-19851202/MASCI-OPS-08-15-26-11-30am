@@ -573,6 +573,19 @@ def recipients_for_record(record: dict, kind: Optional[str] = None) -> Dict[str,
 
 
 def auto_email_enabled() -> bool:
+    # ─────────────────────────────────────────────────────────────────
+    # Track 21.2 · CLASS-A EMAIL SAFETY HARDENING (2026-07-04)
+    # ─────────────────────────────────────────────────────────────────
+    # Runtime kill-switch that supersedes RESEND_API_KEY / AUTO_EMAIL_REPORTS.
+    # When EMAIL_SAFETY_MODE is set to strict / silent / test, every helper
+    # that consults `auto_email_enabled()` short-circuits before any live
+    # send. This is the preview default so pytest sessions cannot leak
+    # emails even when project_name does not carry the TEST_ prefix.
+    # Production sets EMAIL_SAFETY_MODE=off or leaves it unset.
+    # ─────────────────────────────────────────────────────────────────
+    safety = (os.environ.get("EMAIL_SAFETY_MODE") or "").strip().lower()
+    if safety in ("strict", "silent", "test"):
+        return False
     if not os.environ.get("RESEND_API_KEY", "").strip():
         return False
     flag = os.environ.get("AUTO_EMAIL_REPORTS", "").strip().lower()

@@ -25,7 +25,11 @@ import pytest
 import requests
 from pymongo import MongoClient
 
-from tests.conftest import ADMIN_TOKEN, URL
+# Track 21.2 · soft-skip when the legacy conftest constants aren't provided.
+try:
+    from tests.conftest import ADMIN_TOKEN, URL
+except ImportError:
+    ADMIN_TOKEN, URL = "", ""
 
 
 pytestmark = pytest.mark.skipif(

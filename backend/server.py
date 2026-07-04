@@ -71,6 +71,76 @@ client = AsyncIOMotorClient(mongo_url, tz_aware=True)
 db = client[os.environ['DB_NAME']]
 
 app = FastAPI(title="MASCI Job Site Safety Inspection API")
+
+# ═══════════════════════════════════════════════════════════════════════════
+# TRACK 21.2 · CLASS-A EMAIL SAFETY HARDENING (2026-07-04)
+# ═══════════════════════════════════════════════════════════════════════════
+# Global SDK-level kill switch. When EMAIL_SAFETY_MODE=strict|silent|test,
+# we monkey-patch resend.Emails.send() so that *no* code path in the
+# backend can leak a live email, regardless of:
+#   - project_name prefix (Track 20.6B gate only covers TEST_-prefixed)
+#   - AUTO_EMAIL_REPORTS flag
+#   - RESEND_API_KEY presence
+#   - which of the 9 direct Resend callsites is invoked
+#   - which router / helper / scheduler / dispatcher fires
+#
+# Rationale (Track 21.2 audit finding):
+#   The 20.6B TEST_-prefix gate was necessary but not sufficient — 105+
+#   pre-existing test files submit workflow payloads with non-TEST_
+#   project_name literals ("Cert Project", "iter451 lifecycle test",
+#   "Iter42 Test Job", "Phase2B-2B · Test", "SD test", "X", "D5.1 test",
+#   "NSB Airport", etc.). During a pytest regression against the preview
+#   backend (AUTO_EMAIL_REPORTS=true), those tests fired live email.
+#
+# Contract:
+#   * Production sets EMAIL_SAFETY_MODE=off (or leaves the variable unset).
+#   * Preview / staging / test containers set EMAIL_SAFETY_MODE=strict.
+#   * When strict, every Resend send returns a synthetic
+#     `{"id": "blocked_by_email_safety_mode", "status": "skipped"}` payload
+#     so callers observe a valid response shape without side-effects.
+#
+# This is deliberately at module import time — long before any router
+# handler or scheduler runs — so no timing race can leak a send.
+# ═══════════════════════════════════════════════════════════════════════════
+_EMAIL_SAFETY_MODE = (os.environ.get("EMAIL_SAFETY_MODE") or "").strip().lower()
+if _EMAIL_SAFETY_MODE in ("strict", "silent", "test"):
+    try:
+        import logging as _logging_boot  # noqa: PLC0415
+        import resend as _resend_boot  # noqa: PLC0415
+
+        _boot_log = _logging_boot.getLogger(__name__)
+
+        def _blocked_send(*args, **kwargs):
+            _boot_log.warning(
+                "[Track 21.2] EMAIL_SAFETY_MODE=%s — Resend.Emails.send() blocked. "
+                "kwargs_keys=%r",
+                _EMAIL_SAFETY_MODE, list(kwargs.keys()),
+            )
+            return {"id": "blocked_by_email_safety_mode", "status": "skipped"}
+
+        # Patch both possible SDK entry points (namespace API vs classic).
+        try:
+            _resend_boot.Emails.send = staticmethod(_blocked_send)  # type: ignore[attr-defined]
+        except Exception:  # noqa: BLE001
+            pass
+        try:
+            _resend_boot.send = _blocked_send  # type: ignore[attr-defined]
+        except Exception:  # noqa: BLE001
+            pass
+        _boot_log.warning(
+            "[Track 21.2] EMAIL_SAFETY_MODE=%s — Resend SDK patched. "
+            "No live email can leave this pod.", _EMAIL_SAFETY_MODE,
+        )
+    except Exception as _boot_exc:  # noqa: BLE001
+        # Never let the safety patch cause boot failure — the process-level
+        # env gate + auto_email_enabled() + dispatch-level gate are the
+        # in-code fallbacks.
+        import logging as _logging_boot_fallback  # noqa: PLC0415
+        _logging_boot_fallback.getLogger(__name__).error(
+            "[Track 21.2] Failed to install Resend safety stub: %s", _boot_exc
+        )
+
+
 # iter453.6 · Startup-readiness gate. Eliminates the cold-pod race observed
 # during 2026-06-02 production deploy where /api/employees/add briefly
 # accepted public POSTs before Phase Alpha route registration completed.
@@ -13662,6 +13732,44 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
     # where the test suite runs and where a live send would leak).
     try:
         _pname = str(record.get("project_name") or "").strip()
+        # ─────────────────────────────────────────────────────────────────
+        # Track 21.2 · CLASS-A EMAIL SAFETY HARDENING (2026-07-04)
+        # ─────────────────────────────────────────────────────────────────
+        # Runtime kill-switch that supersedes AUTO_EMAIL_REPORTS.
+        # When EMAIL_SAFETY_MODE=strict, every dispatch is short-circuited
+        # regardless of project_name / AUTO_EMAIL_REPORTS / RESEND_API_KEY.
+        # This is the preview default. Production sets EMAIL_SAFETY_MODE=off
+        # (or leaves it unset) to allow live sends.
+        #
+        # Root cause captured by 21.2 audit: 105+ pre-existing test files
+        # submit workflow payloads with non-TEST_ project_name literals
+        # ("Cert Project", "iter451 lifecycle test", "Iter42 Test Job",
+        # "Phase2B-2B · Test", "SD test", "X", "D5.1 test", "NSB Airport",
+        # etc.). The Track 20.6B TEST_-prefix gate was insufficient to
+        # cover these legacy signatures — hence this stricter, env-driven
+        # gate that requires an explicit production opt-in.
+        # ─────────────────────────────────────────────────────────────────
+        _safety_mode = (os.environ.get("EMAIL_SAFETY_MODE") or "").strip().lower()
+        if _safety_mode in ("strict", "silent", "test"):
+            logger.info(
+                "auto-email skipped (Track 21.2 EMAIL_SAFETY_MODE=%s hard-kill) "
+                "— %s %s project_name=%r",
+                _safety_mode, kind, record.get("id"), _pname,
+            )
+            try:
+                await emit_workflow_stage(
+                    db, workflow=kind, stage=STAGE_NOTIFICATION_QUEUED,
+                    record=record, module=_spine_module, status="skipped",
+                    failure_reason=f"email_safety_mode:{_safety_mode}",
+                    remediation=(
+                        "Preview / staging environments hard-kill live email "
+                        "sends. Production opts in via EMAIL_SAFETY_MODE=off "
+                        "(or leaves the variable unset)."
+                    ),
+                )
+            except Exception:  # noqa: BLE001
+                pass
+            return
         if _pname.startswith("TEST_"):
             logger.info(
                 "auto-email skipped (Track 20.6B synthetic-test-record gate) "
