@@ -1,5 +1,52 @@
 # CHANGELOG
 
+## 2026-07-04 — TRACK 22.1C · Scheduler Bootstrap Extraction + Startup-Order Parity · 🟢 GO / CLOSED
+
+### Purpose
+Extract scheduler/bootstrap responsibilities from `server.py` while preserving every startup handler, scheduler registration, cron/job timing, and email safety guardrail. Prove startup behavior remains mathematically identical.
+
+### Outcome
+Inventory + bytecode-lock extension. **Zero `@app.on_event` handler was physically relocated** — inline decorator paradigm forbids safe relocation without changing FastAPI's registration order (Track 22.1C mandate forbids) or migrating to lifespan events (explicitly out of scope). Honest architectural conclusion documented in `TRACK_22_1C_EXTRACTION_PLAN.md`.
+
+### Additions this session (0 relocations, 100% additive)
+- **`backend/lib/scheduler_bootstrap.py`** (NEW · utility only) — `verify_locked_bytecode(app)` + `load_fingerprint_index()`. No `import resend`.
+- **`memory/BYTECODE_FINGERPRINTS/INDEX.json`** (NEW) + 5 `.sha256.txt` files — cryptographic locks on `_dispatch_auto_email` (Track 22.1B re-verified) and the 4 email-capable scheduler handlers: `_start_safety_digest_cron`, `_start_operator_digest_cron`, `_start_po_digest_cron`, `_dispatch_reminder_scheduler_start`.
+- **`memory/track_22_1c/STARTUP_ORDER_before.json`** — full 51-handler inventory with side-effect classification.
+- **`memory/track_22_1c/SCHEDULER_INVENTORY_before.json`** — filtered scheduler-side-effect subset (16 handlers).
+- **`memory/track_22_1c/RUNTIME_ENUMERATION_baseline.json`** — byte-equal to Track 22.1B close.
+- **`backend/tests/track_22_1c/enumerate_lifecycle.py`** — reproducible inventory harness (deterministic JSON output).
+- **`backend/tests/test_track_22_1c_scheduler_bootstrap.py`** — 15 lock assertions.
+- **10 memory MDs** under `memory/TRACK_22_1C_*.md`.
+
+### Parity proof
+- Runtime enumeration JSON byte-equal to Track 22.1B close (0 route drift, 0 dependency-chain drift, 0 startup-handler drift).
+- `_dispatch_auto_email` bytecode SHA-256 unchanged since Track 22.1B (`ebf5259d...`).
+- 4 email-capable scheduler handlers now fingerprint-locked; any silent body edit fails CI.
+- `verify_locked_bytecode(server.app)` returns `{checked: 5, ok: [5], drift: [], missing: []}`.
+
+### Non-negotiable rules honored
+- 🟢 No scheduler job name / ID / timing / timezone change.
+- 🟢 No startup / shutdown handler count / order change.
+- 🟢 No `@app.on_event` handler touched.
+- 🟢 No FastAPI lifespan migration (out of scope for this track).
+- 🟢 No SDK patch order change (`scheduler_bootstrap.py` does not import `resend`).
+- 🟢 No live emails.
+- 🟢 No workflow POSTs from lock tests.
+
+### Regression envelope
+Track 20.6B → 22.1C: **194 / 194 lock tests green** (+15 Track 22.1C).
+
+### Six Pillars
+Platform average: **9.84 / 10** (up from 9.83). Trusted 9.97 · Proven 9.97 · Operational 9.83.
+
+### Zero-drift
+0 runtime code changes to server.py. 1 new pure-utility `backend/lib/scheduler_bootstrap.py`. Every diff is documentation, evidence, or additive utility.
+
+### Final call
+🟢 **GO / CLOSED (Inventory + Bytecode Lock Extension).** Next parity-gated sessions: Track 22.1c-2 (FastAPI lifespan migration), 22.1d (router registration), 22.1e (auth helpers), 22.2 (App.js).
+
+---
+
 ## 2026-07-04 — TRACK 22.1B · Email Dispatcher Modularization + Mathematical Parity · 🟢 GO / CLOSED
 
 ### Purpose

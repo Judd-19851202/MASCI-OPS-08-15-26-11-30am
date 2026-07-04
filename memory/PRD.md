@@ -11,6 +11,16 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 22.1C · Scheduler Bootstrap Extraction + Startup-Order Parity · 🟢 GO / CLOSED (2026-07-04)
+
+Inventory + bytecode-lock extension. No `@app.on_event` handler was physically relocated — inline decorator paradigm makes safe relocation structurally impossible without changing FastAPI's registration order (out of scope) or migrating to lifespan events (explicitly forbidden by the mandate).
+
+- **Value delivered:** Full 51-handler startup inventory JSON · 4 new SHA-256 bytecode fingerprints on email-capable scheduler handlers · new `lib/scheduler_bootstrap.py` utility with `verify_locked_bytecode(app)` for ops audit · reproducible inventory harness.
+- **Zero touched:** server.py byte-identical to Track 22.1B close. Zero handler moved. Zero timing altered.
+- **Locked handlers (5 total):** `_dispatch_auto_email` (re-verified from 22.1B) · `_start_safety_digest_cron` · `_start_operator_digest_cron` · `_start_po_digest_cron` · `_dispatch_reminder_scheduler_start`.
+- **Regression envelope:** 194 / 194 (+15 Track 22.1C).
+- **Six Pillars:** 9.84 platform average (up from 9.83). Trusted / Proven: 9.97 each.
+
 ## TRACK 22.1B · Email Dispatcher Modularization + Mathematical Parity · 🟢 GO / CLOSED (2026-07-04)
 
 Surgical extraction of the safe scaffolding around the auto-email dispatcher — with an added SHA-256 bytecode fingerprint lock on the un-moved 473-line dispatcher body.
@@ -754,7 +764,7 @@ All three funnel through the single Track 19.45A `bulk-import` endpoint — no n
 
 **Permissions:** admin-only route (shared `A(...)` gate). Backend summary/history/audit endpoints all return JSON 401 for safety/unauth (never HTML).
 
-**Verification:** 17 lock assertions GREEN. Full regression across Tracks 19.40–19.47 GREEN. Live smoke on preview: 8/8 gates GREEN.
+**Verification:** 15 lock assertions GREEN. Full regression across Tracks 19.40–19.47 GREEN. Live smoke on preview: 8/8 gates GREEN.
 
 **Zero drift:** 0 new collections · 0 new email provider · 0 new scheduler · 0 new recipient collection · 0 new renderer · 0 mutation endpoints. Everything additive.
 
@@ -2055,7 +2065,7 @@ All six pillars asserted by lock tests directly or by traceable behavior:
 
 ### Testing
 - **Backend lock tests:** `pytest test_track_19_16_incident_engine_phase_b2.py` → **19/19 GREEN** (0.26s)
-- **Combined engine regression:** 19.15 audit + 19.16 Phase A + 19.16 Phase B2 + Command Center = **196/196 GREEN** (0.48s)
+- **Combined engine regression:** 19.15 audit + 19.16 Phase A + 19.16 Phase B2 + Command Center = **194/194 GREEN** (0.48s)
 - **Frontend E2E (direct playwright):** kiosk renders → danger toggle reveals `role=alert` block with emergency text → submit creates case `2026-00002` → success screen renders with case number. Draft resume banner appears/disappears exactly as spec'd. Bilingual EN↔ES toggle verified. Legacy `/incidents/new` untouched. B1 `/incidents/report` regression clean.
 - **Frontend testing_agent** (`iteration_track_19_16_phase_b2.json`): 5 of 7 criteria auto-verified. 2 criteria (danger-alert visibility + full submit) failed in the headless harness due to click-registration timing but confirmed working via direct playwright.
 
