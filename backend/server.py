@@ -11973,8 +11973,7 @@ async def _arm_iter142_perf_indexes():
 _safety_digest_task: Optional[asyncio.Task] = None
 
 
-@app.on_event("startup")
-@app.on_event("startup")
+@register_lifecycle_step("email-scheduler")
 async def _start_safety_digest_cron():
     """Long-running weekly cron — Monday 14:00 UTC default. Email goes
     to SAFETY_DIGEST_TO_EMAIL (default safety@mascigc.com)."""
@@ -12000,7 +11999,7 @@ async def _start_safety_digest_cron():
 _operator_digest_task: Optional[asyncio.Task] = None
 
 
-@app.on_event("startup")
+@register_lifecycle_step("email-scheduler")
 async def _start_operator_digest_cron():
     """Long-running weekly cron — Monday 14:00 UTC default. Email goes
     to OPERATOR_DIGEST_RECIPIENTS (comma-separated) or falls back to
@@ -12070,7 +12069,7 @@ async def _po_digest_send_email(to_email: str, subject: str, html: str) -> bool:
 _po_digest_task: Optional[asyncio.Task] = None
 
 
-@app.on_event("startup")
+@register_lifecycle_step("email-scheduler")
 async def _start_po_digest_cron():
     """iter246 F3 · Long-running weekly cron sending the PO Request
     Digest to every active PM (scoped to their assigned jobs) and every
@@ -12787,7 +12786,7 @@ app.include_router(_backup_verify_router)
 _backup_verify_task: Optional[asyncio.Task] = None
 
 
-@app.on_event("startup")
+@register_lifecycle_step("email-scheduler")
 async def _start_backup_verification_cron():
     """Long-running weekly cron that sends a backup verification email
     every Mon 14:00 UTC by default. Kept on its own asyncio.Task so a
@@ -16055,7 +16054,7 @@ async def _iter453_6_flip_ready_flag():
 # readiness flag so the loop only runs in a fully-booted process. The
 # loop itself short-circuits when SCHEDULER_ENABLED is off.
 # ────────────────────────────────────────────────────────────────────
-@app.on_event("startup")
+@register_lifecycle_step("email-scheduler")
 async def _dispatch_reminder_scheduler_start():
     try:
         from dispatch_reminders import reminder_scheduler_loop  # noqa: PLC0415

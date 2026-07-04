@@ -29,13 +29,13 @@ _MIGRATION_TARGETS = {
     # Groups that are already fully migrated (or will be, per roadmap)
     # into `LIFECYCLE_STEPS`. Used to compute a "migration progress"
     # percentage that any admin can read.
-    "index-ensure": {"track": "22.1E", "closed": True},
-    "seed": {"track": "22.1F", "closed": True},
+    "index-ensure":       {"track": "22.1E", "closed": True},
+    "seed":               {"track": "22.1F", "closed": True},
     "scheduler-nonemail": {"track": "22.1G", "closed": True},
-    "scheduler-email": {"track": "22.1H", "closed": False},
-    "bootstrap-misc": {"track": "22.1I", "closed": False},
-    "readiness": {"track": "22.1J", "closed": False},
-    "shutdown": {"track": "22.1K", "closed": False},
+    "email-scheduler":    {"track": "22.1H", "closed": True},
+    "bootstrap-misc":     {"track": "22.1I", "closed": False},
+    "readiness":          {"track": "22.1J", "closed": False},
+    "shutdown":           {"track": "22.1K", "closed": False},
 }
 
 
@@ -168,13 +168,19 @@ def _recommended_next_actions(app) -> list:
             "action": "Execute Track 22.1G — migrate non-email schedulers to LIFECYCLE_STEPS.",
             "gate": "Non-email scheduler bytecode is not fingerprint-locked; safe to migrate directly.",
         })
-    if "scheduler-nonemail" in groups_present and "scheduler-email" not in groups_present:
+    if "scheduler-nonemail" in groups_present and "email-scheduler" not in groups_present:
         advice.append({
             "priority": "P1",
-            "action": "Track 22.1H — migrate 4 email-capable scheduler handlers (fingerprint-locked).",
+            "action": "Track 22.1H — migrate 4-5 email-capable scheduler handlers (fingerprint-locked).",
             "gate": "Must preserve all 5 locked SHA-256 fingerprints; run verify_locked_bytecode() after cutover.",
         })
-    elif "scheduler-email" not in groups_present:
+    elif "email-scheduler" in groups_present and "bootstrap-misc" not in groups_present:
+        advice.append({
+            "priority": "P1",
+            "action": "Track 22.1I — migrate remaining miscellaneous bootstrap handlers.",
+            "gate": "Prove each handler is independent of a specific bootstrap earlier in on_startup.",
+        })
+    elif "email-scheduler" not in groups_present:
         advice.append({
             "priority": "P1",
             "action": "Track 22.1H — migrate 4 email-capable scheduler handlers (fingerprint-locked).",
@@ -223,6 +229,6 @@ def platform_status(app) -> Dict[str, Any]:
         "readiness": {
             "ready_flag": bool(getattr(getattr(app, "state", None), "ready", False)),
         },
-        "recent_track_closures": ["22.1D", "22.1E", "22.1F", "22.1G"],
+        "recent_track_closures": ["22.1D", "22.1E", "22.1F", "22.1G", "22.1H"],
         "recommended_next_actions": _recommended_next_actions(app),
     }

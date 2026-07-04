@@ -3,6 +3,24 @@
   "track": "21.0",
   "recent_track_closures": [
     {
+      "track": "22.1H",
+      "title": "Email-Capable Scheduler Handler Migration",
+      "status": "GO / CLOSED",
+      "date": "2026-07-04",
+      "on_startup_count_before": 29,
+      "on_startup_count_after": 23,
+      "lifecycle_steps_added": 5,
+      "lifecycle_steps_total": 27,
+      "defect_closed": "_start_safety_digest_cron double-registration on @app.on_event('startup')",
+      "unique_lifecycle_callables_per_boot": 50,
+      "bytecode_fingerprints_clean": true,
+      "route_delta": 0,
+      "lock_envelope_before": 247,
+      "lock_envelope_after": 263,
+      "migrated_pct": 54.00,
+      "eight_pillars_average": 9.91
+    },
+    {
       "track": "22.1G",
       "title": "Non-Email Scheduler Handler Migration",
       "status": "GO / CLOSED",

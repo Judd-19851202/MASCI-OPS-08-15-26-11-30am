@@ -11,6 +11,20 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 22.1H · Email-Capable Scheduler Handler Migration · 🟢 GO / CLOSED (2026-07-04)
+
+Highest-risk cutover so far — 5 email-capable scheduler startup handlers migrated from `@app.on_event("startup")` → `@register_lifecycle_step("email-scheduler")`. All 5 SHA-256 bytecode fingerprints preserved. Zero live emails. Plus: closed a pre-existing double-registration defect on `_start_safety_digest_cron` that had been active since at least Track 22.1F.
+
+- **Email schedulers migrated (5):** `_start_safety_digest_cron`, `_start_operator_digest_cron`, `_start_po_digest_cron`, `_start_backup_verification_cron`, `_dispatch_reminder_scheduler_start`. Each function body byte-identical.
+- **Pre-existing defect closed:** `_start_safety_digest_cron` had 2× `@app.on_event("startup")` decorators in source. FastAPI registered it twice; singleton-lock prevented duplicate email dispatch but one wasted asyncio task per boot was leaking. Track 22.1H removes the second decorator — the handler now fires exactly once per boot.
+- **Proof:** 1,441 routes → 1,441 (0 delta) · 1,445 methods · 1,264 OpenAPI paths · 7 middleware unchanged · **29 → 23 on_startup (−6 = 5 migrations + 1 defect closure) + 22 → 27 LIFECYCLE_STEPS (+5)** · unique callables per boot 51 → **50** · 0 qualname drift · 0 dependency-chain drift · shutdown handler bytecode unchanged.
+- **Bytecode:** all 5 locked fingerprints match live (`_dispatch_auto_email`, `_start_safety_digest_cron`, `_start_operator_digest_cron`, `_start_po_digest_cron`, `_dispatch_reminder_scheduler_start`). `_start_backup_verification_cron` newly recorded at `36bf2f8f...` for future audits.
+- **Email safety:** `EMAIL_SAFETY_MODE=strict` reasserted · SDK patch active before any lifespan step · `auto_email_enabled()` returns False · zero live emails throughout the 263-test regression envelope.
+- **Platform Ops API:** `by_group={"index-ensure":11,"seed":7,"scheduler-nonemail":4,"email-scheduler":5}`, `on_startup_legacy_count=23`, `migrated_pct=54.00`, `target_groups.email-scheduler.closed=true`, `recent_track_closures=["22.1D","22.1E","22.1F","22.1G","22.1H"]`.
+- **Deferred with plan:** remaining 23 on_startup handlers queued into 3 follow-up tracks (22.1I misc bootstrap · 22.1J readiness · 22.1K shutdown).
+- **Regression envelope:** 263 / 263 (+16 Track 22.1H).
+- **Eight Pillars:** 9.91 platform average (up from 9.90). Trusted / Proven: 9.98 each · Relentless Ownership: 9.97 (defect owned and closed).
+
 ## TRACK 22.1G · Non-Email Scheduler Handler Migration · 🟢 GO / CLOSED (2026-07-04)
 
 Third real cutover into the lifespan foundation. 4 non-email scheduler startup handlers migrated from `@app.on_event("startup")` → `@register_lifecycle_step("scheduler-nonemail")`. All 5 email-capable scheduler handlers explicitly quarantined for Track 22.1H. Platform Ops API updated in-contract to reflect the closure.

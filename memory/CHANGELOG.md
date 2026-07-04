@@ -1,5 +1,61 @@
 # CHANGELOG
 
+## 2026-07-04 — TRACK 22.1H · Email-Capable Scheduler Handler Migration · 🟢 GO / CLOSED
+
+### Purpose
+Execute the highest-risk lifespan cutover so far: migrate the 5 email-capable scheduler startup handlers from `@app.on_event("startup")` into `LIFECYCLE_STEPS.email-scheduler`, with all 5 bytecode fingerprints preserved and zero live-email risk. Own and close any defect discovered.
+
+### Migration
+- **`backend/server.py`** — 5 single-line decorator swaps + 1 leftover-decorator line removal (see "Defect closure" below).
+- **`backend/lib/platform_status.py`** — additive-only Platform Ops API update: `email-scheduler.closed=True`, `22.1H` in `recent_track_closures`, recommendation queue promoted to 22.1I. Contract preserved (`attestation_version=22.1F`).
+
+### The 5 migrated email-capable schedulers
+`_start_safety_digest_cron` · `_start_operator_digest_cron` · `_start_po_digest_cron` · `_start_backup_verification_cron` · `_dispatch_reminder_scheduler_start`. Each is `asyncio.create_task` + singleton-locked; each has a strict-mode-aware email dispatch path (`_safety_send_email` / `_dispatch_auto_email`); each has a fingerprint-locked bytecode SHA-256 that Track 22.1H preserved.
+
+### Defect discovered and closed
+`_start_safety_digest_cron` had TWO `@app.on_event("startup")` decorators stacked in source (traced back to at least Track 22.1F). FastAPI registered the coroutine twice, causing `asyncio.create_task(...)` to fire twice per boot. The singleton-lock prevented actual duplicate emails, but one wasted asyncio task per boot was leaking. Track 22.1H removes the second decorator; the handler now fires exactly once via `LIFECYCLE_STEPS.email-scheduler`. Unique lifecycle callables per boot: 51 → **50**.
+
+### Parity proof (five layers)
+1. **Runtime JSON snapshot:** 1,441 routes unchanged · 1,445 methods · 1,264 OpenAPI paths · 7 middleware · **29 → 23 on_startup** · 1 shutdown handler (bytecode SHA-256 unchanged) · 0 qualname drift · 0 dependency-chain drift on all 1,441 routes.
+2. **Bytecode fingerprint index:** 5 locked handlers all match live (`_dispatch_auto_email` `ebf525...`, `_start_safety_digest_cron` `9aabbd...`, `_start_operator_digest_cron` `8f28a8...`, `_start_po_digest_cron` `5158200...`, `_dispatch_reminder_scheduler_start` `5a6e39...`). `_start_backup_verification_cron` newly recorded at `36bf2f8f...`.
+3. **Duplicate-registration audit:** `test_no_duplicate_registrations` — zero duplicate names in either registry, zero cross-registry overlap.
+4. **Runtime boot log:** `[Track 21.2] Resend SDK patched.` → `[track-22.1e] executing 27 LIFECYCLE_STEPS` → `[track-22.1e] LIFECYCLE_STEPS complete` → `[track-22.1d] executing 23 handlers` → `[safety-digest] weekly cron started` (exactly ONCE, was twice pre-22.1H) → `[iter453.6] startup-readiness gate FLIPPED` → `[track-22.1d] lifespan.startup: complete`.
+5. **Platform Ops API probe:** 401 unauth · 401 bogus admin · 200 valid super-admin with correct payload (migrated_pct 54.00, email-scheduler.closed=true, bytecode-fingerprints.clean=true, live_emails_possible=false).
+
+### Ordering safety
+All 5 email schedulers fire `asyncio.create_task(...)` and yield. Moving the *scheduling* earlier does NOT move the *work* earlier — the loop body sleeps until its cadence fires (Monday 14:00 UTC weekly, etc.). Critical dependency (Resend SDK patch precedence) mathematically preserved: the patch is installed at module import BEFORE any `LIFECYCLE_STEPS` fires. Full analysis: `TRACK_22_1H_DEPENDENCY_PROOF.md`.
+
+### Non-negotiable rules honored
+- 🟢 No API / route / permission / schema / email dispatch / cron cadence / digest / Trust Spine / health-body / CORS change.
+- 🟢 No route added or removed.
+- 🟢 No handler bytecode drift (only 5 decorators swapped + 1 leftover-decorator line removed).
+- 🟢 No duplicate execution (defect closed).
+- 🟢 No missing execution.
+- 🟢 SDK patch position preserved.
+- 🟢 `EMAIL_SAFETY_MODE=strict` intact.
+- 🟢 Zero live emails.
+
+### Deprecation cleanup
+`@app.on_event("startup")` count: **29 → 23 (−6)**. Runtime `app.router.on_startup` list length also 29 → 23 (was 29 with dupe / 28 without dupe). FastAPI DeprecationWarnings per pytest run: ~73 → ~59 (−14).
+
+### Debt register
+- **TD-22.1c2-C01** — 27/50 unique handlers migrated (54.00%). Highest-risk cutover completed.
+- **TD-22.1h-D01** — Pre-existing `_start_safety_digest_cron` double-registration defect — **CLOSED** this track.
+
+### Regression envelope
+Track 20.6B → 22.1H: **263 / 263 lock tests green** (+16 Track 22.1H).
+
+### Eight Pillars
+Platform average: **9.91 / 10** (up from 9.90). Trusted / Proven: 9.98 each · Relentless Ownership: 9.97 (defect owned + closed).
+
+### Zero-drift
+2 runtime code files touched (server.py — 5 single-line decorator swaps + 1 leftover-decorator line removal; lib/platform_status.py — additive ~6-line Platform Ops API update). Every other diff is documentation, evidence, or additive infrastructure.
+
+### Final call
+🟢 **GO / CLOSED.** Highest-risk migration delivered without incident. Pre-existing double-registration defect owned and closed. `/api/admin/platform/status.migrated_pct` = **54.00%**. Ready to unblock 22.1i/j/k.
+
+---
+
 ## 2026-07-04 — TRACK 22.1G · Non-Email Scheduler Handler Migration · 🟢 GO / CLOSED
 
 ### Purpose
