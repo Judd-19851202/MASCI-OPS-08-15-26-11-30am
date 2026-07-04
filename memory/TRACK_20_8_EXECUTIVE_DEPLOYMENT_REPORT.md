@@ -44,10 +44,14 @@ Final release gate. Zero features. Zero redesigns. Only verify + certify.
 ## Test envelope (final)
 
 ```
-384 passed · 1 legitimately skipped · 0 failed · 0 errors
+385 passed · 0 skipped · 0 failed · 0 errors
 ```
 
-Coverage: Tracks 19.21, 19.54, 19.55, 19.56, 19.57, 19.58, 19.59, 19.60, 19.61, 19.62, 20.0, 20.1, 20.2, 20.3, 20.4, 20.5, 20.6, 20.6B, 20.7 · plus `test_daily_reports.py`, `test_job_photos.py`, `test_track_20_6b_test_hardening.py`.
+Coverage: Tracks 19.21, 19.54, 19.55, 19.56, 19.57, 19.58, 19.59, 19.60, 19.61, 19.62, 20.0, 20.1, 20.2, 20.3, 20.4, 20.5, 20.6, 20.6B, 20.7, 20.8 · plus `test_daily_reports.py`, `test_job_photos.py`, `test_track_20_6b_test_hardening.py`, `test_track_20_8_deployment_certification.py`.
+
+**Track 20.8 hardening delta:** the prior release-gate report noted "1 legitimately skipped design-branch" (`test_approve_without_employee_linkage_blocked`). Deep investigation on 2026-08-04 (triggered by user request) revealed the skip was firing on a **payload bug**, not a design branch. The test had a permissive `pytest.skip` fallback that fired when the create returned 422 due to a missing `record_type` field — the certified employee-linkage gate was never exercised. Classified as **TD-20.8-A01 · Class A · FIXED** in the same track. See `TRACK_20_8_FIX_REPORT_TD_20_8_A01.md`.
+
+**Result:** the deployment gate is now **100% assertive coverage · zero skips**. Deployment risk delta on this specific gate: MEDIUM → ZERO.
 
 ## Tech Debt Register status
 
@@ -60,6 +64,7 @@ Coverage: Tracks 19.21, 19.54, 19.55, 19.56, 19.57, 19.58, 19.59, 19.60, 19.61, 
 | TD-20.7-C01 | C | CLOSED (2026-08-04, Track 20.6B) |
 | TD-20.6B-A01 | A | FIXED (2026-08-04, Track 20.6B) |
 | TD-20.8-D01 | D | FALSE POSITIVE (this track: `/dispatch` initial-test path — canonical is `/dispatch-portal`; verified 200 live) |
+| **TD-20.8-A01** | **A** | **FIXED (2026-08-04, Track 20.8 · design-branch skip converted to hard-locked assertion after user-requested investigation)** |
 
 **Zero OPEN debt at deployment gate.**
 

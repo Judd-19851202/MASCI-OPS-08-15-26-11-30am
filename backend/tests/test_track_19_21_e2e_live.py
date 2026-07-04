@@ -228,20 +228,49 @@ def test_reject_flow(hr_hdr):
 
 # ── Approve without linkage forbidden ───────────────────────────────
 def test_approve_without_employee_linkage_blocked(hr_hdr):
+    # Track 20.8 · TD-20.8-A01 hardening — this test used to `pytest.skip`
+    # whenever the create returned >= 400. That branch was hiding a
+    # payload bug (`record_type` field was missing → 422 Pydantic
+    # validation error → skip fired → certified employee-linkage gate
+    # never actually exercised). The certified production behavior IS:
+    #   • POST /records without employee_id → 200 (approval_status=
+    #     "pending_match") — the record is quarantined until linked.
+    #   • POST /records/{id}/approve → 400 "Cannot approve —
+    #     employee_id is required" — approval is blocked.
+    # Both halves of that contract are now locked below with no skip
+    # branch. Live-verified against the preview backend on 2026-08-04.
     files = {"file": ("TEST_unmatched.txt", io.BytesIO(b"x"), "text/plain")}
     up = requests.post(f"{API}/employee-records/uploads", headers=hr_hdr,
                        files=files, data={"lane": "hr"}, timeout=15).json()
     rc = requests.post(f"{API}/employee-records/records", headers=hr_hdr, json={
         "ownership_lane": "hr",
+        "record_type": "hr_document",
         "source_file_ref": up["source_file_ref"],
         "source_file_name": up["source_file_name"],
         "source_file_hash": up["source_file_hash"],
         "size_bytes": up["size_bytes"],
     }, timeout=15)
-    # If backend refuses to create without employee that's fine too.
-    if rc.status_code >= 400:
-        pytest.skip("Backend refuses to create record without employee — acceptable")
-    rid = (rc.json().get("record") or rc.json())["id"]
+    # Certified behavior: create succeeds and record lands in a
+    # quarantined state pending employee match.
+    assert rc.status_code in (200, 201), (
+        f"create without employee_id must be accepted into pending_match "
+        f"queue; got {rc.status_code}: {rc.text[:200]}"
+    )
+    rec = rc.json().get("record") or rc.json()
+    assert rec.get("employee_id") in (None, ""), (
+        f"unlinked record must have empty employee_id; got {rec.get('employee_id')!r}"
+    )
+    assert rec.get("approval_status") == "pending_match", (
+        f"unlinked record must have approval_status='pending_match'; "
+        f"got {rec.get('approval_status')!r}"
+    )
+    rid = rec["id"]
+    # Certified behavior: approve MUST be blocked with a clear reason.
     ar = requests.post(f"{API}/employee-records/records/{rid}/approve",
                        headers=hr_hdr, timeout=15)
-    assert ar.status_code >= 400, "approving an unlinked record should be blocked"
+    assert ar.status_code >= 400, (
+        f"approving an unlinked record must be blocked; got {ar.status_code}"
+    )
+    assert "employee" in ar.text.lower(), (
+        f"block reason must mention employee linkage; got: {ar.text[:200]}"
+    )

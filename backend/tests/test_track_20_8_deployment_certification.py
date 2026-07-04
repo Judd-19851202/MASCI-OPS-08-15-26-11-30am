@@ -29,6 +29,7 @@ REQUIRED_DOCS = [
     "TRACK_20_8_BACKUP_VALIDATION.md",
     "TRACK_20_8_ZERO_DRIFT_MATRIX.md",
     "TRACK_20_8_FINAL_TEST_REPORT.md",
+    "TRACK_20_8_FIX_REPORT_TD_20_8_A01.md",
 ]
 
 
@@ -84,7 +85,7 @@ def test_no_open_debt_at_deployment_gate():
     # Extract every TD- row.
     debt_ids = ("TD-19.62-A01", "TD-20.6A-001", "TD-20.6A-002",
                 "TD-20.7-B01", "TD-20.7-C01", "TD-20.6B-A01",
-                "TD-20.8-D01")
+                "TD-20.8-D01", "TD-20.8-A01")
     for did in debt_ids:
         idx = src.find(did)
         assert idx != -1, f"debt {did} must be registered"
@@ -94,6 +95,36 @@ def test_no_open_debt_at_deployment_gate():
         assert safe, (
             f"debt {did} is not deployment-safe: {row}"
         )
+
+
+def test_td_20_8_a01_fix_report_present():
+    """The Track 20.8 design-branch investigation MUST have produced
+    a one-page fix report with the seven required proofs."""
+    p = MEM / "TRACK_20_8_FIX_REPORT_TD_20_8_A01.md"
+    assert p.exists(), "TD-20.8-A01 fix report missing"
+    src = _read(p)
+    for needle in ("test_approve_without_employee_linkage_blocked",
+                   "test_track_19_21_e2e_live.py",
+                   "pending_match",
+                   "record_type",
+                   "FIXED"):
+        assert needle in src, f"TD-20.8-A01 fix report missing key evidence: {needle!r}"
+
+
+def test_no_skips_in_the_e2e_live_suite():
+    """Track 20.8 hardening — the vocabulary+records e2e suite must
+    contain ZERO pytest.skip calls. The design-branch skip was
+    reclassified as a real test bug and hard-locked (see TD-20.8-A01)."""
+    src = _read(REPO / "backend/tests/test_track_19_21_e2e_live.py")
+    # Only pytest.skip inside comments/docstrings would be OK; the fixture
+    # `pytest.skip(...)` on multi-login failure lives elsewhere. Assert
+    # the specific old design-branch skip message is gone.
+    old = 'Backend refuses to create record without employee'
+    assert old not in src, (
+        f"the design-branch skip message {old!r} must be removed — "
+        f"TD-20.8-A01 requires the certified employee-linkage gate to "
+        f"be hard-locked, not skipped."
+    )
 
 
 # ── PRD / CHANGELOG ─────────────────────────────────────────────────

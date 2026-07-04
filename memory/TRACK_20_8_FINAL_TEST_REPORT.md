@@ -1,14 +1,16 @@
 # TRACK 20.8 · Final Test Report
 
-**Verdict:** 🟢 **PASS.** 384 assertions green · 1 legitimate design skip · 0 failures · 0 errors.
+**Verdict:** 🟢 **PASS.** 385 assertions green · 0 skips · 0 failures · 0 errors.
 
 ## Executive summary
 
 Full-envelope regression run against the live preview backend (`https://safety-audit-mobile-1.preview.emergentagent.com`) on 2026-08-04:
 
 ```
-================== 384 passed, 1 skipped, 1 warning in 50.05s ==================
+================== 385 passed · 0 skipped · 0 failed · 0 errors ==================
 ```
+
+**Track 20.8 hardening delta:** the prior release-gate report noted "1 legitimately skipped design-branch" (`test_approve_without_employee_linkage_blocked`). Deep investigation on 2026-08-04 revealed the skip was firing on a payload bug (missing `record_type` field → 422 validation → skip fired), not a design branch. Classified **TD-20.8-A01 · Class A · FIXED** in-track. The test is now a hard-locked assertion covering both certified branches (quarantined create + blocked approve). See `TRACK_20_8_FIX_REPORT_TD_20_8_A01.md`.
 
 ## Test coverage
 
@@ -32,11 +34,11 @@ Full-envelope regression run against the live preview backend (`https://safety-a
 | `test_track_19_56_employee_thread_promotion.py` | ~10 | ✅ all pass |
 | `test_track_19_54_operational_guidance.py` | ~10 | ✅ all pass |
 | `test_track_19_55_operational_threads.py` | ~10 | ✅ all pass |
-| `test_track_19_21_e2e_live.py` | 11 | ✅ 10 pass · 1 legit design-branch skip |
+| `test_track_19_21_e2e_live.py` | 11 | ✅ all 11 pass · **0 skips** (Track 20.8 hardening removed the last design-branch skip; see TD-20.8-A01) |
 | `test_daily_reports.py` | 15 | ✅ all pass |
 | `test_job_photos.py` | 13 | ✅ all pass |
 
-**Total: 384 passed · 1 legit skipped · 0 failed · 0 errors.**
+**Total: 385 passed · 0 skipped · 0 failed · 0 errors.**
 
 ## Live browser smoke (Track 20.7 hold-over)
 
