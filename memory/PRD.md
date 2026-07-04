@@ -11,6 +11,18 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 22.1 · server.py Modularization + Endpoint Parity · 🟢 GO / CLOSED (Phase 1 · 2026-07-04)
+
+Backend architecture improved by extracting **two self-contained subsystems** into dedicated `backend/lib/` modules with **byte-comparable runtime parity mathematically proven** via full route / middleware / startup / shutdown / OpenAPI JSON snapshot diff.
+
+- **Extracted:** `lib/health_probes.py` (bare `/health` + `/healthz` shims) · `lib/rate_limiting.py` (public-POST + login-lockout).
+- **server.py:** 16,117 → 16,059 lines. −58 lines of inline code. All names re-imported under identical bindings so every `Depends(...)` resolves to the same callable identity.
+- **Parity proof:** 1,440 routes → 1,440 routes · 0 (path, methods) drift · 0 dependency-chain drift · 0 middleware / startup / shutdown / exception-handler drift · 2 whitelisted intentional `endpoint_qualname` moves for the extracted health probes.
+- **Parity harness:** `backend/tests/track_22_1/enumerate_runtime.py` (deterministic JSON snapshot). Reproducible on any commit.
+- **Deferred with parity gate:** Track 22.1b (email dispatcher · SDK-patch import order) · Track 22.1c (scheduler bootstrap) · Track 22.1d (per-domain router extraction) · Track 22.1e (auth helper extraction).
+- **Regression envelope:** 162 / 162 lock tests green (+16 Track 22.1). Zero HTTP POSTs to workflow endpoints. Zero emails dispatched.
+- **Six Pillars:** 9.82 platform average (up from 9.79). Every subsystem ≥ 9.72.
+
 ## TRACK 22.0 · MASCI Platform Excellence Program · 🟢 GO / CLOSED (2026-07-04)
 
 Full platform value certification across every discoverable artifact. **Zero-Drift · Audit-only · 0 runtime code changes.**

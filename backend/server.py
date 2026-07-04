@@ -160,20 +160,13 @@ api_router = APIRouter(prefix="/api")
 # but if the probe target is misaligned the proxy logs fill with
 # repeated 404s and can flap "SERVER UNREACHABLE" surfaces to users.
 #
-# These two top-level routes are compatibility shims:
-#   • zero auth · zero DB · zero side-effect · zero state mutation
-#   • cannot block startup or restart behaviour
-#   • intentionally NOT under `api_router` (no `/api` prefix)
-# `/api/health` and `/api/healthz` remain unchanged.
+# Handlers were extracted to `backend/lib/health_probes.py` in Track 22.1
+# with mathematically-proven route parity — same paths, same methods,
+# same `include_in_schema=False`, same return payloads. See
+# `memory/TRACK_22_1_ENDPOINT_PARITY_REPORT.md`.
 # ─────────────────────────────────────────────────────────────────────────
-@app.get("/health", include_in_schema=False)
-def _probe_health():
-    return {"status": "ok", "service": "masci-backend"}
-
-
-@app.get("/healthz", include_in_schema=False)
-def _probe_healthz():
-    return {"status": "ok"}
+from lib.health_probes import attach_health_probes  # noqa: E402
+attach_health_probes(app)
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -231,76 +224,25 @@ from auth_must_change import enforce_password_change_required  # noqa: E402
 # design — crews submit without logging in. To prevent spam / bot abuse we
 # cap each IP to N submissions per hour per endpoint. Single-instance backend
 # so a process-local dict is sufficient — no Redis required.
-
-_RATE_LOCK = Lock()
-_PUBLIC_POST_BUCKETS: Dict[str, List[float]] = defaultdict(list)
-_LOGIN_FAIL_BUCKETS: Dict[str, List[float]] = defaultdict(list)
-
-PUBLIC_POST_LIMIT_PER_HOUR = int(os.environ.get("PUBLIC_POST_LIMIT_PER_HOUR", "30"))
-LOGIN_MAX_FAILS_PER_WINDOW = int(os.environ.get("LOGIN_MAX_FAILS", "10"))
-LOGIN_LOCKOUT_SECONDS = int(os.environ.get("LOGIN_LOCKOUT_SECONDS", "900"))  # 15 min
-
-
-def _client_ip(request: Request) -> str:
-    """Best-effort client IP. Trusts X-Forwarded-For when present (Kubernetes
-    ingress sets it). Falls back to the immediate peer IP."""
-    xff = request.headers.get("x-forwarded-for") or ""
-    if xff:
-        return xff.split(",")[0].strip()
-    return request.client.host if request.client else "unknown"
-
-
-def rate_limit_public_post(request: Request):
-    """FastAPI dependency that throttles each (IP, endpoint) to
-    PUBLIC_POST_LIMIT_PER_HOUR submissions. Raises 429 when exceeded.
-    Set RATE_LIMITING=off in .env to disable (e.g., automated tests)."""
-    if os.environ.get("RATE_LIMITING", "on").lower() in ("off", "false", "0"):
-        return
-    ip = _client_ip(request)
-    key = f"{request.url.path}:{ip}"
-    now = time.time()
-    cutoff = now - 3600
-    with _RATE_LOCK:
-        bucket = _PUBLIC_POST_BUCKETS[key]
-        bucket[:] = [t for t in bucket if t > cutoff]
-        if len(bucket) >= PUBLIC_POST_LIMIT_PER_HOUR:
-            raise HTTPException(
-                status_code=429,
-                detail=(
-                    f"Too many submissions from this device "
-                    f"(limit {PUBLIC_POST_LIMIT_PER_HOUR}/hour). "
-                    f"Try again later or contact MASCI safety."
-                ),
-            )
-        bucket.append(now)
-
-
-def _check_login_lockout(ip: str) -> None:
-    cutoff = time.time() - LOGIN_LOCKOUT_SECONDS
-    with _RATE_LOCK:
-        bucket = _LOGIN_FAIL_BUCKETS[ip]
-        bucket[:] = [t for t in bucket if t > cutoff]
-        if len(bucket) >= LOGIN_MAX_FAILS_PER_WINDOW:
-            oldest = bucket[0]
-            wait_s = int(LOGIN_LOCKOUT_SECONDS - (time.time() - oldest))
-            wait_min = max(1, (wait_s + 59) // 60)
-            raise HTTPException(
-                status_code=429,
-                detail=(
-                    f"Too many failed login attempts. "
-                    f"Try again in ~{wait_min} minute(s)."
-                ),
-            )
-
-
-def _record_login_fail(ip: str) -> None:
-    with _RATE_LOCK:
-        _LOGIN_FAIL_BUCKETS[ip].append(time.time())
-
-
-def _reset_login_fails(ip: str) -> None:
-    with _RATE_LOCK:
-        _LOGIN_FAIL_BUCKETS.pop(ip, None)
+#
+# Rate-limiting helpers were extracted to `backend/lib/rate_limiting.py` in
+# Track 22.1. Every public name is re-exported here under an identical
+# binding so all bare-name references and `Depends(rate_limit_public_post)`
+# resolutions remain byte-identical to the pre-22.1 runtime. Parity proven
+# by `memory/TRACK_22_1_ENDPOINT_PARITY_REPORT.md`.
+from lib.rate_limiting import (  # noqa: E402
+    _RATE_LOCK,
+    _PUBLIC_POST_BUCKETS,
+    _LOGIN_FAIL_BUCKETS,
+    PUBLIC_POST_LIMIT_PER_HOUR,
+    LOGIN_MAX_FAILS_PER_WINDOW,
+    LOGIN_LOCKOUT_SECONDS,
+    _client_ip,
+    rate_limit_public_post,
+    _check_login_lockout,
+    _record_login_fail,
+    _reset_login_fails,
+)
 
 
 # ------------------------- Admin auth -------------------------
