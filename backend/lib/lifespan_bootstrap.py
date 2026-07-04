@@ -54,32 +54,107 @@ from __future__ import annotations
 import inspect
 import logging
 from contextlib import asynccontextmanager
-from typing import Any, AsyncIterator
+from dataclasses import dataclass, field
+from typing import Any, AsyncIterator, Callable, List
 
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# TRACK 22.1E · Lifecycle Step Registry.
+#
+# Migrated startup handlers register themselves here via
+# `@register_lifecycle_step(...)` at module import time. The
+# `orchestrated_lifespan` context manager runs LIFECYCLE_STEPS in
+# registration order BEFORE iterating `app.router.on_startup`.
+#
+# This is the Track 22.1E migration pattern that will grow over the
+# 22.1F–22.1K queue. Each future track migrates a small group of
+# handlers by removing their `@app.on_event("startup")` decorator and
+# replacing it with `@register_lifecycle_step(...)`. The function body
+# stays byte-identical (verified by bytecode fingerprint when required).
+#
+# ORDERING GUARANTEE: LIFECYCLE_STEPS entries run FIRST, in the source-file
+# order in which they were registered. This is safe for index-ensure
+# handlers because index creation is idempotent AND every consumer runs
+# later in the un-migrated on_startup chain — running indexes earlier is a
+# strict subset of correct behavior (indexes ready sooner, not later).
+# ---------------------------------------------------------------------------
+@dataclass
+class LifecycleStep:
+    group: str           # e.g. "index-ensure", "seed", "scheduler", "readiness"
+    name: str            # canonical handler name (matches original __name__)
+    fn: Callable         # async or sync callable
+    source_module: str   # for observability
+
+    def qualname(self) -> str:
+        return f"{self.source_module}.{self.name}"
+
+
+LIFECYCLE_STEPS: List[LifecycleStep] = []
+
+
+def register_lifecycle_step(group: str, name: str | None = None):
+    """Decorator: append a startup handler into `LIFECYCLE_STEPS`.
+
+    Track 22.1E migration pattern — replaces `@app.on_event("startup")`.
+    Preserves the callable's identity + module + qualname so bytecode
+    fingerprints, logging, and side-effect classifications all still work.
+    """
+    def _wrap(fn: Callable) -> Callable:
+        step = LifecycleStep(
+            group=group,
+            name=name or fn.__name__,
+            fn=fn,
+            source_module=fn.__module__,
+        )
+        LIFECYCLE_STEPS.append(step)
+        return fn
+    return _wrap
+
+
+async def _run_callable(fn: Callable) -> None:
+    if inspect.iscoroutinefunction(fn):
+        await fn()
+    else:
+        result = fn()
+        if inspect.isawaitable(result):
+            await result
+
+
 @asynccontextmanager
 async def orchestrated_lifespan(app: Any) -> AsyncIterator[None]:
-    """Deterministic FastAPI lifespan wrapping the existing on_event handlers.
+    """Deterministic FastAPI lifespan wrapping LIFECYCLE_STEPS + legacy on_event.
 
-    Preserves Starlette's legacy semantics byte-for-byte:
-      - startup handlers run in registration order
-      - each is awaited (or called sync-safely)
-      - shutdown handlers run in registration order too
+    Execution order:
+      1. LIFECYCLE_STEPS (Track 22.1E migration foundation) — first.
+      2. `app.router.on_startup` (remaining legacy decorators) — after.
+      3. yield.
+      4. `app.router.on_shutdown` (Track 22.1D behavior).
+
+    This is byte-identical to Starlette's default `on_event` dispatch when
+    LIFECYCLE_STEPS is empty (Track 22.1D state).
     """
-    # ---- STARTUP ----------------------------------------------------------
+    # ---- STARTUP: LIFECYCLE_STEPS first --------------------------------
+    logger.info("[track-22.1e] lifespan.startup: executing %d LIFECYCLE_STEPS", len(LIFECYCLE_STEPS))
+    for i, step in enumerate(LIFECYCLE_STEPS):
+        try:
+            await _run_callable(step.fn)
+        except Exception:
+            logger.exception(
+                "[track-22.1e] LIFECYCLE_STEP #%d %s.%s (group=%s) raised — re-raising",
+                i, step.source_module, step.name, step.group,
+            )
+            raise
+    logger.info("[track-22.1e] lifespan.startup: LIFECYCLE_STEPS complete")
+
+    # ---- STARTUP: remaining on_startup handlers ------------------------
     startup_handlers = list(getattr(app.router, "on_startup", []) or [])
     logger.info("[track-22.1d] lifespan.startup: executing %d handlers", len(startup_handlers))
     for i, fn in enumerate(startup_handlers):
         name = getattr(fn, "__qualname__", getattr(fn, "__name__", repr(fn)))
         try:
-            if inspect.iscoroutinefunction(fn):
-                await fn()
-            else:
-                result = fn()
-                if inspect.isawaitable(result):
-                    await result
+            await _run_callable(fn)
         except Exception:
             logger.exception(
                 "[track-22.1d] lifespan.startup handler #%d %s raised — re-raising to preserve Uvicorn boot-failure semantics",
@@ -97,12 +172,7 @@ async def orchestrated_lifespan(app: Any) -> AsyncIterator[None]:
         for i, fn in enumerate(shutdown_handlers):
             name = getattr(fn, "__qualname__", getattr(fn, "__name__", repr(fn)))
             try:
-                if inspect.iscoroutinefunction(fn):
-                    await fn()
-                else:
-                    result = fn()
-                    if inspect.isawaitable(result):
-                        await result
+                await _run_callable(fn)
             except Exception:
                 logger.exception(
                     "[track-22.1d] lifespan.shutdown handler #%d %s raised — swallowing to allow full shutdown",

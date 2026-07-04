@@ -1,0 +1,239 @@
+{
+  "count": 15,
+  "handlers": [
+    {
+      "arg_count": 0,
+      "bytecode_sha256": "124020c2f859fbfbf3e5dead51889e3349c77420a2d17062c4271322139e5901",
+      "docstring_first_line": null,
+      "index": 1,
+      "is_coroutine": true,
+      "lineno": 10609,
+      "module": "server",
+      "name": "_tune_asyncio_thread_pool",
+      "qualname": "_tune_asyncio_thread_pool",
+      "side_effects": [
+        "r2_storage"
+      ],
+      "sourcefile": "/app/backend/server.py"
+    },
+    {
+      "arg_count": 0,
+      "bytecode_sha256": "01637ba8270de688649404cb24cf5b7e2cad126e1c639d82dcbfc6caa9c1f997",
+      "docstring_first_line": null,
+      "index": 2,
+      "is_coroutine": true,
+      "lineno": 10633,
+      "module": "server",
+      "name": "_start_job_photos_indexer",
+      "qualname": "_start_job_photos_indexer",
+      "side_effects": [
+        "scheduler"
+      ],
+      "sourcefile": "/app/backend/server.py"
+    },
+    {
+      "arg_count": 0,
+      "bytecode_sha256": "31e2eb39f92b5e6a006098b5697d1bf341be65151d61e09073eb8526fd0b9151",
+      "docstring_first_line": "DEPLOY-FIX-001 \u00b7 Workstream A4 \u2014 startup sweep.",
+      "index": 5,
+      "is_coroutine": true,
+      "lineno": 10690,
+      "module": "server",
+      "name": "_deploy_fix_001_backup_orphan_sweep",
+      "qualname": "_deploy_fix_001_backup_orphan_sweep",
+      "side_effects": [
+        "backup"
+      ],
+      "sourcefile": "/app/backend/server.py"
+    },
+    {
+      "arg_count": 0,
+      "bytecode_sha256": "4caee0700f1cafe275c50583b7d8ad19d3645ea8a2d1649b94af7e2984cd9a9c",
+      "docstring_first_line": "M-1R \u00b7 Motive reliability supervisor.",
+      "index": 9,
+      "is_coroutine": true,
+      "lineno": 10758,
+      "module": "server",
+      "name": "_start_motive_reliability_loop",
+      "qualname": "_start_motive_reliability_loop",
+      "side_effects": [
+        "scheduler"
+      ],
+      "sourcefile": "/app/backend/server.py"
+    },
+    {
+      "arg_count": 0,
+      "bytecode_sha256": "32c475e3900113eaebc26ddd903745024a62abbb5f6c6c9a9fc695b985fae8c0",
+      "docstring_first_line": "One-shot idempotent migration (iter117).",
+      "index": 10,
+      "is_coroutine": true,
+      "lineno": 10781,
+      "module": "server",
+      "name": "_clear_super_admin_force_pw_change",
+      "qualname": "_clear_super_admin_force_pw_change",
+      "side_effects": [
+        "mongo_write"
+      ],
+      "sourcefile": "/app/backend/server.py"
+    },
+    {
+      "arg_count": 0,
+      "bytecode_sha256": "92d5def7a0e8a254dd1f1ae337b53c52591c208ceb196d63aa0d006d7fb9e34e",
+      "docstring_first_line": null,
+      "index": 16,
+      "is_coroutine": true,
+      "lineno": 11752,
+      "module": "server",
+      "name": "_arm_audit_ttl_indexes",
+      "qualname": "_arm_audit_ttl_indexes",
+      "side_effects": [
+        "digest",
+        "index",
+        "r2_storage"
+      ],
+      "sourcefile": "/app/backend/server.py"
+    },
+    {
+      "arg_count": 0,
+      "bytecode_sha256": "9aabbd4f4d5f0d1c0b7fede9ef7c35a5ae2640aec49c471182b2857bd7be8604",
+      "docstring_first_line": "Long-running weekly cron \u2014 Monday 14:00 UTC default. Email goes",
+      "index": 20,
+      "is_coroutine": true,
+      "lineno": 11952,
+      "module": "server",
+      "name": "_start_safety_digest_cron",
+      "qualname": "_start_safety_digest_cron",
+      "side_effects": [
+        "email",
+        "scheduler"
+      ],
+      "sourcefile": "/app/backend/server.py"
+    },
+    {
+      "arg_count": 0,
+      "bytecode_sha256": "9aabbd4f4d5f0d1c0b7fede9ef7c35a5ae2640aec49c471182b2857bd7be8604",
+      "docstring_first_line": "Long-running weekly cron \u2014 Monday 14:00 UTC default. Email goes",
+      "index": 21,
+      "is_coroutine": true,
+      "lineno": 11952,
+      "module": "server",
+      "name": "_start_safety_digest_cron",
+      "qualname": "_start_safety_digest_cron",
+      "side_effects": [
+        "email",
+        "scheduler"
+      ],
+      "sourcefile": "/app/backend/server.py"
+    },
+    {
+      "arg_count": 0,
+      "bytecode_sha256": "8f28a846fd2fa23f8b76cc154855a83f547ceeeaf59af2e23f863fa10a241e12",
+      "docstring_first_line": "Long-running weekly cron \u2014 Monday 14:00 UTC default. Email goes",
+      "index": 22,
+      "is_coroutine": true,
+      "lineno": 11979,
+      "module": "server",
+      "name": "_start_operator_digest_cron",
+      "qualname": "_start_operator_digest_cron",
+      "side_effects": [
+        "email",
+        "scheduler"
+      ],
+      "sourcefile": "/app/backend/server.py"
+    },
+    {
+      "arg_count": 0,
+      "bytecode_sha256": "5158200a64be314b070e9946fbead935035e5ea823b106a97a60f57ee3528c38",
+      "docstring_first_line": "iter246 F3 \u00b7 Long-running weekly cron sending the PO Request",
+      "index": 24,
+      "is_coroutine": true,
+      "lineno": 12049,
+      "module": "server",
+      "name": "_start_po_digest_cron",
+      "qualname": "_start_po_digest_cron",
+      "side_effects": [
+        "email",
+        "scheduler"
+      ],
+      "sourcefile": "/app/backend/server.py"
+    },
+    {
+      "arg_count": 0,
+      "bytecode_sha256": "15549c24d32932fc81f68692944d6a6052e4923fc6bcbba875bcaf73fa2edd4b",
+      "docstring_first_line": null,
+      "index": 26,
+      "is_coroutine": true,
+      "lineno": 12621,
+      "module": "server",
+      "name": "_cluster_capacity_history_loop",
+      "qualname": "_cluster_capacity_history_loop",
+      "side_effects": [
+        "scheduler"
+      ],
+      "sourcefile": "/app/backend/server.py"
+    },
+    {
+      "arg_count": 0,
+      "bytecode_sha256": "36bf2f8f3130e962f3ad0ab90bf3d8bf8804651791de8197724a5c785cdd4914",
+      "docstring_first_line": "Long-running weekly cron that sends a backup verification email",
+      "index": 28,
+      "is_coroutine": true,
+      "lineno": 12766,
+      "module": "server",
+      "name": "_start_backup_verification_cron",
+      "qualname": "_start_backup_verification_cron",
+      "side_effects": [
+        "backup",
+        "scheduler"
+      ],
+      "sourcefile": "/app/backend/server.py"
+    },
+    {
+      "arg_count": 0,
+      "bytecode_sha256": "76cc5ee2172a1bb59b5dc93d5a59e7f11e92a8b51c4c9ae4919f734d42d1fdce",
+      "docstring_first_line": null,
+      "index": 34,
+      "is_coroutine": true,
+      "lineno": 13496,
+      "module": "server",
+      "name": "_track_16_10_bootstrap_on_startup",
+      "qualname": "_track_16_10_bootstrap_on_startup",
+      "side_effects": [
+        "digest",
+        "scheduler"
+      ],
+      "sourcefile": "/app/backend/server.py"
+    },
+    {
+      "arg_count": 0,
+      "bytecode_sha256": "c7d29e0072aa7578855271dfd5d63a048b0f10d0d0d7bbc6819488d35b378a73",
+      "docstring_first_line": "Kick off the nightly full-backup scheduler as an asyncio task,",
+      "index": 36,
+      "is_coroutine": true,
+      "lineno": 15629,
+      "module": "server",
+      "name": "_start_backup_scheduler",
+      "qualname": "_start_backup_scheduler",
+      "side_effects": [
+        "backup",
+        "scheduler"
+      ],
+      "sourcefile": "/app/backend/server.py"
+    },
+    {
+      "arg_count": 0,
+      "bytecode_sha256": "5a6e39868e2200962b6ab0cdd0cc200d6b104e18faecd280e62d73a07ae81b75",
+      "docstring_first_line": null,
+      "index": 39,
+      "is_coroutine": true,
+      "lineno": 16034,
+      "module": "server",
+      "name": "_dispatch_reminder_scheduler_start",
+      "qualname": "_dispatch_reminder_scheduler_start",
+      "side_effects": [
+        "scheduler"
+      ],
+      "sourcefile": "/app/backend/server.py"
+    }
+  ]
+}

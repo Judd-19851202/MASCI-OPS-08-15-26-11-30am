@@ -1,0 +1,163 @@
+{
+  "count": 11,
+  "handlers": [
+    {
+      "arg_count": 0,
+      "bytecode_sha256": "95fbf4c4446608463d952008bd828cd0b8dd2cae87727f8d557aebd92fec862c",
+      "docstring_first_line": null,
+      "index": 0,
+      "is_coroutine": true,
+      "lineno": 10551,
+      "module": "server",
+      "name": "_ensure_scheduler_lock_indexes_at_startup",
+      "qualname": "_ensure_scheduler_lock_indexes_at_startup",
+      "side_effects": [],
+      "sourcefile": "/app/backend/server.py"
+    },
+    {
+      "arg_count": 0,
+      "bytecode_sha256": "7c5ca9fd241649375802d94bbf61a0ebaa02a22a9094a3ea9557ca84109ddd71",
+      "docstring_first_line": "Track 14.0-JOB-OWNERSHIP-FOUNDATION Phase 1 \u2014 index ensure.",
+      "index": 6,
+      "is_coroutine": true,
+      "lineno": 10633,
+      "module": "server",
+      "name": "_ensure_project_team_assignments_indexes",
+      "qualname": "_ensure_project_team_assignments_indexes",
+      "side_effects": [
+        "index",
+        "mongo_write"
+      ],
+      "sourcefile": "/app/backend/server.py"
+    },
+    {
+      "arg_count": 0,
+      "bytecode_sha256": "6aef109dac0bb8d9aefd481aba1ffed805a3e07d1648b208677f3f3abd52b9d3",
+      "docstring_first_line": null,
+      "index": 15,
+      "is_coroutine": true,
+      "lineno": 11327,
+      "module": "server",
+      "name": "_startup_trust_spine_indexes",
+      "qualname": "_startup_trust_spine_indexes",
+      "side_effects": [
+        "index"
+      ],
+      "sourcefile": "/app/backend/server.py"
+    },
+    {
+      "arg_count": 0,
+      "bytecode_sha256": "abaef108207b0c64fe2240ffa4b7e46441dfa3ad7bcc268e4b3bb384b40a1591",
+      "docstring_first_line": null,
+      "index": 23,
+      "is_coroutine": true,
+      "lineno": 11853,
+      "module": "server",
+      "name": "_arm_hot_id_indexes",
+      "qualname": "_arm_hot_id_indexes",
+      "side_effects": [
+        "index"
+      ],
+      "sourcefile": "/app/backend/server.py"
+    },
+    {
+      "arg_count": 0,
+      "bytecode_sha256": "dd8742fe885863fb58566e4138a4f4bbec3339b49b761d5af9f499091398722a",
+      "docstring_first_line": null,
+      "index": 24,
+      "is_coroutine": true,
+      "lineno": 11868,
+      "module": "server",
+      "name": "_arm_workflow_state_events_indexes",
+      "qualname": "_arm_workflow_state_events_indexes",
+      "side_effects": [
+        "index"
+      ],
+      "sourcefile": "/app/backend/server.py"
+    },
+    {
+      "arg_count": 0,
+      "bytecode_sha256": "81047757995f96112e7b8f0e632b1ed13fe63e122eff882689829232fb84c2ec",
+      "docstring_first_line": null,
+      "index": 25,
+      "is_coroutine": true,
+      "lineno": 11894,
+      "module": "server",
+      "name": "_arm_iter142_perf_indexes",
+      "qualname": "_arm_iter142_perf_indexes",
+      "side_effects": [
+        "index"
+      ],
+      "sourcefile": "/app/backend/server.py"
+    },
+    {
+      "arg_count": 0,
+      "bytecode_sha256": "69249ad7318a3a9ba29143b328d637519ebf799438f069dd470dee296bd9f9c4",
+      "docstring_first_line": null,
+      "index": 31,
+      "is_coroutine": true,
+      "lineno": 12145,
+      "module": "server",
+      "name": "_li_ensure_indexes",
+      "qualname": "_li_ensure_indexes",
+      "side_effects": [
+        "index"
+      ],
+      "sourcefile": "/app/backend/server.py"
+    },
+    {
+      "arg_count": 0,
+      "bytecode_sha256": "e76def8e6fff7787d4e05a4e86297fe3d9b82bd9ba422dda3bd20ab9ac3edbdc",
+      "docstring_first_line": "Index fleet collections at boot \u00b7 idempotent.",
+      "index": 33,
+      "is_coroutine": true,
+      "lineno": 12320,
+      "module": "server",
+      "name": "_fleet_ensure_indexes",
+      "qualname": "_fleet_ensure_indexes",
+      "side_effects": [
+        "index"
+      ],
+      "sourcefile": "/app/backend/server.py"
+    },
+    {
+      "arg_count": 0,
+      "bytecode_sha256": "3b62ae30ffba7cd56f4f44af7f9703b6db2eca2555f60bf635cf1c6f14a21a2b",
+      "docstring_first_line": null,
+      "index": 36,
+      "is_coroutine": true,
+      "lineno": 12676,
+      "module": "server",
+      "name": "_ensure_dls_indexes",
+      "qualname": "_ensure_dls_indexes",
+      "side_effects": [],
+      "sourcefile": "/app/backend/server.py"
+    },
+    {
+      "arg_count": 0,
+      "bytecode_sha256": "8de8513298001e3c53fd607a17cdf6bfbffd381806a025e4b9ce99039feda070",
+      "docstring_first_line": null,
+      "index": 37,
+      "is_coroutine": true,
+      "lineno": 12705,
+      "module": "server",
+      "name": "_ensure_driver_session_indexes",
+      "qualname": "_ensure_driver_session_indexes",
+      "side_effects": [],
+      "sourcefile": "/app/backend/server.py"
+    },
+    {
+      "arg_count": 0,
+      "bytecode_sha256": "8de8513298001e3c53fd607a17cdf6bfbffd381806a025e4b9ce99039feda070",
+      "docstring_first_line": null,
+      "index": 39,
+      "is_coroutine": true,
+      "lineno": 13014,
+      "module": "server",
+      "name": "_ensure_passkey_indexes",
+      "qualname": "_ensure_passkey_indexes",
+      "side_effects": [],
+      "sourcefile": "/app/backend/server.py"
+    }
+  ]
+}

@@ -255,6 +255,11 @@ from lib.rate_limiting import (  # noqa: E402
     _reset_login_fails,
 )
 
+# TRACK 22.1E · migrate index-ensure handlers from @app.on_event("startup")
+# into `LIFECYCLE_STEPS`. The lifespan orchestrator (Track 22.1D) runs
+# LIFECYCLE_STEPS first, then remaining legacy on_startup decorators.
+from lib.lifespan_bootstrap import register_lifecycle_step  # noqa: E402
+
 
 # ------------------------- Admin auth -------------------------
 # Simple shared-password gate. The "token" returned to the client is a
@@ -10559,7 +10564,7 @@ _attach_field_leadership_routes(
 )
 
 
-@app.on_event("startup")
+@register_lifecycle_step("index-ensure")
 async def _ensure_scheduler_lock_indexes_at_startup():
     # iter441 · Phase 31.4 · multi-worker scheduler safety.
     # TTL index on scheduler_locks.expires_at so dead locks auto-clean
@@ -10641,7 +10646,7 @@ async def _seed_shop_users():
     await seed_shop_users(db)
 
 
-@app.on_event("startup")
+@register_lifecycle_step("index-ensure")
 async def _ensure_project_team_assignments_indexes():
     """Track 14.0-JOB-OWNERSHIP-FOUNDATION Phase 1 — index ensure."""
     try:
@@ -11335,7 +11340,7 @@ app.include_router(_trust_make_router(db, require_admin))
 from routes.admin_trust_spine import make_router as _spine_make_router  # noqa: E402
 app.include_router(_spine_make_router(db, require_admin))
 from lib.trust_spine import ensure_indexes as _spine_ensure_indexes  # noqa: E402
-@app.on_event("startup")
+@register_lifecycle_step("index-ensure")
 async def _startup_trust_spine_indexes():  # noqa: D401
     await _spine_ensure_indexes(db)
 
@@ -11861,7 +11866,7 @@ async def _seed_safety_users():
 #     collections so the deploy-readiness probe stops warning. These
 #     are read on essentially every CRUD-by-id path and were previously
 #     defaulting to collection-scan. create_index is idempotent.
-@app.on_event("startup")
+@register_lifecycle_step("index-ensure")
 async def _arm_hot_id_indexes():
     for coll_name in ("fire_extinguishers", "corrective_actions", "incidents",
                       "inspections", "safety_training_records",
@@ -11876,7 +11881,7 @@ async def _arm_hot_id_indexes():
 #     Idempotent index battery for the new universal audit collection
 #     used by the Phase 1A lifecycle transitions. Failures are logged
 #     but never block boot (ensure_indexes swallows internally too).
-@app.on_event("startup")
+@register_lifecycle_step("index-ensure")
 async def _arm_workflow_state_events_indexes():
     try:
         from lib.workflow_state_events import ensure_indexes as _wse_idx  # noqa: PLC0415
@@ -11902,7 +11907,7 @@ async def _arm_workflow_state_events_indexes():
 
 # ─── Iter142 (Phase-1 Iter D): targeted index + TTL fixes surfaced by
 #     scripts/qa_audit.py. All idempotent. Pairs with QA_PERF_AUDIT.md.
-@app.on_event("startup")
+@register_lifecycle_step("index-ensure")
 async def _arm_iter142_perf_indexes():
     # Indexes that resolve the 2 COLLSCANs found by the audit, plus
     # the index recommendations on hot list endpoints.
@@ -12153,7 +12158,7 @@ import photo_storage as _ps  # noqa: E402
 from fastapi import UploadFile, File, Form  # noqa: E402,PLC0415
 
 
-@app.on_event("startup")
+@register_lifecycle_step("index-ensure")
 async def _li_ensure_indexes():
     await _li.ensure_indexes(db)
 
@@ -12328,7 +12333,7 @@ async def _require_shop_or_admin_fleet(
 # above into `routes/fleet_ops_deps.make_require_any_fleet_portal`.
 
 
-@app.on_event("startup")
+@register_lifecycle_step("index-ensure")
 async def _fleet_ensure_indexes():
     """Index fleet collections at boot · idempotent."""
     try:
@@ -12684,7 +12689,7 @@ _dispatch_continuity_router = build_dispatch_continuity_router(
 app.include_router(_dispatch_continuity_router)
 
 
-@app.on_event("startup")
+@register_lifecycle_step("index-ensure")
 async def _ensure_dls_indexes() -> None:
     try:
         await ensure_dispatch_lifecycle_indexes(db)
@@ -12713,7 +12718,7 @@ _driver_router = build_driver_router(
 app.include_router(_driver_router)
 
 
-@app.on_event("startup")
+@register_lifecycle_step("index-ensure")
 async def _ensure_driver_session_indexes() -> None:
     try:
         await ensure_driver_session_indexes(db)
@@ -13022,7 +13027,7 @@ _passkeys_router = build_passkeys_router(
 app.include_router(_passkeys_router)
 
 
-@app.on_event("startup")
+@register_lifecycle_step("index-ensure")
 async def _ensure_passkey_indexes() -> None:
     try:
         await ensure_passkey_indexes(db)
