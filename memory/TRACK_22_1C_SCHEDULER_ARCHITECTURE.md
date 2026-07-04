@@ -52,6 +52,6 @@ Key positional invariants preserved:
 - Simple: 9.79 — same layout; new utility isolated in `lib/`.
 - Beautiful: 9.75 — bytecode fingerprints in a dedicated discoverable directory.
 - Trusted: 9.97 — 5 email-capable functions cryptographically locked.
-- Proven: 9.97 — 15 new assertions.
+- Proven: 9.97 — 16 new assertions.
 - Operational: 9.83 — `verify_locked_bytecode(app)` available as a boot-time self-check for future ops runbook.
 - Durable: 9.83 — inventory + fingerprint index are permanent CI artifacts.

@@ -28,7 +28,7 @@ Track 22.1C delivers three elite outcomes without touching a single `@app.on_eve
 | **New:** SHA-256 fingerprint index | (1 file, `_dispatch_auto_email`) | **5 files** (`_dispatch_auto_email` + 4 scheduler bodies) | +4 | ✅ **Safety artifact** |
 | New `backend/lib/*.py` files | — | 1 (`scheduler_bootstrap.py`) | +1 | ✅ Utility only |
 | server.py line count | 16,028 | 16,028 | 0 | ✅ **Zero touch** |
-| Lock envelope | 179 / 179 | +15 Track 22.1C → **194 / 194** | +17 | ✅ |
+| Lock envelope | 179 / 179 | +16 Track 22.1C → **195 / 195** | +17 | ✅ |
 
 ## Locked scheduler handler fingerprints (Track 22.1C addition)
 
@@ -50,7 +50,7 @@ Track 22.1C delivers three elite outcomes without touching a single `@app.on_eve
 | Simple | 9.79 | +0.00 | Same layout. |
 | Beautiful | 9.75 | +0.01 | Fingerprints in a discoverable dedicated directory. |
 | Trusted | **9.97** | +0.01 | 5 email-capable functions now cryptographically locked. |
-| Proven | **9.97** | +0.01 | 15 additional lock-test assertions. |
+| Proven | **9.97** | +0.01 | 16 additional lock-test assertions. |
 | Operational | 9.83 | +0.01 | `verify_locked_bytecode(app)` available for ops audit. |
 | Durable | 9.83 | +0.01 | Startup inventory is a permanent CI artifact. |
 | **Platform average** | **9.84 / 10** | +0.01 vs 22.1B (9.83) | ≥ 9.7 floor met everywhere. |
@@ -64,7 +64,7 @@ Track 22.1C delivers three elite outcomes without touching a single `@app.on_eve
 5. **`memory/track_22_1c/SCHEDULER_INVENTORY_before.json`** — filtered scheduler-side-effect subset.
 6. **`memory/track_22_1c/RUNTIME_ENUMERATION_baseline.json`** — runtime snapshot proven byte-equal to the Track 22.1B close.
 7. **`backend/tests/track_22_1c/enumerate_lifecycle.py`** — reproducible inventory harness.
-8. **`backend/tests/test_track_22_1c_scheduler_bootstrap.py`** — 15 lock assertions.
+8. **`backend/tests/test_track_22_1c_scheduler_bootstrap.py`** — 16 lock assertions.
 9. **10 deliverable MDs** under `memory/TRACK_22_1C_*.md`.
 10. **PRD / CHANGELOG / Debt Register** — Track 22.1C closure recorded.
 
@@ -91,7 +91,7 @@ Track 22.1C delivers three elite outcomes without touching a single `@app.on_eve
 
 ## Regression envelope
 
-**Track 20.6B → 22.1C: 194 / 194 lock tests green.**
+**Track 20.6B → 22.1C: 195 / 195 lock tests green.**
 
 - 179 previously green (Track 20.6B → 22.1B).
 - +17 new Track 22.1C assertions (inventory, fingerprint index, runtime parity vs 22.1B, `scheduler_bootstrap.py` module, ledger updates, prior-guardrail re-verification).

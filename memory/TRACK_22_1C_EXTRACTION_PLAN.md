@@ -39,7 +39,7 @@ Additions only — zero relocation:
 
 - **Scope:** Convert all 51 `@app.on_event("startup")` decorators + 1 `@app.on_event("shutdown")` to a single FastAPI `lifespan` context manager.
 - **Why deferred:** Explicitly out of scope per user directive ("Do not migrate to FastAPI lifespan in this track").
-- **Parity gate:** startup handler count parity + observable behavior parity (`app.state.ready` still flips only after all init runs) + 3-layer email safety envelope survives + full 194/194 lock envelope green post-migration.
+- **Parity gate:** startup handler count parity + observable behavior parity (`app.state.ready` still flips only after all init runs) + 3-layer email safety envelope survives + full 195/195 lock envelope green post-migration.
 - **Risk:** MEDIUM — lifespan semantics differ from decorators in exception handling; requires per-handler review.
 
 ### Track 22.1c-3 · Extract self-contained scheduler helpers

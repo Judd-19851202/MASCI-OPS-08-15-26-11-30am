@@ -18,9 +18,9 @@
 | `test_track_22_1_server_modularization.py` | ✅ 16/16 |
 | `test_track_22_1b_email_dispatch.py` | ✅ 17/17 |
 | `test_track_22_1c_scheduler_bootstrap.py` (**new**) | ✅ 17/17 |
-| **Total** | ✅ **194 / 194** |
+| **Total** | ✅ **195 / 195** |
 
-## Track 22.1C new assertions (15)
+## Track 22.1C new assertions (16)
 
 Located in `backend/tests/test_track_22_1c_scheduler_bootstrap.py`:
 

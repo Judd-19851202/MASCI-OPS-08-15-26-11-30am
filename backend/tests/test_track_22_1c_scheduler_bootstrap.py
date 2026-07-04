@@ -124,6 +124,21 @@ def test_all_locked_handlers_match_live_bytecode():
 
 
 # --- New scheduler_bootstrap module -----------------------------------------
+def test_fingerprint_index_matches_sibling_txt_files():
+    """INDEX.json is the canonical source; per-handler .sha256.txt files
+    are human-readable duplicates. Guard against silent drift between the
+    two sources (raised by Track 22.1C testing agent review)."""
+    idx = json.loads((FP_DIR / "INDEX.json").read_text(encoding="utf-8"))
+    for name, fp in idx.items():
+        txt = FP_DIR / f"{name}.sha256.txt"
+        assert txt.is_file(), f"missing sibling txt for {name}"
+        sibling = txt.read_text(encoding="utf-8").strip()
+        assert sibling == fp, (
+            f"fingerprint drift between INDEX.json and {name}.sha256.txt: "
+            f"index={fp} sibling={sibling}"
+        )
+
+
 def test_scheduler_bootstrap_module_exists():
     p = BACKEND / "lib" / "scheduler_bootstrap.py"
     assert p.is_file()

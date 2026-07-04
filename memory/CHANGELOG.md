@@ -15,7 +15,7 @@ Inventory + bytecode-lock extension. **Zero `@app.on_event` handler was physical
 - **`memory/track_22_1c/SCHEDULER_INVENTORY_before.json`** — filtered scheduler-side-effect subset (16 handlers).
 - **`memory/track_22_1c/RUNTIME_ENUMERATION_baseline.json`** — byte-equal to Track 22.1B close.
 - **`backend/tests/track_22_1c/enumerate_lifecycle.py`** — reproducible inventory harness (deterministic JSON output).
-- **`backend/tests/test_track_22_1c_scheduler_bootstrap.py`** — 15 lock assertions.
+- **`backend/tests/test_track_22_1c_scheduler_bootstrap.py`** — 16 lock assertions.
 - **10 memory MDs** under `memory/TRACK_22_1C_*.md`.
 
 ### Parity proof
@@ -34,7 +34,7 @@ Inventory + bytecode-lock extension. **Zero `@app.on_event` handler was physical
 - 🟢 No workflow POSTs from lock tests.
 
 ### Regression envelope
-Track 20.6B → 22.1C: **194 / 194 lock tests green** (+15 Track 22.1C).
+Track 20.6B → 22.1C: **195 / 195 lock tests green** (+16 Track 22.1C).
 
 ### Six Pillars
 Platform average: **9.84 / 10** (up from 9.83). Trusted 9.97 · Proven 9.97 · Operational 9.83.

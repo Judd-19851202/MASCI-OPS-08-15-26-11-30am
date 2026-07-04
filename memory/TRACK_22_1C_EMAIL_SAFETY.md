@@ -39,7 +39,7 @@ Files: `memory/BYTECODE_FINGERPRINTS/<name>.sha256.txt` + `INDEX.json`.
 - Boot log records `[Track 21.2] EMAIL_SAFETY_MODE=strict — Resend SDK patched. No live email can leave this pod.`
 - Runtime probe `python -c "import resend; import server; print(resend.Emails.send({...}))"` returns `{"id":"blocked_by_email_safety_mode","status":"skipped"}`.
 - Preview `.env` retains `EMAIL_SAFETY_MODE=strict`.
-- 194 / 194 lock envelope green with zero emails.
+- 195 / 195 lock envelope green with zero emails.
 
 ## Six Pillars
 
