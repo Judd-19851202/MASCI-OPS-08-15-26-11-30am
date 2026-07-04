@@ -11,6 +11,30 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 22.2 · Phase B · App.js Modernization · 🟡 INVENTORY COMPLETE · STOP PER CONSTITUTION (2026-02-04)
+
+Full read-only inventory delivered per user directive for the context-budget hedge (question 4 · option a). **Zero App.js code change** this session. All artifacts required to execute Phase B in a single fresh session are in place under `/app/memory/TRACK_22_2_*.md` and `/app/memory/track_22_2/*`.
+
+- **App.js audit:** 1,283 lines · 94,062 bytes · 138 eager imports · 180 lazy imports · **385 routes** (all unique · zero duplicates) · 11 guard aliases · 1 provider (`BrandingProvider`) · 15 chrome components · 52 route-group buckets.
+- **Machine cross-reference:** 0 confirmed-dead imports · 0 duplicate paths · 3 comment blocks pre-approved for deletion during Phase B execution.
+- **Deliverables:** `TRACK_22_2_APP_JS_HANDOFF.md`, `TRACK_22_2_ROUTE_MAP.md`, `TRACK_22_2_PROVIDER_GRAPH.md`, `TRACK_22_2_GUARD_GRAPH.md`, `TRACK_22_2_EXTRACTION_PLAN.md`, `TRACK_22_2_DEAD_CODE_REPORT.md`, `TRACK_22_2_RISK_MATRIX.md`, `TRACK_22_2_NEXT_SESSION_PROMPT.md`, `track_22_2/APP_JS_INVENTORY.json`, `track_22_2/APP_JS_ROUTE_GROUPS.json`, `track_22_2/extract_app_js_inventory.py` (reproducible parity extractor).
+- **Constitutional attestations for this session:** zero code change · zero behavior change · `EMAIL_SAFETY_MODE=strict` intact · Phase A (Track 22.4A) fully closed before Phase B inventory began.
+- **Next session:** paste `TRACK_22_2_NEXT_SESSION_PROMPT.md` — execution can proceed uninterrupted with full context runway.
+
+
+## TRACK 22.4A · Pydantic V2 Completion · 🟢 GO / CLOSED · VERIFIED (2026-02-04)
+
+Final elimination of Pydantic V1 legacy syntax across the backend. Converted the single remaining `class Config` (in `routes/passkeys.py::GenericPayload`) to `model_config = ConfigDict(extra="allow")`. Post-audit inventory confirms zero backend occurrences of `class Config`, `schema_extra`, `json_encoders`, `@validator`, or `@root_validator`. Runtime `PydanticDeprecatedSince20` no longer fires from any backend module.
+
+- **Files touched (1):** `routes/passkeys.py` (3-line diff: add `ConfigDict` import + replace 3 lines of Config).
+- **Parity:** 1,441 routes · 1,445 methods · 1,264 OpenAPI · 7 middleware · **0 on_startup · 0 on_shutdown · 51 LIFECYCLE_STEPS · 1 SHUTDOWN_STEPS** · 9/9 bytecode fingerprints clean · `lifecycle_complete=true`.
+- **Semantic parity:** `model_config["extra"] = "allow"` preserved identically. Zero validation drift.
+- **Permanent CI guardrails (4 new):** `test_zero_pydantic_v1_class_config_in_backend`, `test_zero_pydantic_v1_deprecated_kwargs`, `test_zero_pydantic_v1_validator_decorators`, `test_runtime_no_pydantic_class_config_deprecation`.
+- **Constitutional compliance:** Zero suppression. Zero behavior change. `EMAIL_SAFETY_MODE=strict` intact. No live emails. Track 22.3 `pattern=` sweep intact.
+- **Deliverables:** `TRACK_22_4A_EXECUTIVE_SUMMARY.md`, `TRACK_22_4A_PYDANTIC_V2_INVENTORY.md`, `TRACK_22_4A_ZERO_DRIFT_MATRIX.md`, `TRACK_22_4A_TEST_REPORT.md`.
+- **Eight Pillars:** 9.98 platform average · Zero Drift 10.00.
+
+
 ## TRACK 22.3 · Pydantic v2 Hygiene Sweep · 🟢 GO / CLOSED · VERIFIED (2026-07-04 · re-verified 2026-02-04)
 
 Eliminated all deprecated Pydantic v2 `regex=` usage in FastAPI parameter constraints — 12 mechanical `regex=` → `pattern=` renames across 8 files (`operations_map_contract.py`, `operational_events.py` ×3, `verification.py`, `operational_locations.py`, `asset_mapping_recon.py`, `sprint_a.py`, `integrations/autolink.py` ×3, `equipment_detection.py`). Zero validation drift · zero API contract change · zero warning suppression. Starlette CORS `allow_origin_regex=` explicitly preserved. Runtime probe reports 0 `regex=` DeprecationWarnings after the sweep. New AST-based permanent CI guardrail (`test_zero_pydantic_regex_kwarg_anywhere_in_backend`) prevents any future re-introduction. Routes/methods/OpenAPI/middleware/bytecode all unchanged. Lifecycle-complete attestation intact. Eight Pillars 9.98 platform average.

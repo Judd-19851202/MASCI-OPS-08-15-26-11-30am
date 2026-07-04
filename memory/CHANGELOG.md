@@ -1,5 +1,33 @@
 # CHANGELOG
 
+## 2026-02-04 — TRACK 22.2 · Phase B · App.js Modernization · 🟡 INVENTORY COMPLETE · STOP PER CONSTITUTION
+
+Zero App.js code change. Full machine-extracted read-only inventory + graphs + extraction plan delivered per the user's context-budget hedge directive (question 4 · option a).
+
+- **App.js audit:** 1,283 lines · 138 eager imports · 180 lazy imports · **385 routes** · 11 guard aliases · 1 provider (`BrandingProvider`) · 15 chrome components · 52 route-group buckets. Zero duplicate paths. Zero dead imports.
+- **Guard distribution:** PUBLIC 143 · A 65 · AP 45 · SF 33 · H 28 · S 25 · P 22 · DP 10 · D 6 · FL 4 · APS 3 · TX 1.
+- **Load distribution:** lazy 204 · eager 170 · inline/local 11.
+- **Deliverables (11):** `TRACK_22_2_APP_JS_HANDOFF.md`, `ROUTE_MAP.md`, `PROVIDER_GRAPH.md`, `GUARD_GRAPH.md`, `EXTRACTION_PLAN.md`, `DEAD_CODE_REPORT.md`, `RISK_MATRIX.md`, `NEXT_SESSION_PROMPT.md` + `track_22_2/APP_JS_INVENTORY.json` + `track_22_2/APP_JS_ROUTE_GROUPS.json` + `track_22_2/extract_app_js_inventory.py`.
+- **Extractor:** reproducible; same script runs pre + post refactor. Parity harness = JSON-diff empty.
+- **Constitution:** zero code change · zero behavior change · Phase A closed before Phase B started · STOP correctly invoked.
+
+---
+
+## 2026-02-04 — TRACK 22.4A · Pydantic V2 Completion · 🟢 GO / CLOSED
+
+Final Pydantic V1 → V2 modernization. Converted the single remaining `class Config` (in `routes/passkeys.py::GenericPayload`) to `model_config = ConfigDict(extra="allow")`. Backend is now 100% Pydantic V2 idiomatic.
+
+- **Files touched:** `routes/passkeys.py` (3-line diff: add `ConfigDict` import + swap 3 Config-body lines).
+- **Post-audit backend inventory:** 0 `class Config` · 0 `schema_extra` · 0 `json_encoders` · 0 `@validator` · 0 `@root_validator` · 0 V1 validator imports.
+- **Runtime warning probe:** `PydanticDeprecatedSince20` from passkeys module dropped from **1 → 0** per import.
+- **CI guardrails (4 new, permanent):** `test_zero_pydantic_v1_class_config_in_backend`, `test_zero_pydantic_v1_deprecated_kwargs`, `test_zero_pydantic_v1_validator_decorators`, `test_runtime_no_pydantic_class_config_deprecation`.
+- **Parity:** 1,441 routes · 1,445 methods · 1,264 OpenAPI · 7 middleware · **0 on_startup · 0 on_shutdown · 51 LIFECYCLE_STEPS · 1 SHUTDOWN_STEPS** · 9/9 bytecode fingerprints clean · `lifecycle_complete=true`.
+- **Deliverables:** 4 markdowns (`TRACK_22_4A_*.md`) + new lock test with 12 assertions.
+- **Rollback:** revert `routes/passkeys.py` (3-line diff). Zero data change.
+- **Eight Pillars:** 9.98 platform average · Zero Drift 10.00.
+
+---
+
 ## 2026-02-04 — TRACK 22.3 · Closure Verification · 🟢 VERIFIED
 
 Independent backend testing subagent re-executed the Track 22.3 closure envelope. 11/11 lock tests pass. 242/242 across the full Track 22.* regression pass. Grep confirms the only `regex=` hit backend-wide is `server.py:15831 allow_origin_regex=` (Starlette CORS, deliberately preserved). Live smoke `GET /api/admin/platform/status → 401 admin-gated` confirms backend healthy and auth semantics intact. `after` warning inventory shows zero `regex=` DeprecationWarnings. All 8 `TRACK_22_3_*.md` deliverables present and non-empty. Email safety strict, resend SDK patched, live emails impossible. Zero action items. Report: `/app/test_reports/iteration_track_22_3_verify.json`. New deliverable added: `TRACK_22_3_TEST_REPORT.md`.

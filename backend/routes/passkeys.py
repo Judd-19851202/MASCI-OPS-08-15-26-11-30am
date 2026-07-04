@@ -25,7 +25,7 @@ from datetime import datetime, timezone
 from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 from fastapi import APIRouter, Body, Depends, Header, HTTPException, Request
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from webauthn import (
     generate_authentication_options,
@@ -130,8 +130,7 @@ class LoginOptionsBody(BaseModel):
 
 class GenericPayload(BaseModel):
     # WebAuthn ceremony payloads use deep nested JSON · accept dict.
-    class Config:
-        extra = "allow"
+    model_config = ConfigDict(extra="allow")
 
 
 # ════════════════════════════════════════════════════════════════════

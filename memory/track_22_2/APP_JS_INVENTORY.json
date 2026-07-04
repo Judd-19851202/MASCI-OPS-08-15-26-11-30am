@@ -1,0 +1,5576 @@
+{
+  "source_file": "/app/frontend/src/App.js",
+  "source_size_bytes": 93598,
+  "source_lines": 1283,
+  "counts": {
+    "eager_imports": 138,
+    "lazy_imports": 180,
+    "guards": 11,
+    "routes": 385,
+    "providers": 1,
+    "chrome_components": 15,
+    "dead_import_candidates": 0,
+    "duplicate_paths": 0,
+    "unique_paths": 385
+  },
+  "guards": [
+    {
+      "line": 408,
+      "alias": "A",
+      "component": "RequireAdmin"
+    },
+    {
+      "line": 413,
+      "alias": "TX",
+      "component": "RequireTransportationPortal"
+    },
+    {
+      "line": 414,
+      "alias": "AP",
+      "component": "RequireAdminOrPm"
+    },
+    {
+      "line": 418,
+      "alias": "APS",
+      "component": "RequireAdminPmOrSafety"
+    },
+    {
+      "line": 419,
+      "alias": "P",
+      "component": "RequirePm"
+    },
+    {
+      "line": 420,
+      "alias": "S",
+      "component": "RequireShop"
+    },
+    {
+      "line": 421,
+      "alias": "H",
+      "component": "RequireHr"
+    },
+    {
+      "line": 422,
+      "alias": "FL",
+      "component": "RequireFl"
+    },
+    {
+      "line": 423,
+      "alias": "SF",
+      "component": "RequireSafety"
+    },
+    {
+      "line": 424,
+      "alias": "DP",
+      "component": "RequireDispatch"
+    },
+    {
+      "line": 425,
+      "alias": "D",
+      "component": "RequireDev"
+    }
+  ],
+  "providers": [
+    {
+      "line": 457,
+      "component": "BrandingProvider"
+    }
+  ],
+  "chrome_components": [
+    "SplashOverlay",
+    "Toaster",
+    "QueueStatusPill",
+    "OfflineBanner",
+    "GlobalKeepalive",
+    "BackendStatusBanner",
+    "ClusterCapacityBanner",
+    "EnvBanner",
+    "BannerStrip",
+    "BrowserRouter",
+    "ScrollToTop",
+    "EnforcePortalScope",
+    "MultiPortalHydrator",
+    "IdleTimeout",
+    "SessionStatusOverlay"
+  ],
+  "eager_imports": [
+    {
+      "line": 1,
+      "names": [
+        "React"
+      ],
+      "module": "react",
+      "kind": "default"
+    },
+    {
+      "line": 3,
+      "names": [
+        "BrowserRouter",
+        "Routes",
+        "Route",
+        "Navigate"
+      ],
+      "module": "react-router-dom",
+      "kind": "named"
+    },
+    {
+      "line": 4,
+      "names": [
+        "Toaster"
+      ],
+      "module": "sonner",
+      "kind": "named"
+    },
+    {
+      "line": 6,
+      "names": [
+        "Hub"
+      ],
+      "module": "@/pages/Hub",
+      "kind": "default"
+    },
+    {
+      "line": 8,
+      "names": [
+        "BrandingProvider"
+      ],
+      "module": "@/lib/BrandingProvider",
+      "kind": "named"
+    },
+    {
+      "line": 39,
+      "names": [
+        "SafetySection"
+      ],
+      "module": "@/pages/SafetySection",
+      "kind": "default"
+    },
+    {
+      "line": 40,
+      "names": [
+        "SafetyFormsLogin"
+      ],
+      "module": "@/pages/SafetyFormsLogin",
+      "kind": "default"
+    },
+    {
+      "line": 41,
+      "names": [
+        "SafetyFormsHub"
+      ],
+      "module": "@/pages/SafetyFormsHub",
+      "kind": "default"
+    },
+    {
+      "line": 42,
+      "names": [
+        "NewSafetyEquipmentIssuance"
+      ],
+      "module": "@/pages/NewSafetyEquipmentIssuance",
+      "kind": "default"
+    },
+    {
+      "line": 43,
+      "names": [
+        "NewSafetyEquipmentTraining"
+      ],
+      "module": "@/pages/NewSafetyEquipmentTraining",
+      "kind": "default"
+    },
+    {
+      "line": 44,
+      "names": [
+        "ViewSafetyForm"
+      ],
+      "module": "@/pages/ViewSafetyForm",
+      "kind": "default"
+    },
+    {
+      "line": 45,
+      "names": [
+        "ReturnEquipment"
+      ],
+      "module": "@/pages/ReturnEquipment",
+      "kind": "default"
+    },
+    {
+      "line": 46,
+      "names": [
+        "FieldSafetyCards"
+      ],
+      "module": "@/pages/FieldSafetyCards",
+      "kind": "default"
+    },
+    {
+      "line": 47,
+      "names": [
+        "FieldSection"
+      ],
+      "module": "@/pages/FieldSection",
+      "kind": "default"
+    },
+    {
+      "line": 48,
+      "names": [
+        "MaterialCalculators"
+      ],
+      "module": "@/pages/MaterialCalculators",
+      "kind": "default"
+    },
+    {
+      "line": 49,
+      "names": [
+        "QaqcSection"
+      ],
+      "module": "@/pages/QaqcSection",
+      "kind": "default"
+    },
+    {
+      "line": 50,
+      "names": [
+        "NewQaqcInspection"
+      ],
+      "module": "@/pages/NewQaqcInspection",
+      "kind": "default"
+    },
+    {
+      "line": 51,
+      "names": [
+        "ViewQaqcInspection"
+      ],
+      "module": "@/pages/ViewQaqcInspection",
+      "kind": "default"
+    },
+    {
+      "line": 52,
+      "names": [
+        "AdminQaqcList"
+      ],
+      "module": "@/pages/AdminQaqcList",
+      "kind": "default"
+    },
+    {
+      "line": 53,
+      "names": [
+        "AdminTransportation"
+      ],
+      "module": "@/pages/AdminTransportation",
+      "kind": "default"
+    },
+    {
+      "line": 54,
+      "names": [
+        "ExternalCarrierInvite"
+      ],
+      "module": "@/pages/transportation/ExternalCarrierInvite",
+      "kind": "default"
+    },
+    {
+      "line": 55,
+      "names": [
+        "CertificateVerify"
+      ],
+      "module": "@/pages/transportation/CertificateVerify",
+      "kind": "default"
+    },
+    {
+      "line": 56,
+      "names": [
+        "Dashboard"
+      ],
+      "module": "@/pages/Dashboard",
+      "kind": "default"
+    },
+    {
+      "line": 57,
+      "names": [
+        "Revise"
+      ],
+      "module": "@/pages/Revise",
+      "kind": "default"
+    },
+    {
+      "line": 58,
+      "names": [
+        "NewInspection"
+      ],
+      "module": "@/pages/NewInspection",
+      "kind": "default"
+    },
+    {
+      "line": 59,
+      "names": [
+        "ViewInspection"
+      ],
+      "module": "@/pages/ViewInspection",
+      "kind": "default"
+    },
+    {
+      "line": 60,
+      "names": [
+        "ThankYou"
+      ],
+      "module": "@/pages/ThankYou",
+      "kind": "default"
+    },
+    {
+      "line": 61,
+      "names": [
+        "MeetingsDashboard"
+      ],
+      "module": "@/pages/MeetingsDashboard",
+      "kind": "default"
+    },
+    {
+      "line": 62,
+      "names": [
+        "NewMeeting"
+      ],
+      "module": "@/pages/NewMeeting",
+      "kind": "default"
+    },
+    {
+      "line": 63,
+      "names": [
+        "ViewMeeting"
+      ],
+      "module": "@/pages/ViewMeeting",
+      "kind": "default"
+    },
+    {
+      "line": 64,
+      "names": [
+        "JhaPlansHub"
+      ],
+      "module": "@/pages/JhaPlansHub",
+      "kind": "default"
+    },
+    {
+      "line": 65,
+      "names": [
+        "JhaPlansAdmin"
+      ],
+      "module": "@/pages/JhaPlansAdmin",
+      "kind": "default"
+    },
+    {
+      "line": 66,
+      "names": [
+        "TrenchBoxes"
+      ],
+      "module": "@/pages/TrenchBoxes",
+      "kind": "default"
+    },
+    {
+      "line": 74,
+      "names": [
+        "PublicExcavationForm"
+      ],
+      "module": "@/pages/trench_safety/PublicExcavationForm",
+      "kind": "default"
+    },
+    {
+      "line": 77,
+      "names": [
+        "TrenchSafetyQrLanding"
+      ],
+      "module": "@/pages/trench_safety/TrenchSafetyQrLanding",
+      "kind": "default"
+    },
+    {
+      "line": 78,
+      "names": [
+        "PublicTrenchSafetyDashboard"
+      ],
+      "module": "@/pages/trench_safety/PublicTrenchSafetyDashboard",
+      "kind": "default"
+    },
+    {
+      "line": 79,
+      "names": [
+        "PublicTrenchSafetyTabulatedData"
+      ],
+      "module": "@/pages/trench_safety/PublicTrenchSafetyTabulatedData",
+      "kind": "default"
+    },
+    {
+      "line": 80,
+      "names": [
+        "PublicTrenchSafetyReferences"
+      ],
+      "module": "@/pages/trench_safety/PublicTrenchSafetyReferences",
+      "kind": "default"
+    },
+    {
+      "line": 81,
+      "names": [
+        "PublicTrenchSafetyReport"
+      ],
+      "module": "@/pages/trench_safety/PublicTrenchSafetyReport",
+      "kind": "default"
+    },
+    {
+      "line": 82,
+      "names": [
+        "TrenchBoxesAdmin"
+      ],
+      "module": "@/pages/TrenchBoxesAdmin",
+      "kind": "default"
+    },
+    {
+      "line": 83,
+      "names": [
+        "TrenchBoxPoster"
+      ],
+      "module": "@/pages/TrenchBoxPoster",
+      "kind": "default"
+    },
+    {
+      "line": 84,
+      "names": [
+        "JhaPlansPoster"
+      ],
+      "module": "@/pages/JhaPlansPoster",
+      "kind": "default"
+    },
+    {
+      "line": 85,
+      "names": [
+        "AllPostersPrint"
+      ],
+      "module": "@/pages/AllPostersPrint",
+      "kind": "default"
+    },
+    {
+      "line": 86,
+      "names": [
+        "IncidentsDashboard"
+      ],
+      "module": "@/pages/IncidentsDashboard",
+      "kind": "default"
+    },
+    {
+      "line": 94,
+      "names": [
+        "IncidentReport"
+      ],
+      "module": "@/pages/IncidentReport",
+      "kind": "default"
+    },
+    {
+      "line": 95,
+      "names": [
+        "NearMissKiosk"
+      ],
+      "module": "@/pages/NearMissKiosk",
+      "kind": "default"
+    },
+    {
+      "line": 96,
+      "names": [
+        "SafetyCaseWorkspace"
+      ],
+      "module": "@/pages/SafetyCaseWorkspace",
+      "kind": "default"
+    },
+    {
+      "line": 99,
+      "names": [
+        "SafetyIncidentThread"
+      ],
+      "module": "@/pages/SafetyIncidentThread",
+      "kind": "default"
+    },
+    {
+      "line": 100,
+      "names": [
+        "ExecutiveIntelligence"
+      ],
+      "module": "@/pages/ExecutiveIntelligence",
+      "kind": "default"
+    },
+    {
+      "line": 101,
+      "names": [
+        "ExecutiveCaseReport"
+      ],
+      "module": "@/pages/ExecutiveCaseReport",
+      "kind": "default"
+    },
+    {
+      "line": 102,
+      "names": [
+        "IncidentReportViewer"
+      ],
+      "module": "@/pages/IncidentReportViewer",
+      "kind": "default"
+    },
+    {
+      "line": 103,
+      "names": [
+        "ViewIncident"
+      ],
+      "module": "@/pages/ViewIncident",
+      "kind": "default"
+    },
+    {
+      "line": 104,
+      "names": [
+        "DailyReportsDashboard"
+      ],
+      "module": "@/pages/DailyReportsDashboard",
+      "kind": "default"
+    },
+    {
+      "line": 105,
+      "names": [
+        "NewDailyReport"
+      ],
+      "module": "@/pages/NewDailyReport",
+      "kind": "default"
+    },
+    {
+      "line": 106,
+      "names": [
+        "ViewDailyReport"
+      ],
+      "module": "@/pages/ViewDailyReport",
+      "kind": "default"
+    },
+    {
+      "line": 107,
+      "names": [
+        "EquipmentDashboard"
+      ],
+      "module": "@/pages/EquipmentDashboard",
+      "kind": "default"
+    },
+    {
+      "line": 108,
+      "names": [
+        "NewEquipmentInspection"
+      ],
+      "module": "@/pages/NewEquipmentInspection",
+      "kind": "default"
+    },
+    {
+      "line": 109,
+      "names": [
+        "NewFleetDVIR"
+      ],
+      "module": "@/pages/NewFleetDVIR",
+      "kind": "default"
+    },
+    {
+      "line": 110,
+      "names": [
+        "FleetDVIRConfirmation"
+      ],
+      "module": "@/pages/FleetDVIRConfirmation",
+      "kind": "default"
+    },
+    {
+      "line": 111,
+      "names": [
+        "FleetVisibility"
+      ],
+      "module": "@/pages/FleetVisibility",
+      "kind": "default"
+    },
+    {
+      "line": 115,
+      "names": [
+        "TransportationOpsTopBar"
+      ],
+      "module": "@/components/transportation/TransportationOpsTopBar",
+      "kind": "default"
+    },
+    {
+      "line": 116,
+      "names": [
+        "ViewEquipmentInspection"
+      ],
+      "module": "@/pages/ViewEquipmentInspection",
+      "kind": "default"
+    },
+    {
+      "line": 117,
+      "names": [
+        "AdminLogin"
+      ],
+      "module": "@/pages/AdminLogin",
+      "kind": "default"
+    },
+    {
+      "line": 118,
+      "names": [
+        "AdminHub"
+      ],
+      "module": "@/pages/AdminHub",
+      "kind": "default"
+    },
+    {
+      "line": 123,
+      "names": [
+        "AdminGuide"
+      ],
+      "module": "@/pages/AdminGuide",
+      "kind": "default"
+    },
+    {
+      "line": 124,
+      "names": [
+        "AdminLeadershipEquipment"
+      ],
+      "module": "@/pages/AdminLeadershipEquipment",
+      "kind": "default"
+    },
+    {
+      "line": 125,
+      "names": [
+        "AdminTerminations"
+      ],
+      "module": "@/pages/AdminTerminations",
+      "kind": "default"
+    },
+    {
+      "line": 126,
+      "names": [
+        "ProjectPnlPage"
+      ],
+      "module": "@/pages/ProjectPnlPage",
+      "kind": "default"
+    },
+    {
+      "line": 127,
+      "names": [
+        "PmLogin"
+      ],
+      "module": "@/pages/PmLogin",
+      "kind": "default"
+    },
+    {
+      "line": 128,
+      "names": [
+        "PmChangePassword"
+      ],
+      "module": "@/pages/PmChangePassword",
+      "kind": "default"
+    },
+    {
+      "line": 129,
+      "names": [
+        "PmResetPassword"
+      ],
+      "module": "@/pages/PmResetPassword",
+      "kind": "default"
+    },
+    {
+      "line": 143,
+      "names": [
+        "ShopLogin"
+      ],
+      "module": "@/pages/ShopLogin",
+      "kind": "default"
+    },
+    {
+      "line": 147,
+      "names": [
+        "ShopChangePassword"
+      ],
+      "module": "@/pages/ShopChangePassword",
+      "kind": "default"
+    },
+    {
+      "line": 148,
+      "names": [
+        "ShopResetPassword"
+      ],
+      "module": "@/pages/ShopResetPassword",
+      "kind": "default"
+    },
+    {
+      "line": 149,
+      "names": [
+        "HrLogin"
+      ],
+      "module": "@/pages/HrLogin",
+      "kind": "default"
+    },
+    {
+      "line": 150,
+      "names": [
+        "SignIn"
+      ],
+      "module": "@/pages/SignIn",
+      "kind": "default"
+    },
+    {
+      "line": 151,
+      "names": [
+        "DirectoryChangePassword"
+      ],
+      "module": "@/pages/DirectoryChangePassword",
+      "kind": "default"
+    },
+    {
+      "line": 186,
+      "names": [
+        "AdminSchedulerRuns"
+      ],
+      "module": "@/pages/AdminSchedulerRuns",
+      "kind": "default"
+    },
+    {
+      "line": 187,
+      "names": [
+        "AdminLegacyImports"
+      ],
+      "module": "@/pages/AdminLegacyImports",
+      "kind": "default"
+    },
+    {
+      "line": 238,
+      "names": [
+        "HrChangePassword"
+      ],
+      "module": "@/pages/HrChangePassword",
+      "kind": "default"
+    },
+    {
+      "line": 239,
+      "names": [
+        "FieldLeadershipPortalLogin"
+      ],
+      "module": "@/pages/FieldLeadershipPortalLogin",
+      "kind": "default"
+    },
+    {
+      "line": 240,
+      "names": [
+        "FieldLeadershipPortalDashboard"
+      ],
+      "module": "@/pages/FieldLeadershipPortalDashboard",
+      "kind": "default"
+    },
+    {
+      "line": 241,
+      "names": [
+        "FieldLeadershipDriverQualification"
+      ],
+      "module": "@/pages/FieldLeadershipDriverQualification",
+      "kind": "default"
+    },
+    {
+      "line": 242,
+      "names": [
+        "FieldLeadershipPortalChangePassword"
+      ],
+      "module": "@/pages/FieldLeadershipPortalChangePassword",
+      "kind": "default"
+    },
+    {
+      "line": 243,
+      "names": [
+        "RequireFl"
+      ],
+      "module": "@/components/RequireFl",
+      "kind": "named"
+    },
+    {
+      "line": 244,
+      "names": [
+        "HrResetPassword"
+      ],
+      "module": "@/pages/HrResetPassword",
+      "kind": "default"
+    },
+    {
+      "line": 245,
+      "names": [
+        "HrForgotPassword"
+      ],
+      "module": "@/pages/HrForgotPassword",
+      "kind": "default"
+    },
+    {
+      "line": 267,
+      "names": [
+        "PublicTimeOff"
+      ],
+      "module": "@/pages/PublicTimeOff",
+      "kind": "default"
+    },
+    {
+      "line": 268,
+      "names": [
+        "SafetyLogin"
+      ],
+      "module": "@/pages/SafetyLogin",
+      "kind": "default"
+    },
+    {
+      "line": 269,
+      "names": [
+        "DispatchLogin"
+      ],
+      "module": "@/pages/DispatchLogin",
+      "kind": "default"
+    },
+    {
+      "line": 270,
+      "names": [
+        "LeadershipLogin"
+      ],
+      "module": "@/pages/LeadershipLogin",
+      "kind": "default"
+    },
+    {
+      "line": 276,
+      "names": [
+        "DispatchChangePassword"
+      ],
+      "module": "@/pages/DispatchChangePassword",
+      "kind": "default"
+    },
+    {
+      "line": 277,
+      "names": [
+        "DispatchForgotPassword"
+      ],
+      "module": "@/pages/DispatchForgotPassword",
+      "kind": "default"
+    },
+    {
+      "line": 278,
+      "names": [
+        "DispatchResetPassword"
+      ],
+      "module": "@/pages/DispatchResetPassword",
+      "kind": "default"
+    },
+    {
+      "line": 280,
+      "names": [
+        "SafetyChangePassword"
+      ],
+      "module": "@/pages/SafetyChangePassword",
+      "kind": "default"
+    },
+    {
+      "line": 281,
+      "names": [
+        "SafetyForgotPassword"
+      ],
+      "module": "@/pages/SafetyForgotPassword",
+      "kind": "default"
+    },
+    {
+      "line": 282,
+      "names": [
+        "SafetyResetPassword"
+      ],
+      "module": "@/pages/SafetyResetPassword",
+      "kind": "default"
+    },
+    {
+      "line": 303,
+      "names": [
+        "AdminDeployReadiness"
+      ],
+      "module": "@/pages/AdminDeployReadiness",
+      "kind": "default"
+    },
+    {
+      "line": 308,
+      "names": [
+        "DevLogin"
+      ],
+      "module": "@/pages/DevLogin",
+      "kind": "default"
+    },
+    {
+      "line": 309,
+      "names": [
+        "DevHub"
+      ],
+      "module": "@/pages/DevHub",
+      "kind": "default"
+    },
+    {
+      "line": 310,
+      "names": [
+        "CheatSheet"
+      ],
+      "module": "@/pages/CheatSheet",
+      "kind": "default"
+    },
+    {
+      "line": 311,
+      "names": [
+        "JobPhotosLibrary"
+      ],
+      "module": "@/pages/JobPhotosLibrary",
+      "kind": "default"
+    },
+    {
+      "line": 312,
+      "names": [
+        "FieldLeadershipHub"
+      ],
+      "module": "@/pages/FieldLeadershipHub",
+      "kind": "default"
+    },
+    {
+      "line": 313,
+      "names": [
+        "FieldLeadershipFormPage"
+      ],
+      "module": "@/pages/FieldLeadershipFormPage",
+      "kind": "default"
+    },
+    {
+      "line": 314,
+      "names": [
+        "FieldLeadershipRecords"
+      ],
+      "module": "@/pages/FieldLeadershipRecords",
+      "kind": "default"
+    },
+    {
+      "line": 315,
+      "names": [
+        "FieldLeadershipView"
+      ],
+      "module": "@/pages/FieldLeadershipView",
+      "kind": "default"
+    },
+    {
+      "line": 328,
+      "names": [
+        "Constraints"
+      ],
+      "module": "@/pages/Constraints",
+      "kind": "default"
+    },
+    {
+      "line": 329,
+      "names": [
+        "NewConstraint"
+      ],
+      "module": "@/pages/NewConstraint",
+      "kind": "default"
+    },
+    {
+      "line": 330,
+      "names": [
+        "ConstraintDetail"
+      ],
+      "module": "@/pages/ConstraintDetail",
+      "kind": "default"
+    },
+    {
+      "line": 355,
+      "names": [
+        "AccessDenied"
+      ],
+      "module": "@/pages/AccessDenied",
+      "kind": "default"
+    },
+    {
+      "line": 356,
+      "names": [
+        "NotFound"
+      ],
+      "module": "@/pages/NotFound",
+      "kind": "default"
+    },
+    {
+      "line": 357,
+      "names": [
+        "GlobalFooter"
+      ],
+      "module": "@/components/GlobalFooter",
+      "kind": "default"
+    },
+    {
+      "line": 358,
+      "names": [
+        "ScrollToTop"
+      ],
+      "module": "@/components/ScrollToTop",
+      "kind": "default"
+    },
+    {
+      "line": 359,
+      "names": [
+        "RequireAdmin"
+      ],
+      "module": "@/components/RequireAdmin",
+      "kind": "named"
+    },
+    {
+      "line": 360,
+      "names": [
+        "RequireTransportationPortal"
+      ],
+      "module": "@/components/RequireTransportationPortal",
+      "kind": "named"
+    },
+    {
+      "line": 361,
+      "names": [
+        "RequireAdminOrPm"
+      ],
+      "module": "@/components/RequireAdminOrPm",
+      "kind": "named"
+    },
+    {
+      "line": 362,
+      "names": [
+        "RequireAdminPmOrSafety"
+      ],
+      "module": "@/components/RequireAdminPmOrSafety",
+      "kind": "named"
+    },
+    {
+      "line": 363,
+      "names": [
+        "RequirePm"
+      ],
+      "module": "@/components/RequirePm",
+      "kind": "named"
+    },
+    {
+      "line": 364,
+      "names": [
+        "RequireShop"
+      ],
+      "module": "@/components/RequireShop",
+      "kind": "named"
+    },
+    {
+      "line": 365,
+      "names": [
+        "RequireHr"
+      ],
+      "module": "@/components/RequireHr",
+      "kind": "named"
+    },
+    {
+      "line": 366,
+      "names": [
+        "RequireSafety"
+      ],
+      "module": "@/components/RequireSafety",
+      "kind": "named"
+    },
+    {
+      "line": 367,
+      "names": [
+        "RequireDispatch"
+      ],
+      "module": "@/components/RequireDispatch",
+      "kind": "named"
+    },
+    {
+      "line": 368,
+      "names": [
+        "RequireDev"
+      ],
+      "module": "@/components/RequireDev",
+      "kind": "named"
+    },
+    {
+      "line": 369,
+      "names": [
+        "FormPasswordGate"
+      ],
+      "module": "@/components/FormPasswordGate",
+      "kind": "named"
+    },
+    {
+      "line": 370,
+      "names": [
+        "GlobalKeepalive"
+      ],
+      "module": "@/components/GlobalKeepalive",
+      "kind": "default"
+    },
+    {
+      "line": 371,
+      "names": [
+        "BackendStatusBanner"
+      ],
+      "module": "@/components/BackendStatusBanner",
+      "kind": "default"
+    },
+    {
+      "line": 377,
+      "names": [
+        "SessionStatusOverlay"
+      ],
+      "module": "@/components/SessionStatusOverlay",
+      "kind": "default"
+    },
+    {
+      "line": 378,
+      "names": [
+        "ClusterCapacityBanner"
+      ],
+      "module": "@/components/ClusterCapacityBanner",
+      "kind": "default"
+    },
+    {
+      "line": 379,
+      "names": [
+        "BannerStrip"
+      ],
+      "module": "@/components/BannerStrip",
+      "kind": "default"
+    },
+    {
+      "line": 380,
+      "names": [
+        "EnvBanner"
+      ],
+      "module": "@/components/EnvBanner",
+      "kind": "default"
+    },
+    {
+      "line": 381,
+      "names": [
+        "SplashOverlay"
+      ],
+      "module": "@/components/SplashOverlay",
+      "kind": "default"
+    },
+    {
+      "line": 383,
+      "names": [
+        "QueueStatusPill"
+      ],
+      "module": "@/components/QueueStatusPill",
+      "kind": "default"
+    },
+    {
+      "line": 384,
+      "names": [
+        "OfflineBanner"
+      ],
+      "module": "@/components/OfflineBanner",
+      "kind": "default"
+    },
+    {
+      "line": 385,
+      "names": [
+        "validateStoredTokens"
+      ],
+      "module": "@/lib/tokenValidation",
+      "kind": "named"
+    },
+    {
+      "line": 386,
+      "names": [
+        "EnforcePortalScope"
+      ],
+      "module": "@/components/EnforcePortalScope",
+      "kind": "default"
+    },
+    {
+      "line": 387,
+      "names": [
+        "MultiPortalHydrator"
+      ],
+      "module": "@/components/MultiPortalHydrator",
+      "kind": "default"
+    },
+    {
+      "line": 388,
+      "names": [
+        "IdleTimeout"
+      ],
+      "module": "@/components/IdleTimeout",
+      "kind": "default"
+    },
+    {
+      "line": 389,
+      "names": [
+        "PosterErrorBoundary"
+      ],
+      "module": "@/components/PosterErrorBoundary",
+      "kind": "default"
+    }
+  ],
+  "lazy_imports": [
+    {
+      "line": 10,
+      "name": "DesignSystemDemo",
+      "module": "@/pages/DesignSystemDemo"
+    },
+    {
+      "line": 12,
+      "name": "PmV2Preview",
+      "module": "@/pages/PmV2Preview"
+    },
+    {
+      "line": 14,
+      "name": "HrV2Preview",
+      "module": "@/pages/HrV2Preview"
+    },
+    {
+      "line": 16,
+      "name": "V2Index",
+      "module": "@/pages/V2Index"
+    },
+    {
+      "line": 17,
+      "name": "V2Compare",
+      "module": "@/pages/V2Compare"
+    },
+    {
+      "line": 19,
+      "name": "OdrNew",
+      "module": "@/pages/odr/OdrNew"
+    },
+    {
+      "line": 20,
+      "name": "OdrCenter",
+      "module": "@/pages/odr/OdrCenter"
+    },
+    {
+      "line": 21,
+      "name": "OdrPmPanel",
+      "module": "@/pages/odr/OdrPmPanel"
+    },
+    {
+      "line": 22,
+      "name": "OdrPublicViewer",
+      "module": "@/pages/odr/OdrPublicViewer"
+    },
+    {
+      "line": 23,
+      "name": "OdrDone",
+      "module": "@/pages/odr/OdrDone"
+    },
+    {
+      "line": 24,
+      "name": "OdrDetail",
+      "module": "@/pages/odr/OdrDetail"
+    },
+    {
+      "line": 25,
+      "name": "OperationalRecords",
+      "module": "@/pages/operational_records/OperationalRecords"
+    },
+    {
+      "line": 26,
+      "name": "OperationsActions",
+      "module": "@/pages/operations_actions/OperationsActions"
+    },
+    {
+      "line": 27,
+      "name": "OperationsActionNew",
+      "module": "@/pages/operations_actions/OperationsActionNew"
+    },
+    {
+      "line": 28,
+      "name": "OperationsActionDetail",
+      "module": "@/pages/operations_actions/OperationsActionDetail"
+    },
+    {
+      "line": 30,
+      "name": "DriverMagicLanding",
+      "module": "@/pages/driver/DriverMagicLanding"
+    },
+    {
+      "line": 31,
+      "name": "DriverShift",
+      "module": "@/pages/driver/DriverShift"
+    },
+    {
+      "line": 34,
+      "name": "AdminHubV2",
+      "module": "@/pages/AdminHubV2"
+    },
+    {
+      "line": 35,
+      "name": "AdminMaterialLedgerQuality",
+      "module": "@/pages/AdminMaterialLedgerQuality"
+    },
+    {
+      "line": 36,
+      "name": "LeadershipHubV2",
+      "module": "@/pages/LeadershipHubV2"
+    },
+    {
+      "line": 37,
+      "name": "ExecutiveOverview",
+      "module": "@/pages/ExecutiveOverview"
+    },
+    {
+      "line": 38,
+      "name": "ShiftStart",
+      "module": "@/pages/driver/ShiftStart"
+    },
+    {
+      "line": 68,
+      "name": "TrenchSafetyHub",
+      "module": "@/pages/trench_safety/TrenchSafetyHub"
+    },
+    {
+      "line": 69,
+      "name": "TrenchSafetyAssetsList",
+      "module": "@/pages/trench_safety/TrenchSafetyAssetsList"
+    },
+    {
+      "line": 70,
+      "name": "TrenchSafetyAssetDetail",
+      "module": "@/pages/trench_safety/TrenchSafetyAssetDetail"
+    },
+    {
+      "line": 71,
+      "name": "TrenchSafetyTabulatedData",
+      "module": "@/pages/trench_safety/TrenchSafetyTabulatedData"
+    },
+    {
+      "line": 72,
+      "name": "TrenchSafetyRepairReviewPage",
+      "module": "@/pages/trench_safety/TrenchSafetyRepairReviewPage"
+    },
+    {
+      "line": 73,
+      "name": "TrenchSafetyReports",
+      "module": "@/pages/trench_safety/TrenchSafetyReports"
+    },
+    {
+      "line": 75,
+      "name": "ExcavationOversight",
+      "module": "@/pages/trench_safety/ExcavationOversight"
+    },
+    {
+      "line": 76,
+      "name": "TrenchSafetyFieldReportsPage",
+      "module": "@/pages/trench_safety/TrenchSafetyFieldReportsPage"
+    },
+    {
+      "line": 113,
+      "name": "FleetUnitThread",
+      "module": "@/pages/fleet/FleetUnitThread"
+    },
+    {
+      "line": 119,
+      "name": "AdminRecovery",
+      "module": "@/pages/admin/AdminRecovery"
+    },
+    {
+      "line": 120,
+      "name": "AdminRecoveryStream",
+      "module": "@/pages/admin/AdminRecoveryStream"
+    },
+    {
+      "line": 121,
+      "name": "AdminJhaAcknowledgements",
+      "module": "@/pages/admin/AdminJhaAcknowledgements"
+    },
+    {
+      "line": 122,
+      "name": "AdminCommandCenter",
+      "module": "@/pages/admin/AdminCommandCenter"
+    },
+    {
+      "line": 131,
+      "name": "PmHub",
+      "module": "@/pages/PmHub"
+    },
+    {
+      "line": 132,
+      "name": "PmCrewCompliance",
+      "module": "@/pages/PmCrewCompliance"
+    },
+    {
+      "line": 133,
+      "name": "PmFieldLeadership",
+      "module": "@/pages/PmFieldLeadership"
+    },
+    {
+      "line": 134,
+      "name": "PmJobs",
+      "module": "@/pages/pm/PmSections"
+    },
+    {
+      "line": 135,
+      "name": "PmFleet",
+      "module": "@/pages/pm/PmSections"
+    },
+    {
+      "line": 136,
+      "name": "PmPeople",
+      "module": "@/pages/pm/PmSections"
+    },
+    {
+      "line": 137,
+      "name": "PmSuppliers",
+      "module": "@/pages/pm/PmSections"
+    },
+    {
+      "line": 139,
+      "name": "AdminVendorThread",
+      "module": "@/pages/AdminVendorThread"
+    },
+    {
+      "line": 140,
+      "name": "AdminAssetThread",
+      "module": "@/pages/AdminAssetThread"
+    },
+    {
+      "line": 141,
+      "name": "PmPosters",
+      "module": "@/pages/pm/PmSections"
+    },
+    {
+      "line": 142,
+      "name": "PmQaqcList",
+      "module": "@/pages/PmQaqcList"
+    },
+    {
+      "line": 145,
+      "name": "ShopHub",
+      "module": "@/pages/ShopHub"
+    },
+    {
+      "line": 146,
+      "name": "ShopTrenchSafetyRepairs",
+      "module": "@/pages/shop/ShopTrenchSafetyRepairs"
+    },
+    {
+      "line": 152,
+      "name": "AdminPeople",
+      "module": "@/pages/admin/AdminPeople"
+    },
+    {
+      "line": 153,
+      "name": "AdminMfa",
+      "module": "@/pages/admin/AdminMfa"
+    },
+    {
+      "line": 154,
+      "name": "AdminPromoAssets",
+      "module": "@/pages/admin/AdminPromoAssets"
+    },
+    {
+      "line": 155,
+      "name": "AdminJobs",
+      "module": "@/pages/admin/AdminJobs"
+    },
+    {
+      "line": 156,
+      "name": "AdminJobTeam",
+      "module": "@/pages/admin/AdminJobTeam"
+    },
+    {
+      "line": 157,
+      "name": "PmJobTeam",
+      "module": "@/pages/pm/PmJobTeam"
+    },
+    {
+      "line": 159,
+      "name": "AdminProjectStaffing",
+      "module": "@/pages/admin/AdminProjectStaffing"
+    },
+    {
+      "line": 160,
+      "name": "PmProjectStaffing",
+      "module": "@/pages/pm/PmProjectStaffing"
+    },
+    {
+      "line": 161,
+      "name": "AdminGeofenceReconciliation",
+      "module": "@/pages/admin/AdminGeofenceReconciliation"
+    },
+    {
+      "line": 162,
+      "name": "AdminOperationsDashboard",
+      "module": "@/pages/admin/AdminOperationsDashboard"
+    },
+    {
+      "line": 163,
+      "name": "AdminAssetMapping",
+      "module": "@/pages/admin/AdminAssetMapping"
+    },
+    {
+      "line": 165,
+      "name": "AdminAssetSpineHealth",
+      "module": "@/pages/admin/AdminAssetSpineHealth"
+    },
+    {
+      "line": 166,
+      "name": "AdminEquipment",
+      "module": "@/pages/admin/AdminEquipment"
+    },
+    {
+      "line": 167,
+      "name": "AdminEmail",
+      "module": "@/pages/admin/AdminEmail"
+    },
+    {
+      "line": 168,
+      "name": "AdminTraining",
+      "module": "@/pages/admin/AdminTraining"
+    },
+    {
+      "line": 169,
+      "name": "AdminCompliance",
+      "module": "@/pages/admin/AdminCompliance"
+    },
+    {
+      "line": 170,
+      "name": "AdminSystem",
+      "module": "@/pages/admin/AdminSystem"
+    },
+    {
+      "line": 171,
+      "name": "AdminDatabase",
+      "module": "@/pages/admin/AdminDatabase"
+    },
+    {
+      "line": 172,
+      "name": "AdminIntegrationCenter",
+      "module": "@/pages/admin/AdminIntegrationCenter"
+    },
+    {
+      "line": 173,
+      "name": "AssetProfile",
+      "module": "@/pages/admin/AssetProfile"
+    },
+    {
+      "line": 174,
+      "name": "AdminAssetAdmin",
+      "module": "@/pages/admin/AdminAssetAdmin"
+    },
+    {
+      "line": 175,
+      "name": "AdminDriverIntel",
+      "module": "@/pages/admin/AdminDriverIntel"
+    },
+    {
+      "line": 176,
+      "name": "AdminDispatch",
+      "module": "@/pages/admin/AdminDispatch"
+    },
+    {
+      "line": 177,
+      "name": "AdminDlsShiftQR",
+      "module": "@/pages/admin/AdminDlsShiftQR"
+    },
+    {
+      "line": 178,
+      "name": "AdminDlsDay1Debrief",
+      "module": "@/pages/admin/AdminDlsDay1Debrief"
+    },
+    {
+      "line": 179,
+      "name": "AdminProfile",
+      "module": "@/pages/admin/AdminProfile"
+    },
+    {
+      "line": 180,
+      "name": "AdminOperationsEvents",
+      "module": "@/pages/admin/AdminOperationsEvents"
+    },
+    {
+      "line": 181,
+      "name": "AdminDigestConfig",
+      "module": "@/pages/admin/AdminDigestConfig"
+    },
+    {
+      "line": 182,
+      "name": "AdminOperationalIntelligence",
+      "module": "@/pages/admin/AdminOperationalIntelligence"
+    },
+    {
+      "line": 183,
+      "name": "AdminOperationalIntelligenceRecipients",
+      "module": "@/pages/admin/AdminOperationalIntelligenceRecipients"
+    },
+    {
+      "line": 184,
+      "name": "SystemHealth",
+      "module": "@/pages/admin/SystemHealth"
+    },
+    {
+      "line": 185,
+      "name": "AdminAuditLog",
+      "module": "@/pages/admin/AdminAuditLog"
+    },
+    {
+      "line": 188,
+      "name": "AdminSessions",
+      "module": "@/pages/admin/AdminSessions"
+    },
+    {
+      "line": 189,
+      "name": "AdminGuidanceCoverage",
+      "module": "@/pages/admin/AdminGuidanceCoverage"
+    },
+    {
+      "line": 190,
+      "name": "AdminOperationalInventory",
+      "module": "@/pages/admin/AdminOperationalInventory"
+    },
+    {
+      "line": 191,
+      "name": "AdminGovernance",
+      "module": "@/pages/admin/AdminGovernance"
+    },
+    {
+      "line": 192,
+      "name": "AdminProjectIdentityGovernance",
+      "module": "@/pages/admin/AdminProjectIdentityGovernance"
+    },
+    {
+      "line": 193,
+      "name": "SelfProtection",
+      "module": "@/pages/admin/SelfProtection"
+    },
+    {
+      "line": 194,
+      "name": "AdminComplianceFindings",
+      "module": "@/pages/admin/AdminComplianceFindings"
+    },
+    {
+      "line": 195,
+      "name": "AdminOperationalLanguage",
+      "module": "@/pages/admin/AdminOperationalLanguage"
+    },
+    {
+      "line": 197,
+      "name": "NotificationsDigest",
+      "module": "@/pages/NotificationsDigest"
+    },
+    {
+      "line": 198,
+      "name": "OperationalGuidanceCenter",
+      "module": "@/pages/guidance/OperationalGuidanceCenter"
+    },
+    {
+      "line": 199,
+      "name": "DeployRecovery",
+      "module": "@/pages/admin/DeployRecovery"
+    },
+    {
+      "line": 200,
+      "name": "AdminMasterHistory",
+      "module": "@/pages/admin/AdminMasterHistory"
+    },
+    {
+      "line": 201,
+      "name": "AdminAnalytics",
+      "module": "@/pages/admin/AdminAnalytics"
+    },
+    {
+      "line": 203,
+      "name": "HrHub",
+      "module": "@/pages/HrHub"
+    },
+    {
+      "line": 205,
+      "name": "HrHubV2",
+      "module": "@/pages/HrHubV2"
+    },
+    {
+      "line": 207,
+      "name": "PmHubV2",
+      "module": "@/pages/PmHubV2"
+    },
+    {
+      "line": 209,
+      "name": "PmHoldsV2",
+      "module": "@/pages/PmHoldsV2"
+    },
+    {
+      "line": 210,
+      "name": "PmDueTodayV2",
+      "module": "@/pages/PmDueTodayV2"
+    },
+    {
+      "line": 212,
+      "name": "DispatchHubV2",
+      "module": "@/pages/DispatchHubV2"
+    },
+    {
+      "line": 214,
+      "name": "SafetyHubV2",
+      "module": "@/pages/SafetyHubV2"
+    },
+    {
+      "line": 216,
+      "name": "ShopHubV2",
+      "module": "@/pages/ShopHubV2"
+    },
+    {
+      "line": 217,
+      "name": "ShopAssetCare",
+      "module": "@/pages/shop/ShopAssetCare"
+    },
+    {
+      "line": 219,
+      "name": "ShopManagerQueue",
+      "module": "@/pages/shop/ShopManagerQueue"
+    },
+    {
+      "line": 220,
+      "name": "ShopMyAssignments",
+      "module": "@/pages/shop/ShopMyAssignments"
+    },
+    {
+      "line": 222,
+      "name": "UnitHistoryLanding",
+      "module": "@/pages/shop/UnitHistoryLanding"
+    },
+    {
+      "line": 223,
+      "name": "UnitHistoryTimeline",
+      "module": "@/pages/shop/UnitHistoryTimeline"
+    },
+    {
+      "line": 225,
+      "name": "FuelLubeVisitForm",
+      "module": "@/pages/shop/FuelLubeVisitForm"
+    },
+    {
+      "line": 227,
+      "name": "FuelLubeVisitRecords",
+      "module": "@/pages/shop/FuelLubeVisitRecords"
+    },
+    {
+      "line": 228,
+      "name": "FuelLubeVisitDetail",
+      "module": "@/pages/shop/FuelLubeVisitDetail"
+    },
+    {
+      "line": 230,
+      "name": "ServiceTruckReconciliationForm",
+      "module": "@/pages/shop/ServiceTruckReconciliationForm"
+    },
+    {
+      "line": 231,
+      "name": "ServiceTruckReconciliationRecords",
+      "module": "@/pages/shop/ServiceTruckReconciliationRecords"
+    },
+    {
+      "line": 232,
+      "name": "ServiceTruckReconciliationDetail",
+      "module": "@/pages/shop/ServiceTruckReconciliationDetail"
+    },
+    {
+      "line": 234,
+      "name": "PmDashboard",
+      "module": "@/pages/shop/PmDashboard"
+    },
+    {
+      "line": 235,
+      "name": "PmTemplates",
+      "module": "@/pages/shop/PmTemplates"
+    },
+    {
+      "line": 236,
+      "name": "PmSchedules",
+      "module": "@/pages/shop/PmSchedules"
+    },
+    {
+      "line": 237,
+      "name": "PmWorkOrders",
+      "module": "@/pages/shop/PmWorkOrders"
+    },
+    {
+      "line": 246,
+      "name": "HrTimeVerification",
+      "module": "@/pages/HrTimeVerification"
+    },
+    {
+      "line": 247,
+      "name": "HrFieldLeadership",
+      "module": "@/pages/HrFieldLeadership"
+    },
+    {
+      "line": 248,
+      "name": "HrFieldLeadershipUsers",
+      "module": "@/pages/HrFieldLeadershipUsers"
+    },
+    {
+      "line": 249,
+      "name": "HrEmployeeAccountability",
+      "module": "@/pages/HrEmployeeAccountability"
+    },
+    {
+      "line": 250,
+      "name": "HrEmployeeAccountabilityTimeline",
+      "module": "@/pages/HrEmployeeAccountabilityTimeline"
+    },
+    {
+      "line": 252,
+      "name": "HrEmployeeThread",
+      "module": "@/pages/HrEmployeeThread"
+    },
+    {
+      "line": 253,
+      "name": "HrIncidents",
+      "module": "@/pages/HrIncidents"
+    },
+    {
+      "line": 254,
+      "name": "HrTrainingRecords",
+      "module": "@/pages/HrTrainingRecords"
+    },
+    {
+      "line": 256,
+      "name": "HrDailyReports",
+      "module": "@/pages/HrDailyReports"
+    },
+    {
+      "line": 257,
+      "name": "HrDailyReportDetail",
+      "module": "@/pages/HrDailyReports"
+    },
+    {
+      "line": 258,
+      "name": "HrMotiveDrivers",
+      "module": "@/pages/HrMotiveDrivers"
+    },
+    {
+      "line": 259,
+      "name": "HrDriverProfile",
+      "module": "@/pages/HrDriverProfile"
+    },
+    {
+      "line": 261,
+      "name": "SafetyDriverProfile",
+      "module": "@/pages/SafetyDriverProfile"
+    },
+    {
+      "line": 262,
+      "name": "DispatchDriverProfile",
+      "module": "@/pages/DispatchDriverProfile"
+    },
+    {
+      "line": 263,
+      "name": "HrPayrollVariance",
+      "module": "@/pages/HrPayrollVariance"
+    },
+    {
+      "line": 264,
+      "name": "HrDriverQualificationDashboard",
+      "module": "@/pages/HrDriverQualificationDashboard"
+    },
+    {
+      "line": 265,
+      "name": "HrDriverQualificationImport",
+      "module": "@/pages/HrDriverQualificationImport"
+    },
+    {
+      "line": 266,
+      "name": "HrTimeOff",
+      "module": "@/pages/HrTimeOff"
+    },
+    {
+      "line": 271,
+      "name": "DispatchHub",
+      "module": "@/pages/DispatchHub"
+    },
+    {
+      "line": 272,
+      "name": "DispatchBoard",
+      "module": "@/pages/DispatchBoard"
+    },
+    {
+      "line": 273,
+      "name": "DispatchCommandCenter",
+      "module": "@/pages/DispatchCommandCenter"
+    },
+    {
+      "line": 274,
+      "name": "DispatchHaulLedger",
+      "module": "@/pages/DispatchHaulLedger"
+    },
+    {
+      "line": 275,
+      "name": "DispatchDriverQualification",
+      "module": "@/pages/DispatchDriverQualification"
+    },
+    {
+      "line": 279,
+      "name": "SafetyHub",
+      "module": "@/pages/SafetyHub"
+    },
+    {
+      "line": 283,
+      "name": "SafetyCorrectiveActions",
+      "module": "@/pages/SafetyCorrectiveActions"
+    },
+    {
+      "line": 284,
+      "name": "SafetyFireExtinguishers",
+      "module": "@/pages/SafetyFireExtinguishers"
+    },
+    {
+      "line": 285,
+      "name": "SafetyFireExtImport",
+      "module": "@/pages/SafetyFireExtImport"
+    },
+    {
+      "line": 286,
+      "name": "SafetyDocuments",
+      "module": "@/pages/SafetyDocuments"
+    },
+    {
+      "line": 287,
+      "name": "SafetyTrainingRecords",
+      "module": "@/pages/SafetyTrainingRecords"
+    },
+    {
+      "line": 288,
+      "name": "SafetyEmployeeProfiles",
+      "module": "@/pages/SafetyEmployeeProfiles"
+    },
+    {
+      "line": 289,
+      "name": "EmployeeProfile",
+      "module": "@/pages/EmployeeProfile"
+    },
+    {
+      "line": 290,
+      "name": "HistoricalRecordsIntake",
+      "module": "@/pages/HistoricalRecordsIntake"
+    },
+    {
+      "line": 291,
+      "name": "HistoricalRecordsQueue",
+      "module": "@/pages/HistoricalRecordsQueue"
+    },
+    {
+      "line": 292,
+      "name": "HistoricalRecordsBatches",
+      "module": "@/pages/HistoricalRecordsBatches"
+    },
+    {
+      "line": 293,
+      "name": "HistoricalRecordsBatchDetail",
+      "module": "@/pages/HistoricalRecordsBatchDetail"
+    },
+    {
+      "line": 294,
+      "name": "SafetyDigest",
+      "module": "@/pages/SafetyDigest"
+    },
+    {
+      "line": 295,
+      "name": "SafetyIncidents",
+      "module": "@/pages/SafetyIncidents"
+    },
+    {
+      "line": 296,
+      "name": "SafetyAudits",
+      "module": "@/pages/SafetyAudits"
+    },
+    {
+      "line": 297,
+      "name": "SafetyFormsRecords",
+      "module": "@/pages/SafetyFormsRecords"
+    },
+    {
+      "line": 298,
+      "name": "SafetyReports",
+      "module": "@/pages/SafetyReports"
+    },
+    {
+      "line": 299,
+      "name": "SafetyTopicLibrary",
+      "module": "@/pages/SafetyTopicLibrary"
+    },
+    {
+      "line": 300,
+      "name": "HrSafetyRecords",
+      "module": "@/pages/HrSafetyRecords"
+    },
+    {
+      "line": 302,
+      "name": "TrainingHub",
+      "module": "@/pages/TrainingHub"
+    },
+    {
+      "line": 304,
+      "name": "TrainingTrack",
+      "module": "@/pages/TrainingTrack"
+    },
+    {
+      "line": 305,
+      "name": "TrainingQrPoster",
+      "module": "@/pages/TrainingQrPoster"
+    },
+    {
+      "line": 306,
+      "name": "TrainingPacketDownload",
+      "module": "@/pages/TrainingPacketDownload"
+    },
+    {
+      "line": 307,
+      "name": "AdminTrainingVideos",
+      "module": "@/pages/AdminTrainingVideos"
+    },
+    {
+      "line": 317,
+      "name": "TermsOfService",
+      "module": "@/pages/legal/TermsOfService"
+    },
+    {
+      "line": 318,
+      "name": "PrivacyPolicy",
+      "module": "@/pages/legal/PrivacyPolicy"
+    },
+    {
+      "line": 319,
+      "name": "Tasks",
+      "module": "@/pages/Tasks"
+    },
+    {
+      "line": 320,
+      "name": "DocumentExpirations",
+      "module": "@/pages/DocumentExpirations"
+    },
+    {
+      "line": 321,
+      "name": "HrEmployees",
+      "module": "@/pages/HrEmployees"
+    },
+    {
+      "line": 322,
+      "name": "HrEmployeeRequestsQueue",
+      "module": "@/pages/HrEmployeeRequestsQueue"
+    },
+    {
+      "line": 324,
+      "name": "PoRequests",
+      "module": "@/pages/PoRequests"
+    },
+    {
+      "line": 325,
+      "name": "ProjectHealth",
+      "module": "@/pages/ProjectHealth"
+    },
+    {
+      "line": 326,
+      "name": "AssetTransfers",
+      "module": "@/pages/AssetTransfers"
+    },
+    {
+      "line": 333,
+      "name": "PmProjectDetail",
+      "module": "@/pages/PmProjectDetail"
+    },
+    {
+      "line": 337,
+      "name": "PmProjectThread",
+      "module": "@/pages/PmProjectThread"
+    },
+    {
+      "line": 344,
+      "name": "PmCommandCenter",
+      "module": "@/pages/PmCommandCenter"
+    },
+    {
+      "line": 345,
+      "name": "PmProjectRedirect",
+      "module": "@/pages/PmProjectRedirect"
+    },
+    {
+      "line": 351,
+      "name": "OperationsCenterCommand",
+      "module": "@/pages/OperationsCenterCommand"
+    },
+    {
+      "line": 352,
+      "name": "OperationsMapPage",
+      "module": "@/pages/OperationsMapPage"
+    },
+    {
+      "line": 353,
+      "name": "DispatchOperationsMapPage",
+      "module": "@/pages/DispatchOperationsMapPage"
+    },
+    {
+      "line": 354,
+      "name": "PmHomeRedirect",
+      "module": "@/pages/PmHomeRedirect"
+    }
+  ],
+  "routes": [
+    {
+      "line": 485,
+      "path": "/",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Hub",
+      "load": "eager",
+      "element_raw": "<Hub />"
+    },
+    {
+      "line": 486,
+      "path": "/revise/:token",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Revise",
+      "load": "eager",
+      "element_raw": "<Revise />"
+    },
+    {
+      "line": 487,
+      "path": "/safety",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "SafetySection",
+      "load": "eager",
+      "element_raw": "<SafetySection />"
+    },
+    {
+      "line": 488,
+      "path": "/safety/forms/login",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "SafetyFormsLogin",
+      "load": "eager",
+      "element_raw": "<SafetyFormsLogin />"
+    },
+    {
+      "line": 489,
+      "path": "/safety/forms",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "SafetyFormsHub",
+      "load": "eager",
+      "element_raw": "<SafetyFormsHub />"
+    },
+    {
+      "line": 490,
+      "path": "/safety/forms/equipment-issuance/new",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "NewSafetyEquipmentIssuance",
+      "load": "eager",
+      "element_raw": "<NewSafetyEquipmentIssuance />"
+    },
+    {
+      "line": 491,
+      "path": "/safety/forms/equipment-issuance/:id",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "ViewSafetyForm",
+      "load": "eager",
+      "element_raw": "<ViewSafetyForm kind=\"issuance\" />"
+    },
+    {
+      "line": 492,
+      "path": "/safety/forms/equipment-issuance/:id/return",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "ReturnEquipment",
+      "load": "eager",
+      "element_raw": "<ReturnEquipment />"
+    },
+    {
+      "line": 493,
+      "path": "/safety/forms/equipment-training/new",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "NewSafetyEquipmentTraining",
+      "load": "eager",
+      "element_raw": "<NewSafetyEquipmentTraining />"
+    },
+    {
+      "line": 494,
+      "path": "/safety/forms/equipment-training/:id",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "ViewSafetyForm",
+      "load": "eager",
+      "element_raw": "<ViewSafetyForm kind=\"training\" />"
+    },
+    {
+      "line": 495,
+      "path": "/safety/cards",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "FieldSafetyCards",
+      "load": "eager",
+      "element_raw": "<FieldSafetyCards />"
+    },
+    {
+      "line": 496,
+      "path": "/field",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "FieldSection",
+      "load": "eager",
+      "element_raw": "<FieldSection />"
+    },
+    {
+      "line": 497,
+      "path": "/field/calculators",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "MaterialCalculators",
+      "load": "eager",
+      "element_raw": "<MaterialCalculators />"
+    },
+    {
+      "line": 498,
+      "path": "/qaqc",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "QaqcSection",
+      "load": "eager",
+      "element_raw": "<QaqcSection />"
+    },
+    {
+      "line": 499,
+      "path": "/qa-qc",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Navigate",
+      "load": "eager",
+      "element_raw": "<Navigate to=\"/qaqc\" replace />"
+    },
+    {
+      "line": 500,
+      "path": "/qaqc/:slug/new",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "NewQaqcInspection",
+      "load": "eager",
+      "element_raw": "<NewQaqcInspection />"
+    },
+    {
+      "line": 501,
+      "path": "/qaqc/:id",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "ViewQaqcInspection",
+      "load": "eager",
+      "element_raw": "<ViewQaqcInspection />"
+    },
+    {
+      "line": 502,
+      "path": "/admin/qaqc",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminQaqcList",
+      "load": "eager",
+      "element_raw": "A(<AdminQaqcList />)"
+    },
+    {
+      "line": 503,
+      "path": "/admin/transportation/*",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminTransportation",
+      "load": "eager",
+      "element_raw": "A(<AdminTransportation />)"
+    },
+    {
+      "line": 508,
+      "path": "/transportation-operations/*",
+      "guard_alias": "TX",
+      "guard_component": "RequireTransportationPortal",
+      "target_component": "AdminTransportation",
+      "load": "eager",
+      "element_raw": "TX(<AdminTransportation />)"
+    },
+    {
+      "line": 509,
+      "path": "/admin/photos",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "JobPhotosLibrary",
+      "load": "eager",
+      "element_raw": "A(<JobPhotosLibrary portalKey=\"admin\" />)"
+    },
+    {
+      "line": 517,
+      "path": "/constraints",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Constraints",
+      "load": "eager",
+      "element_raw": "<Constraints />"
+    },
+    {
+      "line": 518,
+      "path": "/constraints/new",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "NewConstraint",
+      "load": "eager",
+      "element_raw": "<NewConstraint />"
+    },
+    {
+      "line": 519,
+      "path": "/constraints/:id",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "ConstraintDetail",
+      "load": "eager",
+      "element_raw": "<ConstraintDetail />"
+    },
+    {
+      "line": 522,
+      "path": "/leadership",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "FieldLeadershipHub",
+      "load": "eager",
+      "element_raw": "<FieldLeadershipHub />"
+    },
+    {
+      "line": 525,
+      "path": "/leadership/hub_v2",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "LeadershipHubV2",
+      "load": "lazy",
+      "element_raw": "<LeadershipHubV2 />"
+    },
+    {
+      "line": 529,
+      "path": "/leadership/records",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "FieldLeadershipRecords",
+      "load": "eager",
+      "element_raw": "<FieldLeadershipRecords />"
+    },
+    {
+      "line": 530,
+      "path": "/leadership/records/:id",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "FieldLeadershipView",
+      "load": "eager",
+      "element_raw": "<FieldLeadershipView />"
+    },
+    {
+      "line": 531,
+      "path": "/leadership/:kind/new",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "FieldLeadershipFormPage",
+      "load": "eager",
+      "element_raw": "<FieldLeadershipFormPage />"
+    },
+    {
+      "line": 536,
+      "path": "/safety/inspections/new",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "NewInspection",
+      "load": "eager",
+      "element_raw": "SF(<NewInspection />)"
+    },
+    {
+      "line": 537,
+      "path": "/inspect/new",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "InspectionLegacyRedirect",
+      "load": "inline_or_local",
+      "element_raw": "<InspectionLegacyRedirect />"
+    },
+    {
+      "line": 538,
+      "path": "/submit",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "InspectionLegacyRedirect",
+      "load": "inline_or_local",
+      "element_raw": "<InspectionLegacyRedirect />"
+    },
+    {
+      "line": 539,
+      "path": "/inspections/submit",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "InspectionLegacyRedirect",
+      "load": "inline_or_local",
+      "element_raw": "<InspectionLegacyRedirect />"
+    },
+    {
+      "line": 540,
+      "path": "/inspections/new",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "InspectionLegacyRedirect",
+      "load": "inline_or_local",
+      "element_raw": "<InspectionLegacyRedirect />"
+    },
+    {
+      "line": 542,
+      "path": "/meetings/new",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "NewMeeting",
+      "load": "eager",
+      "element_raw": "<NewMeeting />"
+    },
+    {
+      "line": 543,
+      "path": "/meetings/submit",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "NewMeeting",
+      "load": "eager",
+      "element_raw": "<NewMeeting publicMode />"
+    },
+    {
+      "line": 545,
+      "path": "/jha",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "JhaPlansHub",
+      "load": "eager",
+      "element_raw": "<JhaPlansHub />"
+    },
+    {
+      "line": 546,
+      "path": "/jha/submit",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Navigate",
+      "load": "eager",
+      "element_raw": "<Navigate to=\"/jha\" replace />"
+    },
+    {
+      "line": 547,
+      "path": "/jha/new",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Navigate",
+      "load": "eager",
+      "element_raw": "<Navigate to=\"/jha\" replace />"
+    },
+    {
+      "line": 549,
+      "path": "/trench-boxes",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Navigate",
+      "load": "eager",
+      "element_raw": "<Navigate to=\"/trench-safety/tabulated-data\" replace />"
+    },
+    {
+      "line": 551,
+      "path": "/trench-safety",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "PublicTrenchSafetyDashboard",
+      "load": "eager",
+      "element_raw": "<PublicTrenchSafetyDashboard />"
+    },
+    {
+      "line": 553,
+      "path": "/trench-safety/tabulated-data",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "PublicTrenchSafetyTabulatedData",
+      "load": "eager",
+      "element_raw": "<PublicTrenchSafetyTabulatedData />"
+    },
+    {
+      "line": 554,
+      "path": "/trench-safety/references",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "PublicTrenchSafetyReferences",
+      "load": "eager",
+      "element_raw": "<PublicTrenchSafetyReferences />"
+    },
+    {
+      "line": 555,
+      "path": "/trench-safety/report",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "PublicTrenchSafetyReport",
+      "load": "eager",
+      "element_raw": "<PublicTrenchSafetyReport />"
+    },
+    {
+      "line": 557,
+      "path": "/trench-safety/assets/:assetId",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "TrenchSafetyQrLanding",
+      "load": "eager",
+      "element_raw": "<TrenchSafetyQrLanding />"
+    },
+    {
+      "line": 559,
+      "path": "/transport-invite/:token",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "ExternalCarrierInvite",
+      "load": "eager",
+      "element_raw": "<ExternalCarrierInvite />"
+    },
+    {
+      "line": 560,
+      "path": "/transport-verify/:cnum",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "CertificateVerify",
+      "load": "eager",
+      "element_raw": "<CertificateVerify />"
+    },
+    {
+      "line": 568,
+      "path": "/incidents/new",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Navigate",
+      "load": "eager",
+      "element_raw": "<Navigate to=\"/incidents/report\" replace />"
+    },
+    {
+      "line": 569,
+      "path": "/incidents/submit",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Navigate",
+      "load": "eager",
+      "element_raw": "<Navigate to=\"/incidents/report\" replace />"
+    },
+    {
+      "line": 571,
+      "path": "/incidents/report",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "IncidentReport",
+      "load": "eager",
+      "element_raw": "<IncidentReport />"
+    },
+    {
+      "line": 573,
+      "path": "/near-miss",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "NearMissKiosk",
+      "load": "eager",
+      "element_raw": "<NearMissKiosk />"
+    },
+    {
+      "line": 575,
+      "path": "/safety/cases/:caseId",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "SafetyCaseWorkspace",
+      "load": "eager",
+      "element_raw": "<SafetyCaseWorkspace />"
+    },
+    {
+      "line": 580,
+      "path": "/safety/incidents/:caseId/thread",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "SafetyIncidentThread",
+      "load": "eager",
+      "element_raw": "<SafetyIncidentThread />"
+    },
+    {
+      "line": 582,
+      "path": "/safety/executive-intelligence",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "ExecutiveIntelligence",
+      "load": "eager",
+      "element_raw": "<ExecutiveIntelligence />"
+    },
+    {
+      "line": 584,
+      "path": "/safety/cases/:caseId/reports/:reportType",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "IncidentReportViewer",
+      "load": "eager",
+      "element_raw": "<IncidentReportViewer />"
+    },
+    {
+      "line": 586,
+      "path": "/safety/cases/:caseId/executive-report",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "ExecutiveCaseReport",
+      "load": "eager",
+      "element_raw": "<ExecutiveCaseReport />"
+    },
+    {
+      "line": 588,
+      "path": "/daily/new",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "NewDailyReport",
+      "load": "eager",
+      "element_raw": "<NewDailyReport />"
+    },
+    {
+      "line": 589,
+      "path": "/daily/submit",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "NewDailyReport",
+      "load": "eager",
+      "element_raw": "<NewDailyReport publicMode />"
+    },
+    {
+      "line": 591,
+      "path": "/equipment/new",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "NewEquipmentInspection",
+      "load": "eager",
+      "element_raw": "<NewEquipmentInspection />"
+    },
+    {
+      "line": 592,
+      "path": "/equipment/submit",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "NewEquipmentInspection",
+      "load": "eager",
+      "element_raw": "<NewEquipmentInspection publicMode />"
+    },
+    {
+      "line": 593,
+      "path": "/equipment/:id",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "RedirectWithId",
+      "load": "inline_or_local",
+      "element_raw": "<RedirectWithId base=\"/admin/equipment\" />"
+    },
+    {
+      "line": 596,
+      "path": "/fleet/dvir/new",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "NewFleetDVIR",
+      "load": "eager",
+      "element_raw": "<NewFleetDVIR />"
+    },
+    {
+      "line": 597,
+      "path": "/fleet/dvir/submit",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "NewFleetDVIR",
+      "load": "eager",
+      "element_raw": "<NewFleetDVIR />"
+    },
+    {
+      "line": 599,
+      "path": "/fleet/weekly-lead/new",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "NewFleetDVIR",
+      "load": "eager",
+      "element_raw": "<NewFleetDVIR kind=\"weekly_lead\" />"
+    },
+    {
+      "line": 600,
+      "path": "/fleet/weekly-emergency/new",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "NewFleetDVIR",
+      "load": "eager",
+      "element_raw": "<NewFleetDVIR kind=\"weekly_emergency\" />"
+    },
+    {
+      "line": 601,
+      "path": "/fleet/dvir/submitted/:id",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "FleetDVIRConfirmation",
+      "load": "eager",
+      "element_raw": "<FleetDVIRConfirmation />"
+    },
+    {
+      "line": 603,
+      "path": "/thank-you",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "ThankYou",
+      "load": "eager",
+      "element_raw": "<ThankYou />"
+    },
+    {
+      "line": 604,
+      "path": "/cheatsheet",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "PosterErrorBoundary",
+      "load": "eager",
+      "element_raw": "<PosterErrorBoundary><CheatSheet /></PosterErrorBoundary>"
+    },
+    {
+      "line": 605,
+      "path": "/cheat-sheet",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Navigate",
+      "load": "eager",
+      "element_raw": "<Navigate to=\"/cheatsheet\" replace />"
+    },
+    {
+      "line": 611,
+      "path": "/reports/daily/new",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Navigate",
+      "load": "eager",
+      "element_raw": "<Navigate to=\"/daily/new\" replace />"
+    },
+    {
+      "line": 612,
+      "path": "/safety/jha",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Navigate",
+      "load": "eager",
+      "element_raw": "<Navigate to=\"/jha\" replace />"
+    },
+    {
+      "line": 613,
+      "path": "/safety/trench-boxes",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Navigate",
+      "load": "eager",
+      "element_raw": "<Navigate to=\"/trench-boxes\" replace />"
+    },
+    {
+      "line": 615,
+      "path": "/safety/trench-safety",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "TrenchSafetyHub",
+      "load": "lazy",
+      "element_raw": "SF(<TrenchSafetyHub />)"
+    },
+    {
+      "line": 616,
+      "path": "/safety/trench-safety/assets",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "TrenchSafetyAssetsList",
+      "load": "lazy",
+      "element_raw": "SF(<TrenchSafetyAssetsList />)"
+    },
+    {
+      "line": 617,
+      "path": "/safety/trench-safety/assets/:assetId",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "TrenchSafetyAssetDetail",
+      "load": "lazy",
+      "element_raw": "SF(<TrenchSafetyAssetDetail />)"
+    },
+    {
+      "line": 618,
+      "path": "/safety/trench-safety/tabulated-data",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "TrenchSafetyTabulatedData",
+      "load": "lazy",
+      "element_raw": "SF(<TrenchSafetyTabulatedData />)"
+    },
+    {
+      "line": 619,
+      "path": "/safety/trench-safety/reports",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "TrenchSafetyReports",
+      "load": "lazy",
+      "element_raw": "SF(<TrenchSafetyReports />)"
+    },
+    {
+      "line": 620,
+      "path": "/safety/trench-safety/excavations",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "ExcavationOversight",
+      "load": "lazy",
+      "element_raw": "SF(<ExcavationOversight />)"
+    },
+    {
+      "line": 621,
+      "path": "/admin/trench-safety/excavations",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "ExcavationOversight",
+      "load": "lazy",
+      "element_raw": "AP(<ExcavationOversight />)"
+    },
+    {
+      "line": 622,
+      "path": "/trench-safety/excavation/new",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "PublicExcavationForm",
+      "load": "eager",
+      "element_raw": "<PublicExcavationForm />"
+    },
+    {
+      "line": 624,
+      "path": "/safety/trench-safety/repair-review",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "TrenchSafetyRepairReviewPage",
+      "load": "lazy",
+      "element_raw": "SF(<TrenchSafetyRepairReviewPage />)"
+    },
+    {
+      "line": 625,
+      "path": "/safety/trench-safety/field-reports",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "TrenchSafetyFieldReportsPage",
+      "load": "lazy",
+      "element_raw": "SF(<TrenchSafetyFieldReportsPage />)"
+    },
+    {
+      "line": 627,
+      "path": "/safety-portal/trench-safety",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Navigate",
+      "load": "eager",
+      "element_raw": "<Navigate to=\"/safety/trench-safety\" replace />"
+    },
+    {
+      "line": 628,
+      "path": "/safety-portal/trench-safety/assets",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Navigate",
+      "load": "eager",
+      "element_raw": "<Navigate to=\"/safety/trench-safety/assets\" replace />"
+    },
+    {
+      "line": 629,
+      "path": "/safety-portal/trench-safety/tabulated-data",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Navigate",
+      "load": "eager",
+      "element_raw": "<Navigate to=\"/safety/trench-safety/tabulated-data\" replace />"
+    },
+    {
+      "line": 638,
+      "path": "/app/*",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Navigate",
+      "load": "eager",
+      "element_raw": "<Navigate to=\"/\" replace />"
+    },
+    {
+      "line": 643,
+      "path": "/admin/login",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "AdminLogin",
+      "load": "eager",
+      "element_raw": "<AdminLogin />"
+    },
+    {
+      "line": 649,
+      "path": "/admin",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminHubV2",
+      "load": "lazy",
+      "element_raw": "A(<AdminHubV2 />)"
+    },
+    {
+      "line": 650,
+      "path": "/admin/hub_v1",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminHub",
+      "load": "eager",
+      "element_raw": "A(<AdminHub />)"
+    },
+    {
+      "line": 652,
+      "path": "/admin/hub_v2",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Navigate",
+      "load": "eager",
+      "element_raw": "<Navigate to=\"/admin\" replace />"
+    },
+    {
+      "line": 653,
+      "path": "/admin/executive-overview",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "ExecutiveOverview",
+      "load": "lazy",
+      "element_raw": "A(<ExecutiveOverview />)"
+    },
+    {
+      "line": 655,
+      "path": "/admin/material-ledger-quality",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminMaterialLedgerQuality",
+      "load": "lazy",
+      "element_raw": "A(<AdminMaterialLedgerQuality />)"
+    },
+    {
+      "line": 656,
+      "path": "/admin/people",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminPeople",
+      "load": "lazy",
+      "element_raw": "A(<AdminPeople />)"
+    },
+    {
+      "line": 657,
+      "path": "/admin/mfa",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminMfa",
+      "load": "lazy",
+      "element_raw": "A(<AdminMfa />)"
+    },
+    {
+      "line": 658,
+      "path": "/admin/promo-assets",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminPromoAssets",
+      "load": "lazy",
+      "element_raw": "A(<AdminPromoAssets />)"
+    },
+    {
+      "line": 659,
+      "path": "/admin/jobs",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminJobs",
+      "load": "lazy",
+      "element_raw": "A(<AdminJobs />)"
+    },
+    {
+      "line": 660,
+      "path": "/admin/jobs/:projectNumber/team",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminJobTeam",
+      "load": "lazy",
+      "element_raw": "A(<AdminJobTeam />)"
+    },
+    {
+      "line": 662,
+      "path": "/admin/project-staffing",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminProjectStaffing",
+      "load": "lazy",
+      "element_raw": "A(<AdminProjectStaffing />)"
+    },
+    {
+      "line": 664,
+      "path": "/admin/geofence-reconciliation",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminGeofenceReconciliation",
+      "load": "lazy",
+      "element_raw": "A(<AdminGeofenceReconciliation />)"
+    },
+    {
+      "line": 666,
+      "path": "/admin/operations-dashboard",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminOperationsDashboard",
+      "load": "lazy",
+      "element_raw": "A(<AdminOperationsDashboard />)"
+    },
+    {
+      "line": 668,
+      "path": "/admin/asset-mapping",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminAssetMapping",
+      "load": "lazy",
+      "element_raw": "A(<AdminAssetMapping />)"
+    },
+    {
+      "line": 669,
+      "path": "/admin/asset-spine",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminAssetSpineHealth",
+      "load": "lazy",
+      "element_raw": "A(<AdminAssetSpineHealth />)"
+    },
+    {
+      "line": 670,
+      "path": "/admin/equipment",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminEquipment",
+      "load": "lazy",
+      "element_raw": "A(<AdminEquipment />)"
+    },
+    {
+      "line": 671,
+      "path": "/admin/email",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminEmail",
+      "load": "lazy",
+      "element_raw": "A(<AdminEmail />)"
+    },
+    {
+      "line": 672,
+      "path": "/admin/training",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminTraining",
+      "load": "lazy",
+      "element_raw": "A(<AdminTraining />)"
+    },
+    {
+      "line": 673,
+      "path": "/admin/compliance",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminCompliance",
+      "load": "lazy",
+      "element_raw": "A(<AdminCompliance />)"
+    },
+    {
+      "line": 674,
+      "path": "/admin/system",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminSystem",
+      "load": "lazy",
+      "element_raw": "A(<AdminSystem />)"
+    },
+    {
+      "line": 675,
+      "path": "/admin/recovery",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminRecovery",
+      "load": "lazy",
+      "element_raw": "A(<AdminRecovery />)"
+    },
+    {
+      "line": 676,
+      "path": "/admin/recovery-stream",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminRecoveryStream",
+      "load": "lazy",
+      "element_raw": "A(<AdminRecoveryStream />)"
+    },
+    {
+      "line": 677,
+      "path": "/admin/jha-acknowledgements",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminJhaAcknowledgements",
+      "load": "lazy",
+      "element_raw": "A(<AdminJhaAcknowledgements />)"
+    },
+    {
+      "line": 678,
+      "path": "/admin/command-center",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminCommandCenter",
+      "load": "lazy",
+      "element_raw": "A(<AdminCommandCenter />)"
+    },
+    {
+      "line": 679,
+      "path": "/admin/database",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminDatabase",
+      "load": "lazy",
+      "element_raw": "A(<AdminDatabase />)"
+    },
+    {
+      "line": 680,
+      "path": "/admin/integrations",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminIntegrationCenter",
+      "load": "lazy",
+      "element_raw": "A(<AdminIntegrationCenter />)"
+    },
+    {
+      "line": 681,
+      "path": "/admin/dispatch",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminDispatch",
+      "load": "lazy",
+      "element_raw": "A(<AdminDispatch />)"
+    },
+    {
+      "line": 682,
+      "path": "/admin/dls/shift-qr",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminDlsShiftQR",
+      "load": "lazy",
+      "element_raw": "A(<AdminDlsShiftQR />)"
+    },
+    {
+      "line": 683,
+      "path": "/admin/dls/day-1-debrief",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminDlsDay1Debrief",
+      "load": "lazy",
+      "element_raw": "A(<AdminDlsDay1Debrief variant=\"day-1\" />)"
+    },
+    {
+      "line": 684,
+      "path": "/admin/dls/week-1-debrief",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminDlsDay1Debrief",
+      "load": "lazy",
+      "element_raw": "A(<AdminDlsDay1Debrief variant=\"week-1\" />)"
+    },
+    {
+      "line": 685,
+      "path": "/admin/profile",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminProfile",
+      "load": "lazy",
+      "element_raw": "A(<AdminProfile />)"
+    },
+    {
+      "line": 686,
+      "path": "/admin/operations-events",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminOperationsEvents",
+      "load": "lazy",
+      "element_raw": "A(<AdminOperationsEvents />)"
+    },
+    {
+      "line": 687,
+      "path": "/admin/digest-config",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminDigestConfig",
+      "load": "lazy",
+      "element_raw": "A(<AdminDigestConfig />)"
+    },
+    {
+      "line": 688,
+      "path": "/admin/operational-intelligence",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminOperationalIntelligence",
+      "load": "lazy",
+      "element_raw": "A(<AdminOperationalIntelligence />)"
+    },
+    {
+      "line": 689,
+      "path": "/admin/operational-intelligence/recipients",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminOperationalIntelligenceRecipients",
+      "load": "lazy",
+      "element_raw": "A(<AdminOperationalIntelligenceRecipients />)"
+    },
+    {
+      "line": 690,
+      "path": "/admin/system-health",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "SystemHealth",
+      "load": "lazy",
+      "element_raw": "A(<SystemHealth />)"
+    },
+    {
+      "line": 691,
+      "path": "/admin/audit-log",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminAuditLog",
+      "load": "lazy",
+      "element_raw": "A(<AdminAuditLog />)"
+    },
+    {
+      "line": 693,
+      "path": "/admin/scheduler-runs",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminSchedulerRuns",
+      "load": "eager",
+      "element_raw": "A(<AdminSchedulerRuns />)"
+    },
+    {
+      "line": 694,
+      "path": "/admin/legacy-imports",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminLegacyImports",
+      "load": "eager",
+      "element_raw": "A(<AdminLegacyImports />)"
+    },
+    {
+      "line": 695,
+      "path": "/admin/sessions",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminSessions",
+      "load": "lazy",
+      "element_raw": "A(<AdminSessions />)"
+    },
+    {
+      "line": 696,
+      "path": "/admin/guidance-coverage",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminGuidanceCoverage",
+      "load": "lazy",
+      "element_raw": "A(<AdminGuidanceCoverage />)"
+    },
+    {
+      "line": 697,
+      "path": "/admin/operational-inventory",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminOperationalInventory",
+      "load": "lazy",
+      "element_raw": "A(<AdminOperationalInventory />)"
+    },
+    {
+      "line": 699,
+      "path": "/notifications",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "NotificationsDigest",
+      "load": "lazy",
+      "element_raw": "<NotificationsDigest />"
+    },
+    {
+      "line": 701,
+      "path": "/admin/governance",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminGovernance",
+      "load": "lazy",
+      "element_raw": "A(<AdminGovernance />)"
+    },
+    {
+      "line": 702,
+      "path": "/admin/project-identity",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminProjectIdentityGovernance",
+      "load": "lazy",
+      "element_raw": "A(<AdminProjectIdentityGovernance />)"
+    },
+    {
+      "line": 703,
+      "path": "/admin/governance/self-protection",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "SelfProtection",
+      "load": "lazy",
+      "element_raw": "A(<SelfProtection />)"
+    },
+    {
+      "line": 704,
+      "path": "/admin/compliance-findings",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminComplianceFindings",
+      "load": "lazy",
+      "element_raw": "A(<AdminComplianceFindings />)"
+    },
+    {
+      "line": 705,
+      "path": "/admin/operational-language",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminOperationalLanguage",
+      "load": "lazy",
+      "element_raw": "A(<AdminOperationalLanguage />)"
+    },
+    {
+      "line": 709,
+      "path": "/guidance",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "OperationalGuidanceCenter",
+      "load": "lazy",
+      "element_raw": "<OperationalGuidanceCenter />"
+    },
+    {
+      "line": 710,
+      "path": "/guidance/section/:sectionId",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "OperationalGuidanceCenter",
+      "load": "lazy",
+      "element_raw": "<OperationalGuidanceCenter />"
+    },
+    {
+      "line": 711,
+      "path": "/guidance/:articleId",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "OperationalGuidanceCenter",
+      "load": "lazy",
+      "element_raw": "<OperationalGuidanceCenter />"
+    },
+    {
+      "line": 712,
+      "path": "/admin/deploy-recovery",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "DeployRecovery",
+      "load": "lazy",
+      "element_raw": "A(<DeployRecovery />)"
+    },
+    {
+      "line": 713,
+      "path": "/admin/assets/:assetId",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AssetProfile",
+      "load": "lazy",
+      "element_raw": "A(<AssetProfile />)"
+    },
+    {
+      "line": 714,
+      "path": "/admin/asset-admin",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminAssetAdmin",
+      "load": "lazy",
+      "element_raw": "A(<AdminAssetAdmin />)"
+    },
+    {
+      "line": 715,
+      "path": "/admin/driver-intel/:driverKey",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminDriverIntel",
+      "load": "lazy",
+      "element_raw": "A(<AdminDriverIntel />)"
+    },
+    {
+      "line": 716,
+      "path": "/admin/equipment/:id/history",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminMasterHistory",
+      "load": "lazy",
+      "element_raw": "A(<AdminMasterHistory kind=\"equipment\" />)"
+    },
+    {
+      "line": 717,
+      "path": "/admin/employees/:id/history",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminMasterHistory",
+      "load": "lazy",
+      "element_raw": "A(<AdminMasterHistory kind=\"employee\" />)"
+    },
+    {
+      "line": 718,
+      "path": "/admin/analytics",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminAnalytics",
+      "load": "lazy",
+      "element_raw": "A(<AdminAnalytics />)"
+    },
+    {
+      "line": 719,
+      "path": "/admin/leadership-equipment",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminLeadershipEquipment",
+      "load": "eager",
+      "element_raw": "A(<AdminLeadershipEquipment />)"
+    },
+    {
+      "line": 720,
+      "path": "/admin/terminations",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminTerminations",
+      "load": "eager",
+      "element_raw": "A(<AdminTerminations />)"
+    },
+    {
+      "line": 721,
+      "path": "/admin/guide",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminGuide",
+      "load": "eager",
+      "element_raw": "A(<AdminGuide />)"
+    },
+    {
+      "line": 722,
+      "path": "/admin/pnl",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "ProjectPnlPage",
+      "load": "eager",
+      "element_raw": "AP(<ProjectPnlPage />)"
+    },
+    {
+      "line": 724,
+      "path": "/admin/inspections",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "Dashboard",
+      "load": "eager",
+      "element_raw": "AP(<Dashboard />)"
+    },
+    {
+      "line": 725,
+      "path": "/admin/inspections/:id",
+      "guard_alias": "APS",
+      "guard_component": "RequireAdminPmOrSafety",
+      "target_component": "ViewInspection",
+      "load": "eager",
+      "element_raw": "APS(<ViewInspection />)"
+    },
+    {
+      "line": 727,
+      "path": "/admin/meetings",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "MeetingsDashboard",
+      "load": "eager",
+      "element_raw": "AP(<MeetingsDashboard />)"
+    },
+    {
+      "line": 728,
+      "path": "/admin/meetings/:id",
+      "guard_alias": "APS",
+      "guard_component": "RequireAdminPmOrSafety",
+      "target_component": "ViewMeeting",
+      "load": "eager",
+      "element_raw": "APS(<ViewMeeting />)"
+    },
+    {
+      "line": 730,
+      "path": "/admin/jha-plans",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "JhaPlansAdmin",
+      "load": "eager",
+      "element_raw": "AP(<JhaPlansAdmin />)"
+    },
+    {
+      "line": 731,
+      "path": "/admin/jha",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Navigate",
+      "load": "eager",
+      "element_raw": "<Navigate to=\"/admin/jha-plans\" replace />"
+    },
+    {
+      "line": 732,
+      "path": "/admin/jha/:id",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Navigate",
+      "load": "eager",
+      "element_raw": "<Navigate to=\"/admin/jha-plans\" replace />"
+    },
+    {
+      "line": 734,
+      "path": "/admin/trench-boxes",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "TrenchBoxesAdmin",
+      "load": "eager",
+      "element_raw": "AP(<TrenchBoxesAdmin />)"
+    },
+    {
+      "line": 735,
+      "path": "/admin/trench-boxes/poster",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "PosterErrorBoundary",
+      "load": "eager",
+      "element_raw": "AP(<PosterErrorBoundary><TrenchBoxPoster /></PosterErrorBoundary>)"
+    },
+    {
+      "line": 740,
+      "path": "/admin/trench-safety",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "TrenchSafetyHub",
+      "load": "lazy",
+      "element_raw": "AP(<TrenchSafetyHub />)"
+    },
+    {
+      "line": 741,
+      "path": "/admin/trench-safety/assets",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "TrenchSafetyAssetsList",
+      "load": "lazy",
+      "element_raw": "AP(<TrenchSafetyAssetsList />)"
+    },
+    {
+      "line": 742,
+      "path": "/admin/trench-safety/assets/:assetId",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "TrenchSafetyAssetDetail",
+      "load": "lazy",
+      "element_raw": "AP(<TrenchSafetyAssetDetail />)"
+    },
+    {
+      "line": 743,
+      "path": "/admin/trench-safety/tabulated-data",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "TrenchSafetyTabulatedData",
+      "load": "lazy",
+      "element_raw": "AP(<TrenchSafetyTabulatedData />)"
+    },
+    {
+      "line": 744,
+      "path": "/admin/trench-safety/reports",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "TrenchSafetyReports",
+      "load": "lazy",
+      "element_raw": "AP(<TrenchSafetyReports />)"
+    },
+    {
+      "line": 745,
+      "path": "/admin/trench-safety/repair-review",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "TrenchSafetyRepairReviewPage",
+      "load": "lazy",
+      "element_raw": "AP(<TrenchSafetyRepairReviewPage adminPortal={true"
+    },
+    {
+      "line": 746,
+      "path": "/admin/trench-safety/field-reports",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "TrenchSafetyFieldReportsPage",
+      "load": "lazy",
+      "element_raw": "AP(<TrenchSafetyFieldReportsPage adminPortal={true"
+    },
+    {
+      "line": 748,
+      "path": "/admin/jha-plans/poster",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "PosterErrorBoundary",
+      "load": "eager",
+      "element_raw": "AP(<PosterErrorBoundary><JhaPlansPoster /></PosterErrorBoundary>)"
+    },
+    {
+      "line": 750,
+      "path": "/admin/posters/print-all",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "PosterErrorBoundary",
+      "load": "eager",
+      "element_raw": "AP(<PosterErrorBoundary><AllPostersPrint /></PosterErrorBoundary>)"
+    },
+    {
+      "line": 752,
+      "path": "/admin/incidents",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "IncidentsDashboard",
+      "load": "eager",
+      "element_raw": "AP(<IncidentsDashboard />)"
+    },
+    {
+      "line": 753,
+      "path": "/admin/incidents/:id",
+      "guard_alias": "APS",
+      "guard_component": "RequireAdminPmOrSafety",
+      "target_component": "ViewIncident",
+      "load": "eager",
+      "element_raw": "APS(<ViewIncident />)"
+    },
+    {
+      "line": 755,
+      "path": "/admin/daily",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "DailyReportsDashboard",
+      "load": "eager",
+      "element_raw": "AP(<DailyReportsDashboard />)"
+    },
+    {
+      "line": 756,
+      "path": "/admin/daily/:id",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "ViewDailyReport",
+      "load": "eager",
+      "element_raw": "AP(<ViewDailyReport />)"
+    },
+    {
+      "line": 762,
+      "path": "/admin/equipment-inspections",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "EquipmentDashboard",
+      "load": "eager",
+      "element_raw": "AP(<EquipmentDashboard />)"
+    },
+    {
+      "line": 763,
+      "path": "/admin/equipment/:id",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "ViewEquipmentInspection",
+      "load": "eager",
+      "element_raw": "AP(<ViewEquipmentInspection context=\"admin\" />)"
+    },
+    {
+      "line": 771,
+      "path": "/admin/qaqc/:id",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "ViewQaqcInspection",
+      "load": "eager",
+      "element_raw": "AP(<ViewQaqcInspection />)"
+    },
+    {
+      "line": 772,
+      "path": "/admin/leadership/records/:id",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "FieldLeadershipView",
+      "load": "eager",
+      "element_raw": "AP(<FieldLeadershipView />)"
+    },
+    {
+      "line": 773,
+      "path": "/admin/safety/issuance/:id",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "ViewSafetyForm",
+      "load": "eager",
+      "element_raw": "AP(<ViewSafetyForm kind=\"issuance\" />)"
+    },
+    {
+      "line": 774,
+      "path": "/admin/safety/training/:id",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "ViewSafetyForm",
+      "load": "eager",
+      "element_raw": "AP(<ViewSafetyForm kind=\"training\" />)"
+    },
+    {
+      "line": 781,
+      "path": "/pm/login",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "PmLogin",
+      "load": "eager",
+      "element_raw": "<PmLogin />"
+    },
+    {
+      "line": 782,
+      "path": "/pm/reset/:token",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "PmResetPassword",
+      "load": "eager",
+      "element_raw": "<PmResetPassword />"
+    },
+    {
+      "line": 783,
+      "path": "/pm/change-password",
+      "guard_alias": "P",
+      "guard_component": "RequirePm",
+      "target_component": "PmChangePassword",
+      "load": "eager",
+      "element_raw": "P(<PmChangePassword />)"
+    },
+    {
+      "line": 784,
+      "path": "/pm",
+      "guard_alias": "P",
+      "guard_component": "RequirePm",
+      "target_component": "PmHomeRedirect",
+      "load": "lazy",
+      "element_raw": "P(<PmHomeRedirect />)"
+    },
+    {
+      "line": 786,
+      "path": "/pm/hub",
+      "guard_alias": "P",
+      "guard_component": "RequirePm",
+      "target_component": "PmHubV2",
+      "load": "lazy",
+      "element_raw": "P(<PmHubV2 />)"
+    },
+    {
+      "line": 787,
+      "path": "/pm/hub_legacy",
+      "guard_alias": "P",
+      "guard_component": "RequirePm",
+      "target_component": "PmHub",
+      "load": "lazy",
+      "element_raw": "P(<PmHub />)"
+    },
+    {
+      "line": 789,
+      "path": "/pm/hub_v2",
+      "guard_alias": "P",
+      "guard_component": "RequirePm",
+      "target_component": "PmHubV2",
+      "load": "lazy",
+      "element_raw": "P(<PmHubV2 />)"
+    },
+    {
+      "line": 792,
+      "path": "/pm/holds",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "PmHoldsV2",
+      "load": "lazy",
+      "element_raw": "AP(<PmHoldsV2 />)"
+    },
+    {
+      "line": 793,
+      "path": "/pm/due-today",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "PmDueTodayV2",
+      "load": "lazy",
+      "element_raw": "AP(<PmDueTodayV2 />)"
+    },
+    {
+      "line": 795,
+      "path": "/pm/crew-compliance",
+      "guard_alias": "P",
+      "guard_component": "RequirePm",
+      "target_component": "PmCrewCompliance",
+      "load": "lazy",
+      "element_raw": "P(<PmCrewCompliance />)"
+    },
+    {
+      "line": 803,
+      "path": "/pm/jobs",
+      "guard_alias": "P",
+      "guard_component": "RequirePm",
+      "target_component": "PmJobs",
+      "load": "lazy",
+      "element_raw": "P(<PmJobs />)"
+    },
+    {
+      "line": 804,
+      "path": "/pm/job/:projectNumber/team",
+      "guard_alias": "P",
+      "guard_component": "RequirePm",
+      "target_component": "PmJobTeam",
+      "load": "lazy",
+      "element_raw": "P(<PmJobTeam />)"
+    },
+    {
+      "line": 806,
+      "path": "/pm/project-staffing",
+      "guard_alias": "P",
+      "guard_component": "RequirePm",
+      "target_component": "PmProjectStaffing",
+      "load": "lazy",
+      "element_raw": "P(<PmProjectStaffing />)"
+    },
+    {
+      "line": 817,
+      "path": "/pm/projects/:projectNumber",
+      "guard_alias": "P",
+      "guard_component": "RequirePm",
+      "target_component": "PmProjectRedirect",
+      "load": "lazy",
+      "element_raw": "P(<PmProjectRedirect />)"
+    },
+    {
+      "line": 818,
+      "path": "/pm/projects-legacy/:projectNumber",
+      "guard_alias": "P",
+      "guard_component": "RequirePm",
+      "target_component": "PmProjectDetail",
+      "load": "lazy",
+      "element_raw": "P(<PmProjectDetail />)"
+    },
+    {
+      "line": 822,
+      "path": "/pm/project/:projectNumber",
+      "guard_alias": "P",
+      "guard_component": "RequirePm",
+      "target_component": "PmProjectDetail",
+      "load": "lazy",
+      "element_raw": "P(<PmProjectDetail />)"
+    },
+    {
+      "line": 827,
+      "path": "/pm/project/:projectNumber/thread",
+      "guard_alias": "P",
+      "guard_component": "RequirePm",
+      "target_component": "PmProjectThread",
+      "load": "lazy",
+      "element_raw": "P(<PmProjectThread />)"
+    },
+    {
+      "line": 831,
+      "path": "/pm/command-center",
+      "guard_alias": "P",
+      "guard_component": "RequirePm",
+      "target_component": "PmCommandCenter",
+      "load": "lazy",
+      "element_raw": "P(<PmCommandCenter />)"
+    },
+    {
+      "line": 836,
+      "path": "/operations-center",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "OperationsCenterCommand",
+      "load": "lazy",
+      "element_raw": "A(<OperationsCenterCommand />)"
+    },
+    {
+      "line": 837,
+      "path": "/operations-map",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "OperationsMapPage",
+      "load": "lazy",
+      "element_raw": "A(<OperationsMapPage />)"
+    },
+    {
+      "line": 838,
+      "path": "/pm/field-leadership",
+      "guard_alias": "P",
+      "guard_component": "RequirePm",
+      "target_component": "PmFieldLeadership",
+      "load": "lazy",
+      "element_raw": "P(<PmFieldLeadership />)"
+    },
+    {
+      "line": 839,
+      "path": "/pm/fleet",
+      "guard_alias": "P",
+      "guard_component": "RequirePm",
+      "target_component": "PmFleet",
+      "load": "lazy",
+      "element_raw": "P(<PmFleet />)"
+    },
+    {
+      "line": 840,
+      "path": "/pm/people",
+      "guard_alias": "P",
+      "guard_component": "RequirePm",
+      "target_component": "PmPeople",
+      "load": "lazy",
+      "element_raw": "P(<PmPeople />)"
+    },
+    {
+      "line": 841,
+      "path": "/pm/suppliers",
+      "guard_alias": "P",
+      "guard_component": "RequirePm",
+      "target_component": "PmSuppliers",
+      "load": "lazy",
+      "element_raw": "P(<PmSuppliers />)"
+    },
+    {
+      "line": 846,
+      "path": "/admin/vendors/:vendorId/thread",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminVendorThread",
+      "load": "lazy",
+      "element_raw": "A(<AdminVendorThread />)"
+    },
+    {
+      "line": 847,
+      "path": "/admin/assets/:assetRef/thread",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminAssetThread",
+      "load": "lazy",
+      "element_raw": "A(<AdminAssetThread />)"
+    },
+    {
+      "line": 848,
+      "path": "/pm/posters",
+      "guard_alias": "P",
+      "guard_component": "RequirePm",
+      "target_component": "PmPosters",
+      "load": "lazy",
+      "element_raw": "P(<PmPosters />)"
+    },
+    {
+      "line": 849,
+      "path": "/pm/qaqc",
+      "guard_alias": "P",
+      "guard_component": "RequirePm",
+      "target_component": "PmQaqcList",
+      "load": "lazy",
+      "element_raw": "P(<PmQaqcList />)"
+    },
+    {
+      "line": 850,
+      "path": "/pm/photos",
+      "guard_alias": "P",
+      "guard_component": "RequirePm",
+      "target_component": "JobPhotosLibrary",
+      "load": "eager",
+      "element_raw": "P(<JobPhotosLibrary portalKey=\"pm\" />)"
+    },
+    {
+      "line": 859,
+      "path": "/pm/daily",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "DailyReportsDashboard",
+      "load": "eager",
+      "element_raw": "AP(<DailyReportsDashboard />)"
+    },
+    {
+      "line": 860,
+      "path": "/pm/daily/:id",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "ViewDailyReport",
+      "load": "eager",
+      "element_raw": "AP(<ViewDailyReport />)"
+    },
+    {
+      "line": 861,
+      "path": "/pm/incidents",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "IncidentsDashboard",
+      "load": "eager",
+      "element_raw": "AP(<IncidentsDashboard />)"
+    },
+    {
+      "line": 862,
+      "path": "/pm/incidents/:id",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "ViewIncident",
+      "load": "eager",
+      "element_raw": "AP(<ViewIncident />)"
+    },
+    {
+      "line": 863,
+      "path": "/pm/meetings",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "MeetingsDashboard",
+      "load": "eager",
+      "element_raw": "AP(<MeetingsDashboard />)"
+    },
+    {
+      "line": 864,
+      "path": "/pm/meetings/:id",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "ViewMeeting",
+      "load": "eager",
+      "element_raw": "AP(<ViewMeeting />)"
+    },
+    {
+      "line": 865,
+      "path": "/pm/inspections",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "Dashboard",
+      "load": "eager",
+      "element_raw": "AP(<Dashboard />)"
+    },
+    {
+      "line": 866,
+      "path": "/pm/inspections/:id",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "ViewInspection",
+      "load": "eager",
+      "element_raw": "AP(<ViewInspection />)"
+    },
+    {
+      "line": 867,
+      "path": "/pm/jha-plans",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "JhaPlansAdmin",
+      "load": "eager",
+      "element_raw": "AP(<JhaPlansAdmin />)"
+    },
+    {
+      "line": 868,
+      "path": "/pm/trench-boxes",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "TrenchBoxesAdmin",
+      "load": "eager",
+      "element_raw": "AP(<TrenchBoxesAdmin />)"
+    },
+    {
+      "line": 869,
+      "path": "/pm/equipment",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "EquipmentDashboard",
+      "load": "eager",
+      "element_raw": "AP(<EquipmentDashboard />)"
+    },
+    {
+      "line": 870,
+      "path": "/pm/equipment/:id",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "ViewEquipmentInspection",
+      "load": "eager",
+      "element_raw": "AP(<ViewEquipmentInspection context=\"admin\" />)"
+    },
+    {
+      "line": 876,
+      "path": "/pm/trench-safety",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "TrenchSafetyHub",
+      "load": "lazy",
+      "element_raw": "AP(<TrenchSafetyHub />)"
+    },
+    {
+      "line": 877,
+      "path": "/pm/trench-safety/assets",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "TrenchSafetyAssetsList",
+      "load": "lazy",
+      "element_raw": "AP(<TrenchSafetyAssetsList />)"
+    },
+    {
+      "line": 878,
+      "path": "/pm/trench-safety/assets/:assetId",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "TrenchSafetyAssetDetail",
+      "load": "lazy",
+      "element_raw": "AP(<TrenchSafetyAssetDetail />)"
+    },
+    {
+      "line": 879,
+      "path": "/pm/trench-safety/tabulated-data",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "TrenchSafetyTabulatedData",
+      "load": "lazy",
+      "element_raw": "AP(<TrenchSafetyTabulatedData />)"
+    },
+    {
+      "line": 880,
+      "path": "/pm/trench-safety/reports",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "TrenchSafetyReports",
+      "load": "lazy",
+      "element_raw": "AP(<TrenchSafetyReports />)"
+    },
+    {
+      "line": 881,
+      "path": "/pm/trench-safety/excavations",
+      "guard_alias": "AP",
+      "guard_component": "RequireAdminOrPm",
+      "target_component": "ExcavationOversight",
+      "load": "lazy",
+      "element_raw": "AP(<ExcavationOversight />)"
+    },
+    {
+      "line": 887,
+      "path": "/shop/login",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "ShopLogin",
+      "load": "eager",
+      "element_raw": "<ShopLogin />"
+    },
+    {
+      "line": 888,
+      "path": "/shop/reset/:token",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "ShopResetPassword",
+      "load": "eager",
+      "element_raw": "<ShopResetPassword />"
+    },
+    {
+      "line": 889,
+      "path": "/shop/change-password",
+      "guard_alias": "S",
+      "guard_component": "RequireShop",
+      "target_component": "ShopChangePassword",
+      "load": "eager",
+      "element_raw": "S(<ShopChangePassword />)"
+    },
+    {
+      "line": 895,
+      "path": "/shop",
+      "guard_alias": "S",
+      "guard_component": "RequireShop",
+      "target_component": "ShopHubV2",
+      "load": "lazy",
+      "element_raw": "S(<ShopHubV2 />)"
+    },
+    {
+      "line": 896,
+      "path": "/shop/hub_legacy",
+      "guard_alias": "S",
+      "guard_component": "RequireShop",
+      "target_component": "ShopHub",
+      "load": "lazy",
+      "element_raw": "S(<ShopHub />)"
+    },
+    {
+      "line": 897,
+      "path": "/shop/hub_v2",
+      "guard_alias": "S",
+      "guard_component": "RequireShop",
+      "target_component": "ShopHubV2",
+      "load": "lazy",
+      "element_raw": "S(<ShopHubV2 />)"
+    },
+    {
+      "line": 901,
+      "path": "/shop/asset-care",
+      "guard_alias": "S",
+      "guard_component": "RequireShop",
+      "target_component": "ShopAssetCare",
+      "load": "lazy",
+      "element_raw": "S(<ShopAssetCare />)"
+    },
+    {
+      "line": 905,
+      "path": "/shop/manager/queue",
+      "guard_alias": "S",
+      "guard_component": "RequireShop",
+      "target_component": "ShopManagerQueue",
+      "load": "lazy",
+      "element_raw": "S(<ShopManagerQueue />)"
+    },
+    {
+      "line": 906,
+      "path": "/shop/me",
+      "guard_alias": "S",
+      "guard_component": "RequireShop",
+      "target_component": "ShopMyAssignments",
+      "load": "lazy",
+      "element_raw": "S(<ShopMyAssignments />)"
+    },
+    {
+      "line": 908,
+      "path": "/shop/units/history",
+      "guard_alias": "S",
+      "guard_component": "RequireShop",
+      "target_component": "UnitHistoryLanding",
+      "load": "lazy",
+      "element_raw": "S(<UnitHistoryLanding />)"
+    },
+    {
+      "line": 909,
+      "path": "/shop/units/:unitNumber/history",
+      "guard_alias": "S",
+      "guard_component": "RequireShop",
+      "target_component": "UnitHistoryTimeline",
+      "load": "lazy",
+      "element_raw": "S(<UnitHistoryTimeline />)"
+    },
+    {
+      "line": 911,
+      "path": "/shop/fuel-lube/new",
+      "guard_alias": "S",
+      "guard_component": "RequireShop",
+      "target_component": "FuelLubeVisitForm",
+      "load": "lazy",
+      "element_raw": "S(<FuelLubeVisitForm />)"
+    },
+    {
+      "line": 913,
+      "path": "/shop/fuel-lube",
+      "guard_alias": "S",
+      "guard_component": "RequireShop",
+      "target_component": "FuelLubeVisitRecords",
+      "load": "lazy",
+      "element_raw": "S(<FuelLubeVisitRecords />)"
+    },
+    {
+      "line": 914,
+      "path": "/shop/fuel-lube/:visitId",
+      "guard_alias": "S",
+      "guard_component": "RequireShop",
+      "target_component": "FuelLubeVisitDetail",
+      "load": "lazy",
+      "element_raw": "S(<FuelLubeVisitDetail />)"
+    },
+    {
+      "line": 916,
+      "path": "/shop/service-truck-reconciliation/new",
+      "guard_alias": "S",
+      "guard_component": "RequireShop",
+      "target_component": "ServiceTruckReconciliationForm",
+      "load": "lazy",
+      "element_raw": "S(<ServiceTruckReconciliationForm />)"
+    },
+    {
+      "line": 917,
+      "path": "/shop/service-truck-reconciliation",
+      "guard_alias": "S",
+      "guard_component": "RequireShop",
+      "target_component": "ServiceTruckReconciliationRecords",
+      "load": "lazy",
+      "element_raw": "S(<ServiceTruckReconciliationRecords />)"
+    },
+    {
+      "line": 918,
+      "path": "/shop/service-truck-reconciliation/:recId",
+      "guard_alias": "S",
+      "guard_component": "RequireShop",
+      "target_component": "ServiceTruckReconciliationDetail",
+      "load": "lazy",
+      "element_raw": "S(<ServiceTruckReconciliationDetail />)"
+    },
+    {
+      "line": 920,
+      "path": "/shop/pm",
+      "guard_alias": "S",
+      "guard_component": "RequireShop",
+      "target_component": "PmDashboard",
+      "load": "lazy",
+      "element_raw": "S(<PmDashboard />)"
+    },
+    {
+      "line": 921,
+      "path": "/shop/pm/templates",
+      "guard_alias": "S",
+      "guard_component": "RequireShop",
+      "target_component": "PmTemplates",
+      "load": "lazy",
+      "element_raw": "S(<PmTemplates />)"
+    },
+    {
+      "line": 922,
+      "path": "/shop/pm/schedules",
+      "guard_alias": "S",
+      "guard_component": "RequireShop",
+      "target_component": "PmSchedules",
+      "load": "lazy",
+      "element_raw": "S(<PmSchedules />)"
+    },
+    {
+      "line": 923,
+      "path": "/shop/pm/work-orders",
+      "guard_alias": "S",
+      "guard_component": "RequireShop",
+      "target_component": "PmWorkOrders",
+      "load": "lazy",
+      "element_raw": "S(<PmWorkOrders />)"
+    },
+    {
+      "line": 924,
+      "path": "/shop/pm/work-orders/:id",
+      "guard_alias": "S",
+      "guard_component": "RequireShop",
+      "target_component": "PmWorkOrders",
+      "load": "lazy",
+      "element_raw": "S(<PmWorkOrders />)"
+    },
+    {
+      "line": 925,
+      "path": "/shop/trench-safety-repairs",
+      "guard_alias": "S",
+      "guard_component": "RequireShop",
+      "target_component": "ShopTrenchSafetyRepairs",
+      "load": "lazy",
+      "element_raw": "S(<ShopTrenchSafetyRepairs />)"
+    },
+    {
+      "line": 926,
+      "path": "/shop/fleet",
+      "guard_alias": "S",
+      "guard_component": "RequireShop",
+      "target_component": "FleetVisibility",
+      "load": "eager",
+      "element_raw": "S(<FleetVisibility scope=\"shop\" />)"
+    },
+    {
+      "line": 930,
+      "path": "/fleet/unit/:unit_number",
+      "guard_alias": "S",
+      "guard_component": "RequireShop",
+      "target_component": "FleetUnitThread",
+      "load": "lazy",
+      "element_raw": "S(<FleetUnitThread />)"
+    },
+    {
+      "line": 934,
+      "path": "/shop/equipment",
+      "guard_alias": "S",
+      "guard_component": "RequireShop",
+      "target_component": "EquipmentDashboard",
+      "load": "eager",
+      "element_raw": "S(<EquipmentDashboard />)"
+    },
+    {
+      "line": 935,
+      "path": "/shop/equipment/:id",
+      "guard_alias": "S",
+      "guard_component": "RequireShop",
+      "target_component": "ViewEquipmentInspection",
+      "load": "eager",
+      "element_raw": "S(<ViewEquipmentInspection context=\"shop\" />)"
+    },
+    {
+      "line": 944,
+      "path": "/hr/login",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "HrLogin",
+      "load": "eager",
+      "element_raw": "<HrLogin />"
+    },
+    {
+      "line": 945,
+      "path": "/sign-in",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "SignIn",
+      "load": "eager",
+      "element_raw": "<SignIn />"
+    },
+    {
+      "line": 946,
+      "path": "/change-password",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "DirectoryChangePassword",
+      "load": "eager",
+      "element_raw": "<DirectoryChangePassword />"
+    },
+    {
+      "line": 947,
+      "path": "/hr/forgot",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "HrForgotPassword",
+      "load": "eager",
+      "element_raw": "<HrForgotPassword />"
+    },
+    {
+      "line": 948,
+      "path": "/hr/reset/:token",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "HrResetPassword",
+      "load": "eager",
+      "element_raw": "<HrResetPassword />"
+    },
+    {
+      "line": 949,
+      "path": "/hr/change-password",
+      "guard_alias": "H",
+      "guard_component": "RequireHr",
+      "target_component": "HrChangePassword",
+      "load": "eager",
+      "element_raw": "H(<HrChangePassword />)"
+    },
+    {
+      "line": 951,
+      "path": "/hr",
+      "guard_alias": "H",
+      "guard_component": "RequireHr",
+      "target_component": "HrHubV2",
+      "load": "lazy",
+      "element_raw": "H(<HrHubV2 />)"
+    },
+    {
+      "line": 952,
+      "path": "/hr/hub_legacy",
+      "guard_alias": "H",
+      "guard_component": "RequireHr",
+      "target_component": "HrHub",
+      "load": "lazy",
+      "element_raw": "H(<HrHub />)"
+    },
+    {
+      "line": 954,
+      "path": "/hr/hub_v2",
+      "guard_alias": "H",
+      "guard_component": "RequireHr",
+      "target_component": "HrHubV2",
+      "load": "lazy",
+      "element_raw": "H(<HrHubV2 />)"
+    },
+    {
+      "line": 955,
+      "path": "/hr/field-leadership",
+      "guard_alias": "H",
+      "guard_component": "RequireHr",
+      "target_component": "HrFieldLeadership",
+      "load": "lazy",
+      "element_raw": "H(<HrFieldLeadership />)"
+    },
+    {
+      "line": 956,
+      "path": "/hr/field-leadership-users",
+      "guard_alias": "H",
+      "guard_component": "RequireHr",
+      "target_component": "HrFieldLeadershipUsers",
+      "load": "lazy",
+      "element_raw": "H(<HrFieldLeadershipUsers />)"
+    },
+    {
+      "line": 957,
+      "path": "/hr/employee-accountability",
+      "guard_alias": "H",
+      "guard_component": "RequireHr",
+      "target_component": "HrEmployeeAccountability",
+      "load": "lazy",
+      "element_raw": "H(<HrEmployeeAccountability />)"
+    },
+    {
+      "line": 958,
+      "path": "/hr/time-verification",
+      "guard_alias": "H",
+      "guard_component": "RequireHr",
+      "target_component": "HrTimeVerification",
+      "load": "lazy",
+      "element_raw": "H(<HrTimeVerification />)"
+    },
+    {
+      "line": 959,
+      "path": "/hr/time-off",
+      "guard_alias": "H",
+      "guard_component": "RequireHr",
+      "target_component": "HrTimeOff",
+      "load": "lazy",
+      "element_raw": "H(<HrTimeOff />)"
+    },
+    {
+      "line": 960,
+      "path": "/hr/payroll-variance",
+      "guard_alias": "H",
+      "guard_component": "RequireHr",
+      "target_component": "HrPayrollVariance",
+      "load": "lazy",
+      "element_raw": "H(<HrPayrollVariance />)"
+    },
+    {
+      "line": 961,
+      "path": "/hr/training-records",
+      "guard_alias": "H",
+      "guard_component": "RequireHr",
+      "target_component": "HrTrainingRecords",
+      "load": "lazy",
+      "element_raw": "H(<HrTrainingRecords />)"
+    },
+    {
+      "line": 962,
+      "path": "/hr/driver-qualification",
+      "guard_alias": "H",
+      "guard_component": "RequireHr",
+      "target_component": "HrDriverQualificationDashboard",
+      "load": "lazy",
+      "element_raw": "H(<HrDriverQualificationDashboard />)"
+    },
+    {
+      "line": 963,
+      "path": "/hr/driver-qualification/import",
+      "guard_alias": "H",
+      "guard_component": "RequireHr",
+      "target_component": "HrDriverQualificationImport",
+      "load": "lazy",
+      "element_raw": "H(<HrDriverQualificationImport />)"
+    },
+    {
+      "line": 979,
+      "path": "/hr/daily-reports",
+      "guard_alias": "H",
+      "guard_component": "RequireHr",
+      "target_component": "HrDailyReports",
+      "load": "lazy",
+      "element_raw": "H(<HrDailyReports />)"
+    },
+    {
+      "line": 980,
+      "path": "/hr/daily-reports/:id",
+      "guard_alias": "H",
+      "guard_component": "RequireHr",
+      "target_component": "ViewDailyReport",
+      "load": "eager",
+      "element_raw": "H(<ViewDailyReport />)"
+    },
+    {
+      "line": 982,
+      "path": "/hr/motive-drivers",
+      "guard_alias": "H",
+      "guard_component": "RequireHr",
+      "target_component": "HrMotiveDrivers",
+      "load": "lazy",
+      "element_raw": "H(<HrMotiveDrivers />)"
+    },
+    {
+      "line": 984,
+      "path": "/hr/driver/:driverKey",
+      "guard_alias": "H",
+      "guard_component": "RequireHr",
+      "target_component": "HrDriverProfile",
+      "load": "lazy",
+      "element_raw": "H(<HrDriverProfile />)"
+    },
+    {
+      "line": 985,
+      "path": "/time-off/public/:token",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "PublicTimeOff",
+      "load": "eager",
+      "element_raw": "<PublicTimeOff />"
+    },
+    {
+      "line": 992,
+      "path": "/field-leadership/portal/login",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "FieldLeadershipPortalLogin",
+      "load": "eager",
+      "element_raw": "<FieldLeadershipPortalLogin />"
+    },
+    {
+      "line": 993,
+      "path": "/field-leadership/portal/change-password",
+      "guard_alias": "FL",
+      "guard_component": "RequireFl",
+      "target_component": "FieldLeadershipPortalChangePassword",
+      "load": "eager",
+      "element_raw": "FL(<FieldLeadershipPortalChangePassword />)"
+    },
+    {
+      "line": 994,
+      "path": "/field-leadership/portal/dashboard",
+      "guard_alias": "FL",
+      "guard_component": "RequireFl",
+      "target_component": "FieldLeadershipPortalDashboard",
+      "load": "eager",
+      "element_raw": "FL(<FieldLeadershipPortalDashboard />)"
+    },
+    {
+      "line": 995,
+      "path": "/field-leadership/portal",
+      "guard_alias": "FL",
+      "guard_component": "RequireFl",
+      "target_component": "FieldLeadershipPortalDashboard",
+      "load": "eager",
+      "element_raw": "FL(<FieldLeadershipPortalDashboard />)"
+    },
+    {
+      "line": 997,
+      "path": "/field-leadership/portal/driver-qualification",
+      "guard_alias": "FL",
+      "guard_component": "RequireFl",
+      "target_component": "FieldLeadershipDriverQualification",
+      "load": "eager",
+      "element_raw": "FL(<FieldLeadershipDriverQualification />)"
+    },
+    {
+      "line": 1007,
+      "path": "/safety-portal/login",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "SafetyLogin",
+      "load": "eager",
+      "element_raw": "<SafetyLogin />"
+    },
+    {
+      "line": 1008,
+      "path": "/safety-portal/forgot-password",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "SafetyForgotPassword",
+      "load": "eager",
+      "element_raw": "<SafetyForgotPassword />"
+    },
+    {
+      "line": 1009,
+      "path": "/safety-portal/reset/:token",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "SafetyResetPassword",
+      "load": "eager",
+      "element_raw": "<SafetyResetPassword />"
+    },
+    {
+      "line": 1010,
+      "path": "/safety-portal/change-password",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "SafetyChangePassword",
+      "load": "eager",
+      "element_raw": "SF(<SafetyChangePassword />)"
+    },
+    {
+      "line": 1015,
+      "path": "/safety-portal",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "SafetyHubV2",
+      "load": "lazy",
+      "element_raw": "SF(<SafetyHubV2 />)"
+    },
+    {
+      "line": 1016,
+      "path": "/safety-portal/hub_legacy",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "SafetyHub",
+      "load": "lazy",
+      "element_raw": "SF(<SafetyHub />)"
+    },
+    {
+      "line": 1017,
+      "path": "/safety-portal/hub_v2",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "SafetyHubV2",
+      "load": "lazy",
+      "element_raw": "SF(<SafetyHubV2 />)"
+    },
+    {
+      "line": 1018,
+      "path": "/safety-portal/fleet",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "FleetVisibility",
+      "load": "eager",
+      "element_raw": "SF(<FleetVisibility scope=\"safety\" />)"
+    },
+    {
+      "line": 1019,
+      "path": "/safety-portal/corrective-actions",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "SafetyCorrectiveActions",
+      "load": "lazy",
+      "element_raw": "SF(<SafetyCorrectiveActions />)"
+    },
+    {
+      "line": 1020,
+      "path": "/safety-portal/fire-extinguishers",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "SafetyFireExtinguishers",
+      "load": "lazy",
+      "element_raw": "SF(<SafetyFireExtinguishers />)"
+    },
+    {
+      "line": 1021,
+      "path": "/safety-portal/fire-extinguishers/import",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "SafetyFireExtImport",
+      "load": "lazy",
+      "element_raw": "SF(<SafetyFireExtImport />)"
+    },
+    {
+      "line": 1022,
+      "path": "/safety-portal/documents",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "SafetyDocuments",
+      "load": "lazy",
+      "element_raw": "SF(<SafetyDocuments />)"
+    },
+    {
+      "line": 1023,
+      "path": "/safety-portal/training",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "SafetyTrainingRecords",
+      "load": "lazy",
+      "element_raw": "SF(<SafetyTrainingRecords />)"
+    },
+    {
+      "line": 1024,
+      "path": "/safety-portal/incidents",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "SafetyIncidents",
+      "load": "lazy",
+      "element_raw": "SF(<SafetyIncidents />)"
+    },
+    {
+      "line": 1030,
+      "path": "/safety-portal/incidents/:id",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "ViewIncident",
+      "load": "eager",
+      "element_raw": "SF(<ViewIncident />)"
+    },
+    {
+      "line": 1031,
+      "path": "/safety-portal/meetings/:id",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "ViewMeeting",
+      "load": "eager",
+      "element_raw": "SF(<ViewMeeting />)"
+    },
+    {
+      "line": 1032,
+      "path": "/safety-portal/audits",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "SafetyAudits",
+      "load": "lazy",
+      "element_raw": "SF(<SafetyAudits />)"
+    },
+    {
+      "line": 1033,
+      "path": "/safety-portal/forms-records",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "SafetyFormsRecords",
+      "load": "lazy",
+      "element_raw": "SF(<SafetyFormsRecords />)"
+    },
+    {
+      "line": 1034,
+      "path": "/safety-portal/reports",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "SafetyReports",
+      "load": "lazy",
+      "element_raw": "SF(<SafetyReports />)"
+    },
+    {
+      "line": 1035,
+      "path": "/safety-portal/library",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "SafetyTopicLibrary",
+      "load": "lazy",
+      "element_raw": "SF(<SafetyTopicLibrary />)"
+    },
+    {
+      "line": 1036,
+      "path": "/safety-portal/employees",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "SafetyEmployeeProfiles",
+      "load": "lazy",
+      "element_raw": "SF(<SafetyEmployeeProfiles />)"
+    },
+    {
+      "line": 1037,
+      "path": "/safety-portal/digest",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "SafetyDigest",
+      "load": "lazy",
+      "element_raw": "SF(<SafetyDigest />)"
+    },
+    {
+      "line": 1044,
+      "path": "/safety-portal/inspections",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "Dashboard",
+      "load": "eager",
+      "element_raw": "SF(<Dashboard />)"
+    },
+    {
+      "line": 1045,
+      "path": "/safety-portal/inspections/:id",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "ViewInspection",
+      "load": "eager",
+      "element_raw": "SF(<ViewInspection />)"
+    },
+    {
+      "line": 1046,
+      "path": "/safety-portal/jha-plans",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "JhaPlansAdmin",
+      "load": "eager",
+      "element_raw": "SF(<JhaPlansAdmin />)"
+    },
+    {
+      "line": 1048,
+      "path": "/safety-portal/driver/:driverKey",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "SafetyDriverProfile",
+      "load": "lazy",
+      "element_raw": "SF(<SafetyDriverProfile />)"
+    },
+    {
+      "line": 1051,
+      "path": "/hr/safety-records",
+      "guard_alias": "H",
+      "guard_component": "RequireHr",
+      "target_component": "HrSafetyRecords",
+      "load": "lazy",
+      "element_raw": "H(<HrSafetyRecords />)"
+    },
+    {
+      "line": 1057,
+      "path": "/dispatch-portal/login",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "DispatchLogin",
+      "load": "eager",
+      "element_raw": "<DispatchLogin />"
+    },
+    {
+      "line": 1066,
+      "path": "/leadership/login",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "FieldLeadershipPortalLogin",
+      "load": "eager",
+      "element_raw": "<FieldLeadershipPortalLogin />"
+    },
+    {
+      "line": 1067,
+      "path": "/leadership/legacy-login",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "LeadershipLogin",
+      "load": "eager",
+      "element_raw": "<LeadershipLogin />"
+    },
+    {
+      "line": 1068,
+      "path": "/dispatch-portal/forgot-password",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "DispatchForgotPassword",
+      "load": "eager",
+      "element_raw": "<DispatchForgotPassword />"
+    },
+    {
+      "line": 1069,
+      "path": "/dispatch-portal/reset/:token",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "DispatchResetPassword",
+      "load": "eager",
+      "element_raw": "<DispatchResetPassword />"
+    },
+    {
+      "line": 1070,
+      "path": "/dispatch-portal/change-password",
+      "guard_alias": "DP",
+      "guard_component": "RequireDispatch",
+      "target_component": "DispatchChangePassword",
+      "load": "eager",
+      "element_raw": "DP(<DispatchChangePassword />)"
+    },
+    {
+      "line": 1076,
+      "path": "/dispatch-portal",
+      "guard_alias": "DP",
+      "guard_component": "RequireDispatch",
+      "target_component": "DispatchHub",
+      "load": "lazy",
+      "element_raw": "DP(<DispatchHub />)"
+    },
+    {
+      "line": 1077,
+      "path": "/dispatch-portal/hub_legacy",
+      "guard_alias": "DP",
+      "guard_component": "RequireDispatch",
+      "target_component": "DispatchHub",
+      "load": "lazy",
+      "element_raw": "DP(<DispatchHub />)"
+    },
+    {
+      "line": 1078,
+      "path": "/dispatch-portal/hub_v2",
+      "guard_alias": "DP",
+      "guard_component": "RequireDispatch",
+      "target_component": "DispatchHubV2",
+      "load": "lazy",
+      "element_raw": "DP(<DispatchHubV2 />)"
+    },
+    {
+      "line": 1079,
+      "path": "/dispatch-portal/board",
+      "guard_alias": "DP",
+      "guard_component": "RequireDispatch",
+      "target_component": "DispatchBoard",
+      "load": "lazy",
+      "element_raw": "DP(<DispatchBoard />)"
+    },
+    {
+      "line": 1080,
+      "path": "/dispatch-portal/command",
+      "guard_alias": "DP",
+      "guard_component": "RequireDispatch",
+      "target_component": "DispatchCommandCenter",
+      "load": "lazy",
+      "element_raw": "DP(<DispatchCommandCenter />)"
+    },
+    {
+      "line": 1081,
+      "path": "/dispatch-portal/fleet",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": null,
+      "load": "inline_or_local",
+      "element_raw": "DP(<><TransportationOpsTopBar /><FleetVisibility scope=\"dispatch\" /></>)"
+    },
+    {
+      "line": 1093,
+      "path": "/dispatch-portal/map",
+      "guard_alias": "DP",
+      "guard_component": "RequireDispatch",
+      "target_component": "DispatchOperationsMapPage",
+      "load": "lazy",
+      "element_raw": "DP(<DispatchOperationsMapPage />)"
+    },
+    {
+      "line": 1096,
+      "path": "/dispatch-portal/haul-ledger",
+      "guard_alias": "DP",
+      "guard_component": "RequireDispatch",
+      "target_component": "DispatchHaulLedger",
+      "load": "lazy",
+      "element_raw": "DP(<DispatchHaulLedger />)"
+    },
+    {
+      "line": 1098,
+      "path": "/dispatch-portal/driver-qualification",
+      "guard_alias": "DP",
+      "guard_component": "RequireDispatch",
+      "target_component": "DispatchDriverQualification",
+      "load": "lazy",
+      "element_raw": "DP(<DispatchDriverQualification />)"
+    },
+    {
+      "line": 1100,
+      "path": "/dispatch-portal/driver/:driverKey",
+      "guard_alias": "DP",
+      "guard_component": "RequireDispatch",
+      "target_component": "DispatchDriverProfile",
+      "load": "lazy",
+      "element_raw": "DP(<DispatchDriverProfile />)"
+    },
+    {
+      "line": 1107,
+      "path": "/training",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "TrainingHub",
+      "load": "lazy",
+      "element_raw": "<TrainingHub />"
+    },
+    {
+      "line": 1108,
+      "path": "/training-hub",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Navigate",
+      "load": "eager",
+      "element_raw": "<Navigate to=\"/training\" replace />"
+    },
+    {
+      "line": 1109,
+      "path": "/training/:track",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "TrainingTrack",
+      "load": "lazy",
+      "element_raw": "<TrainingTrack />"
+    },
+    {
+      "line": 1110,
+      "path": "/training/:track/poster",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "TrainingQrPoster",
+      "load": "lazy",
+      "element_raw": "<TrainingQrPoster />"
+    },
+    {
+      "line": 1111,
+      "path": "/training/:track/packet",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "TrainingPacketDownload",
+      "load": "lazy",
+      "element_raw": "<TrainingPacketDownload />"
+    },
+    {
+      "line": 1112,
+      "path": "/admin/training-videos",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminTrainingVideos",
+      "load": "lazy",
+      "element_raw": "A(<AdminTrainingVideos />)"
+    },
+    {
+      "line": 1113,
+      "path": "/admin/deploy-readiness",
+      "guard_alias": "A",
+      "guard_component": "RequireAdmin",
+      "target_component": "AdminDeployReadiness",
+      "load": "eager",
+      "element_raw": "A(<AdminDeployReadiness />)"
+    },
+    {
+      "line": 1128,
+      "path": "/ops-training",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Navigate",
+      "load": "eager",
+      "element_raw": "<Navigate to=\"/guidance\" replace />"
+    },
+    {
+      "line": 1129,
+      "path": "/ops-training/:slug",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Navigate",
+      "load": "eager",
+      "element_raw": "<Navigate to=\"/guidance\" replace />"
+    },
+    {
+      "line": 1138,
+      "path": "/dev/login",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "DevLogin",
+      "load": "eager",
+      "element_raw": "<DevLogin />"
+    },
+    {
+      "line": 1139,
+      "path": "/dev",
+      "guard_alias": "D",
+      "guard_component": "RequireDev",
+      "target_component": "DevHub",
+      "load": "eager",
+      "element_raw": "D(<DevHub />)"
+    },
+    {
+      "line": 1142,
+      "path": "/inspections",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Navigate",
+      "load": "eager",
+      "element_raw": "<Navigate to=\"/admin/inspections\" replace />"
+    },
+    {
+      "line": 1143,
+      "path": "/inspect/:id",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "RedirectWithId",
+      "load": "inline_or_local",
+      "element_raw": "<RedirectWithId base=\"/admin/inspections\" />"
+    },
+    {
+      "line": 1144,
+      "path": "/inspections/:id",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "RedirectWithId",
+      "load": "inline_or_local",
+      "element_raw": "<RedirectWithId base=\"/admin/inspections\" />"
+    },
+    {
+      "line": 1145,
+      "path": "/meetings",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Navigate",
+      "load": "eager",
+      "element_raw": "<Navigate to=\"/admin/meetings\" replace />"
+    },
+    {
+      "line": 1146,
+      "path": "/meetings/:id",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "RedirectWithId",
+      "load": "inline_or_local",
+      "element_raw": "<RedirectWithId base=\"/admin/meetings\" />"
+    },
+    {
+      "line": 1147,
+      "path": "/incidents",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Navigate",
+      "load": "eager",
+      "element_raw": "<Navigate to=\"/admin/incidents\" replace />"
+    },
+    {
+      "line": 1148,
+      "path": "/incidents/:id",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "RedirectWithId",
+      "load": "inline_or_local",
+      "element_raw": "<RedirectWithId base=\"/admin/incidents\" />"
+    },
+    {
+      "line": 1149,
+      "path": "/daily",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Navigate",
+      "load": "eager",
+      "element_raw": "<Navigate to=\"/admin/daily\" replace />"
+    },
+    {
+      "line": 1150,
+      "path": "/daily/:id",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "RedirectWithId",
+      "load": "inline_or_local",
+      "element_raw": "<RedirectWithId base=\"/admin/daily\" />"
+    },
+    {
+      "line": 1160,
+      "path": "/safety-portal/meetings",
+      "guard_alias": "SF",
+      "guard_component": "RequireSafety",
+      "target_component": "MeetingsDashboard",
+      "load": "eager",
+      "element_raw": "SF(<MeetingsDashboard />)"
+    },
+    {
+      "line": 1161,
+      "path": "/admin/daily-reports",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Navigate",
+      "load": "eager",
+      "element_raw": "<Navigate to=\"/admin/daily\" replace />"
+    },
+    {
+      "line": 1162,
+      "path": "/admin/trench-safety-assets",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Navigate",
+      "load": "eager",
+      "element_raw": "<Navigate to=\"/safety/trench-safety/assets\" replace />"
+    },
+    {
+      "line": 1165,
+      "path": "/legal/terms",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "TermsOfService",
+      "load": "lazy",
+      "element_raw": "<TermsOfService />"
+    },
+    {
+      "line": 1166,
+      "path": "/legal/privacy",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "PrivacyPolicy",
+      "load": "lazy",
+      "element_raw": "<PrivacyPolicy />"
+    },
+    {
+      "line": 1172,
+      "path": "/tasks",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Tasks",
+      "load": "lazy",
+      "element_raw": "<Tasks />"
+    },
+    {
+      "line": 1174,
+      "path": "/document-expirations",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "DocumentExpirations",
+      "load": "lazy",
+      "element_raw": "<DocumentExpirations />"
+    },
+    {
+      "line": 1176,
+      "path": "/hr/employees",
+      "guard_alias": "H",
+      "guard_component": "RequireHr",
+      "target_component": "HrEmployees",
+      "load": "lazy",
+      "element_raw": "H(<HrEmployees />)"
+    },
+    {
+      "line": 1178,
+      "path": "/hr/employee-requests",
+      "guard_alias": "H",
+      "guard_component": "RequireHr",
+      "target_component": "HrEmployeeRequestsQueue",
+      "load": "lazy",
+      "element_raw": "H(<HrEmployeeRequestsQueue />)"
+    },
+    {
+      "line": 1181,
+      "path": "/hr/employees/:id/accountability",
+      "guard_alias": "H",
+      "guard_component": "RequireHr",
+      "target_component": "HrEmployeeAccountabilityTimeline",
+      "load": "lazy",
+      "element_raw": "H(<HrEmployeeAccountabilityTimeline />)"
+    },
+    {
+      "line": 1186,
+      "path": "/hr/employees/:id/thread",
+      "guard_alias": "H",
+      "guard_component": "RequireHr",
+      "target_component": "HrEmployeeThread",
+      "load": "lazy",
+      "element_raw": "H(<HrEmployeeThread />)"
+    },
+    {
+      "line": 1188,
+      "path": "/hr/employees/:empId/profile",
+      "guard_alias": "H",
+      "guard_component": "RequireHr",
+      "target_component": "EmployeeProfile",
+      "load": "lazy",
+      "element_raw": "H(<EmployeeProfile />)"
+    },
+    {
+      "line": 1190,
+      "path": "/hr/historical-records/intake",
+      "guard_alias": "H",
+      "guard_component": "RequireHr",
+      "target_component": "HistoricalRecordsIntake",
+      "load": "lazy",
+      "element_raw": "H(<HistoricalRecordsIntake />)"
+    },
+    {
+      "line": 1191,
+      "path": "/hr/historical-records/queue",
+      "guard_alias": "H",
+      "guard_component": "RequireHr",
+      "target_component": "HistoricalRecordsQueue",
+      "load": "lazy",
+      "element_raw": "H(<HistoricalRecordsQueue />)"
+    },
+    {
+      "line": 1193,
+      "path": "/hr/historical-records/batches",
+      "guard_alias": "H",
+      "guard_component": "RequireHr",
+      "target_component": "HistoricalRecordsBatches",
+      "load": "lazy",
+      "element_raw": "H(<HistoricalRecordsBatches />)"
+    },
+    {
+      "line": 1194,
+      "path": "/hr/historical-records/batches/:batchId",
+      "guard_alias": "H",
+      "guard_component": "RequireHr",
+      "target_component": "HistoricalRecordsBatchDetail",
+      "load": "lazy",
+      "element_raw": "H(<HistoricalRecordsBatchDetail />)"
+    },
+    {
+      "line": 1196,
+      "path": "/hr/incidents",
+      "guard_alias": "H",
+      "guard_component": "RequireHr",
+      "target_component": "HrIncidents",
+      "load": "lazy",
+      "element_raw": "H(<HrIncidents />)"
+    },
+    {
+      "line": 1198,
+      "path": "/po-requests",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "PoRequests",
+      "load": "lazy",
+      "element_raw": "<PoRequests />"
+    },
+    {
+      "line": 1201,
+      "path": "/project-health",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "ProjectHealth",
+      "load": "lazy",
+      "element_raw": "<ProjectHealth />"
+    },
+    {
+      "line": 1205,
+      "path": "/asset-transfers",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "AssetTransfers",
+      "load": "lazy",
+      "element_raw": "<AssetTransfers />"
+    },
+    {
+      "line": 1209,
+      "path": "/access-denied",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "AccessDenied",
+      "load": "eager",
+      "element_raw": "<AccessDenied />"
+    },
+    {
+      "line": 1217,
+      "path": "/admin/audit",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Navigate",
+      "load": "eager",
+      "element_raw": "<Navigate to=\"/admin/audit-log\" replace />"
+    },
+    {
+      "line": 1218,
+      "path": "/admin/health",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Navigate",
+      "load": "eager",
+      "element_raw": "<Navigate to=\"/admin/system-health\" replace />"
+    },
+    {
+      "line": 1220,
+      "path": "/d/:token",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "DriverMagicLanding",
+      "load": "lazy",
+      "element_raw": "<DriverMagicLanding />"
+    },
+    {
+      "line": 1221,
+      "path": "/driver",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "DriverShift",
+      "load": "lazy",
+      "element_raw": "<DriverShift />"
+    },
+    {
+      "line": 1225,
+      "path": "/shift",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "ShiftStart",
+      "load": "lazy",
+      "element_raw": "<ShiftStart />"
+    },
+    {
+      "line": 1226,
+      "path": "/field-leadership",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "Navigate",
+      "load": "eager",
+      "element_raw": "<Navigate to=\"/leadership\" replace />"
+    },
+    {
+      "line": 1229,
+      "path": "/odr/new",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "OdrNew",
+      "load": "lazy",
+      "element_raw": "<OdrNew />"
+    },
+    {
+      "line": 1230,
+      "path": "/odr/center",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "OdrCenter",
+      "load": "lazy",
+      "element_raw": "<OdrCenter />"
+    },
+    {
+      "line": 1231,
+      "path": "/pm/odr",
+      "guard_alias": "P",
+      "guard_component": "RequirePm",
+      "target_component": "OdrPmPanel",
+      "load": "lazy",
+      "element_raw": "P(<OdrPmPanel />)"
+    },
+    {
+      "line": 1232,
+      "path": "/odr/public/:doc_id",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "OdrPublicViewer",
+      "load": "lazy",
+      "element_raw": "<OdrPublicViewer />"
+    },
+    {
+      "line": 1233,
+      "path": "/odr/:id/done",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "OdrDone",
+      "load": "lazy",
+      "element_raw": "<OdrDone />"
+    },
+    {
+      "line": 1234,
+      "path": "/odr/:id",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "OdrDetail",
+      "load": "lazy",
+      "element_raw": "<OdrDetail />"
+    },
+    {
+      "line": 1238,
+      "path": "/operational-records",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "OperationalRecords",
+      "load": "lazy",
+      "element_raw": "<OperationalRecords />"
+    },
+    {
+      "line": 1241,
+      "path": "/operations-actions",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "OperationsActions",
+      "load": "lazy",
+      "element_raw": "<OperationsActions />"
+    },
+    {
+      "line": 1242,
+      "path": "/operations-actions/new",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "OperationsActionNew",
+      "load": "lazy",
+      "element_raw": "<OperationsActionNew />"
+    },
+    {
+      "line": 1243,
+      "path": "/operations-actions/:id",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "OperationsActionDetail",
+      "load": "lazy",
+      "element_raw": "<OperationsActionDetail />"
+    },
+    {
+      "line": 1257,
+      "path": "/_internal/design-system",
+      "guard_alias": "D",
+      "guard_component": "RequireDev",
+      "target_component": "DesignSystemDemo",
+      "load": "lazy",
+      "element_raw": "D(<DesignSystemDemo />)"
+    },
+    {
+      "line": 1258,
+      "path": "/_internal/pm-v2-preview",
+      "guard_alias": "D",
+      "guard_component": "RequireDev",
+      "target_component": "PmV2Preview",
+      "load": "lazy",
+      "element_raw": "D(<PmV2Preview />)"
+    },
+    {
+      "line": 1259,
+      "path": "/_internal/hr-v2-preview",
+      "guard_alias": "D",
+      "guard_component": "RequireDev",
+      "target_component": "HrV2Preview",
+      "load": "lazy",
+      "element_raw": "D(<HrV2Preview />)"
+    },
+    {
+      "line": 1260,
+      "path": "/_internal/v2-index",
+      "guard_alias": "D",
+      "guard_component": "RequireDev",
+      "target_component": "V2Index",
+      "load": "lazy",
+      "element_raw": "D(<V2Index />)"
+    },
+    {
+      "line": 1261,
+      "path": "/_internal/v2-compare/:portal",
+      "guard_alias": "D",
+      "guard_component": "RequireDev",
+      "target_component": "V2Compare",
+      "load": "lazy",
+      "element_raw": "D(<V2Compare />)"
+    },
+    {
+      "line": 1262,
+      "path": "*",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "NotFound",
+      "load": "eager",
+      "element_raw": "<NotFound />"
+    }
+  ],
+  "dead_import_candidates": [],
+  "duplicate_paths": {}
+}
