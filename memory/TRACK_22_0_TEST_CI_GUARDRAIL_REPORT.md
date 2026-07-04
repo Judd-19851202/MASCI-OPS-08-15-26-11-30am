@@ -14,8 +14,8 @@
 | 21.2E-1 | First-pass canonicalization | 6 |
 | 21.2E-1 | Permanent payload guardrail | 15 |
 | 21.3 | Remaining Class-C remediation | 12 |
-| 22.0 | Platform excellence lock | 12 |
-| **Total** | | **~144** (134 previously verified + 12 new Track 22.0 assertions — some overlap in fixture counts) |
+| 22.0 | Platform excellence lock | 13 |
+| **Total** | | **146** (Track 20.6B → 22.0, verified by pytest run) |
 
 ## Guardrails in place
 
@@ -32,13 +32,13 @@
 | Preview `.env` retains `EMAIL_SAFETY_MODE=strict` | Any preview `.env` change that removes the safety mode |
 | Non-`TEST_` payload inventory stays at 0 | Any regression that repopulates the inventory |
 
-## New Track 22.0 assertions (12)
+## New Track 22.0 assertions (13)
 
 See `backend/tests/test_track_22_0_platform_excellence.py`:
 
 1. Every prior track's lock-test file still committed.
 2. `PLATFORM_MANIFEST.json` still committed with counts snapshot.
-3. Track 22.0 executive summary + 12 sub-deliverables committed.
+3. Track 22.0 executive summary + 12 sub-deliverables committed (13 total) and non-empty.
 4. `TECHNICAL_DEBT_REGISTER.md` records TD-22.1-* and TD-22.2-* deferrals.
 5. `PRD.md` and `CHANGELOG.md` contain Track 22.0 entries.
 6. Six Pillars scorecard file exists with platform average ≥ 9.7.
@@ -46,8 +46,9 @@ See `backend/tests/test_track_22_0_platform_excellence.py`:
 8. `resend.Emails.send` monkey-patch source lines preserved.
 9. Dispatcher strict-mode gate source lines preserved.
 10. Payload guardrail (`test_track_21_2e1_payload_canonicalization.py`) still committed.
-11. CORS explicit allow-lists still present.
-12. Boot log records SDK patch activation.
+11. CORS explicit allow-lists still present (no wildcard regression).
+12. Executive Summary explicitly defers server.py to Track 22.1 with Backend owner + parity gate.
+13. Executive Summary explicitly defers App.js to Track 22.2 with Frontend owner + parity gate.
 
 ## CI recommendations (documented, not executed)
 

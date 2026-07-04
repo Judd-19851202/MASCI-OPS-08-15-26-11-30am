@@ -27,7 +27,7 @@ Every manifest artifact reconciled. Every finding classified A/B/C/D/E/F with ow
 | Class D | ≈ 65 documented scanner artifacts |
 | Class E | ≈ 40 intentional-design entries |
 | Class F | Future enhancements catalog (OCR, mobile shell, exec PDF redesign, OSHA intelligence) |
-| Regression envelope | **134 / 134** lock tests green (Track 20.6B → 22.0) |
+| Regression envelope | **146 / 146** lock tests green (Track 20.6B → 22.0) |
 | Frontend gates | 0 ESLint errors · `yarn build` clean |
 | Email safety | 3-layer envelope enforced · SDK patch confirmed active · 0 emails dispatched during 22.0 |
 | Zero-drift | Certified · 0 runtime code changes this track (audit-only) |

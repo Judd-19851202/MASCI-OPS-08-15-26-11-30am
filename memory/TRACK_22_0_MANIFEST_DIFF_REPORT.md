@@ -16,7 +16,7 @@
 | Mongo collection refs | 328 | 328 | 0 | — |
 | CORS allow_methods | explicit 7 | explicit 7 | 0 | — |
 | CORS allow_headers | explicit 12 | explicit 12 | 0 | — |
-| Lock tests | 133 | **145** | +12 | Track 22.0 permanent guardrail |
+| Lock tests | 133 | **146** | +13 | Track 22.0 permanent guardrail |
 | Debt register open C entries | 4 | **4** (unchanged) | 0 | 2 new deferrals (TD-22.1, TD-22.2) balance 2 reclassifications |
 | Non-`TEST_` payloads | 0 | 0 | 0 | Guardrail active |
 | `EMAIL_SAFETY_MODE=strict` in preview | ✅ | ✅ | — | — |
