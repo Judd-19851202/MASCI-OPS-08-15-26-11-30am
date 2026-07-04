@@ -173,7 +173,7 @@ export default function FuelLubeVisitRecords() {
         <div data-testid="fuel-lube-records-doctrine" style={{ marginTop: 24, padding: 12, fontSize: 11, color: "#666",
           background: "var(--paper-card)", border: "1px dashed var(--border-bold)", borderRadius: 4 }}>
           Submitted visits archive. Issues you flagged here become shop defects automatically.
-          Each service entry is also saved to the unit's history.
+          Each service entry is also saved to the unit&apos;s history.
         </div>
       </PortalShell>
     </div>

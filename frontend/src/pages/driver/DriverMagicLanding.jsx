@@ -114,7 +114,7 @@ export default function DriverMagicLanding() {
           <>
             <p className="text-2xl font-semibold tracking-tight">Signing you in…</p>
             <p className="text-base text-slate-400">
-              Hold this screen for a second — you'll land on your truck shift automatically.
+              Hold this screen for a second — you&apos;ll land on your truck shift automatically.
             </p>
             <div
               className="mx-auto h-2 w-32 rounded-full bg-slate-800 overflow-hidden"

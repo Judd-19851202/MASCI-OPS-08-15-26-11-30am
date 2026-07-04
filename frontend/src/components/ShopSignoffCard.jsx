@@ -116,7 +116,7 @@ export default function ShopSignoffCard({
               </span>
             </div>
             {existing.notes && (
-              <div className="text-emerald-900 italic mt-1">"{existing.notes}"</div>
+              <div className="text-emerald-900 italic mt-1">&quot;{existing.notes}&quot;</div>
             )}
           </div>
           <Button

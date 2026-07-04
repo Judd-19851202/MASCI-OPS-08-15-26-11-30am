@@ -185,7 +185,7 @@ export default function RequiredDocsEditor() {
       </div>
       <div className="text-[11px] text-slate-500">
         Photos and documents are never required for asset creation — these settings only drive
-        the "Documents Required" surfaces and the missing-document dashboard.
+        the &quot;Documents Required&quot; surfaces and the missing-document dashboard.
       </div>
     </div>
   );

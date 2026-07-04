@@ -264,7 +264,7 @@ export default function RestoreBackupPanel() {
             )}
           </Button>
           <span className="text-xs text-slate-500">
-            ≤ 500 MB · must be a backup produced by "Download Full Backup"
+            ≤ 500 MB · must be a backup produced by &quot;Download Full Backup&quot;
           </span>
         </div>
       )}
@@ -340,7 +340,7 @@ export default function RestoreBackupPanel() {
         {mode === "merge" ? (
           <>
             <strong>Merge mode</strong> — every record in the .zip is <em>upserted</em> by id:
-            existing rows are overwritten with the backup's copy, new rows are inserted,
+            existing rows are overwritten with the backup&apos;s copy, new rows are inserted,
             and anything not in the backup is left untouched. Safe to run repeatedly.
           </>
         ) : (
@@ -391,7 +391,7 @@ export default function RestoreBackupPanel() {
             </DialogTitle>
             <DialogDescription>
               This will <strong>wipe every collection</strong> present in the .zip before reinserting
-              the backup's rows. Anything created since the backup was generated will be
+              the backup&apos;s rows. Anything created since the backup was generated will be
               permanently lost. Type <strong>REPLACE</strong> below to proceed.
             </DialogDescription>
           </DialogHeader>

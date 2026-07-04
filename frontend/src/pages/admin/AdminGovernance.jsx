@@ -283,7 +283,7 @@ export default function AdminGovernance() {
               Self-Protection
             </div>
             <p className="text-[11px] text-slate-700 leading-snug mt-0.5">
-              Read-only operational status of the platform's own
+              Read-only operational status of the platform&apos;s own
               governance protections.
             </p>
           </div>

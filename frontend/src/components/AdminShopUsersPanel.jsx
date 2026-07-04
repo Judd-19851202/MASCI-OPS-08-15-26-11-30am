@@ -406,9 +406,9 @@ export default function AdminShopUsersPanel() {
                 : `Issue password for ${pwChoice.user?.name}`}
             </DialogTitle>
             <DialogDescription className="leading-relaxed text-sm">
-              Three ways to issue (or reset) this shop user's password — pick whichever fits the situation.
+              Three ways to issue (or reset) this shop user&apos;s password — pick whichever fits the situation.
               <br /><strong>Email to User</strong> (recommended for remote) — auto-generates a temp pw and emails it directly to the user.
-              <br /><strong>Show on Screen</strong> — temp pw rendered in a copy dialog, in case you'd rather text/call them.
+              <br /><strong>Show on Screen</strong> — temp pw rendered in a copy dialog, in case you&apos;d rather text/call them.
               <br />Or type a <strong>custom</strong> password below. The user must rotate to their own on first login regardless.
             </DialogDescription>
           </DialogHeader>

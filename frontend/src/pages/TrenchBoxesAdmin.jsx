@@ -110,6 +110,8 @@ export default function TrenchBoxesAdmin() {
     }
   };
 
+  // Track 21.1 tech-debt: F closes over `form` + `set`; safe hoist scheduled for Track 21.y.
+  // eslint-disable-next-line react/no-unstable-nested-components
   const F = ({ k, label, ph, type = "text" }) => (
     <div>
       <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">{label}</Label>
@@ -152,7 +154,7 @@ export default function TrenchBoxesAdmin() {
             MASCI Trench Box Fleet
           </h1>
           <p className="text-slate-600 text-sm mt-2">
-            Add every trench shield from the MASCI fleet here so foremen can verify OSHA compliance on the fly. Each entry should mirror the manufacturer's data plate.
+            Add every trench shield from the MASCI fleet here so foremen can verify OSHA compliance on the fly. Each entry should mirror the manufacturer&apos;s data plate.
           </p>
         </div>
 
@@ -204,7 +206,7 @@ export default function TrenchBoxesAdmin() {
           <div className="bg-white border border-slate-200 rounded-md p-10 text-center">
             <Box className="w-10 h-10 text-slate-400 mx-auto mb-3" />
             <h3 className="font-display text-xl font-bold text-slate-900">No trench boxes yet</h3>
-            <p className="text-slate-600 mt-2">Click "Add Box" to enter the first one.</p>
+            <p className="text-slate-600 mt-2">Click &quot;Add Box&quot; to enter the first one.</p>
           </div>
         ) : (
           <ul className="bg-white border border-slate-200 rounded-md divide-y-2 divide-slate-100">

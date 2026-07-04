@@ -111,7 +111,7 @@ export default function PriorUsageBanner({
           Welcome back · returning device
         </div>
         <p className="text-sm leading-snug mt-1">
-          We couldn't find recent local draft data on this iPad.
+          We couldn&apos;t find recent local draft data on this iPad.
         </p>
         <p className="text-sm leading-snug mt-1 text-slate-700">
           If work seems missing, contact support and provide your Support ID
@@ -176,11 +176,11 @@ export default function PriorUsageBanner({
             <p>
               Your device last used this form about {_fmtRelative(priorUsage.last)}.
               Some iPads clear local app data after long idle periods.
-              That doesn't affect anything you already submitted to the office.
+              That doesn&apos;t affect anything you already submitted to the office.
             </p>
             <p>
               If a specific report seems missing, share the Support ID
-              above with the office. They can find this iPad's history
+              above with the office. They can find this iPad&apos;s history
               and confirm what was received.
             </p>
           </div>

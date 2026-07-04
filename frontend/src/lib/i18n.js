@@ -449,7 +449,7 @@ const ES = {
   "Utility type": "Tipo de servicio",
   "Electric": "Eléctrico", "Gas": "Gas", "Water": "Agua",
   "Sewer": "Alcantarillado", "Telecom / phone": "Telecom / teléfono",
-  "Fiber": "Fibra", "Cable / TV": "Cable / TV", "Other": "Otro",
+  "Fiber": "Fibra", "Cable / TV": "Cable / TV",
   "Utility owner / company": "Dueño / compañía del servicio",
   "811 locate ticket number": "Número de boleto 811",
   "Was the locate valid at time of strike?":
@@ -854,9 +854,6 @@ const ES = {
   // big rewrite that fixed the focus-stealing bug. The combos no longer have
   // a separate search input; the main input filters the list directly.
   "Type or pick equipment…": "Escribe o elige equipo…",
-    "Lista no cargada — escribe el nombre libremente.",
-    "Lista de proveedores no cargada — escribe libremente.",
-    "Lista de equipo no cargada todavía.",
   "No matches — your typed name will be saved.":
     "Sin coincidencias — el nombre que escribiste se guardará.",
   "No matches — your typed value will be saved.":
@@ -1260,7 +1257,6 @@ const ES = {
   "Forgot password": "Olvidó su contraseña",
   "Enter your work email": "Ingrese su correo de trabajo",
   "Enter your password": "Ingrese su contraseña",
-    "Ingrese su correo de trabajo y contraseña",
   "Sending…": "Enviando…",
   "Wrong email or password": "Correo o contraseña incorrectos",
   "Too many requests — wait a minute and try again":
@@ -1275,7 +1271,6 @@ const ES = {
   "Self-service reset": "Restablecimiento de autoservicio",
   "Send reset link": "Enviar enlace de restablecimiento",
   "Email reset link": "Enviar enlace por correo",
-    "Si ese correo está en nuestros registros, un enlace de restablecimiento está en camino.",
   "If this email belongs to a Dispatch user, a reset link is on its way. The link expires in 30 minutes.":
     "Si este correo pertenece a un usuario de Despacho, un enlace de restablecimiento está en camino. El enlace expira en 30 minutos.",
   "If this email belongs to a Safety user, a reset link is on its way. The link expires in 30 minutes.":
@@ -1286,8 +1281,6 @@ const ES = {
     "Ingrese su correo del Portal de Despacho. Le enviaremos un enlace para elegir una nueva contraseña.",
   "Enter your Safety Portal email. We'll send you a link to choose a new password.":
     "Ingrese su correo del Portal de Seguridad. Le enviaremos un enlace para elegir una nueva contraseña.",
-  "Couldn't send reset email — try again or call the office":
-    "No se pudo enviar el correo de restablecimiento — intente de nuevo o llame a la oficina",
   "This reset link is invalid or has expired.":
     "Este enlace de restablecimiento es inválido o ha expirado.",
   "This reset link is invalid or has expired. Request a new one from the HR login page.":
@@ -1483,8 +1476,6 @@ const ES = {
   "Crew Cheat Sheet": "Hoja de Referencia de Cuadrilla",
   "Crew Cheat Sheet · Field Safety Reporting Portal":
     "Hoja de Referencia · Portal de Reportes de Seguridad de Campo",
-  Office: "Oficina",
-  Print: "Imprimir",
   "Scan to start": "Escanee para comenzar",
   "One front door for every safety form.":
     "Una puerta de entrada para cada formulario de seguridad.",
@@ -1503,7 +1494,6 @@ const ES = {
   "Sign + Submit": "Firme + Envíe",
   "Sign with your finger. Hit Submit. Translates Spanish to English automatically before saving.":
     "Firme con el dedo. Toque Enviar. Traduce del español al inglés automáticamente antes de guardar.",
-  Done: "Listo",
   "Office gets the report instantly. You'll see a Thank You screen with the option to file another.":
     "La oficina recibe el reporte al instante. Verá una pantalla de Gracias con la opción de archivar otro.",
   "Tips for Foremen": "Consejos para Capataces",
@@ -1524,7 +1514,6 @@ const ES = {
   "and get any injured worker medical attention.":
     "y consiga atención médica a cualquier trabajador lesionado.",
   "Call Safety immediately": "Llame a Seguridad inmediatamente",
-  Open: "Abra",
   "form on the Hub and fill it out as soon as the scene is stable.":
     "en el Hub y complételo tan pronto como la escena sea estable.",
   "Then complete your": "Luego complete su",
@@ -1651,8 +1640,6 @@ const ES = {
 
   /* NewMeeting toasts (K3) */
   "Job loaded: #{n}": "Trabajo cargado: #{n}",
-  "Got GPS coordinates, but couldn't look up address":
-    "Se obtuvieron coordenadas GPS, pero no se pudo buscar la dirección",
   "{field} is required": "{field} es obligatorio",
   "Conductor signature is required": "La firma del conductor es obligatoria",
   "Add at least one attendee": "Añada al menos un asistente",
@@ -1660,7 +1647,6 @@ const ES = {
   "Could not save meeting": "No se pudo guardar la reunión",
   "Subcontractor crew present": "Cuadrilla subcontratista presente",
   "Subcontractor name (optional)": "Nombre del subcontratista (opcional)",
-    "La persona que dirigió la reunión firma para confirmar que el registro es preciso.",
   "Topic Category *": "Categoría del Tema *",
   "Topic & Discussion": "Tema y Discusión",
   "Topic Library — Pick a topic to prefill":
@@ -1885,13 +1871,8 @@ const ES = {
   "Job Hazard Plans": "Planes de Peligros del Trabajo",
   "Read your job's Hazard Plan PDF before crew breaks ground. One plan per active MASCI job — uploaded by the office.":
     "Lea el PDF del Plan de Peligros de su trabajo antes de que la cuadrilla comience. Un plan por cada trabajo MASCI activo — subido por la oficina.",
-    "Elija su trabajo para ver su Plan de Peligros",
-    "Cada trabajo MASCI tiene su propio PDF del Plan de Peligros. Abra su trabajo y léalo antes de que la cuadrilla comience. Si su trabajo aún no tiene plan, consulte con su Gerente de Proyecto.",
-    "Buscar por número de trabajo, nombre o ubicación…",
   "Uploaded": "Subido",
   "View Plan": "Ver Plan",
-  "to read it where there's no service.":
-    "para leerlo donde no haya señal.",
 
   // ============================================================
   // FOCP Release 2 · TR-0001 — JHP Acknowledgement Ledger strings
@@ -3069,9 +3050,6 @@ const ES = {
     "El servidor está despertando — espere ~60 segundos e intente de nuevo",
   "Server error": "Error del servidor",
   "try again in a moment": "intente de nuevo en un momento",
-    "Tiempo de espera agotado — el servidor está iniciando, intente de nuevo",
-  "Can't reach server — check your internet":
-    "No se puede conectar al servidor — verifique su internet",
 
   // Activity Feed + Parts Catalog (2026-04-28)
   "Activity Feed": "Bitácora de Actividad",
@@ -3305,7 +3283,6 @@ const ES = {
     "Tracks de Campo · Taller · Gerente · Admin",
   "Written guides + video slots + print-friendly":
     "Guías escritas + videos + listo para imprimir",
-    "Lecciones cortas y enfocadas para cada rol — Cuadrillas de Campo, Taller, Gerentes y Admins. Guías escritas, hojas imprimibles y videos tutoriales. Elija su track.",
   "Admin note": "Nota para admins",
   "Shop / PM / Admin tracks require their respective passwords. The Field Crew track is public — no login needed. Each lesson has a video slot; admins can paste YouTube / Loom / Vimeo URLs via the Admin console → Training Videos panel.":
     "Los tracks de Taller / Gerente / Admin requieren sus contraseñas. El track de Campo es público — sin inicio de sesión. Cada lección tiene un espacio para video; los admins pueden pegar URLs de YouTube / Loom / Vimeo desde la consola de Admin → panel de Videos de Capacitación.",
@@ -3420,7 +3397,6 @@ const ES = {
   "today": "hoy",
 
   // Track gating (2026-05-01)
-    "Track interno — cubre flujos de oficina. Inicie sesión como",
   "Internal training · password required":
     "Capacitación interna · contraseña requerida",
   "This packet covers internal MASCI workflows and is only shared with office staff.":
@@ -3869,7 +3845,6 @@ const ES = {
     "Emita equipo con responsabilidad total y documente la capacitación — cada envío envía un PDF al correo safety@mascigc.com.",
   "MASCI · Safety Department": "MASCI · Departamento de Seguridad",
   "Start Form": "Iniciar Formulario",
-    "Emisión y Responsabilidad de Equipo de Seguridad",
   "Employee Name": "Nombre del Empleado",
   "Employee ID (optional)": "ID del Empleado (opcional)",
   "Issued By": "Emitido Por",

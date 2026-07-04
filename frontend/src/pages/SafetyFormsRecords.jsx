@@ -110,6 +110,8 @@ export default function SafetyFormsRecords() {
     return { primary: filtered.length };
   }, [filtered, tab]);
 
+  // Track 21.1 tech-debt: TabButton closes over `tab` + `setTab`; safe hoist scheduled for Track 21.y.
+  // eslint-disable-next-line react/no-unstable-nested-components
   const TabButton = ({ value, icon: Icon, label, testId }) => (
     <button
       type="button"

@@ -158,7 +158,7 @@ export default function FleetDVIRConfirmation() {
                         <div className="font-semibold leading-snug">{item}</div>
                         {detail?.note && (
                           <div className="text-slate-600 text-[13px] mt-0.5 italic">
-                            "{detail.note}"
+                            &quot;{detail.note}&quot;
                           </div>
                         )}
                       </li>

@@ -427,7 +427,7 @@ export function IncidentLifecyclePanel({ incidentId, oshaRecordable }) {
                     {ev.actor_name && <span> · {ev.actor_name}</span>}
                   </div>
                   {ev.reason && (
-                    <div className="mt-1 text-sm text-slate-800 italic">"{ev.reason}"</div>
+                    <div className="mt-1 text-sm text-slate-800 italic">&quot;{ev.reason}&quot;</div>
                   )}
                 </div>
               ))}

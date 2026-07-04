@@ -158,7 +158,7 @@ export default function BilingualAdoptionCard() {
 
           {stats.totals.unknown > 0 && (
             <p className="text-[11px] text-slate-400 mt-3 italic">
-              "Legacy" = records filed before the language stamp was added
+              &quot;Legacy&quot; = records filed before the language stamp was added
               (ignored in the Spanish % calculation).
             </p>
           )}

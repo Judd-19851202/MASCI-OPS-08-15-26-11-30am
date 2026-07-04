@@ -2,15 +2,15 @@
 
 _Phase GOVERNANCE-INFRA-1 · Workstream 1 · Authority Mismatch Probe._
 
-* Generated: 2026-07-03 22:18:40 UTC
-* Scan duration: 320 ms
+* Generated: 2026-07-04 04:17:56 UTC
+* Scan duration: 146 ms
 * Frontend tree: `/app/frontend/src`
 * Baseline: `/app/scripts/authority_pattern_baseline.json`
 
 ## Summary
 
 * **New violations** (fail the gate): **0**
-* **New warnings** (review): 57
+* **New warnings** (review): 58
 * **Baselined** (previously approved): 26
 
 ## 🟡 New warnings
@@ -36,6 +36,7 @@ _Phase GOVERNANCE-INFRA-1 · Workstream 1 · Authority Mismatch Probe._
 * `pages/HrEmployees.jsx:85` · ad-hoc canApprove variable · `const allowed = isHr() || isAdmin();`
 * `pages/NewIncident.jsx:324` · ad-hoc canApprove variable · `if (publicMode || !isAdmin()) {`
 * `pages/NewIncident.jsx:357` · ad-hoc canApprove variable · `if (publicMode || !isAdmin()) {`
+* `pages/AdminAssetThread.jsx:508` · ad-hoc canApprove variable · `const allowed = isAdmin();`
 * `pages/ViewEquipmentInspection.jsx:146` · ad-hoc canApprove variable · `{isAdmin() && (`
 * `pages/HrLogin.jsx:64` · token-coexistence rendering · 2-way OR · `if (isHr() || isAdmin()) {`
 * `pages/HrLogin.jsx:70` · token-coexistence rendering · 2-way OR · `useRedirectIfDirectoryGrant("hr", isHr() || isAdmin(), "/hr");`

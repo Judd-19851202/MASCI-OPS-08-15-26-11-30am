@@ -87,7 +87,7 @@ export default function DateAuditPanel() {
             Date Audit
           </h2>
           <p className="text-sm text-slate-600 mt-2 max-w-3xl">
-            Scans every report collection for records whose stored date doesn't
+            Scans every report collection for records whose stored date doesn&apos;t
             line up with the local-ET timestamp the crew actually submitted on.
             High-confidence matches are bucketed as <strong>Suspects</strong>{" "}
             (auto-suggest a fix, gated by admin password). Off-by-many-days

@@ -199,7 +199,7 @@ export default function MasterLookupCombobox({
               title="Save as text only — no master record will be linked"
             >
               <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-              Use exactly: <strong className="mx-1">"{q.trim()}"</strong> (no master link)
+              Use exactly: <strong className="mx-1">&quot;{q.trim()}&quot;</strong> (no master link)
             </button>
           )}
         </div>

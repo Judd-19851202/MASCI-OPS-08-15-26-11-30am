@@ -45,6 +45,12 @@ classified into exactly one of:
 | TD-21.0-C06 | `frontend/src/App.js` = 1,283 lines · Phase-2 route-group extraction plan documented | **C** — architecture debt | Frontend team | P2 | 21.y | **OPEN** |
 | TD-21.0-C07 | CORS `allow_methods=["*"]` / `allow_headers=["*"]` tightening | **C** — Phase-2 hardening | Backend team | P3 | 21.a | **OPEN** |
 | TD-21.0-C08 | `require_admin_pm_or_hr_read` still uses retired sync-HMAC admin validator | **C** — auth cleanup | Backend team | P2 | 21.x | **OPEN** |
+| TD-20.9-C01 | (see below — closed by Track 21.1) | **C** | i18n team | P2 | 21.1 | **CLOSED** (2026-07-04 · dedup completed; orphan value-lines pruned; `no-dupe-keys` clean) |
+| TD-20.9-C02 | (see below — closed by Track 21.1) | **C** | Frontend team | P3 | 21.1 | **CLOSED** (2026-07-04 · 188 unescaped entities converted to HTML entities via safe positional codemod) |
+| TD-20.9-C05 | (see below — closed by Track 21.1) | **C** | Frontend team | P3 | 21.1 | **CLOSED** (2026-07-04 · 5 `catch {}` in `GlobalSearch.jsx` given intent-documented no-op comments) |
+| TD-21.1-C01 | 6 `react/no-unstable-nested-components` sites tagged with intent-documented `// eslint-disable-next-line` markers pointing at Track 21.y refactor. Behavior preserved (zero-drift); hoisting deferred to avoid closure/testId regression risk. Sites: `OpenItemsPanel.jsx`, `ui/calendar.jsx` (×2), `SafetyFormsRecords.jsx`, `TrenchBoxesAdmin.jsx`, `transportation/_orientation.jsx`. | **C** — Existing Tech Debt | Frontend team | P2 | 21.y (careful refactor) | **OPEN** |
+| TD-21.1-C02 | 1 `react/no-unknown-property` on cmdk `cmdk-input-wrapper` attribute (vendor pattern from shadcn/ui). Marked with in-file eslint-disable pending vendor upgrade. | **C** — Existing Tech Debt | Frontend team | P3 | 21.y | **OPEN** |
+| TD-21.1-D01 | Previous session's `i18n.js` dedup left 10 value-only orphan lines and 9 duplicate keys unresolved; frontend build was actually broken (webpack + eslint parse error) despite the handoff claiming "build clean". Fixed during Track 21.1 by pruning orphans and removing earlier duplicate occurrences (keeping the runtime-effective later ones per JS last-write-wins semantics). | **A** — Fix Now (surfaced by Track 21.1) | Frontend team | P0 | 21.1 | **FIXED** (2026-07-04) |
 
 ## Detail
 

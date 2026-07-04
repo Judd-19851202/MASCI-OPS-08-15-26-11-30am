@@ -57,7 +57,7 @@ function recentKey() {
   ];
   for (const k of candidates) {
     let v = null;
-    try { v = localStorage.getItem(k) || sessionStorage.getItem(k); } catch {}
+    try { v = localStorage.getItem(k) || sessionStorage.getItem(k); } catch { /* storage disabled */ }
     if (v) return RECENT_KEY_PREFIX + v.slice(0, 8);
   }
   return RECENT_KEY_PREFIX + "anon";
@@ -69,7 +69,7 @@ function readRecents() {
     if (!raw) return [];
     const arr = JSON.parse(raw);
     return Array.isArray(arr) ? arr.slice(0, MAX_RECENT) : [];
-  } catch { return []; }
+  } catch { /* recents unavailable */ return []; }
 }
 
 function pushRecent(q) {
@@ -79,11 +79,11 @@ function pushRecent(q) {
     const cur = readRecents().filter((s) => s.toLowerCase() !== t.toLowerCase());
     cur.unshift(t);
     localStorage.setItem(recentKey(), JSON.stringify(cur.slice(0, MAX_RECENT)));
-  } catch {}
+  } catch { /* storage disabled */ }
 }
 
 function clearRecents() {
-  try { localStorage.removeItem(recentKey()); } catch {}
+  try { localStorage.removeItem(recentKey()); } catch { /* storage disabled */ }
 }
 
 export default function GlobalSearch({
@@ -114,7 +114,7 @@ export default function GlobalSearch({
     setData(null);
     setErr(null);
     setHighlight(0);
-    if (abortRef.current) { try { abortRef.current.abort(); } catch {} }
+    if (abortRef.current) { try { abortRef.current.abort(); } catch { /* already aborted */ } }
   }, []);
 
   const openOverlay = useCallback(() => {
@@ -153,7 +153,7 @@ export default function GlobalSearch({
     if (term.length < 2) { setData(null); setErr(null); return; }
     setLoading(true);
     setErr(null);
-    if (abortRef.current) { try { abortRef.current.abort(); } catch {} }
+    if (abortRef.current) { try { abortRef.current.abort(); } catch { /* already aborted */ } }
     const ctrl = new AbortController();
     abortRef.current = ctrl;
     const id = setTimeout(async () => {

@@ -240,7 +240,7 @@ export default function PmHub() {
           // "Welcome to the PM Portal" marketing-tone intro. Doctrine:
           // CROSS_PORTAL_COACHING_STANDARD.md §V — sentence-case, ≤14 words.
           <p className="text-sm text-slate-600 leading-relaxed" data-testid="pm-hub-v2-subline">
-            Today's operational signal across your assigned projects.
+            Today&apos;s operational signal across your assigned projects.
           </p>
         ) : (
           <div className="flex items-start gap-3">

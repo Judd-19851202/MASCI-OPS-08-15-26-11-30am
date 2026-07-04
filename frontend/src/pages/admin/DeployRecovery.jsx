@@ -122,7 +122,7 @@ export default function DeployRecovery() {
           <Playbook icon={AlertTriangle} title="If a deploy looks bad (errors spiking, users blocked)" color="red">
             <ol className="ml-5 list-decimal space-y-1">
               <li>Open <Link to="/admin/system-health" className="font-bold underline text-red-700" data-testid="recovery-health-link">System Health</Link> in a new tab. Confirm the red signals (MongoDB · R2 · auth failures · failed syncs).</li>
-              <li>Tell the deploy operator <strong>"halt and roll back"</strong> and screenshot the System Health panel.</li>
+              <li>Tell the deploy operator <strong>&quot;halt and roll back&quot;</strong> and screenshot the System Health panel.</li>
               <li>The hosting platform has one-click revert to the previous deploy. Use it. Production traffic re-routes within ~60 s.</li>
               <li>While reverting, freeze NEW logins via Admin → System &amp; Backups → temporarily set <code>RATE_LIMITING=hard</code> or block at the edge.</li>
             </ol>
@@ -131,7 +131,7 @@ export default function DeployRecovery() {
           <Playbook icon={Cloud} title="Database / data corruption suspected" color="amber">
             <ol className="ml-5 list-decimal space-y-1">
               <li>Stop further writes — set the deploy back to the previous build first.</li>
-              <li>Go to <Link to="/admin/system" className="font-bold underline text-amber-700">Admin → System &amp; Backups</Link> → "Restore from R2 archive". Pick the most recent hourly snapshot taken BEFORE the corruption window.</li>
+              <li>Go to <Link to="/admin/system" className="font-bold underline text-amber-700">Admin → System &amp; Backups</Link> → &quot;Restore from R2 archive&quot;. Pick the most recent hourly snapshot taken BEFORE the corruption window.</li>
               <li>Restore reads the R2 snapshot into a quarantine collection set first. Verify counts, then promote.</li>
               <li>Cross-reference the <Link to="/admin/audit-log" className="font-bold underline text-amber-700" data-testid="recovery-audit-link">Audit Log</Link> for the actor/source-module behind the offending writes.</li>
             </ol>
@@ -154,7 +154,7 @@ export default function DeployRecovery() {
               <li>Hit <code>POST /api/auth/multi-login</code> with the super-admin account → expect all 6 portal tokens.</li>
               <li>Open <Link to="/admin/dispatch" className="font-bold underline">Transportation Operations</Link> → confirm Utilization renders.</li>
               <li>Open this page → confirm overall System Health is green.</li>
-              <li>If all green for 60 s straight, announce "deploy stable" to the team.</li>
+              <li>If all green for 60 s straight, announce &quot;deploy stable&quot; to the team.</li>
             </ol>
           </Playbook>
 

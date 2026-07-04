@@ -378,8 +378,8 @@ export default function AdminUnifiedDirectoryPanel() {
       )}
 
       <div className="mt-4 text-[10px] text-slate-400 font-mono leading-relaxed border-t border-slate-100 pt-3">
-        Phase K4a · Read-only surface. Role-template assignment, "convert
-        mirrored → managed", and per-user audit views land in Phase K4b
+        Phase K4a · Read-only surface. Role-template assignment, &quot;convert
+        mirrored → managed&quot;, and per-user audit views land in Phase K4b
         following user approval. Mutations to existing accounts continue to
         live in the Access Control Center above.
       </div>

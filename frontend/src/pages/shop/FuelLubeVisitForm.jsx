@@ -365,7 +365,7 @@ export default function FuelLubeVisitForm() {
           marginTop: 24, padding: 12, fontSize: 11, color: "#666",
           background: "var(--paper-card)", border: "1px dashed var(--border-bold)", borderRadius: 4,
         }}>
-          Each service entry is saved to the unit's history. Issues you flag here become shop defects automatically.
+          Each service entry is saved to the unit&apos;s history. Issues you flag here become shop defects automatically.
           Repair complete still requires return-to-service verification by Dispatch.
         </div>
       </PortalShell>

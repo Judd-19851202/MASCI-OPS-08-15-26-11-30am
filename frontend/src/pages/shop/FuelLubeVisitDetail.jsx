@@ -147,8 +147,8 @@ export default function FuelLubeVisitDetail() {
 
             <div data-testid="fuel-lube-detail-doctrine" style={{ marginTop: 24, padding: 12, fontSize: 11, color: "#666",
               background: "var(--paper-card)", border: "1px dashed var(--border-bold)", borderRadius: 4 }}>
-              Each service entry is saved to the unit's history. Issues flow to the shop defect queue.
-              Print uses the browser's native dialog. PDF / email / CSV exports are not enabled here.
+              Each service entry is saved to the unit&apos;s history. Issues flow to the shop defect queue.
+              Print uses the browser&apos;s native dialog. PDF / email / CSV exports are not enabled here.
             </div>
           </>
         )}

@@ -66,7 +66,7 @@ export default function AdminHub() {
         <p className="text-sm text-slate-600 leading-relaxed">
           Welcome to the MASCI Admin Console. Every administrative tool on the platform lives one
           click away in the navigation on the left (or hamburger on mobile). Below is a high-level
-          snapshot of today's activity — plus a Doc-ID search if you're hunting a specific record.
+          snapshot of today&apos;s activity — plus a Doc-ID search if you&apos;re hunting a specific record.
         </p>
       }
     >

@@ -81,7 +81,7 @@ export default function AdminGlobalSearch() {
             <div className="p-6 text-center text-slate-500"><Loader2 className="w-5 h-5 animate-spin mx-auto" /></div>
           ) : (data?.groups || []).length === 0 ? (
             <p className="p-5 text-sm text-slate-500 italic text-center" data-testid="admin-search-empty">
-              No matches for <strong>"{q}"</strong>
+              No matches for <strong>&quot;{q}&quot;</strong>
             </p>
           ) : (
             <div data-testid="admin-search-groups">

@@ -91,7 +91,7 @@ export default function AdminDocIdSearch() {
       </form>
       {notFound && (
         <div className="px-3 pb-3 -mt-1 text-xs text-red-700 font-mono uppercase tracking-[0.18em] flex items-center gap-1.5" data-testid="admin-doc-id-search-not-found">
-          <AlertCircle className="w-3.5 h-3.5" /> No record found for "{q.trim().toUpperCase()}"
+          <AlertCircle className="w-3.5 h-3.5" /> No record found for &quot;{q.trim().toUpperCase()}&quot;
         </div>
       )}
     </div>

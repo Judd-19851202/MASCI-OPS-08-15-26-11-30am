@@ -202,7 +202,7 @@ export default function EquipmentStatusBoard() {
 
           {filtered.length === 0 ? (
             <p className="mt-5 text-sm text-slate-500 italic" data-testid="status-empty-filter">
-              Nothing matches this filter — that's a good thing.
+              Nothing matches this filter — that&apos;s a good thing.
             </p>
           ) : (
             <ul className="mt-4 divide-y-2 divide-slate-100" data-testid="status-board-list">

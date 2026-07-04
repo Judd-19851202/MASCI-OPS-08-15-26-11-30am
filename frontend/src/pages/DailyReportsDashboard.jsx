@@ -113,7 +113,7 @@ export default function DailyReportsDashboard() {
         {/* iter190 — Operational Guidance Center example placement. */}
         <div className="mb-4">
           <WhyItMattersPanel title="Why daily reports matter">
-            Daily reports are MASCI's most-referenced operational record.
+            Daily reports are MASCI&apos;s most-referenced operational record.
             They support payroll cross-check, project review, dispute
             resolution, and after-the-fact investigations.{" "}
             <Link to="/guidance/why-daily-reports" className="text-amber-700 hover:underline font-semibold">

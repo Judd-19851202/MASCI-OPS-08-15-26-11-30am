@@ -304,7 +304,7 @@ export const EmployeeCombo = ({
                   ) : (
                     <Plus className="w-4 h-4" />
                   )}
-                  {t("Request HR add")} "{value}"
+                  {t("Request HR add")} &quot;{value}&quot;
                 </button>
               )}
             </div>

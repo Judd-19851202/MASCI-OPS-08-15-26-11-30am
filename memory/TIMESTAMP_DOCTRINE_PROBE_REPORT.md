@@ -2,12 +2,12 @@
 
 _Phase TRUST-TIME-1B · self-protection probe · 🔴 FAIL_
 
-- Scanned files     : **1153**
+- Scanned files     : **1154**
 - Patterns           : **5**
 - New violations     : **38**
-- New warnings       : **76**
-- Baselined          : **68**
-- Scan runtime       : **208 ms**
+- New warnings       : **77**
+- Baselined          : **67**
+- Scan runtime       : **216 ms**
 
 ## Pattern catalogue
 
@@ -54,7 +54,7 @@ _Phase TRUST-TIME-1B · self-protection probe · 🔴 FAIL_
 - `pages/transportation/_lists.jsx:1147` · `F2·slice19-replaceT` · `<Row label="HR updated" value={data.hr_linkage.updated_at.slice(0, 19).replace("` → Use formatLocalDateTime() or formatUtcForAudit() from lib/dateUtils.js
 - `pages/transportation/_lists.jsx:1173` · `F2·slice19-replaceT` · `Last synced: {data.hr_projection.synced_at.slice(0, 19).replace("T", " ")} ({dat` → Use formatLocalDateTime() or formatUtcForAudit() from lib/dateUtils.js
 - `pages/transportation/_lists.jsx:1298` · `F2·slice19-replaceT` · `Schema {snap.schema_version} · Computed {(snap.computed_at || "").slice(0, 19).r` → Use formatLocalDateTime() or formatUtcForAudit() from lib/dateUtils.js
-- `pages/transportation/_orientation.jsx:554` · `F2·slice19-replaceT` · `{row.last_audit_at.slice(0, 19).replace("T", " ")} ·` → Use formatLocalDateTime() or formatUtcForAudit() from lib/dateUtils.js
+- `pages/transportation/_orientation.jsx:556` · `F2·slice19-replaceT` · `{row.last_audit_at.slice(0, 19).replace("T", " ")} ·` → Use formatLocalDateTime() or formatUtcForAudit() from lib/dateUtils.js
 - `pages/transportation/_intelligence.jsx:169` · `F2·slice19-replaceT` · `<span>· Generated {(data.generated_at || "").slice(0, 19).replace("T", " ")}</sp` → Use formatLocalDateTime() or formatUtcForAudit() from lib/dateUtils.js
 - `pages/transportation/_intelligence.jsx:420` · `F2·slice19-replaceT` · `Schema {data.schema_version} · Generated {(data.generated_at || "").slice(0, 19)` → Use formatLocalDateTime() or formatUtcForAudit() from lib/dateUtils.js
 - `pages/transportation/_intelligence.jsx:606` · `F2·slice19-replaceT` · `Schema {data.schema_version} · Window {data.range?.days} days · Generated {(data` → Use formatLocalDateTime() or formatUtcForAudit() from lib/dateUtils.js
@@ -75,6 +75,7 @@ _Phase TRUST-TIME-1B · self-protection probe · 🔴 FAIL_
 - `components/AdminAccessControlPanel.jsx:366` · `F5·toLocaleDateString-bare` · `{u.last_login_at ? new Date(u.last_login_at).toLocaleDateString() : "—"}`
 - `components/OperationsTrustCenter.jsx:111` · `F4·toLocaleString-bare` · `return new Date(iso).toLocaleString();`
 - `components/OperationsTrustCenter.jsx:588` · `F4·toLocaleString-bare` · `setLastRun(new Date().toLocaleString());`
+- `components/MasterListPanel.jsx:511` · `F4·toLocaleString-bare` · `{row.deleted_at ? new Date(row.deleted_at).toLocaleString() : "—"}`
 - `components/operational_intelligence/OperationalThread.jsx:40` · `F4·toLocaleString-bare` · `return new Date(dt).toLocaleString(undefined, {`
 - `components/triage/FocusBanner.jsx:263` · `F4·toLocaleString-bare` · `r.reported_at ? `Reported ${new Date(r.reported_at).toLocaleString()}` : null,`
 - `components/triage/FocusBanner.jsx:294` · `F4·toLocaleString-bare` · `r.shift_start_at ? `Shift start: ${new Date(r.shift_start_at).toLocaleString()}``
@@ -91,9 +92,8 @@ _Phase TRUST-TIME-1B · self-protection probe · 🔴 FAIL_
 - `pages/Tasks.jsx:308` · `F4·toLocaleString-bare` · `<div className="text-slate-700">{new Date(task.due_at).toLocaleString()}</div>`
 - `pages/Tasks.jsx:349` · `F4·toLocaleString-bare` · `<div className="font-mono text-[10px] text-slate-400 mt-0.5">{new Date(c.at).toL`
 - `pages/Tasks.jsx:372` · `F4·toLocaleString-bare` · `<span className="font-mono">{new Date(a.at).toLocaleString()}</span>`
-- `pages/Tasks.jsx:198` · `F5·toLocaleDateString-bare` · `{t.due_at && ` · due ${new Date(t.due_at).toLocaleDateString()}`}`
 
-_…and 46 more (see JSON output)._
+_…and 47 more (see JSON output)._
 
 ## How to clear violations
 

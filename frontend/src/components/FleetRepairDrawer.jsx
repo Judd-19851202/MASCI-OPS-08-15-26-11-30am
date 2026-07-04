@@ -93,7 +93,7 @@ function DefectContextStrip({ defect, t }) {
       {defect.driver_note && (
         <div className="mt-1.5 flex items-start gap-1.5 text-[13px] text-slate-700 italic bg-amber-50/60 border-l-2 border-amber-400 pl-2 py-1 rounded-sm">
           <MessageSquareQuote className="w-3.5 h-3.5 shrink-0 text-amber-700 mt-0.5" />
-          <span>"{defect.driver_note}"</span>
+          <span>&quot;{defect.driver_note}&quot;</span>
         </div>
       )}
       {Array.isArray(defect.photos) && defect.photos.length > 0 && (

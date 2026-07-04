@@ -140,7 +140,7 @@ export default function FieldLeadershipPortalDashboard() {
           className="rounded-md border-2 border-slate-200 bg-white px-4 py-3"
         >
           <div className="font-mono text-[11px] uppercase tracking-widest font-bold text-slate-700">
-            Today's focus · Field Leadership
+            Today&apos;s focus · Field Leadership
           </div>
           <p className="mt-1 text-xs text-slate-600">
             {t("Assigned jobs, today's dispatch window, and driver-readiness readouts — in that order. Everything else is one click below.")}

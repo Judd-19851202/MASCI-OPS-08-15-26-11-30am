@@ -355,11 +355,11 @@ export default function HrEmployeeRequestsQueue() {
                         </div>
                       )}
                       {req.kind === "termination" && p.reason && (
-                        <div className="text-xs text-slate-700 italic mt-1">"{p.reason}"</div>
+                        <div className="text-xs text-slate-700 italic mt-1">&quot;{p.reason}&quot;</div>
                       )}
                       {req.status === "rejected" && req.rejection_reason && (
                         <div className="text-xs text-amber-700 italic mt-1">
-                          Sent back: "{req.rejection_reason}"
+                          Sent back: &quot;{req.rejection_reason}&quot;
                         </div>
                       )}
                       {req.status === "approved" && req.resulting_employee_id && (

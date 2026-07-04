@@ -726,7 +726,7 @@ export default function AdminJobMasterPanel() {
               receive every Daily Report, Incident, Inspection, Meeting,
               and Pre-Op email filed against this job. The primary PM
               ({pmNameByEmail(coPmJob?.pm_email) || "Unassigned"}) stays
-              unchanged — co-PMs are CC'd on top.
+              unchanged — co-PMs are CC&apos;d on top.
             </DialogDescription>
           </DialogHeader>
 

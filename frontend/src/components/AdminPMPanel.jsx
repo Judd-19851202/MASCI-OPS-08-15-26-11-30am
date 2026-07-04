@@ -698,7 +698,7 @@ export default function AdminPMPanel() {
               </span>
             </DialogTitle>
             <DialogDescription className="leading-relaxed text-sm">
-              Three ways to issue (or reset) this PM's password — pick whichever
+              Three ways to issue (or reset) this PM&apos;s password — pick whichever
               fits the situation:
               <br /><strong>Email to PM</strong> (recommended for remote) — mints
               a temp pw and emails the PM directly with the welcome PDF
@@ -706,7 +706,7 @@ export default function AdminPMPanel() {
               <br /><strong>Download PDF</strong> — same handoff letter, but
               downloaded so you can print it and hand it over in person.
               <br /><strong>Show on screen</strong> — just the temp password in
-              a copy dialog, in case you'd rather text/call them.
+              a copy dialog, in case you&apos;d rather text/call them.
               <br />Or type a <strong>custom</strong> password below. The PM
               must rotate to their own on first login regardless.
             </DialogDescription>
@@ -838,7 +838,7 @@ export default function AdminPMPanel() {
                 {issuedPw?.pm_name} ({issuedPw?.pm_email})
               </strong>{" "}
               through a secure channel (in person, work phone, encrypted
-              chat). They'll be forced to choose their own password on
+              chat). They&apos;ll be forced to choose their own password on
               first login. <strong>You will NOT see this password again
               after closing this dialog.</strong>
             </DialogDescription>
@@ -863,7 +863,7 @@ export default function AdminPMPanel() {
               className="bg-slate-900 hover:bg-slate-800 text-white font-bold uppercase tracking-wide"
               data-testid="pm-issued-password-close"
             >
-              I've copied it — close
+              I&apos;ve copied it — close
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -80,7 +80,7 @@ function HistoryEntry({ entry, idx, isLatest }) {
         </div>
       ) : null}
       {entry.note ? (
-        <div className="text-xs text-slate-600 mt-0.5 italic">"{entry.note}"</div>
+        <div className="text-xs text-slate-600 mt-0.5 italic">&quot;{entry.note}&quot;</div>
       ) : null}
       {entry.correction_reason ? (
         <div className="text-xs text-amber-700 mt-0.5">

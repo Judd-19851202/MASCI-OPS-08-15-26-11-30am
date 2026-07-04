@@ -320,7 +320,7 @@ export function QaqcLifecyclePanel({ inspectionId }) {
           <DialogHeader>
             <DialogTitle>Close QA/QC Inspection</DialogTitle>
             <DialogDescription>
-              Closure requires operational evidence — pick one path. "Acknowledge only"
+              Closure requires operational evidence — pick one path. &quot;Acknowledge only&quot;
               closure is not permitted.
             </DialogDescription>
           </DialogHeader>
@@ -564,7 +564,7 @@ export function QaqcLifecyclePanel({ inspectionId }) {
                     {ev.actor_name && <span> · {ev.actor_name}</span>}
                   </div>
                   {ev.reason && (
-                    <div className="mt-1 text-sm text-slate-800 italic">"{ev.reason}"</div>
+                    <div className="mt-1 text-sm text-slate-800 italic">&quot;{ev.reason}&quot;</div>
                   )}
                 </div>
               ))}

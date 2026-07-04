@@ -257,7 +257,7 @@ export default function AdminJhaAcknowledgements() {
                             {new Date(a.acknowledged_at).toLocaleString()} · {a.locale}
                           </span>
                           <span className="w-full text-[11px] italic text-slate-600 pt-1">
-                            Signature: "{a.signature}"
+                            Signature: &quot;{a.signature}&quot;
                           </span>
                         </li>
                       ))}

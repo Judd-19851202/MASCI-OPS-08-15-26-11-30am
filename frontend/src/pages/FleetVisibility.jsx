@@ -185,10 +185,10 @@ function AuditTrailPanel({ defectId, t }) {
           <div className="font-mono text-[10px] uppercase tracking-wider text-slate-500">
             {e.timestamp ? new Date(e.timestamp).toLocaleString() : ""}
             {e?.payload?.repair_notes && (
-              <span className="text-slate-700 normal-case"> · "{e.payload.repair_notes}"</span>
+              <span className="text-slate-700 normal-case"> · &quot;{e.payload.repair_notes}&quot;</span>
             )}
             {e?.payload?.rts_note && (
-              <span className="text-slate-700 normal-case"> · "{e.payload.rts_note}"</span>
+              <span className="text-slate-700 normal-case"> · &quot;{e.payload.rts_note}&quot;</span>
             )}
           </div>
         </li>
@@ -306,7 +306,7 @@ function UnitCard({ group, scope, t, expanded, onToggle, onRepairClick, onRtsCli
                     data-testid={`fleet-unit-card-${unit}-defect-${i}-note`}
                   >
                     <MessageSquareQuote className="w-3.5 h-3.5 shrink-0 text-amber-700 mt-0.5" />
-                    <span>"{d.driver_note}"</span>
+                    <span>&quot;{d.driver_note}&quot;</span>
                   </div>
                 )}
                 {Array.isArray(d.photos) && d.photos.length > 0 && (
@@ -325,7 +325,7 @@ function UnitCard({ group, scope, t, expanded, onToggle, onRepairClick, onRtsCli
                       {t("Shop repair logged")}
                     </div>
                     {d.repair_notes && (
-                      <div className="text-[13px] text-emerald-900 leading-snug">"{d.repair_notes}"</div>
+                      <div className="text-[13px] text-emerald-900 leading-snug">&quot;{d.repair_notes}&quot;</div>
                     )}
                     <div className="text-[11px] text-emerald-800 mt-0.5 font-mono">
                       {d.repaired_by_name || t("Mechanic")}

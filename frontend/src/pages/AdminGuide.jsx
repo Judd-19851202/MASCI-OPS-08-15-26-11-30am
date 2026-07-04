@@ -52,7 +52,7 @@ export default function AdminGuide() {
           <div className="flex items-center justify-between">
             <div>
               <div className="font-black text-lg">{platformDisplay}</div>
-              <div className="text-xs uppercase tracking-[0.2em]">Owner's Manual · Print / Tape to wall</div>
+              <div className="text-xs uppercase tracking-[0.2em]">Owner&apos;s Manual · Print / Tape to wall</div>
             </div>
             <div className="text-xs">{marketingHost}</div>
           </div>
@@ -61,17 +61,17 @@ export default function AdminGuide() {
         {/* Screen hero */}
         <div className="mb-8 print:hidden">
           <div className="font-mono text-xs uppercase tracking-[0.25em] text-red-700 font-bold">
-            {platformShort} Admin · Owner's Manual
+            {platformShort} Admin · Owner&apos;s Manual
           </div>
           <p className="text-slate-600 mt-3 max-w-2xl text-base">
             One page, plain English. Print it, tape it to the wall, hand it to whoever covers the office
-            when you're out. You do not need to understand any code to run the platform.
+            when you&apos;re out. You do not need to understand any code to run the platform.
           </p>
         </div>
 
         {/* THE PLATFORM AT A GLANCE */}
         <Section icon={ShieldCheck} title="The Hub at a glance" color="slate">
-          <p>Open <code>mascidocs.com</code> and you'll see the main tiles. Five portals plus public submission entry points:</p>
+          <p>Open <code>mascidocs.com</code> and you&apos;ll see the main tiles. Five portals plus public submission entry points:</p>
           <ul className="ml-5 list-disc space-y-1 mt-2">
             <li>🦺 <strong>Safety</strong> — Public submission. Inspections · Meetings · Incidents · JHP Plans · Trench Box Data.</li>
             <li>👷 <strong>Field</strong> — Public submission. Daily Reports · Equipment Pre-Op · Calculators.</li>
@@ -87,7 +87,7 @@ export default function AdminGuide() {
 
         {/* SIGN-IN OPTIONS */}
         <Section icon={KeyRound} title="How to sign in (3 ways)" color="red">
-          <p>Every office user signs in with their <strong>work email + personal password</strong>. The legacy "single shared admin password" is gone from the human-facing UI (kept only as an API break-glass for IT).</p>
+          <p>Every office user signs in with their <strong>work email + personal password</strong>. The legacy &quot;single shared admin password&quot; is gone from the human-facing UI (kept only as an API break-glass for IT).</p>
           <div className="grid sm:grid-cols-3 gap-3 mt-4">
             <div className="border-2 border-red-700 bg-red-50 rounded-md p-3">
               <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-red-700 font-bold mb-1">
@@ -102,7 +102,7 @@ export default function AdminGuide() {
                 Multiple portals
               </div>
               <p className="text-sm m-0">
-                Go to <code>/sign-in</code>. Same email + password works as the "master sign-in" — backend issues tokens for every portal you're assigned to in one shot. Switch between them via the <strong>SWITCH PORTAL</strong> dropdown in the header.
+                Go to <code>/sign-in</code>. Same email + password works as the &quot;master sign-in&quot; — backend issues tokens for every portal you&apos;re assigned to in one shot. Switch between them via the <strong>SWITCH PORTAL</strong> dropdown in the header.
               </p>
             </div>
             <div className="border-2 border-amber-600 bg-amber-50 rounded-md p-3">
@@ -115,13 +115,13 @@ export default function AdminGuide() {
             </div>
           </div>
           <p className="mt-3">
-            <strong>Forgot password?</strong> Each portal's login page has a "Forgot password?" link that emails a 30-minute reset link. Admin can also re-issue any user's temp password from the Access Control panel in under 30 seconds.
+            <strong>Forgot password?</strong> Each portal&apos;s login page has a &quot;Forgot password?&quot; link that emails a 30-minute reset link. Admin can also re-issue any user&apos;s temp password from the Access Control panel in under 30 seconds.
           </p>
         </Section>
 
         {/* ADMIN CONSOLE LAYOUT */}
         <Section icon={LayoutDashboard} title="Admin Console layout (what each section does)" color="slate">
-          <p>The Admin Console at <code>/admin</code> is now organized into <strong>7 sections plus an Overview dashboard</strong>. Sidebar nav on the left (or hamburger on mobile). Every section has a "← Back to Admin Overview" button at the top.</p>
+          <p>The Admin Console at <code>/admin</code> is now organized into <strong>7 sections plus an Overview dashboard</strong>. Sidebar nav on the left (or hamburger on mobile). Every section has a &quot;← Back to Admin Overview&quot; button at the top.</p>
           <table className="w-full border-collapse text-sm mt-3">
             <thead>
               <tr className="bg-slate-100">
@@ -153,7 +153,7 @@ export default function AdminGuide() {
             </div>
             <div className="border-2 border-amber-500 bg-amber-50 rounded-md p-3">
               <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-amber-700 font-bold mb-1">🟡 YELLOW · 1–12 hours</div>
-              <p className="text-sm m-0">Click "Snapshot Now" before redeploying.</p>
+              <p className="text-sm m-0">Click &quot;Snapshot Now&quot; before redeploying.</p>
             </div>
             <div className="border-2 border-red-700 bg-red-50 rounded-md p-3">
               <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-red-700 font-bold mb-1">🔴 RED · &gt; 12 hours</div>
@@ -161,7 +161,7 @@ export default function AdminGuide() {
             </div>
           </div>
           <p className="mt-3">
-            <strong>Hourly auto-snapshots</strong> run in the background every UTC hour to a Cloudflare R2 archive. <strong>The "Snapshot Now" button</strong> on the panel forces a fresh archive build (30–60 seconds) if you need a closer recovery point. <strong>Nightly verification email</strong> at 14:00 UTC Mondays confirms the archive system is healthy.
+            <strong>Hourly auto-snapshots</strong> run in the background every UTC hour to a Cloudflare R2 archive. <strong>The &quot;Snapshot Now&quot; button</strong> on the panel forces a fresh archive build (30–60 seconds) if you need a closer recovery point. <strong>Nightly verification email</strong> at 14:00 UTC Mondays confirms the archive system is healthy.
           </p>
         </Section>
 
@@ -181,7 +181,7 @@ export default function AdminGuide() {
           </ul>
           <p className="mt-3">
             PDFs <strong>auto-email</strong> to the assigned PM + safety@mascigc.com as soon as the form is submitted.
-            You don't push a button. It just happens.
+            You don&apos;t push a button. It just happens.
           </p>
         </Section>
 
@@ -191,7 +191,7 @@ export default function AdminGuide() {
           <ul className="ml-5 list-disc space-y-1 mt-2">
             <li>Use the <strong>Doc-ID search</strong> at top of Overview to jump to any specific record (e.g., <code>DR-2026-00007</code>).</li>
             <li>Visit <strong>Training &amp; Forms</strong> to see how many scans/calculations your crews logged this week (bilingual breakdown included).</li>
-            <li>Visit <strong>Email &amp; Routing</strong> to confirm which PM gets which job's reports.</li>
+            <li>Visit <strong>Email &amp; Routing</strong> to confirm which PM gets which job&apos;s reports.</li>
             <li>Visit <strong>Equipment &amp; Suppliers</strong> to see the Pre-Op status board — every piece with pass/fail history.</li>
             <li>Visit <strong>Compliance &amp; Audits</strong> to pull date-range CSVs for OSHA / DOT.</li>
             <li>Visit <strong>System &amp; Backups</strong> to glance at the snapshot freshness panel (should always be green).</li>
@@ -245,7 +245,7 @@ export default function AdminGuide() {
             </li>
           </ul>
           <p className="mt-3">
-            <strong>Operators can always type free-text</strong> if a name/equipment/supplier isn't
+            <strong>Operators can always type free-text</strong> if a name/equipment/supplier isn&apos;t
             in the list yet — nothing blocks them in the field. Then you re-upload the master file
             when convenient.
           </p>
@@ -265,8 +265,8 @@ export default function AdminGuide() {
                 Critical fluids (oil, coolant, hydraulic, transmission, gearbox), brakes, steering, kill
                 switch, ROPS/FOPS, seat belt, horn, backup alarm, tires/tracks, fire extinguisher,
                 strobe/beacon, hydraulic hoses, boom/arm pins, outriggers, visible leaks. <strong>Operator
-                gets a stop-work modal:</strong> "Get with your supervisor — this unit is unsafe. Notify
-                shop. Tag-out the machine."
+                gets a stop-work modal:</strong> &quot;Get with your supervisor — this unit is unsafe. Notify
+                shop. Tag-out the machine.&quot;
               </p>
             </div>
             <div className="border-2 border-amber-500 bg-amber-50 rounded-md p-3">
@@ -319,7 +319,7 @@ export default function AdminGuide() {
           <ul className="ml-5 list-disc space-y-1.5 mt-2">
             <li><strong>Hourly R2 cloud archives</strong> — every UTC hour the system writes a complete archive (DB + every photo inlined) to Cloudflare R2. Maximum data-loss window: ~1 hour. <em>Set</em> <code>BACKUP_R2_HOURLY=true</code> <em>in production env.</em></li>
             <li><strong>Nightly email backup</strong> — every night at 2 AM UTC a complete <code>.zip</code> emails to <strong>jaymn.judd@mascigc.com</strong>. Keep those emails as a separate off-site copy.</li>
-            <li><strong>Weekly verification email</strong> — every Monday at 14:00 UTC the system emails a health report confirming R2 archives are recent and well-sized. Catches the "backend thinks it backed up but R2 silently rejected" scenario.</li>
+            <li><strong>Weekly verification email</strong> — every Monday at 14:00 UTC the system emails a health report confirming R2 archives are recent and well-sized. Catches the &quot;backend thinks it backed up but R2 silently rejected&quot; scenario.</li>
           </ul>
 
           <div className="mt-4 bg-red-50 border-l-4 border-red-700 p-3 rounded-r">
@@ -336,7 +336,7 @@ export default function AdminGuide() {
             <div className="font-bold text-emerald-900 uppercase text-sm tracking-wide">If data is missing after a deploy</div>
             <ol className="text-emerald-900 text-sm mt-1 ml-5 list-decimal space-y-1">
               <li>Open <code>/admin/system</code> → <strong>Restore from Backup</strong> panel.</li>
-              <li>Pick a source: <strong>"From R2 archive"</strong> (dropdown of recent cloud archives) <strong>or</strong> <strong>"Upload .zip"</strong> (your nightly email backup).</li>
+              <li>Pick a source: <strong>&quot;From R2 archive&quot;</strong> (dropdown of recent cloud archives) <strong>or</strong> <strong>&quot;Upload .zip&quot;</strong> (your nightly email backup).</li>
               <li>Pick Merge (safe, default) or Replace (wipes collections first — destructive, requires password re-entry).</li>
               <li>Confirm. Wait 30–60 seconds. Done.</li>
             </ol>
@@ -445,7 +445,7 @@ export default function AdminGuide() {
             <li className="ml-6">Incidents — unread severe incidents.</li>
             <li className="ml-6">Field Leadership — terminations with outstanding equipment.</li>
             <li className="ml-6">Daily Reports — flagged by Hours Sanity Flags (see next section).</li>
-            <li>Click any tile → routes you straight to that module's admin dashboard with the matching filter applied.</li>
+            <li>Click any tile → routes you straight to that module&apos;s admin dashboard with the matching filter applied.</li>
           </ul>
           <p className="mt-3 text-xs text-slate-500">
             Designed for the 7am coffee check — eyes-up, what-needs-attention briefing in 5 seconds.
@@ -468,7 +468,7 @@ export default function AdminGuide() {
           <div className="bg-red-50 border-l-4 border-red-700 p-3 rounded-r">
             <div className="font-bold text-red-900 uppercase text-sm tracking-wide">Hours Sanity Flags (iter100)</div>
             <p className="text-red-900 text-sm mt-1">
-              Two advisory chips catch payroll typos before HR signs off — they don't block submission, they just light up
+              Two advisory chips catch payroll typos before HR signs off — they don&apos;t block submission, they just light up
               when numbers look impossible:
             </p>
             <ul className="ml-5 list-disc space-y-1 mt-2 text-red-900 text-sm">
@@ -512,13 +512,13 @@ export default function AdminGuide() {
             <li>If <em>Law Enforcement Flag</em> is checked: also escalation contacts in <code>SEVERE_INCIDENT_CC</code>.</li>
           </ul>
           <p className="mt-3">
-            Subject line is prefixed <code>TERMINATION · &lt;Employee&gt; · &lt;Date&gt;</code> so it's hard to miss in a busy inbox.
+            Subject line is prefixed <code>TERMINATION · &lt;Employee&gt; · &lt;Date&gt;</code> so it&apos;s hard to miss in a busy inbox.
             The PDF styling matches every other Field Leadership form — same black/red letterhead, same MASCI
             Operations Platform footer with ForgedOps™ attribution.
           </p>
           <p className="mt-3">
             <strong>Where the record appears:</strong> (1) Field Leadership → Records, (2) Admin → Employee Terminations
-            dashboard at <code>/admin/terminations</code>, (3) HR Hub → Field Leadership Records (kind = Termination). HR's
+            dashboard at <code>/admin/terminations</code>, (3) HR Hub → Field Leadership Records (kind = Termination). HR&apos;s
             offboarding clock starts the moment the supervisor hits Submit.
           </p>
         </Section>
@@ -577,7 +577,7 @@ export default function AdminGuide() {
             <li><strong>Utilization tab</strong> — every active asset with its current status (Available · Assigned · In Transit · Pending Transfer · Safety Hold · Maintenance Hold).</li>
             <li><strong>Transfers</strong> — submit, approve, deny, schedule, complete. State machine prevents bad transitions.</li>
             <li><strong>Holds</strong> — apply safety/maintenance holds and release them. Approve or dismiss pending holds spawned by failed pre-ops (see next section).</li>
-            <li><strong>Idle Alerts</strong> — flags assigned equipment that hasn't moved in &gt; 7/14/30 days. Read-only — never auto-changes status.</li>
+            <li><strong>Idle Alerts</strong> — flags assigned equipment that hasn&apos;t moved in &gt; 7/14/30 days. Read-only — never auto-changes status.</li>
             <li><strong>Asset Profile</strong> — click any unit number to drill into its unified profile (next section).</li>
           </ul>
           <p className="mt-2"><strong>Admin management:</strong> add/remove dispatchers at <code>/admin/people</code> → Dispatch Users panel. Each dispatcher gets their own login and password rotation flow.</p>
@@ -586,18 +586,18 @@ export default function AdminGuide() {
         <Section icon={AlertTriangle} title="Failed Pre-Op → Pending Maintenance Hold (approval-based)" color="red">
           <p className="mb-2">
             <strong>Critical safety guardrail:</strong> when a crew submits a
-            pre-op with FAIL items or "Out of Service", the platform creates
+            pre-op with FAIL items or &quot;Out of Service&quot;, the platform creates
             a <em>pending</em> maintenance hold — it does <strong>NOT</strong>
-            auto-change the equipment's global status. Admin or Dispatch
+            auto-change the equipment&apos;s global status. Admin or Dispatch
             must explicitly approve.
           </p>
           <ol className="ml-5 list-decimal space-y-1">
-            <li>Field submits a failed pre-op → backend writes a pending hold (status="pending", active=false).</li>
-            <li>Pending hold shows up in <strong>Dispatch Portal → Holds tab → amber "Admin Review Required" card</strong>.</li>
-            <li>Reviewer either <strong>Approves</strong> (status flips to active, asset goes Maintenance Hold) or <strong>Dismisses</strong> with a required reason (e.g. "false alarm — equipment fine").</li>
+            <li>Field submits a failed pre-op → backend writes a pending hold (status=&quot;pending&quot;, active=false).</li>
+            <li>Pending hold shows up in <strong>Dispatch Portal → Holds tab → amber &quot;Admin Review Required&quot; card</strong>.</li>
+            <li>Reviewer either <strong>Approves</strong> (status flips to active, asset goes Maintenance Hold) or <strong>Dismisses</strong> with a required reason (e.g. &quot;false alarm — equipment fine&quot;).</li>
             <li>Every state change is logged to the Operations Event Log.</li>
           </ol>
-          <p className="mt-2 text-sm">Why this matters: prevents accidental field-triggered status changes. A new operator hitting "FAIL" by mistake will never strand a $400k asset without a human reviewing first.</p>
+          <p className="mt-2 text-sm">Why this matters: prevents accidental field-triggered status changes. A new operator hitting &quot;FAIL&quot; by mistake will never strand a $400k asset without a human reviewing first.</p>
         </Section>
 
         <Section icon={Layers} title="Unified Asset Profile — every asset, one screen" color="slate">
@@ -613,7 +613,7 @@ export default function AdminGuide() {
             <li><strong>Field Ops</strong> — last 10 pre-ops + daily-report references.</li>
             <li><strong>Events</strong> — full paginated operations event log filtered to this asset.</li>
           </ol>
-          <p className="mt-2">Reachable from: Equipment Master list (every row has a "Profile" link), Dispatch Utilization table, and Idle Alerts table.</p>
+          <p className="mt-2">Reachable from: Equipment Master list (every row has a &quot;Profile&quot; link), Dispatch Utilization table, and Idle Alerts table.</p>
         </Section>
 
         <Section icon={Activity} title="Operations Event Log — passive system of record" color="slate">
@@ -624,7 +624,7 @@ export default function AdminGuide() {
           <ul className="ml-5 list-disc space-y-1">
             <li>Filter by event type · severity · status · source · asset · employee · project.</li>
             <li>Drill into any row for the full payload.</li>
-            <li>Use for compliance audits, incident reconstruction, or just "what happened to unit 14-12 last month?".</li>
+            <li>Use for compliance audits, incident reconstruction, or just &quot;what happened to unit 14-12 last month?&quot;.</li>
           </ul>
           <p className="mt-2 text-sm">Cross-portal: Safety / HR / Shop / PM / Dispatch tokens can all <em>read</em> events (`make_require_any_portal_token`). Only Admin or Dispatch can <em>write</em>.</p>
         </Section>
@@ -636,9 +636,9 @@ export default function AdminGuide() {
           <p className="mb-2"><strong>Tabs:</strong></p>
           <ul className="ml-5 list-disc space-y-1">
             <li><strong>Overview</strong> — provider health cards.</li>
-            <li><strong>Motive / MaintainX</strong> — per-provider settings; "test connection" today returns a stub message because no live API keys are wired yet.</li>
+            <li><strong>Motive / MaintainX</strong> — per-provider settings; &quot;test connection&quot; today returns a stub message because no live API keys are wired yet.</li>
             <li><strong>Asset Mapping / Employee Mapping</strong> — CRUD layer that ties MASCI master IDs to Motive/MaintainX external IDs. Master collections (`equipment_master`, `employees`) are NEVER mutated.</li>
-            <li><strong>Mappings Wizard</strong> — two-step preview-then-commit bulk linker. Paste CSV from a Motive export, see what'll match/conflict/duplicate, then approve. Refuses to overwrite existing mappings unless admin toggles "force overwrite" on each row.</li>
+            <li><strong>Mappings Wizard</strong> — two-step preview-then-commit bulk linker. Paste CSV from a Motive export, see what&apos;ll match/conflict/duplicate, then approve. Refuses to overwrite existing mappings unless admin toggles &quot;force overwrite&quot; on each row.</li>
             <li><strong>Sync Logs / Error Logs</strong> — append-only audit.</li>
             <li><strong>CSV Import / Export</strong> — fallback before live APIs ship.</li>
           </ul>
@@ -667,20 +667,20 @@ export default function AdminGuide() {
             On <code>/admin/people</code> → Dispatch Users panel, every row has an Eye button. Click it →
           </p>
           <ol className="ml-5 list-decimal space-y-1">
-            <li>Confirmation dialog ("Preview Dispatch Portal as X?").</li>
-            <li>Backend mints a real dispatch session token bound to that user's password.</li>
+            <li>Confirmation dialog (&quot;Preview Dispatch Portal as X?&quot;).</li>
+            <li>Backend mints a real dispatch session token bound to that user&apos;s password.</li>
             <li>Token is stashed in localStorage; <code>/dispatch-portal</code> opens in a new tab.</li>
             <li>Your admin session in the current tab stays intact — close the impersonation tab when done.</li>
-            <li>Action is audit-logged to <code>db.audit_events</code> with kind="admin_impersonate_dispatch".</li>
+            <li>Action is audit-logged to <code>db.audit_events</code> with kind=&quot;admin_impersonate_dispatch&quot;.</li>
           </ol>
-          <p className="mt-2 text-sm">Use this to debug "why can't this dispatcher see this hold?" without asking them for their password.</p>
+          <p className="mt-2 text-sm">Use this to debug &quot;why can&apos;t this dispatcher see this hold?&quot; without asking them for their password.</p>
         </Section>
 
         {/* WHEN THINGS BREAK */}
         <Section icon={AlertOctagon} title="When something breaks" color="red">
           <ol className="ml-5 list-decimal space-y-2">
             <li>
-              <strong>Don't panic.</strong> The system has hourly cloud archives, nightly email backups, and a weekly health-check email.
+              <strong>Don&apos;t panic.</strong> The system has hourly cloud archives, nightly email backups, and a weekly health-check email.
             </li>
             <li>
               Screenshot the error. Note what you were doing when it happened.
@@ -691,7 +691,7 @@ export default function AdminGuide() {
             </li>
             <li>
               If you lost data after a redeploy, go to <code>/admin/system</code> → <strong>Restore from Backup</strong>.
-              Pick "From R2 archive" and select the most recent hourly snapshot — fastest recovery path.
+              Pick &quot;From R2 archive&quot; and select the most recent hourly snapshot — fastest recovery path.
             </li>
           </ol>
         </Section>

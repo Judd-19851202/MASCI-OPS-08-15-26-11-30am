@@ -25,7 +25,7 @@ export function NarrativeWorkflow({ value = {}, onChange, testIdPrefix = "narrat
   return (
     <div className="grid gap-4">
       <div className="text-sm text-slate-600">
-        Walk through the day. Leave any prompt blank if it doesn't apply — but the more you tell us, the easier this report is to read six months from now.
+        Walk through the day. Leave any prompt blank if it doesn&apos;t apply — but the more you tell us, the easier this report is to read six months from now.
       </div>
       {PROMPTS.map((p) => (
         <div key={p.key} className="grid gap-1.5">

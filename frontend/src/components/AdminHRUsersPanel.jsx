@@ -361,7 +361,7 @@ export default function AdminHRUsersPanel() {
               {pwChoice.user?.has_password ? `Reset password for ${pwChoice.user?.name}` : `Issue password for ${pwChoice.user?.name}`}
             </DialogTitle>
             <DialogDescription className="leading-relaxed text-sm">
-              Two ways to issue (or reset) this HR user's password. <strong>Email to User</strong> auto-generates a temp pw and emails it directly. <strong>Show on Screen</strong> reveals a temp pw in a copy dialog. Or type a <strong>custom</strong> password below. The user must rotate to their own on first login regardless.
+              Two ways to issue (or reset) this HR user&apos;s password. <strong>Email to User</strong> auto-generates a temp pw and emails it directly. <strong>Show on Screen</strong> reveals a temp pw in a copy dialog. Or type a <strong>custom</strong> password below. The user must rotate to their own on first login regardless.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 pt-1">

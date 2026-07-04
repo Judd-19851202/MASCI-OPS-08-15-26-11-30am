@@ -153,7 +153,7 @@ export default function CloudArchivesPanel() {
             R2 not configured
           </div>
           <p className="text-xs text-amber-900 mt-1 leading-relaxed">
-            Cloud archives are off because Cloudflare R2 credentials aren't
+            Cloud archives are off because Cloudflare R2 credentials aren&apos;t
             set in the deployment environment. Add{" "}
             <code className="bg-white px-1 rounded">S3_ENDPOINT_URL</code>,{" "}
             <code className="bg-white px-1 rounded">S3_BUCKET</code>,{" "}

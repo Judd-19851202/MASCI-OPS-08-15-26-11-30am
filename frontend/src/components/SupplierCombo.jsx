@@ -217,7 +217,7 @@ export const SupplierCombo = ({
                   ) : (
                     <Plus className="w-4 h-4" />
                   )}
-                  {t("Add")} "{value}" {t("to vendor list")}
+                  {t("Add")} &quot;{value}&quot; {t("to vendor list")}
                 </button>
               )}
             </div>

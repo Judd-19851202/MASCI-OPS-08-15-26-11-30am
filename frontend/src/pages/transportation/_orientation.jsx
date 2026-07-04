@@ -109,6 +109,8 @@ function OrientationDashboard() {
   if (restricted) return <TxOpsRestrictedData testid="tx-orient-dashboard-restricted" />;
   if (err) return <EmptyState title="Orientation dashboard unavailable" hint={err} testid="tx-orient-dashboard-err" />;
   if (!data) return <div data-testid="tx-orient-dashboard-loading" className="text-slate-500 text-sm">Loading…</div>;
+  // Track 21.1 tech-debt: Tile safe to hoist in a future refactor (Track 21.y). No runtime change here.
+  // eslint-disable-next-line react/no-unstable-nested-components
   const Tile = ({ icon: Icon, label, value, sub, testid, tone = "slate" }) => (
     <div
       data-testid={testid}

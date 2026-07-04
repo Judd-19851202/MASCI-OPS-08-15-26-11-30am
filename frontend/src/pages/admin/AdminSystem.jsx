@@ -32,7 +32,7 @@ export default function AdminSystem() {
           Disaster-recovery toolkit. Trigger a backup, browse the Cloudflare R2 cloud archive
           library, run weekly verification on demand, restore from a file or directly from a
           cloud archive, and recover terminated crew data. Keep the verification cron green and
-          you'll get a positive weekly heartbeat email.
+          you&apos;ll get a positive weekly heartbeat email.
         </p>
       }
     >

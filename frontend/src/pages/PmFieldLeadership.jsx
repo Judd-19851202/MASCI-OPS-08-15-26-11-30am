@@ -88,7 +88,7 @@ export default function PmFieldLeadership() {
             Read-only view of every Field Leadership record filed against jobs assigned to you.
             Includes write-ups, coaching, recognition, attendance, evaluations, terminations,
             equipment checkouts, and time-off requests. Scope is enforced server-side by your PM
-            assignment — you only see what's on your jobs.
+            assignment — you only see what&apos;s on your jobs.
           </div>
         </div>
       }

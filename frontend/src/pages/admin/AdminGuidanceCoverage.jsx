@@ -186,7 +186,7 @@ export default function AdminGuidanceCoverage() {
               </table>
             </div>
             <p className="mt-2 text-xs text-slate-500">
-              "Mature" = at least one article in every required section
+              &quot;Mature&quot; = at least one article in every required section
               ({REQUIRED_SECTIONS.join(" · ")}). Counts include articles
               scoped to that portal; admin-only articles are not credited to
               other portals.
@@ -262,8 +262,8 @@ export default function AdminGuidanceCoverage() {
             </div>
             <p className="mt-2 text-xs text-slate-500">
               Per-workflow guidance link map. Use this to spot operational surfaces
-              that don't yet have linked guidance. Adding a workflow here without a
-              primary article surfaces it as a gap — that's the maintenance signal.
+              that don&apos;t yet have linked guidance. Adding a workflow here without a
+              primary article surfaces it as a gap — that&apos;s the maintenance signal.
             </p>
           </section>
         )}

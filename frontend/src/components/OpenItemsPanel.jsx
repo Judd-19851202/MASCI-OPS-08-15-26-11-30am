@@ -41,6 +41,9 @@ const OpenItemsPanel = ({ baseHref = "/admin/equipment", testIdPrefix = "open-it
     load(s);
   };
 
+  // Track 21.1 tech-debt: hoist SevPill out of parent in a future refactor (Track 21.y).
+  // Kept in place here to preserve tightly-coupled testIdPrefix + t() closure with no runtime change.
+  // eslint-disable-next-line react/no-unstable-nested-components
   const SevPill = ({ sev }) => {
     if (sev === "oos") {
       return (

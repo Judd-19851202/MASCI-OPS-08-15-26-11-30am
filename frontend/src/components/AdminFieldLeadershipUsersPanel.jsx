@@ -232,7 +232,7 @@ export default function AdminFlUsersPanel() {
         <p className="leading-snug">
           For employees who already have another portal login (PM, HR, Safety, Shop, or Dispatch),
           use <strong>Admin Access Control</strong> to grant <strong>Field Leadership</strong> access
-          to the same account. They'll sign in at <code className="bg-white px-1 py-0.5 rounded border">/leadership/login</code> with
+          to the same account. They&apos;ll sign in at <code className="bg-white px-1 py-0.5 rounded border">/leadership/login</code> with
           their existing master password. This panel is for <em>native</em> Field Leadership users
           (no other portal access).
         </p>
@@ -391,7 +391,7 @@ export default function AdminFlUsersPanel() {
               {pwChoice.user?.has_password ? `Reset password for ${pwChoice.user?.name}` : `Issue password for ${pwChoice.user?.name}`}
             </DialogTitle>
             <DialogDescription className="leading-relaxed text-sm">
-              Two ways to issue (or reset) this HR user's password. <strong>Email to User</strong> auto-generates a temp pw and emails it directly. <strong>Show on Screen</strong> reveals a temp pw in a copy dialog. Or type a <strong>custom</strong> password below. The user must rotate to their own on first login regardless.
+              Two ways to issue (or reset) this HR user&apos;s password. <strong>Email to User</strong> auto-generates a temp pw and emails it directly. <strong>Show on Screen</strong> reveals a temp pw in a copy dialog. Or type a <strong>custom</strong> password below. The user must rotate to their own on first login regardless.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 pt-1">

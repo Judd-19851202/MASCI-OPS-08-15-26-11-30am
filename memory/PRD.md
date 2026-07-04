@@ -11,6 +11,16 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 21.1 · Zero-Defect Platform Remediation · 🟢 GO (2026-07-04)
+
+**Delta:** ESLint 908 → 0 · `i18n.js` unbroken · Track 20.6B–21.1 lock tests 88/88 green · Zero-Drift · Email Safety Mandate re-asserted. See `TRACK_21_1_FINAL_REPORT.md`.
+
+**Closed debt (Track 21.1):** TD-20.9-C01, TD-20.9-C02, TD-20.9-C05, TD-21.1-D01.
+**New debt (Track 21.1):** TD-21.1-C01 (6 nested-components → Track 21.y), TD-21.1-C02 (1 vendor cmdk attr).
+
+**Next tracks:** 21.x (server.py split) · 21.y (App.js + nested-component hoists) · 21.z (CORS tightening).
+
+
 ## TRACK 21.0 · Complete Platform Census + Forensic Quality Audit · 🟢 GO (2026-08-04)
 
 **Type:** Census + audit track. Zero features · zero refactors · zero runtime changes. Machine-generated manifest of every discovered surface, then per-category audit with A/B/C/D classification per Track 20.6A doctrine.

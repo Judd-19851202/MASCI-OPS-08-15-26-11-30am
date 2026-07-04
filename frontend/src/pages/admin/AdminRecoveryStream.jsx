@@ -68,7 +68,7 @@ export default function AdminRecoveryStream() {
             </h1>
             <p className="text-slate-600 text-sm mt-1">
               Append-only audit of every status change across every workflow. Reversals
-              ("undo") are tagged but never replace the original transition.
+              (&quot;undo&quot;) are tagged but never replace the original transition.
             </p>
           </div>
           <Button
@@ -180,7 +180,7 @@ export default function AdminRecoveryStream() {
                     </div>
                     {ev.reason && (
                       <div className="mt-1 text-xs italic text-slate-800">
-                        "{ev.reason}"
+                        &quot;{ev.reason}&quot;
                       </div>
                     )}
                   </li>

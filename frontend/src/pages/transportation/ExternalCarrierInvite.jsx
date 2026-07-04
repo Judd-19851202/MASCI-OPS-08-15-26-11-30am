@@ -184,7 +184,7 @@ function Step2Orientation({ invite, token, onNext }) {
         onClick={onNext}
         className="mt-4 inline-flex items-center gap-2 bg-amber-700 hover:bg-amber-800 text-white font-medium px-4 py-2 rounded"
       >
-        I've completed the orientation modules
+        I&apos;ve completed the orientation modules
         <ChevronRight className="h-4 w-4" />
       </button>
     </section>
@@ -239,7 +239,7 @@ function Step3Submit({ invite, token }) {
         <CheckCircle2 className="h-12 w-12 mx-auto text-emerald-600" />
         <h2 className="text-2xl font-semibold mt-3">Submission received</h2>
         <p className="text-sm text-slate-600 mt-1">
-          The MASCI Transportation Compliance Center has been notified. You'll receive an email confirmation when your packet is approved.
+          The MASCI Transportation Compliance Center has been notified. You&apos;ll receive an email confirmation when your packet is approved.
         </p>
       </section>
     );

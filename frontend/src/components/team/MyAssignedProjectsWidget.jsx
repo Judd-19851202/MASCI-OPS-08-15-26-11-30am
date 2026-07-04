@@ -59,7 +59,7 @@ export default function MyAssignedProjectsWidget({ title = "My assigned jobs" })
         {err && <p className="text-sm text-red-700">{err}</p>}
         {!loading && !err && projects.length === 0 && (
           <p className="text-sm text-slate-500 italic">
-            You aren't currently assigned to any active jobs.
+            You aren&apos;t currently assigned to any active jobs.
           </p>
         )}
         {!loading && projects.length > 0 && (

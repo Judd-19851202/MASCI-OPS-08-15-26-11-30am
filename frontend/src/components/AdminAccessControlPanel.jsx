@@ -250,7 +250,7 @@ export default function AdminAccessControlPanel() {
               <MailCheck className="w-4 h-4" /> Email sent to {user.email}
             </div>
             <div className="text-xs">
-              They'll be forced to choose a new password on first sign-in.
+              They&apos;ll be forced to choose a new password on first sign-in.
             </div>
           </div>,
           { duration: 12000 }
@@ -287,7 +287,7 @@ export default function AdminAccessControlPanel() {
             <p className="text-xs text-slate-600 mt-1 max-w-2xl">
               Multi-portal accounts — give a single email + master password access to
               any combination of Admin / PM / Shop / HR / Safety / Dispatch. Single-portal
-              employees don't need a directory entry; they use the existing
+              employees don&apos;t need a directory entry; they use the existing
               portal-specific sign-in pages.
             </p>
           </div>
@@ -307,7 +307,7 @@ export default function AdminAccessControlPanel() {
         </div>
       ) : users.length === 0 ? (
         <div className="text-sm text-slate-500 italic py-3">
-          No multi-portal users yet. Click "Add user" to grant someone access.
+          No multi-portal users yet. Click &quot;Add user&quot; to grant someone access.
         </div>
       ) : (
         <div className="overflow-x-auto">
@@ -469,7 +469,7 @@ function CreateUserDialog({ open, onOpenChange, onCreated }) {
               <MailCheck className="w-4 h-4" /> Welcome email sent to {view.email}
             </div>
             <div className="text-xs">
-              They'll be asked to choose their own password on first sign-in.
+              They&apos;ll be asked to choose their own password on first sign-in.
             </div>
           </div>,
           { duration: 12000 }
@@ -505,7 +505,7 @@ function CreateUserDialog({ open, onOpenChange, onCreated }) {
             <Users className="w-5 h-5 text-red-700" /> Add multi-portal user
           </DialogTitle>
           <DialogDescription>
-            Grant a single email access to one or more portals. They'll sign in at
+            Grant a single email access to one or more portals. They&apos;ll sign in at
             <code className="mx-1 px-1 bg-slate-100 rounded text-xs">/sign-in</code>
             with this email + master password.
           </DialogDescription>

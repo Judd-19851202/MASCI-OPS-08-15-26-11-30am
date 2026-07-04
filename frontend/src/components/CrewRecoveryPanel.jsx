@@ -154,7 +154,7 @@ export default function CrewRecoveryPanel() {
         {emptyAlert && (
           <div className="mt-3 text-xs bg-red-50 border-l-4 border-red-600 px-3 py-2 text-red-800">
             <strong>Equipment / employees / suppliers list is empty.</strong>{" "}
-            Use the orange "Force re-seed" button below to repopulate from the
+            Use the orange &quot;Force re-seed&quot; button below to repopulate from the
             JSON seed files.
           </div>
         )}

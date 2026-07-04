@@ -158,7 +158,7 @@ export default function SelfProtection() {
                 Governance · Self-Protection
               </h1>
               <p className="text-[11px] text-slate-500 mt-0.5">
-                Operational integrity of the platform's own governance layer ·{" "}
+                Operational integrity of the platform&apos;s own governance layer ·{" "}
                 <Link to="/admin/governance"
                       className="underline hover:text-slate-700">
                   back to governance

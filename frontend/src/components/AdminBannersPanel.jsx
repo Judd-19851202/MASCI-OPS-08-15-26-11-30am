@@ -331,7 +331,7 @@ function ComposeDialog({ open, onClose, initial, onSaved }) {
             <div className="flex-1">
               <div className="font-bold text-sm">Require Acknowledgment</div>
               <div className="text-xs text-slate-600">
-                Hard-gates every page until each device clicks "I Acknowledge".
+                Hard-gates every page until each device clicks &quot;I Acknowledge&quot;.
                 Use for stand-downs, hurricane warnings, and OSHA visits where
                 you need proof the crew saw the message.
               </div>

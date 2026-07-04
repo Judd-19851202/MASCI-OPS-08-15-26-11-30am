@@ -194,7 +194,7 @@ export default function JobFolderList({
 
       {visibleFolders.length === 0 ? (
         <div className="p-8 text-center text-slate-500 text-sm" data-testid={`${testIdPrefix}-no-match`}>
-          {t("No jobs match")} <span className="font-mono">"{search}"</span>
+          {t("No jobs match")} <span className="font-mono">&quot;{search}&quot;</span>
         </div>
       ) : (
         <ul className="divide-y-2 divide-slate-100">

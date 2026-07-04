@@ -322,7 +322,7 @@ export function SiteInspectionLifecyclePanel({ inspectionId }) {
           <DialogHeader>
             <DialogTitle>Close Site Inspection</DialogTitle>
             <DialogDescription>
-              Closure requires operational evidence — pick one path. "Acknowledge findings"
+              Closure requires operational evidence — pick one path. &quot;Acknowledge findings&quot;
               ack-only closure is not permitted (Amendment 001 REPLACE-4).
             </DialogDescription>
           </DialogHeader>
@@ -566,7 +566,7 @@ export function SiteInspectionLifecyclePanel({ inspectionId }) {
                     {ev.actor_name && <span> · {ev.actor_name}</span>}
                   </div>
                   {ev.reason && (
-                    <div className="mt-1 text-sm text-slate-800 italic">"{ev.reason}"</div>
+                    <div className="mt-1 text-sm text-slate-800 italic">&quot;{ev.reason}&quot;</div>
                   )}
                 </div>
               ))}

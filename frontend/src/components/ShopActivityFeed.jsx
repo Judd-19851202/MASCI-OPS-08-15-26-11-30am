@@ -88,7 +88,7 @@ const ShopActivityFeed = ({ baseHref = "/shop/equipment", limit = 20, testIdPref
                     {s.item}
                   </div>
                   {s.notes && (
-                    <div className="text-xs italic text-slate-500 mt-0.5">"{s.notes}"</div>
+                    <div className="text-xs italic text-slate-500 mt-0.5">&quot;{s.notes}&quot;</div>
                   )}
                   <div className="font-mono text-[10px] uppercase tracking-wider text-slate-500 mt-1">
                     {fmt(s.signed_at)} {s.project_number ? `· #${s.project_number}` : ""}

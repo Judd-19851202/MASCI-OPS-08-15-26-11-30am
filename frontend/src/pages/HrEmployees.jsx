@@ -1527,7 +1527,7 @@ function TransportationStatusPanel({ employeeId }) {
     return <div data-testid="hremp-tx-loading" className="text-xs text-slate-500">Loading Transportation status…</div>;
   }
   if (err) {
-    return <div data-testid="hremp-tx-error" className="text-xs text-rose-600">Couldn't load Transportation status ({err}).</div>;
+    return <div data-testid="hremp-tx-error" className="text-xs text-rose-600">Couldn&apos;t load Transportation status ({err}).</div>;
   }
   if (!data || data.linked === false) {
     return (
