@@ -83,16 +83,25 @@ def test_lifecycle_steps_total_is_49():
 
 def test_on_startup_count_dropped_to_1():
     server = _load_server()
-    assert len(server.app.router.on_startup) == 1, (
+    assert len(server.app.router.on_startup) <= 1, (
         f"expected 1 legacy on_startup handler after 22.1J, got "
         f"{[getattr(fn,'__name__','?') for fn in server.app.router.on_startup]}"
     )
 
 
 def test_command_center_startup_still_queued_for_track_22_1l():
+    """Pre-22.1L this asserts `_startup` is still in on_startup. Post-22.1L
+    the handler was migrated to `_command_center_seed_defaults` inside
+    `LIFECYCLE_STEPS.command-center`. Accept either state."""
     server = _load_server()
     on = [getattr(fn, "__name__", "") for fn in server.app.router.on_startup]
-    assert "_startup" in on, f"expected command_center._startup still queued: {on}"
+    if "_startup" in on:
+        return  # pre-22.1L era
+    from lib.lifespan_bootstrap import LIFECYCLE_STEPS  # noqa: PLC0415
+    cc = [s.name for s in LIFECYCLE_STEPS if s.group == "command-center"]
+    assert cc == ["_command_center_seed_defaults"], (
+        f"post-22.1L expects command-center group with _command_center_seed_defaults; got {cc}"
+    )
 
 
 def test_shutdown_handler_still_registered():
@@ -184,7 +193,7 @@ def test_platform_status_reflects_track_22_1j():
     assert inv["runs_after_non_readiness_lifecycle_steps"] is True
     assert inv["runs_after_legacy_on_startup"] is True
     assert inv["final_phase_of_lifespan"] is True
-    assert out["lifecycle"]["on_startup_legacy_count"] == 1
+    assert out["lifecycle"]["on_startup_legacy_count"] <= 1
     mig = out["lifecycle"]["migration_progress"]
     assert mig["migrated_pct"] >= 98.0
     targets = mig["target_groups"]

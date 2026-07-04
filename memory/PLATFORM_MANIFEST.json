@@ -3,6 +3,21 @@
   "track": "21.0",
   "recent_track_closures": [
     {
+      "track": "22.1L",
+      "title": "Final Legacy Startup Handler Elimination",
+      "status": "🎉 100% GO / CLOSED",
+      "date": "2026-07-04",
+      "on_startup_count_before": 1,
+      "on_startup_count_after": 0,
+      "lifecycle_steps_added": 1,
+      "lifecycle_steps_total": 50,
+      "migrated_handler": "build_command_center_router._startup -> _command_center_seed_defaults",
+      "new_group": "command-center",
+      "bytecode_sha256": "b2976f4460227c5402564de80fe32ee1d588f9f185ebd7ba97a39277989743cf",
+      "route_delta": 0,
+      "migrated_pct": 100.00
+    },
+    {
       "track": "22.1J",
       "title": "Readiness-Last Handler Migration",
       "status": "GO / CLOSED",

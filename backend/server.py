@@ -16035,6 +16035,22 @@ async def _track_15_93_run_system_bootstrap():
         )
 
 
+@register_lifecycle_step("command-center")
+async def _command_center_seed_defaults():
+    """Track 22.1L · retired the router-hosted `@router.on_event("startup")`
+    closure inside `build_command_center_router`. Registers here so startup
+    ordering is deterministic: runs AFTER misc-bootstrap + backup-scheduler
+    groups (source order) and BEFORE the `readiness` phase-3 group.
+    Body semantically identical to the pre-migration closure — same try/except
+    around `_seed_defaults(db)` with silent-on-error semantics (never blocks boot).
+    """
+    try:
+        from routes.command_center import _seed_defaults as _cc_seed_defaults  # noqa: PLC0415
+        await _cc_seed_defaults(db)
+    except Exception:  # noqa: BLE001
+        pass  # silent: not blocking app boot if seeding fails
+
+
 @register_lifecycle_step("readiness")
 async def _iter453_6_flip_ready_flag():
     """Final startup hook — flip the readiness gate AFTER all other

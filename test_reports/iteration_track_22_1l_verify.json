@@ -1,0 +1,57 @@
+{
+  "iteration": "track_22_1l_verify",
+  "track": "22.1L",
+  "title": "FINAL Legacy Startup Handler Elimination — verification retest",
+  "date_utc": "2026-07-04",
+  "status": "GO / 100% CLOSED",
+  "summary": "Independent verification of Track 22.1L. Health OK, super-admin platform status returns HTTP 200 with X-Admin-Token (401 unauth, 401 bogus). lifecycle.on_startup_legacy_count=0, migrated_pct=100.00, command-center group has exactly 1 handler ['_command_center_seed_defaults']. Bytecode fingerprints 8/8 clean (drift=0). Email safety: strict, SDK patched, live_emails_possible=false. '22.1L' present in recent_track_closures. Top P0 recommendation reads '🎉 Track 22.1L closed — 100% startup migration complete. Next: Track 22.1K (shutdown migration).' Zero banned secret substrings leaked. Command Center endpoints (snapshot/thresholds/calendar) return 200 with admin token, 401 unauth. Boot log emits both '[track-22.1d] lifespan.startup: executing 0 handlers' AND '[iter453.6] startup-readiness gate FLIPPED' with readiness FLIPPED emitted AFTER the phase-2 empty log. Track 22.1L lock test: 20/20 passed (spec said 19, current file exceeds by one). Regression envelope tracks 22.1[B..L]: 179/179 passed. Regression envelope 15.93/15.95/21.2E/21.2E-1/21.3/22.0: 80/80 passed. Total 259 tests, 0 failed. Zero live emails.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "assertions": {
+    "backend_health": "200",
+    "platform_status_authed": "200",
+    "platform_status_unauth": "401",
+    "platform_status_bogus_admin": "401",
+    "lifecycle.on_startup_legacy_count": 0,
+    "lifecycle.migration_progress.migrated_pct": 100.0,
+    "lifecycle.registry.by_group.command-center": 1,
+    "lifecycle.registry.names_by_group.command-center": ["_command_center_seed_defaults"],
+    "bytecode_fingerprints": {"checked": 8, "ok_count": 8, "drift_count": 0, "missing_count": 0, "clean": true},
+    "email_safety": {"mode": "strict", "resend_sdk_patched": true, "live_emails_possible": false},
+    "recent_track_closures_contains_22_1L": true,
+    "top_recommendation_priority": "P0",
+    "top_recommendation_mentions_100pct_complete": true,
+    "banned_secret_substrings_leaked": 0,
+    "command_center_snapshot_authed": "200",
+    "command_center_snapshot_unauth": "401",
+    "command_center_thresholds_authed": "200",
+    "command_center_thresholds_unauth": "401",
+    "command_center_calendar_authed": "200",
+    "command_center_calendar_unauth": "401",
+    "multi_login_super_admin_returns_admin_token": true,
+    "boot_log_track_22_1d_executing_0_handlers": true,
+    "boot_log_iter453_6_flipped_last": true
+  },
+  "pytest_results": {
+    "test_track_22_1l_command_center_migration.py": "20/20 passed",
+    "envelope_22_1_B_through_L": "179/179 passed",
+    "regression_15_93_15_95_21_2E_21_2E1_21_3_22_0": "80/80 passed",
+    "totals": {"passed": 259, "failed": 0, "warnings": 16}
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_track_22_1l_command_center_migration.py",
+    "/app/test_reports/pytest/pytest_22_1l_envelope.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Non-blocking: pydantic v2 DeprecationWarnings (`regex=` should be `pattern=`) in routes/operational_events.py, routes/verification.py, routes/asset_mapping_recon.py — tracked as F1 for Track 22.3.",
+    "Non-blocking: one `@app.on_event('shutdown')` remains at server.py:15947 — this is the LAST legacy decorator and is the target of the next track (22.1K per platform_status recommendation)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "not tested (scope: backend only)"},
+  "test_credentials": "Super-admin jaymn.judd@mascigc.com / Maddix123! (via /api/auth/multi-login → portal_tokens.admin)",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Track 22.1L is fully closed and 100% of the FastAPI startup lifecycle has been migrated to top-level @register_lifecycle_step handlers. Next track (22.1K per platform_status.recommended_next_actions) targets the LAST remaining legacy decorator: `@app.on_event('shutdown')` at server.py:15947. All 22.1L artifacts and bytecode fingerprints are stable — re-verify by hitting GET /api/admin/platform/status with a fresh super-admin X-Admin-Token from /api/auth/multi-login."
+}

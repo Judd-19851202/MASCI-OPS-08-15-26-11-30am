@@ -960,15 +960,15 @@ def build_command_center_router(
     require_admin_strict_dep: Any,
 ) -> APIRouter:
     """Factory mirroring recovery_dashboard pattern. Caller passes the live
-    `db` handle and the admin-strict auth dep."""
-    router = APIRouter()
+    `db` handle and the admin-strict auth dep.
 
-    @router.on_event("startup")
-    async def _startup() -> None:  # pragma: no cover - exercised at app boot
-        try:
-            await _seed_defaults(db)
-        except Exception:
-            pass  # silent: not blocking app boot if seeding fails
+    Track 22.1L: the router-hosted `@router.on_event("startup")` closure that
+    used to call `_seed_defaults(db)` at boot was retired. The same seeding
+    is now performed via `LIFECYCLE_STEPS.command-center` (registered in
+    `server.py` near the readiness handler) so that startup orchestration is
+    fully owned by the Lifespan framework. Body is functionally identical.
+    """
+    router = APIRouter()
 
     @router.get("/admin/command-center/snapshot")
     async def snapshot(_: bool = Depends(require_admin_strict_dep)) -> Dict[str, Any]:

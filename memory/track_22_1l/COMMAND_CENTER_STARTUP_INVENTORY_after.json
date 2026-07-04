@@ -1,0 +1,16 @@
+{
+  "track": "22.1L",
+  "handler": "_command_center_seed_defaults",
+  "state": "after_migration",
+  "source": {
+    "module": "server",
+    "name": "_command_center_seed_defaults",
+    "group": "command-center",
+    "file": "backend/server.py"
+  },
+  "bytecode_sha256_post": "b2976f4460227c5402564de80fe32ee1d588f9f185ebd7ba97a39277989743cf",
+  "lifecycle_position_index": 47,
+  "runs_after_backup_scheduler": true,
+  "runs_before_readiness_phase": true,
+  "router_on_startup_decorator_removed": true
+}

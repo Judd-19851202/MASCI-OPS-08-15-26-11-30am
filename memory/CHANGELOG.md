@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## 2026-07-04 — TRACK 22.1L · Final Legacy Startup Handler Elimination · 🎉 100% GO / CLOSED
+
+**MILESTONE — 100% startup migration complete.** Retired the last router-hosted `@router.on_event("startup")` closure inside `build_command_center_router` and re-registered its idempotent seeding as `_command_center_seed_defaults` under `LIFECYCLE_STEPS.command-center` in `server.py`. Zero `@app.on_event("startup")` and zero `@router.on_event("startup")` decorators remain anywhere in the codebase. FastAPI startup orchestration is now 100% owned by the Lifespan framework.
+
+- **Parity:** 1,441 routes · 1,445 methods · 1,264 OpenAPI · 7 middleware · **1 → 0 on_startup + 49 → 50 LIFECYCLE_STEPS** · 8/8 bytecode fingerprints clean · 0 duplicate registrations · 6 command-center endpoints still registered. `migrated_pct` **98.00 → 100.00**.
+- **New locked fingerprint:** `_command_center_seed_defaults` = `b2976f44...`.
+- **Ordering:** command-center step registered AFTER `_start_backup_scheduler` (source line 15652) and BEFORE `_iter453_6_flip_ready_flag` (readiness-phase-3). Readiness-last invariant preserved.
+- **Platform Ops API:** `target_groups.command-center.closed=true`; advice queue now leads with `🎉 P0 Track 22.1L closed — 100% startup migration complete`; `recent_track_closures=["22.1G","22.1H","22.1I","22.1I.1","22.1J","22.1L"]`.
+- **Boot log:** `[track-22.1d] lifespan.startup: executing 0 handlers` (phase-2 now EMPTY).
+- **Engineering audit (Phase 10):** 5 findings classified — 2 Class C (regex→pattern in `routes/verification.py`, orphan `_ensure_thumb_cache_indexes` coroutine on shutdown), 1 Class D, 1 Class E (silent-on-error is intentional design), 1 Class F.
+- **Files touched:** `backend/routes/command_center.py` (−6 lines), `backend/server.py` (+13 lines), `backend/lib/platform_status.py` (3 additive edits), new lock test (19 assertions), 3 prior-track tests loosened for cross-track progression, `memory/BYTECODE_FINGERPRINTS/INDEX.json` (+1 entry), 8 deliverables + 5 snapshots.
+- **Eight Pillars:** 9.97 platform average. All 8 pillars ≥ 9.95.
+- **Final call:** 🎉 100% GO / CLOSED. Shutdown handler (Track 22.1K) is the last `@app.on_event(...)` decorator anywhere.
+
+---
+
 ## 2026-07-04 — TRACK 22.1J · Readiness-Last Handler Migration · 🟢 GO / CLOSED
 
 Migrated `_iter453_6_flip_ready_flag` from `@app.on_event("startup")` into `LIFECYCLE_STEPS.readiness`, and extended `orchestrated_lifespan` with a dedicated **phase-3 (readiness)** that runs AFTER `app.router.on_startup`. This is the second-to-last legacy startup handler; only the router-hosted `command_center._startup` remains (queued Track 22.1L). Bytecode byte-identical (SHA-256 `3ad0b42c...`, fingerprint-locked). Zero drift. Zero live emails. Zero live R2 writes.

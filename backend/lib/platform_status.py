@@ -35,6 +35,7 @@ _MIGRATION_TARGETS = {
     "email-scheduler":    {"track": "22.1H", "closed": True},
     "misc-bootstrap":     {"track": "22.1I", "closed": True},
     "backup-scheduler":   {"track": "22.1I.1", "closed": True},
+    "command-center":     {"track": "22.1L", "closed": True},
     "readiness":          {"track": "22.1J", "closed": True},
     "shutdown":           {"track": "22.1K", "closed": False},
 }
@@ -210,6 +211,12 @@ def _recommended_next_actions(app) -> list:
             "action": "Track 22.1L — migrate the last router-hosted @app.on_event('startup') handler (routes.command_center._startup).",
             "gate": "Router-hosted startup must move into LIFECYCLE_STEPS without disturbing readiness-last ordering.",
         })
+    if "command-center" in groups_present and len(app.router.on_startup) == 0:
+        advice.append({
+            "priority": "P0",
+            "action": "🎉 Track 22.1L closed — 100% startup migration complete. Next: Track 22.1K (shutdown migration).",
+            "gate": "Zero legacy startup decorators remain. Shutdown handler is the last @app.on_event(...) to retire.",
+        })
     if "readiness" in groups_present:
         advice.append({
             "priority": "P1",
@@ -253,6 +260,6 @@ def platform_status(app) -> Dict[str, Any]:
         "readiness": {
             "ready_flag": bool(getattr(getattr(app, "state", None), "ready", False)),
         },
-        "recent_track_closures": ["22.1F", "22.1G", "22.1H", "22.1I", "22.1I.1", "22.1J"],
+        "recent_track_closures": ["22.1G", "22.1H", "22.1I", "22.1I.1", "22.1J", "22.1L"],
         "recommended_next_actions": _recommended_next_actions(app),
     }

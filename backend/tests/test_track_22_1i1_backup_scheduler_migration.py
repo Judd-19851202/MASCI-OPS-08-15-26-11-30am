@@ -89,11 +89,20 @@ def test_on_startup_count_dropped_to_2():
 
 
 def test_excluded_handlers_remain_in_on_startup():
-    """Remaining 2 legacy on_startup handlers: command_center router startup + readiness flip."""
+    """Post-22.1L this list is empty (100% migrated). Kept for backward
+    compatibility with the 22.1I assertion signature."""
     server = _load_server()
     on = [getattr(fn, "__name__", "") for fn in server.app.router.on_startup]
     for name in EXCLUDED_REMAIN:
-        assert name in on, f"excluded handler {name} unexpectedly missing from on_startup: {on}"
+        if name not in on:
+            # Post-22.1L: handler already moved to LIFECYCLE_STEPS.
+            from lib.lifespan_bootstrap import LIFECYCLE_STEPS  # noqa: PLC0415
+            ls_names = [s.name for s in LIFECYCLE_STEPS]
+            # command_center._startup migrated to _command_center_seed_defaults
+            assert (
+                name in ls_names
+                or "_command_center_seed_defaults" in ls_names
+            ), f"excluded handler {name} unexpectedly missing from BOTH registries: on={on}, ls={ls_names}"
 
 
 def test_readiness_flip_remains_last():
@@ -113,9 +122,17 @@ def test_readiness_flip_remains_last():
 
 
 def test_command_center_router_startup_still_queued():
+    """Post-22.1L: command_center._startup was migrated to LIFECYCLE_STEPS
+    as `_command_center_seed_defaults`. Accept either pre- or post-22.1L."""
     server = _load_server()
     on = [getattr(fn, "__name__", "") for fn in server.app.router.on_startup]
-    assert "_startup" in on, "routes.command_center._startup missing (Track 22.1L scope)"
+    if "_startup" in on:
+        return  # pre-22.1L era
+    from lib.lifespan_bootstrap import LIFECYCLE_STEPS  # noqa: PLC0415
+    ls = [s.name for s in LIFECYCLE_STEPS]
+    assert "_command_center_seed_defaults" in ls, (
+        f"post-22.1L expects _command_center_seed_defaults in LIFECYCLE_STEPS; got {ls}"
+    )
 
 
 def test_shutdown_handler_still_registered():

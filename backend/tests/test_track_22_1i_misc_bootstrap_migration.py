@@ -82,7 +82,15 @@ def test_excluded_handlers_remain_in_on_startup():
     server = _load_server()
     on = [getattr(fn, "__name__", "") for fn in server.app.router.on_startup]
     for name in EXCLUDED_REMAIN:
-        assert name in on, f"excluded handler {name} unexpectedly missing from on_startup"
+        if name in on:
+            continue
+        # Post-22.1L era: command_center._startup migrated → _command_center_seed_defaults.
+        from lib.lifespan_bootstrap import LIFECYCLE_STEPS  # noqa: PLC0415
+        ls = [s.name for s in LIFECYCLE_STEPS]
+        assert (
+            name in ls
+            or (name == "_startup" and "_command_center_seed_defaults" in ls)
+        ), f"excluded handler {name} missing from both on_startup and LIFECYCLE_STEPS"
 
 
 def test_readiness_flip_is_last():
