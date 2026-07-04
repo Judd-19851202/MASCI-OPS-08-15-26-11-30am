@@ -1,5 +1,46 @@
 # CHANGELOG
 
+## 2026-08-04 — TRACK 20.8 · Final Production Deployment Certification · 🟢 GO
+
+### Purpose
+Release gate. Zero features · zero code changes · zero redesigns. Verify + certify only.
+
+### Outcome
+🟢 **GO for production deployment.**
+
+### Six Pillars — all GREEN
+POWERFUL · SIMPLE · BEAUTIFUL · TRUSTED · PROVEN · OPERATIONAL.
+
+### Testing
+- 384 lock-test assertions across 21 suites · **all green**.
+- 1 legitimately skipped design-branch skip (Track 19.21 approve-without-linkage — certified behavior).
+- 0 failures.
+- Live browser smoke: 8/8 personas + surfaces rendered.
+- Deployment-agent static scan: **PASS**.
+
+### Discovered issues
+- **TD-20.8-D01** — initial test-script probe of `/dispatch` returned 404. Investigation: canonical route is `/dispatch-portal` (returns 200). Classified **Class D · False Positive**. Registered.
+
+### Tech Debt Register at deployment gate
+Zero OPEN debt. Every entry is either FIXED, CLOSED, or False Positive.
+
+### Deliverables
+15 markdown deliverables under `memory/TRACK_20_8_*.md` + lock test `backend/tests/test_track_20_8_deployment_certification.py`.
+
+### Email safety
+🟢 Structurally enforced (Track 20.6B `_dispatch_auto_email` gate) · zero live emails during test envelope.
+
+### Zero-Drift
+Zero production code changed by Track 20.8. Only documentation + register updates + lock test.
+
+### Recommended permanent release rule
+Adopt Track 20.8 as the standing release gate. No release ships without a full Track-20.8-style certification pass and explicit GO/NO-GO verdict.
+
+### Next
+Awaiting user directive on post-deployment work: Track 19.62 Phase B (fire migration) · OCR + Gemini 3 Flash · OSHA compliance intelligence · Mobile-native shell · Executive PDF redesign.
+
+---
+
 ## 2026-08-04 — TRACK 20.6B · Test Hardening + Tech-Debt Closeout · 🟢 SHIPPED
 
 ### Purpose

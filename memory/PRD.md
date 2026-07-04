@@ -11,6 +11,45 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 20.8 · Final Production Deployment Certification · 🟢 GO (2026-08-04)
+
+**Type:** Release gate. Certification-only. Zero features · zero redesigns · zero code changes.
+
+**Purpose:** Final verification that the platform is production-ready. Every domain audited. Every debt closed. Zero surprises.
+
+**Outcome:** 🟢 **GO for production deployment.**
+
+**Six Pillars Scorecard:** all GREEN — POWERFUL · SIMPLE · BEAUTIFUL · TRUSTED · PROVEN · OPERATIONAL.
+
+**Verification envelope (384 assertions across 21 lock-test suites):**
+- `test_track_20_6b_test_hardening.py` (18) · `test_track_20_7_universal_photo_capture.py` (24) · `test_track_19_62_fire_protection_phase_a.py` (24) · `test_track_20_6_fire_protection_audit.py` (28) · `test_track_19_61_asset_thread_promotion.py` · `test_track_19_60_vendor_thread_promotion.py` · `test_track_20_5_asset_thread_audit.py` (21) · `test_track_20_4_vendor_thread_audit.py` (17) · `test_track_20_3_incident_thread_audit.py` · `test_track_20_2_project_audit.py` · `test_track_20_1_employee_audit.py` · `test_track_20_0_production_readiness.py` · `test_track_19_59_vendor_lane_historical_records.py` · `test_track_19_58_incident_thread_promotion.py` · `test_track_19_57_project_thread_promotion.py` · `test_track_19_56_employee_thread_promotion.py` · `test_track_19_54_operational_guidance.py` · `test_track_19_55_operational_threads.py` · `test_track_19_21_e2e_live.py` (10 pass + 1 legit design skip) · `test_daily_reports.py` (15) · `test_job_photos.py` (13). **Total: 384 passed · 1 skipped · 0 failed.**
+
+**Deployment-agent static scan:** PASS · no secrets, correct env-vars, /api prefixing, CORS, supervisor, dotenv all clean.
+
+**Human walkthrough:** 8/8 personas (Superintendent · Executive · HR · Safety Director · PM · Dispatcher · Shop / Mechanic · Field Employee · Admin) all rendered cleanly. `/dispatch` initial-test 404 reclassified as Class-D False Positive (canonical route `/dispatch-portal` returns 200).
+
+**Deliverables (15 docs + 1 lock test):**
+`TRACK_20_8_EXECUTIVE_DEPLOYMENT_REPORT.md` · `TRACK_20_8_PRODUCTION_READINESS_REPORT.md` · `TRACK_20_8_GO_NO_GO_CHECKLIST.md` · `TRACK_20_8_SIX_PILLARS_SCORECARD.md` · `TRACK_20_8_SECURITY_CERTIFICATION.md` · `TRACK_20_8_EMAIL_SAFETY_CERTIFICATION.md` · `TRACK_20_8_OPERATIONAL_THREAD_CERTIFICATION.md` · `TRACK_20_8_MOBILE_CERTIFICATION.md` · `TRACK_20_8_WORKFLOW_CERTIFICATION.md` · `TRACK_20_8_HUMAN_WALKTHROUGH.md` · `TRACK_20_8_DEPLOYMENT_CHECKLIST.md` · `TRACK_20_8_ROLLBACK_CHECKLIST.md` · `TRACK_20_8_BACKUP_VALIDATION.md` · `TRACK_20_8_ZERO_DRIFT_MATRIX.md` · `TRACK_20_8_FINAL_TEST_REPORT.md` · lock test `backend/tests/test_track_20_8_deployment_certification.py`.
+
+**Zero-Drift:** ZERO production code changed in Track 20.8. Only 15 new docs + register update + lock test.
+
+**Tech Debt Register at deployment gate:**
+- TD-19.62-A01 · A · FIXED
+- TD-20.6A-001 · C · CLOSED
+- TD-20.6A-002 · C · CLOSED
+- TD-20.7-B01 · B · FIXED
+- TD-20.7-C01 · C · CLOSED
+- TD-20.6B-A01 · A · FIXED
+- TD-20.8-D01 · D · False Positive
+- **Zero OPEN debt at the gate.**
+
+**Email safety:** 🟢 Structurally enforced via Track 20.6B synthetic-test-record short-circuit. Zero live emails during the 384-test envelope.
+
+**Recommended permanent release rule:** Adopt Track 20.8 as the standing release gate. No code reaches production without a full Track-20.8-style certification pass.
+
+**Final call:** 🟢 **DEPLOY.**
+
+
 ## TRACK 20.6B · Test Hardening + Tech-Debt Closeout · ✅ SHIPPED (2026-08-04)
 
 **Type:** Pre-deployment test hardening under Track 20.6A tech-debt doctrine. Zero features · zero UI polish · zero new modules · zero new workflows · zero new emails · zero new Operational Intelligence.
