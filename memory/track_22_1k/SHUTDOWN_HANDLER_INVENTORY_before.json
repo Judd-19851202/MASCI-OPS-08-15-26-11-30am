@@ -1,0 +1,18 @@
+{
+  "track": "22.1K",
+  "handler": "shutdown_db_client",
+  "state": "before_migration",
+  "source": {
+    "file": "backend/server.py",
+    "line": 15947,
+    "module": "server",
+    "decorator_current": "@app.on_event(\"shutdown\")",
+    "target_registration": "@register_shutdown_step(\"shutdown\")"
+  },
+  "bytecode_sha256": "a7db2b0122a4d9405610d78c2b44de8cd8314531ae688d554116b83e332e7c9b",
+  "body": "try: if _backup_task is not None: _backup_task.cancel(); except: pass; client.close()",
+  "closes": "motor async client",
+  "cancels": "_backup_task if not None",
+  "idempotency": "client.close() is idempotent; _backup_task.cancel() is safe",
+  "safe_to_migrate": true
+}

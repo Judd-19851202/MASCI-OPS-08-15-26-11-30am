@@ -1,0 +1,284 @@
+{
+  "phase_1_non_readiness": [
+    {
+      "index": 0,
+      "group": "misc-bootstrap",
+      "name": "_job_photos_ensure_thumb_cache_indexes"
+    },
+    {
+      "index": 1,
+      "group": "index-ensure",
+      "name": "_ensure_scheduler_lock_indexes_at_startup"
+    },
+    {
+      "index": 2,
+      "group": "misc-bootstrap",
+      "name": "_db_isolation_failsafe"
+    },
+    {
+      "index": 3,
+      "group": "misc-bootstrap",
+      "name": "_tune_asyncio_thread_pool"
+    },
+    {
+      "index": 4,
+      "group": "scheduler-nonemail",
+      "name": "_start_job_photos_indexer"
+    },
+    {
+      "index": 5,
+      "group": "seed",
+      "name": "_seed_field_leadership_equipment_catalog"
+    },
+    {
+      "index": 6,
+      "group": "seed",
+      "name": "_seed_shop_users"
+    },
+    {
+      "index": 7,
+      "group": "index-ensure",
+      "name": "_ensure_project_team_assignments_indexes"
+    },
+    {
+      "index": 8,
+      "group": "misc-bootstrap",
+      "name": "_deploy_fix_001_backup_orphan_sweep"
+    },
+    {
+      "index": 9,
+      "group": "seed",
+      "name": "_seed_hr_users"
+    },
+    {
+      "index": 10,
+      "group": "misc-bootstrap",
+      "name": "_ensure_v_prelude_wave1_indexes"
+    },
+    {
+      "index": 11,
+      "group": "misc-bootstrap",
+      "name": "_log_operational_hygiene_at_startup"
+    },
+    {
+      "index": 12,
+      "group": "scheduler-nonemail",
+      "name": "_start_motive_reliability_loop"
+    },
+    {
+      "index": 13,
+      "group": "misc-bootstrap",
+      "name": "_clear_super_admin_force_pw_change"
+    },
+    {
+      "index": 14,
+      "group": "seed",
+      "name": "_seed_field_leadership_users"
+    },
+    {
+      "index": 15,
+      "group": "index-ensure",
+      "name": "_startup_trust_spine_indexes"
+    },
+    {
+      "index": 16,
+      "group": "misc-bootstrap",
+      "name": "_startup_deployment_ledger_indexes"
+    },
+    {
+      "index": 17,
+      "group": "misc-bootstrap",
+      "name": "_oa_startup"
+    },
+    {
+      "index": 18,
+      "group": "scheduler-nonemail",
+      "name": "_start_health_monitor"
+    },
+    {
+      "index": 19,
+      "group": "misc-bootstrap",
+      "name": "_arm_audit_ttl_indexes"
+    },
+    {
+      "index": 20,
+      "group": "misc-bootstrap",
+      "name": "_bootstrap_operations"
+    },
+    {
+      "index": 21,
+      "group": "misc-bootstrap",
+      "name": "_bootstrap_integrations"
+    },
+    {
+      "index": 22,
+      "group": "seed",
+      "name": "_seed_safety_users"
+    },
+    {
+      "index": 23,
+      "group": "index-ensure",
+      "name": "_arm_hot_id_indexes"
+    },
+    {
+      "index": 24,
+      "group": "index-ensure",
+      "name": "_arm_workflow_state_events_indexes"
+    },
+    {
+      "index": 25,
+      "group": "index-ensure",
+      "name": "_arm_iter142_perf_indexes"
+    },
+    {
+      "index": 26,
+      "group": "email-scheduler",
+      "name": "_start_safety_digest_cron"
+    },
+    {
+      "index": 27,
+      "group": "email-scheduler",
+      "name": "_start_operator_digest_cron"
+    },
+    {
+      "index": 28,
+      "group": "misc-bootstrap",
+      "name": "_ensure_stability_ttls"
+    },
+    {
+      "index": 29,
+      "group": "email-scheduler",
+      "name": "_start_po_digest_cron"
+    },
+    {
+      "index": 30,
+      "group": "index-ensure",
+      "name": "_li_ensure_indexes"
+    },
+    {
+      "index": 31,
+      "group": "misc-bootstrap",
+      "name": "_li_start_worker"
+    },
+    {
+      "index": 32,
+      "group": "index-ensure",
+      "name": "_fleet_ensure_indexes"
+    },
+    {
+      "index": 33,
+      "group": "scheduler-nonemail",
+      "name": "_cluster_capacity_history_loop"
+    },
+    {
+      "index": 34,
+      "group": "misc-bootstrap",
+      "name": "_ensure_field_memory_indexes_startup"
+    },
+    {
+      "index": 35,
+      "group": "index-ensure",
+      "name": "_ensure_dls_indexes"
+    },
+    {
+      "index": 36,
+      "group": "index-ensure",
+      "name": "_ensure_driver_session_indexes"
+    },
+    {
+      "index": 37,
+      "group": "email-scheduler",
+      "name": "_start_backup_verification_cron"
+    },
+    {
+      "index": 38,
+      "group": "index-ensure",
+      "name": "_ensure_passkey_indexes"
+    },
+    {
+      "index": 39,
+      "group": "seed",
+      "name": "_bootstrap_user_directory"
+    },
+    {
+      "index": 40,
+      "group": "misc-bootstrap",
+      "name": "_backfill_doc_ids"
+    },
+    {
+      "index": 41,
+      "group": "misc-bootstrap",
+      "name": "_track_16_05_bootstrap_on_startup"
+    },
+    {
+      "index": 42,
+      "group": "misc-bootstrap",
+      "name": "_track_16_08_bootstrap_on_startup"
+    },
+    {
+      "index": 43,
+      "group": "misc-bootstrap",
+      "name": "_track_16_09_bootstrap_on_startup"
+    },
+    {
+      "index": 44,
+      "group": "misc-bootstrap",
+      "name": "_track_16_10_bootstrap_on_startup"
+    },
+    {
+      "index": 45,
+      "group": "seed",
+      "name": "_seed_phase1"
+    },
+    {
+      "index": 46,
+      "group": "backup-scheduler",
+      "name": "_start_backup_scheduler"
+    },
+    {
+      "index": 47,
+      "group": "misc-bootstrap",
+      "name": "_track_15_93_run_system_bootstrap"
+    },
+    {
+      "index": 48,
+      "group": "command-center",
+      "name": "_command_center_seed_defaults"
+    },
+    {
+      "index": 49,
+      "group": "email-scheduler",
+      "name": "_dispatch_reminder_scheduler_start"
+    }
+  ],
+  "phase_2_legacy_on_startup": [],
+  "phase_3_readiness": [
+    {
+      "name": "_iter453_6_flip_ready_flag"
+    }
+  ],
+  "phase_4a_shutdown_steps": [
+    {
+      "name": "shutdown_db_client",
+      "group": "shutdown",
+      "module": "server"
+    }
+  ],
+  "phase_4b_legacy_on_shutdown": [],
+  "summary": {
+    "lifecycle_total": 51,
+    "shutdown_total": 1,
+    "lifecycle_by_group": {
+      "misc-bootstrap": 21,
+      "index-ensure": 11,
+      "scheduler-nonemail": 4,
+      "seed": 7,
+      "email-scheduler": 5,
+      "backup-scheduler": 1,
+      "command-center": 1,
+      "readiness": 1
+    },
+    "on_startup_count": 0,
+    "on_shutdown_count": 0
+  }
+}

@@ -6,5 +6,6 @@
   "_start_backup_scheduler": "c7d29e0072aa7578855271dfd5d63a048b0f10d0d0d7bbc6819488d35b378a73",
   "_start_operator_digest_cron": "8f28a846fd2fa23f8b76cc154855a83f547ceeeaf59af2e23f863fa10a241e12",
   "_start_po_digest_cron": "5158200a64be314b070e9946fbead935035e5ea823b106a97a60f57ee3528c38",
-  "_start_safety_digest_cron": "9aabbd4f4d5f0d1c0b7fede9ef7c35a5ae2640aec49c471182b2857bd7be8604"
+  "_start_safety_digest_cron": "9aabbd4f4d5f0d1c0b7fede9ef7c35a5ae2640aec49c471182b2857bd7be8604",
+  "shutdown_db_client": "a7db2b0122a4d9405610d78c2b44de8cd8314531ae688d554116b83e332e7c9b"
 }

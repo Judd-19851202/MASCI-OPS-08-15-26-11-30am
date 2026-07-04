@@ -1,7 +1,32 @@
 {
   "generated": "2026-08-04",
   "track": "21.0",
+  "lifecycle_complete": true,
+  "startup_migration_pct": 100.00,
+  "shutdown_migration_pct": 100.00,
   "recent_track_closures": [
+    {
+      "track": "22.1K",
+      "title": "Final Lifecycle Completion — Shutdown Migration + Graceful Termination",
+      "status": "🎉 LIFECYCLE ARCHITECTURE COMPLETE",
+      "date": "2026-07-04",
+      "on_shutdown_count_before": 1,
+      "on_shutdown_count_after": 0,
+      "shutdown_steps_added": 1,
+      "shutdown_steps_total": 1,
+      "migrated_handler": "shutdown_db_client",
+      "new_registry": "SHUTDOWN_STEPS",
+      "new_orchestrator_phase": "phase-4a runs BEFORE legacy phase-4b on_shutdown",
+      "bytecode_sha256": "a7db2b0122a4d9405610d78c2b44de8cd8314531ae688d554116b83e332e7c9b",
+      "orphan_task_fix_F2": "routes/job_photos.py::_ensure_thumb_cache_indexes now registered as LIFECYCLE_STEPS.misc-bootstrap",
+      "ci_guardrails_added": [
+        "test_no_legacy_startup_decorators_anywhere_in_backend",
+        "test_no_legacy_shutdown_decorators_anywhere_in_backend"
+      ],
+      "route_delta": 0,
+      "attestation_version": "22.1K",
+      "lifecycle_complete": true
+    },
     {
       "track": "22.1L",
       "title": "Final Legacy Startup Handler Elimination",

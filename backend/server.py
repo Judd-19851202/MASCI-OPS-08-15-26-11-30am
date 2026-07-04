@@ -258,7 +258,7 @@ from lib.rate_limiting import (  # noqa: E402
 # TRACK 22.1E · migrate index-ensure handlers from @app.on_event("startup")
 # into `LIFECYCLE_STEPS`. The lifespan orchestrator (Track 22.1D) runs
 # LIFECYCLE_STEPS first, then remaining legacy on_startup decorators.
-from lib.lifespan_bootstrap import register_lifecycle_step  # noqa: E402
+from lib.lifespan_bootstrap import register_lifecycle_step, register_shutdown_step  # noqa: E402
 
 
 # ------------------------- Admin auth -------------------------
@@ -15944,7 +15944,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-@app.on_event("shutdown")
+@register_shutdown_step("shutdown")
 async def shutdown_db_client():
     try:
         if _backup_task is not None:

@@ -1178,9 +1178,27 @@ def attach_routes(app, db, require_caller, send_email_fn) -> None:
             "elapsed_seconds": round(time.time() - t0, 2),
         }
 
-    # Best-effort thumb-cache index creation at module load. Idempotent.
+    # Track 22.1K · Orphan-task audit F2 · Was previously:
+    #   asyncio.get_event_loop().create_task(_ensure_thumb_cache_indexes(db))
+    # That fire-and-forget scheduled during module import produced
+    # `Task was destroyed but it is pending` warnings under pytest because
+    # the coroutine was created BEFORE the event loop was running.
+    # Fix: register a proper LIFECYCLE_STEP so index creation is awaited
+    # inside the startup lifespan phase-1 (still idempotent, still safe).
     try:
-        asyncio.get_event_loop().create_task(_ensure_thumb_cache_indexes(db))
+        from lib.lifespan_bootstrap import LIFECYCLE_STEPS, LifecycleStep  # noqa: PLC0415
+
+        async def _job_photos_ensure_thumb_cache_indexes():
+            try:
+                await _ensure_thumb_cache_indexes(db)
+            except Exception:  # noqa: BLE001
+                pass  # best-effort, matches pre-migration silent semantics
+        LIFECYCLE_STEPS.append(LifecycleStep(
+            group="misc-bootstrap",
+            name="_job_photos_ensure_thumb_cache_indexes",
+            fn=_job_photos_ensure_thumb_cache_indexes,
+            source_module=__name__,
+        ))
     except Exception:
         pass
 

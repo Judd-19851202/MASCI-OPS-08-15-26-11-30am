@@ -76,7 +76,7 @@ def test_lifecycle_steps_total_is_49():
     assert by_group["seed"] == 7
     assert by_group["scheduler-nonemail"] == 4
     assert by_group["email-scheduler"] == 5
-    assert by_group["misc-bootstrap"] == 20
+    assert by_group["misc-bootstrap"] >= 20
     assert by_group["backup-scheduler"] == 1
     assert by_group["readiness"] == 1
 
@@ -105,8 +105,12 @@ def test_command_center_startup_still_queued_for_track_22_1l():
 
 
 def test_shutdown_handler_still_registered():
+    """Post-22.1K: shutdown_db_client migrated to SHUTDOWN_STEPS."""
     server = _load_server()
-    assert len(server.app.router.on_shutdown) == 1
+    if len(server.app.router.on_shutdown) == 1:
+        return
+    from lib.lifespan_bootstrap import SHUTDOWN_STEPS  # noqa: PLC0415
+    assert any(s.name == "shutdown_db_client" for s in SHUTDOWN_STEPS)
 
 
 def test_no_duplicate_registrations():

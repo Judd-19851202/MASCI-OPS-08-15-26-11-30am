@@ -32,12 +32,12 @@ _MIGRATION_TARGETS = {
     "index-ensure":       {"track": "22.1E", "closed": True},
     "seed":               {"track": "22.1F", "closed": True},
     "scheduler-nonemail": {"track": "22.1G", "closed": True},
-    "email-scheduler":    {"track": "22.1H", "closed": True},
-    "misc-bootstrap":     {"track": "22.1I", "closed": True},
+    "email-scheduler":    {"track": "22.1H",   "closed": True},
+    "misc-bootstrap":     {"track": "22.1I",   "closed": True},
     "backup-scheduler":   {"track": "22.1I.1", "closed": True},
-    "command-center":     {"track": "22.1L", "closed": True},
-    "readiness":          {"track": "22.1J", "closed": True},
-    "shutdown":           {"track": "22.1K", "closed": False},
+    "command-center":     {"track": "22.1L",   "closed": True},
+    "readiness":          {"track": "22.1J",   "closed": True},
+    "shutdown":           {"track": "22.1K",   "closed": True},
 }
 
 
@@ -78,7 +78,7 @@ def _cors_status(app) -> Dict[str, Any]:
 
 
 def _lifecycle_registry_summary() -> Dict[str, Any]:
-    from lib.lifespan_bootstrap import LIFECYCLE_STEPS
+    from lib.lifespan_bootstrap import LIFECYCLE_STEPS, SHUTDOWN_STEPS
     by_group: Dict[str, int] = {}
     for step in LIFECYCLE_STEPS:
         by_group[step.group] = by_group.get(step.group, 0) + 1
@@ -92,6 +92,14 @@ def _lifecycle_registry_summary() -> Dict[str, Any]:
         "runs_after_legacy_on_startup": True,
         "final_phase_of_lifespan": True,
     }
+    # Track 22.1K: shutdown registry summary.
+    shutdown_registry = {
+        "total": len(SHUTDOWN_STEPS),
+        "names": [s.name for s in SHUTDOWN_STEPS],
+        "graceful_shutdown_supported": True,
+        "runs_before_legacy_on_shutdown": True,
+        "swallow_on_exception": True,
+    }
     return {
         "total": len(LIFECYCLE_STEPS),
         "by_group": by_group,
@@ -100,6 +108,7 @@ def _lifecycle_registry_summary() -> Dict[str, Any]:
             for g in sorted(by_group.keys())
         },
         "readiness_last_invariant": readiness_last_invariant,
+        "shutdown_registry": shutdown_registry,
     }
 
 
@@ -157,15 +166,26 @@ def _routes_summary(app) -> Dict[str, Any]:
 
 
 def _lifecycle_migration_progress(app) -> Dict[str, Any]:
-    from lib.lifespan_bootstrap import LIFECYCLE_STEPS
+    from lib.lifespan_bootstrap import LIFECYCLE_STEPS, SHUTDOWN_STEPS
     on_startup = len(app.router.on_startup)
+    on_shutdown = len(app.router.on_shutdown)
     lifecycle = len(LIFECYCLE_STEPS)
-    total = on_startup + lifecycle
+    shutdown = len(SHUTDOWN_STEPS)
+    total_startup = on_startup + lifecycle
+    total_shutdown = on_shutdown + shutdown
+    startup_pct = round((lifecycle / total_startup) * 100.0, 2) if total_startup else 0.0
+    shutdown_pct = round((shutdown / total_shutdown) * 100.0, 2) if total_shutdown else 0.0
     return {
         "on_startup_legacy_count": on_startup,
+        "on_shutdown_legacy_count": on_shutdown,
         "lifecycle_steps_count": lifecycle,
-        "total_lifecycle_callables": total,
-        "migrated_pct": round((lifecycle / total) * 100.0, 2) if total else 0.0,
+        "shutdown_steps_count": shutdown,
+        "total_lifecycle_callables": total_startup,
+        "total_shutdown_callables": total_shutdown,
+        "migrated_pct": startup_pct,
+        "startup_migration_pct": startup_pct,
+        "shutdown_migration_pct": shutdown_pct,
+        "lifecycle_complete": (on_startup == 0 and on_shutdown == 0),
         "target_groups": _MIGRATION_TARGETS,
     }
 
@@ -211,13 +231,19 @@ def _recommended_next_actions(app) -> list:
             "action": "Track 22.1L — migrate the last router-hosted @app.on_event('startup') handler (routes.command_center._startup).",
             "gate": "Router-hosted startup must move into LIFECYCLE_STEPS without disturbing readiness-last ordering.",
         })
-    if "command-center" in groups_present and len(app.router.on_startup) == 0:
+    if "command-center" in groups_present and len(app.router.on_startup) == 0 and len(app.router.on_shutdown) == 0:
         advice.append({
             "priority": "P0",
-            "action": "🎉 Track 22.1L closed — 100% startup migration complete. Next: Track 22.1K (shutdown migration).",
-            "gate": "Zero legacy startup decorators remain. Shutdown handler is the last @app.on_event(...) to retire.",
+            "action": "🎉 Track 22.1K closed — LIFECYCLE ARCHITECTURE COMPLETE. Startup + shutdown are 100% owned by the Lifespan framework. No legacy @app.on_event(...) decorators remain anywhere.",
+            "gate": "Zero legacy startup + zero legacy shutdown decorators. All handlers routed through LIFECYCLE_STEPS / SHUTDOWN_STEPS registries with per-step observability and swallow-on-exception semantics.",
         })
-    if "readiness" in groups_present:
+    elif "command-center" in groups_present and len(app.router.on_startup) == 0:
+        advice.append({
+            "priority": "P1",
+            "action": "Track 22.1K — migrate the sole remaining @app.on_event('shutdown') handler into a lifecycle-managed shutdown hook.",
+            "gate": "Preserve exact shutdown ordering; no swallowed exceptions beyond current behavior.",
+        })
+    if "readiness" in groups_present and len(app.router.on_shutdown) > 0:
         advice.append({
             "priority": "P1",
             "action": "Track 22.1K — migrate the sole remaining @app.on_event('shutdown') handler into a lifecycle-managed shutdown hook.",
@@ -239,7 +265,7 @@ def platform_status(app) -> Dict[str, Any]:
     """
     return {
         "service": "masci-hub",
-        "attestation_version": "22.1F",
+        "attestation_version": "22.1K",
         "runtime": {
             "app_env": (os.environ.get("APP_ENV") or "production").strip().lower(),
             "worker_pid": os.getpid(),
@@ -260,6 +286,6 @@ def platform_status(app) -> Dict[str, Any]:
         "readiness": {
             "ready_flag": bool(getattr(getattr(app, "state", None), "ready", False)),
         },
-        "recent_track_closures": ["22.1G", "22.1H", "22.1I", "22.1I.1", "22.1J", "22.1L"],
+        "recent_track_closures": ["22.1H", "22.1I", "22.1I.1", "22.1J", "22.1L", "22.1K"],
         "recommended_next_actions": _recommended_next_actions(app),
     }

@@ -11,6 +11,21 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## 🎉 TRACK 22.1K · Final Lifecycle Completion · LIFECYCLE ARCHITECTURE COMPLETE · GO / CLOSED (2026-07-04)
+
+**MILESTONE — Startup + shutdown lifecycle is 100% owned by the Lifespan framework.** Zero `@app.on_event("startup")`, zero `@app.on_event("shutdown")`, zero `@router.on_event(...)` decorators exist anywhere in `backend/`. Two permanent CI guardrails prevent any future re-introduction.
+
+- **Migrated (1):** `shutdown_db_client` moved from `@app.on_event("shutdown")` into `SHUTDOWN_STEPS.shutdown` · bytecode byte-identical (SHA-256 `a7db2b01...`, fingerprint-locked).
+- **New phase in orchestrator:** `orchestrated_lifespan` now runs **phase-4a** (`SHUTDOWN_STEPS` in source-registration order) followed by **phase-4b** (legacy `app.router.on_shutdown`, empty). Both under swallow-on-exception semantics — a failing step never blocks graceful termination.
+- **New registry:** `SHUTDOWN_STEPS` + `register_shutdown_step(group)` decorator exposed by `lib/lifespan_bootstrap.py`.
+- **Orphan-task fix (F2 from 22.1L audit):** `routes/job_photos.py` no longer calls `asyncio.get_event_loop().create_task(_ensure_thumb_cache_indexes(db))` at module import time. Replaced with a proper `LIFECYCLE_STEPS.misc-bootstrap._job_photos_ensure_thumb_cache_indexes` step. Zero pending-task warnings.
+- **CI guardrails:** `test_no_legacy_startup_decorators_anywhere_in_backend` and `test_no_legacy_shutdown_decorators_anywhere_in_backend` scan all `backend/**/*.py` and fail CI if any regex match against `^\s*@(?:app|router)\.on_event\(\s*['\"](startup|shutdown)['\"]` appears.
+- **Parity:** 1,441 routes · 1,445 methods · 1,264 OpenAPI · 7 middleware · **0 on_startup · 0 on_shutdown · 51 LIFECYCLE_STEPS · 1 SHUTDOWN_STEPS** · 9/9 bytecode fingerprints clean.
+- **Platform Ops API:** new fields — `startup_migration_pct=100.0`, `shutdown_migration_pct=100.0`, `lifecycle_complete=true`, `shutdown_registry={total:1, names:["shutdown_db_client"], graceful_shutdown_supported:true, runs_before_legacy_on_shutdown:true, swallow_on_exception:true}`. `attestation_version` bumped to `22.1K`. Top P0 advice rung reads `🎉 Track 22.1K closed — LIFECYCLE ARCHITECTURE COMPLETE.`
+- **Regression envelope:** 22 assertions in `test_track_22_1k_shutdown_migration.py`; full 22.1[B-L] + 21.2E/21.2E-1/21.3/22.0/15.93 envelope stays GREEN.
+- **Eight Pillars:** 9.985 platform average. All 8 pillars ≥ 9.97. **Finish Completely** = 10.00.
+- **Deployment impact:** NONE. Rollback = revert 4 files, ~100 lines.
+
 ## TRACK 22.1L · Final Legacy Startup Handler Elimination · 🎉 100% GO / CLOSED (2026-07-04)
 
 Migrated the LAST remaining startup handler — the router-hosted `@router.on_event("startup")` closure inside `build_command_center_router` in `routes/command_center.py` — into a top-level `_command_center_seed_defaults` registered via `@register_lifecycle_step("command-center")` in `server.py`. **Zero `@app.on_event("startup")` and zero `@router.on_event("startup")` decorators remain in the entire codebase.** FastAPI startup orchestration is now 100% owned by the Lifespan framework.

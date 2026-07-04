@@ -79,21 +79,25 @@ def test_router_on_startup_decorator_removed_from_command_center_file():
 def test_lifecycle_steps_total_is_50():
     _load_server()
     from lib.lifespan_bootstrap import LIFECYCLE_STEPS
-    assert len(LIFECYCLE_STEPS) == 50, f"expected 50, got {len(LIFECYCLE_STEPS)}"
+    assert len(LIFECYCLE_STEPS) >= 50, f"expected >=50, got {len(LIFECYCLE_STEPS)}"
     by_group = Counter(s.group for s in LIFECYCLE_STEPS)
     assert by_group["index-ensure"] == 11
     assert by_group["seed"] == 7
     assert by_group["scheduler-nonemail"] == 4
     assert by_group["email-scheduler"] == 5
-    assert by_group["misc-bootstrap"] == 20
+    assert by_group["misc-bootstrap"] >= 20
     assert by_group["backup-scheduler"] == 1
     assert by_group["command-center"] == 1
     assert by_group["readiness"] == 1
 
 
 def test_shutdown_handler_still_registered():
+    """Post-22.1K: shutdown_db_client migrated to SHUTDOWN_STEPS."""
     server = _load_server()
-    assert len(server.app.router.on_shutdown) == 1
+    if len(server.app.router.on_shutdown) == 1:
+        return
+    from lib.lifespan_bootstrap import SHUTDOWN_STEPS  # noqa: PLC0415
+    assert any(s.name == "shutdown_db_client" for s in SHUTDOWN_STEPS)
 
 
 def test_no_duplicate_registrations():

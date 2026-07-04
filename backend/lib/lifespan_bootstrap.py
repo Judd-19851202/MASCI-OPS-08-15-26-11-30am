@@ -92,6 +92,7 @@ class LifecycleStep:
 
 
 LIFECYCLE_STEPS: List[LifecycleStep] = []
+SHUTDOWN_STEPS: List[LifecycleStep] = []
 
 
 def register_lifecycle_step(group: str, name: str | None = None):
@@ -109,6 +110,26 @@ def register_lifecycle_step(group: str, name: str | None = None):
             source_module=fn.__module__,
         )
         LIFECYCLE_STEPS.append(step)
+        return fn
+    return _wrap
+
+
+def register_shutdown_step(group: str = "shutdown", name: str | None = None):
+    """Decorator: append a shutdown handler into `SHUTDOWN_STEPS` (Track 22.1K).
+
+    Replaces `@app.on_event("shutdown")`. Handlers run AFTER `yield` in the
+    orchestrated lifespan, in strict source-registration order, with per-step
+    logging and swallow-on-exception semantics (so a failing shutdown handler
+    never blocks the rest of the graceful termination sequence).
+    """
+    def _wrap(fn: Callable) -> Callable:
+        step = LifecycleStep(
+            group=group,
+            name=name or fn.__name__,
+            fn=fn,
+            source_module=fn.__module__,
+        )
+        SHUTDOWN_STEPS.append(step)
         return fn
     return _wrap
 
@@ -191,7 +212,25 @@ async def orchestrated_lifespan(app: Any) -> AsyncIterator[None]:
     try:
         yield
     finally:
-        # ---- SHUTDOWN -----------------------------------------------------
+        # ---- SHUTDOWN PHASE 4a: SHUTDOWN_STEPS registry (Track 22.1K) ------
+        # Runs BEFORE legacy on_shutdown so migrated handlers get a chance to
+        # gracefully cancel background tasks before the Mongo client is closed
+        # by the last-remaining legacy handler (also migrated in 22.1K).
+        logger.info(
+            "[track-22.1k] lifespan.shutdown: executing %d SHUTDOWN_STEPS (phase-4)",
+            len(SHUTDOWN_STEPS),
+        )
+        for i, step in enumerate(SHUTDOWN_STEPS):
+            try:
+                await _run_callable(step.fn)
+            except Exception:
+                logger.exception(
+                    "[track-22.1k] SHUTDOWN_STEP #%d %s.%s (group=%s) raised — swallowing to allow full shutdown",
+                    i, step.source_module, step.name, step.group,
+                )
+        logger.info("[track-22.1k] lifespan.shutdown: SHUTDOWN_STEPS complete")
+
+        # ---- SHUTDOWN PHASE 4b: legacy on_shutdown -------------------------
         shutdown_handlers = list(getattr(app.router, "on_shutdown", []) or [])
         logger.info("[track-22.1d] lifespan.shutdown: executing %d handlers", len(shutdown_handlers))
         for i, fn in enumerate(shutdown_handlers):
