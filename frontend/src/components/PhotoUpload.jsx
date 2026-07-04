@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Camera, X, ImageIcon, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { compressImage } from "@/lib/utils";
@@ -6,6 +6,41 @@ import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { PhotoLightbox } from "@/components/PhotoLightbox";
 import { resolvePhotoSrc } from "@/lib/photoSrc";
+
+// Track 20.7 · Universal Photo Capture guardrail.
+// A device qualifies for camera capture ONLY if the browser exposes a
+// video-capable media device. We probe once at mount time and cache the
+// result. This is what lets the desktop "Take photo" button fall back
+// to the plain file picker instead of silently no-oping when the user
+// clicks it on a computer that has no webcam or has camera permission
+// blocked — the exact failure reported against the Daily Report.
+function useCameraSupport() {
+  const [supported, setSupported] = useState(null); // null=unknown|true|false
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        // 1. Fast-path: no mediaDevices API at all → definitely no camera.
+        if (typeof navigator === "undefined" || !navigator.mediaDevices
+            || !navigator.mediaDevices.enumerateDevices) {
+          if (!cancelled) setSupported(false);
+          return;
+        }
+        // 2. Enumerate device kinds. This does NOT prompt the user for
+        //    permission and works in all evergreen browsers.
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const hasVideo = devices.some((d) => d.kind === "videoinput");
+        if (!cancelled) setSupported(!!hasVideo);
+      } catch {
+        // 3. On any error (SecurityError on HTTP, etc.), fall back to the
+        //    safe assumption: no camera → file picker is the truth.
+        if (!cancelled) setSupported(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+  return supported;
+}
 
 /**
  * PhotoUpload — gallery-or-camera picker.
@@ -33,6 +68,11 @@ export const PhotoUpload = ({
   const galleryRef = useRef(null);
   const cameraRef = useRef(null);
   const [progress, setProgress] = useState(null); // { current, total } | null
+  // Track 20.7 · when unsupported (desktop w/o webcam · permission blocked
+  // · non-secure context), the "Take photo" button transparently falls
+  // back to the gallery file picker so the user is never trapped.
+  const cameraSupported = useCameraSupport();
+  const cameraKnownUnsupported = cameraSupported === false;
 
   const handleFiles = async (files) => {
     if (!files || files.length === 0) return;
@@ -81,7 +121,17 @@ export const PhotoUpload = ({
   };
 
   const openGallery = () => galleryRef.current?.click();
-  const openCamera = () => cameraRef.current?.click();
+  // Track 20.7 · fall through to the plain file picker when camera is
+  // known-unsupported. This is the surgical fix for the Daily Report
+  // desktop failure: no more silent no-op on desktops without a webcam
+  // or with camera permission blocked.
+  const openCamera = () => {
+    if (cameraKnownUnsupported) {
+      galleryRef.current?.click();
+      return;
+    }
+    cameraRef.current?.click();
+  };
 
   return (
     <div className="space-y-3" data-testid={testIdBase}>
@@ -121,8 +171,16 @@ export const PhotoUpload = ({
         >
           <Camera className="w-8 h-8" />
           <span className="font-bold uppercase tracking-wide text-sm">
-            {t("Take photo")}
+            {cameraKnownUnsupported ? t("Choose photo / file") : t("Take photo")}
           </span>
+          {cameraKnownUnsupported && (
+            <span
+              className="text-[10px] text-slate-500"
+              data-testid={`${testIdBase}-camera-fallback-hint`}
+            >
+              {t("Camera unavailable — choose a file instead")}
+            </span>
+          )}
         </button>
       ) : (
         <div className="grid grid-cols-2 gap-2">
@@ -134,7 +192,7 @@ export const PhotoUpload = ({
           >
             <ImageIcon className="w-6 h-6" />
             <span className="font-bold uppercase tracking-wide text-xs text-center">
-              {t("From gallery")}
+              {t("Choose photo / file")}
             </span>
             <span className="text-[10px] text-slate-500">
               {t("Pick existing photos")}
@@ -145,13 +203,21 @@ export const PhotoUpload = ({
             onClick={openCamera}
             className="h-28 border-2 border-dashed border-slate-400 bg-slate-50 hover:bg-red-50 hover:border-red-700 transition-colors duration-150 rounded-md flex flex-col items-center justify-center gap-1.5 text-slate-700 px-2"
             data-testid={`${testIdBase}-camera`}
+            title={cameraKnownUnsupported
+              ? t("Camera unavailable on this device — opens the file picker instead")
+              : t("Open camera")}
           >
             <Camera className="w-6 h-6" />
             <span className="font-bold uppercase tracking-wide text-xs text-center">
-              {t("Take photo")}
+              {cameraKnownUnsupported ? t("Choose from files") : t("Take photo")}
             </span>
-            <span className="text-[10px] text-slate-500">
-              {t("Open camera")}
+            <span
+              className="text-[10px] text-slate-500"
+              data-testid={`${testIdBase}-camera-hint`}
+            >
+              {cameraKnownUnsupported
+                ? t("Camera unavailable — choose a file instead")
+                : t("Open camera")}
             </span>
           </button>
         </div>
