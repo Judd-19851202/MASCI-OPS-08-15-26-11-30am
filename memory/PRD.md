@@ -11,6 +11,17 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 21.2E · Email Safety Incident Closeout · 🟢 CLOSED (2026-07-04)
+
+**Incident:** Mid-Track-21.2 pytest regression leaked live email via 72 non-`TEST_` payloads in preview. User halted; all HTTP tests stopped.
+
+**Fix:** SDK-level kill switch in `backend/server.py` (`EMAIL_SAFETY_MODE=strict` env-gated) replaces `resend.Emails.send` with a no-op stub at module import. `_dispatch_auto_email` short-circuits before recipient lookup. `auto_email_enabled()` returns False under safety mode. Preview `.env` set to `strict`. Zero production drift (patch is env-gated).
+
+**Proofs:** 11/11 unit-level lock tests green (`test_track_21_2e_email_safety.py`) · Supervisor log line captured · Non-`TEST_` payload inventory frozen (72 payloads · 36 files · 57 distinct names).
+
+**Next:** Track 21.2E-1 · defense-in-depth canonicalization of the 72 payloads (queued behind user review). Track 21.2 platform bug-hunt PAUSED until closeout signed off.
+
+
 ## TRACK 21.1 · Zero-Defect Platform Remediation · 🟢 GO (2026-07-04)
 
 **Delta:** ESLint 908 → 0 · `i18n.js` unbroken · Track 20.6B–21.1 lock tests 88/88 green · Zero-Drift · Email Safety Mandate re-asserted. See `TRACK_21_1_FINAL_REPORT.md`.

@@ -1,5 +1,34 @@
 # CHANGELOG
 
+## 2026-07-04 — TRACK 21.2E · Email Safety Incident Closeout · 🟢 CLOSED
+
+### Trigger
+Mid-Track-21.2 forensic bug-hunt, a preview `pytest` regression run leaked live email through workflow-submitting tests whose `project_name` did not start with `TEST_`. User halted the run. Class-A operational hygiene defect.
+
+### Fix
+- **SDK-level kill switch** installed in `backend/server.py` at module import. When `EMAIL_SAFETY_MODE ∈ {strict, silent, test}`, `resend.Emails.send` is replaced with a no-op stub returning `{"id":"blocked_by_email_safety_mode","status":"skipped"}`. **No live email can leave the pod** regardless of caller, project_name prefix, or feature flag state.
+- `pm_routing.auto_email_enabled()` returns `False` under safety mode.
+- `_dispatch_auto_email` gains a strict-mode short-circuit **before** `recipients_for_record_async` runs. Emits `trust_spine_events` with `status="skipped"` + `failure_reason="email_safety_mode:strict"` for full audit traceability.
+- `backend/.env` in preview: added `EMAIL_SAFETY_MODE=strict`.
+- Production stays byte-for-byte identical (patch is env-gated).
+
+### Inventory (defense-in-depth targets)
+72 non-`TEST_` payloads across 36 test files (57 distinct project_name literals). Full list: `memory/track_21_2e/NON_TEST_PAYLOAD_INVENTORY.md`.
+
+### Deliverables
+- `memory/TRACK_21_2E_EMAIL_SAFETY_CLOSEOUT.md`
+- `backend/tests/test_track_21_2e_email_safety.py` — **11/11 unit-level lock tests green, no HTTP calls**
+- `memory/track_21_2e/NON_TEST_PAYLOAD_INVENTORY.json` + `.md`
+- `memory/track_21_2e/inventory_scan.py`
+
+### Zero-drift statement
+No production behavior changes. No test file rewritten. The patch only fires under explicit env opt-in. Track 21.2 platform bug-hunt remains **paused** until user reviews this closeout.
+
+### Final call
+🟢 **INCIDENT CLOSED · Email safety mandate now enforced at the SDK layer.**
+
+---
+
 ## 2026-07-04 — TRACK 21.1 · Zero-Defect Platform Remediation · 🟢 GO
 
 ### Purpose
