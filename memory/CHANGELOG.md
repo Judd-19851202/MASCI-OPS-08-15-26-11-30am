@@ -10,6 +10,39 @@
 
 # CHANGELOG
 
+## 2026-08-03 — TRACK 20.6 · Fire Protection & Life Safety Asset Forensic Audit + TRACK 20.6A · Technical Debt Discipline · ✅ COMPLETE
+
+### Ships (docs + lock test only · zero production code changed)
+- **Track 20.6:** 12 audit deliverables under `/app/memory/TRACK_20_6_*.md` (Executive Audit · Fire Protection Inventory · Source-of-Truth Matrix · Asset Taxonomy Review · OI Integration Audit · Permission Matrix · Historical Records Audit · Inspection Reuse Audit · Noise / Duplicate Audit · Final Recommendation · Zero-Drift Certification · Test Report).
+- **Track 20.6A:** Technical Debt Register + two one-page failure reports.
+- Lock test `backend/tests/test_track_20_6_fire_protection_audit.py` (file-content + grep only — no HTTP, no DB, no email).
+
+### Verdict (Track 20.6)
+**PROMOTE + EXTEND (medium)** in two phases. Fire Protection is not yet on the Universal Asset spine — runs on a pre-Universal-Asset system (`db.fire_extinguishers` + `/api/safety/fire-extinguishers/*` + Safety Portal UI + Digest KPI + CA link + operational signal). Four declared duplicates (D-FP-01 registry · D-FP-02 inspection log · D-FP-03 attachments · D-FP-04 missing taxonomy class).
+
+### Track 19.62 Phase A proposed scope (NOT executed here)
+Taxonomy v1.0.0 → v1.1.0 (add `Fire Protection` class + 9 extinguisher types · additive) · asset spine resolver fallback into `db.fire_extinguishers` · 5 additive fire-specific record_type slugs on Historical Records `entity_kind="asset"` lane · Asset Thread class-branch for extinguisher rendering + overdue attention rule. Estimated: ≤ 300 backend LOC · ≤ 200 frontend LOC · 1 lock file.
+
+### Phase B (later track)
+Full migration to `equipment_master` + `asset_service_events` + backwards-compat view. Medium sized. Requires its own audit-then-execute pair.
+
+### Track 20.6A · Technical Debt Discipline instituted
+Every discovered failure now MUST be classified into A/B/C/D. "No action" no longer allowed. Certification reports may not use vague phrases like "pre-existing issue" or "outside scope" without full classification.
+
+Two Class-C entries logged:
+- **TD-20.6A-001** — `test_vocabulary_unauth_401` returns 200 (live-e2e fixture leak). P3 · target Track 20.6B · not production-impacting.
+- **TD-20.6A-002** — `test_vocabulary_hr_sees_all_lanes` strict-equality broke on Track 19.59's `vendor` lane. P3 · target Track 20.6B · not production-impacting.
+
+### Email safety
+Zero send-function imports · zero live sends · zero HTTP calls in the lock test · safe to run 100× with zero inbox activity.
+
+### Zero-Drift
+No new fire-protection collection · no new inspection module · no new PDF renderer · no new OI product · no new email flow · no permission widening · no public URL.
+
+### Next
+Awaiting user directive: Track 19.62 (Fire Protection Promotion — Phase A) or Track 20.6B (Test Hardening).
+
+
 ## 2026-08-02 — TRACK 19.61 · Asset / Equipment Operational Thread PROMOTION · 🟢 SHIPPED
 
 ### Shipped

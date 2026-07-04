@@ -11,6 +11,46 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 20.6 · Fire Protection & Life Safety Asset Forensic Audit · ✅ COMPLETE (2026-08-03)
+## TRACK 20.6A · Technical Debt & Failure Discovery Amendment · ✅ INSTITUTED (2026-08-03)
+
+**Type:** Forensic audit only. **Zero production code changed. Zero live emails. Zero HTTP calls in the lock test.**
+
+**Question:** Should Fire Protection assets become another certified Asset Class inside the Universal Asset architecture?
+
+**Answer:** **PROMOTE + EXTEND (medium)** in two disciplined phases. Fire Protection is not yet on the certified Universal Asset spine — it runs on a pre-Universal-Asset system (`db.fire_extinguishers` + `/api/safety/fire-extinguishers/*` + `SafetyFireExtinguishers.jsx` + Safety Digest KPI + CA link + operational signal). Extinguishers were half-bound in iter138 via `equipment_master_id`, but canonical identity still lives outside `equipment_master`, and Fire Protection is **not** in `services/asset_taxonomy.py` v1.0.0. Four documented duplicates (D-FP-01 through D-FP-04).
+
+**Track 19.62 · Phase A scope (proposed, NOT executed here):**
+1. Taxonomy bump v1.0.0 → v1.1.0 — new `Fire Protection` asset_class + 9 extinguisher asset_types + behavior overrides. Additive.
+2. `asset_spine.py` resolver fallback — reads `db.fire_extinguishers` when `equipment_master` returns no match. Returns synthetic canonical shape.
+3. `employee_records.py` — 5 additive fire-specific record_type slugs on `entity_kind="asset"` lane: `hydrostatic_test_certificate` · `recharge_service_record` · `fire_ext_annual_service` · `fire_ext_manufacturer_doc` · `fire_ext_retirement_record`.
+4. `AdminAssetThread.jsx` gains a small class-branch to render extinguishers with an "overdue → HIGH" attention rule + a "Manage in Safety Portal" cross-link.
+5. Cross-link from `SafetyFireExtinguishers.jsx` register row → Asset Thread.
+Estimated: ≤ 300 backend LOC · ≤ 200 frontend LOC · 1 lock file.
+
+**Phase B (later track):** Full migration `db.fire_extinguishers` → `equipment_master` + `asset_service_events` projection + backwards-compat view. Medium sized. Requires its own audit-then-execute pair.
+
+**Deliverables (12 docs + 1 lock test):** `TRACK_20_6_EXECUTIVE_AUDIT.md` · `TRACK_20_6_FIRE_PROTECTION_INVENTORY.md` · `TRACK_20_6_SOURCE_OF_TRUTH_MATRIX.md` · `TRACK_20_6_ASSET_TAXONOMY_REVIEW.md` · `TRACK_20_6_OI_INTEGRATION_AUDIT.md` · `TRACK_20_6_PERMISSION_MATRIX.md` · `TRACK_20_6_HISTORICAL_RECORDS_AUDIT.md` · `TRACK_20_6_INSPECTION_REUSE_AUDIT.md` · `TRACK_20_6_NOISE_DUPLICATE_AUDIT.md` · `TRACK_20_6_FINAL_RECOMMENDATION.md` · `TRACK_20_6_ZERO_DRIFT_MATRIX.md` · `TRACK_20_6_TEST_REPORT.md` + lock test `backend/tests/test_track_20_6_fire_protection_audit.py`.
+
+## TRACK 20.6A · Technical Debt & Failure Discovery Amendment
+
+Doctrine instituted: every discovered failure MUST be classified into A (Fix Now) / B (Blocks Deployment) / C (Existing Debt) / D (False Positive). "No action" is not allowed. Certification reports may not use phrases like "pre-existing issue" or "outside scope" unless accompanied by the full classification.
+
+**Two failures discovered during Track 19.61 regression sweep, now formally classified:**
+- **TD-20.6A-001** — `test_vocabulary_unauth_401` returns 200 (live-e2e fixture leak). Class **C** · Priority P3 · Target Track 20.6B · not production-impacting. See `memory/TECH_DEBT_TD_20_6A_001_vocabulary_unauth.md`.
+- **TD-20.6A-002** — `test_vocabulary_hr_sees_all_lanes` strict-equality assertion broke on Track 19.59's additive `vendor` lane. Class **C** · Priority P3 · Target Track 20.6B · not production-impacting. See `memory/TECH_DEBT_TD_20_6A_002_vocabulary_hr_lanes.md`.
+
+Register: `memory/TECHNICAL_DEBT_REGISTER.md`.
+
+**Email safety (both tracks):** Zero send-function imports · zero live sends · zero HTTP calls in the lock test · safe to run 100× with zero inbox activity.
+
+**Zero-Drift (both tracks):** No new fire-protection collection · no new inspection module · no new PDF renderer · no new OI product · no new email flow · no permission widening · no public URL.
+
+**Testing:** `pytest backend/tests/test_track_20_6_fire_protection_audit.py -v` → all assertions green.
+
+**Next:** Awaiting user directive to execute Track 19.62 (Fire Protection Promotion — Phase A) or Track 20.6B (Test Hardening for the two Class-C debt items).
+
+
 ## TRACK 19.61 · Asset / Equipment Operational Thread PROMOTION · ✅ SHIPPED (2026-08-02)
 
 **Type:** Presentation promotion **+ two small additive backend extensions**. Executes the Track 20.5 forensic-audit verdict (PROMOTE + EXTEND) exactly. Zero drift · zero live emails · zero duplicate systems.
