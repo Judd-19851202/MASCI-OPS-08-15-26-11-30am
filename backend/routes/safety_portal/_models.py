@@ -133,6 +133,18 @@ class FireExtinguisherCreate(BaseModel):
     # iter138: bind to equipment_master if this extinguisher belongs to
     # a specific vehicle / piece of equipment (truck-mounted units)
     equipment_master_id: Optional[str] = None
+    # Track 19.62 · Phase A · assignment relationship model. All optional;
+    # backwards-compat with pre-19.62 records.
+    assigned_target_kind: Optional[str] = None       # asset|equipment|vehicle|trailer|facility|building|room|project|job_trailer|shop_area|office_area|storage_area|other_location
+    assigned_target_ref: Optional[str] = None
+    assigned_target_label: Optional[str] = None
+    assigned_location_detail: Optional[str] = None
+    assigned_project_number: Optional[str] = None
+    assigned_unit_number: Optional[str] = None
+    assigned_facility_name: Optional[str] = None
+    assigned_room_name: Optional[str] = None
+    serial_number: Optional[str] = None
+    asset_tag: Optional[str] = None
 
 
 class FireExtinguisherUpdate(BaseModel):
@@ -146,6 +158,17 @@ class FireExtinguisherUpdate(BaseModel):
     last_status: Optional[str] = None
     notes: Optional[str] = None
     equipment_master_id: Optional[str] = None
+    # Track 19.62 · Phase A · assignment fields (additive).
+    assigned_target_kind: Optional[str] = None
+    assigned_target_ref: Optional[str] = None
+    assigned_target_label: Optional[str] = None
+    assigned_location_detail: Optional[str] = None
+    assigned_project_number: Optional[str] = None
+    assigned_unit_number: Optional[str] = None
+    assigned_facility_name: Optional[str] = None
+    assigned_room_name: Optional[str] = None
+    serial_number: Optional[str] = None
+    asset_tag: Optional[str] = None
 
 
 class FireExtinguisherInspection(BaseModel):

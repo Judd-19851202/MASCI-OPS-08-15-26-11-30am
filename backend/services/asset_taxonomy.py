@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from typing import Dict, FrozenSet, List, Optional, Tuple
 
-TAXONOMY_VERSION: str = "1.0.0"
+TAXONOMY_VERSION: str = "1.1.0"
 
 # ── Level 1 — Asset Classes (closed set) ──────────────────────────────
 ASSET_CLASSES: Tuple[str, ...] = (
@@ -34,6 +34,8 @@ ASSET_CLASSES: Tuple[str, ...] = (
     "Facility Asset",
     "Temporary Asset",
     "Other Asset",
+    # Track 19.62 · Fire Protection & Life Safety (taxonomy v1.1.0).
+    "Fire Protection",
 )
 
 # ── Level 2 — Asset Types per class (closed set) ──────────────────────
@@ -121,6 +123,20 @@ ASSET_TYPES_BY_CLASS: Dict[str, Tuple[str, ...]] = {
         "Other Temporary Asset",
     ),
     "Other Asset": ("Other Asset",),
+    # Track 19.62 · Fire Protection & Life Safety (taxonomy v1.1.0).
+    # Life-safety assets — mounted/stationed, not PPE. Different behavior
+    # matrix from Safety Equipment (which is worn/carried personal protection).
+    "Fire Protection": (
+        "ABC Fire Extinguisher",
+        "CO2 Fire Extinguisher",
+        "Class D Fire Extinguisher",
+        "Water Fire Extinguisher",
+        "Foam Fire Extinguisher",
+        "Clean Agent Fire Extinguisher",
+        "Wheeled Fire Extinguisher",
+        "Vehicle Fire Extinguisher",
+        "Fire Extinguisher Cabinet / Station",
+    ),
 }
 
 # Convenience: flat set of all valid (class, type) tuples
@@ -272,6 +288,19 @@ _BEHAVIOR_OVERRIDES: Dict[str, Dict[str, bool]] = {
     # Facility / Temporary defaults inherit conservative
     "Rental Equipment": {"renewal_tracking_required": True, "document_vault_required": True},
     "Loaner Equipment": {"renewal_tracking_required": True, "document_vault_required": True},
+    # Track 19.62 · Fire Protection — life-safety assets, mounted/stationed.
+    # Not PPE. Not assignable to a person. Renewal tracking = next-due
+    # inspection + hydrostatic. Document vault holds hydro certs +
+    # service records. No PM (Safety-authored inspection, not Shop PM).
+    "ABC Fire Extinguisher":                {"renewal_tracking_required": True, "document_vault_required": True, "inspection_required": True, "assignable_to_employee": False},
+    "CO2 Fire Extinguisher":                {"renewal_tracking_required": True, "document_vault_required": True, "inspection_required": True, "assignable_to_employee": False},
+    "Class D Fire Extinguisher":            {"renewal_tracking_required": True, "document_vault_required": True, "inspection_required": True, "assignable_to_employee": False},
+    "Water Fire Extinguisher":              {"renewal_tracking_required": True, "document_vault_required": True, "inspection_required": True, "assignable_to_employee": False},
+    "Foam Fire Extinguisher":               {"renewal_tracking_required": True, "document_vault_required": True, "inspection_required": True, "assignable_to_employee": False},
+    "Clean Agent Fire Extinguisher":        {"renewal_tracking_required": True, "document_vault_required": True, "inspection_required": True, "assignable_to_employee": False},
+    "Wheeled Fire Extinguisher":            {"renewal_tracking_required": True, "document_vault_required": True, "inspection_required": True, "assignable_to_employee": False},
+    "Vehicle Fire Extinguisher":            {"renewal_tracking_required": True, "document_vault_required": True, "inspection_required": True, "assignable_to_employee": False},
+    "Fire Extinguisher Cabinet / Station":  {"renewal_tracking_required": True, "document_vault_required": True, "inspection_required": True, "assignable_to_employee": False, "transferable": False},
 }
 
 

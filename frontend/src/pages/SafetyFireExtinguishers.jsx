@@ -296,7 +296,17 @@ export default function SafetyFireExtinguishers() {
             <tbody>
               {filtered.map((fe) => (
                 <tr key={fe.id} className={`border-t border-slate-100 ${isOverdue(fe) ? "bg-red-50" : ""}`} data-testid={`safety-fe-row-${fe.id}`}>
-                  <td className="px-3 py-2 font-semibold">{fe.unit_id}</td>
+                  <td className="px-3 py-2 font-semibold">
+                    {/* Track 19.62 · Phase A · cross-link to Universal Asset Thread. */}
+                    <a
+                      href={`/admin/assets/${encodeURIComponent(fe.unit_id || fe.id)}/thread`}
+                      className="text-cyan-800 hover:underline"
+                      data-testid={`safety-fe-thread-link-${fe.id}`}
+                      title={t("Open Asset Thread")}
+                    >
+                      {fe.unit_id}
+                    </a>
+                  </td>
                   <td className="px-3 py-2">
                     <span className="inline-block px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px] font-mono uppercase mr-1">{t(fe.location_kind)}</span>
                     {fe.location_value || "—"}

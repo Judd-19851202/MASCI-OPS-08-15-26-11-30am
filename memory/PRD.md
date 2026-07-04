@@ -11,6 +11,33 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 19.62 · Fire Protection Promotion — Phase A · ✅ SHIPPED (2026-08-03)
+
+**Type:** PROMOTE + EXTEND (Phase A) · executes the Track 20.6 verdict exactly. Zero migration · zero new collection · zero new inspection engine · zero new OI product · zero new email flow · zero permission widening.
+
+**Delta:**
+- **Taxonomy v1.0.0 → v1.1.0** — new `Fire Protection` asset_class + 9 extinguisher types (ABC · CO2 · Class D · Water · Foam · Clean Agent · Wheeled · Vehicle · Cabinet/Station) + behavior overrides (`assignable_to_employee=False`, `inspection_required=True`, `renewal_tracking_required=True`, `document_vault_required=True`). Additive · backwards-compat.
+- **Universal Asset Identifier Resolver** — Phase A fallback into `db.fire_extinguishers` on `unit_id`/`id`, returning a synthetic canonical payload tagged `source=fire_extinguishers` with `asset_class="Fire Protection"` and all assignment/inspection fields.
+- **Historical Records asset lane** — 5 additive record_type slugs: `hydrostatic_test_certificate` · `recharge_service_record` · `fire_ext_annual_service` · `fire_ext_manufacturer_doc` · `fire_ext_retirement_record`.
+- **`safety_portal/fire_extinguishers.py`** — list endpoint gains `assigned_target_ref` / `assigned_target_kind` / `assigned_unit_number` / `assigned_project_number` filters; create endpoint persists 10 additive assignment/identity fields.
+- **`AdminAssetThread.jsx`** — Fire Protection class branch: mission fact panel · attention rules (Failed Inspection CRITICAL · Overdue HIGH · Assignment Missing / Record Missing / Pending fire docs MEDIUM) · parent-asset / facility / project / Safety Portal / Historical Records relationship edges · "Manage in Safety Portal" cross-link. Non-compliance wording only ("Needs Attention" / "Inspection Overdue" / "Assignment Missing" / "Record Missing" — NEVER "OSHA compliant" / "legally compliant" / "certified safe" / "fire-code compliant").
+- **`FleetUnitThread.jsx`** — parent-asset surfacing: fetches `?assigned_target_ref=<unit>` on the existing safety endpoint and renders each linked extinguisher as a relationship edge + overdue-inspection attention item.
+- **`SafetyFireExtinguishers.jsx`** — list rows deep-link to Asset Thread.
+
+**Tech Debt · Track 20.6A discipline applied**
+- **TD-19.62-A01** — Pre-existing duplicate `label:` keys in `FleetUnitThread.jsx :: deriveRelationships` (5 lint errors surfaced when Phase A extended the file). **Class A — Fix Now.** ✅ Fixed inside this track (removed stray descriptor `label` fields; moved descriptor text into `sublabel`).
+
+**Deliverables (12 docs + 1 lock test):** `TRACK_19_62_EXECUTIVE_SUMMARY.md` · `TRACK_19_62_FIRE_PROTECTION_TAXONOMY.md` · `TRACK_19_62_ASSIGNMENT_RELATIONSHIP_MODEL.md` · `TRACK_19_62_RESOLVER_FALLBACK.md` · `TRACK_19_62_HISTORICAL_RECORDS_FIRE_DOCS.md` · `TRACK_19_62_ASSET_THREAD_FIRE_BRANCH.md` · `TRACK_19_62_PARENT_ASSET_SURFACING.md` · `TRACK_19_62_OI_ROUTING.md` · `TRACK_19_62_PERMISSION_CERTIFICATION.md` · `TRACK_19_62_EMAIL_SAFETY_CERTIFICATION.md` · `TRACK_19_62_ZERO_DRIFT_MATRIX.md` · `TRACK_19_62_TEST_REPORT.md` · lock test `backend/tests/test_track_19_62_fire_protection_phase_a.py`.
+
+**Email safety:** All touched files grep-clean of `fsi_send_email` / `resend` / `phase4.send_email`. Lock test performs zero HTTP calls, zero DB writes. Re-running 100× produces zero inbox activity.
+
+**Zero-Drift:** No new fire-protection collection · no new equipment master · no duplicate maintenance / DVIR / inspection / photo / PDF / OI / score / email / notification system · no permission widening · no public URL.
+
+**Testing:** Track 19.62 lock test green. Full Universal Thread family regression (19.54 → 19.62 + 20.0 → 20.6) green.
+
+**Next:** Awaiting user directive for Phase B (full migration `db.fire_extinguishers` → `equipment_master` + `asset_service_events` projection + backwards-compat view) or Track 20.6B (close TD-20.6A-001/002).
+
+
 ## TRACK 20.6 · Fire Protection & Life Safety Asset Forensic Audit · ✅ COMPLETE (2026-08-03)
 ## TRACK 20.6A · Technical Debt & Failure Discovery Amendment · ✅ INSTITUTED (2026-08-03)
 

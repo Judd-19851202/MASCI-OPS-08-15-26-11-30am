@@ -26,6 +26,11 @@ def register_fire_extinguisher_routes(
     async def list_fire_extinguishers(
         status: Optional[str] = None,
         overdue_only: bool = False,
+        # Track 19.62 · Phase A — parent-asset surfacing filter.
+        assigned_target_ref: Optional[str] = None,
+        assigned_target_kind: Optional[str] = None,
+        assigned_unit_number: Optional[str] = None,
+        assigned_project_number: Optional[str] = None,
         _: dict = Depends(require_safety_token),
     ):
         q: dict = {}
@@ -34,6 +39,19 @@ def register_fire_extinguisher_routes(
         if overdue_only:
             today = datetime.now(timezone.utc).isoformat()[:10]
             q["next_due_date"] = {"$ne": None, "$lt": today}
+        # Track 19.62 · parent-asset filters (all additive).
+        if assigned_target_ref:
+            q["$or"] = [
+                {"assigned_target_ref": assigned_target_ref},
+                {"equipment_master_id": assigned_target_ref},
+                {"assigned_unit_number": assigned_target_ref},
+            ]
+        if assigned_target_kind:
+            q["assigned_target_kind"] = assigned_target_kind
+        if assigned_unit_number:
+            q["assigned_unit_number"] = assigned_unit_number
+        if assigned_project_number:
+            q["assigned_project_number"] = assigned_project_number
         return await db.fire_extinguishers.find(q, {"_id": 0}).sort("unit_id", 1).to_list(2000)
 
     @api_router.post("/safety/fire-extinguishers")
@@ -55,6 +73,17 @@ def register_fire_extinguisher_routes(
             "notes": (body.notes or "").strip(),
             # iter138 — link to equipment_master if specified (truck mount)
             "equipment_master_id": (body.equipment_master_id or "").strip(),
+            # Track 19.62 · Phase A · assignment relationship (all optional).
+            "assigned_target_kind": (body.assigned_target_kind or "") or None,
+            "assigned_target_ref":  (body.assigned_target_ref or "") or None,
+            "assigned_target_label": (body.assigned_target_label or "") or None,
+            "assigned_location_detail": (body.assigned_location_detail or "") or None,
+            "assigned_project_number":  (body.assigned_project_number or "") or None,
+            "assigned_unit_number":     (body.assigned_unit_number or "") or None,
+            "assigned_facility_name":   (body.assigned_facility_name or "") or None,
+            "assigned_room_name":       (body.assigned_room_name or "") or None,
+            "serial_number":            (body.serial_number or "") or None,
+            "asset_tag":                (body.asset_tag or "") or None,
             "inspections": [],
             "created_by_name": user.get("name") or "",
             "created_at": now,

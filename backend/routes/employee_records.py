@@ -172,6 +172,12 @@ LANE_RECORD_TYPES: Dict[str, List[str]] = {
         "historical_maintenance_record",
         "asset_photo",
         "other_asset_document",
+        # Track 19.62 · Phase A — fire-protection-specific paper.
+        "hydrostatic_test_certificate",
+        "recharge_service_record",
+        "fire_ext_annual_service",
+        "fire_ext_manufacturer_doc",
+        "fire_ext_retirement_record",
     ],
     "corporate_import": [
         "historical_archive", "acquisition_records", "legacy_conversion",

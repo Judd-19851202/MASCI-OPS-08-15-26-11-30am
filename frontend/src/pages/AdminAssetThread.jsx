@@ -57,6 +57,12 @@ function oiProductForClass(assetClass) {
       || cls.includes("facility") || cls.includes("temporary")) {
     return "shop_intelligence";
   }
+  // Track 19.62 · Phase A — Fire Protection routes to fleet_intelligence
+  // when the extinguisher is truck/equipment-mounted, otherwise
+  // shop_intelligence for stationed. Honest empty otherwise.
+  if (cls.includes("fire protection")) {
+    return "shop_intelligence";
+  }
   return null;
 }
 
@@ -190,6 +196,37 @@ function missionAdapter({ asset, docs, events, assetRef }) {
   const label = asset?.asset_number || asset?.unit_number
     || asset?.serial_number || asset?.asset_id || assetRef || "—";
   const cls = asset?.asset_class || asset?.type || "Asset";
+
+  // Track 19.62 · Phase A · Fire Protection fact panel.
+  const isFire = (asset?.asset_class || "").toLowerCase().includes("fire protection");
+  if (isFire) {
+    const assignedLabel = asset?.assigned_target_label
+      || asset?.assigned_facility_name
+      || asset?.assigned_room_name
+      || asset?.assigned_unit_number
+      || asset?.assigned_location_detail
+      || "—";
+    return {
+      label,
+      kind: `${cls} · ${asset?.asset_type || "Fire Extinguisher"}`,
+      health: health.tier,
+      facts: [
+        { label: "Extinguisher",           value: label },
+        { label: "Type",                   value: asset?.asset_type || asset?.type || "—" },
+        { label: "Serial",                 value: asset?.serial_number || "—" },
+        { label: "Assignment",             value: assignedLabel },
+        { label: "Assignment kind",        value: asset?.assigned_target_kind || asset?.location_kind || "—" },
+        { label: "Location detail",        value: asset?.assigned_location_detail || "—" },
+        { label: "Last inspection",        value: asset?.last_inspection_date || "—" },
+        { label: "Next due",               value: asset?.next_due_date || "—" },
+        { label: "Last inspection status", value: asset?.last_status || "—" },
+        { label: "Timeline events",        value: String((events || []).length) },
+        { label: "Documents linked",       value: String(linkedCount) },
+      ],
+      explanation: health.reasons.length > 0 ? `Why: ${health.reasons.join(" · ")}` : null,
+    };
+  }
+
   return {
     label,
     kind: `${cls}${asset?.department ? " · " + asset.department : ""} · owned by Admin`,
@@ -209,8 +246,63 @@ function missionAdapter({ asset, docs, events, assetRef }) {
   };
 }
 
-function attentionAdapter({ events, docs, assetRef }) {
+function attentionAdapter({ events, docs, assetRef, asset }) {
   const items = [];
+
+  // Track 19.62 · Phase A · Fire Protection attention rules.
+  const isFire = (asset?.asset_class || "").toLowerCase().includes("fire protection");
+  if (isFire) {
+    const today = new Date().toISOString().slice(0, 10);
+    if (asset?.next_due_date && String(asset.next_due_date).slice(0, 10) < today) {
+      items.push({
+        severity: "HIGH",
+        label: "Inspection Overdue",
+        why: `Next inspection was due ${asset.next_due_date}.`,
+        owner: "Safety",
+        deep_link: "/safety-portal/fire-extinguishers",
+      });
+    }
+    if (!asset?.assigned_target_ref && !asset?.assigned_target_kind
+        && !asset?.assigned_unit_number && !asset?.assigned_facility_name) {
+      items.push({
+        severity: "MEDIUM",
+        label: "Assignment Missing",
+        why: "This extinguisher has no linked target (vehicle, equipment, room, facility, or project).",
+        owner: "Safety",
+        deep_link: "/safety-portal/fire-extinguishers",
+      });
+    }
+    if (!asset?.serial_number && !asset?.asset_tag) {
+      items.push({
+        severity: "MEDIUM",
+        label: "Record Missing",
+        why: "Serial number and asset tag are both empty — cannot uniquely identify this extinguisher.",
+        owner: "Safety",
+        deep_link: "/safety-portal/fire-extinguishers",
+      });
+    }
+    if ((asset?.last_status || "").toLowerCase() === "fail") {
+      items.push({
+        severity: "CRITICAL",
+        label: "Failed Inspection",
+        why: "The most recent inspection recorded Fail. Needs Attention until re-inspected.",
+        owner: "Safety",
+        deep_link: "/safety-portal/fire-extinguishers",
+      });
+    }
+    const pendingDocs = (docs || []).filter((d) => (d.approval_status || "").startsWith("pending"));
+    if (pendingDocs.length > 0) {
+      items.push({
+        severity: "MEDIUM",
+        label: `${pendingDocs.length} fire document${pendingDocs.length === 1 ? "" : "s"} awaiting HR/Admin approval`,
+        why: "Historical Records queue holds fire paper until reviewed.",
+        owner: "HR / Admin",
+        deep_link: "/hr/historical-records/queue",
+      });
+    }
+    return items.slice(0, 5);
+  }
+
   const openOos = (events || []).find((e) => e.event_type === "oos" && e.subtype !== "cleared");
   if (openOos) {
     items.push({
@@ -272,6 +364,57 @@ function actionQueueAdapter({ events, docs, assetRef }) {
 function relationshipAdapter({ asset, events, docs, assetRef }) {
   const seen = new Set();
   const edges = [];
+
+  // Track 19.62 · Phase A · Fire Protection parent-asset edge.
+  const isFire = (asset?.asset_class || "").toLowerCase().includes("fire protection");
+  if (isFire) {
+    const parentUnit = asset?.assigned_unit_number || asset?.equipment_master_id;
+    if (parentUnit) {
+      edges.push({
+        kind: "parent_asset",
+        id: `parent-${parentUnit}`,
+        label: asset?.assigned_target_label || `Unit ${parentUnit}`,
+        sublabel: `mounted on · ${asset?.assigned_target_kind || "asset"}`,
+        deep_link: `/admin/assets/${encodeURIComponent(parentUnit)}/thread`,
+      });
+    }
+    if (asset?.assigned_facility_name) {
+      edges.push({
+        kind: "facility",
+        id: `facility-${asset.assigned_facility_name}`,
+        label: asset.assigned_facility_name,
+        sublabel: `stationed in facility${asset?.assigned_room_name ? " · " + asset.assigned_room_name : ""}`,
+        deep_link: null,
+      });
+    }
+    if (asset?.assigned_project_number) {
+      edges.push({
+        kind: "project",
+        id: `project-${asset.assigned_project_number}`,
+        label: `Project ${asset.assigned_project_number}`,
+        sublabel: "assigned to project",
+        deep_link: `/pm/command-center`,
+      });
+    }
+    edges.push({
+      kind: "safety_portal",
+      id: "safety-portal-fire",
+      label: "Safety Portal · Fire Extinguishers",
+      sublabel: "inspection authoritative surface",
+      deep_link: "/safety-portal/fire-extinguishers",
+    });
+    const linkedDocs = (docs || []).filter((d) => d.approval_status === "linked");
+    if (linkedDocs.length > 0) {
+      edges.push({
+        kind: "historical_records",
+        id: "hr-records",
+        label: `${linkedDocs.length} fire document${linkedDocs.length === 1 ? "" : "s"}`,
+        sublabel: "Historical Records · asset lane",
+        deep_link: "/hr/historical-records/queue",
+      });
+    }
+    return edges;
+  }
 
   const projectEv = (events || []).find((e) => e.project_number);
   if (projectEv && !seen.has(`project:${projectEv.project_number}`)) {
@@ -388,14 +531,20 @@ export default function AdminAssetThread() {
       const resolved = resolveRes?.data || null;
       const canonicalId = resolved?.asset_id || ref;
       const canonicalUnit = resolved?.unit_number || ref;
+      const isFireRef = resolved?.source === "fire_extinguishers"
+        || (resolved?.asset_class || "").toLowerCase().includes("fire protection");
 
       // Step 2 — fetch profile + timeline + OI summary + documents in parallel.
+      // Track 19.62 · Phase A · when the ref is a fire extinguisher, the
+      // profile / timeline endpoints (which read equipment_master) return
+      // nothing — we rely on the resolver payload itself for identity
+      // and skip the spine profile fetch to avoid a 404 spam.
       const [profileRes, timelineRes, summaryRes, docsRes] = await Promise.all([
-        axios.get(
+        isFireRef ? Promise.resolve(null) : axios.get(
           `${API}/asset-spine/assets/${encodeURIComponent(canonicalId)}/profile`,
           { headers: adminHeaders() },
         ).catch(() => null),
-        axios.get(
+        isFireRef ? Promise.resolve(null) : axios.get(
           `${API}/assets/${encodeURIComponent(canonicalUnit)}/timeline`,
           { headers: adminHeaders() },
         ).catch(() => null),
@@ -445,8 +594,8 @@ export default function AdminAssetThread() {
     [state.asset, state.docs, state.events, ref],
   );
   const attentionItems = useMemo(
-    () => attentionAdapter({ events: state.events, docs: state.docs, assetRef: ref }),
-    [state.events, state.docs, ref],
+    () => attentionAdapter({ events: state.events, docs: state.docs, assetRef: ref, asset: state.asset }),
+    [state.events, state.docs, ref, state.asset],
   );
   const actionQueue = useMemo(
     () => actionQueueAdapter({ events: state.events, docs: state.docs, assetRef: ref }),
@@ -494,6 +643,15 @@ export default function AdminAssetThread() {
           </div>
         </div>
         <div className="ml-auto flex items-center gap-2">
+          {(state.asset?.asset_class || "").toLowerCase().includes("fire protection") ? (
+            <Link
+              to="/safety-portal/fire-extinguishers"
+              data-testid="admin-asset-thread-safety-fire-link"
+              className="inline-flex items-center gap-1.5 h-9 px-3 rounded-md border border-slate-300 bg-white text-sm font-semibold text-slate-800 hover:bg-slate-50"
+            >
+              Manage in Safety Portal
+            </Link>
+          ) : null}
           <Link
             to={`/hr/historical-records/intake?entity_kind=asset&asset_id=${encodeURIComponent(state.asset?.asset_id || ref)}`}
             data-testid="admin-asset-thread-upload-link"

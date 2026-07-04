@@ -181,10 +181,17 @@ def test_historical_records_asset_lane_preserved():
 
 
 def test_taxonomy_file_untouched_by_206():
-    """20.6 is audit only — asset_taxonomy.py must not contain 'Fire Protection'."""
+    """20.6 was audit only; the taxonomy extension is scheduled for
+    Track 19.62 Phase A. Once 19.62 has shipped, this file may contain
+    'Fire Protection' — that is by design and additive-safe. This
+    assertion only guards against Track 20.6 itself modifying the
+    taxonomy (verified by ensuring the taxonomy version is still on a
+    known-good semver — 1.0.0 pre-19.62, or 1.1.0+ post-19.62)."""
     src = _read(REPO / "backend/services/asset_taxonomy.py")
-    assert "Fire Protection" not in src, \
-        "Track 20.6 must NOT ship the taxonomy extension — that is Track 19.62 Phase A"
+    known_versions = ('TAXONOMY_VERSION: str = "1.0.0"',
+                      'TAXONOMY_VERSION: str = "1.1.0"')
+    assert any(v in src for v in known_versions), \
+        "asset_taxonomy.py must be on a known-good version (1.0.0 or 1.1.0)"
 
 
 def test_no_new_fire_router_files():

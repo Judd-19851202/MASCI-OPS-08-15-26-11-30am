@@ -188,11 +188,10 @@ function deriveRelationships(events, unitNumber) {
   if (projectEv && !seen.has(`project:${projectEv.project_number}`)) {
     seen.add(`project:${projectEv.project_number}`);
     edges.push({
-      label: "assigned to project",
       kind: "project",
-      label_kind: "project",
       id: `project-${projectEv.project_number}`,
       label: `Project ${projectEv.project_number}`,
+      sublabel: "assigned to project",
       deep_link: `/pm/command-center`,
     });
   }
@@ -200,7 +199,6 @@ function deriveRelationships(events, unitNumber) {
   if (operatorEv && !seen.has(`operator:${operatorEv.actor_name}`)) {
     seen.add(`operator:${operatorEv.actor_name}`);
     edges.push({
-      label: "operated by",
       kind: "operator",
       id: `operator-${operatorEv.actor_name}`,
       label: operatorEv.actor_name,
@@ -211,26 +209,24 @@ function deriveRelationships(events, unitNumber) {
   const woEv = events.find((e) => e.related_work_order_id);
   if (woEv) {
     edges.push({
-      label: "work order",
       kind: "wo",
       id: `wo-${woEv.related_work_order_id}`,
       label: `WO ${woEv.related_work_order_id.slice(-8)}`,
+      sublabel: "work order",
       deep_link: `/shop/units/${encodeURIComponent(unitNumber)}/history`,
     });
   }
   const openOos = events.find((e) => e.event_type === "oos" && e.subtype !== "cleared");
   if (openOos) {
     edges.push({
-      label: "current status",
       kind: "hold",
       id: "hold-oos",
       label: "Out of service",
-      sublabel: "requires repair",
+      sublabel: "requires repair · current status",
       deep_link: `/shop/units/${encodeURIComponent(unitNumber)}/history`,
     });
   }
   edges.push({
-    label: "shop history",
     kind: "shop",
     id: "shop-history",
     label: "Shop history timeline",
@@ -242,25 +238,29 @@ function deriveRelationships(events, unitNumber) {
 
 export default function FleetUnitThread() {
   const { unit_number } = useParams();
-  const [state, setState] = useState({ loaded: false, ok: false, events: [], product: null });
+  const [state, setState] = useState({ loaded: false, ok: false, events: [], product: null, extinguishers: [] });
 
   useEffect(() => {
     if (!unit_number) return;
     let cancelled = false;
     (async () => {
-      const [tl, summary] = await Promise.all([
+      // Track 19.62 · Phase A · surface linked fire extinguishers on parent asset.
+      const [tl, summary, fe] = await Promise.all([
         _get(`/api/assets/${encodeURIComponent(unit_number)}/timeline`),
         _get(`/api/operational-intelligence/summary`),
+        _get(`/api/safety/fire-extinguishers?assigned_target_ref=${encodeURIComponent(unit_number)}`),
       ]);
       if (cancelled) return;
       const events = (tl.body && (tl.body.events || tl.body.timeline || tl.body)) || [];
       const products = (summary.body && Array.isArray(summary.body.products)) ? summary.body.products : [];
       const fleetProduct = products.find((p) => p.product_id === "fleet_intelligence") || null;
+      const extinguishers = Array.isArray(fe.body) ? fe.body : [];
       setState({
         loaded: true,
         ok: tl.ok,
         events: Array.isArray(events) ? events : (events.events || []),
         product: fleetProduct,
+        extinguishers,
       });
     })();
     return () => { cancelled = true; };
@@ -268,17 +268,51 @@ export default function FleetUnitThread() {
 
   const timelineEvents = useMemo(() => mapBackboneToTimeline(state.events), [state.events]);
   const health = useMemo(() => deriveHealth(state.events), [state.events]);
-  const attentionItems = useMemo(() => deriveAttention(state.events, unit_number), [state.events, unit_number]);
+  const attentionItems = useMemo(() => {
+    const base = deriveAttention(state.events, unit_number);
+    // Track 19.62 · Phase A · overdue linked-extinguisher attention.
+    const today = new Date().toISOString().slice(0, 10);
+    (state.extinguishers || []).forEach((fe) => {
+      if (fe.next_due_date && String(fe.next_due_date).slice(0, 10) < today) {
+        base.push({
+          severity: "HIGH",
+          label: `Fire extinguisher ${fe.unit_id || ""} overdue`,
+          why: `Next inspection was due ${fe.next_due_date}.`,
+          owner: "Safety",
+          deep_link: "/safety-portal/fire-extinguishers",
+        });
+      }
+    });
+    return base.slice(0, 5);
+  }, [state.events, state.extinguishers, unit_number]);
   const actionQueue = useMemo(() => deriveActionQueue(state.events, unit_number), [state.events, unit_number]);
-  const relationships = useMemo(() => ({
-    subject: {
-      id: `unit-${unit_number}`,
-      kind: "unit",
-      label: `Unit ${unit_number}`,
-      sublabel: state.events[0]?.equipment_type || "Fleet asset",
-    },
-    edges: deriveRelationships(state.events, unit_number),
-  }), [state.events, unit_number]);
+  const relationships = useMemo(() => {
+    const baseEdges = deriveRelationships(state.events, unit_number);
+    // Track 19.62 · Phase A · surface each linked fire extinguisher as a
+    // relationship edge on the parent asset thread.
+    const feEdges = (state.extinguishers || []).map((fe) => {
+      const today = new Date().toISOString().slice(0, 10);
+      const overdue = fe.next_due_date && String(fe.next_due_date).slice(0, 10) < today;
+      const label = `Fire Ext ${fe.unit_id || fe.id?.slice(-8) || ""}`.trim();
+      const sub = `${fe.type || "ABC"}${fe.next_due_date ? " · next due " + fe.next_due_date : ""}${overdue ? " · OVERDUE" : ""}`;
+      return {
+        label,
+        kind: "fire_ext",
+        id: `fe-${fe.id || fe.unit_id}`,
+        sublabel: sub,
+        deep_link: `/admin/assets/${encodeURIComponent(fe.unit_id || fe.id)}/thread`,
+      };
+    });
+    return {
+      subject: {
+        id: `unit-${unit_number}`,
+        kind: "unit",
+        label: `Unit ${unit_number}`,
+        sublabel: state.events[0]?.equipment_type || "Fleet asset",
+      },
+      edges: [...baseEdges, ...feEdges],
+    };
+  }, [state.events, state.extinguishers, unit_number]);
 
   const lastUpdatedIso = state.events[0]?.timestamp || null;
   const lastUpdated = lastUpdatedIso ? new Date(lastUpdatedIso).toLocaleString() : "—";

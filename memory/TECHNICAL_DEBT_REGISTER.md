@@ -21,6 +21,7 @@ classified into exactly one of:
 
 | ID | Title | Class | Owner | Priority | Target Track | Status |
 |---|---|---|---|---|---|---|
+| TD-19.62-A01 | Duplicate `label:` keys in `FleetUnitThread.jsx :: deriveRelationships` (5 instances · pre-existing lint debt surfaced when Track 19.62 extended the file) | **A** — Fix Now | Fleet-Thread team | P2 | 19.62 | **FIXED** (2026-08-03) |
 | TD-20.6A-001 | `test_vocabulary_unauth_401` returns 200 instead of 401 in live e2e | **C** — pre-existing test/env debt | Safety-Records team | P3 | 20.6B (test hardening) | **OPEN** |
 | TD-20.6A-002 | `test_vocabulary_hr_sees_all_lanes` uses strict-equality assertion that broke when Track 19.59 additively added the `vendor` lane | **C** — pre-existing test debt from Track 19.59 | Safety-Records team | P3 | 20.6B (test hardening) | **OPEN** |
 

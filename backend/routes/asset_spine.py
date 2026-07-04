@@ -244,6 +244,45 @@ def register_asset_spine_routes(
         ]}
         doc = await db.equipment_master.find_one(query, {"_id": 0})
         if not doc:
+            # Track 19.62 · Phase A fallback into db.fire_extinguishers.
+            # No migration — read-side bridge only. Returns a synthetic
+            # canonical shape so AdminAssetThread renders uniformly.
+            fe = await db.fire_extinguishers.find_one(
+                {"$or": [
+                    {"id": needle},
+                    {"unit_id": _ci(needle)},
+                ]},
+                {"_id": 0},
+            )
+            if fe:
+                _fe_type = fe.get("type") or ""
+                _canon = f"{_fe_type} Fire Extinguisher" if _fe_type else "ABC Fire Extinguisher"
+                return {
+                    "ok": True,
+                    "ref": needle,
+                    "asset_id": fe.get("id"),
+                    "unit_number": fe.get("unit_id"),
+                    "serial_number": fe.get("serial_number"),
+                    "vin": None,
+                    "asset_class": "Fire Protection",
+                    "asset_type": _canon,
+                    "status": "active",
+                    "source": "fire_extinguishers",
+                    "assigned_target_kind": fe.get("assigned_target_kind"),
+                    "assigned_target_ref":  fe.get("assigned_target_ref"),
+                    "assigned_target_label": fe.get("assigned_target_label"),
+                    "assigned_location_detail": fe.get("assigned_location_detail")
+                                                or fe.get("location_value"),
+                    "assigned_project_number": fe.get("assigned_project_number"),
+                    "assigned_unit_number":    fe.get("assigned_unit_number")
+                                                or fe.get("equipment_master_id"),
+                    "assigned_facility_name":  fe.get("assigned_facility_name"),
+                    "assigned_room_name":      fe.get("assigned_room_name"),
+                    "last_inspection_date": fe.get("last_inspection_date"),
+                    "next_due_date":        fe.get("next_due_date"),
+                    "last_status":          fe.get("last_status"),
+                    "location_kind":        fe.get("location_kind"),
+                }
             raise HTTPException(status_code=404,
                                 detail=f"No asset resolved for ref={ref!r}")
         canonical_id = doc.get("id") or doc.get("asset_id")

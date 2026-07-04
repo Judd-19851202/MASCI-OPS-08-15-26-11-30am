@@ -10,6 +10,35 @@
 
 # CHANGELOG
 
+## 2026-08-03 — TRACK 19.62 · Fire Protection Promotion — Phase A · 🟢 SHIPPED
+
+### Backend
+- **Asset taxonomy v1.0.0 → v1.1.0** — new closed-set `Fire Protection` asset_class + 9 extinguisher types (ABC · CO2 · Class D · Water · Foam · Clean Agent · Wheeled · Vehicle · Cabinet/Station) + behavior overrides declaring life-safety semantics (not PPE).
+- **`asset_spine.py` resolver fallback** — reads `db.fire_extinguishers` when `equipment_master` returns no match. Zero migration.
+- **`employee_records.py`** — 5 additive fire-specific record_type slugs on `entity_kind="asset"` lane.
+- **`safety_portal/fire_extinguishers.py`** — list gains parent filters; create/update persists 10 assignment/identity fields. `db.fire_extinguishers` collection unchanged in name & lifecycle.
+
+### Frontend
+- **`AdminAssetThread.jsx`** — Fire Protection class branch (mission · attention · relationships · Safety Portal cross-link · non-compliance wording).
+- **`FleetUnitThread.jsx`** — parent-asset surfacing: linked extinguishers as relationship edges + overdue attention.
+- **`SafetyFireExtinguishers.jsx`** — list rows deep-link to Asset Thread.
+
+### Track 20.6A tech-debt classification applied
+- **TD-19.62-A01** — Pre-existing duplicate `label:` keys in `FleetUnitThread.jsx :: deriveRelationships`. **Class A — Fix Now.** ✅ Fixed inside this track.
+
+### Docs + lock test
+12 audit / promotion docs · lock test `backend/tests/test_track_19_62_fire_protection_phase_a.py`.
+
+### Zero-Drift
+No new collection · no new equipment master · no duplicate timeline/PM/DVIR/inspection/photo/PDF/OI/score/email/notification system · no permission widening · no public URL.
+
+### Email safety
+All touched files grep-clean. Zero send-function imports · zero HTTP calls in the lock test.
+
+### Next
+Phase B (full migration) or Track 20.6B (close TD-20.6A-001/002).
+
+
 ## 2026-08-03 — TRACK 20.6 · Fire Protection & Life Safety Asset Forensic Audit + TRACK 20.6A · Technical Debt Discipline · ✅ COMPLETE
 
 ### Ships (docs + lock test only · zero production code changed)
