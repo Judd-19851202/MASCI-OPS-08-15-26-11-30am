@@ -20,7 +20,7 @@ MIGRATED = [
     "_track_15_93_run_system_bootstrap",
 ]
 
-EXCLUDED_REMAIN = ["_startup", "_iter453_6_flip_ready_flag"]
+EXCLUDED_REMAIN = ["_startup"]  # Track 22.1J migrated readiness out; 22.1L will migrate _startup
 
 DELIVERABLES = [
     "TRACK_22_1I_EXECUTIVE_SUMMARY.md",
@@ -86,12 +86,21 @@ def test_excluded_handlers_remain_in_on_startup():
 
 
 def test_readiness_flip_is_last():
-    """The readiness-flip must remain the FINAL handler in on_startup."""
+    """Post-22.1J: readiness handler was moved into LIFECYCLE_STEPS.readiness.
+    The last-position invariant is now enforced by the orchestrator's phase-3.
+    Here we only assert readiness is NOT present in on_startup (moved out)."""
     server = _load_server()
     on = [getattr(fn, "__name__", "") for fn in server.app.router.on_startup]
-    assert on[-1] == "_iter453_6_flip_ready_flag", (
-        f"readiness flip not last; on_startup order = {on}"
-    )
+    if "_iter453_6_flip_ready_flag" in on:
+        # Pre-22.1J era — must be last.
+        assert on[-1] == "_iter453_6_flip_ready_flag", (
+            f"readiness flip not last; on_startup order = {on}"
+        )
+    else:
+        # Post-22.1J era — readiness moved to LIFECYCLE_STEPS.readiness phase-3.
+        from lib.lifespan_bootstrap import LIFECYCLE_STEPS  # noqa: PLC0415
+        readiness = [s.name for s in LIFECYCLE_STEPS if s.group == "readiness"]
+        assert readiness == ["_iter453_6_flip_ready_flag"], readiness
 
 
 def test_no_duplicate_registrations():

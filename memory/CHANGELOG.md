@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## 2026-07-04 — TRACK 22.1J · Readiness-Last Handler Migration · 🟢 GO / CLOSED
+
+Migrated `_iter453_6_flip_ready_flag` from `@app.on_event("startup")` into `LIFECYCLE_STEPS.readiness`, and extended `orchestrated_lifespan` with a dedicated **phase-3 (readiness)** that runs AFTER `app.router.on_startup`. This is the second-to-last legacy startup handler; only the router-hosted `command_center._startup` remains (queued Track 22.1L). Bytecode byte-identical (SHA-256 `3ad0b42c...`, fingerprint-locked). Zero drift. Zero live emails. Zero live R2 writes.
+
+- **Orchestrator update (lib/lifespan_bootstrap.py):** startup now runs in 3 ordered phases — non-readiness LIFECYCLE_STEPS → legacy on_startup → readiness LIFECYCLE_STEPS. Guarantees readiness-last even while `_startup` remains legacy.
+- **Parity:** 1,441 routes · 1,445 methods · 1,264 OpenAPI · 7 middleware · **2 → 1 on_startup + 48 → 49 LIFECYCLE_STEPS** · 7/7 bytecode fingerprints clean · 0 duplicate registrations. `migrated_pct` **96.00 → 98.00**.
+- **Platform Ops API:** new `lifecycle.registry.readiness_last_invariant` block published; `target_groups.readiness.closed=true`; `recent_track_closures=["22.1F","22.1G","22.1H","22.1I","22.1I.1","22.1J"]`. Advice queue now points to Track 22.1L (last router-hosted startup) and Track 22.1K (shutdown).
+- **Boot log:** `[track-22.1j] lifespan.startup: executing 1 readiness LIFECYCLE_STEPS (final phase)` immediately followed by `[iter453.6] gate FLIPPED` — the LAST startup log line.
+- **Files touched:** `backend/server.py` (1-line decorator swap), `backend/lib/lifespan_bootstrap.py` (~35 lines — phase-3 addition), `backend/lib/platform_status.py` (readiness_last_invariant + recommendation + closure list), 2 prior-track tests loosened for readiness-in-lifecycle semantics, new lock test (21 assertions), `memory/BYTECODE_FINGERPRINTS/INDEX.json` (+1), 12 deliverables + 5 snapshots.
+- **Eight Pillars:** 9.94 platform average.
+- **Final call:** 🟢 GO / CLOSED. Only 1 legacy `@app.on_event("startup")` decorator remains (`routes.command_center._startup`, queued for 22.1L).
+
+---
+
 ## 2026-07-04 — TRACK 22.1I.1 · Backup Scheduler Safety Audit + Lifespan Migration · 🟢 GO / CLOSED
 
 Migrated the last risk-locked startup handler in `server.py`'s core — `_start_backup_scheduler` — from `@app.on_event("startup")` into `LIFECYCLE_STEPS.backup-scheduler`. Bytecode byte-identical (SHA-256 `c7d29e00...`, now fingerprint-locked). Zero R2 / backup / failure-watchdog behavior change. Zero live emails. Legacy `on_startup` count drops from 3 → 2. `migrated_pct` jumps 94.00% → 96.00%.

@@ -16035,7 +16035,7 @@ async def _track_15_93_run_system_bootstrap():
         )
 
 
-@app.on_event("startup")
+@register_lifecycle_step("readiness")
 async def _iter453_6_flip_ready_flag():
     """Final startup hook — flip the readiness gate AFTER all other
     @app.on_event('startup') handlers have completed. FastAPI runs

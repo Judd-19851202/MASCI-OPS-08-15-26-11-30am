@@ -3,6 +3,23 @@
   "track": "21.0",
   "recent_track_closures": [
     {
+      "track": "22.1J",
+      "title": "Readiness-Last Handler Migration",
+      "status": "GO / CLOSED",
+      "date": "2026-07-04",
+      "on_startup_count_before": 2,
+      "on_startup_count_after": 1,
+      "lifecycle_steps_added": 1,
+      "lifecycle_steps_total": 49,
+      "migrated_handler": "_iter453_6_flip_ready_flag",
+      "new_group": "readiness",
+      "new_orchestrator_phase": "phase-3 (readiness) runs AFTER app.router.on_startup",
+      "bytecode_sha256": "3ad0b42c02c53519565c03606ae0024b903a6db7c71c42578e406541e89a8fc4",
+      "excluded_handlers": ["_startup (routes.command_center)"],
+      "route_delta": 0,
+      "migrated_pct": 98.00
+    },
+    {
       "track": "22.1I.1",
       "title": "Backup Scheduler Safety Audit + Lifespan Migration",
       "status": "GO / CLOSED",

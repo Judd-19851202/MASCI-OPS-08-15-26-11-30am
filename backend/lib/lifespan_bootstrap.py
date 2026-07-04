@@ -126,18 +126,27 @@ async def _run_callable(fn: Callable) -> None:
 async def orchestrated_lifespan(app: Any) -> AsyncIterator[None]:
     """Deterministic FastAPI lifespan wrapping LIFECYCLE_STEPS + legacy on_event.
 
-    Execution order:
-      1. LIFECYCLE_STEPS (Track 22.1E migration foundation) — first.
+    Execution order (Track 22.1J final-readiness invariant):
+      1. LIFECYCLE_STEPS where group != "readiness" — first.
       2. `app.router.on_startup` (remaining legacy decorators) — after.
-      3. yield.
-      4. `app.router.on_shutdown` (Track 22.1D behavior).
+      3. LIFECYCLE_STEPS where group == "readiness" — LAST (guarantees
+         readiness flips only after every non-readiness startup action —
+         both lifecycle-migrated and still-legacy — has completed).
+      4. yield.
+      5. `app.router.on_shutdown` (Track 22.1D behavior).
 
-    This is byte-identical to Starlette's default `on_event` dispatch when
-    LIFECYCLE_STEPS is empty (Track 22.1D state).
+    This preserves the readiness-last invariant even while some startup
+    handlers remain in `app.router.on_startup` (e.g. router-hosted
+    startup hooks queued to Track 22.1L).
     """
-    # ---- STARTUP: LIFECYCLE_STEPS first --------------------------------
-    logger.info("[track-22.1e] lifespan.startup: executing %d LIFECYCLE_STEPS", len(LIFECYCLE_STEPS))
-    for i, step in enumerate(LIFECYCLE_STEPS):
+    # ---- STARTUP: LIFECYCLE_STEPS (non-readiness) first ----------------
+    non_readiness_steps = [s for s in LIFECYCLE_STEPS if s.group != "readiness"]
+    readiness_steps     = [s for s in LIFECYCLE_STEPS if s.group == "readiness"]
+    logger.info(
+        "[track-22.1e] lifespan.startup: executing %d LIFECYCLE_STEPS (non-readiness)",
+        len(non_readiness_steps),
+    )
+    for i, step in enumerate(non_readiness_steps):
         try:
             await _run_callable(step.fn)
         except Exception:
@@ -146,7 +155,7 @@ async def orchestrated_lifespan(app: Any) -> AsyncIterator[None]:
                 i, step.source_module, step.name, step.group,
             )
             raise
-    logger.info("[track-22.1e] lifespan.startup: LIFECYCLE_STEPS complete")
+    logger.info("[track-22.1e] lifespan.startup: LIFECYCLE_STEPS (non-readiness) complete")
 
     # ---- STARTUP: remaining on_startup handlers ------------------------
     startup_handlers = list(getattr(app.router, "on_startup", []) or [])
@@ -162,6 +171,22 @@ async def orchestrated_lifespan(app: Any) -> AsyncIterator[None]:
             )
             raise
     logger.info("[track-22.1d] lifespan.startup: complete")
+
+    # ---- STARTUP: LIFECYCLE_STEPS (readiness) — MUST BE LAST -----------
+    logger.info(
+        "[track-22.1j] lifespan.startup: executing %d readiness LIFECYCLE_STEPS (final phase)",
+        len(readiness_steps),
+    )
+    for i, step in enumerate(readiness_steps):
+        try:
+            await _run_callable(step.fn)
+        except Exception:
+            logger.exception(
+                "[track-22.1j] readiness LIFECYCLE_STEP #%d %s.%s raised — re-raising",
+                i, step.source_module, step.name,
+            )
+            raise
+    logger.info("[track-22.1j] lifespan.startup: readiness phase complete")
 
     try:
         yield

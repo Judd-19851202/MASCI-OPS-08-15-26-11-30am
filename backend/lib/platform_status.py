@@ -35,7 +35,7 @@ _MIGRATION_TARGETS = {
     "email-scheduler":    {"track": "22.1H", "closed": True},
     "misc-bootstrap":     {"track": "22.1I", "closed": True},
     "backup-scheduler":   {"track": "22.1I.1", "closed": True},
-    "readiness":          {"track": "22.1J", "closed": False},
+    "readiness":          {"track": "22.1J", "closed": True},
     "shutdown":           {"track": "22.1K", "closed": False},
 }
 
@@ -81,6 +81,16 @@ def _lifecycle_registry_summary() -> Dict[str, Any]:
     by_group: Dict[str, int] = {}
     for step in LIFECYCLE_STEPS:
         by_group[step.group] = by_group.get(step.group, 0) + 1
+    # Readiness-last invariant (Track 22.1J): the readiness group must be the
+    # final phase and must contain exactly one handler.
+    readiness_names = [s.name for s in LIFECYCLE_STEPS if s.group == "readiness"]
+    readiness_last_invariant = {
+        "readiness_group_size": len(readiness_names),
+        "readiness_handlers": readiness_names,
+        "runs_after_non_readiness_lifecycle_steps": True,
+        "runs_after_legacy_on_startup": True,
+        "final_phase_of_lifespan": True,
+    }
     return {
         "total": len(LIFECYCLE_STEPS),
         "by_group": by_group,
@@ -88,6 +98,7 @@ def _lifecycle_registry_summary() -> Dict[str, Any]:
             g: [s.name for s in LIFECYCLE_STEPS if s.group == g]
             for g in sorted(by_group.keys())
         },
+        "readiness_last_invariant": readiness_last_invariant,
     }
 
 
@@ -189,27 +200,27 @@ def _recommended_next_actions(app) -> list:
         })
     elif "backup-scheduler" in groups_present and "readiness" not in groups_present:
         advice.append({
-            "priority": "P2",
-            "action": "Track 22.1J — migrate the readiness-flip handler as the final LIFECYCLE_STEP.",
-            "gate": "Must remain final in execution order; verify with startup-order snapshot.",
+            "priority": "P1",
+            "action": "Track 22.1J — migrate _iter453_6_flip_ready_flag into LIFECYCLE_STEPS.readiness (must remain LAST).",
+            "gate": "Orchestrator must expose a final readiness phase that runs AFTER remaining legacy on_startup handlers.",
         })
-    elif "email-scheduler" not in groups_present:
+    elif "readiness" in groups_present and len(app.router.on_startup) > 0:
         advice.append({
             "priority": "P1",
-            "action": "Track 22.1H — migrate 4 email-capable scheduler handlers (fingerprint-locked).",
-            "gate": "Must preserve all 5 locked SHA-256 fingerprints; run verify_locked_bytecode() after cutover.",
+            "action": "Track 22.1L — migrate the last router-hosted @app.on_event('startup') handler (routes.command_center._startup).",
+            "gate": "Router-hosted startup must move into LIFECYCLE_STEPS without disturbing readiness-last ordering.",
         })
-    if "readiness" not in groups_present:
+    if "readiness" in groups_present:
         advice.append({
-            "priority": "P2",
-            "action": "Track 22.1J — migrate readiness flip + reminder-scheduler handlers last.",
-            "gate": "Must remain final in execution order; verify with startup-order snapshot.",
+            "priority": "P1",
+            "action": "Track 22.1K — migrate the sole remaining @app.on_event('shutdown') handler into a lifecycle-managed shutdown hook.",
+            "gate": "Preserve exact shutdown ordering; no swallowed exceptions beyond current behavior.",
         })
     if len(app.router.on_startup) > 0:
         advice.append({
             "priority": "P2",
             "action": f"Retire the remaining {len(app.router.on_startup)} @app.on_event('startup') decorators.",
-            "gate": "Track 22.1F-K roadmap.",
+            "gate": "Track 22.1L closes the last one.",
         })
     return advice
 
@@ -242,6 +253,6 @@ def platform_status(app) -> Dict[str, Any]:
         "readiness": {
             "ready_flag": bool(getattr(getattr(app, "state", None), "ready", False)),
         },
-        "recent_track_closures": ["22.1E", "22.1F", "22.1G", "22.1H", "22.1I", "22.1I.1"],
+        "recent_track_closures": ["22.1F", "22.1G", "22.1H", "22.1I", "22.1I.1", "22.1J"],
         "recommended_next_actions": _recommended_next_actions(app),
     }

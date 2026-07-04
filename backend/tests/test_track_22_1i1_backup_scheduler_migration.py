@@ -19,7 +19,7 @@ TRACK_DIR = MEM / "track_22_1i1"
 FINGERPRINT_DIR = MEM / "BYTECODE_FINGERPRINTS"
 
 MIGRATED = ["_start_backup_scheduler"]
-EXCLUDED_REMAIN = ["_startup", "_iter453_6_flip_ready_flag"]
+EXCLUDED_REMAIN = ["_startup"]  # Track 22.1J migrated readiness out; 22.1L will migrate _startup
 
 BACKUP_SCHEDULER_BYTECODE_SHA256 = "c7d29e0072aa7578855271dfd5d63a048b0f10d0d0d7bbc6819488d35b378a73"
 
@@ -80,8 +80,10 @@ def test_lifecycle_steps_total_is_48():
 
 def test_on_startup_count_dropped_to_2():
     server = _load_server()
-    assert len(server.app.router.on_startup) == 2, (
-        f"expected 2 legacy on_startup handlers after 22.1I.1, got "
+    # Post-22.1J this drops to 1. Use <=2 so 22.1I.1 still validates and
+    # remains valid as further tracks progress.
+    assert len(server.app.router.on_startup) <= 2, (
+        f"expected <=2 legacy on_startup handlers after 22.1I.1, got "
         f"{[getattr(fn,'__name__','?') for fn in server.app.router.on_startup]}"
     )
 
@@ -95,11 +97,19 @@ def test_excluded_handlers_remain_in_on_startup():
 
 
 def test_readiness_flip_remains_last():
+    """Post-22.1J: readiness handler was moved into LIFECYCLE_STEPS.readiness.
+    The last-position invariant is enforced by the orchestrator's phase-3.
+    Here we assert either the pre-22.1J or post-22.1J state is coherent."""
     server = _load_server()
     on = [getattr(fn, "__name__", "") for fn in server.app.router.on_startup]
-    assert on[-1] == "_iter453_6_flip_ready_flag", (
-        f"readiness flip not last; on_startup order = {on}"
-    )
+    if "_iter453_6_flip_ready_flag" in on:
+        assert on[-1] == "_iter453_6_flip_ready_flag", (
+            f"readiness flip not last; on_startup order = {on}"
+        )
+    else:
+        from lib.lifespan_bootstrap import LIFECYCLE_STEPS  # noqa: PLC0415
+        readiness = [s.name for s in LIFECYCLE_STEPS if s.group == "readiness"]
+        assert readiness == ["_iter453_6_flip_ready_flag"], readiness
 
 
 def test_command_center_router_startup_still_queued():
@@ -178,7 +188,7 @@ def test_platform_status_reflects_track_22_1i1():
     by_group = out["lifecycle"]["registry"]["by_group"]
     assert by_group.get("backup-scheduler") == 1
     assert by_group.get("misc-bootstrap") == 20
-    assert out["lifecycle"]["on_startup_legacy_count"] == 2
+    assert out["lifecycle"]["on_startup_legacy_count"] <= 2
     mig = out["lifecycle"]["migration_progress"]
     assert mig["migrated_pct"] >= 96.0
     targets = mig["target_groups"]

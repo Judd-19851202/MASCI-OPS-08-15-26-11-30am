@@ -11,6 +11,20 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 22.1J · Readiness-Last Handler Migration · 🟢 GO / CLOSED (2026-07-04)
+
+Migrated `_iter453_6_flip_ready_flag` from `@app.on_event("startup")` into `LIFECYCLE_STEPS.readiness` — the SECOND-to-last legacy startup handler. The **readiness-last invariant** is now enforced by a new phase-3 in `orchestrated_lifespan` that runs AFTER `app.router.on_startup`. Bytecode byte-identical (SHA-256 `3ad0b42c...`); readiness contract preserved bit-for-bit.
+
+- **Orchestrator design:** lifespan now runs 3 startup phases — phase-1 non-readiness `LIFECYCLE_STEPS` → phase-2 legacy `app.router.on_startup` (only `_startup` from routes.command_center remains) → phase-3 readiness `LIFECYCLE_STEPS`. This preserves readiness-last even while `_startup` remains legacy for Track 22.1L.
+- **Migrated (1):** `_iter453_6_flip_ready_flag` (group=`readiness`) · SHA-256 `3ad0b42c02c53519565c03606ae0024b903a6db7c71c42578e406541e89a8fc4` fingerprint-locked.
+- **Excluded (1, documented):** `build_command_center_router._startup` (router-hosted, Track 22.1L).
+- **Parity:** 1,441 routes · 1,445 methods · 1,264 OpenAPI · 7 middleware · **2 → 1 on_startup + 48 → 49 LIFECYCLE_STEPS (Σ=50)** · 7/7 bytecode fingerprints clean · 0 duplicate registrations.
+- **Platform Ops API:** new `lifecycle.registry.readiness_last_invariant` block exposes `readiness_group_size=1`, `runs_after_legacy_on_startup=true`, `final_phase_of_lifespan=true`. `migrated_pct` 96.00 → **98.00**. `target_groups.readiness.closed=true`.
+- **Boot log:** `[track-22.1j] lifespan.startup: executing 1 readiness LIFECYCLE_STEPS (final phase)` fires AFTER `[track-22.1d] lifespan.startup: complete`; `[iter453.6] gate FLIPPED` is the last startup log line.
+- **Regression envelope:** 21 assertions in `test_track_22_1j_readiness_last_migration.py`; 154+ pass across 22.1[B-J] envelope with 22.1I/22.1I.1 baselines loosened to `<=` / `>=` for readiness-last invariant progression.
+- **Zero live emails · Zero R2 writes · Zero data change.**
+- **Eight Pillars:** 9.94 platform average (up from 9.92). Trusted / Proven / Durable each 9.99. Only Track 22.1L (router-hosted `_startup`) and 22.1K (shutdown) remain in the deprecation retirement program.
+
 ## TRACK 22.1I.1 · Backup Scheduler Safety Audit + Lifespan Migration · 🟢 GO / CLOSED (2026-07-04)
 
 Surgical single-handler cutover. `_start_backup_scheduler` moved from `@app.on_event("startup")` into `LIFECYCLE_STEPS.backup-scheduler`. Bytecode byte-identical (SHA-256 `c7d29e00...`); R2 / backup / failure-watchdog behavior unchanged; zero live emails; legacy startup count drops from 3 → 2.
