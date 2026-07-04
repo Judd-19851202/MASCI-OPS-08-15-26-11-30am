@@ -1,14 +1,53 @@
 # CHANGELOG
 
-# CHANGELOG
+## 2026-08-04 — TRACK 20.7 · Universal Photo Capture & Attachment · 🟢 SHIPPED
 
-# CHANGELOG
+### The reported failure
+A real field user opened the Daily Report on a **desktop computer**, clicked **"Take Photo"**, and the camera did not open. Deployment blocker.
 
-# CHANGELOG
+### Root cause (one-line)
+`frontend/src/components/PhotoUpload.jsx` unconditionally clicked a hidden `<input type="file" capture="environment">` on the "Take Photo" button. On desktops without a webcam / with camera permission blocked / on HTTP contexts, that click silently no-oped or opened a puzzling dialog. Full RCA: `TRACK_20_7_DAILY_REPORT_CAMERA_ROOT_CAUSE.md`.
 
-# CHANGELOG
+### The fix (surgical · frontend-only)
+Added a `useCameraSupport()` hook that probes `navigator.mediaDevices.enumerateDevices()` at mount time for any `kind === "videoinput"` device. When `false`, the "Take Photo" button:
+- Falls through to `galleryRef.current?.click()` — the plain file picker path. No silent no-op.
+- Relabels to `CHOOSE FROM FILES`.
+- Renders the hint `Camera unavailable — choose a file instead`.
 
-# CHANGELOG
+Mobile / tablet / laptop-with-webcam behavior is byte-identical to before. Cascades to **16 consumer forms** (Daily Report, Incident, Inspection, Equipment Inspection, QA/QC, DVIR, Safety Meeting, Safety Equipment Issuance, Field Leadership, Trench Safety, Operations Actions, PO Requests, Equipment Lines, Equipment Return Lines, Fleet Repair, Attachment Upload wrapper, OA Photo Uploader wrapper) — zero per-consumer edits.
+
+### Backend
+🟢 **Byte-identical.** No route touched. No payload key renamed. No MIME/size limit moved. No auth path changed. `photos: List[str]` (data URLs) unchanged.
+
+### Frontend
+- `frontend/src/components/PhotoUpload.jsx` — one file, one shared component, surgical additive edit.
+
+### Testing
+- Lock test: `backend/tests/test_track_20_7_universal_photo_capture.py` — **24/24 GREEN**.
+- Live smoke: Playwright headless Chromium (no webcam) → Daily Report `/daily/submit` → **all 8 checks GREEN**. Button relabel proven live: `CHOOSE FROM FILES · Camera unavailable — choose a file instead`.
+- Regression: `test_daily_reports.py`, `test_job_photos.py` show identical failure signatures before and after Track 20.7. Failures are pre-existing TRACK 15.32 admin-login test debt (documented as `TD-20.7-C01`).
+
+### Tech Debt Register
+- **TD-20.7-B01** — Original reported failure. Class **B · Blocks Deployment**. ✅ **FIXED** inside this track.
+- **TD-20.7-C01** — Legacy `test_daily_reports.py` + `test_job_photos.py` suites still use the retired shared-password admin login. Class **C · pre-existing test debt from TRACK 15.32**. OPEN · P3 · target Track 20.6B.
+
+### Email safety
+🟢 **Zero live emails.** `PhotoUpload.jsx` imports zero email transports. Lock test performs zero HTTP calls, zero DB writes.
+
+### Zero-Drift
+- Exactly ONE `PhotoUpload.jsx` file in the repo.
+- Zero parallel photo controls introduced.
+- Zero new backend upload routes.
+- Zero new photo collections / attachment schemas / storage engines.
+
+### Deliverables (10 docs + 1 lock test)
+`TRACK_20_7_EXECUTIVE_SUMMARY.md` · `TRACK_20_7_PHOTO_SURFACE_INVENTORY.md` · `TRACK_20_7_UNIVERSAL_PHOTO_CONTROL_STANDARD.md` · `TRACK_20_7_DAILY_REPORT_CAMERA_ROOT_CAUSE.md` · `TRACK_20_7_DEVICE_BROWSER_MATRIX.md` · `TRACK_20_7_BACKEND_CONTRACT_CERTIFICATION.md` · `TRACK_20_7_EMAIL_SAFETY_CERTIFICATION.md` · `TRACK_20_7_FIX_REPORT.md` · `TRACK_20_7_ZERO_DRIFT_MATRIX.md` · `TRACK_20_7_TEST_REPORT.md` · lock test `backend/tests/test_track_20_7_universal_photo_capture.py`.
+
+### Next
+Awaiting user directive: **Track 20.6B** (test hardening to close TD-20.6A-001, TD-20.6A-002, TD-20.7-C01) or **Track 19.62 Phase B** (full `db.fire_extinguishers` → `equipment_master` migration) or **OCR + Gemini 3 Flash AI classification**.
+
+---
+
 
 ## 2026-08-03 — TRACK 19.62 · Fire Protection Promotion — Phase A · 🟢 SHIPPED
 

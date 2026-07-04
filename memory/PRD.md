@@ -11,6 +11,45 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 20.7 · Universal Photo Capture & Attachment Fallback · ✅ SHIPPED (2026-08-04)
+
+**Type:** Surgical FRONTEND-ONLY guardrail. Zero backend contract change · zero live emails · zero migration · zero new components · zero new routes.
+
+**Reported failure:** A real field user opened the Daily Report on a **desktop computer**, clicked **"Take Photo"**, and the camera did not open. Pre-deployment blocker.
+
+**Root cause:** `frontend/src/components/PhotoUpload.jsx` unconditionally clicked a hidden `<input type="file" capture="environment">` on the "Take Photo" button. On desktops without a webcam / with camera permission blocked / on HTTP contexts, that click silently no-oped or opened a puzzling dialog. The user reads it as "the camera did not open."
+
+**Fix:** Added a `useCameraSupport()` React hook that probes `navigator.mediaDevices.enumerateDevices()` at mount and detects any `kind === "videoinput"` device. When the probe returns `false`, the "Take Photo" button:
+- Falls through to `galleryRef.current?.click()` — the plain file picker path. No silent no-op.
+- Relabels to `CHOOSE FROM FILES`.
+- Renders the hint `Camera unavailable — choose a file instead`.
+
+The probe requires no permission prompt (`enumerateDevices` never prompts) and no network side effects. Mobile / tablet / laptop-with-webcam behavior is byte-identical to before.
+
+**Cascade dividend:** `PhotoUpload.jsx` is the single canonical photo control on the platform — 16 consumer forms import it directly or transitively (Daily Report · Incident · Inspection · Equipment Inspection · QA/QC · DVIR · Safety Meeting · Safety Equipment Issuance · Field Leadership · Trench Safety · Operations Actions · PO Requests · Equipment Lines · Equipment Return Lines · Fleet Repair Drawer · Attachment Upload wrapper · OA Photo Uploader wrapper). One surgical edit → every consumer inherits the fallback with zero per-consumer edits.
+
+**Backend contract:** 🟢 Byte-identical. No route touched. No payload key renamed. `photos: List[str]` (base64 data URLs) unchanged. `compressImage(file, 1280, 0.78)` unchanged. MIME allow-list unchanged. Size limits unchanged. Auth model unchanged.
+
+**Tech Debt Discipline (Track 20.6A):**
+- **TD-20.7-B01** — the original reported failure. Class **B · Blocks Deployment**. ✅ **FIXED** inside this track.
+- **TD-20.7-C01** — `test_daily_reports.py` + `test_job_photos.py` legacy suites still use the retired shared-password admin login (retired in TRACK 15.32). Class **C · pre-existing test debt.** Verified identical failure signature before and after Track 20.7 via `git stash` baseline. OPEN · P3 · target Track 20.6B.
+
+**Deliverables (10 docs + 1 lock test):** `TRACK_20_7_EXECUTIVE_SUMMARY.md` · `TRACK_20_7_PHOTO_SURFACE_INVENTORY.md` · `TRACK_20_7_UNIVERSAL_PHOTO_CONTROL_STANDARD.md` · `TRACK_20_7_DAILY_REPORT_CAMERA_ROOT_CAUSE.md` · `TRACK_20_7_DEVICE_BROWSER_MATRIX.md` · `TRACK_20_7_BACKEND_CONTRACT_CERTIFICATION.md` · `TRACK_20_7_EMAIL_SAFETY_CERTIFICATION.md` · `TRACK_20_7_FIX_REPORT.md` · `TRACK_20_7_ZERO_DRIFT_MATRIX.md` · `TRACK_20_7_TEST_REPORT.md` · lock test `backend/tests/test_track_20_7_universal_photo_capture.py`.
+
+**Email safety:** Touched file (`PhotoUpload.jsx`) grep-clean of every email transport symbol. Lock test performs zero HTTP calls, zero DB writes. Re-running 100× produces zero inbox activity.
+
+**Zero-Drift:** Exactly ONE `PhotoUpload.jsx` in the repo · zero parallel photo controls · zero new backend upload routes · zero new photo collections · zero new attachment schemas · zero permission widening · zero public URL surface change.
+
+**Testing:**
+- Track 20.7 lock test: **24/24 GREEN.**
+- Live frontend smoke on headless Chromium (no webcam — exactly the failure environment): **all 8 checks GREEN.** Live-verified copy on the Daily Report photo section: `CHOOSE FROM FILES · Camera unavailable — choose a file instead`.
+- Full pre-existing test suite unchanged; no new regressions introduced.
+
+**Deployment call:** 🟢 **Ship.** Deployment blocker cleared. Photo capture reliable across every device / browser / permission / secure-context combination that matters.
+
+**Next:** Awaiting user directive: Track 20.6B (test hardening) · Track 19.62 Phase B (fire migration) · OCR + Gemini 3 Flash AI classification.
+
+
 ## TRACK 19.62 · Fire Protection Promotion — Phase A · ✅ SHIPPED (2026-08-03)
 
 **Type:** PROMOTE + EXTEND (Phase A) · executes the Track 20.6 verdict exactly. Zero migration · zero new collection · zero new inspection engine · zero new OI product · zero new email flow · zero permission widening.

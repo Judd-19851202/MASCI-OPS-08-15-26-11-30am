@@ -24,6 +24,8 @@ classified into exactly one of:
 | TD-19.62-A01 | Duplicate `label:` keys in `FleetUnitThread.jsx :: deriveRelationships` (5 instances · pre-existing lint debt surfaced when Track 19.62 extended the file) | **A** — Fix Now | Fleet-Thread team | P2 | 19.62 | **FIXED** (2026-08-03) |
 | TD-20.6A-001 | `test_vocabulary_unauth_401` returns 200 instead of 401 in live e2e | **C** — pre-existing test/env debt | Safety-Records team | P3 | 20.6B (test hardening) | **OPEN** |
 | TD-20.6A-002 | `test_vocabulary_hr_sees_all_lanes` uses strict-equality assertion that broke when Track 19.59 additively added the `vendor` lane | **C** — pre-existing test debt from Track 19.59 | Safety-Records team | P3 | 20.6B (test hardening) | **OPEN** |
+| TD-20.7-B01 | `PhotoUpload.jsx` "Take Photo" button silently no-oped on desktops without a webcam / permission-blocked / HTTP contexts (reported by a real field user on the Daily Report) | **B** — Blocks Deployment | Universal-Photo team | P0 | 20.7 | **FIXED** (2026-08-04) |
+| TD-20.7-C01 | `test_daily_reports.py` + `test_job_photos.py` legacy suites hit endpoints without the multi-login token introduced in TRACK 15.32; they fail with 401/410 regardless of Track 20.7. Confirmed identical failure count before and after Track 20.7 via `git stash` baseline run. | **C** — pre-existing test debt from TRACK 15.32 auth-model migration | Testing team | P3 | 20.6B (test hardening) | **OPEN** |
 
 ## Detail
 
