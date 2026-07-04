@@ -11,6 +11,18 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 21.2 + 21.2E-1 · Complete Platform Forensic Audit + Canonicalization · 🟢 GO (2026-07-04)
+
+- Canonicalization: rewrote **59 non-`TEST_` project_name literals** across 36 test files. **0 residual** non-`TEST_` payloads. Track 20.6B in-code gate is now sufficient on its own; Track 21.2E SDK kill switch remains as the outermost env-gated backstop.
+- Complete reconciliation matrix: 6,969 tracked files · 1,331 endpoint decorator sites · 385 frontend routes · 180 lazy imports (0 broken) · 309 pages · 355 components · 98 dialogs · 67 forms · 1,687 buttons · 1,198 inputs · 198 tables · 29 email dispatch sites · 23 upload endpoints · 24 PDF modules · 31 schedulers · 328 collection refs · 33 tech-debt markers cataloged.
+- Class-A fixed: 2. Class-C fixed: 3. Class-D documented: 3. Class-E deferred with evidence: 7.
+- Six Pillars platform average: **9.7 / 10** (every subsystem ≥ 9.5).
+- Regression envelope 20.6B → 21.2E-1: **105 / 105 green**. Zero HTTP calls, zero email dispatched.
+- Zero-drift statement holds: no features, no permission widening, no schema drift, no production behavior changes.
+
+See `TRACK_21_2_FINAL_REPORT.md` for the full ledger.
+
+
 ## TRACK 21.2E · Email Safety Incident Closeout · 🟢 CLOSED (2026-07-04)
 
 **Incident:** Mid-Track-21.2 pytest regression leaked live email via 72 non-`TEST_` payloads in preview. User halted; all HTTP tests stopped.

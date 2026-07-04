@@ -64,7 +64,7 @@ def test_daily_report_post_restored_in_wave_1a(headers):
     r = requests.post(
         f"{URL}/api/daily-reports",
         json={
-            "project_name": "M1->Wave1A regression",
+            "project_name": "TEST_M1_Wave1A_regression",
             "location": "n/a",
             "report_date": "2026-05-29",
             "prepared_by": "M1 regression",

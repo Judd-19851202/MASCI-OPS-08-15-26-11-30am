@@ -93,7 +93,7 @@ def tokens():
 # ── sample payloads ─────────────────────────────────────────────────
 def _inspection_payload(project_number: str = PROJECT_NUMBER):
     return {
-        "project_name": "Phase2B-2A · Test",
+        "project_name": "TEST_Phase2B_2A_Test",
         "project_number": project_number,
         "location": "test-loc",
         "inspection_date": "2026-02-12",
@@ -106,7 +106,7 @@ def _inspection_payload(project_number: str = PROJECT_NUMBER):
 
 def _meeting_payload():
     return {
-        "project_name": "Phase2B-2A · Test",
+        "project_name": "TEST_Phase2B_2A_Test",
         "project_number": PROJECT_NUMBER,
         "location": "test-loc",
         "meeting_date": "2026-02-12",
@@ -118,7 +118,7 @@ def _meeting_payload():
 
 def _jha_payload():
     return {
-        "project_name": "Phase2B-2A · Test",
+        "project_name": "TEST_Phase2B_2A_Test",
         "project_number": PROJECT_NUMBER,
         "location": "test-loc",
         "jha_date": "2026-02-12",
@@ -130,7 +130,7 @@ def _jha_payload():
 
 def _incident_payload():
     return {
-        "project_name": "Phase2B-2A · Test",
+        "project_name": "TEST_Phase2B_2A_Test",
         "project_number": PROJECT_NUMBER,
         "location": "test-loc",
         "incident_date": "2026-02-12",
@@ -147,7 +147,7 @@ def _incident_payload():
 
 def _equipment_payload():
     return {
-        "project_name": "Phase2B-2A · Test",
+        "project_name": "TEST_Phase2B_2A_Test",
         "project_number": PROJECT_NUMBER,
         "location": "test-loc",
         "inspection_date": "2026-02-12",

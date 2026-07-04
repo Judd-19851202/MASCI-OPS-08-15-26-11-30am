@@ -139,7 +139,7 @@ def test_equipment_pdf_renders_fail_banner_and_embeds_photo():
 
     record = {
         "id": "test-equip-pdf",
-        "project_name": "T5824 SR 46",
+        "project_name": "TEST_T5824_SR_46",
         "project_number": "24-06",
         "operator_name": "TEST_Operator",
         "equipment_type": "Excavator",

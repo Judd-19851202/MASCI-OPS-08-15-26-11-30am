@@ -243,7 +243,7 @@ def test_tier4_pm_relay_when_no_submitter_or_directory_or_per_submit(admin_heade
             await db.jobs_master.insert_one({
                 "id": f"pytest-job-{uuid.uuid4().hex[:6]}",
                 "project_number": pn,
-                "project_name": "Pytest PM relay seed",
+                "project_name": "TEST_Pytest_PM_relay_seed",
                 "primary_pm_name": "Pytest PM",
                 "pm_email": pm_email,
                 "is_active": True,
@@ -306,7 +306,7 @@ def test_tier5_dead_letter_when_nothing_else_resolves():
 def test_public_post_with_fl_token_header_resolves_tier1(synthetic_fl_user, admin_headers):
     token, email, _name = synthetic_fl_user
     payload = {
-        "project_name": "iter452.5.1 P0 smoke",
+        "project_name": "TEST_iter452_5_1_P0_smoke",
         "project_number": "TEST-4525",
         "location": "Lab",
         "report_date": "2026-06-01",
@@ -348,7 +348,7 @@ def test_orphan_corner_is_impossible_via_public_post(admin_headers):
     No FL token, no employee_id, no per-submit email, no project_number.
     The binding row MUST still carry a dead-letter primary recipient."""
     payload = {
-        "project_name": "iter452.5.1 ORPHAN corner",
+        "project_name": "TEST_iter452_5_1_ORPHAN_corner",
         "location": "Unknown",
         "report_date": "2026-06-01",
         "prepared_by": "anonymous field hand",

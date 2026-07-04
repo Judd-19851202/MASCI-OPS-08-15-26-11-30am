@@ -99,7 +99,7 @@ def test_incident_idempotent_same_response():
     r2 = requests.post(f"{URL}/api/incidents",
                        headers={"Idempotency-Key": key,
                                 "Content-Type": "application/json"},
-                       json={**payload, "project_name": "MUTATED",
+                       json={**payload, "project_name": "TEST_MUTATED",
                              "severity": "High"},
                        timeout=15)
     assert r2.status_code == 200, r2.text
@@ -197,7 +197,7 @@ def test_field_leadership_idempotent_same_response():
         "occurred_at": "2026-05-15T10:00:00Z",
         "submitted_by": "iter165",
         "project_number": "TEST-J-1",
-        "project_name": "iter165 fl test",
+        "project_name": "TEST_iter165_fl_test",
         "details": {"notes": f"iter165 idempotency test {key[:8]}",
                     "topic": "PPE", "language": "en"},
     }
@@ -210,7 +210,7 @@ def test_field_leadership_idempotent_same_response():
     project_name_1 = r1.json()["record"].get("project_name")
     r2 = requests.post(f"{URL}/api/field-leadership",
                        headers=hdrs,
-                       json={**payload, "project_name": "MUTATED-NAME"},
+                       json={**payload, "project_name": "TEST_MUTATED_NAME"},
                        timeout=15)
     assert r2.status_code == 200
     assert r2.json()["id"] == id1, "must return cached original"

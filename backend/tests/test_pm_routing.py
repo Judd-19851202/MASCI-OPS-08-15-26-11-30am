@@ -224,7 +224,7 @@ def test_inspection_post_does_not_crash_without_resend_key():
     """Submitting a form must succeed and return 200 even when no API key
     is configured (auto-email helper is fire-and-forget and silently skips)."""
     payload = {
-        "project_name": "T5824 - SR 46 (W 1ST ST.)",
+        "project_name": "TEST_T5824_SR_46_W_1ST_ST",
         "project_number": "24-06",
         "location": "Sanford FL",
         "inspection_date": "2026-02-01",

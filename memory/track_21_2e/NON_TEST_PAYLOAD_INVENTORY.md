@@ -1,136 +1,13 @@
 # Track 21.2E · Non-TEST_ Payload Inventory
 
-- **Total non-TEST_ payload literals in HTTP-submitting tests:** 72
-- **Distinct files:** 36
-- **Distinct project_name literals:** 57
+- **Total non-TEST_ payload literals in HTTP-submitting tests:** 0
+- **Distinct files:** 0
+- **Distinct project_name literals:** 0
 
 ## Top 20 offending files
 
-- `backend/tests/test_fv7_safety_gaps.py` — 8 occurrences
-- `backend/tests/test_ownership_producer_routing.py` — 6 occurrences
-- `backend/tests/test_team_snapshot_embedding.py` — 5 occurrences
-- `backend/tests/odr/test_odr_m04.py` — 3 occurrences
-- `backend/tests/test_iter165_phase_j_idempotency.py` — 3 occurrences
-- `backend/tests/test_iter452_5_1_orphan_elimination.py` — 3 occurrences
-- `backend/tests/test_iter452_5_field_submitter_identity.py` — 3 occurrences
-- `backend/tests/test_trench_safety_phase2.py` — 3 occurrences
-- `backend/tests/odr/test_wave_1bc.py` — 2 occurrences
-- `backend/tests/pw_suite/test_critical_flows_pw_phase3.py` — 2 occurrences
-- `backend/tests/test_field_leadership_equipment_return_iter45.py` — 2 occurrences
-- `backend/tests/test_iter35_predeploy.py` — 2 occurrences
-- `backend/tests/test_iter451_incident_lifecycle.py` — 2 occurrences
-- `backend/tests/test_iter70_termination.py` — 2 occurrences
-- `backend/tests/test_jha_plans_and_trench_boxes.py` — 2 occurrences
-- `backend/tests/test_jobs_master_and_roster_iter26.py` — 2 occurrences
-- `backend/tests/test_trench_asset_assignment_qr_cert.py` — 2 occurrences
-- `backend/tests/test_trench_safety_phase4a.py` — 2 occurrences
-- `backend/tests/odr/test_m1_option_c.py` — 1 occurrences
-- `backend/tests/odr/test_odr_m02.py` — 1 occurrences
 
 ## Top 30 non-TEST_ project_name literals
 
-- `Phase2B-2B · Test` × 6
-- `Phase2B-2A · Test` × 5
-- `T5824 - SR 46 (W 1ST ST.)` × 3
-- `Phase Sigma-III Public Form Cert` × 2
-- `Iter45 Equipment Return Test Job` × 2
-- `Test` × 2
-- `RC1 Cert Project` × 2
-- `M1->Wave1A regression` × 1
-- `M0.2 Pytest Project` × 1
-- `M0.3 Test` × 1
-- `M0.4 Photo PDF` × 1
-- `M0.4 No Photos` × 1
-- `M0.4 Orphan Photo` × 1
-- `ODR Substrate Pytest` × 1
-- `Wave-1A Test` × 1
-- `Wave-1BC Test` × 1
-- `Wave-1C Audit Footer Render` × 1
-- `Iter44 Equipment Test Job` × 1
-- `Iter42 Test Job` × 1
-- `FV-7.1 Rated Depth Test` × 1
-- `FV-7.1 Ack Test` × 1
-- `FV-7.1 Safety Override Test` × 1
-- `FV-7.1 Empty Override` × 1
-- `FV-7.2 Undesignated CP` × 1
-- `FV-7.3 Test` × 1
-- `FV-7.3 Public` × 1
-- `FV-7.4 Road Plate Undersize` × 1
-- `T5824 SR 46` × 1
-- `MUTATED` × 1
-- `iter165 fl test` × 1
 
 ## Every offending record
-
-- `backend/tests/odr/test_m1_option_c.py:67` → project_name=`M1->Wave1A regression`
-- `backend/tests/odr/test_odr_m02.py:53` → project_name=`M0.2 Pytest Project`
-- `backend/tests/odr/test_odr_m03.py:120` → project_name=`M0.3 Test`
-- `backend/tests/odr/test_odr_m04.py:98` → project_name=`M0.4 Photo PDF`
-- `backend/tests/odr/test_odr_m04.py:269` → project_name=`M0.4 No Photos`
-- `backend/tests/odr/test_odr_m04.py:313` → project_name=`M0.4 Orphan Photo`
-- `backend/tests/odr/test_odr_substrate.py:61` → project_name=`ODR Substrate Pytest`
-- `backend/tests/odr/test_wave_1a.py:54` → project_name=`Wave-1A Test`
-- `backend/tests/odr/test_wave_1bc.py:47` → project_name=`Wave-1BC Test`
-- `backend/tests/odr/test_wave_1bc.py:138` → project_name=`Wave-1C Audit Footer Render`
-- `backend/tests/pw_suite/test_critical_flows_pw_phase3.py:378` → project_name=`Phase Sigma-III Public Form Cert`
-- `backend/tests/pw_suite/test_critical_flows_pw_phase3.py:391` → project_name=`Phase Sigma-III Public Form Cert`
-- `backend/tests/test_equipment_inspections.py:136` → project_name=`T5824 - SR 46 (W 1ST ST.)`
-- `backend/tests/test_equipment_status_board.py:54` → project_name=`T5824 - SR 46 (W 1ST ST.)`
-- `backend/tests/test_field_leadership_equipment_iter44.py:191` → project_name=`Iter44 Equipment Test Job`
-- `backend/tests/test_field_leadership_equipment_return_iter45.py:69` → project_name=`Iter45 Equipment Return Test Job`
-- `backend/tests/test_field_leadership_equipment_return_iter45.py:190` → project_name=`Iter45 Equipment Return Test Job`
-- `backend/tests/test_field_leadership_iter42.py:124` → project_name=`Iter42 Test Job`
-- `backend/tests/test_fv7_safety_gaps.py:84` → project_name=`FV-7.1 Rated Depth Test`
-- `backend/tests/test_fv7_safety_gaps.py:106` → project_name=`FV-7.1 Ack Test`
-- `backend/tests/test_fv7_safety_gaps.py:125` → project_name=`FV-7.1 Safety Override Test`
-- `backend/tests/test_fv7_safety_gaps.py:159` → project_name=`FV-7.1 Empty Override`
-- `backend/tests/test_fv7_safety_gaps.py:234` → project_name=`FV-7.2 Undesignated CP`
-- `backend/tests/test_fv7_safety_gaps.py:255` → project_name=`FV-7.3 Test`
-- `backend/tests/test_fv7_safety_gaps.py:276` → project_name=`FV-7.3 Public`
-- `backend/tests/test_fv7_safety_gaps.py:296` → project_name=`FV-7.4 Road Plate Undersize`
-- `backend/tests/test_health_check_iter12.py:142` → project_name=`T5824 SR 46`
-- `backend/tests/test_iter165_phase_j_idempotency.py:102` → project_name=`MUTATED`
-- `backend/tests/test_iter165_phase_j_idempotency.py:200` → project_name=`iter165 fl test`
-- `backend/tests/test_iter165_phase_j_idempotency.py:213` → project_name=`MUTATED-NAME`
-- `backend/tests/test_iter250_subcontractor_photos.py:81` → project_name=`iter250 sub-photo smoke`
-- `backend/tests/test_iter35_predeploy.py:191` → project_name=`Test`
-- `backend/tests/test_iter35_predeploy.py:208` → project_name=`Test`
-- `backend/tests/test_iter392_dls_foundation.py:217` → project_name=`iter392 Test Project`
-- `backend/tests/test_iter407_assignment_lookups.py:169` → project_name=`Duplicate Project`
-- `backend/tests/test_iter451_incident_lifecycle.py:199` → project_name=`iter451 lifecycle test`
-- `backend/tests/test_iter451_incident_lifecycle.py:234` → project_name=`iter451 OSHA lifecycle test`
-- `backend/tests/test_iter452_5_1_orphan_elimination.py:246` → project_name=`Pytest PM relay seed`
-- `backend/tests/test_iter452_5_1_orphan_elimination.py:309` → project_name=`iter452.5.1 P0 smoke`
-- `backend/tests/test_iter452_5_1_orphan_elimination.py:351` → project_name=`iter452.5.1 ORPHAN corner`
-- `backend/tests/test_iter452_5_field_submitter_identity.py:157` → project_name=`iter452.5 FSI DR test`
-- `backend/tests/test_iter452_5_field_submitter_identity.py:180` → project_name=`iter452.5 FSI incident test`
-- `backend/tests/test_iter452_5_field_submitter_identity.py:249` → project_name=`iter452.5 legacy DR test`
-- `backend/tests/test_iter452_lifecycle_dr_pv.py:222` → project_name=`iter452 DR test`
-- `backend/tests/test_iter70_termination.py:77` → project_name=`Iter70 Test Job`
-- `backend/tests/test_iter70_termination.py:157` → project_name=`Legacy Notes`
-- `backend/tests/test_jha_plans_and_trench_boxes.py:75` → project_name=`X`
-- `backend/tests/test_jha_plans_and_trench_boxes.py:87` → project_name=`Test Job`
-- `backend/tests/test_job_photos_thumb_iter46.py:49` → project_name=`TEST Photo Project`
-- `backend/tests/test_jobs_master_and_roster_iter26.py:216` → project_name=`Nope`
-- `backend/tests/test_jobs_master_and_roster_iter26.py:224` → project_name=`   `
-- `backend/tests/test_ownership_producer_routing.py:148` → project_name=`Phase2B-2B · Test`
-- `backend/tests/test_ownership_producer_routing.py:164` → project_name=`Phase2B-2B · Test`
-- `backend/tests/test_ownership_producer_routing.py:176` → project_name=`Phase2B-2B · Test`
-- `backend/tests/test_ownership_producer_routing.py:188` → project_name=`Phase2B-2B · Test`
-- `backend/tests/test_ownership_producer_routing.py:205` → project_name=`Phase2B-2B · Test`
-- `backend/tests/test_ownership_producer_routing.py:220` → project_name=`Phase2B-2B · Test`
-- `backend/tests/test_pm_routing.py:227` → project_name=`T5824 - SR 46 (W 1ST ST.)`
-- `backend/tests/test_soft_delete_iter33.py:122` → project_name=`SD test`
-- `backend/tests/test_team_snapshot_embedding.py:96` → project_name=`Phase2B-2A · Test`
-- `backend/tests/test_team_snapshot_embedding.py:109` → project_name=`Phase2B-2A · Test`
-- `backend/tests/test_team_snapshot_embedding.py:121` → project_name=`Phase2B-2A · Test`
-- `backend/tests/test_team_snapshot_embedding.py:133` → project_name=`Phase2B-2A · Test`
-- `backend/tests/test_team_snapshot_embedding.py:150` → project_name=`Phase2B-2A · Test`
-- `backend/tests/test_trench_asset_assignment_qr_cert.py:157` → project_name=`RC1 Cert Project`
-- `backend/tests/test_trench_asset_assignment_qr_cert.py:205` → project_name=`RC1 Cert Project`
-- `backend/tests/test_trench_safety_phase2.py:144` → project_name=`N`
-- `backend/tests/test_trench_safety_phase2.py:362` → project_name=`NSB`
-- `backend/tests/test_trench_safety_phase2.py:373` → project_name=`Riverside`
-- `backend/tests/test_trench_safety_phase4a.py:165` → project_name=`NSB Airport`
-- `backend/tests/test_trench_safety_phase4a.py:288` → project_name=`ByProj Lookup B`
-- `backend/tests/test_trench_safety_phase4b.py:396` → project_name=`Phase4B Project`

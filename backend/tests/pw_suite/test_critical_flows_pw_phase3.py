@@ -375,7 +375,7 @@ def test_mfa_enroll_verify_disable_round_trip(
 # ────────────────────────────────────────────────────────────────────
 def _public_meeting_payload(marker: str) -> Dict[str, Any]:
     return {
-        "project_name": "Phase Sigma-III Public Form Cert",
+        "project_name": "TEST_Phase_Sigma_III_Public_Form_Cert",
         "project_number": "T-SIGMA3",
         "location": marker,
         "meeting_date": "2026-05-27",
@@ -388,7 +388,7 @@ def _public_meeting_payload(marker: str) -> Dict[str, Any]:
 
 def _public_incident_payload(marker: str) -> Dict[str, Any]:
     return {
-        "project_name": "Phase Sigma-III Public Form Cert",
+        "project_name": "TEST_Phase_Sigma_III_Public_Form_Cert",
         "project_number": "T-SIGMA3",
         "location": marker,
         "incident_date": "2026-05-27",

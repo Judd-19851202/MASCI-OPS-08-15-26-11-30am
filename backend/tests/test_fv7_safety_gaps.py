@@ -81,7 +81,7 @@ def test_fv71_rated_depth_flag_fires_action_required(token):
     if not box:
         pytest.skip("No Trench Box with rated_depth_ft < 20 ft in roster")
     payload = {
-        "project_name": "FV-7.1 Rated Depth Test",
+        "project_name": "TEST_FV_7_1_Rated_Depth_Test",
         "foreman_name": "Test Foreman", "submitted_by": "fv7@test",
         "date_of_work": "2026-02-15",
         "depth_ft": 20.0, "length_ft": 10, "width_ft": 4,
@@ -103,7 +103,7 @@ def test_fv71_acknowledged_downgrades_to_needs_review(token):
     if not box:
         pytest.skip("No qualifying Trench Box in roster")
     rec = _submit({
-        "project_name": "FV-7.1 Ack Test",
+        "project_name": "TEST_FV_7_1_Ack_Test",
         "foreman_name": "F", "submitted_by": "fv7@test",
         "depth_ft": 20.0, "length_ft": 10, "width_ft": 4,
         "protective_system": "Trench Box / Shielding",
@@ -122,7 +122,7 @@ def test_fv71_safety_override_endpoint_records_audit(token):
     if not box:
         pytest.skip("No qualifying Trench Box in roster")
     rec = _submit({
-        "project_name": "FV-7.1 Safety Override Test",
+        "project_name": "TEST_FV_7_1_Safety_Override_Test",
         "foreman_name": "F", "submitted_by": "fv7@test",
         "depth_ft": 20.0, "length_ft": 10, "width_ft": 4,
         "protective_system": "Trench Box / Shielding",
@@ -156,7 +156,7 @@ def test_fv71_override_requires_reason(token):
     if not box:
         pytest.skip("No qualifying Trench Box in roster")
     rec = _submit({
-        "project_name": "FV-7.1 Empty Override",
+        "project_name": "TEST_FV_7_1_Empty_Override",
         "foreman_name": "F", "submitted_by": "fv7@test",
         "depth_ft": 20.0, "length_ft": 10, "width_ft": 4,
         "protective_system": "Trench Box / Shielding",
@@ -231,7 +231,7 @@ def test_fv72_undesignated_employee_picker_flag(token):
     )
     # Submit with this employee as CP — flag should fire
     rec = _submit({
-        "project_name": "FV-7.2 Undesignated CP",
+        "project_name": "TEST_FV_7_2_Undesignated_CP",
         "foreman_name": "F", "submitted_by": "fv7@test",
         "depth_ft": 6, "soil_classification": "Type B",
         "protective_system": "Sloping",
@@ -252,7 +252,7 @@ def test_fv72_undesignated_employee_picker_flag(token):
 ])
 def test_fv73_foreman_can_trigger_any_directive_reason(reason):
     rec = _submit({
-        "project_name": "FV-7.3 Test",
+        "project_name": "TEST_FV_7_3_Test",
         "foreman_name": "F", "submitted_by": "fv7@test",
         "depth_ft": 5,
         "soil_classification": "Type B",
@@ -273,7 +273,7 @@ def test_fv73_foreman_can_trigger_any_directive_reason(reason):
 def test_fv73_no_safety_approval_required():
     # No auth header sent on purpose — must still succeed
     rec = _submit({
-        "project_name": "FV-7.3 Public", "foreman_name": "F", "submitted_by": "fv7@test",
+        "project_name": "TEST_FV_7_3_Public", "foreman_name": "F", "submitted_by": "fv7@test",
         "depth_ft": 6, "protective_system": "Trench Box / Shielding",
     })
     r = requests.post(
@@ -293,7 +293,7 @@ def test_fv74_undersized_road_plate_flags_action_required():
         pytest.skip("No Road Plate in roster")
     # Submit a huge opening
     rec = _submit({
-        "project_name": "FV-7.4 Road Plate Undersize",
+        "project_name": "TEST_FV_7_4_Road_Plate_Undersize",
         "foreman_name": "F", "submitted_by": "fv7@test",
         "work_type": "Roadway Excavation",
         "length_ft": 100.0, "width_ft": 100.0, "depth_ft": 3.0,

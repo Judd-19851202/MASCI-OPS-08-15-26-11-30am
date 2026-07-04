@@ -51,7 +51,7 @@ def test_status_board_aggregates_inspection():
     suffix = str(int(time.time()))
     unit_label = f"PYTEST-Unit-{suffix}"
     payload = {
-        "project_name": "T5824 - SR 46 (W 1ST ST.)",
+        "project_name": "TEST_T5824_SR_46_W_1ST_ST",
         "project_number": "24-06",
         "location": "Status Board Test",
         "inspection_date": "2026-02-26",

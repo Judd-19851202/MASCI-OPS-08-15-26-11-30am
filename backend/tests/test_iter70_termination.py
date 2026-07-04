@@ -74,7 +74,7 @@ class TestEmployeeTerminationForm:
         payload = {
             "kind": "employee_termination",
             "project_number": "ITER70-TEST",
-            "project_name": "Iter70 Test Job",
+            "project_name": "TEST_Iter70_Test_Job",
             "supervisor_name": "Test Supervisor",
             "employee_name": "Iter70 Employee",
             "employee_position": "Laborer",
@@ -154,7 +154,7 @@ class TestEmployeeTerminationForm:
         payload = {
             "kind": "supervisor_notes",
             "project_number": "ITER70-LEGACY",
-            "project_name": "Legacy Notes",
+            "project_name": "TEST_Legacy_Notes",
             "supervisor_name": "Legacy Supervisor",
             "employee_name": "n/a",
             "occurred_at": "2026-05-12T16:00:00Z",

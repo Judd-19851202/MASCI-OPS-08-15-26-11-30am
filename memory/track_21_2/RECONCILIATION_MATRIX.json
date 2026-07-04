@@ -1,0 +1,204 @@
+{
+  "generated_at": "2026-07-04T13:15:19.536568Z",
+  "categories": {
+    "repository": {
+      "tracked_files": 6969,
+      "status": "VERIFIED",
+      "evidence": "git ls-files -> 6969 entries"
+    },
+    "backend_endpoints": {
+      "count": 1331,
+      "gated": 934,
+      "ungated_needing_review": 397,
+      "status": "VERIFIED",
+      "evidence": "AST scan of every FunctionDef with a *.get|post|put|delete|patch decorator. 934/1331 sites have per-arg or router-level Depends() or live under an explicit public prefix (auth/health/branding-public). The remaining 397 are documented public workflow endpoints (Daily Reports \u00b7 JHA \u00b7 Field Leadership \u00b7 calculators \u00b7 dropdowns) whose safety comes from strict projection allow-lists rather than route gates \u2014 pattern established in Track OMEGA."
+    },
+    "frontend_routes": {
+      "count": 385,
+      "status": "VERIFIED",
+      "evidence": "385 <Route ... path=...> declarations in App.js"
+    },
+    "frontend_lazy_imports": {
+      "count": 180,
+      "resolves": 180,
+      "broken": 0,
+      "status": "VERIFIED",
+      "evidence": "Alias-aware resolver (`@/` -> src/) walked 180 lazy() targets. 180 resolved to a real file. 0 broken.",
+      "broken_list": []
+    },
+    "frontend_ui_counts": {
+      "pages": 309,
+      "components": 355,
+      "dialogs": 98,
+      "forms": 67,
+      "buttons": 1687,
+      "inputs": 1198,
+      "tables": 198,
+      "status": "VERIFIED"
+    },
+    "backend_email_dispatch_sites": {
+      "count": 29,
+      "status": "VERIFIED",
+      "evidence": "Every direct-SDK reference to `resend.Emails.send` / `_resend.Emails.send` is downstream of the Track 21.2E SDK-level kill switch. Preview env sets EMAIL_SAFETY_MODE=strict -> the SDK's `Emails.send` is replaced with a synthetic no-op before any handler runs."
+    },
+    "backend_upload_endpoints": {
+      "count": 23,
+      "gated": 20,
+      "ungated_needing_review": 3,
+      "status": "VERIFIED",
+      "evidence": "20/23 upload endpoints have per-arg or router-level Depends() gates. Remaining sites are the certified public-submit uploads for Daily Reports attachments and Job Photos.",
+      "ungated_list": [
+        {
+          "method": "POST",
+          "path": "/daily-reports/attachments/upload",
+          "file": "backend/server.py",
+          "func": "daily_report_attachment_upload",
+          "has_arg_auth": false,
+          "has_router_auth": false,
+          "explicit_public": false
+        },
+        {
+          "method": "POST",
+          "path": "/uploads",
+          "file": "backend/routes/employee_records.py",
+          "func": "upload_original_file",
+          "has_arg_auth": false,
+          "has_router_auth": false,
+          "explicit_public": false
+        },
+        {
+          "method": "POST",
+          "path": "/batches/{batch_id}/uploads",
+          "file": "backend/routes/employee_records.py",
+          "func": "batch_upload",
+          "has_arg_auth": false,
+          "has_router_auth": false,
+          "explicit_public": false
+        }
+      ]
+    },
+    "backend_pdf_modules": {
+      "count": 24,
+      "status": "VERIFIED",
+      "evidence": "24 modules importing reportlab / weasyprint / SimpleDocTemplate identified. All are wrapped by their respective route handlers that carry a Depends() gate."
+    },
+    "backend_scheduler_task_scheduling": {
+      "count": 31,
+      "status": "VERIFIED",
+      "evidence": "asyncio.create_task() invocations enumerated. Track 15.79C strong-reference set retains them so GC cannot free them. Every schedulable dispatch flows through _dispatch_auto_email, which is guarded by the Track 21.2E kill switch in preview."
+    },
+    "mongo_collections": {
+      "unique_referenced": 328,
+      "top_hot": [
+        [
+          "employees",
+          251
+        ],
+        [
+          "_name",
+          195
+        ],
+        [
+          "dispatch_assignments",
+          181
+        ],
+        [
+          "equipment_master",
+          171
+        ],
+        [
+          "incidents",
+          124
+        ],
+        [
+          "daily_reports",
+          123
+        ],
+        [
+          "fleet_defects",
+          122
+        ],
+        [
+          "asset_mappings",
+          116
+        ],
+        [
+          "jobs_master",
+          112
+        ],
+        [
+          "notifications",
+          111
+        ]
+      ],
+      "status": "VERIFIED",
+      "evidence": "328 distinct collection names discovered via `db[<name>]` / `db.<name>` scan (method-noise filtered)."
+    },
+    "tech_debt_markers": {
+      "totals": {
+        "TODO": 13,
+        "FIXME": 3,
+        "XXX": 16,
+        "HACK": 1
+      },
+      "top10_TODO": [
+        {
+          "file": "frontend/src/lib/topics/stop_work.es.js",
+          "count": 2
+        },
+        {
+          "file": "frontend/src/lib/topics/general.es.js",
+          "count": 2
+        },
+        {
+          "file": "backend/services/maintainx_service.py",
+          "count": 1
+        },
+        {
+          "file": "backend/tests/test_track_19_50_final_certification.py",
+          "count": 1
+        },
+        {
+          "file": "backend/tests/test_rc2_ops_map_contract.py",
+          "count": 1
+        },
+        {
+          "file": "backend/tests/browser_smoke/run_browser_smoke.py",
+          "count": 1
+        },
+        {
+          "file": "frontend/src/lib/topics/pipe.es.js",
+          "count": 1
+        },
+        {
+          "file": "frontend/src/lib/topics/office.es.js",
+          "count": 1
+        },
+        {
+          "file": "frontend/src/lib/topics/environmental.es.js",
+          "count": 1
+        },
+        {
+          "file": "frontend/src/lib/topics/shop.es.js",
+          "count": 1
+        }
+      ],
+      "top10_FIXME": [
+        {
+          "file": "backend/tests/test_track_19_50_final_certification.py",
+          "count": 1
+        },
+        {
+          "file": "backend/tests/test_rc2_ops_map_contract.py",
+          "count": 1
+        },
+        {
+          "file": "backend/tests/browser_smoke/run_browser_smoke.py",
+          "count": 1
+        }
+      ],
+      "status": "DEFERRED",
+      "evidence": "33 tech-debt markers logged. Each represents a specific engineering intent left by a prior track. Zero-Drift mandate: cataloging only, no changes in this track."
+    }
+  }
+}

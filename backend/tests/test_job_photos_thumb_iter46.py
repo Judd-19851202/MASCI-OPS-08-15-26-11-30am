@@ -46,7 +46,7 @@ def seed_photo(admin_headers):
     project_number = f"TEST-PHOTO-{uuid.uuid4().hex[:6]}"
     payload = {
         "project_number": project_number,
-        "project_name": "TEST Photo Project",
+        "project_name": "TEST_TEST_Photo_Project",
         "report_date": "2026-01-15",
         "prepared_by": "TEST_Photo_Reporter",
         "photos": [_seed_png_data_url()],

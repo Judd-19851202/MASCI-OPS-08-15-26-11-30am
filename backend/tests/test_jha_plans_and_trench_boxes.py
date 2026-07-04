@@ -72,7 +72,7 @@ class TestJobHazardPlans:
             f"{BASE_URL}/api/job-hazard-plans",
             json={
                 "project_number": self.TEST_PN,
-                "project_name": "X",
+                "project_name": "TEST_X",
                 "filename": "x.pdf",
                 "file_data": PDF_DATA_URL,
             },
@@ -84,7 +84,7 @@ class TestJobHazardPlans:
     def test_post_creates_plan_then_upsert_replaces(self):
         payload = {
             "project_number": self.TEST_PN,
-            "project_name": "Test Job",
+            "project_name": "TEST_Test_Job",
             "location": "Nowhere",
             "filename": "first.pdf",
             "file_data": PDF_DATA_URL,

@@ -78,7 +78,7 @@ def test_subcontractor_photos_roundtrip_through_api(admin_token):
     photo = _tiny_png_data_url()
     payload = {
         "id": str(uuid.uuid4()),
-        "project_name": "iter250 sub-photo smoke",
+        "project_name": "TEST_iter250_sub_photo_smoke",
         "project_number": f"ITER250-{uuid.uuid4().hex[:6]}",
         "location": "SH-130 N · MM 12",
         "report_date": "2024-08-15",

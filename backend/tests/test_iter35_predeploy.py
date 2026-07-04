@@ -188,7 +188,7 @@ class TestEmailRouting:
             pytest.skip("no chris jobs")
         pn = jobs[0].get("project_number")
         rp = requests.get(f"{API}/auto-email/preview",
-                          params={"kind": "inspection", "project_number": pn, "project_name": "Test"}, timeout=15)
+                          params={"kind": "inspection", "project_number": pn, "project_name": "TEST_Test"}, timeout=15)
         assert rp.status_code == 200, rp.text
         body = rp.json()
         all_recips = " ".join(body.get("all_recipients") or []).lower()
@@ -205,7 +205,7 @@ class TestEmailRouting:
             pytest.skip("no chris jobs")
         pn = jobs[0].get("project_number")
         rp = requests.get(f"{API}/auto-email/preview",
-                          params={"kind": "daily-report", "project_number": pn, "project_name": "Test"}, timeout=15)
+                          params={"kind": "daily-report", "project_number": pn, "project_name": "TEST_Test"}, timeout=15)
         assert rp.status_code == 200, rp.text
         body = rp.json()
         all_recips = " ".join(body.get("all_recipients") or []).lower()

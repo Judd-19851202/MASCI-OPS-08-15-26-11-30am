@@ -213,7 +213,7 @@ class TestAdminJobs:
         # return 400). Either is an acceptable "rejected" outcome.
         r = requests.post(
             f"{BASE_URL}/api/admin/jobs",
-            json={"project_number": "", "project_name": "Nope"},
+            json={"project_number": "", "project_name": "TEST_Nope"},
             timeout=10,
         )
         assert r.status_code in (400, 422), r.text
@@ -221,7 +221,7 @@ class TestAdminJobs:
         # reaches the jobs_master.upsert_job ValueError -> 400.
         r2 = requests.post(
             f"{BASE_URL}/api/admin/jobs",
-            json={"project_number": "TEST-X", "project_name": "   "},
+            json={"project_number": "TEST-X", "project_name": "TEST_UNSPECIFIED"},
             timeout=10,
         )
         assert r2.status_code in (400, 422), r2.text

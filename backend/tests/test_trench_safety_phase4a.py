@@ -162,7 +162,7 @@ def test_equipment_master_searchable_by_asset_id(client):
 def _assign(client, headers, asset_id, **overrides):
     payload = {
         "project_id": "PRJ-NSB-AIR",
-        "project_name": "NSB Airport",
+        "project_name": "TEST_NSB_Airport",
         "project_number": "24-118",
         "superintendent": "Jaymn Judd",
         "foreman": "Carlos M.",
@@ -285,7 +285,7 @@ def test_by_project_supports_project_number_and_name_lookups(client, admin_heade
 
     r_name = client.get(
         "/api/trench-safety/by-project",
-        params={"project_name": "ByProj Lookup B"},
+        params={"project_name": "TEST_ByProj_Lookup_B"},
         headers=admin_headers,
     )
     assert r_name.status_code == 200

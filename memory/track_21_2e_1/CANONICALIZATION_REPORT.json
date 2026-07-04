@@ -1,0 +1,500 @@
+{
+  "rewrites_performed": 59,
+  "files_touched": 36,
+  "skipped": [
+    {
+      "file": "backend/tests/pw_suite/test_critical_flows_pw_phase3.py",
+      "line": 391,
+      "project_name": "Phase Sigma-III Public Form Cert",
+      "reason": "pattern-miss (may already be TEST_-canonicalized)"
+    },
+    {
+      "file": "backend/tests/test_field_leadership_equipment_return_iter45.py",
+      "line": 190,
+      "project_name": "Iter45 Equipment Return Test Job",
+      "reason": "pattern-miss (may already be TEST_-canonicalized)"
+    },
+    {
+      "file": "backend/tests/test_iter35_predeploy.py",
+      "line": 208,
+      "project_name": "Test",
+      "reason": "pattern-miss (may already be TEST_-canonicalized)"
+    },
+    {
+      "file": "backend/tests/test_ownership_producer_routing.py",
+      "line": 164,
+      "project_name": "Phase2B-2B \u00b7 Test",
+      "reason": "pattern-miss (may already be TEST_-canonicalized)"
+    },
+    {
+      "file": "backend/tests/test_ownership_producer_routing.py",
+      "line": 176,
+      "project_name": "Phase2B-2B \u00b7 Test",
+      "reason": "pattern-miss (may already be TEST_-canonicalized)"
+    },
+    {
+      "file": "backend/tests/test_ownership_producer_routing.py",
+      "line": 188,
+      "project_name": "Phase2B-2B \u00b7 Test",
+      "reason": "pattern-miss (may already be TEST_-canonicalized)"
+    },
+    {
+      "file": "backend/tests/test_ownership_producer_routing.py",
+      "line": 205,
+      "project_name": "Phase2B-2B \u00b7 Test",
+      "reason": "pattern-miss (may already be TEST_-canonicalized)"
+    },
+    {
+      "file": "backend/tests/test_ownership_producer_routing.py",
+      "line": 220,
+      "project_name": "Phase2B-2B \u00b7 Test",
+      "reason": "pattern-miss (may already be TEST_-canonicalized)"
+    },
+    {
+      "file": "backend/tests/test_team_snapshot_embedding.py",
+      "line": 109,
+      "project_name": "Phase2B-2A \u00b7 Test",
+      "reason": "pattern-miss (may already be TEST_-canonicalized)"
+    },
+    {
+      "file": "backend/tests/test_team_snapshot_embedding.py",
+      "line": 121,
+      "project_name": "Phase2B-2A \u00b7 Test",
+      "reason": "pattern-miss (may already be TEST_-canonicalized)"
+    },
+    {
+      "file": "backend/tests/test_team_snapshot_embedding.py",
+      "line": 133,
+      "project_name": "Phase2B-2A \u00b7 Test",
+      "reason": "pattern-miss (may already be TEST_-canonicalized)"
+    },
+    {
+      "file": "backend/tests/test_team_snapshot_embedding.py",
+      "line": 150,
+      "project_name": "Phase2B-2A \u00b7 Test",
+      "reason": "pattern-miss (may already be TEST_-canonicalized)"
+    },
+    {
+      "file": "backend/tests/test_trench_asset_assignment_qr_cert.py",
+      "line": 205,
+      "project_name": "RC1 Cert Project",
+      "reason": "pattern-miss (may already be TEST_-canonicalized)"
+    }
+  ],
+  "residual_non_test": [],
+  "detail": [
+    {
+      "file": "backend/tests/odr/test_m1_option_c.py",
+      "line": 67,
+      "old": "M1->Wave1A regression",
+      "new": "TEST_M1_Wave1A_regression",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/odr/test_odr_m02.py",
+      "line": 53,
+      "old": "M0.2 Pytest Project",
+      "new": "TEST_M0_2_Pytest_Project",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/odr/test_odr_m03.py",
+      "line": 120,
+      "old": "M0.3 Test",
+      "new": "TEST_M0_3_Test",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/odr/test_odr_m04.py",
+      "line": 98,
+      "old": "M0.4 Photo PDF",
+      "new": "TEST_M0_4_Photo_PDF",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/odr/test_odr_m04.py",
+      "line": 269,
+      "old": "M0.4 No Photos",
+      "new": "TEST_M0_4_No_Photos",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/odr/test_odr_m04.py",
+      "line": 313,
+      "old": "M0.4 Orphan Photo",
+      "new": "TEST_M0_4_Orphan_Photo",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/odr/test_odr_substrate.py",
+      "line": 61,
+      "old": "ODR Substrate Pytest",
+      "new": "TEST_ODR_Substrate_Pytest",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/odr/test_wave_1a.py",
+      "line": 54,
+      "old": "Wave-1A Test",
+      "new": "TEST_Wave_1A_Test",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/odr/test_wave_1bc.py",
+      "line": 47,
+      "old": "Wave-1BC Test",
+      "new": "TEST_Wave_1BC_Test",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/odr/test_wave_1bc.py",
+      "line": 138,
+      "old": "Wave-1C Audit Footer Render",
+      "new": "TEST_Wave_1C_Audit_Footer_Render",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/pw_suite/test_critical_flows_pw_phase3.py",
+      "line": 378,
+      "old": "Phase Sigma-III Public Form Cert",
+      "new": "TEST_Phase_Sigma_III_Public_Form_Cert",
+      "occurrences_in_file": 2
+    },
+    {
+      "file": "backend/tests/test_equipment_inspections.py",
+      "line": 136,
+      "old": "T5824 - SR 46 (W 1ST ST.)",
+      "new": "TEST_T5824_SR_46_W_1ST_ST",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_equipment_status_board.py",
+      "line": 54,
+      "old": "T5824 - SR 46 (W 1ST ST.)",
+      "new": "TEST_T5824_SR_46_W_1ST_ST",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_field_leadership_equipment_iter44.py",
+      "line": 191,
+      "old": "Iter44 Equipment Test Job",
+      "new": "TEST_Iter44_Equipment_Test_Job",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_field_leadership_equipment_return_iter45.py",
+      "line": 69,
+      "old": "Iter45 Equipment Return Test Job",
+      "new": "TEST_Iter45_Equipment_Return_Test_Job",
+      "occurrences_in_file": 2
+    },
+    {
+      "file": "backend/tests/test_field_leadership_iter42.py",
+      "line": 124,
+      "old": "Iter42 Test Job",
+      "new": "TEST_Iter42_Test_Job",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_fv7_safety_gaps.py",
+      "line": 84,
+      "old": "FV-7.1 Rated Depth Test",
+      "new": "TEST_FV_7_1_Rated_Depth_Test",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_fv7_safety_gaps.py",
+      "line": 106,
+      "old": "FV-7.1 Ack Test",
+      "new": "TEST_FV_7_1_Ack_Test",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_fv7_safety_gaps.py",
+      "line": 125,
+      "old": "FV-7.1 Safety Override Test",
+      "new": "TEST_FV_7_1_Safety_Override_Test",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_fv7_safety_gaps.py",
+      "line": 159,
+      "old": "FV-7.1 Empty Override",
+      "new": "TEST_FV_7_1_Empty_Override",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_fv7_safety_gaps.py",
+      "line": 234,
+      "old": "FV-7.2 Undesignated CP",
+      "new": "TEST_FV_7_2_Undesignated_CP",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_fv7_safety_gaps.py",
+      "line": 255,
+      "old": "FV-7.3 Test",
+      "new": "TEST_FV_7_3_Test",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_fv7_safety_gaps.py",
+      "line": 276,
+      "old": "FV-7.3 Public",
+      "new": "TEST_FV_7_3_Public",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_fv7_safety_gaps.py",
+      "line": 296,
+      "old": "FV-7.4 Road Plate Undersize",
+      "new": "TEST_FV_7_4_Road_Plate_Undersize",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_health_check_iter12.py",
+      "line": 142,
+      "old": "T5824 SR 46",
+      "new": "TEST_T5824_SR_46",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_iter165_phase_j_idempotency.py",
+      "line": 102,
+      "old": "MUTATED",
+      "new": "TEST_MUTATED",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_iter165_phase_j_idempotency.py",
+      "line": 200,
+      "old": "iter165 fl test",
+      "new": "TEST_iter165_fl_test",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_iter165_phase_j_idempotency.py",
+      "line": 213,
+      "old": "MUTATED-NAME",
+      "new": "TEST_MUTATED_NAME",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_iter250_subcontractor_photos.py",
+      "line": 81,
+      "old": "iter250 sub-photo smoke",
+      "new": "TEST_iter250_sub_photo_smoke",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_iter35_predeploy.py",
+      "line": 191,
+      "old": "Test",
+      "new": "TEST_Test",
+      "occurrences_in_file": 2
+    },
+    {
+      "file": "backend/tests/test_iter392_dls_foundation.py",
+      "line": 217,
+      "old": "iter392 Test Project",
+      "new": "TEST_iter392_Test_Project",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_iter407_assignment_lookups.py",
+      "line": 169,
+      "old": "Duplicate Project",
+      "new": "TEST_Duplicate_Project",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_iter451_incident_lifecycle.py",
+      "line": 199,
+      "old": "iter451 lifecycle test",
+      "new": "TEST_iter451_lifecycle_test",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_iter451_incident_lifecycle.py",
+      "line": 234,
+      "old": "iter451 OSHA lifecycle test",
+      "new": "TEST_iter451_OSHA_lifecycle_test",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_iter452_5_1_orphan_elimination.py",
+      "line": 246,
+      "old": "Pytest PM relay seed",
+      "new": "TEST_Pytest_PM_relay_seed",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_iter452_5_1_orphan_elimination.py",
+      "line": 309,
+      "old": "iter452.5.1 P0 smoke",
+      "new": "TEST_iter452_5_1_P0_smoke",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_iter452_5_1_orphan_elimination.py",
+      "line": 351,
+      "old": "iter452.5.1 ORPHAN corner",
+      "new": "TEST_iter452_5_1_ORPHAN_corner",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_iter452_5_field_submitter_identity.py",
+      "line": 157,
+      "old": "iter452.5 FSI DR test",
+      "new": "TEST_iter452_5_FSI_DR_test",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_iter452_5_field_submitter_identity.py",
+      "line": 180,
+      "old": "iter452.5 FSI incident test",
+      "new": "TEST_iter452_5_FSI_incident_test",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_iter452_5_field_submitter_identity.py",
+      "line": 249,
+      "old": "iter452.5 legacy DR test",
+      "new": "TEST_iter452_5_legacy_DR_test",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_iter452_lifecycle_dr_pv.py",
+      "line": 222,
+      "old": "iter452 DR test",
+      "new": "TEST_iter452_DR_test",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_iter70_termination.py",
+      "line": 77,
+      "old": "Iter70 Test Job",
+      "new": "TEST_Iter70_Test_Job",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_iter70_termination.py",
+      "line": 157,
+      "old": "Legacy Notes",
+      "new": "TEST_Legacy_Notes",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_jha_plans_and_trench_boxes.py",
+      "line": 75,
+      "old": "X",
+      "new": "TEST_X",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_jha_plans_and_trench_boxes.py",
+      "line": 87,
+      "old": "Test Job",
+      "new": "TEST_Test_Job",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_job_photos_thumb_iter46.py",
+      "line": 49,
+      "old": "TEST Photo Project",
+      "new": "TEST_TEST_Photo_Project",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_jobs_master_and_roster_iter26.py",
+      "line": 216,
+      "old": "Nope",
+      "new": "TEST_Nope",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_jobs_master_and_roster_iter26.py",
+      "line": 224,
+      "old": "   ",
+      "new": "TEST_UNSPECIFIED",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_ownership_producer_routing.py",
+      "line": 148,
+      "old": "Phase2B-2B \u00b7 Test",
+      "new": "TEST_Phase2B_2B_Test",
+      "occurrences_in_file": 6
+    },
+    {
+      "file": "backend/tests/test_pm_routing.py",
+      "line": 227,
+      "old": "T5824 - SR 46 (W 1ST ST.)",
+      "new": "TEST_T5824_SR_46_W_1ST_ST",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_soft_delete_iter33.py",
+      "line": 122,
+      "old": "SD test",
+      "new": "TEST_SD_test",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_team_snapshot_embedding.py",
+      "line": 96,
+      "old": "Phase2B-2A \u00b7 Test",
+      "new": "TEST_Phase2B_2A_Test",
+      "occurrences_in_file": 5
+    },
+    {
+      "file": "backend/tests/test_trench_asset_assignment_qr_cert.py",
+      "line": 157,
+      "old": "RC1 Cert Project",
+      "new": "TEST_RC1_Cert_Project",
+      "occurrences_in_file": 2
+    },
+    {
+      "file": "backend/tests/test_trench_safety_phase2.py",
+      "line": 144,
+      "old": "N",
+      "new": "TEST_N",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_trench_safety_phase2.py",
+      "line": 362,
+      "old": "NSB",
+      "new": "TEST_NSB",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_trench_safety_phase2.py",
+      "line": 373,
+      "old": "Riverside",
+      "new": "TEST_Riverside",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_trench_safety_phase4a.py",
+      "line": 165,
+      "old": "NSB Airport",
+      "new": "TEST_NSB_Airport",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_trench_safety_phase4a.py",
+      "line": 288,
+      "old": "ByProj Lookup B",
+      "new": "TEST_ByProj_Lookup_B",
+      "occurrences_in_file": 1
+    },
+    {
+      "file": "backend/tests/test_trench_safety_phase4b.py",
+      "line": 396,
+      "old": "Phase4B Project",
+      "new": "TEST_Phase4B_Project",
+      "occurrences_in_file": 1
+    }
+  ]
+}

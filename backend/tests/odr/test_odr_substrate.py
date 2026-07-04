@@ -58,7 +58,7 @@ def odr_payload() -> dict:
         "project": {
             "project_id": f"proj-test-{uuid.uuid4().hex[:8]}",
             "project_number": f"99-{uuid.uuid4().hex[:4]}",
-            "project_name": "ODR Substrate Pytest",
+            "project_name": "TEST_ODR_Substrate_Pytest",
             "report_date": "2026-05-29",
             "foreman_uid": ADMIN_EMAIL,
             "foreman_name": "Pytest Foreman",

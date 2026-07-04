@@ -166,7 +166,7 @@ def test_recents_dedupe_same_value():
     payload = {
         "truck_id": "T-DUP-A",
         "project_number": "DUP-PRJ",
-        "project_name": "Duplicate Project",
+        "project_name": "TEST_Duplicate_Project",
         "material": "DUP-MAT",
         "source_location": "DUP-SRC",
         "destination": "DUP-DST",

@@ -219,7 +219,7 @@ def admin_headers():
 @pytest.fixture
 def fresh_dr(admin_headers):
     payload = {
-        "project_name": "iter452 DR test",
+        "project_name": "TEST_iter452_DR_test",
         "project_number": "TEST-452",
         "location": "Job site",
         "report_date": "2026-06-01",

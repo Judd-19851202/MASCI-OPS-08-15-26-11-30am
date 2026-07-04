@@ -44,7 +44,7 @@ def headers() -> dict:
 
 def _new_payload() -> dict:
     return {
-        "project_name": "Wave-1BC Test",
+        "project_name": "TEST_Wave_1BC_Test",
         "project_number": f"W1BC-{uuid.uuid4().hex[:4]}",
         "location": "Sta 10+00 to 12+00",
         "report_date": "2026-05-29",
@@ -135,7 +135,7 @@ def test_dr_pdf_renders_with_audit_footer(headers):
     record = {
         "id": str(uuid.uuid4()),
         "doc_id": "DR-2026-99999",
-        "project_name": "Wave-1C Audit Footer Render",
+        "project_name": "TEST_Wave_1C_Audit_Footer_Render",
         "project_number": "W1C-AUD",
         "location": "Sta 0+00",
         "report_date": "2026-05-29",

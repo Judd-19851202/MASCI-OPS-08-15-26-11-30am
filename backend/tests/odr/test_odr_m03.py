@@ -117,7 +117,7 @@ def public_link(headers: dict) -> dict:
         "project": {
             "project_id": f"proj-m03-{uuid.uuid4().hex[:8]}",
             "project_number": f"M03-{uuid.uuid4().hex[:4]}",
-            "project_name": "M0.3 Test",
+            "project_name": "TEST_M0_3_Test",
             "report_date": "2026-05-29",
             "foreman_uid": ADMIN_EMAIL,
             "foreman_name": "Pytest Foreman",

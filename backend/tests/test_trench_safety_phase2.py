@@ -141,7 +141,7 @@ def test_equipment_master_mirror_present(client, admin_headers):
         {"inspection_type":"Daily Visual","inspector_name":"x","result":"Pass"}),
     ("POST", "/api/trench-safety/assets/TB-01/repairs", {"issue_description":"x"}),
     ("POST", "/api/trench-safety/assets/TB-01/assign",
-        {"project_id":"P","project_name":"N","source":"Manual Assignment"}),
+        {"project_id":"P","project_name":"TEST_N","source":"Manual Assignment"}),
     ("POST", "/api/trench-safety/assets/TB-01/return", {}),
 ])
 def test_auth_wall_anonymous_and_bogus(client, method, path, body):
@@ -359,7 +359,7 @@ def test_assign_blocked_when_on_hold(client, admin_headers, tmp_asset):
     )
     r = client.post(
         f"/api/trench-safety/assets/{asset_id}/assign",
-        json={"project_id":"P-1","project_name":"NSB","source":"Manual Assignment"},
+        json={"project_id":"P-1","project_name":"TEST_NSB","source":"Manual Assignment"},
         headers=admin_headers,
     )
     assert r.status_code == 409
@@ -370,7 +370,7 @@ def test_assign_then_return_round_trip(client, admin_headers, tmp_asset):
     asset_id = tmp_asset["asset_id"]
     r = client.post(
         f"/api/trench-safety/assets/{asset_id}/assign",
-        json={"project_id":"P-77","project_name":"Riverside","source":"Manual Assignment"},
+        json={"project_id":"P-77","project_name":"TEST_Riverside","source":"Manual Assignment"},
         headers=admin_headers,
     )
     assert r.status_code == 200, r.text

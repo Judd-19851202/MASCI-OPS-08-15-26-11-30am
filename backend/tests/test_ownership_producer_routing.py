@@ -145,7 +145,7 @@ def test_apply_routing_populates_user_id_for_known_event():
 
 def _inspection_payload(stop_work: bool = False):
     return {
-        "project_name": "Phase2B-2B · Test",
+        "project_name": "TEST_Phase2B_2B_Test",
         "project_number": PROJECT_NUMBER,
         "location": "test-loc",
         "inspection_date": "2026-02-12",
@@ -161,7 +161,7 @@ def _inspection_payload(stop_work: bool = False):
 
 def _meeting_payload():
     return {
-        "project_name": "Phase2B-2B · Test",
+        "project_name": "TEST_Phase2B_2B_Test",
         "project_number": PROJECT_NUMBER,
         "location": "test-loc",
         "meeting_date": "2026-02-12",
@@ -173,7 +173,7 @@ def _meeting_payload():
 
 def _jha_payload():
     return {
-        "project_name": "Phase2B-2B · Test",
+        "project_name": "TEST_Phase2B_2B_Test",
         "project_number": PROJECT_NUMBER,
         "location": "test-loc",
         "jha_date": "2026-02-12",
@@ -185,7 +185,7 @@ def _jha_payload():
 
 def _incident_payload(severity: str = "Minor"):
     return {
-        "project_name": "Phase2B-2B · Test",
+        "project_name": "TEST_Phase2B_2B_Test",
         "project_number": PROJECT_NUMBER,
         "location": "test-loc",
         "incident_date": "2026-02-12",
@@ -202,7 +202,7 @@ def _incident_payload(severity: str = "Minor"):
 
 def _preop_payload(fail_count: int = 2):
     return {
-        "project_name": "Phase2B-2B · Test",
+        "project_name": "TEST_Phase2B_2B_Test",
         "project_number": PROJECT_NUMBER,
         "location": "test-loc",
         "inspection_date": "2026-02-12",
@@ -217,7 +217,7 @@ def _preop_payload(fail_count: int = 2):
 def _qaqc_payload():
     return {
         "inspection_kind": "concrete_form",
-        "project_name": "Phase2B-2B · Test",
+        "project_name": "TEST_Phase2B_2B_Test",
         "project_number": PROJECT_NUMBER,
         "location": "test-loc",
         "inspection_date": "2026-02-12",

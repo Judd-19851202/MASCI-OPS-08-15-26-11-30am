@@ -95,7 +95,7 @@ def odr_with_photos(headers: dict) -> dict:
         "project": {
             "project_id": f"proj-m04-{uuid.uuid4().hex[:8]}",
             "project_number": f"M04-{uuid.uuid4().hex[:4]}",
-            "project_name": "M0.4 Photo PDF",
+            "project_name": "TEST_M0_4_Photo_PDF",
             "report_date": "2026-05-29",
             "foreman_uid": ADMIN_EMAIL,
             "foreman_name": "Pytest Foreman",
@@ -266,7 +266,7 @@ def test_pdf_with_no_photos_still_renders(headers):
         "project": {
             "project_id": f"proj-m04-no-{uuid.uuid4().hex[:8]}",
             "project_number": f"M04N-{uuid.uuid4().hex[:4]}",
-            "project_name": "M0.4 No Photos",
+            "project_name": "TEST_M0_4_No_Photos",
             "report_date": "2026-05-29",
             "foreman_uid": ADMIN_EMAIL,
             "foreman_name": "Pytest Foreman",
@@ -310,7 +310,7 @@ def test_unresolvable_photo_renders_placeholder(headers):
         "project": {
             "project_id": f"proj-m04-orphan-{uuid.uuid4().hex[:8]}",
             "project_number": f"M04O-{uuid.uuid4().hex[:4]}",
-            "project_name": "M0.4 Orphan Photo",
+            "project_name": "TEST_M0_4_Orphan_Photo",
             "report_date": "2026-05-29",
             "foreman_uid": ADMIN_EMAIL,
             "foreman_name": "Pytest Foreman",

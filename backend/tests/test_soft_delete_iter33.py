@@ -119,7 +119,7 @@ def test_jobs_soft_delete_archive_restore(tok):
     pn = f"SD-{uuid.uuid4().hex[:6]}"
     job = requests.post(
         f"{API}/admin/jobs",
-        json={"project_number": pn, "project_name": "SD test", "location": "Tville"},
+        json={"project_number": pn, "project_name": "TEST_SD_test", "location": "Tville"},
         headers=h,
         timeout=15,
     ).json()

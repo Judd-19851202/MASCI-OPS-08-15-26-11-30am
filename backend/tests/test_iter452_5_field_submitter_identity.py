@@ -154,7 +154,7 @@ def _purge_record(workflow: str, record_id: str):
 @pytest.fixture
 def fresh_dr_with_fsi(admin_headers):
     payload = {
-        "project_name": "iter452.5 FSI DR test",
+        "project_name": "TEST_iter452_5_FSI_DR_test",
         "project_number": "TEST-4525",
         "location": "Lab",
         "report_date": "2026-06-01",
@@ -177,7 +177,7 @@ def fresh_dr_with_fsi(admin_headers):
 @pytest.fixture
 def fresh_incident_with_fsi(admin_headers):
     payload = {
-        "project_name": "iter452.5 FSI incident test",
+        "project_name": "TEST_iter452_5_FSI_incident_test",
         "project_number": "TEST-4525",
         "location": "Lab",
         "incident_date": "2026-06-01",
@@ -246,7 +246,7 @@ def test_legacy_dr_submission_creates_binding_marked_legacy(admin_headers):
     marked legacy_submitter=True so the kickback router can degrade
     gracefully to the PM-relay path."""
     payload = {
-        "project_name": "iter452.5 legacy DR test",
+        "project_name": "TEST_iter452_5_legacy_DR_test",
         "project_number": "TEST-4525",
         "location": "Lab",
         "report_date": "2026-06-01",

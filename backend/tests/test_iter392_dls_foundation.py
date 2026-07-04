@@ -214,7 +214,7 @@ def created_assignment(headers_for) -> dict:
         "driver_id": "driver-iter392",
         "driver_name": "Test Driver",
         "project_number": "iter392-PRJ",
-        "project_name": "iter392 Test Project",
+        "project_name": "TEST_iter392_Test_Project",
         "material": "Asphalt",
         "source_location": "Plant A",
         "destination": "Test Job Site",

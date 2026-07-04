@@ -393,7 +393,7 @@ def test_by_project_carries_holds_and_certification_status(client, admin_headers
     # Assign to project
     client.post(
         "/api/trench-safety/assets/TB-01/assign",
-        json={"project_id": "PRJ-4B", "project_name": "Phase4B Project", "project_number": "4B-1"},
+        json={"project_id": "PRJ-4B", "project_name": "TEST_Phase4B_Project", "project_number": "4B-1"},
         headers=admin_headers,
     )
     r = client.get("/api/trench-safety/by-project", params={"project_id": "PRJ-4B"}, headers=admin_headers)

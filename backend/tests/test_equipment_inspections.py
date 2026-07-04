@@ -133,7 +133,7 @@ def _sample_record(fail_count=0, project_number="24-06"):
         }
     }
     return {
-        "project_name": "T5824 - SR 46 (W 1ST ST.)",
+        "project_name": "TEST_T5824_SR_46_W_1ST_ST",
         "project_number": project_number,
         "location": "Sanford, FL",
         "inspection_date": "2026-01-15",

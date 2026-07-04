@@ -154,7 +154,7 @@ def test_live_status_assigned_with_project_assigns(admin_token, cert_asset):
         json={
             "operational_status": "Assigned",
             "project_id": "ZZ-CERT-PROJ",
-            "project_name": "RC1 Cert Project",
+            "project_name": "TEST_RC1_Cert_Project",
             "project_number": "ZZ-CERT-2026",
             "location": "RC1 Cert Project Site",
         }, timeout=30,
@@ -202,7 +202,7 @@ def test_live_deployment_history_records_assign_and_return(admin_token, cert_ass
         headers=h,
         json={
             "operational_status": "Assigned",
-            "project_id": "ZZ-CERT-PROJ", "project_name": "RC1 Cert Project",
+            "project_id": "ZZ-CERT-PROJ", "project_name": "TEST_RC1_Cert_Project",
             "project_number": "ZZ-CERT-2026",
         }, timeout=30,
     )

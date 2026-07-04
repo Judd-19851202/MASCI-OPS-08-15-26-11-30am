@@ -121,7 +121,7 @@ def _minimal_payload(kind):
     return {
         "kind": kind,
         "project_number": "TEST-FL-001",
-        "project_name": "Iter42 Test Job",
+        "project_name": "TEST_Iter42_Test_Job",
         "assigned_pm": "Test PM",
         "assigned_pm_email": "testpm@example.com",
         "employee_name": "TEST_FL_Sub_Employee",

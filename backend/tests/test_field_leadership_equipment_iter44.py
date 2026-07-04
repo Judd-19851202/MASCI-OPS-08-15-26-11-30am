@@ -188,7 +188,7 @@ def _equipment_checkout_payload():
     return {
         "kind": "equipment_checkout",
         "project_number": "TEST-FL-001",
-        "project_name": "Iter44 Equipment Test Job",
+        "project_name": "TEST_Iter44_Equipment_Test_Job",
         "assigned_pm": "Test PM",
         "assigned_pm_email": "testpm@example.com",
         "employee_name": "TEST_FL_Equip_Employee",

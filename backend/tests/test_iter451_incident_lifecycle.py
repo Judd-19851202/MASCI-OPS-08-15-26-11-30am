@@ -196,7 +196,7 @@ def admin_headers():
 def fresh_incident(admin_headers):
     """Create an incident, yield its id, delete on teardown."""
     payload = {
-        "project_name": "iter451 lifecycle test",
+        "project_name": "TEST_iter451_lifecycle_test",
         "project_number": "TEST-451",
         "location": "Lab",
         "incident_date": "2026-06-01",
@@ -231,7 +231,7 @@ def fresh_incident(admin_headers):
 @pytest.fixture
 def fresh_osha_incident(admin_headers):
     payload = {
-        "project_name": "iter451 OSHA lifecycle test",
+        "project_name": "TEST_iter451_OSHA_lifecycle_test",
         "project_number": "TEST-451-OSHA",
         "location": "Lab",
         "incident_date": "2026-06-01",

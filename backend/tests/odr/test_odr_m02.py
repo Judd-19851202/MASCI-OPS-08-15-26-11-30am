@@ -50,7 +50,7 @@ def submitted_odr(headers: dict) -> dict:
         "project": {
             "project_id": f"proj-m02-{uuid.uuid4().hex[:8]}",
             "project_number": f"M02-{uuid.uuid4().hex[:4]}",
-            "project_name": "M0.2 Pytest Project",
+            "project_name": "TEST_M0_2_Pytest_Project",
             "report_date": "2026-05-29",
             "foreman_uid": ADMIN_EMAIL,
             "foreman_name": "Pytest Foreman",

@@ -51,7 +51,7 @@ def headers() -> dict:
 
 def _new_payload() -> dict:
     return {
-        "project_name": "Wave-1A Test",
+        "project_name": "TEST_Wave_1A_Test",
         "project_number": f"W1A-{uuid.uuid4().hex[:4]}",
         "location": "Sta 12+00 to 14+00",
         "report_date": "2026-05-29",
