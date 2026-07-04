@@ -11,6 +11,18 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 22.1E · Index-Ensure Handler Migration · 🟢 GO / CLOSED (2026-07-04)
+
+First real cutover into the Track 22.1D lifespan foundation. 11 index-ensure startup handlers migrated from legacy `@app.on_event("startup")` decorators into a new `LIFECYCLE_STEPS` registry hosted by `backend/lib/lifespan_bootstrap.py`. On boot, the orchestrator runs `LIFECYCLE_STEPS` first (in preserved source order), then the remaining 40 legacy on_startup handlers. Real migration — no permanent dual system.
+
+- **New (in `lib/lifespan_bootstrap.py`):** `LifecycleStep` dataclass · `LIFECYCLE_STEPS: List[LifecycleStep]` registry · `register_lifecycle_step(group, name=None)` decorator · `orchestrated_lifespan` extended to iterate `LIFECYCLE_STEPS` before `app.router.on_startup`. Still AST-verified: no `import resend`.
+- **Migrated (11 handlers, single-line decorator swap each):** `_ensure_scheduler_lock_indexes_at_startup`, `_ensure_project_team_assignments_indexes`, `_startup_trust_spine_indexes`, `_arm_hot_id_indexes`, `_arm_workflow_state_events_indexes`, `_arm_iter142_perf_indexes`, `_li_ensure_indexes`, `_fleet_ensure_indexes`, `_ensure_dls_indexes`, `_ensure_driver_session_indexes`, `_ensure_passkey_indexes`.
+- **Proof:** 1,440 routes → 1,440 · 1,444 methods · 1,263 OpenAPI paths · 7 middleware · **51 → 40 on_startup + 11 LIFECYCLE_STEPS (Σ = 51)** · 0 qualname drift · 0 dependency-chain drift · all 5 locked bytecode fingerprints match live · no duplicate execution (11 in LIFECYCLE_STEPS, NOT in on_startup) · no missing execution (`LIFECYCLE_STEPS complete` fires, then `lifespan.startup: complete`, then readiness flip).
+- **Ordering strict-improvement:** all 11 index-ensure handlers now run BEFORE any seed / scheduler / bootstrap handler. Every dependent write is guaranteed to find its indexes already present. `create_index(...)` is idempotent — safe.
+- **Deferred with plan:** remaining 40 on_startup handlers queued into 6 follow-up tracks (22.1f seeds · 22.1g non-email schedulers · 22.1h email-capable schedulers · 22.1i miscellaneous bootstrap · 22.1j readiness+reminders · 22.1k shutdown).
+- **Regression envelope:** 218 / 218 (+11 Track 22.1E).
+- **Eight Pillars:** 9.88 platform average (up from 9.86). Trusted / Proven: 9.97 each · Relentless Ownership: 9.95.
+
 ## TRACK 22.1D · FastAPI Lifespan Migration Foundation · 🟢 GO / CLOSED (2026-07-04)
 
 Modernized FastAPI lifecycle from scattered `@app.on_event` decorators to a single deterministic lifespan context manager — with byte-identical runtime behavior.

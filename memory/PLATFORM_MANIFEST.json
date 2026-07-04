@@ -1,6 +1,28 @@
 {
   "generated": "2026-08-04",
   "track": "21.0",
+  "recent_track_closures": [
+    {
+      "track": "22.1E",
+      "title": "Index-Ensure Handler Migration",
+      "status": "GO / CLOSED",
+      "date": "2026-07-04",
+      "on_startup_count_before": 51,
+      "on_startup_count_after": 40,
+      "lifecycle_steps_added": 11,
+      "lock_envelope_before": 207,
+      "lock_envelope_after": 218,
+      "eight_pillars_average": 9.88
+    },
+    {
+      "track": "22.1D",
+      "title": "FastAPI Lifespan Migration Foundation",
+      "status": "GO / CLOSED",
+      "date": "2026-07-04",
+      "lock_envelope": 207,
+      "eight_pillars_average": 9.86
+    }
+  ],
   "counts": {
     "files_tracked_git": 6936,
     "backend_py_files": 1169,

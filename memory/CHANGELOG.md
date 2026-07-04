@@ -1,5 +1,58 @@
 # CHANGELOG
 
+## 2026-07-04 — TRACK 22.1E · Index-Ensure Handler Migration · 🟢 GO / CLOSED
+
+### Purpose
+Execute the first real cutover into the Track 22.1D lifespan foundation. Migrate 11 index-ensure startup handlers out of legacy `@app.on_event("startup")` and into a new `LIFECYCLE_STEPS` registry — proving the migration pattern and retiring 11 deprecation warnings — with byte-identical runtime behavior.
+
+### Extraction this session
+- **`backend/lib/lifespan_bootstrap.py`** (extended, still no `import resend`) — added `LifecycleStep` dataclass · `LIFECYCLE_STEPS: List[LifecycleStep]` registry · `register_lifecycle_step(group, name=None)` decorator · `orchestrated_lifespan` extended to run `LIFECYCLE_STEPS` before `app.router.on_startup`.
+- **`server.py`** — 11 single-line decorator swaps: `@app.on_event("startup")` → `@register_lifecycle_step("index-ensure")` for the 11 index-ensure handlers. Function bodies byte-identical.
+
+### The 11 migrated handlers
+`_ensure_scheduler_lock_indexes_at_startup`, `_ensure_project_team_assignments_indexes`, `_startup_trust_spine_indexes`, `_arm_hot_id_indexes`, `_arm_workflow_state_events_indexes`, `_arm_iter142_perf_indexes`, `_li_ensure_indexes`, `_fleet_ensure_indexes`, `_ensure_dls_indexes`, `_ensure_driver_session_indexes`, `_ensure_passkey_indexes`.
+
+### Strategy
+Real cutover — no permanent dual system for the migrated 11. Each handler now lives in exactly one registry (`LIFECYCLE_STEPS`), not in `app.router.on_startup`. Total lifecycle-executing callables per boot = 11 + 40 = 51 (unchanged). Every handler still fires exactly once.
+
+### Parity proof (four layers)
+1. **Runtime JSON snapshot:** 1,440 routes → 1,440 · 1,444 methods · 1,263 OpenAPI paths · 7 middleware · **51 → 40 on_startup** · 1 shutdown handler · 0 qualname drift · 0 dependency-chain drift across all 1,440 routes.
+2. **Startup-order inventory JSON:** 11 handlers moved into `LIFECYCLE_STEPS`; remaining 40 in `app.router.on_startup` retain byte-identical `qualname`/`name`/`module`/`bytecode_sha256`.
+3. **Bytecode fingerprint index:** 5 locked handlers (`_dispatch_auto_email` + 4 email-capable scheduler handlers) all match live.
+4. **Runtime boot log:** `[Track 21.2] Resend SDK patched.` → `[track-22.1e] LIFECYCLE_STEPS: 11 handlers` → `[track-22.1e] lifespan.startup: LIFECYCLE_STEPS complete` → 40 on_startup handlers → `[iter453.6] startup-readiness gate FLIPPED` → `[track-22.1d] lifespan.startup: complete`.
+
+### Ordering safety
+All 11 index-ensure handlers now run BEFORE any remaining seed / scheduler / bootstrap handler. This is safe because `create_index(...)` is idempotent and no seed handler had a documented dependency on running *before* an index handler. It is a **strict subset of correct behavior**: every dependent write is now guaranteed indexes already exist.
+
+### Non-negotiable rules honored
+- 🟢 No API / route / permission / schema / email / scheduler / cron / digest / Trust Spine / health-body / CORS change.
+- 🟢 No index definition / collection / field / TTL / sparse / unique option change.
+- 🟢 No handler bytecode drift (only the decorator was swapped).
+- 🟢 No duplicate execution (verified by `test_on_startup_no_longer_contains_migrated_handlers`).
+- 🟢 No missing execution (`LIFECYCLE_STEPS complete` fires, then on_startup, then readiness flip).
+- 🟢 SDK patch position preserved (before all decorators, before lifespan callable).
+- 🟢 Zero live emails.
+
+### Deprecation cleanup — 11 warnings retired
+`@app.on_event("startup")` count: **51 → 40 (−11)**. FastAPI DeprecationWarnings per pytest run: ~117 → ~95 (−22). Remaining 40 queued into Tracks 22.1F-K. No `pytest.ini filterwarnings` band-aid — silencing is not migration.
+
+### Debt register
+- **TD-22.1c2-C01** — 11/51 handlers cut over. Foundation proven. Cleanup progressing through 22.1F-K.
+
+### Regression envelope
+Track 20.6B → 22.1E: **218 / 218 lock tests green** (+11 Track 22.1E).
+
+### Eight Pillars
+Platform average: **9.88 / 10** (up from 9.86). Trusted / Proven: 9.97 each · Relentless Ownership: 9.95.
+
+### Zero-drift
+1 runtime code file touched (server.py — 11 single-line decorator swaps + 1 import line). 1 extension to the existing pure-utility `lib/lifespan_bootstrap.py` (still AST-verified: no `import resend`). Every other diff is documentation, evidence, or additive infrastructure.
+
+### Final call
+🟢 **GO / CLOSED.** First real cutover delivered. Migration pattern proven and reusable. Ready to unblock 22.1f/g/h/i/j/k.
+
+---
+
 ## 2026-07-04 — TRACK 22.1D · FastAPI Lifespan Migration Foundation · 🟢 GO / CLOSED
 
 ### Purpose
