@@ -1,0 +1,86 @@
+{
+  "track": "22.1I.1",
+  "handler": "_start_backup_scheduler",
+  "state": "before_migration",
+  "captured_at_utc_epoch": null,
+  "source": {
+    "file": "backend/server.py",
+    "line": 15652,
+    "module": "server",
+    "qualname": "_start_backup_scheduler",
+    "decorator_current": "@app.on_event(\"startup\")",
+    "target_decorator": "@register_lifecycle_step(\"backup-scheduler\")"
+  },
+  "bytecode": {
+    "sha256": "c7d29e0072aa7578855271dfd5d63a048b0f10d0d0d7bbc6819488d35b378a73",
+    "co_consts_count": 34,
+    "co_names_head": [
+      "os", "environ", "get", "lower", "logging", "getLogger", "__name__",
+      "info", "BACKUPS_DIR", "mkdir", "_disk_pct_used",
+      "BACKUP_DISK_HIGH_WATERMARK", "warning", "_emergency_prune_backups",
+      "asyncio", "create_task", "_backup_scheduler_loop_with_capture", "db",
+      "_backup_task", "services.asset_spine_scheduler",
+      "asset_spine_nightly_loop", "Exception", "join",
+      "BACKUP_HOURS_UTC", "BACKUP_RETENTION_DAYS", "BACKUP_KEEP_MAX",
+      "sleep", "done", "result", "critical"
+    ]
+  },
+  "scheduler": {
+    "kind": "asyncio_task_loop",
+    "job_id": "backup_scheduler",
+    "singleton_lock_key": "backup_scheduler",
+    "singleton_lock_helper": "run_with_singleton_lock",
+    "loop_callable": "_backup_scheduler_loop_with_capture",
+    "loop_impl": "_backup_scheduler_loop",
+    "cadence_env_vars": ["BACKUP_HOURS_UTC", "BACKUP_HOURS_LOCAL", "BACKUP_HOURS_TZ"],
+    "cadence_default_utc_hours": "[00, 12] (env-overridable)",
+    "retention_env_vars": ["BACKUP_RETENTION_DAYS", "BACKUP_KEEP_MAX"],
+    "retention_defaults": {"days": 14, "keep_max": 3},
+    "disk_watermark_env": "BACKUP_DISK_HIGH_WATERMARK",
+    "disk_watermark_default": 75,
+    "supervisor_task": "_scheduler_supervisor (5-min health tick + respawn)"
+  },
+  "env_gates": {
+    "DISABLE_BACKUP_SCHEDULER": "1|true|yes → early return, no task spawned",
+    "SCHEDULER_ENABLED": "loop respects at inner tick (preview=false)",
+    "APP_ENV": "no direct gate; refuse-to-boot alignment enforced elsewhere"
+  },
+  "side_effects_on_startup": [
+    "BACKUPS_DIR.mkdir(exist_ok=True)",
+    "_disk_pct_used(): read-only shutil.disk_usage",
+    "_emergency_prune_backups(): fs deletion of local backup zips only when disk >= high-watermark",
+    "asyncio.create_task(_backup_scheduler_loop_with_capture(db)): schedule bg loop",
+    "asyncio.create_task(asset_spine_nightly_loop(db)): schedule nightly R2 asset spine reconciliation",
+    "await asyncio.sleep(1.5): give the task a moment to settle",
+    "if _backup_task.done(): _backup_task.result() → raises to surface early failure",
+    "asyncio.create_task(_scheduler_supervisor()): 5-min supervisor tick"
+  ],
+  "r2_touch_points": {
+    "direct_r2_calls_at_startup": false,
+    "r2_indirection_summary": "R2 uploads happen inside `_backup_scheduler_loop` when a scheduled slot fires. Loop is singleton-locked and respects SCHEDULER_ENABLED. No R2 call occurs at startup registration.",
+    "asset_spine_nightly_loop": "Reads Mongo, performs asset spine reconciliation; R2 side effects gated by service-level env flags."
+  },
+  "email_touch_points": {
+    "direct_resend_import_in_handler_scope": false,
+    "handler_dispatches_email_at_startup": false,
+    "failure_alert_email_path": "OUT OF SCOPE — lives in `_start_backup_verification_cron` (email-scheduler group, Track 22.1H, already migrated & fingerprint-locked) and inside the backup loop which routes through `_dispatch_auto_email` under EMAIL_SAFETY_MODE=strict."
+  },
+  "trust_spine_touch_points": {
+    "at_startup": false,
+    "in_loop": "Trust Spine audit rows may be emitted by the backup verification cron path; unaffected by this migration."
+  },
+  "must_run_before": [],
+  "must_run_after": [
+    "index-ensure (Mongo indexes exist so singleton-lock read/write is fast; not strict — lock is idempotent)",
+    "seed (unrelated but ordered earlier in previous topology; not strict)"
+  ],
+  "safe_to_migrate": true,
+  "safe_to_migrate_reasoning": [
+    "Handler is env-gated by DISABLE_BACKUP_SCHEDULER for full opt-out.",
+    "All R2 work occurs inside the singleton-locked loop, not during registration.",
+    "Boot validation `await asyncio.sleep(1.5)` is preserved verbatim.",
+    "Supervisor task creation is preserved verbatim (fire-and-forget).",
+    "No handler in `on_startup` or `LIFECYCLE_STEPS` depends on this handler having run first (the loop wakes on cadence, not immediately).",
+    "The 3 remaining legacy on_startup handlers (command_center._startup, this, readiness-flip) will drop to 2 after cutover. Readiness-flip stays LAST via source-order preservation — it is still the LAST `@app.on_event('startup')` in server.py."
+  ]
+}

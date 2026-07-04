@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## 2026-07-04 — TRACK 22.1I.1 · Backup Scheduler Safety Audit + Lifespan Migration · 🟢 GO / CLOSED
+
+Migrated the last risk-locked startup handler in `server.py`'s core — `_start_backup_scheduler` — from `@app.on_event("startup")` into `LIFECYCLE_STEPS.backup-scheduler`. Bytecode byte-identical (SHA-256 `c7d29e00...`, now fingerprint-locked). Zero R2 / backup / failure-watchdog behavior change. Zero live emails. Legacy `on_startup` count drops from 3 → 2. `migrated_pct` jumps 94.00% → 96.00%.
+
+- **Parity:** 1,441 routes unchanged · 1,445 methods · 1,264 OpenAPI · 7 middleware · **3 → 2 on_startup + 47 → 48 LIFECYCLE_STEPS** · 6/6 bytecode fingerprints clean · 0 duplicate registrations · readiness flip remains last.
+- **Platform Ops API:** new group `backup-scheduler` (closed=true, track=22.1I.1); recommendation queue promoted to 22.1J readiness. `recent_track_closures=["22.1E","22.1F","22.1G","22.1H","22.1I","22.1I.1"]`.
+- **Backup contract preserved:** job ID `backup_scheduler`, cadence `BACKUP_HOURS_UTC`, retention `BACKUP_RETENTION_DAYS=14` / `BACKUP_KEEP_MAX=3`, disk-watermark `BACKUP_DISK_HIGH_WATERMARK=75`, emergency prune, asset-spine nightly loop scheduling, 1.5s boot-settle validation, scheduler supervisor (5-min tick + respawn) — all byte-identical.
+- **Email safety:** `EMAIL_SAFETY_MODE=strict` intact · Resend SDK patched · `_dispatch_auto_email` untouched · failure-alert email path (`_start_backup_verification_cron`) unchanged (Track 22.1H fingerprint still locked).
+- **Files touched:** `backend/server.py` (1 line), `backend/lib/platform_status.py` (3 additive edits), `backend/tests/test_track_22_1i_misc_bootstrap_migration.py` (3 baseline loosenings for progression), new lock test `test_track_22_1i1_backup_scheduler_migration.py`, `memory/BYTECODE_FINGERPRINTS/INDEX.json` (+1 fingerprint), 13 deliverables + 4 snapshots.
+- **Deferred with plan:** `_iter453_6_flip_ready_flag` → Track 22.1J · `build_command_center_router._startup` → Track 22.1L · shutdown handler → Track 22.1K.
+- **Eight Pillars:** 9.92 platform average (up from 9.91). Trusted / Proven / Durable each 9.98 · Relentless Ownership 9.97.
+- **Final call:** 🟢 GO / CLOSED. Only 2 legacy `on_startup` decorators remain.
+
+---
+
 ## 2026-07-04 — TRACK 22.1I · Miscellaneous Bootstrap Handler Migration · 🟢 GO / CLOSED
 
 Largest single migration in the program — 20 misc-bootstrap startup handlers cut over from `@app.on_event("startup")` → `@register_lifecycle_step("misc-bootstrap")`. Function bodies byte-identical. Excluded 3 handlers with owner + target track (`_startup` from `routes.command_center` → 22.1L · `_start_backup_scheduler` → 22.1I.1 backup safety audit · `_iter453_6_flip_ready_flag` → 22.1J readiness-last).

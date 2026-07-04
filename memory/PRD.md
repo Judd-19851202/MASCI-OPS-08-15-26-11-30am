@@ -11,6 +11,18 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 22.1I.1 · Backup Scheduler Safety Audit + Lifespan Migration · 🟢 GO / CLOSED (2026-07-04)
+
+Surgical single-handler cutover. `_start_backup_scheduler` moved from `@app.on_event("startup")` into `LIFECYCLE_STEPS.backup-scheduler`. Bytecode byte-identical (SHA-256 `c7d29e00...`); R2 / backup / failure-watchdog behavior unchanged; zero live emails; legacy startup count drops from 3 → 2.
+
+- **Migrated (1):** `_start_backup_scheduler` — the last risk-locked handler in `server.py` core. Body byte-identical; new fingerprint `c7d29e00...` locked in `INDEX.json`.
+- **Excluded (2, documented):** `build_command_center_router._startup` (router-hosted, Track 22.1L) · `_iter453_6_flip_ready_flag` (readiness-last, Track 22.1J).
+- **Proof:** 1,441 routes → 1,441 · 1,445 methods · 1,264 OpenAPI · 7 middleware · **3 → 2 on_startup + 47 → 48 LIFECYCLE_STEPS (Σ = 50)** · 6/6 bytecode fingerprints clean (added `_start_backup_scheduler`) · 0 duplicate registrations · readiness flip remains last · scheduler job ID `backup_scheduler` unchanged · cadence unchanged · retention unchanged · R2 upload behavior unchanged.
+- **Platform Ops API:** `by_group={index-ensure:11, seed:7, scheduler-nonemail:4, email-scheduler:5, misc-bootstrap:20, backup-scheduler:1}`, `on_startup_legacy_count=2`, `migrated_pct=96.00`, `target_groups.backup-scheduler.closed=true`, `recent_track_closures=["22.1E","22.1F","22.1G","22.1H","22.1I","22.1I.1"]`.
+- **Regression envelope:** 22 assertions in `test_track_22_1i1_backup_scheduler_migration.py`. Full pre-existing 22.1[C-I] locks re-verified with baseline loosening for 22.1I documented.
+- **Zero live emails** · **Zero live R2 writes during tests**.
+- **Eight Pillars:** 9.92 platform average (up from 9.91). Trusted / Proven / Durable each 9.98 · Relentless Ownership 9.97.
+
 ## TRACK 22.1I · Miscellaneous Bootstrap Handler Migration · 🟢 GO / CLOSED (2026-07-04)
 
 Largest single migration in the program — 20 miscellaneous bootstrap startup handlers cut over from `@app.on_event("startup")` → `@register_lifecycle_step("misc-bootstrap")`. Zero route/OpenAPI drift. Zero bytecode drift. Zero live emails.

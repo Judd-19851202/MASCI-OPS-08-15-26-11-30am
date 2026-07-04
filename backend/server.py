@@ -15649,7 +15649,7 @@ async def _create_safety_indexes():
         logging.getLogger(__name__).warning(f"[safety-indexes] failed: {e}")
 
 
-@app.on_event("startup")
+@register_lifecycle_step("backup-scheduler")
 async def _start_backup_scheduler():
     """Kick off the nightly full-backup scheduler as an asyncio task,
     plus a supervisor task that resurrects the scheduler if it ever dies.

@@ -34,6 +34,7 @@ _MIGRATION_TARGETS = {
     "scheduler-nonemail": {"track": "22.1G", "closed": True},
     "email-scheduler":    {"track": "22.1H", "closed": True},
     "misc-bootstrap":     {"track": "22.1I", "closed": True},
+    "backup-scheduler":   {"track": "22.1I.1", "closed": True},
     "readiness":          {"track": "22.1J", "closed": False},
     "shutdown":           {"track": "22.1K", "closed": False},
 }
@@ -180,7 +181,13 @@ def _recommended_next_actions(app) -> list:
             "action": "Track 22.1I — migrate remaining miscellaneous bootstrap handlers.",
             "gate": "Prove each handler is independent of a specific bootstrap earlier in on_startup.",
         })
-    elif "misc-bootstrap" in groups_present and "readiness" not in groups_present:
+    elif "misc-bootstrap" in groups_present and "backup-scheduler" not in groups_present:
+        advice.append({
+            "priority": "P1",
+            "action": "Track 22.1I.1 — migrate _start_backup_scheduler with backup/R2 safety audit.",
+            "gate": "R2 safety audit + bytecode fingerprint lock + no live-email path.",
+        })
+    elif "backup-scheduler" in groups_present and "readiness" not in groups_present:
         advice.append({
             "priority": "P2",
             "action": "Track 22.1J — migrate the readiness-flip handler as the final LIFECYCLE_STEP.",
@@ -235,6 +242,6 @@ def platform_status(app) -> Dict[str, Any]:
         "readiness": {
             "ready_flag": bool(getattr(getattr(app, "state", None), "ready", False)),
         },
-        "recent_track_closures": ["22.1D", "22.1E", "22.1F", "22.1G", "22.1H", "22.1I"],
+        "recent_track_closures": ["22.1E", "22.1F", "22.1G", "22.1H", "22.1I", "22.1I.1"],
         "recommended_next_actions": _recommended_next_actions(app),
     }

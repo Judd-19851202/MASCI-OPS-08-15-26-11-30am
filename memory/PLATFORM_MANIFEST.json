@@ -3,6 +3,22 @@
   "track": "21.0",
   "recent_track_closures": [
     {
+      "track": "22.1I.1",
+      "title": "Backup Scheduler Safety Audit + Lifespan Migration",
+      "status": "GO / CLOSED",
+      "date": "2026-07-04",
+      "on_startup_count_before": 3,
+      "on_startup_count_after": 2,
+      "lifecycle_steps_added": 1,
+      "lifecycle_steps_total": 48,
+      "migrated_handler": "_start_backup_scheduler",
+      "new_group": "backup-scheduler",
+      "bytecode_sha256": "c7d29e0072aa7578855271dfd5d63a048b0f10d0d0d7bbc6819488d35b378a73",
+      "excluded_handlers": ["_startup (routes.command_center)", "_iter453_6_flip_ready_flag"],
+      "route_delta": 0,
+      "migrated_pct": 96.00
+    },
+    {
       "track": "22.1I",
       "title": "Miscellaneous Bootstrap Handler Migration",
       "status": "GO / CLOSED",

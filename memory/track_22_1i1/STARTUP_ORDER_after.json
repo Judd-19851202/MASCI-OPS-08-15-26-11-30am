@@ -1,0 +1,374 @@
+{
+  "lifecycle_steps": [
+    {
+      "index": 0,
+      "group": "index-ensure",
+      "name": "_ensure_scheduler_lock_indexes_at_startup",
+      "module": "server",
+      "sha256": "95fbf4c4446608463d952008bd828cd0b8dd2cae87727f8d557aebd92fec862c"
+    },
+    {
+      "index": 1,
+      "group": "misc-bootstrap",
+      "name": "_db_isolation_failsafe",
+      "module": "server",
+      "sha256": "732424a607b6d6cccc75a80a075f6719fb393b5bc570a8c393b8ba7bd3c88539"
+    },
+    {
+      "index": 2,
+      "group": "misc-bootstrap",
+      "name": "_tune_asyncio_thread_pool",
+      "module": "server",
+      "sha256": "124020c2f859fbfbf3e5dead51889e3349c77420a2d17062c4271322139e5901"
+    },
+    {
+      "index": 3,
+      "group": "scheduler-nonemail",
+      "name": "_start_job_photos_indexer",
+      "module": "server",
+      "sha256": "01637ba8270de688649404cb24cf5b7e2cad126e1c639d82dcbfc6caa9c1f997"
+    },
+    {
+      "index": 4,
+      "group": "seed",
+      "name": "_seed_field_leadership_equipment_catalog",
+      "module": "server",
+      "sha256": "6aef109dac0bb8d9aefd481aba1ffed805a3e07d1648b208677f3f3abd52b9d3"
+    },
+    {
+      "index": 5,
+      "group": "seed",
+      "name": "_seed_shop_users",
+      "module": "server",
+      "sha256": "f4a0ac30a7792fffc34c7761ede173e0aa8078426f26e9dbf0decd57b4aba146"
+    },
+    {
+      "index": 6,
+      "group": "index-ensure",
+      "name": "_ensure_project_team_assignments_indexes",
+      "module": "server",
+      "sha256": "7c5ca9fd241649375802d94bbf61a0ebaa02a22a9094a3ea9557ca84109ddd71"
+    },
+    {
+      "index": 7,
+      "group": "misc-bootstrap",
+      "name": "_deploy_fix_001_backup_orphan_sweep",
+      "module": "server",
+      "sha256": "31e2eb39f92b5e6a006098b5697d1bf341be65151d61e09073eb8526fd0b9151"
+    },
+    {
+      "index": 8,
+      "group": "seed",
+      "name": "_seed_hr_users",
+      "module": "server",
+      "sha256": "f4a0ac30a7792fffc34c7761ede173e0aa8078426f26e9dbf0decd57b4aba146"
+    },
+    {
+      "index": 9,
+      "group": "misc-bootstrap",
+      "name": "_ensure_v_prelude_wave1_indexes",
+      "module": "server",
+      "sha256": "3b11e67a71550c275b3ee367390cb94085f6c712ec02d28fba598e8f010a6193"
+    },
+    {
+      "index": 10,
+      "group": "misc-bootstrap",
+      "name": "_log_operational_hygiene_at_startup",
+      "module": "server",
+      "sha256": "2661bda47433d650566d701c1957d2fd93e359baf8dd43848d6d444667781441"
+    },
+    {
+      "index": 11,
+      "group": "scheduler-nonemail",
+      "name": "_start_motive_reliability_loop",
+      "module": "server",
+      "sha256": "4caee0700f1cafe275c50583b7d8ad19d3645ea8a2d1649b94af7e2984cd9a9c"
+    },
+    {
+      "index": 12,
+      "group": "misc-bootstrap",
+      "name": "_clear_super_admin_force_pw_change",
+      "module": "server",
+      "sha256": "32c475e3900113eaebc26ddd903745024a62abbb5f6c6c9a9fc695b985fae8c0"
+    },
+    {
+      "index": 13,
+      "group": "seed",
+      "name": "_seed_field_leadership_users",
+      "module": "server",
+      "sha256": "f4a0ac30a7792fffc34c7761ede173e0aa8078426f26e9dbf0decd57b4aba146"
+    },
+    {
+      "index": 14,
+      "group": "index-ensure",
+      "name": "_startup_trust_spine_indexes",
+      "module": "server",
+      "sha256": "6aef109dac0bb8d9aefd481aba1ffed805a3e07d1648b208677f3f3abd52b9d3"
+    },
+    {
+      "index": 15,
+      "group": "misc-bootstrap",
+      "name": "_startup_deployment_ledger_indexes",
+      "module": "server",
+      "sha256": "6aef109dac0bb8d9aefd481aba1ffed805a3e07d1648b208677f3f3abd52b9d3"
+    },
+    {
+      "index": 16,
+      "group": "misc-bootstrap",
+      "name": "_oa_startup",
+      "module": "server",
+      "sha256": "abe4c2a64c383ee4fd410135b08013e8232b7936d25b594f22962cb795865865"
+    },
+    {
+      "index": 17,
+      "group": "scheduler-nonemail",
+      "name": "_start_health_monitor",
+      "module": "server",
+      "sha256": "6b62dfcfc188f73c859e53e321bc986f88c725aa6ee85cc313e56874544c7841"
+    },
+    {
+      "index": 18,
+      "group": "misc-bootstrap",
+      "name": "_arm_audit_ttl_indexes",
+      "module": "server",
+      "sha256": "92d5def7a0e8a254dd1f1ae337b53c52591c208ceb196d63aa0d006d7fb9e34e"
+    },
+    {
+      "index": 19,
+      "group": "misc-bootstrap",
+      "name": "_bootstrap_operations",
+      "module": "server",
+      "sha256": "d7bc6ba7ea9479bb2da8763335c43258ab416493bffc90bae6a2cbadbb142ceb"
+    },
+    {
+      "index": 20,
+      "group": "misc-bootstrap",
+      "name": "_bootstrap_integrations",
+      "module": "server",
+      "sha256": "6d1a8372c7c871371561f2fad73f47a5073bf8bf3dfb5683acf46c9ca1a05c43"
+    },
+    {
+      "index": 21,
+      "group": "seed",
+      "name": "_seed_safety_users",
+      "module": "server",
+      "sha256": "b553dcd21dc0282da2ba499b01b52d6a2cfd022d03e7c8ddb3eda6c9b1e4c8a8"
+    },
+    {
+      "index": 22,
+      "group": "index-ensure",
+      "name": "_arm_hot_id_indexes",
+      "module": "server",
+      "sha256": "abaef108207b0c64fe2240ffa4b7e46441dfa3ad7bcc268e4b3bb384b40a1591"
+    },
+    {
+      "index": 23,
+      "group": "index-ensure",
+      "name": "_arm_workflow_state_events_indexes",
+      "module": "server",
+      "sha256": "dd8742fe885863fb58566e4138a4f4bbec3339b49b761d5af9f499091398722a"
+    },
+    {
+      "index": 24,
+      "group": "index-ensure",
+      "name": "_arm_iter142_perf_indexes",
+      "module": "server",
+      "sha256": "81047757995f96112e7b8f0e632b1ed13fe63e122eff882689829232fb84c2ec"
+    },
+    {
+      "index": 25,
+      "group": "email-scheduler",
+      "name": "_start_safety_digest_cron",
+      "module": "server",
+      "sha256": "9aabbd4f4d5f0d1c0b7fede9ef7c35a5ae2640aec49c471182b2857bd7be8604"
+    },
+    {
+      "index": 26,
+      "group": "email-scheduler",
+      "name": "_start_operator_digest_cron",
+      "module": "server",
+      "sha256": "8f28a846fd2fa23f8b76cc154855a83f547ceeeaf59af2e23f863fa10a241e12"
+    },
+    {
+      "index": 27,
+      "group": "misc-bootstrap",
+      "name": "_ensure_stability_ttls",
+      "module": "server",
+      "sha256": "e723e5dd22b66c0fa606b17df54e165764a7227307e98fb906f738337b43e5fb"
+    },
+    {
+      "index": 28,
+      "group": "email-scheduler",
+      "name": "_start_po_digest_cron",
+      "module": "server",
+      "sha256": "5158200a64be314b070e9946fbead935035e5ea823b106a97a60f57ee3528c38"
+    },
+    {
+      "index": 29,
+      "group": "index-ensure",
+      "name": "_li_ensure_indexes",
+      "module": "server",
+      "sha256": "69249ad7318a3a9ba29143b328d637519ebf799438f069dd470dee296bd9f9c4"
+    },
+    {
+      "index": 30,
+      "group": "misc-bootstrap",
+      "name": "_li_start_worker",
+      "module": "server",
+      "sha256": "bde804919b0fc721aa0ff8cbeba930e26aa57fcfe107bab76d700b131a3017fc"
+    },
+    {
+      "index": 31,
+      "group": "index-ensure",
+      "name": "_fleet_ensure_indexes",
+      "module": "server",
+      "sha256": "e76def8e6fff7787d4e05a4e86297fe3d9b82bd9ba422dda3bd20ab9ac3edbdc"
+    },
+    {
+      "index": 32,
+      "group": "scheduler-nonemail",
+      "name": "_cluster_capacity_history_loop",
+      "module": "server",
+      "sha256": "15549c24d32932fc81f68692944d6a6052e4923fc6bcbba875bcaf73fa2edd4b"
+    },
+    {
+      "index": 33,
+      "group": "misc-bootstrap",
+      "name": "_ensure_field_memory_indexes_startup",
+      "module": "server",
+      "sha256": "e3da54622fc7d817613a69d077f67f2d629dfb562dd4e63b84fb779d27912d51"
+    },
+    {
+      "index": 34,
+      "group": "index-ensure",
+      "name": "_ensure_dls_indexes",
+      "module": "server",
+      "sha256": "3b62ae30ffba7cd56f4f44af7f9703b6db2eca2555f60bf635cf1c6f14a21a2b"
+    },
+    {
+      "index": 35,
+      "group": "index-ensure",
+      "name": "_ensure_driver_session_indexes",
+      "module": "server",
+      "sha256": "8de8513298001e3c53fd607a17cdf6bfbffd381806a025e4b9ce99039feda070"
+    },
+    {
+      "index": 36,
+      "group": "email-scheduler",
+      "name": "_start_backup_verification_cron",
+      "module": "server",
+      "sha256": "36bf2f8f3130e962f3ad0ab90bf3d8bf8804651791de8197724a5c785cdd4914"
+    },
+    {
+      "index": 37,
+      "group": "index-ensure",
+      "name": "_ensure_passkey_indexes",
+      "module": "server",
+      "sha256": "8de8513298001e3c53fd607a17cdf6bfbffd381806a025e4b9ce99039feda070"
+    },
+    {
+      "index": 38,
+      "group": "seed",
+      "name": "_bootstrap_user_directory",
+      "module": "server",
+      "sha256": "c8f5a766faaf7879ed0a284719ba2df3a2b13a9861721588852be93d5c7c43c3"
+    },
+    {
+      "index": 39,
+      "group": "misc-bootstrap",
+      "name": "_backfill_doc_ids",
+      "module": "server",
+      "sha256": "6a0920c770127299164070dfbf63280ec77dab03cce823d3380295ee95c034ed"
+    },
+    {
+      "index": 40,
+      "group": "misc-bootstrap",
+      "name": "_track_16_05_bootstrap_on_startup",
+      "module": "server",
+      "sha256": "a5e163b5fa9106043148635c8a8dcaa70d97b1610d5d78a895cfe43c854b86d4"
+    },
+    {
+      "index": 41,
+      "group": "misc-bootstrap",
+      "name": "_track_16_08_bootstrap_on_startup",
+      "module": "server",
+      "sha256": "f4db78e5999d607c16b3daa3db5330249cdfc192e7d0625655a3bfcfa6fdb2b7"
+    },
+    {
+      "index": 42,
+      "group": "misc-bootstrap",
+      "name": "_track_16_09_bootstrap_on_startup",
+      "module": "server",
+      "sha256": "a38e3f4977f60853545bc1ab620e07872547adbd9d94cc4899357705d4465edf"
+    },
+    {
+      "index": 43,
+      "group": "misc-bootstrap",
+      "name": "_track_16_10_bootstrap_on_startup",
+      "module": "server",
+      "sha256": "76cc5ee2172a1bb59b5dc93d5a59e7f11e92a8b51c4c9ae4919f734d42d1fdce"
+    },
+    {
+      "index": 44,
+      "group": "seed",
+      "name": "_seed_phase1",
+      "module": "server",
+      "sha256": "513aa17c06f09f5489a23271428debe2edb6b6af046cc28a6f3955119131f43f"
+    },
+    {
+      "index": 45,
+      "group": "backup-scheduler",
+      "name": "_start_backup_scheduler",
+      "module": "server",
+      "sha256": "c7d29e0072aa7578855271dfd5d63a048b0f10d0d0d7bbc6819488d35b378a73"
+    },
+    {
+      "index": 46,
+      "group": "misc-bootstrap",
+      "name": "_track_15_93_run_system_bootstrap",
+      "module": "server",
+      "sha256": "c278899135d858c6984b54a69fd52e6e420356670c1fb9654e843265f72f6d66"
+    },
+    {
+      "index": 47,
+      "group": "email-scheduler",
+      "name": "_dispatch_reminder_scheduler_start",
+      "module": "server",
+      "sha256": "5a6e39868e2200962b6ab0cdd0cc200d6b104e18faecd280e62d73a07ae81b75"
+    }
+  ],
+  "on_startup_legacy": [
+    {
+      "index": 0,
+      "name": "build_command_center_router.<locals>._startup",
+      "module": "routes.command_center",
+      "sha256": "9e1a377eddcdb931171303be1d0eaaf22bfd92d788affa6a71e658733176ad4e"
+    },
+    {
+      "index": 1,
+      "name": "_iter453_6_flip_ready_flag",
+      "module": "server",
+      "sha256": "3ad0b42c02c53519565c03606ae0024b903a6db7c71c42578e406541e89a8fc4"
+    }
+  ],
+  "on_shutdown": [
+    {
+      "index": 0,
+      "name": "shutdown_db_client",
+      "module": "server"
+    }
+  ],
+  "summary": {
+    "lifecycle_total": 48,
+    "lifecycle_by_group": {
+      "index-ensure": 11,
+      "misc-bootstrap": 20,
+      "scheduler-nonemail": 4,
+      "seed": 7,
+      "email-scheduler": 5,
+      "backup-scheduler": 1
+    },
+    "on_startup_count": 2,
+    "on_shutdown_count": 1
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "track": "22.1I.1",
+  "handler": "_start_backup_scheduler",
+  "state": "after_migration",
+  "source": {
+    "module": "server",
+    "name": "_start_backup_scheduler",
+    "group": "backup-scheduler"
+  },
+  "bytecode_sha256": "c7d29e0072aa7578855271dfd5d63a048b0f10d0d0d7bbc6819488d35b378a73",
+  "lifecycle_position_index": 45,
+  "group_size": 1
+}
