@@ -11,9 +11,11 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
-## TRACK 22.3 · Pydantic v2 Hygiene Sweep · 🟢 GO / CLOSED (2026-07-04)
+## TRACK 22.3 · Pydantic v2 Hygiene Sweep · 🟢 GO / CLOSED · VERIFIED (2026-07-04 · re-verified 2026-02-04)
 
 Eliminated all deprecated Pydantic v2 `regex=` usage in FastAPI parameter constraints — 12 mechanical `regex=` → `pattern=` renames across 8 files (`operations_map_contract.py`, `operational_events.py` ×3, `verification.py`, `operational_locations.py`, `asset_mapping_recon.py`, `sprint_a.py`, `integrations/autolink.py` ×3, `equipment_detection.py`). Zero validation drift · zero API contract change · zero warning suppression. Starlette CORS `allow_origin_regex=` explicitly preserved. Runtime probe reports 0 `regex=` DeprecationWarnings after the sweep. New AST-based permanent CI guardrail (`test_zero_pydantic_regex_kwarg_anywhere_in_backend`) prevents any future re-introduction. Routes/methods/OpenAPI/middleware/bytecode all unchanged. Lifecycle-complete attestation intact. Eight Pillars 9.98 platform average.
+
+**Closure verification (2026-02-04):** Independently re-executed by the backend testing subagent. 11/11 Track 22.3 lock tests PASS; 242/242 across the full Track 22.* regression envelope (15 lock files) PASS; grep confirms exactly one `regex=` hit backend-wide — `server.py:15831 allow_origin_regex=cors_origin_regex` (Starlette CORS, preserved); live smoke `GET /api/admin/platform/status → 401 admin-gated` (endpoint reachable, backend healthy); before/after warning inventory snapshots present (`after.regex_deprecation_warnings_post=0`); all 8 `TRACK_22_3_*.md` deliverables present and non-empty; email safety strict/patched, live emails impossible. Zero action items, no retest needed. Report: `/app/test_reports/iteration_track_22_3_verify.json`.
 
 ## 🎉 TRACK 22.1K · Final Lifecycle Completion · LIFECYCLE ARCHITECTURE COMPLETE · GO / CLOSED (2026-07-04)
 
