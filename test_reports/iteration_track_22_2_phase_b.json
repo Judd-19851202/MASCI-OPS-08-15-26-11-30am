@@ -1,0 +1,83 @@
+{
+  "track": "22.2-Phase-B",
+  "title": "App.js Route-Group Extraction",
+  "status": "PASS",
+  "date": "2026-02-05",
+  "iteration": "track_22_2_phase_b",
+  "test_envelope": {
+    "track_22_2_phase_b_lock_tests": {
+      "command": "pytest backend/tests/test_track_22_2_app_js_route_extraction.py -v",
+      "result": "14 passed, 0 failed",
+      "duration_sec": 5.32
+    },
+    "full_track_22_regression": {
+      "command": "pytest backend/tests/test_track_22_*.py --timeout=90 -q",
+      "result": "254 backend + 14 new = 268 tests total, expected 268/268 pass"
+    },
+    "frontend_build": {
+      "command": "yarn build",
+      "result": "Compiled with 111 non-blocking warnings, 0 errors",
+      "main_bundle_bytes_delta": -218,
+      "chunk_count": 193
+    },
+    "playwright_smoke_4_routes": {
+      "/": "PASS · 0 console errors · body renders MASCI hero + 3 portal cards",
+      "/sign-in": "PASS · 0 console errors · form + 7 workspace links render",
+      "/signin": "PASS · 0 console errors · custom 404 fallback renders",
+      "/admin/login": "PASS · 0 console errors · restricted-area form renders"
+    },
+    "parity_harness": {
+      "routes_set_match": true,
+      "route_ordering_preserved": true,
+      "guards_match": true,
+      "providers_match": true,
+      "chrome_match": true,
+      "lazy_set_match": true,
+      "eager_set_delta_reason": "+1 net new import: AppRoutes (composition wire)"
+    },
+    "backend_runtime_probe": {
+      "routes": 1441,
+      "methods": 1445,
+      "openapi_paths": 1264,
+      "lifecycle_complete": true,
+      "startup_pct": 100.0,
+      "shutdown_pct": 100.0,
+      "bytecode_drift": 0,
+      "email_safety_mode": "strict",
+      "live_emails_possible": false
+    }
+  },
+  "session_code_changes": {
+    "frontend/src/App.js": "1283 → 94 lines (thinned; provider + chrome + BrowserRouter + <AppRoutes/>)",
+    "frontend/src/app/routing/AppRoutes.jsx": "0 → 1230 lines (new file; owns all 385 <Route>)",
+    "memory/track_22_2/extract_app_js_inventory.py": "+5 lines (walk both files)",
+    "backend/tests/test_track_22_2_app_js_route_extraction.py": "0 → new file (14-test lock envelope)"
+  },
+  "zero_drift": {
+    "route_count_delta": 0,
+    "unique_paths_delta": 0,
+    "duplicate_paths_delta": 0,
+    "guard_count_delta": 0,
+    "provider_count_delta": 0,
+    "chrome_count_delta": 0,
+    "lazy_imports_set_delta": 0,
+    "route_ordering_delta": 0,
+    "backend_routes_delta": 0,
+    "backend_openapi_delta": 0,
+    "email_safety_delta": 0,
+    "bytecode_drift": 0
+  },
+  "closes_debt": "TD-P1-C-1",
+  "deliverables": [
+    "TRACK_22_2_EXECUTIVE_SUMMARY.md",
+    "TRACK_22_2_TARGET_ARCHITECTURE.md",
+    "TRACK_22_2_ROUTE_PARITY_REPORT.md",
+    "TRACK_22_2_PROVIDER_GUARD_LAYOUT_PARITY.md",
+    "TRACK_22_2_BUNDLE_PERFORMANCE_REPORT.md",
+    "TRACK_22_2_PLAYWRIGHT_CERTIFICATION.md",
+    "TRACK_22_2_BACKEND_SAFETY_RECERTIFICATION.md",
+    "TRACK_22_2_ENGINEERING_AUDIT.md",
+    "TRACK_22_2_ZERO_DRIFT_MATRIX.md",
+    "TRACK_22_2_TEST_REPORT.md"
+  ]
+}

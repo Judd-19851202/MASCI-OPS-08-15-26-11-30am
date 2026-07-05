@@ -1,10 +1,16 @@
 {
-  "generated": "2026-07-05T00:09:12.606044+00:00",
-  "track": "phase-1-final-completion",
+  "generated": "2026-07-05T00:35:49.570998+00:00",
+  "track": "22.2-phase-b-app-js-extraction",
   "lifecycle_complete": true,
   "startup_migration_pct": 100.0,
   "shutdown_migration_pct": 100.0,
   "recent_track_closures": [
+    {
+      "track": "22.2-Phase-B",
+      "closed": true,
+      "date": "2026-02-05",
+      "title": "App.js Route-Group Extraction \u00b7 1283\u219294 lines \u00b7 385 routes preserved"
+    },
     {
       "track": "PHASE-1-FINAL",
       "closed": true,
@@ -176,26 +182,6 @@
       "lock_envelope_before": 218,
       "lock_envelope_after": 233,
       "eight_pillars_average": 9.89
-    },
-    {
-      "track": "22.1E",
-      "title": "Index-Ensure Handler Migration",
-      "status": "GO / CLOSED",
-      "date": "2026-07-04",
-      "on_startup_count_before": 51,
-      "on_startup_count_after": 40,
-      "lifecycle_steps_added": 11,
-      "lock_envelope_before": 207,
-      "lock_envelope_after": 218,
-      "eight_pillars_average": 9.88
-    },
-    {
-      "track": "22.1D",
-      "title": "FastAPI Lifespan Migration Foundation",
-      "status": "GO / CLOSED",
-      "date": "2026-07-04",
-      "lock_envelope": 207,
-      "eight_pillars_average": 9.86
     }
   ],
   "counts": {
@@ -1237,6 +1223,32 @@
       "PHASE_1_PRODUCTION_MONITORING_PLAN.md",
       "PHASE_1_TEST_REPORT.md",
       "PHASE_1_ZERO_DRIFT_MATRIX.md"
+    ]
+  },
+  "track_22_2_phase_b": {
+    "verdict": "GO",
+    "date": "2026-02-05",
+    "app_js_lines_before": 1283,
+    "app_js_lines_after": 94,
+    "app_routes_file_lines": 1230,
+    "routes_preserved": 385,
+    "guards_preserved": 11,
+    "providers_preserved": 1,
+    "main_bundle_bytes_delta": -218,
+    "chunk_count_delta": 0,
+    "eslint_warning_delta": 0,
+    "backend_track_22_lock_envelope": "254/254 pass, 26.66s",
+    "documents": [
+      "TRACK_22_2_EXECUTIVE_SUMMARY.md",
+      "TRACK_22_2_TARGET_ARCHITECTURE.md",
+      "TRACK_22_2_ROUTE_PARITY_REPORT.md",
+      "TRACK_22_2_PROVIDER_GUARD_LAYOUT_PARITY.md",
+      "TRACK_22_2_BUNDLE_PERFORMANCE_REPORT.md",
+      "TRACK_22_2_PLAYWRIGHT_CERTIFICATION.md",
+      "TRACK_22_2_BACKEND_SAFETY_RECERTIFICATION.md",
+      "TRACK_22_2_ENGINEERING_AUDIT.md",
+      "TRACK_22_2_ZERO_DRIFT_MATRIX.md",
+      "TRACK_22_2_TEST_REPORT.md"
     ]
   }
 }

@@ -15,7 +15,13 @@ APP_JS = Path("/app/frontend/src/App.js")
 OUT_DIR = Path("/app/memory/track_22_2")
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-src = APP_JS.read_text(encoding="utf-8")
+# Track 22.2 Phase B · post-extraction — the routes now live in this companion file.
+APP_ROUTES = Path("/app/frontend/src/app/routing/AppRoutes.jsx")
+sources = [APP_JS]
+if APP_ROUTES.is_file():
+    sources.append(APP_ROUTES)
+
+src = "\n".join(p.read_text(encoding="utf-8") for p in sources)
 lines = src.splitlines()
 
 # ─────────────────────────────────────────────────────────────────

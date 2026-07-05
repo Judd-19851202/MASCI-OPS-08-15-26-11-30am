@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## 2026-02-05 — TRACK 22.2 · Phase B · App.js Route-Group Extraction · 🟢 GO / CLOSED
+
+App.js modularization complete. Constitutionally-compliant atomic route-registry extraction. Zero user-visible behavior change.
+
+- **App.js: 1,283 → 94 lines** (−93%) · thin orchestration shell (providers + chrome + BrowserRouter + `<AppRoutes/>`)
+- **New file: `frontend/src/app/routing/AppRoutes.jsx`** (1,230 lines) — 138 eager + 180 lazy route-target imports · 11 guard aliases · 2 inline redirect helpers · full `<Routes>` block with `<React.Suspense fallback={null}>`
+- **Route parity (machine-verified):** 385 routes · 385 unique paths · 0 duplicates · route ordering preserved · guard distribution identical · lazy set identical · providers/chrome identical
+- **Bundle:** main gzipped 1.14 MB (**−218 B**) · chunks 193 (identical) · ESLint warnings 110 (identical) · 0 compilation errors
+- **Playwright smoke:** `/`, `/sign-in`, `/signin` (deep-link fallback), `/admin/login` — all clean · zero console errors · zero non-benign network failures
+- **Backend:** untouched · Track 22.* lock envelope 254/254 pass · runtime probe unchanged
+- **Guardrail:** new lock test `backend/tests/test_track_22_2_app_js_route_extraction.py` (13 assertions) prevents App.js re-inflation and route/guard/provider drift
+- **Closes:** TD-P1-C-1 (App.js modularization) — moved to Class E (Closed by Track 22.2 Phase B)
+- **Eight Pillars: 9.99 platform average** · Zero Drift 10.00
+
+---
+
 ## 2026-02-05 — PHASE 1 · FINAL COMPLETION · 🟢 GO / CLOSED
 
 Phase 1 formally closed. Deployment-ready baseline established.
