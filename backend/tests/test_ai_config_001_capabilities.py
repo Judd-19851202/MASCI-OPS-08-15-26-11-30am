@@ -30,7 +30,8 @@ AI_ENV_KEYS = [
     "AI_DEFAULT_PROVIDER", "AI_DEFAULT_TEXT_MODEL",
     "AI_DEFAULT_VISION_PROVIDER", "AI_DEFAULT_VISION_MODEL",
     "AI_DAILY_REPORT_SUMMARY_ENABLED", "AI_PHOTO_VISION_ENABLED",
-    "AI_PM_INTELLIGENCE_ENABLED", "AI_SAFETY_INTELLIGENCE_ENABLED",
+    "AI_PM_INTELLIGENCE_ENABLED", "AI_ADMIN_INTELLIGENCE_ENABLED",
+    "AI_SAFETY_INTELLIGENCE_ENABLED",
     "AI_TRANSLATION_ENABLED",
     "AI_PROVIDER_TIMEOUT_MS", "AI_PROVIDER_MAX_RETRIES", "AI_PROVIDER_FAILOVER_ENABLED",
     "DR_DAILY_OPERATIONAL_SUMMARY_ENABLED", "DR_PHOTO_INTELLIGENCE_ENABLED",
@@ -234,7 +235,8 @@ def test_env_example_documents_every_required_key():
         "AI_DEFAULT_PROVIDER", "AI_DEFAULT_TEXT_MODEL",
         "AI_DEFAULT_VISION_PROVIDER", "AI_DEFAULT_VISION_MODEL",
         "AI_DAILY_REPORT_SUMMARY_ENABLED", "AI_PHOTO_VISION_ENABLED",
-        "AI_PM_INTELLIGENCE_ENABLED", "AI_SAFETY_INTELLIGENCE_ENABLED",
+        "AI_PM_INTELLIGENCE_ENABLED", "AI_ADMIN_INTELLIGENCE_ENABLED",
+        "AI_SAFETY_INTELLIGENCE_ENABLED",
         "AI_TRANSLATION_ENABLED",
         "AI_PROVIDER_TIMEOUT_MS", "AI_PROVIDER_MAX_RETRIES", "AI_PROVIDER_FAILOVER_ENABLED",
         "DR_DAILY_OPERATIONAL_SUMMARY_ENABLED", "DR_PHOTO_INTELLIGENCE_ENABLED",
@@ -311,3 +313,85 @@ async def test_unknown_module_returns_disabled_with_reason():
     cap = await resolve_ai_capabilities(_FakeDB(), "masci", "unknown_thing")
     assert cap.enabled is False
     assert cap.reason_disabled == "unknown_module"
+
+
+@pytest.mark.asyncio
+async def test_admin_intelligence_flag_independent_of_pm_intelligence():
+    """`admin_intelligence` and `pm_intelligence` must be independently
+    gatable via distinct deployment env flags (contract per user)."""
+    os.environ.update({
+        "AI_GATEWAY_ENABLED": "true",
+        "TENANT_AI_ENABLED": "true",
+        "AI_PROVIDER_ANTHROPIC_ENABLED": "true",
+        "ANTHROPIC_API_KEY": "sk-test",
+        # Turn ON pm, leave admin OFF.
+        "AI_PM_INTELLIGENCE_ENABLED": "true",
+        "TENANT_AI_PM_INTELLIGENCE_ENABLED": "true",
+        "TENANT_AI_ADMIN_INTELLIGENCE_ENABLED": "true",
+    })
+    from services.ai_gateway.capabilities import resolve_ai_capabilities
+    pm = await resolve_ai_capabilities(_FakeDB(), "masci", "pm_intelligence")
+    admin = await resolve_ai_capabilities(_FakeDB(), "masci", "admin_intelligence")
+    assert pm.enabled is True, pm.reason_disabled
+    assert admin.enabled is False
+    assert admin.reason_disabled == "module_disabled_global:admin_intelligence"
+
+
+def test_backend_env_exposes_every_ai_placeholder_to_secrets_ui():
+    """The Emergent Secrets UI reads `/app/backend/.env`. Every AI key
+    the operator must be able to paste MUST be present there with an
+    empty or safe default value — otherwise the field will not appear
+    in the Secrets UI, and the operator has no place to paste a real
+    key. This is the acceptance criterion for AI-CONFIG-001."""
+    body = Path("/app/backend/.env").read_text(encoding="utf-8")
+    lines = {ln.split("=", 1)[0].strip() for ln in body.splitlines()
+             if "=" in ln and not ln.lstrip().startswith("#")}
+    required = [
+        # Provider API keys — must be present as empty placeholders.
+        "ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GOOGLE_AI_API_KEY",
+        # Provider enable flags.
+        "AI_PROVIDER_ANTHROPIC_ENABLED",
+        "AI_PROVIDER_OPENAI_ENABLED",
+        "AI_PROVIDER_GOOGLE_ENABLED",
+        # Global gateway + defaults.
+        "AI_GATEWAY_ENABLED", "AI_DEFAULT_PROVIDER",
+        # Module deployment flags.
+        "AI_DAILY_REPORT_SUMMARY_ENABLED",
+        "AI_PHOTO_VISION_ENABLED",
+        "AI_PM_INTELLIGENCE_ENABLED",
+        "AI_ADMIN_INTELLIGENCE_ENABLED",
+        "AI_SAFETY_INTELLIGENCE_ENABLED",
+        "AI_TRANSLATION_ENABLED",
+        # Tenant-level defaults.
+        "TENANT_AI_ENABLED",
+        "TENANT_AI_DAILY_REPORT_SUMMARY_ENABLED",
+        "TENANT_AI_PHOTO_INTELLIGENCE_ENABLED",
+        "TENANT_AI_PM_INTELLIGENCE_ENABLED",
+        "TENANT_AI_ADMIN_INTELLIGENCE_ENABLED",
+        "TENANT_AI_SAFETY_INTELLIGENCE_ENABLED",
+        "TENANT_AI_TRANSLATION_ENABLED",
+    ]
+    missing = [k for k in required if k not in lines]
+    assert not missing, (
+        "AI-CONFIG-001 secret-panel contract broken. Missing keys in "
+        f"/app/backend/.env: {missing}. Add them (empty values are OK) "
+        "so the Emergent Secrets UI exposes the fields."
+    )
+
+
+def test_backend_env_provider_keys_are_placeholders_not_real_keys():
+    """Even though the backend/.env may hold real secrets in prod, in
+    this codebase repo the provider keys must ship as empty placeholders
+    (the operator pastes real values via the Secrets UI, not git)."""
+    body = Path("/app/backend/.env").read_text(encoding="utf-8")
+    for line in body.splitlines():
+        s = line.strip()
+        if s.startswith("#") or "=" not in s:
+            continue
+        k, v = s.split("=", 1)
+        if k.strip() in {"ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GOOGLE_AI_API_KEY"}:
+            assert v.strip() == "", (
+                f"{k} must ship as an empty placeholder in backend/.env — "
+                f"paste real values via Emergent Secrets UI, never commit."
+            )
+

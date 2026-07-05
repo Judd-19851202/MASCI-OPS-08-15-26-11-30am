@@ -10512,3 +10512,51 @@ V1 photo upload / Job Photos mirror / PDF / email / HR / safety all untouched. R
 
 ### 13 documents produced
 `DR_ROI_001D_EXECUTIVE_SUMMARY.md`, `DR_ROI_001D_CURRENT_STATE_AUDIT.md`, `DR_ROI_001D_PHOTO_INTELLIGENCE_MODEL.md`, `DR_ROI_001D_AI_GATEWAY_PHOTO_ROUTING.md`, `DR_ROI_001D_PHOTO_ANALYSIS_API.md`, `DR_ROI_001D_PHOTO_LINKING_UI.md`, `DR_ROI_001D_ITEMS_TO_VERIFY.md`, `DR_ROI_001D_OPERATIONAL_SUMMARY_INTEGRATION.md`, `DR_ROI_001D_ODS_PHOTO_EVIDENCE_EMISSION.md`, `DR_ROI_001D_JOB_PHOTOS_MIRROR_SAFETY.md`, `DR_ROI_001D_BACKWARD_COMPATIBILITY.md`, `DR_ROI_001D_TEST_REPORT.md`, `DR_ROI_001D_ZERO_DRIFT_MATRIX.md`.
+
+---
+
+## AI-CONFIG-001 · AI Gateway Secret Placeholders + Feature Flags (TENANT_AI_ENABLED Amendment) (2026-02)
+
+### Delivered
+- **Secret contract:** `/app/backend/.env` now exposes every AI-related placeholder to the Emergent Secrets UI:
+  provider keys (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GOOGLE_AI_API_KEY`) as empty paste-slots, provider enable flags,
+  module deployment flags (incl. new **`AI_ADMIN_INTELLIGENCE_ENABLED`** — split from `AI_PM_INTELLIGENCE_ENABLED`),
+  and tenant-scope default flags. 21 keys total. `.env.example` documents the full contract with safe defaults.
+- **Resolver:** `services/ai_gateway/capabilities.py::resolve_ai_capabilities(db, tenant_id, module)` — the single
+  authoritative check every AI callsite must pass through. Five-link precedence chain:
+  `AI_GATEWAY_ENABLED` → tenant enrolment (Mongo `tenant_ai_capabilities` or env default) → module deployment flag →
+  module tenant flag → provider+key. Any failure short-circuits with a machine-readable `reason_disabled`.
+- **Admin route:** `GET /api/ai/gateway/status` returns sanitised switchboard state — never raw API keys, only booleans.
+- **Lock envelope:** 17/17 tests pass in `/app/backend/tests/test_ai_config_001_capabilities.py`,
+  proving disabled-mode invariants: platform works with every flag off, Daily Report submit doesn't couple to AI,
+  ODS V1 ingestion works with AI off, admin snapshot never leaks keys, `backend/.env` exposes every Secrets-UI slot,
+  provider keys ship as empty placeholders (never real values).
+
+### Zero drift
+V1 daily-reports POST/GET/PDF/email/HR/payroll/safety/photos all untouched. ODS ingestion unchanged.
+`AI_GATEWAY_ENABLED=true` in current preview (deployed provider live) — resolver still returns disabled for any
+module whose deployment or tenant flag is off, per contract.
+
+### Doctrine locked
+- AI is a premium, optional, per-tenant enhancement.
+- Platform is 100% usable with every AI flag off and every provider key blank.
+- Invisible Intelligence: field UI is byte-identical regardless of AI state — no "AI is off" chrome ever surfaces.
+- Provider API key values never committed to git.
+
+### 3 documents produced
+- `/app/memory/AI_CONFIG_001_SECRET_CONTRACT.md`
+- `/app/memory/AI_CONFIG_001_TENANT_OPTIONALITY.md`
+- `/app/memory/AI_CONFIG_001_DISABLED_MODE_PROOF.md`
+
+### Files touched
+- `/app/backend/services/ai_gateway/capabilities.py` (new, this session's earlier build)
+- `/app/backend/routes/ai_gateway_status.py` (new, this session's earlier build)
+- `/app/backend/tests/test_ai_config_001_capabilities.py` (expanded 14 → 17 tests)
+- `/app/backend/.env` (appended: 3 provider keys, 3 provider flags, 6 module flags, 7 tenant flags,
+  1 new `AI_ADMIN_INTELLIGENCE_ENABLED` — total 20 placeholders added)
+- `/app/.env.example` (added `AI_ADMIN_INTELLIGENCE_ENABLED`)
+
+### Follow-ups (P1)
+- **DR-UNIFY-003:** Backend route aliases + Mongo `dr_v2_drafts` → `daily_reports_drafts` renames + flag retirement.
+- **DR-UNIFY-004:** Full regression + deployment certification.
+- **Background task queue for ODS ingestion** (agreed pre-req before wide AI scaling).

@@ -855,7 +855,7 @@
     }
   ],
   "endpoints_total": 406,
-  "generated": "2026-07-05T00:35:49.570998+00:00",
+  "generated": "2026-07-05T16:39:35.105459+00:00",
   "lifecycle_complete": true,
   "phase_1_certification": {
     "app_js_md5": "d84cea05c1f64bd2ae82823d7f6aadcc",
@@ -890,6 +890,12 @@
     "verdict": "GO"
   },
   "recent_track_closures": [
+    {
+      "track": "AI-CONFIG-001",
+      "date": "2026-02",
+      "status": "closed",
+      "tests": "17/17"
+    },
     {
       "closed": true,
       "date": "2026-02-05",
@@ -1224,7 +1230,7 @@
     }
   ],
   "tests_total": 634,
-  "track": "22.2-phase-b-app-js-extraction",
+  "track": "AI-CONFIG-001",
   "track_22_2_phase_b": {
     "app_js_lines_after": 94,
     "app_js_lines_before": 1283,
@@ -1388,6 +1394,52 @@
         "DEBT-DRUNIFY-08",
         "DEBT-DRUNIFY-09",
         "DEBT-DRUNIFY-10"
+      ]
+    },
+    "AI-CONFIG-001": {
+      "title": "AI Gateway Secret Placeholders + Feature Flags (TENANT_AI_ENABLED Amendment)",
+      "date_closed": "2026-02",
+      "status": "closed",
+      "lock_tests_passing": "17/17",
+      "artifacts": {
+        "resolver": "backend/services/ai_gateway/capabilities.py",
+        "admin_route": "backend/routes/ai_gateway_status.py",
+        "env_example": ".env.example",
+        "runtime_env_placeholders": "backend/.env (21 AI keys)",
+        "tests": "backend/tests/test_ai_config_001_capabilities.py",
+        "docs": [
+          "memory/AI_CONFIG_001_SECRET_CONTRACT.md",
+          "memory/AI_CONFIG_001_TENANT_OPTIONALITY.md",
+          "memory/AI_CONFIG_001_DISABLED_MODE_PROOF.md"
+        ]
+      },
+      "doctrine": [
+        "AI is optional and per-tenant.",
+        "Platform is fully usable with every AI flag off and every provider key blank.",
+        "Invisible Intelligence: field UI byte-identical regardless of AI state.",
+        "Provider API key values never committed to git.",
+        "Every AI callsite MUST route through resolve_ai_capabilities()."
+      ],
+      "secret_slots_added_to_backend_env": [
+        "ANTHROPIC_API_KEY",
+        "OPENAI_API_KEY",
+        "GOOGLE_AI_API_KEY",
+        "AI_PROVIDER_ANTHROPIC_ENABLED",
+        "AI_PROVIDER_OPENAI_ENABLED",
+        "AI_PROVIDER_GOOGLE_ENABLED",
+        "AI_DAILY_REPORT_SUMMARY_ENABLED",
+        "AI_PHOTO_VISION_ENABLED",
+        "AI_PM_INTELLIGENCE_ENABLED",
+        "AI_ADMIN_INTELLIGENCE_ENABLED",
+        "AI_SAFETY_INTELLIGENCE_ENABLED",
+        "AI_TRANSLATION_ENABLED",
+        "TENANT_AI_ENABLED",
+        "TENANT_AI_DAILY_REPORT_SUMMARY_ENABLED",
+        "TENANT_AI_PHOTO_INTELLIGENCE_ENABLED",
+        "TENANT_AI_PM_INTELLIGENCE_ENABLED",
+        "TENANT_AI_ADMIN_INTELLIGENCE_ENABLED",
+        "TENANT_AI_SAFETY_INTELLIGENCE_ENABLED",
+        "TENANT_AI_TRANSLATION_ENABLED"
       ]
     }
   }

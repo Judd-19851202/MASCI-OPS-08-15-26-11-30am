@@ -239,3 +239,23 @@ Pillars.
 - **[P1] R2 fetch → base64 for background analysis.** Right now the analyze endpoint requires `photo_base64` in the request body. Add a helper that, given a `photo://` ref, fetches the object from R2 and passes bytes to the vision adapter — allows the frontend to just send `{ photo_id }`.
 - **[P2] Orphan cleanup.** Deleting a photo doesn't cascade to `dr_v2_photo_intelligence`. Add a nightly cleanup that removes intel docs whose `photo_id` no longer resolves to a photo.
 - **[P2] Photo-linked evidence trace in operational_narrative agent.** Agent prompt does not yet explicitly reference the new `photo_evidence_links[]` payload on production/delay/safety facts. Low-risk enhancement.
+
+---
+
+## 2026-02 · AI-CONFIG-001 Follow-ups
+
+- **[P1] DR-UNIFY-003 collection renames.** `dr_v2_drafts` → `daily_reports_drafts` and related route aliases are
+  queued and untouched by this track. AI-CONFIG-001 resolver is name-agnostic — it does not read these collections.
+- **[P1] Background task queue for ODS ingestion.** With AI enabled at scale, per-report ingestion should move to
+  a queue to keep POST latency flat. Interface reserved (`ingest_dr_v1_report` is already idempotent). Not a blocker
+  for AI-CONFIG-001.
+- **[P2] Per-tenant admin UI for `tenant_ai_capabilities`.** Today the collection is edited via Mongo. Ship a
+  supervisor-console screen so ops can flip tenant flags without shell access. Non-blocking; env defaults cover the
+  short term.
+- **[P2] `GET /api/ai/gateway/status` tenant-scope variant.** Current endpoint reports deployment posture only.
+  Add `GET /api/ai/gateway/status?tenant_id=…` (admin only) that also merges the tenant doc + resolves each module.
+  Useful for support workflows.
+- **[P3] Env consolidation.** `DR_V2_AI_ENABLED`, `DR_V2_PHOTO_VISION_ENABLED`, and the per-module `DR_*_ENABLED`
+  legacy flags in `backend/.env` are workflow flags separate from the AI switchboard. Consider mapping them into
+  `MODULE_ENV_MAP` in a follow-up so all AI gating flows through one resolver — for now they are documented in
+  `AI_CONFIG_001_SECRET_CONTRACT.md` §3.5.
