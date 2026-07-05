@@ -633,90 +633,94 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
 
     # ---------- Meetings ----------
     @api_router.post("/meetings", response_model=Meeting, dependencies=[Depends(rate_limit_public_post)])
-    async def create_meeting(payload: MeetingCreate):
-        meeting = Meeting(**payload.model_dump())
-        doc = meeting.model_dump()
-        # Track 15.73 Slice 2 · authoritative attendee identity normalization.
-        # Recompute attendee_type / source / is_* flags from the trusted
-        # `employees` collection so the frontend cannot misclassify a
-        # roster-selected MASCI employee as manual/subcontractor (or vice
-        # versa). Also dedupes by employee_id within the meeting.
-        try:
-            from lib.meeting_identity import normalize_meeting_attendees  # noqa: PLC0415
-            doc["attendees"] = await normalize_meeting_attendees(
-                db, doc.get("attendees") or [],
-            )
-            meeting.attendees = doc["attendees"]
-        except Exception:
-            # Identity normalization is additive — if it fails we still
-            # persist the raw client payload so the meeting is not lost.
-            pass
-        from doc_ids import ensure_doc_id
-        await ensure_doc_id(db, doc, "MTG", when=doc.get("meeting_date") or doc.get("created_at"))
-        meeting.doc_id = doc["doc_id"]
-        # ── Phase 2B-2A · Job-ownership team_snapshot embed ──
-        try:
-            from lib.team_routing import snapshot_team  # noqa: PLC0415
-            _snap = await snapshot_team(db, doc.get("project_number"))
-            if _snap:
-                doc["team_snapshot"] = _snap
-        except Exception:  # noqa: BLE001
-            pass
-        await db.meetings.insert_one(doc)
-        doc.pop("_id", None)
-        # TRACK 15.76 · Trust Spine — open record lifecycle.
-        try:
-            from lib.trust_spine import emit_record_created  # noqa: PLC0415
-            await emit_record_created(
-                db, workflow="meeting", record=doc,
-                module="routes/safety.py:create_meeting",
-            )
-        except Exception:  # noqa: BLE001
-            pass
-        schedule_auto_email("meeting", doc)
-        # BATCH K · OMEGA-8 / NEW-GAP-A — fan-out task + bell to safety.
-        try:
-            from lib.event_fanout import emit_task_and_notification  # noqa: PLC0415
-            from lib.team_routing import apply_routing  # noqa: PLC0415
-            title = f"Safety Meeting — {(doc.get('topic') or 'topic')[:80]}"
-            _mtg_notif = {
-                "type": "meeting.submitted",
-                "title": title[:200],
-                "message": (
-                    f"Project: {doc.get('project_name') or '—'} · "
-                    f"Conducted by: {doc.get('conducted_by') or '—'}"
-                )[:200],
-                "severity": "Info",
-                "recipient_role": "safety",
-                "linked_source_module": "safety.meeting",
-                "linked_source_record_id": meeting.id,
-                "linked_project_number": doc.get("project_number") or None,
-            }
-            await apply_routing(db, _mtg_notif,
-                                project_number=doc.get("project_number"),
-                                event_key="safety_meeting.submitted")
-            await emit_task_and_notification(
-                db,
-                task={
+    async def create_meeting(payload: MeetingCreate, request: Request):
+        # TRACK 22.4b-followup-Idempotency-Spine — wrap the submit in
+        # the shared reservation-lock so concurrent retries with the
+        # same Idempotency-Key cannot create duplicate meetings +
+        # duplicate Trust Spine / notification fanout.
+        from lib.idempotency import with_idempotency, idem_key_from_request  # noqa: PLC0415
+        key = idem_key_from_request(request)
+
+        async def _do_create():
+            meeting = Meeting(**payload.model_dump())
+            doc = meeting.model_dump()
+            # Track 15.73 Slice 2 · authoritative attendee identity normalization.
+            try:
+                from lib.meeting_identity import normalize_meeting_attendees  # noqa: PLC0415
+                doc["attendees"] = await normalize_meeting_attendees(
+                    db, doc.get("attendees") or [],
+                )
+                meeting.attendees = doc["attendees"]
+            except Exception:
+                pass
+            from doc_ids import ensure_doc_id
+            await ensure_doc_id(db, doc, "MTG", when=doc.get("meeting_date") or doc.get("created_at"))
+            meeting.doc_id = doc["doc_id"]
+            # ── Phase 2B-2A · Job-ownership team_snapshot embed ──
+            try:
+                from lib.team_routing import snapshot_team  # noqa: PLC0415
+                _snap = await snapshot_team(db, doc.get("project_number"))
+                if _snap:
+                    doc["team_snapshot"] = _snap
+            except Exception:  # noqa: BLE001
+                pass
+            await db.meetings.insert_one(doc)
+            doc.pop("_id", None)
+            # TRACK 15.76 · Trust Spine — open record lifecycle.
+            try:
+                from lib.trust_spine import emit_record_created  # noqa: PLC0415
+                await emit_record_created(
+                    db, workflow="meeting", record=doc,
+                    module="routes/safety.py:create_meeting",
+                )
+            except Exception:  # noqa: BLE001
+                pass
+            schedule_auto_email("meeting", doc)
+            # BATCH K · OMEGA-8 / NEW-GAP-A — fan-out task + bell to safety.
+            try:
+                from lib.event_fanout import emit_task_and_notification  # noqa: PLC0415
+                from lib.team_routing import apply_routing  # noqa: PLC0415
+                title = f"Safety Meeting — {(doc.get('topic') or 'topic')[:80]}"
+                _mtg_notif = {
+                    "type": "meeting.submitted",
                     "title": title[:200],
-                    "description": (
+                    "message": (
                         f"Project: {doc.get('project_name') or '—'} · "
-                        f"Date: {doc.get('meeting_date') or '—'} · "
-                        f"Conducted by: {doc.get('conducted_by') or '—'} · "
-                        f"Attendees: {len(doc.get('attendees') or [])}"
-                    )[:4000],
-                    "source_module": "safety.meeting",
-                    "source_record_id": meeting.id,
+                        f"Conducted by: {doc.get('conducted_by') or '—'}"
+                    )[:200],
+                    "severity": "Info",
+                    "recipient_role": "safety",
+                    "linked_source_module": "safety.meeting",
+                    "linked_source_record_id": meeting.id,
                     "linked_project_number": doc.get("project_number") or None,
-                    "assignee_role": "safety",
-                    "priority": "Medium",
-                    "created_by": {"role": "system", "via": "meeting-fanout"},
-                },
-                notification=_mtg_notif,
-            )
-        except Exception:
-            pass
-        return meeting
+                }
+                await apply_routing(db, _mtg_notif,
+                                    project_number=doc.get("project_number"),
+                                    event_key="safety_meeting.submitted")
+                await emit_task_and_notification(
+                    db,
+                    task={
+                        "title": title[:200],
+                        "description": (
+                            f"Project: {doc.get('project_name') or '—'} · "
+                            f"Date: {doc.get('meeting_date') or '—'} · "
+                            f"Conducted by: {doc.get('conducted_by') or '—'} · "
+                            f"Attendees: {len(doc.get('attendees') or [])}"
+                        )[:4000],
+                        "source_module": "safety.meeting",
+                        "source_record_id": meeting.id,
+                        "linked_project_number": doc.get("project_number") or None,
+                        "assignee_role": "safety",
+                        "priority": "Medium",
+                        "created_by": {"role": "system", "via": "meeting-fanout"},
+                    },
+                    notification=_mtg_notif,
+                )
+            except Exception:
+                pass
+            return meeting
+
+        return await with_idempotency(db, key, {"role": "public"}, _do_create, workflow="meeting")
 
     @api_router.get("/meetings", response_model=List[MeetingSummary])
     async def list_meetings(actor=Depends(_read_gate)):
@@ -1230,7 +1234,7 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
 
             return incident
 
-        return await with_idempotency(db, key, {"role": "public"}, _do_create)
+        return await with_idempotency(db, key, {"role": "public"}, _do_create, workflow="incident")
 
     @api_router.get("/incidents", response_model=List[IncidentSummary])
     async def list_incidents(actor=Depends(_read_gate)):

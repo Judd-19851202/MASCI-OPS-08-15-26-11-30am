@@ -11,6 +11,17 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 22.4b-followup-Idempotency-Spine · 🟢 SHIPPED · CERTIFIED (2026-07-05)
+- **Mandate:** extend the reservation-lock discipline (proven in DR B-03) to every operational submit workflow. Certify exactly-once under concurrent retries.
+- **Helper hardening (P1+P2)**: cross-workflow replay leak closed (added `workflow` param + rebuilt unique index as `(key, actor_id, workflow)`). Stale-sentinel deadlock closed (90s reclaim window).
+- **`/api/meetings` newly protected**: no longer creates duplicate meetings + duplicate Trust Spine events under concurrent same-key retries.
+- **Endpoint verdicts** (see `memory/TRACK_22_4B_FOLLOWUP_IDEMPOTENCY_MATRIX.csv`): 4 protected · 1 newly protected · 7 deferred (P1×2 + P2×5) with honest severity, all documented for a follow-up track. No fake green.
+- **Regression suite**: 7 new invariants (same-key concurrent, distinct-key concurrent, cross-workflow scoping, response replay, unique-index shape, DR still exactly-once, stale-sentinel reclaim). Full track suite: **64 pass · 1 skip · 0 fail**.
+- **Motive untouched · RBAC unchanged · No new dashboards / no V2 / no frontend workaround.**
+- **Closure memo:** `/app/memory/TRACK_22_4B_FOLLOWUP_IDEMPOTENCY_SPINE.md`.
+
+
+
 ## TRACK 22.4b-followup-DR · 🟢 SHIPPED · CERTIFIED (2026-07-05)
 - **Mandate:** permanently eliminate every path where a Daily Report can exist without its canonical identity, and prove every downstream system consumes exactly one identity. No V2. No frontend workarounds. No delayed identity. No race. No fake green.
 - **Root cause** (§Phase 2): Two identity fields (`doc_id` atomic, `report_number` client-writable) drifted because the earlier write-path guard only overwrote empty values, while the frontend pre-filled `report_number` from `/next-number` with a `DR-YYYYMMDD-NNN` shape that never matched the canonical `DR-YYYY-NNNNN` shape. Layered on top: 85 duplicate doc_ids from a prior counter-reset restore drill, and an idempotency layer that allowed both concurrent racers to execute the factory (producing duplicate DR rows + duplicate Trust Spine events).

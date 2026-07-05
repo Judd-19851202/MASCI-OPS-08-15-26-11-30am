@@ -695,7 +695,7 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
             rec.pop("_id", None)
             return {"ok": True, "id": rec["id"], "record": rec}
 
-        return await with_idempotency(db, key, auth, _do_create)
+        return await with_idempotency(db, key, auth, _do_create, workflow="field_leadership")
 
     async def _process_equipment_return(rec: Dict[str, Any]) -> None:
         """For each return line that references a checkout (via checkout_id +

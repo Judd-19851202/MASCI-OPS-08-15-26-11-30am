@@ -1,0 +1,16 @@
+endpoint,method,handler_file,workflow,collection,identity_field,uses_idempotency_before,uses_idempotency_after,reservation_lock_after,trust_spine_workflow,notification_fanout,duplicate_risk_before,duplicate_risk_after,severity_if_unprotected,verdict
+/api/daily-reports,POST,routes/daily_reports.py,daily-report,daily_reports,doc_id,YES,YES (workflow=daily_report),YES,daily-report,YES,P0 (fixed in track 22.4b-followup-DR),NONE,P0,PROTECTED
+/api/incidents,POST,routes/safety.py,incident,incidents,doc_id,YES,YES (workflow=incident),YES,incident,YES,P1 (helper was pre-lock),NONE,P1,PROTECTED
+/api/meetings,POST,routes/safety.py,meeting,meetings,doc_id,NO,YES (workflow=meeting),YES,meeting,YES,P1 (no idempotency at all),NONE,P1,NEWLY PROTECTED
+/api/field-leadership/records,POST,routes/field_leadership.py,field_leadership,field_leadership_records,doc_id,YES,YES (workflow=field_leadership),YES,field_leadership,YES,P1,NONE,P1,PROTECTED
+/api/inspections,POST,routes/safety.py,inspection,inspections,doc_id,NO,NO,N/A,inspection,YES,P1,P1 (unchanged),P1,DEFERRED (safe · not high concurrency · flagged for follow-up track)
+/api/jhas,POST,routes/safety.py,jha,jhas,doc_id,NO,NO,N/A,jha,YES,P2,P2 (unchanged),P2,DEFERRED (safe · flagged for follow-up track)
+/api/qaqc-inspections,POST,routes/qaqc.py,qaqc,qaqc_inspections,doc_id,NO,NO,N/A,qaqc,YES,P2,P2,P2,DEFERRED
+/api/equipment-inspections,POST,routes/equipment_inspections.py (approx),preop,equipment_inspections,doc_id,NO,NO,N/A,preop,YES,P1,P1 (unchanged),P1,DEFERRED
+/api/hr/requests (approx),POST,routes/hr_portal.py,hr_request,employee_requests,id (uuid),NO,NO,N/A,hr,YES,P2,P2 (unchanged),P2,DEFERRED
+/api/trench-safety/assets/{ident}/repairs,POST,routes/trench_safety/repairs.py,trench_repair,trench_safety_repairs,id (uuid),NO,NO,N/A,trench_safety,YES,P2,P2 (unchanged),P2,DEFERRED
+/api/trench-safety/assets/{ident}/holds,POST,routes/trench_safety/holds.py,trench_hold,trench_safety_holds,id (uuid),NO,NO,N/A,trench_safety,YES,P2,P2 (unchanged),P2,DEFERRED (Safety-gated · low concurrency risk)
+/api/trench-safety/repairs/{id}/verify,POST,routes/trench_safety/repairs.py,trench_verify,trench_safety_repairs (update),n/a (state transition),NO,NO,N/A,trench_safety,YES,P3 (state transition · idempotent by 409),P3,P3,NOT APPLICABLE (409 on Completed already exists)
+/api/dispatch/assignments (approx),POST,routes/dispatch_lifecycle.py,dispatch,dispatch_assignments,id (uuid),NO,NO,N/A,dispatch,YES,P2,P2 (unchanged),P2,DEFERRED
+/api/shop/defects (approx),POST,routes/shop*.py,shop_defect,shop_defects (approx),id,NO,NO,N/A,shop,YES,P2,P2,P2,DEFERRED
+/api/asset-transfers/{id}/approve,POST,routes/asset_transfers.py,asset_transfer,asset_transfers,id,YES (existing test at test_iter164),YES (existing),NO (used lookup-only cache),asset_transfer,YES,P2 (fixed in iter164 differently),NONE,N/A,PROTECTED (existing idempotency by lookup key)

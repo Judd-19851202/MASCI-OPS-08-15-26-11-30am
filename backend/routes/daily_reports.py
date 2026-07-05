@@ -454,7 +454,7 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
 
             return DailyReport(**report_dict)
 
-        return await with_idempotency(db, key, {"role": "public"}, _do_create)
+        return await with_idempotency(db, key, {"role": "public"}, _do_create, workflow="daily_report")
 
     @api_router.get("/daily-reports", response_model=List[DailyReportSummary])
     async def list_daily_reports(actor=Depends(require_admin)):

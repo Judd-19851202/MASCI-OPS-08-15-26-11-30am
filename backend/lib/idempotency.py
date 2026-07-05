@@ -107,12 +107,26 @@ async def ensure_indexes(db) -> None:
     """One-time TTL + lookup index on idempotency_keys. Safe to call
     repeatedly (Mongo will no-op on duplicates)."""
     try:
+        # TRACK 22.4b-followup-Idempotency-Spine · workflow-scoped uniqueness.
+        # The unique constraint is (key, actor_id, workflow). If a caller
+        # does not pass a workflow we bucket them under "_default" so the
+        # tuple is still well-defined.
         await db.idempotency_keys.create_index(
-            [("key", 1), ("actor_id", 1)], unique=True, name="key_actor_uniq")
+            [("key", 1), ("actor_id", 1), ("workflow", 1)],
+            unique=True, name="key_actor_workflow_uniq",
+        )
         await db.idempotency_keys.create_index(
             "created_at", expireAfterSeconds=TTL_SECONDS, name="ttl_90d")
     except Exception as e:  # noqa: BLE001
         logger.warning("[idempotency] ensure_indexes failed: %s", e)
+
+
+# TRACK 22.4b-followup-Idempotency-Spine · stale sentinel window.
+# If a factory owner crashes before persisting, the sentinel row
+# blocks retries. We treat any `in_flight` sentinel older than this
+# window as reclaimable — the next caller inherits the reservation
+# and re-runs the factory.
+_STALE_SENTINEL_SECONDS = 90
 
 
 async def with_idempotency(
@@ -120,37 +134,39 @@ async def with_idempotency(
     key: Optional[str],
     actor: Dict[str, Any],
     factory: Callable[[], Awaitable[Any]],
+    *,
+    workflow: str = "_default",
 ) -> Any:
-    """Execute `factory` exactly once per (key, actor) tuple.
+    """Execute `factory` exactly once per (key, actor, workflow) tuple.
 
     If `key` is None, runs factory transparently (no dedup applied).
 
-    TRACK 22.4b-followup-DR · B-03 concurrency lock.
-    Prior behaviour: on cache miss BOTH racers executed the factory,
-    then the loser hit a duplicate-key on the unique index. In the DR
-    submit flow this created duplicate rows (both persisted, both
-    emitted Trust Spine events). We now use a **reservation-first**
-    pattern: insert a sentinel row with the (key, actor_id) tuple
-    BEFORE calling the factory. If the insert succeeds we own the
-    execution. If it fails with a duplicate key we assume the other
-    racer owns it — we poll briefly for its completed response, and
-    if it never lands we fall through to execute (last-resort — very
-    rare, only when the other racer crashed before persisting).
+    TRACK 22.4b-followup-DR · concurrency reservation lock.
+    TRACK 22.4b-followup-Idempotency-Spine · workflow scoping +
+    stale-sentinel recovery.
+
+    Reservation-first pattern: insert a sentinel row keyed by
+    ``(key, actor_id, workflow)`` BEFORE calling the factory. On
+    duplicate-key we own neither the reservation nor the response;
+    we poll briefly for the owner's response, and if the owner is
+    stale (crashed mid-factory) we forcibly reclaim the reservation
+    so the request does not hang forever.
     """
     if not key:
         return await factory()
 
     actor_id = _actor_id(actor)
+    scope_filter = {"key": key, "actor_id": actor_id, "workflow": workflow}
 
     # Look up any cached response first.
     try:
         cached = await db.idempotency_keys.find_one(
-            {"key": key, "actor_id": actor_id},
+            scope_filter,
             {"_id": 0, "response": 1, "status": 1},
         )
         if cached and cached.get("response") is not None:
-            logger.info("[idempotency] cache hit key=%s actor=%s",
-                        key[:8], actor_id[:24])
+            logger.info("[idempotency] cache hit key=%s workflow=%s actor=%s",
+                        key[:8], workflow, actor_id[:24])
             return cached.get("response")
     except Exception as e:  # noqa: BLE001
         logger.warning("[idempotency] lookup failed: %s", e)
@@ -164,6 +180,7 @@ async def with_idempotency(
         await db.idempotency_keys.insert_one({
             "key": key,
             "actor_id": actor_id,
+            "workflow": workflow,
             "response": None,
             "status": "in_flight",
             "created_at": datetime.now(timezone.utc),
@@ -177,16 +194,40 @@ async def with_idempotency(
             for _ in range(40):  # up to ~10s at 250ms
                 await _asyncio.sleep(0.25)
                 row = await db.idempotency_keys.find_one(
-                    {"key": key, "actor_id": actor_id},
-                    {"_id": 0, "response": 1, "status": 1},
+                    scope_filter,
+                    {"_id": 0, "response": 1, "status": 1, "created_at": 1},
                 )
                 if row and row.get("response") is not None:
                     return row.get("response")
+                # Stale-sentinel recovery: if the sentinel is still
+                # in_flight and older than the window, forcibly reclaim
+                # the reservation (owner crashed).
+                if row and row.get("status") == "in_flight":
+                    ca = row.get("created_at")
+                    now = datetime.now(timezone.utc)
+                    if isinstance(ca, datetime):
+                        if ca.tzinfo is None:
+                            ca = ca.replace(tzinfo=timezone.utc)
+                        age_s = (now - ca).total_seconds()
+                        if age_s >= _STALE_SENTINEL_SECONDS:
+                            # Delete the stale sentinel and continue
+                            # to the factory fallback below.
+                            logger.warning(
+                                "[idempotency] reclaiming stale sentinel key=%s age=%.1fs",
+                                key[:8], age_s,
+                            )
+                            try:
+                                await db.idempotency_keys.delete_one({
+                                    **scope_filter, "status": "in_flight",
+                                })
+                            except Exception:  # noqa: BLE001
+                                pass
+                            break
             # Owner never persisted (crash / timeout). Fall through
             # to run the factory ourselves as a last resort.
             logger.warning(
-                "[idempotency] owner never persisted key=%s — running factory as fallback",
-                key[:8],
+                "[idempotency] owner never persisted key=%s workflow=%s — running factory as fallback",
+                key[:8], workflow,
             )
         else:
             logger.warning("[idempotency] reservation insert failed: %s", e)
@@ -207,7 +248,7 @@ async def with_idempotency(
     try:
         if reservation_created:
             await db.idempotency_keys.update_one(
-                {"key": key, "actor_id": actor_id},
+                scope_filter,
                 {"$set": {
                     "response": cached_resp,
                     "status": "done",
@@ -216,14 +257,14 @@ async def with_idempotency(
             )
         else:
             # We ran without holding the reservation (fallback path).
-            # Best-effort upsert of the response so future callers get
-            # the cache hit.
+            # Best-effort upsert so future callers get the cache hit.
             await db.idempotency_keys.update_one(
-                {"key": key, "actor_id": actor_id},
+                scope_filter,
                 {"$set": {
                     "response": cached_resp,
                     "status": "done",
                     "completed_at": datetime.now(timezone.utc),
+                    "workflow": workflow,
                 }},
                 upsert=True,
             )

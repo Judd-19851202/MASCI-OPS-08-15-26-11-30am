@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## 2026-07-05 — TRACK 22.4b-followup-Idempotency-Spine · 🟢 SHIPPED · GO
+
+Extended the reservation-lock idempotency discipline (proven in the DR B-03 repair) across every endpoint that uses `with_idempotency`, closed two platform-level helper defects, newly protected `/api/meetings`, and delivered an honest severity-classified deferral list for the remaining seven submit workflows.
+
+- **IDEM-01 (P1) closed**: cross-workflow replay leak. Added `workflow` scoping to `with_idempotency` + rebuilt unique index as `(key, actor_id, workflow)`. 204 legacy rows backfilled with `workflow="_default"` before index rebuild.
+- **IDEM-02 (P2) closed**: stale-sentinel deadlock. 90s reclaim window — crashed factory owners can no longer block retries indefinitely.
+- **IDEM-COV-01 (P1) closed**: `/api/meetings` newly protected — `create_meeting` body wrapped in `_do_create` + `with_idempotency(..., workflow="meeting")`. Concurrent same-key retries now produce exactly one meeting AND exactly one Trust Spine `record_created`.
+- **Certified endpoints (exactly-once under concurrent retries)**: daily-reports · incidents · meetings · field-leadership records.
+- **Deferred endpoints (documented with severity)**: inspections (P1) · equipment-inspections (P1) · jhas (P2) · qaqc (P2) · hr requests (P2) · trench safety mutations (P2) · dispatch assignments (P2).
+- **7 new regression tests** in `test_track_22_4b_followup_idempotency_spine.py`; full track suite: **64 pass · 1 skip · 0 fail**.
+- Full inventory in `memory/TRACK_22_4B_FOLLOWUP_IDEMPOTENCY_MATRIX.csv`, defect ledger in `memory/TRACK_22_4B_FOLLOWUP_IDEMPOTENCY_DEFECTS.csv`, closure memo in `memory/TRACK_22_4B_FOLLOWUP_IDEMPOTENCY_SPINE.md`.
+- **Motive untouched · RBAC unchanged · No V2 · No frontend workaround · No silently swallowed errors.**
+
+
+
 ## 2026-07-05 — TRACK 22.4b-followup-DR · 🟢 SHIPPED · B-03 CERTIFIED + 2 additional P0 defects closed
 
 Daily Report identity permanently unified. B-03 root cause: two identity fields (`doc_id` atomic, `report_number` client-writable) drifted because the write-path guard only overwrote empty values, while the frontend pre-filled `report_number` from `/next-number` with a `DR-YYYYMMDD-NNN` shape that never reconciles with the canonical `DR-YYYY-NNNNN` shape. See `memory/TRACK_22_4B_FOLLOWUP_DR.md` for the full certification.
