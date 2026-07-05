@@ -41,6 +41,13 @@ from services.dr_ai import (
 )
 from services.dr_ai.agents import AGENT_RESPONSE_SCHEMA
 from services.dr_ai.cache import ensure_indexes as ensure_ai_cache_indexes
+from services.ods_spine import (
+    ingest_dr_v2_draft as _ods_ingest_dr_v2_draft,
+    ingest_dr_v2_approval as _ods_ingest_dr_v2_approval,
+    ods_enabled as _ods_enabled,
+    dr_v2_spine_emission_enabled as _ods_emission_on,
+)
+from services.ods_spine.kpi import compute_kpi_snapshot as _ods_compute_snapshot
 
 
 DRAFTS_COLL = "dr_v2_drafts"
@@ -183,6 +190,30 @@ def register_dr_v2_routes(api_router: APIRouter, db) -> None:
             {"$set": doc},
             upsert=True,
         )
+
+        # ODS-001 · fire-and-forget spine emission.
+        # Feature-flag gated (ODS_ENABLED + DR_V2_SPINE_EMISSION_ENABLED).
+        # Never blocks the save response. Errors are swallowed — the
+        # source draft is already durable.
+        if _ods_enabled() and _ods_emission_on():
+            async def _emit_and_snapshot():
+                try:
+                    fresh = await db[DRAFTS_COLL].find_one({"report_id": report_id}, {"_id": 0})
+                    res = await _ods_ingest_dr_v2_draft(
+                        db, fresh or doc, actor=payload.supervisor_id or "supervisor", trigger="event",
+                    )
+                    if res.get("ok") and res.get("project_id"):
+                        await _ods_compute_snapshot(
+                            db, tenant_id="masci",
+                            project_id=res["project_id"], date=res["date"],
+                        )
+                except Exception:  # noqa: BLE001
+                    pass
+            try:
+                asyncio.get_event_loop().create_task(_emit_and_snapshot())
+            except RuntimeError:
+                pass
+
         return {"report_id": report_id, "evidence_hash": doc["evidence_hash"], "saved_at": doc["updated_at"]}
 
     # -------------------------------------------------------------------
@@ -326,6 +357,34 @@ def register_dr_v2_routes(api_router: APIRouter, db) -> None:
             upsert=True,
         )
         summary = await db[APPROVALS_COLL].find_one({"report_id": payload.report_id}, {"_id": 0})
+
+        # ODS-001 · Emit an intelligence_fact on ACCEPT so the spine has
+        # a supervisor-approved narrative available to consumers.
+        if action == "accept" and _ods_enabled() and _ods_emission_on():
+            try:
+                # Best-effort — pull latest AI cache entry for the accepted agent
+                cache_doc = None
+                if payload.agent:
+                    cache_doc = await db["dr_v2_ai_cache"].find_one(
+                        {"report_id": payload.report_id, "agent": payload.agent},
+                        sort=[("cached_at", -1)],
+                    )
+                if cache_doc and (result := cache_doc.get("result")):
+                    await _ods_ingest_dr_v2_approval(
+                        db,
+                        report_id=payload.report_id,
+                        action="accept",
+                        agent=payload.agent or "",
+                        supervisor_id=payload.supervisor_id or "",
+                        narrative=result.get("narrative", ""),
+                        confidence=result.get("confidence", 0.0),
+                        source_facts=result.get("evidence_refs", []),
+                        model=result.get("model", ""),
+                        provider=result.get("provider", ""),
+                    )
+            except Exception:  # noqa: BLE001
+                pass
+
         # Return summary + the last N entries so the UI can update without a second fetch.
         recent_cursor = db[APPROVAL_ENTRIES_COLL].find(
             {"report_id": payload.report_id}, {"_id": 0}

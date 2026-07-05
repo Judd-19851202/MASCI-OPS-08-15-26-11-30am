@@ -1,33 +1,33 @@
 """DR-ROI-001 · Phase C · Emergent LLM Key provider (Claude Sonnet 4.5).
 
-Concrete `AiProvider` implementation backed by `emergentintegrations`
-LlmChat. Non-streaming JSON mode by default (agent envelopes are
-short — streaming buys us nothing and adds parse complexity).
-
-Lazy client construction: LlmChat is instantiated per-request so a
-missing key at boot never prevents the server from starting.
+Now backed by the ForgedOps AI Gateway. This module remains for
+backward compatibility with older callers — new code should call the
+Gateway directly. The Gateway is model-agnostic (Anthropic / OpenAI /
+Google) and provider-neutral env vars power routing.
 """
 from __future__ import annotations
 
-import json
 import os
 from datetime import datetime, timezone
 from typing import Any, Dict
 
 from .provider import AiSynthesisResult
+from services.ai_gateway import get_gateway
+from services.ai_gateway.env import gateway_enabled
 
 
 class EmergentClaudeProvider:
-    """Model-agnostic wrapper — swap `.with_model(...)` and it becomes GPT/Gemini."""
+    """Model-agnostic wrapper backed by the AI Gateway."""
 
     name = "emergent"
-    # Exact model string per user directive (Feb 2026). Overridable via env.
-    model = os.environ.get("DR_AI_MODEL", "claude-sonnet-4-5-20250929")
-    llm_provider = os.environ.get("DR_AI_LLM_PROVIDER", "anthropic")
+    # Kept for backward-compat display; real routing lives in the gateway.
+    model = os.environ.get("AI_DEFAULT_TEXT_MODEL", "claude-sonnet-4-5-20250929")
+    llm_provider = os.environ.get("AI_DEFAULT_PROVIDER", "anthropic")
 
     def __init__(self):
-        # Lazy — key resolution and library import happen on first call.
-        self._api_key = os.environ.get("EMERGENT_LLM_KEY", "")
+        self._api_key_present = bool(
+            os.environ.get("EMERGENT_LLM_KEY") or os.environ.get("ANTHROPIC_API_KEY")
+        )
 
     async def synthesize(
         self,
@@ -40,106 +40,40 @@ class EmergentClaudeProvider:
     ) -> AiSynthesisResult:
         started = datetime.now(timezone.utc).isoformat()
 
-        if not self._api_key:
-            return AiSynthesisResult(
-                agent=agent, narrative="", confidence=0.0,
-                evidence_refs=[], sources_used=[],
-                uncertainties=["EMERGENT_LLM_KEY not configured"],
-                model=self.model, provider=self.name,
-                generated_at=started, ai_available=False,
-                fallback_reason="missing_api_key",
-            )
-
-        try:
-            from emergentintegrations.llm.chat import LlmChat, UserMessage
-        except Exception as exc:  # noqa: BLE001
-            return AiSynthesisResult(
-                agent=agent, narrative="", confidence=0.0,
-                evidence_refs=[], sources_used=[],
-                uncertainties=[f"emergentintegrations import failed: {exc}"],
-                model=self.model, provider=self.name,
-                generated_at=started, ai_available=False,
-                fallback_reason="import_error",
-            )
-
-        # Force strict-JSON output at the prompt level.
-        prompt = (
-            "EVIDENCE BUNDLE (json):\n"
-            + json.dumps(user_payload, sort_keys=True, ensure_ascii=False)
-            + "\n\nRespond with strict JSON matching this schema:\n"
-            + json.dumps(response_schema, ensure_ascii=False)
-        )
-
-        try:
-            chat = LlmChat(
-                api_key=self._api_key,
+        # Route through the gateway. Task type = "operational_narrative"
+        # for all three DR-V2 agents; the task_router picks the model.
+        gw = get_gateway()
+        env = None
+        if gateway_enabled():
+            env = await gw.dispatch(
+                task="operational_narrative",
+                system=system_message,
+                user_payload=user_payload,
+                response_schema=response_schema,
                 session_id=session_id,
-                system_message=system_message,
-            ).with_model(self.llm_provider, self.model)
-
-            user_msg = UserMessage(text=prompt)
-
-            # Non-streaming: envelope is short, and we need a single
-            # atomic JSON parse to enforce schema strictness.
-            raw = await chat.send_message(user_msg)
-        except Exception as exc:  # noqa: BLE001
-            return AiSynthesisResult(
-                agent=agent, narrative="", confidence=0.0,
-                evidence_refs=[], sources_used=[],
-                uncertainties=[f"llm call failed: {exc.__class__.__name__}"],
-                model=self.model, provider=self.name,
-                generated_at=started, ai_available=False,
-                fallback_reason="llm_call_failed",
             )
 
-        text = (raw or "").strip()
-        # Strip common markdown fences if the model wraps JSON.
-        if text.startswith("```"):
-            text = text.strip("`")
-            if text.lower().startswith("json"):
-                text = text[4:].strip()
-
-        try:
-            data = json.loads(text)
-        except Exception:  # noqa: BLE001
+        if env is None or not env.ai_available:
+            reason = (env.fallback_reason if env else "gateway_disabled") or "unknown"
             return AiSynthesisResult(
-                agent=agent, narrative=text[:500], confidence=0.0,
-                evidence_refs=[], sources_used=[],
-                uncertainties=["model returned non-JSON output"],
-                model=self.model, provider=self.name,
-                generated_at=started, ai_available=False,
-                fallback_reason="invalid_json",
-                raw={"text": text[:2000]},
-            )
-
-        # Shape check — reject anything that doesn't match the envelope.
-        required = {"narrative", "confidence", "evidence_refs", "sources_used"}
-        if not required.issubset(set(data.keys())):
-            return AiSynthesisResult(
-                agent=agent, narrative=str(data.get("narrative", ""))[:500],
+                agent=agent, narrative=(env.narrative if env else "") or "",
                 confidence=0.0, evidence_refs=[], sources_used=[],
-                uncertainties=["response missing required envelope fields"],
+                uncertainties=[reason],
                 model=self.model, provider=self.name,
                 generated_at=started, ai_available=False,
-                fallback_reason="schema_violation",
-                raw=data,
+                fallback_reason=reason,
             )
-
-        try:
-            confidence = float(data.get("confidence", 0.0))
-        except (TypeError, ValueError):
-            confidence = 0.0
-        confidence = max(0.0, min(1.0, confidence))
 
         return AiSynthesisResult(
             agent=agent,
-            narrative=str(data.get("narrative", ""))[:4000],
-            confidence=confidence,
-            evidence_refs=[str(x) for x in data.get("evidence_refs", [])][:64],
-            sources_used=[str(x) for x in data.get("sources_used", [])][:64],
-            uncertainties=[str(x) for x in data.get("uncertainties", []) or []][:32],
-            model=self.model,
-            provider=self.name,
-            generated_at=started,
+            narrative=env.narrative,
+            confidence=env.confidence,
+            evidence_refs=list(env.evidence_refs),
+            sources_used=list(env.sources_used),
+            uncertainties=list(env.uncertainties),
+            model=env.model or self.model,
+            provider=env.provider or self.name,
+            generated_at=env.generated_at or started,
             ai_available=True,
         )
+

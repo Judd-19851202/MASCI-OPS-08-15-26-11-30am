@@ -2888,6 +2888,16 @@ register_dr_v2_routes(api_router, db)
 
 
 # ============================================================
+# ODS-001 · Operational Data Spine Foundation
+# ------------------------------------------------------------
+# ADDITIVE mount. Zero drift on V1 or DR-V2. Feature-flag gated
+# by ODS_ENABLED. See /app/backend/routes/ods.py.
+# ============================================================
+from routes.ods import register_ods_routes  # noqa: E402
+register_ods_routes(api_router, db)
+
+
+# ============================================================
 # TRACK 19.04 · Unified Daily Report Attachment Pipeline
 # ============================================================
 # Reuses the SAME R2 bucket / client / signed-URL infrastructure that

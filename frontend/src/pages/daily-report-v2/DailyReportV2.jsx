@@ -78,10 +78,8 @@ export default function DailyReportV2() {
             <div className="mt-3 flex items-center gap-3 text-xs opacity-70" data-testid="dr-v2-savebar">
               <span data-testid="dr-v2-report-id">{reportId ? `Report ${reportId}` : "Draft not yet saved"}</span>
               {saving ? <span className="opacity-80">· saving…</span> : savedAt ? <span>· saved</span> : null}
-              {ai.meta ? (
-                <span className="ml-auto">
-                  Model: <span className="font-mono">{ai.meta.model}</span> · AI: {ai.meta.ai_available ? "ON" : "OFF"}
-                </span>
+              {ai.meta?.ai_available ? (
+                <span className="ml-auto opacity-60">Operational summary: on</span>
               ) : null}
             </div>
           </header>

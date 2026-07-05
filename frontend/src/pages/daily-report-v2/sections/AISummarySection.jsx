@@ -28,11 +28,12 @@ export default function AISummarySection({ ai, approvals }) {
   const regen = () => ai?.regenerate();
 
   return (
-    <SectionCard id="ai-summary" title="9 · Live AI Operational Summary" badge={loading ? "syncing" : aiAvailable ? "ready" : "off"}>
+    <SectionCard id="ai-summary" title="9 · Live Operational Summary" badge={loading ? "syncing" : aiAvailable ? "ready" : "off"}>
       {!aiAvailable ? (
         <div className="rounded-md border border-amber-800/60 bg-amber-950/30 px-4 py-3 text-sm" data-testid="dr-v2-ai-summary-disabled">
-          AI synthesis is not enabled or the LLM key is missing. You can still
-          submit the report manually; the supervisor remains the source of truth.
+          The operational summary engine is not enabled for your account
+          yet. You can still submit the report manually — the supervisor
+          remains the source of truth.
         </div>
       ) : null}
 
@@ -44,8 +45,8 @@ export default function AISummarySection({ ai, approvals }) {
 
       <div className="flex items-center justify-between">
         <p className="text-sm opacity-70">
-          Every claim below cites structured fields you entered. AI never invents
-          facts. Accept, edit, or regenerate before you submit.
+          Every claim below cites structured fields you entered. Accept,
+          edit, or regenerate before you submit.
         </p>
         <button
           className="text-xs rounded-md border border-neutral-700 hover:border-red-500 px-2 py-1"
@@ -60,7 +61,7 @@ export default function AISummarySection({ ai, approvals }) {
       <div className="space-y-3" data-testid="dr-v2-ai-outputs">
         {Object.keys(outputs).length === 0 ? (
           <div className="rounded-md border border-dashed border-neutral-700 bg-neutral-950/40 px-4 py-6 text-sm opacity-75" data-testid="dr-v2-ai-empty">
-            {loading ? "Synthesizing…" : "Enter Day Setup + at least one Activity Card, then AI will synthesize."}
+            {loading ? "Preparing summary…" : "Enter Day Setup + at least one Activity Card, then a summary will appear."}
           </div>
         ) : (
           Object.entries(outputs).map(([agent, out]) => (

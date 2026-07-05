@@ -1,446 +1,4 @@
 {
-  "generated": "2026-07-05T00:35:49.570998+00:00",
-  "track": "22.2-phase-b-app-js-extraction",
-  "lifecycle_complete": true,
-  "startup_migration_pct": 100.0,
-  "shutdown_migration_pct": 100.0,
-  "recent_track_closures": [
-    {
-      "track": "22.2-Phase-B",
-      "closed": true,
-      "date": "2026-02-05",
-      "title": "App.js Route-Group Extraction \u00b7 1283\u219294 lines \u00b7 385 routes preserved"
-    },
-    {
-      "track": "PHASE-1-FINAL",
-      "closed": true,
-      "date": "2026-02-05",
-      "verdict": "GO \u00b7 deployable"
-    },
-    {
-      "track": "22.4A",
-      "closed": true,
-      "date": "2026-02-04",
-      "title": "Pydantic v2 Completion"
-    },
-    {
-      "track": "22.3",
-      "closed": true,
-      "date": "2026-02-04",
-      "title": "Pydantic v2 Hygiene Sweep (regex\u2192pattern)"
-    },
-    {
-      "track": "22.2",
-      "closed": false,
-      "date": "2026-02-04",
-      "title": "App.js Modernization (Phase B blocked-with-owner)"
-    },
-    {
-      "track": "22.1K",
-      "title": "Final Lifecycle Completion \u2014 Shutdown Migration + Graceful Termination",
-      "status": "\ud83c\udf89 LIFECYCLE ARCHITECTURE COMPLETE",
-      "date": "2026-07-04",
-      "on_shutdown_count_before": 1,
-      "on_shutdown_count_after": 0,
-      "shutdown_steps_added": 1,
-      "shutdown_steps_total": 1,
-      "migrated_handler": "shutdown_db_client",
-      "new_registry": "SHUTDOWN_STEPS",
-      "new_orchestrator_phase": "phase-4a runs BEFORE legacy phase-4b on_shutdown",
-      "bytecode_sha256": "a7db2b0122a4d9405610d78c2b44de8cd8314531ae688d554116b83e332e7c9b",
-      "orphan_task_fix_F2": "routes/job_photos.py::_ensure_thumb_cache_indexes now registered as LIFECYCLE_STEPS.misc-bootstrap",
-      "ci_guardrails_added": [
-        "test_no_legacy_startup_decorators_anywhere_in_backend",
-        "test_no_legacy_shutdown_decorators_anywhere_in_backend"
-      ],
-      "route_delta": 0,
-      "attestation_version": "22.1K",
-      "lifecycle_complete": true
-    },
-    {
-      "track": "22.1L",
-      "title": "Final Legacy Startup Handler Elimination",
-      "status": "\ud83c\udf89 100% GO / CLOSED",
-      "date": "2026-07-04",
-      "on_startup_count_before": 1,
-      "on_startup_count_after": 0,
-      "lifecycle_steps_added": 1,
-      "lifecycle_steps_total": 50,
-      "migrated_handler": "build_command_center_router._startup -> _command_center_seed_defaults",
-      "new_group": "command-center",
-      "bytecode_sha256": "b2976f4460227c5402564de80fe32ee1d588f9f185ebd7ba97a39277989743cf",
-      "route_delta": 0,
-      "migrated_pct": 100.0
-    },
-    {
-      "track": "22.1J",
-      "title": "Readiness-Last Handler Migration",
-      "status": "GO / CLOSED",
-      "date": "2026-07-04",
-      "on_startup_count_before": 2,
-      "on_startup_count_after": 1,
-      "lifecycle_steps_added": 1,
-      "lifecycle_steps_total": 49,
-      "migrated_handler": "_iter453_6_flip_ready_flag",
-      "new_group": "readiness",
-      "new_orchestrator_phase": "phase-3 (readiness) runs AFTER app.router.on_startup",
-      "bytecode_sha256": "3ad0b42c02c53519565c03606ae0024b903a6db7c71c42578e406541e89a8fc4",
-      "excluded_handlers": [
-        "_startup (routes.command_center)"
-      ],
-      "route_delta": 0,
-      "migrated_pct": 98.0
-    },
-    {
-      "track": "22.1I.1",
-      "title": "Backup Scheduler Safety Audit + Lifespan Migration",
-      "status": "GO / CLOSED",
-      "date": "2026-07-04",
-      "on_startup_count_before": 3,
-      "on_startup_count_after": 2,
-      "lifecycle_steps_added": 1,
-      "lifecycle_steps_total": 48,
-      "migrated_handler": "_start_backup_scheduler",
-      "new_group": "backup-scheduler",
-      "bytecode_sha256": "c7d29e0072aa7578855271dfd5d63a048b0f10d0d0d7bbc6819488d35b378a73",
-      "excluded_handlers": [
-        "_startup (routes.command_center)",
-        "_iter453_6_flip_ready_flag"
-      ],
-      "route_delta": 0,
-      "migrated_pct": 96.0
-    },
-    {
-      "track": "22.1I",
-      "title": "Miscellaneous Bootstrap Handler Migration",
-      "status": "GO / CLOSED",
-      "date": "2026-07-04",
-      "on_startup_count_before": 23,
-      "on_startup_count_after": 3,
-      "lifecycle_steps_added": 20,
-      "lifecycle_steps_total": 47,
-      "excluded_handlers": [
-        "_startup (routes.command_center)",
-        "_start_backup_scheduler",
-        "_iter453_6_flip_ready_flag"
-      ],
-      "route_delta": 0,
-      "lock_envelope_before": 263,
-      "lock_envelope_after": 278,
-      "migrated_pct": 94.0,
-      "eight_pillars_average": 9.91
-    },
-    {
-      "track": "22.1H",
-      "title": "Email-Capable Scheduler Handler Migration",
-      "status": "GO / CLOSED",
-      "date": "2026-07-04",
-      "on_startup_count_before": 29,
-      "on_startup_count_after": 23,
-      "lifecycle_steps_added": 5,
-      "lifecycle_steps_total": 27,
-      "defect_closed": "_start_safety_digest_cron double-registration on @app.on_event('startup')",
-      "unique_lifecycle_callables_per_boot": 50,
-      "bytecode_fingerprints_clean": true,
-      "route_delta": 0,
-      "lock_envelope_before": 247,
-      "lock_envelope_after": 263,
-      "migrated_pct": 54.0,
-      "eight_pillars_average": 9.91
-    },
-    {
-      "track": "22.1G",
-      "title": "Non-Email Scheduler Handler Migration",
-      "status": "GO / CLOSED",
-      "date": "2026-07-04",
-      "on_startup_count_before": 33,
-      "on_startup_count_after": 29,
-      "lifecycle_steps_added": 4,
-      "lifecycle_steps_total": 22,
-      "email_capable_handlers_quarantined": 5,
-      "route_delta": 0,
-      "lock_envelope_before": 233,
-      "lock_envelope_after": 246,
-      "migrated_pct": 43.14,
-      "eight_pillars_average": 9.9
-    },
-    {
-      "track": "22.1F",
-      "title": "Seed Handler Migration + Platform Operations API Foundation",
-      "status": "GO / CLOSED",
-      "date": "2026-07-04",
-      "on_startup_count_before": 40,
-      "on_startup_count_after": 33,
-      "lifecycle_steps_added": 7,
-      "lifecycle_steps_total": 18,
-      "new_admin_routes": [
-        "GET /api/admin/platform/status"
-      ],
-      "new_backend_modules": [
-        "backend/lib/platform_status.py"
-      ],
-      "lock_envelope_before": 218,
-      "lock_envelope_after": 233,
-      "eight_pillars_average": 9.89
-    }
-  ],
-  "counts": {
-    "files_tracked_git": 6936,
-    "backend_py_files": 1169,
-    "frontend_jsx_files": 679,
-    "frontend_js_files": 198,
-    "memory_md_files": 3374,
-    "root_md_files": 26,
-    "backend_route_modules": 152,
-    "backend_endpoints": 406,
-    "frontend_routes": 385,
-    "frontend_pages": 309,
-    "frontend_components": 364,
-    "shadcn_ui_primitives": 48,
-    "buttons": 1687,
-    "forms": 81,
-    "inputs": 1873,
-    "dialogs_drawers_sheets": 648,
-    "tables": 200,
-    "api_client_calls": 743,
-    "mongo_collections_unique": 170,
-    "auth_gate_call_sites": 355,
-    "portal_tokens": 7,
-    "background_schedulers_or_tasks": 39,
-    "email_dispatch_call_sites": 34,
-    "pdf_emitting_modules": 64,
-    "file_upload_endpoints": 70,
-    "test_files": 634,
-    "test_functions": 9183,
-    "storage_size_mb_backend_storage": 533,
-    "backups_size_kb": 32
-  },
-  "endpoints_sample_first_20": [
-    {
-      "id": "API-0001",
-      "method": "GET",
-      "path": "/api/admin/guidance/coverage",
-      "file": "backend/server.py",
-      "line": 806
-    },
-    {
-      "id": "API-0002",
-      "method": "GET",
-      "path": "/api/admin/guidance/workflow-coverage",
-      "file": "backend/server.py",
-      "line": 816
-    },
-    {
-      "id": "API-0003",
-      "method": "GET",
-      "path": "/api/health/full",
-      "file": "backend/server.py",
-      "line": 1006
-    },
-    {
-      "id": "API-0004",
-      "method": "GET",
-      "path": "/api/version",
-      "file": "backend/server.py",
-      "line": 1189
-    },
-    {
-      "id": "API-0005",
-      "method": "POST",
-      "path": "/api/dev/login",
-      "file": "backend/server.py",
-      "line": 1239
-    },
-    {
-      "id": "API-0006",
-      "method": "GET",
-      "path": "/api/dev/check",
-      "file": "backend/server.py",
-      "line": 1255
-    },
-    {
-      "id": "API-0007",
-      "method": "GET",
-      "path": "/api/dev/ops-manual.pdf",
-      "file": "backend/server.py",
-      "line": 1261
-    },
-    {
-      "id": "API-0008",
-      "method": "GET",
-      "path": "/api/dev/ops-manual.docx",
-      "file": "backend/server.py",
-      "line": 1277
-    },
-    {
-      "id": "API-0009",
-      "method": "GET",
-      "path": "/api/admin/ops-manual.pdf",
-      "file": "backend/server.py",
-      "line": 1300
-    },
-    {
-      "id": "API-0010",
-      "method": "GET",
-      "path": "/api/admin/ops-manual.docx",
-      "file": "backend/server.py",
-      "line": 1314
-    },
-    {
-      "id": "API-0011",
-      "method": "POST",
-      "path": "/api/dev/ops-manual/snapshot",
-      "file": "backend/server.py",
-      "line": 1335
-    },
-    {
-      "id": "API-0012",
-      "method": "GET",
-      "path": "/api/dev/ops-manual/snapshots",
-      "file": "backend/server.py",
-      "line": 1369
-    },
-    {
-      "id": "API-0013",
-      "method": "DELETE",
-      "path": "/api/dev/ops-manual/snapshots/{snap_id}",
-      "file": "backend/server.py",
-      "line": 1379
-    },
-    {
-      "id": "API-0014",
-      "method": "GET",
-      "path": "/api/dev/ops-manual/snapshots/{snap_id}.pdf",
-      "file": "backend/server.py",
-      "line": 1389
-    },
-    {
-      "id": "API-0015",
-      "method": "GET",
-      "path": "/api/dev/ops-manual/snapshots/{snap_id}.docx",
-      "file": "backend/server.py",
-      "line": 1410
-    },
-    {
-      "id": "API-0016",
-      "method": "GET",
-      "path": "/api/dev/source-bundle.zip",
-      "file": "backend/server.py",
-      "line": 1534
-    },
-    {
-      "id": "API-0017",
-      "method": "GET",
-      "path": "/api/dev/source-bundle.info",
-      "file": "backend/server.py",
-      "line": 1553
-    },
-    {
-      "id": "API-0018",
-      "method": "GET",
-      "path": "/api/admin/employees/export",
-      "file": "backend/server.py",
-      "line": 1665
-    },
-    {
-      "id": "API-0019",
-      "method": "GET",
-      "path": "/api/admin/suppliers/export",
-      "file": "backend/server.py",
-      "line": 1685
-    },
-    {
-      "id": "API-0020",
-      "method": "GET",
-      "path": "/api/admin/equipment-master/export",
-      "file": "backend/server.py",
-      "line": 1697
-    }
-  ],
-  "endpoints_total": 406,
-  "routes_sample_first_20": [
-    {
-      "id": "ROUTE-0001",
-      "path": "/"
-    },
-    {
-      "id": "ROUTE-0002",
-      "path": "/revise/:token"
-    },
-    {
-      "id": "ROUTE-0003",
-      "path": "/safety"
-    },
-    {
-      "id": "ROUTE-0004",
-      "path": "/safety/forms/login"
-    },
-    {
-      "id": "ROUTE-0005",
-      "path": "/safety/forms"
-    },
-    {
-      "id": "ROUTE-0006",
-      "path": "/safety/forms/equipment-issuance/new"
-    },
-    {
-      "id": "ROUTE-0007",
-      "path": "/safety/forms/equipment-issuance/:id"
-    },
-    {
-      "id": "ROUTE-0008",
-      "path": "/safety/forms/equipment-issuance/:id/return"
-    },
-    {
-      "id": "ROUTE-0009",
-      "path": "/safety/forms/equipment-training/new"
-    },
-    {
-      "id": "ROUTE-0010",
-      "path": "/safety/forms/equipment-training/:id"
-    },
-    {
-      "id": "ROUTE-0011",
-      "path": "/safety/cards"
-    },
-    {
-      "id": "ROUTE-0012",
-      "path": "/field"
-    },
-    {
-      "id": "ROUTE-0013",
-      "path": "/field/calculators"
-    },
-    {
-      "id": "ROUTE-0014",
-      "path": "/qaqc"
-    },
-    {
-      "id": "ROUTE-0015",
-      "path": "/qa-qc"
-    },
-    {
-      "id": "ROUTE-0016",
-      "path": "/qaqc/:slug/new"
-    },
-    {
-      "id": "ROUTE-0017",
-      "path": "/qaqc/:id"
-    },
-    {
-      "id": "ROUTE-0018",
-      "path": "/admin/qaqc"
-    },
-    {
-      "id": "ROUTE-0019",
-      "path": "/admin/transportation/*"
-    },
-    {
-      "id": "ROUTE-0020",
-      "path": "/transportation-operations/*"
-    }
-  ],
-  "routes_total": 385,
   "collections": [
     {
       "id": "COLL-0001",
@@ -1123,49 +681,478 @@
       "name": "webauthn_challenges"
     }
   ],
-  "tests_sample_first_10": [
+  "counts": {
+    "api_client_calls": 743,
+    "auth_gate_call_sites": 355,
+    "backend_endpoints": 406,
+    "backend_py_files": 1169,
+    "backend_route_modules": 152,
+    "background_schedulers_or_tasks": 39,
+    "backups_size_kb": 32,
+    "buttons": 1687,
+    "dialogs_drawers_sheets": 648,
+    "email_dispatch_call_sites": 34,
+    "file_upload_endpoints": 70,
+    "files_tracked_git": 6936,
+    "forms": 81,
+    "frontend_components": 364,
+    "frontend_js_files": 198,
+    "frontend_jsx_files": 679,
+    "frontend_pages": 309,
+    "frontend_routes": 385,
+    "inputs": 1873,
+    "memory_md_files": 3374,
+    "mongo_collections_unique": 170,
+    "pdf_emitting_modules": 64,
+    "portal_tokens": 7,
+    "root_md_files": 26,
+    "shadcn_ui_primitives": 48,
+    "storage_size_mb_backend_storage": 533,
+    "tables": 200,
+    "test_files": 634,
+    "test_functions": 9183
+  },
+  "endpoints_sample_first_20": [
     {
-      "id": "TEST-0001",
-      "file": "backend/tests/test_accountability_executive_phase_1a4.py"
+      "file": "backend/server.py",
+      "id": "API-0001",
+      "line": 806,
+      "method": "GET",
+      "path": "/api/admin/guidance/coverage"
     },
     {
-      "id": "TEST-0002",
-      "file": "backend/tests/test_accountability_owner_fidelity_phase_1a5.py"
+      "file": "backend/server.py",
+      "id": "API-0002",
+      "line": 816,
+      "method": "GET",
+      "path": "/api/admin/guidance/workflow-coverage"
     },
     {
-      "id": "TEST-0003",
-      "file": "backend/tests/test_accountability_projection_phase_1a2.py"
+      "file": "backend/server.py",
+      "id": "API-0003",
+      "line": 1006,
+      "method": "GET",
+      "path": "/api/health/full"
     },
     {
-      "id": "TEST-0004",
-      "file": "backend/tests/test_accountability_service_phase_1a3.py"
+      "file": "backend/server.py",
+      "id": "API-0004",
+      "line": 1189,
+      "method": "GET",
+      "path": "/api/version"
     },
     {
-      "id": "TEST-0005",
-      "file": "backend/tests/test_admin_auth.py"
+      "file": "backend/server.py",
+      "id": "API-0005",
+      "line": 1239,
+      "method": "POST",
+      "path": "/api/dev/login"
     },
     {
-      "id": "TEST-0006",
-      "file": "backend/tests/test_alert_env_001.py"
+      "file": "backend/server.py",
+      "id": "API-0006",
+      "line": 1255,
+      "method": "GET",
+      "path": "/api/dev/check"
     },
     {
-      "id": "TEST-0007",
-      "file": "backend/tests/test_asset_spine_p0_1.py"
+      "file": "backend/server.py",
+      "id": "API-0007",
+      "line": 1261,
+      "method": "GET",
+      "path": "/api/dev/ops-manual.pdf"
     },
     {
-      "id": "TEST-0008",
-      "file": "backend/tests/test_backup_fix_001.py"
+      "file": "backend/server.py",
+      "id": "API-0008",
+      "line": 1277,
+      "method": "GET",
+      "path": "/api/dev/ops-manual.docx"
     },
     {
-      "id": "TEST-0009",
-      "file": "backend/tests/test_backup_hours_iter27.py"
+      "file": "backend/server.py",
+      "id": "API-0009",
+      "line": 1300,
+      "method": "GET",
+      "path": "/api/admin/ops-manual.pdf"
     },
     {
-      "id": "TEST-0010",
-      "file": "backend/tests/test_chronology_density_heuristics.py"
+      "file": "backend/server.py",
+      "id": "API-0010",
+      "line": 1314,
+      "method": "GET",
+      "path": "/api/admin/ops-manual.docx"
+    },
+    {
+      "file": "backend/server.py",
+      "id": "API-0011",
+      "line": 1335,
+      "method": "POST",
+      "path": "/api/dev/ops-manual/snapshot"
+    },
+    {
+      "file": "backend/server.py",
+      "id": "API-0012",
+      "line": 1369,
+      "method": "GET",
+      "path": "/api/dev/ops-manual/snapshots"
+    },
+    {
+      "file": "backend/server.py",
+      "id": "API-0013",
+      "line": 1379,
+      "method": "DELETE",
+      "path": "/api/dev/ops-manual/snapshots/{snap_id}"
+    },
+    {
+      "file": "backend/server.py",
+      "id": "API-0014",
+      "line": 1389,
+      "method": "GET",
+      "path": "/api/dev/ops-manual/snapshots/{snap_id}.pdf"
+    },
+    {
+      "file": "backend/server.py",
+      "id": "API-0015",
+      "line": 1410,
+      "method": "GET",
+      "path": "/api/dev/ops-manual/snapshots/{snap_id}.docx"
+    },
+    {
+      "file": "backend/server.py",
+      "id": "API-0016",
+      "line": 1534,
+      "method": "GET",
+      "path": "/api/dev/source-bundle.zip"
+    },
+    {
+      "file": "backend/server.py",
+      "id": "API-0017",
+      "line": 1553,
+      "method": "GET",
+      "path": "/api/dev/source-bundle.info"
+    },
+    {
+      "file": "backend/server.py",
+      "id": "API-0018",
+      "line": 1665,
+      "method": "GET",
+      "path": "/api/admin/employees/export"
+    },
+    {
+      "file": "backend/server.py",
+      "id": "API-0019",
+      "line": 1685,
+      "method": "GET",
+      "path": "/api/admin/suppliers/export"
+    },
+    {
+      "file": "backend/server.py",
+      "id": "API-0020",
+      "line": 1697,
+      "method": "GET",
+      "path": "/api/admin/equipment-master/export"
     }
   ],
-  "tests_total": 634,
+  "endpoints_total": 406,
+  "generated": "2026-07-05T00:35:49.570998+00:00",
+  "lifecycle_complete": true,
+  "phase_1_certification": {
+    "app_js_md5": "d84cea05c1f64bd2ae82823d7f6aadcc",
+    "app_js_untouched": true,
+    "class_a_defects": 0,
+    "class_b_defects": 0,
+    "class_c_open": 6,
+    "date": "2026-02-05",
+    "documents": [
+      "PHASE_1_EXECUTIVE_SUMMARY.md",
+      "PHASE_1_BASELINE_CERTIFICATION.md",
+      "PHASE_1_OPEN_ITEM_MATRIX.md",
+      "PHASE_1_FRONTEND_CERTIFICATION.md",
+      "PHASE_1_BACKEND_CERTIFICATION.md",
+      "PHASE_1_SECURITY_PERMISSION_CERTIFICATION.md",
+      "PHASE_1_EMAIL_SAFETY_CERTIFICATION.md",
+      "PHASE_1_DEAD_CODE_REPORT.md",
+      "PHASE_1_PERFORMANCE_BASELINE.md",
+      "PHASE_1_DEPLOYMENT_CHECKLIST.md",
+      "PHASE_1_ROLLBACK_PLAN.md",
+      "PHASE_1_POST_DEPLOY_SMOKE_PLAN.md",
+      "PHASE_1_PRODUCTION_MONITORING_PLAN.md",
+      "PHASE_1_TEST_REPORT.md",
+      "PHASE_1_ZERO_DRIFT_MATRIX.md"
+    ],
+    "eight_pillars_average": 9.98,
+    "lock_tests": {
+      "duration_sec": 31.55,
+      "result": "254/254 passing",
+      "suite": "Track 22.*"
+    },
+    "verdict": "GO"
+  },
+  "recent_track_closures": [
+    {
+      "closed": true,
+      "date": "2026-02-05",
+      "title": "App.js Route-Group Extraction \u00b7 1283\u219294 lines \u00b7 385 routes preserved",
+      "track": "22.2-Phase-B"
+    },
+    {
+      "closed": true,
+      "date": "2026-02-05",
+      "track": "PHASE-1-FINAL",
+      "verdict": "GO \u00b7 deployable"
+    },
+    {
+      "closed": true,
+      "date": "2026-02-04",
+      "title": "Pydantic v2 Completion",
+      "track": "22.4A"
+    },
+    {
+      "closed": true,
+      "date": "2026-02-04",
+      "title": "Pydantic v2 Hygiene Sweep (regex\u2192pattern)",
+      "track": "22.3"
+    },
+    {
+      "closed": false,
+      "date": "2026-02-04",
+      "title": "App.js Modernization (Phase B blocked-with-owner)",
+      "track": "22.2"
+    },
+    {
+      "attestation_version": "22.1K",
+      "bytecode_sha256": "a7db2b0122a4d9405610d78c2b44de8cd8314531ae688d554116b83e332e7c9b",
+      "ci_guardrails_added": [
+        "test_no_legacy_startup_decorators_anywhere_in_backend",
+        "test_no_legacy_shutdown_decorators_anywhere_in_backend"
+      ],
+      "date": "2026-07-04",
+      "lifecycle_complete": true,
+      "migrated_handler": "shutdown_db_client",
+      "new_orchestrator_phase": "phase-4a runs BEFORE legacy phase-4b on_shutdown",
+      "new_registry": "SHUTDOWN_STEPS",
+      "on_shutdown_count_after": 0,
+      "on_shutdown_count_before": 1,
+      "orphan_task_fix_F2": "routes/job_photos.py::_ensure_thumb_cache_indexes now registered as LIFECYCLE_STEPS.misc-bootstrap",
+      "route_delta": 0,
+      "shutdown_steps_added": 1,
+      "shutdown_steps_total": 1,
+      "status": "\ud83c\udf89 LIFECYCLE ARCHITECTURE COMPLETE",
+      "title": "Final Lifecycle Completion \u2014 Shutdown Migration + Graceful Termination",
+      "track": "22.1K"
+    },
+    {
+      "bytecode_sha256": "b2976f4460227c5402564de80fe32ee1d588f9f185ebd7ba97a39277989743cf",
+      "date": "2026-07-04",
+      "lifecycle_steps_added": 1,
+      "lifecycle_steps_total": 50,
+      "migrated_handler": "build_command_center_router._startup -> _command_center_seed_defaults",
+      "migrated_pct": 100.0,
+      "new_group": "command-center",
+      "on_startup_count_after": 0,
+      "on_startup_count_before": 1,
+      "route_delta": 0,
+      "status": "\ud83c\udf89 100% GO / CLOSED",
+      "title": "Final Legacy Startup Handler Elimination",
+      "track": "22.1L"
+    },
+    {
+      "bytecode_sha256": "3ad0b42c02c53519565c03606ae0024b903a6db7c71c42578e406541e89a8fc4",
+      "date": "2026-07-04",
+      "excluded_handlers": [
+        "_startup (routes.command_center)"
+      ],
+      "lifecycle_steps_added": 1,
+      "lifecycle_steps_total": 49,
+      "migrated_handler": "_iter453_6_flip_ready_flag",
+      "migrated_pct": 98.0,
+      "new_group": "readiness",
+      "new_orchestrator_phase": "phase-3 (readiness) runs AFTER app.router.on_startup",
+      "on_startup_count_after": 1,
+      "on_startup_count_before": 2,
+      "route_delta": 0,
+      "status": "GO / CLOSED",
+      "title": "Readiness-Last Handler Migration",
+      "track": "22.1J"
+    },
+    {
+      "bytecode_sha256": "c7d29e0072aa7578855271dfd5d63a048b0f10d0d0d7bbc6819488d35b378a73",
+      "date": "2026-07-04",
+      "excluded_handlers": [
+        "_startup (routes.command_center)",
+        "_iter453_6_flip_ready_flag"
+      ],
+      "lifecycle_steps_added": 1,
+      "lifecycle_steps_total": 48,
+      "migrated_handler": "_start_backup_scheduler",
+      "migrated_pct": 96.0,
+      "new_group": "backup-scheduler",
+      "on_startup_count_after": 2,
+      "on_startup_count_before": 3,
+      "route_delta": 0,
+      "status": "GO / CLOSED",
+      "title": "Backup Scheduler Safety Audit + Lifespan Migration",
+      "track": "22.1I.1"
+    },
+    {
+      "date": "2026-07-04",
+      "eight_pillars_average": 9.91,
+      "excluded_handlers": [
+        "_startup (routes.command_center)",
+        "_start_backup_scheduler",
+        "_iter453_6_flip_ready_flag"
+      ],
+      "lifecycle_steps_added": 20,
+      "lifecycle_steps_total": 47,
+      "lock_envelope_after": 278,
+      "lock_envelope_before": 263,
+      "migrated_pct": 94.0,
+      "on_startup_count_after": 3,
+      "on_startup_count_before": 23,
+      "route_delta": 0,
+      "status": "GO / CLOSED",
+      "title": "Miscellaneous Bootstrap Handler Migration",
+      "track": "22.1I"
+    },
+    {
+      "bytecode_fingerprints_clean": true,
+      "date": "2026-07-04",
+      "defect_closed": "_start_safety_digest_cron double-registration on @app.on_event('startup')",
+      "eight_pillars_average": 9.91,
+      "lifecycle_steps_added": 5,
+      "lifecycle_steps_total": 27,
+      "lock_envelope_after": 263,
+      "lock_envelope_before": 247,
+      "migrated_pct": 54.0,
+      "on_startup_count_after": 23,
+      "on_startup_count_before": 29,
+      "route_delta": 0,
+      "status": "GO / CLOSED",
+      "title": "Email-Capable Scheduler Handler Migration",
+      "track": "22.1H",
+      "unique_lifecycle_callables_per_boot": 50
+    },
+    {
+      "date": "2026-07-04",
+      "eight_pillars_average": 9.9,
+      "email_capable_handlers_quarantined": 5,
+      "lifecycle_steps_added": 4,
+      "lifecycle_steps_total": 22,
+      "lock_envelope_after": 246,
+      "lock_envelope_before": 233,
+      "migrated_pct": 43.14,
+      "on_startup_count_after": 29,
+      "on_startup_count_before": 33,
+      "route_delta": 0,
+      "status": "GO / CLOSED",
+      "title": "Non-Email Scheduler Handler Migration",
+      "track": "22.1G"
+    },
+    {
+      "date": "2026-07-04",
+      "eight_pillars_average": 9.89,
+      "lifecycle_steps_added": 7,
+      "lifecycle_steps_total": 18,
+      "lock_envelope_after": 233,
+      "lock_envelope_before": 218,
+      "new_admin_routes": [
+        "GET /api/admin/platform/status"
+      ],
+      "new_backend_modules": [
+        "backend/lib/platform_status.py"
+      ],
+      "on_startup_count_after": 33,
+      "on_startup_count_before": 40,
+      "status": "GO / CLOSED",
+      "title": "Seed Handler Migration + Platform Operations API Foundation",
+      "track": "22.1F"
+    }
+  ],
+  "routes_sample_first_20": [
+    {
+      "id": "ROUTE-0001",
+      "path": "/"
+    },
+    {
+      "id": "ROUTE-0002",
+      "path": "/revise/:token"
+    },
+    {
+      "id": "ROUTE-0003",
+      "path": "/safety"
+    },
+    {
+      "id": "ROUTE-0004",
+      "path": "/safety/forms/login"
+    },
+    {
+      "id": "ROUTE-0005",
+      "path": "/safety/forms"
+    },
+    {
+      "id": "ROUTE-0006",
+      "path": "/safety/forms/equipment-issuance/new"
+    },
+    {
+      "id": "ROUTE-0007",
+      "path": "/safety/forms/equipment-issuance/:id"
+    },
+    {
+      "id": "ROUTE-0008",
+      "path": "/safety/forms/equipment-issuance/:id/return"
+    },
+    {
+      "id": "ROUTE-0009",
+      "path": "/safety/forms/equipment-training/new"
+    },
+    {
+      "id": "ROUTE-0010",
+      "path": "/safety/forms/equipment-training/:id"
+    },
+    {
+      "id": "ROUTE-0011",
+      "path": "/safety/cards"
+    },
+    {
+      "id": "ROUTE-0012",
+      "path": "/field"
+    },
+    {
+      "id": "ROUTE-0013",
+      "path": "/field/calculators"
+    },
+    {
+      "id": "ROUTE-0014",
+      "path": "/qaqc"
+    },
+    {
+      "id": "ROUTE-0015",
+      "path": "/qa-qc"
+    },
+    {
+      "id": "ROUTE-0016",
+      "path": "/qaqc/:slug/new"
+    },
+    {
+      "id": "ROUTE-0017",
+      "path": "/qaqc/:id"
+    },
+    {
+      "id": "ROUTE-0018",
+      "path": "/admin/qaqc"
+    },
+    {
+      "id": "ROUTE-0019",
+      "path": "/admin/transportation/*"
+    },
+    {
+      "id": "ROUTE-0020",
+      "path": "/transportation-operations/*"
+    }
+  ],
+  "routes_total": 385,
+  "shutdown_migration_pct": 100.0,
   "stale_root_docs_candidates_for_retire": [
     "LEGACY_RECORDS_ARCHITECTURE_iter248.md",
     "test_result.md",
@@ -1193,51 +1180,58 @@
     "POST_DEPLOY_PRODUCTION_OBSERVATION.md",
     "FINAL_PLATFORM_STABILIZATION_REPORT.md"
   ],
-  "phase_1_certification": {
-    "verdict": "GO",
-    "date": "2026-02-05",
-    "eight_pillars_average": 9.98,
-    "class_a_defects": 0,
-    "class_b_defects": 0,
-    "class_c_open": 6,
-    "lock_tests": {
-      "suite": "Track 22.*",
-      "result": "254/254 passing",
-      "duration_sec": 31.55
+  "startup_migration_pct": 100.0,
+  "tests_sample_first_10": [
+    {
+      "file": "backend/tests/test_accountability_executive_phase_1a4.py",
+      "id": "TEST-0001"
     },
-    "app_js_md5": "d84cea05c1f64bd2ae82823d7f6aadcc",
-    "app_js_untouched": true,
-    "documents": [
-      "PHASE_1_EXECUTIVE_SUMMARY.md",
-      "PHASE_1_BASELINE_CERTIFICATION.md",
-      "PHASE_1_OPEN_ITEM_MATRIX.md",
-      "PHASE_1_FRONTEND_CERTIFICATION.md",
-      "PHASE_1_BACKEND_CERTIFICATION.md",
-      "PHASE_1_SECURITY_PERMISSION_CERTIFICATION.md",
-      "PHASE_1_EMAIL_SAFETY_CERTIFICATION.md",
-      "PHASE_1_DEAD_CODE_REPORT.md",
-      "PHASE_1_PERFORMANCE_BASELINE.md",
-      "PHASE_1_DEPLOYMENT_CHECKLIST.md",
-      "PHASE_1_ROLLBACK_PLAN.md",
-      "PHASE_1_POST_DEPLOY_SMOKE_PLAN.md",
-      "PHASE_1_PRODUCTION_MONITORING_PLAN.md",
-      "PHASE_1_TEST_REPORT.md",
-      "PHASE_1_ZERO_DRIFT_MATRIX.md"
-    ]
-  },
+    {
+      "file": "backend/tests/test_accountability_owner_fidelity_phase_1a5.py",
+      "id": "TEST-0002"
+    },
+    {
+      "file": "backend/tests/test_accountability_projection_phase_1a2.py",
+      "id": "TEST-0003"
+    },
+    {
+      "file": "backend/tests/test_accountability_service_phase_1a3.py",
+      "id": "TEST-0004"
+    },
+    {
+      "file": "backend/tests/test_admin_auth.py",
+      "id": "TEST-0005"
+    },
+    {
+      "file": "backend/tests/test_alert_env_001.py",
+      "id": "TEST-0006"
+    },
+    {
+      "file": "backend/tests/test_asset_spine_p0_1.py",
+      "id": "TEST-0007"
+    },
+    {
+      "file": "backend/tests/test_backup_fix_001.py",
+      "id": "TEST-0008"
+    },
+    {
+      "file": "backend/tests/test_backup_hours_iter27.py",
+      "id": "TEST-0009"
+    },
+    {
+      "file": "backend/tests/test_chronology_density_heuristics.py",
+      "id": "TEST-0010"
+    }
+  ],
+  "tests_total": 634,
+  "track": "22.2-phase-b-app-js-extraction",
   "track_22_2_phase_b": {
-    "verdict": "GO",
-    "date": "2026-02-05",
-    "app_js_lines_before": 1283,
     "app_js_lines_after": 94,
+    "app_js_lines_before": 1283,
     "app_routes_file_lines": 1230,
-    "routes_preserved": 385,
-    "guards_preserved": 11,
-    "providers_preserved": 1,
-    "main_bundle_bytes_delta": -218,
-    "chunk_count_delta": 0,
-    "eslint_warning_delta": 0,
     "backend_track_22_lock_envelope": "254/254 pass, 26.66s",
+    "chunk_count_delta": 0,
+    "date": "2026-02-05",
     "documents": [
       "TRACK_22_2_EXECUTIVE_SUMMARY.md",
       "TRACK_22_2_TARGET_ARCHITECTURE.md",
@@ -1249,6 +1243,88 @@
       "TRACK_22_2_ENGINEERING_AUDIT.md",
       "TRACK_22_2_ZERO_DRIFT_MATRIX.md",
       "TRACK_22_2_TEST_REPORT.md"
-    ]
+    ],
+    "eslint_warning_delta": 0,
+    "guards_preserved": 11,
+    "main_bundle_bytes_delta": -218,
+    "providers_preserved": 1,
+    "routes_preserved": 385,
+    "verdict": "GO"
+  },
+  "tracks": {
+    "ODS-001": {
+      "additive_collections": [
+        "operational_facts",
+        "operational_ingestion_runs",
+        "operational_kpi_snapshots",
+        "project_operational_config",
+        "operational_fact_links"
+      ],
+      "additive_routes": [
+        "GET /api/ods/meta",
+        "GET /api/ods/facts",
+        "GET /api/ods/projects/{project_id}/summary",
+        "GET /api/ods/projects/{project_id}/config",
+        "PUT /api/ods/projects/{project_id}/config",
+        "GET /api/ods/snapshots",
+        "POST /api/ods/snapshots/recompute",
+        "POST /api/ods/ingest/dr-v2/{report_id}"
+      ],
+      "ai_gateway": {
+        "adapters": [
+          "anthropic",
+          "openai",
+          "google"
+        ],
+        "env_vars_provider_neutral": [
+          "AI_GATEWAY_ENABLED",
+          "AI_DEFAULT_PROVIDER",
+          "AI_DEFAULT_TEXT_MODEL",
+          "AI_DEFAULT_VISION_PROVIDER",
+          "AI_DEFAULT_VISION_MODEL",
+          "AI_PROVIDER_TIMEOUT_MS",
+          "AI_PROVIDER_MAX_RETRIES",
+          "AI_PROVIDER_FAILOVER_ENABLED"
+        ],
+        "task_types": [
+          "operational_narrative",
+          "production_intelligence",
+          "delay_intelligence",
+          "safety_intelligence",
+          "equipment_intelligence",
+          "photo_vision",
+          "pm_brief",
+          "executive_brief",
+          "confidence_validation",
+          "evidence_trace",
+          "future_task"
+        ]
+      },
+      "baseline_after": {
+        "methods": 1459,
+        "openapi_paths": 1277,
+        "routes": 1455
+      },
+      "closed_at": "2026-07-05T03:44:43.275894Z",
+      "docs": [
+        "/app/memory/ODS_001_EXECUTIVE_SUMMARY.md",
+        "/app/memory/ODS_001_CURRENT_STATE_AUDIT.md",
+        "/app/memory/ODS_001_CANONICAL_FACT_MODEL.md",
+        "/app/memory/ODS_001_COLLECTION_ARCHITECTURE.md",
+        "/app/memory/ODS_001_PROJECT_COST_CODE_FOUNDATION.md",
+        "/app/memory/ODS_001_INGESTION_ARCHITECTURE.md",
+        "/app/memory/ODS_001_DAILY_REPORT_SPINE_EMISSION.md",
+        "/app/memory/ODS_001_KPI_SNAPSHOT_FOUNDATION.md",
+        "/app/memory/ODS_001_PM_ADMIN_QUERY_FOUNDATION.md",
+        "/app/memory/ODS_001_OPERATIONAL_TIMELINE_FOUNDATION.md",
+        "/app/memory/ODS_001_AI_INTELLIGENCE_RULES.md",
+        "/app/memory/ODS_001_AI_PROVIDER_GATEWAY.md",
+        "/app/memory/ODS_001_BACKWARD_COMPATIBILITY.md",
+        "/app/memory/ODS_001_ZERO_DRIFT_MATRIX.md",
+        "/app/memory/ODS_001_TEST_REPORT.md"
+      ],
+      "status": "delivered \u00b7 zero drift \u00b7 55/55 tests green",
+      "title": "Operational Data Spine Foundation + AI Provider Gateway"
+    }
   }
 }

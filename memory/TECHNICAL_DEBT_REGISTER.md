@@ -132,3 +132,16 @@ Every item classified under the Defect Constitution (fix-or-block-with-owner). F
 
 **Signed:** E1 · Track 20.6A · Elite Consistency · Zero-Drift · Six
 Pillars.
+
+---
+
+## 2026-07-05 · ODS-001 Follow-ups
+
+- **[P1] Google Gemini adapter is a scaffold.** `services/ai_gateway/adapters/google_adapter.py` returns fallback envelope. Wire real SDK when `GOOGLE_AI_API_KEY` is provisioned. Interface is complete; no schema/route change required.
+- **[P1] Photo Vision (DR-ROI-001D).** OpenAI + Google vision paths are scaffolded (`vision()` on each adapter). Real wiring lands in DR-ROI-001D. `photo_vision` task type is registered in the router.
+- **[P1] V1 daily_report → spine ingestor.** V1 has richer structured `production[]`/`constraints[]` rows than V2 today. Ingestor interface reserved (`ingest_dr_v1(...)` planned). Zero schema change required to add.
+- **[P1] HR / Equipment / Safety / QA ingestors.** Each has canonical collections; adapters reserved.
+- **[P2] Cross-project admin/executive rollups.** Snapshot aggregation over multiple `(project_id, date)` pairs. Task types `pm_brief` and `executive_brief` already routed through the gateway.
+- **[P2] Timeline UI.** Schema derived directly from `operational_facts`; documented in `ODS_001_OPERATIONAL_TIMELINE_FOUNDATION.md`.
+- **[P2] Legacy DR-V2 audit-log migration.** Pre-Phase-C entries live inside `dr_v2_ai_approvals.log[]` array. Post-Phase-C entries live in the new `dr_v2_ai_audit_entries` collection. If we promote out of preview, add a one-time backfill.
+- **[P2] Sentry lazy-init (Track 22.7).** Unchanged.

@@ -24,8 +24,8 @@ export default function SupervisorApprovalPanel({ ai, approvals }) {
     <SectionCard id="panel-approval" title="Supervisor Approval" badge={last}>
       <div className="space-y-3 text-sm" data-testid="dr-v2-panel-approval">
         <p className="text-xs opacity-70">
-          You are the source of truth. AI is a drafting assistant. Every action
-          here is logged with a timestamp and cannot be deleted.
+          You are the source of truth. Every action here is logged with a
+          timestamp and cannot be deleted.
         </p>
 
         <div className="flex flex-wrap gap-2">

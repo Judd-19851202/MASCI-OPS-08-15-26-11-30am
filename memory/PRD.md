@@ -10252,3 +10252,57 @@ See `/app/memory/DR_ROI_001_*.md`.
 - **DR-ROI-001F** — PDF output redesign for V2 (evidence-annotated PDF) · P2
 - **DR-ROI-001G** — Full regression + deployment certification · P0 closure
 - Track 22.7 — Sentry lazy-init · P2
+
+---
+
+## ODS-001 · Operational Data Spine Foundation (2026-07-05)
+
+### Objective
+Foundational operational backbone for ForgedOps: a normalized, source-traced, additive **Operational Data Spine** that any submission surface can emit into and any consumer (PM/Admin/Executive/AI/PDF/timeline) can read from — without touching source records.
+
+### Delivered
+
+**Data spine (5 additive collections):**
+- `operational_facts` — 11 canonical fact types (labor, equipment, production, delay, material, safety, quality, photo_evidence, weather, readiness, intelligence).
+- `operational_ingestion_runs` — idempotent audit trail.
+- `operational_kpi_snapshots` — precomputed dashboards.
+- `project_operational_config` — cost-code blueprint.
+- `operational_fact_links` — many-to-many reserve.
+
+**Backend services:**
+- `services/ods_spine/` — model + store + ingest + kpi + query + flags.
+- `routes/ods.py` — 8 additive `/api/ods/*` endpoints (meta, facts, summary, snapshots (get + recompute), project config (get + put), manual ingest).
+- DR-V2 → spine emission hooks (draft save + approval accept) fire non-blocking.
+
+**AI Provider Gateway (Amendment):**
+- `services/ai_gateway/` — model-agnostic registry + task router + envelope.
+- 3 adapters: Anthropic (real), OpenAI (real text + scaffolded vision), Google Gemini (scaffolded).
+- 11 task types (operational_narrative, photo_vision, pm_brief, executive_brief, ...).
+- Provider-neutral env: `AI_GATEWAY_ENABLED`, `AI_DEFAULT_PROVIDER`, `AI_DEFAULT_TEXT_MODEL`, `AI_DEFAULT_VISION_PROVIDER`, `AI_DEFAULT_VISION_MODEL`, `AI_PROVIDER_TIMEOUT_MS`, `AI_PROVIDER_MAX_RETRIES`, `AI_PROVIDER_FAILOVER_ENABLED`, plus per-vendor keys `ANTHROPIC_API_KEY`/`OPENAI_API_KEY`/`GOOGLE_AI_API_KEY` + `EMERGENT_LLM_KEY` universal backstop.
+- Task-route env override (`AI_TASK_ROUTE__<task>="provider:model"`).
+- Retry + failover across providers.
+- DR-V2 AI synthesis now flows through the gateway. No breakage.
+
+**Invisible Intelligence enforcement:**
+- Field UI stripped of "AI:" branding, model names, cost meters.
+- Savebar now shows `Operational summary: on/off`.
+- Section 9 renamed to `Live Operational Summary`.
+
+### Verification
+- 55/55 tests GREEN (9 gateway, 11 spine, 13 DR-V2 A+B lock (updated to 1455/1459/1277 baseline), 9 DR-V2 C unit, 13 Track 22.2).
+- Live e2e: DR-V2 save → 7 facts emitted; project summary + snapshot correct; manual regen shows 7 inserted / 7 superseded (perfect idempotency); gateway meta lists all 3 adapters and task routes.
+
+### Zero drift
+V1 daily-reports POST/GET/PDF/email/HR/payroll/safety/photos all untouched. Route count 1441 → 1447 → 1455 (all additive). OpenAPI 1264 → 1270 → 1277.
+
+### 14 documents produced
+`ODS_001_EXECUTIVE_SUMMARY.md`, `ODS_001_CURRENT_STATE_AUDIT.md`, `ODS_001_CANONICAL_FACT_MODEL.md`, `ODS_001_COLLECTION_ARCHITECTURE.md`, `ODS_001_PROJECT_COST_CODE_FOUNDATION.md`, `ODS_001_INGESTION_ARCHITECTURE.md`, `ODS_001_DAILY_REPORT_SPINE_EMISSION.md`, `ODS_001_KPI_SNAPSHOT_FOUNDATION.md`, `ODS_001_PM_ADMIN_QUERY_FOUNDATION.md`, `ODS_001_OPERATIONAL_TIMELINE_FOUNDATION.md`, `ODS_001_AI_INTELLIGENCE_RULES.md`, `ODS_001_AI_PROVIDER_GATEWAY.md`, `ODS_001_BACKWARD_COMPATIBILITY.md`, `ODS_001_ZERO_DRIFT_MATRIX.md`, `ODS_001_TEST_REPORT.md`.
+
+### Deferred (documented, interface reserved)
+- V1 daily_report ingestor (add later without schema change).
+- HR / Equipment / Safety / QA / Mobile ingestors.
+- Photo Vision live wiring (DR-ROI-001D — adapter interface complete).
+- Cross-project admin/executive rollups (P1).
+- Live Google Gemini SDK wiring (needs `GOOGLE_AI_API_KEY`).
+- Timeline UI (schema derived from facts; no new collection needed).
+- PDF output redesign (DR-ROI-001F).
