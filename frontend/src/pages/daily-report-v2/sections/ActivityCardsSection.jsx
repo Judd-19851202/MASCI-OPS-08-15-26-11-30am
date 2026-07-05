@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Plus, X } from "lucide-react";
+import { useDrV2Lang } from "@/lib/dailyReportV2Lang";
 
 const inputCls =
   "h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2";
@@ -37,6 +38,7 @@ const STATUS = [
  * ODS production facts on submit (unchanged pipeline).
  */
 export default function ActivityCardsSection({ draft, setDraft }) {
+  const { t } = useDrV2Lang();
   const cards = draft.activity_cards || [];
   const add = () =>
     setDraft((d) => ({
@@ -190,7 +192,7 @@ export default function ActivityCardsSection({ draft, setDraft }) {
         className="w-full h-12 border-2 border-dashed border-slate-400 hover:border-red-700 hover:text-red-700 font-bold uppercase tracking-wide text-sm mt-3"
         data-testid="dr-v2-activity-add"
       >
-        <Plus className="w-4 h-4 mr-2" /> Add Activity Card
+        <Plus className="w-4 h-4 mr-2" /> {t("s04.add")}
       </Button>
     </Section>
   );

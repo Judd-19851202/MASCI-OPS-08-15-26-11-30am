@@ -3,6 +3,7 @@ import { Section } from "@/components/Section";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { StatusChip } from "../_ui";
+import { useDrV2Lang } from "@/lib/dailyReportV2Lang";
 
 /**
  * DR-ROI-001F-FINAL-REPAIR · Daily Operational Summary.
@@ -29,6 +30,7 @@ function pickPrimaryNarrative(outputs) {
 }
 
 export default function AISummarySection({ ai, approvals }) {
+  const { t, lang } = useDrV2Lang();
   const outputs = ai?.result?.outputs || {};
   const suggested = React.useMemo(() => pickPrimaryNarrative(outputs), [outputs]);
   const loading = ai?.loading;
@@ -62,19 +64,18 @@ export default function AISummarySection({ ai, approvals }) {
   return (
     <Section
       number="09"
-      title="Daily Operational Summary"
+      title={t("s09.title")}
       testId="dr-v2-section-ai-summary"
       aside={
         accepted ? (
-          <StatusChip tone="green">accepted</StatusChip>
+          <StatusChip tone="green">{t("s09.accepted")}</StatusChip>
         ) : (
-          <StatusChip tone="slate">draft</StatusChip>
+          <StatusChip tone="slate">{t("s09.draft")}</StatusChip>
         )
       }
     >
       <p className="text-sm text-slate-600 -mt-2 mb-3">
-        Review the summary below before submitting. Edit anything that
-        needs corrected · you remain the source of truth.
+        {t("s09.desc")}
       </p>
 
       {error ? (
@@ -91,8 +92,7 @@ export default function AISummarySection({ ai, approvals }) {
           className="rounded-md border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-sm text-slate-600"
           data-testid="dr-v2-ai-empty"
         >
-          Add Day Setup, at least one Activity Card, and Photos. A summary
-          will be drafted for you here.
+          {t("s09.empty")}
         </div>
       ) : editing ? (
         <Textarea
@@ -100,15 +100,17 @@ export default function AISummarySection({ ai, approvals }) {
           value={text}
           onChange={(e) => setText(e.target.value)}
           data-testid="dr-v2-ai-editor"
+          lang={lang}
         />
       ) : (
         <div
           className="rounded-md border border-slate-200 bg-white p-4 text-sm text-slate-800 whitespace-pre-wrap"
           data-testid="dr-v2-ai-summary-body"
+          lang={lang}
         >
           {loading ? (
             <span className="text-slate-500 italic">
-              Drafting your daily summary from what you entered…
+              {t("s09.loading")}
             </span>
           ) : (
             text || suggested
@@ -124,7 +126,7 @@ export default function AISummarySection({ ai, approvals }) {
           disabled={loading || (!suggested && !text)}
           data-testid="dr-v2-ai-accept"
         >
-          {editing ? "Save Summary" : "Accept Summary"}
+          {editing ? t("s09.save") : t("s09.accept")}
         </Button>
         {!editing ? (
           <Button
@@ -135,7 +137,7 @@ export default function AISummarySection({ ai, approvals }) {
             disabled={loading || !suggested}
             data-testid="dr-v2-ai-edit"
           >
-            Edit Summary
+            {t("s09.edit")}
           </Button>
         ) : (
           <Button
@@ -148,7 +150,7 @@ export default function AISummarySection({ ai, approvals }) {
             }}
             data-testid="dr-v2-ai-cancel-edit"
           >
-            Cancel Edit
+            {t("s09.cancel")}
           </Button>
         )}
         <Button
@@ -159,7 +161,7 @@ export default function AISummarySection({ ai, approvals }) {
           disabled={loading}
           data-testid="dr-v2-ai-regenerate"
         >
-          {loading ? "Regenerating…" : "Regenerate Summary"}
+          {loading ? t("s09.regenerating") : t("s09.regenerate")}
         </Button>
       </div>
     </Section>

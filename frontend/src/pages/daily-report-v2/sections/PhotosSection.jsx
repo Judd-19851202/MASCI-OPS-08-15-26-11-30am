@@ -1,13 +1,10 @@
 import React from "react";
 import { Section } from "@/components/Section";
 import { PhotoUpload } from "@/components/PhotoUpload";
+import { useDrV2Lang } from "@/lib/dailyReportV2Lang";
 
-/**
- * DR-ROI-001F-REPAIR · Photos — uses the real platform PhotoUpload
- * component with the minimum-6-photo rule enforced. Same R2 pipeline,
- * same base64 photos schema, same mobile / iPad / ToughBook fallback.
- */
 export default function PhotosSection({ draft, setDraft }) {
+  const { t } = useDrV2Lang();
   const photos = draft.photos || [];
   const count = photos.length;
   const meetsMin = count >= 6;
@@ -16,28 +13,21 @@ export default function PhotosSection({ draft, setDraft }) {
   return (
     <Section
       number="08"
-      title="Field Photos"
+      title={t("s08.title")}
       testId="dr-v2-section-photos"
       highlight={!meetsMin}
-      highlightLabel={`${count} / 6 required`}
+      highlightLabel={`${count} / 6 ${t("s08.badge")}`}
       accent={meetsMin ? "emerald" : "red"}
     >
-      <p className="text-sm text-slate-600 -mt-2 mb-2">
-        At least six field photos are required. Photos flow to the Job
-        Photos mirror and become evidence for activities and constraints.
-      </p>
-      <PhotoUpload
-        photos={photos}
-        onChange={set}
-        testIdBase="dr-v2-photos"
-      />
+      <p className="text-sm text-slate-600 -mt-2 mb-2">{t("s08.desc")}</p>
+      <PhotoUpload photos={photos} onChange={set} testIdBase="dr-v2-photos" />
       {!meetsMin ? (
         <p className="mt-3 text-sm font-semibold text-red-700" data-testid="dr-v2-photos-min-warning">
-          {6 - count} more photo{6 - count === 1 ? "" : "s"} needed before submit.
+          {6 - count} {t("s08.min.warn")}
         </p>
       ) : (
         <p className="mt-3 text-sm font-semibold text-emerald-700" data-testid="dr-v2-photos-min-ok">
-          Minimum photo requirement met.
+          {t("s08.min.ok")}
         </p>
       )}
     </Section>

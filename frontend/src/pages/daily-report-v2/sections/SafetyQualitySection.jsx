@@ -4,6 +4,7 @@ import { YesNo } from "@/components/YesNo";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import DailyReportExcavationActivity from "@/components/trench/DailyReportExcavationActivity";
+import { useDrV2Lang } from "@/lib/dailyReportV2Lang";
 
 /**
  * DR-ROI-001F-REPAIR · Safety & Quality — wires the existing safety
@@ -12,16 +13,17 @@ import DailyReportExcavationActivity from "@/components/trench/DailyReportExcava
  * the platform grammar (h-12, red-700 active).
  */
 export default function SafetyQualitySection({ draft, setDraft }) {
+  const { t } = useDrV2Lang();
   const safety = draft.safety || {};
   const set = (k, v) =>
     setDraft((d) => ({ ...d, safety: { ...(d.safety || {}), [k]: v } }));
 
   return (
-    <Section number="07" title="Safety · Quality" testId="dr-v2-section-safety-quality">
+    <Section number="07" title={t("s07.title")} testId="dr-v2-section-safety-quality">
       <div className="space-y-4">
         <div>
           <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
-            Any safety incident or near-miss today?
+            {t("s07.incident")}
           </Label>
           <YesNo
             value={safety.incident_today || ""}
@@ -31,7 +33,7 @@ export default function SafetyQualitySection({ draft, setDraft }) {
         </div>
         <div>
           <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
-            Any injuries reported?
+            {t("s07.injuries")}
           </Label>
           <YesNo
             value={safety.injuries || ""}
@@ -41,7 +43,7 @@ export default function SafetyQualitySection({ draft, setDraft }) {
         </div>
         <div>
           <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
-            Safety notified of incidents / near-misses?
+            {t("s07.notified")}
           </Label>
           <YesNo
             value={safety.safety_notified || ""}
@@ -52,7 +54,7 @@ export default function SafetyQualitySection({ draft, setDraft }) {
         </div>
         <div>
           <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
-            Quality / QA-QC concerns or rework today?
+            {t("s07.quality_notes")}
           </Label>
           <Textarea
             value={safety.quality_notes || ""}

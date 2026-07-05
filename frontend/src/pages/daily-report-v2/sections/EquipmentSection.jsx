@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { EquipmentCombo } from "@/components/EquipmentCombo";
 import { EmployeeCombo } from "@/components/EmployeeCombo";
 import { Plus, X } from "lucide-react";
+import { useDrV2Lang } from "@/lib/dailyReportV2Lang";
 
 const inputCls =
   "h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2";
@@ -15,6 +16,7 @@ const inputCls =
  * fed by GET /api/equipment-master. Operators come from EmployeeCombo.
  */
 export default function EquipmentSection({ draft, setDraft }) {
+  const { t } = useDrV2Lang();
   const rows = draft.equipment_used || [];
   const update = (i, patch) =>
     setDraft((d) => ({
@@ -40,17 +42,16 @@ export default function EquipmentSection({ draft, setDraft }) {
   return (
     <Section
       number="03"
-      title="Equipment on Site"
+      title={t("s03.title")}
       testId="dr-v2-section-equipment"
     >
       <p className="text-sm text-slate-600 -mt-2 mb-2">
-        Equipment master is HR/Shop-linked. Idle / breakdown flags feed the
-        Pre-Op + shop workflows unchanged.
+        {t("s03.desc")}
       </p>
       <div className="space-y-3">
         {rows.length === 0 ? (
           <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-sm text-slate-600" data-testid="dr-v2-equip-empty">
-            No equipment yet. Add units used today.
+            {t("s03.empty")}
           </div>
         ) : (
           rows.map((row, i) => (
@@ -70,13 +71,13 @@ export default function EquipmentSection({ draft, setDraft }) {
                   className="text-slate-500 hover:text-red-600 h-9"
                   data-testid={`dr-v2-equip-remove-${i}`}
                 >
-                  <X className="w-4 h-4 mr-1" /> Remove
+                  <X className="w-4 h-4 mr-1" /> {t("s02.remove")}
                 </Button>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div>
                   <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
-                    Unit
+                    {t("s03.unit")}
                   </Label>
                   <EquipmentCombo
                     value={row.unit || ""}
@@ -86,7 +87,7 @@ export default function EquipmentSection({ draft, setDraft }) {
                 </div>
                 <div>
                   <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
-                    Operator
+                    {t("s03.operator")}
                   </Label>
                   <EmployeeCombo
                     value={row.operator || ""}
@@ -96,7 +97,7 @@ export default function EquipmentSection({ draft, setDraft }) {
                 </div>
                 <div>
                   <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
-                    Hours
+                    {t("s02.hours")}
                   </Label>
                   <Input
                     type="number"
@@ -112,7 +113,7 @@ export default function EquipmentSection({ draft, setDraft }) {
                 </div>
                 <div>
                   <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
-                    Status
+                    {t("s03.status")}
                   </Label>
                   <select
                     value={row.status || "in-service"}
@@ -120,10 +121,10 @@ export default function EquipmentSection({ draft, setDraft }) {
                     className={inputCls + " w-full rounded-md bg-white"}
                     data-testid={`dr-v2-equip-status-${i}`}
                   >
-                    <option value="in-service">In service</option>
-                    <option value="idle">Idle</option>
-                    <option value="breakdown">Breakdown</option>
-                    <option value="off-site">Off site</option>
+                    <option value="in-service">{t("s03.status.in_service")}</option>
+                    <option value="idle">{t("s03.status.idle")}</option>
+                    <option value="breakdown">{t("s03.status.breakdown")}</option>
+                    <option value="off-site">{t("s03.status.off_site")}</option>
                   </select>
                 </div>
               </div>
@@ -139,7 +140,7 @@ export default function EquipmentSection({ draft, setDraft }) {
         className="w-full h-12 border-2 border-dashed border-slate-400 hover:border-red-700 hover:text-red-700 font-bold uppercase tracking-wide text-sm mt-3"
         data-testid="dr-v2-equip-add"
       >
-        <Plus className="w-4 h-4 mr-2" /> Add Equipment
+        <Plus className="w-4 h-4 mr-2" /> {t("s03.add")}
       </Button>
     </Section>
   );

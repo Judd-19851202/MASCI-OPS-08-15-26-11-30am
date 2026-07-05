@@ -2885,6 +2885,8 @@ register_daily_reports_routes(
 # ============================================================
 from routes.dr_v2 import register_dr_v2_routes  # noqa: E402
 register_dr_v2_routes(api_router, db)
+from routes.dr_v2_canonicalize import register_dr_v2_canonicalize_routes  # noqa: E402
+register_dr_v2_canonicalize_routes(api_router, db)
 
 # ============================================================
 # DR-ROI-001D · Photo Vision + Evidence Linking

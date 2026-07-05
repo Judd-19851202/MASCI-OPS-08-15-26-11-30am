@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { EmployeeCombo } from "@/components/EmployeeCombo";
 import { Plus, X } from "lucide-react";
+import { useDrV2Lang } from "@/lib/dailyReportV2Lang";
 
 const inputCls =
   "h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2";
@@ -14,6 +15,7 @@ const inputCls =
  * Preserves the V1 masci_crews[] schema {employee_name, hours}.
  */
 export default function CrewTimeSection({ draft, setDraft }) {
+  const { t } = useDrV2Lang();
   const rows = draft.masci_crews || [];
   const update = (i, patch) =>
     setDraft((d) => ({
@@ -39,17 +41,16 @@ export default function CrewTimeSection({ draft, setDraft }) {
   return (
     <Section
       number="02"
-      title="MASCI Crews on Site"
+      title={t("s02.title")}
       testId="dr-v2-section-crew-time"
     >
       <p className="text-sm text-slate-600 -mt-2 mb-2">
-        HR-linked. Employees come from the canonical roster · hours flow to
-        payroll and time verification as they do today.
+        {t("s02.desc")}
       </p>
       <div className="space-y-3">
         {rows.length === 0 ? (
           <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-sm text-slate-600" data-testid="dr-v2-crewtime-empty">
-            No crew yet. Add employees below.
+            {t("s02.empty")}
           </div>
         ) : (
           rows.map((row, i) => (
@@ -60,7 +61,7 @@ export default function CrewTimeSection({ draft, setDraft }) {
             >
               <div className="flex items-center justify-between mb-1">
                 <span className="font-mono text-xs uppercase tracking-[0.2em] text-red-700 font-bold">
-                  Crew Member {i + 1}
+                  {t("s02.crew_member")} {i + 1}
                 </span>
                 <Button
                   type="button"
@@ -69,13 +70,13 @@ export default function CrewTimeSection({ draft, setDraft }) {
                   className="text-slate-500 hover:text-red-600 h-9"
                   data-testid={`dr-v2-crew-remove-${i}`}
                 >
-                  <X className="w-4 h-4 mr-1" /> Remove
+                  <X className="w-4 h-4 mr-1" /> {t("s02.remove")}
                 </Button>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className="lg:col-span-2">
                   <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
-                    Employee
+                    {t("s02.employee")}
                   </Label>
                   <EmployeeCombo
                     value={row.employee_name || ""}
@@ -85,7 +86,7 @@ export default function CrewTimeSection({ draft, setDraft }) {
                 </div>
                 <div>
                   <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
-                    Hours
+                    {t("s02.hours")}
                   </Label>
                   <Input
                     type="number"
@@ -101,13 +102,13 @@ export default function CrewTimeSection({ draft, setDraft }) {
                 </div>
                 <div>
                   <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
-                    Role / cost code
+                    {t("s02.role")}
                   </Label>
                   <Input
                     value={row.role || ""}
                     onChange={(e) => update(i, { role: e.target.value })}
                     className={inputCls}
-                    placeholder="Optional"
+                    placeholder={t("s02.role.ph")}
                     data-testid={`dr-v2-crew-role-${i}`}
                   />
                 </div>
@@ -124,7 +125,7 @@ export default function CrewTimeSection({ draft, setDraft }) {
         className="w-full h-12 border-2 border-dashed border-slate-400 hover:border-red-700 hover:text-red-700 font-bold uppercase tracking-wide text-sm mt-3"
         data-testid="dr-v2-crew-add"
       >
-        <Plus className="w-4 h-4 mr-2" /> Add Crew Member
+        <Plus className="w-4 h-4 mr-2" /> {t("s02.add")}
       </Button>
     </Section>
   );

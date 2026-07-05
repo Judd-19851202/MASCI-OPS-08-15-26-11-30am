@@ -27,6 +27,7 @@ TASK_ROUTES: Dict[str, Tuple[str, str]] = {
     "confidence_validation":  ("anthropic", "claude-sonnet-4-5-20250929"),
     "evidence_trace":         ("anthropic", "claude-sonnet-4-5-20250929"),
     "future_task":            ("anthropic", "claude-sonnet-4-5-20250929"),
+    "translation_es_en":      ("anthropic", "claude-sonnet-4-5-20250929"),
 }
 
 

@@ -11,6 +11,18 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## DR-ROI-001F-FINAL-REPAIR (Amendment) · EN/ES Field Mode · 🟢 GO / CLOSED (2026-02-05)
+
+Bilingual field-mode amendment shipped without breaking V1, HR, safety, photos, gates, or dashboards. The crew can work in Spanish; the platform helps them in Spanish; the canonical submitted operational record is always English.
+
+- **Frontend**: new `lib/dailyReportV2Lang.js` with 100+ EN/ES dictionary keys, `DrV2LangProvider` React context, `useDrV2Lang()` hook, `<LangToggle />` component. Every visible label on the DR-V2 shell + 10 sections + Photo Evidence panel goes through `t("sNN.…")`. English is the default; ES is opt-in via a header toggle persisted per user (`localStorage.dr_v2_field_lang`). The draft carries `field_language` so autosave persists it.
+- **Backend**: new `POST /api/dr-v2/reports/{report_id}/canonicalize` route (registered in `server.py`). English drafts → fast no-op path. Spanish drafts → walks 10 well-known freeform paths on the draft (activity notes, constraint what-happened/impact, tomorrow-readiness free text, safety quality notes, day_setup location label, accepted_summary), dispatches each string through the AI Gateway (`translation_es_en` task, provider-neutral), and rewrites the canonical draft in place. Original Spanish + canonical English + confidence + provider + timestamp are persisted to the append-only `dr_v2_bilingual_audit` collection.
+- **Trust envelope**: `needs_supervisor_review=true` when `min_confidence < 0.7` or any gateway_error occurs — the caller must gate submit until the supervisor reviews the side-by-side.
+- **Zero drift**: HR crew time, equipment master, safety gates, excavation/JHA/JHP gate, minimum-6-photo rule, PhotoUpload, SignaturePad, autosave, draft recovery, Photo Intelligence, ODS emission, V1 Daily Report — all unchanged. ODS + PM/Admin/Executive dashboards + PDFs continue to consume canonical English exclusively.
+- **Lock envelope 32/32 green**: 9 new EN/ES assertions (dictionary size, provider+toggle wired, default=EN, section hook usage, route registered, EN no-op path, task_router carries the translation task, bilingual audit schema fields present) + 14 platform consistency + 9 DR-ROI-001E regression.
+- **Live smoke**: `/daily-report/v2` in ES renders MASCI-native "Reporte Diario de Obra" with every section translated ("Configuración del Día", "Cuadrillas MASCI en el sitio", "Equipo en el sitio", "Mañana / Seguimiento", "Seguridad · Calidad", "Fotos de campo", "Resumen Operacional del Día", "Firma + Envío"). Toggle flips instantly to EN with no reload. No PDF buttons anywhere. No AI branding.
+- **Docs**: `/app/memory/DR_ROI_001F_FINAL_REPAIR_EN_ES_MODE.md` (source of truth · bilingual contract + audit schema + translatable paths + lock envelope).
+
 ## DR-ROI-001F-FINAL-REPAIR · Platform-Native Daily Job Report V2 · 🟢 GO / CLOSED (2026-02-05)
 
 Class-A defect closure. V2 direction had drifted into an AI-looking product with PDF buttons, confidence dashboards, and an approval audit log on the field form. This repair restores the correct product identity — **V2 is the MASCI Daily Job Report, subtly enhanced.** The supervisor enters the same facts as today. At the bottom, the platform drafts a Daily Operational Summary from those facts + photos so the supervisor does not have to write the report from scratch. Everything else happens after submit.

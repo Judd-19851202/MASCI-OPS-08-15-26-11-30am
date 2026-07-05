@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { X } from "lucide-react";
+import { useDrV2Lang } from "@/lib/dailyReportV2Lang";
 
 const inputCls =
   "h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2";
@@ -33,6 +34,7 @@ const SUBCON_LIKE = new Set(["subcontractor_issue", "material_delay"]);
  * vendor field uses the platform SupplierCombo. Feeds ODS delay facts.
  */
 export default function ConstraintChipsSection({ draft, setDraft }) {
+  const { t } = useDrV2Lang();
   const chips = draft.constraint_cards || [];
   const activeIds = new Set(chips.map((c) => c.category));
 
@@ -77,14 +79,14 @@ export default function ConstraintChipsSection({ draft, setDraft }) {
   return (
     <Section
       number="05"
-      title="Delays · Constraints · Extra Work"
+      title={t("s05.title")}
       testId="dr-v2-section-constraint-chips"
     >
       <p className="text-sm text-slate-600 -mt-2 mb-2">
-        Tap what happened. Each selection opens a structured follow-up card.
+        {t("s05.desc")}
       </p>
       <div className="flex flex-wrap gap-2" data-testid="dr-v2-constraint-chips">
-        {CATEGORIES.map(([key, label]) => {
+        {CATEGORIES.map(([key, _label]) => {
           const active = activeIds.has(key);
           return (
             <button
@@ -98,7 +100,7 @@ export default function ConstraintChipsSection({ draft, setDraft }) {
               }`}
               data-testid={`dr-v2-constraint-chip-${key}`}
             >
-              {label}
+              {t(`s05.cat.${key}`)}
             </button>
           );
         })}

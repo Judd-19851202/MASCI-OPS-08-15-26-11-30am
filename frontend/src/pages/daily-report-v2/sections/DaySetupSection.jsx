@@ -7,6 +7,7 @@ import { MapPin, CloudSun, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getCurrentPosition, reverseGeocode, formatCoords } from "@/lib/geolocation";
 import { fetchDailyWeather } from "@/lib/weather";
+import { useDrV2Lang } from "@/lib/dailyReportV2Lang";
 
 const inputCls =
   "h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2";
@@ -16,6 +17,7 @@ const inputCls =
  * Uses V1's Section grammar + JobPicker + weather + GPS hooks. No mocks.
  */
 export default function DaySetupSection({ draft, setDraft }) {
+  const { t } = useDrV2Lang();
   const setup = draft.day_setup || {};
   const set = (k, v) =>
     setDraft((d) => ({ ...d, day_setup: { ...(d.day_setup || {}), [k]: v } }));
@@ -44,10 +46,10 @@ export default function DaySetupSection({ draft, setDraft }) {
   };
 
   return (
-    <Section number="01" title="Day Setup" testId="dr-v2-section-day-setup">
+    <Section number="01" title={t("s01.title")} testId="dr-v2-section-day-setup">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
         <div className="lg:col-span-2">
-          <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">Project</Label>
+          <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">{t("s01.project")}</Label>
           <JobPicker
             projectName={setup.project_name || ""}
             projectNumber={setup.project_number || ""}
@@ -58,7 +60,7 @@ export default function DaySetupSection({ draft, setDraft }) {
           />
         </div>
         <div>
-          <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">Report date</Label>
+          <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">{t("s01.report_date")}</Label>
           <Input
             type="date"
             value={setup.date || ""}
@@ -68,25 +70,25 @@ export default function DaySetupSection({ draft, setDraft }) {
           />
         </div>
         <div>
-          <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">Shift</Label>
+          <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">{t("s01.shift")}</Label>
           <select
             value={setup.shift || "day"}
             onChange={(e) => set("shift", e.target.value)}
             className={inputCls + " w-full rounded-md bg-white"}
             data-testid="dr-v2-daysetup-shift"
           >
-            <option value="day">Day</option>
-            <option value="night">Night</option>
-            <option value="weekend">Weekend</option>
+            <option value="day">{t("s01.shift.day")}</option>
+            <option value="night">{t("s01.shift.night")}</option>
+            <option value="weekend">{t("s01.shift.weekend")}</option>
           </select>
         </div>
         <div className="lg:col-span-2">
-          <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">Supervisor / Prepared by</Label>
+          <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">{t("s01.supervisor")}</Label>
           <Input
             value={setup.supervisor || ""}
             onChange={(e) => set("supervisor", e.target.value)}
             className={inputCls}
-            placeholder="Full name"
+            placeholder={t("s01.supervisor.ph")}
             data-testid="dr-v2-daysetup-supervisor"
           />
         </div>
@@ -100,7 +102,7 @@ export default function DaySetupSection({ draft, setDraft }) {
             className="border-2 border-slate-300 h-11"
           >
             {busy.gps ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <MapPin className="w-4 h-4 mr-1" />}
-            Capture GPS
+            {t("s01.gps")}
           </Button>
           <Button
             type="button"
@@ -111,7 +113,7 @@ export default function DaySetupSection({ draft, setDraft }) {
             className="border-2 border-slate-300 h-11"
           >
             {busy.weather ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <CloudSun className="w-4 h-4 mr-1" />}
-            Fetch weather
+            {t("s01.weather")}
           </Button>
           {setup.gps ? (
             <span className="text-xs font-mono text-slate-600">{formatCoords(setup.gps.lat, setup.gps.lng)}</span>

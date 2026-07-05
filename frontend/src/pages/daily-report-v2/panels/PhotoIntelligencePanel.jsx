@@ -1,6 +1,7 @@
 import React from "react";
 import { Section } from "@/components/Section";
 import { fetchDrV2PhotoIntel, resolveDrV2PhotoQuestion } from "@/lib/drV2Api";
+import { useDrV2Lang } from "@/lib/dailyReportV2Lang";
 
 /**
  * DR-ROI-001F-FINAL-REPAIR · Photo Evidence — quiet & supportive.
@@ -11,6 +12,7 @@ import { fetchDrV2PhotoIntel, resolveDrV2PhotoQuestion } from "@/lib/drV2Api";
  * about your photos, confirm or mark not applicable."
  */
 export default function PhotoIntelligencePanel({ draft }) {
+  const { t } = useDrV2Lang();
   const photos = draft?.photos || [];
   const [openQuestions, setOpenQuestions] = React.useState([]);
 
@@ -58,13 +60,12 @@ export default function PhotoIntelligencePanel({ draft }) {
   return (
     <Section
       number="08b"
-      title="Items To Verify From Photos"
+      title={t("s08b.title")}
       testId="dr-v2-section-photo-evidence"
       dense
     >
       <p className="text-sm text-slate-600 -mt-2 mb-3">
-        A couple of photos look like they may need a quick check. Confirm
-        or mark not applicable.
+        {t("s08b.desc")}
       </p>
       <ul className="space-y-2" data-testid="dr-v2-photo-questions">
         {openQuestions.map((q) => (
@@ -80,14 +81,14 @@ export default function PhotoIntelligencePanel({ draft }) {
                 onClick={() => resolve(q, "confirmed")}
                 className="rounded-md border-2 border-slate-300 bg-white hover:border-emerald-500 hover:text-emerald-700 px-3 h-9 text-xs font-semibold"
               >
-                Confirm
+                {t("s08b.confirm")}
               </button>
               <button
                 type="button"
                 onClick={() => resolve(q, "not applicable")}
                 className="rounded-md border-2 border-slate-300 bg-white hover:border-red-500 hover:text-red-700 px-3 h-9 text-xs font-semibold"
               >
-                Not applicable
+                {t("s08b.na")}
               </button>
             </div>
           </li>
