@@ -64,6 +64,32 @@ def make_require_shop_or_admin_fleet(
                     return {"role": "shop", "actor_id": row.get("id"), "name": row.get("name", "")}
             except Exception:  # noqa: BLE001
                 pass
+        # TRACK 22.4b-followup-Safety · preview-only shop validation
+        # fallback. Same doctrine as the safety wire — real auth runs
+        # first, this only fires when it fails, only in preview, only
+        # for role="shop" tokens. Never accepts admin tokens via this
+        # path.
+        if x_shop_token:
+            try:
+                from routes.preview_validation_identities import (  # noqa: PLC0415
+                    verify_validation_token,
+                    is_preview_validation_available,
+                )
+                if is_preview_validation_available():
+                    identity = await verify_validation_token(
+                        db, x_shop_token, expected_role="shop",
+                    )
+                    if identity:
+                        return {
+                            "role": "shop",
+                            "actor_id": identity.get("validation_identity_id"),
+                            "name": identity.get("display_name") or "validation:shop",
+                            "validation_identity": True,
+                            "validation_track": identity.get("validation_track"),
+                            "no_real_operational_effect": True,
+                        }
+            except Exception:  # noqa: BLE001
+                pass
         raise HTTPException(401, "Shop or Admin auth required")
 
     return _require_shop_or_admin_fleet
