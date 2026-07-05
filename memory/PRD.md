@@ -11,6 +11,29 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 22.3 · Integration Truth Surface + AI Key Status Fix + DR-V2 Alias Telemetry · 🟢 SHIPPED (2026-07-05)
+
+Rebuilt operator trust after the Track 22.2 Brutal Reality Audit exposed F-01
+(fake-green AI key status) and F-02 (unproven Motive live claim).
+
+**Delivered:**
+- `/app/backend/routes/integration_truth.py` — three admin-only endpoints:
+  `/api/admin/ai/keys/status`, `/api/admin/integrations/truth-status`,
+  `/api/admin/dr-v2-alias-telemetry`. All read from `os.environ` (never
+  dotenv placeholders). Never leak raw secrets — last-4 masked only.
+- Three-state integration model (config / connectivity / operational) so
+  the platform can never lie about being "live". Motive is never declared
+  LIVE_VERIFIED from configuration alone.
+- Middleware in `server.py` records every `/api/dr-v2/*` alias hit into
+  `dr_v2_alias_telemetry_events` (TTL 30 days) + `dr_v2_alias_aggregate`
+  (permanent until DR-UNIFY-005 retires the aliases). Zero request impact.
+- Frontend page `/admin/integration-truth` with three panels + sidebar
+  entries in both `AdminShell.jsx` and `domainMap.js`.
+- 9/9 backend pytest lock tests passing (`test_track_22_3_integration_truth.py`).
+
+Doc: `/app/memory/TRACK_22_3_INTEGRATION_TRUTH_SURFACE.md`.
+
+
 ## DR-CUTOVER-001 · Real Daily Report Intelligence Cutover · 🟢 SHIPPED (2026-02-15)
 
 Wired the ONE production Daily Report system into the ODS intelligence layer. No parallel V2 product exposed to users. See `/app/memory/DR_CUTOVER_001_EXECUTIVE_SUMMARY.md`.

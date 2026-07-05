@@ -12,7 +12,7 @@
 // (operations first, system & governance last) from ADMIN_UX_GOVERNANCE.md §III.
 
 import {
-  Activity, Users, Wrench, Mail, ClipboardCheck, Shield,
+  Activity, Users, Wrench, Mail, ClipboardCheck, Shield, ShieldCheck,
   Building2, Truck, BookOpen, GraduationCap, History, Database,
   ListChecks, ChartBar, Cable, Film, Map, NotebookPen, ListTodo,
   AlertTriangle, KeyRound, FileText, Sparkles,
@@ -100,6 +100,7 @@ export const DOMAINS_V2 = [
     routes: [
       { to: "/admin/system",            label: "System & Backups",   desc: "Backups · R2 · restore · recovery",            icon: Shield },
       { to: "/admin/ai-configuration",  label: "AI Configuration",   desc: "Optional intelligence · tenant switchboard",  icon: Sparkles },
+      { to: "/admin/integration-truth", label: "Integration Truth",  desc: "Runtime AI keys · integrations · legacy aliases", icon: ShieldCheck },
       { to: "/admin/system-health",     label: "System Health",      desc: "Green/yellow/red operational probe",           icon: Activity },
       { to: "/admin/database",          label: "Database",           desc: "Atlas capacity · 30-day storage trend",        icon: Database },
       { to: "/admin/audit-log",         label: "Audit Log",          desc: "Unified merged timeline",                      icon: History },

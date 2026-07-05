@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## 2026-07-05 — TRACK 22.3 · Integration Truth Surface + AI Key Status + DR-V2 Alias Telemetry · 🟢 SHIPPED
+
+Rebuilds operator trust after Track 22.2 exposed F-01 (fake-green AI key status) and F-02 (unproven Motive live claim).
+
+- **New backend module** `/app/backend/routes/integration_truth.py` — three admin-only endpoints:
+  - `GET /api/admin/ai/keys/status` — reads `os.environ` directly (never dotenv), returns booleans + masked last-4 for `EMERGENT_LLM_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`, `GOOGLE_AI_API_KEY`.
+  - `GET /api/admin/integrations/truth-status` — three-state model (config / connectivity / operational) per integration; Motive uses a safe read-only 3-second ping against `/v1/users/me` with a 15-minute recent-activity window that keeps LIVE_VERIFIED when a ping momentarily fails.
+  - `GET /api/admin/dr-v2-alias-telemetry` — aggregates + last-N detail events for legacy alias usage.
+- **New middleware** in `server.py` records every `/api/dr-v2/*` hit fire-and-forget: 30-day TTL detail events + permanent aggregate rows for DR-UNIFY-005 retirement decision. Zero impact on request path.
+- **New frontend page** `/admin/integration-truth` with three panels (AI keys, integration truth, alias telemetry) added to both `AdminShell.jsx` and `components/admin/sidebar/domainMap.js`.
+- **Doctrine locks**: raw secrets never leave server (last-4 mask only); MaintainX always MOCKED; Motive never LIVE_VERIFIED from configuration alone.
+- **Tests**: 9/9 pytest passing in `tests/test_track_22_3_integration_truth.py` (auth gate, os.environ reads, secret masking, three-state model, F-02 remediation invariant, telemetry capture, TTL index).
+
+Doc: `/app/memory/TRACK_22_3_INTEGRATION_TRUTH_SURFACE.md`.
+
+
 ## 2026-02-15 — DR-CUTOVER-001 · Real V1 → ODS Wiring · 🟢 SHIPPED
 
 - New `ingest_dr_v1_report` emits ODS facts from `daily_reports` docs (labor/equipment/safety/photo/delay/material/production/weather).

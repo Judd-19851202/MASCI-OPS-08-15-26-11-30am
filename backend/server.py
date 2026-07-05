@@ -2932,6 +2932,26 @@ register_ai_admin_config_routes(
 )
 
 # ------------------------------------------------------------
+# TRACK 22.3 · Integration Truth Surface + AI Key Status + DR-V2
+# Alias Telemetry. Admin-only. Runtime truth (os.environ) — never
+# reads placeholder .env values. Rebuilds trust after Track 22.2.
+# ------------------------------------------------------------
+from routes.integration_truth import (  # noqa: E402
+    register_integration_truth_routes,
+    record_dr_v2_alias_hit as _record_dr_v2_alias_hit,
+    ensure_dr_v2_alias_indexes as _ensure_dr_v2_alias_indexes,
+)
+register_integration_truth_routes(
+    api_router,
+    db=db,
+    require_admin_strict=require_admin_strict,
+)
+try:
+    asyncio.get_event_loop().create_task(_ensure_dr_v2_alias_indexes(db))
+except RuntimeError:
+    pass
+
+# ------------------------------------------------------------
 # DR-ROI-001F · Part 2 · V2 PDF Output (already registered above via
 # DR-UNIFY-002 route-order fix; block retained as a doctrine anchor).
 # ------------------------------------------------------------
@@ -16082,6 +16102,30 @@ async def _iter453_6_readiness_gate(request, call_next):
                 content={"detail": "service_starting"},
             )
     return await call_next(request)
+
+
+# ─────────────────────────────────────────────────────────────────────
+# TRACK 22.3 · DR-V2 alias telemetry middleware.
+#
+# Records every hit to legacy /api/dr-v2/* endpoints so DR-UNIFY-005
+# can prove they are safe to retire. Fire-and-forget: telemetry writes
+# never block or fail the request. Detail events auto-expire after
+# 30 days; lightweight aggregates persist until formal retirement.
+# ─────────────────────────────────────────────────────────────────────
+@app.middleware("http")
+async def _track_22_3_dr_v2_alias_telemetry(request, call_next):
+    try:
+        path = request.url.path or ""
+        should_track = path.startswith("/api/dr-v2/") or path.startswith("/api/dr-v2")
+    except Exception:  # noqa: BLE001
+        should_track = False
+    response = await call_next(request)
+    if should_track:
+        try:
+            asyncio.get_event_loop().create_task(_record_dr_v2_alias_hit(db, request))
+        except Exception:  # noqa: BLE001
+            pass
+    return response
 
 
 # ─────────────────────────────────────────────────────────────────────

@@ -62,6 +62,7 @@ const SECTIONS = [
   { key: "integrations", to: "/admin/integrations", icon: Cable,       label: "Integrations",    desc: "Motive · MaintainX · CSV import/export" },
   { key: "system",     to: "/admin/system",     icon: ShieldCheck,     label: "System & Backups",desc: "Backups · R2 · Restore · Recovery" },
   { key: "ai-configuration", to: "/admin/ai-configuration", icon: Sparkles, label: "AI Configuration", desc: "Optional intelligence · tenant AI switchboard · admin-only" },
+  { key: "integration-truth", to: "/admin/integration-truth", icon: ShieldCheck, label: "Integration Truth", desc: "Runtime AI keys · third-party integration state · legacy alias telemetry" },
   { key: "system-health", to: "/admin/system-health", icon: Activity,  label: "System Health",   desc: "Green/yellow/red operational probe" },
   { key: "database", to: "/admin/database", icon: Database, label: "Database",   desc: "Atlas capacity · 30-day storage trend · runway" },
   { key: "digest-config", to: "/admin/digest-config", icon: Mail,      label: "Weekly Digest",   desc: "Recipients · schedule · preview · send" },
