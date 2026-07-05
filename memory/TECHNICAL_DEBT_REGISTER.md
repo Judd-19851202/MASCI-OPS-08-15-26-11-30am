@@ -116,5 +116,19 @@ Every future certification lock test must verify:
 - Every discovered issue has: owner · priority · disposition · target
   track.
 
+## Phase 1 · Final Completion — Debt IDs surfaced 2026-02-05
+
+Every item classified under the Defect Constitution (fix-or-block-with-owner). Full detail: `PHASE_1_OPEN_ITEM_MATRIX.md`.
+
+| ID | Title | Class | Owner | Priority | Target Track | Exit Criteria | Status |
+|---|---|---|---|---|---|---|---|
+| TD-P1-C-1 | App.js 1,283-line monolith · 385 routes · needs modularization into `frontend/src/app/*` | **C** — Engineering Debt | Next-session executor | P1 | Track 22.2 Phase B | Parity harness JSON-diff empty + Playwright per-portal green + bundle `after ≤ before` + 385 routes preserved | **OPEN · blocked-with-owner** — App.js untouched (md5 `d84cea05c1f64bd2ae82823d7f6aadcc`); full inventory + graphs + extraction plan pre-computed under `TRACK_22_2_*.md`. Reason for block: cannot safely fit extraction + verification in remaining context of this session. |
+| TD-P1-C-2 | 110 `react-hooks/exhaustive-deps` ESLint warnings across frontend | **C** — Engineering Debt | Frontend hygiene track lead | P3 | Track 22.6 (proposed) | 0 ESLint warnings on `yarn build` | **OPEN · owned** — Mechanical auto-fix can introduce infinite re-render loops; must review each `useEffect` deps array intent per warning. |
+| TD-P1-C-3 | Tailwind arbitrary-class ambiguity: `duration-[400ms]` | **C** — Engineering Debt | Frontend hygiene track lead | P4 | Track 22.6 | Replace with numeric duration or explicit CSS var | **OPEN · owned** — Cosmetic; requires locating usage + selecting replacement semantics. |
+| TD-P1-C-4 | Starlette upstream `python_multipart` PendingDeprecation | **C** — Engineering Debt | Backend track lead | P3 | Track 22.4B (proposed) | 0 PendingDeprecationWarning on backend boot | **OPEN · owned** — External dependency; requires Starlette upstream version bump + full lock-envelope regression. |
+| TD-P1-C-5 | App.js documentation-preserved comment blocks (lines 5, 87–93, 565) | **C** — Documentation-Preserved | Track 22.2 Phase B executor | P4 | Track 22.2 Phase B | Comments consolidated into per-feature module headers during route extraction | **OPEN · owned** — Immediate deletion would drop context needed by lock tests iter333/335/336 (scan `NewIncident.jsx`). |
+| TD-P1-C-6 | `browserslist` caniuse data 7 months old (build warning) | **C** — DevOps Debt | DevOps | P4 | Any future frontend build | `npx update-browserslist-db@latest` in container image | **OPEN · owned** — Cosmetic build warning; zero functional impact. |
+
+
 **Signed:** E1 · Track 20.6A · Elite Consistency · Zero-Drift · Six
 Pillars.
