@@ -11,6 +11,29 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## DR-ROI-001F · Part 2 · V2 PDF Output · 🟢 SHIPPED (2026-02-15)
+
+**Endpoint**: `GET /api/dr-v2/reports/{report_id}/pdf` — EN-only canonical PDF.
+
+**Access rules** (per user directive 2026-02-15):
+- Admin + PM (scoped to `compute_pm_scope`) + HR read (Exec-adjacent) may fetch.
+- Field/supervisor surfaces MUST NOT expose PDF buttons. Enforced by pytest lock `test_field_form_still_has_no_pdf_buttons`.
+- Only APPROVED source records eligible (`accept` entry in `dr_v2_ai_audit_entries`); unapproved → 409.
+- PDF is EN-only — ES drafts canonicalized via `dr_v2_bilingual_audit.canonical_draft` before render. Response advertises `X-Dr-V2-Canonical-Language: en`.
+- Standard letter-size, MASCI-native template (reuses `pdf_render.render_record_pdf("daily-report", …)` for byte-comparable output to V1).
+
+**Files**:
+- `/app/backend/routes/dr_v2_pdf.py` (route + V2→V1 mapper)
+- `/app/backend/tests/test_dr_roi_001f_v2_pdf.py` (18 tests, all green)
+
+**Test totals**: 42/42 DR-ROI-001F pytest lock tests + 15/15 frontend regression assertions (testing_agent_v3_fork iteration_dr_roi_001f_platform_ui.json).
+
+**Backlog for Part 2 wave 2**:
+- Frontend PDF export buttons on Admin/PM/Exec dashboards (backend live; UI wiring pending).
+- (Deferred) Scheduled daily email delivery of the approved PDF to stakeholders.
+
+
+
 ## DR-ROI-001F-FINAL-REPAIR (Amendment) · EN/ES Field Mode · 🟢 GO / CLOSED (2026-02-05)
 
 Bilingual field-mode amendment shipped without breaking V1, HR, safety, photos, gates, or dashboards. The crew can work in Spanish; the platform helps them in Spanish; the canonical submitted operational record is always English.

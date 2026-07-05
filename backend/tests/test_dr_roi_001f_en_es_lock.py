@@ -127,9 +127,13 @@ def test_canonicalize_no_op_for_english_language():
     assert handler is not None
 
     draft = {"activity_cards": [{"notes": "excavation completed"}], "field_language": "en"}
-    resp = asyncio.get_event_loop().run_until_complete(
-        handler("rpt_test_en", {"draft": draft, "field_language": "en"})
-    )
+    loop = asyncio.new_event_loop()
+    try:
+        resp = loop.run_until_complete(
+            handler("rpt_test_en", {"draft": draft, "field_language": "en"})
+        )
+    finally:
+        loop.close()
     assert resp["translation_status"] == "not_required"
     assert resp["canonical_draft"]["activity_cards"][0]["notes"] == "excavation completed"
     assert resp["translations"] == []

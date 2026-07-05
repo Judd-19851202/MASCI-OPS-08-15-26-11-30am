@@ -1,5 +1,31 @@
 # CHANGELOG
 
+## 2026-02-15 — DR-ROI-001F · Part 2 · V2 PDF Output · 🟢 SHIPPED
+
+**Deliverable**: `GET /api/dr-v2/reports/{report_id}/pdf` — EN-only canonical PDF for approved DR-V2 records.
+
+**Doctrine locked**:
+- Rendered via the platform-native `pdf_render.render_record_pdf("daily-report", …)` — same MASCI letter-size layout as V1. No new PDF library, no new template, no drift.
+- **Approval gate**: at least one `accept` entry must exist in `dr_v2_ai_audit_entries` before the PDF surfaces. Unapproved drafts return 409.
+- **Access**: Admin · PM (scoped to `compute_pm_scope`) · HR read gate (Exec-adjacent). PM out-of-scope → 404 (no enumeration leak). No token → 401.
+- **EN-only canonical**: ES drafts are resolved from `dr_v2_bilingual_audit.canonical_draft` before render. Response header `X-Dr-V2-Canonical-Language: en`.
+- **Field UI untouched**: the V2 shell still exposes zero PDF buttons. Guardrail asserted by `test_field_form_still_has_no_pdf_buttons`.
+
+**New files**:
+- `/app/backend/routes/dr_v2_pdf.py` — mapper (`_v2_to_v1_daily_record`) + route (`register_dr_v2_pdf_routes`)
+- `/app/backend/tests/test_dr_roi_001f_v2_pdf.py` — 18 tests (mapper unit + gate matrix + invisible-intelligence guardrails)
+
+**Wired into**: `/app/backend/server.py` — mounted right after the canonicalize route, uses `require_admin_pm_or_hr_read` and `pm_auth.compute_pm_scope`.
+
+**Test status**: 42/42 DR-ROI-001F pytest lock tests green (18 new PDF + 15 platform consistency + 9 EN/ES). Also `test_dr_roi_001f_en_es_lock.py` refreshed to use `asyncio.new_event_loop()` (deprecation fix).
+
+**Frontend regression** (testing_agent_v3_fork · `iteration_dr_roi_001f_platform_ui.json`): 15/15 assertions pass — MASCI navy banner, EN/ES toggle, no PDF buttons, no AI branding, no PM panels, V1 untouched.
+
+**What's NOT in this pass** (intentional, deferred):
+- Frontend button placement on Admin/PM/Exec dashboards (backend endpoint is live; UI export wiring is a separate wave with its own screenshot pass).
+
+
+
 ## 2026-02-05 — DR-ROI-001 · Daily Report V2 · A + B(expanded) · 🟢 GO / CLOSED
 
 Kicked off the Operational Intelligence Report redesign. 14 planning documents + V2 shell scaffolding behind feature flag; zero V1 disruption; zero AI wiring this session (Track C).

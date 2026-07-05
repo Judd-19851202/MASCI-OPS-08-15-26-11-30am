@@ -2888,6 +2888,20 @@ register_dr_v2_routes(api_router, db)
 from routes.dr_v2_canonicalize import register_dr_v2_canonicalize_routes  # noqa: E402
 register_dr_v2_canonicalize_routes(api_router, db)
 
+# ------------------------------------------------------------
+# DR-ROI-001F · Part 2 · V2 PDF Output
+# ------------------------------------------------------------
+# EN-only canonical PDF built from APPROVED source records. Admin +
+# PM (scoped) + HR-read. Field/supervisor surfaces are NOT wired to
+# this route — the field form remains PDF-button-free by contract.
+from routes.dr_v2_pdf import register_dr_v2_pdf_routes  # noqa: E402
+from pm_auth import compute_pm_scope as _compute_pm_scope_for_dr_v2_pdf  # noqa: E402
+register_dr_v2_pdf_routes(
+    api_router, db,
+    require_admin_pm_or_hr_read=require_admin_pm_or_hr_read,
+    compute_pm_scope=_compute_pm_scope_for_dr_v2_pdf,
+)
+
 # ============================================================
 # DR-ROI-001D · Photo Vision + Evidence Linking
 # ------------------------------------------------------------
