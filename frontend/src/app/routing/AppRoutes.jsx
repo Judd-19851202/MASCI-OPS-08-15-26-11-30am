@@ -171,6 +171,7 @@ const AdminEmail = React.lazy(() => import("@/pages/admin/AdminEmail"));
 const AdminTraining = React.lazy(() => import("@/pages/admin/AdminTraining"));
 const AdminCompliance = React.lazy(() => import("@/pages/admin/AdminCompliance"));
 const AdminSystem = React.lazy(() => import("@/pages/admin/AdminSystem"));
+const AdminAIConfiguration = React.lazy(() => import("@/pages/admin/AdminAIConfiguration"));
 const AdminDatabase = React.lazy(() => import("@/pages/admin/AdminDatabase"));
 const AdminIntegrationCenter = React.lazy(() => import("@/pages/admin/AdminIntegrationCenter"));
 const AssetProfile = React.lazy(() => import("@/pages/admin/AssetProfile"));
@@ -630,6 +631,7 @@ export function AppRoutes() {
             <Route path="/admin/training" element={A(<AdminTraining />)} />
             <Route path="/admin/compliance" element={A(<AdminCompliance />)} />
             <Route path="/admin/system" element={A(<AdminSystem />)} />
+            <Route path="/admin/ai-configuration" element={A(<AdminAIConfiguration />)} />
             <Route path="/admin/recovery" element={A(<AdminRecovery />)} />
             <Route path="/admin/recovery-stream" element={A(<AdminRecoveryStream />)} />
             <Route path="/admin/jha-acknowledgements" element={A(<AdminJhaAcknowledgements />)} />

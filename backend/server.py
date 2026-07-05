@@ -2907,6 +2907,18 @@ from routes.ai_gateway_status import register_ai_gateway_status_routes  # noqa: 
 register_ai_gateway_status_routes(api_router, require_admin=require_admin)
 
 # ------------------------------------------------------------
+# AI-ADMIN-001 · Admin AI Configuration Center.
+# Admin-only tenant AI capability management + audit trail.
+# All routes gated by ``require_admin_strict`` (PM tokens rejected).
+# ------------------------------------------------------------
+from routes.ai_admin_config import register_ai_admin_config_routes  # noqa: E402
+register_ai_admin_config_routes(
+    api_router,
+    db=db,
+    require_admin_strict=require_admin_strict,
+)
+
+# ------------------------------------------------------------
 # DR-ROI-001F · Part 2 · V2 PDF Output (already registered above via
 # DR-UNIFY-002 route-order fix; block retained as a doctrine anchor).
 # ------------------------------------------------------------
