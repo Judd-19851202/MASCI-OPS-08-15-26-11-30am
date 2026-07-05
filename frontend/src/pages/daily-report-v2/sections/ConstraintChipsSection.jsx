@@ -1,5 +1,13 @@
 import React from "react";
-import { SectionCard, StatusChip } from "../_ui";
+import { Section } from "@/components/Section";
+import { SupplierCombo } from "@/components/SupplierCombo";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { X } from "lucide-react";
+
+const inputCls =
+  "h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2";
 
 const CATEGORIES = [
   ["weather", "Weather"],
@@ -17,7 +25,13 @@ const CATEGORIES = [
   ["quality_rework", "Quality / rework"],
   ["other", "Other"],
 ];
+const SUBCON_LIKE = new Set(["subcontractor_issue", "material_delay"]);
 
+/**
+ * DR-ROI-001F-REPAIR · Constraint Chips — chips + structured follow-up
+ * form (duration, responsible party, impact, notes). Subcontractor /
+ * vendor field uses the platform SupplierCombo. Feeds ODS delay facts.
+ */
 export default function ConstraintChipsSection({ draft, setDraft }) {
   const chips = draft.constraint_cards || [];
   const activeIds = new Set(chips.map((c) => c.category));
@@ -39,25 +53,37 @@ export default function ConstraintChipsSection({ draft, setDraft }) {
             id: `cst_${Math.random().toString(36).slice(2, 10)}`,
             category: cat,
             what_happened: "",
-            duration_minutes: 0,
+            duration_minutes: "",
             responsible_party: "",
+            impact: "",
           },
         ],
       }));
     }
   };
+  const update = (id, patch) =>
+    setDraft((d) => ({
+      ...d,
+      constraint_cards: (d.constraint_cards || []).map((c) =>
+        c.id === id ? { ...c, ...patch } : c,
+      ),
+    }));
+  const remove = (id) =>
+    setDraft((d) => ({
+      ...d,
+      constraint_cards: (d.constraint_cards || []).filter((c) => c.id !== id),
+    }));
 
   return (
-    <SectionCard
-      id="constraint-chips"
-      title="5 · Delays · Constraints · Extra Work"
-      badge={`${chips.length} selected`}
-      description="Tap what happened today. Each selection opens a structured follow-up card with duration, responsible party, impact, and optional photos."
+    <Section
+      number="05"
+      title="Delays · Constraints · Extra Work"
+      testId="dr-v2-section-constraint-chips"
     >
-      <div
-        className="flex flex-wrap gap-2"
-        data-testid="dr-v2-constraint-chips"
-      >
+      <p className="text-sm text-slate-600 -mt-2 mb-2">
+        Tap what happened. Each selection opens a structured follow-up card.
+      </p>
+      <div className="flex flex-wrap gap-2" data-testid="dr-v2-constraint-chips">
         {CATEGORIES.map(([key, label]) => {
           const active = activeIds.has(key);
           return (
@@ -79,27 +105,89 @@ export default function ConstraintChipsSection({ draft, setDraft }) {
       </div>
 
       {chips.length > 0 ? (
-        <div className="space-y-2 mt-2">
+        <div className="space-y-3 mt-3">
           {chips.map((c, idx) => (
             <div
               key={c.id}
-              className="rounded-xl border border-slate-200 bg-slate-50 p-4"
+              className="rounded-md border border-slate-200 bg-white p-3 sm:p-4 space-y-3"
               data-testid={`dr-v2-constraint-card-${idx}`}
             >
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-red-700 font-bold">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-xs uppercase tracking-[0.2em] text-red-700 font-bold">
                   {CATEGORIES.find((x) => x[0] === c.category)?.[1] || c.category}
                 </span>
-                <StatusChip tone="amber">follow-up pending</StatusChip>
+                <button
+                  type="button"
+                  onClick={() => remove(c.id)}
+                  className="text-slate-500 hover:text-red-600 text-xs font-semibold"
+                  data-testid={`dr-v2-constraint-remove-${idx}`}
+                >
+                  <X className="w-4 h-4 inline mr-1" /> Remove
+                </button>
               </div>
-              <p className="text-xs text-slate-600">
-                Duration, responsible party, impact, and photos land with the
-                follow-up form in the next release.
-              </p>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
+                <div className="lg:col-span-2">
+                  <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
+                    What happened
+                  </Label>
+                  <Textarea
+                    value={c.what_happened || ""}
+                    onChange={(e) => update(c.id, { what_happened: e.target.value })}
+                    className="min-h-[60px] text-base border-2 border-slate-300"
+                    data-testid={`dr-v2-constraint-what-${idx}`}
+                  />
+                </div>
+                <div>
+                  <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
+                    Duration (minutes)
+                  </Label>
+                  <Input
+                    type="number"
+                    inputMode="numeric"
+                    min="0"
+                    step="15"
+                    value={c.duration_minutes || ""}
+                    onChange={(e) => update(c.id, { duration_minutes: e.target.value })}
+                    className={inputCls}
+                    data-testid={`dr-v2-constraint-duration-${idx}`}
+                  />
+                </div>
+                <div>
+                  <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
+                    Responsible party
+                  </Label>
+                  {SUBCON_LIKE.has(c.category) ? (
+                    <SupplierCombo
+                      value={c.responsible_party || ""}
+                      onChange={(v) => update(c.id, { responsible_party: v })}
+                      testId={`dr-v2-constraint-party-${idx}`}
+                    />
+                  ) : (
+                    <Input
+                      value={c.responsible_party || ""}
+                      onChange={(e) => update(c.id, { responsible_party: e.target.value })}
+                      className={inputCls}
+                      placeholder="Who owns the resolution"
+                      data-testid={`dr-v2-constraint-party-${idx}`}
+                    />
+                  )}
+                </div>
+                <div className="lg:col-span-2">
+                  <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
+                    Impact / needed action
+                  </Label>
+                  <Textarea
+                    value={c.impact || ""}
+                    onChange={(e) => update(c.id, { impact: e.target.value })}
+                    className="min-h-[60px] text-base border-2 border-slate-300"
+                    data-testid={`dr-v2-constraint-impact-${idx}`}
+                  />
+                </div>
+              </div>
             </div>
           ))}
         </div>
       ) : null}
-    </SectionCard>
+    </Section>
   );
 }

@@ -11,6 +11,20 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## DR-ROI-001F-REPAIR · Platform-Native Daily Report V2 Restoration · 🟢 GO / CLOSED (2026-02-05)
+
+Rejected Session A visual pass (Class A defect — form looked like a standalone mockup, not an extension of V1). This repair pass restores full platform-native wiring by extending V1 data sources instead of rebuilding them.
+
+- **Every section now consumes canonical MASCI data sources verbatim:** Day Setup uses `JobPicker` + `fetchDailyWeather` + `getCurrentPosition`; Crew Time uses HR-gospel `EmployeeCombo`; Equipment uses `EquipmentCombo` + `EmployeeCombo` (operator); Constraints use `SupplierCombo` for subcontractor/vendor rows; Photos use the real `PhotoUpload` with the 6-photo minimum enforced with red countdown; Safety uses `YesNo` + `DailyReportExcavationActivity` (V1 gate verbatim); Signature uses V1's `SignaturePad`.
+- **V1 `Section` grammar throughout:** every section renders via `<Section number="…" title="…" />` — the exact numbered "SECTION 01 · Day Setup" pattern V1 uses. AI Summary / Photo Evidence / Summary Readiness / Supervisor Approval also use `Section` (dense variant) so they read as part of the report body, not a separate AI dashboard.
+- **Shell restored to V1 look:** `MasciLogo` in the header + red-700 "OPERATIONAL INTELLIGENCE REPORT" eyebrow + "New Daily Report" H1 + platform `Button` component for Preview / Download PDF. Max-width `5xl` (matches V1 report page). No sticky top bar, no dominating sidebar.
+- **Lock envelope +2 → 9 REPAIR assertions**: `test_platform_native_components_wired` greps every section for its canonical V1 data source (JobPicker, EmployeeCombo, EquipmentCombo, SupplierCombo, PhotoUpload, SignaturePad, DailyReportExcavationActivity, YesNo). `test_all_sections_use_platform_section_component` asserts every section imports and renders `<Section />` from `@/components/Section`. **18/18 total** with DR-ROI-001E regression.
+- **Behavior preserved:** HR crew time linkage, excavation/JHA/JHP gate, minimum 6 photos, draft/autosave (`useDrV2Draft`), AI synthesis hook (`useDrV2Ai`), supervisor approval audit log (`useDrV2Approvals`), photo intelligence accept/dismiss/resolve pipeline, DR-V2 feature flag.
+- **Zero drift:** V1 `NewDailyReport.jsx` + `daily_reports.py` + `daily_report_lifecycle.py` byte-untouched. All V1 CSV / email / HR / safety / photo pipelines untouched. `EMAIL_SAFETY_MODE=strict` untouched. PM/Admin/Executive dashboards untouched.
+- **Live smoke (screenshot verified):** JobPicker renders "Pick a MASCI job — or choose Custom", numbered sections render, Capture GPS + Fetch weather + Add Crew Member + Preview/Download PDF buttons render, no `bg-neutral-950` DOM elements, no PM Intelligence Panel.
+- **Docs:** `/app/memory/DR_ROI_001F_REPAIR_SUMMARY.md` supersedes the Session A wiring plan; Session A docs kept for visual-grammar reference.
+- **Next:** DR-ROI-001F PDF session — backend renderer + email/archive safety recert. Preview / Download buttons flip from disabled to enabled when the endpoint ships.
+
 ## DR-ROI-001F Session A · Daily Report V2 UI/UX Platform Consistency · 🟢 GO / CLOSED (2026-02-05)
 
 Brought the Daily Report V2 field form into full platform alignment before the PDF renderer is written. The supervisor workflow now looks and feels exactly like ForgedOps — no dark AI-looking chrome, no PM/Admin/Executive intelligence content inside the field form, no agent/model/provider branding, no bespoke one-off styling.

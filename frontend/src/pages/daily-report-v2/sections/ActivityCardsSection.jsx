@@ -1,8 +1,13 @@
 import React from "react";
-import {
-  SectionCard, FieldLabel, inputCls, selectCls, addItemBtn, ghostBtn,
-} from "../_ui";
+import { Section } from "@/components/Section";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import { Plus, X } from "lucide-react";
+
+const inputCls =
+  "h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2";
 
 const EMPTY_CARD = () => ({
   id: `act_${Math.random().toString(36).slice(2, 10)}`,
@@ -17,7 +22,8 @@ const EMPTY_CARD = () => ({
   notes: "",
 });
 
-const STATUS_OPTIONS = [
+const UNITS = ["LF", "SY", "CY", "TON", "EA", "ACRE", "OTHER"];
+const STATUS = [
   ["on-track", "On track"],
   ["ahead", "Ahead"],
   ["delayed", "Delayed"],
@@ -25,17 +31,18 @@ const STATUS_OPTIONS = [
   ["complete", "Complete"],
 ];
 
-const UNITS = ["LF", "SY", "CY", "TON", "EA", "ACRE", "OTHER"];
-
+/**
+ * DR-ROI-001F-REPAIR · Activity Cards — one card per work item, wired
+ * with the V1 Section grammar + platform inputs. Cost-code aware; feeds
+ * ODS production facts on submit (unchanged pipeline).
+ */
 export default function ActivityCardsSection({ draft, setDraft }) {
   const cards = draft.activity_cards || [];
-
   const add = () =>
     setDraft((d) => ({
       ...d,
       activity_cards: [...(d.activity_cards || []), EMPTY_CARD()],
     }));
-
   const update = (id, patch) =>
     setDraft((d) => ({
       ...d,
@@ -43,7 +50,6 @@ export default function ActivityCardsSection({ draft, setDraft }) {
         c.id === id ? { ...c, ...patch } : c,
       ),
     }));
-
   const remove = (id) =>
     setDraft((d) => ({
       ...d,
@@ -51,12 +57,10 @@ export default function ActivityCardsSection({ draft, setDraft }) {
     }));
 
   return (
-    <SectionCard
-      id="activity-cards"
-      title="4 · Activity Cards"
-      badge={`${cards.length} card${cards.length === 1 ? "" : "s"}`}
-      description="One card per work item. Enter area, activity, quantity, unit, and status. Add crew, equipment, and photos in the sections below."
-    >
+    <Section number="04" title="Activity Cards" testId="dr-v2-section-activity-cards">
+      <p className="text-sm text-slate-600 -mt-2 mb-2">
+        One card per work item. Feeds ODS production facts on submit.
+      </p>
       <div className="space-y-3">
         {cards.length === 0 ? (
           <div
@@ -69,66 +73,74 @@ export default function ActivityCardsSection({ draft, setDraft }) {
           cards.map((card, idx) => (
             <div
               key={card.id}
-              className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3"
+              className="rounded-md border border-slate-200 bg-white p-3 sm:p-4 space-y-3"
               data-testid={`dr-v2-activity-card-${idx}`}
             >
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-red-700 font-bold">
+              <div className="flex items-center justify-between mb-1">
+                <span className="font-mono text-xs uppercase tracking-[0.2em] text-red-700 font-bold">
                   Activity {idx + 1}
                 </span>
-                <button
+                <Button
                   type="button"
-                  className={ghostBtn}
+                  variant="ghost"
                   onClick={() => remove(card.id)}
+                  className="text-slate-500 hover:text-red-600 h-9"
                   data-testid={`dr-v2-activity-remove-${idx}`}
                 >
-                  <X className="w-4 h-4" /> Remove
-                </button>
+                  <X className="w-4 h-4 mr-1" /> Remove
+                </Button>
               </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                <div className="sm:col-span-2 space-y-1">
-                  <FieldLabel>Work area</FieldLabel>
-                  <input
-                    className={inputCls}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4">
+                <div>
+                  <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
+                    Work area
+                  </Label>
+                  <Input
                     value={card.area}
                     onChange={(e) => update(card.id, { area: e.target.value })}
+                    className={inputCls}
                     placeholder="e.g. Parent Loop East"
                     data-testid={`dr-v2-activity-area-${idx}`}
                   />
                 </div>
-                <div className="sm:col-span-2 space-y-1">
-                  <FieldLabel>Activity</FieldLabel>
-                  <input
-                    className={inputCls}
+                <div>
+                  <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
+                    Activity
+                  </Label>
+                  <Input
                     value={card.activity_type}
                     onChange={(e) =>
                       update(card.id, { activity_type: e.target.value })
                     }
+                    className={inputCls}
                     placeholder="e.g. Base grading"
-                    data-testid={`dr-v2-activity-type-${idx}`}
+                    data-testid={`dr-v2-activity-activity-${idx}`}
                   />
                 </div>
-
-                <div className="space-y-1">
-                  <FieldLabel>Quantity</FieldLabel>
-                  <input
-                    className={inputCls}
+                <div>
+                  <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
+                    Quantity
+                  </Label>
+                  <Input
+                    type="number"
+                    inputMode="decimal"
                     value={card.quantity}
                     onChange={(e) =>
                       update(card.id, { quantity: e.target.value })
                     }
+                    className={inputCls}
                     placeholder="0"
-                    inputMode="decimal"
-                    data-testid={`dr-v2-activity-qty-${idx}`}
+                    data-testid={`dr-v2-activity-quantity-${idx}`}
                   />
                 </div>
-                <div className="space-y-1">
-                  <FieldLabel>Unit</FieldLabel>
+                <div>
+                  <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
+                    Unit
+                  </Label>
                   <select
-                    className={selectCls}
                     value={card.unit}
                     onChange={(e) => update(card.id, { unit: e.target.value })}
+                    className={inputCls + " w-full rounded-md bg-white"}
                     data-testid={`dr-v2-activity-unit-${idx}`}
                   >
                     {UNITS.map((u) => (
@@ -136,20 +148,34 @@ export default function ActivityCardsSection({ draft, setDraft }) {
                     ))}
                   </select>
                 </div>
-                <div className="sm:col-span-2 space-y-1">
-                  <FieldLabel>Status</FieldLabel>
+                <div>
+                  <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
+                    Status
+                  </Label>
                   <select
-                    className={selectCls}
                     value={card.status}
                     onChange={(e) =>
                       update(card.id, { status: e.target.value })
                     }
+                    className={inputCls + " w-full rounded-md bg-white"}
                     data-testid={`dr-v2-activity-status-${idx}`}
                   >
-                    {STATUS_OPTIONS.map(([v, l]) => (
+                    {STATUS.map(([v, l]) => (
                       <option key={v} value={v}>{l}</option>
                     ))}
                   </select>
+                </div>
+                <div className="lg:col-span-2">
+                  <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
+                    Notes (optional)
+                  </Label>
+                  <Textarea
+                    value={card.notes || ""}
+                    onChange={(e) => update(card.id, { notes: e.target.value })}
+                    className="min-h-[60px] text-base border-2 border-slate-300"
+                    placeholder="Anything the PM should know about this activity"
+                    data-testid={`dr-v2-activity-notes-${idx}`}
+                  />
                 </div>
               </div>
             </div>
@@ -157,14 +183,15 @@ export default function ActivityCardsSection({ draft, setDraft }) {
         )}
       </div>
 
-      <button
+      <Button
         type="button"
-        className={addItemBtn}
+        variant="outline"
         onClick={add}
+        className="w-full h-12 border-2 border-dashed border-slate-400 hover:border-red-700 hover:text-red-700 font-bold uppercase tracking-wide text-sm mt-3"
         data-testid="dr-v2-activity-add"
       >
-        <Plus className="w-4 h-4 mr-2 inline" /> Add Activity Card
-      </button>
-    </SectionCard>
+        <Plus className="w-4 h-4 mr-2" /> Add Activity Card
+      </Button>
+    </Section>
   );
 }

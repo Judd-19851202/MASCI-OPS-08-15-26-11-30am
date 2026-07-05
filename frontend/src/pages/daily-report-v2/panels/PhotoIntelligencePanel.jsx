@@ -1,5 +1,8 @@
 import React from "react";
-import { SectionCard, StatusChip, secondaryBtn } from "../_ui";
+import { Section } from "@/components/Section";
+import {
+  StatusChip, secondaryBtn,
+} from "../_ui";
 import {
   fetchDrV2PhotoIntel,
   acceptDrV2PhotoLink,
@@ -101,15 +104,18 @@ export default function PhotoIntelligencePanel({ draft }) {
   }
 
   return (
-    <SectionCard
-      id="panel-photo-intel"
+    <Section
+      number="08b"
       title="Photo Evidence"
-      badge={
-        photos.length
-          ? `${photos.length} photo${photos.length === 1 ? "" : "s"}`
-          : "empty"
+      testId="dr-v2-section-photo-evidence"
+      dense
+      aside={
+        <StatusChip tone={photos.length ? "slate" : "amber"}>
+          {photos.length
+            ? `${photos.length} photo${photos.length === 1 ? "" : "s"}`
+            : "empty"}
+        </StatusChip>
       }
-      description="Photos you add to Section 8 appear here. Suggested links and items to verify appear as the platform detects operational cues."
     >
       <div className="space-y-3" data-testid="dr-v2-panel-photo-intel">
         {photos.length === 0 ? (
@@ -288,6 +294,6 @@ export default function PhotoIntelligencePanel({ draft }) {
           </>
         )}
       </div>
-    </SectionCard>
+    </Section>
   );
 }

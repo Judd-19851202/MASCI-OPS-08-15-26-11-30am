@@ -90,6 +90,42 @@ def test_shell_uses_platform_light_theme():
     assert 'data-testid="dr-v2-savebar"' in text
     assert 'data-testid="dr-v2-preview-pdf-btn"' in text
     assert 'data-testid="dr-v2-download-pdf-btn"' in text
+    # DR-ROI-001F-REPAIR: shell must show it's a platform page (MasciLogo).
+    assert "MasciLogo" in text, "Shell must include the platform MasciLogo"
+
+
+def test_platform_native_components_wired():
+    """DR-ROI-001F-REPAIR · Sections must consume the canonical MASCI
+    data sources, not mocks or placeholder inputs."""
+    checks = {
+        "DaySetupSection.jsx": ["JobPicker", "fetchDailyWeather", "getCurrentPosition"],
+        "CrewTimeSection.jsx": ["EmployeeCombo"],
+        "EquipmentSection.jsx": ["EquipmentCombo", "EmployeeCombo"],
+        "PhotosSection.jsx": ["PhotoUpload"],
+        "SafetyQualitySection.jsx": ["YesNo", "DailyReportExcavationActivity"],
+        "SignatureSubmitSection.jsx": ["SignaturePad"],
+        "ConstraintChipsSection.jsx": ["SupplierCombo"],
+        "ActivityCardsSection.jsx": ['Section number="04"'],
+    }
+    for fname, needles in checks.items():
+        path = ROOT / "sections" / fname
+        assert path.exists(), f"missing section: {fname}"
+        text = path.read_text(encoding="utf-8")
+        for needle in needles:
+            assert needle in text, f"{fname} must reference {needle}"
+
+
+def test_all_sections_use_platform_section_component():
+    """Every section file must render via `<Section number=... />` — the
+    canonical V1 grammar — not the local SectionCard."""
+    section_files = list((ROOT / "sections").glob("*.jsx"))
+    for p in section_files:
+        text = p.read_text(encoding="utf-8")
+        assert 'from "@/components/Section"' in text or \
+               "from \"@/components/Section\"" in text, \
+               f"{p.name} must import Section from @/components/Section"
+        assert re.search(r"<Section[\s\n>]", text), \
+            f"{p.name} must render <Section number=... />"
 
 
 def test_pm_intelligence_panel_removed_from_field_form():

@@ -1,6 +1,7 @@
 import React from "react";
+import { Section } from "@/components/Section";
 import {
-  SectionCard, primaryBtn, secondaryBtn, ghostBtn, inputCls, StatusChip,
+  primaryBtn, secondaryBtn, inputCls, StatusChip,
 } from "../_ui";
 
 /**
@@ -27,11 +28,12 @@ export default function SupervisorApprovalPanel({ ai, approvals }) {
   };
 
   return (
-    <SectionCard
-      id="panel-approval"
+    <Section
+      number="09c"
       title="Supervisor Approval"
-      badge={last}
-      description="You are the source of truth. Every action here is logged with a timestamp and cannot be deleted."
+      testId="dr-v2-section-approval"
+      dense
+      aside={<StatusChip tone="slate">{last}</StatusChip>}
     >
       <div className="space-y-3" data-testid="dr-v2-panel-approval">
         <div className="flex flex-wrap gap-2">
@@ -101,6 +103,6 @@ export default function SupervisorApprovalPanel({ ai, approvals }) {
           )}
         </div>
       </div>
-    </SectionCard>
+    </Section>
   );
 }

@@ -1,13 +1,8 @@
 import React from "react";
-import { SectionCard } from "../_ui";
+import { Section } from "@/components/Section";
 
 /**
- * DR-ROI-001F · Summary Readiness panel (formerly Confidence & Validation).
- *
- * Field-facing language only — never surfaces model / provider / agent
- * names or token telemetry. Shows a single readiness bar + per-source
- * readiness percentages so the supervisor knows how much of the summary
- * is grounded in the evidence they entered.
+ * DR-ROI-001F-REPAIR · Summary Readiness — inline platform Section grammar.
  */
 export default function ConfidencePanel({ ai }) {
   const outputs = ai?.result?.outputs || {};
@@ -28,11 +23,11 @@ export default function ConfidencePanel({ ai }) {
       : "text-red-700";
 
   return (
-    <SectionCard
-      id="panel-confidence"
-      title="Summary readiness"
-      badge={`${pct}%`}
-      description="How much of your summary is grounded in the evidence you entered. The weakest source sets the overall score."
+    <Section
+      number="09b"
+      title="Summary Readiness"
+      testId="dr-v2-section-summary-readiness"
+      dense
     >
       <div className="space-y-3" data-testid="dr-v2-panel-confidence">
         <div className="w-full h-2 rounded-full bg-slate-200 overflow-hidden">
@@ -94,6 +89,6 @@ export default function ConfidencePanel({ ai }) {
           Aggregate = weakest source · updates as you enter more evidence.
         </p>
       </div>
-    </SectionCard>
+    </Section>
   );
 }
