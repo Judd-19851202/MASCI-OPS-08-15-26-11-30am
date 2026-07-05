@@ -344,14 +344,21 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
             from doc_ids import ensure_doc_id  # local import to keep startup fast
             await ensure_doc_id(db, doc, "DR", when=doc.get("report_date") or doc.get("created_at"))
             report.doc_id = doc["doc_id"]
-            # TRACK 22.4b-follow-up · B-03 · guarantee report_number is
-            # never empty on a new DR. Legacy code and admin search bars
-            # sometimes read report_number rather than doc_id — keeping
-            # both aligned prevents Trust Spine join misses and downstream
-            # ambiguity. Non-destructive: only sets when empty.
-            if not (doc.get("report_number") or "").strip():
-                doc["report_number"] = doc["doc_id"]
-                report.report_number = doc["doc_id"]
+            # ── TRACK 22.4b-followup-DR · B-03 FINAL ELIMINATION ─────
+            # The canonical identity for a Daily Report is `doc_id`
+            # (atomic, minted from doc_id_counters). `report_number`
+            # historically drifted because the frontend pre-filled it
+            # from GET /daily-reports/next-number with a `DR-YYYYMMDD-
+            # NNN` shape that never reconciles with the atomic
+            # `DR-YYYY-NNNNN` doc_id. We now UNCONDITIONALLY mirror
+            # doc_id onto report_number so every downstream consumer
+            # (Trust Spine, PDFs, ODS, search, notifications, admin
+            # audit) joins on exactly one identity. The old guard only
+            # handled the empty-string case, which is why the 271
+            # legacy skew rows exist. Do NOT reintroduce a conditional
+            # here — that is the exact drift this fix removes.
+            doc["report_number"] = doc["doc_id"]
+            report.report_number = doc["doc_id"]
             # Batch H · GAP-1 write-path defense — convert inline base64 to
             # photo:// refs BEFORE the audit hash is computed, so the hash
             # reflects the canonical (post-sanitization) saved state.
@@ -487,11 +494,43 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
 
     @api_router.get("/daily-reports/next-number")
     async def next_daily_report_number(date: Optional[str] = None):
-        """Return the next available DR-YYYYMMDD-NNN for the given (or today's) date."""
-        d = (date or datetime.now(timezone.utc).strftime("%Y-%m-%d")).replace("-", "")
-        prefix = f"DR-{d}-"
-        n = await db.daily_reports.count_documents({"report_number": {"$regex": f"^{prefix}"}})
-        return {"report_number": f"{prefix}{n + 1:03d}", "prefix": prefix}
+        """Return a canonical DR-YYYY-NNNNN preview for the given year.
+
+        TRACK 22.4b-followup-DR · B-03 FINAL ELIMINATION.
+        This endpoint previously returned a `DR-YYYYMMDD-NNN` shape
+        derived by counting rows for the day. That shape never matched
+        the atomic canonical `doc_id` (`DR-YYYY-NNNNN` from
+        doc_id_counters), and the frontend pre-fill populated
+        `report_number` with it — producing 271 legacy skew rows
+        (`report_number != doc_id`).
+
+        The endpoint now:
+          - Returns the **canonical** shape only.
+          - Peeks the atomic counter WITHOUT incrementing it (so the
+            actual doc_id assigned on submit may be higher if other
+            reports land first — this is a preview, not a reservation).
+          - Publishes an `is_preview_only: True` flag so any client
+            treating it as authoritative can be found by grepping.
+
+        The write path (create_daily_report) ALWAYS overwrites
+        `report_number` with the freshly-minted `doc_id`, so client
+        pre-fill drift can no longer poison the persisted record.
+        """
+        from doc_ids import _year_for  # noqa: PLC0415
+        year = _year_for(date)
+        counter = await db.doc_id_counters.find_one({"_id": f"DR-{year}"}, {"_id": 0, "seq": 1})
+        next_seq = int((counter or {}).get("seq") or 0) + 1
+        canonical = f"DR-{year}-{next_seq:05d}"
+        return {
+            "report_number": canonical,
+            "doc_id_preview": canonical,
+            "prefix": f"DR-{year}-",
+            "is_preview_only": True,
+            "note": (
+                "This is a preview only. The authoritative doc_id / "
+                "report_number is minted atomically at submit time."
+            ),
+        }
 
     @api_router.get("/daily-reports/exposure-signals")
     async def daily_report_exposure_signals(

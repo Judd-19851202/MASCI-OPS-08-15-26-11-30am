@@ -19,6 +19,19 @@ BASE_URL = (
 )
 
 
+def _admin_token() -> str:
+    """Fetch a super-admin portal token for the tests that need to
+    read /api/daily-reports/{id} (which is admin/pm/hr-gated)."""
+    r = requests.post(
+        f"{BASE_URL}/api/auth/multi-login",
+        json={"email": os.environ.get("TEST_SUPER_ADMIN_EMAIL", "jaymn.judd@mascigc.com"),
+              "password": os.environ.get("TEST_SUPER_ADMIN_PASSWORD", "Maddix123!")},
+        timeout=15,
+    )
+    r.raise_for_status()
+    return (r.json().get("portal_tokens") or {}).get("admin") or ""
+
+
 # ---------- Employees ----------
 
 def test_employees_initial_state_empty_or_list():
@@ -139,9 +152,16 @@ def test_cleanup_test_employees():
 
 
 # ---------- Daily Report next-number ----------
+# TRACK 22.4b-followup-DR (2026-07-05) — the `/next-number` endpoint
+# was retired as a "reservation" contract; it now returns a canonical
+# `DR-YYYY-NNNNN` preview + `is_preview_only: true`. The write path
+# always overrides client-supplied `report_number` with the authoritative
+# `doc_id`. Tests below were updated in that refactor.
+
 
 def test_daily_report_next_number_public_no_admin():
     """Endpoint must be reachable WITHOUT admin token (form-load path)."""
+    import re
     r = requests.get(
         f"{BASE_URL}/api/daily-reports/next-number",
         params={"date": "2026-04-28"},
@@ -149,61 +169,82 @@ def test_daily_report_next_number_public_no_admin():
     )
     assert r.status_code == 200, r.text
     body = r.json()
-    assert body.get("prefix") == "DR-20260428-"
-    # Could be 001 if no reports for that date — or NNN if some exist
-    assert body.get("report_number", "").startswith("DR-20260428-")
+    # Canonical shape: `DR-YYYY-` prefix only.
+    assert body.get("prefix", "").startswith("DR-2026-"), body
+    assert re.fullmatch(r"DR-\d{4}-\d{5}", body.get("report_number") or ""), body
+    assert body.get("is_preview_only") is True
 
 
 def test_daily_report_next_number_increments_after_creation():
-    """Pick a unique date so we know we control the count."""
+    """Whatever /next-number returns as a preview, a real submit that
+    follows must produce a canonical doc_id that is >= the preview
+    seq. And a second /next-number call after a fresh submit must
+    return a strictly greater seq than before."""
+    import re
     test_date = "2099-01-15"
-    prefix = "DR-20990115-"
 
-    # Initial
     r = requests.get(
         f"{BASE_URL}/api/daily-reports/next-number",
         params={"date": test_date},
     )
     assert r.status_code == 200
     initial = r.json()["report_number"]
-    assert initial == f"{prefix}001", initial
+    assert re.fullmatch(r"DR-\d{4}-\d{5}", initial), initial
 
-    # Create a daily report with that number
+    # Create a daily report. The server ignores the client-supplied
+    # report_number and assigns the atomic canonical doc_id.
     payload = {
         "project_name": "TEST_Numbering",
         "location": "TEST_loc",
         "report_date": test_date,
-        "report_number": initial,
         "prepared_by": "TEST_QA",
     }
     cr = requests.post(f"{BASE_URL}/api/daily-reports", json=payload)
     assert cr.status_code == 200, cr.text
-    created_id = cr.json()["id"]
+    created = cr.json()
+    created_id = created["id"]
 
     try:
-        # Re-query
+        # Report gets a canonical doc_id, and report_number mirrors it.
+        assert re.fullmatch(r"DR-\d{4}-\d{5}", created["doc_id"]), created
+        assert created["report_number"] == created["doc_id"], created
+
+        # A second next-number call must now be strictly greater than
+        # both the previous preview AND the just-persisted doc_id.
         r2 = requests.get(
             f"{BASE_URL}/api/daily-reports/next-number",
             params={"date": test_date},
         )
         assert r2.status_code == 200
-        assert r2.json()["report_number"] == f"{prefix}002"
+        next2 = r2.json()["report_number"]
+        assert next2 > created["doc_id"]
 
-        # Regression: GET /api/daily-reports/{id} still works
-        r3 = requests.get(f"{BASE_URL}/api/daily-reports/{created_id}")
+        # Regression: GET /api/daily-reports/{id} still works and
+        # returns the canonical identity.
+        r3 = requests.get(f"{BASE_URL}/api/daily-reports/{created_id}",
+                          headers={"X-Admin-Token": _admin_token()})
         assert r3.status_code == 200, r3.text
         assert r3.json()["id"] == created_id
-        assert r3.json()["report_number"] == initial
+        assert r3.json()["report_number"] == created["doc_id"]
     finally:
         requests.delete(f"{BASE_URL}/api/daily-reports/{created_id}")
 
 
 def test_daily_report_full_submit_with_crews_and_materials():
-    """End-to-end: submit a daily report with masci_crews + materials having ticket_photos."""
+    """End-to-end: submit a daily report with masci_crews + materials having ticket_photos.
+
+    TRACK 22.4b-followup-DR (2026-07-05) — the server now always
+    assigns the canonical `DR-YYYY-NNNNN` doc_id and mirrors it onto
+    `report_number`. Any client-supplied `report_number` (previously
+    the drifted `DR-YYYYMMDD-NNN` shape) is authoritatively overridden.
+    """
+    import re
     payload = {
         "project_name": "TEST_E2E_Project",
         "location": "TEST_E2E_Location",
         "report_date": "2099-02-20",
+        # Even if the client sends the legacy drifted shape, the
+        # server MUST overwrite it with the canonical doc_id.
         "report_number": "DR-20990220-001",
         "prepared_by": "TEST_QA",
         "masci_crews": [
@@ -222,13 +263,18 @@ def test_daily_report_full_submit_with_crews_and_materials():
     try:
         assert body["masci_crews"][0]["hours"] == "8.00"
         assert "ticket_photos" in body["materials"][0]
-        assert body["report_number"] == "DR-20990220-001"
+        # Canonical identity assertion — replaces the pre-B-03 assertion
+        # that report_number == "DR-20990220-001".
+        assert re.fullmatch(r"DR-\d{4}-\d{5}", body["report_number"]), body
+        assert body["report_number"] == body["doc_id"], body
 
         # Read back
-        r2 = requests.get(f"{BASE_URL}/api/daily-reports/{rid}")
+        r2 = requests.get(f"{BASE_URL}/api/daily-reports/{rid}",
+                          headers={"X-Admin-Token": _admin_token()})
         assert r2.status_code == 200
         doc = r2.json()
         assert doc["masci_crews"][0]["name"] == "TEST_Foreman"
+        assert doc["report_number"] == body["doc_id"]
     finally:
         requests.delete(f"{BASE_URL}/api/daily-reports/{rid}")
 

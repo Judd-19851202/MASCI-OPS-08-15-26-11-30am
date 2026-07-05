@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## 2026-07-05 — TRACK 22.4b-followup-DR · 🟢 SHIPPED · B-03 CERTIFIED + 2 additional P0 defects closed
+
+Daily Report identity permanently unified. B-03 root cause: two identity fields (`doc_id` atomic, `report_number` client-writable) drifted because the write-path guard only overwrote empty values, while the frontend pre-filled `report_number` from `/next-number` with a `DR-YYYYMMDD-NNN` shape that never reconciles with the canonical `DR-YYYY-NNNNN` shape. See `memory/TRACK_22_4B_FOLLOWUP_DR.md` for the full certification.
+
+- **Write-path fix**: `routes/daily_reports.py :: create_daily_report` now UNCONDITIONALLY mirrors `report_number = doc_id`. `/daily-reports/next-number` retired the `YYYYMMDD-NNN` shape → returns canonical preview + `is_preview_only: true`.
+- **CONC-01 fix** (additional defect): `lib/idempotency.py` was allowing both concurrent requests with the same key to execute the factory (duplicate DR rows + duplicate Trust Spine events). Rewrote with reservation-lock pattern — sentinel insert first, poll for owner response on duplicate-key.
+- **DUP-01 fix** (additional defect): 85 duplicate `doc_id`s across 170 DR rows from a prior counter reset. `scripts/repair_dr_duplicate_doc_ids.py` reassigns later duplicates via atomic mint, advances counter fence to `seq=1529`, and adds **UNIQUE index** on `daily_reports.doc_id` (`daily_reports_doc_id_uniq`).
+- **B-03 backfill**: `scripts/backfill_b03_dr_identity_final.py` repaired 271 skew rows (`report_number != doc_id`). Idempotent — second run is zero-diff. Logs to `dr_report_number_backfill_audit`.
+- **Post-fix invariants**: 0 skew · 0 empty identity · 0 duplicate doc_ids · unique index active · Trust Spine record_id joins by canonical doc_id.
+- **60 pass, 1 skip, 0 fail** across DR-B03 (14), Safety seam+B-02+B-04+PVI (36), idempotency baseline (8), legacy DR-iter19 (3). Zero regressions to adjacent tracks.
+- **Motive untouched · RBAC unchanged · No V2 · No frontend workaround · No delayed identity · No race.**
+
+
+
 ## 2026-07-05 — TRACK 22.4b-followup-Safety · 🟢 SHIPPED · B-02 + B-04 CLOSED
 
 Shared PVI validation seam wired into all Safety + Shop role guards; B-02 (Safety Meeting subject/company nulls) and B-04 (Trench repair lifecycle) both certified.

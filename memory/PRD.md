@@ -11,6 +11,20 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 22.4b-followup-DR · 🟢 SHIPPED · CERTIFIED (2026-07-05)
+- **Mandate:** permanently eliminate every path where a Daily Report can exist without its canonical identity, and prove every downstream system consumes exactly one identity. No V2. No frontend workarounds. No delayed identity. No race. No fake green.
+- **Root cause** (§Phase 2): Two identity fields (`doc_id` atomic, `report_number` client-writable) drifted because the earlier write-path guard only overwrote empty values, while the frontend pre-filled `report_number` from `/next-number` with a `DR-YYYYMMDD-NNN` shape that never matched the canonical `DR-YYYY-NNNNN` shape. Layered on top: 85 duplicate doc_ids from a prior counter-reset restore drill, and an idempotency layer that allowed both concurrent racers to execute the factory (producing duplicate DR rows + duplicate Trust Spine events).
+- **Write-path fix**: `routes/daily_reports.py` now UNCONDITIONALLY mirrors `report_number = doc_id` on every insert. `/daily-reports/next-number` returns canonical shape only, flagged `is_preview_only: true`.
+- **Concurrency fix (CONC-01)**: `lib/idempotency.py` rewritten with a reservation-lock pattern — sentinel insert first, poll for owner's response on duplicate-key. Both racers no longer execute the factory.
+- **Duplicate repair (DUP-01)**: `scripts/repair_dr_duplicate_doc_ids.py` reassigned 85 dup doc_id groups (170 rows), advanced counter fence to `seq=1529`, and added **UNIQUE index** on `daily_reports.doc_id`.
+- **Historical backfill**: `scripts/backfill_b03_dr_identity_final.py` repaired 271 skew rows. Idempotent (2nd run zero-diff), non-destructive, refuses APP_ENV=production.
+- **Post-fix invariants**: 0 skew · 0 empty identity · 0 duplicate doc_ids · unique index active · Trust Spine record_id joins by canonical doc_id.
+- **60 pass · 1 skip · 0 fail** across DR-B03 (14), Safety seam+B-02+B-04+PVI (36), idempotency baseline (8), legacy DR-iter19 (3). Zero regressions.
+- **Motive untouched · RBAC unchanged · Every Platform Pillar satisfied by evidence.**
+- **Closure memo:** `/app/memory/TRACK_22_4B_FOLLOWUP_DR.md`. Defect register updated with `CLOSED` row + evidence.
+
+
+
 ## TRACK 22.4b-followup-Safety · 🟢 SHIPPED · CERTIFIED (2026-07-05)
 - **Mandate:** wire the preview validation seam into every Safety/Shop guard, then close B-02 (Meeting subject/company nulls) and B-04 (Trench repair lifecycle role invariants). No fabrication, no fake green.
 - **P0 seam bug reproduced + fixed** — the initial wire had inline fallback in only 2 of 4 relevant guards. Now: single async helper `try_validation_fallback(db, token, expected_role)` in `backend/routes/role_guard_validation_seam.py`, wired into `_require_safety_token`, `_require_safety_or_admin`, `_require_shop_or_admin_fleet`, and server.py `require_shop_or_admin`.

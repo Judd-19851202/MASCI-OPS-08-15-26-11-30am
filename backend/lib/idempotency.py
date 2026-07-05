@@ -124,55 +124,110 @@ async def with_idempotency(
     """Execute `factory` exactly once per (key, actor) tuple.
 
     If `key` is None, runs factory transparently (no dedup applied).
+
+    TRACK 22.4b-followup-DR · B-03 concurrency lock.
+    Prior behaviour: on cache miss BOTH racers executed the factory,
+    then the loser hit a duplicate-key on the unique index. In the DR
+    submit flow this created duplicate rows (both persisted, both
+    emitted Trust Spine events). We now use a **reservation-first**
+    pattern: insert a sentinel row with the (key, actor_id) tuple
+    BEFORE calling the factory. If the insert succeeds we own the
+    execution. If it fails with a duplicate key we assume the other
+    racer owns it — we poll briefly for its completed response, and
+    if it never lands we fall through to execute (last-resort — very
+    rare, only when the other racer crashed before persisting).
     """
     if not key:
         return await factory()
 
     actor_id = _actor_id(actor)
 
-    # Lookup cache
+    # Look up any cached response first.
     try:
         cached = await db.idempotency_keys.find_one(
             {"key": key, "actor_id": actor_id},
-            {"_id": 0, "response": 1},
+            {"_id": 0, "response": 1, "status": 1},
         )
-        if cached:
+        if cached and cached.get("response") is not None:
             logger.info("[idempotency] cache hit key=%s actor=%s",
                         key[:8], actor_id[:24])
             return cached.get("response")
     except Exception as e:  # noqa: BLE001
         logger.warning("[idempotency] lookup failed: %s", e)
-        # Fall through — best-effort, degrade gracefully.
+
+    # Reservation-first lock: try to insert a sentinel. If the insert
+    # succeeds we hold the lock. If duplicate-key, another racer owns
+    # this key — wait for its response.
+    reservation_created = False
+    try:
+        await ensure_indexes(db)
+        await db.idempotency_keys.insert_one({
+            "key": key,
+            "actor_id": actor_id,
+            "response": None,
+            "status": "in_flight",
+            "created_at": datetime.now(timezone.utc),
+        })
+        reservation_created = True
+    except Exception as e:  # noqa: BLE001
+        if "duplicate key" in str(e).lower():
+            # Another racer beat us to the reservation. Poll briefly
+            # for its response.
+            import asyncio as _asyncio  # noqa: PLC0415
+            for _ in range(40):  # up to ~10s at 250ms
+                await _asyncio.sleep(0.25)
+                row = await db.idempotency_keys.find_one(
+                    {"key": key, "actor_id": actor_id},
+                    {"_id": 0, "response": 1, "status": 1},
+                )
+                if row and row.get("response") is not None:
+                    return row.get("response")
+            # Owner never persisted (crash / timeout). Fall through
+            # to run the factory ourselves as a last resort.
+            logger.warning(
+                "[idempotency] owner never persisted key=%s — running factory as fallback",
+                key[:8],
+            )
+        else:
+            logger.warning("[idempotency] reservation insert failed: %s", e)
+            # DB failure — degrade to non-locked execution.
 
     # Execute the live handler.
     result = await factory()
 
-    # Persist the response (best-effort). If the result isn't JSON-
-    # serializable as-is, we serialize via FastAPI's jsonable_encoder
-    # so the cached payload mirrors what a client would receive.
+    # Persist the response.
     try:
         from fastapi.encoders import jsonable_encoder  # noqa: PLC0415
         cached_resp = jsonable_encoder(result)
     except Exception:  # noqa: BLE001
         cached_resp = result if isinstance(result, (dict, list, str, int, float, bool, type(None))) else None
 
-    # iter437 · Phase Sigma-II · strip heavy fields BEFORE persisting.
-    # See `_strip_for_cache` above for the policy.
     cached_resp = _strip_for_cache(cached_resp)
 
     try:
-        # ensure_indexes() is safe to call repeatedly — protects against
-        # routes that never warmed the index.
-        await ensure_indexes(db)
-        await db.idempotency_keys.insert_one({
-            "key": key,
-            "actor_id": actor_id,
-            "response": cached_resp,
-            "created_at": datetime.now(timezone.utc),
-        })
+        if reservation_created:
+            await db.idempotency_keys.update_one(
+                {"key": key, "actor_id": actor_id},
+                {"$set": {
+                    "response": cached_resp,
+                    "status": "done",
+                    "completed_at": datetime.now(timezone.utc),
+                }},
+            )
+        else:
+            # We ran without holding the reservation (fallback path).
+            # Best-effort upsert of the response so future callers get
+            # the cache hit.
+            await db.idempotency_keys.update_one(
+                {"key": key, "actor_id": actor_id},
+                {"$set": {
+                    "response": cached_resp,
+                    "status": "done",
+                    "completed_at": datetime.now(timezone.utc),
+                }},
+                upsert=True,
+            )
     except Exception as e:  # noqa: BLE001
-        # Duplicate-key error = lost a race. The other writer's cache
-        # is valid; we just return our own live result.
         if "duplicate key" not in str(e).lower():
             logger.warning("[idempotency] persist failed: %s", e)
 
