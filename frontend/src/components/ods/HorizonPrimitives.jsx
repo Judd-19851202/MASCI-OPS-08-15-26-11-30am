@@ -26,6 +26,9 @@ export const PRESETS = [
 ];
 
 export function PresetPicker({ value, onChange, testid }) {
+  // Individual button testid drops the "-picker" suffix so it reads as
+  // `<scope>-intel-preset-<key>` per the DR-ROI-001E spec.
+  const buttonBase = testid ? testid.replace(/-picker$/, "") : "preset";
   return (
     <div className="flex gap-1 flex-wrap" data-testid={testid}>
       {PRESETS.map((p) => (
@@ -37,7 +40,7 @@ export function PresetPicker({ value, onChange, testid }) {
               ? "border-red-600 bg-red-50 text-red-800"
               : "border-neutral-300 hover:border-neutral-500 text-neutral-700 bg-white"
           }`}
-          data-testid={`${testid}-${p.key}`}
+          data-testid={`${buttonBase}-${p.key}`}
         >
           {p.label}
         </button>
