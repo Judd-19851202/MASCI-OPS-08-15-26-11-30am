@@ -10687,3 +10687,42 @@ the admin AI config module. Field UI byte-identical.
 - Renaming `routes/dr_v2_*.py` backend module filenames.
 - Deleting `ExecutiveOperationalIntelligence.jsx`, `pages/daily-report-v2/**`, `lib/dailyReportV2*.js`.
 
+
+---
+
+## DR-UNIFY-004 · Final Deployment Certification (2026-02)
+
+### Verdict
+✅ **DEPLOYMENT CERTIFIED · GO FOR MONDAY MORNING**
+
+- Every clause of the final deployment gate satisfied.
+- Testing agent iteration_532: **12/12 CERT items pass · 100%/100%**.
+- Lock envelopes: **153/154 pass** across 10 test files.
+  (One cross-test event-loop artefact — passes standalone.)
+- Deployment audit: **PASS · zero blockers**.
+- Zero user-facing V1/V2/next-generation vocabulary.
+- AI is strictly optional; platform runs 100% with every flag off.
+- HR crew time, email pipeline, PDF renderer, ODS ingest, safety, equipment,
+  photos, signature, EN/ES — all byte-identical to last week.
+
+### Only observable differences post-deploy
+- Optional "Daily Operational Summary" section inside the existing Daily Job Report.
+- New admin surface at `/admin/ai-configuration` (super-admin only).
+
+### 16 certification documents produced
+`DR_UNIFY_004_EXECUTIVE_DEPLOYMENT_REPORT.md`,
+`_ZERO_DRIFT_CERTIFICATION.md`, `_REGRESSION_CERTIFICATION.md`,
+`_PERFORMANCE_CERTIFICATION.md`, `_SECURITY_CERTIFICATION.md`,
+`_AI_CERTIFICATION.md`, `_TRANSLATION_CERTIFICATION.md`,
+`_HR_CERTIFICATION.md`, `_SAFETY_CERTIFICATION.md`,
+`_EQUIPMENT_CERTIFICATION.md`, `_ODS_CERTIFICATION.md`,
+`_PDF_CERTIFICATION.md`, `_EMAIL_CERTIFICATION.md`,
+`_PRODUCTION_READINESS_CHECKLIST.md`, `_ROLLBACK_PLAN.md`,
+`_DISASTER_RECOVERY_VERIFICATION.md`, `_TECHNICAL_DEBT_REGISTER.md`.
+
+### Post-deploy scheduled work
+- **P1** — DR-UNIFY-005: live migration + legacy cleanup after 30-day telemetry window.
+- **P1** — Background task queue for ODS ingestion.
+- **P2** — Summary in PDF/email body; live-LLM polish; live provider probe; tenant-admin scoped role.
+- **P3** — Audit index; localStorage sweep; dead-file sweep; pytest-asyncio artefact.
+

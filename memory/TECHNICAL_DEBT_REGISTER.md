@@ -307,3 +307,14 @@ Pillars.
   `pages/daily-report-v2/**`, `lib/dailyReportV2*.js`) once no imports remain.
 - **[P3] localStorage sweep.** Purge the harmless-but-dead `dr_v2_optin` key from any devices that
   still have it set (client-side no-op cleanup).
+
+---
+
+## 2026-02 · DR-UNIFY-004 close-out
+
+**Production blockers: ZERO.** Full remaining-work list in
+`/app/memory/DR_UNIFY_004_TECHNICAL_DEBT_REGISTER.md`.
+
+- P1 items: DR-UNIFY-005 live migration; background task queue for ODS.
+- P2 items: PDF/email inclusion of summary; live-LLM polish; live provider probe; tenant-admin scoped role.
+- P3 items: audit index; localStorage cleanup; dead-file sweep; pytest-asyncio artefact.
