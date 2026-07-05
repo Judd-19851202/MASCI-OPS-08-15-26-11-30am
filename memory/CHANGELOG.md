@@ -8887,3 +8887,23 @@ Real field users reported the trench excavation form "blocked the screen." Audit
 
 ### Verdict
 🟢 **GREEN.** Platform is one coherent operational system front-to-back. Remaining debt is scored and roadmapped.
+
+## 2026-02 · AI-ADMIN-001 · Admin AI Configuration Center
+
+Additive. Zero drift. Field UI byte-identical.
+
+- **NEW · Backend:** `routes/ai_admin_config.py` mounting six admin-strict endpoints:
+  `GET /api/admin/ai/config/status`, `GET /api/admin/ai/tenants`,
+  `GET|PUT /api/admin/ai/tenants/{tenant_id}/capabilities`,
+  `GET /api/admin/ai/tenants/{tenant_id}/audit`,
+  `POST /api/admin/ai/providers/{provider}/test`.
+- **NEW · Frontend:** `pages/admin/AdminAIConfiguration.jsx` at `/admin/ai-configuration`.
+  Six sections: System Status, Provider Routing, Tenant Selector, Tenant AI Enablement
+  (master + six module toggles), Disabled-Mode Guarantees, Audit Log. Zero raw API
+  keys rendered.
+- **NEW · Sidebar:** `AI Configuration` entry under *System & Governance*.
+- **NEW · Collections (auto-created):** `tenant_ai_capabilities`,
+  `tenant_ai_capability_audit`.
+- **Tests:** 17 new backend lock tests + 17 AI-CONFIG-001 regression = 34/34 green.
+  Testing agent v3 end-to-end run: 100% backend / 100% frontend success.
+- **Docs:** 6 markdown files in `/app/memory/AI_ADMIN_001_*`.

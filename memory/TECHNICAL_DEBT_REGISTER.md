@@ -259,3 +259,21 @@ Pillars.
   legacy flags in `backend/.env` are workflow flags separate from the AI switchboard. Consider mapping them into
   `MODULE_ENV_MAP` in a follow-up so all AI gating flows through one resolver — for now they are documented in
   `AI_CONFIG_001_SECRET_CONTRACT.md` §3.5.
+
+---
+
+## 2026-02 · AI-ADMIN-001 Follow-ups
+
+- **[P2] Live-provider probe.** `POST /api/admin/ai/providers/{p}/test` today reports
+  readiness (flag on + key present). A follow-up should issue a bounded live probe
+  behind an explicit flag with a cost/timeout budget so operators can verify a
+  key actually works. Deliberately deferred to keep AI-ADMIN-001 zero-cost by default.
+- **[P2] Tenant-admin scoped role.** Today only super-admins can flip tenant flags.
+  When multi-tenant expands beyond MASCI, add a `require_tenant_admin` gate scoped
+  to a single `tenant_id` so tenant owners can self-serve without super-admin access.
+- **[P3] Audit index.** Add compound index on
+  `tenant_ai_capability_audit.{tenant_id, timestamp}` when audit volume grows
+  past ~1k entries per tenant. Not needed today (typical volume < 20/month/tenant).
+- **[P3] Batch tenant update.** A safe `PATCH /api/admin/ai/tenants/bulk` could
+  enable rolling-out a module to N tenants in one call. Explicit non-goal today
+  to preserve per-tenant audit clarity — every mutation is one tenant, one row.

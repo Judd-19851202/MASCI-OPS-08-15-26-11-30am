@@ -855,7 +855,7 @@
     }
   ],
   "endpoints_total": 406,
-  "generated": "2026-07-05T16:39:35.105459+00:00",
+  "generated": "2026-07-05T17:05:22.802233+00:00",
   "lifecycle_complete": true,
   "phase_1_certification": {
     "app_js_md5": "d84cea05c1f64bd2ae82823d7f6aadcc",
@@ -890,6 +890,13 @@
     "verdict": "GO"
   },
   "recent_track_closures": [
+    {
+      "track": "AI-ADMIN-001",
+      "date": "2026-02",
+      "status": "closed",
+      "tests": "34/34",
+      "e2e": "100%/100%"
+    },
     {
       "track": "AI-CONFIG-001",
       "date": "2026-02",
@@ -1230,7 +1237,7 @@
     }
   ],
   "tests_total": 634,
-  "track": "AI-CONFIG-001",
+  "track": "AI-ADMIN-001",
   "track_22_2_phase_b": {
     "app_js_lines_after": 94,
     "app_js_lines_before": 1283,
@@ -1440,6 +1447,55 @@
         "TENANT_AI_ADMIN_INTELLIGENCE_ENABLED",
         "TENANT_AI_SAFETY_INTELLIGENCE_ENABLED",
         "TENANT_AI_TRANSLATION_ENABLED"
+      ]
+    },
+    "AI-ADMIN-001": {
+      "title": "Admin AI Configuration Center",
+      "date_closed": "2026-02",
+      "status": "closed",
+      "lock_tests_passing": "34/34 (17 new + 17 AI-CONFIG-001 regression)",
+      "testing_agent_success_rate": {
+        "backend": "100%",
+        "frontend": "100%"
+      },
+      "artifacts": {
+        "route": "backend/routes/ai_admin_config.py",
+        "server_registration": "backend/server.py (register_ai_admin_config_routes)",
+        "tests": "backend/tests/test_ai_admin_001_config.py",
+        "frontend_page": "frontend/src/pages/admin/AdminAIConfiguration.jsx",
+        "frontend_route": "frontend/src/app/routing/AppRoutes.jsx (/admin/ai-configuration)",
+        "nav_entries": [
+          "frontend/src/components/admin/sidebar/domainMap.js",
+          "frontend/src/components/AdminShell.jsx"
+        ],
+        "docs": [
+          "memory/AI_ADMIN_001_EXECUTIVE_SUMMARY.md",
+          "memory/AI_ADMIN_001_API_CONTRACT.md",
+          "memory/AI_ADMIN_001_UI_SPEC.md",
+          "memory/AI_ADMIN_001_PERMISSION_MODEL.md",
+          "memory/AI_ADMIN_001_TEST_REPORT.md",
+          "memory/AI_ADMIN_001_ZERO_DRIFT_MATRIX.md"
+        ]
+      },
+      "endpoints": [
+        "GET  /api/admin/ai/config/status",
+        "GET  /api/admin/ai/tenants",
+        "GET  /api/admin/ai/tenants/{tenant_id}/capabilities",
+        "PUT  /api/admin/ai/tenants/{tenant_id}/capabilities",
+        "GET  /api/admin/ai/tenants/{tenant_id}/audit",
+        "POST /api/admin/ai/providers/{provider}/test"
+      ],
+      "collections_created": [
+        "tenant_ai_capabilities",
+        "tenant_ai_capability_audit"
+      ],
+      "doctrine": [
+        "All routes gated by require_admin_strict (PM tokens rejected).",
+        "Zero raw API key values in any response, request, or audit blob.",
+        "Every mutation is audit-logged (actor, before, after, changed_fields, note, ip).",
+        "Tenant isolation enforced via per-tenant path param + Mongo scope.",
+        "AI OFF invariants unchanged: Daily Reports, ODS, dashboards untouched.",
+        "Field UI byte-identical regardless of AI state."
       ]
     }
   }

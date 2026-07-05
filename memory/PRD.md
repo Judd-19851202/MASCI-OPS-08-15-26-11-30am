@@ -10560,3 +10560,48 @@ module whose deployment or tenant flag is off, per contract.
 - **DR-UNIFY-003:** Backend route aliases + Mongo `dr_v2_drafts` → `daily_reports_drafts` renames + flag retirement.
 - **DR-UNIFY-004:** Full regression + deployment certification.
 - **Background task queue for ODS ingestion** (agreed pre-req before wide AI scaling).
+
+---
+
+## AI-ADMIN-001 · Admin AI Configuration Center (2026-02)
+
+### Delivered
+- **Admin-only page** at `/admin/ai-configuration` with six sections: System Status,
+  Provider Routing (read-only), Tenant Selector, Tenant AI Enablement (master + six module toggles),
+  Disabled-Mode Guarantees, Audit Log. Zero raw API key values displayed.
+- **Six admin-strict endpoints** under `/api/admin/ai/*` — config status, tenants list,
+  per-tenant capabilities GET/PUT, per-tenant audit list, provider readiness probe.
+  All gated by `require_admin_strict` (PM tokens rejected).
+- **Audit trail** — every mutation writes to `tenant_ai_capability_audit` with
+  actor / before / after / changed_fields / note / timestamp / ip / user_agent.
+  No secrets ever appear in an audit blob.
+- **Nav entry** in Admin sidebar under *System & Governance*.
+- **17 new backend lock tests** — 100% pass. 17 AI-CONFIG-001 regression tests also 100% pass.
+  Frontend + backend end-to-end verification by testing agent v3: **100% success rate**.
+
+### Zero drift
+Daily Report submit, ODS ingestion, PM/Admin dashboards, PDFs, HR, Safety, Equipment,
+Photos — **all untouched**. `/daily/submit` regression-locked to never import
+the admin AI config module. Field UI byte-identical.
+
+### 6 documents produced
+- `/app/memory/AI_ADMIN_001_EXECUTIVE_SUMMARY.md`
+- `/app/memory/AI_ADMIN_001_API_CONTRACT.md`
+- `/app/memory/AI_ADMIN_001_UI_SPEC.md`
+- `/app/memory/AI_ADMIN_001_PERMISSION_MODEL.md`
+- `/app/memory/AI_ADMIN_001_TEST_REPORT.md`
+- `/app/memory/AI_ADMIN_001_ZERO_DRIFT_MATRIX.md`
+
+### Files touched (additive only)
+- **Backend (new):** `routes/ai_admin_config.py`, `tests/test_ai_admin_001_config.py`
+- **Backend (edit):** `server.py` (+7 lines · router registration)
+- **Frontend (new):** `pages/admin/AdminAIConfiguration.jsx`
+- **Frontend (edit):** `app/routing/AppRoutes.jsx`, `components/admin/sidebar/domainMap.js`,
+  `components/AdminShell.jsx` (nav entries + lazy route)
+- **Mongo (auto-created):** `tenant_ai_capabilities`, `tenant_ai_capability_audit`
+
+### Follow-ups (P2 — non-blockers)
+- Live-provider probe endpoint (bounded cost + timeout budget) — today `POST /providers/{p}/test` returns readiness only.
+- Tenant-admin scoped role when multi-tenant expands beyond MASCI.
+- Compound index on `tenant_ai_capability_audit.updated_at` when volume grows past ~1k entries per tenant.
+
