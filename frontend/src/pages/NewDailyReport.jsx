@@ -53,6 +53,7 @@ import { getFlUser, getFlToken } from "@/lib/flAuth";
 import { isAdmin } from "@/lib/adminAuth";
 import { translateUserInput } from "@/lib/translateOnSubmit";
 import { toast } from "sonner";
+import DailyOperationalSummarySection from "@/components/daily-report/DailyOperationalSummarySection";
 import {
   getCurrentPosition,
   reverseGeocode,
@@ -2870,6 +2871,9 @@ function NewDailyReportInner({ publicMode = false }) {
             data-testid="input-tomorrow-plan"
           />
         </Section>
+
+        {/* DR-CUTOVER-002 · Daily Operational Summary (optional; never blocks submit). */}
+        <DailyOperationalSummarySection data={data} set={set} t={t} />
 
         {/* 11 — Sign-off */}
         <div

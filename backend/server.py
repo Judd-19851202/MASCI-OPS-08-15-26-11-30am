@@ -2888,6 +2888,19 @@ register_daily_reports_routes(
     lambda kind, record: schedule_auto_email(kind, record),
     require_admin_pm_or_hr_read=require_admin_pm_or_hr_read,
 )
+
+# ------------------------------------------------------------
+# DR-CUTOVER-002 · Daily Operational Summary (draft + accept)
+# ADDITIVE mount. Zero drift on the V1 submit path — the two
+# routes here NEVER modify a submitted daily_report's core fields
+# (crews, equipment, safety, photos). They only compose preview
+# text and, on accept, patch a small set of `daily_operational_summary*`
+# fields onto the existing document.
+# ------------------------------------------------------------
+from routes.daily_summary import register_daily_summary_routes  # noqa: E402
+register_daily_summary_routes(
+    api_router, db=db, rate_limit_public_post=rate_limit_public_post,
+)
 # ------------------------------------------------------------
 # ADDITIVE mount. Zero drift on V1 daily_reports routes, models, or
 # collections. Feature-flag gated (DR_V2_AI_ENABLED). See
