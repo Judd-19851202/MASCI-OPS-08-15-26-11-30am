@@ -112,15 +112,18 @@ def test_v1_dashboard_untouched():
 
 
 def test_backend_runtime_parity_intact():
-    """Baseline was 1441/1445/1264. DR-ROI-001C = +6 → 1447/1451/1270.
-    ODS-001 = +8 → 1455/1459/1277. DR-ROI-001D adds 5 additive
-    /api/dr-v2/photos/* routes → 1460/1464/1282."""
+    """Baseline was 1441/1445/1264. Additive:
+      - DR-ROI-001C: +6 → 1447/1451/1270
+      - ODS-001:     +8 → 1455/1459/1277
+      - DR-ROI-001D: +5 → 1460/1464/1282
+      - DR-ROI-001E: +8 → 1468/1472/1290 (PM/Admin/Executive intelligence)
+    """
     server = _load_server()
     routes = [r for r in server.app.routes if hasattr(r, "endpoint")]
-    assert len(routes) == 1460, f"route count drifted: {len(routes)}"
+    assert len(routes) == 1468, f"route count drifted: {len(routes)}"
     methods = sum(len(getattr(r, "methods", None) or []) for r in routes)
-    assert methods == 1464, f"method count drifted: {methods}"
-    assert len(server.app.openapi().get("paths", {})) == 1282, (
+    assert methods == 1472, f"method count drifted: {methods}"
+    assert len(server.app.openapi().get("paths", {})) == 1290, (
         f"openapi paths drifted: {len(server.app.openapi().get('paths', {}))}"
     )
 

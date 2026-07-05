@@ -139,13 +139,14 @@ def test_backend_runtime_parity_intact():
       - DR-ROI-001C: +6 → 1447/1451/1270
       - ODS-001:     +8 → 1455/1459/1277
       - DR-ROI-001D: +5 → 1460/1464/1282
+      - DR-ROI-001E: +8 → 1468/1472/1290
     """
     server = _load_server()
     routes = [r for r in server.app.routes if hasattr(r, "endpoint")]
-    assert len(routes) == 1460
+    assert len(routes) == 1468
     methods = sum(len(getattr(r, "methods", None) or []) for r in routes)
-    assert methods == 1464
-    assert len(server.app.openapi().get("paths", {})) == 1282
+    assert methods == 1472
+    assert len(server.app.openapi().get("paths", {})) == 1290
 
 
 def test_backend_lifecycle_and_email_safety_unchanged():

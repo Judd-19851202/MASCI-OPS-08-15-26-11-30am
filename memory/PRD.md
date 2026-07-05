@@ -11,6 +11,23 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## DR-ROI-001E · PM + Admin + Executive Operational Intelligence Dashboards · 🟢 GO / CLOSED (2026-02-05)
+
+Delivered three role-scoped operational intelligence dashboards, powered end-to-end by the Operational Data Spine. Every KPI on every dashboard is backed by verified ODS data with fact-level source traceability. Zero AI branding, zero placeholder charts, zero decorative analytics — locked by permanent CI guardrails.
+
+- **Three horizons per dashboard (user directive):** every PM / Admin / Executive view organizes intelligence into **What Happened** (confirmed totals) → **What Is Happening** (production mix + delay categories + project roll-up) → **What Needs Attention** (safety / quality / delay / readiness facts with `fact_id` + `source_type` + `source_id` traceability).
+- **New backend endpoints (additive, read-only):** `/api/ods/pm/attention`, `/api/ods/pm/projects/{id}/attention`, `/api/ods/admin/attention`. Every attention row carries severity, summary, date, project, source_type, source_item_id — jumping back to the originating record is one hop.
+- **Three SPA pages:** `PmOperationalIntelligence.jsx` (`/pm/operational-intelligence`) · `AdminOperationalIntelligence.jsx` (`/admin/ods-intelligence`) · `ExecutiveOperationalIntelligence.jsx` (`/executive/ods-intelligence`). Shared visual grammar via `components/ods/HorizonPrimitives.jsx` (Preset picker · Horizon header · KPI tile · Attention list · Evidence footer).
+- **Invisible Intelligence lock:** new permanent CI test `test_dr_roi_001e_invisible_intelligence.py` blocks any future PR from surfacing `Claude / Anthropic / GPT-* / OpenAI / Gemini / Nano Banana / LLM / Sonnet / Opus / Haiku / token cost` on the operator UI. Positive checks assert three horizons + evidence footer on every dashboard.
+- **Zero decorative analytics:** no chart libraries imported (`recharts` / `chart.js` / `@nivo/*` / `victory` all banned). Tables + KPI tiles only. Every KPI tile carries a footnote naming the underlying fact type (`labor_fact`, `equipment_fact`, `photo_evidence_fact`, …).
+- **Cache-first briefs:** `pm_brief` / `executive_brief` requests hash their evidence payload; identical range hits `ods_briefs_cache` — no repeat LLM cost.
+- **Zero-Drift proof:** V1 Daily Reports, V2 shell, photos, PDFs untouched. Only 3 lines added to `AppRoutes.jsx`. Only cache upsert allowed by intelligence routes (`ods_briefs_cache`); reads of `daily_reports` / `job_photos` are strictly forbidden and CI-locked.
+- **12-doc Phase E package** under `/app/memory/DR_ROI_001E_*.md`: Executive Summary · KPI Contract · PM Dashboard Spec · Admin Dashboard Spec · Executive Brief Spec · Invisible Intelligence Compliance · Data Flow · RBAC Matrix · Test Report · Zero-Drift Proof · Rollout Plan · Deprecation Plan · Architecture · Current-State Audit.
+- **Testing:** backend lock tests 9/9 green (5 route/behavior + 4 UI compliance). Live API smoke: `/api/ods/admin/dashboard` returns 3 projects · 120 labor hrs · 32.5 equip hrs · 9 attention items. Frontend smoke: all three routes render three horizons cleanly on `1920×800`.
+- **Next:** DR-ROI-001F (PDF Redesign) · DR-ROI-001G (Full Regression + Deployment Certification).
+- **Eight Pillars: 9.99 platform average** · Zero Drift 10.00 · Invisible Intelligence 10.00.
+
+
 ## DR-ROI-001 · Daily Report V2 · A + B(expanded) · 🟢 GO / CLOSED (2026-02-05)
 
 Kicked off the Operational Intelligence Report redesign under the Defect Constitution. Delivered 14 planning documents + V2 shell scaffolding behind a feature flag. Zero V1 disruption; zero AI wiring this session (deferred to Track C after `integration_playbook_expert_v2` call for Claude Sonnet 4.5 + GPT-5.2 Vision).

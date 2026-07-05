@@ -4,6 +4,9 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Hub from "@/pages/Hub";
 // DR-ROI-001 · Track B · Daily Report V2 shell (feature-flagged).
 import DailyReportV2 from "@/pages/daily-report-v2/DailyReportV2";
+import PmOperationalIntelligence from "@/pages/PmOperationalIntelligence";
+import OdsAdminIntelligence from "@/pages/AdminOperationalIntelligence";
+import OdsExecutiveIntelligence from "@/pages/ExecutiveOperationalIntelligence";
 // Track 15.67 Phase 3 · tenant-safe branding context for the whole app.
 import { BrandingProvider } from "@/lib/BrandingProvider";
 // Track 13.5A · Phase B1 — Internal design-system showcase (lazy, isolated).
@@ -1216,6 +1219,9 @@ export function AppRoutes() {
             <Route path="/_internal/v2-compare/:portal" element={D(<V2Compare />)} />
             {/* DR-ROI-001 · Track B · Daily Report V2 shell (feature-flagged). */}
             <Route path="/daily-report/v2" element={<DailyReportV2 />} />
+            <Route path="/pm/operational-intelligence" element={<PmOperationalIntelligence />} />
+            <Route path="/admin/ods-intelligence" element={<OdsAdminIntelligence />} />
+            <Route path="/executive/ods-intelligence" element={<OdsExecutiveIntelligence />} />
             <Route path="*" element={<NotFound />} />
             {/* (catch-all is final) */}
           </Routes></React.Suspense>

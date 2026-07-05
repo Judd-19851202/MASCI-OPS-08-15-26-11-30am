@@ -2905,6 +2905,15 @@ register_dr_v2_photo_routes(api_router, db)
 from routes.ods import register_ods_routes  # noqa: E402
 register_ods_routes(api_router, db)
 
+# ============================================================
+# DR-ROI-001E · PM / Admin / Executive Intelligence Dashboards
+# ------------------------------------------------------------
+# ADDITIVE mount. Zero drift on V1/V2/ODS. Reads snapshots +
+# operational_facts only. Never mutates source records.
+# ============================================================
+from routes.ods_intelligence import register_ods_intelligence_routes  # noqa: E402
+register_ods_intelligence_routes(api_router, db)
+
 
 # ============================================================
 # TRACK 19.04 · Unified Daily Report Attachment Pipeline
