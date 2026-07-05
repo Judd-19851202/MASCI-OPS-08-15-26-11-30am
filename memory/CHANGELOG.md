@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## 2026-07-05 — TRACK 22.4b-followup-Idempotency-Spine-Phase-2 · 🟢 SHIPPED · GO
+
+Adopted the workflow-scoped reservation-lock idempotency helper on 4 of the 7 endpoints deferred from Phase 1 — both P1 endpoints closed, plus 2 P2 endpoints in the same pass.
+
+- **P1 CLOSED**: `/api/inspections` (`workflow="inspection"`) and `/api/equipment-inspections` (`workflow="equipment_inspection"`) — Pre-Op / DVIR now exactly-once under concurrent retry.
+- **P2 CLOSED**: `/api/jhas` (`workflow="jha"`) and `/api/qaqc-inspections` (`workflow="qaqc"`) — same discipline.
+- **Deferred with owner tracks**: HR requests (P2 · pending HR PVI trace) · Dispatch assignments (P2 · >1400 LOC handler w/ Motive read path — needs targeted track) · Trench safety writes (P2 · safety-gated, B-04 invariants must be preserved) · Shop defects (P2 · canonical write path audit needed first).
+- **Certified**: same-key concurrent → 1 record; distinct-key concurrent → N records; 10 parallel submits across 4 workflows all complete independently — proves the lock is NOT a global mutex. Cross-workflow scoping intact.
+- **Full track suite**: **71 pass · 1 skip · 0 fail** across all 8 backend test files.
+- **Motive untouched · RBAC unchanged · No new dashboards / no V2 / no frontend workaround.**
+- **Closure memo:** `/app/memory/TRACK_22_4B_FOLLOWUP_IDEMPOTENCY_SPINE_PHASE_2.md` · matrix + defects CSVs updated.
+
+
+
 ## 2026-07-05 — TRACK 22.4b-followup-Idempotency-Spine · 🟢 SHIPPED · GO
 
 Extended the reservation-lock idempotency discipline (proven in the DR B-03 repair) across every endpoint that uses `with_idempotency`, closed two platform-level helper defects, newly protected `/api/meetings`, and delivered an honest severity-classified deferral list for the remaining seven submit workflows.

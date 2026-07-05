@@ -455,125 +455,133 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
     )
 
     @api_router.post("/inspections", response_model=Inspection, dependencies=_insp_deps)
-    async def create_inspection(payload: InspectionCreate):
-        inspection = Inspection(**payload.model_dump())
-        doc = inspection.model_dump()
-        from doc_ids import ensure_doc_id
-        await ensure_doc_id(db, doc, "INSP", when=doc.get("inspection_date") or doc.get("created_at"))
-        inspection.doc_id = doc["doc_id"]
-        # ── Phase 2B-2A · Job-ownership team_snapshot embed ──
-        try:
-            from lib.team_routing import snapshot_team  # noqa: PLC0415
-            _snap = await snapshot_team(db, doc.get("project_number"))
-            if _snap:
-                doc["team_snapshot"] = _snap
-        except Exception:  # noqa: BLE001
-            pass
-        await db.inspections.insert_one(doc)
-        doc.pop("_id", None)
-        # Mirror photos into the Job Photos library (Phase 1 read-only).
-        try:
-            from routes.job_photos import index_record_photos
-            await index_record_photos(db, "inspection", doc)
-        except Exception:
-            pass
-        # TRACK 15.76 · Trust Spine — open record lifecycle.
-        try:
-            from lib.trust_spine import emit_record_created  # noqa: PLC0415
-            await emit_record_created(
-                db, workflow="inspection", record=doc,
-                module="routes/safety.py:create_inspection",
-            )
-        except Exception:  # noqa: BLE001
-            pass
-        schedule_auto_email("inspection", doc)
+    async def create_inspection(payload: InspectionCreate, request: Request):
+        # TRACK 22.4b-followup-Idempotency-Spine-Phase-2 · P1 protection.
+        from lib.idempotency import with_idempotency, idem_key_from_request  # noqa: PLC0415
+        key = idem_key_from_request(request)
 
-        # Phase E · Cross-system fan-out — audit deficiencies / auto-fails /
-        # stop-work inspections must trigger corrective tasks routed to
-        # safety + visibility on PM-scoped projects. Fire-and-forget.
-        try:
-            auto_fail = int(doc.get("auto_fail_count") or 0)
-            stop_work_raw = doc.get("stop_work_issued") or "No"
-            stop_work = str(stop_work_raw).strip().lower() in ("yes", "true", "y", "1")
-            hazards_raw = doc.get("hazards_observed") or "No"
-            hazards_seen = str(hazards_raw).strip().lower() in ("yes", "true", "y", "1")
-            needs_task = auto_fail > 0 or stop_work or hazards_seen
-            if needs_task:
-                from lib.event_fanout import emit_task_and_notification, emit_notification  # noqa: PLC0415
-                from lib.team_routing import apply_routing  # noqa: PLC0415
-                priority = "Critical" if stop_work else ("High" if auto_fail > 0 else "Medium")
-                title = ("Stop-work issued · safety inspection follow-up"
-                         if stop_work
-                         else (f"Auto-fail items ({auto_fail}) · safety inspection follow-up"
-                               if auto_fail > 0
-                               else "Safety inspection — hazards observed"))
-                _safety_notif = {
-                    "type": "inspection.deficiency" if not stop_work else "inspection.stop_work",
-                    "title": title[:200],
-                    "message": (f"{doc.get('project_name') or '—'} · "
-                                f"{doc.get('location') or '—'} · "
-                                f"{doc.get('inspection_date') or ''}")[:200],
-                    "severity": "Critical" if stop_work else "Warning",
-                    "recipient_role": "safety",
-                    "linked_source_module": "safety.inspections",
-                    "linked_source_record_id": doc.get("id"),
-                    "linked_project_number": doc.get("project_number") or None,
-                }
-                await apply_routing(db, _safety_notif,
-                                    project_number=doc.get("project_number"),
-                                    event_key="inspection.deficiency")
-                await emit_task_and_notification(
-                    db,
-                    task={
-                        "title": title[:200],
-                        "description": (f"Project: {doc.get('project_name') or '—'} · "
-                                        f"Inspector: {doc.get('inspector_name') or '—'} · "
-                                        f"Foreman: {doc.get('foreman_name') or '—'} · "
-                                        f"Notes: {str(doc.get('corrective_action_notes') or '')[:300]}")[:4000],
-                        "source_module": "safety.inspections",
-                        "source_record_id": doc.get("id"),
-                        "linked_project_number": doc.get("project_number") or None,
-                        "assignee_role": "safety",
-                        "priority": priority,
-                        "created_by": {"role": "system", "via": "inspection-fanout"},
-                    },
-                    notification=_safety_notif,
+        async def _do_create():
+            inspection = Inspection(**payload.model_dump())
+            doc = inspection.model_dump()
+            from doc_ids import ensure_doc_id
+            await ensure_doc_id(db, doc, "INSP", when=doc.get("inspection_date") or doc.get("created_at"))
+            inspection.doc_id = doc["doc_id"]
+            # ── Phase 2B-2A · Job-ownership team_snapshot embed ──
+            try:
+                from lib.team_routing import snapshot_team  # noqa: PLC0415
+                _snap = await snapshot_team(db, doc.get("project_number"))
+                if _snap:
+                    doc["team_snapshot"] = _snap
+            except Exception:  # noqa: BLE001
+                pass
+            await db.inspections.insert_one(doc)
+            doc.pop("_id", None)
+            # Mirror photos into the Job Photos library (Phase 1 read-only).
+            try:
+                from routes.job_photos import index_record_photos
+                await index_record_photos(db, "inspection", doc)
+            except Exception:
+                pass
+            # TRACK 15.76 · Trust Spine — open record lifecycle.
+            try:
+                from lib.trust_spine import emit_record_created  # noqa: PLC0415
+                await emit_record_created(
+                    db, workflow="inspection", record=doc,
+                    module="routes/safety.py:create_inspection",
                 )
-                # PM-side visibility
-                _pm_notif = {
-                    "type": "inspection.deficiency",
-                    "title": (f"Safety inspection deficiency on {doc.get('project_name') or 'your project'}"
-                              if not stop_work else
-                              f"STOP-WORK on {doc.get('project_name') or 'your project'}"),
-                    "message": (f"{auto_fail} auto-fail item(s) · "
-                                f"inspector {doc.get('inspector_name') or '—'}")[:200],
-                    "severity": "Critical" if stop_work else "Warning",
-                    "recipient_role": "pm",
-                    "linked_source_module": "safety.inspections",
-                    "linked_source_record_id": doc.get("id"),
-                    "linked_project_number": doc.get("project_number") or None,
-                }
-                await apply_routing(db, _pm_notif,
-                                    project_number=doc.get("project_number"),
-                                    event_key="inspection.pm_visibility")
-                await emit_notification(db, _pm_notif)
-                # Iter160 · Operational signal
-                try:
-                    from lib.operational_signals import record_signal  # noqa: PLC0415
-                    await record_signal(
-                        db, signal="inspection.deficiency",
-                        module="safety.inspections",
-                        dims={"priority": priority,
-                              "stop_work": bool(stop_work),
-                              "auto_fail": int(auto_fail)},
-                    )
-                except Exception:
-                    pass
-        except Exception as e:  # noqa: BLE001
-            import logging
-            logging.getLogger(__name__).warning("[inspection-fanout] failed: %s", e)
+            except Exception:  # noqa: BLE001
+                pass
+            schedule_auto_email("inspection", doc)
 
-        return inspection
+            # Phase E · Cross-system fan-out — audit deficiencies / auto-fails /
+            # stop-work inspections must trigger corrective tasks routed to
+            # safety + visibility on PM-scoped projects. Fire-and-forget.
+            try:
+                auto_fail = int(doc.get("auto_fail_count") or 0)
+                stop_work_raw = doc.get("stop_work_issued") or "No"
+                stop_work = str(stop_work_raw).strip().lower() in ("yes", "true", "y", "1")
+                hazards_raw = doc.get("hazards_observed") or "No"
+                hazards_seen = str(hazards_raw).strip().lower() in ("yes", "true", "y", "1")
+                needs_task = auto_fail > 0 or stop_work or hazards_seen
+                if needs_task:
+                    from lib.event_fanout import emit_task_and_notification, emit_notification  # noqa: PLC0415
+                    from lib.team_routing import apply_routing  # noqa: PLC0415
+                    priority = "Critical" if stop_work else ("High" if auto_fail > 0 else "Medium")
+                    title = ("Stop-work issued · safety inspection follow-up"
+                             if stop_work
+                             else (f"Auto-fail items ({auto_fail}) · safety inspection follow-up"
+                                   if auto_fail > 0
+                                   else "Safety inspection — hazards observed"))
+                    _safety_notif = {
+                        "type": "inspection.deficiency" if not stop_work else "inspection.stop_work",
+                        "title": title[:200],
+                        "message": (f"{doc.get('project_name') or '—'} · "
+                                    f"{doc.get('location') or '—'} · "
+                                    f"{doc.get('inspection_date') or ''}")[:200],
+                        "severity": "Critical" if stop_work else "Warning",
+                        "recipient_role": "safety",
+                        "linked_source_module": "safety.inspections",
+                        "linked_source_record_id": doc.get("id"),
+                        "linked_project_number": doc.get("project_number") or None,
+                    }
+                    await apply_routing(db, _safety_notif,
+                                        project_number=doc.get("project_number"),
+                                        event_key="inspection.deficiency")
+                    await emit_task_and_notification(
+                        db,
+                        task={
+                            "title": title[:200],
+                            "description": (f"Project: {doc.get('project_name') or '—'} · "
+                                            f"Inspector: {doc.get('inspector_name') or '—'} · "
+                                            f"Foreman: {doc.get('foreman_name') or '—'} · "
+                                            f"Notes: {str(doc.get('corrective_action_notes') or '')[:300]}")[:4000],
+                            "source_module": "safety.inspections",
+                            "source_record_id": doc.get("id"),
+                            "linked_project_number": doc.get("project_number") or None,
+                            "assignee_role": "safety",
+                            "priority": priority,
+                            "created_by": {"role": "system", "via": "inspection-fanout"},
+                        },
+                        notification=_safety_notif,
+                    )
+                    # PM-side visibility
+                    _pm_notif = {
+                        "type": "inspection.deficiency",
+                        "title": (f"Safety inspection deficiency on {doc.get('project_name') or 'your project'}"
+                                  if not stop_work else
+                                  f"STOP-WORK on {doc.get('project_name') or 'your project'}"),
+                        "message": (f"{auto_fail} auto-fail item(s) · "
+                                    f"inspector {doc.get('inspector_name') or '—'}")[:200],
+                        "severity": "Critical" if stop_work else "Warning",
+                        "recipient_role": "pm",
+                        "linked_source_module": "safety.inspections",
+                        "linked_source_record_id": doc.get("id"),
+                        "linked_project_number": doc.get("project_number") or None,
+                    }
+                    await apply_routing(db, _pm_notif,
+                                        project_number=doc.get("project_number"),
+                                        event_key="inspection.pm_visibility")
+                    await emit_notification(db, _pm_notif)
+                    # Iter160 · Operational signal
+                    try:
+                        from lib.operational_signals import record_signal  # noqa: PLC0415
+                        await record_signal(
+                            db, signal="inspection.deficiency",
+                            module="safety.inspections",
+                            dims={"priority": priority,
+                                  "stop_work": bool(stop_work),
+                                  "auto_fail": int(auto_fail)},
+                        )
+                    except Exception:
+                        pass
+            except Exception as e:  # noqa: BLE001
+                import logging
+                logging.getLogger(__name__).warning("[inspection-fanout] failed: %s", e)
+
+            return inspection
+    
+
+        return await with_idempotency(db, key, {"role": "public"}, _do_create, workflow="inspection")
 
     @api_router.get("/inspections", response_model=List[InspectionSummary])
     async def list_inspections(actor=Depends(_read_gate)):
@@ -765,75 +773,83 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
 
     # ---------- JHPs ----------
     @api_router.post("/jhas", response_model=Jha, dependencies=[Depends(rate_limit_public_post)])
-    async def create_jha(payload: JhaCreate):
-        jha = Jha(**payload.model_dump())
-        doc = jha.model_dump()
-        from doc_ids import ensure_doc_id
-        await ensure_doc_id(db, doc, "JHA", when=doc.get("jha_date") or doc.get("created_at"))
-        jha.doc_id = doc["doc_id"]
-        # ── Phase 2B-2A · Job-ownership team_snapshot embed ──
-        try:
-            from lib.team_routing import snapshot_team  # noqa: PLC0415
-            _snap = await snapshot_team(db, doc.get("project_number"))
-            if _snap:
-                doc["team_snapshot"] = _snap
-        except Exception:  # noqa: BLE001
-            pass
-        await db.jhas.insert_one(doc)
-        doc.pop("_id", None)
-        # TRACK 15.76 · Trust Spine — open record lifecycle.
-        try:
-            from lib.trust_spine import emit_record_created  # noqa: PLC0415
-            await emit_record_created(
-                db, workflow="jha", record=doc,
-                module="routes/safety.py:create_jha",
-            )
-        except Exception:  # noqa: BLE001
-            pass
-        schedule_auto_email("jha", doc)
-        # BATCH K · OMEGA-7 — fan-out task + bell to safety.
-        try:
-            from lib.event_fanout import emit_task_and_notification  # noqa: PLC0415
-            from lib.team_routing import apply_routing  # noqa: PLC0415
-            title = f"JHA — {(doc.get('job_title') or 'job')[:80]}"
-            _jha_notif = {
-                "type": "jha.submitted",
-                "title": title[:200],
-                "message": (
-                    f"Project: {doc.get('project_name') or '—'} · "
-                    f"Crew lead: {doc.get('crew_lead') or '—'}"
-                )[:200],
-                "severity": "Info",
-                "recipient_role": "safety",
-                "linked_source_module": "safety.jha",
-                "linked_source_record_id": jha.id,
-                "linked_project_number": doc.get("project_number") or None,
-            }
-            await apply_routing(db, _jha_notif,
-                                project_number=doc.get("project_number"),
-                                event_key="jha.submitted")
-            await emit_task_and_notification(
-                db,
-                task={
+    async def create_jha(payload: JhaCreate, request: Request):
+        # TRACK 22.4b-followup-Idempotency-Spine-Phase-2 · JHA protection.
+        from lib.idempotency import with_idempotency, idem_key_from_request  # noqa: PLC0415
+        key = idem_key_from_request(request)
+
+        async def _do_create():
+            jha = Jha(**payload.model_dump())
+            doc = jha.model_dump()
+            from doc_ids import ensure_doc_id
+            await ensure_doc_id(db, doc, "JHA", when=doc.get("jha_date") or doc.get("created_at"))
+            jha.doc_id = doc["doc_id"]
+            # ── Phase 2B-2A · Job-ownership team_snapshot embed ──
+            try:
+                from lib.team_routing import snapshot_team  # noqa: PLC0415
+                _snap = await snapshot_team(db, doc.get("project_number"))
+                if _snap:
+                    doc["team_snapshot"] = _snap
+            except Exception:  # noqa: BLE001
+                pass
+            await db.jhas.insert_one(doc)
+            doc.pop("_id", None)
+            # TRACK 15.76 · Trust Spine — open record lifecycle.
+            try:
+                from lib.trust_spine import emit_record_created  # noqa: PLC0415
+                await emit_record_created(
+                    db, workflow="jha", record=doc,
+                    module="routes/safety.py:create_jha",
+                )
+            except Exception:  # noqa: BLE001
+                pass
+            schedule_auto_email("jha", doc)
+            # BATCH K · OMEGA-7 — fan-out task + bell to safety.
+            try:
+                from lib.event_fanout import emit_task_and_notification  # noqa: PLC0415
+                from lib.team_routing import apply_routing  # noqa: PLC0415
+                title = f"JHA — {(doc.get('job_title') or 'job')[:80]}"
+                _jha_notif = {
+                    "type": "jha.submitted",
                     "title": title[:200],
-                    "description": (
+                    "message": (
                         f"Project: {doc.get('project_name') or '—'} · "
-                        f"Date: {doc.get('jha_date') or '—'} · "
-                        f"Crew lead: {doc.get('crew_lead') or '—'} · "
-                        f"Task steps: {len(doc.get('task_steps') or [])}"
-                    )[:4000],
-                    "source_module": "safety.jha",
-                    "source_record_id": jha.id,
+                        f"Crew lead: {doc.get('crew_lead') or '—'}"
+                    )[:200],
+                    "severity": "Info",
+                    "recipient_role": "safety",
+                    "linked_source_module": "safety.jha",
+                    "linked_source_record_id": jha.id,
                     "linked_project_number": doc.get("project_number") or None,
-                    "assignee_role": "safety",
-                    "priority": "Medium",
-                    "created_by": {"role": "system", "via": "jha-fanout"},
-                },
-                notification=_jha_notif,
-            )
-        except Exception:
-            pass
-        return jha
+                }
+                await apply_routing(db, _jha_notif,
+                                    project_number=doc.get("project_number"),
+                                    event_key="jha.submitted")
+                await emit_task_and_notification(
+                    db,
+                    task={
+                        "title": title[:200],
+                        "description": (
+                            f"Project: {doc.get('project_name') or '—'} · "
+                            f"Date: {doc.get('jha_date') or '—'} · "
+                            f"Crew lead: {doc.get('crew_lead') or '—'} · "
+                            f"Task steps: {len(doc.get('task_steps') or [])}"
+                        )[:4000],
+                        "source_module": "safety.jha",
+                        "source_record_id": jha.id,
+                        "linked_project_number": doc.get("project_number") or None,
+                        "assignee_role": "safety",
+                        "priority": "Medium",
+                        "created_by": {"role": "system", "via": "jha-fanout"},
+                    },
+                    notification=_jha_notif,
+                )
+            except Exception:
+                pass
+            return jha
+
+        return await with_idempotency(db, key, {"role": "public"}, _do_create, workflow="jha")
+
 
     @api_router.get("/jhas", response_model=List[JhaSummary])
     async def list_jhas(actor=Depends(_read_gate)):

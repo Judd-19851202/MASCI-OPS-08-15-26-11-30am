@@ -17,7 +17,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, ConfigDict, Field
 
 from pm_auth import compute_pm_scope
@@ -155,147 +155,155 @@ def register_qaqc_routes(api_router: APIRouter, db, require_admin, rate_limit_pu
         response_model=QaqcInspection,
         dependencies=[Depends(rate_limit_public_post)],
     )
-    async def create_qaqc(payload: QaqcInspectionCreate):
-        if payload.inspection_kind not in _ALLOWED_KINDS:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Unknown inspection_kind '{payload.inspection_kind}'",
-            )
-        # Recompute pass/fail/na counts server-side so admin trust the values
-        items = payload.checklist or []
-        ps = sum(1 for i in items if i.result == "pass")
-        fs = sum(1 for i in items if i.result == "fail")
-        na = sum(1 for i in items if i.result == "na")
-        body = payload.model_dump()
+    async def create_qaqc(payload: QaqcInspectionCreate, request: Request):
+        # TRACK 22.4b-followup-Idempotency-Spine-Phase-2 · QA/QC protection.
+        from lib.idempotency import with_idempotency, idem_key_from_request  # noqa: PLC0415
+        key = idem_key_from_request(request)
 
-        # Server-side PM backfill from jobs_master if the form didn't carry
-        # one (e.g. crews on an old build, or a custom job typed in by hand).
-        pn = (body.get("project_number") or "").strip()
-        if pn and (not body.get("pm_email") or not body.get("pm_name")):
-            try:
-                job = await db.jobs_master.find_one(
-                    {"project_number": pn}, {"_id": 0}
+        async def _do_create():
+            if payload.inspection_kind not in _ALLOWED_KINDS:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Unknown inspection_kind '{payload.inspection_kind}'",
                 )
-                if job:
-                    if not body.get("pm_name"):
-                        body["pm_name"] = job.get("project_manager") or ""
-                    if not body.get("pm_email"):
-                        body["pm_email"] = (job.get("pm_email") or "").lower()
-            except Exception:
-                pass
+            # Recompute pass/fail/na counts server-side so admin trust the values
+            items = payload.checklist or []
+            ps = sum(1 for i in items if i.result == "pass")
+            fs = sum(1 for i in items if i.result == "fail")
+            na = sum(1 for i in items if i.result == "na")
+            body = payload.model_dump()
 
-        rec = QaqcInspection(
-            **{
-                **body,
-                "pass_count": ps,
-                "fail_count": fs,
-                "na_count": na,
-            }
-        )
-        doc = rec.model_dump()
-        from doc_ids import ensure_doc_id
-        await ensure_doc_id(db, doc, "QC", when=doc.get("inspection_date") or doc.get("created_at"))
-        # ── Phase 2B-2A · Job-ownership team_snapshot embed ──
-        try:
-            from lib.team_routing import snapshot_team  # noqa: PLC0415
-            _snap = await snapshot_team(db, doc.get("project_number"))
-            if _snap:
-                doc["team_snapshot"] = _snap
-        except Exception:  # noqa: BLE001
-            pass
-        await db.qaqc_inspections.insert_one(doc)
-        doc.pop("_id", None)
-        # Mirror photos into the Job Photos library (Phase 1 read-only).
-        try:
-            from routes.job_photos import index_record_photos
-            await index_record_photos(db, "qaqc", doc)
-        except Exception:
-            pass
-        # TRACK 15.76 · Trust Spine — open record lifecycle.
-        try:
-            from lib.trust_spine import emit_record_created  # noqa: PLC0415
-            await emit_record_created(
-                db, workflow="qaqc", record=doc,
-                module="routes/qaqc.py:create_qaqc",
-            )
-        except Exception:  # noqa: BLE001
-            pass
-        # Route to assigned PM via the existing auto-email pipeline.
-        # The kind passed downstream is "qaqc" — pdf_render maps it to a
-        # generic QA/QC PDF and the email subject already reads
-        # "[MASCI] QA/QC … · Project … · PM: …".
-        schedule_auto_email("qaqc", doc)
-
-        # Phase E · Cross-system fan-out — QA/QC inspections with
-        # fail items spawn a PM-assigned corrective task and notify
-        # safety. Fire-and-forget; QA save never blocks.
-        try:
-            if fs > 0:
-                from lib.event_fanout import emit_task_and_notification, emit_notification  # noqa: PLC0415
-                from lib.team_routing import apply_routing  # noqa: PLC0415
-                priority = "Critical" if fs >= 3 else "High"
-                title = (f"QA/QC deficiencies ({fs}) · "
-                         f"{doc.get('inspection_kind') or 'inspection'} on "
-                         f"{doc.get('project_name') or pn or '—'}")
-                _qa_pm_notif = {
-                    "type": "qaqc.deficiency",
-                    "title": title[:200],
-                    "message": (f"{fs} fail item(s) · "
-                                f"{doc.get('inspection_kind') or 'inspection'}")[:200],
-                    "severity": "Critical" if priority == "Critical" else "Warning",
-                    "recipient_role": "pm",
-                    "linked_source_module": "qaqc.inspections",
-                    "linked_source_record_id": doc.get("id"),
-                    "linked_project_number": pn or None,
-                }
-                await apply_routing(db, _qa_pm_notif,
-                                    project_number=pn,
-                                    event_key="qaqc.deficiency")
-                await emit_task_and_notification(
-                    db,
-                    task={
-                        "title": title[:200],
-                        "description": (f"Inspector: {doc.get('inspector_name') or '—'} · "
-                                        f"Foreman: {doc.get('foreman_name') or '—'} · "
-                                        f"Deficiencies: {(doc.get('deficiencies') or '').replace(chr(10), '; ')[:300]}")[:4000],
-                        "source_module": "qaqc.inspections",
-                        "source_record_id": doc.get("id"),
-                        "linked_project_number": pn or None,
-                        "assignee_role": "pm",
-                        "priority": priority,
-                        "created_by": {"role": "system", "via": "qaqc-fanout"},
-                    },
-                    notification=_qa_pm_notif,
-                )
-                # Safety visibility
-                _qa_safety_notif = {
-                    "type": "qaqc.deficiency",
-                    "title": title[:200],
-                    "message": f"{fs} QA/QC fail item(s)",
-                    "severity": "Warning",
-                    "recipient_role": "safety",
-                    "linked_source_module": "qaqc.inspections",
-                    "linked_source_record_id": doc.get("id"),
-                    "linked_project_number": pn or None,
-                }
-                await apply_routing(db, _qa_safety_notif,
-                                    project_number=pn,
-                                    event_key="qaqc.safety_visibility")
-                await emit_notification(db, _qa_safety_notif)
-                # Iter160 · Operational signal
+            # Server-side PM backfill from jobs_master if the form didn't carry
+            # one (e.g. crews on an old build, or a custom job typed in by hand).
+            pn = (body.get("project_number") or "").strip()
+            if pn and (not body.get("pm_email") or not body.get("pm_name")):
                 try:
-                    from lib.operational_signals import record_signal  # noqa: PLC0415
-                    await record_signal(
-                        db, signal="qaqc.deficiency", module="qaqc.inspections",
-                        dims={"priority": priority, "fail_count": int(fs)},
+                    job = await db.jobs_master.find_one(
+                        {"project_number": pn}, {"_id": 0}
                     )
+                    if job:
+                        if not body.get("pm_name"):
+                            body["pm_name"] = job.get("project_manager") or ""
+                        if not body.get("pm_email"):
+                            body["pm_email"] = (job.get("pm_email") or "").lower()
                 except Exception:
                     pass
-        except Exception as e:  # noqa: BLE001
-            import logging
-            logging.getLogger(__name__).warning("[qaqc-fanout] failed: %s", e)
 
-        return rec
+            rec = QaqcInspection(
+                **{
+                    **body,
+                    "pass_count": ps,
+                    "fail_count": fs,
+                    "na_count": na,
+                }
+            )
+            doc = rec.model_dump()
+            from doc_ids import ensure_doc_id
+            await ensure_doc_id(db, doc, "QC", when=doc.get("inspection_date") or doc.get("created_at"))
+            # ── Phase 2B-2A · Job-ownership team_snapshot embed ──
+            try:
+                from lib.team_routing import snapshot_team  # noqa: PLC0415
+                _snap = await snapshot_team(db, doc.get("project_number"))
+                if _snap:
+                    doc["team_snapshot"] = _snap
+            except Exception:  # noqa: BLE001
+                pass
+            await db.qaqc_inspections.insert_one(doc)
+            doc.pop("_id", None)
+            # Mirror photos into the Job Photos library (Phase 1 read-only).
+            try:
+                from routes.job_photos import index_record_photos
+                await index_record_photos(db, "qaqc", doc)
+            except Exception:
+                pass
+            # TRACK 15.76 · Trust Spine — open record lifecycle.
+            try:
+                from lib.trust_spine import emit_record_created  # noqa: PLC0415
+                await emit_record_created(
+                    db, workflow="qaqc", record=doc,
+                    module="routes/qaqc.py:create_qaqc",
+                )
+            except Exception:  # noqa: BLE001
+                pass
+            # Route to assigned PM via the existing auto-email pipeline.
+            # The kind passed downstream is "qaqc" — pdf_render maps it to a
+            # generic QA/QC PDF and the email subject already reads
+            # "[MASCI] QA/QC … · Project … · PM: …".
+            schedule_auto_email("qaqc", doc)
+
+            # Phase E · Cross-system fan-out — QA/QC inspections with
+            # fail items spawn a PM-assigned corrective task and notify
+            # safety. Fire-and-forget; QA save never blocks.
+            try:
+                if fs > 0:
+                    from lib.event_fanout import emit_task_and_notification, emit_notification  # noqa: PLC0415
+                    from lib.team_routing import apply_routing  # noqa: PLC0415
+                    priority = "Critical" if fs >= 3 else "High"
+                    title = (f"QA/QC deficiencies ({fs}) · "
+                             f"{doc.get('inspection_kind') or 'inspection'} on "
+                             f"{doc.get('project_name') or pn or '—'}")
+                    _qa_pm_notif = {
+                        "type": "qaqc.deficiency",
+                        "title": title[:200],
+                        "message": (f"{fs} fail item(s) · "
+                                    f"{doc.get('inspection_kind') or 'inspection'}")[:200],
+                        "severity": "Critical" if priority == "Critical" else "Warning",
+                        "recipient_role": "pm",
+                        "linked_source_module": "qaqc.inspections",
+                        "linked_source_record_id": doc.get("id"),
+                        "linked_project_number": pn or None,
+                    }
+                    await apply_routing(db, _qa_pm_notif,
+                                        project_number=pn,
+                                        event_key="qaqc.deficiency")
+                    await emit_task_and_notification(
+                        db,
+                        task={
+                            "title": title[:200],
+                            "description": (f"Inspector: {doc.get('inspector_name') or '—'} · "
+                                            f"Foreman: {doc.get('foreman_name') or '—'} · "
+                                            f"Deficiencies: {(doc.get('deficiencies') or '').replace(chr(10), '; ')[:300]}")[:4000],
+                            "source_module": "qaqc.inspections",
+                            "source_record_id": doc.get("id"),
+                            "linked_project_number": pn or None,
+                            "assignee_role": "pm",
+                            "priority": priority,
+                            "created_by": {"role": "system", "via": "qaqc-fanout"},
+                        },
+                        notification=_qa_pm_notif,
+                    )
+                    # Safety visibility
+                    _qa_safety_notif = {
+                        "type": "qaqc.deficiency",
+                        "title": title[:200],
+                        "message": f"{fs} QA/QC fail item(s)",
+                        "severity": "Warning",
+                        "recipient_role": "safety",
+                        "linked_source_module": "qaqc.inspections",
+                        "linked_source_record_id": doc.get("id"),
+                        "linked_project_number": pn or None,
+                    }
+                    await apply_routing(db, _qa_safety_notif,
+                                        project_number=pn,
+                                        event_key="qaqc.safety_visibility")
+                    await emit_notification(db, _qa_safety_notif)
+                    # Iter160 · Operational signal
+                    try:
+                        from lib.operational_signals import record_signal  # noqa: PLC0415
+                        await record_signal(
+                            db, signal="qaqc.deficiency", module="qaqc.inspections",
+                            dims={"priority": priority, "fail_count": int(fs)},
+                        )
+                    except Exception:
+                        pass
+            except Exception as e:  # noqa: BLE001
+                import logging
+                logging.getLogger(__name__).warning("[qaqc-fanout] failed: %s", e)
+
+            return rec
+
+        return await with_idempotency(db, key, {"role": "public"}, _do_create, workflow="qaqc")
+
 
     @api_router.get("/qaqc-inspections", response_model=List[QaqcInspectionSummary])
     async def list_qaqc(actor=Depends(require_admin)):

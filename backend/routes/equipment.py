@@ -18,7 +18,7 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
 
 from pm_auth import compute_pm_scope
@@ -184,176 +184,187 @@ def register_equipment_routes(
         "/equipment-inspections", response_model=EquipmentInspection,
         dependencies=[Depends(rate_limit_public_post)],
     )
-    async def create_equipment_inspection(payload: EquipmentInspectionCreate):
-        insp = EquipmentInspection(**payload.model_dump())
-        doc = insp.model_dump()
-        from doc_ids import ensure_doc_id
-        await ensure_doc_id(db, doc, "PRE", when=doc.get("inspection_date") or doc.get("created_at"))
-        insp.doc_id = doc["doc_id"]
-        # ── Phase 2B-2A · Job-ownership team_snapshot embed ──
-        try:
-            from lib.team_routing import snapshot_team  # noqa: PLC0415
-            _snap = await snapshot_team(db, doc.get("project_number"))
-            if _snap:
-                doc["team_snapshot"] = _snap
-        except Exception:  # noqa: BLE001
-            pass
-        await db.equipment_inspections.insert_one(doc)
-        doc.pop("_id", None)
-        # ── Track 13.31B-D5.1 · Smart Pre-Op canonical write stamp ──
-        # Resolve the canonical asset_class/type from equipment_master via
-        # the asset spine resolver and patch the row in place. Additive
-        # only — legacy `equipment_type` is preserved for backward compat.
-        try:
-            from services.inspection_classification import (
-                stamp_inspection_canonical, EXISTING_PREOP_TEMPLATES,
-            )
-            stamp = await stamp_inspection_canonical(
-                db, doc.get("id"), insp.equipment_unit,
-                legacy_equipment_type=insp.equipment_type or "",
-                template_set=EXISTING_PREOP_TEMPLATES,
-            )
-            if stamp:
-                doc.update(stamp)
-        except Exception:
-            pass
-        # Also remember this unit so it shows up in the dropdown next time
-        if insp.equipment_unit and insp.equipment_type:
+    async def create_equipment_inspection(payload: EquipmentInspectionCreate, request: Request):
+        # TRACK 22.4b-followup-Idempotency-Spine-Phase-2 · P1 protection.
+        # Same-key retries → exactly one inspection + exactly one Shop
+        # notification + exactly one Trust Spine event + exactly one
+        # Maintenance Hold on failure.
+        from lib.idempotency import with_idempotency, idem_key_from_request  # noqa: PLC0415
+        key = idem_key_from_request(request)
+
+        async def _do_create():
+            insp = EquipmentInspection(**payload.model_dump())
+            doc = insp.model_dump()
+            from doc_ids import ensure_doc_id
+            await ensure_doc_id(db, doc, "PRE", when=doc.get("inspection_date") or doc.get("created_at"))
+            insp.doc_id = doc["doc_id"]
+            # ── Phase 2B-2A · Job-ownership team_snapshot embed ──
             try:
-                await remember_unit(
-                    insp.equipment_type, insp.equipment_unit,
-                    insp.equipment_make or "", insp.equipment_model or "",
-                    insp.equipment_serial or "",
+                from lib.team_routing import snapshot_team  # noqa: PLC0415
+                _snap = await snapshot_team(db, doc.get("project_number"))
+                if _snap:
+                    doc["team_snapshot"] = _snap
+            except Exception:  # noqa: BLE001
+                pass
+            await db.equipment_inspections.insert_one(doc)
+            doc.pop("_id", None)
+            # ── Track 13.31B-D5.1 · Smart Pre-Op canonical write stamp ──
+            # Resolve the canonical asset_class/type from equipment_master via
+            # the asset spine resolver and patch the row in place. Additive
+            # only — legacy `equipment_type` is preserved for backward compat.
+            try:
+                from services.inspection_classification import (
+                    stamp_inspection_canonical, EXISTING_PREOP_TEMPLATES,
                 )
+                stamp = await stamp_inspection_canonical(
+                    db, doc.get("id"), insp.equipment_unit,
+                    legacy_equipment_type=insp.equipment_type or "",
+                    template_set=EXISTING_PREOP_TEMPLATES,
+                )
+                if stamp:
+                    doc.update(stamp)
             except Exception:
                 pass
-        # TRACK 15.76 · Trust Spine — open record lifecycle. Workflow
-        # is "equipment-inspection" for pre-op (default) and "dvir"
-        # when ``insp.kind == "dvir"`` (iter251 split).
-        try:
-            from lib.trust_spine import emit_record_created  # noqa: PLC0415
-            _wf = "dvir" if (doc.get("kind") or "").lower() == "dvir" else "equipment-inspection"
-            await emit_record_created(
-                db, workflow=_wf, record=doc,
-                module="routes/equipment.py:create_inspection",
-            )
-        except Exception:  # noqa: BLE001
-            pass
-        schedule_auto_email("equipment-inspection", doc)
-
-        # ── Failed Pre-Op → Pending Maintenance Hold (iter128) ──
-        # Fire-and-forget. Failure here MUST NOT abort the pre-op save.
-        if (insp.fail_count or 0) > 0 and insp.equipment_unit:
-            try:
-                # Resolve unit_number → equipment_master.id (case-insensitive).
-                eq = await db.equipment_master.find_one(
-                    {"unit_number": {"$regex": f"^{insp.equipment_unit}$", "$options": "i"}},
-                    {"_id": 0, "id": 1},
-                )
-                if eq:
-                    from routes.operations import create_pending_maintenance_hold
-                    fail_summary = (
-                        f"{insp.fail_count} item(s) failed pre-op inspection · "
-                        f"operator: {insp.operator_name or '—'} · doc: {insp.doc_id or insp.id}"
-                    )
-                    await create_pending_maintenance_hold(
-                        db,
-                        asset_id=eq["id"],
-                        reason=f"Failed pre-op inspection ({insp.fail_count} item{'' if insp.fail_count == 1 else 's'})",
-                        severity="high" if insp.fail_count >= 3 else "medium",
-                        notes=fail_summary,
-                        source_module="field",
-                        source_record_id=insp.id,
-                        created_by=insp.operator_name or "field-preop",
-                    )
-            except Exception:
-                # Never break the pre-op flow on hold creation issues
-                pass
-
-            # Phase E · Cross-system fan-out — failed pre-ops must
-            # spawn a shop equipment-issue task + notifications to
-            # shop and dispatch. Fire-and-forget; never blocks save.
-            try:
-                from lib.event_fanout import emit_task_and_notification, emit_notification  # noqa: PLC0415
-                from lib.team_routing import apply_routing  # noqa: PLC0415
-                fail_n = int(insp.fail_count or 0)
-                priority = "Critical" if fail_n >= 3 else "High"
-                eq_id_for_link = None
+            # Also remember this unit so it shows up in the dropdown next time
+            if insp.equipment_unit and insp.equipment_type:
                 try:
-                    eq2 = await db.equipment_master.find_one(
-                        {"unit_number": {"$regex": f"^{insp.equipment_unit}$", "$options": "i"}},
-                        {"_id": 0, "id": 1},
-                    )
-                    eq_id_for_link = (eq2 or {}).get("id")
-                except Exception:
-                    eq_id_for_link = None
-                title = f"Failed pre-op — {insp.equipment_unit or '—'} ({fail_n} item{'s' if fail_n != 1 else ''})"
-                _shop_notif = {
-                    "type": "preop.failed",
-                    "title": title[:200],
-                    "message": (f"Operator: {insp.operator_name or '—'} · "
-                                f"{fail_n} failed item(s)")[:200],
-                    "severity": "Critical" if priority == "Critical" else "Warning",
-                    "recipient_role": "shop",
-                    "linked_source_module": "equipment.preop",
-                    "linked_source_record_id": insp.id,
-                    "linked_equipment_id": eq_id_for_link,
-                    "linked_project_number": insp.project_number or None,
-                }
-                await apply_routing(db, _shop_notif,
-                                    project_number=insp.project_number,
-                                    event_key="preop.failed")
-                await emit_task_and_notification(
-                    db,
-                    task={
-                        "title": title[:200],
-                        "description": (f"Operator: {insp.operator_name or '—'} · "
-                                        f"Doc: {insp.doc_id or insp.id} · "
-                                        f"Equipment: {insp.equipment_make or ''} {insp.equipment_model or ''}".strip())[:4000],
-                        "source_module": "equipment.preop",
-                        "source_record_id": insp.id,
-                        "linked_equipment_id": eq_id_for_link,
-                        "linked_project_number": insp.project_number or None,
-                        "assignee_role": "shop",
-                        "priority": priority,
-                        "created_by": {"role": "system", "via": "preop-fanout"},
-                    },
-                    notification=_shop_notif,
-                )
-                # Dispatch visibility — same event, no task assignment
-                _dispatch_notif = {
-                    "type": "preop.failed",
-                    "title": title[:200],
-                    "message": f"{insp.equipment_unit or '—'} flagged from pre-op",
-                    "severity": "Warning",
-                    "recipient_role": "dispatch",
-                    "linked_source_module": "equipment.preop",
-                    "linked_source_record_id": insp.id,
-                    "linked_equipment_id": eq_id_for_link,
-                    "linked_project_number": insp.project_number or None,
-                }
-                await apply_routing(db, _dispatch_notif,
-                                    project_number=insp.project_number,
-                                    event_key="preop.dispatch_visibility")
-                await emit_notification(db, _dispatch_notif)
-                # Iter160 · Operational signal — equipment fail throughput
-                try:
-                    from lib.operational_signals import record_signal  # noqa: PLC0415
-                    await record_signal(
-                        db, signal="equipment.fail", module="equipment.preop",
-                        dims={
-                            "priority": priority,
-                            "fail_count": int(fail_n),
-                            "equipment_id": (eq_id_for_link or "")[:48],
-                        },
+                    await remember_unit(
+                        insp.equipment_type, insp.equipment_unit,
+                        insp.equipment_make or "", insp.equipment_model or "",
+                        insp.equipment_serial or "",
                     )
                 except Exception:
                     pass
-            except Exception as e:  # noqa: BLE001
-                import logging
-                logging.getLogger(__name__).warning("[preop-fanout] failed: %s", e)
+            # TRACK 15.76 · Trust Spine — open record lifecycle. Workflow
+            # is "equipment-inspection" for pre-op (default) and "dvir"
+            # when ``insp.kind == "dvir"`` (iter251 split).
+            try:
+                from lib.trust_spine import emit_record_created  # noqa: PLC0415
+                _wf = "dvir" if (doc.get("kind") or "").lower() == "dvir" else "equipment-inspection"
+                await emit_record_created(
+                    db, workflow=_wf, record=doc,
+                    module="routes/equipment.py:create_inspection",
+                )
+            except Exception:  # noqa: BLE001
+                pass
+            schedule_auto_email("equipment-inspection", doc)
 
-        return insp
+            # ── Failed Pre-Op → Pending Maintenance Hold (iter128) ──
+            # Fire-and-forget. Failure here MUST NOT abort the pre-op save.
+            if (insp.fail_count or 0) > 0 and insp.equipment_unit:
+                try:
+                    # Resolve unit_number → equipment_master.id (case-insensitive).
+                    eq = await db.equipment_master.find_one(
+                        {"unit_number": {"$regex": f"^{insp.equipment_unit}$", "$options": "i"}},
+                        {"_id": 0, "id": 1},
+                    )
+                    if eq:
+                        from routes.operations import create_pending_maintenance_hold
+                        fail_summary = (
+                            f"{insp.fail_count} item(s) failed pre-op inspection · "
+                            f"operator: {insp.operator_name or '—'} · doc: {insp.doc_id or insp.id}"
+                        )
+                        await create_pending_maintenance_hold(
+                            db,
+                            asset_id=eq["id"],
+                            reason=f"Failed pre-op inspection ({insp.fail_count} item{'' if insp.fail_count == 1 else 's'})",
+                            severity="high" if insp.fail_count >= 3 else "medium",
+                            notes=fail_summary,
+                            source_module="field",
+                            source_record_id=insp.id,
+                            created_by=insp.operator_name or "field-preop",
+                        )
+                except Exception:
+                    # Never break the pre-op flow on hold creation issues
+                    pass
+
+                # Phase E · Cross-system fan-out — failed pre-ops must
+                # spawn a shop equipment-issue task + notifications to
+                # shop and dispatch. Fire-and-forget; never blocks save.
+                try:
+                    from lib.event_fanout import emit_task_and_notification, emit_notification  # noqa: PLC0415
+                    from lib.team_routing import apply_routing  # noqa: PLC0415
+                    fail_n = int(insp.fail_count or 0)
+                    priority = "Critical" if fail_n >= 3 else "High"
+                    eq_id_for_link = None
+                    try:
+                        eq2 = await db.equipment_master.find_one(
+                            {"unit_number": {"$regex": f"^{insp.equipment_unit}$", "$options": "i"}},
+                            {"_id": 0, "id": 1},
+                        )
+                        eq_id_for_link = (eq2 or {}).get("id")
+                    except Exception:
+                        eq_id_for_link = None
+                    title = f"Failed pre-op — {insp.equipment_unit or '—'} ({fail_n} item{'s' if fail_n != 1 else ''})"
+                    _shop_notif = {
+                        "type": "preop.failed",
+                        "title": title[:200],
+                        "message": (f"Operator: {insp.operator_name or '—'} · "
+                                    f"{fail_n} failed item(s)")[:200],
+                        "severity": "Critical" if priority == "Critical" else "Warning",
+                        "recipient_role": "shop",
+                        "linked_source_module": "equipment.preop",
+                        "linked_source_record_id": insp.id,
+                        "linked_equipment_id": eq_id_for_link,
+                        "linked_project_number": insp.project_number or None,
+                    }
+                    await apply_routing(db, _shop_notif,
+                                        project_number=insp.project_number,
+                                        event_key="preop.failed")
+                    await emit_task_and_notification(
+                        db,
+                        task={
+                            "title": title[:200],
+                            "description": (f"Operator: {insp.operator_name or '—'} · "
+                                            f"Doc: {insp.doc_id or insp.id} · "
+                                            f"Equipment: {insp.equipment_make or ''} {insp.equipment_model or ''}".strip())[:4000],
+                            "source_module": "equipment.preop",
+                            "source_record_id": insp.id,
+                            "linked_equipment_id": eq_id_for_link,
+                            "linked_project_number": insp.project_number or None,
+                            "assignee_role": "shop",
+                            "priority": priority,
+                            "created_by": {"role": "system", "via": "preop-fanout"},
+                        },
+                        notification=_shop_notif,
+                    )
+                    # Dispatch visibility — same event, no task assignment
+                    _dispatch_notif = {
+                        "type": "preop.failed",
+                        "title": title[:200],
+                        "message": f"{insp.equipment_unit or '—'} flagged from pre-op",
+                        "severity": "Warning",
+                        "recipient_role": "dispatch",
+                        "linked_source_module": "equipment.preop",
+                        "linked_source_record_id": insp.id,
+                        "linked_equipment_id": eq_id_for_link,
+                        "linked_project_number": insp.project_number or None,
+                    }
+                    await apply_routing(db, _dispatch_notif,
+                                        project_number=insp.project_number,
+                                        event_key="preop.dispatch_visibility")
+                    await emit_notification(db, _dispatch_notif)
+                    # Iter160 · Operational signal — equipment fail throughput
+                    try:
+                        from lib.operational_signals import record_signal  # noqa: PLC0415
+                        await record_signal(
+                            db, signal="equipment.fail", module="equipment.preop",
+                            dims={
+                                "priority": priority,
+                                "fail_count": int(fail_n),
+                                "equipment_id": (eq_id_for_link or "")[:48],
+                            },
+                        )
+                    except Exception:
+                        pass
+                except Exception as e:  # noqa: BLE001
+                    import logging
+                    logging.getLogger(__name__).warning("[preop-fanout] failed: %s", e)
+
+            return insp
+
+        return await with_idempotency(db, key, {"role": "public"}, _do_create, workflow="equipment_inspection")
+
 
     @api_router.get("/equipment-inspections", response_model=List[EquipmentInspectionSummary])
     async def list_equipment_inspections(actor=Depends(require_shop_or_admin)):

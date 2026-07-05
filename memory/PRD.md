@@ -11,6 +11,18 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 22.4b-followup-Idempotency-Spine-Phase-2 · 🟢 SHIPPED · CERTIFIED (2026-07-05)
+- **Mandate:** adopt workflow-scoped reservation-lock idempotency on the 7 endpoints deferred in Phase 1. Start with P1 (Equipment Pre-Op/DVIR + Inspections), then P2 as scope allows. No fake green; endpoints that cannot be safely protected in-band must be classified with owner tracks.
+- **4 endpoints newly protected**: `/api/inspections` (P1) · `/api/equipment-inspections` (P1) · `/api/jhas` (P2) · `/api/qaqc-inspections` (P2).
+- **6 endpoints honestly deferred**: HR requests → Track 22.4b-followup-HR · Dispatch assignments → dedicated dispatch concurrency track (>1400 LOC handler w/ Motive read path) · Trench safety writes (repairs, holds, inspections) → safety-gated, B-04 invariants preserved · Shop defects → canonical write path audit first.
+- **Parallel independence proven**: 10 concurrent submits across 4 different workflows all complete with 10 distinct records → the reservation-lock is scoped to `(key, actor_id, workflow)`, not a global mutex.
+- **Trust Spine + notification fan-out** now sits inside the `_do_create` factory for every protected endpoint → exactly-once side-effect emission.
+- **Regression suite** (`test_track_22_4b_followup_idempotency_spine_phase_2.py`): 7 new tests. Full track suite (spine + spine-P2 + DR-B03 + safety-seam + B-02 + B-04 + PVI + iter165): **71 pass · 1 skip · 0 fail**.
+- **Motive untouched · RBAC unchanged.**
+- **Closure memo:** `/app/memory/TRACK_22_4B_FOLLOWUP_IDEMPOTENCY_SPINE_PHASE_2.md`.
+
+
+
 ## TRACK 22.4b-followup-Idempotency-Spine · 🟢 SHIPPED · CERTIFIED (2026-07-05)
 - **Mandate:** extend the reservation-lock discipline (proven in DR B-03) to every operational submit workflow. Certify exactly-once under concurrent retries.
 - **Helper hardening (P1+P2)**: cross-workflow replay leak closed (added `workflow` param + rebuilt unique index as `(key, actor_id, workflow)`). Stale-sentinel deadlock closed (90s reclaim window).
