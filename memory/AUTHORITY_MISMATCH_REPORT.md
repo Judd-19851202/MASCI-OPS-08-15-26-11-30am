@@ -2,8 +2,8 @@
 
 _Phase GOVERNANCE-INFRA-1 · Workstream 1 · Authority Mismatch Probe._
 
-* Generated: 2026-07-04 22:54:33 UTC
-* Scan duration: 390 ms
+* Generated: 2026-07-05 18:33:02 UTC
+* Scan duration: 393 ms
 * Frontend tree: `/app/frontend/src`
 * Baseline: `/app/scripts/authority_pattern_baseline.json`
 
@@ -60,8 +60,8 @@ _Phase GOVERNANCE-INFRA-1 · Workstream 1 · Authority Mismatch Probe._
 * `pages/FieldLeadershipView.jsx:32` · ad-hoc canApprove variable · `if (!getLeadershipToken() && !isAdmin() && !getPmToken()) {`
 * `pages/FieldLeadershipView.jsx:112` · ad-hoc canApprove variable · `to={isAdmin() ? "/admin" : getPmToken() ? "/pm" : "/leadership"}`
 * `pages/FieldLeadershipView.jsx:117` · ad-hoc canApprove variable · `{isAdmin() ? t("Administration") : getPmToken() ? t("Project Management") : t("F`
-* `pages/NewDailyReport.jsx:1123` · ad-hoc canApprove variable · `if (publicMode || !isAdmin()) {`
-* `pages/NewDailyReport.jsx:1172` · ad-hoc canApprove variable · `if (publicMode || !isAdmin()) {`
+* `pages/NewDailyReport.jsx:1124` · ad-hoc canApprove variable · `if (publicMode || !isAdmin()) {`
+* `pages/NewDailyReport.jsx:1173` · ad-hoc canApprove variable · `if (publicMode || !isAdmin()) {`
 * `pages/NewInspection.jsx:238` · ad-hoc canApprove variable · `if (publicMode || !isAdmin()) {`
 * `pages/NewInspection.jsx:257` · ad-hoc canApprove variable · `if (publicMode || !isAdmin()) {`
 * `pages/DocumentExpirations.jsx:71` · ad-hoc canApprove variable · `const admin = isAdmin();`
