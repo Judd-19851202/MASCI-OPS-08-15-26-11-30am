@@ -1,0 +1,29 @@
+{
+  "summary": "DR-UNIFY-004 Final Deployment Certification — all 12 CERT items PASS. Live backend curl + live UI e2e run against preview URL. Tenant AI OFF (as designed), no 5xx, zero raw API keys leaked, zero AI vocab on /daily/submit, legacy /daily-report/v2 redirects to /daily/submit, admin AI configuration page fully rendered with all 6 module toggles + master + audit log, super-admin login works, /admin/operational-intelligence renders without crashing.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "cert_results": {
+    "CERT-1": "PASS — daily-operational-summary-section + band-sign-off both present on /daily/submit",
+    "CERT-2": "PASS — manual summary textarea + accept button work; accepted-badge visible",
+    "CERT-3": "PASS — draft button triggers graceful disabled message ('not enabled'/'submit the report normally'); no error UI",
+    "CERT-4": "PASS — /daily-report/v2 redirects to /daily/submit",
+    "CERT-5": "PASS — admin-ai-configuration-page renders; master toggle + 6 module toggles present; System Status, Provider Routing, Audit Log all visible; zero 'sk-' literals",
+    "CERT-6": "PASS — POST /api/daily-reports/summary/draft → HTTP 200 {ok:true, enabled:false, reason_disabled:'tenant_ai_disabled', summary_text:null}",
+    "CERT-7": "PASS — /api/daily-reports/approved and /api/dr-v2/reports/approved both respond (401 without auth, 200 with admin token); neither 5xx",
+    "CERT-8": "PASS — POST /api/daily-reports (V1) with valid payload returns HTTP 200 with report record",
+    "CERT-9": "PASS — PUT /api/admin/ai/tenants/masci/capabilities returns 401 without admin token, 200 with admin token; response contains no 'sk-' literals",
+    "CERT-10": "PASS — /admin/operational-intelligence renders full Operational Intelligence Cockpit (11 products, digests, audit) without crashing",
+    "CERT-11": "PASS — EN/ES toggle buttons present on /daily/submit; clicking ES changes body content, EN restores",
+    "CERT-12": "PASS — /daily/submit HTML contains none of the banned substrings (anthropic, openai, gemini, gpt , ai agent, \"model\":, \"provider\":, \"token_cost\":, try v2, next generation, sk-)"
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "jaymn.judd@mascigc.com / Maddix123! via POST /api/auth/multi-login → portal_tokens.admin used as X-Admin-Token header (verified live)",
+  "seed_data_creation": "None (used existing tenant state; tenant AI OFF is invariant under test). One TEST-CERT-004 daily report submitted via CERT-8 curl.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All 12 DR-UNIFY-004 certification items pass live. The disabled-AI graceful path is confirmed working (CERT-3 UI + CERT-6 backend). Legacy /daily-report/v2 redirect confirmed. Admin AI Configuration page fully wired. No secrets leak. Backend V1 submit requires 'location' field (not documented in the CERT-8 spec but the endpoint returns 422 without it — added it and succeeded with 200)."
+}
