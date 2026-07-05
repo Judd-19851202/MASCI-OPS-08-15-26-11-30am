@@ -112,12 +112,53 @@ def test_v1_dashboard_untouched():
 
 
 def test_backend_runtime_parity_intact():
+    """Baseline was 1441 routes / 1445 methods / 1264 paths at close of Phase B.
+    Phase C ADDS exactly 6 additive /api/dr-v2/* routes. V1 remains untouched."""
     server = _load_server()
     routes = [r for r in server.app.routes if hasattr(r, "endpoint")]
-    assert len(routes) == 1441
+    assert len(routes) == 1441 + 6, f"route count drifted: {len(routes)}"
     methods = sum(len(getattr(r, "methods", None) or []) for r in routes)
-    assert methods == 1445
-    assert len(server.app.openapi().get("paths", {})) == 1264
+    assert methods == 1445 + 6, f"method count drifted: {methods}"
+    assert len(server.app.openapi().get("paths", {})) == 1264 + 6, (
+        f"openapi paths drifted: {len(server.app.openapi().get('paths', {}))}"
+    )
+
+
+def test_dr_v2_phase_c_routes_mounted():
+    """Phase C · /api/dr-v2/* additive surface must be present and admin-free
+    at the routing layer (auth/RBAC lives inside each handler per the wider
+    portal-scoped doctrine — this test only asserts the route exists)."""
+    server = _load_server()
+    paths = {getattr(r, "path", "") for r in server.app.routes if hasattr(r, "endpoint")}
+    expected = {
+        "/api/dr-v2/meta",
+        "/api/dr-v2/drafts",
+        "/api/dr-v2/drafts/{report_id}",
+        "/api/dr-v2/ai/synthesize",
+        "/api/dr-v2/ai/approve",
+        "/api/dr-v2/ai/audit/{report_id}",
+    }
+    missing = expected - paths
+    assert not missing, f"Phase C DR-V2 routes missing: {missing}"
+
+
+def test_dr_v2_never_writes_to_daily_reports_collection():
+    """Phase C zero-drift guard. The V2 route module must not touch the
+    V1 `daily_reports` collection at runtime. We look for actual attribute
+    or subscript access — the docstring is allowed to reference the name."""
+    text = (BACKEND / "routes" / "dr_v2.py").read_text(encoding="utf-8")
+    forbidden = ["db.daily_reports", "db['daily_reports']", 'db["daily_reports"]']
+    hits = [pat for pat in forbidden if pat in text]
+    assert not hits, f"dr_v2.py must not touch daily_reports collection: {hits}"
+
+
+def test_dr_v2_ai_service_provider_agnostic():
+    """The factory must accept env-driven provider swaps."""
+    server = _load_server()  # noqa: F841
+    from services.dr_ai import provider_meta
+    m = provider_meta()
+    assert m["provider"] == "emergent"
+    assert "claude" in m["model"].lower() or "sonnet" in m["model"].lower()
 
 
 def test_backend_lifecycle_and_email_safety_unchanged():

@@ -1,13 +1,10 @@
 /*
- * DR-ROI-001 · Daily Report V2 shell (Track B expanded).
+ * DR-ROI-001 · Daily Report V2 shell (Track B expanded · Track C wired).
  *
  * Progressive workflow with 10 sections and 4 sticky intelligence panels.
- * This file is behind `isDailyReportV2Enabled()` and does not affect the
- * V1 production route at /new-daily-report.
- *
- * NO AI wiring this session (Track C).
- * NO backend field additions this session (Track C schema formalization).
- * NO submit path change (V1 endpoint remains authoritative until Track G cutover).
+ * V1 route at /daily/new is untouched. This surface is behind
+ * `isDailyReportV2Enabled()` and posts ONLY to /api/dr-v2/* — never to
+ * the V1 /api/daily-reports submit path.
  */
 import React from "react";
 import { isDailyReportV2Enabled } from "@/lib/dailyReportV2Flag";
@@ -25,17 +22,26 @@ import ConfidencePanel from "./panels/ConfidencePanel";
 import PmIntelligencePanel from "./panels/PmIntelligencePanel";
 import PhotoIntelligencePanel from "./panels/PhotoIntelligencePanel";
 import SupervisorApprovalPanel from "./panels/SupervisorApprovalPanel";
+import { useDrV2Draft, useDrV2Ai, useDrV2Approvals } from "./hooks/useDrV2";
 
 export default function DailyReportV2() {
   const enabled = isDailyReportV2Enabled();
   const [draft, setDraft] = React.useState({
-    // V2 client-side state · not yet POSTed. Legacy submit path is untouched.
+    day_setup: {},
+    masci_crews: [],
+    equipment_used: [],
     activity_cards: [],
     constraint_cards: [],
     tomorrow_readiness: {},
+    safety: {},
     photos: [],
-    supervisor_ai_approval_state: "unreviewed",
+    weather: {},
   });
+
+  // Debounced autosave + AI + approvals.
+  const { reportId, evidenceHash, savedAt, saving } = useDrV2Draft(draft);
+  const ai = useDrV2Ai(reportId, evidenceHash);
+  const approvals = useDrV2Approvals(reportId);
 
   if (!enabled) {
     return (
@@ -69,6 +75,15 @@ export default function DailyReportV2() {
               from your evidence. You remain the source of truth · you accept,
               edit, or regenerate before submit.
             </p>
+            <div className="mt-3 flex items-center gap-3 text-xs opacity-70" data-testid="dr-v2-savebar">
+              <span data-testid="dr-v2-report-id">{reportId ? `Report ${reportId}` : "Draft not yet saved"}</span>
+              {saving ? <span className="opacity-80">· saving…</span> : savedAt ? <span>· saved</span> : null}
+              {ai.meta ? (
+                <span className="ml-auto">
+                  Model: <span className="font-mono">{ai.meta.model}</span> · AI: {ai.meta.ai_available ? "ON" : "OFF"}
+                </span>
+              ) : null}
+            </div>
           </header>
 
           <DaySetupSection draft={draft} setDraft={setDraft} />
@@ -79,15 +94,15 @@ export default function DailyReportV2() {
           <TomorrowReadinessSection draft={draft} setDraft={setDraft} />
           <SafetyQualitySection draft={draft} setDraft={setDraft} />
           <PhotosSection draft={draft} setDraft={setDraft} />
-          <AISummarySection draft={draft} setDraft={setDraft} />
+          <AISummarySection ai={ai} approvals={approvals} />
           <SignatureSubmitSection draft={draft} setDraft={setDraft} />
         </main>
 
         <aside className="lg:sticky lg:top-4 h-fit space-y-4" data-testid="dr-v2-panels">
-          <ConfidencePanel draft={draft} />
+          <ConfidencePanel ai={ai} />
           <PmIntelligencePanel draft={draft} />
           <PhotoIntelligencePanel draft={draft} />
-          <SupervisorApprovalPanel draft={draft} setDraft={setDraft} />
+          <SupervisorApprovalPanel ai={ai} approvals={approvals} />
         </aside>
       </div>
     </div>

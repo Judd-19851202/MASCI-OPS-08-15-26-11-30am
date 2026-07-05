@@ -10182,3 +10182,73 @@ Field-UX fix on `TrenchAssetPicker`: collapse-by-default results list eliminates
 ## Track 19.27 · Platform-Wide Operational Audit (2026-07-02)
 
 Full truth pass across 375 frontend routes, 127 backend routers, 60+ portal prefixes, 22 audit deliverables produced. Zero open P0/P1. All non-blocker debt scored in `TRACK_19_27_FULL_PLATFORM_REMEDIATION_ROADMAP.md`. Platform certified as one coherent operational system. Ready for continued pilot expansion.
+
+---
+
+## DR-ROI-001 · Daily Report V2 · Phase A + B + C (2026-07-05)
+
+### Objective
+Transform the Daily Report from freeform text into an evidence-backed Operational Intelligence Engine — a supervisor-owned structured-input surface with a model-agnostic multi-agent AI narrative synthesis pipeline, delivered behind a feature flag so V1 keeps running untouched.
+
+### Phase A — 14 planning docs (Track A · closed)
+See `/app/memory/DR_ROI_001_*.md`.
+
+### Phase B — V2 UI shell scaffolding (Track B · closed)
+- Feature flag: `/app/frontend/src/lib/dailyReportV2Flag.js`
+- Shell: `/app/frontend/src/pages/daily-report-v2/DailyReportV2.jsx`
+- 10 section shells + 4 sticky intelligence panels
+- Route mount: `/daily-report/v2` in `AppRoutes.jsx` (feature-flag gated)
+- Lock tests: `/app/backend/tests/test_dr_roi_001a_b_shell.py` (10/10 GREEN)
+
+### Phase C — AI Summary Engine + Supervisor Approval + Foundation (Track C · closed)
+- **Backend AI service** (`/app/backend/services/dr_ai/`) — provider-agnostic:
+  - `provider.py` — AiProvider protocol + AiSynthesisResult envelope (agent, narrative, confidence, evidence_refs[], sources_used[], uncertainties[], model, provider, ai_available, fallback_reason)
+  - `emergent_provider.py` — Claude Sonnet 4.5 (model: `claude-sonnet-4-5-20250929`) via emergentintegrations LlmChat with strict JSON output + fault-tolerant fallback envelope
+  - `factory.py` — `DR_AI_PROVIDER` / `DR_AI_MODEL` / `DR_AI_LLM_PROVIDER` env-driven swap (Claude ↔ GPT ↔ Gemini in one line)
+  - `evidence.py` — whitelisted field bundle + deterministic sha256 hash; prompt-injection safe
+  - `agents.py` — 3 specialist agents: day_narrative, risk_and_constraints, tomorrow_readiness with strict evidence-only prompts
+  - `cache.py` — MongoDB `dr_v2_ai_cache` collection, evidence-hash keyed, 24h TTL
+- **DR-V2 API surface** (`/app/backend/routes/dr_v2.py`) — additive `/api/dr-v2/*`:
+  - `GET  /api/dr-v2/meta` — provider + feature flag state
+  - `POST /api/dr-v2/drafts` — save/update supervisor draft (autosaved from UI)
+  - `GET  /api/dr-v2/drafts/{report_id}`
+  - `POST /api/dr-v2/ai/synthesize` — parallel agent invocation, cache-first
+  - `POST /api/dr-v2/ai/approve` — supervisor accept/edit/reject/regenerate → append-only audit log
+  - `GET  /api/dr-v2/ai/audit/{report_id}`
+- **Frontend wiring**:
+  - `/app/frontend/src/lib/drV2Api.js` — isolated axios client (V1 network layer untouched)
+  - `/app/frontend/src/pages/daily-report-v2/hooks/useDrV2.js` — `useDrV2Draft` (debounced autosave), `useDrV2Ai` (debounced multi-agent synth), `useDrV2Approvals` (append-only audit)
+  - `AISummarySection` — per-agent narrative + confidence badge + uncertainty flags + evidence toggle + Accept/Reject/Edit
+  - `ConfidencePanel` — aggregate (weakest-link) + per-agent bars + uncertainty roll-up + cache hit/miss telemetry
+  - `SupervisorApprovalPanel` — Accept all / Regenerate / Reject + reason box + immutable audit log
+- **Feature flags**:
+  - Frontend: `dr_v2_optin` (localStorage) OR `REACT_APP_DR_V2_ENABLED`
+  - Backend: `DR_V2_AI_ENABLED` (default OFF; ON in preview for demo)
+
+### Zero-drift certification
+- V1 files byte-identical (line counts locked): `NewDailyReport.jsx` 3021, `dailyReportSchema.js` 112, `DailyReportsDashboard.jsx` 243, `routes/daily_reports.py` 664.
+- V2 collections are all new (`dr_v2_drafts`, `dr_v2_ai_cache`, `dr_v2_ai_approvals`). `dr_v2.py` never accesses `db.daily_reports` (lock test enforces).
+- Route delta: 1441→1447 (+6 additive). Method delta: 1445→1451. OpenAPI paths: 1264→1270.
+- PDF, email, HR, payroll, safety, dispatch — untouched.
+- V1 legally-critical daily report submission untouched.
+
+### Verification
+- Backend: 36/36 tests GREEN (10 A+B lock tests, 4 new Phase C lock tests in same file, 9 unit tests in `test_dr_roi_001c_ai_service.py`, 13 Track 22.2 route-extraction tests).
+- End-to-end live: real Claude Sonnet 4.5 narrative generated + 12 evidence refs cited + confidence 45% aggregate + Accept action logged to append-only audit trail via Playwright.
+
+### AI safety invariants (all enforced by tests + code)
+- Supervisor is sole source of truth (approval log immutable, append-only)
+- AI never invents facts (evidence field whitelist enforced; unknown fields dropped)
+- Every AI statement traceable (per-agent evidence_refs[] list; UI shows on toggle)
+- Every AI output editable (per-agent edit + Save edit button)
+- Every AI conclusion confidence-scored (0..1 clamped; per-agent + aggregate min)
+- Never automatic approval (Accept requires supervisor click)
+- Model-agnostic (env-driven factory; swap tested)
+- Cache-first / recompute only on evidence-hash change
+
+### Pending phases (backlog)
+- **DR-ROI-001D** — Photo Vision agent (GPT-5.2 Vision) with photo-to-activity evidence linking · P1
+- **DR-ROI-001E** — PM Intelligence KPI dashboard (production, hours-per-LF, weather-loss, blocker-count) · P1
+- **DR-ROI-001F** — PDF output redesign for V2 (evidence-annotated PDF) · P2
+- **DR-ROI-001G** — Full regression + deployment certification · P0 closure
+- Track 22.7 — Sentry lazy-init · P2

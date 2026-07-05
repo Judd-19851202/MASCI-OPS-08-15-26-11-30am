@@ -2877,6 +2877,17 @@ register_daily_reports_routes(
 
 
 # ============================================================
+# DR-ROI-001 · Phase C · Daily Report V2 (Operational Intelligence)
+# ------------------------------------------------------------
+# ADDITIVE mount. Zero drift on V1 daily_reports routes, models, or
+# collections. Feature-flag gated (DR_V2_AI_ENABLED). See
+# /app/backend/routes/dr_v2.py for the /api/dr-v2/* surface.
+# ============================================================
+from routes.dr_v2 import register_dr_v2_routes  # noqa: E402
+register_dr_v2_routes(api_router, db)
+
+
+# ============================================================
 # TRACK 19.04 · Unified Daily Report Attachment Pipeline
 # ============================================================
 # Reuses the SAME R2 bucket / client / signed-URL infrastructure that
