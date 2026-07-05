@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 // AuthProvider removed 2026-04-28 — Crew Hub scrapped.
 import Hub from "@/pages/Hub";
 // DR-UNIFY-001 · internal-only Daily Report shell (pilot opt-in · not user-facing).
-import DailyReportV2 from "@/pages/daily-report-v2/DailyReportV2";
+// DR-UNIFY-003: `DailyReportV2` shell import retired. The `/daily-report/v2` route now redirects to `/daily/submit`. The component file remains on disk for legacy tests but is no longer imported by the router.
 import PmOperationalIntelligence from "@/pages/PmOperationalIntelligence";
 // DR-UNIFY-002 · `/admin/ods-intelligence` + `/executive/ods-intelligence` now redirect
 // to the canonical Admin OI surface — no separate imports required.
@@ -1219,8 +1219,9 @@ export function AppRoutes() {
             <Route path="/_internal/hr-v2-preview" element={D(<HrV2Preview />)} />
             <Route path="/_internal/v2-index" element={D(<V2Index />)} />
             <Route path="/_internal/v2-compare/:portal" element={D(<V2Compare />)} />
-            {/* DR-UNIFY-001 · internal-only Daily Report shell (pilot opt-in). Not user-facing. */}
-            <Route path="/daily-report/v2" element={<DailyReportV2 />} />
+            {/* DR-UNIFY-003 · internal-only Daily Report shell RETIRED. Any old link
+                lands on the single canonical Daily Report at /daily/submit. */}
+            <Route path="/daily-report/v2" element={<Navigate to="/daily/submit" replace />} />
             <Route path="/pm/operational-intelligence" element={<PmOperationalIntelligence />} />
             {/* DR-UNIFY-002 · orphaned duplicate collapsed into canonical Admin OI. */}
             <Route path="/admin/ods-intelligence" element={<Navigate to="/admin/operational-intelligence" replace />} />

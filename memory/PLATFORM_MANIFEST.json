@@ -855,7 +855,7 @@
     }
   ],
   "endpoints_total": 406,
-  "generated": "2026-07-05T17:35:34.114670+00:00",
+  "generated": "2026-07-05T18:00:16.976794+00:00",
   "lifecycle_complete": true,
   "phase_1_certification": {
     "app_js_md5": "d84cea05c1f64bd2ae82823d7f6aadcc",
@@ -890,6 +890,12 @@
     "verdict": "GO"
   },
   "recent_track_closures": [
+    {
+      "track": "DR-UNIFY-003",
+      "date": "2026-02",
+      "status": "closed",
+      "tests": "75/75"
+    },
     {
       "track": "DR-CUTOVER-002",
       "date": "2026-02",
@@ -1244,7 +1250,7 @@
     }
   ],
   "tests_total": 634,
-  "track": "DR-CUTOVER-002",
+  "track": "DR-UNIFY-003",
   "track_22_2_phase_b": {
     "app_js_lines_after": 94,
     "app_js_lines_before": 1283,
@@ -1550,6 +1556,51 @@
         "V1 submit path is loose-coupled to the summary module (regression-locked).",
         "HR crew time / email / PDF / ODS / safety / photos / signature / EN/ES untouched.",
         "Every accept is idempotent (previous is_current intelligence_fact superseded on rewrite)."
+      ]
+    },
+    "DR-UNIFY-003": {
+      "title": "Internal Naming + Route + Collection Consolidation",
+      "date_closed": "2026-02",
+      "status": "closed",
+      "lock_tests_passing": "75/75 (19 new + 22 DR-CUTOVER-002 + 17 AI-ADMIN-001 + 17 AI-CONFIG-001)",
+      "cleanup_scope": "Frontend V2 shell redirected \u00b7 route aliases locked \u00b7 read-compat helper published \u00b7 migration dry-run proven",
+      "artifacts": {
+        "read_compat_helper": "backend/lib/daily_report_collections.py",
+        "migration_script": "backend/scripts/migrate_dr_v2_collections_to_daily_report.py",
+        "tests": "backend/tests/test_dr_unify_003_consolidation.py",
+        "frontend_redirect": "frontend/src/app/routing/AppRoutes.jsx (Navigate /daily-report/v2 \u2192 /daily/submit)",
+        "docs": [
+          "memory/DR_UNIFY_003_EXECUTIVE_SUMMARY.md",
+          "memory/DR_UNIFY_003_BASELINE_SNAPSHOT.md",
+          "memory/DR_UNIFY_003_ROUTE_ALIAS_MATRIX.md",
+          "memory/DR_UNIFY_003_COLLECTION_MIGRATION_PLAN.md",
+          "memory/DR_UNIFY_003_READ_COMPATIBILITY.md",
+          "memory/DR_UNIFY_003_FRONTEND_RETIREMENT.md",
+          "memory/DR_UNIFY_003_LANGUAGE_LOCK.md",
+          "memory/DR_UNIFY_003_DATA_SAFETY.md",
+          "memory/DR_UNIFY_003_TEST_REPORT.md",
+          "memory/DR_UNIFY_003_ZERO_DRIFT_MATRIX.md"
+        ]
+      },
+      "collections_alias_map": {
+        "daily_report_drafts": "dr_v2_drafts",
+        "daily_report_ai_cache": "dr_v2_ai_cache",
+        "daily_report_ai_audit_entries": "dr_v2_ai_audit_entries",
+        "daily_report_ai_approvals": "dr_v2_ai_approvals",
+        "daily_report_photo_intelligence": "dr_v2_photo_intelligence",
+        "daily_report_bilingual_audit": "dr_v2_bilingual_audit"
+      },
+      "preview_dry_run_totals": {
+        "source_docs": 56,
+        "target_docs": 0,
+        "collisions": 0,
+        "would_copy_on_live": 56
+      },
+      "doctrine": [
+        "Cleanup only \u2014 no user workflow change.",
+        "Canonical + deprecated route aliases coexist until DR-UNIFY-004 certifies removal.",
+        "No Mongo mutation in this track \u2014 migration is dry-run only.",
+        "Field UI byte-identical; DR-CUTOVER-002 summary section still mounted."
       ]
     }
   }

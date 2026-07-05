@@ -292,3 +292,18 @@ Pillars.
   introduce any new fact (validated by cross-check against the composer's evidence_refs).
 - **[P3] Photo Intelligence integration.** When enabled, could enrich the summary with per-photo
   observations. Currently the composer surfaces photo counts and captions only — no vision call.
+
+---
+
+## 2026-02 · DR-UNIFY-003 Follow-ups
+
+- **[P1] DR-UNIFY-004 — Live migration + deployment cert.** Execute the migration `--live` against
+  preview, verify, then repeat against production with Atlas snapshot. Byte-compare canonical vs.
+  deprecated PDF variants. Move service reads (`dr_ai/cache.py`, `photo_intelligence/store.py`,
+  `ods_spine/ingest.py`) onto `resolve_read_collection_name`.
+- **[P2] DR-UNIFY-005 — Legacy cleanup.** After 30 days of clean production telemetry, drop the
+  legacy `dr_v2_*` collections and rename the backend module filenames (`routes/dr_v2_*.py` →
+  `routes/daily_report_*.py`). Sweep dead frontend files (`ExecutiveOperationalIntelligence.jsx`,
+  `pages/daily-report-v2/**`, `lib/dailyReportV2*.js`) once no imports remain.
+- **[P3] localStorage sweep.** Purge the harmless-but-dead `dr_v2_optin` key from any devices that
+  still have it set (client-side no-op cleanup).

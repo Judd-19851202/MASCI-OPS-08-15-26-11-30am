@@ -8923,3 +8923,16 @@ Additive. Zero drift.
 - **Tests:** 22 new backend lock tests. AI-CONFIG-001 (17) + AI-ADMIN-001 (17) regression
   still 100%. Testing agent v3 end-to-end: 100% / 100%.
 - **Docs:** 5 markdown files in `/app/memory/DR_CUTOVER_002_*`.
+
+## 2026-02 · DR-UNIFY-003 · Route + Collection Consolidation
+
+Cleanup. Zero user-facing drift.
+
+- **CHANGED · Frontend:** `/daily-report/v2` route now `<Navigate to="/daily/submit" replace />`.
+  `DailyReportV2` import removed from `AppRoutes.jsx` (component file kept on disk for tests).
+- **LOCKED · Backend:** both canonical `/api/daily-reports/*` and deprecated `/api/dr-v2/*` route
+  variants must coexist until DR-UNIFY-004 certifies removal. Regression-locked.
+- **NEW · Backend:** `lib/daily_report_collections.py` — read-compat helper.
+  `scripts/migrate_dr_v2_collections_to_daily_report.py` — 4-mode migration script (dry-run · live · verify · rollback).
+- **Tests:** 19 new pytest lock tests + 56 regression = 75/75 green.
+- **Docs:** 10 markdown files in `/app/memory/DR_UNIFY_003_*`.

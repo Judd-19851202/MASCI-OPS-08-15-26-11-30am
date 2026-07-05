@@ -10638,3 +10638,52 @@ the admin AI config module. Field UI byte-identical.
 - Email template inclusion.
 - Live-LLM polish over the deterministic composer output (strict "never introduce new facts" rule).
 
+
+---
+
+## DR-UNIFY-003 · Internal Naming + Route + Collection Consolidation (2026-02)
+
+### Delivered
+- **Frontend V2 shell retired:** `/daily-report/v2` now redirects to `/daily/submit` via `<Navigate>`.
+  `DailyReportV2` import removed from `AppRoutes.jsx`. Component file kept for legacy unit tests.
+- **Backend route aliases locked:** canonical `/api/daily-reports/*` and deprecated `/api/dr-v2/*`
+  variants coexist and are pytest-locked so neither can be silently removed before DR-UNIFY-004.
+- **Read-compat helper:** `lib/daily_report_collections.py` maps six canonical→legacy collection
+  pairs; `resolve_read_collection_name(db, canonical)` returns canonical when populated, legacy
+  as fallback, never merges.
+- **Migration script:** `scripts/migrate_dr_v2_collections_to_daily_report.py` — idempotent, resumable,
+  non-destructive; four modes (`--dry-run`, `--live`, `--verify`, `--rollback`); refuses `APP_ENV=production`
+  without `--allow-prod`. Live dry-run on preview: 56 legacy docs across 6 collections, 0 collisions,
+  56 would-copy.
+- **Language lock:** field form and summary route source contain no V1/V2/AI-agent/model/provider
+  vocabulary — enforced by 19 new pytest lock tests.
+- **75/75 pytest tests passing** (19 new + 56 regression across DR-CUTOVER-002, AI-CONFIG-001, AI-ADMIN-001).
+- **Live preview verification:** `/daily-report/v2` redirect confirmed via Playwright with the canonical
+  form + summary section rendering; migration dry-run runs cleanly against the preview DB.
+
+### 10 documents produced
+- `/app/memory/DR_UNIFY_003_EXECUTIVE_SUMMARY.md`
+- `/app/memory/DR_UNIFY_003_BASELINE_SNAPSHOT.md`
+- `/app/memory/DR_UNIFY_003_ROUTE_ALIAS_MATRIX.md`
+- `/app/memory/DR_UNIFY_003_COLLECTION_MIGRATION_PLAN.md`
+- `/app/memory/DR_UNIFY_003_READ_COMPATIBILITY.md`
+- `/app/memory/DR_UNIFY_003_FRONTEND_RETIREMENT.md`
+- `/app/memory/DR_UNIFY_003_LANGUAGE_LOCK.md`
+- `/app/memory/DR_UNIFY_003_DATA_SAFETY.md`
+- `/app/memory/DR_UNIFY_003_TEST_REPORT.md`
+- `/app/memory/DR_UNIFY_003_ZERO_DRIFT_MATRIX.md`
+
+### Files touched
+- **Backend (new):** `lib/daily_report_collections.py`, `scripts/migrate_dr_v2_collections_to_daily_report.py`, `tests/test_dr_unify_003_consolidation.py`
+- **Frontend (edit):** `app/routing/AppRoutes.jsx` (3 lines — removed dead import + swapped V2 route for `<Navigate>`)
+
+### Non-goals (deferred to DR-UNIFY-004)
+- Live migration execution (preview → production).
+- Migrating service reads onto the compat helper.
+- Byte-comparison test for canonical vs. deprecated PDF variants.
+
+### Non-goals (deferred to DR-UNIFY-005)
+- Dropping legacy `dr_v2_*` collections.
+- Renaming `routes/dr_v2_*.py` backend module filenames.
+- Deleting `ExecutiveOperationalIntelligence.jsx`, `pages/daily-report-v2/**`, `lib/dailyReportV2*.js`.
+
