@@ -2899,6 +2899,14 @@ from routes.dr_v2_canonicalize import register_dr_v2_canonicalize_routes  # noqa
 register_dr_v2_canonicalize_routes(api_router, db)
 
 # ------------------------------------------------------------
+# AI-CONFIG-001 · Admin-only AI Gateway status endpoint.
+# Zero secrets returned; booleans only. Blocks the "did I paste the
+# key correctly?" support loop without exposing raw values.
+# ------------------------------------------------------------
+from routes.ai_gateway_status import register_ai_gateway_status_routes  # noqa: E402
+register_ai_gateway_status_routes(api_router, require_admin=require_admin)
+
+# ------------------------------------------------------------
 # DR-ROI-001F · Part 2 · V2 PDF Output (already registered above via
 # DR-UNIFY-002 route-order fix; block retained as a doctrine anchor).
 # ------------------------------------------------------------
