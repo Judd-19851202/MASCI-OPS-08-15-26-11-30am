@@ -11,6 +11,22 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 22.4b · Workflow Deep Trace + Submission Routing Certification · 🟡 CONDITIONAL GO (2026-07-05)
+
+Read-only trace across 20 workflows against the existing 1,376 daily reports / 134 incidents / 133 meetings / 432 trench inspections / 490 dispatch assignments in preview.
+
+**Verified end-to-end (3)**: Dispatch Assignment · Notifications overall · Public Safety Tile.
+**Partial (12)**: canonical save + notifications wired but per-role portal visibility / PDF / lifecycle not exercised in-band.
+**Blocked (2)**: Driver Portal · DVIR (no driver token issued).
+**Zero P0/P1 defects.** 8 P2/P3/P4 defects catalogued in `/app/memory/TRACK_22_4B_DEFECT_REGISTER.csv`.
+
+**Motive**: UNCHANGED. Preview truthfully shows UNREACHABLE via Track 22.4a ribbon.
+**Email safety**: `EMAIL_SAFETY_MODE=strict` in preview — 11,137 internal notifications delivered, 0 real emails sent. Every suppressed send logged to Trust Spine with `remediation` string.
+**Tests**: 5 non-mutating contract locks added at `/app/backend/tests/test_track_22_4b_workflow_trace.py` (5/5 pass).
+
+Docs: `/app/memory/TRACK_22_4B_WORKFLOW_DEEP_TRACE.md` + `TRACK_22_4B_WORKFLOW_TRACE_REGISTER.csv` + `TRACK_22_4B_DEFECT_REGISTER.csv`.
+
+
 ## TRACK 22.4a · Operator Trust Repair + Portal Truth Consolidation · 🟢 SHIPPED (2026-07-05)
 
 Fixed the P1 defects surfaced by Track 22.4 without new features:

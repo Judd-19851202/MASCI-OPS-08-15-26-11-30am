@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## 2026-07-05 — TRACK 22.4b · Workflow Deep Trace + Submission Routing Certification · 🟡 CONDITIONAL GO
+
+Read-only trace across 20 workflows. No code changes beyond 5-test contract lock file. No Motive touch. No RBAC weakening.
+
+- **20 workflows traced** across 1,376 daily reports / 134 incidents / 133 meetings / 432 trench inspections / 490 dispatch assignments / 8 driver sessions.
+- **3 VERIFIED end-to-end**: Dispatch Assignment (490 records + 210 TS events + 489 asset.transfer notifs ≈ 1:1), Notifications overall (11,137 notifs · zero real emails sent under `EMAIL_SAFETY_MODE=strict`), Public Safety Tile.
+- **12 PARTIAL**: canonical save + notifications wired; per-role portal visibility / PDF / lifecycle not exercised in-band.
+- **2 BLOCKED**: Driver Portal, DVIR (no driver token issued in this trace window).
+- **Zero P0/P1**. 8 P2/P3/P4 defects catalogued.
+- **Motive PROTECTED** — no destructive calls, no live behavior alteration, preview still shows UNREACHABLE truthfully via Track 22.4a ribbon.
+- **Email safety proven** — `EMAIL_SAFETY_MODE=strict` blocks preview emails; Trust Spine logs every suppressed send with a `remediation` string; `email_routing_audit_v2` has 2,942 rows proving attempts are audited.
+- **5 non-mutating contract tests** at `/app/backend/tests/test_track_22_4b_workflow_trace.py` (5/5 pass): RBAC anonymous reject · email safety mode strict · Motive posture shape stable · canonical DR endpoint alive · Trench Safety dashboard returns `total_active_assets`.
+
+Docs: `/app/memory/TRACK_22_4B_WORKFLOW_DEEP_TRACE.md`, `TRACK_22_4B_WORKFLOW_TRACE_REGISTER.csv`, `TRACK_22_4B_DEFECT_REGISTER.csv`.
+
+
 ## 2026-07-05 — TRACK 22.4a · Operator Trust Repair + Portal Truth Consolidation · 🟢 SHIPPED
 
 Closed the P1 defects Track 22.4 audit surfaced. Zero new features, zero redesign.
