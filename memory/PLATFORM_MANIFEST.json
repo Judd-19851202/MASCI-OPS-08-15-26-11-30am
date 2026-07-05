@@ -1360,6 +1360,35 @@
       ],
       "status": "delivered \u00b7 zero drift \u00b7 55/55 tests green",
       "title": "Operational Data Spine Foundation + AI Provider Gateway"
+    },
+    "DR-UNIFY-002": {
+      "status": "SHIPPED",
+      "date": "2026-02-15",
+      "summary": "Single-system consolidation execution \u2014 unified Approved Reports list, unified PDF endpoint, P0 admin-token auth fix, orphan route redirects, copy scrub, 15 new lock tests.",
+      "testing": {
+        "pytest_lock_envelope": "66/66",
+        "live_pdf_smoke": "7/7",
+        "frontend_regression": "10/10"
+      },
+      "docs": [
+        "/app/memory/DR_UNIFY_002_EXECUTIVE_SUMMARY.md",
+        "/app/memory/DR_UNIFY_002_ZERO_DRIFT_MATRIX.md",
+        "/app/memory/DR_UNIFY_002_TEST_REPORT.md"
+      ],
+      "debt_closed": [
+        "DEBT-DRUNIFY-01",
+        "DEBT-DRUNIFY-02",
+        "DEBT-DRUNIFY-03",
+        "DEBT-DRUNIFY-06",
+        "DEBT-DRUNIFY-07"
+      ],
+      "debt_remaining": [
+        "DEBT-DRUNIFY-04",
+        "DEBT-DRUNIFY-05",
+        "DEBT-DRUNIFY-08",
+        "DEBT-DRUNIFY-09",
+        "DEBT-DRUNIFY-10"
+      ]
     }
   }
 }

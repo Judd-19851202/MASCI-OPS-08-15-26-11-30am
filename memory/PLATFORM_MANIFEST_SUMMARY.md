@@ -3,6 +3,20 @@
 **Generated:** 2026-08-04 · machine-generated from `git ls-files` + AST-level grep + regex census scripts.
 **Full JSON:** `/app/memory/PLATFORM_MANIFEST.json` (20 KB · 100% coverage · every discovered item accounted for).
 
+## 🟢 2026-02-15 — DR-UNIFY-002 SHIPPED
+
+DR-UNIFY-001 doctrine executed on live code. See `/app/memory/DR_UNIFY_002_EXECUTIVE_SUMMARY.md`.
+
+- Unified `/api/daily-reports/approved` (legacy + modern) · unified `/api/daily-reports/{id}/pdf` · P0 admin-token auth fix · orphan Admin OI file deleted · `/admin/ods-intelligence` + `/executive/ods-intelligence` → Navigate redirects · Approved panel on PM+Admin OI + PM Hub tile · V1 field form untouched.
+- 66/66 pytest lock envelope · 7/7 live PDF smoke · 10/10 frontend regression.
+- Executive Dashboard NOT claimed. Deferred to DR-UNIFY-005 (if a real Executive Portal is ever defined).
+
+Debt closed: DEBT-DRUNIFY-01 (orphan file), DEBT-DRUNIFY-02 (orphan admin route), DEBT-DRUNIFY-03 (speculative exec route), DEBT-DRUNIFY-06 (unified approved list), DEBT-DRUNIFY-07 (admin-token 401).
+
+Debt remaining for DR-UNIFY-003: DEBT-DRUNIFY-04 (V2 filenames), -05 (feature flags), -08 (V2 shell merge), -09 (collection renames), -10 (legacy break-glass endpoint).
+
+
+
 ---
 
 ## 🔒 2026-02-15 — DR-UNIFY-001 Single-System Doctrine (LOCKED)

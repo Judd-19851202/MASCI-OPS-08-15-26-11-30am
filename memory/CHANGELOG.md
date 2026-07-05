@@ -1,5 +1,25 @@
 # CHANGELOG
 
+## 2026-02-15 — DR-UNIFY-002 · Single-System Consolidation Execution · 🟢 SHIPPED
+
+Executed the 10-item DR-UNIFY-002 scope exactly. Zero drift. Live PDF smoke 7/7 green (both modern and legacy sources · dual aliases · auth gates enforced). Pytest lock envelope 66/66 green (added 15 new DR-UNIFY invariants). Frontend regression 10/10 green (`iteration_dr_unify_002_verify.json`).
+
+**Key deliverables:**
+- P0 admin-token auth bug FIXED (`require_admin_pm_or_hr_read` + `_require_hr_or_admin_for_queue` → async directory validator).
+- Unified `GET /api/daily-reports/approved` (legacy + modern in one list · source badge).
+- Unified `GET /api/daily-reports/{id}/pdf` (source-aware dispatch · legacy alias retained).
+- User-facing V1/V2 language scrubbed from PM/Admin OI dashboards + Approved panel.
+- `/admin/ods-intelligence` and `/executive/ods-intelligence` → Navigate redirects.
+- Root orphan `pages/AdminOperationalIntelligence.jsx` deleted.
+- Approved panel mounted on Track 19.47 Admin OI cockpit + PM Hub tile added.
+- 15 new pytest lock tests enforcing the one-system invariants.
+
+**No live emails · no field UI pollution · no AI branding · V1 untouched · Executive dashboard NOT claimed.**
+
+Docs: `/app/memory/DR_UNIFY_002_EXECUTIVE_SUMMARY.md` · `DR_UNIFY_002_ZERO_DRIFT_MATRIX.md` · `DR_UNIFY_002_TEST_REPORT.md`.
+
+
+
 ## 2026-02-15 — DR-UNIFY-001 · Single-System Audit · 🔒 LOCKED
 
 Audit-only pass triggered by user amendment forbidding permanent V1/V2 product surfaces. No production behavior changed. Docs, inventory, matrix, lock-test plan, and P0 RCA published.

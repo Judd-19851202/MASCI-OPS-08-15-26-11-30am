@@ -3,6 +3,26 @@
 **Doctrine:** Track 20.6A — Technical Debt & Failure Discovery Amendment.
 
 
+## 🟢 DR-UNIFY-002 · Debt Closures (2026-02-15)
+
+The following debt items opened by DR-UNIFY-001 are RESOLVED:
+
+- ✅ **DEBT-DRUNIFY-01** · Orphaned Admin OI file — root-level `pages/AdminOperationalIntelligence.jsx` DELETED (zero imports verified).
+- ✅ **DEBT-DRUNIFY-02** · Orphan admin route `/admin/ods-intelligence` — now `<Navigate replace to="/admin/operational-intelligence">`.
+- ✅ **DEBT-DRUNIFY-03** · Speculative `/executive/ods-intelligence` — now `<Navigate replace to="/admin/operational-intelligence">`. Executive Dashboard NOT claimed until a real Executive Portal is defined (DR-UNIFY-005 · future).
+- ✅ **DEBT-DRUNIFY-06** · Non-unified Approved Reports list — new `/api/daily-reports/approved` returns union of legacy + modern with `source` badge.
+- ✅ **DEBT-DRUNIFY-07** · P0 admin-token auth 401 — `require_admin_pm_or_hr_read` + `_require_hr_or_admin_for_queue` now use `_is_valid_directory_admin_token_async`. Verified live with 101-char directory admin token.
+
+## 🟠 Debt Remaining for DR-UNIFY-003
+
+- **DEBT-DRUNIFY-04** · Internal V2 naming in filenames + testids — remains internal-only per doctrine. Rename in DR-UNIFY-003 (frontend) alongside collection renames.
+- **DEBT-DRUNIFY-05** · Feature flags `dr_v2_optin`, `REACT_APP_DR_V2_ENABLED`, `DR_V2_AI_ENABLED` — retire post-cutover in DR-UNIFY-004.
+- **DEBT-DRUNIFY-08** · V2 shell not merged into V1 form — merge in DR-UNIFY-003.
+- **DEBT-DRUNIFY-09** · Mongo `dr_v2_*` collection renames — DR-UNIFY-003 (with idempotent migration script).
+- **DEBT-DRUNIFY-10** · Legacy break-glass `POST /api/admin/login` — LOW priority. DR-UNIFY-003.
+
+
+
 ## 🟠 DR-UNIFY-001 · Single-System Consolidation Debt (opened 2026-02-15)
 
 **Origin:** DR-ROI/ODS work introduced parallel `dr_v2_*` surfaces that risked becoming a permanent product fork. User amendment locked the one-system rule. Full audit: `/app/memory/DR_UNIFY_001_SINGLE_SYSTEM_AUDIT.md`.

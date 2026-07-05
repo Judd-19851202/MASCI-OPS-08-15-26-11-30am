@@ -11,6 +11,34 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## DR-UNIFY-002 · Single-System Consolidation Execution · 🟢 SHIPPED (2026-02-15)
+
+Executed the DR-UNIFY-001 consolidation plan. Zero drift. One system.
+
+**Delivered:**
+- **P0 auth fix:** `require_admin_pm_or_hr_read` + `_require_hr_or_admin_for_queue` now use the async directory admin validator (were calling the retired sync stub). Admin tokens now unlock the management-side endpoints.
+- **Unified approved-reports endpoint** `GET /api/daily-reports/approved` returns legacy `daily_reports` + modern approved `dr_v2_drafts` in one payload with `source: "legacy" | "modern"` badge. Legacy alias `/api/dr-v2/reports/approved` retained.
+- **Unified PDF endpoint** `GET /api/daily-reports/{id}/pdf` dispatches by source (legacy → direct render · modern → V2→V1 mapper → render). Legacy alias `/api/dr-v2/reports/{id}/pdf` retained.
+- **Copy scrub:** all user-facing V1/V2/DR-V2 language removed from PM/Admin OI dashboards + Approved panel. Testids renamed `drv2-approved-*` → `approved-daily-reports-*`.
+- **Orphan route redirects:** `/admin/ods-intelligence` and `/executive/ods-intelligence` are now `<Navigate>` redirects to `/admin/operational-intelligence`. Root orphan `pages/AdminOperationalIntelligence.jsx` deleted.
+- **Canonical Admin OI cockpit** (Track 19.47 · `pages/admin/AdminOperationalIntelligence.jsx`) now surfaces the Approved Daily Reports export section at the bottom.
+- **PM Hub tile** added to `PmHubV2.jsx` → `/pm/operational-intelligence`.
+- **15 new pytest lock tests** (`test_dr_unify_001_single_system.py`) enforce the ONE-SYSTEM invariants.
+
+**Testing (all green):**
+- Pytest lock envelope: 66/66 (DR-V2 PDF 26 · Platform Consistency 15 · EN/ES 9 · DR-UNIFY 15 · 1 asyncio fix)
+- Live PDF smoke: 7/7 (modern + legacy PDF downloads · dual aliases · 401/409/404 gates · V1 untouched)
+- Frontend regression via testing_agent_v3_fork: 10/10 (`/app/test_reports/iteration_dr_unify_002_verify.json`)
+
+**No live emails · no field UI pollution · no AI branding · Executive dashboard NOT claimed.**
+
+**Docs:** `/app/memory/DR_UNIFY_002_EXECUTIVE_SUMMARY.md` · `DR_UNIFY_002_ZERO_DRIFT_MATRIX.md` · `DR_UNIFY_002_TEST_REPORT.md`.
+
+**Next tracks:**
+- DR-UNIFY-003 — backend route aliases · Mongo collection renames · flag retirement.
+- DR-UNIFY-004 — full regression + deployment cert (was DR-ROI-001G).
+
+
 ## DR-UNIFY-001 · Single-System Audit · 🔒 LOCKED (2026-02-15)
 
 **Doctrine (locked, non-negotiable):**
