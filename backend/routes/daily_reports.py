@@ -344,6 +344,14 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
             from doc_ids import ensure_doc_id  # local import to keep startup fast
             await ensure_doc_id(db, doc, "DR", when=doc.get("report_date") or doc.get("created_at"))
             report.doc_id = doc["doc_id"]
+            # TRACK 22.4b-follow-up · B-03 · guarantee report_number is
+            # never empty on a new DR. Legacy code and admin search bars
+            # sometimes read report_number rather than doc_id — keeping
+            # both aligned prevents Trust Spine join misses and downstream
+            # ambiguity. Non-destructive: only sets when empty.
+            if not (doc.get("report_number") or "").strip():
+                doc["report_number"] = doc["doc_id"]
+                report.report_number = doc["doc_id"]
             # Batch H · GAP-1 write-path defense — convert inline base64 to
             # photo:// refs BEFORE the audit hash is computed, so the hash
             # reflects the canonical (post-sanitization) saved state.

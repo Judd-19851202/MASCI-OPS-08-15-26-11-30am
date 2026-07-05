@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## 2026-07-05 — TRACK 22.4b-follow-up · Workflow Verification Closure Pack · 🟢 GO
+
+Closed 4 of the 8 defects Track 22.4b catalogued. The remaining 4 all require role-scoped write tokens (PM/HR/Safety/Shop/Driver) that were not safely available in this preview window; each is owned by a named next-track with zero fake green.
+
+- **B-03 CLOSED** (P2 · biggest impact): `/app/backend/routes/daily_reports.py` now sets `report_number = doc_id` when empty on new DR submissions. Non-destructive one-shot idempotent backfill at `/app/backend/scripts/backfill_dr_report_number.py` copied `doc_id` into `report_number` on **1,105 historical rows** (was 271/1,376 populated · now 1,376/1,376). Trust Spine joins uniformly via either field. Backfill audit row written to `dr_report_number_backfill_audit`.
+- **B-05 CLOSED_CANONICAL_CONFIRMED** (P3): Roll-Off canonical model is `dispatch_assignments.haul_type = "Roll-Off"` (first-class value per `dispatch_command_center.py:2140-2142`). No separate collection needed. Regression test ensures no duplicate `roll_off_assignments` collection accidentally repopulates.
+- **B-07 CLOSED** (P2): Canonical QA/QC read endpoint is `/api/qaqc-inspections` (Track 22.4b guessed `/api/qaqc/inspections`). 200 admin · 401 anon locked.
+- **B-08 CLOSED** (P4): Canonical Equipment Inspection endpoint is `/api/equipment-inspections`. 200 admin · 401 anon locked.
+- **9 new regression tests** at `/app/backend/tests/test_track_22_4b_followup_closure.py` — all pass. Locks the alignment, backfill idempotency, canonical endpoint contracts, and the Roll-Off single-collection rule.
+- **Deferred** (need role tokens): B-01 HR identity (→ Track 22.4b-followup-HR), B-02 meeting subject/company (→ Track 22.4b-followup-Safety), B-04 Trench repair role guards (→ Track 22.4b-followup-Safety), B-06 Driver portal (→ Track 22.4b-followup-Driver).
+
+**Verified count**: **3 → 4 fully VERIFIED**, plus **5 VERIFIED_PARTIAL** (DR, Pre-Op, QAQC additions). No Motive touch. Deployment: **READY**.
+
+Docs: `/app/memory/TRACK_22_4B_FOLLOWUP_*`.
+
+
 ## 2026-07-05 — TRACK 22.4b · Workflow Deep Trace + Submission Routing Certification · 🟡 CONDITIONAL GO
 
 Read-only trace across 20 workflows. No code changes beyond 5-test contract lock file. No Motive touch. No RBAC weakening.
