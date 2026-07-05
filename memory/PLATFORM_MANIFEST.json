@@ -1252,6 +1252,41 @@
     "verdict": "GO"
   },
   "tracks": {
+    "DR-ROI-001D": {
+      "additive_collections": [
+        "dr_v2_photo_intelligence"
+      ],
+      "additive_routes": [
+        "POST /api/dr-v2/photos/{photo_id}/analyze",
+        "GET /api/dr-v2/photos/{photo_id}/intelligence",
+        "POST /api/dr-v2/photos/{photo_id}/links/{link_id}/accept",
+        "POST /api/dr-v2/photos/{photo_id}/links/{link_id}/dismiss",
+        "POST /api/dr-v2/photos/{photo_id}/questions/{question_id}/resolve"
+      ],
+      "baseline_after": {
+        "methods": 1464,
+        "openapi_paths": 1282,
+        "routes": 1460
+      },
+      "closed_at": "2026-07-05T04:13:33.447576Z",
+      "docs": [
+        "/app/memory/DR_ROI_001D_EXECUTIVE_SUMMARY.md",
+        "/app/memory/DR_ROI_001D_CURRENT_STATE_AUDIT.md",
+        "/app/memory/DR_ROI_001D_PHOTO_INTELLIGENCE_MODEL.md",
+        "/app/memory/DR_ROI_001D_AI_GATEWAY_PHOTO_ROUTING.md",
+        "/app/memory/DR_ROI_001D_PHOTO_ANALYSIS_API.md",
+        "/app/memory/DR_ROI_001D_PHOTO_LINKING_UI.md",
+        "/app/memory/DR_ROI_001D_ITEMS_TO_VERIFY.md",
+        "/app/memory/DR_ROI_001D_OPERATIONAL_SUMMARY_INTEGRATION.md",
+        "/app/memory/DR_ROI_001D_ODS_PHOTO_EVIDENCE_EMISSION.md",
+        "/app/memory/DR_ROI_001D_JOB_PHOTOS_MIRROR_SAFETY.md",
+        "/app/memory/DR_ROI_001D_BACKWARD_COMPATIBILITY.md",
+        "/app/memory/DR_ROI_001D_TEST_REPORT.md",
+        "/app/memory/DR_ROI_001D_ZERO_DRIFT_MATRIX.md"
+      ],
+      "status": "delivered \u00b7 zero drift \u00b7 67/67 tests green",
+      "title": "Photo Vision + Photo Evidence Linking"
+    },
     "ODS-001": {
       "additive_collections": [
         "operational_facts",

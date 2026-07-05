@@ -86,6 +86,41 @@ class Gateway:
             response_schema=response_schema, session_id=session_id,
         )
 
+    async def dispatch_vision(
+        self,
+        task: str,
+        *,
+        system: str,
+        images: list,
+        user: str,
+        response_schema: Dict[str, Any],
+        session_id: str,
+    ) -> AiEnvelope:
+        """Vision-specific dispatch. Routes through the same task_router
+        so `photo_vision` etc. resolve provider+model consistently."""
+        if not gateway_enabled():
+            return _fallback_envelope(task, "gateway", "", "gateway_disabled")
+
+        provider_name, model = route(task)
+        adapter = self._adapters.get(provider_name)
+        if adapter is None:
+            return _fallback_envelope(task, provider_name, model, "adapter_not_registered")
+        if not has_key(provider_name):
+            return _fallback_envelope(task, provider_name, model, "missing_provider_key")
+        timeout_s = max(1.0, provider_timeout_ms() / 1000.0)
+        try:
+            import asyncio as _a
+            return await _a.wait_for(
+                adapter.vision(
+                    system=system, images=images, user=user,
+                    response_schema=response_schema, session_id=session_id,
+                    model=model, task=task,
+                ),
+                timeout=timeout_s,
+            )
+        except Exception as exc:  # noqa: BLE001
+            return _fallback_envelope(task, provider_name, model, f"vision_error:{exc.__class__.__name__}")
+
     async def _dispatch_provider(
         self, provider_name: str, model: str, task: str,
         *, system, user_payload, response_schema, session_id,

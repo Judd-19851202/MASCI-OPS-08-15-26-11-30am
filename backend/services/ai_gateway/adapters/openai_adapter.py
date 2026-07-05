@@ -93,14 +93,89 @@ class OpenAIAdapter:
         response_schema: Dict[str, Any], session_id: str,
         model: str, task: str,
     ) -> AiEnvelope:
-        # Photo Vision plug-point. Wiring implemented in ODS-002/Phase D
-        # (DR-ROI-001D) — matching interface reserved so no schema
-        # migration is needed when it lands.
-        return AiEnvelope(task=task, narrative="", confidence=0.0,
-                          evidence_refs=[], sources_used=[],
-                          uncertainties=["openai_vision_scaffold_awaiting_phase_d"],
-                          provider=self.name, model=model, generated_at=_now(),
-                          ai_available=False, fallback_reason="scaffold")
+        """Real vision path. `images` is a list of base64 strings OR
+        `{"content_type": str, "file_content_base64": str}` dicts."""
+        key = os.environ.get("OPENAI_API_KEY") or os.environ.get("EMERGENT_LLM_KEY") or ""
+        if not key:
+            return AiEnvelope(task=task, narrative="", confidence=0.0,
+                              evidence_refs=[], sources_used=[],
+                              uncertainties=["openai_vision_key_missing"],
+                              provider=self.name, model=model, generated_at=_now(),
+                              ai_available=False, fallback_reason="missing_api_key")
+
+        try:
+            from emergentintegrations.llm.chat import (  # noqa: PLC0415
+                LlmChat, UserMessage, FileContent, ImageContent,
+            )
+        except Exception as exc:  # noqa: BLE001
+            return AiEnvelope(task=task, narrative="", confidence=0.0,
+                              evidence_refs=[], sources_used=[],
+                              uncertainties=[f"import_error:{exc.__class__.__name__}"],
+                              provider=self.name, model=model, generated_at=_now(),
+                              ai_available=False, fallback_reason="import_error")
+
+        file_contents = []
+        for img in (images or [])[:6]:  # cap at 6 images per call
+            if isinstance(img, dict) and img.get("file_content_base64"):
+                file_contents.append(FileContent(
+                    content_type=img.get("content_type", "image/jpeg"),
+                    file_content_base64=img["file_content_base64"],
+                ))
+            elif isinstance(img, str):
+                # Assume base64 image
+                try:
+                    file_contents.append(ImageContent(image_base64=img))
+                except Exception:  # noqa: BLE001
+                    file_contents.append(FileContent(content_type="image/jpeg", file_content_base64=img))
+
+        if not file_contents:
+            return AiEnvelope(task=task, narrative="", confidence=0.0,
+                              evidence_refs=[], sources_used=[],
+                              uncertainties=["no_images_provided"],
+                              provider=self.name, model=model, generated_at=_now(),
+                              ai_available=False, fallback_reason="no_images")
+
+        prompt = user + "\n\nRespond with strict JSON matching:\n" + json.dumps(response_schema, ensure_ascii=False)
+        try:
+            chat = LlmChat(
+                api_key=key, session_id=session_id, system_message=system,
+            ).with_model("openai", model)
+            raw = await chat.send_message(UserMessage(text=prompt, file_contents=file_contents))
+        except Exception as exc:  # noqa: BLE001
+            return AiEnvelope(task=task, narrative="", confidence=0.0,
+                              evidence_refs=[], sources_used=[],
+                              uncertainties=[f"vision_call_failed:{exc.__class__.__name__}"],
+                              provider=self.name, model=model, generated_at=_now(),
+                              ai_available=False, fallback_reason="vision_call_failed")
+
+        text = (raw or "").strip().lstrip("`")
+        if text.lower().startswith("json"):
+            text = text[4:].strip()
+        try:
+            data = json.loads(text)
+        except Exception:  # noqa: BLE001
+            return AiEnvelope(task=task, narrative=text[:500], confidence=0.0,
+                              evidence_refs=[], sources_used=[],
+                              uncertainties=["non_json_vision_response"],
+                              provider=self.name, model=model, generated_at=_now(),
+                              ai_available=False, fallback_reason="invalid_json",
+                              raw={"text": text[:2000]})
+
+        try:
+            conf = float(data.get("confidence", 0.0))
+        except (TypeError, ValueError):
+            conf = 0.0
+        return AiEnvelope(
+            task=task,
+            narrative=str(data.get("narrative", ""))[:4000],
+            confidence=max(0.0, min(1.0, conf)),
+            evidence_refs=[str(x) for x in data.get("evidence_refs", [])][:64],
+            sources_used=[str(x) for x in data.get("sources_used", [])][:64],
+            uncertainties=[str(x) for x in (data.get("uncertainties") or [])][:32],
+            provider=self.name, model=model, generated_at=_now(),
+            ai_available=True,
+            raw=data,  # observations/links/questions live here for the caller
+        )
 
     def ping(self) -> Dict[str, Any]:
         return {

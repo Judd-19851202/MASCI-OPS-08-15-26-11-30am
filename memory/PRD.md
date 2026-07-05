@@ -10306,3 +10306,27 @@ V1 daily-reports POST/GET/PDF/email/HR/payroll/safety/photos all untouched. Rout
 - Live Google Gemini SDK wiring (needs `GOOGLE_AI_API_KEY`).
 - Timeline UI (schema derived from facts; no new collection needed).
 - PDF output redesign (DR-ROI-001F).
+
+---
+
+## DR-ROI-001D · Photo Vision + Evidence Linking (2026-07-05)
+
+### Delivered
+- Real OpenAI vision method (`openai_adapter.vision(images=[...])`) using `emergentintegrations.UserMessage(file_contents=[FileContent | ImageContent])`.
+- `Gateway.dispatch_vision(task, images, ...)` — mirror of text `dispatch()` honoring task router + failover + timeout.
+- `services/photo_intelligence/` — analyzer + store + emitter + flag.
+- `routes/dr_v2_photos.py` — 5 additive endpoints (analyze, intelligence, link accept/dismiss, question resolve).
+- ODS `photo_evidence_fact` emission on link accept, with KPI snapshot recompute.
+- `PhotoIntelligencePanel.jsx` — photo strip, detected observations, suggested link chips, items to verify.
+
+### Zero drift
+V1 photo upload / Job Photos mirror / PDF / email / HR / safety all untouched. Route count 1455 → 1460 (+5 additive · `/api/dr-v2/photos/*`).
+
+### Feature flag
+`DR_V2_PHOTO_VISION_ENABLED` — default OFF; preview ON.
+
+### Verified
+67/67 backend tests GREEN (12 new photo-vision tests, 55 prior + updated parity). Live curl: draft with photos + graceful analyze failure path (no invention, no crash).
+
+### 13 documents produced
+`DR_ROI_001D_EXECUTIVE_SUMMARY.md`, `DR_ROI_001D_CURRENT_STATE_AUDIT.md`, `DR_ROI_001D_PHOTO_INTELLIGENCE_MODEL.md`, `DR_ROI_001D_AI_GATEWAY_PHOTO_ROUTING.md`, `DR_ROI_001D_PHOTO_ANALYSIS_API.md`, `DR_ROI_001D_PHOTO_LINKING_UI.md`, `DR_ROI_001D_ITEMS_TO_VERIFY.md`, `DR_ROI_001D_OPERATIONAL_SUMMARY_INTEGRATION.md`, `DR_ROI_001D_ODS_PHOTO_EVIDENCE_EMISSION.md`, `DR_ROI_001D_JOB_PHOTOS_MIRROR_SAFETY.md`, `DR_ROI_001D_BACKWARD_COMPATIBILITY.md`, `DR_ROI_001D_TEST_REPORT.md`, `DR_ROI_001D_ZERO_DRIFT_MATRIX.md`.

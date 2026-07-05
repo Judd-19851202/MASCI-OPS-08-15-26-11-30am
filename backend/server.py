@@ -2886,6 +2886,15 @@ register_daily_reports_routes(
 from routes.dr_v2 import register_dr_v2_routes  # noqa: E402
 register_dr_v2_routes(api_router, db)
 
+# ============================================================
+# DR-ROI-001D · Photo Vision + Evidence Linking
+# ------------------------------------------------------------
+# ADDITIVE mount. Zero drift on V1, DR-V2, or Job Photos mirror.
+# Feature-flag gated by DR_V2_PHOTO_VISION_ENABLED.
+# ============================================================
+from routes.dr_v2_photos import register_dr_v2_photo_routes  # noqa: E402
+register_dr_v2_photo_routes(api_router, db)
+
 
 # ============================================================
 # ODS-001 · Operational Data Spine Foundation

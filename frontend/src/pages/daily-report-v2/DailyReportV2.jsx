@@ -71,9 +71,9 @@ export default function DailyReportV2() {
             <div className="text-xs uppercase tracking-widest opacity-60">DR-ROI-001 · V2 preview</div>
             <h1 className="text-3xl font-semibold mt-1">Operational Intelligence Report</h1>
             <p className="text-sm opacity-70 mt-2 max-w-2xl">
-              Enter structured field facts. AI generates the operational narrative
-              from your evidence. You remain the source of truth · you accept,
-              edit, or regenerate before submit.
+              Enter structured field facts. A short operational narrative is
+              drafted from your evidence. You remain the source of truth · you
+              accept, edit, or regenerate before submit.
             </p>
             <div className="mt-3 flex items-center gap-3 text-xs opacity-70" data-testid="dr-v2-savebar">
               <span data-testid="dr-v2-report-id">{reportId ? `Report ${reportId}` : "Draft not yet saved"}</span>

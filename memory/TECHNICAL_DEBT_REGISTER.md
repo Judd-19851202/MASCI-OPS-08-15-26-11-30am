@@ -145,3 +145,12 @@ Pillars.
 - **[P2] Timeline UI.** Schema derived directly from `operational_facts`; documented in `ODS_001_OPERATIONAL_TIMELINE_FOUNDATION.md`.
 - **[P2] Legacy DR-V2 audit-log migration.** Pre-Phase-C entries live inside `dr_v2_ai_approvals.log[]` array. Post-Phase-C entries live in the new `dr_v2_ai_audit_entries` collection. If we promote out of preview, add a one-time backfill.
 - **[P2] Sentry lazy-init (Track 22.7).** Unchanged.
+
+---
+
+## 2026-07-05 · DR-ROI-001D Follow-ups
+
+- **[P1] Live vision e2e with real image bytes.** Interface + graceful failure proven; a full end-to-end call with an actual R2-fetched image + confidence ≥ 0.6 has not been exercised in this session. Recommended smoke: POST `/analyze` with `photo_base64` for a real photo once the OpenAI vision entitlement on EMERGENT_LLM_KEY is confirmed.
+- **[P1] R2 fetch → base64 for background analysis.** Right now the analyze endpoint requires `photo_base64` in the request body. Add a helper that, given a `photo://` ref, fetches the object from R2 and passes bytes to the vision adapter — allows the frontend to just send `{ photo_id }`.
+- **[P2] Orphan cleanup.** Deleting a photo doesn't cascade to `dr_v2_photo_intelligence`. Add a nightly cleanup that removes intel docs whose `photo_id` no longer resolves to a photo.
+- **[P2] Photo-linked evidence trace in operational_narrative agent.** Agent prompt does not yet explicitly reference the new `photo_evidence_links[]` payload on production/delay/safety facts. Low-risk enhancement.

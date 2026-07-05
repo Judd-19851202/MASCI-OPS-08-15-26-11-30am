@@ -135,17 +135,17 @@ def test_app_js_imports_app_routes():
 
 
 def test_backend_runtime_parity_intact():
-    """Baseline was 1441/1445/1264. DR-ROI-001 Phase C additively mounted
-    6 /api/dr-v2/* routes → 1447/1451/1270. ODS-001 additively mounts 8
-    /api/ods/* routes → 1455/1459/1277. Track 22.2's App.js extraction
-    claim (zero backend drift for THAT track) remains intact — no V1
-    route was touched."""
+    """Baseline was 1441/1445/1264. Additive additions:
+      - DR-ROI-001C: +6 → 1447/1451/1270
+      - ODS-001:     +8 → 1455/1459/1277
+      - DR-ROI-001D: +5 → 1460/1464/1282
+    """
     server = _load_server()
     routes = [r for r in server.app.routes if hasattr(r, "endpoint")]
-    assert len(routes) == 1455
+    assert len(routes) == 1460
     methods = sum(len(getattr(r, "methods", None) or []) for r in routes)
-    assert methods == 1459
-    assert len(server.app.openapi().get("paths", {})) == 1277
+    assert methods == 1464
+    assert len(server.app.openapi().get("paths", {})) == 1282
 
 
 def test_backend_lifecycle_and_email_safety_unchanged():
