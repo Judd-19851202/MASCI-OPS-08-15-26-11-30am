@@ -1,0 +1,24 @@
+route_id,route_type,method,path,file,component_or_handler,auth_guard,role_guard,read_or_write,portal_owner,workflow_owner,audit_logging,trust_spine,test_coverage,status,notes
+R-B-001,backend,GET,/api/health,server.py,health_check,none,none,read,platform,platform,no,yes,pytest+live,green,liveness probe
+R-B-002,backend,POST,/api/daily-reports,routes/daily_reports.py,create_daily_report,rate_limit_public_post,none,write,field,Daily Report,yes (audit envelope),yes (ODS ingest hook),lock envelope,green,canonical V1 submit; DR-CUTOVER-001 wired
+R-B-003,backend,GET,/api/daily-reports/approved,routes/dr_v2_pdf.py,list_approved,admin/PM/HR,role-gated,read,admin,Approved list,no,no,lock envelope,green,canonical
+R-B-004,backend,GET,/api/dr-v2/reports/approved,routes/dr_v2_pdf.py,list_approved (alias),admin/PM/HR,role-gated,read,admin,Approved list,no,no,lock envelope,green,deprecated alias; DR-UNIFY-003 lock
+R-B-005,backend,GET,/api/daily-reports/{id}/pdf,routes/dr_v2_pdf.py,download_pdf,admin/PM/HR,role-gated,read,admin,PDF,no,no,lock envelope,green,canonical
+R-B-006,backend,GET,/api/dr-v2/reports/{id}/pdf,routes/dr_v2_pdf.py,download_pdf (alias),admin/PM/HR,role-gated,read,admin,PDF,no,no,lock envelope,green,deprecated alias
+R-B-007,backend,POST,/api/daily-reports/summary/draft,routes/daily_summary.py,draft_summary,rate_limit_public_post,none,read,field,Daily Summary,no,no,lock envelope,green,DR-CUTOVER-002 canonical
+R-B-008,backend,POST,/api/daily-reports/{id}/summary/accept,routes/daily_summary.py,accept_summary,rate_limit_public_post,none,write,field,Daily Summary,yes (intelligence_fact),yes,lock envelope,green,DR-CUTOVER-002 canonical
+R-B-009,backend,GET,/api/ai/gateway/status,routes/ai_gateway_status.py,gateway_status,require_admin,admin,read,admin,AI Configuration,no,no,lock envelope,green,AI-CONFIG-001 admin status
+R-B-010,backend,GET,/api/admin/ai/config/status,routes/ai_admin_config.py,admin_ai_config_status,require_admin_strict,admin-strict,read,admin,AI Configuration,no,no,lock envelope,green,AI-ADMIN-001
+R-B-011,backend,GET,/api/admin/ai/tenants,routes/ai_admin_config.py,admin_ai_list_tenants,require_admin_strict,admin-strict,read,admin,AI Configuration,no,no,lock envelope,green,AI-ADMIN-001
+R-B-012,backend,GET,/api/admin/ai/tenants/{tid}/capabilities,routes/ai_admin_config.py,admin_ai_get_tenant_capabilities,require_admin_strict,admin-strict,read,admin,AI Configuration,no,no,lock envelope,green,AI-ADMIN-001
+R-B-013,backend,PUT,/api/admin/ai/tenants/{tid}/capabilities,routes/ai_admin_config.py,admin_ai_update_tenant_capabilities,require_admin_strict,admin-strict,write,admin,AI Configuration,yes (tenant_ai_capability_audit),no,lock envelope,green,AI-ADMIN-001
+R-B-014,backend,GET,/api/admin/ai/tenants/{tid}/audit,routes/ai_admin_config.py,admin_ai_get_tenant_audit,require_admin_strict,admin-strict,read,admin,AI Configuration,no,no,lock envelope,green,AI-ADMIN-001
+R-B-015,backend,POST,/api/admin/ai/providers/{provider}/test,routes/ai_admin_config.py,admin_ai_provider_connection_test,require_admin_strict,admin-strict,read,admin,AI Configuration,no,no,lock envelope,green,AI-ADMIN-001 readiness only; no live LLM call
+R-B-XXX,backend,various,/api/*,various (161 modules),(335 routes total),various,various,various,various,various,various,various,various,various,"Full enumeration deferred to Track 22.3 (route-level audit): out of scope for 22.2 timing budget"
+R-F-001,frontend,GET,/daily/submit,pages/NewDailyReport.jsx,NewDailyReport,none,field,read,field,Daily Report,-,-,live smoke,green,canonical form; DR-CUTOVER-002 summary section mounted
+R-F-002,frontend,GET,/daily/new,pages/NewDailyReport.jsx,NewDailyReport,none,field,read,field,Daily Report,-,-,live smoke,green,alias to /daily/submit
+R-F-003,frontend,GET,/daily-report/v2,AppRoutes.jsx,Navigate to /daily/submit,none,field,-,field,Daily Report,-,-,DR-UNIFY-003 lock,green,redirect (post-DR-UNIFY-003)
+R-F-004,frontend,GET,/admin/ai-configuration,pages/admin/AdminAIConfiguration.jsx,AdminAIConfiguration,admin,super-admin,read/write,admin,AI Configuration,-,-,live smoke,green,AI-ADMIN-001 admin page
+R-F-005,frontend,GET,/admin/operational-intelligence,pages/admin/AdminOperationalIntelligence.jsx,AdminOperationalIntelligence,admin,super-admin,read,admin,Admin OI,-,-,live smoke,green,DR-UNIFY-002 canonical
+R-F-006,frontend,GET,/admin/system,pages/admin/AdminSystem.jsx,AdminSystem,admin,super-admin,read/write,admin,System,-,-,live smoke,green,-
+R-F-XXX,frontend,GET,various,various,(391 routes total in AppRoutes.jsx),various,various,-,various,various,-,-,various,green-mixed,"Full frontend route enumeration deferred to Track 22.4 (per-portal audit): out of scope for 22.2 timing budget"

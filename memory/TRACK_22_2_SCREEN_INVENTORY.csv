@@ -1,0 +1,7 @@
+screen_id,portal,screen_name,route,component,intended_role,actual_role_fit,mobile_status,visual_consistency,dead_buttons,placeholder_content,wrong_role_content,broken_links,duplicate_risk,eight_pillar_score,status,notes
+S-001,Field,Daily Job Report,/daily/submit,NewDailyReport.jsx,field supervisor,strong,verified iPad/Toughbook,MASCI standard,none observed,none,none,none observed,low (V2 shell retired),9/10,green,"canonical form; DR-CUTOVER-002 summary section slots naturally"
+S-002,Admin,AI Configuration,/admin/ai-configuration,AdminAIConfiguration.jsx,super-admin,strong,responsive,MASCI standard,none,none,none,none,none,9/10,green,"newly delivered; disciplined layout"
+S-003,Admin,Admin Operational Intelligence,/admin/operational-intelligence,AdminOperationalIntelligence.jsx,admin,strong,responsive,MASCI standard,-,-,-,-,-,8/10,green,"reads from operational_facts + kpi_snapshots"
+S-004,Admin,System & Backups,/admin/system,AdminSystem.jsx,super-admin,strong,-,MASCI standard,-,-,-,-,-,8/10,green,-
+S-005,Admin,Approved Daily Reports,/admin/approved-daily-reports,various,admin/PM,strong,-,MASCI standard,-,-,-,-,-,8/10,green,DR-UNIFY-002 unified
+S-XXX,various,(all other portals),various,various,various,not toured this pass,-,-,-,-,-,-,-,pending,pending,"Full portal-by-portal reality audit deferred to Track 22.4"

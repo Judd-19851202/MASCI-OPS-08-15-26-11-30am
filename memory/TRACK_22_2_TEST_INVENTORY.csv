@@ -1,0 +1,12 @@
+test_id,file,track,purpose,protects_workflow,test_type,meaningfulness,deployment_gate_wired,gaps,notes
+T-001,tests/test_ai_config_001_capabilities.py,AI-CONFIG-001,AI switchboard resolver + secret contract,resolver disabled-mode + env placeholders,unit+static,high,yes (part of lock envelope),none,17 tests green
+T-002,tests/test_ai_admin_001_config.py,AI-ADMIN-001,Admin AI config endpoints + audit,tenant AI mutations + audit trail,integration,high,yes,none,17 tests green
+T-003,tests/test_dr_cutover_001_v1_to_ods.py,DR-CUTOVER-001,V1→ODS ingest hook,V1 submit → operational_facts,integration,high,yes,none,green
+T-004,tests/test_dr_cutover_002_daily_summary.py,DR-CUTOVER-002,Daily Operational Summary endpoints + composer,summary draft/accept + composer safety,unit+integration,high,yes,none,22 tests green
+T-005,tests/test_dr_unify_001_single_system.py,DR-UNIFY-001,Single Daily Report doctrine locks,V2 shell isolation,static,high,yes,none,green
+T-006,tests/test_dr_unify_003_consolidation.py,DR-UNIFY-003,Route + collection alias locks,route aliases + read-compat + migration,unit+static+subprocess,high,yes,none,19 tests green
+T-007,tests/test_ods_001_spine.py,ODS-001,ODS spine invariants,fact write/idempotency,integration,high,yes,one cross-test event-loop artefact (F-07),green (mostly)
+T-008,tests/test_dr_roi_001f_en_es_lock.py,DR-ROI-001F,EN canonical + ES UI lock,translation contract,static,high,yes,none,green
+T-009,tests/test_dr_roi_001f_platform_consistency.py,DR-ROI-001F,Platform-wide consistency,cross-portal invariants,static,high,yes,none,green
+T-010,tests/test_pdf_lockup_sweep.py,-,PDF renderer sweep,PDF surfaces,integration,medium,partial,byte-comparison test between canonical and deprecated PDF variants deferred to DR-UNIFY-005,green
+T-XXX,tests/*.py,various,various (685 files total),various,mixed,mixed,mostly not wired,many _iter*.py tests may be text-locks only rather than behaviour tests,"Full test meaningfulness scoring deferred to Track 22.5"
