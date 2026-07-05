@@ -13,6 +13,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { isDailyReportV2Enabled } from "@/lib/dailyReportV2Flag";
 import { DrV2LangProvider, useDrV2Lang, LangToggle } from "@/lib/dailyReportV2Lang";
+import { DailyReportTopBanner } from "@/components/DailyReportTopBanner";
 import DaySetupSection from "./sections/DaySetupSection";
 import CrewTimeSection from "./sections/CrewTimeSection";
 import EquipmentSection from "./sections/EquipmentSection";
@@ -26,7 +27,6 @@ import SignatureSubmitSection from "./sections/SignatureSubmitSection";
 import PhotoIntelligencePanel from "./panels/PhotoIntelligencePanel";
 import { useDrV2Draft, useDrV2Ai, useDrV2Approvals } from "./hooks/useDrV2";
 import { StatusChip } from "./_ui";
-import { MasciLogo } from "@/components/MasciLogo";
 import { Save, Loader2 } from "lucide-react";
 
 export default function DailyReportV2() {
@@ -66,8 +66,10 @@ function DrV2Inner() {
   if (!enabled) {
     return (
       <div className="min-h-screen bg-slate-50">
+        <DailyReportTopBanner>
+          <LangToggle />
+        </DailyReportTopBanner>
         <div className="max-w-3xl mx-auto p-8 space-y-4" data-testid="dr-v2-disabled">
-          <div className="flex justify-end"><LangToggle /></div>
           <h1 className="text-2xl font-semibold text-slate-900">{t("preview.title")}</h1>
           <p className="text-sm text-slate-600">{t("preview.body")}</p>
           <Link
@@ -84,41 +86,41 @@ function DrV2Inner() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900" data-testid="dr-v2-shell">
-      <div className="max-w-5xl mx-auto p-4 sm:p-6 space-y-5">
-        {/* --- MASCI header block --- */}
-        <header className="bg-white border-2 border-slate-200 rounded-md p-4 sm:p-5 flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-3">
-            <MasciLogo className="h-12 w-auto" />
-            <div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-red-700 font-bold">
-                {t("header.eyebrow")}
-              </div>
-              <h1
-                className="font-display text-2xl sm:text-3xl font-bold text-slate-900 leading-tight"
-                data-testid="dr-v2-header"
-              >
-                {t("header.title")}
-              </h1>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 flex-wrap">
-            <LangToggle />
-            <span data-testid="dr-v2-report-id" className="font-mono text-xs text-slate-600">
-              {reportId ? `#${reportId}` : t("header.draft")}
-            </span>
-            {saving ? (
-              <span className="inline-flex items-center gap-1 text-xs text-slate-600" data-testid="dr-v2-status-saving">
-                <Loader2 className="w-3 h-3 animate-spin" /> {t("status.saving")}
-              </span>
-            ) : savedAt ? (
-              <StatusChip tone="green" testid="dr-v2-status-saved">
-                <Save className="w-3 h-3 mr-1" /> {t("status.saved")}
-              </StatusChip>
-            ) : (
-              <StatusChip tone="slate" testid="dr-v2-status-idle">{t("status.idle")}</StatusChip>
-            )}
-          </div>
-        </header>
+      {/* --- MASCI navy top banner (matches V1 Daily Job Report shell) --- */}
+      <DailyReportTopBanner>
+        <span data-testid="dr-v2-report-id" className="hidden md:inline font-mono text-xs text-slate-300">
+          {reportId ? `#${reportId}` : t("header.draft")}
+        </span>
+        {saving ? (
+          <span className="inline-flex items-center gap-1 text-xs text-slate-200" data-testid="dr-v2-status-saving">
+            <Loader2 className="w-3 h-3 animate-spin" /> {t("status.saving")}
+          </span>
+        ) : savedAt ? (
+          <StatusChip tone="green" testid="dr-v2-status-saved">
+            <Save className="w-3 h-3 mr-1" /> {t("status.saved")}
+          </StatusChip>
+        ) : (
+          <StatusChip tone="slate" testid="dr-v2-status-idle">{t("status.idle")}</StatusChip>
+        )}
+        <LangToggle />
+      </DailyReportTopBanner>
+
+      <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-5">
+        {/* --- White report card sits under the navy banner (same as V1). --- */}
+        <div className="mb-2" data-testid="dr-v2-header-card">
+          <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
+            {t("header.eyebrow")}
+          </span>
+          <h1
+            className="font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-900 mt-1"
+            data-testid="dr-v2-header"
+          >
+            {t("header.title")}
+          </h1>
+          <p className="text-sm text-slate-600 mt-1.5 max-w-2xl leading-snug">
+            {t("footer.autosave")}
+          </p>
+        </div>
 
         <main className="space-y-4" data-testid="dr-v2-sections">
           <DaySetupSection draft={draft} setDraft={setDraft} />

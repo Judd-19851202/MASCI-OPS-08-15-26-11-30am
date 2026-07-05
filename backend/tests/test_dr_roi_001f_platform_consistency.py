@@ -78,15 +78,30 @@ def test_no_pdf_buttons_on_field_form():
 
 
 def test_shell_uses_masci_platform_header():
-    """FINAL-REPAIR: header must use MASCI identity + say 'Daily Job Report'."""
+    """FINAL-REPAIR: shell must render the MASCI navy top banner that
+    matches V1's Daily Job Report shell (bg-slate-900 · red-700 hazard
+    stripe · sticky top-0), NOT just a small white header card."""
     text = SHELL_FILE.read_text(encoding="utf-8")
-    assert "MasciLogo" in text, "Shell must include MasciLogo"
-    assert '"Daily Job Report"' in text or "Daily Job Report" in text, \
-        "Shell H1 must read 'Daily Job Report'"
+    assert "DailyReportTopBanner" in text, \
+        "Shell must import + render the shared DailyReportTopBanner"
     assert "New Daily Report" not in text, \
         "'New Daily Report' phrasing is not V1-native — use 'Daily Job Report'"
-    assert "MASCI Field Operations" in text or "MASCI" in text, \
-        "Shell must carry the MASCI brand block"
+    banner_path = Path("/app/frontend/src/components/DailyReportTopBanner.jsx")
+    assert banner_path.exists(), "Shared banner component must exist"
+    banner = banner_path.read_text(encoding="utf-8")
+    # Byte/style equivalence with V1's banner classes (see NewDailyReport.jsx:1260).
+    for cls in ("bg-slate-900", "border-b-4", "border-red-700",
+                "sticky", "top-0", "z-10", "max-w-4xl"):
+        assert cls in banner, f"Banner must use V1 class '{cls}'"
+    assert "MasciLogo" in banner, "Banner must render MasciLogo"
+
+
+def test_v1_banner_class_string_still_present():
+    """V1 NewDailyReport.jsx MUST retain the navy banner header line —
+    byte-untouched proof by string presence."""
+    v1 = Path("/app/frontend/src/pages/NewDailyReport.jsx").read_text(encoding="utf-8")
+    assert '<header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10">' in v1, \
+        "V1 banner header line missing / mutated"
 
 
 def test_pm_intelligence_panel_removed():
