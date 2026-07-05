@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## 2026-07-05 — TRACK 22.4b-followup-Dispatch-Idempotency · 🟢 SHIPPED · GO
+
+Protected `/api/dispatch/assignments` (including Roll-Off canonical variant) with the shared workflow-scoped reservation-lock. Same-key concurrent retries now produce exactly one dispatch assignment, one SMS side-effect, one notification, one Trust Spine event.
+
+- **Wrapped** `create_assignment` body in `_do_create` closure + `with_idempotency(workflow="dispatch_assignment")`. Motive posture reads remain OUTSIDE the factory (untouched).
+- **Roll-Off certified**: canonical `haul_type="Roll-Off"` model preserved · zero rows written to legacy `roll_off_assignments`.
+- **Helper enhancement (IDEM-HELPER-POLL)**: bumped reservation-lock poll window from 10s → 30s (40 → 120 iterations at 250ms) to accommodate handlers with heavy fan-out (SMS, notifications, Trust Spine). Stale-sentinel reclaim at 90s unchanged.
+- **RBAC unchanged**: anonymous 401 · dispatch/admin still allowed.
+- **Motive not touched**: no route/credential/sync changes · stale-Motive ribbon behavior from Track 22.4a preserved.
+- **New regression suite**: `test_track_22_4b_followup_dispatch_idempotency.py` — 5 pass, 1 skip. Full track sweep: **76 pass · 2 skip · 0 fail**.
+- **Closure memo:** `/app/memory/TRACK_22_4B_FOLLOWUP_DISPATCH_IDEMPOTENCY.md`.
+
+
+
 ## 2026-07-05 — TRACK 22.4b-followup-Idempotency-Spine-Phase-2 · 🟢 SHIPPED · GO
 
 Adopted the workflow-scoped reservation-lock idempotency helper on 4 of the 7 endpoints deferred from Phase 1 — both P1 endpoints closed, plus 2 P2 endpoints in the same pass.

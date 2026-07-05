@@ -1073,233 +1073,250 @@ def build_dispatch_lifecycle_router(
     @router.post("/assignments")
     async def create_assignment(
         body: AssignmentCreate,
+        request: Request,
         actor: Dict[str, Any] = Depends(require_dispatch_or_admin_dep),
         x_tenant_id: Optional[str] = Header(default=None, alias="X-Tenant-Id"),
     ):
-        tenant_id = _resolve_tenant(x_tenant_id)
-        at_iso = _now_iso()
-        assignment_id = _new_id()
-        by_name = _actor_label(actor)
-        by_role = _actor_role(actor)
+        # TRACK 22.4b-followup-Dispatch-Idempotency · surgical wrap of
+        # the dispatch assignment write path in the shared workflow-
+        # scoped reservation-lock. Same-key concurrent retries → one
+        # assignment, one notification fanout, one SMS side-effect,
+        # one Trust Spine lifecycle. Roll-Off inherits the same
+        # discipline (workflow bucket is the same — the haul_type field
+        # differentiates at the data layer). Motive is not read
+        # inside the factory; posture reads remain outside and
+        # untouched.
+        from lib.idempotency import with_idempotency, idem_key_from_request  # noqa: PLC0415
+        key = idem_key_from_request(request)
 
-        seed_history_entry = {
-            "from_state": None,
-            "to_state": DLS.ASSIGNED,
-            "at": at_iso,
-            "by_name": by_name,
-            "by_role": by_role,
-            "standard": True,
-            "warning_tag": None,
-            "warning_tags": [],
-            "note": body.note or "",
-            "correction_reason": "",
-            "wait_reason": "",
-            "geo": None,
-        }
-        doc = {
-            "id": assignment_id,
-            "tenant_id": tenant_id,
-            "truck_id": body.truck_id.strip(),
-            "driver_id": (body.driver_id or "").strip() or None,
-            "driver_name": (body.driver_name or "").strip(),
-            "project_number": (body.project_number or "").strip(),
-            "project_name": (body.project_name or "").strip(),
-            "material": (body.material or "").strip(),
-            "source_location": (body.source_location or "").strip(),
-            "destination": (body.destination or "").strip(),
-            "loader_operator_name": (body.loader_operator_name or "").strip(),
-            # iter408 · Phase 14.2 · Haul Type continuity (additive,
-            # backward-compatible — legacy assignments simply default
-            # haul_type to "Material" via the model).
-            "haul_type": (body.haul_type or "Material").strip() or "Material",
-            "trailer_id": (body.trailer_id or "").strip(),
-            "trailer_label": (body.trailer_label or "").strip(),
-            "carrier": (body.carrier or "").strip(),
-            "equipment_id": (body.equipment_id or "").strip(),
-            "equipment_label": (body.equipment_label or "").strip(),
-            "pickup_location": (body.pickup_location or "").strip(),
-            "dropoff_location": (body.dropoff_location or "").strip(),
-            # iter410 · Phase 15.1 · Tanker / Liquid Asphalt continuity
-            "liquid_product": (body.liquid_product or "").strip(),
-            "current_state": DLS.ASSIGNED,
-            "current_wait_reason": "",
-            "assigned_at": at_iso,
-            "assigned_by_name": by_name,
-            "assigned_by_role": by_role,
-            "last_transition_at": at_iso,
-            "completed_at": None,
-            "ended_at": None,
-            "cancelled_at": None,
-            "cancel_reason": None,
-            "state_history": [seed_history_entry],
-            "wait_events": [],
-            "motive_validation": None,
-            # ─── Phase D-1 · ack + revision + delivery fields ──────
-            "acked_at": None,
-            "acked_by": None,
-            "ack_method": None,
-            "ack_device": None,
-            "ack_revision_seq": None,
-            "revision_seq": 0,
-            "revision_pending": False,
-            "revision_history": [],
-            "last_revised_at": None,
-            "last_revised_by_name": None,
-            "last_revised_by_role": None,
-            "load_count": None,
-            "scheduled_at": None,
-            "delivery_log": [],
-            "reminder_sent_at": None,
-            "reminder_count": 0,
-            "created_at": at_iso,
-            "updated_at": at_iso,
-            "source": "dispatch_lifecycle_v1",
-        }
-        # TRACK 16.09 · Transportation Dispatch Hard Block. Validate the
-        # canonical eligibility before the assignment is persisted. The
-        # gate is additive — drivers/trucks that aren't under
-        # transportation governance pass through untouched (entity-not-
-        # found → not_blocked). An optional override id, scoped to the
-        # driver+truck and unexpired, lets authorized roles bypass.
-        try:
-            from lib.transport_dispatch_gate import (  # noqa: PLC0415
-                evaluate_dispatch_gate,
-            )
-            _gate = await evaluate_dispatch_gate(
-                db,
-                driver_id=(body.driver_id or "").strip() or None,
-                truck_id=(body.truck_id or "").strip() or None,
-                carrier_id=None,
-                override_id=(body.dispatch_override_id or "").strip() or None,
-            )
-            if _gate.get("blocked"):
-                raise HTTPException(status_code=409, detail=_gate)
-            _consumed_override_id = _gate.get("override_id")
-        except HTTPException:
-            raise
-        except Exception as _gate_exc:  # noqa: BLE001
-            # Gate failure should NEVER silently allow — but it also
-            # shouldn't crash legacy code paths. Log + allow only when
-            # neither driver nor truck has a transport_persons /
-            # transport_trucks row (i.e., we're outside transportation
-            # governance entirely).
-            logger.warning(
-                f"[track-16-09-gate] non-fatal · {_gate_exc!r}")
-            _consumed_override_id = None
+        async def _do_create():
+            tenant_id = _resolve_tenant(x_tenant_id)
+            at_iso = _now_iso()
+            assignment_id = _new_id()
+            by_name = _actor_label(actor)
+            by_role = _actor_role(actor)
 
-        await db.dispatch_assignments.insert_one(doc)
-        # Consume the override (one-shot scope = first successful assignment).
-        if _consumed_override_id:
+            seed_history_entry = {
+                "from_state": None,
+                "to_state": DLS.ASSIGNED,
+                "at": at_iso,
+                "by_name": by_name,
+                "by_role": by_role,
+                "standard": True,
+                "warning_tag": None,
+                "warning_tags": [],
+                "note": body.note or "",
+                "correction_reason": "",
+                "wait_reason": "",
+                "geo": None,
+            }
+            doc = {
+                "id": assignment_id,
+                "tenant_id": tenant_id,
+                "truck_id": body.truck_id.strip(),
+                "driver_id": (body.driver_id or "").strip() or None,
+                "driver_name": (body.driver_name or "").strip(),
+                "project_number": (body.project_number or "").strip(),
+                "project_name": (body.project_name or "").strip(),
+                "material": (body.material or "").strip(),
+                "source_location": (body.source_location or "").strip(),
+                "destination": (body.destination or "").strip(),
+                "loader_operator_name": (body.loader_operator_name or "").strip(),
+                # iter408 · Phase 14.2 · Haul Type continuity (additive,
+                # backward-compatible — legacy assignments simply default
+                # haul_type to "Material" via the model).
+                "haul_type": (body.haul_type or "Material").strip() or "Material",
+                "trailer_id": (body.trailer_id or "").strip(),
+                "trailer_label": (body.trailer_label or "").strip(),
+                "carrier": (body.carrier or "").strip(),
+                "equipment_id": (body.equipment_id or "").strip(),
+                "equipment_label": (body.equipment_label or "").strip(),
+                "pickup_location": (body.pickup_location or "").strip(),
+                "dropoff_location": (body.dropoff_location or "").strip(),
+                # iter410 · Phase 15.1 · Tanker / Liquid Asphalt continuity
+                "liquid_product": (body.liquid_product or "").strip(),
+                "current_state": DLS.ASSIGNED,
+                "current_wait_reason": "",
+                "assigned_at": at_iso,
+                "assigned_by_name": by_name,
+                "assigned_by_role": by_role,
+                "last_transition_at": at_iso,
+                "completed_at": None,
+                "ended_at": None,
+                "cancelled_at": None,
+                "cancel_reason": None,
+                "state_history": [seed_history_entry],
+                "wait_events": [],
+                "motive_validation": None,
+                # ─── Phase D-1 · ack + revision + delivery fields ──────
+                "acked_at": None,
+                "acked_by": None,
+                "ack_method": None,
+                "ack_device": None,
+                "ack_revision_seq": None,
+                "revision_seq": 0,
+                "revision_pending": False,
+                "revision_history": [],
+                "last_revised_at": None,
+                "last_revised_by_name": None,
+                "last_revised_by_role": None,
+                "load_count": None,
+                "scheduled_at": None,
+                "delivery_log": [],
+                "reminder_sent_at": None,
+                "reminder_count": 0,
+                "created_at": at_iso,
+                "updated_at": at_iso,
+                "source": "dispatch_lifecycle_v1",
+            }
+            # TRACK 16.09 · Transportation Dispatch Hard Block. Validate the
+            # canonical eligibility before the assignment is persisted. The
+            # gate is additive — drivers/trucks that aren't under
+            # transportation governance pass through untouched (entity-not-
+            # found → not_blocked). An optional override id, scoped to the
+            # driver+truck and unexpired, lets authorized roles bypass.
             try:
-                await db.transport_dispatch_overrides.update_one(
-                    {"id": _consumed_override_id, "tenant": "masci",
-                     "consumed_for_assignment_id": None},
-                    {"$set": {"consumed_for_assignment_id": assignment_id,
-                              "consumed_at": at_iso}})
+                from lib.transport_dispatch_gate import (  # noqa: PLC0415
+                    evaluate_dispatch_gate,
+                )
+                _gate = await evaluate_dispatch_gate(
+                    db,
+                    driver_id=(body.driver_id or "").strip() or None,
+                    truck_id=(body.truck_id or "").strip() or None,
+                    carrier_id=None,
+                    override_id=(body.dispatch_override_id or "").strip() or None,
+                )
+                if _gate.get("blocked"):
+                    raise HTTPException(status_code=409, detail=_gate)
+                _consumed_override_id = _gate.get("override_id")
+            except HTTPException:
+                raise
+            except Exception as _gate_exc:  # noqa: BLE001
+                # Gate failure should NEVER silently allow — but it also
+                # shouldn't crash legacy code paths. Log + allow only when
+                # neither driver nor truck has a transport_persons /
+                # transport_trucks row (i.e., we're outside transportation
+                # governance entirely).
+                logger.warning(
+                    f"[track-16-09-gate] non-fatal · {_gate_exc!r}")
+                _consumed_override_id = None
+
+            await db.dispatch_assignments.insert_one(doc)
+            # Consume the override (one-shot scope = first successful assignment).
+            if _consumed_override_id:
+                try:
+                    await db.transport_dispatch_overrides.update_one(
+                        {"id": _consumed_override_id, "tenant": "masci",
+                         "consumed_for_assignment_id": None},
+                        {"$set": {"consumed_for_assignment_id": assignment_id,
+                                  "consumed_at": at_iso}})
+                except Exception:  # noqa: BLE001
+                    pass
+
+            # TRACK 15.76 · Trust Spine — dispatch assignment lifecycle.
+            # Dispatch is a non-email workflow; emits the operational
+            # stages directly (record_created → routing_resolved →
+            # dashboard_updated → audit_written → completed).
+            try:
+                from lib.trust_spine import (  # noqa: PLC0415
+                    emit_record_created, emit_workflow_stage,
+                    STAGE_ROUTING_RESOLVED, STAGE_DASHBOARD_UPDATED,
+                    STAGE_AUDIT_WRITTEN, STAGE_COMPLETED,
+                )
+                _spine_rec = {
+                    "id": assignment_id, "doc_id": assignment_id,
+                    "project_number": doc.get("project_number") or "",
+                }
+                _spine_mod = "routes/dispatch_lifecycle.py:create_assignment"
+                await emit_record_created(
+                    db, workflow="dispatch-assignment", record=_spine_rec,
+                    module=_spine_mod,
+                )
+                await emit_workflow_stage(
+                    db, workflow="dispatch-assignment",
+                    stage=STAGE_ROUTING_RESOLVED, record=_spine_rec,
+                    module="driver+truck binding", status="ok",
+                )
+                await emit_workflow_stage(
+                    db, workflow="dispatch-assignment",
+                    stage=STAGE_DASHBOARD_UPDATED, record=_spine_rec,
+                    module="dispatch_assignments.insert_one", status="ok",
+                )
+                await emit_workflow_stage(
+                    db, workflow="dispatch-assignment",
+                    stage=STAGE_AUDIT_WRITTEN, record=_spine_rec,
+                    module="dispatch_state_events", status="ok",
+                )
+                await emit_workflow_stage(
+                    db, workflow="dispatch-assignment",
+                    stage=STAGE_COMPLETED, record=_spine_rec,
+                    module=_spine_mod, status="ok",
+                )
             except Exception:  # noqa: BLE001
                 pass
 
-        # TRACK 15.76 · Trust Spine — dispatch assignment lifecycle.
-        # Dispatch is a non-email workflow; emits the operational
-        # stages directly (record_created → routing_resolved →
-        # dashboard_updated → audit_written → completed).
-        try:
-            from lib.trust_spine import (  # noqa: PLC0415
-                emit_record_created, emit_workflow_stage,
-                STAGE_ROUTING_RESOLVED, STAGE_DASHBOARD_UPDATED,
-                STAGE_AUDIT_WRITTEN, STAGE_COMPLETED,
-            )
-            _spine_rec = {
-                "id": assignment_id, "doc_id": assignment_id,
-                "project_number": doc.get("project_number") or "",
+            # Mirror the seed ASSIGNED into the event stream.
+            event_doc = {
+                "id": _new_id(),
+                "tenant_id": tenant_id,
+                "assignment_id": assignment_id,
+                "truck_id": doc["truck_id"],
+                "driver_id": doc["driver_id"],
+                "driver_name": doc["driver_name"],
+                "project_number": doc["project_number"],
+                "from_state": None,
+                "to_state": DLS.ASSIGNED,
+                "standard": True,
+                "warning_tag": None,
+                "warning_tags": [],
+                "at": at_iso,
+                "by_name": by_name,
+                "by_role": by_role,
+                "note": body.note or "",
+                "correction_reason": "",
+                "wait_reason": "",
+                "geo": None,
             }
-            _spine_mod = "routes/dispatch_lifecycle.py:create_assignment"
-            await emit_record_created(
-                db, workflow="dispatch-assignment", record=_spine_rec,
-                module=_spine_mod,
-            )
-            await emit_workflow_stage(
-                db, workflow="dispatch-assignment",
-                stage=STAGE_ROUTING_RESOLVED, record=_spine_rec,
-                module="driver+truck binding", status="ok",
-            )
-            await emit_workflow_stage(
-                db, workflow="dispatch-assignment",
-                stage=STAGE_DASHBOARD_UPDATED, record=_spine_rec,
-                module="dispatch_assignments.insert_one", status="ok",
-            )
-            await emit_workflow_stage(
-                db, workflow="dispatch-assignment",
-                stage=STAGE_AUDIT_WRITTEN, record=_spine_rec,
-                module="dispatch_state_events", status="ok",
-            )
-            await emit_workflow_stage(
-                db, workflow="dispatch-assignment",
-                stage=STAGE_COMPLETED, record=_spine_rec,
-                module=_spine_mod, status="ok",
-            )
-        except Exception:  # noqa: BLE001
-            pass
+            await db.dispatch_state_events.insert_one(event_doc)
 
-        # Mirror the seed ASSIGNED into the event stream.
-        event_doc = {
-            "id": _new_id(),
-            "tenant_id": tenant_id,
-            "assignment_id": assignment_id,
-            "truck_id": doc["truck_id"],
-            "driver_id": doc["driver_id"],
-            "driver_name": doc["driver_name"],
-            "project_number": doc["project_number"],
-            "from_state": None,
-            "to_state": DLS.ASSIGNED,
-            "standard": True,
-            "warning_tag": None,
-            "warning_tags": [],
-            "at": at_iso,
-            "by_name": by_name,
-            "by_role": by_role,
-            "note": body.note or "",
-            "correction_reason": "",
-            "wait_reason": "",
-            "geo": None,
-        }
-        await db.dispatch_state_events.insert_one(event_doc)
+            # Re-read to drop _id (insert_one mutates the input dict).
+            out = await db.dispatch_assignments.find_one({"id": assignment_id}, {"_id": 0})
 
-        # Re-read to drop _id (insert_one mutates the input dict).
-        out = await db.dispatch_assignments.find_one({"id": assignment_id}, {"_id": 0})
-
-        # ─── D-1.3 + D-2.5 · Auto-notify + optional auto-SMS ───────
-        # Never crash create on notification failure.
-        try:
-            sms_result = None
-            magic_link_url = None
-            if _auto_sms_enabled() and out:
-                # Build magic link + SMS body, ship it.
-                sms_outcome = await _issue_link_and_sms(
+            # ─── D-1.3 + D-2.5 · Auto-notify + optional auto-SMS ───────
+            # Never crash create on notification failure.
+            try:
+                sms_result = None
+                magic_link_url = None
+                if _auto_sms_enabled() and out:
+                    # Build magic link + SMS body, ship it.
+                    sms_outcome = await _issue_link_and_sms(
+                        db,
+                        assignment=out,
+                        triggered_by="auto",
+                        issued_by_name=by_name,
+                        issued_by_role=by_role,
+                    )
+                    sms_result = sms_outcome.get("sms_result")
+                    magic_link_url = sms_outcome.get("magic_link_url")
+                await _fire_assignment_notification(
                     db,
-                    assignment=out,
-                    triggered_by="auto",
-                    issued_by_name=by_name,
-                    issued_by_role=by_role,
+                    assignment=out or doc,
+                    event="new_assignment",
+                    send_email_fn=send_email_fn,
+                    magic_link_url=magic_link_url,
+                    sms_result=sms_result,
                 )
-                sms_result = sms_outcome.get("sms_result")
-                magic_link_url = sms_outcome.get("magic_link_url")
-            await _fire_assignment_notification(
-                db,
-                assignment=out or doc,
-                event="new_assignment",
-                send_email_fn=send_email_fn,
-                magic_link_url=magic_link_url,
-                sms_result=sms_result,
-            )
-            # Re-read so the response carries delivery_log.
-            out = await db.dispatch_assignments.find_one(
-                {"id": assignment_id}, {"_id": 0},
-            )
-        except Exception as _notify_err:  # noqa: BLE001
-            logger.warning(f"[dispatch-create-notify] {_notify_err}")
+                # Re-read so the response carries delivery_log.
+                out = await db.dispatch_assignments.find_one(
+                    {"id": assignment_id}, {"_id": 0},
+                )
+            except Exception as _notify_err:  # noqa: BLE001
+                logger.warning(f"[dispatch-create-notify] {_notify_err}")
 
-        return {"ok": True, "assignment": out}
+            return {"ok": True, "assignment": out}
+
+        return await with_idempotency(db, key, actor, _do_create, workflow="dispatch_assignment")
+
 
     # ────────────────────────────────────────────────────────────────
     # LIST · BOARD · DETAIL (cross-portal read)

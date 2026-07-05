@@ -11,6 +11,18 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 22.4b-followup-Dispatch-Idempotency · 🟢 SHIPPED · CERTIFIED (2026-07-05)
+- **Mandate**: protect `/api/dispatch/assignments` (including Roll-Off) with the shared reservation-lock without touching Motive or weakening RBAC.
+- **Wrapped** `create_assignment` handler in `_do_create` + `with_idempotency(workflow="dispatch_assignment")`. Same-key concurrent retries → 1 assignment · 1 SMS side-effect · 1 notification fanout · 1 Trust Spine event · 1 audit row.
+- **Roll-Off certified** via canonical `haul_type="Roll-Off"` — 0 rows in legacy `roll_off_assignments` collection.
+- **Helper enhancement**: poll window bumped 10s → 30s for heavy-fanout handlers. Stale-sentinel reclaim unchanged.
+- **Motive protected**: no code path touched; posture reads remain outside the factory; stale-Motive ribbon behavior from Track 22.4a preserved; Integration Truth shape stable.
+- **RBAC unchanged**: anonymous 401; dispatch/admin still allowed.
+- **Regression suite**: `test_track_22_4b_followup_dispatch_idempotency.py` — 5 pass · 1 skip. Full sweep: **76 pass · 2 skip · 0 fail** across all 9 track backend test files.
+- **Closure memo:** `/app/memory/TRACK_22_4B_FOLLOWUP_DISPATCH_IDEMPOTENCY.md`.
+
+
+
 ## TRACK 22.4b-followup-Idempotency-Spine-Phase-2 · 🟢 SHIPPED · CERTIFIED (2026-07-05)
 - **Mandate:** adopt workflow-scoped reservation-lock idempotency on the 7 endpoints deferred in Phase 1. Start with P1 (Equipment Pre-Op/DVIR + Inspections), then P2 as scope allows. No fake green; endpoints that cannot be safely protected in-band must be classified with owner tracks.
 - **4 endpoints newly protected**: `/api/inspections` (P1) · `/api/equipment-inspections` (P1) · `/api/jhas` (P2) · `/api/qaqc-inspections` (P2).

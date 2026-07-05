@@ -188,10 +188,13 @@ async def with_idempotency(
         reservation_created = True
     except Exception as e:  # noqa: BLE001
         if "duplicate key" in str(e).lower():
-            # Another racer beat us to the reservation. Poll briefly
-            # for its response.
+            # Another racer beat us to the reservation. Poll for its
+            # response. The window is intentionally generous (30s at
+            # 250ms cadence) to accommodate handlers with heavy
+            # fan-out (SMS scheduling, notification fanout, Trust
+            # Spine emission, external API reads).
             import asyncio as _asyncio  # noqa: PLC0415
-            for _ in range(40):  # up to ~10s at 250ms
+            for _ in range(120):  # up to ~30s at 250ms
                 await _asyncio.sleep(0.25)
                 row = await db.idempotency_keys.find_one(
                     scope_filter,
