@@ -1,0 +1,33 @@
+route,component,portal,intended_role,guard,nav_source,reachable,broken,duplicate,stale_deprecated,visual_family,notes
+/,Home,Public,anonymous,none,root,YES,NO,NO,NO,masci-red,Landing tiles: Field · QAQC · Safety
+/sign-in,SignIn,Public,anonymous,none,SignInFooter,YES,NO,NO,NO,masci-red,Multi-portal auth entrypoint (verified 200)
+/admin,AdminOverview,Admin,admin,require_admin,AdminShell,YES,NO,NO,NO,masci-red,Redirected properly (via directory token)
+/admin/integration-truth,IntegrationTruth,Admin,admin_strict,require_admin_strict,AdminShell+domainMap,YES,NO,NO,NO,masci-red,NEW · Track 22.3 · verified
+/admin/ai-configuration,AdminAIConfiguration,Admin,admin_strict,require_admin_strict,AdminShell+domainMap,YES,NO,NO,NO,masci-red,verified
+/admin/deploy-readiness,AdminDeployReadiness,Admin,admin_strict,require_admin_strict,AdminShell,YES,NO,DUPLICATE_WITH_TRUST_SURFACE,NO,masci-red,Overlaps Integration Truth semantics
+/admin/system-health,SystemHealth,Admin,admin_strict,require_admin_strict,AdminShell,YES,NO,DUPLICATE_WITH_TRUST_SURFACE,NO,masci-red,Overlaps Integration Truth
+/admin/operations-trust,AdminOperationsTrustCenter,Admin,admin_strict,require_admin_strict,AdminShell,NOT_VERIFIED,NO,DUPLICATE_WITH_TRUST_SURFACE,NO,masci-red,Route referenced in code; not clicked in audit
+/pm,Redirect,PM,pm,require_pm,SignIn,YES,NO,NO,NO,masci-red,Redirects to /pm/command-center
+/pm/command-center,PmCommandCenter,PM,pm,require_pm,pm sidebar,YES,NO,NO,NO,masci-red,Section A/B layout is clear
+/pm/overview,PmOverview,PM,pm,require_pm,pm sidebar,NOT_VERIFIED,NO,DUPLICATE_WITH_COMMAND_CENTER,NO,masci-red,Sidebar shows Overview + Command Center — confirm intent
+/dispatch-portal,DispatchHub,Dispatch,dispatch,require_dispatch,SignIn,YES,NO,NO,NO,masci-red,Live map at top; banner shows 349 maintenance issues
+/dispatch-portal/map,OperationsCenterLiveMap,Dispatch,dispatch,require_dispatch,DispatchHub,YES,NO,NO,NO,masci-red,190/190 No Recent Position
+/operations-map,OperationsMap,Admin?,admin_strict?,unclear,unclear,NOT_VERIFIED,POSSIBLY,DUPLICATE_WITH_DISPATCH_MAP,POSSIBLY,masci-red,User flagged: dispatchers must NOT be sent to admin-only map
+/safety-portal,SafetyPortal,Safety,safety,require_safety,SignIn,YES,NO,NO,NO,masci-red,Cyan brand; queue-first layout
+/hr,HrPortal,HR,hr,require_hr,SignIn,YES,NO,NO,NO,masci-red,Purple brand; compliance-focused
+/shop,ShopHub,Shop,shop,require_shop,SignIn,YES,NO,NO,NO,masci-red,Orange brand; recovery-focused
+/leadership,LeadershipHub,Field Leadership,leadership_or_admin_or_pm,require_leadership,SignIn+public link,YES,NO,NO,NO,masci-red,Clean single-purpose card set
+/field-leadership/portal/dashboard,FieldLeadershipPortalDashboard,Field Leadership,fl,require_fl,SignIn (fl),NOT_VERIFIED,NO,POSSIBLY_DUPLICATE_WITH_LEADERSHIP,NO,masci-red,Two FL surfaces coexist per doctrine — verify
+/trench-safety,TrenchSafetyHome,Public+Safety,public+safety,none,Home tile + Safety hub,YES,NO,NO,NO,masci-red,Field-safe design; asset lookup + QR
+/jha,PublicJhaHub,Public,anonymous,none,Home,YES,NO,NO,NO,masci-red,Read-only reference
+/trench-boxes,PublicTrenchBoxes,Public,anonymous,none,unclear,NOT_VERIFIED,NO,NO,NO,masci-red,Not surfaced from home tiles in audit
+/cheatsheet,PublicCheatsheet,Public,anonymous,none,unclear,YES,NO,NO,NO,masci-red,Not linked from home tiles
+/daily/new,NewDailyReport,Public+Field,public,none,Home>Field tile,YES,NO,NO,NO,masci-red,Coaching tips + 9-photo minimum
+/inspect/new,NewInspection,Public+Field,public,none,Home>QAQC tile,NOT_VERIFIED,NO,NO,NO,masci-red,Not exercised
+/meetings/new,NewMeeting,Public+Field,public,none,unclear,NOT_VERIFIED,NO,NO,NO,masci-red,Not exercised
+/incidents/new,NewIncident,Public+Field,public,none,Home>Safety tile,NOT_VERIFIED,NO,NO,NO,masci-red,Not exercised
+/equipment/new,NewEquipmentInspection,Public+Field,public,none,unclear,NOT_VERIFIED,NO,NO,NO,masci-red,DVIR/PreOp
+/driver/*,DriverPortal,Driver,driver,require_driver,SignIn,NOT_VERIFIED,NO,NO,NO,masci-red,Deep audit deferred to Track 22.4b
+/daily-report-v2/*,DailyReportV2,DEAD,none,none,NONE,NO,NO,YES_DEAD_CODE,YES,masci-red,Dir /app/frontend/src/pages/daily-report-v2/ exists but routes removed per DR-UNIFY-003 · SAFE_TO_DELETE
+/dr-v2/*,DR-V2 alias family,Legacy backend,internal,varies,middleware,YES,NO,YES_ALIAS,YES_MIGRATION,masci-red,Telemetry active; retire under DR-UNIFY-005
+/executive/*,ExecutiveOperationalIntelligence,Admin?,admin?,unclear,unclear,NOT_VERIFIED,NO,POSSIBLY,POSSIBLY,masci-red,Handoff flagged ExecutiveOperationalIntelligence.jsx as orphan

@@ -1,0 +1,11 @@
+portal,visual_identity,typography,spacing,button_style,card_style,color_use,badges,header,sidebar,tables,forms,empty_states,alerts,icons,terminology,drift_level,notes
+Admin,masci-red on dark shell,consistent,consistent,pill+rounded,rounded-2xl bordered,slate+red accents,rounded-full uppercase,tall dark bar,V2 grouped domains,sticky headers,consistent,neutral slate,Lucide,consistent,UNIFIED,Sidebar V2 grouped is the platform standard
+PM,masci-red on dark shell,consistent,consistent,same,same,slate+red,same,same,V2 sidebar,same,same,same,Lucide,mostly consistent,MINOR_DRIFT,PM sidebar Overview vs Command Center duplication; mobile broken
+Safety,masci-red on dark shell w/ cyan accents,consistent,consistent,same,same,cyan-700 accent,orange/red for CAPAs,same,V2 sidebar,same,same,same,Lucide,consistent,UNIFIED,Cyan accent is intentional and works
+HR,masci-red on dark shell w/ purple accents,consistent,consistent,same,same,purple accent,same,same,V2 sidebar,same,same,same,Lucide,consistent,UNIFIED,Purple accent is intentional
+Dispatch,masci-red on dark shell,consistent,consistent,same,same,slate+red+amber,same,tall dark bar with search + KB shortcut,V2 sidebar,same,same,same,Lucide,consistent,UNIFIED,Dispatch integrated well; stale-data ribbon needed
+Shop,masci-red on dark shell w/ orange accents,consistent,consistent,same,same,orange accent,orange for defects,same,V2 sidebar,same,same,same,Lucide,consistent,UNIFIED,Orange accent intentional
+Field Leadership,masci-red on dark shell,consistent,consistent,same,same,red+green+purple by kind,same,same,No sidebar (single-view hub),same,same,same,Lucide,consistent,UNIFIED_BEST_IN_CLASS,Card-per-kind layout is a positive drift toward focus
+Trench Safety,masci-red header, dark chrome, cyan cyan hero,consistent,consistent,same,same,cyan+red+amber,same,tall dark bar,No sidebar (asset-lookup-first),grid cards,forms,same,Lucide,consistent,UNIFIED,Field-safe design; explicit safety copy
+Public Home,masci-red hero + dark shell,consistent,consistent,same,same,red+green+blue tile borders,same,minimal,None,None,None,None,Lucide,consistent,UNIFIED,Marketing-quality; ""One System"" hero
+Legacy DR V2 code dir,DEAD_CODE,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,N/A,contains ""V2"" and ""next generation"" copy per handoff,DRIFT_RESIDUAL,SAFE_TO_DELETE — DR-UNIFY-005 will remove

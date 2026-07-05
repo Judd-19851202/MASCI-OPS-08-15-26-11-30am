@@ -1,0 +1,14 @@
+route,role_tested,expected_behavior,observed_behavior,verdict,evidence
+/admin/integration-truth,anonymous,redirect to /admin/login,redirected to /admin/login,PASS,Playwright: url ended at /admin/login
+/api/admin/ai/keys/status,no_token,401 Admin login required,401 returned,PASS,Backend pytest test_endpoints_require_admin
+/api/admin/integrations/truth-status,no_token,401 Admin login required,401 returned,PASS,Backend pytest
+/api/admin/dr-v2-alias-telemetry,no_token,401 Admin login required,401 returned,PASS,Backend pytest
+/pm/*,pm token,PM-scoped data only,NOT_VERIFIED,NOT_VERIFIED,PM scope logic in pm_auth.compute_pm_scope but not exercised as pm-only user in this pass
+/shop/*,shop token,shop-scoped writes; admin can read,NOT_VERIFIED,NOT_VERIFIED,Pattern exists; not exercised
+/safety-portal/*,safety token,safety-only writes; admin can read,NOT_VERIFIED,NOT_VERIFIED,Not exercised
+/hr/*,hr token,hr-only writes; admin can read,NOT_VERIFIED,NOT_VERIFIED,Not exercised
+/dispatch-portal/*,dispatch token,dispatch-only writes; admin can read; ops-map should not require admin,NOT_VERIFIED,NOT_VERIFIED,User specifically flagged: verify dispatchers are NOT bounced to admin-only ops-map. Backend routes exist; not exercised.
+/operations-map (admin-only),admin token,admin sees, dispatch bounced,NOT_VERIFIED,NOT_VERIFIED,Handoff already noted as previously fixed but re-verification needed
+/leadership,leadership password (LEADERSHIP_PASSWORD),leadership-scoped read/write,PARTIAL_VERIFIED,PASS,Verified super-admin can see hub; per-role FL login not exercised
+Public surfaces (/, /trench-safety, /jha, /cheatsheet),anonymous,read-only + submit forms,PASS,PASS,All public surfaces reachable and role-limited
+Preview banner,any,visible on every page,PASS,PASS,Screenshots show ""PREVIEW ENVIRONMENT · DB: MASCI_SAFETY_PREVIEW"" banner across all portals

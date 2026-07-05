@@ -1,0 +1,13 @@
+surface,desktop_1920,tablet_1024,phone_390,notes
+/,PASS,NOT_VERIFIED,NOT_VERIFIED,Marketing hero + tiles; desktop verified
+/sign-in,PASS,NOT_VERIFIED,NOT_VERIFIED,Form-first; simple
+/admin,PASS,NOT_VERIFIED,NOT_VERIFIED,Sidebar dense
+/admin/integration-truth,PASS,NOT_VERIFIED,NOT_VERIFIED,Grid gracefully wraps; needs mobile verification
+/pm/command-center,PASS,NOT_VERIFIED,FAIL,Desktop layout fills 390px viewport; sidebar unusable
+/dispatch-portal/map,PASS,NOT_VERIFIED,FAIL,Map + status tiles overflow at 390px
+/safety-portal,PASS,NOT_VERIFIED,NOT_VERIFIED,Cyan brand consistent
+/hr,PASS,NOT_VERIFIED,NOT_VERIFIED,Purple brand consistent
+/shop,PASS,NOT_VERIFIED,NOT_VERIFIED,Orange brand consistent
+/leadership,PASS,NOT_VERIFIED,NOT_VERIFIED,Card grid should wrap well but not verified on 390px
+/trench-safety,PASS,NOT_VERIFIED,PASS,Field-safe design gracefully stacks at 390px
+/daily/new,PASS,NOT_VERIFIED,NOT_VERIFIED,Form has sticky top progress + bottom submit
