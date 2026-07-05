@@ -281,8 +281,8 @@ export default function PmOperationalIntelligence() {
           </div>
         </section>
 
-        {/* Wave 2 · Approved DR-V2 PDF export (PM · scoped) */}
-        <section data-testid="pm-drv2-approved-exports">
+        {/* DR-UNIFY-002 · Approved Daily Reports PDF export (PM · project-scoped) */}
+        <section data-testid="pm-approved-daily-reports">
           <HorizonHeader
             number={4}
             title="Approved Daily Reports"

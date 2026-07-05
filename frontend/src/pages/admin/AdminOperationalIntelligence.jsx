@@ -1,6 +1,12 @@
-// AdminOperationalIntelligence.jsx — Track 19.47.
+// AdminOperationalIntelligence.jsx — Track 19.47 · DR-UNIFY-002 amendment.
 // Cockpit UI over the existing Operational Intelligence engine.
 // Zero drift — no new engine, no fake data, no live-send default.
+//
+// DR-UNIFY-002 additive: renders the shared `ApprovedDailyReportsPanel`
+// at the bottom so admins can export the canonical English PDF of any
+// approved Daily Report (legacy + modern in one unified list). NO PDF
+// button on the field form — this remains the single management-side
+// export surface.
 //
 // Consumes:
 //   GET  /api/operational-intelligence/summary
@@ -8,6 +14,8 @@
 //   POST /api/operational-intelligence/{id}/dispatch?dry_run=true
 //   GET  /api/operational-intelligence/history
 //   GET  /api/operational-intelligence/audit
+//   GET  /api/daily-reports/approved                       (unified list)
+//   GET  /api/daily-reports/{id}/pdf                       (download)
 
 import React, { useEffect, useMemo, useState } from "react";
 import {
@@ -20,6 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
+import { DrV2ApprovedReportsPanel } from "@/components/DrV2ApprovedReportsPanel";
 
 const ATTENTION_COLORS = {
   LOW:      "bg-emerald-100 text-emerald-800 border-emerald-300",
@@ -634,6 +643,22 @@ export default function AdminOperationalIntelligence() {
             />
           )}
         </DrawerShell>
+
+        {/* DR-UNIFY-002 · Approved Daily Reports PDF export (unified legacy + modern) */}
+        <section
+          className="mt-6 space-y-3"
+          data-testid="admin-approved-daily-reports"
+        >
+          <div>
+            <div className="text-[10px] uppercase tracking-widest text-neutral-500">
+              Approved Daily Reports
+            </div>
+            <div className="text-sm text-neutral-700">
+              Canonical English PDF export · legacy + modern records in one list · management access only
+            </div>
+          </div>
+          <DrV2ApprovedReportsPanel audience="admin" />
+        </section>
       </div>
     </AdminShell>
   );

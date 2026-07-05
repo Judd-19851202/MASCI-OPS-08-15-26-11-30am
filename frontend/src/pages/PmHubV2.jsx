@@ -513,6 +513,10 @@ export default function PmHubV2() {
             <Link to="/pm/project-staffing" data-testid="pm-hub-v2-dest-staffing" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
               <Card title="Project Staffing" description="Your projects · team rosters · add Superintendents, Foremen, PEs, Safety, QA/QC — and more" status={<StatusChip statusKey="verified" compact label="Manage team" />} />
             </Link>
+            {/* DR-UNIFY-002 · PM Hub tile for the single PM Operational Intelligence surface. */}
+            <Link to="/pm/operational-intelligence" data-testid="pm-hub-v2-dest-operational-intelligence" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+              <Card title="Operational Intelligence" description="Project health · production · delays · safety · approved Daily Report PDF export" status={<StatusChip statusKey="verified" compact />} />
+            </Link>
           </div>
         </Section>
 

@@ -132,6 +132,7 @@ class _DB:
         self.dr_v2_drafts = _Coll()
         self.dr_v2_ai_audit_entries = _Coll()
         self.dr_v2_bilingual_audit = _Coll()
+        self.daily_reports = _Coll()
 
     def __getitem__(self, name):
         return getattr(self, name)
@@ -536,15 +537,15 @@ async def test_list_approved_pm_with_empty_scope_gets_empty_list():
 # ─────────────────── Wave 2 · Frontend static guardrails ─────────────────
 
 def test_wave2_panel_only_imported_on_management_dashboards():
-    """`DrV2ApprovedReportsPanel` must appear ONLY in the 3 management
-    dashboards. Not in the V2 field shell, not in V1, not in any
-    supervisor-facing surface."""
+    """`DrV2ApprovedReportsPanel` must appear ONLY in the 2 management
+    dashboards (PM · Admin). Not in the field form, not in V1, not in
+    any supervisor-facing surface. Executive is deferred until a real
+    Executive Portal exists."""
     from pathlib import Path
     src_root = Path("/app/frontend/src")
     allowed = {
         src_root / "pages" / "PmOperationalIntelligence.jsx",
-        src_root / "pages" / "AdminOperationalIntelligence.jsx",
-        src_root / "pages" / "ExecutiveOperationalIntelligence.jsx",
+        src_root / "pages" / "admin" / "AdminOperationalIntelligence.jsx",
         src_root / "components" / "DrV2ApprovedReportsPanel.jsx",
     }
     hits: List[Path] = []
@@ -560,13 +561,12 @@ def test_wave2_panel_only_imported_on_management_dashboards():
             f"DrV2ApprovedReportsPanel must NOT be mounted at {h} — "
             "only management-side dashboards may render the PDF export."
         )
-    # All 3 dashboards must actually contain the panel.
+    # PM + Admin dashboards must actually contain the panel.
     for required in [
         src_root / "pages" / "PmOperationalIntelligence.jsx",
-        src_root / "pages" / "AdminOperationalIntelligence.jsx",
-        src_root / "pages" / "ExecutiveOperationalIntelligence.jsx",
+        src_root / "pages" / "admin" / "AdminOperationalIntelligence.jsx",
     ]:
-        assert required in hits, f"Missing DR-V2 PDF export panel on {required}"
+        assert required in hits, f"Missing Approved Daily Reports panel on {required}"
 
 
 def test_wave2_panel_bans_ai_and_provider_language():

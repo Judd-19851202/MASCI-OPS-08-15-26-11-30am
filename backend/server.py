@@ -546,7 +546,7 @@ async def _require_hr_or_admin_for_queue(
     """Accept HR portal token OR Admin token. Returns an actor dict
     matching the multi-portal aggregator shape. Used by every deprecated
     `/api/admin/employees*` endpoint after Phase Alpha closures."""
-    if x_admin_token and _is_valid_admin_token(x_admin_token):
+    if x_admin_token and await _is_valid_directory_admin_token_async(x_admin_token):
         return {"_actor": "admin", "name": "Admin", "role": "admin"}
     if x_hr_token:
         from hr_users import is_valid_hr_user_token_async  # noqa: PLC0415
@@ -756,7 +756,7 @@ async def require_admin_pm_or_hr_read(
     `_actor_kind="hr_user"` so `compute_pm_scope` treats them as
     unrestricted readers. NEVER mount on mutation routes.
     """
-    if x_admin_token and _is_valid_admin_token(x_admin_token):
+    if x_admin_token and await _is_valid_directory_admin_token_async(x_admin_token):
         return True  # legacy admin sentinel — preserves existing handler contract
     if x_pm_token:
         if "." in x_pm_token:
@@ -2869,15 +2869,25 @@ from routes.daily_reports import (  # noqa: E402,F401
     DailyReport, DailyReportCreate, DailyReportSummary,
 )
 
+# ------------------------------------------------------------
+# DR-UNIFY-002 · Register the unified `/api/daily-reports/approved`
+# + `/api/daily-reports/{id}/pdf` aliases BEFORE `daily_reports.py`
+# so the literal `approved` segment takes precedence over the
+# `{report_id}` wildcard in FastAPI's ordered-match routing.
+# ------------------------------------------------------------
+from routes.dr_v2_pdf import register_dr_v2_pdf_routes  # noqa: E402
+from pm_auth import compute_pm_scope as _compute_pm_scope_for_dr_v2_pdf  # noqa: E402
+register_dr_v2_pdf_routes(
+    api_router, db,
+    require_admin_pm_or_hr_read=require_admin_pm_or_hr_read,
+    compute_pm_scope=_compute_pm_scope_for_dr_v2_pdf,
+)
+
 register_daily_reports_routes(
     api_router, db, require_admin, rate_limit_public_post,
     lambda kind, record: schedule_auto_email(kind, record),
     require_admin_pm_or_hr_read=require_admin_pm_or_hr_read,
 )
-
-
-# ============================================================
-# DR-ROI-001 · Phase C · Daily Report V2 (Operational Intelligence)
 # ------------------------------------------------------------
 # ADDITIVE mount. Zero drift on V1 daily_reports routes, models, or
 # collections. Feature-flag gated (DR_V2_AI_ENABLED). See
@@ -2889,18 +2899,9 @@ from routes.dr_v2_canonicalize import register_dr_v2_canonicalize_routes  # noqa
 register_dr_v2_canonicalize_routes(api_router, db)
 
 # ------------------------------------------------------------
-# DR-ROI-001F · Part 2 · V2 PDF Output
+# DR-ROI-001F · Part 2 · V2 PDF Output (already registered above via
+# DR-UNIFY-002 route-order fix; block retained as a doctrine anchor).
 # ------------------------------------------------------------
-# EN-only canonical PDF built from APPROVED source records. Admin +
-# PM (scoped) + HR-read. Field/supervisor surfaces are NOT wired to
-# this route — the field form remains PDF-button-free by contract.
-from routes.dr_v2_pdf import register_dr_v2_pdf_routes  # noqa: E402
-from pm_auth import compute_pm_scope as _compute_pm_scope_for_dr_v2_pdf  # noqa: E402
-register_dr_v2_pdf_routes(
-    api_router, db,
-    require_admin_pm_or_hr_read=require_admin_pm_or_hr_read,
-    compute_pm_scope=_compute_pm_scope_for_dr_v2_pdf,
-)
 
 # ============================================================
 # DR-ROI-001D · Photo Vision + Evidence Linking

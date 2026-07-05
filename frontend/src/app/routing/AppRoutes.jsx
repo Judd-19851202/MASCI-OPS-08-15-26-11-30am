@@ -2,11 +2,11 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 // AuthProvider removed 2026-04-28 — Crew Hub scrapped.
 import Hub from "@/pages/Hub";
-// DR-ROI-001 · Track B · Daily Report V2 shell (feature-flagged).
+// DR-UNIFY-001 · internal-only Daily Report shell (pilot opt-in · not user-facing).
 import DailyReportV2 from "@/pages/daily-report-v2/DailyReportV2";
 import PmOperationalIntelligence from "@/pages/PmOperationalIntelligence";
-import OdsAdminIntelligence from "@/pages/AdminOperationalIntelligence";
-import OdsExecutiveIntelligence from "@/pages/ExecutiveOperationalIntelligence";
+// DR-UNIFY-002 · `/admin/ods-intelligence` + `/executive/ods-intelligence` now redirect
+// to the canonical Admin OI surface — no separate imports required.
 // Track 15.67 Phase 3 · tenant-safe branding context for the whole app.
 import { BrandingProvider } from "@/lib/BrandingProvider";
 // Track 13.5A · Phase B1 — Internal design-system showcase (lazy, isolated).
@@ -1217,11 +1217,14 @@ export function AppRoutes() {
             <Route path="/_internal/hr-v2-preview" element={D(<HrV2Preview />)} />
             <Route path="/_internal/v2-index" element={D(<V2Index />)} />
             <Route path="/_internal/v2-compare/:portal" element={D(<V2Compare />)} />
-            {/* DR-ROI-001 · Track B · Daily Report V2 shell (feature-flagged). */}
+            {/* DR-UNIFY-001 · internal-only Daily Report shell (pilot opt-in). Not user-facing. */}
             <Route path="/daily-report/v2" element={<DailyReportV2 />} />
             <Route path="/pm/operational-intelligence" element={<PmOperationalIntelligence />} />
-            <Route path="/admin/ods-intelligence" element={<OdsAdminIntelligence />} />
-            <Route path="/executive/ods-intelligence" element={<OdsExecutiveIntelligence />} />
+            {/* DR-UNIFY-002 · orphaned duplicate collapsed into canonical Admin OI. */}
+            <Route path="/admin/ods-intelligence" element={<Navigate to="/admin/operational-intelligence" replace />} />
+            {/* DR-UNIFY-002 · speculative Executive surface — no real Executive Portal exists.
+                Deferred to a future track. Redirected to Admin OI so any old link stays useful. */}
+            <Route path="/executive/ods-intelligence" element={<Navigate to="/admin/operational-intelligence" replace />} />
             <Route path="*" element={<NotFound />} />
             {/* (catch-all is final) */}
           </Routes></React.Suspense>

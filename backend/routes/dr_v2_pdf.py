@@ -44,6 +44,14 @@ from pdf_render import render_record_pdf
 DRAFTS_COLL = "dr_v2_drafts"
 APPROVAL_ENTRIES_COLL = "dr_v2_ai_audit_entries"
 BILINGUAL_AUDIT_COLL = "dr_v2_bilingual_audit"
+LEGACY_COLL = "daily_reports"
+
+# Legacy `daily_reports` records are considered "approved" once they
+# have transitioned to any of these lifecycle states. Legacy records
+# without lifecycle metadata (pre-lifecycle deployment) are treated as
+# approved by virtue of being submitted at all — this matches how the
+# platform has always exposed them via /pm/daily and /admin/daily.
+LEGACY_APPROVED_STATES = {"approved", "submitted", "signed", "closed", "finalized"}
 
 
 # -----------------------------------------------------------------------------
@@ -281,23 +289,24 @@ def register_dr_v2_pdf_routes(
 ) -> None:
     """Attach `/api/dr-v2/reports/{report_id}/pdf` to the shared router."""
 
-    @api_router.get("/dr-v2/reports/approved")
-    async def dr_v2_list_approved(
-        limit: int = 50,
-        actor=Depends(require_admin_pm_or_hr_read),
-    ):
-        """DR-ROI-001F Part 2 · Wave 2 · management-side approved list.
+    async def _list_approved_impl(
+        limit: int,
+        actor: Any,
+    ) -> Dict[str, Any]:
+        """DR-UNIFY-002 · union of legacy `daily_reports` + modern
+        approved records into ONE list.
 
-        Returns the most recently approved DR-V2 reports the caller may
-        view. Scoping mirrors the PDF route exactly (admin → all, PM →
-        assigned projects, HR-read → all-read). Field/supervisor
-        surfaces are NEVER hit by this call by contract.
+        Each row carries a `source` badge: `"legacy"` or `"modern"`.
+        Scoping mirrors the PDF route (admin → all, PM → assigned
+        projects, HR-read → all-read).
         """
         limit = max(1, min(int(limit or 50), 200))
 
-        # Resolve scope up front so we can push the filter into Mongo.
+        # ── Scope resolution ────────────────────────────────────────
         pm_project_filter: Optional[Dict[str, Any]] = None
-        if isinstance(actor, dict) and actor.get("_actor_kind") != "hr_user":
+        is_admin = actor is True
+        is_hr = isinstance(actor, dict) and actor.get("_actor_kind") == "hr_user"
+        if not is_admin and not is_hr and isinstance(actor, dict):
             scope = await compute_pm_scope(db, actor)
             if not scope.is_admin:
                 nums = list(scope.project_numbers or [])
@@ -305,91 +314,209 @@ def register_dr_v2_pdf_routes(
                     return {"items": []}
                 pm_project_filter = {"$in": nums}
 
-        # Pull recent accept entries first (unique-by-report_id).
+        items: List[Dict[str, Any]] = []
+
+        # ── Modern approvals (dr_v2_drafts + accept audit entry) ────
         recent_accepts_cursor = (
             db[APPROVAL_ENTRIES_COLL]
             .find({"action": "accept"}, {"_id": 0, "report_id": 1, "ts": 1})
             .sort("ts", -1)
-            .limit(limit * 3)  # over-fetch to dedupe
+            .limit(limit * 3)
         )
-        seen: set = set()
-        report_ids: List[str] = []
-        latest_ts: Dict[str, str] = {}
+        seen_modern: set = set()
+        modern_ids: List[str] = []
+        modern_ts: Dict[str, str] = {}
         async for entry in recent_accepts_cursor:
             rid = entry.get("report_id")
-            if not rid or rid in seen:
+            if not rid or rid in seen_modern:
                 continue
-            seen.add(rid)
-            latest_ts[rid] = entry.get("ts") or ""
-            report_ids.append(rid)
-            if len(report_ids) >= limit:
+            seen_modern.add(rid)
+            modern_ts[rid] = entry.get("ts") or ""
+            modern_ids.append(rid)
+            if len(modern_ids) >= limit:
                 break
 
-        if not report_ids:
-            return {"items": []}
+        if modern_ids:
+            draft_query: Dict[str, Any] = {"report_id": {"$in": modern_ids}}
+            if pm_project_filter is not None:
+                draft_query["$or"] = [
+                    {"project_number": pm_project_filter},
+                    {"day_setup.project_number": pm_project_filter},
+                ]
+            async for d in db[DRAFTS_COLL].find(
+                draft_query,
+                {
+                    "_id": 0,
+                    "report_id": 1,
+                    "project_number": 1,
+                    "report_date": 1,
+                    "day_setup": 1,
+                    "field_language": 1,
+                },
+            ):
+                setup = d.get("day_setup") or {}
+                items.append({
+                    "id": d.get("report_id"),
+                    "source": "modern",
+                    "report_id": d.get("report_id"),
+                    "project_number": setup.get("project_number") or d.get("project_number") or "",
+                    "project_name": setup.get("project_name") or "",
+                    "report_date": d.get("report_date") or setup.get("report_date") or "",
+                    "supervisor_name": setup.get("supervisor_name") or "",
+                    "field_language": d.get("field_language") or "en",
+                    "approved_at": modern_ts.get(d.get("report_id"), ""),
+                })
 
-        draft_query: Dict[str, Any] = {"report_id": {"$in": report_ids}}
+        # ── Legacy approvals (daily_reports collection) ─────────────
+        legacy_query: Dict[str, Any] = {}
         if pm_project_filter is not None:
-            # Filter at read time by BOTH known project_number locations
-            # (top-level shortcut + day_setup nested key).
-            draft_query["$or"] = [
-                {"project_number": pm_project_filter},
-                {"day_setup.project_number": pm_project_filter},
-            ]
-
-        drafts_cursor = db[DRAFTS_COLL].find(
-            draft_query,
-            {
-                "_id": 0,
-                "report_id": 1,
-                "project_number": 1,
-                "report_date": 1,
-                "day_setup": 1,
-                "field_language": 1,
-            },
+            legacy_query["project_number"] = pm_project_filter
+        # We include ALL legacy records; lifecycle state is optional
+        # (pre-lifecycle records don't have `state` set). This matches
+        # the existing /pm/daily and /admin/daily listing semantics.
+        legacy_cursor = (
+            db[LEGACY_COLL]
+            .find(
+                legacy_query,
+                {
+                    "_id": 0,
+                    "id": 1,
+                    "doc_id": 1,
+                    "report_number": 1,
+                    "project_number": 1,
+                    "project_name": 1,
+                    "report_date": 1,
+                    "prepared_by": 1,
+                    "superintendent": 1,
+                    "created_at": 1,
+                    "updated_at": 1,
+                    "state": 1,
+                    "lifecycle": 1,
+                },
+            )
+            .sort([("report_date", -1), ("created_at", -1)])
+            .limit(limit)
         )
-        items: List[Dict[str, Any]] = []
-        async for d in drafts_cursor:
-            setup = d.get("day_setup") or {}
+        async for d in legacy_cursor:
+            # Honor lifecycle gating when present; otherwise fall back
+            # to "any submitted record is visible" so pre-lifecycle
+            # documents keep flowing through the unified list.
+            state = d.get("state") or (d.get("lifecycle") or {}).get("state")
+            if state and state not in LEGACY_APPROVED_STATES:
+                continue
+            rid = d.get("id") or d.get("doc_id") or d.get("report_number")
+            if not rid:
+                continue
             items.append({
-                "report_id": d.get("report_id"),
-                "project_number": setup.get("project_number") or d.get("project_number") or "",
-                "project_name": setup.get("project_name") or "",
-                "report_date": d.get("report_date") or setup.get("report_date") or "",
-                "supervisor_name": setup.get("supervisor_name") or "",
-                "field_language": d.get("field_language") or "en",
-                "approved_at": latest_ts.get(d.get("report_id"), ""),
+                "id": rid,
+                "source": "legacy",
+                "report_id": rid,
+                "project_number": d.get("project_number") or "",
+                "project_name": d.get("project_name") or "",
+                "report_date": d.get("report_date") or "",
+                "supervisor_name": d.get("prepared_by") or d.get("superintendent") or "",
+                "field_language": "en",
+                "approved_at": d.get("updated_at") or d.get("created_at") or d.get("report_date") or "",
             })
 
-        # Preserve accept-time ordering (most recent first).
+        # Newest first across both sources.
         items.sort(key=lambda it: it.get("approved_at") or "", reverse=True)
-        return {"items": items}
+        return {"items": items[:limit]}
+
+    @api_router.get("/dr-v2/reports/approved")
+    async def dr_v2_list_approved(
+        limit: int = 50,
+        actor=Depends(require_admin_pm_or_hr_read),
+    ):
+        """Legacy path — retained for internal callers. Same contract
+        as `/api/daily-reports/approved` (the canonical alias)."""
+        return await _list_approved_impl(limit, actor)
+
+    @api_router.get("/daily-reports/approved")
+    async def daily_reports_list_approved(
+        limit: int = 50,
+        actor=Depends(require_admin_pm_or_hr_read),
+    ):
+        """DR-UNIFY-002 canonical alias · union of legacy + modern
+        approved Daily Reports for management-side export."""
+        return await _list_approved_impl(limit, actor)
 
     @api_router.get("/dr-v2/reports/{report_id}/pdf")
     async def dr_v2_report_pdf(
         report_id: str = Path(..., min_length=1),
         actor=Depends(require_admin_pm_or_hr_read),
     ):
-        # 1. Load the draft.
+        return await _render_pdf_impl(report_id, actor)
+
+    @api_router.get("/daily-reports/{report_id}/pdf")
+    async def daily_reports_pdf(
+        report_id: str = Path(..., min_length=1),
+        actor=Depends(require_admin_pm_or_hr_read),
+    ):
+        """DR-UNIFY-002 canonical alias · dispatches to modern or
+        legacy renderer based on which collection owns the id."""
+        return await _render_pdf_impl(report_id, actor)
+
+    async def _render_pdf_impl(report_id: str, actor: Any):
+        # 1. Look up the report in BOTH collections. Modern
+        # `dr_v2_drafts` wins if both exist (should not happen in
+        # practice — ids are namespaced).
         draft = await db[DRAFTS_COLL].find_one({"report_id": report_id}, {"_id": 0})
+        legacy = None
         if not draft:
-            raise HTTPException(status_code=404, detail="draft not found")
+            legacy = await db[LEGACY_COLL].find_one(
+                {"$or": [
+                    {"id": report_id},
+                    {"doc_id": report_id},
+                    {"report_number": report_id},
+                ]},
+                {"_id": 0},
+            )
+        if not draft and not legacy:
+            raise HTTPException(status_code=404, detail="report not found")
+
+        record_project = (
+            (draft or {}).get("day_setup", {}).get("project_number")
+            or (draft or {}).get("project_number")
+            or (legacy or {}).get("project_number")
+            or ""
+        )
 
         # 2. Enforce PM scope. Admin sentinel (True) and HR actor
         # (`_actor_kind == "hr_user"`) bypass this check.
         if isinstance(actor, dict) and actor.get("_actor_kind") != "hr_user":
             scope = await compute_pm_scope(db, actor)
-            project = (
-                (draft.get("day_setup") or {}).get("project_number")
-                or draft.get("project_number")
-                or ""
-            )
-            if not scope.allows(project):
-                # Match the 404 pattern used elsewhere so PMs can't
-                # enumerate reports outside their scope.
-                raise HTTPException(status_code=404, detail="draft not found")
+            if not scope.allows(record_project):
+                raise HTTPException(status_code=404, detail="report not found")
 
-        # 3. Require at least one accept in the audit trail.
+        # 3. Legacy path — render directly (no approval gate; the
+        # legacy record IS the approved record by virtue of being
+        # submitted, matching current V1 PDF email pipeline behavior).
+        if legacy:
+            try:
+                pdf_bytes = render_record_pdf("daily-report", legacy)
+            except Exception as ex:  # noqa: BLE001
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"PDF render failed: {type(ex).__name__}",
+                ) from ex
+            filename = f"MASCI_Daily_Report_{report_id}.pdf"
+            rendered_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            return Response(
+                content=pdf_bytes,
+                media_type="application/pdf",
+                headers={
+                    "Content-Disposition": f'inline; filename="{filename}"',
+                    "X-Content-Type-Options": "nosniff",
+                    "X-Daily-Report-Id": report_id,
+                    "X-Daily-Report-Source": "legacy",
+                    "X-Daily-Report-Rendered-At": rendered_at,
+                    "X-Daily-Report-Canonical-Language": "en",
+                    "Cache-Control": "no-store",
+                },
+            )
+
+        # 4. Modern path — require an accept entry.
         accept = await _latest_accept_entry(db, report_id)
         if not accept:
             raise HTTPException(
@@ -397,13 +524,10 @@ def register_dr_v2_pdf_routes(
                 detail="report is not yet approved; PDF export blocked",
             )
 
-        # 4. Canonicalize to English if the draft was submitted in ES.
+        # 5. Canonicalize ES → EN if needed.
         canonical = await _canonical_draft(db, report_id, draft)
 
-        # 5. Try to pick up the supervisor-edited "Daily Operational
-        # Summary" from the accept entry (if the supervisor used
-        # `action=edit` before `accept`, the edited narrative rides the
-        # last audit entry).
+        # 6. Pick up supervisor-edited summary.
         accepted_summary = ""
         edit_entry = await db[APPROVAL_ENTRIES_COLL].find_one(
             {"report_id": report_id, "edited_narrative": {"$exists": True, "$ne": None}},
@@ -415,7 +539,7 @@ def register_dr_v2_pdf_routes(
         if not accepted_summary:
             accepted_summary = (canonical.get("accepted_summary") or "").strip() if isinstance(canonical.get("accepted_summary"), str) else ""
 
-        # 6. Map to V1 record shape and render via the platform PDF pipe.
+        # 7. Map to V1 record shape and render.
         record = _v2_to_v1_daily_record(canonical, accepted_summary=accepted_summary)
         try:
             pdf_bytes = render_record_pdf("daily-report", record)
@@ -433,6 +557,12 @@ def register_dr_v2_pdf_routes(
             headers={
                 "Content-Disposition": f'inline; filename="{filename}"',
                 "X-Content-Type-Options": "nosniff",
+                "X-Daily-Report-Id": report_id,
+                "X-Daily-Report-Source": "modern",
+                "X-Daily-Report-Rendered-At": rendered_at,
+                "X-Daily-Report-Canonical-Language": "en",
+                # Retain legacy headers for backwards compatibility
+                # with any existing internal caller reading them.
                 "X-Dr-V2-Report-Id": report_id,
                 "X-Dr-V2-Rendered-At": rendered_at,
                 "X-Dr-V2-Canonical-Language": "en",

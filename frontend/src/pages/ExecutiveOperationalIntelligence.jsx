@@ -6,7 +6,6 @@ import {
   PresetPicker, HorizonHeader, KpiTile, AttentionList,
   EmptyEvidence, EvidenceFooter,
 } from "@/components/ods/HorizonPrimitives";
-import { DrV2ApprovedReportsPanel } from "@/components/DrV2ApprovedReportsPanel";
 
 /**
  * DR-ROI-001E · Executive Operational Intelligence.
@@ -202,16 +201,8 @@ export default function ExecutiveOperationalIntelligence() {
           </div>
         </section>
 
-        {/* Wave 2 · Approved DR-V2 PDF export (Exec · portfolio-wide) */}
-        <section data-testid="exec-drv2-approved-exports">
-          <HorizonHeader
-            number={4}
-            title="Approved Daily Reports"
-            subtitle="Canonical English PDF export · management access only"
-            testid="exec-horizon-4-header"
-          />
-          <DrV2ApprovedReportsPanel audience="exec" />
-        </section>
+        {/* DR-UNIFY-002 · Executive surface deferred until real Executive Portal exists.
+            The Approved Daily Reports panel lives on the PM + Admin dashboards. */}
 
         <EvidenceFooter />
       </div>
