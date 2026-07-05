@@ -212,6 +212,26 @@ class MeetingCreate(BaseModel):
             raise ValueError("conducted_by is required — a Safety Meeting must record who led it")
         return v
 
+    @field_validator("topic")
+    @classmethod
+    def _topic_required(cls, v: str) -> str:
+        # TRACK 22.4b-followup-Safety · B-02 closure.
+        # A Safety Meeting record without a subject/topic is a data-
+        # integrity violation — reject on the write path so it can
+        # never enter the collection again.
+        v = (v or "").strip()
+        if not v:
+            raise ValueError("topic is required — a Safety Meeting must record its subject")
+        return v
+
+    @field_validator("project_name")
+    @classmethod
+    def _project_name_required(cls, v: str) -> str:
+        v = (v or "").strip()
+        if not v:
+            raise ValueError("project_name is required — a Safety Meeting must record its project")
+        return v
+
 
 class Meeting(MeetingCreate):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))

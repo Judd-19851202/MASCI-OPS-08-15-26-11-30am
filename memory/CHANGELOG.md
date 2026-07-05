@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## 2026-07-05 — TRACK 22.4b-followup-Safety · 🟢 SHIPPED · B-02 + B-04 CLOSED
+
+Shared PVI validation seam wired into all Safety + Shop role guards; B-02 (Safety Meeting subject/company nulls) and B-04 (Trench repair lifecycle) both certified.
+
+- **Shared seam (rewritten)**: `backend/routes/role_guard_validation_seam.py` → single async helper `try_validation_fallback(db, token, expected_role)`. Called from `_require_safety_token`, `_require_safety_or_admin`, `_require_shop_or_admin_fleet`, and `require_shop_or_admin` (server.py). One PVI verification code path; real production auth still runs first. See `memory/TRACK_22_4B_FOLLOWUP_SAFETY.md` §2.
+- **B-02 CLOSED** (`memory/TRACK_22_4B_FOLLOWUP_SAFETY.md` §3):
+  - `MeetingCreate` — added `_topic_required` + `_project_name_required` field validators.
+  - `lib/meeting_identity.py :: normalize_meeting_attendees` — added name-based MASCI employee promotion (no more silent `company=""` on typed MASCI names).
+  - `backend/scripts/backfill_b02_meeting_nulls.py` — idempotent, dry-run capable legacy corpus repair. Applied to preview: repaired 46 attendees (3 via employee_id + 43 via name), flagged 123 as `needs_review`, 0 fabrications.
+  - Post-fix DB: 0 MASCI attendees w/ empty company · 0 attendees w/o attendee_type · 0 null topics.
+- **B-04 CLOSED** (`memory/TRACK_22_4B_FOLLOWUP_SAFETY.md` §4): live curl + pytest — Shop PVI 401 on `/verify` and `/holds/*/clear`, Repair Complete lands asset in Inspection Hold (NOT Available), Safety verify+`reinspection_passed=true` returns asset to Available.
+- **Regression tests**: 3 new files, 23 new tests (11 seam · 6 B-02 · 6 B-04). Full suite: **36 passed in 25.91s**.
+- **Doctrine held**: Motive routes untouched · production RBAC never weakened · no new dashboards / no V2 workflows · no fake green · no fabrication.
+
+
+
 ## 2026-07-05 — TRACK 22.4b-followup · Preview Validation Identities · 🟢 SHIPPED
 
 Preview-only control plane for role-scoped workflow verification. Hard-disabled in production.

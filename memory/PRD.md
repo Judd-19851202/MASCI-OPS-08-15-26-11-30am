@@ -11,6 +11,17 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 22.4b-followup-Safety · 🟢 SHIPPED · CERTIFIED (2026-07-05)
+- **Mandate:** wire the preview validation seam into every Safety/Shop guard, then close B-02 (Meeting subject/company nulls) and B-04 (Trench repair lifecycle role invariants). No fabrication, no fake green.
+- **P0 seam bug reproduced + fixed** — the initial wire had inline fallback in only 2 of 4 relevant guards. Now: single async helper `try_validation_fallback(db, token, expected_role)` in `backend/routes/role_guard_validation_seam.py`, wired into `_require_safety_token`, `_require_safety_or_admin`, `_require_shop_or_admin_fleet`, and server.py `require_shop_or_admin`.
+- **B-02 CLOSED** — write-time validators reject empty topic/project_name; `normalize_meeting_attendees` now attempts name-based MASCI lookup; idempotent legacy backfill repaired 46 meetings (3 via employee_id, 43 via name) and flagged 123 attendees for admin review. Post-fix invariants: 0 MASCI attendees with empty company · 0 untagged attendees · 0 null topics.
+- **B-04 CERTIFIED** — end-to-end with live PVI tokens on live routes: Shop CAN open/complete repair · Shop CANNOT verify · Shop CANNOT clear Safety Hold · Repair Complete lands asset in **Inspection Hold** (NOT Available) · Safety verify with `reinspection_passed=true` returns asset to **Available** · Safety CAN clear Safety Hold.
+- **36 regression tests pass** in `/app/backend/tests/test_track_22_4b_followup_{safety_seam,safety_b02,safety_b04,validation_identities}.py`.
+- **Doctrine held:** Motive untouched · production RBAC never weakened · no new dashboards / no V2 workflows.
+- **Closure memo:** `/app/memory/TRACK_22_4B_FOLLOWUP_SAFETY.md`. Defect register updated with `CLOSED` rows + evidence.
+
+
+
 ## TRACK 22.4b-followup · Preview Validation Identities · 🟢 SHIPPED (2026-07-05)
 
 Preview-only control plane for minting short-lived role tokens used to unblock role-scoped workflow verification. Hard-disabled in production. Super-admin only. Every token auto-expires (max 24h · default 4h) and is instantly revocable. Every mint/revoke is audited; raw tokens never persisted.

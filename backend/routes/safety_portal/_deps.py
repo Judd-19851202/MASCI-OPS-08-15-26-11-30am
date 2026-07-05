@@ -8,6 +8,7 @@ from fastapi import Header, HTTPException, Request
 
 from auth_must_change import enforce_password_change_required
 from safety_users import is_valid_safety_user_token_async
+from routes.role_guard_validation_seam import try_validation_fallback
 
 
 def make_require_safety_token(db) -> Callable[..., Awaitable[dict]]:
@@ -17,11 +18,16 @@ def make_require_safety_token(db) -> Callable[..., Awaitable[dict]]:
     async def _require_safety_token(request: Request) -> dict:
         token = request.headers.get("X-Safety-Token", "")
         user = await is_valid_safety_user_token_async(db, token)
-        if not user:
-            raise HTTPException(401, "Safety auth required")
-        # Track 15.14A Layer 3 — temp-password backstop.
-        enforce_password_change_required(request, user)
-        return user
+        if user:
+            # Track 15.14A Layer 3 — temp-password backstop.
+            enforce_password_change_required(request, user)
+            return user
+        # TRACK 22.4b-followup-Safety · preview-only PVI fallback.
+        # Never reached in production (helper is env-guarded).
+        pvi = await try_validation_fallback(db, token, expected_role="safety")
+        if pvi:
+            return pvi
+        raise HTTPException(401, "Safety auth required")
 
     return _require_safety_token
 
@@ -47,33 +53,13 @@ def make_require_safety_or_admin(
         if x_admin_token and is_valid_admin_token and is_valid_admin_token(x_admin_token):
             return {"_actor": "admin", "name": "Admin"}
         # TRACK 22.4b-followup-Safety · preview-only validation fallback.
-        # Runs ONLY after the real safety/admin path has failed, ONLY in
-        # preview-class environments with the explicit
-        # ENABLE_PREVIEW_VALIDATION_IDENTITIES=true flag, and ONLY when
-        # the caller provided a role-shaped token. Never accepts admin
-        # tokens for the fallback. Role must match "safety" exactly.
-        if x_safety_token:
-            try:
-                from routes.preview_validation_identities import (  # noqa: PLC0415
-                    verify_validation_token,
-                    is_preview_validation_available,
-                )
-                if is_preview_validation_available():
-                    identity = await verify_validation_token(
-                        db, x_safety_token, expected_role="safety",
-                    )
-                    if identity:
-                        return {
-                            "_actor": "validation:safety",
-                            "validation_identity": True,
-                            "validation_identity_id": identity.get("validation_identity_id"),
-                            "validation_track": identity.get("validation_track"),
-                            "role": "safety",
-                            "name": identity.get("display_name") or "validation:safety",
-                            "no_real_operational_effect": True,
-                        }
-            except Exception:  # noqa: BLE001
-                pass
+        # Runs ONLY after the real safety/admin path has failed. Delegates
+        # to the shared seam helper which enforces preview-env + feature
+        # flag + role-match at the token layer. Never accepts admin
+        # tokens for the fallback.
+        pvi = await try_validation_fallback(db, x_safety_token, expected_role="safety")
+        if pvi:
+            return pvi
         raise HTTPException(401, "Safety or Admin auth required")
 
     return _require_safety_or_admin

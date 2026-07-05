@@ -89,6 +89,33 @@ async def normalize_meeting_attendees(
         async for emp in cursor:
             valid_ids[emp.get("id")] = emp
 
+    # TRACK 22.4b-followup-Safety · B-02 closure — name-based fallback.
+    # A manual attendee (no employee_id, non_masci=False) whose typed
+    # name matches an active MASCI employee (case-insensitive, trimmed)
+    # was previously stored with company="" and marked "needs_review".
+    # That produced the null-company legacy corpus (43 meetings, 160
+    # attendees as of TRACK 22.4b-followup-Safety). We now attempt a
+    # name lookup and, when unique, promote the row to a resolved
+    # employee row with company locked to the tenant name.
+    candidate_names = {
+        (a.get("name") or "").strip().lower()
+        for a in attendees
+        if isinstance(a, dict)
+        and not (a.get("employee_id") or "").strip()
+        and not bool(a.get("non_masci"))
+        and (a.get("name") or "").strip()
+    }
+    name_to_emps: dict[str, list[dict]] = {}
+    if candidate_names:
+        cursor = db.employees.find(
+            {"name": {"$exists": True}, "is_active": {"$ne": False}},
+            {"_id": 0, "id": 1, "name": 1, "trade": 1, "role": 1, "position": 1},
+        )
+        async for emp in cursor:
+            key = ((emp.get("name") or "").strip().lower())
+            if key and key in candidate_names:
+                name_to_emps.setdefault(key, []).append(emp)
+
     seen_employee_ids: set[str] = set()
     seen_subcontractor_signatures: set[tuple[str, str]] = set()
     out: list[dict] = []
@@ -101,6 +128,14 @@ async def normalize_meeting_attendees(
         eid = (row.get("employee_id") or "").strip()
         non_masci = bool(row.get("non_masci"))
         emp = valid_ids.get(eid) if eid else None
+        # Name-based promotion (only if no employee_id and non_masci=False).
+        if emp is None and not eid and not non_masci:
+            key = (row.get("name") or "").strip().lower()
+            matches = name_to_emps.get(key) or []
+            if len(matches) == 1:
+                emp = matches[0]
+                eid = emp.get("id") or ""
+                row["employee_id"] = eid
 
         if emp and not non_masci:
             # ─── Roster-resolved MASCI employee ───────────────────────

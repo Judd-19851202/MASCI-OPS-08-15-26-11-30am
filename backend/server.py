@@ -618,6 +618,15 @@ async def require_shop_or_admin(
             # assigned jobs, and 404 every record fetch. Fixed iter69.
             enforce_password_change_required(request, user)
             return {**user, "_actor_kind": "shop_user"}
+    # TRACK 22.4b-followup-Safety · preview-only PVI shop fallback.
+    # Only fires when real auth failed AND caller offered a shop token
+    # AND we are in a preview-class env with the feature flag on. Never
+    # runs on the admin namespace (guarded above).
+    if x_shop_token:
+        from routes.role_guard_validation_seam import try_validation_fallback
+        pvi = await try_validation_fallback(db, x_shop_token, expected_role="shop")
+        if pvi:
+            return {**pvi, "_actor_kind": "shop_user"}
     raise HTTPException(status_code=401, detail="Shop, PM, or admin login required")
 
 
