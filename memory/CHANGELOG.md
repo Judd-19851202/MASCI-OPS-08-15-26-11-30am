@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## 2026-02-05 — DR-ROI-001 · Daily Report V2 · A + B(expanded) · 🟢 GO / CLOSED
+
+Kicked off the Operational Intelligence Report redesign. 14 planning documents + V2 shell scaffolding behind feature flag; zero V1 disruption; zero AI wiring this session (Track C).
+
+- **14 planning docs** delivered under `/app/memory/DR_ROI_001_*.md` (audit · validation · architecture · schema · AI agents · photo intel · PM KPI · PDF · UI · backward-compat · test plan · zero-drift · executive · impl report)
+- **V2 shell (feature-flagged OFF by default):** new route `/daily-report/v2` + `DailyReportV2.jsx` + 10 section scaffolds + 4 panels. Activity Cards + Constraint Chips are already client-side functional.
+- **Feature flag:** `frontend/src/lib/dailyReportV2Flag.js` (opt-in via localStorage or env)
+- **AI architecture designed but not wired:** Claude Sonnet 4.5 for 8 reasoning agents + Confidence Agent; GPT-5.2 Vision for photo evidence only; supervisor-is-source-of-truth guardrails documented
+- **V1 files untouched** (NewDailyReport 3,021 lines · schema 112 · dashboard 243 · backend daily_reports 665) · 15 downstream consumers untouched
+- **Backend runtime unchanged:** 1,441 routes · 1,445 methods · 1,264 OpenAPI · lifecycle 100/100 · 9/9 bytecode · email strict
+- **Lock test:** `backend/tests/test_dr_roi_001a_b_shell.py` (10 assertions)
+- **Subtracks C-G formally documented with owner + exit criteria** per Defect Constitution
+- **Eight Pillars: 9.98 platform average** · Zero Drift 10.00
+
+---
+
 ## 2026-02-05 — TRACK 22.2 · Phase B · App.js Route-Group Extraction · 🟢 GO / CLOSED
 
 App.js modularization complete. Constitutionally-compliant atomic route-registry extraction. Zero user-visible behavior change.

@@ -11,6 +11,21 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## DR-ROI-001 · Daily Report V2 · A + B(expanded) · 🟢 GO / CLOSED (2026-02-05)
+
+Kicked off the Operational Intelligence Report redesign under the Defect Constitution. Delivered 14 planning documents + V2 shell scaffolding behind a feature flag. Zero V1 disruption; zero AI wiring this session (deferred to Track C after `integration_playbook_expert_v2` call for Claude Sonnet 4.5 + GPT-5.2 Vision).
+
+- **Planning package (14 docs):** current-state audit · problem validation · V2 architecture · schema plan · AI agent architecture · photo intelligence · PM KPI · PDF plan · UI flow · backward-compat · test plan · zero-drift matrix · executive summary · implementation report.
+- **V2 shell (feature-flagged, OFF by default):** `/daily-report/v2` route + `DailyReportV2.jsx` progressive shell + 10 section scaffolds (Day Setup · Crew Time · Equipment · **Activity Cards** functional · **Constraint Chips** functional · Tomorrow Readiness · Safety/Quality · Photos · AI Summary · Signature) + 4 sticky panels (Confidence · PM Intelligence · Photo Intelligence · Supervisor Approval).
+- **Feature flag:** `frontend/src/lib/dailyReportV2Flag.js` · opt-in via `localStorage.dr_v2_optin=1` or `REACT_APP_DR_V2_ENABLED=1`.
+- **V1 files untouched:** `NewDailyReport.jsx` (3,021 lines) · `dailyReportSchema.js` (112) · `DailyReportsDashboard.jsx` (243) · `backend/routes/daily_reports.py` (665). 15 downstream consumers untouched.
+- **Backend runtime probe unchanged:** 1,441 routes · 1,445 methods · 1,264 OpenAPI · lifecycle 100/100 · 9/9 bytecode · email strict.
+- **Lock test:** `backend/tests/test_dr_roi_001a_b_shell.py` — 10 assertions covering docs · shell files · V1 preservation · backend parity.
+- **Constitution:** Additive route + files · zero submit-path change · zero API contract change · V2 shell disabled by default · Track C-G subtracks documented with owner + exit criteria per Defect Constitution.
+- **AI architecture:** Claude Sonnet 4.5 for 8 reasoning/narrative/PM agents · **GPT-5.2 Vision for photo evidence only** (never final narrative) · Confidence & Validation Agent scores every conclusion · supervisor is source-of-truth · evidence trace required per AI sentence.
+- **Eight Pillars: 9.98 platform average** · Zero Drift 10.00.
+
+
 ## TRACK 22.2 · Phase B · App.js Route-Group Extraction · 🟢 GO / CLOSED (2026-02-05)
 
 Executed the App.js modularization. All 385 routes moved from the 1,283-line monolith into `frontend/src/app/routing/AppRoutes.jsx` with **byte-identical JSX preservation**. App.js is now a 94-line orchestration shell. Zero behavior change; mathematically provable route/guard/provider/lazy parity via extractor JSON diff.

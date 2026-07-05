@@ -1,71 +1,71 @@
 {
   "source_file": "/app/frontend/src/App.js",
-  "source_size_bytes": 95644,
-  "source_lines": 1323,
+  "source_size_bytes": 95936,
+  "source_lines": 1327,
   "counts": {
-    "eager_imports": 157,
+    "eager_imports": 158,
     "lazy_imports": 180,
     "guards": 11,
-    "routes": 385,
+    "routes": 386,
     "providers": 1,
     "chrome_components": 15,
     "dead_import_candidates": 0,
     "duplicate_paths": 0,
-    "unique_paths": 385
+    "unique_paths": 386
   },
   "guards": [
     {
-      "line": 500,
+      "line": 502,
       "alias": "A",
       "component": "RequireAdmin"
     },
     {
-      "line": 505,
+      "line": 507,
       "alias": "TX",
       "component": "RequireTransportationPortal"
     },
     {
-      "line": 506,
+      "line": 508,
       "alias": "AP",
       "component": "RequireAdminOrPm"
     },
     {
-      "line": 510,
+      "line": 512,
       "alias": "APS",
       "component": "RequireAdminPmOrSafety"
     },
     {
-      "line": 511,
+      "line": 513,
       "alias": "P",
       "component": "RequirePm"
     },
     {
-      "line": 512,
+      "line": 514,
       "alias": "S",
       "component": "RequireShop"
     },
     {
-      "line": 513,
+      "line": 515,
       "alias": "H",
       "component": "RequireHr"
     },
     {
-      "line": 514,
+      "line": 516,
       "alias": "FL",
       "component": "RequireFl"
     },
     {
-      "line": 515,
+      "line": 517,
       "alias": "SF",
       "component": "RequireSafety"
     },
     {
-      "line": 516,
+      "line": 518,
       "alias": "DP",
       "component": "RequireDispatch"
     },
     {
-      "line": 517,
+      "line": 519,
       "alias": "D",
       "component": "RequireDev"
     }
@@ -284,13 +284,21 @@
     {
       "line": 100,
       "names": [
+        "DailyReportV2"
+      ],
+      "module": "@/pages/daily-report-v2/DailyReportV2",
+      "kind": "default"
+    },
+    {
+      "line": 102,
+      "names": [
         "BrandingProvider"
       ],
       "module": "@/lib/BrandingProvider",
       "kind": "named"
     },
     {
-      "line": 131,
+      "line": 133,
       "names": [
         "SafetySection"
       ],
@@ -298,7 +306,7 @@
       "kind": "default"
     },
     {
-      "line": 132,
+      "line": 134,
       "names": [
         "SafetyFormsLogin"
       ],
@@ -306,7 +314,7 @@
       "kind": "default"
     },
     {
-      "line": 133,
+      "line": 135,
       "names": [
         "SafetyFormsHub"
       ],
@@ -314,7 +322,7 @@
       "kind": "default"
     },
     {
-      "line": 134,
+      "line": 136,
       "names": [
         "NewSafetyEquipmentIssuance"
       ],
@@ -322,7 +330,7 @@
       "kind": "default"
     },
     {
-      "line": 135,
+      "line": 137,
       "names": [
         "NewSafetyEquipmentTraining"
       ],
@@ -330,7 +338,7 @@
       "kind": "default"
     },
     {
-      "line": 136,
+      "line": 138,
       "names": [
         "ViewSafetyForm"
       ],
@@ -338,7 +346,7 @@
       "kind": "default"
     },
     {
-      "line": 137,
+      "line": 139,
       "names": [
         "ReturnEquipment"
       ],
@@ -346,7 +354,7 @@
       "kind": "default"
     },
     {
-      "line": 138,
+      "line": 140,
       "names": [
         "FieldSafetyCards"
       ],
@@ -354,7 +362,7 @@
       "kind": "default"
     },
     {
-      "line": 139,
+      "line": 141,
       "names": [
         "FieldSection"
       ],
@@ -362,7 +370,7 @@
       "kind": "default"
     },
     {
-      "line": 140,
+      "line": 142,
       "names": [
         "MaterialCalculators"
       ],
@@ -370,7 +378,7 @@
       "kind": "default"
     },
     {
-      "line": 141,
+      "line": 143,
       "names": [
         "QaqcSection"
       ],
@@ -378,7 +386,7 @@
       "kind": "default"
     },
     {
-      "line": 142,
+      "line": 144,
       "names": [
         "NewQaqcInspection"
       ],
@@ -386,7 +394,7 @@
       "kind": "default"
     },
     {
-      "line": 143,
+      "line": 145,
       "names": [
         "ViewQaqcInspection"
       ],
@@ -394,7 +402,7 @@
       "kind": "default"
     },
     {
-      "line": 144,
+      "line": 146,
       "names": [
         "AdminQaqcList"
       ],
@@ -402,7 +410,7 @@
       "kind": "default"
     },
     {
-      "line": 145,
+      "line": 147,
       "names": [
         "AdminTransportation"
       ],
@@ -410,7 +418,7 @@
       "kind": "default"
     },
     {
-      "line": 146,
+      "line": 148,
       "names": [
         "ExternalCarrierInvite"
       ],
@@ -418,7 +426,7 @@
       "kind": "default"
     },
     {
-      "line": 147,
+      "line": 149,
       "names": [
         "CertificateVerify"
       ],
@@ -426,7 +434,7 @@
       "kind": "default"
     },
     {
-      "line": 148,
+      "line": 150,
       "names": [
         "Dashboard"
       ],
@@ -434,7 +442,7 @@
       "kind": "default"
     },
     {
-      "line": 149,
+      "line": 151,
       "names": [
         "Revise"
       ],
@@ -442,7 +450,7 @@
       "kind": "default"
     },
     {
-      "line": 150,
+      "line": 152,
       "names": [
         "NewInspection"
       ],
@@ -450,7 +458,7 @@
       "kind": "default"
     },
     {
-      "line": 151,
+      "line": 153,
       "names": [
         "ViewInspection"
       ],
@@ -458,7 +466,7 @@
       "kind": "default"
     },
     {
-      "line": 152,
+      "line": 154,
       "names": [
         "ThankYou"
       ],
@@ -466,7 +474,7 @@
       "kind": "default"
     },
     {
-      "line": 153,
+      "line": 155,
       "names": [
         "MeetingsDashboard"
       ],
@@ -474,7 +482,7 @@
       "kind": "default"
     },
     {
-      "line": 154,
+      "line": 156,
       "names": [
         "NewMeeting"
       ],
@@ -482,7 +490,7 @@
       "kind": "default"
     },
     {
-      "line": 155,
+      "line": 157,
       "names": [
         "ViewMeeting"
       ],
@@ -490,7 +498,7 @@
       "kind": "default"
     },
     {
-      "line": 156,
+      "line": 158,
       "names": [
         "JhaPlansHub"
       ],
@@ -498,7 +506,7 @@
       "kind": "default"
     },
     {
-      "line": 157,
+      "line": 159,
       "names": [
         "JhaPlansAdmin"
       ],
@@ -506,7 +514,7 @@
       "kind": "default"
     },
     {
-      "line": 158,
+      "line": 160,
       "names": [
         "TrenchBoxes"
       ],
@@ -514,7 +522,7 @@
       "kind": "default"
     },
     {
-      "line": 166,
+      "line": 168,
       "names": [
         "PublicExcavationForm"
       ],
@@ -522,7 +530,7 @@
       "kind": "default"
     },
     {
-      "line": 169,
+      "line": 171,
       "names": [
         "TrenchSafetyQrLanding"
       ],
@@ -530,7 +538,7 @@
       "kind": "default"
     },
     {
-      "line": 170,
+      "line": 172,
       "names": [
         "PublicTrenchSafetyDashboard"
       ],
@@ -538,7 +546,7 @@
       "kind": "default"
     },
     {
-      "line": 171,
+      "line": 173,
       "names": [
         "PublicTrenchSafetyTabulatedData"
       ],
@@ -546,7 +554,7 @@
       "kind": "default"
     },
     {
-      "line": 172,
+      "line": 174,
       "names": [
         "PublicTrenchSafetyReferences"
       ],
@@ -554,7 +562,7 @@
       "kind": "default"
     },
     {
-      "line": 173,
+      "line": 175,
       "names": [
         "PublicTrenchSafetyReport"
       ],
@@ -562,7 +570,7 @@
       "kind": "default"
     },
     {
-      "line": 174,
+      "line": 176,
       "names": [
         "TrenchBoxesAdmin"
       ],
@@ -570,7 +578,7 @@
       "kind": "default"
     },
     {
-      "line": 175,
+      "line": 177,
       "names": [
         "TrenchBoxPoster"
       ],
@@ -578,7 +586,7 @@
       "kind": "default"
     },
     {
-      "line": 176,
+      "line": 178,
       "names": [
         "JhaPlansPoster"
       ],
@@ -586,7 +594,7 @@
       "kind": "default"
     },
     {
-      "line": 177,
+      "line": 179,
       "names": [
         "AllPostersPrint"
       ],
@@ -594,7 +602,7 @@
       "kind": "default"
     },
     {
-      "line": 178,
+      "line": 180,
       "names": [
         "IncidentsDashboard"
       ],
@@ -602,7 +610,7 @@
       "kind": "default"
     },
     {
-      "line": 186,
+      "line": 188,
       "names": [
         "IncidentReport"
       ],
@@ -610,7 +618,7 @@
       "kind": "default"
     },
     {
-      "line": 187,
+      "line": 189,
       "names": [
         "NearMissKiosk"
       ],
@@ -618,7 +626,7 @@
       "kind": "default"
     },
     {
-      "line": 188,
+      "line": 190,
       "names": [
         "SafetyCaseWorkspace"
       ],
@@ -626,7 +634,7 @@
       "kind": "default"
     },
     {
-      "line": 191,
+      "line": 193,
       "names": [
         "SafetyIncidentThread"
       ],
@@ -634,7 +642,7 @@
       "kind": "default"
     },
     {
-      "line": 192,
+      "line": 194,
       "names": [
         "ExecutiveIntelligence"
       ],
@@ -642,7 +650,7 @@
       "kind": "default"
     },
     {
-      "line": 193,
+      "line": 195,
       "names": [
         "ExecutiveCaseReport"
       ],
@@ -650,7 +658,7 @@
       "kind": "default"
     },
     {
-      "line": 194,
+      "line": 196,
       "names": [
         "IncidentReportViewer"
       ],
@@ -658,7 +666,7 @@
       "kind": "default"
     },
     {
-      "line": 195,
+      "line": 197,
       "names": [
         "ViewIncident"
       ],
@@ -666,7 +674,7 @@
       "kind": "default"
     },
     {
-      "line": 196,
+      "line": 198,
       "names": [
         "DailyReportsDashboard"
       ],
@@ -674,7 +682,7 @@
       "kind": "default"
     },
     {
-      "line": 197,
+      "line": 199,
       "names": [
         "NewDailyReport"
       ],
@@ -682,7 +690,7 @@
       "kind": "default"
     },
     {
-      "line": 198,
+      "line": 200,
       "names": [
         "ViewDailyReport"
       ],
@@ -690,7 +698,7 @@
       "kind": "default"
     },
     {
-      "line": 199,
+      "line": 201,
       "names": [
         "EquipmentDashboard"
       ],
@@ -698,7 +706,7 @@
       "kind": "default"
     },
     {
-      "line": 200,
+      "line": 202,
       "names": [
         "NewEquipmentInspection"
       ],
@@ -706,7 +714,7 @@
       "kind": "default"
     },
     {
-      "line": 201,
+      "line": 203,
       "names": [
         "NewFleetDVIR"
       ],
@@ -714,7 +722,7 @@
       "kind": "default"
     },
     {
-      "line": 202,
+      "line": 204,
       "names": [
         "FleetDVIRConfirmation"
       ],
@@ -722,7 +730,7 @@
       "kind": "default"
     },
     {
-      "line": 203,
+      "line": 205,
       "names": [
         "FleetVisibility"
       ],
@@ -730,7 +738,7 @@
       "kind": "default"
     },
     {
-      "line": 207,
+      "line": 209,
       "names": [
         "TransportationOpsTopBar"
       ],
@@ -738,7 +746,7 @@
       "kind": "default"
     },
     {
-      "line": 208,
+      "line": 210,
       "names": [
         "ViewEquipmentInspection"
       ],
@@ -746,7 +754,7 @@
       "kind": "default"
     },
     {
-      "line": 209,
+      "line": 211,
       "names": [
         "AdminLogin"
       ],
@@ -754,7 +762,7 @@
       "kind": "default"
     },
     {
-      "line": 210,
+      "line": 212,
       "names": [
         "AdminHub"
       ],
@@ -762,7 +770,7 @@
       "kind": "default"
     },
     {
-      "line": 215,
+      "line": 217,
       "names": [
         "AdminGuide"
       ],
@@ -770,7 +778,7 @@
       "kind": "default"
     },
     {
-      "line": 216,
+      "line": 218,
       "names": [
         "AdminLeadershipEquipment"
       ],
@@ -778,7 +786,7 @@
       "kind": "default"
     },
     {
-      "line": 217,
+      "line": 219,
       "names": [
         "AdminTerminations"
       ],
@@ -786,7 +794,7 @@
       "kind": "default"
     },
     {
-      "line": 218,
+      "line": 220,
       "names": [
         "ProjectPnlPage"
       ],
@@ -794,7 +802,7 @@
       "kind": "default"
     },
     {
-      "line": 219,
+      "line": 221,
       "names": [
         "PmLogin"
       ],
@@ -802,7 +810,7 @@
       "kind": "default"
     },
     {
-      "line": 220,
+      "line": 222,
       "names": [
         "PmChangePassword"
       ],
@@ -810,7 +818,7 @@
       "kind": "default"
     },
     {
-      "line": 221,
+      "line": 223,
       "names": [
         "PmResetPassword"
       ],
@@ -818,7 +826,7 @@
       "kind": "default"
     },
     {
-      "line": 235,
+      "line": 237,
       "names": [
         "ShopLogin"
       ],
@@ -826,7 +834,7 @@
       "kind": "default"
     },
     {
-      "line": 239,
+      "line": 241,
       "names": [
         "ShopChangePassword"
       ],
@@ -834,7 +842,7 @@
       "kind": "default"
     },
     {
-      "line": 240,
+      "line": 242,
       "names": [
         "ShopResetPassword"
       ],
@@ -842,7 +850,7 @@
       "kind": "default"
     },
     {
-      "line": 241,
+      "line": 243,
       "names": [
         "HrLogin"
       ],
@@ -850,7 +858,7 @@
       "kind": "default"
     },
     {
-      "line": 242,
+      "line": 244,
       "names": [
         "SignIn"
       ],
@@ -858,7 +866,7 @@
       "kind": "default"
     },
     {
-      "line": 243,
+      "line": 245,
       "names": [
         "DirectoryChangePassword"
       ],
@@ -866,7 +874,7 @@
       "kind": "default"
     },
     {
-      "line": 278,
+      "line": 280,
       "names": [
         "AdminSchedulerRuns"
       ],
@@ -874,7 +882,7 @@
       "kind": "default"
     },
     {
-      "line": 279,
+      "line": 281,
       "names": [
         "AdminLegacyImports"
       ],
@@ -882,7 +890,7 @@
       "kind": "default"
     },
     {
-      "line": 330,
+      "line": 332,
       "names": [
         "HrChangePassword"
       ],
@@ -890,7 +898,7 @@
       "kind": "default"
     },
     {
-      "line": 331,
+      "line": 333,
       "names": [
         "FieldLeadershipPortalLogin"
       ],
@@ -898,7 +906,7 @@
       "kind": "default"
     },
     {
-      "line": 332,
+      "line": 334,
       "names": [
         "FieldLeadershipPortalDashboard"
       ],
@@ -906,7 +914,7 @@
       "kind": "default"
     },
     {
-      "line": 333,
+      "line": 335,
       "names": [
         "FieldLeadershipDriverQualification"
       ],
@@ -914,7 +922,7 @@
       "kind": "default"
     },
     {
-      "line": 334,
+      "line": 336,
       "names": [
         "FieldLeadershipPortalChangePassword"
       ],
@@ -922,7 +930,7 @@
       "kind": "default"
     },
     {
-      "line": 335,
+      "line": 337,
       "names": [
         "RequireFl"
       ],
@@ -930,7 +938,7 @@
       "kind": "named"
     },
     {
-      "line": 336,
+      "line": 338,
       "names": [
         "HrResetPassword"
       ],
@@ -938,7 +946,7 @@
       "kind": "default"
     },
     {
-      "line": 337,
+      "line": 339,
       "names": [
         "HrForgotPassword"
       ],
@@ -946,7 +954,7 @@
       "kind": "default"
     },
     {
-      "line": 359,
+      "line": 361,
       "names": [
         "PublicTimeOff"
       ],
@@ -954,7 +962,7 @@
       "kind": "default"
     },
     {
-      "line": 360,
+      "line": 362,
       "names": [
         "SafetyLogin"
       ],
@@ -962,7 +970,7 @@
       "kind": "default"
     },
     {
-      "line": 361,
+      "line": 363,
       "names": [
         "DispatchLogin"
       ],
@@ -970,7 +978,7 @@
       "kind": "default"
     },
     {
-      "line": 362,
+      "line": 364,
       "names": [
         "LeadershipLogin"
       ],
@@ -978,7 +986,7 @@
       "kind": "default"
     },
     {
-      "line": 368,
+      "line": 370,
       "names": [
         "DispatchChangePassword"
       ],
@@ -986,7 +994,7 @@
       "kind": "default"
     },
     {
-      "line": 369,
+      "line": 371,
       "names": [
         "DispatchForgotPassword"
       ],
@@ -994,7 +1002,7 @@
       "kind": "default"
     },
     {
-      "line": 370,
+      "line": 372,
       "names": [
         "DispatchResetPassword"
       ],
@@ -1002,7 +1010,7 @@
       "kind": "default"
     },
     {
-      "line": 372,
+      "line": 374,
       "names": [
         "SafetyChangePassword"
       ],
@@ -1010,7 +1018,7 @@
       "kind": "default"
     },
     {
-      "line": 373,
+      "line": 375,
       "names": [
         "SafetyForgotPassword"
       ],
@@ -1018,7 +1026,7 @@
       "kind": "default"
     },
     {
-      "line": 374,
+      "line": 376,
       "names": [
         "SafetyResetPassword"
       ],
@@ -1026,7 +1034,7 @@
       "kind": "default"
     },
     {
-      "line": 395,
+      "line": 397,
       "names": [
         "AdminDeployReadiness"
       ],
@@ -1034,7 +1042,7 @@
       "kind": "default"
     },
     {
-      "line": 400,
+      "line": 402,
       "names": [
         "DevLogin"
       ],
@@ -1042,7 +1050,7 @@
       "kind": "default"
     },
     {
-      "line": 401,
+      "line": 403,
       "names": [
         "DevHub"
       ],
@@ -1050,7 +1058,7 @@
       "kind": "default"
     },
     {
-      "line": 402,
+      "line": 404,
       "names": [
         "CheatSheet"
       ],
@@ -1058,7 +1066,7 @@
       "kind": "default"
     },
     {
-      "line": 403,
+      "line": 405,
       "names": [
         "JobPhotosLibrary"
       ],
@@ -1066,7 +1074,7 @@
       "kind": "default"
     },
     {
-      "line": 404,
+      "line": 406,
       "names": [
         "FieldLeadershipHub"
       ],
@@ -1074,7 +1082,7 @@
       "kind": "default"
     },
     {
-      "line": 405,
+      "line": 407,
       "names": [
         "FieldLeadershipFormPage"
       ],
@@ -1082,7 +1090,7 @@
       "kind": "default"
     },
     {
-      "line": 406,
+      "line": 408,
       "names": [
         "FieldLeadershipRecords"
       ],
@@ -1090,7 +1098,7 @@
       "kind": "default"
     },
     {
-      "line": 407,
+      "line": 409,
       "names": [
         "FieldLeadershipView"
       ],
@@ -1098,7 +1106,7 @@
       "kind": "default"
     },
     {
-      "line": 420,
+      "line": 422,
       "names": [
         "Constraints"
       ],
@@ -1106,7 +1114,7 @@
       "kind": "default"
     },
     {
-      "line": 421,
+      "line": 423,
       "names": [
         "NewConstraint"
       ],
@@ -1114,7 +1122,7 @@
       "kind": "default"
     },
     {
-      "line": 422,
+      "line": 424,
       "names": [
         "ConstraintDetail"
       ],
@@ -1122,7 +1130,7 @@
       "kind": "default"
     },
     {
-      "line": 447,
+      "line": 449,
       "names": [
         "AccessDenied"
       ],
@@ -1130,7 +1138,7 @@
       "kind": "default"
     },
     {
-      "line": 448,
+      "line": 450,
       "names": [
         "NotFound"
       ],
@@ -1138,7 +1146,7 @@
       "kind": "default"
     },
     {
-      "line": 449,
+      "line": 451,
       "names": [
         "GlobalFooter"
       ],
@@ -1146,7 +1154,7 @@
       "kind": "default"
     },
     {
-      "line": 450,
+      "line": 452,
       "names": [
         "ScrollToTop"
       ],
@@ -1154,7 +1162,7 @@
       "kind": "default"
     },
     {
-      "line": 451,
+      "line": 453,
       "names": [
         "RequireAdmin"
       ],
@@ -1162,7 +1170,7 @@
       "kind": "named"
     },
     {
-      "line": 452,
+      "line": 454,
       "names": [
         "RequireTransportationPortal"
       ],
@@ -1170,7 +1178,7 @@
       "kind": "named"
     },
     {
-      "line": 453,
+      "line": 455,
       "names": [
         "RequireAdminOrPm"
       ],
@@ -1178,7 +1186,7 @@
       "kind": "named"
     },
     {
-      "line": 454,
+      "line": 456,
       "names": [
         "RequireAdminPmOrSafety"
       ],
@@ -1186,7 +1194,7 @@
       "kind": "named"
     },
     {
-      "line": 455,
+      "line": 457,
       "names": [
         "RequirePm"
       ],
@@ -1194,7 +1202,7 @@
       "kind": "named"
     },
     {
-      "line": 456,
+      "line": 458,
       "names": [
         "RequireShop"
       ],
@@ -1202,7 +1210,7 @@
       "kind": "named"
     },
     {
-      "line": 457,
+      "line": 459,
       "names": [
         "RequireHr"
       ],
@@ -1210,7 +1218,7 @@
       "kind": "named"
     },
     {
-      "line": 458,
+      "line": 460,
       "names": [
         "RequireSafety"
       ],
@@ -1218,7 +1226,7 @@
       "kind": "named"
     },
     {
-      "line": 459,
+      "line": 461,
       "names": [
         "RequireDispatch"
       ],
@@ -1226,7 +1234,7 @@
       "kind": "named"
     },
     {
-      "line": 460,
+      "line": 462,
       "names": [
         "RequireDev"
       ],
@@ -1234,7 +1242,7 @@
       "kind": "named"
     },
     {
-      "line": 461,
+      "line": 463,
       "names": [
         "FormPasswordGate"
       ],
@@ -1242,7 +1250,7 @@
       "kind": "named"
     },
     {
-      "line": 462,
+      "line": 464,
       "names": [
         "GlobalKeepalive"
       ],
@@ -1250,7 +1258,7 @@
       "kind": "default"
     },
     {
-      "line": 463,
+      "line": 465,
       "names": [
         "BackendStatusBanner"
       ],
@@ -1258,7 +1266,7 @@
       "kind": "default"
     },
     {
-      "line": 469,
+      "line": 471,
       "names": [
         "SessionStatusOverlay"
       ],
@@ -1266,7 +1274,7 @@
       "kind": "default"
     },
     {
-      "line": 470,
+      "line": 472,
       "names": [
         "ClusterCapacityBanner"
       ],
@@ -1274,7 +1282,7 @@
       "kind": "default"
     },
     {
-      "line": 471,
+      "line": 473,
       "names": [
         "BannerStrip"
       ],
@@ -1282,7 +1290,7 @@
       "kind": "default"
     },
     {
-      "line": 472,
+      "line": 474,
       "names": [
         "EnvBanner"
       ],
@@ -1290,7 +1298,7 @@
       "kind": "default"
     },
     {
-      "line": 473,
+      "line": 475,
       "names": [
         "SplashOverlay"
       ],
@@ -1298,7 +1306,7 @@
       "kind": "default"
     },
     {
-      "line": 475,
+      "line": 477,
       "names": [
         "QueueStatusPill"
       ],
@@ -1306,7 +1314,7 @@
       "kind": "default"
     },
     {
-      "line": 476,
+      "line": 478,
       "names": [
         "OfflineBanner"
       ],
@@ -1314,7 +1322,7 @@
       "kind": "default"
     },
     {
-      "line": 477,
+      "line": 479,
       "names": [
         "validateStoredTokens"
       ],
@@ -1322,7 +1330,7 @@
       "kind": "named"
     },
     {
-      "line": 478,
+      "line": 480,
       "names": [
         "EnforcePortalScope"
       ],
@@ -1330,7 +1338,7 @@
       "kind": "default"
     },
     {
-      "line": 479,
+      "line": 481,
       "names": [
         "MultiPortalHydrator"
       ],
@@ -1338,7 +1346,7 @@
       "kind": "default"
     },
     {
-      "line": 480,
+      "line": 482,
       "names": [
         "IdleTimeout"
       ],
@@ -1346,7 +1354,7 @@
       "kind": "default"
     },
     {
-      "line": 481,
+      "line": 483,
       "names": [
         "PosterErrorBoundary"
       ],
@@ -1356,909 +1364,909 @@
   ],
   "lazy_imports": [
     {
-      "line": 102,
+      "line": 104,
       "name": "DesignSystemDemo",
       "module": "@/pages/DesignSystemDemo"
     },
     {
-      "line": 104,
+      "line": 106,
       "name": "PmV2Preview",
       "module": "@/pages/PmV2Preview"
     },
     {
-      "line": 106,
+      "line": 108,
       "name": "HrV2Preview",
       "module": "@/pages/HrV2Preview"
     },
     {
-      "line": 108,
+      "line": 110,
       "name": "V2Index",
       "module": "@/pages/V2Index"
     },
     {
-      "line": 109,
+      "line": 111,
       "name": "V2Compare",
       "module": "@/pages/V2Compare"
     },
     {
-      "line": 111,
+      "line": 113,
       "name": "OdrNew",
       "module": "@/pages/odr/OdrNew"
     },
     {
-      "line": 112,
+      "line": 114,
       "name": "OdrCenter",
       "module": "@/pages/odr/OdrCenter"
     },
     {
-      "line": 113,
+      "line": 115,
       "name": "OdrPmPanel",
       "module": "@/pages/odr/OdrPmPanel"
     },
     {
-      "line": 114,
+      "line": 116,
       "name": "OdrPublicViewer",
       "module": "@/pages/odr/OdrPublicViewer"
     },
     {
-      "line": 115,
+      "line": 117,
       "name": "OdrDone",
       "module": "@/pages/odr/OdrDone"
     },
     {
-      "line": 116,
+      "line": 118,
       "name": "OdrDetail",
       "module": "@/pages/odr/OdrDetail"
     },
     {
-      "line": 117,
+      "line": 119,
       "name": "OperationalRecords",
       "module": "@/pages/operational_records/OperationalRecords"
     },
     {
-      "line": 118,
+      "line": 120,
       "name": "OperationsActions",
       "module": "@/pages/operations_actions/OperationsActions"
     },
     {
-      "line": 119,
+      "line": 121,
       "name": "OperationsActionNew",
       "module": "@/pages/operations_actions/OperationsActionNew"
     },
     {
-      "line": 120,
+      "line": 122,
       "name": "OperationsActionDetail",
       "module": "@/pages/operations_actions/OperationsActionDetail"
     },
     {
-      "line": 122,
+      "line": 124,
       "name": "DriverMagicLanding",
       "module": "@/pages/driver/DriverMagicLanding"
     },
     {
-      "line": 123,
+      "line": 125,
       "name": "DriverShift",
       "module": "@/pages/driver/DriverShift"
     },
     {
-      "line": 126,
+      "line": 128,
       "name": "AdminHubV2",
       "module": "@/pages/AdminHubV2"
     },
     {
-      "line": 127,
+      "line": 129,
       "name": "AdminMaterialLedgerQuality",
       "module": "@/pages/AdminMaterialLedgerQuality"
     },
     {
-      "line": 128,
+      "line": 130,
       "name": "LeadershipHubV2",
       "module": "@/pages/LeadershipHubV2"
     },
     {
-      "line": 129,
+      "line": 131,
       "name": "ExecutiveOverview",
       "module": "@/pages/ExecutiveOverview"
     },
     {
-      "line": 130,
+      "line": 132,
       "name": "ShiftStart",
       "module": "@/pages/driver/ShiftStart"
     },
     {
-      "line": 160,
+      "line": 162,
       "name": "TrenchSafetyHub",
       "module": "@/pages/trench_safety/TrenchSafetyHub"
     },
     {
-      "line": 161,
+      "line": 163,
       "name": "TrenchSafetyAssetsList",
       "module": "@/pages/trench_safety/TrenchSafetyAssetsList"
     },
     {
-      "line": 162,
+      "line": 164,
       "name": "TrenchSafetyAssetDetail",
       "module": "@/pages/trench_safety/TrenchSafetyAssetDetail"
     },
     {
-      "line": 163,
+      "line": 165,
       "name": "TrenchSafetyTabulatedData",
       "module": "@/pages/trench_safety/TrenchSafetyTabulatedData"
     },
     {
-      "line": 164,
+      "line": 166,
       "name": "TrenchSafetyRepairReviewPage",
       "module": "@/pages/trench_safety/TrenchSafetyRepairReviewPage"
     },
     {
-      "line": 165,
+      "line": 167,
       "name": "TrenchSafetyReports",
       "module": "@/pages/trench_safety/TrenchSafetyReports"
     },
     {
-      "line": 167,
+      "line": 169,
       "name": "ExcavationOversight",
       "module": "@/pages/trench_safety/ExcavationOversight"
     },
     {
-      "line": 168,
+      "line": 170,
       "name": "TrenchSafetyFieldReportsPage",
       "module": "@/pages/trench_safety/TrenchSafetyFieldReportsPage"
     },
     {
-      "line": 205,
+      "line": 207,
       "name": "FleetUnitThread",
       "module": "@/pages/fleet/FleetUnitThread"
     },
     {
-      "line": 211,
+      "line": 213,
       "name": "AdminRecovery",
       "module": "@/pages/admin/AdminRecovery"
     },
     {
-      "line": 212,
+      "line": 214,
       "name": "AdminRecoveryStream",
       "module": "@/pages/admin/AdminRecoveryStream"
     },
     {
-      "line": 213,
+      "line": 215,
       "name": "AdminJhaAcknowledgements",
       "module": "@/pages/admin/AdminJhaAcknowledgements"
     },
     {
-      "line": 214,
+      "line": 216,
       "name": "AdminCommandCenter",
       "module": "@/pages/admin/AdminCommandCenter"
     },
     {
-      "line": 223,
+      "line": 225,
       "name": "PmHub",
       "module": "@/pages/PmHub"
     },
     {
-      "line": 224,
+      "line": 226,
       "name": "PmCrewCompliance",
       "module": "@/pages/PmCrewCompliance"
     },
     {
-      "line": 225,
+      "line": 227,
       "name": "PmFieldLeadership",
       "module": "@/pages/PmFieldLeadership"
     },
     {
-      "line": 226,
+      "line": 228,
       "name": "PmJobs",
       "module": "@/pages/pm/PmSections"
     },
     {
-      "line": 227,
+      "line": 229,
       "name": "PmFleet",
       "module": "@/pages/pm/PmSections"
     },
     {
-      "line": 228,
+      "line": 230,
       "name": "PmPeople",
       "module": "@/pages/pm/PmSections"
     },
     {
-      "line": 229,
+      "line": 231,
       "name": "PmSuppliers",
       "module": "@/pages/pm/PmSections"
     },
     {
-      "line": 231,
+      "line": 233,
       "name": "AdminVendorThread",
       "module": "@/pages/AdminVendorThread"
     },
     {
-      "line": 232,
+      "line": 234,
       "name": "AdminAssetThread",
       "module": "@/pages/AdminAssetThread"
     },
     {
-      "line": 233,
+      "line": 235,
       "name": "PmPosters",
       "module": "@/pages/pm/PmSections"
     },
     {
-      "line": 234,
+      "line": 236,
       "name": "PmQaqcList",
       "module": "@/pages/PmQaqcList"
     },
     {
-      "line": 237,
+      "line": 239,
       "name": "ShopHub",
       "module": "@/pages/ShopHub"
     },
     {
-      "line": 238,
+      "line": 240,
       "name": "ShopTrenchSafetyRepairs",
       "module": "@/pages/shop/ShopTrenchSafetyRepairs"
     },
     {
-      "line": 244,
+      "line": 246,
       "name": "AdminPeople",
       "module": "@/pages/admin/AdminPeople"
     },
     {
-      "line": 245,
+      "line": 247,
       "name": "AdminMfa",
       "module": "@/pages/admin/AdminMfa"
     },
     {
-      "line": 246,
+      "line": 248,
       "name": "AdminPromoAssets",
       "module": "@/pages/admin/AdminPromoAssets"
     },
     {
-      "line": 247,
+      "line": 249,
       "name": "AdminJobs",
       "module": "@/pages/admin/AdminJobs"
     },
     {
-      "line": 248,
+      "line": 250,
       "name": "AdminJobTeam",
       "module": "@/pages/admin/AdminJobTeam"
     },
     {
-      "line": 249,
+      "line": 251,
       "name": "PmJobTeam",
       "module": "@/pages/pm/PmJobTeam"
     },
     {
-      "line": 251,
+      "line": 253,
       "name": "AdminProjectStaffing",
       "module": "@/pages/admin/AdminProjectStaffing"
     },
     {
-      "line": 252,
+      "line": 254,
       "name": "PmProjectStaffing",
       "module": "@/pages/pm/PmProjectStaffing"
     },
     {
-      "line": 253,
+      "line": 255,
       "name": "AdminGeofenceReconciliation",
       "module": "@/pages/admin/AdminGeofenceReconciliation"
     },
     {
-      "line": 254,
+      "line": 256,
       "name": "AdminOperationsDashboard",
       "module": "@/pages/admin/AdminOperationsDashboard"
     },
     {
-      "line": 255,
+      "line": 257,
       "name": "AdminAssetMapping",
       "module": "@/pages/admin/AdminAssetMapping"
     },
     {
-      "line": 257,
+      "line": 259,
       "name": "AdminAssetSpineHealth",
       "module": "@/pages/admin/AdminAssetSpineHealth"
     },
     {
-      "line": 258,
+      "line": 260,
       "name": "AdminEquipment",
       "module": "@/pages/admin/AdminEquipment"
     },
     {
-      "line": 259,
+      "line": 261,
       "name": "AdminEmail",
       "module": "@/pages/admin/AdminEmail"
     },
     {
-      "line": 260,
+      "line": 262,
       "name": "AdminTraining",
       "module": "@/pages/admin/AdminTraining"
     },
     {
-      "line": 261,
+      "line": 263,
       "name": "AdminCompliance",
       "module": "@/pages/admin/AdminCompliance"
     },
     {
-      "line": 262,
+      "line": 264,
       "name": "AdminSystem",
       "module": "@/pages/admin/AdminSystem"
     },
     {
-      "line": 263,
+      "line": 265,
       "name": "AdminDatabase",
       "module": "@/pages/admin/AdminDatabase"
     },
     {
-      "line": 264,
+      "line": 266,
       "name": "AdminIntegrationCenter",
       "module": "@/pages/admin/AdminIntegrationCenter"
     },
     {
-      "line": 265,
+      "line": 267,
       "name": "AssetProfile",
       "module": "@/pages/admin/AssetProfile"
     },
     {
-      "line": 266,
+      "line": 268,
       "name": "AdminAssetAdmin",
       "module": "@/pages/admin/AdminAssetAdmin"
     },
     {
-      "line": 267,
+      "line": 269,
       "name": "AdminDriverIntel",
       "module": "@/pages/admin/AdminDriverIntel"
     },
     {
-      "line": 268,
+      "line": 270,
       "name": "AdminDispatch",
       "module": "@/pages/admin/AdminDispatch"
     },
     {
-      "line": 269,
+      "line": 271,
       "name": "AdminDlsShiftQR",
       "module": "@/pages/admin/AdminDlsShiftQR"
     },
     {
-      "line": 270,
+      "line": 272,
       "name": "AdminDlsDay1Debrief",
       "module": "@/pages/admin/AdminDlsDay1Debrief"
     },
     {
-      "line": 271,
+      "line": 273,
       "name": "AdminProfile",
       "module": "@/pages/admin/AdminProfile"
     },
     {
-      "line": 272,
+      "line": 274,
       "name": "AdminOperationsEvents",
       "module": "@/pages/admin/AdminOperationsEvents"
     },
     {
-      "line": 273,
+      "line": 275,
       "name": "AdminDigestConfig",
       "module": "@/pages/admin/AdminDigestConfig"
     },
     {
-      "line": 274,
+      "line": 276,
       "name": "AdminOperationalIntelligence",
       "module": "@/pages/admin/AdminOperationalIntelligence"
     },
     {
-      "line": 275,
+      "line": 277,
       "name": "AdminOperationalIntelligenceRecipients",
       "module": "@/pages/admin/AdminOperationalIntelligenceRecipients"
     },
     {
-      "line": 276,
+      "line": 278,
       "name": "SystemHealth",
       "module": "@/pages/admin/SystemHealth"
     },
     {
-      "line": 277,
+      "line": 279,
       "name": "AdminAuditLog",
       "module": "@/pages/admin/AdminAuditLog"
     },
     {
-      "line": 280,
+      "line": 282,
       "name": "AdminSessions",
       "module": "@/pages/admin/AdminSessions"
     },
     {
-      "line": 281,
+      "line": 283,
       "name": "AdminGuidanceCoverage",
       "module": "@/pages/admin/AdminGuidanceCoverage"
     },
     {
-      "line": 282,
+      "line": 284,
       "name": "AdminOperationalInventory",
       "module": "@/pages/admin/AdminOperationalInventory"
     },
     {
-      "line": 283,
+      "line": 285,
       "name": "AdminGovernance",
       "module": "@/pages/admin/AdminGovernance"
     },
     {
-      "line": 284,
+      "line": 286,
       "name": "AdminProjectIdentityGovernance",
       "module": "@/pages/admin/AdminProjectIdentityGovernance"
     },
     {
-      "line": 285,
+      "line": 287,
       "name": "SelfProtection",
       "module": "@/pages/admin/SelfProtection"
     },
     {
-      "line": 286,
+      "line": 288,
       "name": "AdminComplianceFindings",
       "module": "@/pages/admin/AdminComplianceFindings"
     },
     {
-      "line": 287,
+      "line": 289,
       "name": "AdminOperationalLanguage",
       "module": "@/pages/admin/AdminOperationalLanguage"
     },
     {
-      "line": 289,
+      "line": 291,
       "name": "NotificationsDigest",
       "module": "@/pages/NotificationsDigest"
     },
     {
-      "line": 290,
+      "line": 292,
       "name": "OperationalGuidanceCenter",
       "module": "@/pages/guidance/OperationalGuidanceCenter"
     },
     {
-      "line": 291,
+      "line": 293,
       "name": "DeployRecovery",
       "module": "@/pages/admin/DeployRecovery"
     },
     {
-      "line": 292,
+      "line": 294,
       "name": "AdminMasterHistory",
       "module": "@/pages/admin/AdminMasterHistory"
     },
     {
-      "line": 293,
+      "line": 295,
       "name": "AdminAnalytics",
       "module": "@/pages/admin/AdminAnalytics"
     },
     {
-      "line": 295,
+      "line": 297,
       "name": "HrHub",
       "module": "@/pages/HrHub"
     },
     {
-      "line": 297,
+      "line": 299,
       "name": "HrHubV2",
       "module": "@/pages/HrHubV2"
     },
     {
-      "line": 299,
+      "line": 301,
       "name": "PmHubV2",
       "module": "@/pages/PmHubV2"
     },
     {
-      "line": 301,
+      "line": 303,
       "name": "PmHoldsV2",
       "module": "@/pages/PmHoldsV2"
     },
     {
-      "line": 302,
+      "line": 304,
       "name": "PmDueTodayV2",
       "module": "@/pages/PmDueTodayV2"
     },
     {
-      "line": 304,
+      "line": 306,
       "name": "DispatchHubV2",
       "module": "@/pages/DispatchHubV2"
     },
     {
-      "line": 306,
+      "line": 308,
       "name": "SafetyHubV2",
       "module": "@/pages/SafetyHubV2"
     },
     {
-      "line": 308,
+      "line": 310,
       "name": "ShopHubV2",
       "module": "@/pages/ShopHubV2"
     },
     {
-      "line": 309,
+      "line": 311,
       "name": "ShopAssetCare",
       "module": "@/pages/shop/ShopAssetCare"
     },
     {
-      "line": 311,
+      "line": 313,
       "name": "ShopManagerQueue",
       "module": "@/pages/shop/ShopManagerQueue"
     },
     {
-      "line": 312,
+      "line": 314,
       "name": "ShopMyAssignments",
       "module": "@/pages/shop/ShopMyAssignments"
     },
     {
-      "line": 314,
+      "line": 316,
       "name": "UnitHistoryLanding",
       "module": "@/pages/shop/UnitHistoryLanding"
     },
     {
-      "line": 315,
+      "line": 317,
       "name": "UnitHistoryTimeline",
       "module": "@/pages/shop/UnitHistoryTimeline"
     },
     {
-      "line": 317,
+      "line": 319,
       "name": "FuelLubeVisitForm",
       "module": "@/pages/shop/FuelLubeVisitForm"
     },
     {
-      "line": 319,
+      "line": 321,
       "name": "FuelLubeVisitRecords",
       "module": "@/pages/shop/FuelLubeVisitRecords"
     },
     {
-      "line": 320,
+      "line": 322,
       "name": "FuelLubeVisitDetail",
       "module": "@/pages/shop/FuelLubeVisitDetail"
     },
     {
-      "line": 322,
+      "line": 324,
       "name": "ServiceTruckReconciliationForm",
       "module": "@/pages/shop/ServiceTruckReconciliationForm"
     },
     {
-      "line": 323,
+      "line": 325,
       "name": "ServiceTruckReconciliationRecords",
       "module": "@/pages/shop/ServiceTruckReconciliationRecords"
     },
     {
-      "line": 324,
+      "line": 326,
       "name": "ServiceTruckReconciliationDetail",
       "module": "@/pages/shop/ServiceTruckReconciliationDetail"
     },
     {
-      "line": 326,
+      "line": 328,
       "name": "PmDashboard",
       "module": "@/pages/shop/PmDashboard"
     },
     {
-      "line": 327,
+      "line": 329,
       "name": "PmTemplates",
       "module": "@/pages/shop/PmTemplates"
     },
     {
-      "line": 328,
+      "line": 330,
       "name": "PmSchedules",
       "module": "@/pages/shop/PmSchedules"
     },
     {
-      "line": 329,
+      "line": 331,
       "name": "PmWorkOrders",
       "module": "@/pages/shop/PmWorkOrders"
     },
     {
-      "line": 338,
+      "line": 340,
       "name": "HrTimeVerification",
       "module": "@/pages/HrTimeVerification"
     },
     {
-      "line": 339,
+      "line": 341,
       "name": "HrFieldLeadership",
       "module": "@/pages/HrFieldLeadership"
     },
     {
-      "line": 340,
+      "line": 342,
       "name": "HrFieldLeadershipUsers",
       "module": "@/pages/HrFieldLeadershipUsers"
     },
     {
-      "line": 341,
+      "line": 343,
       "name": "HrEmployeeAccountability",
       "module": "@/pages/HrEmployeeAccountability"
     },
     {
-      "line": 342,
+      "line": 344,
       "name": "HrEmployeeAccountabilityTimeline",
       "module": "@/pages/HrEmployeeAccountabilityTimeline"
     },
     {
-      "line": 344,
+      "line": 346,
       "name": "HrEmployeeThread",
       "module": "@/pages/HrEmployeeThread"
     },
     {
-      "line": 345,
+      "line": 347,
       "name": "HrIncidents",
       "module": "@/pages/HrIncidents"
     },
     {
-      "line": 346,
+      "line": 348,
       "name": "HrTrainingRecords",
       "module": "@/pages/HrTrainingRecords"
     },
     {
-      "line": 348,
+      "line": 350,
       "name": "HrDailyReports",
       "module": "@/pages/HrDailyReports"
     },
     {
-      "line": 349,
+      "line": 351,
       "name": "HrDailyReportDetail",
       "module": "@/pages/HrDailyReports"
     },
     {
-      "line": 350,
+      "line": 352,
       "name": "HrMotiveDrivers",
       "module": "@/pages/HrMotiveDrivers"
     },
     {
-      "line": 351,
+      "line": 353,
       "name": "HrDriverProfile",
       "module": "@/pages/HrDriverProfile"
     },
     {
-      "line": 353,
+      "line": 355,
       "name": "SafetyDriverProfile",
       "module": "@/pages/SafetyDriverProfile"
     },
     {
-      "line": 354,
+      "line": 356,
       "name": "DispatchDriverProfile",
       "module": "@/pages/DispatchDriverProfile"
     },
     {
-      "line": 355,
+      "line": 357,
       "name": "HrPayrollVariance",
       "module": "@/pages/HrPayrollVariance"
     },
     {
-      "line": 356,
+      "line": 358,
       "name": "HrDriverQualificationDashboard",
       "module": "@/pages/HrDriverQualificationDashboard"
     },
     {
-      "line": 357,
+      "line": 359,
       "name": "HrDriverQualificationImport",
       "module": "@/pages/HrDriverQualificationImport"
     },
     {
-      "line": 358,
+      "line": 360,
       "name": "HrTimeOff",
       "module": "@/pages/HrTimeOff"
     },
     {
-      "line": 363,
+      "line": 365,
       "name": "DispatchHub",
       "module": "@/pages/DispatchHub"
     },
     {
-      "line": 364,
+      "line": 366,
       "name": "DispatchBoard",
       "module": "@/pages/DispatchBoard"
     },
     {
-      "line": 365,
+      "line": 367,
       "name": "DispatchCommandCenter",
       "module": "@/pages/DispatchCommandCenter"
     },
     {
-      "line": 366,
+      "line": 368,
       "name": "DispatchHaulLedger",
       "module": "@/pages/DispatchHaulLedger"
     },
     {
-      "line": 367,
+      "line": 369,
       "name": "DispatchDriverQualification",
       "module": "@/pages/DispatchDriverQualification"
     },
     {
-      "line": 371,
+      "line": 373,
       "name": "SafetyHub",
       "module": "@/pages/SafetyHub"
     },
     {
-      "line": 375,
+      "line": 377,
       "name": "SafetyCorrectiveActions",
       "module": "@/pages/SafetyCorrectiveActions"
     },
     {
-      "line": 376,
+      "line": 378,
       "name": "SafetyFireExtinguishers",
       "module": "@/pages/SafetyFireExtinguishers"
     },
     {
-      "line": 377,
+      "line": 379,
       "name": "SafetyFireExtImport",
       "module": "@/pages/SafetyFireExtImport"
     },
     {
-      "line": 378,
+      "line": 380,
       "name": "SafetyDocuments",
       "module": "@/pages/SafetyDocuments"
     },
     {
-      "line": 379,
+      "line": 381,
       "name": "SafetyTrainingRecords",
       "module": "@/pages/SafetyTrainingRecords"
     },
     {
-      "line": 380,
+      "line": 382,
       "name": "SafetyEmployeeProfiles",
       "module": "@/pages/SafetyEmployeeProfiles"
     },
     {
-      "line": 381,
+      "line": 383,
       "name": "EmployeeProfile",
       "module": "@/pages/EmployeeProfile"
     },
     {
-      "line": 382,
+      "line": 384,
       "name": "HistoricalRecordsIntake",
       "module": "@/pages/HistoricalRecordsIntake"
     },
     {
-      "line": 383,
+      "line": 385,
       "name": "HistoricalRecordsQueue",
       "module": "@/pages/HistoricalRecordsQueue"
     },
     {
-      "line": 384,
+      "line": 386,
       "name": "HistoricalRecordsBatches",
       "module": "@/pages/HistoricalRecordsBatches"
     },
     {
-      "line": 385,
+      "line": 387,
       "name": "HistoricalRecordsBatchDetail",
       "module": "@/pages/HistoricalRecordsBatchDetail"
     },
     {
-      "line": 386,
+      "line": 388,
       "name": "SafetyDigest",
       "module": "@/pages/SafetyDigest"
     },
     {
-      "line": 387,
+      "line": 389,
       "name": "SafetyIncidents",
       "module": "@/pages/SafetyIncidents"
     },
     {
-      "line": 388,
+      "line": 390,
       "name": "SafetyAudits",
       "module": "@/pages/SafetyAudits"
     },
     {
-      "line": 389,
+      "line": 391,
       "name": "SafetyFormsRecords",
       "module": "@/pages/SafetyFormsRecords"
     },
     {
-      "line": 390,
+      "line": 392,
       "name": "SafetyReports",
       "module": "@/pages/SafetyReports"
     },
     {
-      "line": 391,
+      "line": 393,
       "name": "SafetyTopicLibrary",
       "module": "@/pages/SafetyTopicLibrary"
     },
     {
-      "line": 392,
+      "line": 394,
       "name": "HrSafetyRecords",
       "module": "@/pages/HrSafetyRecords"
     },
     {
-      "line": 394,
+      "line": 396,
       "name": "TrainingHub",
       "module": "@/pages/TrainingHub"
     },
     {
-      "line": 396,
+      "line": 398,
       "name": "TrainingTrack",
       "module": "@/pages/TrainingTrack"
     },
     {
-      "line": 397,
+      "line": 399,
       "name": "TrainingQrPoster",
       "module": "@/pages/TrainingQrPoster"
     },
     {
-      "line": 398,
+      "line": 400,
       "name": "TrainingPacketDownload",
       "module": "@/pages/TrainingPacketDownload"
     },
     {
-      "line": 399,
+      "line": 401,
       "name": "AdminTrainingVideos",
       "module": "@/pages/AdminTrainingVideos"
     },
     {
-      "line": 409,
+      "line": 411,
       "name": "TermsOfService",
       "module": "@/pages/legal/TermsOfService"
     },
     {
-      "line": 410,
+      "line": 412,
       "name": "PrivacyPolicy",
       "module": "@/pages/legal/PrivacyPolicy"
     },
     {
-      "line": 411,
+      "line": 413,
       "name": "Tasks",
       "module": "@/pages/Tasks"
     },
     {
-      "line": 412,
+      "line": 414,
       "name": "DocumentExpirations",
       "module": "@/pages/DocumentExpirations"
     },
     {
-      "line": 413,
+      "line": 415,
       "name": "HrEmployees",
       "module": "@/pages/HrEmployees"
     },
     {
-      "line": 414,
+      "line": 416,
       "name": "HrEmployeeRequestsQueue",
       "module": "@/pages/HrEmployeeRequestsQueue"
     },
     {
-      "line": 416,
+      "line": 418,
       "name": "PoRequests",
       "module": "@/pages/PoRequests"
     },
     {
-      "line": 417,
+      "line": 419,
       "name": "ProjectHealth",
       "module": "@/pages/ProjectHealth"
     },
     {
-      "line": 418,
+      "line": 420,
       "name": "AssetTransfers",
       "module": "@/pages/AssetTransfers"
     },
     {
-      "line": 425,
+      "line": 427,
       "name": "PmProjectDetail",
       "module": "@/pages/PmProjectDetail"
     },
     {
-      "line": 429,
+      "line": 431,
       "name": "PmProjectThread",
       "module": "@/pages/PmProjectThread"
     },
     {
-      "line": 436,
+      "line": 438,
       "name": "PmCommandCenter",
       "module": "@/pages/PmCommandCenter"
     },
     {
-      "line": 437,
+      "line": 439,
       "name": "PmProjectRedirect",
       "module": "@/pages/PmProjectRedirect"
     },
     {
-      "line": 443,
+      "line": 445,
       "name": "OperationsCenterCommand",
       "module": "@/pages/OperationsCenterCommand"
     },
     {
-      "line": 444,
+      "line": 446,
       "name": "OperationsMapPage",
       "module": "@/pages/OperationsMapPage"
     },
     {
-      "line": 445,
+      "line": 447,
       "name": "DispatchOperationsMapPage",
       "module": "@/pages/DispatchOperationsMapPage"
     },
     {
-      "line": 446,
+      "line": 448,
       "name": "PmHomeRedirect",
       "module": "@/pages/PmHomeRedirect"
     }
   ],
   "routes": [
     {
-      "line": 532,
+      "line": 534,
       "path": "/",
       "guard_alias": null,
       "guard_component": null,
@@ -2267,7 +2275,7 @@
       "element_raw": "<Hub />"
     },
     {
-      "line": 533,
+      "line": 535,
       "path": "/revise/:token",
       "guard_alias": null,
       "guard_component": null,
@@ -2276,7 +2284,7 @@
       "element_raw": "<Revise />"
     },
     {
-      "line": 534,
+      "line": 536,
       "path": "/safety",
       "guard_alias": null,
       "guard_component": null,
@@ -2285,7 +2293,7 @@
       "element_raw": "<SafetySection />"
     },
     {
-      "line": 535,
+      "line": 537,
       "path": "/safety/forms/login",
       "guard_alias": null,
       "guard_component": null,
@@ -2294,7 +2302,7 @@
       "element_raw": "<SafetyFormsLogin />"
     },
     {
-      "line": 536,
+      "line": 538,
       "path": "/safety/forms",
       "guard_alias": null,
       "guard_component": null,
@@ -2303,7 +2311,7 @@
       "element_raw": "<SafetyFormsHub />"
     },
     {
-      "line": 537,
+      "line": 539,
       "path": "/safety/forms/equipment-issuance/new",
       "guard_alias": null,
       "guard_component": null,
@@ -2312,7 +2320,7 @@
       "element_raw": "<NewSafetyEquipmentIssuance />"
     },
     {
-      "line": 538,
+      "line": 540,
       "path": "/safety/forms/equipment-issuance/:id",
       "guard_alias": null,
       "guard_component": null,
@@ -2321,7 +2329,7 @@
       "element_raw": "<ViewSafetyForm kind=\"issuance\" />"
     },
     {
-      "line": 539,
+      "line": 541,
       "path": "/safety/forms/equipment-issuance/:id/return",
       "guard_alias": null,
       "guard_component": null,
@@ -2330,7 +2338,7 @@
       "element_raw": "<ReturnEquipment />"
     },
     {
-      "line": 540,
+      "line": 542,
       "path": "/safety/forms/equipment-training/new",
       "guard_alias": null,
       "guard_component": null,
@@ -2339,7 +2347,7 @@
       "element_raw": "<NewSafetyEquipmentTraining />"
     },
     {
-      "line": 541,
+      "line": 543,
       "path": "/safety/forms/equipment-training/:id",
       "guard_alias": null,
       "guard_component": null,
@@ -2348,7 +2356,7 @@
       "element_raw": "<ViewSafetyForm kind=\"training\" />"
     },
     {
-      "line": 542,
+      "line": 544,
       "path": "/safety/cards",
       "guard_alias": null,
       "guard_component": null,
@@ -2357,7 +2365,7 @@
       "element_raw": "<FieldSafetyCards />"
     },
     {
-      "line": 543,
+      "line": 545,
       "path": "/field",
       "guard_alias": null,
       "guard_component": null,
@@ -2366,7 +2374,7 @@
       "element_raw": "<FieldSection />"
     },
     {
-      "line": 544,
+      "line": 546,
       "path": "/field/calculators",
       "guard_alias": null,
       "guard_component": null,
@@ -2375,7 +2383,7 @@
       "element_raw": "<MaterialCalculators />"
     },
     {
-      "line": 545,
+      "line": 547,
       "path": "/qaqc",
       "guard_alias": null,
       "guard_component": null,
@@ -2384,7 +2392,7 @@
       "element_raw": "<QaqcSection />"
     },
     {
-      "line": 546,
+      "line": 548,
       "path": "/qa-qc",
       "guard_alias": null,
       "guard_component": null,
@@ -2393,7 +2401,7 @@
       "element_raw": "<Navigate to=\"/qaqc\" replace />"
     },
     {
-      "line": 547,
+      "line": 549,
       "path": "/qaqc/:slug/new",
       "guard_alias": null,
       "guard_component": null,
@@ -2402,7 +2410,7 @@
       "element_raw": "<NewQaqcInspection />"
     },
     {
-      "line": 548,
+      "line": 550,
       "path": "/qaqc/:id",
       "guard_alias": null,
       "guard_component": null,
@@ -2411,7 +2419,7 @@
       "element_raw": "<ViewQaqcInspection />"
     },
     {
-      "line": 549,
+      "line": 551,
       "path": "/admin/qaqc",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -2420,7 +2428,7 @@
       "element_raw": "A(<AdminQaqcList />)"
     },
     {
-      "line": 550,
+      "line": 552,
       "path": "/admin/transportation/*",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -2429,7 +2437,7 @@
       "element_raw": "A(<AdminTransportation />)"
     },
     {
-      "line": 555,
+      "line": 557,
       "path": "/transportation-operations/*",
       "guard_alias": "TX",
       "guard_component": "RequireTransportationPortal",
@@ -2438,7 +2446,7 @@
       "element_raw": "TX(<AdminTransportation />)"
     },
     {
-      "line": 556,
+      "line": 558,
       "path": "/admin/photos",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -2447,7 +2455,7 @@
       "element_raw": "A(<JobPhotosLibrary portalKey=\"admin\" />)"
     },
     {
-      "line": 564,
+      "line": 566,
       "path": "/constraints",
       "guard_alias": null,
       "guard_component": null,
@@ -2456,7 +2464,7 @@
       "element_raw": "<Constraints />"
     },
     {
-      "line": 565,
+      "line": 567,
       "path": "/constraints/new",
       "guard_alias": null,
       "guard_component": null,
@@ -2465,7 +2473,7 @@
       "element_raw": "<NewConstraint />"
     },
     {
-      "line": 566,
+      "line": 568,
       "path": "/constraints/:id",
       "guard_alias": null,
       "guard_component": null,
@@ -2474,7 +2482,7 @@
       "element_raw": "<ConstraintDetail />"
     },
     {
-      "line": 569,
+      "line": 571,
       "path": "/leadership",
       "guard_alias": null,
       "guard_component": null,
@@ -2483,7 +2491,7 @@
       "element_raw": "<FieldLeadershipHub />"
     },
     {
-      "line": 572,
+      "line": 574,
       "path": "/leadership/hub_v2",
       "guard_alias": null,
       "guard_component": null,
@@ -2492,7 +2500,7 @@
       "element_raw": "<LeadershipHubV2 />"
     },
     {
-      "line": 576,
+      "line": 578,
       "path": "/leadership/records",
       "guard_alias": null,
       "guard_component": null,
@@ -2501,7 +2509,7 @@
       "element_raw": "<FieldLeadershipRecords />"
     },
     {
-      "line": 577,
+      "line": 579,
       "path": "/leadership/records/:id",
       "guard_alias": null,
       "guard_component": null,
@@ -2510,7 +2518,7 @@
       "element_raw": "<FieldLeadershipView />"
     },
     {
-      "line": 578,
+      "line": 580,
       "path": "/leadership/:kind/new",
       "guard_alias": null,
       "guard_component": null,
@@ -2519,7 +2527,7 @@
       "element_raw": "<FieldLeadershipFormPage />"
     },
     {
-      "line": 583,
+      "line": 585,
       "path": "/safety/inspections/new",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -2528,7 +2536,7 @@
       "element_raw": "SF(<NewInspection />)"
     },
     {
-      "line": 584,
+      "line": 586,
       "path": "/inspect/new",
       "guard_alias": null,
       "guard_component": null,
@@ -2537,7 +2545,7 @@
       "element_raw": "<InspectionLegacyRedirect />"
     },
     {
-      "line": 585,
+      "line": 587,
       "path": "/submit",
       "guard_alias": null,
       "guard_component": null,
@@ -2546,7 +2554,7 @@
       "element_raw": "<InspectionLegacyRedirect />"
     },
     {
-      "line": 586,
+      "line": 588,
       "path": "/inspections/submit",
       "guard_alias": null,
       "guard_component": null,
@@ -2555,7 +2563,7 @@
       "element_raw": "<InspectionLegacyRedirect />"
     },
     {
-      "line": 587,
+      "line": 589,
       "path": "/inspections/new",
       "guard_alias": null,
       "guard_component": null,
@@ -2564,7 +2572,7 @@
       "element_raw": "<InspectionLegacyRedirect />"
     },
     {
-      "line": 589,
+      "line": 591,
       "path": "/meetings/new",
       "guard_alias": null,
       "guard_component": null,
@@ -2573,7 +2581,7 @@
       "element_raw": "<NewMeeting />"
     },
     {
-      "line": 590,
+      "line": 592,
       "path": "/meetings/submit",
       "guard_alias": null,
       "guard_component": null,
@@ -2582,7 +2590,7 @@
       "element_raw": "<NewMeeting publicMode />"
     },
     {
-      "line": 592,
+      "line": 594,
       "path": "/jha",
       "guard_alias": null,
       "guard_component": null,
@@ -2591,7 +2599,7 @@
       "element_raw": "<JhaPlansHub />"
     },
     {
-      "line": 593,
+      "line": 595,
       "path": "/jha/submit",
       "guard_alias": null,
       "guard_component": null,
@@ -2600,7 +2608,7 @@
       "element_raw": "<Navigate to=\"/jha\" replace />"
     },
     {
-      "line": 594,
+      "line": 596,
       "path": "/jha/new",
       "guard_alias": null,
       "guard_component": null,
@@ -2609,7 +2617,7 @@
       "element_raw": "<Navigate to=\"/jha\" replace />"
     },
     {
-      "line": 596,
+      "line": 598,
       "path": "/trench-boxes",
       "guard_alias": null,
       "guard_component": null,
@@ -2618,7 +2626,7 @@
       "element_raw": "<Navigate to=\"/trench-safety/tabulated-data\" replace />"
     },
     {
-      "line": 598,
+      "line": 600,
       "path": "/trench-safety",
       "guard_alias": null,
       "guard_component": null,
@@ -2627,7 +2635,7 @@
       "element_raw": "<PublicTrenchSafetyDashboard />"
     },
     {
-      "line": 600,
+      "line": 602,
       "path": "/trench-safety/tabulated-data",
       "guard_alias": null,
       "guard_component": null,
@@ -2636,7 +2644,7 @@
       "element_raw": "<PublicTrenchSafetyTabulatedData />"
     },
     {
-      "line": 601,
+      "line": 603,
       "path": "/trench-safety/references",
       "guard_alias": null,
       "guard_component": null,
@@ -2645,7 +2653,7 @@
       "element_raw": "<PublicTrenchSafetyReferences />"
     },
     {
-      "line": 602,
+      "line": 604,
       "path": "/trench-safety/report",
       "guard_alias": null,
       "guard_component": null,
@@ -2654,7 +2662,7 @@
       "element_raw": "<PublicTrenchSafetyReport />"
     },
     {
-      "line": 604,
+      "line": 606,
       "path": "/trench-safety/assets/:assetId",
       "guard_alias": null,
       "guard_component": null,
@@ -2663,7 +2671,7 @@
       "element_raw": "<TrenchSafetyQrLanding />"
     },
     {
-      "line": 606,
+      "line": 608,
       "path": "/transport-invite/:token",
       "guard_alias": null,
       "guard_component": null,
@@ -2672,7 +2680,7 @@
       "element_raw": "<ExternalCarrierInvite />"
     },
     {
-      "line": 607,
+      "line": 609,
       "path": "/transport-verify/:cnum",
       "guard_alias": null,
       "guard_component": null,
@@ -2681,7 +2689,7 @@
       "element_raw": "<CertificateVerify />"
     },
     {
-      "line": 615,
+      "line": 617,
       "path": "/incidents/new",
       "guard_alias": null,
       "guard_component": null,
@@ -2690,7 +2698,7 @@
       "element_raw": "<Navigate to=\"/incidents/report\" replace />"
     },
     {
-      "line": 616,
+      "line": 618,
       "path": "/incidents/submit",
       "guard_alias": null,
       "guard_component": null,
@@ -2699,7 +2707,7 @@
       "element_raw": "<Navigate to=\"/incidents/report\" replace />"
     },
     {
-      "line": 618,
+      "line": 620,
       "path": "/incidents/report",
       "guard_alias": null,
       "guard_component": null,
@@ -2708,7 +2716,7 @@
       "element_raw": "<IncidentReport />"
     },
     {
-      "line": 620,
+      "line": 622,
       "path": "/near-miss",
       "guard_alias": null,
       "guard_component": null,
@@ -2717,7 +2725,7 @@
       "element_raw": "<NearMissKiosk />"
     },
     {
-      "line": 622,
+      "line": 624,
       "path": "/safety/cases/:caseId",
       "guard_alias": null,
       "guard_component": null,
@@ -2726,7 +2734,7 @@
       "element_raw": "<SafetyCaseWorkspace />"
     },
     {
-      "line": 627,
+      "line": 629,
       "path": "/safety/incidents/:caseId/thread",
       "guard_alias": null,
       "guard_component": null,
@@ -2735,7 +2743,7 @@
       "element_raw": "<SafetyIncidentThread />"
     },
     {
-      "line": 629,
+      "line": 631,
       "path": "/safety/executive-intelligence",
       "guard_alias": null,
       "guard_component": null,
@@ -2744,7 +2752,7 @@
       "element_raw": "<ExecutiveIntelligence />"
     },
     {
-      "line": 631,
+      "line": 633,
       "path": "/safety/cases/:caseId/reports/:reportType",
       "guard_alias": null,
       "guard_component": null,
@@ -2753,7 +2761,7 @@
       "element_raw": "<IncidentReportViewer />"
     },
     {
-      "line": 633,
+      "line": 635,
       "path": "/safety/cases/:caseId/executive-report",
       "guard_alias": null,
       "guard_component": null,
@@ -2762,7 +2770,7 @@
       "element_raw": "<ExecutiveCaseReport />"
     },
     {
-      "line": 635,
+      "line": 637,
       "path": "/daily/new",
       "guard_alias": null,
       "guard_component": null,
@@ -2771,7 +2779,7 @@
       "element_raw": "<NewDailyReport />"
     },
     {
-      "line": 636,
+      "line": 638,
       "path": "/daily/submit",
       "guard_alias": null,
       "guard_component": null,
@@ -2780,7 +2788,7 @@
       "element_raw": "<NewDailyReport publicMode />"
     },
     {
-      "line": 638,
+      "line": 640,
       "path": "/equipment/new",
       "guard_alias": null,
       "guard_component": null,
@@ -2789,7 +2797,7 @@
       "element_raw": "<NewEquipmentInspection />"
     },
     {
-      "line": 639,
+      "line": 641,
       "path": "/equipment/submit",
       "guard_alias": null,
       "guard_component": null,
@@ -2798,7 +2806,7 @@
       "element_raw": "<NewEquipmentInspection publicMode />"
     },
     {
-      "line": 640,
+      "line": 642,
       "path": "/equipment/:id",
       "guard_alias": null,
       "guard_component": null,
@@ -2807,7 +2815,7 @@
       "element_raw": "<RedirectWithId base=\"/admin/equipment\" />"
     },
     {
-      "line": 643,
+      "line": 645,
       "path": "/fleet/dvir/new",
       "guard_alias": null,
       "guard_component": null,
@@ -2816,7 +2824,7 @@
       "element_raw": "<NewFleetDVIR />"
     },
     {
-      "line": 644,
+      "line": 646,
       "path": "/fleet/dvir/submit",
       "guard_alias": null,
       "guard_component": null,
@@ -2825,7 +2833,7 @@
       "element_raw": "<NewFleetDVIR />"
     },
     {
-      "line": 646,
+      "line": 648,
       "path": "/fleet/weekly-lead/new",
       "guard_alias": null,
       "guard_component": null,
@@ -2834,7 +2842,7 @@
       "element_raw": "<NewFleetDVIR kind=\"weekly_lead\" />"
     },
     {
-      "line": 647,
+      "line": 649,
       "path": "/fleet/weekly-emergency/new",
       "guard_alias": null,
       "guard_component": null,
@@ -2843,7 +2851,7 @@
       "element_raw": "<NewFleetDVIR kind=\"weekly_emergency\" />"
     },
     {
-      "line": 648,
+      "line": 650,
       "path": "/fleet/dvir/submitted/:id",
       "guard_alias": null,
       "guard_component": null,
@@ -2852,7 +2860,7 @@
       "element_raw": "<FleetDVIRConfirmation />"
     },
     {
-      "line": 650,
+      "line": 652,
       "path": "/thank-you",
       "guard_alias": null,
       "guard_component": null,
@@ -2861,7 +2869,7 @@
       "element_raw": "<ThankYou />"
     },
     {
-      "line": 651,
+      "line": 653,
       "path": "/cheatsheet",
       "guard_alias": null,
       "guard_component": null,
@@ -2870,7 +2878,7 @@
       "element_raw": "<PosterErrorBoundary><CheatSheet /></PosterErrorBoundary>"
     },
     {
-      "line": 652,
+      "line": 654,
       "path": "/cheat-sheet",
       "guard_alias": null,
       "guard_component": null,
@@ -2879,7 +2887,7 @@
       "element_raw": "<Navigate to=\"/cheatsheet\" replace />"
     },
     {
-      "line": 658,
+      "line": 660,
       "path": "/reports/daily/new",
       "guard_alias": null,
       "guard_component": null,
@@ -2888,7 +2896,7 @@
       "element_raw": "<Navigate to=\"/daily/new\" replace />"
     },
     {
-      "line": 659,
+      "line": 661,
       "path": "/safety/jha",
       "guard_alias": null,
       "guard_component": null,
@@ -2897,7 +2905,7 @@
       "element_raw": "<Navigate to=\"/jha\" replace />"
     },
     {
-      "line": 660,
+      "line": 662,
       "path": "/safety/trench-boxes",
       "guard_alias": null,
       "guard_component": null,
@@ -2906,7 +2914,7 @@
       "element_raw": "<Navigate to=\"/trench-boxes\" replace />"
     },
     {
-      "line": 662,
+      "line": 664,
       "path": "/safety/trench-safety",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -2915,7 +2923,7 @@
       "element_raw": "SF(<TrenchSafetyHub />)"
     },
     {
-      "line": 663,
+      "line": 665,
       "path": "/safety/trench-safety/assets",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -2924,7 +2932,7 @@
       "element_raw": "SF(<TrenchSafetyAssetsList />)"
     },
     {
-      "line": 664,
+      "line": 666,
       "path": "/safety/trench-safety/assets/:assetId",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -2933,7 +2941,7 @@
       "element_raw": "SF(<TrenchSafetyAssetDetail />)"
     },
     {
-      "line": 665,
+      "line": 667,
       "path": "/safety/trench-safety/tabulated-data",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -2942,7 +2950,7 @@
       "element_raw": "SF(<TrenchSafetyTabulatedData />)"
     },
     {
-      "line": 666,
+      "line": 668,
       "path": "/safety/trench-safety/reports",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -2951,7 +2959,7 @@
       "element_raw": "SF(<TrenchSafetyReports />)"
     },
     {
-      "line": 667,
+      "line": 669,
       "path": "/safety/trench-safety/excavations",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -2960,7 +2968,7 @@
       "element_raw": "SF(<ExcavationOversight />)"
     },
     {
-      "line": 668,
+      "line": 670,
       "path": "/admin/trench-safety/excavations",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -2969,7 +2977,7 @@
       "element_raw": "AP(<ExcavationOversight />)"
     },
     {
-      "line": 669,
+      "line": 671,
       "path": "/trench-safety/excavation/new",
       "guard_alias": null,
       "guard_component": null,
@@ -2978,7 +2986,7 @@
       "element_raw": "<PublicExcavationForm />"
     },
     {
-      "line": 671,
+      "line": 673,
       "path": "/safety/trench-safety/repair-review",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -2987,7 +2995,7 @@
       "element_raw": "SF(<TrenchSafetyRepairReviewPage />)"
     },
     {
-      "line": 672,
+      "line": 674,
       "path": "/safety/trench-safety/field-reports",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -2996,7 +3004,7 @@
       "element_raw": "SF(<TrenchSafetyFieldReportsPage />)"
     },
     {
-      "line": 674,
+      "line": 676,
       "path": "/safety-portal/trench-safety",
       "guard_alias": null,
       "guard_component": null,
@@ -3005,7 +3013,7 @@
       "element_raw": "<Navigate to=\"/safety/trench-safety\" replace />"
     },
     {
-      "line": 675,
+      "line": 677,
       "path": "/safety-portal/trench-safety/assets",
       "guard_alias": null,
       "guard_component": null,
@@ -3014,7 +3022,7 @@
       "element_raw": "<Navigate to=\"/safety/trench-safety/assets\" replace />"
     },
     {
-      "line": 676,
+      "line": 678,
       "path": "/safety-portal/trench-safety/tabulated-data",
       "guard_alias": null,
       "guard_component": null,
@@ -3023,7 +3031,7 @@
       "element_raw": "<Navigate to=\"/safety/trench-safety/tabulated-data\" replace />"
     },
     {
-      "line": 685,
+      "line": 687,
       "path": "/app/*",
       "guard_alias": null,
       "guard_component": null,
@@ -3032,7 +3040,7 @@
       "element_raw": "<Navigate to=\"/\" replace />"
     },
     {
-      "line": 690,
+      "line": 692,
       "path": "/admin/login",
       "guard_alias": null,
       "guard_component": null,
@@ -3041,7 +3049,7 @@
       "element_raw": "<AdminLogin />"
     },
     {
-      "line": 696,
+      "line": 698,
       "path": "/admin",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3050,7 +3058,7 @@
       "element_raw": "A(<AdminHubV2 />)"
     },
     {
-      "line": 697,
+      "line": 699,
       "path": "/admin/hub_v1",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3059,7 +3067,7 @@
       "element_raw": "A(<AdminHub />)"
     },
     {
-      "line": 699,
+      "line": 701,
       "path": "/admin/hub_v2",
       "guard_alias": null,
       "guard_component": null,
@@ -3068,7 +3076,7 @@
       "element_raw": "<Navigate to=\"/admin\" replace />"
     },
     {
-      "line": 700,
+      "line": 702,
       "path": "/admin/executive-overview",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3077,7 +3085,7 @@
       "element_raw": "A(<ExecutiveOverview />)"
     },
     {
-      "line": 702,
+      "line": 704,
       "path": "/admin/material-ledger-quality",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3086,7 +3094,7 @@
       "element_raw": "A(<AdminMaterialLedgerQuality />)"
     },
     {
-      "line": 703,
+      "line": 705,
       "path": "/admin/people",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3095,7 +3103,7 @@
       "element_raw": "A(<AdminPeople />)"
     },
     {
-      "line": 704,
+      "line": 706,
       "path": "/admin/mfa",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3104,7 +3112,7 @@
       "element_raw": "A(<AdminMfa />)"
     },
     {
-      "line": 705,
+      "line": 707,
       "path": "/admin/promo-assets",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3113,7 +3121,7 @@
       "element_raw": "A(<AdminPromoAssets />)"
     },
     {
-      "line": 706,
+      "line": 708,
       "path": "/admin/jobs",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3122,7 +3130,7 @@
       "element_raw": "A(<AdminJobs />)"
     },
     {
-      "line": 707,
+      "line": 709,
       "path": "/admin/jobs/:projectNumber/team",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3131,7 +3139,7 @@
       "element_raw": "A(<AdminJobTeam />)"
     },
     {
-      "line": 709,
+      "line": 711,
       "path": "/admin/project-staffing",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3140,7 +3148,7 @@
       "element_raw": "A(<AdminProjectStaffing />)"
     },
     {
-      "line": 711,
+      "line": 713,
       "path": "/admin/geofence-reconciliation",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3149,7 +3157,7 @@
       "element_raw": "A(<AdminGeofenceReconciliation />)"
     },
     {
-      "line": 713,
+      "line": 715,
       "path": "/admin/operations-dashboard",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3158,7 +3166,7 @@
       "element_raw": "A(<AdminOperationsDashboard />)"
     },
     {
-      "line": 715,
+      "line": 717,
       "path": "/admin/asset-mapping",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3167,7 +3175,7 @@
       "element_raw": "A(<AdminAssetMapping />)"
     },
     {
-      "line": 716,
+      "line": 718,
       "path": "/admin/asset-spine",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3176,7 +3184,7 @@
       "element_raw": "A(<AdminAssetSpineHealth />)"
     },
     {
-      "line": 717,
+      "line": 719,
       "path": "/admin/equipment",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3185,7 +3193,7 @@
       "element_raw": "A(<AdminEquipment />)"
     },
     {
-      "line": 718,
+      "line": 720,
       "path": "/admin/email",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3194,7 +3202,7 @@
       "element_raw": "A(<AdminEmail />)"
     },
     {
-      "line": 719,
+      "line": 721,
       "path": "/admin/training",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3203,7 +3211,7 @@
       "element_raw": "A(<AdminTraining />)"
     },
     {
-      "line": 720,
+      "line": 722,
       "path": "/admin/compliance",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3212,7 +3220,7 @@
       "element_raw": "A(<AdminCompliance />)"
     },
     {
-      "line": 721,
+      "line": 723,
       "path": "/admin/system",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3221,7 +3229,7 @@
       "element_raw": "A(<AdminSystem />)"
     },
     {
-      "line": 722,
+      "line": 724,
       "path": "/admin/recovery",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3230,7 +3238,7 @@
       "element_raw": "A(<AdminRecovery />)"
     },
     {
-      "line": 723,
+      "line": 725,
       "path": "/admin/recovery-stream",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3239,7 +3247,7 @@
       "element_raw": "A(<AdminRecoveryStream />)"
     },
     {
-      "line": 724,
+      "line": 726,
       "path": "/admin/jha-acknowledgements",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3248,7 +3256,7 @@
       "element_raw": "A(<AdminJhaAcknowledgements />)"
     },
     {
-      "line": 725,
+      "line": 727,
       "path": "/admin/command-center",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3257,7 +3265,7 @@
       "element_raw": "A(<AdminCommandCenter />)"
     },
     {
-      "line": 726,
+      "line": 728,
       "path": "/admin/database",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3266,7 +3274,7 @@
       "element_raw": "A(<AdminDatabase />)"
     },
     {
-      "line": 727,
+      "line": 729,
       "path": "/admin/integrations",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3275,7 +3283,7 @@
       "element_raw": "A(<AdminIntegrationCenter />)"
     },
     {
-      "line": 728,
+      "line": 730,
       "path": "/admin/dispatch",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3284,7 +3292,7 @@
       "element_raw": "A(<AdminDispatch />)"
     },
     {
-      "line": 729,
+      "line": 731,
       "path": "/admin/dls/shift-qr",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3293,7 +3301,7 @@
       "element_raw": "A(<AdminDlsShiftQR />)"
     },
     {
-      "line": 730,
+      "line": 732,
       "path": "/admin/dls/day-1-debrief",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3302,7 +3310,7 @@
       "element_raw": "A(<AdminDlsDay1Debrief variant=\"day-1\" />)"
     },
     {
-      "line": 731,
+      "line": 733,
       "path": "/admin/dls/week-1-debrief",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3311,7 +3319,7 @@
       "element_raw": "A(<AdminDlsDay1Debrief variant=\"week-1\" />)"
     },
     {
-      "line": 732,
+      "line": 734,
       "path": "/admin/profile",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3320,7 +3328,7 @@
       "element_raw": "A(<AdminProfile />)"
     },
     {
-      "line": 733,
+      "line": 735,
       "path": "/admin/operations-events",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3329,7 +3337,7 @@
       "element_raw": "A(<AdminOperationsEvents />)"
     },
     {
-      "line": 734,
+      "line": 736,
       "path": "/admin/digest-config",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3338,7 +3346,7 @@
       "element_raw": "A(<AdminDigestConfig />)"
     },
     {
-      "line": 735,
+      "line": 737,
       "path": "/admin/operational-intelligence",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3347,7 +3355,7 @@
       "element_raw": "A(<AdminOperationalIntelligence />)"
     },
     {
-      "line": 736,
+      "line": 738,
       "path": "/admin/operational-intelligence/recipients",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3356,7 +3364,7 @@
       "element_raw": "A(<AdminOperationalIntelligenceRecipients />)"
     },
     {
-      "line": 737,
+      "line": 739,
       "path": "/admin/system-health",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3365,7 +3373,7 @@
       "element_raw": "A(<SystemHealth />)"
     },
     {
-      "line": 738,
+      "line": 740,
       "path": "/admin/audit-log",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3374,7 +3382,7 @@
       "element_raw": "A(<AdminAuditLog />)"
     },
     {
-      "line": 740,
+      "line": 742,
       "path": "/admin/scheduler-runs",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3383,7 +3391,7 @@
       "element_raw": "A(<AdminSchedulerRuns />)"
     },
     {
-      "line": 741,
+      "line": 743,
       "path": "/admin/legacy-imports",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3392,7 +3400,7 @@
       "element_raw": "A(<AdminLegacyImports />)"
     },
     {
-      "line": 742,
+      "line": 744,
       "path": "/admin/sessions",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3401,7 +3409,7 @@
       "element_raw": "A(<AdminSessions />)"
     },
     {
-      "line": 743,
+      "line": 745,
       "path": "/admin/guidance-coverage",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3410,7 +3418,7 @@
       "element_raw": "A(<AdminGuidanceCoverage />)"
     },
     {
-      "line": 744,
+      "line": 746,
       "path": "/admin/operational-inventory",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3419,7 +3427,7 @@
       "element_raw": "A(<AdminOperationalInventory />)"
     },
     {
-      "line": 746,
+      "line": 748,
       "path": "/notifications",
       "guard_alias": null,
       "guard_component": null,
@@ -3428,7 +3436,7 @@
       "element_raw": "<NotificationsDigest />"
     },
     {
-      "line": 748,
+      "line": 750,
       "path": "/admin/governance",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3437,7 +3445,7 @@
       "element_raw": "A(<AdminGovernance />)"
     },
     {
-      "line": 749,
+      "line": 751,
       "path": "/admin/project-identity",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3446,7 +3454,7 @@
       "element_raw": "A(<AdminProjectIdentityGovernance />)"
     },
     {
-      "line": 750,
+      "line": 752,
       "path": "/admin/governance/self-protection",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3455,7 +3463,7 @@
       "element_raw": "A(<SelfProtection />)"
     },
     {
-      "line": 751,
+      "line": 753,
       "path": "/admin/compliance-findings",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3464,7 +3472,7 @@
       "element_raw": "A(<AdminComplianceFindings />)"
     },
     {
-      "line": 752,
+      "line": 754,
       "path": "/admin/operational-language",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3473,7 +3481,7 @@
       "element_raw": "A(<AdminOperationalLanguage />)"
     },
     {
-      "line": 756,
+      "line": 758,
       "path": "/guidance",
       "guard_alias": null,
       "guard_component": null,
@@ -3482,7 +3490,7 @@
       "element_raw": "<OperationalGuidanceCenter />"
     },
     {
-      "line": 757,
+      "line": 759,
       "path": "/guidance/section/:sectionId",
       "guard_alias": null,
       "guard_component": null,
@@ -3491,7 +3499,7 @@
       "element_raw": "<OperationalGuidanceCenter />"
     },
     {
-      "line": 758,
+      "line": 760,
       "path": "/guidance/:articleId",
       "guard_alias": null,
       "guard_component": null,
@@ -3500,7 +3508,7 @@
       "element_raw": "<OperationalGuidanceCenter />"
     },
     {
-      "line": 759,
+      "line": 761,
       "path": "/admin/deploy-recovery",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3509,7 +3517,7 @@
       "element_raw": "A(<DeployRecovery />)"
     },
     {
-      "line": 760,
+      "line": 762,
       "path": "/admin/assets/:assetId",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3518,7 +3526,7 @@
       "element_raw": "A(<AssetProfile />)"
     },
     {
-      "line": 761,
+      "line": 763,
       "path": "/admin/asset-admin",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3527,7 +3535,7 @@
       "element_raw": "A(<AdminAssetAdmin />)"
     },
     {
-      "line": 762,
+      "line": 764,
       "path": "/admin/driver-intel/:driverKey",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3536,7 +3544,7 @@
       "element_raw": "A(<AdminDriverIntel />)"
     },
     {
-      "line": 763,
+      "line": 765,
       "path": "/admin/equipment/:id/history",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3545,7 +3553,7 @@
       "element_raw": "A(<AdminMasterHistory kind=\"equipment\" />)"
     },
     {
-      "line": 764,
+      "line": 766,
       "path": "/admin/employees/:id/history",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3554,7 +3562,7 @@
       "element_raw": "A(<AdminMasterHistory kind=\"employee\" />)"
     },
     {
-      "line": 765,
+      "line": 767,
       "path": "/admin/analytics",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3563,7 +3571,7 @@
       "element_raw": "A(<AdminAnalytics />)"
     },
     {
-      "line": 766,
+      "line": 768,
       "path": "/admin/leadership-equipment",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3572,7 +3580,7 @@
       "element_raw": "A(<AdminLeadershipEquipment />)"
     },
     {
-      "line": 767,
+      "line": 769,
       "path": "/admin/terminations",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3581,7 +3589,7 @@
       "element_raw": "A(<AdminTerminations />)"
     },
     {
-      "line": 768,
+      "line": 770,
       "path": "/admin/guide",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -3590,7 +3598,7 @@
       "element_raw": "A(<AdminGuide />)"
     },
     {
-      "line": 769,
+      "line": 771,
       "path": "/admin/pnl",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -3599,7 +3607,7 @@
       "element_raw": "AP(<ProjectPnlPage />)"
     },
     {
-      "line": 771,
+      "line": 773,
       "path": "/admin/inspections",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -3608,7 +3616,7 @@
       "element_raw": "AP(<Dashboard />)"
     },
     {
-      "line": 772,
+      "line": 774,
       "path": "/admin/inspections/:id",
       "guard_alias": "APS",
       "guard_component": "RequireAdminPmOrSafety",
@@ -3617,7 +3625,7 @@
       "element_raw": "APS(<ViewInspection />)"
     },
     {
-      "line": 774,
+      "line": 776,
       "path": "/admin/meetings",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -3626,7 +3634,7 @@
       "element_raw": "AP(<MeetingsDashboard />)"
     },
     {
-      "line": 775,
+      "line": 777,
       "path": "/admin/meetings/:id",
       "guard_alias": "APS",
       "guard_component": "RequireAdminPmOrSafety",
@@ -3635,7 +3643,7 @@
       "element_raw": "APS(<ViewMeeting />)"
     },
     {
-      "line": 777,
+      "line": 779,
       "path": "/admin/jha-plans",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -3644,7 +3652,7 @@
       "element_raw": "AP(<JhaPlansAdmin />)"
     },
     {
-      "line": 778,
+      "line": 780,
       "path": "/admin/jha",
       "guard_alias": null,
       "guard_component": null,
@@ -3653,7 +3661,7 @@
       "element_raw": "<Navigate to=\"/admin/jha-plans\" replace />"
     },
     {
-      "line": 779,
+      "line": 781,
       "path": "/admin/jha/:id",
       "guard_alias": null,
       "guard_component": null,
@@ -3662,7 +3670,7 @@
       "element_raw": "<Navigate to=\"/admin/jha-plans\" replace />"
     },
     {
-      "line": 781,
+      "line": 783,
       "path": "/admin/trench-boxes",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -3671,7 +3679,7 @@
       "element_raw": "AP(<TrenchBoxesAdmin />)"
     },
     {
-      "line": 782,
+      "line": 784,
       "path": "/admin/trench-boxes/poster",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -3680,7 +3688,7 @@
       "element_raw": "AP(<PosterErrorBoundary><TrenchBoxPoster /></PosterErrorBoundary>)"
     },
     {
-      "line": 787,
+      "line": 789,
       "path": "/admin/trench-safety",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -3689,7 +3697,7 @@
       "element_raw": "AP(<TrenchSafetyHub />)"
     },
     {
-      "line": 788,
+      "line": 790,
       "path": "/admin/trench-safety/assets",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -3698,7 +3706,7 @@
       "element_raw": "AP(<TrenchSafetyAssetsList />)"
     },
     {
-      "line": 789,
+      "line": 791,
       "path": "/admin/trench-safety/assets/:assetId",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -3707,7 +3715,7 @@
       "element_raw": "AP(<TrenchSafetyAssetDetail />)"
     },
     {
-      "line": 790,
+      "line": 792,
       "path": "/admin/trench-safety/tabulated-data",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -3716,7 +3724,7 @@
       "element_raw": "AP(<TrenchSafetyTabulatedData />)"
     },
     {
-      "line": 791,
+      "line": 793,
       "path": "/admin/trench-safety/reports",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -3725,7 +3733,7 @@
       "element_raw": "AP(<TrenchSafetyReports />)"
     },
     {
-      "line": 792,
+      "line": 794,
       "path": "/admin/trench-safety/repair-review",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -3734,7 +3742,7 @@
       "element_raw": "AP(<TrenchSafetyRepairReviewPage adminPortal={true"
     },
     {
-      "line": 793,
+      "line": 795,
       "path": "/admin/trench-safety/field-reports",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -3743,7 +3751,7 @@
       "element_raw": "AP(<TrenchSafetyFieldReportsPage adminPortal={true"
     },
     {
-      "line": 795,
+      "line": 797,
       "path": "/admin/jha-plans/poster",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -3752,7 +3760,7 @@
       "element_raw": "AP(<PosterErrorBoundary><JhaPlansPoster /></PosterErrorBoundary>)"
     },
     {
-      "line": 797,
+      "line": 799,
       "path": "/admin/posters/print-all",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -3761,7 +3769,7 @@
       "element_raw": "AP(<PosterErrorBoundary><AllPostersPrint /></PosterErrorBoundary>)"
     },
     {
-      "line": 799,
+      "line": 801,
       "path": "/admin/incidents",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -3770,7 +3778,7 @@
       "element_raw": "AP(<IncidentsDashboard />)"
     },
     {
-      "line": 800,
+      "line": 802,
       "path": "/admin/incidents/:id",
       "guard_alias": "APS",
       "guard_component": "RequireAdminPmOrSafety",
@@ -3779,7 +3787,7 @@
       "element_raw": "APS(<ViewIncident />)"
     },
     {
-      "line": 802,
+      "line": 804,
       "path": "/admin/daily",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -3788,7 +3796,7 @@
       "element_raw": "AP(<DailyReportsDashboard />)"
     },
     {
-      "line": 803,
+      "line": 805,
       "path": "/admin/daily/:id",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -3797,7 +3805,7 @@
       "element_raw": "AP(<ViewDailyReport />)"
     },
     {
-      "line": 809,
+      "line": 811,
       "path": "/admin/equipment-inspections",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -3806,7 +3814,7 @@
       "element_raw": "AP(<EquipmentDashboard />)"
     },
     {
-      "line": 810,
+      "line": 812,
       "path": "/admin/equipment/:id",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -3815,7 +3823,7 @@
       "element_raw": "AP(<ViewEquipmentInspection context=\"admin\" />)"
     },
     {
-      "line": 818,
+      "line": 820,
       "path": "/admin/qaqc/:id",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -3824,7 +3832,7 @@
       "element_raw": "AP(<ViewQaqcInspection />)"
     },
     {
-      "line": 819,
+      "line": 821,
       "path": "/admin/leadership/records/:id",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -3833,7 +3841,7 @@
       "element_raw": "AP(<FieldLeadershipView />)"
     },
     {
-      "line": 820,
+      "line": 822,
       "path": "/admin/safety/issuance/:id",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -3842,7 +3850,7 @@
       "element_raw": "AP(<ViewSafetyForm kind=\"issuance\" />)"
     },
     {
-      "line": 821,
+      "line": 823,
       "path": "/admin/safety/training/:id",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -3851,7 +3859,7 @@
       "element_raw": "AP(<ViewSafetyForm kind=\"training\" />)"
     },
     {
-      "line": 828,
+      "line": 830,
       "path": "/pm/login",
       "guard_alias": null,
       "guard_component": null,
@@ -3860,7 +3868,7 @@
       "element_raw": "<PmLogin />"
     },
     {
-      "line": 829,
+      "line": 831,
       "path": "/pm/reset/:token",
       "guard_alias": null,
       "guard_component": null,
@@ -3869,7 +3877,7 @@
       "element_raw": "<PmResetPassword />"
     },
     {
-      "line": 830,
+      "line": 832,
       "path": "/pm/change-password",
       "guard_alias": "P",
       "guard_component": "RequirePm",
@@ -3878,7 +3886,7 @@
       "element_raw": "P(<PmChangePassword />)"
     },
     {
-      "line": 831,
+      "line": 833,
       "path": "/pm",
       "guard_alias": "P",
       "guard_component": "RequirePm",
@@ -3887,7 +3895,7 @@
       "element_raw": "P(<PmHomeRedirect />)"
     },
     {
-      "line": 833,
+      "line": 835,
       "path": "/pm/hub",
       "guard_alias": "P",
       "guard_component": "RequirePm",
@@ -3896,7 +3904,7 @@
       "element_raw": "P(<PmHubV2 />)"
     },
     {
-      "line": 834,
+      "line": 836,
       "path": "/pm/hub_legacy",
       "guard_alias": "P",
       "guard_component": "RequirePm",
@@ -3905,7 +3913,7 @@
       "element_raw": "P(<PmHub />)"
     },
     {
-      "line": 836,
+      "line": 838,
       "path": "/pm/hub_v2",
       "guard_alias": "P",
       "guard_component": "RequirePm",
@@ -3914,7 +3922,7 @@
       "element_raw": "P(<PmHubV2 />)"
     },
     {
-      "line": 839,
+      "line": 841,
       "path": "/pm/holds",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -3923,7 +3931,7 @@
       "element_raw": "AP(<PmHoldsV2 />)"
     },
     {
-      "line": 840,
+      "line": 842,
       "path": "/pm/due-today",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -3932,7 +3940,7 @@
       "element_raw": "AP(<PmDueTodayV2 />)"
     },
     {
-      "line": 842,
+      "line": 844,
       "path": "/pm/crew-compliance",
       "guard_alias": "P",
       "guard_component": "RequirePm",
@@ -3941,7 +3949,7 @@
       "element_raw": "P(<PmCrewCompliance />)"
     },
     {
-      "line": 850,
+      "line": 852,
       "path": "/pm/jobs",
       "guard_alias": "P",
       "guard_component": "RequirePm",
@@ -3950,7 +3958,7 @@
       "element_raw": "P(<PmJobs />)"
     },
     {
-      "line": 851,
+      "line": 853,
       "path": "/pm/job/:projectNumber/team",
       "guard_alias": "P",
       "guard_component": "RequirePm",
@@ -3959,7 +3967,7 @@
       "element_raw": "P(<PmJobTeam />)"
     },
     {
-      "line": 853,
+      "line": 855,
       "path": "/pm/project-staffing",
       "guard_alias": "P",
       "guard_component": "RequirePm",
@@ -3968,7 +3976,7 @@
       "element_raw": "P(<PmProjectStaffing />)"
     },
     {
-      "line": 864,
+      "line": 866,
       "path": "/pm/projects/:projectNumber",
       "guard_alias": "P",
       "guard_component": "RequirePm",
@@ -3977,7 +3985,7 @@
       "element_raw": "P(<PmProjectRedirect />)"
     },
     {
-      "line": 865,
+      "line": 867,
       "path": "/pm/projects-legacy/:projectNumber",
       "guard_alias": "P",
       "guard_component": "RequirePm",
@@ -3986,7 +3994,7 @@
       "element_raw": "P(<PmProjectDetail />)"
     },
     {
-      "line": 869,
+      "line": 871,
       "path": "/pm/project/:projectNumber",
       "guard_alias": "P",
       "guard_component": "RequirePm",
@@ -3995,7 +4003,7 @@
       "element_raw": "P(<PmProjectDetail />)"
     },
     {
-      "line": 874,
+      "line": 876,
       "path": "/pm/project/:projectNumber/thread",
       "guard_alias": "P",
       "guard_component": "RequirePm",
@@ -4004,7 +4012,7 @@
       "element_raw": "P(<PmProjectThread />)"
     },
     {
-      "line": 878,
+      "line": 880,
       "path": "/pm/command-center",
       "guard_alias": "P",
       "guard_component": "RequirePm",
@@ -4013,7 +4021,7 @@
       "element_raw": "P(<PmCommandCenter />)"
     },
     {
-      "line": 883,
+      "line": 885,
       "path": "/operations-center",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -4022,7 +4030,7 @@
       "element_raw": "A(<OperationsCenterCommand />)"
     },
     {
-      "line": 884,
+      "line": 886,
       "path": "/operations-map",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -4031,7 +4039,7 @@
       "element_raw": "A(<OperationsMapPage />)"
     },
     {
-      "line": 885,
+      "line": 887,
       "path": "/pm/field-leadership",
       "guard_alias": "P",
       "guard_component": "RequirePm",
@@ -4040,7 +4048,7 @@
       "element_raw": "P(<PmFieldLeadership />)"
     },
     {
-      "line": 886,
+      "line": 888,
       "path": "/pm/fleet",
       "guard_alias": "P",
       "guard_component": "RequirePm",
@@ -4049,7 +4057,7 @@
       "element_raw": "P(<PmFleet />)"
     },
     {
-      "line": 887,
+      "line": 889,
       "path": "/pm/people",
       "guard_alias": "P",
       "guard_component": "RequirePm",
@@ -4058,7 +4066,7 @@
       "element_raw": "P(<PmPeople />)"
     },
     {
-      "line": 888,
+      "line": 890,
       "path": "/pm/suppliers",
       "guard_alias": "P",
       "guard_component": "RequirePm",
@@ -4067,7 +4075,7 @@
       "element_raw": "P(<PmSuppliers />)"
     },
     {
-      "line": 893,
+      "line": 895,
       "path": "/admin/vendors/:vendorId/thread",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -4076,7 +4084,7 @@
       "element_raw": "A(<AdminVendorThread />)"
     },
     {
-      "line": 894,
+      "line": 896,
       "path": "/admin/assets/:assetRef/thread",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -4085,7 +4093,7 @@
       "element_raw": "A(<AdminAssetThread />)"
     },
     {
-      "line": 895,
+      "line": 897,
       "path": "/pm/posters",
       "guard_alias": "P",
       "guard_component": "RequirePm",
@@ -4094,7 +4102,7 @@
       "element_raw": "P(<PmPosters />)"
     },
     {
-      "line": 896,
+      "line": 898,
       "path": "/pm/qaqc",
       "guard_alias": "P",
       "guard_component": "RequirePm",
@@ -4103,7 +4111,7 @@
       "element_raw": "P(<PmQaqcList />)"
     },
     {
-      "line": 897,
+      "line": 899,
       "path": "/pm/photos",
       "guard_alias": "P",
       "guard_component": "RequirePm",
@@ -4112,7 +4120,7 @@
       "element_raw": "P(<JobPhotosLibrary portalKey=\"pm\" />)"
     },
     {
-      "line": 906,
+      "line": 908,
       "path": "/pm/daily",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -4121,7 +4129,7 @@
       "element_raw": "AP(<DailyReportsDashboard />)"
     },
     {
-      "line": 907,
+      "line": 909,
       "path": "/pm/daily/:id",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -4130,7 +4138,7 @@
       "element_raw": "AP(<ViewDailyReport />)"
     },
     {
-      "line": 908,
+      "line": 910,
       "path": "/pm/incidents",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -4139,7 +4147,7 @@
       "element_raw": "AP(<IncidentsDashboard />)"
     },
     {
-      "line": 909,
+      "line": 911,
       "path": "/pm/incidents/:id",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -4148,7 +4156,7 @@
       "element_raw": "AP(<ViewIncident />)"
     },
     {
-      "line": 910,
+      "line": 912,
       "path": "/pm/meetings",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -4157,7 +4165,7 @@
       "element_raw": "AP(<MeetingsDashboard />)"
     },
     {
-      "line": 911,
+      "line": 913,
       "path": "/pm/meetings/:id",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -4166,7 +4174,7 @@
       "element_raw": "AP(<ViewMeeting />)"
     },
     {
-      "line": 912,
+      "line": 914,
       "path": "/pm/inspections",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -4175,7 +4183,7 @@
       "element_raw": "AP(<Dashboard />)"
     },
     {
-      "line": 913,
+      "line": 915,
       "path": "/pm/inspections/:id",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -4184,7 +4192,7 @@
       "element_raw": "AP(<ViewInspection />)"
     },
     {
-      "line": 914,
+      "line": 916,
       "path": "/pm/jha-plans",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -4193,7 +4201,7 @@
       "element_raw": "AP(<JhaPlansAdmin />)"
     },
     {
-      "line": 915,
+      "line": 917,
       "path": "/pm/trench-boxes",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -4202,7 +4210,7 @@
       "element_raw": "AP(<TrenchBoxesAdmin />)"
     },
     {
-      "line": 916,
+      "line": 918,
       "path": "/pm/equipment",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -4211,7 +4219,7 @@
       "element_raw": "AP(<EquipmentDashboard />)"
     },
     {
-      "line": 917,
+      "line": 919,
       "path": "/pm/equipment/:id",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -4220,7 +4228,7 @@
       "element_raw": "AP(<ViewEquipmentInspection context=\"admin\" />)"
     },
     {
-      "line": 923,
+      "line": 925,
       "path": "/pm/trench-safety",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -4229,7 +4237,7 @@
       "element_raw": "AP(<TrenchSafetyHub />)"
     },
     {
-      "line": 924,
+      "line": 926,
       "path": "/pm/trench-safety/assets",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -4238,7 +4246,7 @@
       "element_raw": "AP(<TrenchSafetyAssetsList />)"
     },
     {
-      "line": 925,
+      "line": 927,
       "path": "/pm/trench-safety/assets/:assetId",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -4247,7 +4255,7 @@
       "element_raw": "AP(<TrenchSafetyAssetDetail />)"
     },
     {
-      "line": 926,
+      "line": 928,
       "path": "/pm/trench-safety/tabulated-data",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -4256,7 +4264,7 @@
       "element_raw": "AP(<TrenchSafetyTabulatedData />)"
     },
     {
-      "line": 927,
+      "line": 929,
       "path": "/pm/trench-safety/reports",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -4265,7 +4273,7 @@
       "element_raw": "AP(<TrenchSafetyReports />)"
     },
     {
-      "line": 928,
+      "line": 930,
       "path": "/pm/trench-safety/excavations",
       "guard_alias": "AP",
       "guard_component": "RequireAdminOrPm",
@@ -4274,7 +4282,7 @@
       "element_raw": "AP(<ExcavationOversight />)"
     },
     {
-      "line": 934,
+      "line": 936,
       "path": "/shop/login",
       "guard_alias": null,
       "guard_component": null,
@@ -4283,7 +4291,7 @@
       "element_raw": "<ShopLogin />"
     },
     {
-      "line": 935,
+      "line": 937,
       "path": "/shop/reset/:token",
       "guard_alias": null,
       "guard_component": null,
@@ -4292,7 +4300,7 @@
       "element_raw": "<ShopResetPassword />"
     },
     {
-      "line": 936,
+      "line": 938,
       "path": "/shop/change-password",
       "guard_alias": "S",
       "guard_component": "RequireShop",
@@ -4301,7 +4309,7 @@
       "element_raw": "S(<ShopChangePassword />)"
     },
     {
-      "line": 942,
+      "line": 944,
       "path": "/shop",
       "guard_alias": "S",
       "guard_component": "RequireShop",
@@ -4310,7 +4318,7 @@
       "element_raw": "S(<ShopHubV2 />)"
     },
     {
-      "line": 943,
+      "line": 945,
       "path": "/shop/hub_legacy",
       "guard_alias": "S",
       "guard_component": "RequireShop",
@@ -4319,7 +4327,7 @@
       "element_raw": "S(<ShopHub />)"
     },
     {
-      "line": 944,
+      "line": 946,
       "path": "/shop/hub_v2",
       "guard_alias": "S",
       "guard_component": "RequireShop",
@@ -4328,7 +4336,7 @@
       "element_raw": "S(<ShopHubV2 />)"
     },
     {
-      "line": 948,
+      "line": 950,
       "path": "/shop/asset-care",
       "guard_alias": "S",
       "guard_component": "RequireShop",
@@ -4337,7 +4345,7 @@
       "element_raw": "S(<ShopAssetCare />)"
     },
     {
-      "line": 952,
+      "line": 954,
       "path": "/shop/manager/queue",
       "guard_alias": "S",
       "guard_component": "RequireShop",
@@ -4346,7 +4354,7 @@
       "element_raw": "S(<ShopManagerQueue />)"
     },
     {
-      "line": 953,
+      "line": 955,
       "path": "/shop/me",
       "guard_alias": "S",
       "guard_component": "RequireShop",
@@ -4355,7 +4363,7 @@
       "element_raw": "S(<ShopMyAssignments />)"
     },
     {
-      "line": 955,
+      "line": 957,
       "path": "/shop/units/history",
       "guard_alias": "S",
       "guard_component": "RequireShop",
@@ -4364,7 +4372,7 @@
       "element_raw": "S(<UnitHistoryLanding />)"
     },
     {
-      "line": 956,
+      "line": 958,
       "path": "/shop/units/:unitNumber/history",
       "guard_alias": "S",
       "guard_component": "RequireShop",
@@ -4373,7 +4381,7 @@
       "element_raw": "S(<UnitHistoryTimeline />)"
     },
     {
-      "line": 958,
+      "line": 960,
       "path": "/shop/fuel-lube/new",
       "guard_alias": "S",
       "guard_component": "RequireShop",
@@ -4382,7 +4390,7 @@
       "element_raw": "S(<FuelLubeVisitForm />)"
     },
     {
-      "line": 960,
+      "line": 962,
       "path": "/shop/fuel-lube",
       "guard_alias": "S",
       "guard_component": "RequireShop",
@@ -4391,7 +4399,7 @@
       "element_raw": "S(<FuelLubeVisitRecords />)"
     },
     {
-      "line": 961,
+      "line": 963,
       "path": "/shop/fuel-lube/:visitId",
       "guard_alias": "S",
       "guard_component": "RequireShop",
@@ -4400,7 +4408,7 @@
       "element_raw": "S(<FuelLubeVisitDetail />)"
     },
     {
-      "line": 963,
+      "line": 965,
       "path": "/shop/service-truck-reconciliation/new",
       "guard_alias": "S",
       "guard_component": "RequireShop",
@@ -4409,7 +4417,7 @@
       "element_raw": "S(<ServiceTruckReconciliationForm />)"
     },
     {
-      "line": 964,
+      "line": 966,
       "path": "/shop/service-truck-reconciliation",
       "guard_alias": "S",
       "guard_component": "RequireShop",
@@ -4418,7 +4426,7 @@
       "element_raw": "S(<ServiceTruckReconciliationRecords />)"
     },
     {
-      "line": 965,
+      "line": 967,
       "path": "/shop/service-truck-reconciliation/:recId",
       "guard_alias": "S",
       "guard_component": "RequireShop",
@@ -4427,7 +4435,7 @@
       "element_raw": "S(<ServiceTruckReconciliationDetail />)"
     },
     {
-      "line": 967,
+      "line": 969,
       "path": "/shop/pm",
       "guard_alias": "S",
       "guard_component": "RequireShop",
@@ -4436,7 +4444,7 @@
       "element_raw": "S(<PmDashboard />)"
     },
     {
-      "line": 968,
+      "line": 970,
       "path": "/shop/pm/templates",
       "guard_alias": "S",
       "guard_component": "RequireShop",
@@ -4445,7 +4453,7 @@
       "element_raw": "S(<PmTemplates />)"
     },
     {
-      "line": 969,
+      "line": 971,
       "path": "/shop/pm/schedules",
       "guard_alias": "S",
       "guard_component": "RequireShop",
@@ -4454,7 +4462,7 @@
       "element_raw": "S(<PmSchedules />)"
     },
     {
-      "line": 970,
+      "line": 972,
       "path": "/shop/pm/work-orders",
       "guard_alias": "S",
       "guard_component": "RequireShop",
@@ -4463,7 +4471,7 @@
       "element_raw": "S(<PmWorkOrders />)"
     },
     {
-      "line": 971,
+      "line": 973,
       "path": "/shop/pm/work-orders/:id",
       "guard_alias": "S",
       "guard_component": "RequireShop",
@@ -4472,7 +4480,7 @@
       "element_raw": "S(<PmWorkOrders />)"
     },
     {
-      "line": 972,
+      "line": 974,
       "path": "/shop/trench-safety-repairs",
       "guard_alias": "S",
       "guard_component": "RequireShop",
@@ -4481,7 +4489,7 @@
       "element_raw": "S(<ShopTrenchSafetyRepairs />)"
     },
     {
-      "line": 973,
+      "line": 975,
       "path": "/shop/fleet",
       "guard_alias": "S",
       "guard_component": "RequireShop",
@@ -4490,7 +4498,7 @@
       "element_raw": "S(<FleetVisibility scope=\"shop\" />)"
     },
     {
-      "line": 977,
+      "line": 979,
       "path": "/fleet/unit/:unit_number",
       "guard_alias": "S",
       "guard_component": "RequireShop",
@@ -4499,7 +4507,7 @@
       "element_raw": "S(<FleetUnitThread />)"
     },
     {
-      "line": 981,
+      "line": 983,
       "path": "/shop/equipment",
       "guard_alias": "S",
       "guard_component": "RequireShop",
@@ -4508,7 +4516,7 @@
       "element_raw": "S(<EquipmentDashboard />)"
     },
     {
-      "line": 982,
+      "line": 984,
       "path": "/shop/equipment/:id",
       "guard_alias": "S",
       "guard_component": "RequireShop",
@@ -4517,7 +4525,7 @@
       "element_raw": "S(<ViewEquipmentInspection context=\"shop\" />)"
     },
     {
-      "line": 991,
+      "line": 993,
       "path": "/hr/login",
       "guard_alias": null,
       "guard_component": null,
@@ -4526,7 +4534,7 @@
       "element_raw": "<HrLogin />"
     },
     {
-      "line": 992,
+      "line": 994,
       "path": "/sign-in",
       "guard_alias": null,
       "guard_component": null,
@@ -4535,7 +4543,7 @@
       "element_raw": "<SignIn />"
     },
     {
-      "line": 993,
+      "line": 995,
       "path": "/change-password",
       "guard_alias": null,
       "guard_component": null,
@@ -4544,7 +4552,7 @@
       "element_raw": "<DirectoryChangePassword />"
     },
     {
-      "line": 994,
+      "line": 996,
       "path": "/hr/forgot",
       "guard_alias": null,
       "guard_component": null,
@@ -4553,7 +4561,7 @@
       "element_raw": "<HrForgotPassword />"
     },
     {
-      "line": 995,
+      "line": 997,
       "path": "/hr/reset/:token",
       "guard_alias": null,
       "guard_component": null,
@@ -4562,7 +4570,7 @@
       "element_raw": "<HrResetPassword />"
     },
     {
-      "line": 996,
+      "line": 998,
       "path": "/hr/change-password",
       "guard_alias": "H",
       "guard_component": "RequireHr",
@@ -4571,7 +4579,7 @@
       "element_raw": "H(<HrChangePassword />)"
     },
     {
-      "line": 998,
+      "line": 1000,
       "path": "/hr",
       "guard_alias": "H",
       "guard_component": "RequireHr",
@@ -4580,7 +4588,7 @@
       "element_raw": "H(<HrHubV2 />)"
     },
     {
-      "line": 999,
+      "line": 1001,
       "path": "/hr/hub_legacy",
       "guard_alias": "H",
       "guard_component": "RequireHr",
@@ -4589,7 +4597,7 @@
       "element_raw": "H(<HrHub />)"
     },
     {
-      "line": 1001,
+      "line": 1003,
       "path": "/hr/hub_v2",
       "guard_alias": "H",
       "guard_component": "RequireHr",
@@ -4598,7 +4606,7 @@
       "element_raw": "H(<HrHubV2 />)"
     },
     {
-      "line": 1002,
+      "line": 1004,
       "path": "/hr/field-leadership",
       "guard_alias": "H",
       "guard_component": "RequireHr",
@@ -4607,7 +4615,7 @@
       "element_raw": "H(<HrFieldLeadership />)"
     },
     {
-      "line": 1003,
+      "line": 1005,
       "path": "/hr/field-leadership-users",
       "guard_alias": "H",
       "guard_component": "RequireHr",
@@ -4616,7 +4624,7 @@
       "element_raw": "H(<HrFieldLeadershipUsers />)"
     },
     {
-      "line": 1004,
+      "line": 1006,
       "path": "/hr/employee-accountability",
       "guard_alias": "H",
       "guard_component": "RequireHr",
@@ -4625,7 +4633,7 @@
       "element_raw": "H(<HrEmployeeAccountability />)"
     },
     {
-      "line": 1005,
+      "line": 1007,
       "path": "/hr/time-verification",
       "guard_alias": "H",
       "guard_component": "RequireHr",
@@ -4634,7 +4642,7 @@
       "element_raw": "H(<HrTimeVerification />)"
     },
     {
-      "line": 1006,
+      "line": 1008,
       "path": "/hr/time-off",
       "guard_alias": "H",
       "guard_component": "RequireHr",
@@ -4643,7 +4651,7 @@
       "element_raw": "H(<HrTimeOff />)"
     },
     {
-      "line": 1007,
+      "line": 1009,
       "path": "/hr/payroll-variance",
       "guard_alias": "H",
       "guard_component": "RequireHr",
@@ -4652,7 +4660,7 @@
       "element_raw": "H(<HrPayrollVariance />)"
     },
     {
-      "line": 1008,
+      "line": 1010,
       "path": "/hr/training-records",
       "guard_alias": "H",
       "guard_component": "RequireHr",
@@ -4661,7 +4669,7 @@
       "element_raw": "H(<HrTrainingRecords />)"
     },
     {
-      "line": 1009,
+      "line": 1011,
       "path": "/hr/driver-qualification",
       "guard_alias": "H",
       "guard_component": "RequireHr",
@@ -4670,7 +4678,7 @@
       "element_raw": "H(<HrDriverQualificationDashboard />)"
     },
     {
-      "line": 1010,
+      "line": 1012,
       "path": "/hr/driver-qualification/import",
       "guard_alias": "H",
       "guard_component": "RequireHr",
@@ -4679,7 +4687,7 @@
       "element_raw": "H(<HrDriverQualificationImport />)"
     },
     {
-      "line": 1026,
+      "line": 1028,
       "path": "/hr/daily-reports",
       "guard_alias": "H",
       "guard_component": "RequireHr",
@@ -4688,7 +4696,7 @@
       "element_raw": "H(<HrDailyReports />)"
     },
     {
-      "line": 1027,
+      "line": 1029,
       "path": "/hr/daily-reports/:id",
       "guard_alias": "H",
       "guard_component": "RequireHr",
@@ -4697,7 +4705,7 @@
       "element_raw": "H(<ViewDailyReport />)"
     },
     {
-      "line": 1029,
+      "line": 1031,
       "path": "/hr/motive-drivers",
       "guard_alias": "H",
       "guard_component": "RequireHr",
@@ -4706,7 +4714,7 @@
       "element_raw": "H(<HrMotiveDrivers />)"
     },
     {
-      "line": 1031,
+      "line": 1033,
       "path": "/hr/driver/:driverKey",
       "guard_alias": "H",
       "guard_component": "RequireHr",
@@ -4715,7 +4723,7 @@
       "element_raw": "H(<HrDriverProfile />)"
     },
     {
-      "line": 1032,
+      "line": 1034,
       "path": "/time-off/public/:token",
       "guard_alias": null,
       "guard_component": null,
@@ -4724,7 +4732,7 @@
       "element_raw": "<PublicTimeOff />"
     },
     {
-      "line": 1039,
+      "line": 1041,
       "path": "/field-leadership/portal/login",
       "guard_alias": null,
       "guard_component": null,
@@ -4733,7 +4741,7 @@
       "element_raw": "<FieldLeadershipPortalLogin />"
     },
     {
-      "line": 1040,
+      "line": 1042,
       "path": "/field-leadership/portal/change-password",
       "guard_alias": "FL",
       "guard_component": "RequireFl",
@@ -4742,7 +4750,7 @@
       "element_raw": "FL(<FieldLeadershipPortalChangePassword />)"
     },
     {
-      "line": 1041,
+      "line": 1043,
       "path": "/field-leadership/portal/dashboard",
       "guard_alias": "FL",
       "guard_component": "RequireFl",
@@ -4751,7 +4759,7 @@
       "element_raw": "FL(<FieldLeadershipPortalDashboard />)"
     },
     {
-      "line": 1042,
+      "line": 1044,
       "path": "/field-leadership/portal",
       "guard_alias": "FL",
       "guard_component": "RequireFl",
@@ -4760,7 +4768,7 @@
       "element_raw": "FL(<FieldLeadershipPortalDashboard />)"
     },
     {
-      "line": 1044,
+      "line": 1046,
       "path": "/field-leadership/portal/driver-qualification",
       "guard_alias": "FL",
       "guard_component": "RequireFl",
@@ -4769,7 +4777,7 @@
       "element_raw": "FL(<FieldLeadershipDriverQualification />)"
     },
     {
-      "line": 1054,
+      "line": 1056,
       "path": "/safety-portal/login",
       "guard_alias": null,
       "guard_component": null,
@@ -4778,7 +4786,7 @@
       "element_raw": "<SafetyLogin />"
     },
     {
-      "line": 1055,
+      "line": 1057,
       "path": "/safety-portal/forgot-password",
       "guard_alias": null,
       "guard_component": null,
@@ -4787,7 +4795,7 @@
       "element_raw": "<SafetyForgotPassword />"
     },
     {
-      "line": 1056,
+      "line": 1058,
       "path": "/safety-portal/reset/:token",
       "guard_alias": null,
       "guard_component": null,
@@ -4796,7 +4804,7 @@
       "element_raw": "<SafetyResetPassword />"
     },
     {
-      "line": 1057,
+      "line": 1059,
       "path": "/safety-portal/change-password",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -4805,7 +4813,7 @@
       "element_raw": "SF(<SafetyChangePassword />)"
     },
     {
-      "line": 1062,
+      "line": 1064,
       "path": "/safety-portal",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -4814,7 +4822,7 @@
       "element_raw": "SF(<SafetyHubV2 />)"
     },
     {
-      "line": 1063,
+      "line": 1065,
       "path": "/safety-portal/hub_legacy",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -4823,7 +4831,7 @@
       "element_raw": "SF(<SafetyHub />)"
     },
     {
-      "line": 1064,
+      "line": 1066,
       "path": "/safety-portal/hub_v2",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -4832,7 +4840,7 @@
       "element_raw": "SF(<SafetyHubV2 />)"
     },
     {
-      "line": 1065,
+      "line": 1067,
       "path": "/safety-portal/fleet",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -4841,7 +4849,7 @@
       "element_raw": "SF(<FleetVisibility scope=\"safety\" />)"
     },
     {
-      "line": 1066,
+      "line": 1068,
       "path": "/safety-portal/corrective-actions",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -4850,7 +4858,7 @@
       "element_raw": "SF(<SafetyCorrectiveActions />)"
     },
     {
-      "line": 1067,
+      "line": 1069,
       "path": "/safety-portal/fire-extinguishers",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -4859,7 +4867,7 @@
       "element_raw": "SF(<SafetyFireExtinguishers />)"
     },
     {
-      "line": 1068,
+      "line": 1070,
       "path": "/safety-portal/fire-extinguishers/import",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -4868,7 +4876,7 @@
       "element_raw": "SF(<SafetyFireExtImport />)"
     },
     {
-      "line": 1069,
+      "line": 1071,
       "path": "/safety-portal/documents",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -4877,7 +4885,7 @@
       "element_raw": "SF(<SafetyDocuments />)"
     },
     {
-      "line": 1070,
+      "line": 1072,
       "path": "/safety-portal/training",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -4886,7 +4894,7 @@
       "element_raw": "SF(<SafetyTrainingRecords />)"
     },
     {
-      "line": 1071,
+      "line": 1073,
       "path": "/safety-portal/incidents",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -4895,7 +4903,7 @@
       "element_raw": "SF(<SafetyIncidents />)"
     },
     {
-      "line": 1077,
+      "line": 1079,
       "path": "/safety-portal/incidents/:id",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -4904,7 +4912,7 @@
       "element_raw": "SF(<ViewIncident />)"
     },
     {
-      "line": 1078,
+      "line": 1080,
       "path": "/safety-portal/meetings/:id",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -4913,7 +4921,7 @@
       "element_raw": "SF(<ViewMeeting />)"
     },
     {
-      "line": 1079,
+      "line": 1081,
       "path": "/safety-portal/audits",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -4922,7 +4930,7 @@
       "element_raw": "SF(<SafetyAudits />)"
     },
     {
-      "line": 1080,
+      "line": 1082,
       "path": "/safety-portal/forms-records",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -4931,7 +4939,7 @@
       "element_raw": "SF(<SafetyFormsRecords />)"
     },
     {
-      "line": 1081,
+      "line": 1083,
       "path": "/safety-portal/reports",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -4940,7 +4948,7 @@
       "element_raw": "SF(<SafetyReports />)"
     },
     {
-      "line": 1082,
+      "line": 1084,
       "path": "/safety-portal/library",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -4949,7 +4957,7 @@
       "element_raw": "SF(<SafetyTopicLibrary />)"
     },
     {
-      "line": 1083,
+      "line": 1085,
       "path": "/safety-portal/employees",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -4958,7 +4966,7 @@
       "element_raw": "SF(<SafetyEmployeeProfiles />)"
     },
     {
-      "line": 1084,
+      "line": 1086,
       "path": "/safety-portal/digest",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -4967,7 +4975,7 @@
       "element_raw": "SF(<SafetyDigest />)"
     },
     {
-      "line": 1091,
+      "line": 1093,
       "path": "/safety-portal/inspections",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -4976,7 +4984,7 @@
       "element_raw": "SF(<Dashboard />)"
     },
     {
-      "line": 1092,
+      "line": 1094,
       "path": "/safety-portal/inspections/:id",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -4985,7 +4993,7 @@
       "element_raw": "SF(<ViewInspection />)"
     },
     {
-      "line": 1093,
+      "line": 1095,
       "path": "/safety-portal/jha-plans",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -4994,7 +5002,7 @@
       "element_raw": "SF(<JhaPlansAdmin />)"
     },
     {
-      "line": 1095,
+      "line": 1097,
       "path": "/safety-portal/driver/:driverKey",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -5003,7 +5011,7 @@
       "element_raw": "SF(<SafetyDriverProfile />)"
     },
     {
-      "line": 1098,
+      "line": 1100,
       "path": "/hr/safety-records",
       "guard_alias": "H",
       "guard_component": "RequireHr",
@@ -5012,7 +5020,7 @@
       "element_raw": "H(<HrSafetyRecords />)"
     },
     {
-      "line": 1104,
+      "line": 1106,
       "path": "/dispatch-portal/login",
       "guard_alias": null,
       "guard_component": null,
@@ -5021,7 +5029,7 @@
       "element_raw": "<DispatchLogin />"
     },
     {
-      "line": 1113,
+      "line": 1115,
       "path": "/leadership/login",
       "guard_alias": null,
       "guard_component": null,
@@ -5030,7 +5038,7 @@
       "element_raw": "<FieldLeadershipPortalLogin />"
     },
     {
-      "line": 1114,
+      "line": 1116,
       "path": "/leadership/legacy-login",
       "guard_alias": null,
       "guard_component": null,
@@ -5039,7 +5047,7 @@
       "element_raw": "<LeadershipLogin />"
     },
     {
-      "line": 1115,
+      "line": 1117,
       "path": "/dispatch-portal/forgot-password",
       "guard_alias": null,
       "guard_component": null,
@@ -5048,7 +5056,7 @@
       "element_raw": "<DispatchForgotPassword />"
     },
     {
-      "line": 1116,
+      "line": 1118,
       "path": "/dispatch-portal/reset/:token",
       "guard_alias": null,
       "guard_component": null,
@@ -5057,7 +5065,7 @@
       "element_raw": "<DispatchResetPassword />"
     },
     {
-      "line": 1117,
+      "line": 1119,
       "path": "/dispatch-portal/change-password",
       "guard_alias": "DP",
       "guard_component": "RequireDispatch",
@@ -5066,7 +5074,7 @@
       "element_raw": "DP(<DispatchChangePassword />)"
     },
     {
-      "line": 1123,
+      "line": 1125,
       "path": "/dispatch-portal",
       "guard_alias": "DP",
       "guard_component": "RequireDispatch",
@@ -5075,7 +5083,7 @@
       "element_raw": "DP(<DispatchHub />)"
     },
     {
-      "line": 1124,
+      "line": 1126,
       "path": "/dispatch-portal/hub_legacy",
       "guard_alias": "DP",
       "guard_component": "RequireDispatch",
@@ -5084,7 +5092,7 @@
       "element_raw": "DP(<DispatchHub />)"
     },
     {
-      "line": 1125,
+      "line": 1127,
       "path": "/dispatch-portal/hub_v2",
       "guard_alias": "DP",
       "guard_component": "RequireDispatch",
@@ -5093,7 +5101,7 @@
       "element_raw": "DP(<DispatchHubV2 />)"
     },
     {
-      "line": 1126,
+      "line": 1128,
       "path": "/dispatch-portal/board",
       "guard_alias": "DP",
       "guard_component": "RequireDispatch",
@@ -5102,7 +5110,7 @@
       "element_raw": "DP(<DispatchBoard />)"
     },
     {
-      "line": 1127,
+      "line": 1129,
       "path": "/dispatch-portal/command",
       "guard_alias": "DP",
       "guard_component": "RequireDispatch",
@@ -5111,7 +5119,7 @@
       "element_raw": "DP(<DispatchCommandCenter />)"
     },
     {
-      "line": 1128,
+      "line": 1130,
       "path": "/dispatch-portal/fleet",
       "guard_alias": null,
       "guard_component": null,
@@ -5120,7 +5128,7 @@
       "element_raw": "DP(<><TransportationOpsTopBar /><FleetVisibility scope=\"dispatch\" /></>)"
     },
     {
-      "line": 1140,
+      "line": 1142,
       "path": "/dispatch-portal/map",
       "guard_alias": "DP",
       "guard_component": "RequireDispatch",
@@ -5129,7 +5137,7 @@
       "element_raw": "DP(<DispatchOperationsMapPage />)"
     },
     {
-      "line": 1143,
+      "line": 1145,
       "path": "/dispatch-portal/haul-ledger",
       "guard_alias": "DP",
       "guard_component": "RequireDispatch",
@@ -5138,7 +5146,7 @@
       "element_raw": "DP(<DispatchHaulLedger />)"
     },
     {
-      "line": 1145,
+      "line": 1147,
       "path": "/dispatch-portal/driver-qualification",
       "guard_alias": "DP",
       "guard_component": "RequireDispatch",
@@ -5147,7 +5155,7 @@
       "element_raw": "DP(<DispatchDriverQualification />)"
     },
     {
-      "line": 1147,
+      "line": 1149,
       "path": "/dispatch-portal/driver/:driverKey",
       "guard_alias": "DP",
       "guard_component": "RequireDispatch",
@@ -5156,7 +5164,7 @@
       "element_raw": "DP(<DispatchDriverProfile />)"
     },
     {
-      "line": 1154,
+      "line": 1156,
       "path": "/training",
       "guard_alias": null,
       "guard_component": null,
@@ -5165,7 +5173,7 @@
       "element_raw": "<TrainingHub />"
     },
     {
-      "line": 1155,
+      "line": 1157,
       "path": "/training-hub",
       "guard_alias": null,
       "guard_component": null,
@@ -5174,7 +5182,7 @@
       "element_raw": "<Navigate to=\"/training\" replace />"
     },
     {
-      "line": 1156,
+      "line": 1158,
       "path": "/training/:track",
       "guard_alias": null,
       "guard_component": null,
@@ -5183,7 +5191,7 @@
       "element_raw": "<TrainingTrack />"
     },
     {
-      "line": 1157,
+      "line": 1159,
       "path": "/training/:track/poster",
       "guard_alias": null,
       "guard_component": null,
@@ -5192,7 +5200,7 @@
       "element_raw": "<TrainingQrPoster />"
     },
     {
-      "line": 1158,
+      "line": 1160,
       "path": "/training/:track/packet",
       "guard_alias": null,
       "guard_component": null,
@@ -5201,7 +5209,7 @@
       "element_raw": "<TrainingPacketDownload />"
     },
     {
-      "line": 1159,
+      "line": 1161,
       "path": "/admin/training-videos",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -5210,7 +5218,7 @@
       "element_raw": "A(<AdminTrainingVideos />)"
     },
     {
-      "line": 1160,
+      "line": 1162,
       "path": "/admin/deploy-readiness",
       "guard_alias": "A",
       "guard_component": "RequireAdmin",
@@ -5219,7 +5227,7 @@
       "element_raw": "A(<AdminDeployReadiness />)"
     },
     {
-      "line": 1175,
+      "line": 1177,
       "path": "/ops-training",
       "guard_alias": null,
       "guard_component": null,
@@ -5228,7 +5236,7 @@
       "element_raw": "<Navigate to=\"/guidance\" replace />"
     },
     {
-      "line": 1176,
+      "line": 1178,
       "path": "/ops-training/:slug",
       "guard_alias": null,
       "guard_component": null,
@@ -5237,7 +5245,7 @@
       "element_raw": "<Navigate to=\"/guidance\" replace />"
     },
     {
-      "line": 1185,
+      "line": 1187,
       "path": "/dev/login",
       "guard_alias": null,
       "guard_component": null,
@@ -5246,7 +5254,7 @@
       "element_raw": "<DevLogin />"
     },
     {
-      "line": 1186,
+      "line": 1188,
       "path": "/dev",
       "guard_alias": "D",
       "guard_component": "RequireDev",
@@ -5255,7 +5263,7 @@
       "element_raw": "D(<DevHub />)"
     },
     {
-      "line": 1189,
+      "line": 1191,
       "path": "/inspections",
       "guard_alias": null,
       "guard_component": null,
@@ -5264,7 +5272,7 @@
       "element_raw": "<Navigate to=\"/admin/inspections\" replace />"
     },
     {
-      "line": 1190,
+      "line": 1192,
       "path": "/inspect/:id",
       "guard_alias": null,
       "guard_component": null,
@@ -5273,7 +5281,7 @@
       "element_raw": "<RedirectWithId base=\"/admin/inspections\" />"
     },
     {
-      "line": 1191,
+      "line": 1193,
       "path": "/inspections/:id",
       "guard_alias": null,
       "guard_component": null,
@@ -5282,7 +5290,7 @@
       "element_raw": "<RedirectWithId base=\"/admin/inspections\" />"
     },
     {
-      "line": 1192,
+      "line": 1194,
       "path": "/meetings",
       "guard_alias": null,
       "guard_component": null,
@@ -5291,7 +5299,7 @@
       "element_raw": "<Navigate to=\"/admin/meetings\" replace />"
     },
     {
-      "line": 1193,
+      "line": 1195,
       "path": "/meetings/:id",
       "guard_alias": null,
       "guard_component": null,
@@ -5300,7 +5308,7 @@
       "element_raw": "<RedirectWithId base=\"/admin/meetings\" />"
     },
     {
-      "line": 1194,
+      "line": 1196,
       "path": "/incidents",
       "guard_alias": null,
       "guard_component": null,
@@ -5309,7 +5317,7 @@
       "element_raw": "<Navigate to=\"/admin/incidents\" replace />"
     },
     {
-      "line": 1195,
+      "line": 1197,
       "path": "/incidents/:id",
       "guard_alias": null,
       "guard_component": null,
@@ -5318,7 +5326,7 @@
       "element_raw": "<RedirectWithId base=\"/admin/incidents\" />"
     },
     {
-      "line": 1196,
+      "line": 1198,
       "path": "/daily",
       "guard_alias": null,
       "guard_component": null,
@@ -5327,7 +5335,7 @@
       "element_raw": "<Navigate to=\"/admin/daily\" replace />"
     },
     {
-      "line": 1197,
+      "line": 1199,
       "path": "/daily/:id",
       "guard_alias": null,
       "guard_component": null,
@@ -5336,7 +5344,7 @@
       "element_raw": "<RedirectWithId base=\"/admin/daily\" />"
     },
     {
-      "line": 1207,
+      "line": 1209,
       "path": "/safety-portal/meetings",
       "guard_alias": "SF",
       "guard_component": "RequireSafety",
@@ -5345,7 +5353,7 @@
       "element_raw": "SF(<MeetingsDashboard />)"
     },
     {
-      "line": 1208,
+      "line": 1210,
       "path": "/admin/daily-reports",
       "guard_alias": null,
       "guard_component": null,
@@ -5354,7 +5362,7 @@
       "element_raw": "<Navigate to=\"/admin/daily\" replace />"
     },
     {
-      "line": 1209,
+      "line": 1211,
       "path": "/admin/trench-safety-assets",
       "guard_alias": null,
       "guard_component": null,
@@ -5363,7 +5371,7 @@
       "element_raw": "<Navigate to=\"/safety/trench-safety/assets\" replace />"
     },
     {
-      "line": 1212,
+      "line": 1214,
       "path": "/legal/terms",
       "guard_alias": null,
       "guard_component": null,
@@ -5372,7 +5380,7 @@
       "element_raw": "<TermsOfService />"
     },
     {
-      "line": 1213,
+      "line": 1215,
       "path": "/legal/privacy",
       "guard_alias": null,
       "guard_component": null,
@@ -5381,7 +5389,7 @@
       "element_raw": "<PrivacyPolicy />"
     },
     {
-      "line": 1219,
+      "line": 1221,
       "path": "/tasks",
       "guard_alias": null,
       "guard_component": null,
@@ -5390,7 +5398,7 @@
       "element_raw": "<Tasks />"
     },
     {
-      "line": 1221,
+      "line": 1223,
       "path": "/document-expirations",
       "guard_alias": null,
       "guard_component": null,
@@ -5399,7 +5407,7 @@
       "element_raw": "<DocumentExpirations />"
     },
     {
-      "line": 1223,
+      "line": 1225,
       "path": "/hr/employees",
       "guard_alias": "H",
       "guard_component": "RequireHr",
@@ -5408,7 +5416,7 @@
       "element_raw": "H(<HrEmployees />)"
     },
     {
-      "line": 1225,
+      "line": 1227,
       "path": "/hr/employee-requests",
       "guard_alias": "H",
       "guard_component": "RequireHr",
@@ -5417,7 +5425,7 @@
       "element_raw": "H(<HrEmployeeRequestsQueue />)"
     },
     {
-      "line": 1228,
+      "line": 1230,
       "path": "/hr/employees/:id/accountability",
       "guard_alias": "H",
       "guard_component": "RequireHr",
@@ -5426,7 +5434,7 @@
       "element_raw": "H(<HrEmployeeAccountabilityTimeline />)"
     },
     {
-      "line": 1233,
+      "line": 1235,
       "path": "/hr/employees/:id/thread",
       "guard_alias": "H",
       "guard_component": "RequireHr",
@@ -5435,7 +5443,7 @@
       "element_raw": "H(<HrEmployeeThread />)"
     },
     {
-      "line": 1235,
+      "line": 1237,
       "path": "/hr/employees/:empId/profile",
       "guard_alias": "H",
       "guard_component": "RequireHr",
@@ -5444,7 +5452,7 @@
       "element_raw": "H(<EmployeeProfile />)"
     },
     {
-      "line": 1237,
+      "line": 1239,
       "path": "/hr/historical-records/intake",
       "guard_alias": "H",
       "guard_component": "RequireHr",
@@ -5453,7 +5461,7 @@
       "element_raw": "H(<HistoricalRecordsIntake />)"
     },
     {
-      "line": 1238,
+      "line": 1240,
       "path": "/hr/historical-records/queue",
       "guard_alias": "H",
       "guard_component": "RequireHr",
@@ -5462,7 +5470,7 @@
       "element_raw": "H(<HistoricalRecordsQueue />)"
     },
     {
-      "line": 1240,
+      "line": 1242,
       "path": "/hr/historical-records/batches",
       "guard_alias": "H",
       "guard_component": "RequireHr",
@@ -5471,7 +5479,7 @@
       "element_raw": "H(<HistoricalRecordsBatches />)"
     },
     {
-      "line": 1241,
+      "line": 1243,
       "path": "/hr/historical-records/batches/:batchId",
       "guard_alias": "H",
       "guard_component": "RequireHr",
@@ -5480,7 +5488,7 @@
       "element_raw": "H(<HistoricalRecordsBatchDetail />)"
     },
     {
-      "line": 1243,
+      "line": 1245,
       "path": "/hr/incidents",
       "guard_alias": "H",
       "guard_component": "RequireHr",
@@ -5489,7 +5497,7 @@
       "element_raw": "H(<HrIncidents />)"
     },
     {
-      "line": 1245,
+      "line": 1247,
       "path": "/po-requests",
       "guard_alias": null,
       "guard_component": null,
@@ -5498,7 +5506,7 @@
       "element_raw": "<PoRequests />"
     },
     {
-      "line": 1248,
+      "line": 1250,
       "path": "/project-health",
       "guard_alias": null,
       "guard_component": null,
@@ -5507,7 +5515,7 @@
       "element_raw": "<ProjectHealth />"
     },
     {
-      "line": 1252,
+      "line": 1254,
       "path": "/asset-transfers",
       "guard_alias": null,
       "guard_component": null,
@@ -5516,7 +5524,7 @@
       "element_raw": "<AssetTransfers />"
     },
     {
-      "line": 1256,
+      "line": 1258,
       "path": "/access-denied",
       "guard_alias": null,
       "guard_component": null,
@@ -5525,7 +5533,7 @@
       "element_raw": "<AccessDenied />"
     },
     {
-      "line": 1264,
+      "line": 1266,
       "path": "/admin/audit",
       "guard_alias": null,
       "guard_component": null,
@@ -5534,7 +5542,7 @@
       "element_raw": "<Navigate to=\"/admin/audit-log\" replace />"
     },
     {
-      "line": 1265,
+      "line": 1267,
       "path": "/admin/health",
       "guard_alias": null,
       "guard_component": null,
@@ -5543,7 +5551,7 @@
       "element_raw": "<Navigate to=\"/admin/system-health\" replace />"
     },
     {
-      "line": 1267,
+      "line": 1269,
       "path": "/d/:token",
       "guard_alias": null,
       "guard_component": null,
@@ -5552,7 +5560,7 @@
       "element_raw": "<DriverMagicLanding />"
     },
     {
-      "line": 1268,
+      "line": 1270,
       "path": "/driver",
       "guard_alias": null,
       "guard_component": null,
@@ -5561,7 +5569,7 @@
       "element_raw": "<DriverShift />"
     },
     {
-      "line": 1272,
+      "line": 1274,
       "path": "/shift",
       "guard_alias": null,
       "guard_component": null,
@@ -5570,7 +5578,7 @@
       "element_raw": "<ShiftStart />"
     },
     {
-      "line": 1273,
+      "line": 1275,
       "path": "/field-leadership",
       "guard_alias": null,
       "guard_component": null,
@@ -5579,7 +5587,7 @@
       "element_raw": "<Navigate to=\"/leadership\" replace />"
     },
     {
-      "line": 1276,
+      "line": 1278,
       "path": "/odr/new",
       "guard_alias": null,
       "guard_component": null,
@@ -5588,7 +5596,7 @@
       "element_raw": "<OdrNew />"
     },
     {
-      "line": 1277,
+      "line": 1279,
       "path": "/odr/center",
       "guard_alias": null,
       "guard_component": null,
@@ -5597,7 +5605,7 @@
       "element_raw": "<OdrCenter />"
     },
     {
-      "line": 1278,
+      "line": 1280,
       "path": "/pm/odr",
       "guard_alias": "P",
       "guard_component": "RequirePm",
@@ -5606,7 +5614,7 @@
       "element_raw": "P(<OdrPmPanel />)"
     },
     {
-      "line": 1279,
+      "line": 1281,
       "path": "/odr/public/:doc_id",
       "guard_alias": null,
       "guard_component": null,
@@ -5615,7 +5623,7 @@
       "element_raw": "<OdrPublicViewer />"
     },
     {
-      "line": 1280,
+      "line": 1282,
       "path": "/odr/:id/done",
       "guard_alias": null,
       "guard_component": null,
@@ -5624,7 +5632,7 @@
       "element_raw": "<OdrDone />"
     },
     {
-      "line": 1281,
+      "line": 1283,
       "path": "/odr/:id",
       "guard_alias": null,
       "guard_component": null,
@@ -5633,7 +5641,7 @@
       "element_raw": "<OdrDetail />"
     },
     {
-      "line": 1285,
+      "line": 1287,
       "path": "/operational-records",
       "guard_alias": null,
       "guard_component": null,
@@ -5642,7 +5650,7 @@
       "element_raw": "<OperationalRecords />"
     },
     {
-      "line": 1288,
+      "line": 1290,
       "path": "/operations-actions",
       "guard_alias": null,
       "guard_component": null,
@@ -5651,7 +5659,7 @@
       "element_raw": "<OperationsActions />"
     },
     {
-      "line": 1289,
+      "line": 1291,
       "path": "/operations-actions/new",
       "guard_alias": null,
       "guard_component": null,
@@ -5660,7 +5668,7 @@
       "element_raw": "<OperationsActionNew />"
     },
     {
-      "line": 1290,
+      "line": 1292,
       "path": "/operations-actions/:id",
       "guard_alias": null,
       "guard_component": null,
@@ -5669,7 +5677,7 @@
       "element_raw": "<OperationsActionDetail />"
     },
     {
-      "line": 1304,
+      "line": 1306,
       "path": "/_internal/design-system",
       "guard_alias": "D",
       "guard_component": "RequireDev",
@@ -5678,7 +5686,7 @@
       "element_raw": "D(<DesignSystemDemo />)"
     },
     {
-      "line": 1305,
+      "line": 1307,
       "path": "/_internal/pm-v2-preview",
       "guard_alias": "D",
       "guard_component": "RequireDev",
@@ -5687,7 +5695,7 @@
       "element_raw": "D(<PmV2Preview />)"
     },
     {
-      "line": 1306,
+      "line": 1308,
       "path": "/_internal/hr-v2-preview",
       "guard_alias": "D",
       "guard_component": "RequireDev",
@@ -5696,7 +5704,7 @@
       "element_raw": "D(<HrV2Preview />)"
     },
     {
-      "line": 1307,
+      "line": 1309,
       "path": "/_internal/v2-index",
       "guard_alias": "D",
       "guard_component": "RequireDev",
@@ -5705,7 +5713,7 @@
       "element_raw": "D(<V2Index />)"
     },
     {
-      "line": 1308,
+      "line": 1310,
       "path": "/_internal/v2-compare/:portal",
       "guard_alias": "D",
       "guard_component": "RequireDev",
@@ -5714,7 +5722,16 @@
       "element_raw": "D(<V2Compare />)"
     },
     {
-      "line": 1309,
+      "line": 1312,
+      "path": "/daily-report/v2",
+      "guard_alias": null,
+      "guard_component": null,
+      "target_component": "DailyReportV2",
+      "load": "eager",
+      "element_raw": "<DailyReportV2 />"
+    },
+    {
+      "line": 1313,
       "path": "*",
       "guard_alias": null,
       "guard_component": null,
