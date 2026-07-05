@@ -277,3 +277,18 @@ Pillars.
 - **[P3] Batch tenant update.** A safe `PATCH /api/admin/ai/tenants/bulk` could
   enable rolling-out a module to N tenants in one call. Explicit non-goal today
   to preserve per-tenant audit clarity — every mutation is one tenant, one row.
+
+---
+
+## 2026-02 · DR-CUTOVER-002 Follow-ups
+
+- **[P2] PDF renderer inclusion.** `dr_v2_pdf.py` should render a "Daily Operational Summary" block
+  before the signature block, conditional on `record.get("daily_operational_summary")`. Requires
+  a golden-file PDF comparison test — kept out of this track to isolate risk.
+- **[P2] Email template inclusion.** Extend the daily-report email body block to render the accepted
+  summary when present. Strictly additive; won't affect existing deliveries.
+- **[P2] Live-LLM polish path.** A future middleware wrapper around the deterministic composer output
+  can hand the text to an LLM for a style pass — with a hard constraint that the LLM must NOT
+  introduce any new fact (validated by cross-check against the composer's evidence_refs).
+- **[P3] Photo Intelligence integration.** When enabled, could enrich the summary with per-photo
+  observations. Currently the composer surfaces photo counts and captions only — no vision call.

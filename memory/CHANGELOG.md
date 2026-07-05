@@ -8907,3 +8907,19 @@ Additive. Zero drift. Field UI byte-identical.
 - **Tests:** 17 new backend lock tests + 17 AI-CONFIG-001 regression = 34/34 green.
   Testing agent v3 end-to-end run: 100% backend / 100% frontend success.
 - **Docs:** 6 markdown files in `/app/memory/AI_ADMIN_001_*`.
+
+## 2026-02 · DR-CUTOVER-002 · Daily Operational Summary inside the real Daily Report
+
+Additive. Zero drift.
+
+- **NEW · Backend:** `routes/daily_summary.py` mounting two additive endpoints —
+  `POST /api/daily-reports/summary/draft` and `POST /api/daily-reports/{id}/summary/accept`.
+  Deterministic composer, never invents facts, never calls a live LLM.
+- **NEW · Frontend:** `components/daily-report/DailyOperationalSummarySection.jsx` mounted
+  inside the existing `NewDailyReport.jsx` at `/daily/submit`, just before the sign-off band.
+  Zero AI vocabulary in the UI copy.
+- **PROTECTED:** HR crew time, email pipeline, PDF renderer, ODS V1 ingest, safety gates,
+  photos, signature, EN/ES — all untouched. V1 submit path regression-locked.
+- **Tests:** 22 new backend lock tests. AI-CONFIG-001 (17) + AI-ADMIN-001 (17) regression
+  still 100%. Testing agent v3 end-to-end: 100% / 100%.
+- **Docs:** 5 markdown files in `/app/memory/DR_CUTOVER_002_*`.

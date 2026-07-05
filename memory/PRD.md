@@ -10605,3 +10605,36 @@ the admin AI config module. Field UI byte-identical.
 - Tenant-admin scoped role when multi-tenant expands beyond MASCI.
 - Compound index on `tenant_ai_capability_audit.updated_at` when volume grows past ~1k entries per tenant.
 
+
+---
+
+## DR-CUTOVER-002 · Daily Operational Summary inside the real Daily Report (2026-02)
+
+### Delivered
+- **One additive section** inside `NewDailyReport.jsx` at `/daily/submit`, mounted immediately before the Sign-Off band. No V2 shell exposed. Field UX matches MASCI platform style.
+- **Two backend endpoints** under the canonical daily reports API:
+  - `POST /api/daily-reports/summary/draft` — deterministic composer, never invents facts, never calls a live LLM, returns `enabled=false` when tenant/module/provider gate is off.
+  - `POST /api/daily-reports/{id}/summary/accept` — persists `daily_operational_summary_*` fields onto the existing report doc, emits an idempotent `intelligence_fact` via ODS.
+- **Zero drift** on HR crew time, email pipeline, PDF renderer, ODS ingestion, safety gates, photos, signature, EN/ES toggle. `POST /api/daily-reports` submit path fully independent — regression-locked.
+- **Field UI carries no AI/model/provider/token/cost vocabulary** — enforced by backend + frontend lock tests.
+- **22 new backend lock tests** pass. AI-CONFIG-001 (17) + AI-ADMIN-001 (17) regression: **all green**. Testing agent v3 end-to-end: **100% backend / 100% frontend**, retest_needed=false.
+
+### 5 documents produced
+- `/app/memory/DR_CUTOVER_002_EXECUTIVE_SUMMARY.md`
+- `/app/memory/DR_CUTOVER_002_DAILY_SUMMARY_ARCHITECTURE.md`
+- `/app/memory/DR_CUTOVER_002_ZERO_DRIFT_MATRIX.md`
+- `/app/memory/DR_CUTOVER_002_HR_EMAIL_PDF_PROTECTION.md`
+- `/app/memory/DR_CUTOVER_002_TEST_REPORT.md`
+
+### Files touched (additive only)
+- **Backend (new):** `routes/daily_summary.py`, `tests/test_dr_cutover_002_daily_summary.py`
+- **Backend (edit):** `server.py` (+11 lines · router registration block)
+- **Frontend (new):** `components/daily-report/DailyOperationalSummarySection.jsx`
+- **Frontend (edit):** `pages/NewDailyReport.jsx` (+2 lines · import + JSX mount)
+- **Mongo:** additive optional fields on `daily_reports`; additive `intelligence_fact` rows on `operational_facts`.
+
+### Follow-ups (P2 — non-blockers)
+- PDF renderer inclusion of the accepted summary (data already stored on the doc).
+- Email template inclusion.
+- Live-LLM polish over the deterministic composer output (strict "never introduce new facts" rule).
+
