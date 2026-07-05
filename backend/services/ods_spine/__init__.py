@@ -20,7 +20,7 @@ from .store import (
     write_facts, supersede_facts, record_ingestion_run,
     COLL_FACTS, COLL_RUNS, COLL_SNAPSHOTS, COLL_PROJECT_CFG, COLL_LINKS,
 )
-from .ingest import ingest_dr_v2_draft, ingest_dr_v2_approval
+from .ingest import ingest_dr_v2_draft, ingest_dr_v2_approval, ingest_dr_v1_report
 from .kpi import compute_kpi_snapshot, get_snapshot
 from .query import list_facts, project_summary
 
@@ -30,7 +30,7 @@ __all__ = [
     "validate_fact_envelope",
     "write_facts", "supersede_facts", "record_ingestion_run",
     "COLL_FACTS", "COLL_RUNS", "COLL_SNAPSHOTS", "COLL_PROJECT_CFG", "COLL_LINKS",
-    "ingest_dr_v2_draft", "ingest_dr_v2_approval",
+    "ingest_dr_v2_draft", "ingest_dr_v2_approval", "ingest_dr_v1_report",
     "compute_kpi_snapshot", "get_snapshot",
     "list_facts", "project_summary",
 ]

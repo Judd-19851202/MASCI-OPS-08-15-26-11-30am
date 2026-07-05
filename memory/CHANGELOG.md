@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## 2026-02-15 — DR-CUTOVER-001 · Real V1 → ODS Wiring · 🟢 SHIPPED
+
+- New `ingest_dr_v1_report` emits ODS facts from `daily_reports` docs (labor/equipment/safety/photo/delay/material/production/weather).
+- V1 submit-hook in `routes/daily_reports.py` fires ODS emission after every `POST /api/daily-reports` (best-effort, non-blocking).
+- Idempotent backfill script `scripts/backfill_dr_v1_to_ods.py` executed over all 1,329 legacy reports: **5,350 facts** across **637 real reports** (692 pre-anchor QA docs skipped correctly). 150 KPI snapshots recomputed.
+- Admin OI dashboard now serves real production data — labor_hours 120 → **8,408.95** (year window), projects_included 3 → **48**, photos 2 → **3,309**.
+- Live E2E `POST /api/daily-reports` proof: 10 facts written with `trigger=event · actor=Chris Wright · ok=true`.
+- 17 new pytest lock tests. Full envelope: 82/82 green. Frontend: zero changes. V1 collection: zero mutations. No live emails.
+- **Deferred:** Daily Operational Summary merge into V1 form → DR-CUTOVER-002.
+
+Doc: `/app/memory/DR_CUTOVER_001_EXECUTIVE_SUMMARY.md`.
+
+
+
 ## 2026-02-15 — DR-UNIFY-002 · Single-System Consolidation Execution · 🟢 SHIPPED
 
 Executed the 10-item DR-UNIFY-002 scope exactly. Zero drift. Live PDF smoke 7/7 green (both modern and legacy sources · dual aliases · auth gates enforced). Pytest lock envelope 66/66 green (added 15 new DR-UNIFY invariants). Frontend regression 10/10 green (`iteration_dr_unify_002_verify.json`).

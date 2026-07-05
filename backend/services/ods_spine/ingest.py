@@ -315,3 +315,302 @@ async def ingest_dr_v2_approval(db, *, report_id: str, action: str, agent: str,
         {"$set": {"run_id": run_id}},
     )
     return {"ok": True, "run_id": run_id, "fact_id": fact["fact_id"]}
+
+
+
+# ═════════════════════════════════════════════════════════════════════
+# DR-CUTOVER-001 · V1 daily_reports → ODS ingestor
+# ═════════════════════════════════════════════════════════════════════
+# The V1 `daily_reports` collection has a DIFFERENT shape than the V2
+# draft. Fields we can safely map (with V1 semantics):
+#
+#   masci_crews[]        {trade, foreman, count, hours, work_performed}
+#   equipment[]          {unit, hours, operator, ...}
+#   photos[]             attachment refs
+#   activities[]         freeform activities (may be empty)
+#   materials[]          material rows
+#   subcontractors[]     sub-crew rows (rendered as labor_fact with company)
+#   visitors[]           informational (not emitted)
+#   weather_snapshots[]  hourly weather rows
+#   safety_incidents_today   "Yes"/"No" string flag
+#   injuries_reported        "Yes"/"No" string flag
+#   incident_notes           freeform text
+#   schedule_delays          "Yes"/"No" + schedule_delays_notes
+#   weather_impact           "Yes"/"No" + weather_impact_notes
+#
+# When a field is a Yes/No flag with no structured detail, we still
+# emit a tiny fact carrying the flag + freeform note so PM/Admin
+# dashboards can count "reports with safety incidents", etc. Any fact
+# emitted from V1 partial data carries `source_status="partial"`.
+
+def _v1_yesno(val: Any) -> bool:
+    if isinstance(val, bool):
+        return val
+    if isinstance(val, str):
+        return val.strip().lower() in {"yes", "y", "true", "1"}
+    return False
+
+
+def _v1_resolve_project_and_date(rec: Dict[str, Any]) -> Tuple[str, str]:
+    pid = normalize_project_id(
+        rec.get("project_number") or rec.get("project_id") or rec.get("project_name")
+    )
+    d = coerce_date(rec.get("report_date"))
+    return pid, d
+
+
+def _build_facts_from_dr_v1_report(rec: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Pure builder — no I/O. Emits normalized ODS facts from a V1
+    `daily_reports` document. Idempotency is upstream (`supersede_facts`).
+
+    Uses `source_type="daily_report"` (distinct from V2's
+    `daily_report_v2`) so dashboards can attribute origin.
+    """
+    pid, date = _v1_resolve_project_and_date(rec)
+    if not pid or not date:
+        return []
+
+    src_type = "daily_report_v1"
+    src_id = rec.get("id") or rec.get("doc_id") or rec.get("report_number") or ""
+    if not src_id:
+        return []
+    # Source_version: derive from updated/created timestamp if present.
+    ts = str(rec.get("updated_at") or rec.get("created_at") or "")
+    src_ver = int(
+        ts.replace("-", "").replace(":", "").replace("T", "").replace(".", "").split("+")[0][:14]
+        or 0
+    )
+    submitted_by = rec.get("prepared_by") or rec.get("superintendent") or ""
+
+    facts: List[Dict[str, Any]] = []
+
+    # ── Labor facts — one per masci_crews[] entry, expanded by `count`
+    for i, crew in enumerate(rec.get("masci_crews") or []):
+        if not isinstance(crew, dict):
+            continue
+        # V1 uses a single row per trade with `count` and shared `hours`.
+        # Emit ONE labor_fact per crew row (per-member expansion would
+        # inflate labor_hours). PM dashboards multiply hours × count.
+        count = crew.get("count") or crew.get("crew_size") or 1
+        try:
+            count = int(count)
+        except (TypeError, ValueError):
+            count = 1
+        item_id = f"crew:{i}:{crew.get('trade') or i}"
+        f = _base(src_type, src_id, src_ver, item_id, pid, date, submitted_by, "labor_fact")
+        f["source_status"] = "partial"  # V1 crew rows don't name members
+        f["payload"] = {
+            "employee_id": None,
+            "person_name": crew.get("foreman") or "",
+            "company": "MASCI",
+            "role": crew.get("trade") or "",
+            "hours": coerce_number(crew.get("hours")),
+            "crew_size": count,
+            "labor_hours": coerce_number(crew.get("hours")) * count if crew.get("hours") else 0,
+            "work_performed": crew.get("work_performed") or "",
+            "verified_identity": False,
+        }
+        facts.append(f)
+
+    # ── Subcontractor rows also emit labor_fact with company override
+    for i, sub in enumerate(rec.get("subcontractors") or []):
+        if not isinstance(sub, dict):
+            continue
+        item_id = f"sub:{i}:{sub.get('company') or i}"
+        count = sub.get("count") or 1
+        try:
+            count = int(count)
+        except (TypeError, ValueError):
+            count = 1
+        f = _base(src_type, src_id, src_ver, item_id, pid, date, submitted_by, "labor_fact")
+        f["source_status"] = "partial"
+        f["payload"] = {
+            "employee_id": None,
+            "person_name": sub.get("foreman") or "",
+            "company": sub.get("company") or "SUB",
+            "role": sub.get("trade") or "SUB",
+            "hours": coerce_number(sub.get("hours")),
+            "crew_size": count,
+            "labor_hours": coerce_number(sub.get("hours")) * count if sub.get("hours") else 0,
+            "work_performed": sub.get("work_performed") or "",
+        }
+        facts.append(f)
+
+    # ── Equipment facts
+    for i, eq in enumerate(rec.get("equipment") or []):
+        if not isinstance(eq, dict):
+            continue
+        item_id = f"equipment:{i}:{eq.get('unit') or eq.get('id') or i}"
+        f = _base(src_type, src_id, src_ver, item_id, pid, date, submitted_by, "equipment_fact")
+        f["payload"] = {
+            "equipment_id": eq.get("id") or eq.get("unit"),
+            "equipment_label": eq.get("unit") or eq.get("label") or "",
+            "operator": eq.get("operator"),
+            "hours_used": coerce_number(eq.get("hours")),
+            "idle_hours": coerce_number(eq.get("idle_hours")),
+            "breakdown": bool(eq.get("breakdown")),
+            "maintenance": bool(eq.get("maintenance")),
+        }
+        facts.append(f)
+
+    # ── Production facts from `activities[]`
+    for i, act in enumerate(rec.get("activities") or []):
+        if not isinstance(act, dict):
+            continue
+        item_id = f"activity:{i}:{act.get('id') or i}"
+        f = _base(src_type, src_id, src_ver, item_id, pid, date, submitted_by, "production_fact")
+        f["source_status"] = "partial"
+        f["payload"] = {
+            "cost_code": act.get("cost_code"),
+            "activity": act.get("activity") or act.get("name") or "",
+            "work_area": act.get("area"),
+            "quantity": coerce_number(act.get("quantity") or act.get("qty")),
+            "unit": act.get("unit") or "",
+        }
+        facts.append(f)
+
+    # ── Material facts
+    for i, mat in enumerate(rec.get("materials") or []):
+        if not isinstance(mat, dict):
+            continue
+        item_id = f"material:{i}:{mat.get('id') or i}"
+        f = _base(src_type, src_id, src_ver, item_id, pid, date, submitted_by, "material_fact")
+        f["source_status"] = "partial"
+        f["payload"] = {
+            "material": mat.get("material") or mat.get("name") or "",
+            "quantity": coerce_number(mat.get("quantity") or mat.get("qty")),
+            "unit": mat.get("unit") or "",
+            "supplier": mat.get("supplier") or mat.get("vendor") or "",
+            "ticket": mat.get("ticket") or "",
+        }
+        facts.append(f)
+
+    # ── Weather fact — prefer `weather_snapshots[]`, else `weather_summary`
+    snaps = rec.get("weather_snapshots") or []
+    if snaps and isinstance(snaps[0], dict):
+        w = snaps[0]
+        f = _base(src_type, src_id, src_ver, "weather:0", pid, date, submitted_by, "weather_fact")
+        f["payload"] = {
+            "temperature_f": coerce_number(w.get("temp_f")),
+            "precipitation_in": coerce_number(w.get("precip_in")),
+            "wind_mph": coerce_number(w.get("wind_mph")),
+            "condition": w.get("condition") or rec.get("weather_summary") or "",
+        }
+        facts.append(f)
+    elif rec.get("weather_summary"):
+        f = _base(src_type, src_id, src_ver, "weather:0", pid, date, submitted_by, "weather_fact")
+        f["source_status"] = "partial"
+        f["payload"] = {"condition": rec.get("weather_summary") or ""}
+        facts.append(f)
+
+    # ── Weather-impact delay
+    if _v1_yesno(rec.get("weather_impact")):
+        f = _base(src_type, src_id, src_ver, "delay:weather", pid, date, submitted_by, "delay_fact")
+        f["source_status"] = "partial"
+        f["payload"] = {
+            "delay_category": "weather",
+            "reason": rec.get("weather_impact_notes") or "Weather impact reported",
+            "impact": "med",
+            "schedule_risk": True,
+        }
+        facts.append(f)
+
+    # ── Schedule delays
+    if _v1_yesno(rec.get("schedule_delays")):
+        f = _base(src_type, src_id, src_ver, "delay:schedule", pid, date, submitted_by, "delay_fact")
+        f["source_status"] = "partial"
+        f["payload"] = {
+            "delay_category": "schedule",
+            "reason": rec.get("schedule_delays_notes") or "Schedule delay reported",
+            "impact": "med",
+            "schedule_risk": True,
+        }
+        facts.append(f)
+
+    # ── Safety facts (Yes/No flag with freeform notes)
+    has_safety = _v1_yesno(rec.get("safety_incidents_today"))
+    has_injury = _v1_yesno(rec.get("injuries_reported"))
+    if has_safety or has_injury or (rec.get("incident_notes") or "").strip():
+        f = _base(src_type, src_id, src_ver, "safety:0", pid, date, submitted_by, "safety_fact")
+        f["source_status"] = "partial"
+        f["payload"] = {
+            "safety_type": "incident" if has_safety else "observation",
+            "severity": "high" if has_injury else ("med" if has_safety else "info"),
+            "injuries_reported": has_injury,
+            "safety_incident_reported": has_safety,
+            "narrative": (rec.get("incident_notes") or "").strip(),
+        }
+        facts.append(f)
+
+    # ── Photo evidence facts
+    for i, p in enumerate(rec.get("photos") or []):
+        if isinstance(p, str):
+            item_id = f"photo:{i}:{p[:32]}"
+            payload = {"photo_ref": p}
+        elif isinstance(p, dict):
+            item_id = f"photo:{i}:{p.get('id') or p.get('key') or i}"
+            payload = {
+                "photo_ref": p.get("key") or p.get("id") or p.get("url") or "",
+                "storage_url": p.get("url"),
+                "thumb_url": p.get("thumb") or p.get("thumbnail"),
+                "caption": p.get("caption") or p.get("note"),
+                "linked_activity": p.get("activity_id"),
+            }
+        else:
+            continue
+        f = _base(src_type, src_id, src_ver, item_id, pid, date, submitted_by, "photo_evidence_fact")
+        f["payload"] = payload
+        facts.append(f)
+
+    return facts
+
+
+async def ingest_dr_v1_report(
+    db, report: Dict[str, Any], *, actor: str = "system", trigger: str = "event",
+) -> Dict[str, Any]:
+    """Emit spine facts from a V1 `daily_reports` document. Idempotent.
+
+    Safe to call from the V1 submit hook AND from the backfill job.
+    Uses `source_type="daily_report"` so dashboards can distinguish the
+    origin from V2 (`daily_report_v2`).
+    """
+    if not ods_enabled() or not dr_v2_spine_emission_enabled():
+        return {"ok": False, "skipped": True, "reason": "flags_off"}
+
+    src_id = report.get("id") or report.get("doc_id") or report.get("report_number") or ""
+    if not src_id:
+        return {"ok": False, "skipped": True, "reason": "no_report_id"}
+
+    started = now_iso()
+    facts = _build_facts_from_dr_v1_report(report)
+    if not facts:
+        run_id = await record_ingestion_run(
+            db, source_type="daily_report_v1", source_id=src_id, source_version=0,
+            actor=actor, trigger=trigger, ok=True,
+            facts_inserted=0, facts_superseded=0, facts_unchanged=0,
+            started_at=started, error="no_facts_derived",
+        )
+        return {"ok": True, "run_id": run_id, "facts_inserted": 0, "facts_superseded": 0}
+
+    superseded = await supersede_facts(db, source_type="daily_report_v1", source_id=src_id)
+    run_id = uuid.uuid4().hex
+    for f in facts:
+        f["ingestion_run_id"] = run_id
+    result = await write_facts(db, facts, ingestion_run_id=run_id)
+    await record_ingestion_run(
+        db, source_type="daily_report_v1", source_id=src_id,
+        source_version=facts[0].get("source_version", 0),
+        actor=actor, trigger=trigger, ok=True,
+        facts_inserted=result["inserted"], facts_superseded=superseded,
+        facts_unchanged=0, started_at=started,
+    )
+    await db["operational_ingestion_runs"].update_many(
+        {"source_type": "daily_report_v1", "source_id": src_id, "started_at": started},
+        {"$set": {"run_id": run_id}},
+    )
+    return {
+        "ok": True, "run_id": run_id,
+        "facts_inserted": result["inserted"],
+        "facts_superseded": superseded,
+        "project_id": facts[0]["project_id"], "date": facts[0]["date"],
+    }

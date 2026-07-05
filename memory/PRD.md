@@ -11,6 +11,33 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## DR-CUTOVER-001 · Real Daily Report Intelligence Cutover · 🟢 SHIPPED (2026-02-15)
+
+Wired the ONE production Daily Report system into the ODS intelligence layer. No parallel V2 product exposed to users. See `/app/memory/DR_CUTOVER_001_EXECUTIVE_SUMMARY.md`.
+
+**Delivered:**
+- New `ingest_dr_v1_report` in `services/ods_spine/ingest.py` — emits labor/equipment/safety/photo/delay/material/production/weather facts from V1 `daily_reports` docs with `source_type="daily_report_v1"`. Idempotent (supersede-based).
+- V1 submit hook in `routes/daily_reports.py` — best-effort ODS emission after `insert_one` (never blocks submit).
+- Backfill script `scripts/backfill_dr_v1_to_ods.py` — `--dry-run` + `--live` · resumable · with KPI snapshot recompute.
+- 17 new pytest lock tests (`test_dr_cutover_001_v1_to_ods.py`).
+
+**Impact (BEFORE → AFTER):**
+- `operational_facts is_current=true`: 123 → **5,393** (+43×)
+- Facts from real V1 reports: 0 → **5,350**
+- `operational_kpi_snapshots`: 4 → **154**
+- Admin OI `labor_hours` (year window): 120 (QA) → **8,408.95** (real)
+- Admin OI `projects_included`: 3 → **48**
+- Admin OI `photo_count`: 2 → **3,309**
+
+**Live E2E proof:** fresh `POST /api/daily-reports` with 6 photos + 1 crew + 1 equipment + 1 material submitted end-to-end → 10 correctly-typed facts written with `trigger=event · actor=Chris Wright · ok=true`.
+
+**Zero changes to:** field form, V1 collection (immutable), V1 routes, feature flags, live emails (`EMAIL_SAFETY_MODE=strict` blocks Resend), user-facing text, PDF button contract.
+
+**Deferred:** Daily Operational Summary integration into V1 form → DR-CUTOVER-002 (blocker documented: V1 file is 3,021 lines; injecting AI summary requires its own UX track).
+
+**Tests:** 82/82 lock envelope green (17 new + 65 existing).
+
+
 ## DR-UNIFY-002 · Single-System Consolidation Execution · 🟢 SHIPPED (2026-02-15)
 
 Executed the DR-UNIFY-001 consolidation plan. Zero drift. One system.

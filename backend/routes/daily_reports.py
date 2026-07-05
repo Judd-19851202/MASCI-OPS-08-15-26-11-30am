@@ -366,6 +366,18 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
                 pass
             await db.daily_reports.insert_one(doc)
             doc.pop("_id", None)
+            # DR-CUTOVER-001 · Wire V1 submission into the ODS spine so
+            # PM/Admin Operational Intelligence dashboards see REAL
+            # production data (not just QA V2 drafts). Best-effort:
+            # never block a submit on ODS emission.
+            try:
+                from services.ods_spine import ingest_dr_v1_report  # noqa: PLC0415
+                await ingest_dr_v1_report(
+                    db, doc, actor=doc.get("prepared_by") or "supervisor",
+                    trigger="event",
+                )
+            except Exception:  # noqa: BLE001
+                pass
             # ── Phase 10A-B · Correction 1 · two-way Excavation linkage ──
             # Stamp this daily report ID onto every linked excavation
             # record so the relationship is queryable from both sides.
