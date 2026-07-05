@@ -2,6 +2,71 @@
 
 **Doctrine:** Track 20.6A — Technical Debt & Failure Discovery Amendment.
 
+
+## 🟠 DR-UNIFY-001 · Single-System Consolidation Debt (opened 2026-02-15)
+
+**Origin:** DR-ROI/ODS work introduced parallel `dr_v2_*` surfaces that risked becoming a permanent product fork. User amendment locked the one-system rule. Full audit: `/app/memory/DR_UNIFY_001_SINGLE_SYSTEM_AUDIT.md`.
+
+### DEBT-DRUNIFY-01 · Orphaned Admin OI file
+- **File:** `/app/frontend/src/pages/AdminOperationalIntelligence.jsx` (root-level)
+- **Duplicate of:** `/app/frontend/src/pages/admin/AdminOperationalIntelligence.jsx` (canonical, nav-linked)
+- **Exit criteria:** file removed after DR-UNIFY-002 verifies zero remaining imports.
+- **Owner:** front-end.
+- **Track:** DR-UNIFY-002.
+
+### DEBT-DRUNIFY-02 · Orphaned admin route `/admin/ods-intelligence`
+- **Location:** `AppRoutes.jsx:1223`.
+- **Reason:** no nav entry; duplicate of `/admin/operational-intelligence`.
+- **Exit criteria:** route converted to `<Navigate to="/admin/operational-intelligence" replace />` in DR-UNIFY-002.
+- **Track:** DR-UNIFY-002.
+
+### DEBT-DRUNIFY-03 · Speculative executive route `/executive/ods-intelligence`
+- **Location:** `AppRoutes.jsx:1224`.
+- **Reason:** no nav entry, no role guard, no hub, no exec token infrastructure. Speculative surface.
+- **Exit criteria:** route converted to a Navigate redirect OR deleted in DR-UNIFY-002. `ExecutiveOperationalIntelligence.jsx` file kept as scaffold for a future real Executive Portal track (DR-UNIFY-005).
+- **Track:** DR-UNIFY-002.
+
+### DEBT-DRUNIFY-04 · Internal V2 naming in filenames and testids
+- **Files:** `pages/daily-report-v2/*`, `components/DrV2ApprovedReportsPanel.jsx`, `lib/dailyReportV2*.js`, `lib/drV2Api.js`.
+- **Reason:** internal iteration marker; risks user confusion if it leaks to nav/URLs.
+- **Exit criteria:** rename to non-versioned names in DR-UNIFY-002 (frontend) and DR-UNIFY-003 (backend routes + Mongo collections).
+- **Track:** DR-UNIFY-002 / DR-UNIFY-003.
+
+### DEBT-DRUNIFY-05 · Feature flags `dr_v2_optin` / `REACT_APP_DR_V2_ENABLED` / `DR_V2_AI_ENABLED`
+- **Reason:** intentional rollout flags; must be retired after cutover per user's Rule 9 (no permanent product forks).
+- **Exit criteria:** flags removed after DR-UNIFY-004 deployment cert.
+- **Track:** DR-UNIFY-004.
+
+### DEBT-DRUNIFY-06 · Non-unified Approved Reports list
+- **Endpoint:** `/api/dr-v2/reports/approved` currently surfaces only `dr_v2_drafts` with an accept entry.
+- **Gap:** does not include legacy `daily_reports` approved via lifecycle transitions.
+- **Exit criteria:** endpoint returns union of both sources with `source: "legacy" | "modern"` badge, aliased to `/api/daily-reports/approved` in DR-UNIFY-002.
+- **Track:** DR-UNIFY-002.
+
+### DEBT-DRUNIFY-07 · Admin token gate 401 (P0 · dormant since TRACK 15.32)
+- **Root cause:** `require_admin_pm_or_hr_read` calls sync stub `_is_valid_admin_token` (retired in TRACK 15.32, always returns False). Admin tokens are silently rejected on `/api/dr-v2/*` and `/api/admin/daily-*`.
+- **Also affects:** `require_admin_or_pm_read` (server.py:549) likely has the same bug — needs audit.
+- **Exit criteria:** switch to `_is_valid_directory_admin_token_async` (matching `require_admin`). See `/app/memory/DR_UNIFY_001_P0_ADMIN_TOKEN_401.md`.
+- **Track:** DR-UNIFY-002 (before Wave-2 live smoke can pass).
+
+### DEBT-DRUNIFY-08 · V2 field shell not merged into V1 form
+- **File:** `pages/daily-report-v2/DailyReportV2.jsx` runs as a separate flagged surface.
+- **Exit criteria:** shell content merged into `pages/NewDailyReport.jsx` as a native upgrade; V2 route redirects; pilot opt-in flag retired.
+- **Track:** DR-UNIFY-002.
+
+### DEBT-DRUNIFY-09 · Collection renames pending
+- **Collections:** `dr_v2_drafts`, `dr_v2_ai_audit_entries`, `dr_v2_ai_approvals`, `dr_v2_bilingual_audit`.
+- **Exit criteria:** rename to `daily_report_*` variants via idempotent migration script in DR-UNIFY-003.
+- **Track:** DR-UNIFY-003.
+
+### DEBT-DRUNIFY-10 · Legacy break-glass `POST /api/admin/login` degraded
+- **Symptom:** returns empty/no-op token in preview (retired alongside TRACK 15.32).
+- **Docs:** `/app/memory/test_credentials.md` still describes the endpoint as functional.
+- **Exit criteria:** either restore the endpoint to issue a valid directory admin token, or delete it and update docs.
+- **Priority:** LOW (normal admins use `/api/auth/multi-login`).
+- **Track:** DR-UNIFY-003.
+
+
 Every failure, warning, regression, broken test, import error, compile
 issue, dependency issue, environment issue, or architectural defect
 discovered during any audit / promotion / certification MUST be

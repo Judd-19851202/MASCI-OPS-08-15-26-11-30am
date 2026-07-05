@@ -11,6 +11,37 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## DR-UNIFY-001 · Single-System Audit · 🔒 LOCKED (2026-02-15)
+
+**Doctrine (locked, non-negotiable):**
+- ONE Daily Report system in production.
+- ONE PM dashboard.
+- ONE Admin dashboard.
+- ONE report history/archive (legacy + modern in one list).
+- ONE PDF/export path (Admin/PM-scoped/HR-read — no field/supervisor buttons).
+- Zero user-facing V1/V2 language.
+- Executive Dashboard: not claimed unless a real Executive Portal is defined (currently DEFERRED to DR-UNIFY-005).
+
+**Audit deliverables** (all under `/app/memory/`):
+- `DR_UNIFY_001_SINGLE_SYSTEM_AUDIT.md` — master architecture doc (12 audit areas)
+- `DR_UNIFY_001_PER_AREA_AUDITS.md` — deep evidence log per area
+- `DR_UNIFY_001_KEEP_MERGE_REMOVE_MATRIX.md` — item-by-item disposition (frontend, backend, collections, flags)
+- `DR_UNIFY_001_LOCK_TEST_PLAN.md` — 15 pytest lock tests specified for DR-UNIFY-002
+- `DR_UNIFY_001_P0_ADMIN_TOKEN_401.md` — RCA of the admin gate 401 (Wave-2 blocker)
+
+**Zero code changes in this audit pass** — docs, inventory, and lock-test spec only.
+
+**Ten technical debt items opened** (DEBT-DRUNIFY-01 through -10 in `/app/memory/TECHNICAL_DEBT_REGISTER.md`).
+
+**Next tracks:**
+- DR-UNIFY-002 — frontend copy scrub · Approved list union · orphan route redirects · admin-token 401 fix
+- DR-UNIFY-003 — backend route aliases · collection renames · flag retirement
+- DR-UNIFY-004 — full regression + deployment cert (was DR-ROI-001G)
+
+**DR-ROI-001F Part 2 Wave 2 is PAUSED** pending DR-UNIFY-002.
+
+
+
 ## DR-ROI-001F · Part 2 · V2 PDF Output · 🟢 SHIPPED (2026-02-15)
 
 **Endpoint**: `GET /api/dr-v2/reports/{report_id}/pdf` — EN-only canonical PDF.

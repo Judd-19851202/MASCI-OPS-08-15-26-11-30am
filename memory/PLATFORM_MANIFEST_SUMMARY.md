@@ -3,6 +3,39 @@
 **Generated:** 2026-08-04 · machine-generated from `git ls-files` + AST-level grep + regex census scripts.
 **Full JSON:** `/app/memory/PLATFORM_MANIFEST.json` (20 KB · 100% coverage · every discovered item accounted for).
 
+---
+
+## 🔒 2026-02-15 — DR-UNIFY-001 Single-System Doctrine (LOCKED)
+
+The platform ships **ONE Daily Report system**. Reference: `/app/memory/DR_UNIFY_001_SINGLE_SYSTEM_AUDIT.md`.
+
+**Final production surfaces:**
+- **One field form:** `/daily/new` (+ `/daily/submit` public). Modern shell absorbs V2 as an internal upgrade — no user-facing V1/V2 split.
+- **One PM Operational Intelligence dashboard:** `/pm/operational-intelligence`.
+- **One Admin Operational Intelligence dashboard:** `/admin/operational-intelligence`.
+- **One report history:** `DailyReportsDashboard.jsx` at `/pm/daily` and `/admin/daily` — legacy + modern in one list.
+- **One PDF/export path:** `GET /api/daily-reports/{id}/pdf` (post-cutover canonical name).
+- **Zero user-facing "V1"/"V2" language.**
+- **Executive Dashboard:** speculative surface removed from scope until a real Executive Portal is defined (deferred to DR-UNIFY-005+).
+
+**Temporary allowances during migration:**
+- Backend routes containing `dr-v2` (e.g. `/api/dr-v2/*`) remain internal-only; aliased to `/api/daily-reports/*` in DR-UNIFY-003.
+- Mongo collections named `dr_v2_*` renamed to `daily_report_*` in DR-UNIFY-003.
+- Feature flags (`DR_V2_AI_ENABLED`, `dr_v2_optin`, `REACT_APP_DR_V2_ENABLED`) kept only as rollout kill switches; retired post-cutover per Rule 9.
+
+**Legacy record guarantee:** every pre-cutover `daily_reports` document remains fully searchable, viewable, downloadable, printable, sendable, archived, and auditable via the same unified `/pm/daily` and `/admin/daily` surfaces.
+
+**Consolidation tracks (opened):**
+- **DR-UNIFY-001** — audit + inventory + matrix + lock-test plan (this pass · 🟢 delivered)
+- **DR-UNIFY-002** — frontend copy scrub · Approved list union · orphan route redirects · admin-token 401 fix · PM Hub tile · panel rename
+- **DR-UNIFY-003** — backend route aliases · Mongo collection renames · flag retirement
+- **DR-UNIFY-004** — full regression + deployment certification (was DR-ROI-001G)
+- **DR-UNIFY-005** — future Executive Portal (if/when defined)
+
+**Debt entries opened:** DEBT-DRUNIFY-01 through DEBT-DRUNIFY-10 in `/app/memory/TECHNICAL_DEBT_REGISTER.md`.
+
+
+
 ## Machine counts (VERIFIED — regenerable via `/app/memory/PLATFORM_MANIFEST.json`)
 
 | Category | Discovered | Audited | Coverage |

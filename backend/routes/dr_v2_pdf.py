@@ -281,6 +281,90 @@ def register_dr_v2_pdf_routes(
 ) -> None:
     """Attach `/api/dr-v2/reports/{report_id}/pdf` to the shared router."""
 
+    @api_router.get("/dr-v2/reports/approved")
+    async def dr_v2_list_approved(
+        limit: int = 50,
+        actor=Depends(require_admin_pm_or_hr_read),
+    ):
+        """DR-ROI-001F Part 2 · Wave 2 · management-side approved list.
+
+        Returns the most recently approved DR-V2 reports the caller may
+        view. Scoping mirrors the PDF route exactly (admin → all, PM →
+        assigned projects, HR-read → all-read). Field/supervisor
+        surfaces are NEVER hit by this call by contract.
+        """
+        limit = max(1, min(int(limit or 50), 200))
+
+        # Resolve scope up front so we can push the filter into Mongo.
+        pm_project_filter: Optional[Dict[str, Any]] = None
+        if isinstance(actor, dict) and actor.get("_actor_kind") != "hr_user":
+            scope = await compute_pm_scope(db, actor)
+            if not scope.is_admin:
+                nums = list(scope.project_numbers or [])
+                if not nums:
+                    return {"items": []}
+                pm_project_filter = {"$in": nums}
+
+        # Pull recent accept entries first (unique-by-report_id).
+        recent_accepts_cursor = (
+            db[APPROVAL_ENTRIES_COLL]
+            .find({"action": "accept"}, {"_id": 0, "report_id": 1, "ts": 1})
+            .sort("ts", -1)
+            .limit(limit * 3)  # over-fetch to dedupe
+        )
+        seen: set = set()
+        report_ids: List[str] = []
+        latest_ts: Dict[str, str] = {}
+        async for entry in recent_accepts_cursor:
+            rid = entry.get("report_id")
+            if not rid or rid in seen:
+                continue
+            seen.add(rid)
+            latest_ts[rid] = entry.get("ts") or ""
+            report_ids.append(rid)
+            if len(report_ids) >= limit:
+                break
+
+        if not report_ids:
+            return {"items": []}
+
+        draft_query: Dict[str, Any] = {"report_id": {"$in": report_ids}}
+        if pm_project_filter is not None:
+            # Filter at read time by BOTH known project_number locations
+            # (top-level shortcut + day_setup nested key).
+            draft_query["$or"] = [
+                {"project_number": pm_project_filter},
+                {"day_setup.project_number": pm_project_filter},
+            ]
+
+        drafts_cursor = db[DRAFTS_COLL].find(
+            draft_query,
+            {
+                "_id": 0,
+                "report_id": 1,
+                "project_number": 1,
+                "report_date": 1,
+                "day_setup": 1,
+                "field_language": 1,
+            },
+        )
+        items: List[Dict[str, Any]] = []
+        async for d in drafts_cursor:
+            setup = d.get("day_setup") or {}
+            items.append({
+                "report_id": d.get("report_id"),
+                "project_number": setup.get("project_number") or d.get("project_number") or "",
+                "project_name": setup.get("project_name") or "",
+                "report_date": d.get("report_date") or setup.get("report_date") or "",
+                "supervisor_name": setup.get("supervisor_name") or "",
+                "field_language": d.get("field_language") or "en",
+                "approved_at": latest_ts.get(d.get("report_id"), ""),
+            })
+
+        # Preserve accept-time ordering (most recent first).
+        items.sort(key=lambda it: it.get("approved_at") or "", reverse=True)
+        return {"items": items}
+
     @api_router.get("/dr-v2/reports/{report_id}/pdf")
     async def dr_v2_report_pdf(
         report_id: str = Path(..., min_length=1),

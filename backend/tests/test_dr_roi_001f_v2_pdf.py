@@ -40,6 +40,16 @@ class _Cursor:
     def limit(self, *_a, **_k):
         return self
 
+    def __aiter__(self):
+        self._i = iter(self._rows)
+        return self
+
+    async def __anext__(self):
+        try:
+            return next(self._i)
+        except StopIteration:
+            raise StopAsyncIteration
+
 
 class _Coll:
     def __init__(self):
@@ -74,7 +84,47 @@ class _Coll:
         return candidates[0] if candidates else None
 
     def find(self, q, projection=None):
-        return _Cursor([])
+        matched = []
+        for r in self.rows:
+            ok = True
+            for k, v in (q or {}).items():
+                if isinstance(v, dict):
+                    if "$in" in v and r.get(k) not in v["$in"]:
+                        ok = False
+                        break
+                    if "$ne" in v and r.get(k) == v["$ne"]:
+                        ok = False
+                        break
+                    continue
+                if k == "$or":
+                    or_ok = False
+                    for clause in v:
+                        clause_ok = True
+                        for ck, cv in clause.items():
+                            if isinstance(cv, dict) and "$in" in cv:
+                                # Walk dotted keys.
+                                val = r
+                                for part in ck.split("."):
+                                    if not isinstance(val, dict):
+                                        val = None
+                                        break
+                                    val = val.get(part)
+                                if val not in cv["$in"]:
+                                    clause_ok = False
+                                    break
+                        if clause_ok:
+                            or_ok = True
+                            break
+                    if not or_ok:
+                        ok = False
+                        break
+                    continue
+                if r.get(k) != v:
+                    ok = False
+                    break
+            if ok:
+                matched.append(dict(r))
+        return _Cursor(matched)
 
 
 class _DB:
@@ -416,3 +466,128 @@ def test_route_module_never_imports_field_ui():
     assert "frontend/src" not in src
     # Only the platform-native V1 renderer may be used.
     assert "render_record_pdf" in src
+
+
+# ────────────────────── Wave 2 · management-side list ────────────────────
+
+@pytest.mark.asyncio
+async def test_list_approved_returns_only_approved_records_for_admin():
+    db = _DB()
+    await _seed_approved(db, report_id="drv2-list-1", project_number="20-07")
+    await _seed_approved(db, report_id="drv2-list-2", project_number="21-06")
+    # Un-approved draft — must NOT show up.
+    await db.dr_v2_drafts.insert_one({
+        "report_id": "drv2-unapproved-list",
+        "project_number": "22-01",
+        "day_setup": {"project_number": "22-01"},
+    })
+    app = _build_app(db, actor=True, is_admin=True)
+    r = TestClient(app).get("/api/dr-v2/reports/approved")
+    assert r.status_code == 200
+    ids = {it["report_id"] for it in r.json()["items"]}
+    assert ids == {"drv2-list-1", "drv2-list-2"}
+
+
+@pytest.mark.asyncio
+async def test_list_approved_scopes_pm_to_assigned_projects():
+    db = _DB()
+    await _seed_approved(db, report_id="drv2-list-in", project_number="20-07")
+    await _seed_approved(db, report_id="drv2-list-out", project_number="21-06")
+    pm_actor = {"id": "pm-scope", "email": "pm@x.com"}
+    app = _build_app(db, actor=pm_actor, is_admin=False, pm_projects={"20-07"})
+    r = TestClient(app).get("/api/dr-v2/reports/approved")
+    assert r.status_code == 200
+    ids = [it["report_id"] for it in r.json()["items"]]
+    assert ids == ["drv2-list-in"], f"PM must not see out-of-scope reports (got {ids})"
+
+
+@pytest.mark.asyncio
+async def test_list_approved_hr_actor_sees_all_approved():
+    db = _DB()
+    await _seed_approved(db, report_id="drv2-hr-1", project_number="20-07")
+    await _seed_approved(db, report_id="drv2-hr-2", project_number="21-06")
+    hr_actor = {"_actor_kind": "hr_user", "email": "hr@x.com"}
+    app = _build_app(db, actor=hr_actor, is_admin=False, pm_projects=set())
+    r = TestClient(app).get("/api/dr-v2/reports/approved")
+    assert r.status_code == 200
+    assert {it["report_id"] for it in r.json()["items"]} == {"drv2-hr-1", "drv2-hr-2"}
+
+
+@pytest.mark.asyncio
+async def test_list_approved_401_without_token():
+    db = _DB()
+    await _seed_approved(db, report_id="drv2-noauth-list")
+    app = _build_app(db, actor="NONE")
+    r = TestClient(app).get("/api/dr-v2/reports/approved")
+    assert r.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_list_approved_pm_with_empty_scope_gets_empty_list():
+    db = _DB()
+    await _seed_approved(db, report_id="drv2-emp", project_number="20-07")
+    pm_actor = {"id": "pm-empty", "email": "pm@x.com"}
+    app = _build_app(db, actor=pm_actor, is_admin=False, pm_projects=set())
+    r = TestClient(app).get("/api/dr-v2/reports/approved")
+    assert r.status_code == 200
+    assert r.json()["items"] == []
+
+
+# ─────────────────── Wave 2 · Frontend static guardrails ─────────────────
+
+def test_wave2_panel_only_imported_on_management_dashboards():
+    """`DrV2ApprovedReportsPanel` must appear ONLY in the 3 management
+    dashboards. Not in the V2 field shell, not in V1, not in any
+    supervisor-facing surface."""
+    from pathlib import Path
+    src_root = Path("/app/frontend/src")
+    allowed = {
+        src_root / "pages" / "PmOperationalIntelligence.jsx",
+        src_root / "pages" / "AdminOperationalIntelligence.jsx",
+        src_root / "pages" / "ExecutiveOperationalIntelligence.jsx",
+        src_root / "components" / "DrV2ApprovedReportsPanel.jsx",
+    }
+    hits: List[Path] = []
+    for p in src_root.rglob("*.jsx"):
+        try:
+            txt = p.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        if "DrV2ApprovedReportsPanel" in txt:
+            hits.append(p)
+    for h in hits:
+        assert h in allowed, (
+            f"DrV2ApprovedReportsPanel must NOT be mounted at {h} — "
+            "only management-side dashboards may render the PDF export."
+        )
+    # All 3 dashboards must actually contain the panel.
+    for required in [
+        src_root / "pages" / "PmOperationalIntelligence.jsx",
+        src_root / "pages" / "AdminOperationalIntelligence.jsx",
+        src_root / "pages" / "ExecutiveOperationalIntelligence.jsx",
+    ]:
+        assert required in hits, f"Missing DR-V2 PDF export panel on {required}"
+
+
+def test_wave2_panel_bans_ai_and_provider_language():
+    from pathlib import Path
+    import re
+    raw = Path("/app/frontend/src/components/DrV2ApprovedReportsPanel.jsx").read_text(
+        encoding="utf-8"
+    )
+    # Strip JS block + line comments so doctrine references inside the
+    # file header don't false-trigger. What matters is user-visible copy.
+    stripped = re.sub(r"/\*[\s\S]*?\*/", "", raw)
+    stripped = re.sub(r"//[^\n]*", "", stripped)
+    for banned in ("GPT", "Claude", "Gemini", "LLM", "token cost", "AI Agent"):
+        assert banned not in stripped, f"panel must not mention `{banned}`"
+
+
+def test_wave2_panel_never_imported_in_v2_field_shell():
+    from pathlib import Path
+    v2_root = Path("/app/frontend/src/pages/daily-report-v2")
+    for p in v2_root.rglob("*.jsx"):
+        txt = p.read_text(encoding="utf-8")
+        assert "DrV2ApprovedReportsPanel" not in txt, (
+            f"Field V2 file {p} must NOT import the management-side PDF panel"
+        )

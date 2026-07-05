@@ -6,6 +6,7 @@ import {
   PresetPicker, HorizonHeader, KpiTile, AttentionList,
   EmptyEvidence, EvidenceFooter,
 } from "@/components/ods/HorizonPrimitives";
+import { DrV2ApprovedReportsPanel } from "@/components/DrV2ApprovedReportsPanel";
 
 /**
  * DR-ROI-001E · Admin Operational Intelligence (company-wide).
@@ -244,6 +245,17 @@ export default function AdminOperationalIntelligence() {
               testid="admin-attention-readiness"
             />
           </div>
+        </section>
+
+        {/* Wave 2 · Approved DR-V2 PDF export (Admin · all approved) */}
+        <section data-testid="admin-drv2-approved-exports">
+          <HorizonHeader
+            number={4}
+            title="Approved Daily Reports"
+            subtitle="Canonical English PDF export · management access only"
+            testid="admin-horizon-4-header"
+          />
+          <DrV2ApprovedReportsPanel audience="admin" />
         </section>
 
         <EvidenceFooter />

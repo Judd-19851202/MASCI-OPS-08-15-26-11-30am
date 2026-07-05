@@ -1,5 +1,31 @@
 # CHANGELOG
 
+## 2026-02-15 — DR-UNIFY-001 · Single-System Audit · 🔒 LOCKED
+
+Audit-only pass triggered by user amendment forbidding permanent V1/V2 product surfaces. No production behavior changed. Docs, inventory, matrix, lock-test plan, and P0 RCA published.
+
+**Key findings:**
+- The platform ALREADY has one production Daily Report system (`/daily/new` · `NewDailyReport.jsx` · `POST /api/daily-reports`). DR-ROI/ODS work is additive intelligence, not a parallel product.
+- User-visible V1/V2 language leaked into 4 files during Wave-2 (dashboard section comments only · scheduled for scrub in DR-UNIFY-002).
+- `/executive/ods-intelligence` route is a **speculative surface** — no nav, no role guard, no exec hub. Removed from scope until a real Executive Portal is defined.
+- `/admin/ods-intelligence` route is orphaned duplicate of `/admin/operational-intelligence`. Scheduled to become a `<Navigate>` redirect.
+- **P0 dormant bug found:** `require_admin_pm_or_hr_read` calls the retired sync `_is_valid_admin_token` (always False), silently rejecting admin tokens on 5+ endpoints. Fix specified for DR-UNIFY-002.
+
+**Deliverables:**
+- `/app/memory/DR_UNIFY_001_SINGLE_SYSTEM_AUDIT.md` — master architecture (12 audit areas · GO verdict · 8 pillars · zero drift)
+- `/app/memory/DR_UNIFY_001_PER_AREA_AUDITS.md` — per-area deep evidence log
+- `/app/memory/DR_UNIFY_001_KEEP_MERGE_REMOVE_MATRIX.md` — item-by-item disposition
+- `/app/memory/DR_UNIFY_001_LOCK_TEST_PLAN.md` — 15 pytest invariants for DR-UNIFY-002
+- `/app/memory/DR_UNIFY_001_P0_ADMIN_TOKEN_401.md` — RCA of the auth gate 401 blocking Wave-2 live smoke
+
+**Debt opened:** DEBT-DRUNIFY-01 through -10 in `/app/memory/TECHNICAL_DEBT_REGISTER.md`.
+
+**Consolidation tracks planned:** DR-UNIFY-002 (frontend consolidation) · DR-UNIFY-003 (backend renames + migrations) · DR-UNIFY-004 (deployment cert · was DR-ROI-001G).
+
+**DR-ROI-001F Part 2 Wave 2 is PAUSED** pending DR-UNIFY-002 completion.
+
+
+
 ## 2026-02-15 — DR-ROI-001F · Part 2 · V2 PDF Output · 🟢 SHIPPED
 
 **Deliverable**: `GET /api/dr-v2/reports/{report_id}/pdf` — EN-only canonical PDF for approved DR-V2 records.
