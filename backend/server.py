@@ -12404,6 +12404,47 @@ async def _require_dispatch_or_admin(
     )
 
 
+# ── TRACK 22.4a · Dispatch-safe Motive posture endpoint ─────────────
+# Registered here (rather than with the earlier admin-only truth routes)
+# because it needs the shared dispatch-or-admin dependency defined
+# directly above. Same underlying `_motive_truth(db)` helper — no drift.
+from routes.integration_truth import (  # noqa: E402
+    _motive_truth as _motive_truth_helper,
+    _now_iso as _integration_truth_now_iso,
+)
+
+
+@app.get("/api/dispatch/motive-posture")
+async def track_22_4a_dispatch_motive_posture(
+    _=Depends(_require_dispatch_or_admin),
+):
+    """Dispatch-safe Motive posture. Same three-state truth model as
+    /api/admin/integrations/truth-status but scoped to Motive-only and
+    reachable with a dispatch token. Never claims LIVE unless
+    operational_status is LIVE_VERIFIED.
+    """
+    row = await _motive_truth_helper(db)
+    return {
+        "checked_at": _integration_truth_now_iso(),
+        "id": row["id"],
+        "name": row["name"],
+        "config_status": row["config_status"],
+        "connectivity_status": row["connectivity_status"],
+        "operational_status": row["operational_status"],
+        "overall": row["overall"],
+        "connectivity_detail": row.get("connectivity_detail"),
+        "connectivity_latency_ms": row.get("connectivity_latency_ms"),
+        "last_successful_sync_at": row.get("last_successful_sync_at"),
+        "activity_age_seconds": row.get("activity_age_seconds"),
+        "live_window_seconds": row.get("live_window_seconds"),
+        "doctrine": (
+            "Dispatch-safe Motive posture. Never claims LIVE unless "
+            "operational_status is LIVE_VERIFIED. Use to render "
+            "stale-data ribbons in the Dispatch UI."
+        ),
+    }
+
+
 # iter372 · Canonical shared Safety+Admin fleet-ops gate (single source
 # of truth). Mirrors iter370 (dispatch) and iter371 (shop) patterns.
 # Built once at module load — delegated by `_require_safety_or_admin_fleet`.

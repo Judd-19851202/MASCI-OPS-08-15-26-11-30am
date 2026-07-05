@@ -129,6 +129,7 @@ export default function PmCommandCenter() {
            project_intelligence signal at the very top of the PM
            Command Center. Zero-drift: no new backend, no new score. */}
         <OiAttentionStrip
+          portal="pm"
           productIds={["project_intelligence"]}
           title="Project Intelligence · attention now"
           testId="pm-cc-oi-strip"

@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## 2026-07-05 — TRACK 22.4a · Operator Trust Repair + Portal Truth Consolidation · 🟢 SHIPPED
+
+Closed the P1 defects Track 22.4 audit surfaced. Zero new features, zero redesign.
+
+- **OI signals loading hang fixed** across Admin/PM/Safety/HR/Shop — added `AbortController` with 3 s timeout to `OiAttentionStrip.jsx`, portal-scoped fallback copy dictionary (Admin/PM/Safety/HR/Shop each get their own), and a Retry button. Every consumer (`AdminHubV2`, `PmCommandCenter`, `SafetyHubV2`, `HrHubV2`, `ShopHubV2`, `DispatchCommandCenter`) now passes a `portal` prop.
+- **Dispatch stale-Motive truth ribbon** — new dispatch-safe endpoint `GET /api/dispatch/motive-posture` in `server.py` that reuses the `_motive_truth(db)` helper from `routes/integration_truth.py` but strips admin-only fields (`api_key_last4`, `api_key_source`, `api_key_present`). Gated by `_require_dispatch_or_admin`. New `MotivePostureRibbon.jsx` component consumes it with 3 s timeout and mounts on Dispatch Hub, Dispatch Map, and Dispatch Command Center. Never claims LIVE unless `operational_status === LIVE_VERIFIED`.
+- **Dispatch attention consolidation** — `DispatchEquipmentMaintenanceIndicator` relabelled to `[SHOP · FLEET HEALTH] Equipment out of service: 349 (context — not a Dispatch attention item)`. The map's "Attention Required" tile is now the single dispatch-owned attention count.
+- **Safety hub Trench Safety wired to canonical source** — `SafetyHubV2` now fetches `/api/trench-safety/dashboard.total_active_assets` (same source `/trench-safety` reads) instead of hard-coded null. Tile now correctly shows 21 active assets.
+- **Field Leadership doctrine locked** at `/app/memory/FIELD_LEADERSHIP_PORTAL_PATTERN.md`.
+- Tests: 4/4 new pytest (`test_track_22_4a_motive_posture.py`) + Track 22.3 regression (9/9) preserved.
+
+Doc: `/app/memory/TRACK_22_4A_OPERATOR_TRUST_REPAIR.md`.
+
+
 ## 2026-07-05 — TRACK 22.3 · Integration Truth Surface + AI Key Status + DR-V2 Alias Telemetry · 🟢 SHIPPED
 
 Rebuilds operator trust after Track 22.2 exposed F-01 (fake-green AI key status) and F-02 (unproven Motive live claim).

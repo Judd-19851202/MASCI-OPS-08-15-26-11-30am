@@ -58,6 +58,10 @@ function useSafetySignals() {
     training_expiring_30d: null,
     incidents_last_7d: null,
     safety_documents_total: null,
+    // TRACK 22.4a · Canonical Trench Safety active-asset count wired
+    // to the same source /trench-safety uses (see F22-4-006).
+    trench_active_assets: null,
+    trench_loaded: false,
   });
 
   useEffect(() => {
@@ -65,7 +69,8 @@ function useSafetySignals() {
     safeJson("/api/safety/overview").then((r) => {
       if (cancelled) return;
       const b = r.body || {};
-      setS({
+      setS((prev) => ({
+        ...prev,
         loaded: true,
         refreshedAt: new Date().toISOString(),
         capas_open:             r.ok ? (b.corrective_actions_open ?? null) : null,
@@ -75,7 +80,18 @@ function useSafetySignals() {
         training_expiring_30d:  r.ok ? (b.training_expiring_30d ?? null) : null,
         incidents_last_7d:      r.ok ? (b.incidents_last_7d ?? null) : null,
         safety_documents_total: r.ok ? (b.safety_documents_total ?? null) : null,
-      });
+      }));
+    });
+    // Track 22.4a — separately load canonical Trench Safety count so
+    // the Safety Portal tile is honest, not a hard-coded null.
+    safeJson("/api/trench-safety/dashboard").then((r) => {
+      if (cancelled) return;
+      const b = r.body || {};
+      setS((prev) => ({
+        ...prev,
+        trench_loaded: true,
+        trench_active_assets: r.ok ? (b.total_active_assets ?? null) : null,
+      }));
     });
     return () => { cancelled = true; };
   }, []);
@@ -166,6 +182,7 @@ export default function SafetyHubV2() {
            level · top attention label) at the top of the Safety Hub.
            Zero-drift: no new backend, no new score model. */}
         <OiAttentionStrip
+          portal="safety"
           productIds={["safety_morning_digest"]}
           title="Safety Intelligence · attention now"
           testId="safety-hub-v2-oi-strip"
@@ -261,11 +278,11 @@ export default function SafetyHubV2() {
             <QueueCard
               to="/safety/trench-safety"
               testid="safety-hub-v2-queue-trench-safety"
-              title="Trench Safety Module"
+              title="Trench Safety · active assets"
               why="Benchmark module — daily inspections · permits · CP signoffs"
-              source="Live engine · daily inspections and permits"
-              value={null}
-              loaded={true}
+              source="Live engine · same source /trench-safety uses"
+              value={s.trench_active_assets}
+              loaded={s.trench_loaded}
             />
             <QueueCard
               to="/safety-portal/documents"

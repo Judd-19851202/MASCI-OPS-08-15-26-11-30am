@@ -706,8 +706,15 @@ def register_integration_truth_routes(
     *,
     db,
     require_admin_strict,
+    require_dispatch_or_admin=None,
 ) -> None:
-    """Attach TRACK 22.3 routes onto the shared API router."""
+    """Attach TRACK 22.3 routes onto the shared API router.
+
+    ``require_dispatch_or_admin`` is optional — when provided, we expose a
+    dispatch-safe subset of the truth surface at ``/api/dispatch/motive-posture``
+    so the Dispatch UI can render honest stale-data ribbons without needing
+    an admin token (Track 22.4a).
+    """
 
     @api_router.get("/admin/ai/keys/status")
     async def admin_ai_keys_status(_admin=Depends(require_admin_strict)):
@@ -723,6 +730,37 @@ def register_integration_truth_routes(
         _admin=Depends(require_admin_strict),
     ):
         return await _dr_v2_alias_telemetry_payload(db, recent_limit=recent_limit)
+
+    # ── TRACK 22.4a · Dispatch-safe Motive posture ──────────────────
+    # Same truth model as /admin/integrations/truth-status but scoped
+    # to Motive-only and gated by dispatch OR admin. No secrets leak
+    # (last-4 mask applied at row builder). Dispatch UI consumes this
+    # to render the stale-data ribbon on /dispatch-portal/map.
+    if require_dispatch_or_admin is not None:
+        @api_router.get("/dispatch/motive-posture")
+        async def dispatch_motive_posture(_=Depends(require_dispatch_or_admin)):
+            row = await _motive_truth(db)
+            # Only surface the fields dispatch needs. Drop admin-only
+            # detail such as api_key_source.
+            return {
+                "checked_at": _now_iso(),
+                "id": row["id"],
+                "name": row["name"],
+                "config_status": row["config_status"],
+                "connectivity_status": row["connectivity_status"],
+                "operational_status": row["operational_status"],
+                "overall": row["overall"],
+                "connectivity_detail": row.get("connectivity_detail"),
+                "connectivity_latency_ms": row.get("connectivity_latency_ms"),
+                "last_successful_sync_at": row.get("last_successful_sync_at"),
+                "activity_age_seconds": row.get("activity_age_seconds"),
+                "live_window_seconds": row.get("live_window_seconds"),
+                "doctrine": (
+                    "Dispatch-safe Motive posture. Never claims LIVE unless "
+                    "operational_status is LIVE_VERIFIED. Use to render "
+                    "stale-data ribbons in the Dispatch UI."
+                ),
+            }
 
 
 __all__ = [

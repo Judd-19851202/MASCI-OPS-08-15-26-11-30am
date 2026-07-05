@@ -96,6 +96,7 @@ export default function AdminHubV2() {
            executive_operations_brief signals. Zero-drift: pure consumer
            of the certified OI summary payload. */}
         <OiAttentionStrip
+          portal="admin"
           productIds={[
             "corporate_intelligence",
             "weekly_operations_digest",

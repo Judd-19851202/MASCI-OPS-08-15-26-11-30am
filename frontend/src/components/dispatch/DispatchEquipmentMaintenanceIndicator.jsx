@@ -35,9 +35,18 @@ export default function DispatchEquipmentMaintenanceIndicator() {
       <div className="flex items-center gap-2">
         <ShieldAlert className="w-4 h-4 text-amber-700" />
         <span className="text-sm text-slate-800">
-          <strong>Equipment Maintenance Issues Requiring Attention:</strong>{" "}
+          <span
+            data-testid="dispatch-mx-attribution"
+            className="mr-2 inline-flex items-center rounded border border-slate-300 bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-slate-700"
+          >
+            Shop · Fleet health
+          </span>
+          <strong>Equipment out of service:</strong>{" "}
           <span className="font-display font-black text-lg tabular-nums" data-testid="dispatch-mx-count">
             {count}
+          </span>
+          <span className="ml-2 text-xs text-slate-500 italic">
+            (context — not a Dispatch attention item)
           </span>
         </span>
       </div>

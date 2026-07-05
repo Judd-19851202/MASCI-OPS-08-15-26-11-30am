@@ -11,6 +11,20 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 22.4a · Operator Trust Repair + Portal Truth Consolidation · 🟢 SHIPPED (2026-07-05)
+
+Fixed the P1 defects surfaced by Track 22.4 without new features:
+
+- **OI signals loading hang** across Admin/PM/Safety/HR/Shop — 3 s timeout + portal-scoped fallback copy + Retry button in the shared `OiAttentionStrip`.
+- **Dispatch stale-Motive ribbon** — new dispatch-safe endpoint `GET /api/dispatch/motive-posture` (dispatch-or-admin gated, admin-only fields stripped) + new `MotivePostureRibbon` component mounted on Dispatch Hub, Dispatch Map, and Dispatch Command Center.
+- **Dispatch attention consolidation** — relabelled the 349-item maintenance banner to `[SHOP · FLEET HEALTH] Equipment out of service: … (context — not a Dispatch attention item)`. One dispatch-owned attention count only.
+- **Safety Trench cross-portal count** — Safety hub tile now reads canonical `/api/trench-safety/dashboard.total_active_assets` (21 in preview). No more hard-coded null.
+- **Field Leadership doctrine locked** at `/app/memory/FIELD_LEADERSHIP_PORTAL_PATTERN.md` as the reference model for future portal work.
+- Tests: 4/4 new pytest + 9/9 Track 22.3 regression preserved.
+
+Doc: `/app/memory/TRACK_22_4A_OPERATOR_TRUST_REPAIR.md`.
+
+
 ## TRACK 22.3 · Integration Truth Surface + AI Key Status Fix + DR-V2 Alias Telemetry · 🟢 SHIPPED (2026-07-05)
 
 Rebuilt operator trust after the Track 22.2 Brutal Reality Audit exposed F-01

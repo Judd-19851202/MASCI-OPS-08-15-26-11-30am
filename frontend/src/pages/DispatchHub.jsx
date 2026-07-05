@@ -41,6 +41,9 @@ import OperationsActionsTile from "@/components/oa/OperationsActionsTile";
 import DispatchSideNavV2, { useDispatchSidebarV2Enabled } from "@/components/dispatch/sidebar/DispatchSideNavV2";
 import { FieldMemoryGlance } from "@/components/field_memory/FieldMemoryGlance";
 import DispatchEquipmentMaintenanceIndicator from "@/components/dispatch/DispatchEquipmentMaintenanceIndicator";
+// TRACK 22.4a · Operator Trust Repair — surface Motive live posture to
+// the dispatcher on the Dispatch Hub, not just the map.
+import MotivePostureRibbon from "@/components/operational_intelligence/MotivePostureRibbon";
 import DispatchLiveSnapshot from "@/components/DispatchLiveSnapshot";
 import DispatchMapHero from "@/components/DispatchMapHero";
 import LastActivityLine from "@/components/admin/LastActivityLine";
@@ -161,6 +164,12 @@ export default function DispatchHub() {
             workspace inside it. Reuses existing routes; no auth
             changes; no backend changes. */}
         <TransportationOpsTopBar />
+
+        {/* TRACK 22.4a · Motive live posture — the dispatcher sees the
+           same three-state truth (config/connectivity/operational) the
+           admin sees on Integration Truth. Never claims LIVE unless
+           operational_status is LIVE_VERIFIED. */}
+        <MotivePostureRibbon testId="dispatch-hub-motive-posture" />
 
         {/* iter511 · MaintainX maintenance indicator (calm, count-only) */}
         <DispatchEquipmentMaintenanceIndicator />

@@ -30,6 +30,9 @@ import { subscribeCommandAction } from "@/components/dispatch/command/commandAct
 // TRACK 18.00 · Phase F · Transportation Operations unified branding.
 import TransportationOpsTopBar from "@/components/transportation/TransportationOpsTopBar";
 import OiAttentionStrip from "@/components/operational_intelligence/OiAttentionStrip";
+// TRACK 22.4a · Operator Trust Repair — Motive stale-data honesty at
+// the top of the Dispatch Command Center.
+import MotivePostureRibbon from "@/components/operational_intelligence/MotivePostureRibbon";
 
 const SUMMARY_POLL_MS = 30000;
 
@@ -79,11 +82,18 @@ export default function DispatchCommandCenter() {
         {/* TRACK 18.00 · Phase F · Transportation Operations branding. */}
         <TransportationOpsTopBar />
 
+        {/* TRACK 22.4a · Motive live posture — first thing the dispatcher
+           sees. Never renders "live" unless operational_status is
+           LIVE_VERIFIED. Reads /api/dispatch/motive-posture (dispatch-
+           safe). */}
+        <MotivePostureRibbon testId="dcc-motive-posture" />
+
         {/* Track 19.53 · P2 #7 — OI Attention Strip.
            transportation_intelligence signal at the very top of the
            Dispatch Command Center. Zero-drift: pure consumer of
            GET /api/operational-intelligence/summary. */}
         <OiAttentionStrip
+          portal="default"
           productIds={["transportation_intelligence"]}
           title="Transportation Intelligence · attention now"
           testId="dcc-oi-strip"

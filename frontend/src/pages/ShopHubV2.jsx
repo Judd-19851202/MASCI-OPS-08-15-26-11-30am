@@ -700,6 +700,7 @@ export default function ShopHubV2() {
            shop_intelligence signal at the top of the Shop Hub —
            safety holds → aging critical defects → OOS. Zero-drift. */}
         <OiAttentionStrip
+          portal="shop"
           productIds={["shop_intelligence"]}
           title="Shop Intelligence · attention now"
           testId="shop-hub-v2-oi-strip"

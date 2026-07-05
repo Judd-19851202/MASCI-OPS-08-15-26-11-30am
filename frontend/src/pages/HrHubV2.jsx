@@ -214,6 +214,7 @@ export default function HrHubV2() {
            workforce-readiness attention level before scrolling to the
            search box or queue tiles. Zero-drift: pure OI consumer. */}
         <OiAttentionStrip
+          portal="hr"
           productIds={["hr_intelligence", "training_intelligence"]}
           title="HR Intelligence · attention now"
           testId="hr-hub-v2-oi-strip"

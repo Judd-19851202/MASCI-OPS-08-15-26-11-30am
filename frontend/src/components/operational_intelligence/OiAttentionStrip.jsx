@@ -64,45 +64,85 @@ function ArrowGlyph({ direction }) {
   return <span className={`font-mono text-sm font-bold ${cls}`} aria-hidden="true">{map[direction] || "→"}</span>;
 }
 
-async function fetchOiSummary() {
+async function fetchOiSummary({ timeoutMs = 3000 } = {}) {
   const token = getAdminToken();
-  if (!token) return { ok: false, status: 401, body: null };
+  if (!token) return { ok: false, status: 401, body: null, reason: "no_token" };
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const r = await fetch(`${API}/api/operational-intelligence/summary`, {
       headers: { "X-Admin-Token": token, "Content-Type": "application/json" },
+      signal: controller.signal,
     });
     const body = r.ok ? await r.json().catch(() => null) : null;
-    return { ok: r.ok, status: r.status, body };
-  } catch {
-    return { ok: false, status: 0, body: null };
+    return { ok: r.ok, status: r.status, body, reason: r.ok ? "ok" : "http_error" };
+  } catch (err) {
+    const reason = err && err.name === "AbortError" ? "timeout" : "network";
+    return { ok: false, status: 0, body: null, reason };
+  } finally {
+    clearTimeout(timer);
   }
 }
+
+// TRACK 22.4a · portal-specific fallback copy — operator-readable, calm,
+// never blocks portal primary actions.
+const PORTAL_FALLBACK_COPY = {
+  admin: "Administrative intelligence is unavailable. Configuration, trust, and system controls remain available.",
+  pm: "Project intelligence is unavailable. Project records, daily reports, photos, and reviews remain available.",
+  safety: "Safety intelligence is unavailable. Incidents, meetings, JHPs, training, and trench safety remain available.",
+  hr: "HR intelligence is unavailable. Employee lifecycle, requests, documents, and qualifications remain available.",
+  shop: "Shop intelligence is unavailable. Equipment attention, repairs, holds, and recovery workflows remain available.",
+  default: "Operational intelligence is temporarily unavailable. Core portal workflows remain available.",
+};
 
 export default function OiAttentionStrip({
   productIds,
   title = "Operational Intelligence · attention now",
   testId,
+  portal = "default",
+  timeoutMs = 3000,
 }) {
-  const [state, setState] = useState({ loaded: false, ok: false, status: 0, products: [] });
+  const [state, setState] = useState({ loaded: false, ok: false, status: 0, products: [], reason: "" });
   // Track 19.54 · OGS — clicking a tile opens the universal
   // Guidance Card modal in place. No navigation.
   const [openProduct, setOpenProduct] = useState(null);
 
+  const load = React.useCallback(() => {
+    setState((s) => ({ ...s, loaded: false }));
+    fetchOiSummary({ timeoutMs }).then((r) => {
+      const all = (r.body && Array.isArray(r.body.products)) ? r.body.products : [];
+      const filtered = all.filter((p) => productIds.includes(p.product_id));
+      setState({ loaded: true, ok: r.ok, status: r.status, products: filtered, reason: r.reason || "" });
+    });
+  }, [productIds.join("|"), timeoutMs]);
+
   useEffect(() => {
     let cancelled = false;
-    fetchOiSummary().then((r) => {
+    fetchOiSummary({ timeoutMs }).then((r) => {
       if (cancelled) return;
       const all = (r.body && Array.isArray(r.body.products)) ? r.body.products : [];
       const filtered = all.filter((p) => productIds.includes(p.product_id));
-      setState({ loaded: true, ok: r.ok, status: r.status, products: filtered });
+      setState({ loaded: true, ok: r.ok, status: r.status, products: filtered, reason: r.reason || "" });
     });
     return () => { cancelled = true; };
-  }, [productIds.join("|")]);
+  }, [productIds.join("|"), timeoutMs]);
 
   const rootTestId = testId || "oi-attention-strip";
 
-  // Honest empty / unauthorized state — no fake numbers, no filler.
+  // Honest empty / unauthorized / timeout state — no fake numbers, no filler,
+  // never an infinite loading spinner. Track 22.4a fix.
   if (state.loaded && !state.ok) {
+    const isAuth = state.status === 401 || state.status === 403;
+    const isTimeout = state.reason === "timeout";
+    const isNetwork = state.reason === "network";
+    const fallbackCopy = PORTAL_FALLBACK_COPY[portal] || PORTAL_FALLBACK_COPY.default;
+    const message = isAuth
+      ? "Admin token required to view OI signals · request access from your administrator."
+      : isTimeout
+        ? fallbackCopy + " (timed out)"
+        : isNetwork
+          ? fallbackCopy + " (network error)"
+          : fallbackCopy;
     return (
       <section
         data-testid={rootTestId}
@@ -113,14 +153,24 @@ export default function OiAttentionStrip({
             <Activity className="w-4 h-4" />
             <span className="font-mono text-[11px] uppercase tracking-widest font-bold">{title}</span>
           </div>
-          <span
-            data-testid={`${rootTestId}-empty`}
-            className="text-xs text-slate-500 italic"
-          >
-            {state.status === 401 || state.status === 403
-              ? "Admin token required to view OI signals · request access from your administrator."
-              : "Operational Intelligence unavailable right now · showing portal-native queues below."}
-          </span>
+          <div className="flex items-center gap-3">
+            <span
+              data-testid={`${rootTestId}-empty`}
+              className="text-xs text-slate-500 italic"
+            >
+              {message}
+            </span>
+            {!isAuth && (
+              <button
+                type="button"
+                onClick={load}
+                data-testid={`${rootTestId}-retry`}
+                className="text-[11px] font-mono uppercase tracking-widest font-bold text-slate-600 hover:text-slate-900"
+              >
+                Retry
+              </button>
+            )}
+          </div>
         </div>
       </section>
     );

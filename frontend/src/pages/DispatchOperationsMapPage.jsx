@@ -18,6 +18,9 @@ import OperationsMapPage from "@/pages/OperationsMapPage";
 import { useT } from "@/lib/i18n";
 // TRACK 18.00 · Phase F · Transportation Operations unified branding.
 import TransportationOpsTopBar from "@/components/transportation/TransportationOpsTopBar";
+// TRACK 22.4a · Operator Trust Repair — surface Motive live posture to
+// the dispatcher, not just to admins on the Integration Truth page.
+import MotivePostureRibbon from "@/components/operational_intelligence/MotivePostureRibbon";
 
 export default function DispatchOperationsMapPage() {
   const { t } = useT();
@@ -45,6 +48,9 @@ export default function DispatchOperationsMapPage() {
         </div>
       </div>
       {/* The certified Operations Map canvas — unchanged. */}
+      <div className="px-4 pt-3">
+        <MotivePostureRibbon testId="dispatch-map-motive-posture" />
+      </div>
       <OperationsMapPage />
     </div>
   );
