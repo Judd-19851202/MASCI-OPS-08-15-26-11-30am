@@ -44,7 +44,8 @@ from services.dr_ai.cache import ensure_indexes as ensure_ai_cache_indexes
 
 
 DRAFTS_COLL = "dr_v2_drafts"
-APPROVALS_COLL = "dr_v2_ai_approvals"
+APPROVALS_COLL = "dr_v2_ai_approvals"          # summary doc (last_action, first/latest ts)
+APPROVAL_ENTRIES_COLL = "dr_v2_ai_audit_entries"  # append-only, one doc per entry (16MB-safe)
 
 
 # -----------------------------------------------------------------------------
@@ -132,7 +133,13 @@ def register_dr_v2_routes(api_router: APIRouter, db) -> None:
         try:
             await ensure_ai_cache_indexes(db)
             await db[DRAFTS_COLL].create_index("report_id", unique=True, name="dr_v2_drafts_report_id")
-            await db[APPROVALS_COLL].create_index("report_id", name="dr_v2_approvals_report_id")
+            await db[APPROVALS_COLL].create_index("report_id", unique=True, name="dr_v2_approvals_report_id")
+            await db[APPROVAL_ENTRIES_COLL].create_index(
+                [("report_id", 1), ("ts", 1)], name="dr_v2_ai_audit_entries_by_report_ts"
+            )
+            await db[APPROVAL_ENTRIES_COLL].create_index(
+                "entry_id", unique=True, name="dr_v2_ai_audit_entries_entry_id"
+            )
         except Exception:  # noqa: BLE001
             pass
 
@@ -233,6 +240,7 @@ def register_dr_v2_routes(api_router: APIRouter, db) -> None:
             pending = []
 
         # Parallel agent invocation — 3 Claude calls in parallel ≈ latency of 1.
+        errors: List[Dict[str, str]] = []
         if pending:
             async def _run(agent_name: str):
                 spec = AGENTS[agent_name]
@@ -244,9 +252,12 @@ def register_dr_v2_routes(api_router: APIRouter, db) -> None:
                     session_id=f"drv2-{payload.report_id}-{agent_name}",
                 )
 
-            gathered = await asyncio.gather(*[_run(a) for a in pending], return_exceptions=True)
-            for item in gathered:
+            gathered = await asyncio.gather(
+                *[_run(a) for a in pending], return_exceptions=True
+            )
+            for idx, item in enumerate(gathered):
                 if isinstance(item, Exception):
+                    errors.append({"agent": pending[idx], "error": item.__class__.__name__})
                     continue
                 agent_name, result = item
                 result_dict = result.to_dict()
@@ -274,6 +285,7 @@ def register_dr_v2_routes(api_router: APIRouter, db) -> None:
             "cache_misses": cache_misses,
             "aggregate_confidence": aggregate,
             "outputs": outputs,
+            "errors": errors,
         }
 
     # -------------------------------------------------------------------
@@ -296,24 +308,40 @@ def register_dr_v2_routes(api_router: APIRouter, db) -> None:
             "reason": (payload.reason or "")[:1000] if action in {"reject", "regenerate"} else None,
             "evidence_hash": draft.get("evidence_hash"),
             "entry_id": uuid.uuid4().hex,
+            "report_id": payload.report_id,
         }
 
+        # Append-only: one document per entry avoids the 16MB doc cap and
+        # keeps every action immutable at the storage layer.
+        await db[APPROVAL_ENTRIES_COLL].insert_one(dict(entry))
+
+        # Summary doc (last_action for UI badge + created_at bookkeeping).
         await db[APPROVALS_COLL].update_one(
             {"report_id": payload.report_id},
             {
                 "$setOnInsert": {"report_id": payload.report_id, "created_at": _now_iso()},
-                "$push": {"log": entry},
                 "$set": {"last_action": action, "last_updated": _now_iso()},
+                "$inc": {"entries_count": 1},
             },
             upsert=True,
         )
-        doc = await db[APPROVALS_COLL].find_one({"report_id": payload.report_id}, {"_id": 0})
-        return {"report_id": payload.report_id, "entry": entry, "state": doc}
+        summary = await db[APPROVALS_COLL].find_one({"report_id": payload.report_id}, {"_id": 0})
+        # Return summary + the last N entries so the UI can update without a second fetch.
+        recent_cursor = db[APPROVAL_ENTRIES_COLL].find(
+            {"report_id": payload.report_id}, {"_id": 0}
+        ).sort("ts", -1).limit(50)
+        recent = [d async for d in recent_cursor]
+        state = {**(summary or {}), "log": list(reversed(recent))}
+        return {"report_id": payload.report_id, "entry": entry, "state": state}
 
     # -------------------------------------------------------------------
     @api_router.get("/dr-v2/ai/audit/{report_id}")
     async def dr_v2_ai_audit(report_id: str = Path(...)) -> Dict[str, Any]:
-        doc = await db[APPROVALS_COLL].find_one({"report_id": report_id}, {"_id": 0})
-        if not doc:
+        summary = await db[APPROVALS_COLL].find_one({"report_id": report_id}, {"_id": 0})
+        cursor = db[APPROVAL_ENTRIES_COLL].find(
+            {"report_id": report_id}, {"_id": 0}
+        ).sort("ts", 1).limit(500)
+        log = [d async for d in cursor]
+        if not summary and not log:
             return {"report_id": report_id, "log": [], "last_action": None}
-        return doc
+        return {**(summary or {"report_id": report_id}), "log": log}

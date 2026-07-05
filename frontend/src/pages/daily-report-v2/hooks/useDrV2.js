@@ -71,7 +71,7 @@ export function useDrV2Draft(draft, { debounceMs = 900 } = {}) {
 }
 
 /** Debounced synthesis: fires when reportId or evidence_hash changes. */
-export function useDrV2Ai(reportId, evidenceHash, { debounceMs = 1500 } = {}) {
+export function useDrV2Ai(reportId, evidenceHash, { debounceMs = 5000 } = {}) {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
