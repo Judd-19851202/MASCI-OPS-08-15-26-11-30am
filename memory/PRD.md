@@ -11,6 +11,21 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## DR-ROI-001F-FINAL-REPAIR · Platform-Native Daily Job Report V2 · 🟢 GO / CLOSED (2026-02-05)
+
+Class-A defect closure. V2 direction had drifted into an AI-looking product with PDF buttons, confidence dashboards, and an approval audit log on the field form. This repair restores the correct product identity — **V2 is the MASCI Daily Job Report, subtly enhanced.** The supervisor enters the same facts as today. At the bottom, the platform drafts a Daily Operational Summary from those facts + photos so the supervisor does not have to write the report from scratch. Everything else happens after submit.
+
+- **MASCI header block restored**: red `MasciLogo` + "MASCI Field Operations" eyebrow + bold **"Daily Job Report"** H1 inside a bordered white card. "New Daily Report" phrasing eliminated everywhere (even in the preview-off state).
+- **PDF buttons removed from the field form.** Preview PDF / Download PDF belong in PM / Admin / Document Center after submit. Both testids and both phrases are now CI-locked as forbidden on the field surface.
+- **ConfidencePanel and SupervisorApprovalPanel deleted from the shell.** Their concerns collapsed into a single Daily Operational Summary section (Section 09) with three buttons: Accept Summary · Edit Summary · Regenerate Summary. No per-source readiness scores, no audit log dashboard, no evidence toggle.
+- **PhotoIntelligencePanel reduced to a quiet supportive section** ("Items To Verify From Photos") that only renders when there are open questions. Confirm / Not applicable · nothing else.
+- **All V1 data sources wired verbatim** (unchanged from prior REPAIR pass): `JobPicker`, `EmployeeCombo`, `EquipmentCombo`, `SupplierCombo`, `PhotoUpload`, `SignaturePad`, `DailyReportExcavationActivity`, `YesNo`, `fetchDailyWeather`, `getCurrentPosition`. Every section renders `<Section number="…" title="…" />` — V1's grammar.
+- **Lock envelope 23/23 green**: 14 FINAL-REPAIR assertions + 9 DR-ROI-001E regression. New assertions include `test_no_pdf_buttons_on_field_form`, `test_shell_uses_masci_platform_header`, `test_confidence_and_approval_panels_removed_from_shell`, `test_daily_operational_summary_section_exists_at_bottom`, `test_supervisor_terminology_is_daily_job_report`.
+- **Zero drift**: V1 `NewDailyReport.jsx` + `daily_reports.py` + `daily_report_lifecycle.py` byte-untouched. HR / safety / photos / excavation gate / autosave / DR-V2 hooks / dashboards / email safety all untouched.
+- **Live smoke verified (screenshot 1440×900)**: red MasciLogo + "Daily Job Report" H1, JobPicker, numbered sections, HR-linked descriptions, no PDF buttons, no dark chrome, no confidence panel, no approval panel, AI Summary with Accept/Edit/Regenerate.
+- **Docs**: `DR_ROI_001F_FINAL_REPAIR_SUMMARY.md`, `_WORKFLOW_MATRIX.md`, `_UI_AUDIT.md`, `_ZERO_DRIFT.md`, `_TEST_REPORT.md`.
+- **Next**: DR-ROI-001F PDF session (backend renderer surfaces in PM / Admin / Document Center — not on the field form) · DR-ROI-001G (regression + deployment cert).
+
 ## DR-ROI-001F-REPAIR · Platform-Native Daily Report V2 Restoration · 🟢 GO / CLOSED (2026-02-05)
 
 Rejected Session A visual pass (Class A defect — form looked like a standalone mockup, not an extension of V1). This repair pass restores full platform-native wiring by extending V1 data sources instead of rebuilding them.
