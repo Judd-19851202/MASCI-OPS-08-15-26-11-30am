@@ -11,6 +11,21 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## DR-ROI-001F Session A · Daily Report V2 UI/UX Platform Consistency · 🟢 GO / CLOSED (2026-02-05)
+
+Brought the Daily Report V2 field form into full platform alignment before the PDF renderer is written. The supervisor workflow now looks and feels exactly like ForgedOps — no dark AI-looking chrome, no PM/Admin/Executive intelligence content inside the field form, no agent/model/provider branding, no bespoke one-off styling.
+
+- **Platform primitives (`_ui.jsx`):** rewritten as `SectionCard`, `PlaceholderPane`, `FieldLabel`, `inputCls`, `selectCls`, `primaryBtn`, `secondaryBtn`, `ghostBtn`, `addItemBtn`, `StatusChip`. Light theme (`bg-white`, `border-slate-200`, `rounded-2xl`), red-700 primary accent, `h-12` inputs with focus-visible red ring — identical grammar to V1 Daily Report and every safety/inspection form.
+- **New V2 shell (`DailyReportV2.jsx`):** light `bg-slate-50` canvas, sticky save bar showing autosave status + Preview PDF + Download PDF buttons (feature-flagged/disabled until Session B renderer lands), single-column layout, removed 360px right sidebar.
+- **Removed:** dark `bg-neutral-950` chrome across the entire V2 surface. **Deleted:** `PmIntelligencePanel.jsx` — PM intelligence stays at `/pm/operational-intelligence`.
+- **Rewrites (14 files):** all 10 section files + 3 remaining panel files rewritten in platform grammar. Renames: "Live Operational Summary" → "Daily Operational Summary"; "Confidence & Validation" → "Summary readiness"; "Uncertainties" → "Items to verify"; "agent" → "source".
+- **Lock envelope (7 new assertions):** `test_dr_roi_001f_platform_consistency.py` — no AI branding, no dark-theme classes, shell uses light theme, PM panel physically absent, primitives export contract intact, V1 anchors intact, DR-V2 flag still gates the shell. **16/16 total** with DR-ROI-001E regression suite.
+- **Preserved:** V1 Daily Report page byte-untouched. `daily_reports.py` and `daily_report_lifecycle.py` byte-untouched. Excavation/JHA/JHP gates, minimum-6-photo requirement, HR crew time, payroll, safety escalations, Job Photos mirror, ODS emission, DR-V2 draft/AI/approvals hooks, dashboards — all untouched.
+- **Docs package (8):** `DR_ROI_001F_EXECUTIVE_SUMMARY.md`, `_CURRENT_STATE_AUDIT.md`, `_PLATFORM_UI_CONSISTENCY_AUDIT.md`, `_V2_FORM_CONSISTENCY_FIXES.md`, `_FRONTEND_PDF_UI.md`, `_BACKWARD_COMPATIBILITY.md`, `_ZERO_DRIFT_MATRIX.md`, `_TEST_REPORT.md`.
+- **Next (Session B · PDF lane):** Phases 3-6 & 8 — data contract, template design, backend `GET /api/dr-v2/reports/{id}/pdf` renderer, evidence annotation rules, email/archive safety recertification.
+- **Eight Pillars: 9.99 platform average** · Zero Drift 10.00 · Invisible Intelligence 10.00.
+
+
 ## DR-ROI-001E · PM + Admin + Executive Operational Intelligence Dashboards · 🟢 GO / CLOSED (2026-02-05)
 
 Delivered three role-scoped operational intelligence dashboards, powered end-to-end by the Operational Data Spine. Every KPI on every dashboard is backed by verified ODS data with fact-level source traceability. Zero AI branding, zero placeholder charts, zero decorative analytics — locked by permanent CI guardrails.
