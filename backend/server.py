@@ -2932,6 +2932,21 @@ register_ai_admin_config_routes(
 )
 
 # ------------------------------------------------------------
+# TRACK 22.4b-followup · Preview Validation Identities. Safe,
+# preview-only control plane for minting short-lived role tokens
+# used to unblock role-scoped workflow verification. Hard-disabled
+# in production. Super-admin only.
+# ------------------------------------------------------------
+from routes.preview_validation_identities import (  # noqa: E402
+    register_preview_validation_identity_routes,
+)
+register_preview_validation_identity_routes(
+    api_router,
+    db=db,
+    require_admin_strict=require_admin_strict,
+)
+
+# ------------------------------------------------------------
 # TRACK 22.3 · Integration Truth Surface + AI Key Status + DR-V2
 # Alias Telemetry. Admin-only. Runtime truth (os.environ) — never
 # reads placeholder .env values. Rebuilds trust after Track 22.2.

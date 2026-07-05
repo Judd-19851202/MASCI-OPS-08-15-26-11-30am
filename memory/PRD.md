@@ -11,6 +11,18 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 22.4b-followup · Preview Validation Identities · 🟢 SHIPPED (2026-07-05)
+
+Preview-only control plane for minting short-lived role tokens used to unblock role-scoped workflow verification. Hard-disabled in production. Super-admin only. Every token auto-expires (max 24h · default 4h) and is instantly revocable. Every mint/revoke is audited; raw tokens never persisted.
+
+- **Backend**: `/app/backend/routes/preview_validation_identities.py` · 6 endpoints under `/api/admin/preview-validation-identities/*`. Token format `PVI.<jti>.<hmac>` isolated from existing role auth tables. Uses existing `ADMIN_HMAC_SECRET`.
+- **Frontend**: `/admin/preview-validation-identities` · red banner, mint form, one-time token modal, active-identities table with per-row Revoke, live audit log.
+- **All 8 roles supported at control-plane level**. Per-role guard wiring (verify_validation_token → require_safety etc.) deferred to per-role follow-up tracks.
+- **13/13 pytest pass** (production guard, anonymous rejection, lifecycle, HMAC integrity, no raw-token leak).
+
+Doc: `/app/memory/TRACK_22_4B_VALIDATION_IDENTITIES.md`.
+
+
 ## TRACK 22.4b · Workflow Deep Trace + Submission Routing Certification · 🟡 CONDITIONAL GO (2026-07-05)
 
 Read-only trace across 20 workflows against the existing 1,376 daily reports / 134 incidents / 133 meetings / 432 trench inspections / 490 dispatch assignments in preview.

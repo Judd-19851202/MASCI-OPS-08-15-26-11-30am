@@ -15,7 +15,7 @@ import {
   LayoutDashboard, Users, Building2, Wrench, Mail, BookOpen, ClipboardCheck,
   ShieldCheck, LogOut, Menu as MenuIcon, Home, Cable, Truck, Activity,
   Rocket, History, GraduationCap, ListChecks, ChartBar, Map, Film, Database,
-  Clock, NotebookPen, ListTodo, Sparkles,
+  Clock, NotebookPen, ListTodo, Sparkles, KeyRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MasciLogo } from "@/components/MasciLogo";
@@ -63,6 +63,7 @@ const SECTIONS = [
   { key: "system",     to: "/admin/system",     icon: ShieldCheck,     label: "System & Backups",desc: "Backups · R2 · Restore · Recovery" },
   { key: "ai-configuration", to: "/admin/ai-configuration", icon: Sparkles, label: "AI Configuration", desc: "Optional intelligence · tenant AI switchboard · admin-only" },
   { key: "integration-truth", to: "/admin/integration-truth", icon: ShieldCheck, label: "Integration Truth", desc: "Runtime AI keys · third-party integration state · legacy alias telemetry" },
+  { key: "preview-validation-identities", to: "/admin/preview-validation-identities", icon: KeyRound, label: "Preview Validation Identities", desc: "Preview-only · mint short-lived role tokens for workflow verification · hard-disabled in production" },
   { key: "system-health", to: "/admin/system-health", icon: Activity,  label: "System Health",   desc: "Green/yellow/red operational probe" },
   { key: "database", to: "/admin/database", icon: Database, label: "Database",   desc: "Atlas capacity · 30-day storage trend · runway" },
   { key: "digest-config", to: "/admin/digest-config", icon: Mail,      label: "Weekly Digest",   desc: "Recipients · schedule · preview · send" },

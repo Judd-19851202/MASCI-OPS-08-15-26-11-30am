@@ -1,5 +1,22 @@
 # CHANGELOG
 
+## 2026-07-05 — TRACK 22.4b-followup · Preview Validation Identities · 🟢 SHIPPED
+
+Preview-only control plane for role-scoped workflow verification. Hard-disabled in production.
+
+- **New backend module** `/app/backend/routes/preview_validation_identities.py` — 6 admin-only endpoints under `/api/admin/preview-validation-identities/*` (env · list · mint · revoke · introspect · audit). Token format `PVI.<jti>.<hmac_sha256(jti|role, ADMIN_HMAC_SECRET)>`. Signing uses existing ADMIN_HMAC_SECRET; bumping ADMIN_SESSION_EPOCH invalidates every validation token in one move.
+- **Hard production guard**: endpoints return 404 unless BOTH `APP_ENV in {preview, staging, development, dev, test}` AND `ENABLE_PREVIEW_VALIDATION_IDENTITIES=true`. Monkeypatch-proven that setting `APP_ENV=production` disables the module regardless of the flag.
+- **Collections**: `preview_validation_identities` (metadata) + `preview_validation_identity_audit` (event log). No raw token values ever persisted.
+- **Frontend page** `/admin/preview-validation-identities` with red banner "PREVIEW VALIDATION IDENTITIES — NOT PRODUCTION CREDENTIALS", mint form (role · purpose · TTL 1-1440 min), one-time token modal, active identities table with per-row Revoke, live audit log. Renders `ShieldOff` "disabled" panel when backend returns 404.
+- **All 8 roles supported** at the control plane (admin · pm · safety · hr · shop · dispatch · driver · field_leadership).
+- **Guard-plane wiring deferred** — the `verify_validation_token()` helper is shipped and tested; wiring it into each per-role guard (`require_safety`, `require_hr`, etc.) belongs to the per-role follow-up tracks and is honestly documented as such.
+- **Tests**: 13/13 new pytest at `/app/backend/tests/test_track_22_4b_followup_validation_identities.py`. Locks: production-marker disables · flag disables · anonymous rejected on 5 endpoints · lifecycle mint→introspect→revoke → post-revoke rejected · invalid role 400 · TTL >24h rejected · list never leaks token · audit never leaks token · forged signature rejected (HMAC integrity).
+
+**Zero Motive touch.** Zero RBAC weakening. Zero raw-secret exposure.
+
+Doc: `/app/memory/TRACK_22_4B_VALIDATION_IDENTITIES.md`.
+
+
 ## 2026-07-05 — TRACK 22.4b-follow-up · Workflow Verification Closure Pack · 🟢 GO
 
 Closed 4 of the 8 defects Track 22.4b catalogued. The remaining 4 all require role-scoped write tokens (PM/HR/Safety/Shop/Driver) that were not safely available in this preview window; each is owned by a named next-track with zero fake green.
