@@ -11,6 +11,19 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 23.1 · Elite V1 Daily Report Rebuild (V3 shell) · 🟢 SHIPPED · CERTIFIED (2026-02-06)
+- **Mandate**: Parallel V3 UI at `/daily/new` under a five-scope feature flag. Same backend, same submit endpoint, same payload contract, same downstream. Zero schema deletion, zero V2 resurrection.
+- **Backend (additive)**: `services/cost_codes/provider.py` (CostCodeProvider abstract + JobsMasterCostCodeProvider + registry — future ERP adapters plug in with zero UI change); `routes/cost_codes.py` (`GET /api/cost-codes/for-project`); `routes/ui_flags.py` (`resolve_dr_v3_flag()` + `GET /api/feature-flags/dr-v3`).
+- **Frontend (parallel component)**: `NewDailyReportV3.jsx` (9-section shell) + `DailyReportRouter.jsx` (flag-gated wrapper, fail-closed on error) + `daily-report-v3/` section modules + `dailyReportV3Flag.js` hook. Composes existing shared primitives (JobPicker, EmployeeCombo, EquipmentCombo, SupplierCombo, PhotoUpload, SignaturePad, DailySummaryAssist).
+- **Nine sections**: Project + Conditions · Crew + Equipment · Work Performed + Production · Materials + Tickets · Photos + Evidence · Delays/Extra Work + Safety (combined gates) · Tomorrow + PM Attention · Operational Summary Assist (single AI card) · Submit Readiness + Sign-Off.
+- **Doctrine locked in tests**: no V2 name, single AI card, canonical submit endpoint, dropdown-first primitives, cost-code selector hidden when empty, combined impact/safety gates, photo minimum preserved, signature required, `dr-v3-` testid prefix.
+- **Rollback**: one flag flip in `ui_flags.dr_v3`. Emergency runbook in memo.
+- **Tests**: 41/41 (33 lock + 8 live API) · 9/9 frontend UI checks · testing agent verdict `retest_needed=false`. Full 22.9A/22.9B/DR-CUTOVER regression 60/60.
+- **Files created**: `services/cost_codes/{__init__,provider}.py`, `routes/cost_codes.py`, `routes/ui_flags.py`, `frontend/lib/dailyReportV3Flag.js`, `frontend/pages/NewDailyReportV3.jsx`, `frontend/pages/DailyReportRouter.jsx`, `frontend/components/daily-report-v3/{SectionProjectConditions.jsx, sections.jsx}`, 3 backend test files + 1 live API test file (agent-authored), `/app/memory/TRACK_23_1_ELITE_DR_V3_REBUILD.md`.
+- **Files changed**: `server.py` (2-line additive router registration), `frontend/app/routing/AppRoutes.jsx` (1 import + 2 route element swaps).
+- **Verdict**: 🟢 GO. Next: **Track 22.9C — PDF + email + PM read of accepted AI summary + photo observations** (unlocks the highest remaining ROI gap from the Track 23.0 audit).
+
+
 ## TRACK 23.0 · Daily Report Constitutional Black Box Audit · 🟢 CLOSED (2026-02-06)
 - **Mandate**: Full read-only audit of V1 Daily Report end-to-end before any next rebuild. Zero code changes.
 - **Coverage**: 68 fields · 39 buttons/actions · 25 conditionals · 24-step submit chain · 32 downstream consumers · 13 notification paths · 25 PDF surfaces · 8 AI modules · 16 UX findings. Full 8-pillar scorecard per section.
