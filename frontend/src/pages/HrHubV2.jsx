@@ -24,6 +24,7 @@ import {
 } from "../design-system";
 import HrSideNavV2 from "@/components/hr/sidebar/HrSideNavV2";
 import HrComplianceAtRiskWidget from "@/components/hr/HrComplianceAtRiskWidget";
+import HrCompletenessTile from "@/components/HrCompletenessTile";
 import OiAttentionStrip from "@/components/operational_intelligence/OiAttentionStrip";
 import { getHrToken } from "@/lib/hrAuth";
 import { getAdminToken } from "@/lib/adminAuth";
@@ -224,6 +225,16 @@ export default function HrHubV2() {
             Consumes existing /api/operations/expirations/summary (Sprint A · read-only).
             Zero-drift: no new backend routes · no schema · no permission drift. */}
         <HrComplianceAtRiskWidget authHeaders={authHeaders} />
+
+        {/* TRACK 23.6 · Employee Record Completeness — read-only
+            check-engine light for whether Employee Lifecycle records
+            carry the identity fields Daily Reports / HR / Payroll /
+            PM Intelligence rely on. Uses the shared normalized
+            identity contract from Track 23.5. Never edits records,
+            never fires alerts. */}
+        <div style={{ marginBottom: 24 }}>
+          <HrCompletenessTile />
+        </div>
 
         {/* 5:30 AM rule · large, visible employee directory search.
             Tired foreman should never need Cmd+K to find a person. */}

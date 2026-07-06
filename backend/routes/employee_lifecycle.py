@@ -1038,6 +1038,166 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
             "Employees",
         )
 
+    # ── TRACK 23.6 · Employee record completeness (read-only) ─────────
+    # Purpose: check-engine light for whether Employee Lifecycle
+    # records carry the identity fields downstream systems (Daily
+    # Report autofill, ODS labor_fact, HR Time Verification, Payroll
+    # Variance, PM Intelligence) rely on.
+    #
+    # Uses the shared `lib.employee_identity.normalize_employee_identity`
+    # from Track 23.5. Does NOT re-implement projection logic. Does
+    # NOT edit employee records. Does NOT create duplicate fields.
+    # Does NOT touch Daily Report. Does NOT fire alerts.
+    async def _completeness_snapshot(
+        include_inactive: bool = False,
+    ) -> Dict[str, Any]:
+        from datetime import datetime, timezone  # noqa: PLC0415
+        from lib.employee_identity import (  # noqa: PLC0415
+            PUBLIC_ROSTER_PROJECTION,
+            normalize_employee_identity,
+        )
+        # Reuse the exact filter the HR roster and /api/employees use
+        # so counts never drift.
+        clauses: List[Dict[str, Any]] = [{"deleted_at": None}]
+        if not include_inactive:
+            clauses.append({"$or": [
+                {"lifecycle_status": {"$in": list(_ACTIVE_STATUSES)}},
+                {"lifecycle_status": {"$exists": False},
+                 "is_active": {"$ne": False}},
+                {"lifecycle_status": None, "is_active": {"$ne": False}},
+            ]})
+        cursor = db.employees.find(
+            {"$and": clauses}, PUBLIC_ROSTER_PROJECTION,
+        ).sort("name", 1)
+
+        total = 0
+        trade_role_complete = 0
+        crew_complete = 0
+        sup_complete = 0
+        fully_complete = 0
+        missing_records: List[Dict[str, Any]] = []
+        async for raw in cursor:
+            total += 1
+            emp = normalize_employee_identity(raw)
+            has_trade = bool((emp.get("trade_role_display") or "").strip())
+            has_crew = bool((emp.get("crew_display") or "").strip())
+            has_sup = bool((emp.get("supervisor_display") or "").strip())
+            if has_trade:
+                trade_role_complete += 1
+            if has_crew:
+                crew_complete += 1
+            if has_sup:
+                sup_complete += 1
+            if has_trade and has_crew and has_sup:
+                fully_complete += 1
+                continue
+            missing_fields: List[str] = []
+            if not has_trade:
+                missing_fields.append("trade_role")
+            if not has_crew:
+                missing_fields.append("crew")
+            if not has_sup:
+                missing_fields.append("supervisor")
+            missing_records.append({
+                "employee_id": emp.get("employee_id") or "",
+                "id": emp.get("id") or "",
+                "name": emp.get("name") or "",
+                "preferred_name": emp.get("preferred_name") or "",
+                "display_identity": emp.get("display_identity") or emp.get("name") or "",
+                "trade_role_display": emp.get("trade_role_display") or "",
+                "crew_display": emp.get("crew_display") or "",
+                "supervisor_display": emp.get("supervisor_display") or "",
+                "missing_fields": missing_fields,
+                "lifecycle_status": emp.get("lifecycle_status") or (
+                    "Active" if emp.get("is_active") is not False else "Inactive"
+                ),
+            })
+
+        pct = (fully_complete / total * 100.0) if total else 100.0
+        if pct >= 95.0:
+            band = "green"
+        elif pct >= 75.0:
+            band = "amber"
+        else:
+            band = "red"
+        return {
+            "total_active": total,
+            "complete_count": fully_complete,
+            "trade_role_complete_count": trade_role_complete,
+            "crew_complete_count": crew_complete,
+            "supervisor_complete_count": sup_complete,
+            "completion_percent": round(pct, 1),
+            "status_band": band,
+            "missing_records": missing_records,
+            "include_inactive": include_inactive,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "contract_version": "23.6",
+        }
+
+    @router.get("/api/hr/employee-completeness")
+    async def employee_completeness(
+        actor: Dict[str, Any] = Depends(require_hr_or_admin),
+        include_inactive: bool = Query(default=False),
+        missing_only: Optional[str] = Query(
+            default=None,
+            description="Comma-separated: trade_role,crew,supervisor. Filters missing_records to rows lacking ANY of the named fields.",
+        ),
+    ) -> Dict[str, Any]:
+        """Read-only Employee Record Completeness snapshot (TRACK 23.6).
+
+        HR/Admin only. Never mutates. Never fires alerts. Never leaks
+        private HR fields. Uses the shared normalized identity
+        contract from Track 23.5.
+        """
+        snap = await _completeness_snapshot(include_inactive=include_inactive)
+        if missing_only:
+            wanted = {
+                s.strip() for s in missing_only.split(",")
+                if s.strip() in {"trade_role", "crew", "supervisor"}
+            }
+            if wanted:
+                snap["missing_records"] = [
+                    r for r in snap["missing_records"]
+                    if wanted.intersection(r["missing_fields"])
+                ]
+        return snap
+
+    @router.get("/api/hr/employee-completeness.csv")
+    async def employee_completeness_csv(
+        actor: Dict[str, Any] = Depends(require_hr_or_admin),
+        include_inactive: bool = Query(default=False),
+    ):
+        """CSV export of missing-records list (HR/Admin only)."""
+        from fastapi.responses import Response  # noqa: PLC0415
+        import csv  # noqa: PLC0415
+        from io import StringIO  # noqa: PLC0415
+        snap = await _completeness_snapshot(include_inactive=include_inactive)
+        buf = StringIO()
+        writer = csv.writer(buf)
+        writer.writerow([
+            "employee_id", "legal_name", "preferred_name",
+            "trade_role_display", "crew_display", "supervisor_display",
+            "missing_fields", "lifecycle_status",
+        ])
+        for r in snap["missing_records"]:
+            writer.writerow([
+                r["employee_id"], r["name"], r["preferred_name"],
+                r["trade_role_display"], r["crew_display"],
+                r["supervisor_display"],
+                ";".join(r["missing_fields"]),
+                r["lifecycle_status"],
+            ])
+        return Response(
+            content=buf.getvalue(),
+            media_type="text/csv",
+            headers={
+                "Content-Disposition": 'attachment; filename="MASCI_Employee_Completeness.csv"',
+                "X-Content-Type-Options": "nosniff",
+            },
+        )
+
+
+
     @router.post("/api/hr/employees")
     async def create_employee(
         body: EmployeeCreate,

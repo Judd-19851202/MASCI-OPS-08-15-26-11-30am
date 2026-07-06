@@ -14,6 +14,7 @@ import { OfflineIndicator } from "@/lib/resiliency";
 import IntegrationEventsCard from "@/components/IntegrationEventsCard";
 import ExpirationsSummary from "@/components/ExpirationsSummary";
 import HrKpiStrip from "@/components/HrKpiStrip";
+import HrCompletenessTile from "@/components/HrCompletenessTile";
 import { useT } from "@/lib/i18n";
 import { clearHrToken, getHrUser, getHrToken } from "@/lib/hrAuth";
 import { usePageTitle } from "@/lib/usePageTitle";
@@ -249,6 +250,12 @@ export default function HrHub() {
             signals: active employees, pending employee requests, time-off
             approvals, training/cert due, docs expired. */}
         <HrKpiStrip className="mt-6" />
+
+        {/* TRACK 23.6 · Employee Record Completeness tile — read-only
+            check-engine light for whether Employee Lifecycle records
+            carry the identity fields Daily Reports / HR / Payroll /
+            PM Intelligence rely on. Never edits, never fires alerts. */}
+        <HrCompletenessTile className="mt-6" />
 
         {/* iter429 · Phase 28 · Optional device sign-in enrollment ·
             self-gated · dismissible · single-card · NEVER nags */}

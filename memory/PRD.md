@@ -10,6 +10,34 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
+## TRACK 23.6 · HR Employee Record Completeness Tile · 🟢 SHIPPED · CERTIFIED (2026-02-06)
+- **Mandate**: Read-only check-engine light on HR Portal showing whether Employee Lifecycle records carry the identity fields Daily Report autofill / HR Time Verification / Payroll Variance / PM Intelligence rely on. Never edits records. Never fires alerts. Never replaces Employee Lifecycle. Uses the Track 23.5 shared normalized identity contract.
+- **Backend** (additive · read-only · HR/Admin-gated):
+  - `GET /api/hr/employee-completeness` — snapshot: `total_active · complete_count · trade_role_complete_count · crew_complete_count · supervisor_complete_count · completion_percent · status_band · missing_records[]  · include_inactive · generated_at · contract_version=23.6`. Uses shared `lib.employee_identity.normalize_employee_identity` + `PUBLIC_ROSTER_PROJECTION` — no re-implemented projection logic. `missing_records[]` carries only display-safe HR identity fields (no email/phone/SSN/DOB/CDL/pay data).
+  - `GET /api/hr/employee-completeness.csv` — same auth · same source · 8 approved columns only (`employee_id · legal_name · preferred_name · trade_role_display · crew_display · supervisor_display · missing_fields · lifecycle_status`).
+  - Query params: `include_inactive=true` (opt-in) · `missing_only=trade_role,crew,supervisor` (filter).
+  - Status band thresholds: `>=95% green · >=75% amber · <75% red`.
+- **Frontend**:
+  - **New** `components/HrCompletenessTile.jsx` — colored-band tile, 4 metric cards (Trade/Role · Crew · Supervisor · Fully Complete), View-missing action opens a right-side drawer with an accessible filter chip row (All / Missing Trade-Role / Missing Crew / Missing Supervisor), Export CSV via authed-fetch → blob download, Include-inactive checkbox, "Open Employee Lifecycle" link. Every interactive element carries a `data-testid`. No POST/PATCH/PUT/DELETE anywhere in the component (locked by regression).
+  - Mounted on `/hr` (canonical HrHubV2) directly under `HrComplianceAtRiskWidget` — same visual family, adjacent purpose. Also mounted on legacy `/hr/hub_legacy` (HrHub) for parity.
+  - NOT mounted on Daily Report V3, NOT mounted on PM Operational Intelligence.
+- **Noise control**: read-only · no emails · no SMS · no bell notifications · no blocking behavior · no daily digest triggers. The status band is the only visual weight; a red band appears only when completion is genuinely low.
+- **Preview snapshot** (live browser proof · `/tmp/track_23_6_tile.png` + `/tmp/track_23_6_drawer.png` + `/tmp/track_23_6_drawer_filter.png`):
+  - Total active: **387** · Trade/Role complete: **88 (23%)** · Crew complete: **13 (3%)** · Supervisor complete: **5 (1%)** · Fully complete: **5 (1.3%)** → **red band**. The 5 fully-complete employees are the Track 23.5 cert seed (Alec Perkins, Alejandro Escobedo, Allen Smathers, Alvaro Cia, Amanda Kapp), proving the shared normalizer is single source of truth.
+  - Drawer filter chips: `All` → 382 rows · `Missing Trade/Role` → 299 rows · both filters render read-only Edit-link into Employee Lifecycle.
+  - CSV export downloaded 23,135 bytes containing only the 8 approved columns.
+- **Downstream contract preservation**: No Daily Report change. No `/api/employees` change. No `/api/hr/employee-roster` change. No Employee Lifecycle CRUD change. No ODS labor_fact / PDF / email change. `db.employees` remains the single write source.
+- **Tests**: 18 new lock assertions in `test_track_23_6_hr_completeness_tile.py` — auth guard on both endpoints · endpoint uses shared normalizer · snapshot contract (all 12 keys) · logical count bounds (`complete_count ≤ each partial count`, `complete_count + missing == total_active`) · missing_records shape · no sensitive-field leak (email/phone/SSN/DOB/CDL/hire_date/rehire_reason all blocked) · Track 23.5 cert employees NOT in missing list (proves normalizer coherence across tracks) · include_inactive filter widens total · missing_only filter narrows list · CSV header locked to 8 approved columns · status band thresholds in code · tile mounted on HrHubV2 + HrHub · tile NOT on Daily Report V3 / PM OI · all required data-testids present · tile makes no write calls · no duplicate employee collection introduced · `/api/employees` still normalized · Daily Report V3 still renders. Full regression **106/106** across 22.9C + 23.2 + 23.4A + 23.4B + 23.4C + 23.5 + 23.6.
+- **Files changed**:
+  - **New** `/app/backend/tests/test_track_23_6_hr_completeness_tile.py`
+  - **New** `/app/frontend/src/components/HrCompletenessTile.jsx`
+  - `/app/backend/routes/employee_lifecycle.py` (2 new read-only endpoints · shared normalizer usage)
+  - `/app/frontend/src/pages/HrHubV2.jsx` (tile mounted below Compliance-At-Risk widget)
+  - `/app/frontend/src/pages/HrHub.jsx` (legacy hub parity mount)
+- **Verdict**: 🟢 **GO** — useful, quiet, trustworthy, simple. Directly surfaces the HR data-quality gap Track 23.5 documented, without editing records or duplicating schema. Purpose-built for HR to clean records; opaque and unobtrusive when data quality is green.
+
+
+
 ## TRACK 23.5 · Employee Identity Integration Audit + Repair · 🟢 SHIPPED · CERTIFIED (2026-02-06)
 - **Mandate**: One shared normalized contract for field-facing employee identity. The operator proved the HR Employee Lifecycle UI displays canonical Trade/Role, Crew, and Supervisor for every employee, but Daily Report V3 auto-fill was silently blanking supervisor because two public roster endpoints projected different (and partially dead) alias fields. Fix at the source — no duplicate schema, no new collection, no fake data.
 - **Root cause**: `/api/hr/employee-roster` (the endpoint `fetchHrRoster()` — used by EmployeeCombo, Daily Report V3, trench pickers, every field form) projected `supervisor_name` / `supervisor_id`, which HR NEVER writes. The canonical write key is `supervisor` (see `routes/employee_lifecycle.py::EmployeeCreate`). Supervisor was silently dropped for every field picker on the platform, regardless of production HR data completeness. Additionally `/api/employees` projected dead field `division` (never written). Both endpoints re-implemented projection specs independently — no shared normalizer.
