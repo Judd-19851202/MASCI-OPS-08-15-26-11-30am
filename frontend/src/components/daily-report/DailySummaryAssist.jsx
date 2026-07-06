@@ -91,6 +91,11 @@ export default function DailySummaryAssist({ data, reportNumber, onAccept, testI
   const [edited, setEdited] = useState("");
   const [confidence, setConfidence] = useState(null);
   const [uncertainties, setUncertainties] = useState([]);
+  const [evidenceRefs, setEvidenceRefs] = useState([]);
+  const [providerMasked, setProviderMasked] = useState(null);
+  const [modelMasked, setModelMasked] = useState(null);
+  const [generatedAt, setGeneratedAt] = useState(null);
+  const [latencyMs, setLatencyMs] = useState(null);
   const [accepted, setAccepted] = useState(false);
   const [aiAvailable, setAiAvailable] = useState(true);
   const [error, setError] = useState(null);
@@ -118,6 +123,7 @@ export default function DailySummaryAssist({ data, reportNumber, onAccept, testI
     const timeoutId = setTimeout(() => {
       try { controller.abort(); } catch { /* ignore */ }
     }, REQUEST_TIMEOUT_MS);
+    const tStart = performance.now();
 
     try {
       const bundle = toEvidenceDraft(reportId, data);
@@ -128,13 +134,22 @@ export default function DailySummaryAssist({ data, reportNumber, onAccept, testI
         { report_id: reportId, agents: ["day_narrative"], force },
         { signal: controller.signal },
       );
+      const tElapsed = Math.round(performance.now() - tStart);
       if (mySeq !== requestSeqRef.current) return; // stale
       const out = (resp?.outputs || {}).day_narrative || {};
+      // Capture provider metadata for provenance (masked only — never raw keys)
+      const provider = resp?.provider || out.provider || null;
+      const model = resp?.model || out.model || null;
+      setProviderMasked(provider ? String(provider).slice(0, 20) : null);
+      setModelMasked(model ? String(model).slice(0, 40) : null);
+      setGeneratedAt(new Date().toISOString());
+      setLatencyMs(tElapsed);
       if (out.ai_available === false) {
         setAiAvailable(false);
         const fb = buildDeterministicFallback(data);
         setNarrative(fb);
         setEdited(fb);
+        setEvidenceRefs([]);
         setStatus("ready");
         return;
       }
@@ -145,6 +160,7 @@ export default function DailySummaryAssist({ data, reportNumber, onAccept, testI
       setEdited(fb);
       setConfidence(typeof out.confidence === "number" ? out.confidence : null);
       setUncertainties(Array.isArray(out.uncertainties) ? out.uncertainties.slice(0, 5) : []);
+      setEvidenceRefs(Array.isArray(out.evidence_refs) ? out.evidence_refs.slice(0, 20) : []);
       setStatus("ready");
     } catch (err) {
       if (mySeq !== requestSeqRef.current) return; // stale
@@ -182,8 +198,21 @@ export default function DailySummaryAssist({ data, reportNumber, onAccept, testI
   function handleAccept() {
     const text = (edited || narrative || "").trim();
     if (!text) return;
+    const editedByUser = text.trim() !== (narrative || "").trim();
+    const source = !aiAvailable ? "fallback" : (editedByUser ? "edited" : "ai");
+    const meta = {
+      source,
+      provider_masked: providerMasked,
+      model_masked: modelMasked,
+      generated_at: generatedAt,
+      accepted_at: new Date().toISOString(),
+      edited_by_user: editedByUser,
+      confidence,
+      evidence_refs: evidenceRefs,
+      latency_ms: latencyMs,
+    };
     setAccepted(true);
-    onAccept?.(text);
+    onAccept?.(text, meta);
   }
 
   function handleRegenerate() {

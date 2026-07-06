@@ -162,6 +162,19 @@ class DailyReportCreate(BaseModel):
     #     file_size, uploaded_at }
     attachments: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
 
+    # ────────────────────────────────────────────────────────────
+    # TRACK 22.9A · Daily Report Draft Summary Assist.
+    # `ai_accepted_summary` is the supervisor-accepted narrative
+    # (may be AI-generated, AI-then-edited, or the deterministic
+    # fallback). Additive · defaults empty · absence is normal for
+    # legacy reports. `ai_accepted_summary_meta` captures the
+    # provenance so downstream consumers (PM/PDF/ODS) can honestly
+    # label the source. Provider metadata is masked; raw keys are
+    # never persisted.
+    # ────────────────────────────────────────────────────────────
+    ai_accepted_summary: Optional[str] = ""
+    ai_accepted_summary_meta: Optional[Dict[str, Any]] = None
+
 
 class DailyReport(DailyReportCreate):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))

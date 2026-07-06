@@ -2880,12 +2880,18 @@ function NewDailyReportInner({ publicMode = false }) {
         {/* TRACK 22.9A · Draft Summary — non-blocking AI-assist. Never
             blocks typing or submit. If the assist is unavailable a
             deterministic fallback appears. Accepted text is copied
-            onto data.ai_accepted_summary for downstream consumers. */}
+            onto data.ai_accepted_summary for downstream consumers.
+            Accepted metadata (source, provider masked, evidence refs,
+            latency) lands on data.ai_accepted_summary_meta and flows
+            into the ODS spine as `day_summary_fact`. */}
         <div className="mt-4">
           <DailySummaryAssist
             data={data}
             reportNumber={data.report_number}
-            onAccept={(text) => set("ai_accepted_summary", text)}
+            onAccept={(text, meta) => {
+              set("ai_accepted_summary", text);
+              set("ai_accepted_summary_meta", meta || null);
+            }}
             testId="dr-daily-summary-assist"
           />
         </div>

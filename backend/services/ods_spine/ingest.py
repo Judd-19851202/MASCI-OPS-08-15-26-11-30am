@@ -562,6 +562,29 @@ def _build_facts_from_dr_v1_report(rec: Dict[str, Any]) -> List[Dict[str, Any]]:
         f["payload"] = payload
         facts.append(f)
 
+    # ── TRACK 22.9A · Accepted Draft Summary → day_summary_fact.
+    # If the supervisor accepted (or edited) the Draft Summary at submit
+    # time, emit one canonical fact so PM/project/executive dashboards
+    # can render the narrative from the spine, not the raw DR doc.
+    summary_text = (rec.get("ai_accepted_summary") or "").strip()
+    if summary_text:
+        meta = rec.get("ai_accepted_summary_meta") or {}
+        f = _base(src_type, src_id, src_ver, "day_summary", pid, date,
+                  submitted_by, "day_summary_fact")
+        f["payload"] = {
+            "text": summary_text[:2500],
+            "source": meta.get("source") or "ai",
+            "provider_masked": meta.get("provider_masked"),
+            "model_masked": meta.get("model_masked"),
+            "generated_at": meta.get("generated_at"),
+            "accepted_at": meta.get("accepted_at"),
+            "edited_by_user": bool(meta.get("edited_by_user")),
+            "confidence": meta.get("confidence"),
+            "evidence_refs": (meta.get("evidence_refs") or [])[:20],
+            "latency_ms": meta.get("latency_ms"),
+        }
+        facts.append(f)
+
     return facts
 
 

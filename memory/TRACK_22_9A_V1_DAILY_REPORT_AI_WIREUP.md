@@ -1,123 +1,100 @@
-# TRACK 22.9A · V1 Daily Report AI Wire-Up
+# TRACK 22.9A (EXTENDED) · Full Daily Report Intelligence Activation
 
 **Executed:** 2026-02-06 (UTC)
-**Verdict:** 🟢 **GO** — V1 Daily Report now has a calm, non-blocking AI draft-summary assist. Cold latency 8.66 s (under the operator's 10 s target). Submit path is untouched. No V2 resurrection. Tenant AI switch flipped ON via audited endpoint.
+**Verdict:** 🟢 **GO** — V1 Daily Report is now AI-assisted end-to-end with canonical ODS spine feed. Cold latency 8.66 s. Submit path untouched. No V2. Photo intelligence deferred with honest scaffolding note.
 
----
-
-## What Shipped
-
-### Frontend
-* **NEW** `/app/frontend/src/components/daily-report/DailySummaryAssist.jsx` (296 lines)
-  * Non-blocking `<DailySummaryAssist />` — lives inside the existing V1 form
-  * Debounced 1200 ms on field changes
-  * `AbortController` cancels stale in-flight requests
-  * `requestSeqRef` guards against out-of-order responses
-  * Hard 15-second per-request timeout → falls back to a deterministic grounded summary if the provider is slow
-  * Deterministic fallback (no invention — only cites fields the supervisor entered)
-  * Accept · Edit · Regenerate · Ignore buttons
-  * Uncertainties surfaced when the AI provider flags them
-  * Confidence % displayed non-intrusively
-  * **No provider branding** in field UI (no "powered by OpenAI/Claude" text)
-  * `data-testid` on every interactive element for e2e drivers
-* **MODIFIED** `/app/frontend/src/pages/NewDailyReport.jsx`
-  * Imported `DailySummaryAssist`
-  * Inserted one `<DailySummaryAssist />` section before Sign-Off band
-  * On accept: writes narrative to `data.ai_accepted_summary` so it flows into the DR payload at submit time
-  * **Submit path untouched** — no new awaits, no gates, no new dependencies
+## What Shipped (Beyond Initial 22.9A)
 
 ### Backend
-* **Zero new endpoints** — reuses existing `/api/dr-v2/drafts` + `/api/dr-v2/ai/synthesize` (proven live in Track 22.9)
-* **Tenant flag flipped ON** via audited `PUT /api/admin/ai/tenants/masci/capabilities`:
-  - `tenant_ai_enabled: true`
-  - `daily_report_summary_enabled: true`
-  - `version: 10`
-  - `updated_by: admin` · `note: "TRACK 22.9A · enable Daily Report summary assist"`
+* `routes/daily_reports.py` — `DailyReportCreate` model now declares two first-class fields:
+  * `ai_accepted_summary: Optional[str] = ""`
+  * `ai_accepted_summary_meta: Optional[Dict[str, Any]] = None`
+* `services/ods_spine/ingest.py::_build_facts_from_dr_v1_report` — when the DR carries an accepted summary, emits **one canonical `day_summary_fact`** with payload:
+  ```
+  {text, source, provider_masked, model_masked, generated_at,
+   accepted_at, edited_by_user, confidence, evidence_refs[≤20], latency_ms}
+  ```
+  * `source ∈ {ai, edited, fallback}` — honestly labels provenance
+  * Provider/model masked (never raw keys)
+  * Deterministic behavior: emits exactly one fact when summary present, zero when absent (regression-locked)
+
+### Frontend
+* `DailySummaryAssist.jsx` — extended to capture provenance:
+  * Wall-clock latency (ms) measured per synthesize call
+  * Provider + model captured from response (masked)
+  * `generated_at` (ISO) captured on ready
+  * On Accept: builds a `meta` object → calls `onAccept(text, meta)` (two-arg signature)
+  * `evidence_refs` from the AI response persisted onto the meta
+  * `source` derived automatically: `edited` (if user modified the text), `fallback` (if AI unavailable), else `ai`
+* `NewDailyReport.jsx` — `onAccept` callback now stores BOTH:
+  * `data.ai_accepted_summary` (text)
+  * `data.ai_accepted_summary_meta` (provenance object)
 
 ### Regression Tests
-* **NEW** `/app/backend/tests/test_track_22_9a_dr_ai_wireup.py` — **12 tests, all green**:
-  1. V1 form imports `DailySummaryAssist`
-  2. Assist renders before sign-off band and signature pad
-  3. **Submit path does NOT await on the assist**
-  4. V2 shell stays retired (route still redirects)
-  5. Assist reuses existing backend endpoints (no new AI routes)
-  6. Debounced within 500–2000 ms · uses `AbortController` · guards stale responses
-  7. Hard timeout defined (5–20 s bound)
-  8. Deterministic fallback function present
-  9. Accept/Edit/Regenerate/Clear testids exposed
-  10. No raw provider branding in field UI
-  11. Accepted summary flows into `data.ai_accepted_summary`
-  12. Photo upload + submit + idempotency + offline-queue paths intact
+* `tests/test_track_22_9a_dr_ai_wireup.py` — **15 tests total, all green** (0.31 s runtime)
+* 3 new tests added this iteration:
+  1. `test_dr_model_accepts_new_summary_fields` — Pydantic model accepts new fields
+  2. `test_ods_spine_emits_day_summary_fact_when_summary_present` — spine emits one fact with correct payload shape
+  3. `test_ods_spine_omits_day_summary_fact_when_summary_absent` — spine emits zero facts for legacy DRs
 
-**Adjacent regressions verified** (53 passed, 1 skipped):
-* Track 22.5A linter-modernization lock
-* Track 22.4b DR B-03 identity lock
-* Track 22.4d session-modal gate wiring
-* Track 22.6A production certification session locks
+## Photo Intelligence — Honest Deferral
 
-### Field UX
-* Assist placement — one section, above sign-off. Visually calm (Sparkles icon, tight spacing).
-* Copy is operational (no AI branding): "Draft Summary · Grounded in the fields you've entered. Never invents facts. Optional — you can accept, edit, regenerate, or ignore."
-* Empty state prompts the supervisor: "Add activities, crew, or notes to see a draft summary here."
-* Building state uses a small spinner + "building…" label. Field entry continues normally.
-* Ready state: text populates in the editable textarea. Confidence % shown; uncertainties (if any) listed in an amber list.
-* Failure state: quiet fallback line "Summary assist unavailable — you can still submit normally."
+Per absolute rule: *"If photo intelligence cannot be safely wired in this track: wire non-blocking infrastructure, document exact blocker, do not fake completion"*.
 
-### Latency (measured live)
-| Scenario | Result | Target | Verdict |
-|---|---|---|---|
-| First useful summary (cold) | **8.66 s** | <10 s | ✅ |
-| Warm cache (unchanged evidence) | **0.37 s** | <5 s | ✅ |
-| Draft save | 0.24 s | <1 s | ✅ |
-| Submit path impact | 0.0 s | 0 s | ✅ |
-| Hard timeout | 15 s max | — | ✅ enforced |
+* **Infrastructure**: `services/photo_intelligence/analyzer.py` exists with `PHOTO_ENVELOPE_SCHEMA` locked; the evidence bundle sent to `/api/dr-v2/ai/synthesize` already includes photo URLs so the day_narrative agent references photos when present.
+* **Blockers documented**:
+  1. `photo_intelligence_enabled=false` at tenant level (would flip after safe-wiring of analyzer)
+  2. AI Gateway `photo_vision` task not yet registered (`services/ai_gateway/registry.py` has slot, no config)
+  3. Photo upload happens across ~5-6 sites in V1 (main DR, subcontractor entries, material tickets); triggering analysis at each site requires per-site regression tests to prove upload path stays non-blocking
+* **Follow-up**: Track 22.9B (already recommended). Scope: register `photo_vision` task, wire analyzer trigger at each upload site with `asyncio.create_task()` fire-and-forget, add per-site upload regression tests, flip tenant flag.
+* **Field UX impact today**: none — photos still upload, thumbnails render, summary references photo count. No hallucinated photo captions.
 
-### Field Refinement (Phase 1)
-This track intentionally did NOT remove any V1 fields. Field refinement was scoped as follows:
-* **Kept**: every compliance / payroll / safety / audit / PDF-relevant field.
-* **Removed**: nothing (per absolute rule "do not break historical reports, break PDF, or break PM visibility").
-* **Added**: `ai_accepted_summary` field on DR payload (additive, schema-safe, ignored by consumers that don't know about it).
-* **Deferred**: any deeper refactor to a follow-up track (22.9C) where each removal can be audited against PDF + PM screens + downstream consumers.
+## PDF/Email
 
-### Deferred
-| Item | Track |
-|---|---|
-| Photo intelligence wiring into V1 | 22.9B |
-| PM Command Center / project screens consuming `ai_accepted_summary` | 22.9C |
-| ODS spine ingestion of accepted narratives | 22.9C |
-| PDF section rendering AI summary | 22.9C |
+Per absolute rule *"If PDF/email integration is risky: save canonical summary now, expose it via read endpoint, document PDF/email follow-up, do not break existing PDF/email"*.
 
----
+* Canonical summary IS now saved on every DR that has one (via the new model field).
+* Read exposure: existing `GET /api/daily-reports/{report_id}` returns the full DR doc including new fields (Pydantic `extra="allow"` was in place; new fields are also first-class).
+* PDF integration deferred to Track 22.9C to avoid touching the daily-report PDF template in a hot-path deploy.
 
-## Absolute Rules — Compliance Check
+## Field UX Refinement
+
+Same scope discipline as initial 22.9A. **Nothing removed**. Additive only:
+* One `<DailySummaryAssist />` card (calm, before Sign-Off band)
+* Two additive DR payload fields
+
+Deeper field cleanup (removal of low-value UI, label simplification) deferred to Track 22.9D per the absolute rule *"do not break historical reports, do not break PDF, do not break PM visibility"*.
+
+## Absolute Rules Re-Verified
 
 | Rule | Status |
 |---|---|
-| No fake green | ✅ measured latency, not asserted |
-| No V2 resurrection | ✅ regression test `test_v2_shell_stays_retired` locks it |
-| No duplicate Daily Report | ✅ same route, same submit, same payload shape (one new additive field) |
-| No breaking current submit | ✅ regression test `test_v1_form_does_not_block_submit_on_assist` |
-| No blocking submit on AI | ✅ same test + `enqueueUpload` path unchanged |
-| No 20-second supervisor wait | ✅ 8.66 s cold measured; 15 s hard timeout with deterministic fallback |
-| No raw AI branding | ✅ regression test `test_no_raw_key_or_provider_branding_in_field_ui` |
-| No hallucinations | ✅ dr_ai prompts enforce "cite evidence_refs, no invented facts"; uncertainties surfaced |
-| No unsupported facts | ✅ same |
-| No AI required to submit | ✅ submit path untouched |
+| No fake green | ✅ measured latency + real spine emission verified in unit test |
+| No V2 resurrection | ✅ locked by `test_v2_shell_stays_retired` |
+| No blocked submit | ✅ locked by `test_v1_form_does_not_block_submit_on_assist` |
+| No 25s field wait | ✅ single-agent path measured 8.66 s |
+| No hallucinated facts | ✅ dr_ai prompts enforce evidence_refs; uncertainties surfaced; deterministic fallback grounded in supervisor input only |
+| No raw AI branding | ✅ locked by `test_no_raw_key_or_provider_branding_in_field_ui` |
 | No Gemini troubleshooting | ✅ untouched |
-| No Motive changes | ✅ untouched |
-| No RBAC weakening | ✅ tenant flip via existing audited endpoint |
-| No production data corruption | ✅ read-only + one additive field |
-| Regression-locked | ✅ 12 new tests |
+| No RBAC weakening | ✅ tenant flip via existing audited endpoint; no auth changes |
+| No production data corruption | ✅ two additive fields only |
+| Photo intelligence honestly deferred | ✅ documented above with blockers and follow-up track |
+| PM/project intelligence receives summary | ✅ ODS spine emits `day_summary_fact` on every DR with an accepted summary |
+| Regression-locked | ✅ 15 tests |
 
----
+## Deployment
 
-## Deployment Notes
-* Flag flip already applied to preview tenant `masci` (version 10). Same PUT can be issued in production against the same endpoint after redeploy.
-* No env-var change required.
-* No new secrets. No new keys. No new routes on the backend.
+* All changes are preview-branch. Next production deploy activates them.
+* Tenant flag flip must be reapplied post-deploy to production tenant via the same audited endpoint:
+  ```
+  PUT /api/admin/ai/tenants/masci/capabilities
+  { "tenant_ai_enabled": true, "daily_report_summary_enabled": true,
+    "note": "TRACK 22.9A · enable Daily Report summary assist" }
+  ```
+* No env-var changes. No new secrets. No new routes.
 
-## Recommended Next Tracks
+## Next Tracks
 
-* **TRACK 22.9B** · Wire `services/photo_intelligence.analyzer` into the V1 photo upload flow (async · non-blocking · results feed the summary bundle).
-* **TRACK 22.9C** · PM Command Center + Project detail + PDF + ODS spine consumers of `ai_accepted_summary`.
-* **TRACK 22.9D** · Optional: switch first-pass model from Claude Sonnet 4.5 to Claude Haiku 4.5 for further latency (~3–5 s target). Requires model-tier flag exposure.
+1. **22.9B** — Photo intelligence wiring (analyzer trigger at upload sites, tenant flag flip, upload regression tests)
+2. **22.9C** — PM Command Center + Project detail + PDF renderer consumers of `day_summary_fact`
+3. **22.9D** (optional) — Switch first-pass to Claude Haiku for <5 s target; field-UX low-value cleanup pass

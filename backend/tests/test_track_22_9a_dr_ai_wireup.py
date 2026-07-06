@@ -141,13 +141,74 @@ def test_no_raw_key_or_provider_branding_in_field_ui():
 
 def test_accepted_summary_flows_into_dr_payload():
     """On Accept, the summary text is copied onto ``ai_accepted_summary``
-    in the parent DR data via ``set()``. This is the only mechanism by
-    which downstream consumers (PDF, PM screens, ODS) will see it."""
+    in the parent DR data via ``set()``. The provenance metadata is
+    stored on ``ai_accepted_summary_meta``. Both fields flow into the
+    DR submit payload; ODS spine picks up the meta as a first-class
+    ``day_summary_fact``. This is the only mechanism by which downstream
+    consumers (PDF, PM screens, ODS) see the accepted narrative."""
     src = _read(V1_FORM)
     assert re.search(
-        r'onAccept=\{\(text\)\s*=>\s*set\("ai_accepted_summary",\s*text\)\}',
-        src,
-    ), "V1 form must copy accepted summary onto ai_accepted_summary"
+        r'set\("ai_accepted_summary",\s*text\)', src
+    ), "V1 form must copy accepted summary text onto ai_accepted_summary"
+    assert re.search(
+        r'set\("ai_accepted_summary_meta",\s*meta\s*\|\|\s*null\)', src
+    ), "V1 form must copy provenance meta onto ai_accepted_summary_meta"
+
+
+def test_dr_model_accepts_new_summary_fields():
+    """Pydantic model must accept the two new fields without extra=allow
+    magic — they are documented, typed, first-class."""
+    from routes.daily_reports import DailyReportCreate
+    payload = {
+        "project_name": "Test", "location": "Test", "report_date": "2026-02-06",
+        "prepared_by": "Test", "ai_accepted_summary": "test narrative",
+        "ai_accepted_summary_meta": {"source": "ai", "confidence": 0.72},
+    }
+    m = DailyReportCreate(**payload)
+    assert m.ai_accepted_summary == "test narrative"
+    assert m.ai_accepted_summary_meta == {"source": "ai", "confidence": 0.72}
+
+
+def test_ods_spine_emits_day_summary_fact_when_summary_present():
+    """When a DR has ai_accepted_summary, the ODS spine builder emits
+    exactly one ``day_summary_fact`` so PM/executive dashboards can
+    render the narrative from a canonical source."""
+    from services.ods_spine.ingest import _build_facts_from_dr_v1_report
+    rec = {
+        "id": "dr-t229a-1", "project_number": "20-04",
+        "report_date": "2026-02-06", "prepared_by": "Test",
+        "created_at": "2026-02-06T10:00:00+00:00",
+        "ai_accepted_summary": "Crew installed 200 LF of pipe.",
+        "ai_accepted_summary_meta": {
+            "source": "edited", "provider_masked": "emergent",
+            "model_masked": "claude-sonnet", "confidence": 0.72,
+            "evidence_refs": ["masci_crews[0]", "materials[1]"],
+            "latency_ms": 8600,
+        },
+    }
+    facts = _build_facts_from_dr_v1_report(rec)
+    sums = [f for f in facts if f.get("fact_type") == "day_summary_fact"]
+    assert len(sums) == 1, f"expected exactly one day_summary_fact · got {len(sums)}"
+    p = sums[0]["payload"]
+    assert p["text"].startswith("Crew installed")
+    assert p["source"] == "edited"
+    assert p["confidence"] == 0.72
+    assert "masci_crews[0]" in (p["evidence_refs"] or [])
+    assert p["latency_ms"] == 8600
+
+
+def test_ods_spine_omits_day_summary_fact_when_summary_absent():
+    """Reports without an accepted summary must NOT emit a summary fact
+    (would create empty spine rows)."""
+    from services.ods_spine.ingest import _build_facts_from_dr_v1_report
+    rec = {
+        "id": "dr-t229a-2", "project_number": "20-04",
+        "report_date": "2026-02-06", "prepared_by": "Test",
+        "created_at": "2026-02-06T10:00:00+00:00",
+    }
+    facts = _build_facts_from_dr_v1_report(rec)
+    sums = [f for f in facts if f.get("fact_type") == "day_summary_fact"]
+    assert sums == [], "must not emit day_summary_fact when summary absent"
 
 
 def test_photo_upload_and_submit_paths_unchanged():
