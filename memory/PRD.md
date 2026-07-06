@@ -11,6 +11,18 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 23.3 · V3 Daily Report Surfacing + Field Resiliency + Smart Crew Memory · 🟢 SHIPPED · CERTIFIED (2026-02-06)
+- **Mandate**: Make V3 actually reachable in preview without Mongo hand-edit + reach V1-parity field resiliency + smart crew memory.
+- **Why V3 wasn't surfacing**: Track 23.1 seeded `tenant_default:false` and no admin API existed; every pilot enrollment required a Mongo `updateOne`. Fixed by shipping 5 admin endpoints (idempotent add/remove pilot users + projects + tenant-default flip), all guarded by `require_admin`.
+- **Session-persisted URL override**: `?dr_v3=1` now writes `sessionStorage['dr_v3_admin_override']='1'` so operators don't re-type the param on every page load. `?dr_v3=0` opts back out.
+- **V3 shell now composes**: `useFormDraft` (shared form key `daily-report` — same as V1 so drafts survive flag flips both ways), `enqueueUpload` (offline queue), `mintIdempotencyKey`/`persistIdempotencyKey`/`loadIdempotencyKey` (reload-safe idempotency), `saveCrewSetup`/`loadCrewSetup`/`applySetupSnapshotToData` (restore-yesterday), `useOnlineStatus`, `DraftStatusPill`, `DraftRestorePrompt`.
+- **Smart Crew Memory**: `dr-v3-crew-setup-offer` prompt appears only when a prior snapshot exists AND no pending draft. Restore populates crew + equipment only — NEVER hours, production, safety, delays, photos, signature, or AI summary (lock-tested).
+- **P1 fixed inline**: DraftStatusPill prop mismatch (`savedAt`→`lastSavedAt`, `data-testid`→`testId`) + added "Autosave on" idle badge wrapper.
+- **Regression**: 116/116 across 22.9A + 22.9B + 23.1 + 23.3 + DR-CUTOVER (backend) + 18/18 live pytest (agent-authored) + 8/8 UI checks after fix.
+- **Files changed**: `backend/routes/ui_flags.py` (+5 admin endpoints), `backend/server.py` (pass require_admin), `frontend/pages/NewDailyReportV3.jsx` (resiliency wiring + fix), `frontend/lib/dailyReportV3Flag.js` (session persistence), 2 new test files, `/app/memory/TRACK_23_3_V3_SURFACING_FIELD_READINESS.md`.
+- **Verdict**: 🟢 GO for pilot. Next: **Track 22.9C** — PDF + email + PM read of accepted AI summary + photo observations.
+
+
 ## TRACK 23.1 · Elite V1 Daily Report Rebuild (V3 shell) · 🟢 SHIPPED · CERTIFIED (2026-02-06)
 - **Mandate**: Parallel V3 UI at `/daily/new` under a five-scope feature flag. Same backend, same submit endpoint, same payload contract, same downstream. Zero schema deletion, zero V2 resurrection.
 - **Backend (additive)**: `services/cost_codes/provider.py` (CostCodeProvider abstract + JobsMasterCostCodeProvider + registry — future ERP adapters plug in with zero UI change); `routes/cost_codes.py` (`GET /api/cost-codes/for-project`); `routes/ui_flags.py` (`resolve_dr_v3_flag()` + `GET /api/feature-flags/dr-v3`).

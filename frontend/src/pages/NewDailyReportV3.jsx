@@ -304,11 +304,21 @@ export default function NewDailyReportV3({ publicMode = false }) {
                   Offline
                 </span>
               )}
-              <DraftStatusPill
-                status={draftStatus}
-                savedAt={pendingSavedAt}
-                data-testid="dr-v3-draft-pill"
-              />
+              <div data-testid="dr-v3-draft-pill-slot">
+                <DraftStatusPill
+                  status={draftStatus}
+                  lastSavedAt={pendingSavedAt}
+                  testId="dr-v3-draft-pill"
+                />
+                {(draftStatus === "idle" && !pendingSavedAt) && (
+                  <span
+                    data-testid="dr-v3-draft-pill"
+                    className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600"
+                  >
+                    Autosave on
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </header>
