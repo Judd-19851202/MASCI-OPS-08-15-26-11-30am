@@ -3101,6 +3101,17 @@ from routes.ods import register_ods_routes  # noqa: E402
 register_ods_routes(api_router, db)
 
 # ============================================================
+# TRACK 23.7 · Operational KPI Spine (PM + Safety + future Scheduling)
+# ------------------------------------------------------------
+# Shared aggregator lives in services/operational_kpis/aggregator.py.
+# Two thin route wrappers here register PM + Safety endpoints.
+# ABSOLUTE RULE: NO money, NO cost, NO rates. Operational production
+# intelligence only.
+# ============================================================
+from routes.operational_kpis import register_operational_kpis_routes  # noqa: E402
+register_operational_kpis_routes(api_router, db)
+
+# ============================================================
 # DR-ROI-001E · PM / Admin / Executive Intelligence Dashboards
 # ------------------------------------------------------------
 # ADDITIVE mount. Zero drift on V1/V2/ODS. Reads snapshots +

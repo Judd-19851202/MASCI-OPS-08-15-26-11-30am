@@ -26,6 +26,7 @@ import PmShell from "@/components/PmShell";
 import OperationalTimelineSidecar from "@/components/operational/OperationalTimelineSidecar";
 import TrenchSafetyOnProjectPanel from "@/components/trench/TrenchSafetyOnProjectPanel";
 import JobTeamRosterPanel from "@/components/team/JobTeamRosterPanel";
+import PmOperationalKPIs from "@/components/PmOperationalKPIs";
 import {
   TransportationReadinessCard,
   TransportationRiskBanner,
@@ -588,6 +589,11 @@ export default function PmProjectDetail() {
       </div>
 
       <OperationalTimelineSidecar projectNumber={pn} />
+
+      {/* TRACK 23.7 · PM Operational KPIs — production intelligence,
+          NO cost data. Consumes the shared aggregator spine used by
+          Safety Portal and future Scheduling. */}
+      {pn && <PmOperationalKPIs projectNumber={pn} />}
 
       {/* TRACK 16.16 · Operations × Transportation Integration Layer.
           Calm read-only awareness on the per-project workspace —
