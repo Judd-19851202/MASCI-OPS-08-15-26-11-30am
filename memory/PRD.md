@@ -10963,3 +10963,46 @@ $ pytest tests/test_track_22_4b_followup*.py
   (P3-NAV-01 owner track).
 - **Future** — DR-UNIFY-005 when telemetry window confirms safe
   legacy collection retirement.
+
+---
+
+## TRACK 22.4C · Mobile Responsiveness Sweep + Field Device Certification (2026-07-06)
+
+### Verdict
+✅ **GO** · Certified across 5 viewports (390 / 430 / 768 / 1024 / 1366 px) on 15 critical routes = 75 layout assertions + 2 named P1 locks + Motive shape check = 77 passing / 1 Motive-skip.
+
+### Two known Track 22.4 P1 defects closed
+- PM Command Center 390px — regression-locked
+- Dispatch Map / Dispatch Hub 390px — regression-locked (Motive stale ribbon non-blocking, map controls in-frame, no admin leakage)
+
+### One new P1 caught + fixed (B-07)
+- PortalShell H1 pre-hydration overflow at 390px on long question-style titles ("What safety work requires attention right now?" / "What requires the dispatcher's attention right now?"). Header H1 briefly rendered to ~540px before whitespace wrapping settled — real field-device risk.
+- **Fix:** `PortalShell.jsx` H1 got `overflowWrap: anywhere`, `wordBreak: break-word`, `hyphens: auto`, `lineHeight: 1.15` and its flex parent got `min-w-0 flex-1`. No visual-identity drift.
+
+### Two P3 items deferred
+- **B-08:** `/dr/new` and `/hr/requests/new` currently 404 (route-inventory gap; 404 shell is fully responsive).
+- **P3-NAV-01:** repeated "Leave this page?" modal on long-form navigation → Platform-wide Unsaved-Changes / Leave-Site Modal Audit track.
+
+### Regression Suite
+```
+$ pytest tests/test_track_22_4c_mobile_responsiveness_sweep.py
+77 passed, 1 skipped in 253.88s
+
+$ pytest tests/test_track_22_4b_followup*.py
+112 passed, 5 skipped in 142.55s
+
+Grand total (22.4b + 22.4c): 189 tests passing
+```
+
+### Files
+- Created: `test_track_22_4c_mobile_responsiveness_sweep.py`,
+  `TRACK_22_4C_MOBILE_RESPONSIVENESS_SWEEP.md`,
+  `TRACK_22_4C_MOBILE_FINDINGS.csv`,
+  `TRACK_22_4C_VIEWPORT_MATRIX.csv`
+- Changed: `frontend/src/design-system/PortalShell.jsx`
+
+### Next Tracks
+- Platform-wide Unsaved Changes / Leave-Site Modal Audit
+- Route-inventory audit for B-08 (`/dr/new`, `/hr/requests/new`)
+- Production Deployment Certification
+- DR-UNIFY-005 (post-telemetry window)

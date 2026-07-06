@@ -228,7 +228,7 @@ export function PortalShell({
             )}
             <div className="min-w-0">
           <div className="flex items-start justify-between gap-4" style={{ marginBottom: 16 }}>
-            <div>
+            <div className="min-w-0 flex-1">
               {/* Mobile-only portal kicker (already in header on desktop) */}
               <div
                 className="md:hidden font-mono uppercase tracking-[0.18em] font-bold text-[10px] text-slate-500 mb-1"
@@ -238,9 +238,21 @@ export function PortalShell({
               </div>
               {pageTitle && (
                 <h1
+                  // TRACK 22.4c mobile responsiveness — the shell H1
+                  // must never extrude past its flex parent. Long
+                  // question-style titles ("What requires the
+                  // dispatcher's attention right now?") can render at
+                  // >500px in the display font before whitespace
+                  // wrapping settles, briefly pushing the layout past
+                  // a 390px viewport. `overflowWrap:anywhere` +
+                  // `minWidth:0` on the flex child force early wrap.
                   style={{
                     fontSize: 28, fontWeight: 700, margin: 0,
                     color: "var(--ink-strong)", fontFamily: "var(--font-display)",
+                    overflowWrap: "anywhere",
+                    wordBreak: "break-word",
+                    hyphens: "auto",
+                    lineHeight: 1.15,
                   }}
                 >
                   {pageTitle}

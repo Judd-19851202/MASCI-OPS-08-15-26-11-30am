@@ -1,0 +1,16 @@
+route,390px,430px,768px,1024px,1366px
+/pm/command-center,PASS,PASS,PASS,PASS,PASS
+/dispatch-portal,PASS,PASS,PASS,PASS,PASS
+/dispatch-portal/hub_v2,PASS,PASS,PASS,PASS,PASS
+/dispatch-portal/hub_legacy,PASS,PASS,PASS,PASS,PASS
+/safety-portal,PASS,PASS,PASS,PASS,PASS
+/shop-portal,PASS,PASS,PASS,PASS,PASS
+/hr-portal,PASS,PASS,PASS,PASS,PASS
+/admin/dashboard,PASS,PASS,PASS,PASS,PASS
+/leadership,PASS,PASS,PASS,PASS,PASS
+/equipment/submit,PASS,PASS,PASS,PASS,PASS
+/equipment/new,PASS,PASS,PASS,PASS,PASS
+/fleet/dvir/new,PASS,PASS,PASS,PASS,PASS
+/meetings/new,PASS,PASS,PASS,PASS,PASS
+/jha,PASS,PASS,PASS,PASS,PASS
+/safety/inspections/new,PASS,PASS,PASS,PASS,PASS
