@@ -10,6 +10,47 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
+## TRACK 23.10 · Phase 1+A · Trench + Competent Person Design · 🟢 GO · CERTIFIED (2026-02-06)
+- **Scope**: Design-only. No code changes. No provisional UI. No temporary picker. No fake green. Ships the full audit + design package required to execute Track 23.10-B / C / D / E as certified sub-tracks.
+- **Discovery findings**:
+  - **14 trench collections** inventoried (984 excavations, 1127 holds, 432 inspections, 311 repairs, 121 assets, 270 deployments, 68 asset-certs — misnamed as `trench_safety_certifications` but actually asset annual certs, NOT employee credentials).
+  - **Project linkage today**: `trench_excavations` and `trench_safety_deployments` carry `project_number`/`project_id` explicitly. `trench_safety_holds`, `trench_safety_inspections`, `trench_safety_repairs` are asset-scoped only (correctly PARTIAL in Track 23.8). The `trench_safety_deployments` table with `assigned_at`/`returned_at` windows is the **canonical project-link resolver**.
+  - **B-04 invariant "Repair Complete ≠ Safe To Use"** is enforced by `safe_to_use = (verified_at IS NOT NULL AND reinspection_passed IS TRUE)` — never by `status="completed"` alone. Locked by Track 22.4B; must remain locked.
+  - **Employee training system**: `safety_training_records` (13 rows in preview) is the canonical employee cert store. Keys: `employee_id · employee_master_id · certification_type · training_name · issued_by · completed_date · expiration_date · certificate_file_id · notes`. **No `COMPETENT_PERSON` certification_type exists today** — the entire competent-person concept must be introduced as a first-class certification type in this collection, not a new store.
+- **Design deliverables shipped** (3 documents in `/app/memory/`):
+  1. `TRACK_23_10_TRENCH_PROJECT_JOIN_AUDIT.md` (15 sections · full audit + Phase 1-12 spec + Competent Person Phase A-I amendment response + risk register + implementation sequence + certification bar).
+  2. `TRACK_23_10_TRENCH_FIELD_MATRIX.csv` (30 rows · every trench + certification field → collection → project linkage rule → target ODS fact → PM/Safety consumer → PDF/email surface).
+  3. `TRACK_23_10_TRENCH_SOURCE_CLASSIFICATION.csv` (16 rows · pre-23.10 vs post-23.10-C classification per source · confidence rule · notes on why each source keeps or lifts its status).
+- **Project-linker resolution ladder** (§5 in audit): explicit project_number → daily_report_doc_id → parent trench record → active deployment at record's date → asset current_project (24h window) → ambiguous → missing. Never fabricates. Never promotes medium/low confidence to LIVE.
+- **ODS fact types specified** (§6): `trench_inspection_fact` · `trench_hold_fact` · `trench_repair_fact` · `trench_verification_fact` · `excavation_day_fact` · `competent_person_certification_fact` · `competent_person_assignment_fact` · `competent_person_expiration_fact`. All idempotent with natural key `(source_collection, source_id, event_kind)`. `safe_to_use_verified` derived at emit-time from B-04 invariant.
+- **Safety KPI aggregator lift spec** (§7): 11 new counters. Classification LIVE only when project_linker returns high-confidence; PARTIAL when only medium/low; MISSING · FUTURE when zero linkable records exist. No double-count between DR safety events and formal trench inspections (different fact_types).
+- **Daily Report V3 excavation section spec** (§8): gated with "Excavation or trench work today?" (default No, zero visual weight when No). When Yes: Competent Person picker (registry-gated · expired = disabled · empty state = honest "contact HR/Training", never a text-fallback) · Excavation type · Max depth · Excavation count · Protective system · Trench box · Inspection completed (with red warning at depth ≥ 5 ft if No) · Hold issued · Utilities status (Damage/strike triggers incident link) · Tomorrow planned · Notes · Photos. Restore-yesterday resets safety-critical fields (never auto-restored). Mobile 390 single-column.
+- **PDF/email spec** (§9): PDF section renders only when `work_today=true`. Historical reports byte-identical. Email only mentions trench work if hold issued / utility strike / inspection missing / AI summary references it.
+- **Competent Person Certification Architecture** (§10, Phase A-I):
+  - **Phase A — audit**: `safety_training_records` is the confirmed home. `trench_safety_certifications` is asset-level (misnamed) and left alone. Every other candidate collection ruled out with reason.
+  - **Phase B — model**: extend `safety_training_records` with additive fields for `certification_type="COMPETENT_PERSON"` (issuing_org · instructor · training_hours · training_standard · jurisdiction · certificate_number · attachments · digital_certificate · verification_status · verification_status_history · suspended_at · revoked_at · derived `active` flag). No new collection. No destructive migration.
+  - **Phase C — automatic registry**: new service `services/certifications/competent_person_registry.py` — **a QUERY over `safety_training_records`, not a stored list**. Zero manual maintenance. Never writes.
+  - **Phase D — Daily Report picker**: `CompetentPersonCombo` hits `GET /api/employees/competent-persons?active=true&warning_days=30`. Expired employees excluded server-side. Within-warning employees selectable with amber chip.
+  - **Phase E — Trench Safety consumer**: same registry endpoint. No duplicate roster anywhere.
+  - **Phase F — Scheduling readiness**: 13 new signals with `safety_clear_to_schedule` = AND of (no open hold · no open repair without safe_to_use_verified · no unresolved utility strike · no missing required inspection · assigned competent person cert valid).
+  - **Phase G — Safety Portal**: `certifications` block (active count · expiring within 30d · expired · upcoming renewals · projects missing coverage) — all derived from registry query.
+  - **Phase H — ODS**: 3 new fact types feed all downstream consumers.
+  - **Phase I — permissions**: HR/Training admin only can write competent person certs. Field/PM/Safety/Trench modules are read-only registry consumers. Cannot self-certify.
+- **Implementation sequence** (§11 · 4 certified sub-tracks in fixed dependency order):
+  1. **🟢 Track 23.10-B — Competent Person Certification Foundation** (execute NEXT; ~35K tokens). Registry service + endpoint + cert facts + HR/Training admin UI tab. Zero UI change to Trench / Daily Report / Safety KPI in this sub-track.
+  2. **🟡 Track 23.10-C — Trench Project Linker + ODS Trench Facts** (~40K). Linker service + fact emitters + idempotent backfill script. Zero UI change.
+  3. **🟡 Track 23.10-D — Safety KPI Trench Lift + Cert Dashboard** (~30K). Aggregator counters + Safety Portal card additions.
+  4. **🟡 Track 23.10-E — Daily Report V3 Excavation Section + PDF + Email + Scheduling Readiness** (~45K). V3 section + registry-gated picker + PDF section + email trigger rules + scheduling_readiness block.
+- **Risk register** (§12 · 10 risks catalogued with mitigations): additive migration safety · historical free-text preservation · linker inference edge cases · backfill scale · cert expired mid-report · amber-cert selection with fact-time snapshot · B-04 invariant test-lock · shared-asset ambiguity · double-counting invariant · legacy `competent_person_confirmed` bool coexistence.
+- **Files changed this track**: **THREE NEW MEMORY DOCS. Zero production code changed.**
+  - `/app/memory/TRACK_23_10_TRENCH_PROJECT_JOIN_AUDIT.md`
+  - `/app/memory/TRACK_23_10_TRENCH_FIELD_MATRIX.csv`
+  - `/app/memory/TRACK_23_10_TRENCH_SOURCE_CLASSIFICATION.csv`
+- **Regression**: none possible — no code touched. Full pytest suite still 150/150 (unchanged).
+- **Verdict**: 🟢 **GO** for design review. Awaiting operator approval before executing Track 23.10-B in a fresh session with dedicated context budget.
+
+
+
 ## TRACK 23.9A · Real-World SSO Failure Reproduction + Fix · 🟢 SHIPPED · CERTIFIED (2026-02-06)
 - **Operator report**: after logging into ONE portal (e.g. `/hr/login`), navigating to another permitted portal (e.g. `/pm`) still forced a second login. The 23.9 audit missed this by only testing the `/sign-in` path which correctly hits multi-login.
 - **Reproduction via live browser** (`playwright`, `jaymn.judd@mascigc.com`): logged into `/hr/login`; localStorage received `masci.hr.token` and `masci.directory.user` but **`masci.directory.token` was MISSING** because per-portal endpoints (`/api/hr/login`, `/api/pm/login`, `/api/shop/login`, `/api/safety/login`, `/api/dispatch/login`, `/api/field-leadership/portal/login`) return only their scoped portal token — no `session_token`, no `portal_tokens{}` bundle. `usePortalHydration()` on `RequirePm` then evaluated `getDirectoryToken()` → empty → returned `deny` → redirected to `/pm/login`. **Match with operator symptom confirmed.**
