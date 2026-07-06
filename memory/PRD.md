@@ -10911,3 +10911,55 @@ Final:                 99 passed, 4 skipped, 0 failed
   + Dispatch Map layout at 390px.
 - **Future** — DR-UNIFY-005: Live DB migration + legacy collection
   removal.
+
+---
+
+## TRACK 22.4B-FOLLOWUP-DRIVER · B-06 Closure (2026-07-06)
+
+### Verdict
+✅ **B-06 CLOSED · GO**
+
+- **Architecture correction (mandatory):** there is no dedicated Driver
+  Portal. Driver workflows live on the existing
+  `/api/dispatch/driver/*` surface with magic-link + revokable session
+  auth. DVIR / Pre-Op live on the shared operational endpoints
+  (`/api/fleet/inspections`, `/api/equipment-inspections`) that are
+  now all idempotency-wrapped.
+- **Wiring:** added Driver PVI fallback inside
+  `driver_sessions.py::make_require_driver_session` — real magic-link
+  session validation runs first, unchanged; on failure, the shared
+  `role_guard_validation_seam.try_validation_fallback` accepts a
+  preview identity for role="driver" only, only when
+  `ENABLE_PREVIEW_VALIDATION_IDENTITIES=true`, and only in preview.
+- **B-06 proof:** `test_driver_dvir_failure_routes_to_shop_queue`
+  exercises the driver DVIR failure → Shop queue route end-to-end
+  with the Driver PVI token. The failing brake-lights item flips
+  truck_status to `oos` and surfaces the row at
+  `/api/shop/fleet/defects?unit_number=<truck>`.
+- **RBAC lock:** Safety / Shop / HR / anonymous / admin PVI + admin
+  session tokens all rejected from driver-only routes
+  (`test_admin_token_rejected_from_driver_me`,
+  `test_safety_pvi_rejected_from_driver_me`, etc.).
+- **Portal-drift lock:** `test_no_driver_portal_route_exists` asserts
+  no new `/driver-portal` or `/portal/driver` route was surfaced.
+- **Motive:** untouched.
+
+### Regression Suite
+```
+$ pytest tests/test_track_22_4b_followup*.py
+112 passed, 5 skipped, 1 warning in 119.26s
+```
+
+### Files Touched
+- `/app/backend/driver_sessions.py` — Driver PVI fallback added.
+- `/app/backend/tests/test_track_22_4b_followup_driver.py` — 14-test lock.
+- `/app/memory/TRACK_22_4B_FOLLOWUP_DRIVER.md`
+- `/app/memory/TRACK_22_4B_FOLLOWUP_DRIVER_MATRIX.csv`
+- `/app/memory/TRACK_22_4B_FOLLOWUP_DRIVER_DEFECTS.csv`
+
+### Next Tracks
+- **P1** — TRACK 22.4c Mobile Responsiveness Sweep (PM Command Center + Dispatch Map @ 390px).
+- **P2** — Platform-wide Unsaved Changes / Leave-Site Modal Audit
+  (P3-NAV-01 owner track).
+- **Future** — DR-UNIFY-005 when telemetry window confirms safe
+  legacy collection retirement.

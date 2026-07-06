@@ -448,9 +448,39 @@ def make_require_driver_session(
         session = await validate_driver_session_token(
             db, x_driver_token, tenant_id=tenant,
         )
-        if not session:
-            raise HTTPException(401, "Driver session required")
-        return {**session, "_actor": "driver"}
+        if session:
+            return {**session, "_actor": "driver"}
+        # TRACK 22.4b-followup-Driver · preview-only driver validation
+        # fallback via the shared seam. Real magic-link session validation
+        # runs first; this only fires when it fails, only in preview,
+        # only for role="driver" PVI tokens. Never accepts admin tokens.
+        try:
+            from routes.role_guard_validation_seam import (  # noqa: PLC0415
+                try_validation_fallback,
+            )
+            pvi = await try_validation_fallback(
+                db, x_driver_token, expected_role="driver",
+            )
+        except Exception:  # noqa: BLE001
+            pvi = None
+        if pvi:
+            _pvi_id = pvi.get("validation_identity_id") or "pvi-driver"
+            return {
+                "_actor": "driver",
+                "id": f"pvi-session-{_pvi_id}",
+                "driver_id": _pvi_id,
+                "driver_name": pvi.get("name"),
+                "tenant_id": tenant,
+                "truck_id": None,
+                "issued_at": None,
+                "expires_at": None,
+                "last_seen_at": None,
+                "validation_identity": True,
+                "validation_identity_id": _pvi_id,
+                "validation_track": pvi.get("validation_track"),
+                "no_real_operational_effect": True,
+            }
+        raise HTTPException(401, "Driver session required")
 
     return _require_driver_session
 
