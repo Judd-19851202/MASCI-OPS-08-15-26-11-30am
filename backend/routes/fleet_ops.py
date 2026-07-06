@@ -492,6 +492,7 @@ def build_router(
     @router.post("/api/fleet/inspections")
     async def submit_fleet_inspection(
         payload: FleetInspectionSubmit,
+        request: Request,
         actor=Depends(require_signed_in_or_public),
     ):
         """Submit any fleet inspection · classifies failed items into
@@ -499,266 +500,283 @@ def build_router(
 
         Accepts both signed-in (driver_employee_id present) and public
         (signed-in optional) submissions · audit captures `submitted_via`
-        for traceability."""
-        _require_fleet_kind(payload.kind)
-        defn = _ck.FLEET_INSPECTION_KINDS[payload.kind]
+        for traceability.
 
-        # Validate truck_unit_number is non-empty
-        if not (payload.truck_unit_number or "").strip():
-            raise HTTPException(400, "truck_unit_number is required")
-        if not (payload.driver_name or "").strip():
-            raise HTTPException(400, "driver_name is required")
+        TRACK 22.4b-followup-Shop-Defects-Idempotency · exactly-once.
+        The whole write chain (inspection insert, defect insert,
+        status rebuild, audit, fan-out to Shop/Dispatch, Trust Spine
+        emission) lives inside `_do_create` so a client retry replays
+        the cached response without re-emitting downstream signals.
+        """
+        from lib.idempotency import with_idempotency, idem_key_from_request  # noqa: PLC0415
+        key = idem_key_from_request(request)
 
-        # If kind disallows trailers, refuse to silently drop them
-        if not defn["allows_trailers"] and payload.trailers:
-            raise HTTPException(
-                400,
-                f"kind={payload.kind!r} does not accept trailers · "
-                f"received {len(payload.trailers)}",
+        async def _do_create():
+            _require_fleet_kind(payload.kind)
+            defn = _ck.FLEET_INSPECTION_KINDS[payload.kind]
+
+            # Validate truck_unit_number is non-empty
+            if not (payload.truck_unit_number or "").strip():
+                raise HTTPException(400, "truck_unit_number is required")
+            if not (payload.driver_name or "").strip():
+                raise HTTPException(400, "driver_name is required")
+
+            # If kind disallows trailers, refuse to silently drop them
+            if not defn["allows_trailers"] and payload.trailers:
+                raise HTTPException(
+                    400,
+                    f"kind={payload.kind!r} does not accept trailers · "
+                    f"received {len(payload.trailers)}",
+                )
+
+            now = datetime.now(timezone.utc)
+            now_iso = now.isoformat()
+            inspection_id = str(uuid.uuid4())
+
+            # Tally pass/fail/na across truck + all trailers
+            truck_failures = sum(
+                1 for v in payload.truck_checklist.values() if (v or "").lower() == "fail"
+            )
+            trailer_failures = sum(
+                sum(1 for v in (t.checklist or {}).values() if (v or "").lower() == "fail")
+                for t in payload.trailers
             )
 
-        now = datetime.now(timezone.utc)
-        now_iso = now.isoformat()
-        inspection_id = str(uuid.uuid4())
-
-        # Tally pass/fail/na across truck + all trailers
-        truck_failures = sum(
-            1 for v in payload.truck_checklist.values() if (v or "").lower() == "fail"
-        )
-        trailer_failures = sum(
-            sum(1 for v in (t.checklist or {}).values() if (v or "").lower() == "fail")
-            for t in payload.trailers
-        )
-
-        # Build per-trailer defect rows + truck defect rows
-        all_defects: List[Dict[str, Any]] = []
-        any_oos = False
-        truck_defects, truck_oos = _classify_failures(
-            inspection_id=inspection_id,
-            inspection_kind=payload.kind,
-            truck_unit_number=payload.truck_unit_number,
-            trailer_unit_number=None,
-            checklist=payload.truck_checklist,
-            defect_details=payload.defect_details,
-            driver_employee_id=payload.driver_employee_id,
-            driver_name=payload.driver_name,
-            now_iso=now_iso,
-        )
-        all_defects.extend(truck_defects)
-        any_oos = any_oos or truck_oos
-
-        trailer_unit_numbers: List[str] = []
-        for t in payload.trailers:
-            trailer_unit_numbers.append(t.trailer_unit_number)
-            tdefects, toos = _classify_failures(
+            # Build per-trailer defect rows + truck defect rows
+            all_defects: List[Dict[str, Any]] = []
+            any_oos = False
+            truck_defects, truck_oos = _classify_failures(
                 inspection_id=inspection_id,
                 inspection_kind=payload.kind,
                 truck_unit_number=payload.truck_unit_number,
-                trailer_unit_number=t.trailer_unit_number,
-                checklist=t.checklist,
+                trailer_unit_number=None,
+                checklist=payload.truck_checklist,
                 defect_details=payload.defect_details,
                 driver_employee_id=payload.driver_employee_id,
                 driver_name=payload.driver_name,
                 now_iso=now_iso,
             )
-            all_defects.extend(tdefects)
-            any_oos = any_oos or toos
+            all_defects.extend(truck_defects)
+            any_oos = any_oos or truck_oos
 
-        # Write inspection row into existing equipment_inspections
-        # collection with `kind` discriminator. Old Pre-Op rows are
-        # backfilled with kind="pre_op" by the migration helper.
-        insp_doc = {
-            "id": inspection_id,
-            "kind": payload.kind,
-            "inspection_date": payload.inspection_date,
-            "inspection_time": payload.inspection_time,
-            "driver_employee_id": payload.driver_employee_id or "",
-            "driver_name": payload.driver_name,
-            "truck_unit_number": payload.truck_unit_number,
-            "truck_vin": payload.truck_vin or "",
-            "truck_plate": payload.truck_plate or "",
-            "trailer_unit_numbers": trailer_unit_numbers,
-            "trailers": [t.model_dump() for t in payload.trailers],
-            "odometer_miles": payload.odometer_miles or "",
-            "hour_meter": payload.hour_meter or "",
-            "checklist": payload.truck_checklist,
-            "fail_count": truck_failures + trailer_failures,
-            "out_of_service": "Yes" if any_oos else "No",
-            "deficiency_notes": payload.notes or "",
-            "driver_signature": payload.driver_signature or "",
-            "supervisor_name": payload.supervisor_name or "",
-            "submitted_via": payload.submitted_via or "public_tile",
-            "created_at": now_iso,
-            # Phase F integration-ready
-            "external_refs": {"motive_id": None},
-            # D5.4 · structured canonical section capture (additive)
-            "inspection_sections": payload.inspection_sections,
-        }
-        await db.equipment_inspections.insert_one(insp_doc)
-
-        # ── Track 13.31B-D5.1 · Smart DVIR canonical write stamp ──
-        # Patch the truck row with the canonical class/type derived from
-        # equipment_master. Additive — legacy fields preserved. Trailers
-        # carry their own canonical stamps under `trailer_classifications`
-        # without re-shaping the existing schema.
-        try:
-            from services.inspection_classification import (
-                resolve_unit_canonical, stamp_inspection_canonical,
-                EXISTING_DVIR_TEMPLATES,
-            )
-            await stamp_inspection_canonical(
-                db, inspection_id, payload.truck_unit_number,
-                legacy_equipment_type="",
-                template_set=EXISTING_DVIR_TEMPLATES,
-            )
-            if trailer_unit_numbers:
-                trailer_classifications = []
-                for tn in trailer_unit_numbers:
-                    tstamp = await resolve_unit_canonical(db, tn, "")
-                    trailer_classifications.append({"trailer_unit_number": tn, **tstamp})
-                await db.equipment_inspections.update_one(
-                    {"id": inspection_id},
-                    {"$set": {"trailer_classifications": trailer_classifications}},
+            trailer_unit_numbers: List[str] = []
+            for t in payload.trailers:
+                trailer_unit_numbers.append(t.trailer_unit_number)
+                tdefects, toos = _classify_failures(
+                    inspection_id=inspection_id,
+                    inspection_kind=payload.kind,
+                    truck_unit_number=payload.truck_unit_number,
+                    trailer_unit_number=t.trailer_unit_number,
+                    checklist=t.checklist,
+                    defect_details=payload.defect_details,
+                    driver_employee_id=payload.driver_employee_id,
+                    driver_name=payload.driver_name,
+                    now_iso=now_iso,
                 )
-        except Exception as _e:  # noqa: BLE001
-            logger.warning("[dvir_classification] stamp failed inspection_id=%s err=%s", inspection_id, _e)
+                all_defects.extend(tdefects)
+                any_oos = any_oos or toos
 
-        # Insert defects (if any) and rebuild status for every
-        # touched unit. We do this AFTER the inspection insert so a
-        # status flip references an existing inspection_id.
-        if all_defects:
-            await db.fleet_defects.insert_many(all_defects)
-
-        # Status rebuild for truck + each trailer
-        await _rebuild_status(db, payload.truck_unit_number)
-        for tn in trailer_unit_numbers:
-            await _rebuild_status(db, tn)
-
-        await _audit(
-            db,
-            actor=payload.driver_name,
-            actor_role=actor.get("role", "driver"),
-            action="fleet_inspection_submitted",
-            target_type="equipment_inspection",
-            target_id=inspection_id,
-            payload={
+            # Write inspection row into existing equipment_inspections
+            # collection with `kind` discriminator. Old Pre-Op rows are
+            # backfilled with kind="pre_op" by the migration helper.
+            insp_doc = {
+                "id": inspection_id,
                 "kind": payload.kind,
-                "truck": payload.truck_unit_number,
-                "trailers": trailer_unit_numbers,
+                "inspection_date": payload.inspection_date,
+                "inspection_time": payload.inspection_time,
+                "driver_employee_id": payload.driver_employee_id or "",
+                "driver_name": payload.driver_name,
+                "truck_unit_number": payload.truck_unit_number,
+                "truck_vin": payload.truck_vin or "",
+                "truck_plate": payload.truck_plate or "",
+                "trailer_unit_numbers": trailer_unit_numbers,
+                "trailers": [t.model_dump() for t in payload.trailers],
+                "odometer_miles": payload.odometer_miles or "",
+                "hour_meter": payload.hour_meter or "",
+                "checklist": payload.truck_checklist,
                 "fail_count": truck_failures + trailer_failures,
-                "defect_count": len(all_defects),
                 "out_of_service": "Yes" if any_oos else "No",
+                "deficiency_notes": payload.notes or "",
+                "driver_signature": payload.driver_signature or "",
+                "supervisor_name": payload.supervisor_name or "",
                 "submitted_via": payload.submitted_via or "public_tile",
-            },
-        )
+                "created_at": now_iso,
+                # Phase F integration-ready
+                "external_refs": {"motive_id": None},
+                # D5.4 · structured canonical section capture (additive)
+                "inspection_sections": payload.inspection_sections,
+            }
+            await db.equipment_inspections.insert_one(insp_doc)
 
-        # BATCH L · OMEGA-3 / G-P0-01 — Fleet DVIR fan-out per approved
-        # decision package matrix · 2026-05-30.
-        #
-        # Severity authority: fleet_defect_severity.SEVERITY_TABLE_VERSION
-        # (v1.3-approved-2026-05-19). The table emits exactly two
-        # severities: "oos" and "monitor". No new tier is invented here.
-        #
-        # Routing matrix (subset of decision package §2 that maps to
-        # severities actually present in the current table):
-        #   • Normal DVIR (no defects, no OOS) ........ no fan-out
-        #   • Defect (any monitor, no OOS) ............ Shop task · Medium
-        #   • OOS (any oos OR out_of_service=Yes) ..... Shop task · Critical
-        #                                              + Dispatch visibility notification
-        #
-        # NO Superintendent notification (explicitly excluded per matrix).
-        # Repeat-Unresolved sweep is a separate cron · belongs to Batch N
-        # escalation framework when authorized · not in scope here.
-        normal_only = not all_defects and not any_oos
-        if not normal_only:
+            # ── Track 13.31B-D5.1 · Smart DVIR canonical write stamp ──
+            # Patch the truck row with the canonical class/type derived from
+            # equipment_master. Additive — legacy fields preserved. Trailers
+            # carry their own canonical stamps under `trailer_classifications`
+            # without re-shaping the existing schema.
             try:
-                # Local import keeps the module dependency-graph clean
-                # if event_fanout is unavailable at import time.
-                from lib.event_fanout import (  # noqa: PLC0415
-                    emit_task_and_notification,
-                    emit_notification,
+                from services.inspection_classification import (
+                    resolve_unit_canonical, stamp_inspection_canonical,
+                    EXISTING_DVIR_TEMPLATES,
                 )
-
-                if any_oos:
-                    priority = "Critical"
-                    state_word = " OOS"
-                    msg_suffix = " · OUT OF SERVICE"
-                else:
-                    priority = "Medium"
-                    state_word = ""
-                    msg_suffix = ""
-
-                title = (
-                    f"Fleet defect — {payload.truck_unit_number}"
-                    f"{state_word} · {payload.kind}"
+                await stamp_inspection_canonical(
+                    db, inspection_id, payload.truck_unit_number,
+                    legacy_equipment_type="",
+                    template_set=EXISTING_DVIR_TEMPLATES,
                 )
+                if trailer_unit_numbers:
+                    trailer_classifications = []
+                    for tn in trailer_unit_numbers:
+                        tstamp = await resolve_unit_canonical(db, tn, "")
+                        trailer_classifications.append({"trailer_unit_number": tn, **tstamp})
+                    await db.equipment_inspections.update_one(
+                        {"id": inspection_id},
+                        {"$set": {"trailer_classifications": trailer_classifications}},
+                    )
+            except Exception as _e:  # noqa: BLE001
+                logger.warning("[dvir_classification] stamp failed inspection_id=%s err=%s", inspection_id, _e)
 
-                await emit_task_and_notification(
-                    db,
-                    task={
-                        "title": title[:200],
-                        "description": (
-                            f"Driver: {payload.driver_name} · "
-                            f"Truck: {payload.truck_unit_number} · "
-                            f"Kind: {payload.kind} · "
-                            f"Defects: {len(all_defects)} · "
-                            f"Fail items: {truck_failures + trailer_failures} · "
-                            f"OOS: {'Yes' if any_oos else 'No'}"
-                        )[:4000],
-                        "source_module": "fleet.dvir",
-                        "source_record_id": inspection_id,
-                        "assignee_role": "shop",
-                        "priority": priority,
-                        "created_by": {"role": "system", "via": "dvir-fanout"},
-                    },
-                    notification={
-                        "type": (
-                            "dvir.defect.oos" if any_oos else "dvir.defect"
-                        ),
-                        "title": title[:200],
-                        "message": (
-                            f"{len(all_defects)} defect(s) flagged"
-                            f"{msg_suffix}"
-                        )[:200],
-                        "severity": "Critical" if any_oos else "Warning",
-                        "recipient_role": "shop",
-                        "linked_source_module": "fleet.dvir",
-                        "linked_source_record_id": inspection_id,
-                    },
-                )
+            # Insert defects (if any) and rebuild status for every
+            # touched unit. We do this AFTER the inspection insert so a
+            # status flip references an existing inspection_id.
+            if all_defects:
+                await db.fleet_defects.insert_many(all_defects)
 
-                # OOS → parallel visibility notification to Dispatch
-                # (no separate task — Shop owns the action; Dispatch
-                # surfaces the vehicle as unavailable).
-                if any_oos:
-                    await emit_notification(
+            # Status rebuild for truck + each trailer
+            await _rebuild_status(db, payload.truck_unit_number)
+            for tn in trailer_unit_numbers:
+                await _rebuild_status(db, tn)
+
+            await _audit(
+                db,
+                actor=payload.driver_name,
+                actor_role=actor.get("role", "driver"),
+                action="fleet_inspection_submitted",
+                target_type="equipment_inspection",
+                target_id=inspection_id,
+                payload={
+                    "kind": payload.kind,
+                    "truck": payload.truck_unit_number,
+                    "trailers": trailer_unit_numbers,
+                    "fail_count": truck_failures + trailer_failures,
+                    "defect_count": len(all_defects),
+                    "out_of_service": "Yes" if any_oos else "No",
+                    "submitted_via": payload.submitted_via or "public_tile",
+                },
+            )
+
+            # BATCH L · OMEGA-3 / G-P0-01 — Fleet DVIR fan-out per approved
+            # decision package matrix · 2026-05-30.
+            #
+            # Severity authority: fleet_defect_severity.SEVERITY_TABLE_VERSION
+            # (v1.3-approved-2026-05-19). The table emits exactly two
+            # severities: "oos" and "monitor". No new tier is invented here.
+            #
+            # Routing matrix (subset of decision package §2 that maps to
+            # severities actually present in the current table):
+            #   • Normal DVIR (no defects, no OOS) ........ no fan-out
+            #   • Defect (any monitor, no OOS) ............ Shop task · Medium
+            #   • OOS (any oos OR out_of_service=Yes) ..... Shop task · Critical
+            #                                              + Dispatch visibility notification
+            #
+            # NO Superintendent notification (explicitly excluded per matrix).
+            # Repeat-Unresolved sweep is a separate cron · belongs to Batch N
+            # escalation framework when authorized · not in scope here.
+            normal_only = not all_defects and not any_oos
+            if not normal_only:
+                try:
+                    # Local import keeps the module dependency-graph clean
+                    # if event_fanout is unavailable at import time.
+                    from lib.event_fanout import (  # noqa: PLC0415
+                        emit_task_and_notification,
+                        emit_notification,
+                    )
+
+                    if any_oos:
+                        priority = "Critical"
+                        state_word = " OOS"
+                        msg_suffix = " · OUT OF SERVICE"
+                    else:
+                        priority = "Medium"
+                        state_word = ""
+                        msg_suffix = ""
+
+                    title = (
+                        f"Fleet defect — {payload.truck_unit_number}"
+                        f"{state_word} · {payload.kind}"
+                    )
+
+                    await emit_task_and_notification(
                         db,
-                        {
-                            "type": "dvir.defect.oos",
+                        task={
+                            "title": title[:200],
+                            "description": (
+                                f"Driver: {payload.driver_name} · "
+                                f"Truck: {payload.truck_unit_number} · "
+                                f"Kind: {payload.kind} · "
+                                f"Defects: {len(all_defects)} · "
+                                f"Fail items: {truck_failures + trailer_failures} · "
+                                f"OOS: {'Yes' if any_oos else 'No'}"
+                            )[:4000],
+                            "source_module": "fleet.dvir",
+                            "source_record_id": inspection_id,
+                            "assignee_role": "shop",
+                            "priority": priority,
+                            "created_by": {"role": "system", "via": "dvir-fanout"},
+                        },
+                        notification={
+                            "type": (
+                                "dvir.defect.oos" if any_oos else "dvir.defect"
+                            ),
                             "title": title[:200],
                             "message": (
-                                f"Vehicle {payload.truck_unit_number} "
-                                f"OUT OF SERVICE"
+                                f"{len(all_defects)} defect(s) flagged"
+                                f"{msg_suffix}"
                             )[:200],
-                            "severity": "Critical",
-                            "recipient_role": "dispatch",
+                            "severity": "Critical" if any_oos else "Warning",
+                            "recipient_role": "shop",
                             "linked_source_module": "fleet.dvir",
                             "linked_source_record_id": inspection_id,
                         },
                     )
-            except Exception:
-                # Fail-soft · NEVER block the inspection submission
-                # itself · matches the safety pattern across the codebase.
-                pass
 
-        return {
-            "ok": True,
-            "inspection_id": inspection_id,
-            "kind": payload.kind,
-            "out_of_service": any_oos,
-            "defect_count": len(all_defects),
-            "truck_status_after": (await _rebuild_status(db, payload.truck_unit_number))["status"],
-        }
+                    # OOS → parallel visibility notification to Dispatch
+                    # (no separate task — Shop owns the action; Dispatch
+                    # surfaces the vehicle as unavailable).
+                    if any_oos:
+                        await emit_notification(
+                            db,
+                            {
+                                "type": "dvir.defect.oos",
+                                "title": title[:200],
+                                "message": (
+                                    f"Vehicle {payload.truck_unit_number} "
+                                    f"OUT OF SERVICE"
+                                )[:200],
+                                "severity": "Critical",
+                                "recipient_role": "dispatch",
+                                "linked_source_module": "fleet.dvir",
+                                "linked_source_record_id": inspection_id,
+                            },
+                        )
+                except Exception:
+                    # Fail-soft · NEVER block the inspection submission
+                    # itself · matches the safety pattern across the codebase.
+                    pass
+
+            return {
+                "ok": True,
+                "inspection_id": inspection_id,
+                "kind": payload.kind,
+                "out_of_service": any_oos,
+                "defect_count": len(all_defects),
+                "truck_status_after": (await _rebuild_status(db, payload.truck_unit_number))["status"],
+            }
+
+        return await with_idempotency(
+            db, key,
+            actor if isinstance(actor, dict) else {"role": "public"},
+            _do_create, workflow="fleet_inspection",
+        )
 
     # ─── Read · scoped views (Phase C will wire UI) ──────────────
     @router.get("/api/dispatch/fleet/status")
@@ -902,249 +920,301 @@ def build_router(
     async def ack_defect(
         defect_id: str,
         payload: DefectActionPayload,
+        request: Request,
         _actor=Depends(require_shop_or_admin),
     ):
-        defect = await db.fleet_defects.find_one({"id": defect_id}, {"_id": 0})
-        if not defect:
-            raise HTTPException(404, "defect not found")
-        if defect["status"] != "open":
-            raise HTTPException(
-                400,
-                f"can only acknowledge from status=open (current={defect['status']!r})",
+        # TRACK 22.4b-followup-Shop-Defects-Idempotency · exactly-once.
+        from lib.idempotency import with_idempotency, idem_key_from_request  # noqa: PLC0415
+        key = idem_key_from_request(request)
+
+        async def _do_create():
+            defect = await db.fleet_defects.find_one({"id": defect_id}, {"_id": 0})
+            if not defect:
+                raise HTTPException(404, "defect not found")
+            if defect["status"] != "open":
+                raise HTTPException(
+                    400,
+                    f"can only acknowledge from status=open (current={defect['status']!r})",
+                )
+            now_iso = datetime.now(timezone.utc).isoformat()
+            await db.fleet_defects.update_one(
+                {"id": defect_id},
+                {"$set": {
+                    "status": "acknowledged",
+                    "acknowledged_at": now_iso,
+                    "acknowledged_by_name": payload.actor_name,
+                }},
             )
-        now_iso = datetime.now(timezone.utc).isoformat()
-        await db.fleet_defects.update_one(
-            {"id": defect_id},
-            {"$set": {
-                "status": "acknowledged",
-                "acknowledged_at": now_iso,
-                "acknowledged_by_name": payload.actor_name,
-            }},
+            await _audit(
+                db, actor=payload.actor_name, actor_role="shop",
+                action="defect_acknowledged",
+                target_type="fleet_defect", target_id=defect_id,
+                payload={
+                    "status_before": "open",
+                    "status_after": "acknowledged",
+                    "unit_number": defect.get("truck_unit_number") or defect.get("trailer_unit_number"),
+                    "checklist_item": defect.get("item_text"),
+                },
+            )
+            return {"ok": True}
+
+        return await with_idempotency(
+            db, key, {"role": "shop", "actor": payload.actor_name},
+            _do_create, workflow="shop_defect_ack",
         )
-        await _audit(
-            db, actor=payload.actor_name, actor_role="shop",
-            action="defect_acknowledged",
-            target_type="fleet_defect", target_id=defect_id,
-            payload={
-                "status_before": "open",
-                "status_after": "acknowledged",
-                "unit_number": defect.get("truck_unit_number") or defect.get("trailer_unit_number"),
-                "checklist_item": defect.get("item_text"),
-            },
-        )
-        return {"ok": True}
 
     @router.post("/api/shop/fleet/defects/{defect_id}/repair")
     async def repair_defect(
         defect_id: str,
         payload: DefectRepairPayload,
+        request: Request,
         _actor=Depends(require_shop_or_admin),
     ):
-        defect = await db.fleet_defects.find_one({"id": defect_id}, {"_id": 0})
-        if not defect:
-            raise HTTPException(404, "defect not found")
-        if defect["status"] not in ("open", "acknowledged"):
-            raise HTTPException(
-                400,
-                f"can only repair from status=open|acknowledged "
-                f"(current={defect['status']!r})",
+        # TRACK 22.4b-followup-Shop-Defects-Idempotency · exactly-once.
+        # parts_used / parts_on_order are append-style — a retry without
+        # the reservation lock would double-append the same batch.
+        from lib.idempotency import with_idempotency, idem_key_from_request  # noqa: PLC0415
+        key = idem_key_from_request(request)
+
+        async def _do_create():
+            defect = await db.fleet_defects.find_one({"id": defect_id}, {"_id": 0})
+            if not defect:
+                raise HTTPException(404, "defect not found")
+            if defect["status"] not in ("open", "acknowledged"):
+                raise HTTPException(
+                    400,
+                    f"can only repair from status=open|acknowledged "
+                    f"(current={defect['status']!r})",
+                )
+            # Track 13.28 Phase 2 · require justification: either a real
+            # note (≥10 chars) OR at least one parts_used line. This stops
+            # silent / anonymous "fixed it" closures.
+            notes_clean = (payload.notes or "").strip()
+            has_parts = len(payload.parts_used) > 0
+            if len(notes_clean) < 10 and not has_parts:
+                raise HTTPException(
+                    422,
+                    "repair notes must be at least 10 characters (or include at least one parts_used line)",
+                )
+            now_iso = datetime.now(timezone.utc).isoformat()
+            # Pre-existing parts merged with this repair's batch so the
+            # `fleet_defects.parts_used` history grows append-style across
+            # re-work cycles.
+            existing_parts_used = list(defect.get("parts_used") or [])
+            new_parts_used = [
+                {
+                    **p.model_dump(),
+                    "logged_at": now_iso,
+                    "logged_by": payload.actor_name,
+                }
+                for p in payload.parts_used
+            ]
+            existing_parts_on_order = list(defect.get("parts_on_order") or [])
+            new_parts_on_order = [
+                {
+                    **p.model_dump(),
+                    "logged_at": now_iso,
+                    "logged_by": payload.actor_name,
+                }
+                for p in payload.parts_on_order
+            ]
+            await db.fleet_defects.update_one(
+                {"id": defect_id},
+                {"$set": {
+                    "status": "repaired",
+                    "repaired_at": now_iso,
+                    "repaired_by_name": payload.actor_name,
+                    "repair_notes": notes_clean,
+                    "repair_photos": payload.photos or [],
+                    "repair_completed_at": now_iso,
+                    "parts_used": existing_parts_used + new_parts_used,
+                    "parts_on_order": existing_parts_on_order + new_parts_on_order,
+                }},
             )
-        # Track 13.28 Phase 2 · require justification: either a real
-        # note (≥10 chars) OR at least one parts_used line. This stops
-        # silent / anonymous "fixed it" closures.
-        notes_clean = (payload.notes or "").strip()
-        has_parts = len(payload.parts_used) > 0
-        if len(notes_clean) < 10 and not has_parts:
-            raise HTTPException(
-                422,
-                "repair notes must be at least 10 characters (or include at least one parts_used line)",
+            await _audit(
+                db, actor=payload.actor_name, actor_role="shop",
+                action="defect_repaired",
+                target_type="fleet_defect", target_id=defect_id,
+                payload={
+                    "status_before": defect.get("status"),
+                    "status_after": "repaired",
+                    "unit_number": defect.get("truck_unit_number") or defect.get("trailer_unit_number"),
+                    "checklist_item": defect.get("item_text"),
+                    "repair_notes": notes_clean,
+                    "photo_count": len(payload.photos),
+                    "parts_used_count": len(new_parts_used),
+                    "parts_on_order_count": len(new_parts_on_order),
+                },
             )
-        now_iso = datetime.now(timezone.utc).isoformat()
-        # Pre-existing parts merged with this repair's batch so the
-        # `fleet_defects.parts_used` history grows append-style across
-        # re-work cycles.
-        existing_parts_used = list(defect.get("parts_used") or [])
-        new_parts_used = [
-            {
-                **p.model_dump(),
-                "logged_at": now_iso,
-                "logged_by": payload.actor_name,
+            # Status rebuild for the affected unit
+            unit_to_rebuild = defect.get("trailer_unit_number") or defect.get("truck_unit_number")
+            if unit_to_rebuild:
+                await _rebuild_status(db, unit_to_rebuild)
+            return {
+                "ok": True,
+                "parts_used_count": len(existing_parts_used) + len(new_parts_used),
+                "parts_on_order_count": len(existing_parts_on_order) + len(new_parts_on_order),
             }
-            for p in payload.parts_used
-        ]
-        existing_parts_on_order = list(defect.get("parts_on_order") or [])
-        new_parts_on_order = [
-            {
-                **p.model_dump(),
-                "logged_at": now_iso,
-                "logged_by": payload.actor_name,
-            }
-            for p in payload.parts_on_order
-        ]
-        await db.fleet_defects.update_one(
-            {"id": defect_id},
-            {"$set": {
-                "status": "repaired",
-                "repaired_at": now_iso,
-                "repaired_by_name": payload.actor_name,
-                "repair_notes": notes_clean,
-                "repair_photos": payload.photos or [],
-                "repair_completed_at": now_iso,
-                "parts_used": existing_parts_used + new_parts_used,
-                "parts_on_order": existing_parts_on_order + new_parts_on_order,
-            }},
+
+        return await with_idempotency(
+            db, key, {"role": "shop", "actor": payload.actor_name},
+            _do_create, workflow="shop_defect_repair",
         )
-        await _audit(
-            db, actor=payload.actor_name, actor_role="shop",
-            action="defect_repaired",
-            target_type="fleet_defect", target_id=defect_id,
-            payload={
-                "status_before": defect.get("status"),
-                "status_after": "repaired",
-                "unit_number": defect.get("truck_unit_number") or defect.get("trailer_unit_number"),
-                "checklist_item": defect.get("item_text"),
-                "repair_notes": notes_clean,
-                "photo_count": len(payload.photos),
-                "parts_used_count": len(new_parts_used),
-                "parts_on_order_count": len(new_parts_on_order),
-            },
-        )
-        # Status rebuild for the affected unit
-        unit_to_rebuild = defect.get("trailer_unit_number") or defect.get("truck_unit_number")
-        if unit_to_rebuild:
-            await _rebuild_status(db, unit_to_rebuild)
-        return {
-            "ok": True,
-            "parts_used_count": len(existing_parts_used) + len(new_parts_used),
-            "parts_on_order_count": len(existing_parts_on_order) + len(new_parts_on_order),
-        }
 
     @router.post("/api/dispatch/fleet/defects/{defect_id}/clear")
     async def clear_defect(
         defect_id: str,
         payload: DefectActionPayload,
+        request: Request,
         _actor=Depends(require_dispatch_or_admin),
     ):
         """Dispatch action · re-enables the truck for assignment after
         Shop has marked the defect repaired. This is the final step in
-        the defect lifecycle · audit captures the human re-approval."""
-        defect = await db.fleet_defects.find_one({"id": defect_id}, {"_id": 0})
-        if not defect:
-            raise HTTPException(404, "defect not found")
-        if defect["status"] != "repaired":
-            raise HTTPException(
-                400,
-                f"can only clear from status=repaired "
-                f"(current={defect['status']!r})",
+        the defect lifecycle · audit captures the human re-approval.
+
+        TRACK 22.4b-followup-Shop-Defects-Idempotency · exactly-once.
+        """
+        from lib.idempotency import with_idempotency, idem_key_from_request  # noqa: PLC0415
+        key = idem_key_from_request(request)
+
+        async def _do_create():
+            defect = await db.fleet_defects.find_one({"id": defect_id}, {"_id": 0})
+            if not defect:
+                raise HTTPException(404, "defect not found")
+            if defect["status"] != "repaired":
+                raise HTTPException(
+                    400,
+                    f"can only clear from status=repaired "
+                    f"(current={defect['status']!r})",
+                )
+            now_iso = datetime.now(timezone.utc).isoformat()
+            await db.fleet_defects.update_one(
+                {"id": defect_id},
+                {"$set": {
+                    "status": "cleared",
+                    "cleared_at": now_iso,
+                    "cleared_by_name": payload.actor_name,
+                }},
             )
-        now_iso = datetime.now(timezone.utc).isoformat()
-        await db.fleet_defects.update_one(
-            {"id": defect_id},
-            {"$set": {
-                "status": "cleared",
-                "cleared_at": now_iso,
-                "cleared_by_name": payload.actor_name,
-            }},
+            await _audit(
+                db, actor=payload.actor_name, actor_role="dispatch",
+                action="defect_cleared",
+                target_type="fleet_defect", target_id=defect_id,
+                payload={
+                    "status_before": "repaired",
+                    "status_after": "cleared",
+                    "unit_number": defect.get("truck_unit_number") or defect.get("trailer_unit_number"),
+                    "checklist_item": defect.get("item_text"),
+                    "rts_note": payload.notes or "",
+                    "rts_label": "returned_to_service",
+                },
+            )
+            unit_to_rebuild = defect.get("trailer_unit_number") or defect.get("truck_unit_number")
+            if unit_to_rebuild:
+                await _rebuild_status(db, unit_to_rebuild)
+            return {"ok": True}
+
+        return await with_idempotency(
+            db, key, {"role": "dispatch", "actor": payload.actor_name},
+            _do_create, workflow="shop_defect_clear",
         )
-        await _audit(
-            db, actor=payload.actor_name, actor_role="dispatch",
-            action="defect_cleared",
-            target_type="fleet_defect", target_id=defect_id,
-            payload={
-                "status_before": "repaired",
-                "status_after": "cleared",
-                "unit_number": defect.get("truck_unit_number") or defect.get("trailer_unit_number"),
-                "checklist_item": defect.get("item_text"),
-                "rts_note": payload.notes or "",
-                "rts_label": "returned_to_service",
-            },
-        )
-        unit_to_rebuild = defect.get("trailer_unit_number") or defect.get("truck_unit_number")
-        if unit_to_rebuild:
-            await _rebuild_status(db, unit_to_rebuild)
-        return {"ok": True}
 
     @router.post("/api/dispatch/fleet/units/{unit_number}/oos")
     async def manual_oos_flip(
         unit_number: str,
         payload: DefectActionPayload,
+        request: Request,
         _actor=Depends(require_dispatch_or_admin),
     ):
         """Manual OOS flip · Dispatch can mark a unit OOS without an
         inspection (e.g. shop discovers an issue between DVIRs).
         Creates a synthetic defect row so the audit + repair lifecycle
-        flow the normal way."""
-        now_iso = datetime.now(timezone.utc).isoformat()
-        manual_defect = {
-            "id": str(uuid.uuid4()),
-            "doc_id": "",
-            "inspection_id": None,  # NOT tied to an inspection
-            "inspection_kind": "manual_oos",
-            "truck_unit_number": unit_number,
-            "trailer_unit_number": None,
-            "item_text": "Manual OOS flip by Dispatch",
-            "category": _sev.CATEGORY_OTHER,
-            "severity": _sev.SEVERITY_OOS,
-            "status": "open",
-            "note": payload.notes or "",
-            "photos": payload.photos or [],
-            "reported_by_employee_id": "",
-            "reported_by_name": payload.actor_name,
-            "reported_at": now_iso,
-            "acknowledged_at": None,
-            "acknowledged_by_name": None,
-            "repaired_at": None,
-            "repaired_by_name": None,
-            "repair_notes": "",
-            "repair_photos": [],
-            "cleared_at": None,
-            "cleared_by_name": None,
-            "external_refs": {"motive_id": None, "maintainx_work_order_id": None},
-        }
-        await db.fleet_defects.insert_one(manual_defect)
-        # TRACK 15.76 · Trust Spine — shop defect lifecycle.
-        try:
-            from lib.trust_spine import (  # noqa: PLC0415
-                emit_record_created, emit_workflow_stage,
-                STAGE_ROUTING_RESOLVED, STAGE_DASHBOARD_UPDATED,
-                STAGE_AUDIT_WRITTEN, STAGE_COMPLETED,
-            )
-            _spine_rec = {
-                "id": manual_defect["id"], "doc_id": manual_defect["id"],
-                "project_number": "",
+        flow the normal way.
+
+        TRACK 22.4b-followup-Shop-Defects-Idempotency · exactly-once.
+        A retry MUST NOT produce a second synthetic defect row nor
+        double-emit Trust Spine stages.
+        """
+        from lib.idempotency import with_idempotency, idem_key_from_request  # noqa: PLC0415
+        key = idem_key_from_request(request)
+
+        async def _do_create():
+            now_iso = datetime.now(timezone.utc).isoformat()
+            manual_defect = {
+                "id": str(uuid.uuid4()),
+                "doc_id": "",
+                "inspection_id": None,  # NOT tied to an inspection
+                "inspection_kind": "manual_oos",
+                "truck_unit_number": unit_number,
+                "trailer_unit_number": None,
+                "item_text": "Manual OOS flip by Dispatch",
+                "category": _sev.CATEGORY_OTHER,
+                "severity": _sev.SEVERITY_OOS,
+                "status": "open",
+                "note": payload.notes or "",
+                "photos": payload.photos or [],
+                "reported_by_employee_id": "",
+                "reported_by_name": payload.actor_name,
+                "reported_at": now_iso,
+                "acknowledged_at": None,
+                "acknowledged_by_name": None,
+                "repaired_at": None,
+                "repaired_by_name": None,
+                "repair_notes": "",
+                "repair_photos": [],
+                "cleared_at": None,
+                "cleared_by_name": None,
+                "external_refs": {"motive_id": None, "maintainx_work_order_id": None},
             }
-            _spine_mod = "routes/fleet_ops.py:manual_oos"
-            await emit_record_created(
-                db, workflow="shop-defect", record=_spine_rec,
-                module=_spine_mod,
+            await db.fleet_defects.insert_one(manual_defect)
+            # TRACK 15.76 · Trust Spine — shop defect lifecycle.
+            try:
+                from lib.trust_spine import (  # noqa: PLC0415
+                    emit_record_created, emit_workflow_stage,
+                    STAGE_ROUTING_RESOLVED, STAGE_DASHBOARD_UPDATED,
+                    STAGE_AUDIT_WRITTEN, STAGE_COMPLETED,
+                )
+                _spine_rec = {
+                    "id": manual_defect["id"], "doc_id": manual_defect["id"],
+                    "project_number": "",
+                }
+                _spine_mod = "routes/fleet_ops.py:manual_oos"
+                await emit_record_created(
+                    db, workflow="shop-defect", record=_spine_rec,
+                    module=_spine_mod,
+                )
+                await emit_workflow_stage(
+                    db, workflow="shop-defect", stage=STAGE_ROUTING_RESOLVED,
+                    record=_spine_rec, module="shop_routing", status="ok",
+                )
+                await emit_workflow_stage(
+                    db, workflow="shop-defect", stage=STAGE_DASHBOARD_UPDATED,
+                    record=_spine_rec, module="fleet_defects.insert_one",
+                    status="ok",
+                )
+                await emit_workflow_stage(
+                    db, workflow="shop-defect", stage=STAGE_AUDIT_WRITTEN,
+                    record=_spine_rec, module="fleet_audit_log", status="ok",
+                )
+                await emit_workflow_stage(
+                    db, workflow="shop-defect", stage=STAGE_COMPLETED,
+                    record=_spine_rec, module=_spine_mod, status="ok",
+                )
+            except Exception:  # noqa: BLE001
+                pass
+            await _audit(
+                db, actor=payload.actor_name, actor_role="dispatch",
+                action="manual_oos_flip",
+                target_type="fleet_unit", target_id=unit_number,
+                payload={"defect_id": manual_defect["id"], "notes": payload.notes},
             )
-            await emit_workflow_stage(
-                db, workflow="shop-defect", stage=STAGE_ROUTING_RESOLVED,
-                record=_spine_rec, module="shop_routing", status="ok",
-            )
-            await emit_workflow_stage(
-                db, workflow="shop-defect", stage=STAGE_DASHBOARD_UPDATED,
-                record=_spine_rec, module="fleet_defects.insert_one",
-                status="ok",
-            )
-            await emit_workflow_stage(
-                db, workflow="shop-defect", stage=STAGE_AUDIT_WRITTEN,
-                record=_spine_rec, module="fleet_audit_log", status="ok",
-            )
-            await emit_workflow_stage(
-                db, workflow="shop-defect", stage=STAGE_COMPLETED,
-                record=_spine_rec, module=_spine_mod, status="ok",
-            )
-        except Exception:  # noqa: BLE001
-            pass
-        await _audit(
-            db, actor=payload.actor_name, actor_role="dispatch",
-            action="manual_oos_flip",
-            target_type="fleet_unit", target_id=unit_number,
-            payload={"defect_id": manual_defect["id"], "notes": payload.notes},
+            await _rebuild_status(db, unit_number)
+            return {"ok": True, "defect_id": manual_defect["id"]}
+
+        return await with_idempotency(
+            db, key, {"role": "dispatch", "actor": payload.actor_name},
+            _do_create, workflow="shop_defect_manual_oos",
         )
-        await _rebuild_status(db, unit_number)
-        return {"ok": True, "defect_id": manual_defect["id"]}
 
     # ─── Read-only · individual inspection / defect detail ───────
     @router.get("/api/fleet/inspections/{inspection_id}")
@@ -1805,59 +1875,70 @@ def build_router(
         Authorization: caller must be Admin OR a per-user shop token
         whose `role == "Shop Manager"`. Mechanic tokens and legacy
         shared shop tokens are rejected with 403.
+
+        TRACK 22.4b-followup-Shop-Defects-Idempotency · exactly-once.
         """
-        actor = await _resolve_rich_actor(request, x_admin_token, x_shop_token)
-        if not _is_manager(actor):
-            raise HTTPException(403, "Shop Manager role required")
-        defect = await db.fleet_defects.find_one({"id": defect_id}, {"_id": 0})
-        if not defect:
-            raise HTTPException(404, "defect not found")
-        if defect["status"] not in ("open", "acknowledged"):
-            raise HTTPException(
-                400,
-                f"can only assign from status=open|acknowledged "
-                f"(current={defect['status']!r})",
+        from lib.idempotency import with_idempotency, idem_key_from_request  # noqa: PLC0415
+        key = idem_key_from_request(request)
+
+        async def _do_create():
+            actor = await _resolve_rich_actor(request, x_admin_token, x_shop_token)
+            if not _is_manager(actor):
+                raise HTTPException(403, "Shop Manager role required")
+            defect = await db.fleet_defects.find_one({"id": defect_id}, {"_id": 0})
+            if not defect:
+                raise HTTPException(404, "defect not found")
+            if defect["status"] not in ("open", "acknowledged"):
+                raise HTTPException(
+                    400,
+                    f"can only assign from status=open|acknowledged "
+                    f"(current={defect['status']!r})",
+                )
+            now_iso = datetime.now(timezone.utc).isoformat()
+            await db.fleet_defects.update_one(
+                {"id": defect_id},
+                {"$set": {
+                    "assigned_to_mechanic_id": payload.mechanic_id,
+                    "assigned_to_mechanic_name": payload.mechanic_name,
+                    "assigned_by_user_id": actor["id"],
+                    "assigned_by_user_name": actor["name"],
+                    "assigned_at": now_iso,
+                    # Re-assignment clears downstream timestamps so the queue
+                    # state machine is unambiguous.
+                    "accepted_at": None,
+                    "repair_started_at": None,
+                }},
             )
-        now_iso = datetime.now(timezone.utc).isoformat()
-        await db.fleet_defects.update_one(
-            {"id": defect_id},
-            {"$set": {
-                "assigned_to_mechanic_id": payload.mechanic_id,
-                "assigned_to_mechanic_name": payload.mechanic_name,
-                "assigned_by_user_id": actor["id"],
-                "assigned_by_user_name": actor["name"],
-                "assigned_at": now_iso,
-                # Re-assignment clears downstream timestamps so the queue
-                # state machine is unambiguous.
-                "accepted_at": None,
-                "repair_started_at": None,
-            }},
+            unit_number = defect.get("trailer_unit_number") or defect.get("truck_unit_number") or ""
+            await _audit(
+                db, actor=actor["name"], actor_role="shop_manager",
+                action="defect_assigned",
+                target_type="fleet_defect", target_id=defect_id,
+                payload={
+                    "status_before": defect.get("status"),
+                    "status_after": defect.get("status"),
+                    "unit_number": unit_number,
+                    "mechanic_id": payload.mechanic_id,
+                    "mechanic_name": payload.mechanic_name,
+                    "assigned_by_id": actor["id"],
+                    "notes": payload.notes,
+                    "checklist_item": defect.get("item_text"),
+                },
+            )
+            await _emit_assignment_task(
+                db,
+                defect=defect,
+                mechanic_id=payload.mechanic_id,
+                mechanic_name=payload.mechanic_name,
+                unit_number=unit_number,
+                kind=defect.get("inspection_kind") or "defect",
+            )
+            return {"ok": True, "queue_state": "assigned"}
+
+        return await with_idempotency(
+            db, key, {"role": "shop_manager", "token": x_admin_token or x_shop_token or ""},
+            _do_create, workflow="shop_defect_assign",
         )
-        unit_number = defect.get("trailer_unit_number") or defect.get("truck_unit_number") or ""
-        await _audit(
-            db, actor=actor["name"], actor_role="shop_manager",
-            action="defect_assigned",
-            target_type="fleet_defect", target_id=defect_id,
-            payload={
-                "status_before": defect.get("status"),
-                "status_after": defect.get("status"),
-                "unit_number": unit_number,
-                "mechanic_id": payload.mechanic_id,
-                "mechanic_name": payload.mechanic_name,
-                "assigned_by_id": actor["id"],
-                "notes": payload.notes,
-                "checklist_item": defect.get("item_text"),
-            },
-        )
-        await _emit_assignment_task(
-            db,
-            defect=defect,
-            mechanic_id=payload.mechanic_id,
-            mechanic_name=payload.mechanic_name,
-            unit_number=unit_number,
-            kind=defect.get("inspection_kind") or "defect",
-        )
-        return {"ok": True, "queue_state": "assigned"}
 
     @router.post("/api/shop/fleet/defects/{defect_id}/reassign")
     async def reassign_defect(
@@ -1867,59 +1948,71 @@ def build_router(
         x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
         x_shop_token: Optional[str] = Header(default=None, alias="X-Shop-Token"),
     ):
-        """Shop Manager re-assigns a defect to a different mechanic."""
-        actor = await _resolve_rich_actor(request, x_admin_token, x_shop_token)
-        if not _is_manager(actor):
-            raise HTTPException(403, "Shop Manager role required")
-        defect = await db.fleet_defects.find_one({"id": defect_id}, {"_id": 0})
-        if not defect:
-            raise HTTPException(404, "defect not found")
-        if not defect.get("assigned_to_mechanic_id"):
-            raise HTTPException(400, "defect has no current assignment to replace")
-        if defect["status"] not in ("open", "acknowledged"):
-            raise HTTPException(
-                400,
-                f"can only reassign from status=open|acknowledged "
-                f"(current={defect['status']!r})",
+        """Shop Manager re-assigns a defect to a different mechanic.
+
+        TRACK 22.4b-followup-Shop-Defects-Idempotency · exactly-once.
+        """
+        from lib.idempotency import with_idempotency, idem_key_from_request  # noqa: PLC0415
+        key = idem_key_from_request(request)
+
+        async def _do_create():
+            actor = await _resolve_rich_actor(request, x_admin_token, x_shop_token)
+            if not _is_manager(actor):
+                raise HTTPException(403, "Shop Manager role required")
+            defect = await db.fleet_defects.find_one({"id": defect_id}, {"_id": 0})
+            if not defect:
+                raise HTTPException(404, "defect not found")
+            if not defect.get("assigned_to_mechanic_id"):
+                raise HTTPException(400, "defect has no current assignment to replace")
+            if defect["status"] not in ("open", "acknowledged"):
+                raise HTTPException(
+                    400,
+                    f"can only reassign from status=open|acknowledged "
+                    f"(current={defect['status']!r})",
+                )
+            now_iso = datetime.now(timezone.utc).isoformat()
+            previous_mechanic_id = defect.get("assigned_to_mechanic_id")
+            previous_mechanic_name = defect.get("assigned_to_mechanic_name")
+            await db.fleet_defects.update_one(
+                {"id": defect_id},
+                {"$set": {
+                    "assigned_to_mechanic_id": payload.mechanic_id,
+                    "assigned_to_mechanic_name": payload.mechanic_name,
+                    "assigned_by_user_id": actor["id"],
+                    "assigned_by_user_name": actor["name"],
+                    "assigned_at": now_iso,
+                    "accepted_at": None,
+                    "repair_started_at": None,
+                }},
             )
-        now_iso = datetime.now(timezone.utc).isoformat()
-        previous_mechanic_id = defect.get("assigned_to_mechanic_id")
-        previous_mechanic_name = defect.get("assigned_to_mechanic_name")
-        await db.fleet_defects.update_one(
-            {"id": defect_id},
-            {"$set": {
-                "assigned_to_mechanic_id": payload.mechanic_id,
-                "assigned_to_mechanic_name": payload.mechanic_name,
-                "assigned_by_user_id": actor["id"],
-                "assigned_by_user_name": actor["name"],
-                "assigned_at": now_iso,
-                "accepted_at": None,
-                "repair_started_at": None,
-            }},
+            unit_number = defect.get("trailer_unit_number") or defect.get("truck_unit_number") or ""
+            await _audit(
+                db, actor=actor["name"], actor_role="shop_manager",
+                action="defect_reassigned",
+                target_type="fleet_defect", target_id=defect_id,
+                payload={
+                    "unit_number": unit_number,
+                    "previous_mechanic_id": previous_mechanic_id,
+                    "previous_mechanic_name": previous_mechanic_name,
+                    "mechanic_id": payload.mechanic_id,
+                    "mechanic_name": payload.mechanic_name,
+                    "notes": payload.notes,
+                },
+            )
+            await _emit_assignment_task(
+                db,
+                defect=defect,
+                mechanic_id=payload.mechanic_id,
+                mechanic_name=payload.mechanic_name,
+                unit_number=unit_number,
+                kind=defect.get("inspection_kind") or "defect",
+            )
+            return {"ok": True, "queue_state": "assigned"}
+
+        return await with_idempotency(
+            db, key, {"role": "shop_manager", "token": x_admin_token or x_shop_token or ""},
+            _do_create, workflow="shop_defect_reassign",
         )
-        unit_number = defect.get("trailer_unit_number") or defect.get("truck_unit_number") or ""
-        await _audit(
-            db, actor=actor["name"], actor_role="shop_manager",
-            action="defect_reassigned",
-            target_type="fleet_defect", target_id=defect_id,
-            payload={
-                "unit_number": unit_number,
-                "previous_mechanic_id": previous_mechanic_id,
-                "previous_mechanic_name": previous_mechanic_name,
-                "mechanic_id": payload.mechanic_id,
-                "mechanic_name": payload.mechanic_name,
-                "notes": payload.notes,
-            },
-        )
-        await _emit_assignment_task(
-            db,
-            defect=defect,
-            mechanic_id=payload.mechanic_id,
-            mechanic_name=payload.mechanic_name,
-            unit_number=unit_number,
-            kind=defect.get("inspection_kind") or "defect",
-        )
-        return {"ok": True, "queue_state": "assigned"}
 
     @router.post("/api/shop/fleet/defects/{defect_id}/accept")
     async def accept_defect(
@@ -1929,53 +2022,65 @@ def build_router(
         x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
         x_shop_token: Optional[str] = Header(default=None, alias="X-Shop-Token"),
     ):
-        """Assigned mechanic acknowledges they own the work."""
-        actor = await _resolve_rich_actor(request, x_admin_token, x_shop_token)
-        defect = await db.fleet_defects.find_one({"id": defect_id}, {"_id": 0})
-        if not defect:
-            raise HTTPException(404, "defect not found")
-        if not defect.get("assigned_to_mechanic_id"):
-            raise HTTPException(400, "defect has no assigned mechanic")
-        if defect.get("accepted_at"):
-            raise HTTPException(400, "defect already accepted")
-        if defect["status"] != "open":
-            raise HTTPException(
-                400,
-                f"can only accept from status=open "
-                f"(current={defect['status']!r})",
+        """Assigned mechanic acknowledges they own the work.
+
+        TRACK 22.4b-followup-Shop-Defects-Idempotency · exactly-once.
+        """
+        from lib.idempotency import with_idempotency, idem_key_from_request  # noqa: PLC0415
+        key = idem_key_from_request(request)
+
+        async def _do_create():
+            actor = await _resolve_rich_actor(request, x_admin_token, x_shop_token)
+            defect = await db.fleet_defects.find_one({"id": defect_id}, {"_id": 0})
+            if not defect:
+                raise HTTPException(404, "defect not found")
+            if not defect.get("assigned_to_mechanic_id"):
+                raise HTTPException(400, "defect has no assigned mechanic")
+            if defect.get("accepted_at"):
+                raise HTTPException(400, "defect already accepted")
+            if defect["status"] != "open":
+                raise HTTPException(
+                    400,
+                    f"can only accept from status=open "
+                    f"(current={defect['status']!r})",
+                )
+            if actor["kind"] != "admin":
+                if not actor.get("id") or actor["id"] != defect.get("assigned_to_mechanic_id"):
+                    raise HTTPException(403, "only the assigned mechanic can accept this defect")
+            now_iso = datetime.now(timezone.utc).isoformat()
+            await db.fleet_defects.update_one(
+                {"id": defect_id},
+                {"$set": {
+                    "accepted_at": now_iso,
+                    "status": "acknowledged",
+                    "acknowledged_at": now_iso,
+                    "acknowledged_by_name": actor["name"],
+                }},
             )
-        if actor["kind"] != "admin":
-            if not actor.get("id") or actor["id"] != defect.get("assigned_to_mechanic_id"):
-                raise HTTPException(403, "only the assigned mechanic can accept this defect")
-        now_iso = datetime.now(timezone.utc).isoformat()
-        await db.fleet_defects.update_one(
-            {"id": defect_id},
-            {"$set": {
-                "accepted_at": now_iso,
-                "status": "acknowledged",
-                "acknowledged_at": now_iso,
-                "acknowledged_by_name": actor["name"],
-            }},
+            unit_number = defect.get("trailer_unit_number") or defect.get("truck_unit_number") or ""
+            await _audit(
+                db, actor=actor["name"], actor_role="mechanic",
+                action="defect_accepted",
+                target_type="fleet_defect", target_id=defect_id,
+                payload={
+                    "status_before": "open",
+                    "status_after": "acknowledged",
+                    "unit_number": unit_number,
+                    "mechanic_id": defect.get("assigned_to_mechanic_id"),
+                    "mechanic_name": defect.get("assigned_to_mechanic_name"),
+                    "notes": payload.notes,
+                },
+            )
+            await _emit_manager_notification(
+                db, defect=defect, event="accepted",
+                unit_number=unit_number, actor_name=actor["name"],
+            )
+            return {"ok": True, "queue_state": "accepted"}
+
+        return await with_idempotency(
+            db, key, {"role": "mechanic", "token": x_admin_token or x_shop_token or ""},
+            _do_create, workflow="shop_defect_accept",
         )
-        unit_number = defect.get("trailer_unit_number") or defect.get("truck_unit_number") or ""
-        await _audit(
-            db, actor=actor["name"], actor_role="mechanic",
-            action="defect_accepted",
-            target_type="fleet_defect", target_id=defect_id,
-            payload={
-                "status_before": "open",
-                "status_after": "acknowledged",
-                "unit_number": unit_number,
-                "mechanic_id": defect.get("assigned_to_mechanic_id"),
-                "mechanic_name": defect.get("assigned_to_mechanic_name"),
-                "notes": payload.notes,
-            },
-        )
-        await _emit_manager_notification(
-            db, defect=defect, event="accepted",
-            unit_number=unit_number, actor_name=actor["name"],
-        )
-        return {"ok": True, "queue_state": "accepted"}
 
     @router.post("/api/shop/fleet/defects/{defect_id}/start")
     async def start_defect(
@@ -1985,46 +2090,58 @@ def build_router(
         x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
         x_shop_token: Optional[str] = Header(default=None, alias="X-Shop-Token"),
     ):
-        """Mechanic records `repair_started_at` (queue → in_progress)."""
-        actor = await _resolve_rich_actor(request, x_admin_token, x_shop_token)
-        defect = await db.fleet_defects.find_one({"id": defect_id}, {"_id": 0})
-        if not defect:
-            raise HTTPException(404, "defect not found")
-        if defect["status"] != "acknowledged":
-            raise HTTPException(
-                400,
-                f"can only start from status=acknowledged "
-                f"(current={defect['status']!r})",
+        """Mechanic records `repair_started_at` (queue → in_progress).
+
+        TRACK 22.4b-followup-Shop-Defects-Idempotency · exactly-once.
+        """
+        from lib.idempotency import with_idempotency, idem_key_from_request  # noqa: PLC0415
+        key = idem_key_from_request(request)
+
+        async def _do_create():
+            actor = await _resolve_rich_actor(request, x_admin_token, x_shop_token)
+            defect = await db.fleet_defects.find_one({"id": defect_id}, {"_id": 0})
+            if not defect:
+                raise HTTPException(404, "defect not found")
+            if defect["status"] != "acknowledged":
+                raise HTTPException(
+                    400,
+                    f"can only start from status=acknowledged "
+                    f"(current={defect['status']!r})",
+                )
+            if defect.get("repair_started_at"):
+                raise HTTPException(400, "repair already started")
+            if actor["kind"] != "admin":
+                if not actor.get("id") or actor["id"] != defect.get("assigned_to_mechanic_id"):
+                    raise HTTPException(403, "only the assigned mechanic can start this defect")
+            now_iso = datetime.now(timezone.utc).isoformat()
+            await db.fleet_defects.update_one(
+                {"id": defect_id},
+                {"$set": {"repair_started_at": now_iso}},
             )
-        if defect.get("repair_started_at"):
-            raise HTTPException(400, "repair already started")
-        if actor["kind"] != "admin":
-            if not actor.get("id") or actor["id"] != defect.get("assigned_to_mechanic_id"):
-                raise HTTPException(403, "only the assigned mechanic can start this defect")
-        now_iso = datetime.now(timezone.utc).isoformat()
-        await db.fleet_defects.update_one(
-            {"id": defect_id},
-            {"$set": {"repair_started_at": now_iso}},
+            unit_number = defect.get("trailer_unit_number") or defect.get("truck_unit_number") or ""
+            await _audit(
+                db, actor=actor["name"], actor_role="mechanic",
+                action="defect_repair_started",
+                target_type="fleet_defect", target_id=defect_id,
+                payload={
+                    "status_before": "acknowledged",
+                    "status_after": "acknowledged",
+                    "unit_number": unit_number,
+                    "mechanic_id": defect.get("assigned_to_mechanic_id"),
+                    "mechanic_name": defect.get("assigned_to_mechanic_name"),
+                    "notes": payload.notes,
+                },
+            )
+            await _emit_manager_notification(
+                db, defect=defect, event="in_progress",
+                unit_number=unit_number, actor_name=actor["name"],
+            )
+            return {"ok": True, "queue_state": "in_progress"}
+
+        return await with_idempotency(
+            db, key, {"role": "mechanic", "token": x_admin_token or x_shop_token or ""},
+            _do_create, workflow="shop_defect_start",
         )
-        unit_number = defect.get("trailer_unit_number") or defect.get("truck_unit_number") or ""
-        await _audit(
-            db, actor=actor["name"], actor_role="mechanic",
-            action="defect_repair_started",
-            target_type="fleet_defect", target_id=defect_id,
-            payload={
-                "status_before": "acknowledged",
-                "status_after": "acknowledged",
-                "unit_number": unit_number,
-                "mechanic_id": defect.get("assigned_to_mechanic_id"),
-                "mechanic_name": defect.get("assigned_to_mechanic_name"),
-                "notes": payload.notes,
-            },
-        )
-        await _emit_manager_notification(
-            db, defect=defect, event="in_progress",
-            unit_number=unit_number, actor_name=actor["name"],
-        )
-        return {"ok": True, "queue_state": "in_progress"}
 
     @router.post("/api/shop/fleet/defects/{defect_id}/manager-review")
     async def manager_review_defect(
@@ -2035,80 +2152,92 @@ def build_router(
         x_shop_token: Optional[str] = Header(default=None, alias="X-Shop-Token"),
     ):
         """Shop Manager signs off on the repair. Must follow `/repair`
-        (status=repaired) and precede Dispatch's `/clear` (RTS)."""
-        actor = await _resolve_rich_actor(request, x_admin_token, x_shop_token)
-        if not _is_manager(actor):
-            raise HTTPException(403, "Shop Manager role required")
-        defect = await db.fleet_defects.find_one({"id": defect_id}, {"_id": 0})
-        if not defect:
-            raise HTTPException(404, "defect not found")
-        if defect["status"] != "repaired":
-            raise HTTPException(
-                400,
-                f"manager review requires status=repaired "
-                f"(current={defect['status']!r})",
-            )
-        if defect.get("shop_manager_reviewed_at"):
-            raise HTTPException(400, "manager review already recorded")
-        now_iso = datetime.now(timezone.utc).isoformat()
-        unit_number = defect.get("trailer_unit_number") or defect.get("truck_unit_number") or ""
-        if not payload.approved:
-            # Reject path: bounce back to acknowledged so the mechanic
-            # can re-work without losing the repair history.
+        (status=repaired) and precede Dispatch's `/clear` (RTS).
+
+        TRACK 22.4b-followup-Shop-Defects-Idempotency · exactly-once.
+        """
+        from lib.idempotency import with_idempotency, idem_key_from_request  # noqa: PLC0415
+        key = idem_key_from_request(request)
+
+        async def _do_create():
+            actor = await _resolve_rich_actor(request, x_admin_token, x_shop_token)
+            if not _is_manager(actor):
+                raise HTTPException(403, "Shop Manager role required")
+            defect = await db.fleet_defects.find_one({"id": defect_id}, {"_id": 0})
+            if not defect:
+                raise HTTPException(404, "defect not found")
+            if defect["status"] != "repaired":
+                raise HTTPException(
+                    400,
+                    f"manager review requires status=repaired "
+                    f"(current={defect['status']!r})",
+                )
+            if defect.get("shop_manager_reviewed_at"):
+                raise HTTPException(400, "manager review already recorded")
+            now_iso = datetime.now(timezone.utc).isoformat()
+            unit_number = defect.get("trailer_unit_number") or defect.get("truck_unit_number") or ""
+            if not payload.approved:
+                # Reject path: bounce back to acknowledged so the mechanic
+                # can re-work without losing the repair history.
+                await db.fleet_defects.update_one(
+                    {"id": defect_id},
+                    {"$set": {
+                        "status": "acknowledged",
+                        "repair_started_at": None,
+                        "shop_manager_reviewed_at": now_iso,
+                        "shop_manager_reviewed_by_id": actor["id"],
+                        "shop_manager_reviewed_by_name": actor["name"],
+                    }},
+                )
+                await _audit(
+                    db, actor=actor["name"], actor_role="shop_manager",
+                    action="defect_review_rejected",
+                    target_type="fleet_defect", target_id=defect_id,
+                    payload={
+                        "status_before": "repaired",
+                        "status_after": "acknowledged",
+                        "unit_number": unit_number,
+                        "reviewer_id": actor["id"],
+                        "notes": payload.notes,
+                    },
+                )
+                await _emit_manager_notification(
+                    db, defect=defect, event="review_rejected",
+                    unit_number=unit_number, actor_name=actor["name"],
+                )
+                return {"ok": True, "queue_state": "rework"}
+
             await db.fleet_defects.update_one(
                 {"id": defect_id},
                 {"$set": {
-                    "status": "acknowledged",
-                    "repair_started_at": None,
                     "shop_manager_reviewed_at": now_iso,
                     "shop_manager_reviewed_by_id": actor["id"],
                     "shop_manager_reviewed_by_name": actor["name"],
+                    "repair_completed_at": defect.get("repair_completed_at") or defect.get("repaired_at") or now_iso,
                 }},
             )
             await _audit(
                 db, actor=actor["name"], actor_role="shop_manager",
-                action="defect_review_rejected",
+                action="defect_manager_reviewed",
                 target_type="fleet_defect", target_id=defect_id,
                 payload={
                     "status_before": "repaired",
-                    "status_after": "acknowledged",
+                    "status_after": "repaired",
                     "unit_number": unit_number,
                     "reviewer_id": actor["id"],
                     "notes": payload.notes,
                 },
             )
             await _emit_manager_notification(
-                db, defect=defect, event="review_rejected",
+                db, defect=defect, event="review_approved",
                 unit_number=unit_number, actor_name=actor["name"],
             )
-            return {"ok": True, "queue_state": "rework"}
+            return {"ok": True, "queue_state": "rts_pending"}
 
-        await db.fleet_defects.update_one(
-            {"id": defect_id},
-            {"$set": {
-                "shop_manager_reviewed_at": now_iso,
-                "shop_manager_reviewed_by_id": actor["id"],
-                "shop_manager_reviewed_by_name": actor["name"],
-                "repair_completed_at": defect.get("repair_completed_at") or defect.get("repaired_at") or now_iso,
-            }},
+        return await with_idempotency(
+            db, key, {"role": "shop_manager", "token": x_admin_token or x_shop_token or ""},
+            _do_create, workflow="shop_defect_manager_review",
         )
-        await _audit(
-            db, actor=actor["name"], actor_role="shop_manager",
-            action="defect_manager_reviewed",
-            target_type="fleet_defect", target_id=defect_id,
-            payload={
-                "status_before": "repaired",
-                "status_after": "repaired",
-                "unit_number": unit_number,
-                "reviewer_id": actor["id"],
-                "notes": payload.notes,
-            },
-        )
-        await _emit_manager_notification(
-            db, defect=defect, event="review_approved",
-            unit_number=unit_number, actor_name=actor["name"],
-        )
-        return {"ok": True, "queue_state": "rts_pending"}
 
     # ── Queue endpoints ──────────────────────────────────────────────
 

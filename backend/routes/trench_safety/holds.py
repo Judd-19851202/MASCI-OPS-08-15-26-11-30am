@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from ._helpers import clear_hold, open_hold
 from ._models import HOLD_KINDS, HoldClearBody, HoldOpenBody
@@ -56,54 +56,76 @@ def register_hold_routes(
     async def open_hold_endpoint(
         ident: str,
         body: HoldOpenBody,
+        request: Request,
         actor: dict = Depends(require_safety_or_admin),
     ):
-        if body.kind not in HOLD_KINDS:
-            raise HTTPException(
-                422, f"kind must be one of {list(HOLD_KINDS)}"
+        # TRACK 22.4b-followup-Trench-Writes-Idempotency · exactly-once.
+        from lib.idempotency import with_idempotency, idem_key_from_request  # noqa: PLC0415
+        key = idem_key_from_request(request)
+
+        async def _do_create():
+            if body.kind not in HOLD_KINDS:
+                raise HTTPException(
+                    422, f"kind must be one of {list(HOLD_KINDS)}"
+                )
+            asset = await db.trench_safety_assets.find_one(
+                {"$or": [{"asset_id": ident}, {"id": ident}]},
+                {"_id": 0, "asset_id": 1},
             )
-        asset = await db.trench_safety_assets.find_one(
-            {"$or": [{"asset_id": ident}, {"id": ident}]},
-            {"_id": 0, "asset_id": 1},
+            if not asset:
+                raise HTTPException(404, "Trench safety asset not found")
+            actor_email = (actor or {}).get("email") or (actor or {}).get("_actor") or "unknown"
+            hold = await open_hold(
+                db,
+                asset_id=asset["asset_id"],
+                kind=body.kind,
+                reason=body.reason,
+                source=body.source,
+                source_ref=body.source_ref,
+                opened_by=actor_email,
+            )
+            fresh = await db.trench_safety_assets.find_one(
+                {"asset_id": asset["asset_id"]}, {"_id": 0}
+            )
+            return {"hold": hold, "asset": fresh}
+
+        return await with_idempotency(
+            db, key, actor or {"role": "public"}, _do_create,
+            workflow="trench_hold_open",
         )
-        if not asset:
-            raise HTTPException(404, "Trench safety asset not found")
-        actor_email = (actor or {}).get("email") or (actor or {}).get("_actor") or "unknown"
-        hold = await open_hold(
-            db,
-            asset_id=asset["asset_id"],
-            kind=body.kind,
-            reason=body.reason,
-            source=body.source,
-            source_ref=body.source_ref,
-            opened_by=actor_email,
-        )
-        fresh = await db.trench_safety_assets.find_one(
-            {"asset_id": asset["asset_id"]}, {"_id": 0}
-        )
-        return {"hold": hold, "asset": fresh}
 
     @api_router.post(CLEAR_PATH)
     async def clear_hold_endpoint(
         hold_id: str,
         body: HoldClearBody,
+        request: Request,
         actor: dict = Depends(require_safety_or_admin),
     ):
-        hold = await db.trench_safety_holds.find_one({"id": hold_id}, {"_id": 0})
-        if not hold:
-            raise HTTPException(404, "Hold not found")
-        if not hold.get("is_active"):
-            raise HTTPException(409, "Hold is already cleared")
-        actor_email = (actor or {}).get("email") or (actor or {}).get("_actor") or "unknown"
-        cleared = await clear_hold(
-            db,
-            asset_id=hold["asset_id"],
-            kind=hold["kind"],
-            clear_reason=body.clear_reason,
-            clear_source=body.clear_source,
-            cleared_by=actor_email,
+        # TRACK 22.4b-followup-Trench-Writes-Idempotency · exactly-once.
+        from lib.idempotency import with_idempotency, idem_key_from_request  # noqa: PLC0415
+        key = idem_key_from_request(request)
+
+        async def _do_create():
+            hold = await db.trench_safety_holds.find_one({"id": hold_id}, {"_id": 0})
+            if not hold:
+                raise HTTPException(404, "Hold not found")
+            if not hold.get("is_active"):
+                raise HTTPException(409, "Hold is already cleared")
+            actor_email = (actor or {}).get("email") or (actor or {}).get("_actor") or "unknown"
+            cleared = await clear_hold(
+                db,
+                asset_id=hold["asset_id"],
+                kind=hold["kind"],
+                clear_reason=body.clear_reason,
+                clear_source=body.clear_source,
+                cleared_by=actor_email,
+            )
+            fresh = await db.trench_safety_assets.find_one(
+                {"asset_id": hold["asset_id"]}, {"_id": 0}
+            )
+            return {"hold": cleared, "asset": fresh}
+
+        return await with_idempotency(
+            db, key, actor or {"role": "public"}, _do_create,
+            workflow="trench_hold_clear",
         )
-        fresh = await db.trench_safety_assets.find_one(
-            {"asset_id": hold["asset_id"]}, {"_id": 0}
-        )
-        return {"hold": cleared, "asset": fresh}

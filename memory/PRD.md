@@ -10851,3 +10851,63 @@ the admin AI config module. Field UI byte-identical.
 - **P2** — Summary in PDF/email body; live-LLM polish; live provider probe; tenant-admin scoped role.
 - **P3** — Audit index; localStorage sweep; dead-file sweep; pytest-asyncio artefact.
 
+
+---
+
+## TRACK 22.4B-FOLLOWUP · Idempotency Spine — Trench & Shop Defects (2026-07-06)
+
+### Verdict
+✅ **BOTH P1 TRACKS CLOSED**
+
+- **TRACK 22.4B-FOLLOWUP-TRENCH-WRITES-IDEMPOTENCY** — 7 endpoints
+  wrapped with `with_idempotency` (inspection submit, hold open/clear,
+  repair open/update/complete/verify). Workflow scopes:
+  `trench_inspection`, `trench_hold_open`, `trench_hold_clear`,
+  `trench_repair_open`, `trench_repair_update`, `trench_repair_complete`,
+  `trench_repair_verify`.
+- **TRACK 22.4B-FOLLOWUP-SHOP-DEFECTS-IDEMPOTENCY** — 10 endpoints
+  wrapped with `with_idempotency` (fleet inspection submit, defect
+  ack/repair/clear/manual-oos, manager assign/reassign, mechanic
+  accept/start, manager-review). Workflow scopes prefixed
+  `shop_defect_*` and `fleet_inspection`.
+
+### B-04 lifecycle invariants preserved
+- Repair Complete ≠ Safe To Use — asset lands in `Inspection Hold` on
+  concurrent Shop `/complete`, Maintenance Hold cleared exactly once,
+  Inspection Hold opened exactly once. Regression:
+  `test_same_key_concurrent_repair_complete_preserves_b04`.
+- Shop still 401 on Trench `/verify` under idempotency wrap
+  (regression: `test_shop_still_cannot_verify_after_idempotency_wrap`).
+- Anonymous still 401 on Shop-Defects manual OOS
+  (regression: `test_anonymous_manual_oos_still_401`).
+
+### Zero Drift maintained
+- No V2 routes, no legacy collection revival, no bypass workflows.
+- Motive routes/credentials/logic untouched.
+- Every wrap places 100% of side effects (DB writes, Trust Spine
+  emissions, notification fan-out, status recompute, audit writes)
+  inside the `_do_create` factory so replays are truly no-op.
+- Every wrap uses a distinct `workflow=` argument; cross-workflow
+  key collisions cannot replay a cached response
+  (regressions: `test_workflow_scope_isolates_inspection_from_hold`
+  and `test_same_key_across_fleet_inspection_and_manual_oos_are_independent`).
+
+### Regression Suite Growth
+```
+Handoff baseline:      84 tests passing
++ Trench Writes:        9 new (8 pass, 1 Motive-skip)
++ Shop Defects:         7 new (6 pass, 1 Motive-skip)
+Final:                 99 passed, 4 skipped, 0 failed
+```
+
+### Track memos
+- `/app/memory/TRACK_22_4B_FOLLOWUP_TRENCH_WRITES_IDEMPOTENCY.md`
+- `/app/memory/TRACK_22_4B_FOLLOWUP_SHOP_DEFECTS_IDEMPOTENCY.md`
+
+### Next in queue
+- **P2** — TRACK 22.4B-FOLLOWUP-DRIVER (B-06): Exercise Driver Portal
+  + DVIR end-to-end with driver PVI token.
+- **P1** — TRACK 22.4c Mobile Responsiveness Sweep: PM Command Center
+  + Dispatch Map layout at 390px.
+- **Future** — DR-UNIFY-005: Live DB migration + legacy collection
+  removal.
