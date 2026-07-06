@@ -1,0 +1,28 @@
+layer,file,route_or_symbol,inputs,outputs,live_or_planned,notes
+AI Gateway,services/ai_gateway/__init__.py + registry.py + capabilities.py,get_gateway() + resolve_ai_capabilities(),tenant_ai_capabilities + env flags,provider+model routing,LIVE,Emergent Universal Key powers text; per-task registry
+AI Task router,services/ai_gateway/task_router.py,TASK_ROUTES,task name,provider+model,LIVE,daily_report_summary → openai gpt-5.2; photo_vision → openai gpt-5.2-vision
+AI capabilities resolver,services/ai_gateway/capabilities.py,resolve_ai_capabilities(db · tenant · module),tenant doc + env,{enabled · reason_disabled},LIVE,Missing key → enabled=False deterministic
+Universal LLM Key,EMERGENT_LLM_KEY (env),—,—,text calls (Claude/GPT/Gemini),LIVE,Photo vision routes through gpt-5.2-vision when OPENAI_API_KEY present; falls back to placeholder intel when absent
+Draft Summary Assist (frontend),frontend/src/components/daily-report/DailySummaryAssist.jsx,evidence bundle + photo_observations fetch,ai_accepted_summary + meta,LIVE,Debounced generate · abort/stale cancel · accept/edit/regenerate/ignore
+Draft Summary Assist (backend),backend/routes/daily_summary.py,POST /api/ai/dr/summary + accept_summary,evidence bundle,{summary · meta} · deterministic fallback,LIVE,Persists ai_accepted_summary on the DR + emits day_summary_fact
+day_summary_fact in ODS,services/ods_spine/ingest.py::_build_facts_from_dr_v1_report,ai_accepted_summary + meta,ods_facts,LIVE,PM/Admin dashboards read this
+Photo Intelligence — analyzer,services/photo_intelligence/analyzer.py,analyze_photo(gateway · session · photo_ref · images · draft_context),{narrative · observations · confidence · questions · conflicts},LIVE,Strict prompt (never invents facts) · requires_supervisor_confirmation=true
+Photo Intelligence — store,services/photo_intelligence/store.py,upsert_intel + get_intel,dr_v2_photo_intelligence,LIVE,Unique (report_id · photo_id)
+Photo Intelligence — V1 pipeline,services/photo_intelligence/pipeline.py,enqueue_v1_report + process_v1_report + reconcile_once + reconciler_loop,dr_v1_photo_intel_jobs + dr_v2_photo_intelligence,LIVE (Track 22.9B · re-verified 2026-02-06),BackgroundTasks first-pass + 60s reconciler
+Photo Intelligence — flag,services/photo_intelligence/flags.py + env AI_PHOTO_VISION_ENABLED + tenant photo_intelligence_enabled,tenant_ai_capabilities.masci,LIVE,verified `photo_intelligence_enabled=true version=11`
+Photo Intelligence — ODS enrichment,services/ods_spine/ingest.py::_enrich_photo_evidence_facts,dr_v2_photo_intelligence rows,photo_evidence_fact.payload.ai_tags/ai_caption,LIVE (Track 22.9B),best-effort · never blocks
+Photo Intelligence — read endpoint,routes/daily_reports.py::daily_report_photo_intelligence,report_id,{report_id · photo_count · analyzed · pending · observations[] · narrative · photos[]},LIVE (Track 22.9B),Consumed by DailySummaryAssist evidence bundle
+Photo Intelligence — Emitter (V2 legacy),services/photo_intelligence/emitter.py,emit_photo_evidence_fact,ods_facts,LIVE,V2-era code path · idle for V1 pipeline
+DailyOperationalSummarySection (component),frontend/src/components/daily-report/DailyOperationalSummarySection.jsx,manual draft summary from user typing,daily_operational_summary,LIVE,🔴 P1 DUPLICATE with DailySummaryAssist (UX #6 · Rec #8)
+Universal fallback,daily_summary.py::_compose_deterministic_summary,evidence bundle,summary string (no LLM),LIVE,Fires when AI disabled or errors
+AI GPT-5.2 model (text),TASK_ROUTES.daily_report_summary,—,gpt-5.2 via Universal Key,LIVE,per registry
+AI GPT-5.2-vision model (photo),TASK_ROUTES.photo_vision,—,gpt-5.2-vision via Universal Key,LIVE,when OPENAI_API_KEY set; otherwise placeholder
+Latency budget,client-side abort/stale cancel,—,—,LIVE,DailySummaryAssist cancels superseded requests
+Audit,daily_reports.ai_accepted_summary_meta,provider (masked) · latency · evidence_hash,daily_reports,LIVE,Provenance
+Trust Spine emission for AI accept,NOT wired,—,—,MISSING · FUTURE,Rec #16 · emit accept as Trust Spine stage
+PM/project feed,ODS.day_summary_fact + photo_evidence_fact,—,—,LIVE,PM dashboards read
+PDF/email consumers,pdf_render.py::_render_daily / auto_email_dispatch,—,ai_accepted_summary NOT read,🔴 P1 GAP,Rec #14 · TRACK 22.9C target
+AI availability today,—,—,tenant_ai_enabled=True · photo_intelligence_enabled=True · daily_report_summary_enabled=True (verified live),LIVE,Preview environment
+AI availability that requires deploy,—,—,Prod tenant flags must be flipped identically,VERIFY,Track 22.6B certified once; re-check before next prod push
+AI features that are preview only,—,—,None known,LIVE,All Track 22.9A/B wired features live on preview only until next deploy
+AI features that need Gemini direct key,intentionally absent,—,—,DEFERRED,Rec #17 · operator directive: do not debug

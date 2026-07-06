@@ -1,0 +1,14 @@
+notification_or_email,resolver_source,recipient_source,route_key,subject_pattern,payload,attachments,audit_collection,retry_behavior,data_shown_in_email,live_or_planned,recommendation
+PM daily report auto-email,services/auto_email_dispatch:daily-report,jobs_master.pm/co_pm/superintendent + payload.distribution_list,daily-report,'Daily Report · <project_name> · <report_date>' (verify),doc_id + PM roster + PDF download link (via signed URL),PDF (dr_v2_pdf renderer),email_dispatch_queue + email_delivery_log + email_dead_letter,exponential backoff · dead-letter after max attempts,project_name/report_date/prepared_by/photo_count/summary excerpt,LIVE,KEEP · Rec #14 confirm ai_accepted_summary embedded
+Bell notification (submitter),tasks_notifications,payload.prepared_by (bound identity),—,—,doc_id + link,—,bell_notifications,—,—,LIVE,KEEP
+Bell notification (PM),tasks_notifications,jobs_master.pm,—,—,doc_id + link,—,bell_notifications,—,—,LIVE,KEEP
+Safety notification (if safety escalation),—,safety team distribution list,—,PENDING VERIFY — Track 23.0 audit finds no explicit Safety CC path today,—,—,—,—,—,VERIFY,MISSING · FUTURE (Rec #17)
+HR notification (if labor issue),—,HR distribution list,—,—,—,—,—,—,—,MISSING · FUTURE,No live path today
+Shop notification (if equipment issue),—,shop distribution list,—,—,—,—,—,—,—,MISSING · FUTURE,No live path today
+Dispatch notification (if movement/asset issue),—,dispatch distribution list,—,—,—,—,—,—,—,MISSING · FUTURE,No live path today
+Weekly digest email,tasks_notifications cron,PM weekly digest recipients,—,—,aggregate DR counts + delays,—,email_dispatch_queue,—,doc_id list · counts,LIVE (backend cron),VERIFY content · Rec #15
+Trust Spine record_created,lib/trust_spine::emit_record_created,internal audit only,daily-report,—,correlation_id + doc_id + stage timestamps,—,trust_spine_events + daily_report_lifecycle,—,—,LIVE,KEEP
+Dead-letter (delivery failure),services/auto_email_dispatch,internal admin only,—,—,dead-letter entry with reason,—,email_dead_letter,—,—,LIVE,KEEP
+FSI dead-letter (orphan submitter),lib/field_submitter_identity tier-5,internal admin only,—,—,orphan submitter payload,—,fsi_dead_letter,—,—,LIVE,KEEP
+Idempotency ledger,lib/idempotency::with_idempotency,—,—,—,cached response by Idempotency-Key,—,idempotency_events,—,—,LIVE,KEEP
+Draft telemetry (draft.write.ok/fail),lib/resiliency::emitDraftEvent,internal telemetry,—,—,formKey + trigger + errorName,—,draft_events (client),—,—,LIVE,KEEP

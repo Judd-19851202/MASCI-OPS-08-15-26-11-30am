@@ -1,0 +1,34 @@
+condition_id,trigger,state_variable,ui_shown_hidden,validation_rule,blocker_yes_no,error_copy,downstream_impact,operator_friction,recommendation
+G01,MASCI employees present,presence.crews,section-04 shown when yes,—,No,—,payroll ingest,LOW,KEEP
+G02,Subcontractors present,presence.subs,section-05 shown when yes,—,No,—,billing / PM,LOW,KEEP
+G03,Visitors present,presence.visitors,section-06 shown when yes,—,No,—,—,LOW,KEEP (or MAKE OPTIONAL — Rec #12)
+G04,Equipment used,presence.equipment,section-07 shown when yes,—,No,—,shop/dispatch,LOW,KEEP
+G05,Materials in delivered,presence.materials_in,section-08 shown when yes,—,No,—,billing / PM,LOW,KEEP
+G06,Materials out hauled,presence.materials_out,section-09 shown when yes,—,No,—,dispatch / recycling,LOW,KEEP
+G07,Delays / Extra Work today,presence.delays,section-11 shown when yes (auto-yes if schedule_delays=Yes or weather_impact=Yes),—,No,—,PM exposure signals,LOW,KEEP (but Rec #3 removes the two Yes/No proxies in Section 03)
+G08,Safety issue today,presence.safety (derived; auto-yes if safety_incidents_today or injuries_reported),escalation block,—,No (informational gate),—,Safety notify · incident report,LOW,KEEP
+V01,schedule_delays === 'Yes' AND constraints.length === 0,—,Delays card force-open + amber status,Add at least one Delay/Extra Work row,Yes,'Add at least one Delay / Extra Work row (Type + Notes) before submitting',blocks submit,MEDIUM,SIMPLIFY (Rec #3 · derive from constraints[] presence only)
+V02,weather_impact === 'Yes' AND no constraint with type=weather,—,Delays card force-open + amber status,Add a row with cause = Weather,Yes,'Add a Delay / Extra Work row with cause = Weather before submitting',blocks submit,MEDIUM,SIMPLIFY (Rec #3)
+V03,safety_incidents_today === 'Yes' OR injuries_reported === 'Yes',—,Reveals amber incident_notes textarea + safety-escalation block,—,No (informational),—,Safety consumer,LOW,KEEP
+V04,V03 AND safety_notified !== 'Yes',safety-not-notified-warning red banner,STOP — Contact Safety immediately,—,Yes,'Safety must be notified before this Daily Report can be submitted',blocks submit,LOW-CRITICAL,KEEP
+V05,V03 AND safety_notified === 'Yes' AND safety_contact_person empty,—,—,non-empty,Yes,'Who Was Contacted is required',blocks submit,LOW-CRITICAL,KEEP
+V06,V03 AND safety_notified === 'Yes' AND safety_contact_time empty,—,—,non-empty,Yes,'Time of Contact is required',blocks submit,LOW-CRITICAL,KEEP
+V07,V03 AND incident_report_filled === 'No',incident-report-required-warning red banner + link to /incidents/report,—,—,Yes,'An Accident/Incident Report must be filed before this Daily Report can be submitted',blocks submit,LOW-CRITICAL,KEEP
+V08,V03 AND incident_report_filled === 'Yes' AND incident_report_time empty,—,—,non-empty,Yes,'Time the Incident Report was filed is required',blocks submit,LOW-CRITICAL,KEEP
+V09,photos.length < photo_min (default 6),photos-status amber + submit disabled + hint,length ≥ 6,Yes,`Add at least X more photo(s)` + submit button labeled 'Need 6 photos to submit',blocks submit,MEDIUM (evidence policy),KEEP
+V10,excavation_activity_today === 'Yes' AND linked_excavation_ids.length === 0,—,—,at least one link,Yes,`Excavation Activity Today is YES — create or link at least one Excavation Record before submitting` (backend HTTP 422 mirror in frontend),blocks submit,MEDIUM,KEEP
+V11,prepared_by_signature empty,—,—,non-empty,Yes,'Signature is required',blocks submit,LOW,KEEP
+V12,project_name empty,—,—,non-empty,Yes,'Project Name is required',blocks submit,LOW,KEEP
+V13,location empty,—,—,non-empty,Yes,'Location is required',blocks submit,LOW,KEEP
+V14,prepared_by empty,—,—,non-empty,Yes,'Prepared By is required',blocks submit,LOW,KEEP
+V15,payloadIsHeavy (30+ attachments),daily-payload-soft-warning amber,—,—,No (advisory),`This report has X photo(s) attached (~Y MB estimated). Still submittable. Consider splitting.`,advisory only,LOW,KEEP
+V16,gps_lat === null AND user hits Refresh Weather,—,—,GPS first,No (advisory),'Capture GPS first',—,LOW,KEEP
+G09,Presence gate auto-answers Yes when data arrives,useEffect on data,—,—,No,—,Prevents hidden hydration,ZERO,KEEP
+G10,Presence gate NEVER auto-answers No (operator sticky),setPresence(null|user-choice),—,—,No,—,Explicit operator choice preserved,ZERO,KEEP
+G11,recentlyLoadedSetup surfaces after Use Setup,setRecentlyLoadedSetup,soft trace line,—,No,'Loaded from your saved setup · edit anything as needed.',—,ZERO,KEEP
+G12,prefillNotice after Apply prefill,setPrefillNotice,amber review-hours reminder,—,No,'Crew and equipment were prefilled … Review and adjust hours before submitting.',payroll safety,ZERO,KEEP
+G13,attemptedSubmit → force-open all incomplete signal-driven cards,setAttemptedSubmit(true) on failed submit,attentionOpen,—,No,—,UX: never hide blockers,ZERO,KEEP
+G14,archivedDraft (24h store) surfaces only when no live draft,useEffect,—,—,No,—,Recovery affordance,ZERO,KEEP
+G15,priorUsage banner surfaces only when no live draft and no archive and prior save > 24h,useEffect,—,—,No,—,Reassurance,ZERO,KEEP
+G16,DailyHoursFlag > 16h per crew row,per row,typo catcher,—,No (advisory),warning icon,payroll sanity,ZERO,KEEP
+G17,EMP_LINK linkage indicator (linked / not in roster),per row,green dot / amber dot,—,No,'Linked to roster' or 'Not in roster — will create governance finding',governance,ZERO,KEEP
