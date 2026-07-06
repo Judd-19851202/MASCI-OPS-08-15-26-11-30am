@@ -410,6 +410,7 @@ async def require_admin(
     request: Request,
     x_admin_token: Optional[str] = Header(default=None),
     x_pm_token: Optional[str] = Header(default=None),
+    x_certification_token: Optional[str] = Header(default=None, alias="X-Certification-Token"),
 ):
     """FastAPI dependency. Accepts an Admin OR a Project-Manager token —
     EXCEPT on routes whose path starts with ``/api/admin/``, where PM
@@ -441,6 +442,33 @@ async def require_admin(
     # the per-user validators.
     if x_admin_token and await _is_valid_directory_admin_token_async(x_admin_token):
         return True
+
+    # TRACK 22.6A · cert-session fallback (path-scoped, audited, read-only).
+    # Only unlocks paths in ALLOWED_READ_PATHS. Never accepted on writes,
+    # never lets a cert token stand in for a full admin session anywhere else.
+    if x_certification_token:
+        try:
+            from routes.production_certification_session import (
+                verify_session_token as _pcs_verify,
+                ALLOWED_READ_PATHS as _pcs_allowed,
+                _audit as _pcs_audit,
+                COLLECTION as _pcs_coll,
+            )
+            _path = (request.scope.get("path") or request.url.path or "").rstrip("/") or "/"
+            if _path in _pcs_allowed:
+                _session = await _pcs_verify(db, x_certification_token, request_path=_path)
+                if _session:
+                    from datetime import datetime as _dt, timezone as _tz
+                    await db[_pcs_coll].update_one(
+                        {"session_id": _session["session_id"]},
+                        {"$inc": {"reads_performed": 1},
+                         "$set": {"last_read_at": _dt.now(_tz.utc)}},
+                    )
+                    await _pcs_audit(db, event="pcs_read_authorized",
+                                     session_id=_session["session_id"], path=_path)
+                    return True
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(f"[pcs fallback · require_admin] {exc}")
 
     # Iter180: PM tokens are NOT accepted on the admin namespace.
     # request.scope["path"] is the path AFTER FastAPI routing, which
@@ -510,6 +538,7 @@ async def require_admin_async(
 async def require_admin_strict(
     request: Request,
     x_admin_token: Optional[str] = Header(default=None),
+    x_certification_token: Optional[str] = Header(default=None, alias="X-Certification-Token"),
 ):
     """Admin-only gate — used on backup & recovery endpoints. PM tokens are
     rejected here so a project manager cannot download or restore backups.
@@ -517,18 +546,51 @@ async def require_admin_strict(
     TRACK 15.32 (2026-02) — switched from the shared ``ADMIN_PASSWORD``
     HMAC check to the per-user ``user_directory`` validator. Behaviour
     unchanged for callers: a missing or invalid admin token still 401s.
+
+    TRACK 22.6A (2026-02) — accepts a Production Certification Session
+    token (``X-Certification-Token``) as a read-only, path-scoped, audited
+    fallback ONLY when the request path is in the certification allowlist
+    (``ALLOWED_READ_PATHS`` in ``routes.production_certification_session``).
+    All other paths still require a full admin token. Every cert-session
+    read is audited to ``production_certification_session_audit``. RBAC
+    is not weakened — cert tokens cannot write, cannot access non-allowlist
+    paths, are short-lived, and are individually revocable.
     """
+    if x_admin_token and await _is_valid_directory_admin_token_async(x_admin_token):
+        return True
+    # TRACK 22.6A · cert-session fallback (path-scoped, audited, read-only)
+    if x_certification_token:
+        try:
+            from routes.production_certification_session import (
+                verify_session_token as _pcs_verify,
+                ALLOWED_READ_PATHS as _pcs_allowed,
+                _audit as _pcs_audit,
+                COLLECTION as _pcs_coll,
+            )
+            path = (request.scope.get("path") or request.url.path or "").rstrip("/") or "/"
+            if path in _pcs_allowed:
+                session = await _pcs_verify(db, x_certification_token, request_path=path)
+                if session:
+                    from datetime import datetime as _dt, timezone as _tz
+                    await db[_pcs_coll].update_one(
+                        {"session_id": session["session_id"]},
+                        {"$inc": {"reads_performed": 1},
+                         "$set": {"last_read_at": _dt.now(_tz.utc)}},
+                    )
+                    await _pcs_audit(db, event="pcs_read_authorized",
+                                     session_id=session["session_id"], path=path)
+                    return True
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(f"[pcs fallback] {exc}")
     if not x_admin_token:
         # Phase 2 Initiative 5b-minimal — log denied attempts on the
         # highest-risk gate too.
         await _record_access_denial(db, request, namespace="admin",
                                     reason="no_token_strict")
         raise HTTPException(status_code=401, detail="Admin login required")
-    if not await _is_valid_directory_admin_token_async(x_admin_token):
-        await _record_access_denial(db, request, namespace="admin",
-                                    reason="invalid_token_strict")
-        raise HTTPException(status_code=401, detail="Invalid admin token")
-    return True
+    await _record_access_denial(db, request, namespace="admin",
+                                reason="invalid_token_strict")
+    raise HTTPException(status_code=401, detail="Invalid admin token")
 
 
 # ───────────────────────────────────────────────────────────────────
@@ -2965,6 +3027,27 @@ register_preview_validation_identity_routes(
     db=db,
     require_admin_strict=require_admin_strict,
 )
+
+# ------------------------------------------------------------
+# TRACK 22.6A · Production Certification Session. Read-only,
+# short-lived, super-admin-gated auditable session used by an
+# automated post-deployment certifier. Works in production by
+# design (unlike PVI). No writes, no email/SMS, no config-mutation,
+# no secret exposure. Every mint / probe / revoke audited.
+# ------------------------------------------------------------
+from routes.production_certification_session import (  # noqa: E402
+    register_production_certification_session_routes,
+    ensure_indexes as _pcs_ensure_indexes,
+)
+register_production_certification_session_routes(
+    api_router,
+    db=db,
+    require_admin_strict=require_admin_strict,
+)
+try:
+    asyncio.get_event_loop().create_task(_pcs_ensure_indexes(db))
+except Exception:
+    pass
 
 # ------------------------------------------------------------
 # TRACK 22.3 · Integration Truth Surface + AI Key Status + DR-V2
@@ -12434,6 +12517,34 @@ async def _require_dispatch_or_admin(
     # tokens get a clean answer without touching the inner closure.
     if x_admin_token and await _is_valid_directory_admin_token_async(x_admin_token):
         return {"role": "admin", "is_admin": True}
+    # TRACK 22.6A · cert-session fallback (path-scoped, audited, read-only).
+    # The dispatch-safe Motive posture endpoint (/api/dispatch/motive-posture)
+    # is in the certification allowlist; unlock it for a valid cert token
+    # so post-deploy authenticated Motive checks work without operator creds.
+    x_certification_token = request.headers.get("X-Certification-Token")
+    if x_certification_token:
+        try:
+            from routes.production_certification_session import (
+                verify_session_token as _pcs_verify,
+                ALLOWED_READ_PATHS as _pcs_allowed,
+                _audit as _pcs_audit,
+                COLLECTION as _pcs_coll,
+            )
+            _path = (request.scope.get("path") or request.url.path or "").rstrip("/") or "/"
+            if _path in _pcs_allowed:
+                _session = await _pcs_verify(db, x_certification_token, request_path=_path)
+                if _session:
+                    from datetime import datetime as _dt, timezone as _tz
+                    await db[_pcs_coll].update_one(
+                        {"session_id": _session["session_id"]},
+                        {"$inc": {"reads_performed": 1},
+                         "$set": {"last_read_at": _dt.now(_tz.utc)}},
+                    )
+                    await _pcs_audit(db, event="pcs_read_authorized",
+                                     session_id=_session["session_id"], path=_path)
+                    return {"role": "admin", "is_admin": True, "pcs": True}
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(f"[pcs fallback · dispatch_or_admin] {exc}")
     return await _shared_dispatch_or_admin(
         request=request,
         x_dispatch_token=x_dispatch_token,

@@ -117,18 +117,19 @@ def test_route_and_openapi_parity():
     # TRACK 22.5-RERUN re-lock (2026-02): baseline bumped after
     # legitimate route additions in tracks 22.4b/22.4b-followup family
     # (idempotency wrappers on Trench/Shop/Driver/HR), 22.4c (mobile
-    # gate endpoints), 22.4d (session-status telemetry probes), and
-    # 22.5A (governance/audit shell readers). Each set of new routes
-    # has its own dedicated regression suite; this counter locks the
-    # aggregate at the pre-deploy baseline for Track 22.5.
-    assert route_count == 1495, f"route drift: {route_count}"
+    # gate endpoints), 22.4d (session-status telemetry probes),
+    # 22.5A (governance/audit shell readers), and TRACK 22.6A
+    # (production certification session control plane · 4 endpoints).
+    # Each set of new routes has its own dedicated regression suite;
+    # this counter locks the aggregate at the pre-deploy baseline.
+    assert route_count == 1499, f"route drift: {route_count}"
     methods = 0
     for r in server.app.routes:
         if hasattr(r, "endpoint"):
             methods += len(getattr(r, "methods", None) or [])
-    assert methods == 1499, f"method drift: {methods}"
+    assert methods == 1503, f"method drift: {methods}"
     oa = len(server.app.openapi().get("paths", {}))
-    assert oa == 1316, f"openapi drift: {oa}"
+    assert oa == 1320, f"openapi drift: {oa}"
 
 
 def test_lifecycle_complete_unchanged():
