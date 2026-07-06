@@ -451,15 +451,26 @@ def test_v3_crew_row_autofills_crew_and_supervisor_snapshots():
 
 
 def test_public_employees_endpoint_returns_supervisor_and_division():
-    """`/api/employees` MUST project `supervisor` and `division` so the
-    frontend picker can hand them to the crew row for autofill."""
+    """`/api/employees` MUST expose `supervisor` (canonical HR write key)
+    to the frontend crew-row autofill path. TRACK 23.5 replaced the
+    per-endpoint inline projection with the shared
+    `lib.employee_identity.PUBLIC_ROSTER_PROJECTION` which projects
+    `supervisor` + all HR aliases and normalizes them into
+    `supervisor_display`. The dead `division` field (never written by
+    HR) was removed from the projection at that time. The intent of
+    this lock (supervisor reaches the frontend) is now enforced by the
+    23.5 lock envelope."""
     src = (BACKEND / "server.py").read_text(encoding="utf-8")
     idx = src.find('@api_router.get("/employees")')
     assert idx > 0
     stop = src.find("@api_router.get(", idx + 20)
     body = src[idx:stop]
-    assert '"supervisor": 1' in body
-    assert '"division": 1' in body
+    assert "PUBLIC_ROSTER_PROJECTION" in body
+    assert "normalize_employee_identity" in body
+    # Regression against the 23.4B fake-green: `supervisor` must still
+    # be part of the canonical projection.
+    proj = (BACKEND / "lib" / "employee_identity.py").read_text(encoding="utf-8")
+    assert '"supervisor": 1' in proj
 
 
 def test_crew_memory_strip_drops_stale_trade_and_flags_hr_refresh():

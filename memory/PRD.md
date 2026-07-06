@@ -10,6 +10,42 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
+## TRACK 23.5 · Employee Identity Integration Audit + Repair · 🟢 SHIPPED · CERTIFIED (2026-02-06)
+- **Mandate**: One shared normalized contract for field-facing employee identity. The operator proved the HR Employee Lifecycle UI displays canonical Trade/Role, Crew, and Supervisor for every employee, but Daily Report V3 auto-fill was silently blanking supervisor because two public roster endpoints projected different (and partially dead) alias fields. Fix at the source — no duplicate schema, no new collection, no fake data.
+- **Root cause**: `/api/hr/employee-roster` (the endpoint `fetchHrRoster()` — used by EmployeeCombo, Daily Report V3, trench pickers, every field form) projected `supervisor_name` / `supervisor_id`, which HR NEVER writes. The canonical write key is `supervisor` (see `routes/employee_lifecycle.py::EmployeeCreate`). Supervisor was silently dropped for every field picker on the platform, regardless of production HR data completeness. Additionally `/api/employees` projected dead field `division` (never written). Both endpoints re-implemented projection specs independently — no shared normalizer.
+- **Fix (surgical)**:
+  1. **New** `backend/lib/employee_identity.py` — canonical `PUBLIC_ROSTER_PROJECTION` (single Mongo projection reused by both public endpoints) + `normalize_employee_identity(doc)` additively emits the normalized display contract: `trade_role_display / crew_display / supervisor_display / department_display` (each with `*_source` traceability), plus `display_identity` via existing `masci.identity.format_employee_identity`.
+  2. `server.py :: GET /api/employees` — now uses shared projection + normalizer. Dead `division` field removed. Legacy raw keys preserved.
+  3. `server.py :: GET /api/hr/employee-roster` — now uses shared projection + normalizer. Dead `supervisor_name` / `supervisor_id` removed; canonical `supervisor` added. `contract_version` bumped `19.03` → `23.5`.
+  4. `frontend/src/lib/hrAutofill.js :: pickHrFields` — prefers `trade_role_display / crew_display / supervisor_display / display_identity` before legacy alias fallback.
+  5. `frontend/src/components/daily-report-v3/sections.jsx :: _applyHrPick` — additively snapshots `trade_role_display / crew_display / supervisor_display` on the crew row (persist alongside legacy `*_snapshot` keys).
+  6. `backend/services/ods_spine/ingest.py :: labor_fact` — payload emits `trade_role_display / crew_display / supervisor_display` so HR Time Verification / Payroll Variance / PM Intelligence can read the single-key contract.
+  7. `backend/pdf_render.py :: crew table` — Trade/Role cell + HR-meta chip prefer `*_display` keys.
+  8. **New cert fixture** `backend/scripts/seed_track_23_5_cert_employees.py` — populates preview HR data for the 5 operator-named employees using ONLY canonical write keys (`trade`, `crew`, `supervisor`). Refuses `APP_ENV=production` / `DB_NAME=masci_safety`. Idempotent.
+- **Data quality (honest disclosure)**: Preview DB has 148/399 employees with `supervisor` populated, 88/399 with `trade`, 8/399 with `crew`. All 5 named cert employees (Alec Perkins, Alejandro Escobedo, Allen Smathers, Alvaro Cia, Amanda Kapp) had blank preview HR records; the cert seed populates them with the exact values the operator quoted from production Employee Lifecycle. On production this seed is unnecessary — the values flow the moment HR completes those records.
+- **Downstream contract preservation**: Every legacy raw key still returned by both endpoints (`trade`, `role`, `crew`, `department`, `supervisor`). Every legacy `*_snapshot` key still persisted on `daily_reports.masci_crews[]` and ODS `labor_fact`. Legacy V1 reports without the new `*_display` keys render byte-identical (PDF/email fallback chain preserved).
+- **Live browser proof** (`/daily/new` · 1440×900 · 5-row typed-and-blur sweep, screenshot `/tmp/track_23_5_autofill.png`, 0 console errors):
+  - `Alec Perkins` → Trade **General Laborer** · Crew **Shop** · Sup **David Puma** · "Auto-filled from HR" badge ✓
+  - `Alejandro Escobedo` → Trade **General Laborer** · Crew **Concrete** · Sup **David Hinson** ✓
+  - `Allen Smathers` → Trade **Supervisor** · Crew **Utility** · Sup **Leo** ✓
+  - `Alvaro Cia` → Trade **1st Mill Operator** · Crew **Paving** · Sup **Jason** ✓
+  - `Amanda Kapp` → Trade **Accounting Clerk** · Crew **Accounting** · Sup **Sandy Lohrey** ✓
+- **Tests**: 18 new lock assertions in `test_track_23_5_employee_identity_audit.py` (normalizer contract · alias fallback · zero-data honesty · both endpoints project shared projection · both endpoints emit normalized contract · 5 cert employees return operator-stated values on both endpoints · Alec Perkins display_identity carries preferred name · hrAutofill prefers *_display · V3 crew row snapshots *_display · ODS labor_fact carries *_display · PDF prefers *_display · no duplicate collection · seed script refuses production · audit docs present). Regression **88/88** across 22.9C + 23.2 + 23.4A + 23.4B + 23.4C + 23.5.
+- **Docs (new)**: `/app/memory/TRACK_23_5_EMPLOYEE_IDENTITY_AUDIT.md` · `/app/memory/TRACK_23_5_EMPLOYEE_IDENTITY_FIELD_MATRIX.csv` (17 rows tracing every canonical HR field through every consumer) · `/app/memory/TRACK_23_5_EMPLOYEE_IDENTITY_FINDINGS.csv` (6 findings — 1 P0 + 3 P1 fixed, 2 P2 documented).
+- **Files changed**:
+  - **New** `/app/backend/lib/employee_identity.py`
+  - **New** `/app/backend/scripts/seed_track_23_5_cert_employees.py`
+  - **New** `/app/backend/tests/test_track_23_5_employee_identity_audit.py`
+  - `/app/backend/server.py` (`/api/employees` + `/api/hr/employee-roster` use shared projection + normalizer)
+  - `/app/backend/services/ods_spine/ingest.py` (labor_fact payload `*_display` snapshots)
+  - `/app/backend/pdf_render.py` (crew Trade cell + HR-meta chip prefer `*_display`)
+  - `/app/frontend/src/lib/hrAutofill.js` (`pickHrFields` prefers `*_display`)
+  - `/app/frontend/src/components/daily-report-v3/sections.jsx` (`_applyHrPick` snapshots `*_display`)
+  - `/app/backend/tests/test_track_23_4b_field_qa_full_sweep.py` (lock re-anchored on shared projection contract)
+- **Verdict**: 🟢 **GO** — one Employee Lifecycle source of truth · one shared HR projection · one normalized display contract flows end-to-end through Daily Report V3 → daily_reports → ODS labor_fact → PDF/email/HR Time Verification/Payroll Variance/PM Intelligence. Every field-facing picker on the platform benefits. Data-quality gaps in preview HR are honestly documented (never faked). No duplicate schema. Legacy V1 records render byte-identical.
+
+
+
 
 ## TRACK 23.2 · V3 PDF / Email court-ready output alignment · 🟢 SHIPPED · CERTIFIED (2026-02-06)
 - **Mandate**: Upgrade the Daily Report PDF to faithfully render the V3 field-completeness expansion shipped by 22.9C/23.4A-C. These PDFs are long-term operational records — they may be pulled up 6 months, 1 year, or 3 years later for disputes, claims, audits, owner questions, payroll support, safety history, production verification, and court evidence. No form rebuild, no submit-path rewrite, no notification routing change, no duplicate emails, no historical PDF breakage.

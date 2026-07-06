@@ -4600,20 +4600,27 @@ async def list_employees():
     HR Save is the only mutator of these fields. No cache. No TTL.
     """
     from routes.employee_lifecycle import _ACTIVE_STATUSES  # noqa: PLC0415
+    from lib.employee_identity import (  # noqa: PLC0415
+        PUBLIC_ROSTER_PROJECTION,
+        normalize_employee_identity,
+    )
     await _purge_expired("employees")
     canonical_active_clause = {"$or": [
         {"lifecycle_status": {"$in": list(_ACTIVE_STATUSES)}},
         {"lifecycle_status": {"$exists": False}, "is_active": {"$ne": False}},
         {"lifecycle_status": None, "is_active": {"$ne": False}},
     ]}
+    # TRACK 23.5 · canonical projection (shared with /hr/employee-roster)
+    # + normalizer emits trade_role_display / crew_display /
+    # supervisor_display / display_identity so downstream consumers
+    # (Daily Report V3, ODS labor_fact, PDF, HR Time Verification,
+    # Payroll Variance, PM Intelligence) never re-derive HR aliases.
     cursor = db.employees.find(
         {"$and": [ACTIVE_FILTER, canonical_active_clause]},
-        {"_id": 0, "id": 1, "name": 1, "preferred_name": 1,
-         "employee_id": 1, "crew": 1, "role": 1, "trade": 1,
-         "department": 1, "supervisor": 1, "division": 1,
-         "lifecycle_status": 1, "is_active": 1},
+        PUBLIC_ROSTER_PROJECTION,
     ).sort("name", 1)
-    docs = await cursor.to_list(5000)
+    raw_docs = await cursor.to_list(5000)
+    docs = [normalize_employee_identity(d) for d in raw_docs]
     return {"items": docs, "count": len(docs)}
 
 
@@ -4644,6 +4651,10 @@ async def hr_employee_roster(
     SSN, no DOB. Field workflows never receive private HR data.
     """
     from routes.employee_lifecycle import _ACTIVE_STATUSES  # noqa: PLC0415
+    from lib.employee_identity import (  # noqa: PLC0415
+        PUBLIC_ROSTER_PROJECTION,
+        normalize_employee_identity,
+    )
     await _purge_expired("employees")
     canonical_active_clause = {"$or": [
         {"lifecycle_status": {"$in": list(_ACTIVE_STATUSES)}},
@@ -4663,14 +4674,18 @@ async def hr_employee_roster(
             {"name": q_re}, {"preferred_name": q_re},
             {"employee_id": q_re}, {"role": q_re},
         ]})
+    # TRACK 23.5 · shared projection with /api/employees + shared
+    # normalizer so both endpoints emit the same field contract.
+    # Previously this endpoint projected `supervisor_name` /
+    # `supervisor_id` which HR never writes (canonical write key is
+    # `supervisor`) — supervisor was silently dropped for every
+    # field picker. FIXED.
     cursor = db.employees.find(
         {"$and": clauses},
-        {"_id": 0, "id": 1, "name": 1, "preferred_name": 1,
-         "employee_id": 1, "crew": 1, "role": 1, "trade": 1,
-         "department": 1, "lifecycle_status": 1, "is_active": 1,
-         "supervisor_name": 1, "supervisor_id": 1, "updated_at": 1},
+        PUBLIC_ROSTER_PROJECTION,
     ).sort("name", 1).limit(limit)
-    docs = await cursor.to_list(limit)
+    raw_docs = await cursor.to_list(limit)
+    docs = [normalize_employee_identity(d) for d in raw_docs]
     # Provide a derived `active` boolean so the frontend can render an
     # unambiguous chip without re-deriving the contract.
     for d in docs:
@@ -4682,7 +4697,7 @@ async def hr_employee_roster(
     return {
         "items": docs,
         "count": len(docs),
-        "contract_version": "19.03",
+        "contract_version": "23.5",
         "filter": {
             "active_only": not include_inactive,
             "active_statuses": sorted(_ACTIVE_STATUSES),

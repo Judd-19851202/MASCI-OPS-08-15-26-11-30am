@@ -79,6 +79,12 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
       crew_snapshot: hr.crew,
       division_snapshot: hr.crew,
       supervisor_snapshot: hr.supervisor,
+      // TRACK 23.5 · normalized display snapshots. Downstream (ODS
+      // labor_fact / PDF / HR Time Verification / Payroll Variance /
+      // PM Intelligence) reads these keys directly.
+      trade_role_display: hr.trade,
+      crew_display: hr.crew,
+      supervisor_display: hr.supervisor,
     });
   };
 

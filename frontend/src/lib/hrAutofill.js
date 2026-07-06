@@ -1,5 +1,13 @@
-// TRACK 23.4C · HR-autofill resolver for the Daily Report V3 crew row.
+// TRACK 23.5 · Employee Identity Integration — normalized contract.
+// The canonical HR roster endpoints (`GET /api/employees` and
+// `GET /api/hr/employee-roster`) now emit `trade_role_display`,
+// `crew_display`, `supervisor_display`, `display_identity` computed
+// server-side from the Employee Lifecycle write schema. This helper
+// prefers those normalized keys, then falls back through the legacy
+// aliases so historical rosters (older ODS reads, cached responses)
+// still resolve.
 //
+// TRACK 23.4C legacy header:
 // EmployeeCombo fires `onPick` only when the user clicks a row in the
 // dropdown. If the operator types the name and blurs (or presses
 // Enter) without clicking, no HR record is ever passed back to the
@@ -7,12 +15,6 @@
 // the current HR roster, it resolves the best matching employee and
 // returns the same {trade, crew, supervisor, employee_id, ...} shape
 // the pick handler would receive.
-//
-// Also normalizes the many HR field aliases that different eras of
-// the Employee Master shipped with: trade / role / title / position /
-// classification / department for the Trade field; crew / division /
-// department for the Crew field; supervisor / supervisor_name for
-// the Supervisor field.
 
 const _norm = (s) => (s || "").toString().trim().toLowerCase();
 
@@ -20,8 +22,11 @@ export function pickHrFields(emp) {
   if (!emp || typeof emp !== "object") {
     return { trade: "", crew: "", supervisor: "", employee_id: "" };
   }
+  // TRACK 23.5 · prefer normalized display keys, fall back to legacy
+  // aliases for historical safety.
   const trade =
-    emp.trade
+    emp.trade_role_display
+    || emp.trade
     || emp.role
     || emp.title
     || emp.position
@@ -33,13 +38,24 @@ export function pickHrFields(emp) {
   // only when it wasn't consumed by the Trade branch above (rare —
   // typically HR uses either trade OR department, not both).
   const crew =
-    emp.crew
+    emp.crew_display
+    || emp.crew
     || emp.division
     || (trade ? "" : emp.department)
     || "";
-  const supervisor = emp.supervisor || emp.supervisor_name || "";
+  const supervisor =
+    emp.supervisor_display
+    || emp.supervisor
+    || emp.supervisor_name
+    || "";
   const employee_id = emp.employee_id || emp.id || "";
-  const name = emp.name || emp.legal_name || emp.display_name || emp.preferred_name || "";
+  const name =
+    emp.display_identity
+    || emp.name
+    || emp.legal_name
+    || emp.display_name
+    || emp.preferred_name
+    || "";
   return {
     name,
     employee_id,

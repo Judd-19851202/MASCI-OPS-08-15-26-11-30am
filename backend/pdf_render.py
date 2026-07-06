@@ -869,12 +869,14 @@ def _render_daily(d: Dict[str, Any]) -> str:
             except (TypeError, ValueError):
                 pass
             wp = c.get("work_performed") or ""
-            # TRACK 23.2 · HR meta chip inline (Crew · Sup) so the PDF
-            # captures the operational-supervision context of every
-            # labor row without exploding the column count.
+            # TRACK 23.5 · HR meta chip prefers *_display keys so PDF
+            # captures the same trade/crew/supervisor label operators
+            # saw at submit time, regardless of alias drift.
             hr_meta_bits = []
-            if c.get("crew_snapshot"): hr_meta_bits.append(f"Crew: {c.get('crew_snapshot')}")
-            if c.get("supervisor_snapshot"): hr_meta_bits.append(f"Sup: {c.get('supervisor_snapshot')}")
+            _crew_meta = c.get("crew_display") or c.get("crew_snapshot")
+            _sup_meta = c.get("supervisor_display") or c.get("supervisor_snapshot")
+            if _crew_meta: hr_meta_bits.append(f"Crew: {_crew_meta}")
+            if _sup_meta: hr_meta_bits.append(f"Sup: {_sup_meta}")
             hr_meta_line = " · ".join(hr_meta_bits)
             sig = _crew_schedule_signature(c)
             include_inline = (common_sig is None) or (sig != common_sig)
@@ -905,7 +907,15 @@ def _render_daily(d: Dict[str, Any]) -> str:
             body_rows.append([
                 c.get("name") or "",
                 c.get("employee_id") or "",
-                c.get("trade") or c.get("role") or c.get("trade_snapshot") or "",
+                # TRACK 23.5 · prefer trade_role_display so alias drift
+                # in the raw payload never blanks the Trade/Role cell.
+                (
+                    c.get("trade_role_display")
+                    or c.get("trade")
+                    or c.get("role")
+                    or c.get("trade_snapshot")
+                    or ""
+                ),
                 _fmt_time_12h(c.get("start_time")),
                 _fmt_time_12h(c.get("stop_time")),
                 str(c.get("lunch_minutes") or "") + (" min" if c.get("lunch_minutes") else ""),

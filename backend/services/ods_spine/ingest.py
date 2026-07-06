@@ -422,6 +422,26 @@ def _build_facts_from_dr_v1_report(rec: Dict[str, Any]) -> List[Dict[str, Any]]:
             "trade_snapshot": crew.get("trade_snapshot") or crew.get("trade") or "",
             "crew_snapshot": crew.get("crew_snapshot") or crew.get("division_snapshot") or "",
             "supervisor_snapshot": crew.get("supervisor_snapshot") or "",
+            # TRACK 23.5 · normalized display snapshots. HR Time
+            # Verification / Payroll Variance / PM Intelligence read
+            # these keys directly so they never re-derive HR aliases.
+            "trade_role_display": (
+                crew.get("trade_role_display")
+                or crew.get("trade_snapshot")
+                or crew.get("trade")
+                or ""
+            ),
+            "crew_display": (
+                crew.get("crew_display")
+                or crew.get("crew_snapshot")
+                or crew.get("division_snapshot")
+                or ""
+            ),
+            "supervisor_display": (
+                crew.get("supervisor_display")
+                or crew.get("supervisor_snapshot")
+                or ""
+            ),
             "hours": coerce_number(crew.get("hours")),
             "crew_size": count,
             "labor_hours": coerce_number(crew.get("hours")) * count if crew.get("hours") else 0,
