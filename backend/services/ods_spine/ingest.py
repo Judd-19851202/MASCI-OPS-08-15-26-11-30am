@@ -388,27 +388,49 @@ def _build_facts_from_dr_v1_report(rec: Dict[str, Any]) -> List[Dict[str, Any]]:
     for i, crew in enumerate(rec.get("masci_crews") or []):
         if not isinstance(crew, dict):
             continue
-        # V1 uses a single row per trade with `count` and shared `hours`.
-        # Emit ONE labor_fact per crew row (per-member expansion would
-        # inflate labor_hours). PM dashboards multiply hours × count.
+        # V1 = one row per trade with `count` + shared `hours`.
+        # V3 = one row per individual employee with `name` + `employee_id`
+        # + `start_time` / `stop_time` / `lunch_minutes` (crew_size = 1).
+        # Both shapes emit ONE labor_fact per row so total labor_hours is
+        # sum-safe across formats.
         count = crew.get("count") or crew.get("crew_size") or 1
         try:
             count = int(count)
         except (TypeError, ValueError):
             count = 1
-        item_id = f"crew:{i}:{crew.get('trade') or i}"
+        # V3 individual rows never carry `count` → treat as 1 person.
+        if crew.get("name") and not crew.get("count") and not crew.get("crew_size"):
+            count = 1
+        employee_id = crew.get("employee_id") or None
+        person_name = (
+            crew.get("name")
+            or crew.get("person_name")
+            or crew.get("foreman")
+            or ""
+        )
+        item_id = f"crew:{i}:{crew.get('trade') or crew.get('name') or i}"
         f = _base(src_type, src_id, src_ver, item_id, pid, date, submitted_by, "labor_fact")
-        f["source_status"] = "partial"  # V1 crew rows don't name members
+        # V3 rows with resolved employee_id are `verified` — HR / payroll
+        # can consume them without further identity mapping.
+        f["source_status"] = "verified" if employee_id else "partial"
         f["payload"] = {
-            "employee_id": None,
-            "person_name": crew.get("foreman") or "",
+            "employee_id": employee_id,
+            "person_name": person_name,
+            "employee_name_snapshot": crew.get("employee_name_snapshot") or person_name,
             "company": "MASCI",
             "role": crew.get("trade") or "",
+            "trade_snapshot": crew.get("trade_snapshot") or crew.get("trade") or "",
+            "crew_snapshot": crew.get("crew_snapshot") or crew.get("division_snapshot") or "",
+            "supervisor_snapshot": crew.get("supervisor_snapshot") or "",
             "hours": coerce_number(crew.get("hours")),
             "crew_size": count,
             "labor_hours": coerce_number(crew.get("hours")) * count if crew.get("hours") else 0,
+            "start_time": crew.get("start_time") or "",
+            "stop_time": crew.get("stop_time") or "",
+            "lunch_minutes": coerce_number(crew.get("lunch_minutes")),
+            "cost_code": crew.get("cost_code") or "",
             "work_performed": crew.get("work_performed") or "",
-            "verified_identity": False,
+            "verified_identity": bool(employee_id),
         }
         facts.append(f)
 
@@ -476,12 +498,52 @@ def _build_facts_from_dr_v1_report(rec: Dict[str, Any]) -> List[Dict[str, Any]]:
         item_id = f"material:{i}:{mat.get('id') or i}"
         f = _base(src_type, src_id, src_ver, item_id, pid, date, submitted_by, "material_fact")
         f["source_status"] = "partial"
+        # TRACK 23.4B · Persist BOTH the supplier and the carrier so the
+        # spine can answer "who supplied it?" and "who hauled it?" for
+        # every load. IDs + name snapshots are stored so future ERP joins
+        # + display-text drift are both safe.
         f["payload"] = {
+            "flow": "inbound",
             "material": mat.get("material") or mat.get("name") or "",
             "quantity": coerce_number(mat.get("quantity") or mat.get("qty")),
             "unit": mat.get("unit") or "",
             "supplier": mat.get("supplier") or mat.get("vendor") or "",
-            "ticket": mat.get("ticket") or "",
+            "supplier_id": mat.get("supplier_id") or "",
+            "supplier_name_snapshot": mat.get("supplier_name_snapshot") or "",
+            "carrier": mat.get("carrier") or "",
+            "carrier_id": mat.get("carrier_id") or "",
+            "carrier_name_snapshot": mat.get("carrier_name_snapshot") or "",
+            "ticket": mat.get("ticket") or mat.get("ticket_number") or "",
+        }
+        facts.append(f)
+
+    # ── Outbound material facts (haul-off tickets)
+    # TRACK 23.4B · Every hauled-off load must be answerable by carrier
+    # + destination in ODS. Historical reports without `outbound_materials`
+    # continue to emit zero rows here — no regression.
+    for i, out in enumerate(rec.get("outbound_materials") or []):
+        if not isinstance(out, dict):
+            continue
+        item_id = f"outbound:{i}:{out.get('id') or i}"
+        f = _base(src_type, src_id, src_ver, item_id, pid, date, submitted_by, "material_fact")
+        f["source_status"] = "partial"
+        f["payload"] = {
+            "flow": "outbound",
+            "material": out.get("material") or out.get("description") or "",
+            "quantity": coerce_number(out.get("quantity") or out.get("qty")),
+            "unit": out.get("unit") or "",
+            "destination": out.get("destination") or "",
+            "carrier": out.get("hauler") or out.get("carrier") or "",
+            "carrier_id": out.get("hauler_id") or out.get("carrier_id") or "",
+            "carrier_name_snapshot": (
+                out.get("hauler_name_snapshot")
+                or out.get("carrier_name_snapshot")
+                or ""
+            ),
+            "ticket": out.get("ticket_or_manifest")
+            or out.get("manifest_number")
+            or out.get("ticket_number")
+            or "",
         }
         facts.append(f)
 
@@ -524,6 +586,40 @@ def _build_facts_from_dr_v1_report(rec: Dict[str, Any]) -> List[Dict[str, Any]]:
             "reason": rec.get("schedule_delays_notes") or "Schedule delay reported",
             "impact": "med",
             "schedule_risk": True,
+        }
+        facts.append(f)
+
+    # ── V3 constraints[] rows → one delay_fact per row.
+    # TRACK 23.4B · V3 uses a chip flow that pushes into `constraints[]`
+    # (weather / material / equipment / utility / inspection / owner_eng
+    # / subcontractor / traffic_mot / extra_work / other). Emit each as
+    # its own delay_fact so PM impact analytics + downstream schedule
+    # linkage never lose a row. Skip constraint types already emitted by
+    # the top-level weather/schedule branches to avoid double-counting.
+    _already = {"weather"} if _v1_yesno(rec.get("weather_impact")) else set()
+    for i, con in enumerate(rec.get("constraints") or []):
+        if not isinstance(con, dict):
+            continue
+        ctype = (con.get("constraint_type") or "other").lower()
+        if ctype in _already:
+            continue
+        hours_impact = coerce_number(con.get("hours_impact"))
+        item_id = f"constraint:{i}:{ctype}"
+        f = _base(src_type, src_id, src_ver, item_id, pid, date, submitted_by, "delay_fact")
+        f["source_status"] = "partial"
+        # Impact severity gently scales with hours if provided.
+        if hours_impact and hours_impact >= 4:
+            sev = "high"
+        elif hours_impact and hours_impact >= 1:
+            sev = "med"
+        else:
+            sev = "low"
+        f["payload"] = {
+            "delay_category": ctype,
+            "reason": con.get("notes") or f"{ctype.replace('_',' ').title()} impact reported",
+            "hours_impact": hours_impact,
+            "impact": sev,
+            "schedule_risk": ctype in ("weather", "utility", "material", "equipment", "extra_work", "subcontractor"),
         }
         facts.append(f)
 

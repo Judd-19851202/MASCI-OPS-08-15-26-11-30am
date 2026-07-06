@@ -201,13 +201,17 @@ def test_crew_memory_still_strips_hours_from_restore_yesterday():
     identity — never their times, hours, or lunch. Payroll cannot
     ever be silently pre-populated from yesterday."""
     src = _read(CREW_MEMORY)
-    # crew strip returns only { name, trade }.
+    # crew strip returns only { name, employee_id, _needs_hr_refresh }.
     assert 'function _stripCrewRow' in src
     m = re.search(r"function _stripCrewRow\(row\)\s*\{(.*?)\n\}\n", src, re.DOTALL)
     assert m
     body = m.group(1)
+    # Extract only the return-block content (avoid matching prose in comments).
+    rm = re.search(r"return\s*\{([^}]*)\}", body, re.DOTALL)
+    assert rm, "stripCrewRow return block not found."
+    ret = rm.group(1)
     for banned in ("start_time", "stop_time", "lunch_minutes", "hours"):
-        assert banned not in body, (
+        assert banned not in ret, (
             f"crewMemory._stripCrewRow leaks `{banned}` back into "
             "restore-yesterday — payroll data integrity broken."
         )

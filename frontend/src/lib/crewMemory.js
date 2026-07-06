@@ -57,9 +57,70 @@ function _writeRaw(snapshot) {
 function _stripCrewRow(row) {
   if (!row || typeof row !== "object") return null;
   const name = (row.name || "").trim();
-  const trade = (row.trade || "").trim();
   if (!name) return null;
-  return { name, trade };
+  // TRACK 23.4B / HR autofill · restore-yesterday MUST NOT carry stale
+  // trade / crew / supervisor from yesterday's draft — the HR record
+  // could have changed (promotion, crew reassignment, supervisor
+  // swap). Keep only the employee identity + a `_needs_hr_refresh`
+  // flag so the form re-hydrates from the current Employee Master on
+  // restore. Times / hours / lunch already stripped by contract.
+  return {
+    name,
+    employee_id: (row.employee_id || "").trim(),
+    _needs_hr_refresh: true,
+  };
+}
+
+/**
+ * TRACK 23.4B / HR autofill · post-restore re-hydration.
+ *
+ * Given a crews[] array (typically the output of applySetupSnapshot)
+ * and the current fresh employee master list, refresh each row's
+ * trade / crew / supervisor from HR. Only touches rows tagged
+ * `_needs_hr_refresh` so today's manually-typed customs are safe.
+ */
+export function refreshCrewFromEmployeeMaster(crews, employeeList) {
+  if (!Array.isArray(crews) || crews.length === 0) return crews || [];
+  const items = Array.isArray(employeeList)
+    ? employeeList
+    : (employeeList?.items || []);
+  const byId = new Map();
+  const byName = new Map();
+  for (const emp of items) {
+    if (emp?.employee_id) byId.set(String(emp.employee_id), emp);
+    if (emp?.id) byId.set(String(emp.id), emp);
+    if (emp?.name) byName.set(emp.name.toLowerCase(), emp);
+  }
+  return crews.map((c) => {
+    if (!c?._needs_hr_refresh) return c;
+    const key = c.employee_id ? String(c.employee_id) : "";
+    const emp = (key && byId.get(key))
+      || byName.get((c.name || "").toLowerCase())
+      || null;
+    if (!emp) {
+      // Row references someone not on today's roster (offboarded /
+      // renamed). Keep identity + drop the refresh flag so we don't
+      // loop; trade stays blank so the user notices.
+      const { _needs_hr_refresh: _stale, ...rest } = c;
+      return rest;
+    }
+    const _trade = emp.trade || emp.role || emp.department || emp.classification || "";
+    const _crew = emp.crew || emp.division || "";
+    const _sup = emp.supervisor || "";
+    const { _needs_hr_refresh: _stale, ...rest } = c;
+    return {
+      ...rest,
+      name: emp.name || c.name,
+      employee_id: emp.employee_id || emp.id || c.employee_id || "",
+      employee_name_snapshot: emp.name || c.name || "",
+      trade: _trade || rest.trade || "",
+      trade_snapshot: _trade || rest.trade || "",
+      trade_autofilled: !!_trade,
+      crew_snapshot: _crew,
+      division_snapshot: _crew,
+      supervisor_snapshot: _sup,
+    };
+  });
 }
 
 function _stripSubRow(row) {

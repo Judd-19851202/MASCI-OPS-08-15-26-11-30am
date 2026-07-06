@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { computeCrewHours, grossNetPreview, sumCrewHours, sumEquipmentHours }
   from "@/lib/crewHoursMath";
+import { UnitCombo } from "@/components/daily-report-v3/UnitCombo";
 import { Link } from "react-router-dom";
 
 // ── Shared section shell ──────────────────────────────────────────
@@ -25,10 +26,10 @@ export function SectionShell({ step, title, testId, right = null, children }) {
   return (
     <section
       data-testid={testId}
-      className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-7 shadow-sm"
+      className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 sm:p-7 shadow-sm"
     >
       <header className="mb-5 flex items-center justify-between gap-4">
-        <div>
+        <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-wider text-emerald-600">
             {step}
           </p>
@@ -36,7 +37,7 @@ export function SectionShell({ step, title, testId, right = null, children }) {
         </div>
         {right}
       </header>
-      {children}
+      <div className="min-w-0">{children}</div>
     </section>
   );
 }
@@ -168,23 +169,68 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
               <div className="grid gap-2 sm:grid-cols-[2fr_1fr_auto]">
                 <EmployeeCombo
                   value={c.name || ""}
-                  onChange={(name, meta) =>
+                  onChange={(name) => updateCrew(i, { name })}
+                  onPick={(emp) => {
+                    // TRACK 23.4B / HR autofill · Employee Master is
+                    // gospel. Pull trade/role AND crew/division AND
+                    // supervisor into the row + store snapshots so
+                    // yesterday's stale data never rewrites today's
+                    // HR truth. Manual override still allowed; only
+                    // clears the `_autofilled` flags, not the values.
+                    const _trade = emp?.trade
+                      || emp?.role
+                      || emp?.department
+                      || emp?.classification
+                      || "";
+                    const _crew = emp?.crew || emp?.division || "";
+                    const _sup = emp?.supervisor || "";
                     updateCrew(i, {
-                      name,
-                      employee_id: meta?.employee_id,
-                      trade: meta?.trade || c.trade,
-                    })
-                  }
+                      name: emp?.name || c.name,
+                      employee_id: emp?.employee_id || emp?.id || "",
+                      employee_name_snapshot: emp?.name || c.name || "",
+                      trade: _trade || c.trade || "",
+                      trade_snapshot: _trade || c.trade || "",
+                      trade_autofilled: !!_trade,
+                      crew_snapshot: _crew,
+                      division_snapshot: _crew,
+                      supervisor_snapshot: _sup,
+                    });
+                  }}
                   data-testid={`dr-v3-crew-name-${i}`}
                 />
-                <input
-                  type="text"
-                  placeholder="Trade"
-                  value={c.trade || ""}
-                  onChange={(e) => updateCrew(i, { trade: e.target.value })}
-                  className="rounded-md border border-slate-300 px-2.5 py-2 text-sm"
-                  data-testid={`dr-v3-crew-trade-${i}`}
-                />
+                <div className="min-w-0">
+                  <input
+                    type="text"
+                    placeholder={
+                      c.name && !c.trade
+                        ? "Trade not on employee record"
+                        : "Trade"
+                    }
+                    value={c.trade || ""}
+                    onChange={(e) => updateCrew(i, { trade: e.target.value, trade_snapshot: e.target.value, trade_autofilled: false })}
+                    className="w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm"
+                    data-testid={`dr-v3-crew-trade-${i}`}
+                  />
+                  {c.trade && c.trade_autofilled && (
+                    <p
+                      className="mt-0.5 text-[11px] text-emerald-700"
+                      data-testid={`dr-v3-crew-trade-autofill-${i}`}
+                    >
+                      Auto-filled from HR
+                    </p>
+                  )}
+                  {(c.crew_snapshot || c.supervisor_snapshot) && (
+                    <p
+                      className="mt-0.5 truncate text-[11px] text-slate-500"
+                      data-testid={`dr-v3-crew-hr-meta-${i}`}
+                    >
+                      {[
+                        c.crew_snapshot && `Crew: ${c.crew_snapshot}`,
+                        c.supervisor_snapshot && `Sup: ${c.supervisor_snapshot}`,
+                      ].filter(Boolean).join(" · ")}
+                    </p>
+                  )}
+                </div>
                 <button
                   type="button"
                   className={rowBtn}
@@ -782,7 +828,7 @@ export function SectionWorkProduction({ data, patch, costCodes }) {
             data-testid={`dr-v3-prod-row-${i}`}
             className="rounded-xl border border-slate-200 p-3"
           >
-            <div className="grid gap-2 sm:grid-cols-[2fr_1fr_1fr_auto]">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,3fr)_minmax(0,1fr)_minmax(0,1.4fr)_auto]">
               <input
                 type="text"
                 placeholder="What was installed / performed"
@@ -792,7 +838,7 @@ export function SectionWorkProduction({ data, patch, costCodes }) {
                   next[i] = { ...p, description: e.target.value };
                   patch({ production: next });
                 }}
-                className="rounded-md border border-slate-300 px-2.5 py-2 text-sm"
+                className="w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm"
                 data-testid={`dr-v3-prod-desc-${i}`}
               />
               <input
@@ -805,33 +851,77 @@ export function SectionWorkProduction({ data, patch, costCodes }) {
                   next[i] = { ...p, quantity: parseFloat(e.target.value) || 0 };
                   patch({ production: next });
                 }}
-                className="rounded-md border border-slate-300 px-2.5 py-2 text-sm"
+                className="w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm"
                 data-testid={`dr-v3-prod-qty-${i}`}
               />
-              <select
-                value={p.unit || "LF"}
-                onChange={(e) => {
+              <UnitCombo
+                value={p.unit || ""}
+                onChange={(v) => {
                   const next = prod.slice();
-                  next[i] = { ...p, unit: e.target.value };
+                  next[i] = { ...p, unit: v, unit_snapshot: v };
                   patch({ production: next });
                 }}
-                className="rounded-md border border-slate-300 bg-white px-2 py-2 text-sm"
-                data-testid={`dr-v3-prod-unit-${i}`}
-              >
-                {["LF", "SY", "SF", "CY", "TN", "EA", "OTHER"].map((u) => (
-                  <option key={u} value={u}>
-                    {u}
-                  </option>
-                ))}
-              </select>
+                onPick={(u) => {
+                  const next = prod.slice();
+                  next[i] = { ...p, unit: u.label, unit_snapshot: u.label, unit_code: u.code };
+                  patch({ production: next });
+                }}
+                testId={`dr-v3-prod-unit-${i}`}
+              />
               <button
                 type="button"
-                className={rowBtn}
+                className={rowBtn + " justify-self-end shrink-0"}
                 onClick={() => patch({ production: prod.filter((_, j) => j !== i) })}
                 data-testid={`dr-v3-prod-remove-${i}`}
+                aria-label="Remove production row"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
+            </div>
+            {/* TRACK 23.4B · Station from/to + percent complete — critical
+                for linear heavy-civil work (road, pipeline, MOT). Feeds
+                PM linear-progress KPIs and downstream schedule linkage. */}
+            <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
+              <input
+                type="text"
+                placeholder="Sta from (e.g. 12+00)"
+                value={p.station_from || ""}
+                onChange={(e) => {
+                  const next = prod.slice();
+                  next[i] = { ...p, station_from: e.target.value };
+                  patch({ production: next });
+                }}
+                className="w-full min-w-0 rounded-md border border-slate-200 px-2.5 py-1.5 text-sm"
+                data-testid={`dr-v3-prod-sta-from-${i}`}
+              />
+              <input
+                type="text"
+                placeholder="Sta to (e.g. 15+50)"
+                value={p.station_to || ""}
+                onChange={(e) => {
+                  const next = prod.slice();
+                  next[i] = { ...p, station_to: e.target.value };
+                  patch({ production: next });
+                }}
+                className="w-full min-w-0 rounded-md border border-slate-200 px-2.5 py-1.5 text-sm"
+                data-testid={`dr-v3-prod-sta-to-${i}`}
+              />
+              <input
+                type="number"
+                min="0"
+                max="100"
+                step="1"
+                placeholder="% complete"
+                value={p.percent_complete ?? ""}
+                onChange={(e) => {
+                  const next = prod.slice();
+                  const v = e.target.value === "" ? "" : Math.max(0, Math.min(100, parseInt(e.target.value, 10) || 0));
+                  next[i] = { ...p, percent_complete: v };
+                  patch({ production: next });
+                }}
+                className="w-full min-w-0 rounded-md border border-slate-200 px-2.5 py-1.5 text-sm"
+                data-testid={`dr-v3-prod-percent-${i}`}
+              />
             </div>
             <input
               type="text"
@@ -842,7 +932,7 @@ export function SectionWorkProduction({ data, patch, costCodes }) {
                 next[i] = { ...p, notes: e.target.value };
                 patch({ production: next });
               }}
-              className="mt-2 w-full rounded-md border border-slate-200 px-2.5 py-1.5 text-sm"
+              className="mt-2 w-full min-w-0 rounded-md border border-slate-200 px-2.5 py-1.5 text-sm"
               data-testid={`dr-v3-prod-notes-${i}`}
             />
             {hasCodes && (
@@ -898,17 +988,18 @@ export function SectionMaterials({ data, patch, costCodes }) {
         </div>
         {mats.map((m, i) => (
           <div key={i} data-testid={`dr-v3-mat-row-${i}`} className="rounded-xl border border-slate-200 p-3">
-            <div className="grid gap-2 sm:grid-cols-[2fr_1fr_1fr_2fr_auto]">
+            {/* Row 1 · Material · Qty · Unit · Delete */}
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,3fr)_minmax(0,1fr)_minmax(0,1.4fr)_auto]">
               <input
                 type="text"
-                placeholder="Description"
+                placeholder="Material"
                 value={m.description || ""}
                 onChange={(e) => {
                   const next = mats.slice();
                   next[i] = { ...m, description: e.target.value };
                   patch({ materials: next });
                 }}
-                className="rounded-md border border-slate-300 px-2.5 py-2 text-sm"
+                className="w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm"
                 data-testid={`dr-v3-mat-desc-${i}`}
               />
               <input
@@ -921,40 +1012,63 @@ export function SectionMaterials({ data, patch, costCodes }) {
                   next[i] = { ...m, quantity: parseFloat(e.target.value) || 0 };
                   patch({ materials: next });
                 }}
-                className="rounded-md border border-slate-300 px-2.5 py-2 text-sm"
+                className="w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm"
                 data-testid={`dr-v3-mat-qty-${i}`}
               />
-              <input
-                type="text"
-                placeholder="Unit"
+              <UnitCombo
                 value={m.unit || ""}
-                onChange={(e) => {
-                  const next = mats.slice();
-                  next[i] = { ...m, unit: e.target.value };
-                  patch({ materials: next });
-                }}
-                className="rounded-md border border-slate-300 px-2.5 py-2 text-sm"
-                data-testid={`dr-v3-mat-unit-${i}`}
-              />
-              <SupplierCombo
-                value={m.supplier || ""}
                 onChange={(v) => {
                   const next = mats.slice();
-                  next[i] = { ...m, supplier: v };
+                  next[i] = { ...m, unit: v, unit_snapshot: v };
                   patch({ materials: next });
                 }}
-                data-testid={`dr-v3-mat-supplier-${i}`}
+                onPick={(u) => {
+                  const next = mats.slice();
+                  next[i] = { ...m, unit: u.label, unit_snapshot: u.label, unit_code: u.code };
+                  patch({ materials: next });
+                }}
+                testId={`dr-v3-mat-unit-${i}`}
               />
               <button
                 type="button"
-                className={rowBtn}
+                className={rowBtn + " justify-self-end shrink-0"}
                 onClick={() => patch({ materials: mats.filter((_, j) => j !== i) })}
                 data-testid={`dr-v3-mat-remove-${i}`}
+                aria-label="Remove material row"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
             </div>
-            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+
+            {/* Row 2 · Carrier — canonical SupplierCombo (single source of truth) */}
+            <div className="mt-2 min-w-0">
+              <label className="mb-1 block text-xs font-medium text-slate-600">
+                Carrier <span className="text-red-600">*</span>
+              </label>
+              <SupplierCombo
+                value={m.carrier || ""}
+                onChange={(v) => {
+                  const next = mats.slice();
+                  next[i] = { ...m, carrier: v };
+                  patch({ materials: next });
+                }}
+                onPick={(sup) => {
+                  const next = mats.slice();
+                  next[i] = {
+                    ...m,
+                    carrier: sup?.name || m.carrier,
+                    carrier_id: sup?.id || sup?.supplier_id || "",
+                    carrier_name_snapshot: sup?.name || m.carrier || "",
+                  };
+                  patch({ materials: next });
+                }}
+                placeholder="Pick carrier — or type one-time hauler"
+                data-testid={`dr-v3-mat-carrier-${i}`}
+              />
+            </div>
+
+            {/* Row 3 · Ticket # + Photos */}
+            <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
               <input
                 type="text"
                 placeholder="Ticket #"
@@ -964,19 +1078,21 @@ export function SectionMaterials({ data, patch, costCodes }) {
                   next[i] = { ...m, ticket_number: e.target.value };
                   patch({ materials: next });
                 }}
-                className="rounded-md border border-slate-200 px-2.5 py-1.5 text-sm"
+                className="w-full min-w-0 rounded-md border border-slate-200 px-2.5 py-1.5 text-sm"
                 data-testid={`dr-v3-mat-ticket-${i}`}
               />
-              <PhotoUpload
-                value={m.ticket_photos || []}
-                onChange={(next) => {
-                  const rows = mats.slice();
-                  rows[i] = { ...m, ticket_photos: next };
-                  patch({ materials: rows });
-                }}
-                placeholderLabel="Add ticket photo"
-                testIdBase={`dr-v3-mat-ticketphoto-${i}`}
-              />
+              <div className="min-w-0">
+                <PhotoUpload
+                  value={m.ticket_photos || []}
+                  onChange={(next) => {
+                    const rows = mats.slice();
+                    rows[i] = { ...m, ticket_photos: next };
+                    patch({ materials: rows });
+                  }}
+                  placeholderLabel="Add ticket photo"
+                  testIdBase={`dr-v3-mat-ticketphoto-${i}`}
+                />
+              </div>
             </div>
             {hasCodes && (
               <CostCodePicker
@@ -1017,7 +1133,8 @@ export function SectionMaterials({ data, patch, costCodes }) {
         </div>
         {outs.map((o, i) => (
           <div key={i} data-testid={`dr-v3-out-row-${i}`} className="rounded-xl border border-slate-200 p-3">
-            <div className="grid gap-2 sm:grid-cols-[2fr_1fr_1fr_2fr_auto]">
+            {/* Row 1 · Material · Qty · Unit · Delete */}
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,3fr)_minmax(0,1fr)_minmax(0,1.4fr)_auto]">
               <input
                 type="text"
                 placeholder="Material"
@@ -1027,7 +1144,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
                   next[i] = { ...o, material: e.target.value };
                   patch({ outbound_materials: next });
                 }}
-                className="rounded-md border border-slate-300 px-2.5 py-2 text-sm"
+                className="w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm"
                 data-testid={`dr-v3-out-mat-${i}`}
               />
               <input
@@ -1040,21 +1157,63 @@ export function SectionMaterials({ data, patch, costCodes }) {
                   next[i] = { ...o, quantity: parseFloat(e.target.value) || 0 };
                   patch({ outbound_materials: next });
                 }}
-                className="rounded-md border border-slate-300 px-2.5 py-2 text-sm"
+                className="w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm"
                 data-testid={`dr-v3-out-qty-${i}`}
               />
-              <input
-                type="text"
-                placeholder="Unit"
+              <UnitCombo
                 value={o.unit || ""}
-                onChange={(e) => {
+                onChange={(v) => {
                   const next = outs.slice();
-                  next[i] = { ...o, unit: e.target.value };
+                  next[i] = { ...o, unit: v, unit_snapshot: v };
                   patch({ outbound_materials: next });
                 }}
-                className="rounded-md border border-slate-300 px-2.5 py-2 text-sm"
-                data-testid={`dr-v3-out-unit-${i}`}
+                onPick={(u) => {
+                  const next = outs.slice();
+                  next[i] = { ...o, unit: u.label, unit_snapshot: u.label, unit_code: u.code };
+                  patch({ outbound_materials: next });
+                }}
+                testId={`dr-v3-out-unit-${i}`}
               />
+              <button
+                type="button"
+                className={rowBtn + " justify-self-end shrink-0"}
+                onClick={() => patch({ outbound_materials: outs.filter((_, j) => j !== i) })}
+                data-testid={`dr-v3-out-remove-${i}`}
+                aria-label="Remove outbound row"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Row 2 · Carrier (SupplierCombo, canonical vendor master) */}
+            <div className="mt-2 min-w-0">
+              <label className="mb-1 block text-xs font-medium text-slate-600">
+                Carrier <span className="text-red-600">*</span>
+              </label>
+              <SupplierCombo
+                value={o.hauler || ""}
+                onChange={(v) => {
+                  const next = outs.slice();
+                  next[i] = { ...o, hauler: v };
+                  patch({ outbound_materials: next });
+                }}
+                onPick={(sup) => {
+                  const next = outs.slice();
+                  next[i] = {
+                    ...o,
+                    hauler: sup?.name || o.hauler,
+                    hauler_id: sup?.id || sup?.supplier_id || "",
+                    hauler_name_snapshot: sup?.name || o.hauler || "",
+                  };
+                  patch({ outbound_materials: next });
+                }}
+                placeholder="Pick carrier — or type one-time hauler"
+                data-testid={`dr-v3-out-carrier-${i}`}
+              />
+            </div>
+
+            {/* Row 3 · Destination · Ticket/manifest · Photos */}
+            <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
               <input
                 type="text"
                 placeholder="Destination"
@@ -1064,17 +1223,33 @@ export function SectionMaterials({ data, patch, costCodes }) {
                   next[i] = { ...o, destination: e.target.value };
                   patch({ outbound_materials: next });
                 }}
-                className="rounded-md border border-slate-300 px-2.5 py-2 text-sm"
+                className="w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm"
                 data-testid={`dr-v3-out-dest-${i}`}
               />
-              <button
-                type="button"
-                className={rowBtn}
-                onClick={() => patch({ outbound_materials: outs.filter((_, j) => j !== i) })}
-                data-testid={`dr-v3-out-remove-${i}`}
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
+              <input
+                type="text"
+                placeholder="Manifest / ticket #"
+                value={o.ticket_number || o.manifest_number || ""}
+                onChange={(e) => {
+                  const next = outs.slice();
+                  next[i] = { ...o, ticket_number: e.target.value };
+                  patch({ outbound_materials: next });
+                }}
+                className="w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm"
+                data-testid={`dr-v3-out-ticket-${i}`}
+              />
+            </div>
+            <div className="mt-2 min-w-0">
+              <PhotoUpload
+                value={o.ticket_photos || []}
+                onChange={(next) => {
+                  const rows = outs.slice();
+                  rows[i] = { ...o, ticket_photos: next };
+                  patch({ outbound_materials: rows });
+                }}
+                placeholderLabel="Add manifest / ticket photo"
+                testIdBase={`dr-v3-out-photo-${i}`}
+              />
             </div>
           </div>
         ))}
@@ -1147,6 +1322,7 @@ export function SectionImpactSafety({ data, patch }) {
   const anyImpact = data.impact_present === "Yes";
   const anySafety = data.safety_present === "Yes";
   const constraints = data.constraints || [];
+  const visitors = data.visitors || [];
 
   const addConstraint = (type) => {
     patch({
@@ -1541,6 +1717,124 @@ export function SectionImpactSafety({ data, patch }) {
               Photos of the scene / conditions are strongly recommended.
               Add them in Step 5 · Photos &amp; Evidence.
             </p>
+          </div>
+        )}
+      </div>
+
+      {/* TRACK 23.4B · Visitors on site (OSHA / insurance / access log). */}
+      <div className="mt-4 rounded-xl border border-slate-200 p-4" data-testid="dr-v3-visitors-block">
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-sm font-medium text-slate-800">
+            <Users className="h-4 w-4 text-slate-600" />
+            Visitors on site
+            <span className="ml-1 text-[11px] text-slate-500">(optional — inspectors, owners, subs&apos; PMs)</span>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            data-testid="dr-v3-visitor-add"
+            onClick={() =>
+              patch({
+                visitors: [
+                  ...visitors,
+                  { name: "", company: "", time_in: "", time_out: "", purpose: "" },
+                ],
+              })
+            }
+          >
+            <Plus className="mr-1 h-4 w-4" /> Add visitor
+          </Button>
+        </div>
+        {visitors.length === 0 ? (
+          <p className="rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-500">
+            No outside visitors logged.
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {visitors.map((v, i) => (
+              <div
+                key={i}
+                data-testid={`dr-v3-visitor-row-${i}`}
+                className="rounded-md border border-slate-200 p-2"
+              >
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,2fr)_minmax(0,2fr)_auto]">
+                  <input
+                    type="text"
+                    placeholder="Name"
+                    value={v.name || ""}
+                    onChange={(e) => {
+                      const next = visitors.slice();
+                      next[i] = { ...v, name: e.target.value };
+                      patch({ visitors: next });
+                    }}
+                    className="w-full min-w-0 rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+                    data-testid={`dr-v3-visitor-name-${i}`}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Company / affiliation"
+                    value={v.company || ""}
+                    onChange={(e) => {
+                      const next = visitors.slice();
+                      next[i] = { ...v, company: e.target.value };
+                      patch({ visitors: next });
+                    }}
+                    className="w-full min-w-0 rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+                    data-testid={`dr-v3-visitor-company-${i}`}
+                  />
+                  <button
+                    type="button"
+                    className={rowBtn + " justify-self-end shrink-0"}
+                    onClick={() =>
+                      patch({ visitors: visitors.filter((_, j) => j !== i) })
+                    }
+                    data-testid={`dr-v3-visitor-remove-${i}`}
+                    aria-label="Remove visitor"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,3fr)]">
+                  <input
+                    type="time"
+                    value={v.time_in || ""}
+                    onChange={(e) => {
+                      const next = visitors.slice();
+                      next[i] = { ...v, time_in: e.target.value };
+                      patch({ visitors: next });
+                    }}
+                    className="w-full min-w-0 rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+                    data-testid={`dr-v3-visitor-tin-${i}`}
+                    aria-label="Time in"
+                  />
+                  <input
+                    type="time"
+                    value={v.time_out || ""}
+                    onChange={(e) => {
+                      const next = visitors.slice();
+                      next[i] = { ...v, time_out: e.target.value };
+                      patch({ visitors: next });
+                    }}
+                    className="w-full min-w-0 rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+                    data-testid={`dr-v3-visitor-tout-${i}`}
+                    aria-label="Time out"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Purpose"
+                    value={v.purpose || ""}
+                    onChange={(e) => {
+                      const next = visitors.slice();
+                      next[i] = { ...v, purpose: e.target.value };
+                      patch({ visitors: next });
+                    }}
+                    className="w-full min-w-0 rounded-md border border-slate-300 px-2 py-1.5 text-sm"
+                    data-testid={`dr-v3-visitor-purpose-${i}`}
+                  />
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>

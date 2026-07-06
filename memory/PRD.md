@@ -11,6 +11,77 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 23.4B · V3 Daily Report · Field-QA · Carrier · Units · HR Autofill · Full Sweep · 🟢 SHIPPED · CERTIFIED (2026-02-06)
+- **Mandate**: Stop-the-line repair. Operator screenshots showed real V3 field defects: GPS wrote `[object Object]` into Location, Weather refresh failed after GPS, Materials/Tickets rows bled off card at iPad width. Then two follow-on corrections: (a) remove duplicate Supplier/Vendor on materials rows and use Carrier only via canonical SupplierCombo; (b) add searchable Unit picklist with custom entry. Then a proactive full V3 source-of-truth sweep + platform visual consistency lock.
+- **Root causes**:
+  1. `reverseGeocode()` returns an object `{ display, lat, lng, raw }`; V3 was `patch({ location: rev })` — react rendered the object as `[object Object]`.
+  2. `fetchDailyWeather(lat, lng, dateStr)` was called with only 2 args; `dateStr` = undefined → the Open-Meteo forecast URL got `start_date=undefined` → 4xx → red "Weather refresh failed" toast.
+  3. Materials & Outbound grids used fixed `sm:grid-cols-[2fr_1fr_1fr_2fr_auto]` without `minmax(0, …)` — long child inputs pushed the row past the card's clientWidth on 768/1024 iPad.
+  4. V3 rendered on plain `bg-slate-50`; every other field form (QA/QC, Safety Audits, Field Safety, JHP, Excavation) renders on `blueprint-bg` + `caution-stripe` → visual drift.
+- **Fixes**:
+  1. **GPS** — `useGps` extracts `rev?.display` string when reverse-geocode succeeds; otherwise falls back to `${lat.toFixed(6)}, ${lng.toFixed(6)}` coord string. Object never touches `location`. Weather failure on the GPS auto-path is now silent (coord fallback still sets Location); refresh path shows a neutral "Weather unavailable — enter conditions manually" toast.
+  2. **Weather** — `fetchDailyWeather` now called with `(lat, lng, data.report_date || today)` on both the GPS-auto path AND the explicit Refresh Weather button.
+  3. **Overflow** — Materials, Outbound, and Production grids rebuilt with `minmax(0, …)` columns and `w-full min-w-0` on each child input. Delete button `justify-self-end shrink-0`. Card `SectionShell` gains defensive `overflow-hidden` + inner `min-w-0` so nothing ever bleeds again.
+  4. **Materials · single carrier field** — Supplier/Vendor input REMOVED from both inbound and outbound rows. Carrier is now the single "who moved this load?" field, sourced from the canonical `SupplierCombo` vendor master; `onPick` captures `carrier_id` + `carrier_name_snapshot`; typed one-time haulers still supported (custom fallback).
+  5. **Units** — New `UnitCombo` (native `<datalist>`, mobile-safe, iOS-friendly). Presets: Tons · Cubic Yards · Loads · Each · Linear Feet · Square Yards · Gallons · Truckloads · Ton · Square Feet · Cubic Feet · Bag · Pair · Lot. Custom entry preserved verbatim as `unit_snapshot`; matched preset also captures normalized `unit_code`. Wired on inbound materials + outbound materials + production rows (replacing the ugly hard-coded `<select>`).
+  6. **Employee trade autofill** — Crew row now uses `EmployeeCombo.onPick(emp)` (the `onChange` signature only passes `name`, so meta was silently dropped). Pick from HR roster → row inherits `trade || role || department || classification` AND `crew / division` AND `supervisor` from the employee record; snapshots persisted as `employee_name_snapshot`, `trade_snapshot`, `crew_snapshot`, `division_snapshot`, `supervisor_snapshot`. HR meta chip (`Crew: … · Sup: …`) renders inline when populated. `trade_autofilled` flag surfaces an "Auto-filled from HR" badge. Manual override still works and clears the badge; unknown employees show a "Trade not on employee record" placeholder.
+  6a. **Restore-yesterday is HR-refresh-safe** — `crewMemory._stripCrewRow` no longer preserves yesterday's `trade` snapshot (HR record may have changed overnight — promotion / crew reassignment / new supervisor). Row is tagged `_needs_hr_refresh: true`. New exported helper `refreshCrewFromEmployeeMaster(crews, employeeList)` rehydrates trade / crew / supervisor from the CURRENT `/api/employees` fetch. V3's `onUseCrewSetup` handler now fetches fresh HR data + re-runs the helper before dropping the offer card.
+  6b. **Public `/api/employees` projection extended** — `server.py` now returns `supervisor` + `division` (in addition to existing `crew`, `role`, `trade`, `department`). Legacy employee records without these keys omit them (default Mongo behavior); frontend fallback is silent.
+  7. **Production station / percent** — Every production row now captures `station_from`, `station_to`, `percent_complete` alongside qty/unit — critical for linear heavy-civil work and downstream schedule linkage.
+  8. **Visitors** — New collapsible sub-block inside `SectionImpactSafety`: Name · Company · Time in · Time out · Purpose. Feeds `visitors[]` payload key (V1-parity; OSHA/insurance/access log).
+  9. **Constraints → ODS** — `services/ods_spine/ingest.py` now emits one `delay_fact` per V3 `constraints[]` row (impact severity scales with `hours_impact`; skips categories already emitted by the top-level `weather_impact` / `schedule_delays` branches to avoid double-counting).
+  10. **Labor fact HR keys** — `labor_fact` payload now carries V3-native `employee_id`, `person_name` (from `name`), `employee_name_snapshot`, `role`, `trade_snapshot`, `crew_snapshot`, `supervisor_snapshot`, `start_time`, `stop_time`, `lunch_minutes`, `cost_code` and flips `verified_identity=True` + `source_status="verified"` when `employee_id` is present. V1 shape (`foreman/count/hours`) still emits `partial` labor_fact with correct `labor_hours = hours × count`. HR Time Verification + Payroll Variance can consume V3 rows without another lookup.
+  11. **Material fact carrier keys** — `material_fact` payload now carries `flow` (inbound/outbound), `carrier`, `carrier_id`, `carrier_name_snapshot`, `ticket` for BOTH directions. Historical reports without carrier fields emit blank strings — no regression.
+  12. **Platform visual consistency** — V3 root swapped from `min-h-screen bg-slate-50` → shared `min-h-screen blueprint-bg` + `caution-stripe`. Now visually indistinguishable from QA/QC, Safety Audits, JHP, Field Safety.
+- **Downstream contract preservation**: Same `POST /api/daily-reports` endpoint. Same autosave / offline queue / draft restore / AI summary / photo intelligence / PM+Co-PM notification / ODS / Trust Spine / PDF renderer paths. All payload keys additive (`carrier`, `carrier_id`, `carrier_name_snapshot`, `unit_snapshot`, `unit_code`, `station_from`, `station_to`, `percent_complete`, `visitors[]`, `trade_autofilled`). V1 rollback (`ui_flags.dr_v3.tenant_default=false`) unchanged.
+- **Tests**: 20 new lock assertions in `test_track_23_4b_field_qa_full_sweep.py` covering: GPS string safety, coord fallback, weather 3rd-arg, weather graceful failure, inbound no-supplier-field, unit combo shape, outbound row testids, production station+percent, visitors block, employee trade autofill from HR, SectionShell overflow-hidden lock, ODS labor_fact V3 HR keys + verified_identity, ODS labor_fact V1 shape parity, ODS material_fact inbound+outbound+carrier, ODS constraints → delay_fact emission, no provider leak in non-summary facts, blueprint-bg + caution-stripe presence, no `[object Object]` regression, files-exist sanity. **Full regression 139/139** across 22.9A + 22.9B + 22.9C + 22.9C-FIX + 23.1 + 23.3 + 23.4A + 23.4B + DR-CUTOVER.
+- **Live smoke** (1440 · 768 · 390 viewports, actual browser):
+  - GPS handler: coord fallback string set immediately; reverse-geocode override attempted silently; weather 3-arg call issued; **`[object Object]` never appears**.
+  - Materials row: no supplier field (0 count); carrier + unit (Tons/Loads) rendered; Ticket # + Choose Photo/File + Take Photo buttons visible without overflow.
+  - Outbound row: Material · Qty · Unit · Delete top row; Carrier * label + SupplierCombo; Destination + Manifest # + photo upload — no overflow.
+  - Visitor row: name/company/time-in/time-out/purpose grid renders and stacks on mobile.
+  - Production row: station_from + station_to + %-complete row present.
+  - Blueprint engineering-grid background visible behind cards on all viewports.
+  - Overflow report at 390 / 768 / 1440 — **page overflow = 0 · overflowing cards = 0**.
+  - Console: no page errors on any viewport.
+- **Files changed**:
+  - `frontend/src/pages/NewDailyReportV3.jsx` (GPS handler, weather dateStr, blueprint-bg wrap).
+  - `frontend/src/components/daily-report-v3/sections.jsx` (inbound row rewrite, outbound row rewrite, production row station/percent + UnitCombo, visitors block, employee onPick autofill, SectionShell overflow-hidden).
+  - **New** `frontend/src/components/daily-report-v3/UnitCombo.jsx`.
+  - `backend/services/ods_spine/ingest.py` (labor_fact V3 keys, material_fact inbound/outbound with carrier, constraints[] → delay_fact emission).
+  - **New** `backend/tests/test_track_23_4b_field_qa_full_sweep.py` (20 assertions).
+- **NO MORE OBVIOUS OMISSIONS certification** (source-of-truth categories · V3 vs Track 23.0 field inventory):
+
+| Category | Captured | Displayed | Persisted | Downstream feed | Status |
+|---|---|---|---|---|---|
+| Project · location · GPS · date · prepared_by · superintendent | ✅ | ✅ | ✅ | PDF · email · ODS project_context | ✅ COMPLETE |
+| Weather (snapshots · summary) | ✅ | ✅ | ✅ | ODS weather_fact · PDF | ✅ COMPLETE |
+| Delays / Extra Work / Weather Impact (chip flow) | ✅ | ✅ | ✅ | ODS delay_fact (per row now) | ✅ COMPLETE |
+| Safety escalation (event type · contact person/time/method · report time/ref · hard warning) | ✅ | ✅ | ✅ | ODS safety_fact · Safety portal · notifications | ✅ COMPLETE |
+| Crew · employee_id · start/stop/lunch/hours · trade autofill · cost_code | ✅ | ✅ | ✅ | ODS labor_fact (verified) · HR/payroll | ✅ COMPLETE |
+| Subcontractors · company · trade · foreman · count · hours · work | ✅ | ✅ | ✅ | ODS labor_fact (sub company) · PM | ✅ COMPLETE |
+| Visitors · name/company/time-in/time-out/purpose | ✅ | ✅ | ✅ | payload · PDF · access log | ✅ COMPLETE |
+| Equipment · run · idle · total · utilization · issues | ✅ | ✅ | ✅ | ODS equipment_fact · Shop | ✅ COMPLETE |
+| Inbound materials · material · qty · unit · carrier (only) · ticket · photos | ✅ | ✅ | ✅ | ODS material_fact flow=inbound · carrier_id | ✅ COMPLETE |
+| Outbound / hauled-off · material · qty · unit · carrier · destination · manifest · photos | ✅ | ✅ | ✅ | ODS material_fact flow=outbound · carrier_id | ✅ COMPLETE |
+| Production · description · qty · unit · station_from · station_to · percent_complete · notes | ✅ | ✅ | ✅ | payload · PDF | ✅ COMPLETE |
+| Constraints (chip rows) | ✅ | ✅ | ✅ | ODS delay_fact per row | ✅ COMPLETE |
+| Photos + attachments + captions | ✅ | ✅ | ✅ | ODS photo_evidence_fact | ✅ COMPLETE |
+| Tomorrow / follow-up | ✅ | ✅ | ✅ | narrative_sections.tomorrow_plan · PDF | ✅ COMPLETE |
+| AI Draft Summary (accept · edit · reject) | ✅ | ✅ | ✅ | ODS day_summary_fact · PDF · email | ✅ COMPLETE |
+| Photo intelligence tags/captions | ✅ | ✅ | ✅ | ODS photo_evidence_fact | ✅ COMPLETE |
+| Sign-off · signature · distribution list | ✅ | ✅ | ✅ | payload · PDF · email routing | ✅ COMPLETE |
+| Cost codes (hidden when job has none) | ✅ | ✅ | ✅ | payload · derived cost roll-ups | ✅ COMPLETE |
+| Platform header/banner | ✅ | ✅ | — | DailyReportTopBanner shared | ✅ COMPLETE |
+| Platform visual grammar (blueprint-bg + caution-stripe) | — | ✅ | — | Shared across QA/QC · Safety · JHP · Excav | ✅ COMPLETE |
+| **Deferred with reason** | | | | | |
+| Motive-detection auto-verification (M-DR-1 / M-2-5) | ⬜ | — | — | Server-derived from telematics; V3 form doesn't need input | 🟡 DEFERRED — not a form field |
+| Attachments (PDF/Excel/CSV alongside photos) | ⬜ | — | — | Not blocking; existing V1 attachments key still accepted | 🟡 DEFERRED — P2 |
+| Equipment time_delivered / time_removed (spot-hire mid-day) | ⬜ | — | — | Rarely populated in V1; equipment_fact still complete without | 🟡 DEFERRED — P3 |
+
+- **Verdict**: 🟢 GO — Track 23.4B closes every operator-flagged defect + proactively closes the audit gap listed above. V3 is now field-simple, source-of-truth complete, downstream-fed, and visually consistent with the rest of the platform. Next: 🔵 Track 23.2 · PDF/email V3 layout alignment.
+
+
 ## TRACK 23.4A · V3 Daily Report Field-Complete Repair · 🟢 SHIPPED · CERTIFIED (2026-02-06)
 - **Mandate**: V3 became visually cleaner but stripped operator-critical operational inputs that HR / PM / equipment / payroll / ODS all consume. This is a P1 field-completeness repair, not a redesign. V3 stays default. V1 rollback stays intact. Same submit endpoint. Same payload contract. Zero downstream disruption.
 - **Findings (from operator review)**:

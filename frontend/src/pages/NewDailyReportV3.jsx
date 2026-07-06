@@ -33,6 +33,7 @@ import {
 } from "@/lib/resiliency";
 import {
   extractSetupSnapshot, saveCrewSetup, loadCrewSetup, applySetupSnapshotToData,
+  refreshCrewFromEmployeeMaster,
   isProjectChange,
 } from "@/lib/crewMemory";
 import { SectionProjectConditions } from "@/components/daily-report-v3/SectionProjectConditions";
@@ -104,7 +105,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
     } catch { /* silent */ }
   }, [draftLoaded, pendingDraft]);
 
-  const onUseCrewSetup = useCallback(() => {
+  const onUseCrewSetup = useCallback(async () => {
     if (!crewSetupOffer) return;
     if (isProjectChange(crewSetupOffer, data.project_number)) {
       const ok = window.confirm(
@@ -112,9 +113,20 @@ export default function NewDailyReportV3({ publicMode = false }) {
       );
       if (!ok) return;
     }
+    // Apply the snapshot first (fills people back into the row).
     setData((prev) => applySetupSnapshotToData(prev, crewSetupOffer));
     setCrewSetupOffer(null);
-    toast.success("Loaded yesterday's crew setup. Review before submit.");
+    // TRACK 23.4B / HR autofill · re-hydrate trade / crew / supervisor
+    // from the CURRENT Employee Master, never yesterday's snapshot.
+    try {
+      const { data: empRes } = await api.get("/employees");
+      const list = empRes?.items || empRes || [];
+      setData((prev) => ({
+        ...prev,
+        masci_crews: refreshCrewFromEmployeeMaster(prev.masci_crews || [], list),
+      }));
+    } catch { /* HR fetch failure is silent — form is still usable */ }
+    toast.success("Loaded yesterday's crew. HR fields refreshed.");
   }, [crewSetupOffer, data.project_number]);
 
   const onDismissCrewSetup = useCallback(() => setCrewSetupOffer(null), []);
@@ -171,34 +183,65 @@ export default function NewDailyReportV3({ publicMode = false }) {
         }),
       );
       const { latitude, longitude, accuracy } = pos.coords;
-      patch({ gps_lat: latitude, gps_lng: longitude, gps_accuracy: accuracy });
+      // TRACK 23.4B · Always fill Location with a STRING. reverseGeocode
+      // returns an object `{ display, lat, lng, raw }` — never spread it
+      // into the text input directly. Fall back to a plain coord string
+      // if reverse geocode fails or has no usable label.
+      const coordFallback = `${Number(latitude).toFixed(6)}, ${Number(longitude).toFixed(6)}`;
+      patch({
+        gps_lat: latitude,
+        gps_lng: longitude,
+        gps_accuracy: accuracy,
+        location: coordFallback,
+      });
       try {
         const rev = await reverseGeocode(latitude, longitude);
-        if (rev) patch({ location: rev });
-      } catch { /* silent */ }
+        const label = (typeof rev === "string" ? rev : rev?.display || "").trim();
+        if (label) patch({ location: label });
+      } catch { /* silent — coord fallback stands */ }
       try {
-        const wx = await fetchDailyWeather(latitude, longitude);
-        if (wx?.summary) patch({ weather_summary: wx.summary, weather_snapshots: wx.snapshots || [] });
-      } catch { /* silent */ }
+        const wx = await fetchDailyWeather(
+          latitude,
+          longitude,
+          data.report_date || new Date().toISOString().slice(0, 10),
+        );
+        if (wx?.summary) {
+          patch({ weather_summary: wx.summary, weather_snapshots: wx.snapshots || [] });
+        }
+      } catch (e) {
+        // Graceful: no red toast on GPS path. Location + coords already set.
+        // Operator can retry via the explicit Refresh Weather button.
+      }
     } catch (e) {
       toast.error("GPS unavailable — you can enter location manually");
     } finally {
       setFetchingGps(false);
     }
-  }, [patch]);
+  }, [patch, data.report_date]);
 
   const refreshWeather = useCallback(async () => {
-    if (!data.gps_lat || !data.gps_lng) return;
+    if (!data.gps_lat || !data.gps_lng) {
+      toast.error("Tap GPS first so we know where to check the forecast.");
+      return;
+    }
     setFetchingWeather(true);
     try {
-      const wx = await fetchDailyWeather(data.gps_lat, data.gps_lng);
-      if (wx?.summary) patch({ weather_summary: wx.summary, weather_snapshots: wx.snapshots || [] });
+      const wx = await fetchDailyWeather(
+        data.gps_lat,
+        data.gps_lng,
+        data.report_date || new Date().toISOString().slice(0, 10),
+      );
+      if (wx?.summary) {
+        patch({ weather_summary: wx.summary, weather_snapshots: wx.snapshots || [] });
+      } else {
+        toast("Weather unavailable — enter conditions manually.");
+      }
     } catch {
-      toast.error("Weather refresh failed");
+      toast("Weather unavailable — enter conditions manually.");
     } finally {
       setFetchingWeather(false);
     }
-  }, [data.gps_lat, data.gps_lng, patch]);
+  }, [data.gps_lat, data.gps_lng, data.report_date, patch]);
 
   // ── Submit-readiness derivation ────────────────────────────
   const photoMin = data.photo_min || 6;
@@ -313,10 +356,14 @@ export default function NewDailyReportV3({ publicMode = false }) {
   }, [saving, canSubmit, data, online, publicMode, navigate, readiness.missing, commitDraft]);
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* TRACK 23.4A · MASCI platform banner restored on V3 to match
-          V1 / V2 field surfaces (bg-slate-900 · red-700 bottom border ·
-          sticky). Keeps the "field form belongs to the platform" grammar. */}
+    <div className="min-h-screen blueprint-bg">
+      <div className="caution-stripe" />
+      {/* TRACK 23.4B · Visual consistency · V3 now shares the same
+          `blueprint-bg` engineering-grid background used by QA/QC,
+          Safety Audits, Field Safety, JHP, Excavation. One design
+          system across every MASCI field form. Do not swap for a
+          plain slate-50 — that produced the visual drift the operator
+          flagged. */}
       <DailyReportTopBanner backLink="/" showBackLink={!publicMode}>
         <div className="flex items-center gap-2" data-testid="dr-v3-header-chips">
           {!online && (

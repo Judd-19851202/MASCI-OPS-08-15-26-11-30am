@@ -4610,7 +4610,8 @@ async def list_employees():
         {"$and": [ACTIVE_FILTER, canonical_active_clause]},
         {"_id": 0, "id": 1, "name": 1, "preferred_name": 1,
          "employee_id": 1, "crew": 1, "role": 1, "trade": 1,
-         "department": 1, "lifecycle_status": 1, "is_active": 1},
+         "department": 1, "supervisor": 1, "division": 1,
+         "lifecycle_status": 1, "is_active": 1},
     ).sort("name", 1)
     docs = await cursor.to_list(5000)
     return {"items": docs, "count": len(docs)}
