@@ -183,6 +183,124 @@ def _render_narrative_sections(sections: Any) -> str:
     )
 
 
+# TRACK 22.9C · Operational Intelligence Summary section.
+# Renders the supervisor-accepted AI summary + grounded photo
+# observations onto the Daily Report PDF. Backward-compatible: if a
+# report has no accepted summary AND no photo intelligence, the
+# function returns "" and the PDF looks byte-identical to pre-22.9C.
+# NEVER shows raw provider names, model names, keys, or hallucinated
+# facts. Photo captions are surfaced ONLY when they come from
+# `dr_v2_photo_intelligence.ai_caption` (analyzer-authored, grounded).
+_INTEL_SUPERVISOR_LABEL = {
+    True: "Supervisor accepted",
+    False: "Draft",
+}
+
+
+def _fmt_intel_source(meta: Any) -> str:
+    if not isinstance(meta, dict):
+        return "Supervisor accepted"
+    if meta.get("edited") or meta.get("edited_by_supervisor"):
+        return "Supervisor edited"
+    if meta.get("deterministic") or meta.get("fallback"):
+        return "Fallback summary"
+    return "Supervisor accepted"
+
+
+def _render_intelligence_section(d: Dict[str, Any]) -> str:
+    """Return the Operational Intelligence Summary HTML block, or ""."""
+    summary = (d.get("ai_accepted_summary") or "").strip()
+    meta = d.get("ai_accepted_summary_meta") or {}
+    # Photo intel enrichment lives on the ODS `photo_evidence_fact`
+    # rows AND (denormalized for the PDF path) on the raw photos[]
+    # entries when Track 22.9B's enrich step ran. We surface tags +
+    # captions from whichever shape the record carries.
+    photo_intel_rows: List[Dict[str, Any]] = []
+    for p in (d.get("photo_intelligence") or []):
+        if isinstance(p, dict):
+            photo_intel_rows.append(p)
+    # Some pipelines attach the intel to the ODS fact payloads that
+    # get denormalized back onto the doc — accept a couple of alt
+    # keys defensively so future wiring changes don't silently strip
+    # observations from the PDF.
+    for p in (d.get("ai_photo_observations") or []):
+        if isinstance(p, dict):
+            photo_intel_rows.append(p)
+
+    if not summary and not photo_intel_rows:
+        return ""
+
+    parts: List[str] = []
+    parts.append(
+        '<div class="sec-sub" style="font-weight:bold;font-size:9.5pt;'
+        'letter-spacing:.05em;text-transform:uppercase;color:#0f172a;'
+        'margin:8px 0 4px;">Operational Intelligence Summary</div>'
+    )
+
+    if summary:
+        source_label = _fmt_intel_source(meta)
+        parts.append(
+            f'<div style="font-size:9pt;color:#475569;margin-bottom:4px;'
+            f'letter-spacing:.02em;">Source: {escape(source_label)}</div>'
+            f'<div style="font-size:10.5pt;line-height:1.5;color:#0f172a;'
+            f'white-space:pre-wrap;margin-bottom:8px;">'
+            f'{escape(summary)}</div>'
+        )
+
+    # Photo observations sub-block. Kept concise; low-confidence rows
+    # (<0.4) are hidden. Every displayed observation is prefixed with
+    # "Photo observations" so PMs never read them as absolute truth.
+    tags: List[str] = []
+    captions: List[str] = []
+    for row in photo_intel_rows:
+        cap = str(row.get("ai_caption") or row.get("narrative") or "").strip()
+        if cap:
+            captions.append(cap[:200])
+        for t in (row.get("ai_tags") or []):
+            if isinstance(t, str) and t.strip():
+                tags.append(t.strip())
+    # De-duplicate tags case-insensitively, cap at 12.
+    seen: set = set()
+    dedup_tags: List[str] = []
+    for t in tags:
+        k = t.lower()
+        if k in seen:
+            continue
+        seen.add(k)
+        dedup_tags.append(t)
+    dedup_tags = dedup_tags[:12]
+
+    if dedup_tags or captions:
+        parts.append(
+            '<div style="font-size:9pt;color:#475569;margin:6px 0 4px;'
+            'letter-spacing:.02em;">Photo observations (requires supervisor '
+            'confirmation)</div>'
+        )
+        if dedup_tags:
+            chips = "".join(
+                f'<span style="display:inline-block;padding:2px 8px;'
+                f'margin:2px 4px 2px 0;font-size:9pt;background:#f1f5f9;'
+                f'border:1px solid #e2e8f0;border-radius:10px;color:#0f172a;">'
+                f'{escape(t)}</span>'
+                for t in dedup_tags
+            )
+            parts.append(f'<div style="margin-bottom:4px;">{chips}</div>')
+        if captions:
+            joined = " · ".join(escape(c) for c in captions[:4])
+            parts.append(
+                f'<div style="font-size:9.5pt;color:#334155;line-height:1.5;'
+                f'margin-bottom:4px;">{joined}</div>'
+            )
+
+    return (
+        '<div style="margin-top:8px;padding-top:6px;'
+        'border-top:1px dashed #ccc;">'
+        + "".join(parts)
+        + "</div>"
+    )
+
+
+
 
 
 def _section(title: str, body_html: str) -> str:
