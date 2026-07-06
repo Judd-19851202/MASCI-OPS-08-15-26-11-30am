@@ -286,7 +286,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
             <div>
               <div className="flex items-center gap-2 text-xs font-medium text-emerald-600">
                 <CheckCircle2 className="h-4 w-4" />
-                MASCI · Daily Job Report · V3 Pilot
+                MASCI · Daily Job Report
               </div>
               <h1 className="mt-1 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
                 Today&apos;s report

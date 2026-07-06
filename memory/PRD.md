@@ -11,6 +11,18 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 23.4 · Daily Report V3 Default Cutover · 🟢 SHIPPED (2026-02-06 17:46 UTC)
+- **Mandate**: V3 is the production default. Not a pilot. V1 remains only as emergency rollback.
+- **Cutover action**: `POST /api/admin/dr-v3-flag/tenant-default {enabled:true}` — single API call via existing Track 23.3 admin endpoint. No Mongo hand-edit. No code deploy required for the cutover itself.
+- **UI polish**: Removed "V3 Pilot" label from V3 header per directive; now reads plain "MASCI · Daily Job Report".
+- **Live verification (screenshots captured)**: `/daily/new` no-query → V3 renders · autosave pill visible · mobile 390 clean · flip to `tenant_default=false` → V1 renders (h1 "Daily Job Report") · restore to `true` → V3 default again.
+- **Downstream unchanged**: POST /api/daily-reports · notifications · PM/Co-PM routing · ODS · Trust Spine · auto-email · PDF renderer · idempotency · autosave/draft/offline/restore-yesterday · session modal · photo intel · AI summary · cost-code hidden-when-absent — all byte-identical.
+- **Emergency rollback**: one API call flips back to V1 for every operator on next page load. Zero deploy. Zero DB restore.
+- **Regression**: 116/116 pytest across 22.9A + 22.9B + 23.1 + 23.3 + DR-CUTOVER-001/002.
+- **Files changed**: 1 line in `frontend/src/pages/NewDailyReportV3.jsx` + 1 memory memo. `ui_flags.dr_v3.tenant_default` = true via API.
+- **Verdict**: 🟢 GO — V3 is the production default. V1 preserved as rollback per operator directive.
+
+
 ## TRACK 23.3 · V3 Daily Report Surfacing + Field Resiliency + Smart Crew Memory · 🟢 SHIPPED · CERTIFIED (2026-02-06)
 - **Mandate**: Make V3 actually reachable in preview without Mongo hand-edit + reach V1-parity field resiliency + smart crew memory.
 - **Why V3 wasn't surfacing**: Track 23.1 seeded `tenant_default:false` and no admin API existed; every pilot enrollment required a Mongo `updateOne`. Fixed by shipping 5 admin endpoints (idempotent add/remove pilot users + projects + tenant-default flip), all guarded by `require_admin`.
