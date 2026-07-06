@@ -138,7 +138,7 @@ function RecipientForm({ initial, products, onCancel, onSubmit, saving }) {
           <option value="">— Select product —</option>
           {products.map((p) => (
             <option key={p.product_id} value={p.product_id}>
-              {p.display_name} ({p.product_id})
+              {`${p.display_name} (${p.product_id})`}
             </option>
           ))}
         </select>
@@ -417,7 +417,7 @@ function BulkImportPanel({ products, onClose, onImported, defaultProductId, exis
           <option value="">— Select target product —</option>
           {products.map((p) => (
             <option key={p.product_id} value={p.product_id}>
-              {p.display_name} ({p.product_id})
+              {`${p.display_name} (${p.product_id})`}
             </option>
           ))}
         </select>
@@ -585,7 +585,7 @@ function BulkImportPanel({ products, onClose, onImported, defaultProductId, exis
               <option value="">— Select source product —</option>
               {products.filter((p) => p.product_id !== productId).map((p) => (
                 <option key={p.product_id} value={p.product_id}>
-                  {p.display_name} ({p.product_id})
+                  {`${p.display_name} (${p.product_id})`}
                 </option>
               ))}
             </select>
@@ -689,7 +689,7 @@ function GroupCreatePanel({ products, onClose, onCreated }) {
                 data-testid="oi-group-create-products">
           {products.map((p) => (
             <option key={p.product_id} value={p.product_id}>
-              {p.display_name} ({p.product_id})
+              {`${p.display_name} (${p.product_id})`}
             </option>
           ))}
         </select>

@@ -36,6 +36,23 @@ AUDIT_DOC = MEMORY / "R8_CTA_PATTERN_AUDIT.md"
 ALLOWLIST_DOC = MEMORY / "R8_DUPLICATE_CTA_ALLOWLIST.md"
 
 
+# ---------------------------------------------------------------------
+# TRACK 22.5A · linter modernization (App.js → App.js + AppRoutes.jsx)
+# See test_track_18_10_governance_boundary_linter.py for rationale.
+# ---------------------------------------------------------------------
+_APP_JS_PATH = FRONTEND_SRC / "App.js"
+_APP_ROUTES_PATH = FRONTEND_SRC / "app" / "routing" / "AppRoutes.jsx"
+
+
+def _read_app_shell() -> str:
+    parts = []
+    if _APP_JS_PATH.exists():
+        parts.append(_APP_JS_PATH.read_text())
+    if _APP_ROUTES_PATH.exists():
+        parts.append(_APP_ROUTES_PATH.read_text())
+    return "\n".join(parts)
+
+
 # =====================================================================
 # 1. R8 pattern audit exists.
 # =====================================================================
@@ -362,7 +379,7 @@ def test_21_r1_through_r7_preserved():
 # 22. No new routes.
 # =====================================================================
 def test_22_no_new_routes():
-    app_js = (FRONTEND_SRC / "App.js").read_text()
+    app_js = _read_app_shell()
     # Canonical doorways still present (sanity).
     assert "/transportation-operations/*" in app_js
     assert "/admin/transportation/*" in app_js
@@ -372,7 +389,7 @@ def test_22_no_new_routes():
 # 23. No auth changes.
 # =====================================================================
 def test_23_no_auth_changes():
-    app_js = (FRONTEND_SRC / "App.js").read_text()
+    app_js = _read_app_shell()
     assert "A(" in app_js
     assert "TX(" in app_js
 
@@ -381,7 +398,7 @@ def test_23_no_auth_changes():
 # 24. No RBAC changes.
 # =====================================================================
 def test_24_no_rbac_changes():
-    app_js = (FRONTEND_SRC / "App.js").read_text()
+    app_js = _read_app_shell()
     assert "adminAuth" in app_js or "isAdmin" in app_js
 
 
@@ -389,7 +406,7 @@ def test_24_no_rbac_changes():
 # 25. Dispatch execution preserved.
 # =====================================================================
 def test_25_dispatch_execution_preserved():
-    app_js = (FRONTEND_SRC / "App.js").read_text()
+    app_js = _read_app_shell()
     assert "DispatchBoard" in app_js or "/dispatch-portal" in app_js
 
 
@@ -397,7 +414,7 @@ def test_25_dispatch_execution_preserved():
 # 26. Driver workflows preserved.
 # =====================================================================
 def test_26_driver_workflows_preserved():
-    app_js = (FRONTEND_SRC / "App.js").read_text()
+    app_js = _read_app_shell()
     assert "/dr/" in app_js or "DriverPortal" in app_js or "/driver/" in app_js
 
 

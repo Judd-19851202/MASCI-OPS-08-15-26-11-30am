@@ -254,6 +254,10 @@ REGRESSION_FILES = [
     # browser isn't installed (nightly / gated envs run it; fast local
     # gates skip it). See TRACK 22.4D memo for gate-wiring rationale.
     "/app/backend/tests/test_track_22_4c_mobile_responsiveness_sweep.py",
+    # TRACK 22.5A · legacy governance linter modernization lock —
+    # ensures the App.js → AppRoutes.jsx re-anchor is preserved and
+    # the `ADMIN_PAGE_ALLOWLIST` covers every current admin surface.
+    "/app/backend/tests/test_track_22_5a_linter_modernization_lock.py",
 ]
 
 DEFAULT_BASE_URL = (

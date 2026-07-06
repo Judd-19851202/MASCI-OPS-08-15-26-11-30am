@@ -45,12 +45,23 @@ async def collect_findings(db) -> List[Dict[str, Any]]:
 async def _pm_assignment_findings(db) -> List[Dict[str, Any]]:
     """PM/Co-PM resolvability against project_team_assignments
     + jobs_master fallback. RED if an *active* job has no
-    resolvable email anywhere."""
+    resolvable email anywhere.
+
+    TRACK 22.5A-RESTART · truth-source reconciliation:
+    Uses the SAME filter as the canonical ``jobs_master.list_jobs``
+    helper (see ``/app/backend/jobs_master.py::list_jobs``) so this
+    audit reads exactly the same set of "active jobs" that the UI
+    Admin Jobs page, ``/api/jobs``, and ``/api/admin/pm-email-coverage``
+    all read. Previously this used ``is_active != False`` — a field
+    that does not exist on any jobs_master row, and which failed to
+    honor the ``deleted_at`` soft-delete flag, so soft-deleted test
+    rows were falsely reported as production jobs missing a PM.
+    """
     out: List[Dict[str, Any]] = []
     try:
         active_jobs: List[Dict[str, Any]] = []
         async for j in db.jobs_master.find(
-            {"is_active": {"$ne": False}},
+            {"active": True, "deleted_at": {"$in": [None, ""]}},
             {"_id": 0, "project_number": 1, "pm_email": 1},
             limit=2000,
         ):

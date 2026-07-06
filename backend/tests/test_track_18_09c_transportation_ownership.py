@@ -25,6 +25,8 @@ from pathlib import Path
 
 ROOT = Path("/app")
 FRONTEND_SRC = ROOT / "frontend" / "src"
+# TRACK 22.5A · re-anchor to current routing shell.
+APP_ROUTES = FRONTEND_SRC / "app" / "routing" / "AppRoutes.jsx"
 MEMORY = ROOT / "memory"
 SCRIPTS = ROOT / "scripts"
 TESTS_DIR = ROOT / "backend" / "tests"
@@ -221,7 +223,7 @@ def test_single_source_of_truth_thin_reexport():
 # Both doorways still exist in App.js with their respective gates
 # =====================================================================
 def test_both_doorways_registered_in_app_router():
-    app_js = (FRONTEND_SRC / "App.js").read_text()
+    app_js = ((FRONTEND_SRC / "App.js").read_text() + "\n" + APP_ROUTES.read_text())
     assert '/admin/transportation/*' in app_js, (
         "Admin oversight doorway `/admin/transportation/*` is missing "
         "from App.js — admin bookmarks would break."
@@ -246,7 +248,7 @@ def test_both_doorways_registered_in_app_router():
 # Dispatch / driver surfaces preserved
 # =====================================================================
 def test_dispatch_portal_routes_preserved():
-    app_js = (FRONTEND_SRC / "App.js").read_text()
+    app_js = ((FRONTEND_SRC / "App.js").read_text() + "\n" + APP_ROUTES.read_text())
     # The dispatch portal routes must remain mounted somewhere — this
     # is the dispatch operational system of record.
     assert "DispatchBoard" in app_js or "/dispatch-portal" in app_js, (
@@ -256,7 +258,7 @@ def test_dispatch_portal_routes_preserved():
 
 
 def test_driver_token_routes_preserved():
-    app_js = (FRONTEND_SRC / "App.js").read_text()
+    app_js = ((FRONTEND_SRC / "App.js").read_text() + "\n" + APP_ROUTES.read_text())
     # Driver-token surfaces (typically under `/dr/...`) must remain
     # untouched.
     has_dr = "/dr/" in app_js or "/driver/" in app_js or "DriverPortal" in app_js
@@ -267,7 +269,7 @@ def test_driver_token_routes_preserved():
 # RBAC / auth helpers preserved
 # =====================================================================
 def test_auth_helpers_preserved():
-    app_js = (FRONTEND_SRC / "App.js").read_text()
+    app_js = ((FRONTEND_SRC / "App.js").read_text() + "\n" + APP_ROUTES.read_text())
     # The admin-strict helper.
     assert re.search(r"\bconst A\b|\bfunction A\b|\bA\s*=", app_js) or "A(" in app_js, (
         "Admin-strict auth helper `A` appears to have been removed."

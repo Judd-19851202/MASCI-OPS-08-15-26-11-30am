@@ -230,7 +230,12 @@ def test_orientation_hides_admin_sub_tabs_from_dispatch():
 
 # ─── (7) Admin paths remain registered (no route breakage) ────────────────
 def test_admin_transportation_routes_still_mounted():
-    body = _read(ROOT / "frontend" / "src" / "App.js")
+    # TRACK 22.5A · read both App.js and AppRoutes.jsx — the route
+    # registration moved to AppRoutes.jsx many tracks ago; safety
+    # intent ("these routes are still mounted") is unchanged.
+    body = _read(ROOT / "frontend" / "src" / "App.js") + "\n" + _read(
+        ROOT / "frontend" / "src" / "app" / "routing" / "AppRoutes.jsx"
+    )
     assert "/admin/transportation" in body
     assert "/transportation-operations" in body
     assert "/dispatch-portal" in body

@@ -17,6 +17,8 @@ from pathlib import Path
 
 ROOT = Path("/app")
 APP_JS = ROOT / "frontend" / "src" / "App.js"
+# TRACK 22.5A · re-anchor to current routing shell (App.js + AppRoutes.jsx)
+APP_ROUTES = ROOT / "frontend" / "src" / "app" / "routing" / "AppRoutes.jsx"
 TOPBAR = ROOT / "frontend" / "src" / "components" / "transportation" / "TransportationOpsTopBar.jsx"
 TX_APP = ROOT / "frontend" / "src" / "pages" / "transportation" / "TransportationApp.jsx"
 GUARD = ROOT / "frontend" / "src" / "components" / "RequireTransportationPortal.jsx"
@@ -70,7 +72,7 @@ def test_04_guard_does_not_use_admin_console_access_denied():
 # 5 — `/transportation-operations/*` route registered in App.js.
 # ===========================================================================
 def test_05_route_registered_in_app_js():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert '"/transportation-operations/*"' in src or "'/transportation-operations/*'" in src
     assert "RequireTransportationPortal" in src
 
@@ -79,7 +81,7 @@ def test_05_route_registered_in_app_js():
 # 6 — New route uses the TX() wrapper (not the A() admin wrapper).
 # ===========================================================================
 def test_06_new_route_uses_tx_wrapper():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     # Find the line and ensure it's TX(), not A().
     m = re.search(
         r'path="/transportation-operations/\*"\s+element=\{(\w+)\(',
@@ -93,7 +95,7 @@ def test_06_new_route_uses_tx_wrapper():
 # 7 — `/admin/transportation/*` still mounted for admin oversight.
 # ===========================================================================
 def test_07_admin_alias_still_mounted():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert '"/admin/transportation/*"' in src
     # Still wrapped with the admin-only A() wrapper.
     m = re.search(
@@ -107,7 +109,7 @@ def test_07_admin_alias_still_mounted():
 # 8 — Both routes render the SAME shell (no duplicate Mission Control).
 # ===========================================================================
 def test_08_both_routes_render_same_shell():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     admin_match = re.search(
         r'path="/admin/transportation/\*"\s+element=\{A\(<(\w+)\s*/>\)\}',
         src,
@@ -216,7 +218,7 @@ def test_14_transportation_app_conditional_admin_side_nav():
 # 15 — Dispatch login route preserved.
 # ===========================================================================
 def test_15_dispatch_login_preserved():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert "/dispatch-portal/login" in src
     assert "DispatchLogin" in src
 
@@ -225,7 +227,7 @@ def test_15_dispatch_login_preserved():
 # 16 — Dispatch hub landing route preserved.
 # ===========================================================================
 def test_16_dispatch_hub_preserved():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert '<Route path="/dispatch-portal"' in src
     assert "DispatchHub" in src
 
@@ -234,7 +236,7 @@ def test_16_dispatch_hub_preserved():
 # 17 — All five dispatch deep routes preserved.
 # ===========================================================================
 def test_17_dispatch_deep_routes_preserved():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     for path in (
         "/dispatch-portal/board",
         "/dispatch-portal/command",
@@ -249,7 +251,7 @@ def test_17_dispatch_deep_routes_preserved():
 # 18 — Driver dispatch routes preserved.
 # ===========================================================================
 def test_18_driver_dispatch_routes_preserved():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert "/dispatch-portal/driver/" in src
 
 
@@ -257,7 +259,7 @@ def test_18_driver_dispatch_routes_preserved():
 # 19 — Dispatch password reset/change/forgot routes preserved.
 # ===========================================================================
 def test_19_dispatch_password_routes_preserved():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     for path in (
         "/dispatch-portal/forgot-password",
         "/dispatch-portal/reset/",

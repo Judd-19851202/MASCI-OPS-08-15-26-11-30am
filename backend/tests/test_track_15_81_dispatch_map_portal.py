@@ -41,6 +41,8 @@ from dotenv import dotenv_values
 
 FRONTEND_SRC = Path("/app/frontend/src")
 APP_JS = FRONTEND_SRC / "App.js"
+# TRACK 22.5A · re-anchor to current routing shell.
+APP_ROUTES = FRONTEND_SRC / "app" / "routing" / "AppRoutes.jsx"
 DISPATCH_HERO = FRONTEND_SRC / "components/DispatchMapHero.jsx"
 DISPATCH_SNAPSHOT = FRONTEND_SRC / "components/DispatchLiveSnapshot.jsx"
 
@@ -67,7 +69,7 @@ def test_dispatch_portal_owned_map_route_exists():
     (a thin Dispatch-themed wrapper around the same ``OperationsMapPage``
     canvas). Both forms satisfy this regression.
     """
-    src = _read(APP_JS)
+    src = (_read(APP_JS) + "\n" + _read(APP_ROUTES))
     pattern = re.compile(
         r'<Route\s+path="/dispatch-portal/map"\s+element=\{DP\('
         r'<(?:OperationsMapPage|DispatchOperationsMapPage)\s*/>\)\}'
@@ -84,7 +86,7 @@ def test_admin_operations_map_route_still_admin_only():
     """The legacy Admin Console route ``/operations-map`` MUST remain
     wrapped by ``RequireAdmin`` (``A(...)``). The fix does NOT widen
     Admin Console access."""
-    src = _read(APP_JS)
+    src = (_read(APP_JS) + "\n" + _read(APP_ROUTES))
     pattern = re.compile(
         r'<Route\s+path="/operations-map"\s+element=\{A\(<OperationsMapPage\s*/>\)\}'
     )

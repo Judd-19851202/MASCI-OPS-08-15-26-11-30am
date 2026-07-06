@@ -229,14 +229,22 @@ def test_specific_failing_workspace_now_has_restricted_state(name, proof):
 
 # ─── (17) route preservation — admin oversight + dispatch portal ──────────
 def test_admin_transportation_routes_preserved():
-    body = _read(ROOT / "frontend" / "src" / "App.js")
+    # TRACK 22.5A · route wiring moved from App.js into
+    # `app/routing/AppRoutes.jsx`. Read both so the safety intent
+    # ("these routes still mount") is preserved without weakening.
+    body = _read(ROOT / "frontend" / "src" / "App.js") + "\n" + _read(
+        ROOT / "frontend" / "src" / "app" / "routing" / "AppRoutes.jsx"
+    )
     assert "/admin/transportation" in body
     assert "/transportation-operations" in body
     # Dispatch portal must still mount.
     assert "/dispatch-portal" in body
 
 def test_driver_magic_link_route_preserved():
-    body = _read(ROOT / "frontend" / "src" / "App.js")
+    # TRACK 22.5A · see comment above.
+    body = _read(ROOT / "frontend" / "src" / "App.js") + "\n" + _read(
+        ROOT / "frontend" / "src" / "app" / "routing" / "AppRoutes.jsx"
+    )
     # The carrier invite / verify routes which underpin the magic-link
     # flow must still be present.
     assert "transport-verify" in body or "ExternalCarrierInvite" in body

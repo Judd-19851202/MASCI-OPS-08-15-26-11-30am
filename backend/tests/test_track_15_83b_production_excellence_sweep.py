@@ -33,6 +33,8 @@ from dotenv import dotenv_values
 
 FRONTEND_SRC = Path("/app/frontend/src")
 APP_JS = FRONTEND_SRC / "App.js"
+# TRACK 22.5A · re-anchor to current routing shell.
+APP_ROUTES = FRONTEND_SRC / "app" / "routing" / "AppRoutes.jsx"
 ADMIN_DISPATCH = FRONTEND_SRC / "pages/admin/AdminDispatch.jsx"
 DISPATCH_HUB = FRONTEND_SRC / "pages/DispatchHub.jsx"
 BACKEND_LIB = Path("/app/backend/lib/transfer_visibility.py")
@@ -223,7 +225,7 @@ def test_dispatch_transfers_tab_uses_operator_audience():
 
 
 def test_preview_routes_mounted_only_under_internal_namespace():
-    src = _read(APP_JS)
+    src = (_read(APP_JS) + "\n" + _read(APP_ROUTES))
     for needle in [
         "DesignSystemDemo", "PmV2Preview", "HrV2Preview",
         "V2Index", "V2Compare",
@@ -256,7 +258,7 @@ def test_preview_routes_mounted_only_under_internal_namespace():
 
 
 def test_admin_operations_map_route_still_admin_only():
-    src = _read(APP_JS)
+    src = (_read(APP_JS) + "\n" + _read(APP_ROUTES))
     assert re.search(
         r'<Route\s+path="/operations-map"\s+element=\{A\(<OperationsMapPage\s*/>\)\}',
         src,

@@ -37,6 +37,8 @@ ROUTE_FILE = BACKEND / "routes" / "transportation.py"
 SERVER_FILE = BACKEND / "server.py"
 PAGE_FILE = ROOT / "frontend" / "src" / "pages" / "AdminTransportation.jsx"
 APP_JS = ROOT / "frontend" / "src" / "App.js"
+# TRACK 22.5A · re-anchor to current routing shell (App.js + AppRoutes.jsx).
+APP_ROUTES = ROOT / "frontend" / "src" / "app" / "routing" / "AppRoutes.jsx"
 DEPLOY_GATE = ROOT / "scripts" / "deployment_gate.py"
 
 
@@ -191,7 +193,7 @@ def test_17_route_wired_into_server():
 
 # ───────────────────── 18. UI route exists ──────────────────────────────
 def test_18_admin_transportation_route_exists():
-    app_src = APP_JS.read_text()
+    app_src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert 'path="/admin/transportation' in app_src  # may be exact or splat
     assert "AdminTransportation" in app_src
     assert PAGE_FILE.exists()

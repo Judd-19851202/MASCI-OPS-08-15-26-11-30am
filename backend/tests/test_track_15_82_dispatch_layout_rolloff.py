@@ -33,6 +33,8 @@ from pathlib import Path
 
 FRONTEND_SRC = Path("/app/frontend/src")
 APP_JS = FRONTEND_SRC / "App.js"
+# TRACK 22.5A · re-anchor to current routing shell.
+APP_ROUTES = FRONTEND_SRC / "app" / "routing" / "AppRoutes.jsx"
 DISPATCH_MAP_WRAPPER = FRONTEND_SRC / "pages/DispatchOperationsMapPage.jsx"
 
 
@@ -46,7 +48,7 @@ def _read(path: Path) -> str:
 def test_dispatch_map_route_uses_dispatch_wrapper():
     """`/dispatch-portal/map` MUST render the Dispatch-themed wrapper
     (`DispatchOperationsMapPage`), not the bare `OperationsMapPage`."""
-    src = _read(APP_JS)
+    src = (_read(APP_JS) + "\n" + _read(APP_ROUTES))
     pattern = re.compile(
         r'<Route\s+path="/dispatch-portal/map"\s+element=\{DP\('
         r'<DispatchOperationsMapPage\s*/>\)\}'
@@ -63,7 +65,7 @@ def test_admin_operations_map_route_keeps_bare_page():
     """`/operations-map` (Admin Console) MUST keep rendering the bare
     `OperationsMapPage` — NOT the Dispatch wrapper. The Dispatch
     breadcrumb belongs only inside Dispatch."""
-    src = _read(APP_JS)
+    src = (_read(APP_JS) + "\n" + _read(APP_ROUTES))
     pattern = re.compile(
         r'<Route\s+path="/operations-map"\s+element=\{A\(<OperationsMapPage\s*/>\)\}'
     )

@@ -455,7 +455,10 @@ export default function IncidentReportViewer() {
         <div className="p-4 rounded-lg border border-red-300 bg-red-50 text-red-900">
           <div className="font-bold">{t("Could not load report")}</div>
           <div className="text-sm mt-1">
-            {typeof err === "string" ? err : JSON.stringify(err)}
+            {/* TRACK 22.5A · never dump raw JSON/stack to a user. */}
+            {typeof err === "string" && err.length < 240
+              ? err
+              : t("Please try again. If the problem persists, contact your admin.")}
           </div>
           <button
             onClick={() => navigate(-1)}

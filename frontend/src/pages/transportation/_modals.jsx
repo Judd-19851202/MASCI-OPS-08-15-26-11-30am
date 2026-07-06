@@ -283,7 +283,7 @@ export function AddLeasedDriverModal({ open, onClose, onCreated }) {
           >
             <option value="">Choose carrier…</option>
             {carriers.map((c) => (
-              <option key={c.id} value={c.id}>{c.legal_name}{c.dot_number ? ` · DOT ${c.dot_number}` : ""}</option>
+              <option key={c.id} value={c.id}>{`${c.legal_name}${c.dot_number ? ` · DOT ${c.dot_number}` : ""}`}</option>
             ))}
           </select>
         </Field>

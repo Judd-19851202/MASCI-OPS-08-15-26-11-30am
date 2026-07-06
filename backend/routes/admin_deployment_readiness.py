@@ -110,6 +110,14 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
                     "ok", "sent", "delivered", "failed", "skipped",
                     "dead_letter", "dead-letter", "routed_to_dead_letter",
                     "dry_run", "dry-run", "resolved",
+                    # TRACK 22.5A · `needs_configuration` is the audit
+                    # status recorded when a routing rule matches but
+                    # the target has no resolvable recipient (e.g. a
+                    # project without PM email). The underlying fact
+                    # is already surfaced as a `master_data` advisory
+                    # finding — do not double-count it as an audit
+                    # anomaly.
+                    "needs_configuration",
                 ]},
             })
         except Exception:

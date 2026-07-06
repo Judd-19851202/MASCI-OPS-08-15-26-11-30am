@@ -21,6 +21,8 @@ from pathlib import Path
 FRONTEND_SRC = Path("/app/frontend/src")
 PAGES_DIR = FRONTEND_SRC / "pages"
 APP_JS = FRONTEND_SRC / "App.js"
+# TRACK 22.5A · re-anchor to current routing shell (App.js + AppRoutes.jsx).
+APP_ROUTES = FRONTEND_SRC / "app" / "routing" / "AppRoutes.jsx"
 
 
 def _read(p: Path) -> str:
@@ -72,7 +74,7 @@ def test_safety_portal_routes_mounted_under_safety_namespace():
     """Track 15.85: every Safety Portal route must live under the
     `/safety-portal` URL namespace OR the `/safety/*` legacy mount.
     Prevents accidental relocation that would break operator nav."""
-    src = _read(APP_JS)
+    src = (_read(APP_JS) + "\n" + _read(APP_ROUTES))
     # /safety-portal must be mounted somewhere.
     assert '"/safety-portal' in src or "'/safety-portal" in src, (
         "Track 15.85: Safety Portal landing URL `/safety-portal` must "
@@ -84,7 +86,7 @@ def test_safety_portal_routes_mounted_under_safety_namespace():
 
 
 def test_trench_safety_route_mounted():
-    src = _read(APP_JS)
+    src = (_read(APP_JS) + "\n" + _read(APP_ROUTES))
     assert re.search(r'<Route\s+path="/trench-safety[^"]*"', src), (
         "Track 15.85: `/trench-safety` route must remain mounted in App.js."
     )
@@ -117,7 +119,7 @@ def test_trench_safety_field_command_has_stop_work_authority_copy():
 
 def test_dispatch_map_route_split_preserved():
     """Track 15.81 + 15.82 parity."""
-    src = _read(APP_JS)
+    src = (_read(APP_JS) + "\n" + _read(APP_ROUTES))
     assert re.search(
         r'<Route\s+path="/operations-map"\s+element=\{A\(<OperationsMapPage\s*/>\)\}',
         src,
@@ -201,7 +203,7 @@ def test_no_rendered_iter_labels_across_all_pages():
 def test_pm_portal_canonical_route_mounted():
     """Track 15.85 Exec #2 · PM Portal landing is mounted at the
     canonical `/pm` path and resolves through PmHomeRedirect."""
-    src = _read(APP_JS)
+    src = (_read(APP_JS) + "\n" + _read(APP_ROUTES))
     assert re.search(
         r'<Route\s+path="/pm"\s+element=\{P\(<PmHomeRedirect\s*/>\)\}',
         src,
@@ -215,7 +217,7 @@ def test_pm_portal_canonical_route_mounted():
 
 
 def test_leadership_canonical_route_mounted():
-    src = _read(APP_JS)
+    src = (_read(APP_JS) + "\n" + _read(APP_ROUTES))
     assert re.search(
         r'<Route\s+path="/leadership"\s+element=\{<FieldLeadershipHub\s*/>\}',
         src,
@@ -248,7 +250,7 @@ def test_no_404_on_canonical_portal_paths():
     (which would route every operator deep-link to the 404 recovery
     page). The 404 recovery surface itself was beautiful — but a
     portal landing returning 404 is a P0 trust failure."""
-    src = _read(APP_JS)
+    src = (_read(APP_JS) + "\n" + _read(APP_ROUTES))
     missing = []
     for path, pattern in _CANONICAL_PATH_ROUTES:
         if not re.search(pattern, src):
@@ -265,7 +267,7 @@ def test_canonical_portal_paths_are_protected_by_their_guards():
     """Track 15.85 Exec #2 · Cross-check: every operator portal route
     is wrapped in the correct guard (P / DP / H / S / SH / A). This
     is a routing-discipline test, NOT an auth-strength test."""
-    src = _read(APP_JS)
+    src = (_read(APP_JS) + "\n" + _read(APP_ROUTES))
     # PM landing
     assert "P(<PmHomeRedirect" in src
     # Dispatch landing
@@ -533,7 +535,7 @@ def test_public_form_routes_remain_publicly_mounted():
     field crews. If this test fails, someone has likely auth-gated a
     public field workflow without going through the explicit
     `private-form-gate` track."""
-    src = _read(APP_JS)
+    src = (_read(APP_JS) + "\n" + _read(APP_ROUTES))
     missing = []
     for path in _PUBLIC_FORM_ROUTES:
         # Match each path's Route definition.
@@ -566,7 +568,7 @@ def test_admin_deep_canonical_routes_mounted():
     Every documented admin-deep route must remain mounted in App.js.
     These are the operator's trust + ops + governance surfaces — if
     any one becomes unreachable, the operator's deep workflows break."""
-    src = _read(APP_JS)
+    src = (_read(APP_JS) + "\n" + _read(APP_ROUTES))
     missing = []
     for path in _ADMIN_DEEP_ROUTES:
         if not re.search(r'<Route\s+path="' + re.escape(path) + r'"', src):
@@ -586,7 +588,7 @@ def test_trust_center_canonical_surfaces_mounted():
     Three canonical surfaces are required: `/notifications` (digest
     + bell), `/admin/system-health` (subsystem health), and
     `/admin/audit-log` (audit trail). Each must remain mounted."""
-    src = _read(APP_JS)
+    src = (_read(APP_JS) + "\n" + _read(APP_ROUTES))
     assert re.search(r'<Route\s+path="/notifications"', src), (
         "Track 15.85 Exec #4: /notifications must remain mounted."
     )

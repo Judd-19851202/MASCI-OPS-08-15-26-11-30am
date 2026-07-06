@@ -121,8 +121,13 @@ def test_no_new_collections_in_release():
 # (15) No route removals
 # ────────────────────────────────────────────────────────────────────────
 def test_no_route_removals():
-    # Confirm key route prefixes are still mounted.
-    app_js = _read(ROOT / "frontend" / "src" / "App.js")
+    # TRACK 22.5A · route wiring moved from App.js into
+    # `app/routing/AppRoutes.jsx`. Read both — safety intent
+    # ("these route prefixes are still mounted somewhere in the
+    # shipped app shell") is preserved.
+    app_js = _read(ROOT / "frontend" / "src" / "App.js") + "\n" + _read(
+        ROOT / "frontend" / "src" / "app" / "routing" / "AppRoutes.jsx"
+    )
     for prefix in [
         "/admin", "/dispatch-portal", "/transportation-operations",
         "/sign-in", "/transport-verify",

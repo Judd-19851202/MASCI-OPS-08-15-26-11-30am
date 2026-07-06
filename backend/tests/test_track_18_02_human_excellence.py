@@ -22,6 +22,8 @@ SHELL = ROOT / "frontend" / "src" / "pages" / "transportation" / "Transportation
 SEARCH = ROOT / "frontend" / "src" / "pages" / "transportation" / "TransportationSearch.jsx"
 TX_APP = ROOT / "frontend" / "src" / "pages" / "transportation" / "TransportationApp.jsx"
 APP_JS = ROOT / "frontend" / "src" / "App.js"
+# TRACK 22.5A · re-anchor to current routing shell (App.js + AppRoutes.jsx)
+APP_ROUTES = ROOT / "frontend" / "src" / "app" / "routing" / "AppRoutes.jsx"
 SERVER = ROOT / "backend" / "server.py"
 GATE = ROOT / "scripts" / "deployment_gate.py"
 
@@ -254,7 +256,7 @@ def test_22_no_forbidden_wording_in_shell():
 # 23 — All dispatch routes preserved (zero hunting standard).
 # ===========================================================================
 def test_23_dispatch_routes_preserved():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     for route in (
         "/dispatch-portal", "/dispatch-portal/login",
         "/dispatch-portal/board", "/dispatch-portal/command",
@@ -272,7 +274,7 @@ def test_23_dispatch_routes_preserved():
 # 24 — Transportation shell route mounted with dispatch-safe gate.
 # ===========================================================================
 def test_24_transportation_shell_dispatch_safe():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert "/transportation-operations/*" in src
     assert "RequireTransportationPortal" in src
 

@@ -17,6 +17,8 @@ from pathlib import Path
 
 ROOT = Path("/app")
 APP_JS = ROOT / "frontend" / "src" / "App.js"
+# TRACK 22.5A · re-anchor to current routing shell (App.js + AppRoutes.jsx)
+APP_ROUTES = ROOT / "frontend" / "src" / "app" / "routing" / "AppRoutes.jsx"
 TOPBAR = ROOT / "frontend" / "src" / "components" / "transportation" / "TransportationOpsTopBar.jsx"
 RESTRICTED = ROOT / "frontend" / "src" / "components" / "transportation" / "TxOpsRestricted.jsx"
 HUB = ROOT / "frontend" / "src" / "pages" / "DispatchHub.jsx"
@@ -41,7 +43,7 @@ DOC = ROOT / "memory" / "TRACK_18_00_PHASE_G_FINAL_POLISH_RESTRICTED_STATE_CLEAN
 # 1 — /dispatch-portal/fleet route still mounted.
 # ===========================================================================
 def test_01_dispatch_fleet_route_present():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert '"/dispatch-portal/fleet"' in src
 
 
@@ -49,7 +51,7 @@ def test_01_dispatch_fleet_route_present():
 # 2 — /dispatch-portal/fleet route now mounts TopBar above FleetVisibility.
 # ===========================================================================
 def test_02_dispatch_fleet_route_mounts_topbar():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     line = next(
         (l for l in src.splitlines()
          if '/dispatch-portal/fleet"' in l), "")
@@ -127,7 +129,7 @@ def test_09_topbar_not_on_driver_magic_link():
 # 10 — Admin Fleet routes do NOT mount the TopBar (no unintended drift).
 # ===========================================================================
 def test_10_admin_fleet_not_topbarred():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     # /admin/fleet route (if present) and shop/safety fleet must not
     # carry the TopBar — only /dispatch-portal/fleet does.
     for needle in ('"/shop/fleet"', '"/safety-portal/fleet"'):
@@ -331,7 +333,7 @@ def test_25_dispatch_auth_unchanged():
 # 26 — Admin auth unchanged (RequireAdmin still wraps /admin/transportation).
 # ===========================================================================
 def test_26_admin_auth_unchanged():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert "RequireAdmin" in src
     m = re.search(
         r'path="/admin/transportation/\*"\s+element=\{(\w+)\(', src)
@@ -342,7 +344,7 @@ def test_26_admin_auth_unchanged():
 # 27 — Driver auth unchanged (driver magic-link routes preserved).
 # ===========================================================================
 def test_27_driver_auth_unchanged():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert "/dispatch-portal/driver/" in src
     assert "DispatchDriverProfile" in src or "DispatchDriverShift" in src
 
@@ -365,7 +367,7 @@ def test_28_no_new_collection():
 # 29 — No dispatch route removed in Phase G.
 # ===========================================================================
 def test_29_no_dispatch_route_removed():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     for required in (
         "/dispatch-portal", "/dispatch-portal/login",
         "/dispatch-portal/board", "/dispatch-portal/command",
@@ -450,7 +452,7 @@ def test_35_phase_e_topbar_preserved():
 # 36 — 18.00E-FIX preserved (TX wrapper + /transportation-operations/* route).
 # ===========================================================================
 def test_36_18_00e_fix_preserved():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert "RequireTransportationPortal" in src
     assert "/transportation-operations/*" in src
     assert "const TX " in src or "const TX=" in src

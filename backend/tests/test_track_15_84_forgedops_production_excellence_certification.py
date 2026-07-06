@@ -32,6 +32,8 @@ from pathlib import Path
 FRONTEND_SRC = Path("/app/frontend/src")
 PAGES_DIR = FRONTEND_SRC / "pages"
 APP_JS = FRONTEND_SRC / "App.js"
+# TRACK 22.5A · re-anchor to current routing shell (App.js + AppRoutes.jsx).
+APP_ROUTES = FRONTEND_SRC / "app" / "routing" / "AppRoutes.jsx"
 
 
 def _read(p: Path) -> str:
@@ -130,7 +132,7 @@ def test_no_rendered_iter_labels_in_production_pages():
 
 
 def test_no_preview_route_outside_internal_namespace():
-    src = _read(APP_JS)
+    src = (_read(APP_JS) + "\n" + _read(APP_ROUTES))
     # Detect any non-`_internal` mount of demo / v2-compare / design-system
     bad = re.findall(
         r'<Route\s+path="(/(?:design-system|v2-(?:compare|index)|pm-v2-preview|hr-v2-preview)[^"]*)"',
@@ -182,7 +184,7 @@ def test_roll_off_tile_still_present():
 
 
 def test_dispatch_map_route_still_under_dispatch_guard():
-    src = _read(APP_JS)
+    src = (_read(APP_JS) + "\n" + _read(APP_ROUTES))
     assert re.search(
         r'<Route\s+path="/dispatch-portal/map"\s+element=\{DP\('
         r'<(?:OperationsMapPage|DispatchOperationsMapPage)\s*/>\)\}',
@@ -191,7 +193,7 @@ def test_dispatch_map_route_still_under_dispatch_guard():
 
 
 def test_admin_operations_map_route_still_admin_only():
-    src = _read(APP_JS)
+    src = (_read(APP_JS) + "\n" + _read(APP_ROUTES))
     assert re.search(
         r'<Route\s+path="/operations-map"\s+element=\{A\(<OperationsMapPage\s*/>\)\}',
         src,

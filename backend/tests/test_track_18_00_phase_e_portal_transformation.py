@@ -24,6 +24,8 @@ from pathlib import Path
 
 ROOT = Path("/app")
 APP_JS = ROOT / "frontend" / "src" / "App.js"
+# TRACK 22.5A · re-anchor to current routing shell (App.js + AppRoutes.jsx)
+APP_ROUTES = ROOT / "frontend" / "src" / "app" / "routing" / "AppRoutes.jsx"
 DISPATCH_HUB = ROOT / "frontend" / "src" / "pages" / "DispatchHub.jsx"
 TOPBAR = ROOT / "frontend" / "src" / "components" / "transportation" / "TransportationOpsTopBar.jsx"
 TX_APP = ROOT / "frontend" / "src" / "pages" / "transportation" / "TransportationApp.jsx"
@@ -145,7 +147,7 @@ def test_11_topbar_mounted_in_dispatch_hub():
 # 12 — Dispatch login route preserved.
 # ===========================================================================
 def test_12_dispatch_login_preserved():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert '/dispatch-portal/login' in src
     assert "DispatchLogin" in src
 
@@ -154,7 +156,7 @@ def test_12_dispatch_login_preserved():
 # 13 — Dispatch hub landing route preserved at `/dispatch-portal`.
 # ===========================================================================
 def test_13_dispatch_hub_route_preserved():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert '<Route path="/dispatch-portal"' in src
     assert "DispatchHub" in src
 
@@ -163,7 +165,7 @@ def test_13_dispatch_hub_route_preserved():
 # 14 — Dispatch board route preserved.
 # ===========================================================================
 def test_14_dispatch_board_route_preserved():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert '/dispatch-portal/board' in src
 
 
@@ -171,7 +173,7 @@ def test_14_dispatch_board_route_preserved():
 # 15 — Dispatch command center route preserved.
 # ===========================================================================
 def test_15_dispatch_command_route_preserved():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert '/dispatch-portal/command' in src
 
 
@@ -179,7 +181,7 @@ def test_15_dispatch_command_route_preserved():
 # 16 — Dispatch operations map route preserved.
 # ===========================================================================
 def test_16_dispatch_map_route_preserved():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert '/dispatch-portal/map' in src
 
 
@@ -187,7 +189,7 @@ def test_16_dispatch_map_route_preserved():
 # 17 — Dispatch haul ledger route preserved.
 # ===========================================================================
 def test_17_dispatch_haul_ledger_route_preserved():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert '/dispatch-portal/haul-ledger' in src
 
 
@@ -195,7 +197,7 @@ def test_17_dispatch_haul_ledger_route_preserved():
 # 18 — Driver dispatch route preserved.
 # ===========================================================================
 def test_18_driver_dispatch_route_preserved():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert '/dispatch-portal/driver/' in src
 
 
@@ -203,7 +205,7 @@ def test_18_driver_dispatch_route_preserved():
 # 19 — Dispatch driver qualification route preserved.
 # ===========================================================================
 def test_19_dispatch_driver_qualification_preserved():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert '/dispatch-portal/driver-qualification' in src
 
 
@@ -211,7 +213,7 @@ def test_19_dispatch_driver_qualification_preserved():
 # 20 — Dispatch password reset/forgot routes preserved.
 # ===========================================================================
 def test_20_dispatch_password_routes_preserved():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert '/dispatch-portal/forgot-password' in src
     assert '/dispatch-portal/reset/' in src
     assert '/dispatch-portal/change-password' in src
@@ -388,7 +390,7 @@ def test_38_phase_d_schema_version_locked():
 #       hub) — confirms unified TopBar doesn't bypass the auth gate.
 # ===========================================================================
 def test_39_dispatch_auth_guard_preserved():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert "RequireDispatch" in src
     # Hub still wrapped by DP().
     assert "DP(<DispatchHub />)" in src

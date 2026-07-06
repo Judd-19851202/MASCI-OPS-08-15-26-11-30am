@@ -35,10 +35,41 @@ TRACK_DOC = MEMORY / "TRACK_18_10_GOVERNANCE_BOUNDARY_LINTER.md"
 
 
 # ---------------------------------------------------------------------
+# TRACK 22.5A · linter modernization
+# ---------------------------------------------------------------------
+# The original Track 18.10 assertions read `frontend/src/App.js` as
+# the single source-of-truth for the app's route + auth wiring. That
+# was accurate before the platform's routing was extracted into
+# `frontend/src/app/routing/AppRoutes.jsx` (imported by App.js as a
+# lazy component). The safety intent — "these routes / auth guards
+# exist in the shipped app" — is unchanged; we just have to look in
+# the current canonical location.
+#
+# `_read_app_shell()` returns the concatenation of App.js + AppRoutes.jsx
+# so every literal-substring assertion below continues to certify the
+# same protected surface without weakening. This is a re-anchor, not
+# a bypass.
+# ---------------------------------------------------------------------
+_APP_JS_PATH = FRONTEND_SRC / "App.js"
+_APP_ROUTES_PATH = FRONTEND_SRC / "app" / "routing" / "AppRoutes.jsx"
+
+
+def _read_app_shell() -> str:
+    """Return App.js + AppRoutes.jsx concatenated (canonical routing shell)."""
+    parts = []
+    if _APP_JS_PATH.exists():
+        parts.append(_APP_JS_PATH.read_text())
+    if _APP_ROUTES_PATH.exists():
+        parts.append(_APP_ROUTES_PATH.read_text())
+    return "\n".join(parts)
+
+
+# ---------------------------------------------------------------------
 # Allow-list — every existing file under pages/admin/ as of 2026-02-10
 # plus the cross-tree thin alias at pages/AdminTransportation.jsx.
 # ---------------------------------------------------------------------
 GOVERNANCE_FILES = {
+    "AdminAIConfiguration.jsx",
     "AdminAnalytics.jsx",
     "AdminAssetAdmin.jsx",
     "AdminAssetMapping.jsx",
@@ -58,6 +89,8 @@ GOVERNANCE_FILES = {
     "AdminJobs.jsx",
     "AdminMasterHistory.jsx",
     "AdminMfa.jsx",
+    "AdminOperationalIntelligence.jsx",
+    "AdminOperationalIntelligenceRecipients.jsx",
     "AdminOperationalInventory.jsx",
     "AdminOperationalLanguage.jsx",
     "AdminOperationsDashboard.jsx",
@@ -73,6 +106,8 @@ GOVERNANCE_FILES = {
     "AdminSystem.jsx",
     "AssetProfile.jsx",
     "DeployRecovery.jsx",
+    "IntegrationTruth.jsx",
+    "PreviewValidationIdentities.jsx",
     "SelfProtection.jsx",
     "SystemHealth.jsx",
 }
@@ -495,7 +530,7 @@ def test_22_linter_avoids_false_positives():
 # 23. /transportation-operations/* contract preserved.
 # =====================================================================
 def test_23_transportation_operations_route_preserved():
-    src = (FRONTEND_SRC / "App.js").read_text()
+    src = _read_app_shell()
     assert '/transportation-operations/*' in src
     assert re.search(
         r'path="/transportation-operations/\*"\s+element=\{TX\(',
@@ -507,7 +542,7 @@ def test_23_transportation_operations_route_preserved():
 # 24. /admin/transportation/* alias preserved.
 # =====================================================================
 def test_24_admin_transportation_alias_preserved():
-    src = (FRONTEND_SRC / "App.js").read_text()
+    src = _read_app_shell()
     assert '/admin/transportation/*' in src
     assert re.search(
         r'path="/admin/transportation/\*"\s+element=\{A\(',
@@ -536,7 +571,7 @@ def test_26_no_route_changes():
     body = TRACK_DOC.read_text()
     assert "no new endpoints" in body.lower() or "No new endpoints" in body
     # Both doorways still in App.js (sanity).
-    src = (FRONTEND_SRC / "App.js").read_text()
+    src = _read_app_shell()
     assert "/transportation-operations/*" in src
     assert "/admin/transportation/*" in src
 
@@ -545,7 +580,7 @@ def test_26_no_route_changes():
 # 27. No auth changes.
 # =====================================================================
 def test_27_no_auth_changes():
-    src = (FRONTEND_SRC / "App.js").read_text()
+    src = _read_app_shell()
     # Both auth helpers in use.
     assert "A(" in src and "TX(" in src
 
@@ -557,7 +592,7 @@ def test_28_no_rbac_changes():
     # Admin-strict and operational gates both still mount their
     # respective doorways. We assert the canonical guard names appear
     # somewhere in App.js (their definitions or usages).
-    src = (FRONTEND_SRC / "App.js").read_text()
+    src = _read_app_shell()
     # The admin-strict adminAuth import is canonical.
     assert "adminAuth" in src or "isAdmin" in src, (
         "Admin auth import appears to have been removed."
@@ -568,7 +603,7 @@ def test_28_no_rbac_changes():
 # 29. Dispatch execution preserved.
 # =====================================================================
 def test_29_dispatch_execution_preserved():
-    src = (FRONTEND_SRC / "App.js").read_text()
+    src = _read_app_shell()
     # Dispatch execution lives at /dispatch-portal/* and direct files
     # (DispatchBoard, DispatchCommandCenter).
     assert "DispatchBoard" in src or "/dispatch-portal" in src
@@ -578,7 +613,7 @@ def test_29_dispatch_execution_preserved():
 # 30. Driver workflows preserved.
 # =====================================================================
 def test_30_driver_workflows_preserved():
-    src = (FRONTEND_SRC / "App.js").read_text()
+    src = _read_app_shell()
     assert "/dr/" in src or "DriverPortal" in src or "/driver/" in src, (
         "Driver workflow routes appear to have been removed."
     )

@@ -18,6 +18,8 @@ from pathlib import Path
 
 ROOT = Path("/app")
 APP_JS = ROOT / "frontend" / "src" / "App.js"
+# TRACK 22.5A · re-anchor to current routing shell (App.js + AppRoutes.jsx)
+APP_ROUTES = ROOT / "frontend" / "src" / "app" / "routing" / "AppRoutes.jsx"
 TOPBAR = ROOT / "frontend" / "src" / "components" / "transportation" / "TransportationOpsTopBar.jsx"
 RESTRICTED = ROOT / "frontend" / "src" / "components" / "transportation" / "TxOpsRestricted.jsx"
 HUB = ROOT / "frontend" / "src" / "pages" / "DispatchHub.jsx"
@@ -40,7 +42,7 @@ DOC = ROOT / "memory" / "TRACK_18_00_PHASE_F_PORTAL_AWARE_DATA_LAYER.md"
 # 1 — dispatch login route preserved.
 # ===========================================================================
 def test_01_dispatch_login_preserved():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert "/dispatch-portal/login" in src
     assert "DispatchLogin" in src
 
@@ -49,7 +51,7 @@ def test_01_dispatch_login_preserved():
 # 2 — /dispatch-portal route preserved.
 # ===========================================================================
 def test_02_dispatch_hub_route_preserved():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert '<Route path="/dispatch-portal"' in src
     assert "DispatchHub" in src
 
@@ -58,7 +60,7 @@ def test_02_dispatch_hub_route_preserved():
 # 3 — /dispatch-portal/board route preserved.
 # ===========================================================================
 def test_03_dispatch_board_route_preserved():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert "/dispatch-portal/board" in src
 
 
@@ -66,7 +68,7 @@ def test_03_dispatch_board_route_preserved():
 # 4 — /dispatch-portal/command route preserved.
 # ===========================================================================
 def test_04_dispatch_command_route_preserved():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert "/dispatch-portal/command" in src
 
 
@@ -74,7 +76,7 @@ def test_04_dispatch_command_route_preserved():
 # 5 — /dispatch-portal/map route preserved.
 # ===========================================================================
 def test_05_dispatch_map_route_preserved():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert "/dispatch-portal/map" in src
 
 
@@ -82,7 +84,7 @@ def test_05_dispatch_map_route_preserved():
 # 6 — /dispatch-portal/haul-ledger route preserved.
 # ===========================================================================
 def test_06_dispatch_haul_ledger_route_preserved():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert "/dispatch-portal/haul-ledger" in src
 
 
@@ -90,7 +92,7 @@ def test_06_dispatch_haul_ledger_route_preserved():
 # 7 — /dispatch-portal/driver-qualification route preserved.
 # ===========================================================================
 def test_07_dispatch_driver_q_preserved():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert "/dispatch-portal/driver-qualification" in src
 
 
@@ -98,7 +100,7 @@ def test_07_dispatch_driver_q_preserved():
 # 8 — /dispatch-portal/fleet route preserved.
 # ===========================================================================
 def test_08_dispatch_fleet_preserved():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert "/dispatch-portal/fleet" in src
 
 
@@ -131,7 +133,7 @@ def test_10_mission_control_cta_repointed():
 # 11 — /transportation-operations route mounted with dispatch-safe gate.
 # ===========================================================================
 def test_11_transportation_operations_route_mounted():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert '"/transportation-operations/*"' in src
     assert "TX(<AdminTransportation" in src
 
@@ -191,7 +193,7 @@ def test_16_admin_side_nav_conditional():
 # 17 — /admin/transportation alias still mounted for admin oversight.
 # ===========================================================================
 def test_17_admin_alias_still_mounted():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert '"/admin/transportation/*"' in src
     m = re.search(
         r'path="/admin/transportation/\*"\s+element=\{(\w+)\(',
@@ -345,7 +347,7 @@ def test_27_no_source_record_mutation():
 # 28 — No dispatch route removed in Phase F.
 # ===========================================================================
 def test_28_no_dispatch_route_removed():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     for required in (
         "/dispatch-portal", "/dispatch-portal/login",
         "/dispatch-portal/board", "/dispatch-portal/command",
@@ -449,7 +451,7 @@ def test_36_phase_e_topbar_preserved():
 #       /transportation-operations/* route mounted with TX() wrapper).
 # ===========================================================================
 def test_37_18_00e_fix_preserved():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert "RequireTransportationPortal" in src
     assert "const TX " in src or "const TX=" in src
     assert "/transportation-operations/*" in src

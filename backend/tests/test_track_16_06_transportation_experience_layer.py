@@ -41,6 +41,8 @@ TX_SHARED = ROOT / "frontend" / "src" / "pages" / "transportation" / "_shared.js
 TX_VIEWS = ROOT / "frontend" / "src" / "pages" / "transportation" / "_views.jsx"
 TX_LISTS = ROOT / "frontend" / "src" / "pages" / "transportation" / "_lists.jsx"
 APP_JS = ROOT / "frontend" / "src" / "App.js"
+# TRACK 22.5A · re-anchor to current routing shell (App.js + AppRoutes.jsx).
+APP_ROUTES = ROOT / "frontend" / "src" / "app" / "routing" / "AppRoutes.jsx"
 PHASE2_TEST = BACKEND / "tests" / "test_track_16_05_transportation_onboarding_compliance_center.py"
 PHASE1_TEST = BACKEND / "tests" / "test_track_16_04_transportation_foundation.py"
 
@@ -267,7 +269,7 @@ def test_24_old_admin_transportation_is_reexport():
 
 
 def test_25_app_js_route_mounts_splat():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     # Nested routing requires the wildcard route.
     assert 'path="/admin/transportation/*"' in src
     assert "AdminTransportation" in src

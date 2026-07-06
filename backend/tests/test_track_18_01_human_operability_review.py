@@ -29,6 +29,8 @@ SHELL = TX_DIR / "TransportationWorkspaceShell.jsx"
 SEARCH = TX_DIR / "TransportationSearch.jsx"
 TX_APP = TX_DIR / "TransportationApp.jsx"
 APP_JS = ROOT / "frontend" / "src" / "App.js"
+# TRACK 22.5A · re-anchor to current routing shell (App.js + AppRoutes.jsx)
+APP_ROUTES = ROOT / "frontend" / "src" / "app" / "routing" / "AppRoutes.jsx"
 SERVER = ROOT / "backend" / "server.py"
 GATE = ROOT / "scripts" / "deployment_gate.py"
 
@@ -255,7 +257,7 @@ def test_18_mission_control_loads():
 # 19 — Dispatch board route preserved.
 # ===========================================================================
 def test_19_dispatch_board_route_preserved():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert "/dispatch-portal/board" in src
 
 
@@ -263,7 +265,7 @@ def test_19_dispatch_board_route_preserved():
 # 20 — Dispatch map route preserved.
 # ===========================================================================
 def test_20_dispatch_map_route_preserved():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert "/dispatch-portal/map" in src
 
 
@@ -271,7 +273,7 @@ def test_20_dispatch_map_route_preserved():
 # 21 — Dispatch haul-ledger route preserved.
 # ===========================================================================
 def test_21_dispatch_haul_ledger_route_preserved():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert "/dispatch-portal/haul-ledger" in src
 
 
@@ -279,7 +281,7 @@ def test_21_dispatch_haul_ledger_route_preserved():
 # 22 — Dispatch driver-qualification route preserved.
 # ===========================================================================
 def test_22_dispatch_driver_q_preserved():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     assert "/dispatch-portal/driver-qualification" in src
 
 
@@ -287,7 +289,7 @@ def test_22_dispatch_driver_q_preserved():
 # 23 — Dispatch fleet route preserved with TopBar (Phase G lock).
 # ===========================================================================
 def test_23_dispatch_fleet_preserved():
-    src = APP_JS.read_text()
+    src = (APP_JS.read_text() + "\n" + APP_ROUTES.read_text())
     line = next(
         (l for l in src.splitlines() if '"/dispatch-portal/fleet"' in l), "")
     assert "TransportationOpsTopBar" in line

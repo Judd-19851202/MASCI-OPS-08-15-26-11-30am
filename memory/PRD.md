@@ -11,6 +11,23 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 22.5A-RESTART · PM Truth-Source Reconciliation & Governance Audit · 🟢 SHIPPED · CERTIFIED (2026-02)
+- **Mandate**: Prove why the deployment gate reported PM configuration failures while the live UI showed valid PM assignments. Do NOT patch symptoms. Do NOT modify production data. Fix the source of truth divergence at its root.
+- **Root cause found**: `lib/master_data_trust._pm_assignment_findings` selected active jobs with `{"is_active": {"$ne": False}}` — a field that **does not exist on any `jobs_master` row** (0/30). The audit therefore matched every row unconditionally *and* ignored the `deleted_at` soft-delete flag. The canonical UI helper `jobs_master.list_jobs()` uses `{"active": True, "deleted_at": {"$in": [None, ""]}}`. The audit was reading a different set than the UI.
+- **Surgical fix**: 1 file, aligned audit filter to canonical `list_jobs()` filter. No production data mutated. No fabricated PMs. No allowlist expansion.
+- **Before vs After**: `pm_missing_route` count dropped 5 → 4. The extra entry (`SD-6909db`) was a soft-deleted test row incorrectly surfaced. All 4 residual findings are legitimate advisories on projects the UI also flags as missing PM (`22-08`, `24-08`, `26-04`, `26-07`).
+- **Deployment gate result**: `PASS` (regression 134/134 · runtime 0 blocking / 3 advisory). `scripts/deployment_gate.py` returns exit=0.
+- **`needs_configuration` allowlist entry** (added prior session): audited against all 5 conditions — retained with justification (documented status, non-masking, prevents double counting of same fact already surfaced as `pm_missing_route`).
+- **No hardening lock weakened**: `DATA_ISSUE_FINDING_CODES` / `CODE_DEFECT_FINDING_CODES` classifications unchanged; regression suite passes without modification.
+- **Scope discipline**: 1 file logical change (audit filter); 33 files diff-touched in the aggregate 22.5A session (mostly `App.js` → `AppRoutes.jsx` reader adaptations from prior work). 95 other `is_active` references intentionally left untouched — the bug was localized to one function reading `jobs_master`.
+- **Files created**:
+  - `/app/memory/TRACK_22_5A_LEGACY_GOVERNANCE_LINTER_RETIREMENT.md`
+  - `/app/memory/TRACK_22_5A_LINTER_FAILURE_INVENTORY.csv`
+- **Files changed (this investigation)**: `/app/backend/lib/master_data_trust.py`
+- **Verdict**: 🟢 GO · deploy permitted · Track 22.5 pre-deployment certification unblocked.
+
+
+
 ## TRACK 22.4b-followup-Dispatch-Idempotency · 🟢 SHIPPED · CERTIFIED (2026-07-05)
 - **Mandate**: protect `/api/dispatch/assignments` (including Roll-Off) with the shared reservation-lock without touching Motive or weakening RBAC.
 - **Wrapped** `create_assignment` handler in `_do_create` + `with_idempotency(workflow="dispatch_assignment")`. Same-key concurrent retries → 1 assignment · 1 SMS side-effect · 1 notification fanout · 1 Trust Spine event · 1 audit row.

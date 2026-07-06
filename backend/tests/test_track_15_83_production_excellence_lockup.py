@@ -172,7 +172,7 @@ def test_track_15_82b_roll_off_tile_still_present_on_dispatch_hub():
 
 def test_track_15_81_admin_map_route_still_admin_only():
     """Track 15.83 must not weaken Admin /operations-map RBAC."""
-    src = _read(FRONTEND_SRC / "App.js")
+    src = (_read(FRONTEND_SRC / "App.js") + "\n" + _read(FRONTEND_SRC / "app" / "routing" / "AppRoutes.jsx"))
     pattern = re.compile(
         r'<Route\s+path="/operations-map"\s+element=\{A\(<OperationsMapPage\s*/>\)\}'
     )

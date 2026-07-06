@@ -43,6 +43,22 @@ VIEWS = FRONTEND_SRC / "pages" / "transportation" / "_views.jsx"
 CQ = FRONTEND_SRC / "pages" / "transportation" / "_command_queue.jsx"
 SEARCH = FRONTEND_SRC / "pages" / "transportation" / "TransportationSearch.jsx"
 SHELL = FRONTEND_SRC / "pages" / "transportation" / "TransportationWorkspaceShell.jsx"
+
+
+# ---------------------------------------------------------------------
+# TRACK 22.5A · linter modernization (App.js → App.js + AppRoutes.jsx)
+# ---------------------------------------------------------------------
+_APP_JS_PATH = FRONTEND_SRC / "App.js"
+_APP_ROUTES_PATH = FRONTEND_SRC / "app" / "routing" / "AppRoutes.jsx"
+
+
+def _read_app_shell() -> str:
+    parts = []
+    if _APP_JS_PATH.exists():
+        parts.append(_APP_JS_PATH.read_text())
+    if _APP_ROUTES_PATH.exists():
+        parts.append(_APP_ROUTES_PATH.read_text())
+    return "\n".join(parts)
 TOP_BAR = FRONTEND_SRC / "components" / "transportation" / "TransportationOpsTopBar.jsx"
 RESTRICTED = FRONTEND_SRC / "components" / "transportation" / "TxOpsRestricted.jsx"
 
@@ -255,7 +271,7 @@ def test_14_workspace_strip_no_admin_console_labels():
 #     TX-gated)
 # =====================================================================
 def test_15_dispatch_can_access_transportation_operations():
-    app_js = (FRONTEND_SRC / "App.js").read_text()
+    app_js = _read_app_shell()
     assert re.search(
         r'path="/transportation-operations/\*"\s+element=\{TX\(',
         app_js,
@@ -336,7 +352,7 @@ def test_21_no_forbidden_admin_console_copy_in_tx_ui():
 # 22. /admin/transportation/* admin alias preserved
 # =====================================================================
 def test_22_admin_transportation_alias_preserved():
-    app_js = (FRONTEND_SRC / "App.js").read_text()
+    app_js = _read_app_shell()
     assert re.search(
         r'path="/admin/transportation/\*"\s+element=\{A\(',
         app_js,
@@ -377,7 +393,7 @@ def test_25_admin_only_record_endpoints_remain_admin_strict():
 # 26. RBAC preserved
 # =====================================================================
 def test_26_rbac_preserved():
-    app_js = (FRONTEND_SRC / "App.js").read_text()
+    app_js = _read_app_shell()
     assert "A(" in app_js
     assert "TX(" in app_js
 
@@ -386,7 +402,7 @@ def test_26_rbac_preserved():
 # 27. dispatch routes preserved
 # =====================================================================
 def test_27_dispatch_routes_preserved():
-    app_js = (FRONTEND_SRC / "App.js").read_text()
+    app_js = _read_app_shell()
     assert "DispatchBoard" in app_js or "/dispatch-portal" in app_js
 
 
@@ -394,7 +410,7 @@ def test_27_dispatch_routes_preserved():
 # 28. driver magic-link workflows preserved
 # =====================================================================
 def test_28_driver_magic_link_preserved():
-    app_js = (FRONTEND_SRC / "App.js").read_text()
+    app_js = _read_app_shell()
     assert "/dr/" in app_js or "DriverPortal" in app_js or "/driver/" in app_js
 
 
@@ -421,7 +437,7 @@ def test_30_no_auth_changes():
 # 31. no route removals (both doorways still present)
 # =====================================================================
 def test_31_no_route_removals():
-    app_js = (FRONTEND_SRC / "App.js").read_text()
+    app_js = _read_app_shell()
     assert "/transportation-operations/*" in app_js
     assert "/admin/transportation/*" in app_js
     assert "/dispatch-portal" in app_js or "DispatchBoard" in app_js

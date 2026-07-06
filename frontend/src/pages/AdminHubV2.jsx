@@ -81,7 +81,7 @@ export default function AdminHubV2() {
         </div>
       )}
       <PortalShell
-        portalName="MASCI" portalRole="Admin Portal"
+        portalName="MASCI" portalRole="Admin"
         pageTitle="What requires admin action right now?"
         subtitle="Live cross-portal signals. Every queue opens a real existing admin / ops workflow."
         primaryActions={

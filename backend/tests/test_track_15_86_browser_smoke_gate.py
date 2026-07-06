@@ -49,6 +49,8 @@ from pathlib import Path
 BROWSER_SMOKE_DIR = Path("/app/backend/tests/browser_smoke")
 RUNNER_PATH = BROWSER_SMOKE_DIR / "run_browser_smoke.py"
 APP_JS = Path("/app/frontend/src/App.js")
+# TRACK 22.5A · re-anchor to current routing shell.
+APP_ROUTES = Path("/app/frontend/src/app/routing/AppRoutes.jsx")
 
 
 def _read(p: Path) -> str:
@@ -167,7 +169,7 @@ def test_every_gate_route_is_discoverable_in_app_js():
     must be mounted in App.js (regex-tolerant of Routes that include
     suffixes / wildcards / Navigate aliases)."""
     module = _load_runner_module()
-    src = _read(APP_JS)
+    src = (_read(APP_JS) + "\n" + _read(APP_ROUTES))
     missing = []
     for path, _, _ in module.GATE_ROUTES:
         # Tolerant match: a Route whose path begins with this canonical
@@ -183,7 +185,7 @@ def test_every_gate_route_is_discoverable_in_app_js():
 
 def test_every_extended_route_is_discoverable_in_app_js():
     module = _load_runner_module()
-    src = _read(APP_JS)
+    src = (_read(APP_JS) + "\n" + _read(APP_ROUTES))
     missing = []
     for path, _, _ in module.EXTENDED_ROUTES:
         pat = r'<Route\s+path="' + re.escape(path) + r'(?:"|\/|\\?\*)'

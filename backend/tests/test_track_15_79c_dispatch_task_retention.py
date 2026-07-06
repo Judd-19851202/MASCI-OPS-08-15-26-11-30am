@@ -32,6 +32,19 @@ import pytest
 
 
 SERVER_PY = Path("/app/backend/server.py")
+# TRACK 22.5A · Track 22.1B extracted `schedule_auto_email` into
+# `backend/lib/email_dispatch.py`. Read both files so the strong-
+# reference pattern lock survives the extraction.
+EMAIL_DISPATCH_LIB = Path("/app/backend/lib/email_dispatch.py")
+
+
+def _server_and_lib_source() -> str:
+    parts = []
+    if SERVER_PY.exists():
+        parts.append(SERVER_PY.read_text())
+    if EMAIL_DISPATCH_LIB.exists():
+        parts.append(EMAIL_DISPATCH_LIB.read_text())
+    return "\n".join(parts)
 
 
 # ── 1 · the strong-reference set exists + is named correctly ──────
@@ -83,7 +96,13 @@ def test_schedule_auto_email_retains_strong_reference():
 
 # ── 3 · multiple concurrent dispatches all survive GC ─────────────
 def test_schedule_auto_email_handles_burst_without_loss():
+    # TRACK 22.5A · Track 22.1B extracted the dispatcher into
+    # `lib/email_dispatch.py` behind a `_DISPATCHER_HOOK` indirection.
+    # Monkey-patching `srv._dispatch_auto_email` no longer affects
+    # the hook. We now patch through the registered indirection and
+    # restore it in finally.
     import server as srv  # noqa: PLC0415
+    from lib.email_dispatch import register_dispatcher as _register_email_dispatcher  # noqa: PLC0415
 
     async def _run():
         done_ids: list = []
@@ -93,7 +112,7 @@ def test_schedule_auto_email_handles_burst_without_loss():
             done_ids.append(record["id"])
 
         original = srv._dispatch_auto_email
-        srv._dispatch_auto_email = _stub_dispatcher  # type: ignore[assignment]
+        _register_email_dispatcher(_stub_dispatcher)
         try:
             srv._AUTO_EMAIL_DISPATCH_TASKS.clear()
             # Submit 20 dispatches in a tight burst, then drop every
@@ -114,7 +133,7 @@ def test_schedule_auto_email_handles_burst_without_loss():
                 f"GC reclaimed pending tasks (TRACK 15.79C regression)"
             )
         finally:
-            srv._dispatch_auto_email = original  # type: ignore[assignment]
+            _register_email_dispatcher(original)
 
     asyncio.run(_run())
 
@@ -179,8 +198,21 @@ def test_render_email_html_no_wl_regression():
 # ── 7 · server.py source contract — the create_task line is wrapped ─
 def test_create_task_line_keeps_reference():
     """Lock the exact byte sequence so the strong-reference pattern
-    cannot be silently removed by a future refactor."""
-    src = SERVER_PY.read_text()
-    assert "task = asyncio.create_task(_dispatch_auto_email" in src
+    cannot be silently removed by a future refactor.
+
+    TRACK 22.5A · The dispatcher extraction (Track 22.1B) moved the
+    exact `create_task` invocation into `lib/email_dispatch.py` with
+    a `_DISPATCHER_HOOK` indirection. Read both files and accept
+    either the pre-extraction literal or the post-extraction
+    equivalent — the strong-reference safety intent is unchanged.
+    """
+    src = _server_and_lib_source()
+    has_pre = "task = asyncio.create_task(_dispatch_auto_email" in src
+    has_post = "task = asyncio.create_task(_DISPATCHER_HOOK" in src
+    assert has_pre or has_post, (
+        "strong-reference create_task pattern missing from both "
+        "server.py and lib/email_dispatch.py"
+    )
+    # These two lines were extracted verbatim into email_dispatch.py.
     assert "_AUTO_EMAIL_DISPATCH_TASKS.add(task)" in src
     assert "task.add_done_callback(_AUTO_EMAIL_DISPATCH_TASKS.discard)" in src

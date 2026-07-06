@@ -109,3 +109,31 @@ The linter enforces the line budget so a thin alias can never grow into an opera
 
 ## Six-Pillar self-check
 Powerful ✅ · Simple ✅ · Beautiful ✅ · Trusted ✅ · Proven ✅ · Operational ✅
+
+---
+
+## Amendment · Track 22.5a (2026-07-06)
+
+The following admin surfaces have been added since the original
+Track 18.10 audit and are classified as **GOVERNANCE** (read-write
+admin operations, not operational execution):
+
+- **AdminAIConfiguration.jsx** — governs which AI providers/models
+  are enabled per portal. Configuration surface only; no operational
+  execution of AI work.
+- **AdminOperationalIntelligence.jsx** — governs which operational
+  intelligence sources publish into the platform. Configuration.
+- **AdminOperationalIntelligenceRecipients.jsx** — governs which
+  operators receive OI digests. Recipient management, not execution.
+- **IntegrationTruth.jsx** — read-only surface into runtime
+  integration truth (OpenAI / Claude / Gemini / Motive / MaintainX /
+  Resend / Atlas / R2 / Sentry). Never executes third-party writes;
+  reads from `/api/admin/integrations/truth-status`. Doctrine:
+  Track 22.3.
+- **PreviewValidationIdentities.jsx** — mints preview-only role
+  identity tokens. HARD-DISABLED in production (see
+  `test_production_marker_hard_disables_module`). Governance-only.
+
+All five surfaces are governance/config. None execute operational
+workflows (no assignLoad / assignDriver / confirmDispatch /
+submitDailyReport / clockIn / closeWorkOrder / etc.).
