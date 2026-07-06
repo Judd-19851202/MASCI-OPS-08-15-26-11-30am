@@ -1,0 +1,29 @@
+phase,check,verdict,evidence,notes
+Baseline,Backend health,PASS,GET /api/health = 200,
+Baseline,Frontend build,PASS,yarn build succeeded in 50.69s,no fatal warnings
+Baseline,Atlas connectivity,PASS,motor client connected; 1834 daily_reports,preview DB
+Phase 1,Deployment gate overall,FAIL,100 failed / 1836 passed,all failures pre-existing legacy governance linters
+Phase 1,Track 22.4b family (isolation),PASS,111/112 (1 flaky Atlas timeout),
+Phase 1,Track 22.4c mobile sweep,PASS,77/78 (1 Motive-skip),
+Phase 1,Track 22.4d gate wiring,PASS,15/15,
+Phase 2,Frontend build,PASS,yarn build clean,
+Phase 3,Motive configuration,CONFIGURED,api_key_present=true source=integration_settings last4=5fe6,preview DB — production has separate cred
+Phase 3,Motive connectivity (preview),UNREACHABLE,HTTP 400,preview cred appears revoked
+Phase 3,Motive operational (preview),STALE,last_success age ~25 days,preview only
+Phase 3,Motive banner truthfulness,PASS,LIVE_VERIFIED→emerald · UNREACHABLE→amber · MISSING_CONFIG→slate,no fake-green no false-red
+Phase 3,Motive PRODUCTION live check,DEFERRED,cannot query production tenant safely,operator step post-deploy
+Phase 4,Integration truth endpoint,PASS,truthful runtime state; last4 pattern; no secret leak,
+Phase 5,Daily Report identity (doc_id/report_number),PASS,0 drift across 1834 rows,
+Phase 5,Daily Report unique index,PASS,daily_reports_doc_id_uniq present,
+Phase 6,Idempotency workflow-scoped index,PASS,key_actor_workflow_uniq present,
+Phase 6,Idempotency exactly-once (20+ endpoints),PASS,Track 22.4b family regression proves,
+Phase 7,Workflow submit/route/notify/audit,PASS,each workflow has a dedicated 22.4b regression file,
+Phase 8,Mobile responsiveness 390px,PASS,77 Playwright assertions,
+Phase 8,Mobile responsiveness 1024px,PASS,included in same sweep,
+Phase 9,Session-modal fix (Track 22.4d),PASS,15/15 Jest locks,
+Phase 9,iOS Safari smoke,DEFERRED,Playwright chromium only in preview,operator step post-deploy
+Phase 10,RBAC (production PVI disabled),PASS,test_production_marker_hard_disables_module,
+Phase 10,RBAC (cross-role rejection),PASS,driver / safety / shop / hr PVI cross-tests,
+Phase 10,No secret leak to frontend bundle,PASS,grep clean,
+Phase 11,Infrastructure (Atlas / R2 / Resend / Sentry),PASS,all DSNs/keys present at runtime,
+Phase 12,Migration safety,PASS,no schema-breaking migration this cycle,

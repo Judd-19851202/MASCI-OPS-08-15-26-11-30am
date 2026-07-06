@@ -11036,3 +11036,35 @@ Grand total (22.4b + 22.4c): 189 tests passing
 - Production Deployment Certification
 - DR-UNIFY-005 when telemetry window confirms safe legacy retirement
 - Post-deploy field smoke checklist
+
+---
+
+## TRACK 22.5 · Production Pre-Deployment Certification (2026-07-06)
+
+### Verdict
+⚠️ **CONDITIONAL** — recent hardening is deploy-safe; deployment gate is currently blocked by 100 legacy governance linter failures (Track 18.10 / 18.11 / 18.12 family + `test_pre_deployment_release_safety.py`) that pre-date every recent hardening track and enforce source-code patterns refactored 200+ tracks ago.
+
+### Key evidence
+- Track 22.4b + 22.4c + 22.4d isolated regressions: **203 / 204 passing** (1 Atlas timeout flake — infrastructure noise, not code).
+- Frontend build (`yarn build`): ✅ SUCCESS in 50.69s.
+- Daily Report identity: ✅ 0 drift across 1834 rows; `daily_reports_doc_id_uniq` present.
+- Idempotency: ✅ `key_actor_workflow_uniq` present.
+- Session-modal fix (Track 22.4d): ✅ 15 / 15 Jest locks.
+- Mobile gate wiring: ✅ 15 / 15 static locks.
+- Motive banner logic: ✅ truthful in every state (no fake-green, no false-red).
+
+### Motive live-verification (production)
+Cannot query production Motive tenant from preview safely — that boundary is a hard security wall. Required: operator step post-deploy (see `/app/memory/TRACK_22_5_DEPLOYMENT_CHECKLIST.csv`, steps 2–3).
+
+### iOS Safari smoke of Pre-Op
+Preview environment ships Playwright chromium only — WebKit smoke of the Track 22.4d fix requires a real device post-deploy (checklist step 5).
+
+### Files created
+- `/app/memory/TRACK_22_5_PRODUCTION_PREDEPLOY_CERTIFICATION.md`
+- `/app/memory/TRACK_22_5_CERTIFICATION_FINDINGS.csv`
+- `/app/memory/TRACK_22_5_DEPLOYMENT_CHECKLIST.csv`
+
+### Next tracks
+- Retire / update legacy governance linters (Track 18.10 / 18.11 / 18.12 family) to reflect current architecture.
+- Post-deploy real iOS Safari field smoke of Pre-Op.
+- DR-UNIFY-005 legacy collection retirement (post-telemetry).
