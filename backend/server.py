@@ -10886,6 +10886,64 @@ async def _start_job_photos_indexer():
     asyncio.create_task(_job_photos_indexer_loop(db))
 
 
+# ── TRACK 22.9B · Photo Intelligence V1 pipeline ──────────────────
+@register_lifecycle_step("index-ensure")
+async def _ensure_dr_v1_photo_intel_indexes():
+    """Idempotent index setup for the V1 photo intel job queue."""
+    from services.photo_intelligence import (
+        ensure_v1_pipeline_indexes, ensure_indexes as ensure_intel_indexes,
+    )
+    await ensure_v1_pipeline_indexes(db)
+    await ensure_intel_indexes(db)
+
+
+@register_lifecycle_step("seed")
+async def _seed_tenant_photo_intelligence_flag():
+    """Ensure the MASCI tenant has photo_intelligence_enabled=true.
+
+    Track 22.9B — the analyzer/emitter existed but nothing turned the
+    tenant flag on. This step upserts the flag idempotently on boot.
+    Safe to run repeatedly; only writes if the current value differs.
+    """
+    from datetime import datetime as _dt, timezone as _tz  # noqa: PLC0415
+    try:
+        doc = await db["tenant_ai_capabilities"].find_one(
+            {"tenant_id": "masci"}, {"_id": 0},
+        )
+        if doc and doc.get("photo_intelligence_enabled") is True:
+            return
+        now = _dt.now(_tz.utc).isoformat()
+        await db["tenant_ai_capabilities"].update_one(
+            {"tenant_id": "masci"},
+            {
+                "$set": {
+                    "photo_intelligence_enabled": True,
+                    "tenant_ai_enabled": True,
+                    "updated_at": now,
+                    "updated_by": "track_22_9b_bootstrap",
+                    "tenant_id": "masci",
+                    "tenant_name": "MASCI (default)",
+                },
+                "$setOnInsert": {"created_at": now, "version": 1},
+            },
+            upsert=True,
+        )
+    except Exception as e:  # noqa: BLE001
+        logger.info(f"[track-22.9b] tenant flag seed skipped (non-fatal): {e}")
+
+
+@register_lifecycle_step("scheduler-nonemail")
+async def _start_dr_v1_photo_intel_reconciler():
+    """Long-running reconciler loop for V1 photo intel jobs.
+
+    Ensures every submitted photo eventually gets analyzed even if
+    the BackgroundTasks first-pass was lost to a pod restart. Kill
+    switch: ``DR_V1_PHOTO_INTEL_RECONCILER_ENABLED=false``.
+    """
+    from services.photo_intelligence import v1_reconciler_loop
+    asyncio.create_task(v1_reconciler_loop(db))
+
+
 @register_lifecycle_step("seed")
 async def _seed_field_leadership_equipment_catalog():
     await _seed_field_leadership_equipment(db)

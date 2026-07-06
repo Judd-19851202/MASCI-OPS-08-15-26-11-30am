@@ -588,6 +588,57 @@ def _build_facts_from_dr_v1_report(rec: Dict[str, Any]) -> List[Dict[str, Any]]:
     return facts
 
 
+async def _enrich_photo_evidence_facts(
+    db, src_id: str, facts: List[Dict[str, Any]],
+) -> None:
+    """TRACK 22.9B — Attach grounded intel to photo_evidence_facts.
+
+    Reads `dr_v2_photo_intelligence` rows (populated by the V1 pipeline
+    or the V2 flow) and merges labels/caption/confidence into each
+    matching photo_evidence_fact payload. Pure best-effort — any error
+    is silently swallowed. Never fabricates: only surfaces what the
+    analyzer already stored.
+    """
+    if not src_id or not facts:
+        return
+    import hashlib as _hashlib  # noqa: PLC0415
+    try:
+        rows = await db["dr_v2_photo_intelligence"].find(
+            {"report_id": src_id, "analysis_status": "complete"},
+            {"_id": 0, "photo_id": 1, "observations": 1,
+             "narrative": 1, "confidence": 1},
+        ).to_list(length=200)
+    except Exception:  # noqa: BLE001
+        rows = []
+    if not rows:
+        return
+    intel_by_photo_id: Dict[str, Dict[str, Any]] = {
+        (r.get("photo_id") or ""): r for r in rows if r.get("photo_id")
+    }
+    for f in facts:
+        if f.get("fact_type") != "photo_evidence_fact":
+            continue
+        ref = (f.get("payload") or {}).get("photo_ref") or ""
+        if not ref:
+            continue
+        pid = _hashlib.sha1(str(ref).encode("utf-8")).hexdigest()[:20]
+        row = intel_by_photo_id.get(pid)
+        if not row:
+            continue
+        obs = row.get("observations") or []
+        f["payload"]["ai_tags"] = [
+            o.get("label", "") for o in obs
+            if isinstance(o, dict) and o.get("label")
+        ][:16]
+        cap = (row.get("narrative") or "").strip()
+        if cap:
+            f["payload"]["ai_caption"] = cap[:500]
+        conf = row.get("confidence")
+        if isinstance(conf, (int, float)):
+            f["confidence"] = float(conf)
+
+
+
 async def ingest_dr_v1_report(
     db, report: Dict[str, Any], *, actor: str = "system", trigger: str = "event",
 ) -> Dict[str, Any]:
@@ -606,6 +657,15 @@ async def ingest_dr_v1_report(
 
     started = now_iso()
     facts = _build_facts_from_dr_v1_report(report)
+    # TRACK 22.9B · If photo intelligence has analyzed any of the
+    # attached photos, enrich the photo_evidence_fact payload with
+    # grounded ai_tags / caption. Best-effort; missing intel simply
+    # leaves the pre-22.9B payload shape unchanged.
+    if facts:
+        try:
+            await _enrich_photo_evidence_facts(db, src_id, facts)
+        except Exception:  # noqa: BLE001
+            pass
     if not facts:
         run_id = await record_ingestion_run(
             db, source_type="daily_report_v1", source_id=src_id, source_version=0,

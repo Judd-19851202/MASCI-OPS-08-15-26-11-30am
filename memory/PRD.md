@@ -11,6 +11,23 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 22.9B · Daily Report Photo Intelligence Wiring · 🟢 SHIPPED · CERTIFIED (2026-02-06)
+- **Mandate**: Wire the existing photo intelligence analyzer into the V1 Daily Report submit workflow — async only, no blocking, no duplicate storage, no V2 resurrection.
+- **Strategy (option C)**: BackgroundTasks first-pass + reconciler loop for retries.
+- **New module**: `services/photo_intelligence/pipeline.py` owns the V1 pipeline (enqueue + first-pass + reconciler + read aggregator).
+- **New collection**: `dr_v1_photo_intel_jobs` (job queue only). Intel rows continue to live in the existing `dr_v2_photo_intelligence` collection — zero duplicate storage.
+- **New endpoint**: `GET /api/daily-reports/{report_id}/photo-intelligence` returns grounded observations for consumption by `DailySummaryAssist` and PM screens.
+- **Lifecycle**: `_start_dr_v1_photo_intel_reconciler` (scheduler-nonemail group) scans every ~60 s for pending/failed jobs; `_seed_tenant_photo_intelligence_flag` (seed group) idempotently flips `tenant_ai_capabilities.masci.photo_intelligence_enabled=true` on boot. `AI_PHOTO_VISION_ENABLED=true` flipped in `.env`.
+- **Enrichment**: V1 ODS ingest (`_enrich_photo_evidence_facts`) now merges analyzed `ai_tags` + `ai_caption` + confidence into each `photo_evidence_fact` before write.
+- **Frontend**: `DailySummaryAssist.jsx` best-effort fetches photo intel and adds `photo_observations[]` to the evidence bundle sent to the AI backend. Never blocks summary.
+- **Doctrine**: never blocks submit/upload/summary; failures logged not surfaced; Gemini direct key ignored (Universal / OpenAI / Claude via AI Gateway only); grounded observations only (`requires_supervisor_confirmation=true` preserved end-to-end).
+- **Tests**: 14/14 new lock assertions in `test_track_22_9b_photo_intel_wireup.py` (module surface, background-task ordering, reconciler recovery, idempotency, AI-off placeholder, analyzer-exception safety, endpoint aggregation, frontend wiring, tenant seed).
+- **Regression**: 68/68 across 22.9A + 22.9B + DR-CUTOVER-001 + DR-CUTOVER-002.
+- **Files created**: `services/photo_intelligence/pipeline.py`, `tests/test_track_22_9b_photo_intel_wireup.py`, `/app/memory/TRACK_22_9B_PHOTO_INTELLIGENCE_WIRING.md`.
+- **Files changed**: `routes/daily_reports.py`, `server.py`, `services/photo_intelligence/__init__.py`, `services/ods_spine/ingest.py`, `frontend/src/components/daily-report/DailySummaryAssist.jsx`, `backend/.env`.
+- **Verdict**: 🟢 GO. Next: **Track 22.9C — PDF renderer + PM screen read `day_summary_fact` + photo observations**.
+
+
 ## TRACK 22.5A-RESTART · PM Truth-Source Reconciliation & Governance Audit · 🟢 SHIPPED · CERTIFIED (2026-02)
 - **Mandate**: Prove why the deployment gate reported PM configuration failures while the live UI showed valid PM assignments. Do NOT patch symptoms. Do NOT modify production data. Fix the source of truth divergence at its root.
 - **Root cause found**: `lib/master_data_trust._pm_assignment_findings` selected active jobs with `{"is_active": {"$ne": False}}` — a field that **does not exist on any `jobs_master` row** (0/30). The audit therefore matched every row unconditionally *and* ignored the `deleted_at` soft-delete flag. The canonical UI helper `jobs_master.list_jobs()` uses `{"active": True, "deleted_at": {"$in": [None, ""]}}`. The audit was reading a different set than the UI.

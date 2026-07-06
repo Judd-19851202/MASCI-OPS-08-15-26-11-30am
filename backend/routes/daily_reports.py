@@ -17,7 +17,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Literal, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
 
 from pm_auth import compute_pm_scope
@@ -305,7 +305,7 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
         return counters
 
     @api_router.post("/daily-reports", response_model=DailyReport, dependencies=[Depends(rate_limit_public_post)])
-    async def create_daily_report(payload: DailyReportCreate, request: Request):
+    async def create_daily_report(payload: DailyReportCreate, request: Request, background_tasks: BackgroundTasks):
         # ── Phase V.2 · Wave-1A · POST RESTORED (M1 freeze partial revert) ──
         # Per operator directive (2026-05-29 · Wave-1A authorization):
         #   "Restore POST /api/daily-reports. Keep DELETE = 410."
@@ -405,6 +405,27 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
                     trigger="event",
                 )
             except Exception:  # noqa: BLE001
+                pass
+            # ── TRACK 22.9B · Photo Intelligence first-pass (async) ──
+            # Schedule a background task that runs the vision analyzer
+            # over every attached photo. Never blocks the submit
+            # response. If the pod is recycled before the task runs, a
+            # reconciler loop will pick up any jobs left as `pending`
+            # or `failed` in `dr_v1_photo_intel_jobs`.
+            try:
+                from services.photo_intelligence import (  # noqa: PLC0415
+                    enqueue_v1_report, process_v1_report,
+                )
+                # Enqueue synchronously (fast: only inserts pending
+                # job docs). This guarantees the reconciler owns the
+                # retry contract even if the process crashes before
+                # BackgroundTasks fires.
+                await enqueue_v1_report(db, doc)
+                # Fire-and-forget the actual analysis pass.
+                background_tasks.add_task(process_v1_report, db, dict(doc))
+            except Exception:  # noqa: BLE001
+                # Best-effort — never surface a photo-intel error to
+                # the field UI. Reconciler will catch up next pass.
                 pass
             # ── Phase 10A-B · Correction 1 · two-way Excavation linkage ──
             # Stamp this daily report ID onto every linked excavation
@@ -616,6 +637,18 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
             "doctrine": "PM_EXPOSURE_TILE_CERTIFICATION.md",
             "kind": "signal_only",
         }
+
+    # ── TRACK 22.9B · Photo Intelligence read endpoint ─────────────
+    # Returns aggregated grounded observations for a submitted Daily
+    # Report. Consumers: `DailySummaryAssist` (for enriched context)
+    # and PM screens. Safe to hit anonymously — no confidential data is
+    # returned beyond what the field supervisor already entered/uploaded.
+    @api_router.get("/daily-reports/{report_id}/photo-intelligence")
+    async def daily_report_photo_intelligence(report_id: str):
+        from services.photo_intelligence import (  # noqa: PLC0415
+            list_v1_report_intelligence,
+        )
+        return await list_v1_report_intelligence(db, report_id)
 
     @api_router.get("/daily-reports/{report_id}/audit-footer")
     async def daily_report_audit_footer(

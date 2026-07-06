@@ -44,7 +44,7 @@ function buildDeterministicFallback(data) {
 // Compact evidence bundle sent to the AI backend. Only the fields
 // the strict prompt actually cites are included — keeps prompt
 // tokens (and latency) down.
-function toEvidenceDraft(reportId, data) {
+function toEvidenceDraft(reportId, data, photoObservations = []) {
   return {
     report_id: reportId,
     project_number: data.project_number || "unknown",
@@ -66,6 +66,11 @@ function toEvidenceDraft(reportId, data) {
     },
     tomorrow_readiness: data.tomorrow_readiness || {},
     photos: (data.photos || []).slice(0, 10),
+    // TRACK 22.9B · Grounded photo observations from the async
+    // photo intelligence pipeline. Empty when analysis has not yet
+    // completed or when photo intel is disabled — never blocks the
+    // summary.
+    photo_observations: (photoObservations || []).slice(0, 30),
   };
 }
 
@@ -126,7 +131,21 @@ export default function DailySummaryAssist({ data, reportNumber, onAccept, testI
     const tStart = performance.now();
 
     try {
-      const bundle = toEvidenceDraft(reportId, data);
+      // TRACK 22.9B · Best-effort fetch of grounded photo observations
+      // from the async pipeline. Empty on failure; never blocks.
+      let photoObservations = [];
+      if (reportNumber) {
+        try {
+          const { data: photoIntel } = await api.get(
+            `/daily-reports/${encodeURIComponent(reportNumber)}/photo-intelligence`,
+            { signal: controller.signal },
+          );
+          photoObservations = photoIntel?.observations || [];
+        } catch {
+          photoObservations = [];
+        }
+      }
+      const bundle = toEvidenceDraft(reportId, data, photoObservations);
       // Save ephemeral V2 draft first (backend requires a draft to synthesize against).
       await api.post(`/dr-v2/drafts`, bundle, { signal: controller.signal }).catch(() => null);
       const { data: resp } = await api.post(
