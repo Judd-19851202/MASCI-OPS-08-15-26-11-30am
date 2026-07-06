@@ -545,7 +545,13 @@ async def _require_hr_or_admin_for_queue(
 ):
     """Accept HR portal token OR Admin token. Returns an actor dict
     matching the multi-portal aggregator shape. Used by every deprecated
-    `/api/admin/employees*` endpoint after Phase Alpha closures."""
+    `/api/admin/employees*` endpoint after Phase Alpha closures.
+
+    TRACK 22.4b-followup-HR — preview-only PVI validation fallback.
+    Runs only after both real auth paths fail; scoped to expected_role="hr";
+    admin PVI is intentionally NOT accepted (admin identity is a real
+    credential, never a validation identity).
+    """
     if x_admin_token and await _is_valid_directory_admin_token_async(x_admin_token):
         return {"_actor": "admin", "name": "Admin", "role": "admin"}
     if x_hr_token:
@@ -553,6 +559,11 @@ async def _require_hr_or_admin_for_queue(
         u = await is_valid_hr_user_token_async(db, x_hr_token)
         if u:
             return {**u, "_actor": "hr", "role": "hr"}
+        # PVI fallback for preview validation.
+        from routes.role_guard_validation_seam import try_validation_fallback  # noqa: PLC0415
+        pvi = await try_validation_fallback(db, x_hr_token, expected_role="hr")
+        if pvi:
+            return {**pvi, "_actor": "hr", "role": "hr"}
     raise HTTPException(403, "HR or Admin token required")
 
 
@@ -11343,6 +11354,7 @@ from routes.employee_requests import (  # noqa: E402
 # when no token is present. This lets public field forms still call
 # POST /api/employee-requests under the existing rate-limit gate.
 async def _require_optional_portal_token(
+    request: Request,
     x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
     x_safety_token: Optional[str] = Header(default=None, alias="X-Safety-Token"),
     x_hr_token: Optional[str] = Header(default=None, alias="X-HR-Token"),
@@ -11358,6 +11370,7 @@ async def _require_optional_portal_token(
     submissions per the operator-approved G-5 design."""
     try:
         return await _require_any_portal_token(
+            request=request,
             x_admin_token=x_admin_token,
             x_safety_token=x_safety_token,
             x_hr_token=x_hr_token,

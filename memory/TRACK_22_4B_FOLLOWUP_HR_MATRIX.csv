@@ -1,0 +1,5 @@
+endpoint,method,handler_file,workflow_name,collection,identity_field,protection_before,protection_after,notes
+POST /api/employee-requests,POST,routes/employee_requests.py :: submit_request,hr_request,employee_requests,id (uuid),UNPROTECTED (P2),PROTECTED (with_idempotency workflow=hr_request),Public + rate-limited. Portal-token submitter identity now inherited from actor (B-01 identity strengthening).
+GET /api/hr/employee-requests,GET,routes/employee_requests.py :: list_requests,hr_read,employee_requests,-,HR|Admin (no PVI),HR|Admin + HR PVI fallback (preview),Now accepts HR PVI in preview via _require_hr_or_admin_for_queue + shared seam helper.
+X-HR-Token guard,DEP,routes/hr_portal_deps.py :: make_require_hr_user,-,-,-,No PVI fallback,PVI fallback wired (workflow-agnostic seam helper),Mirrors safety_portal/_deps pattern.
+Multi-portal aggregator,DEP,routes/integrations/_deps.py :: make_require_any_portal_token,-,-,-,No PVI fallback,PVI fallback for safety · hr · shop · pm · dispatch · fl (admin PVI intentionally not accepted),Runs after every real auth attempt fails.

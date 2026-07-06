@@ -271,154 +271,184 @@ def register_employee_requests_routes(
     ) -> Dict[str, Any]:
         """Submit a request to HR. Any portal token is accepted; public
         submissions are accepted but rate-limited. HR explicitly reviews
-        every entry before any ``db.employees`` mutation happens."""
-        kind = (body.kind or "").strip().lower()
-        if kind not in ALLOWED_KINDS:
-            raise HTTPException(
-                status_code=422,
-                detail={"code": "invalid_kind", "allowed": sorted(ALLOWED_KINDS)},
+        every entry before any ``db.employees`` mutation happens.
+
+        TRACK 22.4b-followup-HR — same-key concurrent retries are now
+        deduped through the shared reservation-lock idempotency helper
+        (workflow=hr_request). Identity defaults are also strengthened:
+        portal-token submissions with a blank ``submitter_name`` now
+        inherit ``_actor_label(actor)`` so HR always sees a real name
+        for known-identity submitters.
+        """
+        from lib.idempotency import with_idempotency, idem_key_from_request  # noqa: PLC0415
+        key = idem_key_from_request(request)
+
+        async def _do_create():
+            kind = (body.kind or "").strip().lower()
+            if kind not in ALLOWED_KINDS:
+                raise HTTPException(
+                    status_code=422,
+                    detail={"code": "invalid_kind", "allowed": sorted(ALLOWED_KINDS)},
+                )
+
+            now = datetime.now(timezone.utc).isoformat()
+            client_ip = (
+                (request.client.host if request.client else "")
+                or request.headers.get("x-forwarded-for", "").split(",")[0].strip()
+                or ""
             )
 
-        now = datetime.now(timezone.utc).isoformat()
-        client_ip = (
-            (request.client.host if request.client else "")
-            or request.headers.get("x-forwarded-for", "").split(",")[0].strip()
-            or ""
-        )
+            # TRACK 22.4b-followup-HR — B-01 identity strengthening.
+            # Portal-token submitters had blank ``submitter_name``/``submitter_email``
+            # because leadership/HR/PM users don't retype their identity in the
+            # request body. Default those fields from the resolved actor so
+            # HR always sees a real name for known-identity submissions. Never
+            # overwrites a value the client explicitly provided; never fills
+            # for anonymous submissions.
+            _submitter_name = (body.submitter_name or "").strip() or None
+            _submitter_email = (body.submitter_email or "").strip() or None
+            if actor and _actor_role(actor) not in ("anonymous", "public"):
+                if not _submitter_name:
+                    _submitter_name = _actor_label(actor) or None
+                if not _submitter_email:
+                    _submitter_email = (actor.get("email") or "").strip() or _submitter_email
 
-        rid = str(uuid.uuid4())
-        doc: Dict[str, Any] = {
-            "id": rid,
-            "kind": kind,
-            "status": STATUS_PENDING,
-            "requested_at": now,
-            "requested_by_role": _actor_role(actor),
-            "requested_by_label": _actor_label(actor),
-            "requested_by_ip": client_ip[:64],
-            "submitter_name": (body.submitter_name or "").strip() or None,
-            "submitter_email": (body.submitter_email or "").strip() or None,
-            "submitted_via": (body.submitted_via or "").strip() or None,
-            "linked_fl_record_id": body.linked_fl_record_id or None,
-            "audit_log": [
-                {
-                    "at": now,
-                    "kind": "submitted",
-                    "actor_role": _actor_role(actor),
-                    "actor_label": _actor_label(actor),
-                    "ip": client_ip[:64],
+            rid = str(uuid.uuid4())
+            doc: Dict[str, Any] = {
+                "id": rid,
+                "kind": kind,
+                "status": STATUS_PENDING,
+                "requested_at": now,
+                "requested_by_role": _actor_role(actor),
+                "requested_by_label": _actor_label(actor),
+                "requested_by_ip": client_ip[:64],
+                "submitter_name": _submitter_name,
+                "submitter_email": _submitter_email,
+                "submitted_via": (body.submitted_via or "").strip() or None,
+                "linked_fl_record_id": body.linked_fl_record_id or None,
+                "audit_log": [
+                    {
+                        "at": now,
+                        "kind": "submitted",
+                        "actor_role": _actor_role(actor),
+                        "actor_label": _actor_label(actor),
+                        "ip": client_ip[:64],
+                    }
+                ],
+            }
+
+            if kind == "new_hire":
+                name = (body.name or "").strip()
+                if len(name) < 2:
+                    raise HTTPException(
+                        status_code=422,
+                        detail={"code": "name_required",
+                                "message": "name is required (>= 2 chars)"},
+                    )
+                doc["payload"] = {
+                    "name": name,
+                    "employee_id": (body.employee_id or "").strip() or None,
+                    "trade": (body.trade or "").strip() or None,
+                    "role": (body.role or "").strip() or None,
+                    "crew": (body.crew or "").strip() or None,
+                    "email": (body.email or "").strip() or None,
+                    "phone": (body.phone or "").strip() or None,
                 }
-            ],
-        }
-
-        if kind == "new_hire":
-            name = (body.name or "").strip()
-            if len(name) < 2:
-                raise HTTPException(
-                    status_code=422,
-                    detail={"code": "name_required",
-                            "message": "name is required (>= 2 chars)"},
-                )
-            doc["payload"] = {
-                "name": name,
-                "employee_id": (body.employee_id or "").strip() or None,
-                "trade": (body.trade or "").strip() or None,
-                "role": (body.role or "").strip() or None,
-                "crew": (body.crew or "").strip() or None,
-                "email": (body.email or "").strip() or None,
-                "phone": (body.phone or "").strip() or None,
-            }
-        else:  # termination
-            target = (body.target_employee_id or "").strip()
-            if not target:
-                raise HTTPException(
-                    status_code=422,
-                    detail={"code": "target_required",
-                            "message": "target_employee_id is required for termination"},
-                )
-            # Resolve target employee (by uuid id OR employee_id field)
-            emp = await db.employees.find_one(
-                {"id": target, "deleted_at": None}, {"_id": 0}
-            )
-            if not emp:
+            else:  # termination
+                target = (body.target_employee_id or "").strip()
+                if not target:
+                    raise HTTPException(
+                        status_code=422,
+                        detail={"code": "target_required",
+                                "message": "target_employee_id is required for termination"},
+                    )
+                # Resolve target employee (by uuid id OR employee_id field)
                 emp = await db.employees.find_one(
-                    {"employee_id": target, "deleted_at": None}, {"_id": 0}
+                    {"id": target, "deleted_at": None}, {"_id": 0}
                 )
-            if not emp:
-                raise HTTPException(
-                    status_code=404,
-                    detail={"code": "target_not_found",
-                            "message": f"No active employee matches '{target}'"},
+                if not emp:
+                    emp = await db.employees.find_one(
+                        {"employee_id": target, "deleted_at": None}, {"_id": 0}
+                    )
+                if not emp:
+                    raise HTTPException(
+                        status_code=404,
+                        detail={"code": "target_not_found",
+                                "message": f"No active employee matches '{target}'"},
+                    )
+                requested_status = (body.requested_status or "Terminated").strip()
+                if requested_status not in TERMINATION_TARGET_STATUSES:
+                    raise HTTPException(
+                        status_code=422,
+                        detail={"code": "invalid_requested_status",
+                                "allowed": sorted(TERMINATION_TARGET_STATUSES)},
+                    )
+                doc["payload"] = {
+                    "target_employee_id": emp["id"],
+                    "target_employee_name": emp.get("name") or "",
+                    "target_employee_id_field": emp.get("employee_id") or "",
+                    "requested_status": requested_status,
+                    "last_day_worked": (body.last_day_worked or "").strip() or None,
+                    "reason": (body.reason or "").strip() or None,
+                }
+
+            await db.employee_requests.insert_one(dict(doc))
+
+            # Track 14.0-HR-READINESS (2026-02-14): create an in-app
+            # notification for every HR user so the bell click-through
+            # lands on the queue with the new request highlighted. Before
+            # this change the request was silently inserted with no
+            # notification — HR would click the bell and find nothing.
+            await _notify_hr_queue_pending(db, doc, kind)
+
+            # TRACK 15.76 · Trust Spine — HR request lifecycle. HR is a
+            # non-email workflow, so it emits record_created →
+            # validation_complete → routing_resolved → dashboard_updated →
+            # audit_written → completed in a single pass at submit-time.
+            try:
+                from lib.trust_spine import (  # noqa: PLC0415
+                    emit_record_created, emit_workflow_stage,
+                    STAGE_VALIDATION_COMPLETE, STAGE_ROUTING_RESOLVED,
+                    STAGE_DASHBOARD_UPDATED, STAGE_AUDIT_WRITTEN,
+                    STAGE_COMPLETED,
                 )
-            requested_status = (body.requested_status or "Terminated").strip()
-            if requested_status not in TERMINATION_TARGET_STATUSES:
-                raise HTTPException(
-                    status_code=422,
-                    detail={"code": "invalid_requested_status",
-                            "allowed": sorted(TERMINATION_TARGET_STATUSES)},
+                _hr_record = {"id": rid, "doc_id": rid, "project_number": ""}
+                await emit_record_created(
+                    db, workflow="hr-request", record=_hr_record,
+                    module="routes/employee_requests.py:create_request",
                 )
-            doc["payload"] = {
-                "target_employee_id": emp["id"],
-                "target_employee_name": emp.get("name") or "",
-                "target_employee_id_field": emp.get("employee_id") or "",
-                "requested_status": requested_status,
-                "last_day_worked": (body.last_day_worked or "").strip() or None,
-                "reason": (body.reason or "").strip() or None,
-            }
+                await emit_workflow_stage(
+                    db, workflow="hr-request", stage=STAGE_VALIDATION_COMPLETE,
+                    record=_hr_record, module="employee_requests.create",
+                    status="ok",
+                )
+                await emit_workflow_stage(
+                    db, workflow="hr-request", stage=STAGE_ROUTING_RESOLVED,
+                    record=_hr_record, module="hr_queue_pending",
+                    status="ok",
+                )
+                await emit_workflow_stage(
+                    db, workflow="hr-request", stage=STAGE_DASHBOARD_UPDATED,
+                    record=_hr_record, module="hr_bell_notification",
+                    status="ok",
+                )
+                await emit_workflow_stage(
+                    db, workflow="hr-request", stage=STAGE_AUDIT_WRITTEN,
+                    record=_hr_record, module="db.employee_requests.insert_one",
+                    status="ok",
+                )
+                await emit_workflow_stage(
+                    db, workflow="hr-request", stage=STAGE_COMPLETED,
+                    record=_hr_record, module="routes/employee_requests.py",
+                    status="ok",
+                )
+            except Exception:  # noqa: BLE001
+                pass
 
-        await db.employee_requests.insert_one(dict(doc))
+            return {"ok": True, "id": rid, "request": _strip_id(doc)}
 
-        # Track 14.0-HR-READINESS (2026-02-14): create an in-app
-        # notification for every HR user so the bell click-through
-        # lands on the queue with the new request highlighted. Before
-        # this change the request was silently inserted with no
-        # notification — HR would click the bell and find nothing.
-        await _notify_hr_queue_pending(db, doc, kind)
+        return await with_idempotency(db, key, actor or {"role": "public"}, _do_create, workflow="hr_request")
 
-        # TRACK 15.76 · Trust Spine — HR request lifecycle. HR is a
-        # non-email workflow, so it emits record_created →
-        # validation_complete → routing_resolved → dashboard_updated →
-        # audit_written → completed in a single pass at submit-time.
-        try:
-            from lib.trust_spine import (  # noqa: PLC0415
-                emit_record_created, emit_workflow_stage,
-                STAGE_VALIDATION_COMPLETE, STAGE_ROUTING_RESOLVED,
-                STAGE_DASHBOARD_UPDATED, STAGE_AUDIT_WRITTEN,
-                STAGE_COMPLETED,
-            )
-            _hr_record = {"id": rid, "doc_id": rid, "project_number": ""}
-            await emit_record_created(
-                db, workflow="hr-request", record=_hr_record,
-                module="routes/employee_requests.py:create_request",
-            )
-            await emit_workflow_stage(
-                db, workflow="hr-request", stage=STAGE_VALIDATION_COMPLETE,
-                record=_hr_record, module="employee_requests.create",
-                status="ok",
-            )
-            await emit_workflow_stage(
-                db, workflow="hr-request", stage=STAGE_ROUTING_RESOLVED,
-                record=_hr_record, module="hr_queue_pending",
-                status="ok",
-            )
-            await emit_workflow_stage(
-                db, workflow="hr-request", stage=STAGE_DASHBOARD_UPDATED,
-                record=_hr_record, module="hr_bell_notification",
-                status="ok",
-            )
-            await emit_workflow_stage(
-                db, workflow="hr-request", stage=STAGE_AUDIT_WRITTEN,
-                record=_hr_record, module="db.employee_requests.insert_one",
-                status="ok",
-            )
-            await emit_workflow_stage(
-                db, workflow="hr-request", stage=STAGE_COMPLETED,
-                record=_hr_record, module="routes/employee_requests.py",
-                status="ok",
-            )
-        except Exception:  # noqa: BLE001
-            pass
-
-        return {"ok": True, "id": rid, "request": _strip_id(doc)}
 
     @api_router.get("/hr/employee-requests")
     async def list_requests(

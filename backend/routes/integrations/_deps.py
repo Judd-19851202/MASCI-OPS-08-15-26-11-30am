@@ -83,6 +83,28 @@ def make_require_any_portal_token(
             u = await is_valid_fl_user_token_async(db, x_fl_token)
             if u:
                 actor = {**u, "_actor": "fl"}
+        # TRACK 22.4b-followup-HR · preview-only PVI validation fallback.
+        # Runs ONLY after every real auth attempt has failed. Helper is
+        # env-guarded (preview + feature flag). Role must match the
+        # header exactly. Admin PVI is intentionally NOT accepted here
+        # (admin identity is a real credential; validation identities
+        # never grant admin power).
+        if actor is None:
+            from routes.role_guard_validation_seam import try_validation_fallback  # noqa: PLC0415
+            for tok, role in (
+                (x_safety_token, "safety"),
+                (x_hr_token, "hr"),
+                (x_shop_token, "shop"),
+                (x_pm_token, "pm"),
+                (x_dispatch_token, "dispatch"),
+                (x_fl_token, "fl"),
+            ):
+                if not tok:
+                    continue
+                pvi = await try_validation_fallback(db, tok, expected_role=role)
+                if pvi:
+                    actor = {**pvi, "_actor": role}
+                    break
         if actor is None:
             raise HTTPException(401, "Portal authentication required")
 

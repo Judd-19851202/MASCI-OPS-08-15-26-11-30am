@@ -38,6 +38,7 @@ from fastapi import Header, HTTPException, Request
 
 from auth_must_change import enforce_password_change_required
 from hr_users import is_valid_hr_user_token_async
+from routes.role_guard_validation_seam import try_validation_fallback
 
 
 def make_require_hr_user(db) -> Callable[..., Awaitable[Dict[str, Any]]]:
@@ -52,6 +53,11 @@ def make_require_hr_user(db) -> Callable[..., Awaitable[Dict[str, Any]]]:
       • No token        → 401 "HR login required"
       • Invalid token   → 401 "HR session expired or invalid"
       • Valid token     → {**user, "_actor_kind": "hr_user"}
+
+    TRACK 22.4b-followup-HR — preview-only PVI validation fallback.
+    Runs ONLY after the real HR path has failed, only in preview-
+    class environments with the explicit feature flag on, only when
+    the caller offered a token, and only when it matches role="hr".
     """
 
     async def _require_hr_user(
@@ -61,14 +67,14 @@ def make_require_hr_user(db) -> Callable[..., Awaitable[Dict[str, Any]]]:
         if not x_hr_token:
             raise HTTPException(401, "HR login required")
         user = await is_valid_hr_user_token_async(db, x_hr_token)
-        if not user:
-            raise HTTPException(401, "HR session expired or invalid")
-        # Track 15.14A Layer 3 — backend backstop. Reject any
-        # protected call when the resolved user still owes a
-        # password rotation. Change-password / me / logout are
-        # exempt by path allow-list inside the helper.
-        enforce_password_change_required(request, user)
-        return {**user, "_actor_kind": "hr_user"}
+        if user:
+            enforce_password_change_required(request, user)
+            return {**user, "_actor_kind": "hr_user"}
+        # PVI fallback — never runs in production.
+        pvi = await try_validation_fallback(db, x_hr_token, expected_role="hr")
+        if pvi:
+            return {**pvi, "_actor_kind": "hr_user"}
+        raise HTTPException(401, "HR session expired or invalid")
 
     return _require_hr_user
 
