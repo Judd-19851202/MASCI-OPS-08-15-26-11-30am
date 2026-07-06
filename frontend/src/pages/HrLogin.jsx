@@ -14,6 +14,7 @@ import { PortalLoginShell } from "@/components/PortalLoginShell";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { setHrToken, setHrUser, clearHrToken, isHr } from "@/lib/hrAuth";
+import { attemptSsoUpgrade } from "@/lib/attemptSsoUpgrade";
 import { setMustChange } from "@/lib/mustChangePassword";
 import { clearAdminToken, setAdminToken, isAdmin } from "@/lib/adminAuth";
 import { useRedirectIfDirectoryGrant } from "@/lib/useRedirectIfDirectoryGrant";
@@ -129,6 +130,11 @@ export default function HrLogin() {
         // synchronously — stamp then microtask-yield to be safe.
         setHrToken(res.data.token, rememberMe);
         setHrUser(res.data.user || {});
+        // TRACK 23.9A — SSO upgrade: silently establish master session
+        // + fan out every portal token the directory grants this user
+        // so cross-portal nav works without a re-login. Best-effort;
+        // never blocks or fails the HR login itself.
+        try { await attemptSsoUpgrade(email.trim().toLowerCase(), password, rememberMe); } catch { /* no-op */ }
         // Decide where to go. Top-level must_change_password is the
         // authoritative source (the user payload also carries it, but
         // top-level is what the backend sets at login time).

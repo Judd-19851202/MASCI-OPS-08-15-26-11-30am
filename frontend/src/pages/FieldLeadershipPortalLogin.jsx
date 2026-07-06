@@ -35,6 +35,7 @@ import { PortalLoginShell } from "@/components/PortalLoginShell";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { setFlToken, setFlUser, clearFlToken } from "@/lib/flAuth";
+import { attemptSsoUpgrade } from "@/lib/attemptSsoUpgrade";
 import { isAdmin, clearAdminToken, setAdminToken } from "@/lib/adminAuth";
 import { clearPmToken } from "@/lib/pmAuth";
 import { clearShopToken } from "@/lib/shopAuth";
@@ -115,6 +116,8 @@ export default function FieldLeadershipPortalLogin() {
         setFlUser(user);
         toast.success(`${t("Welcome,")} ${user?.name || t("Field Leader")}`);
       }
+      // TRACK 23.9A — SSO upgrade.
+      try { await attemptSsoUpgrade(em, password, rememberMe); } catch { /* no-op */ }
       // Track 15.14A Layer 2 — persist must-change-password flag.
       const mustChange = !!r?.data?.must_change_password;
       setMustChange("fl", mustChange);

@@ -24,6 +24,7 @@ import {
   isDispatch,
 } from "@/lib/dispatchAuth";
 import { setAdminToken } from "@/lib/adminAuth";
+import { attemptSsoUpgrade } from "@/lib/attemptSsoUpgrade";
 import { setMustChange } from "@/lib/mustChangePassword";
 import { useRedirectIfDirectoryGrant } from "@/lib/useRedirectIfDirectoryGrant";
 
@@ -64,6 +65,8 @@ export default function DispatchLogin() {
       }
       setDispatchToken(r.data.token, remember);
       setDispatchUser(r.data.user);
+      // TRACK 23.9A — SSO upgrade.
+      try { await attemptSsoUpgrade(email.trim(), password, remember); } catch { /* no-op */ }
       // Track 15.14A Layer 2 — persist must-change-password flag.
       const mustChange = !!r.data.must_change_password;
       setMustChange("dispatch", mustChange);

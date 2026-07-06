@@ -14,6 +14,7 @@ import { PortalLoginShell } from "@/components/PortalLoginShell";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { setPmToken, clearPmToken, isPm } from "@/lib/pmAuth";
+import { attemptSsoUpgrade } from "@/lib/attemptSsoUpgrade";
 import { clearAdminToken, setAdminToken, isAdmin } from "@/lib/adminAuth";
 import { useRedirectIfDirectoryGrant } from "@/lib/useRedirectIfDirectoryGrant";
 import { clearShopToken } from "@/lib/shopAuth";
@@ -123,6 +124,9 @@ export default function PmLogin() {
           return;
         }
         setPmToken(res.data.token, { remember: rememberMe });
+        // TRACK 23.9A — SSO upgrade: silently establish master session
+        // + fan out every portal token the directory grants this user.
+        try { await attemptSsoUpgrade(email.trim().toLowerCase(), password, rememberMe); } catch { /* no-op */ }
         // Track 15.14A Layer 2 — persist must-change-password flag.
         const mustChange = !!res.data.must_change_password;
         setMustChange("pm", mustChange);

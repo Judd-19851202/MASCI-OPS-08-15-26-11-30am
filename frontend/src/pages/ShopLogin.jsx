@@ -13,6 +13,7 @@ import { AuthRequiredBanner } from "@/components/PortalContextBanner";
 import { PortalLoginShell } from "@/components/PortalLoginShell";
 import { api } from "@/lib/api";
 import { setShopToken, clearShopToken, isShop } from "@/lib/shopAuth";
+import { attemptSsoUpgrade } from "@/lib/attemptSsoUpgrade";
 import { clearAdminToken, setAdminToken, isAdmin } from "@/lib/adminAuth";
 import { useRedirectIfDirectoryGrant } from "@/lib/useRedirectIfDirectoryGrant";
 import { clearPmToken } from "@/lib/pmAuth";
@@ -115,6 +116,9 @@ export default function ShopLogin() {
           return;
         }
         setShopToken(res.data.token, { remember: rememberMe });
+        // TRACK 23.9A — SSO upgrade: silently establish master session
+        // + fan out every portal token the directory grants this user.
+        try { await attemptSsoUpgrade(email.trim().toLowerCase(), password, rememberMe); } catch { /* no-op */ }
         // Track 15.13A — Asset Care landing. When the shop user is
         // also flagged `is_asset_admin` on the canonical directory row,
         // backend mirrors that into the shop_login response. Send the

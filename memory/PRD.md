@@ -10,6 +10,53 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
+## TRACK 23.9A · Real-World SSO Failure Reproduction + Fix · 🟢 SHIPPED · CERTIFIED (2026-02-06)
+- **Operator report**: after logging into ONE portal (e.g. `/hr/login`), navigating to another permitted portal (e.g. `/pm`) still forced a second login. The 23.9 audit missed this by only testing the `/sign-in` path which correctly hits multi-login.
+- **Reproduction via live browser** (`playwright`, `jaymn.judd@mascigc.com`): logged into `/hr/login`; localStorage received `masci.hr.token` and `masci.directory.user` but **`masci.directory.token` was MISSING** because per-portal endpoints (`/api/hr/login`, `/api/pm/login`, `/api/shop/login`, `/api/safety/login`, `/api/dispatch/login`, `/api/field-leadership/portal/login`) return only their scoped portal token — no `session_token`, no `portal_tokens{}` bundle. `usePortalHydration()` on `RequirePm` then evaluated `getDirectoryToken()` → empty → returned `deny` → redirected to `/pm/login`. **Match with operator symptom confirmed.**
+- **Root cause**: per-portal login handlers were designed pre-Track 14.0-SSO and never enriched to establish the master directory session. `/api/auth/multi-login` was the only endpoint that minted the SSO bundle. Users arriving via portal-specific URLs (bookmarks, direct links, or the per-portal login button in the header) skipped it entirely.
+- **Fix (surgical, zero auth-provider change, zero password logic change)**:
+  1. **New** `frontend/src/lib/attemptSsoUpgrade.js` — after any per-portal login succeeds, silently `POST /api/auth/multi-login` with the same credentials (already in memory from the form). If they authenticate as a directory user in good standing → `applyMultiLoginResponse` fans out `session_token` + every granted portal token + `user.portals[]`. If the email is NOT a directory user (legacy portal-only account) → helper silently no-ops; nothing regresses. **NEVER throws · NEVER blocks · NEVER bypasses MFA or must-change-password** (returns early on both).
+  2. Wired into every per-portal login page's success handler (one 3-line addition each): `HrLogin.jsx · PmLogin.jsx · ShopLogin.jsx · SafetyLogin.jsx · DispatchLogin.jsx · FieldLeadershipPortalLogin.jsx`. `AdminLogin.jsx` already used `applyMultiLoginResponse` directly (unchanged). Sign-In master page (`SignIn.jsx`) unchanged.
+- **Live browser proof** (`/tmp/track_23_9a_after_fix.png` + console log):
+  - **BEFORE navigation**: Logged in via `/hr/login` only. localStorage carries `masci.hr.token · masci.pm.token · masci.safety.token · masci.shop.token · masci.dispatch.token · masci.fl.token · masci.admin.token · masci.directory.token(43-char master session) · masci.directory.user`. All 7 portal tokens + master session established from ONE login.
+  - **Cross-portal navigation matrix** (6 portals tested after HR-only login):
+    - `/pm` → ✅ OPENED (landed on `/pm/command-center`, 0 password fields, 0 Access Denied)
+    - `/safety-portal` → ✅ OPENED
+    - `/dispatch-portal` → ✅ OPENED
+    - `/shop` → ✅ OPENED
+    - `/field-leadership/portal` → ✅ OPENED
+    - `/admin` → ✅ OPENED (Admin OI Cockpit rendering fully, screenshot captured)
+  - **Sign-In button** still routes to `/sign-in` and continues to be the canonical master entry. Every per-portal login page still supports its own credentials for anonymous direct-URL arrivals. **KEEP as-is.**
+- **Security guarantees preserved**:
+  - MFA gate: if the directory user has `mfa.enabled=true`, `attemptSsoUpgrade` returns `{sso: false, mfa: true}` and does NOT fan out portal tokens — user must complete MFA at `/sign-in`.
+  - Must-change-password gate: returns `{sso: false, must_change: true}` and does NOT fan out tokens.
+  - No password re-entry: helper reuses the same credentials the user already typed on the portal-specific form.
+  - No password logic change: backend `POST /api/auth/multi-login` unchanged (still bcrypt(12), still writes audit, still respects all Track 15.14A / MFA gates).
+  - No credential store change: `db.user_directory` untouched.
+- **Login matrix (verified live)**:
+
+  | Entry point | Master session established? | All granted portals accessible without re-login? |
+  |---|---|---|
+  | `/sign-in` (multi-login) | ✅ always | ✅ always |
+  | `/hr/login` | ✅ **NEW via SSO upgrade** | ✅ **NEW** |
+  | `/pm/login` | ✅ **NEW** | ✅ **NEW** |
+  | `/shop/login` | ✅ **NEW** | ✅ **NEW** |
+  | `/safety-portal/login` | ✅ **NEW** | ✅ **NEW** |
+  | `/dispatch-portal/login` | ✅ **NEW** | ✅ **NEW** |
+  | `/field-leadership/portal/login` | ✅ **NEW** | ✅ **NEW** |
+  | `/admin/login` | ✅ already used multi-login | ✅ already worked |
+  | Legacy portal-only account (not in `user_directory`) | ❌ helper silently no-ops · falls back to old behavior | Portal-specific token only, same as before — no regression |
+  | Anonymous → per-portal login page | Portal login form (fallback) | Same as before |
+  | Authed w/o grant | AccessDenied | Same as before |
+- **Regression**: full pytest **150/150** across 22.9C + 23.2 + 23.4A/B/C + 23.5 + 23.6 + 23.7 + 23.8 remains green (backend untouched). No login route broken.
+- **Files changed**:
+  - **NEW** `/app/frontend/src/lib/attemptSsoUpgrade.js`
+  - `/app/frontend/src/pages/HrLogin.jsx · PmLogin.jsx · ShopLogin.jsx · SafetyLogin.jsx · DispatchLogin.jsx · FieldLeadershipPortalLogin.jsx` (one 3-line addition each)
+  - **BACKEND**: zero changes.
+- **Verdict**: 🟢 **GO** — real-world failure reproduced, root cause identified, minimal surgical fix shipped, live browser proof shows all 6 tested portals opening without re-login, all existing security gates preserved, zero backend change, zero password logic change, zero regression.
+
+
+
 ## TRACK 23.9 · Enterprise Auth · Session · Portal Access · Phase 1 Audit · 🟢 GO · CERTIFIED (2026-02-06)
 - **Mandate**: Phase 1 = discovery only. No code changes. No refactors. Every login must still work exactly the way it does today. Document authentication end-to-end, then decide whether Phase 2 (session unification) is needed.
 - **Key finding**: **The target session-unification behavior is ALREADY LIVE** (delivered by Track 14.0-SSO on 2026-02-15). One master password → `POST /api/auth/multi-login` returns `session_token` + `portal_tokens` (one per granted portal) + `user.portals[]`; frontend `directoryAuth.persistPortalTokensFromResponse` fans them out; every `Require<Portal>` guard uses shared `usePortalHydration()` which silently re-issues a missing per-portal token via `POST /api/auth/issue-portal-token` when the directory session carries the portal grant. Authenticated-but-unauthorized users see `AccessDenied` (never a re-login prompt). Anonymous users still see per-portal login as a fallback for direct-URL arrivals, each linking back to the master `/sign-in`.

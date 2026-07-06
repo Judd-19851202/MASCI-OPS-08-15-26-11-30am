@@ -24,6 +24,7 @@ import {
   isSafety,
 } from "@/lib/safetyAuth";
 import { setAdminToken } from "@/lib/adminAuth";
+import { attemptSsoUpgrade } from "@/lib/attemptSsoUpgrade";
 import { setMustChange } from "@/lib/mustChangePassword";
 import { useRedirectIfDirectoryGrant } from "@/lib/useRedirectIfDirectoryGrant";
 
@@ -79,6 +80,9 @@ export default function SafetyLogin() {
       }
       setSafetyToken(r.data.token, remember);
       setSafetyUser(r.data.user);
+      // TRACK 23.9A — SSO upgrade: silently establish master session
+      // + fan out every portal token the directory grants this user.
+      try { await attemptSsoUpgrade(email.trim(), password, remember); } catch { /* no-op */ }
       // Track 15.14A Layer 2 — persist must-change-password flag.
       const mustChange = !!r.data.must_change_password;
       setMustChange("safety", mustChange);
