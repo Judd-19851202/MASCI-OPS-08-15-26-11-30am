@@ -11,6 +11,45 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 23.4A · V3 Daily Report Field-Complete Repair · 🟢 SHIPPED · CERTIFIED (2026-02-06)
+- **Mandate**: V3 became visually cleaner but stripped operator-critical operational inputs that HR / PM / equipment / payroll / ODS all consume. This is a P1 field-completeness repair, not a redesign. V3 stays default. V1 rollback stays intact. Same submit endpoint. Same payload contract. Zero downstream disruption.
+- **Findings (from operator review)**:
+  1. V3 lacked the MASCI platform header/banner treatment.
+  2. Crew rows exposed only `Trade + Hours` — no start/stop/lunch capture.
+  3. No crew total man-hours summary.
+  4. Equipment rows had unlabeled run/idle inputs and no per-row total.
+  5. No equipment utilization roll-up.
+  6. Subcontractor/vendor entry entirely missing from V3.
+  7. Safety section did not carry the V1 escalation gate (event type · contact person / time / method · incident report time / reference · hard warning + acknowledgement when Safety not contacted).
+- **Fixes**:
+  1. **Platform banner** — `NewDailyReportV3.jsx` now wraps its body in the shared `<DailyReportTopBanner />` used by V1/V2 field surfaces (`bg-slate-900` · `border-b-4 border-red-700` · sticky · red-M logo · Home back link · offline chip + autosave pill slotted in).
+  2. **Crew rows** — `SectionCrewEquipment` rewritten. Each crew row now carries `EmployeeCombo` · Trade · **Start · Stop · Lunch (min) · Hours (auto)** grid. Hours auto-compute via new shared `crewHoursMath.js` (`computeCrewHours` + `grossNetPreview` — byte-equivalent to V1's semantics). Inline gross/net math preview line (`7:00 AM → 5:30 PM · 10.50 h gross − 0.50 h lunch = 10.0 h net`). Stop-before-start blocked with inline error. Manual override on `hours` still supported.
+  3. **Crew totals strip** — `dr-v3-crew-totals` renders `N employees · X.XX total man-hours · Y.YY h lunch` plus cost-code roll-up chips when hasCodes.
+  4. **Equipment rows** — explicit **Run hours / Idle hours / Total (run + idle)** labeled inputs; total is a read-only computed field. Optional notes row for issues.
+  5. **Equipment totals strip** — `dr-v3-eq-totals` renders `N units · X.XX run h · Y.YY idle h · ZZ% utilization` plus `withIssues` count when any row has notes.
+  6. **Subcontractors & Vendors subsection** — new `dr-v3-subs-block` inside the same section. Row = `SupplierCombo` (canonical vendor dropdown with typed-custom fallback baked in) · Trade · Foreman · Headcount · Hours · Work performed. `dr-v3-sub-totals` strip below.
+  7. **Safety escalation (V1 parity)** — When `safety_present=Yes` the section now shows: event-type selector (`Accident / Incident / Injury / Near miss / Property damage / Utility strike / Inspection / Other`), incident notes, **Was Safety contacted? Yes/No** gate → Yes reveals `contact person + time + method` inputs, No renders a red hard-warning block with acknowledgement checkbox. **Incident/Accident report filed? Yes/No** → Yes reveals `time + reference` inputs, No renders an amber action-required block with `Open Accident / Incident Report` button (`/safety/incident-report`) that preserves the autosaved draft.
+- **Readiness / submit gate hardened**: `NewDailyReportV3.jsx` readiness memo now enforces the V1 escalation blockers — `safety_event_type` · `safety_notified === "Yes"` · `safety_contact_person` · `safety_contact_time` · `incident_report_filled === "Yes"` · `incident_report_time`. `canSubmit` fails clean with the missing-field list in the toast (matches V1 behavior).
+- **Restore-yesterday integrity preserved**: `crewMemory._stripCrewRow`, `_stripEquipmentRow`, `_stripSubRow` continue to keep only `{name, trade}` · `{description}` · `{company, trade, foreman}` respectively — hours / times / lunch / count / work-performed NEVER carry from yesterday. Verified by lock test.
+- **Zero downstream disruption**: Same `POST /api/daily-reports` endpoint. Same payload keys (`masci_crews[].{name, employee_id, trade, start_time, stop_time, lunch_minutes, hours, cost_code}`, `equipment[].{description, hours_used, idle_hours, notes, cost_code}`, `subcontractors[].{company, trade, foreman, count, hours, work_performed}`, `safety_event_type, safety_notified, safety_contact_person, safety_contact_time, safety_contact_method, incident_report_filled, incident_report_time, incident_report_reference, injuries_reported`). V1 rollback flag path (`ui_flags.dr_v3.tenant_default=false`) unchanged. Autosave, draft restore, offline queue, AI summary, photo intelligence, ODS, Trust Spine, PM/Co-PM routing, PDF renderer — all byte-parity.
+- **Tests**: 12 new lock assertions in `test_track_23_4a_v3_field_complete_repair.py`. Full regression 119/119 across 22.9A + 22.9B + 22.9C + 22.9C-FIX + 23.1 + 23.3 + 23.4A + DR-CUTOVER.
+- **Live smoke** (all screenshotted at 1440×900 + 390 mobile):
+  - Crew rows: 07:00→17:30 lunch=30 → hours=10.00; 08:00→16:30 lunch=30 → hours=8.00; totals strip `2 employees · 18.00 total man-hours · 1.00 h lunch` ✓
+  - Equipment: 9.5 run + 2.5 idle → total=12.00, `1 unit · 9.50 run h · 2.50 idle h · 79% utilization` ✓
+  - Subs: dropdown + row appears ✓
+  - Safety event type + `Was Safety contacted? No` → red "Stop and contact Safety before submitting" + acknowledgement checkbox visible ✓
+  - Flip to Yes → contact person + time + method inputs appear ✓
+  - `Incident report? No` → amber "Action required" block + Open Accident/Incident Report button visible ✓
+  - MASCI banner (dark navy · red bottom border · red-M · Home · SAVED pill) rendered at page top ✓
+  - Mobile 390: 0px horizontal overflow, 0 page errors, all field grids stack cleanly ✓
+- **Files changed**:
+  - `frontend/src/pages/NewDailyReportV3.jsx` (banner wrap + readiness memo hardening).
+  - `frontend/src/components/daily-report-v3/sections.jsx` (`SectionCrewEquipment` rewrite + subs subsection + `SectionImpactSafety` V1-parity escalation gate).
+  - **New** `frontend/src/lib/crewHoursMath.js` (shared start/stop/lunch → net-hours math, mirrors V1 verbatim).
+  - **New** `backend/tests/test_track_23_4a_v3_field_complete_repair.py` (12 assertions).
+- **Verdict**: 🟢 GO — V3 is now field-simple AND source-of-truth complete. Payroll, HR, equipment utilization, subcontractor visibility, and safety escalation are all restored. Next: 🔵 Track 23.2 · PDF/email V3 layout alignment.
+
+
 ## TRACK 22.9C-FIX · Platform Shell + Daily Report Route Regression · 🟢 SHIPPED · CERTIFIED (2026-02-06)
 - **Mandate**: Stop feature work. Fix two P0/P1 regressions surfaced live: (1) `/pm/operational-intelligence` rendered as an unbranded standalone page; (2) Field-Leadership "Daily Reports" button navigated to `/daily-reports` which had no route and dropped operators onto a mid-workflow 404.
 - **Root cause · route**: `FieldLeadershipPortalDashboard.jsx` shipped with a stale button `{ label: "Daily Reports", to: "/daily-reports" }` but no `/daily-reports` route was ever registered — every other button in that grid points at a canonical `/*/new` submit form (`/meetings`, `/equipment`, `/safety/incident-report`). React Router's catch-all rendered the (correctly-styled) `NotFound` page; from the operator's perspective, clicking Daily Reports from the FL Portal broke the workflow.

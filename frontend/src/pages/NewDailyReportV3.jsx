@@ -46,6 +46,7 @@ import {
   SectionAiSummary,
   SectionSignoff,
 } from "@/components/daily-report-v3/sections";
+import { DailyReportTopBanner } from "@/components/DailyReportTopBanner";
 import { CheckCircle2, History } from "lucide-react";
 
 // Form key MUST match V1 so that a mid-flight draft written in V1 can
@@ -213,13 +214,46 @@ export default function NewDailyReportV3({ publicMode = false }) {
       },
       { key: "signature", ok: !!data.prepared_by_signature, label: "Signature" },
     ];
+    // TRACK 23.4A · Full V1 safety-escalation gate. When the supervisor
+    // flags any safety event, Safety must be contacted, contact fields
+    // must be populated, and an Incident/Accident report must be filed
+    // (or the equivalent block acknowledged). Mirrors V1 submit-time
+    // enforcement so operator instinct is preserved.
     if (data.safety_present === "Yes") {
-      items.push({ key: "safety_notified", ok: data.safety_notified === "Yes", label: "Safety contacted" });
+      items.push({
+        key: "safety_event_type",
+        ok: !!(data.safety_event_type || "").trim(),
+        label: "Safety event type",
+      });
+      items.push({
+        key: "safety_notified",
+        ok: data.safety_notified === "Yes",
+        label: "Safety contacted",
+      });
+      if (data.safety_notified === "Yes") {
+        items.push({
+          key: "safety_contact_person",
+          ok: !!(data.safety_contact_person || "").trim(),
+          label: "Who at Safety",
+        });
+        items.push({
+          key: "safety_contact_time",
+          ok: !!(data.safety_contact_time || "").trim(),
+          label: "Time Safety contacted",
+        });
+      }
       items.push({
         key: "incident_report",
         ok: data.incident_report_filled === "Yes",
-        label: "Incident report",
+        label: "Incident report filed",
       });
+      if (data.incident_report_filled === "Yes") {
+        items.push({
+          key: "incident_report_time",
+          ok: !!(data.incident_report_time || "").trim(),
+          label: "Time incident report filed",
+        });
+      }
     }
     const completed = items.filter((i) => i.ok).length;
     const missing = items.filter((i) => !i.ok).map((i) => i.label);
@@ -280,47 +314,49 @@ export default function NewDailyReportV3({ publicMode = false }) {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      {/* TRACK 23.4A · MASCI platform banner restored on V3 to match
+          V1 / V2 field surfaces (bg-slate-900 · red-700 bottom border ·
+          sticky). Keeps the "field form belongs to the platform" grammar. */}
+      <DailyReportTopBanner backLink="/" showBackLink={!publicMode}>
+        <div className="flex items-center gap-2" data-testid="dr-v3-header-chips">
+          {!online && (
+            <span
+              data-testid="dr-v3-offline-chip"
+              className="rounded-full bg-amber-500 px-3 py-1 text-xs font-semibold text-slate-900"
+            >
+              Offline
+            </span>
+          )}
+          <div data-testid="dr-v3-draft-pill-slot">
+            <DraftStatusPill
+              status={draftStatus}
+              lastSavedAt={pendingSavedAt}
+              testId="dr-v3-draft-pill"
+            />
+            {(draftStatus === "idle" && !pendingSavedAt) && (
+              <span
+                data-testid="dr-v3-draft-pill"
+                className="rounded-full bg-slate-800 px-3 py-1 text-xs font-medium text-slate-100 border border-slate-700"
+              >
+                Autosave on
+              </span>
+            )}
+          </div>
+        </div>
+      </DailyReportTopBanner>
+
       <div className="mx-auto max-w-3xl px-4 py-6 sm:py-10">
         <header className="mb-6 sm:mb-8">
-          <div className="flex items-center justify-between gap-2">
-            <div>
-              <div className="flex items-center gap-2 text-xs font-medium text-emerald-600">
-                <CheckCircle2 className="h-4 w-4" />
-                MASCI · Daily Job Report
-              </div>
-              <h1 className="mt-1 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
-                Today&apos;s report
-              </h1>
-              <p className="mt-1 text-sm text-slate-500">
-                Nine short steps. Dropdowns first. AI drafts your summary.
-              </p>
-            </div>
-            <div className="flex items-center gap-2" data-testid="dr-v3-header-chips">
-              {!online && (
-                <span
-                  data-testid="dr-v3-offline-chip"
-                  className="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-800"
-                >
-                  Offline
-                </span>
-              )}
-              <div data-testid="dr-v3-draft-pill-slot">
-                <DraftStatusPill
-                  status={draftStatus}
-                  lastSavedAt={pendingSavedAt}
-                  testId="dr-v3-draft-pill"
-                />
-                {(draftStatus === "idle" && !pendingSavedAt) && (
-                  <span
-                    data-testid="dr-v3-draft-pill"
-                    className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600"
-                  >
-                    Autosave on
-                  </span>
-                )}
-              </div>
-            </div>
+          <div className="flex items-center gap-2 text-xs font-medium text-emerald-600">
+            <CheckCircle2 className="h-4 w-4" />
+            MASCI · Daily Job Report
           </div>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+            Today&apos;s report
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Nine short steps. Dropdowns first. AI drafts your summary.
+          </p>
         </header>
 
         {/* Draft restore prompt — never silently overwrites work. */}
