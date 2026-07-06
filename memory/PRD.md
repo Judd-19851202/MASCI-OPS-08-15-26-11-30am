@@ -10,6 +10,16 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
+## TRACK 23.10-B · Handoff Doc Prepared · 📄 READY FOR FRESH SESSION (2026-02-06)
+- **Scope**: Documentation-only. Zero code changes. Prepares the execution blueprint for Track 23.10-B (Competent Person Certification Foundation) so a fresh session can execute it end-to-end without redesign or scope-drift.
+- **Deliverable**: `/app/memory/TRACK_23_10B_HANDOFF.md` (15 sections). Reframes 23.10-B as a **Professional Qualifications Engine** (Competent Person is the pilot qualification type, not a one-off feature). Full enum for future types shipped on day one: OSHA 10 / OSHA 30 / First Aid-CPR / Signal Person / Confined Space / Rigging / Crane Operator / Equipment Operator / Traffic Control-Flagger / MSHA / HAZWOPER / DOT Medical / CDL / Manufacturer / Company-specific.
+- **Immutable rules captured**: `safety_training_records` is single source of truth · Employee Lifecycle displays but does not own · Trench Safety, DR V3, Scheduling all consume never own · expired/suspended/revoked/pending excluded from active registry server-side · historical rows preserve person + cert snapshot at selection · HR/Training admin sole writer · registry is a QUERY not a stored list · B-04-style invariant on `is_active_for_selection`.
+- **Definition-of-Done**: 25 pytest cases · zero new collections · zero consumer edits · zero temporary pickers · HR/Training admin write gate · idempotent migration · all 150 prior-track regressions green.
+- **Explicit anti-goals** documented (no `competent_persons` collection, no rewrite of historical free-text `competent_person_name` values, no picker component in 23.10-B, no consumer edits).
+- **User directive baked in**: execute from approved design · do not redesign · do not reduce scope · do not create temporary pickers · do not fake green.
+- **Next action**: fresh session picks up `TRACK_23_10B_HANDOFF.md` and executes 23.10-B end-to-end following §13 execution order.
+
+
 ## TRACK 23.10 · Phase 1+A · Trench + Competent Person Design · 🟢 GO · CERTIFIED (2026-02-06)
 - **Scope**: Design-only. No code changes. No provisional UI. No temporary picker. No fake green. Ships the full audit + design package required to execute Track 23.10-B / C / D / E as certified sub-tracks.
 - **Discovery findings**:
