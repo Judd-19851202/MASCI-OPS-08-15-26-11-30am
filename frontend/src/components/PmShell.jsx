@@ -41,6 +41,7 @@ const SECTIONS = [
   // route under a PM-accepting guard (P or AP). Sidebar surfaces them
   // so PMs don't have to bounce back to the Hub for every workflow.
   { key: "command-center",  to: "/pm/command-center",    icon: Activity,        label: "Command Center",  desc: "Single-glass project ops · 7 tabs" },
+  { key: "operational-intelligence", to: "/pm/operational-intelligence", icon: Activity, label: "Operational Intelligence", desc: "Three horizons · ODS-backed KPIs" },
   { key: "holds",           to: "/pm/holds",             icon: ClipboardList,   label: "Holds",           desc: "Unified hold queue across projects" },
   { key: "due-today",       to: "/pm/due-today",         icon: Clock,           label: "Due Today",       desc: "Actions and approvals due today" },
   { key: "jobs",            to: "/pm/jobs",              icon: Briefcase,       label: "Jobs",            desc: "Jobs assigned to you (read-only)" },

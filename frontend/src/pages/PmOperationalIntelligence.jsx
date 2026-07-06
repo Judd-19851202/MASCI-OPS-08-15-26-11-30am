@@ -9,6 +9,8 @@ import {
 } from "@/components/ods/HorizonPrimitives";
 import { OperationalIntelligenceCard } from "@/components/ods/OperationalIntelligenceCard";
 import { DrV2ApprovedReportsPanel } from "@/components/DrV2ApprovedReportsPanel";
+import PmShell from "@/components/PmShell";
+import { Activity } from "lucide-react";
 
 /**
  * DR-ROI-001E · PM Operational Intelligence
@@ -82,28 +84,38 @@ export default function PmOperationalIntelligence() {
   const projectsWithData = projects.length;
 
   return (
-    <div className="min-h-screen bg-neutral-50" data-testid="pm-intel-page">
-      <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-8">
-        <header className="flex items-baseline justify-between gap-4 flex-wrap">
-          <div>
-            <div className="text-[10px] uppercase tracking-widest text-neutral-500">
-              PM operational intelligence
-            </div>
-            <h1 className="text-2xl font-semibold text-neutral-900">
-              Project Health & Production
-            </h1>
+    <PmShell
+      title="Operational Intelligence"
+      section="operational-intelligence"
+      intro={
+        <div className="flex items-start gap-3">
+          <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-amber-600 text-white shrink-0">
+            <Activity className="w-5 h-5" />
           </div>
-          <PresetPicker value={preset} onChange={setPreset} testid="pm-intel-preset-picker" />
-        </header>
+          <div className="text-sm text-slate-700 leading-relaxed">
+            Three horizons over your assigned projects — What Happened,
+            What Is Happening, What Needs Attention. Every KPI, delay,
+            finding, and operational summary is backed by canonical ODS
+            facts with source traceability.
+          </div>
+        </div>
+      }
+    >
+      <div className="space-y-8" data-testid="pm-intel-page">
+        <div className="flex items-baseline justify-between gap-4 flex-wrap">
+          <div className="text-xs uppercase tracking-widest text-neutral-500">
+            {loading ? "Loading operational evidence…" : "Range"}
+          </div>
+          <PresetPicker
+            value={preset}
+            onChange={setPreset}
+            testid="pm-intel-preset-picker"
+          />
+        </div>
 
         {err ? (
           <div className="text-sm text-red-700" data-testid="pm-intel-error">
             {String(err)}
-          </div>
-        ) : null}
-        {loading ? (
-          <div className="text-sm text-neutral-500" data-testid="pm-intel-loading">
-            Loading operational evidence…
           </div>
         ) : null}
 
@@ -339,6 +351,6 @@ export default function PmOperationalIntelligence() {
 
         <EvidenceFooter />
       </div>
-    </div>
+    </PmShell>
   );
 }

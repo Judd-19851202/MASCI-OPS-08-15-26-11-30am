@@ -574,6 +574,14 @@ export function AppRoutes() {
                 URL pattern, redirect to the canonical route instead of
                 404-ing. Matches the /cheat-sheet redirect pattern. */}
             <Route path="/reports/daily/new" element={<Navigate to="/daily/new" replace />} />
+            {/* TRACK 22.9C-FIX · Field Leadership Portal Dashboard historically
+                pointed "Daily Reports" at the bare /daily-reports path (no
+                portal prefix). That path had no route registered, causing
+                a route-mismatch that surfaced to operators as a blank 404
+                page mid-workflow. Fixed at the source (button target →
+                /daily/new) AND redirected here so any legacy nav, poster,
+                or bookmarked URL still lands on the canonical V3 form. */}
+            <Route path="/daily-reports" element={<Navigate to="/daily/new" replace />} />
             <Route path="/safety/jha" element={<Navigate to="/jha" replace />} />
             <Route path="/safety/trench-boxes" element={<Navigate to="/trench-boxes" replace />} />
             {/* Phase 3 · Trench Safety inside the Safety portal */}

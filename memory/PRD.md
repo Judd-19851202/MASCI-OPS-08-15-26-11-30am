@@ -11,6 +11,34 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 22.9C-FIX · Platform Shell + Daily Report Route Regression · 🟢 SHIPPED · CERTIFIED (2026-02-06)
+- **Mandate**: Stop feature work. Fix two P0/P1 regressions surfaced live: (1) `/pm/operational-intelligence` rendered as an unbranded standalone page; (2) Field-Leadership "Daily Reports" button navigated to `/daily-reports` which had no route and dropped operators onto a mid-workflow 404.
+- **Root cause · route**: `FieldLeadershipPortalDashboard.jsx` shipped with a stale button `{ label: "Daily Reports", to: "/daily-reports" }` but no `/daily-reports` route was ever registered — every other button in that grid points at a canonical `/*/new` submit form (`/meetings`, `/equipment`, `/safety/incident-report`). React Router's catch-all rendered the (correctly-styled) `NotFound` page; from the operator's perspective, clicking Daily Reports from the FL Portal broke the workflow.
+- **Root cause · shell**: `PmOperationalIntelligence.jsx` wrapped its body in `<div className="min-h-screen bg-neutral-50">` instead of `<PmShell>` — the file skipped the platform shell entirely, so there was no MASCI logo, no PM sidebar, no breadcrumb, no PortalSwitcher, no SystemHealthBadge, no branded footer.
+- **Fix · route (2 surgical edits)**: (a) `FieldLeadershipPortalDashboard.jsx` button target → `/daily/new` (canonical V3 form entry, matches sibling buttons). (b) `AppRoutes.jsx` gets a backstop `<Route path="/daily-reports" element={<Navigate to="/daily/new" replace />} />` so any legacy nav, printed poster, or bookmarked URL still lands correctly. No new component, no duplicate DR route, no V2 resurrection.
+- **Fix · shell**: `PmOperationalIntelligence.jsx` now imports `PmShell` and wraps its entire body in `<PmShell title="Operational Intelligence" section="operational-intelligence" intro={…}>`. The stale internal `<header>` block was removed (PmShell provides it). Sidebar entries added to both `PmShell.SECTIONS` (V1 sidebar) and `pm/sidebar/domainMap.js` `DOMAINS_V2.project-operations` (V2 sidebar) so the current-section highlight follows navigation.
+- **Backward compatibility locked**: No V2 resurrection. No new Daily Report route. V3 remains the default at `/daily/new` and `/daily/submit`. V1 rollback path via `ui_flags.dr_v3.tenant_default=false` is unchanged. Every other 22.9 / 23.1 / 23.3 / DR-CUTOVER assertion still passes.
+- **Tests**: 6 new lock assertions in `test_track_22_9c_fix_shell_and_route.py`:
+  - FL dashboard targets `/daily/new`, never `/daily-reports`.
+  - `AppRoutes` has a `/daily-reports` → `/daily/new` Navigate backstop.
+  - `PmOperationalIntelligence.jsx` imports + wraps `PmShell` with the correct section prop; the pre-fix `min-h-screen bg-neutral-50` container cannot return.
+  - V1 sidebar (`PmShell.SECTIONS`) exposes the entry.
+  - V2 sidebar (`domainMap.DOMAINS_V2`) exposes the entry.
+- **Regression**: 66/66 across 22.9A + 22.9B + 22.9C + 22.9C-FIX + 23.3.
+- **Live smoke**:
+  - `GET /daily-reports` → 302 redirect to `/daily/new` (V3 form renders, MASCI header, 9 sections, autosave pill).
+  - `GET /pm/operational-intelligence` (1440×900) → PmShell renders: MASCI red-M logo top-left, amber-600 accent bar, PROJECT MANAGEMENT › OPERATIONAL INTELLIGENCE breadcrumb, PM sidebar with the new "Operational Intelligence" entry highlighted, three horizons inside the shell, evidence footer, ForgedOps™ attribution, backend version badge.
+  - `GET /pm/operational-intelligence` (390×900) mobile → 0px horizontal overflow, 0 page errors, hamburger menu triggers PM mobile sidebar, header wraps to 3-line breadcrumb, KPI grid stacks to 2 cols.
+- **Files changed**:
+  - `frontend/src/pages/FieldLeadershipPortalDashboard.jsx` (button target).
+  - `frontend/src/app/routing/AppRoutes.jsx` (+ redirect route).
+  - `frontend/src/pages/PmOperationalIntelligence.jsx` (PmShell wrap).
+  - `frontend/src/components/PmShell.jsx` (+ SECTIONS entry).
+  - `frontend/src/components/pm/sidebar/domainMap.js` (+ V2 sidebar entry).
+  - **New** `backend/tests/test_track_22_9c_fix_shell_and_route.py`.
+- **Verdict**: 🟢 **GO** — both P0/P1 regressions closed with 0 blank screens, 0 shell drift, 0 duplicate routes, 0 V2 resurrection. Next: 🔵 Track 23.2 · PDF/email V3 layout alignment (unblocked).
+
+
 ## TRACK 22.9C · Daily Report Intelligence Outputs · 🟢 SHIPPED · CERTIFIED (2026-02-06)
 - **Mandate**: Surface V3 supervisor-accepted `ai_accepted_summary` + grounded photo observations onto the three PM-facing outputs still blind to them — PDF, auto-email, PM Command Center. Do NOT rebuild templates. Do NOT change routing/audit. Do NOT expose provider names or raw metadata. Historical / V1-fallback reports must render byte-identical to pre-22.9C.
 - **PDF**: `_render_daily` now calls `_render_intelligence_section(d)` under a guard, emitting a new `10a · Operational Intelligence Summary` section between `10 · Photos` and `11 · Signature`. Skipped entirely when both accepted summary AND photo observations are absent.
