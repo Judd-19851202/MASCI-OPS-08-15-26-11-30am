@@ -54,6 +54,8 @@ import { isAdmin } from "@/lib/adminAuth";
 import { translateUserInput } from "@/lib/translateOnSubmit";
 import { toast } from "sonner";
 import DailyOperationalSummarySection from "@/components/daily-report/DailyOperationalSummarySection";
+// TRACK 22.9A · non-blocking AI summary assist wired into V1.
+import DailySummaryAssist from "@/components/daily-report/DailySummaryAssist";
 import {
   getCurrentPosition,
   reverseGeocode,
@@ -2874,6 +2876,19 @@ function NewDailyReportInner({ publicMode = false }) {
 
         {/* DR-CUTOVER-002 · Daily Operational Summary (optional; never blocks submit). */}
         <DailyOperationalSummarySection data={data} set={set} t={t} />
+
+        {/* TRACK 22.9A · Draft Summary — non-blocking AI-assist. Never
+            blocks typing or submit. If the assist is unavailable a
+            deterministic fallback appears. Accepted text is copied
+            onto data.ai_accepted_summary for downstream consumers. */}
+        <div className="mt-4">
+          <DailySummaryAssist
+            data={data}
+            reportNumber={data.report_number}
+            onAccept={(text) => set("ai_accepted_summary", text)}
+            testId="dr-daily-summary-assist"
+          />
+        </div>
 
         {/* 11 — Sign-off */}
         <div
