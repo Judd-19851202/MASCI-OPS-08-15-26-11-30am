@@ -106,6 +106,7 @@ import IncidentReportViewer from "@/pages/IncidentReportViewer";
 import ViewIncident from "@/pages/ViewIncident";
 import DailyReportsDashboard from "@/pages/DailyReportsDashboard";
 import NewDailyReport from "@/pages/NewDailyReport";
+import DailyReportRouter from "@/pages/DailyReportRouter";
 import ViewDailyReport from "@/pages/ViewDailyReport";
 import EquipmentDashboard from "@/pages/EquipmentDashboard";
 import NewEquipmentInspection from "@/pages/NewEquipmentInspection";
@@ -546,8 +547,11 @@ export function AppRoutes() {
             {/* TRACK 19.36 · Executive Case Report — boardroom-grade single-screen view. */}
             <Route path="/safety/cases/:caseId/executive-report" element={<ExecutiveCaseReport />} />
 
-            <Route path="/daily/new" element={<NewDailyReport />} />
-            <Route path="/daily/submit" element={<NewDailyReport publicMode />} />
+            {/* TRACK 23.1 · flag-gated V1 vs V3 Daily Report shell.
+                Same backend, same payload, same downstream. Only the
+                React tree that renders here changes with the flag. */}
+            <Route path="/daily/new" element={<DailyReportRouter />} />
+            <Route path="/daily/submit" element={<DailyReportRouter publicMode />} />
 
             <Route path="/equipment/new" element={<NewEquipmentInspection />} />
             <Route path="/equipment/submit" element={<NewEquipmentInspection publicMode />} />
