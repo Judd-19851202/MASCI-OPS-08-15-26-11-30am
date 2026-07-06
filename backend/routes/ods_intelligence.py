@@ -358,6 +358,11 @@ def register_ods_intelligence_routes(api_router: APIRouter, db) -> None:
         Each row carries fact_id + source_type + source_id + date so the
         UI can jump back to the originating operational record. No AI
         reasoning here — this is deterministic fact projection.
+
+        TRACK 22.9C · Adds a lightweight `operational_summary` hint
+        bucket sourced from `day_summary_fact` — one row per project
+        with the most-recent supervisor-accepted summary in range.
+        Excerpt only (~200 chars). Zero provider / model / raw meta.
         """
         q: Dict[str, Any] = {
             "tenant_id": TENANT_DEFAULT,
@@ -373,8 +378,10 @@ def register_ods_intelligence_routes(api_router: APIRouter, db) -> None:
             if date_to: q["date"]["$lte"] = date_to
         buckets: Dict[str, List[Dict[str, Any]]] = {
             "safety": [], "quality": [], "delay": [], "readiness": [],
+            "operational_summary": [],
         }
-        counts = {"safety": 0, "quality": 0, "delay": 0, "readiness": 0}
+        counts = {"safety": 0, "quality": 0, "delay": 0, "readiness": 0,
+                  "operational_summary": 0}
         cursor = db[COLL_FACTS].find(q, {"_id": 0}).sort([("date", -1)]).limit(limit * 4)
         async for f in cursor:
             ft = f.get("fact_type") or ""
@@ -399,6 +406,46 @@ def register_ods_intelligence_routes(api_router: APIRouter, db) -> None:
                 "severity": p.get("severity") or p.get("impact") or "unknown",
                 "category": p.get("category") or p.get("delay_category") or key,
             })
+
+        # TRACK 22.9C · Operational summary hint — one row per project,
+        # newest supervisor-accepted narrative. Provider / raw meta
+        # never leak. Frontend renders as a subtle chip, not a full
+        # intelligence panel (that lives on the project card).
+        q_sum: Dict[str, Any] = {
+            "tenant_id": TENANT_DEFAULT, "is_current": True,
+            "fact_type": "day_summary_fact",
+        }
+        if project_ids is not None:
+            q_sum["project_id"] = {"$in": project_ids}
+        if date_from or date_to:
+            q_sum["date"] = {}
+            if date_from: q_sum["date"]["$gte"] = date_from
+            if date_to: q_sum["date"]["$lte"] = date_to
+        seen_projects: set = set()
+        async for f in db[COLL_FACTS].find(q_sum, {"_id": 0}).sort([("date", -1)]).limit(limit * 3):
+            pid = f.get("project_id") or ""
+            if pid in seen_projects:
+                continue
+            p = f.get("payload") or {}
+            _text = (p.get("text") or "").strip()
+            if not _text:
+                continue
+            seen_projects.add(pid)
+            counts["operational_summary"] += 1
+            if len(buckets["operational_summary"]) >= limit:
+                continue
+            _excerpt = _text[:200].rstrip() + ("…" if len(_text) > 200 else "")
+            buckets["operational_summary"].append({
+                "fact_id": f.get("fact_id"),
+                "project_id": pid,
+                "date": f.get("date"),
+                "source_type": f.get("source_type"),
+                "source_id": f.get("source_id"),
+                "summary": _excerpt,
+                "severity": "info",
+                "category": "operational_summary",
+            })
+
         total = sum(counts.values())
         return {"totals": counts, "total": total, "items": buckets}
 
@@ -434,6 +481,90 @@ def register_ods_intelligence_routes(api_router: APIRouter, db) -> None:
         )
         return {"enabled": True, "role": "pm", "project_id": project_id,
                 "range": {"from": df, "to": dt, "preset": preset}, **result}
+
+    # TRACK 22.9C · Operational Intelligence surface for PM project card.
+    # Reads canonical ODS `day_summary_fact` + `photo_evidence_fact` rows
+    # ONLY — never scrapes raw `daily_reports`. Returns supervisor-accepted
+    # summaries with a compact excerpt (~280 chars) + grounded photo
+    # observation tags. Provider / model / raw metadata are NEVER exposed.
+    # Legacy projects without accepted summaries return empty arrays and
+    # the frontend hides the card.
+    @api_router.get("/ods/pm/projects/{project_id}/operational-intelligence")
+    async def pm_project_operational_intelligence(
+        project_id: str,
+        preset: Optional[str] = Query(default="this_week"),
+        date_from: Optional[str] = None,
+        date_to: Optional[str] = None,
+        limit: int = Query(default=7, ge=1, le=30),
+    ) -> Dict[str, Any]:
+        if not ods_enabled():
+            return {"enabled": False, "summaries": [], "photo_observation_tags": []}
+        df, dt = _resolve_range(preset, date_from, date_to)
+
+        # ---- day_summary_fact rows ----------------------------------
+        q_sum: Dict[str, Any] = {
+            "tenant_id": TENANT_DEFAULT, "project_id": project_id,
+            "fact_type": "day_summary_fact", "is_current": True,
+        }
+        if df or dt:
+            q_sum["date"] = {}
+            if df: q_sum["date"]["$gte"] = df
+            if dt: q_sum["date"]["$lte"] = dt
+        sum_rows: List[Dict[str, Any]] = []
+        async for f in db[COLL_FACTS].find(
+            q_sum, {"_id": 0}
+        ).sort([("date", -1)]).limit(limit):
+            p = f.get("payload") or {}
+            _text = (p.get("text") or "").strip()
+            if not _text:
+                continue
+            _excerpt = _text[:280].rstrip() + ("…" if len(_text) > 280 else "")
+            _meta_source = "supervisor_edited" if p.get("edited_by_user") else "supervisor_accepted"
+            sum_rows.append({
+                "fact_id": f.get("fact_id"),
+                "project_id": f.get("project_id"),
+                "date": f.get("date"),
+                "source_type": f.get("source_type"),
+                "source_id": f.get("source_id"),
+                "excerpt": _excerpt,
+                "char_count": len(_text),
+                "meta_source": _meta_source,
+                "accepted_at": p.get("accepted_at"),
+            })
+
+        # ---- photo_evidence_fact tag roll-up ------------------------
+        q_photo: Dict[str, Any] = {
+            "tenant_id": TENANT_DEFAULT, "project_id": project_id,
+            "fact_type": "photo_evidence_fact", "is_current": True,
+        }
+        if df or dt:
+            q_photo["date"] = {}
+            if df: q_photo["date"]["$gte"] = df
+            if dt: q_photo["date"]["$lte"] = dt
+        tag_counts: Dict[str, int] = {}
+        photo_facts_scanned = 0
+        async for f in db[COLL_FACTS].find(q_photo, {"_id": 0, "payload": 1}).limit(500):
+            photo_facts_scanned += 1
+            p = f.get("payload") or {}
+            for t in (p.get("ai_tags") or []):
+                if not isinstance(t, str):
+                    continue
+                key = t.strip().lower()
+                if not key:
+                    continue
+                tag_counts[key] = tag_counts.get(key, 0) + 1
+        top_tags = sorted(
+            [{"tag": k, "count": v} for k, v in tag_counts.items()],
+            key=lambda r: (-r["count"], r["tag"]),
+        )[:12]
+
+        return {
+            "enabled": True, "project_id": project_id,
+            "range": {"from": df, "to": dt, "preset": preset},
+            "summaries": sum_rows,
+            "photo_observation_tags": top_tags,
+            "photo_facts_scanned": photo_facts_scanned,
+        }
 
     @api_router.get("/ods/pm/attention")
     async def pm_attention(

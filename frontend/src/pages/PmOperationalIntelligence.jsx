@@ -1,11 +1,13 @@
 import React from "react";
 import {
   fetchPmDashboard, fetchPmAttention, fetchAdminDelays,
+  fetchPmProjectOperationalIntelligence,
 } from "@/lib/odsIntelligenceApi";
 import {
   PresetPicker, HorizonHeader, KpiTile, AttentionList,
   EmptyEvidence, EvidenceFooter,
 } from "@/components/ods/HorizonPrimitives";
+import { OperationalIntelligenceCard } from "@/components/ods/OperationalIntelligenceCard";
 import { DrV2ApprovedReportsPanel } from "@/components/DrV2ApprovedReportsPanel";
 
 /**
@@ -22,6 +24,7 @@ export default function PmOperationalIntelligence() {
   const [dash, setDash] = React.useState(null);
   const [attention, setAttention] = React.useState(null);
   const [delays, setDelays] = React.useState(null);
+  const [intel, setIntel] = React.useState(null);
   const [loading, setLoading] = React.useState(false);
   const [err, setErr] = React.useState(null);
 
@@ -40,6 +43,26 @@ export default function PmOperationalIntelligence() {
         setDash(d);
         setAttention(a);
         setDelays(dl);
+        // TRACK 22.9C · Pull the accepted operational summary + photo
+        // observation tags for the top project (by labor hours) from
+        // canonical ODS facts. Skipped silently on any error — the
+        // card component hides itself when both arrays are empty.
+        const projects = d?.projects || [];
+        const topProject = projects
+          .slice()
+          .sort((a1, b1) => (b1.labor_hours || 0) - (a1.labor_hours || 0))[0];
+        if (topProject?.project_id) {
+          try {
+            const it = await fetchPmProjectOperationalIntelligence(
+              topProject.project_id, { preset, limit: 5 },
+            );
+            if (alive) setIntel(it);
+          } catch (_e) {
+            if (alive) setIntel(null);
+          }
+        } else if (alive) {
+          setIntel(null);
+        }
       } catch (e) {
         if (alive) setErr(e?.message || "Load failed");
       } finally {
@@ -278,8 +301,30 @@ export default function PmOperationalIntelligence() {
               kind="readiness"
               testid="pm-attention-readiness"
             />
+            {items.operational_summary && items.operational_summary.length > 0 ? (
+              <AttentionList
+                title="Recent operational summaries"
+                items={items.operational_summary}
+                kind="operational summary"
+                testid="pm-attention-operational-summary"
+              />
+            ) : null}
           </div>
         </section>
+
+        {/* TRACK 22.9C · Recent Operational Intelligence card (top project) */}
+        {intel && intel.enabled ? (
+          <OperationalIntelligenceCard
+            summaries={intel.summaries}
+            photoTags={intel.photo_observation_tags}
+            title={
+              intel.project_id
+                ? `Recent Operational Intelligence · ${intel.project_id}`
+                : "Recent Operational Intelligence"
+            }
+            testid="pm-operational-intelligence-card"
+          />
+        ) : null}
 
         {/* DR-UNIFY-002 · Approved Daily Reports PDF export (PM · project-scoped) */}
         <section data-testid="pm-approved-daily-reports">

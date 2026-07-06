@@ -1315,6 +1315,17 @@ def _render_daily(d: Dict[str, Any]) -> str:
     if _photos_html:
         rows.append(_section("10 · Photos", _photos_html))
 
+    # TRACK 22.9C · Operational Intelligence Summary section.
+    # Renders the supervisor-accepted operational summary + photo
+    # observation tags/captions when present. Helper returns "" for
+    # legacy V1 reports without AI data — historical PDFs render
+    # byte-identical to pre-22.9C output.
+    _intel_html = _render_intelligence_section(d)
+    if _intel_html:
+        rows.append(
+            _section("10a · Operational Intelligence Summary", _intel_html)
+        )
+
     # DR-FIX-3 · R13 · Daily Report Signature Simplification.
     # Single accountable signer = Prepared By. Superintendent remains
     # informational project context (rendered earlier in Section 01)
@@ -3054,6 +3065,78 @@ def render_email_html(
         if mark_uri
         else ""
     )
+
+    # TRACK 22.9C · Compact operational-intelligence excerpt.
+    # Daily-report emails only. When the supervisor accepted an
+    # operational summary at submit, surface a ~280-char excerpt +
+    # up to 6 photo-observation tags. Zero routing / audit / provider
+    # exposure. Legacy reports (no ai_accepted_summary) render the
+    # email byte-identical to pre-22.9C output.
+    intel_html = ""
+    if kind == "daily-report":
+        _summary = (record.get("ai_accepted_summary") or "").strip()
+        _tags: List[str] = []
+        _seen: set = set()
+        for _p in (record.get("photo_intelligence") or []) + (
+            record.get("ai_photo_observations") or []
+        ):
+            if not isinstance(_p, dict):
+                continue
+            for _t in (_p.get("ai_tags") or []):
+                if not isinstance(_t, str):
+                    continue
+                _tclean = _t.strip()
+                if not _tclean:
+                    continue
+                _k = _tclean.lower()
+                if _k in _seen:
+                    continue
+                _seen.add(_k)
+                _tags.append(_tclean)
+                if len(_tags) >= 6:
+                    break
+            if len(_tags) >= 6:
+                break
+        if _summary or _tags:
+            _excerpt = _summary
+            if len(_excerpt) > 280:
+                _excerpt = _excerpt[:280].rstrip() + "…"
+            _lines: List[str] = []
+            _lines.append(
+                '<div style="font-family:\'Courier New\',monospace;font-size:10px;'
+                'letter-spacing:0.18em;text-transform:uppercase;color:#c8102e;'
+                'font-weight:700;margin-bottom:6px;">'
+                'Operational Intelligence Summary</div>'
+            )
+            if _excerpt:
+                _lines.append(
+                    f'<div style="font-size:13.5px;line-height:1.5;color:#0f172a;'
+                    f'white-space:pre-wrap;margin-bottom:8px;">'
+                    f'{escape(_excerpt)}</div>'
+                    f'<div style="font-size:12px;color:#475569;margin-bottom:4px;">'
+                    f'Full narrative in attached PDF.</div>'
+                )
+            if _tags:
+                _chips = "".join(
+                    f'<span style="display:inline-block;padding:2px 8px;'
+                    f'margin:2px 4px 2px 0;font-size:11px;background:#f1f5f9;'
+                    f'border:1px solid #e2e8f0;border-radius:10px;color:#0f172a;">'
+                    f'{escape(_t)}</span>'
+                    for _t in _tags
+                )
+                _lines.append(
+                    '<div style="font-size:11px;color:#475569;'
+                    'margin:8px 0 4px;">Photo observations (requires '
+                    'supervisor confirmation)</div>'
+                    f'<div>{_chips}</div>'
+                )
+            intel_html = (
+                '<div style="margin:16px 0;padding:14px 16px;background:#f8fafc;'
+                'border-left:3px solid #0f172a;border-radius:4px;">'
+                + "".join(_lines)
+                + "</div>"
+            )
+
     return f"""<!doctype html>
 <html><body style="margin:0;padding:24px;background:#f8fafc;font-family:Helvetica,Arial,sans-serif;color:#0f172a;">
   <table style="max-width:560px;margin:0 auto;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:24px;">
@@ -3065,6 +3148,7 @@ def render_email_html(
         {('Project: ' + escape(project)) if project else ''}{(' · Date: ' + escape(date_str)) if date_str else ''}
       </div>
       {note_html}
+      {intel_html}
       <p style="margin:18px 0 4px;font-size:14px;line-height:1.5;">
         The full {escape(title)} is attached as a PDF.
       </p>

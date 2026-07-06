@@ -68,6 +68,16 @@ export async function fetchPmProjectAttention(project_id, { preset = "this_week"
   return data;
 }
 
+export async function fetchPmProjectOperationalIntelligence(
+  project_id, { preset = "this_week", limit = 7 } = {},
+) {
+  const { data } = await client.get(
+    `/pm/projects/${encodeURIComponent(project_id)}/operational-intelligence`,
+    { params: { preset, limit } },
+  );
+  return data;
+}
+
 export const PRESETS = [
   { key: "today",      label: "Today" },
   { key: "yesterday",  label: "Yesterday" },
