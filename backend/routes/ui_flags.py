@@ -30,7 +30,7 @@ import logging
 import os
 from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 
 
 logger = logging.getLogger(__name__)
@@ -102,7 +102,7 @@ async def resolve_dr_v3_flag(
     }
 
 
-def register_dr_v3_flag_routes(api_router: APIRouter, db) -> None:
+def register_dr_v3_flag_routes(api_router: APIRouter, db, require_admin=None) -> None:
     @api_router.get("/feature-flags/dr-v3")
     async def get_dr_v3_flag(
         request: Request,
@@ -125,6 +125,138 @@ def register_dr_v3_flag_routes(api_router: APIRouter, db) -> None:
             "flag_key": FLAG_KEY,
             "coll": COLL_UI_FLAGS,
         }
+
+    # ── TRACK 23.3 · Admin pilot control (no Mongo hand-edit) ─────
+    # These endpoints require the existing admin token guard so PMs
+    # and support can add / remove pilot users and projects with a
+    # single API call. Every write is idempotent (`$addToSet` /
+    # `$pull`) and logged with `updated_at` / `updated_by`.
+    if require_admin is None:
+        # Guard: admin endpoints only mount when the server supplies
+        # its own `require_admin` dependency. Read endpoint (above)
+        # still works without it.
+        return
+    from datetime import datetime, timezone  # noqa: PLC0415
+
+    def _now() -> str:
+        return datetime.now(timezone.utc).isoformat()
+
+    async def _ensure_flag_doc() -> Dict[str, Any]:
+        doc = await db[COLL_UI_FLAGS].find_one({"_id": FLAG_KEY})
+        if doc:
+            return doc
+        seed = {
+            "_id": FLAG_KEY,
+            "tenant_default": False,
+            "pilot_users": [],
+            "pilot_projects": [],
+            "denied_users": [],
+            "created_at": _now(),
+            "updated_at": _now(),
+            "updated_by": "track_23_3_bootstrap",
+        }
+        await db[COLL_UI_FLAGS].update_one(
+            {"_id": FLAG_KEY}, {"$setOnInsert": seed}, upsert=True,
+        )
+        return seed
+
+    def _actor_email(actor: Any) -> str:
+        if isinstance(actor, dict):
+            return str(actor.get("email") or actor.get("actor") or "admin")
+        return "admin"
+
+    @api_router.get("/admin/dr-v3-flag")
+    async def admin_get_flag(actor=Depends(require_admin)):  # noqa: ARG001
+        doc = await _ensure_flag_doc()
+        doc.pop("_id", None)
+        return doc
+
+    @api_router.post("/admin/dr-v3-flag/pilot-user")
+    async def admin_add_pilot_user(
+        payload: Dict[str, Any], actor=Depends(require_admin),
+    ):
+        email = (payload.get("email") or "").strip().lower()
+        if not email:
+            return {"ok": False, "reason": "email_required"}
+        await _ensure_flag_doc()
+        await db[COLL_UI_FLAGS].update_one(
+            {"_id": FLAG_KEY},
+            {
+                "$addToSet": {"pilot_users": email},
+                "$pull": {"denied_users": email},
+                "$set": {"updated_at": _now(), "updated_by": _actor_email(actor)},
+            },
+        )
+        return {"ok": True, "email": email, "scope": "pilot_user"}
+
+    @api_router.delete("/admin/dr-v3-flag/pilot-user")
+    async def admin_remove_pilot_user(
+        email: str, actor=Depends(require_admin),
+    ):
+        norm = (email or "").strip().lower()
+        if not norm:
+            return {"ok": False, "reason": "email_required"}
+        await _ensure_flag_doc()
+        await db[COLL_UI_FLAGS].update_one(
+            {"_id": FLAG_KEY},
+            {
+                "$pull": {"pilot_users": norm},
+                "$set": {"updated_at": _now(), "updated_by": _actor_email(actor)},
+            },
+        )
+        return {"ok": True, "email": norm}
+
+    @api_router.post("/admin/dr-v3-flag/pilot-project")
+    async def admin_add_pilot_project(
+        payload: Dict[str, Any], actor=Depends(require_admin),
+    ):
+        project = str(payload.get("project_number") or "").strip()
+        if not project:
+            return {"ok": False, "reason": "project_number_required"}
+        await _ensure_flag_doc()
+        await db[COLL_UI_FLAGS].update_one(
+            {"_id": FLAG_KEY},
+            {
+                "$addToSet": {"pilot_projects": project},
+                "$set": {"updated_at": _now(), "updated_by": _actor_email(actor)},
+            },
+        )
+        return {"ok": True, "project_number": project, "scope": "pilot_project"}
+
+    @api_router.delete("/admin/dr-v3-flag/pilot-project")
+    async def admin_remove_pilot_project(
+        project_number: str, actor=Depends(require_admin),
+    ):
+        norm = str(project_number or "").strip()
+        if not norm:
+            return {"ok": False, "reason": "project_number_required"}
+        await _ensure_flag_doc()
+        await db[COLL_UI_FLAGS].update_one(
+            {"_id": FLAG_KEY},
+            {
+                "$pull": {"pilot_projects": norm},
+                "$set": {"updated_at": _now(), "updated_by": _actor_email(actor)},
+            },
+        )
+        return {"ok": True, "project_number": norm}
+
+    @api_router.post("/admin/dr-v3-flag/tenant-default")
+    async def admin_set_tenant_default(
+        payload: Dict[str, Any], actor=Depends(require_admin),
+    ):
+        enabled = bool(payload.get("enabled"))
+        await _ensure_flag_doc()
+        await db[COLL_UI_FLAGS].update_one(
+            {"_id": FLAG_KEY},
+            {
+                "$set": {
+                    "tenant_default": enabled,
+                    "updated_at": _now(),
+                    "updated_by": _actor_email(actor),
+                }
+            },
+        )
+        return {"ok": True, "tenant_default": enabled}
 
 
 __all__ = [

@@ -24,10 +24,26 @@ export function useDailyReportV3Flag({ user = "", project = "" } = {}) {
     const params = new URLSearchParams();
     if (user) params.set("user", user);
     if (project) params.set("project", project);
-    // Admin URL override — anyone with ?dr_v3=1 in the address bar sees V3.
+
+    // Admin URL override — anyone with ?dr_v3=1 in the address bar
+    // sees V3. We persist that choice in sessionStorage so subsequent
+    // page loads (and reloads) keep V3 without re-typing the param.
+    // ?dr_v3=0 explicitly opts back out for that tab.
     const search = new URLSearchParams(window.location.search);
-    const force = search.get("dr_v3");
-    if (force === "1" || force === "true") params.set("force_v3", "1");
+    const urlOverride = search.get("dr_v3");
+    try {
+      if (urlOverride === "1" || urlOverride === "true") {
+        sessionStorage.setItem("dr_v3_admin_override", "1");
+      } else if (urlOverride === "0" || urlOverride === "false") {
+        sessionStorage.removeItem("dr_v3_admin_override");
+      }
+    } catch { /* ignore private-mode sessionStorage rejections */ }
+    let sessionOverride = null;
+    try {
+      sessionOverride = sessionStorage.getItem("dr_v3_admin_override");
+    } catch { /* ignore */ }
+    if (sessionOverride === "1") params.set("force_v3", "1");
+
     const qs = params.toString();
     const path = "/feature-flags/dr-v3" + (qs ? `?${qs}` : "");
     api
