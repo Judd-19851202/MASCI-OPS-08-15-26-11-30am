@@ -869,10 +869,14 @@ def _render_daily(d: Dict[str, Any]) -> str:
             except (TypeError, ValueError):
                 pass
             wp = c.get("work_performed") or ""
+            # TRACK 23.2 · HR meta chip inline (Crew · Sup) so the PDF
+            # captures the operational-supervision context of every
+            # labor row without exploding the column count.
+            hr_meta_bits = []
+            if c.get("crew_snapshot"): hr_meta_bits.append(f"Crew: {c.get('crew_snapshot')}")
+            if c.get("supervisor_snapshot"): hr_meta_bits.append(f"Sup: {c.get('supervisor_snapshot')}")
+            hr_meta_line = " · ".join(hr_meta_bits)
             sig = _crew_schedule_signature(c)
-            # Only attach the per-row gross/net summary when this crew's
-            # schedule differs from the common pattern (or when no common
-            # pattern was detected).
             include_inline = (common_sig is None) or (sig != common_sig)
             summary = (
                 _gross_net_summary(
@@ -882,21 +886,31 @@ def _render_daily(d: Dict[str, Any]) -> str:
                 if include_inline
                 else ""
             )
+            _extras = []
             if summary:
-                wp_cell: Any = _RawHtml(
-                    f"{escape(wp)}<div style='margin-top:4px;font-family:monospace;"
+                _extras.append(
+                    f"<div style='margin-top:4px;font-family:monospace;"
                     f"font-size:9px;color:#475569;letter-spacing:0.02em;'>"
                     f"{escape(summary)}</div>"
                 )
+            if hr_meta_line:
+                _extras.append(
+                    f"<div style='margin-top:2px;font-size:9px;color:#64748b;'>"
+                    f"{escape(hr_meta_line)}</div>"
+                )
+            if _extras:
+                wp_cell: Any = _RawHtml(escape(wp) + "".join(_extras))
             else:
                 wp_cell = wp
             body_rows.append([
                 c.get("name") or "",
-                c.get("trade") or c.get("role") or "",
+                c.get("employee_id") or "",
+                c.get("trade") or c.get("role") or c.get("trade_snapshot") or "",
                 _fmt_time_12h(c.get("start_time")),
                 _fmt_time_12h(c.get("stop_time")),
                 str(c.get("lunch_minutes") or "") + (" min" if c.get("lunch_minutes") else ""),
                 c.get("hours") or "",
+                c.get("cost_code") or "",
                 wp_cell,
             ])
         body_rows.append([
@@ -904,8 +918,10 @@ def _render_daily(d: Dict[str, Any]) -> str:
             "",
             "",
             "",
+            "",
             _RawHtml("<b>Total Hours</b>"),
             _RawHtml(f"<b>{total_hours:.2f}</b>"),
+            "",
             "",
         ])
         # R-PDF-3 · Common-schedule caption ABOVE the table.
@@ -924,7 +940,7 @@ def _render_daily(d: Dict[str, Any]) -> str:
                 "04 · MASCI Crews on Site",
                 common_caption_html
                 + _table(
-                    ["Name", "Trade / Role", "Start", "Stop", "Lunch", "Hours", "Work Performed"],
+                    ["Name", "Employee ID", "Trade / Role", "Start", "Stop", "Lunch", "Hours", "Cost Code", "Work Performed"],
                     body_rows,
                 ),
             )
@@ -1036,18 +1052,31 @@ def _render_daily(d: Dict[str, Any]) -> str:
         body_rows = []
         ticket_imgs = []
         for m in mats:
+            # TRACK 23.2 · Carrier is the single trucking-company field
+            # (per 23.4B correction). Legacy V1 reports carried only
+            # `supplier` — fall back to it so historical PDFs still
+            # render a hauler name in this column.
+            _carrier = (
+                m.get("carrier")
+                or m.get("carrier_name_snapshot")
+                or m.get("supplier")
+                or m.get("vendor")
+                or ""
+            )
+            _unit = m.get("unit_snapshot") or m.get("unit") or ""
             body_rows.append([
-                m.get("description") or m.get("name") or "",
+                m.get("description") or m.get("material") or m.get("name") or "",
                 m.get("quantity") or m.get("qty") or "",
-                m.get("unit") or "",
-                m.get("supplier") or "",
-                m.get("ticket_number") or "",
+                _unit,
+                _carrier,
+                m.get("ticket_number") or m.get("ticket") or "",
+                m.get("cost_code") or "",
                 m.get("notes") or "",
             ])
             for ph in (m.get("ticket_photos") or []):
                 ticket_imgs.append(ph)
         section_html = _table(
-            ["Description", "Qty", "Unit", "Supplier", "Ticket #", "Notes"],
+            ["Material", "Qty", "Unit", "Carrier", "Ticket #", "Cost Code", "Notes"],
             body_rows,
         )
         if ticket_imgs:
@@ -1279,11 +1308,22 @@ def _render_daily(d: Dict[str, Any]) -> str:
         if _outbound:
             out_rows = []
             for o in _outbound:
+                # TRACK 23.2 · Prefer `unit_snapshot` for display and
+                # accept `carrier`/`carrier_name_snapshot` as aliases
+                # for the trucking company (per 23.4B correction).
+                _o_carrier = (
+                    o.get("hauler")
+                    or o.get("hauler_name_snapshot")
+                    or o.get("carrier")
+                    or o.get("carrier_name_snapshot")
+                    or ""
+                )
+                _o_unit = o.get("unit_snapshot") or o.get("unit") or ""
                 out_rows.append([
                     o.get("material") or o.get("description") or "",
                     o.get("quantity") if o.get("quantity") not in (None, "") else "",
-                    o.get("unit") or "",
-                    o.get("hauler") or "",
+                    _o_unit,
+                    _o_carrier,
                     o.get("destination") or "",
                     (
                         o.get("ticket_or_manifest")
@@ -1291,6 +1331,7 @@ def _render_daily(d: Dict[str, Any]) -> str:
                         or o.get("ticket_number")
                         or ""
                     ),
+                    o.get("cost_code") or "",
                     o.get("notes") or "",
                 ])
             spacer = "<div style='height:10px;'></div>" if mm_html else ""
@@ -1300,7 +1341,7 @@ def _render_daily(d: Dict[str, Any]) -> str:
                 "letter-spacing:0.12em;text-transform:uppercase;color:#475569;"
                 "margin:0 0 4px;'>Outbound Material (hauled off)</div>"
                 + _table(
-                    ["Material", "Qty", "Unit", "Hauler", "Destination", "Ticket / Manifest", "Notes"],
+                    ["Material", "Qty", "Unit", "Carrier", "Destination", "Ticket / Manifest", "Cost Code", "Notes"],
                     out_rows,
                 )
             )

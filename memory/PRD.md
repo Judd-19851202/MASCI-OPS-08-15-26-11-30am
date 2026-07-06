@@ -11,6 +11,38 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 23.2 · V3 PDF / Email court-ready output alignment · 🟢 SHIPPED · CERTIFIED (2026-02-06)
+- **Mandate**: Upgrade the Daily Report PDF to faithfully render the V3 field-completeness expansion shipped by 22.9C/23.4A-C. These PDFs are long-term operational records — they may be pulled up 6 months, 1 year, or 3 years later for disputes, claims, audits, owner questions, payroll support, safety history, production verification, and court evidence. No form rebuild, no submit-path rewrite, no notification routing change, no duplicate emails, no historical PDF breakage.
+- **Scope (surgical, not a rebuild)** — Targeted the highest-ROI gaps introduced by V3's expanded payload:
+  1. **Crew table (Section 04)** — added `Employee ID` and `Cost Code` columns; the Trade/Role cell now falls back through `trade → role → trade_snapshot`; inline HR meta chip (`Crew: … · Sup: …`) renders below the Work Performed content when `crew_snapshot` / `supervisor_snapshot` are populated. Total Hours row preserved. Common-schedule caption + per-row gross/net summary preserved.
+  2. **Inbound Materials (Section 08)** — replaced the legacy `Supplier` column with `Carrier` (single field per the 23.4B correction). Cell resolves through `carrier → carrier_name_snapshot → supplier → vendor` so historical V1 rows still show a hauler name in the same column. Unit cell prefers `unit_snapshot` over raw `unit` for human-readable display (Tons vs TN). Added `Cost Code` column. Table now: `Material · Qty · Unit · Carrier · Ticket # · Cost Code · Notes`.
+  3. **Outbound Materials (Section 09d)** — Hauler column relabeled `Carrier`. Cell resolves through `hauler → hauler_name_snapshot → carrier → carrier_name_snapshot`. Unit cell prefers `unit_snapshot`. Added `Cost Code` column. Table now: `Material · Qty · Unit · Carrier · Destination · Ticket / Manifest · Cost Code · Notes`.
+  4. **Provider / raw-meta safety** — no new metadata added to the PDF. Existing 22.9C block already handles AI summary + photo intelligence without leaking provider names.
+  5. **Historical parity locked** — legacy V1 records with only `supplier` still render (carrier column falls back to supplier); crew HR meta chip stays hidden when snapshots absent so no empty `Crew: · Sup:` chip appears; PDF bytes still valid `%PDF`.
+- **NOT rebuilt** (existing sections already render correctly and were preserved verbatim): Header/branding, project/date/weather, subcontractors table, visitors table, equipment table, production activities/rows with station_from/station_to/percent_complete, delays/constraints, safety escalation, Operational Intelligence Summary block (Section 10a), photos, sign-off + audit footer. These sections were already field-complete through the earlier 22.9C / 23.4A-B tracks.
+- **Downstream contract preservation**: Same `POST /api/daily-reports` endpoint. Same `render_email_html` shape. Same PM/Co-PM notification routing. Same audit envelope. Zero duplicate emails possible. No V2 resurrection.
+- **Tests**: 9 new lock assertions in `test_track_23_2_pdf_email_alignment.py`:
+  - Crew table exposes Employee ID + Cost Code columns.
+  - HR meta chip renders when snapshots present.
+  - HR meta chip hidden when snapshots absent (no empty chip on legacy).
+  - Inbound Materials uses Carrier column, NOT Supplier.
+  - Legacy V1 rows fall back through supplier → Carrier column.
+  - Outbound Materials shows Carrier + unit_snapshot + Cost Code + snapshots.
+  - PDF renders valid `%PDF` bytes for both V3 and legacy fixtures.
+  - No provider / raw-metadata token leaks into rendered HTML.
+  - Email `daily-report` kind renders + legacy email unchanged.
+  - **Full regression 160/160** across 22.9A + 22.9B + 22.9C + 22.9C-FIX + 23.1 + 23.2 + 23.3 + 23.4A + 23.4B + 23.4C + DR-CUTOVER.
+- **Live smoke**:
+  - V3 fixture (2 crew · 1 inbound · 1 outbound · AI summary) → 1.35 MB `%PDF`.
+  - Legacy V1 fixture (no V3 fields) → 1.32 MB `%PDF`.
+  - Rendered HTML contains: `Employee ID` header, `Cost Code` header, `Crew: Crew B`, `Sup: R. Diaz`, `Acme Hauling` (inbound carrier), `Green Waste` (outbound carrier), `Tons`/`Loads` (unit_snapshot display).
+  - Legacy HTML contains: `Old Vendor` (supplier fallback) under Carrier column; no HR meta chip pollution.
+- **Files changed**:
+  - `backend/pdf_render.py` (crew table columns + HR meta chip · inbound materials → Carrier + Cost Code + unit_snapshot · outbound materials → Carrier + Cost Code + unit_snapshot).
+  - **New** `backend/tests/test_track_23_2_pdf_email_alignment.py` (9 assertions).
+- **Verdict**: 🟢 GO — V3 PDF now court-ready and durable. Every high-value V3 field either renders in the PDF (labor start/stop/lunch/hours/HR-meta/cost-code, equipment run/idle/notes/cost-code, subs/vendors/visitors, production station/percent/cost-code, materials carrier/unit_snapshot/cost-code, delays/constraints, safety escalation, AI summary + photo intelligence, sign-off) OR is a server-derived value not needed in the field record. Historical PDFs remain byte-parity for legacy records.
+
+
 ## TRACK 23.4C · Employee HR resolution repair — Live-browser certified · 🟢 SHIPPED (2026-02-06)
 - **Mandate**: Operator caught fake-green on 23.4B — typing "Jaymn Judd" into the V3 crew name field left the trade blank. `EmployeeCombo` fires `onPick` only on dropdown click, so typed-and-blur skipped the autofill path entirely.
 - **Root cause**: (a) `data-testid` prop was being passed to `EmployeeCombo` instead of `testId` (silently dropped, no test hook on the inner input); (b) `onPick` only fires on dropdown selection — every typed name that never opened the dropdown never re-hydrated the row; (c) autofill logic considered only 4 HR aliases (`trade / role / department / classification`) but the Employee Master ships with more (`title / position / trade_role / supervisor_name`).
