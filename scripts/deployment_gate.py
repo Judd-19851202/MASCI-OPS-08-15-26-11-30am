@@ -232,6 +232,28 @@ REGRESSION_FILES = [
     "/app/backend/tests/test_track_18_12b_transportation_dispatcher_functionality.py",
     "/app/backend/tests/test_track_18_12c_transportation_role_permissions.py",
     "/app/backend/tests/test_pre_deployment_release_safety.py",
+    # TRACK 22.4B-FOLLOWUP · Exactly-once idempotency, safety
+    # lifecycle, DR/HR identity drift, driver-side certification.
+    # Every operational write endpoint on the platform is protected.
+    "/app/backend/tests/test_track_22_4b_followup_safety_seam.py",
+    "/app/backend/tests/test_track_22_4b_followup_safety_b02.py",
+    "/app/backend/tests/test_track_22_4b_followup_safety_b04.py",
+    "/app/backend/tests/test_track_22_4b_followup_dr_b03.py",
+    "/app/backend/tests/test_track_22_4b_followup_idempotency_spine.py",
+    "/app/backend/tests/test_track_22_4b_followup_idempotency_spine_phase_2.py",
+    "/app/backend/tests/test_track_22_4b_followup_dispatch_idempotency.py",
+    "/app/backend/tests/test_track_22_4b_followup_hr.py",
+    "/app/backend/tests/test_track_22_4b_followup_trench_writes_idempotency.py",
+    "/app/backend/tests/test_track_22_4b_followup_shop_defects_idempotency.py",
+    "/app/backend/tests/test_track_22_4b_followup_driver.py",
+    "/app/backend/tests/test_track_22_4b_followup_closure.py",
+    "/app/backend/tests/test_track_22_4b_followup_validation_identities.py",
+    # TRACK 22.4C · Mobile responsiveness regression gate — Playwright
+    # sweep at 5 viewports × 15 routes + 2 named P1 locks + Motive
+    # posture shape check. Gracefully self-skips if the chromium
+    # browser isn't installed (nightly / gated envs run it; fast local
+    # gates skip it). See TRACK 22.4D memo for gate-wiring rationale.
+    "/app/backend/tests/test_track_22_4c_mobile_responsiveness_sweep.py",
 ]
 
 DEFAULT_BASE_URL = (
@@ -242,7 +264,14 @@ DEFAULT_BASE_URL = (
 
 def run_regression() -> Dict[str, Any]:
     """Run the permanent regression suite. Returns ``{passed, output}``."""
-    cmd = ["python", "-m", "pytest", "-q", "--timeout", "30"] + [
+    # TRACK 22.4d · gate-wiring — Playwright mobile responsiveness
+    # sweep tests can take 4-5s per assertion (real browser round-
+    # trip). Per-test timeout bumped to 90s to accommodate them
+    # without weakening timeouts on the fast unit-style gates
+    # (they still complete in ms). Overall subprocess timeout bumped
+    # to 1200s so the mobile family's ~250s worst-case runtime does
+    # not force a spurious deploy-block.
+    cmd = ["python", "-m", "pytest", "-q", "--timeout", "90"] + [
         p for p in REGRESSION_FILES if os.path.exists(p)
     ]
     proc = subprocess.run(
@@ -250,7 +279,7 @@ def run_regression() -> Dict[str, Any]:
         cwd="/app/backend",
         capture_output=True,
         text=True,
-        timeout=600,
+        timeout=1200,
     )
     return {
         "passed": proc.returncode == 0,

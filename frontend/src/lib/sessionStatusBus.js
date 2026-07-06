@@ -90,9 +90,33 @@ export function publishSessionStatus(classification) {
   if (!classification || !classification.kind) return;
   const kind = classification.kind;
 
-  // success_loaded acts as an "all-clear" signal regardless of debounce.
-  // Also LIFTS any ack-suppression — the session is proven live again,
-  // so future 401s (a genuinely NEW expiry event) can fire the modal.
+  // success_loaded acts as an "all-clear" signal for the visual
+  // overlay. It CLEARS the modal if one is showing but does NOT lift
+  // ack-suppression: a successful 2xx from a public / anonymous
+  // endpoint (translations, health probes, public asset lookups)
+  // does not actually prove the user's auth token is still valid.
+  //
+  // TRACK 22.4d · LEAVE-SITE / SESSION-EXPIRED LOOP ROOT CAUSE FIX
+  // -----------------------------------------------------------
+  // Field bug pattern: an operator on Pre-Op / Daily Report sees the
+  // session-expired modal, dismisses it via "Stay Here", then every
+  // few keystrokes the modal re-opens. Trace:
+  //   1. 401 from an authed endpoint    → modal shows
+  //   2. User clicks "Stay Here"        → ack added, modal hidden
+  //   3. Public/anon endpoint returns 2xx (e.g. `/api/i18n/...`,
+  //      `/api/public/masci-mark`, translations, or a background
+  //      health probe) → `success_loaded` fires → OLD CODE cleared
+  //      `_ackSuppressed`
+  //   4. Next keystroke re-fires the authed picker → 401 → modal
+  //      REOPENS because ack was wiped in step 3.
+  //   5. Loop.
+  //
+  // Correct semantics: `success_loaded` cannot prove auth recovery
+  // (the 2xx may be a public route). Only explicit re-auth
+  // (`resetSessionAck()` on "Log Back In") or a fresh page load
+  // may lift the sticky ack. This keeps operators typing in the
+  // form without modal thrash while preserving all data-safety and
+  // route-guard behavior.
   if (kind === "success_loaded") {
     if (_state.kind !== null) {
       _state = { kind: null, status: null, at: Date.now() };
@@ -100,9 +124,8 @@ export function publishSessionStatus(classification) {
     }
     _lastEmitKind = null;
     _lastEmitAt = Date.now();
-    if (_ackSuppressed.size > 0) {
-      _ackSuppressed = new Set();
-    }
+    // NOTE: intentionally DO NOT clear `_ackSuppressed` here. See
+    // block comment above for rationale.
     return;
   }
   if (kind === "success_empty") {

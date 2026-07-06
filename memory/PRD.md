@@ -11006,3 +11006,33 @@ Grand total (22.4b + 22.4c): 189 tests passing
 - Route-inventory audit for B-08 (`/dr/new`, `/hr/requests/new`)
 - Production Deployment Certification
 - DR-UNIFY-005 (post-telemetry window)
+
+---
+
+## TRACK 22.4D · Mobile Regression Gate + Leave-Site / Unsaved-Changes Audit (2026-07-06)
+
+### Verdict
+✅ **GO** — mobile-drift is now deployment-blocked; the "session-expired modal after every keystroke" bug is rooted out platform-wide with a single-file fix in the shared session bus.
+
+### PART A — Mobile Gate Wired
+- `scripts/deployment_gate.py` now runs Track 22.4b-followup family (12 files) + Track 22.4c Playwright mobile sweep (77 assertions, self-skip if browser missing).
+- Per-test timeout 30s → 90s; subprocess timeout 600s → 1200s.
+- New static regression: `test_track_22_4d_gate_wiring.py` (15 tests) locks the gate list so a future refactor cannot silently drop mobile from CI.
+
+### PART B — Leave-Site Root Cause Fix
+- **File:** `frontend/src/lib/sessionStatusBus.js` · `publishSessionStatus` (`success_loaded` branch).
+- **Bug:** `success_loaded` fires on ANY 2xx (including public / anonymous endpoints). The Track 19.11 amendment cleared `_ackSuppressed` on `success_loaded`, so a public endpoint returning 200 lifted the sticky ack that "Stay Here" installed. Next authed 401 reopened the modal. Users saw it as "modal after every keystroke".
+- **Fix:** `success_loaded` still clears the visual overlay, but no longer clears `_ackSuppressed`. Only `resetSessionAck()` (Log Back In) or a full page reload can lift the sticky ack.
+- **Data safety:** untouched. `useFormDraft` still autosaves silently to IDB on every keystroke + on visibilitychange/pagehide/beforeunload.
+- **Auth safety:** untouched. Interceptor still clears tokens on 401. Route guards still bounce on protected navigation.
+- **Platform sweep:** verified via grep — `SessionStatusOverlay` is the SOLE source of the repeated modal problem. No `useBlocker`, no `history.block`, no `Prompt` nav-blocker, no `window.confirm` for unsaved changes anywhere in the frontend. Single-file fix closes the bug across every form.
+- **Regression locks:** two new Jest tests in `sessionStatusBus.test.js`. All 15 sessionStatusBus tests green.
+
+### Files
+- Created: `test_track_22_4d_gate_wiring.py`, `TRACK_22_4D_MOBILE_GATE_AND_NAV_AUDIT.md`, `TRACK_22_4D_UNSAVED_CHANGES_FINDINGS.csv`, `TRACK_22_4D_FORM_GUARD_MATRIX.csv`, `TRACK_22_4D_NAVIGATION_EVENT_TRACE.csv`
+- Changed: `scripts/deployment_gate.py`, `frontend/src/lib/sessionStatusBus.js`, `frontend/src/lib/sessionStatusBus.test.js`
+
+### Next Tracks
+- Production Deployment Certification
+- DR-UNIFY-005 when telemetry window confirms safe legacy retirement
+- Post-deploy field smoke checklist

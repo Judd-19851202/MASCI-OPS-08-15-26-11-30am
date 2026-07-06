@@ -1,0 +1,3 @@
+defect_id,severity,status,file,function,root_cause,fix
+B-09,P1,FIXED,frontend/src/lib/sessionStatusBus.js,publishSessionStatus (success_loaded branch),success_loaded unconditionally cleared _ackSuppressed. Any 2xx from a public/anonymous endpoint (translations/i18n/health probes) reset the sticky ack that "Stay Here" installed. Next authed 401 reopened the modal. Storm on every few keystrokes.,success_loaded now clears the visual overlay but does NOT lift _ackSuppressed. Only resetSessionAck() (Log Back In) or a full page reload can lift the sticky ack.
+P3-NAV-01,P3,CLOSED_SUBSUMED,platform-wide,SessionStatusOverlay,Same root cause as B-09 — the operator report of "Leave this page? every keystroke" was in fact the session-expired modal storm.,Same fix as B-09.

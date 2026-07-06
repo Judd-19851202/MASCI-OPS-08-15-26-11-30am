@@ -139,13 +139,53 @@ describe("sessionStatusBus", () => {
       expect(cb).not.toHaveBeenCalled();
     });
 
-    test("success_loaded lifts ack-suppression so genuinely-new expiry can re-fire", () => {
+    test("success_loaded clears the overlay but does NOT lift ack-suppression (Track 22.4d root cause fix)", () => {
+      // TRACK 22.4d — public / anonymous 2xx responses (translations,
+      // i18n loaders, health probes, static asset lookups) all fire
+      // `success_loaded` but do NOT prove that the user's session
+      // token is still valid. Prior behavior lifted ack-suppression
+      // on any success_loaded, which caused the "modal after every
+      // keystroke" storm on live Pre-Op: dismiss → public GET → ack
+      // wiped → next authed poll 401 → modal reopens → repeat.
       publishSessionStatus({ kind: "session_expired", status: 401 });
       clearSessionStatus();
       expect(getSessionAckState().suppressed).toContain("session_expired");
-      // Session recovers (user logged back in, backend responds 2xx).
+
+      // A background public/anon 2xx fires success_loaded.
       publishSessionStatus({ kind: "success_loaded", status: 200 });
+      // The visual overlay stays cleared (already was) ...
+      expect(getSessionStatus().kind).toBeNull();
+      // ... but the sticky ack MUST remain — the operator dismissed
+      // once and gets to keep typing without modal thrash.
+      expect(getSessionAckState().suppressed).toContain("session_expired");
+
+      // A further authed-endpoint 401 later must be suppressed.
+      const later = Date.now() + 60000;
+      const origNow = Date.now;
+      global.Date.now = () => later;
+      try {
+        publishSessionStatus({ kind: "session_expired", status: 401 });
+      } finally {
+        global.Date.now = origNow;
+      }
+      expect(getSessionStatus().kind).toBeNull();
+    });
+
+    test("resetSessionAck is the ONLY sticky-ack lift path (Log Back In flow)", () => {
+      publishSessionStatus({ kind: "session_expired", status: 401 });
+      clearSessionStatus();
+      expect(getSessionAckState().suppressed).toContain("session_expired");
+
+      // Even a storm of successes must not clear the ack.
+      for (let i = 0; i < 10; i++) {
+        publishSessionStatus({ kind: "success_loaded", status: 200 });
+      }
+      expect(getSessionAckState().suppressed).toContain("session_expired");
+
+      // Explicit re-auth path.
+      resetSessionAck();
       expect(getSessionAckState().suppressed).toEqual([]);
+
       // A NEW expiry event later can raise the modal again.
       const later = Date.now() + 60000;
       const origNow = Date.now;
@@ -156,15 +196,6 @@ describe("sessionStatusBus", () => {
         global.Date.now = origNow;
       }
       expect(getSessionStatus().kind).toBe("session_expired");
-    });
-
-    test("resetSessionAck lifts suppression without touching overlay state", () => {
-      publishSessionStatus({ kind: "session_expired", status: 401 });
-      clearSessionStatus();
-      expect(getSessionAckState().suppressed).toContain("session_expired");
-      resetSessionAck();
-      expect(getSessionAckState().suppressed).toEqual([]);
-      expect(getSessionStatus().kind).toBeNull();
     });
 
     test("dismissing NETWORK_UNREACHABLE does NOT ack-suppress (retryable UX)", () => {
