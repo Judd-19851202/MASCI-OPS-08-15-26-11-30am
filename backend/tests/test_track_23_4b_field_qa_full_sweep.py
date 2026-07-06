@@ -185,15 +185,18 @@ def test_visitors_block_renders():
 # 7 · Crew employee-pick autofills trade from HR
 # ============================================================
 def test_employee_combo_onpick_autofills_trade():
+    """Post-23.4C the trade-autofill logic moved into a shared
+    `_applyHrPick(i, emp, currentRow)` helper so both the dropdown-pick
+    path AND the typed-and-blur path (which fires on onChange) go
+    through the same code. The lock now checks that helper."""
     src = _read(V3_SECTIONS)
-    # onPick must read emp.trade || emp.role || emp.department || emp.classification
-    m = re.search(r"onPick=\{\(emp\).*?trade_autofilled", src, re.DOTALL)
-    assert m, "EmployeeCombo onPick handler must set trade_autofilled flag."
-    body = m.group(0)
-    assert "emp?.trade" in body
-    assert "emp?.role" in body
-    assert "emp?.department" in body
-    assert "emp?.classification" in body
+    idx = src.find("_applyHrPick")
+    assert idx > 0, "V3 must expose the shared _applyHrPick handler."
+    body = src[idx:idx + 1500]
+    assert "trade_autofilled" in body
+    # The row-side EmployeeCombo must funnel BOTH paths through it.
+    assert "onPick={(emp) => _applyHrPick" in src
+    assert "resolveEmployeeByTypedName" in src
 
 
 # ============================================================

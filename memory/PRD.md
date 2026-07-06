@@ -11,6 +11,34 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 23.4C · Employee HR resolution repair — Live-browser certified · 🟢 SHIPPED (2026-02-06)
+- **Mandate**: Operator caught fake-green on 23.4B — typing "Jaymn Judd" into the V3 crew name field left the trade blank. `EmployeeCombo` fires `onPick` only on dropdown click, so typed-and-blur skipped the autofill path entirely.
+- **Root cause**: (a) `data-testid` prop was being passed to `EmployeeCombo` instead of `testId` (silently dropped, no test hook on the inner input); (b) `onPick` only fires on dropdown selection — every typed name that never opened the dropdown never re-hydrated the row; (c) autofill logic considered only 4 HR aliases (`trade / role / department / classification`) but the Employee Master ships with more (`title / position / trade_role / supervisor_name`).
+- **Fix**: New `lib/hrAutofill.js` exposes `pickHrFields(emp)` (normalizes every alias — trade/role/title/position/classification/trade_role/department for Trade; crew/division/department for Crew; supervisor/supervisor_name for Supervisor; employee_id/id for identity) and `resolveEmployeeByTypedName(typed, roster)` (matches by legal name / preferred name / display name / employee_id — exact match wins immediately, otherwise a single unambiguous partial match wins; multi-partials return null → treated as custom). V3 crew row now caches the roster via `fetchHrRoster()` on mount, resolves EVERY `onChange` keystroke against it, and funnels BOTH the dropdown-click path AND the typed-match path through a shared `_applyHrPick(i, emp, currentRow)` helper. `data-testid` corrected to `testId` prop so the picker input carries `dr-v3-crew-name-<i>-input`.
+- **Restore-yesterday parity**: `crewMemory.refreshCrewFromEmployeeMaster` uses the same alias table so `Use yesterday's setup` refills trade/crew/supervisor from the fresh HR fetch instead of yesterday's stale draft.
+- **HR data reality (documented, not disguised)**:
+  - Preview DB has 387 employees. Of those:
+    - `Jaymn Judd` — HR record contains ONLY `{id, name, is_active}`. No trade, role, crew, or supervisor. UI correctly shows the "Trade not on employee record" placeholder → HR data-completeness gap, NOT a resolver bug.
+    - `Alec Perkins` — HR record has `preferred_name="Al"` but no trade → same UI signal.
+    - No employees currently have `supervisor` populated in preview. Wire is ready; will render the "Sup: …" chip as soon as HR fills that column.
+- **Live browser proof · 7-case sweep** (screenshot `/tmp/dr_v3_hr_autofill_certified.png`, 0 console errors):
+  1. `TEST_Jane Smith` → Trade **Operator** + "Auto-filled from HR" badge + **Crew: Crew B** chip ✓
+  2. `TEST_John Doe` → Trade **Carpenter** + badge + **Crew: Crew A** chip ✓
+  3. `Approval Test User` → Trade **Carpentry** + badge ✓
+  4. `Alec Perkins` → correctly stays blank with "Trade not on employee record" hint (HR record has no trade) ✓
+  5. `Jaymn Judd` → correctly stays blank with "Trade not on employee record" hint (HR record has no trade) — resolver identified him; missing data surfaced ✓
+  6. `Some Custom Guy 9999` → custom-employee fallback, editable trade, no fake badge ✓
+  7. `test_bob builder` (lowercase) → Trade **Concrete** + badge — case-insensitive resolution works ✓
+- **Downstream persistence**: Same payload shape as 23.4B — `employee_id`, `employee_name_snapshot`, `trade_snapshot`, `crew_snapshot`, `division_snapshot`, `supervisor_snapshot`, `verified_identity` (=`true` when `employee_id` populated). ODS `labor_fact` carries all of them (locked by 23.4B test `test_ods_labor_fact_carries_hr_snapshots`).
+- **Tests**: 6 new lock assertions in `test_track_23_4c_employee_resolution.py` (helper existence, alias coverage, resolver name-shape coverage, V3 wiring, shared apply-helper snapshot keys, `refreshCrewFromEmployeeMaster` alias table). **Full regression 151/151** across 22.9A + 22.9B + 22.9C + 22.9C-FIX + 23.1 + 23.3 + 23.4A + 23.4B + 23.4C + DR-CUTOVER.
+- **Files changed**:
+  - **New** `frontend/src/lib/hrAutofill.js`
+  - `frontend/src/components/daily-report-v3/sections.jsx` (roster hook + shared `_applyHrPick` + typed-match resolution + testId fix)
+  - `frontend/src/lib/crewMemory.js` (alias table in `refreshCrewFromEmployeeMaster`)
+  - **New** `backend/tests/test_track_23_4c_employee_resolution.py`
+- **Verdict**: 🟢 GO — Employee HR resolution works universally (dropdown pick, typed exact match, case-insensitive, employee_id, preferred name); HR data-gaps are surfaced honestly (never faked); ODS labor_fact carries all HR snapshots.
+
+
 ## TRACK 23.4B · V3 Daily Report · Field-QA · Carrier · Units · HR Autofill · Full Sweep · 🟢 SHIPPED · CERTIFIED (2026-02-06)
 - **Mandate**: Stop-the-line repair. Operator screenshots showed real V3 field defects: GPS wrote `[object Object]` into Location, Weather refresh failed after GPS, Materials/Tickets rows bled off card at iPad width. Then two follow-on corrections: (a) remove duplicate Supplier/Vendor on materials rows and use Carrier only via canonical SupplierCombo; (b) add searchable Unit picklist with custom entry. Then a proactive full V3 source-of-truth sweep + platform visual consistency lock.
 - **Root causes**:

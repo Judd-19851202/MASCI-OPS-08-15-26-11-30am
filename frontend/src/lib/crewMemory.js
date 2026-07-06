@@ -104,9 +104,15 @@ export function refreshCrewFromEmployeeMaster(crews, employeeList) {
       const { _needs_hr_refresh: _stale, ...rest } = c;
       return rest;
     }
-    const _trade = emp.trade || emp.role || emp.department || emp.classification || "";
-    const _crew = emp.crew || emp.division || "";
-    const _sup = emp.supervisor || "";
+    // TRACK 23.4C · Reuse the shared HR field resolver so trade
+    // aliases (role / title / position / classification / department)
+    // land in the same place regardless of Employee Master vintage.
+    // Small inline copy to avoid an import cycle with hrAutofill.js.
+    const _trade =
+      emp.trade || emp.role || emp.title || emp.position
+      || emp.classification || emp.trade_role || emp.department || "";
+    const _crew = emp.crew || emp.division || (_trade ? "" : emp.department) || "";
+    const _sup = emp.supervisor || emp.supervisor_name || "";
     const { _needs_hr_refresh: _stale, ...rest } = c;
     return {
       ...rest,

@@ -19,6 +19,8 @@ import {
 import { computeCrewHours, grossNetPreview, sumCrewHours, sumEquipmentHours }
   from "@/lib/crewHoursMath";
 import { UnitCombo } from "@/components/daily-report-v3/UnitCombo";
+import { fetchHrRoster } from "@/lib/hrRoster";
+import { resolveEmployeeByTypedName, pickHrFields } from "@/lib/hrAutofill";
 import { Link } from "react-router-dom";
 
 // ── Shared section shell ──────────────────────────────────────────
@@ -51,6 +53,34 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
   const equipment = data.equipment || [];
   const subs = data.subcontractors || [];
   const hasCodes = (costCodes?.length || 0) > 0;
+
+  // TRACK 23.4C · Keep a live roster reference so typed-and-blur
+  // (Jaymn Judd path) still resolves against Employee Master. This
+  // closes the gap where EmployeeCombo only fires onPick when the
+  // user *clicks* a dropdown item. Same roster the picker uses.
+  const rosterRef = React.useRef(null);
+  React.useEffect(() => {
+    let alive = true;
+    fetchHrRoster()
+      .then((items) => { if (alive) rosterRef.current = items || []; })
+      .catch(() => { if (alive) rosterRef.current = []; });
+    return () => { alive = false; };
+  }, []);
+
+  const _applyHrPick = (i, emp, currentRow) => {
+    const hr = pickHrFields(emp);
+    updateCrew(i, {
+      name: hr.name || currentRow.name,
+      employee_id: hr.employee_id || currentRow.employee_id || "",
+      employee_name_snapshot: hr.name || currentRow.name || "",
+      trade: hr.trade || currentRow.trade || "",
+      trade_snapshot: hr.trade || currentRow.trade || "",
+      trade_autofilled: !!hr.trade,
+      crew_snapshot: hr.crew,
+      division_snapshot: hr.crew,
+      supervisor_snapshot: hr.supervisor,
+    });
+  };
 
   // ── Live totals (visible summary strip) ─────────────────────────
   const crewTotals = useMemo(() => {
@@ -169,34 +199,22 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
               <div className="grid gap-2 sm:grid-cols-[2fr_1fr_auto]">
                 <EmployeeCombo
                   value={c.name || ""}
-                  onChange={(name) => updateCrew(i, { name })}
-                  onPick={(emp) => {
-                    // TRACK 23.4B / HR autofill · Employee Master is
-                    // gospel. Pull trade/role AND crew/division AND
-                    // supervisor into the row + store snapshots so
-                    // yesterday's stale data never rewrites today's
-                    // HR truth. Manual override still allowed; only
-                    // clears the `_autofilled` flags, not the values.
-                    const _trade = emp?.trade
-                      || emp?.role
-                      || emp?.department
-                      || emp?.classification
-                      || "";
-                    const _crew = emp?.crew || emp?.division || "";
-                    const _sup = emp?.supervisor || "";
-                    updateCrew(i, {
-                      name: emp?.name || c.name,
-                      employee_id: emp?.employee_id || emp?.id || "",
-                      employee_name_snapshot: emp?.name || c.name || "",
-                      trade: _trade || c.trade || "",
-                      trade_snapshot: _trade || c.trade || "",
-                      trade_autofilled: !!_trade,
-                      crew_snapshot: _crew,
-                      division_snapshot: _crew,
-                      supervisor_snapshot: _sup,
-                    });
+                  onChange={(name) => {
+                    // TRACK 23.4C · Try to resolve the typed name to a
+                    // known HR employee on every keystroke. When the
+                    // typed value exactly matches (or is the single
+                    // partial match for) a roster entry, autofill the
+                    // whole row — no dropdown click required.
+                    const roster = rosterRef.current;
+                    const emp = resolveEmployeeByTypedName(name, roster);
+                    if (emp) {
+                      _applyHrPick(i, emp, { ...c, name });
+                    } else {
+                      updateCrew(i, { name });
+                    }
                   }}
-                  data-testid={`dr-v3-crew-name-${i}`}
+                  onPick={(emp) => _applyHrPick(i, emp, c)}
+                  testId={`dr-v3-crew-name-${i}`}
                 />
                 <div className="min-w-0">
                   <input
