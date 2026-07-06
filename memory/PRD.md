@@ -10,6 +10,45 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
+## TRACK 23.8 · Safety Portal KPI Consumer · Company-wide + Project Drilldown · 🟢 SHIPPED · CERTIFIED (2026-02-06)
+- **Mandate**: Wire Safety Portal to consume the Track 23.7 aggregator with safety-first framing. One spine, three consumers. Safety sees company-wide posture + can drill into every job's safety KPIs. PMs are scoped to assigned projects — Safety never is.
+- **P0 fixes shipped in this track**:
+  1. **PM KPI endpoint was unauthenticated** (regression risk from 23.7). Added `require_admin` dep + `compute_pm_scope` enforcement: per-PM tokens receive 403 for unassigned projects, admin tokens bypass. Locked by `test_pm_kpi_route_enforces_pm_scope`.
+  2. **`require_safety_or_admin` admin path was dead** — sync `_is_valid_admin_token` was retired in Track 15.32 and returns False. Repaired to route through the canonical async directory validator (`_is_valid_directory_admin_token_async`) — same admin-token surface every other admin gate uses.
+- **New backend endpoint**: `GET /api/safety/company/safety-kpis?window=…&limit_projects=…` (safety-role or admin). Returns:
+  - `active_project_count` (from `jobs_master.active=True` + fact-carrying projects merged, deduped)
+  - `projects_with_safety_signal` (count of active projects with real safety data)
+  - `totals` (aggregated: `safety_event_count · daily_report_safety_events · incident_count · accident_count · near_miss_count · utility_strike_count · injuries_reported · safety_contacted_yes/no · escalation_gap_count · open_incidents · safety_meetings_count · jha_count · safety_inspection_count · trench_inspection_count · safety_photo_count`)
+  - `status_band` (`green` when zero incidents/near-miss/escalation-gaps · `amber` on any incident/near-miss · `red` on escalation gaps or injuries)
+  - `top_projects` — sorted desc by `attention_score = safety_event_count + escalation_gap_count`, then safety_event_count, then project_number
+  - `projects` — full list with per-project safety subset + source_status map + activity-context man-hours (no cost)
+  - `source_status_summary` — every safety source classified per project into `LIVE / PARTIAL / MISSING · FUTURE` buckets that partition `active_project_count` (locked by pytest)
+  - Parallel `asyncio.gather` per-project aggregation, capped by `limit_projects` (default 50, max 200)
+- **Frontend**: **New** `frontend/src/components/SafetyOperationalKpisCard.jsx` mounted on `SafetyHubV2` (`/safety-portal`) directly under the OI Attention Strip.
+  - Layout: Company band (colored) → 4 headline totals (events / injuries+accidents / near-miss / meetings+JHAs+inspections) → escalation-gap red bar when >0 → project ranking table (Events / Near-miss / Gaps / Meetings / JHAs / Inspections / Attention · sorted desc) with View button per row → drilldown right-side drawer fetching `GET /api/safety/projects/{pn}/safety-kpis` → sources coverage strip aggregated across active projects.
+  - Window selector: 7d / 30d (default) / MTD / PTD.
+  - Zero-noise: no emails, no SMS, no bell notifications, no auto-refresh spam. Read-only.
+  - Every interactive element carries a `data-testid`.
+- **No double-counting locked by pytest**: `safety_event_count == daily_report_safety_events + incident_count` at both company AND every individual project level. Sources are per-project and totals partition — no source claimed LIVE simultaneously in two categories.
+- **No cost data**: `_assert_no_cost` runtime guard blocks any `cost / rate / budget / spend / burden / dollars / usd` key at every response boundary. Frontend card has zero cost/dollar/rate labels (locked by test).
+- **Live browser proof** (1440×900 · `/tmp/track_23_8_safety_card.png` + `/tmp/track_23_8_safety_drilldown.png`, 0 console errors):
+  - Company band **AMBER** · 50 active projects · 4 with safety signal.
+  - Totals: **2 safety events** (0 DR · 2 incidents) · **0/0** injuries/accidents · **1 near-miss** (2 incidents open) · **14 meetings / 2 JHAs / 0 inspections**.
+  - Project ranking table lists 50 projects sorted by attention. Top row: **24-12** · 2 events · 1 near-miss · 3 meetings · 2 JHAs · attention 2 · CC5744 - OXFORD RD Improvements (OXFORD).
+  - Drilldown drawer opens on click: 24-12 shows Safety events 2, Near-miss 1/0 injuries, Meetings 3/2 JHAs, sources chips (`daily_report_safety_events LIVE(8) · incidents LIVE(5) · safety_meetings LIVE(7) · jha_records LIVE(2)` + PARTIAL/DVIR chips), activity context 450.73 man-hours · 4 employees · 0 delay hrs.
+- **Tests**: 18 new lock assertions in `test_track_23_8_safety_kpi_consumer.py`. Full regression **150/150** across 22.9C + 23.2 + 23.4A/B/C + 23.5 + 23.6 + 23.7 + 23.8. Track 23.7 tests updated to mint an admin token for the now-auth'd PM endpoint.
+- **Backwards compatibility**: Daily Report V3 · PM project detail · Employee Lifecycle · HR completeness tile · every other portal page byte-identical. Only new module `routes/operational_kpis.py` and its registration line in `server.py` changed on backend; only `SafetyHubV2.jsx` gained an additive card mount + one import.
+- **Files changed**:
+  - **NEW** `/app/frontend/src/components/SafetyOperationalKpisCard.jsx`
+  - **NEW** `/app/backend/tests/test_track_23_8_safety_kpi_consumer.py`
+  - `/app/backend/routes/operational_kpis.py` (full rewrite for auth + company endpoint)
+  - `/app/backend/server.py` (register passes both auth deps · fix `require_safety_or_admin` admin path)
+  - `/app/frontend/src/pages/SafetyHubV2.jsx` (mount card)
+  - `/app/backend/tests/test_track_23_7_operational_kpi_spine.py` (auth headers on PM endpoint)
+- **Verdict**: 🟢 **GO** — one spine, three consumers, PM/Safety cannot see different numbers. Company-wide safety posture visible in the safety-native surface; per-project drilldown always available; PM restricted to assigned projects; safety unrestricted; zero cost data ever.
+
+
+
 ## TRACK 23.7 · Operational KPI Spine · PM + Safety Portal + Future Scheduling · 🟢 SHIPPED · CERTIFIED (2026-02-06)
 - **Mandate**: One shared operational KPI aggregator, three consumers (PM Project workspace, Safety Portal, future Scheduling). No money · no cost · no rates · no budget · no labor spend. Operational production intelligence sourced from ODS `operational_facts` (labor / equipment / material / production / delay / safety / weather / intelligence / photo / readiness facts) + canonical safety collections (`incidents`, `jhas`, `meetings`, `inspections`, `trench_excavations`, `equipment_inspections`).
 - **Architecture (spine, not one-off UI)**:

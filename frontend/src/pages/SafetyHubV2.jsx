@@ -17,6 +17,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getAdminToken } from "@/lib/adminAuth";
 import { getSafetyToken } from "@/lib/safetyAuth";
+import SafetyOperationalKpisCard from "@/components/SafetyOperationalKpisCard";
 import {
   PortalShell,
   StatusChip,
@@ -187,6 +188,13 @@ export default function SafetyHubV2() {
           title="Safety Intelligence · attention now"
           testId="safety-hub-v2-oi-strip"
         />
+
+        {/* TRACK 23.8 · Company-wide Safety Operational KPIs.
+            Consumes shared Track 23.7 aggregator spine · one identity
+            for numbers · safety-first framing · project drilldown. */}
+        <div style={{ margin: "16px 0 28px 0" }}>
+          <SafetyOperationalKpisCard />
+        </div>
 
         {/* Section 1 — Corrective Actions (CAPAs). */}
         <section data-testid="safety-hub-v2-section-capas" style={{ marginBottom: 28 }}>

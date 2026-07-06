@@ -720,7 +720,12 @@ async def require_safety_or_admin(
         u = await is_valid_safety_user_token_async(db, x_safety_token)
         if u:
             return {**u, "_actor": "safety"}
-    if x_admin_token and _is_valid_admin_token(x_admin_token):
+    # TRACK 23.8 P0 fix — legacy sync `_is_valid_admin_token` was
+    # retired in 15.32 and unconditionally returns False. Route the
+    # admin path through the canonical async directory validator so
+    # per-user admin tokens unlock this gate the same way they unlock
+    # every other admin-authed surface.
+    if x_admin_token and await _is_valid_directory_admin_token_async(x_admin_token):
         return {"_actor": "admin", "name": "Admin"}
     raise HTTPException(status_code=401, detail="Safety or Admin auth required")
 
@@ -3109,7 +3114,11 @@ register_ods_routes(api_router, db)
 # intelligence only.
 # ============================================================
 from routes.operational_kpis import register_operational_kpis_routes  # noqa: E402
-register_operational_kpis_routes(api_router, db)
+register_operational_kpis_routes(
+    api_router, db,
+    require_admin_dep=require_admin,
+    require_safety_or_admin_dep=require_safety_or_admin,
+)
 
 # ============================================================
 # DR-ROI-001E · PM / Admin / Executive Intelligence Dashboards

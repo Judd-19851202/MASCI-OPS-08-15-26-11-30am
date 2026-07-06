@@ -33,8 +33,26 @@ def _r(p: Path) -> str:
     return p.read_text(encoding="utf-8")
 
 
+# TRACK 23.8 · PM endpoint now requires auth. Mint an admin token
+# once and inject it into every PM /operational-kpis request.
+_ADMIN_TOKEN = None
+
+
+def _admin_headers():
+    global _ADMIN_TOKEN
+    if _ADMIN_TOKEN is None:
+        r = requests.post(
+            LOCAL_API + "/api/auth/multi-login",
+            json={"email": "jaymn.judd@mascigc.com", "password": "Maddix123!"},
+            timeout=15,
+        )
+        _ADMIN_TOKEN = r.json().get("portal_tokens", {}).get("admin", "")
+    return {"X-Admin-Token": _ADMIN_TOKEN}
+
+
 def _get(path: str):
-    return requests.get(LOCAL_API + path, timeout=30)
+    headers = _admin_headers() if ("/pm/" in path or "/safety/" in path) else {}
+    return requests.get(LOCAL_API + path, headers=headers, timeout=30)
 
 
 # ─── 1 · aggregator module contract ────────────────────────────────
