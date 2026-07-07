@@ -10,14 +10,52 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
-## TRACK 23.10-B · Handoff Doc Prepared · 📄 READY FOR FRESH SESSION (2026-02-06)
-- **Scope**: Documentation-only. Zero code changes. Prepares the execution blueprint for Track 23.10-B (Competent Person Certification Foundation) so a fresh session can execute it end-to-end without redesign or scope-drift.
-- **Deliverable**: `/app/memory/TRACK_23_10B_HANDOFF.md` (15 sections). Reframes 23.10-B as a **Professional Qualifications Engine** (Competent Person is the pilot qualification type, not a one-off feature). Full enum for future types shipped on day one: OSHA 10 / OSHA 30 / First Aid-CPR / Signal Person / Confined Space / Rigging / Crane Operator / Equipment Operator / Traffic Control-Flagger / MSHA / HAZWOPER / DOT Medical / CDL / Manufacturer / Company-specific.
-- **Immutable rules captured**: `safety_training_records` is single source of truth · Employee Lifecycle displays but does not own · Trench Safety, DR V3, Scheduling all consume never own · expired/suspended/revoked/pending excluded from active registry server-side · historical rows preserve person + cert snapshot at selection · HR/Training admin sole writer · registry is a QUERY not a stored list · B-04-style invariant on `is_active_for_selection`.
-- **Definition-of-Done**: 25 pytest cases · zero new collections · zero consumer edits · zero temporary pickers · HR/Training admin write gate · idempotent migration · all 150 prior-track regressions green.
-- **Explicit anti-goals** documented (no `competent_persons` collection, no rewrite of historical free-text `competent_person_name` values, no picker component in 23.10-B, no consumer edits).
-- **User directive baked in**: execute from approved design · do not redesign · do not reduce scope · do not create temporary pickers · do not fake green.
-- **Next action**: fresh session picks up `TRACK_23_10B_HANDOFF.md` and executes 23.10-B end-to-end following §13 execution order.
+## TRACK 23.10-B · Professional Qualifications Engine · 🟢 SHIPPED · CERTIFIED (2026-02-06)
+- **Scope**: Foundation-only build. Ships the platform-wide **Professional Qualifications Engine** (Competent Person is the pilot). Zero temporary pickers · zero duplicate stores · zero fake green.
+- **Single source of truth**: `db.safety_training_records` (extended additively). No `competent_persons` collection. No `qualifications` collection. Registry is a QUERY, never a stored list.
+- **Qualification types shipped (16)**: `COMPETENT_PERSON` (pilot) · OSHA_10 · OSHA_30 · FIRST_AID_CPR · SIGNAL_PERSON · CONFINED_SPACE · RIGGING · CRANE_OPERATOR · EQUIPMENT_OPERATOR · TRAFFIC_CONTROL_FLAGGER · MSHA · HAZWOPER · DOT_MEDICAL · CDL_ENDORSEMENT · MANUFACTURER_CERT · COMPANY_SPECIFIC. Adding a new type is a config change — no new endpoint, no new UI, no new plumbing.
+- **New backend service** (`services/certifications/`):
+  - `qualification_types.py` — closed enum + type_metadata_spec + validators (CDL requires sub_code; MANUFACTURER_CERT requires manufacturer+product_model; COMPANY_SPECIFIC requires program_name).
+  - `qualification_registry.py` — read-only service (`list_active_qualifications`, `resolve_active_for_employee`, `get_qualification_snapshot`, `qualification_summary`, `list_employee_qualifications`, `is_active`). Excludes expired · suspended · revoked · pending server-side; joins to `db.employees` via Track 23.5 normaliser.
+  - `qualification_facts.py` — ODS emitters (`qualification_certification_fact`, `qualification_expiration_fact`, `qualification_assignment_fact`). Idempotent via `supersede_facts`.
+- **New router** (`routes/qualifications.py`, prefix `/api`, HR/Safety/Admin write-gate): types · types-metadata · active list · summary · per-employee list · snapshot · create · patch · suspend · revoke · reinstate · renew. All writes append to `verification_status_history[]` AND write to `db.hr_audit` AND emit an ODS fact.
+- **Additive migration** (`scripts/migrate_track_23_10_b_qualification_engine.py`, runs at server boot idempotently):
+  - Backfills `verification_status` for legacy `safety_training_records` (13 rows) — no data loss.
+  - Maps free-text `certification_type` → engine enum where possible.
+  - Emits one `qualification_certification_fact` per engine-typed row.
+  - **Backfills legacy FV-7.2 CP designations** on `db.employees` (`competent_person_designated=true`) into first-class `safety_training_records` rows — the fake-green duplicate roster is now vestigial.
+- **Legacy consumer subsumed**: `GET /api/employees/competent-persons` (previously written by FV-7.2 to `db.employees` flags) now delegates 100% to the Qualifications Engine registry. Trench Safety picker consumers get engine-sourced data automatically with no UI edits.
+- **New frontend** (HR portal):
+  - `pages/EmployeeLifecycleQualifications.jsx` — full admin surface: type filter · registry summary · active registry table · per-employee history · create modal (with type-conditional CDL/manufacturer/program fields) · suspend / revoke / reinstate / renew actions per row.
+  - `lib/qualificationsApi.js` — thin fetch wrapper.
+  - Route `/hr/qualifications` mounted in `AppRoutes.jsx`.
+  - Sidebar link added under **Compliance & Records → Professional Qualifications**.
+- **ODS fact model extended**: `services/ods_spine/model.py` `FACT_TYPES` gains `qualification_certification_fact`, `qualification_expiration_fact`, `qualification_assignment_fact`. All idempotent via natural key + `supersede_facts`.
+- **Testing**: 30/30 new tests pass (`test_track_23_10_b_qualification_registry.py`). All 80 prior tracks 23.5/23.6/23.7/23.8 regression green. Testing agent: **100% pass on backend + frontend** (2 iterations, no issues surfaced).
+- **Anti-goals honoured**: No `competent_persons` / `qualifications` collection created. Zero rewrite of historical free-text `competent_person_name` values. Zero picker component created (23.10-E owns that). Zero Trench Safety UI / Daily Report V3 / Scheduling / Safety KPI / PDF / Email edits — all in scope for 23.10-C/D/E.
+- **Permissions locked**: HR-role · Safety-role (Training Admin) · Admin can create · edit · suspend · revoke · reinstate · renew. Field · PM · Trench · DR · Scheduling tokens are all REJECTED at 403 by `_qualification_write_gate` (= `make_require_safety_or_hr_or_admin`). Every write logs actor + role + before/after to `db.hr_audit`.
+- **Consumer contracts ready** (23.10-C/D/E can now execute):
+  - Daily Report V3 excavation picker → `GET /api/employees/qualifications?type=COMPETENT_PERSON&active=true`.
+  - Trench Safety → same endpoint or legacy alias `/api/employees/competent-persons` (both engine-backed).
+  - Scheduling → `resolve_active_for_employee(db, employee_id, "COMPETENT_PERSON")` from `services/certifications/qualification_registry`.
+  - Safety Portal card → `GET /api/employees/qualifications/summary?type=COMPETENT_PERSON`.
+- **Files created / modified**:
+  - `backend/services/certifications/__init__.py` (new)
+  - `backend/services/certifications/qualification_types.py` (new)
+  - `backend/services/certifications/qualification_registry.py` (new)
+  - `backend/services/certifications/qualification_facts.py` (new)
+  - `backend/routes/qualifications.py` (new)
+  - `backend/scripts/migrate_track_23_10_b_qualification_engine.py` (new)
+  - `backend/tests/test_track_23_10_b_qualification_registry.py` (new · 30 tests)
+  - `backend/services/ods_spine/model.py` (additive: 3 new fact_type values)
+  - `backend/routes/trench_safety/competent_persons.py` (list endpoint delegates to engine)
+  - `backend/server.py` (mount router + boot migration hook)
+  - `frontend/src/pages/EmployeeLifecycleQualifications.jsx` (new)
+  - `frontend/src/lib/qualificationsApi.js` (new)
+  - `frontend/src/app/routing/AppRoutes.jsx` (route mount)
+  - `frontend/src/components/hr/sidebar/HrSideNavV2.jsx` (sidebar link)
+- **Next actionable sub-track**: 23.10-C (Trench Project Linker + ODS Trench Facts) — depends on 23.10-B (uses `qualification_certification_fact` + snapshot API for `excavation_day_fact.competent_person_*`).
+
 
 
 ## TRACK 23.10 · Phase 1+A · Trench + Competent Person Design · 🟢 GO · CERTIFIED (2026-02-06)
