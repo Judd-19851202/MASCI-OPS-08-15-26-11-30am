@@ -4669,7 +4669,7 @@ async def add_supplier_from_form(body: RosterAddBody):
     """
     name = body.name.strip()
     existing = await db.suppliers.find_one(
-        {"name": {"$regex": f"^{name}$", "$options": "i"}}, {"_id": 0}
+        {"name": {"$regex": f"^{re.escape(name)}$", "$options": "i"}}, {"_id": 0}
     )
     if existing:
         return {"ok": True, "created": False, "supplier": existing}
@@ -4783,11 +4783,11 @@ async def hr_employee_roster(
     if not include_inactive:
         clauses.append(canonical_active_clause)
     if role:
-        clauses.append({"role": {"$regex": f"^{role}$", "$options": "i"}})
+        clauses.append({"role": {"$regex": f"^{re.escape(role)}$", "$options": "i"}})
     if department:
-        clauses.append({"department": {"$regex": f"^{department}$", "$options": "i"}})
+        clauses.append({"department": {"$regex": f"^{re.escape(department)}$", "$options": "i"}})
     if q:
-        q_re = {"$regex": q, "$options": "i"}
+        q_re = {"$regex": re.escape(q), "$options": "i"}
         clauses.append({"$or": [
             {"name": q_re}, {"preferred_name": q_re},
             {"employee_id": q_re}, {"role": q_re},
@@ -4975,7 +4975,7 @@ async def upload_employees(
         if not match:
             candidates = await db.employees.find(
                 {
-                    "name": {"$regex": f"^{name}$", "$options": "i"},
+                    "name": {"$regex": f"^{re.escape(name)}$", "$options": "i"},
                     "deleted_at": None,
                     "is_active": {"$ne": False},
                 },
