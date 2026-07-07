@@ -60,6 +60,7 @@ export const HR_DOMAINS_V2 = [
     icon: ShieldCheck,
     routes: [
       { to: "/document-expirations",     label: "Document Expirations", desc: "OSHA, TWIC, CDL, training cert windows.",         icon: FileText },
+      { to: "/hr/qualifications",        label: "Professional Qualifications", desc: "Competent Person + all OSHA / MSHA / trade credentials.", icon: ShieldCheck },
       { to: "/hr/training-records",      label: "Training Records",     desc: "Completed tracks and certification roster.",      icon: GraduationCap },
       { to: "/hr/driver-qualification",  label: "Driver Qualification", desc: "CDL holders, endorsements, tanker capability.",   icon: Truck },
       { to: "/hr/safety-records",        label: "Safety Records",       desc: "Read-only Safety document library and per-employee training.", icon: ShieldCheck },

@@ -11624,6 +11624,44 @@ from routes.signatures import (  # noqa: E402
 app.include_router(build_signatures_router(db, _require_any_portal_token))
 
 
+# ─── TRACK 23.10-B · Professional Qualifications Engine ─────────────
+# Single source of truth for all professional qualifications
+# (Competent Person + 15 seed types). Reads: any authenticated portal.
+# Writes: HR / Safety (Training Admin) / Admin only.
+from routes.qualifications import build_qualifications_router  # noqa: E402
+from services.certifications.qualification_facts import (  # noqa: E402
+    emit_qualification_expiration_facts_daily as _emit_qual_expirations,  # noqa: F401
+)
+from scripts.migrate_track_23_10_b_qualification_engine import (  # noqa: E402
+    run_migration as _run_qualification_migration,
+)
+
+_qualification_write_gate = make_require_safety_or_hr_or_admin(
+    db, _is_valid_admin_token,
+)
+app.include_router(build_qualifications_router(
+    db,
+    require_read_dep=_require_any_portal_token,
+    require_write_dep=_qualification_write_gate,
+))
+
+
+@app.on_event("startup")
+async def _track_23_10_b_qualification_migration_bootstrap():
+    """Run the additive TRACK 23.10-B migration idempotently at boot.
+
+    Safe to re-run: every write is gated by whether the target field
+    already carries the migrated value. Fact emission uses
+    `supersede_facts` so re-running collapses to one current fact.
+    """
+    try:
+        await _run_qualification_migration(db, emit_facts=True)
+    except Exception as exc:                                     # noqa: BLE001
+        logger.warning(f"[track-23-10-b-migration] {exc}")
+
+
+
+
 # ─── Draft Telemetry (P0 field-incident · daily report draft loss) ──
 # Append-only client-driven telemetry for the form-draft / autosave
 # subsystem. NEVER stores form content — only sizes / error-names /

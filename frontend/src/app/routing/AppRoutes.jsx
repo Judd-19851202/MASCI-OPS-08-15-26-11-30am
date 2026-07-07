@@ -259,6 +259,7 @@ const HrEmployeeAccountabilityTimeline = React.lazy(() => import("@/pages/HrEmpl
 const HrEmployeeThread = React.lazy(() => import("@/pages/HrEmployeeThread"));
 const HrIncidents = React.lazy(() => import("@/pages/HrIncidents"));
 const HrTrainingRecords = React.lazy(() => import("@/pages/HrTrainingRecords"));
+const EmployeeLifecycleQualifications = React.lazy(() => import("@/pages/EmployeeLifecycleQualifications"));
 // ROUTE-SPLIT-001 Wave 4 — HR Daily Reports (default + named-export wrapper) lazy.
 const HrDailyReports = React.lazy(() => import("@/pages/HrDailyReports"));
 const HrDailyReportDetail = React.lazy(() => import("@/pages/HrDailyReports").then(m => ({ default: m.HrDailyReportDetail })));
@@ -935,6 +936,7 @@ export function AppRoutes() {
             <Route path="/hr/time-off" element={H(<HrTimeOff />)} />
             <Route path="/hr/payroll-variance" element={H(<HrPayrollVariance />)} />
             <Route path="/hr/training-records" element={H(<HrTrainingRecords />)} />
+            <Route path="/hr/qualifications" element={H(<EmployeeLifecycleQualifications />)} />
             <Route path="/hr/driver-qualification" element={H(<HrDriverQualificationDashboard />)} />
             <Route path="/hr/driver-qualification/import" element={H(<HrDriverQualificationImport />)} />
             {/* iter332 · HR read-only Daily Reports Review.

@@ -9,6 +9,10 @@ FACT_TYPES = (
     "labor_fact", "equipment_fact", "production_fact", "delay_fact",
     "material_fact", "safety_fact", "quality_fact", "photo_evidence_fact",
     "weather_fact", "readiness_fact", "intelligence_fact",
+    # TRACK 23.10-B · Professional Qualifications Engine facts.
+    "qualification_certification_fact",
+    "qualification_expiration_fact",
+    "qualification_assignment_fact",
 )
 
 SOURCE_TYPES = (

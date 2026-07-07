@@ -61,40 +61,52 @@ def register_competent_person_routes(
 ) -> None:
     """Register CP-designation endpoints under /api."""
 
-    # ── Public list — only designated, active, non-expired CPs ────
+    # ── Public list — DELEGATED to the Qualifications Engine (23.10-B)
+    #   Single source of truth = `db.safety_training_records` +
+    #   `services/certifications/qualification_registry.py`. The
+    #   legacy `competent_person_designated` flag on `db.employees`
+    #   is now vestigial — backfilled by the 23.10-B migration and
+    #   read no more.
     @api_router.get("/employees/competent-persons")
     async def list_competent_persons():
-        """Public — returns only employees that are designated,
-        currently active as a CP, and whose CP designation has not
-        expired. Consumed by the Excavation form's CP picker so the
-        foreman cannot pick someone who is not formally a CP."""
-        cursor = db.employees.find(
-            {
-                "$and": [
-                    {"$or": [
-                        {"competent_person_designated": True},
-                        {"cp_designated": True},  # back-compat
-                    ]},
-                    {"$or": [
-                        {"cp_active": {"$ne": False}},
-                        {"cp_active": {"$exists": False}},
-                    ]},
-                    {"$or": [
-                        {"deleted_at": None},
-                        {"deleted_at": {"$exists": False}},
-                    ]},
-                    {"is_active": {"$ne": False}},
-                ],
-            },
-            {"_id": 0, "id": 1, "name": 1, "employee_id": 1,
-             "crew": 1, "role": 1, "trade": 1,
-             "cp_approval_date": 1, "cp_expiration_date": 1, "cp_approved_by": 1},
-        ).sort("name", 1)
-        docs = await cursor.to_list(2000)
-        # Filter out expired designations in Python (date-string compare
-        # is safe — YYYY-MM-DD format).
-        items = [d for d in docs if not _is_expired(d)]
+        """Consumer-facing list of currently-active Competent Persons.
+
+        Reads from the Qualifications Engine registry. Only rows with
+        `verification_status="active"` AND non-expired
+        `expiration_date` AND no suspension/revocation appear here.
+
+        Response contract preserved for backwards compatibility with
+        the trench safety CP picker (shape: {items:[...], count:N}
+        where each item carries id, name, employee_id, crew,
+        role, trade, cp_approval_date, cp_expiration_date,
+        cp_approved_by).
+        """
+        from services.certifications.qualification_registry import (
+            list_active_qualifications,
+        )
+        rows = await list_active_qualifications(
+            db, qualification_type="COMPETENT_PERSON", warning_days=30,
+        )
+        items = [{
+            "id": r.get("employee_id") or "",
+            "employee_id": r.get("employee_id") or "",
+            "name": r.get("employee_name") or "",
+            "crew": r.get("employee_crew") or "",
+            "role": r.get("employee_trade") or "",
+            "trade": r.get("employee_trade") or "",
+            "cp_approval_date": r.get("issued_at") or "",
+            "cp_expiration_date": r.get("expires_at") or "",
+            "cp_approved_by": r.get("issuing_organization") or "",
+            # Engine surface — new consumers should prefer these.
+            "qualification_id": r.get("qualification_id"),
+            "qualification_type": r.get("qualification_type"),
+            "expires_in_days": r.get("expires_in_days"),
+            "warning": r.get("warning"),
+        } for r in rows]
+        # Sort by employee name for stable UI order (matches legacy).
+        items.sort(key=lambda x: (x.get("name") or "").lower())
         return {"items": items, "count": len(items)}
+
 
     # ── Admin · set / update CP designation ────────────────────────
     @api_router.put("/admin/employees/{employee_id}/cp-designation")
