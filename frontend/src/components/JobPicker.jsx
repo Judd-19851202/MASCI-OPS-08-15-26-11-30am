@@ -137,6 +137,19 @@ export function JobPicker({
                   onSelect(null);
                   setOpen(false);
                 }}
+                // TRACK 24.6 · iOS Safari + cmdk selection race.
+                // On touch devices the CommandInput blur fires BEFORE
+                // the CommandItem click, so the popover closes and the
+                // item unmounts before onSelect can run. Committing on
+                // pointerdown (which fires before blur) restores tap-
+                // to-select parity with desktop click / keyboard Enter.
+                onPointerDown={(e) => {
+                  if (e.pointerType && e.pointerType !== "mouse") {
+                    e.preventDefault();
+                    onSelect(null);
+                    setOpen(false);
+                  }
+                }}
                 className="py-3 cursor-pointer"
                 data-testid="job-picker-custom"
               >
@@ -166,6 +179,18 @@ export function JobPicker({
                   onSelect={() => {
                     onSelect(j);
                     setOpen(false);
+                  }}
+                  // TRACK 24.6 · iOS Safari + cmdk selection race —
+                  // commit on pointerdown for touch so the popover
+                  // does not close via input-blur before onSelect
+                  // lands. Mouse pointers fall through to the
+                  // standard cmdk onSelect path.
+                  onPointerDown={(e) => {
+                    if (e.pointerType && e.pointerType !== "mouse") {
+                      e.preventDefault();
+                      onSelect(j);
+                      setOpen(false);
+                    }
                   }}
                   className="py-2.5 cursor-pointer"
                   data-testid={`job-picker-item-${j.project_number}`}
