@@ -1280,7 +1280,7 @@ export function SectionPhotos({ data, patch, photoMin }) {
             (short === 0 ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700")
           }
         >
-          <Camera className="mr-1 inline h-3.5 w-3.5" /> {photos.length}/{photoMin} required
+          <Camera className="mr-1 inline h-3.5 w-3.5" /> {photos.length}/{photoMin} {t("required")}
         </span>
       }
     >
@@ -1714,7 +1714,7 @@ export function SectionImpactSafety({ data, patch }) {
       <div className="mt-4 rounded-xl border border-slate-200 p-4" data-testid="dr-v3-visitors-block">
         <div className="mb-2 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-sm font-medium text-slate-800">
-            <Users className="h-4 w-4 text-slate-600" />{t("Visitors on site")}<span className="ml-1 text-[11px] text-slate-500">(optional — inspectors, owners, subs&apos; PMs)</span>
+            <Users className="h-4 w-4 text-slate-600" />{t("Visitors on site")}<span className="ml-1 text-[11px] text-slate-500">{t("(optional — inspectors, owners, subs' PMs)")}</span>
           </div>
           <Button
             type="button"
@@ -1845,7 +1845,7 @@ function YesNoInline({ value, onChange, testId }) {
           onClick={() => onChange(v)}
           data-testid={`${testId}-${v.toLowerCase()}`}
         >
-          {v}
+          {t(v)}
         </button>
       ))}
     </div>

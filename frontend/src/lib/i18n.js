@@ -7095,6 +7095,8 @@ const ES = {
   "Ignore": "Ignorar",
   "Summary assist unavailable — you can still submit normally.":
     "Asistente de resumen no disponible — aún puede enviar normalmente.",
+  "(optional — inspectors, owners, subs' PMs)":
+    "(opcional — inspectores, propietarios, PMs de subcontratistas)",
   // Readiness labels
   "Project": "Proyecto",
   "Signature": "Firma",
