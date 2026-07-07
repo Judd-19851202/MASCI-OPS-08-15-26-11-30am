@@ -97,8 +97,31 @@ export function JobPicker({
 
   // TRACK 24.8 · shared touch-tracking ref for all CommandItems.
   // Records the pointerdown position and the row's data-testid, and
-  // commits only on pointerup IF the finger did not scroll away.
+  // commits only on pointerup IF the CommandList container did not
+  // scroll while the finger was down. We watch scroll at the LIST
+  // level (not the row level) because cmdk's <CommandItem> overrides
+  // any onPointerMove passed via prop-spread — the only reliable way
+  // to detect a scroll gesture is via the native scroll event on the
+  // scrollable ancestor.
   const touchRef = useRef({ x: 0, y: 0, active: false, targetId: null });
+  const scrolledRef = useRef(false);
+  const listRef = useRef(null);
+
+  // Attach a native scroll listener to the CommandList once mounted.
+  // scrolledRef flips true the instant the list scrolls; pointerup
+  // checks it to decide whether to commit.
+  useEffect(() => {
+    if (!open) return undefined;
+    // The CommandList is rendered inside PopoverContent which
+    // portals to the document body. Query for it by role/attribute.
+    const list = document.querySelector('[cmdk-list=""]');
+    if (!list) return undefined;
+    listRef.current = list;
+    const onScroll = () => { scrolledRef.current = true; };
+    list.addEventListener("scroll", onScroll, { passive: true });
+    return () => list.removeEventListener("scroll", onScroll);
+  }, [open]);
+
   const commitHandlersFor = (commit, testid) => ({
     onPointerDown(e) {
       if (!e.pointerType || e.pointerType === "mouse") return;
@@ -108,15 +131,7 @@ export function JobPicker({
         active: true,
         targetId: testid,
       };
-    },
-    onPointerMove(e) {
-      const s = touchRef.current;
-      if (!s.active) return;
-      const dx = e.clientX - s.x;
-      const dy = e.clientY - s.y;
-      if (dx * dx + dy * dy > TOUCH_MOVE_CANCEL_PX * TOUCH_MOVE_CANCEL_PX) {
-        touchRef.current.active = false;
-      }
+      scrolledRef.current = false;
     },
     onPointerUp(e) {
       const s = touchRef.current;
@@ -124,11 +139,26 @@ export function JobPicker({
       if (!s.active) return;
       if (!e.pointerType || e.pointerType === "mouse") return;
       if (s.targetId !== testid) return;
+      // If the list scrolled between pointerdown and pointerup, the
+      // user was scrolling, not tapping. Do not commit.
+      if (scrolledRef.current) {
+        scrolledRef.current = false;
+        return;
+      }
+      // Also protect against a large positional delta as a secondary
+      // guard for cases where the item didn't live inside a
+      // scrolling ancestor (e.g., custom-job row).
+      const dx = e.clientX - s.x;
+      const dy = e.clientY - s.y;
+      if (dx * dx + dy * dy > TOUCH_MOVE_CANCEL_PX * TOUCH_MOVE_CANCEL_PX) {
+        return;
+      }
       e.preventDefault();
       commit();
     },
     onPointerCancel() {
       touchRef.current = { x: 0, y: 0, active: false, targetId: null };
+      scrolledRef.current = false;
     },
   });
 

@@ -54,21 +54,24 @@ def test_job_picker_command_items_commit_on_pointerdown():
 
 
 def test_job_picker_uses_movement_threshold_touch_pattern():
-    """The JobPicker module must contain the Track 24.8 movement-
-    threshold touch selector so scrolling does not commit rows."""
+    """The JobPicker module must contain the Track 24.8 scroll-cancel
+    touch selector so scrolling does not commit rows. This detects
+    the container-level scroll listener that bypasses cmdk's
+    CommandItem prop-override of onPointerMove."""
     src = JOB_PICKER.read_text(encoding="utf-8")
     for marker in [
         "TOUCH_MOVE_CANCEL_PX",
         "commitHandlersFor",
         "onPointerUp",
-        "onPointerMove",
-        "onPointerCancel",
+        "scrolledRef",
+        "cmdk-list",
     ]:
         assert marker in src, (
             f"[Track 24.8] JobPicker.jsx missing `{marker}` — the "
             f"scroll-vs-tap disambiguation is not in place. Users on "
             f"iOS will commit the row their finger first touched when "
-            f"scrolling."
+            f"scrolling. cmdk overrides onPointerMove so we must "
+            f"detect scrolls at the CommandList container level."
         )
 
 
