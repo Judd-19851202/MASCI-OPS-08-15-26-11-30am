@@ -2,12 +2,12 @@
 
 _Phase TRUST-TIME-1B · self-protection probe · 🔴 FAIL_
 
-- Scanned files     : **1189**
+- Scanned files     : **1224**
 - Patterns           : **5**
-- New violations     : **38**
-- New warnings       : **77**
+- New violations     : **39**
+- New warnings       : **79**
 - Baselined          : **67**
-- Scan runtime       : **211 ms**
+- Scan runtime       : **222 ms**
 
 ## Pattern catalogue
 
@@ -21,6 +21,7 @@ _Phase TRUST-TIME-1B · self-protection probe · 🔴 FAIL_
 
 ## ⚠ New violations
 
+- `components/HrCompletenessTile.jsx:148` · `F2·slice19-replaceT` · `· Snapshot {snap.generated_at.slice(0, 19).replace("T", " ")} UTC` → Use formatLocalDateTime() or formatUtcForAudit() from lib/dateUtils.js
 - `components/pm/command/PmShopImpactBoard.jsx:73` · `F1·slice16-replaceT` · `{String(r.reported_at || "—").slice(0, 16).replace("T", " ")}` → Use formatLocalDateTime() or formatLocalShort() from lib/dateUtils.js
 - `components/pm/command/PmTimelineBoard.jsx:65` · `F1·slice16-replaceT` · `{String(ev.timestamp || "—").slice(0, 16).replace("T", " ")}` → Use formatLocalDateTime() or formatLocalShort() from lib/dateUtils.js
 - `components/pm/command/PmResourcesBoard.jsx:139` · `F1·slice16-replaceT` · `String(r.last_activity_at || "—").slice(0, 16).replace("T", " ")` → Use formatLocalDateTime() or formatLocalShort() from lib/dateUtils.js
@@ -29,7 +30,7 @@ _Phase TRUST-TIME-1B · self-protection probe · 🔴 FAIL_
 - `components/dispatch/DispatchDecisionChip.jsx:236` · `F2·slice19-replaceT` · `Generated {(data.generated_at || "").slice(0, 19).replace("T", " ")} · v{data.sc` → Use formatLocalDateTime() or formatUtcForAudit() from lib/dateUtils.js
 - `pages/HrEmployees.jsx:1571` · `F2·slice19-replaceT` · `<Row2 label="Last Transportation sync" value={data.last_sync_at ? data.last_sync` → Use formatLocalDateTime() or formatUtcForAudit() from lib/dateUtils.js
 - `pages/OperationsCenterCommand.jsx:475` · `F1·slice16-replaceT` · `<span className="font-mono text-[10.5px] text-slate-500">{String(ev.timestamp ||` → Use formatLocalDateTime() or formatLocalShort() from lib/dateUtils.js
-- `pages/HrHub.jsx:406` · `F2·slice19-replaceT` · `Last eligibility compute: {data.last_eligibility_compute ? data.last_eligibility` → Use formatLocalDateTime() or formatUtcForAudit() from lib/dateUtils.js
+- `pages/HrHub.jsx:413` · `F2·slice19-replaceT` · `Last eligibility compute: {data.last_eligibility_compute ? data.last_eligibility` → Use formatLocalDateTime() or formatUtcForAudit() from lib/dateUtils.js
 - `pages/HrPayrollVariance.jsx:273` · `F1·slice16-replaceT` · `<td className="px-3 py-2 text-slate-600 font-mono text-xs">{(b.created_at || "")` → Use formatLocalDateTime() or formatLocalShort() from lib/dateUtils.js
 - `pages/AssetTransfers.jsx:211` · `F1·slice16-replaceT` · `{String(row.created_at).slice(0, 16).replace("T", " ")}` → Use formatLocalDateTime() or formatLocalShort() from lib/dateUtils.js
 - `pages/AssetTransfers.jsx:407` · `F1·slice16-replaceT` · `<KV k="Created" v={String(doc.created_at).slice(0, 16).replace("T", " ")} />` → Use formatLocalDateTime() or formatLocalShort() from lib/dateUtils.js
@@ -93,7 +94,7 @@ _Phase TRUST-TIME-1B · self-protection probe · 🔴 FAIL_
 - `pages/Tasks.jsx:349` · `F4·toLocaleString-bare` · `<div className="font-mono text-[10px] text-slate-400 mt-0.5">{new Date(c.at).toL`
 - `pages/Tasks.jsx:372` · `F4·toLocaleString-bare` · `<span className="font-mono">{new Date(a.at).toLocaleString()}</span>`
 
-_…and 47 more (see JSON output)._
+_…and 49 more (see JSON output)._
 
 ## How to clear violations
 
