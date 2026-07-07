@@ -55,14 +55,62 @@ export function SectionProjectConditions({
             projectNumber={data.project_number}
             projectName={data.project_name}
             onSelect={(job) => {
+              // TRACK 24.9 Phase C · Full project-context commit.
+              //
+              // Capture the metadata snapshot the field crew relies
+              // on (client / PM / co-PMs) at select-time so PDF
+              // headers and downstream consumers have a truthful
+              // record of what the operator saw when they picked.
+              // Empty string / [] when jobs_master has no value
+              // for that field — no fabrication, honest fallback.
+              // The `location` merge keeps a hand-typed location
+              // when the jobs_master row lacks one.
               patch({
                 project_number: job?.project_number || "",
                 project_name: job?.project_name || "",
                 location: job?.location || data.location,
+                client: job?.client || "",
+                project_manager: job?.project_manager || "",
+                pm_email: job?.pm_email || "",
+                co_pm_emails: Array.isArray(job?.co_pm_emails)
+                  ? job.co_pm_emails.filter(Boolean)
+                  : [],
               });
             }}
             data-testid="dr-v3-job-picker"
           />
+          {/* TRACK 24.9 Phase C · Project metadata card.
+              Shows the client / PM / co-PM context AFTER project
+              select so the field foreman can visually confirm the
+              right project was picked. Only renders once a project
+              is bound so anonymous-form blank-state stays clean. */}
+          {data.project_number && (
+            <div
+              data-testid="dr-v3-project-meta"
+              className="mt-3 rounded-lg border border-emerald-100 bg-emerald-50/60 px-3 py-2 text-xs text-emerald-900 grid gap-1 sm:grid-cols-2"
+            >
+              <div>
+                <span className="font-semibold uppercase tracking-wide text-[10px] text-emerald-700">{t("Client")}: </span>
+                <span data-testid="dr-v3-project-meta-client">
+                  {data.client || <em className="text-emerald-700/70">{t("Not set")}</em>}
+                </span>
+              </div>
+              <div>
+                <span className="font-semibold uppercase tracking-wide text-[10px] text-emerald-700">{t("PM")}: </span>
+                <span data-testid="dr-v3-project-meta-pm">
+                  {data.project_manager || data.pm_email || <em className="text-emerald-700/70">{t("Not set")}</em>}
+                </span>
+              </div>
+              {(data.co_pm_emails || []).length > 0 && (
+                <div className="sm:col-span-2">
+                  <span className="font-semibold uppercase tracking-wide text-[10px] text-emerald-700">{t("Co-PMs")}: </span>
+                  <span data-testid="dr-v3-project-meta-co-pms">
+                    {(data.co_pm_emails || []).join(", ")}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">

@@ -16,6 +16,22 @@ export function buildDailyReportDefaults() {
     report_number: "", // optional, auto-incremented externally
     prepared_by: "",
     superintendent: "",
+    // TRACK 24.9 Phase C · Project metadata snapshot.
+    //
+    // These are populated at project-select time (from
+    // /api/jobs) so the field crew can see WHICH project their
+    // report is bound to. They are NOT authoritative — the
+    // server derives PM/co-PM routing from jobs_master keyed on
+    // `project_number` at email/PDF time — but capturing them
+    // in the payload gives every downstream consumer (PDF,
+    // trust spine, ODS facts) a truthful project snapshot even
+    // if the jobs_master row is edited between DR submission
+    // and PDF render. Empty string when the source row lacks
+    // the field (honest fallback, never fabricated).
+    client: "",
+    project_manager: "",
+    pm_email: "",
+    co_pm_emails: [],
 
     // GPS + auto weather
     gps_lat: null,

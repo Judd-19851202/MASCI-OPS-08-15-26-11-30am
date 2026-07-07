@@ -4117,6 +4117,9 @@ const ES = {
   "Open Form": "Abrir Formulario",
   "None": "Ninguno",
   "Client": "Cliente",
+  // TRACK 24.9 Phase C · Project metadata card labels.
+  "Co-PMs": "Co-PMs",
+  "Not set": "No configurado",
   "Concrete Form Inspection": "Inspección de Formaleta de Concreto",
   "Rebar Inspection": "Inspección de Acero de Refuerzo",
   "Subcontractor Work Inspection": "Inspección de Trabajo de Subcontratista",
