@@ -21,15 +21,18 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 function authHeaders() {
   const h = {};
   try {
-    for (const k of ["hr_token", "safety_token", "pm_token", "admin_token", "field_token"]) {
-      const v = window.localStorage?.getItem(k);
-      if (v) {
-        if (k === "hr_token") h["X-HR-Token"] = v;
-        if (k === "safety_token") h["X-Safety-Token"] = v;
-        if (k === "pm_token") h["X-PM-Token"] = v;
-        if (k === "admin_token") h["X-Admin-Token"] = v;
-        if (k === "field_token") h["X-Field-Token"] = v;
-      }
+    const map = {
+      "masci.hr.token": "X-HR-Token",
+      "masci.safety.token": "X-Safety-Token",
+      "masci.pm.token": "X-PM-Token",
+      "masci.admin.token": "X-Admin-Token",
+      "masci.fl.token": "X-FL-Token",
+    };
+    for (const [key, header] of Object.entries(map)) {
+      const v =
+        window.localStorage?.getItem(key) ||
+        window.sessionStorage?.getItem(key);
+      if (v) h[header] = v;
     }
   } catch (e) { /* ignore */ }
   return h;

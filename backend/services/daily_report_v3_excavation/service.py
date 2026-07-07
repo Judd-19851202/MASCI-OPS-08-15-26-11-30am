@@ -26,6 +26,7 @@ from services.certifications.qualification_registry import (
 from services.trench_safety.facts_emitter import (
     emit_competent_person_assignment_fact,
     emit_excavation_day_fact,
+    recompute_project_excavation_summary,
 )
 
 
@@ -266,6 +267,19 @@ async def process_excavation_on_submit(
         )
     except Exception:                                              # noqa: BLE001
         pass
+
+    # ── Refresh per-project summary fact so Safety Portal / PM /
+    # Scheduling read fresh counts immediately after submit.
+    # Best-effort · never fail a DR submit on this hook.
+    if project_number:
+        try:
+            await recompute_project_excavation_summary(
+                db, project_number,
+                actor=dr_doc.get("prepared_by") or "field",
+                trigger="daily_reports.excavation.submit",
+            )
+        except Exception:                                          # noqa: BLE001
+            pass
 
     # Store enriched excavation on the DR document.
     await db.daily_reports.update_one(

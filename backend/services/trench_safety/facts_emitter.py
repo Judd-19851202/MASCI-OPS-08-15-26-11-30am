@@ -513,7 +513,16 @@ async def recompute_project_excavation_summary(
     open_holds = await _count("trench_hold_fact", {"payload.is_active": True})
     total_holds = await _count("trench_hold_fact")
     verifications = await _count("trench_verification_fact")
-    cp_assignments = await _count("competent_person_assignment_fact")
+    # CP assignment facts legitimately come from multiple consumer sources
+    # (trench safety inspections, daily reports, scheduling). Count them
+    # without the source_id="trench_safety" narrowing so consumer-emitted
+    # facts (e.g. Track 23.10-E from daily_reports) are surfaced honestly.
+    cp_assignments = await db[COLL_FACTS].count_documents({
+        "source_type": SOURCE_TYPE_TRENCH,
+        "project_id": str(project_number),
+        "is_current": True,
+        "fact_type": "competent_person_assignment_fact",
+    })
     max_depth = 0.0
     cursor = db[COLL_FACTS].find(
         {**q_base, "fact_type": "excavation_day_fact"},
