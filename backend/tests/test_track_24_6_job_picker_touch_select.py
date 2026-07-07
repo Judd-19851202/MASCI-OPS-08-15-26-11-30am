@@ -66,3 +66,37 @@ def test_job_picker_keeps_onSelect_for_keyboard_parity():
             f"[Track 24.6] JobPicker CommandItem #{i+1} dropped "
             f"onSelect — keyboard Enter navigation will regress."
         )
+
+
+def test_job_picker_consumers_use_correct_prop_contract():
+    """Every JobPicker consumer must wire the props JobPicker actually
+    reads (`onSelect`, `projectNumber`, optionally `projectName`).
+
+    Track 24.3 accidentally rewrote SectionProjectConditions.jsx to
+    pass `value` / `onChange` — a silent contract break that made
+    every selection commit throw `onSelect is not a function` on
+    desktop, mobile, and keyboard alike. This lock keeps it from
+    happening again.
+    """
+    consumers = list(Path("/app/frontend/src").rglob("*.jsx"))
+    offenders = []
+    for path in consumers:
+        if path.name == "JobPicker.jsx":
+            continue
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        # Find JSX blocks that mount <JobPicker ...>
+        for m in re.finditer(r"<JobPicker\b[^/>]*(?:/>|>[^<]*</JobPicker>)",
+                             text, flags=re.DOTALL):
+            block = m.group(0)
+            # Must NOT use `value=` or `onChange=` on JobPicker.
+            if re.search(r"\bvalue=\{", block) or re.search(r"\bonChange=\{", block):
+                # Compute an approximate line for reporting.
+                line = text[:m.start()].count("\n") + 1
+                offenders.append((path, line, block[:180].replace("\n", " ")))
+    if offenders:
+        msg = "\n".join(f"  {p.relative_to('/app')}:{ln}  {b}" for p, ln, b in offenders)
+        raise AssertionError(
+            "[Track 24.6] JobPicker consumers using wrong prop contract "
+            "(should use projectNumber/projectName/onSelect, NOT "
+            "value/onChange):\n" + msg
+        )

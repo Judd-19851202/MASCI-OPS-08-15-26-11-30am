@@ -52,8 +52,9 @@ export function SectionProjectConditions({
             <RequiredLabel label={t("MASCI Job")} />
           </label>
           <JobPicker
-            value={data.project_number}
-            onChange={(job) => {
+            projectNumber={data.project_number}
+            projectName={data.project_name}
+            onSelect={(job) => {
               patch({
                 project_number: job?.project_number || "",
                 project_name: job?.project_name || "",
