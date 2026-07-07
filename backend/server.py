@@ -11660,6 +11660,39 @@ async def _track_23_10_b_qualification_migration_bootstrap():
         logger.warning(f"[track-23-10-b-migration] {exc}")
 
 
+# ─── TRACK 23.10-C · Trench Project Linker + ODS Trench Facts ───────
+# 7 canonical fact types + 4 derived views + project-scoped read APIs.
+# PM tokens see only assigned projects; Safety/Admin see company-wide.
+from routes.trench_project_intelligence import (  # noqa: E402
+    build_trench_project_intelligence_router,
+)
+from scripts.backfill_track_23_10_c_trench_facts import (  # noqa: E402
+    run_backfill as _run_trench_backfill,
+)
+
+app.include_router(build_trench_project_intelligence_router(
+    db,
+    require_read_dep=_require_any_portal_token,
+    require_admin_dep=require_admin,
+))
+
+
+@app.on_event("startup")
+async def _track_23_10_c_trench_backfill_bootstrap():
+    """Idempotent, capped backfill of trench facts. Fire-and-forget
+    background task — never blocks startup readiness.
+
+    Safe to re-run — natural-key `supersede_facts` collapses duplicates
+    to at most 1 current per row.
+    """
+    async def _run_bg():
+        try:
+            await _run_trench_backfill(db, boot_mode=True)
+        except Exception as exc:                                 # noqa: BLE001
+            logger.warning(f"[track-23-10-c-backfill] {exc}")
+    asyncio.create_task(_run_bg())
+
+
 
 
 # ─── Draft Telemetry (P0 field-incident · daily report draft loss) ──

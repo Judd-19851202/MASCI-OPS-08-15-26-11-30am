@@ -13,6 +13,14 @@ FACT_TYPES = (
     "qualification_certification_fact",
     "qualification_expiration_fact",
     "qualification_assignment_fact",
+    # TRACK 23.10-C · Trench Safety project-linked facts (canonical 7).
+    "excavation_day_fact",
+    "trench_inspection_fact",
+    "trench_hold_fact",
+    "trench_repair_fact",
+    "trench_verification_fact",
+    "competent_person_assignment_fact",
+    "project_excavation_summary_fact",
 )
 
 SOURCE_TYPES = (
