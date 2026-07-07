@@ -1,0 +1,61 @@
+{
+  "summary": "Track 24.8 JobPicker touch-select regression testing on /daily/submit preview. Desktop click and keyboard Enter regressions PASS. Stationary mobile tap PASSES for Oxford (24-12), University High (26-07), and Custom job. HOWEVER the core Track 24.8 fix — the movement-threshold scroll-vs-tap disambiguation — DOES NOT ACTUALLY WORK. Simulated scroll (200px vertical pointermove sequence on the first row) still commits the initial row (verified: label became '20-07 · T5686 SR 15/SR600' after scrolling with pointerdown on 20-07). This is a P0 — the operator's original 'wrong row selected while scrolling' bug is NOT fixed.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "JobPicker.jsx (commitHandlersFor)",
+        "issue": "P0: cmdk's CommandItem internally sets its OWN onPointerMove handler AFTER the props spread, which OVERRIDES the onPointerMove from commitHandlersFor(...). Result: touchRef.active is NEVER set to false during a scroll gesture, so onPointerUp still commits the row where the finger first touched down. Track 24.8 movement-cancel logic is a no-op.",
+        "selector": "[data-testid^='job-picker-item-']",
+        "priority": "P0"
+      }
+    ],
+    "integration_issues": [
+      {
+        "flow": "Mobile touch-scroll over job list",
+        "issue": "Scrolling from row 1 down 200px commits row 1 (label changes to '#20-07'). Expected: no commit, label stays 'Pick a MASCI job — or choose Custom'. This is a reproduction of the original operator complaint on preview.",
+        "affected_selectors": ["[data-testid='job-picker-trigger']", "[data-testid^='job-picker-item-']"]
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/backend/tests/test_track_24_6_job_picker_touch_select.py"],
+  "action_items": [
+    "URGENT P0: Rewrite commitHandlersFor so its onPointerMove is NOT overridden by cmdk. Options: (a) attach the movement-cancel via useRef + native addEventListener on the CommandItem's underlying DOM node, (b) wrap CommandItem children in an inner <div> that owns the pointer handlers, (c) intercept pointermove on the CommandList/scroll container level, or (d) use pointer capture / scroll-detection based on the scroll container's scroll event.",
+    "Verify cmdk 1.x source at /app/frontend/node_modules/cmdk/dist/index.mjs — CommandItem creates its element with `{...q, ..., onPointerMove: A||disable?undefined:S, onClick: C}`. The onPointerMove from spread props is unconditionally overwritten.",
+    "Re-run the same simulated-scroll test after fix — it should keep the trigger label as 'Pick a MASCI job — or choose Custom'."
+  ],
+  "critical_code_review_comments": [
+    "Track 24.8 fix architectural miss: spreading React event handlers onto a wrapper component (CommandItem) is unsafe when that component sets its own handlers of the same name. cmdk's <Item> overrides onPointerMove; our handler is dropped silently — no TypeScript/lint error since props shape is compatible.",
+    "Suggested fix pattern: `const itemRef = useRef(null); useEffect(() => { const el = itemRef.current; if(!el) return; el.addEventListener('pointermove', handler, {passive:true}); return () => el.removeEventListener('pointermove', handler); }, []);` This bypasses React's synthetic layer and cmdk's overrides.",
+    "Alternative: listen for scroll on CommandList and set a 'scrolling' flag that pointerup checks."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "not tested", "frontend": "67% (4/6 tests pass; stationary tap works but scroll-cancel — the whole point of 24.8 — does not)"},
+  "test_credentials": "none required",
+  "seed_data_creation": "none",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Preview URL: https://safety-audit-mobile-1.preview.emergentagent.com/daily/submit. Job list has 29 jobs including Oxford (24-12) and University High Parent Loop Ext (26-07). To simulate real touch when the Playwright context lacks has_touch, dispatch PointerEvents via page.evaluate — set pointerType:'touch', bubbles:true, composed:true. Use pointerdown→(20x pointermove increments)→pointerup pattern on a row's DIV via document.elementFromPoint. After fix, the scroll test MUST leave trigger label unchanged.",
+  "rca_of_the_issue": {
+    "symptom": "iOS user sees dropdown, taps 'University High School' row, but a DIFFERENT job commits. Also scrolling past a row commits whichever row the finger first touched.",
+    "root_cause": "cmdk (shadcn Command) <Item> renders `<div ... onPointerMove={S} onClick={C}>` where the onPointerMove and onClick are placed AFTER the {...props} spread. The commitHandlersFor(...) from JobPicker.jsx passes onPointerDown/onPointerMove/onPointerUp via prop spread, but onPointerMove is overwritten by cmdk's internal selection-highlight handler. Therefore the movement-cancel branch (touchRef.current.active = false) never executes. onPointerUp still commits because active is still true, regardless of how far the finger travelled.",
+    "reproduction_steps_preview": [
+      "GET https://safety-audit-mobile-1.preview.emergentagent.com/daily/submit at 390x844.",
+      "Click job-picker-trigger to open popover.",
+      "On the first row (data-testid job-picker-item-20-07) dispatch a synthetic touch pointerdown → 20 pointermove events dropping y by 10px each (total 200px) → pointerup.",
+      "Observe trigger label becomes 'T5686 SR 15/SR600 (SANFORD, 17/92, LAKE MARY)  ·  #20-07' — a wrong commit from a pure scroll gesture."
+    ],
+    "mitigation": "Attach pointermove listener via native addEventListener on the item's DOM node (using a ref), NOT via React prop spread onto CommandItem. Alternatively, detect scroll at the CommandList container and set a shared 'suppressCommit' flag that onPointerUp respects."
+  },
+  "passed_tests": [
+    "desktop_click_oxford (label='CC5744 - OXFORD RD Improvements (OXFORD)  ·  #24-12')",
+    "keyboard_enter_oxford (ArrowDown+Enter commits 24-12)",
+    "mobile_stationary_tap_oxford (label #24-12)",
+    "mobile_stationary_tap_university (label #26-07 — University High Parent Loop Ext)",
+    "mobile_custom_job_tap (popover closes, custom mode committed)"
+  ],
+  "failed_tests": [
+    "mobile_scroll_no_select — P0. 200px scroll from row 20-07 commits row 20-07."
+  ]
+}

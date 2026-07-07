@@ -32,28 +32,43 @@ def _extract_command_items(src: str):
 
 
 def test_job_picker_command_items_commit_on_pointerdown():
+    """Every CommandItem must wire the shared touch handlers via
+    commitHandlersFor(...) so scroll gestures do not commit
+    selections. Track 24.8 replaced the naive Track 24.6 onPointerDown
+    with a movement-threshold + pointerup pattern."""
     src = JOB_PICKER.read_text(encoding="utf-8")
     items = _extract_command_items(src)
     assert items, "JobPicker.jsx does not contain any <CommandItem> — refactor detected. This test needs updating."
     for i, block in enumerate(items):
-        assert "onPointerDown" in block, (
-            f"[Track 24.6] JobPicker CommandItem #{i+1} is missing "
-            f"`onPointerDown` — iOS Safari tap-to-select will regress "
-            f"and mobile users will not be able to pick a job. Block:\n"
-            f"{block[:300]}"
+        assert "commitHandlersFor(" in block, (
+            f"[Track 24.8] JobPicker CommandItem #{i+1} is not using "
+            f"the shared commitHandlersFor(...) touch handlers — "
+            f"scroll gestures may incorrectly commit selections on "
+            f"iOS. Block:\n{block[:300]}"
         )
-        # Sanity-check the pointer-type guard is present so we don't
-        # double-fire on desktop mouse (which already works via
-        # onSelect click).
-        assert 'pointerType' in block, (
-            f"[Track 24.6] JobPicker CommandItem #{i+1} onPointerDown "
-            f"handler is missing a pointerType guard — desktop mouse "
-            f"clicks will double-fire selection."
-        )
-        # Selection commit must be inside the handler.
+        # Sanity-check onSelect is preserved for keyboard/desktop.
         assert 'onSelect(' in block, (
-            f"[Track 24.6] JobPicker CommandItem #{i+1} does not appear "
-            f"to invoke onSelect() — selection cannot commit."
+            f"[Track 24.8] JobPicker CommandItem #{i+1} does not "
+            f"appear to invoke onSelect() — keyboard/desktop path broken."
+        )
+
+
+def test_job_picker_uses_movement_threshold_touch_pattern():
+    """The JobPicker module must contain the Track 24.8 movement-
+    threshold touch selector so scrolling does not commit rows."""
+    src = JOB_PICKER.read_text(encoding="utf-8")
+    for marker in [
+        "TOUCH_MOVE_CANCEL_PX",
+        "commitHandlersFor",
+        "onPointerUp",
+        "onPointerMove",
+        "onPointerCancel",
+    ]:
+        assert marker in src, (
+            f"[Track 24.8] JobPicker.jsx missing `{marker}` — the "
+            f"scroll-vs-tap disambiguation is not in place. Users on "
+            f"iOS will commit the row their finger first touched when "
+            f"scrolling."
         )
 
 

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { Check, ChevronDown, Search, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +18,19 @@ import { cn } from "@/lib/utils";
 import { JOB_LIBRARY as STATIC_LIBRARY, CUSTOM_JOB_KEY } from "@/lib/jobLibrary";
 import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
+
+// TRACK 24.8 · Touch-select vs scroll disambiguation.
+//
+// The earlier Track 24.6 fix (commit on pointerdown) fixed the iOS
+// Safari input-blur race but introduced a WORSE bug: any scroll
+// gesture that started on a row committed that row instantly, so
+// users scrolling PAST "University High School" ended up selecting
+// whatever row their finger first touched. This module records the
+// touch start position, cancels the pending selection if the finger
+// moves > TOUCH_MOVE_CANCEL_PX, and commits on pointerup only for
+// stationary taps. Movement-based cancellation is the industry-
+// standard native-feel pattern.
+const TOUCH_MOVE_CANCEL_PX = 8;
 
 // Module-level cache so every <JobPicker> on the page hits the API once.
 let _jobsCache = null;
@@ -82,6 +95,43 @@ export function JobPicker({
     ? t("Pick a MASCI job — or choose Custom")
     : t("Select Job");
 
+  // TRACK 24.8 · shared touch-tracking ref for all CommandItems.
+  // Records the pointerdown position and the row's data-testid, and
+  // commits only on pointerup IF the finger did not scroll away.
+  const touchRef = useRef({ x: 0, y: 0, active: false, targetId: null });
+  const commitHandlersFor = (commit, testid) => ({
+    onPointerDown(e) {
+      if (!e.pointerType || e.pointerType === "mouse") return;
+      touchRef.current = {
+        x: e.clientX,
+        y: e.clientY,
+        active: true,
+        targetId: testid,
+      };
+    },
+    onPointerMove(e) {
+      const s = touchRef.current;
+      if (!s.active) return;
+      const dx = e.clientX - s.x;
+      const dy = e.clientY - s.y;
+      if (dx * dx + dy * dy > TOUCH_MOVE_CANCEL_PX * TOUCH_MOVE_CANCEL_PX) {
+        touchRef.current.active = false;
+      }
+    },
+    onPointerUp(e) {
+      const s = touchRef.current;
+      touchRef.current = { x: 0, y: 0, active: false, targetId: null };
+      if (!s.active) return;
+      if (!e.pointerType || e.pointerType === "mouse") return;
+      if (s.targetId !== testid) return;
+      e.preventDefault();
+      commit();
+    },
+    onPointerCancel() {
+      touchRef.current = { x: 0, y: 0, active: false, targetId: null };
+    },
+  });
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -137,19 +187,10 @@ export function JobPicker({
                   onSelect(null);
                   setOpen(false);
                 }}
-                // TRACK 24.6 · iOS Safari + cmdk selection race.
-                // On touch devices the CommandInput blur fires BEFORE
-                // the CommandItem click, so the popover closes and the
-                // item unmounts before onSelect can run. Committing on
-                // pointerdown (which fires before blur) restores tap-
-                // to-select parity with desktop click / keyboard Enter.
-                onPointerDown={(e) => {
-                  if (e.pointerType && e.pointerType !== "mouse") {
-                    e.preventDefault();
-                    onSelect(null);
-                    setOpen(false);
-                  }
-                }}
+                {...commitHandlersFor(
+                  () => { onSelect(null); setOpen(false); },
+                  "job-picker-custom",
+                )}
                 className="py-3 cursor-pointer"
                 data-testid="job-picker-custom"
               >
@@ -180,18 +221,10 @@ export function JobPicker({
                     onSelect(j);
                     setOpen(false);
                   }}
-                  // TRACK 24.6 · iOS Safari + cmdk selection race —
-                  // commit on pointerdown for touch so the popover
-                  // does not close via input-blur before onSelect
-                  // lands. Mouse pointers fall through to the
-                  // standard cmdk onSelect path.
-                  onPointerDown={(e) => {
-                    if (e.pointerType && e.pointerType !== "mouse") {
-                      e.preventDefault();
-                      onSelect(j);
-                      setOpen(false);
-                    }
-                  }}
+                  {...commitHandlersFor(
+                    () => { onSelect(j); setOpen(false); },
+                    `job-picker-item-${j.project_number}`,
+                  )}
                   className="py-2.5 cursor-pointer"
                   data-testid={`job-picker-item-${j.project_number}`}
                 >
