@@ -7066,6 +7066,46 @@ const ES = {
   "Step 7 · What's next?": "Paso 7 · ¿Qué sigue?",
   "Step 8 · Draft your report summary": "Paso 8 · Redacte el resumen del reporte",
   "Step 9 · Sign & submit": "Paso 9 · Firmar y enviar",
+  // Photos helper
+  "Add at least 1 more photo before submit.":
+    "Añada al menos 1 foto más antes de enviar.",
+  "Add at least": "Añada al menos",
+  "more photos before submit.": "fotos más antes de enviar.",
+  "Choose photo / file": "Elegir foto / archivo",
+  // AI assistant
+  "AI drafts a summary from what you entered. You stay the source of truth — accept, edit, or ignore. This is what your PM will see.":
+    "La IA redacta un resumen a partir de lo que ingresó. Usted sigue siendo la fuente de verdad — acepte, edite o ignore. Esto es lo que verá su PM.",
+  "Draft Summary": "Borrador de Resumen",
+  "building…": "generando…",
+  "ready": "listo",
+  "accepted": "aceptado",
+  "using deterministic summary": "usando resumen determinista",
+  "Grounded in the fields you've entered. Never invents facts. Optional — you can accept, edit, regenerate, or ignore.":
+    "Basado en los campos que ingresó. Nunca inventa hechos. Opcional — puede aceptar, editar, regenerar o ignorar.",
+  "Add activities, crew, or notes to see a draft summary here.":
+    "Añada actividades, cuadrilla o notas para ver aquí un borrador del resumen.",
+  // Submit / signature
+  "Still needed:": "Aún falta:",
+  "checking…": "verificando…",
+  "Submitting…": "Enviando…",
+  "Submit Daily Report": "Enviar Reporte Diario",
+  "Sign with your finger, stylus, or mouse above the line.":
+    "Firme con el dedo, lápiz óptico o el ratón sobre la línea.",
+  "Regenerate": "Regenerar",
+  "Ignore": "Ignorar",
+  "Summary assist unavailable — you can still submit normally.":
+    "Asistente de resumen no disponible — aún puede enviar normalmente.",
+  // Readiness labels
+  "Project": "Proyecto",
+  "Signature": "Firma",
+  "photos": "fotos",
+  "Safety event type": "Tipo de evento de seguridad",
+  "Safety contacted": "Seguridad contactada",
+  "Who at Safety": "Quién en Seguridad",
+  "Time Safety contacted": "Hora de contacto con Seguridad",
+  "Incident report filed": "Reporte de incidente presentado",
+  "Time incident report filed": "Hora de presentación del reporte",
+  " items complete.": " ítems completos.",
 };
 
 const DICTS = { es: ES, en: {} };

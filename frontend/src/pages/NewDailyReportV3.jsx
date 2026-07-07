@@ -252,15 +252,15 @@ export default function NewDailyReportV3({ publicMode = false }) {
   const photoMin = data.photo_min || 6;
   const readiness = useMemo(() => {
     const items = [
-      { key: "project", ok: !!data.project_name, label: "Project" },
-      { key: "location", ok: !!data.location, label: "Location" },
-      { key: "prepared_by", ok: !!data.prepared_by, label: "Prepared By" },
+      { key: "project", ok: !!data.project_name, label: t("Project") },
+      { key: "location", ok: !!data.location, label: t("Location") },
+      { key: "prepared_by", ok: !!data.prepared_by, label: t("Prepared By") },
       {
         key: "photos",
         ok: (data.photos || []).length >= photoMin,
-        label: `${photoMin} photos`,
+        label: `${photoMin} ${t("photos")}`,
       },
-      { key: "signature", ok: !!data.prepared_by_signature, label: "Signature" },
+      { key: "signature", ok: !!data.prepared_by_signature, label: t("Signature") },
     ];
     // TRACK 23.4A · Full V1 safety-escalation gate. When the supervisor
     // flags any safety event, Safety must be contacted, contact fields
@@ -271,42 +271,42 @@ export default function NewDailyReportV3({ publicMode = false }) {
       items.push({
         key: "safety_event_type",
         ok: !!(data.safety_event_type || "").trim(),
-        label: "Safety event type",
+        label: t("Safety event type"),
       });
       items.push({
         key: "safety_notified",
         ok: data.safety_notified === "Yes",
-        label: "Safety contacted",
+        label: t("Safety contacted"),
       });
       if (data.safety_notified === "Yes") {
         items.push({
           key: "safety_contact_person",
           ok: !!(data.safety_contact_person || "").trim(),
-          label: "Who at Safety",
+          label: t("Who at Safety"),
         });
         items.push({
           key: "safety_contact_time",
           ok: !!(data.safety_contact_time || "").trim(),
-          label: "Time Safety contacted",
+          label: t("Time Safety contacted"),
         });
       }
       items.push({
         key: "incident_report",
         ok: data.incident_report_filled === "Yes",
-        label: "Incident report filed",
+        label: t("Incident report filed"),
       });
       if (data.incident_report_filled === "Yes") {
         items.push({
           key: "incident_report_time",
           ok: !!(data.incident_report_time || "").trim(),
-          label: "Time incident report filed",
+          label: t("Time incident report filed"),
         });
       }
     }
     const completed = items.filter((i) => i.ok).length;
     const missing = items.filter((i) => !i.ok).map((i) => i.label);
     return { items, total: items.length, completed, missing };
-  }, [data, photoMin]);
+  }, [data, photoMin, t]);
 
   const canSubmit = readiness.completed === readiness.total;
 
@@ -404,7 +404,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
           flagged. */}
       <DailyReportTopBanner backLink="/" showBackLink={!publicMode}>
         <div className="flex items-center gap-2" data-testid="dr-v3-header-chips">
-          <LangToggle variant="dark" data-testid="dr-v3-lang-toggle" />
+          <LangToggle variant="dark" testId="dr-v3-lang-toggle" />
           {!online && (
             <span
               data-testid="dr-v3-offline-chip"

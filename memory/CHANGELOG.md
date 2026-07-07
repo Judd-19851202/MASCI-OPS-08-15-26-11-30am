@@ -1,5 +1,33 @@
 # CHANGELOG
 
+## 2026-02-07 — TRACK 24.3 · DR V3 EN/ES Parity + Canonical English Submit Pipeline · 🟢 SHIPPED
+
+Closed the final P0 deployment blocker: Daily Report V3 now supports full EN/ES UI parity while the backend, ODS, AI evidence bundle, PDF, and email pipelines remain 100 % canonical English.
+
+**Backend**
+- `services/translation/service.py` — `translate_es_to_en_bulk()` deterministic (temperature=0, JSON-only) ES→EN construction-industry translator. Primary: OpenAI **GPT-5.2** via Emergent Universal Key. Fallback: **Claude Sonnet 4.5** via same key. Fail-closed on: `llm_key_missing`, `translation_no_json`, `translation_invalid_json`, `translation_key_mismatch`, `translation_non_string_value`, `translation_spanish_leak`, `translation_preserve_token_lost`, `translation_provider_error`.
+- `routes/translation.py` — `POST /api/translate/dr-v3-freetext` (rate-limited by the public-POST guard). Payload size caps (40 000 chars, 100 fields). Returns 502 with operator-visible `translation_service_unavailable` message on any failure so DR V3 blocks submit.
+- Every call writes one row to `db.translation_audit` (actor, provider, model, latency, field paths, ok/err) — LLM key never logged.
+
+**Frontend**
+- `LangToggle` mounted in DR V3 header (`data-testid="dr-v3-lang-toggle"`). Persists to `localStorage` (`masci.lang`). Switching languages preserves all form values (verified via testing agent).
+- 6 DR V3 files fully wrapped in `t()`: `NewDailyReportV3.jsx`, `sections.jsx` (all 8 sections), `DailyReportV3ExcavationSection.jsx`, `SectionProjectConditions.jsx`, `CompetentPersonCombo.jsx`, `UnitCombo.jsx`. Plus DR V3 sub-components: `DailySummaryAssist.jsx`, `SignaturePad.jsx`, PhotoUpload (already wrapped).
+- `RequiredLabel` component splits `Label *` composites so the label translates and the red asterisk stays.
+- ~200 new EN→ES key pairs in `frontend/src/lib/i18n.js` (Track 24.3 block). Fallback for missing keys returns the English source string.
+- `spellCheck={false}` on all coded / numeric / date / station-number inputs; native browser spellcheck (`lang` cascades from `<html lang="…">` set by the existing `_syncHtmlLang()`) on all natural-language textareas.
+- `lib/drV3Translation.js` — client orchestrator. Deep-clones the DR payload, extracts every free-text field (26 canonical paths including excavation + row-scoped notes), collects preserve-tokens (project number, employee names, station numbers, Sta X+YY, IDs like `24-12`, cost codes), POSTs to `/api/translate/dr-v3-freetext`, writes translations back onto the canonical fields, attaches `translation_metadata` (+ `original_spanish_snapshot` audit sub-doc), and hands the English payload to `POST /api/daily-reports`. Fail-closed: on failure the submit is blocked with a non-dismissible toast: *"Spanish text could not be translated for submission. Please try again or switch to English."*
+
+**Tests**
+- `backend/tests/test_track_24_3_es_to_en_translation.py` — 9 unit tests covering: success path, empty payload, preserve-token verification, JSON validation, key mismatch, Spanish leak, provider fallback, missing key, audit row. 9/9 pass.
+- `backend/tests/test_track_24_3_dr_v3_i18n_lock.py` — hard-coded-string lock scan across 8 DR V3 files + i18n key parity check. 9/9 pass.
+- Testing agent iteration 534: backend 100 % (23/23 unit+API), frontend ~100 % after this session's follow-up fixes (EN leaks all zero, all headers/toggle/persist/reload pass).
+
+**Real-world verification (curl to preview)**
+- `POST /api/translate/dr-v3-freetext` on `"Suelo tipo B con piedras grandes"` + `"Cuadrilla trabajando en Sta 12+50 con excavadora 24-12"` returned English translations preserving `Sta 12+50` and `24-12` verbatim in ~3.2s from GPT-5.2.
+- Screenshot proof: DR V3 in ES mode shows fully translated section headers (`PASO 8 · REDACTE EL RESUMEN DEL REPORTE`, `Asistente de Resumen Operacional`, `Preparación de Envío y Firma`, `Aún falta:`, `Firma de Preparado Por`, `Firme con el dedo, lápiz óptico o el ratón sobre la línea.`, `Enviar Reporte Diario`) with zero English leaks.
+
+
+
 ## 2026-07-05 — TRACK 22.4b-followup-Dispatch-Idempotency · 🟢 SHIPPED · GO
 
 Protected `/api/dispatch/assignments` (including Roll-Off canonical variant) with the shared workflow-scoped reservation-lock. Same-key concurrent retries now produce exactly one dispatch assignment, one SMS side-effect, one notification, one Trust Spine event.

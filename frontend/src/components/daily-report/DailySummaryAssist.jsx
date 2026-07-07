@@ -16,6 +16,7 @@ import { Sparkles, RefreshCw, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/lib/api";
+import { useT } from "@/lib/i18n";
 
 // Deterministic fallback — used when AI is disabled OR the request
 // times out OR the provider returns an unhelpful envelope. Grounded
@@ -86,6 +87,7 @@ const DEBOUNCE_MS = 1200;
 const REQUEST_TIMEOUT_MS = 15000; // hard timeout · > this → deterministic fallback
 
 export default function DailySummaryAssist({ data, reportNumber, onAccept, testId = "daily-summary-assist" }) {
+  const { t } = useT();
   const reportId = useMemo(
     () => (reportNumber ? `dr-${reportNumber}` : `dr-draft-${Date.now()}`),
     [reportNumber],
@@ -249,32 +251,32 @@ export default function DailySummaryAssist({ data, reportNumber, onAccept, testI
     <div data-testid={testId} className="border border-slate-200 rounded-lg bg-white p-4">
       <div className="flex items-center gap-2 mb-2">
         <Sparkles className="w-4 h-4 text-slate-600" aria-hidden="true" />
-        <h3 className="text-sm font-semibold text-slate-800">Draft Summary</h3>
+        <h3 className="text-sm font-semibold text-slate-800">{t("Draft Summary")}</h3>
         {status === "building" && (
           <span className="ml-2 inline-flex items-center gap-1 text-xs text-slate-500" data-testid={`${testId}-status`}>
             <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" />
-            building…
+            {t("building…")}
           </span>
         )}
         {status === "ready" && !accepted && (
-          <span className="ml-2 text-xs text-emerald-700" data-testid={`${testId}-status`}>ready</span>
+          <span className="ml-2 text-xs text-emerald-700" data-testid={`${testId}-status`}>{t("ready")}</span>
         )}
         {accepted && (
           <span className="ml-2 inline-flex items-center gap-1 text-xs text-emerald-700" data-testid={`${testId}-status`}>
-            <Check className="w-3 h-3" aria-hidden="true" />accepted
+            <Check className="w-3 h-3" aria-hidden="true" />{t("accepted")}
           </span>
         )}
         {!aiAvailable && status !== "building" && (
-          <span className="ml-2 text-xs text-slate-500" data-testid={`${testId}-fallback`}>using deterministic summary</span>
+          <span className="ml-2 text-xs text-slate-500" data-testid={`${testId}-fallback`}>{t("using deterministic summary")}</span>
         )}
       </div>
       <p className="text-xs text-slate-500 mb-3">
-        Grounded in the fields you&apos;ve entered. Never invents facts. Optional — you can accept, edit, regenerate, or ignore.
+        {t("Grounded in the fields you've entered. Never invents facts. Optional — you can accept, edit, regenerate, or ignore.")}
       </p>
 
       {status === "idle" && !narrative && (
         <p className="text-sm text-slate-500 italic" data-testid={`${testId}-empty`}>
-          Add activities, crew, or notes to see a draft summary here.
+          {t("Add activities, crew, or notes to see a draft summary here.")}
         </p>
       )}
 
@@ -318,7 +320,7 @@ export default function DailySummaryAssist({ data, reportNumber, onAccept, testI
               disabled={status === "building"}
               data-testid={`${testId}-regenerate`}
             >
-              <RefreshCw className="w-3 h-3 mr-1" />Regenerate
+              <RefreshCw className="w-3 h-3 mr-1" />{t("Regenerate")}
             </Button>
             <Button
               type="button"
@@ -327,12 +329,12 @@ export default function DailySummaryAssist({ data, reportNumber, onAccept, testI
               onClick={handleClear}
               data-testid={`${testId}-clear`}
             >
-              Ignore
+              {t("Ignore")}
             </Button>
           </div>
           {error && (
             <p className="mt-2 text-xs text-slate-500" data-testid={`${testId}-error`}>
-              Summary assist unavailable — you can still submit normally.
+              {t("Summary assist unavailable — you can still submit normally.")}
             </p>
           )}
         </>

@@ -1292,7 +1292,9 @@ export function SectionPhotos({ data, patch, photoMin }) {
       />
       {short > 0 && (
         <p className="mt-3 text-xs text-amber-700" data-testid="dr-v3-photo-short">
-          Add at least {short} more photo{short === 1 ? "" : "s"} before submit.
+          {short === 1
+            ? t("Add at least 1 more photo before submit.")
+            : `${t("Add at least")} ${short} ${t("more photos before submit.")}`}
         </p>
       )}
     </SectionShell>
@@ -1898,8 +1900,7 @@ export function SectionAiSummary({ data, reportId, onAccepted }) {
       testId="dr-v3-section-ai-summary"
     >
       <p className="mb-3 text-xs text-slate-500">
-        AI drafts a summary from what you entered. You stay the source of truth — accept, edit,
-        or ignore. This is what your PM will see.
+        {t("AI drafts a summary from what you entered. You stay the source of truth — accept, edit, or ignore. This is what your PM will see.")}
       </p>
       <DailySummaryAssist
         reportId={reportId}
@@ -1933,11 +1934,11 @@ export function SectionSignoff({
           }
         >
           {canSubmit ? (
-            <>{t("Ready to submit —")}<strong>{readiness.completed}/{readiness.total}</strong> items complete.</>
+            <>{t("Ready to submit —")}<strong>{readiness.completed}/{readiness.total}</strong>{t(" items complete.")}</>
           ) : (
             <>
-              Still needed:{" "}
-              <strong>{readiness.missing.join(" · ") || "checking…"}</strong>
+              {t("Still needed:")}{" "}
+              <strong>{readiness.missing.join(" · ") || t("checking…")}</strong>
             </>
           )}
         </div>
@@ -1960,7 +1961,7 @@ export function SectionSignoff({
           onClick={onSubmit}
           data-testid="dr-v3-submit-btn"
         >
-          {saving ? "Submitting…" : "Submit Daily Report"}
+          {saving ? t("Submitting…") : t("Submit Daily Report")}
         </Button>
       </div>
     </SectionShell>

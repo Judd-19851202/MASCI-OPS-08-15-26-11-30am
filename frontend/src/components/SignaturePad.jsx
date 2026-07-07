@@ -2,12 +2,14 @@ import React, { useRef, useEffect, useState } from "react";
 import SignatureCanvas from "react-signature-canvas";
 import { Button } from "@/components/ui/button";
 import { Eraser } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 /**
  * Touch-friendly signature pad. Calls onChange(dataURL) when the user
  * finishes a stroke; emits "" when cleared.
  */
 export const SignaturePad = ({ value, onChange, label, testId = "signature" }) => {
+  const { t } = useT();
   const padRef = useRef(null);
   const containerRef = useRef(null);
   const [width, setWidth] = useState(600);
@@ -60,7 +62,7 @@ export const SignaturePad = ({ value, onChange, label, testId = "signature" }) =
             data-testid={`${testId}-clear`}
             className="text-slate-600 hover:text-red-600"
           >
-            <Eraser className="w-4 h-4 mr-1" /> Clear
+            <Eraser className="w-4 h-4 mr-1" /> {t("Clear")}
           </Button>
         </div>
       )}
@@ -82,7 +84,7 @@ export const SignaturePad = ({ value, onChange, label, testId = "signature" }) =
         />
       </div>
       <p className="text-xs text-slate-500">
-        Sign with your finger, stylus, or mouse above the line.
+        {t("Sign with your finger, stylus, or mouse above the line.")}
       </p>
     </div>
   );

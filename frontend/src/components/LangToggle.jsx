@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
  * Visible on every form header so a Spanish-speaking crew member can flip
  * the UI without touching submitted data.
  */
-export function LangToggle({ className = "", variant = "dark" }) {
+export function LangToggle({ className = "", variant = "dark", testId = "lang-toggle" }) {
   const { lang, setLang } = useT();
 
   // iter-RC1-FH · M-15 · guarantee a 36 px tap target for the EN/ES
@@ -37,7 +37,7 @@ export function LangToggle({ className = "", variant = "dark" }) {
         styles.wrap,
         className
       )}
-      data-testid="lang-toggle"
+      data-testid={testId}
     >
       <span
         className={cn(

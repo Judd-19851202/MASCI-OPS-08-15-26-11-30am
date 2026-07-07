@@ -4,6 +4,22 @@ This file tracks **parked features** the user wants to revisit later. Surface th
 
 ---
 
+## ✅ COMPLETE · Track 24.3 — DR V3 EN/ES Parity + Canonical English Submit Pipeline (2026-02-07)
+
+Closed the last P0 deployment blocker. Daily Report V3 fully supports Spanish UI (LangToggle in header, all 8 sections + AI assist + signature translated) while the backend remains 100 % canonical English via `POST /api/translate/dr-v3-freetext` (GPT-5.2 primary, Claude Sonnet 4.5 fallback, fail-closed). 18/18 backend tests green. Ready for Track 24.4 final production certification audit.
+
+## 🔴 P0 · Track 24.4 — Final Production Certification Audit (NEXT)
+
+Full deployment-readiness sweep across Tracks 23.10-B/C/D/E + 24.1 + 24.2 + 24.3. Confirm:
+- Every P0 blocker closed
+- 24.3 translation service latency under 4 s at p95
+- ES→EN audit row present for every ES submit
+- AI evidence bundle / PDF / email / ODS / KPIs strictly English
+- No provider/model/key leaks in AI responses
+- 6-viewport mobile pass (390/430/768/1024/1366/1440) both languages
+
+
+
 ## ✅ COMPLETE · Track 15.72A — Email Routing Observability + Self-Certification (2026-06-23)
 
 Closed the observability gap from Track 15.69K. Two new admin-gated endpoints (`status`, `self-check`) + new Routing Status panel mounted at the top of Admin → Email & Routing. Admin can certify routing mode + V2 activation + critical-route health + rollback readiness in ≤30 sec from the UI alone. Zero tokens pasted, zero Mongo access, zero DevTools. 6/6 pillars GREEN. Operator next step: re-deploy to production to ship the panel.

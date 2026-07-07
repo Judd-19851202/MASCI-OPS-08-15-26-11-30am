@@ -29,6 +29,10 @@ DR_V3_FILES = [
     FRONTEND_ROOT / "components" / "daily-report-v3" / "SectionProjectConditions.jsx",
     FRONTEND_ROOT / "components" / "daily-report-v3" / "CompetentPersonCombo.jsx",
     FRONTEND_ROOT / "components" / "daily-report-v3" / "UnitCombo.jsx",
+    # Track 24.3 · sub-components rendered inside DR V3 that must also
+    # translate cleanly in ES mode.
+    FRONTEND_ROOT / "components" / "daily-report" / "DailySummaryAssist.jsx",
+    FRONTEND_ROOT / "components" / "SignaturePad.jsx",
 ]
 
 # Substrings we do NOT flag (technical / infrastructure strings).
