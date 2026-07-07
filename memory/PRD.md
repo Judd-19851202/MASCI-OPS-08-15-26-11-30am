@@ -11877,3 +11877,37 @@ Preview environment ships Playwright chromium only — WebKit smoke of the Track
 - Phase C — Project auto-population certification.
 - Phase D — Real human workflow · AI · Submit · Email · Mobile 390→1440px sweep.
 - Phase E — Full end-to-end certification with testing agent.
+
+## TRACK 24.9 · PHASE B · Platform-wide picker/dropdown/cmdk audit · 🟢 SHIPPED · CERTIFIED (2026-02-07 · iteration_543)
+
+**Scope**: Every picker/combobox/dropdown on the platform audited against 13 criteria (data source, auth behavior, API returns, empty-state truthfulness, mobile tap, scroll-vs-tap safety, desktop click, keyboard, state commit, payload commit, PII on public flows, console errors, regression locks).
+
+**Findings & fixes**:
+1. **Track 24.8 touch-vs-scroll pattern promoted to shared primitive** — extracted from `JobPicker.jsx` into `/app/frontend/src/lib/useCmdkTouchGuard.js` (returns `commitHandlersFor(commit, testid)`). Applied to all 4 cmdk consumers on the platform:
+   - `components/JobPicker.jsx` (refactored to consume hook)
+   - `components/TopicPicker.jsx` (2× CommandItem: custom row + library rows)
+   - `components/team/JobTeamRosterPanel.jsx` (user picker)
+   - `components/trench/EmployeePicker.jsx` (roster + CP rows)
+2. **P0 PII leak closed** — `/api/master-lookup/employees` and `/api/master-lookup/employees/by-id/{id}` were open to the world and returned real employee `email`. Same class as Track 24.1 P0-1. Auth-gated with `require_any_portal_read` — all in-tree callers (NewIncident, SafetyTrainingRecords, SafetyCorrectiveActions) are authenticated safety-portal pages so no UX regression.
+3. **Non-cmdk pickers verified safe by default** — EmployeeCombo, EquipmentCombo, SupplierCombo, MasterLookupCombobox, ShopSelector, PmProjectSelector, FlUserCombo, UnitCombo, OwnerPicker, TrenchAssetPicker, SearchableSelect, CompetentPersonCombo all use `<button onClick>`. Browser click semantics natively handle scroll-vs-tap — no guard needed.
+
+**Lock suite** (`/app/backend/tests/test_track_24_9_phase_b_picker_audit.py`, 16 tests all green):
+- `test_cmdk_picker_uses_shared_touch_guard[JobPicker/TopicPicker/JobTeamRosterPanel/trench/EmployeePicker]` (parametrized × 4).
+- `test_no_orphan_cmdk_picker_files` — any new `<CommandItem>` added without touch-guard adoption fires this alarm.
+- `test_master_lookup_employees_requires_auth` + `..._works_with_admin_token` + `..._by_id_requires_auth`.
+- `test_public_picker_endpoint_no_pii[7 endpoints]` — scanned for PII keys. Zero leaks.
+- `test_touch_guard_hook_present_and_exports`.
+
+**Certification (iteration_543)**: 0/0 backend + frontend issues, retest_needed=False. Mobile 390×844 iOS-style touch verified — JobPicker + EmployeeCombo commit correct rows across two consecutive taps; no wrong-row selection; HR auto-fill works.
+
+**Files touched**:
+- **New**: `frontend/src/lib/useCmdkTouchGuard.js`, `backend/tests/test_track_24_9_phase_b_picker_audit.py`.
+- **Modified**: `backend/routes/master_lookup.py` (auth gate), `backend/server.py` (pass portal dep into master-lookup router), `backend/tests/test_track_24_6_job_picker_touch_select.py` (check shared hook), `frontend/src/components/JobPicker.jsx` + `TopicPicker.jsx` + `team/JobTeamRosterPanel.jsx` + `trench/EmployeePicker.jsx` (consume shared hook).
+
+**Verdict**: 🟢 **GO** — every picker on the platform now has a scroll-vs-tap safe commit path; Master-lookup PII leak closed; public projections whitelist-only; zero design change.
+
+### Track 24.9 remaining phases
+- Phase C — Project auto-population certification (crew/equipment/CP/cost codes on project select).
+- Phase D — Real human workflow · AI · Submit · Email · Mobile 390→1440px sweep on a non-synthetic project.
+- Phase E — Full end-to-end certification.
+
