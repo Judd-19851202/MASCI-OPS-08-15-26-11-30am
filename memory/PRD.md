@@ -11,6 +11,22 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+## TRACK 24.0 · FINAL PRODUCTION READINESS AUDIT · 🟠 GO WITH FIXES (2026-02-07) — read-only
+- **Verdict**: 68/100. Overall recommendation **GO WITH FIXES**. Would NOT personally deploy today as-is.
+- **Full report**: `/app/memory/TRACK_24_0_PRODUCTION_READINESS_AUDIT.md`.
+- **Method**: `deployment_agent` (PASS), `security_audit_agent` (CONDITIONAL PASS), 1544-route inventory, unauthenticated probe matrix, user-facing JSX scan, live E2E from earlier this session. Zero files modified.
+- **Findings**: 4 P0 · 6 P1 · 6 P2 · 4 P3 = 20 total.
+- **P0 blockers (must land before deploy)**:
+  1. `GET /api/hr/employee-roster` returns 200 unauth — 387 records leak (server.py:4647, deps=[]).
+  2. Duplicate handler on `GET /api/employees/competent-persons` — auth-less `routes.trench_safety.competent_persons:list_competent_persons` wins over auth-gated `routes.qualifications:get_competent_persons`, exposing the active CP registry anonymously.
+  3. **Systemic internal-track-label leak in 20+ user-facing pages** — same defect operator flagged on 23.10-E; my earlier one-file fix did not generalize. 57 "Track NN" + 15 "23.10-x" + 3 "Internal Use" occurrences across 31 frontend files (AdminHubV2, PmV2Preview/PmHoldsV2/PmDueTodayV2, LeadershipHubV2, V2Index, SafetyTopicLibrary, SafetyTrenchIntelligenceCard, OperationsTrustCenter, PlatformTrustDashboard/Validator, EmailRoutingV2Panel, RoutingStatusPanel, FleetUnitThread, AdminAssetThread, transportation/_command_queue, DesignSystemDemo).
+  4. `DEV_PASSWORD=Maddix8530!` ships in pod `.env`; `/api/dev/source-bundle.zip` + `/api/dev/ops-manual.*` accept that password and return full source / manual.
+- **P1 (first week)**: RATE_LIMITING=off in .env; multi-login has no brute-force lockout; 30 duplicate route paths registered (first-registered wins); NoSQL regex injection in ~13 files (missing re.escape); CORS regex too broad for prod; AUTO_EMAIL_REPORTS=true in .env (only EMAIL_SAFETY_MODE=strict saves us).
+- **Portal readiness**: 🟢 DR V3 Excavation (fixed this session); 🟠 Admin/PM/Safety/Fleet/FL/Training (internal-label leak); 🔴 HR + Professional Qualifications (data-leak endpoints); 🟢 Dispatch/Shop/QA/QC (not deeply exercised, no leaks in probe sample).
+- **Coverage gaps**: mobile viewports 390–1440 not visually verified; every-role click-through not exhausted; PDF templates spot-checked only; AI hallucination not probed with live prompts; offline/autosave harness unavailable in this env.
+
+
+
 ## TRACK 23.10-E · Daily Report V3 Excavation + Qualifications + AI + PDF + Email + Scheduling Readiness · 🟢 SHIPPED · CERTIFIED (2026-02-07)
 - **Scope**: Court-defensible Excavation / Trench Operations section is wired into Daily Report V3, consuming Track 23.10-B Qualifications Engine, emitting Track 23.10-C ODS facts, and returning a scheduling readiness snapshot. PDF + email render only when excavation was performed. AI evidence bundle exposes excavation attributes to `DailySummaryAssist`. Zero cost/money surfaces (belt-and-suspenders `_scrub_cost` + banned-key runtime guard).
 - **Backend service** (`services/daily_report_v3_excavation/service.py`, invoked from `POST /api/daily-reports`):
