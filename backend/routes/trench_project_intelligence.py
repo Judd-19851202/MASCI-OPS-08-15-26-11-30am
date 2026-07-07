@@ -394,14 +394,39 @@ def build_trench_project_intelligence_router(
     # ─── Admin ops ────────────────────────────────────────────────
     @r.post("/trench-intelligence/backfill")
     async def trigger_backfill(
-        boot_mode: bool = Query(default=False),
+        boot_mode: bool = Query(default=True),
         _admin: Any = Depends(require_admin_dep),
     ):
+        """Admin-only manual backfill trigger. Fire-and-forget so it
+        never times out preview ingress on large data sets.
+
+        * `boot_mode=true` (default) — capped batch of
+          `TRACK_23_10_C_BOOT_LIMIT` rows per collection. Returns
+          immediately with a run marker.
+        * `boot_mode=false` — full replay. Also fire-and-forget; poll
+          `/api/trench-intelligence/company/summary` for progress.
+        """
+        import asyncio                                          # noqa: PLC0415
         from scripts.backfill_track_23_10_c_trench_facts import (  # noqa: PLC0415
             run_backfill,
         )
-        result = await run_backfill(db, boot_mode=boot_mode)
-        return result
+        started_at = datetime.now(timezone.utc).isoformat()
+
+        async def _bg():
+            try:
+                await run_backfill(db, boot_mode=boot_mode)
+            except Exception as exc:                              # noqa: BLE001
+                # Non-fatal — the boot hook re-runs on next restart.
+                print(f"[api.backfill] {exc}")
+
+        asyncio.create_task(_bg())
+        return {
+            "track": "23.10-C",
+            "kicked_off": True,
+            "boot_mode": boot_mode,
+            "started_at": started_at,
+            "note": "Fire-and-forget. Poll /api/trench-intelligence/company/summary for progress.",
+        }
 
     @r.post("/trench-intelligence/projects/{project_number}/recompute-summary")
     async def trigger_recompute(

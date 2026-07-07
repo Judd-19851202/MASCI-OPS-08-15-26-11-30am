@@ -10,6 +10,48 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
+## TRACK 23.10-C · Trench Project Linker + ODS Trench Facts · 🟢 SHIPPED · CERTIFIED (2026-02-06)
+- **Scope**: Foundation-only. Backend + ODS + tests. **Zero UI** (per user 1A). Zero DR V3 / PDF / Email / Scheduling UI edits. Zero cost/money surfaces. Consumes 23.10-B Qualifications Engine verbatim — never duplicates competent-person logic.
+- **Project Linker** (`services/trench_safety/project_linker.py`): The 6-rung resolution ladder is now the platform authority.
+  - Rung 1 · explicit `project_number` → `confidence=high`.
+  - Rung 2 · inherited from `daily_reports` → `high`.
+  - Rung 3 · inherited from parent record (hold ⇢ inspection, repair ⇢ hold) via 1-hop recursion → `high`.
+  - Rung 4 · deployment assignment-window overlap → `medium`. Multiple overlaps → `ambiguous`.
+  - Rung 5 · asset `current_project_*` within 24 h of asset `updated_at` → `low`.
+  - Rung 6/7 · MISSING (never fabricated). Preserved as truth downstream.
+- **7 canonical physical ODS facts** (`services/trench_safety/facts_emitter.py`), all idempotent via natural-key `supersede_facts`:
+  - `excavation_day_fact` · `trench_inspection_fact` · `trench_hold_fact` · `trench_repair_fact` · `trench_verification_fact` · `competent_person_assignment_fact` · `project_excavation_summary_fact`.
+- **4 derived views** (`services/trench_safety/derived_views.py`, pure reads, never emit facts): `deployment_view` · `trench_asset_utilization` · `trench_release_view` · `excavation_activity_view`.
+- **B-04 invariant hard-locked**: `safe_to_use_verified = (verified_at IS NOT NULL AND reinspection_passed IS TRUE)`. Repair Complete ≠ Safe To Use. Companion `trench_verification_fact` emits ONLY on transition, idempotent per repair_id.
+- **CP snapshot policy**: `competent_person_assignment_fact` consumes the 23.10-B `qualification_snapshot` VERBATIM. Never re-derives, never re-fetches. Snapshot fields: qualification_id, qualification_type, employee_id, person name/trade/crew snapshots, verification_status_at_selection, expires_at_at_selection, cert_valid_at_report.
+- **Backfill** (`scripts/backfill_track_23_10_c_trench_facts.py`): Idempotent, non-destructive, replay-safe. Runs at server boot as **fire-and-forget asyncio task** (never blocks readiness). Admin API `/api/trench-intelligence/backfill` is now also fire-and-forget so preview ingress never times out on large replays.
+- **15 read + admin endpoints** (`routes/trench_project_intelligence.py`, prefix `/api/trench-intelligence`):
+  - **Per-project (PM assigned-only · Safety · Admin)**: `summary` · `excavations` · `inspections` · `holds` · `repairs` · `competent-persons` (consumes 23.10-B registry) · `deployments` · `asset-utilization` · `releases` · `activity` · `readiness` (scheduling-consumable booleans).
+  - **Company-wide (Safety + Admin only)**: `company/summary`.
+  - **Ops (Admin / Safety)**: `POST backfill` · `POST projects/{p}/recompute-summary` · `GET link-resolve/{coll}/{id}` (Safety/Admin diagnostic).
+- **Security**: PM tokens see only assigned projects via `pm_auth.compute_pm_scope`; Field / Dispatch / Shop / HR-only tokens → 403 (role not allowed). Admin/Safety → company-wide. No overrides of Scheduling.
+- **Live preview data verified**: 984 excavations → 984 excavation_day_facts (91 explicit-link LIVE, 893 honest MISSING). 1127 holds → 1127 hold_facts (linkage honest per audit — historical yard holds resolve MISSING; no fake joins). 432 inspection_facts. 311 repair_facts. 10+ project_excavation_summary_facts. FT-JOB-1001 correctly aggregates 21 excavations at max_depth 9.0 ft.
+- **Regression**: 133/133 tests pass across TRACK 23.5 · 23.6 · 23.7 · 23.8 · 23.10-B · 23.10-C (this track adds 23 new). Testing agent: 100% backend pass (43/43 test scenarios green in production preview). Only skip was operational-only (blocking on-demand full replay via ingress) — fixed by converting to fire-and-forget with progress poll.
+- **Anti-goals honoured**: No new collections. No provisional UI. No DR V3 edits. No PDF/email. No scheduling UI. No cost/money. No fake green. No fake joins. No duplicate CP logic. Historical rows preserved (never overwritten).
+- **Files created / modified**:
+  - `backend/services/trench_safety/__init__.py` (new)
+  - `backend/services/trench_safety/project_linker.py` (new)
+  - `backend/services/trench_safety/facts_emitter.py` (new)
+  - `backend/services/trench_safety/derived_views.py` (new)
+  - `backend/routes/trench_project_intelligence.py` (new · 15 endpoints)
+  - `backend/scripts/backfill_track_23_10_c_trench_facts.py` (new)
+  - `backend/tests/test_track_23_10_c_project_linker_and_facts.py` (new · 23 tests)
+  - `backend/services/ods_spine/model.py` (additive: 7 new fact_type values)
+  - `backend/server.py` (mount router + fire-and-forget boot hook)
+- **23.10-D and 23.10-E are UNBLOCKED**:
+  - **23.10-D** (Safety KPI Trench Lift + Certification Dashboard) can now read `/api/trench-intelligence/company/summary` for company-wide rollups and per-project trench blocks from `/summary` + `/readiness`.
+  - **23.10-E** (DR V3 excavation + PDF + email + Scheduling readiness) can now:
+    - Pull Competent Person picker rows from `GET /api/employees/qualifications?type=COMPETENT_PERSON&active=true` (23.10-B),
+    - Freeze snapshots via `GET /api/hr/qualifications/{id}/snapshot` (23.10-B),
+    - Emit `competent_person_assignment_fact` via `services.trench_safety.emit_competent_person_assignment_fact`,
+    - Read scheduling readiness from `/api/trench-intelligence/projects/{p}/readiness`.
+
+
 ## TRACK 23.10-B · Professional Qualifications Engine · 🟢 SHIPPED · CERTIFIED (2026-02-06)
 - **Scope**: Foundation-only build. Ships the platform-wide **Professional Qualifications Engine** (Competent Person is the pilot). Zero temporary pickers · zero duplicate stores · zero fake green.
 - **Single source of truth**: `db.safety_training_records` (extended additively). No `competent_persons` collection. No `qualifications` collection. Registry is a QUERY, never a stored list.
