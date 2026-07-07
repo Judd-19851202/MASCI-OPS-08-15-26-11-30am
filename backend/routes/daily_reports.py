@@ -21,6 +21,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
 
 from pm_auth import compute_pm_scope
+from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
 
 
 # ── Phase V.2 · Wave-1A · Structured production + constraints ────────
@@ -509,8 +510,14 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
     @api_router.get("/daily-reports", response_model=List[DailyReportSummary])
     async def list_daily_reports(actor=Depends(require_admin)):
         scope = await compute_pm_scope(db, actor)
+        # TRACK 24.9 · Exclude synthetic/test records from user-
+        # facing operational listings. Preserves audit history —
+        # marked records remain in the collection with
+        # `synthetic_record=true` / `hidden_from_operations=true`
+        # so admin audit surfaces can still see them.
+        match_stage = apply_synthetic_dr_exclusion(scope.filter({}))
         pipeline = [
-            {"$match": scope.filter({})},
+            {"$match": match_stage},
             {"$sort": {"created_at": -1}},
             {"$limit": 1000},
             {"$project": {

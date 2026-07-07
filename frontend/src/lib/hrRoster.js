@@ -85,10 +85,29 @@ export async function fetchHrRoster(opts = {}) {
       _notify(items);
       return items;
     })
-    .catch(() => {
-      // On failure, return the last known good snapshot if we have
-      // one, otherwise an empty list. Never poison the snapshot with
-      // an empty array on a transient network blip.
+    .catch(async (err) => {
+      // TRACK 24.9 · Public-safe fallback.
+      // Anonymous flows (public DR V3 at `/daily/new`) have no
+      // portal token, so the auth-gated canonical endpoint returns
+      // 401. Fall back to the public projection (name / id / trade
+      // / role / crew / active only — no PII, enforced by lock
+      // test). Any other error → return last known good snapshot
+      // so pickers never poison an existing render.
+      const status = err?.response?.status;
+      if (status === 401) {
+        try {
+          const pub = await api.get(`${ENDPOINT}/public`, {
+            params: (q ? { q } : {}),
+            timeout: 30000,
+            skipSessionStatus: true,
+          });
+          const items = Array.isArray(pub?.data?.items) ? pub.data.items : [];
+          _notify(items);
+          return items;
+        } catch {
+          return _lastSnapshot || [];
+        }
+      }
       return _lastSnapshot || [];
     })
     .finally(() => {

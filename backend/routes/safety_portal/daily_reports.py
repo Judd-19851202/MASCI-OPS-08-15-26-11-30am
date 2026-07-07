@@ -23,6 +23,8 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
 
+from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
+
 
 def register_daily_report_routes(
     api_router: APIRouter, db, require_safety_token,
@@ -48,7 +50,7 @@ def register_daily_report_routes(
                 {"incident_report_filled": {"$exists": True, "$nin": ["", None]}},
             ]}
         pipeline = [
-            {"$match": q},
+            {"$match": apply_synthetic_dr_exclusion(q)},
             {"$sort": {"report_date": -1, "created_at": -1}},
             {"$limit": limit},
             {"$project": {

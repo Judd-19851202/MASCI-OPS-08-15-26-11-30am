@@ -271,6 +271,54 @@ def build_qualifications_router(
                 "warning_days": warning_days,
                 "count": len(items), "items": items}
 
+    # ── TRACK 24.9 · Public-safe Competent Person projection ───────
+    # Anonymous DR V3 (`/daily/new`) needs to load the active CP
+    # registry so foremen can complete the excavation section. The
+    # authenticated endpoints above 401 for anonymous users. This
+    # public projection returns ONLY the fields required for
+    # selection safety — no PII, no email, no phone, no address.
+    # Lock test enforces the allowed key set.
+    _CP_PUBLIC_ALLOWED_KEYS = frozenset({
+        "qualification_id", "qualification_type",
+        "employee_name", "employee_trade", "employee_crew",
+        "verification_status", "expires_at", "warning",
+    })
+
+    @r.get("/employees/competent-persons/public")
+    async def get_competent_persons_public(warning_days: int = 30):
+        """Public-safe Competent Person registry for anonymous DR V3.
+
+        Returns ONLY active CPs. Whitelisted projection. No PII.
+        """
+        rows = await list_active_qualifications(
+            db, qualification_type="COMPETENT_PERSON",
+            warning_days=max(0, min(int(warning_days or 30), 90)),
+        )
+        items: List[Dict[str, Any]] = []
+        for r_ in rows:
+            row = {
+                "qualification_id": r_.get("qualification_id") or "",
+                "qualification_type": r_.get("qualification_type") or "COMPETENT_PERSON",
+                "employee_name": r_.get("employee_name") or "",
+                "employee_trade": r_.get("employee_trade") or "",
+                "employee_crew": r_.get("employee_crew") or "",
+                "verification_status": r_.get("verification_status") or "",
+                "expires_at": r_.get("expires_at") or "",
+                "warning": bool(r_.get("warning")),
+            }
+            # Enforce whitelist at emit-time (defense-in-depth).
+            filtered = {k: v for k, v in row.items() if k in _CP_PUBLIC_ALLOWED_KEYS}
+            items.append(filtered)
+        items.sort(key=lambda x: (x.get("employee_name") or "").lower())
+        return {
+            "type": "COMPETENT_PERSON",
+            "warning_days": warning_days,
+            "count": len(items),
+            "items": items,
+            "contract_version": "24.9-public",
+            "public": True,
+        }
+
     # ── Summary (dashboards) ───────────────────────────────────────
     @r.get("/employees/qualifications/summary")
     async def get_summary(

@@ -33,6 +33,7 @@ ADMIN (X-Admin-Token):
 from __future__ import annotations
 
 from lib.mongo_query import safe_regex
+from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
 
 import logging
 import os
@@ -474,7 +475,7 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
                 )
 
         pipeline = [
-            {"$match": match},
+            {"$match": apply_synthetic_dr_exclusion(match)},
             {"$sort": {"report_date": -1, "created_at": -1}},
             {"$limit": min(limit, 500)},
             # TRACK 15.9A · enrich page with PM-of-record from `projects`.

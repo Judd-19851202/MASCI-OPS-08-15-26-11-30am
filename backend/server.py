@@ -4824,6 +4824,91 @@ async def hr_employee_roster(
     }
 
 
+# TRACK 24.9 · P0 · Public-safe employee roster projection.
+#
+# The authenticated `/api/hr/employee-roster` above was locked in
+# Track 24.1 (P0-1) to close a 387-record PII leak. That closure
+# ALSO orphaned the public/anonymous Daily Report V3 flow at
+# `/daily/new` — foremen open that route without a portal token,
+# so `EmployeeCombo` received 401 → empty items → "Roster not
+# uploaded yet." was surfaced on live production.
+#
+# This endpoint restores the anonymous roster read with a STRICTLY
+# minimal projection: name / employee_id / trade / role / crew /
+# active only. NO email, phone, SSN, DOB, address, salary, CDL,
+# medical, supervisor, department, updated_at — none of the
+# fields that made the P0-1 leak dangerous. The lock test
+# `test_public_roster_projection_forbids_pii` in the Track 24.9
+# suite enforces this contract at every CI run.
+#
+# Anonymous / public. Rate-limited by the platform's public POST
+# limiter effectively (GET rate-limit is on the general ingress).
+_PUBLIC_ROSTER_ALLOWED_KEYS = frozenset({
+    "id", "name", "employee_id", "trade", "role", "crew", "active",
+})
+
+
+def _project_public_roster_row(row: Dict[str, Any]) -> Dict[str, Any]:
+    """Return only the whitelisted keys — never any PII."""
+    out: Dict[str, Any] = {}
+    for k in _PUBLIC_ROSTER_ALLOWED_KEYS:
+        if k in row:
+            out[k] = row[k]
+    return out
+
+
+@api_router.get("/hr/employee-roster/public")
+async def hr_employee_roster_public(q: Optional[str] = None, limit: int = 5000):
+    """Public-safe roster projection for anonymous Daily Report V3.
+
+    Strictly whitelisted fields. See lock test for the enforced key
+    set. Inactive employees are hidden (same rule as authenticated
+    endpoint). Zero PII.
+    """
+    from routes.employee_lifecycle import _ACTIVE_STATUSES  # noqa: PLC0415
+    canonical_active_clause = {"$or": [
+        {"lifecycle_status": {"$in": list(_ACTIVE_STATUSES)}},
+        {"lifecycle_status": {"$exists": False}, "is_active": {"$ne": False}},
+        {"lifecycle_status": None, "is_active": {"$ne": False}},
+    ]}
+    clauses: List[Dict[str, Any]] = [ACTIVE_FILTER, canonical_active_clause]
+    if q:
+        q_re = {"$regex": re.escape(q), "$options": "i"}
+        clauses.append({"$or": [
+            {"name": q_re}, {"preferred_name": q_re},
+            {"employee_id": q_re}, {"role": q_re},
+        ]})
+    cursor = db.employees.find(
+        {"$and": clauses},
+        {
+            "_id": 0, "id": 1, "name": 1, "employee_id": 1,
+            "trade": 1, "role": 1, "crew": 1,
+            "lifecycle_status": 1, "is_active": 1,
+        },
+    ).sort("name", 1).limit(max(1, min(int(limit or 5000), 5000)))
+    docs = await cursor.to_list(5000)
+    out: List[Dict[str, Any]] = []
+    for d in docs:
+        ls = d.get("lifecycle_status")
+        active = (ls in _ACTIVE_STATUSES) if ls is not None else (d.get("is_active") is not False)
+        row = {
+            "id": d.get("id") or "",
+            "name": d.get("name") or "",
+            "employee_id": d.get("employee_id") or "",
+            "trade": d.get("trade") or "",
+            "role": d.get("role") or "",
+            "crew": d.get("crew") or "",
+            "active": bool(active),
+        }
+        out.append(_project_public_roster_row(row))
+    return {
+        "items": out,
+        "count": len(out),
+        "contract_version": "24.9-public",
+        "public": True,
+    }
+
+
 @api_router.get("/admin/employees/status")
 async def employees_status(actor: Dict[str, Any] = Depends(_require_hr_or_admin_for_queue)):
     """OMEGA · Phase Alpha · G-3 · Deprecated admin status endpoint.

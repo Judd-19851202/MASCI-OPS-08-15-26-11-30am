@@ -54,10 +54,23 @@ export default function CompetentPersonCombo({
   React.useEffect(() => {
     let cancelled = false;
     setLoading(true); setErr(null);
-    fetch(`${API}/employees/qualifications?type=COMPETENT_PERSON&active=true`, {
-      headers: authHeaders(),
-    })
-      .then((r) => r.ok ? r.json() : Promise.reject(r.status))
+    // TRACK 24.9 · Public DR V3 (`/daily/new`) has no portal token.
+    // Try the authenticated endpoint first (richer projection for
+    // authed users) and fall back to the public-safe projection on
+    // 401 so anonymous foremen can still complete the excavation
+    // section.
+    const authed = `${API}/employees/qualifications?type=COMPETENT_PERSON&active=true`;
+    const publicUrl = `${API}/employees/competent-persons/public`;
+    fetch(authed, { headers: authHeaders() })
+      .then((r) => {
+        if (r.ok) return r.json();
+        if (r.status === 401) {
+          return fetch(publicUrl).then((r2) =>
+            r2.ok ? r2.json() : Promise.reject(r2.status),
+          );
+        }
+        return Promise.reject(r.status);
+      })
       .then((d) => { if (!cancelled) { setItems(d.items || []); setLoading(false); } })
       .catch((e) => { if (!cancelled) { setErr(String(e)); setLoading(false); } });
     return () => { cancelled = true; };

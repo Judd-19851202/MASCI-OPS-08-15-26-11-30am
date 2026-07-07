@@ -31,6 +31,7 @@ from typing import Any, Awaitable, Callable, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from pm_auth import compute_pm_scope, PmScope
+from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
 import dispatch_lifecycle as DLS
 
 logger = logging.getLogger("pm_command_center")
@@ -445,7 +446,7 @@ def build_pm_command_center_router(
         dr_q: Dict[str, Any] = {"report_date": today_yyyymmdd,
                                 "deleted_at": {"$in": [None, "", False]}}
         if nums: dr_q["project_number"] = {"$in": nums}
-        async for d in db.daily_reports.find(dr_q,
+        async for d in db.daily_reports.find(apply_synthetic_dr_exclusion(dr_q),
                                              {"_id": 0, "materials": 1, "outbound_materials": 1}):
             materials_in += len(d.get("materials") or [])
             materials_out += len(d.get("outbound_materials") or [])
@@ -647,7 +648,7 @@ def build_pm_command_center_router(
                                  "deleted_at": {"$in": [None, "", False]},
                                  "outbound_materials.0": {"$exists": True}}
         if nums: dr_q["project_number"] = {"$in": nums}
-        async for d in db.daily_reports.find(dr_q,
+        async for d in db.daily_reports.find(apply_synthetic_dr_exclusion(dr_q),
             {"_id": 0, "id": 1, "doc_id": 1, "report_date": 1, "project_number": 1,
              "outbound_materials": 1}):
             for m in (d.get("outbound_materials") or []):
@@ -703,7 +704,7 @@ def build_pm_command_center_router(
         rows: List[Dict[str, Any]] = []
         deliveries = 0
         removals = 0
-        async for d in db.daily_reports.find(dr_q,
+        async for d in db.daily_reports.find(apply_synthetic_dr_exclusion(dr_q),
             {"_id": 0, "report_date": 1, "project_number": 1,
              "materials": 1, "outbound_materials": 1}):
             for m in (d.get("materials") or []):
@@ -1269,7 +1270,7 @@ def build_pm_command_center_router(
         }
         if nums:
             dr_q["project_number"] = {"$in": nums}
-        async for d in db.daily_reports.find(dr_q, {"_id": 0}).limit(int(limit)):
+        async for d in db.daily_reports.find(apply_synthetic_dr_exclusion(dr_q), {"_id": 0}).limit(int(limit)):
             dr_id = d.get("id") or d.get("doc_id") or ""
             # /pm/daily/:id is a real React route — true one-click drill.
             dest_path = f"/pm/daily/{_urlq(dr_id)}" if dr_id else "/pm/daily"

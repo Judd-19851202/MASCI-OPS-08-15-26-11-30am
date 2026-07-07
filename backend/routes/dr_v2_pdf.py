@@ -355,12 +355,25 @@ def register_dr_v2_pdf_routes(
                 },
             ):
                 setup = d.get("day_setup") or {}
+                # TRACK 24.9 · Post-filter modern rows using the same
+                # synthetic classifier applied to legacy rows. The
+                # `dr_v2_drafts` collection stores project info in a
+                # nested `day_setup` dict which is why a mongo-level
+                # $regex filter is awkward — a per-row classifier is
+                # cheaper and cleaner given the small (limit*3) window.
+                from lib.synthetic_dr_filter import is_synthetic_dr
+                merged = {
+                    "project_number": setup.get("project_number") or d.get("project_number") or "",
+                    "project_name": setup.get("project_name") or "",
+                }
+                if is_synthetic_dr(merged):
+                    continue
                 items.append({
                     "id": d.get("report_id"),
                     "source": "modern",
                     "report_id": d.get("report_id"),
-                    "project_number": setup.get("project_number") or d.get("project_number") or "",
-                    "project_name": setup.get("project_name") or "",
+                    "project_number": merged["project_number"],
+                    "project_name": merged["project_name"],
                     "report_date": d.get("report_date") or setup.get("report_date") or "",
                     "supervisor_name": setup.get("supervisor_name") or "",
                     "field_language": d.get("field_language") or "en",
@@ -371,6 +384,10 @@ def register_dr_v2_pdf_routes(
         legacy_query: Dict[str, Any] = {}
         if pm_project_filter is not None:
             legacy_query["project_number"] = pm_project_filter
+        # TRACK 24.9 · Exclude synthetic/test records from the
+        # user-facing Approved Daily Reports export.
+        from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
+        legacy_query = apply_synthetic_dr_exclusion(legacy_query)
         # We include ALL legacy records; lifecycle state is optional
         # (pre-lifecycle records don't have `state` set). This matches
         # the existing /pm/daily and /admin/daily listing semantics.
