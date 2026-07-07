@@ -11911,3 +11911,41 @@ Preview environment ships Playwright chromium only — WebKit smoke of the Track
 - Phase D — Real human workflow · AI · Submit · Email · Mobile 390→1440px sweep on a non-synthetic project.
 - Phase E — Full end-to-end certification.
 
+
+## TRACK 24.9 · PHASE C · Project auto-population certification · 🟢 SHIPPED · CERTIFIED (2026-02-07 · iteration_544)
+
+**Scope**: Selecting a project in Daily Report V3 must commit `project_number`, `project_name`, `location`, `client`, `project_manager`, `pm_email`, `co_pm_emails` into form state; render them in a metadata card for visual confirmation; preserve through autosave/draft restore; carry through the submit payload; and never contaminate a new project with the prior project's metadata.
+
+**Changes**:
+1. **Schema** (`frontend/src/lib/dailyReportSchema.js`) — added `client`, `project_manager`, `pm_email`, `co_pm_emails` to `buildDailyReportDefaults()`. Every draft snapshot now has a stable shape for the project-metadata block.
+2. **Project pick handler** (`frontend/src/components/daily-report-v3/SectionProjectConditions.jsx`) — `onSelect` now commits the full metadata snapshot in one `patch()`, using `job?.field || ""` (or `[]` for arrays) so the prior project's metadata is CLEARED when the newly-picked job lacks a field. Explicit contamination guard.
+3. **Metadata card** — mint-green `dr-v3-project-meta` card renders only when a project is bound. Shows Client, PM (or pm_email fallback), and Co-PMs row (conditional on non-empty list). Missing fields display `<em>Not set</em>` via `t("Not set")` — never `null`, `undefined`, or fabricated text.
+4. **i18n** — added Spanish translations: `Co-PMs` → `Co-PMs`, `Not set` → `No configurado`.
+5. **Backend contract** — `daily_reports.py` `DailyReportCreate` already uses `ConfigDict(extra="allow")`, so all new project-metadata keys round-trip through POST without schema migration. Server-side PM/co-PM routing continues to read from `jobs_master` by `project_number` (never from the payload) — so a stale/fabricated payload cannot redirect email delivery.
+
+**Lock suite** (`backend/tests/test_track_24_9_phase_c_project_autopopulation.py`, 15 tests, all green):
+- `test_dr_v3_schema_declares_project_metadata_keys` — every metadata key is in the defaults.
+- `test_section_project_conditions_commits_full_metadata_snapshot` — every key is written by `onSelect`.
+- `test_section_project_conditions_shows_metadata_card_only_after_pick` — card is conditional on `data.project_number`.
+- `test_jobs_api_returns_project_metadata[26-07/24-12/20-07]` — API projection contract.
+- `test_submit_payload_preserves_project_metadata[26-07/24-12/20-07]` — POST round-trip preserves every project field.
+- `test_project_meta_card_missing_data_uses_honest_fallback` — no hardcoded `null`/`undefined`/`TBD`.
+- `test_project_metadata_clears_on_project_change` — `|| ""` guard on every commit prevents contamination.
+- `test_pm_routing_reads_project_number_not_payload_pm` — server-authoritative routing.
+- `test_new_dr_v3_reloads_cost_codes_on_project_change`.
+- `test_autosave_snapshot_includes_project_meta_fields`.
+- `test_probe_dr_hidden_from_user_facing_listings` — Phase A synthetic filter still hides Phase C test probes.
+
+**Certification (iteration_544)**: 45/45 pytest green (Phase A + B + C combined), live 3-project switches on mobile 390×844 (Oxford Rd → University High → 20-07) with zero cross-contamination and honest fallback for missing metadata. Retest_needed=False.
+
+**Files touched**:
+- **New**: `backend/tests/test_track_24_9_phase_c_project_autopopulation.py`.
+- **Modified**: `frontend/src/lib/dailyReportSchema.js`, `frontend/src/components/daily-report-v3/SectionProjectConditions.jsx`, `frontend/src/lib/i18n.js`.
+
+**Verdict**: 🟢 **GO** — every intended project field is verified, defaults are honest, missing source data degrades cleanly, and no wrong-project contamination is possible. Track 24.9 (Phases A+B+C) is production-ready.
+
+### Track 24.9 remaining phases
+- Phase D — Real human workflow · AI · Submit · Email · Mobile 390→1440px sweep on a non-synthetic real project.
+- Phase E — Full end-to-end certification.
+- **Production deploy** — Deploy Phase A+B+C. Then run `python3 scripts/purge_synthetic_dailies_24_9.py --apply` against production DB to hide `TEST_247B_EMAIL_RECERT`, `TEST_DR_V3_EMAIL_PARITY_ES`, `TEST_DR_V3_EMAIL_PARITY_EN` from user-facing screens.
+
