@@ -10,6 +10,48 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Backend: FastAPI + MongoDB (`/app/backend`)
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
+## TRACK 23.10-D · Safety Portal Trench KPI Lift + Certification Dashboard · 🟢 SHIPPED · CERTIFIED (2026-02-06)
+- **Scope**: Read-only Safety Portal consumer track. **Consumes** Track 23.10-B Qualifications Engine + Track 23.10-C Trench Project Linker/Facts. **Zero new KPI logic**. Zero duplicate trench logic. Zero duplicate CP registry. Zero cost/money surfaces (runtime guard + tests).
+- **Backend aggregator wrapper** (`services/safety_portal_trench/trench_kpi_lift.py`):
+  - `company_trench_safety_kpis(db, window)` — 7d / 30d / mtd / ptd.
+  - `project_trench_safety_kpis(db, project_number)`.
+  - `cleanup_missing_ambiguous(db, limit)` — read-only cleanup surface.
+  - `_assert_no_cost` scrubs any cost-adjacent key before responding (belt-and-suspenders on the read-only spine).
+  - Source classification is HONEST: `LIVE` requires linked facts; `PARTIAL` for asset-only/ambiguous; `MISSING` for no linkage at all.
+  - B-04 invariant preserved — `safe_to_use_verified` counts only `trench_verification_fact` rows (the transition), never `status="completed"` alone.
+- **3 read endpoints** (`routes/safety_trench_intelligence.py`, prefix `/api`):
+  - `GET /api/safety/company/trench-safety-kpis?window=…` — **Safety / Admin only** (403 for PM / HR / Field).
+  - `GET /api/safety/company/trench-safety-cleanup?limit=…` — **Safety / Admin only**.
+  - `GET /api/safety/projects/{project_number}/trench-safety-kpis` — Safety / Admin company-wide OR PM if assigned to that project.
+- **Safety Portal card** (`frontend/src/components/SafetyTrenchIntelligenceCard.jsx`, mounted in `pages/SafetyHubV2.jsx` below the 23.8 SafetyOperationalKpisCard):
+  - Header + window selector (7d/30d/mtd/ptd).
+  - Status band (GREEN/AMBER/RED) — honest computation from open_holds + expiring CPs + utility conflicts.
+  - 6 metric cards: Excavation Days · Inspections · Open Holds · Repairs (with safe-to-use verified sub-label) · CP Assignments · Missing Links.
+  - Source classification strip with LIVE/PARTIAL/MISSING chips + linkage breakdown.
+  - Competent Person block (Active / Expiring ≤30d / Expired / Suspended-Revoked) with `Manage → /hr/qualifications` link.
+  - Top projects table with attention score, CP coverage chip, source chip, drilldown button.
+  - Project drilldown (excavation days · inspections · open holds · repairs · safe-to-use verified · CP assignments · latest CP snapshot with cert-valid flag).
+  - Missing/ambiguous linkage cleanup tile with expandable read-only list (no auto-fix, `possible_project` labeled as "candidate only — NOT applied").
+- **Live production data verified**: 260 excavations · 431 inspections · 82 open holds · 221 repairs (178 safe-to-use verified) · 21 LIVE / 0 PARTIAL / 0 AMBIGUOUS / 1629 MISSING linkages · 1 active Competent Person · 8 top projects · 3024 total missing-link cleanup candidates. Screenshot-verified end-to-end.
+- **Testing**: 18/18 new unit tests pass · 44/44 prior 23.7 · 23.8 regression tests pass · 71/71 across 23.10-B + 23.10-C + 23.10-D. Testing agent: **100% pass on backend AND frontend** (11/11 live endpoint scenarios, 30 data-testids verified, 0 console errors, no money keys, drilldown/cleanup/window-switch/cp-manage-link all functional).
+- **Anti-goals honoured**: No DR V3 edits · No PDF/email edits · No scheduling UI · No cost/money fields · No noisy alerts · No email/SMS/bell notifications · No fake LIVE · No fake joins · No CP registry duplication · Safety Portal read-only · PM cannot see company-wide · B-04 not weakened.
+- **Files created / modified**:
+  - `backend/services/safety_portal_trench/__init__.py` (new)
+  - `backend/services/safety_portal_trench/trench_kpi_lift.py` (new)
+  - `backend/routes/safety_trench_intelligence.py` (new · 3 endpoints)
+  - `backend/tests/test_track_23_10_d_safety_trench_lift.py` (new · 18 tests)
+  - `backend/server.py` (mount router)
+  - `frontend/src/components/SafetyTrenchIntelligenceCard.jsx` (new)
+  - `frontend/src/pages/SafetyHubV2.jsx` (mount card)
+- **Track 23.10-E is fully UNBLOCKED**: Daily Report V3 excavation section + `CompetentPersonCombo` picker + PDF + email + scheduling readiness UI can now:
+  - Read the CP picker from `/api/employees/qualifications?type=COMPETENT_PERSON&active=true` (23.10-B).
+  - Freeze snapshots via `/api/hr/qualifications/{id}/snapshot` (23.10-B).
+  - Emit `competent_person_assignment_fact` via `services.trench_safety.emit_competent_person_assignment_fact` (23.10-C).
+  - Read scheduling readiness from `/api/trench-intelligence/projects/{p}/readiness` (23.10-C).
+  - Read consumer summary/cleanup from Safety Portal (23.10-D).
+
+
+
 ## TRACK 23.10-C · Trench Project Linker + ODS Trench Facts · 🟢 SHIPPED · CERTIFIED (2026-02-06)
 - **Scope**: Foundation-only. Backend + ODS + tests. **Zero UI** (per user 1A). Zero DR V3 / PDF / Email / Scheduling UI edits. Zero cost/money surfaces. Consumes 23.10-B Qualifications Engine verbatim — never duplicates competent-person logic.
 - **Project Linker** (`services/trench_safety/project_linker.py`): The 6-rung resolution ladder is now the platform authority.
