@@ -11693,6 +11693,19 @@ async def _track_23_10_c_trench_backfill_bootstrap():
     asyncio.create_task(_run_bg())
 
 
+# ─── TRACK 23.10-D · Safety Portal Trench KPI Lift ──────────────────
+# Read-only aggregator that consumes 23.10-B + 23.10-C.  No new KPI
+# engine. No duplicate trench logic. Safety/Admin company-wide; PM
+# assigned-only for per-project. Zero cost/money fields (runtime guard).
+from routes.safety_trench_intelligence import (  # noqa: E402
+    build_safety_trench_intelligence_router,
+)
+
+app.include_router(build_safety_trench_intelligence_router(
+    db, require_read_dep=_require_any_portal_token,
+))
+
+
 
 
 # ─── Draft Telemetry (P0 field-incident · daily report draft loss) ──

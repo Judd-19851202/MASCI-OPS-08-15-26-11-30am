@@ -18,6 +18,7 @@ import { Link } from "react-router-dom";
 import { getAdminToken } from "@/lib/adminAuth";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import SafetyOperationalKpisCard from "@/components/SafetyOperationalKpisCard";
+import SafetyTrenchIntelligenceCard from "@/components/SafetyTrenchIntelligenceCard";
 import {
   PortalShell,
   StatusChip,
@@ -192,8 +193,16 @@ export default function SafetyHubV2() {
         {/* TRACK 23.8 · Company-wide Safety Operational KPIs.
             Consumes shared Track 23.7 aggregator spine · one identity
             for numbers · safety-first framing · project drilldown. */}
-        <div style={{ margin: "16px 0 28px 0" }}>
+        <div style={{ margin: "16px 0 20px 0" }}>
           <SafetyOperationalKpisCard />
+        </div>
+
+        {/* TRACK 23.10-D · Safety Portal Trench & Excavation Intelligence.
+            Consumes 23.10-B Qualifications Engine + 23.10-C project
+            linker/facts. Read-only. Zero cost. Honest source
+            classification (LIVE/PARTIAL/MISSING per linkage). */}
+        <div style={{ margin: "0 0 28px 0" }}>
+          <SafetyTrenchIntelligenceCard />
         </div>
 
         {/* Section 1 — Corrective Actions (CAPAs). */}

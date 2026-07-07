@@ -1,0 +1,52 @@
+{
+  "summary": "Track 23.10-D Safety Portal Trench KPI Lift + Certification Dashboard Block — full-stack verified. 18/18 unit tests pass; 11/11 live endpoint tests pass (1 PM-cert-availability test skipped); all 30 Safety Portal card data-testids render; drilldown, cleanup toggle, window switch, and cp-manage-link → /hr/qualifications all functional; 0 console errors; no money keys anywhere; live data shows 260 excavations / 82 open holds / LIVE source / 1 active CP.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_track_23_10_d_safety_trench_lift.py",
+    "/app/backend/tests/test_track_23_10_d_live_endpoints.py",
+    "/app/test_reports/pytest/pytest_23_10_d.xml",
+    "/app/test_reports/pytest/pytest_23_10_d_live.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "SafetyTrenchIntelligenceCard.jsx is 567 lines — approaching the 700 line threshold; consider splitting the drilldown panel and cleanup tile into sub-components on the next revision for maintainability.",
+    "trench_kpi_lift.py is 505 lines with several nested aggregation blocks; a light module split (e.g., separate cleanup and top_projects helpers) would improve testability. Not blocking."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_track_23_10_d_live_endpoints.py (new)"
+  ],
+  "success_rate": { "backend": "100%", "frontend": "100%" },
+  "test_credentials": "Super Admin: jaymn.judd@mascigc.com / Maddix123! — used via POST /api/safety/login (kind='safety' for admin-as-safety fallback). PM cert account (track15.11b.cert.pm@mascicert.local) NOT available in this environment (returns 'Invalid email or password') — the PM 403 test was therefore skipped, not failed. Backend already enforces PM denial via role gate.",
+  "seed_data_creation": "None. Consumed live preview data.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "SafetyTrenchIntelligenceCard is fully mounted below SafetyOperationalKpisCard on /safety-portal. Authenticate via POST /api/safety/login (endpoint used by SafetyLogin.jsx form), then store token as 'masci.safety.token' in localStorage (see /app/frontend/src/lib/safetyAuth.js). Admin creds work via kind='safety' fallback. Drilldown fetches lazily — wait_for_selector on 'drilldown-exc-days' after clicking view button. B-04 invariant appears as sub-label on drilldown-safe-verified: 'B-04: verified_at + reinspection_passed'. Live counts: 260 excavation_days / 82 open_holds / trench=LIVE / cp_active=1 / cleanup missing total=3024.",
+  "verifications_performed": {
+    "backend": [
+      "GET /api/safety/company/trench-safety-kpis?window=30d — 200, full schema present, source LIVE, non-zero (excavation_days=260, open_holds=82)",
+      "GET /api/safety/company/trench-safety-kpis (unauth) — 401/403",
+      "GET /api/safety/company/trench-safety-kpis?window=INVALID — 400/422 (regex rejects)",
+      "GET /api/safety/company/trench-safety-cleanup — read_only=true, note explicitly says 'No auto-fix. No fake joins.'",
+      "GET /api/safety/projects/FT-JOB-1001/trench-safety-kpis — 200, project_number matches",
+      "No forbidden keys (cost/rate/budget/payroll/wage/dollars/amount/price/spend) anywhere in responses",
+      "Regressions passed: /api/employees/qualifications/types returns 16, /api/trench-intelligence/company/summary works, /api/safety/company/safety-kpis works",
+      "PM 403 test SKIPPED (cert account unavailable). Backend role gate present in code."
+    ],
+    "frontend": [
+      "All 30 required data-testids rendered on /safety-portal after safety-login",
+      "SafetyOperationalKpisCard (y=259) above SafetyTrenchIntelligenceCard (y=2969)",
+      "cp-manage-link href = /hr/qualifications",
+      "Drilldown for FT-JOB-1001 opens, shows PN, exc-days, safe-verified with 'B-04: verified_at + reinspection_passed' sub-label, and closes cleanly",
+      "Cleanup toggle shows/hides safety-trench-cleanup-list",
+      "Window switch 30d→7d changes metric-exc-days-value (260 → 84) confirming refetch",
+      "No horizontal overflow at 390px or 768px viewports",
+      "Zero console errors on Safety Hub load",
+      "No 'cost', 'wages', 'dollars', 'budget', 'price' text visible in DOM"
+    ]
+  }
+}
