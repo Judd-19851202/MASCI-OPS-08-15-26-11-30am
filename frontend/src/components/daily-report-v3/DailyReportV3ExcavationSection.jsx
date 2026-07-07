@@ -105,10 +105,10 @@ export default function DailyReportV3ExcavationSection({
         <div className="flex items-center gap-2">
           <Layers className="w-4 h-4 text-slate-600" />
           <div>
-            <div className="text-[10px] font-mono uppercase tracking-[0.2em] font-bold text-slate-600">
-              Track 23.10-E
-            </div>
             <div className="text-sm font-bold">Excavation / Trench Operations</div>
+            <div className="text-xs text-slate-500">
+              Complete this section only when excavation or trench work occurred today.
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-2">

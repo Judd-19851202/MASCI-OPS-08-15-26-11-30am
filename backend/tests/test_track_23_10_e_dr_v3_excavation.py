@@ -314,3 +314,53 @@ def test_regression_23_10_c_facts_reachable():
 def test_regression_23_10_d_lift_reachable():
     from services.safety_portal_trench import company_trench_safety_kpis
     assert callable(company_trench_safety_kpis)
+
+
+# ─── 6) UI copy lock — no internal track labels ever leak to users ───
+#
+# The Daily Report V3 excavation section (and every V3 UI file that
+# ships to the field crew) must render ONLY operator-facing language.
+# Internal engineering labels ("TRACK 23.10-E", "23.10-B", "pilot
+# build", "internal audit", "feature flag …", "debug mode") are never
+# allowed in JSX text nodes or user-visible strings.  Code comments
+# (`//` or `{/* */}`) are exempt — they never render.
+
+def _strip_js_comments(src: str) -> str:
+    """Remove // ... EOL and /* ... */ comment blocks (JSX supported)."""
+    import re as _re
+    src = _re.sub(r"//[^\n]*", "", src)
+    src = _re.sub(r"/\*.*?\*/", "", src, flags=_re.DOTALL)
+    return src
+
+
+def test_lock_no_internal_track_labels_in_dr_v3_ui():
+    """Lock: no "TRACK NN", "23.10-", "pilot build", "internal audit",
+    "debug mode", or "feature flag …" strings may render in the DR V3
+    UI or the Excavation section.  Regression guard for Track 23.10-E."""
+    import re as _re
+    ROOT = BACKEND.parent / "frontend" / "src"
+    files = [
+        ROOT / "pages" / "NewDailyReportV3.jsx",
+        ROOT / "components" / "daily-report-v3" / "DailyReportV3ExcavationSection.jsx",
+        ROOT / "components" / "daily-report-v3" / "CompetentPersonCombo.jsx",
+        ROOT / "components" / "daily-report-v3" / "sections.jsx",
+        ROOT / "components" / "daily-report-v3" / "SectionProjectConditions.jsx",
+        ROOT / "components" / "daily-report-v3" / "UnitCombo.jsx",
+    ]
+    BAD = _re.compile(
+        r"(TRACK\s*\d+|Track\s*\d+|23\.10-|pilot\s+build|internal\s+audit|"
+        r"debug\s+mode|feature[\s_-]*flag[\s_-]*[a-z0-9_-]+)",
+        _re.IGNORECASE,
+    )
+    offenders = []
+    for f in files:
+        if not f.exists():
+            continue
+        stripped = _strip_js_comments(f.read_text(encoding="utf-8"))
+        for m in BAD.finditer(stripped):
+            line_no = stripped[: m.start()].count("\n") + 1
+            offenders.append(f"{f.name}:{line_no} · {m.group()!r}")
+    assert not offenders, (
+        "Internal track labels leaked into user-facing Daily Report V3 UI:\n  "
+        + "\n  ".join(offenders)
+    )
