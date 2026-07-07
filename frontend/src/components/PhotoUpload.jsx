@@ -80,7 +80,23 @@ export const PhotoUpload = ({
   const { t } = useT();
   const galleryRef = useRef(null);
   const cameraRef = useRef(null);
-  const [progress, setProgress] = useState(null); // { current, total } | null
+  const [progress, setProgress] = useState(null);
+  // TRACK 24.12 Phase A1 · Photo append fix.
+  //
+  // Prior bug: `handleFiles` snapshotted the `photos` prop into a
+  // local `next = [...photos]` at call-time. If the user picked
+  // batch #1 (3 photos), then re-opened the picker and picked batch
+  // #2 (2 photos) BEFORE React had propagated batch #1 through the
+  // parent's `setState({...data, photos: p})`, the batch #2 closure
+  // still saw `photos = []` and overwrote batch #1 — the exact
+  // "gallery reopens replaces prior photos" P0 report.
+  //
+  // Fix: mirror the incoming `photos` prop into a ref that we
+  // ALSO advance in-place as each batch commits. Every new
+  // `handleFiles` invocation reads from the ref, so it sees the
+  // freshest list whether or not the parent has re-rendered yet.
+  const photosRef = useRef(photos);
+  useEffect(() => { photosRef.current = photos; }, [photos]);
   // Track 20.7 · when unsupported (desktop w/o webcam · permission blocked
   // · non-secure context), the "Take photo" button transparently falls
   // back to the gallery file picker so the user is never trapped.
@@ -101,7 +117,13 @@ export const PhotoUpload = ({
     const total = imageFiles.length;
     setProgress({ current: 0, total });
 
-    const next = [...photos];
+    // TRACK 24.12 Phase A1 · Read the FRESHEST photo list from the
+    // ref, not the stale `photos` prop closure. Also mutate the ref
+    // as each photo commits so a rapid second batch picked
+    // mid-flight sees this batch's progress and appends to it
+    // instead of overwriting.
+    const startLen = photosRef.current.length;
+    const next = [...photosRef.current];
     let failed = 0;
     let heicFailed = 0;
     for (let i = 0; i < imageFiles.length; i += 1) {
@@ -110,6 +132,7 @@ export const PhotoUpload = ({
       try {
         const dataUrl = await compressImage(file, 1280, 0.78);
         next.push(dataUrl);
+        photosRef.current = [...next];  // ← keep ref current in-flight
         onChange?.([...next]);
       } catch (err) {
         failed += 1;
@@ -141,7 +164,7 @@ export const PhotoUpload = ({
       );
     }
 
-    const added = next.length - photos.length;
+    const added = next.length - startLen;
     if (added > 1) {
       toast.success(`${added} ${t("photos added")}`);
     } else if (added === 0 && failed > 0 && heicFailed === 0) {
@@ -150,7 +173,11 @@ export const PhotoUpload = ({
   };
 
   const removeAt = (idx) => {
-    const next = photos.filter((_, i) => i !== idx);
+    // Use the ref-mirrored list so a mid-flight batch doesn't
+    // resurrect a deleted photo.
+    const source = photosRef.current;
+    const next = source.filter((_, i) => i !== idx);
+    photosRef.current = next;
     onChange?.(next);
   };
 
