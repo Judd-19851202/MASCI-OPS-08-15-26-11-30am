@@ -66,3 +66,30 @@ def test_photo_upload_startlen_used_for_added_toast():
         "ref-snapshot at start-of-batch (`startLen`), not the prop, "
         "otherwise a batch that arrives mid-flight prints a wrong count."
     )
+
+
+def test_sections_pass_photos_prop_not_value():
+    """TRACK 24.12 Phase A1 · wiring contract lock.
+
+    PhotoUpload's controlled prop is `photos`, not `value`. Every
+    call site in daily-report-v3/sections.jsx must use `photos={...}`.
+    An earlier regression passed `value={photos}` which was
+    silently ignored → the component always saw photos=[] → no
+    thumbs rendered AND every batch overwrote parent state (the
+    exact P0 the ref fix was meant to close, but rendered dead
+    code by the wiring bug)."""
+    sections = ROOT.parent / "frontend" / "src" / "components" / "daily-report-v3" / "sections.jsx"
+    src = sections.read_text()
+    import re
+    # Every <PhotoUpload ...> must include a photos={...} prop.
+    for match in re.finditer(r"<PhotoUpload\b([^>]*?)/>", src, re.DOTALL):
+        block = match.group(1)
+        assert "photos=" in block, (
+            f"[Track 24.12 A1] a <PhotoUpload/> in sections.jsx does "
+            f"NOT pass the `photos` prop. Full match: <PhotoUpload{block[:200]}/>."
+        )
+        assert "value=" not in block, (
+            f"[Track 24.12 A1] a <PhotoUpload/> in sections.jsx is "
+            f"still using the DEAD `value=` prop. Rename to `photos=`. "
+            f"Full match: <PhotoUpload{block[:200]}/>"
+        )

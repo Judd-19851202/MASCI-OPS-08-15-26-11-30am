@@ -1089,7 +1089,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
               />
               <div className="min-w-0">
                 <PhotoUpload
-                  value={m.ticket_photos || []}
+                  photos={m.ticket_photos || []}
                   onChange={(next) => {
                     const rows = mats.slice();
                     rows[i] = { ...m, ticket_photos: next };
@@ -1245,7 +1245,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
             </div>
             <div className="mt-2 min-w-0">
               <PhotoUpload
-                value={o.ticket_photos || []}
+                photos={o.ticket_photos || []}
                 onChange={(next) => {
                   const rows = outs.slice();
                   rows[i] = { ...o, ticket_photos: next };
@@ -1285,7 +1285,7 @@ export function SectionPhotos({ data, patch, photoMin }) {
       }
     >
       <PhotoUpload
-        value={photos}
+        photos={photos}
         onChange={(next) => patch({ photos: next })}
         placeholderLabel="Add photo"
         testIdBase="dr-v3-photos"
