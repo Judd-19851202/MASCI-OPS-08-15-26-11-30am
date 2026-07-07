@@ -11832,3 +11832,48 @@ Preview environment ships Playwright chromium only — WebKit smoke of the Track
 - Retire / update legacy governance linters (Track 18.10 / 18.11 / 18.12 family) to reflect current architecture.
 - Post-deploy real iOS Safari field smoke of Pre-Op.
 - DR-UNIFY-005 legacy collection retirement (post-telemetry).
+
+
+## TRACK 24.9 · Public-safe DR V3 projections + Synthetic DR hygiene · 🟢 SHIPPED · CERTIFIED (2026-02-07)
+
+- **P0 trigger**: Production DR V3 (`/daily/new` — public/anonymous foreman route) surfaced *"Roster not uploaded yet"* because Track 24.1 (P0-1) auth-gated `/api/hr/employee-roster` to close the 387-record PII leak. That closure orphaned the anonymous roster read. Additionally, synthetic smoke/certification records (`TEST_247B_EMAIL_RECERT`, `TEST_DR_V3_EMAIL_PARITY_ES/EN`, `iter250-*`, `iter452-*`, `TEST-25-*`, `0000-TEST`, `SMOKE_*`, etc.) were leaking into user-facing PM/HR/Safety operational listings and the Approved Daily Reports export.
+- **Public-safe projections shipped** (anonymous, minimal fields, PII-forbidden by lock test):
+  - `GET /api/hr/employee-roster/public` → `{id, name, employee_id, trade, role, crew, active}` only.
+  - `GET /api/employees/competent-persons/public` → `{qualification_id, qualification_type, employee_name, employee_trade, employee_crew, verification_status, expires_at, warning}` only.
+  - Frontend `hrRoster.js` + `CompetentPersonCombo.jsx` fall back to public projections on 401 — authed portal users still hit the richer canonical endpoints unchanged.
+- **Synthetic hygiene** (`/app/backend/lib/synthetic_dr_filter.py`): `apply_synthetic_dr_exclusion()` mixed into 5 listing endpoints (`/daily-reports`, `/daily-reports/approved` both modern+legacy, `/hr/daily-reports`, `/safety/daily-reports`, 4× PM Command Center DR aggregations). Doctrine: never hard-delete; mark `synthetic_record=true, hidden_from_operations=true, cleanup_track="24.9"`. Explicit markers + anchored sentinel regex (`^(TEST[_\-]|0000-TEST|SMOKE[_\-]|SYNTHETIC[_\-]|ITER[0-9]|QA_SMOKE|CERT_TEST|RECERT|PARITY)`). Real projects unaffected.
+- **Cleanup script**: `/app/backend/scripts/purge_synthetic_dailies_24_9.py` (dry-run default, `--apply` writes, `--confidence high|medium`). Applied on preview → **485 records** marked HIGH-confidence. Idempotent. Writes `hr_audit` entry per run.
+- **Lock suite** (`/app/backend/tests/test_track_24_9_public_projections_and_synthetic_hygiene.py`, 14 tests, all green):
+  - `test_public_roster_projection_forbids_pii` — every returned row's keys must ⊆ allowlist and ∩ forbidden-PII set = ∅.
+  - `test_authenticated_roster_still_requires_auth` — Track 24.1 P0-1 auth gate does not regress.
+  - `test_public_cp_projection_forbids_pii` — same guarantee for CP.
+  - `test_daily_reports_listing_excludes_synthetic` + `test_approved_daily_reports_listing_excludes_synthetic` — no sentinels leak into admin/PM screens.
+  - `test_synthetic_filter_is_idempotent` — apply-twice safe.
+- **Regressions verified green**: Track 23.10.b (30/30), Track 23.10.e DR V3 excavation (24/24), Track 24.1 hardening (28+7 skips), Track 24.9 lock (14/14), live preview recert (12/13, one skip = no PM portal token from multi-login — separate benign issue).
+- **Frontend smoke on preview**: `/daily/new` renders, "Add crew" → chevron loads **200 real employees** ("Alec Perkins · General Laborer · Shop" visible), EN/ES toggles clean, no "Roster not uploaded" text.
+- **Files touched**:
+  - `/app/backend/server.py` (public roster endpoint block)
+  - `/app/backend/routes/qualifications.py` (public CP endpoint)
+  - `/app/backend/routes/daily_reports.py` (list_daily_reports filter)
+  - `/app/backend/routes/dr_v2_pdf.py` (approved list: legacy + modern branches)
+  - `/app/backend/routes/hr_portal.py` (hr daily reports filter)
+  - `/app/backend/routes/safety_portal/daily_reports.py` (safety daily reports filter)
+  - `/app/backend/routes/pm_command_center.py` (four DR aggregations)
+  - `/app/backend/lib/synthetic_dr_filter.py` **(new)**
+  - `/app/backend/scripts/purge_synthetic_dailies_24_9.py` **(new)**
+  - `/app/backend/tests/test_track_24_9_public_projections_and_synthetic_hygiene.py` **(new)**
+  - `/app/frontend/src/lib/hrRoster.js` (401 fallback to /public)
+  - `/app/frontend/src/components/daily-report-v3/CompetentPersonCombo.jsx` (401 fallback to /public)
+- **Verdict**: 🟢 **GO** — anonymous DR V3 workflow restored; PII lockdown preserved via minimal-projection endpoints with automated forbidden-key regression locks; synthetic records surgically hidden (never deleted) from every user-facing operational surface; real reports untouched; audit trail intact; cleanup idempotent + auditable.
+
+### Post-deploy operator steps
+1. Deploy code to production.
+2. Run `cd /app/backend && python3 scripts/purge_synthetic_dailies_24_9.py` (dry-run) against production DB. Review candidate inventory.
+3. Run `--apply --confidence high` when list matches expectation. Idempotent, safe to rerun.
+4. Verify PM Command Center Latest Dailies, Approved Daily Reports export, Recent Photos, PM/Safety KPIs no longer surface `TEST_*` / `iter*` / `RECERT` records.
+
+### Track 24.9 remaining phases (not blocking DR V3 recert)
+- Phase B — Platform-wide picker audit (grep all `cmdk`/`Combobox` usages, verify touch behavior).
+- Phase C — Project auto-population certification.
+- Phase D — Real human workflow · AI · Submit · Email · Mobile 390→1440px sweep.
+- Phase E — Full end-to-end certification with testing agent.
