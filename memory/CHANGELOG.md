@@ -1,5 +1,40 @@
 # CHANGELOG
 
+## 2026-02-07 — TRACK 24.8 · JobPicker wrong-row + scroll-selects-row bug — 🟢 FIXED (preview) · awaiting redeploy
+
+**Reported symptom**: on iPhone Safari, tapping 'University High School' committed a different job. Also: scrolling was intermittently committing rows.
+
+**RCA (2 layers)**:
+1. **Primary — cmdk prop override**: `<CommandItem>` from cmdk renders `<div ... onPointerMove={S} onClick={C}>` where the internal handlers override any `onPointerMove` passed via prop-spread. Track 24.6's naive pointerdown-commit fix could not be safely upgraded to a movement-threshold pattern at the item level.
+2. **Secondary — scroll gesture starts on a row**: iOS finger-drag begins with a pointerdown on whatever row is under the finger; the previous fix committed that row instantly, so scrolling past 'University High School' selected whichever row happened to be at the initial touch point.
+
+**Correct fix**: scroll detection moved to the *CommandList container* level. Native `scroll` event listener attached to `[cmdk-list=""]` via `useEffect(...,[open])`; sets a shared `scrolledRef.current = true` flag. `onPointerUp` at the item level (which cmdk does NOT override) reads the flag and skips commit if the list scrolled between pointerdown and pointerup. Secondary `dx²+dy² > 64` positional guard also protects the Custom-Job row which sits outside a scrolling container.
+
+**Testing agent iter track_24_8**: 9/9 scenarios pass on preview:
+- Simulated 200px scroll on 20-07, 24-12, 26-07 → label unchanged (P0 REPRO PASS ✅).
+- Stationary tap on 24-12 → commits `#24-12`.
+- Stationary tap on 26-07 → commits `#26-07`.
+- Desktop click → commits.
+- Keyboard type 'oxford' + ArrowDown + Enter → commits `#24-12`.
+- Search 'university' + tap → commits `#26-07` (University High Parent Loop Ext).
+- Custom-Job tap → clears fields as expected.
+
+**Regression locks (updated `test_track_24_6_job_picker_touch_select.py`, 4/4 pass)**:
+- Every CommandItem must use `commitHandlersFor(...)` (shared helper).
+- Module must contain `TOUCH_MOVE_CANCEL_PX`, `scrolledRef`, `[cmdk-list` markers so container-level scroll detection cannot silently regress.
+- All consumers still use `projectNumber/projectName/onSelect` contract (Track 24.6 prop-contract lock).
+- `onSelect` preserved for keyboard-Enter parity.
+
+**Files changed**:
+- `frontend/src/components/JobPicker.jsx` — container-level scroll detection + shared `commitHandlersFor` factory.
+- `backend/tests/test_track_24_6_job_picker_touch_select.py` — lock tests updated.
+
+**Not touched**: V1 rollback path, translation service, excavation, CompetentPersonCombo, PDF/email, backend routes, ODS, KPIs, security, EN/ES, autosave/draft.
+
+**Production still runs pre-fix bundle** — the bug still reproduces on `https://mascidocs.com/daily/submit` per testing agent verification. Redeploy required to reach real superintendents.
+
+
+
 ## 2026-02-07 — TRACK 24.7B · Production Email Pipeline Recert — 🟢 CERTIFIED
 
 **Config verify (post-env-fix)**: `app_env=production`, `auto_email_reports=truthy`, `resend_api_key_configured=true`, `dr-v3 flag=enabled`, dev endpoints=404. `EMAIL_SAFETY_MODE` no longer surfacing as active in env probe (was `strict` before, now off/unset — consistent with the operator's env-var flip taking effect).
