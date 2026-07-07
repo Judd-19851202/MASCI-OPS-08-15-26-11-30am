@@ -12132,3 +12132,25 @@ The following require a human on `mascidocs.com` because they involve production
 
 Potential improvement: would you like me to add a **built-in in-form image preview lightbox** for uploaded documents (PDF first page thumbnail via pdf.js, docx-preview for Word), so foremen can visually confirm the right file was attached without opening a separate viewer?
 
+
+
+## TRACK 24.11B (full spec) · AI evidence + downstream certification · 🟡 CONDITIONAL (2026-02-07)
+
+**Delta on top of previous 24.11B**: expanded AI evidence bundle so the synthesizer no longer silently drops any DR section. Added downstream/routing/PDF lock tests. Live AI synthesize round-trip proves the narrative grounds in supervisor text and does not leak provider keys.
+
+**Evidence bundle now includes** (previously missing marked ★):
+- project_number, project_name, ★client, ★project_manager, ★location, report_date
+- day_setup (weather_summary, supervisor_name, temperature_f, precipitation, ★conditions)
+- activity_cards, masci_crews, equipment_used, materials, ★outbound_materials
+- subcontractors, ★vendors, ★visitors, constraints_cards
+- safety_quality (notes, ★incidents_today, ★injuries_today, ★near_misses)
+- ★excavation, ★competent_person, ★work_stoppage
+- tomorrow_readiness, ★general_notes
+- photos + photo_observations
+- ★attachments (filename/category/extension/file_size ONLY — no bytes, AI cannot hallucinate contents)
+
+**Files touched (this delta)**:
+- Modified: `frontend/src/components/daily-report/DailySummaryAssist.jsx` (widened `toEvidenceDraft` bundle)
+- New: `backend/tests/test_track_24_11b_ai_and_downstream_certification.py` (33 tests)
+
+**Sweep**: 211/211 pytest green.

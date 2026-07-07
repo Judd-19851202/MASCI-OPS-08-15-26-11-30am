@@ -49,29 +49,64 @@ function toEvidenceDraft(reportId, data, photoObservations = []) {
   return {
     report_id: reportId,
     project_number: data.project_number || "unknown",
+    project_name: data.project_name || "",
+    // TRACK 24.11B · include full project metadata snapshot so the
+    // synthesizer can reference client / PM in narrative without
+    // hitting jobs_master.
+    client: data.client || "",
+    project_manager: data.project_manager || "",
+    location: data.location || "",
     report_date: data.report_date || "",
     day_setup: {
       weather_summary: data.weather_summary || data.day_setup?.weather_summary || "",
-      supervisor_name: data.supervisor_name || data.foreman || "",
-      temperature_f: data.temperature_f ?? null,
+      supervisor_name: data.supervisor_name || data.foreman || data.prepared_by || "",
+      temperature_f: data.temperature_f ?? data.weather_temp ?? null,
       precipitation: data.precipitation ?? null,
+      conditions: data.weather_conditions || "",
     },
     activity_cards: (data.activity_cards || data.activities || []).slice(0, 25),
     masci_crews: (data.masci_crews || []).slice(0, 40),
     equipment_used: (data.equipment_used || data.equipment || []).slice(0, 40),
     materials: (data.materials || []).slice(0, 40),
-    subcontractors: (data.subcontractors || []).slice(0, 20),
+    outbound_materials: (data.outbound_materials || []).slice(0, 40),
+    subcontractors: (data.subcontractors || data.subs_vendors || []).slice(0, 20),
+    vendors: (data.vendors || []).slice(0, 20),
+    // TRACK 24.11B · Missing evidence categories the previous
+    // bundle silently dropped — the AI must see visitors, safety
+    // observations (structured + note), tomorrow plan, excavation
+    // + Competent Person snapshot, and work-stoppage / hold info.
+    visitors: (data.visitors || []).slice(0, 15),
     constraints_cards: (data.constraints_cards || data.delays || []).slice(0, 15),
     safety_quality: {
       notes: data.safety_quality?.notes || data.safety_notes || "",
+      incidents_today: data.safety_quality?.incidents_today ?? data.incidents_today ?? false,
+      injuries_today: data.safety_quality?.injuries_today ?? data.injuries_today ?? false,
+      near_misses: (data.safety_quality?.near_misses || data.near_misses || []).slice(0, 10),
     },
+    excavation: data.excavation || data.excavation_section || null,
+    competent_person: data.competent_person
+      || (data.excavation ? data.excavation.competent_person : null)
+      || null,
+    work_stoppage: data.work_stoppage || data.work_hold || null,
     tomorrow_readiness: data.tomorrow_readiness || {},
+    general_notes: data.general_notes || "",
     photos: (data.photos || []).slice(0, 10),
     // TRACK 22.9B · Grounded photo observations from the async
     // photo intelligence pipeline. Empty when analysis has not yet
     // completed or when photo intel is disabled — never blocks the
     // summary.
     photo_observations: (photoObservations || []).slice(0, 30),
+    // TRACK 24.11B · Document attachment metadata (filename +
+    // category + size) so the AI can reference "user uploaded a
+    // permit PDF" without hallucinating the file contents.
+    // Extraction (OCR / PDF text) is not currently implemented —
+    // metadata only. AI must NOT claim to have read file contents.
+    attachments: (data.attachments || []).slice(0, 20).map((a) => ({
+      filename: a.filename || "",
+      category: a.category || "",
+      extension: a.extension || "",
+      file_size: a.file_size || 0,
+    })),
   };
 }
 
