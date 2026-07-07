@@ -32,6 +32,8 @@ ADMIN (X-Admin-Token):
 """
 from __future__ import annotations
 
+from lib.mongo_query import safe_regex
+
 import logging
 import os
 import re
@@ -328,10 +330,10 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
         if q:
             needle = re.escape(q.strip())
             query["$or"] = [
-                {"employee_name": {"$regex": needle, "$options": "i"}},
-                {"supervisor_name": {"$regex": needle, "$options": "i"}},
-                {"project_number": {"$regex": needle, "$options": "i"}},
-                {"project_name": {"$regex": needle, "$options": "i"}},
+                {"employee_name": safe_regex(needle)},
+                {"supervisor_name": safe_regex(needle)},
+                {"project_number": safe_regex(needle)},
+                {"project_name": safe_regex(needle)},
             ]
         out = []
         cursor = db.field_leadership_records.find(query, {"_id": 0}).sort("occurred_at", -1).limit(min(limit, 500))
@@ -416,8 +418,8 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
         if project:
             needle = re.escape(project.strip())
             match["$or"] = [
-                {"project_name": {"$regex": needle, "$options": "i"}},
-                {"project_number": {"$regex": needle, "$options": "i"}},
+                {"project_name": safe_regex(needle)},
+                {"project_number": safe_regex(needle)},
             ]
         if report_number:
             match["report_number"] = {"$regex": re.escape(report_number.strip()), "$options": "i"}
@@ -436,9 +438,7 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
             }
         if foreman:
             # Foreman lives at masci_crews[].foreman (per crew, per day).
-            match["masci_crews.foreman"] = {
-                "$regex": foreman.strip(), "$options": "i",
-            }
+            match["masci_crews.foreman"] = safe_regex(foreman.strip())
         if pm:
             # PM is a property of the PROJECT, not the DR. Resolve PM →
             # matching project_numbers via the `projects` collection,
@@ -448,7 +448,7 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
             # Track 15.13B FAILURE #2 — also resolve via `jobs_master`
             # which is the canonical job spine; legacy DRs reference
             # project_numbers that only exist there.
-            pm_regex = {"$regex": pm.strip(), "$options": "i"}
+            pm_regex = safe_regex(pm.strip())
             pm_projects = await db.projects.find(
                 {"$or": [{"pm_name": pm_regex}, {"pm_email": pm_regex}]},
                 {"_id": 0, "project_number": 1},
@@ -606,7 +606,7 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
         name = (employee or "").strip()
         if not name:
             raise HTTPException(400, "employee name required")
-        rx = {"$regex": name, "$options": "i"}
+        rx = safe_regex(name)
 
         fl_records: List[Dict[str, Any]] = []
         async for d in db.field_leadership_records.find({"employee_name": rx}, {"_id": 0}).sort("occurred_at", -1).limit(500):
@@ -1267,8 +1267,8 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
             query["project_number"] = project_number
         if supervisor:
             query["$or"] = [
-                {"prepared_by": {"$regex": supervisor, "$options": "i"}},
-                {"superintendent": {"$regex": supervisor, "$options": "i"}},
+                {"prepared_by": safe_regex(supervisor)},
+                {"superintendent": safe_regex(supervisor)},
             ]
 
         emp_filter = (employee or "").strip().lower()
@@ -1537,7 +1537,7 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
         if (source or "").lower() != "track":
             q_safety: Dict[str, Any] = {}
             if employee:
-                q_safety["employee_name"] = {"$regex": employee, "$options": "i"}
+                q_safety["employee_name"] = safe_regex(employee)
             async for d in db.safety_training_records.find(
                 q_safety, {"_id": 0},
             ).sort("completed_date", -1).limit(cap):
@@ -1569,7 +1569,7 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
         if (source or "").lower() != "safety":
             q_track: Dict[str, Any] = {}
             if employee:
-                q_track["employee_name"] = {"$regex": employee, "$options": "i"}
+                q_track["employee_name"] = safe_regex(employee)
             if track:
                 q_track["track_slug"] = track
             async for d in db.training_track_records.find(
@@ -1638,10 +1638,10 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
         if q:
             needle = q.strip()
             query["$or"] = [
-                {"title":       {"$regex": needle, "$options": "i"}},
-                {"description": {"$regex": needle, "$options": "i"}},
-                {"filename":    {"$regex": needle, "$options": "i"}},
-                {"tags":        {"$regex": needle, "$options": "i"}},
+                {"title":       safe_regex(needle)},
+                {"description": safe_regex(needle)},
+                {"filename":    safe_regex(needle)},
+                {"tags":        safe_regex(needle)},
             ]
         # safety_documents are a global library — they don't carry
         # employee_id directly. We expose them all to HR and let the
@@ -1652,8 +1652,8 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
         if employee:
             emp_needle = employee.strip()
             query.setdefault("$or", []).extend([
-                {"title":       {"$regex": emp_needle, "$options": "i"}},
-                {"description": {"$regex": emp_needle, "$options": "i"}},
+                {"title":       safe_regex(emp_needle)},
+                {"description": safe_regex(emp_needle)},
             ])
 
         items: List[Dict[str, Any]] = []
@@ -1861,9 +1861,9 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
         if q and q.strip():
             qq = q.strip()
             query["$or"] = [
-                {"person_name": {"$regex": qq, "$options": "i"}},
-                {"project_name": {"$regex": qq, "$options": "i"}},
-                {"description": {"$regex": qq, "$options": "i"}},
+                {"person_name": safe_regex(qq)},
+                {"project_name": safe_regex(qq)},
+                {"description": safe_regex(qq)},
             ]
         items = []
         async for r in db.incidents.find(

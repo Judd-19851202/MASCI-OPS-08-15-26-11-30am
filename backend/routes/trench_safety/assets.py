@@ -1,6 +1,8 @@
 """Trench-safety asset CRUD + lifecycle endpoints."""
 from __future__ import annotations
 
+from lib.mongo_query import safe_regex
+
 import uuid
 from typing import Any, Dict, List, Optional
 
@@ -60,7 +62,7 @@ def register_asset_routes(
         if not include_retired:
             query["is_active"] = True
         if q:
-            esc = {"$regex": q, "$options": "i"}
+            esc = safe_regex(q)
             query["$or"] = [
                 {"asset_id": esc},
                 {"manufacturer": esc},

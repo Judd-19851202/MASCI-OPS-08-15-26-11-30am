@@ -103,6 +103,25 @@ class QualificationRenewBody(BaseModel):
     reason: Optional[str] = "renewal"
 
 
+class QualificationAttachmentBody(BaseModel):
+    """Track 24.2 · P1 attachment upload contract.
+
+    * `filename`     — original filename, preserved verbatim on the
+      metadata (never used as a disk path).
+    * `content_type` — MIME. Only ALLOWED_CT below is accepted.
+    * `data_base64`  — base64-encoded bytes. Enforced ≤ 15 MB before
+      decode + magic-byte validation after.
+    * `document_kind`— caller-supplied taxonomy (certificate, wallet_card,
+      sign_in_sheet, transcript, roster, practical_evaluation, other).
+    * `notes`        — free-text operator note.
+    """
+    filename: str = Field(..., min_length=1, max_length=200)
+    content_type: str = Field(..., min_length=3, max_length=200)
+    data_base64: str = Field(..., min_length=4)
+    document_kind: Optional[str] = "certificate"
+    notes: Optional[str] = ""
+
+
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -517,6 +536,233 @@ def build_qualifications_router(
         except Exception:                                  # noqa: BLE001
             pass
         return row
+
+    # ── Attachment · UPLOAD ────────────────────────────────────────
+    #
+    # Track 24.2 · Phase 1 · Qualifications finalization.
+    # Every qualification row already carries an `attachments: []`
+    # array. This endpoint accepts a base64-encoded document (PDF /
+    # wallet card / sign-in sheet / transcript / photo) and appends a
+    # metadata record to that array. Bytes themselves are stored in
+    # `db.qualification_attachments` for GridFS-free downloadability.
+    # No overwrite: a later re-upload of the same filename creates a
+    # new version with `version = last + 1`. Every upload is audit-
+    # logged. Downloads are auth-gated (any portal token can read;
+    # only HR/Safety/Training/Admin can upload — same as write dep).
+    _ALLOWED_CT = {
+        "application/pdf",
+        "image/jpeg", "image/jpg", "image/png", "image/webp",
+    }
+    _MAX_BYTES = 15 * 1024 * 1024                          # 15 MB
+
+    @r.post("/hr/qualifications/{qid}/attachments")
+    async def upload_qualification_attachment(
+        qid: str, body: QualificationAttachmentBody,
+        user: dict = Depends(require_write_dep),
+    ):
+        row = await db[COLL].find_one({"id": qid}, {"_id": 0})
+        if not row:
+            raise HTTPException(404, "qualification not found")
+        if body.content_type not in _ALLOWED_CT:
+            raise HTTPException(400, {
+                "error": "unsupported_content_type",
+                "allowed": sorted(_ALLOWED_CT),
+                "received": body.content_type,
+            })
+        import base64
+        try:
+            raw = base64.b64decode(body.data_base64, validate=True)
+        except Exception:                                  # noqa: BLE001
+            raise HTTPException(400, {"error": "invalid_base64"})
+        if len(raw) == 0:
+            raise HTTPException(400, {"error": "empty_file"})
+        if len(raw) > _MAX_BYTES:
+            raise HTTPException(413, {
+                "error": "file_too_large",
+                "max_bytes": _MAX_BYTES, "received_bytes": len(raw),
+            })
+        # Magic-byte validation.
+        if body.content_type == "application/pdf" and not raw.startswith(b"%PDF"):
+            raise HTTPException(400, {"error": "invalid_pdf_magic_bytes"})
+        if body.content_type.startswith("image/"):
+            ok = (raw.startswith(b"\xff\xd8\xff")            # JPEG
+                  or raw.startswith(b"\x89PNG\r\n\x1a\n")   # PNG
+                  or raw[:4] == b"RIFF" and raw[8:12] == b"WEBP")
+            if not ok:
+                raise HTTPException(400, {"error": "invalid_image_magic_bytes"})
+        # RFC 6266 filename quote — strip control chars & path
+        # separators before storing.
+        import re as _re
+        safe_name = _re.sub(r"[\\/\r\n\t]+", "_", body.filename).strip()[:200]
+        # Determine version (append-only).
+        existing = list(row.get("attachments") or [])
+        matching = [a for a in existing if (a.get("filename") == safe_name)]
+        version = (max((a.get("version") or 1) for a in matching) + 1) if matching else 1
+
+        attachment_id = str(uuid.uuid4())
+        actor = _actor_tuple(user)
+        now = _now()
+        meta = {
+            "attachment_id": attachment_id,
+            "qualification_id": qid,
+            "employee_id": row.get("employee_id"),
+            "filename": safe_name,
+            "content_type": body.content_type,
+            "size_bytes": len(raw),
+            "document_kind": (body.document_kind or "certificate").strip().lower(),
+            "notes": (body.notes or "").strip(),
+            "version": version,
+            "uploaded_by": actor["actor_email"],
+            "uploaded_by_name": actor["actor_name"],
+            "uploaded_by_role": actor["actor_role"],
+            "uploaded_at": now,
+        }
+        # Store bytes separately so the qualification doc stays small.
+        await db.qualification_attachments.insert_one({
+            **meta,
+            "data_base64": body.data_base64,
+        })
+        # Append metadata onto the qualification row.
+        updated = list(existing) + [meta]
+        await db[COLL].update_one(
+            {"id": qid},
+            {"$set": {"attachments": updated, "updated_at": now,
+                      "updated_by": actor["actor_email"],
+                      "updated_by_role": actor["actor_role"]}},
+        )
+        await _write_audit(
+            db, row, "attachment_upload",
+            before={"attachment_count": len(existing)},
+            after={"attachment_count": len(updated),
+                   "attachment_id": attachment_id,
+                   "filename": safe_name, "version": version,
+                   "size_bytes": len(raw)},
+            user=user,
+        )
+        return {"ok": True, "attachment": meta}
+
+    # ── Attachment · LIST metadata ─────────────────────────────────
+    @r.get("/hr/qualifications/{qid}/attachments")
+    async def list_qualification_attachments(
+        qid: str, _: dict = Depends(require_read_dep),
+    ):
+        row = await db[COLL].find_one({"id": qid}, {"_id": 0, "attachments": 1})
+        if not row:
+            raise HTTPException(404, "qualification not found")
+        return {"attachments": row.get("attachments") or [], "count": len(row.get("attachments") or [])}
+
+    # ── Attachment · DOWNLOAD ──────────────────────────────────────
+    @r.get("/hr/qualifications/{qid}/attachments/{attachment_id}")
+    async def download_qualification_attachment(
+        qid: str, attachment_id: str,
+        _: dict = Depends(require_read_dep),
+    ):
+        blob = await db.qualification_attachments.find_one(
+            {"qualification_id": qid, "attachment_id": attachment_id},
+            {"_id": 0},
+        )
+        if not blob:
+            raise HTTPException(404, "attachment not found")
+        import base64
+        from fastapi.responses import Response
+        try:
+            payload = base64.b64decode(blob["data_base64"])
+        except Exception:                                  # noqa: BLE001
+            raise HTTPException(500, "attachment corrupted")
+        # RFC 6266 filename-quoted disposition, safe fallback for
+        # non-ASCII filenames using UTF-8 percent-encoding.
+        import urllib.parse
+        fname = blob.get("filename") or f"{attachment_id}.bin"
+        ascii_safe = fname.encode("ascii", "ignore").decode() or "attachment.bin"
+        utf8_quoted = urllib.parse.quote(fname)
+        disposition = (f'attachment; filename="{ascii_safe}"; '
+                       f"filename*=UTF-8''{utf8_quoted}")
+        return Response(
+            content=payload,
+            media_type=blob.get("content_type") or "application/octet-stream",
+            headers={"Content-Disposition": disposition,
+                     "Cache-Control": "private, no-store"},
+        )
+
+    # ── Migration · AUDIT REPORT ───────────────────────────────────
+    #
+    # Read-only enumeration of every `safety_training_records` row and
+    # its coverage against the Qualifications Engine registry.
+    # Answers: (a) how many total training rows exist, (b) how many
+    # are already recognized as engine qualification types, (c) how
+    # many are ambiguous / legacy (`certification_type` not in engine
+    # canonical types), (d) counts per engine type, (e) rows with
+    # attachments. Idempotent: this endpoint is a read.  Track 24.2.
+    @r.get("/hr/qualifications/migration-audit")
+    async def qualifications_migration_audit(
+        _: dict = Depends(require_write_dep),  # HR/Safety/Admin only
+    ):
+        from services.certifications.qualification_types import (
+            QUALIFICATION_ENGINE_TYPES,
+        )
+        canonical = set(QUALIFICATION_ENGINE_TYPES)
+        total = 0
+        recognized = 0
+        ambiguous_rows: List[Dict[str, Any]] = []
+        per_type: Dict[str, int] = {}
+        rows_with_attachments = 0
+        rows_with_certificate_number = 0
+        active_count = 0
+        cursor = db[COLL].find(
+            {},
+            {"_id": 0, "id": 1, "qualification_type": 1,
+             "certification_type": 1, "training_name": 1,
+             "employee_id": 1, "verification_status": 1,
+             "attachments": 1, "certificate_number": 1,
+             "completed_date": 1, "expiration_date": 1},
+        )
+        async for r_ in cursor:
+            total += 1
+            t = r_.get("qualification_type") or r_.get("certification_type") or ""
+            if t in canonical:
+                recognized += 1
+                per_type[t] = per_type.get(t, 0) + 1
+            else:
+                if len(ambiguous_rows) < 50:
+                    ambiguous_rows.append({
+                        "id": r_.get("id"),
+                        "employee_id": r_.get("employee_id"),
+                        "type_seen": t,
+                        "training_name": r_.get("training_name"),
+                    })
+            if r_.get("attachments"):
+                rows_with_attachments += 1
+            if (r_.get("certificate_number") or "").strip():
+                rows_with_certificate_number += 1
+            if (r_.get("verification_status") or "").lower() == "active":
+                active_count += 1
+        return {
+            "generated_at": _now(),
+            "source_collection": COLL,
+            "canonical_engine_types": sorted(canonical),
+            "totals": {
+                "total_rows": total,
+                "recognized_engine_type": recognized,
+                "ambiguous_or_legacy_type": total - recognized,
+                "active_rows": active_count,
+                "rows_with_attachments": rows_with_attachments,
+                "rows_with_certificate_number": rows_with_certificate_number,
+            },
+            "recognized_per_type": per_type,
+            "ambiguous_sample": ambiguous_rows,
+            "notes": [
+                "This report is READ-ONLY. It never mutates records.",
+                "Ambiguous rows are legacy training-records whose "
+                "`certification_type` string does not map to a "
+                "canonical engine type. They remain readable via "
+                "the qualifications endpoints and are not orphaned; "
+                "they simply do not surface in engine-typed listings "
+                "until relabelled to a canonical type.",
+                "The Qualifications Engine is idempotent by design — "
+                "there is NO import job. Existing safety_training_records "
+                "are the native store; the engine is a lens over it.",
+            ],
+        }
 
     return r
 

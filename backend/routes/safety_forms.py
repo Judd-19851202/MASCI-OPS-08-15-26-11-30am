@@ -792,6 +792,8 @@ def render_training_pdf(rec: Dict[str, Any]) -> bytes:
 
 import re
 
+from lib.mongo_query import safe_regex
+
 # Quick-and-dirty syntactic email validator. We don't need RFC-compliant —
 # just enough to filter out typos before handing the value to Resend.
 _EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
@@ -1121,7 +1123,7 @@ def build_safety_forms_router(db, _is_valid_admin_token):
         if employee:
             # Track 14.0-UXS-11G · search resolves preferred + legal
             # name parts in addition to the legacy denormalised label.
-            emp_rx = {"$regex": employee, "$options": "i"}
+            emp_rx = safe_regex(employee)
             query["$or"] = [
                 {"employee_name": emp_rx},
                 {"preferred_name": emp_rx},
@@ -1132,8 +1134,8 @@ def build_safety_forms_router(db, _is_valid_admin_token):
             ]
         if project:
             proj_or = [
-                {"project_name": {"$regex": project, "$options": "i"}},
-                {"project_number": {"$regex": project, "$options": "i"}},
+                {"project_name": safe_regex(project)},
+                {"project_number": safe_regex(project)},
             ]
             if "$or" in query:
                 query = {"$and": [{"$or": query["$or"]}, {"$or": proj_or}]}
@@ -1147,16 +1149,17 @@ def build_safety_forms_router(db, _is_valid_admin_token):
                 d["$lte"] = date_to
             query["issued_date"] = d
         if q:
+            _q = safe_regex(q)
             q_clauses = [
-                {"employee_name": {"$regex": q, "$options": "i"}},
-                {"preferred_name": {"$regex": q, "$options": "i"}},
-                {"legal_first_name": {"$regex": q, "$options": "i"}},
-                {"legal_middle_name": {"$regex": q, "$options": "i"}},
-                {"legal_last_name": {"$regex": q, "$options": "i"}},
-                {"display_identity": {"$regex": q, "$options": "i"}},
-                {"project_name": {"$regex": q, "$options": "i"}},
-                {"project_number": {"$regex": q, "$options": "i"}},
-                {"issued_by": {"$regex": q, "$options": "i"}},
+                {"employee_name": _q},
+                {"preferred_name": _q},
+                {"legal_first_name": _q},
+                {"legal_middle_name": _q},
+                {"legal_last_name": _q},
+                {"display_identity": _q},
+                {"project_name": _q},
+                {"project_number": _q},
+                {"issued_by": _q},
             ]
             if "$or" in query:
                 query.setdefault("$and", []).append({"$or": q_clauses})
@@ -1374,7 +1377,7 @@ def build_safety_forms_router(db, _is_valid_admin_token):
     ):
         query: Dict[str, Any] = {}
         if employee:
-            emp_rx = {"$regex": employee, "$options": "i"}
+            emp_rx = safe_regex(employee)
             query["$or"] = [
                 {"employee_name": emp_rx},
                 {"preferred_name": emp_rx},
@@ -1385,8 +1388,8 @@ def build_safety_forms_router(db, _is_valid_admin_token):
             ]
         if project:
             proj_or = [
-                {"project_name": {"$regex": project, "$options": "i"}},
-                {"project_number": {"$regex": project, "$options": "i"}},
+                {"project_name": safe_regex(project)},
+                {"project_number": safe_regex(project)},
             ]
             if "$or" in query:
                 query = {"$and": [{"$or": query["$or"]}, {"$or": proj_or}]}
@@ -1400,16 +1403,17 @@ def build_safety_forms_router(db, _is_valid_admin_token):
                 d["$lte"] = date_to
             query["training_date"] = d
         if q:
+            _q = safe_regex(q)
             q_clauses = [
-                {"employee_name": {"$regex": q, "$options": "i"}},
-                {"preferred_name": {"$regex": q, "$options": "i"}},
-                {"legal_first_name": {"$regex": q, "$options": "i"}},
-                {"legal_middle_name": {"$regex": q, "$options": "i"}},
-                {"legal_last_name": {"$regex": q, "$options": "i"}},
-                {"display_identity": {"$regex": q, "$options": "i"}},
-                {"project_name": {"$regex": q, "$options": "i"}},
-                {"project_number": {"$regex": q, "$options": "i"}},
-                {"instructor_name": {"$regex": q, "$options": "i"}},
+                {"employee_name": _q},
+                {"preferred_name": _q},
+                {"legal_first_name": _q},
+                {"legal_middle_name": _q},
+                {"legal_last_name": _q},
+                {"display_identity": _q},
+                {"project_name": _q},
+                {"project_number": _q},
+                {"instructor_name": _q},
             ]
             if "$or" in query:
                 query.setdefault("$and", []).append({"$or": q_clauses})

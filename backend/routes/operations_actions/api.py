@@ -26,6 +26,8 @@ The 6 approved statuses are the ONLY values accepted:
     open · assigned · in_progress · waiting · completed · closed
 """
 from __future__ import annotations
+
+from lib.mongo_query import safe_regex
 import logging
 import uuid
 from datetime import datetime, timezone
@@ -185,7 +187,7 @@ async def _owner_search(db, q: str, limit: int = 20) -> List[Dict[str, Any]]:
     out: List[Dict[str, Any]] = []
     if not q:
         return out
-    rx = {"$regex": q, "$options": "i"}
+    rx = safe_regex(q)
     name_or_email = {"$or": [{"name": rx}, {"email": rx}]}
 
     async def _scan(coll, directory, projection):
@@ -379,7 +381,7 @@ def register_operations_actions_routes(router: APIRouter, db, require_actor) -> 
             _validate_enum(priority, APPROVED_PRIORITIES, "priority")
             match["priority"] = priority
         if q:
-            rx = {"$regex": q, "$options": "i"}
+            rx = safe_regex(q)
             match["$or"] = [{"title": rx}, {"description": rx}, {"oa_number": rx}, {"job_number": rx}]
         if mine:
             o = _actor_to_owner(actor)

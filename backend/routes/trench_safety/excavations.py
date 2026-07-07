@@ -24,6 +24,8 @@ ID format: EX-YYYY-### (year-scoped sequential, permanent, never reused)
 """
 from __future__ import annotations
 
+from lib.mongo_query import safe_regex
+
 import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
@@ -452,7 +454,7 @@ def register_excavation_routes(
         if only_available:
             query["operational_status"] = "Available"
         if q:
-            qre = {"$regex": q, "$options": "i"}
+            qre = safe_regex(q)
             query["$or"] = [
                 {"asset_id": qre},
                 {"serial_number": qre},
@@ -692,13 +694,13 @@ def register_excavation_routes(
     ):
         q: Dict[str, Any] = {}
         if project_name:
-            q["project_name"] = {"$regex": project_name, "$options": "i"}
+            q["project_name"] = safe_regex(project_name)
         if project_number:
             q["project_number"] = project_number
         if supervisor_name:
             q["$or"] = [
-                {"supervisor_name": {"$regex": supervisor_name, "$options": "i"}},
-                {"foreman_name": {"$regex": supervisor_name, "$options": "i"}},
+                {"supervisor_name": safe_regex(supervisor_name)},
+                {"foreman_name": safe_regex(supervisor_name)},
             ]
         if status:
             q["status"] = status

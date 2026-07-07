@@ -165,12 +165,20 @@ def make_require_safety_admin_or_pm(
 
 
 def make_require_safety_or_hr_or_admin(
-    db, is_valid_admin_token: Optional[Callable[[str], bool]] = None
+    db,
+    is_valid_admin_token: Optional[Callable[[str], bool]] = None,
+    is_valid_admin_token_async: Optional[Callable[[str], Awaitable[bool]]] = None,
 ) -> Callable[..., Awaitable[dict]]:
     """Multi-role read gate. Accepts Safety, HR, or Admin tokens —
     used for cross-portal read surfaces (document library, training
     records, employee safety profile). Writes stay safety-only via the
-    single-role dependency."""
+    single-role dependency.
+
+    Track 24.2 · adds `is_valid_admin_token_async` so directory-hydrated
+    admin tokens (UUID form issued by /api/auth/multi-login) are
+    honoured. The legacy sync `is_valid_admin_token` remains for the
+    (now dead) sentinel path.
+    """
 
     async def _require_safety_or_hr_or_admin(
         request: Request,
@@ -189,8 +197,14 @@ def make_require_safety_or_hr_or_admin(
             if u:
                 enforce_password_change_required(request, u)
                 return {**u, "_actor": "hr"}
-        if x_admin_token and is_valid_admin_token and is_valid_admin_token(x_admin_token):
-            return {"_actor": "admin", "name": "Admin"}
+        if x_admin_token:
+            # Sync legacy sentinel (retired but still handles well-known
+            # break-glass tokens if enabled) …
+            if is_valid_admin_token and is_valid_admin_token(x_admin_token):
+                return {"_actor": "admin", "name": "Admin"}
+            # … then the directory-hydrated per-user admin token.
+            if is_valid_admin_token_async and await is_valid_admin_token_async(x_admin_token):
+                return {"_actor": "admin", "name": "Admin"}
         raise HTTPException(401, "Safety, HR, or Admin auth required")
 
     return _require_safety_or_hr_or_admin

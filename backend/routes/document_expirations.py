@@ -27,6 +27,8 @@ ROLE-AWARE VIEWS:
 """
 from __future__ import annotations
 
+from lib.mongo_query import safe_regex
+
 import logging
 import uuid
 from datetime import datetime, timezone, date, timedelta
@@ -351,8 +353,8 @@ def build_document_expirations_router(db, require_any_portal_token, require_admi
             clauses.append({"linked_equipment_id": linked_equipment_id})
         if q:
             clauses.append({"$or": [
-                {"document_type": {"$regex": q, "$options": "i"}},
-                {"title": {"$regex": q, "$options": "i"}},
+                {"document_type": safe_regex(q)},
+                {"title": safe_regex(q)},
             ]})
         final = {"$and": clauses} if clauses else {}
         cur = db.document_expirations.find(final, {"_id": 0}).sort(

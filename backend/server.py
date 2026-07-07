@@ -11000,20 +11000,21 @@ async def _db_isolation_failsafe():
 
 @register_lifecycle_step("misc-bootstrap")
 async def _assert_no_duplicate_routes():
-    """Track 24.1 · P1-C — WARN mode.
+    """Track 24.1 · P1-C → Track 24.2 · Phase 3 · FAIL-CLOSED.
 
-    Emit a loud startup warning if the same `(method, path)` pair is
-    registered by more than one handler.  Duplicate registrations are
-    an accident-prone pattern: FastAPI silently picks the first one,
+    Fails app startup if the same `(method, path)` pair is registered
+    by more than one handler.  Duplicate registrations are an
+    accident-prone pattern: FastAPI silently picks the first one,
     which means a refactor can flip which handler is "live" with zero
     code change. Track 24.0 audit found the auth-less handler on
     `/api/employees/competent-persons` winning over the auth-gated one
-    exactly this way — that specific duplicate was fixed in 24.1 P0-2.
-
-    In this WARN phase we log offenders but do NOT fail boot. Once the
-    remaining dup paths are retired, the follow-up iteration will flip
-    this to FAIL-CLOSED."""
+    exactly this way — Track 24.1 P0-2 removed it, and Track 24.2
+    now hardens the check to fail-closed because preview boots with 0
+    offenders.  If a legitimate duplicate ever needs to exist (e.g. a
+    version-prefixed route), add its `(method, path)` to
+    `_ALLOWED_DUPLICATES` below with a code-review justification."""
     from collections import defaultdict
+    _ALLOWED_DUPLICATES: set = set()          # empty — no exceptions.
     groups: Dict[tuple, List[str]] = defaultdict(list)
     for r in app.routes:
         if hasattr(r, "methods") and hasattr(r, "endpoint"):
@@ -11021,19 +11022,24 @@ async def _assert_no_duplicate_routes():
                 mod = getattr(r.endpoint, "__module__", "?")
                 name = getattr(r.endpoint, "__name__", "?")
                 groups[(m, r.path)].append(f"{mod}:{name}")
-    dups = [(k, v) for k, v in groups.items() if len(v) >= 2]
+    dups = [(k, v) for k, v in groups.items()
+            if len(v) >= 2 and k not in _ALLOWED_DUPLICATES]
     if not dups:
-        logger.info("[track-24.1] duplicate-route scan clean · 0 offenders")
+        logger.info("[track-24.2] duplicate-route scan clean · 0 offenders · fail-closed policy active")
         return
-    logger.warning(
-        f"[track-24.1] duplicate-route scan · {len(dups)} offenders "
-        f"(FastAPI silently uses the FIRST registered handler; fix these "
-        f"before the follow-up iteration flips this check to fail-closed):"
+    # FAIL CLOSED — dump every offender and refuse to boot.
+    logger.error(
+        f"[track-24.2] duplicate-route scan · FAIL · {len(dups)} offenders. "
+        f"FastAPI silently uses the FIRST registered handler; refusing to boot."
     )
     for (m, p), handlers in dups:
-        logger.warning(
-            f"[track-24.1] duplicate  {m:6s} {p}  ({len(handlers)} handlers) · WINS={handlers[0]}"
+        logger.error(
+            f"[track-24.2] duplicate  {m:6s} {p}  ({len(handlers)} handlers) · WINS={handlers[0]} · LOSING={handlers[1:]}"
         )
+    raise RuntimeError(
+        f"Duplicate route registrations detected ({len(dups)} offenders). "
+        f"Fix them or add exceptions to _ALLOWED_DUPLICATES."
+    )
 
 
 
@@ -11774,7 +11780,12 @@ from scripts.migrate_track_23_10_b_qualification_engine import (  # noqa: E402
 )
 
 _qualification_write_gate = make_require_safety_or_hr_or_admin(
-    db, _is_valid_admin_token,
+    db,
+    is_valid_admin_token=_is_valid_admin_token,
+    # Track 24.2 · accept directory-hydrated admin tokens (UUID form
+    # issued by multi-login). The sync check alone rejected every
+    # modern admin token, breaking the qualifications write path.
+    is_valid_admin_token_async=_is_valid_directory_admin_token_async,
 )
 app.include_router(build_qualifications_router(
     db,

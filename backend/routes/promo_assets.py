@@ -15,6 +15,8 @@ Routes (all `/api/admin/promo-assets/*`, all admin-strict):
   GET    /{id}/download → 302 → presigned download URL
 """
 from __future__ import annotations
+
+from lib.mongo_query import safe_regex
 import logging
 import uuid
 from datetime import datetime, timezone
@@ -131,9 +133,9 @@ def build_promo_assets_router(
             ql = q.strip()
             if ql:
                 match["$or"] = [
-                    {"name": {"$regex": ql, "$options": "i"}},
-                    {"description": {"$regex": ql, "$options": "i"}},
-                    {"tags": {"$regex": ql, "$options": "i"}},
+                    {"name": safe_regex(ql)},
+                    {"description": safe_regex(ql)},
+                    {"tags": safe_regex(ql)},
                 ]
         cursor = coll.find(match, {"_id": 0}).sort("created_at", -1).limit(500)
         items = [_public_row(d) async for d in cursor]

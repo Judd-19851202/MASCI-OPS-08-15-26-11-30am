@@ -58,6 +58,8 @@ API endpoints (any portal token):
 """
 from __future__ import annotations
 
+from lib.mongo_query import safe_regex
+
 import hashlib
 import logging
 import uuid
@@ -845,7 +847,7 @@ def build_tasks_notifications_router(db, require_any_portal_token):
         if linked_project_number:
             and_clauses.append({"linked_project_number": linked_project_number})
         if q:
-            and_clauses.append({"title": {"$regex": q, "$options": "i"}})
+            and_clauses.append({"title": safe_regex(q)})
         final = {"$and": and_clauses} if and_clauses else {}
         cur = db.tasks.find(final, {"_id": 0}).sort("created_at", -1).limit(limit)
         items = []

@@ -41,6 +41,8 @@ Zero-drift verified:
 """
 from __future__ import annotations
 
+from lib.mongo_query import safe_regex
+
 import hashlib
 import logging
 import uuid
@@ -672,7 +674,7 @@ def build_employee_records_router(*, db, require_actor):
         if q:
             # Structured substring on a handful of known-safe text fields.
             # No full-text/OCR — this is a plain regex OR across metadata.
-            pat = {"$regex": q, "$options": "i"}
+            pat = safe_regex(q)
             q_mongo["$or"] = [
                 {"record_type": pat},
                 {"notes": pat},

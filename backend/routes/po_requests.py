@@ -21,6 +21,8 @@ Numbering scheme: `MASCI-PO-YY-MM-NNN`
 """
 from __future__ import annotations
 
+from lib.mongo_query import safe_regex
+
 import logging
 import os
 import re
@@ -400,9 +402,9 @@ def build_po_requests_router(
             })
         if q:
             clauses.append({"$or": [
-                {"po_number": {"$regex": q, "$options": "i"}},
-                {"vendor":    {"$regex": q, "$options": "i"}},
-                {"description": {"$regex": q, "$options": "i"}},
+                {"po_number": safe_regex(q)},
+                {"vendor":    safe_regex(q)},
+                {"description": safe_regex(q)},
             ]})
         final = {"$and": clauses} if clauses else {}
         cur = db.po_requests.find(final, {"_id": 0}).sort(

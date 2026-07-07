@@ -19,6 +19,8 @@ from __future__ import annotations
 
 import logging
 import uuid
+
+from lib.mongo_query import safe_regex
 from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional
 
@@ -411,9 +413,9 @@ def register_transportation_routes(
             query["status"] = status
         if q:
             query["$or"] = [
-                {"legal_name": {"$regex": q, "$options": "i"}},
-                {"dba_name": {"$regex": q, "$options": "i"}},
-                {"dot_number": {"$regex": q, "$options": "i"}},
+                {"legal_name": safe_regex(q)},
+                {"dba_name": safe_regex(q)},
+                {"dot_number": safe_regex(q)},
             ]
         cur = db.carriers.find(query).sort("created_at", -1).limit(limit)
         items = [_project_doc(d) for d in await cur.to_list(limit)]
@@ -532,10 +534,10 @@ def register_transportation_routes(
             query["status"] = status
         if q:
             query["$or"] = [
-                {"first_name": {"$regex": q, "$options": "i"}},
-                {"last_name": {"$regex": q, "$options": "i"}},
-                {"email": {"$regex": q, "$options": "i"}},
-                {"license_number": {"$regex": q, "$options": "i"}},
+                {"first_name": safe_regex(q)},
+                {"last_name": safe_regex(q)},
+                {"email": safe_regex(q)},
+                {"license_number": safe_regex(q)},
             ]
         cur = db.transport_persons.find(query).sort("created_at", -1).limit(limit)
         items = [_project_doc(d) for d in await cur.to_list(limit)]
@@ -667,9 +669,9 @@ def register_transportation_routes(
         }
         if q:
             query["$or"] = [
-                {"name": {"$regex": q, "$options": "i"}},
-                {"employee_id": {"$regex": q, "$options": "i"}},
-                {"cdl_license_number": {"$regex": q, "$options": "i"}},
+                {"name": safe_regex(q)},
+                {"employee_id": safe_regex(q)},
+                {"cdl_license_number": safe_regex(q)},
             ]
         projection = {
             "_id": 0, "id": 1, "employee_id": 1, "name": 1,
@@ -824,9 +826,9 @@ def register_transportation_routes(
             query["status"] = status
         if q:
             query["$or"] = [
-                {"truck_number": {"$regex": q, "$options": "i"}},
-                {"vin": {"$regex": q, "$options": "i"}},
-                {"plate": {"$regex": q, "$options": "i"}},
+                {"truck_number": safe_regex(q)},
+                {"vin": safe_regex(q)},
+                {"plate": safe_regex(q)},
             ]
         cur = db.transport_trucks.find(query).sort("created_at", -1).limit(limit)
         items = [_project_doc(d) for d in await cur.to_list(limit)]
@@ -941,12 +943,12 @@ def register_transportation_routes(
             em_query["category"] = category
         if q:
             em_query["$or"] = [
-                {"asset_id": {"$regex": q, "$options": "i"}},
-                {"unit_number": {"$regex": q, "$options": "i"}},
-                {"make_model": {"$regex": q, "$options": "i"}},
-                {"vin_serial_number": {"$regex": q, "$options": "i"}},
-                {"plate": {"$regex": q, "$options": "i"}},
-                {"display_label": {"$regex": q, "$options": "i"}},
+                {"asset_id": safe_regex(q)},
+                {"unit_number": safe_regex(q)},
+                {"make_model": safe_regex(q)},
+                {"vin_serial_number": safe_regex(q)},
+                {"plate": safe_regex(q)},
+                {"display_label": safe_regex(q)},
             ]
         # Pull all transport overlays once, build a lookup by equipment_id.
         overlays = await db.transport_trucks.find(

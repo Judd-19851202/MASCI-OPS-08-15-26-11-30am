@@ -31,6 +31,8 @@ Auto-Offboarding Playbook:
 """
 from __future__ import annotations
 
+from lib.mongo_query import safe_regex
+
 import logging
 import re as _re
 import uuid
@@ -945,13 +947,13 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
             # "Fisher" / "Jimmy" / "James Fisher" / "Jimmy Fisher" /
             # "James Michael Fisher" match the same employee.
             clauses.append({"$or": [
-                {"name": {"$regex": q, "$options": "i"}},
-                {"legal_first_name": {"$regex": q, "$options": "i"}},
-                {"legal_middle_name": {"$regex": q, "$options": "i"}},
-                {"legal_last_name": {"$regex": q, "$options": "i"}},
-                {"preferred_name": {"$regex": q, "$options": "i"}},
-                {"employee_id": {"$regex": q, "$options": "i"}},
-                {"trade": {"$regex": q, "$options": "i"}},
+                {"name": safe_regex(q)},
+                {"legal_first_name": safe_regex(q)},
+                {"legal_middle_name": safe_regex(q)},
+                {"legal_last_name": safe_regex(q)},
+                {"preferred_name": safe_regex(q)},
+                {"employee_id": safe_regex(q)},
+                {"trade": safe_regex(q)},
             ]})
         return {"$and": clauses}
 
@@ -1913,9 +1915,9 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
             })
         if q:
             clauses.append({"$or": [
-                {"name": {"$regex": q, "$options": "i"}},
-                {"employee_id": {"$regex": q, "$options": "i"}},
-                {"cdl_license_number": {"$regex": q, "$options": "i"}},
+                {"name": safe_regex(q)},
+                {"employee_id": safe_regex(q)},
+                {"cdl_license_number": safe_regex(q)},
             ]})
 
         # Projection trims the document to just what the dashboard
