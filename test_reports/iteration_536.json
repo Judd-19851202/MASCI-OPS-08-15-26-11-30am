@@ -1,0 +1,41 @@
+{
+  "summary": "Track 24.4 POST-DEPLOY LIVE PRODUCTION SMOKE TEST against https://mascidocs.com. Read-only browser probe of 14 surfaces. No submissions, no logins, no emails triggered. Overall verdict: NO P0 DEPLOYMENT BLOCKERS. Production is up, homepage loads in 0.14s, ZERO console errors/warnings across the entire test run, all 7 portal login pages return 200 with valid forms, all public surfaces render, mobile-390 has no horizontal overflow in EN or ES, autosave/draft persistence works via Restore/Discard prompt, and the 404 fallback is clean (no stack traces). Two honest findings: (P1) i18n coverage gap in DR V3 ES mode — several section-band headings and yes/no buttons remain English; (P2) testid drift between the review-request spec and shipped production DOM.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "DR V3 /daily/submit", "issue": "i18n coverage gap in ES mode — many strings do NOT translate when lang-es active: 'JOB SETUP', 'WAS THE JOB SAFE? · SAFETY / INCIDENTS / INSPECTIONS', 'ANY SAFETY INCIDENTS, INJURIES, ACCIDENTS, UTILITY HITS, NEAR MISSES, OR INSPECTIONS TODAY?', 'Answer the two questions below if Yes to any of the above.', 'WHO WAS THERE? · PEOPLE ON SITE', 'DID MASCI EMPLOYEES WORK ON SITE TODAY?', 'WERE SUBCONTRACTORS ON SITE TODAY?', 'WERE VISITORS OR INSPECTORS ON SITE TODAY?', 'EQUIPMENT & RESOURCES', 'WAS MASCI EQUIPMENT ON SITE OR USED TODAY?', 'WHAT MOVED? · MATERIALS / IMPORT / EXPORT', 'WERE MATERIALS DELIVERED OR IMPORTED TODAY?', 'WERE MATERIALS EXPORTED OR HAULED OFF TODAY?', 'WHAT GOT DONE? · WORK PERFORMED & PRODUCTION', 'WHAT IMPACTED TODAY? · DELAYS / CONSTRAINTS / EXTRA WORK', 'PHOTOS & ATTACHMENTS · REQUIRED EVIDENCE', 'WHAT HAPPENS NEXT? · TOMORROW / FOLLOW-UP', plus coaching-tip titles 'Why photos matter' and 'Common mistakes'.", "selector": "body of /daily/submit with data-testid='lang-es' active", "priority": "P1"},
+      {"component": "DR V3 yes/no buttons", "issue": "Inconsistent yes/no localization in ES mode: excavation gate shows 'SÍ / NO' correctly, People-on-Site presence rows show 'Sí / No' correctly, BUT weather-impact / delays / accidents-on-site / injuries-reported buttons still render 'YES / NO' (English) when lang-es is active. Different button clusters use different translation dictionaries.", "selector": "[data-testid='weather-impact-yes'], [data-testid='schedule-delays-yes'], [data-testid='injuries-reported-yes']", "priority": "P1"},
+      {"component": "404 fallback route", "issue": "SPA catch-all returns HTTP 200 for unknown paths (e.g. /this-route-does-not-exist) while rendering a client-side '404 · PAGE NOT FOUND' UI. Visually clean and correct (no stack trace, Sign In + Public Home CTAs present), but search engines will index nonexistent URLs. Consider serving proper 404 status.", "selector": "SPA fallback", "priority": "P3"}
+    ],
+    "integration_issues": [
+      {"flow": "DR V3 autosave / draft restore", "issue": "Autosave persists correctly (verified across two page reloads — draft-restore banner reappears with Restore/Discard/BringItBack testids intact) BUT typed input value is NOT auto-populated on reload — user must click Restore. Not strictly a bug (by-design opt-in), but the review-request expected transparent restore of 'production-smoke-2026' into the Location input on reload; production behavior is Restore-prompt only.", "affected_selectors": ["[data-testid='input-location']", "[data-testid='daily-report-draft-restore-prompt-restore']"]}
+    ],
+    "design_issues": [
+      {"screen": "Mobile 390 /daily/submit (EN and ES)", "issues": ["No horizontal overflow (scrollWidth=clientWidth=390 in both languages)", "Sticky submit footer (ENVIAR / SUBMIT DAILY REPORT) renders correctly at 390 width", "Signature canvas 'FIRMA DE PREPARADO POR' fits within viewport", "No visible clipping detected"]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "P1 — Extend i18n dictionary in /app/frontend/src/lib/i18n.js to cover the ~17 English strings still leaking in ES mode on /daily/submit (band headings, section subheaders, safety/accidents/injuries questions, coaching-tip titles). Full list captured in ui_bugs above.",
+    "P1 — Localize the yes/no buttons that still read 'YES / NO' in ES mode: weather-impact-yes/no, schedule-delays-yes/no, safety-incidents-yes/no, injuries-reported-yes/no. Excavation and presence-crews already do it right — copy that pattern.",
+    "P2 — Reconcile testid drift: review-request references data-testid='dr-v3-lang-toggle', 'dr-v3-excavation-gate-yes', 'exc-cp-combo-filter' but production ships 'lang-toggle', 'exc-act-yes' / 'dr-excavation-activity-yes-panel' and NO 'exc-cp-combo-filter' (competent-person combo apparently lives on the linked excavation-record form, not the DR shell). Update the E2E playbook or add legacy testid aliases.",
+    "P3 — Consider real HTTP 404 status for unknown SPA routes (current: 200 with client-side 404 UI). SEO/monitoring benefit."
+  ],
+  "critical_code_review_comments": [
+    "i18n gap suggests two parallel translation code paths (one used by excavation gate + presence rows, another used by weather/delays/safety/injuries) — consolidate on a single t() helper to avoid future drift.",
+    "Console is completely silent (0 errors, 0 warnings, 0 5xx across full test run) — solid production baseline.",
+    "Autosave restore prompt has excellent UX (Restore + Discard + Bring It Back testids all wired) — recovery UI is production-grade.",
+    "Portal login pages all healthy: 7/7 return 200 with email+password fields, all support EN/ES language toggle."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (frontend-only per request)", "frontend": "12/14 tests fully pass, 2 tests reveal P1 i18n gap; ZERO console errors; ZERO 5xx"},
+  "seed_data_creation": "None. Read-only smoke test, no writes attempted. Draft input 'production-smoke-2026' was typed for autosave probe only; the discard-draft button was clicked (production-safe operation).",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Production DOM testid inventory captured — full 163-testid dump available in tool output. Key testids on /daily/submit: lang-en / lang-es / lang-toggle (NOT dr-v3-lang-toggle), exc-act-yes / exc-act-no / dr-excavation-activity-yes-panel (NOT dr-v3-excavation-gate-yes), input-location, input-project-name, submit-top-btn / submit-sticky-btn / submit-bottom-btn, daily-submit-photos-hint, daily-report-completeness-chip, daily-report-draft-restore-prompt-restore/-discard. The excavation section on the DR V3 shell only exposes 'Create new excavation record' and 'Link existing excavation record' after clicking exc-act-yes — the Competent Person combo, soil dropdown, protective systems and utilities fields are NOT on this page (they live on the linked excavation record). Production console is perfectly clean — treat any future console.error appearance as a real regression.",
+  "rca_of_findings": {
+    "i18n_gap": "Reproduction: (1) Navigate https://mascidocs.com/daily/submit, (2) click [data-testid='lang-es'], (3) scroll body — observe ~17 strings remain English while others translate correctly. Root cause hypothesis: strings hardcoded in JSX instead of routed through t()/translation-key lookup in /app/frontend/src/lib/i18n.js. Mitigation: audit NewDailyReportV3.jsx and child section components for literal English strings not wrapped in t().",
+    "testid_drift": "Reproduction: search-request expects dr-v3-* testids; production ships legacy names. Mitigation: either regenerate the review-request testid list from live DOM or ship a compatibility layer that duplicates data-testid on the same element.",
+    "404_status_200": "SPA hosted via static-first + client-router fallback returns 200 for unknown routes. Standard SPA pitfall; not a defect but worth noting."
+  }
+}
