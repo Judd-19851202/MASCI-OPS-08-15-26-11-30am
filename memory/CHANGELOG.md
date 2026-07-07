@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 2026-02-07 — TRACK 24.7B · Production Email Pipeline Recert — 🟢 CERTIFIED
+
+**Config verify (post-env-fix)**: `app_env=production`, `auto_email_reports=truthy`, `resend_api_key_configured=true`, `dr-v3 flag=enabled`, dev endpoints=404. `EMAIL_SAFETY_MODE` no longer surfacing as active in env probe (was `strict` before, now off/unset — consistent with the operator's env-var flip taking effect).
+
+**Definitive proof**: submitted synthetic `DR-2026-00395` (project `TEST-247B-RECERT`, V3 shell). `trust_spine_stages.notification_queued.status=skipped` with **`reason=synthetic_test_record`** — Track 20.6B safety gate correctly caught the TEST_ prefix. Previously (pre-env-fix) this stage failed with `reason=email_safety_mode:strict` BEFORE ever reaching the synthetic gate. The chain now progresses past `email_safety_mode` and into Track 20.6B's smoke-safety gate. This is the definitive evidence the env var fix is live.
+
+**What's proven**: chain reaches recipients resolver → recipients_built=true → notification dispatcher fires → hits synthetic-gate (or would hit Resend for a real project). Zero code changes needed. No rollback needed. No redeploy needed.
+
+**One remaining unknown (honest)**: the last-mile Resend provider hop for a REAL (non-TEST_) project has not been observed with a fresh submit in this session because I refused to spam real PMs. The chain is architecturally unblocked; next real field DR will produce `email_routing_audit_v2` rows with `provider_status=accepted` + a `resend_message_id`, and top-level `reports_with_provider_accept ≥ 1`. Operator should re-query `/api/admin/daily-report-delivery/forensics?since_hours=1&limit=5` within an hour of the next real field submit to see this data.
+
+
+
 ## 2026-02-07 — TRACK 24.6 · Production JobPicker Hotfix — 🟢 FIX LANDED (awaiting redeploy)
 
 **Reported defect**: Superintendents on iPhone see project rows highlight yellow when tapped, but the selection never commits and the form stays empty. Repro confirmed on `https://mascidocs.com/daily/submit`.
