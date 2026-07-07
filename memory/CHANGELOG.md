@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## 2026-02-07 — TRACK 24.6 · DR V3 Email Parity Verify — 🔴 P0 FOUND (pre-existing prod env misconfig)
+
+Verified V3 email routing parity by submitting 2 synthetic smoke DRs against production (both `TEST_*` prefix). Both DRs accepted end-to-end via `POST /api/daily-reports`, same endpoint as V1. Trust Spine `record_created` fired for both. Recipients resolver ran correctly.
+
+**PARITY CLAIM: PROVEN.** V1 and V3 share the identical submit endpoint, identical downstream chain, identical `schedule_auto_email("daily-report", doc)` invocation. Zero branching on `ui_shell` / `submit_language` / `translation_metadata`. Track 24.5's V3 cutover has no relationship to email delivery.
+
+**P0 FOUND (unrelated to Track 24.5/24.6):** Live production has `EMAIL_SAFETY_MODE=strict` — a Track 21.2 preview/staging default that patches the Resend SDK to short-circuit every email dispatch. Every real DR since this env var was set in production has silently failed to email its assigned PM/Co-PMs. Evidence: DR-2026-00392 (real project 26-07, today) — resolver correctly identified PM Jaymn Judd + 3 Co-PMs, recipients built (4 addresses), but `notification_queued` = SKIPPED with `failure_reason: email_safety_mode:strict`; `email_attempted=false`; `provider_accepted=false`; zero `email_routing_audit_v2` rows.
+
+**Fix**: set production env var `EMAIL_SAFETY_MODE=off` (or unset it entirely). Per the explicit code comment at `server.py:107-108`: *"Production sets EMAIL_SAFETY_MODE=off. Preview/staging/test containers set EMAIL_SAFETY_MODE=strict."* Production is misconfigured with the preview default. This is an ops env var flip — no code change, no redeploy other than backend restart to pick up the new env var value.
+
+**Not a rollback trigger for Track 24.5** — V3 cutover is orthogonal to this issue. Both V1 and V3 are equally affected. Fixing the env var restores real email delivery for both.
+
+
+
 ## 2026-02-07 — TRACK 24.5 · Production DR V3 Flag Cutover — 🟢 SHIPPED
 
 Flipped the production `ui_flags.dr_v3.tenant_default` from `false` → `true` via authenticated admin API call to https://mascidocs.com/api/admin/dr-v3-flag/tenant-default. No code changed. No redeploy needed.
