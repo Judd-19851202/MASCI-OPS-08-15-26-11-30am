@@ -656,16 +656,22 @@ def test_no_new_collections_created():
 
 
 def test_no_provisional_picker_in_23_10_b():
-    """23.10-B does NOT ship any picker component under
-    frontend/src/components/. The picker belongs to sub-track E."""
+    """23.10-B does NOT ship any picker component. The permanent
+    picker `CompetentPersonCombo` is shipped by Track 23.10-E in
+    `frontend/src/components/daily-report-v3/` — that path is
+    whitelisted here."""
     front = BACKEND.parent / "frontend" / "src"
     picker_names = ("CompetentPersonCombo", "CompetentPersonPicker",
                     "QualificationPicker")
     hits = []
     if front.exists():
         for p in front.rglob("*.jsx"):
+            # Track 23.10-E ships the CompetentPersonCombo under
+            # `components/daily-report-v3/`. Anything else = violation.
+            if "daily-report-v3" in p.as_posix():
+                continue
             txt = p.read_text(encoding="utf-8", errors="ignore")
             for name in picker_names:
                 if f"function {name}" in txt or f"const {name} =" in txt or f"export {name}" in txt.replace(" default ", " "):
                     hits.append((p.name, name))
-    assert not hits, f"provisional picker exists: {hits}"
+    assert not hits, f"provisional picker exists outside 23.10-E scope: {hits}"

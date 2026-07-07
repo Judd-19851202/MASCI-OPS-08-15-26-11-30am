@@ -48,6 +48,7 @@ import {
   SectionSignoff,
 } from "@/components/daily-report-v3/sections";
 import { DailyReportTopBanner } from "@/components/DailyReportTopBanner";
+import DailyReportV3ExcavationSection from "@/components/daily-report-v3/DailyReportV3ExcavationSection";
 import { CheckCircle2, History } from "lucide-react";
 
 // Form key MUST match V1 so that a mid-flight draft written in V1 can
@@ -473,6 +474,15 @@ export default function NewDailyReportV3({ publicMode = false }) {
           <SectionMaterials data={data} patch={patch} costCodes={costCodes} />
           <SectionPhotos data={data} patch={patch} photoMin={photoMin} />
           <SectionImpactSafety data={data} patch={patch} />
+          {/* TRACK 23.10-E · Excavation section — collapsed unless
+              excavation today = Yes. Consumes Qualifications Engine. */}
+          <DailyReportV3ExcavationSection
+            value={data.excavation || {}}
+            onChange={(exc) => patch({
+              excavation: exc,
+              excavation_activity_today: String(exc?.excavation_today || "").toLowerCase() === "yes" ? "Yes" : "No",
+            })}
+          />
           <SectionTomorrow data={data} patch={patch} />
           <SectionAiSummary
             data={data}

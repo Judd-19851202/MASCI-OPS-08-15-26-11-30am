@@ -427,6 +427,22 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
                 # Best-effort — never surface a photo-intel error to
                 # the field UI. Reconciler will catch up next pass.
                 pass
+            # ── TRACK 23.10-E · Daily Report V3 Excavation service ──
+            # Consumes the Track 23.10-B Qualifications Engine + emits
+            # Track 23.10-C ODS facts + attaches the readiness snapshot
+            # onto the doc. Raises 400 when Competent Person selection
+            # is not from the active registry.
+            try:
+                from services.daily_report_v3_excavation import (  # noqa: PLC0415
+                    process_excavation_on_submit,
+                )
+                await process_excavation_on_submit(db, doc)
+            except HTTPException:
+                # Rethrow — invalid excavation submissions must fail.
+                raise
+            except Exception:                                     # noqa: BLE001
+                # Never fail a non-excavation submit on this hook.
+                pass
             # ── Phase 10A-B · Correction 1 · two-way Excavation linkage ──
             # Stamp this daily report ID onto every linked excavation
             # record so the relationship is queryable from both sides.
