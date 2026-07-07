@@ -1,5 +1,33 @@
 # CHANGELOG
 
+## 2026-02-07 — TRACK 24.5 · Production DR V3 Flag Cutover — 🟢 SHIPPED
+
+Flipped the production `ui_flags.dr_v3.tenant_default` from `false` → `true` via authenticated admin API call to https://mascidocs.com/api/admin/dr-v3-flag/tenant-default. No code changed. No redeploy needed.
+
+**Evidence**:
+- Pre-flip: `GET /api/feature-flags/dr-v3` → `{enabled: false}`
+- Flip: `POST /api/admin/dr-v3-flag/tenant-default` `{enabled: true}` → `{ok: true, tenant_default: true}` @ 2026-07-07T14:18:23Z UTC (updated_by=admin)
+- Post-flip: `GET /api/feature-flags/dr-v3` → `{enabled: true}`
+
+**Post-flip production smoke (iteration 537, browser-side, 10/10 checks pass at P0 level)**:
+- V3 shell renders (`Today's report` heading, `MASCI · Daily Job Report` kicker, `dr-v3-lang-toggle` + `dr-v3-form` + `dr-v3-section-project` testids)
+- EN↔ES toggle: full-page translation confirmed live for all 16 section headers/buttons
+- Language persistence across reload via localStorage `masci.lang`
+- Form values preserved across EN↔ES toggle
+- Excavation V3 (not V1) renders with searchable Competent Person combo
+- ES excavation labels translate
+- Zero JS console errors (only benign 401 from unauth CP registry lookup, handled with bilingual inline message)
+- Mobile 390 clean
+- Warm translation p95 = **~1.5 s** (vs earlier cold-start 5.4 s — perf worry retracted)
+
+**Non-blocking findings (do NOT warrant rollback)**:
+1. **P2**: submit-readiness checklist `<strong>` still shows English `Prepared By` in ES mode. Already fixed in preview HEAD (label now `t("Prepared By")`). Auto-resolves on next deploy.
+2. **P1 (pre-existing, not a 24.5 regression)**: Draft-restore prompt does not surface on reload in publicMode. Root cause: Track 19.04 Form Session Isolation guards `draftAuthor === currentAuthActor`; anonymous publicMode has no stable auth-actor fingerprint, so the isolation filter can silently drop drafts. Affects both V1 and V3 — was already present pre-cutover. To fix cleanly, publicMode should either (a) always pass isolation for null/null actor pairs, or (b) skip Track 19.04 gating entirely. Investigate next session.
+
+**Security posture unchanged post-flip**: dev endpoints 404, HR roster 401, translation endpoint 200 with fail-closed still working.
+
+
+
 ## 2026-02-07 — TRACK 24.4 · Final Production Certification Audit — 🟢 GO WITH FIXES → GO
 
 Full 15-phase read-only audit + 4 surgical P2 translation fixes. Every foundation track (23.10-B/C/D/E, 24.1, 24.2, 24.3) passes its dedicated suite (158/158 individual runs). Security posture live-proven: brute-force lockout fires after 10 attempts, dev endpoints return 404, all protected endpoints correctly 401 to anonymous. AI adversarial probes (system-prompt extraction, API-key extraction, "SAFE_TO_USE" override) all resisted — inputs treated as opaque translation data, not executed. Live GPT-5.2 translation on preview verifies preserve-token behavior (Sta 12+50, 24-12, employee names preserved verbatim). Translation p95 ≈ 2.6 s under 4 s target. Testing agent iter 535 covered 10-portal load matrix + DR V3 EN/ES + excavation + portal permission; 2 P1 findings were re-analyzed and downgraded to P3 (super-admin cross-portal-token is intentional; intelligence-tile timeout copy is correct branching). 4 P2 ES-translation gaps (Yes/No toggle, photo progress counter, visitors helper, photo shortfall) FIXED in-session.
