@@ -1,5 +1,43 @@
 # CHANGELOG
 
+## 2026-02-07 — TRACK 24.6 · Production JobPicker Hotfix — 🟢 FIX LANDED (awaiting redeploy)
+
+**Reported defect**: Superintendents on iPhone see project rows highlight yellow when tapped, but the selection never commits and the form stays empty. Repro confirmed on `https://mascidocs.com/daily/submit`.
+
+**Root cause (two layers)**:
+1. **Primary**: Track 24.3's i18n rewrite of `SectionProjectConditions.jsx` accidentally passed `value={data.project_number}` + `onChange={...}` to `<JobPicker>`, but `JobPicker.jsx` reads `projectNumber` + `projectName` + `onSelect`. `onSelect` was `undefined`, so every commit path (desktop click, mobile tap, keyboard Enter) threw `TypeError: onSelect is not a function` and the popover silently re-mounted with unchanged parent state. This affected ALL input methods, not just touch — the reporter noticed it on iPhone first because that's where field superintendents live.
+2. **Secondary**: Even with the correct contract, iOS Safari + cmdk has a known race where the `CommandInput` blur closes the Popover before a slow `click` event reaches the `CommandItem`. Not user-visible before, but would have been exposed by the primary fix.
+
+**Fixes (surgical, smallest safe change)**:
+- `frontend/src/components/daily-report-v3/SectionProjectConditions.jsx` — `value/onChange` → `projectNumber/projectName/onSelect` (matches JobPicker's actual contract, aligns with every other consumer: EditProjectDialog, AssignmentCreateDrawer, NewIncident, DaySetupSection).
+- `frontend/src/components/JobPicker.jsx` — added `onPointerDown` handler on both `<CommandItem>` blocks that commits selection when `pointerType !== "mouse"` (touch/pen). Desktop mouse falls through to standard cmdk `onSelect` path. Prevents future iOS-Safari-blur races.
+
+**Regression lock (permanent)**:
+- `backend/tests/test_track_24_6_job_picker_touch_select.py` (3/3 pass):
+  - `test_job_picker_command_items_commit_on_pointerdown` — every CommandItem must have `onPointerDown` with a `pointerType` guard.
+  - `test_job_picker_keeps_onSelect_for_keyboard_parity` — `onSelect` remains for keyboard Enter.
+  - `test_job_picker_consumers_use_correct_prop_contract` — scans every `.jsx` in `/app/frontend/src` for `<JobPicker value=/onChange=>` anti-pattern. Would have caught the Track 24.3 slip at CI.
+
+**Verification (testing agent iter 539, 7/7 pass on preview)**:
+- Desktop click → commits to `#20-07 T5686 SR 15/SR600 (SANFORD, 17/92, LAKE MARY)`.
+- Mobile tap (390x844, `has_touch=True`, iOS Safari UA) → commits.
+- Keyboard type "oxford" + ArrowDown + Enter → commits to `#24-12 CC5744 OXFORD RD Improvements`.
+- Auto-populate of `dr-v3-location` input confirmed after selection.
+- Custom-job path still closes popover cleanly.
+- Console: zero `onSelect is not a function`, zero JobPicker TypeErrors on preview.
+- Production reproduction confirmed still broken (minified `"b is not a function"` — pre-fix bundle).
+
+**Files changed**:
+- `frontend/src/components/JobPicker.jsx` (touch-race hardening — 2 CommandItems)
+- `frontend/src/components/daily-report-v3/SectionProjectConditions.jsx` (prop-contract fix)
+- `backend/tests/test_track_24_6_job_picker_touch_select.py` (new — 3 lock tests)
+
+**Not touched**: V1 rollback path, translation service, excavation, CompetentPersonCombo, PDF/email pipeline, backend API routes, ODS, KPIs, security, EN/ES logic.
+
+**Deployment state**: fix is LIVE on preview, VERIFIED. Production still runs the pre-fix bundle — needs a redeploy to reach real superintendents. This is orthogonal to the Track 24.6-prior `EMAIL_SAFETY_MODE=strict` production env misconfig, which still requires an ops env-var flip.
+
+
+
 ## 2026-02-07 — TRACK 24.6 · DR V3 Email Parity Verify — 🔴 P0 FOUND (pre-existing prod env misconfig)
 
 Verified V3 email routing parity by submitting 2 synthetic smoke DRs against production (both `TEST_*` prefix). Both DRs accepted end-to-end via `POST /api/daily-reports`, same endpoint as V1. Trust Spine `record_created` fired for both. Recipients resolver ran correctly.
