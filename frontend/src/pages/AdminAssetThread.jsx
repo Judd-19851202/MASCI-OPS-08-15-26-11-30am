@@ -474,7 +474,7 @@ function relationshipAdapter({ asset, events, docs, assetRef }) {
     kind: "shop",
     id: "shop-history",
     label: "Shop history",
-    sublabel: "Track 13.26 backbone",
+    sublabel: "Asset service backbone",
     deep_link: `/shop/units/${encodeURIComponent(assetRef)}/history`,
   });
   if (asset?.department) {
@@ -698,7 +698,7 @@ export default function AdminAssetThread() {
             attention={{ items: attentionItems }}
             guidanceProduct={state.product}
             timelineEvents={timelineEvents}
-            timelineTitle="Asset timeline · newest first · Track 13.26 backbone + Historical Records"
+            timelineTitle="Asset timeline · newest first · Service backbone + Historical Records"
             relationships={relationships}
             documents={documents}
             oiProduct={state.product}

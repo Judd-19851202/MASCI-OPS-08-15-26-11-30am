@@ -136,7 +136,7 @@ export default function DesignSystemDemo() {
         portalName="MASCI"
         portalRole="Design System · Internal"
         pageTitle="Shared Design Primitives Foundation"
-        subtitle="Track 13.5A · Phase B1 — isolated visual showcase. No portal migration. No engine wiring."
+        subtitle="Isolated visual showcase. No portal migration. No engine wiring."
         lastActivity={<span>Mounted at <code>/_internal/design-system</code></span>}
       >
         {/* Status Chips */}
@@ -341,7 +341,7 @@ export default function DesignSystemDemo() {
           testId="ds-demo-section-governance"
         >
           <Card
-            title="Track 13.5A · Phase B1 Scope"
+            title="Foundation Scope"
             description="Foundation only. No portal touched. No workflow altered."
           >
             <ul style={{ margin: 0, paddingLeft: 18, color: "var(--ink-regular)", fontSize: 13, lineHeight: 1.6 }}>

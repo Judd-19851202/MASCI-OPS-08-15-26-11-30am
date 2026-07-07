@@ -384,7 +384,23 @@ def _dev_token_for(password: str) -> str:
     return hmac.new(_admin_hmac_secret(), msg, hashlib.sha256).hexdigest()
 
 
+def _dev_endpoints_enabled() -> bool:
+    """Track 24.1 · P0-4 — all `/api/dev/*` endpoints are OFF by default
+    in production. Preview / support ops must opt in explicitly with
+    `DEV_ENDPOINTS_ENABLED=true` in the pod env. Never rely on
+    `DEV_PASSWORD` being unset to disable the surface — the historical
+    `dev_login` / `require_dev` fallback returned an "open-mode" token
+    when the password was empty, which turned removal of the password
+    into an authentication BYPASS.  This flag is the only supported
+    kill switch.
+    """
+    return (os.environ.get("DEV_ENDPOINTS_ENABLED", "").strip().lower()
+            in ("1", "true", "yes", "on"))
+
+
 def _is_valid_dev_token(tok: Optional[str]) -> bool:
+    if not _dev_endpoints_enabled():
+        return False
     pw = os.environ.get("DEV_PASSWORD", "")
     if not tok or not pw:
         return False
@@ -394,11 +410,17 @@ def _is_valid_dev_token(tok: Optional[str]) -> bool:
 def require_dev(x_dev_token: Optional[str] = Header(default=None)):
     """Vendor-only gate — used for ForgedOps LLC internal pages
     (System Owner & Operations Manual, manual snapshots). Admin and PM
-    tokens are NOT accepted: this surface is hidden from MASCI staff."""
+    tokens are NOT accepted: this surface is hidden from MASCI staff.
+
+    Track 24.1 · P0-4 — FAIL CLOSED. When either `DEV_ENDPOINTS_ENABLED`
+    is not truthy OR `DEV_PASSWORD` is missing, the entire surface is
+    404. The previous "empty password = open mode" behaviour was
+    removed."""
+    if not _dev_endpoints_enabled():
+        raise HTTPException(status_code=404, detail="Not Found")
     expected_pw = os.environ.get("DEV_PASSWORD", "")
     if not expected_pw:
-        # No dev password configured → gate disabled (local dev only)
-        return True
+        raise HTTPException(status_code=404, detail="Not Found")
     if not x_dev_token:
         raise HTTPException(status_code=401, detail="Developer login required")
     if not _is_valid_dev_token(x_dev_token):
@@ -627,6 +649,94 @@ async def _require_hr_or_admin_for_queue(
         if pvi:
             return {**pvi, "_actor": "hr", "role": "hr"}
     raise HTTPException(403, "HR or Admin token required")
+
+
+# ───────────────────────────────────────────────────────────────────
+# Track 24.1 · P0-1 · lightweight "any portal read" gate.
+# Defined here (before the HR employee-roster endpoint at line ~4650)
+# so read-mostly cross-portal endpoints can require auth without the
+# forward-reference problem — the canonical `_require_any_portal_token`
+# aggregator lives at line ~11470. Semantics: accepts ANY valid
+# portal token (Admin/PM/HR/Safety/Shop/Dispatch/FL/Leadership/Safety-Forms/Dev).
+# Rejects unauthenticated requests with 401.
+async def _require_any_portal_read(  # noqa: C901
+    x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+    x_hr_token: Optional[str] = Header(default=None, alias="X-HR-Token"),
+    x_pm_token: Optional[str] = Header(default=None, alias="X-PM-Token"),
+    x_safety_token: Optional[str] = Header(default=None, alias="X-Safety-Token"),
+    x_shop_token: Optional[str] = Header(default=None, alias="X-Shop-Token"),
+    x_dispatch_token: Optional[str] = Header(default=None, alias="X-Dispatch-Token"),
+    x_fl_token: Optional[str] = Header(default=None, alias="X-FL-Token"),
+    x_leadership_token: Optional[str] = Header(default=None, alias="X-Leadership-Token"),
+    x_safety_forms_token: Optional[str] = Header(default=None, alias="X-Safety-Forms-Token"),
+    x_dev_token: Optional[str] = Header(default=None, alias="X-Dev-Token"),
+):
+    # Admin (directory-backed OR legacy sentinel)
+    if x_admin_token and await _is_valid_directory_admin_token_async(x_admin_token):
+        return {"_actor": "admin", "role": "admin"}
+    # HR
+    if x_hr_token:
+        from hr_users import is_valid_hr_user_token_async  # noqa: PLC0415
+        u = await is_valid_hr_user_token_async(db, x_hr_token)
+        if u:
+            return {**u, "_actor": "hr", "role": "hr"}
+    # PM (both directory-hydrated and shared sentinel)
+    if x_pm_token:
+        if "." in x_pm_token:
+            from pm_auth import is_valid_pm_user_token_async  # noqa: PLC0415
+            pm_doc = await is_valid_pm_user_token_async(db, x_pm_token)
+            if pm_doc:
+                return {**pm_doc, "_actor": "pm", "role": "pm"}
+        elif _is_valid_pm_token(x_pm_token):
+            return {"_actor": "pm", "role": "pm"}
+    # Safety
+    if x_safety_token:
+        from safety_users import is_valid_safety_user_token_async  # noqa: PLC0415
+        u = await is_valid_safety_user_token_async(db, x_safety_token)
+        if u:
+            return {**u, "_actor": "safety", "role": "safety"}
+    # Shop
+    if x_shop_token:
+        from shop_users import is_valid_shop_user_token_async  # noqa: PLC0415
+        u = await is_valid_shop_user_token_async(db, x_shop_token)
+        if u:
+            return {**u, "_actor": "shop", "role": "shop"}
+    # Dispatch
+    if x_dispatch_token:
+        from dispatch_users import is_valid_dispatch_user_token_async  # noqa: PLC0415
+        u = await is_valid_dispatch_user_token_async(db, x_dispatch_token)
+        if u:
+            return {**u, "_actor": "dispatch", "role": "dispatch"}
+    # Field Leadership
+    if x_fl_token:
+        from field_leadership_users import is_valid_fl_user_token_async  # noqa: PLC0415
+        u = await is_valid_fl_user_token_async(db, x_fl_token)
+        if u:
+            return {**u, "_actor": "fl", "role": "fl"}
+    # Leadership (executive/leadership portal)
+    if x_leadership_token:
+        try:
+            from leadership_users import is_valid_leadership_user_token_async  # noqa: PLC0415
+            u = await is_valid_leadership_user_token_async(db, x_leadership_token)
+            if u:
+                return {**u, "_actor": "leadership", "role": "leadership"}
+        except Exception:                                          # noqa: BLE001
+            pass
+    # Safety-forms (limited read surface)
+    if x_safety_forms_token:
+        try:
+            from safety_forms_users import is_valid_safety_forms_user_token_async  # noqa: PLC0415
+            u = await is_valid_safety_forms_user_token_async(db, x_safety_forms_token)
+            if u:
+                return {**u, "_actor": "safety_forms", "role": "safety_forms"}
+        except Exception:                                          # noqa: BLE001
+            pass
+    # Dev
+    if x_dev_token and _is_valid_dev_token(x_dev_token):
+        return {"_actor": "dev", "role": "dev"}
+    raise HTTPException(status_code=401, detail="Authenticated portal session required")
+
+
 
 
 
@@ -1378,12 +1488,18 @@ from fastapi.responses import Response as _FastAPIResponse  # noqa: E402
 @api_router.post("/dev/login")
 async def dev_login(body: AdminLoginRequest, request: Request):
     """Developer (vendor/ForgedOps LLC) portal login. Issues a token
-    accepted ONLY by require_dev — never by any admin/PM/shop route."""
+    accepted ONLY by require_dev — never by any admin/PM/shop route.
+
+    Track 24.1 · P0-4 — FAIL CLOSED. If `DEV_ENDPOINTS_ENABLED` is not
+    truthy OR `DEV_PASSWORD` is missing, this route returns 404 so the
+    surface is indistinguishable from an unregistered endpoint."""
+    if not _dev_endpoints_enabled():
+        raise HTTPException(status_code=404, detail="Not Found")
     ip = _client_ip(request)
     _check_login_lockout(ip)
     expected_pw = os.environ.get("DEV_PASSWORD", "")
     if not expected_pw:
-        return {"ok": True, "token": "open-mode"}
+        raise HTTPException(status_code=404, detail="Not Found")
     if not hmac.compare_digest(body.password, expected_pw):
         _record_login_fail(ip)
         raise HTTPException(status_code=401, detail="Wrong password")
@@ -1670,38 +1786,19 @@ def _build_source_bundle() -> bytes:
     return buf.getvalue()
 
 
-@api_router.get("/dev/source-bundle.zip")
-def dev_source_bundle(_: bool = Depends(require_dev)):
-    """Stream the full application source tree as a zip. Excludes all
-    customer data (backups, storage), secrets (.env), and build
-    artefacts (node_modules, build, __pycache__). Intended to be paired
-    with a pinned Ops Manual snapshot for a due-diligence package."""
-    data = _build_source_bundle()
-    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    return _FastAPIResponse(
-        content=data,
-        media_type="application/zip",
-        headers={
-            "Content-Disposition": f'attachment; filename="MASCI_HUB_Source_Bundle_{stamp}.zip"',
-            "Cache-Control": "private, no-store",
-            "X-Source-Hash": _SOURCE_HASH,
-        },
-    )
-
-
-@api_router.get("/dev/source-bundle.info")
-def dev_source_bundle_info(_: bool = Depends(require_dev)):
-    """Quick metadata probe — size + file count — so the UI can show a
-    size estimate before the user clicks download."""
-    data = _build_source_bundle()
-    with _src_zip.ZipFile(_src_io.BytesIO(data), "r") as zf:
-        file_count = len(zf.namelist())
-    return {
-        "bytes": len(data),
-        "file_count": file_count,
-        "source_hash": _SOURCE_HASH,
-        "generated_at": datetime.now(timezone.utc).isoformat(),
-    }
+# ── Track 24.1 · P0-4 · source-bundle endpoints REMOVED ─────────────
+#
+# `GET /api/dev/source-bundle.zip` and `GET /api/dev/source-bundle.info`
+# were removed on 2026-02-07 during the pre-production hardening pass.
+# They exposed a one-click full source-tree download behind the shared
+# `DEV_PASSWORD`, which itself lived in the pod env — an unacceptable
+# IP-exfiltration risk in a production tenant.
+#
+# Do NOT re-add these endpoints. Source-code delivery is a manual
+# process handled through the "Save to GitHub" feature or a signed
+# delivery bundle produced offline. There is no operational reason for
+# a live server to serve its own source over HTTP.
+# ────────────────────────────────────────────────────────────────────
 
 
 
@@ -4651,6 +4748,7 @@ async def hr_employee_roster(
     department: Optional[str] = None,
     include_inactive: bool = False,
     limit: int = 5000,
+    _actor: Dict[str, Any] = Depends(_require_any_portal_read),
 ):
     """TRACK 19.03 · Canonical HR Employee Roster (HR is gospel).
 
@@ -10898,6 +10996,45 @@ async def _db_isolation_failsafe():
         raise
     except Exception as e:  # noqa: BLE001
         logger.warning(f"[db-isolation] probe failed (non-fatal): {e}")
+
+
+@register_lifecycle_step("misc-bootstrap")
+async def _assert_no_duplicate_routes():
+    """Track 24.1 · P1-C — WARN mode.
+
+    Emit a loud startup warning if the same `(method, path)` pair is
+    registered by more than one handler.  Duplicate registrations are
+    an accident-prone pattern: FastAPI silently picks the first one,
+    which means a refactor can flip which handler is "live" with zero
+    code change. Track 24.0 audit found the auth-less handler on
+    `/api/employees/competent-persons` winning over the auth-gated one
+    exactly this way — that specific duplicate was fixed in 24.1 P0-2.
+
+    In this WARN phase we log offenders but do NOT fail boot. Once the
+    remaining dup paths are retired, the follow-up iteration will flip
+    this to FAIL-CLOSED."""
+    from collections import defaultdict
+    groups: Dict[tuple, List[str]] = defaultdict(list)
+    for r in app.routes:
+        if hasattr(r, "methods") and hasattr(r, "endpoint"):
+            for m in r.methods:
+                mod = getattr(r.endpoint, "__module__", "?")
+                name = getattr(r.endpoint, "__name__", "?")
+                groups[(m, r.path)].append(f"{mod}:{name}")
+    dups = [(k, v) for k, v in groups.items() if len(v) >= 2]
+    if not dups:
+        logger.info("[track-24.1] duplicate-route scan clean · 0 offenders")
+        return
+    logger.warning(
+        f"[track-24.1] duplicate-route scan · {len(dups)} offenders "
+        f"(FastAPI silently uses the FIRST registered handler; fix these "
+        f"before the follow-up iteration flips this check to fail-closed):"
+    )
+    for (m, p), handlers in dups:
+        logger.warning(
+            f"[track-24.1] duplicate  {m:6s} {p}  ({len(handlers)} handlers) · WINS={handlers[0]}"
+        )
+
 
 
 @register_lifecycle_step("misc-bootstrap")

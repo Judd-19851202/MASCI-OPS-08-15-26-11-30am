@@ -485,7 +485,7 @@ export default function AdminOperationalIntelligence() {
               <Users className="h-5 w-5 text-slate-700 mt-0.5" />
               <div className="flex-1 text-xs text-slate-700">
                 <div className="font-semibold text-slate-900 text-sm">Recipient Governance</div>
-                Recipient/group CRUD is served by the Track 19.45A admin API
+                Recipient/group CRUD is served by the admin API
                 (<code>/api/operational-intelligence/recipients</code> ·{" "}
                 <code>/api/operational-intelligence/groups</code>).
                 Use the dedicated Recipient Management page below to

@@ -154,7 +154,7 @@ export default function AdminHubV2() {
               status={<StatusChip statusKey="verified" compact label="Live workflow" />}
             >
               <p style={{ margin: "8px 0 0", fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
-                Source: /admin/material-ledger-quality (Track 13.22 · admin-only · reuses /api/dispatch/haul-ledger)
+                Source: /admin/material-ledger-quality · admin-only · reuses /api/dispatch/haul-ledger
               </p>
             </Card>
           </Link>
@@ -172,7 +172,7 @@ export default function AdminHubV2() {
               status={<StatusChip statusKey="verified" compact label="Live workflow" />}
             >
               <p style={{ margin: "8px 0 0", fontSize: 11, color: "var(--ink-faint)", fontStyle: "italic" }}>
-                Source: /admin/project-staffing (Track 14.0 PM-STAFFING)
+                Source: /admin/project-staffing
               </p>
             </Card>
           </Link>
@@ -180,7 +180,7 @@ export default function AdminHubV2() {
 
         <div data-testid="admin-hub-v2-trace-note" style={{ marginTop: 16, padding: "var(--pad-card)", background: "var(--paper-card)", border: "1px dashed var(--border-bold)", borderRadius: "var(--radius-card)", color: "var(--ink-soft)", fontSize: 12 }}>
           <strong style={{ color: "var(--ink-strong)" }}>Admin Portal · Mission Control.</strong>{" "}
-          Every count traces to a real source; every card opens an existing workflow. Full section access is available in the sidebar. The classic 34-tile hub (v1) is archived and reachable only at <Link to="/admin/hub_v1" style={{ color: "var(--ink-strong)", textDecoration: "underline" }} data-testid="admin-hub-v2-v1-archive-link">/admin/hub_v1</Link> for reference during Track 19.53 phased retirement.
+          Every count traces to a real source; every card opens an existing workflow. Full section access is available in the sidebar. The classic 34-tile hub (v1) is archived and reachable only at <Link to="/admin/hub_v1" style={{ color: "var(--ink-strong)", textDecoration: "underline" }} data-testid="admin-hub-v2-v1-archive-link">/admin/hub_v1</Link> for historical reference.
         </div>
       </PortalShell>
     </div>

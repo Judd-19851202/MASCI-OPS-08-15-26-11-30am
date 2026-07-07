@@ -396,7 +396,7 @@ export default function SafetyTrenchIntelligenceCard({ className = "" }) {
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-2">
           <div>
             <div className="text-[10px] font-mono uppercase tracking-[0.2em] font-bold text-slate-500">
-              Track 23.10-D · Safety Portal
+              Safety Portal
             </div>
             <div className="text-xl font-bold" data-testid="safety-trench-title">
               Trench &amp; Excavation Safety

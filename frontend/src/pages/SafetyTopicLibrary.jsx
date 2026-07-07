@@ -280,7 +280,7 @@ export default function SafetyTopicLibrary() {
         <header className="space-y-2">
           <div className="flex items-center gap-2 text-slate-500 text-sm uppercase tracking-wider">
             <BookOpen className="h-4 w-4" />
-            <span>{t("Safety / Admin · Internal Use")}</span>
+            <span>{t("Safety / Admin")}</span>
           </div>
           <h1 className="text-3xl font-bold text-slate-900">
             {t("Topic Library · Operational Prep")}

@@ -809,7 +809,7 @@ const ADMIN_LESSONS = [
       "Reset Password: /api/admin/crew-recovery/reset-password. Rarely needed. Use if a shop user forgot and you can't update them via the users panel.",
       "Force-Reseed: /api/admin/crew-recovery/force-reseed. WIPES AND REBUILDS the seeded collections (jobs_master, employees, suppliers) from the hard-coded JOB_LIBRARY. All hand-edits to those tables are LOST.",
       "Before force-reseed: run a manual backup. Confirm you want to lose every edit since the last seed. Then click.",
-      "Scrap-Crew-Hub: /api/admin/crew-recovery/scrap-crew-hub. Nukes the old Basecamp-clone feature flag and associated collections. Already run historically. Do not re-run unless re-enabling Crew Hub.",
+      "Scrap-Crew-Hub: /api/admin/crew-recovery/scrap-crew-hub. Nukes the old Basecamp-clone module and associated collections. Already run historically. Do not re-run unless re-enabling Crew Hub.",
     ],
     tips: [
       "If a PM accidentally Bulk Replaced all 137 employees with 2 test rows, DON'T force-reseed — restore from Archive (14-day soft-delete) instead. Force-reseed is for deeper corruption.",

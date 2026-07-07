@@ -479,7 +479,7 @@ export default function IntegrationTruth() {
           <div className="mt-3 flex items-start gap-2 rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-900">
             <AlertTriangle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
             <span>
-              Track 22.3 · F-01 / F-02 remediation. This surface exists so the
+              This surface exists so the
               platform cannot lie about live integrations. All values read from
               runtime <code>os.environ</code>; secrets are masked to last-4.
             </span>

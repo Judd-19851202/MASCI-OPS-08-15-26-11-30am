@@ -35,6 +35,7 @@ Wired from server.py via ``register_employee_requests_routes``.
 """
 from __future__ import annotations
 
+import re as _re
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
@@ -526,7 +527,7 @@ def register_employee_requests_routes(
             # the name before approving).
             existing_active = await db.employees.find_one(
                 {
-                    "name": {"$regex": f"^{name}$", "$options": "i"},
+                    "name": {"$regex": f"^{_re.escape(name)}$", "$options": "i"},
                     "deleted_at": None,
                     "$or": [
                         {"lifecycle_status": {"$in": [

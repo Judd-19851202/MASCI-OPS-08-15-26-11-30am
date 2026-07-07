@@ -22,6 +22,7 @@ from __future__ import annotations
 import csv
 import io
 import logging
+import re as _re
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
@@ -263,7 +264,7 @@ async def _employee_history(db, master_id: str, employee_name: Optional[str]) ->
     # 5. HR field-leadership records (keyed by name — best-effort)
     if employee_name:
         async for d in db.field_leadership_records.find(
-            {"employee_name": {"$regex": f"^{employee_name}$", "$options": "i"}},
+            {"employee_name": {"$regex": f"^{_re.escape(employee_name)}$", "$options": "i"}},
             {"_id": 0, "id": 1, "kind": 1, "occurred_at": 1,
              "supervisor_name": 1, "project_number": 1, "details": 1, "created_at": 1},
         ).limit(500):

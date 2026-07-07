@@ -90,7 +90,7 @@ function MintForm({ onMinted }) {
             data-testid="pvi-mint-purpose"
             value={purpose}
             onChange={(e) => setPurpose(e.target.value)}
-            placeholder="e.g. Track 22.4b-followup-Safety · exercise CAPA lifecycle"
+            placeholder="e.g. Safety validation · exercise CAPA lifecycle"
           />
         </label>
         <label className="flex flex-col text-xs">

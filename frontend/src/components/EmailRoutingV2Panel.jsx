@@ -218,7 +218,7 @@ export default function EmailRoutingV2Panel() {
             Routing V2 · 19 logical routes
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            Track 15.66 · DB-first routes. Editing here updates the route doc; the
+            DB-first routes. Editing here updates the route doc; the
             resolver picks it up within 60 seconds. Critical routes cannot be
             disabled or saved with empty recipients.
           </p>

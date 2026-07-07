@@ -257,9 +257,26 @@ def test_qualifications_router_mounted_in_server():
 
 
 def test_trench_safety_delegates_to_engine():
+    """Track 24.1 · P0-2 · The duplicate `/api/employees/competent-persons`
+    handler previously registered in `routes.trench_safety.competent_persons`
+    was REMOVED because it shipped without an auth dep and silently
+    overrode the auth-gated `routes.qualifications:get_competent_persons`.
+    The delegation is no longer needed here — the single canonical
+    handler in `routes.qualifications` serves both consumer shapes
+    (the legacy trench-safety EmployeePicker keys AND the new
+    registry keys) inside its response, so downstream consumers keep
+    working.  This test now locks the ABSENCE of the duplicate."""
     src = _r(BACKEND / "routes" / "trench_safety" / "competent_persons.py")
-    assert "from services.certifications.qualification_registry import" in src
-    assert "list_active_qualifications" in src
+    assert '@api_router.get("/employees/competent-persons")' not in src, (
+        "Duplicate route on /api/employees/competent-persons must NOT be "
+        "re-added to routes/trench_safety/competent_persons.py — the "
+        "auth-gated handler in routes/qualifications.py is the ONE source "
+        "of truth (Track 24.1 P0-2)."
+    )
+    # Sanity: the qualifications router still delegates to the engine.
+    qsrc = _r(BACKEND / "routes" / "qualifications.py")
+    assert "from services.certifications.qualification_registry import" in qsrc
+    assert "list_active_qualifications" in qsrc
 
 
 def test_qualification_router_uses_api_prefix():

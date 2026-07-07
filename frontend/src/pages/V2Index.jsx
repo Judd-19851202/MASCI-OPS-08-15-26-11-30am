@@ -20,7 +20,7 @@ const PREVIEW_LANES = [
     previewTo: "/_internal/pm-v2-preview",
     compareTo: "/_internal/v2-compare/pm",
     currentTo: "/pm/hub",
-    summary: "LIVE — PmHubV2 is mounted at /pm/hub (Track 13.6F route swap). Project Risks PERMANENTLY renamed to Project Constraints. RFIs and Submittals removed (no engine). Legacy rollback preserved at /pm/hub_legacy during the operator signoff window.",
+    summary: "LIVE — PmHubV2 is mounted at /pm/hub. Project Risks PERMANENTLY renamed to Project Constraints. RFIs and Submittals removed (no engine). Legacy rollback preserved at /pm/hub_legacy during the operator signoff window.",
   },
   {
     id: "hr-v2",
@@ -33,7 +33,7 @@ const PREVIEW_LANES = [
     previewTo: "/_internal/hr-v2-preview",
     compareTo: "/_internal/v2-compare/hr",
     currentTo: "/hr",
-    summary: "LIVE — HrHubV2 is mounted at /hr (Track 13.6E route swap). Real APIs · real workflows · same HR auth. Legacy rollback preserved at /hr/hub_legacy during the operator signoff window.",
+    summary: "LIVE — HrHubV2 is mounted at /hr. Real APIs · real workflows · same HR auth. Legacy rollback preserved at /hr/hub_legacy during the operator signoff window.",
   },
   {
     id: "design-system",
@@ -59,7 +59,7 @@ const PREVIEW_LANES = [
     previewTo: "/admin/hub_v2",
     compareTo: null,
     currentTo: "/admin",
-    summary: "COMPANION LANE (Track 13.6L retained). Provides cross-portal operational awareness (integrations health · expirations · safety / fleet attention) that classic /admin does not surface. Classic /admin remains the canonical settings / users / audit hub.",
+    summary: "COMPANION LANE. Provides cross-portal operational awareness (integrations health · expirations · safety / fleet attention) that classic /admin does not surface. Classic /admin remains the canonical settings / users / audit hub.",
   },
   {
     id: "dispatch-v2",
@@ -72,7 +72,7 @@ const PREVIEW_LANES = [
     previewTo: "/dispatch-portal/hub_v2",
     compareTo: null,
     currentTo: "/dispatch-portal",
-    summary: "COMPANION LANE ONLY (Track 13.6L hard lock). The map-dominant classic Dispatcher at /dispatch-portal is the canonical Dispatch experience — MapLibre + Motive + FleetWatcher are operationally critical. Dispatch V2 at /dispatch-portal/hub_v2 is a supplementary action-queue read; never a swap target. No V2 redesign may hide / minimize / move-behind-tabs / replace the operational map.",
+    summary: "COMPANION LANE ONLY. The map-dominant classic Dispatcher at /dispatch-portal is the canonical Dispatch experience — MapLibre + Motive + FleetWatcher are operationally critical. Dispatch V2 at /dispatch-portal/hub_v2 is a supplementary action-queue read; never a swap target. No V2 redesign may hide / minimize / move-behind-tabs / replace the operational map.",
   },
   {
     id: "safety-v2",
@@ -98,7 +98,7 @@ const PREVIEW_LANES = [
     previewTo: "/shop/hub_v2",
     compareTo: null,
     currentTo: "/shop",
-    summary: "LIVE — ShopHubV2 is mounted at /shop. Fed by /api/dispatch/command/summary.shop, 7 action queues across attention, recovery pipeline. Repair Complete ≠ Returned-To-Service rule preserved via separate Returned-To-Service queue. Recovery Map lens added by Track 13.7B. Legacy rollback preserved at /shop/hub_legacy during the operator signoff window.",
+    summary: "LIVE — ShopHubV2 is mounted at /shop. Fed by /api/dispatch/command/summary.shop, 7 action queues across attention, recovery pipeline. Repair Complete ≠ Returned-To-Service rule preserved via separate Returned-To-Service queue. Recovery Map lens available. Legacy rollback preserved at /shop/hub_legacy during the operator signoff window.",
   },
   {
     id: "driver-v2",
@@ -111,7 +111,7 @@ const PREVIEW_LANES = [
     previewTo: null,
     compareTo: null,
     currentTo: "/shift",
-    summary: "RETIRED in Track 13.6L. Existing operational workflow (/shift public self-start · /d/:token magic-link · /driver tap-and-work) already satisfies ≤ 2 taps / ≤ 30 seconds. Drivers do not sign in, have no accounts, no passwords. The hub layer added unnecessary friction and provided no operational lift.",
+    summary: "RETIRED. Existing operational workflow (/shift public self-start · /d/:token magic-link · /driver tap-and-work) already satisfies ≤ 2 taps / ≤ 30 seconds. Drivers do not sign in, have no accounts, no passwords. The hub layer added unnecessary friction and provided no operational lift.",
   },
   {
     id: "leadership-v2",
@@ -124,7 +124,7 @@ const PREVIEW_LANES = [
     previewTo: "/leadership/hub_v2",
     compareTo: null,
     currentTo: "/leadership",
-    summary: "COMPANION LANE (Track 13.6L retained). Provides cross-portal executive attention (Safety threats · Execution threats · Compliance threats) that no other surface currently provides. Reads /api/safety/overview · /api/operations/expirations/summary · /api/dispatch/command/summary. No swap.",
+    summary: "COMPANION LANE. Provides cross-portal executive attention (Safety threats · Execution threats · Compliance threats) that no other surface currently provides. Reads /api/safety/overview · /api/operations/expirations/summary · /api/dispatch/command/summary. No swap.",
   },
   {
     id: "field-leadership-v2",
@@ -137,7 +137,7 @@ const PREVIEW_LANES = [
     previewTo: null,
     compareTo: null,
     currentTo: "/field-leadership/portal/dashboard",
-    summary: "RETIRED in Track 13.6L. Existing field leadership operational portal at /field-leadership/portal/dashboard already satisfies the intended workflow. Preview hub duplicated functionality and added no operational lift.",
+    summary: "RETIRED. Existing field leadership operational portal at /field-leadership/portal/dashboard already satisfies the intended workflow. Preview hub duplicated functionality and added no operational lift.",
   },
 ];
 
@@ -234,7 +234,7 @@ export default function V2Index() {
         portalRole="V2 Preview Review Hub"
         pageTitle="V2 lanes · live + companion + retired"
         subtitle="Live-swapped portals are mounted at their canonical routes with legacy rollback preserved. Companion lanes supplement the classic portal. Retired lanes are documented for history only."
-        lastActivity={<span data-testid="v2-index-last-activity">Updated by Track 13.6B</span>}
+        lastActivity={<span data-testid="v2-index-last-activity">Operator Review Hub</span>}
       >
         <section data-testid="v2-index-section-operational" style={{ marginBottom: 28 }}>
           <h3 style={{ margin: "0 0 12px", fontSize: 14, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--ink-faint)" }}>

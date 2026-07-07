@@ -420,9 +420,8 @@ export default function UnitHistoryTimeline() {
           marginTop: 24, padding: 12, fontSize: 11, color: "#666",
           background: "var(--paper-card)", border: "1px dashed var(--border-bold)", borderRadius: 4,
         }}>
-          Single source of truth · Asset Service Event Backbone (Track 13.26). One unit · one history.
+          Single source of truth · Asset Service Event Backbone. One unit · one history.
           Repair Complete ≠ Returned-To-Service — Dispatch retains the final RTS step.
-          MaintainX and Fuel/Lube events are NOT generated until their tracks ship.
         </div>
       </PortalShell>
     </div>

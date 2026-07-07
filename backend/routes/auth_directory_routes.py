@@ -29,6 +29,11 @@ from pydantic import BaseModel, Field
 
 import user_directory as ud
 from lib.directory_access_state import derive_directory_access_state
+from lib.rate_limiting import (
+    _check_login_lockout,
+    _record_login_fail,
+    _reset_login_fails,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -231,17 +236,25 @@ def build_auth_directory_router(
 
     @router.post("/api/auth/multi-login")
     async def multi_login(body: MultiLoginBody, request: Request):
+        # Track 24.1 · P1-B — brute-force lockout at the master login
+        # gate. Uses the platform-standard LOGIN_MAX_FAILS + lockout
+        # window from `lib.rate_limiting`. Every per-portal login route
+        # already calls these; multi-login was the only unguarded path.
+        ip = _client_ip(request)
+        _check_login_lockout(ip)
         row = await ud.authenticate(db, email=body.email, password=body.password)
         if not row:
             # Audit failures so brute-forcing surfaces in /admin
+            _record_login_fail(ip)
             await ud.write_audit(
                 db,
                 actor_email=body.email,
                 action="multi_login_failed",
-                ip=_client_ip(request),
+                ip=ip,
                 user_agent=request.headers.get("user-agent"),
             )
             raise HTTPException(status_code=401, detail="Invalid email or password.")
+        _reset_login_fails(ip)
         # iter375 · Phase 4B — TOTP MFA gate for super-admin directory users.
         # If MFA is enabled, do NOT mint portal tokens. Return a short-lived
         # challenge token; the frontend must POST /api/auth/mfa/verify-login

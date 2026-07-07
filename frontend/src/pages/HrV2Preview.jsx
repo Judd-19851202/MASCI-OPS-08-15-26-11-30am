@@ -334,7 +334,7 @@ export default function HrV2Preview() {
           textTransform: "uppercase", fontWeight: 700, textAlign: "center",
         }}
       >
-        Internal · HR V2 Preview · Track 13.6B · Action queues only · No live HR route changed
+        HR Portal · Action queues
       </div>
 
       <PortalShell

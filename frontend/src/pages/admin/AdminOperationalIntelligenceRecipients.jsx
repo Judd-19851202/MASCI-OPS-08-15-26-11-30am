@@ -830,7 +830,7 @@ function GroupMemberEditor({ group, onClose, onChanged }) {
           </div>
           <div className="text-[10px] text-slate-500 mt-1">
             Member removal is not yet exposed via the API — deactivate the individual
-            recipient instead, or open a Track 19.49 follow-up.
+            recipient instead.
           </div>
         </div>
       )}

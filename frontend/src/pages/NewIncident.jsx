@@ -707,7 +707,7 @@ export default function NewIncident({ publicMode = false }) {
             public-interaction, workplace-violence, and police-involved
             incidents. Form section is always visible so the operator
             does not have to remember to expand a hidden card. */}
-        <Section number="02B" title={t("Defensibility Classifications · Track 15.47")}>
+        <Section number="02B" title={t("Defensibility Classifications")}>
           <p className="text-xs text-slate-500 mb-3">
             {t("Tick every classification that applies. These drive notifications to Operations / Executive / HR for workplace-violence events and appear on the printed PDF.")}
           </p>

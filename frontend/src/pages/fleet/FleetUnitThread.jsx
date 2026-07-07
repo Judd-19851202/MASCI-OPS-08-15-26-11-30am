@@ -230,7 +230,7 @@ function deriveRelationships(events, unitNumber) {
     kind: "shop",
     id: "shop-history",
     label: "Shop history timeline",
-    sublabel: "Track 13.26 backbone",
+    sublabel: "Asset service backbone",
     deep_link: `/shop/units/${encodeURIComponent(unitNumber)}/history`,
   });
   return edges;
@@ -364,7 +364,7 @@ export default function FleetUnitThread() {
         attention={{ items: attentionItems }}
         guidanceProduct={guidanceProduct}
         timelineEvents={timelineEvents}
-        timelineTitle="Unit timeline · Track 13.26 backbone"
+        timelineTitle="Unit timeline · Asset service backbone"
         relationships={relationships}
         oiProduct={guidanceProduct}
         actionQueue={actionQueue}

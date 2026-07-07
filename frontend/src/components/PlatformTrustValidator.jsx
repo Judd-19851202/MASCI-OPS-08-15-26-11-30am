@@ -162,7 +162,7 @@ export default function PlatformTrustValidator() {
             <Badge band={finalBand} />
           </div>
           <p className="text-xs text-slate-500">
-            Track 15.75D · admin-gated, read-only · {lastRun && `last run ${lastRun}`}
+            Admin-gated, read-only · {lastRun && `last run ${lastRun}`}
           </p>
         </div>
         <Button

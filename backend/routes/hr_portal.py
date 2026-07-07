@@ -326,7 +326,7 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
         if project_number:
             query["project_number"] = project_number
         if q:
-            needle = q.strip()
+            needle = re.escape(q.strip())
             query["$or"] = [
                 {"employee_name": {"$regex": needle, "$options": "i"}},
                 {"supervisor_name": {"$regex": needle, "$options": "i"}},
@@ -414,25 +414,25 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
                 rng["$lte"] = date_to
             match["report_date"] = rng
         if project:
-            needle = project.strip()
+            needle = re.escape(project.strip())
             match["$or"] = [
                 {"project_name": {"$regex": needle, "$options": "i"}},
                 {"project_number": {"$regex": needle, "$options": "i"}},
             ]
         if report_number:
-            match["report_number"] = {"$regex": report_number.strip(), "$options": "i"}
+            match["report_number"] = {"$regex": re.escape(report_number.strip()), "$options": "i"}
         if employee:
             # Employee names are nested inside masci_crews[].members[].name
             # — match if any crew member's name contains the needle.
-            match["masci_crews.members.name"] = {"$regex": employee.strip(), "$options": "i"}
+            match["masci_crews.members.name"] = {"$regex": re.escape(employee.strip()), "$options": "i"}
         if subcontractor:
-            match["subcontractors.name"] = {"$regex": subcontractor.strip(), "$options": "i"}
+            match["subcontractors.name"] = {"$regex": re.escape(subcontractor.strip()), "$options": "i"}
         if vendor:
-            match["visitors.name"] = {"$regex": vendor.strip(), "$options": "i"}
+            match["visitors.name"] = {"$regex": re.escape(vendor.strip()), "$options": "i"}
         if superintendent:
             # Superintendent name lives at DR-doc top level.
             match["superintendent"] = {
-                "$regex": superintendent.strip(), "$options": "i",
+                "$regex": re.escape(superintendent.strip()), "$options": "i",
             }
         if foreman:
             # Foreman lives at masci_crews[].foreman (per crew, per day).

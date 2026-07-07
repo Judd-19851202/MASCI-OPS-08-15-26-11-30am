@@ -197,6 +197,13 @@ def build_qualifications_router(
                 "count": len(rows), "items": rows}
 
     # ── Legacy alias (Competent Person) ────────────────────────────
+    # Track 24.1 · P0-2: this is now the ONE-AND-ONLY handler for
+    # `/api/employees/competent-persons`. The duplicate registration
+    # in `routes.trench_safety.competent_persons` was removed so the
+    # auth gate below actually fires. The response items include BOTH
+    # the raw registry keys (for the DR V3 CompetentPersonCombo) AND
+    # the legacy trench_safety shape (for the trench EmployeePicker)
+    # so downstream consumers keep working unchanged.
     @r.get("/employees/competent-persons")
     async def get_competent_persons(
         active: bool = True,
@@ -209,9 +216,41 @@ def build_qualifications_router(
             db, qualification_type="COMPETENT_PERSON",
             warning_days=warning_days,
         )
+        # Emit the strict superset of both consumer shapes.  New code
+        # should read qualification_id / employee_name / employee_trade
+        # / employee_crew / expires_at; legacy trench code reads
+        # id / name / role / trade / crew / cp_approval_date /
+        # cp_expiration_date / cp_approved_by.
+        items = []
+        for r_ in rows:
+            items.append({
+                # ── Raw registry shape (Track 23.10-B / DR V3 combo) ──
+                "qualification_id": r_.get("qualification_id"),
+                "qualification_type": r_.get("qualification_type"),
+                "employee_id": r_.get("employee_id") or "",
+                "employee_name": r_.get("employee_name") or "",
+                "employee_trade": r_.get("employee_trade") or "",
+                "employee_crew": r_.get("employee_crew") or "",
+                "verification_status": r_.get("verification_status"),
+                "issued_at": r_.get("issued_at") or "",
+                "expires_at": r_.get("expires_at") or "",
+                "issuing_organization": r_.get("issuing_organization") or "",
+                "expires_in_days": r_.get("expires_in_days"),
+                "warning": r_.get("warning"),
+                # ── Legacy trench_safety shape (EmployeePicker) ─────
+                "id": r_.get("employee_id") or "",
+                "name": r_.get("employee_name") or "",
+                "role": r_.get("employee_trade") or "",
+                "trade": r_.get("employee_trade") or "",
+                "crew": r_.get("employee_crew") or "",
+                "cp_approval_date": r_.get("issued_at") or "",
+                "cp_expiration_date": r_.get("expires_at") or "",
+                "cp_approved_by": r_.get("issuing_organization") or "",
+            })
+        items.sort(key=lambda x: (x.get("employee_name") or "").lower())
         return {"type": "COMPETENT_PERSON",
                 "warning_days": warning_days,
-                "count": len(rows), "items": rows}
+                "count": len(items), "items": items}
 
     # ── Summary (dashboards) ───────────────────────────────────────
     @r.get("/employees/qualifications/summary")

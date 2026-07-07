@@ -33,7 +33,7 @@ export const TOPICS_PUBLIC_INTERACTION = [
     read_aloud:
       "Listen up — 60 seconds. If someone from the public walks up to you angry, here is what you do. ONE: lower your voice. TWO: hands open, don't point. THREE: tell them 'I hear you' — that is not agreement, that is just acknowledging. FOUR: tell them 'Let me get my supervisor on the phone.' FIVE: if they touch you, show a weapon, or say they want to hurt you — STOP, back up, call 911, then call me. You are not paid to argue. You are paid to come home tonight. We document EVERY interaction, even the small ones, because the small ones become the big ones.",
     references_cited:
-      "OSHA Workplace Violence Prevention Guidance · MASCI Workplace Violence Policy · MASCI Incident Reporting SOP · Track 15.47 Workplace Violence Workflow",
+      "OSHA Workplace Violence Prevention Guidance · MASCI Workplace Violence Policy · MASCI Incident Reporting SOP · MASCI Workplace Violence Workflow",
     action_items:
       "Superintendent phone number posted in cab · Workplace-violence reporting form known · 'Walk away' rehearsed in pre-shift",
   },
@@ -123,7 +123,7 @@ export const TOPICS_PUBLIC_INTERACTION = [
     read_aloud:
       "If someone touches you — pushes you, swings at you, throws something at you — STOP. Hands open. Step back, not forward. Do not push back. The second you push back, it stops being a video of THEM assaulting you and it becomes a video of TWO PEOPLE fighting. We lose the case. You lose the case. You stop. You retreat. You call 911. Then you call me. Then you take pictures of the spot, the barricade, your hands, your shirt. Even if you feel fine — you get checked out. Concussions show up an hour later.",
     references_cited:
-      "OSHA 29 CFR 1904 (Recordkeeping) · MASCI Workplace Violence Policy · Florida § 784.03 Battery · Track 15.47 Workplace Violence Workflow",
+      "OSHA 29 CFR 1904 (Recordkeeping) · MASCI Workplace Violence Policy · Florida § 784.03 Battery · MASCI Workplace Violence Workflow",
     action_items:
       "Same-day incident filed · 911 called · Witness contact captured · Welfare check completed · Police case # logged",
   },

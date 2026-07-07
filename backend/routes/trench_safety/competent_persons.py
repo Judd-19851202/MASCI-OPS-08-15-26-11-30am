@@ -61,52 +61,21 @@ def register_competent_person_routes(
 ) -> None:
     """Register CP-designation endpoints under /api."""
 
-    # ── Public list — DELEGATED to the Qualifications Engine (23.10-B)
-    #   Single source of truth = `db.safety_training_records` +
-    #   `services/certifications/qualification_registry.py`. The
-    #   legacy `competent_person_designated` flag on `db.employees`
-    #   is now vestigial — backfilled by the 23.10-B migration and
-    #   read no more.
-    @api_router.get("/employees/competent-persons")
-    async def list_competent_persons():
-        """Consumer-facing list of currently-active Competent Persons.
-
-        Reads from the Qualifications Engine registry. Only rows with
-        `verification_status="active"` AND non-expired
-        `expiration_date` AND no suspension/revocation appear here.
-
-        Response contract preserved for backwards compatibility with
-        the trench safety CP picker (shape: {items:[...], count:N}
-        where each item carries id, name, employee_id, crew,
-        role, trade, cp_approval_date, cp_expiration_date,
-        cp_approved_by).
-        """
-        from services.certifications.qualification_registry import (
-            list_active_qualifications,
-        )
-        rows = await list_active_qualifications(
-            db, qualification_type="COMPETENT_PERSON", warning_days=30,
-        )
-        items = [{
-            "id": r.get("employee_id") or "",
-            "employee_id": r.get("employee_id") or "",
-            "name": r.get("employee_name") or "",
-            "crew": r.get("employee_crew") or "",
-            "role": r.get("employee_trade") or "",
-            "trade": r.get("employee_trade") or "",
-            "cp_approval_date": r.get("issued_at") or "",
-            "cp_expiration_date": r.get("expires_at") or "",
-            "cp_approved_by": r.get("issuing_organization") or "",
-            # Engine surface — new consumers should prefer these.
-            "qualification_id": r.get("qualification_id"),
-            "qualification_type": r.get("qualification_type"),
-            "expires_in_days": r.get("expires_in_days"),
-            "warning": r.get("warning"),
-        } for r in rows]
-        # Sort by employee name for stable UI order (matches legacy).
-        items.sort(key=lambda x: (x.get("name") or "").lower())
-        return {"items": items, "count": len(items)}
-
+    # ── Public list — REMOVED (Track 24.1 · P0-2)
+    #
+    # The public list surface was previously registered here as a
+    # delegating wrapper around `services.certifications.qualification_registry`.
+    # It shipped WITHOUT an auth dependency, and — because two handlers
+    # were registered on the same path — silently overrode the
+    # auth-gated implementation in `routes/qualifications.py`.
+    #
+    # Registry access is now handled exclusively by:
+    #   `routes.qualifications:get_competent_persons`
+    # which is protected by `Depends(require_read_dep)` and returns an
+    # identical response shape (`{items:[...], count:N}`).
+    #
+    # DO NOT re-register `/employees/competent-persons` here.  The
+    # boot-time duplicate-route check will warn on regressions.
 
     # ── Admin · set / update CP designation ────────────────────────
     @api_router.put("/admin/employees/{employee_id}/cp-designation")

@@ -684,7 +684,7 @@ export default function OperationsTrustCenter() {
                 <Badge band={band} />
               </div>
               <p className="text-xs text-slate-500 mt-0.5">
-                Track 15.76B · workflow + routing + audit + master-data
+                Workflow + routing + audit + master-data
                 continuous verification
               </p>
               <p
@@ -877,7 +877,7 @@ export default function OperationsTrustCenter() {
       {/* Footer · meta */}
       <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 px-2">
         <span className="flex items-center gap-1">
-          <Sparkles size={12} /> Track 15.76B finalization
+          <Sparkles size={12} /> Operations Trust Center
         </span>
         <span className="flex items-center gap-1">
           <Clock size={12} /> refreshed {lastRun}

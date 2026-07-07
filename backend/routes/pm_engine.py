@@ -46,6 +46,7 @@ Endpoints (all gated by `require_shop_or_admin_dep`)
 from __future__ import annotations
 
 import logging
+import re as _re
 import uuid
 from datetime import datetime, timedelta, timezone, date as _date
 from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple
@@ -181,7 +182,7 @@ async def _current_meter(db, unit_number: str) -> Dict[str, Any]:
     """
     # 1. fuel/lube visits (Track 13.29 ground truth)
     fl = await db.fuel_lube_visits.find(
-        {"equipment_lines.unit_number": {"$regex": f"^{unit_number}$", "$options": "i"}},
+        {"equipment_lines.unit_number": {"$regex": f"^{_re.escape(unit_number)}$", "$options": "i"}},
         {"_id": 0, "submitted_at": 1, "visit_date": 1, "equipment_lines": 1},
     ).sort("submitted_at", -1).to_list(length=10)
     for visit in fl:
@@ -199,7 +200,7 @@ async def _current_meter(db, unit_number: str) -> Dict[str, Any]:
                 }
     # 2. equipment_inspections (pre-op + DVIR)
     insp = await db.equipment_inspections.find_one(
-        {"unit_number": {"$regex": f"^{unit_number}$", "$options": "i"},
+        {"unit_number": {"$regex": f"^{_re.escape(unit_number)}$", "$options": "i"},
          "meter_hours": {"$ne": None}},
         {"_id": 0, "meter_hours": 1, "odometer_miles": 1,
          "submitted_at": 1, "inspection_date": 1},
@@ -468,7 +469,7 @@ def build_pm_engine_router(
     ) -> Dict[str, Any]:
         q: Dict[str, Any] = {}
         if active is not None: q["active"] = active
-        if asset_type: q["asset_type"] = {"$regex": f"^{asset_type}$", "$options": "i"}
+        if asset_type: q["asset_type"] = {"$regex": f"^{_re.escape(asset_type)}$", "$options": "i"}
         items = []
         async for t in db.pm_templates.find(q, {"_id": 0}).sort("name", 1):
             items.append(_template_out(t))
@@ -592,8 +593,8 @@ def build_pm_engine_router(
         _actor=Depends(require_shop_or_admin_dep),
     ) -> Dict[str, Any]:
         q: Dict[str, Any] = {}
-        if unit_number: q["unit_number"] = {"$regex": f"^{unit_number}$", "$options": "i"}
-        if asset_type:  q["asset_type"] = {"$regex": f"^{asset_type}$", "$options": "i"}
+        if unit_number: q["unit_number"] = {"$regex": f"^{_re.escape(unit_number)}$", "$options": "i"}
+        if asset_type:  q["asset_type"] = {"$regex": f"^{_re.escape(asset_type)}$", "$options": "i"}
         if active is not None: q["active"] = active
 
         items: List[Dict[str, Any]] = []
@@ -698,7 +699,7 @@ def build_pm_engine_router(
             if status_filter not in WORK_ORDER_STATUSES:
                 raise HTTPException(422, f"status must be one of {list(WORK_ORDER_STATUSES)}")
             q["status"] = status_filter
-        if unit_number: q["unit_number"] = {"$regex": f"^{unit_number}$", "$options": "i"}
+        if unit_number: q["unit_number"] = {"$regex": f"^{_re.escape(unit_number)}$", "$options": "i"}
         if mechanic_id: q["assigned_to_mechanic_id"] = mechanic_id
         items = []
         async for w in db.pm_work_orders.find(q, {"_id": 0}).sort("created_at", -1).limit(limit):
@@ -1004,7 +1005,7 @@ async def project_pm_events(db, unit_number: str, from_iso: str, to_iso: str) ->
 
     out: List[Dict[str, Any]] = []
     cursor = db.pm_work_orders.find(
-        {"unit_number": {"$regex": f"^{unit_number}$", "$options": "i"}},
+        {"unit_number": {"$regex": f"^{_re.escape(unit_number)}$", "$options": "i"}},
         {"_id": 0},
     )
     async for w in cursor:

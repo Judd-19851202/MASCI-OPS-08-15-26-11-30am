@@ -1,0 +1,44 @@
+{
+  "summary": "Track 24.1 Final Deployment Hardening — independent adversarial verification. 27/28 backend hardening tests PASS (P0-1 auth gate on hr/employee-roster across all 7 portal tokens; P0-2 competent-persons dual shape + auth gate; P0-4 all /api/dev/* + /api/dev/login return 404 including with legacy passwords and with valid admin token; P1-B brute-force lockout confirmed IP-keyed via rotating email trick — 429 hit at attempt 11 and blocks admin email too; P0-3 repo-wide internal-labels lock test passes). ONE REAL P1-D REGRESSION FOUND: /api/hr/employee-roster?q=[[[[[ crashes with HTTP 500 due to unescaped user regex reaching MongoDB (missed by the re.escape sweep). Frontend spot-check on /admin/hub_v2, /pm/hub, /hr, /safety-portal, /leadership-hub-v2, /safety/topic-library, /daily/new — no JSX crashes, no 'Track NN' or 'Internal Use' text visible; only intentional operator PREVIEW ENVIRONMENT banner shown.",
+  "backend_issues": {
+    "critical": [
+      {
+        "endpoint": "GET /api/hr/employee-roster?q=<regex-meta>",
+        "issue": "P1-D REGEX-INJECTION MISS. server.py hr_employee_roster (~L4785-4793) builds Mongo $regex directly from user query params `q`, `role`, `department` WITHOUT re.escape(). Payload q=[[[[[ raises pymongo.errors.OperationFailure 'Regular expression is invalid: missing terminating ] for character class' → HTTP 500. Repro: `curl -H 'X-Admin-Token: …' 'BASE/api/hr/employee-roster?q=%5B%5B%5B%5B%5B'` returns 500 Internal Server Error. Same file was NOT listed in the sweep-scope (sweep hit hr_portal.py but roster is defined inline in server.py). Fix: wrap the three `$regex` sites at server.py lines 4786, 4788, 4791 with re.escape(). Payloads (a+b)*, .*, ^$, (?:.*)+ ALL return 200 correctly — only unterminated character-class metachar (`[[[[[`) crashes, which confirms the surface: raw user input → Mongo regex compiler → 500.",
+        "priority": "HIGH"
+      }
+    ],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_track_24_1_hardening.py",
+    "/app/test_reports/pytest/track_24_1_main.xml"
+  ],
+  "action_items": [
+    "P1-D miss: apply re.escape() to the three `$regex` builders in server.py hr_employee_roster (~L4785 role, L4787 department, L4791 q → wrap each user-input value with `re.escape(...)` before interpolation). Add /api/hr/employee-roster to the P1-D regex-injection scope list. Recommend a generic `_safe_regex(needle, opts='i')` helper reused across all files listed in the sweep so future endpoints can't regress.",
+    "(Nice-to-have) The other `role`/`department` params on the same endpoint use `f'^{role}$'` — those are also unescaped and will 500 on the same class of payload. Fix them in the same patch."
+  ],
+  "critical_code_review_comments": [
+    "server.py:4786-4791 is the exact class of sink the P1-D sweep was supposed to cover; the fact that hr_portal.py was hardened but the roster endpoint in server.py was not indicates the sweep was file-scoped rather than sink-scoped. Consider a repo-wide grep for `{\"$regex\":` and `\"$options\"` to enumerate all remaining raw-regex sinks.",
+    "openapi.json is not exposed on the public ingress (routes to frontend and returns HTML), so the boot-time `_assert_no_duplicate_routes` guarantee cannot be verified externally — recommend logging the scan result to /api/health or an admin-only introspection endpoint for future ops verification.",
+    "The pytest.mark.order marker in tests/test_track_24_1_hardening.py emits a warning because pytest-ordering isn't installed; the ordering is currently enforced by class-name alphabetical order — cosmetic, not functional."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_track_24_1_hardening.py (NEW — 28 test cases across P0-1/P0-2/P0-3/P0-4/P1-B/P1-C/P1-D + regression)"
+  ],
+  "success_rate": {
+    "backend": "96% (27/28 · 1 real regression found · 3 legitimate skips for openapi-not-exposed and equipment endpoints not registered)",
+    "frontend": "100% (no JSX crashes, no internal-label leaks on 7 spot-checked pages)"
+  },
+  "test_credentials": "jaymn.judd@mascigc.com / Maddix123! (multi-login super admin). Confirmed working; returns all 7 portal_tokens on /api/auth/multi-login.",
+  "seed_data_creation": "No seed data created. Existing preview data used (387 records for hr/employee-roster confirmed, 1 competent person Alec Perkins confirmed).",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "After the main agent applies re.escape() to server.py:4786/4788/4791 (and any sibling raw-$regex sinks discovered by repo grep), re-run `pytest /app/backend/tests/test_track_24_1_hardening.py -v` — the currently-failing test_hr_records_search_regex_safe[[[[[[ case should turn green. NOTE: TestP1_B_BruteForceLockout LOCKS THE POD'S EGRESS IP for 900s; keep it as the last test executed. To skip locally use `-k 'not BruteForceLockout'`. All other tests are idempotent and side-effect-free.",
+  "rca of the issue": "RCA: The P1-D sweep was file-scoped (as reported in the review request: pm_engine.py, equipment.py, master_history.py, employee_lifecycle.py, employee_requests.py, hr_portal.py). But `/api/hr/employee-roster` is declared inline in server.py, not in hr_portal.py — so the sweep never touched it. Any string coming in through the `q`, `role`, or `department` query parameters is interpolated straight into a MongoDB `$regex` document. When the payload contains a syntactically invalid regex fragment (e.g. `[[[[[`, an unterminated character class), Mongo's regex compiler rejects the query with OperationFailure 51091, which surfaces as an unhandled 500 in the FastAPI handler. Reproduction: 1) POST /api/auth/multi-login → grab portal_tokens.admin. 2) GET /api/hr/employee-roster?q=[[[[[ with `X-Admin-Token: <token>`. 3) Observe HTTP 500 + backend log `pymongo.errors.OperationFailure: Regular expression is invalid: missing terminating ] for character class`. Mitigation: wrap all three raw-user-input regex sites with `re.escape(value)` (or a shared helper `_safe_needle(v)` used across the sweep), and add /api/hr/employee-roster to the sweep's assertion set. This is a defensive fix, not a security disclosure — the endpoint is auth-gated — but a hostile authenticated actor could DoS the API worker with tight ReDoS payloads today. Estimated fix: 5 lines. Blast radius after fix: none (pure literal search)."
+}

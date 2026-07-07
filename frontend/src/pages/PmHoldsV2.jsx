@@ -251,7 +251,7 @@ export default function PmHoldsV2() {
             borderRadius: "var(--radius-card)", color: "var(--ink-soft)", fontSize: 12,
           }}
         >
-          <strong style={{ color: "var(--ink-strong)" }}>PM-2 · Unified Holds · Track 13.6F.</strong>{" "}
+          <strong style={{ color: "var(--ink-strong)" }}>Unified Holds · PM.</strong>{" "}
           This surface aggregates only real, currently-existing hold engines (no RFIs, no Submittals).
           Every count traces to a real source · every row opens its own real workflow.
         </div>

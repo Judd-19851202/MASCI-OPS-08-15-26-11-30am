@@ -229,7 +229,7 @@ export default function PmDueTodayV2() {
             borderRadius: "var(--radius-card)", color: "var(--ink-soft)", fontSize: 12,
           }}
         >
-          <strong style={{ color: "var(--ink-strong)" }}>PM-3 · Due Today · Track 13.6F.</strong>{" "}
+          <strong style={{ color: "var(--ink-strong)" }}>Due Today · PM.</strong>{" "}
           Only items whose real-source deadline matches today are listed.
           No invented urgency · empty state is honest · every row opens its own real workflow.
         </div>

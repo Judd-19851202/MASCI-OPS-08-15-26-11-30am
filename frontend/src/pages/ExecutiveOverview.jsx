@@ -301,7 +301,7 @@ export default function ExecutiveOverview() {
 
       {/* TRACEABILITY FOOTER */}
       <div className="mt-8 text-[10px] font-mono uppercase tracking-wider text-slate-400 text-center">
-        Track 15.44 · Read-only · No new collections · No background jobs · No AI · Data from existing certified records only.
+        Read-only · No new collections · No background jobs · No AI · Data from existing certified records only.
       </div>
     </div>
   );

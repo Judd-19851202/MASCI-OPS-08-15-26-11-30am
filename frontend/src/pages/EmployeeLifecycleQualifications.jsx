@@ -458,7 +458,7 @@ export default function EmployeeLifecycleQualifications() {
   return (
     <HrPageShell
       title="Professional Qualifications"
-      kicker="HR · Qualifications Engine · Track 23.10-B"
+      kicker="HR · Qualifications Engine"
     >
       <div className="flex items-center justify-between mb-4">
         <Link

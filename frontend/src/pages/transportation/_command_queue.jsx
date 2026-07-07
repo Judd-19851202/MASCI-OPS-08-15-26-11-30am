@@ -461,7 +461,7 @@ function HrSyncHealthCard() {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-4 w-4 text-emerald-700" />
-          <h3 className="font-semibold">HR Synchronization Health (Track 16.11A)</h3>
+          <h3 className="font-semibold">HR Synchronization Health</h3>
         </div>
         <span
           data-testid="tx-cq-hr-sync-chip"
@@ -586,7 +586,7 @@ function DigestCard() {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <CalendarRange className="h-4 w-4 text-amber-700" />
-          <h3 className="font-semibold">Weekly Command Digest (Track 16.10A)</h3>
+          <h3 className="font-semibold">Weekly Command Digest</h3>
         </div>
         <div className="text-xs text-slate-500" data-testid="tx-cq-digest-week">
           {preview?.week_key || "—"}

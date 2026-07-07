@@ -18,8 +18,8 @@ export default function AdminEmail() {
         <p className="text-sm text-slate-600 leading-relaxed">
           Every record (Daily Reports, Pre-Op fails, incidents, QA/QC, etc.) is auto-emailed when
           submitted. Configure who gets what — auto-routing rules (e.g. PM by job number) live in
-          the first panel, plain distribution lists in the second, and the new 19-route catalog
-          (Track 15.66) in the third.
+          the first panel, plain distribution lists in the second, and the 19-route catalog
+          in the third.
         </p>
       }
     >

@@ -376,7 +376,7 @@ export default function PmV2Preview() {
           textTransform: "uppercase", fontWeight: 700, textAlign: "center",
         }}
       >
-        Internal · PM V2 Preview · Track 13.6B · Action queues only · Every card opens a real PM surface · No route swap
+        PM Portal · Action queues · Every card opens a real PM surface
       </div>
 
       <PortalShell

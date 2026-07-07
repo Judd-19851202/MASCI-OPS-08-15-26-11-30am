@@ -14,6 +14,7 @@ Routes registered:
 """
 from __future__ import annotations
 
+import re as _re
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
@@ -255,7 +256,7 @@ def register_equipment_routes(
                 try:
                     # Resolve unit_number → equipment_master.id (case-insensitive).
                     eq = await db.equipment_master.find_one(
-                        {"unit_number": {"$regex": f"^{insp.equipment_unit}$", "$options": "i"}},
+                        {"unit_number": {"$regex": f"^{_re.escape(insp.equipment_unit)}$", "$options": "i"}},
                         {"_id": 0, "id": 1},
                     )
                     if eq:
@@ -289,7 +290,7 @@ def register_equipment_routes(
                     eq_id_for_link = None
                     try:
                         eq2 = await db.equipment_master.find_one(
-                            {"unit_number": {"$regex": f"^{insp.equipment_unit}$", "$options": "i"}},
+                            {"unit_number": {"$regex": f"^{_re.escape(insp.equipment_unit)}$", "$options": "i"}},
                             {"_id": 0, "id": 1},
                         )
                         eq_id_for_link = (eq2 or {}).get("id")

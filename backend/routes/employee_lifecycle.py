@@ -32,6 +32,7 @@ Auto-Offboarding Playbook:
 from __future__ import annotations
 
 import logging
+import re as _re
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
@@ -676,11 +677,11 @@ async def _find_inactive_match(
     if name_clean:
         # Case-insensitive exact match on name.
         or_clauses.append({
-            "name": {"$regex": f"^{name_clean}$", "$options": "i"},
+            "name": {"$regex": f"^{_re.escape(name_clean)}$", "$options": "i"},
         })
     if email_clean:
         or_clauses.append({
-            "email": {"$regex": f"^{email_clean}$", "$options": "i"},
+            "email": {"$regex": f"^{_re.escape(email_clean)}$", "$options": "i"},
         })
     if not or_clauses:
         return None
@@ -1211,7 +1212,7 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
         # block — operators should reactivate, not get stonewalled.
         existing_active = await db.employees.find_one(
             {
-                "name": {"$regex": f"^{name}$", "$options": "i"},
+                "name": {"$regex": f"^{_re.escape(name)}$", "$options": "i"},
                 "deleted_at": None,
                 "$or": [
                     {"lifecycle_status": {"$in": list(_ACTIVE_STATUSES)}},

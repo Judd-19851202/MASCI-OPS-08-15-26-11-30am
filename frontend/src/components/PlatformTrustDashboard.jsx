@@ -398,7 +398,7 @@ export default function PlatformTrustDashboard() {
                 Platform Trust Spine
               </h3>
               <p className="text-xs text-slate-500">
-                Track 15.76 · zero-drift operational verification ·{" "}
+                Zero-drift operational verification ·{" "}
                 {lastRun && `last refresh ${lastRun}`}
               </p>
             </div>

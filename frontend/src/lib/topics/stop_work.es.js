@@ -33,7 +33,7 @@ export const TOPICS_STOP_WORK_ES = {
     read_aloud:
       "Escuchen — sesenta segundos. Si ven algo que está a punto de salir mal, digan PARA. En voz alta. Palma abierta en el aire. No importa si llevan un día o veinte años. No importa si yo estoy aquí, o si el GC está aquí, o si el dueño está aquí. Pueden parar el trabajo. Los vamos a respaldar. Cada vez. Si se arregla, reiniciamos. Si no se arregla, no reiniciamos. Hemos perdido gente porque alguien sabía que estaba mal y no lo dijo. No vamos a perder a otro. Stop Work es su trabajo. No es opcional. No es sólo para emergencias. Es para el momento en que piensan 'esto no está bien.' Confíen en ese momento.",
     references_cited:
-      "OSHA Stop Work Authority · ANSI/ASSP Z10 Sección 5.1.4 · Política de Stop Work de MASCI · Track 15.47 Flujo de Violencia Laboral",
+      "OSHA Stop Work Authority · ANSI/ASSP Z10 Sección 5.1.4 · Política de Stop Work de MASCI · MASCI Flujo de Violencia Laboral",
     action_items:
       "Cada cuadrilla informada pre-turno · Hoja pre-turno con línea Stop Work · Foreman modela la llamada al menos una vez por proyecto · Cero tolerancia a represalia",
   },

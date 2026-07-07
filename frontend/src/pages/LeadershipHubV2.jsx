@@ -91,7 +91,7 @@ export default function LeadershipHubV2() {
             testid="lead-hub-v2-q-executive-overview"
             title="Executive Overview →"
             why="Jobs / Overdue / Staffing / Equipment / Safety / Activity — single page"
-            source="Source: /api/admin/executive/overview (Track 15.44)"
+            source="Source: /api/admin/executive/overview"
             value={null}
             loaded={true}
           />
@@ -115,8 +115,8 @@ export default function LeadershipHubV2() {
         </Section>
 
         <div data-testid="leadership-hub-v2-trace-note" style={{ marginTop: 16, padding: "var(--pad-card)", background: "var(--paper-card)", border: "1px dashed var(--border-bold)", borderRadius: "var(--radius-card)", color: "var(--ink-soft)", fontSize: 12 }}>
-          <strong style={{ color: "var(--ink-strong)" }}>Leadership Hub V2 · Track 13.6K preview.</strong>{" "}
-          Executive attention only. Not a vanity dashboard. Every count traces to a real source; every card opens the workflow that resolves the threat. No new APIs · no new auth · no rebuild.
+          <strong style={{ color: "var(--ink-strong)" }}>Leadership Hub · executive attention.</strong>{" "}
+          Executive attention only. Not a vanity dashboard. Every count traces to a real source; every card opens the workflow that resolves the threat.
         </div>
       </PortalShell>
     </div>
