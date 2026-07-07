@@ -10869,6 +10869,12 @@ from routes.hub_banners import build_hub_banners_router  # noqa: E402
 _hub_banners_router = build_hub_banners_router(db, require_admin)
 app.include_router(_hub_banners_router)
 
+# ------------------------- Track 24.3 · DR V3 free-text ES → EN translation -------------------------
+from routes.translation import build_translation_router  # noqa: E402
+
+_translation_router = build_translation_router(db, rate_limit_public_post)
+app.include_router(_translation_router)
+
 
 async def _job_photos_send_email(*, to: str, subject: str, text: str, attachments=None):
     """Tiny Resend wrapper used by the Job Photos email endpoint. Mirrors

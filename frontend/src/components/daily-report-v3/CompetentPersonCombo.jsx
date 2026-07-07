@@ -15,6 +15,7 @@
 //   GET /api/hr/qualifications/{id}/snapshot   (called on selection)
 import React from "react";
 import { AlertTriangle, ShieldCheck, Search } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -44,6 +45,7 @@ export default function CompetentPersonCombo({
   readOnly = false,
   testidPrefix = "cp-combo",
 }) {
+  const { t } = useT();
   const [items, setItems] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [err, setErr] = React.useState(null);
@@ -92,7 +94,7 @@ export default function CompetentPersonCombo({
         <div className="text-sm font-mono px-2 py-1 rounded border border-slate-300 bg-slate-50">
           {selected
             ? `${selected.employee_name} · ${selected.employee_trade}`
-            : "— not set —"}
+            : t("— not set —")}
         </div>
       ) : (
         <>
@@ -100,26 +102,27 @@ export default function CompetentPersonCombo({
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2.5" />
             <input
               type="search"
-              placeholder="Search active Competent Persons…"
+              placeholder={t("Search active Competent Persons…")}
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
               className="h-9 w-full pl-7 pr-3 text-sm border-2 border-slate-300 rounded"
               data-testid={`${testidPrefix}-filter`}
               autoComplete="off"
+              spellCheck={false}
             />
           </div>
           {loading ? (
-            <div className="text-xs text-slate-500 mt-2">Loading…</div>
+            <div className="text-xs text-slate-500 mt-2">{t("Loading…")}</div>
           ) : err ? (
             <div className="text-xs text-rose-700 mt-2 flex items-center gap-1"
                  data-testid={`${testidPrefix}-error`}>
-              <AlertTriangle className="w-3.5 h-3.5" /> Could not load registry ({err})
+              <AlertTriangle className="w-3.5 h-3.5" /> {t("Could not load registry")} ({err})
             </div>
           ) : items.length === 0 ? (
             <div className="text-xs text-amber-800 mt-2 p-2 border border-amber-300 rounded bg-amber-50"
                  data-testid={`${testidPrefix}-empty`}>
-              No Active Competent Persons in the registry. HR must issue a qualification
-              from <strong>/hr/qualifications</strong> before this section can be completed.
+              {t("No Active Competent Persons in the registry. HR must issue a qualification from")}{" "}
+              <strong>/hr/qualifications</strong> {t("before this section can be completed.")}
             </div>
           ) : (
             <select
@@ -128,7 +131,7 @@ export default function CompetentPersonCombo({
               className="mt-2 h-9 w-full text-sm border-2 border-slate-300 rounded px-2"
               data-testid={`${testidPrefix}-select`}
             >
-              <option value="">— Select Competent Person —</option>
+              <option value="">{t("— Select Competent Person —")}</option>
               {filtered.map((it) => (
                 <option
                   key={it.qualification_id}
@@ -137,7 +140,7 @@ export default function CompetentPersonCombo({
                 >
                   {it.employee_name} · {it.employee_trade}
                   {it.employee_crew ? ` · ${it.employee_crew}` : ""}
-                  {" · exp "}{it.expires_at || "n/a"}
+                  {` · ${t("exp")} `}{it.expires_at || t("n/a")}
                   {it.warning ? " ⚠" : ""}
                 </option>
               ))}
@@ -152,10 +155,10 @@ export default function CompetentPersonCombo({
               <strong>{selected.employee_name}</strong>
               {" · "}{selected.employee_trade}
               {selected.employee_crew ? ` · ${selected.employee_crew}` : ""}
-              {" · Qualification "}{selected.qualification_type}
-              {" · Status "}{selected.verification_status?.toUpperCase()}
-              {" · Expires "}{selected.expires_at || "n/a"}
-              {selected.warning ? " · EXPIRES SOON ⚠" : ""}
+              {` · ${t("Qualification")} `}{selected.qualification_type}
+              {` · ${t("Status")} `}{selected.verification_status?.toUpperCase()}
+              {` · ${t("Expires")} `}{selected.expires_at || t("n/a")}
+              {selected.warning ? ` · ${t("EXPIRES SOON")} ⚠` : ""}
             </div>
           )}
         </>

@@ -22,9 +22,11 @@ import { UnitCombo } from "@/components/daily-report-v3/UnitCombo";
 import { fetchHrRoster } from "@/lib/hrRoster";
 import { resolveEmployeeByTypedName, pickHrFields } from "@/lib/hrAutofill";
 import { Link } from "react-router-dom";
+import { useT } from "@/lib/i18n";
 
 // ── Shared section shell ──────────────────────────────────────────
 export function SectionShell({ step, title, testId, right = null, children }) {
+  const { t } = useT();
   return (
     <section
       data-testid={testId}
@@ -49,6 +51,7 @@ const rowBtn =
 
 // ── Section 02 · Crew + Equipment ─────────────────────────────────
 export function SectionCrewEquipment({ data, patch, costCodes }) {
+  const { t } = useT();
   const crews = data.masci_crews || [];
   const equipment = data.equipment || [];
   const subs = data.subcontractors || [];
@@ -148,8 +151,8 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
 
   return (
     <SectionShell
-      step="Step 2 · Who was there?"
-      title="Crew, Equipment &amp; Subcontractors"
+      step={t("Step 2 · Who was there?")}
+      title={t("Crew, Equipment & Subcontractors")}
       testId="dr-v3-section-crew-equipment"
     >
       {/* ═════════════════════════════════════════════════════════ */}
@@ -158,9 +161,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
-            <Users className="h-4 w-4 text-red-700" />
-            MASCI Crew
-          </div>
+            <Users className="h-4 w-4 text-red-700" />{t("MASCI Crew")}</div>
           <Button
             type="button"
             size="sm"
@@ -179,13 +180,10 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
               })
             }
           >
-            <Plus className="mr-1 h-4 w-4" /> Add crew
-          </Button>
+            <Plus className="mr-1 h-4 w-4" />{t("Add crew")}</Button>
         </div>
         {crews.length === 0 && (
-          <p className="rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-500">
-            No MASCI crew today.
-          </p>
+          <p className="rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-500">{t("No MASCI crew today.")}</p>
         )}
         {crews.map((c, i) => {
           const preview = grossNetPreview(c.start_time, c.stop_time, c.lunch_minutes);
@@ -239,9 +237,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                     <p
                       className="mt-0.5 text-[11px] text-emerald-700"
                       data-testid={`dr-v3-crew-trade-autofill-${i}`}
-                    >
-                      Auto-filled from HR
-                    </p>
+                    >{t("Auto-filled from HR")}</p>
                   )}
                   {(c.crew_snapshot || c.supervisor_snapshot) && (
                     <p
@@ -262,7 +258,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                     patch({ masci_crews: crews.filter((_, j) => j !== i) })
                   }
                   data-testid={`dr-v3-crew-remove-${i}`}
-                  aria-label="Remove crew row"
+                  aria-label={t("Remove crew row")}
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -271,7 +267,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
               {/* Time row */}
               <div className="mt-2 grid gap-2 sm:grid-cols-4">
                 <label className="flex flex-col text-xs text-slate-600">
-                  <span className="mb-0.5">Start</span>
+                  <span className="mb-0.5">{t("Start")}</span>
                   <input
                     type="time"
                     value={c.start_time || ""}
@@ -281,7 +277,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                   />
                 </label>
                 <label className="flex flex-col text-xs text-slate-600">
-                  <span className="mb-0.5">Stop</span>
+                  <span className="mb-0.5">{t("Stop")}</span>
                   <input
                     type="time"
                     value={c.stop_time || ""}
@@ -291,7 +287,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                   />
                 </label>
                 <label className="flex flex-col text-xs text-slate-600">
-                  <span className="mb-0.5">Lunch (min)</span>
+                  <span className="mb-0.5">{t("Lunch (min)")}</span>
                   <input
                     type="number"
                     min="0"
@@ -309,7 +305,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                   />
                 </label>
                 <label className="flex flex-col text-xs text-slate-600">
-                  <span className="mb-0.5">Hours (auto)</span>
+                  <span className="mb-0.5">{t("Hours (auto)")}</span>
                   <input
                     type="number"
                     step="0.25"
@@ -339,9 +335,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                   className="mt-1 flex items-center gap-1 text-[11px] font-medium text-red-700"
                   data-testid={`dr-v3-crew-time-error-${i}`}
                 >
-                  <AlertTriangle className="h-3 w-3" />
-                  Stop must be after start. Use overnight only if stop wraps past midnight.
-                </p>
+                  <AlertTriangle className="h-3 w-3" />{t("Stop must be after start. Use overnight only if stop wraps past midnight.")}</p>
               )}
 
               {hasCodes && (
@@ -422,9 +416,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
       <div className="mt-6 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
-            <Wrench className="h-4 w-4 text-red-700" />
-            Equipment
-          </div>
+            <Wrench className="h-4 w-4 text-red-700" />{t("Equipment")}</div>
           <Button
             type="button"
             size="sm"
@@ -439,13 +431,10 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
               })
             }
           >
-            <Plus className="mr-1 h-4 w-4" /> Add equipment
-          </Button>
+            <Plus className="mr-1 h-4 w-4" />{t("Add equipment")}</Button>
         </div>
         {equipment.length === 0 && (
-          <p className="rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-500">
-            No equipment today.
-          </p>
+          <p className="rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-500">{t("No equipment today.")}</p>
         )}
         {equipment.map((e, i) => (
           <div
@@ -470,14 +459,14 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                   patch({ equipment: equipment.filter((_, j) => j !== i) })
                 }
                 data-testid={`dr-v3-eq-remove-${i}`}
-                aria-label="Remove equipment row"
+                aria-label={t("Remove equipment row")}
               >
                 <Trash2 className="h-4 w-4" />
               </button>
             </div>
             <div className="mt-2 grid gap-2 sm:grid-cols-3">
               <label className="flex flex-col text-xs text-slate-600">
-                <span className="mb-0.5">Run hours</span>
+                <span className="mb-0.5">{t("Run hours")}</span>
                 <input
                   type="number"
                   step="0.25"
@@ -497,7 +486,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                 />
               </label>
               <label className="flex flex-col text-xs text-slate-600">
-                <span className="mb-0.5">Idle hours</span>
+                <span className="mb-0.5">{t("Idle hours")}</span>
                 <input
                   type="number"
                   step="0.25"
@@ -517,7 +506,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                 />
               </label>
               <label className="flex flex-col text-xs text-slate-600">
-                <span className="mb-0.5">Total (run + idle)</span>
+                <span className="mb-0.5">{t("Total (run + idle)")}</span>
                 <input
                   type="text"
                   value={(
@@ -531,7 +520,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
             </div>
             <input
               type="text"
-              placeholder="Issues / notes (optional)"
+              placeholder={t("Issues / notes (optional)")}
               value={e.notes || ""}
               onChange={(ev) => {
                 const next = equipment.slice();
@@ -620,7 +609,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
             <Truck className="h-4 w-4 text-red-700" />
-            Subcontractors &amp; Vendors
+            {t("Subcontractors & Vendors")}
           </div>
           <Button
             type="button"
@@ -639,13 +628,10 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
               })
             }
           >
-            <Plus className="mr-1 h-4 w-4" /> Add sub / vendor
-          </Button>
+            <Plus className="mr-1 h-4 w-4" />{t("Add sub / vendor")}</Button>
         </div>
         {subs.length === 0 && (
-          <p className="rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-500">
-            No subcontractors or vendors on site today.
-          </p>
+          <p className="rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-500">{t("No subcontractors or vendors on site today.")}</p>
         )}
         {subs.map((s, i) => (
           <div
@@ -661,12 +647,12 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                   next[i] = { ...s, company: v };
                   patch({ subcontractors: next });
                 }}
-                placeholder="Pick a subcontractor / vendor — or type"
+                placeholder={t("Pick a subcontractor / vendor — or type")}
                 data-testid={`dr-v3-sub-company-${i}`}
               />
               <input
                 type="text"
-                placeholder="Trade / scope"
+                placeholder={t("Trade / scope")}
                 value={s.trade || ""}
                 onChange={(ev) => {
                   const next = subs.slice();
@@ -678,7 +664,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
               />
               <input
                 type="text"
-                placeholder="Foreman / contact"
+                placeholder={t("Foreman / contact")}
                 value={s.foreman || ""}
                 onChange={(ev) => {
                   const next = subs.slice();
@@ -697,14 +683,14 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                   })
                 }
                 data-testid={`dr-v3-sub-remove-${i}`}
-                aria-label="Remove subcontractor row"
+                aria-label={t("Remove subcontractor row")}
               >
                 <Trash2 className="h-4 w-4" />
               </button>
             </div>
             <div className="mt-2 grid gap-2 sm:grid-cols-[1fr_1fr_3fr]">
               <label className="flex flex-col text-xs text-slate-600">
-                <span className="mb-0.5">Headcount</span>
+                <span className="mb-0.5">{t("Headcount")}</span>
                 <input
                   type="number"
                   min="0"
@@ -723,7 +709,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                 />
               </label>
               <label className="flex flex-col text-xs text-slate-600">
-                <span className="mb-0.5">Hours</span>
+                <span className="mb-0.5">{t("Hours")}</span>
                 <input
                   type="number"
                   min="0"
@@ -743,7 +729,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
               </label>
               <input
                 type="text"
-                placeholder="Work performed / notes"
+                placeholder={t("Work performed / notes")}
                 value={s.work_performed || ""}
                 onChange={(ev) => {
                   const next = subs.slice();
@@ -788,12 +774,11 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
 
 // ── Cost Code picker — hidden when no codes ────────────────────
 export function CostCodePicker({ value, options, onChange, testId }) {
+  const { t } = useT();
   if (!options || options.length === 0) return null;
   return (
     <div className="mt-2">
-      <label className="mb-1 block text-xs font-medium text-slate-500">
-        Cost code
-      </label>
+      <label className="mb-1 block text-xs font-medium text-slate-500">{t("Cost code")}</label>
       <select
         data-testid={testId}
         value={value || ""}
@@ -813,17 +798,18 @@ export function CostCodePicker({ value, options, onChange, testId }) {
 
 // ── Section 03 · Work Performed + Production ───────────────────
 export function SectionWorkProduction({ data, patch, costCodes }) {
+  const { t } = useT();
   const prod = data.production || [];
   const hasCodes = (costCodes?.length || 0) > 0;
   return (
     <SectionShell
-      step="Step 3 · What got done?"
-      title="Work Performed &amp; Production"
+      step={t("Step 3 · What got done?")}
+      title={t("Work Performed & Production")}
       testId="dr-v3-section-work"
     >
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <div className="text-sm font-medium text-slate-700">Production rows</div>
+          <div className="text-sm font-medium text-slate-700">{t("Production rows")}</div>
           <Button
             type="button"
             size="sm"
@@ -838,13 +824,10 @@ export function SectionWorkProduction({ data, patch, costCodes }) {
               })
             }
           >
-            <Plus className="mr-1 h-4 w-4" /> Add row
-          </Button>
+            <Plus className="mr-1 h-4 w-4" />{t("Add row")}</Button>
         </div>
         {prod.length === 0 && (
-          <p className="rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-500">
-            No production tracked today.
-          </p>
+          <p className="rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-500">{t("No production tracked today.")}</p>
         )}
         {prod.map((p, i) => (
           <div
@@ -855,7 +838,7 @@ export function SectionWorkProduction({ data, patch, costCodes }) {
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,3fr)_minmax(0,1fr)_minmax(0,1.4fr)_auto]">
               <input
                 type="text"
-                placeholder="What was installed / performed"
+                placeholder={t("What was installed / performed")}
                 value={p.description || ""}
                 onChange={(e) => {
                   const next = prod.slice();
@@ -868,7 +851,7 @@ export function SectionWorkProduction({ data, patch, costCodes }) {
               <input
                 type="number"
                 step="0.01"
-                placeholder="Qty"
+                placeholder={t("Qty")}
                 value={p.quantity ?? ""}
                 onChange={(e) => {
                   const next = prod.slice();
@@ -897,7 +880,7 @@ export function SectionWorkProduction({ data, patch, costCodes }) {
                 className={rowBtn + " justify-self-end shrink-0"}
                 onClick={() => patch({ production: prod.filter((_, j) => j !== i) })}
                 data-testid={`dr-v3-prod-remove-${i}`}
-                aria-label="Remove production row"
+                aria-label={t("Remove production row")}
               >
                 <Trash2 className="h-4 w-4" />
               </button>
@@ -908,7 +891,7 @@ export function SectionWorkProduction({ data, patch, costCodes }) {
             <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
               <input
                 type="text"
-                placeholder="Sta from (e.g. 12+00)"
+                placeholder={t("Sta from (e.g. 12+00)")}
                 value={p.station_from || ""}
                 onChange={(e) => {
                   const next = prod.slice();
@@ -920,7 +903,7 @@ export function SectionWorkProduction({ data, patch, costCodes }) {
               />
               <input
                 type="text"
-                placeholder="Sta to (e.g. 15+50)"
+                placeholder={t("Sta to (e.g. 15+50)")}
                 value={p.station_to || ""}
                 onChange={(e) => {
                   const next = prod.slice();
@@ -935,7 +918,7 @@ export function SectionWorkProduction({ data, patch, costCodes }) {
                 min="0"
                 max="100"
                 step="1"
-                placeholder="% complete"
+                placeholder={t("% complete")}
                 value={p.percent_complete ?? ""}
                 onChange={(e) => {
                   const next = prod.slice();
@@ -949,7 +932,7 @@ export function SectionWorkProduction({ data, patch, costCodes }) {
             </div>
             <input
               type="text"
-              placeholder="Notes (optional)"
+              placeholder={t("Notes (optional)")}
               value={p.notes || ""}
               onChange={(e) => {
                 const next = prod.slice();
@@ -980,19 +963,20 @@ export function SectionWorkProduction({ data, patch, costCodes }) {
 
 // ── Section 04 · Materials In + Out + Tickets ───────────────────
 export function SectionMaterials({ data, patch, costCodes }) {
+  const { t } = useT();
   const mats = data.materials || [];
   const outs = data.outbound_materials || [];
   const hasCodes = (costCodes?.length || 0) > 0;
   return (
     <SectionShell
-      step="Step 4 · What moved?"
-      title="Materials &amp; Tickets"
+      step={t("Step 4 · What moved?")}
+      title={t("Materials & Tickets")}
       testId="dr-v3-section-materials"
     >
       {/* Materials in */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <div className="text-sm font-medium text-slate-700">Materials delivered</div>
+          <div className="text-sm font-medium text-slate-700">{t("Materials delivered")}</div>
           <Button
             type="button"
             size="sm"
@@ -1007,8 +991,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
               })
             }
           >
-            <Plus className="mr-1 h-4 w-4" /> Delivered
-          </Button>
+            <Plus className="mr-1 h-4 w-4" />{t("Delivered")}</Button>
         </div>
         {mats.map((m, i) => (
           <div key={i} data-testid={`dr-v3-mat-row-${i}`} className="rounded-xl border border-slate-200 p-3">
@@ -1016,7 +999,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,3fr)_minmax(0,1fr)_minmax(0,1.4fr)_auto]">
               <input
                 type="text"
-                placeholder="Material"
+                placeholder={t("Material")}
                 value={m.description || ""}
                 onChange={(e) => {
                   const next = mats.slice();
@@ -1029,7 +1012,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
               <input
                 type="number"
                 step="0.01"
-                placeholder="Qty"
+                placeholder={t("Qty")}
                 value={m.quantity ?? ""}
                 onChange={(e) => {
                   const next = mats.slice();
@@ -1058,7 +1041,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
                 className={rowBtn + " justify-self-end shrink-0"}
                 onClick={() => patch({ materials: mats.filter((_, j) => j !== i) })}
                 data-testid={`dr-v3-mat-remove-${i}`}
-                aria-label="Remove material row"
+                aria-label={t("Remove material row")}
               >
                 <Trash2 className="h-4 w-4" />
               </button>
@@ -1066,8 +1049,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
 
             {/* Row 2 · Carrier — canonical SupplierCombo (single source of truth) */}
             <div className="mt-2 min-w-0">
-              <label className="mb-1 block text-xs font-medium text-slate-600">
-                Carrier <span className="text-red-600">*</span>
+              <label className="mb-1 block text-xs font-medium text-slate-600">{t("Carrier")} <span className="text-red-600">*</span>
               </label>
               <SupplierCombo
                 value={m.carrier || ""}
@@ -1086,7 +1068,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
                   };
                   patch({ materials: next });
                 }}
-                placeholder="Pick carrier — or type one-time hauler"
+                placeholder={t("Pick carrier — or type one-time hauler")}
                 data-testid={`dr-v3-mat-carrier-${i}`}
               />
             </div>
@@ -1095,7 +1077,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
             <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
               <input
                 type="text"
-                placeholder="Ticket #"
+                placeholder={t("Ticket #")}
                 value={m.ticket_number || ""}
                 onChange={(e) => {
                   const next = mats.slice();
@@ -1137,7 +1119,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
       {/* Materials out */}
       <div className="mt-6 space-y-3">
         <div className="flex items-center justify-between">
-          <div className="text-sm font-medium text-slate-700">Hauled off / outbound</div>
+          <div className="text-sm font-medium text-slate-700">{t("Hauled off / outbound")}</div>
           <Button
             type="button"
             size="sm"
@@ -1152,8 +1134,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
               })
             }
           >
-            <Plus className="mr-1 h-4 w-4" /> Outbound
-          </Button>
+            <Plus className="mr-1 h-4 w-4" />{t("Outbound")}</Button>
         </div>
         {outs.map((o, i) => (
           <div key={i} data-testid={`dr-v3-out-row-${i}`} className="rounded-xl border border-slate-200 p-3">
@@ -1161,7 +1142,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,3fr)_minmax(0,1fr)_minmax(0,1.4fr)_auto]">
               <input
                 type="text"
-                placeholder="Material"
+                placeholder={t("Material")}
                 value={o.material || ""}
                 onChange={(e) => {
                   const next = outs.slice();
@@ -1174,7 +1155,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
               <input
                 type="number"
                 step="0.01"
-                placeholder="Qty"
+                placeholder={t("Qty")}
                 value={o.quantity ?? ""}
                 onChange={(e) => {
                   const next = outs.slice();
@@ -1203,7 +1184,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
                 className={rowBtn + " justify-self-end shrink-0"}
                 onClick={() => patch({ outbound_materials: outs.filter((_, j) => j !== i) })}
                 data-testid={`dr-v3-out-remove-${i}`}
-                aria-label="Remove outbound row"
+                aria-label={t("Remove outbound row")}
               >
                 <Trash2 className="h-4 w-4" />
               </button>
@@ -1211,8 +1192,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
 
             {/* Row 2 · Carrier (SupplierCombo, canonical vendor master) */}
             <div className="mt-2 min-w-0">
-              <label className="mb-1 block text-xs font-medium text-slate-600">
-                Carrier <span className="text-red-600">*</span>
+              <label className="mb-1 block text-xs font-medium text-slate-600">{t("Carrier")} <span className="text-red-600">*</span>
               </label>
               <SupplierCombo
                 value={o.hauler || ""}
@@ -1231,7 +1211,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
                   };
                   patch({ outbound_materials: next });
                 }}
-                placeholder="Pick carrier — or type one-time hauler"
+                placeholder={t("Pick carrier — or type one-time hauler")}
                 data-testid={`dr-v3-out-carrier-${i}`}
               />
             </div>
@@ -1240,7 +1220,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
             <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
               <input
                 type="text"
-                placeholder="Destination"
+                placeholder={t("Destination")}
                 value={o.destination || ""}
                 onChange={(e) => {
                   const next = outs.slice();
@@ -1252,7 +1232,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
               />
               <input
                 type="text"
-                placeholder="Manifest / ticket #"
+                placeholder={t("Manifest / ticket #")}
                 value={o.ticket_number || o.manifest_number || ""}
                 onChange={(e) => {
                   const next = outs.slice();
@@ -1284,12 +1264,13 @@ export function SectionMaterials({ data, patch, costCodes }) {
 
 // ── Section 05 · Photos + Evidence ─────────────────────────────
 export function SectionPhotos({ data, patch, photoMin }) {
+  const { t } = useT();
   const photos = data.photos || [];
   const short = Math.max(0, (photoMin || 6) - photos.length);
   return (
     <SectionShell
-      step="Step 5 · What can we prove?"
-      title="Photos &amp; Evidence"
+      step={t("Step 5 · What can we prove?")}
+      title={t("Photos & Evidence")}
       testId="dr-v3-section-photos"
       right={
         <span
@@ -1343,6 +1324,7 @@ const SAFETY_TYPES = [
 ];
 
 export function SectionImpactSafety({ data, patch }) {
+  const { t } = useT();
   const anyImpact = data.impact_present === "Yes";
   const anySafety = data.safety_present === "Yes";
   const constraints = data.constraints || [];
@@ -1359,8 +1341,8 @@ export function SectionImpactSafety({ data, patch }) {
 
   return (
     <SectionShell
-      step="Step 6 · What impacted today?"
-      title="Delays, Extra Work &amp; Safety"
+      step={t("Step 6 · What impacted today?")}
+      title={t("Delays, Extra Work & Safety")}
       testId="dr-v3-section-impact-safety"
     >
       {/* Impact gate */}
@@ -1368,9 +1350,7 @@ export function SectionImpactSafety({ data, patch }) {
         <div className="mb-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <TrafficCone className="h-4 w-4 text-amber-600" />
-            <span className="text-sm font-medium text-slate-800">
-              Did anything reduce or add to production today?
-            </span>
+            <span className="text-sm font-medium text-slate-800">{t("Did anything reduce or add to production today?")}</span>
           </div>
           <YesNoInline
             value={data.impact_present || ""}
@@ -1388,7 +1368,7 @@ export function SectionImpactSafety({ data, patch }) {
         </div>
         {anyImpact && (
           <>
-            <p className="mb-2 text-xs text-slate-500">Tap a type to add a row.</p>
+            <p className="mb-2 text-xs text-slate-500">{t("Tap a type to add a row.")}</p>
             <div className="flex flex-wrap gap-1.5">
               {IMPACT_TYPES.map((t) => (
                 <button
@@ -1420,7 +1400,7 @@ export function SectionImpactSafety({ data, patch }) {
                     <input
                       type="number"
                       step="0.25"
-                      placeholder="Hrs"
+                      placeholder={t("Hrs")}
                       value={c.hours_impact ?? ""}
                       onChange={(e) => {
                         const next = constraints.slice();
@@ -1431,7 +1411,7 @@ export function SectionImpactSafety({ data, patch }) {
                     />
                     <input
                       type="text"
-                      placeholder="Notes"
+                      placeholder={t("Notes")}
                       value={c.notes || ""}
                       onChange={(e) => {
                         const next = constraints.slice();
@@ -1462,9 +1442,7 @@ export function SectionImpactSafety({ data, patch }) {
         <div className="mb-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <ShieldAlert className="h-4 w-4 text-red-600" />
-            <span className="text-sm font-medium text-slate-800">
-              Did anything safety-related occur today?
-            </span>
+            <span className="text-sm font-medium text-slate-800">{t("Did anything safety-related occur today?")}</span>
           </div>
           <YesNoInline
             value={data.safety_present || ""}
@@ -1495,8 +1473,7 @@ export function SectionImpactSafety({ data, patch }) {
           <div className="space-y-3" data-testid="dr-v3-safety-escalation">
             {/* Event type */}
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-600">
-                What kind of event? <span className="text-red-600">*</span>
+              <label className="mb-1 block text-xs font-medium text-slate-600">{t("What kind of event?")} <span className="text-red-600">*</span>
               </label>
               <select
                 value={data.safety_event_type || ""}
@@ -1523,7 +1500,7 @@ export function SectionImpactSafety({ data, patch }) {
 
             <Textarea
               rows={3}
-              placeholder="What happened? (required for supervisor review)"
+              placeholder={t("What happened? (required for supervisor review)")}
               value={data.incident_notes || ""}
               onChange={(e) => patch({ incident_notes: e.target.value })}
               data-testid="dr-v3-incident-notes"
@@ -1532,8 +1509,7 @@ export function SectionImpactSafety({ data, patch }) {
             {/* ── Safety contact escalation ────────────────────── */}
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
               <div className="mb-2 flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-600">
-                  Was Safety contacted? <span className="text-red-600">*</span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-slate-600">{t("Was Safety contacted?")} <span className="text-red-600">*</span>
                 </span>
                 <YesNoInline
                   value={data.safety_notified || ""}
@@ -1557,8 +1533,7 @@ export function SectionImpactSafety({ data, patch }) {
                   data-testid="dr-v3-safety-contact-fields"
                 >
                   <label className="flex flex-col text-xs text-slate-600">
-                    <span className="mb-0.5">
-                      Who at Safety? <span className="text-red-600">*</span>
+                    <span className="mb-0.5">{t("Who at Safety?")} <span className="text-red-600">*</span>
                     </span>
                     <input
                       type="text"
@@ -1571,8 +1546,7 @@ export function SectionImpactSafety({ data, patch }) {
                     />
                   </label>
                   <label className="flex flex-col text-xs text-slate-600">
-                    <span className="mb-0.5">
-                      Time contacted <span className="text-red-600">*</span>
+                    <span className="mb-0.5">{t("Time contacted")} <span className="text-red-600">*</span>
                     </span>
                     <input
                       type="time"
@@ -1585,7 +1559,7 @@ export function SectionImpactSafety({ data, patch }) {
                     />
                   </label>
                   <label className="flex flex-col text-xs text-slate-600">
-                    <span className="mb-0.5">Method</span>
+                    <span className="mb-0.5">{t("Method")}</span>
                     <select
                       value={data.safety_contact_method || ""}
                       onChange={(e) =>
@@ -1595,11 +1569,11 @@ export function SectionImpactSafety({ data, patch }) {
                       data-testid="dr-v3-safety-contact-method"
                     >
                       <option value="">— Select —</option>
-                      <option value="phone">Phone</option>
-                      <option value="text">Text</option>
-                      <option value="in_person">In person</option>
-                      <option value="email">Email</option>
-                      <option value="other">Other</option>
+                      <option value="phone">{t("Phone")}</option>
+                      <option value="text">{t("Text")}</option>
+                      <option value="in_person">{t("In person")}</option>
+                      <option value="email">{t("Email")}</option>
+                      <option value="other">{t("Other")}</option>
                     </select>
                   </label>
                 </div>
@@ -1611,9 +1585,7 @@ export function SectionImpactSafety({ data, patch }) {
                   data-testid="dr-v3-safety-not-contacted-warn"
                 >
                   <div className="mb-2 flex items-center gap-2 font-semibold">
-                    <AlertTriangle className="h-4 w-4" />
-                    Stop and contact Safety before submitting.
-                  </div>
+                    <AlertTriangle className="h-4 w-4" />{t("Stop and contact Safety before submitting.")}</div>
                   <label className="flex items-start gap-2 text-xs">
                     <input
                       type="checkbox"
@@ -1636,8 +1608,7 @@ export function SectionImpactSafety({ data, patch }) {
             {/* ── Incident/accident report gate ─────────────────── */}
             <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
               <div className="mb-2 flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-600">
-                  Incident / Accident report filed? <span className="text-red-600">*</span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-slate-600">{t("Incident / Accident report filed?")} <span className="text-red-600">*</span>
                 </span>
                 <YesNoInline
                   value={data.incident_report_filled || ""}
@@ -1659,8 +1630,7 @@ export function SectionImpactSafety({ data, patch }) {
                   data-testid="dr-v3-incident-report-fields"
                 >
                   <label className="flex flex-col text-xs text-slate-600">
-                    <span className="mb-0.5">
-                      Time filed <span className="text-red-600">*</span>
+                    <span className="mb-0.5">{t("Time filed")} <span className="text-red-600">*</span>
                     </span>
                     <input
                       type="time"
@@ -1673,7 +1643,7 @@ export function SectionImpactSafety({ data, patch }) {
                     />
                   </label>
                   <label className="flex flex-col text-xs text-slate-600">
-                    <span className="mb-0.5">Reference / report #</span>
+                    <span className="mb-0.5">{t("Reference / report #")}</span>
                     <input
                       type="text"
                       value={data.incident_report_reference || ""}
@@ -1693,9 +1663,7 @@ export function SectionImpactSafety({ data, patch }) {
                   data-testid="dr-v3-incident-report-action-required"
                 >
                   <div className="mb-2 flex items-center gap-2 font-semibold">
-                    <AlertTriangle className="h-4 w-4" />
-                    Action required: file the Accident / Incident report.
-                  </div>
+                    <AlertTriangle className="h-4 w-4" />{t("Action required: file the Accident / Incident report.")}</div>
                   <p className="mb-2 text-xs">
                     Your Daily Report draft is autosaved. Open the
                     Accident / Incident form, submit it, then return here
@@ -1706,8 +1674,7 @@ export function SectionImpactSafety({ data, patch }) {
                     className="inline-flex items-center gap-1 rounded-md border border-amber-400 bg-white px-3 py-1.5 text-xs font-semibold text-amber-900 hover:bg-amber-100"
                     data-testid="dr-v3-open-incident-report"
                   >
-                    <ExternalLink className="h-3 w-3" /> Open Accident / Incident Report
-                  </Link>
+                    <ExternalLink className="h-3 w-3" />{t("Open Accident / Incident Report")}</Link>
                 </div>
               )}
             </div>
@@ -1721,9 +1688,7 @@ export function SectionImpactSafety({ data, patch }) {
                     patch({ injuries_reported: e.target.checked ? "Yes" : "No" })
                   }
                   data-testid="dr-v3-injuries-reported"
-                />
-                Injuries reported
-              </label>
+                />{t("Injuries reported")}</label>
               <label className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
@@ -1732,9 +1697,7 @@ export function SectionImpactSafety({ data, patch }) {
                     patch({ work_stopped: e.target.checked ? "Yes" : "No" })
                   }
                   data-testid="dr-v3-work-stopped"
-                />
-                Work stopped
-              </label>
+                />{t("Work stopped")}</label>
             </div>
 
             <p className="text-[11px] text-slate-500">
@@ -1749,9 +1712,7 @@ export function SectionImpactSafety({ data, patch }) {
       <div className="mt-4 rounded-xl border border-slate-200 p-4" data-testid="dr-v3-visitors-block">
         <div className="mb-2 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-sm font-medium text-slate-800">
-            <Users className="h-4 w-4 text-slate-600" />
-            Visitors on site
-            <span className="ml-1 text-[11px] text-slate-500">(optional — inspectors, owners, subs&apos; PMs)</span>
+            <Users className="h-4 w-4 text-slate-600" />{t("Visitors on site")}<span className="ml-1 text-[11px] text-slate-500">(optional — inspectors, owners, subs&apos; PMs)</span>
           </div>
           <Button
             type="button"
@@ -1767,13 +1728,10 @@ export function SectionImpactSafety({ data, patch }) {
               })
             }
           >
-            <Plus className="mr-1 h-4 w-4" /> Add visitor
-          </Button>
+            <Plus className="mr-1 h-4 w-4" />{t("Add visitor")}</Button>
         </div>
         {visitors.length === 0 ? (
-          <p className="rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-500">
-            No outside visitors logged.
-          </p>
+          <p className="rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-500">{t("No outside visitors logged.")}</p>
         ) : (
           <div className="space-y-2">
             {visitors.map((v, i) => (
@@ -1785,7 +1743,7 @@ export function SectionImpactSafety({ data, patch }) {
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,2fr)_minmax(0,2fr)_auto]">
                   <input
                     type="text"
-                    placeholder="Name"
+                    placeholder={t("Name")}
                     value={v.name || ""}
                     onChange={(e) => {
                       const next = visitors.slice();
@@ -1797,7 +1755,7 @@ export function SectionImpactSafety({ data, patch }) {
                   />
                   <input
                     type="text"
-                    placeholder="Company / affiliation"
+                    placeholder={t("Company / affiliation")}
                     value={v.company || ""}
                     onChange={(e) => {
                       const next = visitors.slice();
@@ -1814,7 +1772,7 @@ export function SectionImpactSafety({ data, patch }) {
                       patch({ visitors: visitors.filter((_, j) => j !== i) })
                     }
                     data-testid={`dr-v3-visitor-remove-${i}`}
-                    aria-label="Remove visitor"
+                    aria-label={t("Remove visitor")}
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -1830,7 +1788,7 @@ export function SectionImpactSafety({ data, patch }) {
                     }}
                     className="w-full min-w-0 rounded-md border border-slate-300 px-2 py-1.5 text-sm"
                     data-testid={`dr-v3-visitor-tin-${i}`}
-                    aria-label="Time in"
+                    aria-label={t("Time in")}
                   />
                   <input
                     type="time"
@@ -1842,11 +1800,11 @@ export function SectionImpactSafety({ data, patch }) {
                     }}
                     className="w-full min-w-0 rounded-md border border-slate-300 px-2 py-1.5 text-sm"
                     data-testid={`dr-v3-visitor-tout-${i}`}
-                    aria-label="Time out"
+                    aria-label={t("Time out")}
                   />
                   <input
                     type="text"
-                    placeholder="Purpose"
+                    placeholder={t("Purpose")}
                     value={v.purpose || ""}
                     onChange={(e) => {
                       const next = visitors.slice();
@@ -1867,6 +1825,7 @@ export function SectionImpactSafety({ data, patch }) {
 }
 
 function YesNoInline({ value, onChange, testId }) {
+  const { t } = useT();
   return (
     <div className="inline-flex overflow-hidden rounded-md border border-slate-200 text-xs">
       {["Yes", "No"].map((v) => (
@@ -1893,37 +1852,34 @@ function YesNoInline({ value, onChange, testId }) {
 
 // ── Section 07 · Tomorrow / Needs / PM Attention ────────────────
 export function SectionTomorrow({ data, patch }) {
+  const { t } = useT();
   const ns = data.narrative_sections || {};
   const set = (key, v) => patch({ narrative_sections: { ...ns, [key]: v } });
   return (
     <SectionShell
-      step="Step 7 · What's next?"
-      title="Tomorrow &amp; PM Attention"
+      step={t("Step 7 · What's next?")}
+      title={t("Tomorrow & PM Attention")}
       testId="dr-v3-section-tomorrow"
     >
       <div className="space-y-3">
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
-            Tomorrow / next work
-          </label>
+          <label className="mb-1 block text-sm font-medium text-slate-700">{t("Tomorrow / next work")}</label>
           <Textarea
             rows={2}
             value={ns.tomorrow_plan || ""}
             onChange={(e) => set("tomorrow_plan", e.target.value)}
-            placeholder="Which crew · what work · which station"
+            placeholder={t("Which crew · what work · which station")}
             data-testid="dr-v3-tomorrow-plan"
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
-            Needs / blockers for the PM
-            <Clock className="ml-1 inline h-3.5 w-3.5 text-slate-400" />
+          <label className="mb-1 block text-sm font-medium text-slate-700">{t("Needs / blockers for the PM")}<Clock className="ml-1 inline h-3.5 w-3.5 text-slate-400" />
           </label>
           <Textarea
             rows={2}
             value={ns.follow_ups || ""}
             onChange={(e) => set("follow_ups", e.target.value)}
-            placeholder="RFI, submittal, material, equipment, permit …"
+            placeholder={t("RFI, submittal, material, equipment, permit …")}
             data-testid="dr-v3-follow-ups"
           />
         </div>
@@ -1934,10 +1890,11 @@ export function SectionTomorrow({ data, patch }) {
 
 // ── Section 08 · Operational Summary Assist (single AI card) ────
 export function SectionAiSummary({ data, reportId, onAccepted }) {
+  const { t } = useT();
   return (
     <SectionShell
-      step="Step 8 · Draft your report summary"
-      title="Operational Summary Assist"
+      step={t("Step 8 · Draft your report summary")}
+      title={t("Operational Summary Assist")}
       testId="dr-v3-section-ai-summary"
     >
       <p className="mb-3 text-xs text-slate-500">
@@ -1958,10 +1915,11 @@ export function SectionAiSummary({ data, reportId, onAccepted }) {
 export function SectionSignoff({
   data, patch, readiness, onSubmit, saving, canSubmit,
 }) {
+  const { t } = useT();
   return (
     <SectionShell
-      step="Step 9 · Sign &amp; submit"
-      title="Submit Readiness &amp; Sign-Off"
+      step={t("Step 9 · Sign & submit")}
+      title={t("Submit Readiness & Sign-Off")}
       testId="dr-v3-section-signoff"
     >
       <div className="space-y-4">
@@ -1975,7 +1933,7 @@ export function SectionSignoff({
           }
         >
           {canSubmit ? (
-            <>Ready to submit — <strong>{readiness.completed}/{readiness.total}</strong> items complete.</>
+            <>{t("Ready to submit —")}<strong>{readiness.completed}/{readiness.total}</strong> items complete.</>
           ) : (
             <>
               Still needed:{" "}
@@ -1986,7 +1944,7 @@ export function SectionSignoff({
 
         <div>
           <label className="mb-1.5 block text-sm font-medium text-slate-700">
-            Prepared By Signature *
+            {t("Prepared By Signature")} <span className="text-red-600">*</span>
           </label>
           <SignaturePad
             value={data.prepared_by_signature || ""}

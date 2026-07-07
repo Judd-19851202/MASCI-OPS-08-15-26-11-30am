@@ -8,6 +8,8 @@ import { JobPicker } from "@/components/JobPicker";
 import { FlUserCombo } from "@/components/FlUserCombo";
 import { Button } from "@/components/ui/button";
 import { MapPin, Cloud, CalendarClock } from "lucide-react";
+import { useT } from "@/lib/i18n";
+import { RequiredLabel } from "@/components/RequiredLabel";
 
 export function SectionProjectConditions({
   data,
@@ -19,6 +21,7 @@ export function SectionProjectConditions({
   weatherLabel,
   reportNumberPreview,
 }) {
+  const { t } = useT();
   return (
     <section
       data-testid="dr-v3-section-project"
@@ -27,10 +30,10 @@ export function SectionProjectConditions({
       <header className="mb-5 flex items-center justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-emerald-600">
-            Step 1 · Where were we?
+            {t("Step 1 · Where were we?")}
           </p>
           <h2 className="mt-1 text-lg font-semibold text-slate-900">
-            Project &amp; Conditions
+            {t("Project & Conditions")}
           </h2>
         </div>
         {reportNumberPreview && (
@@ -46,7 +49,7 @@ export function SectionProjectConditions({
       <div className="space-y-4">
         <div>
           <label className="mb-1.5 block text-sm font-medium text-slate-700">
-            MASCI Job *
+            <RequiredLabel label={t("MASCI Job")} />
           </label>
           <JobPicker
             value={data.project_number}
@@ -64,7 +67,7 @@ export function SectionProjectConditions({
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className="mb-1.5 block text-sm font-medium text-slate-700">
-              Location *
+              <RequiredLabel label={t("Location")} />
             </label>
             <div className="flex items-center gap-2">
               <input
@@ -72,7 +75,8 @@ export function SectionProjectConditions({
                 type="text"
                 value={data.location || ""}
                 onChange={(e) => patch({ location: e.target.value })}
-                placeholder="e.g. Sta 12+50 · North side"
+                placeholder={t("e.g. Sta 12+50 · North side")}
+                spellCheck
                 className="flex-1 rounded-lg border border-slate-300 px-3 py-2.5 text-sm placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
               />
               <Button
@@ -85,20 +89,21 @@ export function SectionProjectConditions({
                 className="shrink-0"
               >
                 <MapPin className="mr-1.5 h-4 w-4" />
-                {isFetchingGps ? "…" : "GPS"}
+                {isFetchingGps ? "…" : t("GPS")}
               </Button>
             </div>
           </div>
 
           <div>
             <label className="mb-1.5 block text-sm font-medium text-slate-700">
-              Date *
+              <RequiredLabel label={t("Date")} />
             </label>
             <input
               data-testid="dr-v3-report-date"
               type="date"
               value={data.report_date || ""}
               onChange={(e) => patch({ report_date: e.target.value })}
+              spellCheck={false}
               className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
             />
           </div>
@@ -107,23 +112,23 @@ export function SectionProjectConditions({
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className="mb-1.5 block text-sm font-medium text-slate-700">
-              Prepared By *
+              <RequiredLabel label={t("Prepared By")} />
             </label>
             <FlUserCombo
               value={data.prepared_by || ""}
               onChange={(v) => patch({ prepared_by: v })}
-              placeholder="Field supervisor"
+              placeholder={t("Field supervisor")}
               data-testid="dr-v3-prepared-by"
             />
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-medium text-slate-700">
-              Superintendent
+              {t("Superintendent")}
             </label>
             <FlUserCombo
               value={data.superintendent || ""}
               onChange={(v) => patch({ superintendent: v })}
-              placeholder="Optional"
+              placeholder={t("Optional")}
               data-testid="dr-v3-superintendent"
             />
           </div>
@@ -137,9 +142,9 @@ export function SectionProjectConditions({
             <Cloud className="h-5 w-5 text-sky-600" />
             <div className="text-sm text-sky-900">
               <div className="font-medium">
-                {data.weather_summary || "Weather not captured yet"}
+                {data.weather_summary || t("Weather not captured yet")}
               </div>
-              <div className="text-xs text-sky-700">{weatherLabel || "Tap GPS to auto-fill weather."}</div>
+              <div className="text-xs text-sky-700">{weatherLabel || t("Tap GPS to auto-fill weather.")}</div>
             </div>
           </div>
           <Button
@@ -152,7 +157,7 @@ export function SectionProjectConditions({
             className="text-sky-700 hover:bg-sky-100"
           >
             <CalendarClock className="mr-1.5 h-4 w-4" />
-            {isFetchingWeather ? "…" : "Refresh"}
+            {isFetchingWeather ? "…" : t("Refresh")}
           </Button>
         </div>
       </div>

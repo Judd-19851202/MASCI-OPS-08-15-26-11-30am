@@ -50,6 +50,9 @@ import {
 import { DailyReportTopBanner } from "@/components/DailyReportTopBanner";
 import DailyReportV3ExcavationSection from "@/components/daily-report-v3/DailyReportV3ExcavationSection";
 import { CheckCircle2, History } from "lucide-react";
+import { useT } from "@/lib/i18n";
+import { LangToggle } from "@/components/LangToggle";
+import { translateDrV3PayloadEsToEn } from "@/lib/drV3Translation";
 
 // Form key MUST match V1 so that a mid-flight draft written in V1 can
 // still restore when the pilot flag flips the operator into V3 (and
@@ -58,6 +61,7 @@ const FORM_KEY = "daily-report";
 
 export default function NewDailyReportV3({ publicMode = false }) {
   const navigate = useNavigate();
+  const { t, lang } = useT();
   const [data, setData] = useState(() => buildDailyReportDefaults());
   const [reportId, setReportId] = useState("");
   const [saving, setSaving] = useState(false);
@@ -127,8 +131,8 @@ export default function NewDailyReportV3({ publicMode = false }) {
         masci_crews: refreshCrewFromEmployeeMaster(prev.masci_crews || [], list),
       }));
     } catch { /* HR fetch failure is silent — form is still usable */ }
-    toast.success("Loaded yesterday's crew. HR fields refreshed.");
-  }, [crewSetupOffer, data.project_number]);
+    toast.success(t("Loaded yesterday's crew. HR fields refreshed."));
+  }, [crewSetupOffer, data.project_number, t]);
 
   const onDismissCrewSetup = useCallback(() => setCrewSetupOffer(null), []);
 
@@ -172,7 +176,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
   // ── GPS + weather ─────────────────────────────────────────
   const useGps = useCallback(async () => {
     if (!navigator.geolocation) {
-      toast.error("GPS is not available on this device");
+      toast.error(t("GPS is not available on this device"));
       return;
     }
     setFetchingGps(true);
@@ -214,15 +218,15 @@ export default function NewDailyReportV3({ publicMode = false }) {
         // Operator can retry via the explicit Refresh Weather button.
       }
     } catch (e) {
-      toast.error("GPS unavailable — you can enter location manually");
+      toast.error(t("GPS unavailable — you can enter location manually"));
     } finally {
       setFetchingGps(false);
     }
-  }, [patch, data.report_date]);
+  }, [patch, data.report_date, t]);
 
   const refreshWeather = useCallback(async () => {
     if (!data.gps_lat || !data.gps_lng) {
-      toast.error("Tap GPS first so we know where to check the forecast.");
+      toast.error(t("Tap GPS first so we know where to check the forecast."));
       return;
     }
     setFetchingWeather(true);
@@ -235,14 +239,14 @@ export default function NewDailyReportV3({ publicMode = false }) {
       if (wx?.summary) {
         patch({ weather_summary: wx.summary, weather_snapshots: wx.snapshots || [] });
       } else {
-        toast("Weather unavailable — enter conditions manually.");
+        toast(t("Weather unavailable — enter conditions manually."));
       }
     } catch {
-      toast("Weather unavailable — enter conditions manually.");
+      toast(t("Weather unavailable — enter conditions manually."));
     } finally {
       setFetchingWeather(false);
     }
-  }, [data.gps_lat, data.gps_lng, data.report_date, patch]);
+  }, [data.gps_lat, data.gps_lng, data.report_date, patch, t]);
 
   // ── Submit-readiness derivation ────────────────────────────
   const photoMin = data.photo_min || 6;
@@ -310,12 +314,45 @@ export default function NewDailyReportV3({ publicMode = false }) {
   const onSubmit = useCallback(async () => {
     if (saving) return;
     if (!canSubmit) {
-      toast.error(`Missing: ${readiness.missing.join(", ")}`);
+      toast.error(`${t("Missing:")} ${readiness.missing.join(", ")}`);
       return;
     }
     setSaving(true);
     const idem = idempotencyKeyRef.current || mintIdempotencyKey();
-    const payload = { ...data, submit_language: "en", ui_shell: "v3" };
+    let payload = { ...data, submit_language: lang, ui_shell: "v3" };
+
+    // ── TRACK 24.3 · ES → EN canonical translation ──
+    // If the operator authored in Spanish, translate every natural-
+    // language free-text field on the payload to English BEFORE any
+    // backend consumer sees it. Fail-closed on translation failure.
+    if (lang === "es") {
+      try {
+        toast.loading(t("Translating…"), { id: "dr-v3-translating" });
+        const tr = await translateDrV3PayloadEsToEn(payload);
+        toast.dismiss("dr-v3-translating");
+        if (!tr.ok) {
+          toast.error(
+            t("Spanish text could not be translated for submission. Please try again or switch to English."),
+            { id: "dr-v3-translation-error", duration: 8000 },
+          );
+          setSaving(false);
+          return;
+        }
+        payload = tr.payload;
+        // Backend now sees canonical English content.
+        payload.submit_language = "en";
+        payload.ui_submit_language = "es";
+      } catch (e) {
+        toast.dismiss("dr-v3-translating");
+        toast.error(
+          t("Spanish text could not be translated for submission. Please try again or switch to English."),
+          { id: "dr-v3-translation-error", duration: 8000 },
+        );
+        setSaving(false);
+        return;
+      }
+    }
+
     try {
       if (online) {
         // Online: submit inline and commit the draft on success.
@@ -324,7 +361,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
         });
         try { saveCrewSetup(extractSetupSnapshot(payload)); } catch { /* silent */ }
         await commitDraft();
-        toast.success("Daily report submitted.");
+        toast.success(t("Daily report submitted."));
         if (publicMode) navigate("/thank-you");
         else if (saved?.id) navigate(`/daily/${saved.id}`);
         else navigate("/admin/daily");
@@ -345,16 +382,16 @@ export default function NewDailyReportV3({ publicMode = false }) {
             await commitDraft();
           }
         });
-        toast("Queued — will send when connection returns.");
+        toast(t("Queued — will send when connection returns."));
         navigate(publicMode ? "/thank-you?queued=1" : "/admin/daily");
       }
     } catch (err) {
       const detail = err?.response?.data?.detail;
-      toast.error(typeof detail === "string" ? detail : "Submit failed. Please retry.");
+      toast.error(typeof detail === "string" ? detail : t("Submit failed. Please retry."));
     } finally {
       setSaving(false);
     }
-  }, [saving, canSubmit, data, online, publicMode, navigate, readiness.missing, commitDraft]);
+  }, [saving, canSubmit, data, online, publicMode, navigate, readiness.missing, commitDraft, lang, t]);
 
   return (
     <div className="min-h-screen blueprint-bg">
@@ -367,12 +404,13 @@ export default function NewDailyReportV3({ publicMode = false }) {
           flagged. */}
       <DailyReportTopBanner backLink="/" showBackLink={!publicMode}>
         <div className="flex items-center gap-2" data-testid="dr-v3-header-chips">
+          <LangToggle variant="dark" data-testid="dr-v3-lang-toggle" />
           {!online && (
             <span
               data-testid="dr-v3-offline-chip"
               className="rounded-full bg-amber-500 px-3 py-1 text-xs font-semibold text-slate-900"
             >
-              Offline
+              {t("Offline")}
             </span>
           )}
           <div data-testid="dr-v3-draft-pill-slot">
@@ -386,7 +424,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
                 data-testid="dr-v3-draft-pill"
                 className="rounded-full bg-slate-800 px-3 py-1 text-xs font-medium text-slate-100 border border-slate-700"
               >
-                Autosave on
+                {t("Autosave on")}
               </span>
             )}
           </div>
@@ -397,13 +435,13 @@ export default function NewDailyReportV3({ publicMode = false }) {
         <header className="mb-6 sm:mb-8">
           <div className="flex items-center gap-2 text-xs font-medium text-emerald-600">
             <CheckCircle2 className="h-4 w-4" />
-            MASCI · Daily Job Report
+            {t("MASCI · Daily Job Report")}
           </div>
           <h1 className="mt-1 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
-            Today&apos;s report
+            {t("Today's report")}
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Nine short steps. Dropdowns first. AI drafts your summary.
+            {t("Nine short steps. Dropdowns first. AI drafts your summary.")}
           </p>
         </header>
 
@@ -430,7 +468,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
             <div className="flex items-center gap-3">
               <History className="h-5 w-5 text-emerald-700" />
               <div className="text-sm text-emerald-900">
-                <div className="font-medium">Use yesterday&apos;s crew setup?</div>
+                <div className="font-medium">{t("Use yesterday's crew setup?")}</div>
                 <div className="text-xs text-emerald-800">
                   {(crewSetupOffer.masci_crews?.length || 0)} crew ·{" "}
                   {(crewSetupOffer.equipment?.length || 0)} equipment · reviewable before submit.
@@ -444,7 +482,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
                 data-testid="dr-v3-crew-setup-use"
                 className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
               >
-                Use setup
+                {t("Use setup")}
               </button>
               <button
                 type="button"
@@ -452,7 +490,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
                 data-testid="dr-v3-crew-setup-dismiss"
                 className="rounded-md px-3 py-1.5 text-xs text-emerald-800 hover:bg-emerald-100"
               >
-                Not today
+                {t("Not today")}
               </button>
             </div>
           </div>
@@ -466,7 +504,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
             onRefreshWeather={refreshWeather}
             isFetchingGps={isFetchingGps}
             isFetchingWeather={isFetchingWeather}
-            weatherLabel={data.weather_summary ? "Auto-loaded from GPS." : ""}
+            weatherLabel={data.weather_summary ? t("Auto-loaded from GPS.") : ""}
             reportNumberPreview={reportNumberPreview}
           />
           <SectionCrewEquipment data={data} patch={patch} costCodes={costCodes} />

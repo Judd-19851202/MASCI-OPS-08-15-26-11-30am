@@ -1,4 +1,5 @@
 import React from "react";
+import { useT } from "@/lib/i18n";
 
 // TRACK 23.4B · Materials · unit picklist (searchable + custom entry).
 //
@@ -34,11 +35,13 @@ export function UnitCombo({
   value,
   onChange,
   onPick,
-  placeholder = "Unit",
+  placeholder,
   testId,
   className = "",
 }) {
+  const { t } = useT();
   const listId = useDatalistId("dr-v3-unit");
+  const ph = placeholder != null ? placeholder : t("Unit");
 
   const handleChange = (e) => {
     const raw = e.target.value;
@@ -59,7 +62,8 @@ export function UnitCombo({
         list={listId}
         value={value ?? ""}
         onChange={handleChange}
-        placeholder={placeholder}
+        placeholder={ph}
+        spellCheck={false}
         className={
           "w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm " +
           className

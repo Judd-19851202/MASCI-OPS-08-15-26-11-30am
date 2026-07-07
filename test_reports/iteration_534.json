@@ -1,0 +1,46 @@
+{
+  "summary": "Track 24.3 DR V3 EN/ES Parity + Canonical English Submit Pipeline — end-to-end backend + frontend testing complete. Core translation endpoint, backend regression, i18n toggle, section headers, persistence, and reload behavior all work. Found several hardcoded English strings still leaking in ES mode outside the 6 i18n-locked files, and one testid naming mismatch.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "LangToggle wrapper", "issue": "Wrapper element uses data-testid='lang-toggle' but review spec expects 'dr-v3-lang-toggle'. The inner buttons lang-en/lang-es exist and work. Minor naming mismatch.", "selector": "[data-testid='lang-toggle']", "priority": "LOW"}
+    ],
+    "integration_issues": [
+      {"flow": "ES rendering completeness", "issue": "Multiple hardcoded English strings remain visible in ES mode. These are in components NOT covered by the i18n lock test (photos section, AI assistant, submit button, signature pad, submission-blocker footer).", "affected_selectors": ["Photos section: 'CHOOSE PHOTO / FILE', 'Add at least X more photos before submit.'", "AI section: 'Draft Summary', 'AI drafts a summary from what you entered...', 'Grounded in the fields you've entered...', 'Add activities, crew, or notes to see a draft summary here.'", "Submit prep: 'Still needed: Project · Location · Prepared By · 6 photos · Signature', 'Submit Daily Report' (submit button), 'Sign with your finger, stylus, or mouse above the line.'"]}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_track_24_3_es_to_en_translation.py",
+    "/app/backend/tests/test_track_24_3_dr_v3_i18n_lock.py",
+    "/app/backend/tests/test_track_24_3_api_e2e.py",
+    "/app/test_reports/pytest/track_24_3_results.xml",
+    "/app/test_reports/pytest/track_24_3_api_e2e.xml"
+  ],
+  "action_items": [
+    "Extend i18n wrapping (t(...)) to remaining DR V3 components: Photos section (CHOOSE PHOTO / FILE, photo-count helper), AI Assistant section (Draft Summary title + 3 explanatory blurbs), Submission prep section (Still needed:, Submit Daily Report button, signature helper), and update the ES key block accordingly.",
+    "Extend test_track_24_3_dr_v3_i18n_lock.py to also scan the photos/AI-assistant/submission-prep/signature components so future regressions are caught.",
+    "OPTIONAL: rename the LangToggle wrapper testid from 'lang-toggle' to 'dr-v3-lang-toggle' to match spec, OR update spec docs. Not blocking; lang-en/lang-es are the actionable testids.",
+    "Review spec's excavation regression: passing linked_excavation_ids=['fake-id'] does NOT trigger 422 (validator only rejects empty list). Behavior is correct — spec was worded slightly loosely. My test uses [] and confirms 422."
+  ],
+  "critical_code_review_comments": [
+    "The excavation gate validator (routes/daily_reports.py:321) only checks for non-empty linked_excavation_ids and does NOT validate that referenced IDs actually resolve to real excavation records. A fake ID currently allows submit=200. If business logic requires real-record verification, add an existence lookup.",
+    "translation_metadata block uses translation_provider/translation_model/translation_timestamp naming — review spec loosely says 'provider, model, timestamp'. Naming is fine but if any downstream consumer expects the non-prefixed shape, alignment may be needed."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_track_24_3_api_e2e.py (new)"
+  ],
+  "success_rate": {
+    "backend": "100% (23/23: 16 unit + 7 API E2E)",
+    "frontend": "~85% (all headers/toggle/persist/reload PASS; ~9 hardcoded EN leaks in non-locked components; 1 testid naming nit)"
+  },
+  "test_credentials": "none required — /daily/submit is public",
+  "seed_data_creation": "TEST_-prefixed daily-report POSTs made (regression check); non-persistent test data.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend translation endpoint is fully working (real GPT-5.2 with Sta 12+50/24-12 preservation). Empty/413 payload guards work. Unit tests pass 16/16. Frontend ES toggle works — 15/15 required ES phrases present, no forbidden EN top-level leaks, value persistence across toggle works, reload preserves ES. Remaining work is i18n wrapping in Photos/AI-Assistant/Submit-Prep/Signature components, which the current i18n lock test does not scan. Also add 'dr-v3-lang-toggle' testid alias if desired.",
+  "rca_of_the_issue": "The i18n lock test (test_track_24_3_dr_v3_i18n_lock.py) only inspects 6 specific files: NewDailyReportV3.jsx, sections.jsx, DailyReportV3ExcavationSection.jsx, SectionProjectConditions.jsx, CompetentPersonCombo.jsx, UnitCombo.jsx. All hardcoded EN strings observed in ES mode originate from OTHER components (photo upload widget, AI summary panel, submit/signature block). Reproduction: /daily/submit → click lang-es → scroll; visually inspect Photos, AI Assistant, and Submit sections. Mitigation: (1) wrap those hardcoded strings in t(); (2) add matching Spanish keys to i18n.js under the Track 24.3 block; (3) extend the file list in test_track_24_3_dr_v3_i18n_lock.py."
+}
