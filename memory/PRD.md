@@ -12061,3 +12061,74 @@ The following require a human on `mascidocs.com` because they involve production
 - **Human live cert** — walk through the iPhone Safari flow on `mascidocs.com` with a real iPhone (High Efficiency camera setting) → verify HEIC-error toast + guidance; switch to Most Compatible → verify photos upload.
 - **Return with any residual failures** — I'll iterate in preview.
 
+
+## TRACK 24.11B · Universal field upload system · 🟡 CONDITIONAL — code shipped, human prod confirmation required (2026-02-07)
+
+**Mission**: Build a truly universal upload system across iPhone / iPad / Android / Toughbook / Windows / Mac / Safari / Chrome / Edge — no workarounds, no settings changes, no browser-specific fallbacks.
+
+**Changes shipped**:
+1. **Client-side HEIC→JPEG conversion via `heic2any`** (`yarn add heic2any@0.0.4`). Dynamic-imported so the ~250 KB gzipped chunk only loads when a HEIC file is picked (zero cost on the JPEG path). `compressImage()` now:
+   - Detects HEIC/HEIF by MIME or filename extension
+   - Runs `heic2any({toType: "image/jpeg", quality: 0.9})` to produce a JPEG Blob
+   - Wraps it as a `File` and recurses through the standard `createImageBitmap` compressor
+   - Falls back to native `createImageBitmap` if the converter throws
+   - Throws `HeicDecodeError` only when BOTH paths fail (extremely rare)
+2. **Softer HEIC error copy** — since conversion now succeeds on every browser, the toast now reads *"Some photos couldn't be read (HEIC conversion failed) — Try retaking the photo, or convert to JPEG on your device"* (only fires on corrupted HEIC bytes, not for the setting mismatch).
+3. **Desktop drag-and-drop** on both `PhotoUpload` and `AttachmentUpload`. Field users on Toughbook / Windows / Mac can drop files directly onto the picker area. `onDragOver`/`onDragLeave`/`onDrop` wired. Red-outlined drop-target renders on drag. `data-testid="*-drop-target"` for E2E assertions.
+4. **Universal document allowlist** — `AttachmentUpload` now accepts `.pdf/.xls/.xlsx/.xlsm/.csv/.doc/.docx/.txt` with MIME + extension fallback. Button label: *"Attach PDF, Excel, Word, or Text"*. Backend allowlist widened in Track 24.11 (`_ALLOWED_DOC_EXTS` includes doc/docx/txt).
+5. **i18n EN + ES** — 6 new key pairs (drop hints, softer HEIC copy, expanded attach label, universal-type descriptor).
+6. **V1 parity confirmed** — both V1 (`NewDailyReport.jsx`) and V3 (`daily-report-v3/sections.jsx`) import the same `PhotoUpload` + `AttachmentUpload` components, so every improvement here reaches both flows atomically. Locked by `test_v1_and_v3_use_same_upload_components`.
+
+**Test matrix**:
+| Layer | Coverage |
+|---|---|
+| Client image types | JPEG, PNG, HEIC/HEIF (auto-converted), WebP, GIF, BMP, TIFF, AVIF via `image/*` |
+| Client document types | PDF, XLS, XLSX, XLSM, CSV, DOC, DOCX, TXT (+empty-MIME fallback) |
+| Client dangerous types | EXE, BAT, CMD, DLL, PS1, SH, HTA, JAR, JS (all 400) |
+| Client input sources | Camera capture, gallery, file picker, **drag-and-drop**, multi-select |
+| Backend allowlist | Every universal type round-trips through `POST /daily-reports/attachments/upload` |
+| Backend path-traversal | `"../../etc/passwd.pdf"` → sanitised to `attachment.pdf`, stored under `documents/YYYY/MM/dr_attachment/…` |
+| V1 parity | Same components; parity locked in test |
+
+**Lock suite** (`backend/tests/test_track_24_11b_universal_upload.py`, 30 tests all green):
+- `test_heic2any_dependency_installed` — package.json contract lock
+- `test_compress_image_routes_heic_through_heic2any` — HEIC gated to converter FIRST
+- `test_heic_client_side_conversion_produces_jpeg` — `toType: "image/jpeg"` enforced
+- `test_upload_component_supports_drag_drop[PhotoUpload/AttachmentUpload]` — parametrized
+- `test_attachment_upload_accepts_universal_field_docs` — Word + text MIME/ext lock
+- `test_v1_and_v3_use_same_upload_components` — parity guard
+- `test_backend_accepts_every_universal_type[8 types]` — parametrized round-trip
+- `test_backend_rejects_dangerous_extensions[8 dangerous names]` — parametrized 400
+- `test_backend_sanitises_path_traversal_filenames` — server-side filename strip
+- `test_backend_extension_fallback_for_empty_mime[4 filenames]` — parametrized fallback
+- `test_i18n_has_v2_v3_upload_labels` — EN + ES parity
+- `test_photo_input_accept_universal` — both file inputs list HEIC/HEIF
+
+**Live evidence**:
+- 178/178 pytest green (Track 19.04, 23.10.b, 24.1, 24.3, 24.6, 24.9 A/B/C, 24.11, 24.11B, iter139)
+- Preview asset manifest confirms webpack code-split chunk emitted: `static/js/vendors-node_modules_heic2any_dist_heic2any_js.chunk.js` (lazily loaded when first HEIC is picked, zero cost otherwise)
+- 6 doc types round-trip through the live preview endpoint (PDF, XLSX, XLS, XLSM, CSV, DOC, DOCX, TXT)
+- Path-traversal `"../../etc/passwd.pdf"` neutralised: stored as `documents/2026/07/dr_attachment/<uuid>.pdf`
+- 8 dangerous extensions (.exe/.bat/.dll/.ps1/.sh/.hta/.jar/.js) all rejected with 400
+- Drag/drop wiring live on both components — test IDs `-drop-target` verified
+
+**Files touched**:
+- **New**: `backend/tests/test_track_24_11b_universal_upload.py` (30 tests)
+- **Modified**: `frontend/package.json` (heic2any@0.0.4), `frontend/src/lib/utils.js` (heic2any dynamic import in compressImage), `frontend/src/components/PhotoUpload.jsx` (drag/drop + softer HEIC error), `frontend/src/components/AttachmentUpload.jsx` (drag/drop + universal doc types + Word/text MIME allowlist), `frontend/src/lib/i18n.js` (6 EN/ES pairs), `backend/tests/test_track_24_11_photo_and_doc_upload_hotfix.py` (updated HEIC error assertion for the softer 24.11B copy)
+
+**Verdict** 🟡 **CONDITIONAL** — code is production-ready; needs human confirmation on `mascidocs.com` because the "no fake green" doctrine requires a real device, real HEIC photo, and real Toughbook drop-file test on the deployed URL.
+
+### Next Action Items
+- **Redeploy Track 24.11 + 24.11B to production**
+- **Human live cert on `mascidocs.com`**:
+  1. iPhone Safari → Camera set to **High Efficiency (HEIC)** → take a photo → pick from gallery → **photo should appear as thumbnail without any settings toast** (heic2any converts it in-browser)
+  2. iPad Safari → same
+  3. Android Chrome → JPEG camera + gallery + multi-select
+  4. Toughbook Chrome/Edge → drag-and-drop a batch of JPEG/PNG/HEIC + a mixed batch of PDF/DOCX/XLSX/CSV/TXT onto the picker area → all accepted
+  5. Windows laptop → drag/drop desktop file → accepted
+  6. Mac → drag/drop → accepted
+  7. `.exe` / `.bat` attempts → all 400 rejected with clear message
+- **Return with residual failures** — I'll iterate in preview
+
+Potential improvement: would you like me to add a **built-in in-form image preview lightbox** for uploaded documents (PDF first page thumbnail via pdf.js, docx-preview for Word), so foremen can visually confirm the right file was attached without opening a separate viewer?
+

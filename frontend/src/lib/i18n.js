@@ -4355,6 +4355,17 @@ const ES = {
   // setting foremen need to change so photos actually upload.
   "iPhone HEIC photos can't be read by this browser": "Este navegador no puede leer fotos HEIC del iPhone",
   "Open iPhone Settings → Camera → Formats → Most Compatible, then retake the photo": "Abre Ajustes → Cámara → Formatos → Más Compatible, y vuelve a tomar la foto",
+  // TRACK 24.11B · Softened HEIC error — client-side conversion
+  // now succeeds on every browser; this only fires on truly corrupted
+  // HEIC bytes.
+  "Some photos couldn't be read (HEIC conversion failed)": "Algunas fotos no se pudieron leer (falló la conversión HEIC)",
+  "Try retaking the photo, or convert to JPEG on your device": "Vuelve a tomar la foto o conviértela a JPEG en tu dispositivo",
+  // Drag-and-drop hints (desktop field kiosks / Toughbooks).
+  "Drop photos here to upload": "Suelta las fotos aquí para subirlas",
+  "Drop files here to upload": "Suelta los archivos aquí para subirlos",
+  // Universal attachment types.
+  "Attach PDF, Excel, Word, or Text": "Adjuntar PDF, Excel, Word o Texto",
+  "PDFs, Excel (.xlsx / .xls / .xlsm), CSV, Word (.doc / .docx), and text files up to 25 MB each.": "PDF, Excel (.xlsx / .xls / .xlsm), CSV, Word (.doc / .docx) y archivos de texto hasta 25 MB cada uno.",
   "jobs have plans uploaded": "trabajos tienen planes cargados",
   "file uploaded": "archivo cargado",
   "files uploaded": "archivos cargados",

@@ -36,13 +36,20 @@ const ALLOWED_MIME = new Set([
   "application/vnd.ms-excel.sheet.macroenabled",
   "text/csv",
   "application/csv",
+  // TRACK 24.11B · Word + plain text (universal field-doc types).
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "text/plain",
 ]);
 const MAX_BYTES = 25 * 1024 * 1024; // matches server _MAX_DOC_BYTES
 
 // TRACK 19.19 · Filename-extension fallback lets .xlsm through even
 // when the browser reports application/octet-stream (rare, but seen on
 // some Windows installs after a Reset File Associations).
-const ALLOWED_EXT_FALLBACK = new Set(["pdf", "xls", "xlsx", "xlsm", "csv"]);
+// TRACK 24.11B · Extended for Word + text.
+const ALLOWED_EXT_FALLBACK = new Set([
+  "pdf", "xls", "xlsx", "xlsm", "csv", "doc", "docx", "txt",
+]);
 
 function _fileExt(name) {
   const m = /\.([a-z0-9]{1,8})$/i.exec(name || "");
@@ -79,6 +86,9 @@ export const AttachmentUpload = ({
   const { t } = useT();
   const inputRef = useRef(null);
   const [busy, setBusy] = useState(0);
+  // TRACK 24.11B · Desktop drag/drop affordance for Toughbook /
+  // Windows / Mac field users.
+  const [dragOver, setDragOver] = useState(false);
 
   const handleFiles = async (files) => {
     if (!files || files.length === 0) return;
@@ -147,7 +157,39 @@ export const AttachmentUpload = ({
   }, {});
 
   return (
-    <div data-testid={testIdBase} className="space-y-3">
+    <div
+      data-testid={testIdBase}
+      className={
+        "space-y-3 rounded-lg transition-colors " +
+        (dragOver
+          ? "border-2 border-dashed border-red-500 bg-red-50 p-3"
+          : "border-2 border-transparent p-3")
+      }
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragOver(true);
+      }}
+      onDragLeave={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragOver(false);
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragOver(false);
+        handleFiles(Array.from(e.dataTransfer?.files || []));
+      }}
+    >
+      {dragOver && (
+        <div
+          className="text-center text-red-800 font-semibold text-sm py-2"
+          data-testid={`${testIdBase}-drop-target`}
+        >
+          {t("Drop files here to upload")}
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         <label
           className="inline-flex items-center gap-2 rounded-lg border-2 border-dashed border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"
@@ -160,12 +202,12 @@ export const AttachmentUpload = ({
               {t("Uploading {n}…").replace("{n}", String(busy))}
             </span>
           ) : (
-            t("Attach PDF or Excel")
+            t("Attach PDF, Excel, Word, or Text")
           )}
           <input
             ref={inputRef}
             type="file"
-            accept=".pdf,.xls,.xlsx,.xlsm,.csv,application/pdf,application/vnd.ms-excel,application/vnd.ms-excel.sheet.macroEnabled.12,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
+            accept=".pdf,.xls,.xlsx,.xlsm,.csv,.doc,.docx,.txt,application/pdf,application/vnd.ms-excel,application/vnd.ms-excel.sheet.macroEnabled.12,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
             multiple
             className="hidden"
             onChange={(e) => handleFiles(Array.from(e.target.files || []))}
@@ -173,7 +215,7 @@ export const AttachmentUpload = ({
           />
         </label>
         <p className="text-xs text-slate-500">
-          {t("PDFs, Excel spreadsheets (.xlsx, .xls, .xlsm), and CSV files up to 25 MB each.")}
+          {t("PDFs, Excel (.xlsx / .xls / .xlsm), CSV, Word (.doc / .docx), and text files up to 25 MB each.")}
         </p>
       </div>
 

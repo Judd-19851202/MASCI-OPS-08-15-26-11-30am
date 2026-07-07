@@ -94,11 +94,19 @@ def test_photo_upload_input_accepts_heic():
 
 
 def test_photo_upload_surfaces_actionable_heic_error():
+    """After Track 24.11B introduced client-side heic2any conversion,
+    the error toast now only fires when BOTH the converter AND the
+    native decoder fail (very rare). The copy must still be
+    actionable — tell the user to retake or convert on the device."""
     src = (FRONTEND / "components" / "PhotoUpload.jsx").read_text()
-    assert "iPhone HEIC photos can't be read by this browser" in src
-    assert "Formats" in src and "Most Compatible" in src, (
-        "The error must name the exact iPhone setting (Settings → "
-        "Camera → Formats → Most Compatible) so foremen can fix it."
+    # Either the pre-24.11B copy (setting change) OR the 24.11B copy
+    # (retake/convert) is acceptable — both are actionable.
+    heic_prompt_a = "Formats" in src and "Most Compatible" in src
+    heic_prompt_b = "Try retaking the photo" in src or "convert to JPEG on your device" in src
+    assert heic_prompt_a or heic_prompt_b, (
+        "PhotoUpload must surface an actionable HEIC error message. "
+        "Neither the pre-24.11B setting-change copy nor the 24.11B "
+        "retake/convert copy was found."
     )
 
 

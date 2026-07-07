@@ -76,7 +76,53 @@ function _drawToCanvasJpeg(bitmapOrImg, targetMaxDim, quality) {
 }
 
 export async function compressImage(file, targetMaxDim = 1280, quality = 0.78) {
-  // Prefer createImageBitmap — handles HEIC on iOS 17+.
+  // TRACK 24.11B · Route HEIC through a client-side converter FIRST.
+  // Even on iOS 17+ where createImageBitmap can decode HEIC, older
+  // Chromium (Android, Windows Toughbook) and Firefox CANNOT — the
+  // heic2any converter (dynamic import, only loaded when needed)
+  // guarantees every browser accepts iPhone photos without operators
+  // touching their camera settings.
+  const name = (file && file.name) || "";
+  const type = (file && file.type) || "";
+  const isHeic = /heic|heif/i.test(type) || /\.(heic|heif)$/i.test(name);
+  if (isHeic) {
+    try {
+      // Dynamic import — heic2any adds ~250 KB gzipped, only paid
+      // when a HEIC actually appears. Zero cost on the JPEG path.
+      const mod = await import("heic2any");
+      const heic2any = mod.default || mod;
+      const converted = await heic2any({
+        blob: file,
+        toType: "image/jpeg",
+        quality: 0.9,
+      });
+      // heic2any returns a Blob (or array of Blobs for multi-frame HEIC).
+      const outBlob = Array.isArray(converted) ? converted[0] : converted;
+      const convertedFile = new File(
+        [outBlob],
+        name.replace(/\.(heic|heif)$/i, ".jpg") || "converted.jpg",
+        { type: "image/jpeg" },
+      );
+      // Recurse on the JPEG-shaped file — createImageBitmap will
+      // handle the resize+compress like any other JPEG.
+      return compressImage(convertedFile, targetMaxDim, quality);
+    } catch (e) {
+      // Only surface HeicDecodeError if BOTH the client-side
+      // converter AND the browser's own decoder failed. Try the
+      // native path once before giving up so iOS 17+ still works
+      // even if heic2any errors on an unusual variant.
+      const nativeBitmap = await _decodeViaBitmap(file);
+      if (nativeBitmap) {
+        try {
+          return _drawToCanvasJpeg(nativeBitmap, targetMaxDim, quality);
+        } finally {
+          if (typeof nativeBitmap.close === "function") nativeBitmap.close();
+        }
+      }
+      throw new HeicDecodeError(type || "image/heic");
+    }
+  }
+  // Prefer createImageBitmap — fastest, handles PNG/JPEG/WEBP/GIF/BMP/TIFF.
   const bitmap = await _decodeViaBitmap(file);
   if (bitmap) {
     try {
@@ -86,8 +132,6 @@ export async function compressImage(file, targetMaxDim = 1280, quality = 0.78) {
     }
   }
   // Fallback: legacy <img> tag decode (works for JPEG/PNG/WEBP/GIF).
-  // Throws HeicDecodeError with the source MIME if the browser can't
-  // decode the file (typically HEIC on older Safari).
   const img = await _decodeViaImgTag(file);
   return _drawToCanvasJpeg(img, targetMaxDim, quality);
 }

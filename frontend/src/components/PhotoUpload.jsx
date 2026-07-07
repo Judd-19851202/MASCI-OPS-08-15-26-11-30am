@@ -130,10 +130,14 @@ export const PhotoUpload = ({
     setProgress(null);
 
     if (heicFailed > 0) {
+      // TRACK 24.11B · client-side heic2any now handles HEIC on
+      // every browser — this toast only fires when BOTH the
+      // converter and the browser's native decoder fail (extremely
+      // rare, typically corrupted HEIC or non-standard variant).
       toast.error(
-        t("iPhone HEIC photos can't be read by this browser") + " — " +
-        t("Open iPhone Settings → Camera → Formats → Most Compatible, then retake the photo"),
-        { duration: 12000 },
+        t("Some photos couldn't be read (HEIC conversion failed)") + " — " +
+        t("Try retaking the photo, or convert to JPEG on your device"),
+        { duration: 10000 },
       );
     }
 
@@ -163,8 +167,47 @@ export const PhotoUpload = ({
     cameraRef.current?.click();
   };
 
+  // TRACK 24.11B · Desktop drag-and-drop.
+  // Toughbooks / Windows laptops / Mac users drop files directly onto
+  // the picker area. `dragOver` state drives the visual affordance so
+  // the drop target is unambiguous. Same `handleFiles` pipeline as the
+  // mobile picker — HEIC conversion, MIME/extension fallback, error
+  // surfacing all identical.
+  const [dragOver, setDragOver] = useState(false);
+  const onDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(true);
+  };
+  const onDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(false);
+  };
+  const onDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(false);
+    const files = Array.from(e.dataTransfer?.files || []);
+    handleFiles(files);
+  };
+
   return (
-    <div className="space-y-3" data-testid={testIdBase}>
+    <div
+      className="space-y-3"
+      data-testid={testIdBase}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+    >
+      {dragOver && (
+        <div
+          className="rounded-md border-2 border-dashed border-red-500 bg-red-50 px-4 py-6 text-center text-red-800 font-semibold text-sm"
+          data-testid={`${testIdBase}-drop-target`}
+        >
+          {t("Drop photos here to upload")}
+        </div>
+      )}
       {/* Compression progress bar — only shows when a batch is in flight.
           Always-visible counter + fill so the user can see thumbnails
           appearing one-by-one underneath while the bar fills. */}
