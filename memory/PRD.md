@@ -11949,3 +11949,69 @@ Preview environment ships Playwright chromium only — WebKit smoke of the Track
 - Phase E — Full end-to-end certification.
 - **Production deploy** — Deploy Phase A+B+C. Then run `python3 scripts/purge_synthetic_dailies_24_9.py --apply` against production DB to hide `TEST_247B_EMAIL_RECERT`, `TEST_DR_V3_EMAIL_PARITY_ES`, `TEST_DR_V3_EMAIL_PARITY_EN` from user-facing screens.
 
+
+## TRACK 24.10 · Live acceptance certification · 🟡 CONDITIONAL — READ + PREVIEW-WRITE evidence only (2026-02-07)
+
+**Constraint** — Executed per operator directive **Plan B**: read-only probes on production (`mascidocs.com`), full write workflow in PREVIEW only. Zero writes on prod. Zero real emails. Zero production files uploaded. Zero synthetic prod records. All probe DRs marked `synthetic_record=true, hidden_from_operations=true, cleanup_track="24.10-preview"` — Phase A filter hides them from every user-facing list.
+
+### 1 · PRODUCTION READ-ONLY PROBE RESULTS (mascidocs.com)
+
+| Check | Result | Notes |
+|---|---|---|
+| Bundle deployed | ✓ `main.615867ad.js` · 4.34 MB | Contains `dr-v3-project-meta` (Phase C), `competent-persons/public` (Phase A CP), `"Roster not uploaded"` string retained (i18n key, expected). Minified names hide `useCmdkTouchGuard` label textually but Phase C markers confirm bundle. |
+| `/api/hr/employee-roster/public` | ✓ 200 · 230 items · contract=24.9-public | Zero PII across first 80 rows scanned. Keys: `{id,name,employee_id,trade,role,crew,active}`. |
+| `/api/employees/competent-persons/public` | ✓ 200 · items list returned | Public projection live. |
+| `/api/jobs`, `/api/equipment-master`, `/api/suppliers`, `/api/field-leadership-roster` | ✓ 200 | All public pickers reachable. |
+| `/api/hr/employee-roster` (canonical) | ✓ 401 anon | Track 24.1 P0-1 gate holds. |
+| `/api/employees/qualifications?type=COMPETENT_PERSON` | ✓ 401 anon | CP registry gate holds. |
+| `/api/master-lookup/employees?q=@` | ✓ 401 anon | Phase B PII fix live. |
+| `/api/master-lookup/employees/by-id/x` | ✓ 401 anon | |
+| `/api/daily-reports`, `/api/daily-reports/approved`, `/api/hr/daily-reports`, `/api/safety/daily-reports` | ✓ 401 anon | Portal auth required. |
+| `POST /api/uploads/session/init`, `/api/attachments`, `/api/hr/documents` | 404 | Not this app's endpoints — expected. Photo/doc paths are `/api/daily-reports/attachments/upload` (docs) + inline base64 photos on submit. |
+| `POST /api/photos/upload`, `POST /api/daily-reports/photos` | 405 | Endpoints exist, method restricted. |
+
+**PRODUCTION READ-ONLY VERDICT**: 🟢 GO — Phase A + B + C code confirmed live, all PII gates hold, public projections whitelist-only, no leaked endpoints.
+
+### 2 · PREVIEW FULL WRITE CERTIFICATION RESULTS
+
+| Phase | Check | Result |
+|---|---|---|
+| P1 — DR full workflow | POST /daily-reports (project 20-07, real client=FDOT, real co_pm_email pm.demo@mascigc.com, crew Alec Perkins, activity, photo) | ✓ DR-2026-02274 persisted · doc_id issued · id captured |
+| P1 — project meta round-trip | client / project_manager / pm_email / co_pm_emails all present on GET | ✓ |
+| P1 — team snapshot | server-side jobs_master resolution wrote co_pm=`pm.demo@mascigc.com` into `team_snapshot.members.co_pm` | ✓ |
+| P2 — Photo upload | inline base64 PNG accepted, stored to R2 as `photo://masci-hub/photos/2026/07/...` | ✓ |
+| P3 — Document upload (PDF) | `POST /daily-reports/attachments/upload` returns `attachment_ref` for PDF | ✓ · `category=PDF` |
+| P3 — Document upload (XLSX) | Same endpoint · XLSX accepted, category=Spreadsheet | ✓ |
+| P3 — Reject unsupported (.exe) | 400 `{"detail":"Unsupported document type: application/x-msdownload"}` | ✓ graceful reject |
+| P4 — Project auto-population | project_number + name + location + client + PM + co_pm_emails all commit at select (Phase C) | ✓ |
+| P5 — EN/ES parity | Full i18n suite locked; `Cliente`, `Co-PMs`, `No configurado` render | ✓ Track 24.3 lock green |
+| P5 — ES→EN canonical | POST /translate/dr-v3-freetext → OpenAI gpt-5.2 → English canonicalization ("Trabajamos" → "We worked", 3.8 s) | ✓ |
+| P6 — AI summary | POST /dr-v2/ai/synthesize → Claude Sonnet 4.5 via Emergent LLM key → coherent English narrative, no prompt leakage, no raw JSON | ✓ |
+| P7 — Submit pipeline | DR persisted with audit_envelope_sha256 + doc_id + team_snapshot + hydrated project metadata | ✓ |
+| P8 — Email safety | `EMAIL_SAFETY_MODE=strict` on preview → no real emails fired; routing hydration proven via team_snapshot capture | ✓ (no live send) |
+| P9 — PDF | `GET /daily-reports/{id}/pdf` → 1.45 MB · 2 pages · %PDF header · text extracted: project name, project #, prepared_by, activity narrative, crew (`Alec Perkins · General Laborer · 8 hrs`), photo section, audit trail v15.41.1, PAGE 2 OF 2 | ✓ |
+| P10 — Downstream (synthetic filter) | Probe DR filtered from `/daily-reports`, `/daily-reports/approved`, `/hr/daily-reports`, `/safety/daily-reports` | ✓ HIDDEN across all 4 |
+| P10 — Direct GET by ID | Admin `/daily-reports/{id}` still returns the record for audit | ✓ |
+| P11 — Mobile viewports | 390 · 430 · 768 · 1024 · 1366 · 1440 all render DR V3 with **0 px horizontal overflow** | ✓ |
+| P12 — Regression | 160/160 backend pytest across Track 19.04 / 23.10.b / 24.1 / 24.2 / 24.3 / 24.6 / 24.9 (A+B+C) / iter139 | ✓ |
+| P12 — Preview DB hygiene | 2131 total DRs · 507 flagged synthetic/hidden · 1624 visible to operators | ✓ |
+
+### 3 · ITEMS REMAINING FOR HUMAN LIVE PRODUCTION CONFIRMATION
+
+The following require a human on `mascidocs.com` because they involve production writes / real emails / real file uploads / real KPI mutation that I was explicitly forbidden from touching:
+
+- P1 · Real superintendent completes a real Daily Report on a real project (not a smoke fixture) — end-to-end tap through JobPicker → EmployeeCombo → EquipmentCombo → CP → cost codes → weather → excavation → visitors → quantities → notes → signatures → submit.
+- P2 · Real mobile camera capture on iOS Safari + Android Chrome (JPEG, HEIC, orientation, multi-shot sequential burst, delete + replace). Preview cannot simulate a real device sensor.
+- P2 · Native gallery multi-select on iOS / Android (multiple photos in one picker session).
+- P3 · Real PDF / DOCX / XLSX / CSV / TXT uploads on the deployed app.
+- P6 · AI summary against a real, populous DR (>10 crew, >5 activities, >20 photos) — verify no hallucinations, no dropped context under load.
+- P8 · Real PM inbox receives the email; verify recipients / subject / PDF attachment / links / Resend audit trail. `EMAIL_SAFETY_MODE=off` must be flipped ONLY for the confirmation window then set back.
+- P9 · Real PDF render inspection (spread, pagination overflow, photo grid on a report with 20+ photos).
+- P10 · PM/Safety KPIs, ODS facts, PM dashboard "Latest Dailies" and "Approved Reports" export list — confirm the real submitted DR appears immediately and that the 3 legacy synthetic records (`TEST_247B_EMAIL_RECERT` + `TEST_DR_V3_EMAIL_PARITY_ES/EN`) STOP appearing after operator runs `python3 scripts/purge_synthetic_dailies_24_9.py --apply` against production DB.
+- P11 · Real handset touch verification (JobPicker + EmployeeCombo + TopicPicker + trench/EmployeePicker on iOS 17 Safari specifically — the Track 24.8/24.9-B fix targets that platform).
+
+### Final verdict
+🟡 **CONDITIONAL** — Read-only production probes are all green (Phase A + B + C code confirmed shipped, PII gates hold, public projections whitelist-only). Preview write certification is all green (DR submit, photo, document, AI, translation, PDF, mobile, regression). But per operator's own "no fake green" doctrine, **the platform receives GO only when the P1/P2/P8/P10/P11 items in section 3 are demonstrated on live production by a human operator**. My mandate was explicitly no prod writes / no real emails — I cannot upgrade CONDITIONAL to GO from within this pod.
+
+**Once the human confirms items in section 3, no additional code changes should be needed.** If any item fails, I fix in preview, you redeploy, we re-run this cert.
+
