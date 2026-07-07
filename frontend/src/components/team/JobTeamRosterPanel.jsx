@@ -22,6 +22,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { useCmdkTouchGuard } from "@/lib/useCmdkTouchGuard";
 import { UserPlus, Users, History, AlertTriangle, X, Star, ArrowRightLeft, ShieldCheck, ShieldAlert, Clock, ShieldOff, HelpCircle, Search, ChevronsUpDown, Check } from "lucide-react";
 import { toast } from "sonner";
 import { RemoveReasonDialog } from "@/components/team/RemoveReasonDialog";
@@ -134,6 +135,8 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
   const [submitting, setSubmitting] = useState(false);
   // TRACK 15.27A · P1-1 — searchable employee picker state
   const [userPickerOpen, setUserPickerOpen] = useState(false);
+  // TRACK 24.9 Phase B · shared cmdk touch-vs-scroll guard.
+  const { commitHandlersFor: userPickerHandlers } = useCmdkTouchGuard(userPickerOpen);
   // TRACK 15.27A · P0-2 — actionable 403 message when a PM opens a
   // project they are not assigned to as PM/Co-PM.
   const [accessErr, setAccessErr] = useState(null);
@@ -605,15 +608,15 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
                             const portals = Array.isArray(u.portals) ? u.portals.join("/") : "";
                             // Build a single string cmdk uses for matching:
                             const value = `${label} ${u.email || ""} ${portals}`.toLowerCase();
+                            const commit = () => { setNewUserId(u.id); setUserPickerOpen(false); };
+                            const testid = `job-team-user-option-${u.id}`;
                             return (
                               <CommandItem
                                 key={u.id}
                                 value={value}
-                                data-testid={`job-team-user-option-${u.id}`}
-                                onSelect={() => {
-                                  setNewUserId(u.id);
-                                  setUserPickerOpen(false);
-                                }}
+                                data-testid={testid}
+                                onSelect={commit}
+                                {...userPickerHandlers(commit, testid)}
                               >
                                 <Check className={`mr-2 h-4 w-4 ${newUserId === u.id ? "opacity-100" : "opacity-0"}`} />
                                 <span className="flex-1 min-w-0">

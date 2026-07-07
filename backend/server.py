@@ -12166,7 +12166,7 @@ app.include_router(build_asset_transfers_router(db, _require_any_portal_token))
 # ─── Master Lookup & Backfill (iter137 — Iter C-continued SOT) ──────
 from routes.master_lookup import build_master_lookup_router  # noqa: E402
 
-app.include_router(build_master_lookup_router(db, require_admin))
+app.include_router(build_master_lookup_router(db, require_admin, _require_any_portal_read))
 
 
 # ─── Integration Center (Motive + MaintainX framework — iter122) ───

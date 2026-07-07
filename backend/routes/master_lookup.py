@@ -33,8 +33,24 @@ def _safe_regex(q: str) -> Dict[str, Any]:
     return {"$regex": re.escape(q.strip()), "$options": "i"}
 
 
-def build_master_lookup_router(db, require_admin: Callable) -> APIRouter:
+def build_master_lookup_router(
+    db,
+    require_admin: Callable,
+    require_any_portal_read: Callable | None = None,
+) -> APIRouter:
     router = APIRouter(prefix="/api/master-lookup", tags=["master-lookup"])
+    # TRACK 24.9 Phase B · Employee typeahead auth gate.
+    # `/master-lookup/employees` returns HR fields including `email`.
+    # Before Track 24.9 this endpoint had no auth guard, so anyone
+    # on the internet could enumerate the roster + emails by
+    # querying `q=@` — a Track 24.1-class PII leak. All in-tree
+    # callers (NewIncident, SafetyTrainingRecords,
+    # SafetyCorrectiveActions) are authenticated safety portal
+    # pages, so adding the guard does not break any legitimate
+    # flow. `by-id` shares the same guard.
+    portal_dep = (
+        [Depends(require_any_portal_read)] if require_any_portal_read else []
+    )
     # iter140 — where-used aggregator (cross-portal footprint)
     from routes.master_where_used import register_where_used_routes  # noqa: PLC0415
     register_where_used_routes(router, db)
@@ -84,7 +100,7 @@ def build_master_lookup_router(db, require_admin: Callable) -> APIRouter:
         return {"id": master_id, "found": True, "item": doc}
 
     # ── Employee typeahead ───────────────────────────────────────
-    @router.get("/employees")
+    @router.get("/employees", dependencies=portal_dep)
     async def lookup_employees(
         q: str = Query("", description="Partial match against name / email / employee_id"),
         limit: int = Query(20, ge=1, le=100),
@@ -113,7 +129,7 @@ def build_master_lookup_router(db, require_admin: Callable) -> APIRouter:
         return {"q": q, "items": items, "count": len(items)}
 
     # iter139 — employee lookup-by-id helper for typeahead re-open
-    @router.get("/employees/by-id/{master_id}")
+    @router.get("/employees/by-id/{master_id}", dependencies=portal_dep)
     async def lookup_employee_by_id(master_id: str):
         doc = await db.employees.find_one(
             {"id": master_id},

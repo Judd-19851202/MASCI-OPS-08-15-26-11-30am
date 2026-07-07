@@ -17,6 +17,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 import { TOPIC_LIBRARY_ES } from "@/lib/topics/index.es";
+import { useCmdkTouchGuard } from "@/lib/useCmdkTouchGuard";
 
 // Domain chip labels (EN + ES). Keep this list short and operational.
 // `key` matches the `domain` field on each topic in meetingTopicLibrary.js.
@@ -82,6 +83,8 @@ export function TopicPicker({
   const [open, setOpen] = useState(false);
   const [domainFilter, setDomainFilter] = useState(null); // null = all
   const { t, lang } = useT();
+  // TRACK 24.9 Phase B · shared cmdk touch-vs-scroll guard.
+  const { commitHandlersFor } = useCmdkTouchGuard(open);
 
   // Helper: returns the topic title in the active language.
   const titleFor = (topic) => {
@@ -221,14 +224,15 @@ export function TopicPicker({
             <CommandEmpty>{t("No topic matches that search.")}</CommandEmpty>
 
             <CommandGroup heading={t("Custom")}>
+              {(() => {
+                const commit = () => { onChange(customKey); setOpen(false); };
+                return (
               <CommandItem
                 value="custom topic write your own free form"
-                onSelect={() => {
-                  onChange(customKey);
-                  setOpen(false);
-                }}
+                onSelect={commit}
                 className="py-3 cursor-pointer"
                 data-testid="topic-picker-custom"
+                {...commitHandlersFor(commit, "topic-picker-custom")}
               >
                 <div className="flex items-start gap-3 w-full">
                   <span className="inline-flex w-7 h-7 items-center justify-center rounded bg-slate-900 text-white shrink-0 mt-0.5">
@@ -245,6 +249,8 @@ export function TopicPicker({
                   )}
                 </div>
               </CommandItem>
+                );
+              })()}
             </CommandGroup>
 
             {grouped.map(([category, list]) => (
@@ -254,17 +260,17 @@ export function TopicPicker({
               >
                 {list.map((topic) => {
                   const displayTitle = titleFor(topic);
+                  const commit = () => { onChange(topic.key); setOpen(false); };
+                  const testid = `topic-picker-item-${topic.key}`;
                   return (
                     <CommandItem
                       key={topic.key}
                       // include EN + ES titles + category so search matches either language
                       value={`${topic.title} ${displayTitle} ${topic.category} ${topic.key}`}
-                      onSelect={() => {
-                        onChange(topic.key);
-                        setOpen(false);
-                      }}
+                      onSelect={commit}
                       className="py-2.5 cursor-pointer"
-                      data-testid={`topic-picker-item-${topic.key}`}
+                      data-testid={testid}
+                      {...commitHandlersFor(commit, testid)}
                     >
                       <div className="flex items-start gap-3 w-full">
                         <span className="inline-flex w-1.5 h-1.5 rounded-full bg-red-700 shrink-0 mt-2" />

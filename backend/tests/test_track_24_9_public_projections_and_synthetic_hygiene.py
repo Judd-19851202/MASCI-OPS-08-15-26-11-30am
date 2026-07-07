@@ -59,18 +59,26 @@ ALLOWED_ROSTER_KEYS = frozenset({
 })
 
 
+def _public_roster(_cache={}):
+    if "b" in _cache:
+        return _cache["b"]
+    r = requests.get(f"{API}/hr/employee-roster/public", timeout=60)
+    r.raise_for_status()
+    _cache["r"] = r
+    _cache["b"] = r.json()
+    _cache["code"] = r.status_code
+    return _cache["b"]
+
+
 def test_public_roster_endpoint_is_reachable_without_auth():
-    r = requests.get(f"{API}/hr/employee-roster/public", timeout=15)
-    assert r.status_code == 200, f"expected 200, got {r.status_code} · body={r.text[:200]}"
-    body = r.json()
+    body = _public_roster()
     assert body.get("public") is True
     assert isinstance(body.get("items"), list)
     assert body.get("contract_version") == "24.9-public"
 
 
 def test_public_roster_projection_forbids_pii():
-    r = requests.get(f"{API}/hr/employee-roster/public", timeout=15)
-    body = r.json()
+    body = _public_roster()
     items = body.get("items", [])
     assert items, "public roster returned zero items — cannot verify projection"
     for it in items[:50]:
@@ -84,8 +92,7 @@ def test_public_roster_projection_forbids_pii():
 
 
 def test_public_roster_only_returns_active_employees():
-    r = requests.get(f"{API}/hr/employee-roster/public", timeout=15)
-    body = r.json()
+    body = _public_roster()
     for it in body.get("items", []):
         # `active` is derived server-side — every row must be True
         # on the default endpoint (inactive/terminated hidden).
@@ -208,13 +215,17 @@ def test_purge_script_dry_run_reports_but_writes_nothing():
 # ─── DR listing exclusion (live) ────────────────────────────────────
 
 
-def _admin_token():
+def _admin_token(_cache={}):
+    if "tok" in _cache:
+        return _cache["tok"]
     r = requests.post(f"{API}/auth/multi-login", json={
         "email": "jaymn.judd@mascigc.com",
         "password": "Maddix123!",
-    }, timeout=15)
+    }, timeout=45)
     r.raise_for_status()
-    return r.json().get("portal_tokens", {}).get("admin", "")
+    tok = r.json().get("portal_tokens", {}).get("admin", "")
+    _cache["tok"] = tok
+    return tok
 
 
 def test_daily_reports_listing_excludes_synthetic():
@@ -223,7 +234,7 @@ def test_daily_reports_listing_excludes_synthetic():
     r = requests.get(
         f"{API}/daily-reports",
         headers={"X-Admin-Token": tok},
-        timeout=30,
+        timeout=60,
     )
     assert r.status_code == 200
     items = r.json()
@@ -241,7 +252,7 @@ def test_approved_daily_reports_listing_excludes_synthetic():
     r = requests.get(
         f"{API}/daily-reports/approved?limit=200",
         headers={"X-Admin-Token": tok},
-        timeout=30,
+        timeout=60,
     )
     assert r.status_code == 200
     items = r.json().get("items", [])

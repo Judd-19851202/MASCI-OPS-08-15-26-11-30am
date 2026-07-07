@@ -12,6 +12,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
 import { fetchHrRoster, subscribeHrRoster } from "@/lib/hrRoster";
+import { useCmdkTouchGuard } from "@/lib/useCmdkTouchGuard";
 
 // Competent-persons roster: separate Trench Safety endpoint backed by
 // `db.employees`. Less volatile than the main roster â€” short-lived
@@ -59,6 +60,9 @@ export default function EmployeePicker({ value, onSelect, placeholder = "Selectâ
     ? `${t("Designated Competent Persons")} Â· ${filtered.length}`
     : `${t("MASCI Roster")} Â· ${filtered.length}`;
 
+  // TRACK 24.9 Phase B Â· Shared cmdk touch-vs-scroll guard.
+  const { commitHandlersFor } = useCmdkTouchGuard(open);
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -93,13 +97,17 @@ export default function EmployeePicker({ value, onSelect, placeholder = "Selectâ
                 : t("No employee matches that search.")}
             </CommandEmpty>
             <CommandGroup heading={headingLabel}>
-              {filtered.map((e) => (
+              {filtered.map((e) => {
+                const commit = () => { onSelect(e); setOpen(false); };
+                const testid = `${testId}-item-${e.id}`;
+                return (
                 <CommandItem
                   key={e.id}
                   value={`${e.name} ${e.employee_id || ""} ${e.role || ""} ${e.trade || ""} ${e.crew || ""}`}
-                  onSelect={() => { onSelect(e); setOpen(false); }}
+                  onSelect={commit}
                   className="py-2 cursor-pointer"
-                  data-testid={`${testId}-item-${e.id}`}
+                  data-testid={testid}
+                  {...commitHandlersFor(commit, testid)}
                 >
                   <div className="flex items-start gap-2 w-full">
                     <div className="flex-1 min-w-0">
@@ -116,7 +124,8 @@ export default function EmployeePicker({ value, onSelect, placeholder = "Selectâ
                     {selected?.id === e.id && <Check className="w-4 h-4 text-cyan-700 shrink-0 mt-0.5" />}
                   </div>
                 </CommandItem>
-              ))}
+                );
+              })}
             </CommandGroup>
           </CommandList>
         </Command>

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Check, ChevronDown, Search, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,19 +18,16 @@ import { cn } from "@/lib/utils";
 import { JOB_LIBRARY as STATIC_LIBRARY, CUSTOM_JOB_KEY } from "@/lib/jobLibrary";
 import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
+import { useCmdkTouchGuard } from "@/lib/useCmdkTouchGuard";
 
-// TRACK 24.8 · Touch-select vs scroll disambiguation.
-//
-// The earlier Track 24.6 fix (commit on pointerdown) fixed the iOS
-// Safari input-blur race but introduced a WORSE bug: any scroll
-// gesture that started on a row committed that row instantly, so
-// users scrolling PAST "University High School" ended up selecting
-// whatever row their finger first touched. This module records the
-// touch start position, cancels the pending selection if the finger
-// moves > TOUCH_MOVE_CANCEL_PX, and commits on pointerup only for
-// stationary taps. Movement-based cancellation is the industry-
-// standard native-feel pattern.
-const TOUCH_MOVE_CANCEL_PX = 8;
+// TRACK 24.8 · Touch-select vs scroll disambiguation, refactored
+// in Track 24.9 Phase B into the shared `useCmdkTouchGuard` hook
+// so every cmdk-based picker on the platform gets the same
+// battle-tested iOS-Safari-safe commit path. History: Track 24.6
+// commit-on-pointerdown fixed the input-blur race but introduced
+// wrong-row selection on scroll — Track 24.8 replaced it with
+// pointerdown/up + scroll-cancellation, and 24.9 promoted it to a
+// reusable primitive.
 
 // Module-level cache so every <JobPicker> on the page hits the API once.
 let _jobsCache = null;
@@ -95,72 +92,10 @@ export function JobPicker({
     ? t("Pick a MASCI job — or choose Custom")
     : t("Select Job");
 
-  // TRACK 24.8 · shared touch-tracking ref for all CommandItems.
-  // Records the pointerdown position and the row's data-testid, and
-  // commits only on pointerup IF the CommandList container did not
-  // scroll while the finger was down. We watch scroll at the LIST
-  // level (not the row level) because cmdk's <CommandItem> overrides
-  // any onPointerMove passed via prop-spread — the only reliable way
-  // to detect a scroll gesture is via the native scroll event on the
-  // scrollable ancestor.
-  const touchRef = useRef({ x: 0, y: 0, active: false, targetId: null });
-  const scrolledRef = useRef(false);
-  const listRef = useRef(null);
-
-  // Attach a native scroll listener to the CommandList once mounted.
-  // scrolledRef flips true the instant the list scrolls; pointerup
-  // checks it to decide whether to commit.
-  useEffect(() => {
-    if (!open) return undefined;
-    // The CommandList is rendered inside PopoverContent which
-    // portals to the document body. Query for it by role/attribute.
-    const list = document.querySelector('[cmdk-list=""]');
-    if (!list) return undefined;
-    listRef.current = list;
-    const onScroll = () => { scrolledRef.current = true; };
-    list.addEventListener("scroll", onScroll, { passive: true });
-    return () => list.removeEventListener("scroll", onScroll);
-  }, [open]);
-
-  const commitHandlersFor = (commit, testid) => ({
-    onPointerDown(e) {
-      if (!e.pointerType || e.pointerType === "mouse") return;
-      touchRef.current = {
-        x: e.clientX,
-        y: e.clientY,
-        active: true,
-        targetId: testid,
-      };
-      scrolledRef.current = false;
-    },
-    onPointerUp(e) {
-      const s = touchRef.current;
-      touchRef.current = { x: 0, y: 0, active: false, targetId: null };
-      if (!s.active) return;
-      if (!e.pointerType || e.pointerType === "mouse") return;
-      if (s.targetId !== testid) return;
-      // If the list scrolled between pointerdown and pointerup, the
-      // user was scrolling, not tapping. Do not commit.
-      if (scrolledRef.current) {
-        scrolledRef.current = false;
-        return;
-      }
-      // Also protect against a large positional delta as a secondary
-      // guard for cases where the item didn't live inside a
-      // scrolling ancestor (e.g., custom-job row).
-      const dx = e.clientX - s.x;
-      const dy = e.clientY - s.y;
-      if (dx * dx + dy * dy > TOUCH_MOVE_CANCEL_PX * TOUCH_MOVE_CANCEL_PX) {
-        return;
-      }
-      e.preventDefault();
-      commit();
-    },
-    onPointerCancel() {
-      touchRef.current = { x: 0, y: 0, active: false, targetId: null };
-      scrolledRef.current = false;
-    },
-  });
+  // TRACK 24.9 Phase B · Shared cmdk touch-guard hook. See
+  // `/app/frontend/src/lib/useCmdkTouchGuard.js` for the full
+  // scroll-vs-tap disambiguation logic.
+  const { commitHandlersFor } = useCmdkTouchGuard(open);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
