@@ -12015,3 +12015,49 @@ The following require a human on `mascidocs.com` because they involve production
 
 **Once the human confirms items in section 3, no additional code changes should be needed.** If any item fails, I fix in preview, you redeploy, we re-run this cert.
 
+
+## TRACK 24.11 · Live photo / file upload hotfix · 🟡 CONDITIONAL — code fixed, human prod confirmation required (2026-02-07)
+
+**Field-reported P0**: iPhone gallery / camera photos silently dropped in production DR V3. Reproduced in code review: the previous compressor decoded images via `<img src=dataURL>`, which Safari **cannot** use to decode HEIC (iPhone default camera format since iOS 11). `img.onerror` fired → photo dropped → generic "Could not process" toast.
+
+**Root causes fixed**:
+1. **P0 · HEIC decode failure** — `compressImage()` now prefers `createImageBitmap(file, {imageOrientation: "from-image"})` which decodes HEIC/HEIF natively on iOS 17+ Safari, decodes AVIF/WEBP/PNG/JPEG on all evergreen browsers, respects EXIF orientation, and skips the FileReader round-trip. Legacy `<img>` fallback preserved for older browsers. `HeicDecodeError` class carries the source MIME so the caller can craft an actionable message.
+2. **P1 · Empty-MIME rejection** — files whose `.type === ""` (iOS Files app, Android share intents) were being dropped by `startsWith("image/")`. New `_looksLikeImage()` in `PhotoUpload.jsx` accepts either a valid `image/*` MIME OR a filename matching `IMAGE_EXTENSIONS` (`jpe?g|png|gif|webp|heic|heif|avif|bmp|tiff?|svg`).
+3. **P1 · Silent HEIC failure** — replaced with an actionable Sonner toast: *"iPhone HEIC photos can't be read by this browser — Open iPhone Settings → Camera → Formats → Most Compatible, then retake the photo"* (EN + ES). 12-s duration so field crews have time to read it.
+4. **P2 · Document allowlist widened** — `photo_storage.py._DOC_MIME_TO_EXT` + `_ALLOWED_DOC_EXTS` now accept `docx`, `doc`, `txt` (spec listed but previously 400'd). New categories: `Document`. Filename-extension fallback added for browsers that report `application/octet-stream` for text/DOCX. Dangerous extensions (`exe/bat/cmd/dll/ps1/…`) still blocked.
+5. **`<input accept>` explicitly lists HEIC/HEIF** so iOS Safari surfaces iPhone camera-native photos in the gallery picker even when the OS omits the MIME hint.
+
+**Lock suite** (`backend/tests/test_track_24_11_photo_and_doc_upload_hotfix.py`, 15 tests all green):
+- `test_compress_image_uses_bitmap_first` — enforces `createImageBitmap` + `imageOrientation: "from-image"` + `HeicDecodeError`.
+- `test_compress_image_falls_back_to_img_tag` — legacy path preserved.
+- `test_photo_upload_accepts_files_without_mime` — extension fallback in place.
+- `test_photo_upload_input_accepts_heic` — `<input accept>` lists HEIC/HEIF on both gallery + camera inputs.
+- `test_photo_upload_surfaces_actionable_heic_error` — the exact "Settings → Camera → Formats → Most Compatible" copy is present.
+- `test_i18n_dictionary_has_new_heic_labels` — ES translations landed.
+- `test_document_upload_accepts_expanded_types[pdf/xlsx/csv/docx/doc/txt]` — 6 formats round-trip through the live endpoint.
+- `test_document_upload_octet_stream_falls_back_to_extension` — `.txt` sent as `application/octet-stream` resolves correctly.
+- `test_document_upload_still_rejects_dangerous_extensions` — `.exe/.bat/.ps1/.dll` remain 400.
+- `test_document_upload_rejects_unsupported_gracefully` — 400 + MIME in error detail.
+
+**Live preview verification**:
+- HEIC error toast fires with exact operator-facing copy — screenshotted at `/tmp/heic_smoke.png`.
+- In-browser compressor test: `createImageBitmap` + canvas + `toDataURL` succeed on a canvas-generated JPEG (`{ok: true, prefix: "data:image/jpeg;base64,/9j/4AAQS"}`).
+- File input `accept` attribute confirmed `image/*,image/heic,image/heif,.heic,.heif`.
+- 148/148 pytest green across Track 19.04, 23.10.b, 24.1, 24.3, 24.6, 24.9 (A+B+C), 24.11, iter139.
+
+**Files touched**:
+- **New**: `backend/tests/test_track_24_11_photo_and_doc_upload_hotfix.py` (15-test lock suite).
+- **Modified**: `frontend/src/lib/utils.js` (compressImage refactor + HeicDecodeError), `frontend/src/components/PhotoUpload.jsx` (_looksLikeImage + actionable HEIC error + accept attribute), `frontend/src/lib/i18n.js` (2 new EN/ES pairs), `backend/photo_storage.py` (DOC allowlist + octet-stream extension fallback).
+
+**Verdict** 🟡 **CONDITIONAL** — code fix shipped and locked; requires a human on `mascidocs.com` to redeploy and verify:
+- iPhone Safari camera capture (both HEIC and JPEG output settings)
+- iPhone Safari gallery multi-select (HEIC + JPEG mix)
+- Android Chrome camera + gallery
+- Desktop drag/drop of PDF/DOCX/XLSX/CSV/TXT/JPEG/PNG
+- HEIC error toast actually appears when a user picks a HEIC on a browser that can't decode it (test with iPhone Settings → Camera → Formats → **High Efficiency** and then try uploading — toast should fire)
+
+### Next Action Items
+- **Deploy** — redeploy Track 24.11 to production.
+- **Human live cert** — walk through the iPhone Safari flow on `mascidocs.com` with a real iPhone (High Efficiency camera setting) → verify HEIC-error toast + guidance; switch to Most Compatible → verify photos upload.
+- **Return with any residual failures** — I'll iterate in preview.
+

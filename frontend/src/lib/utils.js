@@ -6,34 +6,90 @@ export function cn(...inputs) {
 }
 
 // Compress an image File -> base64 JPEG ~ targetMaxDim px on the longest side.
-export async function compressImage(file, targetMaxDim = 1280, quality = 0.78) {
+//
+// TRACK 24.11 · Field foremen upload iPhone HEIC and Android camera
+// photos. The previous <img>-only path silently failed on HEIC in
+// Safari (img.onerror fires — no way to render HEIC via <img>). We
+// now prefer `createImageBitmap(File)` which:
+//   * decodes HEIC/HEIF natively on iOS 17+ Safari
+//   * decodes AVIF/WEBP/PNG/JPEG on all evergreen browsers
+//   * accepts a File directly (no FileReader round-trip)
+//   * respects EXIF orientation via the `imageOrientation: "from-image"` option
+// If `createImageBitmap` is missing or throws (older Safari, or an
+// image type it doesn't recognise), we fall back to the legacy
+// FileReader + <img> path. If BOTH fail we throw a diagnostic error
+// carrying the source MIME so the caller can surface an actionable
+// message ("Change iPhone → Settings → Camera → Formats → Most
+// Compatible") instead of a silent "Could not process".
+export class HeicDecodeError extends Error {
+  constructor(mime) {
+    super(`Cannot decode ${mime || "image"} in this browser`);
+    this.name = "HeicDecodeError";
+    this.mime = mime || "";
+  }
+}
+
+async function _decodeViaBitmap(file) {
+  if (typeof createImageBitmap !== "function") return null;
+  try {
+    // `imageOrientation: "from-image"` honours EXIF rotation so
+    // portrait iPhone photos aren't stored sideways.
+    return await createImageBitmap(file, { imageOrientation: "from-image" });
+  } catch {
+    return null;
+  }
+}
+
+function _decodeViaImgTag(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onerror = reject;
     reader.onload = () => {
       const img = new Image();
-      img.onerror = reject;
-      img.onload = () => {
-        let { width, height } = img;
-        const longest = Math.max(width, height);
-        if (longest > targetMaxDim) {
-          const ratio = targetMaxDim / longest;
-          width = Math.round(width * ratio);
-          height = Math.round(height * ratio);
-        }
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext("2d");
-        ctx.fillStyle = "#fff";
-        ctx.fillRect(0, 0, width, height);
-        ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL("image/jpeg", quality));
-      };
+      img.onerror = () => reject(new HeicDecodeError(file?.type || ""));
+      img.onload = () => resolve(img);
       img.src = reader.result;
     };
     reader.readAsDataURL(file);
   });
+}
+
+function _drawToCanvasJpeg(bitmapOrImg, targetMaxDim, quality) {
+  const width0 = bitmapOrImg.width || bitmapOrImg.naturalWidth;
+  const height0 = bitmapOrImg.height || bitmapOrImg.naturalHeight;
+  let width = width0;
+  let height = height0;
+  const longest = Math.max(width, height);
+  if (longest > targetMaxDim) {
+    const ratio = targetMaxDim / longest;
+    width = Math.round(width * ratio);
+    height = Math.round(height * ratio);
+  }
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, width, height);
+  ctx.drawImage(bitmapOrImg, 0, 0, width, height);
+  return canvas.toDataURL("image/jpeg", quality);
+}
+
+export async function compressImage(file, targetMaxDim = 1280, quality = 0.78) {
+  // Prefer createImageBitmap — handles HEIC on iOS 17+.
+  const bitmap = await _decodeViaBitmap(file);
+  if (bitmap) {
+    try {
+      return _drawToCanvasJpeg(bitmap, targetMaxDim, quality);
+    } finally {
+      if (typeof bitmap.close === "function") bitmap.close();
+    }
+  }
+  // Fallback: legacy <img> tag decode (works for JPEG/PNG/WEBP/GIF).
+  // Throws HeicDecodeError with the source MIME if the browser can't
+  // decode the file (typically HEIC on older Safari).
+  const img = await _decodeViaImgTag(file);
+  return _drawToCanvasJpeg(img, targetMaxDim, quality);
 }
 
 // Format a date string for display.

@@ -228,8 +228,16 @@ _DOC_MIME_TO_EXT = {
     # supplies a .xlsm filename.
     "text/csv": "csv",
     "application/csv": "csv",
+    # TRACK 24.11 · Field foremen upload Word docs and plain-text log
+    # files as attachments on Daily Reports (permit slips, condition
+    # notes, sub-contractor summaries). Passive attachments only —
+    # server never opens or parses. Treated as opaque bytes at rest,
+    # same as PDF/Excel. Dangerous extensions still blocked below.
+    "application/msword": "doc",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
+    "text/plain": "txt",
 }
-_ALLOWED_DOC_EXTS = {"pdf", "xls", "xlsx", "xlsm", "csv"}
+_ALLOWED_DOC_EXTS = {"pdf", "xls", "xlsx", "xlsm", "csv", "doc", "docx", "txt"}
 _DANGEROUS_EXTS = {
     "exe", "bat", "cmd", "com", "cpl", "dll", "jar", "js", "jse",
     "msi", "ps1", "psm1", "sh", "vbe", "vbs", "wsf", "wsh", "scr",
@@ -298,6 +306,35 @@ def _doc_ext_from_data_url(data_url: str, filename: str = "") -> tuple:
         "application/octet-stream",
     ):
         ext = "xlsm"
+    # TRACK 24.11 · Filename-extension fallback for browsers that
+    # report a generic / empty MIME. `.txt`, `.csv`, and `.docx`
+    # commonly arrive as `application/octet-stream` on iOS Safari
+    # when the file was routed through the iOS Files app. This
+    # never widens the allow-list — the extension MUST still be
+    # in `_ALLOWED_DOC_EXTS` (checked by the caller), and dangerous
+    # extensions are still blocked downstream.
+    if not ext and mime in ("application/octet-stream", "", None):
+        for candidate_ext in ("pdf", "docx", "doc", "xlsx", "xls", "xlsm", "csv", "txt"):
+            if fname_lower.endswith(f".{candidate_ext}"):
+                ext = candidate_ext
+                # Also normalise the MIME so downstream Content-Type is honest.
+                if candidate_ext == "pdf":
+                    mime = "application/pdf"
+                elif candidate_ext == "txt":
+                    mime = "text/plain"
+                elif candidate_ext == "csv":
+                    mime = "text/csv"
+                elif candidate_ext == "docx":
+                    mime = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                elif candidate_ext == "doc":
+                    mime = "application/msword"
+                elif candidate_ext == "xlsx":
+                    mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                elif candidate_ext == "xlsm":
+                    mime = "application/vnd.ms-excel.sheet.macroenabled.12"
+                elif candidate_ext == "xls":
+                    mime = "application/vnd.ms-excel"
+                break
     return ext, mime
 
 
@@ -364,6 +401,10 @@ async def upload_document_data_url(
         "xlsx": "Spreadsheet",
         "xlsm": "Spreadsheet",   # TRACK 19.19 · macro-enabled Excel workbook.
         "csv": "Spreadsheet",
+        # TRACK 24.11 · Word / plain text bucket.
+        "doc": "Document",
+        "docx": "Document",
+        "txt": "Document",
     }.get(ext, "Other")
     return {
         "attachment_ref": _build_ref(key),

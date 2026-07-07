@@ -1,11 +1,24 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Camera, X, ImageIcon, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { compressImage } from "@/lib/utils";
+import { compressImage, HeicDecodeError } from "@/lib/utils";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { PhotoLightbox } from "@/components/PhotoLightbox";
 import { resolvePhotoSrc } from "@/lib/photoSrc";
+
+// TRACK 24.11 · Image-extension fallback for files that arrive with
+// an empty `.type` (iOS Files app, Android share intents, some
+// gallery apps). Without this, `startsWith("image/")` silently drops
+// photos the user just picked — the "camera works but nothing
+// appears" P0 bug on field iPhones.
+const IMAGE_EXTENSIONS = /\.(jpe?g|png|gif|webp|heic|heif|avif|bmp|tiff?|svg)$/i;
+function _looksLikeImage(file) {
+  if (!file) return false;
+  if (file.type && file.type.startsWith("image/")) return true;
+  if (file.name && IMAGE_EXTENSIONS.test(file.name)) return true;
+  return false;
+}
 
 // Track 20.7 · Universal Photo Capture guardrail.
 // A device qualifies for camera capture ONLY if the browser exposes a
@@ -76,12 +89,13 @@ export const PhotoUpload = ({
 
   const handleFiles = async (files) => {
     if (!files || files.length === 0) return;
-    // `files` is already a snapshot Array (see input onChange handlers below) —
-    // critical on iOS Safari where the live FileList gets invalidated as
-    // soon as `e.target.value = ""` runs, dropping every file after #1.
-    const imageFiles = files.filter(
-      (f) => f && f.type && f.type.startsWith("image/")
-    );
+    // TRACK 24.11 · Accept files whose `.type` is empty as long as
+    // their filename ends in a known image extension. iOS Files app,
+    // Android share sheets, and some gallery apps hand us MIME-less
+    // Files that would otherwise be dropped by the strict prefix
+    // filter — that's the "picked a photo but nothing shows up" P0
+    // reported against production.
+    const imageFiles = files.filter(_looksLikeImage);
     if (imageFiles.length === 0) return;
 
     const total = imageFiles.length;
@@ -89,28 +103,44 @@ export const PhotoUpload = ({
 
     const next = [...photos];
     let failed = 0;
+    let heicFailed = 0;
     for (let i = 0; i < imageFiles.length; i += 1) {
       const file = imageFiles[i];
-      // Update BEFORE compressing so "Compressing 1 of 20" shows for the
-      // first photo, not after it finishes.
       setProgress({ current: i + 1, total });
       try {
         const dataUrl = await compressImage(file, 1280, 0.78);
         next.push(dataUrl);
-        // Reveal each thumbnail as it finishes — gives the user immediate
-        // feedback instead of "all 20 appear at once at the very end".
         onChange?.([...next]);
-      } catch {
+      } catch (err) {
         failed += 1;
-        toast.error(`Could not process ${file.name || "photo"}`);
+        // TRACK 24.11 · Actionable HEIC error — the previous silent
+        // "Could not process" toast blocked field iPhone users from
+        // knowing they had a fixable device setting.
+        const mime = (err && err.mime) || file?.type || "";
+        const isHeic = err instanceof HeicDecodeError
+          || /heic|heif/i.test(mime)
+          || /\.(heic|heif)$/i.test(file?.name || "");
+        if (isHeic) {
+          heicFailed += 1;
+        } else {
+          toast.error(`Could not process ${file.name || "photo"}`);
+        }
       }
     }
     setProgress(null);
 
+    if (heicFailed > 0) {
+      toast.error(
+        t("iPhone HEIC photos can't be read by this browser") + " — " +
+        t("Open iPhone Settings → Camera → Formats → Most Compatible, then retake the photo"),
+        { duration: 12000 },
+      );
+    }
+
     const added = next.length - photos.length;
     if (added > 1) {
       toast.success(`${added} ${t("photos added")}`);
-    } else if (added === 0 && failed > 0) {
+    } else if (added === 0 && failed > 0 && heicFailed === 0) {
       toast.error(t("No photos could be added"));
     }
   };
@@ -223,18 +253,17 @@ export const PhotoUpload = ({
         </div>
       )}
 
-      {/* Hidden file inputs — gallery (no capture) + camera (capture) */}
+      {/* Hidden file inputs — gallery (no capture) + camera (capture).
+          TRACK 24.11 · `accept` explicitly lists HEIC/HEIF so iOS
+          Safari surfaces iPhone camera-native photos in the picker
+          even when the OS reports them without a MIME hint. */}
       <input
         ref={galleryRef}
         type="file"
-        accept="image/*"
+        accept="image/*,image/heic,image/heif,.heic,.heif"
         multiple
         className="hidden"
         onChange={(e) => {
-          // Snapshot the FileList into a real Array BEFORE we reset the
-          // input value — without this, iOS Safari drops files #2-N when
-          // the live FileList is invalidated by `value = ""` (the
-          // "only-one-photo-uploaded" bug).
           const snapshot = Array.from(e.target.files || []);
           e.target.value = "";
           handleFiles(snapshot);
@@ -244,7 +273,7 @@ export const PhotoUpload = ({
       <input
         ref={cameraRef}
         type="file"
-        accept="image/*"
+        accept="image/*,image/heic,image/heif,.heic,.heif"
         capture="environment"
         multiple
         className="hidden"

@@ -4351,6 +4351,10 @@ const ES = {
   "photos added": "fotos agregadas",
   "No photos could be added": "No se pudieron agregar fotos",
   "Compressing": "Comprimiendo",
+  // TRACK 24.11 · Actionable HEIC error surfaces the exact iPhone
+  // setting foremen need to change so photos actually upload.
+  "iPhone HEIC photos can't be read by this browser": "Este navegador no puede leer fotos HEIC del iPhone",
+  "Open iPhone Settings → Camera → Formats → Most Compatible, then retake the photo": "Abre Ajustes → Cámara → Formatos → Más Compatible, y vuelve a tomar la foto",
   "jobs have plans uploaded": "trabajos tienen planes cargados",
   "file uploaded": "archivo cargado",
   "files uploaded": "archivos cargados",
