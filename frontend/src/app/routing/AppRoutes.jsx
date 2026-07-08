@@ -35,6 +35,8 @@ const DriverShift = React.lazy(() => import("@/pages/driver/DriverShift"));
 // Track 13.6L — DriverHubV2 retired (existing /shift + /d/:token + /driver already satisfy ≤ 2 taps / ≤ 30 s).
 // Track 13.6K — Admin / Leadership Hub V2 COMPANIONS (no swap). FL Hub V2 retired in 13.6L.
 const AdminHubV2 = React.lazy(() => import("@/pages/AdminHubV2"));
+// TRACK 25.02 · Phase D · V3 hub renders behind masci.admin.nav.v3 flag
+const AdminHubSwitcher = React.lazy(() => import("@/pages/AdminHubSwitcher"));
 const AdminMaterialLedgerQuality = React.lazy(() => import("@/pages/AdminMaterialLedgerQuality"));
 const LeadershipHubV2 = React.lazy(() => import("@/pages/LeadershipHubV2"));
 const ExecutiveOverview = React.lazy(() => import("@/pages/ExecutiveOverview"));
@@ -418,7 +420,22 @@ const InspectionLegacyRedirect = () => (
   />
 );
 
-const A = (el) => <RequireAdmin>{el}</RequireAdmin>;
+// TRACK 25.02 · Phase D — CommandPaletteProvider wraps every admin
+// route when `masci.admin.nav.v3` flag is on. Falls back to a plain
+// pass-through when the flag is off, so the legacy nav is untouched.
+import { CommandPaletteProvider } from "@/components/admin/CommandPalette";
+import { isAdminNavV3Enabled as _isAdminNavV3Enabled } from "@/lib/featureFlags";
+function AdminPaletteShell({ children }) {
+  if (_isAdminNavV3Enabled()) {
+    return <CommandPaletteProvider>{children}</CommandPaletteProvider>;
+  }
+  return children;
+}
+const A = (el) => (
+  <RequireAdmin>
+    <AdminPaletteShell>{el}</AdminPaletteShell>
+  </RequireAdmin>
+);
 // TRACK 18.00E-FIX · Dispatch-accessible Transportation Operations shell.
 // Wraps `/transportation-operations/*` so dispatchers reach Mission
 // Control without an Admin Console gate. RBAC inside the shell is
@@ -629,11 +646,12 @@ export function AppRoutes() {
                 ============================================================ */}
             <Route path="/admin/login" element={<AdminLogin />} />
             {/* Track 19.28 · P0-1 · Admin Hub V1 soft-retire.
-                /admin now renders AdminHubV2 (Operations Control Center).
+                /admin renders AdminHubSwitcher (V2 legacy hub · or V3
+                Executive Home when masci.admin.nav.v3 flag is on).
                 Classic tile-grid AdminHub remains available at /admin/hub_v1
                 as a rollback URL. All admin sub-routes (/admin/people, etc.)
                 are unchanged — they still use AdminShell / SideNavV2 per page. */}
-            <Route path="/admin" element={A(<AdminHubV2 />)} />
+            <Route path="/admin" element={A(<AdminHubSwitcher />)} />
             <Route path="/admin/hub_v1" element={A(<AdminHub />)} />
             {/* Track 13.6K · Phase 1 — Admin Hub V2 preview (Operations Control Center). */}
             <Route path="/admin/hub_v2" element={<Navigate to="/admin" replace />} />

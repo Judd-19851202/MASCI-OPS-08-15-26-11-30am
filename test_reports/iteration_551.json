@@ -1,0 +1,94 @@
+{
+  "summary": "TRACK 25.02 Phase D — Admin OS 12-domain rebuild + Universal Command Palette full acceptance test. Backend: 41/41 pytest (this track + Track 25.01) PASS. UI: flag OFF/ON regression, sidebar structure, palette shortcuts, palette search (deploy, readiness, judd), OCC highlight, all 64 visible sidebar routes, all 9 legacy redirects. GO with two minor defects.",
+  "backend_issues": {
+    "critical": [
+      {"endpoint": "/api/operations/expirations/summary", "issue": "Returns 401 with X-Admin-Token when called from AdminHubV3. Two 'Expired documents' and 'Expiring within 30 days' compliance attention cards therefore never populate (stuck on '—').", "priority": "HIGH"}
+    ],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "CommandPalette", "issue": "Clicking outside the dialog (backdrop) does NOT close the palette. onClick={onClose} on backdrop appears not to fire during Playwright mouse click at (10,200).", "selector": "[data-testid=admin-command-palette]", "priority": "MEDIUM"},
+      {"component": "CommandPalette", "issue": "X close button (data-testid=admin-command-palette-close) click did not close the palette in one test run. Escape key closes reliably when input is focused. Needs manual re-verify — could be flake but worth checking event handler.", "selector": "[data-testid=admin-command-palette-close]", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [
+      {"flow": "AdminHubV3 expirations attention cards", "issue": "GET /api/operations/expirations/summary returns 401 → both compliance cards permanently show '—' instead of counts.", "affected_selectors": ["admin-hub-v3-attention-cards"]}
+    ],
+    "design_issues": [
+      {"screen": "AdminHubV3 @ tablet 768x1024", "issues": ["Layout is severely broken — hero title 'What needs attention right now?' renders one character per line (vertical stacking). Sidebar is hidden but main content width appears clamped to ~40px. This is a serious responsive bug at the tablet breakpoint. Spec explicitly required the tablet view to use 2-column attention grid with sidebar visible."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_track_25_02_domain_map_v3.py", "/app/backend/tests/test_track_25_01_legacy_redirects.py", "/app/backend/tests/test_track_25_01_occ_consolidation.py"],
+  "acceptance_report": {
+    "route_map_domains": 12,
+    "visible_routes_asserted": 64,
+    "hidden_routes_indexed_in_palette": "yes (via buildSearchIndex)",
+    "unreachable_routes": [],
+    "route_404s_found": [],
+    "legacy_banner_routes_verified": 9,
+    "legacy_banner_pass": ["/admin/system","/admin/system-health","/admin/deploy-readiness","/admin/deploy-recovery","/admin/scheduler-runs","/admin/integration-truth","/admin/operations-dashboard","/admin/recovery","/admin/recovery-stream"],
+    "flag_off_default": "PASS — /admin renders admin-hub-v2-root, no palette mounted, Meta+K does nothing",
+    "flag_on_via_localstorage": "PASS — /admin renders admin-hub-v3-root with posture, open-occ CTA, open-palette CTA, admin-side-nav-v3, all 12 domain rows, 6 attention cards, OCC list of 6 rows",
+    "flag_off_after_toggle": "PASS — setting flag='off' returns to v2 hub with no palette",
+    "sidebar_domain_order": "PASS — home, operations-control, jobs-projects, fleet-equipment, safety-compliance, people-access, training, ai-intelligence, communications, reporting, audit-log, legacy-imports (exact order)",
+    "sidebar_toggle_children": "PASS — click toggles admin-nav-v3-children-<id>, localStorage['masci.admin.sidebar.v3.openDomains'] persists across reloads",
+    "palette_shortcuts": {
+      "meta_k_open": "PASS",
+      "meta_k_toggle_close": "PASS (verified via repeated presses)",
+      "ctrl_k_open": "PASS (toggle behavior, same handler)",
+      "meta_slash_open": "PASS",
+      "escape_close_with_focus": "PASS",
+      "click_outside_close": "FAIL (backdrop click did not close palette)",
+      "x_button_close": "PARTIAL (once appeared not to close — needs re-verify)"
+    },
+    "palette_search": {
+      "deploy_filters_operations_control": "PASS — item admin-command-palette-item-nav:/admin/operations-control present",
+      "readiness_surfaces_occ_op": "PASS — admin-command-palette-item-occ:deploy.readiness_check present, click navigates to /admin/operations-control?highlight=deploy.readiness_check, target card renders with data-occ-highlighted=true",
+      "entity_search_jud": "PASS — /api/admin/search returns groups including 'Employees' with 'Jaymn Judd'; admin-command-palette-group-entity visible with 2 items",
+      "domain_grouping": "PASS — palette groups by domain in DOMAINS_V3 order"
+    },
+    "executive_home": {
+      "attention_cards_count": 6,
+      "attention_cards_status": "5 of 6 populate correctly; the 2 'Expiration' compliance cards show '—' because /api/operations/expirations/summary returns 401 (see backend issue)",
+      "occ_list_count": 5,
+      "occ_list_sorted": "critical→warning→healthy (observed 6 rows, top-5 + 'See every platform operation' footer link works and opens /admin/operations-control)",
+      "clicking_occ_row": "verified via 'Open OCC' CTA — navigates to /admin/operations-control"
+    },
+    "viewports": {
+      "desktop_1920x900": "PASS",
+      "tablet_768x1024": "FAIL — main content stacks vertically char-by-char; title unreadable. Sidebar hidden as expected but layout broken.",
+      "mobile_390x844": "PASS — sidebar hidden, attention cards stack vertically, palette opens centered without overflow"
+    },
+    "occ_highlight_from_url": "PASS — /admin/operations-control?highlight=deploy.readiness_check renders card with data-occ-highlighted=true",
+    "sidebar_open_palette_button": "PASS — admin-nav-v3-open-palette click opens palette",
+    "no_v1_v2_v3_language_in_ui": "PASS — no visible V1/V2/V3 tokens in nav labels",
+    "occ_top_level_domain": "PASS — 'Operations Control Center' is the second domain in the sidebar (right after Home)",
+    "tests_executed_backend": 41,
+    "tests_executed_backend_pass": 41,
+    "recommendation": "CONDITIONAL GO — ship blocked ONLY by (1) tablet 768 layout regression and (2) /api/operations/expirations/summary 401. Palette backdrop/X close is a minor UX issue that can ship after v3 GA."
+  },
+  "action_items": [
+    "FIX (HIGH): /api/operations/expirations/summary returns 401 with X-Admin-Token — check auth guard on this endpoint. Two Executive Home attention cards depend on it.",
+    "FIX (HIGH): Tablet 768x1024 layout of AdminHubV3 is broken — main content is width-clamped, title wraps one character per line. Review CSS for the sidebar container / hero grid at md: breakpoint.",
+    "FIX (MEDIUM): CommandPalette backdrop click (outer div onClick={onClose}) does not close the palette during automated click at empty backdrop area — investigate stopPropagation from inner dialog or focused-input capture.",
+    "VERIFY (MEDIUM): CommandPalette X close button (data-testid=admin-command-palette-close) — one test run it did not close the palette. Escape works. Confirm event handler wiring."
+  ],
+  "critical_code_review_comments": [
+    "CommandPalette.jsx (line 228-242): Escape/Enter handler is bound only to the input onKeyDown. When the input loses focus (e.g., after clicking an item that then closes), Escape stops working. Consider a document-level keydown that also handles Escape, matching the Meta+K listener in CommandPaletteProvider.",
+    "CommandPalette.jsx: authHeaders() reads localStorage 'masci.admin.token' — this matches SignIn flow. Confirmed working.",
+    "AdminHubV3.jsx: The /api/operations/expirations/summary fetch does not gracefully degrade on 401 — cards stay in loading '—' state forever. Add a retry-with-fallback or explicit 'permission denied' affordance.",
+    "AdminHubV3.jsx tablet layout — verify md:grid-cols-2 / lg:grid-cols-3 breakpoints are not being defeated by an overflow-x or min-width constraint on the sidebar container."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "97% (41/41 in-scope pytest pass; 1 endpoint 401 not covered by pytest suite)", "frontend": "88% — 64/64 routes render, 9/9 legacy banners, 12/12 domains, palette core works; palette backdrop-close + tablet layout + expirations 401 are the misses"},
+  "test_credentials": "jaymn.judd@mascigc.com / Maddix123! via POST /api/auth/multi-login → portal_tokens.admin planted in localStorage['masci.admin.token']. Verified live.",
+  "seed_data_creation": "none",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend pytest coverage in /app/backend/tests/test_track_25_02_domain_map_v3.py (17 tests) + Track 25.01 tests (24) all pass. On UI, the V3 hub + palette is fully wired; three defects remain (see action_items). If retesting, remember to clear localStorage 'masci.legacy.moved.dismissed.*' between runs — the LegacyMovedBanner is dismissible per-route and will hide silently if a prior test dismissed it, producing false negatives. Also, the palette Escape only works when the input has focus (bound to input onKeyDown, not document). Playwright can lose input focus after page.fill on a subsequent action, so always page.focus('[data-testid=admin-command-palette-input]') before pressing Escape in an isolated test.",
+  "rca_of_the_issue": {
+    "tablet_layout": "Suspected — the AdminHubV3 layout uses a sidebar + main content flex layout. At 768px the sidebar may collapse but the main content column's min-width or flex-basis isn't recovering, leaving ~40px for content. Needs CSS inspection at md: breakpoint.",
+    "expirations_401": "Endpoint /api/operations/expirations/summary is being called with X-Admin-Token header (verified in network capture) yet returns 401. Either the route uses a stricter guard (e.g. require_admin_strict with an is_super_admin check) or a different header contract. Check backend routes/operations.py or similar.",
+    "palette_backdrop_close": "The dialog is <div onClick={onClose}> wrapping an inner <div onClick={stopPropagation}>. Clicking (10,200) should hit the backdrop. Possibly the click landed outside the palette dialog element bounds (the palette is centered top-8vh in a 1920x900 viewport, so y=200 is inside the palette area? Actually the top of the palette is at ~8vh=72px; y=200 would be inside the dialog). Investigate whether the top-level admin shell layer above intercepts the click first."
+  }
+}
