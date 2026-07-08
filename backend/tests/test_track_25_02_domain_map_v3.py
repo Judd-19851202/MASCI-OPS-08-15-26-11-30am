@@ -429,6 +429,29 @@ def test_command_palette_provider_wired_into_admin_router():
     )
 
 
+def test_command_palette_provider_is_not_nested_inside_admin_hub():
+    """iter552 defect regression lock: AdminHubV3 MUST NOT mount its
+    own <CommandPaletteProvider>. The admin router already wraps every
+    admin route in the provider; nesting a second provider produces
+    two overlapping palette overlays and breaks backdrop-close.
+    """
+    hub_src = _read(HUB_V3)
+    # Reject any real import of CommandPaletteProvider…
+    assert not re.search(
+        r'^\s*import\s+\{[^}]*CommandPaletteProvider',
+        hub_src,
+        re.MULTILINE,
+    ), (
+        "TRACK 25.02 · AdminHubV3 must NOT import CommandPaletteProvider — "
+        "the router-level provider already wraps every admin route."
+    )
+    # …and reject any JSX tag that mounts it.
+    assert "<CommandPaletteProvider" not in hub_src, (
+        "TRACK 25.02 · AdminHubV3 must NOT render <CommandPaletteProvider>. "
+        "Nested providers create duplicate palettes and break backdrop-close."
+    )
+
+
 # ── AdminHubSwitcher gating ────────────────────────────────────────
 
 def test_admin_hub_swap_is_flag_gated():

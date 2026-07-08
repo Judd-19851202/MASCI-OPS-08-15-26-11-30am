@@ -18,7 +18,10 @@ import { Link } from "react-router-dom";
 import { getAdminToken } from "@/lib/adminAuth";
 import { PortalShell } from "../design-system";
 import SideNavV3 from "@/components/admin/sidebar/SideNavV3";
-import { CommandPaletteProvider } from "@/components/admin/CommandPalette";
+// TRACK 25.02 Phase D retest iter552 · CommandPaletteProvider is now
+// mounted once at the admin router level (AppRoutes.jsx `AdminPaletteShell`).
+// Do NOT wrap here — nested providers created two overlapping palette
+// overlays and broke backdrop-close.
 import {
   Activity, AlertTriangle, ChevronRight, ShieldAlert, Sparkles, Search,
 } from "lucide-react";
@@ -181,11 +184,10 @@ export default function AdminHubV3() {
   }, [occOps]);
 
   return (
-    <CommandPaletteProvider>
-      <div
-        data-testid="admin-hub-v3-root"
-        className="min-h-screen bg-slate-50"
-      >
+    <div
+      data-testid="admin-hub-v3-root"
+      className="min-h-screen bg-slate-50"
+    >
         <PortalShell
           portalName="MASCI"
           portalRole="Admin"
@@ -396,6 +398,5 @@ export default function AdminHubV3() {
           </div>
         </PortalShell>
       </div>
-    </CommandPaletteProvider>
   );
 }
