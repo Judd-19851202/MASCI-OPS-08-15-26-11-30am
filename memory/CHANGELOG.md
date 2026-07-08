@@ -1,5 +1,43 @@
 # CHANGELOG
 
+## 2026-02-15 — TRACK 24.12 · Workstream A (AI Evidence Rebuild) + Workstream B (R2 / Disk Hardening) — 🟢 CLOSED
+
+**Trigger**: User ordered continuation after Phase A1 (photo append fix). Two full workstreams delivered before deploy.
+
+### Workstream A · AI Evidence Rebuild + Accepted-Summary Downstream Flow
+
+- **Evidence whitelist rebuilt** — `services/dr_ai/evidence.py::EVIDENCE_FIELD_WHITELIST` now covers every DR field group (crew · equipment · materials · outbound_materials · subcontractors · vendors · visitors · safety_quality · near_misses · excavation · competent_person · work_stoppage · general_notes · photos · photo_captions · photo_observations · attachments · project metadata · weather).
+- **`_draft_to_evidence` flattener rewritten** (`routes/dr_v2.py`) to forward every group from the DR draft. `DraftPayload` Pydantic model extended so V3 payloads no longer lose fields at validation.
+- **`day_narrative` AI prompt rewritten** (`services/dr_ai/agents.py`) — enumerates every source group and adds anti-hallucination guardrails: attachments metadata-only (no reading file contents), photos never described without a caption/observation on file, excavation `safe-to-use` claim gated on readiness state.
+- **PDF exec summary card injects accepted summary** (`pdf_render.py::_render_exec_summary_card`) — new hero block prints ABOVE the deterministic WORK/PRODUCTION/CONSTRAINTS lines when `ai_accepted_summary` is set. Legacy DRs without accepted summary render byte-identical to pre-24.12 output.
+- **PM email intel block confirmed** (`pdf_render.py::render_email_html`) — already renders "Operational Intelligence Summary" from `record.ai_accepted_summary`.
+- **V3 wiring bug fixed** — `SectionAiSummary` now passes `onAccept={(text, meta) => onAccepted?.({summary: text, meta})}` to `DailySummaryAssist`. Previous `onAccepted` prop name was a silent no-op — no summary reached the DR payload since Track 24.11.
+- **DailySummaryAssist forwards `photo_captions[]`** alongside `photos[]` so V1 payloads that carry per-photo captions are visible to the AI.
+
+### Workstream B · R2 / Disk Hardening
+
+- **`scripts/audit_disk_usage_24_12.py`** — read-only audit; enumerates `/app/backend/storage/project_docs`, backup dirs, `/tmp/basecamp`; prints per-path size · file count · age buckets · top-10 largest files · R2 head-bucket probe. Zero writes / zero deletes / zero mongo mutations (statically locked).
+- **`scripts/migrate_local_project_docs_to_r2.py`** — safe migrator; DRY-RUN default; `--apply` required for any mutation; verifies R2 HEAD on the uploaded key BEFORE unlinking the local file; writes an `hr_audit` row per migrated file with source path · R2 key · size · actor; resumable (docs already carrying `attachment_ref` skipped); fail-closed when R2 env is unset.
+- **`scripts/basecamp_import_big.py` rewritten** — streams big Basecamp files directly to Cloudflare R2 via `photo_storage.upload_local_file` (multipart under the hood); persists `attachment_ref` on `db.docs` records; no permanent `/app/backend/storage/project_docs` growth. Legacy disk-backed path gated behind `--fallback-to-disk` opt-in (recovery only).
+
+### Regression Locks
+
+- `/app/backend/tests/test_track_24_12_ai_evidence_and_flow.py` — 10 tests (whitelist coverage · flattener coverage · prompt enumeration · anti-hallucination rules · PDF hero-block injection · PDF legacy parity · email hero embedding · email legacy parity · V3 onAccept wiring · photo block).
+- `/app/backend/tests/test_track_24_12_disk_hardening.py` — 7 tests (audit read-only · migration dry-run default · migration HEAD-before-unlink · migration hr_audit emission · basecamp R2-default · basecamp fail-closed · syntactic parse).
+- `/app/backend/tests/test_track_24_12_photo_append_fix.py` — 5 tests (Phase A1, from previous iteration).
+
+### Verification
+
+- **Pytest**: 22/22 Track 24.12 locks pass · 94-test broader suite (24.12 + 23.10E + dr_pdf_002 + dr_roi_001f) pass.
+- **Testing agent iter 547**: 100% backend + 100% frontend. Two live DRs created — one with accepted summary rendered PDF containing "OPERATIONAL INTELLIGENCE SUMMARY · Source: Supervisor accepted"; the parity control DR without accepted summary rendered NO hero block.
+- **Scripts smoke-run in preview**: audit surfaced 532 MB of project_docs · 13 files on the pod; migration dry-run zero-mutation; `--apply` without R2 env aborted with clear message.
+
+### Deploy status
+
+- ⏳ Awaiting explicit deploy authorization (per user directive). No deploy attempted. All code + regression locks green.
+
+
+
 ## 2026-02-07 — TRACK 24.8 · JobPicker wrong-row + scroll-selects-row bug — 🟢 FIXED (preview) · awaiting redeploy
 
 **Reported symptom**: on iPhone Safari, tapping 'University High School' committed a different job. Also: scrolling was intermittently committing rows.

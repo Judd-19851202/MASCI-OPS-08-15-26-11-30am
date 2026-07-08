@@ -11,6 +11,17 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 - Memory: Append-only Markdown ledgers in `/app/memory/`
 
 
+
+## TRACK 24.12 · Workstream A + B SHIPPED · 2026-02-15 · deploy authorization PENDING
+
+**Phase A1 (photo append)** closed in iteration 546. **Workstreams A and B closed in iteration 547.**
+
+- **Workstream A · AI Evidence Rebuild + Downstream Flow** — evidence whitelist rewritten to cover every DR field group (crew · equipment · materials · outbound · subs · vendors · visitors · safety · excavation · CP · work-stoppage · tomorrow · general_notes · photos · photo_captions · photo_observations · attachments · project metadata · weather). `_draft_to_evidence` flattener now forwards all groups. `day_narrative` AI prompt enumerates every source group AND carries the anti-hallucination guardrails: attachments metadata-only, photos never described without a caption/observation on file, excavation `safe-to-use` claim gated on readiness state. V3 `SectionAiSummary` wiring bug fixed (`onAccept` prop wiring — previously silent no-op). PDF exec summary card injects the accepted summary hero block above deterministic lines; legacy DRs unchanged. Email intel block already read `ai_accepted_summary`; confirmed intact.
+- **Workstream B · R2 / Disk Hardening** — three scripts under `/app/backend/scripts/`. `audit_disk_usage_24_12.py` is read-only (banned mutation calls lock-tested). `migrate_local_project_docs_to_r2.py` defaults to dry-run, requires `--apply` for any mutation, verifies R2 HEAD before unlink, emits `hr_audit` row per file, fail-closed when R2 env is unset. `basecamp_import_big.py` streams directly to R2 via `photo_storage.upload_local_file`; no permanent `/app/backend/storage/project_docs` growth; legacy disk path only via `--fallback-to-disk` opt-in.
+- **Regression locks** — 22 tests across `test_track_24_12_ai_evidence_and_flow.py` (10) · `test_track_24_12_disk_hardening.py` (7) · `test_track_24_12_photo_append_fix.py` (5).
+- **Verification** — pytest 22/22 green. Testing agent iter 547 100% backend + 100% frontend; live DR with accepted summary rendered PDF containing `Operational Intelligence Summary · Source: Supervisor accepted`; control DR without accepted summary renders NO hero block (parity intact). Audit script surfaced 532 MB of project_docs · 13 files on the pod's local disk — validates the incident scenario the audit was designed to catch.
+- **Deploy status** — **awaiting explicit deploy authorization**. All code green, no deploy attempted.
+
 ## TRACK 24.2 · Final Deployment Blocker Closeout · Phases 1, 3, focused 4 SHIPPED · 2026-02-07
 - **Scope this iteration** (per operator's Option-A decision): Phase 1 Qualifications Engine finalization + Phase 3 remaining production hardening + focused Phase 4 integrated proof. Phase 2 (DR V3 EN/ES parity + free-text translation) is **DEFERRED to Track 24.3 with a concrete integration plan** (translation service = OpenAI GPT-5.2 via Emergent Universal Key with Claude Sonnet 4.5 fallback; fail-closed on translation error; preserve original Spanish in audit field; proper nouns / codes / IDs never translated).
 - **Phase 1 · Qualifications Engine finalization**:
