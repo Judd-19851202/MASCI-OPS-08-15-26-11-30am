@@ -3074,6 +3074,23 @@ register_daily_reports_routes(
 )
 
 # ------------------------------------------------------------
+# TRACK 24.17 · Operations Control Center — unified maintenance
+# console for super-admins. Wraps existing 24.12 disk scripts +
+# health probes so a non-coder platform owner can run cleanup,
+# migrations, and health checks from `/admin/operations-control`
+# without shell access. Every mutation writes an
+# `operations_audit` row.
+# ------------------------------------------------------------
+from routes.operations_control import (  # noqa: E402
+    register_operations_control_routes,
+)
+from services.operations_control.audit import (  # noqa: E402
+    ensure_indexes as ensure_occ_audit_indexes,
+)
+register_operations_control_routes(api_router, db, require_admin)
+asyncio.get_event_loop().create_task(ensure_occ_audit_indexes(db))
+
+# ------------------------------------------------------------
 # DR-CUTOVER-002 · Daily Operational Summary (draft + accept)
 # ADDITIVE mount. Zero drift on the V1 submit path — the two
 # routes here NEVER modify a submitted daily_report's core fields

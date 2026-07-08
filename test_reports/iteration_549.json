@@ -1,0 +1,39 @@
+{
+  "summary": "Track 24.17 · Operations Control Center verified end-to-end. Backend lock suite `tests/test_track_24_17_operations_control_center.py` = 12/12 pass. Live ingress checks against REACT_APP_BACKEND_URL confirmed: (1) GET /operations returns count=10 with all required op IDs (health.system_overview, storage.audit, storage.safe_cleanup, storage.r2_migration, r2.health, backups.health, daily_reports.health, ai.health, email.health, security.posture); (2) 401 without X-Admin-Token; (3) /overview returns status_snapshot on 8 of 10 ops (safe_cleanup + r2_migration have no status_fn by design — they're apply-only); (4) storage.audit dry-run returns disk.used_percent=81.1 + directories(6) + writes an audit row; (5) safe_cleanup dry-run returns dry_run_id + candidates.reclaimable_bytes=10.4MB; (6) safe_cleanup apply WITHOUT dry_run_id → HTTP 400 'dry_run_id required'; WITH dry_run_id → completed, reclaimed=10.5MB, truncated 4 logs, removed 27 __pycache__ dirs; (7) r2_migration apply without dry_run_id → 400; with dry_run_id but wrong phrase → 400 'confirmation_phrase must equal MIGRATE TO R2'; (8) /audit returns rows newest-first with action_id/operation_id/mode/ts; (9) NO secrets (MONGO_URL/S3_SECRET_KEY/OPENAI_API_KEY/etc.) leak in health.system_overview payload. Regression: GET /api/daily-reports → 200; POST /api/daily-reports/evidence/extract with base64 TXT returns extracted text. Frontend /admin/operations-control renders 10 cards across 8 category sections, 10 status pills, 10 dry-run buttons, 2 apply buttons (both disabled until dry-run), audit panel with 9 rows, expandable result block after Preview click, no user-facing console errors AFTER adminToken seeded.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/admin/operations-control/operations/storage.audit/dry-run", "issue": "Spec expects a top-level `dry_run_id` in the result; current implementation is a pure INFO/read-only op that returns disk.used_percent + directories + logs but NO dry_run_id (it has no apply pair so a token is not needed). Cosmetic mismatch with review-request wording only; behaviour is correct."},
+      {"endpoint": "audit rows", "issue": "actor_email is empty string in every audit row (require_admin returns a token payload without .email in this path). Non-blocking — actor.id/role are populated and rows persist correctly — but the audit trail loses attribution granularity. Consider hydrating email from portal_tokens.admin lookup."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Admin sign-in → /admin/operations-control", "issue": "After a normal UI sign-in the admin token is persisted at localStorage['masci.admin.token'], but OperationsControlCenter.jsx only reads localStorage['adminToken'] OR localStorage['admin_token']. Result: a freshly-signed-in super-admin lands on the page and sees 'Super-admin access required' with 401s in console until the token is manually copied under adminToken. Two 401 errors observed in console pre-seed. Fix: add 'masci.admin.token' to the fallback list in adminToken() at /app/frontend/src/pages/OperationsControlCenter.jsx line 71-81.", "affected_selectors": ["[data-testid='occ-error']"]}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_track_24_17_operations_control_center.py"
+  ],
+  "action_items": [
+    "Frontend: broaden adminToken() lookup in OperationsControlCenter.jsx to also read localStorage['masci.admin.token'] — otherwise the OCC page 401s for real admins right after sign-in (the exact flow platform owners will use).",
+    "Backend (optional/minor): populate actor_email in operations_audit rows by resolving the admin token → user email in require_admin, so the audit trail carries who ran each dry-run/apply.",
+    "Backend (nit): document that storage.audit does not return a dry_run_id (it's an INFO op with no apply pair) — align lock-test expectations with the actual read-only shape."
+  ],
+  "critical_code_review_comments": [
+    "services/operations_control/storage.py is 512 lines — approaching the 700-line ceiling; if r2_migration grows further consider splitting into storage_audit.py + safe_cleanup.py + r2_migration.py.",
+    "routes/operations_control.py correctly enforces dry_run_id + confirmation_phrase at the route layer AND storage.py re-checks them in _r2_migration_apply — defence-in-depth is good but ensure error surfaces stay consistent (route raises HTTPException 400, handler returns {status:failed}).",
+    "operations_audit is append-only via services/operations_control/audit.py — no update/delete endpoints wired in routes ✓; verify db.operations_audit has an index on (ts DESC, operation_id) via ensure_occ_audit_indexes at server.py boot.",
+    "Frontend: adminToken() fallback list should include the canonical portal-token key used by the sign-in flow (masci.admin.token). This is the P0 finding of this run."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "95%"},
+  "test_credentials": "jaymn.judd@mascigc.com / Maddix123! → portal_tokens.admin (verified live). Token stored at localStorage['masci.admin.token'] after sign-in; must be mirrored to 'adminToken' for the OCC page to authenticate.",
+  "seed_data_creation": "During testing: 1 storage.audit dry-run row, 1 safe_cleanup dry-run row, 1 safe_cleanup apply row (real cleanup executed — truncated 4 supervisor logs + removed 27 __pycache__ dirs, reclaimed ~10.5MB), 1 r2_migration dry-run row. All persist in db.operations_audit and survive supervisor restart.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend is clean — all 12 lock tests + all 14 live checks green. The one real integration issue is the frontend localStorage key mismatch: OperationsControlCenter.jsx must read 'masci.admin.token' in addition to 'adminToken'/'admin_token'. To reproduce: sign in via UI at /sign-in as jaymn.judd@mascigc.com/Maddix123!, then land on /admin/operations-control — you'll see 'Super-admin access required'. After fix, retest just the frontend flow (no backend re-run needed). Playwright can seed via `localStorage.setItem('adminToken', portal_tokens.admin)` from a direct multi-login call as a workaround.",
+  "rca of the issue": "Root cause of the OCC frontend 401: the token lookup in /app/frontend/src/pages/OperationsControlCenter.jsx function adminToken() (lines 71-81) checks two legacy keys ('adminToken', 'admin_token') but the platform-wide sign-in flow (used by /sign-in) writes the super-admin portal token to 'masci.admin.token'. So the SPA authenticates the *page load* correctly (the admin route wrapper accepts masci.admin.token) but every XHR from within the OCC page ships without X-Admin-Token, producing 401 on every fetch and the 'Super-admin access required' banner. Fix is a one-line append to the fallback list. All other functionality — dry-run tokens, apply gating, confirmation-phrase validation, audit-panel wiring, disabled-state logic on Apply — works exactly as the review request specifies."
+}
