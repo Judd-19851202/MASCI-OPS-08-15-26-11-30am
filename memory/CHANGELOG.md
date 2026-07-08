@@ -1,5 +1,25 @@
 # CHANGELOG
 
+## 2026-02-17 — TRACK 24.18 · Final Production Deployment Certification Gate — 🟢 GO
+
+**Trigger**: Pre-production certification of the combined 24.12 + 24.13 + 24.14 + 24.15 + 24.16 + 24.17 package.
+
+### Defect found and fixed during certification
+- **P1 · Test-ordering pollution** in `test_track_24_17_operations_control_center.py`. Original design used `pytest.mark.asyncio` on three tests + `asyncio.get_event_loop().run_until_complete(...)` in a fourth. Both patterns closed the process-default event loop that older `pytest-asyncio` tests (Track 23.10-E) still consumed via `get_event_loop()`. Symptom: 5 Track 23.10-E tests failed with `RuntimeError: There is no current event loop in thread 'MainThread'` whenever OCC async tests ran first in the suite ordering. **Fix**: introduced `_run_isolated(coro)` helper that runs each OCC async assertion on a fresh, private `asyncio.new_event_loop()` and closes it locally. All three async OCC tests converted to sync + `_run_isolated`. Zero regressions after fix.
+
+### Full-suite verification (post-fix)
+- 144/144 pass across 11 test files: 24.17 · 24.13 (× 3) · 24.12 (× 3) · 23.10-E · dr_roi · dr_pdf · dr_unify language lock.
+- Live endpoint sweep: `/api/dr-v2/meta=200 · /api/admin/operations-control/operations=200 (admin) · /api/admin/operations-control/overview=200 (admin) · /api/daily-reports/evidence/extract=200 · /api/daily-reports=200 (admin) · /api/dev/*=404 · /api/hr/employees=401 anon`.
+- OCC live snapshot: R2 healthy · AI healthy (4 agents · Emergent Universal Key configured · synthesize ENABLED) · Email healthy (Resend configured) · Security posture healthy in preview · Daily Reports healthy (92 DRs in last 24 h with 100% accepted-AI-summary coverage) · Backups warning (preview has no backup dir populated — expected).
+- Language lock: zero user-visible V1/V2/V3/legacy/modern Daily Report strings in the entire frontend.
+- ESLint: clean on 24.17 files.
+
+### Certification verdict
+- **P0**: 0. **P1**: 0 (one found + fixed). **P2**: 0. **P3**: 1 pre-existing follow-up from 24.17 (`actor_email` empty in audit rows; audit trail still intact).
+- **Deploy authorization**: **GO**. Zero remaining release blockers.
+
+
+
 ## 2026-02-17 — TRACK 24.17 · Operations Control Center — 🟢 CLOSED (P0/P1 first working set)
 
 **Trigger**: User escalated to a unified super-admin maintenance console so a non-coder platform owner can run cleanup, migrations, and health checks WITHOUT shell access.

@@ -102,20 +102,33 @@ def test_read_only_operations_have_no_apply_handler():
 
 # ── Secret-value redaction ─────────────────────────────────────────
 
+def _run_isolated(coro):
+    """Run a coroutine on a private event loop without touching the
+    process-default loop. This preserves the `get_event_loop()`
+    contract that pre-existing tests (e.g. Track 23.10-E) rely on."""
+    import asyncio
+    loop = asyncio.new_event_loop()
+    try:
+        return loop.run_until_complete(coro)
+    finally:
+        loop.close()
+
+
 def test_env_var_values_never_appear_in_security_or_email_output():
     """Runtime: security.posture and email.health must return
     PRESENCE booleans only, never the actual secret value."""
-    import asyncio
     from services.operations_control import build_registry
     os.environ["SECRET_TEST_KEY_24_17"] = "supersecretvalue123"
     try:
         reg = build_registry(db=None)
-        sec_result = asyncio.get_event_loop().run_until_complete(
-            reg["security.posture"].status_fn({}),
-        )
-        email_result = asyncio.get_event_loop().run_until_complete(
-            reg["email.health"].status_fn({}),
-        )
+
+        async def _both():
+            return (
+                await reg["security.posture"].status_fn({}),
+                await reg["email.health"].status_fn({}),
+            )
+
+        sec_result, email_result = _run_isolated(_both())
     finally:
         os.environ.pop("SECRET_TEST_KEY_24_17", None)
     import json
@@ -127,23 +140,20 @@ def test_env_var_values_never_appear_in_security_or_email_output():
 
 # ── Storage safe-cleanup contract ──────────────────────────────────
 
-@pytest.mark.asyncio
-async def test_safe_cleanup_apply_rejects_missing_dry_run():
+def test_safe_cleanup_apply_rejects_missing_dry_run():
     from services.operations_control.storage import _safe_cleanup_apply
-    res = await _safe_cleanup_apply({"dry_run_id": ""})
+    res = _run_isolated(_safe_cleanup_apply({"dry_run_id": ""}))
     assert res["status"] == "failed"
     assert "dry-run" in (res.get("error") or "").lower()
 
 
-@pytest.mark.asyncio
-async def test_r2_migration_apply_rejects_missing_confirmation():
+def test_r2_migration_apply_rejects_missing_confirmation():
     """Even with a valid dry-run token, apply must fail without the
     confirmation phrase. We hand-inject a token to isolate the
     confirmation check."""
     from services.operations_control import storage as st
-    # Manually register a dry-run so the token is valid.
     token = st._register_dry_run("storage.r2_migration", {"candidates": []})
-    res = await st._r2_migration_apply({"dry_run_id": token})
+    res = _run_isolated(st._r2_migration_apply({"dry_run_id": token}))
     assert res["status"] == "failed"
     assert "confirmation" in (res.get("error") or "").lower()
 
