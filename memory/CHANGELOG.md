@@ -1,5 +1,50 @@
 # CHANGELOG
 
+## 2026-02-17 — TRACK 24.17 · Operations Control Center — 🟢 CLOSED (P0/P1 first working set)
+
+**Trigger**: User escalated to a unified super-admin maintenance console so a non-coder platform owner can run cleanup, migrations, and health checks WITHOUT shell access.
+
+### New subsystem · `services/operations_control/`
+- **Registry** (`registry.py`) — `Operation` dataclass declares category · risk · reads · writes · never_touches · requires_dry_run · confirmation_phrase · manual_reason. Every registered op is auto-discovered by module.
+- **Audit log** (`audit.py`) — append-only `db.operations_audit`. Public API is `write · list_recent · get`. No update or delete surfaces are exposed.
+- **Module set** — 8 modules (`health · storage · r2 · backups · daily_reports · ai · email · security`) each contributing operations to the registry.
+- **Storage operations** wrap the deployed Track 24.12 scripts: `storage.audit` (read-only), `storage.safe_cleanup` (SAFE_CLEANUP · dry-run → apply), `storage.r2_migration` (DATA_MIGRATION · dry-run → apply gated by `MIGRATE TO R2` phrase).
+
+### 10 P0/P1 operations shipped
+- `health.system_overview` · `storage.audit` · `storage.safe_cleanup` · `storage.r2_migration` · `r2.health` · `backups.health` · `daily_reports.health` · `ai.health` · `email.health` · `security.posture`.
+- Read-only ops have `apply_fn = None` (locked by test).
+- Destructive/data-migration ops require both `dry_run_id` (TTL 30 min) AND the exact confirmation phrase (locked by test).
+
+### API · `/api/admin/operations-control/*`
+- `GET  /overview` — fans out over every `status_fn` for one-glance red/yellow/green.
+- `GET  /operations`, `GET /operations/{id}` — registry listing + single-op detail.
+- `POST /operations/{id}/dry-run` — returns `dry_run_id` + preview envelope · writes audit row.
+- `POST /operations/{id}/apply` — enforces `dry_run_id` + confirmation phrase at the route layer AND at the handler layer (defence-in-depth) · writes audit row.
+- `GET  /audit`, `GET /audit/{id}` — immutable history newest-first.
+- All 6 endpoints require the admin token; anonymous access = 401.
+
+### Frontend · `/admin/operations-control`
+- Grouped cards by category with live status pills, expandable read/write contract, Preview button, Apply button (disabled until dry-run + phrase entered), audit panel with newest-first log.
+- Confirmation phrase field appears inline only after dry-run completes.
+- Every mutation surfaces a toast + refreshes the audit panel.
+- Fix during test cycle: adminToken() lookup now includes `masci.admin.token` (the canonical portal token key the sign-in flow writes) alongside legacy aliases.
+
+### Regression Locks · 12 tests
+- Registry structure + P0/P1 op coverage · Confirmation phrase locked · Read-only ops have no apply · Secret-value redaction (env values never returned) · Safe cleanup rejects missing dry-run · R2 migration rejects missing confirmation · Audit module exposes write + read only (no delete/update) · One Daily Report language lock across all OCC modules · Frontend route + component reference declared.
+
+### Verification
+- Backend pytest 12/12 pass. Broader suite 59/59 across 24.12 + 24.13 + 24.17 locks.
+- Testing agent iter 549: backend 100% · frontend 95% (fixed the localStorage key). Live end-to-end verified: `storage.audit` reports 81.1% disk; `storage.safe_cleanup` reclaimed 10.5 MB on preview (truncated 4 supervisor logs + removed 27 pycache dirs); `storage.r2_migration` correctly showed 0 candidates on preview (no file_path-backed db.docs rows); apply-without-dry-run and apply-without-confirmation-phrase both returned 400 as designed.
+
+### Known follow-ups
+- P3 · `actor_email` in audit rows is empty because `require_admin` returns `True` (not the admin user doc). Non-blocking; audit still carries operation_id + mode + timestamp. A Track 24.18 could plumb a token→email lookup.
+- Modules that are stubbed out entirely (Documents & OCR, Photos, Data Integrity, Queues) will surface as empty categories on the UI — not shown until first operation ships in a future track.
+
+### Deploy status
+- ⏳ Ready to deploy alongside/after Track 24.12+24.13+24.14. No new env vars introduced.
+
+
+
 ## 2026-02-16 — TRACK 24.13 / 24.14 · Evidence Intelligence Engine + ONE-Daily-Report Language Cleanup — 🟢 CLOSED
 
 **Trigger**: User escalated to full P0 Daily Report Evidence Intelligence Engine (server-side canonical manifest, document extraction, material ticket reconciliation, upgraded AI summary, PDF/email/viewer/ODS wiring) AND enforced "there is ONE Daily Report" — product-facing V1/V2/V3 language banned via repo-wide lock.

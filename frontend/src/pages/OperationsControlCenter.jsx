@@ -70,7 +70,11 @@ const STATUS_STYLES = {
 
 function adminToken() {
   try {
+    // TRACK 24.17 · order matters — check the canonical portal-token
+    // key the platform sign-in flow writes to first, then fall back
+    // to the legacy alias keys some older admin surfaces used.
     return (
+      localStorage.getItem("masci.admin.token") ||
       localStorage.getItem("adminToken") ||
       localStorage.getItem("admin_token") ||
       ""
