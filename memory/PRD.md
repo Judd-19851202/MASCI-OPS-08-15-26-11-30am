@@ -12,6 +12,21 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 
 
 
+## TRACK 26.03 · Daily Report Real-Device Pilot Certification · 2026-07-08 · CERTIFIED (emulator scope)
+
+- **Directive**: Certify Track 26.02 recovery fixes hold up under real field workflows across 4 device profiles (iPhone Safari, iPad Safari, Android Chrome, Toughbook Desktop) with explicit labeling of emulator vs real-device vs inbox-delivery vs unverified scope.
+- **Result**: ✅ GO for emulator scope. 4 real reports (DR-2026-02474 / 02476 / 02478 / 02480) persisted from 4 fresh device BrowserContexts. Regression locks D-01/D-03/D-10 all PASS across every profile.
+- **Method**: Playwright device-emulated harness (`/app/tests/track_26_03_device_pilot.py` + `/app/tests/track_26_03_downstream.py`). iPhone/iPad ran on Chromium (WebKit binaries unavailable in container — disclosed).
+- **Downstream**: PDF (`%PDF-`, 1.45 MB) ✅ · admin list ✅ · safety feed ✅ · dispatch forensics endpoint ✅ · **inbox delivery UNVERIFIED (preview `AUTO_EMAIL_REPORTS=false` intentionally suppressed)**.
+- **New findings**: 26.03-D-01 (P2) `JobPicker` swallowed parent `data-testid` prop — FIXED same-run by forwarding prop to `PopoverTrigger` button. 26.03-D-02 (P3) no length ceiling on `station_from`/`station_to` — deferred. 26.03-D-03 (P3) preview per-IP rate-limit flakes batch cert — deferred.
+- **NO-GO** for claiming "real-device certified" — no physical hardware exercised. Follow-up field walk recommended on one real iPhone Safari + one real Android Chrome before flipping any adoption switch.
+- **NO-GO** for claiming "inbox-delivery certified" — env-suppressed by design.
+- **Artifacts**: `/app/memory/TRACK_26_03_PILOT_CERTIFICATION.md` (final report), `/app/test_reports/iteration_555.json` (structured summary), `/app/test_reports/track_26_03/*` (screenshots + console/network logs per device), `/app/tests/track_26_03_*.py` (harness).
+- **Files touched**: `/app/frontend/src/components/JobPicker.jsx` (accept + forward `data-testid` prop to interactable trigger).
+
+
+
+
 ## TRACK 24.13 / 24.14 · Evidence Intelligence Engine + ONE Daily Report Language · 2026-02-16 · deploy authorization PENDING
 
 **Product line**: There is **ONE Daily Report** — no product-facing V1/V2/V3. Internal filenames may still reference legacy versions as compatibility adapters (per user directive). Repo-wide lock test enforces this.

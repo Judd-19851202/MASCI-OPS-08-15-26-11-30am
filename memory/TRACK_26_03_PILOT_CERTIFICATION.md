@@ -143,3 +143,13 @@ No P0/P1 defects newly discovered. All Track 26.02 P0/P1/P2 fixes hold under run
 - ⚠ **NO-GO** for claiming "real-device certified." No physical hardware was exercised. Recommend a follow-up field walk on at least one real iPhone (Safari) and one real Android (Chrome) before flipping any field-adoption switch.
 - 🔴 **NO-GO** for claiming "inbox-delivery certified." `AUTO_EMAIL_REPORTS=false` intentionally suppresses live sends in preview.
 - ⚠ Follow-up needed on 26.03-D-01 (job-picker automation selector) and D-09 runtime toast evidence (need a real invalid-field vector).
+
+---
+
+## 8. Track 26.03 Follow-up Fixes (post-cert)
+
+| ID | Status | Fix | Files touched |
+|---|---|---|---|
+| **26.03-D-01** | ✅ FIXED (2026-07-08) | `JobPicker` now accepts a `data-testid` prop and forwards it to the interactable `PopoverTrigger` button (falls back to `job-picker-trigger` when not provided). Parent selector `[data-testid="dr-v3-job-picker"]` is now clickable in Playwright and every other automated harness. | `/app/frontend/src/components/JobPicker.jsx` |
+| **26.03-D-02** | 📝 DEFERRED (P3) | Would add `Field(max_length=32)` on `station_from`/`station_to` to expose a legit 422 vector for future D-09 toast runtime evidence. Not blocking. | tracked in ROADMAP |
+| **26.03-D-03** | 📝 DEFERRED (preview-only automation flake) | Rate-limit-per-IP bucket keys on ingress client IP; batch cert runs from a single agent will DoS themselves. Recommend keying on token or providing a documented env-gated bypass for cert runs. | tracked in ROADMAP |

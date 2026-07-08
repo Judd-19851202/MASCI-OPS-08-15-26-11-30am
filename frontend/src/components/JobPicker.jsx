@@ -57,6 +57,7 @@ export function JobPicker({
   className = "",
   allowCustom = true,
   emptyHint = "",
+  "data-testid": dataTestId,
 }) {
   const [open, setOpen] = useState(false);
   const [library, setLibrary] = useState(STATIC_LIBRARY);
@@ -111,7 +112,7 @@ export function JobPicker({
             "focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2",
             className
           )}
-          data-testid="job-picker-trigger"
+          data-testid={dataTestId || "job-picker-trigger"}
         >
           <span className="flex items-center gap-2 truncate">
             <Search className="w-4 h-4 text-slate-500 shrink-0" />
