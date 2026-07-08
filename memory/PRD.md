@@ -12,6 +12,30 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 
 
 
+## TRACK 26.04 · Final Pre-Deployment Certification Gate · 2026-07-08 · **GO for production**
+
+- **Verdict**: 🟢 GO for merging + deploying Track 24 → 26 recovery package. Conditional on 4 explicit NO-GO boundaries (real-device claim / inbox-delivery claim / D-04 runtime / D-09 runtime).
+- **Regression aggregate**: 252 backend tests executed → 250 PASS · 7 legitimate skips · 0 code-regression failures. Two initial 429 rate-limit hits (preview env `PUBLIC_POST_LIMIT_PER_HOUR=30`) re-executed clean after cool-off.
+- **Pipeline runtime probe**: 22 hops from operator submit through PDF/AI/Email dispatch/OCC endpoints — every hop 200 except AI-synthesize which returns 404 for a stale report_id (endpoint alive, draft-scoped by design).
+- **Live end-to-end submit** (`POST /api/daily-reports`) with all 26.02 D-01/D-03/D-10 vectors: HTTP 200, server-normalized `[TON, CY, LF, OTHER+custom_unit_label='Loads']` for production units and `[weather, utility]` for constraint types. Full 26.02 recovery locks confirmed live.
+- **Zero drift**: only `yarn.lock` untracked (auto-gen); no merge markers, no new TODO/FIXME/HACK in any of 5 modified files (26.02: 4 files + 26.03: 1 file).
+- **Deployment agent independent scan**: PASS. Env vars parameterized; MongoDB Emergent-managed; supervisor RUNNING; CORS regex covers `mascidocs.com`; no hardcoded secrets.
+- **NO-GO boundaries** (honest scope):
+  1. Real-device claim (only Playwright device-emulated Chromium; no physical iPhone/iPad/Android/Toughbook exercised).
+  2. Inbox-delivery claim (preview `AUTO_EMAIL_REPORTS=false` by design; must set `true` in production and post-deploy smoke to close R-04).
+  3. D-04 weather 24h max-severity (source-verified only).
+  4. D-09 pydantic-detail toast (source-verified only).
+- **Post-deploy smoke required (within 15 min of prod deploy)**:
+  1. Submit one live Daily Report from a real supervisor account.
+  2. Confirm PDF opens.
+  3. Confirm the PM receives the email (closes R-04).
+  4. Confirm the report appears in admin, PM, safety feeds.
+- **Rollback plan**: every fix is single-file surgical with `git revert`; Emergent Rollback feature preferred. Emergency operator-side rollback: `POST /api/admin/dr-v3-flag/tenant-default {"enabled":false}` immediately routes all operators back to V1 shell (which never had these validation gates). Zero downtime.
+- **Artifacts**: `/app/memory/TRACK_26_04_FINAL_DEPLOYMENT_GATE.md` (full certification report with pipeline table, regression counts, 8-pillar matrix, deployment order, and rollback plan).
+
+
+
+
 ## TRACK 26.03 · Daily Report Real-Device Pilot Certification · 2026-07-08 · CERTIFIED (emulator scope)
 
 - **Directive**: Certify Track 26.02 recovery fixes hold up under real field workflows across 4 device profiles (iPhone Safari, iPad Safari, Android Chrome, Toughbook Desktop) with explicit labeling of emulator vs real-device vs inbox-delivery vs unverified scope.
