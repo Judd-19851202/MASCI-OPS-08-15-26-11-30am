@@ -12269,3 +12269,41 @@ Potential improvement: would you like me to add a **built-in in-form image previ
 - Track 25.04 · Phase E — Legacy sunset (delete confirmed-dead routes, remove banners) after 2-week parallel run.
 - Track 25.05 · Flag promotion to default ON after operator UAT + telemetry sign-off.
 
+
+---
+
+## TRACK 26.00-26.02 · Daily Report Forensic Audit + P0/P1 Recovery — 2026-02-07 · ✅ SHIPPED
+
+**Directive**: Field crews reported Daily Report failures ("supervisor deleted work-performed section to submit", "weather said clear all night when raining", "photos blocked submission", "AI summary poor"). User halted admin work and demanded a forensic audit-first recovery.
+
+**Five audit rounds (zero production code touched):**
+- Track 26.00 — 15-phase forensic audit → `/app/memory/TRACK_26_00_DAILY_REPORT_FORENSIC_AUDIT.md`
+- Track 26.00A — 16-section certification → `/app/memory/TRACK_26_00A_DAILY_REPORT_FORENSIC_CERTIFICATION.md`
+- Track 26.00B — Zero-trust with live HTTP evidence → `/app/memory/TRACK_26_00B_DAILY_REPORT_ZERO_TRUST_CERTIFICATION.md`
+- Track 26.00C — Execution trace → `/app/memory/TRACK_26_00C_DAILY_REPORT_EXECUTION_TRACE.md`. **Retracted D-07** ("V3 AI is not AI" — runtime proved V3 uses Claude Sonnet 4.5 via `/api/dr-v2/ai/synthesize`).
+- Track 26.01 — Reality Restoration · six-status classification of 108+ items → `/app/memory/TRACK_26_01_REALITY_RESTORATION.md`
+
+**Track 26.02 · P0/P1 Recovery — SHIPPED**:
+- **D-01 · unit Literal → str** with server-side label→code normalization (`_normalize_unit`). Accepts "Tons", "Cubic Yards", "Loads", "cubes" — all normalized to canonical codes (LF, SY, CY, TON, EA, ACRE, OTHER). Non-canonical labels preserved as `custom_unit_label`. `backend/routes/daily_reports.py`.
+- **D-03 · extra="forbid" → extra="ignore"** on ProductionRow + ConstraintRow. UI helper fields (unit_snapshot, unit_code, percent_complete, activity_code, cost_code_snapshot) no longer 422.
+- **D-10 · constraint_type case-normalized** + unknowns bucketed to "other" with original word preserved in row's notes prefix `[original]`.
+- **D-02 · UnitCombo canonical codes** — dropdown now shows friendly labels but posts backend-canonical codes. `frontend/src/components/daily-report-v3/UnitCombo.jsx`.
+- **D-09 · Submit toast surfaces Pydantic 422 detail** — operator sees `loc → msg (got: value)` instead of generic "Submit failed". `frontend/src/pages/NewDailyReportV3.jsx:388-410`.
+- **D-04 · Weather max-severity sampling** — samples all 24 hourly WMO codes (was 3 daytime), picks max-severity for summary word, sums total_precip_in across 24h, includes overnight snapshots (00:00, 03:00), exposes `fetched_at_iso` + `overridden` + `max_severity_code`. Overnight rain now surfaces. `frontend/src/lib/weather.js`.
+
+**Regression locks (new file · 29 tests)**: `backend/tests/test_track_26_02_daily_report_recovery.py` — validates: 13 unit labels accepted · extra fields ignored · 8 constraint case variants normalized · positive controls (canonical codes + empty photos) · weather.js static locks (no middle-of-day pick, max_severity_code + total_precip_in + overridden + fetched_at_iso + WMO_SEVERITY present) · UnitCombo codes match backend canonical set · submit toast surfaces Pydantic detail.
+
+**Deferred defects (documented in Track 26.01 with ownership)**:
+- **D-04b · Photo payload chunked upload** — would break payload contract, needs its own track.
+- **D-05 · Thumbnail persistence on reload** — requires device drill for root cause.
+- **D-08 · On-screen email delivery confirmation** — needs submit response schema change; P2, next batch.
+- **V1 shell retirement** — V1 users see `tenant_ai_disabled` on the deterministic composer path; V3 users get real Claude. Retirement is a separate track.
+
+**Testing Agent verification (iter554)**: **GO** · 29/29 Track 26.02 locks + 60/60 pre-existing Track 24/25 tests all pass. Live HTTP evidence for every defect fix. Backend rate-limiter observation logged (needs Redis for multi-worker prod — adjacent, not this track). `RATE_LIMITING=on` restored to `/app/backend/.env`.
+
+**Zero-drift confirmation**: 5 audit docs in `/app/memory/` · 1 new lock test file · 4 production files edited (2 backend · 2 frontend). No API endpoints added or changed. No DB schema drift. No permission changes. All existing Track 24/25 regression locks green.
+
+**Real-device certification (Track 26.03 · deferred)**:
+- iOS Safari / iPad Safari / Android Chrome / Toughbook Chrome real-device pilot required before flipping V3 to default ON platform-wide.
+- 60+ UNVERIFIED subsystems (Section 2 of Track 26.01) require live-device / provider / DB access — recommended follow-on audit slice.
+
