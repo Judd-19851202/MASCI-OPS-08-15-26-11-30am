@@ -538,7 +538,7 @@ export default function EmployeeLifecycleQualifications() {
       >
         <div className="p-3 bg-slate-100 border-b border-slate-200 font-mono text-[10px] uppercase tracking-[0.2em] font-bold text-slate-700">
           Active registry · {activeRegistry.count} people · read-through for
-          Trench Safety · Daily Report V3 · Scheduling · Safety Portal
+          Trench Safety · Daily Report · Scheduling · Safety Portal
         </div>
         {loading ? (
           <div className="p-10 text-center text-slate-500">

@@ -207,6 +207,124 @@ def _fmt_intel_source(meta: Any) -> str:
     return "Supervisor accepted"
 
 
+
+# TRACK 24.13 · Attachment & Document Evidence section renderer.
+def _render_attachment_evidence_section(d: Dict[str, Any]) -> str:
+    """Return the Attachment Evidence HTML block or "".
+
+    Consumes the Evidence Manifest stored on the DR record under
+    ``evidence_manifest`` (persisted at submit time when Track 24.13
+    is active). Legacy DRs render "" here — behaviour is byte-identical
+    to pre-24.13 output.
+    """
+    manifest = d.get("evidence_manifest") or {}
+    attachments = manifest.get("attachments") or []
+    recon = manifest.get("material_reconciliation") or {}
+    warnings = manifest.get("warnings") or []
+    if not attachments and not recon.get("matched") and not warnings:
+        return ""
+
+    parts: List[str] = []
+
+    if attachments:
+        rows_html = ""
+        for a in attachments[:20]:
+            fname = escape(str(a.get("filename") or "—"))
+            status = escape(str(a.get("extraction_status") or "not_started"))
+            reason = escape(str(a.get("extraction_reason") or ""))
+            src = escape(str(a.get("source_section") or ""))
+            pages = a.get("page_count") or 0
+            rows = a.get("row_count") or 0
+            detail_bits = []
+            if pages:
+                detail_bits.append(f"{pages} page(s)")
+            if rows:
+                detail_bits.append(f"{rows} row(s)")
+            if src:
+                detail_bits.append(src)
+            detail = escape(" · ".join(detail_bits))
+            status_bg = {
+                "extracted": "#dcfce7",
+                "scanned_pdf_no_text": "#fef3c7",
+                "unsupported": "#fee2e2",
+                "encrypted": "#fee2e2",
+                "corrupt": "#fee2e2",
+                "failed": "#fee2e2",
+                "too_large": "#fef3c7",
+                "not_started": "#e2e8f0",
+            }.get(a.get("extraction_status"), "#e2e8f0")
+            rows_html += (
+                f'<tr>'
+                f'<td style="padding:3px 6px;border:1px solid #cbd5e1;'
+                f'font-size:9pt;">{fname}</td>'
+                f'<td style="padding:3px 6px;border:1px solid #cbd5e1;'
+                f'font-size:8.5pt;text-transform:uppercase;letter-spacing:0.1em;'
+                f'font-family:\'Courier New\',monospace;background:{status_bg};'
+                f'text-align:center;">{status}</td>'
+                f'<td style="padding:3px 6px;border:1px solid #cbd5e1;'
+                f'font-size:9pt;color:#475569;">{detail}</td>'
+                f'<td style="padding:3px 6px;border:1px solid #cbd5e1;'
+                f'font-size:8.5pt;color:#94a3b8;font-style:italic;">{reason}</td>'
+                f'</tr>'
+            )
+        parts.append(
+            '<div style="font-family:\'Courier New\',monospace;font-size:9px;'
+            'letter-spacing:0.12em;text-transform:uppercase;color:#475569;'
+            'margin:0 0 4px;">Uploaded Documents</div>'
+            '<table style="width:100%;border-collapse:collapse;">'
+            '<thead><tr style="background:#f1f5f9;">'
+            '<th style="padding:3px 6px;border:1px solid #cbd5e1;text-align:left;'
+            'font-size:8pt;letter-spacing:0.1em;text-transform:uppercase;">Filename</th>'
+            '<th style="padding:3px 6px;border:1px solid #cbd5e1;font-size:8pt;'
+            'letter-spacing:0.1em;text-transform:uppercase;">Extraction</th>'
+            '<th style="padding:3px 6px;border:1px solid #cbd5e1;text-align:left;'
+            'font-size:8pt;letter-spacing:0.1em;text-transform:uppercase;">Detail</th>'
+            '<th style="padding:3px 6px;border:1px solid #cbd5e1;text-align:left;'
+            'font-size:8pt;letter-spacing:0.1em;text-transform:uppercase;">Reason</th>'
+            f'</tr></thead><tbody>{rows_html}</tbody></table>'
+        )
+
+    if recon.get("matched") or recon.get("unmatched_extracted") or recon.get("advisories"):
+        matched = recon.get("matched") or []
+        unmatched_ext = recon.get("unmatched_extracted") or []
+        advisories = recon.get("advisories") or []
+        stat_html = (
+            '<div style="display:flex;gap:16px;margin-top:8px;'
+            'font-family:\'Courier New\',monospace;font-size:8pt;'
+            'letter-spacing:0.14em;text-transform:uppercase;color:#475569;">'
+            f'<div>Matched tickets: <strong>{len(matched)}</strong></div>'
+            f'<div>Unmatched extracted: <strong>{len(unmatched_ext)}</strong></div>'
+            f'<div>Advisories: <strong>{len(advisories)}</strong></div>'
+            '</div>'
+        )
+        adv_html = ""
+        if advisories:
+            adv_html = (
+                '<ul style="margin:6px 0 0 18px;padding:0;font-size:9pt;color:#334155;">'
+                + "".join(f'<li>{escape(str(a))}</li>' for a in advisories[:8])
+                + '</ul>'
+            )
+        parts.append(
+            '<div style="font-family:\'Courier New\',monospace;font-size:9px;'
+            'letter-spacing:0.12em;text-transform:uppercase;color:#475569;'
+            'margin:10px 0 4px;">Material Ticket Reconciliation (advisory)</div>'
+            f'{stat_html}{adv_html}'
+        )
+
+    if warnings:
+        parts.append(
+            '<div style="font-family:\'Courier New\',monospace;font-size:9px;'
+            'letter-spacing:0.12em;text-transform:uppercase;color:#c8102e;'
+            'margin:10px 0 4px;">Evidence Warnings</div>'
+            '<ul style="margin:0 0 0 18px;padding:0;font-size:9pt;color:#7f1d1d;">'
+            + "".join(f'<li>{escape(str(w))}</li>' for w in warnings[:8])
+            + '</ul>'
+        )
+
+    return "".join(parts)
+
+
+
 def _render_intelligence_section(d: Dict[str, Any]) -> str:
     """Return the Operational Intelligence Summary HTML block, or ""."""
     summary = (d.get("ai_accepted_summary") or "").strip()
@@ -1405,6 +1523,19 @@ def _render_daily(d: Dict[str, Any]) -> str:
     if _intel_html:
         rows.append(
             _section("10a · Operational Intelligence Summary", _intel_html)
+        )
+
+    # TRACK 24.13 · Attachment Evidence section.
+    # When the DR carries an evidence manifest (attachments with
+    # extraction results OR reconciled material tickets) surface a
+    # tight PDF block that lists what the AI actually saw versus what
+    # remains metadata-only. This exists so the PM can independently
+    # verify the AI didn't hallucinate. Helper returns "" when the
+    # manifest is empty, keeping legacy PDFs byte-compatible.
+    _evidence_html = _render_attachment_evidence_section(d)
+    if _evidence_html:
+        rows.append(
+            _section("10b · Attachment & Document Evidence", _evidence_html)
         )
 
     # DR-FIX-3 · R13 · Daily Report Signature Simplification.

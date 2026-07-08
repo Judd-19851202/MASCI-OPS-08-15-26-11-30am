@@ -1,0 +1,30 @@
+{
+  "summary": "Track 24.13 Evidence Intelligence Engine + ONE-Daily-Report language cleanup verified end-to-end. All 47 backend lock tests pass (5 files) plus the 1 dr_unify V1/V2 language guard. Additionally authored 12 live smoke tests against the real REACT_APP_BACKEND_URL ingress covering: meta health, evidence-manifest endpoint (version=24.13.1, sha256: hash prefix, all required keys), and POST /api/daily-reports/evidence/extract on REAL bytes for TXT / PDF-with-text (PyMuPDF) / scanned PDF (no text layer) / corrupt PDF / .doc unsupported / real XLSX (openpyxl) with [[SHEET: markers / real DOCX (python-docx) / CSV with headers preserved. Full DR POST with evidence_manifest persists and its PDF carries the 10A OPERATIONAL INTELLIGENCE SUMMARY hero + 10B ATTACHMENT & DOCUMENT EVIDENCE block including attachment table, matched ticket data, and Evidence Warnings. Legacy DR PDF (no evidence_manifest) contains NO 10B section - regression parity intact. Frontend smoke: /daily/new renders Section 8 (Operational Summary Assist), zero user-facing 'Daily Report V1/V2/V3' or 'legacy/modern Daily Report' strings anywhere on the page.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_track_24_13_evidence_engine.py",
+    "/app/backend/tests/test_track_24_13_one_daily_report_language.py",
+    "/app/backend/tests/test_track_24_12_ai_evidence_and_flow.py",
+    "/app/backend/tests/test_track_24_12_disk_hardening.py",
+    "/app/backend/tests/test_track_24_12_photo_append_fix.py",
+    "/app/backend/tests/test_track_24_13_live_smoke.py",
+    "/app/test_reports/pytest/track_24_13_live_smoke.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Extract endpoint payload contract uses keys `filename`, `mime`, `data_base64` (not content_type/content_base64). This is documented in the DailySummaryAssist frontend bundle path; kept as-is because tests exercise the true wire shape.",
+    "CSV extraction returns row_count at top-level as 0 but exposes rows_seen inside ext_meta.rows_seen (=3 for the smoke test). Not a bug per se — both fields are populated in different paths — but consider unifying `row_count` at top level for consistency with the XLSX path.",
+    "manifest_summary agent is NOT in the default AGENTS list returned by /api/dr-v2/meta (only day_narrative, risk_and_constraints, tomorrow_readiness). This matches the review note that it must be explicitly requested via agents=['manifest_summary']. Confirmed present in code and used by the manifest wiring."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_track_24_13_live_smoke.py (new file, 12 live smoke tests)"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "Admin multi-login jaymn.judd@mascigc.com / Maddix123! → portal_tokens.admin (used as X-Admin-Token on /api/daily-reports POST + manifest GET + PDF GET). Verified working.",
+  "seed_data_creation": "Two test DRs created via live smoke: SMOKE-24-13 (with evidence_manifest, 10A + 10B in PDF) and SMOKE-24-13-LEGACY (no evidence_manifest, no 10B - regression parity DR).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Backend lock suite: 47 tests across 5 track_24_1{2,3} files + dr_unify V1/V2 language guard all pass. New live smoke file /app/backend/tests/test_track_24_13_live_smoke.py exercises the real ingress with actual bytes (PyMuPDF/openpyxl/python-docx). Meta endpoint has a cold-start latency ~30s on first hit — smoke test retries 3x with 60s timeout. Extract endpoint accepts keys filename+mime+data_base64. DailyReportCreate requires project_name, location, report_date, prepared_by (in addition to date/project_code/supervisor_name). PDF 10B section contains literal text 'ATTACHMENT & DOCUMENT EVIDENCE' and renders the attachments table, material reconciliation, and warnings.",
+  "rca of the issue": "N/A — no regressions found. Track 24.13 Evidence Intelligence Engine ships clean."
+}

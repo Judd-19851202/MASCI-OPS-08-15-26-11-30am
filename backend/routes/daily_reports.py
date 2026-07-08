@@ -17,7 +17,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Literal, Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Body, Depends, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
 
 from pm_auth import compute_pm_scope
@@ -175,6 +175,17 @@ class DailyReportCreate(BaseModel):
     # ────────────────────────────────────────────────────────────
     ai_accepted_summary: Optional[str] = ""
     ai_accepted_summary_meta: Optional[Dict[str, Any]] = None
+
+    # ────────────────────────────────────────────────────────────
+    # TRACK 24.13 · Evidence Intelligence Manifest.
+    # Optional canonical manifest built by
+    # `services.dr_evidence.build_manifest`. When present, downstream
+    # consumers (PDF, PM email, DR viewer, ODS confidence gating)
+    # can render an honest "what the AI actually saw" audit trail
+    # alongside the accepted summary. Persisting it lets a PM verify
+    # the summary was grounded in real evidence.
+    # ────────────────────────────────────────────────────────────
+    evidence_manifest: Optional[Dict[str, Any]] = None
 
 
 class DailyReport(DailyReportCreate):
@@ -672,6 +683,74 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
             list_v1_report_intelligence,
         )
         return await list_v1_report_intelligence(db, report_id)
+
+    # ── TRACK 24.13 · Evidence Manifest read endpoint ──────────────
+    # Builds an on-demand Evidence Manifest for a submitted Daily
+    # Report. Combines:
+    #   · typed supervisor fields from the DR record
+    #   · aggregated photo intelligence
+    #   · document extraction results for every attachment we can find
+    #     (inline `attachments[]` on the DR + linked `db.docs` rows
+    #      whose `project_id` matches)
+    # Read-only. Never mutates the source DR. Extraction is cached
+    # inside the extractor implementation.
+    @api_router.get("/daily-reports/{report_id}/evidence-manifest")
+    async def daily_report_evidence_manifest(report_id: str):
+        from services.dr_evidence import (  # noqa: PLC0415
+            build_manifest, manifest_hash,
+        )
+        from services.photo_intelligence import (  # noqa: PLC0415
+            list_v1_report_intelligence,
+        )
+        row = await db.daily_reports.find_one({"id": report_id}, {"_id": 0})
+        if not row:
+            # Also accept doc_id lookup (DR-2026-NNNNN form).
+            row = await db.daily_reports.find_one(
+                {"doc_id": report_id}, {"_id": 0},
+            )
+        if not row:
+            raise HTTPException(404, f"Daily report not found: {report_id}")
+
+        photo_intel = await list_v1_report_intelligence(
+            db, row.get("doc_id") or report_id,
+        )
+        # Attachment extractions — supervisors can drop attachments
+        # directly on the DR (`attachments[]` inline metadata) but the
+        # raw bytes may live on `db.docs`. For now we surface every
+        # inline attachment; extracted bytes are optional and handled
+        # by whichever tooling wrote the extraction result. If a caller
+        # wants live extraction they can POST bytes to the extraction
+        # endpoint below.
+        att_ext = row.get("attachment_extractions") or []
+        manifest = build_manifest(
+            row,
+            attachment_extractions=att_ext,
+            photo_intel=photo_intel,
+        )
+        payload = manifest.to_dict()
+        payload["manifest_hash"] = manifest_hash(manifest)
+        return payload
+
+    # ── TRACK 24.13 · One-shot attachment extraction probe ─────────
+    # Accepts a base64-encoded file body and returns the extraction
+    # envelope (status, text preview, row/page counts, warnings). Used
+    # by the DR submit UI to show a live preview of "what the AI can
+    # see" before the PM commits the report. NEVER stores the file.
+    @api_router.post("/daily-reports/evidence/extract")
+    async def daily_report_extract_attachment(payload: Dict[str, Any] = Body(...)):
+        from services.dr_evidence import extract_attachment  # noqa: PLC0415
+        import base64  # noqa: PLC0415
+        filename = str(payload.get("filename") or "")
+        mime = str(payload.get("mime") or "")
+        b64 = payload.get("data_base64") or ""
+        try:
+            data = base64.b64decode(b64) if b64 else b""
+        except Exception as e:  # noqa: BLE001
+            raise HTTPException(
+                400, f"invalid base64: {e.__class__.__name__}",
+            ) from e
+        result = extract_attachment(filename=filename, mime=mime, data=data)
+        return result.to_dict()
 
     @api_router.get("/daily-reports/{report_id}/audit-footer")
     async def daily_report_audit_footer(

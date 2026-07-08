@@ -41,6 +41,11 @@ from services.dr_ai import (
 )
 from services.dr_ai.agents import AGENT_RESPONSE_SCHEMA
 from services.dr_ai.cache import ensure_indexes as ensure_ai_cache_indexes
+# TRACK 24.13 · Evidence Manifest — used when the caller requests the
+# `manifest_summary` agent so the AI reasons over the full evidence
+# manifest (typed fields · photos · extracted docs · reconciled tickets)
+# instead of the older whitelist-only bundle.
+from services.dr_evidence import build_manifest, manifest_to_ai_bundle
 from services.ods_spine import (
     ingest_dr_v2_draft as _ods_ingest_dr_v2_draft,
     ingest_dr_v2_approval as _ods_ingest_dr_v2_approval,
@@ -335,12 +340,40 @@ def register_dr_v2_routes(api_router: APIRouter, db) -> None:
         # Parallel agent invocation — 3 Claude calls in parallel ≈ latency of 1.
         errors: List[Dict[str, str]] = []
         if pending:
+            # TRACK 24.13 · The `manifest_summary` agent consumes the
+            # full Evidence Manifest (typed fields + photos + extracted
+            # attachments + reconciled tickets), not the older whitelist
+            # bundle. We build the manifest once and reuse it for every
+            # manifest-driven agent invocation.
+            manifest_bundle: Optional[Dict[str, Any]] = None
+            if any(a == "manifest_summary" for a in pending):
+                try:
+                    _ev = _draft_to_evidence(draft)
+                    # Legacy `db.daily_reports` docs also carry
+                    # `attachments[]` and pre-analyzed photo intel;
+                    # V2 drafts do not. `build_manifest` gracefully
+                    # produces a manifest with empty attachments/photos
+                    # when they are absent — the AI is instructed to
+                    # honor that honestly.
+                    m_obj = build_manifest(
+                        {**_ev, **draft},
+                        attachment_extractions=draft.get("attachment_extractions") or [],
+                        photo_intel=draft.get("photo_intelligence"),
+                    )
+                    manifest_bundle = manifest_to_ai_bundle(m_obj)
+                except Exception:  # noqa: BLE001
+                    manifest_bundle = None
+
             async def _run(agent_name: str):
                 spec = AGENTS[agent_name]
+                use_bundle = (
+                    manifest_bundle if agent_name == "manifest_summary"
+                    and manifest_bundle is not None else bundle
+                )
                 return agent_name, await provider.synthesize(
                     agent=agent_name,
                     system_message=spec["system"],
-                    user_payload=bundle,
+                    user_payload=use_bundle,
                     response_schema=AGENT_RESPONSE_SCHEMA,
                     session_id=f"drv2-{payload.report_id}-{agent_name}",
                 )

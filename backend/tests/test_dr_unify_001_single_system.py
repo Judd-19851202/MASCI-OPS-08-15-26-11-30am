@@ -68,19 +68,33 @@ def test_one_daily_report_nav_entry():
 
 
 # =========================================================================
-# 2. NO USER-FACING V1/V2 TEXT
+# 2. NO USER-FACING V1/V2/V3 or "legacy/modern" DAILY REPORT LANGUAGE
 # =========================================================================
 def test_no_user_facing_v1_v2_text():
     """Static scan (comments stripped): no dashboard / panel / route
-    label may contain user-visible V1/V2 language."""
+    label may contain user-visible V1/V2/V3/legacy/modern Daily Report
+    language. Track 24.13 · "There is ONE Daily Report."
+    """
     banned = [
         "Daily Report V1",
         "Daily Report V2",
+        "Daily Report V3",
+        "Daily Job Report V1",
+        "Daily Job Report V2",
+        "Daily Job Report V3",
         "Try V2",
         "try V2",
         "V1 Daily",
         "V2 Daily",
+        "V3 Daily",
         "Version 2 Daily",
+        "Version 3 Daily",
+        "Legacy Daily Report",
+        "legacy Daily Report",
+        "Modern Daily Report",
+        "modern Daily Report",
+        "Old Daily Report",
+        "New Daily Report V",  # covers "New Daily Report V2/V3"
     ]
     # Skip these files: internal debug/preview shells + the V2 form
     # comment-stripped body itself may contain V2 in TESTID attrs which
@@ -101,7 +115,10 @@ def test_no_user_facing_v1_v2_text():
         stripped = re.sub(r"testid=\{`[^`]*`\}", "", stripped)
         for phrase in banned:
             assert phrase not in stripped, (
-                f"User-facing V1/V2 text `{phrase}` found in {path}"
+                f"User-facing V1/V2/V3/legacy/modern text `{phrase}` "
+                f"found in {path}. Track 24.13 · there is ONE Daily "
+                "Report — internal filenames may reference versions, "
+                "product-facing strings must not."
             )
 
 
