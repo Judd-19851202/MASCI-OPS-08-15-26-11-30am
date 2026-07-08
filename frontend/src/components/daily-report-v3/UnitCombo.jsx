@@ -3,26 +3,27 @@ import { useT } from "@/lib/i18n";
 
 // TRACK 23.4B · Materials · unit picklist (searchable + custom entry).
 //
-// Uses a native `<datalist>` to keep the mobile keyboard fast, iOS
-// safe, and zero-JS-cost. Common heavy-civil units are pre-listed;
-// operators can also type any custom unit (stored verbatim as
-// `unit` on the material row + surfaced as `unit_snapshot` for
-// downstream reporting).
+// TRACK 26.02 · P0 recovery — the option `value` now carries the
+// canonical CODE (matching backend `daily_reports.py::_UNIT_LABEL_TO_CODE`
+// + Pydantic `unit: str`). The dropdown surface shows "CY — Cubic
+// Yards" so operators still see the friendly label but the field
+// value is the canonical code. Free-text units continue to work
+// because a `<datalist>` is not a `<select>`.
 export const DEFAULT_MATERIAL_UNITS = [
-  { code: "TN",   label: "Tons" },
+  { code: "TON",  label: "Tons" },
   { code: "CY",   label: "Cubic Yards" },
-  { code: "LD",   label: "Loads" },
-  { code: "EA",   label: "Each" },
   { code: "LF",   label: "Linear Feet" },
   { code: "SY",   label: "Square Yards" },
-  { code: "GAL",  label: "Gallons" },
-  { code: "TL",   label: "Truckloads" },
-  { code: "TON",  label: "Ton" },
-  { code: "SF",   label: "Square Feet" },
-  { code: "CF",   label: "Cubic Feet" },
-  { code: "BAG",  label: "Bag" },
-  { code: "PAIR", label: "Pair" },
-  { code: "LOT",  label: "Lot" },
+  { code: "EA",   label: "Each" },
+  { code: "ACRE", label: "Acres" },
+  { code: "OTHER", label: "Loads" },
+  { code: "OTHER", label: "Truckloads" },
+  { code: "OTHER", label: "Gallons" },
+  { code: "OTHER", label: "Square Feet" },
+  { code: "OTHER", label: "Cubic Feet" },
+  { code: "OTHER", label: "Bag" },
+  { code: "OTHER", label: "Pair" },
+  { code: "OTHER", label: "Lot" },
 ];
 
 let _idSeed = 0;

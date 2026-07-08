@@ -386,8 +386,26 @@ export default function NewDailyReportV3({ publicMode = false }) {
         navigate(publicMode ? "/thank-you?queued=1" : "/admin/daily");
       }
     } catch (err) {
+      // TRACK 26.02 · D-09 · Surface Pydantic 422 detail to the operator
+      // instead of the generic "Submit failed. Please retry." fallback.
+      // FastAPI returns `detail` as either a string (raise HTTPException)
+      // or a list of `{loc, msg, type, input}` (Pydantic validation).
+      // Both shapes render into a single field-level message the
+      // operator can act on from the field.
       const detail = err?.response?.data?.detail;
-      toast.error(typeof detail === "string" ? detail : t("Submit failed. Please retry."));
+      let msg;
+      if (typeof detail === "string") {
+        msg = detail;
+      } else if (Array.isArray(detail) && detail.length) {
+        const first = detail[0];
+        const loc = Array.isArray(first?.loc) ? first.loc.filter((l) => l !== "body").join(" → ") : "";
+        const hint = first?.msg || first?.type || "";
+        const badInput = first?.input != null ? ` (got: ${JSON.stringify(first.input).slice(0, 40)})` : "";
+        msg = loc ? `${loc}: ${hint}${badInput}` : (hint || t("Submit failed. Please retry."));
+      } else {
+        msg = t("Submit failed. Please retry.");
+      }
+      toast.error(msg);
     } finally {
       setSaving(false);
     }

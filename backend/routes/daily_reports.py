@@ -43,30 +43,141 @@ class ProductionRow(BaseModel):
     """One structured production entry on a Daily Report.
 
     Additive — coexists with the legacy free-text `activities[]` field.
+
+    TRACK 26.02 · P0 recovery:
+      * `unit` widened from `Literal[...]` → `str` so the UI can post
+        either canonical codes ("TON", "CY", "LF") OR field-vernacular
+        labels ("Tons", "Cubic Yards", "Loads"). Normalization happens
+        server-side via `_normalize_unit()` at write time.
+      * `extra="forbid"` → `extra="ignore"` so UI-provided helper fields
+        (`unit_snapshot`, `unit_code`, `percent_complete`,
+        `activity_code`, `cost_code_snapshot`) don't 422 the whole
+        payload. Unknown fields are silently dropped.
     """
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="ignore")
 
     row_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     description: str = ""                       # what was placed/installed/poured
     quantity: float = 0.0                       # > 0 when row has substance
-    unit: Literal["LF", "SY", "CY", "TON", "EA", "ACRE", "OTHER"] = "OTHER"
-    custom_unit_label: Optional[str] = None     # only when unit == "OTHER"
+    unit: str = "OTHER"                         # free-text; normalized server-side
+    custom_unit_label: Optional[str] = None     # only when unit does not map to a canonical code
     station_from: Optional[str] = None          # e.g. "12+50"
     station_to: Optional[str] = None            # e.g. "13+00"
     location: Optional[str] = None              # free-text fallback for non-station jobs
     notes: Optional[str] = None                 # ≤ 280 chars · voice or text
 
 
+# TRACK 26.02 · label → canonical code normalizer for production rows.
+# Every entry lower-cased for a case-insensitive lookup. Anything the
+# operator writes that is not in this map is preserved as-is in
+# `custom_unit_label` so the PDF/email render exactly what they typed.
+_UNIT_LABEL_TO_CODE = {
+    "lf": "LF", "linear feet": "LF", "linear foot": "LF", "linear ft": "LF",
+    "sy": "SY", "square yards": "SY", "square yard": "SY", "sq yd": "SY",
+    "sq yds": "SY",
+    "cy": "CY", "cubic yards": "CY", "cubic yard": "CY", "cu yd": "CY",
+    "cu yds": "CY",
+    "ton": "TON", "tons": "TON", "tn": "TON",
+    "ea": "EA", "each": "EA",
+    "acre": "ACRE", "acres": "ACRE", "ac": "ACRE",
+    "sf": "OTHER", "square feet": "OTHER", "square foot": "OTHER",
+    "sq ft": "OTHER",
+    "cf": "OTHER", "cubic feet": "OTHER", "cubic foot": "OTHER",
+    "cu ft": "OTHER",
+    "gal": "OTHER", "gallons": "OTHER", "gallon": "OTHER",
+    "load": "OTHER", "loads": "OTHER", "truckload": "OTHER",
+    "truckloads": "OTHER",
+    "bag": "OTHER", "bags": "OTHER",
+    "pair": "OTHER", "pairs": "OTHER",
+    "lot": "OTHER", "lots": "OTHER",
+    "other": "OTHER", "": "OTHER",
+}
+
+_CANONICAL_UNIT_CODES = {"LF", "SY", "CY", "TON", "EA", "ACRE", "OTHER"}
+
+
+def _normalize_unit(row: Dict[str, Any]) -> Dict[str, Any]:
+    """Coerce ``row.unit`` to a canonical code. Preserve the original
+    label as ``custom_unit_label`` when it does not map to a canonical
+    code so PDFs/emails render exactly what the operator typed.
+
+    Idempotent — safe to call multiple times.
+    """
+    raw = (row.get("unit") or "").strip()
+    if raw in _CANONICAL_UNIT_CODES:
+        return row
+    key = raw.lower()
+    if key in _UNIT_LABEL_TO_CODE:
+        canonical = _UNIT_LABEL_TO_CODE[key]
+        # If the operator typed a non-canonical variant (e.g. "Tons"),
+        # preserve it as custom_unit_label so PDF/email keep the
+        # operator's word choice.
+        if canonical == "OTHER" and raw and raw != "OTHER" \
+                and not row.get("custom_unit_label"):
+            row["custom_unit_label"] = raw
+        row["unit"] = canonical
+        return row
+    # Unmapped free-text unit (e.g. "cubes" from a foreman): store
+    # OTHER + preserve the original as custom_unit_label.
+    if raw:
+        if not row.get("custom_unit_label"):
+            row["custom_unit_label"] = raw
+        row["unit"] = "OTHER"
+    else:
+        row["unit"] = "OTHER"
+    return row
+
+
+# TRACK 26.02 · canonical constraint categories (lower-case).
+_CANONICAL_CONSTRAINT_TYPES = {
+    "weather", "utility", "survey", "material", "equipment",
+    "trucking", "mot", "cei_inspection", "owner_engineer",
+    "safety", "other",
+}
+
+
+def _normalize_constraint_type(row: Dict[str, Any]) -> Dict[str, Any]:
+    """Case-normalize constraint_type to lower-case. Unknown categories
+    are collapsed to ``other`` while preserving the original word in
+    ``notes`` (prepended) so no operator context is lost.
+    """
+    raw = (row.get("constraint_type") or "").strip()
+    if not raw:
+        row["constraint_type"] = "other"
+        return row
+    lowered = raw.lower()
+    if lowered in _CANONICAL_CONSTRAINT_TYPES:
+        row["constraint_type"] = lowered
+        return row
+    # Unknown category: prepend the operator's word into notes so the
+    # information isn't lost, then bucket to "other".
+    existing_notes = (row.get("notes") or "").strip()
+    prefix = f"[{raw}]"
+    if existing_notes:
+        row["notes"] = f"{prefix} {existing_notes}"
+    else:
+        row["notes"] = prefix
+    row["constraint_type"] = "other"
+    return row
+
+
 class ConstraintRow(BaseModel):
-    """One structured constraint/delay entry on a Daily Report."""
-    model_config = ConfigDict(extra="forbid")
+    """One structured constraint/delay entry on a Daily Report.
+
+    TRACK 26.02 · P0 recovery:
+      * `constraint_type` widened from `Literal[...]` → `str` so the UI
+        can post any case ("WEATHER", "Weather", "weather") without a
+        422. Normalization happens server-side via
+        `_normalize_constraint_type()` at write time — unknown
+        categories are bucketed to "other" and the original word is
+        preserved in the row's notes.
+      * `extra="forbid"` → `extra="ignore"` so future UI-side helper
+        fields don't 422 the whole payload.
+    """
+    model_config = ConfigDict(extra="ignore")
 
     row_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    constraint_type: Literal[
-        "weather", "utility", "survey", "material", "equipment",
-        "trucking", "mot", "cei_inspection", "owner_engineer",
-        "safety", "other",
-    ] = "other"
+    constraint_type: str = "other"
     hours_impact: Optional[float] = None        # 0–24 · optional
     notes: Optional[str] = None                 # ≤ 280 chars · voice or text
     # Advisory flags derived server-side · operator can override on the row.
@@ -348,7 +459,25 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
         key = idem_key_from_request(request)
 
         async def _do_create():
-            report = DailyReport(**payload.model_dump())
+            # ── TRACK 26.02 · P0 recovery · unit + constraint normalize ──
+            # Normalize every production/constraint row BEFORE the
+            # DailyReport internal model is built. Every downstream
+            # consumer (PDF, email, AI evidence, ODS ingest, KPI
+            # readers) then sees canonical codes.
+            payload_dict = payload.model_dump()
+            try:
+                payload_dict["production"] = [
+                    _normalize_unit(dict(r)) for r in (payload_dict.get("production") or [])
+                ]
+            except Exception:  # noqa: BLE001
+                pass
+            try:
+                payload_dict["constraints"] = [
+                    _normalize_constraint_type(dict(r)) for r in (payload_dict.get("constraints") or [])
+                ]
+            except Exception:  # noqa: BLE001
+                pass
+            report = DailyReport(**payload_dict)
             # ── DR-FIX-3 · R9 · Prepared By Directory Binding ──────
             # Inspect incoming portal tokens; if one resolves to a
             # known directory user, attach structured identity for
