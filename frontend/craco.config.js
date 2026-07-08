@@ -32,6 +32,24 @@ let webpackConfig = {
       },
     },
   },
+  // TRACK 26.09 · Jest config: resolve the `@/` alias so tests that
+  // import from `@/components/...` / `@/lib/...` do not fail to load.
+  // Also allow the ESM-only `react-router-dom` v7 package to be
+  // transpiled by babel-jest rather than treated as opaque CJS.
+  jest: {
+    configure: (jestConfig) => {
+      jestConfig.moduleNameMapper = {
+        ...(jestConfig.moduleNameMapper || {}),
+        "^@/(.*)$": "<rootDir>/src/$1",
+      };
+      jestConfig.transformIgnorePatterns = [
+        // Allow transformation of ESM-first packages that CRA/craco's
+        // default Jest CJS resolver otherwise cannot execute.
+        "/node_modules/(?!(react-router|react-router-dom|axios|lucide-react|@radix-ui|nanoid|@dnd-kit|use-sync-external-store)/)",
+      ];
+      return jestConfig;
+    },
+  },
   webpack: {
     alias: {
       '@': path.resolve(__dirname, 'src'),

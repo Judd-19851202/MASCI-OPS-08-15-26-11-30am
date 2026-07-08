@@ -20,6 +20,28 @@
 import { describe, it, expect } from "@jest/globals";
 import { render, screen } from "@testing-library/react";
 import React from "react";
+
+// TRACK 26.09 · react-router-dom v7 ships as ESM with conditional
+// exports that CRA/craco's default Jest CommonJS resolver cannot see.
+// Mock `MemoryRouter` as a passthrough so the Hub component render
+// path stays exercised without pulling ESM into Jest. `virtual: true`
+// tells Jest to treat the module as if it existed on disk even when
+// the real one cannot be resolved.
+jest.mock("react-router-dom", () => ({
+  __esModule: true,
+  MemoryRouter: ({ children }) => children,
+  Link: ({ to, children, ...rest }) => (
+    <a href={typeof to === "string" ? to : "#"} {...rest}>{children}</a>
+  ),
+  NavLink: ({ to, children, ...rest }) => (
+    <a href={typeof to === "string" ? to : "#"} {...rest}>{children}</a>
+  ),
+  useNavigate: () => (() => {}),
+  useLocation: () => ({ pathname: "/", search: "", hash: "", state: null }),
+  useParams: () => ({}),
+  Outlet: () => null,
+}), { virtual: true });
+
 import { MemoryRouter } from "react-router-dom";
 
 import Hub from "../Hub.jsx";
@@ -42,9 +64,12 @@ describe("TRACK 15.4 — Homepage hero + Project Systems contract", () => {
 
   it("renders the approved EN hero subheadline (capability sentence)", () => {
     renderHub();
+    // TRACK 26.09 · PF-5 · Hub.jsx currently says "transportation"
+    // (rebrand from "dispatch" — source: Hub.jsx line ~285). Assertion
+    // aligned to current production copy.
     expect(
       screen.getByText(
-        /Field reporting, safety, quality, equipment, workforce accountability, dispatch, and project operations — captured once, routed automatically, and visible everywhere they matter\./,
+        /Field reporting, safety, quality, equipment, workforce accountability, transportation, and project operations — captured once, routed automatically, and visible everywhere they matter\./,
       ),
     ).toBeTruthy();
   });

@@ -63,7 +63,9 @@ describe("TRACK 15.13H · classifyApiError contract", () => {
   it("520 (Cloudflare origin unreachable) → backend_unavailable", () => {
     const c = classifyApiError(axiosErr({ status: 520 }));
     expect(c.kind).toBe(ERROR_KINDS.BACKEND_UNAVAILABLE);
-    expect(c.title).toBe("MASCI Services Temporarily Unavailable");
+    // TRACK 26.09 · aligned with production copy after the 2026-06-22
+    // rebrand pass dropped the "MASCI " prefix. Source: errorClassification.js:58.
+    expect(c.title).toBe("Services Temporarily Unavailable");
   });
 
   it("Network timeout (ECONNABORTED, no response) → network_unreachable", () => {

@@ -37,7 +37,9 @@ describe("classifyApiError · failure paths", () => {
     const r = classifyApiError(makeAxiosError(500));
     expect(r.kind).toBe(ERROR_KINDS.BACKEND_UNAVAILABLE);
     expect(r.retryable).toBe(true);
-    expect(r.title).toBe("MASCI Services Temporarily Unavailable");
+    // TRACK 26.09 · aligned with production copy after the 2026-06-22
+    // rebrand pass dropped the "MASCI " prefix. Source: errorClassification.js:58.
+    expect(r.title).toBe("Services Temporarily Unavailable");
   });
 
   test("502 / 503 / 504 → backend_unavailable", () => {
@@ -77,9 +79,18 @@ describe("classifyApiError · failure paths", () => {
     expect(r.kind).toBeNull();
   });
 
-  test("unknown error shape → network_unreachable (conservative)", () => {
+  test("unknown error shape → kind:null (Track 14.0 stability contract)", () => {
+    // TRACK 26.09 · aligned with the Track 14.0-PLATFORM-STABILITY fix
+    // (2026-06-15) that intentionally REMOVED the `|| true` fallback
+    // which used to coerce every unknown-shape error into a global
+    // NETWORK_UNREACHABLE overlay. The new contract returns
+    // `kind: null` so callers can render a local toast instead of
+    // triggering a false-positive disconnect modal. Source comment
+    // documents this at errorClassification.js:134-141.
     const r = classifyApiError(new Error("Something exploded"));
-    expect(r.kind).toBe(ERROR_KINDS.NETWORK_UNREACHABLE);
+    expect(r.kind).toBeNull();
+    expect(r.status).toBeNull();
+    expect(r.title).toBe("");
   });
 });
 
