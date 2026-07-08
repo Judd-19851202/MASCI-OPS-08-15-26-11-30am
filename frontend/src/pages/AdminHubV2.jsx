@@ -86,6 +86,10 @@ export default function AdminHubV2() {
         subtitle="Live cross-portal signals. Every queue opens a real existing admin / ops workflow."
         primaryActions={
           <div style={{ display: "flex", gap: 8 }}>
+            {/* TRACK 25.00 · OCC is the canonical maintenance console. Surfaced
+                as the primary CTA on the admin landing so operators find it
+                on first load. */}
+            <Link to="/admin/operations-control" data-testid="admin-hub-v2-open-occ" style={{ display: "inline-block", padding: "6px 12px", background: "#c8102e", color: "#fff", border: "1px solid #c8102e", borderRadius: "var(--radius-card)", fontSize: 12, fontWeight: 700, textDecoration: "none" }}>Open Operations Control Center →</Link>
             <Link to="/admin/operational-intelligence" data-testid="admin-hub-v2-open-cockpit" style={{ display: "inline-block", padding: "6px 12px", background: "var(--brand-primary)", color: "var(--brand-on-primary)", border: "1px solid var(--brand-primary)", borderRadius: "var(--radius-card)", fontSize: 12, fontWeight: 600, textDecoration: "none" }}>Open OI Cockpit →</Link>
           </div>
         }
@@ -107,6 +111,9 @@ export default function AdminHubV2() {
         />
 
         <Section k="01 · System Health · live" t="Integration probes" c="Real probe results from /api/admin/integrations/health">
+          {/* TRACK 25.00 · Direct link to the Operations Control Center so
+              admins can act — not just observe — from the landing page. */}
+          <QC to="/admin/operations-control" testid="admin-hub-v2-q-occ" title="Operations Control Center" why="Unified maintenance · dry-run · confirm · apply · audit trail" source="Source: /admin/operations-control · 10 registered operations" value={s.loaded ? "OPEN" : null} loaded={s.loaded} />
           <QC to="/admin/operations-dashboard" testid="admin-hub-v2-q-integrations-degraded" title="Degraded Integrations" why="Probes returning non-OK status" source="Source: integrations.health.probes" value={s.loaded ? degraded : null} loaded={s.loaded} />
           <QC to="/admin/asset-spine" testid="admin-hub-v2-q-asset-spine" title="Asset Spine Conflicts" why="Unresolved asset master conflicts" source="Source: dispatch.command.summary (spine)" value={ds.spine?.conflicts ?? null} loaded={s.loaded} />
         </Section>

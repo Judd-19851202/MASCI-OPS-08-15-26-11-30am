@@ -98,6 +98,13 @@ export const DOMAINS_V2 = [
     stripe: "#475569", // slate-600
     icon: Shield,
     routes: [
+      // TRACK 25.00 · Operations Control Center is the canonical
+      // super-admin maintenance console. It ships live in 24.17 and
+      // consolidates disk / R2 / backup / health probes under one
+      // dry-run → confirm → apply → audit contract. It MUST be the
+      // first link under this domain so operators reach it without
+      // hunting.
+      { to: "/admin/operations-control", label: "Operations Control Center", desc: "Unified maintenance · dry-run → confirm → apply · audit trail", icon: Activity },
       { to: "/admin/system",            label: "System & Backups",   desc: "Backups · R2 · restore · recovery",            icon: Shield },
       { to: "/admin/ai-configuration",  label: "AI Configuration",   desc: "Optional intelligence · tenant switchboard",  icon: Sparkles },
       { to: "/admin/integration-truth", label: "Integration Truth",  desc: "Runtime AI keys · integrations · legacy aliases", icon: ShieldCheck },

@@ -1,5 +1,29 @@
 # CHANGELOG
 
+## 2026-02-17 — TRACK 25.00 · OCC Discoverability Fix (Admin Rearchitecture · Phase A) — 🟢 CLOSED
+
+**Trigger**: User reported OCC was invisible from the admin sidebar — a P0 release defect (built but unreachable).
+
+### Fix shipped
+- Added `Operations Control Center` entry as the FIRST link in the "System & Governance" block of both the V2 sidebar (`components/admin/sidebar/domainMap.js`) and the legacy V1 sidebar (`components/AdminShell.jsx`).
+- Elevated the OCC to a **red primary CTA** on the admin landing page header (`pages/AdminHubV2.jsx`) — `Open Operations Control Center →` appears alongside the OI Cockpit CTA.
+- Added the OCC as the first card under "01 · System Health · live" on the admin hub with description + testid.
+- Repo-wide discoverability lock: `test_track_25_00_occ_discoverability.py` (5 tests) — verifies OCC route exists, appears in V2 sidebar, appears in V1 sidebar, is a primary CTA on the admin landing, and renders ABOVE the legacy "System & Backups" entry.
+
+### Admin route inventory (surfaced by this pass)
+- **103 admin routes declared in the router**.
+- **40 in the V1 sidebar** · **32 in the V2 sidebar**.
+- **~71 admin routes currently hidden from at least one sidebar** — this is the wider discoverability drift the user's Track 25.00 prompt targets.
+
+### Honest scope note
+- Track 25.00's full ask (complete admin rearchitecture · duplicate analysis · KPI audit · workflow map · human-factors review) is realistically 3–5 more tracks of work. This closeout ships the highest-severity item (OCC discoverability) plus the lock test so it can never regress. The full inventory + navigation redesign remains open work.
+
+### Verification
+- 17/17 pass across `test_track_25_00_occ_discoverability.py` (5) + `test_track_24_17_operations_control_center.py` (12).
+- ESLint clean on all touched frontend files.
+
+
+
 ## 2026-02-17 — TRACK 24.18 · Final Production Deployment Certification Gate — 🟢 GO
 
 **Trigger**: Pre-production certification of the combined 24.12 + 24.13 + 24.14 + 24.15 + 24.16 + 24.17 package.

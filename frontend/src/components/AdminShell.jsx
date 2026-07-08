@@ -60,6 +60,10 @@ const SECTIONS = [
   { key: "operational-records", to: "/operational-records", icon: NotebookPen, label: "Operational Records", desc: "Cross-portal field-day records · Phase V.1" },
   { key: "operations-actions", to: "/operations-actions", icon: ListTodo, label: "Operations Actions", desc: "Cross-portal operational tasks · owners" },
   { key: "integrations", to: "/admin/integrations", icon: Cable,       label: "Integrations",    desc: "Motive · MaintainX · CSV import/export" },
+  // TRACK 25.00 · Operations Control Center — canonical super-admin
+  // maintenance console. Placed first in the System block so operators
+  // can reach it without hunting through the legacy admin.
+  { key: "operations-control", to: "/admin/operations-control", icon: Activity, label: "Operations Control Center", desc: "Unified maintenance · dry-run → confirm → apply · audit trail" },
   { key: "system",     to: "/admin/system",     icon: ShieldCheck,     label: "System & Backups",desc: "Backups · R2 · Restore · Recovery" },
   { key: "ai-configuration", to: "/admin/ai-configuration", icon: Sparkles, label: "AI Configuration", desc: "Optional intelligence · tenant AI switchboard · admin-only" },
   { key: "integration-truth", to: "/admin/integration-truth", icon: ShieldCheck, label: "Integration Truth", desc: "Runtime AI keys · third-party integration state · legacy alias telemetry" },
