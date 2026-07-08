@@ -1,21 +1,61 @@
 {
   "scanned_db": "masci_safety_preview",
   "counts": {
-    "equipment_make": 2,
-    "daily_project_name": 723,
+    "equipment_make": 59,
+    "daily_project_name": 761,
     "daily_prepared_by": 73
   },
   "samples": {
     "equipment_make": [
+      {
+        "id": "6a3332cb9fa74fae1e263f43",
+        "unit_number": "",
+        "make": "Test"
+      },
       {
         "id": "6a3332cb9fa74fae1e263f61",
         "unit_number": "RL-1239",
         "make": "DEMO"
       },
       {
-        "id": "6a3332cb9fa74fae1e263f43",
-        "unit_number": "",
-        "make": "Test"
+        "id": "6a4ad78e50eaced95bf3c7b7",
+        "unit_number": "TB-B04-VALIDATION",
+        "make": "TEST"
+      },
+      {
+        "id": "6a4ad7d250eaced95bf3c7ba",
+        "unit_number": "TB-B04-VALIDATION",
+        "make": "TEST"
+      },
+      {
+        "id": "6a4ad7f150eaced95bf3c7c3",
+        "unit_number": "TB-B04-VALIDATION",
+        "make": "TEST"
+      },
+      {
+        "id": "6a4ad89750eaced95bf3c7cc",
+        "unit_number": "TB-B04-VALIDATION",
+        "make": "TEST"
+      },
+      {
+        "id": "6a4adc5750eaced95bf3c811",
+        "unit_number": "TB-B04-VALIDATION",
+        "make": "TEST"
+      },
+      {
+        "id": "6a4adfa950eaced95bf3c869",
+        "unit_number": "TB-B04-VALIDATION",
+        "make": "TEST"
+      },
+      {
+        "id": "6a4ae04150eaced95bf3c88a",
+        "unit_number": "TB-B04-VALIDATION",
+        "make": "TEST"
+      },
+      {
+        "id": "6a4ae12250eaced95bf3c8aa",
+        "unit_number": "TB-B04-VALIDATION",
+        "make": "TEST"
       }
     ],
     "daily_project_name": [
