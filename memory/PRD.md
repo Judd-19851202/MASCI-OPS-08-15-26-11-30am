@@ -12,6 +12,27 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 
 
 
+## TRACK 24.13 / 24.14 · Evidence Intelligence Engine + ONE Daily Report Language · 2026-02-16 · deploy authorization PENDING
+
+**Product line**: There is **ONE Daily Report** — no product-facing V1/V2/V3. Internal filenames may still reference legacy versions as compatibility adapters (per user directive). Repo-wide lock test enforces this.
+
+### New subsystem · Daily Report Evidence Intelligence Engine
+- **Server-side canonical manifest** — `services/dr_evidence/manifest.py::build_manifest` consumes typed supervisor fields + `photo_intelligence` grounded observations + document extractions + material ticket reconciliation and emits a single `EvidenceManifest` with a stable `manifest_hash`. This is the ONLY input the AI summary layer is permitted to reason over.
+- **Document extraction pipeline** — `services/dr_evidence/extract.py` handles PDF (embedded text via PyMuPDF; scanned/no-text detection → `scanned_pdf_no_text`), XLSX/XLSM (openpyxl · sheet-name markers), XLS (xlrd), CSV (delimiter sniff + encoding fallback), DOCX (python-docx paragraphs + tables), TXT (multi-encoding). Never blocks DR submit. Legacy `.doc` → `unsupported` with clear reason. Locked caps: 25 MB · 60 pages · 500 rows · 40 000 chars · 40 cells/row.
+- **Material ticket reconciliation** — `services/dr_evidence/materials.py::reconcile_tickets` normalizes typed supervisor rows + extracted CSV/XLSX rows, matches by ticket number then fuzzy (material + quantity ≤ 5% variance), emits advisories the AI + PDF quote verbatim. Advisory-only — never overwrites supervisor data.
+- **AI prompt upgrade** — new `manifest_summary` agent in `services/dr_ai/agents.py` produces STRICT JSON with 8 structured sections. Enforces anti-hallucination rules at the prompt level: attachments cited only when `extraction_status == "extracted"`, photos cited only via caption/observation on file, no invented ticket numbers/permits/incidents.
+- **PDF section 10B · Attachment & Document Evidence** — `pdf_render.py::_render_attachment_evidence_section` renders uploaded documents table + material reconciliation summary + evidence warnings when the DR carries `evidence_manifest`. Legacy DRs render byte-identical to pre-24.13 output.
+- **Live endpoints** — `GET /api/daily-reports/{id}/evidence-manifest` builds a manifest on demand; `POST /api/daily-reports/evidence/extract` returns a one-shot extraction preview from base64 bytes; `POST /api/daily-reports` accepts `evidence_manifest` on the payload.
+
+### Verification
+- Backend pytest 59/59 across five 24.12 + 24.13 lock files + live smoke.
+- Testing agent iter 548: 100% backend + 100% frontend. Live PDF with `evidence_manifest` renders 10A + 10B sections including attachments table, matched ticket row, advisory variance, and Evidence Warnings. Legacy DR PDF (no manifest) renders without 10B section — parity intact.
+- Zero user-facing V1/V2/V3/legacy/modern Daily Report strings anywhere on the DR form page.
+
+### Deploy status
+- **Awaiting explicit deploy authorization**. Tracks 24.12 + 24.13 + 24.14 deploy together as a single unit.
+
+
 ## TRACK 24.12 · Workstream A + B SHIPPED · 2026-02-15 · deploy authorization PENDING
 
 **Phase A1 (photo append)** closed in iteration 546. **Workstreams A and B closed in iteration 547.**

@@ -1,5 +1,61 @@
 # CHANGELOG
 
+## 2026-02-16 — TRACK 24.13 / 24.14 · Evidence Intelligence Engine + ONE-Daily-Report Language Cleanup — 🟢 CLOSED
+
+**Trigger**: User escalated to full P0 Daily Report Evidence Intelligence Engine (server-side canonical manifest, document extraction, material ticket reconciliation, upgraded AI summary, PDF/email/viewer/ODS wiring) AND enforced "there is ONE Daily Report" — product-facing V1/V2/V3 language banned via repo-wide lock.
+
+### Evidence Intelligence Engine · new subsystem
+- **`services/dr_evidence/extract.py`** — canonical document extractor.
+  - Supports PDF (PyMuPDF), XLSX/XLSM (openpyxl), XLS (xlrd), CSV (stdlib + delimiter sniffing + encoding fallback), DOCX (python-docx), TXT (multi-encoding).
+  - Extraction status vocabulary locked to 8 values: `not_started · extracted · unsupported · failed · too_large · encrypted · corrupt · scanned_pdf_no_text`.
+  - Hard caps: `MAX_BYTES=25 MB`, `MAX_PAGES=60`, `MAX_ROWS=500`, `MAX_TEXT_CHARS=40 000`, `MAX_ROW_CELLS=40`.
+  - Never raises — every failure path captured on the result envelope.
+  - Legacy `.doc` binary → explicit `unsupported` with reason so the AI cannot guess contents.
+- **`services/dr_evidence/materials.py`** — ticket normalization + reconciliation.
+  - Common-header canonicalization (`Ticket # · Vendor · Tons · UOM · Truck · ...`).
+  - Exact ticket-number match first, then fuzzy match on (material + quantity) within 5% variance.
+  - Advisory-only — never overwrites supervisor data. Quantity-by-material totals + variance advisories fed into the PDF + AI prompt.
+- **`services/dr_evidence/manifest.py`** — canonical Evidence Manifest builder.
+  - Builds from Daily Report doc + optional photo intelligence rows + optional attachment extraction envelopes.
+  - `manifest_hash()` excludes timestamps/confidence so the AI cache is not busted spuriously.
+  - `manifest_to_ai_bundle()` produces a token-bounded bundle (40 photos max, 30 attachments max, 1200-char text preview cap).
+  - Warnings roll up automatically for every unextracted / unsupported / scanned attachment + pending photo analyses.
+
+### AI Prompt Upgrade — `manifest_summary` agent
+- Registered in `services/dr_ai/agents.py::AGENTS`.
+- Produces STRICT JSON with 8 sections: `narrative · key_work_completed · crew_and_equipment · materials_and_tickets · safety_and_quality · excavation_and_trench · delays_and_constraints · photo_and_attachment_evidence · pm_attention_and_tomorrow · warnings · confidence · evidence_refs`.
+- Anti-hallucination rules enforced in the prompt itself: attachments cited only when `extraction_status == "extracted"`, photos cited only via caption/observation on file, material advisories quoted verbatim, no invented ticket numbers/permits/incidents.
+- Wired into `routes/dr_v2.py::synthesize` — when the caller passes `agents=['manifest_summary']` the full manifest AI bundle is used instead of the older whitelist bundle.
+
+### PDF Executive Report — 10B Attachment & Document Evidence
+- `pdf_render.py::_render_attachment_evidence_section` renders when `evidence_manifest` is set on the DR record.
+- Emits a **Uploaded Documents** table (filename · extraction status pill · detail · reason), a **Material Ticket Reconciliation** block (matched · unmatched · advisory list), and an **Evidence Warnings** list.
+- Legacy DRs (no manifest) render byte-identical to pre-24.13 output (verified by test).
+
+### New Live Endpoints (unified Daily Report — no version prefixes exposed)
+- `GET  /api/daily-reports/{id}/evidence-manifest` — builds the manifest on demand (photo intelligence + inline attachments); returns JSON + `manifest_hash`.
+- `POST /api/daily-reports/evidence/extract` — one-shot base64 → extraction envelope preview; never stores bytes.
+- `POST /api/daily-reports` now accepts an optional `evidence_manifest` field that persists to Mongo and drives the PDF 10B section.
+
+### ONE Daily Report Language Cleanup
+- Renamed the last user-visible "Daily Report V3" string in `EmployeeLifecycleQualifications.jsx` → "Daily Report".
+- **New test** `tests/test_track_24_13_one_daily_report_language.py` — 4 lock tests scanning `pdf_render.py`, `services/dr_ai/agents.py`, email helpers, and `services/dr_evidence/*.py` for banned phrases (Daily Report V1/V2/V3, V1/V2/V3 Daily Report, Legacy/Modern/Old Daily Report, New Daily Report V*).
+- **Strengthened** `test_dr_unify_001_single_system.py::test_no_user_facing_v1_v2_text` — banned list expanded (Daily Report V3, V3 Daily, Legacy Daily Report, Modern Daily Report, Old Daily Report, New Daily Report V*).
+- Internal filenames + code comments untouched (compat adapters — user's directive).
+
+### Regression Locks · 59 tests
+- `test_track_24_13_evidence_engine.py` (21) · `test_track_24_13_one_daily_report_language.py` (4) · `test_track_24_13_live_smoke.py` (12) · `test_track_24_12_ai_evidence_and_flow.py` (10) · `test_track_24_12_disk_hardening.py` (7) · `test_track_24_12_photo_append_fix.py` (5).
+
+### Verification
+- **Backend pytest** 59/59 pass (extraction envelope · materials reconciliation · manifest hash stability · warnings surface · PDF section renders · Daily Report language lock).
+- **Testing agent iter 548** 100% backend + 100% frontend. Live smoke on real ingress: extract endpoint on real PDF/XLSX/DOCX/CSV/TXT/corrupt/scanned/unsupported bytes; DR POST with `evidence_manifest` persisted and PDF carried 10A Operational Intelligence Summary + 10B Attachment & Document Evidence + material reconciliation + Evidence Warnings; legacy DR (no manifest) rendered without 10B — parity intact.
+- **Frontend smoke** /daily/new renders Section 8 (Operational Summary Assist); zero user-facing V1/V2/V3/legacy/modern text on the DR form page.
+
+### Deploy status
+- ⏳ Awaiting explicit deploy authorization per user directive. Track 24.12 + 24.13 + 24.14 will deploy together.
+
+
+
 ## 2026-02-15 — TRACK 24.12 · Workstream A (AI Evidence Rebuild) + Workstream B (R2 / Disk Hardening) — 🟢 CLOSED
 
 **Trigger**: User ordered continuation after Phase A1 (photo append fix). Two full workstreams delivered before deploy.
