@@ -49,11 +49,20 @@ export default function DraftRestorePrompt({
   const { t } = useT();
   if (!pendingDraft) return null;
   const age = savedAt ? _humanizeAge(savedAt, t) : null;
+  // TRACK 26.08 · always surface the project + date the draft is bound
+  // to so a multi-project supervisor cannot silently restore another
+  // day's work. Draft contract requires (device, user, project, date)
+  // scoping — see /app/memory/TRACK_26_08_DAILY_REPORT_DRAFT_CONTINUITY.md
+  const draftProject = (pendingDraft.project_number || "").trim();
+  const draftProjectName = (pendingDraft.project_name || "").trim();
+  const draftDate = (pendingDraft.report_date || "").trim();
   return (
     <section
       data-testid={testId}
       data-saved-at={savedAt || ""}
       data-cross-token={isCrossToken ? "1" : "0"}
+      data-draft-project={draftProject}
+      data-draft-report-date={draftDate}
       className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 mb-4"
     >
       <div className="flex items-start gap-3">
@@ -73,6 +82,17 @@ export default function DraftRestorePrompt({
               ? t("Saved {age} on this device.").replace("{age}", age)
               : t("Your work is saved on this device until it is submitted.")}
           </p>
+          {(draftProject || draftDate) ? (
+            <p
+              className="text-xs text-amber-900 mt-1 font-medium"
+              data-testid={`${testId}-scope`}
+            >
+              {draftProject
+                ? `${t("Project")}: ${draftProjectName ? `${draftProjectName} (${draftProject})` : draftProject}`
+                : t("Project not yet selected")}
+              {draftDate ? ` · ${t("Date")}: ${draftDate}` : ""}
+            </p>
+          ) : null}
           {isCrossToken ? (
             <p
               className="text-xs text-amber-700/80 mt-1 italic"

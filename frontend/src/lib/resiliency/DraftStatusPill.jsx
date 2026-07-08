@@ -21,7 +21,7 @@
 // form). All visible strings now route through useT().
 
 import React, { useEffect, useState } from "react";
-import { CloudUpload, Check, AlertTriangle } from "lucide-react";
+import { CloudUpload, Check, AlertTriangle, WifiOff, Send, CheckCheck } from "lucide-react";
 import { useT } from "@/lib/i18n";
 
 function _formatRelative(ts, t) {
@@ -62,6 +62,61 @@ export default function DraftStatusPill({
     return () => clearInterval(tick);
   }, [lastSavedAt, status]);
 
+  // TRACK 26.08 · seven human-safe contract states.
+  //   draft | saving | saved | offline | syncing | ready | submitted
+  // The pre-26.08 states (saving | saved | failed | idle) are all
+  // preserved; the three new ones live alongside them so pages that
+  // haven't been updated to pass the new statuses still render exactly
+  // as before.
+
+  if (status === "submitted") {
+    return (
+      <span
+        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-800 text-slate-100 text-[10px] font-mono uppercase tracking-wider border border-slate-700"
+        data-testid={testId}
+        data-state="submitted"
+      >
+        <CheckCheck className="w-3 h-3" /> {t("Submitted")}
+      </span>
+    );
+  }
+
+  if (status === "ready") {
+    return (
+      <span
+        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-mono uppercase tracking-wider border border-blue-200"
+        data-testid={testId}
+        data-state="ready"
+      >
+        <Send className="w-3 h-3" /> {t("Ready to submit")}
+      </span>
+    );
+  }
+
+  if (status === "offline") {
+    return (
+      <span
+        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 text-[10px] font-mono uppercase tracking-wider border border-amber-200"
+        data-testid={testId}
+        data-state="offline"
+      >
+        <WifiOff className="w-3 h-3" /> {t("Offline — will sync")}
+      </span>
+    );
+  }
+
+  if (status === "syncing") {
+    return (
+      <span
+        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 text-[10px] font-mono uppercase tracking-wider border border-sky-200"
+        data-testid={testId}
+        data-state="syncing"
+      >
+        <CloudUpload className="w-3 h-3" /> {t("Syncing…")}
+      </span>
+    );
+  }
+
   if (status === "failed") {
     return (
       <span
@@ -98,6 +153,22 @@ export default function DraftStatusPill({
         data-saved-at={lastSavedAt || ""}
       >
         <Check className="w-3 h-3" /> {label}
+      </span>
+    );
+  }
+
+  // TRACK 26.08 · initial-blank state — the contract calls this
+  // "Draft". The pre-26.08 UI rendered nothing for `idle` without a
+  // `lastSavedAt`; keep parity for pages that pass `status="idle"`
+  // and let `status="draft"` opt into the explicit label.
+  if (status === "draft") {
+    return (
+      <span
+        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-mono uppercase tracking-wider border border-slate-200"
+        data-testid={testId}
+        data-state="draft"
+      >
+        {t("Draft")}
       </span>
     );
   }

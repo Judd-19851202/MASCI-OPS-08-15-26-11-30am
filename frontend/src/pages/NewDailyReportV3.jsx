@@ -432,12 +432,25 @@ export default function NewDailyReportV3({ publicMode = false }) {
             </span>
           )}
           <div data-testid="dr-v3-draft-pill-slot">
+            {/* TRACK 26.08 · seven contract states. Priority order:
+                submitted > saving > offline > ready > saved > draft.
+                `saving`, `saved`, `failed` come straight from the
+                autosave hook; `offline`, `ready`, `draft` are derived
+                from the current form context. */}
             <DraftStatusPill
-              status={draftStatus}
+              status={(() => {
+                if (saving) return "syncing";
+                if (draftStatus === "saving") return "saving";
+                if (draftStatus === "failed") return "failed";
+                if (!online) return "offline";
+                if (canSubmit) return "ready";
+                if (draftStatus === "saved" || pendingSavedAt) return "saved";
+                return "draft";
+              })()}
               lastSavedAt={pendingSavedAt}
               testId="dr-v3-draft-pill"
             />
-            {(draftStatus === "idle" && !pendingSavedAt) && (
+            {(draftStatus === "idle" && !pendingSavedAt && online && !canSubmit) && (
               <span
                 data-testid="dr-v3-draft-pill"
                 className="rounded-full bg-slate-800 px-3 py-1 text-xs font-medium text-slate-100 border border-slate-700"

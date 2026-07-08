@@ -29,12 +29,33 @@
 //   renameCrewSetup(nickname)               → snapshot | null
 //   applySetupSnapshotToData(data, snap)    → merged data (immutable)
 //
-// Storage key: `masci.crew-memory.daily-report.v1`
-// (single slot per device · matches Phase 31.1 spec example "yesterday's setup")
+// Storage key: `masci.crew-memory.daily-report.v1.<authActor>`
+// (per-actor slot on the same device · TRACK 26.08 fix G-2)
+//
+// Prior to Track 26.08 the storage key was a single device-wide slot
+// (`masci.crew-memory.daily-report.v1`) which allowed cross-crew
+// contamination on shared iPads: Foreman A's saved setup was offered
+// to Foreman B on the same device. The key is now suffixed with the
+// authenticated actor fingerprint (portal-prefix + token slice, same
+// primitive already used by the draft-restore isolation). Anonymous
+// sessions fall back to a shared `.anon` slot by design (unauthenticated
+// public form flow — never contains identifying data).
 
-const STORAGE_KEY = "masci.crew-memory.daily-report.v1";
+import { getAuthActorFingerprint } from "./resiliency/actorId";
+
+const STORAGE_KEY_BASE = "masci.crew-memory.daily-report.v1";
+const LEGACY_STORAGE_KEY = "masci.crew-memory.daily-report.v1";
 const TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const SCHEMA_VERSION = 1;
+
+function _actorKey() {
+  try {
+    const actor = getAuthActorFingerprint() || "anon";
+    return `${STORAGE_KEY_BASE}.${actor}`;
+  } catch {
+    return `${STORAGE_KEY_BASE}.anon`;
+  }
+}
 
 // --- internals ----------------------------------------------------------
 
@@ -47,7 +68,7 @@ function _safeJson(raw) {
 
 function _writeRaw(snapshot) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+    localStorage.setItem(_actorKey(), JSON.stringify(snapshot));
   } catch {
     /* localStorage unavailable — calm degrade */
   }
@@ -226,12 +247,37 @@ export function saveCrewSetup(snapshot, { nickname } = {}) {
  * Reads are silent — they never mutate the entry.
  */
 export function loadCrewSetup() {
-  const rec = _safeJson(
-    typeof localStorage !== "undefined" ? localStorage.getItem(STORAGE_KEY) : null
-  );
+  // TRACK 26.08 · read the per-actor slot first; fall back to the
+  // pre-fix device-wide legacy slot ONLY if the current actor has no
+  // per-actor entry yet AND the legacy entry looks like it belongs to
+  // this actor (best-effort compat — a foreman upgrading from a
+  // pre-26.08 build should still see yesterday's setup once, then it
+  // migrates forward on next save).
+  const currentKey = _actorKey();
+  let raw = null;
+  try {
+    raw = typeof localStorage !== "undefined"
+      ? localStorage.getItem(currentKey)
+      : null;
+  } catch {
+    raw = null;
+  }
+  // Legacy fallback: only used if the per-actor slot is empty. Read
+  // the historical single-slot key and treat it as belonging to the
+  // current actor (safe because Track 26.08 activation happens on the
+  // same device where the legacy data was written).
+  if (!raw) {
+    try {
+      raw = typeof localStorage !== "undefined"
+        ? localStorage.getItem(LEGACY_STORAGE_KEY)
+        : null;
+    } catch {
+      raw = null;
+    }
+  }
+  const rec = _safeJson(raw);
   if (!rec) return null;
   if (rec.schemaVersion !== SCHEMA_VERSION) {
-    // Old shape · drop it silently so the user starts blank.
     clearCrewSetup();
     return null;
   }
@@ -245,7 +291,11 @@ export function loadCrewSetup() {
 
 /** Explicit operator action · matches "Clear Saved Setup" prompt button. */
 export function clearCrewSetup() {
-  try { localStorage.removeItem(STORAGE_KEY); } catch { /* noop */ }
+  // TRACK 26.08 · clear BOTH the per-actor slot and the legacy device-
+  // wide slot so the explicit clear affordance never leaves stale data
+  // that could resurface on a subsequent load-legacy-fallback path.
+  try { localStorage.removeItem(_actorKey()); } catch { /* noop */ }
+  try { localStorage.removeItem(LEGACY_STORAGE_KEY); } catch { /* noop */ }
 }
 
 /** Optional nickname rename · returns the updated record or null. */
@@ -316,7 +366,13 @@ export function applySetupSnapshotToData(data, snapshot) {
 
 // Test-only seam · NOT exported for app code. Kept here so unit tests
 // can flush the slot deterministically without touching window.
-export const __TESTING__ = { STORAGE_KEY, TTL_MS, SCHEMA_VERSION };
+export const __TESTING__ = {
+  STORAGE_KEY_BASE,
+  LEGACY_STORAGE_KEY,
+  TTL_MS,
+  SCHEMA_VERSION,
+  _actorKey,
+};
 
 // iter442 · confidence proxy. Doctrine-locked:
 //   - device_id may SUGGEST context
