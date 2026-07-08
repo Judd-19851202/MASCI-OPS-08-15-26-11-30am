@@ -12186,3 +12186,37 @@ Potential improvement: would you like me to add a **built-in in-form image previ
 - New: `backend/tests/test_track_24_11b_ai_and_downstream_certification.py` (33 tests)
 
 **Sweep**: 211/211 pytest green.
+
+
+---
+
+## TRACK 25.01 · Admin Operating System (AOS) — Phase B + Phase C — 2026-02-07 · ✅ SHIPPED
+
+**Directive**: Consolidate scattered admin/maintenance surfaces into the Operations Control Center under a zero-drift, feature-flagged rollout. No routes deleted. No schema drift. No half-empty redirects.
+
+**Phase B · Non-breaking legacy redirects with banner** — DONE
+- New file: `frontend/src/lib/featureFlags.js` — `masci.admin.nav.v3` flag (default OFF; localStorage + env override).
+- New file: `frontend/src/app/routing/legacyRedirects.js` — canonical map for 9 legacy admin routes → OCC deep-links (`?highlight=<op-id>`).
+- New file: `frontend/src/components/admin/LegacyMovedBanner.jsx` — persistent banner (dismissible per session via `sessionStorage`) with "Open in Operations Control Center" CTA. Human-first copy · no engineering jargon.
+- `AppRoutes.jsx` — added `const LB = (path, el) => <WithLegacyBanner pathname={path}>{el}</WithLegacyBanner>`. Wrapped these 9 routes (page still fully renders below the banner): `/admin/system`, `/admin/system-health`, `/admin/operations-dashboard`, `/admin/integration-truth`, `/admin/deploy-readiness`, `/admin/deploy-recovery`, `/admin/scheduler-runs`, `/admin/recovery`, `/admin/recovery-stream`.
+
+**Phase C · OCC consolidation operations** — DONE
+- New file: `backend/services/operations_control/deploy.py` — `deploy.readiness_check` (delegates to `routes.deploy_readiness`) + `deploy.recovery_playbook` (canonical 6-step playbook + latest local-backup snapshot).
+- New file: `backend/services/operations_control/integrations.py` — `integrations.probe_all` (delegates to `routes.integration_health.run_all_probes`).
+- New file: `backend/services/operations_control/queues.py` — `queues.scheduler_runs` (reads `scheduler_runs` collection).
+- `services/operations_control/registry.py` — added the 3 new modules; total OCC ops now 14.
+- `OperationsControlCenter.jsx` — reads `?highlight=<op-id>`, scrolls target card into view, adds amber ring + `data-occ-highlighted=true` on the highlighted card. Also removed leftover "Track 24.17 · OCC" engineering label → "Platform Operations".
+
+**Regression locks (new)**:
+- `backend/tests/test_track_25_01_legacy_redirects.py` — 15 tests · verifies map contract, banner UX, no engineering jargon, AppRoutes wiring, feature-flag default OFF, cross-check that every declared `occOperationId` exists in the backend registry (Phase B ↔ Phase C parity).
+- `backend/tests/test_track_25_01_occ_consolidation.py` — 9 tests · verifies all 4 new ops are registered, read-only, and honor the status envelope contract.
+
+**E2E verification (Testing Agent · iter550)**: 100% pass backend + 100% pass frontend. All 8 legacy routes still return 200, banner renders on each, CTA opens OCC with correct `?highlight=` deep-link, target card highlighted, all 4 Phase C ops populate with live status snapshots (warning/warning/warning/healthy — no `unavailable`), Dismiss persists per session.
+
+**Zero-drift confirmation**: No routes deleted. No schema changes. No API changes. Existing 144 tests + 46 targeted tests all green.
+
+**Deferred to next tracks (per audit)**:
+- Track 25.02 · Phase D — Nav restructure to 12 persona nodes + Universal ⌘K Command Palette.
+- Track 25.03 · Executive Home Dashboard (Business/Operations/Safety/Platform health + Action Queue) behind `masci.admin.nav.v3` flag.
+- Track 25.03b · Interactive drillable KPI contract (Source · Evidence · History · Root Cause · Recommended Action).
+- Track 25.04 · Phase E — Legacy sunset (delete confirmed-dead routes, remove banners) after 2-week parallel run.
