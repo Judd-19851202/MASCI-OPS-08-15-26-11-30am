@@ -16338,6 +16338,13 @@ async def _create_safety_indexes():
         await db.daily_reports.create_index("created_at")
         await db.daily_reports.create_index("report_date")
         await db.daily_reports.create_index("project_number")
+        # TRACK 26.07: index the `updated_at` field used by the job-photos
+        # background indexer loop (routes/job_photos.py::background_indexer_loop)
+        # which filters `daily_reports.find({photos.0: {$exists}, updated_at:
+        # {$gte: cutoff}})` every 10 min. Without this index, the tick is a
+        # COLLSCAN of the entire collection — the leading candidate for the
+        # 2026-07-08 16:01 GMT Atlas query targeting alert.
+        await db.daily_reports.create_index("updated_at")
         # PERFORMANCE-HARDEN-002: eliminate COLLSCAN on hot find_one({"id": ...})
         # patterns used across daily_report_lifecycle, hr_portal, verification,
         # operational_records, command_center, etc. Evidence: 794 docs scanned

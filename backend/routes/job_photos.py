@@ -335,24 +335,48 @@ async def _warm_missing_thumbs(db, batch_limit: int = 200) -> Dict[str, int]:
     on-demand path so we never blow up the worker. Cap batch size so a
     single tick never runs longer than the next tick interval.
 
+    TRACK 26.07 refactor: previously loaded EVERY warm photo_id in the
+    cache into a Python set per tick (O(N) memory + full-collection read
+    of `job_photo_thumb_cache` filtering only by `fmt`). Now walks
+    `job_photos` in a bounded batch and issues ONE `$in` lookup against
+    the compound `{fmt: 1, photo_id: 1}` index to identify warm ones —
+    bounded query, index-backed, zero unbounded scans.
+
     Returns ``{warmed, failed}`` for log surfacing.
     """
     warmed = 0
     failed = 0
-    # Pull all photo_ids that already have a JPEG cache entry — these
-    # are "warm" and can be skipped.
-    warm_ids = set()
-    async for d in db.job_photo_thumb_cache.find(
-        {"fmt": "jpeg"}, {"photo_id": 1, "_id": 0}
-    ):
-        if d.get("photo_id"):
-            warm_ids.add(d["photo_id"])
 
-    # Walk the index, render any photo missing from `warm_ids`.
-    cursor = db.job_photos.find(
+    # Walk the index in a bounded batch. Over-fetch a bit since most rows
+    # will already be warm, but hard-cap so a single tick never scans the
+    # full collection.
+    candidates: List[Dict[str, Any]] = []
+    scan_cap = max(batch_limit * 5, 100)
+    async for meta in db.job_photos.find(
         {}, {"_id": 0, "id": 1, "source": 1, "source_id": 1, "photo_index": 1}
-    ).limit(batch_limit * 5)  # over-fetch since most will be warm
-    async for meta in cursor:
+    ).limit(scan_cap):
+        candidates.append(meta)
+
+    if not candidates:
+        return {"warmed": 0, "failed": 0}
+
+    # Single index-backed lookup: which of this batch already have a JPEG
+    # cache entry? Uses the compound `{fmt: 1, photo_id: 1}` index added
+    # in `_ensure_thumb_cache_indexes` (TRACK 26.07). The `$in` size is
+    # bounded to `scan_cap`, so the query planner can serve this entirely
+    # from the index without touching document payloads.
+    batch_ids = [c["id"] for c in candidates if c.get("id")]
+    warm_ids: set[str] = set()
+    if batch_ids:
+        async for d in db.job_photo_thumb_cache.find(
+            {"fmt": "jpeg", "photo_id": {"$in": batch_ids}},
+            {"_id": 0, "photo_id": 1},
+        ):
+            pid = d.get("photo_id")
+            if pid:
+                warm_ids.add(pid)
+
+    for meta in candidates:
         if meta["id"] in warm_ids:
             continue
         if warmed + failed >= batch_limit:
@@ -500,6 +524,15 @@ async def _ensure_thumb_cache_indexes(db) -> None:
             "created_at", expireAfterSeconds=_THUMB_TTL_DAYS * 86400
         )
         await db.job_photo_thumb_cache.create_index("photo_id")
+        # TRACK 26.07: compound index covering the per-tick warm lookup
+        # (`{fmt: "jpeg", photo_id: {$in: [...]}}`) used by
+        # `_warm_missing_thumbs`. Prior to this index, that filter fell back
+        # to the `photo_id_1` index and re-scanned every candidate to filter
+        # by fmt, triggering Atlas query targeting when the cache grew.
+        await db.job_photo_thumb_cache.create_index(
+            [("fmt", 1), ("photo_id", 1)],
+            name="fmt_1_photo_id_1",
+        )
     except Exception as e:  # noqa: BLE001
         logger.warning(f"[job-photos] thumb cache index create failed: {e}")
 
