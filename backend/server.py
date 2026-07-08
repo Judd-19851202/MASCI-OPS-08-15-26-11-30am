@@ -12227,7 +12227,10 @@ async def _require_driver_profile_actor(
     x_hr_token: Optional[str] = Header(default=None, alias="X-HR-Token"),
     x_dispatch_token: Optional[str] = Header(default=None, alias="X-Dispatch-Token"),
 ):
-    if x_admin_token and _is_valid_admin_token(x_admin_token):
+    if x_admin_token and (
+        _is_valid_admin_token(x_admin_token)
+        or await _is_valid_directory_admin_token_async(x_admin_token)
+    ):
         return {"_role": "admin", "name": "Admin"}
     if x_safety_token:
         from safety_users import is_valid_safety_user_token_async  # noqa: PLC0415

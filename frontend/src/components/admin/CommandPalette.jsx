@@ -241,7 +241,31 @@ function CommandPaletteInner({ open, onClose }) {
     [activate, onClose, results],
   );
 
+  // Document-level Escape so the palette also closes when the input
+  // loses focus (e.g., the operator clicked into the results but hasn't
+  // selected anything yet).
+  useEffect(() => {
+    if (!open) return;
+    function onDocKey(e) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose?.();
+      }
+    }
+    document.addEventListener("keydown", onDocKey, true);
+    return () => document.removeEventListener("keydown", onDocKey, true);
+  }, [open, onClose]);
+
   if (!open) return null;
+
+  // Backdrop click handler — only fires if the target IS the backdrop.
+  // This avoids the historic React-19 pitfall where an inner
+  // stopPropagation was still bubbling on the pointerup phase.
+  const onBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose?.();
+    }
+  };
 
   return (
     <div
@@ -250,10 +274,12 @@ function CommandPaletteInner({ open, onClose }) {
       aria-modal="true"
       aria-label="Universal search"
       data-testid="admin-command-palette"
-      onClick={onClose}
+      onMouseDown={onBackdropClick}
+      onClick={onBackdropClick}
     >
       <div
         className="w-full max-w-2xl rounded-xl border border-slate-800 bg-slate-900 shadow-2xl overflow-hidden"
+        onMouseDown={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-2 border-b border-slate-800 px-3 py-2.5">

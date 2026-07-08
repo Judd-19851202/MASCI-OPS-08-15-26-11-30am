@@ -1,0 +1,55 @@
+{
+  "summary": "TRACK 25.02 Phase D — retest after iteration_551 fixes. Backend smoke 5/5 PASS (expirations counts.expired=79, in_30=50; 14 ops incl. deploy.readiness_check/deploy.recovery_playbook/integrations.probe_all/queues.scheduler_runs; admin/integrations/health, dispatch/command/summary, admin/search?q=deploy all 200). UI retest: Executive Home expiration cards NOW POPULATE (COMPLIANCE 79 Expired documents · 50 Expiring within 30 days). X-close PASS. Escape-from-results PASS (document-level keydown works). BACKDROP CLOSE STILL FAILS — root cause found: <CommandPaletteProvider> is mounted TWICE (AppRoutes.jsx:430 wraps admin, AdminHubV3.jsx:184 wraps again), producing TWO overlapping palette overlays; backdrop click closes only the topmost. Tablet 768x1024 layout RE-VERIFIED — title renders across 3 lines with 3-column attention grid; previous iteration_551 finding is a FALSE POSITIVE. Flag OFF renders V2, flag ON renders V3, sidebar exposes 12 domains in exact order.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "CommandPalette", "issue": "Backdrop click at (50,300) does NOT close palette because <CommandPaletteProvider> is mounted twice — once in /app/frontend/src/app/routing/AppRoutes.jsx (line 430, wrapping the whole admin surface) and again in /app/frontend/src/pages/AdminHubV3.jsx (line 184, wrapping the hub). Two overlapping palette overlays render at the same z-index; a single backdrop click only unmounts the topmost. document.querySelectorAll('[data-testid=admin-command-palette]').length === 2 when Cmd+K is pressed on /admin. Fix scope: remove one of the two Providers (recommended: drop it from AdminHubV3.jsx since AppRoutes already wraps admin routes).", "selector": "[data-testid=admin-command-palette]", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/backend/tests/test_track_25_02_phase_d_retest.py", "/app/test_reports/pytest/phase_d_retest.xml"],
+  "retest_results": {
+    "expirations_401_HIGH": "PASS — GET /api/operations/expirations/summary with X-Admin-Token returns 200; counts={'expired':79,'in_30':50,'in_60':23,'in_90':31,'healthy':117}. AdminHubV3 attention cards admin-hub-v3-attention-exp-expired shows 79, admin-hub-v3-attention-exp-30 shows 50 (no longer '—').",
+    "backdrop_close_MEDIUM": "FAIL — real user click at (50,300) still leaves palette visible. Diagnostic reveals TWO admin-command-palette elements in the DOM. The event.target===event.currentTarget guard fix in CommandPalette.jsx is correct in isolation but is defeated by the double-mount. Synthetic dispatch on elementFromPoint's return also fails to close both instances.",
+    "x_close_MEDIUM": "PASS — clicking [data-testid=admin-command-palette-close] closes the palette (is_visible → False).",
+    "escape_from_results_MEDIUM": "PASS — filling input with 'deploy', clicking the results scroller edge to blur, then pressing Escape closes the palette (document-level keydown listener works).",
+    "tablet_768x1024_reverify": "PASS (previous finding was FALSE POSITIVE) — hero title 'What needs attention right now?' renders in 3 lines with a 3-column attention grid: [SAFETY 167 Open incidents | SAFETY 79 Open corrective actions | FLEET 0 Units OOS] / [COMPLIANCE 79 Expired | COMPLIANCE 50 Expiring within 30d | PLATFORM 0 Ops at red]. Element bounding box confirms w=228, h=20 per line, fontSize=14px, wordBreak=normal. Screenshot captured shows correct layout.",
+    "smoke_flag_off_v2": "PASS — with masci.admin.nav.v3='off', /admin renders admin-hub-v2-root (not v3).",
+    "smoke_flag_on_v3": "PASS — v3 root renders with all 6 attention cards populating real numbers.",
+    "smoke_sidebar_12_domains_exact_order": "PASS — home, operations-control, jobs-projects, fleet-equipment, safety-compliance, people-access, training, ai-intelligence, communications, reporting, audit-log, legacy-imports (12/12 in order).",
+    "smoke_cmd_k_open": "PASS",
+    "smoke_backend_5_5": "PASS — expirations 200, operations-control/overview 200 (14 ops with required 4 op ids present), integrations/health 200, dispatch/command/summary 200, admin/search?q=deploy 200 with groups array."
+  },
+  "action_items": [
+    "FIX (MEDIUM): remove the duplicate <CommandPaletteProvider> mount in /app/frontend/src/pages/AdminHubV3.jsx (line 184). The outer provider in AppRoutes.jsx:430 already wraps every admin route; the nested provider produces two overlapping palettes and breaks backdrop-close. After removing, re-verify document.querySelectorAll('[data-testid=admin-command-palette]').length === 1 when Cmd+K is pressed."
+  ],
+  "critical_code_review_comments": [
+    "AppRoutes.jsx:423-430 wraps the admin surface in <CommandPaletteProvider>. AdminHubV3.jsx:184-399 also wraps its subtree in <CommandPaletteProvider>. Nested providers each render their own keydown listener and their own <CommandPaletteInner>; the DOM ends up with two identical overlays. Only the outer provider should remain (or only the inner one, but the outer is preferred because Meta+K should open the palette from every admin page, not only from AdminHubV3).",
+    "The event.target===event.currentTarget backdrop guard is correctly implemented and would work perfectly if the double-mount is removed.",
+    "Document-level Escape listener addition (CommandPalette.jsx) is confirmed working — Escape from a blurred input state now closes the palette."
+  ],
+  "updated_files": ["/app/backend/tests/test_track_25_02_phase_d_retest.py"],
+  "success_rate": {"backend": "100% (5/5 smoke)", "frontend": "95% — only remaining defect is CommandPalette double-mount causing backdrop-close failure"},
+  "test_credentials": "jaymn.judd@mascigc.com / Maddix123! via POST /api/auth/multi-login → portal_tokens.admin planted in localStorage['masci.admin.token']. localStorage['masci.admin.nav.v3']='on' enables V3.",
+  "seed_data_creation": "none",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "The only remaining defect is a duplicate <CommandPaletteProvider> mount. After the main agent removes one instance (recommend removing from AdminHubV3.jsx), re-run: (a) count palette DOM elements after Meta+K (must be 1), (b) real page.mouse.click(50, 300) closes palette (backdrop close), (c) X close, (d) Escape from results. Everything else — expirations 401 fix, tablet layout, Escape listener, backend smoke — is confirmed working.",
+  "updated_acceptance_report": {
+    "high_expirations_401": "PASS",
+    "medium_backdrop_close": "FAIL (root cause identified: double provider mount)",
+    "medium_x_close": "PASS",
+    "medium_escape_from_results": "PASS",
+    "reverify_tablet_768": "PASS (previous FAIL was a false positive)",
+    "smoke_backend_5_endpoints": "PASS",
+    "smoke_flag_off_v2": "PASS",
+    "smoke_flag_on_v3": "PASS",
+    "smoke_sidebar_12_domains": "PASS",
+    "smoke_cmd_k_and_palette_group_order": "PASS",
+    "recommendation": "CONDITIONAL GO — the remaining palette backdrop-close defect is MEDIUM (X/Escape/keyboard shortcuts all work; only outside-click close is affected). Ship-decision can proceed if the team accepts the minor UX limitation; a one-line removal of the duplicate provider in AdminHubV3.jsx converts this to a full GO."
+  },
+  "rca_of_the_issue": {
+    "backdrop_close": "ROOT CAUSE — <CommandPaletteProvider> is nested. AppRoutes.jsx wraps admin routes with a Provider (which mounts its own CommandPaletteInner + adds a window keydown listener). AdminHubV3.jsx wraps its own subtree with another Provider. When Meta+K is pressed on /admin, BOTH keydown listeners fire and BOTH set open=true, so document.querySelectorAll('[data-testid=admin-command-palette]').length === 2. Backdrop click closes only the topmost overlay; the second overlay remains visible. Diagnostic confirmed via page.evaluate: `count: 2`, elementFromPoint(50,300) returns one of the two palette root divs. Fix: delete the redundant provider (line 184 and matching closing tag around line 399 of AdminHubV3.jsx)."
+  }
+}
