@@ -14,24 +14,48 @@ import json
 from typing import Any, Dict, List
 
 
-# Canonical whitelist of V1/V2 fields the AI is allowed to cite.
+# Canonical whitelist of V1/V2/V3 fields the AI is allowed to cite.
 # Anything outside this list will NOT appear in evidence_refs so an
 # agent that hallucinates a field id fails the evidence check.
+#
+# TRACK 24.12 · Workstream A · EVIDENCE REBUILD
+# ─────────────────────────────────────────────
+# Prior whitelist covered ~15 fields. Field crews were seeing shallow
+# AI narratives because every V3 field group past crew/equipment/
+# weather was being silently stripped by `build_evidence_bundle`.
+# The rebuild widens the whitelist to include every DR field group
+# the V3 shell submits, plus photo captions / photo-observation
+# metadata (from Track 22.9B) and attachment metadata (from Track
+# 19.04 / 24.11) so the AI can honestly reference an uploaded permit
+# without hallucinating file contents.
 EVIDENCE_FIELD_WHITELIST = {
-    # Day setup
+    # ── Day setup / identity ──────────────────────────────────
     "project_name", "project_number", "report_date", "shift",
     "supervisor_name", "weather", "gps_location",
-    # Crew
+    # TRACK 24.12 · project metadata snapshot from the DR payload.
+    "client", "project_manager", "location", "weather_summary",
+    "day_setup",
+    # ── Crew / labor ──────────────────────────────────────────
     "masci_crews", "crew_hours_total", "absent_early_chips",
-    # Equipment
+    "visitors",
+    # ── Equipment ─────────────────────────────────────────────
     "equipment_used", "equipment_hours", "equipment_idle_reasons",
-    # V2 structured entry
+    # ── V2 / V3 structured entry ──────────────────────────────
     "activity_cards", "constraint_cards", "tomorrow_readiness",
-    # Safety / quality
+    # ── Materials / hauling ───────────────────────────────────
+    "materials", "outbound_materials", "subcontractors", "vendors",
+    # ── Safety / quality ──────────────────────────────────────
     "safety_incidents", "quality_findings", "jha_ack",
-    # Photos (Phase D will enrich)
-    "photos",
-    # Weather / production context
+    "safety_quality", "near_misses",
+    # ── Excavation / trench (Track 23.10-E) ───────────────────
+    "excavation", "competent_person", "work_stoppage",
+    # ── Free-text narrative ───────────────────────────────────
+    "general_notes",
+    # ── Photos + photo intel ──────────────────────────────────
+    "photos", "photo_captions", "photo_observations",
+    # ── Attachment metadata (never file contents) ─────────────
+    "attachments",
+    # ── Weather / production context ──────────────────────────
     "temperature_f", "precipitation", "wind_mph",
 }
 

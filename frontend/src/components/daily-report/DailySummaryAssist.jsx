@@ -91,6 +91,10 @@ function toEvidenceDraft(reportId, data, photoObservations = []) {
     tomorrow_readiness: data.tomorrow_readiness || {},
     general_notes: data.general_notes || "",
     photos: (data.photos || []).slice(0, 10),
+    // TRACK 24.12 · Optional per-photo captions (V1 payload carries
+    // these on `photo_captions[]`). Metadata only — the AI must NOT
+    // describe a photo without a caption or observation on file.
+    photo_captions: (data.photo_captions || []).slice(0, 10),
     // TRACK 22.9B · Grounded photo observations from the async
     // photo intelligence pipeline. Empty when analysis has not yet
     // completed or when photo intel is disabled — never blocks the

@@ -39,6 +39,20 @@ _STRICTNESS = (
     "requires more.\n"
     "7. Confidence is a float in [0,1]. Lower it when critical evidence "
     "fields (weather, crew, activities) are missing.\n"
+    # TRACK 24.12 · Anti-hallucination hardening. The frontend forwards
+    # photo/attachment metadata only (filename · category · size ·
+    # caption). File contents are NEVER embedded in the prompt.
+    "8. `attachments[]` is metadata ONLY (filename · category · size). "
+    "You may reference that an attachment exists (e.g. 'a permit PDF was "
+    "uploaded') but MUST NOT quote, summarize, or infer file contents.\n"
+    "9. `photos[]` is a list of storage references; `photo_captions[]` "
+    "is optional caption text; `photo_observations[]` is grounded output "
+    "from a separate vision analyzer (may be empty). NEVER describe what "
+    "a photo shows unless a caption or observation is present in the "
+    "evidence bundle.\n"
+    "10. When the evidence bundle carries `excavation` / `competent_person` "
+    "sub-blocks, honour `excavation.ai_guidance` verbatim (never claim "
+    "safe-to-use unless readiness.state == READY AND no blockers).\n"
 )
 
 
@@ -46,11 +60,30 @@ AGENTS: Dict[str, Dict[str, Any]] = {
     "day_narrative": {
         "title": "Day Narrative Agent",
         "system": _STRICTNESS + (
-            "\nROLE: Synthesize a factual, operational recap of the work day. "
-            "Cover crew, activities completed, equipment usage, and weather "
-            "impact. Written for a PM reviewing tomorrow's plan.\n"
-            "SOURCES: activity_cards, masci_crews, equipment_used, weather, "
-            "temperature_f, precipitation."
+            "\nROLE: Synthesize a factual, operational recap of the work "
+            "day for a PM reviewing tomorrow's plan. Cover every relevant "
+            "field group present in the evidence bundle.\n"
+            "SOURCES (cite by name in evidence_refs when used): "
+            "day_setup, project_name, project_number, report_date, "
+            "supervisor_name, client, project_manager, location, "
+            "weather, weather_summary, temperature_f, precipitation, "
+            "wind_mph, gps_location, "
+            "masci_crews, crew_hours_total, absent_early_chips, visitors, "
+            "equipment_used, equipment_hours, equipment_idle_reasons, "
+            "activity_cards, materials, outbound_materials, "
+            "subcontractors, vendors, "
+            "constraint_cards, tomorrow_readiness, "
+            "safety_quality, near_misses, safety_incidents, "
+            "quality_findings, jha_ack, "
+            "excavation, competent_person, work_stoppage, "
+            "general_notes, photos, photo_captions, photo_observations, "
+            "attachments.\n"
+            "OUTPUT SHAPE: 2-4 short paragraphs. Lead with what the crew "
+            "accomplished (activity_cards + masci_crews). Then materials / "
+            "hauling context. Then constraints, delays, and safety posture "
+            "(only what the evidence supports). Close with tomorrow-plan "
+            "and any open follow-ups. Excavation observations only when "
+            "the excavation block is present in the evidence bundle."
         ),
     },
     "risk_and_constraints": {

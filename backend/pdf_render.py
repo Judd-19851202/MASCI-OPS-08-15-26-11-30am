@@ -631,6 +631,13 @@ def _render_exec_summary_card(d: Dict[str, Any], summary_lines, badge) -> str:
 
     HTML/CSS uses inline styles so it survives the upstream render with
     no additions to the @page CSS in `render_record_pdf`.
+
+    TRACK 24.12 · Workstream A · When the supervisor accepted an AI (or
+    edited / fallback) operational summary at submit time, that summary
+    prints INSIDE this Executive Summary Card as the hero paragraph
+    (before the deterministic WORK / PRODUCTION / CONSTRAINTS lines).
+    Legacy DRs without ``ai_accepted_summary`` render byte-identical to
+    pre-24.12 output (deterministic-only card).
     """
     proj = escape((d.get("project_name") or "").strip() or "—")
     proj_no = escape((d.get("project_number") or "").strip())
@@ -661,6 +668,28 @@ def _render_exec_summary_card(d: Dict[str, Any], summary_lines, badge) -> str:
             f'</div>'
         )
 
+    # TRACK 24.12 · Accepted-summary hero block. Sits between the
+    # header row and the deterministic key/value lines so PMs read the
+    # supervisor-approved narrative FIRST. Source label is derived
+    # from the meta envelope so PMs can distinguish AI-generated /
+    # edited / fallback summaries at a glance.
+    accepted_summary = (d.get("ai_accepted_summary") or "").strip()
+    accepted_meta = d.get("ai_accepted_summary_meta") or {}
+    hero_html = ""
+    if accepted_summary:
+        _source_label = _fmt_intel_source(accepted_meta)
+        hero_html = (
+            f'<div style="border-top:1px dotted #cbd5e1;'
+            f'border-bottom:1px dotted #cbd5e1;padding:8px 0;margin:6px 0;">'
+            f'<div style="font-family:\'Courier New\',monospace;font-size:7.5pt;'
+            f'letter-spacing:0.18em;text-transform:uppercase;color:#c8102e;'
+            f'font-weight:bold;margin-bottom:4px;">'
+            f'Operational Summary · {escape(_source_label)}</div>'
+            f'<div style="font-size:10.5pt;line-height:1.5;color:#0f172a;'
+            f'white-space:pre-wrap;">{escape(accepted_summary)}</div>'
+            f'</div>'
+        )
+
     title_row = (
         f'<div style="display:flex;align-items:flex-start;'
         f'justify-content:space-between;gap:12px;margin-bottom:6px;">'
@@ -682,6 +711,7 @@ def _render_exec_summary_card(d: Dict[str, Any], summary_lines, badge) -> str:
         f'<section class="sec exec-card" style="border:2px solid #0f172a;'
         f'padding:10px 12px 6px;margin-bottom:14px;background:#f8fafc;">'
         f'{title_row}'
+        f'{hero_html}'
         f'{lines_html}'
         f'</section>'
     )

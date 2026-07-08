@@ -63,15 +63,34 @@ class DraftPayload(BaseModel):
     report_id: Optional[str] = Field(default=None, description="Client-generated; server assigns if missing")
     supervisor_id: Optional[str] = None
     project_number: Optional[str] = None
+    project_name: Optional[str] = None
+    client: Optional[str] = None
+    project_manager: Optional[str] = None
+    location: Optional[str] = None
+    weather_summary: Optional[str] = None
+    supervisor_name: Optional[str] = None
     report_date: Optional[str] = None
     day_setup: Dict[str, Any] = Field(default_factory=dict)
     masci_crews: List[Dict[str, Any]] = Field(default_factory=list)
+    visitors: List[Dict[str, Any]] = Field(default_factory=list)
     equipment_used: List[Dict[str, Any]] = Field(default_factory=list)
+    materials: List[Dict[str, Any]] = Field(default_factory=list)
+    outbound_materials: List[Dict[str, Any]] = Field(default_factory=list)
+    subcontractors: List[Dict[str, Any]] = Field(default_factory=list)
+    vendors: List[Dict[str, Any]] = Field(default_factory=list)
     activity_cards: List[Dict[str, Any]] = Field(default_factory=list)
     constraint_cards: List[Dict[str, Any]] = Field(default_factory=list)
     tomorrow_readiness: Dict[str, Any] = Field(default_factory=dict)
     safety: Dict[str, Any] = Field(default_factory=dict)
-    photos: List[Dict[str, Any]] = Field(default_factory=list)
+    safety_quality: Dict[str, Any] = Field(default_factory=dict)
+    excavation: Optional[Dict[str, Any]] = None
+    competent_person: Optional[Dict[str, Any]] = None
+    work_stoppage: Optional[Dict[str, Any]] = None
+    general_notes: Optional[str] = ""
+    photos: List[Any] = Field(default_factory=list)
+    photo_captions: List[str] = Field(default_factory=list)
+    photo_observations: List[Dict[str, Any]] = Field(default_factory=list)
+    attachments: List[Dict[str, Any]] = Field(default_factory=list)
     weather: Optional[Dict[str, Any]] = None
 
 
@@ -103,15 +122,50 @@ def _now_iso() -> str:
 
 
 def _draft_to_evidence(draft: Dict[str, Any]) -> Dict[str, Any]:
+    """Flatten a saved draft into the field-shape the evidence bundle
+    whitelist expects.
+
+    TRACK 24.12 · Workstream A · Prior implementation carried only
+    ~15 fields. Now forwards every DR field group the V3 shell / V1
+    NewDailyReport submits (crew · equipment · materials · outbound
+    hauling · subs · visitors · safety · excavation · CP · work
+    stoppage · tomorrow · general notes · weather · GPS · photos +
+    captions · photo observations · attachment metadata).
+    """
     flat: Dict[str, Any] = {}
     setup = draft.get("day_setup") or {}
     for k in ("project_name", "project_number", "report_date", "shift",
-              "supervisor_name", "weather", "gps_location"):
+              "supervisor_name", "weather", "gps_location",
+              "client", "project_manager", "location"):
         if setup.get(k):
             flat[k] = setup[k]
-    for k in ("masci_crews", "equipment_used", "activity_cards",
-              "constraint_cards", "tomorrow_readiness", "photos"):
-        if draft.get(k):
+    # Top-level project metadata (V3 draft mirror).
+    for k in ("project_name", "project_number", "report_date",
+              "client", "project_manager", "location",
+              "weather_summary", "supervisor_name"):
+        if not flat.get(k) and draft.get(k):
+            flat[k] = draft[k]
+    # Full field groups.
+    for k in (
+        # Crew · Labor
+        "masci_crews", "crew_hours_total", "absent_early_chips", "visitors",
+        # Equipment
+        "equipment_used", "equipment_hours", "equipment_idle_reasons",
+        # V2 structured entry
+        "activity_cards", "constraint_cards", "tomorrow_readiness",
+        # Materials / hauling
+        "materials", "outbound_materials", "subcontractors", "vendors",
+        # Safety / quality (structured)
+        "safety_quality", "near_misses",
+        # Excavation / CP / work-stoppage
+        "excavation", "competent_person", "work_stoppage",
+        # Free-text narrative + photo captions + photo intelligence
+        "general_notes", "photos", "photo_captions", "photo_observations",
+        # Attachment metadata — filename/category/size only. AI must
+        # NOT claim to have read file contents (enforced by prompt).
+        "attachments",
+    ):
+        if draft.get(k) not in (None, "", [], {}):
             flat[k] = draft[k]
     weather = draft.get("weather") or {}
     for k in ("temperature_f", "precipitation", "wind_mph"):
@@ -121,6 +175,14 @@ def _draft_to_evidence(draft: Dict[str, Any]) -> Dict[str, Any]:
     for k in ("safety_incidents", "quality_findings", "jha_ack"):
         if safety.get(k) is not None:
             flat[k] = safety[k]
+    # V3 payload sends `safety_quality` at top level. Merge safety_quality's
+    # notes/incidents_today/injuries_today/near_misses into the flat bundle
+    # under the same top-level key so the AI prompt can cite them.
+    sq = draft.get("safety_quality") or {}
+    if isinstance(sq, dict) and sq:
+        # keep the structured object AND surface flat fields for the AI.
+        if "safety_incidents" not in flat and sq.get("incidents_today") is not None:
+            flat["safety_incidents"] = bool(sq.get("incidents_today"))
     return flat
 
 

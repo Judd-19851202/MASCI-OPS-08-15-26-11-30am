@@ -1891,6 +1891,11 @@ export function SectionTomorrow({ data, patch }) {
 }
 
 // ── Section 08 · Operational Summary Assist (single AI card) ────
+// TRACK 24.12 · Workstream A · Fix: `DailySummaryAssist` fires
+// `onAccept(text, meta)` — the previous `onAccepted` prop name was
+// a silent no-op, so the human-accepted summary never reached the
+// DR payload. The wrapper below now forwards the raw `(text, meta)`
+// tuple to the parent as `{summary, meta}` (V3 shell's shape).
 export function SectionAiSummary({ data, reportId, onAccepted }) {
   const { t } = useT();
   return (
@@ -1906,7 +1911,7 @@ export function SectionAiSummary({ data, reportId, onAccepted }) {
         reportId={reportId}
         reportNumber={data.report_number}
         data={data}
-        onAccepted={onAccepted}
+        onAccept={(text, meta) => onAccepted?.({ summary: text, meta })}
       />
     </SectionShell>
   );
