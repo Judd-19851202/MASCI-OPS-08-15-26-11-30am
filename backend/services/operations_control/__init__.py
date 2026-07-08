@@ -18,6 +18,9 @@ tracks can add operations without touching the shared machinery:
 * ``ai.py``         – AI provider posture + fallback rate
 * ``email.py``      – provider posture + safety-mode + last 24 h
 * ``security.py``   – env posture + dev-endpoint check + CORS
+* ``deploy.py``     – (25.01 Phase C) deploy readiness + recovery playbook
+* ``integrations.py`` – (25.01 Phase C) live probe of every provider
+* ``queues.py``     – (25.01 Phase C) scheduler_runs history
 """
 from __future__ import annotations
 

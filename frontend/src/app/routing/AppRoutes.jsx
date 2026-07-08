@@ -397,6 +397,9 @@ import EnforcePortalScope from "@/components/EnforcePortalScope";
 import MultiPortalHydrator from "@/components/MultiPortalHydrator";
 import IdleTimeout from "@/components/IdleTimeout";
 import PosterErrorBoundary from "@/components/PosterErrorBoundary";
+// TRACK 25.01 · AOS Phase B — Legacy Moved banner rendered on
+// consolidated admin routes that now live inside OCC.
+import { WithLegacyBanner } from "@/components/admin/LegacyMovedBanner";
 
 // Crew Hub (Basecamp-style /app section)
 // Crew Hub pages removed 2026-04-28 — replaced by external Basecamp link.
@@ -433,6 +436,14 @@ const FL = (el) => <RequireFl>{el}</RequireFl>;
 const SF = (el) => <RequireSafety>{el}</RequireSafety>;
 const DP = (el) => <RequireDispatch>{el}</RequireDispatch>;
 const D = (el) => <RequireDev>{el}</RequireDev>;
+
+// TRACK 25.01 · AOS Phase B — prepend the LegacyMovedBanner to
+// pages that were consolidated into the Operations Control Center.
+// The original page still renders; the banner explains where the
+// canonical home now lives and links there. Zero routes deleted.
+const LB = (path, el) => (
+  <WithLegacyBanner pathname={path}>{el}</WithLegacyBanner>
+);
 
 // ─────────────────────────────────────────────────────────────────
 // Track 22.2 Phase B · route-group extraction.
@@ -639,7 +650,8 @@ export function AppRoutes() {
             {/* M-3 · Geocode Foundation · Motive Geofence Reconciliation */}
             <Route path="/admin/geofence-reconciliation" element={A(<AdminGeofenceReconciliation />)} />
             {/* M-2 · Event Router · Operations dashboard (visibility only) */}
-            <Route path="/admin/operations-dashboard" element={A(<AdminOperationsDashboard />)} />
+            {/* TRACK 25.01 · Phase B · consolidated into OCC (integrations.probe_all). */}
+            <Route path="/admin/operations-dashboard" element={A(LB("/admin/operations-dashboard", <AdminOperationsDashboard />))} />
             {/* TRACK 24.17 · Operations Control Center — unified maintenance console. */}
             <Route path="/admin/operations-control" element={A(<OperationsControlCenter />)} />
             {/* MOTIVE-DATA-002 · Asset Mapping Admin Center */}
@@ -649,12 +661,12 @@ export function AppRoutes() {
             <Route path="/admin/email" element={A(<AdminEmail />)} />
             <Route path="/admin/training" element={A(<AdminTraining />)} />
             <Route path="/admin/compliance" element={A(<AdminCompliance />)} />
-            <Route path="/admin/system" element={A(<AdminSystem />)} />
+            <Route path="/admin/system" element={A(LB("/admin/system", <AdminSystem />))} />
             <Route path="/admin/ai-configuration" element={A(<AdminAIConfiguration />)} />
-            <Route path="/admin/integration-truth" element={A(<IntegrationTruth />)} />
+            <Route path="/admin/integration-truth" element={A(LB("/admin/integration-truth", <IntegrationTruth />))} />
             <Route path="/admin/preview-validation-identities" element={A(<PreviewValidationIdentities />)} />
-            <Route path="/admin/recovery" element={A(<AdminRecovery />)} />
-            <Route path="/admin/recovery-stream" element={A(<AdminRecoveryStream />)} />
+            <Route path="/admin/recovery" element={A(LB("/admin/recovery", <AdminRecovery />))} />
+            <Route path="/admin/recovery-stream" element={A(LB("/admin/recovery-stream", <AdminRecoveryStream />))} />
             <Route path="/admin/jha-acknowledgements" element={A(<AdminJhaAcknowledgements />)} />
             <Route path="/admin/command-center" element={A(<AdminCommandCenter />)} />
             <Route path="/admin/database" element={A(<AdminDatabase />)} />
@@ -668,10 +680,11 @@ export function AppRoutes() {
             <Route path="/admin/digest-config" element={A(<AdminDigestConfig />)} />
             <Route path="/admin/operational-intelligence" element={A(<AdminOperationalIntelligence />)} />
             <Route path="/admin/operational-intelligence/recipients" element={A(<AdminOperationalIntelligenceRecipients />)} />
-            <Route path="/admin/system-health" element={A(<SystemHealth />)} />
+            <Route path="/admin/system-health" element={A(LB("/admin/system-health", <SystemHealth />))} />
             <Route path="/admin/audit-log" element={A(<AdminAuditLog />)} />
             {/* iter445 · F-003 · operator-visible scheduler/digest history */}
-            <Route path="/admin/scheduler-runs" element={A(<AdminSchedulerRuns />)} />
+            {/* TRACK 25.01 · Phase B · consolidated into OCC (queues.scheduler_runs). */}
+            <Route path="/admin/scheduler-runs" element={A(LB("/admin/scheduler-runs", <AdminSchedulerRuns />))} />
             <Route path="/admin/legacy-imports" element={A(<AdminLegacyImports />)} />
             <Route path="/admin/sessions" element={A(<AdminSessions />)} />
             <Route path="/admin/guidance-coverage" element={A(<AdminGuidanceCoverage />)} />
@@ -690,7 +703,7 @@ export function AppRoutes() {
             <Route path="/guidance" element={<OperationalGuidanceCenter />} />
             <Route path="/guidance/section/:sectionId" element={<OperationalGuidanceCenter />} />
             <Route path="/guidance/:articleId" element={<OperationalGuidanceCenter />} />
-            <Route path="/admin/deploy-recovery" element={A(<DeployRecovery />)} />
+            <Route path="/admin/deploy-recovery" element={A(LB("/admin/deploy-recovery", <DeployRecovery />))} />
             <Route path="/admin/assets/:assetId" element={A(<AssetProfile />)} />
             <Route path="/admin/asset-admin" element={A(<AdminAssetAdmin />)} />
             <Route path="/admin/driver-intel/:driverKey" element={A(<AdminDriverIntel />)} />
@@ -1092,7 +1105,7 @@ export function AppRoutes() {
             <Route path="/training/:track/poster" element={<TrainingQrPoster />} />
             <Route path="/training/:track/packet" element={<TrainingPacketDownload />} />
             <Route path="/admin/training-videos" element={A(<AdminTrainingVideos />)} />
-            <Route path="/admin/deploy-readiness" element={A(<AdminDeployReadiness />)} />
+            <Route path="/admin/deploy-readiness" element={A(LB("/admin/deploy-readiness", <AdminDeployReadiness />))} />
 
             {/* ============================================================
                 Operations Training Center — system-wide operator guides

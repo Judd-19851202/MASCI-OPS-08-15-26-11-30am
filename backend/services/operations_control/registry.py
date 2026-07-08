@@ -104,8 +104,11 @@ def build_registry(db) -> Dict[str, Operation]:
         ai as ai_mod,
         backups as backups_mod,
         daily_reports as dr_mod,
+        deploy as deploy_mod,
         email as email_mod,
         health as health_mod,
+        integrations as integrations_mod,
+        queues as queues_mod,
         r2 as r2_mod,
         security as security_mod,
         storage as storage_mod,
@@ -118,8 +121,14 @@ def build_registry(db) -> Dict[str, Operation]:
             raise ValueError(f"duplicate operation id: {o.id}")
         ops[o.id] = o
 
+    # Track 25.01 Phase C: ``deploy_mod``, ``integrations_mod`` and
+    # ``queues_mod`` fold the scattered maintenance surfaces
+    # (deploy-readiness · deploy-recovery · integration-truth ·
+    # operations-dashboard · scheduler-runs) into OCC as first-class
+    # read-only operations.
     for module in (
-        health_mod, storage_mod, r2_mod, backups_mod, dr_mod,
+        health_mod, deploy_mod, integrations_mod, queues_mod,
+        storage_mod, r2_mod, backups_mod, dr_mod,
         ai_mod, email_mod, security_mod,
     ):
         for op in module.operations(db):

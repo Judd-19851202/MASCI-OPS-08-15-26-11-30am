@@ -2,12 +2,12 @@
 
 _Phase TRUST-TIME-1B · self-protection probe · 🔴 FAIL_
 
-- Scanned files     : **1224**
+- Scanned files     : **1230**
 - Patterns           : **5**
 - New violations     : **39**
-- New warnings       : **79**
+- New warnings       : **80**
 - Baselined          : **67**
-- Scan runtime       : **222 ms**
+- Scan runtime       : **223 ms**
 
 ## Pattern catalogue
 
@@ -94,7 +94,7 @@ _Phase TRUST-TIME-1B · self-protection probe · 🔴 FAIL_
 - `pages/Tasks.jsx:349` · `F4·toLocaleString-bare` · `<div className="font-mono text-[10px] text-slate-400 mt-0.5">{new Date(c.at).toL`
 - `pages/Tasks.jsx:372` · `F4·toLocaleString-bare` · `<span className="font-mono">{new Date(a.at).toLocaleString()}</span>`
 
-_…and 49 more (see JSON output)._
+_…and 50 more (see JSON output)._
 
 ## How to clear violations
 

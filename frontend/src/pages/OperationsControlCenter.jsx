@@ -6,9 +6,16 @@
 //   · apply button (disabled until dry-run completes + phrase entered)
 //   · audit log tab
 //
+// TRACK 25.01 · Phase C — OCC is now the canonical home for
+// deploy readiness, recovery playbook, integration probes, and
+// scheduler run history. Legacy pages render a LegacyMovedBanner
+// pointing here. A `?highlight=<operation-id>` query param scrolls
+// the target card into view and pulses it so operators arriving
+// from a legacy banner land exactly on the right tool.
+//
 // This is the single place a non-coder platform owner runs cleanup,
 // health, and R2 migration. No shell required.
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import axios from "axios";
 
@@ -137,7 +144,7 @@ function StatusPill({ status, children }) {
   );
 }
 
-function OperationCard({ op, onRun, onApply, dryRunState }) {
+function OperationCard({ op, onRun, onApply, dryRunState, highlighted, cardRef }) {
   const [expanded, setExpanded] = useState(false);
   const [confirmPhrase, setConfirmPhrase] = useState("");
   const [reason, setReason] = useState("");
@@ -157,8 +164,15 @@ function OperationCard({ op, onRun, onApply, dryRunState }) {
         : null;
   return (
     <div
-      className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
+      ref={cardRef}
+      className={`rounded-lg border bg-white p-4 shadow-sm transition-all duration-500 ${
+        highlighted
+          ? "border-amber-500 ring-4 ring-amber-200"
+          : "border-slate-200"
+      }`}
       data-testid={`occ-card-${op.id}`}
+      data-occ-op-id={op.id}
+      data-occ-highlighted={highlighted ? "true" : "false"}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -363,6 +377,16 @@ export default function OperationsControlCenter() {
   const [loading, setLoading] = useState(true);
   const [dryRunState, setDryRunState] = useState({}); // op.id -> { dry_run_id, confirmation_phrase, last_result }
   const [error, setError] = useState(null);
+  // TRACK 25.01 · Phase C — deep-link highlight from LegacyMovedBanner.
+  const highlightOpId = useMemo(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("highlight") || "";
+    } catch (_e) {
+      return "";
+    }
+  }, []);
+  const cardRefs = useRef({});
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -385,6 +409,24 @@ export default function OperationsControlCenter() {
   useEffect(() => {
     reload();
   }, [reload]);
+
+  // TRACK 25.01 · Phase C — scroll the highlighted card into view once
+  // the overview loads. Runs on every overview change so a re-navigation
+  // (same route, different highlight) still pulses the right card.
+  useEffect(() => {
+    if (!highlightOpId || !overview) return;
+    const el = cardRefs.current[highlightOpId];
+    if (el && typeof el.scrollIntoView === "function") {
+      // Defer to next tick so layout settles before scrolling.
+      requestAnimationFrame(() => {
+        try {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        } catch (_e) {
+          /* no-op */
+        }
+      });
+    }
+  }, [highlightOpId, overview]);
 
   const onRun = useCallback(
     async (op) => {
@@ -454,7 +496,7 @@ export default function OperationsControlCenter() {
         <header className="mb-6 flex items-center justify-between">
           <div>
             <div className="text-[11px] uppercase tracking-widest text-rose-600 font-semibold">
-              Track 24.17 · OCC
+              Platform Operations
             </div>
             <h1 className="text-2xl font-black text-slate-900">
               Operations Control Center
@@ -502,6 +544,10 @@ export default function OperationsControlCenter() {
                         onRun={onRun}
                         onApply={onApply}
                         dryRunState={dryRunState[op.id]}
+                        highlighted={op.id === highlightOpId}
+                        cardRef={(node) => {
+                          if (node) cardRefs.current[op.id] = node;
+                        }}
                       />
                     ))}
                   </div>
