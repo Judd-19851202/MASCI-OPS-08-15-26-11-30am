@@ -58,7 +58,16 @@ const MAX_INTERVAL_MS = 10_000;
 const QUOTA_WARN_RATIO = 0.8;
 const QUOTA_PROBE_INTERVAL_MS = 60_000;
 
-export function useFormDraft(formKey, data, actorId) {
+export function useFormDraft(_formKeyBase, data, actorId, options = {}) {
+  // TRACK 26.11 · optional `scope` (e.g. `"26-07::2026-07-08"`) is
+  // appended to the effective form key so drafts for different
+  // (project, report_date) pairs don't overwrite each other on the
+  // same device. Falls back to the ambient formKey when scope is
+  // empty — preserving pre-26.11 behavior for the "no project yet"
+  // prelude and for every module that doesn't opt into scoping.
+  const rawScope = (options.scope || "").trim();
+  const formKey = rawScope ? `${_formKeyBase}::${rawScope}` : _formKeyBase;
+
   const [pendingDraft, setPendingDraft] = useState(null);
   const [pendingSavedAt, setPendingSavedAt] = useState(null);
   const [pendingIsCrossToken, setPendingIsCrossToken] = useState(false);

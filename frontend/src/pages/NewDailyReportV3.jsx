@@ -31,6 +31,8 @@ import {
   DraftStatusPill,
   DraftRestorePrompt,
 } from "@/lib/resiliency";
+import DraftScopeChip from "@/lib/resiliency/DraftScopeChip";
+import { getDeviceId } from "@/lib/resiliency/deviceId";
 import {
   extractSetupSnapshot, saveCrewSetup, loadCrewSetup, applySetupSnapshotToData,
   refreshCrewFromEmployeeMaster,
@@ -77,11 +79,20 @@ export default function NewDailyReportV3({ publicMode = false }) {
   }, []);
 
   // ── Field resiliency (autosave / draft restore / archive) ────
+  // TRACK 26.11 · scope the draft key to (project, report_date) when
+  // both are populated so a multi-project supervisor can carry an
+  // in-progress DR on project 26-07 for 2026-07-08 without it being
+  // overwritten by their DR on project 24-99 for the same day.
+  // Empty scope falls back to the ambient single-slot behaviour, so
+  // pre-project prelude drafts still work exactly as before.
+  const draftScope = ((data.project_number || "").trim() && (data.report_date || "").trim())
+    ? `${data.project_number.trim()}::${data.report_date.trim()}`
+    : "";
   const {
     pendingDraft, pendingSavedAt, loaded: draftLoaded,
     draftStatus, restore: restoreDraft, discard: discardDraft,
     commit: commitDraft,
-  } = useFormDraft(FORM_KEY, data);
+  } = useFormDraft(FORM_KEY, data, undefined, { scope: draftScope });
   const online = useOnlineStatus();
 
   // Idempotency key: load once from IDB (survives reload) or mint fresh.
@@ -317,6 +328,38 @@ export default function NewDailyReportV3({ publicMode = false }) {
       toast.error(`${t("Missing:")} ${readiness.missing.join(", ")}`);
       return;
     }
+
+    // TRACK 26.11 · pre-submit duplicate guard. If a report already
+    // exists for (project_number, report_date, prepared_by), ask the
+    // operator before minting a second doc_id. Non-blocking on
+    // network error — the submit path continues if the check itself
+    // fails, so a bad connection can never lock out a legitimate
+    // submit. Admin override is implicit (they just confirm).
+    if (online && (data.project_number || "").trim() && (data.report_date || "").trim()) {
+      try {
+        const preparedBy = (data.prepared_by || "").trim();
+        const q = new URLSearchParams({
+          project_number: data.project_number.trim(),
+          report_date: data.report_date.trim(),
+          ...(preparedBy ? { submitted_by: preparedBy } : {}),
+        });
+        const { data: dup } = await api.get(`/daily-reports/duplicate-check?${q.toString()}`);
+        if (dup && dup.exists) {
+          const first = (dup.matches || [])[0] || {};
+          const existing = first.report_number || first.doc_id || first.id || "another report";
+          const ok = window.confirm(
+            `${t("A Daily Report already exists for this project on this date")}\n\n` +
+            `${existing} — ${first.prepared_by || t("unknown author")}\n\n` +
+            `${t("Submit another one anyway?")}`
+          );
+          if (!ok) {
+            toast(t("Submit cancelled."), { id: "dr-v3-dup-cancelled" });
+            return;
+          }
+        }
+      } catch { /* duplicate check is best-effort — never blocks submit */ }
+    }
+
     setSaving(true);
     const idem = idempotencyKeyRef.current || mintIdempotencyKey();
     let payload = { ...data, submit_language: lang, ui_shell: "v3" };
@@ -463,6 +506,28 @@ export default function NewDailyReportV3({ publicMode = false }) {
       </DailyReportTopBanner>
 
       <div className="mx-auto max-w-3xl px-4 py-6 sm:py-10">
+        {/* TRACK 26.11 · always-on scope chip so the operator can see
+            at a glance which project + date + device this draft
+            belongs to. Rendered above the header so it's the first
+            thing they land on when resuming a report from any tab.  */}
+        <div className="mb-4">
+          <DraftScopeChip
+            projectNumber={data.project_number}
+            projectName={data.project_name}
+            reportDate={data.report_date}
+            deviceId={getDeviceId()}
+            status={(() => {
+              if (saving) return "syncing";
+              if (draftStatus === "saving") return "saving";
+              if (draftStatus === "failed") return "failed";
+              if (!online) return "offline";
+              if (canSubmit) return "ready";
+              if (draftStatus === "saved" || pendingSavedAt) return "saved";
+              return "draft";
+            })()}
+            lastSavedAt={pendingSavedAt}
+          />
+        </div>
         <header className="mb-6 sm:mb-8">
           <div className="flex items-center gap-2 text-xs font-medium text-emerald-600">
             <CheckCircle2 className="h-4 w-4" />

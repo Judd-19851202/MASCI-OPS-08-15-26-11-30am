@@ -14,7 +14,7 @@ from __future__ import annotations
 import hashlib
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Literal, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Body, Depends, HTTPException, Request
@@ -728,6 +728,146 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
                 "report_number is minted atomically at submit time."
             ),
         }
+
+    @api_router.get("/daily-reports/duplicate-check")
+    async def daily_report_duplicate_check(
+        project_number: str,
+        report_date: str,
+        submitted_by: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """TRACK 26.11 · pre-submit duplicate guard.
+
+        Returns any existing Daily Report matching
+        ``(project_number, report_date [, submitted_by])`` so the
+        client can surface a "You already submitted a report for this
+        project on this date — continue anyway?" dialog before minting
+        another doc_id. Non-blocking; the client decides whether to
+        proceed. Admin-authorized override is always available by
+        simply calling submit anyway.
+
+        Zero data change. Read-only. Returns a shallow row shape so
+        the operator can see what already exists (report_number,
+        doc_id, submitted_at, submitted_by).
+        """
+        pn = (project_number or "").strip()
+        rd = (report_date or "").strip()
+        if not pn or not rd:
+            raise HTTPException(status_code=400, detail="project_number and report_date required")
+        query: Dict[str, Any] = {"project_number": pn, "report_date": rd}
+        if submitted_by:
+            query["prepared_by"] = submitted_by.strip()
+        # Bound the scan defensively — a real match should be at most 1
+        # or a small handful (rare same-day resubmit).
+        cursor = db.daily_reports.find(
+            query,
+            {
+                "_id": 0,
+                "id": 1,
+                "doc_id": 1,
+                "report_number": 1,
+                "project_number": 1,
+                "report_date": 1,
+                "prepared_by": 1,
+                "submitted_at": 1,
+                "created_at": 1,
+                "lifecycle_state": 1,
+            },
+        ).limit(10)
+        existing: List[Dict[str, Any]] = []
+        async for row in cursor:
+            existing.append(row)
+        return {
+            "project_number": pn,
+            "report_date": rd,
+            "submitted_by_filter": submitted_by or None,
+            "count": len(existing),
+            "exists": len(existing) > 0,
+            "matches": existing,
+        }
+
+    @api_router.get("/admin/draft-health")
+    async def admin_draft_health(
+        actor=Depends(require_admin),
+    ) -> Dict[str, Any]:
+        """TRACK 26.11 · Draft Health card feed for OCC.
+
+        Aggregates client-side draft-telemetry pings into a compact
+        health snapshot. Read-only. Backed by the pre-existing
+        ``draft_telemetry`` collection populated by
+        ``/api/draft-telemetry`` calls from ``useFormDraft``.
+
+        Buckets:
+          - active drafts (last save < 1 h)
+          - stale drafts (1h < last save < 24h)
+          - abandoned drafts (last save > 24h)
+          - failed drafts (last event kind = draft.save.failed)
+          - quota-pressured drafts (any quota.warn event in last 24h)
+        """
+        now = datetime.now(timezone.utc)
+        hour_ago = now - timedelta(hours=1)
+        day_ago = now - timedelta(days=1)
+
+        async def _count(query: Dict[str, Any]) -> int:
+            try:
+                return int(await db.draft_telemetry.count_documents(query))
+            except Exception:  # noqa: BLE001
+                return 0
+
+        buckets: Dict[str, Any] = {
+            "active_lt_1h": await _count(
+                {"kind": "draft.save.ok", "ts": {"$gte": hour_ago.isoformat()}}
+            ),
+            "stale_1h_to_24h": await _count({
+                "kind": "draft.save.ok",
+                "ts": {"$gte": day_ago.isoformat(), "$lt": hour_ago.isoformat()},
+            }),
+            "abandoned_gt_24h": await _count({
+                "kind": "draft.save.ok",
+                "ts": {"$lt": day_ago.isoformat()},
+            }),
+            "failed_last_24h": await _count({
+                "kind": "draft.save.failed",
+                "ts": {"$gte": day_ago.isoformat()},
+            }),
+            "quota_warn_last_24h": await _count({
+                "kind": "draft.quota.warn",
+                "ts": {"$gte": day_ago.isoformat()},
+            }),
+            "restore_offered_last_24h": await _count({
+                "kind": "draft.restore.offered",
+                "ts": {"$gte": day_ago.isoformat()},
+            }),
+            "restore_action_last_24h": await _count({
+                "kind": "draft.restore.action",
+                "ts": {"$gte": day_ago.isoformat()},
+            }),
+        }
+
+        # Per-form counts (which module drafts are most active).
+        per_form: Dict[str, int] = {}
+        try:
+            pipeline = [
+                {"$match": {"kind": "draft.save.ok", "ts": {"$gte": day_ago.isoformat()}}},
+                {"$group": {"_id": "$formKey", "n": {"$sum": 1}}},
+                {"$sort": {"n": -1}},
+                {"$limit": 20},
+            ]
+            async for row in db.draft_telemetry.aggregate(pipeline):
+                per_form[str(row.get("_id") or "unknown")] = int(row.get("n") or 0)
+        except Exception:  # noqa: BLE001
+            per_form = {}
+
+        return {
+            "generated_at": now.isoformat(),
+            "buckets": buckets,
+            "per_form_last_24h": per_form,
+            "sources": {
+                "collection": "draft_telemetry",
+                "populated_by": "frontend useFormDraft via POST /api/draft-telemetry",
+            },
+        }
+
+
 
     @api_router.get("/daily-reports/exposure-signals")
     async def daily_report_exposure_signals(
