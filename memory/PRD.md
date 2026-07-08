@@ -12220,3 +12220,52 @@ Potential improvement: would you like me to add a **built-in in-form image previ
 - Track 25.03 · Executive Home Dashboard (Business/Operations/Safety/Platform health + Action Queue) behind `masci.admin.nav.v3` flag.
 - Track 25.03b · Interactive drillable KPI contract (Source · Evidence · History · Root Cause · Recommended Action).
 - Track 25.04 · Phase E — Legacy sunset (delete confirmed-dead routes, remove banners) after 2-week parallel run.
+
+---
+
+## TRACK 25.02 · Admin Operating System (AOS) — Phase D — 2026-02-07 · ✅ SHIPPED
+
+**Directive**: Rebuild admin navigation into the approved 12 operating domains; add a Universal ⌘K Command Palette; gate behind `masci.admin.nav.v3` (default OFF); zero API drift; zero DB drift; all legacy routes preserved.
+
+**12 Operating Domains** (approved order enforced by lock test):
+1. Home · Executive landing (attention-first)
+2. Operations Control Center · Storage · Backups · Deploy · Integrations · Recovery
+3. Jobs & Projects · Every active job · daily reports · meetings · QA/QC
+4. Fleet & Equipment · Assets · maintenance · geofences · vendors · drivers
+5. Safety & Compliance · Incidents · JHAs · trench · inspections · findings
+6. People & Access · Employees · sessions · terminations · language
+7. Training · Training resources · videos · forms
+8. AI & Intelligence · Operational Intelligence · digests · AI config
+9. Communications · Email · digests · integrations · promo
+10. Reporting · Analytics · P&L · executive · usage
+11. Audit Log · Immutable timeline
+12. Legacy Imports · Historic data from prior systems
+
+**Delivered**
+- New `/app/frontend/src/app/admin/domainMapV3.js` — 12 domains × visible + hidden routes × search keywords.
+- New `/app/frontend/src/components/admin/sidebar/SideNavV3.jsx` — 12-domain sidebar with `Search everything · ⌘K` button on top. LocalStorage-persisted open/closed state.
+- New `/app/frontend/src/components/admin/CommandPalette.jsx` — universal search dialog + global `CommandPaletteProvider`. Shortcuts: `Meta/Ctrl+K`, `Meta/Ctrl+/`, sidebar button, `Escape`, backdrop click, `X` button.
+  - Data sources: static index of every domain × route + OCC operations from `/api/admin/operations-control/overview` + entity search via existing `/api/admin/search`. Zero new APIs.
+- New `/app/frontend/src/pages/AdminHubV3.jsx` — attention-first Executive Home. Platform posture strip · 6 attention cards (incidents · CAPAs · fleet OOS · expired docs · expiring 30 · platform red) · OCC top-5 status list.
+- New `/app/frontend/src/pages/AdminHubSwitcher.jsx` — swaps V2/V3 at `/admin` based on flag.
+- `AppRoutes.jsx` — added `AdminPaletteShell` inside the `A(...)` guard: wraps every admin route in `CommandPaletteProvider` **only** when `isAdminNavV3Enabled()` is true.
+- Backend: fixed pre-existing 401 in `_require_driver_profile_actor` (server.py:12224) — now awaits the async directory-admin token validator, restoring `/api/operations/expirations/summary` under `X-Admin-Token`.
+
+**Regression locks (18 new + refreshed tests)**:
+- `backend/tests/test_track_25_02_domain_map_v3.py` — 18 tests including: 12 approved domain ids in exact order · OCC is second · every domain has label + subline + purpose + stripe + icon · every admin route in AppRoutes is discoverable via nav OR legacy banner (zero orphans) · no maintenance routes leak back into the sidebar · no engineering language in sidebar/palette/hub strings · palette indexes visible + hidden routes · palette wires Cmd+K + `__masciAdminOpenPalette` + Escape · palette reuses existing endpoints (zero API drift) · CommandPaletteProvider gated behind flag · `AdminHubV3` must NOT nest a second `<CommandPaletteProvider>` (iter552 defect regression lock) · flag defaults OFF.
+
+**Zero-drift confirmation**: 43 targeted lock tests pass. No API endpoints added or changed. No DB schema drift. No permission changes. Every legacy admin route still resolves. Flag OFF → identical to Track 25.01 experience.
+
+**Testing Agent verification (iter551 → 552 → 553)**:
+- iter551: 15 route/palette tests pass · 3 defects identified.
+- iter552: expirations fixed · X-close + Escape working · tablet layout re-verified as false positive · backdrop-close RCA identified.
+- iter553: **GO** — all acceptance items green. Duplicate provider removed; regression lock added.
+
+**Route map summary**: ~60 visible sidebar routes + 20 hidden detail routes classified across 12 domains. Every admin route in AppRoutes.jsx is reachable via sidebar OR command palette OR Track 25.01 legacy-moved banner.
+
+**Deferred to next tracks**:
+- Track 25.03a · Interactive drillable KPI contract (Source · Evidence · History · Root Cause · Recommended Action).
+- Track 25.03b · Executive Home KPI drill-through UI (click any attention card → evidence drawer).
+- Track 25.04 · Phase E — Legacy sunset (delete confirmed-dead routes, remove banners) after 2-week parallel run.
+- Track 25.05 · Flag promotion to default ON after operator UAT + telemetry sign-off.
+
