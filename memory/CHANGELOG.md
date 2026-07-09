@@ -9446,3 +9446,31 @@ Not a code track — a certification. Zero code delta beyond docs.
 - **Deployment audit:** PASS · zero blockers.
 - **16 certification documents delivered** in `/app/memory/DR_UNIFY_004_*`.
 - **Verdict:** DEPLOYMENT APPROVED.
+
+## 2026-07-09 · TRACK 26.12 · Elite AI Daily Report Summary Fix (P0)
+
+Root-caused and fixed the weeks-long "AI summary is trash / ignores photos" P0. It was never a
+flags problem — reproduced in preview with all flags TRUE and a working key.
+
+- **FIXED · Backend:** raw base64 photos were JSON-dumped into the Claude text prompt (~1M tokens)
+  → every LLM call failed instantly → silent deterministic fallback. Evidence bundle now strips all
+  binary; photos become metadata refs.
+- **NEW · Backend:** `services/dr_ai/vision.py` — inline draft-time photo vision (OpenAI gpt-5.4 via
+  gateway), parallel per-photo, content-hash cached in `dr_v2_photo_vision_cache`, ticket OCR
+  transcription. Runs BEFORE day_narrative inside `/api/dr-v2/ai/synthesize`; observations merged
+  into the evidence bundle. Response gains `photo_observations_used`.
+- **FIXED · Backend:** `provider_meta().ai_available` now recognizes direct provider keys (was
+  EMERGENT_LLM_KEY-only — production ran keys-blind). `DR_V2_AI_ENABLED` defaults ON.
+  Invalid vision model `gpt-5.2-vision` → `gpt-5.4`.
+- **FIXED · Data ingestion:** production rows, constraints (frontend key mismatch `constraints_cards`),
+  day_impacts (delay/weather toggles + notes), tomorrow plan + PM needs (narrative_sections) were
+  silently dropped before reaching the AI. All forwarded now.
+- **REWRITTEN · Prompt:** day_narrative = superintendent-grade prose with explicit coverage contract
+  over every DR field group; cites photo observations as field-verified evidence.
+- **FIXED · Frontend:** assist timeout 15s → 60s (15s aborted nearly every successful generation);
+  photo-aware status copy; crew-name keystroke auto-resolve now exact-match-only (was garbling input
+  mid-typing + max-update-depth errors); JobPicker duplicate React keys.
+- **Tests:** frontend 233/233 · backend targeted AI/DR suites green incl. new
+  `tests/test_dr_v2_track_2612.py` (testing agent, 6/6). Full report `/app/test_reports/iteration_track_2612.json`.
+- **Docs:** `/app/memory/TRACK_26_12_ELITE_AI_SUMMARY_FIX.md`.
+- **DEPLOY:** user must redeploy production to receive the fix.

@@ -12346,3 +12346,6 @@ Potential improvement: would you like me to add a **built-in in-form image previ
 - iOS Safari / iPad Safari / Android Chrome / Toughbook Chrome real-device pilot required before flipping V3 to default ON platform-wide.
 - 60+ UNVERIFIED subsystems (Section 2 of Track 26.01) require live-device / provider / DB access — recommended follow-on audit slice.
 
+
+**Track 26.12 · Elite AI Daily Report Summary Fix — SHIPPED (2026-07-09)**:
+P0 root-caused: base64 photos poisoned the LLM prompt (instant call failure → silent deterministic fallback), 15s frontend timeout aborted successful generations, photo vision never ran pre-submit, availability check ignored direct provider keys, invalid vision model name, and production/constraints/day-impacts/tomorrow-plan field groups were dropped before the AI. All fixed: inline draft-time photo vision (gpt-5.4, content-hash cached), binary-stripped evidence bundle, superintendent-grade day_narrative prompt with full coverage contract, 60s timeout, direct-key availability, exact-match crew autofill, JobPicker key fix. Verified by testing agent (iteration_track_2612.json) + live browser flow. Full detail: `/app/memory/TRACK_26_12_ELITE_AI_SUMMARY_FIX.md` + CHANGELOG 2026-07-09. **User must redeploy production to receive the fix.**

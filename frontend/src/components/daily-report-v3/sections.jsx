@@ -204,14 +204,23 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                 <EmployeeCombo
                   value={c.name || ""}
                   onChange={(name) => {
-                    // TRACK 23.4C · Try to resolve the typed name to a
-                    // known HR employee on every keystroke. When the
-                    // typed value exactly matches (or is the single
-                    // partial match for) a roster entry, autofill the
-                    // whole row — no dropdown click required.
+                    // TRACK 23.4C · Resolve the typed name against the
+                    // HR roster. TRACK 26.12 fix: only autofill when the
+                    // typed value is an EXACT match. The previous
+                    // single-partial-match resolve fired on every
+                    // keystroke and REPLACED the value mid-typing
+                    // ("Jaym" → "Jaymn Judd" while the user kept
+                    // typing → "Jaymn Juddmn Judd" + update-depth
+                    // errors under fast input). Dropdown onPick still
+                    // covers partial selection.
                     const roster = rosterRef.current;
                     const emp = resolveEmployeeByTypedName(name, roster);
-                    if (emp) {
+                    const typed = (name || "").trim().toLowerCase();
+                    const exact = emp && [
+                      emp.name, emp.legal_name, emp.preferred_name,
+                      emp.display_name, emp.employee_id,
+                    ].some((v) => (v || "").trim().toLowerCase() === typed);
+                    if (exact) {
                       _applyHrPick(i, emp, { ...c, name });
                     } else {
                       updateCrew(i, { name });

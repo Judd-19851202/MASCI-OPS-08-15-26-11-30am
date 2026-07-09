@@ -179,9 +179,9 @@ export function JobPicker({
             )}
 
             <CommandGroup heading={`MASCI Current Jobs · ${library.length}`}>
-              {library.map((j) => (
+              {library.map((j, jIdx) => (
                 <CommandItem
-                  key={j.project_number}
+                  key={j.id || `${j.project_number || "job"}-${jIdx}`}
                   value={`${j.project_number} ${j.project_name} ${j.location || ""} ${j.project_manager || ""} ${j.client || ""}`}
                   onSelect={() => {
                     onSelect(j);
