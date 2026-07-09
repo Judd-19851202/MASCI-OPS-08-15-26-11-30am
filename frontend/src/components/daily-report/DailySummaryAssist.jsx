@@ -234,10 +234,20 @@ export default function DailySummaryAssist({ data, reportNumber, onAccept, testI
       setLatencyMs(tElapsed);
       if (out.ai_available === false) {
         setAiAvailable(false);
+        const reason = (out.fallback_reason || "").toString();
+        const uns = Array.isArray(out.uncertainties) ? out.uncertainties.slice(0, 5) : [];
+        setUncertainties(uns);
         const fb = buildDeterministicFallback(data);
         setNarrative(fb);
         setEdited(fb);
         setEvidenceRefs([]);
+        // Surface auth / key failures so the supervisor understands
+        // WHY they are getting a mechanical summary instead of a
+        // grounded narrative. Silent fallbacks are the whole reason
+        // this bug got missed in production.
+        if (reason && reason !== "flag_off_or_missing_key") {
+          setError(`AI provider unavailable — reason: ${reason}${uns[0] ? ` (${uns[0]})` : ""}`);
+        }
         setStatus("ready");
         return;
       }
@@ -342,7 +352,12 @@ export default function DailySummaryAssist({ data, reportNumber, onAccept, testI
           </span>
         )}
         {!aiAvailable && status !== "building" && (
-          <span className="ml-2 text-xs text-slate-500" data-testid={`${testId}-fallback`}>{t("using deterministic summary")}</span>
+          <span
+            className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200"
+            data-testid={`${testId}-fallback`}
+          >
+            {t("AI unavailable — using deterministic summary")}
+          </span>
         )}
       </div>
       <p className="text-xs text-slate-500 mb-3">
@@ -408,9 +423,17 @@ export default function DailySummaryAssist({ data, reportNumber, onAccept, testI
             </Button>
           </div>
           {error && (
-            <p className="mt-2 text-xs text-slate-500" data-testid={`${testId}-error`}>
-              {t("Summary assist unavailable — you can still submit normally.")}
-            </p>
+            <div
+              className="mt-3 p-3 rounded-md border border-rose-200 bg-rose-50 text-rose-800 text-xs"
+              data-testid={`${testId}-error`}
+              role="alert"
+            >
+              <div className="font-semibold mb-0.5">{t("Summary assist unavailable")}</div>
+              <div className="text-rose-700">{String(error)}</div>
+              <div className="mt-1 text-rose-600/80">
+                {t("You can still submit normally — try Regenerate, or contact your admin to verify AI keys.")}
+              </div>
+            </div>
           )}
         </>
       )}

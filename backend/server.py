@@ -3121,6 +3121,15 @@ from routes.ai_gateway_status import register_ai_gateway_status_routes  # noqa: 
 register_ai_gateway_status_routes(api_router, require_admin=require_admin)
 
 # ------------------------------------------------------------
+# AI-HEALTH-001 · Admin-only live provider health probe.
+# Runs a real ping against each configured provider so silent
+# auth / quota failures surface immediately instead of dropping
+# to the deterministic-summary fallback.
+# ------------------------------------------------------------
+from routes.ai_health import register_ai_health_routes  # noqa: E402
+register_ai_health_routes(api_router, require_admin=require_admin)
+
+# ------------------------------------------------------------
 # AI-ADMIN-001 · Admin AI Configuration Center.
 # Admin-only tenant AI capability management + audit trail.
 # All routes gated by ``require_admin_strict`` (PM tokens rejected).

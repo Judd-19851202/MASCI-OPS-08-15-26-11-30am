@@ -96,6 +96,7 @@ const TONE_CLS = {
   emerald: "border-emerald-300 bg-emerald-50 text-emerald-800",
   amber: "border-amber-300 bg-amber-50 text-amber-800",
   red: "border-red-300 bg-red-50 text-red-800",
+  rose: "border-rose-300 bg-rose-50 text-rose-800",
   slate: "border-slate-300 bg-slate-50 text-slate-700",
 };
 
@@ -126,6 +127,8 @@ function humanReason(reason) {
 
 export default function AdminAIConfiguration() {
   const [status, setStatus] = useState(null);
+  const [health, setHealth] = useState(null);
+  const [healthLoading, setHealthLoading] = useState(false);
   const [tenants, setTenants] = useState([]);
   const [activeTenant, setActiveTenant] = useState("masci");
   const [tenantCaps, setTenantCaps] = useState(null);
@@ -141,6 +144,19 @@ export default function AdminAIConfiguration() {
       setStatus(data);
     } catch (e) {
       toast.error(operationalError(e, "Failed to load AI status"));
+    }
+  };
+
+  const loadHealth = async (opts = { force: false }) => {
+    setHealthLoading(true);
+    try {
+      const url = opts.force ? "/ai/health/refresh" : "/ai/health";
+      const { data } = opts.force ? await api.post(url) : await api.get(url);
+      setHealth(data);
+    } catch (e) {
+      setHealth({ error: operationalError(e, "Failed to load AI health") });
+    } finally {
+      setHealthLoading(false);
     }
   };
 
@@ -175,7 +191,7 @@ export default function AdminAIConfiguration() {
   useEffect(() => {
     (async () => {
       setLoading(true);
-      await Promise.all([loadStatus(), loadTenants()]);
+      await Promise.all([loadStatus(), loadTenants(), loadHealth({ force: false })]);
       setLoading(false);
     })();
   }, []);
@@ -300,6 +316,13 @@ export default function AdminAIConfiguration() {
             />
           </div>
         </section>
+
+        {/* ── Section 1B: Live AI Health (real provider pings) ── */}
+        <AIHealthCard
+          health={health}
+          loading={healthLoading}
+          onRefresh={() => loadHealth({ force: true })}
+        />
 
         {/* ── Section 2: Provider Routing (read-only) ───────── */}
         <section className="bg-white border border-slate-200 rounded-md p-5" data-testid="admin-ai-routing">
@@ -577,5 +600,132 @@ function ProofRow({ children }) {
       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
       <span className="text-slate-700">{children}</span>
     </li>
+  );
+}
+
+
+// ── Live AI Health card ────────────────────────────────────
+// Runs a real ping against every registered provider so silent
+// failures (401, quota, network) are visible before the field
+// team hits a broken summary in the daily report.
+const HEALTH_TONE = {
+  ok: "emerald",
+  degraded: "amber",
+  not_wired: "slate",
+  unauthorized: "rose",
+  no_key: "rose",
+  missing_adapter: "rose",
+  error: "rose",
+  timeout: "rose",
+};
+
+function AIHealthCard({ health, loading, onRefresh }) {
+  const providers = health?.providers || [];
+  const summary = health?.summary || { ok: 0, degraded: 0, failed: 0, total: 0 };
+  const banner = summary.failed > 0
+    ? { tone: "rose", text: `${summary.failed} provider(s) failed — AI summary will fall back to deterministic template.` }
+    : summary.ok === 0
+    ? { tone: "amber", text: "No provider is fully green. AI summary quality may degrade." }
+    : { tone: "emerald", text: `${summary.ok}/${summary.total} providers healthy. Failover ready.` };
+
+  return (
+    <section
+      className="bg-white border border-slate-200 rounded-md p-5"
+      data-testid="admin-ai-health"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <SectionHeader
+          icon={Sparkles}
+          label="AI Health (Live Ping)"
+          desc="Real request against each provider — surfaces 401 / quota / timeout that would otherwise silently drop to the deterministic summary."
+        />
+        <Button
+          onClick={onRefresh}
+          variant="outline"
+          size="sm"
+          disabled={loading}
+          data-testid="admin-ai-health-refresh"
+        >
+          {loading ? (
+            <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+          ) : (
+            <RefreshCcw className="w-3.5 h-3.5 mr-1.5" />
+          )}
+          {loading ? "Pinging…" : "Ping now"}
+        </Button>
+      </div>
+
+      <div
+        className={`mt-3 px-3 py-2 rounded-md border text-sm ${TONE_CLS[banner.tone]}`}
+        data-testid="admin-ai-health-banner"
+      >
+        {banner.text}
+      </div>
+
+      {health?.error && (
+        <div className="mt-3 p-3 rounded-md border border-rose-200 bg-rose-50 text-rose-800 text-sm" role="alert">
+          {String(health.error)}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+        {providers.map((p) => {
+          const tone = HEALTH_TONE[p.status] || "slate";
+          return (
+            <div
+              key={p.name}
+              className={`border rounded-md p-3 ${TONE_CLS[tone]}`}
+              data-testid={`admin-ai-health-provider-${p.name}`}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div className="font-semibold text-sm capitalize">{p.name}</div>
+                <StatusBadge tone={tone} testid={`admin-ai-health-status-${p.name}`}>
+                  {p.status}
+                </StatusBadge>
+              </div>
+              <dl className="mt-2 space-y-1 text-xs">
+                <div className="flex justify-between">
+                  <dt className="text-slate-600">Key present</dt>
+                  <dd className="font-mono">{p.key_present ? "yes" : "no"}</dd>
+                </div>
+                {p.model && (
+                  <div className="flex justify-between">
+                    <dt className="text-slate-600">Model</dt>
+                    <dd className="font-mono truncate max-w-[10rem]" title={p.model}>{p.model}</dd>
+                  </div>
+                )}
+                {typeof p.latency_ms === "number" && (
+                  <div className="flex justify-between">
+                    <dt className="text-slate-600">Latency</dt>
+                    <dd className="font-mono">{p.latency_ms} ms</dd>
+                  </div>
+                )}
+                {p.reason && (
+                  <div className="flex justify-between">
+                    <dt className="text-slate-600">Reason</dt>
+                    <dd className="font-mono truncate max-w-[10rem]" title={p.reason}>{p.reason}</dd>
+                  </div>
+                )}
+              </dl>
+              {p.detail && (
+                <div className="mt-2 text-[11px] text-rose-800/90 bg-rose-100/60 border border-rose-200 rounded px-2 py-1 truncate" title={p.detail}>
+                  {p.detail}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {health?.primary_route && (
+        <div className="mt-3 text-xs text-slate-500">
+          Primary route: <span className="font-mono">{health.primary_route.provider} · {health.primary_route.model}</span>
+          {" · "}
+          Failover order: <span className="font-mono">anthropic → openai → google</span>
+          {" · "}
+          Last check: <span className="font-mono">{health.generated_at ? new Date(health.generated_at).toLocaleTimeString() : "—"}</span>
+        </div>
+      )}
+    </section>
   );
 }

@@ -55,11 +55,23 @@ class OpenAIAdapter:
             ).with_model("openai", model)
             raw = await chat.send_message(UserMessage(text=prompt))
         except Exception as exc:  # noqa: BLE001
+            # Preserve the auth signal so the gateway can short-circuit
+            # retries and failover immediately on invalid keys.
+            cls = exc.__class__.__name__
+            msg = str(exc).lower()
+            is_auth = (
+                "authentication" in cls.lower()
+                or "unauthorized" in msg
+                or "401" in msg
+                or "invalid api key" in msg
+                or "incorrect api key" in msg
+            )
+            reason = "unauthorized" if is_auth else "llm_call_failed"
             return AiEnvelope(task=task, narrative="", confidence=0.0,
                               evidence_refs=[], sources_used=[],
-                              uncertainties=[f"call_failed:{exc.__class__.__name__}"],
+                              uncertainties=[f"call_failed:{cls}"],
                               provider=self.name, model=model, generated_at=_now(),
-                              ai_available=False, fallback_reason="llm_call_failed")
+                              ai_available=False, fallback_reason=reason)
 
         text = (raw or "").strip().lstrip("`")
         if text.lower().startswith("json"):

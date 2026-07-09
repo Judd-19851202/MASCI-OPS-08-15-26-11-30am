@@ -46,6 +46,38 @@ def _fallback_envelope(task: str, provider: str, model: str, reason: str) -> AiE
     )
 
 
+# Reasons that will never succeed on retry against the same provider.
+# When we see one of these, jump straight to failover — retrying a bad
+# key wastes latency and generates duplicate 401s in the vendor's
+# alerting.
+_NON_RETRYABLE_REASONS = {
+    "missing_api_key",
+    "import_error",
+    "openai_key_missing",
+    "openai_vision_key_missing",
+    "anthropic_key_missing",
+    "google_key_missing",
+    "invalid_api_key",
+    "unauthorized",
+    "schema_violation",
+    "not_implemented",
+    "scaffold",
+    "no_images",
+}
+
+
+def _is_non_retryable(reason: Optional[str]) -> bool:
+    if not reason:
+        return False
+    r = str(reason).lower()
+    if r in _NON_RETRYABLE_REASONS:
+        return True
+    # Adapters embed vendor-error class names in fallback_reason
+    # (e.g. "call_failed" but with uncertainties "AuthenticationError").
+    # Auth-shaped substrings are effectively non-retryable.
+    return any(tok in r for tok in ("auth", "401", "403", "key_missing", "invalid_key"))
+
+
 class Gateway:
     """Central dispatcher — the ONLY place workflows import from.
 
@@ -124,28 +156,41 @@ class Gateway:
     async def _dispatch_provider(
         self, provider_name: str, model: str, task: str,
         *, system, user_payload, response_schema, session_id,
+        _attempted: Optional[set] = None,
     ) -> AiEnvelope:
+        """Dispatch to a provider with retry-then-failover semantics.
+
+        Adapters are permitted to catch their own errors and return an
+        envelope with `ai_available=False` (they do this to normalize
+        error surfaces). The dispatcher therefore treats such an
+        envelope as an implicit failure and continues its retry /
+        failover loop, so a 401 from one provider automatically
+        falls over to the next configured provider instead of silently
+        producing an empty narrative.
+        """
+        _attempted = _attempted or set()
+        _attempted.add(provider_name)
+
         adapter = self._adapters.get(provider_name)
         if adapter is None:
-            return _fallback_envelope(task, provider_name, model, "adapter_not_registered")
+            return await self._try_failover(
+                task, provider_name, model, "adapter_not_registered",
+                _attempted, system=system, user_payload=user_payload,
+                response_schema=response_schema, session_id=session_id,
+            )
         if not has_key(provider_name):
-            # Try failover if enabled.
-            if failover_enabled():
-                for fallback in self._failover_order(provider_name):
-                    if has_key(fallback) and fallback in self._adapters:
-                        return await self._dispatch_provider(
-                            fallback, default_text_model(), task,
-                            system=system, user_payload=user_payload,
-                            response_schema=response_schema, session_id=session_id,
-                        )
-            return _fallback_envelope(task, provider_name, model, "missing_provider_key")
+            return await self._try_failover(
+                task, provider_name, model, "missing_provider_key",
+                _attempted, system=system, user_payload=user_payload,
+                response_schema=response_schema, session_id=session_id,
+            )
 
         retries = provider_max_retries()
         timeout_s = max(1.0, provider_timeout_ms() / 1000.0)
         last_reason: Optional[str] = None
         for attempt in range(retries + 1):
             try:
-                return await asyncio.wait_for(
+                env = await asyncio.wait_for(
                     adapter.text(
                         system=system, user_payload=user_payload,
                         response_schema=response_schema, session_id=session_id,
@@ -155,26 +200,49 @@ class Gateway:
                 )
             except asyncio.TimeoutError:
                 last_reason = f"timeout_attempt_{attempt+1}"
+                continue
             except Exception as exc:  # noqa: BLE001
                 last_reason = f"{exc.__class__.__name__}_attempt_{attempt+1}"
+                continue
 
-        if failover_enabled():
-            for fallback in self._failover_order(provider_name):
-                if fallback in self._adapters and has_key(fallback):
-                    try:
-                        return await asyncio.wait_for(
-                            self._adapters[fallback].text(
-                                system=system, user_payload=user_payload,
-                                response_schema=response_schema,
-                                session_id=session_id,
-                                model=default_text_model(), task=task,
-                            ),
-                            timeout=timeout_s,
-                        )
-                    except Exception:  # noqa: BLE001
-                        continue
+            # Adapter completed without raising. If it self-reported a
+            # failure (ai_available=False), keep retrying / failing over
+            # instead of returning silently.
+            if getattr(env, "ai_available", False):
+                return env
+            last_reason = f"{env.fallback_reason or 'provider_unavailable'}_attempt_{attempt+1}"
+            # Non-retryable reasons short-circuit the retry loop and
+            # jump straight to failover — retrying a bad key or a
+            # schema violation on the same provider is wasted latency.
+            if _is_non_retryable(env.fallback_reason):
+                break
 
-        return _fallback_envelope(task, provider_name, model, last_reason or "unknown_error")
+        return await self._try_failover(
+            task, provider_name, model, last_reason or "unknown_error",
+            _attempted, system=system, user_payload=user_payload,
+            response_schema=response_schema, session_id=session_id,
+        )
+
+    async def _try_failover(
+        self, task: str, primary: str, model: str, reason: str,
+        attempted: set, *, system, user_payload, response_schema, session_id,
+    ) -> AiEnvelope:
+        if not failover_enabled():
+            return _fallback_envelope(task, primary, model, reason)
+        for fallback in self._failover_order(primary):
+            if fallback in attempted:
+                continue
+            if not (fallback in self._adapters and has_key(fallback)):
+                continue
+            env = await self._dispatch_provider(
+                fallback, default_text_model(), task,
+                system=system, user_payload=user_payload,
+                response_schema=response_schema, session_id=session_id,
+                _attempted=attempted,
+            )
+            if getattr(env, "ai_available", False):
+                return env
+        return _fallback_envelope(task, primary, model, reason)
 
     def _failover_order(self, primary: str) -> list:
         order = ["anthropic", "openai", "google"]

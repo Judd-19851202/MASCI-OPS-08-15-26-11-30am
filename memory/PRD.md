@@ -12,6 +12,36 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 
 
 
+
+## TRACK 26.13 · AI Summary Silent-Failover Fix + Admin AI Health · 2026-02-08 · PREVIEW VERIFIED
+
+### Root cause of "trash summary" recurrence in production
+User Sentry alert `AuthenticationError: Error code: 401 - Incorrect API key provided: sk-proj-***fcD` on `/api/dr-v2/ai/synthesize` (env: production) revealed:
+- Production OpenAI key is invalid/revoked → 401 from OpenAI
+- **Adapters catch their own LLM exceptions and return `AiEnvelope(ai_available=False, fallback_reason=...)` instead of raising.**
+- The Gateway's retry+failover loop only triggered on raised exceptions → treated the 401-envelope as a "successful" call → returned empty narrative to the workflow → frontend dropped to deterministic garbage. Failover to Anthropic never fired despite `AI_PROVIDER_FAILOVER_ENABLED=true`.
+
+### Changes
+1. `services/ai_gateway/registry.py` — `_dispatch_provider` now inspects the returned envelope. If `ai_available=False`, treats as failure → retries → failovers to next provider (OpenAI → Anthropic → Google order). Recursion-safe via `_attempted` set. Non-retryable reasons (auth/key errors, schema violations, scaffold) short-circuit straight to failover instead of wasting retries.
+2. `services/ai_gateway/adapters/openai_adapter.py` + `anthropic_adapter.py` — LLM exception handler now classifies auth errors (401, "unauthorized", "incorrect api key", "invalid x-api-key") and reports `fallback_reason="unauthorized"` so the dispatcher can short-circuit retries.
+3. **New endpoint** `GET /api/ai/health` (admin-only) — runs a real ping against every adapter (routing through the same model as `operational_narrative`). Returns per-provider `{status, reason, latency_ms, model, detail, uncertainties}`. Also `POST /api/ai/health/refresh` for cache bypass. 30s cache prevents polling storms.
+4. **New Admin UI card** on `/admin/ai-configuration` — "AI Health (Live Ping)" section: color-coded provider tiles (ok/degraded/unauthorized/not_wired), summary banner ("2/3 healthy, failover ready" or "N failed — AI will fall back"), primary-route line, and one-click "Ping now" button.
+5. `DailySummaryAssist.jsx` — When `ai_available=false` returns from synthesize, surface a **red rose banner** ("AI unavailable — using deterministic summary") + a red alert box with the actual `fallback_reason` and uncertainties. No more silent trash.
+
+### Preview verification
+- Failover simulation with broken OpenAI key (`sk-proj-BROKEN-KEY-fcD`, same shape as prod's) forced OpenAI as primary — Gateway detected `unauthorized`, skipped retries, failed over to Anthropic, returned real narrative with `ai_available=true, provider=anthropic`.
+- End-to-end synthesize on a fully-populated DR draft returned an 809-char narrative citing 33 evidence_refs including all crew names/hours, station ranges, ticket numbers, visitor names, delays, safety notes, tomorrow plan, and PM needs. Confidence 0.82.
+- Backend test suite: 21/21 `test_dr_v2_track_2612` + `test_track_22_9a_dr_ai_wireup` PASS.
+- Admin AI Health card verified rendering in browser: Anthropic ok · OpenAI ok · Google not_wired.
+
+### Production fix action items (for user)
+- **Redeploy preview → production** to pick up the failover + health card fixes.
+- **After deploy**: open `mascidocs.com/admin/ai-configuration` → "AI Health (Live Ping)" → click "Ping now". If OpenAI shows **unauthorized** (as expected from Sentry), either:
+  - Rotate the OpenAI key at platform.openai.com and update `OPENAI_API_KEY` in the production env, OR
+  - Leave it — Anthropic is now the primary and failover will handle 401s automatically. Field users will no longer see the trash summary.
+- Recommend adding `GOOGLE_AI_API_KEY` env in production for a third failover leg (currently scaffold — text adapter not wired to google-genai SDK).
+
+
 ## TRACK 26.04 · Final Pre-Deployment Certification Gate · 2026-07-08 · **GO for production**
 
 - **Verdict**: 🟢 GO for merging + deploying Track 24 → 26 recovery package. Conditional on 4 explicit NO-GO boundaries (real-device claim / inbox-delivery claim / D-04 runtime / D-09 runtime).
