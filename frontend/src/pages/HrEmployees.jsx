@@ -11,11 +11,10 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import {
-  Users, Plus, Search, ArrowLeft, Home, RefreshCw,
+import { Users, Plus, Search, ArrowLeft, Home, RefreshCw,
   UserCheck, UserMinus, Briefcase, AlertOctagon, CheckCircle2,
   ChevronRight, FileText, ClipboardList, Wrench,
-  Printer, Download,
+  Printer, Download, X, Bookmark,
 } from "lucide-react";
 import axios from "axios";
 import { getHrToken } from "@/lib/hrAuth";
@@ -41,7 +40,8 @@ import NotificationBell from "@/components/NotificationBell";
 import {
   listHrEmployees, createHrEmployee, patchHrEmployee,
   changeHrEmployeeStatus, offboardingSummary, reactivateHrEmployee,
-  LIFECYCLE_STATUSES,
+  LIFECYCLE_STATUSES, EMPLOYMENT_BUCKETS, statusesForBucket,
+  fetchHrFacets,
 } from "@/lib/employeesApi";
 import { useRememberedFilter } from "@/lib/useRememberedFilter";
 import { friendlyError } from "@/lib/friendlyErrors";
@@ -83,46 +83,84 @@ export default function HrEmployees() {
   const [searchParams] = useSearchParams();
   const initialQ = searchParams.get("q") || "";
   const allowed = isHr() || isAdmin();
-  const [showInactive, setShowInactive] = useRememberedFilter("hr.employees.show_inactive", false);
+  // TRACK 27.00 · Bucket is now the primary employment filter. The
+  // legacy `show_inactive` toggle is removed — bucket=any is its
+  // replacement. Detailed status becomes a secondary filter.
+  const [bucket, setBucket] = useRememberedFilter("hr.employees.bucket_v2", "active");
   const [statusFilter, setStatusFilter] = useRememberedFilter("hr.employees.status", "all");
   const [rehireFilter, setRehireFilter] = useRememberedFilter("hr.employees.rehire_eligibility", "all");
+  const [crewFilter, setCrewFilter] = useRememberedFilter("hr.employees.crew", "all");
+  const [supervisorFilter, setSupervisorFilter] = useRememberedFilter("hr.employees.supervisor", "all");
+  const [tradeFilter, setTradeFilter] = useRememberedFilter("hr.employees.trade", "all");
   const [q, setQ] = useState(initialQ);
   const [items, setItems] = useState([]);
+  const [totalMatching, setTotalMatching] = useState(0);
+  const [truncated, setTruncated] = useState(false);
+  const [warning, setWarning] = useState(null);
+  const [facets, setFacets] = useState({ crews: [], supervisors: [], trades: [], buckets: [] });
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
   const [editId, setEditId] = useState(null);
-  // iter453.5 REC-2 · StatusBadge click → open drawer focused on Status tab.
   const [editTab, setEditTab] = useState("details");
+
+  // Available detailed statuses depend on the picked bucket.
+  const bucketStatuses = statusesForBucket(bucket);   // null = any
+  const availableStatuses = bucketStatuses || LIFECYCLE_STATUSES;
+
+  // If bucket narrows and current status is outside it, snap status to "all".
+  useEffect(() => {
+    if (statusFilter !== "all" && bucketStatuses && !bucketStatuses.includes(statusFilter)) {
+      setStatusFilter("all");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bucket]);
 
   const fetchAll = useCallback(async () => {
     if (!allowed) { setLoading(false); return; }
     setLoading(true);
     try {
-      const r = await listHrEmployees({
-        show_inactive: showInactive,
+      const params = {
+        bucket,
         ...(statusFilter !== "all" ? { lifecycle_status: statusFilter } : {}),
         ...(rehireFilter !== "all" ? { rehire_eligibility: rehireFilter } : {}),
+        ...(crewFilter !== "all" ? { crew: crewFilter } : {}),
+        ...(supervisorFilter !== "all" ? { supervisor: supervisorFilter } : {}),
+        ...(tradeFilter !== "all" ? { trade: tradeFilter } : {}),
         ...(q ? { q } : {}),
-      });
+      };
+      const r = await listHrEmployees(params);
       setItems(r.items || []);
+      setTotalMatching(r.total_matching ?? (r.items?.length || 0));
+      setTruncated(!!r.truncated);
+      setWarning(r.warning || null);
     } catch (e) {
       toast.error(friendlyError(e, "Could not load employees"));
     } finally { setLoading(false); }
-  }, [allowed, showInactive, statusFilter, rehireFilter, q]);
+  }, [allowed, bucket, statusFilter, rehireFilter, crewFilter, supervisorFilter, tradeFilter, q]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
+
+  // Load facets once on mount; refetch after any employee write so
+  // new crew/supervisor/trade values appear immediately.
+  useEffect(() => {
+    fetchHrFacets().then(setFacets).catch(() => {});
+  }, []);
 
   // Track 15.21A · Build the exact query string the export endpoint
   // needs from the live filter state so the .xlsx mirrors the on-screen
   // roster row-for-row (same dataset, same count, zero drift).
   const buildExportParams = useCallback(() => {
     const p = new URLSearchParams();
-    if (showInactive) p.set("show_inactive", "true");
+    if (bucket && bucket !== "any") p.set("bucket", bucket);
+    if (bucket === "any") p.set("bucket", "any");
     if (statusFilter !== "all") p.set("lifecycle_status", statusFilter);
     if (rehireFilter !== "all") p.set("rehire_eligibility", rehireFilter);
+    if (crewFilter !== "all") p.set("crew", crewFilter);
+    if (supervisorFilter !== "all") p.set("supervisor", supervisorFilter);
+    if (tradeFilter !== "all") p.set("trade", tradeFilter);
     if (q) p.set("q", q);
     return p;
-  }, [showInactive, statusFilter, rehireFilter, q]);
+  }, [bucket, statusFilter, rehireFilter, crewFilter, supervisorFilter, tradeFilter, q]);
 
   const onPrint = useCallback(() => {
     // Use the browser's native print pipeline. The scoped @media print
@@ -158,15 +196,80 @@ export default function HrEmployees() {
     } finally { setExporting(false); }
   }, [exporting, buildExportParams, items.length]);
 
+  // TRACK 27.00 · KPI cards read from the current items array so the
+  // table row count and each KPI number are always in lockstep. If a
+  // user narrows the filter to Retired, they'll see:
+  //   Retired: 12 · Total in View: 12 · rows in table: 12
+  // — one truth source, five reflections of it.
   const counts = useMemo(() => {
-    const c = { active: 0, inactive: 0 };
+    const buckets = { active: 0, pending: 0, off_roll: 0, terminated: 0, retired: 0 };
     items.forEach((e) => {
       const s = e.lifecycle_status || (e.is_active === false ? "Inactive" : "Active");
-      if (["Active", "Pending Hire", "Seasonal", "Leave of Absence"].includes(s)) c.active++;
-      else c.inactive++;
+      if (["Active", "Seasonal", "Leave of Absence"].includes(s)) buckets.active++;
+      else if (s === "Pending Hire") buckets.pending++;
+      else if (["Inactive", "Suspended"].includes(s)) buckets.off_roll++;
+      else if (["Terminated", "Resigned"].includes(s)) buckets.terminated++;
+      else if (s === "Retired") buckets.retired++;
+      else buckets.off_roll++;   // fail-closed
     });
-    return c;
+    return buckets;
   }, [items]);
+
+  // Filter chip descriptors — one per active narrowing. Chips are
+  // individually removable so HR can undo one filter at a time
+  // instead of resetting everything.
+  const activeChips = useMemo(() => {
+    const chips = [];
+    if (bucket !== "any") chips.push({ key: "bucket", label: EMPLOYMENT_BUCKETS.find((b) => b.value === bucket)?.label || bucket, onClear: () => setBucket("any") });
+    if (statusFilter !== "all") chips.push({ key: "status", label: `Status: ${statusFilter}`, onClear: () => setStatusFilter("all") });
+    if (crewFilter !== "all") chips.push({ key: "crew", label: `Crew: ${crewFilter}`, onClear: () => setCrewFilter("all") });
+    if (supervisorFilter !== "all") chips.push({ key: "supervisor", label: `Supervisor: ${supervisorFilter}`, onClear: () => setSupervisorFilter("all") });
+    if (tradeFilter !== "all") chips.push({ key: "trade", label: `Trade: ${tradeFilter}`, onClear: () => setTradeFilter("all") });
+    if (rehireFilter !== "all") chips.push({ key: "rehire", label: `Rehire: ${rehireFilter.replace(/_/g, " ")}`, onClear: () => setRehireFilter("all") });
+    if (q) chips.push({ key: "q", label: `Search: "${q}"`, onClear: () => setQ("") });
+    return chips;
+  }, [bucket, statusFilter, crewFilter, supervisorFilter, tradeFilter, rehireFilter, q]);
+
+  const resetFilters = useCallback(() => {
+    setBucket("active");
+    setStatusFilter("all");
+    setCrewFilter("all");
+    setSupervisorFilter("all");
+    setTradeFilter("all");
+    setRehireFilter("all");
+    setQ("");
+  }, [setBucket, setStatusFilter, setCrewFilter, setSupervisorFilter, setTradeFilter, setRehireFilter]);
+
+  // TRACK 27.00 · 12 approved saved views (Section 5 of the audit).
+  // These are pre-filled filter states — no new endpoint, no new
+  // data model. `applyView({...})` merges partial filter overrides
+  // into the current state so each view leaves other filters at
+  // their defaults.
+  const applyView = useCallback((v) => {
+    resetFilters();
+    if (v.bucket) setBucket(v.bucket);
+    if (v.crew) setCrewFilter(v.crew);
+    if (v.supervisor) setSupervisorFilter(v.supervisor);
+    if (v.rehire) setRehireFilter(v.rehire);
+    if (v.status) setStatusFilter(v.status);
+  }, [resetFilters, setBucket, setCrewFilter, setSupervisorFilter, setRehireFilter, setStatusFilter]);
+
+  const savedViews = useMemo(() => ([
+    { id: "all-active",       label: "All Actively Employed", apply: { bucket: "active" } },
+    { id: "paving-crew",      label: "Paving Crew",           apply: { bucket: "active", crew: "Paving" } },
+    { id: "concrete-crew",    label: "Concrete Crew",         apply: { bucket: "active", crew: "Concrete" } },
+    { id: "shop-crew",        label: "Shop",                  apply: { bucket: "active", crew: "Shop" } },
+    { id: "safety-crew",      label: "Safety",                apply: { bucket: "active", crew: "Safety" } },
+    { id: "utility-crew",     label: "Utility",               apply: { bucket: "active", crew: "Utility" } },
+    { id: "milling-crew",     label: "Milling",               apply: { bucket: "active", crew: "Milling" } },
+    { id: "mot-crew",         label: "MOT",                   apply: { bucket: "active", crew: "MOT" } },
+    { id: "terminated",       label: "Terminated / Separated", apply: { bucket: "terminated" } },
+    { id: "retired",          label: "Retired Employees",     apply: { bucket: "retired" } },
+    { id: "rehire-eligible",  label: "Rehire Eligible",       apply: { rehire: "eligible" } },
+    { id: "missing-super",    label: "Missing Supervisor",    apply: { bucket: "active", supervisor: "(unassigned)" } },
+    { id: "no-crew",          label: "No Crew Assigned",      apply: { bucket: "active", crew: "(unassigned)" } },
+  ]), []);
+
 
   if (!allowed) return <AccessDenied attemptedPortal="hr" />;
 
@@ -180,37 +283,112 @@ export default function HrEmployees() {
     <div className="min-h-screen" data-testid="hr-employees-page">
       <main className="max-w-6xl mx-auto px-5 sm:px-8 py-6 sm:py-8">
         <HelpTipBlock formKey="employee-lifecycle" showCounter />
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4 mb-6">
+
+        {/* TRACK 27.00 · KPI cards. All numbers derive from `items`,
+            which is the same array the table below iterates, so KPI
+            counts and table row count can never drift. */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-4" data-testid="hremp-kpi-row">
           <SummaryTile label="Actively Employed" value={counts.active} icon={UserCheck} accent="emerald" />
-          <SummaryTile label="Inactive / Off-roll" value={counts.inactive} icon={UserMinus} accent="slate" />
-          <SummaryTile label="Total in View" value={items.length} icon={Users} accent="blue" />
+          <SummaryTile label="Pending / Onboarding" value={counts.pending} icon={Briefcase} accent="blue" />
+          <SummaryTile label="Off-roll / Inactive" value={counts.off_roll} icon={UserMinus} accent="slate" />
+          <SummaryTile label="Terminated" value={counts.terminated} icon={AlertOctagon} accent="rose" />
+          <SummaryTile label="Retired" value={counts.retired} icon={CheckCircle2} accent="purple" />
+          <SummaryTile label="Total in View" value={items.length} icon={Users} accent="amber" />
         </div>
 
-        <div className="bg-white border border-slate-200 rounded-md p-3 sm:p-4 mb-4 flex flex-wrap items-center gap-2.5">
-          <div className="flex items-center gap-2">
-            <Switch
-              id="show-inactive"
-              checked={showInactive}
-              onCheckedChange={setShowInactive}
-              data-testid="hremp-show-inactive"
-            />
-            <Label htmlFor="show-inactive" className="text-xs cursor-pointer">
-              Show inactive employees
-            </Label>
-          </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px] h-9 text-xs" data-testid="hremp-status-filter">
+        {/* TRACK 27.00 · Saved views strip. Twelve pre-filled filter
+            states approved by HR. Click = reset then apply. */}
+        <div className="flex flex-wrap gap-1.5 mb-3" data-testid="hremp-saved-views">
+          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 self-center mr-1">
+            <Bookmark className="w-3 h-3 inline mr-1" /> Quick views:
+          </span>
+          {savedViews.map((v) => (
+            <button
+              key={v.id}
+              type="button"
+              onClick={() => applyView(v.apply)}
+              className="px-2.5 py-1 rounded border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-400 text-[11px] font-medium text-slate-700 transition"
+              data-testid={`hremp-view-${v.id}`}
+            >
+              {v.label}
+            </button>
+          ))}
+        </div>
+
+        {/* TRACK 27.00 · Filter bar. Every filter has an honest
+            fallback ("(unassigned)" for blank crew/supervisor/trade).
+            No hardcoded crews or supervisors — the dropdowns pull
+            from /api/hr/employees/facets. */}
+        <div className="bg-white border border-slate-200 rounded-md p-3 sm:p-4 mb-3 flex flex-wrap items-center gap-2.5">
+          <Select value={bucket} onValueChange={setBucket}>
+            <SelectTrigger className="w-[210px] h-9 text-xs" data-testid="hremp-bucket-filter">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
-              {LIFECYCLE_STATUSES.map((s) => (
-                <SelectItem key={s} value={s}>{s}</SelectItem>
+              {EMPLOYMENT_BUCKETS.map((b) => (
+                <SelectItem key={b.value} value={b.value} data-testid={`hremp-bucket-opt-${b.value}`}>
+                  {b.label}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
+
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[170px] h-9 text-xs" data-testid="hremp-status-filter">
+              <SelectValue placeholder="Detailed status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Any status</SelectItem>
+              {availableStatuses.map((s) => (
+                <SelectItem key={s} value={s} data-testid={`hremp-status-opt-${s.replace(/\s+/g,'-')}`}>{s}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={crewFilter} onValueChange={setCrewFilter}>
+            <SelectTrigger className="w-[150px] h-9 text-xs" data-testid="hremp-crew-filter">
+              <SelectValue placeholder="Crew" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Any crew</SelectItem>
+              {(facets.crews || []).map((c) => (
+                <SelectItem key={c.value} value={c.value} data-testid={`hremp-crew-opt-${c.value.replace(/\W+/g,'-')}`}>
+                  {c.label} <span className="text-slate-400">· {c.count}</span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={supervisorFilter} onValueChange={setSupervisorFilter}>
+            <SelectTrigger className="w-[170px] h-9 text-xs" data-testid="hremp-supervisor-filter">
+              <SelectValue placeholder="Supervisor" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Any supervisor</SelectItem>
+              {(facets.supervisors || []).map((s) => (
+                <SelectItem key={s.value} value={s.value} data-testid={`hremp-supervisor-opt-${s.value.replace(/\W+/g,'-')}`}>
+                  {s.label} <span className="text-slate-400">· {s.count}</span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={tradeFilter} onValueChange={setTradeFilter}>
+            <SelectTrigger className="w-[160px] h-9 text-xs" data-testid="hremp-trade-filter">
+              <SelectValue placeholder="Trade / Role" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Any trade</SelectItem>
+              {(facets.trades || []).map((t) => (
+                <SelectItem key={t.value} value={t.value} data-testid={`hremp-trade-opt-${t.value.replace(/\W+/g,'-')}`}>
+                  {t.label} <span className="text-slate-400">· {t.count}</span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           <Select value={rehireFilter} onValueChange={setRehireFilter}>
-            <SelectTrigger className="w-[200px] h-9 text-xs" data-testid="hremp-rehire-filter">
+            <SelectTrigger className="w-[170px] h-9 text-xs" data-testid="hremp-rehire-filter">
               <SelectValue placeholder="Rehire eligibility" />
             </SelectTrigger>
             <SelectContent>
@@ -220,15 +398,20 @@ export default function HrEmployees() {
               <SelectItem value="review_required">Review Required</SelectItem>
             </SelectContent>
           </Select>
+
           <div className="relative flex-1 min-w-[180px]">
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
             <Input
               value={q} onChange={(e) => setQ(e.target.value)}
-              placeholder="Search name, employee id, trade…"
+              placeholder="Search name, ID, trade, crew, supervisor…"
               className="pl-8 h-9 text-xs"
               data-testid="hremp-search-input"
             />
           </div>
+
+          <Button variant="outline" size="sm" onClick={resetFilters} className="text-xs" data-testid="hremp-reset-filters" data-print-hide>
+            <X className="w-3.5 h-3.5 mr-1" /> Reset
+          </Button>
           <Button variant="outline" size="sm" onClick={fetchAll} className="text-xs" data-testid="hremp-refresh" data-print-hide>
             <RefreshCw className="w-3.5 h-3.5" />
           </Button>
@@ -257,9 +440,59 @@ export default function HrEmployees() {
                 setEditId(e.openDrawerId);
               }
               fetchAll();
+              fetchHrFacets().then(setFacets).catch(() => {});
             }}
           />
         </div>
+
+        {/* TRACK 27.00 · Honest result summary line. This count MUST
+            equal the KPI Total-in-View tile AND the number of rows in
+            the table AND the export .xlsx row count AND the print
+            output row count. If it ever doesn't, something upstream
+            is lying. */}
+        <div className="flex flex-wrap items-center gap-2 mb-3 text-xs" data-testid="hremp-result-summary">
+          <span className="font-medium text-slate-700" data-testid="hremp-result-count">
+            Showing <strong>{items.length}</strong>{" "}
+            {items.length === 1 ? "employee" : "employees"}
+            {truncated && (
+              <span className="ml-1 text-amber-700" data-testid="hremp-truncated">
+                (first {items.length} of <strong>{totalMatching}</strong> — narrow filters to see all)
+              </span>
+            )}
+            {!truncated && totalMatching > 0 && bucket !== "any" && (
+              <span className="ml-1 text-slate-500">· matches filter</span>
+            )}
+          </span>
+          {activeChips.map((c) => (
+            <button
+              key={c.key}
+              type="button"
+              onClick={c.onClear}
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 border border-slate-300 text-[11px] text-slate-700 hover:bg-slate-200"
+              data-testid={`hremp-chip-${c.key}`}
+              title="Remove this filter"
+            >
+              {c.label} <X className="w-3 h-3" />
+            </button>
+          ))}
+        </div>
+
+        {/* TRACK 27.00 · Impossible-intersection warning banner.
+            Fires when bucket + detailed status can't both be true
+            (e.g. bucket=Active + status=Terminated). Backend returns
+            an explicit warning code so the UI can explain WHY there
+            are zero results, rather than showing a mystery empty
+            state. */}
+        {warning && warning.code === "impossible_intersection" && (
+          <div
+            className="mb-3 p-3 rounded-md border border-amber-300 bg-amber-50 text-amber-900 text-xs"
+            role="alert"
+            data-testid="hremp-warning-impossible"
+          >
+            <div className="font-semibold mb-0.5">Filter combination has no matches</div>
+            <div>{warning.message}</div>
+          </div>
+        )}
 
         {loading ? (
           <div className="bg-white border border-slate-200 rounded-md py-10 text-center text-slate-500 text-sm">Loading…</div>
@@ -359,8 +592,11 @@ export default function HrEmployees() {
           <div className="hr-print-meta">
             {new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}
             {" · "}
-            {showInactive ? "All employees" : "Active employees only"}
+            {EMPLOYMENT_BUCKETS.find((b) => b.value === bucket)?.label || bucket}
             {statusFilter !== "all" ? ` · status: ${statusFilter}` : ""}
+            {crewFilter !== "all" ? ` · crew: ${crewFilter}` : ""}
+            {supervisorFilter !== "all" ? ` · supervisor: ${supervisorFilter}` : ""}
+            {tradeFilter !== "all" ? ` · trade: ${tradeFilter}` : ""}
             {rehireFilter !== "all" ? ` · rehire: ${rehireFilter}` : ""}
             {q ? ` · search: “${q}”` : ""}
             {" · "}
@@ -464,9 +700,12 @@ function SummaryTile({ label, value, icon: Icon, accent }) {
     emerald: "border-emerald-300 text-emerald-900",
     slate: "border-slate-300 text-slate-700",
     blue: "border-blue-300 text-blue-900",
+    rose: "border-rose-300 text-rose-900",
+    purple: "border-purple-300 text-purple-900",
+    amber: "border-amber-300 text-amber-900",
   }[accent] || "border-slate-300 text-slate-900";
   return (
-    <div className={`bg-white border-2 ${palette} rounded-md p-3`} data-testid={`hremp-summary-${label.toLowerCase().replace(/\s+/g,'-')}`}>
+    <div className={`bg-white border-2 ${palette} rounded-md p-3`} data-testid={`hremp-summary-${label.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}`}>
       <div className="flex items-center gap-2">
         <Icon className="w-4 h-4 opacity-70" />
         <span className="font-mono text-[10px] uppercase tracking-[0.18em] opacity-80 font-bold">{label}</span>

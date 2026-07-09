@@ -920,17 +920,71 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
         lifecycle_status: Optional[str],
         rehire_eligibility: Optional[str],
         q: Optional[str],
+        *,
+        bucket: Optional[str] = None,
+        crew: Optional[str] = None,
+        supervisor: Optional[str] = None,
+        trade: Optional[str] = None,
     ) -> Dict[str, Any]:
+        """TRACK 27.00 · canonical query builder.
+
+        Rules HR can trust:
+          - `bucket` is the primary employment filter. Values: any /
+            active / pending / off_roll / terminated / retired.
+            Sourced from `lib.employee_status.BUCKET_STATUSES`.
+          - `lifecycle_status` is the secondary detailed filter. When
+            combined with `bucket`, both must agree — picking
+            "Terminated" while bucket=active would produce an empty
+            intersection *by definition*, so we short-circuit that
+            combination and let the caller present a warning instead
+            of a mystery-zero result.
+          - `show_inactive` remains for backward compat with older
+            callers (Daily Report autofill etc.). When bucket is set,
+            show_inactive is ignored (the bucket is the source of
+            truth).
+          - Crew / Supervisor / Trade filters compose with AND.
+            Explicit sentinel "(unassigned)" matches blank + null.
+        """
+        from lib.employee_status import (  # noqa: PLC0415
+            mongo_clause_for_bucket, status_belongs_to_bucket,
+            validate_bucket,
+        )
         clauses: List[Dict[str, Any]] = [{"deleted_at": None}]
-        if not show_inactive:
-            # Default view = only "actively employed" statuses.
-            clauses.append({"$or": [
-                {"lifecycle_status": {"$in": list(_ACTIVE_STATUSES)}},
-                {"lifecycle_status": {"$exists": False},  # legacy rows
-                 "is_active": {"$ne": False}},
-            ]})
-        if lifecycle_status:
-            clauses.append({"lifecycle_status": lifecycle_status})
+
+        effective_bucket = validate_bucket(bucket) if bucket is not None else None
+
+        if effective_bucket is not None:
+            # Bucket-driven mode (Track 27.00). Ignore legacy
+            # show_inactive when the caller has explicitly picked a
+            # bucket — the bucket already carries that intent.
+            bucket_clause = mongo_clause_for_bucket(effective_bucket)
+            if bucket_clause is not None:
+                clauses.append(bucket_clause)
+            if lifecycle_status:
+                # Guard the impossible intersection (e.g. bucket=active
+                # + status=Terminated). Return an unmatchable clause so
+                # the API responds honestly with 0 rows instead of
+                # letting Mongo AND them and produce a mystery-zero
+                # that HR can't explain.
+                if not status_belongs_to_bucket(
+                    lifecycle_status, effective_bucket,
+                ):
+                    clauses.append({"_impossible_intersection": True})
+                else:
+                    clauses.append({"lifecycle_status": lifecycle_status})
+        else:
+            # Legacy path — preserved verbatim so no existing caller
+            # regresses. This is what /api/hr/employees looked like
+            # pre-Track 27.00.
+            if not show_inactive:
+                clauses.append({"$or": [
+                    {"lifecycle_status": {"$in": list(_ACTIVE_STATUSES)}},
+                    {"lifecycle_status": {"$exists": False},
+                     "is_active": {"$ne": False}},
+                ]})
+            if lifecycle_status:
+                clauses.append({"lifecycle_status": lifecycle_status})
+
         # iter316 · rehire-eligibility filter
         if rehire_eligibility:
             if rehire_eligibility not in ALLOWED_REHIRE_ELIGIBILITY:
@@ -940,12 +994,44 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
                     f"{sorted(ALLOWED_REHIRE_ELIGIBILITY)}",
                 )
             clauses.append({"rehire_eligibility": rehire_eligibility})
+
+        # Track 27.00 · crew filter. "(unassigned)" surfaces blank + null.
+        if crew:
+            if crew == "(unassigned)":
+                clauses.append({"$or": [
+                    {"crew": {"$in": [None, ""]}},
+                    {"crew": {"$exists": False}},
+                ]})
+            else:
+                clauses.append({"crew": crew})
+
+        # Track 27.00 · supervisor filter. Same unassigned semantics.
+        if supervisor:
+            if supervisor == "(unassigned)":
+                clauses.append({"$or": [
+                    {"supervisor": {"$in": [None, ""]}},
+                    {"supervisor": {"$exists": False}},
+                ]})
+            else:
+                clauses.append({"supervisor": supervisor})
+
+        # Track 27.00 · trade filter.
+        if trade:
+            if trade == "(unassigned)":
+                clauses.append({"$or": [
+                    {"trade": {"$in": [None, ""]}},
+                    {"trade": {"$exists": False}},
+                ]})
+            else:
+                clauses.append({"trade": trade})
+
         if q:
             # Track 14.0-HR-IDENTITY · search resolves legal first /
             # middle / last, preferred name, denormalised `name`,
-            # employee_id, and trade. Any of: "James" / "Michael" /
-            # "Fisher" / "Jimmy" / "James Fisher" / "Jimmy Fisher" /
-            # "James Michael Fisher" match the same employee.
+            # employee_id, and trade.
+            # Track 27.00 · search now ALSO matches crew and supervisor
+            # so "Jason" finds employees supervised by Jason, not just
+            # employees named Jason.
             clauses.append({"$or": [
                 {"name": safe_regex(q)},
                 {"legal_first_name": safe_regex(q)},
@@ -954,6 +1040,8 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
                 {"preferred_name": safe_regex(q)},
                 {"employee_id": safe_regex(q)},
                 {"trade": safe_regex(q)},
+                {"crew": safe_regex(q)},
+                {"supervisor": safe_regex(q)},
             ]})
         return {"$and": clauses}
 
@@ -966,22 +1054,51 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
         rehire_eligibility: Optional[str] = Query(default=None),
         q: Optional[str] = Query(default=None, max_length=80),
         limit: int = Query(default=500, ge=1, le=2000),
+        # Track 27.00 · new filter primitives.
+        bucket: Optional[str] = Query(default=None),
+        crew: Optional[str] = Query(default=None, max_length=120),
+        supervisor: Optional[str] = Query(default=None, max_length=120),
+        trade: Optional[str] = Query(default=None, max_length=120),
     ) -> Dict[str, Any]:
-        final = _build_employee_query(
-            show_inactive, lifecycle_status, rehire_eligibility, q
-        )
+        try:
+            final = _build_employee_query(
+                show_inactive, lifecycle_status, rehire_eligibility, q,
+                bucket=bucket, crew=crew, supervisor=supervisor, trade=trade,
+            )
+        except ValueError as e:
+            raise HTTPException(400, str(e))
+        # Track 27.00 · impossible bucket + status intersection —
+        # respond honestly with 0 rows and a machine-readable hint.
+        impossible = any(c.get("_impossible_intersection") for c in final.get("$and", []))
+        if impossible:
+            return {
+                "items": [], "count": 0,
+                "warning": {
+                    "code": "impossible_intersection",
+                    "message": (
+                        f"lifecycle_status={lifecycle_status!r} is not in "
+                        f"the {bucket!r} bucket. Pick a status inside "
+                        f"the bucket, or clear the bucket filter."
+                    ),
+                },
+            }
+        # Ask Mongo for total match count (unlimited) so the UI can show
+        # "Showing first 500 of 923" instead of silently truncating.
+        total_matching = await db.employees.count_documents(final)
         cur = db.employees.find(final, {"_id": 0}).sort("name", 1).limit(limit)
         from masci.identity import format_employee_identity
         items = []
         async for d in cur:
             d = _strip_id(d) or {}
             d["tenure_days"] = _tenure_days(d)
-            # Track 14.0-HR-IDENTITY · canonical display label so any
-            # consumer can render the right name without re-implementing
-            # the formatting rule.
             d["display_identity"] = format_employee_identity(d)
             items.append(d)
-        return {"items": items, "count": len(items)}
+        return {
+            "items": items,
+            "count": len(items),
+            "total_matching": total_matching,
+            "truncated": total_matching > len(items),
+        }
 
     # ── Track 15.21A · HR Roster Excel Export ─────────────────────────
     # Generates an .xlsx of the same dataset the HR roster page renders,
@@ -1000,13 +1117,25 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
         rehire_eligibility: Optional[str] = Query(default=None),
         q: Optional[str] = Query(default=None, max_length=80),
         limit: int = Query(default=5000, ge=1, le=10000),
+        bucket: Optional[str] = Query(default=None),
+        crew: Optional[str] = Query(default=None, max_length=120),
+        supervisor: Optional[str] = Query(default=None, max_length=120),
+        trade: Optional[str] = Query(default=None, max_length=120),
     ):
-        final = _build_employee_query(
-            show_inactive, lifecycle_status, rehire_eligibility, q
-        )
-        docs = await db.employees.find(
-            final, {"_id": 0}
-        ).sort("name", 1).to_list(limit)
+        try:
+            final = _build_employee_query(
+                show_inactive, lifecycle_status, rehire_eligibility, q,
+                bucket=bucket, crew=crew, supervisor=supervisor, trade=trade,
+            )
+        except ValueError as e:
+            raise HTTPException(400, str(e))
+        # Impossible bucket + status intersection → empty export, no rows.
+        if any(c.get("_impossible_intersection") for c in final.get("$and", [])):
+            docs = []
+        else:
+            docs = await db.employees.find(
+                final, {"_id": 0}
+            ).sort("name", 1).to_list(limit)
         # Column order matches Track 15.21A directive exactly.
         header = [
             "Employee Name", "Preferred Name", "Status", "Position",
@@ -1040,6 +1169,81 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
             f"MASCI_HR_Employee_Roster_{_today_stamp()}.xlsx",
             "Employees",
         )
+
+    # ── TRACK 27.00 · Employee Facets (crew / supervisor / trade) ─────
+    # Powers the HR filter bar's dynamic dropdowns. No hardcoded crew
+    # lists, no hardcoded supervisor names — HR sees exactly the values
+    # currently in their live data, with counts, so they can spot both
+    # the healthy values ("Paving · 42") and the data-quality gaps
+    # ("(unassigned) · 246"). Cached in-process for 60 s to keep the
+    # filter bar snappy without hammering Mongo when HR is typing.
+    _facet_cache: Dict[str, Any] = {"ts": 0.0, "payload": None}
+
+    async def _facet_values(field: str, *, limit: int = 100) -> List[Dict[str, Any]]:
+        pipeline = [
+            {"$match": {"deleted_at": None}},
+            {"$group": {
+                "_id": {"$ifNull": [f"${field}", None]},
+                "count": {"$sum": 1},
+            }},
+            {"$sort": {"count": -1, "_id": 1}},
+            {"$limit": limit},
+        ]
+        assigned: List[Dict[str, Any]] = []
+        unassigned_count = 0
+        async for row in db.employees.aggregate(pipeline):
+            raw = row.get("_id")
+            # Coerce blank / null / missing into a single "(unassigned)"
+            # sentinel so the frontend gets one honest label for that
+            # bucket instead of three near-duplicates.
+            if raw is None or (isinstance(raw, str) and not raw.strip()):
+                unassigned_count += row["count"]
+            else:
+                assigned.append({"value": raw, "label": raw,
+                                 "count": row["count"], "unassigned": False})
+        # Move "(unassigned)" to the end so the healthiest values render
+        # first in the dropdown; hide it entirely when the field is
+        # 100% populated (no need to offer a filter that matches nobody).
+        out = assigned
+        if unassigned_count:
+            out = assigned + [{
+                "value": "(unassigned)", "label": "(unassigned)",
+                "count": unassigned_count, "unassigned": True,
+            }]
+        return out
+
+    @router.get("/api/hr/employees/facets")
+    async def hr_employee_facets(
+        actor: Dict[str, Any] = Depends(require_hr_or_admin),
+    ) -> Dict[str, Any]:
+        """Return distinct crew / supervisor / trade values with counts.
+
+        This endpoint is the single source of truth for the HR filter
+        bar's Crew / Supervisor / Trade dropdowns. Nothing hardcoded.
+        """
+        import time  # noqa: PLC0415
+        now = time.time()
+        cached = _facet_cache.get("payload")
+        if cached and (now - _facet_cache["ts"] < 60.0):
+            return cached
+        from lib.employee_status import BUCKET_LABELS, BUCKET_ORDER  # noqa: PLC0415
+        crews = await _facet_values("crew")
+        supers = await _facet_values("supervisor")
+        trades = await _facet_values("trade")
+        payload = {
+            "crews": crews,
+            "supervisors": supers,
+            "trades": trades,
+            "buckets": [
+                {"value": b, "label": BUCKET_LABELS[b]}
+                for b in ["any", *BUCKET_ORDER]
+            ],
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+        }
+        _facet_cache["ts"] = now
+        _facet_cache["payload"] = payload
+        return payload
+
 
     # ── TRACK 23.6 · Employee record completeness (read-only) ─────────
     # Purpose: check-engine light for whether Employee Lifecycle

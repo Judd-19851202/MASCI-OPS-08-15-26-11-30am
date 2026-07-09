@@ -33,6 +33,30 @@ export const LIFECYCLE_STATUSES = [
   "Inactive", "Suspended", "Terminated", "Resigned", "Retired",
 ];
 
+// TRACK 27.00 · Canonical employment buckets — MUST stay in sync with
+// /app/backend/lib/employee_status.py::BUCKET_STATUSES. If you edit
+// one, edit both. The bucket is the primary HR filter primitive; the
+// detailed lifecycle_status is a secondary filter used to narrow
+// within a bucket.
+export const EMPLOYMENT_BUCKETS = [
+  { value: "any",        label: "Any (all employees)" },
+  { value: "active",     label: "Actively Employed",     statuses: ["Active", "Seasonal", "Leave of Absence"] },
+  { value: "pending",    label: "Pending / Onboarding",  statuses: ["Pending Hire"] },
+  { value: "off_roll",   label: "Off-roll / Inactive",   statuses: ["Inactive", "Suspended"] },
+  { value: "terminated", label: "Terminated / Separated", statuses: ["Terminated", "Resigned"] },
+  { value: "retired",    label: "Retired",               statuses: ["Retired"] },
+];
+
+export function statusesForBucket(bucketValue) {
+  const b = EMPLOYMENT_BUCKETS.find((x) => x.value === bucketValue);
+  return b?.statuses || null;   // null means "any"
+}
+
+export async function fetchHrFacets() {
+  const r = await axios.get(`${API}/hr/employees/facets`, { headers: authHeaders() });
+  return r.data;
+}
+
 export async function listHrEmployees(params = {}) {
   const r = await axios.get(`${API}/hr/employees`, { headers: authHeaders(), params });
   return r.data;

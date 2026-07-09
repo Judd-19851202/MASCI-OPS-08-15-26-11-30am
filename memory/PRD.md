@@ -13,6 +13,46 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 
 
 
+## TRACK 27.00 · HR Employee Filter Trust · 2026-02-08 · PREVIEW VERIFIED
+
+Root cause of the "230 active vs 18 active" mismatch HR reported: 235 legacy `employees` documents had no `lifecycle_status` field set. The KPI card counted them as active via `is_active` fallback; the dropdown filter did strict `lifecycle_status == "Active"` matching and dropped them. Two truth sources, one label.
+
+Delivered in four phases:
+
+**Phase A · Backfill (`/app/backend/scripts/track_27_backfill_lifecycle_status.py`)** · dry-run default, `--commit` flag, `--reverse` supported. Set `lifecycle_status="Active"` on 235 rows (all had `is_active=True`). Emitted 235 audit events (`kind=backfill_lifecycle_status`). Idempotent (rerun = 0 changes). Verified: post-backfill, 0 rows have missing/null `lifecycle_status`.
+
+**Phase B · Canonical bucket module (`/app/backend/lib/employee_status.py`)** · Single source of truth for employment buckets. Exports `BUCKET_STATUSES`, `bucket_of()`, `mongo_clause_for_bucket()`, `status_belongs_to_bucket()`, `validate_bucket()`. Buckets: `active` (Active/Seasonal/Leave of Absence), `pending` (Pending Hire — new, NOT counted as Active), `off_roll` (Inactive/Suspended), `terminated` (Terminated/Resigned; Layoff stays as `separation_type` sub-flag), `retired` (Retired — first-class per amendment). Legacy `is_active` still supported for defense-in-depth.
+
+Query builder (`_build_employee_query` in `routes/employee_lifecycle.py`) rewritten to accept `bucket`, `crew`, `supervisor`, `trade`. Fixes latent Bug 2 (Terminated + show_inactive=false returned 0) via explicit `impossible_intersection` warning payload instead of silent zero. `q` search expanded to include crew + supervisor.
+
+New endpoint `GET /api/hr/employees/facets` returns dynamic dropdown values with counts (crews / supervisors / trades), 60 s in-process cache. Collapses null/blank/missing into single `(unassigned)` sentinel with combined count.
+
+**Phase C · Frontend rewrite (`/app/frontend/src/pages/HrEmployees.jsx`)** · Six KPI cards (Active / Pending / Off-roll / Terminated / Retired / Total in View), all derived from the same `items` array so KPI + table + print + export can never drift. Filter bar: Employment bucket dropdown, Detailed status (dynamic per bucket), Crew (dynamic), Supervisor (dynamic), Trade (dynamic), Rehire, Search, Reset. 13 saved-view chips (All Actively Employed, Paving Crew, Concrete Crew, Shop, Safety, Utility, Milling, MOT, Terminated / Separated, Retired Employees, Rehire Eligible, Missing Supervisor, No Crew Assigned). Removable filter chips + honest count line + impossible-intersection warning banner. `show_inactive` toggle removed (bucket=any is its replacement).
+
+**Phase D · Regression tests (`/app/backend/tests/test_track_27_hr_filter_trust.py`)** · 22 tests, all green. Coverage: canonical bucket mapping, legacy row shapes, impossible-intersection guard, bucket validity, per-bucket integration tests, retired-first-class amendment, soft-delete guard across every bucket, endpoint bucket accuracy, `(unassigned)` sentinel, filter composition, dynamic facets, export parity, backfill idempotency + non-overwrite.
+
+**End-to-end verification in preview:**
+- `bucket=active` returns 395 employees (the "should be 230" number in prod).
+- `bucket=any` returns 407 (total non-deleted).
+- `bucket=terminated` returns 9 (was 0 with legacy `show_inactive=false`).
+- `bucket=active + status=Terminated` returns 0 with `warning.code=impossible_intersection` (Bug 2 fix).
+- Search `Jason` returns 3 (was 1 — now matches supervisor field too).
+- Frontend live: KPI Actively Employed = 395, Total in View = 395, table rows = 395, result-count line = 395. All four surfaces lockstep.
+
+Files changed:
+- ADDED · `/app/backend/lib/employee_status.py`
+- ADDED · `/app/backend/routes/ai_health.py` (unrelated, from Track 26.13)
+- ADDED · `/app/backend/scripts/track_27_backfill_lifecycle_status.py`
+- ADDED · `/app/backend/tests/test_track_27_hr_filter_trust.py`
+- ADDED · `/app/memory/TRACK_27_00_HR_FILTER_TRUST_AUDIT.md`
+- CHANGED · `/app/backend/routes/employee_lifecycle.py` (query builder + facets endpoint)
+- CHANGED · `/app/frontend/src/pages/HrEmployees.jsx` (KPI grid + filter bar + saved views)
+- CHANGED · `/app/frontend/src/lib/employeesApi.js` (`EMPLOYMENT_BUCKETS` + `fetchHrFacets`)
+
+Ready to redeploy to production.
+
+
+
 ## TRACK 26.13 · AI Summary Silent-Failover Fix + Admin AI Health · 2026-02-08 · PREVIEW VERIFIED
 
 ### Second-wave root cause (found after redeploy)
