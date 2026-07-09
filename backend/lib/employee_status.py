@@ -24,9 +24,24 @@ Post-Phase-A backfill every row carries a `lifecycle_status`, but the
 mongo clause STILL supports the legacy shape (`lifecycle_status`
 missing + `is_active` truthy) so this module stays correct even if a
 future migration ever writes a row without setting the field.
+
+Track 27.02
+-----------
+Added `mongo_clause_for_status()` — a canonical Detailed-Status
+resolver that includes legacy fallback for `Active` / `Inactive` (the
+two statuses that legacy rows resolve to via `is_active`). This
+guarantees Detailed-Status = Active returns the SAME rows the bucket=active
+filter would, not the smaller strict-match subset.
+
+Added `normalize_facet_value()` — a canonical facet normalizer. All
+three facet fields (crew / supervisor / trade) are trimmed and
+whitespace-collapsed at both facet-generation time AND query-match
+time, so the value in the dropdown always matches the value used to
+filter the table.
 """
 from __future__ import annotations
 
+import re
 from typing import Any, Dict, List, Optional
 
 
@@ -47,12 +62,12 @@ ALL_LIFECYCLE_STATUSES: List[str] = [
 # Public API for UI/consumers.
 BUCKET_ORDER: List[str] = ["active", "pending", "off_roll", "terminated", "retired"]
 BUCKET_LABELS: Dict[str, str] = {
-    "active":     "Actively Employed",
+    "active":     "Active",
     "pending":    "Pending / Onboarding",
     "off_roll":   "Off-roll / Inactive",
     "terminated": "Terminated / Separated",
     "retired":    "Retired",
-    "any":        "Any (all employees)",
+    "any":        "All employees",
 }
 
 
@@ -142,3 +157,93 @@ def validate_bucket(bucket: Optional[str]) -> str:
         f"invalid employment bucket {bucket!r}; expected one of "
         f"{['any', *BUCKET_ORDER]}"
     )
+
+
+# ── Track 27.02 · Canonical Detailed-Status resolver ─────────────────
+# Bug reported in prod (2026-02-08): Detailed Status = Active returned
+# 27 rows while bucket=active returned 236. Root cause: raw strict
+# `lifecycle_status: "Active"` matched only backfilled/newer rows,
+# excluding legacy rows that resolve to Active via `is_active`. The
+# canonical resolver below closes that gap so *both* Employment-Group
+# and Detailed-Status paths return the same rowset for any status
+# that legacy rows can display as.
+#
+# Semantics: "detailed status = X" means "employees whose DISPLAY
+# status is X." For statuses that legacy rows might display as
+# (Active/Inactive), we OR in the legacy fallback. For statuses that
+# only exist on modern rows (Terminated / Resigned / Retired /
+# Pending Hire / Seasonal / Leave of Absence / Suspended), a strict
+# match is correct because no legacy row can ever display as those.
+def mongo_clause_for_status(status: str) -> Dict[str, Any]:
+    """Return a Mongo $or clause matching every row whose display
+    status resolves to `status`. Semantics mirror `bucket_of()`.
+    """
+    branches: List[Dict[str, Any]] = [{"lifecycle_status": status}]
+    if status == "Active":
+        branches += [
+            {"lifecycle_status": None, "is_active": {"$ne": False}},
+            {"lifecycle_status": {"$exists": False}, "is_active": {"$ne": False}},
+        ]
+    elif status == "Inactive":
+        branches += [
+            {"lifecycle_status": None, "is_active": False},
+            {"lifecycle_status": {"$exists": False}, "is_active": False},
+        ]
+    return {"$or": branches}
+
+
+# ── Track 27.02 · Canonical facet normalizer ─────────────────────────
+# Bug reported in prod (2026-02-08): Supervisor facet showed
+# "LENNY WITKOWSKI · 3" but selecting it returned 0 rows. Root cause:
+# raw stored values had trailing whitespace / different casings; the
+# facet grouped one way, the strict-match query matched a different
+# way. Canonical normalization at BOTH ends closes that.
+#
+# Rule: display value = whitespace-collapsed, trimmed, ORIGINAL case
+# (HR wants "David Puma", not "david puma"). Match semantics =
+# case-insensitive + whitespace-tolerant regex against the raw stored
+# value.
+_SENTINEL_UNASSIGNED = "(unassigned)"
+
+
+def normalize_facet_value(value: Any) -> Optional[str]:
+    """Return the canonical display form of a facet field value.
+
+    None / '' / whitespace-only → None (blank; caller decides whether
+    to bucket into '(unassigned)').
+    Otherwise: strip + collapse internal whitespace, preserve case.
+    """
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        value = str(value)
+    v = re.sub(r"\s+", " ", value).strip()
+    return v or None
+
+
+def is_unassigned_sentinel(value: Optional[str]) -> bool:
+    """True if the value is our '(unassigned)' filter sentinel."""
+    return value == _SENTINEL_UNASSIGNED
+
+
+def mongo_clause_for_facet(field: str, value: str) -> Dict[str, Any]:
+    """Return a Mongo clause that matches employees whose `field`
+    value normalizes to `value`. Case-insensitive, whitespace-tolerant.
+
+    For the special sentinel '(unassigned)', matches null / missing /
+    whitespace-only rows.
+    """
+    if is_unassigned_sentinel(value):
+        # Match null, missing, empty string, or whitespace-only.
+        return {"$or": [
+            {field: {"$in": [None, ""]}},
+            {field: {"$exists": False}},
+            {field: {"$regex": r"^\s*$"}},
+        ]}
+    normalized = normalize_facet_value(value) or ""
+    # Escape regex specials in the value; then allow any internal-
+    # whitespace variant (single space vs multiple spaces vs tabs) by
+    # replacing our normalized single spaces with `\s+` and anchoring
+    # with `\s*` on both ends so trailing/leading whitespace matches.
+    escaped = re.escape(normalized).replace(r"\ ", r"\s+")
+    return {field: {"$regex": f"^\\s*{escaped}\\s*$", "$options": "i"}}

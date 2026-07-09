@@ -13,6 +13,39 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 
 
 
+## TRACK 27.02 · HR Filter Contract Completion · 2026-02-08 · PREVIEW CERTIFIED
+
+Production evidence surfaced two bugs (and one more caught during the fix):
+
+1. **Bug 1**: Detailed Status = Active returned 27 rows while bucket=Active returned 236. Root cause: query builder used strict `lifecycle_status: "Active"` for detailed-status matching, which excluded legacy rows (missing `lifecycle_status`). Only bucket=Active's $or clause included legacy rows. Two truth sources for the same word "Active".
+2. **Bug 2**: Supervisor facet showed "LENNY WITKOWSKI · 3" but selecting returned 0. Root cause: facet aggregated by raw stored value (case/whitespace variants grouped separately or displayed differently than they stored); strict-match query then failed on the selected value.
+3. **Bug 3** (caught during fix): Detailed Status = Terminated with no bucket param stacked the legacy active-umbrella AND the exact status → silent 0. Same class of bug as Track 27.00's Bug 2 but on the legacy path.
+
+### Fixes shipped
+- `lib/employee_status.py` · added `mongo_clause_for_status()` — canonical Detailed-Status resolver that OR-includes legacy rows for `Active`/`Inactive` (same semantics as `bucket_of()`), strict-matches all other statuses (which no legacy row can display as). Added `normalize_facet_value()` and `mongo_clause_for_facet()` — canonical facet normalizer (trim + whitespace-collapse + case-preserve) and matcher (regex `^\s*value\s*$` case-insensitive).
+- `routes/employee_lifecycle.py` · Query builder now calls `mongo_clause_for_status()` at both bucket-path and legacy-path branches; legacy path no longer stacks active-umbrella when a specific status is picked. Facet aggregation pipeline rewritten to trim + case-fold at DB level and collapse remaining internal-whitespace variants in Python (Atlas lacks `$regexReplace`). One entry per normalized supervisor / crew / trade value with a display form that preserves case.
+- `lib/employeesApi.js` + `HrEmployees.jsx` · UI label cleanup — "Group" and "Status" small-caps prefixes above the two dropdowns, "Actively Employed" → "Active" for bucket-label parity with detailed-status option. Empty-state banner explains active filters when `count=0` outside of impossible-intersection scenarios.
+- Backend `BUCKET_LABELS` updated to match the friendlier UI labels.
+
+### Preview certification matrix
+39/39 pytest regressions pass (`test_track_27_hr_filter_trust.py` 22/22 + `test_track_27_02_hr_filter_contract.py` 17/17). Live-HTTP certification against prod-shaped dirty seed (12 rows covering every lifecycle_status + case/whitespace variants of supervisor/crew/trade + missing/legacy shapes): **48/48 code checks green** across:
+- Employment Group: All / Active / Pending / Off-roll / Terminated / Retired
+- Detailed Status: Active / Seasonal / Leave / Pending Hire / Inactive / Suspended / Terminated / Resigned / Retired
+- Facet normalization: 4 supervisor variants, 4 crew variants, 3 trade variants — every variant returns the correct rowset
+- Combinations: Active+Supervisor, Active+Crew, Active+Trade, Active+Crew+Supervisor+Trade, Terminated+Supervisor, Missing Supervisor + Active, No Crew Assigned + Active, Missing Supervisor + Off-roll
+- Impossible intersections: 5 combos, all warn with `impossible_intersection` code
+- Export .xlsx parity: 200 OK for every bucket
+
+### Data-quality gaps still surfaced (not in code scope)
+- Supervisor field: still 98.5% blank in prod. New "Missing Supervisor" saved view + facet counts give HR the tools.
+- Crew field: still 96% blank in prod.
+- Trade field: still 25% blank.
+
+### Ready for redeploy
+Same rollback path as Track 27.00. Backfill script unchanged (already reversible).
+
+
+
 ## TRACK 27.00 · HR Employee Filter Trust · 2026-02-08 · PREVIEW VERIFIED
 
 Root cause of the "230 active vs 18 active" mismatch HR reported: 235 legacy `employees` documents had no `lifecycle_status` field set. The KPI card counted them as active via `is_active` fallback; the dropdown filter did strict `lifecycle_status == "Active"` matching and dropped them. Two truth sources, one label.

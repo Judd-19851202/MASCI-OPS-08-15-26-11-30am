@@ -320,30 +320,36 @@ export default function HrEmployees() {
             No hardcoded crews or supervisors — the dropdowns pull
             from /api/hr/employees/facets. */}
         <div className="bg-white border border-slate-200 rounded-md p-3 sm:p-4 mb-3 flex flex-wrap items-center gap-2.5">
-          <Select value={bucket} onValueChange={setBucket}>
-            <SelectTrigger className="w-[210px] h-9 text-xs" data-testid="hremp-bucket-filter">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {EMPLOYMENT_BUCKETS.map((b) => (
-                <SelectItem key={b.value} value={b.value} data-testid={`hremp-bucket-opt-${b.value}`}>
-                  {b.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500">Group</span>
+            <Select value={bucket} onValueChange={setBucket}>
+              <SelectTrigger className="w-[190px] h-9 text-xs" data-testid="hremp-bucket-filter">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {EMPLOYMENT_BUCKETS.map((b) => (
+                  <SelectItem key={b.value} value={b.value} data-testid={`hremp-bucket-opt-${b.value}`}>
+                    {b.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[170px] h-9 text-xs" data-testid="hremp-status-filter">
-              <SelectValue placeholder="Detailed status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Any status</SelectItem>
-              {availableStatuses.map((s) => (
-                <SelectItem key={s} value={s} data-testid={`hremp-status-opt-${s.replace(/\s+/g,'-')}`}>{s}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500">Status</span>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[160px] h-9 text-xs" data-testid="hremp-status-filter">
+                <SelectValue placeholder="Any" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Any status</SelectItem>
+                {availableStatuses.map((s) => (
+                  <SelectItem key={s} value={s} data-testid={`hremp-status-opt-${s.replace(/\s+/g,'-')}`}>{s}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           <Select value={crewFilter} onValueChange={setCrewFilter}>
             <SelectTrigger className="w-[150px] h-9 text-xs" data-testid="hremp-crew-filter">
@@ -477,12 +483,7 @@ export default function HrEmployees() {
           ))}
         </div>
 
-        {/* TRACK 27.00 · Impossible-intersection warning banner.
-            Fires when bucket + detailed status can't both be true
-            (e.g. bucket=Active + status=Terminated). Backend returns
-            an explicit warning code so the UI can explain WHY there
-            are zero results, rather than showing a mystery empty
-            state. */}
+        {/* TRACK 27.00 · Impossible-intersection warning banner. */}
         {warning && warning.code === "impossible_intersection" && (
           <div
             className="mb-3 p-3 rounded-md border border-amber-300 bg-amber-50 text-amber-900 text-xs"
@@ -491,6 +492,33 @@ export default function HrEmployees() {
           >
             <div className="font-semibold mb-0.5">Filter combination has no matches</div>
             <div>{warning.message}</div>
+          </div>
+        )}
+
+        {/* TRACK 27.02 · Empty-state banner. When any filter is active
+            AND the result is 0 (but not an impossible intersection),
+            explain which filters are narrowing the view so HR can
+            fix the search instead of thinking the page is broken. */}
+        {!loading && !warning && items.length === 0 && activeChips.length > 0 && (
+          <div
+            className="mb-3 p-3 rounded-md border border-slate-300 bg-slate-50 text-slate-700 text-xs"
+            data-testid="hremp-empty-state"
+          >
+            <div className="font-semibold mb-0.5">No employees match your filters</div>
+            <div>
+              Active filters:{" "}
+              <span className="font-mono">
+                {activeChips.map((c) => c.label).join(" · ")}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="mt-1.5 text-slate-600 hover:text-slate-900 underline text-[11px]"
+              data-testid="hremp-empty-reset"
+            >
+              Reset filters
+            </button>
           </div>
         )}
 

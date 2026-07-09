@@ -946,7 +946,8 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
             Explicit sentinel "(unassigned)" matches blank + null.
         """
         from lib.employee_status import (  # noqa: PLC0415
-            mongo_clause_for_bucket, status_belongs_to_bucket,
+            mongo_clause_for_bucket, mongo_clause_for_facet,
+            mongo_clause_for_status, status_belongs_to_bucket,
             validate_bucket,
         )
         clauses: List[Dict[str, Any]] = [{"deleted_at": None}]
@@ -971,19 +972,25 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
                 ):
                     clauses.append({"_impossible_intersection": True})
                 else:
-                    clauses.append({"lifecycle_status": lifecycle_status})
+                    # Track 27.02 · use the canonical Detailed-Status
+                    # resolver so legacy rows aren't dropped.
+                    clauses.append(mongo_clause_for_status(lifecycle_status))
         else:
-            # Legacy path — preserved verbatim so no existing caller
-            # regresses. This is what /api/hr/employees looked like
-            # pre-Track 27.00.
-            if not show_inactive:
+            # Legacy path — preserved verbatim for callers that don't
+            # opt into the bucket API. Track 27.02: if a caller passes
+            # `lifecycle_status` without a bucket, treat it as an
+            # explicit "any bucket + this status" request — do NOT
+            # apply the active-umbrella filter (which would exclude
+            # Terminated/Retired/Off-roll rows and produce the same
+            # mystery-zero the audit caught).
+            if lifecycle_status:
+                clauses.append(mongo_clause_for_status(lifecycle_status))
+            elif not show_inactive:
                 clauses.append({"$or": [
                     {"lifecycle_status": {"$in": list(_ACTIVE_STATUSES)}},
                     {"lifecycle_status": {"$exists": False},
                      "is_active": {"$ne": False}},
                 ]})
-            if lifecycle_status:
-                clauses.append({"lifecycle_status": lifecycle_status})
 
         # iter316 · rehire-eligibility filter
         if rehire_eligibility:
@@ -995,35 +1002,16 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
                 )
             clauses.append({"rehire_eligibility": rehire_eligibility})
 
-        # Track 27.00 · crew filter. "(unassigned)" surfaces blank + null.
+        # Track 27.02 · canonical facet matching (case-insensitive +
+        # whitespace-tolerant) for crew / supervisor / trade. Same
+        # resolver the facet endpoint uses to generate the dropdown,
+        # so what HR sees is what HR gets.
         if crew:
-            if crew == "(unassigned)":
-                clauses.append({"$or": [
-                    {"crew": {"$in": [None, ""]}},
-                    {"crew": {"$exists": False}},
-                ]})
-            else:
-                clauses.append({"crew": crew})
-
-        # Track 27.00 · supervisor filter. Same unassigned semantics.
+            clauses.append(mongo_clause_for_facet("crew", crew))
         if supervisor:
-            if supervisor == "(unassigned)":
-                clauses.append({"$or": [
-                    {"supervisor": {"$in": [None, ""]}},
-                    {"supervisor": {"$exists": False}},
-                ]})
-            else:
-                clauses.append({"supervisor": supervisor})
-
-        # Track 27.00 · trade filter.
+            clauses.append(mongo_clause_for_facet("supervisor", supervisor))
         if trade:
-            if trade == "(unassigned)":
-                clauses.append({"$or": [
-                    {"trade": {"$in": [None, ""]}},
-                    {"trade": {"$exists": False}},
-                ]})
-            else:
-                clauses.append({"trade": trade})
+            clauses.append(mongo_clause_for_facet("trade", trade))
 
         if q:
             # Track 14.0-HR-IDENTITY · search resolves legal first /
@@ -1180,37 +1168,60 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
     _facet_cache: Dict[str, Any] = {"ts": 0.0, "payload": None}
 
     async def _facet_values(field: str, *, limit: int = 100) -> List[Dict[str, Any]]:
+        # Track 27.02 · Atlas-compatible normalized facet grouping.
+        # Mongo Atlas (as of 2026) doesn't support `$regexReplace`, so
+        # the DB-side pipeline handles trim + case-fold only. The
+        # final pass in Python collapses any remaining internal-
+        # whitespace variants (e.g. "Lenny  Witkowski" vs "Lenny
+        # Witkowski") into one bucket.
         pipeline = [
             {"$match": {"deleted_at": None}},
+            {"$addFields": {
+                "_facet_raw": {"$ifNull": [f"${field}", ""]},
+            }},
+            {"$addFields": {
+                "_facet_trim": {"$trim": {"input": "$_facet_raw"}},
+            }},
+            {"$addFields": {
+                "_facet_key": {"$toLower": "$_facet_trim"},
+            }},
             {"$group": {
-                "_id": {"$ifNull": [f"${field}", None]},
+                "_id": "$_facet_key",
+                "display": {"$first": "$_facet_trim"},
                 "count": {"$sum": 1},
             }},
             {"$sort": {"count": -1, "_id": 1}},
-            {"$limit": limit},
+            {"$limit": limit * 3},  # over-fetch; Python may merge some
         ]
-        assigned: List[Dict[str, Any]] = []
+        # Python-side merge for internal-whitespace variants + build
+        # the final ordered list.
+        merged: Dict[str, Dict[str, Any]] = {}
         unassigned_count = 0
         async for row in db.employees.aggregate(pipeline):
-            raw = row.get("_id")
-            # Coerce blank / null / missing into a single "(unassigned)"
-            # sentinel so the frontend gets one honest label for that
-            # bucket instead of three near-duplicates.
-            if raw is None or (isinstance(raw, str) and not raw.strip()):
+            key = (row.get("_id") or "")
+            display = row.get("display") or ""
+            # Collapse internal whitespace here since Atlas can't.
+            import re as _re  # noqa: PLC0415
+            norm_key = _re.sub(r"\s+", " ", key).strip()
+            norm_display = _re.sub(r"\s+", " ", display).strip()
+            if not norm_key or not norm_display:
                 unassigned_count += row["count"]
+                continue
+            if norm_key in merged:
+                merged[norm_key]["count"] += row["count"]
             else:
-                assigned.append({"value": raw, "label": raw,
-                                 "count": row["count"], "unassigned": False})
-        # Move "(unassigned)" to the end so the healthiest values render
-        # first in the dropdown; hide it entirely when the field is
-        # 100% populated (no need to offer a filter that matches nobody).
-        out = assigned
+                merged[norm_key] = {
+                    "value": norm_display, "label": norm_display,
+                    "count": row["count"], "unassigned": False,
+                }
+        assigned = sorted(merged.values(),
+                          key=lambda x: (-x["count"], x["label"].lower()))[:limit]
         if unassigned_count:
-            out = assigned + [{
+            assigned.append({
                 "value": "(unassigned)", "label": "(unassigned)",
                 "count": unassigned_count, "unassigned": True,
-            }]
-        return out
+            })
+        return assigned
 
     @router.get("/api/hr/employees/facets")
     async def hr_employee_facets(

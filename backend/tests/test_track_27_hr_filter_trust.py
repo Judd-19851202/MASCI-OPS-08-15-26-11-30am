@@ -288,10 +288,10 @@ def test_backfill_is_idempotent():
             # Non-test rows should be fully backfilled (Phase A done).
             # Filter out any synthetic seed rows this suite created.
             real_active = [
-                r for r in dry["sample_active"] if not str(r.get("id", "")).startswith("trk27-")
+                r for r in dry["sample_active"] if not str(r.get("id", "")).startswith("trk")
             ]
             real_inactive = [
-                r for r in dry["sample_inactive"] if not str(r.get("id", "")).startswith("trk27-")
+                r for r in dry["sample_inactive"] if not str(r.get("id", "")).startswith("trk")
             ]
             assert not real_active, real_active
             assert not real_inactive, real_inactive

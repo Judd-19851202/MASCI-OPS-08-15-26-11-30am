@@ -38,13 +38,17 @@ export const LIFECYCLE_STATUSES = [
 // one, edit both. The bucket is the primary HR filter primitive; the
 // detailed lifecycle_status is a secondary filter used to narrow
 // within a bucket.
+//
+// TRACK 27.02 label cleanup — human-clear names. HR sees "Active" in
+// both dropdowns; the two are mapped through the canonical resolver
+// so picking Active in EITHER dropdown returns the same rowset.
 export const EMPLOYMENT_BUCKETS = [
-  { value: "any",        label: "Any (all employees)" },
-  { value: "active",     label: "Actively Employed",     statuses: ["Active", "Seasonal", "Leave of Absence"] },
-  { value: "pending",    label: "Pending / Onboarding",  statuses: ["Pending Hire"] },
-  { value: "off_roll",   label: "Off-roll / Inactive",   statuses: ["Inactive", "Suspended"] },
-  { value: "terminated", label: "Terminated / Separated", statuses: ["Terminated", "Resigned"] },
-  { value: "retired",    label: "Retired",               statuses: ["Retired"] },
+  { value: "any",        label: "All employees" },
+  { value: "active",     label: "Active",                  statuses: ["Active", "Seasonal", "Leave of Absence"] },
+  { value: "pending",    label: "Pending / Onboarding",    statuses: ["Pending Hire"] },
+  { value: "off_roll",   label: "Off-roll / Inactive",     statuses: ["Inactive", "Suspended"] },
+  { value: "terminated", label: "Terminated / Separated",  statuses: ["Terminated", "Resigned"] },
+  { value: "retired",    label: "Retired",                 statuses: ["Retired"] },
 ];
 
 export function statusesForBucket(bucketValue) {
