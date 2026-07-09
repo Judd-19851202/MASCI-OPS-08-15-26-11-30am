@@ -23,6 +23,8 @@ import AdminShell from "@/components/AdminShell";
 import DraftHealthTile from "@/components/admin/DraftHealthTile";
 import { api } from "@/lib/api";
 import { operationalError } from "@/lib/errors";
+// TRACK 27.03 · Phase 3 · Canonical local-time formatter.
+import { formatPlatformTime } from "@/lib/platformTime";
 import { usePageTitle } from "@/lib/usePageTitle";
 
 const SEVERITY_ORDER = ["critical", "high", "medium", "low", "info"];
@@ -336,7 +338,7 @@ export default function AdminGovernance() {
         {/* Last scan stats */}
         {lastScan ? (
           <div className="bg-slate-50 border border-slate-200 rounded-md p-3 text-xs text-slate-600 font-mono" data-testid="gov-last-scan-stats">
-            Last scan {lastScan.finished_at?.slice(0, 19).replace("T", " ")} ·
+            Last scan {formatPlatformTime(lastScan.finished_at)} ·
             <strong> {lastScan.detected_total ?? 0}</strong> detected ·
             <strong> {lastScan.upserts ?? 0}</strong> upserts ·
             <strong> {lastScan.auto_resolved ?? 0}</strong> auto-resolved

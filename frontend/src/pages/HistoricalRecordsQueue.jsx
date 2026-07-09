@@ -18,6 +18,8 @@ import {
   reassignRecord, rejectRecord,
 } from "@/lib/employeeRecordsApi";
 import { EmployeeCombo } from "@/components/EmployeeCombo";
+// TRACK 27.03 · Phase 3 · Canonical local-time formatter.
+import { formatPlatformTime } from "@/lib/platformTime";
 
 const LANE_LABEL = {
   hr: "HR",
@@ -43,8 +45,7 @@ const STATE_STYLE = {
 
 function _fmtDate(x) {
   if (!x) return "—";
-  try { return new Date(x).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }); }
-  catch { return x; }
+  return formatPlatformTime(x);
 }
 
 export default function HistoricalRecordsQueue() {

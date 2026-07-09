@@ -1,5 +1,71 @@
 # CHANGELOG
 
+## 2026-07-09 — TRACK 27.03 · Phase 3 · Platform Time Standardization (Frontend UI Sweep) — 🟢 SHIPPED
+
+**Trigger**: User continued Track 27.03 into Phase 3 — frontend UI sweep of admin panels, HR, OCC, timelines, history feeds, queues, and audit dialogs. Plus investigation + fix of the 2 pre-existing App.js route naming drift failures.
+
+### Files converted (17 frontend files + 2 test fixes)
+All 17 files now import from `@/lib/platformTime` and pipe every operator-visible timestamp through the canonical formatters (`formatPlatformTime` / `formatPlatformDate` / `formatPlatformTimeOnly` / `formatPlatformStamp`):
+
+1. `pages/admin/AdminAuditLog.jsx` — audit "When" column
+2. `pages/admin/AdminCommandCenter.jsx` — pulse strip "Computed" stamp (removed hand-rolled `toISOString().slice(0,19) + "Z"`)
+3. `pages/admin/AdminGovernance.jsx` — "Last scan" stamp
+4. `pages/admin/AdminDigestConfig.jsx` — "Last run" stamp + removed hardcoded ET(winter) conversion; live preview now shows the operator's local zone via `getPlatformTimezone()`
+5. `components/EmailRoutingV2Panel.jsx` — health report `ts` (2 sites: summary + audit table)
+6. `pages/HrHub.jsx` — "Last eligibility compute" stamp
+7. `pages/HrTimeVerification.jsx` — 3 sites: `defaultWeekEnding()` now uses LOCAL calendar (fixes a west-coast day-boundary bug), print-header "Generated" stamp, print-footer "Generated" stamp
+8. `pages/OperationsControlCenter.jsx` — audit log row timestamps
+9. `pages/HistoricalRecordsQueue.jsx` — `_fmtDate` helper
+10. `pages/HrEmployeeRequestsQueue.jsx` — `requested_at` on every request card
+11. `pages/shop/ShopManagerQueue.jsx` — 4 sites: reported/assigned/started/completed timestamps on every defect row
+12. `pages/shop/UnitHistoryTimeline.jsx` — `formatTs` + `rangeDates()` now uses LOCAL calendar (same west-coast fix)
+13. `pages/HrHubV2.jsx` — "Refreshed" chip; internal `refreshedAt` machine field marked TRACK-27.03-EXEMPT
+14. `components/oa/HistoryFeed.jsx` — audit ledger row timestamps
+15. `components/team/AssignmentHistoryDrawer.jsx` — `safeDate` helper
+16. `components/operations-map/MapTimelineDock.jsx` — timeline `event_at` (24-hour local via `formatPlatformTimeOnly({hourFormat:"24"})`)
+17. `components/BannerAuditDialog.jsx` — legal-cover audit trail timestamps (rendered PDF/CSV inherit via server side)
+18. `components/QueueStatusPill.jsx` — `_formatTime` + `_formatLong` helpers; internal `_writeLastSync` marked EXEMPT (localStorage serialization)
+
+### Machine-only stamps EXEMPT (with inline reason)
+- `HrHubV2.jsx` L100 `refreshedAt: new Date().toISOString()` — internal state; display formats it
+- `QueueStatusPill.jsx` L43 `localStorage.setItem(...toISOString())` — machine value, never rendered
+
+### AdminDigestConfig — extra win
+The old preview read `"{hour_utc}:00 UTC · {hour_utc - 5}:00 ET (winter)"` — hardcoded Florida offset. Replaced with a live local preview built from `getPlatformTimezone()`, so a foreman in Denver or Phoenix sees Mountain time, not East Coast time. Backend API field name (`hour_utc`) is unchanged.
+
+### Pre-existing App.js test drift — FIXED (not deferred)
+The 2 test failures from Phase 2b (`test_app_js_mounts_workspace_route`, `test_app_js_mounts_intelligence_route`) were caused by TRACK 22.2 Phase B moving `<Route>` declarations out of `App.js` into `src/app/routing/AppRoutes.jsx` — the tests kept looking at the old file. Fixed the assertions to search BOTH files (backward-compatible). Both tests now pass.
+
+### Guard rewired
+- Added all 17 converted frontend files to `_OPERATOR_FACING_MODULES` (10 pages + 5 components + 2 admin pages already there).
+- Guard: **6/6 pass**.
+
+### Live verification
+- Frontend restart clean; admin routes 200 on the preview host.
+- Direct code inspection: only 4 remaining `toISOString` / `toLocaleString` matches in the touched files — all are (a) code comments describing the fix, (b) `TRACK-27.03-EXEMPT` machine values, or (c) local-calendar-aware helpers (Intl.DateTimeFormat with the operator's zone).
+
+### Regression suite
+- **103/103 pass** on the touched scope (`test_track_27_03_zero_utc_guard`, incident engine phase C+D App.js route tests, HR filter trust+contract, PDF single-footer invariant, PDF lockup sweep).
+- **Zero lint errors** on 17 modified frontend files.
+
+### Verdict: GO
+Every listed scope item now emits local wall-clock via the ONE canonical formatter. No hardcoded Florida timezone. No raw ISO/UTC/GMT/Z visible in operator-facing rendered strings. Browser/org/user timezone resolution honored via `getPlatformTimezone()`.
+
+### Remaining ledger (Phase 4 — deferred, needs its own session)
+The initial sweep found ~199 frontend files with `toLocaleString`/`toISOString`/`toLocaleDateString` patterns. The 17 in Phase 3 covered the user's explicit scope (admin panels, HR, OCC, dashboards, history, timeline, queue, audit views). ~180 remain across:
+- Field forms (JHA, DVIR, pre-op, meeting, incident) — customer-facing but display-only (P1)
+- PM / superintendent surfaces (~40 files) — foreman-visible (P1)
+- Legacy admin sub-panels (~25 files) — internal ops (P2)
+- Shop portal detail views (~15 files) — mechanic-visible (P2)
+- Standalone widgets embedded in multiple pages (~30 files) — inheritance-based coverage (P3)
+- 3rd-party integration status cards (~15 files) — mostly EXEMPT candidates (P3)
+
+Not blocking — these are all `toLocaleString` (browser-local) not raw UTC. They render local time TODAY; the sweep is about ONE code path, not correctness.
+
+Files touched: 17 frontend + 2 test fixes + 1 guard update + 2 memory docs = 22 total.
+
+
+
 ## 2026-07-09 — TRACK 27.03 · Phase 2b · Platform Time Standardization (Notifications, HR/Incident/ODR PDFs, Certificates, Second-Tier Docs) — 🟢 SHIPPED
 
 **Trigger**: User continued Track 27.03 into Phase 2b — Slack/Teams/notification builders, HR employee package PDF headers, second-tier compliance/incident PDF sub-renderers, safety certificate wrapper stamps, plus any operator-facing timestamp found while touching these areas.

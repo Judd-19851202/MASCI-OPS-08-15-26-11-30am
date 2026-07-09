@@ -142,6 +142,55 @@ Owner: main-agent · Target: rolling · Risk: low (mechanical + guard-enforced +
 
 ---
 
+## Phase 3 — Shipped 2026-07-09 (frontend UI sweep · admin panels, HR, OCC, timelines, history feeds, queues, audit dialogs)
+
+| File | Surface | Converted |
+|---|---|---|
+| `frontend/src/pages/admin/AdminAuditLog.jsx` | Audit "When" column on every row | `formatPlatformTime` |
+| `frontend/src/pages/admin/AdminCommandCenter.jsx` | Pulse strip "Computed" stamp (removed hand-rolled ISO + Z suffix) | `formatPlatformTime` |
+| `frontend/src/pages/admin/AdminGovernance.jsx` | "Last scan" convergence stamp | `formatPlatformTime` |
+| `frontend/src/pages/admin/AdminDigestConfig.jsx` | "Last run" + preview (removed hardcoded ET/Florida offset — now uses `getPlatformTimezone()`) | `formatPlatformTime` + `formatPlatformTimeOnly` |
+| `frontend/src/components/EmailRoutingV2Panel.jsx` | Health report `ts` (2 sites) | `formatPlatformTime` |
+| `frontend/src/pages/HrHub.jsx` | "Last eligibility compute" stamp | `formatPlatformTime` |
+| `frontend/src/pages/HrTimeVerification.jsx` | 3 sites: `defaultWeekEnding` local calendar (west-coast bug fix) + print header + print footer | `formatPlatformStamp` + `Intl.DateTimeFormat("en-CA", { timeZone })` |
+| `frontend/src/pages/OperationsControlCenter.jsx` | Audit log row timestamps | `formatPlatformTime` |
+| `frontend/src/pages/HistoricalRecordsQueue.jsx` | `_fmtDate` helper | `formatPlatformTime` |
+| `frontend/src/pages/HrEmployeeRequestsQueue.jsx` | `requested_at` on every card | `formatPlatformTime` |
+| `frontend/src/pages/shop/ShopManagerQueue.jsx` | 4 sites (reported/assigned/started/completed) on every defect row | `formatPlatformTime` |
+| `frontend/src/pages/shop/UnitHistoryTimeline.jsx` | `formatTs` + `rangeDates()` local calendar (west-coast bug fix) | `formatPlatformTime` + `Intl.DateTimeFormat("en-CA", { timeZone })` |
+| `frontend/src/pages/HrHubV2.jsx` | "Refreshed" chip (machine `refreshedAt` marked EXEMPT) | `formatPlatformTimeOnly` |
+| `frontend/src/components/oa/HistoryFeed.jsx` | Audit ledger row timestamps | `formatPlatformTime` |
+| `frontend/src/components/team/AssignmentHistoryDrawer.jsx` | `safeDate` helper | `formatPlatformTime` |
+| `frontend/src/components/operations-map/MapTimelineDock.jsx` | Timeline `event_at` (24h local) | `formatPlatformTimeOnly({hourFormat:"24"})` |
+| `frontend/src/components/BannerAuditDialog.jsx` | Legal-cover audit trail row timestamps | `formatPlatformTime` |
+| `frontend/src/components/QueueStatusPill.jsx` | `_formatTime` + `_formatLong` (machine `_writeLastSync` marked EXEMPT) | `formatPlatformTime` + `formatPlatformTimeOnly` |
+
+### Machine boundaries (Phase 3 EXEMPT)
+- `HrHubV2.jsx` internal `refreshedAt` state
+- `QueueStatusPill.jsx` `localStorage.setItem(...toISOString())` (machine serialization)
+
+### Test drift fixed (not in scope but not left unowned)
+- `tests/test_track_19_16_incident_engine_phase_c.py::test_app_js_mounts_workspace_route`
+- `tests/test_track_19_16_incident_engine_phase_d.py::test_app_js_mounts_intelligence_route`
+
+Both assertions now search `App.js` + `src/app/routing/AppRoutes.jsx` since TRACK 22.2 Phase B moved `<Route>` declarations out of `App.js`. Backward-compatible.
+
+### Phase 4 — Deferred (out of scope, still browser-local via `toLocaleString`)
+
+~180 files remain across:
+- Field forms (JHA, DVIR, pre-op, meeting, incident) — P1
+- PM / superintendent surfaces (~40 files) — P1
+- Legacy admin sub-panels (~25 files) — P2
+- Shop portal detail views (~15 files) — P2
+- Standalone widgets (~30 files) — P3
+- 3rd-party integration status cards (~15 files) — P3
+
+Not blocking — these are all `toLocaleString` (browser-local) not raw UTC. The sweep is about ONE code path, not correctness.
+
+Owner: main-agent · Target: 2026-07-16 (P1 subset) · Risk: low.
+
+---
+
 ## Migration pattern (copy-paste for future PRs)
 
 ### Frontend

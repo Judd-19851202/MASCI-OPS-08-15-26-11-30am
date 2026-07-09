@@ -84,11 +84,30 @@ _OPERATOR_FACING_MODULES = [
     "frontend/src/pages/admin/AdminAIConfiguration.jsx",
     "frontend/src/components/OperationsCenter.jsx",
     "frontend/src/components/dispatch/DispatchDecisionChip.jsx",
-    # ↓ TRACK 27.03 · Phase 2 · High-trust backend renderers.
-    #   These are the artifacts that leave the browser and land in a
-    #   PM's / Owner's / Regulator's / Field Foreman's hands: PDFs,
-    #   printed HTML reports, XLSX/CSV exports. Any UTC leak here is a
-    #   trust breach — the guard now protects them by construction.
+    # ↓ TRACK 27.03 · Phase 3 · Frontend UI sweep.
+    #   Admin panels + HR + OCC + timelines + history feeds + queues +
+    #   audit dialogs. Each pipes every operator-visible timestamp
+    #   through the canonical `formatPlatformTime` / `formatPlatformDate` /
+    #   `formatPlatformTimeOnly` / `formatPlatformStamp` helpers.
+    "frontend/src/pages/admin/AdminAuditLog.jsx",
+    "frontend/src/pages/admin/AdminCommandCenter.jsx",
+    "frontend/src/pages/admin/AdminGovernance.jsx",
+    "frontend/src/pages/admin/AdminDigestConfig.jsx",
+    "frontend/src/components/EmailRoutingV2Panel.jsx",
+    "frontend/src/pages/HrHub.jsx",
+    "frontend/src/pages/HrTimeVerification.jsx",
+    "frontend/src/pages/OperationsControlCenter.jsx",
+    "frontend/src/pages/HistoricalRecordsQueue.jsx",
+    "frontend/src/pages/HrEmployeeRequestsQueue.jsx",
+    "frontend/src/pages/shop/ShopManagerQueue.jsx",
+    "frontend/src/pages/shop/UnitHistoryTimeline.jsx",
+    "frontend/src/pages/HrHubV2.jsx",
+    "frontend/src/components/oa/HistoryFeed.jsx",
+    "frontend/src/components/team/AssignmentHistoryDrawer.jsx",
+    "frontend/src/components/operations-map/MapTimelineDock.jsx",
+    "frontend/src/components/BannerAuditDialog.jsx",
+    "frontend/src/components/QueueStatusPill.jsx",
+    # ↓ TRACK 27.03 · Phase 2 backend renderers — kept in the guard.
     "backend/pdf_branding.py",              # Universal HTML PDF audit + metadata blocks
     "backend/pdf_branding_rl.py",           # Universal ReportLab audit + metadata blocks
     "backend/pdf_render.py",                # Daily Report renderer + email HTML body

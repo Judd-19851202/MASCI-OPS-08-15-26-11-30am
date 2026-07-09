@@ -1,5 +1,7 @@
 import React from "react";
 import { EVENT_FAMILY_LABEL } from "@/lib/operations-map/eventVocab";
+// TRACK 27.03 · Phase 3 · Canonical local-time formatter.
+import { formatPlatformTimeOnly } from "@/lib/platformTime";
 
 /* Identity-aligned timeline.
  *
@@ -32,8 +34,7 @@ const FAMILY_DOT = {
 
 function fmtTime(iso) {
   if (!iso) return "—";
-  const d = new Date(iso);
-  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+  return formatPlatformTimeOnly(iso, { hourFormat: "24" });
 }
 
 function describe(row) {

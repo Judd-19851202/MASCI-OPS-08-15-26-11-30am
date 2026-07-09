@@ -15,12 +15,12 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 
 ## Active Track — 2026-07-09
 
-**TRACK 27.03 · Platform Time Standardization** — Phases 2a + 2b SHIPPED.
+**TRACK 27.03 · Platform Time Standardization** — Phases 2a + 2b + 3 SHIPPED.
 
-Every operator-facing artifact leaving the browser (Daily Report PDFs, Daily Report emails, HR compliance PDFs, incident/ODR PDFs, hub-banners audit trail PDFs, trench-safety Pulse + Leadership Digest, fleet severity reference card, asset profile PDF, training packets, PM welcome letter, safety exports, master history CSV+PDF, dispatch CSV, nightly backup email, correction-request emails, AI narratives) now emits the tenant's local wall-clock. Internal storage stays UTC — enforced by the contextual whitelist in `test_track_27_03_zero_utc_guard.py`. See `CHANGELOG.md` (2026-07-09 entries) and `TRACK_27_03_PLATFORM_TIME_MIGRATION.md` for the full ledger.
+Every operator-facing surface in the user-defined scope (Daily Report PDFs & emails, HR compliance PDFs, incident/ODR PDFs, hub-banners audit PDFs, trench-safety documents, fleet severity reference, asset profile PDFs, training packets, PM welcome letter, safety exports, master history, dispatch CSVs, nightly backup email, correction-request emails, AI narratives, **AdminAuditLog / AdminCommandCenter / AdminGovernance / AdminDigestConfig / EmailRoutingV2Panel / HrHub / HrTimeVerification / OperationsControlCenter / HistoricalRecordsQueue / HrEmployeeRequestsQueue / ShopManagerQueue / UnitHistoryTimeline / HrHubV2 / HistoryFeed / AssignmentHistoryDrawer / MapTimelineDock / BannerAuditDialog / QueueStatusPill**) now emits the tenant's local wall-clock. Internal storage stays UTC — enforced by the contextual whitelist in `test_track_27_03_zero_utc_guard.py`. Fixed the App.js route drift (TRACK 22.2 Phase B moved routes into `AppRoutes.jsx`). See `CHANGELOG.md` (2026-07-09 entries) and `TRACK_27_03_PLATFORM_TIME_MIGRATION.md` for the full ledger.
 
 ### Next open work (in priority order)
-1. **TRACK 27.03 Phase 3** (P1) — Frontend UI sweep: `AdminAuditLog`, `AdminCommandCenter`, `AdminGovernance`, `AdminDigestConfig`, `EmailRoutingV2Panel`, `HrHub`, `HrTimeVerification`, OCC history panels, remaining dashboard cards. ~80 sites, mechanical, guard-enforced.
+1. **TRACK 27.03 Phase 4** (P1) — remaining ~180 frontend files using `toLocaleString` (already browser-local, but not on the canonical code path yet). Field forms, PM/superintendent surfaces, legacy admin sub-panels, shop detail views.
 2. **Photo Evidence in PM PDF/email** (P1) — user-approved-in-principle, deferred.
 3. **User Timezone UI Toggle** (P2) — foreman-facing 12h/24h + zone picker.
 4. **OCC Draft Health UI Card** (P2).

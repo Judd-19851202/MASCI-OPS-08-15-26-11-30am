@@ -20,6 +20,8 @@ import { clearHrToken, getHrUser, getHrToken } from "@/lib/hrAuth";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { clearAllSessions } from "@/lib/sessionReset";
 import { paletteFor } from "@/lib/portalPalette";
+// TRACK 27.03 · Phase 3 · Canonical local-time formatter.
+import { formatPlatformTime } from "@/lib/platformTime";
 import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
 import GovernanceHealthChip from "@/components/GovernanceHealthChip";
 import { setPortalContext } from "@/lib/portalContext";
@@ -410,7 +412,7 @@ function TransportationReadinessWidget() {
         <ReadinessTile label="Not Dispatchable" value={s.not_dispatchable ?? 0} accent="rose" testid="hr-tx-readiness-blocked" />
       </div>
       <div className="text-[10px] uppercase tracking-wide text-slate-400 mt-3">
-        Last eligibility compute: {data.last_eligibility_compute ? data.last_eligibility_compute.slice(0, 19).replace("T", " ") : "—"} · Read-only
+        Last eligibility compute: {data.last_eligibility_compute ? formatPlatformTime(data.last_eligibility_compute) : "—"} · Read-only
       </div>
     </section>
   );

@@ -304,6 +304,10 @@ def test_workspace_api_client_exists():
 
 
 def test_app_js_mounts_workspace_route():
+    # TRACK 22.2 Phase B moved <Route> declarations out of App.js into
+    # `src/app/routing/AppRoutes.jsx` — the assertion follows the code.
     txt = (FE_ROOT / "App.js").read_text(encoding="utf-8")
-    assert 'path="/safety/cases/:caseId"' in txt or 'path="/safety/cases/:id"' in txt
-    assert "SafetyCaseWorkspace" in txt
+    routes_txt = (FE_ROOT / "app" / "routing" / "AppRoutes.jsx").read_text(encoding="utf-8")
+    haystack = txt + "\n" + routes_txt
+    assert 'path="/safety/cases/:caseId"' in haystack or 'path="/safety/cases/:id"' in haystack
+    assert "SafetyCaseWorkspace" in haystack

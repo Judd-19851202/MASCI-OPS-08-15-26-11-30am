@@ -26,6 +26,8 @@ import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { WeeklyHoursFlag, DailyHoursFlag } from "@/components/HoursSanityFlag";
 import { formatEmployeeIdentity } from "@/lib/identity";
+// TRACK 27.03 · Phase 3 · Canonical local-time formatter.
+import { formatPlatformTime, formatPlatformStamp, getPlatformTimezone } from "@/lib/platformTime";
 
 const inputCls = "h-10 text-sm border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-purple-600";
 
@@ -39,7 +41,14 @@ function defaultWeekEnding() {
   // Day index: Sun=0, Mon=1 ... Sat=6 → add (6 - getDay()) days to reach Saturday.
   const offset = (6 - d.getDay() + 7) % 7;
   d.setDate(d.getDate() + offset);
-  return d.toISOString().slice(0, 10);
+  // TRACK 27.03 · Phase 3 · Emit the Saturday-ending DATE in the
+  // operator's LOCAL calendar week (never UTC). `toISOString()` would
+  // shift the boundary on the west coast when local Saturday night is
+  // already Sunday UTC. `en-CA` yields YYYY-MM-DD.
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: getPlatformTimezone(),
+    year: "numeric", month: "2-digit", day: "2-digit",
+  }).format(d);
 }
 
 const fmtHours = (n) => (Number.isFinite(n) ? n.toFixed(2) : "0.00");
@@ -326,7 +335,7 @@ export default function HrTimeVerification() {
             </div>
             <div className="gen-block">
               <div className="gen-lbl">Generated</div>
-              <div className="gen-val">{new Date().toISOString().replace("T", " ").slice(0, 16)} UTC</div>
+              <div className="gen-val">{formatPlatformStamp(new Date())}</div>
               {typeof window !== "undefined" && window.location?.host?.includes("preview") ? (
                 <div className="env-label">Preview · Not Operational Data</div>
               ) : null}
@@ -456,7 +465,7 @@ export default function HrTimeVerification() {
           <div className="brand">MASCI Operations Platform</div>
           <div className="powered">Powered by ForgedOps</div>
           <div className="sub">
-            Generated {new Date().toISOString().replace("T", " ").slice(0, 19)} UTC · Confidential payroll cross-check
+            Generated {formatPlatformStamp(new Date())} · Confidential payroll cross-check
             {typeof window !== "undefined" && window.location?.host?.includes("preview") ? (
               <> · Preview Environment · Not Operational Data</>
             ) : null}

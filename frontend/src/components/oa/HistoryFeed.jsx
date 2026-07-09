@@ -6,6 +6,8 @@
 import React from "react";
 import { History, User } from "lucide-react";
 import { useT } from "@/lib/i18n";
+// TRACK 27.03 · Phase 3 · Canonical local-time formatter.
+import { formatPlatformTime } from "@/lib/platformTime";
 
 const KIND_LABEL = {
   created: "Created",
@@ -61,7 +63,7 @@ export default function HistoryFeed({ entries }) {
               <User className="w-3 h-3" />
               {e.actor?.name || "—"}
               <span className="opacity-50">·</span>
-              <span className="font-mono">{new Date(e.at).toLocaleString()}</span>
+              <span className="font-mono">{formatPlatformTime(e.at)}</span>
             </div>
           </div>
         </li>

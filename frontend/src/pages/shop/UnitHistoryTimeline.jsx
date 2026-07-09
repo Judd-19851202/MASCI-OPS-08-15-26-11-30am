@@ -21,6 +21,8 @@ import { getAdminToken } from "@/lib/adminAuth";
 import { getShopToken } from "@/lib/shopAuth";
 import { PortalShell, Card, EmptyState } from "../../design-system";
 import BackToShopLink from "@/components/shop/BackToShopLink";
+// TRACK 27.03 · Phase 3 · Canonical local-time formatter + local calendar date.
+import { formatPlatformTime, getPlatformTimezone } from "@/lib/platformTime";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -93,7 +95,7 @@ function chipForEvent(ev) {
 
 function formatTs(iso) {
   if (!iso) return "—";
-  try { return new Date(iso).toLocaleString(); } catch { return iso; }
+  return formatPlatformTime(iso);
 }
 
 function PartsBlock({ partsUsed = [], partsOnOrder = [] }) {
@@ -228,18 +230,26 @@ const RANGE_PRESETS = [
 
 function rangeDates(presetId) {
   const today = new Date();
-  const toIso = today.toISOString().slice(0, 10);
+  // TRACK 27.03 · Phase 3 · Emit calendar dates in the operator's
+  // LOCAL zone. `toISOString()` would shift the day boundary for
+  // west-coast users and produce a date that doesn't match their
+  // wall clock.
+  const localYMD = (d) => new Intl.DateTimeFormat("en-CA", {
+    timeZone: getPlatformTimezone(),
+    year: "numeric", month: "2-digit", day: "2-digit",
+  }).format(d);
+  const toIso = localYMD(today);
   const preset = RANGE_PRESETS.find((r) => r.id === presetId) || RANGE_PRESETS[1];
   if (preset.days != null) {
     const d = new Date(today);
     d.setDate(d.getDate() - preset.days);
-    return { from: d.toISOString().slice(0, 10), to: toIso };
+    return { from: localYMD(d), to: toIso };
   }
   // YTD — cap at backend max 90 days.
   const yearStart = new Date(today.getFullYear(), 0, 1);
   const ninetyAgo = new Date(today); ninetyAgo.setDate(today.getDate() - 90);
   const start = yearStart > ninetyAgo ? yearStart : ninetyAgo;
-  return { from: start.toISOString().slice(0, 10), to: toIso };
+  return { from: localYMD(start), to: toIso };
 }
 
 export default function UnitHistoryTimeline() {

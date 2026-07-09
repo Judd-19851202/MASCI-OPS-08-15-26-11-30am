@@ -243,6 +243,10 @@ def test_intelligence_page_exists():
 
 
 def test_app_js_mounts_intelligence_route():
+    # TRACK 22.2 Phase B moved <Route> declarations out of App.js into
+    # `src/app/routing/AppRoutes.jsx` — the assertion follows the code.
     txt = (FE_ROOT / "App.js").read_text(encoding="utf-8")
-    assert "ExecutiveIntelligence" in txt
-    assert '/safety/executive-intelligence' in txt
+    routes_txt = (FE_ROOT / "app" / "routing" / "AppRoutes.jsx").read_text(encoding="utf-8")
+    haystack = txt + "\n" + routes_txt
+    assert "ExecutiveIntelligence" in haystack
+    assert '/safety/executive-intelligence' in haystack

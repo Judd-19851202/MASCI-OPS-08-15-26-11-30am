@@ -18,6 +18,8 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
+// TRACK 27.03 · Phase 3 · Canonical local-time formatter.
+import { formatPlatformTime } from "@/lib/platformTime";
 
 const ACTION_META = {
   assign: {
@@ -40,11 +42,7 @@ const ACTION_META = {
 
 function safeDate(at) {
   if (!at) return "";
-  try {
-    return new Date(at).toLocaleString();
-  } catch {
-    return String(at);
-  }
+  return formatPlatformTime(at);
 }
 
 export function AssignmentHistoryDrawer({ open, onOpenChange, items }) {

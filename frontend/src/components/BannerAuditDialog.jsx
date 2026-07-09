@@ -24,6 +24,8 @@ import { api } from "@/lib/api";
 import { API } from "@/lib/api";
 import { getAdminToken } from "@/lib/adminAuth";
 import { toast } from "sonner";
+// TRACK 27.03 · Phase 3 · Canonical local-time formatter.
+import { formatPlatformTime } from "@/lib/platformTime";
 
 /**
  * BannerAuditDialog — admin-only "Audit Trail" peek for a single
@@ -73,18 +75,7 @@ const ADMIN_ACTION_ICON = {
 
 const fmtAbs = (iso) => {
   if (!iso) return "—";
-  try {
-    return new Date(iso).toLocaleString(undefined, {
-      year: "numeric",
-      month: "short",
-      day: "2-digit",
-      hour: "numeric",
-      minute: "2-digit",
-      second: "2-digit",
-    });
-  } catch {
-    return iso;
-  }
+  return formatPlatformTime(iso);
 };
 
 const browserOf = (ua) => {

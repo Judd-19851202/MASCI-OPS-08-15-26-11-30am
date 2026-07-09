@@ -15,6 +15,8 @@ import {
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
+// TRACK 27.03 · Phase 3 · Canonical local-time formatter.
+import { formatPlatformTime, formatPlatformTimeOnly, getPlatformTimezone } from "@/lib/platformTime";
 
 const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
@@ -171,7 +173,7 @@ export default function AdminDigestConfig() {
             </Select>
           </div>
           <div>
-            <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">Hour (UTC)</Label>
+            <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">Hour (UTC · scheduler)</Label>
             <Input
               type="number"
               min={0}
@@ -182,7 +184,17 @@ export default function AdminDigestConfig() {
               data-testid="digest-hour"
             />
             <p className="text-[10px] text-slate-500 mt-1 font-mono">
-              {cfg.hour_utc}:00 UTC · {(cfg.hour_utc - 5 + 24) % 24}:00 ET (winter)
+              {/* TRACK 27.03 · Phase 3 · Render the scheduled wall-clock
+                  in the current operator's local zone via the canonical
+                  formatter — no hardcoded Florida timezone. `hour_utc`
+                  is the backend cron field; the label above is the
+                  API contract, the value below is the operator preview. */}
+              Runs at{" "}
+              {(() => {
+                const d = new Date();
+                d.setUTCHours(cfg.hour_utc || 0, 0, 0, 0);
+                return `${formatPlatformTimeOnly(d)} ${getPlatformTimezone()}`;
+              })()}
             </p>
           </div>
         </div>
@@ -202,7 +214,7 @@ export default function AdminDigestConfig() {
         {cfg.last_run && (
           <div className="bg-slate-50 border border-slate-200 rounded-md p-3 mb-3 text-xs font-mono">
             <strong className="uppercase tracking-[0.15em] text-slate-600">Last run</strong>:{" "}
-            {(cfg.last_run.at || "").slice(0, 19).replace("T", " ")} ·{" "}
+            {formatPlatformTime(cfg.last_run.at)} ·{" "}
             <span className={cfg.last_run.sent_to?.length ? "text-emerald-700" : "text-amber-700"}>
               {cfg.last_run.sent_to?.length ? `sent to ${cfg.last_run.sent_to.length}` : "preview-only"}
             </span>

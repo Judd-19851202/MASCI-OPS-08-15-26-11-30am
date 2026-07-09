@@ -19,6 +19,9 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner";
 import axios from "axios";
 
+// TRACK 27.03 · Phase 3 · Canonical local-time formatter.
+import { formatPlatformTime } from "@/lib/platformTime";
+
 const API = (
   (typeof process !== "undefined" &&
     process.env &&
@@ -354,7 +357,7 @@ function AuditPanel({ rows }) {
             </div>
             <div className="text-slate-500 flex items-center justify-between mt-0.5">
               <span>{r.actor_email || r.actor_id}</span>
-              <span>{new Date(r.ts).toLocaleString()}</span>
+              <span>{formatPlatformTime(r.ts)}</span>
             </div>
             {r.error && (
               <div className="mt-1 text-rose-700 text-[11px]">error: {r.error}</div>

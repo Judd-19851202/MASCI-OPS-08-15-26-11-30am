@@ -15,6 +15,8 @@ import { Link } from "react-router-dom";
 import AdminShell from "@/components/AdminShell";
 import { getAdminToken } from "@/lib/adminAuth";
 import { Button } from "@/components/ui/button";
+// TRACK 27.03 · Phase 3 · Canonical local-time formatter.
+import { formatPlatformTime } from "@/lib/platformTime";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const POLL_MS = 30000;
@@ -26,12 +28,8 @@ const PILL_STYLES = {
 };
 
 function fmtTs(ts) {
-  if (!ts) return "—";
-  try {
-    return new Date(ts).toISOString().replace("T", " ").slice(0, 19) + "Z";
-  } catch {
-    return ts;
-  }
+  // TRACK 27.03 · Phase 3 · Local wall-clock via canonical formatter.
+  return formatPlatformTime(ts);
 }
 
 function Pill({ status, size = "md", testid }) {

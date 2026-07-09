@@ -15,6 +15,8 @@ import { getAdminToken } from "@/lib/adminAuth";
 import { getShopToken } from "@/lib/shopAuth";
 import { PortalShell, Card, EmptyState } from "../../design-system";
 import BackToShopLink from "@/components/shop/BackToShopLink";
+// TRACK 27.03 · Phase 3 · Canonical local-time formatter.
+import { formatPlatformTime } from "@/lib/platformTime";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -178,10 +180,10 @@ function ReviewBar({ defect, onReview }) {
 }
 
 function DefectRow({ defect, mechanics, onAssign, onReview, bucketId }) {
-  const reportedAt = defect.reported_at ? new Date(defect.reported_at).toLocaleString() : "—";
-  const assignedAt = defect.assigned_at ? new Date(defect.assigned_at).toLocaleString() : "—";
-  const startedAt = defect.repair_started_at ? new Date(defect.repair_started_at).toLocaleString() : "—";
-  const completedAt = defect.repaired_at ? new Date(defect.repaired_at).toLocaleString() : "—";
+  const reportedAt = defect.reported_at ? formatPlatformTime(defect.reported_at) : "—";
+  const assignedAt = defect.assigned_at ? formatPlatformTime(defect.assigned_at) : "—";
+  const startedAt = defect.repair_started_at ? formatPlatformTime(defect.repair_started_at) : "—";
+  const completedAt = defect.repaired_at ? formatPlatformTime(defect.repaired_at) : "—";
   const unitNumber = defect.trailer_unit_number || defect.truck_unit_number || "—";
   return (
     <Card data-testid={`manager-queue-row-${defect.id}`}>

@@ -31,6 +31,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+// TRACK 27.03 · Phase 3 · Canonical local-time formatter.
+import { formatPlatformTime } from "@/lib/platformTime";
 
 const SEVERITY_PILL = {
   critical: "bg-rose-100 text-rose-800 border-rose-300",
@@ -274,7 +276,7 @@ export default function EmailRoutingV2Panel() {
           </span>
           <span className="text-[11px] text-slate-500">
             Tenant {healthReport.tenant_key} · {healthReport.total || 0} routes ·{" "}
-            {(healthReport.ts || "").replace("T", " ").slice(0, 19)}
+            {formatPlatformTime(healthReport.ts)}
           </span>
           {(healthReport.results || []).some((r) => r.status !== "green") && (
             <details className="basis-full mt-1">
@@ -600,7 +602,7 @@ function AuditDrawer({ routeKey, rows, loading, onClose }) {
                 {rows.map((r, i) => (
                   <tr key={i} className="border-t border-slate-100">
                     <td className="px-2 py-1 font-mono text-slate-700">
-                      {(r.ts || "").replace("T", " ").slice(0, 19)}
+                      {formatPlatformTime(r.ts)}
                     </td>
                     <td className="px-2 py-1">{r.source}</td>
                     <td className="px-2 py-1">

@@ -28,6 +28,8 @@ import HrCompletenessTile from "@/components/HrCompletenessTile";
 import OiAttentionStrip from "@/components/operational_intelligence/OiAttentionStrip";
 import { getHrToken } from "@/lib/hrAuth";
 import { getAdminToken } from "@/lib/adminAuth";
+// TRACK 27.03 · Phase 3 · Canonical local-time formatter.
+import { formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -95,7 +97,7 @@ function useHrSignals() {
       const toBody = to.body || {};
       setState({
         loaded: true,
-        refreshedAt: new Date().toISOString(),
+        refreshedAt: new Date().toISOString(),  // TRACK-27.03-EXEMPT: internal machine state field; display goes through formatPlatformTimeOnly
         pending_requests:        er.ok  ? (erBody.pending_count ?? (erBody.items?.length ?? 0)) : null,
         time_off_pending:        to.ok  ? (toBody.pending ?? 0) : null,
         training_exp_soon:       exp.ok ? ((expBody.expiring_in_30 ?? 0) + (expBody.expiring_in_60 ?? 0)) : null,
@@ -205,7 +207,7 @@ export default function HrHubV2() {
         sideNav={<HrSideNavV2 />}
         lastActivity={
           <span data-testid="hr-hub-v2-last-activity">
-            {s.loaded ? `Refreshed ${new Date(s.refreshedAt).toLocaleTimeString()}` : "Loading live signals…"}
+            {s.loaded ? `Refreshed ${formatPlatformTimeOnly(s.refreshedAt)}` : "Loading live signals…"}
           </span>
         }
       >

@@ -22,6 +22,8 @@ import { toast } from "sonner";
 import { getHrToken } from "@/lib/hrAuth";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { formatEmployeeIdentity } from "@/lib/identity";
+// TRACK 27.03 · Phase 3 · Canonical local-time formatter.
+import { formatPlatformTime } from "@/lib/platformTime";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -332,7 +334,7 @@ export default function HrEmployeeRequestsQueue() {
                           {STATUS_LABEL[req.status] || req.status}
                         </Pill>
                         <span className="font-mono text-[10px] text-slate-500 uppercase tracking-wider">
-                          {new Date(req.requested_at).toLocaleString()}
+                          {formatPlatformTime(req.requested_at)}
                         </span>
                       </div>
                       <div className="font-bold text-slate-900 truncate">

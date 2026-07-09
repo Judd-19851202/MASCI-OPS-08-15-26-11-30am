@@ -14,6 +14,8 @@ import {
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
+// TRACK 27.03 · Phase 3 · Canonical local-time formatter.
+import { formatPlatformTime } from "@/lib/platformTime";
 
 const SOURCE_PILL = {
   audit_events:            "bg-cyan-100 text-cyan-900 border-cyan-300",
@@ -142,7 +144,7 @@ export default function AdminAuditLog() {
                   return (
                     <React.Fragment key={key}>
                       <tr className="border-t border-slate-100" data-testid={`audit-row-${i}`}>
-                        <td className="px-3 py-2 font-mono text-slate-600 whitespace-nowrap">{(r.at || "").slice(0, 19).replace("T", " ")}</td>
+                        <td className="px-3 py-2 font-mono text-slate-600 whitespace-nowrap">{formatPlatformTime(r.at)}</td>
                         <td className="px-3 py-2 font-bold">{r.actor || "—"}</td>
                         <td className="px-3 py-2 font-mono">{r.action || "—"}</td>
                         <td className="px-3 py-2 truncate max-w-[14rem]">{r.target || "—"}</td>

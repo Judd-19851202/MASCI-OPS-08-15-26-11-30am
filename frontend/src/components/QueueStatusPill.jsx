@@ -25,6 +25,8 @@ import {
   clearQueue,
 } from "@/lib/resiliency/resiliencyQueue";
 import { useT } from "@/lib/i18n";
+// TRACK 27.03 · Phase 3 · Canonical local-time formatters.
+import { formatPlatformTime, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const LAST_SYNC_KEY = "masci.last_successful_sync.v1";
 
@@ -38,26 +40,17 @@ function _readLastSync() {
 }
 
 function _writeLastSync(d) {
-  try { localStorage.setItem(LAST_SYNC_KEY, d.toISOString()); } catch {/* */}
+  try { localStorage.setItem(LAST_SYNC_KEY, d.toISOString()); } catch {/* */}  // TRACK-27.03-EXEMPT: localStorage serialization (machine value, not rendered)
 }
 
 function _formatTime(iso) {
   if (iso === null || iso === undefined) return "—";
-  try {
-    const d = new Date(iso);
-    if (isNaN(d.getTime())) return "—";
-    return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-  } catch { return "—"; }
+  return formatPlatformTimeOnly(iso);
 }
 
 function _formatLong(d) {
   if (!d) return "—";
-  try {
-    return d.toLocaleString([], {
-      month: "short", day: "numeric", year: "numeric",
-      hour: "numeric", minute: "2-digit",
-    });
-  } catch { return String(d); }
+  return formatPlatformTime(d);
 }
 
 const FORM_TYPE_FROM_KEY = {
