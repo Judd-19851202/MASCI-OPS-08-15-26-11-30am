@@ -14,6 +14,7 @@
 //   <OperationsCenter />              ← full grid view
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { formatPlatformTime } from "@/lib/platformTime";
 import {
   AlertTriangle, AlertCircle, Activity, ChevronRight, RefreshCw,
 } from "lucide-react";
@@ -272,7 +273,7 @@ export default function OperationsCenter({ compact = false, className = "" }) {
       </div>
       {!compact && (
         <div className="mt-3 text-[10px] font-mono text-slate-400">
-          Real upstream counts · generated {String(data.generated_at).slice(0, 19)}
+          Real upstream counts · generated {formatPlatformTime(data.generated_at)}
         </div>
       )}
     </section>

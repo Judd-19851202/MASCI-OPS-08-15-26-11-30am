@@ -9,6 +9,7 @@
  * /api/dispatch/transportation/recommendation.
  */
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { formatPlatformTime } from "@/lib/platformTime";
 import { Sparkles, Info, AlertTriangle, X, ListChecks, ShieldOff } from "lucide-react";
 import { getDispatchToken } from "@/lib/dispatchAuth";
 import { getAdminToken } from "@/lib/adminAuth";
@@ -233,7 +234,7 @@ function WhyDrawer({ data, onClose, onSelectRecommendation,
             </div>
             <div className="text-lg font-black text-slate-900 mt-1">Why this recommendation?</div>
             <div className="text-xs text-slate-500 mt-0.5">
-              Generated {(data.generated_at || "").slice(0, 19).replace("T", " ")} · v{data.schema_version}
+              Generated {formatPlatformTime(data.generated_at)} · v{data.schema_version}
             </div>
           </div>
           <button type="button" onClick={onClose}

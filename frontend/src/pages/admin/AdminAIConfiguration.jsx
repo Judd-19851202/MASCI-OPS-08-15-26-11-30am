@@ -12,6 +12,7 @@
 // server-side. Field/PM users cannot reach this route — the strict
 // admin token gate enforces access at the API layer.
 import React, { useEffect, useMemo, useState } from "react";
+import { formatPlatformTimeOnly } from "@/lib/platformTime";
 import {
   Sparkles,
   Shield,
@@ -723,7 +724,7 @@ function AIHealthCard({ health, loading, onRefresh }) {
           {" · "}
           Failover order: <span className="font-mono">anthropic → openai → google</span>
           {" · "}
-          Last check: <span className="font-mono">{health.generated_at ? new Date(health.generated_at).toLocaleTimeString() : "—"}</span>
+          Last check: <span className="font-mono">{formatPlatformTimeOnly(health.generated_at)}</span>
         </div>
       )}
     </section>

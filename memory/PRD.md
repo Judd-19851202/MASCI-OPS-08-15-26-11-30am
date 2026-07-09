@@ -13,6 +13,39 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 
 
 
+## TRACK 27.03 · Platform Time Standardization (UTC elimination) · Phase 1 · 2026-02-08 · PREVIEW CERTIFIED
+
+### Scope reality (up-front honesty)
+Full platform-wide UTC elimination touches ~35 operator-facing backend files (PDFs/emails/AI prompts/exports) and ~20 frontend files (dashboards, snapshot cards, audit viewers). Not all convertible in one session without shipping broken renders. Phase 1 in this session delivers the **architecture + regression protection + 5 proof-of-pattern conversions**. Phase 2 is a mechanical grind against a ledger — every remaining file cataloged with priority.
+
+### Phase 1 delivered
+1. **Canonical formatters (one code path, zero exceptions)**:
+   - `frontend/src/lib/platformTime.js` — `formatPlatformTime`, `formatPlatformDate`, `formatPlatformTimeOnly`, `formatRelativeTime`, `formatPlatformStamp`, `getPlatformTimezone`. Timezone resolution: user pref → org pref → browser → `America/New_York` fallback. Never hardcoded in a component.
+   - `backend/lib/platform_time.py` — `localize_timestamp`, `display_timestamp`, `format_platform_date`, `format_platform_time_only`, `format_platform_stamp`, `organization_local_time`, `resolve_tz`.
+2. **Regression guard** (`backend/tests/test_track_27_03_zero_utc_guard.py` — 6/6 pass):
+   - Scans registered operator-facing files for `utcnow`, `toISOString`, `toUTCString`, `isoformat`, literal " UTC" / " GMT" strings, and raw ISO Z stamps.
+   - Fails immediately if any listed file regresses. Skips Python docstrings + JSDoc `*` continuations + explicit `TRACK-27.03-EXEMPT` markers.
+   - Also asserts the canonical formatters export every documented symbol name Phase 2 files import.
+3. **5 highest-visibility surfaces converted** (proof-of-pattern):
+   - `HrCompletenessTile.jsx` — snapshot line no longer says "18:53 UTC"
+   - `AdminDeployReadiness.jsx` — "Last checked" now relative-local
+   - `AdminAIConfiguration.jsx` — AI Health "Last check" via canonical formatter
+   - `OperationsCenter.jsx` — "generated" timeline label local
+   - `DispatchDecisionChip.jsx` — Dispatch decision "Generated" line local
+4. **Migration ledger** `/app/memory/TRACK_27_03_PLATFORM_TIME_MIGRATION.md` — every remaining file with priority, surface, estimated site count, copy-paste migration pattern, guard-registration instructions, and exemption marker syntax for legitimate UTC-anchored config (e.g. backup schedules).
+
+### Storage unchanged (per mission)
+Mongo timestamps, audit log, scheduler, background workers, DB writes, and server logs all continue to use UTC. Track 27.03 exclusively addresses operator-facing display surfaces.
+
+### Redeploy safety
+Additive-only changes. Every converted file lints clean. Rollback = revert commit; no data migration to undo.
+
+### Next Action Items
+- **Track 27.03 · Phase 2** (rolling): Convert P1 files per the ledger. Each conversion is 3–5 lines + one line added to the guard's `_OPERATOR_FACING_MODULES` list. Est. 2–3 files per follow-up session.
+- **Backend PDF/email/AI conversion** — highest priority in Phase 2. AI-generated report text must reference local time per mission statement.
+
+
+
 ## TRACK 27.02 · HR Filter Contract Completion · 2026-02-08 · PREVIEW CERTIFIED
 
 Production evidence surfaced two bugs (and one more caught during the fix):

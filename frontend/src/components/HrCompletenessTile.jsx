@@ -17,6 +17,7 @@ import { Link } from "react-router-dom";
 import { AlertTriangle, CheckCircle2, Download, FileText, X, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getHrToken } from "@/lib/hrAuth";
+import { formatPlatformTime } from "@/lib/platformTime";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -145,7 +146,7 @@ export default function HrCompletenessTile({ className = "" }) {
               className="font-mono text-xs uppercase tracking-[0.18em] text-slate-500"
               data-testid="hr-completeness-generated-at"
             >
-              · Snapshot {snap.generated_at.slice(0, 19).replace("T", " ")} UTC
+              · Snapshot {formatPlatformTime(snap.generated_at)}
             </span>
           </div>
           <p className="text-sm text-slate-600 mt-1">

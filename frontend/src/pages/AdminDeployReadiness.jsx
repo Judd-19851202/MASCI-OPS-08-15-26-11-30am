@@ -2,6 +2,7 @@
 // deploy-readiness dashboard. Hits /api/admin/deploy-readiness and
 // renders an OSHA-style green/yellow/red checklist.
 import React, { useCallback, useEffect, useState } from "react";
+import { formatRelativeTime } from "@/lib/platformTime";
 import {
   CheckCircle2, XCircle, AlertTriangle, RefreshCw, Rocket, Loader2, Shield,
 } from "lucide-react";
@@ -87,7 +88,7 @@ export default function AdminDeployReadiness() {
                 <div className={`font-display text-2xl font-black ${Overall.text}`}>{Overall.label}</div>
                 <div className="text-sm mt-1 text-slate-700">
                   {state.total_checks} checks · {state.blocker_count} blocker{state.blocker_count !== 1 && "s"} · {state.warn_count} warning{state.warn_count !== 1 && "s"} ·
-                  &nbsp;Last checked {String(state.checked_at).slice(11, 19)} UTC
+                  &nbsp;Last checked {formatRelativeTime(state.checked_at)}
                 </div>
               </div>
             </div>
