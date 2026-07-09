@@ -15,25 +15,22 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 
 ## Active Track — 2026-07-09
 
-**TRACK 27.05 · Storage / R2 / OCC P0 Remediation — 🟢 SHIPPED**
+**TRACK 25 · Admin Operating System · Final Completion — 🟠 AUDIT + ARCHITECTURE DELIVERED**
 
-All four P0 storage/OCC trust gaps from Track 27.04 fixed and independently verified by the testing agent (100% success · 18/18 regression tests pass · zero backend issues):
-1. **P0-1** Recovery snapshot now queries R2 directly and promotes R2 as source of truth when newer than the local marker → `last_backup.source: r2_direct` when applicable · was showing 28.8-day-stale data, now shows 10.9-min-fresh data
-2. **P0-2** `_BACKUP_SCHEDULER_STATE` carries `resurrect_count` + `last_resurrect_ts`; recovery snapshot exposes `scheduler.is_healthy` composite flag (alive AND ticked in last 15 min)
-3. **P0-3** Bucket usage classifier returns RED at `>= alert_gb` (was capped at AMBER); `_compute_pill` escalates to RED on bucket RED. Live: 186.82 GB → RED · overall pill RED
-4. **P0-4** New `lib/disk_preflight.py` module with `check_disk()`, `preflight_or_raise()`, `DiskFullError`. Env-configurable thresholds. Surfaced in recovery snapshot as `disk_preflight` object.
+Full audit + target architecture at `/app/memory/TRACK_25_ADMIN_OS_FINAL_COMPLETION.md`. Findings: 65 admin pages, 71+ admin routes, 3 competing admin hubs, 2 competing sidebars. Target: unified 10-domain Admin OS (Platform Overview · Ops Control · Storage/Recovery · AI · Communications · Identity · Governance · Config · Diagnostics · Maintenance) with every existing admin page mapped to a canonical domain.
 
-**TRACK 27.04 · Storage / R2 / OCC Trust Certification — CONDITIONAL GO promoted to** 🟢 **GO** (P0s now closed).
+**Honest scope**: full mission delivery is 40-80 hours across ~12 sprints (one per domain + trust hardening + regression + production certification). Constitutional Trusted/Proven/Deployable pillars require per-domain iteration and testing — cannot be done in one context window without producing half-broken pages. Sprint 1 (canonical `AdminOS.jsx` index + hub consolidation + duplicate sidebar retirement) is ~2 hours and is the safe first step.
 
-**TRACK 27.03 · Platform-Wide Local Time Standardization — 🟢 FINAL COMPLETION SHIPPED** (see earlier entries).
+**TRACK 27.05 · Storage / R2 / OCC P0 Remediation — 🟢 SHIPPED** (18/18 regression tests · testing agent verified 100% · see previous entry).
 
 ### Next open work (in priority order)
-1. **TRACK 27.06 · Storage P1 batch** — orphan R2 sweep, upload metrics to OCC, retention runner wiring, project-docs migration execution, runtime R2 fallback, in-flight upload durability
-2. **Photo Evidence in PM PDF/email** (P1)
-3. **User Timezone UI Toggle** (P2)
-4. **OCC Draft Health UI Card** (P2)
-5. **Admin OS Track 25** (P3, paused)
-6. **Admin Forensics query optimization** (P3)
+1. **TRACK 25 · Sprint 1** — canonical `AdminOS.jsx` + hub consolidation + duplicate-sidebar retirement (~2 hrs · safe)
+2. **TRACK 25 · Sprints 2-10** — one operational domain per sprint, testing agent verified
+3. **TRACK 25 · Sprint 11-12** — trust hardening + regression + production certification
+4. **TRACK 27.06 · Storage P1 batch** — orphan R2 sweep, upload metrics, retention runner, project-docs migration, runtime R2 fallback, in-flight upload durability
+5. **Photo Evidence in PM PDF/email** (P1)
+6. **User Timezone UI Toggle** (P2)
+7. **OCC Draft Health UI Card** (P2)
 
 
 
