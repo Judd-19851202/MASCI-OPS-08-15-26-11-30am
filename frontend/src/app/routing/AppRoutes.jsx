@@ -33,10 +33,13 @@ const OperationsActionDetail = React.lazy(() => import("@/pages/operations_actio
 const DriverMagicLanding = React.lazy(() => import("@/pages/driver/DriverMagicLanding"));
 const DriverShift = React.lazy(() => import("@/pages/driver/DriverShift"));
 // Track 13.6L — DriverHubV2 retired (existing /shift + /d/:token + /driver already satisfy ≤ 2 taps / ≤ 30 s).
-// Track 13.6K — Admin / Leadership Hub V2 COMPANIONS (no swap). FL Hub V2 retired in 13.6L.
-const AdminHubV2 = React.lazy(() => import("@/pages/AdminHubV2"));
+// TRACK 13.6K — Admin / Leadership Hub V2 COMPANIONS (no swap). FL Hub V2 retired in 13.6L.
+// TRACK 25 · SPRINT 1 — AdminHub / AdminHubV2 / AdminHubSwitcher imports removed:
+// the /admin route now mounts AdminOS.jsx directly. The legacy files remain
+// on disk but auto-redirect to /admin if any residual link ever loads them.
 // TRACK 25.02 · Phase D · V3 hub renders behind masci.admin.nav.v3 flag
-const AdminHubSwitcher = React.lazy(() => import("@/pages/AdminHubSwitcher"));
+// TRACK 25 · SPRINT 1 · Canonical Admin Operating System landing (10 domains).
+const AdminOS = React.lazy(() => import("@/pages/admin/AdminOS"));
 const AdminMaterialLedgerQuality = React.lazy(() => import("@/pages/AdminMaterialLedgerQuality"));
 const LeadershipHubV2 = React.lazy(() => import("@/pages/LeadershipHubV2"));
 const ExecutiveOverview = React.lazy(() => import("@/pages/ExecutiveOverview"));
@@ -121,7 +124,7 @@ const FleetUnitThread = React.lazy(() => import("@/pages/fleet/FleetUnitThread")
 import TransportationOpsTopBar from "@/components/transportation/TransportationOpsTopBar";
 import ViewEquipmentInspection from "@/pages/ViewEquipmentInspection";
 import AdminLogin from "@/pages/AdminLogin";
-import AdminHub from "@/pages/AdminHub";
+// TRACK 25 · SPRINT 1 — legacy AdminHub import removed; /admin now mounts AdminOS.
 const AdminRecovery = React.lazy(() => import("@/pages/admin/AdminRecovery"));
 const AdminRecoveryStream = React.lazy(() => import("@/pages/admin/AdminRecoveryStream"));
 const AdminJhaAcknowledgements = React.lazy(() => import("@/pages/admin/AdminJhaAcknowledgements"));
@@ -646,13 +649,15 @@ export function AppRoutes() {
                 ============================================================ */}
             <Route path="/admin/login" element={<AdminLogin />} />
             {/* Track 19.28 · P0-1 · Admin Hub V1 soft-retire.
-                /admin renders AdminHubSwitcher (V2 legacy hub · or V3
-                Executive Home when masci.admin.nav.v3 flag is on).
-                Classic tile-grid AdminHub remains available at /admin/hub_v1
-                as a rollback URL. All admin sub-routes (/admin/people, etc.)
-                are unchanged — they still use AdminShell / SideNavV2 per page. */}
-            <Route path="/admin" element={A(<AdminHubSwitcher />)} />
-            <Route path="/admin/hub_v1" element={A(<AdminHub />)} />
+                TRACK 25 · SPRINT 1 · /admin is now the canonical Admin
+                Operating System landing (AdminOS.jsx · 10 domains ·
+                live endpoints · SideNavV3). Legacy hubs (AdminHub,
+                AdminHubV2, AdminHubSwitcher, AdminHubV3) still exist
+                on disk for reference but every legacy URL immediately
+                redirects to /admin so bookmarks keep working and no
+                operator ever sees a deprecated dashboard. */}
+            <Route path="/admin" element={A(<AdminOS />)} />
+            <Route path="/admin/hub_v1" element={<Navigate to="/admin" replace />} />
             {/* Track 13.6K · Phase 1 — Admin Hub V2 preview (Operations Control Center). */}
             <Route path="/admin/hub_v2" element={<Navigate to="/admin" replace />} />
             <Route path="/admin/executive-overview" element={A(<ExecutiveOverview />)} />
