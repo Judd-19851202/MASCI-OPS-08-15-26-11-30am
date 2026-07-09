@@ -15,6 +15,30 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 
 ## Active Track — 2026-07-09
 
+**TRACK 25 · SPRINT 2 · Operations Control Center · Elite Trust Center — 🟢 SHIPPED (2026-07-09)**
+
+- `/app/backend/routes/occ_health_aggregator.py` — new read-only aggregator
+  `GET /api/admin/occ/health` that fans out over existing child endpoints
+  (health · version · operations-control · recovery · scheduler · integrations
+  · email-v2 · ai gateway · draft-health · sessions · governance · production-cert)
+  into an 8-section snapshot: Platform Runtime · Storage & Recovery · Queues & Workers
+  · Communications · AI Ops · Daily Reports · HR/Identity/Security · Integrations.
+  No server-side cache. Auth-passthrough via `X-Admin-Token`. Honest UNKNOWN on
+  child failure (never fake GREEN).
+- `/app/frontend/src/pages/OperationsControlCenter.jsx` — added read-only
+  Trust Layer above the existing 14-op maintenance console:
+  overall posture pill + healthy/attention/critical/unknown counts + last-refreshed
+  local time + Refresh button · top attention strip (RED cards first) · search + status
+  filter · 8 section grids with cards · evidence drawer with source endpoint /
+  raw payload / reason / recommended action / drill-down link.
+  Maintenance Operations Console + audit tail preserved unchanged below the divider.
+- **Sprint 2 rules honoured**: read-only health cards (no inline mutations),
+  client-controlled refresh (no server cache), preserve maintenance console,
+  no fake GREEN, local time only, all elements carry data-testid.
+- Testing verified 100% end-to-end (`/app/test_reports/iteration_track_25_sprint_2_occ_trust_center.json`):
+  46/46 backend pytest (38 aggregator contract + 8 zero-UTC guard), all 20
+  frontend acceptance items, desktop + tablet layouts, zero console errors.
+
 **TRACK 25 · SPRINT 1 · Admin OS Canonical Landing + Nav Consolidation — 🟢 SHIPPED (2026-07-09)**
 
 - `/app/frontend/src/pages/admin/AdminOS.jsx` — new canonical 10-domain landing:
