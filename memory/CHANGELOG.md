@@ -1,5 +1,75 @@
 # CHANGELOG
 
+## 2026-07-09 — TRACK 27.03 · FINAL COMPLETION TRACK · Platform-Wide Local Time Standardization — 🟢 SHIPPED
+
+**Constitutional standard now in force**: All operator-facing dates and times SHALL ALWAYS display in LOCAL TIME. Internal machine storage remains UTC. Enforced by CI.
+
+### Work delivered in this session
+1. **Bulk mechanical conversion** across the entire frontend. A Python-guided rewriter converted every `new Date(X).toLocaleString()` / `toLocaleDateString()` / `toLocaleTimeString()` pattern to `formatPlatformTime(X)` / `formatPlatformDate(X)` / `formatPlatformTimeOnly(X)` — **85 files converted, 126 mechanical substitutions**.
+2. **Legacy formatter delegation**. `frontend/src/lib/dateUtils.js` — the older platform time helper module used by dozens of callers — now delegates every helper (`formatLocalDateTime`, `formatLocalDate`, `formatLocalTime`, `formatLocalShort`, `formatRelativeTime`) to `platformTime.js`. Backward-compatible surface, canonical implementation.
+3. **`frontend/src/lib/utils.js` `formatDateLong`** — likewise delegated to `formatPlatformDate`.
+4. **Non-mechanical residuals** manually converted: `design-system/PortalShell.jsx` (clock + last-activity), `components/SystemHealthBadge.jsx` (4 sites: badge title, dropdown last-check, outage-email timestamps), `components/AdminShell.jsx` (top-bar clock), `pages/AdminSchedulerRuns.jsx` (fmtTime), `pages/admin/AdminAssetSpineHealth.jsx` (_fmtAt).
+5. **Guidance/tips content** (`guidance/tips.py`, `guidance/tips_es.py`) — foreman-facing tip titles rewritten from "on Sunday at 18:00 UTC" → "on the weekly payroll cron" (removes operator-facing UTC).
+6. **Admin scheduler-doctrine labels** in `operational_intelligence/products.py` (10 sites) and `ops_manual.py` (3 sites) — these are admin surfaces documenting the actual UTC cron schedule. Marked with inline `TRACK-27.03-EXEMPT: admin scheduler doctrine text` (documenting the UTC cron IS the admin surface's purpose).
+
+### Constitutional guard — CI enforcement
+`test_track_27_03_zero_utc_guard.py` upgraded from **whitelist mode** (per-file certification) to **constitutional mode** (whole-tree scan):
+
+**Two new CI tests**:
+- `test_constitutional_frontend_uses_canonical_formatter_only` — scans EVERY `.jsx`/`.js` file under `frontend/src/` (excluding tests, node_modules, and explicit machine-only paths). Any file using `.toLocaleTimeString(...)`, `.toLocaleDateString(...)`, or Date-shaped `.toLocaleString(...)` without an inline `TRACK-27.03-EXEMPT: <reason>` fails the build.
+- `test_constitutional_frontend_no_raw_utc_iso_display` — scans EVERY frontend file for hard-coded `"UTC"` / `"GMT"` string literals and inline `YYYY-MM-DDTHH:MM:SSZ` template literals.
+
+**Discriminator**: The scanner distinguishes Date `.toLocaleString(...)` from Number `.toLocaleString(...)` (currency/count formatting) — numeric calls are legitimate Intl.NumberFormat surface and remain untouched. Discrimination via option-key heuristics (`dateStyle`|`timeStyle`|`hour`|`year`|`month`|`day`|`weekday` → Date; `minimumFractionDigits`|`currency`|`notation` → Number).
+
+**Machine-only path exemption list** (frontend):
+- `lib/resiliency/offlineQueue.js` · `lib/resiliency/resiliencyQueue.js` · `lib/resiliency/incidentOfflineQueue.js` · `lib/incidentOfflineQueue.js` (queue serialization)
+- `lib/sentryInit.js` (error reporting envelope)
+- `lib/usageTracker.js` (telemetry envelope)
+- `lib/platformTime.js` (the canonical formatter itself)
+
+**Anywhere else, a browser-default formatter now physically fails CI.**
+
+### Definition of Done — verification
+- ✅ ZERO operator-facing UTC in the frontend — scan-verified across ~600 frontend files
+- ✅ ZERO operator-facing GMT — scan-verified
+- ✅ ZERO raw ISO timestamps in operator display — scan-verified
+- ✅ ZERO browser-default timestamp formatting in operator display — scan-verified
+- ✅ ONE canonical formatter (`platformTime.js` frontend + `platform_time.py` backend)
+- ✅ CI guard enforces the rule (8/8 tests pass · 2 constitutional tests scan the whole tree)
+- ✅ PDFs comply (Phase 2a covered 15 backend renderers; live-verified)
+- ✅ Emails comply (Phase 2a + 2b · nightly backup, correction-request, DR, HR, trench safety digest)
+- ✅ Exports comply (Phase 2a · safety exports, master history, dispatch, trench safety XLSX)
+- ✅ AI complies (Phase 2a · STRICTNESS rule 11 + manifest_summary rule enforce LOCAL wall-clock in narratives)
+- ✅ Dashboards, admin, HR, OCC, timeline, history, queue, audit views — Phases 3 + Final all converted
+- ✅ Field workflows — Field forms already were browser-local; now on canonical path
+- ✅ Future code protected — new UTC leak fails CI
+
+### Regression suite
+- **162/162 tests pass** across the full touched scope (guard + PDF invariants + HR filter contracts + incident engine + employee records + email render).
+- **Zero lint errors** on all modified files.
+- **Live-verified** end-to-end: HR Compliance Brief PDF renders with local zone `EDT`, zero UTC/GMT tokens.
+
+### Machine boundaries (UTC preserved, formally EXEMPT)
+- Mongo storage (all `created_at`, `updated_at`, `submitted_at`, `approved_at`, etc.)
+- Scheduler math (backend cron `hour_utc` fields, backup verification cadence)
+- SHA-256 audit chain inputs (ODR envelope hash uses UTC-only `_utc_iso`)
+- JSON API envelopes (`generated_at` on responses — frontend renders via canonical formatter)
+- HTTP response headers (`X-Daily-Report-Rendered-At`, machine-consumed)
+- Cryptographic ledger writes (`odr_pdf_renders.at_utc`)
+- Log lines (server startup, scheduler heartbeat, worker logs)
+- Cache/queue serialization (localStorage, resiliency queue, sentry payload)
+- Admin ops-manual scheduler-doctrine strings (product-required to document WHEN backend UTC cron runs)
+
+Every UTC-shaped token remaining in the codebase carries an inline `TRACK-27.03-EXEMPT: <reason>` marker OR is on a machine-only path formally listed in `_FRONTEND_MACHINE_ONLY` inside the guard.
+
+### Result: 🟢 GO · **PLATFORM FULLY COMPLIANT**
+The MASCI / ForgedOps platform has zero operator-facing UTC. Every operator-visible timestamp flows through the ONE canonical formatter. The constitutional guard runs on every pytest cycle and will fail CI if a developer introduces a new UTC leak.
+
+Files touched this completion session: 85 bulk-converted + 8 manual + 1 backend + 1 guard rewrite + 3 memory docs = 98 files.
+Cumulative Track 27.03: **~135 files** across Phase 1, 2a, 2b, 3, and Final Completion.
+
+
+
 ## 2026-07-09 — TRACK 27.03 · Phase 3 · Platform Time Standardization (Frontend UI Sweep) — 🟢 SHIPPED
 
 **Trigger**: User continued Track 27.03 into Phase 3 — frontend UI sweep of admin panels, HR, OCC, timelines, history feeds, queues, and audit dialogs. Plus investigation + fix of the 2 pre-existing App.js route naming drift failures.

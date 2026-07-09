@@ -31,6 +31,8 @@ import {
 } from "@/lib/tasksApi";
 import { isSignedInAnywhere } from "@/lib/permissions";
 import { onQueueChange } from "@/lib/resiliency";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const SEV_ICON = {
   Info: Info,
@@ -442,7 +444,7 @@ export default function NotificationBell({ accent = "slate" }) {
           </div>
           {muted && (
             <p className="text-[10px] text-slate-500 mt-1" data-testid="notification-mute-status">
-              Sound muted until {new Date(muteUntil).toLocaleString()}. Notifications still arrive silently.
+              Sound muted until {formatPlatformTime(muteUntil)}. Notifications still arrive silently.
             </p>
           )}
         </SheetHeader>
@@ -457,7 +459,7 @@ export default function NotificationBell({ accent = "slate" }) {
             <ul className="divide-y divide-slate-100">
               {items.map((n) => {
                 const SevIcon = SEV_ICON[n.severity] || Info;
-                const localTime = n.created_at ? new Date(n.created_at).toLocaleString([], { dateStyle: "short", timeStyle: "short" }) : "";
+                const localTime = n.created_at ? formatPlatformTime(n.created_at) : "";
                 // TRACK 15.40 · "recently read" = read within the last
                 // 5 minutes. Drives the amber pulse below.
                 const recentlyRead = n.is_read && n._recently_read_at && (Date.now() - n._recently_read_at) < RECENT_READ_MS;

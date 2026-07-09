@@ -11,6 +11,8 @@ import {
   Database, GitBranch, Search, Loader2,
 } from "lucide-react";
 import { api } from "@/lib/api";
+// TRACK 27.03 · Final Completion · canonical local-time formatter.
+import { formatPlatformTime } from "@/lib/platformTime";
 import { useNavigate } from "react-router-dom";
 
 function _fmt(n) {
@@ -23,10 +25,7 @@ function _fmtPct(n) {
 
 function _fmtAt(s) {
   if (!s) return "never";
-  try {
-    const d = new Date(s);
-    return d.toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
-  } catch { return s; }
+  return formatPlatformTime(s);
 }
 
 function Stat({ label, value, hint, accent = "slate", testid }) {

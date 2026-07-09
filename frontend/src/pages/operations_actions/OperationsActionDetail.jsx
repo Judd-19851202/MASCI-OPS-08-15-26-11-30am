@@ -21,6 +21,8 @@ import {
   oaApi, CATEGORIES, CATEGORY_LABEL, PRIORITIES, PRIORITY_LABEL,
   STATUSES, STATUS_LABEL, PRIORITY_TONE,
 } from "@/lib/oa";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 export default function OperationsActionDetail() {
   const { id } = useParams();
@@ -168,9 +170,9 @@ export default function OperationsActionDetail() {
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3 text-xs">
             <KV label={t("Created By")} value={oa.created_by?.name} testid="oa-det-created-by" />
-            <KV label={t("Created")} value={new Date(oa.created_at).toLocaleString()} testid="oa-det-created-at" />
+            <KV label={t("Created")} value={formatPlatformTime(oa.created_at)} testid="oa-det-created-at" />
             <KV label={t("Current Owner")} value={oa.current_owner?.name || "—"} testid="oa-det-owner" />
-            <KV label={t("Last Updated")} value={new Date(oa.last_updated_at).toLocaleString()} testid="oa-det-updated-at" />
+            <KV label={t("Last Updated")} value={formatPlatformTime(oa.last_updated_at)} testid="oa-det-updated-at" />
           </div>
         </section>
 
@@ -281,7 +283,7 @@ export default function OperationsActionDetail() {
             {(oa.notes || []).slice().reverse().map((n) => (
               <div key={n.id} data-testid={`oa-note-${n.id}`} className="border border-slate-200 rounded p-2 text-xs">
                 <div className="flex items-center gap-1.5 text-[10px] font-mono text-slate-500 mb-1">
-                  <MessageSquare className="w-3 h-3" /> {n.author?.name || "—"} · {new Date(n.created_at).toLocaleString()}
+                  <MessageSquare className="w-3 h-3" /> {n.author?.name || "—"} · {formatPlatformTime(n.created_at)}
                 </div>
                 <div className="text-slate-800 whitespace-pre-wrap">{n.body_en}</div>
               </div>

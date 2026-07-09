@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 /**
  * <AdminEmailRoutingPanel>
@@ -312,7 +314,7 @@ export default function AdminEmailRoutingPanel() {
         {meta.updated_at && (
           <div className="text-[10px] font-mono text-slate-400 mt-2 flex items-center gap-1">
             <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-            Last updated: {new Date(meta.updated_at).toLocaleString()} by {meta.updated_by || "—"}
+            Last updated: {formatPlatformTime(meta.updated_at)} by {meta.updated_by || "—"}
           </div>
         )}
         {meta.source !== "db" && (

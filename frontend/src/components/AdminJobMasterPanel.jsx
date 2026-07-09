@@ -27,6 +27,8 @@ import {
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 /**
  * AdminJobMasterPanel — manage MASCI active jobs.
@@ -500,7 +502,7 @@ export default function AdminJobMasterPanel() {
                     <td className="px-3 py-2 text-slate-600">{j.location || "—"}</td>
                     <td className="px-3 py-2 text-slate-600">{j.client || "—"}</td>
                     <td className="px-3 py-2 text-xs text-slate-500 whitespace-nowrap">
-                      {j.deleted_at ? new Date(j.deleted_at).toLocaleString() : "—"}
+                      {j.deleted_at ? formatPlatformTime(j.deleted_at) : "—"}
                     </td>
                     <td className="px-3 py-2 text-right">
                       <Button

@@ -14,6 +14,8 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import AssetDocumentsTab from "@/components/asset/AssetDocumentsTab";
 import { formatEmployeeIdentity } from "@/lib/identity";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const STATUS_PILL = {
   Available:         "bg-emerald-100 text-emerald-900 border-emerald-300",
@@ -299,7 +301,7 @@ function MotiveLiveTab({ live, mapping, operator }) {
             : null
         } />
         <Tile label="City / State" testid="ap-motive-city" value={[live.city, live.state].filter(Boolean).join(", ")} />
-        <Tile label="Last Seen" testid="ap-motive-located" value={live.located_at ? new Date(live.located_at).toLocaleString() : null} />
+        <Tile label="Last Seen" testid="ap-motive-located" value={live.located_at ? formatPlatformTime(live.located_at) : null} />
         <Tile label="Speed" testid="ap-motive-speed" value={
           live.speed_mph != null
             ? `${live.speed_mph} mph${live.moving ? " · Moving" : " · Parked"}`
@@ -333,7 +335,7 @@ function OperatorCard({ operator }) {
         {has && (
           <div className="text-[11px] text-slate-500 mt-0.5">
             <span className="font-mono uppercase tracking-[0.15em]">Source:</span> {operator.source_label || operator.source}
-            {operator.as_of ? <> · <span className="font-mono">{new Date(operator.as_of).toLocaleString()}</span></> : null}
+            {operator.as_of ? <> · <span className="font-mono">{formatPlatformTime(operator.as_of)}</span></> : null}
           </div>
         )}
       </div>

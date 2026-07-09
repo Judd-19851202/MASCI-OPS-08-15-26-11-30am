@@ -703,7 +703,7 @@ TIPS_ES: dict[tuple[str, str], dict] = {
             "los dos quedan en el registro.",
     },
     ("payroll-variance.batches", "next"): {
-        "title_es": "Qué pasa el domingo 18:00 UTC",
+        "title_es": "Qué pasa en el cron semanal de nómina",
         "body_es":
             "El cron semanal envía el lote más reciente a "
             "hrmanager@mascigc.com y jaymn.judd@mascigc.com. Ese correo "

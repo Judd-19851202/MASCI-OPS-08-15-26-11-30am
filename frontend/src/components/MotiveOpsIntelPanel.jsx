@@ -11,6 +11,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Activity, Truck, AlertTriangle, ShieldAlert, MapPin, RefreshCw, Loader2 } from "lucide-react";
 import { api } from "@/lib/api";
 import { gpsBand, gpsBandClass } from "@/lib/gpsBand";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 function StatTile({ label, value, sublabel, testid, tone = "slate" }) {
   const toneCls = {
@@ -49,7 +51,7 @@ function EventBadge({ ev }) {
     : sev === "high"
       ? "bg-amber-100 text-amber-900 border-amber-300"
       : "bg-slate-100 text-slate-700 border-slate-300";
-  const when = ev.received_at ? new Date(ev.received_at).toLocaleString() : "—";
+  const when = ev.received_at ? formatPlatformTime(ev.received_at) : "—";
   return (
     <li className="flex items-start gap-2 py-1.5 border-b border-slate-100 last:border-0" data-testid={`ois-event-${ev.event_family}`}>
       <span className={`inline-block px-1.5 py-0.5 rounded border text-[10px] font-mono uppercase tracking-wider font-bold ${cls}`}>

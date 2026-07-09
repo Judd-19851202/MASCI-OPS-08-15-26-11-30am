@@ -40,6 +40,8 @@ import { HelpTipBlock } from "@/components/HelpTip";
 import FocusBanner from "@/components/triage/FocusBanner";
 import OiAttentionStrip from "@/components/operational_intelligence/OiAttentionStrip";
 import { Link } from "react-router-dom";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const API = process.env.REACT_APP_BACKEND_URL || "";
 
@@ -183,7 +185,7 @@ function AuditTrailPanel({ defectId, t }) {
             )}
           </div>
           <div className="font-mono text-[10px] uppercase tracking-wider text-slate-500">
-            {e.timestamp ? new Date(e.timestamp).toLocaleString() : ""}
+            {e.timestamp ? formatPlatformTime(e.timestamp) : ""}
             {e?.payload?.repair_notes && (
               <span className="text-slate-700 normal-case"> · &quot;{e.payload.repair_notes}&quot;</span>
             )}
@@ -223,7 +225,7 @@ function UnitCard({ group, scope, t, expanded, onToggle, onRepairClick, onRtsCli
   const unit = group.unit_number;
   const status = group.truck_status || (group.open_oos_count > 0 ? "oos" : "defect_open");
   const lastAt = group.latest_inspection_at
-    ? new Date(group.latest_inspection_at).toLocaleString()
+    ? formatPlatformTime(group.latest_inspection_at)
     : t("—");
   return (
     <div
@@ -329,7 +331,7 @@ function UnitCard({ group, scope, t, expanded, onToggle, onRepairClick, onRtsCli
                     )}
                     <div className="text-[11px] text-emerald-800 mt-0.5 font-mono">
                       {d.repaired_by_name || t("Mechanic")}
-                      {d.repaired_at && ` · ${new Date(d.repaired_at).toLocaleString()}`}
+                      {d.repaired_at && ` · ${formatPlatformTime(d.repaired_at)}`}
                     </div>
                     {Array.isArray(d.repair_photos) && d.repair_photos.length > 0 && (
                       <div className="mt-1.5 grid grid-cols-3 sm:grid-cols-6 gap-1">
@@ -350,7 +352,7 @@ function UnitCard({ group, scope, t, expanded, onToggle, onRepairClick, onRtsCli
                   {d.reported_at && (
                     <span>
                       <Clock className="w-3 h-3 inline-block mr-1 -mt-px" />
-                      {new Date(d.reported_at).toLocaleString()}
+                      {formatPlatformTime(d.reported_at)}
                     </span>
                   )}
                   {d.regulation_ref && scope === "safety" && (

@@ -56,6 +56,8 @@ import { LIFECYCLE_STATUS_TINTS } from "@/lib/statusBadges";
 import { HelpTip, HelpTipBlock } from "@/components/HelpTip";
 import { useT } from "@/lib/i18n";
 import { formatEmployeeIdentity } from "@/lib/identity";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const SEPARATION_TYPES = ["voluntary", "involuntary", "layoff"];
 const DRIVER_STATUSES = ["active", "suspended", "restricted", "inactive"];
@@ -618,7 +620,7 @@ export default function HrEmployees() {
         <div className="hr-print-header">
           <div className="hr-print-title">MASCI Employee Roster</div>
           <div className="hr-print-meta">
-            {new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}
+            {formatPlatformDate()}
             {" · "}
             {EMPLOYMENT_BUCKETS.find((b) => b.value === bucket)?.label || bucket}
             {statusFilter !== "all" ? ` · status: ${statusFilter}` : ""}
@@ -1502,7 +1504,7 @@ function EmployeeDrawer({ id, onClose, initialTab = "details" }) {
                       <ul className="space-y-1.5 text-xs text-slate-600">
                         {(employee.status_history || []).slice().reverse().slice(0, 5).map((h, idx) => (
                           <li key={idx} className="font-mono">
-                            <span className="text-slate-500">{new Date(h.at).toLocaleString()}</span>
+                            <span className="text-slate-500">{formatPlatformTime(h.at)}</span>
                             {" · "}
                             {h.from && <>{h.from} → </>}
                             <span className="font-bold text-slate-900">{h.to}</span>

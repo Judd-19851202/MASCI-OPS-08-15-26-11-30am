@@ -39,6 +39,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const BAND = {
   green: { tone: "bg-emerald-50 border-emerald-200", pill: "bg-emerald-100 text-emerald-800 border-emerald-300", Icon: ShieldCheck, label: "Trusted" },
@@ -92,7 +94,7 @@ export default function PlatformTrustValidator() {
     try {
       const res = await api.get("/admin/platform-trust/validate");
       setData(res.data);
-      setLastRun(new Date().toLocaleString());
+      setLastRun(formatPlatformTime());
     } catch (e) {
       const msg = (e?.response?.data?.detail || e?.message || "validation failed");
       setError(String(msg));

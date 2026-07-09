@@ -32,6 +32,8 @@ import { EditProjectDialog } from "@/components/EditProjectDialog";
 import { SubmitLangBadge } from "@/components/SubmitLangBadge";
 import MaterialMovementTile from "@/components/MaterialMovementTile";
 import { useT } from "@/lib/i18n";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 // 24-hour HH:MM → 12-hour h:MM AM/PM (returns the original string if
 // it can't be parsed so we never silently drop user-typed data).
@@ -738,7 +740,7 @@ export default function ViewDailyReport() {
 
         <div className="text-center font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500 pt-4 pb-8 print:break-inside-avoid">
           Generated{" "}
-          {data.created_at ? new Date(data.created_at).toLocaleString() : ""} ·{" "}
+          {data.created_at ? formatPlatformTime(data.created_at) : ""} ·{" "}
           {company.company_name || branding.company_name || "Customer"} Daily Report
         </div>
         {(company.address ||

@@ -51,6 +51,8 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const BAND_STYLE = {
   green: {
@@ -108,7 +110,7 @@ function Badge({ band, children }) {
 function fmtTs(iso) {
   if (!iso) return "—";
   try {
-    return new Date(iso).toLocaleString();
+    return formatPlatformTime(iso);
   } catch {
     return iso;
   }
@@ -585,7 +587,7 @@ export default function OperationsTrustCenter() {
           `/admin/operations-trust-center?trend_hours=${hours}`
         );
         setData(res.data);
-        setLastRun(new Date().toLocaleString());
+        setLastRun(formatPlatformTime());
       } catch (e) {
         const msg = e?.response?.data?.detail || e?.message || "load failed";
         setError(String(msg));

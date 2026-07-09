@@ -12,6 +12,8 @@ import React, { useEffect, useState } from "react";
 import { AlertOctagon, AlertTriangle, WifiOff, CheckCircle2, MapPinOff, RefreshCw, Loader2 } from "lucide-react";
 import { api } from "@/lib/api";
 import { gpsBandClass } from "@/lib/gpsBand";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 function StatPill({ label, value, tone, testid }) {
   const toneCls = {
@@ -29,7 +31,7 @@ function StatPill({ label, value, tone, testid }) {
 }
 
 function EventRow({ ev, icon: Icon, tone }) {
-  const when = ev.received_at ? new Date(ev.received_at).toLocaleString() : "—";
+  const when = ev.received_at ? formatPlatformTime(ev.received_at) : "—";
   const veh = ev.vehicle_id || ev.asset_id || "—";
   return (
     <li className="flex items-center gap-2 py-1.5 border-b border-slate-100 last:border-0 text-xs">
@@ -146,7 +148,7 @@ export default function ShopOpsIntelPanel({ className = "" }) {
           {Array.isArray(data.equipment_not_reporting) && data.equipment_not_reporting.length > 0 ? (
             <ul className="bg-rose-50/50 border border-rose-200 rounded-md px-3 py-1 max-h-48 overflow-auto" data-testid="ois-shop-nr-list">
               {data.equipment_not_reporting.slice(0, 12).map((eq, i) => {
-                const last = eq.last_seen ? new Date(eq.last_seen).toLocaleDateString() : "never";
+                const last = eq.last_seen ? formatPlatformDate(eq.last_seen) : "never";
                 return (
                   <li key={`nr-${i}`} className="flex items-center gap-2 py-1.5 border-b border-slate-100 last:border-0 text-xs">
                     <MapPinOff className="w-3.5 h-3.5 shrink-0 text-rose-700" />

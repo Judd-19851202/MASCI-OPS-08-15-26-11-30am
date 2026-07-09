@@ -28,6 +28,8 @@ import { Badge } from "@/components/ui/badge";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 function StatusChip({ active }) {
   return (
@@ -822,7 +824,7 @@ function GroupMemberEditor({ group, onClose, onChanged }) {
                     <Td>{m.display_name || "—"}</Td>
                     <Td>{m.role_label || "—"}</Td>
                     <Td>{m.active ? "yes" : "no"}</Td>
-                    <Td>{m.added_at ? new Date(m.added_at).toLocaleDateString() : "—"}</Td>
+                    <Td>{m.added_at ? formatPlatformDate(m.added_at) : "—"}</Td>
                   </tr>
                 ))}
               </tbody>
@@ -1083,7 +1085,7 @@ export default function AdminOperationalIntelligenceRecipients() {
                       <Td>{r.role_label || "—"}</Td>
                       <Td>{r.digest_type || "—"}</Td>
                       <Td><StatusChip active={!!r.active} /></Td>
-                      <Td>{r.updated_at ? new Date(r.updated_at).toLocaleString() : "—"}</Td>
+                      <Td>{r.updated_at ? formatPlatformTime(r.updated_at) : "—"}</Td>
                       <Td className="max-w-[240px] truncate" title={r.notes || ""}>{r.notes || "—"}</Td>
                       <Td align="right">
                         <div className="flex justify-end gap-1">
@@ -1167,7 +1169,7 @@ export default function AdminOperationalIntelligenceRecipients() {
                         <Td>{g.group_name || "—"}</Td>
                         <Td>{(g.products || []).join(", ") || "—"}</Td>
                         <Td>{(g.members || []).length}</Td>
-                        <Td>{g.created_at ? new Date(g.created_at).toLocaleString() : "—"}</Td>
+                        <Td>{g.created_at ? formatPlatformTime(g.created_at) : "—"}</Td>
                         <Td align="right">
                           <Button size="sm" variant="ghost"
                                   onClick={() => setEditingGroupMembers(g)}

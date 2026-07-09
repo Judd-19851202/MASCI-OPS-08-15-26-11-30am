@@ -33,6 +33,8 @@ import { formatDateLong } from "@/lib/utils";
 import { SubmitLangBadge } from "@/components/SubmitLangBadge";
 import { useT } from "@/lib/i18n";
 import { SiteInspectionLifecyclePanel } from "@/components/SiteInspectionLifecyclePanel";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const StatusBadge = ({ value }) => {
   const v = (value || "").toString().toLowerCase();
@@ -485,7 +487,7 @@ export default function ViewInspection() {
         </ReportSection>
 
         <div className="text-center font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500 pt-4 pb-8 print-section">
-          {t("Generated")} {data.created_at ? new Date(data.created_at).toLocaleString() : ""} · {company.company_name || branding.company_name || "Customer"} {t("Job Site Safety")}
+          {t("Generated")} {data.created_at ? formatPlatformTime(data.created_at) : ""} · {company.company_name || branding.company_name || "Customer"} {t("Job Site Safety")}
         </div>
 
         {/* Print-only company info footer */}

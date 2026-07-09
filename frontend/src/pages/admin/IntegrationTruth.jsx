@@ -30,6 +30,8 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 // ── Status → badge colour vocabulary ────────────────────────────────
 const OVERALL_TONE = {
@@ -88,7 +90,7 @@ const Panel = ({ title, subtitle, icon: Icon, right, children }) => (
 const fmtTime = (iso) => {
   if (!iso) return "—";
   try {
-    return new Date(iso).toLocaleString();
+    return formatPlatformTime(iso);
   } catch {
     return String(iso);
   }

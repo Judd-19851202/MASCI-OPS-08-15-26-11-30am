@@ -36,6 +36,8 @@ import { operationalError } from "@/lib/errors";
 import MaintainxP0Tab from "@/components/admin/MaintainxP0Tab";
 import MaintainxDefectCoverageSection from "@/components/admin/MaintainxDefectCoverageSection";
 import MappingCleanupTab from "@/components/admin/MappingCleanupTab";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const STATUS_COLOR = {
   Connected:               "bg-emerald-100 text-emerald-900 border-emerald-300",
@@ -1443,7 +1445,7 @@ function GeofencesTab() {
                       : <span className="text-slate-300 font-mono text-xs">0</span>}
                   </td>
                   <td className="px-3 py-2 text-xs text-slate-500 font-mono">
-                    {g.last_activity_at ? new Date(g.last_activity_at).toLocaleString() : "—"}
+                    {g.last_activity_at ? formatPlatformTime(g.last_activity_at) : "—"}
                   </td>
                 </tr>
               ))}

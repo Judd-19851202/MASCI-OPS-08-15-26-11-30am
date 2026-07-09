@@ -16,6 +16,8 @@ import {
   AlertTriangle, RefreshCw, Loader2, CheckCircle2, Clock,
 } from "lucide-react";
 import { api } from "@/lib/api";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const SEV_PILL = {
   critical: "bg-rose-100 text-rose-900 border-rose-300",
@@ -112,7 +114,7 @@ function IdentitySection({ identity }) {
             <KV label="Supervisor" value={identity.supervisor_name} testid="dcp-id-supervisor" />
             <KV label="Email" value={identity.email} testid="dcp-id-email" />
             <KV label="Phone" value={identity.phone} testid="dcp-id-phone" />
-            <KV label="Hire Date" value={identity.hire_date ? new Date(identity.hire_date).toLocaleDateString() : ""} testid="dcp-id-hire" />
+            <KV label="Hire Date" value={identity.hire_date ? formatPlatformDate(identity.hire_date) : ""} testid="dcp-id-hire" />
           </div>
         </div>
       </div>
@@ -145,7 +147,7 @@ function OperationsSection({ operations }) {
               <div className="font-bold text-slate-900">{last.project_number || "(no project)"} · {last.material || ""}</div>
               <div className="text-slate-700">{last.pickup_location || "—"} → {last.dropoff_location || "—"}</div>
               <div className="text-[10px] font-mono text-slate-500">
-                Completed: {last.completed_at ? new Date(last.completed_at).toLocaleString() : "—"} · Truck {last.truck_id || "—"}
+                Completed: {last.completed_at ? formatPlatformTime(last.completed_at) : "—"} · Truck {last.truck_id || "—"}
               </div>
             </div>
           ) : <div className="text-xs text-slate-500 italic">No prior assignments.</div>}
@@ -157,7 +159,7 @@ function OperationsSection({ operations }) {
         <KV
           label="Last Motive Activity"
           value={operations.last_motive_activity
-            ? `${operations.last_motive_activity.event_family} · ${new Date(operations.last_motive_activity.received_at).toLocaleString()}`
+            ? `${operations.last_motive_activity.event_family} · ${formatPlatformTime(operations.last_motive_activity.received_at)}`
             : null}
           testid="dcp-ops-last-motive"
         />
@@ -272,7 +274,7 @@ function EquipmentSection({ equipment_usage }) {
         <KV label="Last Operated" value={equipment_usage.last_operated} mono testid="dcp-eq-last" />
         <KV
           label="Last Operated At"
-          value={equipment_usage.last_operated_at ? new Date(equipment_usage.last_operated_at).toLocaleString() : null}
+          value={equipment_usage.last_operated_at ? formatPlatformTime(equipment_usage.last_operated_at) : null}
           testid="dcp-eq-last-at"
         />
       </div>
@@ -310,8 +312,8 @@ function MotiveSection({ motive }) {
           <span className={`inline-block px-1.5 py-0.5 rounded border text-[10px] font-mono uppercase tracking-wider font-bold ${statusCls}`}>{motive.driver_status}</span>
         </div>
         <KV label="Driver ID" value={motive.driver_id} mono testid="dcp-motive-id" />
-        <KV label="Last Sync" value={motive.last_sync ? new Date(motive.last_sync).toLocaleString() : null} testid="dcp-motive-sync" />
-        <KV label="Last GPS Activity" value={motive.located_at ? new Date(motive.located_at).toLocaleString() : null} testid="dcp-motive-located" />
+        <KV label="Last Sync" value={motive.last_sync ? formatPlatformTime(motive.last_sync) : null} testid="dcp-motive-sync" />
+        <KV label="Last GPS Activity" value={motive.located_at ? formatPlatformTime(motive.located_at) : null} testid="dcp-motive-located" />
       </div>
     </Section>
   );
@@ -355,7 +357,7 @@ function ActivitySection({ activity }) {
           const sevCls = sev === "critical" || sev === "high"
             ? "bg-rose-100 text-rose-900 border-rose-300"
             : "bg-slate-100 text-slate-700 border-slate-300";
-          const when = ev.received_at ? new Date(ev.received_at).toLocaleString() : "—";
+          const when = ev.received_at ? formatPlatformTime(ev.received_at) : "—";
           return (
             <li key={`ev-${i}`} className="flex items-start gap-2 py-1.5 border-b border-slate-100 last:border-0 text-xs">
               <span className={`inline-block px-1.5 py-0.5 rounded border text-[10px] font-mono uppercase tracking-wider font-bold ${sevCls}`}>

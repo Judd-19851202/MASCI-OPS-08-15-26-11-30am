@@ -24,6 +24,8 @@ import React from "react";
 import { ScrollText, RotateCcw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 function _humanizeAge(savedAt, t) {
   if (!savedAt) return "";
@@ -35,7 +37,7 @@ function _humanizeAge(savedAt, t) {
   if (hrs < 24) return `${hrs}${t("h ago")}`;
   const days = Math.floor(hrs / 24);
   if (days < 14) return `${days}${t("d ago")}`;
-  return new Date(savedAt).toLocaleString();
+  return formatPlatformTime(savedAt);
 }
 
 export default function DraftRestorePrompt({

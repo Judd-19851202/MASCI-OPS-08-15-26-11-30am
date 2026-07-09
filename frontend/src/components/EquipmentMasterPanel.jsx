@@ -41,6 +41,8 @@ import { operationalError } from "@/lib/errors";
 import WhereUsedPanel from "@/components/WhereUsedPanel";
 import AssetHistoryTimeline from "@/components/AssetHistoryTimeline";
 import { useWindowedRows } from "@/lib/useWindowedRows";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 // LIST-VIRT-001 — Equipment master table virtualization.
 // Fixed row height measured live in preview at 50px (px-3 py-2 + text-sm + 1px border).
@@ -518,7 +520,7 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
                         <td className="px-3 py-2 text-slate-800">{[u.make, u.model].filter(Boolean).join(" ") || u.make_model || "—"}</td>
                         <td className="px-3 py-2 text-slate-500 text-xs">{u.category || "—"}</td>
                         <td className="px-3 py-2 text-xs text-slate-500 whitespace-nowrap">
-                          {u.deleted_at ? new Date(u.deleted_at).toLocaleString() : "—"}
+                          {u.deleted_at ? formatPlatformTime(u.deleted_at) : "—"}
                         </td>
                         <td className="px-3 py-2 text-right whitespace-nowrap">
                           <Button

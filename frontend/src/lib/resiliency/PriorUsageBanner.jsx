@@ -27,6 +27,8 @@ import React, { useEffect, useState } from "react";
 import { LifeBuoy, Copy, Check, ChevronDown, ChevronUp, X } from "lucide-react";
 import { getDeviceId, emitDraftEvent } from "@/lib/resiliency";
 import { toast } from "sonner";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 function _shortId(deviceId) {
   if (!deviceId) return "—";
@@ -41,7 +43,7 @@ function _fmtRelative(ts) {
   if (hrs < 24) return `${hrs}h ago`;
   const days = Math.floor(hrs / 24);
   if (days < 30) return `${days} day${days === 1 ? "" : "s"} ago`;
-  return new Date(ts).toLocaleDateString();
+  return formatPlatformDate(ts);
 }
 
 export default function PriorUsageBanner({

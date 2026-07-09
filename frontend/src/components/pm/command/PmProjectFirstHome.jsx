@@ -40,6 +40,8 @@ import {
   ChevronLeft, ChevronRight, X as XIcon,
 } from "lucide-react";
 import { useT } from "@/lib/i18n";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 // Track 15.12A · Photo Workflow Recovery — same signed-URL pattern the
@@ -501,7 +503,7 @@ function FieldTruth({ photos, dailies, loading }) {
                       {d.project_name || d.project_number || t("(no project)")}
                     </span>
                     <span className="text-[10px] font-mono text-slate-400 shrink-0">
-                      {d.created_at ? new Date(d.created_at).toLocaleDateString() : ""}
+                      {d.created_at ? formatPlatformDate(d.created_at) : ""}
                     </span>
                   </Link>
                 </li>

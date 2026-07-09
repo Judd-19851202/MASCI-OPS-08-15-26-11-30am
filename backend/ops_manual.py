@@ -180,8 +180,11 @@ SECTIONS: List[Tuple[str, List[Block]]] = [
         ("table",
             ["Layer", "Cadence", "Storage", "Purpose"],
             [
+                # TRACK-27.03-EXEMPT: admin ops-manual scheduler doctrine text (documents when backend UTC cron runs)
                 ["Hourly R2 cloud archive (iter85)", "Every UTC hour when BACKUP_R2_HOURLY=true", "Cloudflare R2 — `r2://<bucket>/backups/`", "Closes data-loss window to ~1 hour. Each archive contains Mongo + inlined photo bytes. Self-contained."],
+                # TRACK-27.03-EXEMPT: admin ops-manual scheduler doctrine text
                 ["Nightly email backup", "Every UTC night (configurable BACKUP_HOURS_UTC)", "Email attachment to BACKUP_EMAIL_TO", "Off-site copy in admin's inbox. Slim DB + JSON manifest."],
+                # TRACK-27.03-EXEMPT: admin ops-manual scheduler doctrine text
                 ["Weekly verification email (iter79)", "Mondays 14:00 UTC", "Email report to BACKUP_VERIFY_TO recipients", "Confirms R2 archives are alive, recent, and well-sized. Positive heartbeat — catches silent upload failures."],
             ]),
         ("h3", "On-Demand Snapshot — Pre-Deploy Snapshot Panel (iter85)"),

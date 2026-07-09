@@ -17,6 +17,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const VERDICT_TONE = {
   pass: { color: "text-green-700", bg: "bg-green-50", border: "border-green-300", label: "HEALTHY" },
@@ -219,7 +221,7 @@ export default function AdminBackupVerificationPanel() {
               {tone?.label}
             </div>
             <div className="ml-auto text-xs font-mono text-slate-500 tracking-wider uppercase">
-              {report.ts ? new Date(report.ts).toLocaleString() : ""}
+              {report.ts ? formatPlatformTime(report.ts) : ""}
             </div>
           </div>
 

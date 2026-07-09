@@ -1,4 +1,6 @@
 import React from "react";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 /** Colored circle with initials. Stable color from the user id hash. */
 export function UserAvatar({ name, userId, size = "md", className = "" }) {
@@ -45,7 +47,7 @@ export function relativeTime(iso) {
   if (s < 86400) return `${Math.floor(s / 3600)}h`;
   if (s < 86400 * 2) return "yesterday";
   if (s < 86400 * 7) return `${Math.floor(s / 86400)}d`;
-  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  return formatPlatformDate(iso);
 }
 
 /** Robust FastAPI error → string. */

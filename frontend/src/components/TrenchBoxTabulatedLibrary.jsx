@@ -18,6 +18,8 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const REACT_APP_BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -286,7 +288,7 @@ export default function TrenchBoxTabulatedLibrary({ adminMode = false }) {
                           </span>
                           <span className="text-[10px] text-slate-400 shrink-0 hidden sm:inline">
                             {f.uploaded_at
-                              ? new Date(f.uploaded_at).toLocaleDateString()
+                              ? formatPlatformDate(f.uploaded_at)
                               : ""}
                           </span>
                           {adminMode && (

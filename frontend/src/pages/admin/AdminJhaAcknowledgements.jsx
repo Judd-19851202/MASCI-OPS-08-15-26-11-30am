@@ -18,6 +18,8 @@ import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
 import { ClipboardCheck, FileText, User, Loader2, RefreshCw } from "lucide-react";
 import { formatEmployeeIdentity } from "@/lib/identity";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 export default function AdminJhaAcknowledgements() {
   const [summary, setSummary] = useState(null);
@@ -159,7 +161,7 @@ export default function AdminJhaAcknowledgements() {
                       <td className="px-3 py-2 text-right">{row.distinct_employees}</td>
                       <td className="px-3 py-2 text-xs text-slate-600">
                         {row.latest_acknowledged_at
-                          ? new Date(row.latest_acknowledged_at).toLocaleString()
+                          ? formatPlatformTime(row.latest_acknowledged_at)
                           : "—"}
                       </td>
                       <td className="px-3 py-2 text-right">
@@ -240,7 +242,7 @@ export default function AdminJhaAcknowledgements() {
                   <div className="text-[11px] text-slate-500 mt-0.5">
                     Uploaded{" "}
                     {row.file?.uploaded_at
-                      ? new Date(row.file.uploaded_at).toLocaleString()
+                      ? formatPlatformTime(row.file.uploaded_at)
                       : "—"}{" "}
                     · {row.ack_count} acknowledgements
                   </div>
@@ -254,7 +256,7 @@ export default function AdminJhaAcknowledgements() {
                           <b className="text-slate-900">{formatEmployeeIdentity(a) || a.employee_name}</b>
                           <span className="text-slate-500">{a.employee_email}</span>
                           <span className="ml-auto font-mono text-[10px] text-slate-500">
-                            {new Date(a.acknowledged_at).toLocaleString()} · {a.locale}
+                            {formatPlatformTime(a.acknowledged_at)} · {a.locale}
                           </span>
                           <span className="w-full text-[11px] italic text-slate-600 pt-1">
                             Signature: &quot;{a.signature}&quot;
@@ -339,7 +341,7 @@ export default function AdminJhaAcknowledgements() {
                     </span>
                     <span className="text-slate-800 truncate max-w-md">{a.jha_filename}</span>
                     <span className="ml-auto font-mono text-[10px] text-slate-500">
-                      {new Date(a.acknowledged_at).toLocaleString()}
+                      {formatPlatformTime(a.acknowledged_at)}
                     </span>
                   </li>
                 ))}

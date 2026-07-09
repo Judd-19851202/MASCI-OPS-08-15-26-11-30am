@@ -13,6 +13,8 @@ import { getShopToken } from "@/lib/shopAuth";
 import { PortalShell, Card, EmptyState } from "../../design-system";
 import BackToShopLink from "@/components/shop/BackToShopLink";
 import RepairCompletionForm from "../../components/shop/RepairCompletionForm";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -48,10 +50,10 @@ function AssignmentRow({ defect, bucketId, actorName, onAccept, onStart, onCompl
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const unitNumber = defect.trailer_unit_number || defect.truck_unit_number || "—";
-  const reportedAt = defect.reported_at ? new Date(defect.reported_at).toLocaleString() : "—";
-  const acceptedAt = defect.accepted_at ? new Date(defect.accepted_at).toLocaleString() : "—";
-  const startedAt = defect.repair_started_at ? new Date(defect.repair_started_at).toLocaleString() : "—";
-  const completedAt = defect.repaired_at ? new Date(defect.repaired_at).toLocaleString() : "—";
+  const reportedAt = defect.reported_at ? formatPlatformTime(defect.reported_at) : "—";
+  const acceptedAt = defect.accepted_at ? formatPlatformTime(defect.accepted_at) : "—";
+  const startedAt = defect.repair_started_at ? formatPlatformTime(defect.repair_started_at) : "—";
+  const completedAt = defect.repaired_at ? formatPlatformTime(defect.repaired_at) : "—";
 
   const doAccept = async () => {
     setBusy(true); setErr("");

@@ -42,6 +42,8 @@ const TAB_TO_STATUSES = {
 import StatusBadge from "@/components/StatusBadge";
 import EmptyState from "@/components/EmptyState";
 import GlobalSearch from "@/components/GlobalSearch";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const ALL_STATUSES = [
   "Open", "In Progress", "Pending Review", "Completed", "Closed", "Cancelled",
@@ -194,8 +196,8 @@ export default function Tasks() {
                   </div>
                   <div className="font-bold text-sm text-slate-900 mt-1.5 truncate">{t.title}</div>
                   <div className="text-[11px] text-slate-500 mt-0.5 font-mono">
-                    {t.source_module} · created {new Date(t.created_at).toLocaleString()}
-                    {t.due_at && ` · due ${new Date(t.due_at).toLocaleDateString()}`}
+                    {t.source_module} · created {formatPlatformTime(t.created_at)}
+                    {t.due_at && ` · due ${formatPlatformDate(t.due_at)}`}
                   </div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-slate-300 mt-1" />
@@ -300,12 +302,12 @@ function TaskDrawer({ taskId, onClose }) {
                 </div>
                 <div>
                   <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold mb-0.5">Created</div>
-                  <div className="text-slate-700">{new Date(task.created_at).toLocaleString()}</div>
+                  <div className="text-slate-700">{formatPlatformTime(task.created_at)}</div>
                 </div>
                 {task.due_at && (
                   <div>
                     <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold mb-0.5">Due</div>
-                    <div className="text-slate-700">{new Date(task.due_at).toLocaleString()}</div>
+                    <div className="text-slate-700">{formatPlatformTime(task.due_at)}</div>
                   </div>
                 )}
                 {task.linked_project_number && (
@@ -346,7 +348,7 @@ function TaskDrawer({ taskId, onClose }) {
                     <li key={idx} className="bg-slate-50 rounded-md px-3 py-2 text-xs" data-testid={`task-comment-${idx}`}>
                       <div className="font-bold text-slate-800">{c.by?.name || c.by?.role || "system"}</div>
                       <div className="text-slate-700 mt-0.5">{c.body}</div>
-                      <div className="font-mono text-[10px] text-slate-400 mt-0.5">{new Date(c.at).toLocaleString()}</div>
+                      <div className="font-mono text-[10px] text-slate-400 mt-0.5">{formatPlatformTime(c.at)}</div>
                     </li>
                   ))}
                 </ul>
@@ -369,7 +371,7 @@ function TaskDrawer({ taskId, onClose }) {
                   <ul className="text-[11px] text-slate-600 space-y-1">
                     {(task.audit || []).slice().reverse().map((a, idx) => (
                       <li key={idx}>
-                        <span className="font-mono">{new Date(a.at).toLocaleString()}</span>
+                        <span className="font-mono">{formatPlatformTime(a.at)}</span>
                         {" · "}
                         <span className="font-bold">{a.action}</span>
                         {a.by?.name && ` by ${a.by.name}`}

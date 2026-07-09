@@ -22,6 +22,8 @@ import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { usePageTitle } from "@/lib/usePageTitle";
 import LastActivityLine from "@/components/admin/LastActivityLine";
+// TRACK 27.03 · Final Completion · canonical local-time formatter.
+import { formatPlatformTime } from "@/lib/platformTime";
 
 const SCHEDULER_OPTIONS = [
   { value: "", label: "All schedulers" },
@@ -55,10 +57,7 @@ function StatusBadge({ status, dedup }) {
 
 function fmtTime(iso) {
   if (!iso) return "—";
-  try {
-    const d = new Date(iso);
-    return d.toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" });
-  } catch (_) { return iso; }
+  return formatPlatformTime(iso);
 }
 
 function fmtDur(s) {

@@ -215,7 +215,7 @@ function ShopRecoveryMap() {
     counts: data?.counts || {},
   }), [shopAssets, data]);
 
-  const updated = lastFetchMs ? new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—";
+  const updated = lastFetchMs ? formatPlatformTimeOnly() : "—";
   const maintenanceCount = shopAssets.filter((a) => a.attention_reason === "maintenance").length;
   const inspectionCount  = shopAssets.filter((a) => a.attention_reason === "inspection").length;
   const gridCols = narrow ? "minmax(0, 1fr)" : "minmax(0, 1fr) minmax(0, 360px)";
@@ -341,6 +341,8 @@ function ShopRecoveryMap() {
 
 import UnitSearchComponent from "@/components/shop/UnitSearch";
 import YourQueueStripComponent from "@/components/shop/YourQueueStrip";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 function HubCard({ to, testid, title, body, metric, status, dense }) {
   const showMetric = metric !== undefined && metric !== null;
@@ -691,7 +693,7 @@ export default function ShopHubV2() {
         }
         lastActivity={
           <span data-testid="shop-hub-v2-last-activity">
-            {s.loaded ? `Refreshed ${new Date(s.refreshedAt).toLocaleTimeString()}` : "Loading live signals…"}
+            {s.loaded ? `Refreshed ${formatPlatformTimeOnly(s.refreshedAt)}` : "Loading live signals…"}
           </span>
         }
         sideNav={isShopSidebarV2Enabled() ? <ShopSideNavV2 /> : undefined}

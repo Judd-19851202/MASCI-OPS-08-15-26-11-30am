@@ -27,6 +27,8 @@ import {
 } from "../design-system";
 import SafetySideNavV2 from "@/components/safety/sidebar/SafetySideNavV2";
 import OiAttentionStrip from "@/components/operational_intelligence/OiAttentionStrip";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -174,7 +176,7 @@ export default function SafetyHubV2() {
         sideNav={<SafetySideNavV2 />}
         lastActivity={
           <span data-testid="safety-hub-v2-last-activity">
-            {s.loaded ? `Refreshed ${new Date(s.refreshedAt).toLocaleTimeString()}` : "Loading live signals…"}
+            {s.loaded ? `Refreshed ${formatPlatformTimeOnly(s.refreshedAt)}` : "Loading live signals…"}
           </span>
         }
       >

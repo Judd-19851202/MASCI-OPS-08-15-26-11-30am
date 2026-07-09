@@ -30,6 +30,8 @@ import { useT } from "@/lib/i18n";
 import { getAdminToken } from "@/lib/adminAuth";
 import { getDispatchToken } from "@/lib/dispatchAuth";
 import { stagePhoto, flushStaged, StagedPhotoBadge } from "@/lib/resiliency";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const MAX_BYTES = 5 * 1024 * 1024;
@@ -63,7 +65,7 @@ function _authHeaders() {
 
 function _fmt(iso) {
   if (!iso) return "—";
-  try { return new Date(iso).toLocaleString(); } catch { return iso; }
+  try { return formatPlatformTime(iso); } catch { return iso; }
 }
 
 export default function AttachmentStrip({ assignmentId, canWrite = true }) {

@@ -21,6 +21,8 @@
 
 import React, { useEffect, useState } from "react";
 import { LifeBuoy, X } from "lucide-react";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 function _fmtRelative(ts) {
   if (!ts) return "earlier";
@@ -30,7 +32,7 @@ function _fmtRelative(ts) {
   if (mins < 60) return `${mins}m ago`;
   const hrs = Math.floor(mins / 60);
   if (hrs < 24) return `${hrs}h ago`;
-  return new Date(ts).toLocaleString();
+  return formatPlatformTime(ts);
 }
 
 export default function DraftRecoveryNotice({

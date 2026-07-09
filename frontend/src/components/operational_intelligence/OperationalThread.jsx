@@ -21,6 +21,8 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const KIND_TONE = {
   inspection: { label: "Inspection",  cls: "bg-sky-100 text-sky-900 border-sky-300" },
@@ -37,10 +39,7 @@ const KIND_TONE = {
 function fmt(dt) {
   if (!dt) return "—";
   try {
-    return new Date(dt).toLocaleString(undefined, {
-      year: "numeric", month: "short", day: "numeric",
-      hour: "2-digit", minute: "2-digit",
-    });
+    return formatPlatformTime(dt);
   } catch {
     return String(dt);
   }

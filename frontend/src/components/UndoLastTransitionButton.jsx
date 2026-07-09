@@ -27,6 +27,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Undo2, Loader2 } from "lucide-react";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 export function UndoLastTransitionButton({ workflow, recordId, onUndone }) {
   const [last, setLast] = useState(null);
@@ -68,7 +70,7 @@ export function UndoLastTransitionButton({ workflow, recordId, onUndone }) {
   const ev = last.last_event || {};
   const fromState = ev.from_state || "—";
   const toState = ev.to_state || "—";
-  const at = ev.at ? new Date(ev.at).toLocaleString() : "—";
+  const at = ev.at ? formatPlatformTime(ev.at) : "—";
   const actor = ev.actor_name || ev.actor_role || "—";
 
   const submit = async () => {

@@ -22,6 +22,8 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { BackendVersionBadge } from "@/components/BackendVersionBadge";
 import SystemHealthBadge from "@/components/SystemHealthBadge";
+// TRACK 27.03 · Final Completion · canonical local-time formatter.
+import { formatPlatformTimeOnly } from "@/lib/platformTime";
 import PortalSwitcher from "@/components/PortalSwitcher";
 import NotificationBell from "@/components/NotificationBell";
 import { OfflineIndicator } from "@/lib/resiliency";
@@ -126,7 +128,7 @@ export default function AdminShell({ title, section, children, intro }) {
     const id = setInterval(() => setNow(new Date()), 30 * 1000);
     return () => clearInterval(id);
   }, []);
-  const localTimeLabel = now.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  const localTimeLabel = formatPlatformTimeOnly(now);
   // Phase IV.A.1 — Feature-flagged V2 sidebar. Resolved once per mount
   // so toggling the flag requires a page reload (predictable rollout).
   // Legacy <SideNav> remains the default; V2 must be opted in.

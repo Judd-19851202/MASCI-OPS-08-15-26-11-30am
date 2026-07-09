@@ -10,6 +10,8 @@ import {
   AlertTriangle, ChevronLeft, Download, FileText, Lock, ScrollText,
   ShieldCheck, TrendingUp, Users,
 } from "lucide-react";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -28,7 +30,7 @@ function _headers() {
 
 function _fmt(v) {
   if (v === null || v === undefined || v === "") return "";
-  try { return new Date(v).toLocaleString(); } catch { return String(v); }
+  try { return formatPlatformTime(v); } catch { return String(v); }
 }
 
 function NotDocumented() {

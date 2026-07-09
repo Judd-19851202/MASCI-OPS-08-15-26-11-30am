@@ -32,6 +32,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { captureSignature } from "@/lib/signaturesApi";
 import { friendlyError } from "@/lib/friendlyErrors";
 import { toast } from "sonner";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 export default function SignatureCapture({
   sourceModule,
@@ -164,7 +166,7 @@ export default function SignatureCapture({
             </div>
             <div className="font-bold text-slate-900 text-sm mt-0.5">{captured.signer_name}</div>
             <div className="font-mono text-[10px] text-slate-500 mt-0.5">
-              {captured.signature_type} · {new Date(captured.created_at).toLocaleString()}
+              {captured.signature_type} · {formatPlatformTime(captured.created_at)}
             </div>
             {captured.refusal && captured.refusal_reason && (
               <div className="text-xs text-slate-700 mt-1.5">

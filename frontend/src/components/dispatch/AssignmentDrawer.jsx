@@ -24,6 +24,8 @@ import { useT } from "@/lib/i18n";
 import AttachmentStrip from "@/components/dispatch/AttachmentStrip";
 import OperationalMomentsRail from "@/components/dispatch/OperationalMomentsRail";
 import DispatchDecisionChip from "@/components/dispatch/DispatchDecisionChip";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -40,7 +42,7 @@ function authHeaders(tenantOverride) {
 function fmtDt(iso) {
   if (!iso) return "—";
   try {
-    return new Date(iso).toLocaleString();
+    return formatPlatformTime(iso);
   } catch {
     return iso;
   }

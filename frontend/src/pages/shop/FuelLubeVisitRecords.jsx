@@ -6,6 +6,8 @@ import { getAdminToken } from "@/lib/adminAuth";
 import { getShopToken } from "@/lib/shopAuth";
 import { PortalShell, Card, EmptyState } from "../../design-system";
 import BackToShopLink from "@/components/shop/BackToShopLink";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const RANGES = [
@@ -154,7 +156,7 @@ export default function FuelLubeVisitRecords() {
                         </div>
                         <div style={{ fontSize: 11, color: "#555", marginTop: 2 }}>
                           Truck <strong>{v.fuel_lube_truck_unit || "—"}</strong> · Tech <strong>{v.fuel_lube_tech_name || "—"}</strong> ·
-                          submitted {v.submitted_at ? new Date(v.submitted_at).toLocaleString() : "—"}
+                          submitted {v.submitted_at ? formatPlatformTime(v.submitted_at) : "—"}
                         </div>
                         <div style={{ fontSize: 11, color: "#555", marginTop: 2 }}>
                           Units serviced: <strong>{t.units_serviced ?? "—"}</strong> · Greased: {t.greased_count ?? 0} ·

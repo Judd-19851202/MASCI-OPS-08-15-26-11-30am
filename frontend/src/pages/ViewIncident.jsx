@@ -29,6 +29,8 @@ import {
   SEVERITY_LEVELS,
   ROOT_CAUSE_CATEGORIES,
 } from "@/lib/incidentSchema";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const ReportSection = ({ number, title, children }) => (
   <section className="bg-white border border-slate-200 rounded-md p-5 sm:p-7 print-section">
@@ -742,7 +744,7 @@ export default function ViewIncident() {
 
         <div className="text-center font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500 pt-4 pb-8 print-section">
           {t("Generated")}{" "}
-          {data.created_at ? new Date(data.created_at).toLocaleString() : ""} ·{" "}
+          {data.created_at ? formatPlatformTime(data.created_at) : ""} ·{" "}
           {company.company_name || "MASCI"} {t("Incident Report")}
         </div>
         {(company.address ||

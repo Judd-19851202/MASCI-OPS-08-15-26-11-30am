@@ -19,6 +19,8 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AlertTriangle, CircleSlash, CheckCircle2, Clock, Boxes, Activity, RefreshCcw, ExternalLink } from "lucide-react";
 import { useT } from "@/lib/i18n";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -64,7 +66,7 @@ export default function DispatchLiveSnapshot({ className = "" }) {
   const tiles = snap?.operational_summary || [];
   const feed = snap?.feed_status || {};
   const asOf = snap?.last_updated_at || snap?.as_of || null;
-  const asOfDisplay = asOf ? new Date(asOf).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—";
+  const asOfDisplay = asOf ? formatPlatformTimeOnly(asOf) : "—";
   const feedTone =
     feed.status === "live" ? "emerald"
     : feed.status === "stale" ? "amber"

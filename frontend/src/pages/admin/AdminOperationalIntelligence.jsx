@@ -29,6 +29,8 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
 import { DrV2ApprovedReportsPanel } from "@/components/DrV2ApprovedReportsPanel";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const ATTENTION_COLORS = {
   LOW:      "bg-emerald-100 text-emerald-800 border-emerald-300",
@@ -208,11 +210,11 @@ function ProductCard({ p, onPreview, onDryRun, onHistory, onAudit }) {
         </div>
         <div>
           <span className="font-semibold">Last generated:</span>{" "}
-          {p.last_generated_at ? new Date(p.last_generated_at).toLocaleString() : "—"}
+          {p.last_generated_at ? formatPlatformTime(p.last_generated_at) : "—"}
         </div>
         <div>
           <span className="font-semibold">Last sent:</span>{" "}
-          {p.last_sent_at ? new Date(p.last_sent_at).toLocaleString() : "—"}
+          {p.last_sent_at ? formatPlatformTime(p.last_sent_at) : "—"}
           {p.last_status ? ` (${p.last_status}${p.last_recipient_count != null ? ` · ${p.last_recipient_count} recipients` : ""})` : ""}
         </div>
       </div>
@@ -605,7 +607,7 @@ export default function AdminOperationalIntelligence() {
               rows={historyRows}
               empty="No history rows recorded yet for this product."
               columns={[
-                { label: "Generated", render: (r) => r.generated_at ? new Date(r.generated_at).toLocaleString() : "—" },
+                { label: "Generated", render: (r) => r.generated_at ? formatPlatformTime(r.generated_at) : "—" },
                 { label: "Period", key: "period" },
                 { label: "Score", render: (r) => r.score?.overall_score ?? "—" },
                 { label: "Attention", render: (r) => <AttentionChip level={r.score?.attention_level} /> },
@@ -633,7 +635,7 @@ export default function AdminOperationalIntelligence() {
               rows={auditRows}
               empty="No audit rows recorded yet for this product."
               columns={[
-                { label: "At", render: (r) => r.at ? new Date(r.at).toLocaleString() : "—" },
+                { label: "At", render: (r) => r.at ? formatPlatformTime(r.at) : "—" },
                 { label: "Event", key: "event" },
                 { label: "Actor", key: "actor" },
                 { label: "Status", render: (r) => (r.payload?.send_status) || "—" },

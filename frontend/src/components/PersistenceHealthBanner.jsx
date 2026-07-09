@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
 import { useT } from "@/lib/i18n";
 import { useCaptureMode } from "@/lib/captureMode";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 /**
  * PersistenceHealthBanner — prominent warning when the app is running with
@@ -146,7 +148,7 @@ export default function PersistenceHealthBanner() {
           {status.last_backup && (
             <div className="mt-3 text-[11px] font-mono text-red-900 opacity-75">
               {t("Last on-server backup:")} <strong>{status.last_backup.filename}</strong> ·
-              {" "}{new Date(status.last_backup.created_at).toLocaleString()}
+              {" "}{formatPlatformTime(status.last_backup.created_at)}
             </div>
           )}
         </div>

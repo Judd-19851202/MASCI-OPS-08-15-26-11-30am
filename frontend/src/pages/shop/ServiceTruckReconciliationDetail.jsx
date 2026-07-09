@@ -9,6 +9,8 @@ import { getShopToken } from "@/lib/shopAuth";
 import { PortalShell, Card } from "../../design-system";
 import BackToShopLink from "@/components/shop/BackToShopLink";
 import { formatEmployeeIdentity } from "@/lib/identity";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 function authHeaders() {
@@ -110,9 +112,9 @@ export default function ServiceTruckReconciliationDetail() {
                 <div>Status: <strong data-testid="strr-detail-status">{doc.status}</strong></div>
                 <div>Variance status: <StatusChip status={doc.variance_status} /></div>
                 <div>Visits linked: <strong data-testid="strr-detail-visit-count">{doc.dispensed_quantities?.visit_count ?? 0}</strong></div>
-                <div>Start submitted: <strong>{doc.start_submitted_at ? new Date(doc.start_submitted_at).toLocaleString() : "—"}</strong></div>
-                <div>End submitted: <strong>{doc.end_submitted_at ? new Date(doc.end_submitted_at).toLocaleString() : "—"}</strong></div>
-                <div>Reviewed by: <strong>{doc.reviewed_by || "—"}</strong>{doc.reviewed_at ? ` · ${new Date(doc.reviewed_at).toLocaleString()}` : ""}</div>
+                <div>Start submitted: <strong>{doc.start_submitted_at ? formatPlatformTime(doc.start_submitted_at) : "—"}</strong></div>
+                <div>End submitted: <strong>{doc.end_submitted_at ? formatPlatformTime(doc.end_submitted_at) : "—"}</strong></div>
+                <div>Reviewed by: <strong>{doc.reviewed_by || "—"}</strong>{doc.reviewed_at ? ` · ${formatPlatformTime(doc.reviewed_at)}` : ""}</div>
               </div>
             </Card>
 

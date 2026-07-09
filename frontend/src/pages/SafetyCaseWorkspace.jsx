@@ -12,6 +12,8 @@ import {
   Activity, AlertTriangle, ArrowRight, CheckCircle2, ChevronLeft, Clipboard,
   FileText, Heart, Lock, MessageSquare, Paperclip, Shield, Users, Wrench,
 } from "lucide-react";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const TABS = [
   // Track 19.35 · Field Facts tab — always first · always immutable.
@@ -49,17 +51,17 @@ const BLOCKER_TAB = {
 
 function _fmt(dt) {
   if (!dt) return "—";
-  try { return new Date(dt).toLocaleString(); } catch { return dt; }
+  try { return formatPlatformTime(dt); } catch { return dt; }
 }
 
 function _fmtDate(dt) {
   if (!dt) return "";
-  try { return new Date(dt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }); } catch { return dt; }
+  try { return formatPlatformDate(dt); } catch { return dt; }
 }
 
 function _fmtTime(dt) {
   if (!dt) return "";
-  try { return new Date(dt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }); } catch { return ""; }
+  try { return formatPlatformTimeOnly(dt); } catch { return ""; }
 }
 
 // Track 19.18 · Compose a one-paragraph "case story" straight from field_block.

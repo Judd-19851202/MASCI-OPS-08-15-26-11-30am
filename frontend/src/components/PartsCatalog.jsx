@@ -7,6 +7,8 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { useT, getLang } from "@/lib/i18n";
 import { translateUserInput } from "@/lib/translateOnSubmit";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 /**
  * Per-unit parts catalog. Mechanics:
@@ -271,7 +273,7 @@ export default function PartsCatalog() {
                 <div className="text-xs font-mono uppercase tracking-wider text-slate-600 mt-0.5">
                   {unit.category || "—"}
                   {doc.updated_at && (
-                    <> · {t("Last updated")}: {new Date(doc.updated_at).toLocaleString()} {t("by")} {doc.updated_by || "—"}</>
+                    <> · {t("Last updated")}: {formatPlatformTime(doc.updated_at)} {t("by")} {doc.updated_by || "—"}</>
                   )}
                 </div>
               </div>

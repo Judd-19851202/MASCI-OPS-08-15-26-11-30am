@@ -24,6 +24,8 @@ import { useParams, Link } from "react-router-dom";
 import { getAdminToken } from "@/lib/adminAuth";
 import { getShopToken } from "@/lib/shopAuth";
 import OperationalThreadPage from "@/components/operational_intelligence/OperationalThreadPage";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -315,7 +317,7 @@ export default function FleetUnitThread() {
   }, [state.events, state.extinguishers, unit_number]);
 
   const lastUpdatedIso = state.events[0]?.timestamp || null;
-  const lastUpdated = lastUpdatedIso ? new Date(lastUpdatedIso).toLocaleString() : "—";
+  const lastUpdated = lastUpdatedIso ? formatPlatformTime(lastUpdatedIso) : "—";
 
   const mission = {
     label: `Unit ${unit_number}`,

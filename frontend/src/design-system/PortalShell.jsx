@@ -19,6 +19,8 @@ import NotificationBell from "@/components/NotificationBell";
 import PortalSwitcher from "@/components/PortalSwitcher";
 import { LangToggle } from "@/components/LangToggle";
 import { useBranding } from "@/lib/BrandingProvider";
+// TRACK 27.03 · Final Completion · canonical local-time formatter.
+import { formatPlatformTimeOnly } from "@/lib/platformTime";
 
 function useLocalClock() {
   const [now, setNow] = React.useState(() => new Date());
@@ -63,7 +65,7 @@ function formatLastActivity(value) {
   if (value instanceof Date || typeof value === "number") {
     const d = value instanceof Date ? value : new Date(value);
     if (!Number.isNaN(d.getTime())) {
-      return `Updated ${d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
+      return `Updated ${formatPlatformTimeOnly(d)}`;
     }
   }
   // React node — render as-is
@@ -98,7 +100,7 @@ export function PortalShell({
   const platformDisplay = branding.platform_display_name || "Operations Platform";
   const renderedLastActivity = formatLastActivity(lastActivity);
   const clock = useLocalClock();
-  const localTimeLabel = clock.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  const localTimeLabel = formatPlatformTimeOnly(clock);
   const signedInName = React.useMemo(() => resolveSignedInName(), []);
   const handleSignOut = () => {
     if (typeof onSignOut === "function") {

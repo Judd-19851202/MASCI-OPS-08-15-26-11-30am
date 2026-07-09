@@ -15,6 +15,8 @@ import AdminShell from "@/components/AdminShell";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { RotateCcw, Loader2, RefreshCw, Filter, Undo2 } from "lucide-react";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const WORKFLOW_LABELS = {
   incident: "Incident",
@@ -164,7 +166,7 @@ export default function AdminRecoveryStream() {
                         {ev.to_state || "—"}
                       </span>
                       <span className="ml-auto font-mono text-[10px] text-slate-500">
-                        {ev.at ? new Date(ev.at).toLocaleString() : "—"}
+                        {ev.at ? formatPlatformTime(ev.at) : "—"}
                       </span>
                     </div>
                     <div className="mt-1 text-xs text-slate-600 flex flex-wrap gap-x-3 gap-y-1">

@@ -1058,7 +1058,7 @@ _TIPS: list[dict] = [
         "form_key": "payroll-variance.batches",
         "kind": "next",
         "scopes": ["hr", "admin"],
-        "title": "What happens on Sunday at 18:00 UTC",
+        "title": "What happens on the weekly payroll cron",
         "body":
             "The weekly cron emails the most recent batch to "
             "hrmanager@mascigc.com and jaymn.judd@mascigc.com. That "

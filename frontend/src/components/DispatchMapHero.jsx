@@ -29,6 +29,8 @@ import {
   AlertTriangle, CircleSlash, CheckCircle2, Clock, Boxes, Activity, ExternalLink, Map as MapIcon,
 } from "lucide-react";
 import { useT } from "@/lib/i18n";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const ICON_BY_ID = {
   attention: AlertTriangle,
@@ -55,7 +57,7 @@ export default function DispatchMapHero({ className = "" }) {
   const tiles = data?.operational_summary || [];
   const feed = data?.feed_status || {};
   const updated = lastFetchMs
-    ? new Date(lastFetchMs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    ? formatPlatformTimeOnly(lastFetchMs)
     : "—";
 
   const feedTone =

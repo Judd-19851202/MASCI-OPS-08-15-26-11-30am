@@ -39,6 +39,8 @@ import {
   Loader2,
 } from "lucide-react";
 import { UndoLastTransitionButton } from "@/components/UndoLastTransitionButton";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const STATE_LABEL = {
   OPEN: "Open",
@@ -556,7 +558,7 @@ export function QaqcLifecyclePanel({ inspectionId }) {
                     <span className="text-slate-400">→</span>
                     <StatePill state={ev.to_state} />
                     <span className="ml-auto font-mono text-[10px] text-slate-500 uppercase tracking-wider">
-                      {new Date(ev.at).toLocaleString()}
+                      {formatPlatformTime(ev.at)}
                     </span>
                   </div>
                   <div className="mt-1.5 text-xs text-slate-600">

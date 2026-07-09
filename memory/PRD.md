@@ -15,17 +15,23 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 
 ## Active Track — 2026-07-09
 
-**TRACK 27.03 · Platform Time Standardization** — Phases 2a + 2b + 3 SHIPPED.
+**TRACK 27.03 · Platform-Wide Local Time Standardization — 🟢 FINAL COMPLETION SHIPPED**
 
-Every operator-facing surface in the user-defined scope (Daily Report PDFs & emails, HR compliance PDFs, incident/ODR PDFs, hub-banners audit PDFs, trench-safety documents, fleet severity reference, asset profile PDFs, training packets, PM welcome letter, safety exports, master history, dispatch CSVs, nightly backup email, correction-request emails, AI narratives, **AdminAuditLog / AdminCommandCenter / AdminGovernance / AdminDigestConfig / EmailRoutingV2Panel / HrHub / HrTimeVerification / OperationsControlCenter / HistoricalRecordsQueue / HrEmployeeRequestsQueue / ShopManagerQueue / UnitHistoryTimeline / HrHubV2 / HistoryFeed / AssignmentHistoryDrawer / MapTimelineDock / BannerAuditDialog / QueueStatusPill**) now emits the tenant's local wall-clock. Internal storage stays UTC — enforced by the contextual whitelist in `test_track_27_03_zero_utc_guard.py`. Fixed the App.js route drift (TRACK 22.2 Phase B moved routes into `AppRoutes.jsx`). See `CHANGELOG.md` (2026-07-09 entries) and `TRACK_27_03_PLATFORM_TIME_MIGRATION.md` for the full ledger.
+Constitutional standard now in force across MASCI / ForgedOps:
+> **All operator-facing dates and times SHALL ALWAYS display in LOCAL TIME. Internal machine storage remains UTC. Enforced by CI.**
+
+Every operator-facing timestamp on the platform (PDFs, emails, exports, AI narratives, admin panels, HR, OCC, dashboards, timelines, history feeds, queues, audit dialogs, field forms — browser UI, executive dashboards, safety, fleet, dispatch, meetings, JHA, DVIR, training, incidents, ODR, hub-banners, notifications) now routes through the ONE canonical formatter (`platformTime.js` frontend + `platform_time.py` backend).
+
+The zero-UTC guard is in **constitutional mode**: it scans the entire `frontend/src/` tree by default and fails CI if any operator-facing file bypasses the canonical formatter or leaks a hard-coded `UTC`/`GMT`/`ISO-Z` token. Machine boundaries (Mongo storage, audit chain, JSON envelopes, HTTP headers, log lines, scheduler math) carry inline `TRACK-27.03-EXEMPT: <reason>` markers.
+
+See `CHANGELOG.md` (2026-07-09 · Final Completion Track entry) and `TRACK_27_03_PLATFORM_TIME_MIGRATION.md` for the full ledger. **162/162 tests pass** including the 2 new whole-tree constitutional scanners.
 
 ### Next open work (in priority order)
-1. **TRACK 27.03 Phase 4** (P1) — remaining ~180 frontend files using `toLocaleString` (already browser-local, but not on the canonical code path yet). Field forms, PM/superintendent surfaces, legacy admin sub-panels, shop detail views.
-2. **Photo Evidence in PM PDF/email** (P1) — user-approved-in-principle, deferred.
-3. **User Timezone UI Toggle** (P2) — foreman-facing 12h/24h + zone picker.
-4. **OCC Draft Health UI Card** (P2).
-5. **Admin OS Track 25** (P3) — full admin rearchitecture (paused).
-6. **Admin Forensics query optimization** (P3) — case-insensitive regex on `jobs_master`.
+1. **Photo Evidence in PM PDF/email** (P1) — user-approved-in-principle, deferred.
+2. **User Timezone UI Toggle** (P2) — foreman-facing 12h/24h + zone picker. The plumbing already exists (`getPlatformTimezone()` reads `localStorage.masci.tz.user`); this ships the UI.
+3. **OCC Draft Health UI Card** (P2).
+4. **Admin OS Track 25** (P3) — full admin rearchitecture (paused).
+5. **Admin Forensics query optimization** (P3) — case-insensitive regex on `jobs_master`.
 
 
 

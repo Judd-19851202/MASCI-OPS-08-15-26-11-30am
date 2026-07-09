@@ -13,6 +13,8 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const fmtBytes = (n) => {
   if (!n) return "0 B";
@@ -24,9 +26,7 @@ const fmtBytes = (n) => {
 
 const fmtDate = (iso) => {
   try {
-    return new Date(iso).toLocaleString(undefined, {
-      dateStyle: "medium", timeStyle: "short",
-    });
+    return formatPlatformTime(iso);
   } catch { return iso; }
 };
 

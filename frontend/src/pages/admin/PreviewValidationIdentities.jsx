@@ -21,6 +21,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const ROLES = [
   "admin", "pm", "safety", "hr", "shop",
@@ -29,7 +31,7 @@ const ROLES = [
 
 function fmtTime(iso) {
   if (!iso) return "—";
-  try { return new Date(iso).toLocaleString(); } catch { return String(iso); }
+  try { return formatPlatformTime(iso); } catch { return String(iso); }
 }
 
 function fmtRelativeFuture(iso) {

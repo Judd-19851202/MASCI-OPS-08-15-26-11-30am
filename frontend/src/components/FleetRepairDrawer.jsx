@@ -16,6 +16,8 @@ import { Button } from "@/components/ui/button";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { HelpTipBlock } from "@/components/HelpTip";
 import { useT } from "@/lib/i18n";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 function ModalShell({ titleIcon, title, kicker, accent, onClose, children, testId }) {
   const sheetRef = useRef(null);
@@ -298,7 +300,7 @@ export function RtsDrawer({ open, defect, accent, onClose, onSubmit }) {
           {defect.repaired_by_name && (
             <div className="text-[11px] text-emerald-800 mt-1 font-mono">
               {t("by")} {defect.repaired_by_name}
-              {defect.repaired_at && ` · ${new Date(defect.repaired_at).toLocaleString()}`}
+              {defect.repaired_at && ` · ${formatPlatformTime(defect.repaired_at)}`}
             </div>
           )}
           {Array.isArray(defect.repair_photos) && defect.repair_photos.length > 0 && (

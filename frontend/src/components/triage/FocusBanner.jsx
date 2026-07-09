@@ -24,6 +24,8 @@ import { useLocation } from "react-router-dom";
 import { getAdminToken } from "@/lib/adminAuth";
 import { getPmToken } from "@/lib/pmAuth";
 import { getDispatchToken } from "@/lib/dispatchAuth";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -260,7 +262,7 @@ export default function FocusBanner() {
         headline={`Defect · ${r.truck_unit_number || "truck"} · ${r.status || "—"}`}
         sublines={[
           `${r.category || "defect"} — ${r.item_text || ""}`.trim(),
-          r.reported_at ? `Reported ${new Date(r.reported_at).toLocaleString()}` : null,
+          r.reported_at ? `Reported ${formatPlatformTime(r.reported_at)}` : null,
         ].filter(Boolean)}
         scopeNote="Loaded from real fleet_defects row"
         testId="focus-banner-defect"
@@ -291,7 +293,7 @@ export default function FocusBanner() {
         headline={`Assignment · ${r.driver_name || r.driver || "driver"} · ${r.status || "—"}`}
         sublines={[
           `Truck: ${r.truck_id || r.truck_unit_number || "—"} · Project: ${r.project_number || "—"}`,
-          r.shift_start_at ? `Shift start: ${new Date(r.shift_start_at).toLocaleString()}` : null,
+          r.shift_start_at ? `Shift start: ${formatPlatformTime(r.shift_start_at)}` : null,
         ].filter(Boolean)}
         scopeNote="Loaded from real dispatch_assignments row"
         testId="focus-banner-assignment"

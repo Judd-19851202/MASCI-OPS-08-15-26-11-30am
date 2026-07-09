@@ -23,6 +23,8 @@
 import React, { useEffect, useState } from "react";
 import { CloudUpload, Check, AlertTriangle, WifiOff, Send, CheckCheck } from "lucide-react";
 import { useT } from "@/lib/i18n";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 function _formatRelative(ts, t) {
   if (!ts) return "";
@@ -33,7 +35,7 @@ function _formatRelative(ts, t) {
   if (mins < 60) return `${mins}${t("m ago")}`;
   const hrs = Math.floor(mins / 60);
   if (hrs < 24) return `${hrs}${t("h ago")}`;
-  return new Date(ts).toLocaleString();
+  return formatPlatformTime(ts);
 }
 
 function _failedReason(err, t) {

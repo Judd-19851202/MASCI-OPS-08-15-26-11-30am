@@ -25,11 +25,13 @@ import { usePageTitle } from "@/lib/usePageTitle";
 import { useT } from "@/lib/i18n";
 import { listPasskeys, revokePasskey } from "@/lib/passkeys";
 import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const _fmt = (iso) => {
   if (!iso) return "—";
   try {
-    return new Date(iso).toLocaleString();
+    return formatPlatformTime(iso);
   } catch {
     return iso;
   }

@@ -23,6 +23,8 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { IamStandardCells } from "@/components/iam/IamStandardCells";
 import { toast } from "sonner";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const PORTAL_COLORS = {
   admin: "bg-red-700 text-white",
@@ -346,7 +348,7 @@ export default function AdminUnifiedDirectoryPanel() {
                     <td className="py-2 px-2 align-top">
                       <span className="text-xs text-slate-600 font-mono">
                         {u.last_login_at
-                          ? new Date(u.last_login_at).toLocaleDateString()
+                          ? formatPlatformDate(u.last_login_at)
                           : "—"}
                       </span>
                     </td>

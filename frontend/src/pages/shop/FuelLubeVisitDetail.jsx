@@ -6,6 +6,8 @@ import { getAdminToken } from "@/lib/adminAuth";
 import { getShopToken } from "@/lib/shopAuth";
 import { PortalShell, Card } from "../../design-system";
 import BackToShopLink from "@/components/shop/BackToShopLink";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 function authHeaders() {
@@ -70,7 +72,7 @@ export default function FuelLubeVisitDetail() {
                 <div>Arrival → Departure: <strong>{visit.arrival_time || "—"}</strong> → <strong>{visit.departure_time || "—"}</strong></div>
                 <div>Location source: <strong>{visit.location_source || "—"}</strong></div>
                 <div>Submitted by: <strong>{visit.submitted_by || "—"}</strong></div>
-                <div>Submitted at: <strong>{visit.submitted_at ? new Date(visit.submitted_at).toLocaleString() : "—"}</strong></div>
+                <div>Submitted at: <strong>{visit.submitted_at ? formatPlatformTime(visit.submitted_at) : "—"}</strong></div>
                 <div>Status: <strong>{visit.status || "—"}</strong></div>
               </div>
             </Card>

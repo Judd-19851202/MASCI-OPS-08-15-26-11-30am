@@ -10,6 +10,8 @@ import { useT, getLang } from "@/lib/i18n";
 import { translateUserInput } from "@/lib/translateOnSubmit";
 import { isShop } from "@/lib/shopAuth";
 import { isAdmin } from "@/lib/adminAuth";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 /**
  * One sign-off card per FAIL line on a Pre-Op inspection. Shop / admin only.
@@ -112,7 +114,7 @@ export default function ShopSignoffCard({
               {t("By")}: <span className="font-bold">{existing.signed_by}</span>
               {" · "}
               <span className="font-mono text-xs">
-                {existing.signed_at ? new Date(existing.signed_at).toLocaleString() : "—"}
+                {existing.signed_at ? formatPlatformTime(existing.signed_at) : "—"}
               </span>
             </div>
             {existing.notes && (

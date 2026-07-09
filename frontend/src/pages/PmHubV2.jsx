@@ -26,6 +26,8 @@ import {
   Card,
   EmptyState,
 } from "../design-system";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -330,7 +332,7 @@ export default function PmHubV2() {
         }
         lastActivity={
           <span data-testid="pm-hub-v2-last-activity">
-            {s.loaded ? `Refreshed ${new Date(s.refreshedAt).toLocaleTimeString()}` : "Loading live signals…"}
+            {s.loaded ? `Refreshed ${formatPlatformTimeOnly(s.refreshedAt)}` : "Loading live signals…"}
           </span>
         }
       >

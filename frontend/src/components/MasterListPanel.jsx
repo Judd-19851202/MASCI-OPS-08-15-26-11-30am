@@ -19,6 +19,8 @@ import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 /**
  * MasterListPanel — generic single-add + table + edit + delete + bulk-replace
@@ -508,7 +510,7 @@ export default function MasterListPanel({
                         </td>
                       ))}
                       <td className="px-3 py-2 text-xs text-slate-500 whitespace-nowrap">
-                        {row.deleted_at ? new Date(row.deleted_at).toLocaleString() : "—"}
+                        {row.deleted_at ? formatPlatformTime(row.deleted_at) : "—"}
                       </td>
                       <td className="px-3 py-2 text-right whitespace-nowrap">
                         <Button

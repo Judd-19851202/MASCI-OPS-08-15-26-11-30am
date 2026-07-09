@@ -28,6 +28,8 @@ import {
 } from "@/components/ui/dialog";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const BAND_PILL = {
   green: "bg-emerald-100 text-emerald-900 border-emerald-300",
@@ -508,7 +510,7 @@ function AssetQueue({ data, onRefresh, mode = "admin" }) {
                     {r.gps_enabled ? "GPS" : "No GPS"}
                   </span>
                   <div className="text-[10px] text-slate-500 font-mono mt-0.5">
-                    {r.located_at ? new Date(r.located_at).toLocaleDateString() : "—"}
+                    {r.located_at ? formatPlatformDate(r.located_at) : "—"}
                   </div>
                 </td>
                 <td className="px-2 py-2 align-top">

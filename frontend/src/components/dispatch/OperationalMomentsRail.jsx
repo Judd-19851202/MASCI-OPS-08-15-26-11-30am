@@ -32,6 +32,8 @@ import { getAdminToken } from "@/lib/adminAuth";
 import { getShopToken } from "@/lib/shopAuth";
 import { getPmToken } from "@/lib/pmAuth";
 import { getSafetyToken } from "@/lib/safetyAuth";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -54,7 +56,7 @@ function _portalHeaders() {
 function _fmt(iso) {
   if (!iso) return "—";
   try {
-    return new Date(iso).toLocaleString();
+    return formatPlatformTime(iso);
   } catch {
     return iso;
   }

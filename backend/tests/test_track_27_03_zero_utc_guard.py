@@ -36,6 +36,16 @@ _UTC_TOKEN_PATTERNS = [
     re.compile(r"[\"'`]\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z"),
 ]
 
+# Frontend-only patterns — bypass the canonical formatter.
+# Any file rendering `.toLocaleString`/`.toLocaleDateString`/
+# `.toLocaleTimeString` in an operator-facing surface violates the
+# ONE-code-path rule even though the OUTPUT happens to be local.
+_BROWSER_DEFAULT_FMT_PATTERNS = [
+    re.compile(r"\.toLocaleString\("),
+    re.compile(r"\.toLocaleDateString\("),
+    re.compile(r"\.toLocaleTimeString\("),
+]
+
 # Any line matching this is exempt from this scan — the developer has
 # formally accepted responsibility for why the UTC token is there.
 _EXEMPTION_MARKER = "TRACK-27.03-EXEMPT"
@@ -266,6 +276,178 @@ def test_no_operator_facing_file_leaks_utc():
     assert not failures, (
         "Zero-UTC guard tripped in operator-facing modules:\n\n"
         + "\n\n".join(failures)
+    )
+
+
+# ── Constitutional guard · whole-tree scan ──────────────────────────
+# From this test forward, the platform enforces the rule by scanning
+# ALL frontend `.jsx`/`.js` and rejecting any file that uses a
+# browser-default timestamp formatter (toLocaleString /
+# toLocaleDateString / toLocaleTimeString) without going through the
+# canonical `platformTime.js`. Machine-only paths that legitimately
+# need `toISOString()` for JSON envelopes / DB writes must carry an
+# inline `TRACK-27.03-EXEMPT: <reason>` marker on the offending line.
+
+_FRONTEND_ROOT = REPO_ROOT / "frontend" / "src"
+
+_FRONTEND_MACHINE_ONLY = {
+    # These files intentionally serialize timestamps for machine use
+    # (offline queue, localStorage keys, cache tags, sentry payloads).
+    # They never render to operators.
+    "lib/resiliency/offlineQueue.js",
+    "lib/resiliency/resiliencyQueue.js",
+    "lib/resiliency/incidentOfflineQueue.js",
+    "lib/incidentOfflineQueue.js",
+    "lib/sentryInit.js",
+    "lib/usageTracker.js",
+    "lib/platformTime.js",  # the formatter itself
+}
+
+
+def _rel_frontend(p: Path) -> str:
+    return str(p.relative_to(_FRONTEND_ROOT)).replace("\\", "/")
+
+
+def _iter_frontend_files():
+    if not _FRONTEND_ROOT.exists():
+        return
+    for p in _FRONTEND_ROOT.rglob("*"):
+        if p.suffix not in {".jsx", ".js"}:
+            continue
+        s = str(p)
+        if "node_modules" in s or "__tests__" in s:
+            continue
+        if p.name.endswith(".test.js") or p.name.endswith(".test.jsx"):
+            continue
+        if _rel_frontend(p) in _FRONTEND_MACHINE_ONLY:
+            continue
+        yield p
+
+
+def _scan_browser_default_fmt(path: Path):
+    """Return list of (line_no, pattern, snippet) for browser-default
+    formatter uses NOT protected by inline EXEMPT.
+
+    `.toLocaleTimeString` / `.toLocaleDateString` are unambiguously Date
+    APIs — always flag them.
+
+    `.toLocaleString` is polymorphic (works on Number too). We flag it
+    only when the call is clearly Date-shaped:
+      · immediately preceded by `new Date(` on the same line
+      · args contain date/time option keys
+      · no args AND caller name ends in `_at` / `Date` / `Time` / `Dt`
+    Numeric currency/count calls (`.toLocaleString(undefined, {
+    minimumFractionDigits: … })`) are NOT flagged — they are the
+    correct Web API for i18n number formatting.
+    """
+    findings = []
+    text = _read_text(path)
+    # Regex to grab the caller identifier + args of a toLocaleString call.
+    date_option_keys = re.compile(
+        r"\b(dateStyle|timeStyle|hour|minute|second|year|month|day|weekday|timeZone|hour12)\b"
+    )
+    number_option_keys = re.compile(
+        r"\b(minimumFractionDigits|maximumFractionDigits|minimumIntegerDigits|"
+        r"maximumSignificantDigits|minimumSignificantDigits|notation|compactDisplay|"
+        r"currency|useGrouping|style)\b"
+    )
+    to_locale_string_call = re.compile(
+        r"(?P<caller>(?:\bnew\s+Date\([^)]*\)|[A-Za-z_$][\w$.]*))\.toLocaleString\((?P<args>[^)]*)\)"
+    )
+
+    for i, line in enumerate(text.splitlines(), start=1):
+        if _EXEMPTION_MARKER in line:
+            continue
+        stripped = line.strip()
+        if stripped.startswith(("//", "/*", "*", "*/")):
+            continue
+        # Always flag toLocaleTimeString / toLocaleDateString.
+        for pat in (
+            re.compile(r"\.toLocaleTimeString\("),
+            re.compile(r"\.toLocaleDateString\("),
+        ):
+            if pat.search(line):
+                findings.append((i, pat.pattern, stripped[:140]))
+                break
+        else:
+            # Only inspect .toLocaleString when it's Date-shaped.
+            for m in to_locale_string_call.finditer(line):
+                caller = m.group("caller")
+                args = m.group("args") or ""
+                is_new_date = caller.startswith("new Date(")
+                caller_leaf = caller.split(".")[-1] if "." in caller else caller
+                looks_datey = (
+                    is_new_date
+                    or date_option_keys.search(args) is not None
+                    or (
+                        not args.strip()
+                        and (
+                            caller_leaf.endswith("_at")
+                            or caller_leaf.endswith("Date")
+                            or caller_leaf.endswith("Time")
+                            or caller_leaf.endswith("Dt")
+                            or caller_leaf.endswith("Timestamp")
+                        )
+                    )
+                )
+                # Explicitly SKIP number-formatting option calls.
+                if number_option_keys.search(args) and not date_option_keys.search(args):
+                    continue
+                if looks_datey:
+                    findings.append((i, r"\.toLocaleString\(", stripped[:140]))
+                    break
+    return findings
+
+
+def test_constitutional_frontend_uses_canonical_formatter_only():
+    """Whole-tree constitutional scan.
+
+    Every `.jsx`/`.js` file under `frontend/src/` (excluding tests,
+    node_modules, and the machine-only paths above) that uses
+    `.toLocaleString(...)` / `.toLocaleDateString(...)` /
+    `.toLocaleTimeString(...)` MUST route through `platformTime.js`.
+
+    A file with a browser-default formatter call that is NOT
+    accompanied by an inline `TRACK-27.03-EXEMPT: <reason>` marker on
+    the offending line fails CI.
+    """
+    failures = []
+    for p in _iter_frontend_files():
+        leaks = _scan_browser_default_fmt(p)
+        if leaks:
+            rel = _rel_frontend(p)
+            for ln, pat, snip in leaks:
+                failures.append(f"{rel}:{ln}  {pat}  →  {snip}")
+    assert not failures, (
+        "Constitutional guard tripped — the following files bypass the "
+        "canonical platformTime formatter. Either route through the "
+        "formatter, or add an inline `TRACK-27.03-EXEMPT: <reason>` "
+        f"marker on the offending line:\n\n" + "\n".join(failures[:60])
+    )
+
+
+def test_constitutional_frontend_no_raw_utc_iso_display():
+    """Whole-tree scan for hard-coded UTC/GMT/Z tokens that would land
+    in a rendered string. Same exemption rule as the sibling test.
+    """
+    hard_utc_pat = re.compile(r"['\"]\s*(UTC|GMT)\s*['\"]")
+    iso_z_pat = re.compile(r"[\"'`]\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z")
+    failures = []
+    for p in _iter_frontend_files():
+        text = _read_text(p)
+        for i, line in enumerate(text.splitlines(), start=1):
+            if _EXEMPTION_MARKER in line:
+                continue
+            stripped = line.strip()
+            if stripped.startswith(("//", "/*", "*", "*/")):
+                continue
+            if hard_utc_pat.search(line) or iso_z_pat.search(line):
+                rel = _rel_frontend(p)
+                failures.append(f"{rel}:{i}  {stripped[:140]}")
+    assert not failures, (
+        "Constitutional guard tripped — hard-coded UTC/GMT/ISO-Z "
+        "tokens found in operator-facing display code:\n\n"
+        + "\n".join(failures[:60])
     )
 
 

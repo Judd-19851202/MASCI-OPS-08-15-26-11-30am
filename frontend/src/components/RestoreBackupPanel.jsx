@@ -8,6 +8,8 @@ import {
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import AdminPasswordConfirm from "@/components/AdminPasswordConfirm";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 /**
  * RestoreBackupPanel — pair to the "Download Full Backup" button.
@@ -298,7 +300,7 @@ export default function RestoreBackupPanel() {
                 <option value="">— Pick a cloud archive —</option>
                 {archives.backups.map((b) => (
                   <option key={b.key} value={b.key}>
-                    {`${b.filename} · ${new Date(b.last_modified).toLocaleDateString()}`}
+                    {`${b.filename} · ${formatPlatformDate(b.last_modified)}`}
                   </option>
                 ))}
               </select>

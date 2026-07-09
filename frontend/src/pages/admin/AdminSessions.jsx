@@ -21,6 +21,8 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
 import { TroubleshootingLink } from "@/components/guidance";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const STATUS_STYLE = {
   active: {
@@ -69,10 +71,7 @@ function fmtAgo(seconds) {
 function fmtTs(iso) {
   if (!iso) return "—";
   try {
-    return new Date(iso).toLocaleString(undefined, {
-      year: "numeric", month: "short", day: "2-digit",
-      hour: "2-digit", minute: "2-digit", second: "2-digit",
-    });
+    return formatPlatformTime(iso);
   } catch {
     return iso;
   }

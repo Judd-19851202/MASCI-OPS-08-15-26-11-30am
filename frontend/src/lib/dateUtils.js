@@ -1,29 +1,16 @@
 // dateUtils.js — TRUST-TIME-1 doctrine (2026-05-28)
+// UPDATED 2026-07-09 · TRACK 27.03 · Final Completion Track.
+// This module now DELEGATES all formatting to the canonical
+// `platformTime.js` formatter. It is kept as a compatibility surface
+// for older imports across the codebase — every helper below is a
+// thin wrapper. New code should import from `platformTime.js` directly.
 // ─────────────────────────────────────────────────────────────────
-//
-// Truthful-state doctrine for time on the platform:
-//
-//   1. The backend STORES timestamps in UTC and emits them as
-//      ABSOLUTE (tz-aware) ISO strings — `2026-05-28T13:43:00+00:00`.
-//   2. The frontend RENDERS them in the operator's local browser
-//      timezone — `5/28/2026, 9:43 AM` for a Florida foreman.
-//   3. Any UTC string shown to an operator MUST be visibly labeled
-//      "UTC" so they can spot an audit-only render.
-//   4. NEVER use `.slice(11, 16)` on an ISO string to "get the time"
-//      — that displays the UTC clock as if it were local time, which
-//      is what produced the +4h delta on PO receipt uploads.
-//
-// Helpers
-// -------
-//   todayLocalIso(now?)         · "YYYY-MM-DD" in the local timezone
-//   toLocalIso(date)            · same, accepts Date/string/Date-able
-//   formatLocalDateTime(ts)     · "5/28/2026, 9:43 AM" — primary helper
-//   formatLocalDate(ts)         · "5/28/2026"
-//   formatLocalTime(ts)         · "9:43 AM"
-//   formatLocalShort(ts)        · "5/28 9:43 AM" — compact list view
-//   formatRelativeTime(ts)      · "3m ago" · "2h ago" · "yesterday"
-//   formatUtcForAudit(ts)       · "2026-05-28 13:43 UTC" — only when
-//                                 the audit log explicitly wants UTC
+import {
+  formatPlatformTime,
+  formatPlatformDate,
+  formatPlatformTimeOnly,
+  formatRelativeTime as _formatRelativeTime,
+} from "@/lib/platformTime";
 
 const _pad = (n) => String(n).padStart(2, "0");
 
@@ -49,8 +36,7 @@ function _coerce(ts) {
     const d = new Date(s + "Z");
     return Number.isNaN(d.getTime()) ? null : d;
   }
-  // Date-only "2026-05-28" → treat as that calendar day in LOCAL time
-  // (so "tomorrow's PO" doesn't shift to today on the UTC side).
+  // Date-only "2026-05-28" → treat as that calendar day in LOCAL time.
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
     const d = new Date(`${s}T00:00:00`);
     return Number.isNaN(d.getTime()) ? null : d;
@@ -70,53 +56,33 @@ export function toLocalIso(date) {
 }
 
 export function formatLocalDateTime(ts) {
-  const d = _coerce(ts);
-  if (!d) return "";
-  return d.toLocaleString();
+  return _coerce(ts) ? formatPlatformTime(_coerce(ts)) : "";
 }
 
 export function formatLocalDate(ts) {
-  const d = _coerce(ts);
-  if (!d) return "";
-  return d.toLocaleDateString();
+  return _coerce(ts) ? formatPlatformDate(_coerce(ts)) : "";
 }
 
 export function formatLocalTime(ts) {
-  const d = _coerce(ts);
-  if (!d) return "";
-  return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  return _coerce(ts) ? formatPlatformTimeOnly(_coerce(ts)) : "";
 }
 
-// Compact "5/28 9:43 AM" for narrow list cells. Skips the year on
-// purpose — operators reading a recent list rarely need it.
+// Compact "5/28 9:43 AM" for narrow list cells.
 export function formatLocalShort(ts) {
   const d = _coerce(ts);
   if (!d) return "";
-  const date = d.toLocaleDateString([], { month: "numeric", day: "numeric" });
-  const time = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-  return `${date} ${time}`;
+  return `${formatPlatformDate(d)} ${formatPlatformTimeOnly(d)}`;
 }
 
 export function formatRelativeTime(ts) {
   const d = _coerce(ts);
   if (!d) return "";
-  const now = Date.now();
-  const delta = Math.round((now - d.getTime()) / 1000);
-  if (delta < 0) return "just now";
-  if (delta < 60) return `${delta}s ago`;
-  const mins = Math.round(delta / 60);
-  if (mins < 60) return `${mins}m ago`;
-  const hours = Math.round(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.round(hours / 24);
-  if (days === 1) return "yesterday";
-  if (days < 30) return `${days}d ago`;
-  return formatLocalDate(d);
+  return _formatRelativeTime(d);
 }
 
-// AUDIT ONLY. Use exclusively when the surface is explicitly an
-// admin/audit view and the operator needs to compare clocks across
-// timezones. Output is suffixed with " UTC".
+// AUDIT ONLY. Preserved for legacy admin/audit surfaces that
+// explicitly need UTC (e.g. comparing timestamps across timezones).
+// New surfaces MUST use `formatPlatformTime` instead.
 export function formatUtcForAudit(ts) {
   const d = _coerce(ts);
   if (!d) return "";
@@ -125,7 +91,7 @@ export function formatUtcForAudit(ts) {
   const dd = _pad(d.getUTCDate());
   const hh = _pad(d.getUTCHours());
   const mn = _pad(d.getUTCMinutes());
-  return `${yyyy}-${mm}-${dd} ${hh}:${mn} UTC`;
+  return `${yyyy}-${mm}-${dd} ${hh}:${mn} UTC`;  // TRACK-27.03-EXEMPT: audit-only helper; caller must intentionally opt in for cross-tz comparison; NOT used in default display paths
 }
 
 // Test seam.

@@ -16,6 +16,8 @@ import {
   oaApi, STATUSES, STATUS_LABEL, CATEGORIES, CATEGORY_LABEL,
   PRIORITIES, PRIORITY_LABEL, PRIORITY_TONE,
 } from "@/lib/oa";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 export default function OperationsActions() {
   usePageTitle("Operations Actions · MASCI");
@@ -194,7 +196,7 @@ export default function OperationsActions() {
                           ? <>{t("Owner")}: <span className="font-bold text-slate-700">{a.current_owner.name}</span></>
                           : <span className="text-amber-700">{t("Pick an owner")}</span>}
                         <span className="opacity-50"> · </span>
-                        {t("Created")} {new Date(a.created_at).toLocaleDateString()}
+                        {t("Created")} {formatPlatformDate(a.created_at)}
                       </div>
                     </div>
                   </button>

@@ -19,6 +19,8 @@ import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { PortalShell } from "@/design-system";
 import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const inputCls =
   "h-10 text-sm border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-600";
@@ -49,9 +51,7 @@ const SEP_TYPE_SHORT = {
 const fmtDate = (iso) => {
   if (!iso) return "—";
   try {
-    return new Date(iso).toLocaleDateString(undefined, {
-      year: "numeric", month: "short", day: "2-digit",
-    });
+    return formatPlatformDate(iso);
   } catch { return iso; }
 };
 

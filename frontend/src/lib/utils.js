@@ -1,5 +1,6 @@
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { formatPlatformDate } from "@/lib/platformTime";
 
 export function cn(...inputs) {
   return twMerge(clsx(inputs));
@@ -159,12 +160,8 @@ export function formatDateLong(iso) {
       d = new Date(iso);
     }
     if (Number.isNaN(d.getTime())) return iso;
-    return d.toLocaleDateString(undefined, {
-      weekday: "short",
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    // TRACK 27.03 · Final Completion · canonical formatter.
+    return formatPlatformDate(d);
   } catch {
     return iso;
   }

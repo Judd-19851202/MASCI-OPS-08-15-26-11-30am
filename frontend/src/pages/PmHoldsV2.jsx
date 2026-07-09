@@ -23,6 +23,8 @@ import {
   EmptyState,
   DataTable,
 } from "../design-system";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -178,7 +180,7 @@ export default function PmHoldsV2() {
         }
         lastActivity={
           <span data-testid="pm-holds-last-activity">
-            {state.loaded ? (state.body ? `Refreshed ${new Date(state.body.as_of).toLocaleTimeString()}` : "Could not load") : "Loading…"}
+            {state.loaded ? (state.body ? `Refreshed ${formatPlatformTimeOnly(state.body.as_of)}` : "Could not load") : "Loading…"}
           </span>
         }
       >

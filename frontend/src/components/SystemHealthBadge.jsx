@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { CheckCircle2, AlertTriangle, AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
+// TRACK 27.03 · Final Completion · canonical local-time formatter.
+import { formatPlatformTimeOnly } from "@/lib/platformTime";
 
 /**
  * SystemHealthBadge — tiny live-status badge for /admin.
@@ -260,7 +262,7 @@ export default function SystemHealthBadge() {
         type="button"
         onClick={() => setOpen((v) => !v)}
         className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md ${badge.bg} ${badge.text} font-mono text-[10px] uppercase tracking-[0.2em] font-bold shadow-sm ring-1 ${badge.ring} hover:opacity-90 transition-opacity`}
-        title={`Last check: ${lastChecked ? lastChecked.toLocaleTimeString() : "—"}\nClick for details`}
+        title={`Last check: ${lastChecked ? formatPlatformTimeOnly(lastChecked) : "—"}\nClick for details`}
         data-testid="system-health-toggle"
       >
         <badge.Icon className={`w-3.5 h-3.5 ${worst === "loading" ? "animate-spin" : ""}`} />
@@ -290,7 +292,7 @@ export default function SystemHealthBadge() {
           </div>
           <div className="text-[10px] text-slate-500 font-mono mb-2">
             {lastChecked
-              ? `Last: ${lastChecked.toLocaleTimeString()} · auto-refresh 60s`
+              ? `Last: ${formatPlatformTimeOnly(lastChecked)} · auto-refresh 60s`
               : "Loading…"}
           </div>
           <ul className="space-y-1">
@@ -326,14 +328,14 @@ export default function SystemHealthBadge() {
               ⚠ Backend is returning 5xx or unreachable. Re-deploy or check server logs.
               {alertSent && (
                 <div className="mt-1 text-[10px] font-mono text-red-800">
-                  📧 Email alert sent to <strong>{alertSent.to}</strong> at {alertSent.ts.toLocaleTimeString()}
+                  📧 Email alert sent to <strong>{alertSent.to}</strong> at {formatPlatformTimeOnly(alertSent.ts)}
                 </div>
               )}
             </div>
           )}
           {worst !== "error" && alertSent && (
             <div className="mt-2 text-[10px] bg-emerald-50 border border-emerald-200 text-emerald-900 rounded px-2 py-1.5 font-mono">
-              ✓ Last outage email sent at {alertSent.ts.toLocaleTimeString()} (now recovered)
+              ✓ Last outage email sent at {formatPlatformTimeOnly(alertSent.ts)} (now recovered)
             </div>
           )}
         </div>

@@ -25,6 +25,8 @@ import {
   Activity, AlertTriangle, ArrowLeft, ClipboardList,
   Download, FileText, HardHat, Inbox, Search, Shield, Upload, User,
 } from "lucide-react";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 // ── Category → dot colour ───────────────────────────────────────────
 const CAT_COLOR = {
@@ -47,7 +49,7 @@ const CAT_ICON = {
 
 function _fmt(dt) {
   if (!dt) return "—";
-  try { return new Date(dt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }); }
+  try { return formatPlatformDate(dt); }
   catch { return dt; }
 }
 

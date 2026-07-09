@@ -12,6 +12,8 @@ import { useT } from "@/lib/i18n";
 import {
   createBatch, fetchVocabulary, listBatches,
 } from "@/lib/employeeRecordsApi";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const LANE_LABEL = {
   hr: "HR", safety: "Safety", asset: "Asset", corporate_import: "Corporate Import",
@@ -19,7 +21,7 @@ const LANE_LABEL = {
 
 function _fmt(x) {
   if (!x) return "—";
-  try { return new Date(x).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }); }
+  try { return formatPlatformTime(x); }
   catch { return x; }
 }
 

@@ -25,6 +25,8 @@ import { BilingualConsent } from "@/components/BilingualConsent";
 import { SubmitLangBadge } from "@/components/SubmitLangBadge";
 import { useT } from "@/lib/i18n";
 import { splitIncidentScaffold } from "@/lib/splitIncidentScaffold";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 // iter268 · K2 · Weather chip code → bilingual label.
 // Used in ViewMeeting summary and in the printed/PDF record so the
@@ -405,7 +407,7 @@ export default function ViewMeeting() {
         </ReportSection>
 
         <div className="text-center font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500 pt-4 pb-8 print-section">
-          {t("Generated")} {data.created_at ? new Date(data.created_at).toLocaleString() : ""} · {company.company_name || "MASCI"} {t("Safety Meeting")}
+          {t("Generated")} {data.created_at ? formatPlatformTime(data.created_at) : ""} · {company.company_name || "MASCI"} {t("Safety Meeting")}
         </div>
         {(company.address || company.phone || company.email) && (
           <div className="print-only border-t-2 border-black pt-3 mt-2 text-[9pt] leading-snug print-section">

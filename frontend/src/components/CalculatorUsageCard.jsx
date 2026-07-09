@@ -3,6 +3,8 @@ import { Calculator, Loader2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { getAdminToken } from "@/lib/adminAuth";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 /**
  * CalculatorUsageCard — admin-facing analytic card showing how the
@@ -162,7 +164,7 @@ export default function CalculatorUsageCard() {
             <p className="text-[11px] text-slate-500 mt-3">
               Last run:{" "}
               <span className="font-mono">
-                {new Date(stats.last_used.created_at).toLocaleString()}
+                {formatPlatformTime(stats.last_used.created_at)}
               </span>{" "}
               · {stats.last_used.calculator_type} · {stats.last_used.language.toUpperCase()}
             </p>

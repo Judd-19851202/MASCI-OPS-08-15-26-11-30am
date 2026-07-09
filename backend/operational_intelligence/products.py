@@ -140,7 +140,7 @@ async def _agg_safety_morning(db, **kwargs) -> Dict[str, Any]:
     layout = build_standard_layout(
         product_id="safety_morning_digest",
         subject=SUBJECT_DEFAULT,
-        period_label="Weekly · Monday 13:00 UTC",
+        period_label="Weekly · Monday 13:00 UTC",  # TRACK-27.03-EXEMPT: admin scheduler doctrine label (describes when the backend UTC cron runs)
         executive_summary={
             "Open cases":       total_open,
             "High attention":   high,
@@ -295,7 +295,7 @@ async def _agg_executive_ops(db, **kwargs) -> Dict[str, Any]:
     return build_standard_layout(
         product_id="executive_operations_brief",
         subject="MASCI Executive Operations Brief",
-        period_label="Weekly · Monday 14:00 UTC",
+        period_label="Weekly · Monday 14:00 UTC",  # TRACK-27.03-EXEMPT: admin scheduler doctrine label (describes when the backend UTC cron runs)
         executive_summary={
             "Total cases":         total,
             "Open":                open_,
@@ -431,7 +431,7 @@ async def _agg_po_digest(db, **kwargs) -> Dict[str, Any]:
     return build_standard_layout(
         product_id="po_weekly_digest",
         subject=build_digest_subject(),
-        period_label="Weekly · Monday 14:00 UTC",
+        period_label="Weekly · Monday 14:00 UTC",  # TRACK-27.03-EXEMPT: admin scheduler doctrine label (describes when the backend UTC cron runs)
         executive_summary={
             "Total open POs (portfolio)": total_open,
             "PMs with open POs":          f"{pms_with_openpos}/{total_pms}",
@@ -697,7 +697,7 @@ async def _agg_transportation_intelligence(db, **kwargs) -> Dict[str, Any]:
     return build_standard_layout(
         product_id="transportation_intelligence",
         subject="MASCI Transportation Intelligence Digest",
-        period_label="Weekly · Monday 13:00 UTC",
+        period_label="Weekly · Monday 13:00 UTC",  # TRACK-27.03-EXEMPT: admin scheduler doctrine label (describes when the backend UTC cron runs)
         executive_summary={
             "Active drivers":              drivers_active,
             "Drivers expired":             drivers_expired,
@@ -954,7 +954,7 @@ async def _agg_fleet_intelligence(db, **kwargs) -> Dict[str, Any]:
     return build_standard_layout(
         product_id="fleet_intelligence",
         subject="MASCI Fleet Intelligence Digest",
-        period_label="Weekly · Monday 13:00 UTC",
+        period_label="Weekly · Monday 13:00 UTC",  # TRACK-27.03-EXEMPT: admin scheduler doctrine label (describes when the backend UTC cron runs)
         executive_summary={
             "Total units":              total,
             "OOS":                      oos,
@@ -1164,7 +1164,7 @@ async def _agg_hr_intelligence(db, **kwargs) -> Dict[str, Any]:
     return build_standard_layout(
         product_id="hr_intelligence",
         subject="MASCI HR Intelligence Digest",
-        period_label="Weekly · Monday 13:00 UTC",
+        period_label="Weekly · Monday 13:00 UTC",  # TRACK-27.03-EXEMPT: admin scheduler doctrine label (describes when the backend UTC cron runs)
         executive_summary={
             "Active employees":      total_emp,
             "New hires (7d)":        new_hires_7d,
@@ -1394,7 +1394,7 @@ async def _agg_training_intelligence(db, **kwargs) -> Dict[str, Any]:
     return build_standard_layout(
         product_id="training_intelligence",
         subject="MASCI Training Intelligence Digest",
-        period_label="Weekly · Monday 13:00 UTC",
+        period_label="Weekly · Monday 13:00 UTC",  # TRACK-27.03-EXEMPT: admin scheduler doctrine label (describes when the backend UTC cron runs)
         executive_summary={
             "Active employees":       active_emp,
             "Completions (7d)":       completed_7d,
@@ -1640,7 +1640,7 @@ async def _agg_project_intelligence(db, **kwargs) -> Dict[str, Any]:
     return build_standard_layout(
         product_id="project_intelligence",
         subject="MASCI Project Intelligence Digest",
-        period_label="Weekly · Monday 13:00 UTC",
+        period_label="Weekly · Monday 13:00 UTC",  # TRACK-27.03-EXEMPT: admin scheduler doctrine label (describes when the backend UTC cron runs)
         executive_summary={
             "Active projects":         active_projects,
             "Daily reports (7d)":      reports_7d,
@@ -2001,7 +2001,7 @@ async def _agg_shop_intelligence(db, **kwargs) -> Dict[str, Any]:
     return build_standard_layout(
         product_id="shop_intelligence",
         subject="MASCI Shop Intelligence Digest",
-        period_label="Weekly · Monday 13:00 UTC",
+        period_label="Weekly · Monday 13:00 UTC",  # TRACK-27.03-EXEMPT: admin scheduler doctrine label (describes when the backend UTC cron runs)
         executive_summary={
             "Fleet size":                fleet_total,
             "OOS units":                 oos_units,
@@ -2297,7 +2297,7 @@ async def _agg_corporate_intelligence(db, **kwargs) -> Dict[str, Any]:
     return build_standard_layout(
         product_id="corporate_intelligence",
         subject="MASCI Corporate Intelligence Digest",
-        period_label="Monthly · First Monday 14:00 UTC",
+        period_label="Monthly · First Monday 14:00 UTC",  # TRACK-27.03-EXEMPT: admin scheduler doctrine label (describes when the backend UTC cron runs)
         executive_summary=executive_summary,
         score=score.to_dict(),
         trend_direction={"arrow": "→", "tone": "flat",
@@ -2699,7 +2699,7 @@ async def _agg_weekly_operations(db, **kwargs) -> Dict[str, Any]:
     return build_standard_layout(
         product_id="weekly_operations_digest",
         subject="MASCI Weekly Operations Digest",
-        period_label="Weekly · Monday 13:30 UTC",
+        period_label="Weekly · Monday 13:30 UTC",  # TRACK-27.03-EXEMPT: admin scheduler doctrine label (describes when the backend UTC cron runs)
         executive_summary=executive_summary,
         score=score.to_dict(),
         trend_direction={

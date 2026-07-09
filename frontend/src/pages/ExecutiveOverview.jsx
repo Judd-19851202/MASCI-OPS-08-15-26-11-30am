@@ -17,6 +17,8 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getAdminToken } from "@/lib/adminAuth";
 import { AlertTriangle, CheckCircle2, AlertOctagon, RefreshCw } from "lucide-react";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -159,7 +161,7 @@ export default function ExecutiveOverview() {
           </button>
         </div>
         <div className="mt-2 text-[11px] font-mono uppercase tracking-wider text-slate-500">
-          Generated {new Date(data.generated_at).toLocaleString()} · Loaded in {tookMs}ms
+          Generated {formatPlatformTime(data.generated_at)} · Loaded in {tookMs}ms
         </div>
       </div>
 

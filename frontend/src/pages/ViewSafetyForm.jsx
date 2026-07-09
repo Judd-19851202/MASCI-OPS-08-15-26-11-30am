@@ -21,6 +21,8 @@ import { fmtMoney } from "@/lib/safetyFormsSchema";
 import { formatDateLong } from "@/lib/utils";
 import { resolvePhotoSrc } from "@/lib/photoSrc";
 import { toast } from "sonner";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const STATUS_TONES = {
   returned: { bg: "bg-emerald-100", fg: "text-emerald-800", border: "border-emerald-300", label: "Returned OK" },
@@ -438,7 +440,7 @@ export default function ViewSafetyForm({ kind = "issuance" }) {
           </div>
 
           <p className="text-[10px] font-mono text-slate-400 uppercase tracking-[0.2em] text-center mt-8 pt-4 border-t border-slate-100">
-            {t("Generated")} {doc.created_at ? new Date(doc.created_at).toLocaleString() : ""} ·
+            {t("Generated")} {doc.created_at ? formatPlatformTime(doc.created_at) : ""} ·
             {" "}MASCI General Contractors Inc. · {t("Confidential")}
           </p>
         </div>

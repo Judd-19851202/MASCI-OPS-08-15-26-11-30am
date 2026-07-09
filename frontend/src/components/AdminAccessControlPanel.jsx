@@ -26,6 +26,8 @@ import {
 import { api } from "@/lib/api";
 import { IamStandardCells } from "@/components/iam/IamStandardCells";
 import { toast } from "sonner";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 // ─── Track 15.88 · Credential / usability badge contract ──────────
 //
@@ -363,7 +365,7 @@ export default function AdminAccessControlPanel() {
                     );
                   })}
                   <td className="py-2 px-2 text-center text-xs text-slate-600 font-mono">
-                    {u.last_login_at ? new Date(u.last_login_at).toLocaleDateString() : "—"}
+                    {u.last_login_at ? formatPlatformDate(u.last_login_at) : "—"}
                   </td>
                   <td className="py-2 pl-3 text-right">
                     <div className="inline-flex gap-1">

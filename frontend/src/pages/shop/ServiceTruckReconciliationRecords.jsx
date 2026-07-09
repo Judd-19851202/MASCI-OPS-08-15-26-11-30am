@@ -7,6 +7,8 @@ import { getAdminToken } from "@/lib/adminAuth";
 import { getShopToken } from "@/lib/shopAuth";
 import { PortalShell, Card, EmptyState } from "../../design-system";
 import BackToShopLink from "@/components/shop/BackToShopLink";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const RANGES = [
@@ -171,8 +173,8 @@ export default function ServiceTruckReconciliationRecords() {
                         </div>
                         <div style={{ fontSize: 11, color: "#555", marginTop: 2 }}>
                           Tech <strong>{row.tech_name || "—"}</strong> · visits {row.dispensed_quantities?.visit_count ?? 0} ·
-                          start submitted {row.start_submitted_at ? new Date(row.start_submitted_at).toLocaleString() : "—"} ·
-                          end submitted {row.end_submitted_at ? new Date(row.end_submitted_at).toLocaleString() : "—"}
+                          start submitted {row.start_submitted_at ? formatPlatformTime(row.start_submitted_at) : "—"} ·
+                          end submitted {row.end_submitted_at ? formatPlatformTime(row.end_submitted_at) : "—"}
                         </div>
                         <div style={{ fontSize: 11, color: "#555", marginTop: 2 }}>
                           Red diesel {fuelLine("red_diesel_gallons")} · Clear diesel {fuelLine("clear_diesel_gallons")} ·

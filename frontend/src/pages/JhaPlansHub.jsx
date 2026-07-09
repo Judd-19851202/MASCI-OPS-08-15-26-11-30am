@@ -17,6 +17,8 @@ import { JhaAcknowledgeButton } from "@/components/JhaAcknowledgeButton";
 import { useT } from "@/lib/i18n";
 import { JOB_LIBRARY as JOBS } from "@/lib/jobLibrary";
 import { api } from "@/lib/api";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 // JhaPlansHub now reads from the NEW multi-file collection
 // (/api/job-hazard-files, backed by `job_hazard_files`) so the public
@@ -283,7 +285,7 @@ export default function JhaPlansHub() {
                           </div>
                           <div className="text-[11px] text-slate-500 mt-0.5">
                             {f.uploaded_at
-                              ? new Date(f.uploaded_at).toLocaleDateString()
+                              ? formatPlatformDate(f.uploaded_at)
                               : ""}
                             {f.uploaded_by ? ` · ${f.uploaded_by}` : ""}
                             {f.notes ? ` · ${f.notes}` : ""}

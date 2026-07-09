@@ -37,6 +37,8 @@ import { pmCommandApi } from "@/components/pm/command/pmCommandApi";
 import { Users } from "lucide-react";
 import { OperationsTransportationHealthWidget } from "@/components/operations_transportation_integration";
 import OiAttentionStrip from "@/components/operational_intelligence/OiAttentionStrip";
+// TRACK 27.03 · Final Completion · canonical platform time formatter.
+import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const OVERVIEW_POLL_MS = 45000;
 
@@ -120,7 +122,7 @@ export default function PmCommandCenter() {
       }
       lastActivity={
         overview?.as_of
-          ? `Updated ${new Date(overview.as_of).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`
+          ? `Updated ${formatPlatformTimeOnly(overview.as_of)}`
           : overview ? "Updated just now" : null
       }
     >
@@ -140,7 +142,7 @@ export default function PmCommandCenter() {
           {overview ? (
             <div className="text-[10.5px] font-mono uppercase tracking-widest text-slate-500" data-testid="pm-cc-as-of">
               {overview.as_of
-                ? `Updated ${new Date(overview.as_of).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`
+                ? `Updated ${formatPlatformTimeOnly(overview.as_of)}`
                 : "Updated just now"}
             </div>
           ) : null}
