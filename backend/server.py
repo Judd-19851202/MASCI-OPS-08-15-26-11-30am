@@ -3090,6 +3090,16 @@ from services.operations_control.audit import (  # noqa: E402
 register_operations_control_routes(api_router, db, require_admin)
 asyncio.get_event_loop().create_task(ensure_occ_audit_indexes(db))
 
+# TRACK 25 · SPRINT 2 · Operations Control Center — Trust Layer aggregator.
+# One canonical read-only endpoint `GET /api/admin/occ/health` that fans
+# out over the existing child health endpoints and returns a normalized
+# 8-section snapshot for the OCC "Trust Center". No new truth sources.
+# No server-side cache — the OCC frontend controls refresh explicitly.
+from routes.occ_health_aggregator import (  # noqa: E402
+    register_occ_health_routes,
+)
+register_occ_health_routes(api_router, require_admin)
+
 # ------------------------------------------------------------
 # DR-CUTOVER-002 · Daily Operational Summary (draft + accept)
 # ADDITIVE mount. Zero drift on the V1 submit path — the two

@@ -13,14 +13,35 @@
 // the target card into view and pulses it so operators arriving
 // from a legacy banner land exactly on the right tool.
 //
+// TRACK 25 · SPRINT 2 — OCC becomes the platform's Trust Center.
+// A read-only Health Layer above the maintenance console shows 8
+// operational sections × N live probes, each with an evidence
+// drawer showing source endpoint · raw payload · reason · recommended
+// action · drill-down. All child probes are fanned out server-side
+// by `GET /api/admin/occ/health` — one canonical trust snapshot,
+// no server-side cache, refresh triggered by the operator only.
+//
+// Read-only Health cards + action-first Maintenance console below =
+// truth layer + action layer, no duplicated action surface.
+//
 // This is the single place a non-coder platform owner runs cleanup,
 // health, and R2 migration. No shell required.
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import axios from "axios";
+import { Link } from "react-router-dom";
+import {
+  Activity, AlertTriangle, ChevronRight, ExternalLink, RefreshCw,
+  Search as SearchIcon, ShieldAlert, X,
+} from "lucide-react";
 
 // TRACK 27.03 · Phase 3 · Canonical local-time formatter.
-import { formatPlatformTime } from "@/lib/platformTime";
+import { formatPlatformTime, formatRelativeTime } from "@/lib/platformTime";
+
+// TRACK 25 · SPRINT 2 · Evidence drawer.
+import {
+  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
+} from "@/components/ui/sheet";
 
 const API = (
   (typeof process !== "undefined" &&
@@ -121,6 +142,431 @@ async function runOperation(operationId, mode, payload) {
     { headers: { "Content-Type": "application/json", ...authHeaders() } },
   );
   return r.data;
+}
+
+// TRACK 25 · SPRINT 2 · Trust Layer probe — one canonical fetch.
+async function fetchTrustLayer() {
+  const r = await axios.get(`${API}/admin/occ/health`, { headers: authHeaders() });
+  return r.data;
+}
+
+// ── Trust-layer status pill ─────────────────────────────────────
+const TRUST_STATUS_STYLES = {
+  green:   { bg: "bg-emerald-100", text: "text-emerald-800", ring: "ring-emerald-200", stripe: "#059669", label: "HEALTHY" },
+  yellow:  { bg: "bg-amber-100",   text: "text-amber-900",   ring: "ring-amber-200",   stripe: "#d97706", label: "ATTENTION" },
+  red:     { bg: "bg-rose-100",    text: "text-rose-900",    ring: "ring-rose-200",    stripe: "#e11d48", label: "CRITICAL" },
+  unknown: { bg: "bg-slate-200",   text: "text-slate-700",   ring: "ring-slate-300",   stripe: "#64748b", label: "UNKNOWN" },
+};
+
+function TrustStatusPill({ status, testid }) {
+  const s = TRUST_STATUS_STYLES[status] || TRUST_STATUS_STYLES.unknown;
+  return (
+    <span
+      data-testid={testid}
+      className={`inline-flex items-center rounded px-2 py-0.5 text-[10px] font-mono font-semibold uppercase tracking-widest ${s.bg} ${s.text} ring-1 ${s.ring}`}
+    >
+      {s.label}
+    </span>
+  );
+}
+
+// A single card in the Trust Layer. Read-only. Clicking opens the
+// evidence drawer. No inline mutations — actions live in the
+// Maintenance Operations console below.
+function HealthCard({ card, onOpen }) {
+  const style = TRUST_STATUS_STYLES[card.status] || TRUST_STATUS_STYLES.unknown;
+  return (
+    <button
+      type="button"
+      onClick={() => onOpen(card)}
+      data-testid={`trust-card-${card.id}`}
+      className="group relative flex w-full flex-col rounded-lg border border-slate-200 bg-white text-left shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-150 overflow-hidden"
+    >
+      <span
+        aria-hidden="true"
+        className="absolute left-0 top-0 bottom-0 w-1"
+        style={{ backgroundColor: style.stripe }}
+      />
+      <div className="p-4 pl-5 flex flex-col gap-2 min-h-[128px]">
+        <div className="flex items-start justify-between gap-2">
+          <h4
+            className="font-display text-sm font-black tracking-tight text-slate-900 leading-tight"
+            data-testid={`trust-card-${card.id}-title`}
+          >
+            {card.title}
+          </h4>
+          <TrustStatusPill
+            status={card.status}
+            testid={`trust-card-${card.id}-status`}
+          />
+        </div>
+        <p
+          className="text-[12px] text-slate-700 leading-snug"
+          data-testid={`trust-card-${card.id}-summary`}
+        >
+          {card.summary || "No summary."}
+        </p>
+        {card.recommended_action ? (
+          <p
+            className="text-[11px] text-slate-500 leading-snug"
+            data-testid={`trust-card-${card.id}-action`}
+          >
+            <span className="font-semibold text-slate-600">Action: </span>
+            {card.recommended_action}
+          </p>
+        ) : null}
+        <div className="mt-auto flex items-center justify-between pt-2 border-t border-slate-100 gap-2">
+          <div className="min-w-0 flex-1">
+            <div
+              className="text-[10px] font-mono text-slate-500 truncate"
+              title={card.endpoint}
+              data-testid={`trust-card-${card.id}-endpoint`}
+            >
+              {card.endpoint}
+            </div>
+            {card.checked_at ? (
+              <div
+                className="text-[10px] font-mono text-slate-400"
+                title="Last checked (your local time)"
+                data-testid={`trust-card-${card.id}-stamp`}
+              >
+                {formatRelativeTime(card.checked_at)}
+              </div>
+            ) : null}
+          </div>
+          <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 group-hover:translate-x-0.5 transition-all shrink-0" />
+        </div>
+      </div>
+    </button>
+  );
+}
+
+// Evidence drawer — opens on card click. Shows every fact the card
+// summarized, in raw form. Never mutates. Includes a drill-down link
+// to the canonical admin route for follow-up.
+function EvidenceDrawer({ card, open, onOpenChange }) {
+  if (!card) return null;
+  const style = TRUST_STATUS_STYLES[card.status] || TRUST_STATUS_STYLES.unknown;
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="right"
+        className="w-full sm:max-w-lg overflow-y-auto"
+        data-testid="trust-evidence-drawer"
+      >
+        <SheetHeader>
+          <div className="flex items-start justify-between gap-2 pr-6">
+            <SheetTitle
+              className="text-slate-900 pr-4"
+              data-testid="trust-evidence-drawer-title"
+            >
+              {card.title}
+            </SheetTitle>
+            <TrustStatusPill status={card.status} testid="trust-evidence-drawer-status" />
+          </div>
+          <SheetDescription className="text-slate-600 text-xs">
+            {card.summary}
+          </SheetDescription>
+        </SheetHeader>
+
+        <div className="mt-5 space-y-4 text-sm">
+          <div>
+            <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 font-bold mb-1">
+              Source endpoint
+            </div>
+            <div
+              className="font-mono text-xs bg-slate-50 border border-slate-200 rounded px-2 py-1.5 break-all"
+              data-testid="trust-evidence-drawer-endpoint"
+            >
+              {card.endpoint}
+            </div>
+          </div>
+
+          <div>
+            <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 font-bold mb-1">
+              Last checked
+            </div>
+            <div
+              className="text-xs text-slate-800"
+              data-testid="trust-evidence-drawer-checked-at"
+            >
+              {card.checked_at ? formatPlatformTime(card.checked_at) : "—"}
+            </div>
+          </div>
+
+          <div>
+            <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 font-bold mb-1">
+              Why this status
+            </div>
+            <div
+              className={`text-xs rounded px-2 py-1.5 border ${style.bg} ${style.text} ring-1 ${style.ring}`}
+              data-testid="trust-evidence-drawer-reason"
+            >
+              {card.summary}
+            </div>
+          </div>
+
+          {card.recommended_action ? (
+            <div>
+              <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 font-bold mb-1">
+                Recommended action
+              </div>
+              <div
+                className="text-xs text-slate-800 bg-amber-50 border border-amber-200 rounded px-2 py-1.5"
+                data-testid="trust-evidence-drawer-action"
+              >
+                {card.recommended_action}
+              </div>
+            </div>
+          ) : null}
+
+          <div>
+            <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 font-bold mb-1">
+              Evidence payload
+            </div>
+            <pre
+              className="text-[10px] leading-snug bg-slate-900 text-slate-100 rounded p-2 max-h-64 overflow-auto"
+              data-testid="trust-evidence-drawer-payload"
+            >
+              {JSON.stringify(card.evidence || {}, null, 2)}
+            </pre>
+          </div>
+
+          {card.drilldown ? (
+            <Link
+              to={card.drilldown}
+              className="inline-flex items-center gap-1.5 rounded-md bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-800"
+              data-testid="trust-evidence-drawer-drilldown"
+              onClick={() => onOpenChange(false)}
+            >
+              Open {card.drilldown}
+              <ExternalLink className="w-3 h-3" />
+            </Link>
+          ) : null}
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+const SECTION_STATUS_ORDER = { red: 0, yellow: 1, unknown: 2, green: 3 };
+
+function sortCardsByAttention(cards) {
+  return [...(cards || [])].sort(
+    (a, b) =>
+      (SECTION_STATUS_ORDER[a.status] ?? 4) -
+      (SECTION_STATUS_ORDER[b.status] ?? 4),
+  );
+}
+
+function TrustLayer({ snapshot, loading, error, onRefresh, lastFetchedAt }) {
+  const [drawerCard, setDrawerCard] = useState(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("all"); // all | red | yellow | unknown | green
+  const [query, setQuery] = useState("");
+
+  const openDrawer = useCallback((card) => {
+    setDrawerCard(card);
+    setDrawerOpen(true);
+  }, []);
+
+  const filteredSections = useMemo(() => {
+    const list = snapshot?.sections || [];
+    return list.map((sec) => {
+      const q = query.trim().toLowerCase();
+      const filtered = sortCardsByAttention(sec.cards).filter((c) => {
+        if (statusFilter !== "all" && c.status !== statusFilter) return false;
+        if (!q) return true;
+        return (
+          c.title.toLowerCase().includes(q) ||
+          (c.summary || "").toLowerCase().includes(q) ||
+          (c.endpoint || "").toLowerCase().includes(q)
+        );
+      });
+      return { ...sec, cards: filtered };
+    });
+  }, [snapshot, statusFilter, query]);
+
+  const attentionCards = useMemo(() => {
+    const all = (snapshot?.sections || []).flatMap((s) => s.cards);
+    return sortCardsByAttention(all).filter((c) => c.status === "red").slice(0, 4);
+  }, [snapshot]);
+
+  const counts = snapshot?.counts || { green: 0, yellow: 0, red: 0, unknown: 0 };
+  const overall = snapshot?.overall_status || (loading ? "unknown" : "unknown");
+
+  return (
+    <section
+      className="mb-8"
+      data-testid="trust-layer"
+    >
+      {/* ── Header + refresh ────────────────────────────────── */}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white p-4">
+        <div>
+          <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono font-bold">
+            Trust Center · read-only
+          </div>
+          <div className="mt-1 flex items-center gap-2">
+            <TrustStatusPill status={overall} testid="trust-layer-overall-pill" />
+            <span
+              className="text-sm font-semibold text-slate-900"
+              data-testid="trust-layer-overall-summary"
+            >
+              {overall === "red"
+                ? "One or more operational systems report a critical condition."
+                : overall === "yellow"
+                ? "One or more operational systems need attention."
+                : overall === "green"
+                ? "All wired operational systems report healthy."
+                : "Trust snapshot unavailable — press Refresh."}
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center gap-4 text-sm">
+          <div data-testid="trust-layer-count-healthy">
+            <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">Healthy</div>
+            <div className="font-black text-emerald-700 text-xl leading-none">{counts.green || 0}</div>
+          </div>
+          <div data-testid="trust-layer-count-attention">
+            <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">Attention</div>
+            <div className="font-black text-amber-700 text-xl leading-none">{counts.yellow || 0}</div>
+          </div>
+          <div data-testid="trust-layer-count-critical">
+            <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">Critical</div>
+            <div className="font-black text-rose-700 text-xl leading-none">{counts.red || 0}</div>
+          </div>
+          <div data-testid="trust-layer-count-unknown">
+            <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">Unknown</div>
+            <div className="font-black text-slate-600 text-xl leading-none">{counts.unknown || 0}</div>
+          </div>
+          <div>
+            <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">Last refreshed</div>
+            <div
+              className="font-mono text-xs text-slate-800"
+              data-testid="trust-layer-last-refreshed"
+            >
+              {lastFetchedAt ? formatPlatformTime(lastFetchedAt) : "—"}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onRefresh}
+            disabled={loading}
+            className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-100 disabled:opacity-60"
+            data-testid="trust-layer-refresh"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+            {loading ? "Refreshing…" : "Refresh"}
+          </button>
+        </div>
+      </div>
+
+      {error ? (
+        <div
+          className="mb-4 rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800"
+          data-testid="trust-layer-error"
+        >
+          {error}
+        </div>
+      ) : null}
+
+      {/* ── Attention-first strip (top RED items) ─────────── */}
+      {attentionCards.length > 0 && (
+        <div className="mb-6" data-testid="trust-layer-attention-strip">
+          <div className="mb-2 flex items-center gap-2">
+            <ShieldAlert className="w-4 h-4 text-rose-600" />
+            <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono font-bold">
+              Needs immediate attention
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+            {attentionCards.map((c) => (
+              <HealthCard key={`attn-${c.id}`} card={c} onOpen={openDrawer} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Search + status filter ─────────────────────────── */}
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <div className="relative flex-1 min-w-[220px] max-w-md">
+          <SearchIcon className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Filter cards by title, summary, or endpoint…"
+            className="w-full rounded-md border border-slate-300 bg-white pl-8 pr-3 py-1.5 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300"
+            data-testid="trust-layer-search"
+          />
+          {query ? (
+            <button
+              type="button"
+              onClick={() => setQuery("")}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+              data-testid="trust-layer-search-clear"
+              aria-label="Clear filter"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          ) : null}
+        </div>
+        {["all", "red", "yellow", "unknown", "green"].map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => setStatusFilter(s)}
+            className={`rounded-md border px-2 py-1 text-[11px] font-semibold uppercase tracking-wider ${
+              statusFilter === s
+                ? "bg-slate-900 text-white border-slate-900"
+                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-100"
+            }`}
+            data-testid={`trust-layer-filter-${s}`}
+          >
+            {s === "all" ? "All" : (TRUST_STATUS_STYLES[s]?.label || s)}
+          </button>
+        ))}
+      </div>
+
+      {/* ── 8 sections ─────────────────────────────────────── */}
+      <div className="space-y-6" data-testid="trust-layer-sections">
+        {filteredSections.map((sec) => (
+          <div key={sec.id} data-testid={`trust-section-${sec.id}`}>
+            <div className="mb-2 flex items-center gap-2">
+              <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono font-bold">
+                {sec.label}
+              </div>
+              <TrustStatusPill status={sec.status} testid={`trust-section-${sec.id}-status`} />
+              <div className="text-[10px] font-mono text-slate-400">
+                {sec.cards.length}/{(snapshot?.sections?.find((x) => x.id === sec.id)?.cards?.length) || 0} card(s)
+              </div>
+            </div>
+            {sec.cards.length === 0 ? (
+              <div
+                className="rounded-md border border-dashed border-slate-300 bg-white px-3 py-4 text-xs text-slate-500"
+                data-testid={`trust-section-${sec.id}-empty`}
+              >
+                No cards match the current filter.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                {sec.cards.map((c) => (
+                  <HealthCard key={c.id} card={c} onOpen={openDrawer} />
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* ── Evidence drawer (rendered once) ─────────────── */}
+      <EvidenceDrawer
+        card={drawerCard}
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+      />
+    </section>
+  );
 }
 
 function RiskChip({ risk }) {
@@ -380,6 +826,15 @@ export default function OperationsControlCenter() {
   const [loading, setLoading] = useState(true);
   const [dryRunState, setDryRunState] = useState({}); // op.id -> { dry_run_id, confirmation_phrase, last_result }
   const [error, setError] = useState(null);
+
+  // TRACK 25 · SPRINT 2 · Trust Layer state — separate from the
+  // operations registry above so a slow child probe never blocks the
+  // maintenance console from rendering.
+  const [trustSnapshot, setTrustSnapshot] = useState(null);
+  const [trustLoading, setTrustLoading] = useState(true);
+  const [trustError, setTrustError] = useState(null);
+  const [trustFetchedAt, setTrustFetchedAt] = useState(null);
+
   // TRACK 25.01 · Phase C — deep-link highlight from LegacyMovedBanner.
   const highlightOpId = useMemo(() => {
     try {
@@ -409,9 +864,30 @@ export default function OperationsControlCenter() {
     }
   }, []);
 
+  const reloadTrust = useCallback(async () => {
+    setTrustLoading(true);
+    try {
+      const snap = await fetchTrustLayer();
+      setTrustSnapshot(snap);
+      // Internal UTC stamp fed into `formatPlatformTime` for the UI —
+      // never displayed as a raw ISO to any operator.
+      setTrustFetchedAt(new Date().toISOString()); // TRACK-27.03-EXEMPT: machine timestamp, always rendered via formatPlatformTime.
+      setTrustError(null);
+    } catch (e) {
+      setTrustError(
+        e?.response?.status === 401 || e?.response?.status === 403
+          ? "Super-admin access required."
+          : e?.message || String(e),
+      );
+    } finally {
+      setTrustLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     reload();
-  }, [reload]);
+    reloadTrust();
+  }, [reload, reloadTrust]);
 
   // TRACK 25.01 · Phase C — scroll the highlighted card into view once
   // the overview loads. Runs on every overview change so a re-navigation
@@ -505,20 +981,48 @@ export default function OperationsControlCenter() {
               Operations Control Center
             </h1>
             <p className="mt-1 text-sm text-slate-600 max-w-2xl">
-              Unified maintenance console. Run health probes and cleanup
-              from one place. Every action is dry-run first, confirmed,
-              and recorded in the audit log.
+              Trust Center + maintenance console. Read-only health cards
+              above tell the truth. Every mutating action is dry-run first,
+              confirmed, and recorded in the audit log below.
             </p>
           </div>
+        </header>
+
+        {/* TRACK 25 · SPRINT 2 · Trust Layer — read-only 8 sections. */}
+        <TrustLayer
+          snapshot={trustSnapshot}
+          loading={trustLoading}
+          error={trustError}
+          onRefresh={reloadTrust}
+          lastFetchedAt={trustFetchedAt}
+        />
+
+        {/* Divider between Trust Layer (read-only) and Maintenance Console (mutating). */}
+        <div
+          className="mb-6 flex items-center gap-2"
+          data-testid="occ-console-divider"
+        >
+          <div className="h-px flex-1 bg-slate-300" />
+          <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono font-bold">
+            Maintenance Operations Console · dry-run / apply
+          </div>
+          <div className="h-px flex-1 bg-slate-300" />
+        </div>
+
+        <div className="mb-4 flex items-center justify-between">
+          <p className="text-xs text-slate-600 max-w-2xl">
+            Every operation below is dry-run first. Applies require the exact
+            confirmation phrase and are recorded in the immutable audit log.
+          </p>
           <button
             type="button"
             className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
             onClick={reload}
             data-testid="occ-refresh-all"
           >
-            {loading ? "Refreshing…" : "Refresh"}
+            {loading ? "Refreshing…" : "Refresh operations"}
           </button>
-        </header>
+        </div>
 
         {error && (
           <div
