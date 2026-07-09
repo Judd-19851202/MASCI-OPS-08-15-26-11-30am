@@ -16,18 +16,18 @@ TaskType = str  # See literal set in TASK_ROUTES.keys().
 # Default routing plan per architecture directive.
 # Provider names align with adapter registry keys.
 TASK_ROUTES: Dict[str, Tuple[str, str]] = {
-    "operational_narrative":  ("anthropic", "claude-sonnet-4-5-20250929"),
-    "production_intelligence":("anthropic", "claude-sonnet-4-5-20250929"),
-    "delay_intelligence":     ("anthropic", "claude-sonnet-4-5-20250929"),
-    "safety_intelligence":    ("anthropic", "claude-sonnet-4-5-20250929"),
-    "equipment_intelligence": ("anthropic", "claude-sonnet-4-5-20250929"),
+    "operational_narrative":  ("anthropic", "claude-sonnet-4-6"),
+    "production_intelligence":("anthropic", "claude-sonnet-4-6"),
+    "delay_intelligence":     ("anthropic", "claude-sonnet-4-6"),
+    "safety_intelligence":    ("anthropic", "claude-sonnet-4-6"),
+    "equipment_intelligence": ("anthropic", "claude-sonnet-4-6"),
     "photo_vision":           ("openai",    "gpt-5.4"),
-    "pm_brief":               ("anthropic", "claude-sonnet-4-5-20250929"),
-    "executive_brief":        ("anthropic", "claude-sonnet-4-5-20250929"),
-    "confidence_validation":  ("anthropic", "claude-sonnet-4-5-20250929"),
-    "evidence_trace":         ("anthropic", "claude-sonnet-4-5-20250929"),
-    "future_task":            ("anthropic", "claude-sonnet-4-5-20250929"),
-    "translation_es_en":      ("anthropic", "claude-sonnet-4-5-20250929"),
+    "pm_brief":               ("anthropic", "claude-sonnet-4-6"),
+    "executive_brief":        ("anthropic", "claude-sonnet-4-6"),
+    "confidence_validation":  ("anthropic", "claude-sonnet-4-6"),
+    "evidence_trace":         ("anthropic", "claude-sonnet-4-6"),
+    "future_task":            ("anthropic", "claude-sonnet-4-6"),
+    "translation_es_en":      ("anthropic", "claude-sonnet-4-6"),
 }
 
 

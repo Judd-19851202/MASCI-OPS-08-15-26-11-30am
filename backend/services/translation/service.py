@@ -181,7 +181,7 @@ async def _call_anthropic(
         api_key=api_key,
         session_id=f"dr-v3-translate-{uuid.uuid4().hex[:10]}",
         system_message=system,
-    ).with_model("anthropic", "claude-sonnet-4-5-20250929")
+    ).with_model("anthropic", "claude-sonnet-4-6")
     resp = await chat.send_message(UserMessage(text=payload_text))
     return str(resp or "")
 
@@ -264,7 +264,7 @@ async def translate_es_to_en_bulk(
 
     providers = [
         ("openai", "gpt-5.2", _call_openai),
-        ("anthropic", "claude-sonnet-4-5-20250929", _call_anthropic),
+        ("anthropic", "claude-sonnet-4-6", _call_anthropic),
     ]
 
     last_error = "translation_service_unavailable"

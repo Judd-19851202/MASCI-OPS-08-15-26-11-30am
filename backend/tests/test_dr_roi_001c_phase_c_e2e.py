@@ -70,7 +70,7 @@ def test_meta_shape(sess):
     d = r.json()
     assert d["feature_flag"] is True
     assert d["ai_available"] is True
-    assert d["model"] == "claude-sonnet-4-5-20250929"
+    assert d["model"] == "claude-sonnet-4-6"
     schema = d["envelope_schema"]
     for k in ("narrative", "confidence", "evidence_refs", "sources_used"):
         assert k in schema["required"]
@@ -116,7 +116,7 @@ def test_synthesize_cold_then_cached(sess):
     assert r1.status_code == 200, r1.text
     d1 = r1.json()
     assert d1["ai_available"] is True
-    assert d1["model"] == "claude-sonnet-4-5-20250929"
+    assert d1["model"] == "claude-sonnet-4-6"
     outs = d1["outputs"]
     assert set(outs.keys()) == {"day_narrative", "risk_and_constraints", "tomorrow_readiness"}
     assert d1["cache_hits"] == 0
@@ -134,7 +134,7 @@ def test_synthesize_cold_then_cached(sess):
             root = m.group(1) if m else ref
             assert root in WHITELIST, f"evidence_ref {ref!r} not whitelisted (agent={name})"
         if o.get("ai_available", True):
-            assert o.get("model") == "claude-sonnet-4-5-20250929"
+            assert o.get("model") == "claude-sonnet-4-6"
             assert o.get("provider") == "emergent"
             assert o.get("generated_at")
 

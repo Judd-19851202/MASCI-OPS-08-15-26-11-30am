@@ -45,7 +45,7 @@ class TestOdsMeta:
             assert isinstance(v, bool), f"providers_with_keys[{k}] is not bool: {v!r}"
         # Default routes match spec
         assert g["task_routes"]["operational_narrative"]["provider"] == "anthropic"
-        assert g["task_routes"]["operational_narrative"]["model"] == "claude-sonnet-4-5-20250929"
+        assert g["task_routes"]["operational_narrative"]["model"] == "claude-sonnet-4-6"
         assert g["task_routes"]["photo_vision"]["provider"] == "openai"
         assert g["task_routes"]["photo_vision"]["model"] == "gpt-5.2-vision"
 

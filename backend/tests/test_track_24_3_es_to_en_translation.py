@@ -145,7 +145,7 @@ async def test_fallback_to_anthropic_after_openai_error(monkeypatch):
     r = await translate_es_to_en_bulk(db, {"a": "hola"})
     assert r.ok is True
     assert r.provider == "anthropic"
-    assert r.model == "claude-sonnet-4-5-20250929"
+    assert r.model == "claude-sonnet-4-6"
 
 
 @pytest.mark.asyncio

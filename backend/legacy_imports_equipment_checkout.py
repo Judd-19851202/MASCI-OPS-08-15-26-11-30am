@@ -51,7 +51,7 @@ def pilot_cap() -> int:
 
 def ocr_model() -> str:
     return os.environ.get(
-        "LEGACY_OCR_MODEL", "claude-sonnet-4-5-20250929"
+        "LEGACY_OCR_MODEL", "claude-sonnet-4-6"
     )
 
 

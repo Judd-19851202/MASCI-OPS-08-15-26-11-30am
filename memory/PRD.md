@@ -15,7 +15,14 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 
 ## TRACK 26.13 · AI Summary Silent-Failover Fix + Admin AI Health · 2026-02-08 · PREVIEW VERIFIED
 
-### Root cause of "trash summary" recurrence in production
+### Second-wave root cause (found after redeploy)
+After the failover-fix redeploy, production Sentry surfaced a **new** error: `NotFoundError: The model claude-sonnet-4-5-20250929 does not exist or you do not have access to it`. This *validated* that failover was working (OpenAI 401 → fell over to Anthropic → Anthropic returned 404) but revealed that the hardcoded model `claude-sonnet-4-5-20250929` (specifically dated) is deprecated / not accessible via the user's direct `ANTHROPIC_API_KEY` in production. In preview it worked because preview uses the Emergent proxy which still has the dated model; production's direct Anthropic key does not.
+
+**Fix**: Migrated every reference of `claude-sonnet-4-5-20250929` → `claude-sonnet-4-6` (Emergent's currently recommended Claude model per integration playbook). Verified all 4 Anthropic models resolve via emergent key. Verified real synthesize returns 1,569-char grounded narrative with `provider=anthropic, model=claude-sonnet-4-6, ai_available=true, 34 evidence_refs`.
+
+Files updated: `services/ai_gateway/task_router.py` (12 task routes), `services/ai_gateway/env.py`, `services/dr_ai/emergent_provider.py`, `services/dr_ai/factory.py` (docstring), `services/translation/service.py` (2 sites), `legacy_imports_equipment_checkout.py`, `.env` (`AI_DEFAULT_TEXT_MODEL`), and 3 test files (assertion updates).
+
+### Original root cause (pre-existing)
 User Sentry alert `AuthenticationError: Error code: 401 - Incorrect API key provided: sk-proj-***fcD` on `/api/dr-v2/ai/synthesize` (env: production) revealed:
 - Production OpenAI key is invalid/revoked → 401 from OpenAI
 - **Adapters catch their own LLM exceptions and return `AiEnvelope(ai_available=False, fallback_reason=...)` instead of raising.**

@@ -21,7 +21,7 @@ class EmergentClaudeProvider:
 
     name = "emergent"
     # Kept for backward-compat display; real routing lives in the gateway.
-    model = os.environ.get("AI_DEFAULT_TEXT_MODEL", "claude-sonnet-4-5-20250929")
+    model = os.environ.get("AI_DEFAULT_TEXT_MODEL", "claude-sonnet-4-6")
     llm_provider = os.environ.get("AI_DEFAULT_PROVIDER", "anthropic")
 
     def __init__(self):
