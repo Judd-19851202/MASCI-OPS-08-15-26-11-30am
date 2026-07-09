@@ -76,11 +76,26 @@ function toEvidenceDraft(reportId, data, photoObservations = []) {
     // observations (structured + note), tomorrow plan, excavation
     // + Competent Person snapshot, and work-stoppage / hold info.
     visitors: (data.visitors || []).slice(0, 15),
-    constraints_cards: (data.constraints_cards || data.delays || []).slice(0, 15),
+    // TRACK 26.12 · Production rows (station from/to · qty · % complete).
+    production: (data.production || []).slice(0, 25),
+    // TRACK 26.12 · Key fix: the V1/V3 forms store constraint rows on
+    // `data.constraints`. The prior `constraints_cards` key was NOT a
+    // DraftPayload field, so delays/constraints were silently dropped
+    // before ever reaching the AI.
+    constraint_cards: (data.constraint_cards || data.constraints_cards || data.constraints || data.delays || []).slice(0, 15),
+    // TRACK 26.12 · Yes/No day-impact toggles + their notes.
+    day_impacts: {
+      schedule_delays: data.schedule_delays || "",
+      schedule_delays_notes: data.schedule_delays_notes || "",
+      weather_impact: data.weather_impact || "",
+      weather_impact_notes: data.weather_impact_notes || "",
+    },
     safety_quality: {
-      notes: data.safety_quality?.notes || data.safety_notes || "",
-      incidents_today: data.safety_quality?.incidents_today ?? data.incidents_today ?? false,
-      injuries_today: data.safety_quality?.injuries_today ?? data.injuries_today ?? false,
+      notes: data.safety_quality?.notes || data.safety_notes || data.incident_notes || "",
+      incidents_today: data.safety_quality?.incidents_today
+        ?? (data.safety_incidents_today === "Yes" ? true : (data.incidents_today ?? false)),
+      injuries_today: data.safety_quality?.injuries_today
+        ?? (data.injuries_reported === "Yes" ? true : (data.injuries_today ?? false)),
       near_misses: (data.safety_quality?.near_misses || data.near_misses || []).slice(0, 10),
     },
     excavation: data.excavation || data.excavation_section || null,
@@ -88,7 +103,12 @@ function toEvidenceDraft(reportId, data, photoObservations = []) {
       || (data.excavation ? data.excavation.competent_person : null)
       || null,
     work_stoppage: data.work_stoppage || data.work_hold || null,
-    tomorrow_readiness: data.tomorrow_readiness || {},
+    // TRACK 26.12 · Tomorrow plan + PM needs live on narrative_sections.
+    tomorrow_readiness: {
+      ...(data.tomorrow_readiness || {}),
+      tomorrow_plan: (data.narrative_sections || {}).tomorrow_plan || "",
+      pm_needs: (data.narrative_sections || {}).follow_ups || "",
+    },
     general_notes: data.general_notes || "",
     photos: (data.photos || []).slice(0, 10),
     // TRACK 24.12 · Optional per-photo captions (V1 payload carries
@@ -119,11 +139,19 @@ function hasEnoughEvidence(data) {
   const acts = (data.activity_cards || data.activities || []).length;
   const crew = (data.masci_crews || []).length;
   const notes = (data.safety_quality?.notes || data.safety_notes || "").trim();
-  return acts > 0 || crew > 0 || notes.length > 20;
+  const photos = (data.photos || []).length;
+  const mats = (data.materials || []).length;
+  const subs = (data.subcontractors || data.subs_vendors || []).length;
+  const prod = (data.production || []).length;
+  return acts > 0 || crew > 0 || photos > 0 || mats > 0 || subs > 0 || prod > 0 || notes.length > 20;
 }
 
 const DEBOUNCE_MS = 1200;
-const REQUEST_TIMEOUT_MS = 15000; // hard timeout · > this → deterministic fallback
+// TRACK 26.12 · Was 15000 — the AI narrative alone takes ~15-20s, and
+// photo vision (run inline at generate time) adds 10-20s more. The old
+// 15s timeout aborted virtually every successful generation and forced
+// the deterministic fallback.
+const REQUEST_TIMEOUT_MS = 60000;
 
 export default function DailySummaryAssist({ data, reportNumber, onAccept, testId = "daily-summary-assist" }) {
   const { t } = useT();
@@ -248,9 +276,15 @@ export default function DailySummaryAssist({ data, reportNumber, onAccept, testI
     JSON.stringify(data?.activity_cards || data?.activities || []),
     JSON.stringify(data?.masci_crews || []),
     JSON.stringify(data?.equipment_used || data?.equipment || []),
-    JSON.stringify(data?.materials || []),
-    JSON.stringify(data?.constraints_cards || data?.delays || []),
+    JSON.stringify((data?.materials || []).map((m) => ({ ...m, ticket_photos: (m?.ticket_photos || []).length }))),
+    JSON.stringify(data?.constraint_cards || data?.constraints || data?.delays || []),
+    JSON.stringify(data?.production || []),
+    JSON.stringify(data?.subcontractors || []),
+    (data?.photos || []).length,
+    (data?.narrative_sections || {}).tomorrow_plan,
+    (data?.narrative_sections || {}).follow_ups,
     data?.safety_quality?.notes,
+    data?.incident_notes,
     data?.weather_summary,
     accepted,
   ]);
@@ -294,7 +328,9 @@ export default function DailySummaryAssist({ data, reportNumber, onAccept, testI
         {status === "building" && (
           <span className="ml-2 inline-flex items-center gap-1 text-xs text-slate-500" data-testid={`${testId}-status`}>
             <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" />
-            {t("building…")}
+            {(data?.photos || []).length > 0
+              ? t("analyzing photos & writing summary…")
+              : t("writing summary…")}
           </span>
         )}
         {status === "ready" && !accepted && (

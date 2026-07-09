@@ -32,7 +32,7 @@ def test_ods_meta_photo_vision_route():
     d = r.json()
     gw = d.get("ai_gateway", {})
     tr = gw.get("task_routes", {}).get("photo_vision")
-    assert tr == {"provider": "openai", "model": "gpt-5.2-vision"}, f"got {tr!r}"
+    assert tr == {"provider": "openai", "model": "gpt-5.4"}, f"got {tr!r}"
     pwk = gw.get("env", {}).get("providers_with_keys", {})
     assert pwk.get("openai") is True, f"openai not in providers_with_keys: {pwk}"
 
@@ -54,7 +54,7 @@ def test_analyze_no_bytes_graceful():
         assert k in intel, f"missing field {k}"
     assert intel["analysis_status"] == "unavailable"
     assert intel["provider"] == "openai"
-    assert intel["model"] == "gpt-5.2-vision"
+    assert intel["model"] == "gpt-5.4"
 
 
 # ----- Idempotency ---------------------------------------------------------
@@ -114,7 +114,7 @@ def seeded():
             "evidence_hash": "seeded-" + uuid.uuid4().hex,
             "analysis_status": "complete",
             "provider": "openai",
-            "model": "gpt-5.2-vision",
+            "model": "gpt-5.4",
             "confidence": 0.87,
             "narrative": "Seeded for accept/dismiss/resolve test.",
             "observations": [

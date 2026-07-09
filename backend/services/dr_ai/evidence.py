@@ -42,6 +42,8 @@ EVIDENCE_FIELD_WHITELIST = {
     "equipment_used", "equipment_hours", "equipment_idle_reasons",
     # ── V2 / V3 structured entry ──────────────────────────────
     "activity_cards", "constraint_cards", "tomorrow_readiness",
+    # ── TRACK 26.12 · production rows · V1 constraints · impacts ──
+    "production", "constraints", "day_impacts", "narrative_sections",
     # ── Materials / hauling ───────────────────────────────────
     "materials", "outbound_materials", "subcontractors", "vendors",
     # ── Safety / quality ──────────────────────────────────────
@@ -69,18 +71,65 @@ def _canon(value: Any) -> Any:
     return value
 
 
+# TRACK 26.12 · Binary payload guard.
+# The DR form attaches photos as base64 data URLs. Prior to this track
+# those raw bytes were JSON-dumped INTO the text prompt (~1M tokens for
+# 8 photos), which made every provider call fail instantly and silently
+# dropped the app to the deterministic fallback. Photos are now reduced
+# to citable metadata refs; actual pixels go to the vision model via
+# `services/dr_ai/vision.py` and come back as `photo_observations`.
+
+def _is_data_url(v: Any) -> bool:
+    return isinstance(v, str) and v.startswith("data:") and ";base64," in v[:80]
+
+
+def _photo_meta(photos: List[Any], captions: List[Any]) -> List[Dict[str, Any]]:
+    out: List[Dict[str, Any]] = []
+    for i, p in enumerate(photos[:24]):
+        raw = p if isinstance(p, str) else json.dumps(p, sort_keys=True, default=str)
+        meta: Dict[str, Any] = {
+            "ref": f"photo:{i}",
+            "sha12": hashlib.sha256(raw.encode("utf-8", "ignore")).hexdigest()[:12],
+        }
+        if i < len(captions) and isinstance(captions[i], str) and captions[i].strip():
+            meta["caption"] = captions[i].strip()[:240]
+        out.append(meta)
+    return out
+
+
+def _strip_binary(v: Any) -> Any:
+    """Recursively replace embedded images / oversized blobs so no raw
+    binary ever reaches a text prompt."""
+    if isinstance(v, str):
+        if _is_data_url(v):
+            return f"[image_omitted:{len(v)}b — see photo_observations]"
+        if len(v) > 6000:
+            return v[:2000] + f"…[truncated {len(v)} chars]"
+        return v
+    if isinstance(v, dict):
+        return {k: _strip_binary(x) for k, x in v.items()}
+    if isinstance(v, list):
+        return [_strip_binary(x) for x in v]
+    return v
+
+
 def build_evidence_bundle(draft: Dict[str, Any]) -> Dict[str, Any]:
     """Build a normalized evidence bundle from a V2 draft payload.
 
     Only whitelisted keys are included. Unknown keys are dropped so
     prompt injection or accidental new fields cannot leak into the
-    agent context.
+    agent context. Photos are reduced to metadata refs and every value
+    is scrubbed of embedded binary before it can reach a prompt.
     """
     bundle: Dict[str, Any] = {}
     for key in EVIDENCE_FIELD_WHITELIST:
         if key in draft and draft[key] not in (None, "", [], {}):
             bundle[key] = _canon(draft[key])
-    return bundle
+    if isinstance(bundle.get("photos"), list):
+        bundle["photos"] = _photo_meta(
+            bundle["photos"], list(draft.get("photo_captions") or []),
+        )
+    return _strip_binary(bundle)
 
 
 def evidence_hash(bundle: Dict[str, Any]) -> str:

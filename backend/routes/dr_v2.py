@@ -41,6 +41,7 @@ from services.dr_ai import (
 )
 from services.dr_ai.agents import AGENT_RESPONSE_SCHEMA
 from services.dr_ai.cache import ensure_indexes as ensure_ai_cache_indexes
+from services.dr_ai.vision import analyze_draft_photos
 # TRACK 24.13 · Evidence Manifest — used when the caller requests the
 # `manifest_summary` agent so the AI reasons over the full evidence
 # manifest (typed fields · photos · extracted docs · reconciled tickets)
@@ -85,6 +86,12 @@ class DraftPayload(BaseModel):
     vendors: List[Dict[str, Any]] = Field(default_factory=list)
     activity_cards: List[Dict[str, Any]] = Field(default_factory=list)
     constraint_cards: List[Dict[str, Any]] = Field(default_factory=list)
+    # TRACK 26.12 · Previously-dropped field groups (production rows,
+    # V1-shaped constraints, day-impact toggles, narrative sections).
+    production: List[Dict[str, Any]] = Field(default_factory=list)
+    constraints: List[Dict[str, Any]] = Field(default_factory=list)
+    day_impacts: Dict[str, Any] = Field(default_factory=dict)
+    narrative_sections: Dict[str, Any] = Field(default_factory=dict)
     tomorrow_readiness: Dict[str, Any] = Field(default_factory=dict)
     safety: Dict[str, Any] = Field(default_factory=dict)
     safety_quality: Dict[str, Any] = Field(default_factory=dict)
@@ -119,7 +126,12 @@ class ApprovalRequest(BaseModel):
 # -----------------------------------------------------------------------------
 
 def _v2_ai_enabled() -> bool:
-    return (os.environ.get("DR_V2_AI_ENABLED") or "").lower() in {"1", "true", "yes", "on"}
+    # TRACK 26.12 · Default-enabled. A missing env var in production
+    # used to silently kill the entire DR AI path. Explicit false still
+    # disables; anything else (including unset) leaves it on — actual
+    # availability is still governed by key presence in provider_meta().
+    raw = (os.environ.get("DR_V2_AI_ENABLED") or "").strip().lower()
+    return raw not in {"0", "false", "no", "off"}
 
 
 def _now_iso() -> str:
@@ -158,6 +170,8 @@ def _draft_to_evidence(draft: Dict[str, Any]) -> Dict[str, Any]:
         "equipment_used", "equipment_hours", "equipment_idle_reasons",
         # V2 structured entry
         "activity_cards", "constraint_cards", "tomorrow_readiness",
+        # TRACK 26.12 · production rows · V1 constraints · day impacts
+        "production", "constraints", "day_impacts", "narrative_sections",
         # Materials / hauling
         "materials", "outbound_materials", "subcontractors", "vendors",
         # Safety / quality (structured)
@@ -298,15 +312,37 @@ def register_dr_v2_routes(api_router: APIRouter, db) -> None:
         if not draft:
             raise HTTPException(status_code=404, detail="draft not found for report_id")
 
+        ai_on = _v2_ai_enabled()
+        pmeta = provider_meta()
+        provider = get_ai_provider() if ai_on else None
+
+        # TRACK 26.12 · Inline photo vision BEFORE the narrative runs.
+        # Photos attached to the draft (report photos, material ticket
+        # photos, sub photos) are analyzed by the vision model and the
+        # grounded observations are merged into the evidence bundle so
+        # the narrative can cite actual photo content. Per-photo results
+        # are content-hash cached — Regenerate never re-pays vision.
+        photo_observations_used = 0
+        if ai_on and pmeta["ai_available"]:
+            try:
+                vision_obs = await analyze_draft_photos(
+                    db, report_id=payload.report_id, draft=draft,
+                )
+            except Exception:  # noqa: BLE001
+                vision_obs = []
+            if vision_obs:
+                existing_obs = [
+                    o for o in (draft.get("photo_observations") or [])
+                    if isinstance(o, dict)
+                ]
+                draft["photo_observations"] = existing_obs + vision_obs
+                photo_observations_used = len(vision_obs)
+
         bundle = build_evidence_bundle(_draft_to_evidence(draft))
         ehash = evidence_hash(bundle)
         requested = payload.agents or AGENT_ORDER
         # Reject any unknown agents so callers can't inject prompts.
         requested = [a for a in requested if a in AGENTS]
-
-        ai_on = _v2_ai_enabled()
-        pmeta = provider_meta()
-        provider = get_ai_provider() if ai_on else None
 
         outputs: Dict[str, Any] = {}
         cache_hits = 0
@@ -410,6 +446,7 @@ def register_dr_v2_routes(api_router: APIRouter, db) -> None:
             "cache_hits": cache_hits,
             "cache_misses": cache_misses,
             "aggregate_confidence": aggregate,
+            "photo_observations_used": photo_observations_used,
             "outputs": outputs,
             "errors": errors,
         }

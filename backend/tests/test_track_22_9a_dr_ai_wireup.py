@@ -108,8 +108,12 @@ def test_assist_has_hard_timeout():
     m = re.search(r"REQUEST_TIMEOUT_MS\s*=\s*(\d+)", src)
     assert m is not None, "assist must define REQUEST_TIMEOUT_MS"
     ms = int(m.group(1))
-    assert 5000 <= ms <= 20000, (
-        f"assist hard timeout must be 5–20s · got {ms}"
+    # TRACK 26.12 · Raised from 15s: inline photo vision + narrative
+    # legitimately takes 25-40s. The old 15s ceiling aborted nearly
+    # every successful AI generation and forced the deterministic
+    # fallback — the root cause of the "trash summary" P0.
+    assert 30000 <= ms <= 90000, (
+        f"assist hard timeout must be 30–90s (vision + narrative) · got {ms}"
     )
 
 

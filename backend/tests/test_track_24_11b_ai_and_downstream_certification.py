@@ -41,7 +41,9 @@ REQUIRED_EVIDENCE_KEYS = [
     "activity_cards", "masci_crews", "equipment_used",
     "materials", "outbound_materials",
     "subcontractors", "vendors",
-    "visitors", "constraints_cards",
+    "visitors", "constraint_cards",
+    # TRACK 26.12 · previously-dropped groups now forwarded
+    "production", "day_impacts",
     "safety_quality",
     "excavation", "competent_person",
     "work_stoppage", "tomorrow_readiness", "general_notes",

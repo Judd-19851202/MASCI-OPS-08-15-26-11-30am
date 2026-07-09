@@ -34,5 +34,14 @@ def provider_meta() -> Dict[str, Any]:
         "provider": getattr(p, "name", "emergent"),
         "model": getattr(p, "model", ""),
         "llm_provider": getattr(p, "llm_provider", ""),
-        "ai_available": bool(os.environ.get("EMERGENT_LLM_KEY")),
+        # TRACK 26.12 · Availability = ANY usable key. Production runs on
+        # direct provider keys (no Emergent key); the old EMERGENT-only
+        # check reported ai_available=false there and silently forced the
+        # deterministic fallback despite valid Anthropic/OpenAI keys.
+        "ai_available": bool(
+            os.environ.get("EMERGENT_LLM_KEY")
+            or os.environ.get("ANTHROPIC_API_KEY")
+            or os.environ.get("OPENAI_API_KEY")
+            or os.environ.get("GOOGLE_AI_API_KEY")
+        ),
     }
