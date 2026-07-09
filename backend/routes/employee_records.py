@@ -53,6 +53,11 @@ from fastapi import APIRouter, Body, Depends, File, Form, Header, HTTPException,
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, ConfigDict, Field
 
+# TRACK 27.03 · Phase 2b · HR employee package PDF header uses the
+# canonical local formatter so the "Generated" stamp shown to HR /
+# safety / lane owners is the tenant's wall-clock, not UTC.
+from lib.platform_time import format_platform_stamp
+
 logger = logging.getLogger(__name__)
 
 
@@ -209,7 +214,7 @@ LANE_RECORD_TYPES: Dict[str, List[str]] = {
 
 
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(timezone.utc).isoformat()  # TRACK-27.03-EXEMPT: internal DB storage helper (created_at, updated_at, audit trail); never rendered to operators — frontend/PDF formats it locally
 
 
 def _sha256(data: bytes) -> str:
@@ -1369,7 +1374,7 @@ def _render_employee_package_pdf(*, emp, package_key, package_title,
         body,
     ))
     story.append(Paragraph(
-        f"Generated {datetime.now(timezone.utc).isoformat()[:19].replace('T',' ')} UTC · "
+        f"Generated {format_platform_stamp(datetime.now(timezone.utc))} · "
         f"By {actor_email} ({actor_role})",
         small,
     ))

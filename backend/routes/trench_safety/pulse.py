@@ -34,6 +34,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from ._helpers import now_iso, write_audit
 from ._models import ASSET_TYPES, OPERATIONAL_STATUSES
 
+# TRACK 27.03 · Phase 2b · Localise every operator-visible "Generated"
+# stamp in the Trench Safety Pulse HTML briefing. Storage stays UTC.
+from lib.platform_time import format_platform_stamp
+
 logger = logging.getLogger(__name__)
 
 
@@ -434,7 +438,7 @@ def render_pulse_email(snapshot: Dict[str, Any]) -> str:
     ])}
 
     <div style="margin-top:24px;padding-top:12px;border-top:1px solid #e2e8f0;font-size:11px;color:#94a3b8;">
-      Generated {snapshot.get("generated_at","").replace("T"," ")[:19]} UTC · MASCI Trench Safety Operations System · Phase 8C Operational Intelligence
+      Generated {format_platform_stamp(snapshot.get("generated_at",""))} · MASCI Trench Safety Operations System · Phase 8C Operational Intelligence
     </div>
   </div>
 </div></body></html>"""

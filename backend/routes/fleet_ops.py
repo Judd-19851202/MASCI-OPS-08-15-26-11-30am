@@ -47,6 +47,10 @@ from pydantic import BaseModel, ConfigDict, Field
 import fleet_defect_severity as _sev
 import checklists_fleet as _ck
 
+# TRACK 27.03 · Phase 2b · Fleet severity reference PDF print-stamp
+# uses the canonical local formatter.
+from lib.platform_time import format_platform_stamp as _fmt_stamp
+
 logger = logging.getLogger(__name__)
 
 
@@ -1572,7 +1576,8 @@ def build_router(
             "Driver picks PASS / FAIL / N/A · severity is server-calculated · "
             "<b>governance record:</b> /app/SEVERITY_RULINGS_iter251.md &nbsp;·&nbsp; "
             "<b>print stamp:</b> "
-            f"{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}",
+            # TRACK 27.03 · Phase 2b · Local wall-clock print stamp.
+            f"{_fmt_stamp(datetime.now(timezone.utc))}",
             foot,
         ))
 

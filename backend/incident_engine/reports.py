@@ -383,7 +383,7 @@ async def render_report(db, *, case_id: str, report_type: str) -> Dict[str, Any]
         "audience": definition["audience"],
         "case_id": case_id,
         "case_number": case.get("case_number") or "",
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(timezone.utc).isoformat(),  # TRACK-27.03-EXEMPT: payload metadata; report_render.py:_fmt_gen renders it locally via format_platform_stamp
         "medical_privacy": privacy,
         "customer_facing": customer_facing,
         "sections": sections,
@@ -396,7 +396,7 @@ async def render_weekly_digest(db) -> Dict[str, Any]:
     brief = await compute_executive_brief(db)
     return {
         "kind": "weekly_executive_digest",
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(timezone.utc).isoformat(),  # TRACK-27.03-EXEMPT: payload metadata; report_render.py:_fmt_gen renders it locally via format_platform_stamp
         "sections": [
             {"code": "organization_health", "title": "Organization Health", "data": brief["organization_health"]},
             {"code": "major_risks",         "title": "Major Risks",         "data": brief["highest_risks"]},

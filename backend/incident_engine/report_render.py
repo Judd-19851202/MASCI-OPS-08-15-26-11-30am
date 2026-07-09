@@ -10,6 +10,28 @@ from __future__ import annotations
 from html import escape
 from typing import Any, Dict, List, Optional
 
+# TRACK 27.03 · Phase 2b · Localise the "Generated" stamp shown on
+# every Incident Engine report cover + section header. Storage stays
+# UTC; display is the tenant's wall-clock via the canonical formatter.
+from lib.platform_time import format_platform_stamp
+
+
+def _fmt_gen(iso_ts: Any) -> str:
+    """Human-readable local wall-clock for a stored ISO/aware datetime.
+
+    Accepts the raw ``payload["generated_at"]`` value the report engine
+    emits (UTC isoformat), falls back to today's local stamp if the
+    value is missing / malformed. Never leaks 'UTC' / 'Z' / ISO chars.
+    """
+    if not iso_ts:
+        from datetime import datetime as _dt, timezone as _tz
+        return format_platform_stamp(_dt.now(_tz.utc))
+    try:
+        return format_platform_stamp(iso_ts)
+    except Exception:
+        # Defensive: never break a PDF render over a bad timestamp.
+        return escape(str(iso_ts))
+
 
 _BASE_CSS = """
 @page { size: Letter; margin: 0.75in 0.6in 0.85in 0.6in;
@@ -206,7 +228,7 @@ def _render_cover(section: Dict[str, Any], payload: Dict[str, Any]) -> str:
         + '</div>'
         '<div class="stamp">'
         '<div>Confidential — Attorney Work Product</div>'
-        f'<div>Generated {_s(payload.get("generated_at"))}</div>'
+        f'<div>Generated {_fmt_gen(payload.get("generated_at"))}</div>'
         '</div>'
         '</section>'
     )
@@ -614,7 +636,7 @@ def render_report_html(payload: Dict[str, Any]) -> str:
         '<div class="footer">'
         f'<div>{_s(payload.get("title"))} — Case '
         f'{_s(payload.get("case_number") or payload.get("case_id"))}</div>'
-        f'<div>Generated {_s(payload.get("generated_at"))}</div>'
+        f'<div>Generated {_fmt_gen(payload.get("generated_at"))}</div>'
         '</div>'
     )
 
@@ -633,7 +655,7 @@ def render_digest_html(payload: Dict[str, Any]) -> str:
         '<div class="head">'
         '<div><div class="kicker">Weekly Executive Digest</div>'
         '<h1>Incident Intelligence — Weekly Brief</h1>'
-        f'<div class="small">Generated {_s(payload.get("generated_at"))}</div>'
+        f'<div class="small">Generated {_fmt_gen(payload.get("generated_at"))}</div>'
         '</div></div>'
     )
 
@@ -665,7 +687,7 @@ def render_digest_html(payload: Dict[str, Any]) -> str:
     footer = (
         '<div class="footer">'
         '<div>Weekly Executive Digest</div>'
-        f'<div>Generated {_s(payload.get("generated_at"))}</div>'
+        f'<div>Generated {_fmt_gen(payload.get("generated_at"))}</div>'
         '</div>'
     )
     return (

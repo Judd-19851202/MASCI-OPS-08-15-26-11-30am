@@ -45,6 +45,10 @@ import uuid
 from datetime import date, datetime, timedelta, timezone
 from typing import Any, Callable, Dict, List, Optional
 
+# TRACK 27.03 · Phase 2b · Asset profile PDF "Generated" stamp uses the
+# canonical local formatter.
+from lib.platform_time import format_platform_stamp
+
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Path, Query, UploadFile
 from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel
@@ -1034,7 +1038,7 @@ def _render_asset_profile_pdf(
         "</table></div>"
     )
 
-    generated = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    generated = format_platform_stamp(datetime.now(timezone.utc))
     html_doc = f"""<!doctype html><html><head><meta charset='utf-8'><style>{_BASE_CSS}</style></head>
     <body>
       <div class='head'>

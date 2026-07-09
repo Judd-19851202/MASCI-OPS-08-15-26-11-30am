@@ -51,6 +51,10 @@ from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple
 
 from .workflow_state_events import write_state_event
 
+# TRACK 27.03 · Phase 2b · Correction-request email "Link expires …"
+# stamp uses the canonical local formatter.
+from .platform_time import format_platform_stamp
+
 
 FIELD_SUBMITTER_BINDINGS = "field_submitter_bindings"
 
@@ -650,7 +654,7 @@ async def notify_field_submitter(
         f"style='background:#2563eb;color:#fff;padding:10px 16px;"
         f"text-decoration:none;border-radius:4px;'>Open revision form</a></p>"
         f"<p style='color:#666;font-size:12px;'>Link expires "
-        f"{exp.strftime('%Y-%m-%d %H:%M UTC')}.</p>"
+        f"{format_platform_stamp(exp)}.</p>"
         f"</div>"
     )
 

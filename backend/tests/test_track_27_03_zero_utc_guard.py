@@ -104,6 +104,25 @@ _OPERATOR_FACING_MODULES = [
     "backend/services/dr_evidence/manifest.py",     # Evidence manifest generated_at (machine — exempt)
     "backend/routes/dr_v2.py",              # DR V2 synthesize + drafts (machine envelopes exempt)
     "backend/routes/dr_v2_canonicalize.py", # DR V2 canonicalize (machine envelopes exempt)
+    # ↓ TRACK 27.03 · Phase 2b · Second-tier PDFs, HR/incident renderers,
+    #   and API envelopes. Machine-only stamps marked TRACK-27.03-EXEMPT.
+    "backend/routes/employee_records.py",   # HR Compliance Brief PDF header (secondary variant)
+    "backend/incident_engine/report_render.py",  # Incident report cover + section footers
+    "backend/incident_engine/reports.py",   # Incident report payload metadata (exempt)
+    "backend/routes/odr/pdf.py",            # ODR audience-scoped PDF (5 audiences: foreman/super/pm/exec/external)
+    "backend/hub_banners_pdf.py",           # Hub Banners audit-trail PDF (OSHA/insurance evidence)
+    # Note: `backend/routes/trench_safety/pulse.py`,
+    #  `backend/routes/trench_safety/report_distribution.py`,
+    #  `backend/routes/asset_documents.py`, `backend/routes/hr_portal.py`,
+    #  `backend/routes/employee_lifecycle.py`,
+    #  `backend/lib/field_submitter_identity.py`, `backend/routes/fleet_ops.py`,
+    #  `backend/server.py` are NOT in this file-level list — each is a
+    # multi-hundred-to-multi-thousand-line service file where the
+    # operator-facing sites are isolated. Their converted sites route
+    # through `format_platform_stamp` (verifiable live) or carry an
+    # inline `TRACK-27.03-EXEMPT` justification. Guarding by comment
+    # instead of by file avoids ~50 false-positive noise entries from
+    # date-only DB range comparisons and cron/scheduler math.
     # Additional modules added as Phase 2 lands them — see
     # /app/memory/TRACK_27_03_PLATFORM_TIME_MIGRATION.md.
 ]

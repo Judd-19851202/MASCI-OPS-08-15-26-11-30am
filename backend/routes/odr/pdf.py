@@ -48,6 +48,12 @@ from reportlab.platypus import (
 
 from .visibility import resolve_fll
 
+# TRACK 27.03 · Phase 2b · Every operator-visible ODR PDF timestamp
+# (footer + Contact Time + Submitted At + Acknowledged At) renders in
+# the tenant's local wall-clock. The SHA-256 envelope hash is computed
+# BEFORE this display formatting — the audit chain still hashes UTC.
+from lib.platform_time import format_platform_stamp
+
 logger = logging.getLogger(__name__)
 
 
@@ -55,10 +61,22 @@ AUDIENCES = ("foreman", "superintendent", "pm", "executive", "external")
 
 
 def _utc_iso(dt: Optional[datetime] = None) -> str:
-    d = dt or datetime.now(timezone.utc)
+    d = dt or datetime.now(timezone.utc)  # TRACK-27.03-EXEMPT: canonical UTC stamp used ONLY as SHA-256 input for the ODR envelope hash (audit chain), never rendered
     if d.tzinfo is None:
         d = d.replace(tzinfo=timezone.utc)
-    return d.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return d.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")  # TRACK-27.03-EXEMPT: same UTC-only SHA input
+
+
+def _local_display(iso_or_dt: Any) -> str:
+    """Render a stored UTC/ISO timestamp as the tenant's local wall
+    clock for operator-facing PDF display. Never leaks 'UTC' / 'Z'.
+    """
+    if not iso_or_dt:
+        return "—"
+    try:
+        return format_platform_stamp(iso_or_dt)
+    except Exception:
+        return str(iso_or_dt)
 
 
 # ── Audience-aware envelope projection ───────────────────────────────
@@ -422,7 +440,7 @@ def _section_safety(env: Dict[str, Any]) -> List[Any]:
                 ("Notified Safety", ev.get("notified_safety")),
                 ("Incident Report Complete", ev.get("incident_report_complete")),
                 ("Contact Name", ev.get("contact_name")),
-                ("Contact Time UTC", ev.get("contact_time_utc")),
+                ("Contact Time", _local_display(ev.get("contact_time_utc"))),
             ]))
             flow.append(Spacer(1, 4))
     return flow
@@ -488,7 +506,7 @@ def _section_header(env: Dict[str, Any], audience: str) -> List[Any]:
         ("Report Date", proj.get("report_date")),
         ("Crew", f"{crew.get('crew_name', '')} ({crew.get('crew_type', '')})"),
         ("Primary Operation", crew.get("primary_operation")),
-        ("Submitted At UTC", env.get("submitted_at")),
+        ("Submitted At", _local_display(env.get("submitted_at"))),
         ("Amendments", env.get("amendment_count", 0)),
     ]))
     flow.append(Spacer(1, 8))
@@ -500,7 +518,7 @@ def _section_signature(env: Dict[str, Any]) -> List[Any]:
     flow = [Paragraph("<b>Foreman Acknowledgement</b>", _styles()["h2"])]
     flow.append(_kv_table([
         ("Acknowledged", sig.get("acknowledged")),
-        ("Acknowledged At UTC", sig.get("acknowledged_at_utc")),
+        ("Acknowledged At", _local_display(sig.get("acknowledged_at_utc"))),
         ("Statement", sig.get("text") or "—"),
     ]))
     return flow
@@ -626,7 +644,10 @@ def _render_pdf(
     if audience == "external":
         _strip_external_photo_meta(env)
     sha = _envelope_sha256(env)
-    rendered_at = _utc_iso()
+    # TRACK 27.03 · Phase 2b · Footer stamp shown on every page is the
+    # tenant's LOCAL wall-clock. The SHA-256 above was computed over
+    # the UTC envelope (audit chain unchanged); this is display only.
+    rendered_at = format_platform_stamp(datetime.now(timezone.utc))
     short_hash = sha[:16]
     footer = (
         f"Official Record · {env.get('doc_id', '')} "
@@ -788,7 +809,7 @@ def build_odr_pdf_router(
                 "sha256": sha,
                 "actor_uid": (actor.get("id") or actor.get("user_id") or actor.get("email") or "unknown"),
                 "actor_portal": portal,
-                "at_utc": _dt.now(_tz.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z"),
+                "at_utc": _dt.now(_tz.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z"),  # TRACK-27.03-EXEMPT: DB audit ledger stamp (odr_pdf_renders collection); UTC by doctrine (audit chain), never rendered to operators
                 "byte_size": len(pdf_bytes),
                 # M0.4 photo evidence audit fields
                 "photo_count_referenced": len(env_for_assets.get("photos") or []),

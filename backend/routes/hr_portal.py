@@ -47,6 +47,11 @@ from pydantic import BaseModel, Field
 
 import hr_users
 from branded_portal_emails import render_portal_email
+
+# TRACK 27.03 · Phase 2b · HR Compliance Brief PDF header + all HR PDF
+# stamps rendered through the canonical local formatter.
+from lib.platform_time import format_platform_stamp
+
 from hr_users import (
     add_hr_user, delete_hr_user, find_hr_user_by_email,
     generate_temp_password, hash_password, is_valid_hr_user_token_async,
@@ -1042,7 +1047,7 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
             "events": events,
             "expiring_within_90d": expiring,
             "expired_items": expired,
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),  # TRACK-27.03-EXEMPT: payload metadata; HR PDF renderer formats via format_platform_stamp (see line ~1105)
             "viewer": {
                 "actor": actor.get("email") or actor.get("name") or "unknown",
                 "role": (actor.get("_actor") or actor.get("role") or "").lower(),
@@ -1098,7 +1103,7 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
             body,
         ))
         story.append(Paragraph(
-            f"Generated {payload['generated_at'][:19].replace('T',' ')} UTC · "
+            f"Generated {format_platform_stamp(payload['generated_at'])} · "
             f"Viewer: {payload['viewer']['actor']} ({payload['viewer']['role']})",
             small,
         ))

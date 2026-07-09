@@ -1249,7 +1249,7 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
                 {"value": b, "label": BUCKET_LABELS[b]}
                 for b in ["any", *BUCKET_ORDER]
             ],
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),  # TRACK-27.03-EXEMPT: JSON API envelope (facets endpoint); frontend renders via formatPlatformTime
         }
         _facet_cache["ts"] = now
         _facet_cache["payload"] = payload
@@ -1348,7 +1348,7 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
             "status_band": band,
             "missing_records": missing_records,
             "include_inactive": include_inactive,
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),  # TRACK-27.03-EXEMPT: JSON API envelope (employee-completeness endpoint); frontend renders via formatPlatformTime
             "contract_version": "23.6",
         }
 

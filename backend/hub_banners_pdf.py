@@ -18,12 +18,18 @@ rest of the platform already uses, so no new system dependencies.
 from __future__ import annotations
 
 import base64
-from datetime import datetime
+from datetime import datetime, timezone
 from html import escape
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from weasyprint import HTML
+
+# TRACK 27.03 · Phase 2b · Every operator-facing timestamp in the
+# banner audit-trail PDF (row stamps, footer, column header) uses the
+# canonical local formatter. Underlying `ts` values stay UTC in the
+# audit ledger; only the rendered display is local.
+from lib.platform_time import format_platform_stamp
 
 ROOT = Path(__file__).parent.parent
 LOGO_PATH = ROOT / "frontend" / "public" / "masci-full-lockup-onlight.png"
@@ -41,9 +47,8 @@ def _fmt_ts(iso: Optional[str]) -> str:
     if not iso:
         return "—"
     try:
-        return datetime.fromisoformat(iso.replace("Z", "+00:00")).strftime(
-            "%b %d, %Y %I:%M:%S %p UTC"
-        )
+        # Local wall-clock display; underlying value stays UTC in the audit ledger.
+        return format_platform_stamp(iso)
     except Exception:
         return iso
 
@@ -136,7 +141,7 @@ def render_banner_audit_pdf(banner: Dict[str, Any], audit: List[Dict[str, Any]])
             '<tr><td colspan="3" class="empty">No activity recorded.</td></tr>'
         )
 
-    rendered_at = datetime.utcnow().strftime("%b %d, %Y %I:%M %p UTC")
+    rendered_at = format_platform_stamp(datetime.now(timezone.utc))
     ack_count = banner.get("ack_count", 0)
     dismiss_count = banner.get("dismiss_count", 0)
     require_ack = "YES" if banner.get("require_ack") else "no"
@@ -214,7 +219,7 @@ def render_banner_audit_pdf(banner: Dict[str, Any], audit: List[Dict[str, Any]])
 <h2>Activity Timeline ({len(audit or [])} {'event' if len(audit or []) == 1 else 'events'})</h2>
 <table>
   <thead>
-    <tr><th style="width:22%;">Event</th><th style="width:24%;">Timestamp (UTC)</th><th>Details</th></tr>
+    <tr><th style="width:22%;">Event</th><th style="width:24%;">Timestamp</th><th>Details</th></tr>
   </thead>
   <tbody>
     {''.join(rows_html)}

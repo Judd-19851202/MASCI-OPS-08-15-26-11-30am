@@ -8438,7 +8438,10 @@ async def _send_backup_email(
     attachment_size_mb = (
         await asyncio.to_thread(lambda: attachment_path.stat().st_size)
     ) / (1024 * 1024)
-    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    # TRACK 27.03 · Phase 2b · Nightly backup email stamp uses local
+    # wall-clock (subject + body). Underlying file mtime stays UTC.
+    from lib.platform_time import format_platform_stamp as _fmt_local_stamp  # noqa: PLC0415
+    stamp = _fmt_local_stamp(datetime.now(timezone.utc))
     sender = await _resolve_sender_email(db, safe_fallback="noreply@mascidocs.com")
     reply_to = (await _resolve_reply_to_email(db)) or None
 

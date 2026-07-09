@@ -46,6 +46,10 @@ from pydantic import BaseModel, ConfigDict, Field
 from ._helpers import now_iso, write_audit
 from .pulse import build_pulse_snapshot, _RATING_COLOR
 
+# TRACK 27.03 · Phase 2b · Localise every operator-visible timestamp
+# in trench-safety Leadership Digests + subscription-delivery emails.
+from lib.platform_time import format_platform_stamp
+
 logger = logging.getLogger(__name__)
 
 PREFIX = "/trench-safety/reports"
@@ -167,7 +171,7 @@ def render_leadership_digest_html(snapshot: Dict[str, Any]) -> str:
       <li>Hold Management</li>
     </ul>
     <div style="margin-top:24px;padding-top:12px;border-top:1px solid #e2e8f0;font-size:11px;color:#94a3b8;">
-      Generated {snapshot.get("generated_at","").replace("T"," ")[:19]} UTC · MASCI Trench Safety Operations System · Phase 9B
+      Generated {format_platform_stamp(snapshot.get("generated_at",""))} · MASCI Trench Safety Operations System · Phase 9B
     </div>
   </div>
 </div></body></html>"""
@@ -257,9 +261,10 @@ async def _generate_and_email_report(
     body_html = (
         f"<p style='font-family:Arial,sans-serif;color:#0f172a;'>"
         f"Your scheduled Trench Safety report — <b>{report_id}</b> — is attached "
-        f"as <code>{ext.upper()}</code>. Generated {now_iso().replace('T',' ')[:19]} UTC.</p>"
+        f"as <code>{ext.upper()}</code>. Generated {format_platform_stamp(now_iso())}.</p>"
     )
-    filename = f"trench_safety_{report_id}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M')}.{ext}"
+    from lib.platform_time import resolve_tz as _rt  # noqa: PLC0415
+    filename = f"trench_safety_{report_id}_{datetime.now(_rt()).strftime('%Y%m%d_%H%M')}.{ext}"
 
     sent = 0
     for r in recipients or []:

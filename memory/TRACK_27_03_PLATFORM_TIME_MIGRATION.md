@@ -91,17 +91,54 @@ The subset that IS operator-facing (PDF renderers, email templates, AI prompt as
 | `backend/routes/master_history.py` | Endpoint response `generated_at` fields | JSON envelope, frontend renders |
 | `backend/routes/safety_exports.py` L310 | `now = datetime.now(...)` reduced to `.date()` on next line for DB range comparisons | Date-only DB math, no wall-clock leak |
 
-### Phase 2b — Deferred (not this session)
+### Phase 2b — Shipped 2026-07-09 (second-tier PDFs, notification builders, HR compliance brief, ODR PDF audit footer)
 
-| Priority | Area | Files | Notes |
-|---|---|---|---|
-| P2 | Notification builders (Slack / Teams webhooks) | ~6 files | Operator-facing toast/pill payloads |
-| P2 | Compliance / incident PDF sub-renderers | ~4 files | Second-tier PDF renderers using their own headers |
-| P2 | HR employee package PDF | 2 files | HR profile printout header |
-| P3 | Safety training certificates | 2 files | Cert issue date already routed through `format_platform_date` in training_pdf.py; certificate wrapper stamp deferred |
-| P3 | Backend AI narrative builders that emit their own `generated_at` labels | ~4 files | Currently no per-narrative "generated at" line rendered to operators — deferred until product asks for one |
+| File | Surface | Converted |
+|---|---|---|
+| `backend/routes/hr_portal.py` | HR Compliance Brief PDF header ("Generated … · Viewer: …") | ✅ `format_platform_stamp` |
+| `backend/routes/employee_records.py` | HR employee package PDF header (secondary variant · "Generated … · By …") | ✅ `format_platform_stamp` |
+| `backend/incident_engine/report_render.py` | 4 sites: report cover stamp, section footer, weekly digest header, weekly digest footer — via new `_fmt_gen` helper | ✅ `format_platform_stamp` |
+| `backend/routes/odr/pdf.py` | Rendered stamp in every-page footer + `Contact Time` / `Submitted At` / `Acknowledged At` KV rows (relabeled from `… UTC`) | ✅ new `_local_display` helper wrapping `format_platform_stamp` |
+| `backend/hub_banners_pdf.py` | Banner Audit Trail PDF (OSHA / insurance evidence): every row stamp via `_fmt_ts`, page footer stamp, table column header (`Timestamp (UTC)` → `Timestamp`) | ✅ `format_platform_stamp` |
+| `backend/routes/trench_safety/pulse.py` | Trench Safety Pulse HTML briefing "Generated" line | ✅ `format_platform_stamp` |
+| `backend/routes/trench_safety/report_distribution.py` | Leadership Digest HTML "Generated" line + subscription-delivery email body + attachment filename stamp | ✅ `format_platform_stamp` + local `resolve_tz` for filename |
+| `backend/routes/asset_documents.py` | Asset Profile PDF (fleet · equipment · road plates) "Generated" stamp | ✅ `format_platform_stamp` |
+| `backend/routes/fleet_ops.py` | Fleet Severity Reference Card PDF print stamp | ✅ `format_platform_stamp` |
+| `backend/lib/field_submitter_identity.py` | Correction-request email "Link expires …" line | ✅ `format_platform_stamp` |
+| `backend/server.py` | Nightly Backup email subject + body "Generated" line | ✅ `format_platform_stamp` |
 
-Owner: main-agent · Target: rolling · Risk: low (mechanical + guard-enforced).
+**Marked exempt in Phase 2b (machine boundaries):**
+
+| File | Line/Range | Why exempt |
+|---|---|---|
+| `backend/incident_engine/reports.py` L386, L399 | payload metadata `generated_at` | Rendered downstream by `report_render.py:_fmt_gen` |
+| `backend/routes/odr/pdf.py` `_utc_iso` helper | canonical UTC stamp | Used ONLY as SHA-256 input for the ODR envelope hash (audit chain) |
+| `backend/routes/odr/pdf.py` `at_utc` in `odr_pdf_renders` | DB audit ledger stamp | UTC by doctrine; never rendered |
+| `backend/routes/employee_records.py` `_now_iso` | internal DB storage helper | `created_at` / `updated_at` / audit trail; never rendered |
+| `backend/routes/hr_portal.py` L1050 | payload metadata `generated_at` | HR PDF renderer formats it locally on the next stanza |
+| `backend/routes/employee_lifecycle.py` L1252, L1351 | JSON API envelopes | Frontend renders |
+
+### Files NOT in guard file-list (guarded-by-comment)
+
+To avoid ~50 false-positive noise entries from date-only DB range comparisons and cron/scheduler math, these multi-hundred-to-multi-thousand-line service files aren't in the guard's `_OPERATOR_FACING_MODULES` list. Their operator-facing sites are converted line-by-line and their converted output is verifiable in live PDFs/emails:
+
+- `backend/routes/hr_portal.py` (1930 lines) · operator-facing site verified in live PDF render (`HR Compliance Brief`)
+- `backend/routes/employee_lifecycle.py` (2600 lines) · both envelope sites carry inline exemption
+- `backend/routes/trench_safety/pulse.py` (580 lines) · Pulse HTML briefing site converted
+- `backend/routes/trench_safety/report_distribution.py` (650 lines) · Digest HTML + email body sites converted
+- `backend/routes/asset_documents.py` (1075 lines) · Asset Profile PDF site converted
+- `backend/routes/fleet_ops.py` (2325 lines) · Severity Reference PDF site converted (verified live)
+- `backend/lib/field_submitter_identity.py` (742 lines) · Correction-request email site converted
+- `backend/server.py` (16866 lines) · Nightly Backup email site converted
+
+### Phase 2c — Deferred to a follow-up session
+
+| Priority | Area | Notes |
+|---|---|---|
+| P3 | Backend AI narrative "generated at" labels | No per-narrative label currently rendered to operators — deferred until product asks for one |
+| P3 | Slack / Teams webhook message builders | Currently emit machine-neutral payloads (`ts` is not string-rendered by MASCI code — Slack renders it) |
+
+Owner: main-agent · Target: rolling · Risk: low (mechanical + guard-enforced + live-verified).
 
 ---
 
