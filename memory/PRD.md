@@ -15,6 +15,21 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 
 ## Active Track — 2026-07-09
 
+**TRACK 25 · SPRINT 1 · Admin OS Canonical Landing + Nav Consolidation — 🟢 SHIPPED (2026-07-09)**
+
+- `/app/frontend/src/pages/admin/AdminOS.jsx` — new canonical 10-domain landing:
+  Platform Overview · Operations Control · Storage & Recovery · AI Operations ·
+  Communications · Identity & Security · Governance & Trust · Platform Configuration ·
+  Diagnostics · Maintenance. Each card probes an existing endpoint (or shows
+  honest "Needs wiring" for Maintenance). Uses `SideNavV3` and `platformTime.js`.
+- `/admin` now mounts `AdminOS.jsx` (was `AdminHubSwitcher`).
+- Legacy hubs (`AdminHub`, `AdminHubV2`, `AdminHubSwitcher`, `AdminHubV3`) rewritten as
+  `<Navigate to="/admin" replace />` — bookmarks preserved, no operator ever lands on a
+  deprecated dashboard. `/admin/hub_v1` and `/admin/hub_v2` routes also redirect.
+- Testing agent verified 100% (`/app/test_reports/iteration_track_25_sprint_1_admin_os.json`):
+  10/10 cards render live probes, all 10 canonical target routes load, both legacy
+  redirects work, zero-UTC guard remains green.
+
 **TRACK 25 · Admin Operating System · Final Completion — 🟠 AUDIT + ARCHITECTURE DELIVERED**
 
 Full audit + target architecture at `/app/memory/TRACK_25_ADMIN_OS_FINAL_COMPLETION.md`. Findings: 65 admin pages, 71+ admin routes, 3 competing admin hubs, 2 competing sidebars. Target: unified 10-domain Admin OS (Platform Overview · Ops Control · Storage/Recovery · AI · Communications · Identity · Governance · Config · Diagnostics · Maintenance) with every existing admin page mapped to a canonical domain.
@@ -24,9 +39,9 @@ Full audit + target architecture at `/app/memory/TRACK_25_ADMIN_OS_FINAL_COMPLET
 **TRACK 27.05 · Storage / R2 / OCC P0 Remediation — 🟢 SHIPPED** (18/18 regression tests · testing agent verified 100% · see previous entry).
 
 ### Next open work (in priority order)
-1. **TRACK 25 · Sprint 1** — canonical `AdminOS.jsx` + hub consolidation + duplicate-sidebar retirement (~2 hrs · safe)
-2. **TRACK 25 · Sprints 2-10** — one operational domain per sprint, testing agent verified
-3. **TRACK 25 · Sprint 11-12** — trust hardening + regression + production certification
+1. **TRACK 25 · Sprint 2** — build the per-domain landing pages (Operations first: 4-8 metric cards per domain, all real endpoints, drill-down navigation, regression tests)
+2. **TRACK 25 · Sprints 3-10** — one operational domain per sprint, testing agent verified
+3. **TRACK 25 · Sprints 11-12** — trust hardening + full regression + production certification
 4. **TRACK 27.06 · Storage P1 batch** — orphan R2 sweep, upload metrics, retention runner, project-docs migration, runtime R2 fallback, in-flight upload durability
 5. **Photo Evidence in PM PDF/email** (P1)
 6. **User Timezone UI Toggle** (P2)
