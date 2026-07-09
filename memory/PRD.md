@@ -22,6 +22,15 @@ After the failover-fix redeploy, production Sentry surfaced a **new** error: `No
 
 Files updated: `services/ai_gateway/task_router.py` (12 task routes), `services/ai_gateway/env.py`, `services/dr_ai/emergent_provider.py`, `services/dr_ai/factory.py` (docstring), `services/translation/service.py` (2 sites), `legacy_imports_equipment_checkout.py`, `.env` (`AI_DEFAULT_TEXT_MODEL`), and 3 test files (assertion updates).
 
+### Session end · 2026-02-08
+User confirmed on production: filled out a real DR with photos, AI scanned them, generated a proper summary, everything worked. Loop closed. Track 26.13 is DONE.
+
+Backlog parked for future sessions (do NOT auto-remind):
+- Track 26.14 (P1): Photo Evidence section in PM PDF/email — user has full explainer above; will decide later if/when to build.
+- Track 26.15 (P2): Wire google_adapter to google-genai SDK (3rd failover leg).
+- Track 26.16 (P3): Auto-reconcile ticket numbers extracted from photos against material receipts.
+- Housekeeping: blank the broken `sk-proj-***fcD` OPENAI_API_KEY in prod env to silence Sentry noise. Optional, everything still works via failover.
+
 ### Original root cause (pre-existing)
 User Sentry alert `AuthenticationError: Error code: 401 - Incorrect API key provided: sk-proj-***fcD` on `/api/dr-v2/ai/synthesize` (env: production) revealed:
 - Production OpenAI key is invalid/revoked → 401 from OpenAI
