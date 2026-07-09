@@ -8541,6 +8541,13 @@ _BACKUP_SCHEDULER_STATE: dict = {
     "last_attempt_outcome": None,
     "last_run_for_hour": {},
     "failed_attempts": {},
+    # TRACK 27.05 · P0-2 · Observability counters. Every time the
+    # supervisor detects `task.done()` and respawns the loop, it bumps
+    # `resurrect_count` and stamps `last_resurrect_ts`. The recovery
+    # snapshot surfaces these — silent scheduler death now has a
+    # visible trail.
+    "resurrect_count": 0,
+    "last_resurrect_ts": None,
     # iter462 · 2026-02-01 · Batch A Phase 1 hardening · boot-trace
     # instrumentation. ``boot_step`` records the most recent boot stage
     # the loop reached before exiting. ``boot_step_ts`` is the ISO
@@ -16529,6 +16536,13 @@ async def _start_backup_scheduler():
                         _BACKUP_SCHEDULER_STATE["last_attempt_outcome"] = (
                             f"RESURRECTED at {datetime.now(timezone.utc).isoformat()} "
                             f"(previous: {exc_repr})"
+                        )
+                        # TRACK 27.05 · P0-2 · bump resurrect telemetry.
+                        _BACKUP_SCHEDULER_STATE["resurrect_count"] = int(
+                            _BACKUP_SCHEDULER_STATE.get("resurrect_count", 0) or 0
+                        ) + 1
+                        _BACKUP_SCHEDULER_STATE["last_resurrect_ts"] = (
+                            datetime.now(timezone.utc).isoformat()
                         )
                         _backup_task = asyncio.create_task(
                             _backup_scheduler_loop_with_capture(db)

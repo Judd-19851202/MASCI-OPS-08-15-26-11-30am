@@ -51,13 +51,16 @@ def _compute_pill(
 ) -> str:
     """Pure function. Same inputs → same output. Unit-testable.
 
-    RED if  : last backup_health row is ok=false OR no backup in 2x target window.
-    AMBER if: backup_age > target OR any failure in last 7d OR bucket AMBER/RED.
+    RED if  : last backup_health row is ok=false OR no backup in 2x target window OR bucket RED.
+    AMBER if: backup_age > target OR any failure in last 7d OR bucket AMBER.
     GREEN   : everything is fine.
     """
     if last_backup_ok is False:
         return "RED"
     if backup_age_minutes is None:
+        return "RED"
+    # TRACK 27.05 · P0-3 · Bucket RED must escalate the overall pill to RED.
+    if bucket_usage_status == "RED":
         return "RED"
     if backup_age_minutes > 2 * backup_age_target_minutes:
         return "RED"
@@ -65,9 +68,74 @@ def _compute_pill(
         return "AMBER"
     if failures_7d > 0:
         return "AMBER"
-    if bucket_usage_status in ("AMBER", "RED"):
+    if bucket_usage_status == "AMBER":
         return "AMBER"
     return "GREEN"
+
+
+# TRACK 27.05 · P0-1 · Query R2 directly for the newest complete backup.
+# Returns the newest archive summary (filename, ts, size_mb) or None if
+# R2 is unreachable / bucket empty. Never raises — the caller falls back
+# to the local `backup_health` marker.
+async def _newest_r2_backup_summary() -> Optional[Dict[str, Any]]:
+    try:
+        import photo_storage as ps  # noqa: PLC0415
+    except Exception:
+        return None
+    if not ps.is_configured():
+        return None
+    try:
+        client = ps._client()
+        bucket = ps._bucket()
+        # backups/auto-90d/ prefix — canonical Tier-1 target set by
+        # `_run_complete_archive_to_r2` in server.py.
+        page = await asyncio.to_thread(
+            client.list_objects_v2,
+            Bucket=bucket,
+            Prefix="backups/auto-90d/",
+            MaxKeys=1000,
+        )
+        contents = page.get("Contents") or []
+        # Pick the newest by LastModified.
+        contents.sort(key=lambda o: o.get("LastModified") or datetime.min.replace(tzinfo=timezone.utc), reverse=True)
+        if not contents:
+            return None
+        top = contents[0]
+        lm = top.get("LastModified")
+        # LastModified is a tz-aware datetime from boto3.
+        ts_iso = lm.astimezone(timezone.utc).isoformat() if isinstance(lm, datetime) else None
+        return {
+            "filename": (top.get("Key") or "").split("/")[-1],
+            "ts": ts_iso,
+            "size_mb": round((top.get("Size") or 0) / (1024 * 1024), 2),
+        }
+    except Exception:  # noqa: BLE001
+        # Never raise — caller must degrade gracefully.
+        import logging  # noqa: PLC0415
+        logging.getLogger(__name__).warning(
+            "[recovery-snapshot] R2 list_objects_v2 failed; falling back to local marker only",
+            exc_info=True,
+        )
+        return None
+
+
+# TRACK 27.05 · P0-4 · Disk preflight summary for the recovery snapshot.
+# Never raises; degrades to `{"ok": True, "unavailable": true}` if the
+# helper module fails to load.
+def _disk_preflight_summary() -> Dict[str, Any]:
+    try:
+        from lib.disk_preflight import check_disk  # noqa: PLC0415
+        st = check_disk()
+        return {
+            "ok": st.ok,
+            "path": st.path,
+            "free_bytes": st.free_bytes,
+            "total_bytes": st.total_bytes,
+            "percent_free": st.percent_free,
+            "reason": st.reason,
+        }
+    except Exception:  # noqa: BLE001
+        return {"ok": True, "unavailable": True}
 
 
 def build_recovery_dashboard_router(
@@ -100,6 +168,14 @@ def build_recovery_dashboard_router(
         alert_gb = float(os.environ.get("R2_USAGE_ALERT_GB", "50") or "50")
 
         # --- last successful complete-r2 backup ---
+        # TRACK 27.05 · P0-1 · Recovery Snapshot ↔ R2 Reality Divergence.
+        # Query R2 directly for the newest archive and treat it as ground
+        # truth if it disagrees with the local `backup_health` marker.
+        # This fixes the case where the scheduler dies (no new health
+        # rows written) but the R2 hourly writer either recovers or an
+        # external process keeps landing archives — the snapshot must
+        # never lie to the operator that "last backup was 28 days ago"
+        # when R2 has one from an hour ago.
         last_backup_row = await db.backup_health.find_one(
             {"mode": "complete-r2", "ok": True},
             {"_id": 0},
@@ -117,7 +193,31 @@ def build_recovery_dashboard_router(
                 "ok": last_backup_row.get("ok"),
                 "ts": last_backup_row.get("ts"),
                 "inlined_photos": last_backup_row.get("inlined_photos") or 0,
+                "source": "backup_health",
             }
+
+        # TRACK 27.05 · P0-1 · consult R2 for the newest archive.
+        r2_backup_snapshot: Optional[Dict[str, Any]] = None
+        try:
+            r2_backup_snapshot = await _newest_r2_backup_summary()
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"[recovery-snapshot] R2 direct probe failed: {e}")
+
+        if r2_backup_snapshot:
+            r2_ts = _parse_ts(r2_backup_snapshot.get("ts"))
+            local_ts = _parse_ts(last_backup_row.get("ts")) if last_backup_row else None
+            # If R2 is strictly newer, promote R2 as the authoritative view.
+            if r2_ts and (local_ts is None or r2_ts > local_ts):
+                backup_age_minutes = _minutes_since(r2_ts)
+                last_backup = {
+                    "filename": r2_backup_snapshot.get("filename"),
+                    "size_mb": r2_backup_snapshot.get("size_mb"),
+                    "records": (last_backup_row.get("records") if last_backup_row else 0) or 0,
+                    "ok": True,
+                    "ts": r2_backup_snapshot.get("ts"),
+                    "inlined_photos": 0,
+                    "source": "r2_direct",
+                }
 
         # --- most recent backup_health row (any outcome) — drives RED if it's a failure ---
         most_recent_row = await db.backup_health.find_one(
@@ -192,7 +292,9 @@ def build_recovery_dashboard_router(
         else:
             usage_gb = 0.0
         if usage_gb >= alert_gb:
-            usage_status = "AMBER"  # ALERT but not RED unless we crash because of it
+            # TRACK 27.05 · P0-3 · usage over alert threshold IS RED,
+            # not AMBER. Fixed classification bug from Track 27.04.
+            usage_status = "RED"
         elif usage_gb >= warn_gb:
             usage_status = "AMBER"
         else:
@@ -321,7 +423,19 @@ def build_recovery_dashboard_router(
                 "alive": scheduler_alive,
                 "last_lock_ts": scheduler_last_lock_ts,
                 "owner_pod": scheduler_owner_pod,
+                # TRACK 27.05 · P0-2 · true health = alive AND ticked in
+                # the last 15 min. Silent-death is now visible.
+                "is_healthy": bool(scheduler_alive) and (
+                    scheduler_last_lock_ts is not None
+                    and (
+                        (datetime.now(timezone.utc) - _parse_ts(scheduler_last_lock_ts)).total_seconds() < 900
+                        if _parse_ts(scheduler_last_lock_ts) else False
+                    )
+                ),
             },
+            # TRACK 27.05 · P0-4 · disk preflight state, surfaced so OCC
+            # can display "storage will refuse new writes below N free".
+            "disk_preflight": _disk_preflight_summary(),
             "hourly_cadence_enabled": hourly_flag,
             "cached": False,
         }
