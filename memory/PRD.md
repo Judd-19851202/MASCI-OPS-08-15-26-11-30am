@@ -15,23 +15,26 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 
 ## Active Track — 2026-07-09
 
-**TRACK 27.03 · Platform-Wide Local Time Standardization — 🟢 FINAL COMPLETION SHIPPED**
+**TRACK 27.04 · Storage / R2 / OCC Trust Certification — 🟠 CONDITIONAL GO (audit complete)**
 
-Constitutional standard now in force across MASCI / ForgedOps:
-> **All operator-facing dates and times SHALL ALWAYS display in LOCAL TIME. Internal machine storage remains UTC. Enforced by CI.**
+Full report at `/app/memory/TRACK_27_04_STORAGE_CERTIFICATION.md`. Storage architecture is production-safe today (R2 uploads work, backups land hourly, restore was proven June 1) but 4 P0 trust-erosion gaps must ship next sprint:
+1. Wire R2 hourly writer to update `backup_health.last_complete_backup` marker (fixes recovery-snapshot divergence · 30 min)
+2. Add backup scheduler watchdog + resurrect-fail alert (2-4 hrs)
+3. Fix R2 bucket RED-vs-AMBER classification + schedule retention runner (1 hr)
+4. Add disk-full circuit-breaker (4 hrs)
 
-Every operator-facing timestamp on the platform (PDFs, emails, exports, AI narratives, admin panels, HR, OCC, dashboards, timelines, history feeds, queues, audit dialogs, field forms — browser UI, executive dashboards, safety, fleet, dispatch, meetings, JHA, DVIR, training, incidents, ODR, hub-banners, notifications) now routes through the ONE canonical formatter (`platformTime.js` frontend + `platform_time.py` backend).
+Plus 6 P1 (orphan cleanup, upload metrics, retention scheduling, legacy project doc migration, runtime R2 fallback, in-flight upload durability) and 6 P2.
 
-The zero-UTC guard is in **constitutional mode**: it scans the entire `frontend/src/` tree by default and fails CI if any operator-facing file bypasses the canonical formatter or leaks a hard-coded `UTC`/`GMT`/`ISO-Z` token. Machine boundaries (Mongo storage, audit chain, JSON envelopes, HTTP headers, log lines, scheduler math) carry inline `TRACK-27.03-EXEMPT: <reason>` markers.
-
-See `CHANGELOG.md` (2026-07-09 · Final Completion Track entry) and `TRACK_27_03_PLATFORM_TIME_MIGRATION.md` for the full ledger. **162/162 tests pass** including the 2 new whole-tree constitutional scanners.
+**TRACK 27.03 · Platform-Wide Local Time Standardization — 🟢 FINAL COMPLETION SHIPPED** (see previous entries).
 
 ### Next open work (in priority order)
-1. **Photo Evidence in PM PDF/email** (P1) — user-approved-in-principle, deferred.
-2. **User Timezone UI Toggle** (P2) — foreman-facing 12h/24h + zone picker. The plumbing already exists (`getPlatformTimezone()` reads `localStorage.masci.tz.user`); this ships the UI.
-3. **OCC Draft Health UI Card** (P2).
-4. **Admin OS Track 25** (P3) — full admin rearchitecture (paused).
-5. **Admin Forensics query optimization** (P3) — case-insensitive regex on `jobs_master`.
+1. **TRACK 27.05 · Storage P0 Remediation** (P0) — the 4 blockers above · ~8 hours total
+2. **Photo Evidence in PM PDF/email** (P1) — user-approved-in-principle
+3. **Storage P1 items** (P1) — orphan sweep, upload metrics, retention scheduler wiring, project-docs migration
+4. **User Timezone UI Toggle** (P2)
+5. **OCC Draft Health UI Card** (P2)
+6. **Admin OS Track 25** (P3, paused)
+7. **Admin Forensics query optimization** (P3)
 
 
 

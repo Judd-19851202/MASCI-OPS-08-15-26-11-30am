@@ -1,5 +1,40 @@
 # CHANGELOG
 
+## 2026-07-09 — TRACK 27.04 · Storage / R2 / OCC Trust Certification (Production Audit · READ-ONLY) — 🟠 CONDITIONAL GO
+
+**Trigger**: User ordered a production certification track — audit every storage path, R2 integration, backup lifecycle, and OCC monitoring. Read-only. No code modified.
+
+### Deliverable
+Full report at `/app/memory/TRACK_27_04_STORAGE_CERTIFICATION.md` (343 lines).
+
+### Executive verdict: 🟠 **CONDITIONAL GO**
+The MASCI / ForgedOps storage architecture is production-safe today (R2 uploads work, backups are landing hourly, restore was proven June 1) but not fully certified. Four P0 trust-erosion gaps must ship within the next sprint to earn full certification.
+
+### P0 findings (all evidence-backed, all preview-verified)
+1. **Recovery Snapshot ↔ R2 Reality Divergence** — `/admin/recovery/snapshot` says last backup is 2026-06-11 (28.8 days stale, RED); actual R2 listing shows hourly complete backups landing every hour, most recent 2026-07-09T21:08 (44 min ago). Root cause: R2 hourly writer does not update `backup_health.last_complete_backup` marker. Fix: 30 min.
+2. **Backup Scheduler Dies Silently** — `/api/admin/backups-scheduler-state` returns `alive: false, task_alive: false, last_tick_ts: null`. `RESURRECTED at 2026-07-09T21:52:49` when the backend was restarted during this audit. Fix: 2-4 hours (add watchdog + resurrect-fail alert).
+3. **R2 Bucket 3.74× Over Alert Threshold, Classified AMBER** — `bucket_usage.gb=186.82` vs alert 50. Should be RED. Retention policy coded but not scheduled to run. Fix: 1 hour.
+4. **Disk-full behavior untested** — no circuit-breaker. Recommend 507 Insufficient Storage + page ops. Fix: 4 hours.
+
+### P1 findings (6 items · orphan cleanup, upload metrics, retention scheduling, legacy project doc migration, runtime R2 fallback, in-flight upload durability)
+### P2 findings (6 items · atomic swap, ContentLength verify, R2 latency in OCC, composite health score, multipart abort, 507 error surface)
+
+### Storage Maturity Score: **5.8 / 10**
+- Architecture 8 · Reliability 6 · Recoverability 7 · Monitoring 5 · Observability 4 · OCC visibility 5 · Scalability 7 · Disaster recovery 6 · Operator trust 4
+
+### What's actually eating disk (evidence-based · NOT backups)
+- `/app/backend/backups/` = **empty** (Path A local backup dir unused)
+- `/app/backend/storage/project_docs/24-12/` = **533 MB** (13 legacy PDFs, largest 161 MB) · migration script exists (`scripts/migrate_local_project_docs_to_r2.py`) · UNVERIFIED if executed in production
+- `/app/backend/static/training-videos/` = 281 MB
+- `/app/frontend/node_modules/` = 2.5 GB (dev-only; not in production build)
+
+### Unverified items (labeled honestly in the report)
+- Production `df`, `du`, `du /var/log`, R2 latency measurements, R2 orphan count, production scheduler live state
+
+Files touched: 1 new report doc + 2 memory doc updates. Zero code modifications (mission-mandated read-only).
+
+
+
 ## 2026-07-09 — TRACK 27.03 · FINAL COMPLETION TRACK · Platform-Wide Local Time Standardization — 🟢 SHIPPED
 
 **Constitutional standard now in force**: All operator-facing dates and times SHALL ALWAYS display in LOCAL TIME. Internal machine storage remains UTC. Enforced by CI.
