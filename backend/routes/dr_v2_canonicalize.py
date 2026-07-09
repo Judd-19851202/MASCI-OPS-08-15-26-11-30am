@@ -79,7 +79,7 @@ def _walk_set(obj: Any, ptr: List[Any], value: str) -> None:
 
 
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(timezone.utc).isoformat()  # TRACK-27.03-EXEMPT: machine envelope timestamp; frontend renders via formatPlatformTime
 
 
 def register_dr_v2_canonicalize_routes(

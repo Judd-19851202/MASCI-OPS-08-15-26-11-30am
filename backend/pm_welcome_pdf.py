@@ -25,6 +25,11 @@ from typing import Optional
 
 from weasyprint import HTML
 
+# TRACK 27.03 · Phase 2 · Canonical local-time formatter for the PM
+# welcome-letter "Issued" stamp. Admins hand these to PMs — the date
+# must be the tenant's local wall-clock, not UTC.
+from lib.platform_time import format_platform_date
+
 
 # ──────────────────────────────────────────────────────────────────────
 # Logo loaded from /app/frontend/public so the PDF embeds the same red-M
@@ -41,7 +46,9 @@ def _b64_data_uri(filename: str, mime: str = "image/png") -> str:
 
 
 def _today_iso() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    # TRACK 27.03 · Phase 2 · Local wall-clock date, formatted as
+    # "Jul 9, 2026" — matches the rest of the platform's operator UX.
+    return format_platform_date(datetime.now(timezone.utc))
 
 
 def render_pm_welcome_pdf(

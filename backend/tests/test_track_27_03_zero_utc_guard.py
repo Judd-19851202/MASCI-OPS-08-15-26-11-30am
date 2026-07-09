@@ -40,6 +40,36 @@ _UTC_TOKEN_PATTERNS = [
 # formally accepted responsibility for why the UTC token is there.
 _EXEMPTION_MARKER = "TRACK-27.03-EXEMPT"
 
+# ── Contextual whitelist ─────────────────────────────────────────────
+# A UTC-shaped token is NOT a leak when the line is one of:
+#   1. Storage side of a canonical local-formatter call — the raw
+#      `datetime.now(timezone.utc)` is being passed into
+#      `format_platform_*` / `localize_timestamp` / `display_timestamp`
+#      for local rendering. This is the exact pattern the migration
+#      guide asks Phase 2 authors to write.
+#   2. A `.date().isoformat()` on a naive date — produces YYYY-MM-DD
+#      only (no time-of-day, no zone marker) and is used exclusively
+#      for MongoDB range comparisons, never rendered to operators.
+_CANONICAL_LOCAL_CALLERS = (
+    "format_platform_stamp(",
+    "format_platform_date(",
+    "format_platform_time_only(",
+    "format_platform_time(",  # frontend name for parity
+    "localize_timestamp(",
+    "display_timestamp(",
+    "organization_local_time(",
+    "formatPlatformTime(",
+    "formatPlatformDate(",
+    "formatPlatformStamp(",
+    "formatPlatformTimeOnly(",
+    "formatRelativeTime(",
+)
+_DATE_ONLY_MARKERS = (
+    ".date().isoformat()",   # Python date → YYYY-MM-DD (no wall clock)
+    "now.date().isoformat()",
+    ".date()",               # any line that reduces to a bare date is date-only
+)
+
 
 # ── Operator-facing surfaces that MUST NOT leak UTC ─────────────────
 # The list starts intentionally narrow — 5 highest-visibility surfaces
@@ -54,6 +84,26 @@ _OPERATOR_FACING_MODULES = [
     "frontend/src/pages/admin/AdminAIConfiguration.jsx",
     "frontend/src/components/OperationsCenter.jsx",
     "frontend/src/components/dispatch/DispatchDecisionChip.jsx",
+    # ↓ TRACK 27.03 · Phase 2 · High-trust backend renderers.
+    #   These are the artifacts that leave the browser and land in a
+    #   PM's / Owner's / Regulator's / Field Foreman's hands: PDFs,
+    #   printed HTML reports, XLSX/CSV exports. Any UTC leak here is a
+    #   trust breach — the guard now protects them by construction.
+    "backend/pdf_branding.py",              # Universal HTML PDF audit + metadata blocks
+    "backend/pdf_branding_rl.py",           # Universal ReportLab audit + metadata blocks
+    "backend/pdf_render.py",                # Daily Report renderer + email HTML body
+    "backend/training_pdf.py",              # Training packets (EN/ES/bilingual)
+    "backend/pm_welcome_pdf.py",            # PM welcome / onboarding letter
+    "backend/routes/safety_exports.py",     # 10 Safety Portal CSV/print-PDF endpoints
+    "backend/routes/master_history.py",     # Asset + Employee history CSV/PDF
+    "backend/routes/trench_safety/report_export.py",  # Trench Safety XLSX + PDF
+    "backend/routes/dispatch_exports.py",   # Dispatch CSV exports
+    "backend/routes/dr_v2_pdf.py",          # DR V2 PDF endpoint (HTTP header stamps exempt)
+    "backend/services/dr_ai/agents.py",     # AI prompt system messages (must instruct local time)
+    "backend/services/dr_ai/emergent_provider.py",  # AI envelope generated_at (machine — exempt)
+    "backend/services/dr_evidence/manifest.py",     # Evidence manifest generated_at (machine — exempt)
+    "backend/routes/dr_v2.py",              # DR V2 synthesize + drafts (machine envelopes exempt)
+    "backend/routes/dr_v2_canonicalize.py", # DR V2 canonicalize (machine envelopes exempt)
     # Additional modules added as Phase 2 lands them — see
     # /app/memory/TRACK_27_03_PLATFORM_TIME_MIGRATION.md.
 ]
@@ -98,6 +148,12 @@ def _scan_for_utc_leaks(path: Path) -> list[tuple[int, str, str]]:
                 continue
         # Skip C/JS comment lines (including JSDoc `*` continuations).
         if stripped.startswith(("#", "//", "/*", "*", "*/")):
+            continue
+        # Contextual whitelist — canonical local-formatter call on this
+        # line, or date-only marker with no wall-clock leak.
+        if any(caller in line for caller in _CANONICAL_LOCAL_CALLERS):
+            continue
+        if any(marker in line for marker in _DATE_ONLY_MARKERS):
             continue
         for pat in _UTC_TOKEN_PATTERNS:
             if pat.search(line):

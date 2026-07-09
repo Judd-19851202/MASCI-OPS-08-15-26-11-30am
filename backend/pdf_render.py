@@ -17,6 +17,10 @@ from typing import Any, Dict, List, Optional
 
 from weasyprint import HTML
 
+# TRACK 27.03 · Phase 2 · Canonical local formatter for the DR audit
+# footer + email body renderers. Storage stays UTC; display is local.
+from lib.platform_time import format_platform_stamp
+
 # Local import — used to inline photo:// refs (R2-backed) into base64 data
 # URLs so weasyprint can embed them. Falls back gracefully for data: URLs
 # (returns the input untouched) and for non-photo strings.
@@ -2959,7 +2963,12 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
             from routes.daily_reports import _compute_audit_envelope_sha256
             from datetime import datetime as _dt, timezone as _tz
             _sha = _compute_audit_envelope_sha256(record)
-            _rendered = _dt.now(_tz.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            # TRACK 27.03 · Phase 2 · Court-defensible audit stamp is now
+            # rendered in the tenant's local time (with zone name) so PMs,
+            # owners, CEIs, and legal readers see the same wall-clock the
+            # ops crew filed it under. Underlying UTC timestamp is
+            # preserved in the SHA-256 envelope.
+            _rendered = format_platform_stamp(_dt.now(_tz.utc))
             _doc = (record.get("doc_id") or "").strip() or "DR-?"
             _footer_text = (
                 f"Official Record \u00B7 {_doc} \u00B7 sha256={_sha[:16]} "

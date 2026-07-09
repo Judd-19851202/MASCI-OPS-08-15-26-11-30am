@@ -19,6 +19,11 @@ from pathlib import Path
 
 from weasyprint import HTML
 
+# TRACK 27.03 · Phase 2 · Canonical local-time formatter for training
+# packet "generated" stamps. Certificates and packets are legal-adjacent
+# artifacts that must show a local wall clock, not raw UTC.
+from lib.platform_time import format_platform_date, resolve_tz
+
 ROOT = Path(__file__).parent
 LOGO_PATH = ROOT.parent / "frontend" / "public" / "masci-full-lockup-onlight.png"
 
@@ -1647,8 +1652,13 @@ def _render_bilingual(track: str, meta: dict, lessons: list) -> bytes:
     can map English technical terms to their Spanish equivalents at a glance."""
     accent = meta["accent"]
     logo = _logo_uri()
-    now_en = datetime.now(timezone.utc).strftime("%b %d, %Y")
-    now_es = datetime.now(timezone.utc).strftime("%d de %b, %Y")
+    # TRACK 27.03 · Phase 2 · Render "generated" date in the platform's
+    # local timezone so bilingual packets carry a wall-clock everyone
+    # in the field can verify. English and Spanish surfaces both use
+    # the canonical local formatter — no UTC leak.
+    _now_local = datetime.now(resolve_tz())
+    now_en = format_platform_date(_now_local)
+    now_es = _now_local.strftime("%d de %b, %Y")
 
     parts = []
     # Bilingual packet uses the English footer by default — body already
@@ -1810,7 +1820,9 @@ def render_packet(track: str, lang: str = "en") -> bytes:
     title = _pick(meta, "title", lang)
     blurb = _pick(meta, "blurb", lang)
     logo = _logo_uri()
-    now = datetime.now(timezone.utc).strftime("%b %d, %Y") if lang == "en" else datetime.now(timezone.utc).strftime("%d de %b, %Y")
+    # TRACK 27.03 · Phase 2 · Local timezone for the packet stamp.
+    _now_local = datetime.now(resolve_tz())
+    now = format_platform_date(_now_local) if lang == "en" else _now_local.strftime("%d de %b, %Y")
 
     parts = []
     parts.append(f"<style>{_css_for_lang(lang)}</style>")

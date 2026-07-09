@@ -13,6 +13,23 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 
 
 
+## Active Track — 2026-07-09
+
+**TRACK 27.03 Phase 2a · Platform Time Standardization (High-Trust Backend Artifacts) — SHIPPED**
+
+Every artifact that leaves the browser (PDFs, emails, XLSX/CSV exports, AI narratives) now emits local wall-clock. Universal PDF foundation (`pdf_branding.py` / `pdf_branding_rl.py`) means every downstream PDF inherits automatically. Internal storage stays UTC — enforced by the contextual whitelist in `test_track_27_03_zero_utc_guard.py`. See `CHANGELOG.md` (2026-07-09 entry) and `TRACK_27_03_PLATFORM_TIME_MIGRATION.md` for the full ledger.
+
+### Next open work (in priority order)
+1. **TRACK 27.03 Phase 2b** (P1) — Slack/Teams notification builders, HR employee package PDF header, second-tier compliance/incident PDF sub-renderers, safety certificate wrapper.
+2. **TRACK 27.03 Phase 3** (P1) — Frontend UI sweep: `AdminAuditLog`, `AdminCommandCenter`, `AdminGovernance`, `AdminDigestConfig`, `EmailRoutingV2Panel`, `HrHub`, `HrTimeVerification`, OCC history panels, remaining dashboard cards. ~80 sites, mechanical, guard-enforced.
+3. **Photo Evidence in PM PDF/email** (P1) — user-approved-in-principle, deferred.
+4. **User Timezone UI Toggle** (P2) — foreman-facing 12h/24h + zone picker.
+5. **OCC Draft Health UI Card** (P2).
+6. **Admin OS Track 25** (P3) — full admin rearchitecture (paused).
+7. **Admin Forensics query optimization** (P3) — case-insensitive regex on `jobs_master`.
+
+
+
 ## TRACK 27.03 · Platform Time Standardization (UTC elimination) · Phase 1 · 2026-02-08 · PREVIEW CERTIFIED
 
 ### Scope reality (up-front honesty)

@@ -38,7 +38,7 @@ class EmergentClaudeProvider:
         response_schema: Dict[str, Any],
         session_id: str,
     ) -> AiSynthesisResult:
-        started = datetime.now(timezone.utc).isoformat()
+        started = datetime.now(timezone.utc).isoformat()  # TRACK-27.03-EXEMPT: machine envelope timestamp; frontend renders via formatPlatformTime
 
         # Route through the gateway. Task type = "operational_narrative"
         # for all three DR-V2 agents; the task_router picks the model.

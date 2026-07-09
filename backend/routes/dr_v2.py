@@ -135,7 +135,7 @@ def _v2_ai_enabled() -> bool:
 
 
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(timezone.utc).isoformat()  # TRACK-27.03-EXEMPT: machine envelope timestamp; frontend renders via formatPlatformTime
 
 
 def _draft_to_evidence(draft: Dict[str, Any]) -> Dict[str, Any]:

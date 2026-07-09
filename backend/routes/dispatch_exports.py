@@ -29,6 +29,10 @@ from fastapi import APIRouter, Depends, Header, Query, Response
 
 from routes.dispatch_lifecycle import DEFAULT_TENANT_ID
 
+# TRACK 27.03 · Phase 2 · Filename stamp uses local calendar time so
+# dispatchers see the same wall clock in downloaded CSVs.
+from lib.platform_time import resolve_tz
+
 logger = logging.getLogger("dispatch_exports_routes")
 
 MAX_ROWS = 5000
@@ -41,7 +45,7 @@ def _resolve_tenant(x_tenant_id: Optional[str]) -> str:
 
 
 def _now_stamp() -> str:
-    return datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    return datetime.now(resolve_tz()).strftime("%Y%m%dT%H%M%S")
 
 
 def _csv_response(rows: List[List[Any]], header: List[str], filename: str) -> Response:

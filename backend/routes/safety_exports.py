@@ -19,11 +19,18 @@ from typing import Any, Callable, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import HTMLResponse, StreamingResponse
 
+# TRACK 27.03 · Phase 2 · Local-time formatter for the print-friendly
+# report subtitle + filename stamp. DB comparisons keep using the raw
+# `.date().isoformat()` UTC-date for correctness — only the display
+# strings the user reads are localized.
+from lib.platform_time import format_platform_stamp, resolve_tz
+
 logger = logging.getLogger(__name__)
 
 
 def _stamp() -> str:
-    return datetime.now(timezone.utc).strftime("%Y%m%d")
+    # Filename stamp in local calendar (no colons — Windows-safe).
+    return datetime.now(resolve_tz()).strftime("%Y%m%d")
 
 
 def _csv_response(rows: List[List[Any]], header: List[str], filename: str) -> StreamingResponse:
@@ -74,7 +81,7 @@ def _html_report(title: str, header: List[str], rows: List[List[Any]], subtitle:
   <div class="no-print">Use your browser's <strong>Print → Save as PDF</strong> to export this report.</div>
   <div class="kicker">MASCI Safety Portal · Compliance Report</div>
   <h1>{title}</h1>
-  <div class="sub">{subtitle} · Generated {datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")} · {len(rows)} record(s)</div>
+  <div class="sub">{subtitle} · Generated {format_platform_stamp(datetime.now(timezone.utc))} · {len(rows)} record(s)</div>
   <table><thead><tr>{head_th}</tr></thead><tbody>{body_tr or '<tr><td colspan="' + str(len(header)) + '"><em>No records.</em></td></tr>'}</tbody></table>
   <div class="footer">Generated through MASCI Operations Platform — Powered by ForgedOps™ | © 2026 ForgedOps™</div>
 </body></html>"""
@@ -300,7 +307,7 @@ def build_safety_exports_router(db, require_token: Callable) -> APIRouter:
     @router.get("/executive", dependencies=[Depends(require_token)])
     async def export_executive(format: str = Query("pdf", pattern="^(csv|pdf)$")):
         from datetime import timedelta  # noqa: PLC0415
-        now = datetime.now(timezone.utc)
+        now = datetime.now(timezone.utc)  # TRACK-27.03-EXEMPT: bare now var reduced to .date() below for DB range comparisons
         d7 = (now - timedelta(days=7)).date().isoformat()
         d30 = (now - timedelta(days=30)).date().isoformat()
         soon = (now.date() + timedelta(days=30)).isoformat()

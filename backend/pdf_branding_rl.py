@@ -45,6 +45,9 @@ from pdf_branding import (
     get_white_label,
 )
 
+# TRACK 27.03 · Phase 2 · Local-time renderer for ReportLab audit + metadata blocks.
+from lib.platform_time import format_platform_stamp
+
 
 # ───────────────────────── PARAGRAPH STYLES ─────────────────────────────────
 
@@ -102,9 +105,7 @@ def draw_audit_block_flowable(
     AFTER all existing operational content.
     """
     wl = get_white_label()
-    when = (generated_at or datetime.now(timezone.utc)).strftime(
-        "%Y-%m-%d %H:%M:%S UTC",
-    )
+    when = format_platform_stamp(generated_at or datetime.now(timezone.utc))
     rows = [
         ("Record ID", record_id),
         ("Source Module", source_module),
@@ -159,7 +160,7 @@ def draw_metadata_block_flowable(
 ) -> Flowable:
     """Returns a small monospace metadata strip Flowable for use just
     after the brand header. Mirrors `build_metadata_block_html`."""
-    when = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    when = format_platform_stamp(datetime.now(timezone.utc))
     parts = [
         f"<b>DOCTYPE:</b> {_xml_safe(document_type)}",
     ]

@@ -62,6 +62,15 @@ _STRICTNESS = (
     "10. When the evidence bundle carries `excavation` / `competent_person` "
     "sub-blocks, honour `excavation.ai_guidance` verbatim (never claim "
     "safe-to-use unless readiness.state == READY AND no blockers).\n"
+    # TRACK 27.03 · Phase 2 · Platform time standardization. All dates
+    # in the evidence bundle (report_date, activity dates, etc.) are
+    # ALREADY expressed in the tenant's LOCAL wall-clock — treat them
+    # as such and never rewrite them into UTC form.
+    "11. Any date or time you cite in the narrative MUST be presented "
+    "in the tenant's LOCAL wall-clock exactly as it appears in the "
+    "evidence bundle. Do NOT convert to UTC, do NOT append 'UTC' or "  # noqa: E501  TRACK-27.03-EXEMPT: AI instruction literally names UTC to tell the model NOT to emit it
+    "'Z', and do NOT re-format ISO-8601 stamps into machine form. "
+    "Human-readable local date/time only.\n"
 )
 
 
@@ -195,7 +204,12 @@ AGENTS: Dict[str, Dict[str, Any]] = {
             "labels verbatim.\n"
             "  · If material_reconciliation.advisories has entries, "
             "surface them in `materials_and_tickets` and drop the "
-            "overall `confidence` by 0.1."
+            "overall `confidence` by 0.1.\n"
+            # TRACK 27.03 · Phase 2 · Any dates/times you cite must be
+            # the tenant's LOCAL wall-clock — never UTC and never
+            # machine ISO-Z format.
+            "  · All dates/times cited must be human-readable LOCAL "
+            "wall-clock; do NOT include 'UTC' / 'Z' / ISO machine form."  # noqa: E501  TRACK-27.03-EXEMPT: AI instruction literally names UTC to tell the model NOT to emit it
         ),
     },
 }

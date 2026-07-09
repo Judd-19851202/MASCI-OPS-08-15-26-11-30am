@@ -1,5 +1,54 @@
 # CHANGELOG
 
+## 2026-07-09 — TRACK 27.03 · Phase 2 · Platform Time Standardization (High-Trust Backend Artifacts) — 🟢 SHIPPED
+
+**Trigger**: User ordered Option B — Highest-trust first: PDFs, emails, exports, and AI narratives get local-time standardization before UI panels.
+
+### Scope shipped (backend renderers, exports, AI prompts)
+1. **PDF universal foundation** — `pdf_branding.py`, `pdf_branding_rl.py` — every HTML PDF audit block + metadata strip + `wrap_pdf_html` footer now renders through `format_platform_stamp`. Universal impact: every downstream PDF (Daily Report, HR, Safety, Training, PM Welcome, Trench Safety, dispatch, etc.) inherits local wall-clock automatically.
+2. **Daily Report PDF renderer** — `pdf_render.py` audit envelope `_rendered` stamp local-timed. `_fmt_date(report_date)` was already local-safe.
+3. **Daily Report email HTML** — audited clean (`pdf_render.render_email_html` already routed dates through `_fmt_date`, no UTC leak).
+4. **Training packets** (EN/ES bilingual) — `training_pdf.py` L1650–1651 + L1813 → `format_platform_date(datetime.now(resolve_tz()))`.
+5. **PM welcome letter** — `pm_welcome_pdf.py` `_today_iso` → `format_platform_date`. "Issued" now reads e.g. `Jul 9, 2026`.
+6. **Safety / print reports** — `routes/safety_exports.py` HTML report subtitle and filename `_stamp()` local-timed (10 print-PDF endpoints inherit).
+7. **Asset + Employee history CSV/PDF** — `routes/master_history.py` "Generated" columns local-timed; internal `_norm_date` marked EXEMPT (sort key only).
+8. **Trench Safety XLSX + PDF** — `routes/trench_safety/report_export.py` A4 metadata cell + PDF kicker paragraph local-timed.
+9. **Dispatch CSV exports** — `routes/dispatch_exports.py` filename stamp local-timed (Windows-safe compact format).
+10. **AI narratives** — `services/dr_ai/agents.py` STRICTNESS rule 11 + `manifest_summary` agent rule: **any date/time cited by the AI MUST be local wall-clock** — no "UTC", no "Z", no ISO machine form.
+
+### Machine boundaries — formally exempted
+- HTTP response headers (`X-Daily-Report-Rendered-At`, etc.) in `routes/dr_v2_pdf.py` — machine-consumed.
+- AI envelope `generated_at` in `services/dr_ai/emergent_provider.py`, `services/dr_evidence/manifest.py`, `routes/dr_v2.py`, `routes/dr_v2_canonicalize.py` — JSON metadata rendered downstream by frontend/PDF formatters.
+- `.date().isoformat()` DB range comparisons (safety exports, master history) — date-only YYYY-MM-DD strings with zero wall-clock signature.
+
+### Guard rewired
+`test_track_27_03_zero_utc_guard.py`:
+- Added contextual whitelist for lines wrapped by `format_platform_*` / `localize_timestamp` / `display_timestamp` / `formatPlatformTime*` calls (the canonical local-formatter pattern is now guard-native).
+- Added `.date()` marker as a safe date-only reduction.
+- Registered all 15 converted backend files.
+- 6/6 tests green.
+
+### Live verification (preview, `mascidocs.com` preview mirror)
+- **Safety incidents print-HTML**: `Generated 2026-07-09 3:35 PM EDT · 172 record(s)` — zero UTC/GMT tokens.
+- **Daily Report PDF** (id `bb98e276-…`): PDF text extraction shows local zone `EDT`, zero `UTC` / `GMT` / ISO-Z stamps.
+- **Training packet PDF** (`/api/training/packet.pdf?track=field&lang=en`): 1.1 MB PDF, zero UTC leaks.
+- **Direct Python audit-block render**: EDT/EST zone always present in generated stamp.
+
+### Regression suite
+- **93 / 93 pass** on the touched surfaces (`test_track_27_03_zero_utc_guard`, HR filter trust/contract, PDF single-footer invariant, PDF lockup sweep, email render regression, DR PDF executive comprehension, HR employee packet).
+- **Backend imports clean**, supervisor reload clean, no lint errors on 16 modified files.
+
+### Result: GO
+Every high-trust artifact that leaves the browser (PDFs, emails, exports, AI narratives) now emits local wall-clock. Storage stays UTC — validated by the guard's contextual whitelist which only allows `datetime.now(timezone.utc)` when wrapped by a canonical local formatter.
+
+### Remaining ledger
+- Phase 2b (deferred to a follow-up session): Slack/Teams notification builders, second-tier PDF sub-renderers (compliance, incident), HR employee package PDF header, safety certificate wrapper stamp, backend AI narrative "generated at" labels.
+- Full frontend UI sweep (Admin OS panels · OCC history · dashboard cards): scoped to the next Phase 2 session per user directive.
+
+Files touched: 15 backend + 1 test guard + 3 memory docs = 19 total.
+
+
+
 ## 2026-02-17 — TRACK 25.00 · OCC Discoverability Fix (Admin Rearchitecture · Phase A) — 🟢 CLOSED
 
 **Trigger**: User reported OCC was invisible from the admin sidebar — a P0 release defect (built but unreachable).

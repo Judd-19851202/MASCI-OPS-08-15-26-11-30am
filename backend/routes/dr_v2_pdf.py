@@ -518,7 +518,7 @@ def register_dr_v2_pdf_routes(
                     detail=f"PDF render failed: {type(ex).__name__}",
                 ) from ex
             filename = f"MASCI_Daily_Report_{report_id}.pdf"
-            rendered_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            rendered_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")  # TRACK-27.03-EXEMPT: machine-consumed HTTP header (X-Daily-Report-Rendered-At)
             return Response(
                 content=pdf_bytes,
                 media_type="application/pdf",
@@ -567,7 +567,7 @@ def register_dr_v2_pdf_routes(
             ) from ex
 
         filename = f"MASCI_Daily_Report_{report_id}.pdf"
-        rendered_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        rendered_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")  # TRACK-27.03-EXEMPT: machine-consumed HTTP header (X-Daily-Report-Rendered-At)
         return Response(
             content=pdf_bytes,
             media_type="application/pdf",

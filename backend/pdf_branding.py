@@ -37,6 +37,11 @@ from datetime import datetime, timezone
 from html import escape
 from typing import Optional
 
+# TRACK 27.03 · Phase 2 · Route every operator-visible "Generated" stamp
+# through the canonical platform-time formatter so PDFs, emails, and
+# exports never leak UTC into a human-facing field.
+from lib.platform_time import format_platform_stamp
+
 
 # ───────────────────────── WHITE-LABEL CONFIG (env-driven) ──────────────────
 #
@@ -197,7 +202,9 @@ def build_audit_block_html(
     Track 15.41 · Universal Audit Block. Foundation requirement.
     """
     wl = get_white_label()
-    when = (generated_at or datetime.now(timezone.utc)).strftime("%Y-%m-%d %H:%M:%S UTC")
+    # Storage of `generated_at` stays UTC (aware datetime); display is
+    # rendered via the canonical local formatter — never raw UTC.
+    when = format_platform_stamp(generated_at or datetime.now(timezone.utc))
     rows = [
         ("Record ID", record_id),
         ("Source Module", source_module),
@@ -254,7 +261,7 @@ def build_metadata_block_html(
 
     Track 15.41 · Universal Metadata Block. Foundation requirement.
     """
-    when = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    when = format_platform_stamp(datetime.now(timezone.utc))
     pieces = []
     pieces.append(f'<span class="t1541-meta-k">DocType:</span> {escape(document_type)}')
     if document_id:
@@ -401,7 +408,7 @@ def wrap_pdf_html(
     the brand bar and a Universal Audit block immediately before
     `</body>`. Existing body content is never modified.
     """
-    generated = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    generated = format_platform_stamp(datetime.now(timezone.utc))
     meta_html = ""
     if metadata_document_type or audit_source_module:
         meta_html = build_metadata_block_html(

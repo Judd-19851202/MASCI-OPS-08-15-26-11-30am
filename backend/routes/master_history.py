@@ -29,6 +29,11 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
+# TRACK 27.03 · Phase 2 · Every operator-visible "Generated" stamp in
+# asset / employee history exports (CSV + PDF) uses the canonical
+# platform-time formatter. DB rows still store raw UTC.
+from lib.platform_time import format_platform_stamp
+
 try:  # Surface missing dep at app start, not at first PDF request.
     from weasyprint import HTML as _WeasyHTML  # type: ignore
 except ImportError:  # pragma: no cover — handled at endpoint
@@ -42,12 +47,17 @@ logger = logging.getLogger(__name__)
 # "when did this happen". Normalize to ISO-8601 sortable string.
 # ──────────────────────────────────────────────────────────────────
 def _norm_date(*candidates) -> str:
-    """First non-empty datetime-like value → ISO string. Empty → ''."""
+    """First non-empty datetime-like value → ISO string. Empty → ''.
+
+    Internal sort/dedup key only — never rendered to operators.
+    Display always routes through :func:`_display_date` (date-only) or
+    the canonical `format_platform_*` helpers.
+    """
     for c in candidates:
         if not c:
             continue
         if isinstance(c, datetime):
-            return c.isoformat()
+            return c.isoformat()  # TRACK-27.03-EXEMPT: internal sort key, never rendered
         s = str(c).strip()
         if s and s.lower() not in ("none", "null"):
             return s
@@ -415,7 +425,7 @@ def register_history_routes(router: APIRouter, db) -> None:
             "events": feed,
             "total": len(feed),
             "summary": _summary(feed),
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),  # TRACK-27.03-EXEMPT: JSON API envelope — frontend renders via formatPlatformTime
         }
 
     @router.get("/employees/{master_id}/history")
@@ -426,7 +436,7 @@ def register_history_routes(router: APIRouter, db) -> None:
             "events": feed,
             "total": len(feed),
             "summary": _summary(feed),
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),  # TRACK-27.03-EXEMPT: JSON API envelope — frontend renders via formatPlatformTime
         }
 
     # ── CSV ───────────────────────────────────────────────────────
@@ -438,7 +448,7 @@ def register_history_routes(router: APIRouter, db) -> None:
             "Make / Model": master.get("make_model") or "—",
             "Category": master.get("category") or "—",
             "VIN / Serial": master.get("vin") or master.get("serial_number") or "—",
-            "Generated": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+            "Generated": format_platform_stamp(datetime.now(timezone.utc)),
         }
         data = _render_csv(feed, header)
         fname = f"asset-history-{master.get('unit_number') or master_id}.csv"
@@ -455,7 +465,7 @@ def register_history_routes(router: APIRouter, db) -> None:
             "Employee": name,
             "Employee ID": master.get("employee_id") or "—",
             "Role / Trade": master.get("role") or master.get("trade") or "—",
-            "Generated": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+            "Generated": format_platform_stamp(datetime.now(timezone.utc)),
         }
         data = _render_csv(feed, header)
         fname = f"employee-history-{(name or 'employee').replace(' ', '_')}.csv"

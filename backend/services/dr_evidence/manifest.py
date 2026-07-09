@@ -266,7 +266,7 @@ def build_manifest(
         :func:`services.photo_intelligence.pipeline.list_report_intelligence`.
     """
     m = EvidenceManifest()
-    m.generated_at = datetime.now(timezone.utc).isoformat()
+    m.generated_at = datetime.now(timezone.utc).isoformat()  # TRACK-27.03-EXEMPT: machine manifest metadata; never rendered directly to operators (frontend/PDF formats it)
     m.report_id = (
         report.get("doc_id")
         or report.get("report_number")

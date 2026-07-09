@@ -64,18 +64,44 @@ Owner: main-agent · Target: rolling (2–3 files per follow-up session) · Risk
 
 The subset that IS operator-facing (PDF renderers, email templates, AI prompt assembly, export writers, notification bodies):
 
+### Phase 2a — Shipped 2026-07-09 (high-trust artifacts)
+
+| File | Surface | Converted |
+|---|---|---|
+| `backend/pdf_branding.py` | Universal HTML PDF audit + metadata + `wrap_pdf_html` footer | ✅ `format_platform_stamp` |
+| `backend/pdf_branding_rl.py` | Universal ReportLab audit + metadata Flowables | ✅ `format_platform_stamp` |
+| `backend/pdf_render.py` | Daily Report renderer + email HTML body (already routed report_date through `_fmt_date`; DR PDF audit envelope stamp converted) | ✅ `format_platform_stamp` |
+| `backend/training_pdf.py` | Training packet header (EN + ES bilingual "generated" stamp) | ✅ `format_platform_date` |
+| `backend/pm_welcome_pdf.py` | PM welcome letter "Issued" date | ✅ `format_platform_date` |
+| `backend/routes/safety_exports.py` | 10 Safety Portal print-HTML endpoints subtitle; filename stamp | ✅ `format_platform_stamp` + local `_stamp` |
+| `backend/routes/master_history.py` | Asset + Employee history CSV "Generated" column | ✅ `format_platform_stamp` |
+| `backend/routes/trench_safety/report_export.py` | Trench Safety XLSX A4 metadata + PDF kicker | ✅ `format_platform_stamp` |
+| `backend/routes/dispatch_exports.py` | Dispatch CSV filename stamp | ✅ local `_now_stamp` |
+| `backend/services/dr_ai/agents.py` | AI system prompt: STRICTNESS rule 11 + manifest_summary rule (LOCAL-ONLY output) | ✅ prompt rules added |
+
+**Marked exempt (machine boundaries — not operator-facing):**
+
+| File | Line | Why exempt |
+|---|---|---|
+| `backend/routes/dr_v2_pdf.py` | `X-*-Rendered-At` HTTP response headers (both endpoints) | Machine-consumed HTTP header; UI renders via `formatPlatformTime` |
+| `backend/services/dr_ai/emergent_provider.py` | Envelope `generated_at` | JSON envelope timestamp; frontend renders |
+| `backend/services/dr_evidence/manifest.py` | Manifest `generated_at` | Machine manifest metadata; PDF/UI formats it |
+| `backend/routes/dr_v2.py` | `_now_iso` helper | JSON envelope timestamps only |
+| `backend/routes/dr_v2_canonicalize.py` | `_now_iso` helper | JSON envelope timestamps only |
+| `backend/routes/master_history.py` | Endpoint response `generated_at` fields | JSON envelope, frontend renders |
+| `backend/routes/safety_exports.py` L310 | `now = datetime.now(...)` reduced to `.date()` on next line for DB range comparisons | Date-only DB math, no wall-clock leak |
+
+### Phase 2b — Deferred (not this session)
+
 | Priority | Area | Files | Notes |
 |---|---|---|---|
-| P1 | `backend/services/pdf/*` | ~8 files | PDF headers/footers, timestamps in body |
-| P1 | `backend/services/dr_ai/prompt_builder*.py` | 2 files | AI prompts must reference local time per mission |
-| P1 | Email routing templates in `backend/services/email/*` | ~5 files | "Sent at" lines |
-| P2 | `backend/routes/*_export.py` — CSV/xlsx writers | ~10 files | Excel column headers |
-| P2 | Notification builders | ~6 files | Operator-facing toast/pill payloads |
-| P3 | AI summary text builders | ~4 files | Grounded narrative "generated at" line |
+| P2 | Notification builders (Slack / Teams webhooks) | ~6 files | Operator-facing toast/pill payloads |
+| P2 | Compliance / incident PDF sub-renderers | ~4 files | Second-tier PDF renderers using their own headers |
+| P2 | HR employee package PDF | 2 files | HR profile printout header |
+| P3 | Safety training certificates | 2 files | Cert issue date already routed through `format_platform_date` in training_pdf.py; certificate wrapper stamp deferred |
+| P3 | Backend AI narrative builders that emit their own `generated_at` labels | ~4 files | Currently no per-narrative "generated at" line rendered to operators — deferred until product asks for one |
 
-**Estimated operator-facing backend files: ~35.**
-
-Owner: main-agent · Target: rolling · Risk: medium (PDF/email — needs visual verification per surface).
+Owner: main-agent · Target: rolling · Risk: low (mechanical + guard-enforced).
 
 ---
 
