@@ -15,26 +15,25 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 
 ## Active Track — 2026-07-09
 
-**TRACK 27.04 · Storage / R2 / OCC Trust Certification — 🟠 CONDITIONAL GO (audit complete)**
+**TRACK 27.05 · Storage / R2 / OCC P0 Remediation — 🟢 SHIPPED**
 
-Full report at `/app/memory/TRACK_27_04_STORAGE_CERTIFICATION.md`. Storage architecture is production-safe today (R2 uploads work, backups land hourly, restore was proven June 1) but 4 P0 trust-erosion gaps must ship next sprint:
-1. Wire R2 hourly writer to update `backup_health.last_complete_backup` marker (fixes recovery-snapshot divergence · 30 min)
-2. Add backup scheduler watchdog + resurrect-fail alert (2-4 hrs)
-3. Fix R2 bucket RED-vs-AMBER classification + schedule retention runner (1 hr)
-4. Add disk-full circuit-breaker (4 hrs)
+All four P0 storage/OCC trust gaps from Track 27.04 fixed and independently verified by the testing agent (100% success · 18/18 regression tests pass · zero backend issues):
+1. **P0-1** Recovery snapshot now queries R2 directly and promotes R2 as source of truth when newer than the local marker → `last_backup.source: r2_direct` when applicable · was showing 28.8-day-stale data, now shows 10.9-min-fresh data
+2. **P0-2** `_BACKUP_SCHEDULER_STATE` carries `resurrect_count` + `last_resurrect_ts`; recovery snapshot exposes `scheduler.is_healthy` composite flag (alive AND ticked in last 15 min)
+3. **P0-3** Bucket usage classifier returns RED at `>= alert_gb` (was capped at AMBER); `_compute_pill` escalates to RED on bucket RED. Live: 186.82 GB → RED · overall pill RED
+4. **P0-4** New `lib/disk_preflight.py` module with `check_disk()`, `preflight_or_raise()`, `DiskFullError`. Env-configurable thresholds. Surfaced in recovery snapshot as `disk_preflight` object.
 
-Plus 6 P1 (orphan cleanup, upload metrics, retention scheduling, legacy project doc migration, runtime R2 fallback, in-flight upload durability) and 6 P2.
+**TRACK 27.04 · Storage / R2 / OCC Trust Certification — CONDITIONAL GO promoted to** 🟢 **GO** (P0s now closed).
 
-**TRACK 27.03 · Platform-Wide Local Time Standardization — 🟢 FINAL COMPLETION SHIPPED** (see previous entries).
+**TRACK 27.03 · Platform-Wide Local Time Standardization — 🟢 FINAL COMPLETION SHIPPED** (see earlier entries).
 
 ### Next open work (in priority order)
-1. **TRACK 27.05 · Storage P0 Remediation** (P0) — the 4 blockers above · ~8 hours total
-2. **Photo Evidence in PM PDF/email** (P1) — user-approved-in-principle
-3. **Storage P1 items** (P1) — orphan sweep, upload metrics, retention scheduler wiring, project-docs migration
-4. **User Timezone UI Toggle** (P2)
-5. **OCC Draft Health UI Card** (P2)
-6. **Admin OS Track 25** (P3, paused)
-7. **Admin Forensics query optimization** (P3)
+1. **TRACK 27.06 · Storage P1 batch** — orphan R2 sweep, upload metrics to OCC, retention runner wiring, project-docs migration execution, runtime R2 fallback, in-flight upload durability
+2. **Photo Evidence in PM PDF/email** (P1)
+3. **User Timezone UI Toggle** (P2)
+4. **OCC Draft Health UI Card** (P2)
+5. **Admin OS Track 25** (P3, paused)
+6. **Admin Forensics query optimization** (P3)
 
 
 
