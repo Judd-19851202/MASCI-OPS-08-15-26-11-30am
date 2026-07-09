@@ -78,6 +78,27 @@ def _is_non_retryable(reason: Optional[str]) -> bool:
     return any(tok in r for tok in ("auth", "401", "403", "key_missing", "invalid_key"))
 
 
+# Provider-appropriate default models used when failing over. Sending
+# a Claude model string to OpenAI (or vice-versa) would produce a 400
+# and defeat the whole point of failover. These are the current
+# recommended models per the Emergent integration playbook (Feb 2026)
+# and can be overridden by AI_DEFAULT_TEXT_MODEL_<PROVIDER> envs for
+# operators who want to pin a specific version in production.
+_PROVIDER_DEFAULT_MODELS = {
+    "anthropic": "claude-sonnet-4-6",
+    "openai":    "gpt-5.4",
+    "google":    "gemini-2.5-flash",
+}
+
+
+def _provider_default_model(provider: str) -> str:
+    import os as _os
+    override = _os.environ.get(f"AI_DEFAULT_TEXT_MODEL_{provider.upper()}")
+    if override:
+        return override
+    return _PROVIDER_DEFAULT_MODELS.get(provider, default_text_model())
+
+
 class Gateway:
     """Central dispatcher — the ONLY place workflows import from.
 
@@ -235,7 +256,7 @@ class Gateway:
             if not (fallback in self._adapters and has_key(fallback)):
                 continue
             env = await self._dispatch_provider(
-                fallback, default_text_model(), task,
+                fallback, _provider_default_model(fallback), task,
                 system=system, user_payload=user_payload,
                 response_schema=response_schema, session_id=session_id,
                 _attempted=attempted,
