@@ -32,6 +32,7 @@ from routes.role_guard_validation_seam import try_validation_fallback
 def make_require_shop_or_admin_fleet(
     db,
     is_valid_admin_token_fn: Optional[Callable[[str], bool]] = None,
+    is_valid_admin_token_async: Optional[Callable[[str], Any]] = None,
 ) -> Callable[..., Any]:
     """iter371 · Canonical narrow Shop+Admin fleet-ops gate factory.
 
@@ -49,6 +50,11 @@ def make_require_shop_or_admin_fleet(
     accepted on the shop side.
     TRACK 15.34 (2026-02) — the deprecated `shop_token_for_fn` kwarg
     was removed from this factory's signature.
+    TRACK 28.02 (2026-02) — adds `is_valid_admin_token_async` so the
+    directory-hydrated per-user admin token (UUID.HMAC issued by
+    `/api/auth/multi-login`) unlocks this gate. The legacy sync
+    validator retired in 15.32 always returns False; without the async
+    validator, admins were silently locked out.
     """
 
     async def _require_shop_or_admin_fleet(
@@ -56,8 +62,11 @@ def make_require_shop_or_admin_fleet(
         x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
         x_shop_token: Optional[str] = Header(default=None, alias="X-Shop-Token"),
     ) -> Dict[str, Any]:
-        if x_admin_token and is_valid_admin_token_fn and is_valid_admin_token_fn(x_admin_token):
-            return {"role": "admin"}
+        if x_admin_token:
+            if is_valid_admin_token_fn and is_valid_admin_token_fn(x_admin_token):
+                return {"role": "admin"}
+            if is_valid_admin_token_async and await is_valid_admin_token_async(x_admin_token):
+                return {"role": "admin"}
         if x_shop_token and "." in x_shop_token:
             try:
                 from shop_users import is_valid_shop_user_token_async  # noqa: PLC0415

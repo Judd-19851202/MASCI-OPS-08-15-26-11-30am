@@ -33,12 +33,19 @@ def make_require_safety_token(db) -> Callable[..., Awaitable[dict]]:
 
 
 def make_require_safety_or_admin(
-    db, is_valid_admin_token: Optional[Callable[[str], bool]] = None
+    db, is_valid_admin_token: Optional[Callable[[str], bool]] = None,
+    is_valid_admin_token_async: Optional[Callable[[str], Awaitable[bool]]] = None,
 ) -> Callable[..., Awaitable[dict]]:
     """Write-side gate. Accepts Safety or Admin tokens only — HR is
     intentionally NOT accepted here. Used for write surfaces inside
     Safety operations (Site Inspection submission, etc.) where HR
-    review-side access is inappropriate for the action."""
+    review-side access is inappropriate for the action.
+
+    TRACK 28.02 · adds ``is_valid_admin_token_async`` so directory-hydrated
+    per-user admin tokens (UUID.HMAC form issued by
+    ``/api/auth/multi-login``) unlock this write gate — the sync sentinel
+    was retired in TRACK 15.32 and always returns False.
+    """
 
     async def _require_safety_or_admin(
         request: Request,
@@ -50,8 +57,11 @@ def make_require_safety_or_admin(
             if u:
                 enforce_password_change_required(request, u)
                 return {**u, "_actor": "safety"}
-        if x_admin_token and is_valid_admin_token and is_valid_admin_token(x_admin_token):
-            return {"_actor": "admin", "name": "Admin"}
+        if x_admin_token:
+            if is_valid_admin_token and is_valid_admin_token(x_admin_token):
+                return {"_actor": "admin", "name": "Admin"}
+            if is_valid_admin_token_async and await is_valid_admin_token_async(x_admin_token):
+                return {"_actor": "admin", "name": "Admin"}
         # TRACK 22.4b-followup-Safety · preview-only validation fallback.
         # Runs ONLY after the real safety/admin path has failed. Delegates
         # to the shared seam helper which enforces preview-env + feature
@@ -67,6 +77,7 @@ def make_require_safety_or_admin(
 
 def make_require_safety_or_admin_fleet(
     db, is_valid_admin_token: Optional[Callable[[str], bool]] = None,
+    is_valid_admin_token_async: Optional[Callable[[str], Awaitable[bool]]] = None,
 ) -> Callable[..., Awaitable[dict]]:
     """iter372 · Canonical narrow Safety+Admin fleet-ops gate factory.
 
@@ -93,8 +104,11 @@ def make_require_safety_or_admin_fleet(
         x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
         x_safety_token: Optional[str] = Header(default=None, alias="X-Safety-Token"),
     ) -> dict:
-        if x_admin_token and is_valid_admin_token and is_valid_admin_token(x_admin_token):
-            return {"role": "admin"}
+        if x_admin_token:
+            if is_valid_admin_token and is_valid_admin_token(x_admin_token):
+                return {"role": "admin"}
+            if is_valid_admin_token_async and await is_valid_admin_token_async(x_admin_token):
+                return {"role": "admin"}
         if x_safety_token:
             u = await is_valid_safety_user_token_async(db, x_safety_token)
             if u:
@@ -108,6 +122,7 @@ def make_require_safety_or_admin_fleet(
 def make_require_safety_admin_or_pm(
     db, is_valid_admin_token: Optional[Callable[[str], bool]] = None,
     is_valid_pm_token: Optional[Callable[[str], bool]] = None,
+    is_valid_admin_token_async: Optional[Callable[[str], Awaitable[bool]]] = None,
 ) -> Callable[..., Awaitable[object]]:
     """iter322 · Safety-side **read** gate.
 
@@ -124,7 +139,11 @@ def make_require_safety_admin_or_pm(
       • ``X-Safety-Token`` → returns the safety user dict tagged with
         ``_actor_kind="safety_user"`` so :func:`compute_pm_scope` grants
         cross-job review visibility (mirrors the shop-user pattern).
-      • ``X-Admin-Token``  → returns ``True`` (admin bypass).
+      • ``X-Admin-Token``  → returns ``True`` (admin bypass). TRACK 28.02
+        adds ``is_valid_admin_token_async`` support so directory-hydrated
+        per-user admin tokens (UUID.HMAC form issued by
+        ``/api/auth/multi-login``) unlock this gate — the sync sentinel
+        was retired in TRACK 15.32 and always returns False.
       • ``X-PM-Token``     → returns the PM doc for project scoping
         (preserves existing PM data-scoping behaviour).
 
@@ -143,8 +162,13 @@ def make_require_safety_admin_or_pm(
             if u:
                 enforce_password_change_required(request, u)
                 return {**u, "_actor_kind": "safety_user", "_actor": "safety"}
-        if x_admin_token and is_valid_admin_token and is_valid_admin_token(x_admin_token):
-            return True
+        if x_admin_token:
+            # Sync legacy sentinel (retired in 15.32 — always False) …
+            if is_valid_admin_token and is_valid_admin_token(x_admin_token):
+                return True
+            # … then the directory-hydrated per-user admin token (TRACK 28.02).
+            if is_valid_admin_token_async and await is_valid_admin_token_async(x_admin_token):
+                return True
         if x_pm_token:
             # Per-PM token (has ".") → DB lookup; legacy shared PM → env bypass.
             if "." in x_pm_token:

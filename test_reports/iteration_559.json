@@ -1,0 +1,46 @@
+{
+  "summary": "TRACK 28.02 · Field Operations batch sweep. Regression-locked the admin-token read-gate fix (5/5) and certified full read-surface access across Daily Reports, Meetings, JHA, Site Inspections, Incidents, Equipment/DVIR, QA/QC, Photos plus admin dashboard/CSV/PDF surfaces (18/18 additional). Frontend UI sweep of all 16 Field-Ops routes under jaymn.judd@mascigc.com session — every route rendered, PortalShell present on all /admin/* URLs, canonical pickers in place. AdminBreadcrumb component appears to not be mounted on the admin list pages (P2 UI drift).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "AdminBreadcrumb",
+        "issue": "AdminBreadcrumb component (data-testid=\"admin-breadcrumb\") is NOT rendered on any admin Field-Ops list page tested: /admin/daily, /admin/meetings, /admin/inspections, /admin/equipment-inspections, /admin/qaqc, /admin/photos. PortalShell + sidenav are present, headings render, but the breadcrumb trail is missing. Track 28.02 review explicitly required 'AdminBreadcrumb reflects the current section'.",
+        "selector": "[data-testid=\"admin-breadcrumb\"]",
+        "priority": "P2"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_track_28_02_admin_read_gate.py",
+    "/app/backend/tests/test_track_28_02_field_ops_sweep.py",
+    "/app/test_reports/pytest/track_28_02_field_ops.xml"
+  ],
+  "action_items": [
+    "P2: Mount AdminBreadcrumb (crumbs={...}) inside every /admin/* Field-Ops list & detail page (DailyReportsDashboard.jsx, MeetingsDashboard.jsx, InspectionsDashboard.jsx, EquipmentDashboard.jsx, admin QaqcList, PhotosLibrary) so testid 'admin-breadcrumb' is present. Currently PortalShell renders but breadcrumb trail is absent.",
+    "P3 (nice-to-have): review /qaqc hub — only 3 tiles (concrete-form / rebar / subcontractor-work). Track 28.02 review referenced `/qaqc/safety-audit-mobile-1/new` which is not a real slug (mistaken for preview subdomain); confirm with product whether an additional QAQC form slug is expected."
+  ],
+  "critical_code_review_comments": [
+    "TRACK 28.02 auth-gate fix in routes/safety_portal/_deps.py, routes/shop_portal_deps.py, routes/dispatch_portal_auth.py is correctly threaded — the injected is_valid_admin_token_async delegates to _is_valid_directory_admin_token_async and unlocks all read surfaces (verified live against 7 list endpoints + 3 admin dashboard endpoints + CSV + PDF). Regression test locks the sync/async divergence that caused the original P0.",
+    "Test cred file /app/memory/test_credentials.md was NOT consulted — jaymn.judd@mascigc.com / Maddix123! taken from the review request itself. Confirmed working via /api/auth/multi-login (200, portal_tokens.admin returned in UUID.HMAC form).",
+    "Front-end token storage after multi-login is broken into namespaced keys (masci.admin.token, masci.pm.token, masci.safety.token, etc.). This is correct for the multi-portal architecture; every subsequent /admin/* nav lands in PortalShell without re-login."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_track_28_02_field_ops_sweep.py (new)"
+  ],
+  "success_rate": {
+    "backend": "100% (23/23 tests passed — 5 read-gate regression + 18 Field-Ops read/dashboard/CSV/PDF)",
+    "frontend": "94% (16/16 routes render; 1 UI drift — AdminBreadcrumb missing on 6 admin routes)"
+  },
+  "test_credentials": "jaymn.judd@mascigc.com / Maddix123! via POST /api/auth/multi-login (canonical super-admin, returns portal_tokens.admin=UUID.HMAC form). Backend URL from REACT_APP_BACKEND_URL = https://safety-audit-mobile-1.preview.emergentagent.com. /app/memory/test_credentials.md not consulted (creds provided in review request).",
+  "seed_data_creation": "None. Preview DB (masci_safety_preview) already has 3,617 photo-linked jobs and several existing daily reports; used first available daily report id for PDF spot-check.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "TRACK 28.02 P0 admin-token read-gate regression is fully locked by /app/backend/tests/test_track_28_02_admin_read_gate.py (5/5) and Field-Ops read surface is certified via /app/backend/tests/test_track_28_02_field_ops_sweep.py (18/18). Frontend Field-Ops walkthrough confirmed all 16 launcher/form/dashboard routes render without login redirects while authenticated as jaymn.judd@mascigc.com. Only outstanding item is P2 UI drift: AdminBreadcrumb (data-testid=\"admin-breadcrumb\") not mounted on any /admin/* Field-Ops list page. Write-path (form submission → PDF → email) was not exercised end-to-end because filling the multi-step V3 Daily Report form (dr-v3-job-picker → dr-v3-crew-add → …) requires deeper interaction than is safe in a batch sweep without polluting the preview DB. The job picker OPENS with 5+ real MASCI jobs so canonical picker wiring is confirmed. For next iteration: (a) fix AdminBreadcrumb, (b) do one full form-submit E2E per workflow with TEST_-prefixed data + cleanup, (c) verify the /pdf endpoint returns application/pdf for a freshly submitted daily report.",
+  "rca_of_the_issue": "Root cause of P0 (already fixed by main agent BEFORE this iteration): the sync `_is_valid_admin_token` was retired in TRACK 15.32 and now always returns False. Five factory-built gates (make_require_safety_or_admin, make_require_safety_or_admin_fleet, make_require_safety_admin_or_pm, make_require_shop_or_admin_fleet, make_require_dispatch_or_admin) were still binding the retired sync validator, silently rejecting every admin token issued by /api/auth/multi-login. Fix: new is_valid_admin_token_async kwarg on each factory, wired at server.py callsites to _is_valid_directory_admin_token_async. Reproduction (regression-locked): GET /api/meetings with X-Admin-Token from multi-login pre-fix returned 401 'Safety, Admin, or PM login required'; post-fix returns 200 with list body. Live verified against the preview backend."
+}

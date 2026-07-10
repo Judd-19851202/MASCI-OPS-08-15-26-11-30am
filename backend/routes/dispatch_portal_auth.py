@@ -108,6 +108,7 @@ def make_require_dispatch_token(db) -> Callable[..., dict]:
 
 def make_require_dispatch_or_admin(
     db, is_valid_admin_token_fn: Optional[Callable[[str], bool]] = None,
+    is_valid_admin_token_async: Optional[Callable[[str], object]] = None,
 ) -> Callable[..., dict]:
     """iter370 · Canonical shared "dispatch OR admin" gate factory.
 
@@ -119,6 +120,12 @@ def make_require_dispatch_or_admin(
       • Admin token (valid) → {"role": "admin"}
       • Dispatch token (valid) → {"role": "dispatch", **user}
       • Otherwise → HTTPException(401, "Dispatch or Admin auth required")
+
+    TRACK 28.02 (2026-02) — adds ``is_valid_admin_token_async`` so the
+    directory-hydrated per-user admin token (UUID.HMAC issued by
+    ``/api/auth/multi-login``) unlocks this gate. The legacy sync
+    validator retired in 15.32 always returns False; without the async
+    validator, admins were silently locked out.
     """
 
     async def _require_dispatch_or_admin(
@@ -126,8 +133,11 @@ def make_require_dispatch_or_admin(
         x_dispatch_token: Optional[str] = Header(default=None, alias="X-Dispatch-Token"),
         x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
     ) -> dict:
-        if x_admin_token and is_valid_admin_token_fn and is_valid_admin_token_fn(x_admin_token):
-            return {"role": "admin"}
+        if x_admin_token:
+            if is_valid_admin_token_fn and is_valid_admin_token_fn(x_admin_token):
+                return {"role": "admin"}
+            if is_valid_admin_token_async and await is_valid_admin_token_async(x_admin_token):
+                return {"role": "admin"}
         if x_dispatch_token:
             u = await is_valid_dispatch_user_token_async(db, x_dispatch_token)
             if u:
@@ -138,11 +148,15 @@ def make_require_dispatch_or_admin(
     return _require_dispatch_or_admin
 
 
-def build_dispatch_router(db, require_admin, directory_admin_minter: Optional[Callable] = None, is_valid_admin_token_fn: Optional[Callable[[str], bool]] = None, directory_portal_minter: Optional[Callable] = None) -> APIRouter:
+def build_dispatch_router(db, require_admin, directory_admin_minter: Optional[Callable] = None, is_valid_admin_token_fn: Optional[Callable[[str], bool]] = None, directory_portal_minter: Optional[Callable] = None, is_valid_admin_token_async: Optional[Callable[[str], object]] = None) -> APIRouter:
     """Build the /api/dispatch/* + /api/admin/dispatch-users/* router.
 
     iter346-B · `directory_admin_minter` enables universal super-admin
     login fallback (same pattern as iter344 FL + iter346-B HR/Safety).
+
+    TRACK 28.02 · `is_valid_admin_token_async` is forwarded to the
+    canonical dispatch+admin gate so per-user admin tokens
+    (UUID.HMAC) unlock the read-only driver-qualification surface.
     """
     router = APIRouter(prefix="/api", tags=["dispatch-portal"])
     require_dispatch_token = make_require_dispatch_token(db)
@@ -153,7 +167,10 @@ def build_dispatch_router(db, require_admin, directory_admin_minter: Optional[Ca
     # iter370 · Delegates to the canonical shared factory
     # `make_require_dispatch_or_admin` so the gate has a SINGLE source
     # of truth (mirrored in server.py for fleet_ops consumer).
-    require_dispatch_or_admin = make_require_dispatch_or_admin(db, is_valid_admin_token_fn)
+    require_dispatch_or_admin = make_require_dispatch_or_admin(
+        db, is_valid_admin_token_fn,
+        is_valid_admin_token_async=is_valid_admin_token_async,
+    )
 
     # ═══ Login ═══
     @router.post("/dispatch/login", response_model=DispatchLoginResponse)

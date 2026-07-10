@@ -2751,14 +2751,25 @@ register_safety_routes(
     # or X-Admin-Token; HR is intentionally excluded for this write surface.
     require_safety_or_admin=__import__(
         "routes.safety_portal._deps", fromlist=["make_require_safety_or_admin"]
-    ).make_require_safety_or_admin(db, _is_valid_admin_token),
+    ).make_require_safety_or_admin(
+        db, _is_valid_admin_token,
+        is_valid_admin_token_async=_is_valid_directory_admin_token_async,
+    ),
     # iter322 · Safety-side READ gate. Closes the operator bug where
     # X-Safety-Token requests to /api/incidents, /inspections, /meetings,
     # /jhas were rejected with "Admin or PM login required". Accepts
     # Safety + Admin + PM. Destructive endpoints stay on require_admin.
+    # TRACK 28.02 · async admin validator wired so per-user admin tokens
+    # (UUID.HMAC issued by /api/auth/multi-login) unlock the gate — the
+    # sync validator was retired in 15.32 and returns False for all
+    # inputs, which had silently blocked admins from every Safety read
+    # surface.
     require_safety_admin_or_pm=__import__(
         "routes.safety_portal._deps", fromlist=["make_require_safety_admin_or_pm"]
-    ).make_require_safety_admin_or_pm(db, _is_valid_admin_token, _is_valid_pm_token),
+    ).make_require_safety_admin_or_pm(
+        db, _is_valid_admin_token, _is_valid_pm_token,
+        is_valid_admin_token_async=_is_valid_directory_admin_token_async,
+    ),
 )
 
 
@@ -2777,7 +2788,10 @@ register_incident_lifecycle_routes(
     api_router, db,
     require_incident_actor=__import__(
         "routes.safety_portal._deps", fromlist=["make_require_safety_admin_or_pm"]
-    ).make_require_safety_admin_or_pm(db, _is_valid_admin_token, _is_valid_pm_token),
+    ).make_require_safety_admin_or_pm(
+        db, _is_valid_admin_token, _is_valid_pm_token,
+        is_valid_admin_token_async=_is_valid_directory_admin_token_async,
+    ),
 )
 
 
@@ -2794,7 +2808,10 @@ register_incident_engine_routes(
     api_router, db,
     require_actor=__import__(
         "routes.safety_portal._deps", fromlist=["make_require_safety_admin_or_pm"]
-    ).make_require_safety_admin_or_pm(db, _is_valid_admin_token, _is_valid_pm_token),
+    ).make_require_safety_admin_or_pm(
+        db, _is_valid_admin_token, _is_valid_pm_token,
+        is_valid_admin_token_async=_is_valid_directory_admin_token_async,
+    ),
 )
 
 # Public-gate near-miss kiosk (Phase B2). Additive. No auth. Routes
@@ -2811,7 +2828,10 @@ _register_ie_workspace_routes(
     api_router, db,
     require_actor=__import__(
         "routes.safety_portal._deps", fromlist=["make_require_safety_admin_or_pm"]
-    ).make_require_safety_admin_or_pm(db, _is_valid_admin_token, _is_valid_pm_token),
+    ).make_require_safety_admin_or_pm(
+        db, _is_valid_admin_token, _is_valid_pm_token,
+        is_valid_admin_token_async=_is_valid_directory_admin_token_async,
+    ),
 )
 
 # Executive Intelligence Center (Phase D). Additive read-only aggregations
@@ -2821,7 +2841,10 @@ _register_ie_intel_routes(
     api_router, db,
     require_actor=__import__(
         "routes.safety_portal._deps", fromlist=["make_require_safety_admin_or_pm"]
-    ).make_require_safety_admin_or_pm(db, _is_valid_admin_token, _is_valid_pm_token),
+    ).make_require_safety_admin_or_pm(
+        db, _is_valid_admin_token, _is_valid_pm_token,
+        is_valid_admin_token_async=_is_valid_directory_admin_token_async,
+    ),
 )
 
 # Report Intelligence Engine (Phase E). Additive read-only report renderer.
@@ -2830,7 +2853,10 @@ _register_ie_report_routes(
     api_router, db,
     require_actor=__import__(
         "routes.safety_portal._deps", fromlist=["make_require_safety_admin_or_pm"]
-    ).make_require_safety_admin_or_pm(db, _is_valid_admin_token, _is_valid_pm_token),
+    ).make_require_safety_admin_or_pm(
+        db, _is_valid_admin_token, _is_valid_pm_token,
+        is_valid_admin_token_async=_is_valid_directory_admin_token_async,
+    ),
 )
 
 # TRACK 19.36 · Executive Intelligence Layer + Executive Report PDF.
@@ -2845,7 +2871,10 @@ _register_ie_executive_report_routes(
     api_router, db,
     require_actor=__import__(
         "routes.safety_portal._deps", fromlist=["make_require_safety_admin_or_pm"]
-    ).make_require_safety_admin_or_pm(db, _is_valid_admin_token, _is_valid_pm_token),
+    ).make_require_safety_admin_or_pm(
+        db, _is_valid_admin_token, _is_valid_pm_token,
+        is_valid_admin_token_async=_is_valid_directory_admin_token_async,
+    ),
 )
 
 # TRACK 19.37 · Passive Incident-Presence Scoring — attention signals only.
@@ -2858,7 +2887,10 @@ _register_ie_presence_score_routes(
     api_router, db,
     require_actor=__import__(
         "routes.safety_portal._deps", fromlist=["make_require_safety_admin_or_pm"]
-    ).make_require_safety_admin_or_pm(db, _is_valid_admin_token, _is_valid_pm_token),
+    ).make_require_safety_admin_or_pm(
+        db, _is_valid_admin_token, _is_valid_pm_token,
+        is_valid_admin_token_async=_is_valid_directory_admin_token_async,
+    ),
 )
 
 # TRACK 19.38 · Cross-portal read fanout + Portfolio Attention Feed.
@@ -2879,10 +2911,12 @@ _register_ie_portfolio_routes(
     api_router, db,
     require_safety_or_admin=_ie_portfolio_deps_mod.make_require_safety_or_admin(
         db, _is_valid_admin_token,
+        is_valid_admin_token_async=_is_valid_directory_admin_token_async,
     ),
     require_safety_token=_ie_portfolio_deps_mod.make_require_safety_token(db),
     require_safety_admin_or_pm=_ie_portfolio_deps_mod.make_require_safety_admin_or_pm(
         db, _is_valid_admin_token, _is_valid_pm_token,
+        is_valid_admin_token_async=_is_valid_directory_admin_token_async,
     ),
 )
 
@@ -2979,7 +3013,10 @@ register_daily_report_lifecycle_routes(
     api_router, db,
     require_dr_actor=__import__(
         "routes.safety_portal._deps", fromlist=["make_require_safety_admin_or_pm"]
-    ).make_require_safety_admin_or_pm(db, _is_valid_admin_token, _is_valid_pm_token),
+    ).make_require_safety_admin_or_pm(
+        db, _is_valid_admin_token, _is_valid_pm_token,
+        is_valid_admin_token_async=_is_valid_directory_admin_token_async,
+    ),
 )
 
 
@@ -3021,7 +3058,10 @@ register_qaqc_lifecycle_routes(
     api_router, db,
     require_qaqc_actor=__import__(
         "routes.safety_portal._deps", fromlist=["make_require_safety_admin_or_pm"]
-    ).make_require_safety_admin_or_pm(db, _is_valid_admin_token, _is_valid_pm_token),
+    ).make_require_safety_admin_or_pm(
+        db, _is_valid_admin_token, _is_valid_pm_token,
+        is_valid_admin_token_async=_is_valid_directory_admin_token_async,
+    ),
 )
 
 from routes.site_inspection_lifecycle import register_site_inspection_lifecycle_routes  # noqa: E402
@@ -3029,7 +3069,10 @@ register_site_inspection_lifecycle_routes(
     api_router, db,
     require_inspection_actor=__import__(
         "routes.safety_portal._deps", fromlist=["make_require_safety_admin_or_pm"]
-    ).make_require_safety_admin_or_pm(db, _is_valid_admin_token, _is_valid_pm_token),
+    ).make_require_safety_admin_or_pm(
+        db, _is_valid_admin_token, _is_valid_pm_token,
+        is_valid_admin_token_async=_is_valid_directory_admin_token_async,
+    ),
 )
 
 
@@ -11608,7 +11651,10 @@ app.include_router(build_safety_exports_router(db, _require_safety_hr_admin))
 from routes.safety_topic_library import build_router as build_safety_topic_library_router  # noqa: E402
 from routes.safety_portal._deps import make_require_safety_or_admin  # noqa: E402
 
-_require_safety_or_admin_library = make_require_safety_or_admin(db, _is_valid_admin_token)
+_require_safety_or_admin_library = make_require_safety_or_admin(
+    db, _is_valid_admin_token,
+    is_valid_admin_token_async=_is_valid_directory_admin_token_async,
+)
 app.include_router(build_safety_topic_library_router(_require_safety_or_admin_library))
 
 
@@ -11629,7 +11675,10 @@ from routes.integrations._deps import make_require_any_portal_token  # noqa: E40
 _trench_safety_router = build_trench_safety_router(
     db,
     require_admin=require_admin,
-    require_safety_or_admin=make_require_safety_or_admin(db, _is_valid_admin_token),
+    require_safety_or_admin=make_require_safety_or_admin(
+        db, _is_valid_admin_token,
+        is_valid_admin_token_async=_is_valid_directory_admin_token_async,
+    ),
     require_shop_or_admin=require_shop_or_admin,
     require_any_portal=make_require_any_portal_token(db, _is_valid_admin_token),
 )
@@ -12410,6 +12459,8 @@ app.include_router(build_dispatch_router(
     directory_admin_minter=lambda row: _directory_admin_token(row),
     # iter353b · admin tokens accepted on the read-only DQ surface.
     is_valid_admin_token_fn=_is_valid_admin_token,
+    # TRACK 28.02 · directory-hydrated per-user admin token support.
+    is_valid_admin_token_async=_is_valid_directory_admin_token_async,
     # Track 15.87 · directory `dispatch` grant path.
     directory_portal_minter=lambda row: _directory_dispatch_token(row),
 ))
@@ -12448,7 +12499,10 @@ app.include_router(build_governance_health_router())
 from routes.notifications import build_notifications_router  # noqa: E402
 from routes.safety_portal._deps import make_require_safety_or_admin  # noqa: E402
 
-_notif_safety_gate = make_require_safety_or_admin(db, _is_valid_admin_token)
+_notif_safety_gate = make_require_safety_or_admin(
+    db, _is_valid_admin_token,
+    is_valid_admin_token_async=_is_valid_directory_admin_token_async,
+)
 app.include_router(build_notifications_router(
     db, require_admin_strict, _notif_safety_gate,
 ))
@@ -12981,7 +13035,10 @@ _require_any_fleet_portal = make_require_any_fleet_portal(
 from routes.dispatch_portal_auth import (  # noqa: E402
     make_require_dispatch_or_admin as _make_dispatch_or_admin,
 )
-_shared_dispatch_or_admin = _make_dispatch_or_admin(db, _is_valid_admin_token)
+_shared_dispatch_or_admin = _make_dispatch_or_admin(
+    db, _is_valid_admin_token,
+    is_valid_admin_token_async=_is_valid_directory_admin_token_async,
+)
 
 
 async def _require_dispatch_or_admin(
@@ -13089,7 +13146,10 @@ async def track_22_4a_dispatch_motive_posture(
 from routes.safety_portal._deps import (  # noqa: E402
     make_require_safety_or_admin_fleet as _make_safety_or_admin_fleet,
 )
-_shared_safety_or_admin_fleet = _make_safety_or_admin_fleet(db, _is_valid_admin_token)
+_shared_safety_or_admin_fleet = _make_safety_or_admin_fleet(
+    db, _is_valid_admin_token,
+    is_valid_admin_token_async=_is_valid_directory_admin_token_async,
+)
 
 
 async def _require_safety_or_admin_fleet(
@@ -13119,6 +13179,7 @@ from routes.shop_portal_deps import (  # noqa: E402
 )
 _shared_shop_or_admin_fleet = _make_shop_or_admin_fleet(
     db, _is_valid_admin_token,
+    is_valid_admin_token_async=_is_valid_directory_admin_token_async,
 )
 
 

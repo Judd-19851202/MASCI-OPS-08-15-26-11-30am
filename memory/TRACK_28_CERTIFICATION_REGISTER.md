@@ -7,7 +7,8 @@
 | Session | Track | Scope | Status | Evidence |
 |---|---|---|---|---|
 | 2026-07-10 | 28.01 | Static certification sweep (grep-based invariants) | ✅ PASS | CHANGELOG entry + 67/67 backend tests |
-| — | 28.02 | Live-walk phases (2+4+6+10+11+14) | NOT STARTED | — |
+| 2026-07-10 | 28.02-A | Field Operations · pre-cert P0 audit → discovered admin-token read-gate regression across Safety/Admin/PM gate factories | ✅ FIX LANDED | `/api/{meetings,inspections,incidents,jhas}` returned 401 to admin tokens; fixed in `routes/safety_portal/_deps.py` + `routes/shop_portal_deps.py` + `routes/dispatch_portal_auth.py` by threading `is_valid_admin_token_async`; regression test `backend/tests/test_track_28_02_admin_read_gate.py` (5/5 pass) |
+| — | 28.02-B | Field Operations · full-walk (DR/Meetings/JHA/Pre-Op/Inspections/Incidents/Equipment/Photos/PDFs) | IN PROGRESS | Handed to testing_agent_v3_fork post fix |
 
 ## Registered gaps (carried forward, formalized)
 

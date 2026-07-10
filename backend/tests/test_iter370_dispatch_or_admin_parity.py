@@ -143,8 +143,17 @@ class TestConsolidationFoundation:
 
     def test_server_py_uses_shared_factory(self):
         src = Path("/app/backend/server.py").read_text()
-        assert "_make_dispatch_or_admin(db, _is_valid_admin_token)" in src, (
+        # TRACK 28.02 · call signature widened to include the async admin
+        # token validator kwarg. The factory reference must still be present.
+        assert "_make_dispatch_or_admin(" in src, (
             "server.py must build its dispatch_or_admin gate from the shared factory"
+        )
+        assert "_is_valid_admin_token," in src, (
+            "server.py must still forward the (retired) sync admin validator"
+        )
+        assert "is_valid_admin_token_async=_is_valid_directory_admin_token_async" in src, (
+            "server.py must forward the async admin validator so per-user "
+            "admin tokens unlock the shared dispatch+admin gate (Track 28.02)"
         )
         assert "async def _require_dispatch_or_admin(" in src, (
             "server.py must keep its _require_dispatch_or_admin wrapper "
@@ -158,12 +167,13 @@ class TestConsolidationFoundation:
         # Locate the _require_dispatch_or_admin function body.
         idx = src.find("async def _require_dispatch_or_admin(")
         assert idx >= 0
-        # Take next ~30 lines as the body window.
-        body = src[idx:idx + 1200]
+        # TRACK 28.02 · widened window (the wrapper now also handles the
+        # cert-session token allowlist path before delegating).
+        body = src[idx:idx + 3000]
         assert "_shared_dispatch_or_admin" in body, (
             "server.py wrapper must delegate to the shared gate"
         )
-        # The literal "role": "dispatch" must NOT appear inside this
+        # The literal `"role": "dispatch"` must NOT appear inside this
         # wrapper anymore — that means it's still building its own dict.
         # We allow it elsewhere in server.py (other gates), but not here.
         assert '"role": "dispatch"' not in body[:1000], (
