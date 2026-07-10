@@ -67,6 +67,7 @@ def build_shop_intel_router(
     *,
     require_shop_or_admin_dep: Callable[..., Awaitable[Any]],
     is_valid_admin_token_fn: Callable[[str], bool],
+    is_valid_admin_token_async: Optional[Callable[[str], Awaitable[bool]]] = None,
 ) -> APIRouter:
     """The helper ``is_valid_admin_token_fn`` is injected from
     ``server.py`` so we don't import-cycle. Together with the shop-user-
@@ -75,7 +76,9 @@ def build_shop_intel_router(
 
     TRACK 15.34 (2026-02) — the deprecated ``shop_token_for_fn`` kwarg
     (a leftover from the retired shared SHOP_PASSWORD HMAC, TRACK
-    15.30) was removed from this factory's signature."""
+    15.30) was removed from this factory's signature.
+    TRACK 28.03E · accepts optional async admin validator so
+    directory-hydrated admin tokens unlock the shop intel surface."""
     router = APIRouter(prefix="/api/shop", tags=["shop-intel"])
 
     async def _resolve_actor(
@@ -84,8 +87,11 @@ def build_shop_intel_router(
         x_shop_token: Optional[str],
     ) -> Dict[str, Any]:
         # Admin path
-        if x_admin_token and is_valid_admin_token_fn(x_admin_token):
-            return {"kind": "admin", "id": None, "name": "Admin", "role": "admin"}
+        if x_admin_token:
+            if is_valid_admin_token_fn(x_admin_token):
+                return {"kind": "admin", "id": None, "name": "Admin", "role": "admin"}
+            if is_valid_admin_token_async and await is_valid_admin_token_async(x_admin_token):
+                return {"kind": "admin", "id": None, "name": "Admin", "role": "admin"}
         # Per-shop-user token (carries identity).
         if x_shop_token and "." in x_shop_token:
             try:

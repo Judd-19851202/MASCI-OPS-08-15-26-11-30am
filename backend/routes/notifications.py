@@ -758,8 +758,12 @@ def build_notifications_router(
         if user:
             return await _build_hr_digest(db)
         # Admin can preview the HR digest for operational oversight.
-        from server import _is_valid_admin_token  # noqa: PLC0415
-        if x_admin_token and _is_valid_admin_token(x_admin_token):
+        # TRACK 28.03E · pair sync + async admin validators.
+        from server import _is_valid_admin_token, _is_valid_directory_admin_token_async  # noqa: PLC0415
+        if x_admin_token and (
+            _is_valid_admin_token(x_admin_token)
+            or await _is_valid_directory_admin_token_async(x_admin_token)
+        ):
             return await _build_hr_digest(db)
         raise HTTPException(401, "HR or Admin auth required")
 
@@ -771,8 +775,11 @@ def build_notifications_router(
         user = await _resolve_pm_user(x_pm_token)
         if user:
             return await _build_pm_digest(db, user)
-        from server import _is_valid_admin_token  # noqa: PLC0415
-        if x_admin_token and _is_valid_admin_token(x_admin_token):
+        from server import _is_valid_admin_token, _is_valid_directory_admin_token_async  # noqa: PLC0415
+        if x_admin_token and (
+            _is_valid_admin_token(x_admin_token)
+            or await _is_valid_directory_admin_token_async(x_admin_token)
+        ):
             return await _build_pm_digest(db, {"id": "admin", "name": "Admin"})
         raise HTTPException(401, "PM or Admin auth required")
 
@@ -784,8 +791,11 @@ def build_notifications_router(
         user = await _resolve_dispatch_user(x_dispatch_token)
         if user:
             return await _build_dispatch_digest(db)
-        from server import _is_valid_admin_token  # noqa: PLC0415
-        if x_admin_token and _is_valid_admin_token(x_admin_token):
+        from server import _is_valid_admin_token, _is_valid_directory_admin_token_async  # noqa: PLC0415
+        if x_admin_token and (
+            _is_valid_admin_token(x_admin_token)
+            or await _is_valid_directory_admin_token_async(x_admin_token)
+        ):
             return await _build_dispatch_digest(db)
         raise HTTPException(401, "Dispatch or Admin auth required")
 
@@ -797,8 +807,11 @@ def build_notifications_router(
         user = await _resolve_fl_user(x_fl_token)
         if user:
             return await _build_fl_digest(db, user)
-        from server import _is_valid_admin_token  # noqa: PLC0415
-        if x_admin_token and _is_valid_admin_token(x_admin_token):
+        from server import _is_valid_admin_token, _is_valid_directory_admin_token_async  # noqa: PLC0415
+        if x_admin_token and (
+            _is_valid_admin_token(x_admin_token)
+            or await _is_valid_directory_admin_token_async(x_admin_token)
+        ):
             return await _build_fl_digest(db, {"id": "admin", "name": "Admin"})
         raise HTTPException(401, "FL or Admin auth required")
 

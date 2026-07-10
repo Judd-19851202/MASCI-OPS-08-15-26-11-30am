@@ -90,11 +90,15 @@ def build_legacy_imports_router(
     photo_storage_module,                   # photo_storage module (_ps)
     is_valid_admin_token: Callable[[str], bool],
     require_admin_strict: Callable[..., Awaitable[Any]],
+    is_valid_admin_token_async: Optional[Callable[[str], Awaitable[bool]]] = None,
 ) -> APIRouter:
     """Build the legacy-imports router with all 11 routes attached.
 
     Parameters mirror the implicit dependencies the inline server.py
     code had on global symbols.
+
+    TRACK 28.03E · accepts optional ``is_valid_admin_token_async`` so
+    per-user admin tokens unlock the uploader.
     """
     _li = li_module
     _ps = photo_storage_module
@@ -108,13 +112,17 @@ def build_legacy_imports_router(
         x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
     ) -> Dict[str, Any]:
         """HR · Safety · Admin only. Returns `{actor_role, actor_id, actor_name, upload_portal}`."""
-        if x_admin_token and is_valid_admin_token(x_admin_token):
-            return {
-                "actor_role": "admin",
-                "actor_id": "admin-break-glass",
-                "actor_name": "Admin",
-                "upload_portal": "admin",
-            }
+        if x_admin_token:
+            admin_ok = is_valid_admin_token(x_admin_token)
+            if not admin_ok and is_valid_admin_token_async:
+                admin_ok = bool(await is_valid_admin_token_async(x_admin_token))
+            if admin_ok:
+                return {
+                    "actor_role": "admin",
+                    "actor_id": "admin-break-glass",
+                    "actor_name": "Admin",
+                    "upload_portal": "admin",
+                }
         if x_hr_token:
             from hr_users import is_valid_hr_user_token_async  # noqa: PLC0415
             u = await is_valid_hr_user_token_async(db, x_hr_token)

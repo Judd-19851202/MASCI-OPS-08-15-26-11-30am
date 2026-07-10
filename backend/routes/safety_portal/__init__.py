@@ -37,6 +37,7 @@ def build_safety_router(
     db, require_admin, send_email_fn=None, is_valid_admin_token=None,
     directory_admin_minter=None,
     directory_portal_minter=None,
+    is_valid_admin_token_async=None,
 ) -> APIRouter:
     """Build and return the Safety Portal router. Caller must
     `app.include_router(...)` the return value AFTER calling this — same
@@ -48,12 +49,17 @@ def build_safety_router(
     Track 15.87 · `directory_portal_minter` (optional) enables the
     directory `safety` grant path — a People & Access checkbox now
     produces a working Safety login (mint a Safety token, NOT admin).
+
+    TRACK 28.03E · `is_valid_admin_token_async` is forwarded to the
+    inner safety_or_hr_or_admin gate so per-user admin tokens unlock
+    the router.
     """
     api_router = APIRouter(prefix="/api", tags=["safety-portal"])
 
     require_safety_token = make_require_safety_token(db)
     require_safety_or_hr_or_admin = make_require_safety_or_hr_or_admin(
         db, is_valid_admin_token=is_valid_admin_token,
+        is_valid_admin_token_async=is_valid_admin_token_async,
     )
 
     register_auth_routes(

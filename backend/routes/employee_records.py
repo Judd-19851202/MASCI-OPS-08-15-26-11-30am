@@ -61,7 +61,7 @@ from lib.platform_time import format_platform_stamp
 logger = logging.getLogger(__name__)
 
 
-def make_employee_records_actor_gate(db, is_valid_admin_token):
+def make_employee_records_actor_gate(db, is_valid_admin_token, is_valid_admin_token_async=None):
     """Auth gate for Track 19.21 Employee Records surface.
 
     Accepts, in order of precedence:
@@ -73,6 +73,12 @@ def make_employee_records_actor_gate(db, is_valid_admin_token):
     Returns a dict `{..., "_actor": role, "email": ..., "name": ...}`
     or raises 401. HR / Safety / Asset admin dicts carry lane semantics;
     admin gets `{"_actor": "admin"}`.
+
+    TRACK 28.03E · accepts optional ``is_valid_admin_token_async`` so
+    per-user admin tokens (UUID.HMAC issued by /api/auth/multi-login)
+    unlock the admin bypass. The sync validator retired in 15.32
+    unconditionally returns False; without the async fallback,
+    directory-hydrated admins are silently locked out.
     """
     async def _gate(
         request: Request,
@@ -100,8 +106,11 @@ def make_employee_records_actor_gate(db, is_valid_admin_token):
             if u and (u.get("is_asset_admin") or "asset_admin" in [str(r).lower() for r in (u.get("roles") or [])]):
                 return {**u, "_actor": "asset_admin"}
         # Admin (super-admin bypass; behaves as HR-equivalent for records).
-        if x_admin_token and is_valid_admin_token and is_valid_admin_token(x_admin_token):
-            return {"_actor": "admin", "name": "Admin"}
+        if x_admin_token:
+            if is_valid_admin_token and is_valid_admin_token(x_admin_token):
+                return {"_actor": "admin", "name": "Admin"}
+            if is_valid_admin_token_async and await is_valid_admin_token_async(x_admin_token):
+                return {"_actor": "admin", "name": "Admin"}
         raise HTTPException(401, "HR, Safety, Asset Administrator, or Admin auth required")
 
     return _gate

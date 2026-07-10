@@ -45,6 +45,7 @@ def make_require_fleet_submitter(
     *,
     db,
     is_valid_admin_token: Callable[[str], bool],
+    is_valid_admin_token_async: Optional[Callable[[str], Awaitable[bool]]] = None,
 ) -> Callable[..., Awaitable[Dict[str, Any]]]:
     """Return the DVIR submit-auth dep used by fleet_ops.
 
@@ -53,6 +54,8 @@ def make_require_fleet_submitter(
           driver_name + truck_unit + signature for evidence)
       (b) any signed-in employee (Safety / Dispatch / HR / Shop /
           Admin · audit additionally captures actor identity)
+
+    TRACK 28.03E · accepts optional async admin validator.
     """
     async def _dep(
         request: Request,  # noqa: ARG001  (kept for audit-shape parity)
@@ -62,8 +65,11 @@ def make_require_fleet_submitter(
         x_hr_token: Optional[str] = Header(default=None, alias="X-HR-Token"),  # noqa: ARG001
         x_shop_token: Optional[str] = Header(default=None, alias="X-Shop-Token"),  # noqa: ARG001
     ) -> Dict[str, Any]:
-        if x_admin_token and is_valid_admin_token(x_admin_token):
-            return {"role": "admin", "actor_id": "admin", "name": "Admin"}
+        if x_admin_token:
+            if is_valid_admin_token(x_admin_token):
+                return {"role": "admin", "actor_id": "admin", "name": "Admin"}
+            if is_valid_admin_token_async and await is_valid_admin_token_async(x_admin_token):
+                return {"role": "admin", "actor_id": "admin", "name": "Admin"}
         if x_safety_token:
             try:
                 from safety_users import is_valid_safety_user_token_async  # noqa: PLC0415
@@ -89,6 +95,7 @@ def make_require_any_fleet_portal(
     *,
     db,
     is_valid_admin_token: Callable[[str], bool],
+    is_valid_admin_token_async: Optional[Callable[[str], Awaitable[bool]]] = None,
 ) -> Callable[..., Awaitable[Dict[str, Any]]]:
     """Return the multi-portal READ gate used by fleet_ops for defect
     detail + audit-trail reads. Any of admin / shop / dispatch /
@@ -98,7 +105,8 @@ def make_require_any_fleet_portal(
     TRACK 15.30 (2026-02) — shared SHOP_PASSWORD HMAC retired. Only
     per-user shop tokens are accepted.
     TRACK 15.34 (2026-02) — the deprecated `shop_token_for` kwarg was
-    removed from this factory's signature."""
+    removed from this factory's signature.
+    TRACK 28.03E · accepts optional async admin validator."""
     async def _dep(
         request: Request,  # noqa: ARG001
         x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
@@ -106,8 +114,11 @@ def make_require_any_fleet_portal(
         x_dispatch_token: Optional[str] = Header(default=None, alias="X-Dispatch-Token"),
         x_safety_token: Optional[str] = Header(default=None, alias="X-Safety-Token"),
     ) -> Dict[str, Any]:
-        if x_admin_token and is_valid_admin_token(x_admin_token):
-            return {"role": "admin"}
+        if x_admin_token:
+            if is_valid_admin_token(x_admin_token):
+                return {"role": "admin"}
+            if is_valid_admin_token_async and await is_valid_admin_token_async(x_admin_token):
+                return {"role": "admin"}
         if x_shop_token and "." in x_shop_token:
             try:
                 from shop_users import is_valid_shop_user_token_async  # noqa: PLC0415

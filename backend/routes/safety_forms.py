@@ -965,15 +965,30 @@ def _schedule_email(kind: str, rec: Dict[str, Any], extra: Optional[Dict[str, An
 # ─────────────────────────────────────────────────────────────────────
 
 
-def build_safety_forms_router(db, _is_valid_admin_token):
+def build_safety_forms_router(db, _is_valid_admin_token, _is_valid_directory_admin_token_async=None):
     """Mount /api/safety-forms/* routes.
 
     ``_is_valid_admin_token`` is the existing helper from server.py so we
     can satisfy the same admin token everywhere without duplication.
+
+    TRACK 28.03E · accepts an optional async admin-token validator so
+    per-user admin tokens (UUID.HMAC issued by /api/auth/multi-login)
+    unlock this router. The sync validator was retired in 15.32 and
+    unconditionally returns False; without the async fallback,
+    directory-hydrated admins are silently locked out of safety forms.
     """
     global _DB_REF
     _DB_REF = db
     router = APIRouter(prefix="/api/safety-forms", tags=["safety-forms"])
+
+    async def _admin_ok(tok: Optional[str]) -> bool:
+        if not tok:
+            return False
+        if _is_valid_admin_token(tok):
+            return True
+        if _is_valid_directory_admin_token_async is not None:
+            return bool(await _is_valid_directory_admin_token_async(tok))
+        return False
 
     async def _require_safety_or_admin(
         x_admin_token: Optional[str] = Header(default=None),
@@ -989,7 +1004,7 @@ def build_safety_forms_router(db, _is_valid_admin_token):
         # iter353a · HR token is now also accepted (operator policy:
         # HR is shared operational owner of employee accountability
         # records, including PPE issuance + equipment training).
-        if x_admin_token and _is_valid_admin_token(x_admin_token):
+        if x_admin_token and await _admin_ok(x_admin_token):
             return True
         if x_safety_token:
             from safety_users import is_valid_safety_user_token_async  # noqa: PLC0415
@@ -1008,8 +1023,8 @@ def build_safety_forms_router(db, _is_valid_admin_token):
             detail="Safety Portal, HR Portal, Safety Forms, or admin login required",
         )
 
-    def _require_admin(x_admin_token: Optional[str] = Header(default=None)) -> bool:
-        if not x_admin_token or not _is_valid_admin_token(x_admin_token):
+    async def _require_admin(x_admin_token: Optional[str] = Header(default=None)) -> bool:
+        if not x_admin_token or not await _admin_ok(x_admin_token):
             raise HTTPException(status_code=401, detail="Admin login required")
         return True
 

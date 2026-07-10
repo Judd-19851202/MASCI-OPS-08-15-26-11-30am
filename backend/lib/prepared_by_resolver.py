@@ -154,7 +154,19 @@ async def resolve_prepared_by_identity(
             pass
 
     # ── Admin (legacy single-secret or multi-login directory token) ───
-    if x_admin and _is_valid_admin_token(x_admin):
+    # TRACK 28.03E · pair sync + async admin-token validators so per-user
+    # admin tokens (UUID.HMAC issued by /api/auth/multi-login) also
+    # surface as the "admin" directory here.
+    admin_ok = False
+    if x_admin:
+        admin_ok = _is_valid_admin_token(x_admin)
+        if not admin_ok:
+            try:
+                from server import _is_valid_directory_admin_token_async  # noqa: PLC0415
+                admin_ok = bool(await _is_valid_directory_admin_token_async(x_admin))
+            except Exception:  # noqa: BLE001
+                admin_ok = False
+    if admin_ok:
         # Admin tokens don't carry a user identity (single shared
         # break-glass HMAC). Surface as a bound directory with an
         # opaque user_id of "admin" so audits can still discriminate

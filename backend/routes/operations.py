@@ -486,13 +486,19 @@ async def create_pending_maintenance_hold(
         return None
 
 
-def build_operations_router(db, require_admin, is_valid_admin_token=None) -> APIRouter:
+def build_operations_router(
+    db, require_admin, is_valid_admin_token=None,
+    is_valid_admin_token_async=None,
+) -> APIRouter:
     """Build the operations HTTP surface.
 
     READ endpoints accept any portal token (admin · safety · hr · shop ·
     pm · dispatch) so every authorized user can see holds, events, and
     utilization from their own portal without admin escalation.
     WRITE endpoints stay admin- or dispatch-gated.
+
+    TRACK 28.03E · accepts optional ``is_valid_admin_token_async`` so
+    per-user admin tokens unlock this router.
     """
     router = APIRouter(prefix="/api/operations", tags=["operations"])
 
@@ -502,14 +508,20 @@ def build_operations_router(db, require_admin, is_valid_admin_token=None) -> API
         from routes.integrations._deps import make_require_any_portal_token  # noqa: PLC0415
         from dispatch_users import is_valid_dispatch_user_token_async  # noqa: PLC0415
 
-        require_any_portal = make_require_any_portal_token(db, is_valid_admin_token)
+        require_any_portal = make_require_any_portal_token(
+            db, is_valid_admin_token,
+            is_valid_admin_token_async=is_valid_admin_token_async,
+        )
 
         async def _require_admin_or_dispatch(
             x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
             x_dispatch_token: Optional[str] = Header(default=None, alias="X-Dispatch-Token"),
         ) -> dict:
-            if x_admin_token and is_valid_admin_token(x_admin_token):
-                return {"_actor": "admin", "name": "Admin"}
+            if x_admin_token:
+                if is_valid_admin_token(x_admin_token):
+                    return {"_actor": "admin", "name": "Admin"}
+                if is_valid_admin_token_async and await is_valid_admin_token_async(x_admin_token):
+                    return {"_actor": "admin", "name": "Admin"}
             if x_dispatch_token and "." in x_dispatch_token:
                 u = await is_valid_dispatch_user_token_async(db, x_dispatch_token)
                 if u:

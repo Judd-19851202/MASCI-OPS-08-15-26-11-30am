@@ -1,5 +1,56 @@
 # CHANGELOG
 
+## 2026-07-10 — TRACK 28.03E · PLATFORM-WIDE ADMIN AUTH-GATE INVARIANT — ✅ P0 CLASS CLOSED
+
+**Mission.** Eliminate every standalone use of the retired sync `_is_valid_admin_token` as an admin authorization path. Two P0 regressions (28.02-A safety factories, 28.03-A field leadership) had already surfaced from this same defect class; a third one this quarter would be inexcusable. This track's static invariant makes that class of defect impossible to reintroduce.
+
+### Static invariant · `tests/test_no_retired_sync_admin_validator_alone.py`
+AST scanner walks every backend `.py` file (skipping `tests/`, `scripts/`, `migrations/`, `backups/`, `__pycache__`) and flags every callsite matching either:
+  1. **Direct call** — `_is_valid_admin_token(...)` invocation.
+  2. **Factory wiring** — the sync validator passed positionally or by kw to any callee that must be a gate factory.
+
+For each hit the invariant asserts that the same enclosing function ALSO references a known async admin-token validator (`_is_valid_directory_admin_token_async` or the factory kwarg `is_valid_admin_token_async`) OR the `(file, function)` tuple sits in the structured `INTERNAL_ALLOWLIST`. Every allowlist entry requires:
+  * file (relative to `/app/backend`)
+  * function name
+  * exact purpose
+  * why async directory validation is not required
+  * risk owner
+
+A companion test `test_admin_gate_allowlist_entries_still_exist` fails when a file rename or function delete would leave a stale exemption.
+
+### Scan results (initial)
+28 violations discovered:
+  * **7 direct-call sites** across `server.py` (require_admin_or_asset_admin, _guidance_caller_scopes, training_packet_pdf, _require_hr_or_admin_for_mcc1, _require_oa_actor, _require_hr_or_admin)
+  * **7 direct-call sites** across `routes/safety_forms.py` (2 gates), `routes/fleet_ops.py::_resolve_rich_actor`, `routes/notifications.py` (4 digest endpoints), `lib/prepared_by_resolver.py::resolve_prepared_by_identity`
+  * **12 factory-wiring sites** where the retired sync validator was the only admin-token argument passed into a gate factory whose signature did not accept an async fallback (`make_employee_records_actor_gate`, `make_require_fleet_submitter`, `make_require_any_fleet_portal`, `make_require_any_portal_token`, `build_safety_router`, `build_integrations_router`, `build_operations_router`, `build_legacy_imports_router`, `build_shop_intel_router`, `build_safety_forms_router`, `_ie_portfolio_deps.make_require_safety_or_admin`, `make_require_safety_or_hr_or_admin`)
+
+### Repairs (all 28 fixed; 3 legitimate allowlist entries)
+- Every direct-call site now pairs the sync check with `_is_valid_directory_admin_token_async(...)` on failure — pattern documented inline at each callsite.
+- Every gate factory that took the retired validator now accepts an optional `is_valid_admin_token_async` param and uses it internally after the sync check fails. Callers in `server.py` thread `_is_valid_directory_admin_token_async` through as the kwarg.
+- Allowlist entries (3):
+  1. `server.py::_is_valid_admin_token` — the DEFINITION itself; obviously exempt.
+  2. `lib/prepared_by_resolver.py::_is_valid_admin_token` — local re-export shim.
+  3. `lib/prepared_by_resolver.py::resolve_prepared_by_identity` — REMOVED (function now uses async fallback directly).
+
+### Regression coverage
+- `tests/test_track_28_03e_platform_admin_gates.py` (7/7 pass) — end-to-end hits every newly-repaired surface with the admin portal token from `/api/auth/multi-login`:
+  * `/api/hr/notifications/digest`
+  * `/api/pm/notifications/digest`
+  * `/api/dispatch/notifications/digest`
+  * `/api/fl/notifications/digest`
+  * `/api/operations/events`
+  * `/api/employee-records`
+  * Missing-token rejection still enforced.
+
+### Certification gate
+- **Full Track 28 + parity suite: 70 passed / 20 skipped** (2 invariant + 5 admin-read-gate + 11 field-ops E2E + 1 CSV DR + 1 GSearch DR + 2 static-DR invariant + 3 admin-FL-gate + 2 static-FLR invariant + 15 FL E2E + 3 FL draft contract + 7 platform admin gates + 27 legacy parity).
+- Zero P0/P1 auth defects outstanding.
+- CI permanently blocks any new standalone use of the retired sync validator.
+- Field Leadership + Field Operations both remain **CLOSED with PASS**. Advancing certification to Track 28.04 · HR.
+
+---
+
+
 ## 2026-07-10 — TRACK 28.03 · FIELD LEADERSHIP END-TO-END CERTIFICATION — ✅ CLOSED WITH PASS
 
 **Scope:** every kind in `FIELD_LEADERSHIP_FORMS` executed as a real operator with `TEST_28_03_` prefixed identity fields, downstream integrations verified, cleanup enforced via API soft-delete + Mongo hard-purge. 41/41 Track 28 tests pass.

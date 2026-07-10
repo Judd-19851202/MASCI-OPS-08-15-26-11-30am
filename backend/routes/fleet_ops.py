@@ -1759,8 +1759,14 @@ def build_router(
         """Return `{"kind": "admin" | "shop_manager" | "mechanic" | "shop",
         "id": str|None, "name": str, "role": str}` or raise 401."""
         # Admin path — fully authorized
-        from server import _is_valid_admin_token  # noqa: PLC0415
-        if x_admin_token and _is_valid_admin_token(x_admin_token):
+        # TRACK 28.03E · pair sync + async admin validators.
+        from server import (  # noqa: PLC0415
+            _is_valid_admin_token, _is_valid_directory_admin_token_async,
+        )
+        if x_admin_token and (
+            _is_valid_admin_token(x_admin_token)
+            or await _is_valid_directory_admin_token_async(x_admin_token)
+        ):
             return {"kind": "admin", "id": None, "name": "Admin", "role": "admin"}
         # Per-shop-user token (preferred — carries identity)
         if x_shop_token and "." in x_shop_token:

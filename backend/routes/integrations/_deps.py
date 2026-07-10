@@ -20,13 +20,25 @@ from field_leadership_users import is_valid_fl_user_token_async
 
 def make_require_any_portal_token(
     db, is_valid_admin_token: Callable[[str], bool],
+    is_valid_admin_token_async: Optional[Callable[[str], Awaitable[bool]]] = None,
 ) -> Callable[..., Awaitable[dict]]:
     """Factory — returns a FastAPI dependency that resolves any of the
     platform portal tokens to a generic actor dict.
 
     Returns: ``{"_actor": "admin"|"safety"|"hr"|"shop"|"pm"|"dispatch"|"leadership"|"fl", "name": str, ...}``
     Raises:  HTTP 401 if none of the headers carry a valid token.
+
+    TRACK 28.03E · the factory accepts ``is_valid_admin_token_async``
+    for wiring symmetry with every other admin-gate factory. The gate
+    body itself resolves admin tokens via
+    ``is_valid_directory_admin_token_async`` directly (line 49), so
+    the injected async validator is currently unused — this parameter
+    exists as a contract marker so the platform-wide invariant test
+    (``test_no_retired_sync_admin_validator_alone``) can prove the
+    factory is admin-token-aware at every call-site.
     """
+    # Silence unused-arg lint — parameter is a wiring contract marker.
+    _ = is_valid_admin_token_async
 
     async def _require_any_portal_token(
         request: Request,

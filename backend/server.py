@@ -879,7 +879,10 @@ async def require_admin_or_asset_admin(
     {"admin_token", "directory_flag", "legacy_shop_role"} so route
     handlers and tests can verify which path resolved.
     """
-    if x_admin_token and _is_valid_admin_token(x_admin_token):
+    if x_admin_token and (
+        _is_valid_admin_token(x_admin_token)
+        or await _is_valid_directory_admin_token_async(x_admin_token)
+    ):
         return {"_actor": "admin", "name": "Admin", "_auth_path": "admin_token"}
 
     if not x_shop_token or "." not in x_shop_token:
@@ -1091,7 +1094,15 @@ async def _guidance_caller_scopes(request: Request) -> set:
     def hdr(name: str) -> Optional[str]:
         return request.headers.get(name) or request.headers.get(name.lower())
 
+    # TRACK 28.03E · pair the retired sync validator with the async
+    # directory-hydrated validator so per-user admin tokens set the
+    # admin scope. Silent degradation to "public" scope was the pre-
+    # fix behaviour.
     is_admin = _is_valid_admin_token(hdr("x-admin-token"))
+    if not is_admin:
+        _tok = hdr("x-admin-token")
+        if _tok:
+            is_admin = await _is_valid_directory_admin_token_async(_tok)
     # PM token can be shared or per-user
     pm_tok = hdr("x-pm-token") or ""
     is_pm = False
@@ -2932,6 +2943,7 @@ _register_ie_morning_digest_routes(
     api_router, db,
     require_safety_or_admin=_ie_portfolio_deps_mod.make_require_safety_or_admin(
         db, _is_valid_admin_token,
+        is_valid_admin_token_async=_is_valid_directory_admin_token_async,
     ),
 )
 
@@ -2996,7 +3008,10 @@ from routes.employee_records import (  # noqa: E402
 )
 app.include_router(build_employee_records_router(
     db=db,
-    require_actor=make_employee_records_actor_gate(db, _is_valid_admin_token),
+    require_actor=make_employee_records_actor_gate(
+        db, _is_valid_admin_token,
+        is_valid_admin_token_async=_is_valid_directory_admin_token_async,
+    ),
 ))
 
 
@@ -10813,15 +10828,23 @@ async def training_packet_pdf(
 
     # Authorize based on track. We do this BEFORE rendering the PDF so a
     # failed auth never pays the render cost.
+    # TRACK 28.03E · pair every retired sync admin-validator call with
+    # `_is_valid_directory_admin_token_async` so per-user admin tokens
+    # unlock the training PDF the same as every other admin surface.
+    async def _admin_ok(tok: Optional[str]) -> bool:
+        if not tok:
+            return False
+        return bool(_is_valid_admin_token(tok)) or bool(await _is_valid_directory_admin_token_async(tok))
+
     if t_lower == "admin":
-        if not (x_admin_token and _is_valid_admin_token(x_admin_token)):
+        if not await _admin_ok(x_admin_token):
             raise HTTPException(
                 status_code=401,
                 detail="Admin login required for the Admin training packet.",
             )
     elif t_lower == "pm":
         if not (
-            (x_admin_token and _is_valid_admin_token(x_admin_token))
+            await _admin_ok(x_admin_token)
             or (x_pm_token and _is_valid_pm_token(x_pm_token))
         ):
             raise HTTPException(
@@ -10840,7 +10863,7 @@ async def training_packet_pdf(
             except Exception:  # noqa: BLE001
                 shop_ok = False
         if not (
-            (x_admin_token and _is_valid_admin_token(x_admin_token))
+            await _admin_ok(x_admin_token)
             or (x_pm_token and _is_valid_pm_token(x_pm_token))
             or shop_ok
         ):
@@ -11034,7 +11057,9 @@ app.include_router(_date_audit_router)
 # ------------------------- Safety Forms (Equipment Issuance + Training) -------------------------
 from routes.safety_forms import build_safety_forms_router  # noqa: E402
 
-_safety_forms_router = build_safety_forms_router(db, _is_valid_admin_token)
+_safety_forms_router = build_safety_forms_router(
+    db, _is_valid_admin_token, _is_valid_directory_admin_token_async,
+)
 app.include_router(_safety_forms_router)
 
 
@@ -11534,7 +11559,10 @@ _hr_portal_router = build_hr_portal_router(
     directory_admin_minter=lambda row: _directory_admin_token(row),
     # iter353c · shared accountability gate (HR + Safety + Admin) used
     # by the unified employee timeline + compliance brief endpoints.
-    require_safety_or_hr_or_admin_dep=make_require_safety_or_hr_or_admin(db, _is_valid_admin_token),
+    require_safety_or_hr_or_admin_dep=make_require_safety_or_hr_or_admin(
+        db, _is_valid_admin_token,
+        is_valid_admin_token_async=_is_valid_directory_admin_token_async,
+    ),
     # Track 15.87 · directory `hr` grant path — Admin People & Access
     # checkbox now produces a working HR login (mints HR token).
     directory_portal_minter=lambda row: _directory_hr_token(row),
@@ -11608,6 +11636,8 @@ _safety_router = build_safety_router(
     db, require_admin,
     send_email_fn=_safety_send_email,
     is_valid_admin_token=_is_valid_admin_token,
+    # TRACK 28.03E · async admin validator for directory-hydrated tokens.
+    is_valid_admin_token_async=_is_valid_directory_admin_token_async,
     # iter346-B · universal super-admin fallback
     directory_admin_minter=lambda row: _directory_admin_token(row),
     # Track 15.87 · directory `safety` grant path.
@@ -11649,7 +11679,10 @@ async def _trench_send_email(to_email: str, subject: str, html: str) -> bool:
 from routes.safety_exports import build_safety_exports_router  # noqa: E402
 from routes.safety_portal._deps import make_require_safety_or_hr_or_admin  # noqa: E402
 
-_require_safety_hr_admin = make_require_safety_or_hr_or_admin(db, _is_valid_admin_token)
+_require_safety_hr_admin = make_require_safety_or_hr_or_admin(
+    db, _is_valid_admin_token,
+    is_valid_admin_token_async=_is_valid_directory_admin_token_async,
+)
 app.include_router(build_safety_exports_router(db, _require_safety_hr_admin))
 
 
@@ -11689,7 +11722,10 @@ _trench_safety_router = build_trench_safety_router(
         is_valid_admin_token_async=_is_valid_directory_admin_token_async,
     ),
     require_shop_or_admin=require_shop_or_admin,
-    require_any_portal=make_require_any_portal_token(db, _is_valid_admin_token),
+    require_any_portal=make_require_any_portal_token(
+        db, _is_valid_admin_token,
+        is_valid_admin_token_async=_is_valid_directory_admin_token_async,
+    ),
 )
 app.include_router(_trench_safety_router)
 
@@ -11825,7 +11861,10 @@ from routes.tasks_notifications import (  # noqa: E402
 )
 from routes.integrations._deps import make_require_any_portal_token  # noqa: E402
 
-_require_any_portal_token = make_require_any_portal_token(db, _is_valid_admin_token)
+_require_any_portal_token = make_require_any_portal_token(
+    db, _is_valid_admin_token,
+    is_valid_admin_token_async=_is_valid_directory_admin_token_async,
+)
 app.include_router(build_tasks_notifications_router(db, _require_any_portal_token))
 
 # TRACK 14.0-S1 Amendment A — bilingual record sidecar (original-language
@@ -12304,7 +12343,11 @@ async def _require_hr_or_admin_for_mcc1(
     x_hr_token: Optional[str] = Header(default=None, alias="X-HR-Token"),
     x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
 ):
-    if x_admin_token and _is_valid_admin_token(x_admin_token):
+    # TRACK 28.03E · pair sync HMAC validator with async directory validator.
+    if x_admin_token and (
+        _is_valid_admin_token(x_admin_token)
+        or await _is_valid_directory_admin_token_async(x_admin_token)
+    ):
         return {"_actor": "admin", "name": "Admin"}
     if x_hr_token:
         from hr_users import is_valid_hr_user_token_async  # noqa: PLC0415
@@ -12317,6 +12360,7 @@ async def _require_hr_or_admin_for_mcc1(
 _integrations_router = build_integrations_router(
     db, require_admin, _is_valid_admin_token,
     require_hr_or_admin=_require_hr_or_admin_for_mcc1,
+    is_valid_admin_token_async=_is_valid_directory_admin_token_async,
 )
 app.include_router(_integrations_router)
 
@@ -12374,7 +12418,10 @@ async def _require_oa_actor(
     x_shop_token: Optional[str] = Header(default=None, alias="X-Shop-Token"),
     x_fl_token: Optional[str] = Header(default=None, alias="X-FL-Token"),
 ):
-    if x_admin_token and _is_valid_admin_token(x_admin_token):
+    if x_admin_token and (
+        _is_valid_admin_token(x_admin_token)
+        or await _is_valid_directory_admin_token_async(x_admin_token)
+    ):
         return {"_role": "admin", "name": "Admin", "id": "admin", "email": ""}
     if x_safety_token:
         from safety_users import is_valid_safety_user_token_async  # noqa: PLC0415
@@ -12447,7 +12494,10 @@ from routes.operations import (  # noqa: E402
     ensure_operations_indexes,
 )
 
-app.include_router(build_operations_router(db, require_admin, _is_valid_admin_token))
+app.include_router(build_operations_router(
+    db, require_admin, _is_valid_admin_token,
+    is_valid_admin_token_async=_is_valid_directory_admin_token_async,
+))
 
 
 # OIS-1 · Operations Intelligence Aggregator (single-pane intelligence)
@@ -12921,7 +12971,11 @@ async def _require_hr_or_admin(
     x_hr_token: Optional[str] = Header(default=None, alias="X-HR-Token"),
     x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
 ):
-    if x_admin_token and _is_valid_admin_token(x_admin_token):
+    # TRACK 28.03E · pair sync + async admin validators.
+    if x_admin_token and (
+        _is_valid_admin_token(x_admin_token)
+        or await _is_valid_directory_admin_token_async(x_admin_token)
+    ):
         return {"_actor": "admin", "name": "Admin"}
     if x_hr_token:
         from hr_users import is_valid_hr_user_token_async  # noqa: PLC0415
@@ -13000,6 +13054,7 @@ app.include_router(build_legacy_imports_router(
     li_module=_li,
     photo_storage_module=_ps,
     is_valid_admin_token=_is_valid_admin_token,
+    is_valid_admin_token_async=_is_valid_directory_admin_token_async,
     require_admin_strict=require_admin_strict,
 ))
 
@@ -13026,6 +13081,7 @@ from routes.fleet_ops_deps import (  # noqa: E402
 _require_fleet_submitter = make_require_fleet_submitter(
     db=db,
     is_valid_admin_token=_is_valid_admin_token,
+    is_valid_admin_token_async=_is_valid_directory_admin_token_async,
 )
 
 
@@ -13036,6 +13092,7 @@ _require_fleet_submitter = make_require_fleet_submitter(
 _require_any_fleet_portal = make_require_any_fleet_portal(
     db=db,
     is_valid_admin_token=_is_valid_admin_token,
+    is_valid_admin_token_async=_is_valid_directory_admin_token_async,
 )
 
 
@@ -13357,6 +13414,7 @@ _shop_intel_router = build_shop_intel_router(
     db,
     require_shop_or_admin_dep=_require_shop_or_admin_fleet,
     is_valid_admin_token_fn=_is_valid_admin_token,
+    is_valid_admin_token_async=_is_valid_directory_admin_token_async,
 )
 app.include_router(_shop_intel_router)
 
@@ -14344,7 +14402,10 @@ from routes.integrations._deps import (  # noqa: E402
 )
 register_track_16_16_routes(
     app, db,
-    require_any_portal_dep=_make_any_portal_track_16_16(db, _is_valid_admin_token),
+    require_any_portal_dep=_make_any_portal_track_16_16(
+        db, _is_valid_admin_token,
+        is_valid_admin_token_async=_is_valid_directory_admin_token_async,
+    ),
 )
 
 # TRACK 18.00 · Phase C · RBAC-aware Universal Search composer.
@@ -14356,7 +14417,10 @@ from routes.transportation_search import (  # noqa: E402
 )
 register_track_18_00_phase_c_routes(
     app, db,
-    require_any_portal_dep=_make_any_portal_track_16_16(db, _is_valid_admin_token),
+    require_any_portal_dep=_make_any_portal_track_16_16(
+        db, _is_valid_admin_token,
+        is_valid_admin_token_async=_is_valid_directory_admin_token_async,
+    ),
 )
 
 # TRACK 18.00 · Phase D · Universal Relationships + Live Right Rail.
@@ -14368,7 +14432,10 @@ from routes.transportation_relationships import (  # noqa: E402
 )
 register_track_18_00_phase_d_routes(
     app, db,
-    require_any_portal_dep=_make_any_portal_track_16_16(db, _is_valid_admin_token),
+    require_any_portal_dep=_make_any_portal_track_16_16(
+        db, _is_valid_admin_token,
+        is_valid_admin_token_async=_is_valid_directory_admin_token_async,
+    ),
 )
 
 _transport_automation_task: Optional[asyncio.Task] = None
