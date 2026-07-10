@@ -1,5 +1,45 @@
 # CHANGELOG
 
+## 2026-07-10 — TRACK 25 · ADMIN OS PRE-DEPLOYMENT CERTIFICATION — ✅ GO
+
+Final certification pass. **All P0 checks green. Deployment approved.**
+
+### Certification results
+| Check | Result |
+|---|---|
+| Route map — 10 Admin OS domains render inside modern shell | ✅ PASS |
+| Legacy admin page check — 18 originally-modernized pages | ✅ PASS |
+| AdminShell root-fix verification — 32 additional legacy pages | ✅ PASS |
+| Full operator walk (16 hops, no browser Back) | ✅ PASS |
+| Visual consistency across all Admin OS pages | ✅ PASS |
+| Data truth (`AWAITING SIGNAL` label; no fake green) | ✅ PASS |
+| Developer-language scan (`iterNNN / V1 / V2 / Sprint / …`) | ✅ PASS |
+| Zero-UTC scan (frontend visible strings) | ✅ PASS |
+| Console errors during walk | ✅ 0 uncaught errors |
+| Backend `pytest test_track_27_03_zero_utc_guard.py` | ✅ 8/8 pass |
+
+### Change delta since iteration_556
+- `components/AdminShell.jsx` — rewritten to delegate to `LegacyAdminModernShell`. This single change modernized 32 additional legacy pages (Jobs, Fleet, Dispatch, Compliance, Training, Command Center, Master History, Promo Assets, Asset Admin, etc.) without touching a single page body.
+- `StoredBackupsPanel`, `CloudArchivesPanel`, `AdminBackupVerificationPanel`, `PreDeploySnapshotPanel`, `AdminEmailRoutingPanel` — all visible "UTC" labels rewritten to "platform time"; `BACKUP_R2_FULL_HOUR_UTC` env-var reference removed from the visible copy (kept in deploy documentation only).
+- `AdminDigestConfig`, `AdminOperationalIntelligence`, `AdminSchedulerRuns`, `AdminGuide`, `AdminGuidanceCoverage` — schedule-hour and timestamp copy relabelled.
+
+### Deployment instructions
+1. Merge current `main`.
+2. Trigger the standard deploy pipeline. No env-var changes required.
+3. Post-deploy: hit `/admin` and click through 3 domains to confirm the shell is stable. No further manual QA required.
+
+### Rollback path
+If any post-deploy regression appears, roll back a single commit — the AdminShell fix is atomic and the modernization is purely presentational (no data-layer or API changes were shipped in Track 25C).
+
+### Non-blocking backlog (registered)
+- **P2** — audit-log rows in `/admin/ai-configuration` still surface historical `TRACK 22.9B` prefixes. Immutable audit history; new entries no longer use this format.
+- **P3** — Mongo query optimization in `admin_dr_delivery_forensics.py` (case-insensitive regex on `jobs_master`).
+- **P3** — SideNavV3 has one stale eslint-disable directive (cosmetic warning only, no bug).
+
+**VERDICT: GO.**
+
+
+
 ## 2026-07-10 — TRACK 25C · ADMIN OS FINAL NAVIGATION FIX — ✅ SHIPPED
 
 **Non-negotiable outcome achieved.** One persistent shell · one persistent sidebar · one breadcrumb system · one action-execution home (OCC). Zero developer language visible to operators.
