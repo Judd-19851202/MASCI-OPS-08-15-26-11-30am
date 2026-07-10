@@ -54,18 +54,32 @@ class ReferenceSource:
 
 # Extend this list — never hardcode outside it.
 REFERENCE_SOURCES: List[ReferenceSource] = [
+    # `photos` collection stayed empty in practice — daily_reports/etc.
+    # store photo:// URIs directly in top-level arrays. Kept here for
+    # forward compatibility (any future photo-index rebuild lands here).
     ReferenceSource("photos",                "Photo",             "photos",           ["storage_ref", "url", "photo_ref"]),
-    ReferenceSource("daily_reports",         "Daily Report",      "daily_reports",    ["photos.*.storage_ref", "photos.*.url", "attachments.*.storage_ref"]),
-    ReferenceSource("meetings",              "Meeting",           "meetings",         ["attachments.*.storage_ref", "attachments.*.url", "photos.*.storage_ref"]),
-    ReferenceSource("qaqc_inspections",      "QA/QC Inspection",  "qaqc",             ["photos.*.storage_ref", "attachments.*.storage_ref"]),
-    ReferenceSource("site_inspections",      "Site Inspection",   "site_inspections", ["photos.*.storage_ref", "attachments.*.storage_ref"]),
-    ReferenceSource("incidents",             "Incident",          "incidents",        ["evidence.*.storage_ref", "photos.*.storage_ref", "attachments.*.storage_ref"]),
-    ReferenceSource("training_records",      "Training Record",   "training",         ["media.*.storage_ref", "attachments.*.storage_ref"]),
-    ReferenceSource("equipment_documents",   "Equipment Document","equipment",        ["storage_ref", "url"]),
-    ReferenceSource("asset_documents",       "Asset Document",    "assets",           ["storage_ref", "url"]),
-    ReferenceSource("dispatch_continuity",   "Dispatch Evidence", "dispatch",         ["photos.*.storage_ref", "attachments.*.storage_ref"]),
-    ReferenceSource("legacy_imports",        "Historical Import", "legacy_imports",   ["source_document_ref", "photos.*.storage_ref", "attachments.*.storage_ref"]),
-    ReferenceSource("operational_attachments","Operational Attachment","attachments", ["storage_ref", "url"]),
+    # `daily_reports.photos` is a list of raw photo:// strings.
+    ReferenceSource("daily_reports",         "Daily Report",      "daily_reports",    ["photos.*", "attachments.*"]),
+    ReferenceSource("meetings",              "Meeting",           "meetings",         ["photos.*", "attachments.*"]),
+    ReferenceSource("qaqc_inspections",      "QA/QC Inspection",  "qaqc",             ["photos.*", "photo_captions.*"]),
+    ReferenceSource("site_inspections",      "Site Inspection",   "site_inspections", ["photos.*", "attachments.*"]),
+    # `incidents.photos` is base64 data URIs — no R2 reference. Keep
+    # attachments-style paths only in case a future migration lands.
+    ReferenceSource("incidents",             "Incident",          "incidents",        ["evidence.*", "attachments.*"]),
+    ReferenceSource("training_records",      "Training Record",   "training",         ["media.*", "attachments.*"]),
+    # Documents with raw-key pattern (bucket embedded in the key).
+    ReferenceSource("equipment_documents",   "Equipment Document","equipment",        ["storage_ref", "url", "file_ref"]),
+    ReferenceSource("asset_documents",       "Asset Document",    "assets",           ["storage_ref", "url", "file_ref"]),
+    ReferenceSource("dispatch_continuity",   "Dispatch Evidence", "dispatch",         ["photos.*", "attachments.*"]),
+    ReferenceSource("legacy_imports",        "Historical Import", "legacy_imports",   ["source_document_ref", "photos.*"]),
+    # Operational attachments — uses `r2_key` (raw key, not photo:// URI).
+    ReferenceSource("operational_attachments","Operational Attachment","attachments", ["r2_key"], ref_scheme="raw_key"),
+    # Carrier + driver document store — uses `file_ref` (photo:// URI).
+    # `file_key` also has R2 key but with bucket prefix, so keep photo:// path.
+    ReferenceSource("carrier_documents",     "Carrier Document",  "carriers",         ["file_ref"]),
+    ReferenceSource("driver_documents",      "Driver Document",   "drivers",          ["file_ref"]),
+    # HR employee records — uses `source_file_ref` (photo:// URI).
+    ReferenceSource("employee_records",      "Employee Record",   "hr",               ["source_file_ref"]),
     ReferenceSource("promo_assets",          "Promo Asset",       "promo_assets",     ["storage_ref", "url"]),
     ReferenceSource("pdf_packages",          "PDF Package",       "pdf_packages",     ["storage_ref", "url"]),
     ReferenceSource("exports",               "Export",            "exports",          ["storage_ref", "url"]),
