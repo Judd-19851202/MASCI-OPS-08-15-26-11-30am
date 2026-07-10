@@ -12,7 +12,7 @@ function _email_v2(probes) {
   const status = empty.length > 0 || band === "red" ? "red"
     : ["yellow", "amber"].includes(band) ? "yellow" : "green";
   const counts = b.route_counts || {};
-  const summary = `Mode ${b.mode || "—"} · ${counts.total || 0} routes · ${empty.length} critical empty`;
+  const summary = `${counts.total || 0} routes configured · ${empty.length} critical empty`;
   const action = empty.length > 0 ? "Fill or reroute the missing critical route keys."
     : status === "yellow" ? (b.band_reason || "Investigate email routing degradation.") : "";
   return { status, summary, recommended_action: action, checked_at: b.ts,

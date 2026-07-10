@@ -105,18 +105,24 @@ export const DOMAINS_V3 = [
   },
 
   // ────────────────────────────────────────────────────────────────
+  // TRACK 25B · Platform Tools — deep tools not directly exposed as
+  // a top-level Admin OS domain. Never duplicates the Admin OS
+  // section above; the duplicate 'Operations Console' link has been
+  // removed (OCC is one-click reachable via `Admin OS → Operations
+  // Control`). This section only carries capabilities that would
+  // otherwise be orphaned in the nav.
   {
-    id: "operations-control",
-    label: "Operations Control Center",
-    subline: "Storage · backups · deploy · integrations · recovery.",
+    id: "platform-tools",
+    label: "Platform Tools",
+    subline: "Deep tools — database · MFA · self-protection.",
     purpose:
-      "The single home for every platform maintenance action. All " +
-      "storage · backup · integration · deploy · recovery · queues · " +
-      "security operations live here — never scattered.",
-    stripe: "#dc2626", // red-600
+      "Deep-tool routes that support the Admin OS domains but do " +
+      "not warrant a top-level domain of their own. Every action " +
+      "here is read-only or governed by the OCC dry-run/apply " +
+      "contract.",
+    stripe: "#dc2626",
     icon: Activity,
     visibleRoutes: [
-      { to: "/admin/operations-control", label: "Operations Console", desc: "Dry-run · confirm · apply · immutable audit trail.", icon: Activity, keywords: ["maintenance", "occ", "storage", "backups", "deploy", "recovery", "integrations", "queues", "scheduler", "system", "health", "mongo", "r2", "cloudflare", "resend", "readiness", "playbook", "cleanup"] },
       { to: "/admin/database",           label: "Database Capacity",  desc: "Mongo storage trend and capacity forecast.",           icon: Activity, keywords: ["mongo", "atlas", "capacity", "storage", "trend"] },
       { to: "/admin/mfa",                label: "Multi-Factor Auth",  desc: "Super-admin MFA enrollment and recovery.",             icon: KeyRound, keywords: ["mfa", "totp", "2fa", "security", "auth"] },
       { to: "/admin/governance/self-protection", label: "Platform Self-Protection", desc: "Guardrails that prevent the platform from harming itself.", icon: ShieldAlert, keywords: ["governance", "guardrail", "safety", "protection"] },

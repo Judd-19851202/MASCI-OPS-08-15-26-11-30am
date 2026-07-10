@@ -445,11 +445,15 @@ const DOMAINS = [
       const status =
         empty > 0 || band === "red" ? "critical" : band === "yellow" ? "warning" : "healthy";
       const mode = r.body.mode || "—";
-      const metric = mode.toString().toUpperCase();
+      const routeCount = r.body.route_counts?.total ?? 0;
+      // Operator-facing metric: route count is meaningful; the mode
+      // identifier ("v2") is an internal implementation detail and
+      // must never surface as the card's headline.
+      const metric = String(routeCount);
       const detail =
         empty > 0
           ? `${empty} critical route(s) empty`
-          : `${r.body.route_counts?.total ?? 0} routes configured`;
+          : `${routeCount} routes configured`;
       return { status, metric, detail, stampedAt: r.body.ts || null };
     },
   },

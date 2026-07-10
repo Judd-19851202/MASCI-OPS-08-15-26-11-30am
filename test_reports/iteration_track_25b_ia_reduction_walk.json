@@ -1,0 +1,70 @@
+{
+  "summary": "Track 25B Operator Walk Certification — 10-task walk executed end-to-end as Super Admin (jaymn.judd@mascigc.com). Sidebar IA reduction is CORRECTLY IMPLEMENTED: 'Admin OS' section has all 10 canonical domain links; new 'Platform Tools' section carries the 3 preserved children (Database Capacity, Multi-Factor Auth, Platform Self-Protection); the old 'Operations Control Center' top-level section and its duplicate 'Operations Console' link are GONE. All 10 walk tasks completed via sidebar clicks only. Zero visual drift across the shell. Zero V1/V3/Hub/Switcher language on operator-facing surfaces. A single 'V2' reference remains in the OCC Email Routing card action text (borderline — describes technical mode, not a heading). Two functional issues surfaced (Governance & Trust landing stuck in a partial-loading state showing 0/0 cards; OCC highlight/pulse animation for maintenance deep-link not visibly detected). One testability gap: AdminBreadcrumb missing data-testid='admin-breadcrumb' hook.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Governance & Trust landing (/admin/governance-trust)", "issue": "Page never finishes loading its trust cards — shows 'Loading governance & trust evidence…' and every section (Certification & Deploy, Governance Rules & Version, Audit Trail) reports 0/0 card(s). Deploy Readiness / Unresolved Deploy Blockers / Production Certification cards are NOT rendered on the landing (they DO render correctly on Diagnostics via the same APIs, so the source data is healthy). Header still says HEALTHY 0 · ATTENTION 0 · CRITICAL 0 with LAST REFRESHED '—'. Refresh spinner stays on 'Refreshing…'.", "selector": "/admin/governance-trust · executive verdict + section counts", "priority": "HIGH"},
+      {"component": "OperationsControlCenter — highlight pulse", "issue": "Deep-link /admin/operations-control?highlight=storage.safe_cleanup navigates correctly, but no .animate-pulse / [data-highlight=true] / [data-highlighted=true] element found for the target op card. Cannot visually confirm the correct op card is being highlighted for the operator.", "selector": "OCC · op card matching data-op-id='storage.safe_cleanup'", "priority": "MEDIUM"},
+      {"component": "AdminBreadcrumb", "issue": "Breadcrumb renders (visible text 'ADMIN OS › STORAGE & RECOVERY') and has aria-label='Breadcrumb', but the expected data-testid='admin-breadcrumb' hook is missing on every domain page. Makes the crumb un-targetable by data-testid.", "selector": "[data-testid='admin-breadcrumb']", "priority": "LOW"},
+      {"component": "AdminBreadcrumb 'Admin OS' crumb", "issue": "On the Admin OS domain landings (Governance & Trust · OCC), clicking the 'Admin OS' crumb text did not fire a navigation (no anchor/button role found on the crumb). Walk Task 7 (return to /admin via breadcrumb) fell through to sidebar fallback. Verify the leftmost crumb is rendered as an <a> or <button> and not a static <span>.", "selector": "AdminBreadcrumb › first crumb 'Admin OS'", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Sidebar (SideNavV3) · Platform Tools section", "issues": ["Section header collapses by default — first-time operators may not see Database Capacity / MFA / Self-Protection children until expanded. Consider open-by-default OR small child count preview."]},
+      {"screen": "OCC · Email Routing card (Operations Control Center)", "issues": ["Card summary shows 'Mode v2 · 49 routes' and action text 'Last V2 audit row is 342 min old — scheduler may be slow'. These are operator-visible in an evidence card (not just an endpoint path). Title itself is correctly 'Email Routing' (no (v2)), so Walk Task 3 still passes, but flag as borderline versioned-language leak."]}
+    ]
+  },
+  "operator_walk_results": {
+    "task_1_storage_recovery": {"pass": true, "backup_freshness_card": true, "backup_scheduler_card": true, "url": "/admin/storage-recovery"},
+    "task_2_ai_operations": {"pass": true, "ai_gateway_card": true, "url": "/admin/ai-operations"},
+    "task_3_communications": {"pass": true, "email_routing_card": true, "v2_in_heading": false, "url": "/admin/communications"},
+    "task_4_identity_security": {"pass": true, "recent_auth_failures_card": true, "verdict": "HEALTHY", "url": "/admin/identity-security"},
+    "task_5_deploy_readiness": {"pass": false, "reason": "Landing page stuck loading; Deploy Readiness card not rendered on Governance & Trust landing"},
+    "task_6_production_certification": {"pass": false, "reason": "Same as Task 5 — landing does not render the Production Certification card"},
+    "task_7_breadcrumb_return_and_storage": {"pass_partial": true, "breadcrumb_click_worked": false, "sidebar_fallback_worked": true, "reason": "AdminBreadcrumb 'Admin OS' crumb is not clickable — Task 7 could only be completed via sidebar"},
+    "task_8_diagnostics": {"pass": true, "occ_trust_snapshot_card": true, "scheduler_runs_card": true, "url": "/admin/diagnostics"},
+    "task_9_maintenance_deep_link": {"pass_partial": true, "deep_link_href": "/admin/operations-control?highlight=storage.safe_cleanup", "url_after_click": "/admin/operations-control?highlight=storage.safe_cleanup", "pulse_element_visible": false},
+    "task_10_return_home": {"pass": true, "final_url": "/admin", "note": "Landed via sidebar fallback because breadcrumb crumb not clickable"}
+  },
+  "sidebar_reduction_verification": {
+    "admin_os_section_present": true,
+    "admin_os_10_children_present": true,
+    "platform_tools_section_present": true,
+    "platform_tools_children": ["Database Capacity", "Multi-Factor Auth", "Platform Self-Protection"],
+    "old_operations_control_center_section_present": false,
+    "duplicate_operations_console_link_present": false,
+    "no_capability_lost": true
+  },
+  "banned_language_scan": {
+    "V1_hits": 0, "V3_hits": 0, "Hub_hits": 0, "Switcher_hits": 0,
+    "V2_hits": 1,
+    "V2_context": "OCC Email Routing card action text: 'Last V2 audit row is 342 min old — scheduler may be slow'. Card TITLE is clean ('Email Routing' with no '(v2)').",
+    "Legacy_hits_note": "'Legacy Imports' appears as a top-level sidebar section — this is the legitimate domain name for /admin/legacy-imports (historic data imports), not modernization-related terminology. Not a violation."
+  },
+  "test_report_links": [
+    "/app/test_reports/25b_admin_home.png",
+    "/app/test_reports/25b_identity_security.png",
+    "/app/test_reports/25b_governance.png",
+    "/app/test_reports/25b_occ_highlight.png"
+  ],
+  "action_items": [
+    "HIGH — Fix Governance & Trust (/admin/governance-trust) landing: cards never populate; shell shows 0/0 across all sections and stays in 'Refreshing…'. Same APIs work fine when consumed by /admin/diagnostics. Likely a client-side fetch/state wiring bug specific to the Governance & Trust DomainLandingShell orchestrator.",
+    "MEDIUM — Wire up the AdminBreadcrumb 'Admin OS' crumb as a real link/button (currently a non-clickable span). Task 7 & Task 10 of the operator walk depend on this being clickable — currently only sidebar fallback works.",
+    "MEDIUM — Verify OCC highlight/pulse animation actually fires when navigating to /admin/operations-control?highlight=<op-id>. No .animate-pulse or [data-highlight=true] element detected on the DOM after the maintenance deep-link click.",
+    "LOW — Add data-testid='admin-breadcrumb' to the AdminBreadcrumb root element for testability.",
+    "LOW — Consider re-wording the OCC Email Routing card action text to avoid the 'V2' token in operator-visible copy (e.g. 'Last audit row is 342 min old' — drop the version marker).",
+    "LOW — Platform Tools sidebar section is collapsed by default; consider expanding by default so operators discover the 3 preserved children on first load."
+  ],
+  "critical_code_review_comments": [
+    "domainMapV3.js: rename + trim looks clean; 10 admin-os children + 3 platform-tools children match spec exactly.",
+    "Governance & Trust landing needs a loading/timeout/retry safety net — 'Refreshing…' pinned indefinitely with no cards is a bad operator experience."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (frontend-only cert)", "frontend": "7/10 walk tasks fully pass · 2/10 partial (breadcrumb-fallback / no visible pulse) · 1/10 failed (Governance & Trust cards not rendering)"},
+  "test_credentials": "Super Admin jaymn.judd@mascigc.com / Maddix123! via POST /api/auth/multi-login (auth confirmed working, portal_tokens.admin extracted + stored in localStorage as 'masci.admin.token' and 'admin_token').",
+  "seed_data_creation": "none",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Sidebar IA reduction (25B code delta) is GO. The blocker for full 25B certification is the Governance & Trust landing rendering 0/0 cards — this is likely NOT a 25B regression (SideNavV3 change wouldn't touch it) but rather a pre-existing DomainLandingShell wiring bug on that domain. Retest with a hard refresh + longer wait after main agent triages. Also confirm breadcrumb crumb click behavior + OCC highlight-pulse UX to fully close the walk.",
+  "rca_of_the_issue": "Governance & Trust landing: same 6 source endpoints (/api/admin/production-certification, /deploy-readiness, /governance/summary, /version, /audit, /occ/trust-events) render correctly on the Diagnostics domain landing — so the underlying data is fine. Suspect: the DomainLandingShell orchestrator for governance-trust either (a) has a bad section↔endpoint mapping that filters everything to 'no card' status, or (b) is stuck in an initial isRefreshing=true state that never resolves. Recommend inspecting the props passed to DomainLandingShell on /admin/governance-trust vs /admin/diagnostics."
+}
