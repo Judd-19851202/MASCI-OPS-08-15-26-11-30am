@@ -3949,10 +3949,14 @@ class EquipmentMasterItem(BaseModel):
 
 @api_router.get("/equipment-master")
 async def list_equipment_master(category: Optional[str] = None):
+    from lib.synthetic_fleet_filter import apply_synthetic_equipment_exclusion  # noqa: PLC0415
     await _purge_expired("equipment_master")
     q: Dict[str, Any] = dict(ACTIVE_FILTER)
     if category:
         q["category"] = category
+    # TRACK 28.05 · exclude TEST_28_05_ / SYNTHETIC_ synthetic fleet
+    # rows from every operator-facing equipment picker.
+    q = apply_synthetic_equipment_exclusion(q)
     cursor = db.equipment_master.find(q, {"_id": 0}).sort(
         [("category", 1), ("unit_number", 1), ("make_model", 1)]
     )

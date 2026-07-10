@@ -1,5 +1,30 @@
 # CHANGELOG
 
+## 2026-07-11 · Track 28.05 · Fleet / Dispatch · SESSION 1 CLOSED WITH EVIDENCE
+
+Phases 1-9 of TRACK 28.05 complete. Session 2 (Phases 10-18) pending. **Track 28.05 is NOT marked PASS** — this is a session split, not a scope reduction.
+
+### Deliverables (Session 1)
+* **New module**: `backend/lib/synthetic_fleet_filter.py` — 4 helpers (`apply_synthetic_equipment_exclusion`, `apply_synthetic_inspection_exclusion`, `apply_synthetic_dispatch_exclusion`, `apply_synthetic_fleet_defect_exclusion`). Sentinel family: `TEST_`, `SMOKE_`, `SYNTHETIC_`, `CERT_TEST`, `PARITY_`, `ITER[0-9]`.
+* **Filter applied at 6 primary operator-facing surfaces**: `list_equipment_master`, `list_fleet_units`, `dispatch_fleet_status`, `shop_defects`, `get_board`, `list_assignments`.
+* **E2E test**: `backend/tests/test_track_28_05_fleet_dispatch_e2e.py` (19/19 pass). Phases 5-9 covered — equipment CRUD, Pre-Op / DVIR incl. failed-inspection hold flow, shop defect queue, dispatch state machine (ASSIGNED → ENROUTE → LOADED → DUMPING → COMPLETE), cancel, reassign, acknowledge, driver-qualification gates on terminated employees.
+* **Static invariant lock**: `backend/tests/test_track_28_05_static_synthetic_fleet_invariant.py` (7/7 pass) — locks the 6 endpoints' filter application. Session 2 will expand to full AST coverage over 220+ callsites.
+
+### Domain inventory (Phase 1)
+Registered 30+ Fleet / Dispatch modules across `routes/`, `services/`, `lib/`. Full matrix in `/app/memory/TRACK_28_CERTIFICATION_REGISTER.md`.
+
+### Canonical sources (Phase 2)
+All 4 canonical collections (`equipment_master`, `dispatch_assignments`, `fleet_defects`, `equipment_inspections`) verified as single sources. No shadow collections.
+
+### Regression proof
+26 new tests pass. 75 prior tests (28.02B / 28.03 / 28.04 / 28.03E / 28.04 Phase 1) untouched, all green.
+
+### Cleanup
+Zero-residue proof: 0 `TEST_28_05_*` records across all fleet/dispatch collections after teardown.
+
+### Session 2 pending
+Phases 10-18 (Motive/GPS, cross-domain chains, filter/KPI/export parity, PDF/email/notifications, offline/autosave audit, device walks, performance, final fix-as-you-certify sweep, R2 cleanup).
+
 ## 2026-07-11 · Track 28.04 · HR END-TO-END CERTIFICATION · ✅ CLOSED WITH PASS
 
 **Phases 2-12 complete in one continuous run.** 23 HR workflows E2E-executed, 10 deliberate probes green, 2 defects (P0 + MINOR) fixed inline and regression-locked, device walk pass at desktop/tablet/mobile, zero residue after cleanup.

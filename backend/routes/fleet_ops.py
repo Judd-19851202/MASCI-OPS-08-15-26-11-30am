@@ -470,6 +470,10 @@ def build_router(
                 {"make_model": rx},
                 {"vin_serial_number": rx},
             ]
+        # TRACK 28.05 · exclude synthetic TEST_28_05_ / SYNTHETIC_ rows
+        # from the operator-facing fleet unit picker.
+        from lib.synthetic_fleet_filter import apply_synthetic_equipment_exclusion  # noqa: PLC0415
+        query = apply_synthetic_equipment_exclusion(query)
         cursor = db.equipment_master.find(
             query,
             {"_id": 0, "id": 1, "unit_number": 1, "plate": 1,
@@ -808,9 +812,11 @@ def build_router(
 
         rows: List[Dict[str, Any]] = []
         seen_units: set = set()
-        # Get all fleet units from master
+        # TRACK 28.05 · exclude synthetic TEST_28_05_ / SYNTHETIC_ rows
+        # from the operator-facing dispatch fleet status board.
+        from lib.synthetic_fleet_filter import apply_synthetic_equipment_exclusion  # noqa: PLC0415
         cursor = db.equipment_master.find(
-            {"category": {"$in": categories}},
+            apply_synthetic_equipment_exclusion({"category": {"$in": categories}}),
             {"_id": 0, "unit_number": 1, "category": 1, "make_model": 1,
              "plate": 1, "year": 1, "company": 1},
         )
@@ -891,6 +897,9 @@ def build_router(
                 {"truck_unit_number": unit_number},
                 {"trailer_unit_number": unit_number},
             ]
+        # TRACK 28.05 · exclude synthetic fleet defects
+        from lib.synthetic_fleet_filter import apply_synthetic_fleet_defect_exclusion  # noqa: PLC0415
+        q = apply_synthetic_fleet_defect_exclusion(q)
         cursor = db.fleet_defects.find(
             q, {"_id": 0}
         ).sort([("severity", 1), ("reported_at", 1)]).limit(max(1, min(500, limit)))

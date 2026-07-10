@@ -1335,6 +1335,9 @@ def build_dispatch_lifecycle_router(
             "current_state": {"$nin": [DLS.COMPLETE, DLS.OFF_SHIFT]},
             "cancelled_at": None,
         }
+        # TRACK 28.05 · exclude synthetic TEST_28_05_ / SYNTHETIC_ assignments
+        from lib.synthetic_fleet_filter import apply_synthetic_dispatch_exclusion  # noqa: PLC0415
+        query = apply_synthetic_dispatch_exclusion(query)
         cursor = (
             db.dispatch_assignments
             .find(query, {"_id": 0})
@@ -1368,6 +1371,9 @@ def build_dispatch_lifecycle_router(
         elif not include_completed:
             query["current_state"] = {"$nin": [DLS.COMPLETE, DLS.OFF_SHIFT]}
             query["cancelled_at"] = None
+        # TRACK 28.05 · exclude synthetic TEST_28_05_ / SYNTHETIC_ assignments
+        from lib.synthetic_fleet_filter import apply_synthetic_dispatch_exclusion  # noqa: PLC0415
+        query = apply_synthetic_dispatch_exclusion(query)
         cursor = (
             db.dispatch_assignments
             .find(query, {"_id": 0})
