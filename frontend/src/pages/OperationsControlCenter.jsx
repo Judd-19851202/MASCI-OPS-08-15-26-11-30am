@@ -38,6 +38,12 @@ import {
 // TRACK 27.03 · Phase 3 · Canonical local-time formatter.
 import { formatPlatformTime, formatRelativeTime } from "@/lib/platformTime";
 
+// TRACK 25A · Universal Admin OS shell so OCC matches every other
+// domain page (PortalShell + SideNavV3 + breadcrumb).
+import { PortalShell } from "@/design-system";
+import SideNavV3 from "@/components/admin/sidebar/SideNavV3";
+import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
+
 // TRACK 25 · SPRINT 2 · Evidence drawer.
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
@@ -971,22 +977,28 @@ export default function OperationsControlCenter() {
       className="min-h-screen bg-slate-50"
       data-testid="operations-control-center"
     >
-      <div className="mx-auto max-w-7xl px-4 py-6">
-        <header className="mb-6 flex items-center justify-between">
-          <div>
-            <div className="text-[11px] uppercase tracking-widest text-rose-600 font-semibold">
-              Platform Operations
-            </div>
-            <h1 className="text-2xl font-black text-slate-900">
-              Operations Control Center
-            </h1>
-            <p className="mt-1 text-sm text-slate-600 max-w-2xl">
-              Trust Center + maintenance console. Read-only health cards
-              above tell the truth. Every mutating action is dry-run first,
-              confirmed, and recorded in the audit log below.
-            </p>
+      <PortalShell
+        portalName="MASCI"
+        portalRole="Admin"
+        pageTitle="Operations Control Center"
+        subtitle="Trust Center + maintenance console — one canonical operations home."
+        primaryActions={
+          <div className="flex items-center gap-2">
+            <Link
+              to="/admin"
+              className="inline-flex items-center gap-2 px-3 py-1.5 border border-slate-300 bg-white rounded-md text-xs font-semibold text-slate-800 hover:bg-slate-100"
+              data-testid="occ-back-adminos"
+            >
+              ← Admin OS
+            </Link>
           </div>
-        </header>
+        }
+        sideNav={<SideNavV3 onOpenPalette={() => window.__masciAdminOpenPalette?.()} />}
+      >
+        <AdminBreadcrumb
+          crumbs={[{ label: "Operations Control Center" }]}
+          testidPrefix="occ-breadcrumb"
+        />
 
         {/* TRACK 25 · SPRINT 2 · Trust Layer — read-only 8 sections. */}
         <TrustLayer
@@ -1066,7 +1078,7 @@ export default function OperationsControlCenter() {
             <AuditPanel rows={audit} />
           </div>
         </div>
-      </div>
+      </PortalShell>
     </div>
   );
 }

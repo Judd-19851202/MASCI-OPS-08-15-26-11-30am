@@ -377,7 +377,7 @@ CARDS: List[Dict[str, Any]] = [
          drilldown="/admin/scheduler-runs", requires_auth=True,
          evaluator=_eval_backups_scheduler),
     # 4 · Communications -------------------------------------------
-    dict(id="email_v2", section="communications", title="Email Routing (v2)",
+    dict(id="email_v2", section="communications", title="Email Routing",
          endpoint="/api/admin/email-routing/v2/status",
          drilldown="/admin/communications", requires_auth=True, evaluator=_eval_email_v2),
     # 5 · AI Operations --------------------------------------------

@@ -44,8 +44,8 @@ function _email_audit_freshness(probes) {
   const status = ageMin < 0 ? "unknown"
     : ageMin > 240 ? "yellow" : "green";
   const summary = ageMin < 0
-    ? "No V2 audit rows observed."
-    : `Last V2 audit row is ${ageMin.toFixed(0)} min old.`;
+    ? "No email audit rows observed."
+    : `Last email audit row is ${ageMin.toFixed(0)} min old.`;
   const action = status === "yellow" ? "Scheduler may be slow — check /admin/scheduler-runs." : "";
   return { status, summary, recommended_action: action, checked_at: b.ts,
     evidence: { last_v2_audit_age_minutes: ageMin, audit_counters: b.audit_counters,
@@ -75,7 +75,7 @@ const manifest = {
     { id: "integrations", path: "/admin/integrations/health" },
   ],
   cards: [
-    { id: "email-routing-v2", section: "routing", title: "Email Routing (v2)",
+    { id: "email-routing-v2", section: "routing", title: "Email Routing",
       endpoint: "/api/admin/email-routing/v2/status", drilldown: "/admin/email", evaluator: _email_v2 },
     { id: "email-provider", section: "routing", title: "Email Provider · Resend",
       endpoint: "/api/admin/integrations/health (resend)", drilldown: "/admin/integrations", evaluator: _email_provider },

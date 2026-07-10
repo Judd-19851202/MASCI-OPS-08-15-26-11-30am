@@ -47,6 +47,7 @@ import { PortalShell } from "../../design-system";
 import SideNavV3 from "@/components/admin/sidebar/SideNavV3";
 import { getAdminToken } from "@/lib/adminAuth";
 import { formatRelativeTime } from "@/lib/platformTime";
+import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -721,6 +722,9 @@ export default function AdminOS() {
           />
         }
       >
+        {/* Root of the Admin OS — breadcrumb makes the location obvious. */}
+        <AdminBreadcrumb crumbs={[]} testidPrefix="admin-os-breadcrumb" />
+
         {/* ── Overall posture strip ─────────────────────────────── */}
         <section
           className="mb-6 rounded-lg border border-slate-200 bg-white p-4 flex flex-wrap items-center gap-4"

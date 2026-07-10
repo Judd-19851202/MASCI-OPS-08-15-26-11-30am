@@ -42,6 +42,7 @@ import {
   sortCardsByAttention,
   useEvidenceDrawer,
 } from "@/components/admin/trust/TrustPrimitives";
+import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
 
 const API = (process.env.REACT_APP_BACKEND_URL || "") + "/api";
 
@@ -564,6 +565,10 @@ export default function AdminStorageRecovery() {
         }
         sideNav={<SideNavV3 onOpenPalette={() => window.__masciAdminOpenPalette?.()} />}
       >
+        <AdminBreadcrumb
+          crumbs={[{ label: "Storage & Recovery" }]}
+          testidPrefix="storage-recovery-breadcrumb"
+        />
         {/* ── Executive Storage Verdict ─────────────────────── */}
         <section
           className="mb-6 rounded-lg border border-slate-200 bg-white p-4"

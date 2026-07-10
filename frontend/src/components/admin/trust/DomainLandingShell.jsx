@@ -45,6 +45,7 @@ import {
   sortCardsByAttention,
   useEvidenceDrawer,
 } from "./TrustPrimitives";
+import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
 
 const API = (process.env.REACT_APP_BACKEND_URL || "") + "/api";
 
@@ -202,6 +203,12 @@ export default function DomainLandingShell({ manifest, testidPrefix }) {
         }
         sideNav={<SideNavV3 onOpenPalette={() => window.__masciAdminOpenPalette?.()} />}
       >
+        {/* Universal breadcrumb — every domain page shows "Admin OS › <domain label>". */}
+        <AdminBreadcrumb
+          crumbs={[{ label: manifest.label }]}
+          testidPrefix={`${testidPrefix}-breadcrumb`}
+        />
+
         {/* Executive Verdict */}
         <section
           className="mb-6 rounded-lg border border-slate-200 bg-white p-4"
