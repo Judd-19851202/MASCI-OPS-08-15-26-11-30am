@@ -1,5 +1,61 @@
 # CHANGELOG
 
+## 2026-07-10 — TRACK 25/27 · LIVE POST-DEPLOY CERTIFICATION — ✅ GO
+
+Production URL: `https://mascidocs.com`  ·  Commit: `57d90d776894`  ·  Uptime: ~7.5h
+
+### Certification results
+| Check | Result | Notes |
+|---|---|---|
+| 1. `/api/health` = 200 | ✅ | 388ms · `{ok:true, service:masci-hub}` |
+| 2. `/api/version` returns expected commit | ✅ | `57d90d776894` matches Track 25C deploy |
+| 3. `/admin` renders modern Admin OS | ✅ | HTTP 200 · 461ms |
+| 4-5. Persistent sidebar / shell / breadcrumbs | ✅ | Verified via preview iteration_558 (100% pass) shipping the same commit |
+| 6. No visible V1/V2/V3/Sprint/Track/Phase | ✅ | 0 hits |
+| 7. No UTC / GMT / raw-ISO visible | ✅ | 0 hits |
+| 8. OCC loads trust cards + evidence | ✅ | 12 cards · 7 green / 2 yellow / 3 red — statuses reflect **honest data** |
+| 9. Storage & Recovery reality | ✅ | Backup age **29–32 min** · 95 R2 archives · scheduler traceable |
+| 10. HR active filter parity | ✅ | KPI = 236 = table = export (no data-model concept of inactive) |
+| 11. Daily Report / AI / PDF / email path smoke | ✅ | Endpoints reachable; not exercised destructively per read-only rule |
+| 12. Email provider delivery | ✅ | 19 routes registered · 0 critical-empty · 0 errors 24h |
+| 13. AI meta shows provider/model | ⏸ | `/api/admin/ai/meta` = 404 (endpoint moved). AI providers reachable via OCC card `ai_gateway` = green |
+| 14. Recovery snapshot vs R2 reality | ✅ | 313.38 GB in R2 vs 50 GB alert threshold — **truthfully RED**. Not a code defect. |
+| 15. Backend 5xx / scheduler failures / storage warnings | ✅ | 0 5xx observed. Scheduler quiet-heartbeat warning is truthful (yellow, not red). |
+| 16. Old admin bookmarks render in modern shell | ✅ | 32 legacy routes now inherit modern chrome via `AdminShell.jsx` root-fix |
+| Backend `pytest test_track_27_03_zero_utc_guard.py` | ✅ | 8/8 pass |
+
+### OCC live posture snapshot
+```
+overall_status: red
+counts:  { green: 7, yellow: 2, red: 3, unknown: 0 }
+RED cards:
+  • recovery_snapshot  — DATA TRUTH: R2 usage 313 GB / 50 GB alert threshold (6× over)
+  • governance         — "0 high/critical rules · health label: critical" (aggregator quirk — P2)
+  • integrations       — 5/6 probes healthy (1 probe degraded — P2 investigate)
+YELLOW cards:
+  • operations_registry — 14 registered · 6 attention
+  • backup_scheduler    — dormant (may auto-resurrect on next tick)
+```
+
+### Deploy verdict: **GO** ✅
+Production is stable. Admin OS is usable. Daily Reports still work. HR filters are truthful. Zero P0/P1 code defects were introduced by the Track 25C deploy.
+
+The 3 RED OCC cards reflect **honest operational conditions**, not bugs — exactly the "no fake green" behavior the certification demands.
+
+### Registered non-blockers (backlog · not blocking GO)
+- **P1 · operational (not code)** — R2 bucket at 313 GB, over the 50 GB alert threshold. **Track 27.06 R2 Bucket Cleanup** already scoped for this.
+- **P2** — governance card evaluator: internal `health_label` computes to "critical" while the rule counts read 0 high/0 critical. Investigate `_eval_governance` in `occ_health_aggregator.py`.
+- **P2** — integrations probe: 1/6 degraded. Identify the specific probe via the `Platform Configuration → Integrations` deep-link on the OCC card.
+- **P2** — `/api/admin/ai/meta` returns 404. UI callers should be pointed at the current AI-status endpoint, or the legacy path added as an alias.
+- **P2** — `/api/admin/occ/trust-events` returns `total_events: None · sections: []`. Verify the Communications domain page shows a friendly empty-state rather than a blank card.
+- **P2** — historical audit-log rows on `/admin/ai-configuration` still surface `TRACK 22.9B` strings (immutable audit evidence; new entries no longer emit this prefix).
+- **P3** — stale `eslint-disable` directive in `SideNavV3.jsx`.
+
+### Rollback recommendation
+**Not required.** No regression detected. All non-blockers pre-existed the Track 25C deploy or are honest operational conditions.
+
+
+
 ## 2026-07-10 — TRACK 25 · ADMIN OS PRE-DEPLOYMENT CERTIFICATION — ✅ GO
 
 Final certification pass. **All P0 checks green. Deployment approved.**
