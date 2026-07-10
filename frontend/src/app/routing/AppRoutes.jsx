@@ -47,6 +47,11 @@ const AdminAiOperations = React.lazy(() => import("@/pages/admin/AdminAiOperatio
 const AdminCommunications = React.lazy(() => import("@/pages/admin/AdminCommunications"));
 const AdminIdentitySecurity = React.lazy(() => import("@/pages/admin/AdminIdentitySecurity"));
 const AdminGovernanceTrust = React.lazy(() => import("@/pages/admin/AdminGovernanceTrust"));
+// TRACK 25 · SPRINT 5/6 · Configuration, Diagnostics, Maintenance, Platform Overview redirect.
+const AdminPlatformConfiguration = React.lazy(() => import("@/pages/admin/AdminPlatformConfiguration"));
+const AdminDiagnostics = React.lazy(() => import("@/pages/admin/AdminDiagnostics"));
+const AdminMaintenance = React.lazy(() => import("@/pages/admin/AdminMaintenance"));
+const AdminPlatformOverview = React.lazy(() => import("@/pages/admin/AdminPlatformOverview"));
 const AdminMaterialLedgerQuality = React.lazy(() => import("@/pages/AdminMaterialLedgerQuality"));
 const LeadershipHubV2 = React.lazy(() => import("@/pages/LeadershipHubV2"));
 const ExecutiveOverview = React.lazy(() => import("@/pages/ExecutiveOverview"));
@@ -703,6 +708,11 @@ export function AppRoutes() {
             <Route path="/admin/communications" element={A(<AdminCommunications />)} />
             <Route path="/admin/identity-security" element={A(<AdminIdentitySecurity />)} />
             <Route path="/admin/governance-trust" element={A(<AdminGovernanceTrust />)} />
+            {/* TRACK 25 · SPRINT 5/6 · Configuration · Diagnostics · Maintenance · Overview redirect. */}
+            <Route path="/admin/platform-configuration" element={A(<AdminPlatformConfiguration />)} />
+            <Route path="/admin/diagnostics" element={A(<AdminDiagnostics />)} />
+            <Route path="/admin/maintenance" element={A(<AdminMaintenance />)} />
+            <Route path="/admin/platform-overview" element={<AdminPlatformOverview />} />
             <Route path="/admin/recovery-stream" element={A(LB("/admin/recovery-stream", <AdminRecoveryStream />))} />
             <Route path="/admin/jha-acknowledgements" element={A(<AdminJhaAcknowledgements />)} />
             <Route path="/admin/command-center" element={A(<AdminCommandCenter />)} />

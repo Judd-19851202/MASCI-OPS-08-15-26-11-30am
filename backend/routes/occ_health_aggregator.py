@@ -411,7 +411,7 @@ CARDS: List[Dict[str, Any]] = [
     dict(id="integrations", section="integrations",
          title="Integration Probes",
          endpoint="/api/admin/integrations/health",
-         drilldown="/admin/integrations", requires_auth=True,
+         drilldown="/admin/platform-configuration", requires_auth=True,
          evaluator=_eval_integrations),
 ]
 

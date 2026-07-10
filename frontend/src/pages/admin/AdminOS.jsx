@@ -467,7 +467,7 @@ const DOMAINS = [
     label: "Platform Configuration",
     stripe: "#4338ca",
     icon: Cog,
-    to: "/admin/integrations",
+    to: "/admin/platform-configuration",
     description:
       "Integration wiring (Motive, Resend, R2), brand, feature flags.",
     probe: "/api/admin/integrations/health",
@@ -503,7 +503,7 @@ const DOMAINS = [
     label: "Diagnostics",
     stripe: "#0f766e",
     icon: Database,
-    to: "/admin/system-health",
+    to: "/admin/diagnostics",
     description:
       "System health probes, database capacity, asset-spine, analytics.",
     probe: "/api/health",
@@ -531,16 +531,35 @@ const DOMAINS = [
     label: "Maintenance",
     stripe: "#525252",
     icon: Archive,
-    to: "/admin/legacy-imports",
+    to: "/admin/maintenance",
     description:
       "Legacy imports, master history, cleanup routines, geofence reconcile.",
-    probe: null, // Needs wiring — no aggregated maintenance endpoint yet.
-    evaluate: () => ({
-      status: "wiring",
-      metric: "—",
-      detail: "Aggregated maintenance metrics not wired yet.",
-      stampedAt: null,
-    }),
+    probe: "/api/admin/operations-control/overview",
+    evaluate: (r) => {
+      if (!r.ok || !r.body) {
+        return {
+          status: "wiring",
+          metric: "—",
+          detail: "Sign in as admin to load maintenance overview.",
+          stampedAt: null,
+        };
+      }
+      const ops = r.body.operations || [];
+      const total = ops.length;
+      const bad = ops.filter((o) => {
+        const s = (o.status_snapshot || {}).status;
+        return s === "critical" || s === "warning";
+      }).length;
+      const status = bad > 0 ? "warning" : total ? "healthy" : "wiring";
+      return {
+        status,
+        metric: `${total}`,
+        detail: bad > 0
+          ? `${total} ops · ${bad} need attention`
+          : `${total} maintenance operations available`,
+        stampedAt: null,
+      };
+    },
   },
 ];
 
