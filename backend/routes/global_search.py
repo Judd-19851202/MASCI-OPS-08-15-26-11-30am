@@ -32,6 +32,7 @@ from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
 from masci.identity import format_employee_identity
 
 logger = logging.getLogger(__name__)
@@ -697,7 +698,13 @@ def build_global_search_router(db, require_any_portal_token) -> APIRouter:
             return rows
 
         async def run_daily_reports() -> List[Dict[str, Any]]:
-            """Wave B — searchable daily reports. Project-scoped for PMs."""
+            """Wave B — searchable daily reports. Project-scoped for PMs.
+
+            TRACK 28.02B · Synthetic / certification / smoke rows are
+            excluded from global search per the TRACK 24.9 doctrine
+            (synthetic rows must never appear on user-facing screens —
+            Cmd+K search is user-facing on every portal).
+            """
             q_doc = {"$or": [
                 {"report_number": rx}, {"project_name": rx},
                 {"project_number": rx}, {"location": rx},
@@ -706,7 +713,8 @@ def build_global_search_router(db, require_any_portal_token) -> APIRouter:
             scope: List[Dict[str, Any]] = []
             if role == "pm" and pm_proj is not None:
                 scope.append({"project_number": {"$in": pm_proj}})
-            final = {"$and": [q_doc] + scope} if scope else q_doc
+            base_q = {"$and": [q_doc] + scope} if scope else q_doc
+            final = apply_synthetic_dr_exclusion(base_q)
             rows = []
             async for d in db.daily_reports.find(final, {"_id": 0}).sort("created_at", -1).limit(limit * 2):
                 rows.append(_row(

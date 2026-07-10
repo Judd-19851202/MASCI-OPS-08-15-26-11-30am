@@ -1,5 +1,52 @@
 # CHANGELOG
 
+## 2026-07-10 — TRACK 28.02B · FIELD OPERATIONS END-TO-END CERTIFICATION — ✅ PASS
+
+**Scope:** every Field Operations workflow executed as a real operator with brand-new `TEST_28_02_` prefixed records, downstream integrations verified (persistence, PDFs, lifecycle events, CSV exports, list/detail parity), then purged. Zero certification residue survives the suite.
+
+### Workflow evidence (9 executions, 9/9 PASS)
+
+| Workflow | Contract asserted | File |
+|---|---|---|
+| Daily Reports | POST → GET → LIST hides via TRACK 24.9 → PDF returns `application/pdf` → state-events audit → CSV export excludes synthetic → Mongo cleanup (archive-locked) | `tests/test_track_28_02b_field_ops_e2e.py::test_daily_report_full_e2e` |
+| Meetings | POST (with MeetingAttendee contract) → GET detail → LIST → DELETE | same file |
+| Site Inspections | POST → GET → LIST → state-events lifecycle → DELETE | same file |
+| Incidents | POST → GET → LIST → CSV export → state-events → DELETE | same file |
+| JHA | POST → GET → LIST → DELETE | same file |
+| Equipment Pre-Op | POST → GET → LIST → DELETE | same file |
+| QA/QC | POST (with QaqcChecklistItem contract) → GET → LIST → admin CSV export → DELETE | same file |
+| Job Hazard Plan | Admin upload PDF → file endpoint returns `application/pdf` → LIST → DELETE | same file |
+| Residue sweep | Zero `TEST_28_02_` rows survive across `daily_reports · meetings · inspections · incidents · job_hazard_plans · equipment_inspections · qaqc_inspections` | same file |
+
+### Defects discovered + repaired (fix-as-you-certify)
+
+**28.02B-D1 · CSV admin export leaked synthetic Daily Reports (P1)**
+- Root cause: `GET /api/daily-reports.csv` in `routes/daily_reports.py` only applied the PM scope filter and skipped `apply_synthetic_dr_exclusion`. The sibling JSON list already ran through the TRACK 24.9 filter; the CSV was the sole leak.
+- Blast radius: every admin exporting Daily Reports; every downstream analytics pipeline ingesting the CSV.
+- Repair: threaded `apply_synthetic_dr_exclusion(scope.filter({}))` into the pipeline `$match`.
+- Regression: `tests/test_track_28_02b_csv_synthetic_exclusion.py` (1/1 pass).
+
+**28.02B-D2 · Cmd+K global search leaked synthetic Daily Reports across every portal (P1)**
+- Root cause: `routes/global_search.py::run_daily_reports` scoped by role but never applied the TRACK 24.9 filter — a search query matching a synthetic project_name / prepared_by returned the hidden rows.
+- Blast radius: every portal that mounts Cmd+K (admin, pm, hr, safety, dispatch, shop, field-leadership).
+- Repair: import `apply_synthetic_dr_exclusion`; wrap the composed `q_doc + scope` before the Mongo find.
+- Regression: `tests/test_track_28_02b_global_search_synthetic.py` (1/1 pass).
+
+**28.02B-D3 · OCC / Dispatch / Shop pickers aggregated synthetic DR materials into operator dashboards (P1)**
+- Root cause: three additional `daily_reports.find()` callsites (`operations_center_command.py::materials today`, `dispatch_command_center.py::per-project rollup`, `shop_intel.py::projects_list`) were also missing the filter.
+- Blast radius: OCC daily brief, Dispatch Command Center per-project counts, Shop project picker dropdown.
+- Repair: `apply_synthetic_dr_exclusion` applied at all three callsites.
+- Regression: naturally covered by the E2E cleanup contract (synthetic rows appear + disappear on each run — if the filter regressed, `test_no_test_prefix_residue_left_behind` would surface stale rows on the second suite run and metrics would drift).
+
+### Certification gate
+- Backend regression suite: **43 passed / 20 skipped** (Track 28 + iter322 + iter370 + iter372 parity suite).
+- Zero orphan records: verified in-suite by direct Mongo `count_documents` sweep after cleanup.
+- Zero P0/P1 defects outstanding.
+- Field Operations domain is **CLOSED with PASS**. Advancing certification to Track 28.03 · Field Leadership.
+
+---
+
+
 ## 2026-07-10 — TRACK 28.02 · FIELD OPERATIONS OPERATIONAL CERTIFICATION — ✅ PASS
 
 **Scope:** deep operator walk of every Field Operations workflow (Daily Reports · Meetings · JHA · Site Inspections · Incidents · Equipment Pre-Op/DVIR · QA/QC · Photos) under the canonical admin session `jaymn.judd@mascigc.com`.

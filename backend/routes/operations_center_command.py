@@ -42,6 +42,7 @@ from typing import Any, Awaitable, Callable, Dict, List, Optional, Set
 
 from fastapi import APIRouter, Depends, Query
 
+from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
 import dispatch_lifecycle as DLS
 from routes.pm_command_center import (
     normalize_asset_kind, ROAD_PLATE_CANONICAL, _map_ready,
@@ -222,11 +223,14 @@ def build_operations_center_command_router(
             "severity": {"$in": ["Critical", "critical", "Lost Time", "lost_time", "Fatality"]},
         })
 
-        # Materials today
+        # Materials today — TRACK 28.02B · apply synthetic-DR exclusion
+        # so certification/smoke rows do not inflate the operator brief.
         materials_in = 0
         materials_out = 0
         async for d in db.daily_reports.find(
-            {"report_date": today, "deleted_at": {"$in": [None, "", False]}},
+            apply_synthetic_dr_exclusion(
+                {"report_date": today, "deleted_at": {"$in": [None, "", False]}}
+            ),
             {"_id": 0, "materials": 1, "outbound_materials": 1},
         ):
             materials_in += len(d.get("materials") or [])

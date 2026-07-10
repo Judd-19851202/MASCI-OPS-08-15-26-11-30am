@@ -1057,13 +1057,23 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
     async def list_daily_reports_csv(actor=Depends(require_admin)):
         """Phase 5 · W8 · CSV export of daily reports.
 
-        Same auth gate + same PM scope as the JSON list. No write peer."""
+        Same auth gate + same PM scope as the JSON list. No write peer.
+
+        TRACK 28.02B (2026-02) — routes the aggregation through
+        ``apply_synthetic_dr_exclusion`` so synthetic / certification /
+        smoke-test rows (``TEST_``, ``SMOKE_``, ``synthetic_record``,
+        ``hidden_from_operations``) are filtered out of the export.
+        The JSON list already applies this filter; the CSV export was
+        leaking the hidden lane. Locked by
+        ``tests/test_track_28_02b_field_ops_e2e.py::test_daily_report_full_e2e``.
+        """
         import csv as _csv  # noqa: PLC0415
         import io as _io    # noqa: PLC0415
         from fastapi.responses import Response as _Resp  # noqa: PLC0415
         scope = await compute_pm_scope(db, actor)
+        match_stage = apply_synthetic_dr_exclusion(scope.filter({}))
         pipeline = [
-            {"$match": scope.filter({})},
+            {"$match": match_stage},
             {"$sort": {"report_date": -1, "created_at": -1}},
             {"$limit": 5000},
             {"$project": {

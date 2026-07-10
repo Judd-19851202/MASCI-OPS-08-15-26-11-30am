@@ -45,6 +45,7 @@ from typing import Any, Awaitable, Callable, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Header, Query
 from pydantic import BaseModel, Field
 
+from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
 import dispatch_lifecycle as DLS
 from routes.dispatch_lifecycle import DEFAULT_TENANT_ID, _resolve_tenant
 
@@ -772,12 +773,16 @@ async def _build_jobs(db, tenant_id: str, limit: int) -> Dict[str, Any]:
     except Exception:
         pass
 
-    # Daily reports (materials in / outbound) today, keyed by project_number
+    # Daily reports (materials in / outbound) today, keyed by project_number.
+    # TRACK 28.02B — exclude synthetic/certification rows so dispatch
+    # per-project rollups match the operator's visible daily-report list.
     today_yyyy_mm_dd = _now_utc().date().isoformat()
     try:
         async for d in db.daily_reports.find(
-            {"report_date": today_yyyy_mm_dd,
-             "deleted_at": {"$in": [None, "", False]}},
+            apply_synthetic_dr_exclusion({
+                "report_date": today_yyyy_mm_dd,
+                "deleted_at": {"$in": [None, "", False]},
+            }),
             {"_id": 0, "project_number": 1, "materials": 1, "outbound_materials": 1},
         ):
             pn = (d.get("project_number") or "").strip() or "(unassigned)"

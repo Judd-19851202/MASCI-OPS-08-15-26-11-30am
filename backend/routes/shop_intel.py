@@ -32,6 +32,8 @@ from typing import Any, Awaitable, Callable, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Header, Query, Request
 
+from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
+
 logger = logging.getLogger(__name__)
 
 SHOP_INTEL_SOURCE = "shop_command_center_intel"
@@ -431,8 +433,11 @@ def build_shop_intel_router(
     async def projects_list(
         _actor=Depends(require_shop_or_admin_dep),
     ) -> Dict[str, Any]:
+        # TRACK 28.02B · Same synthetic-row exclusion as the admin P&L
+        # picker so certification/TEST_ project_numbers do not surface
+        # in Shop project selectors.
         pipeline = [
-            {"$match": {"project_number": {"$nin": [None, ""]}}},
+            {"$match": apply_synthetic_dr_exclusion({"project_number": {"$nin": [None, ""]}})},
             {"$group": {
                 "_id": "$project_number",
                 "project_name": {"$last": "$project_name"},
