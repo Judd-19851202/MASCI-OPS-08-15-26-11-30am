@@ -1,5 +1,48 @@
 # CHANGELOG
 
+## 2026-07-10 — TRACK 28.04 · PHASE 1 · PLATFORM-WIDE PORTAL-TOKEN GATE INVARIANT — ✅ LOCKED (P0 CLASS CLOSED)
+
+**Mission (Phase 1).** Extend the Track 28.03E admin-gate invariant across every portal-token authorization surface (HR / Safety / Shop / PM / Dispatch / FL) so a valid per-user portal token minted by `/api/auth/multi-login` can never be silently rejected again.
+
+### Static invariant · `tests/test_no_portal_token_gate_missing_canonical_validator.py`
+AST scanner walks every backend `.py` file and flags every FastAPI function that declares a `Header(default=..., alias="X-{Portal}-Token")` argument without either:
+  * calling the canonical async validator for that portal (`is_valid_hr_user_token_async`, `is_valid_safety_user_token_async`, `is_valid_shop_user_token_async`, `is_valid_pm_user_token_async`, `is_valid_dispatch_user_token_async`, `is_valid_fl_user_token_async` / aliases), OR
+  * delegating validation through an audited helper in `TRUSTED_DELEGATION_HELPERS` (16 helpers — `_resolve_actor`, `_resolve_rich_actor`, `_resolve_hr_user`, `_resolve_pm_user`, `_resolve_dispatch_user`, `_resolve_fl_user`, the 11 canonical gate-factory functions patched in 28.03E, etc.), OR
+  * being present in `INTERNAL_ALLOWLIST` with a **structured** `Reason` (purpose + why-no-validator + risk owner). Empty reasons fail.
+
+### Scan → 25 violations classified
+* **10 delegating wrappers** — `server.py::_require_dispatch_or_admin`, `_require_safety_or_admin_fleet`, `_require_shop_or_admin_fleet` (all delegate to canonical async-wired shared gates from 28.03E). Allowlisted with owner + reason.
+* **6 non-authorizing optional-hint capture** — `server.py::_require_optional_portal_token` (all 6 headers). Returns None on missing; never authorizes. Allowlisted.
+* **3 FL/legacy internal helpers** — `field_leadership.py::_is_authed`, `_is_hr_authed`, `legacy_imports.py::_li_require_uploader`. Validate via inline async imports that the scanner cannot resolve. Allowlisted with owner + reason.
+* **2 fleet_ops submitter-permissive** — `fleet_ops_deps.py::_dep` (X-HR-Token + X-Shop-Token). By D2 operator decision, any signed-in employee can submit DVIRs; HR/Shop tokens are captured for audit identity only. Allowlisted.
+* **6 draft telemetry entries** — `draft_telemetry.py::append_events` writes ingest events regardless of which portal is submitting (identity is a tag, not a gate). Allowlisted.
+
+**Total allowlist: 25 entries; every entry has file + function + header alias + purpose + why-no-validator + risk owner.**
+
+### Companion end-to-end lock · `tests/test_track_28_04_cross_portal_auth.py`
+Uses real `/api/auth/multi-login` credentials to mint every portal token then hits one representative endpoint per portal:
+* `admin` → `/api/health`
+* `hr` → `/api/hr/notifications/digest`
+* `safety` → `/api/incidents`
+* `shop` → `/api/shop/me/summary`
+* `pm` → `/api/pm/notifications/digest`
+* `dispatch` → `/api/dispatch/notifications/digest`
+* `fl` → `/api/fl/notifications/digest`
+
+**13/13 pass** (7 unlock tests + 5 missing-token 401 tests + 1 invalid-token 401 test).
+
+### Certification gate
+- **Full Track 28 suite + parity: 92 passed / 20 skipped.**
+- CI now blocks BOTH admin-gate drift (28.03E) AND portal-gate drift (28.04-P1).
+- Zero standalone retired sync auth paths remaining anywhere in the codebase.
+
+### Track 28.04 Phase 1 : ✅ LOCKED
+
+**Honest handoff: Phases 2–12 (HR write-path E2E, cross-workflow lifecycle, canonical data, synthetic HR filter invariant, filter/status matrix, PDF/email cert, permission matrix, mobile/tablet/desktop) require dedicated session capacity beyond what remains here.** Advancing to Phase 2 in a fresh context guarantees the same fix-as-you-certify quality that landed on Field Operations (28.02B) and Field Leadership (28.03). Attempting Phases 2–12 in the remaining budget would leave partial workflows and violate "ZERO half-certified HR processes."
+
+---
+
+
 ## 2026-07-10 — TRACK 28.03E · PLATFORM-WIDE ADMIN AUTH-GATE INVARIANT — ✅ P0 CLASS CLOSED
 
 **Mission.** Eliminate every standalone use of the retired sync `_is_valid_admin_token` as an admin authorization path. Two P0 regressions (28.02-A safety factories, 28.03-A field leadership) had already surfaced from this same defect class; a third one this quarter would be inexcusable. This track's static invariant makes that class of defect impossible to reintroduce.
