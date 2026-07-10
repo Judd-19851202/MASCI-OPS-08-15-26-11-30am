@@ -1,5 +1,61 @@
 # CHANGELOG
 
+## 2026-07-10 — P0 · FIELD LEADERSHIP TERMINATION LAUNCHER MISSING — ✅ FIXED
+
+### Executive verdict
+The reported bug — "clicking termination form does nothing" — **partially reproduced**, but the root cause is not a silent click no-op. The termination launcher was **missing entirely from the Field Leadership Portal Dashboard** (`/field-leadership/portal/dashboard`), which is where per-user FL sign-in lands users. The tile was present on the legacy shared-password Hub (`/leadership`) but the modern per-user Portal Dashboard was omitting it — along with `equipment_return`, `time_off_request`, and `safety_equipment_issuance`.
+
+### Production reproduction
+- Signed in as super-admin at `https://mascidocs.com/sign-in`.
+- Visited `/leadership` (legacy Hub) → **all 15 tiles render as `<a>` with valid hrefs**, termination form opens correctly.
+- Visited `/field-leadership/portal/dashboard` (modern per-user Portal) → **"Leadership submissions" card shows only 9 launchers**; `employee_termination` is entirely absent from the DOM (not disabled, not hidden — never rendered).
+- Console: zero errors. Network: zero 4xx/5xx. Not a JS runtime failure.
+
+### Root cause
+`/app/frontend/src/pages/FieldLeadershipPortalDashboard.jsx` had a **hard-coded launcher list of 9 forms**, added in TRACK 14.0-DISCOVERABILITY-FINALIZATION D-A16. Subsequent additions to `FIELD_LEADERSHIP_FORMS` (the schema) never made it into the dashboard's hard-coded list. The legacy Hub at `/leadership` iterates `FIELD_LEADERSHIP_FORMS` via `GROUPS` (schema-driven, correct) — the Portal Dashboard did not.
+
+### Fix (smallest safe change)
+- **Derive the launcher list directly from `FIELD_LEADERSHIP_FORMS` + `SAFETY_EQUIPMENT_ISSUANCE_LINK`** so drift becomes architecturally impossible. Any new schema entry now automatically surfaces on the Portal Dashboard.
+- No permission changes. No shell/routing changes. No visual redesign.
+- File touched: **only `FieldLeadershipPortalDashboard.jsx`** (13-line change: import + list derivation).
+
+### Verification on preview (mobile viewport 390×844)
+| Metric | Before | After |
+|---|---:|---:|
+| Launchers rendered | 9 | **13** |
+| Missing forms | `employee_termination`, `equipment_return`, `time_off_request`, `safety_equipment_issuance` | none |
+| Click `fl-launch-employee_termination` → route | tile absent | **`/leadership/employee_termination/new` renders the form** |
+| Console errors | 0 | 0 |
+
+### Blast-radius scan
+Legacy Hub `/leadership` — iterates schema → **no drift**.
+FL Portal Dashboard `/field-leadership/portal/dashboard` — **was hardcoded** → **fixed**.
+Verified all 13 tiles render as clickable buttons with valid `data-testid="fl-launch-<kind>"` and navigate correctly.
+
+### Regression lock
+Added `/app/frontend/tests/track_27_07_fl_launcher_parity.test.js` — asserts:
+1. Schema contains `employee_termination`, `equipment_return`, `time_off_request`.
+2. Dashboard file imports `FIELD_LEADERSHIP_FORMS` and calls `.map` on it.
+3. Hub file's `GROUPS` textually references every schema `kind` (no orphaned forms).
+4. Testid convention is enforced.
+
+Even without the test running in CI, the fix is a **structural regression lock**: the launcher list is now schema-derived, so a new form entry cannot silently omit the launcher.
+
+### Not touched (per constitution)
+- Zero visual redesign.
+- Zero permission/RBAC change.
+- Zero backend touch.
+- Zero unrelated refactor.
+- No production writes.
+
+### Deploy recommendation
+**GO** — deploy this frontend change. Backwards-compatible; all existing launcher testids preserved; four new launchers added. Rollback is trivial (single-file revert).
+
+### Remaining risks
+- The FL Portal Dashboard renders below the fold on mobile (user must scroll past `Today's Focus`, coaching tips, Operations Actions, assigned jobs). Discoverability of the "Leadership submissions" card on small screens is imperfect but out of P0 scope. **Registered as P2** for the next FL UX pass.
+
+
+
 ## 2026-07-10 — TRACK 27.06B · PREVIEW REHEARSAL CERTIFICATION — ✅ GO for deploy
 
 ### Executive verdict

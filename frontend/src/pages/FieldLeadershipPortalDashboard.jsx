@@ -13,6 +13,10 @@ import { toast } from "sonner";
 import FlAccountabilityWidget from "@/components/FlAccountabilityWidget";
 import MyAssignedProjectsWidget from "@/components/team/MyAssignedProjectsWidget";
 import OperationsActionsTile from "@/components/oa/OperationsActionsTile";
+import {
+  FIELD_LEADERSHIP_FORMS,
+  SAFETY_EQUIPMENT_ISSUANCE_LINK,
+} from "@/lib/fieldLeadershipSchemas";
 
 // iter353d · inline lookup helper (queries the FL DQ endpoint to
 // resolve a name → employee_id, then renders the mini-widget).
@@ -251,22 +255,33 @@ export default function FieldLeadershipPortalDashboard() {
               {t("Submit write-ups, recognitions, evaluations, and equipment checkouts directly from the field. These submissions append to the leadership ledger HR and admins use for accountability.")}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4">
-              {[
-                { label: t("Recognition"), to: "/leadership/recognition/new", testid: "fl-launch-recognition" },
-                { label: t("Write-up"), to: "/leadership/write_up/new", testid: "fl-launch-write_up" },
-                { label: t("Verbal Coaching"), to: "/leadership/verbal_coaching/new", testid: "fl-launch-verbal_coaching" },
-                { label: t("Attendance Note"), to: "/leadership/attendance/new", testid: "fl-launch-attendance" },
-                { label: t("Equipment Checkout"), to: "/leadership/equipment_checkout/new", testid: "fl-launch-equipment_checkout" },
-                { label: t("New Employee Eval"), to: "/leadership/new_employee_eval/new", testid: "fl-launch-new_employee_eval" },
-                { label: t("Crew Evaluation"), to: "/leadership/crew_eval/new", testid: "fl-launch-crew_eval" },
-                { label: t("Promotion Recommendation"), to: "/leadership/promotion_recommendation/new", testid: "fl-launch-promotion_recommendation" },
-                { label: t("Training Deficiency"), to: "/leadership/training_deficiency/new", testid: "fl-launch-training_deficiency" },
-              ].map((w) => (
+              {/* TRACK 27.07 P0 · Derive launchers from the schema
+                  single-source-of-truth so the FL Portal Dashboard can
+                  never again silently omit a form (previously the
+                  hard-coded list was missing employee_termination,
+                  equipment_return, and time_off_request). */}
+              {FIELD_LEADERSHIP_FORMS.map((f) => ({
+                label: t(f.title.en),
+                to: `/leadership/${f.kind}/new`,
+                testid: `fl-launch-${f.kind}`,
+                external: false,
+              })).concat([{
+                label: t(SAFETY_EQUIPMENT_ISSUANCE_LINK.title.en),
+                to: SAFETY_EQUIPMENT_ISSUANCE_LINK.to,
+                testid: `fl-launch-${SAFETY_EQUIPMENT_ISSUANCE_LINK.kind}`,
+                external: true,
+              }]).map((w) => (
                 <Button
                   key={w.to}
                   variant="outline"
                   className="h-9 text-xs justify-start"
-                  onClick={() => navigate(w.to)}
+                  onClick={() => {
+                    if (w.external) {
+                      window.location.href = w.to;
+                    } else {
+                      navigate(w.to);
+                    }
+                  }}
                   data-testid={w.testid}
                 >
                   {w.label}
