@@ -15,6 +15,20 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 
 ## Active Track — 2026-07-10
 
+**TRACK 25A + 25B · Admin OS UX Unification + IA Reduction + Operator-Walk Certification — 🟢 SHIPPED (2026-07-10)**
+
+**Track 25A — UX Unification**
+- New `AdminBreadcrumb` component (`components/admin/AdminBreadcrumb.jsx`) rendered on every Admin OS surface: `Admin OS › <domain> [› <feature>]`.
+- OCC (`/admin/operations-control`) migrated onto the same `PortalShell + SideNavV3 + AdminBreadcrumb` shell used by every DomainLandingShell page — the biggest single visual-drift point on the platform is now consistent. Trust Layer + Maintenance Console + Audit panel all preserved.
+- All 8 DomainLandingShell pages (Storage · AI · Communications · Identity · Governance · Config · Diagnostics · Maintenance) + AdminOS + OCC now share identical shell + breadcrumb + card language + status palette + evidence drawer.
+- Operator-facing "V1/V2/V3" language purged (e.g. `Email Routing (v2)` → `Email Routing`; V2 audit-freshness labels → email audit-freshness).
+
+**Track 25B — IA Reduction + Certification**
+- **SideNavV3 duplicate section removed**: old top-level "Operations Control Center" section replaced by a scoped "Platform Tools" section carrying only the 3 unique children (Database Capacity · MFA · Self-Protection). The redundant "Operations Console" link is gone — OCC is reachable via the Admin OS section. Zero capability lost.
+- **Full IA + Phase 13 audit** registered at `/app/memory/TRACK_25B_IA_AUDIT.md`: complete route inventory · sidebar reduction verdicts · 20 legacy admin sub-pages catalogued with Track 25C modernization plan (Executive Overview · Email · AI Configuration · Sessions · MFA · People · Audit Log · Governance · Integrations · System Health · Scheduler Runs · Database · Recovery · Legacy Imports · Analytics · Digest Config · Branding · Deploy Recovery · Self-Protection · Operational Language).
+- **Operator Walk Test 10/10 pass** (`/app/test_reports/iteration_track_25b_ia_reduction_walk.json`): every task completes using only visible navigation, zero teleportation, zero visual drift, zero operator-facing V1/V2/V3/Hub/Switcher/Legacy language across the modernized surfaces.
+- **Backend regression** 49/49 pytest green (unchanged since Sprint 7/8).
+
 **TRACK 25 · SPRINT 7/8 · Admin OS Trust Gap Wiring + SideNavV3 Certification — 🟢 SHIPPED (2026-07-10)**
 
 - **New read-only aggregator** `/app/backend/routes/occ_trust_events.py` → `GET /api/admin/occ/trust-events`.

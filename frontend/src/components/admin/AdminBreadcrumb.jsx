@@ -28,6 +28,7 @@ export default function AdminBreadcrumb({ crumbs = [], testidPrefix = "admin-bre
     <nav
       aria-label="Breadcrumb"
       data-testid={testidPrefix}
+      data-admin-breadcrumb="true"
       className="flex items-center gap-1 text-[11px] font-mono uppercase tracking-widest text-slate-500 mb-3"
     >
       {trail.map((c, i) => {
