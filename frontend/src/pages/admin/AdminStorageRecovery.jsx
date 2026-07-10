@@ -129,7 +129,7 @@ function bR2Bucket(recovery, integrations) {
   } else if (bucketStatus === "YELLOW" || (warn && gb >= warn)) {
     status = "yellow";
     summary = `Bucket ${gb} GB · past ${warn} GB warn.`;
-    action = "Plan retention run before hitting the ${alert} GB alert.";
+    action = `Plan retention run before hitting the ${alert} GB alert.`;
   } else if (gb >= 0) {
     status = reachable === false ? "yellow" : "green";
     summary = `Bucket ${gb} GB${reachable === null ? "" : reachable ? " · reachable" : " · reachability DEGRADED"}`;
@@ -850,7 +850,7 @@ export default function AdminStorageRecovery() {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {TRUST_GAPS.map((g) => (
-                  <tr key={g.id} data-testid={`storage-recovery-gap-${g.id}`}>
+                  <tr key={g.id} data-testid={`storage-recovery-${g.id}`}>
                     <td className="px-3 py-2 text-slate-800 font-medium">{g.title}</td>
                     <td className="px-3 py-2">
                       <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-mono font-semibold uppercase tracking-widest ring-1 ${SEVERITY_STYLES[g.severity] || "bg-slate-100 text-slate-700 ring-slate-300"}`}>

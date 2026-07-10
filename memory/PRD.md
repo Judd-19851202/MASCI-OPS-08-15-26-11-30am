@@ -15,6 +15,23 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 
 ## Active Track — 2026-07-09
 
+**TRACK 25 · SPRINT 3 · Admin OS · Storage & Recovery Domain — 🟢 SHIPPED (2026-07-09)**
+
+- New route `/admin/storage-recovery` → `/app/frontend/src/pages/admin/AdminStorageRecovery.jsx`
+- Extracted shared `TrustPrimitives` (`/app/frontend/src/components/admin/trust/TrustPrimitives.jsx`):
+  `HealthCard`, `EvidenceDrawer`, `TrustStatusPill`, `worstStatus`, `sortCardsByAttention`,
+  `useEvidenceDrawer` — one visual language across OCC + AdminOS + Storage & Recovery.
+- Page composition: Executive Verdict · Disk Health · R2 Health · Backup Health ·
+  Recovery Readiness · 5 Maintenance Action deep-links to OCC · Recent Storage Events
+  from OCC audit · 9 Trust Gaps table.
+- Read-only. No duplicate action logic — every maintenance action is a
+  `?highlight=<op-id>` deep-link into the OCC Maintenance Operations Console.
+- AdminOS card 3 (`storage-recovery`) now routes to `/admin/storage-recovery`.
+- OCC Trust Layer's `recovery_snapshot` card drilldown now lands on `/admin/storage-recovery`.
+- Testing agent 100% pass (`/app/test_reports/iteration_track_25_sprint_3_storage_recovery.json`):
+  all UI acceptance criteria met, drawer works, deep-link highlight to OCC confirmed,
+  zero-UTC compliant. Backend regression pytest 46/46 green.
+
 **TRACK 25 · SPRINT 2 · Operations Control Center · Elite Trust Center — 🟢 SHIPPED (2026-07-09)**
 
 - `/app/backend/routes/occ_health_aggregator.py` — new read-only aggregator
