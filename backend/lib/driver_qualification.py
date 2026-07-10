@@ -161,12 +161,21 @@ async def fetch_driver_qualification_dashboard(
         clauses.extend(available_now_clauses)
 
     final = {"$and": clauses}
+    # TRACK 28.04 · CDL / driver-qualification dashboard is user-
+    # facing (HR Hub "Compliance At Risk" attention feed, Dispatch
+    # driver-availability, FL crew CDL rollup). Exclude synthetic
+    # TEST_/SMOKE_/SYNTHETIC_/etc. rows exactly like every other HR
+    # read path.
+    from lib.synthetic_hr_filter import apply_synthetic_hr_exclusion  # noqa: PLC0415
+    final = apply_synthetic_hr_exclusion(final)
     safe_limit = max(1, min(int(limit or 500), 2000))
     cur = db.employees.find(final, PROJECTION).sort("name", 1).limit(safe_limit)
     items: List[Dict[str, Any]] = [d async for d in cur]
 
     async def _count(extra: Dict[str, Any]) -> int:
-        return await db.employees.count_documents({"$and": [base, extra]})
+        return await db.employees.count_documents(
+            apply_synthetic_hr_exclusion({"$and": [base, extra]})
+        )
 
     summary = {
         "cdl_expiring_30d": await _count({

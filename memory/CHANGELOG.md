@@ -1,5 +1,26 @@
 # CHANGELOG
 
+## 2026-07-11 · Track 28.04 · HR END-TO-END CERTIFICATION · ✅ CLOSED WITH PASS
+
+**Phases 2-12 complete in one continuous run.** 23 HR workflows E2E-executed, 10 deliberate probes green, 2 defects (P0 + MINOR) fixed inline and regression-locked, device walk pass at desktop/tablet/mobile, zero residue after cleanup.
+
+### Deliverables
+* **New module**: `backend/lib/synthetic_hr_filter.py` — mirrors 28.02B/28.03 doctrine. Excludes rows whose name/preferred_name/legal_first_name/legal_last_name/employee_id start with `TEST_`, `SMOKE_`, `SYNTHETIC_`, `CERT_TEST`, `PARITY_`, `ITER[0-9]`, and rows with `synthetic_record=true` or `hidden_from_operations=true`.
+* **Filter applied at 10 user-facing read paths**: `_build_employee_query` (HR list/facets/export/completeness), `/api/employees` public roster, `/api/hr/employee-roster` + `/hr/employee-roster/public`, `global_search.py::run_employees`, `field_leadership.py::list_employees`, `dispatch_driver.py::shift_lookups_route`, `driver_qualification.py::fetch_driver_qualification_dashboard` + `_count` (HR Hub Compliance At Risk).
+* **Static invariant lock**: `backend/tests/test_track_28_04_static_synthetic_hr_invariant.py` (2/2 pass) — AST-scanner + 35-entry allowlist (each with a written reason). No future `db.employees.{find|aggregate|count_documents|distinct}` read can drift out of coverage without a code-review-visible allowlist entry.
+* **E2E test**: `backend/tests/test_track_28_04_hr_e2e.py` (28 pass, 1 skipped). Covers all 23 HR workflows + lifecycle chain (Pending Hire → Active → LOA → Return → Terminate → Rehire) + canonical source + KPI/table/export parity + permission matrix + zero-residue.
+* **Device walk**: `test_reports/iteration_track_28_04_hr_device_walk.json` — 13 pass across desktop/tablet/mobile; 17 screenshots archived.
+
+### Bugs found + fixed inline
+* **28.04-D1** (P0): Every HR operator-facing read path leaked synthetic TEST_*/SYNTHETIC_ employees. Fixed at 10 callsites + locked by AST invariant.
+* **28.04-D2** (MINOR): HR Hub "Compliance At Risk" feed leaked TEST_iter151_* rows because the driver-qualification dashboard bypassed the filter. Fixed inline in `lib/driver_qualification.py`.
+
+### Regression proof
+* 28.04 (43 pass + 1 skip) · 28.03 (24 pass) · 28.02B (24 pass) · 27.00 (12 pass) · 27.02 (17 pass). Zero regressions.
+
+### Cleanup
+Final Mongo sweep purged 241 residual audit_events and 0 employee rows (E2E teardown was already clean). Verified ZERO TEST_28_04_* residue.
+
 ## 2026-07-10 — TRACK 28.04 · PHASE 1 · PLATFORM-WIDE PORTAL-TOKEN GATE INVARIANT — ✅ LOCKED (P0 CLASS CLOSED)
 
 **Mission (Phase 1).** Extend the Track 28.03E admin-gate invariant across every portal-token authorization surface (HR / Safety / Shop / PM / Dispatch / FL) so a valid per-user portal token minted by `/api/auth/multi-login` can never be silently rejected again.

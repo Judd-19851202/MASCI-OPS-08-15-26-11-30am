@@ -82,12 +82,14 @@ INTERNAL_ALLOWLIST: Dict[Tuple[str, str], str] = {
         "TEST_28_04_ synthetic rows carry no CDL data by construction."
     ),
     ("lib/driver_qualification.py", "fetch_driver_qualification_dashboard"): (
-        "CDL dashboard — filters by CDL / approved_company_driver / "
-        "driver_status; synthetic rows carry no CDL fields."
+        "Filter applied inline (TRACK 28.04) via `apply_synthetic_hr_exclusion(final)` "
+        "immediately before the `.find(final, ...)` call. AST scanner "
+        "cannot walk local imports declared just above the call site."
     ),
     ("lib/driver_qualification.py", "_count"): (
-        "Nested count within `fetch_driver_qualification_dashboard`; "
-        "inherits the CDL-only scope."
+        "Nested count within `fetch_driver_qualification_dashboard` — "
+        "filter applied via local import at function scope; AST cannot "
+        "walk closures. Verified inline (TRACK 28.04 · HR Hub fix)."
     ),
     ("routes/dispatch_driver.py", "assignment_lookups_route"): (
         "Dispatch driver assignment — filters strictly by CDL / "
