@@ -1,5 +1,27 @@
 # CHANGELOG
 
+## 2026-07-11 · Track 28.05F · ShopManagerQueue mobile overflow CLOSED — on-branch, deployment held
+
+Fixed defect **28-05-DW-001** (P2 MINOR from Track 28.05 device walk).
+
+### Root cause
+`gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))"` in `ShopManagerQueue.jsx` forced every card to ≥ 360px, which overflowed on 390×844 mobile once PortalShell + SideNavV3 rail consumed their share. Compounded by hard `minWidth: 180` on the mechanic picker and non-wrapping flex rows on the AssignBar / ReviewBar / DefectRow header.
+
+### Fix (`frontend/src/pages/shop/ShopManagerQueue.jsx`)
+* Card grid → `minmax(min(100%, 340px), 1fr)` — collapses to full width on narrow viewports.
+* ShopUserPicker → `minWidth: 0, maxWidth: 260, flex: "1 1 180px"` — mobile-collapsible, desktop-comfortable.
+* AssignBar + ReviewBar action row + DefectRow header → `flexWrap: "wrap"` + `wordBreak: "break-word"`.
+
+### Regression lock
+`backend/tests/test_track_28_05f_shop_manager_queue_mobile.py` — 5 source-level structural assertions covering the grid, picker sizing, both flex-wrap patterns, and word-break.
+
+### Test totals
+* 28.05F: 5/5 pass.
+* Full Track 28 regression across 28.02B + 28.03 + 28.03E + 28.04 + 28.04 Phase 1 + 28.05 S1 + 28.05 S2 + 28.05F: 122 pass, 1 skip, 0 fail.
+
+### Deployment status
+**NOT RELEASED.** Broader Track 28 certification remains active. Deployment gate opens only after Tracks 28.06 (Safety), 28.07 (Training/Admin/Executive), and the final cross-domain integration certification close.
+
 ## 2026-07-11 · Track 28.05 · Fleet / Dispatch · ✅ CLOSED WITH PASS (Sessions 1 + 2)
 
 **GO** — Track 28.05 closed. Track 28.06 Safety unblocked.

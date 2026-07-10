@@ -524,10 +524,11 @@ def build_global_search_router(db, require_any_portal_token) -> APIRouter:
             return rows
 
         async def run_incidents() -> List[Dict[str, Any]]:
-            q_doc = {"$or": [
+            from lib.synthetic_safety_filter import apply_synthetic_incident_exclusion  # noqa: PLC0415
+            q_doc = apply_synthetic_incident_exclusion({"$or": [
                 {"title": rx}, {"description": rx},
                 {"incident_type": rx}, {"project_number": rx},
-            ]}
+            ]})
             if role == "pm" and pm_proj is not None:
                 q_doc = {"$and": [q_doc, {"project_number": {"$in": pm_proj}}]}
             rows = []

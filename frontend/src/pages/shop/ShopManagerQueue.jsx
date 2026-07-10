@@ -58,7 +58,7 @@ function ShopUserPicker({ users, value, onChange, testid }) {
         const u = users.find((x) => x.id === e.target.value);
         onChange(u || null);
       }}
-      style={{ padding: 6, fontSize: 12, minWidth: 180 }}
+      style={{ padding: 6, fontSize: 12, minWidth: 0, maxWidth: 260, flex: "1 1 180px" }}
     >
       <option value="">Choose mechanic…</option>
       {users.map((u) => (
@@ -83,7 +83,7 @@ function AssignBar({ defect, mechanics, onAssign }) {
     setBusy(false);
   };
   return (
-    <div data-testid={`manager-queue-assign-bar-${defect.id}`} style={{ display: "flex", gap: 6, alignItems: "center", marginTop: 6 }}>
+    <div data-testid={`manager-queue-assign-bar-${defect.id}`} style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap", marginTop: 6 }}>
       <ShopUserPicker
         users={mechanics}
         value={picked && picked.id}
@@ -163,7 +163,7 @@ function ReviewBar({ defect, onReview }) {
         placeholder="Reviewer notes (required if rejecting)…"
         style={{ width: "100%", fontSize: 12, padding: 6, fontFamily: "inherit" }}
       />
-      <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
+      <div style={{ display: "flex", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
         <button data-testid={`manager-queue-review-approve-${defect.id}`} type="button" onClick={() => submit(true)} disabled={busy} style={{ padding: "5px 10px", fontSize: 12, background: "var(--brand-success, #137a48)", color: "#fff", border: "none", borderRadius: 4 }}>
           Approve
         </button>
@@ -187,8 +187,8 @@ function DefectRow({ defect, mechanics, onAssign, onReview, bucketId }) {
   const unitNumber = defect.trailer_unit_number || defect.truck_unit_number || "—";
   return (
     <Card data-testid={`manager-queue-row-${defect.id}`}>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+        <div style={{ flex: 1, minWidth: 0, wordBreak: "break-word" }}>
           <div style={{ fontSize: 13, fontWeight: 700 }}>
             Unit <span data-testid={`manager-queue-row-unit-${defect.id}`}>{unitNumber}</span> · {(defect.item_text || defect.category || "(no description)")}
           </div>
@@ -348,7 +348,7 @@ export default function ShopManagerQueue() {
               <h3 style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: ".05em", color: bucket.tone, marginBottom: 8 }}>
                 {bucket.label} · {bucket.defects.length}
               </h3>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))", gap: 10 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 340px), 1fr))", gap: 10 }}>
                 {bucket.defects.map((d) => (
                   <DefectRow
                     key={d.id}

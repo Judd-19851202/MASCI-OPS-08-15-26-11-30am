@@ -339,7 +339,7 @@ Track 28.05 status: **IN PROGRESS — PHASES 1-9 CLOSED WITH EVIDENCE.** Do not 
 |----|-----|-------------|-----------|-----|-----------------|
 | 28.05-D1 (S1) | P0 | Equipment / dispatch / shop-defect user-facing reads leaked TEST_/SYNTHETIC_ synthetic rows | No canonical filter for fleet/dispatch collections | Built `lib/synthetic_fleet_filter.py`, applied at 6 primary surfaces | Static invariant `test_track_28_05_static_synthetic_fleet_invariant.py` (7/7) |
 | 28-05-DW-002 (S2) | MEDIUM | Uncaught `TypeError: title.toLowerCase is not a function` on Shop PM work-order detail (Card.jsx) | Type-unsafe `.toLowerCase()` on `title` prop when non-string passed | `String(title ?? "untitled").toLowerCase()` | Type-safe expression + future device walk retest |
-| 28-05-DW-001 (S2) | P2 MINOR | Horizontal overflow on ShopManagerQueue at mobile 390×844 | Fixed-width table columns | Registered as P2 backlog — non-blocking for Track 28.05 close-out | Deferred |
+| 28-05-DW-001 (S2) | P2 MINOR | Horizontal overflow on ShopManagerQueue at mobile 390×844 | Fixed-width table columns | ✅ CLOSED 2026-07-11 (Track 28.05F) — Responsive layout fix + 5 source-level regression tests | Locked |
 
 ### Test totals
 
@@ -393,3 +393,41 @@ The rollback is safe because the filter is additive (excludes rows; does not mut
 **GO** — Track 28.05 Fleet/Dispatch is CLOSED WITH PASS.
 
 Next: **Track 28.06 · Safety domain deep-walk** is now unblocked.
+
+## Track 28.05F · ShopManagerQueue mobile overflow — CLOSED (2026-07-11)
+
+Corrective sub-track. Original defect `28-05-DW-001` (P2 MINOR) is now **CLOSED**. Deployment remains held per the broader Track 28 program gate.
+
+### Root cause
+Three compounding responsive-layout regressions in `frontend/src/pages/shop/ShopManagerQueue.jsx`:
+1. Card grid: `gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))"` forced every card to be ≥ 360px wide, but a 390px viewport minus PortalShell padding + SideNavV3 rail leaves < 360px content width.
+2. `ShopUserPicker` had a hard `minWidth: 180` that could not collapse.
+3. `AssignBar` + review actions row + defect-row header used `display: flex` without `flexWrap`, so buttons + long unit numbers pushed the row wider than the viewport.
+
+### Fix
+| Location | Before | After |
+|----------|--------|-------|
+| Card grid | `minmax(360px, 1fr)` | `minmax(min(100%, 340px), 1fr)` |
+| ShopUserPicker | `minWidth: 180` | `minWidth: 0, maxWidth: 260, flex: "1 1 180px"` |
+| AssignBar | `display: flex` | `display: flex, flexWrap: "wrap"` |
+| ReviewBar action row | `display: flex` | `display: flex, flexWrap: "wrap"` |
+| DefectRow header | `display: flex, minWidth: 0` | `display: flex, flexWrap: "wrap"` + `wordBreak: "break-word"` on body |
+
+Real responsive solution — no hidden information, no nested scroll traps, no removed columns. Cards single-column at 390px, two-column at ~740px, three+ at desktop. All touch targets remain reachable.
+
+### Regression protection
+`backend/tests/test_track_28_05f_shop_manager_queue_mobile.py` (5/5 pass) — source-level structural test locks the 5 responsive patterns; will fail if anyone regresses the grid or removes flex-wrap.
+
+### Test totals (Track 28.05F)
+* Backend: 5/5 pass (new source-level lock).
+* Full Track 28.05 regression: 47/47 pass (26 S1 + 16 S2 + 5 · 28.05F).
+
+### Defect ledger update
+
+| ID | Sev | Status | Fix |
+|----|-----|:------:|-----|
+| 28-05-DW-001 | P2 | ✅ CLOSED (2026-07-11) | Responsive-layout fix in ShopManagerQueue.jsx + 5 source-level regression tests |
+
+### Deployment gate
+**NOT RELEASED.** Track 28.05F is closed on-branch. Track 28.05 remains held until Tracks 28.06, 28.07, and the final cross-domain integration certification close and the combined pre-deployment GO is issued.
+

@@ -194,7 +194,10 @@ def test_meeting_full_e2e(hdrs: dict) -> None:
 
     r = httpx.get(f"{BACKEND}/api/meetings", headers=hdrs, timeout=30)
     assert r.status_code == 200
-    assert mid in [x.get("id") for x in r.json()]
+    # TRACK 28.06 doctrine · synthetic must NOT surface on operator list.
+    assert mid not in [x.get("id") for x in r.json()], (
+        "TRACK 28.06 regression: synthetic meeting leaked to list"
+    )
 
     r = httpx.delete(f"{BACKEND}/api/meetings/{mid}", headers=hdrs, timeout=15)
     assert r.status_code == 200, r.text
@@ -233,7 +236,14 @@ def test_inspection_full_e2e(hdrs: dict) -> None:
 
     r = httpx.get(f"{BACKEND}/api/inspections", headers=hdrs, timeout=30)
     assert r.status_code == 200
-    assert iid in [x["id"] for x in r.json()]
+    # TRACK 28.06 doctrine · synthetic TEST_ inspection must NOT
+    # surface on the operator-facing list (regression-locked by
+    # `lib/synthetic_safety_filter.py`). Identity-scoped GET above
+    # still returns the record.
+    assert iid not in [x["id"] for x in r.json()], (
+        "TRACK 28.06 regression: synthetic inspection leaked to "
+        "/api/inspections list"
+    )
 
     # Lifecycle audit
     r = httpx.get(f"{BACKEND}/api/inspections/{iid}/state-events", headers=hdrs, timeout=15)
@@ -272,7 +282,10 @@ def test_incident_full_e2e(hdrs: dict) -> None:
 
     r = httpx.get(f"{BACKEND}/api/incidents", headers=hdrs, timeout=30)
     assert r.status_code == 200
-    assert iid in [x["id"] for x in r.json()]
+    # TRACK 28.06 doctrine · synthetic must NOT surface on operator list.
+    assert iid not in [x["id"] for x in r.json()], (
+        "TRACK 28.06 regression: synthetic incident leaked to list"
+    )
 
     # CSV export
     r = httpx.get(f"{BACKEND}/api/incidents.csv", headers=hdrs, timeout=60)
@@ -314,7 +327,10 @@ def test_jha_full_e2e(hdrs: dict) -> None:
 
     r = httpx.get(f"{BACKEND}/api/jhas", headers=hdrs, timeout=30)
     assert r.status_code == 200
-    assert jid in [x["id"] for x in r.json()]
+    # TRACK 28.06 doctrine · synthetic must NOT surface on operator list.
+    assert jid not in [x["id"] for x in r.json()], (
+        "TRACK 28.06 regression: synthetic JHA leaked to list"
+    )
 
     r = httpx.delete(f"{BACKEND}/api/jhas/{jid}", headers=hdrs, timeout=15)
     assert r.status_code == 200

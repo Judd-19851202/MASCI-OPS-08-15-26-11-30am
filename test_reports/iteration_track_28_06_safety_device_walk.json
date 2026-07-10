@@ -1,0 +1,75 @@
+{
+  "status": "PASS_WITH_ONE_DEFECT",
+  "track": "TRACK 28.06 · Safety Domain Device Walk",
+  "summary": "Safety Portal device walk (Desktop 1920x800, Tablet 768x1024, Mobile 390x844) completed against preview URL. Login → SafetyHubV2 renders. Incidents (52 rows), Inspections (341 on file), Meetings (469 on file), JHAs, Training, and Documents (24 rows) all load and render. Incident deep-link /safety-portal/incidents/{id} renders full detail with Download PDF affordance. Permission gate correctly redirects unauthenticated navigation from /safety-portal/* to /safety-portal/login. No TEST_28_06_* synthetic rows visible on any operator surface (synthetic_safety_filter is honored). No raw UTC/GMT/ISO timestamps surfaced in operator-facing labels. One non-Safety-domain backend defect surfaced during walk: /api/employees returns HTTP 500 due to a missing import in server.py line 4841 — flagged for main agent (does not block Safety list rendering but is called by employee-picker widgets on Safety forms).",
+  "workflows_tested": [
+    "Safety login /safety-portal/login (super-admin fallback since safety@mascigc.com is stale per test_credentials.md)",
+    "Safety Hub /safety-portal (SafetyHubV2) — tiles render (Incidents & Near Misses, Corrective Actions, Training & Certifications, Safety Document Library, Equipment & PPE, Employee Profiles, Safety Meetings, JHA plans, etc.)",
+    "/safety-portal/incidents list — 52 rows, severity/type/project/date columns",
+    "/safety-portal/incidents/:id deep-link — description, PDF download visible",
+    "/safety-portal/inspections — 341 total, grouped by job IDEM-SPINE-P2",
+    "/safety-portal/meetings — 469 on file, grouped by job IDEM-SPINE",
+    "/safety-portal/jha-plans — renders",
+    "/safety-portal/training — renders",
+    "/safety-portal/documents — 24 policies/procedures",
+    "Permission gate — cleared tokens → /safety-portal/incidents redirects to /safety-portal/login (sign-in-required panel)",
+    "Synthetic filter check — grep for TEST_28_06_ in body text across all pages/viewports = 0 hits",
+    "Timestamp hygiene — regex for UTC/GMT/YYYY-MM-DDTHH:MM = 0 hits"
+  ],
+  "pass_count": 17,
+  "fail_count": 0,
+  "defects_found": [
+    {
+      "id": "TRACK_28_06_DEFECT_1",
+      "severity": "HIGH",
+      "endpoint": "/api/employees",
+      "issue": "GET /api/employees returns HTTP 500 — NameError: name 'apply_synthetic_hr_exclusion' is not defined at /app/backend/server.py:4841. The other three usages (lines 1914, 4880, 4974) locally import from lib.synthetic_hr_filter but line 4841 does not.",
+      "impact": "Not a Safety-owned surface, but Safety forms (New Incident / New Inspection / New Meeting / JHA) call /api/employees for the employee/attendee picker. Device walk operator flows (list + detail + PDF) unaffected; form creation flows may fail. Backend certification claim of 128 tests should be re-verified for /api/employees coverage.",
+      "fix_hint": "Add `from lib.synthetic_hr_filter import apply_synthetic_hr_exclusion` at top of list_employees() around line 4838, mirroring the pattern in lines 4880 and 4974."
+    }
+  ],
+  "per_viewport_notes": {
+    "desktop_1920x800": {
+      "hub": "PortalShell + left SideNavV3 render cleanly. KPIs load ('Loading live signals...' briefly then resolve).",
+      "incidents": "52-row table, columns visible, no horizontal overflow.",
+      "inspections": "Job-Site Safety Inspections page with 341 total, 0 passing / 0 failing KPIs, recent-inspection accordion for IDEM-SPINE-P2 (340 nested items).",
+      "meetings": "Toolbox Talks & Huddles, 469 on file, IDEM-SPINE accordion (423 nested).",
+      "jhas": "JHA Plans admin surface renders.",
+      "training": "Renders.",
+      "documents": "24 policy/procedure rows.",
+      "incident_detail": "Full record + Download PDF text visible."
+    },
+    "tablet_768x1024": {
+      "overall": "Filter row wraps, SideNavV3 collapses. Hub tiles adapt to 2-col grid.",
+      "incidents_overflow": "documentElement.scrollWidth > clientWidth = true on /safety-portal/incidents at 768 — table has horizontal scroll to preserve 4 columns (severity/type/project/date). Acceptable pattern; flagged as minor design note only if PM prefers stacked-card row on tablet."
+    },
+    "mobile_390x844": {
+      "overall": "All Safety pages render, no vertical scroll issues, sign-out & switch-portal reachable.",
+      "incidents_overflow": "Same table horizontal scroll pattern as tablet — acceptable.",
+      "training_overflow": "documentElement.scrollWidth > clientWidth = true on /safety-portal/training at 390 — minor design polish for main agent; not blocking."
+    }
+  },
+  "console_errors_summary": [
+    "6 repeated '500 Failed to load resource' for /api/employees across pages — see TRACK_28_06_DEFECT_1."
+  ],
+  "synthetic_filter_verification": {
+    "TEST_28_06_visible_on_any_page": false,
+    "grep_scope": "innerText of body across 21 page loads (7 routes × 3 viewports) + incident detail page"
+  },
+  "test_credentials_used": {
+    "primary": "jaymn.judd@mascigc.com / Maddix123! (super-admin, /api/safety/login returns kind:'safety' token)",
+    "safety_user_stale": "safety@mascigc.com / SafetyTest2026! returns 401 Invalid email or password — matches iter323 note in test_credentials.md"
+  },
+  "screenshots_dir": "/app/test_reports/screenshots_28_06/",
+  "updated_files": [],
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "action_items": [
+    "Fix /api/employees NameError at server.py:4841 (add local import of apply_synthetic_hr_exclusion, mirroring lines 4880 and 4974). Retest /api/employees returns 200 with active employee list.",
+    "Optional design polish: (a) consider stacked-card row layout for /safety-portal/incidents on <=768px to remove horizontal scroll; (b) audit /safety-portal/training mobile overflow at 390px."
+  ],
+  "critical_code_review_comments": [
+    "server.py:4841 missing local import of apply_synthetic_hr_exclusion — inconsistent with lines 1914/4880/4974 which do have the import. This is a latent regression that likely was introduced when the synthetic HR filter was retrofitted onto only three of four call sites."
+  ],
+  "context_for_next_testing_agent": "Safety device walk complete. Only outstanding item is /api/employees 500 (main agent to fix — 1-line import). No Safety-domain UI defects. Synthetic filter working correctly (0 TEST_28_06_ leaks). Use jaymn.judd@mascigc.com / Maddix123! at /safety-portal/login — the seed safety user is stale."
+}

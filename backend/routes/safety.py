@@ -585,9 +585,10 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
 
     @api_router.get("/inspections", response_model=List[InspectionSummary])
     async def list_inspections(actor=Depends(_read_gate)):
+        from lib.synthetic_safety_filter import apply_synthetic_inspection_exclusion  # noqa: PLC0415
         scope = await compute_pm_scope(db, actor)
         pipeline = [
-            {"$match": scope.filter({})},
+            {"$match": apply_synthetic_inspection_exclusion(scope.filter({}))},
             {"$sort": {"created_at": -1}},
             {"$limit": 1000},
             {"$project": {
@@ -732,9 +733,10 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
 
     @api_router.get("/meetings", response_model=List[MeetingSummary])
     async def list_meetings(actor=Depends(_read_gate)):
+        from lib.synthetic_safety_filter import apply_synthetic_meeting_exclusion  # noqa: PLC0415
         scope = await compute_pm_scope(db, actor)
         cursor = db.meetings.find(
-            scope.filter({}),
+            apply_synthetic_meeting_exclusion(scope.filter({})),
             {"_id": 0, "id": 1, "project_name": 1, "location": 1, "meeting_date": 1,
              "conducted_by": 1, "topic": 1, "topic_category": 1, "attendees": 1, "created_at": 1},
         ).sort("created_at", -1)
@@ -853,9 +855,10 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
 
     @api_router.get("/jhas", response_model=List[JhaSummary])
     async def list_jhas(actor=Depends(_read_gate)):
+        from lib.synthetic_safety_filter import apply_synthetic_jha_exclusion  # noqa: PLC0415
         scope = await compute_pm_scope(db, actor)
         cursor = db.jhas.find(
-            scope.filter({}),
+            apply_synthetic_jha_exclusion(scope.filter({})),
             {"_id": 0, "id": 1, "project_name": 1, "location": 1, "jha_date": 1,
              "crew_lead": 1, "job_title": 1, "task_steps": 1, "crew_signoffs": 1, "created_at": 1},
         ).sort("created_at", -1)
@@ -1254,9 +1257,10 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
 
     @api_router.get("/incidents", response_model=List[IncidentSummary])
     async def list_incidents(actor=Depends(_read_gate)):
+        from lib.synthetic_safety_filter import apply_synthetic_incident_exclusion  # noqa: PLC0415
         scope = await compute_pm_scope(db, actor)
         pipeline = [
-            {"$match": scope.filter({})},
+            {"$match": apply_synthetic_incident_exclusion(scope.filter({}))},
             {"$sort": {"created_at": -1}},
             {"$limit": 1000},
             {"$project": {
@@ -1303,9 +1307,10 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         import csv as _csv  # noqa: PLC0415
         import io as _io    # noqa: PLC0415
         from fastapi.responses import Response as _Resp  # noqa: PLC0415
+        from lib.synthetic_safety_filter import apply_synthetic_incident_exclusion  # noqa: PLC0415
         scope = await compute_pm_scope(db, actor)
         pipeline = [
-            {"$match": scope.filter({})},
+            {"$match": apply_synthetic_incident_exclusion(scope.filter({}))},
             {"$sort": {"created_at": -1}},
             {"$limit": 5000},
             {"$project": {
