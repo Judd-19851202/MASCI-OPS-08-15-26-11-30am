@@ -40,6 +40,8 @@ const DriverShift = React.lazy(() => import("@/pages/driver/DriverShift"));
 // TRACK 25.02 · Phase D · V3 hub renders behind masci.admin.nav.v3 flag
 // TRACK 25 · SPRINT 1 · Canonical Admin Operating System landing (10 domains).
 const AdminOS = React.lazy(() => import("@/pages/admin/AdminOS"));
+// TRACK 25 · SPRINT 3 · Storage & Recovery domain landing.
+const AdminStorageRecovery = React.lazy(() => import("@/pages/admin/AdminStorageRecovery"));
 const AdminMaterialLedgerQuality = React.lazy(() => import("@/pages/AdminMaterialLedgerQuality"));
 const LeadershipHubV2 = React.lazy(() => import("@/pages/LeadershipHubV2"));
 const ExecutiveOverview = React.lazy(() => import("@/pages/ExecutiveOverview"));
@@ -689,6 +691,8 @@ export function AppRoutes() {
             <Route path="/admin/integration-truth" element={A(LB("/admin/integration-truth", <IntegrationTruth />))} />
             <Route path="/admin/preview-validation-identities" element={A(<PreviewValidationIdentities />)} />
             <Route path="/admin/recovery" element={A(LB("/admin/recovery", <AdminRecovery />))} />
+            {/* TRACK 25 · SPRINT 3 · Storage & Recovery domain landing. */}
+            <Route path="/admin/storage-recovery" element={A(<AdminStorageRecovery />)} />
             <Route path="/admin/recovery-stream" element={A(LB("/admin/recovery-stream", <AdminRecoveryStream />))} />
             <Route path="/admin/jha-acknowledgements" element={A(<AdminJhaAcknowledgements />)} />
             <Route path="/admin/command-center" element={A(<AdminCommandCenter />)} />

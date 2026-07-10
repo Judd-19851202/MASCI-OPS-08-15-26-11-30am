@@ -368,7 +368,7 @@ CARDS: List[Dict[str, Any]] = [
     dict(id="recovery_snapshot", section="storage_recovery",
          title="Backups & R2 Recovery",
          endpoint="/api/admin/recovery/snapshot",
-         drilldown="/admin/recovery", requires_auth=True,
+         drilldown="/admin/storage-recovery", requires_auth=True,
          evaluator=_eval_recovery_snapshot),
     # 3 · Queues & Workers -----------------------------------------
     dict(id="backup_scheduler", section="queues_workers",

@@ -302,7 +302,7 @@ const DOMAINS = [
     label: "Storage & Recovery",
     stripe: "#0891b2",
     icon: HardDrive,
-    to: "/admin/recovery",
+    to: "/admin/storage-recovery",
     description:
       "Backups, R2 bucket usage, RPO / RTO posture, restore drills.",
     probe: "/api/admin/recovery/snapshot",
