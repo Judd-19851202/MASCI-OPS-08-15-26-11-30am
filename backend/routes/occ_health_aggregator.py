@@ -156,6 +156,36 @@ def _eval_recovery_snapshot(body, err, checked_at):
                 "hourly_cadence_enabled": body.get("hourly_cadence_enabled")},
                action, last_backup.get("ts") or body.get("computed_at") or checked_at)
 
+def _eval_storage_health(body, err, checked_at):
+    if err or not body:
+        return _mk("unknown", "Storage lifecycle unreachable.",
+                   {"error": str(err or "no response")},
+                   "Trigger a lifecycle scan from Storage & Recovery.", checked_at)
+    band = str(body.get("band", "unknown")).lower()
+    status = {"green": "green", "amber": "yellow", "red": "red"}.get(band, "unknown")
+    score = body.get("overall_score", 0)
+    capacity = body.get("capacity") or {}
+    objects = body.get("objects") or {}
+    orphan_pct = objects.get("orphan_pct")
+    summary = (
+        f"Score {score}/100 · {capacity.get('gb', 0):.1f} GB · "
+        f"{objects.get('total', 0)} objects · "
+        f"{objects.get('verified_orphan', 0)} orphan candidates"
+        f"{' (' + str(orphan_pct) + '%)' if orphan_pct is not None else ''}"
+    )
+    action = (
+        "Open Storage & Recovery → R2 Lifecycle to review the dry-run."
+        if status in ("red", "yellow") else ""
+    )
+    return _mk(status, summary,
+               {"overall_score": score, "band": band.upper(),
+                "sub_scores": body.get("sub_scores"),
+                "capacity": capacity, "objects": objects,
+                "freshness": body.get("freshness")},
+               action, body.get("generated_at") or checked_at)
+
+
+
 
 def _eval_backups_scheduler(body, err, checked_at):
     if err or not body:
@@ -370,6 +400,11 @@ CARDS: List[Dict[str, Any]] = [
          endpoint="/api/admin/recovery/snapshot",
          drilldown="/admin/storage-recovery", requires_auth=True,
          evaluator=_eval_recovery_snapshot),
+    dict(id="storage_health", section="storage_recovery",
+         title="R2 Storage Lifecycle Health",
+         endpoint="/api/admin/r2/lifecycle/health",
+         drilldown="/admin/storage-recovery", requires_auth=True,
+         evaluator=_eval_storage_health),
     # 3 · Queues & Workers -----------------------------------------
     dict(id="backup_scheduler", section="queues_workers",
          title="Backup Scheduler Loop",

@@ -11693,6 +11693,17 @@ app.include_router(
     prefix="/api",
 )
 
+# ─── R2 Storage Lifecycle Governance (TRACK 27.06 · Phase 1/2/3/4/6/10) ──
+# Read-only lifecycle intelligence — inventory + Mongo cross-reference +
+# strict classification + dry-run certification + storage health.
+# Deletion is explicitly out of scope; see routes/admin_r2_lifecycle.py.
+from routes.admin_r2_lifecycle import build_r2_lifecycle_router  # noqa: E402
+
+app.include_router(
+    build_r2_lifecycle_router(db, require_admin_strict),
+    prefix="/api",
+)
+
 
 # ─── Executive Operations Command Center (Pillar 2 · Phase A · iter500) ──
 # Single read-only Admin endpoint synthesizing 5 cards (Jobs · Safety ·

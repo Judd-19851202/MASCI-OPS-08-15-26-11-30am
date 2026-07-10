@@ -1,5 +1,73 @@
 # CHANGELOG
 
+## 2026-07-10 — TRACK 27.06 · R2 STORAGE LIFECYCLE GOVERNANCE (Phase 1-4 + 6 + 10 + 12) — ✅ SHIPPED
+
+Permanent storage-lifecycle governance foundation. Zero data deleted. Delete engine explicitly out of scope per user constitution.
+
+### What shipped
+**Backend service package** — `/app/backend/services/r2_lifecycle/`
+- `inventory.py` — paginated R2 bucket walker (async wrapper on boto3 `list_objects_v2`), persists to `r2_inventory` with idempotent upserts + first-seen/last-seen tracking. Extracts prefix + project number + year from every key.
+- `references.py` — extensible `REFERENCE_SOURCES` registry with 17 default Mongo sources (photos, daily_reports, meetings, qaqc, incidents, training, equipment_documents, asset_documents, dispatch_continuity, legacy_imports, operational_attachments, promo_assets, pdf_packages, exports, backup_health, recovery_snapshots). Walker persists Mongo → R2 back-index into `r2_references`.
+- `classification.py` — strict classifier with 10 allowed classes (`VERIFIED_OWNER`, `VERIFIED_ORPHAN`, `AMBIGUOUS`, `SYSTEM_RESERVED`, `RETENTION_PROTECTED`, `BACKUP_PROTECTED`, `LEGAL_HOLD`, `HISTORICAL`, `PENDING`, `UNKNOWN`). Backup archives + platform-managed prefixes always win over reference lookup. Objects <2h old are `PENDING`.
+- `intelligence.py` — top prefixes / top projects / largest objects / 90-day growth series / **cost estimator** at Cloudflare R2 pricing ($0.015 GB-month).
+- `health.py` — Phase 10 Storage Health score (0–100) with 7 weighted sub-scores: capacity · ownership · orphan · retention · backup · lifecycle · freshness.
+
+**API surface** — `/api/admin/r2/lifecycle/*`
+- `POST /scan` — full three-phase refresh (inventory → references → classification).
+- `GET /latest` — snapshot summary + health.
+- `GET /inventory?prefix=&min_bytes=&limit=&skip=` — paginated inventory rows.
+- `GET /classification` — counts + samples per class.
+- `GET /object?key=` — evidence drawer (inventory + classification + references + collections-searched list).
+- `POST /dry-run` — certified would-delete list + **refusal gate** (`batch_allowed=false` if ANY non-orphan appears).
+- `GET /health` — storage health score with sub-scores.
+- `GET /intelligence` — top prefixes/projects/largest + cost.
+- `GET /growth?days=90` — daily upload series.
+
+**OCC integration**
+- New card `storage_health` in section `storage_recovery`. Live on preview: `RED · Score 30.0/100 · 186.8 GB · 2000 objects · 1126 orphan candidates (56.3%)`. Drilldown → `/admin/storage-recovery`.
+
+**Frontend**
+- New `R2LifecyclePanel.jsx` mounted inside `AdminStorageRecovery`. Sections: health card with sub-scores · classification snapshot · dry-run certification gate · candidates table · top-prefix chart · cost intelligence · scan trigger (quick/full).
+
+**Regression coverage — 21 tests, 100% pass**
+- Closed-set classification enumeration.
+- `ALLOWED_FOR_DELETION == {VERIFIED_ORPHAN}` invariant.
+- SYSTEM/BACKUP/HISTORICAL prefix wins over Mongo reference.
+- PENDING window blocks fresh uploads.
+- VERIFIED_OWNER when reference exists · VERIFIED_ORPHAN when it doesn't.
+- Reference extractor handles photo:// · r2:// · raw_key schemes correctly.
+- `_walk_path` traverses dot + wildcard paths.
+- Cost estimator scales linearly; zero-total case doesn't divide by zero.
+- Health capacity/band/clamp curves.
+
+### Live end-to-end validation on preview R2 (2 pages · 2000 objects)
+- 874 objects → `BACKUP_PROTECTED` (via backup_health refs + `backups/` prefix).
+- 1126 objects → `VERIFIED_ORPHAN` (no references · not in protective prefix · older than PENDING window).
+- 0 objects → `AMBIGUOUS` / `UNKNOWN` / `PENDING` / `SYSTEM_RESERVED` — clean classification pipeline.
+- Top prefix: `backups/` (310 GB · 874 objs) · Top project: `07-09` (22 GB).
+- Dry-run: 5 candidates · 7.7 MB reclaim on preview · `batch_allowed=true` · `delete_engine_status=DISABLED`.
+
+### Files created / modified
+- **NEW** `/app/backend/services/r2_lifecycle/` (5 files · 800 LOC total).
+- **NEW** `/app/backend/routes/admin_r2_lifecycle.py`.
+- **NEW** `/app/backend/tests/test_track_27_06_r2_lifecycle.py`.
+- **NEW** `/app/frontend/src/components/admin/R2LifecyclePanel.jsx`.
+- **MODIFIED** `/app/backend/server.py` — mounted lifecycle router.
+- **MODIFIED** `/app/backend/routes/occ_health_aggregator.py` — added `storage_health` OCC card + `_eval_storage_health`.
+- **MODIFIED** `/app/frontend/src/pages/admin/AdminStorageRecovery.jsx` — mounted `R2LifecyclePanel`.
+
+### Not shipped (per user directive)
+- **Phase 7** delete engine — explicitly deferred until production evidence proves classifier accuracy.
+- **Phase 8** continuous scanning (nightly + hourly).
+- **Phase 9** R2 server-side lifecycle rules.
+- **Phase 11** full operator UI (largest-folder browser · duplicates · restore-recently-removed).
+
+### Deployment
+No env changes required. Merge → deploy. On first deploy, operator triggers `POST /api/admin/r2/lifecycle/scan` from the UI (button in the new panel). Subsequent scans are idempotent.
+
+**GO.**
+
+
 ## 2026-07-10 — TRACK 25/27 · LIVE POST-DEPLOY CERTIFICATION — ✅ GO
 
 Production URL: `https://mascidocs.com`  ·  Commit: `57d90d776894`  ·  Uptime: ~7.5h

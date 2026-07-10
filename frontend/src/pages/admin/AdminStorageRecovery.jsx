@@ -31,6 +31,7 @@ import {
 
 import { PortalShell } from "../../design-system";
 import SideNavV3 from "@/components/admin/sidebar/SideNavV3";
+import R2LifecyclePanel from "@/components/admin/R2LifecyclePanel";
 import { getAdminToken } from "@/lib/adminAuth";
 import { formatPlatformTime, formatRelativeTime } from "@/lib/platformTime";
 import {
@@ -771,6 +772,20 @@ export default function AdminStorageRecovery() {
               </Link>
             ))}
           </div>
+        </section>
+
+        {/* ── R2 Lifecycle Governance (TRACK 27.06) ─────────── */}
+        <section className="mt-8" data-testid="storage-recovery-lifecycle">
+          <div className="mb-3 flex items-center gap-2">
+            <HardDrive className="w-4 h-4 text-slate-500" />
+            <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono font-bold">
+              Lifecycle Governance
+            </div>
+            <div className="text-[10px] font-mono text-slate-400">
+              /api/admin/r2/lifecycle
+            </div>
+          </div>
+          <R2LifecyclePanel />
         </section>
 
         {/* ── Recent storage events ─────────────────────────── */}
