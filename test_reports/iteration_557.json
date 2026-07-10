@@ -1,0 +1,75 @@
+{
+  "summary": "TRACK 25 · Admin OS FINAL Pre-Deployment Certification (iteration 557). Logged in successfully as jaymn.judd@mascigc.com. Verified all 10 Admin OS domain routes + 5 sampled AdminShell-modernized pages (Jobs, Equipment, Dispatch, Compliance, Training) + 3 sampled originally-modernized pages (Email, AI Configuration, Audit Log) = 18 routes total. Every route rendered inside modern chrome: exactly 1 SideNavV3 sidebar (no nesting), PortalShell present, breadcrumb visible. Zero uncaught console errors during the walk. Prior iteration_556 dev-language leaks are CONFIRMED FIXED — no 'V2 enabled', 'mode: v2', 'V1 daily', or 'TRACK 22.9B' tokens now surface. Backend pytest `test_track_27_03_zero_utc_guard.py` 8/8 PASS. TWO residual UTC leaks found (see below) — per spec these are P0 blockers.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "/admin/compliance",
+        "issues": [
+          "Operator-visible 'UTC' pill/badge on the page header (font-mono uppercase span).",
+          "Copy string visible: 'UTC. Click ...' and '02:00 and 18:00 UTC (two off-site recovery points per day)'.",
+          "Per zero-UTC spec, no visible timestamp/label may include the literal 'UTC'. Recommend relabelling schedule times using platformTime local formatting or a neutral phrase like '02:00 and 18:00 platform time'."
+        ]
+      },
+      {
+        "screen": "/admin/email",
+        "issues": [
+          "Recipient-help copy contains: 'Recipients of the auto-backup zip (02:00 + 18:00 UTC) and the manual Backup + email + download NOW button.' — visible 'UTC' token.",
+          "Recommend the same platform-time relabel as /admin/compliance."
+        ]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_track_27_03_zero_utc_guard.py"
+  ],
+  "action_items": [
+    "P0 · Scrub the literal 'UTC' string from /admin/compliance (both the header pill and the schedule-copy paragraph). Suggest 'platform time' or fetch the operator's tz offset via platformTime.js.",
+    "P0 · Scrub the literal 'UTC' string from /admin/email backup-recipients help copy (same rewording).",
+    "After fix, re-run the UTC scan on /admin/compliance and /admin/email only — everything else is clean."
+  ],
+  "critical_code_review_comments": [
+    "AdminShell.jsx root fix is clean: 130 lines, well-commented, delegates entirely to LegacyAdminModernShell. All 32 legacy pages that imported it now inherit modern chrome — verified live on Jobs, Equipment, Dispatch, Compliance, Training (5/5).",
+    "LegacyAdminModernShell exposes uniform data-testid patterns (`{prefix}-root`, `{prefix}-back-adminos`, `{prefix}-breadcrumb`) — excellent for regression testability.",
+    "PlatformTrustValidator/RoutingStatusPanel dev-language rewrite is correct — 'mode: v2/v1' now renders as 'modern' / 'legacy fallback' and 'V2 enabled' now renders as 'Modern routing'. Verified in DOM text on /admin/email.",
+    "Two UTC leaks are pure copy strings (not raw ISO timestamps or platformTime bypasses) — trivial to fix but P0 per certification spec."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "100% (8/8 zero-UTC guard tests pass)",
+    "frontend": "89% (16/18 routes fully clean; 2 routes leak literal 'UTC' text — Compliance, Email)"
+  },
+  "test_credentials": "jaymn.judd@mascigc.com / Maddix123! via /sign-in — works, lands on /admin.",
+  "seed_data_creation": "none",
+  "detailed_results": {
+    "shell_unification": {
+      "routes_checked": 18,
+      "one_sidebar_per_route": "18/18",
+      "portal_shell_present": "18/18",
+      "breadcrumb_present": "18/18",
+      "console_errors": 0
+    },
+    "dev_language_scan": {
+      "tokens_checked": ["iter189","iter130","iter133","iter124","iter123","iter308","canonical landing","needs wiring","V2 enabled","V1 daily","mode: v2","Phase 4B","until Sprint"],
+      "hits": "NONE across all 18 sampled routes (previous iter_556 leaks confirmed fixed)"
+    },
+    "utc_scan": {
+      "clean_routes": ["/admin","/admin/operations-control","/admin/storage-recovery","/admin/ai-operations","/admin/communications","/admin/identity-security","/admin/governance-trust","/admin/platform-configuration","/admin/diagnostics","/admin/maintenance","/admin/jobs","/admin/equipment","/admin/dispatch","/admin/training","/admin/ai-configuration","/admin/audit-log"],
+      "leaking_routes": {
+        "/admin/compliance": ["<span> 'UTC' badge", "'UTC. Click …' paragraph", "'02:00 and 18:00 UTC (two off-site recovery points per day)'"],
+        "/admin/email": ["'Recipients of the auto-backup zip (02:00 + 18:00 UTC)…'"]
+      }
+    },
+    "backend_pytest": "pytest /app/backend/tests/test_track_27_03_zero_utc_guard.py -x -q → 8 passed in 1.05s",
+    "notes": "Detected a thin red decorative strip under the modern top masthead on every page (~2px). This is NOT the old AdminShell red-bar — it's a modern-chrome accent line under the MASCI · ADMIN lockup. No competing top-bar or nested sidebar observed anywhere."
+  },
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "iter_557 verified the AdminShell root-level modernization: PASS. Modern chrome is now the only chrome under /admin/*. Two P0-per-spec UTC copy leaks remain on /admin/compliance and /admin/email — trivial string edits (no data flow required). After main agent scrubs those two copy strings, a targeted re-scan on just those two routes will confirm GO.",
+  "certification_verdict": "NO-GO (blocked ONLY by 2 hardcoded 'UTC' copy strings on /admin/compliance and /admin/email). Once those are relabelled, this certification is GO — shell unification, dev-language scrub, breadcrumbs, sidebars, console cleanliness all pass."
+}
