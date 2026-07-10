@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Plus, FileText, AlertTriangle, ShieldCheck, Eye, Trash2, Loader2, ClipboardCheck, ShieldX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PortalShell } from "@/design-system";
+import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
 import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
 import PmSideNavV2 from "@/components/pm/sidebar/SideNavV2";
 import SafetySideNavV2 from "@/components/safety/sidebar/SafetySideNavV2";
@@ -122,6 +123,12 @@ export default function Dashboard() {
       }
     >
       <div className="max-w-6xl mx-auto px-5 sm:px-6 py-6 sm:py-8" data-testid="dashboard-inspections-page">
+        {pathname.startsWith("/admin/") ? (
+          <AdminBreadcrumb crumbs={[
+            { label: "Field Operations" },
+            { label: "Inspections" },
+          ]} />
+        ) : null}
         <div className="mb-6">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-slate-500">
             MASCI Operations Platform

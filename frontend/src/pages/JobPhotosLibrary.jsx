@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PortalShell } from "@/design-system";
+import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
 import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
 import PmSideNavV2 from "@/components/pm/sidebar/SideNavV2";
 import { useT } from "@/lib/i18n";
@@ -321,6 +322,12 @@ export default function JobPhotosLibrary({ portalKey = "admin" }) {
       }
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6" data-testid="job-photos-library-page">
+        {portalKey === "admin" ? (
+          <AdminBreadcrumb crumbs={[
+            { label: "Field Operations" },
+            { label: "Photos" },
+          ]} />
+        ) : null}
         {/* Filter bar */}
         <div
           className="bg-white border border-slate-200 rounded-md p-3 mb-4 flex flex-wrap gap-2 items-center"

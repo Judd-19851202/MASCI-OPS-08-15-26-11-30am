@@ -5,6 +5,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Plus, Wrench, Eye, Trash2, Loader2, AlertOctagon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PortalShell } from "@/design-system";
+import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
 import PmSideNavV2 from "@/components/pm/sidebar/SideNavV2";
 import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
 import { ShareFormDialog } from "@/components/ShareFormDialog";
@@ -109,6 +110,12 @@ export default function EquipmentDashboard() {
       }
     >
       <div className="max-w-6xl mx-auto px-5 sm:px-6 py-6 sm:py-8" data-testid="equipment-dashboard-page">
+        {pathname.startsWith("/admin/") ? (
+          <AdminBreadcrumb crumbs={[
+            { label: "Field Operations" },
+            { label: "Equipment Pre-Op" },
+          ]} />
+        ) : null}
         <div className="mb-6">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
             Equipment Pre-Op Inspections

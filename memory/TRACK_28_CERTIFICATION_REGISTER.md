@@ -8,7 +8,13 @@
 |---|---|---|---|---|
 | 2026-07-10 | 28.01 | Static certification sweep (grep-based invariants) | ✅ PASS | CHANGELOG entry + 67/67 backend tests |
 | 2026-07-10 | 28.02-A | Field Operations · pre-cert P0 audit → discovered admin-token read-gate regression across Safety/Admin/PM gate factories | ✅ FIX LANDED | `/api/{meetings,inspections,incidents,jhas}` returned 401 to admin tokens; fixed in `routes/safety_portal/_deps.py` + `routes/shop_portal_deps.py` + `routes/dispatch_portal_auth.py` by threading `is_valid_admin_token_async`; regression test `backend/tests/test_track_28_02_admin_read_gate.py` (5/5 pass) |
-| — | 28.02-B | Field Operations · full-walk (DR/Meetings/JHA/Pre-Op/Inspections/Incidents/Equipment/Photos/PDFs) | IN PROGRESS | Handed to testing_agent_v3_fork post fix |
+| 2026-07-10 | 28.02-B | Field Operations · deep sweep of Daily Reports, Meetings, JHA, Site Inspections, Incidents, Equipment/DVIR, QA/QC, Photos | ✅ PASS | testing_agent iteration_559 · 23/23 backend + 16/16 frontend routes render, canonical pickers verified, PortalShell present everywhere |
+| 2026-07-10 | 28.02-C | AdminBreadcrumb missing on 6 /admin/* Field-Ops list pages (Daily Reports, Meetings, Site Inspections, Equipment, QA/QC, Photos) | ✅ FIXED | AdminBreadcrumb ("Admin OS › Field Operations › {Section}") now renders on all 6; live-verified on /admin/daily (`ADMIN OS › FIELD OPERATIONS › DAILY REPORTS`) |
+| — | 28.03 | Field Leadership domain deep-walk | NOT STARTED | Next up |
+| — | 28.04 | HR domain deep-walk | NOT STARTED | — |
+| — | 28.05 | Fleet/Dispatch domain deep-walk | NOT STARTED | — |
+| — | 28.06 | Safety domain deep-walk | NOT STARTED | — |
+| — | 28.07 | Training / Administration / Executive domain deep-walk | NOT STARTED | — |
 
 ## Registered gaps (carried forward, formalized)
 

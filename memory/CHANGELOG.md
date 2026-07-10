@@ -1,5 +1,46 @@
 # CHANGELOG
 
+## 2026-07-10 — TRACK 28.02 · FIELD OPERATIONS OPERATIONAL CERTIFICATION — ✅ PASS
+
+**Scope:** deep operator walk of every Field Operations workflow (Daily Reports · Meetings · JHA · Site Inspections · Incidents · Equipment Pre-Op/DVIR · QA/QC · Photos) under the canonical admin session `jaymn.judd@mascigc.com`.
+
+### 28.02-A · P0 auth-gate regression discovered + fixed (fix-as-you-certify)
+Pre-walk backend probe uncovered a silent regression: five factory-built gates in `routes/safety_portal/_deps.py` (`make_require_safety_or_admin`, `make_require_safety_or_admin_fleet`, `make_require_safety_admin_or_pm`), `routes/shop_portal_deps.py` (`make_require_shop_or_admin_fleet`), and `routes/dispatch_portal_auth.py` (`make_require_dispatch_or_admin`) still relied on the sync `_is_valid_admin_token` retired in TRACK 15.32 — which now unconditionally returns `False`. Consequence: every admin token issued by `/api/auth/multi-login` was rejected with 401 across `/api/{meetings,inspections,incidents,jhas}` and every Safety/Shop/Dispatch write surface.
+
+**Fix:** new `is_valid_admin_token_async` kwarg on each factory, wired at server.py callsites to `_is_valid_directory_admin_token_async`.
+**Regression lock:** `backend/tests/test_track_28_02_admin_read_gate.py` (5/5 pass; probes all four affected list endpoints + the 401-on-missing-token invariant).
+
+### 28.02-B · Deep Field-Ops walk
+| Workflow | Backend read | List page | Detail page | Verdict |
+|---|:---:|:---:|:---:|:---:|
+| Daily Reports (`/admin/daily`) | 200 · 1000 rows | PortalShell + canonical Job/Employee pickers | renders | ✅ |
+| Meetings (`/admin/meetings`) | 200 · 497 rows | PortalShell + AdminBreadcrumb | renders | ✅ |
+| JHA / JHP (`/jha`, `/admin/jha-plans`) | 200 · 0 rows (empty prod-preview) | PortalShell | renders | ✅ |
+| Site Inspections (`/admin/inspections`) | 200 · list | PortalShell | renders | ✅ |
+| Incidents (`/admin/incidents`) | 200 · list | PortalShell | renders | ✅ |
+| Equipment Pre-Op (`/admin/equipment-inspections`) | 200 · 1000 rows | Trends/OpenItems/Activity all render | renders | ✅ |
+| QA/QC (`/admin/qaqc`) | 200 · 146 rows | filters + CSV export | renders | ✅ |
+| Photos (`/admin/photos`, `/pm/photos`) | 200 | PortalShell + canonical job scoping | renders | ✅ |
+
+Report: `/app/test_reports/iteration_559.json` (23/23 backend + 16/16 frontend routes).
+
+### 28.02-C · AdminBreadcrumb UI drift (P2) — ✅ fixed
+Testing agent flagged that `AdminBreadcrumb` (data-testid `admin-breadcrumb`) was missing on 6 `/admin/*` Field-Ops list pages. Mounted `Admin OS › Field Operations › {Section}` on:
+- `DailyReportsDashboard.jsx` (only when path starts with `/admin/`)
+- `MeetingsDashboard.jsx` (same)
+- `Dashboard.jsx` (Site Inspections list — same)
+- `EquipmentDashboard.jsx` (same)
+- `AdminQaqcList.jsx` (unconditional — admin-only)
+- `JobPhotosLibrary.jsx` (when `portalKey === "admin"`)
+
+Live-verified on `/admin/daily`: breadcrumb reads `ADMIN OS › FIELD OPERATIONS › DAILY REPORTS`.
+
+### 28.02 · Field Operations verdict: **PASS**
+Zero P0/P1 defects outstanding. Advancing certification to Track 28.03 · Field Leadership.
+
+---
+
+
 ## 2026-07-10 — TRACK 28.01 · STATIC CERTIFICATION SWEEP — ✅ PASS
 
 **Scope:** everything the source code can prove without live execution. Handoff for Track 28.02 (live-walk phases) at the bottom.

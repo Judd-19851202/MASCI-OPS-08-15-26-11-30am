@@ -4,6 +4,7 @@ import { ClipboardCheck, Download, Loader2, Search, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PortalShell } from "@/design-system";
+import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
 import AdminSideNavV2 from "@/components/admin/sidebar/SideNavV2";
 import JobFolderList from "@/components/JobFolderList";
 import { api } from "@/lib/api";
@@ -89,6 +90,10 @@ export default function AdminQaqcList() {
       }
     >
       <div className="max-w-6xl mx-auto px-5 sm:px-6 py-6" data-testid="admin-qaqc-list-page">
+        <AdminBreadcrumb crumbs={[
+          { label: "Field Operations" },
+          { label: "QA / QC" },
+        ]} />
         <div className="flex items-start gap-3 mb-5">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-emerald-600 text-white shrink-0">
             <ClipboardCheck className="w-6 h-6" />
