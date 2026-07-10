@@ -340,7 +340,7 @@ const DOMAINS = [
     label: "AI Operations",
     stripe: "#7c3aed",
     icon: Sparkles,
-    to: "/admin/ai-configuration",
+    to: "/admin/ai-operations",
     description:
       "Provider selection, model routing, gateway posture, failover.",
     probe: "/api/ai/gateway/status",
@@ -372,7 +372,7 @@ const DOMAINS = [
     label: "Communications",
     stripe: "#0284c7",
     icon: Mail,
-    to: "/admin/email",
+    to: "/admin/communications",
     description:
       "Email routing, digest scheduler, notification broadcast health.",
     probe: "/api/admin/email-routing/v2/status",
@@ -406,7 +406,7 @@ const DOMAINS = [
     label: "Identity & Security",
     stripe: "#b45309",
     icon: Users,
-    to: "/admin/sessions",
+    to: "/admin/identity-security",
     description:
       "Active sessions, MFA enrollment, portal access, people directory.",
     probe: "/api/admin/sessions/recent",
@@ -432,7 +432,7 @@ const DOMAINS = [
     label: "Governance & Trust",
     stripe: "#7c2d12",
     icon: ShieldCheck,
-    to: "/admin/governance",
+    to: "/admin/governance-trust",
     description:
       "Governance rules, audit log, compliance findings, deploy readiness.",
     probe: "/api/admin/governance/summary",

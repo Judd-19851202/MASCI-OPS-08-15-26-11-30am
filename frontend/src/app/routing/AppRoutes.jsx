@@ -42,6 +42,11 @@ const DriverShift = React.lazy(() => import("@/pages/driver/DriverShift"));
 const AdminOS = React.lazy(() => import("@/pages/admin/AdminOS"));
 // TRACK 25 · SPRINT 3 · Storage & Recovery domain landing.
 const AdminStorageRecovery = React.lazy(() => import("@/pages/admin/AdminStorageRecovery"));
+// TRACK 25 · SPRINT 4 · Four more domain landings — AI Ops, Communications, Identity, Governance.
+const AdminAiOperations = React.lazy(() => import("@/pages/admin/AdminAiOperations"));
+const AdminCommunications = React.lazy(() => import("@/pages/admin/AdminCommunications"));
+const AdminIdentitySecurity = React.lazy(() => import("@/pages/admin/AdminIdentitySecurity"));
+const AdminGovernanceTrust = React.lazy(() => import("@/pages/admin/AdminGovernanceTrust"));
 const AdminMaterialLedgerQuality = React.lazy(() => import("@/pages/AdminMaterialLedgerQuality"));
 const LeadershipHubV2 = React.lazy(() => import("@/pages/LeadershipHubV2"));
 const ExecutiveOverview = React.lazy(() => import("@/pages/ExecutiveOverview"));
@@ -693,6 +698,11 @@ export function AppRoutes() {
             <Route path="/admin/recovery" element={A(LB("/admin/recovery", <AdminRecovery />))} />
             {/* TRACK 25 · SPRINT 3 · Storage & Recovery domain landing. */}
             <Route path="/admin/storage-recovery" element={A(<AdminStorageRecovery />)} />
+            {/* TRACK 25 · SPRINT 4 · Four more domain landings. */}
+            <Route path="/admin/ai-operations" element={A(<AdminAiOperations />)} />
+            <Route path="/admin/communications" element={A(<AdminCommunications />)} />
+            <Route path="/admin/identity-security" element={A(<AdminIdentitySecurity />)} />
+            <Route path="/admin/governance-trust" element={A(<AdminGovernanceTrust />)} />
             <Route path="/admin/recovery-stream" element={A(LB("/admin/recovery-stream", <AdminRecoveryStream />))} />
             <Route path="/admin/jha-acknowledgements" element={A(<AdminJhaAcknowledgements />)} />
             <Route path="/admin/command-center" element={A(<AdminCommandCenter />)} />
