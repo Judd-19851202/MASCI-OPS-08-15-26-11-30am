@@ -1,42 +1,44 @@
-// useDraftSync.js — Phase J · non-invasive autosave companion for
-// forms that already manage their own state via useState.
+// useDraftSync.js — TRACK 27.08 · explicit-restore contract.
 //
-// Unlike `useDraft`, this hook does NOT own the form state — it
-// observes `data`, debounces, and writes IndexedDB drafts. On mount
-// it loads any existing draft and hands it back via `onRecover(draft)`
-// so the parent decides whether to re-apply it.
+// Behavior:
+//   * On mount: LOAD the draft, but DO NOT auto-apply it. Expose it
+//     to the caller as `pendingDraft` so the caller renders an
+//     explicit "Restore / Start blank" prompt.
+//   * When the caller confirms restore, they call `applyDraft()` which
+//     invokes `onRecover(draft)` with the loaded body.
+//   * When the caller chooses start-blank, they call `discard()` which
+//     wipes the persisted draft.
+//   * Autosave still runs (debounced) as the operator types so an
+//     interrupted session recovers cleanly.
 //
-// Returns:
-//   {
-//     draftStatus,   // "idle" | "saving" | "saved"
-//     hasDraft,      // briefly true after a recovery is offered
-//     discard(),     // wipe the IndexedDB draft + clear hasDraft
-//     commit(),      // wipe the IndexedDB draft after successful POST
-//   }
+// The previous "silent auto-apply" behaviour is deliberately gone —
+// production users reported prior submissions leaking into fresh
+// forms because the auto-apply happened before the operator could
+// even see the empty form. This hook now guarantees blank-by-default
+// unless the operator explicitly restores.
 
-import { useEffect, useRef, useState, useCallback } from "react";
-import { saveDraft, getDraft, discardDraft } from "./draftStore";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { discardDraft, getDraft, saveDraft } from "./draftStore";
 
 const DEBOUNCE_MS = 800;
 
 export function useDraftSync(formKey, data, actorId, onRecover) {
   const [draftStatus, setDraftStatus] = useState("idle");
-  const [hasDraft, setHasDraft] = useState(false);
+  const [pendingDraft, setPendingDraft] = useState(null);
   const loadedRef = useRef(false);
   const timerRef = useRef(null);
   const lastSavedKeyRef = useRef(null);
   const onRecoverRef = useRef(onRecover);
   onRecoverRef.current = onRecover;
 
-  // On mount: try to load draft and hand it back.
+  // On mount: load the draft into local state — do NOT apply it.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         const draft = await getDraft(actorId, formKey);
-        if (!cancelled && draft && onRecoverRef.current) {
-          onRecoverRef.current(draft);
-          setHasDraft(true);
+        if (!cancelled && draft) {
+          setPendingDraft(draft);
         }
       } finally {
         loadedRef.current = true;
@@ -44,10 +46,12 @@ export function useDraftSync(formKey, data, actorId, onRecover) {
       }
     })();
     return () => { cancelled = true; };
-     
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formKey, actorId]);
 
-  // Autosave: watch data changes, debounce, then persist.
+  // Autosave — same as before, but only after the initial load
+  // completes so we never overwrite a real draft with the empty
+  // initial-state serialisation.
   useEffect(() => {
     if (!loadedRef.current) return;
     const serialized = JSON.stringify(data || {});
@@ -63,18 +67,38 @@ export function useDraftSync(formKey, data, actorId, onRecover) {
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
   }, [data, formKey, actorId]);
 
+  // Operator chose to restore — invoke onRecover with the loaded
+  // draft body and clear the pending state.
+  const applyDraft = useCallback(() => {
+    if (pendingDraft && onRecoverRef.current) {
+      onRecoverRef.current(pendingDraft);
+    }
+    setPendingDraft(null);
+  }, [pendingDraft]);
+
+  // Operator chose "start blank" OR the form has just been submitted.
   const discard = useCallback(async () => {
     await discardDraft(actorId, formKey);
-    setHasDraft(false);
+    setPendingDraft(null);
     setDraftStatus("idle");
-  }, [actorId, formKey]);
+    // Reset the debounce ref so the next keystroke will save a fresh
+    // draft rather than being no-op'd by a stale serialised match.
+    lastSavedKeyRef.current = JSON.stringify(data || {});
+  }, [actorId, formKey, data]);
 
   const commit = useCallback(async () => {
     await discardDraft(actorId, formKey);
-    setHasDraft(false);
+    setPendingDraft(null);
     setDraftStatus("idle");
     lastSavedKeyRef.current = null;
   }, [actorId, formKey]);
 
-  return { draftStatus, hasDraft, discard, commit };
+  return {
+    draftStatus,
+    pendingDraft,        // { … } if a draft was recovered, else null
+    hasPendingDraft: !!pendingDraft,
+    applyDraft,          // caller invokes when operator clicks Restore
+    discard,             // caller invokes when operator clicks Start blank
+    commit,              // caller invokes after successful submit
+  };
 }

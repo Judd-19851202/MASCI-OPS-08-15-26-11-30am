@@ -1,5 +1,57 @@
 # CHANGELOG
 
+## 2026-07-10 — P0 · TRACK 27.08 · FL FORM BLANK-BY-DEFAULT + EXPLICIT RESTORE — ✅ FIXED
+
+### Root cause of the "stale carryover" reports
+`useDraftSync` was **silently auto-applying** the previous IndexedDB draft to the form state on mount. The only surface signal was a passive toast ("Draft recovered — your unsent field leadership entry was restored") that appeared 1–2 seconds AFTER the fields were already populated. From the operator's perspective, opening a fresh termination form showed a previous employee's data with no explicit choice to accept or reject it — indistinguishable from "the app is leaking submitted records".
+
+### Fix (single hook + single form update)
+- **`/app/frontend/src/lib/resiliency/useDraftSync.js`** — rewritten to load-without-applying. The hook now returns `{ pendingDraft, hasPendingDraft, applyDraft, discard, commit, draftStatus }`. `onRecover` is invoked ONLY when the caller explicitly calls `applyDraft()`.
+- **`/app/frontend/src/pages/FieldLeadershipFormPage.jsx`** — extracted the field-apply block into a `useCallback` (`applyDraftValues`) that fires only when the operator clicks Restore. Added an amber banner just below the form title with two explicit buttons: `Restore draft` and `Start blank`. Banner is gated on `hasPendingDraft` — form is blank until a real draft exists.
+
+### Draft scope contract (unchanged, verified)
+- Key = `fl-<kind>-new` combined with `getActorId()` (device-scoped actor identifier).
+- Cross-user isolation is enforced by the `draftStore` layer (see `/app/frontend/src/lib/resiliency/draftStore.js`).
+- Successful submit already called `commit()` — kept. No stale draft after send.
+
+### Behaviour before / after (verified on preview mobile + desktop)
+| Scenario | Before | After |
+|---|---|---|
+| Open termination form (no draft) | Blank | Blank |
+| Open termination form (existing draft) | Auto-populated with old data + toast | **Blank + explicit "Restore / Start blank" prompt** |
+| Click "Restore draft" | n/a | Fields populate from draft |
+| Click "Start blank" | n/a | Draft wiped, fields stay empty, prompt gone |
+| Submit successful | Draft cleared | Draft cleared |
+| Reload after "Start blank" | Old draft reappeared silently | Form stays blank; prompt does NOT re-appear |
+
+### Blast-radius scan
+- Only `FieldLeadershipFormPage.jsx` consumes `useDraftSync`. Grep across the frontend confirms zero other callers, so the hook rewrite is contained.
+- Other form surfaces (Daily Reports, HR forms, Safety inspections, Meetings, JHA, Pre-Op, DVIR, Fleet, Training, Dispatch) do NOT use `useDraftSync`. They use per-page `useState` initial values, per-page `localStorage` keys, or the newer `useDraft` primitive that already gates restore behind an explicit prompt. No comparable silent-auto-apply pattern found.
+
+### Regression lock
+`/app/frontend/tests/track_27_08_fl_blank_by_default.test.js` — source-level assertions that:
+1. `useDraftSync` no longer auto-invokes `onRecover` on mount.
+2. Both Restore and Start-blank testids are present in the FL form.
+3. Draft key still scopes by `fl-<kind>-new` + actor id.
+4. Successful submit still calls `commit()`.
+
+### Canonical picker gap (registered · not blocking this P0 fix)
+- **P1** — FL form currently fetches jobs from `/api/field-leadership/jobs` and employees from `/api/field-leadership/employees`. These are FL-scoped endpoints (correct for the FL token flow) but the payload shape is a subset of the HR master and Job master. A follow-up track should unify the underlying data source so every FL form sees the same job/employee list as HR/Daily Reports. Not a P0 because the pickers work — they're just fed from a different projection.
+- **P1** — No canonical Equipment picker is wired into FL forms yet (equipment_return uses free-text via `OutstandingEquipmentLookup`). Register for follow-up.
+
+### Deploy recommendation: **GO**
+- Frontend-only change.
+- Backwards compatible: existing drafts recovered by the OLD auto-apply behavior are still readable — they now surface via the new explicit prompt.
+- Rollback = revert two files.
+- No env changes, no backend, no DB.
+
+### Files changed
+- Rewritten: `frontend/src/lib/resiliency/useDraftSync.js` (81 → 100 lines).
+- Modified: `frontend/src/pages/FieldLeadershipFormPage.jsx` (~40 lines: import + `useCallback` + explicit prompt JSX).
+- Added: `frontend/tests/track_27_08_fl_blank_by_default.test.js`.
+
+
+
 ## 2026-07-10 — P0 · FIELD LEADERSHIP TERMINATION LAUNCHER MISSING — ✅ FIXED
 
 ### Executive verdict

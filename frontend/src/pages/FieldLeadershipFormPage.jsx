@@ -5,7 +5,7 @@
 // EN/ES toggle. On submit it sends ES→EN translations alongside the raw
 // Spanish text so admins always have a legible English copy.
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { ArrowLeft, FileText, Save, ShieldAlert } from "lucide-react";
 import { api } from "@/lib/api";
@@ -360,33 +360,34 @@ export default function FieldLeadershipFormPage() {
     supSig, empSig, empRefused, empNotPresent, witnessName, witnessSig,
   ]);
   const actorId = useMemo(() => getActorId(), []);
-  const { draftStatus, discard, commit } = useDraftSync(
-    `fl-${kind}-new`, snapshot, actorId,
-    (draft) => {
-      try {
-        if (draft.jobId !== undefined) setJobId(draft.jobId || "");
-        if (draft.employeeId !== undefined) setEmployeeId(draft.employeeId || "");
-        if (draft.empSearch !== undefined) setEmpSearch(draft.empSearch || "");
-        if (draft.employeeNameOverride !== undefined) setEmployeeNameOverride(draft.employeeNameOverride || "");
-        if (draft.employeePosition !== undefined) setEmployeePosition(draft.employeePosition || "");
-        if (draft.supervisorName !== undefined) setSupervisorName(draft.supervisorName || "");
-        if (draft.occurredAt !== undefined) setOccurredAt(draft.occurredAt || "");
-        if (draft.workArea !== undefined) setWorkArea(draft.workArea || "");
-        if (draft.details !== undefined) setDetails(draft.details || {});
-        if (draft.photos !== undefined) setPhotos(draft.photos || []);
-        if (draft.supSig !== undefined) setSupSig(draft.supSig || "");
-        if (draft.empSig !== undefined) setEmpSig(draft.empSig || "");
-        if (draft.empRefused !== undefined) setEmpRefused(!!draft.empRefused);
-        if (draft.empNotPresent !== undefined) setEmpNotPresent(!!draft.empNotPresent);
-        if (draft.witnessName !== undefined) setWitnessName(draft.witnessName || "");
-        if (draft.witnessSig !== undefined) setWitnessSig(draft.witnessSig || "");
-        toast.message("Draft recovered", {
-          description: "Your unsent field leadership entry was restored.",
-          duration: 6000,
-        });
-      } catch { /* ignore */ }
-    },
-  );
+  const applyDraftValues = useCallback((draft) => {
+    try {
+      if (draft.jobId !== undefined) setJobId(draft.jobId || "");
+      if (draft.employeeId !== undefined) setEmployeeId(draft.employeeId || "");
+      if (draft.empSearch !== undefined) setEmpSearch(draft.empSearch || "");
+      if (draft.employeeNameOverride !== undefined) setEmployeeNameOverride(draft.employeeNameOverride || "");
+      if (draft.employeePosition !== undefined) setEmployeePosition(draft.employeePosition || "");
+      if (draft.supervisorName !== undefined) setSupervisorName(draft.supervisorName || "");
+      if (draft.occurredAt !== undefined) setOccurredAt(draft.occurredAt || "");
+      if (draft.workArea !== undefined) setWorkArea(draft.workArea || "");
+      if (draft.details !== undefined) setDetails(draft.details || {});
+      if (draft.photos !== undefined) setPhotos(draft.photos || []);
+      if (draft.supSig !== undefined) setSupSig(draft.supSig || "");
+      if (draft.empSig !== undefined) setEmpSig(draft.empSig || "");
+      if (draft.empRefused !== undefined) setEmpRefused(!!draft.empRefused);
+      if (draft.empNotPresent !== undefined) setEmpNotPresent(!!draft.empNotPresent);
+      if (draft.witnessName !== undefined) setWitnessName(draft.witnessName || "");
+      if (draft.witnessSig !== undefined) setWitnessSig(draft.witnessSig || "");
+    } catch { /* ignore */ }
+  }, []);
+  const {
+    draftStatus,
+    pendingDraft,
+    hasPendingDraft,
+    applyDraft: restorePendingDraft,
+    discard,
+    commit,
+  } = useDraftSync(`fl-${kind}-new`, snapshot, actorId, applyDraftValues);
 
   useEffect(() => {
     api.get("/field-leadership/jobs").then((r) => setJobs(r.data?.items || [])).catch(() => {});
@@ -754,6 +755,42 @@ export default function FieldLeadershipFormPage() {
         <div className="font-mono text-xs uppercase tracking-[0.2em] text-red-700">{t("Field Leadership")}</div>
         <h1 className="field-glance-anchor font-display text-3xl sm:text-4xl font-black mt-1">{l(form.title, lang)}</h1>
         <p className="text-slate-600 mt-2 max-w-xl">{l(form.desc, lang)}</p>
+
+        {/* TRACK 27.08 · Explicit-restore prompt. The form is BLANK by
+            default; if an unsent draft exists for this exact user + form
+            + device, the operator gets two explicit choices. Restore is
+            never silent. */}
+        {hasPendingDraft && (
+          <div
+            className="mt-6 rounded-lg border border-amber-300 bg-amber-50 p-4"
+            data-testid="fl-draft-restore-prompt"
+          >
+            <div className="text-sm font-semibold text-amber-900">
+              {t("You have an unsent draft for this form.")}
+            </div>
+            <div className="text-xs text-amber-800 mt-1">
+              {t("Choose whether to continue that draft or start blank. Starting blank permanently discards the draft.")}
+            </div>
+            <div className="flex gap-2 mt-3">
+              <Button
+                size="sm"
+                variant="default"
+                onClick={() => restorePendingDraft()}
+                data-testid="fl-draft-restore-apply"
+              >
+                {t("Restore draft")}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => discard()}
+                data-testid="fl-draft-restore-discard"
+              >
+                {t("Start blank")}
+              </Button>
+            </div>
+          </div>
+        )}
 
         {FL_KIND_HELPTIP_FORMKEY[kind] ? (
           <div className="mt-4 max-w-2xl">
