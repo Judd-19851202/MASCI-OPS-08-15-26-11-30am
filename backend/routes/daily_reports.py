@@ -756,6 +756,10 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
         query: Dict[str, Any] = {"project_number": pn, "report_date": rd}
         if submitted_by:
             query["prepared_by"] = submitted_by.strip()
+        # TRACK 28.02B · exclude synthetic rows so the foreman-facing
+        # duplicate dialog never surfaces a certification fixture as
+        # a real prior submit.
+        query = apply_synthetic_dr_exclusion(query)
         # Bound the scan defensively — a real match should be at most 1
         # or a small handful (rare same-day resubmit).
         cursor = db.daily_reports.find(
@@ -887,7 +891,9 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
         from collections import Counter
         cutoff = (_dt.utcnow() - _td(days=max(1, min(days, 90)))).strftime("%Y-%m-%d")
         scope = await compute_pm_scope(db, actor)
-        q = scope.filter({"report_date": {"$gte": cutoff}})
+        # TRACK 28.02B · exclude synthetic/certification DRs — an admin
+        # exposure rollup is a user-facing surface even for admins.
+        q = apply_synthetic_dr_exclusion(scope.filter({"report_date": {"$gte": cutoff}}))
         cur = db.daily_reports.find(
             q,
             {"_id": 0, "constraints": 1, "report_date": 1, "project_number": 1},

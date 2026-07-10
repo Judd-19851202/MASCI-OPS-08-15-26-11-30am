@@ -29,6 +29,8 @@ from typing import Any, Dict, List, Optional, Tuple
 from fastapi import APIRouter, Body, Depends, Header, HTTPException, Query, Request, Response
 from pydantic import BaseModel, Field
 
+from lib.synthetic_flr_filter import apply_synthetic_flr_exclusion
+
 logger = logging.getLogger(__name__)
 
 
@@ -313,10 +315,24 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
         raise HTTPException(status_code=401, detail="Field Leadership access required")
 
     async def _admin_token_valid(tok: str) -> bool:
-        # Reuse the shared HMAC validator. Sync function so no await needed.
+        """Reuse the shared HMAC validator.
+
+        TRACK 28.03 · The legacy sync `_is_valid_admin_token` was
+        retired in 15.32 and always returns False; without the async
+        directory validator, admins were silently locked out of every
+        FL form endpoint. Mirror the fix from Track 28.02-A: fall
+        back to the async directory-hydrated validator so per-user
+        admin tokens (UUID.HMAC issued by `/api/auth/multi-login`)
+        unlock the FL gate.
+        """
         try:
-            from server import _is_valid_admin_token  # type: ignore  # noqa: WPS433
-            return bool(_is_valid_admin_token(tok))
+            from server import (  # type: ignore  # noqa: WPS433, PLC0415
+                _is_valid_admin_token,
+                _is_valid_directory_admin_token_async,
+            )
+            if _is_valid_admin_token(tok):
+                return True
+            return bool(await _is_valid_directory_admin_token_async(tok))
         except Exception:
             return False
 
@@ -955,7 +971,7 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
             ])
 
         cursor = db.field_leadership_records.find(
-            f,
+            apply_synthetic_flr_exclusion(f),
             {"_id": 0, "photos": 0, "supervisor_signature": 0,
              "employee_signature": 0, "witness_signature": 0}
         ).sort("occurred_at", -1).limit(limit)
@@ -966,7 +982,10 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
         # full breakdown the user can see, not just the slice they're
         # currently filtering to.
         scope_only = await _scope_filter(auth)
-        counts_pipeline = [{"$match": scope_only}, {"$group": {"_id": "$kind", "n": {"$sum": 1}}}]
+        counts_pipeline = [
+            {"$match": apply_synthetic_flr_exclusion(scope_only)},
+            {"$group": {"_id": "$kind", "n": {"$sum": 1}}},
+        ]
         counts: Dict[str, int] = {k: 0 for k in KIND_ORDER}
         try:
             async for row in db.field_leadership_records.aggregate(counts_pipeline):
@@ -1110,8 +1129,9 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
             f["employee_name"] = {"$regex": _escape(employee), "$options": "i"}
 
         cursor = db.field_leadership_records.find(
-            f, {"_id": 0, "photos": 0, "supervisor_signature": 0,
-                "employee_signature": 0, "witness_signature": 0}
+            apply_synthetic_flr_exclusion(f),
+            {"_id": 0, "photos": 0, "supervisor_signature": 0,
+             "employee_signature": 0, "witness_signature": 0}
         ).sort("occurred_at", -1).limit(5000)
 
         out = io.StringIO()
@@ -1280,7 +1300,7 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
     async def admin_export_equipment_checkout(_: bool = Depends(require_admin)):
         """CSV with one row per equipment line item across all checkout records."""
         cursor = db.field_leadership_records.find(
-            {"kind": "equipment_checkout", "deleted_at": None},
+            apply_synthetic_flr_exclusion({"kind": "equipment_checkout", "deleted_at": None}),
             {"_id": 0}
         ).sort("occurred_at", -1)
         records = await cursor.to_list(5000)
@@ -1380,7 +1400,7 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
         q: Dict[str, Any] = {"kind": "time_off_request", "deleted_at": None}
         if employee:
             q["employee_name"] = {"$regex": employee.strip(), "$options": "i"}
-        cursor = db.field_leadership_records.find(q, {"_id": 0}).sort("created_at", -1)
+        cursor = db.field_leadership_records.find(apply_synthetic_flr_exclusion(q), {"_id": 0}).sort("created_at", -1)
         items = await cursor.to_list(2000)
         # Surface the HR decision status on the row for fast filtering
         def _status_of(r: Dict[str, Any]) -> str:
@@ -1397,7 +1417,7 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
     async def hr_time_off_stats(auth: Dict[str, Any] = Depends(_is_hr_authed)):
         """Counts by status — drives the HR Hub badge and Admin KPI tile."""
         q = {"kind": "time_off_request", "deleted_at": None}
-        cursor = db.field_leadership_records.find(q, {"_id": 0, "details": 1, "created_at": 1})
+        cursor = db.field_leadership_records.find(apply_synthetic_flr_exclusion(q), {"_id": 0, "details": 1, "created_at": 1})
         pending = approved = denied = need_info = 0
         last_7d = 0
         cutoff = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()

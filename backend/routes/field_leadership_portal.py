@@ -48,6 +48,8 @@ from typing import Any, Callable, Dict, List, Optional
 from fastapi import APIRouter, Body, Depends, Header, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 
+from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
+
 from auth_must_change import enforce_password_change_required
 
 import field_leadership_users as fl
@@ -699,8 +701,9 @@ def build_field_leadership_portal_router(
         incident-flag fields only — FL doesn't need labor cost or
         incident-narrative detail (those belong to PM/Safety)."""
         cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()[:10]
+        # TRACK 28.02B · exclude synthetic rows from the FL portal DR view.
         pipeline = [
-            {"$match": {"report_date": {"$gte": cutoff}}},
+            {"$match": apply_synthetic_dr_exclusion({"report_date": {"$gte": cutoff}})},
             {"$sort": {"report_date": -1, "created_at": -1}},
             {"$limit": limit},
             {"$project": {

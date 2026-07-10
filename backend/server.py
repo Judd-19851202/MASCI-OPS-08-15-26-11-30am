@@ -5677,9 +5677,12 @@ async def list_projects_in_dailies(actor=Depends(require_admin)):
 
     PMs see only projects from THEIR jobs (primary or co-PM)."""
     from pm_auth import compute_pm_scope
+    from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion  # noqa: PLC0415
     scope = await compute_pm_scope(db, actor)
+    # TRACK 28.02B · exclude synthetic/TEST rows so the P&L picker
+    # never surfaces certification projects to real operators.
     pipeline = [
-        {"$match": scope.filter({"project_number": {"$nin": [None, ""]}})},
+        {"$match": apply_synthetic_dr_exclusion(scope.filter({"project_number": {"$nin": [None, ""]}}))},
         {"$group": {
             "_id": "$project_number",
             "project_name": {"$last": "$project_name"},
@@ -5735,6 +5738,7 @@ async def project_pnl(
 
     rate = labor_rate if labor_rate and labor_rate > 0 else DEFAULT_LABOR_RATE
 
+    from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion  # noqa: PLC0415
     q: Dict[str, Any] = {"project_number": project_number}
     # report_date is stored as 'YYYY-MM-DD' string — string compare works lex
     date_filter: Dict[str, Any] = {}
@@ -5745,6 +5749,11 @@ async def project_pnl(
     if date_filter:
         q["report_date"] = date_filter
 
+    # TRACK 28.02B · exclude synthetic rows from P&L; the operational
+    # cost dashboard must reflect real work, not certification
+    # fixtures. If a synthetic project happens to share a project_number
+    # with a real one, cost math would silently inflate.
+    q = apply_synthetic_dr_exclusion(q)
     cursor = db.daily_reports.find(q, {"_id": 0}).sort("report_date", 1)
     reports = await cursor.to_list(2000)
 

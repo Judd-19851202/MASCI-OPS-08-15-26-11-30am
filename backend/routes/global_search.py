@@ -33,6 +33,7 @@ from typing import Any, Awaitable, Callable, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
+from lib.synthetic_flr_filter import apply_synthetic_flr_exclusion
 from masci.identity import format_employee_identity
 
 logger = logging.getLogger(__name__)
@@ -639,6 +640,13 @@ def build_global_search_router(db, require_any_portal_token) -> APIRouter:
             return rows
 
         async def run_field_leadership() -> List[Dict[str, Any]]:
+            """Wave B — searchable FL records.
+
+            TRACK 28.03 · Synthetic / certification / smoke FL records
+            are excluded from global search — same doctrine as
+            ``run_daily_reports`` (Cmd+K search is user-facing on
+            every portal).
+            """
             q_doc = {"$or": [
                 {"kind": rx}, {"employee_name": rx},
                 {"project_number": rx}, {"notes": rx},
@@ -646,7 +654,8 @@ def build_global_search_router(db, require_any_portal_token) -> APIRouter:
             scope: List[Dict[str, Any]] = []
             if role == "pm" and pm_proj is not None:
                 scope.append({"project_number": {"$in": pm_proj}})
-            final = {"$and": [q_doc] + scope} if scope else q_doc
+            base = {"$and": [q_doc] + scope} if scope else q_doc
+            final = apply_synthetic_flr_exclusion(base)
             rows = []
             async for d in db.field_leadership_records.find(final, {"_id": 0}).sort("occurred_at", -1).limit(limit * 2):
                 rows.append(_row(

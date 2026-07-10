@@ -42,6 +42,8 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException
 
+from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
+
 
 # ── Track 13.19 · attachment kinds that count as material-movement proof.
 # Mirrors operational_attachments.ATTACHMENT_TYPES — only the kinds that
@@ -124,8 +126,10 @@ def register_material_movement_routes(router: APIRouter, db) -> None:
         incoming: List[Dict[str, Any]] = []
         outgoing: List[Dict[str, Any]] = []
         async for d in db.daily_reports.find(
-            {"project_number": project_number, "report_date": date,
-             "deleted_at": {"$in": [None, "", False]}},
+            apply_synthetic_dr_exclusion({
+                "project_number": project_number, "report_date": date,
+                "deleted_at": {"$in": [None, "", False]},
+            }),
             {"_id": 0, "id": 1, "materials": 1, "outbound_materials": 1},
         ):
             for m in d.get("materials") or []:

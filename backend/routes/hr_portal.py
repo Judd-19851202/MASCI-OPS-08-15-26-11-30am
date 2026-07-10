@@ -34,6 +34,7 @@ from __future__ import annotations
 
 from lib.mongo_query import safe_regex
 from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
+from lib.synthetic_flr_filter import apply_synthetic_flr_exclusion
 
 import logging
 import os
@@ -342,7 +343,7 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
                 {"project_name": safe_regex(needle)},
             ]
         out = []
-        cursor = db.field_leadership_records.find(query, {"_id": 0}).sort("occurred_at", -1).limit(min(limit, 500))
+        cursor = db.field_leadership_records.find(apply_synthetic_flr_exclusion(query), {"_id": 0}).sort("occurred_at", -1).limit(min(limit, 500))
         async for d in cursor:
             out.append(d)
         return {"ok": True, "items": out, "count": len(out)}
@@ -615,13 +616,18 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
         rx = safe_regex(name)
 
         fl_records: List[Dict[str, Any]] = []
-        async for d in db.field_leadership_records.find({"employee_name": rx}, {"_id": 0}).sort("occurred_at", -1).limit(500):
+        async for d in db.field_leadership_records.find(
+            apply_synthetic_flr_exclusion({"employee_name": rx}), {"_id": 0},
+        ).sort("occurred_at", -1).limit(500):
             fl_records.append(d)
 
         # Outstanding equipment: every equipment_checkout row where this
         # employee has at least one un-returned line.
         outstanding: List[Dict[str, Any]] = []
-        async for rec in db.field_leadership_records.find({"kind": "equipment_checkout", "employee_name": rx}, {"_id": 0}).limit(200):
+        async for rec in db.field_leadership_records.find(
+            apply_synthetic_flr_exclusion({"kind": "equipment_checkout", "employee_name": rx}),
+            {"_id": 0},
+        ).limit(200):
             for idx, line in enumerate((rec.get("details") or {}).get("equipment_lines") or []):
                 if line and not line.get("returned"):
                     outstanding.append({
@@ -883,7 +889,7 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
 
         # 6 · Field Leadership records (write-ups, terminations, approved-driver forms, equipment checkouts, etc.)
         try:
-            async for d in db.field_leadership_records.find(q, {"_id": 0}).limit(500):
+            async for d in db.field_leadership_records.find(apply_synthetic_flr_exclusion(q), {"_id": 0}).limit(500):
                 _push(
                     ts=d.get("occurred_at") or d.get("created_at"),
                     kind=f"fl_{d.get('kind') or 'record'}",
@@ -1294,7 +1300,7 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
             "project_number": 1, "prepared_by": 1, "superintendent": 1,
             "masci_crews": 1, "created_at": 1, "submitted_at": 1,
         }
-        async for d in db.daily_reports.find(query, TV_FIELDS).sort("report_date", 1).limit(1000):
+        async for d in db.daily_reports.find(apply_synthetic_dr_exclusion(query), TV_FIELDS).sort("report_date", 1).limit(1000):
             day = d.get("report_date") or ""
             job = d.get("project_name") or ""
             job_num = d.get("project_number") or ""

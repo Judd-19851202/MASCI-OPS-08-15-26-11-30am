@@ -27,6 +27,8 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException
+
+from lib.synthetic_flr_filter import apply_synthetic_flr_exclusion
 from fastapi.responses import StreamingResponse
 
 # TRACK 27.03 · Phase 2 · Every operator-visible "Generated" stamp in
@@ -272,9 +274,13 @@ async def _employee_history(db, master_id: str, employee_name: Optional[str]) ->
         })
 
     # 5. HR field-leadership records (keyed by name — best-effort)
+    # TRACK 28.03 · exclude synthetic/certification FL records from the
+    # employee history feed (user-facing HR audit surface).
     if employee_name:
         async for d in db.field_leadership_records.find(
-            {"employee_name": {"$regex": f"^{_re.escape(employee_name)}$", "$options": "i"}},
+            apply_synthetic_flr_exclusion({
+                "employee_name": {"$regex": f"^{_re.escape(employee_name)}$", "$options": "i"},
+            }),
             {"_id": 0, "id": 1, "kind": 1, "occurred_at": 1,
              "supervisor_name": 1, "project_number": 1, "details": 1, "created_at": 1},
         ).limit(500):

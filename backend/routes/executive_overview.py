@@ -30,6 +30,8 @@ from typing import Any, Dict, List
 from fastapi import APIRouter, Depends
 from motor.motor_asyncio import AsyncIOMotorClient
 
+from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
+
 logger = logging.getLogger(__name__)
 
 
@@ -50,11 +52,15 @@ def register(app, *, db=None, require_admin_dep=None):
         # ───────────── Tile 6 — Activity Snapshot ─────────────
         # Source modules: daily_reports.report_date, meetings.created_at,
         # jhas.created_at, incidents.created_at, equipment_inspections.created_at
+        # TRACK 28.02B · exclude synthetic/certification DRs from every
+        # count/distinct on daily_reports (the executive overview is a
+        # user-facing operational surface — synthetic rows would inflate
+        # `daily_reports_today` and pollute `stale_projects`).
         dr_today = await db.daily_reports.count_documents(
-            {"report_date": today_iso}
+            apply_synthetic_dr_exclusion({"report_date": today_iso})
         )
         dr_yesterday = await db.daily_reports.count_documents(
-            {"report_date": yesterday_iso}
+            apply_synthetic_dr_exclusion({"report_date": yesterday_iso})
         )
         meetings_today = await db.meetings.count_documents(
             {"created_at": {"$gte": today_iso}}
@@ -87,10 +93,12 @@ def register(app, *, db=None, require_admin_dep=None):
         # Daily Reports cadence: projects with no DR in the last 3 days
         # (signal only — not authoritative "missing", just "needs attention")
         recent_project_set = await db.daily_reports.distinct(
-            "project_number", {"report_date": {"$gte": cutoff_3d}},
+            "project_number",
+            apply_synthetic_dr_exclusion({"report_date": {"$gte": cutoff_3d}}),
         )
         all_active_project_set = await db.daily_reports.distinct(
-            "project_number", {"report_date": {"$gte": cutoff_7d}},
+            "project_number",
+            apply_synthetic_dr_exclusion({"report_date": {"$gte": cutoff_7d}}),
         )
         stale_projects = sorted(
             set(p for p in all_active_project_set if p)

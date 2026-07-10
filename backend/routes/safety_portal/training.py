@@ -13,6 +13,8 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from lib.synthetic_flr_filter import apply_synthetic_flr_exclusion
+
 from ._models import TrainingRecordCreate, TrainingRecordUpdate
 
 
@@ -152,10 +154,10 @@ def register_training_routes(
             })
         ppe_issuance = 0
         if name:
-            ppe_issuance = await db.field_leadership_records.count_documents({
+            ppe_issuance = await db.field_leadership_records.count_documents(apply_synthetic_flr_exclusion({
                 "kind": "safety_equipment_issuance",
                 "employee_name": name,
-            })
+            }))
         open_cas = await db.corrective_actions.count_documents({
             "assigned_to_name": name,
             "status": {"$in": ["Open", "In Progress", "Pending Review"]},

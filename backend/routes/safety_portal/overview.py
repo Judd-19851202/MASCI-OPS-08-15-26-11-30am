@@ -10,6 +10,8 @@ from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends
 
+from lib.synthetic_flr_filter import apply_synthetic_flr_exclusion
+
 
 async def _build_overview_payload(db) -> dict:
     now = datetime.now(timezone.utc)
@@ -30,10 +32,10 @@ async def _build_overview_payload(db) -> dict:
              "due_date": {"$ne": None, "$lt": today}}
         ),
         "training_deficiencies_total": await db.field_leadership_records.count_documents(
-            {"kind": "training_deficiency"}
+            apply_synthetic_flr_exclusion({"kind": "training_deficiency"})
         ),
         "safety_equipment_issuances_total": await db.field_leadership_records.count_documents(
-            {"kind": "safety_equipment_issuance"}
+            apply_synthetic_flr_exclusion({"kind": "safety_equipment_issuance"})
         ),
         "fire_extinguishers_total": await db.fire_extinguishers.count_documents({}),
         "fire_extinguishers_overdue": await db.fire_extinguishers.count_documents(

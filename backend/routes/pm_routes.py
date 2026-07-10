@@ -33,6 +33,8 @@ import re
 from datetime import datetime, timedelta, timezone
 from typing import Any, Awaitable, Callable, Dict, List, Optional
 
+from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
+
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 
@@ -95,8 +97,10 @@ async def _pm_crew_employee_names(
     cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()[:10]
     names: set[str] = set()
     async for r in db.daily_reports.find(
-        {"project_name": {"$in": proj_names},
-         "report_date": {"$gte": cutoff}},
+        apply_synthetic_dr_exclusion({
+            "project_name": {"$in": proj_names},
+            "report_date": {"$gte": cutoff},
+        }),
         {"_id": 0, "crew_members": 1, "employees": 1, "personnel": 1},
     ).limit(2000):
         for fld in ("crew_members", "employees", "personnel"):
