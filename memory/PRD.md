@@ -15,6 +15,21 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 
 ## Active Track — 2026-07-10
 
+**TRACK 25 · SPRINT 7/8 · Admin OS Trust Gap Wiring + SideNavV3 Certification — 🟢 SHIPPED (2026-07-10)**
+
+- **New read-only aggregator** `/app/backend/routes/occ_trust_events.py` → `GET /api/admin/occ/trust-events`.
+  Composes 4 existing endpoints (`/api/admin/audit`, `/api/admin/scheduler-runs`, `/api/admin/operations-control/audit`, `/api/admin/deploy-readiness`) into a unified trust-events feed with `{counts, by_kind, auth_failures_in_window, unresolved_blockers, events[]}`. No new truth sources. No server cache. Honest UNKNOWN on child failure. Auth-passthrough. 3 new pytest cases green.
+- **4 trust gaps eliminated** by wiring real data:
+  - `gap-gov-trust-events` → `Unified Trust Events (recent)` card on Governance & Trust
+  - `gap-gov-unresolved-blockers` → `Unresolved Deploy Blockers` card on Governance & Trust
+  - `gap-sec-auth-failures` → `Recent Auth Failures` card on Identity & Security
+  - `gap-maint-history-summary` → composed inside Trust Events (ops_audit rows)
+- **SideNavV3 certified** — new top-level "Admin OS" section (`domainMapV3.js`) surfaces all 10 canonical domain landings as one-click sidebar links. Legacy business-domain sections preserved below.
+- **Global Trust Snapshot export** — new "Export snapshot" button on AdminOS downloads a Markdown snapshot of the platform trust state (posture · counts · per-domain verdicts · source endpoints). No secrets. Client-side composition of existing manifest data.
+- **Testing agent 100% pass** (`/app/test_reports/iteration_track_25_sprint_7_8_trust_wiring.json`) · backend pytest 49/49 (46 Sprint 2 + 3 new).
+
+**Trust gap count**: was 30 (post-Sprint 6) → **now 26** across all Admin OS domains. Remaining gaps are honestly registered and require backend data that does not yet exist (feature-flag admin, secret rotation, latency percentiles, Sentry surface, locked users, passkey stats, RBAC matrix, AI cost/latency, dead-letter surface, CI status, cluster capacity, worker locks, queue admin, etc.).
+
 **TRACK 25 · SPRINT 5/6 · Admin OS Domain Completion Push — 🟢 SHIPPED (2026-07-10)**
 
 - Three new domain landings using the same `DomainLandingShell` (zero visual drift):
