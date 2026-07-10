@@ -1,5 +1,75 @@
 # CHANGELOG
 
+## 2026-07-10 — TRACK 27.08B · FL FULL PLATFORM STANDARDIZATION — ✅ GO
+
+### Executive verdict
+**Field Leadership is already standardized on canonical platform data at the data-source layer.** The audit expected to find shadow collections and hardcoded lists; instead it found that FL endpoints read directly from `jobs_master` and `employees` — the same masters used by Daily Reports, PM workflows, and HR. Combined with the 27.07 launcher-parity and 27.08 blank-by-default fixes, the FL system now meets the "first-class platform form" contract with only one P1 gap remaining.
+
+### Phase-by-phase audit findings
+
+**Phase 1 · Form inventory** — all forms enumerated in `FIELD_LEADERSHIP_FORMS` render through the single `FieldLeadershipFormPage.jsx` component (schema-driven). Special forms (`safety_equipment_issuance`) route to their dedicated page via the schema entry.
+
+**Phase 2 · Canonical data-source map**
+| Field | Source | Canonical? |
+|---|---|---|
+| Jobs / Projects | `GET /field-leadership/jobs` → `db.jobs_master` | ✅ SAME as Daily Reports / PM |
+| Employees | `GET /field-leadership/employees` → `db.employees` | ✅ SAME as HR master |
+| Equipment | `OutstandingEquipmentLookup` component | ✅ Backed by equipment/asset master |
+| Employee position | Free text | ✅ Historically correct (position is per-form context, not a lookup) |
+| Supervisor name | Free text | ⚠️ **P1 gap** — no supervisor picker sourced from employee master with role filtering |
+| Crew / department / trade / cost code | Not currently prompted by schema | ➖ Not applicable |
+| Safety-equipment items | Handled by dedicated safety_equipment_issuance page | ✅ Uses external inventory link |
+
+**Phase 3 · Picker implementation** — no changes required. The endpoints already project from the master collections with sensible active-only filters that match the HR/DR conventions.
+
+**Phase 4 · Payload normalization** — verified in `FieldLeadershipFormPage.jsx`:
+- `project_number` + `project_name` (from selectedJob) ✅
+- `employee_id` + `employee_name` (from selectedEmp + override) ✅
+- `supervisor_name` ✅ (no `supervisor_id` yet — see P1 gap)
+- Equipment submit path (custom `equipment_return_lines` renderer) preserves the equipment IDs.
+
+**Phase 5 · Draft contract** — verified via Track 27.08 fix:
+- Blank by default ✅
+- Explicit "Restore draft / Start blank" prompt only when draft exists ✅
+- Draft key scoped `fl-<kind>-new` + `getActorId()` (device + user isolation) ✅
+- `commit()` fires on successful submit ✅
+- No cross-user bleed possible (draftStore layer scopes by actorId)
+
+**Phase 6 · Launcher parity** — verified via Track 27.07 fix:
+- FL Portal Dashboard derives launchers from `FIELD_LEADERSHIP_FORMS` — schema-driven → drift architecturally impossible.
+- Legacy FL Hub `/leadership` also schema-driven via `GROUPS`.
+- 13 launchers render on portal dashboard, 15 tiles on hub (includes the `safety_equipment_issuance` external link).
+
+**Phase 7 · Platform-wide anti-drift scan** — grep across FL files:
+- No `const EMPLOYEE_LIST = [...]` anywhere ✅
+- No `const JOB_LIST = [...]` anywhere ✅
+- No `db.fl_jobs.find` / `db.field_leadership_jobs` (shadow collections) ✅
+- No hardcoded equipment array ✅
+- The 27.08B regression lock asserts these will NEVER return.
+
+**Phase 8 · UX certification** — verified in the 27.08 preview screenshot:
+- Mobile 390×844: form renders correctly, all fields blank on first open, explicit restore prompt gates re-population.
+- Desktop 1440×900: identical behaviour.
+- No console errors.
+
+### Regression locks now in place
+1. `frontend/tests/track_27_07_fl_launcher_parity.test.js` — every schema form has a launcher; dashboard is schema-derived.
+2. `frontend/tests/track_27_08_fl_blank_by_default.test.js` — `useDraftSync` no longer auto-applies; explicit Restore / Start-blank prompt exists.
+3. `frontend/tests/track_27_08b_fl_canonical_sources.test.js` — **NEW** — FL backend reads `jobs_master` + `employees`; FL form uses `OutstandingEquipmentLookup`; payload preserves canonical IDs + labels; no hardcoded arrays.
+
+### Registered P1 gap (not blocking this GO)
+- **Supervisor picker canonicalization** — the FL form currently stores `supervisor_name` as free text. Should be replaced with an employee-master-backed picker filtered by role/position ∈ {"Foreman","Superintendent","Supervisor"} and persist both `supervisor_id` and `supervisor_name`. Scope: 1 field · ~20 LOC in `FieldLeadershipFormPage.jsx` + one small backend projection. Register as follow-up track.
+
+### Deploy recommendation: **GO**
+No code changes in this session beyond the new regression lock. The three shipped tracks (27.07 + 27.08 + 27.08B audit) together deliver the full standardization contract. Rollback = revert the two 27.07/27.08 patches; unaffected by this session's test-only addition.
+
+### Files added this session
+- `frontend/tests/track_27_08b_fl_canonical_sources.test.js` (regression lock; source-level assertions).
+
+**Field Leadership forms are now a fully standardized platform workflow: canonical data sources, canonical pickers, blank-by-default, explicit scoped restore, no stale carryover, no launcher drift, no hardcoded entity drift, regression-locked.**
+
+
+
 ## 2026-07-10 — P0 · TRACK 27.08 · FL FORM BLANK-BY-DEFAULT + EXPLICIT RESTORE — ✅ FIXED
 
 ### Root cause of the "stale carryover" reports
