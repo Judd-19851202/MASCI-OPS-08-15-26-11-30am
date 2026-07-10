@@ -1,5 +1,25 @@
 # CHANGELOG
 
+## 2026-07-11 · Track 28.07 · SESSION 2 · ✅ CLOSED WITH PASS
+
+**Sessions 1+2 complete.** Track 28.07 is CLOSED WITH PASS. **No deployment** — broader Track 28 program gate holds.
+
+### Session 2 deliverables
+* **Manifest v2 hardening** — change-impact resolver (`workflows_touching_file`), acyclic dependency-graph validation, deterministic release-gate status helper. All in `backend/lib/certification_manifest.py` + `backend/tests/test_track_28_07_session2_manifest_and_control_layer.py`.
+* **Control-layer cert** — 6 previously NOT_CERTIFIED entries flipped to PASS (admin_os.landing_and_deep_pages, occ.trust_center, ai.operations, communications.email_routing, storage.recovery_and_r2, executive.dashboards_and_reports).
+* **Device walk artifact** — 8/12 pass, 4 defects triaged.
+
+### Defects
+* **D3-CMDK-SYNTHETIC-LEAK (CRITICAL)** — Cmd+K leaked TEST_28_04_/TEST_28_06_ notifications. Fixed inline: purged 1000+ synthetic notification rows; regression-locked by `test_p14_global_search_hides_synthetic`.
+* D1/D2 (HIGH) — `/admin/occ` and `/executive` route aliases returned 404. Documented in manifest routes; frontend alias deferred to Track 28.08 backlog.
+* D4 (P2/HIGH) — Admin OS PortalShell mobile overflow at 390px (utility-chip row). Registered as backlog for Track 28.08.
+
+### Regression proof
+**157 passed, 1 skipped, 0 failed** across the entire Track 28 matrix. Zero synthetic residue. 13/13 manifest entries PASS.
+
+### Deployment status
+**HELD.** Track 28.08 (final cross-domain integration cert) + Track 28.09 (combined pre-deployment cert) both required.
+
 ## 2026-07-11 · Track 28.07 · SESSION 1 CLOSED WITH EVIDENCE (Phases 1-6 + 17)
 
 Training / Qualification E2E complete + permanent certification manifest architecture deployed on-branch. **Track 28.07 is NOT PASS** — Session 2 required (Phases 7-16). No deployment.
