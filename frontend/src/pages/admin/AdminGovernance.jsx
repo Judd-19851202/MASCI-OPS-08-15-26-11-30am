@@ -19,7 +19,7 @@ import {
   RefreshCw, ArrowRight, Eye, Clock, Link2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import AdminShell from "@/components/AdminShell";
+import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import DraftHealthTile from "@/components/admin/DraftHealthTile";
 import { api } from "@/lib/api";
 import { operationalError } from "@/lib/errors";
@@ -202,18 +202,23 @@ export default function AdminGovernance() {
   }, [ruleCounts]);
 
   return (
-    <AdminShell
+    <LegacyAdminModernShell
       title="Governance Health"
-      section="governance"
-      intro={
+      subtitle="Cross-portal contradiction detection."
+      breadcrumb={[
+        { label: "Governance & Trust", to: "/admin/governance-trust" },
+        { label: "Governance Health" },
+      ]}
+      testidPrefix="admin-governance"
+    >
+      <div className="mb-5 rounded-lg border border-slate-200 bg-white p-4">
         <p className="text-sm text-slate-700 leading-relaxed">
           Cross-portal contradiction detection. Surfaces operational gaps before humans
           discover them manually — driver expirations, expired training, missing PPE
           accountability, incident/CAPA lifecycle breaks, and employee identity anomalies.
           Read-only intelligence layer over the existing source-of-truth collections.
         </p>
-      }
-    >
+      </div>
       <div className="space-y-5 mt-5" data-testid="admin-governance">
         {/* Convergence score banner */}
         <div className={`border-2 rounded-md p-4 sm:p-5 flex flex-wrap items-center gap-4 ${healthMeta.tint}`} data-testid="gov-score-banner">
@@ -397,6 +402,6 @@ export default function AdminGovernance() {
           </div>
         </div>
       </div>
-    </AdminShell>
+    </LegacyAdminModernShell>
   );
 }

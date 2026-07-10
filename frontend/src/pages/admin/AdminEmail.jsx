@@ -1,6 +1,6 @@
-// AdminEmail.jsx — /admin/email section page (iter83)
+// AdminEmail.jsx — /admin/email
 import React from "react";
-import AdminShell from "@/components/AdminShell";
+import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import AutoEmailRoutingPanel from "@/components/AutoEmailRoutingPanel";
 import AdminEmailRoutingPanel from "@/components/AdminEmailRoutingPanel";
 import EmailRoutingV2Panel from "@/components/EmailRoutingV2Panel";
@@ -11,18 +11,23 @@ import TenantBrandingPanel from "@/components/TenantBrandingPanel";
 
 export default function AdminEmail() {
   return (
-    <AdminShell
+    <LegacyAdminModernShell
       title="Email & Routing"
-      section="email"
-      intro={
+      subtitle="Auto-routing rules · distribution lists · route catalog."
+      breadcrumb={[
+        { label: "Communications", to: "/admin/communications" },
+        { label: "Email & Routing" },
+      ]}
+      testidPrefix="admin-email"
+    >
+      <div className="mb-5 rounded-lg border border-slate-200 bg-white p-4">
         <p className="text-sm text-slate-600 leading-relaxed">
           Every record (Daily Reports, Pre-Op fails, incidents, QA/QC, etc.) is auto-emailed when
           submitted. Configure who gets what — auto-routing rules (e.g. PM by job number) live in
-          the first panel, plain distribution lists in the second, and the 19-route catalog
+          the first panel, plain distribution lists in the second, and the route catalog
           in the third.
         </p>
-      }
-    >
+      </div>
       <div className="space-y-4">
         <OperationsTrustCenter />
         <PlatformTrustValidator />
@@ -32,6 +37,6 @@ export default function AdminEmail() {
         <AutoEmailRoutingPanel />
         <AdminEmailRoutingPanel />
       </div>
-    </AdminShell>
+    </LegacyAdminModernShell>
   );
 }

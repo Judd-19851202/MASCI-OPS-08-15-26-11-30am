@@ -7,7 +7,7 @@
 // All data sourced from /api/admin/recovery/snapshot (cached server-side
 // for 15s).
 import React, { useEffect, useState, useCallback } from "react";
-import AdminShell from "@/components/AdminShell";
+import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import { getAdminToken } from "@/lib/adminAuth";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -133,20 +133,25 @@ export default function AdminRecovery() {
   }, [load]);
 
   return (
-    <AdminShell
+    <LegacyAdminModernShell
       title="Recovery Posture"
-      section="recovery"
-      intro={
+      subtitle="Read-only recovery dashboard · polls every 30s."
+      breadcrumb={[
+        { label: "Storage & Recovery", to: "/admin/storage-recovery" },
+        { label: "Recovery Posture" },
+      ]}
+      testidPrefix="admin-recovery"
+    >
+      <div className="mb-5 rounded-lg border border-slate-200 bg-white p-4">
         <p className="text-sm text-slate-600 leading-relaxed">
           Read-only recovery dashboard. Polls every 30s. For actions
-          (trigger backup · run drill · restore from archive), go to{" "}
-          <a className="underline" href="/admin/system">
-            /admin/system
+          (trigger backup · run drill · restore from archive), open{" "}
+          <a className="underline" href="/admin/operations-control">
+            Operations Control
           </a>
           .
         </p>
-      }
-    >
+      </div>
       {loading && (
         <div className="text-sm text-slate-500" data-testid="recovery-loading">
           Loading recovery posture…
@@ -349,6 +354,6 @@ export default function AdminRecovery() {
           </div>
         </div>
       )}
-    </AdminShell>
+    </LegacyAdminModernShell>
   );
 }

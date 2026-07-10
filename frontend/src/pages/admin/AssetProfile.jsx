@@ -80,7 +80,7 @@ export default function AssetProfile() {
             </div>
             <div className="flex-1 min-w-0">
               <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold">
-                Unified asset profile · iter124
+                Unified asset profile
               </span>
               <h1 className="font-display text-2xl sm:text-3xl font-black tracking-tight" data-testid="asset-profile-name">
                 {overview.unit_number || "—"} <span className="text-slate-500 font-normal">— {overview.name || "(unnamed)"}</span>

@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Upload, FileText, CheckCircle2, XCircle, Eye, Clock, AlertTriangle, ShieldAlert, Users, Wrench, Briefcase, Copy, ExternalLink, RotateCw } from "lucide-react";
 import { api } from "@/lib/api";
+import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 
 const DOCUMENT_TYPES = [
   "equipment_checkout", "training_record", "osha_card", "toolbox_talk",
@@ -76,15 +77,23 @@ export default function AdminLegacyImports() {
   }, {});
 
   return (
-    <div className="min-h-screen bg-slate-50" data-testid="legacy-imports-page">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+    <LegacyAdminModernShell
+      title="Historical Records"
+      subtitle="OCR/AI-assisted reconciliation queue · humans approve every promotion."
+      breadcrumb={[
+        { label: "Maintenance", to: "/admin/maintenance" },
+        { label: "Historical Records" },
+      ]}
+      testidPrefix="legacy-imports"
+    >
+      <div className="max-w-6xl mx-auto" data-testid="legacy-imports-page">
         <div className="flex items-start justify-between flex-wrap gap-3 mb-1">
           <div>
             <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-indigo-700 font-black">
-              Phase {meta?.phase || "A"} · {meta?.phase === "B" ? "Equipment Checkout Pilot" : "Foundation"}
+              {meta?.phase === "B" ? "Equipment Checkout Pilot" : "Reconciliation Queue"}
             </div>
             <h1 className="font-display text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-              Legacy Records · Reconciliation Queue
+              Historical Records · Reconciliation Queue
             </h1>
             <p className="text-sm text-slate-600 mt-1 max-w-2xl">
               OCR/AI assists — humans approve. Imported records become live
@@ -168,7 +177,7 @@ export default function AdminLegacyImports() {
           />
         )}
       </div>
-    </div>
+    </LegacyAdminModernShell>
   );
 }
 

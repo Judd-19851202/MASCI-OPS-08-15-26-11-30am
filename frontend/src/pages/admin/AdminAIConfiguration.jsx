@@ -29,7 +29,7 @@ import {
   KeyRound,
   Info,
 } from "lucide-react";
-import AdminShell from "@/components/AdminShell";
+import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -242,7 +242,15 @@ export default function AdminAIConfiguration() {
   };
 
   return (
-    <AdminShell title="AI Configuration" section="system">
+    <LegacyAdminModernShell
+      title="AI Configuration"
+      subtitle="Optional intelligence · tenant AI switchboard."
+      breadcrumb={[
+        { label: "AI Operations", to: "/admin/ai-operations" },
+        { label: "AI Configuration" },
+      ]}
+      testidPrefix="admin-ai-configuration"
+    >
       <div className="max-w-7xl mx-auto space-y-6" data-testid="admin-ai-configuration-page">
         {/* ── Header ─────────────────────────────────────────── */}
         <div className="bg-white border border-slate-200 rounded-md p-5 flex items-start gap-4">
@@ -518,7 +526,7 @@ export default function AdminAIConfiguration() {
           )}
         </section>
       </div>
-    </AdminShell>
+    </LegacyAdminModernShell>
   );
 }
 

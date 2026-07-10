@@ -15,7 +15,7 @@ import {
   Activity, RefreshCcw, Loader2, ShieldCheck, ShieldAlert, Clock,
   WifiOff, Globe,
 } from "lucide-react";
-import AdminShell from "@/components/AdminShell";
+import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
@@ -105,7 +105,15 @@ export default function AdminSessions() {
   const tiers = data?.tiers || {};
 
   return (
-    <AdminShell title="Sessions" section="system">
+    <LegacyAdminModernShell
+      title="Sessions"
+      subtitle="Read-only forensic view — last 50 portal sessions."
+      breadcrumb={[
+        { label: "Identity & Security", to: "/admin/identity-security" },
+        { label: "Sessions" },
+      ]}
+      testidPrefix="admin-sessions"
+    >
       <div className="max-w-7xl mx-auto" data-testid="admin-sessions-page">
         {/* Header */}
         <div className="bg-white border border-slate-200 rounded-md p-5 mb-4 flex flex-col sm:flex-row sm:items-start gap-3">
@@ -119,7 +127,7 @@ export default function AdminSessions() {
           </div>
           <div className="flex-1">
             <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold">
-              Operational visibility · iter189
+              Operational visibility
             </span>
             <h1 className="font-display text-2xl font-black tracking-tight mt-0.5">
               Last 50 Sessions
@@ -330,6 +338,6 @@ export default function AdminSessions() {
           <TroubleshootingLink articleId="why-session-timeouts" label="Why do sessions expire?" />
         </div>
       </div>
-    </AdminShell>
+    </LegacyAdminModernShell>
   );
 }

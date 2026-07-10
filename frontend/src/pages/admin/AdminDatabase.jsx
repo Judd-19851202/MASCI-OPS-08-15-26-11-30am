@@ -10,7 +10,7 @@
 //   - Mobile-safe — single column on small screens, two columns on lg+.
 import React, { useEffect, useState } from "react";
 import { Database, Loader2, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
-import AdminShell from "@/components/AdminShell";
+import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import StorageObservabilityCard from "@/components/admin/StorageObservabilityCard";
 import { api } from "@/lib/api";
 
@@ -95,7 +95,15 @@ function CapacityNow() {
 
 export default function AdminDatabase() {
   return (
-    <AdminShell title="Database" section="database">
+    <LegacyAdminModernShell
+      title="Database Capacity"
+      subtitle="Storage trend and capacity forecast."
+      breadcrumb={[
+        { label: "Diagnostics", to: "/admin/diagnostics" },
+        { label: "Database Capacity" },
+      ]}
+      testidPrefix="admin-database"
+    >
       <div className="max-w-7xl mx-auto" data-testid="admin-database-page">
         <header className="bg-white border border-slate-200 rounded-md p-5 mb-4 flex items-start gap-3">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-slate-800 text-white shrink-0">
@@ -119,6 +127,6 @@ export default function AdminDatabase() {
           <StorageObservabilityCard />
         </div>
       </div>
-    </AdminShell>
+    </LegacyAdminModernShell>
   );
 }

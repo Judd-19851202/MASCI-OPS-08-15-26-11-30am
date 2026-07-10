@@ -3,7 +3,7 @@
 // green/yellow/red status cards. No charts, no analytics, no bloat.
 import React, { useEffect, useState } from "react";
 import { Activity, RefreshCcw, CheckCircle2, AlertTriangle, XCircle, Loader2 } from "lucide-react";
-import AdminShell from "@/components/AdminShell";
+import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { formatUtcForAudit } from "@/lib/dateUtils";
@@ -32,7 +32,15 @@ export default function SystemHealth() {
   const ov = STATUS[overall];
 
   return (
-    <AdminShell title="System Health" section="system">
+    <LegacyAdminModernShell
+      title="System Health"
+      subtitle="Green/yellow/red operational probe."
+      breadcrumb={[
+        { label: "Diagnostics", to: "/admin/diagnostics" },
+        { label: "System Health" },
+      ]}
+      testidPrefix="admin-system-health"
+    >
       <div className="max-w-7xl mx-auto" data-testid="admin-system-health-page">
         <div className="bg-white border border-slate-200 rounded-md p-5 mb-4 flex items-start gap-3">
           <div className={`inline-flex items-center justify-center w-12 h-12 rounded-md ${ov.chip} text-white shrink-0`}>
@@ -40,7 +48,7 @@ export default function SystemHealth() {
           </div>
           <div className="flex-1">
             <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold">
-              Operational Status · iter130
+              Operational Status
             </span>
             <h1 className="font-display text-2xl font-black tracking-tight mt-0.5">
               System Health
@@ -99,6 +107,6 @@ export default function SystemHealth() {
           </div>
         )}
       </div>
-    </AdminShell>
+    </LegacyAdminModernShell>
   );
 }

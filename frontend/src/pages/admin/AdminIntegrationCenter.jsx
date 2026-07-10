@@ -29,7 +29,7 @@ import {
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import AdminShell from "@/components/AdminShell";
+import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
@@ -51,7 +51,15 @@ const inputCls = "h-10 text-sm border-2 border-slate-300 focus-visible:ring-2 fo
 
 export default function AdminIntegrationCenter() {
   return (
-    <AdminShell title="Integration Center" kicker="ADMIN · INTEGRATION CENTER">
+    <LegacyAdminModernShell
+      title="Integration Center"
+      subtitle="Motive · MaintainX · CSV feeds."
+      breadcrumb={[
+        { label: "Platform Configuration", to: "/admin/platform-configuration" },
+        { label: "Integrations" },
+      ]}
+      testidPrefix="admin-integration-center"
+    >
       <div className="bg-white border border-slate-200 rounded-md p-5 mb-5">
         <div className="flex items-start gap-3">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-slate-900 text-white shrink-0">
@@ -107,7 +115,7 @@ export default function AdminIntegrationCenter() {
         <TabsContent value="wizard"><WizardTab /></TabsContent>
         <TabsContent value="geofences"><GeofencesTab /></TabsContent>
       </Tabs>
-    </AdminShell>
+    </LegacyAdminModernShell>
   );
 }
 

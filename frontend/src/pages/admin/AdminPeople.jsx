@@ -8,7 +8,7 @@
 //
 // Zero behaviour change to underlying panels. Read-only re-ordering + accordion wrap.
 import React from "react";
-import AdminShell from "@/components/AdminShell";
+import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import AdminPMPanel from "@/components/AdminPMPanel";
 import AdminShopUsersPanel from "@/components/AdminShopUsersPanel";
 import AdminHRUsersPanel from "@/components/AdminHRUsersPanel";
@@ -24,17 +24,22 @@ import { IamUserDetailDrawerHost } from "@/components/iam/IamUserDetailDrawer";
 
 export default function AdminPeople() {
   return (
-    <AdminShell
+    <LegacyAdminModernShell
       title="People & Access"
-      section="people"
-      intro={
+      subtitle="Access Control Center · Unified Directory · portal accounts. Modernize IAM across every portal from one screen."
+      breadcrumb={[
+        { label: "Identity & Security", to: "/admin/identity-security" },
+        { label: "People & Access" },
+      ]}
+      testidPrefix="admin-people"
+    >
+      <div className="mb-5 rounded-lg border border-slate-200 bg-white p-4">
         <p className="text-sm text-slate-600 leading-relaxed" data-testid="admin-people-intro">
           <strong>Access Control Center</strong> is the source of truth for multi-portal accounts.
           <strong> Unified Directory</strong> is the searchable identity index.
           Portal-specific panels below are secondary views — expand only the one you need.
         </p>
-      }
-    >
+      </div>
       <div className="space-y-3" data-testid="admin-people-stack">
         {/* LEVEL 0 — at-a-glance stats */}
         <AdminAccessStatsTile />
@@ -72,6 +77,6 @@ export default function AdminPeople() {
       {/* iter506 · OMEGA Unified User Detail Drawer — host mounted once;
           every <IamStandardCells> row opens it via window.__openIamUserDrawer */}
       <IamUserDetailDrawerHost />
-    </AdminShell>
+    </LegacyAdminModernShell>
   );
 }

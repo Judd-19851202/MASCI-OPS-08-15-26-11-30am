@@ -14,14 +14,14 @@
 // All five questions are answered by a single row in this table.
 
 import React, { useEffect, useState, useMemo } from "react";
-import { Link } from "react-router-dom";
-import { ArrowLeft, RefreshCw, ShieldAlert, ShieldCheck, AlertTriangle } from "lucide-react";
+import { RefreshCw, ShieldAlert, ShieldCheck, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { usePageTitle } from "@/lib/usePageTitle";
 import LastActivityLine from "@/components/admin/LastActivityLine";
+import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 // TRACK 27.03 · Final Completion · canonical local-time formatter.
 import { formatPlatformTime } from "@/lib/platformTime";
 
@@ -104,20 +104,18 @@ export default function AdminSchedulerRuns() {
   }), [items, totals, scheduler]);
 
   return (
-    <div className="min-h-screen bg-blueprint-bg">
-      <header className="bg-slate-900 text-white border-b-4 border-yellow-400">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Link to="/admin" className="flex items-center gap-2 text-yellow-300 hover:text-yellow-200" data-testid="scheduler-runs-back">
-            <ArrowLeft className="h-4 w-4" /> Admin Hub
-          </Link>
-          <div className="font-mono text-xs uppercase tracking-widest text-slate-400">Scheduler Runs · iter445</div>
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto p-6 space-y-6">
+    <LegacyAdminModernShell
+      title="Scheduler Runs"
+      subtitle="Every scheduled digest execution · pod, recipients, dedup."
+      breadcrumb={[
+        { label: "Diagnostics", to: "/admin/diagnostics" },
+        { label: "Scheduler Runs" },
+      ]}
+      testidPrefix="admin-scheduler-runs"
+    >
+      <main className="max-w-6xl mx-auto space-y-6">
         <section>
-          <p className="font-mono text-xs uppercase tracking-[0.22em] text-slate-500">audit · iter445</p>
-          <h1 className="text-3xl font-bold text-slate-900 mt-1">Scheduler Runs</h1>
+          <h1 className="text-3xl font-bold text-slate-900">Scheduler Runs</h1>
           <p className="text-sm text-slate-600 mt-2 max-w-3xl">
             Every scheduled digest fire is recorded here with the worker that
             sent it, the recipient count, and any duplicate attempts that were
@@ -207,6 +205,6 @@ export default function AdminSchedulerRuns() {
           </ul>
         </section>
       </main>
-    </div>
+    </LegacyAdminModernShell>
   );
 }

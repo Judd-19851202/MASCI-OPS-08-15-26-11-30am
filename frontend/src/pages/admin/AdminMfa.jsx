@@ -11,8 +11,8 @@
 // onboarding choreography.
 
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { ArrowLeft, ShieldCheck, KeyRound, Loader2, AlertTriangle, Copy } from "lucide-react";
+import { ShieldCheck, KeyRound, Loader2, AlertTriangle, Copy } from "lucide-react";
+import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -128,26 +128,23 @@ export default function AdminMfa() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-slate-900 border-b-4 border-red-700">
-        <div className="max-w-4xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <Link to="/admin" className="inline-flex items-center text-white hover:text-red-300 text-sm font-bold uppercase tracking-wide" data-testid="admin-mfa-back">
-            <ArrowLeft className="w-4 h-4 mr-1" /> Admin Hub
-          </Link>
-          <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-300 font-bold">
-            Operations Platform · Security
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-3xl mx-auto px-5 sm:px-8 py-10 space-y-6">
+    <LegacyAdminModernShell
+      title="Multi-Factor Authentication"
+      subtitle="Super-admin MFA enrollment and recovery."
+      breadcrumb={[
+        { label: "Identity & Security", to: "/admin/identity-security" },
+        { label: "Multi-Factor Auth" },
+      ]}
+      testidPrefix="admin-mfa"
+    >
+      <main className="max-w-3xl mx-auto space-y-6">
         <div className="flex items-center gap-3">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-red-700 text-white">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-slate-900 text-white">
             <ShieldCheck className="w-6 h-6" />
           </div>
           <div>
-            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-red-700">
-              Phase 4B · Trust Reinforcement
+            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500">
+              Trust reinforcement
             </div>
             <h1 className="font-display text-2xl font-black text-slate-900 leading-none mt-1">
               Multi-Factor Authentication
@@ -353,6 +350,6 @@ export default function AdminMfa() {
           </div>
         )}
       </main>
-    </div>
+    </LegacyAdminModernShell>
   );
 }

@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import {
   History, Search, RefreshCcw, Filter, Loader2, ChevronLeft, ChevronRight,
 } from "lucide-react";
-import AdminShell from "@/components/AdminShell";
+import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,7 +14,7 @@ import {
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
-// TRACK 27.03 · Phase 3 · Canonical local-time formatter.
+// TRACK 27.03 · Canonical local-time formatter.
 import { formatPlatformTime } from "@/lib/platformTime";
 
 const SOURCE_PILL = {
@@ -65,7 +65,15 @@ export default function AdminAuditLog() {
   const end = Math.min(offset + rows.length, total);
 
   return (
-    <AdminShell title="Audit Log" section="compliance">
+    <LegacyAdminModernShell
+      title="Audit Log"
+      subtitle="Cross-portal merged timeline of every action."
+      breadcrumb={[
+        { label: "Governance & Trust", to: "/admin/governance-trust" },
+        { label: "Audit Log" },
+      ]}
+      testidPrefix="admin-audit-log"
+    >
       <div className="max-w-7xl mx-auto" data-testid="admin-audit-log-page">
         <div className="bg-white border border-slate-200 rounded-md p-5 mb-4 flex items-start gap-3">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-slate-900 text-white shrink-0">
@@ -73,7 +81,7 @@ export default function AdminAuditLog() {
           </div>
           <div>
             <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold">
-              Unified Timeline · iter130
+              Unified Timeline
             </span>
             <h1 className="font-display text-2xl font-black tracking-tight mt-0.5">Audit Log</h1>
             <p className="text-sm text-slate-600 mt-1">
@@ -174,6 +182,6 @@ export default function AdminAuditLog() {
           )}
         </div>
       </div>
-    </AdminShell>
+    </LegacyAdminModernShell>
   );
 }

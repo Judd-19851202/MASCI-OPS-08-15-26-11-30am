@@ -81,7 +81,7 @@ async function probe(path) {
 // summarized status + source endpoints + counts.
 function _statusLabel(s) {
   return ({ healthy: "HEALTHY", warning: "ATTENTION", critical: "CRITICAL",
-    wiring: "NEEDS WIRING", offline: "OFFLINE", loading: "LOADING" })[s] || String(s || "?").toUpperCase();
+    wiring: "AWAITING SIGNAL", offline: "OFFLINE", loading: "LOADING" })[s] || String(s || "?").toUpperCase();
 }
 function exportTrustSnapshot(domains, results, summary, overallStatus) {
   const now = new Date();
@@ -94,7 +94,7 @@ function exportTrustSnapshot(domains, results, summary, overallStatus) {
   lines.push(``);
   lines.push(`- Generated: **${localStamp}** (your local time)`);
   lines.push(`- Overall posture: **${_statusLabel(overallStatus)}**`);
-  lines.push(`- Healthy: ${summary.healthy} · Attention: ${summary.warning} · Critical: ${summary.critical} · Needs wiring: ${summary.wiring} · Total domains: ${domains.length}`);
+  lines.push(`- Healthy: ${summary.healthy} · Attention: ${summary.warning} · Critical: ${summary.critical} · Awaiting signal: ${summary.wiring} · Total domains: ${domains.length}`);
   lines.push(``);
   lines.push(`## Domains`);
   for (const d of domains) {
@@ -154,7 +154,7 @@ const STATUS_STYLES = {
     bg: "bg-slate-100",
     text: "text-slate-600",
     ring: "ring-slate-200",
-    label: "NEEDS WIRING",
+    label: "AWAITING SIGNAL",
   },
   offline: {
     bg: "bg-slate-200",
@@ -685,7 +685,7 @@ export default function AdminOS() {
         portalName="MASCI"
         portalRole="Admin"
         pageTitle="Admin Operating System"
-        subtitle="Ten operational domains · one canonical home per domain · live status from real endpoints."
+        subtitle="Ten operational domains · one home per domain · live status from real endpoints."
         primaryActions={
           <div className="flex items-center gap-2">
             <button
@@ -781,7 +781,7 @@ export default function AdminOS() {
             </div>
             <div data-testid="admin-os-count-wiring">
               <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">
-                Needs wiring
+                Awaiting signal
               </div>
               <div className="font-black text-slate-600 text-xl leading-none">
                 {summary.wiring}
@@ -819,11 +819,12 @@ export default function AdminOS() {
           className="mt-6 rounded-md border border-dashed border-slate-300 bg-white p-3 text-[12px] text-slate-600"
         >
           <strong className="text-slate-900">
-            Admin OS · canonical landing.
+            Platform command center.
           </strong>{" "}
-          Every card links to the canonical page for its domain. Every metric
-          is read from a live platform endpoint (or is honestly labelled
-          &ldquo;Needs wiring&rdquo; until Sprint 2). Search everything with{" "}
+          Review system health, investigate risks, and open the right operational area
+          from one screen. Every metric is read from a live platform endpoint — cards
+          without a live signal are honestly labelled &ldquo;Awaiting signal&rdquo;.
+          Search everything with{" "}
           <kbd className="px-1 rounded border border-slate-300 font-mono text-[10px]">
             ⌘K
           </kbd>

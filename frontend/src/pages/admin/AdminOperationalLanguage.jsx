@@ -17,7 +17,7 @@
 import React, { useMemo, useState } from "react";
 import { Search, BookOpen } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import AdminShell from "@/components/AdminShell";
+import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import { LifecycleGuide } from "@/components/LifecycleGuide";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { useT } from "@/lib/i18n";
@@ -581,15 +581,20 @@ export default function AdminOperationalLanguage() {
   }, [q]);
 
   return (
-    <AdminShell
+    <LegacyAdminModernShell
       title="Operational Language"
-      section="governance"
-      intro={
+      subtitle="Shared glossary · single source of vocabulary truth · EN + ES."
+      breadcrumb={[
+        { label: "Governance & Trust", to: "/admin/governance-trust" },
+        { label: "Operational Language" },
+      ]}
+      testidPrefix="admin-operational-language"
+    >
+      <div className="mb-5 rounded-lg border border-slate-200 bg-white p-4">
         <p className="text-sm text-slate-700 leading-relaxed">
           {t("One vocabulary across the platform. \"Archive\" means the same thing in HR as in Safety; \"Closeout\" means the same thing on a CAPA as on an incident; \"Driver Qualified\" means the same thing in Dispatch as in FL. This page is the canonical reference — every LifecycleGuide should link to the relevant entry here.")}
         </p>
-      }
-    >
+      </div>
       <div className="space-y-5 mt-5" data-testid="admin-operational-language">
         <LifecycleGuide
           id="operational-language"
@@ -641,6 +646,6 @@ export default function AdminOperationalLanguage() {
           {filtered.map((e) => <GlossaryEntry key={e.id} entry={e} />)}
         </div>
       </div>
-    </AdminShell>
+    </LegacyAdminModernShell>
   );
 }

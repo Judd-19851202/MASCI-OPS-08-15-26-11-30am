@@ -5,7 +5,7 @@ import {
   Rocket, ShieldCheck, AlertTriangle, CheckCircle2, RefreshCcw, Loader2,
   Cloud, HardDrive, Clock, ArrowRight,
 } from "lucide-react";
-import AdminShell from "@/components/AdminShell";
+import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
@@ -31,7 +31,15 @@ export default function DeployRecovery() {
   useEffect(() => { load(); }, []);
 
   return (
-    <AdminShell title="Deployment Recovery" section="system">
+    <LegacyAdminModernShell
+      title="Deployment Recovery"
+      subtitle="Rollback playbook · backup chain."
+      breadcrumb={[
+        { label: "Governance & Trust", to: "/admin/governance-trust" },
+        { label: "Deployment Recovery" },
+      ]}
+      testidPrefix="admin-deploy-recovery"
+    >
       <div className="max-w-5xl mx-auto" data-testid="admin-deploy-recovery-page">
         <div className="bg-white border border-slate-200 rounded-md p-5 mb-4 flex items-start gap-3">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-slate-900 text-white shrink-0">
@@ -39,7 +47,7 @@ export default function DeployRecovery() {
           </div>
           <div className="flex-1">
             <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold">
-              Pre / Post-Deploy Playbook · iter130
+              Pre / Post-Deploy Playbook
             </span>
             <h1 className="font-display text-2xl font-black tracking-tight mt-0.5">
               Deployment Recovery
@@ -165,7 +173,7 @@ export default function DeployRecovery() {
           </div>
         </div>
       </div>
-    </AdminShell>
+    </LegacyAdminModernShell>
   );
 }
 

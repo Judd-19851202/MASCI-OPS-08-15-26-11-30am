@@ -16,7 +16,7 @@ import {
   Activity, ChartBar, AlertTriangle, Smartphone, Monitor, Tablet,
   Loader2, RefreshCw, Database, Eye,
 } from "lucide-react";
-import AdminShell from "@/components/AdminShell";
+import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import OperationalSignalsPanel from "@/components/admin/OperationalSignalsPanel";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
@@ -94,7 +94,15 @@ export default function AdminAnalytics() {
   const errorRate = totalEvents ? Math.round((totalErrors / totalEvents) * 100) : 0;
 
   return (
-    <AdminShell title="Usage Analytics" kicker="ADMIN · OPERATIONAL INSIGHT">
+    <LegacyAdminModernShell
+      title="Usage Analytics"
+      subtitle="Routes · portals · friction · adoption."
+      breadcrumb={[
+        { label: "Diagnostics", to: "/admin/diagnostics" },
+        { label: "Usage Analytics" },
+      ]}
+      testidPrefix="admin-analytics"
+    >
       {/* ── Header bar ───────────────────────────────────────── */}
       <div className="flex items-center justify-between flex-wrap gap-3 mb-5" data-testid="admin-analytics-header">
         <p className="text-sm text-slate-600 max-w-2xl">
@@ -252,7 +260,7 @@ export default function AdminAnalytics() {
 
       {/* ── Operational Signals (Iter160) ───────────────────── */}
       <OperationalSignalsPanel />
-    </AdminShell>
+    </LegacyAdminModernShell>
   );
 }
 

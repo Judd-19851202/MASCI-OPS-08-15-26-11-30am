@@ -11,7 +11,7 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
-import AdminShell from "@/components/AdminShell";
+import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import { api } from "@/lib/api";
 
 const POLL_MS = 60_000;
@@ -106,7 +106,15 @@ export default function SelfProtection() {
 
   if (err) {
     return (
-      <AdminShell active="governance">
+      <LegacyAdminModernShell
+        title="Governance · Self-Protection"
+        subtitle="Read-only operational visibility into the platform's own governance protections."
+        breadcrumb={[
+          { label: "Identity & Security", to: "/admin/identity-security" },
+          { label: "Self-Protection" },
+        ]}
+        testidPrefix="self-protection"
+      >
         <div className="p-6 max-w-3xl">
           <h1 className="font-mono text-[12px] uppercase tracking-[0.25em] text-slate-700 mb-2">
             Governance · Self-Protection
@@ -115,20 +123,28 @@ export default function SelfProtection() {
             {err}
           </p>
         </div>
-      </AdminShell>
+      </LegacyAdminModernShell>
     );
   }
 
   if (!data) {
     return (
-      <AdminShell active="governance">
+      <LegacyAdminModernShell
+        title="Governance · Self-Protection"
+        subtitle="Read-only operational visibility into the platform's own governance protections."
+        breadcrumb={[
+          { label: "Identity & Security", to: "/admin/identity-security" },
+          { label: "Self-Protection" },
+        ]}
+        testidPrefix="self-protection"
+      >
         <div className="p-6 max-w-3xl" data-testid="self-protection-loading">
           <h1 className="font-mono text-[12px] uppercase tracking-[0.25em] text-slate-700 mb-2">
             Governance · Self-Protection
           </h1>
           <p className="text-slate-500 text-sm">Reading governance state…</p>
         </div>
-      </AdminShell>
+      </LegacyAdminModernShell>
     );
   }
 
@@ -143,7 +159,15 @@ export default function SelfProtection() {
   const dp = data.deployment || {};
 
   return (
-    <AdminShell active="governance">
+    <LegacyAdminModernShell
+      title="Governance · Self-Protection"
+      subtitle="Read-only operational visibility into the platform's own governance protections."
+      breadcrumb={[
+        { label: "Identity & Security", to: "/admin/identity-security" },
+        { label: "Self-Protection" },
+      ]}
+      testidPrefix="self-protection"
+    >
       <div
         className="p-6 max-w-3xl bg-slate-50 min-h-screen"
         data-testid="self-protection-page"
@@ -277,6 +301,6 @@ export default function SelfProtection() {
           TELEMETRY_SIGNAL_MATRIX.json · FIELD_WALK_CHECKLISTS/.
         </footer>
       </div>
-    </AdminShell>
+    </LegacyAdminModernShell>
   );
 }

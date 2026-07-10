@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import {
   Mail, Save, Send, Eye, Loader2, RefreshCcw, ToggleLeft, ToggleRight,
 } from "lucide-react";
-import AdminShell from "@/components/AdminShell";
+import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +15,7 @@ import {
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
-// TRACK 27.03 · Phase 3 · Canonical local-time formatter.
+// TRACK 27.03 · Canonical local-time formatter.
 import { formatPlatformTime, formatPlatformTimeOnly, getPlatformTimezone } from "@/lib/platformTime";
 
 const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -87,16 +87,32 @@ export default function AdminDigestConfig() {
 
   if (loading || !cfg) {
     return (
-      <AdminShell title="Weekly Digest" section="system">
+      <LegacyAdminModernShell
+        title="Digest Schedule"
+        subtitle="Weekly digest recipients · schedule · preview · send."
+        breadcrumb={[
+          { label: "Communications", to: "/admin/communications" },
+          { label: "Digest Schedule" },
+        ]}
+        testidPrefix="admin-digest-config"
+      >
         <div className="max-w-3xl mx-auto py-12 text-center text-slate-500">
           <Loader2 className="w-6 h-6 animate-spin mx-auto" />
         </div>
-      </AdminShell>
+      </LegacyAdminModernShell>
     );
   }
 
   return (
-    <AdminShell title="Weekly Digest" section="system">
+    <LegacyAdminModernShell
+      title="Digest Schedule"
+      subtitle="Weekly digest recipients · schedule · preview · send."
+      breadcrumb={[
+        { label: "Communications", to: "/admin/communications" },
+        { label: "Digest Schedule" },
+      ]}
+      testidPrefix="admin-digest-config"
+    >
       <div className="max-w-3xl mx-auto" data-testid="admin-digest-config-page">
         <header className="bg-white border border-slate-200 rounded-md p-5 mb-4 flex items-start gap-3">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-cyan-700 text-white shrink-0">
@@ -104,7 +120,7 @@ export default function AdminDigestConfig() {
           </div>
           <div className="flex-1">
             <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cyan-700 font-bold">
-              Safety Operations · iter133
+              Safety Operations
             </span>
             <h1 className="font-display text-2xl font-black tracking-tight mt-0.5">
               Weekly Digest
@@ -184,7 +200,7 @@ export default function AdminDigestConfig() {
               data-testid="digest-hour"
             />
             <p className="text-[10px] text-slate-500 mt-1 font-mono">
-              {/* TRACK 27.03 · Phase 3 · Render the scheduled wall-clock
+              {/* TRACK 27.03 · Render the scheduled wall-clock
                   in the current operator's local zone via the canonical
                   formatter — no hardcoded Florida timezone. `hour_utc`
                   is the backend cron field; the label above is the
@@ -249,6 +265,6 @@ export default function AdminDigestConfig() {
           </div>
         )}
       </div>
-    </AdminShell>
+    </LegacyAdminModernShell>
   );
 }
