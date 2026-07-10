@@ -52,6 +52,21 @@ function _audit_freshness(probes) {
     checked_at: latest.ts || latest.at || null,
     evidence: { latest, count: entries.length } };
 }
+function _auth_failures(probes) {
+  const p = probes.trust_events;
+  if (!p?.ok) return { status: "unknown", summary: "Trust events aggregator unreachable.", evidence: { error: p?.error } };
+  const b = p.body || {};
+  const n = Number(b.auth_failures_in_window || 0);
+  const authKind = (b.by_kind || {}).auth || 0;
+  const status = n > 5 ? "red" : n > 0 ? "yellow" : "green";
+  const summary = n > 0
+    ? `${n} auth failure/lock event(s) in the recent window`
+    : `No auth failures in the recent window · ${authKind} auth event(s) total`;
+  const action = n > 0 ? "Open Audit Log to inspect the failed attempts." : "";
+  const authEvents = (b.events || []).filter((e) => e.kind === "auth").slice(0, 5);
+  return { status, summary, recommended_action: action, checked_at: b.generated_at,
+    evidence: { auth_failures_in_window: n, recent_auth_events: authEvents } };
+}
 
 const manifest = {
   id: "identity-security",
@@ -61,12 +76,16 @@ const manifest = {
     { id: "sessions", path: "/admin/sessions/recent" },
     { id: "selfprotection", path: "/admin/governance/self-protection" },
     { id: "audit", path: "/admin/audit?limit=5" },
+    { id: "trust_events", path: "/admin/occ/trust-events?limit=25" },
   ],
   cards: [
     { id: "active-sessions", section: "sessions", title: "Active Sessions",
       endpoint: "/api/admin/sessions/recent", drilldown: "/admin/sessions", evaluator: _sessions },
     { id: "timeout-tiers", section: "sessions", title: "Session Timeout Tiers",
       endpoint: "/api/admin/sessions/recent (tiers)", drilldown: "/admin/sessions", evaluator: _timeout_tiers },
+    { id: "auth-failures", section: "hardening", title: "Recent Auth Failures",
+      endpoint: "/api/admin/occ/trust-events",
+      drilldown: "/admin/audit-log", evaluator: _auth_failures },
     { id: "self-protection", section: "hardening", title: "Platform Self-Protection",
       endpoint: "/api/admin/governance/self-protection",
       drilldown: "/admin/governance/self-protection", evaluator: _governance_selfprotection },
@@ -75,7 +94,7 @@ const manifest = {
   ],
   sections: [
     { id: "sessions", label: "Sessions & Timeouts", icon: Users, cards: ["active-sessions", "timeout-tiers"] },
-    { id: "hardening", label: "Hardening & Audit", icon: ShieldAlert, cards: ["self-protection", "admin-audit-freshness"] },
+    { id: "hardening", label: "Hardening & Audit", icon: ShieldAlert, cards: ["auth-failures", "self-protection", "admin-audit-freshness"] },
   ],
   maintenance_actions: [
     { id: "sessions-admin", title: "Sessions Admin",
@@ -92,9 +111,6 @@ const manifest = {
       never_touches: "Read-only until you save a change." },
   ],
   trust_gaps: [
-    { id: "gap-sec-auth-failures", title: "Recent auth failure log surface",
-      severity: "P1", owner: "platform-security", target_track: "27.11", risk: "medium",
-      current_status: "In backend logs only — no admin UI surface.", blocks_production: false },
     { id: "gap-sec-locked-users", title: "Locked users / brute-force lock list",
       severity: "P2", owner: "platform-security", target_track: "27.11", risk: "low",
       current_status: "Not surfaced.", blocks_production: false },
@@ -105,7 +121,7 @@ const manifest = {
       severity: "P2", owner: "platform-security", target_track: "27.12", risk: "low",
       current_status: "Enforced in backend — no admin visualization.", blocks_production: false },
   ],
-  source_endpoints_line: "/api/admin/sessions/recent · /api/admin/governance/self-protection · /api/admin/audit",
+  source_endpoints_line: "/api/admin/sessions/recent · /api/admin/governance/self-protection · /api/admin/audit · /api/admin/occ/trust-events",
 };
 
 export default function AdminIdentitySecurity() {

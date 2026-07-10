@@ -75,6 +75,40 @@ function _audit(probes) {
     checked_at: latest.ts || latest.at || null,
     evidence: { latest, count: entries.length } };
 }
+function _unified_trust_events(probes) {
+  const p = probes.trust_events;
+  if (!p?.ok) return { status: "unknown", summary: "Trust events aggregator unreachable.", evidence: { error: p?.error } };
+  const b = p.body || {};
+  const counts = b.counts || {};
+  const critical = Number(counts.critical || 0);
+  const warning = Number(counts.warning || 0);
+  const status = critical > 0 ? "red" : warning > 0 ? "yellow" : "green";
+  const total = (b.events || []).length;
+  return { status,
+    summary: `${total} recent events · ${critical} critical · ${warning} warning · ${counts.info || 0} info`,
+    recommended_action: critical > 0 ? "Investigate critical events first (ops errors, deploy blockers)." : "",
+    checked_at: b.generated_at,
+    evidence: {
+      counts, by_kind: b.by_kind, auth_failures_in_window: b.auth_failures_in_window,
+      unresolved_blockers_count: (b.unresolved_blockers || []).length,
+      events_sample: (b.events || []).slice(0, 5),
+      probe_errors: b.probe_errors,
+    } };
+}
+function _unresolved_blockers(probes) {
+  const p = probes.trust_events;
+  if (!p?.ok) return { status: "unknown", summary: "Blockers unreachable.", evidence: { error: p?.error } };
+  const blockers = p.body?.unresolved_blockers || [];
+  if (blockers.length === 0) {
+    return { status: "green", summary: "Zero unresolved deploy blockers.", checked_at: p.body?.generated_at,
+      evidence: { count: 0 } };
+  }
+  return { status: "red",
+    summary: `${blockers.length} unresolved deploy blocker(s).`,
+    recommended_action: "Resolve blockers or accept risk before deploy.",
+    checked_at: p.body?.generated_at,
+    evidence: { blockers } };
+}
 
 const manifest = {
   id: "governance-trust",
@@ -86,6 +120,7 @@ const manifest = {
     { id: "deploy", path: "/admin/deploy-readiness" },
     { id: "version", path: "/version" },
     { id: "audit", path: "/admin/audit?limit=5" },
+    { id: "trust_events", path: "/admin/occ/trust-events?limit=25" },
   ],
   cards: [
     { id: "prod-certification", section: "certification", title: "Production Certification",
@@ -94,6 +129,9 @@ const manifest = {
     { id: "deploy-readiness", section: "certification", title: "Deploy Readiness",
       endpoint: "/api/admin/deploy-readiness",
       drilldown: "/admin/deploy-recovery", evaluator: _deploy },
+    { id: "unresolved-blockers", section: "certification", title: "Unresolved Deploy Blockers",
+      endpoint: "/api/admin/occ/trust-events",
+      drilldown: "/admin/deploy-recovery", evaluator: _unresolved_blockers },
     { id: "governance-summary", section: "rules", title: "Governance Rules",
       endpoint: "/api/admin/governance/summary",
       drilldown: "/admin/governance", evaluator: _governance },
@@ -101,13 +139,16 @@ const manifest = {
       endpoint: "/api/version", drilldown: "/admin/system-health", evaluator: _version },
     { id: "admin-audit", section: "audit", title: "Admin Audit Freshness",
       endpoint: "/api/admin/audit", drilldown: "/admin/audit-log", evaluator: _audit },
+    { id: "unified-trust-events", section: "audit", title: "Unified Trust Events (recent)",
+      endpoint: "/api/admin/occ/trust-events",
+      drilldown: "/admin/audit-log", evaluator: _unified_trust_events },
   ],
   sections: [
     { id: "certification", label: "Certification & Deploy", icon: ShieldCheck,
-      cards: ["prod-certification", "deploy-readiness"] },
+      cards: ["prod-certification", "deploy-readiness", "unresolved-blockers"] },
     { id: "rules", label: "Governance Rules & Version", icon: ClipboardCheck,
       cards: ["governance-summary", "platform-version"] },
-    { id: "audit", label: "Audit Trail", icon: History, cards: ["admin-audit"] },
+    { id: "audit", label: "Audit Trail", icon: History, cards: ["admin-audit", "unified-trust-events"] },
   ],
   maintenance_actions: [
     { id: "governance-admin", title: "Governance Admin",
@@ -127,14 +168,8 @@ const manifest = {
     { id: "gap-gov-regression-status", title: "Regression / Pytest status surface",
       severity: "P1", owner: "platform-trust", target_track: "27.11", risk: "medium",
       current_status: "Local pytest only — CI status not surfaced in admin UI.", blocks_production: false },
-    { id: "gap-gov-trust-events", title: "Recent Trust events (cert · deploy · governance) unified log",
-      severity: "P2", owner: "platform-trust", target_track: "27.11", risk: "low",
-      current_status: "Split across governance summary + audit log.", blocks_production: false },
-    { id: "gap-gov-unresolved-blockers", title: "Unresolved production blockers register",
-      severity: "P1", owner: "platform-trust", target_track: "27.11", risk: "medium",
-      current_status: "Tracked in deploy-readiness only; not surfaced here.", blocks_production: false },
   ],
-  source_endpoints_line: "/api/admin/production-certification · /api/admin/deploy-readiness · /api/admin/governance/summary · /api/version · /api/admin/audit",
+  source_endpoints_line: "/api/admin/production-certification · /api/admin/deploy-readiness · /api/admin/governance/summary · /api/version · /api/admin/audit · /api/admin/occ/trust-events",
 };
 
 export default function AdminGovernanceTrust() {

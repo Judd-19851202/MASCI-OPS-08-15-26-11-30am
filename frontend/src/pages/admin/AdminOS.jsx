@@ -34,6 +34,7 @@ import {
   ChevronRight,
   Cog,
   Database,
+  Download,
   HardDrive,
   Mail,
   Search,
@@ -69,6 +70,57 @@ async function probe(path) {
   } catch (_e) {
     return { ok: false, body: null, status: 0 };
   }
+}
+
+// TRACK 25 · SPRINT 7/8 · Global Trust Snapshot export.
+// Walks the current in-memory domain results and produces a
+// self-contained Markdown snapshot of the platform's trust state.
+// No new endpoints — this is a client-side composition of the same
+// data already rendered on the page. No secrets included; only the
+// summarized status + source endpoints + counts.
+function _statusLabel(s) {
+  return ({ healthy: "HEALTHY", warning: "ATTENTION", critical: "CRITICAL",
+    wiring: "NEEDS WIRING", offline: "OFFLINE", loading: "LOADING" })[s] || String(s || "?").toUpperCase();
+}
+function exportTrustSnapshot(domains, results, summary, overallStatus) {
+  const now = new Date();
+  // TRACK-27.03-EXEMPT: rendered locally via `toLocaleString` — never a raw ISO shown to operators.
+  const localStamp = now.toLocaleString(undefined, {
+    dateStyle: "medium", timeStyle: "short",
+  });
+  const lines = [];
+  lines.push(`# MASCI Platform · Trust Snapshot`);
+  lines.push(``);
+  lines.push(`- Generated: **${localStamp}** (your local time)`);
+  lines.push(`- Overall posture: **${_statusLabel(overallStatus)}**`);
+  lines.push(`- Healthy: ${summary.healthy} · Attention: ${summary.warning} · Critical: ${summary.critical} · Needs wiring: ${summary.wiring} · Total domains: ${domains.length}`);
+  lines.push(``);
+  lines.push(`## Domains`);
+  for (const d of domains) {
+    const r = d.probe ? results[d.id] : null;
+    const evaluated = r ? d.evaluate(r) : d.probe ? { status: "loading" } : d.evaluate(null);
+    lines.push(``);
+    lines.push(`### ${String(d.number).padStart(2, "0")} · ${d.label} · ${_statusLabel(evaluated.status)}`);
+    lines.push(`- Canonical route: \`${d.to}\``);
+    if (d.probe) lines.push(`- Source endpoint: \`${d.probe}\``);
+    if (evaluated.metric) lines.push(`- Metric: **${evaluated.metric}**`);
+    if (evaluated.detail) lines.push(`- Detail: ${evaluated.detail}`);
+  }
+  lines.push(``);
+  lines.push(`---`);
+  lines.push(`Snapshot generated from live probes on the Admin OS landing at /admin. No secrets included; only summarized status, metrics, and source endpoints.`);
+
+  const md = lines.join("\n");
+  const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  const iso = now.toISOString().replace(/[:.]/g, "-").split("Z")[0]; // TRACK-27.03-EXEMPT: filename token only, never displayed.
+  a.download = `masci-trust-snapshot-${iso}.md`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 // ── Status pill ────────────────────────────────────────────────────
@@ -650,6 +702,16 @@ export default function AdminOS() {
               data-testid="admin-os-refresh"
             >
               Refresh
+            </button>
+            <button
+              type="button"
+              onClick={() => exportTrustSnapshot(DOMAINS, results, summary, overallStatus)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-slate-900 bg-slate-900 text-white rounded-md text-xs font-semibold hover:bg-slate-800"
+              data-testid="admin-os-export-snapshot"
+              title="Download a Markdown snapshot of the current platform trust state"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Export snapshot
             </button>
           </div>
         }

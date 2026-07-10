@@ -39,12 +39,50 @@ import {
   BarChart3,     // Reporting
   History,       // Audit Log
   Archive,       // Legacy Imports
+  // Admin OS domain icons
+  HardDrive,     // Storage & Recovery
+  ShieldCheck,   // Governance & Trust
+  Cog,           // Platform Configuration
+  Database,      // Diagnostics
+  Compass,       // Admin OS root
   // sub-icons
   ClipboardCheck, FileText, Truck, MapPin, KeyRound, AlertTriangle,
   BookOpen, Film, Cable, ListChecks, NotebookPen,
 } from "lucide-react";
 
 export const DOMAINS_V3 = [
+  // ────────────────────────────────────────────────────────────────
+  // TRACK 25 · SPRINT 7/8 · Admin OS one-click reachability section.
+  // Every one of the 10 canonical Admin OS domain landings is
+  // reachable from the sidebar with a single click. Sits at the top
+  // of the nav so operators land on the trusted, unified surface
+  // instead of scattered legacy admin pages.
+  {
+    id: "admin-os",
+    label: "Admin OS",
+    subline: "The 10 canonical operational domains.",
+    purpose:
+      "Every Admin OS domain landing is one click away. Read-only " +
+      "trust cards on the left · dry-run maintenance in OCC on the right.",
+    stripe: "#0ea5e9", // sky-500 — signals the unified Admin OS surface
+    icon: Compass,
+    visibleRoutes: [
+      { to: "/admin",                          label: "Admin OS Landing",       desc: "10-domain executive posture · live probes.",             end: true, icon: Compass,       keywords: ["adminos", "landing", "overview", "posture", "domains", "hub"] },
+      { to: "/admin/operations-control",       label: "Operations Control",     desc: "OCC Trust Center + maintenance console.",                icon: Activity,      keywords: ["occ", "operations", "control", "trust", "maintenance", "dry-run", "apply"] },
+      { to: "/admin/storage-recovery",         label: "Storage & Recovery",     desc: "Disk · R2 · backups · restore drills.",                  icon: HardDrive,     keywords: ["storage", "backup", "r2", "recovery", "restore", "disk"] },
+      { to: "/admin/ai-operations",            label: "AI Operations",          desc: "Gateway · providers · modules · Daily Report AI.",       icon: Sparkles,      keywords: ["ai", "gateway", "provider", "openai", "anthropic", "gemini", "daily report ai"] },
+      { to: "/admin/communications",           label: "Communications",         desc: "Email routing · providers · audit · dead-letters.",       icon: Mail,          keywords: ["email", "resend", "notifications", "routing", "digest", "communications"] },
+      { to: "/admin/identity-security",        label: "Identity & Security",    desc: "Sessions · hardening · audit · self-protection.",         icon: Users,         keywords: ["sessions", "auth", "mfa", "passkeys", "security", "hardening"] },
+      { to: "/admin/governance-trust",         label: "Governance & Trust",     desc: "Production cert · deploy readiness · governance rules.", icon: ShieldCheck,   keywords: ["governance", "trust", "certification", "deploy", "readiness", "compliance"] },
+      { to: "/admin/platform-configuration",   label: "Platform Configuration", desc: "Brand · integrations · AI config · email · version.",   icon: Cog,           keywords: ["configuration", "settings", "branding", "integrations", "version", "feature flags"] },
+      { to: "/admin/diagnostics",              label: "Diagnostics",            desc: "API · system health · OCC · scheduler · deploy.",         icon: Database,      keywords: ["diagnostics", "system", "health", "logs", "latency", "sentry", "errors"] },
+      { to: "/admin/maintenance",              label: "Maintenance",            desc: "Every safe operation grouped by domain.",                 icon: Archive,       keywords: ["maintenance", "cleanup", "audit", "safe operations"] },
+    ],
+    hiddenRoutes: [
+      { to: "/admin/platform-overview", label: "Platform Overview (redirects)" },
+    ],
+  },
+
   // ────────────────────────────────────────────────────────────────
   {
     id: "home",

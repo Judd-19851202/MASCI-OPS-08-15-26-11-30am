@@ -3100,6 +3100,12 @@ from routes.occ_health_aggregator import (  # noqa: E402
 )
 register_occ_health_routes(api_router, require_admin)
 
+# TRACK 25 · SPRINT 7/8 · Trust Events aggregator.
+from routes.occ_trust_events import (  # noqa: E402
+    register_occ_trust_events_routes,
+)
+register_occ_trust_events_routes(api_router, require_admin)
+
 # ------------------------------------------------------------
 # DR-CUTOVER-002 · Daily Operational Summary (draft + accept)
 # ADDITIVE mount. Zero drift on the V1 submit path — the two
