@@ -1,5 +1,67 @@
 # CHANGELOG
 
+## 2026-07-10 — TRACK 28.01 · STATIC CERTIFICATION SWEEP — ✅ PASS
+
+**Scope:** everything the source code can prove without live execution. Handoff for Track 28.02 (live-walk phases) at the bottom.
+
+### Static invariants — 100 % green
+| Check | Result | Evidence |
+|---|---:|---|
+| Total routes registered in `AppRoutes.jsx` | **405** | grep `<Route path=` |
+| Operator-visible dev-language leaks (V1/V2/V3, Sprint N, Track N, Phase N, iter\d{2,3}, "canonical landing", "needs wiring") | **0** | frontend grep, JSX-only, excludes comments/testids |
+| Hardcoded `_LIST = [...]` arrays in FE pages/components | **0** | grep `const [A-Z_]+_LIST\s*=\s*\[` |
+| Shadow collections (`db.fl_*`, `db.field_leadership_*`, `db.shadow_*`, `db.temp_*`, `db.legacy_*`) | **32 hits · all legitimate** | see note below |
+| No-op launchers (`onClick={() => {}}`) | **0** | grep across pages + components |
+| UTC / GMT visible in JSX | **0** | grep, excludes env-var identifiers |
+| `AdminShell.jsx` delegates to `LegacyAdminModernShell` (no red-top-bar drift) | ✅ | grep confirmed |
+| Backend regression suite (27.03 zero-UTC + 27.06 lifecycle + 25 OCC trust) | **67 / 67 pass** | `pytest -q` |
+
+### Shadow-collection false-positive resolution
+The 32 shadow-collection greps resolved to **5 legitimate purpose-specific collections**, none of which duplicate the canonical masters:
+- `field_leadership_records` — actual FL submissions (own truth).
+- `field_leadership_equipment_catalog` — FL-issued equipment catalog.
+- `field_leadership_equipment_makes` — manufacturers list for the catalog.
+- `field_leadership_users` — FL portal-auth credentials (separate from HR employees master by design).
+- `legacy_imports` — historical-imports staging (Track 25C).
+
+No collection duplicates `employees` or `jobs_master`. The FL portal reads its jobs + employees directly from the canonical masters (verified in 27.08B).
+
+### Registered gaps carried forward (NOT blocking Track 28.01)
+Every prior-session non-blocker is now formalized:
+
+| ID | Severity | Owner | Track | Description |
+|---|---|---|---|---|
+| GAP-28-01 | P1 | Track 27.06B (deploy) | 27.06 | R2 lifecycle governance shipped on preview, not on production. Requires deploy + production certification. |
+| GAP-28-02 | P1 | Track 27.09 (planned) | FL Supervisor | Supervisor name is free text; needs employee-master picker filtered by role. |
+| GAP-28-03 | P1 | Track 27.10 (planned) | R2 orphans | Preview R2 bucket 313 GB — Track 27.06 orphans identified but not deleted (Phase 7 delete engine deferred). |
+| GAP-28-04 | P2 | Track 28.10 (planned) | Cmd+K | Global command palette across 72 trust cards. |
+| GAP-28-05 | P2 | Track 28.11 (planned) | PDF | Photo Evidence section in PM PDF/Email. |
+| GAP-28-06 | P2 | AI Config | Historical | Historical audit-log rows in `/admin/ai-configuration` still contain "TRACK 22.9B" prefix (immutable audit history; new entries no longer emit it). |
+| GAP-28-07 | P2 | OCC | Governance | OCC `governance` card shows "0 rules · label: critical" contradiction — evaluator label vs count. |
+| GAP-28-08 | P2 | OCC | Integrations | OCC `integrations` card shows 1 of 6 probes degraded — specific probe unknown. |
+| GAP-28-09 | P2 | Auth alias | AI meta | `/api/admin/ai/meta` returns 404 on production; endpoint moved. Add alias OR update UI callers. |
+| GAP-28-10 | P2 | Empty state | OCC events | `/api/admin/occ/trust-events` returns empty; verify Communications-domain UI shows friendly empty state. |
+| GAP-28-11 | P3 | SideNavV3 | Cosmetic | Stale eslint-disable directive in `SideNavV3.jsx`. |
+| GAP-28-12 | P3 | Mongo | admin_dr | Case-insensitive regex on `jobs_master` in `admin_dr_delivery_forensics.py` — query optimization. |
+
+### Track 28.01 verdict — ✅ **PASS**
+Every invariant a code-level scan can prove is green. The platform passes the static-analysis phase of Track 28.
+
+### Track 28.02 handoff (next session)
+**Resume point:** live-execution phases 2 + 4 + 6 + 10 + 11 + 14. Requires the testing agent + one operator credential per persona. Deliverables:
+- Phase 2 — Walk every route × 3 form factors (desktop 1440 · tablet 1024 · mobile 390). Screenshot + console-log capture. Auto-flag any route returning 4xx/5xx or throwing uncaught JS.
+- Phase 4 — Execute end-to-end for the 15 highest-priority forms: submit → PDF → email → audit entry.
+- Phase 6 — Cross-persona workflow: Foreman submits DR → PM approves → Executive dashboard reflects.
+- Phase 10 — Page-load performance profile on 10 heaviest pages.
+- Phase 11 — Tenant-boundary security probe (403 attempts + role-escalation attempts).
+- Phase 14 — Testing agent full operator walk certified in one run.
+
+Track 28.02 estimated: 1 dedicated session per persona (foreman, PM, exec, admin, FL, HR, safety). Approximately 5–7 sessions to reach GO across every workflow.
+
+**Non-negotiable:** no session may upgrade a NOT-CERTIFIED workflow to PASS without evidence (screenshot, curl proof, or testing-agent report). This principle is now enforced in the certification register.
+
+
+
 ## 2026-07-10 — TRACK 27.08B · FL FULL PLATFORM STANDARDIZATION — ✅ GO
 
 ### Executive verdict
