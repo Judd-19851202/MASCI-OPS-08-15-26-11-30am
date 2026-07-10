@@ -15,6 +15,20 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 
 ## Active Track — 2026-07-09
 
+**TRACK 25 · SPRINT 4 · Admin OS Domain Expansion (AI · Comms · Identity · Governance) — 🟢 SHIPPED (2026-07-10)**
+
+- Extracted shared `DomainLandingShell` (`/app/frontend/src/components/admin/trust/DomainLandingShell.jsx`) that renders any Admin OS domain from a declarative manifest — no per-page design. Every domain now composes the same Executive Verdict · sections · cards · filter · maintenance actions · trust gaps · evidence drawer pattern.
+- Four new domain landing pages (all thin manifests · ~120 lines each):
+  - `/admin/ai-operations` — 4 cards, 2 sections, 3 trust gaps
+  - `/admin/communications` — 4 cards, 2 sections, 3 trust gaps
+  - `/admin/identity-security` — 4 cards, 2 sections, 4 trust gaps
+  - `/admin/governance-trust` — 5 cards, 3 sections, 3 trust gaps
+- AdminOS domain cards 4-7 now route to the new pages (was legacy sub-pages).
+- OCC aggregator drilldowns updated: `email_v2 → /admin/communications`, `ai_gateway → /admin/ai-operations`, `sessions → /admin/identity-security`, `governance` + `production_certification → /admin/governance-trust`.
+- Legacy routes (`/admin/ai-configuration`, `/admin/email`, `/admin/sessions`, `/admin/governance`, etc.) preserved for bookmark compatibility.
+- Cosmetic polish from testing agent: transient "✓ refreshed" flash badge on the executive verdict panel so back-to-back refreshes in the same clock minute are visibly distinguishable.
+- Testing agent 100% pass (`/app/test_reports/iteration_track_25_sprint_4_domain_expansion.json`) · backend pytest 46/46 green.
+
 **TRACK 25 · SPRINT 3 · Admin OS · Storage & Recovery Domain — 🟢 SHIPPED (2026-07-09)**
 
 - New route `/admin/storage-recovery` → `/app/frontend/src/pages/admin/AdminStorageRecovery.jsx`

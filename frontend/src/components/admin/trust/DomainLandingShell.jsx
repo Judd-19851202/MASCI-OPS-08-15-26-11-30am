@@ -92,6 +92,7 @@ export default function DomainLandingShell({ manifest, testidPrefix }) {
   const [probes, setProbes] = useState({});
   const [loading, setLoading] = useState(true);
   const [refreshedAt, setRefreshedAt] = useState(null);
+  const [justRefreshed, setJustRefreshed] = useState(false);
   const [error, setError] = useState(null);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -108,6 +109,10 @@ export default function DomainLandingShell({ manifest, testidPrefix }) {
       list.forEach((p, i) => { map[p.id] = results[i]; });
       setProbes(map);
       setRefreshedAt(new Date().toISOString()); // TRACK-27.03-EXEMPT: rendered only via formatPlatformTime.
+      // Flash a transient "Refreshed" confirmation so two rapid refreshes
+      // in the same clock minute are still visibly distinguishable.
+      setJustRefreshed(true);
+      window.setTimeout(() => setJustRefreshed(false), 1500);
       const authErr = results.find((r) => !r.ok && [401, 403].includes(r.status));
       if (authErr) setError("Super-admin access required.");
     } catch (e) {
@@ -238,8 +243,18 @@ export default function DomainLandingShell({ manifest, testidPrefix }) {
               ))}
               <div>
                 <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">Last refreshed</div>
-                <div className="font-mono text-xs text-slate-800" data-testid={`${testidPrefix}-last-refreshed`}>
-                  {refreshedAt ? formatPlatformTime(refreshedAt) : "—"}
+                <div className="flex items-center gap-1.5">
+                  <span className="font-mono text-xs text-slate-800" data-testid={`${testidPrefix}-last-refreshed`}>
+                    {refreshedAt ? formatPlatformTime(refreshedAt) : "—"}
+                  </span>
+                  {justRefreshed ? (
+                    <span
+                      className="inline-flex items-center rounded px-1 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-widest bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200 transition-opacity"
+                      data-testid={`${testidPrefix}-refresh-flash`}
+                    >
+                      ✓ refreshed
+                    </span>
+                  ) : null}
                 </div>
               </div>
             </div>
