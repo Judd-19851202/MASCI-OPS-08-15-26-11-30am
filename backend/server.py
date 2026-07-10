@@ -4826,6 +4826,7 @@ async def list_employees():
         PUBLIC_ROSTER_PROJECTION,
         normalize_employee_identity,
     )
+    from lib.synthetic_hr_filter import apply_synthetic_hr_exclusion  # noqa: PLC0415
     await _purge_expired("employees")
     canonical_active_clause = {"$or": [
         {"lifecycle_status": {"$in": list(_ACTIVE_STATUSES)}},

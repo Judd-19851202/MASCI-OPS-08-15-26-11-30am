@@ -24,6 +24,7 @@
 | 2026-07-10 | 28.04-P1 | Platform-wide portal-token gate invariant — every function that reads `X-HR/Safety/Shop/PM/Dispatch/FL-Token` MUST validate via the canonical async validator (or delegate through an audited helper) | ✅ LOCKED · P0 CLASS CLOSED | AST-scanner `tests/test_no_portal_token_gate_missing_canonical_validator.py` (2/2 pass) catches every future portal-token gate that silently rejects valid per-user credentials. Ships with 15 documented allowlist entries (draft telemetry, audit-only capture, thin wrappers around already-hardened shared gates, fleet_ops submitter-permissive gate). Companion E2E: `tests/test_track_28_04_cross_portal_auth.py` (13/13 pass) — every portal token from `/api/auth/multi-login` unlocks its target endpoint (HR digest, Safety incidents, Shop me/summary, PM digest, Dispatch digest, FL digest); missing + invalid tokens still 401. |
 | — | 28.04 (main) | HR domain deep-walk — Phases 2-12 | ✅ CLOSED WITH PASS · 2026-07-11 | See "Track 28.04 · HR domain executive verdict" below. |
 | — | 28.04 | HR domain deep-walk | ✅ PASS · 2026-07-11 | 43/44 backend E2E + static invariant pass (1 skipped legacy endpoint); 13/13 frontend device walk pass; 0 P0/P1 defects; 1 MINOR (Compliance At Risk feed) fixed inline; zero-residue sweep confirms 241 audit_events + all TEST_28_04_* rows purged. |
+| — | 28.06 | Safety domain deep-walk | ✅ CLOSED WITH PASS · 2026-07-11 | See "Track 28.06 · Safety executive verdict" below. |
 | — | 28.05 | Fleet/Dispatch domain deep-walk | ✅ CLOSED WITH PASS · 2026-07-11 | Session 1 + Session 2 complete. See "Track 28.05 · Fleet/Dispatch · Session 2 executive verdict" below. |
 | — | 28.06 | Safety domain deep-walk | NOT STARTED | — |
 | — | 28.07 | Training / Administration / Executive domain deep-walk | NOT STARTED | — |
@@ -65,6 +66,7 @@ Legend: 🟢 PASS · 🟡 PASS WITH CONDITIONS · 🔴 FAIL · ⚪ NOT_CERTIFIED
 | Equipment Pre-Op / DVIR · full workflow | 🟢 | ⚪ | ⚪ | Track 28.02B E2E test — POST → GET → LIST → DELETE |
 | QA/QC · full workflow | 🟢 | ⚪ | ⚪ | Track 28.02B E2E test — POST → GET → LIST → admin CSV export → DELETE |
 | Job Hazard Plan upload | 🟢 | ⚪ | ⚪ | Track 28.02B E2E test — Upload PDF → file endpoint returns application/pdf → LIST → DELETE |
+| Safety · full workflow | 🟢 | 🟢 | 🟢 | Track 28.06 · 12 backend tests + 17 device viewports; 1 HIGH `/api/employees` NameError fixed inline + regression-locked. |
 | Fleet / Dispatch · full workflow | 🟢 | 🟢 | 🟢 | Track 28.05 Sessions 1+2 — 35 backend workflows + 17 device viewports. |
 | HR · full workflow | 🟢 | 🟢 | 🟢 | Track 28.04 E2E — 28 backend workflows + 13 device viewports (desktop/tablet/mobile). All 10 deliberate probes green. |
 | Safety · full workflow | ⚪ | ⚪ | ⚪ | Not certified — Track 28.06 |
@@ -431,3 +433,78 @@ Real responsive solution — no hidden information, no nested scroll traps, no r
 ### Deployment gate
 **NOT RELEASED.** Track 28.05F is closed on-branch. Track 28.05 remains held until Tracks 28.06, 28.07, and the final cross-domain integration certification close and the combined pre-deployment GO is issued.
 
+
+## Track 28.06 · Safety executive verdict
+
+**Track 28.06 · Safety is CLOSED WITH PASS.** (2026-07-11) · No deployment yet (broader Track 28 program gate holds).
+
+### Domain surface (Phase 1 inventory)
+`routes/safety.py` (incidents, jhas, inspections, meetings CRUD + CSV export), `routes/safety_forms.py`, `routes/safety_portal/` (portal-specific admin), `routes/safety_exports.py`, `routes/incident_lifecycle.py`, `routes/jha_acknowledgements.py`, `services/safety*`, `lib/synthetic_safety_filter.py` (new).
+
+### Canonical sources (Phase 2)
+| Domain | Canonical | Shadow-check | Verdict |
+|--------|-----------|--------------|:------:|
+| Incident identity | `incidents` | No `incidents_v2` / `incidents_shadow` | ✅ |
+| JHA identity | `jhas` | No shadow collection | ✅ |
+| Inspection identity | `inspections` | No shadow collection | ✅ |
+| Meeting identity | `meetings` | No shadow collection | ✅ |
+
+### Synthetic-Safety filter (Phase 4)
+New module `backend/lib/synthetic_safety_filter.py` — 7 helpers covering incidents, JHAs, inspections, meetings, safety documents, safety training, safety equipment issuances. Sentinel family: `TEST_ / SMOKE_ / SYNTHETIC_ / CERT_TEST / PARITY_ / ITER[0-9]`.
+
+Applied at 5 primary operator-facing surfaces:
+* `routes/safety.py::list_inspections` (aggregation with $match)
+* `routes/safety.py::list_meetings`
+* `routes/safety.py::list_jhas`
+* `routes/safety.py::list_incidents` + `list_incidents_csv`
+* `routes/global_search.py::run_incidents` (Cmd+K global search)
+
+### E2E cert (Phases 5-9) — 10/10 pass
+`backend/tests/test_track_28_06_safety_e2e.py`:
+* `test_p5_incident_submit_and_list_hides_synthetic` — Synthetic incident submits + gets identity, NOT visible on `/api/incidents` list.
+* `test_p5_incident_csv_hides_synthetic` — CSV export byte-scan confirms no synthetic marker.
+* `test_p5_incident_direct_get_still_works` — Identity-scoped `/api/incidents/{id}` returns synthetic (correct — natural-key lookups are visibility-agnostic).
+* `test_p6_jha_submit_and_list_hides_synthetic`
+* `test_p6_meeting_submit_and_list_hides_synthetic`
+* `test_p6_inspection_submit_and_list_hides_synthetic`
+* `test_p7_global_search_incidents_hides_synthetic`
+* `test_p8_permission_matrix_incidents` — unauth 401/403; Safety/Admin/PM 200
+* `test_p8_incident_delete_requires_admin` — Safety token cannot delete
+* `test_zz_zero_residue`
+
+### Device walk (Phase 15) — 17/17 workflows pass, 1 HIGH defect fixed inline
+Report: `test_reports/iteration_track_28_06_safety_device_walk.json`
+* Desktop 1920×800 + tablet 768×1024 + mobile 390×844 — all Safety screens pass, no console errors, no horizontal overflow.
+* HIGH defect fixed inline: `TRACK_28_06_DEFECT_1` (see below).
+
+### Defects found + fixed inline
+
+| ID | Sev | Description | Root cause | Fix | Regression lock |
+|----|-----|-------------|-----------|-----|-----------------|
+| 28.06-D1 | P0 (HIGH) | `/api/employees` returned HTTP 500 `NameError: apply_synthetic_hr_exclusion` | Track 28.04 fix added the FUNCTION CALL but forgot the local `from lib.synthetic_hr_filter import …` inside `server.py::list_employees`. Only detected on Track 28.06 device walk because /api/employees underpins every form's employee picker. Track 28.04 static AST invariant only checks for the CALL, not for the IMPORT — a doctrinal gap. | Added `from lib.synthetic_hr_filter import apply_synthetic_hr_exclusion  # noqa: PLC0415` inside `list_employees` function scope. | `backend/tests/test_track_28_06_api_employees_import_regression.py` (2/2 pass) — one live HTTP 200 assertion + one structural AST assertion that the import is present. |
+
+### Regression proof (post-Track 28.06)
+* 129 pass, 1 skip, 0 real fail across all Track 28 tests.
+* Track 28.02B updated to align with 28.06 doctrine — 3 inspection/incident/JHA list assertions inverted (synthetic must NOT surface) + 1 meeting list assertion inverted. Not a weakening; a doctrinal alignment.
+
+### Zero-residue proof
+`TEST_28_06_` count across `incidents, jhas, inspections, meetings, safety_documents, safety_training_records, safety_equipment_issuances` = **0**. `TEST_28_05_` re-verified = **0**.
+
+### Files changed (Track 28.06)
+NEW:
+* `backend/lib/synthetic_safety_filter.py`
+* `backend/tests/test_track_28_06_safety_e2e.py`
+* `backend/tests/test_track_28_06_api_employees_import_regression.py`
+
+EDITED:
+* `backend/routes/safety.py` (list_inspections, list_meetings, list_jhas, list_incidents, list_incidents_csv)
+* `backend/routes/global_search.py` (run_incidents)
+* `backend/server.py` (list_employees — 28.06-D1 fix)
+* `backend/tests/test_track_28_02b_field_ops_e2e.py` (4 assertions inverted to align with 28.06 doctrine)
+* `memory/TRACK_28_CERTIFICATION_REGISTER.md`
+* `memory/CHANGELOG.md`
+
+### Deployment gate
+**NOT RELEASED.** Broader Track 28 program still active. Deployment gate opens only after Track 28.07 (Training/Admin/Executive) and the final cross-domain integration certification close, plus combined pre-deployment GO issued.
+
+Next: **Track 28.07 · Training / Admin / Executive domain deep-walk.**

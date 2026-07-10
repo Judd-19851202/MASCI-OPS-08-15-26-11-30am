@@ -1,5 +1,28 @@
 # CHANGELOG
 
+## 2026-07-11 · Track 28.06 · Safety · ✅ CLOSED WITH PASS (on-branch, no deploy)
+
+**Safety domain E2E certification complete.** Deployment held per broader Track 28 program gate.
+
+### Deliverables
+* **New module**: `backend/lib/synthetic_safety_filter.py` — 7 helpers covering incidents, JHAs, inspections, meetings, safety documents, safety training, safety equipment issuances.
+* **Filter applied at 5 primary Safety operator surfaces**: `list_inspections`, `list_meetings`, `list_jhas`, `list_incidents`, `list_incidents_csv` (in `routes/safety.py`) + `global_search.py::run_incidents`.
+* **E2E**: `backend/tests/test_track_28_06_safety_e2e.py` (10/10 pass) — incident submit/list/CSV/PDF/identity-GET/global search, JHA submit/list, meeting submit/list, inspection submit/list, permission matrix, zero residue.
+* **Regression lock**: `backend/tests/test_track_28_06_api_employees_import_regression.py` (2/2 pass) — hits live `/api/employees` + structural AST check that `apply_synthetic_hr_exclusion` is imported.
+* **Device walk**: 17/17 pass at desktop/tablet/mobile viewports.
+
+### 28.06-D1 (P0/HIGH) — fixed inline
+`/api/employees` was returning HTTP 500 `NameError: apply_synthetic_hr_exclusion`. Track 28.04 had added the function call but forgot the local import in `server.py::list_employees`. Every form's employee picker was broken. Fixed: local import added; regression-locked with structural AST test + live HTTP 200 assertion.
+
+### Doctrinal alignment (Track 28.02B)
+4 assertions in `test_track_28_02b_field_ops_e2e.py` inverted: synthetic inspections / incidents / JHAs / meetings must NOT appear on operator lists (the 28.02B tests were built before this doctrine existed). This is a strengthening of prior tests, not a weakening.
+
+### Regression proof
+**129 passed, 1 skipped, 0 failed** across the entire Track 28 regression matrix (28.02B + 28.03 + 28.03E + 28.04 Phase 1 + 28.04 + 28.05 S1 + 28.05 S2 + 28.05F + 28.06).
+
+### Deployment status
+**NOT RELEASED.** Track 28.07 (Training/Admin/Executive) + final cross-domain integration cert must close before combined pre-deployment GO.
+
 ## 2026-07-11 · Track 28.05F · ShopManagerQueue mobile overflow CLOSED — on-branch, deployment held
 
 Fixed defect **28-05-DW-001** (P2 MINOR from Track 28.05 device walk).
