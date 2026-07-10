@@ -13,7 +13,21 @@ Hard rules: Action-Queue Focus · No Dead Objects · Preserve Forms & Workflows 
 
 
 
-## Active Track — 2026-07-09
+## Active Track — 2026-07-10
+
+**TRACK 25 · SPRINT 5/6 · Admin OS Domain Completion Push — 🟢 SHIPPED (2026-07-10)**
+
+- Three new domain landings using the same `DomainLandingShell` (zero visual drift):
+  - `/admin/platform-configuration` · 6 cards (branding · notifications · integrations · AI config · email config · build) across 3 sections · 4 maintenance action deep-links · 3 trust gaps
+  - `/admin/diagnostics` · 7 cards (api · build · system-health · OCC snapshot · scheduler · prod-cert · deploy) across 4 sections · 3 actions · 3 gaps
+  - `/admin/maintenance` · 9 cards (one per OCC operation category) across 3 sections · 4 actions · 2 gaps · **every action deep-links to OCC**, no duplicate action logic
+- **Platform Overview unification**: `/admin/platform-overview` now redirects to `/admin` (canonical overview lives at AdminOS · no duplicate hub · legacy bookmarks preserved).
+- **AdminOS card 10 (Maintenance)** now shows a real live probe (`14 ops · N need attention`) — no more `NEEDS WIRING` placeholder.
+- **AdminOS probe fan-out fix** (per Sprint 5/6 testing agent note): switched from `Promise.all` to independent per-card resolution so a slow endpoint no longer stalls the whole grid.
+- OCC aggregator integrations drilldown now points to `/admin/platform-configuration`.
+- Testing agent 100% pass · backend pytest 46/46 · zero console errors · zero visual drift · zero-UTC clean.
+
+**Admin OS status**: **10 of 10 domains** now have canonical landings (Sprints 1-6). Platform Overview served by AdminOS itself.
 
 **TRACK 25 · SPRINT 4 · Admin OS Domain Expansion (AI · Comms · Identity · Governance) — 🟢 SHIPPED (2026-07-10)**
 

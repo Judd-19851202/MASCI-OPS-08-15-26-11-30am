@@ -572,14 +572,17 @@ export default function AdminOS() {
   useEffect(() => {
     let cancelled = false;
     const domainsWithProbe = DOMAINS.filter((d) => d.probe);
-    Promise.all(domainsWithProbe.map((d) => probe(d.probe))).then((rows) => {
-      if (cancelled) return;
-      const map = {};
-      domainsWithProbe.forEach((d, idx) => {
-        map[d.id] = rows[idx];
+    setLoaded(false);
+    // Fire probes independently so a slow endpoint does not stall the
+    // whole grid. Each card resolves as soon as ITS endpoint returns.
+    let remaining = domainsWithProbe.length;
+    domainsWithProbe.forEach((d) => {
+      probe(d.probe).then((row) => {
+        if (cancelled) return;
+        setResults((prev) => ({ ...prev, [d.id]: row }));
+        remaining -= 1;
+        if (remaining <= 0) setLoaded(true);
       });
-      setResults(map);
-      setLoaded(true);
     });
     return () => {
       cancelled = true;
