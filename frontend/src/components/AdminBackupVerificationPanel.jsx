@@ -156,7 +156,7 @@ export default function AdminBackupVerificationPanel() {
               {state.enabled ? (
                 <>
                   <strong>{state.schedule.day_label}</strong> at{" "}
-                  <strong>{String(state.schedule.hour_utc).padStart(2, "0")}:00 UTC</strong>
+                  <strong>{String(state.schedule.hour_utc).padStart(2, "0")}:00 platform time</strong>
                 </>
               ) : (
                 <span className="text-slate-500 italic">Cron disabled</span>

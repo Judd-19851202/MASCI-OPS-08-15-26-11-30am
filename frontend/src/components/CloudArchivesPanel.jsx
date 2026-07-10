@@ -172,7 +172,7 @@ export default function CloudArchivesPanel() {
         >
           <span className="inline-flex items-center gap-1.5 font-mono uppercase tracking-[0.15em] text-orange-900 font-bold">
             <Calendar className="w-3.5 h-3.5 text-orange-500" />
-            Nightly {String(r2Hour).padStart(2, "0")}:00 UTC
+            Nightly {String(r2Hour).padStart(2, "0")}:00 platform time
           </span>
           {nightlyDate ? (
             <span className="inline-flex items-center gap-1.5 font-mono uppercase tracking-[0.15em] text-emerald-700 font-bold">
@@ -246,7 +246,7 @@ export default function CloudArchivesPanel() {
             No archives in R2 yet
           </div>
           <p className="text-xs text-slate-600 mt-1">
-            The next nightly build at {String(r2Hour).padStart(2, "0")}:00 UTC
+            The next nightly build at {String(r2Hour).padStart(2, "0")}:00 platform time
             will land here. Click <strong>Build complete archive now</strong>{" "}
             to generate one immediately.
           </p>
@@ -299,9 +299,8 @@ export default function CloudArchivesPanel() {
         from R2 and inlined), so the zip is fully self-contained — restore
         the entire platform from this one file even if Cloudflare R2
         becomes unreachable. Nightly build runs at{" "}
-        {String(r2Hour).padStart(2, "0")}:00 UTC. Set{" "}
-        <code className="bg-slate-100 px-1 rounded">BACKUP_R2_FULL_HOUR_UTC</code>{" "}
-        in the deploy env to change the hour. Download links above are
+        {String(r2Hour).padStart(2, "0")}:00 platform time. Change the
+        hour via the deploy configuration. Download links above are
         Cloudflare R2 presigned URLs — valid 7 days, no admin token needed
         to share with IT.
       </p>

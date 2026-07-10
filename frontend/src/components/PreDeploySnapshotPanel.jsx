@@ -213,7 +213,7 @@ export default function PreDeploySnapshotPanel() {
         <ShieldCheck className="w-3 h-3" />
         <span>
           Hourly auto-snapshot {state?.r2_hourly === false ? "OFF" : "ON"} ·
-          Nightly fallback {String(state?.r2_full_hour_utc ?? 3).padStart(2, "0")}:00 UTC
+          Nightly fallback {String(state?.r2_full_hour_utc ?? 3).padStart(2, "0")}:00 platform time
         </span>
       </div>
     </section>

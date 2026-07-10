@@ -322,7 +322,7 @@ export default function AdminGuidanceCoverage() {
               </p>
             )}
             <p className="mt-3 text-xs text-slate-500">
-              Captured per zero-result search: query text, UTC timestamp, scope set.
+              Captured per zero-result search: query text, timestamp, scope set.
               No IP, no user identifier, no payload. Operational gap-intelligence only.
             </p>
           </section>

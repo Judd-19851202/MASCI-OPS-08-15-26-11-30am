@@ -139,7 +139,7 @@ export default function StoredBackupsPanel() {
             <Clock className="w-3.5 h-3.5 text-slate-400" />
             {(sch.hours_utc && sch.hours_utc.length > 0
               ? sch.hours_utc.map((h) => String(h).padStart(2, "0") + ":00").join(" · ")
-              : String(sch.hour_utc).padStart(2, "0") + ":00")} UTC
+              : String(sch.hour_utc).padStart(2, "0") + ":00")} platform time
           </span>
           <span className="inline-flex items-center gap-1.5 font-mono uppercase tracking-[0.15em] text-slate-600 font-bold">
             <Calendar className="w-3.5 h-3.5 text-slate-400" />
@@ -172,7 +172,7 @@ export default function StoredBackupsPanel() {
             {sch?.hours_utc && sch.hours_utc.length > 0
               ? sch.hours_utc.map((h) => String(h).padStart(2, "0") + ":00").join(" or ")
               : String(sch?.hour_utc ?? 2).padStart(2, "0") + ":00"}{" "}
-            UTC. Click <strong>Run backup now</strong> to generate one immediately.
+            platform time. Click <strong>Run backup now</strong> to generate one immediately.
           </p>
         </div>
       ) : (
@@ -244,10 +244,10 @@ export default function StoredBackupsPanel() {
         Scheduled backups run at{" "}
         {sch?.hours_utc && sch.hours_utc.length > 0
           ? sch.hours_utc.map((h) => String(h).padStart(2, "0") + ":00").join(" and ") +
-            " UTC (" +
+            " platform time (" +
             (sch.hours_utc.length > 1 ? "two off-site recovery points per day" : "once per day") +
             ")"
-          : "once daily at " + String(sch?.hour_utc ?? 2).padStart(2, "0") + ":00 UTC"}
+          : "once daily at " + String(sch?.hour_utc ?? 2).padStart(2, "0") + ":00 platform time"}
         . Files older than {sch?.retention_days ?? 14} days are auto-deleted. For off-site redundancy, download
         the latest zip to your office NAS or shared drive periodically.
       </p>

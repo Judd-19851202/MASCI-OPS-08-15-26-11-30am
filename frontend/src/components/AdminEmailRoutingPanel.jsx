@@ -60,7 +60,7 @@ const ROUTES = [
     label: "Daily backup destination",
     type: "list",
     description:
-      "Recipients of the auto-backup zip (02:00 + 18:00 UTC) and the manual 'Backup + email + download NOW' button. Typically a single ops/IT address.",
+      "Recipients of the auto-backup zip (02:00 + 18:00 platform time) and the manual 'Backup + email + download NOW' button. Typically a single ops/IT address.",
   },
 ];
 

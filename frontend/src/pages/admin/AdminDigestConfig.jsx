@@ -189,7 +189,7 @@ export default function AdminDigestConfig() {
             </Select>
           </div>
           <div>
-            <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">Hour (UTC · scheduler)</Label>
+            <Label className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-700 font-bold">Hour (platform time · scheduler)</Label>
             <Input
               type="number"
               min={0}

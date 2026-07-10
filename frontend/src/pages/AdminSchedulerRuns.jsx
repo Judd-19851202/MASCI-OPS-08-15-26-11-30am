@@ -27,7 +27,7 @@ import { formatPlatformTime } from "@/lib/platformTime";
 
 const SCHEDULER_OPTIONS = [
   { value: "", label: "All schedulers" },
-  { value: "po_digest", label: "PO Digest (Mondays 14:00 UTC)" },
+  { value: "po_digest", label: "PO Digest (Mondays 14:00 platform time)" },
   { value: "safety_digest", label: "Safety Digest" },
   { value: "operator_digest", label: "Operator Digest" },
 ];

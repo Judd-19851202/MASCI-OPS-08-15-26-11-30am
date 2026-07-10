@@ -206,7 +206,7 @@ function ProductCard({ p, onPreview, onDryRun, onHistory, onAudit }) {
         </div>
         <div>
           <span className="font-semibold">Schedule:</span>{" "}
-          {p.schedule?.freq || "—"}{p.schedule?.hour_utc != null ? ` · ${p.schedule.hour_utc}:00 UTC` : ""}
+          {p.schedule?.freq || "—"}{p.schedule?.hour_utc != null ? ` · ${p.schedule.hour_utc}:00 platform time` : ""}
         </div>
         <div>
           <span className="font-semibold">Last generated:</span>{" "}

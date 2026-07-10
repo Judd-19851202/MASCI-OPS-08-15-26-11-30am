@@ -161,7 +161,7 @@ export default function AdminGuide() {
             </div>
           </div>
           <p className="mt-3">
-            <strong>Hourly auto-snapshots</strong> run in the background every UTC hour to a Cloudflare R2 archive. <strong>The &quot;Snapshot Now&quot; button</strong> on the panel forces a fresh archive build (30–60 seconds) if you need a closer recovery point. <strong>Nightly verification email</strong> at 14:00 UTC Mondays confirms the archive system is healthy.
+            <strong>Hourly auto-snapshots</strong> run in the background every hour to a Cloudflare R2 archive. <strong>The &quot;Snapshot Now&quot; button</strong> on the panel forces a fresh archive build (30–60 seconds) if you need a closer recovery point. <strong>Nightly verification email</strong> at 14:00 platform time Mondays confirms the archive system is healthy.
           </p>
         </Section>
 
@@ -317,9 +317,9 @@ export default function AdminGuide() {
         <Section icon={HardDrive} title="Backups — how to never lose data" color="slate">
           <p className="font-bold text-slate-900 mb-2">Three layers of protection, in order of freshness:</p>
           <ul className="ml-5 list-disc space-y-1.5 mt-2">
-            <li><strong>Hourly R2 cloud archives</strong> — every UTC hour the system writes a complete archive (DB + every photo inlined) to Cloudflare R2. Maximum data-loss window: ~1 hour. <em>Set</em> <code>BACKUP_R2_HOURLY=true</code> <em>in production env.</em></li>
-            <li><strong>Nightly email backup</strong> — every night at 2 AM UTC a complete <code>.zip</code> emails to <strong>jaymn.judd@mascigc.com</strong>. Keep those emails as a separate off-site copy.</li>
-            <li><strong>Weekly verification email</strong> — every Monday at 14:00 UTC the system emails a health report confirming R2 archives are recent and well-sized. Catches the &quot;backend thinks it backed up but R2 silently rejected&quot; scenario.</li>
+            <li><strong>Hourly R2 cloud archives</strong> — every hour the system writes a complete archive (DB + every photo inlined) to Cloudflare R2. Maximum data-loss window: ~1 hour. <em>Set</em> <code>BACKUP_R2_HOURLY=true</code> <em>in production env.</em></li>
+            <li><strong>Nightly email backup</strong> — every night at 2 AM platform time a complete <code>.zip</code> emails to <strong>jaymn.judd@mascigc.com</strong>. Keep those emails as a separate off-site copy.</li>
+            <li><strong>Weekly verification email</strong> — every Monday at 14:00 platform time the system emails a health report confirming R2 archives are recent and well-sized. Catches the &quot;backend thinks it backed up but R2 silently rejected&quot; scenario.</li>
           </ul>
 
           <div className="mt-4 bg-red-50 border-l-4 border-red-700 p-3 rounded-r">
@@ -657,7 +657,7 @@ export default function AdminGuide() {
             <li>Document Library — multipart upload, R2-backed when configured.</li>
             <li>Training & Certifications — tied to `db.employees`.</li>
             <li>Employee Safety Profile — drill-down KPI grid per employee.</li>
-            <li>Weekly Digest — Monday 14:00 UTC cron → safety@mascigc.com.</li>
+            <li>Weekly Digest — Monday 14:00 platform time cron → safety@mascigc.com.</li>
           </ul>
           <p className="mt-2">HR cross-portal view at <code>/hr/safety-records</code> uses the HR token (no Safety credentials required).</p>
         </Section>
