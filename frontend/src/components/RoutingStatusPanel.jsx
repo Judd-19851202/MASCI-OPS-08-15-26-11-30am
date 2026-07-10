@@ -60,7 +60,7 @@ function StatLine({ icon: Icon, label, value, mono = false, testId }) {
 }
 
 function fmtAge(min) {
-  if (min === null || min === undefined) return "no V2 activity yet";
+  if (min === null || min === undefined) return "no modern-routing activity yet";
   if (min < 1) return "just now";
   if (min < 60) return `${Math.round(min)} min ago`;
   const h = Math.floor(min / 60);
@@ -139,7 +139,7 @@ export default function RoutingStatusPanel() {
             }`}
             data-testid="routing-status-mode"
           >
-            mode={status.mode}
+            mode={status.mode === "v2" ? "modern" : status.mode === "v1" ? "legacy fallback" : status.mode}
           </span>
         )}
         <div className="ml-auto flex items-center gap-2">
@@ -178,9 +178,9 @@ export default function RoutingStatusPanel() {
           <StatLine icon={Clock}      label="Backend uptime"     value={status.backend_uptime_s != null ? `${status.backend_uptime_s} s` : "—"} testId="rs-uptime" />
           <StatLine icon={CheckCircle2} label="Critical OK"      value={`${status.route_counts?.critical_populated || 0} / ${status.route_counts?.critical_total || 0}`} testId="rs-critical-ok" />
           <StatLine icon={AlertTriangle} label="Critical empty"  value={status.route_counts?.critical_empty || 0} testId="rs-critical-empty" />
-          <StatLine icon={Activity}   label="V2 audit (24h)"     value={status.audit_counters?.db_source_last_24h ?? 0} testId="rs-db-24h" />
+          <StatLine icon={Activity}   label="Routing audit (24h)" value={status.audit_counters?.db_source_last_24h ?? 0} testId="rs-db-24h" />
           <StatLine icon={XCircle}    label="Errors (24h)"       value={status.audit_counters?.errors_last_24h ?? 0} testId="rs-errors-24h" />
-          <StatLine icon={Clock}      label="Last V2 audit"      value={fmtAge(status.last_v2_audit_age_minutes)} testId="rs-last-v2" />
+          <StatLine icon={Clock}      label="Last routing audit" value={fmtAge(status.last_v2_audit_age_minutes)} testId="rs-last-v2" />
           <StatLine icon={Clock}      label="Routes total"       value={status.route_counts?.total} testId="rs-routes-total" />
           <StatLine icon={Clock}      label="Routes disabled"    value={status.route_counts?.disabled} testId="rs-routes-disabled" />
           <StatLine icon={RotateCw}   label="Rollback value"     value={status.rollback_target?.reverse_value} mono testId="rs-rollback-val" />
@@ -190,7 +190,7 @@ export default function RoutingStatusPanel() {
       {/* Per-V2-module recency */}
       {status?.v2_module_recency && (
         <div className="rounded-lg border border-slate-200 bg-white/60 p-3" data-testid="rs-v2-modules">
-          <div className="text-xs uppercase tracking-wide text-slate-500 mb-2">V2-aware module recency</div>
+          <div className="text-xs uppercase tracking-wide text-slate-500 mb-2">Modern-routing module recency</div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
             {[["health_monitor", "Health monitor"], ["outage_alerts", "Outage alerts"], ["safety_digest", "Safety digest"]].map(([k, label]) => {
               const row = status.v2_module_recency[k];

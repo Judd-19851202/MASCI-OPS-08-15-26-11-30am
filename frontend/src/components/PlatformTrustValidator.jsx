@@ -231,8 +231,8 @@ export default function PlatformTrustValidator() {
           testId="trust-card-routing"
         >
           <ul className="text-xs text-slate-700 space-y-1">
-            <li>mode: <code className="text-slate-500">{er.mode}</code></li>
-            <li>V2 enabled: {er.v2_enabled ? "✓" : "—"}</li>
+            <li>mode: <code className="text-slate-500">{er.mode === "v2" ? "modern" : er.mode === "v1" ? "legacy fallback" : er.mode}</code></li>
+            <li>Modern routing: {er.v2_enabled ? "✓" : "—"}</li>
             <li>routes: {er.route_total}</li>
             <li>critical empty: {er.critical_empty_count}</li>
             <li>errors 24h: {er.errors_last_24h}</li>

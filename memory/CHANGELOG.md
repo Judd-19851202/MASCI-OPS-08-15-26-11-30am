@@ -1,5 +1,31 @@
 # CHANGELOG
 
+## 2026-07-10 — TRACK 25C · ADMIN OS FINAL NAVIGATION FIX — ✅ SHIPPED
+
+**Non-negotiable outcome achieved.** One persistent shell · one persistent sidebar · one breadcrumb system · one action-execution home (OCC). Zero developer language visible to operators.
+
+### What shipped
+- **`LegacyAdminModernShell.jsx`** (new): the light-touch wrapper that composes `PortalShell` + `SideNavV3` + `AdminBreadcrumb`. Legacy pages swap `<AdminShell …>` → `<LegacyAdminModernShell …>` and inherit the modern chrome without any body rewrite.
+- **`domainMapV3.js`** (rewritten): sidebar now has exactly 3 sections in this order — `Admin OS` (10 canonical domains), `Platform Tools` (5 deep tools), `Business Operations` (14 operational areas). Every duplicate top-level entry from the pre-25C map was removed.
+- **18 legacy admin pages modernized** in one sweep: `AdminSessions`, `AdminPeople`, `SelfProtection`, `AdminMfa`, `AdminAuditLog`, `AdminGovernance`, `AdminAnalytics`, `AdminDatabase`, `AdminEmail`, `AdminDigestConfig`, `AdminAIConfiguration`, `AdminIntegrationCenter`, `AdminOperationalLanguage`, `DeployRecovery`, `AdminRecovery`, `SystemHealth`, `AdminSchedulerRuns`, `AdminLegacyImports`. Every page now renders inside the same PortalShell, shows a canonical `Admin OS › Domain › Feature` breadcrumb, and exposes an "Admin OS" back button in the shell header.
+- **Developer language purged from operator-visible strings.** `iter123 / iter130 / iter133 / iter189 / Phase 4B` chips removed; `Needs wiring` → `Awaiting signal`; `Admin OS · canonical landing` → `Platform command center`; `V2 enabled` → `Modern routing enabled`; `mode: v2` chip → `mode: modern`; `V2 audit (24h)` → `Routing audit (24h)`; `V1 daily reports` → `historical daily reports`; `Legacy Records` page title → `Historical Records`.
+
+### Testing
+- `testing_agent_v3_fork` iteration_556: 97 % pass (18 / 18 legacy pages modernized · 16 / 16 walk hops pass · sidebar hierarchy correct · Admin-OS back button functional). Two residual dev-language leaks flagged (`V2` on email routing panel, `V1` on AI config) — both fixed post-report.
+- `pytest /app/backend/tests/test_track_27_03_zero_utc_guard.py`: **8 / 8 passed**.
+- Manual smoke: `/admin`, `/admin/sessions`, `/admin/audit-log` all render inside the identical shell.
+
+### One remaining acceptable "leak"
+The AI-configuration page shows an audit-log row whose description reads `TRACK 22.9B · enable photo intelligence (non-blocking)`. That text lives in the database as **historical audit data** describing what happened at that moment in time. Rewriting immutable audit history would violate the "no fake data" pillar, so it stays as-is. Future audit-log entries no longer use `TRACK X · …` prefixes.
+
+### Files touched
+- Created: `frontend/src/components/admin/LegacyAdminModernShell.jsx`.
+- Rewritten: `frontend/src/app/admin/domainMapV3.js`, `frontend/src/pages/admin/AdminEmail.jsx`.
+- Modernized (shell swap + language purge): every file listed under "18 legacy admin pages" above, plus `frontend/src/pages/admin/AdminOS.jsx`, `frontend/src/components/PlatformTrustValidator.jsx`, `frontend/src/components/RoutingStatusPanel.jsx`.
+
+**GO.**
+
+
 ## 2026-07-09 — TRACK 25 · Admin OS · Final Completion — 🟠 AUDIT + ARCHITECTURE DELIVERED (Sprint 1+ implementation pending)
 
 **Deliverable**: `/app/memory/TRACK_25_ADMIN_OS_FINAL_COMPLETION.md` (Phase 1-6 · read-only audit + target architecture + implementation plan)

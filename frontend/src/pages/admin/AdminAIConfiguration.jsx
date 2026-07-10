@@ -44,7 +44,7 @@ const MODULE_META = [
     key: "daily_report_summary",
     field: "daily_report_summary_enabled",
     label: "Daily Report Summary",
-    desc: "Optional narrative summary generated from V1 daily reports.",
+    desc: "Optional narrative summary generated from historical daily reports.",
   },
   {
     key: "photo_intelligence",
