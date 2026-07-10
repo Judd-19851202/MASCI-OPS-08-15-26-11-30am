@@ -1,5 +1,34 @@
 # CHANGELOG
 
+## 2026-07-11 · Track 28.05 · Fleet / Dispatch · ✅ CLOSED WITH PASS (Sessions 1 + 2)
+
+**GO** — Track 28.05 closed. Track 28.06 Safety unblocked.
+
+### Session 2 (Phases 10-18) close-out
+* **Motive/GPS integration cert (P10)** — `/api/integrations/health` returns truthful demo_mode + masked api_key + ISO timestamps; unauthenticated 401. No fake GREEN.
+* **Cross-domain lifecycle cert (P11)** — Equipment AVAILABLE→picker filter→dispatch write→board hide→cancel→history preserved. Terminated driver excluded from CDL dashboard.
+* **Filter/KPI/export parity (P12)** — Dispatch board = list count; equipment export byte-scan confirms synthetic never in export.
+* **PDF/CSV cert (P13)** — equipment-inspection PDF `application/pdf` + `%PDF` magic verified.
+* **Offline/autosave honest audit (P14)** — 5 forms verified blank-by-default; platform documented as online-only (no fake offline claims).
+* **Device walk (P15)** — 17 workflows at desktop/tablet/mobile viewports. 17/17 pass.
+* **Performance (P16)** — `explain("executionStats")` on hottest queries: equipment_master scan ratio ≤20×, dispatch_assignments $nin ≤100×.
+* **Fix-as-you-certify (P17)** — Fixed 1 MEDIUM Card.jsx TypeError inline; registered 1 MINOR mobile-overflow as P2.
+* **Final cleanup (P18)** — `TEST_28_05_` count = 0 across 13 collections.
+
+### Defect fixes
+* **28-05-DW-002 (MEDIUM)** — `frontend/src/design-system/Card.jsx` line 29: `String(title ?? "untitled").toLowerCase()` guards against non-string title props (was crashing Shop PM work-order detail).
+* **28-05-DW-001 (P2 MINOR)** — Registered for backlog: ShopManagerQueue horizontal overflow at mobile 390×844. Non-blocking.
+
+### Regression proof
+**113 passed, 1 skipped, 0 failed** across all Track 28 tests (28.02B + 28.03 + 28.03E + 28.04 Phase 1 + 28.04 + 28.05 Sessions 1+2). Zero regressions to prior tracks.
+
+### Files changed (Session 2)
+NEW: `backend/tests/test_track_28_05_session2_phases_10_16.py`.
+EDITED: `frontend/src/design-system/Card.jsx`, `memory/TRACK_28_CERTIFICATION_REGISTER.md`, `memory/CHANGELOG.md`.
+
+### Deployment recommendation
+**GO — deploy Track 28.05 to production.** All Session 1 + Session 2 evidence in the certification register.
+
 ## 2026-07-11 · Track 28.05 · Fleet / Dispatch · SESSION 1 CLOSED WITH EVIDENCE
 
 Phases 1-9 of TRACK 28.05 complete. Session 2 (Phases 10-18) pending. **Track 28.05 is NOT marked PASS** — this is a session split, not a scope reduction.

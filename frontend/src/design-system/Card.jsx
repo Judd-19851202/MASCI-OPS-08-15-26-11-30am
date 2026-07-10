@@ -26,7 +26,7 @@ export function Card({
 
   return (
     <section
-      data-testid={testId || `ds-card-${(title || "untitled").toLowerCase().replace(/\W+/g, "-")}`}
+      data-testid={testId || `ds-card-${String(title ?? "untitled").toLowerCase().replace(/\W+/g, "-")}`}
       className={className}
       style={{
         background: "var(--paper-card)",

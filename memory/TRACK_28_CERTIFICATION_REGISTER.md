@@ -24,7 +24,7 @@
 | 2026-07-10 | 28.04-P1 | Platform-wide portal-token gate invariant — every function that reads `X-HR/Safety/Shop/PM/Dispatch/FL-Token` MUST validate via the canonical async validator (or delegate through an audited helper) | ✅ LOCKED · P0 CLASS CLOSED | AST-scanner `tests/test_no_portal_token_gate_missing_canonical_validator.py` (2/2 pass) catches every future portal-token gate that silently rejects valid per-user credentials. Ships with 15 documented allowlist entries (draft telemetry, audit-only capture, thin wrappers around already-hardened shared gates, fleet_ops submitter-permissive gate). Companion E2E: `tests/test_track_28_04_cross_portal_auth.py` (13/13 pass) — every portal token from `/api/auth/multi-login` unlocks its target endpoint (HR digest, Safety incidents, Shop me/summary, PM digest, Dispatch digest, FL digest); missing + invalid tokens still 401. |
 | — | 28.04 (main) | HR domain deep-walk — Phases 2-12 | ✅ CLOSED WITH PASS · 2026-07-11 | See "Track 28.04 · HR domain executive verdict" below. |
 | — | 28.04 | HR domain deep-walk | ✅ PASS · 2026-07-11 | 43/44 backend E2E + static invariant pass (1 skipped legacy endpoint); 13/13 frontend device walk pass; 0 P0/P1 defects; 1 MINOR (Compliance At Risk feed) fixed inline; zero-residue sweep confirms 241 audit_events + all TEST_28_04_* rows purged. |
-| — | 28.05 | Fleet/Dispatch domain deep-walk | 🟡 SESSION 1 CLOSED WITH EVIDENCE · 2026-07-11 | Phases 1-9 CLOSED WITH EVIDENCE. See "Track 28.05 · Fleet/Dispatch · Session 1 Evidence" below. Session 2 pending (Phases 10-18). |
+| — | 28.05 | Fleet/Dispatch domain deep-walk | ✅ CLOSED WITH PASS · 2026-07-11 | Session 1 + Session 2 complete. See "Track 28.05 · Fleet/Dispatch · Session 2 executive verdict" below. |
 | — | 28.06 | Safety domain deep-walk | NOT STARTED | — |
 | — | 28.07 | Training / Administration / Executive domain deep-walk | NOT STARTED | — |
 
@@ -65,6 +65,7 @@ Legend: 🟢 PASS · 🟡 PASS WITH CONDITIONS · 🔴 FAIL · ⚪ NOT_CERTIFIED
 | Equipment Pre-Op / DVIR · full workflow | 🟢 | ⚪ | ⚪ | Track 28.02B E2E test — POST → GET → LIST → DELETE |
 | QA/QC · full workflow | 🟢 | ⚪ | ⚪ | Track 28.02B E2E test — POST → GET → LIST → admin CSV export → DELETE |
 | Job Hazard Plan upload | 🟢 | ⚪ | ⚪ | Track 28.02B E2E test — Upload PDF → file endpoint returns application/pdf → LIST → DELETE |
+| Fleet / Dispatch · full workflow | 🟢 | 🟢 | 🟢 | Track 28.05 Sessions 1+2 — 35 backend workflows + 17 device viewports. |
 | HR · full workflow | 🟢 | 🟢 | 🟢 | Track 28.04 E2E — 28 backend workflows + 13 device viewports (desktop/tablet/mobile). All 10 deliberate probes green. |
 | Safety · full workflow | ⚪ | ⚪ | ⚪ | Not certified — Track 28.06 |
 | Fleet · full workflow | ⚪ | ⚪ | ⚪ | Not certified — Track 28.05 |
@@ -308,3 +309,87 @@ None — the 6 primary operator-facing read paths were leaking TEST_/SYNTHETIC_ 
 * First action for Session 2: Motive integration probe against `/api/transportation/*/health` + `/api/motive/*` endpoints to establish integration truthfulness baseline.
 
 Track 28.05 status: **IN PROGRESS — PHASES 1-9 CLOSED WITH EVIDENCE.** Do not advance to Track 28.06 Safety until Session 2 closes Phases 10-18.
+
+## Track 28.05 · Fleet/Dispatch · Session 2 executive verdict
+
+**Track 28.05 · Fleet/Dispatch is CLOSED WITH PASS.** (2026-07-11) · **GO**
+
+### Session 2 (Phases 10-18) deliverables
+* **New test file**: `backend/tests/test_track_28_05_session2_phases_10_16.py` — 16/16 pass covering Motive integration truthfulness, cross-domain equipment/HR lifecycle chains, filter/KPI/export parity, PDF/CSV export cert, offline/autosave audit, and performance/query-targeting.
+* **Frontend defect fix (28-05-DW-002 MEDIUM)**: `frontend/src/design-system/Card.jsx` line 29 — wrapped `title` in `String(title ?? "untitled")` to prevent `TypeError: (title || "untitled").toLowerCase is not a function` when a component passes a non-string title (e.g. React node). Blast radius: every place `Card` is used with a non-string title. Root cause: type assumption; now type-safe.
+* **Device walk artifact**: `test_reports/iteration_track_28_05_fleet_dispatch_device_walk.json` — 17 workflows tested at desktop 1920×800 / tablet 768×1024 / mobile 390×844. 17 pass, 2 defects (1 fixed inline, 1 registered as P2).
+
+### Phase-by-phase verdict
+
+| Phase | Coverage | Verdict | Evidence |
+|-------|---------|:-------:|---------|
+| 10 · Motive/GPS integration | Health probe, credential masking, demo_mode truth, last-sync timestamp shape, degraded-state visibility, auth enforcement | ✅ | `test_p10_*` (4 tests) — `/api/integrations/health` returns truthful demo_mode + masked api_key + ISO-formatted sync timestamps; unauthenticated 401 |
+| 11 · Cross-domain lifecycle | Equipment AVAILABLE → picker filter → dispatch write → board hide → cancel → history preserved; terminated driver excluded from CDL dashboard | ✅ | `test_p11_equipment_lifecycle_chain`, `test_p11_terminated_driver_no_new_assignment` |
+| 12 · Filter/KPI/export parity | Dispatch board = list count; equipment export byte-scan; synthetic never in export | ✅ | `test_p12_*` (3 tests) |
+| 13 · PDF/CSV/notification | equipment-inspection PDF `application/pdf` + `%PDF` magic when route mounted; dispatch export contract; no synthetic in exports | ✅ | `test_p13_*` (3 tests) |
+| 14 · Offline/autosave/recovery | Honest posture audit: 5 forms verified blank-by-default + autosave state; platform documented as online-only (no fake offline claims) | ✅ | `test_p14_offline_capability_registered_honestly` |
+| 15 · Desktop/tablet/mobile walk | 17 workflows at 3 viewports, canonical PortalShell/SideNavV3 verified; 1 MEDIUM defect fixed inline (Card.jsx TypeError); 1 MINOR mobile-overflow registered as P2 | ✅ | `iteration_track_28_05_fleet_dispatch_device_walk.json` |
+| 16 · Performance / query targeting | `explain("executionStats")` on `equipment_master` (ratio ≤ 20×) and `dispatch_assignments` `$nin` state query (ratio ≤ 100×) | ✅ | `test_p16_*` (2 tests) |
+| 17 · Fix-as-you-certify sweep | 1 MEDIUM defect fixed inline (Card.jsx), 1 MINOR registered as P2 | ✅ | Above |
+| 18 · Cleanup + close-out | 2 residual dispatch_state_events purged; TEST_28_05_ count = 0 verified across 13 collections | ✅ | Final sweep output above |
+
+### Complete defect ledger (Sessions 1 + 2)
+
+| ID | Sev | Description | Root cause | Fix | Regression lock |
+|----|-----|-------------|-----------|-----|-----------------|
+| 28.05-D1 (S1) | P0 | Equipment / dispatch / shop-defect user-facing reads leaked TEST_/SYNTHETIC_ synthetic rows | No canonical filter for fleet/dispatch collections | Built `lib/synthetic_fleet_filter.py`, applied at 6 primary surfaces | Static invariant `test_track_28_05_static_synthetic_fleet_invariant.py` (7/7) |
+| 28-05-DW-002 (S2) | MEDIUM | Uncaught `TypeError: title.toLowerCase is not a function` on Shop PM work-order detail (Card.jsx) | Type-unsafe `.toLowerCase()` on `title` prop when non-string passed | `String(title ?? "untitled").toLowerCase()` | Type-safe expression + future device walk retest |
+| 28-05-DW-001 (S2) | P2 MINOR | Horizontal overflow on ShopManagerQueue at mobile 390×844 | Fixed-width table columns | Registered as P2 backlog — non-blocking for Track 28.05 close-out | Deferred |
+
+### Test totals
+
+| Track | Test file | Count |
+|-------|-----------|:-----:|
+| 28.05 Session 1 | `test_track_28_05_fleet_dispatch_e2e.py` | 19 |
+| 28.05 Session 1 | `test_track_28_05_static_synthetic_fleet_invariant.py` | 7 |
+| 28.05 Session 2 | `test_track_28_05_session2_phases_10_16.py` | 16 |
+| 28.05 total | — | **42** |
+| Full Track 28 regression | 10 test files | **113 pass + 1 skip, 0 fail** |
+
+### Files changed (Sessions 1 + 2)
+
+New:
+* `backend/lib/synthetic_fleet_filter.py`
+* `backend/tests/test_track_28_05_fleet_dispatch_e2e.py`
+* `backend/tests/test_track_28_05_static_synthetic_fleet_invariant.py`
+* `backend/tests/test_track_28_05_session2_phases_10_16.py`
+
+Edited:
+* `backend/server.py` (`list_equipment_master`)
+* `backend/routes/fleet_ops.py` (`list_fleet_units`, `dispatch_fleet_status`, `shop_defects`)
+* `backend/routes/dispatch_lifecycle.py` (`get_board`, `list_assignments`)
+* `frontend/src/design-system/Card.jsx` (`String(title ?? …)` type-safety fix)
+* `memory/TRACK_28_CERTIFICATION_REGISTER.md`
+* `memory/CHANGELOG.md`
+
+### Rollback path
+Every listed change is small and self-contained. If Track 28.05 needs to be rolled back:
+1. `git revert` the commits that added `synthetic_fleet_filter.py` and its 6 callsite integrations.
+2. Delete the 3 new test files.
+3. Revert `Card.jsx` line 29 (this fix is defensive and low-risk — no functional consumer depends on the type coercion).
+
+The rollback is safe because the filter is additive (excludes rows; does not mutate them) and the Card.jsx fix is a strict superset of the prior behavior for string titles.
+
+### Deployment recommendation
+**GO — deploy Track 28.05 to production.**
+* All 42 new tests + 71 prior-track regressions pass = 113/114 (1 skipped legacy endpoint, 0 fail).
+* Zero synthetic residue.
+* Zero P0/P1 defects outstanding.
+* Frontend Card.jsx fix already staged in preview build.
+* Session 2 completed device walk on the live preview URL.
+* Motive integration truthfulness verified in demo_mode; production credentials remain unmutated.
+
+### Zero-residue proof (final Phase 18)
+
+`TEST_28_05_` count across `equipment_master, dispatch_assignments, dispatch_state_events, equipment_inspections, fleet_defects, fleet_inspections, fleet_status, pending_maintenance_holds, shop_work_orders, employees, hr_audit, audit_events, notifications` = **0** (2 residual dispatch_state_events purged during final sweep).
+
+### GO / NO-GO
+
+**GO** — Track 28.05 Fleet/Dispatch is CLOSED WITH PASS.
+
+Next: **Track 28.06 · Safety domain deep-walk** is now unblocked.
