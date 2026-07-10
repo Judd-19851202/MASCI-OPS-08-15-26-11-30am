@@ -439,7 +439,8 @@ def build_global_search_router(db, require_any_portal_token) -> APIRouter:
             # Track 14.0-UXS-11F · global search must resolve any of:
             # James / Michael / Fisher / Jimmy / James Fisher /
             # Jimmy Fisher / James Michael Fisher to the same record.
-            q_doc = {"$or": [
+            from lib.synthetic_hr_filter import apply_synthetic_hr_exclusion  # noqa: PLC0415
+            q_doc = apply_synthetic_hr_exclusion({"$or": [
                 {"name": rx},
                 {"first_name": rx}, {"last_name": rx},
                 {"legal_first_name": rx},
@@ -447,7 +448,7 @@ def build_global_search_router(db, require_any_portal_token) -> APIRouter:
                 {"legal_last_name": rx},
                 {"preferred_name": rx},
                 {"employee_id": rx}, {"email": rx},
-            ]}
+            ]})
             rows = []
             async for d in db.employees.find(q_doc, {"_id": 0}).limit(limit * 2):
                 full = format_employee_identity(d) or d.get("name") \

@@ -32,6 +32,7 @@ Auto-Offboarding Playbook:
 from __future__ import annotations
 
 from lib.mongo_query import safe_regex
+from lib.synthetic_hr_filter import apply_synthetic_hr_exclusion
 
 import logging
 import re as _re
@@ -1031,7 +1032,10 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
                 {"crew": safe_regex(q)},
                 {"supervisor": safe_regex(q)},
             ]})
-        return {"$and": clauses}
+        # TRACK 28.04 · exclude synthetic / TEST_28_04_ employee rows
+        # from every user-facing HR read path. The filter is
+        # idempotent + mixes into the $and stack.
+        return apply_synthetic_hr_exclusion({"$and": clauses})
 
     # ── HR employee CRUD ──────────────────────────────────────────────
     @router.get("/api/hr/employees")
@@ -1175,7 +1179,7 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
         # whitespace variants (e.g. "Lenny  Witkowski" vs "Lenny
         # Witkowski") into one bucket.
         pipeline = [
-            {"$match": {"deleted_at": None}},
+            {"$match": apply_synthetic_hr_exclusion({"deleted_at": None})},
             {"$addFields": {
                 "_facet_raw": {"$ifNull": [f"${field}", ""]},
             }},
@@ -1285,7 +1289,7 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
                 {"lifecycle_status": None, "is_active": {"$ne": False}},
             ]})
         cursor = db.employees.find(
-            {"$and": clauses}, PUBLIC_ROSTER_PROJECTION,
+            apply_synthetic_hr_exclusion({"$and": clauses}), PUBLIC_ROSTER_PROJECTION,
         ).sort("name", 1)
 
         total = 0
@@ -2147,7 +2151,7 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
             "cdl_endorsements": 1, "cdl_restrictions": 1,
         }
 
-        final = {"$and": clauses}
+        final = apply_synthetic_hr_exclusion({"$and": clauses})
         cur = db.employees.find(final, projection).sort("name", 1).limit(limit)
         items: List[Dict[str, Any]] = []
         async for d in cur:
@@ -2159,7 +2163,7 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
         # currently filtering on; if you filtered them, the counts
         # would just mirror the table length and add no value.
         async def _count(extra: Dict[str, Any]) -> int:
-            return await db.employees.count_documents({"$and": [base, extra]})
+            return await db.employees.count_documents(apply_synthetic_hr_exclusion({"$and": [base, extra]}))
 
         summary = {
             "cdl_expiring_30d": await _count({

@@ -327,6 +327,7 @@ def build_driver_router(
           • Hauler list is composed at request time (no new collection).
         """
         import re as _re
+        from lib.synthetic_hr_filter import apply_synthetic_hr_exclusion  # noqa: PLC0415
         tenant_id = _resolve_tenant(x_tenant_id)  # noqa: F841 · reserved for tenant-aware filtering when employees collect tenant_id
         cap = max(1, min(int(limit or 25), 50))
         q_clean = (q or "").strip()
@@ -335,13 +336,13 @@ def build_driver_router(
         drivers: List[Dict[str, Any]] = []
         if len(q_clean) >= 2:
             rx = {"$regex": _re.escape(q_clean), "$options": "i"}
-            emp_query: Dict[str, Any] = {
+            emp_query: Dict[str, Any] = apply_synthetic_hr_exclusion({
                 "deleted_at": None,
                 "$or": [
                     {"name": rx},
                     {"employee_id": rx},
                 ],
-            }
+            })
             # Best-effort: filter to active statuses if the field exists.
             # The DB still returns rows that pre-date lifecycle_status
                 # (legacy) — those are operationally fine.

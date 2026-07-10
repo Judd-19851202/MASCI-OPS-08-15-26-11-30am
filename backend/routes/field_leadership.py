@@ -376,8 +376,9 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
 
     @router.get("/employees")
     async def list_employees(auth: Dict[str, Any] = Depends(_is_authed)):
+        from lib.synthetic_hr_filter import apply_synthetic_hr_exclusion  # noqa: PLC0415
         cursor = db.employees.find(
-            {"is_active": {"$ne": False}},
+            apply_synthetic_hr_exclusion({"is_active": {"$ne": False}}),
             {"_id": 0, "id": 1, "name": 1, "employee_id": 1, "trade": 1,
              "role": 1, "crew": 1, "email": 1, "phone": 1}
         ).sort("name", 1)

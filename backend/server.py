@@ -1911,7 +1911,8 @@ def _today_stamp() -> str:
 
 @api_router.get("/admin/employees/export")
 async def export_employees(_: bool = Depends(require_admin)):
-    cursor = db.employees.find(ACTIVE_FILTER, {"_id": 0}).sort("name", 1)
+    from lib.synthetic_hr_filter import apply_synthetic_hr_exclusion  # noqa: PLC0415
+    cursor = db.employees.find(apply_synthetic_hr_exclusion(ACTIVE_FILTER), {"_id": 0}).sort("name", 1)
     docs = await cursor.to_list(5000)
     header = ["Name", "Employee ID", "Trade", "Role", "Crew", "Email", "Phone"]
     rows = [
@@ -4833,13 +4834,12 @@ async def list_employees():
     # (Daily Report V3, ODS labor_fact, PDF, HR Time Verification,
     # Payroll Variance, PM Intelligence) never re-derive HR aliases.
     cursor = db.employees.find(
-        {"$and": [ACTIVE_FILTER, canonical_active_clause]},
+        apply_synthetic_hr_exclusion({"$and": [ACTIVE_FILTER, canonical_active_clause]}),
         PUBLIC_ROSTER_PROJECTION,
     ).sort("name", 1)
     raw_docs = await cursor.to_list(5000)
     docs = [normalize_employee_identity(d) for d in raw_docs]
     return {"items": docs, "count": len(docs)}
-
 
 @api_router.get("/hr/employee-roster")
 async def hr_employee_roster(
@@ -4873,6 +4873,7 @@ async def hr_employee_roster(
         PUBLIC_ROSTER_PROJECTION,
         normalize_employee_identity,
     )
+    from lib.synthetic_hr_filter import apply_synthetic_hr_exclusion  # noqa: PLC0415
     await _purge_expired("employees")
     canonical_active_clause = {"$or": [
         {"lifecycle_status": {"$in": list(_ACTIVE_STATUSES)}},
@@ -4899,7 +4900,7 @@ async def hr_employee_roster(
     # `supervisor`) — supervisor was silently dropped for every
     # field picker. FIXED.
     cursor = db.employees.find(
-        {"$and": clauses},
+        apply_synthetic_hr_exclusion({"$and": clauses}),
         PUBLIC_ROSTER_PROJECTION,
     ).sort("name", 1).limit(limit)
     raw_docs = await cursor.to_list(limit)
@@ -4966,6 +4967,7 @@ async def hr_employee_roster_public(q: Optional[str] = None, limit: int = 5000):
     endpoint). Zero PII.
     """
     from routes.employee_lifecycle import _ACTIVE_STATUSES  # noqa: PLC0415
+    from lib.synthetic_hr_filter import apply_synthetic_hr_exclusion  # noqa: PLC0415
     canonical_active_clause = {"$or": [
         {"lifecycle_status": {"$in": list(_ACTIVE_STATUSES)}},
         {"lifecycle_status": {"$exists": False}, "is_active": {"$ne": False}},
@@ -4979,7 +4981,7 @@ async def hr_employee_roster_public(q: Optional[str] = None, limit: int = 5000):
             {"employee_id": q_re}, {"role": q_re},
         ]})
     cursor = db.employees.find(
-        {"$and": clauses},
+        apply_synthetic_hr_exclusion({"$and": clauses}),
         {
             "_id": 0, "id": 1, "name": 1, "employee_id": 1,
             "trade": 1, "role": 1, "crew": 1,
