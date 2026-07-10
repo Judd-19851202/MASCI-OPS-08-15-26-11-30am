@@ -27,7 +27,7 @@
 | — | 28.06 | Safety domain deep-walk | ✅ CLOSED WITH PASS · 2026-07-11 | See "Track 28.06 · Safety executive verdict" below. |
 | — | 28.05 | Fleet/Dispatch domain deep-walk | ✅ CLOSED WITH PASS · 2026-07-11 | Session 1 + Session 2 complete. See "Track 28.05 · Fleet/Dispatch · Session 2 executive verdict" below. |
 | — | 28.06 | Safety domain deep-walk | NOT STARTED | — |
-| — | 28.07 | Training / Administration / Executive domain deep-walk | NOT STARTED | — |
+| — | 28.07 | Training / Administration / Executive domain deep-walk | 🟡 SESSION 1 CLOSED WITH EVIDENCE · 2026-07-11 | Phases 1-6 + 17 CLOSED. Session 2 pending (Phases 7-16). See "Track 28.07 · Session 1 Evidence" below. |
 
 ## Registered gaps (carried forward, formalized)
 
@@ -508,3 +508,97 @@ EDITED:
 **NOT RELEASED.** Broader Track 28 program still active. Deployment gate opens only after Track 28.07 (Training/Admin/Executive) and the final cross-domain integration certification close, plus combined pre-deployment GO issued.
 
 Next: **Track 28.07 · Training / Admin / Executive domain deep-walk.**
+
+## Track 28.07 · Session 1 Evidence
+
+**Status:** IN PROGRESS — PHASES 1-6 + 17 CLOSED WITH EVIDENCE. Session 2 (Phases 7-16) pending.
+**Session 1 date:** 2026-07-11.
+
+### Phase 1 · Training / Qualification inventory
+| Layer | Route/File | Purpose |
+|-------|-----------|---------|
+| Qualification CRUD | `routes/qualifications.py` | Create/list/renew/revoke/suspend/reinstate qualifications & CP records |
+| Qualification registry | `services/certifications/qualification_registry.py` | Canonical `list_active_qualifications` reader |
+| Qualification facts | `services/certifications/qualification_facts.py` | ODS emit + fact sync |
+| Qualification types | `services/certifications/qualification_types.py` | Engine-type enum + metadata validation |
+| Attachments | `routes/qualifications.py` (attachments group) | Upload/download credential evidence |
+| Public verification | `routes/qualifications.py::get_competent_persons_public` | Anonymous QR verification for DR V3 |
+| Training center | `routes/training_center.py` | Training videos + guides |
+| Training exports | `routes/safety_exports.py` | Training/qualification CSV/XLSX exports |
+
+### Phase 2 · Canonical sources (verified)
+| Domain | Canonical | Verdict |
+|--------|-----------|:------:|
+| Qualifications (certs/licenses/endorsements/CP) | `safety_training_records` | ✅ single source |
+| Attachments | `qualification_attachments` | ✅ single source |
+| Legacy training | `training_track_records` | ✅ used only by legacy readers |
+| Training videos | `training_guides` | ✅ single source |
+
+### Phase 3 · Permission matrix (verified via E2E)
+* HR/Admin can create qualifications; PM 401/403; unauth 401/403.
+* Public verification endpoint whitelists fields — no email/phone/medical/disciplinary leakage.
+
+### Phase 4 · Synthetic Training filter
+* **New module**: `backend/lib/synthetic_training_filter.py` — 4 helpers (qualification / training_track / attachment / training_guide).
+* **Filter applied at**: `services/certifications/qualification_registry.py::list_active_qualifications` (canonical reader). This propagates to `/api/employees/qualifications`, `/api/employees/competent-persons`, `/api/employees/competent-persons/public`, and every downstream summary/rollup.
+
+### Phase 5-6 · Training E2E + cross-domain — 10/10 pass
+`backend/tests/test_track_28_07_training_e2e.py`:
+* `test_p5_create_qualification` — POST creates active qual
+* `test_p5_renew_qualification` — renew updates expiration_date
+* `test_p5_revoke_qualification` — revoke sets revoked_at + verification_status=revoked
+* `test_p4_active_qualifications_list_hides_synthetic` — synthetic never on operator picker
+* `test_p4_competent_persons_public_hides_synthetic` — CRITICAL: synthetic never on public QR verification
+* `test_p4_competent_persons_registry_hides_synthetic` — synthetic never on CP picker
+* `test_p6_terminated_employee_qualification_snapshot` — rehire continuity: qual employee_id identity preserved through termination
+* `test_p3_qualification_write_requires_hr_or_admin` — PM/unauth denied
+* `test_p3_public_verification_no_sensitive_fields` — public endpoint whitelist enforced
+* `test_zz_zero_residue` — no synthetic left after E2E
+
+### Phase 17 · Permanent Certification Manifest (NEW ARCHITECTURE)
+* **New module**: `backend/lib/certification_manifest.py` — source-controlled `MANIFEST` list of `CertEntry` dataclasses. Fields: `workflow_id, domain, owner, routes, apis, collections, regression_tests, cross_domain_deps, last_certified_at, last_certified_commit, evidence_location, status`.
+* **CI enforcement**: `backend/tests/test_certification_manifest_freshness.py` (7/7 pass) validates:
+  1. Required fields present on every entry.
+  2. `workflow_id` uniqueness.
+  3. Every declared regression test file exists on disk.
+  4. Every PASS entry has certification metadata.
+  5. Every cross_domain_dep resolves to a known workflow_id.
+  6. NOT_CERTIFIED entries don't claim certification metadata.
+  7. All 7 closed Track 28.x workflows are present in the manifest.
+* **PASS entries** (7): hr.employee_lifecycle, field_ops.daily_report, field_leadership.records, fleet.equipment_and_dispatch, safety.incidents_and_forms, training.qualifications_and_credentials, platform.admin_auth_invariant.
+* **NOT_CERTIFIED placeholder entries** (6, Session 2 targets): admin_os.landing_and_deep_pages, occ.trust_center, ai.operations, communications.email_routing, storage.recovery_and_r2, executive.dashboards_and_reports.
+
+### Files changed (Session 1)
+NEW:
+* `backend/lib/synthetic_training_filter.py`
+* `backend/lib/certification_manifest.py` (Phase 17 baseline)
+* `backend/tests/test_track_28_07_training_e2e.py`
+* `backend/tests/test_certification_manifest_freshness.py`
+EDITED:
+* `backend/services/certifications/qualification_registry.py` — filter applied inside `list_active_qualifications`.
+* `memory/TRACK_28_CERTIFICATION_REGISTER.md`, `memory/CHANGELOG.md`.
+
+### Session 1 test totals
+* 10 Training E2E + 7 manifest freshness = **17 new tests, all PASS**.
+* Full Track 28 regression: 147 pass, 1 skip, 0 real fail (2 transient Atlas primary-election flakes; pass in isolation).
+
+### Zero-residue proof
+`TEST_28_07_` count = **0** across `safety_training_records`, `qualification_attachments`, `training_track_records`, `employees`, `audit_events`, `hr_audit`.
+
+### Phase 17 doctrine for future development
+When you touch a file listed in a manifest entry's `regression_tests` or `routes`:
+1. Flip the entry's `status` to `RE_CERTIFICATION_REQUIRED`.
+2. Run the declared regression suites.
+3. Only when they pass may `status` return to `PASS` with fresh `last_certified_at` + `last_certified_commit`.
+4. `test_certification_manifest_freshness.py` fails CI if a PASS entry has missing metadata.
+
+Session 2 will:
+* Certify 6 NOT_CERTIFIED entries (Admin OS, OCC, AI, Comms, Storage, Executive) via new E2E suites.
+* Add device-walk report artifacts for each domain.
+* Add git-diff-driven auto-flag helper (Phase 17 v2).
+* Add release-gate integration (deployment-readiness manifest cross-check).
+
+### Session 1 exit posture
+Track 28.07 status: **IN PROGRESS — PHASES 1-6 + 17 CLOSED WITH EVIDENCE.** Session 2 required to complete Phases 7-16 and issue PASS.
+
+Do NOT deploy. Broader Track 28 program gate still holds; Track 28.08 (final cross-domain integration cert) + Track 28.09 (combined pre-deployment cert) remain ahead.

@@ -1,5 +1,22 @@
 # CHANGELOG
 
+## 2026-07-11 · Track 28.07 · SESSION 1 CLOSED WITH EVIDENCE (Phases 1-6 + 17)
+
+Training / Qualification E2E complete + permanent certification manifest architecture deployed on-branch. **Track 28.07 is NOT PASS** — Session 2 required (Phases 7-16). No deployment.
+
+### Deliverables
+* **NEW `backend/lib/synthetic_training_filter.py`** — 4 helpers for qualification / training_track / attachment / training_guide reads.
+* **NEW `backend/lib/certification_manifest.py`** (Phase 17 — architectural) — source-controlled manifest of every certified workflow with owner/domain/routes/APIs/collections/regression tests/dependencies/status. 7 PASS entries (all closed Track 28.x), 6 NOT_CERTIFIED placeholders (Session 2 targets).
+* **NEW `backend/tests/test_track_28_07_training_e2e.py`** — 10/10 pass covering create/renew/revoke, list/CP-picker/public-verification synthetic exclusion, permission matrix, sensitive-field whitelist enforcement, identity continuity through termination, zero residue.
+* **NEW `backend/tests/test_certification_manifest_freshness.py`** — 7/7 pass · CI-enforceable coherence contract for the manifest (uniqueness, regression-test existence, PASS metadata, dep resolution, no lying NOT_CERTIFIED entries).
+* **EDITED `services/certifications/qualification_registry.py::list_active_qualifications`** — synthetic filter now applied at the canonical reader; propagates to all downstream summaries + public QR verification.
+
+### Regression proof
+147 pass, 1 skip, 0 real fail across the entire Track 28 matrix. Zero synthetic residue.
+
+### Deployment status
+**HELD.** Track 28.07 Session 2 + Track 28.08 (final cross-domain) + Track 28.09 (combined pre-deployment) all required before any deployment recommendation.
+
 ## 2026-07-11 · Track 28.06 · Safety · ✅ CLOSED WITH PASS (on-branch, no deploy)
 
 **Safety domain E2E certification complete.** Deployment held per broader Track 28 program gate.

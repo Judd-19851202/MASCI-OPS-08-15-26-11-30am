@@ -202,6 +202,13 @@ async def list_active_qualifications(
     if employee_ids:
         q["$and"].append({"employee_id": {"$in": list(employee_ids)}})
 
+    # TRACK 28.07 · exclude synthetic TEST_28_07_ / SYNTHETIC_ / ITER
+    # test rows from every operator-facing qualification read path
+    # (HR training tab, Safety credential registry, CP picker, public
+    # QR verification, executive compliance rollup).
+    from lib.synthetic_training_filter import apply_synthetic_qualification_exclusion  # noqa: PLC0415
+    q = apply_synthetic_qualification_exclusion(q)
+
     rows = await db[COLL].find(q, {"_id": 0}).to_list(10_000)
 
     # Batch-load employees.
