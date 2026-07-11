@@ -1484,6 +1484,26 @@ def api_version():
         # connected to so a banner can flag preview unambiguously.
         "app_env": os.environ.get("APP_ENV", "production").lower(),
         "db_name": os.environ.get("DB_NAME", "unknown"),
+        # TRACK 28.09A · Phase 11 · Runtime Identity Endpoint — safe,
+        # non-secret metadata so operators can immediately see what
+        # environment / storage / scheduler / delete-engine / email /
+        # AI / integration state is currently active. No credentials,
+        # no URIs, no keys — labels only.
+        "environment_identity": {
+            "app_env": os.environ.get("APP_ENV", "unknown").lower(),
+            "db_name": os.environ.get("DB_NAME", "unknown"),
+            "db_isolation_enforced": (os.environ.get("ENFORCE_DB_ISOLATION") or "").strip().lower() in ("1", "true", "yes", "on"),
+            "storage_bucket": os.environ.get("S3_BUCKET", "unknown"),
+            "storage_endpoint_present": bool(os.environ.get("S3_ENDPOINT_URL")),
+            "scheduler_enabled": (os.environ.get("SCHEDULER_ENABLED") or "").strip().lower() in ("1", "true", "yes", "on"),
+            "email_safety_mode": os.environ.get("EMAIL_SAFETY_MODE", "unknown"),
+            "auto_email_reports": (os.environ.get("AUTO_EMAIL_REPORTS") or "").strip().lower() in ("1", "true", "yes", "on"),
+            "resend_webhook_secret_present": bool(os.environ.get("RESEND_WEBHOOK_SECRET")),
+            "dev_endpoints_enabled": (os.environ.get("DEV_ENDPOINTS_ENABLED") or "").strip().lower() in ("1", "true", "yes", "on"),
+            "maintainx_write_enabled": (os.environ.get("MAINTAINX_WRITE_ENABLED") or "").strip().lower() in ("1", "true", "yes", "on"),
+            "ai_provider_key_present": bool(os.environ.get("EMERGENT_LLM_KEY") or os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("OPENAI_API_KEY")),
+            "delete_engine_status": "DISABLED",  # Track 27.07 permanent gate
+        },
     }
 
 

@@ -852,3 +852,24 @@ No schema migrations. No collection changes. No new indexes. No R2 mutations.
 - Rollback runbook produced ✅
 - Post-deploy smoke plan produced ✅
 - Deployment gate held pending operator env swap + backup drill ✅
+
+---
+
+## Track 28.09A · Environment Separation & Deployment Integrity Audit · 🟢 GO for environment integrity
+
+**Verdict issued:** 2026-07-11.
+
+**Scope:** prove preview and production are isolated at code, config, runtime, and data layers before deployment.
+
+**Evidence package:** `memory/TRACK_28_09A_ENVIRONMENT_SEPARATION.md` (14 sections including preview + production environment maps, configuration ownership matrix, database isolation live probe, R2 isolation gate, scheduler/worker isolation, email/webhook isolation, deployment pipeline model, codebase hardcode scan, environment assertion guards, runtime identity endpoint, crossover regression contract).
+
+**Isolation layers (proven live):**
+1. Atlas per-user permission scope — `masci_preview_user` cannot list `masci_safety` collections (`OperationFailure`).
+2. Boot-time consistency guard — `server.py:40-65` `sys.exit(98)` on user/env/db mismatch.
+3. Startup failsafe probe — `db_isolation_failsafe.py` `sys.exit(99)` when `ENFORCE_DB_ISOLATION=true` and forbidden-DB visible.
+
+**Permanent tests (all PASS):** 11 in `test_track_28_09a_environment_separation.py` + 7 in `test_rc1_predeploy_isolation.py` = 18 permanent environment-separation tests locked.
+
+**Manifest entry added:** `platform.environment_separation` (governance workflow) with both test paths.
+
+**Track 28.09 CONDITIONAL GO remains the only overall deployment gate.** Operator env swap C1-C6 still required.

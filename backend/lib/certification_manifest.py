@@ -247,6 +247,27 @@ MANIFEST: List[CertEntry] = [
     ),
     # ─── Session 2 pending — placeholders declared, not certified ───
     CertEntry(
+        workflow_id="platform.environment_separation",
+        domain="Platform",
+        owner="Platform Trust",
+        # No routes — governance workflow. Startup guards + tests only.
+        routes=[],
+        apis=["/api/version"],
+        collections=[],
+        regression_tests=[
+            # Startup guard + failsafe module (structural + runtime probe).
+            "backend/tests/test_rc1_predeploy_isolation.py",
+            # Track 28.09A crossover contract (endpoint shape + hardcode
+            # scan + preview safety flags + R2 delete-engine gate).
+            "backend/tests/test_track_28_09a_environment_separation.py",
+        ],
+        cross_domain_deps=["platform.admin_auth_invariant"],
+        last_certified_at="2026-07-11",
+        last_certified_commit="track-28.09a",
+        evidence_location="memory/TRACK_28_09A_ENVIRONMENT_SEPARATION.md",
+        status="PASS",
+    ),
+    CertEntry(
         workflow_id="admin_os.landing_and_deep_pages",
         domain="Admin OS",
         owner="Platform Ops",

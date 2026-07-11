@@ -1,4 +1,37 @@
 # CHANGELOG
+## 2026-07-11 · Track 28.09A · 🟢 GO for environment integrity · Environment Separation & Deployment Integrity Audit
+
+**Track 28.09A issues GO for environment integrity.** Preview and production are proven isolated at three layers: Atlas per-user permission scope, boot-time startup guard (`sys.exit(98)`), and startup failsafe probe (`sys.exit(99)`). The overall deployment gate remains Track 28.09's CONDITIONAL GO (operator env swap C1-C6 still pending).
+
+### Evidence gathered (14 phases)
+- **Preview environment map + production environment map** documented (see `/app/memory/TRACK_28_09A_ENVIRONMENT_SEPARATION.md` Sections 1-2).
+- **Configuration ownership matrix** covers 14 variables with cross-env risk classification (Section 3).
+- **Live isolation probe** `test_preview_credential_cannot_access_production_db` PASSES — Atlas denies preview credential attempting to list `masci_safety`.
+- **Boot-time guards** verified structural + runtime: `server.py` lines 40-65 (`sys.exit(98)`) and `db_isolation_failsafe.py` (`sys.exit(99)`).
+- **`/api/version.environment_identity`** endpoint augmented with 13 safe non-secret operator labels (app_env, db_name, db_isolation_enforced, storage_bucket, storage_endpoint_present, scheduler_enabled, email_safety_mode, auto_email_reports, resend_webhook_secret_present, dev_endpoints_enabled, maintainx_write_enabled, ai_provider_key_present, delete_engine_status).
+- **Codebase hardcode scan** — zero preview URL in backend runtime source outside three intentional constants files (server.py guard, db_isolation_failsafe.py constants, cluster_capacity.py observability route). Regression-locked by `test_no_preview_hostname_in_backend_runtime_source` with an allowlist.
+- **Preview safety flags** locked: `AUTO_EMAIL_REPORTS=false`, `SCHEDULER_ENABLED=false`, `MAINTAINX_WRITE_ENABLED=false`, `MAINTAINX_SYNC_ENABLED=false`.
+- **R2 delete engine** gate: `delete_engine_status: "DISABLED"` locked structurally and via `/api/version`.
+- **11 new permanent regression tests** in `test_track_28_09a_environment_separation.py` + **7 existing** in `test_rc1_predeploy_isolation.py` = 18 permanent environment-separation tests, 18 PASS.
+
+### Defects fixed in-session (all P2/P3, no P0/P1)
+- **E1** (P2) `/api/version` was missing the full non-secret operator identity block → added.
+- **E2** (P3) No permanent test locked "preview cannot write MaintainX/Motive" → added `test_preview_env_prevents_maintainx_write`.
+- **E3** (P3) No permanent test scanned backend runtime source for preview hostname → added `test_no_preview_hostname_in_backend_runtime_source` with 3-file allowlist.
+
+### Files changed
+NEW: `backend/tests/test_track_28_09a_environment_separation.py` (11 tests), `memory/TRACK_28_09A_ENVIRONMENT_SEPARATION.md` (full audit evidence package).
+EDITED: `backend/server.py` (augmented `/api/version` with `environment_identity` block), `backend/lib/certification_manifest.py` (added `platform.environment_separation` workflow entry).
+
+### Verdict
+🟢 GO for environment integrity. Track 28.09's CONDITIONAL GO for overall deployment remains — operator env swap C1-C6 still required at deploy time.
+
+### Deployment gate
+**HELD** pending operator env swap + backup drill (28.09 C1-C6). No environment crossover risk in code or runtime configuration.
+
+---
+
+
 ## 2026-07-11 · Track 28.09 · 🟡 CONDITIONAL GO · Combined Pre-Deployment Certification
 
 **Track 28.09 issues CONDITIONAL GO** for the frozen release candidate `fb30633cc1e6a31a379751ecad16e97f71d42b75` on branch `main`. Zero code changes required. Zero P0/P1 code defects. All conditions are operator env-swap actions.

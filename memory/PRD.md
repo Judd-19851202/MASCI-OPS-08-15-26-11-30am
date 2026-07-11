@@ -1,6 +1,9 @@
 # MASCI Operations Platform — PRD
 
 
+> **STATUS · 2026-07-11 · Track 28.09A GO issued for environment integrity.** Preview and production are physically, logically, and operationally separated. Three boot-time guards enforce env consistency (`server.py` startup consistency guard `sys.exit(98)`, `db_isolation_failsafe.py` `sys.exit(99)`, Atlas per-user permission scope). Live probe `test_preview_credential_cannot_access_production_db` PASSES — preview credential is denied by Atlas when attempting to list `masci_safety`. New `/api/version.environment_identity` block exposes 13 non-secret operator labels. 18 permanent environment-separation tests pass. Zero preview URL hardcoded in backend runtime source outside the intentional isolation-guard constants. Track 28.09's CONDITIONAL GO remains the only deployment gate.
+
+
 > **STATUS · 2026-07-11 · Track 28.09 CONDITIONAL GO issued.** Combined Pre-Deployment Certification complete. Frozen RC = commit `fb30633cc1e6a31a379751ecad16e97f71d42b75`. 229 backend regression tests pass from cold cache in 269s (0 fail, 2 documented skips). Frontend production build succeeds (52 MB, 208 JS chunks). Manifest release gate: 13/13 PASS, `needs_recert()==[]`, `deployment_blockers=[]`. R2 delete engine confirmed DISABLED. Zero secret exposure in bundle. Zero `TEST_28_*` residue in any collection. Full release package + rollback runbook: `/app/memory/TRACK_28_09_RELEASE_PACKAGE.md`. **Deployment is authorized when operator completes conditional items C1-C6 (env swap: REACT_APP_BACKEND_URL, MONGO_URL, DB_NAME, SCHEDULER_ENABLED=true, APP_ENV=production, RESEND_WEBHOOK_SECRET, secret rotation, fresh backup + drill evidence).** No code changes required.
 
 
