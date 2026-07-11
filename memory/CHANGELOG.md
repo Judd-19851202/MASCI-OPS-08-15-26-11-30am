@@ -1,4 +1,50 @@
 # CHANGELOG
+## 2026-07-11 · Track 28.11 · ✅ GO · Diagnostics Truthfulness & Operational Signal Cleanup
+
+Canonical status vocabulary landed across backend + Diagnostics UI. Every diagnostic surface (Admin OS, Diagnostics, OCC, Governance & Trust, Storage/Recovery, Deploy Readiness, System Health) now speaks one language. All reported contradictions repaired in preview; production deploy required to ship.
+
+### Root-cause repairs
+* **System Health "0/8 healthy" bug** — Diagnostics UI filter checked `status !== "ok" && !== "healthy"`; backend emits `"green"`, so 8/8 counted as bad. Fix: canonical `counts` dict + expanded healthy synonyms.
+* **Deploy Readiness UNKNOWN with 0 blockers** — UI switch didn't include `"attention"`. Endpoint now emits `canonical_status` explicitly; UI reads it.
+* **`overall_status: None`** on `/api/admin/governance/self-protection` — endpoint only exposed `page_status`. Now emits `overall_status` + `canonical_status`.
+* **Deployment ledger "not recorded yet"** — no startup hook. New `auto_record_deploy_on_startup(source_hash)` in `governance_self_protection.py`, called from `server.py` after `_SOURCE_HASH` compute. Idempotent — unchanged hash is a no-op. Preview verified: `deployment.status=green`, `deployed_at=1783792980`, `history_size=10`.
+* **60 tolerated warnings shown as "60 new"** — new `warning_classification: {current_actionable, historical_baselined, baseline_tolerated_new, informational}` breaks it down truthfully.
+* **Field walks always green despite 44d age** — 30d/60d freshness policy with per-walk `age_days` + `freshness_status`.
+* **MaintainX forced integrations RED/YELLOW** — `disabled + mocked=True` now normalizes to `NOT_APPLICABLE`. Regression-locked by unit test. Applies in both `system-health` and OCC `_eval_integrations`.
+* **R2 bucket overage counted as two independent disasters** — shared `root_cause_id="r2_bucket_capacity"` on `recovery_snapshot` + `storage_health`. OCC payload adds `root_cause_groups` + `unique_critical_root_causes` (5 red → 4 unique).
+* **System-Health version card "unknown · built —"** — falls back to runtime `_SOURCE_HASH` + `_STARTED_AT` when env stamps absent.
+
+### Canonical vocabulary module (new)
+`backend/lib/canonical_status.py` — 222 lines, 24 unit tests passing:
+* States: `HEALTHY · ATTENTION · CRITICAL · UNKNOWN · STALE · DISABLED · NOT_APPLICABLE`
+* `to_canonical()` legacy-mapping (green/ok/pass/yellow/amber/warn/watch/red/critical/failed/disabled/mocked/n/a/…)
+* `summarize()` emits `total_applicable = total − disabled − not_applicable`, `highest`, per-state counts
+* `severity()` + `highest()` — DISABLED/NOT_APPLICABLE never escalate above HEALTHY
+* `freshness_status()` — evidence_at + max_age → `{fresh, stale, evidence_age_seconds, evidence_at_iso}`
+
+### Regression-locks
+`backend/tests/test_track_28_11_canonical_status.py` — 24 tests covering to_canonical, summarize, highest/severity, freshness, and MaintainX NOT_APPLICABLE. All pass.
+
+### Live post-fix contract on preview
+```
+System Health:  overall=yellow · counts={healthy:7, attention:1, critical:0, ...}
+Deploy Readiness: overall_status=attention · canonical_status=ATTENTION · "10/12 checks passed · 0 blocker(s) · 2 warn(s)"
+Governance Self-Protection: overall_status=amber · canonical=ATTENTION · deployment.status=green · deployed_at=1783792980
+OCC: overall=red · canonical=CRITICAL · counts.red=5 · unique_critical_root_causes=4 · r2_bucket_capacity groups [recovery_snapshot, storage_health]
+```
+
+### Files
+NEW: `backend/lib/canonical_status.py`, `backend/tests/test_track_28_11_canonical_status.py`, `memory/TRACK_28_11_DIAGNOSTICS_TRUTHFULNESS.md`.
+EDITED (backward-compatible response additions only): `backend/routes/admin_ops.py`, `backend/routes/deploy_readiness.py`, `backend/routes/governance_self_protection.py`, `backend/routes/occ_health_aggregator.py`, `backend/server.py`, `frontend/src/pages/admin/AdminDiagnostics.jsx`, `memory/TRACK_28_CERTIFICATION_REGISTER.md`.
+
+### Not touched
+Zero threshold changes. Zero prod data mutations. Zero R2 delete calls. Zero Track 27.07 or actor-context work. Zero schema migrations.
+
+R2 320 GB overage remains legitimately CRITICAL and now clearly attributed to one root cause (`r2_bucket_capacity`). Ownership stays with Track 27.07.
+
+---
+
+
 ## 2026-07-11 · Track 28.10 · ✅ PRODUCTION GO · Live Post-Deployment Certification
 
 **24-phase non-destructive live certification against `https://mascidocs.com`.**

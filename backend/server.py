@@ -12154,8 +12154,25 @@ app.include_router(
 # Probe (60s cache). Admin-only. No writes anywhere.
 from routes.governance_self_protection import (  # noqa: E402
     build_governance_self_protection_router,
+    auto_record_deploy_on_startup,
 )
 app.include_router(build_governance_self_protection_router(require_admin))
+
+# TRACK 28.11 · Idempotent auto-record of the running source_hash to
+# the deployment ledger. Ensures the governance self-protection card
+# never shows "not recorded yet" while a live deploy is in production.
+# Safe on every restart — an unchanged hash is a no-op.
+try:
+    _t2811_deploy_ledger = auto_record_deploy_on_startup(_SOURCE_HASH)
+    _t2811_logger = logging.getLogger(__name__)
+    if _t2811_deploy_ledger.get("appended"):
+        _t2811_logger.info(
+            f"[track-28.11] deployment ledger auto-recorded source_hash={_SOURCE_HASH[:12]}"
+        )
+except Exception as _t2811_e:  # noqa: BLE001
+    logging.getLogger(__name__).warning(
+        f"[track-28.11] deployment ledger auto-record skipped: {_t2811_e!s}"
+    )
 
 
 # ─── Global Search (iter155 — Phase 2.5 · Phase G) ──────────────────

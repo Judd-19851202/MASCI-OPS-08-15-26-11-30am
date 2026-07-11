@@ -311,8 +311,42 @@ def build_deploy_readiness_router(db, require_admin: Callable) -> APIRouter:
         else:
             overall = "ready"
 
+        # TRACK 28.11 · Canonical status vocabulary so Diagnostics /
+        # OCC / any consumer can classify this card without inventing
+        # its own severity map. Also annotate each check.
+        from lib.canonical_status import (  # noqa: PLC0415
+            HEALTHY, ATTENTION, CRITICAL, to_canonical,
+        )
+        canonical_overall = {
+            "ready": HEALTHY,
+            "attention": ATTENTION,
+            "blocked": CRITICAL,
+        }.get(overall, ATTENTION)
+        canonical_reason_code = (
+            "healthy" if canonical_overall == HEALTHY
+            else "blockers" if canonical_overall == CRITICAL
+            else "warns_present"
+        )
+        canonical_summary = (
+            f"{len(checks) - len(blockers_failed) - len(warns_failed)}/{len(checks)} checks passed"
+            f" · {len(blockers_failed)} blocker(s) · {len(warns_failed)} warn(s)"
+        )
+        canonical_action = (
+            "" if canonical_overall == HEALTHY
+            else "Investigate blocker(s) below; deployment is not authorized." if canonical_overall == CRITICAL
+            else "Review the warn(s) below; production deploy is authorized after triage."
+        )
+        for c in checks:
+            c["canonical_status"] = to_canonical(
+                "healthy" if c["passed"] else ("critical" if c["severity"] == "blocker" else "attention")
+            )
+
         return {
             "overall_status": overall,
+            "canonical_status": canonical_overall,
+            "canonical_reason_code": canonical_reason_code,
+            "canonical_summary": canonical_summary,
+            "recommended_action": canonical_action,
             "checked_at": datetime.now(timezone.utc).isoformat(),
             "blocker_count": len(blockers_failed),
             "warn_count": len(warns_failed),

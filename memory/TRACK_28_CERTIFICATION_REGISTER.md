@@ -29,6 +29,7 @@
 | — | 28.06 | Safety domain deep-walk | NOT STARTED | — |
 | — | 28.07 | Training / Administration / Executive domain deep-walk | ✅ CLOSED WITH PASS · 2026-07-11 | Sessions 1+2 complete. See "Track 28.07 · Session 2 executive verdict" below. |
 | 2026-07-11 | 28.10 | Live Post-Deployment Certification (24 phases, non-destructive live probes against `https://mascidocs.com`) | ✅ PRODUCTION GO | See "Track 28.10 · Live Post-Deployment Certification executive verdict" below. |
+| 2026-07-11 | 28.11 | Diagnostics Truthfulness & Operational Signal Cleanup (canonical status vocabulary, root-cause dedup, deploy-ledger auto-record, MaintainX → NOT_APPLICABLE, field-walk freshness, governance warning classification, System Health `0/8` bug) | ✅ GO — preview complete; operator deploy required to land on prod | See `/app/memory/TRACK_28_11_DIAGNOSTICS_TRUTHFULNESS.md`. |
 
 ## Registered gaps (carried forward, formalized)
 

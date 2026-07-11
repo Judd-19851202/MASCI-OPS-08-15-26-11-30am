@@ -40,6 +40,16 @@
       "source_hash": "740398bc1f9277a8edfdb1e92e5dc26d",
       "deployed_at": 1781575542,
       "note": "pytest idempotency probe"
+    },
+    {
+      "source_hash": "965741df412f5e54f0ab65cbe74b83e5",
+      "deployed_at": 1783792787,
+      "note": "auto-recorded on backend startup"
+    },
+    {
+      "source_hash": "bdccb5300b16875210325b12ec6717b6",
+      "deployed_at": 1783792980,
+      "note": "auto-recorded on backend startup"
     }
   ]
 }

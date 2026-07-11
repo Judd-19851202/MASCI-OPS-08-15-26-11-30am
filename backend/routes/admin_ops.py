@@ -161,27 +161,37 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
         # via shared helper. No more hard-coded yellow; surfaces last
         # successful sync + webhook status so the admin can verify
         # at-a-glance that an integration is actually live.
+        # TRACK 28.11: MaintainX is NOT_APPLICABLE for MASCI — its
+        # `disabled + mocked=True` state does not contribute to the
+        # parent integrations card severity or overall rollup.
         try:
             from routes.integrations._storage import compute_provider_status  # noqa: PLC0415
             integrations: List[Dict[str, Any]] = []
             env_var_map = {"motive": "MOTIVE_API_KEY", "maintainx": "MAINTAINX_API_KEY"}
-            colour_map = {"ok": "green", "degraded": "yellow", "disabled": "yellow"}
+            colour_map = {"ok": "green", "degraded": "yellow", "disabled": "not_applicable"}
             child_statuses: List[str] = []
             for prov in ("motive", "maintainx"):
                 snap = await compute_provider_status(
                     db, prov, env_api_key_var=env_var_map.get(prov),
                 )
-                colour = colour_map.get(snap["status"], "yellow")
+                snap_status = snap["status"]
+                # TRACK 28.11 · NOT_APPLICABLE for MASCI-unused integrations.
+                if snap_status == "disabled" and snap.get("mocked"):
+                    colour = "not_applicable"
+                else:
+                    colour = colour_map.get(snap_status, "yellow")
                 detail_bits: List[str] = []
-                if snap["status"] == "ok":
+                if snap_status == "ok":
                     detail_bits.append("Live")
                     if snap.get("last_successful_sync_at"):
                         detail_bits.append(f"synced {snap['last_successful_sync_at']}")
                     detail_bits.append(
                         "webhook armed" if snap["webhook_secret_present"] else "webhook secret missing"
                     )
-                elif snap["status"] == "degraded":
+                elif snap_status == "degraded":
                     detail_bits.append(snap["message"])
+                elif colour == "not_applicable":
+                    detail_bits.append("Not applicable — MASCI does not use this integration.")
                 else:
                     detail_bits.append("Stubbed" if snap["mocked"] else snap["message"])
                 integrations.append({
@@ -189,19 +199,24 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
                     "status":                 colour,
                     "detail":                 " · ".join(detail_bits),
                     "enabled":                snap["enabled"],
+                    "applicable":             colour != "not_applicable",
                     "api_key_present":        snap["api_key_present"],
                     "webhook_secret_present": snap["webhook_secret_present"],
                     "last_successful_sync_at": snap["last_successful_sync_at"],
                     "last_failed_sync_at":    snap["last_failed_sync_at"],
                 })
                 child_statuses.append(colour)
-            # Outer card colour reflects the worst child (no more hard-coded yellow).
-            if "red" in child_statuses:
+            # Outer card colour reflects the worst APPLICABLE child.
+            # not_applicable children never escalate the parent.
+            applicable_statuses = [s for s in child_statuses if s != "not_applicable"]
+            if "red" in applicable_statuses:
                 outer = "red"
-            elif "yellow" in child_statuses:
+            elif "yellow" in applicable_statuses:
                 outer = "yellow"
-            else:
+            elif applicable_statuses:
                 outer = "green"
+            else:
+                outer = "not_applicable"
             outer_detail_parts: List[str] = []
             for child in integrations:
                 outer_detail_parts.append(f"{child['provider'].title()}: {child['status']}")
@@ -242,23 +257,60 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
             cards.append({"key": "active_sessions", "label": "Active users (12h)",
                           "status": "green", "detail": "—"})
 
-        # 8. Build version (read from env stamped at deploy)
-        version = os.environ.get("MASCI_BUILD_VERSION", "unknown")
-        built_at = os.environ.get("MASCI_BUILD_AT", "—")
+        # 8. Build version — pull from live server module if the deploy
+        # env vars weren't stamped (Emergent deploys don't set them,
+        # so we fall back to the runtime source_hash + start time).
+        version = os.environ.get("MASCI_BUILD_VERSION") or ""
+        built_at = os.environ.get("MASCI_BUILD_AT") or ""
+        if not version:
+            try:
+                from server import _SOURCE_HASH as src_hash  # noqa: PLC0415
+                version = str(src_hash or "unknown")[:12]
+            except Exception:
+                version = "unknown"
+        if not built_at:
+            try:
+                from server import _STARTED_AT as started  # noqa: PLC0415
+                built_at = str(started) if started else "—"
+            except Exception:
+                built_at = "—"
         cards.append({"key": "version", "label": "Build version",
                       "status": "green",
                       "detail": f"{version} · built {built_at}"})
 
-        # Roll-up overall status
+        # Roll-up overall status — TRACK 28.11: canonical vocabulary,
+        # not-applicable and disabled cards do NOT escalate severity.
+        from lib.canonical_status import to_canonical, summarize, highest  # noqa: PLC0415
+        for c in cards:
+            c["canonical_status"] = to_canonical(
+                c.get("status"),
+                applicable=c.get("applicable", True),
+                enabled=c.get("enabled", True),
+            )
+        canonical_summary = summarize(cards)
         overall = "green"
-        if any(c["status"] == "red" for c in cards):
+        if canonical_summary["critical"] > 0:
             overall = "red"
-        elif any(c["status"] == "yellow" for c in cards):
+        elif canonical_summary["attention"] > 0:
+            overall = "yellow"
+        elif canonical_summary["unknown"] > 0:
             overall = "yellow"
 
         return {
             "overall": overall,
+            "overall_canonical": canonical_summary["highest"],
             "cards": cards,
+            "counts": {
+                "healthy": canonical_summary["healthy"],
+                "attention": canonical_summary["attention"],
+                "critical": canonical_summary["critical"],
+                "unknown": canonical_summary["unknown"],
+                "stale": canonical_summary["stale"],
+                "disabled": canonical_summary["disabled"],
+                "not_applicable": canonical_summary["not_applicable"],
+                "total_applicable": canonical_summary["total_applicable"],
+                "total_cards": canonical_summary["total_cards"],
+            },
             "checked_at": _iso(now),
         }
 

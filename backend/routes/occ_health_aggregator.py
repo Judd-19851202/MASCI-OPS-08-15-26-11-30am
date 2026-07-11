@@ -70,12 +70,25 @@ Status = str  # "green" | "yellow" | "red" | "unknown"
 
 
 def _mk(status: Status, summary: str, evidence: Optional[Dict[str, Any]] = None,
-        action: Optional[str] = None, checked_at: Optional[str] = None) -> Dict[str, Any]:
+        action: Optional[str] = None, checked_at: Optional[str] = None,
+        *, canonical_status: Optional[str] = None,
+        root_cause_id: Optional[str] = None,
+        applicable: bool = True, enabled: bool = True,
+        reason_code: Optional[str] = None) -> Dict[str, Any]:
+    # TRACK 28.11 · Every card carries a canonical status field so
+    # Diagnostics + OCC + system-health speak the same vocabulary.
+    from lib.canonical_status import to_canonical  # local import for cycles
     return {
         "status": status,
+        "canonical_status": canonical_status or to_canonical(
+            status, applicable=applicable, enabled=enabled),
         "summary": summary,
         "evidence": evidence or {},
         "recommended_action": action or "",
+        "reason_code": reason_code or "",
+        "root_cause_id": root_cause_id,
+        "applicable": applicable,
+        "enabled": enabled,
         "checked_at": checked_at,  # ISO UTC — frontend formats to local time.
     }
 
@@ -256,7 +269,17 @@ def _eval_recovery_snapshot(body, err, checked_at):
                    "hourly_cadence_enabled": body.get("hourly_cadence_enabled"),
                },
                action,
-               last_backup.get("ts") or body.get("computed_at") or checked_at)
+               last_backup.get("ts") or body.get("computed_at") or checked_at,
+               # TRACK 28.11 · Tag cards whose criticality is driven by
+               # the same shared root cause (R2 bucket over threshold)
+               # so Diagnostics can display them under a single "why"
+               # explanation instead of two independent disasters.
+               root_cause_id=(
+                   "r2_bucket_capacity"
+                   if reason_code in ("bucket_over_alert", "bucket_over_warn")
+                   else None
+               ),
+               reason_code=reason_code)
 
 def _eval_storage_health(body, err, checked_at):
     if err or not body:
@@ -284,7 +307,23 @@ def _eval_storage_health(body, err, checked_at):
                 "sub_scores": body.get("sub_scores"),
                 "capacity": capacity, "objects": objects,
                 "freshness": body.get("freshness")},
-               action, body.get("generated_at") or checked_at)
+               action, body.get("generated_at") or checked_at,
+               # TRACK 28.11 · When lifecycle status is driven by
+               # capacity being over threshold, share the same
+               # root_cause_id as the recovery_snapshot card so a
+               # single R2-bucket-over-threshold issue is not
+               # counted as two independent disasters.
+               root_cause_id=(
+                   "r2_bucket_capacity"
+                   if capacity.get("over_alert") or (band in ("amber", "red")
+                                                     and capacity.get("gb", 0)
+                                                     >= capacity.get("warn_gb", 1e9))
+                   else None
+               ),
+               reason_code=(
+                   "storage_lifecycle_healthy" if status == "green"
+                   else "storage_lifecycle_needs_review"
+               ))
 
 
 
@@ -320,17 +359,31 @@ def _eval_integrations(body, err, checked_at):
         return _mk("unknown", "Integration probes unreachable.",
                    {"error": str(err or "no response")}, "", checked_at)
     probes = body.get("probes") or []
-    # A probe whose status is "disabled" AND explicitly `mocked=True` is
-    # an intentional stub (e.g. MaintainX in production has
-    # `maintainx_write_enabled=false`). Such probes must NOT be counted
-    # as degraded — they represent a deliberate configuration choice,
-    # not a failure. Real failures use status "error"/"degraded"/etc.
+    # TRACK 28.11: A probe whose status is "disabled" AND explicitly
+    # `mocked=True` is an intentional stub — the integration is
+    # NOT_APPLICABLE to this tenant (e.g. MASCI does not use
+    # MaintainX). Such probes must NOT be counted as degraded and
+    # must NOT escalate the parent card. Annotate each probe with a
+    # canonical status so the UI can render the neutral badge.
+    from lib.canonical_status import (  # noqa: PLC0415
+        to_canonical, NOT_APPLICABLE, DISABLED,
+    )
     def _is_intentional_stub(p):
         st = str(p.get("status") or "").lower()
         return st == "disabled" and bool(p.get("mocked"))
 
-    live_probes = [p for p in probes if not _is_intentional_stub(p)]
-    stubbed = [p for p in probes if _is_intentional_stub(p)]
+    for p in probes:
+        if _is_intentional_stub(p):
+            p["canonical_status"] = NOT_APPLICABLE
+            p["applicable"] = False
+            if not p.get("message"):
+                p["message"] = "Not applicable — this tenant does not use this integration."
+        else:
+            p["canonical_status"] = to_canonical(p.get("status"))
+            p["applicable"] = True
+
+    live_probes = [p for p in probes if p.get("applicable")]
+    stubbed = [p for p in probes if not p.get("applicable")]
     degraded = [p for p in live_probes if p.get("status") not in ("ok", "healthy")]
     overall = str(body.get("overall_status") or "").lower()
     if overall == "critical" or degraded:
@@ -341,14 +394,16 @@ def _eval_integrations(body, err, checked_at):
         status = "green"
     healthy_live = len(live_probes) - len(degraded)
     total_live = len(live_probes)
-    stub_note = f" · {len(stubbed)} intentional stub(s)" if stubbed else ""
-    summary = f"{healthy_live}/{total_live} live probes healthy{stub_note}"
+    stub_note = f" · {len(stubbed)} not applicable" if stubbed else ""
+    summary = f"{healthy_live}/{total_live} live integration probes healthy{stub_note}"
     action = ("Open Platform Configuration → Integrations to inspect degraded probes."
               if degraded else "")
     return _mk(status, summary,
                {"probes": probes, "overall_status": body.get("overall_status"),
-                "stubbed_probe_ids": [p.get("id") for p in stubbed]},
-               action, body.get("checked_at") or checked_at)
+                "not_applicable_probe_ids": [p.get("id") for p in stubbed]},
+               action, body.get("checked_at") or checked_at,
+               reason_code=("integrations_healthy" if status == "green"
+                            else "integrations_degraded"))
 
 
 def _eval_email_v2(body, err, checked_at):
@@ -645,10 +700,43 @@ def register_occ_health_routes(api_router: APIRouter, require_admin: Callable):
         for r in results:
             counts[r["status"]] = counts.get(r["status"], 0) + 1
 
+        # TRACK 28.11 · Canonical counts + shared-root-cause grouping.
+        # Diagnostics and OCC must speak one vocabulary and never
+        # double-count a single root cause. We keep the legacy counts
+        # dict for backward compatibility and add canonical_counts +
+        # root_cause_groups alongside it.
+        from lib.canonical_status import summarize as _canon_summarize  # noqa: PLC0415
+        canonical_summary = _canon_summarize(results)
+        # Collect unique root_cause_id references so Diagnostics can
+        # display the shared "why" (e.g. two RED cards both driven by
+        # r2_bucket_capacity → one root cause, not two disasters).
+        root_cause_groups: Dict[str, List[str]] = {}
+        for r in results:
+            rcid = r.get("root_cause_id")
+            if rcid:
+                root_cause_groups.setdefault(rcid, []).append(r["id"])
+
         return {
             "generated_at": now_iso,
             "overall_status": overall,
+            "overall_canonical": canonical_summary["highest"],
             "counts": counts,
+            "canonical_counts": {
+                "healthy": canonical_summary["healthy"],
+                "attention": canonical_summary["attention"],
+                "critical": canonical_summary["critical"],
+                "unknown": canonical_summary["unknown"],
+                "stale": canonical_summary["stale"],
+                "disabled": canonical_summary["disabled"],
+                "not_applicable": canonical_summary["not_applicable"],
+                "total_applicable": canonical_summary["total_applicable"],
+            },
+            "root_cause_groups": root_cause_groups,
+            "unique_critical_root_causes": len({
+                r.get("root_cause_id") for r in results
+                if r["status"] == "red" and r.get("root_cause_id")
+            }) + sum(1 for r in results
+                     if r["status"] == "red" and not r.get("root_cause_id")),
             "total_cards": len(results),
             "sections": sections,
         }

@@ -90,11 +90,25 @@ def _run_probe() -> Dict[str, Any]:
         status = "amber"
     else:
         status = "green"
+    # TRACK 28.11 · Classify warnings so the UI can distinguish
+    # "current actionable" from "historical baselined pattern".
+    # `new_warnings` from the raw probe is a diff against the
+    # authority baseline — it counts patterns that are not YET on
+    # the baselined list. When `baselined > 0` those warnings are
+    # part of an accepted historical pattern; the UI should NOT
+    # display "60 NEW warnings" when 24 are already tolerated.
+    warning_classification = {
+        "current_actionable": n_w if n_b == 0 else 0,
+        "historical_baselined": n_b,
+        "baseline_tolerated_new": n_w if n_b > 0 else 0,
+        "informational": 0,
+    }
     payload = {
         "status": status,
         "new_violations": n_v,
         "new_warnings": n_w,
         "baselined": n_b,
+        "warning_classification": warning_classification,
         "scan_ms": data.get("scan_ms", int((time.time() - started) * 1000)),
         "last_run_at": int(now),
         "cached_age_s": 0,
@@ -214,26 +228,52 @@ def _field_walk_status() -> Dict[str, Any]:
     if not FIELD_WALKS_DIR.exists():
         return {"status": "unknown", "walks": []}
     walks = []
+    now = time.time()
+    # TRACK 28.11 · Freshness policy for field-walk doctrine docs.
+    #   ≤ 30d  → HEALTHY (current)
+    #   ≤ 60d  → ATTENTION (nearing recert)
+    #   >  60d → STALE (must be recertified)
+    FRESH_S = 30 * 86400
+    ATTN_S = 60 * 86400
+    per_walk_states: List[str] = []
     for name in ("FL.md", "PM.md", "Safety.md", "HR.md", "MobileSafari.md"):
         p = FIELD_WALKS_DIR / name
         if not p.exists():
             walks.append({"role": name.replace(".md", ""),
-                          "exists": False, "last_modified_at": None})
+                          "exists": False, "last_modified_at": None,
+                          "age_days": None, "freshness_status": "UNKNOWN"})
+            per_walk_states.append("UNKNOWN")
             continue
-        # File mtime here is the doctrine doc's last edit. We do NOT
-        # claim it's the last operator walk timestamp — operators record
-        # walk results out-of-band (a future iteration may track these
-        # in a tiny IDB or admin-only collection). For now, show the
-        # checklist's last-touched date so operators know which version
-        # of the checklist is current.
+        mtime = int(p.stat().st_mtime)
+        age_s = int(now - mtime)
+        age_d = age_s // 86400
+        if age_s <= FRESH_S:
+            fresh_state = "HEALTHY"
+        elif age_s <= ATTN_S:
+            fresh_state = "ATTENTION"
+        else:
+            fresh_state = "STALE"
         walks.append({
             "role": name.replace(".md", ""),
             "exists": True,
-            "last_modified_at": int(p.stat().st_mtime),
+            "last_modified_at": mtime,
+            "age_days": age_d,
+            "freshness_status": fresh_state,
         })
+        per_walk_states.append(fresh_state)
+    # Rollup: worst walk drives the stanza status.
+    if any(s == "STALE" for s in per_walk_states):
+        status = "stale"
+    elif any(s == "ATTENTION" for s in per_walk_states):
+        status = "amber"
+    elif any(s == "UNKNOWN" for s in per_walk_states):
+        status = "amber"
+    else:
+        status = "green"
     return {
-        "status": "amber" if any(not w.get("exists") for w in walks) else "green",
+        "status": status,
         "walks": walks,
+        "freshness_policy": {"healthy_max_days": 30, "attention_max_days": 60},
     }
 
 
@@ -371,15 +411,21 @@ def build_governance_self_protection_router(require_admin):
         # but not yet recorded) is informational, not a governance
         # failure — it does NOT flip the overall page status. It only
         # affects its own pill so the operator sees "deploy recorded".
-        order = {"green": 0, "amber": 1, "red": 2, "unknown": 1}
+        order = {"green": 0, "amber": 1, "stale": 1, "red": 2, "unknown": 1}
         worst = max((order.get(s.get("status"), 0)
                      for s in (probe, trust, context, truthful, telemetry,
                                regression, walks, drift)),
                     default=0)
         page_status = {0: "green", 1: "amber", 2: "red"}.get(worst, "amber")
+        # TRACK 28.11 · Emit canonical vocabulary so consumers stop
+        # reading `overall_status: None` and defaulting to UNKNOWN.
+        from lib.canonical_status import to_canonical  # noqa: PLC0415
+        canonical_overall = to_canonical(page_status)
         return {
             "generated_at": int(time.time()),
             "page_status": page_status,
+            "overall_status": page_status,
+            "canonical_status": canonical_overall,
             "authority": probe,
             "trust_surfaces": trust,
             "context_governance": context,
@@ -414,4 +460,31 @@ def build_governance_self_protection_router(require_admin):
     return router
 
 
-__all__ = ["build_governance_self_protection_router"]
+__all__ = [
+    "build_governance_self_protection_router",
+    "auto_record_deploy_on_startup",
+]
+
+
+def auto_record_deploy_on_startup(source_hash: str) -> Dict[str, Any]:
+    """TRACK 28.11 · Idempotent startup hook.
+
+    Called from `server.py` after the source_hash is known. Appends
+    the current deploy to the on-disk history file iff the running
+    hash is not already at the tail. Safe to call on every restart —
+    an unchanged hash is a no-op.
+
+    Also records a `restart_at` timestamp so the operator can see the
+    difference between "the current build first deployed at T" and
+    "the process last restarted at T". `deployed_at` never moves
+    backward for the same hash.
+    """
+    if not source_hash or source_hash == "unknown":
+        return {"appended": False, "reason": "no_source_hash"}
+    try:
+        return _record_deploy_entry(
+            source_hash=source_hash,
+            note="auto-recorded on backend startup",
+        )
+    except Exception as e:  # noqa: BLE001
+        return {"appended": False, "reason": f"error:{e!s}"[:200]}

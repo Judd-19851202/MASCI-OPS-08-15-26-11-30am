@@ -29,25 +29,54 @@ function _system_health(probes) {
   const b = p.body || {};
   const overall = String(b.overall || "").toLowerCase();
   const cards = b.cards || [];
-  const bad = cards.filter((c) => (c.status || "").toLowerCase() !== "ok" && (c.status || "").toLowerCase() !== "healthy").length;
-  const status = overall === "critical" ? "red" : (bad > 0 || overall === "warning") ? "yellow" : "green";
+  // TRACK 28.11 · Prefer backend-emitted canonical counts. Falls back
+  // to legacy status parsing but includes "green" and "pass" as
+  // healthy synonyms so the old "0/8" bug (green ≠ ok) cannot recur.
+  const canonical = b.counts || null;
+  let healthy, applicable, bad;
+  if (canonical && typeof canonical.healthy === "number") {
+    healthy = canonical.healthy;
+    applicable = canonical.total_applicable ?? cards.length;
+    bad = canonical.critical + canonical.attention + canonical.unknown;
+  } else {
+    const HEALTHY_SYN = new Set(["ok", "healthy", "green", "pass"]);
+    const NON_APP = new Set(["not_applicable", "n/a", "disabled"]);
+    const applicableCards = cards.filter(
+      (c) => !NON_APP.has(String(c.status || "").toLowerCase())
+    );
+    bad = applicableCards.filter(
+      (c) => !HEALTHY_SYN.has(String(c.status || "").toLowerCase())
+    ).length;
+    healthy = applicableCards.length - bad;
+    applicable = applicableCards.length;
+  }
+  const status = overall === "critical" ? "red" : (bad > 0 || overall === "warning" || overall === "yellow") ? "yellow" : "green";
   return { status,
-    summary: `${cards.length - bad}/${cards.length} system health cards healthy`,
+    summary: `${healthy}/${applicable} system health cards healthy`,
     recommended_action: bad ? "Open Diagnostics → System Health for details." : "",
     checked_at: b.checked_at,
-    evidence: { overall, cards_sample: cards.slice(0, 6) } };
+    evidence: { overall, counts: canonical, cards_sample: cards.slice(0, 6) } };
 }
 function _occ_health(probes) {
   const p = probes.occ;
   if (!p?.ok) return { status: "unknown", summary: "OCC health aggregator unreachable.", evidence: { error: p?.error } };
   const b = p.body || {};
   const counts = b.counts || {};
+  const canonicalCounts = b.canonical_counts || null;
   const overall = String(b.overall_status || "").toLowerCase();
   const status = overall === "red" ? "red" : overall === "yellow" ? "yellow" : overall === "green" ? "green" : "unknown";
+  // TRACK 28.11 · When shared root causes are present, surface the
+  // *unique* count so the operator doesn't panic over "5 critical"
+  // when 2 of those criticals share one R2-bucket root cause.
+  const uniqueCrit = Number(b.unique_critical_root_causes ?? counts.red ?? 0);
+  const rootGroups = b.root_cause_groups || {};
+  const groupNote = Object.keys(rootGroups).length
+    ? ` · ${Object.keys(rootGroups).length} shared root cause${Object.keys(rootGroups).length > 1 ? "s" : ""}`
+    : "";
   return { status,
-    summary: `OCC · ${counts.red || 0} critical · ${counts.yellow || 0} attention · ${counts.green || 0} healthy · ${counts.unknown || 0} unknown`,
+    summary: `OCC · ${uniqueCrit} unique critical · ${counts.yellow || 0} attention · ${counts.green || 0} healthy · ${counts.unknown || 0} unknown${groupNote}`,
     checked_at: b.generated_at,
-    evidence: { counts, total_cards: b.total_cards, sections: (b.sections || []).map((s) => ({ id: s.id, status: s.status, cards: s.cards.length })) } };
+    evidence: { counts, canonical_counts: canonicalCounts, root_cause_groups: rootGroups, total_cards: b.total_cards, sections: (b.sections || []).map((s) => ({ id: s.id, status: s.status, cards: s.cards.length })) } };
 }
 function _scheduler_runs(probes) {
   const p = probes.scheduler;
@@ -79,12 +108,30 @@ function _deploy_diag(probes) {
   if (!p?.ok) return { status: "unknown", summary: "Deploy readiness endpoint unreachable.", evidence: { error: p?.error } };
   const b = p.body || {};
   const overall = String(b.overall_status || "").toLowerCase();
+  const canonical = String(b.canonical_status || "").toUpperCase();
   const blockers = Number(b.blocker_count || 0);
-  const status = blockers > 0 || overall === "blocked" ? "red"
-    : overall === "warning" ? "yellow"
-    : overall === "ready" ? "green" : "unknown";
+  const warns = Number(b.warn_count || 0);
+  // TRACK 28.11 · Accept canonical vocabulary first, then fall back
+  // to legacy status strings. `overall_status: "attention"` was
+  // being mapped to UNKNOWN because the switch below didn't include
+  // "attention" — that is why the Diagnostics UI showed the card as
+  // UNKNOWN despite the endpoint saying 0 blockers.
+  let status = "unknown";
+  if (canonical === "HEALTHY") status = "green";
+  else if (canonical === "ATTENTION") status = "yellow";
+  else if (canonical === "CRITICAL") status = "red";
+  else if (canonical === "UNKNOWN") status = "unknown";
+  else {
+    // Legacy fallback
+    if (blockers > 0 || overall === "blocked") status = "red";
+    else if (overall === "attention" || overall === "warning" || warns > 0) status = "yellow";
+    else if (overall === "ready" || overall === "pass" || overall === "go") status = "green";
+  }
+  const summary = b.canonical_summary
+    || `${b.total_checks || 0} readiness checks · ${blockers} blocker(s) · ${warns} warn(s)`;
   return { status,
-    summary: `${b.total_checks || 0} readiness checks · ${blockers} blocker(s)`,
+    summary,
+    recommended_action: b.recommended_action || "",
     checked_at: b.checked_at,
     evidence: b };
 }
