@@ -825,3 +825,30 @@ No schema migrations. No collection changes. No new indexes. No R2 mutations.
 - **First tasks for Track 28.09:** (a) run every regression suite one more time from a cold cache, (b) prove `certification_manifest.needs_recert()` returns an empty list, (c) sanity-check R2 delete engine remains disabled, (d) perform a final production-config sweep (env vars, feature flags), (e) execute a signed dry-run against staging routes if a staging environment is provisioned.
 - **Blockers to clear:** none.
 - **Deployment gate keeper:** Track 28.09 owner.
+
+---
+
+## Track 28.09 · Combined Pre-Deployment Certification · 🟡 CONDITIONAL GO
+
+**Verdict issued:** 2026-07-11.
+
+**Frozen RC:** commit `fb30633cc1e6a31a379751ecad16e97f71d42b75` on `main`.
+
+**Release package:** `memory/TRACK_28_09_RELEASE_PACKAGE.md` (27 sections, rollback runbook + configuration matrix + deployment procedure).
+
+**All 24 phases executed with evidence.** Zero code defects. All 13 manifest workflows PASS, `needs_recert()==[]`. 229 cold-cache regression tests pass. Frontend build succeeds. R2 delete engine confirmed DISABLED. Zero secret exposure in bundle. Zero test residue.
+
+**8 operator env-swap conditions (C1-C8)** enumerated in the release package. C1-C6 are P1/P2 blocking; C7-C8 are P3 hygiene. **No code changes required.**
+
+**Track 28 body of work is now COMPLETE.** Track 28.08 CLOSED WITH PASS + Track 28.09 CONDITIONAL GO. Deployment authority resides with the operator.
+
+### Track 28.09 exit state
+- Track 28.08 CLOSED WITH PASS ✅
+- Certification manifest current (13/13 PASS) ✅
+- Cold-cache regression green (229 pass) ✅
+- Production build proven ✅
+- Zero synthetic residue ✅
+- Zero secret exposure ✅
+- Rollback runbook produced ✅
+- Post-deploy smoke plan produced ✅
+- Deployment gate held pending operator env swap + backup drill ✅

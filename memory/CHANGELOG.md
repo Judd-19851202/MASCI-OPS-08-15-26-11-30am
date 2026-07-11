@@ -1,4 +1,63 @@
 # CHANGELOG
+## 2026-07-11 · Track 28.09 · 🟡 CONDITIONAL GO · Combined Pre-Deployment Certification
+
+**Track 28.09 issues CONDITIONAL GO** for the frozen release candidate `fb30633cc1e6a31a379751ecad16e97f71d42b75` on branch `main`. Zero code changes required. Zero P0/P1 code defects. All conditions are operator env-swap actions.
+
+### Evidence gathered (24 phases executed)
+- **Phase 1 (Freeze):** RC identified — commit SHA, deps hashes, Python/Node versions captured.
+- **Phase 2 (Manifest gate):** 13/13 workflows PASS, `needs_recert()==[]`, zero broken deps, zero missing regression test files, `deployment_blockers=[]`.
+- **Phase 3 (Cold-cache regression):** 229 passed / 2 skipped / 0 failed in 269s from a clean cache.
+- **Phase 4 (Production build):** `yarn build` succeeds in 56s. 52 MB bundle, 208 JS chunks, backend imports clean with 1573 routes.
+- **Phase 5 (Config matrix):** 8 conditional items (C1-C8) identified as operator env-swap actions — see release package.
+- **Phase 6 (DB/schema):** Zero migrations required. Additive-only changes. Backward-compatible.
+- **Phase 7 (Scheduler):** `SCHEDULER_ENABLED=false` in preview (C3). Backup config present.
+- **Phase 8 (R2 delete engine):** Confirmed `delete_engine_status: "DISABLED"`. Zero destructive R2 capability active.
+- **Phase 9 (Email):** `EMAIL_SAFETY_MODE=strict`, `AUTO_EMAIL_REPORTS=false`. Webhook secret to be set (C5).
+- **Phase 10 (AI):** Emergent LLM key present, base workflows survive AI unavailability.
+- **Phase 11 (Auth):** 4/4 static invariants + 13 cross-portal auth tests PASS.
+- **Phase 12 (Device):** 11/11 PortalShell-family routes PASS at 390×844.
+- **Phase 13 (Cold-start):** `import server` clean, `/api/health` 200, `/api/version` 200.
+- **Phase 14 (Failure/recovery):** OOS-reject, expired-hide, REDACT_ME-exclude, missing-token-deny all verified.
+- **Phase 15 (Backup/rollback):** Rollback runbook produced; Emergent platform rollback available; no migrations to reverse.
+- **Phase 16 (Pipeline):** Supervisor + Emergent hosting confirmed. Version + health endpoints wired.
+- **Phase 17 (Residue):** Zero `TEST_28_*` records across every Mongo collection.
+- **Phase 18 (Secrets):** 213 bundle files scanned. Zero cloud provider keys, zero JWTs, zero Mongo URIs, zero AWS creds in bundle. Preview URL baked (C1 — operator rebuild).
+- **Phase 19 (Performance):** Health 4ms, login 540ms, cold suite 1.2s/test avg. Acceptable.
+- **Phase 20 (Full smoke):** All 14 certified domains covered by Track 28 body of work.
+- **Phase 21 (Regression):** 229 passed / 2 skipped / 0 failed.
+- **Phase 22 (Defect ledger):** Zero open P0/P1 code defects. All Track 28.08 defects closed.
+- **Phase 23 (Release package):** `/app/memory/TRACK_28_09_RELEASE_PACKAGE.md`.
+- **Phase 24 (Verdict):** 🟡 CONDITIONAL GO.
+
+### Conditional items (operator swap actions, no code changes)
+- **C1** (P1) Rebuild frontend with production `REACT_APP_BACKEND_URL` (preview URL currently baked, 231 hits).
+- **C2** (P1) Swap `MONGO_URL` + `DB_NAME` to production Atlas cluster.
+- **C3** (P1) Set `SCHEDULER_ENABLED=true` for backup + digest schedulers.
+- **C4** (P2) Set `APP_ENV=production`.
+- **C5** (P2) Set `RESEND_WEBHOOK_SECRET`.
+- **C6** (P1) Capture fresh pre-deploy backup + <30d restore drill evidence.
+- **C7** (P3) Rotate admin/JWT/HMAC/MFA/Resend/R2 secrets for production.
+- **C8** (P3) Confirm source-map exposure policy (208 maps in bundle).
+
+### Deployment authority
+When operator completes C1-C6 and runs the 20-step post-deploy smoke in the release package, deployment is authorized.
+
+### Files changed
+NEW: `memory/TRACK_28_09_RELEASE_PACKAGE.md` (comprehensive release package with 27 sections including rollback runbook + configuration matrix + defect ledger + deployment procedure).
+
+### Next steps for operator
+1. Read `/app/memory/TRACK_28_09_RELEASE_PACKAGE.md`.
+2. Execute Section 25 pre-deploy checklist (C1-C6).
+3. Deploy per Section 25 deploy steps.
+4. Execute Section 25 post-deploy smoke.
+5. Monitor for 24h per Section 26.
+6. Issue final POST-DEPLOY GO or execute rollback per Section 16.
+
+**Track 28.09 does NOT itself perform deployment.** Deployment authority resides with the operator.
+
+---
+
+
 ## 2026-07-11 · Track 28.08 · ✅ CLOSED WITH PASS · Full Cross-Domain Integration Certification
 
 **Track 28.08 is CLOSED WITH PASS.** Phases 0-20 complete. Deployment gate REMAINS HELD; only Track 28.09 may authorize production deployment.
