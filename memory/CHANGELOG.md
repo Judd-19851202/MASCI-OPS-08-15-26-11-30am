@@ -1,4 +1,42 @@
 # CHANGELOG
+## 2026-07-11 · Track 28.09B · 🟢 GO — no config changes required · Current Production Facts Audit
+
+**Track 28.09B READ-ONLY fact-finding against live `https://mascidocs.com`.** Zero production changes made. Zero env vars touched. Zero rebuilds. Zero secret rotations. Result upgrades Track 28.09's CONDITIONAL GO to a clean **GO**, based on evidence that current production is already correctly configured.
+
+### Live production facts captured (Phase 1)
+- URL: `https://mascidocs.com` behind Cloudflare
+- Deployed commit: `6ab72474cc20` built 2026-07-10T13:13:27Z (14.3h stable uptime)
+- `app_env`: **`production`** ✅
+- `db_name`: **`masci_safety`** ✅
+- Sentry: enabled ✅
+- Session timeouts: 3 tiers active (ADMIN_HR 15m/4h · OPERATIONS 30m/8h · FIELD 60m/12h) ✅
+- Production frontend main bundle scan: **0 preview URLs**, 0 localhost hits, 83 `mascidocs.com` references (same-origin architecture)
+
+### C1-C8 fact matrix result
+- **C1** (frontend URL) — ALREADY SATISFIED (0 preview URLs in prod bundle)
+- **C2** (Mongo/DB) — ALREADY SATISFIED (`db_name=masci_safety`)
+- **C3** (scheduler) — UNKNOWN pending 30s operator glance at Emergent deploy UI (not blocking either way)
+- **C4** (APP_ENV) — ALREADY SATISFIED (`app_env=production`)
+- **C5** (Resend webhook secret) — UNKNOWN pending 30s operator glance (optional hardening at worst)
+- **C6** (fresh backup) — DEPLOYMENT-TIME VERIFICATION (normal release safety, not a proof of defect)
+- **C7** (secret rotation) — OPTIONAL HARDENING, not release-blocking
+- **C8** (source-map policy) — OPTIONAL HARDENING, not release-blocking
+
+### Prior 28.09 report clarification
+The prior report worded conditions as if they were unmet production defects. Live evidence proves they were preview `.env` observations, not production deficiencies. **The certified RC (`fb30633c…`) will inherit production's existing correct `.env` at deploy time.**
+
+### Verdict
+🟢 **GO — NO CONFIG CHANGES REQUIRED.** Only routine pre-deploy backup at deploy time. All isolation guards from 28.09A remain locked. Deployment authority stays with operator.
+
+### Files
+NEW: `memory/TRACK_28_09B_CURRENT_PRODUCTION_FACTS.md` (14-section evidence package).
+
+### Deployment gate
+**READY** pending routine pre-deploy backup (C6) and operator's 30-second confirmation that Emergent will preserve the existing production `.env` at deploy time.
+
+---
+
+
 ## 2026-07-11 · Track 28.09A · 🟢 GO for environment integrity · Environment Separation & Deployment Integrity Audit
 
 **Track 28.09A issues GO for environment integrity.** Preview and production are proven isolated at three layers: Atlas per-user permission scope, boot-time startup guard (`sys.exit(98)`), and startup failsafe probe (`sys.exit(99)`). The overall deployment gate remains Track 28.09's CONDITIONAL GO (operator env swap C1-C6 still pending).

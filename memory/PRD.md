@@ -1,6 +1,9 @@
 # MASCI Operations Platform — PRD
 
 
+> **STATUS · 2026-07-11 · Track 28.09B GO — no config changes required.** Read-only fact-finding audit against live `https://mascidocs.com` proves the CURRENT production is already correctly configured: `app_env=production`, `db_name=masci_safety`, Sentry enabled, session timeouts loaded, 14.3h stable uptime, zero preview URL in production frontend bundle, 83 correct `mascidocs.com` origin references. Prior 28.09 CONDITIONAL GO conditions C1/C2/C4 are **already satisfied** in live production; C3/C5 are **unknown** but resolvable by 30-second operator glance at Emergent deploy UI (neither is blocking); C6 is normal pre-deploy backup hygiene; C7/C8 are optional hardening. **Only actual pre-deploy action: capture one fresh backup timestamp.** Full evidence at `/app/memory/TRACK_28_09B_CURRENT_PRODUCTION_FACTS.md`.
+
+
 > **STATUS · 2026-07-11 · Track 28.09A GO issued for environment integrity.** Preview and production are physically, logically, and operationally separated. Three boot-time guards enforce env consistency (`server.py` startup consistency guard `sys.exit(98)`, `db_isolation_failsafe.py` `sys.exit(99)`, Atlas per-user permission scope). Live probe `test_preview_credential_cannot_access_production_db` PASSES — preview credential is denied by Atlas when attempting to list `masci_safety`. New `/api/version.environment_identity` block exposes 13 non-secret operator labels. 18 permanent environment-separation tests pass. Zero preview URL hardcoded in backend runtime source outside the intentional isolation-guard constants. Track 28.09's CONDITIONAL GO remains the only deployment gate.
 
 

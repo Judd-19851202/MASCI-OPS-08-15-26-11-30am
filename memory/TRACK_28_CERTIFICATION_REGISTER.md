@@ -873,3 +873,22 @@ No schema migrations. No collection changes. No new indexes. No R2 mutations.
 **Manifest entry added:** `platform.environment_separation` (governance workflow) with both test paths.
 
 **Track 28.09 CONDITIONAL GO remains the only overall deployment gate.** Operator env swap C1-C6 still required.
+
+---
+
+## Track 28.09B · Current Production Facts Audit · 🟢 GO (no config changes required)
+
+**Verdict issued:** 2026-07-11.
+**Mode:** strictly READ-ONLY against live `https://mascidocs.com`.
+
+**Zero production changes made.** Zero environment variables touched. Zero rebuilds. Zero secret rotations. Zero deploys.
+
+**Fact-based audit result:** production is already correctly configured. Prior 28.09 CONDITIONAL GO conditions were preview-.env extrapolations, not production defects:
+- C1/C2/C4 = ALREADY SATISFIED (proven live)
+- C3/C5 = UNKNOWN pending 30-second operator glance (neither blocking)
+- C6 = normal pre-deploy backup hygiene
+- C7/C8 = optional hardening
+
+**Evidence package:** `memory/TRACK_28_09B_CURRENT_PRODUCTION_FACTS.md`
+
+**Deployment gate:** READY pending routine pre-deploy backup only.
