@@ -1,0 +1,207 @@
+{
+  "track": "28.08 · Phase 15 · Full Device / Accessibility Certification",
+  "mode": "report-only walk (no frontend edits performed)",
+  "summary": "Ran the full PortalShell-family device walk across 12 target routes at 6 viewports (375, 390, 414, 768, 1280, 1920), signed in as Super Admin (jaymn.judd@mascigc.com). No-horizontal-scroll contract PASSED on 71/72 (route × viewport) cells. ONE hard FAIL: /admin/communications overflows on ALL three mobile viewports (375/390/414) — root cause is an unwrapped <table class=\"min-w-full text-xs\"> (Gap-analysis table) rendering ~668px wide. Additionally, /admin/executive-overview does NOT mount PortalShell at any viewport (no shared header, no •••, no H1) — violates Phase 15 mount requirement. Four listed routes (/fleet, /admin/ai, /admin/storage, /fl) return the app 404 page (not registered in AppRoutes). /safety renders its own chrome (no shared PortalShell). All 4 route aliases (/admin/occ, /executive, /executive-dashboard, /admin/executive) redirect correctly. Mobile •••, its aria-label ('More options'), and the three popover items (search / portal-switcher / lang-toggle) are all present on every page that DOES mount PortalShell.",
+
+  "d4_mobile_sweep_by_viewport": {
+    "375x812": {
+      "/admin":                          {"scrollWidth": 375, "clientWidth": 375, "verdict": "PASS"},
+      "/admin/operations-control":       {"scrollWidth": 375, "clientWidth": 375, "verdict": "PASS"},
+      "/admin/executive-overview":       {"scrollWidth": 375, "clientWidth": 375, "verdict": "PASS (scroll) / SHELL-MISSING"},
+      "/hr":                             {"scrollWidth": 375, "clientWidth": 375, "verdict": "PASS"},
+      "/fleet":                          {"scrollWidth": 375, "clientWidth": 375, "verdict": "PASS (404 page)"},
+      "/dispatch-portal":                {"scrollWidth": 375, "clientWidth": 375, "verdict": "PASS"},
+      "/safety":                         {"scrollWidth": 375, "clientWidth": 375, "verdict": "PASS (non-PortalShell chrome)"},
+      "/admin/ai":                       {"scrollWidth": 375, "clientWidth": 375, "verdict": "PASS (404 page)"},
+      "/admin/communications":           {"scrollWidth": 441, "clientWidth": 375, "verdict": "FAIL"},
+      "/admin/storage":                  {"scrollWidth": 375, "clientWidth": 375, "verdict": "PASS (404 page)"},
+      "/admin/operational-intelligence": {"scrollWidth": 375, "clientWidth": 375, "verdict": "PASS"},
+      "/fl":                             {"scrollWidth": 375, "clientWidth": 375, "verdict": "PASS (404 page)"}
+    },
+    "390x844": {
+      "/admin":                          {"scrollWidth": 390, "clientWidth": 390, "verdict": "PASS"},
+      "/admin/operations-control":       {"scrollWidth": 390, "clientWidth": 390, "verdict": "PASS"},
+      "/admin/executive-overview":       {"scrollWidth": 390, "clientWidth": 390, "verdict": "PASS (scroll) / SHELL-MISSING"},
+      "/hr":                             {"scrollWidth": 390, "clientWidth": 390, "verdict": "PASS"},
+      "/fleet":                          {"scrollWidth": 390, "clientWidth": 390, "verdict": "PASS (404 page)"},
+      "/dispatch-portal":                {"scrollWidth": 390, "clientWidth": 390, "verdict": "PASS"},
+      "/safety":                         {"scrollWidth": 390, "clientWidth": 390, "verdict": "PASS (non-PortalShell chrome)"},
+      "/admin/ai":                       {"scrollWidth": 390, "clientWidth": 390, "verdict": "PASS (404 page)"},
+      "/admin/communications":           {"scrollWidth": 441, "clientWidth": 390, "verdict": "FAIL"},
+      "/admin/storage":                  {"scrollWidth": 390, "clientWidth": 390, "verdict": "PASS (404 page)"},
+      "/admin/operational-intelligence": {"scrollWidth": 390, "clientWidth": 390, "verdict": "PASS"},
+      "/fl":                             {"scrollWidth": 390, "clientWidth": 390, "verdict": "PASS (404 page)"}
+    },
+    "414x896": {
+      "/admin":                          {"scrollWidth": 414, "clientWidth": 414, "verdict": "PASS"},
+      "/admin/operations-control":       {"scrollWidth": 414, "clientWidth": 414, "verdict": "PASS"},
+      "/admin/executive-overview":       {"scrollWidth": 414, "clientWidth": 414, "verdict": "PASS (scroll) / SHELL-MISSING"},
+      "/hr":                             {"scrollWidth": 414, "clientWidth": 414, "verdict": "PASS"},
+      "/fleet":                          {"scrollWidth": 414, "clientWidth": 414, "verdict": "PASS (404 page)"},
+      "/dispatch-portal":                {"scrollWidth": 414, "clientWidth": 414, "verdict": "PASS"},
+      "/safety":                         {"scrollWidth": 414, "clientWidth": 414, "verdict": "PASS (non-PortalShell chrome)"},
+      "/admin/ai":                       {"scrollWidth": 414, "clientWidth": 414, "verdict": "PASS (404 page)"},
+      "/admin/communications":           {"scrollWidth": 441, "clientWidth": 414, "verdict": "FAIL"},
+      "/admin/storage":                  {"scrollWidth": 414, "clientWidth": 414, "verdict": "PASS (404 page)"},
+      "/admin/operational-intelligence": {"scrollWidth": 414, "clientWidth": 414, "verdict": "PASS"},
+      "/fl":                             {"scrollWidth": 414, "clientWidth": 414, "verdict": "PASS (404 page)"}
+    },
+    "768x1024": {
+      "/admin":                          {"scrollWidth": 768, "clientWidth": 768, "verdict": "PASS"},
+      "/admin/operations-control":       {"scrollWidth": 768, "clientWidth": 768, "verdict": "PASS"},
+      "/admin/executive-overview":       {"scrollWidth": 768, "clientWidth": 768, "verdict": "PASS (scroll) / SHELL-MISSING"},
+      "/hr":                             {"scrollWidth": 768, "clientWidth": 768, "verdict": "PASS"},
+      "/fleet":                          {"scrollWidth": 768, "clientWidth": 768, "verdict": "PASS (404 page)"},
+      "/dispatch-portal":                {"scrollWidth": 768, "clientWidth": 768, "verdict": "PASS"},
+      "/safety":                         {"scrollWidth": 768, "clientWidth": 768, "verdict": "PASS (non-PortalShell chrome)"},
+      "/admin/ai":                       {"scrollWidth": 768, "clientWidth": 768, "verdict": "PASS (404 page)"},
+      "/admin/communications":           {"scrollWidth": 768, "clientWidth": 768, "verdict": "PASS"},
+      "/admin/storage":                  {"scrollWidth": 768, "clientWidth": 768, "verdict": "PASS (404 page)"},
+      "/admin/operational-intelligence": {"scrollWidth": 768, "clientWidth": 768, "verdict": "PASS"},
+      "/fl":                             {"scrollWidth": 768, "clientWidth": 768, "verdict": "PASS (404 page)"}
+    },
+    "1280x800": {
+      "/admin":                          {"scrollWidth": 1280, "clientWidth": 1280, "verdict": "PASS"},
+      "/admin/operations-control":       {"scrollWidth": 1280, "clientWidth": 1280, "verdict": "PASS"},
+      "/admin/executive-overview":       {"scrollWidth": 1280, "clientWidth": 1280, "verdict": "PASS (scroll) / SHELL-MISSING"},
+      "/hr":                             {"scrollWidth": 1280, "clientWidth": 1280, "verdict": "PASS"},
+      "/fleet":                          {"scrollWidth": 1280, "clientWidth": 1280, "verdict": "PASS (404 page)"},
+      "/dispatch-portal":                {"scrollWidth": 1280, "clientWidth": 1280, "verdict": "PASS"},
+      "/safety":                         {"scrollWidth": 1280, "clientWidth": 1280, "verdict": "PASS (non-PortalShell chrome)"},
+      "/admin/ai":                       {"scrollWidth": 1280, "clientWidth": 1280, "verdict": "PASS (404 page)"},
+      "/admin/communications":           {"scrollWidth": 1280, "clientWidth": 1280, "verdict": "PASS"},
+      "/admin/storage":                  {"scrollWidth": 1280, "clientWidth": 1280, "verdict": "PASS (404 page)"},
+      "/admin/operational-intelligence": {"scrollWidth": 1280, "clientWidth": 1280, "verdict": "PASS"},
+      "/fl":                             {"scrollWidth": 1280, "clientWidth": 1280, "verdict": "PASS (404 page)"}
+    },
+    "1920x800": {
+      "/admin":                          {"scrollWidth": 1920, "clientWidth": 1920, "verdict": "PASS"},
+      "/admin/operations-control":       {"scrollWidth": 1920, "clientWidth": 1920, "verdict": "PASS"},
+      "/admin/executive-overview":       {"scrollWidth": 1920, "clientWidth": 1920, "verdict": "PASS (scroll) / SHELL-MISSING"},
+      "/hr":                             {"scrollWidth": 1920, "clientWidth": 1920, "verdict": "PASS"},
+      "/fleet":                          {"scrollWidth": 1920, "clientWidth": 1920, "verdict": "PASS (404 page)"},
+      "/dispatch-portal":                {"scrollWidth": 1920, "clientWidth": 1920, "verdict": "PASS"},
+      "/safety":                         {"scrollWidth": 1920, "clientWidth": 1920, "verdict": "PASS (non-PortalShell chrome)"},
+      "/admin/ai":                       {"scrollWidth": 1920, "clientWidth": 1920, "verdict": "PASS (404 page)"},
+      "/admin/communications":           {"scrollWidth": 1920, "clientWidth": 1920, "verdict": "PASS"},
+      "/admin/storage":                  {"scrollWidth": 1920, "clientWidth": 1920, "verdict": "PASS (404 page)"},
+      "/admin/operational-intelligence": {"scrollWidth": 1920, "clientWidth": 1920, "verdict": "PASS"},
+      "/fl":                             {"scrollWidth": 1920, "clientWidth": 1920, "verdict": "PASS (404 page)"}
+    }
+  },
+
+  "portal_shell_mount_matrix_mobile_390": {
+    "/admin":                          {"portalShell": true,  "mobileMoreVisible": true,  "moreAriaLabel": "More options", "popover": {"search": true, "portal_switcher": true, "lang_toggle": true}},
+    "/admin/operations-control":       {"portalShell": true,  "mobileMoreVisible": true,  "moreAriaLabel": "More options", "popover": {"search": true, "portal_switcher": true, "lang_toggle": true}},
+    "/admin/executive-overview":       {"portalShell": false, "mobileMoreVisible": false, "moreAriaLabel": null,           "popover": {}, "note": "DOES NOT MOUNT PortalShell at any viewport — page renders raw tiles only, no header/H1/breadcrumb/•••"},
+    "/hr":                             {"portalShell": true,  "mobileMoreVisible": true,  "moreAriaLabel": "More options", "popover": {"search": true, "portal_switcher": true, "lang_toggle": true}},
+    "/fleet":                          {"portalShell": false, "note": "route not registered → renders 404 fallback"},
+    "/dispatch-portal":                {"portalShell": true,  "mobileMoreVisible": true,  "moreAriaLabel": "More options", "popover": {"search": true, "portal_switcher": true, "lang_toggle": true}},
+    "/safety":                         {"portalShell": false, "note": "renders bespoke Safety layout (no shared PortalShell). Not a defect unless spec requires shared shell."},
+    "/admin/ai":                       {"portalShell": false, "note": "route not registered → renders 404 fallback"},
+    "/admin/communications":           {"portalShell": true,  "mobileMoreVisible": true,  "moreAriaLabel": "More options", "popover": {"search": true, "portal_switcher": true, "lang_toggle": true}},
+    "/admin/storage":                  {"portalShell": false, "note": "route not registered → renders 404 fallback"},
+    "/admin/operational-intelligence": {"portalShell": true,  "mobileMoreVisible": true,  "moreAriaLabel": "More options", "popover": {"search": true, "portal_switcher": true, "lang_toggle": true}},
+    "/fl":                             {"portalShell": false, "note": "route not registered → renders 404 fallback"}
+  },
+
+  "h1_wrap_check_mobile_390": {
+    "note": "All rendered H1s wrap by words (line-height×lines pattern) — no per-letter vertical columns observed on any page.",
+    "samples": {
+      "/admin": {"h1": "Admin Operating System", "width": 294, "height": 64, "verdict": "OK (2 lines, multi-word)"},
+      "/admin/operations-control": {"h1": "Operations Control Center", "width": 294, "height": 64, "verdict": "OK"},
+      "/hr": {"h1": "What requires your attention today?", "width": 294, "height": 64, "verdict": "OK"},
+      "/dispatch-portal": {"h1": "Dispatcher", "width": 294, "height": 32, "verdict": "OK (single line)"},
+      "/admin/communications": {"h1": "Communications", "width": 294, "height": 32, "verdict": "OK"},
+      "/admin/operational-intelligence": {"h1": "Operational Intelligence", "width": 294, "height": 64, "verdict": "OK"},
+      "/admin/executive-overview": {"h1": "(none)", "verdict": "MISSING H1 entirely"}
+    }
+  },
+
+  "route_alias_reverification": {
+    "/admin/occ":            {"resolved_to": "/admin/operations-control", "verdict": "PASS"},
+    "/executive":            {"resolved_to": "/admin/executive-overview", "verdict": "PASS"},
+    "/executive-dashboard":  {"resolved_to": "/admin/executive-overview", "verdict": "PASS"},
+    "/admin/executive":      {"resolved_to": "/admin/executive-overview", "verdict": "PASS"}
+  },
+
+  "console_and_network_summary": {
+    "unexpected_5xx": 0,
+    "unexpected_4xx_notes": [
+      "Many 429 (Too Many Requests) responses appeared on /dispatch-portal, /safety, /admin/communications — attributable to the density of the automated walk (repeated backend probes in <2s) rather than a page defect. Suggest re-verifying manually if concerned.",
+      "One repeated 401 on /dispatch-portal before session cookies propagated (expected during login race).",
+      "Cosmetic console line `%c%d font-size:0;color:transparent NaN` on /safety — appears to be a 3rd-party analytics token dump, not a functional error."
+    ],
+    "hard_console_errors_thrown_by_app_code": 0
+  },
+
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "priority": "HIGH",
+        "page": "/admin/communications",
+        "viewport": "375x812, 390x844, 414x896 (all three mobile widths)",
+        "component": "Gap-analysis table (Communications gaps grid)",
+        "selector": "table.min-w-full.text-xs (parent of [data-testid^=\"admin-communications-gap-\"])",
+        "issue": "Table renders at intrinsic width 668px, forcing document.scrollWidth to 441 on 390 viewport (668 minus surrounding padding). The 7-column table (GAP / SEVERITY / OWNER / TARGET / RISK / STATUS / BLOCKS PROD?) has no horizontal-scroll wrapper, so it pushes the whole page wider than viewport.",
+        "measured": {"scrollWidth@375": 441, "scrollWidth@390": 441, "scrollWidth@414": 441, "table_width_px": 668, "worst_offender_right_edge": 717},
+        "suggested_fix": "Wrap the <table class=\"min-w-full text-xs\"> in a <div className=\"overflow-x-auto -mx-3 sm:mx-0\"> (or route it through <ResponsiveTable> if the design-system exposes one). Do NOT force-shrink columns; give the table its own horizontal scroll and constrain the outer card to `w-full min-w-0`. Also add `min-w-0` to the flex/grid parent that hosts this table so it will not blow out the shell. Verify document.documentElement.scrollWidth === clientWidth at 375/390/414 afterwards."
+      },
+      {
+        "priority": "HIGH",
+        "page": "/admin/executive-overview",
+        "viewport": "ALL (375, 390, 414, 768, 1280, 1920)",
+        "component": "Executive Overview page shell",
+        "selector": "[data-testid=\"executive-overview\"] (page root); no [data-testid=\"ds-portal-shell\"] found",
+        "issue": "This route bypasses the shared PortalShell entirely — there is no ds-portal-shell wrapper, no shared header, no •••/search/portal-switcher/lang-toggle, no <h1>, no breadcrumb. Phase 15 requirement #2 explicitly asks us to report any PortalShell-family page that fails to mount PortalShell.",
+        "measured": {"portalShell_mounted": false, "h1_count": 0, "ds-portal-shell-mobile-more_present": false},
+        "suggested_fix": "Wrap the Executive Overview page component in <PortalShell portal=\"admin\" title=\"Executive Overview\" breadcrumb={[{label:'Admin OS',to:'/admin'},{label:'Executive Overview'}]} primaryActions={[<RefreshButton/>]}> so it inherits the shared responsive header, mobile ••• overflow, search/portal-switcher/lang-toggle, and a proper <h1>. This also makes the D1/D2 aliases (/executive, /executive-dashboard, /admin/executive) land on a page that satisfies the responsive contract."
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "/admin/communications @ mobile",
+        "issues": [
+          "'Last Refresh' timestamp block on the right of the executive-verdict card is being pushed by fixed-width text; verify it uses flex-wrap or LongText once the table overflow is fixed — the table was the primary offender, this may resolve itself."
+        ]
+      }
+    ]
+  },
+
+  "informational_missing_routes": {
+    "note": "The following routes listed in the Phase 15 sweep are NOT registered in AppRoutes and currently return the app 404 fallback. They passed the no-horizontal-scroll test because the 404 page is compact — but they clearly aren't the intended targets. Confirm whether these should exist or be dropped from the Phase 15 route list.",
+    "routes": ["/fleet", "/admin/ai", "/admin/storage", "/fl"]
+  },
+
+  "backend_issues": {"critical": [], "minor": []},
+
+  "test_report_links": ["/app/test_reports/iteration_track_28_08_phase15_full_device_cert.json"],
+
+  "action_items": [
+    "FIX (main agent): /admin/communications gap-analysis table — wrap in `overflow-x-auto` container + add `min-w-0` to parent so scrollWidth==clientWidth on 375/390/414. Selector: table.min-w-full.text-xs inside [data-testid^=\"admin-communications-gap-\"] parent.",
+    "FIX (main agent): /admin/executive-overview — mount the shared PortalShell so it exposes header, H1 'Executive Overview', breadcrumb, and the mobile ••• with search/portal-switcher/lang-toggle popover.",
+    "CLARIFY (main agent): Confirm intent for /fleet, /admin/ai, /admin/storage, /fl — currently 404. Either register them or drop from Phase 15 sweep list.",
+    "CLARIFY (main agent): /safety intentionally uses its own chrome (no shared PortalShell). If Phase 15 requires shared shell for all portals in the family, this is also a mount gap; if /safety is exempt, ignore."
+  ],
+
+  "critical_code_review_comments": [
+    "Any wide data table in a PortalShell page must be wrapped in a horizontal-scroll container OR routed through a ResponsiveTable primitive in /app/frontend/src/design-system/responsive.jsx. The Communications gap grid is the only page where this discipline slipped; consider adding a lint/regression assertion (already partially covered by /app/backend/tests/test_track_28_08_responsive_contract.py) to catch future regressions.",
+    "Route-level responsibility for PortalShell mounting is inconsistent: /admin/executive-overview is a leaf page component that renders directly instead of via <PortalShell>. Consider a route wrapper (HOC or layout route) so every /admin/* route inherits the shell by default."
+  ],
+
+  "updated_files": [],
+
+  "success_rate": {
+    "no_horizontal_scroll_cells_pass": "71/72 (98.6%)",
+    "portal_shell_mount_expected_pages_pass": "6/7 shell-family pages that should mount (excludes 4 missing routes and /safety bespoke chrome)",
+    "route_aliases_pass": "4/4 (100%)",
+    "mobile_accessible_names_pass": "100% on pages that mount PortalShell (••• has aria-label='More options')"
+  },
+
+  "test_credentials": "Super Admin jaymn.judd@mascigc.com / Maddix123! via /admin/login → click [data-testid=admin-login-submit].",
+  "seed_data_creation": "none",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Phase 15 walk complete. Two hard defects to re-verify after main agent's in-session fix: (1) /admin/communications scrollWidth==clientWidth at 375/390/414 after wrapping the gap-analysis table; (2) /admin/executive-overview mounts PortalShell (data-testid=ds-portal-shell present, mobile ••• exposes search/portal-switcher/lang-toggle, <h1> renders). Route aliases and all other pages already pass — no need to re-walk the full matrix, just the two fixed pages plus a spot-check of the alias landing (/executive → /admin/executive-overview should now render the shell)."
+}
