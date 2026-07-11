@@ -307,11 +307,14 @@ MANIFEST: List[CertEntry] = [
             "backend/tests/test_track_28_08_phase0_defects.py",
             "backend/tests/test_track_28_08_responsive_contract.py",
             "backend/tests/test_track_28_08_master_chains.py",
+            # Track 28.09D · Backup Health Severity Aggregator repair —
+            # OCC Trust Center consumes the recovery-snapshot severity.
+            "backend/tests/test_track_28_09d_backup_health_aggregator.py",
         ],
         cross_domain_deps=["platform.admin_auth_invariant"],
         last_certified_at="2026-07-11",
-        last_certified_commit="track-28.08",
-        evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.07 Session 2 + Track 28.08 Phase 0/15 (D1 alias fixed, PortalShell adopted)",
+        last_certified_commit="track-28.09d",
+        evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.07 Session 2 + Track 28.08 Phase 0/15 (D1 alias fixed, PortalShell adopted) + Track 28.09D (severity aggregator repaired)",
         status="PASS",
     ),
     CertEntry(
@@ -327,10 +330,13 @@ MANIFEST: List[CertEntry] = [
             "backend/tests/test_track_28_07_session2_manifest_and_control_layer.py",
             "backend/tests/test_track_28_08_phase0_defects.py",
             "backend/tests/test_track_28_08_responsive_contract.py",
+            # Track 28.09D · severity aggregator repair — Storage &
+            # Recovery reads the same recovery snapshot pill vocabulary.
+            "backend/tests/test_track_28_09d_backup_health_aggregator.py",
         ],
         cross_domain_deps=["platform.admin_auth_invariant"],
         last_certified_at="2026-07-11",
-        last_certified_commit="track-28.08",
+        last_certified_commit="track-28.09d",
         evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.07 Session 2 + Track 28.08 Phase 15",
         status="PASS",
     ),
@@ -345,10 +351,13 @@ MANIFEST: List[CertEntry] = [
             "backend/tests/test_track_28_07_session2_manifest_and_control_layer.py",
             "backend/tests/test_track_28_08_phase0_defects.py",
             "backend/tests/test_track_28_08_responsive_contract.py",
+            # Track 28.09D · severity aggregator repair — Storage &
+            # Recovery reads the same recovery snapshot pill vocabulary.
+            "backend/tests/test_track_28_09d_backup_health_aggregator.py",
         ],
         cross_domain_deps=["platform.admin_auth_invariant"],
         last_certified_at="2026-07-11",
-        last_certified_commit="track-28.08",
+        last_certified_commit="track-28.09d",
         evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.07 Session 2 + Track 28.08 Phase 15 (Trust Gaps table isolated scroll, counters wrap-aware)",
         status="PASS",
     ),
@@ -365,10 +374,13 @@ MANIFEST: List[CertEntry] = [
             "backend/tests/test_track_28_07_session2_manifest_and_control_layer.py",
             "backend/tests/test_track_28_08_phase0_defects.py",
             "backend/tests/test_track_28_08_responsive_contract.py",
+            # Track 28.09D · severity aggregator repair — Storage &
+            # Recovery reads the same recovery snapshot pill vocabulary.
+            "backend/tests/test_track_28_09d_backup_health_aggregator.py",
         ],
         cross_domain_deps=["platform.admin_auth_invariant"],
         last_certified_at="2026-07-11",
-        last_certified_commit="track-28.08",
+        last_certified_commit="track-28.09d",
         evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.07 Session 2 + Track 28.08 Phase 15",
         status="PASS",
     ),

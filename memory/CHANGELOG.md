@@ -1,4 +1,35 @@
 # CHANGELOG
+## 2026-07-11 · Track 28.09D · ✅ PASS · Backup Health Severity Aggregator Repair
+
+**Deployment-blocking trust defect fixed.** OCC Trust Center card `Backups & R2 Recovery` was showing `CRITICAL` with recommended action "Investigate scheduler + R2 sync now." while all evidence was healthy (backup 53.3m fresh, RPO GREEN, scheduler alive, R2 GREEN). Two truthfulness bugs in `occ_health_aggregator._eval_recovery_snapshot` repaired.
+
+### Root cause
+1. **Pill-map coverage:** `pill_map = {"green":"green","yellow":"yellow","red":"red"}` was missing `"amber"`. `recovery_dashboard._compute_pill()` emits `AMBER/GREEN/RED` uppercase; AMBER values silently fell through to `"unknown"` and, downstream, could render as CRITICAL.
+2. **Action-by-reason absent:** every `status=="red"` returned one hardcoded action ("Investigate scheduler + R2 sync now.") even when the root cause was bucket capacity, integrity failure, backup-age exceeded, or a null restore drill. Independent concerns were collapsed into one misleading message.
+
+### Repair
+`_eval_recovery_snapshot` rewritten to:
+- Accept full pill vocabulary (`green` · `yellow` · `amber` · `red` · `critical`).
+- Derive an explicit `reason_code` from the actual evidence (`healthy`, `backup_failed`, `no_backup_evidence`, `bucket_over_alert`, `backup_stale_critical`, `backup_stale`, `recent_failures`, `bucket_over_warn`, `scheduler_quiet`).
+- Route a reason-specific `recommended_action` off `reason_code` so headline + evidence + action always tell the same truthful story.
+- Report summary that separates **backup freshness** from **restore readiness** so a null restore drill never masquerades as a backup failure.
+
+### Files
+NEW: `backend/tests/test_track_28_09d_backup_health_aggregator.py` (8 regression tests, 100% PASS).
+EDITED: `backend/routes/occ_health_aggregator.py`, `backend/lib/certification_manifest.py` (registered new test on `occ.trust_center` + `storage.recovery_and_r2`).
+
+### Post-repair status
+The exact production symptom (backup 53.3m fresh, GREEN RPO, AMBER RTO from null drill, healthy scheduler+R2) now correctly produces `status=green`, `reason_code=healthy`, empty `recommended_action` — no more misleading CRITICAL. When RTO drill is genuinely amber, it surfaces as a separate restore-readiness line in the summary, not as a fake backup failure.
+
+### Regression totals
+Full re-run: **63 pass, 1 skip, 0 fail** (Track 28.08 + Track 28.09* + certification manifest freshness + RC1 predeploy isolation).
+
+### Deployment gate
+🟢 **GO for OCC severity truthfulness.** Track 28.09C pre-deploy backup capture remains the only remaining operator action.
+
+---
+
+
 ## 2026-07-11 · Track 28.09C · 🟡 FAIL for autonomous execution · Fresh Pre-Deploy Backup Capture
 
 **Track 28.09C attempted autonomous production backup. Halted at Phase 2 — production admin authentication is required and correctly rejects preview-pod requests (Atlas per-user isolation working as designed).** Zero production changes. Zero preview activity. Zero R2 mutations.

@@ -913,3 +913,30 @@ No schema migrations. No collection changes. No new indexes. No R2 mutations.
 - Delete engine: DISABLED
 
 **Deployment gate:** HELD pending operator backup capture.
+
+---
+
+## Track 28.09D · Backup Health Severity Aggregator Repair · ✅ PASS
+
+**Verdict issued:** 2026-07-11.
+
+**Deployment-blocking trust defect fixed.** OCC Trust Center's `Backups & R2 Recovery` card was showing CRITICAL with "Investigate scheduler + R2 sync now." while the underlying evidence was healthy. Two truthfulness bugs in `occ_health_aggregator._eval_recovery_snapshot` repaired:
+
+1. **Pill-map coverage bug:** `"amber"` was missing from `{"green":..., "yellow":..., "red":...}`. `recovery_dashboard._compute_pill()` returns AMBER/GREEN/RED — AMBER silently became "unknown" which some downstream renderers escalated to CRITICAL.
+2. **Action-by-reason bug:** every RED shared one hardcoded scheduler-focused action, even when scheduler and R2 were healthy and the real cause was elsewhere (bucket capacity, backup age, integrity, null drill).
+
+**Repair:**
+- Full pill vocabulary accepted (green/yellow/amber/red/critical → normalized).
+- New `reason_code` derived from actual evidence (9 codes).
+- `recommended_action` routed off `reason_code` — no more one-size-fits-all message.
+- Summary separates backup freshness from restore readiness.
+
+**Regression contract:** `test_track_28_09d_backup_health_aggregator.py` (8 tests, 100% PASS) locking both bugs and the reason-code contract.
+
+**Manifest impact:** `occ.trust_center` + `storage.recovery_and_r2` now cite the new test in their `regression_tests` list. Certification manifest freshness 7/7 PASS.
+
+**Post-repair verification:** the exact production input (backup age 53.3m, GREEN RPO, AMBER RTO from null drill, healthy scheduler + R2) now correctly produces `status=green`, `reason_code=healthy`, empty recommended_action. Card no longer lies.
+
+**Full regression:** 63 pass, 1 skip, 0 fail across Track 28.08 + 28.09* + manifest + RC1 isolation.
+
+**Deployment gate:** 🟢 OCC severity truthfulness proven. Overall deployment gate still HELD pending Track 28.09C operator backup capture.

@@ -1,6 +1,9 @@
 # MASCI Operations Platform — PRD
 
 
+> **STATUS · 2026-07-11 · Track 28.09D PASS — Backup Health Severity Aggregator repaired.** Deployment-blocking trust defect (OCC card showing CRITICAL while all evidence healthy) fixed. Root cause: two truthfulness bugs in `occ_health_aggregator._eval_recovery_snapshot` — (1) `pill_map` missing `"amber"` so AMBER silently became "unknown" and misclassified; (2) single hardcoded "Investigate scheduler + R2 sync now" action for every RED regardless of true root cause. Repaired with 9 reason_codes and reason-specific actions; summary now separates backup freshness from restore readiness. 8-test regression contract locks both bugs. Full regression 63 pass / 1 skip / 0 fail. Card now shows GREEN when evidence is truly healthy; when it does escalate, action matches the actual reason.
+
+
 > **STATUS · 2026-07-11 · Track 28.09B GO — no config changes required.** Read-only fact-finding audit against live `https://mascidocs.com` proves the CURRENT production is already correctly configured: `app_env=production`, `db_name=masci_safety`, Sentry enabled, session timeouts loaded, 14.3h stable uptime, zero preview URL in production frontend bundle, 83 correct `mascidocs.com` origin references. Prior 28.09 CONDITIONAL GO conditions C1/C2/C4 are **already satisfied** in live production; C3/C5 are **unknown** but resolvable by 30-second operator glance at Emergent deploy UI (neither is blocking); C6 is normal pre-deploy backup hygiene; C7/C8 are optional hardening. **Only actual pre-deploy action: capture one fresh backup timestamp.** Full evidence at `/app/memory/TRACK_28_09B_CURRENT_PRODUCTION_FACTS.md`.
 
 

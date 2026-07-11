@@ -135,26 +135,128 @@ def _eval_recovery_snapshot(body, err, checked_at):
         return _mk("unknown", "Recovery snapshot unreachable.",
                    {"error": str(err or "no response")},
                    "Verify /api/admin/recovery/snapshot returns 200.", checked_at)
-    pill = str(body.get("pill", "")).lower()
-    status = {"green": "green", "yellow": "yellow", "red": "red"}.get(pill, "unknown")
+
+    # TRACK 28.09D · Backup Health Severity Aggregator Repair.
+    # Previous bug 1: `pill_map` was missing "amber" (recovery_dashboard
+    # emits AMBER/GREEN/RED uppercase, not YELLOW). This silently
+    # downgraded AMBER pills to "unknown" and mis-triggered CRITICAL.
+    # Previous bug 2: a single hardcoded action ("Investigate scheduler
+    # + R2 sync now.") was shown for every RED, even when scheduler and
+    # R2 were both healthy and the real cause was a null restore drill,
+    # bucket capacity, integrity failure, etc.
+    # Fix: (a) accept every real pill vocabulary the endpoint emits,
+    # (b) derive a reason_code from the actual evidence, (c) route the
+    # recommended action off that reason_code so the card, evidence,
+    # and action always tell the same story.
+    pill_raw = str(body.get("pill", ""))
+    pill = pill_raw.lower()
+    status = {
+        "green": "green",
+        "yellow": "yellow",
+        "amber": "yellow",  # canonical mapping — recovery_dashboard uses AMBER
+        "red": "red",
+        "critical": "red",
+    }.get(pill, "unknown")
+
     last_backup = (body.get("last_backup") or {})
     age = body.get("backup_age_minutes")
     target = body.get("backup_age_target_minutes")
     archive_count = (body.get("archive_count") or {})
-    summary = (
-        f"Backup age {age}m · target ≤ {target}m · "
+    rpo = body.get("rpo") or {}
+    rto = body.get("rto") or {}
+    bucket_usage = body.get("bucket_usage") or {}
+    scheduler = body.get("scheduler") or {}
+    warnings = body.get("warnings") or []
+    last_drill = body.get("last_drill")
+    last_backup_ok = last_backup.get("ok")
+
+    # Derive the primary reason for the observed status. Order matters —
+    # highest-severity, most-specific cause wins.
+    reason_code = "healthy"
+    reason_text = "Backups & R2 healthy."
+    if last_backup_ok is False:
+        reason_code, reason_text = "backup_failed", "Last backup attempt failed."
+    elif age is None:
+        reason_code, reason_text = "no_backup_evidence", "No recent backup evidence available."
+    elif str(bucket_usage.get("status", "")).upper() == "RED":
+        reason_code = "bucket_over_alert"
+        reason_text = (
+            f"R2 bucket usage {bucket_usage.get('gb', 0)} GB above alert "
+            f"threshold {bucket_usage.get('alert_gb', 0)} GB."
+        )
+    elif target is not None and age > 2 * target:
+        reason_code = "backup_stale_critical"
+        reason_text = f"Backup age {age:.1f}m exceeds 2× target ({target}m)."
+    elif target is not None and age > target:
+        reason_code = "backup_stale"
+        reason_text = f"Backup age {age:.1f}m exceeds target ({target}m)."
+    elif int(body.get("failures_7d") or 0) > 0:
+        reason_code = "recent_failures"
+        reason_text = f"{body.get('failures_7d')} backup failure(s) in last 7 days."
+    elif str(bucket_usage.get("status", "")).upper() == "AMBER":
+        reason_code = "bucket_over_warn"
+        reason_text = (
+            f"R2 bucket usage {bucket_usage.get('gb', 0)} GB above warn "
+            f"threshold {bucket_usage.get('warn_gb', 0)} GB."
+        )
+    elif not scheduler.get("is_healthy", scheduler.get("alive", True)):
+        # Scheduler-quiet does not by itself drive the pill (recovery_dashboard
+        # only adds it as a warning), but if the pill IS yellow/red and no
+        # other cause fits, surface scheduler explicitly rather than mixing
+        # it into the freshness message.
+        reason_code = "scheduler_quiet"
+        reason_text = "Backup scheduler heartbeat is quiet."
+
+    # Recommended action — reason-specific, not a one-size-fits-all message.
+    action_by_reason = {
+        "healthy": "",
+        "backup_failed": "Open Storage & Recovery → run backup verification, then re-trigger backup.",
+        "no_backup_evidence": "Open Storage & Recovery to trigger a fresh backup and confirm evidence.",
+        "bucket_over_alert": "Open Storage & Recovery → R2 Lifecycle to review capacity and rotate old archives.",
+        "backup_stale_critical": "Trigger a fresh backup and verify the scheduler is running.",
+        "backup_stale": "Verify the next backup completes on schedule.",
+        "recent_failures": "Open Storage & Recovery → Backup History to inspect recent failures.",
+        "bucket_over_warn": "Plan R2 capacity review; usage approaching alert threshold.",
+        "scheduler_quiet": "Check /admin/scheduler-runs; scheduler heartbeat is quiet.",
+    }
+    action = action_by_reason.get(reason_code, "")
+
+    # Truthful headline: separate backup freshness from restore readiness.
+    rpo_status = str(rpo.get("status", "")).upper()
+    rto_status = str(rto.get("status", "")).upper()
+    rto_drill_min = rto.get("last_drill_min")
+    freshness_summary = (
+        f"Backup {age:.1f}m old · target ≤ {target}m · "
         f"{archive_count.get('r2_total', 0)} archives in R2"
     ) if age is not None else "No backup age available."
-    action = ("Investigate scheduler + R2 sync now."
-              if status == "red"
-              else ("Verify next backup completes on schedule." if status == "yellow" else ""))
+    if rto_drill_min is None:
+        restore_summary = "Restore drill: not yet run."
+    else:
+        restore_summary = f"Restore drill: last completed in {rto_drill_min}m."
+    summary = f"{freshness_summary}  {restore_summary}"
+
     return _mk(status, summary,
-               {"pill": pill.upper(), "backup_age_minutes": age,
-                "target_minutes": target, "archive_count": archive_count,
-                "rpo": body.get("rpo"), "rto": body.get("rto"),
-                "last_backup": last_backup, "warnings": body.get("warnings"),
-                "hourly_cadence_enabled": body.get("hourly_cadence_enabled")},
-               action, last_backup.get("ts") or body.get("computed_at") or checked_at)
+               {
+                   "pill": pill_raw.upper() or "UNKNOWN",
+                   "reason_code": reason_code,
+                   "reason": reason_text,
+                   "backup_age_minutes": age,
+                   "target_minutes": target,
+                   "archive_count": archive_count,
+                   "rpo": rpo,
+                   "rto": rto,
+                   "bucket_usage": bucket_usage,
+                   "scheduler": {
+                       "alive": scheduler.get("alive"),
+                       "is_healthy": scheduler.get("is_healthy"),
+                   },
+                   "last_backup": last_backup,
+                   "last_drill": last_drill,
+                   "warnings": warnings,
+                   "hourly_cadence_enabled": body.get("hourly_cadence_enabled"),
+               },
+               action,
+               last_backup.get("ts") or body.get("computed_at") or checked_at)
 
 def _eval_storage_health(body, err, checked_at):
     if err or not body:
