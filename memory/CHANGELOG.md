@@ -1,4 +1,38 @@
 # CHANGELOG
+## 2026-07-11 · Track 28.09C · 🟡 FAIL for autonomous execution · Fresh Pre-Deploy Backup Capture
+
+**Track 28.09C attempted autonomous production backup. Halted at Phase 2 — production admin authentication is required and correctly rejects preview-pod requests (Atlas per-user isolation working as designed).** Zero production changes. Zero preview activity. Zero R2 mutations.
+
+### Phase 1 · Backup system inventory complete
+Canonical MASCI backup surface confirmed via code + live prod probes (all endpoints exist, all auth-gated 401/405):
+- `POST /api/admin/backups/run-now` (trigger fresh backup, returns 202)
+- `GET /api/admin/backups` (list objects)
+- `GET /api/admin/backups/integrity-check`
+- `GET /api/admin/backups-scheduler-state`
+- `GET /api/admin/backups/{filename}`
+- `POST /api/admin/backup-verification/run-now`
+
+Backup service module: `backend/services/operations_control/backups.py`. 8 backup-related regression suites already green.
+
+### Why the agent stopped
+1. Preview `masci_preview_user` cannot authenticate against production (Track 28.09A three-layer isolation — working correctly).
+2. Production admin credentials are operator-held; this session has preview credentials only.
+3. Preview `SCHEDULER_ENABLED=false` prevents any local job execution that could mutate prod resources.
+
+**All three are correct safety layers. The agent respecting them IS the design.**
+
+### Operator playbook created
+Exact `curl` sequence + Admin OS UI alternative in `/app/memory/TRACK_28_09C_PREDEPLOY_BACKUP_CHECKPOINT.md` Section 8. Takes ~2 minutes. Fills 8 evidence fields (start/completion timestamps, run ID, object key, size, ETag, job status, integrity result) which flip the verdict to PASS.
+
+### Files
+NEW: `memory/TRACK_28_09C_PREDEPLOY_BACKUP_CHECKPOINT.md` (11 sections including operator playbook + rollback checkpoint template).
+
+### Deployment gate
+**HELD.** Deploy remains blocked until operator runs the 2-minute backup capture playbook and records the 8 evidence fields. Then verdict flips to PASS and RC `fb30633cc1e6…` is cleared for deployment.
+
+---
+
+
 ## 2026-07-11 · Track 28.09B · 🟢 GO — no config changes required · Current Production Facts Audit
 
 **Track 28.09B READ-ONLY fact-finding against live `https://mascidocs.com`.** Zero production changes made. Zero env vars touched. Zero rebuilds. Zero secret rotations. Result upgrades Track 28.09's CONDITIONAL GO to a clean **GO**, based on evidence that current production is already correctly configured.

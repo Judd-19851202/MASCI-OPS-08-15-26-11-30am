@@ -892,3 +892,24 @@ No schema migrations. No collection changes. No new indexes. No R2 mutations.
 **Evidence package:** `memory/TRACK_28_09B_CURRENT_PRODUCTION_FACTS.md`
 
 **Deployment gate:** READY pending routine pre-deploy backup only.
+
+---
+
+## Track 28.09C · Fresh Pre-Deploy Backup Capture · 🟡 FAIL for autonomous execution (operator playbook ready)
+
+**Verdict issued:** 2026-07-11.
+
+**Autonomous execution result:** halted at Phase 2 — production admin authentication is required and correctly rejects preview-pod requests. The Track 28.09A three-layer isolation (Atlas per-user permission + boot guards + preview scheduler off) is working exactly as designed. No production changes, no preview activity, no R2 mutations.
+
+**Phase 1 inventory (complete):** canonical backup endpoints identified and confirmed live in production (all auth-gated with 401/405 to unauthenticated probes):
+- `POST /api/admin/backups/run-now` · `GET /api/admin/backups` · `GET /api/admin/backups/integrity-check` · `GET /api/admin/backups-scheduler-state`
+
+**Operator playbook:** `memory/TRACK_28_09C_PREDEPLOY_BACKUP_CHECKPOINT.md` Section 8 provides a ready-to-run 2-minute curl sequence + Admin OS UI alternative. Operator captures 8 evidence fields; verdict then flips to PASS.
+
+**Rollback checkpoint (fixed fields recorded now):**
+- Current live prod commit BEFORE deployment: `6ab72474cc20`
+- Frozen RC: `fb30633cc1e6a31a379751ecad16e97f71d42b75`
+- Prod DB identity: `masci_safety`
+- Delete engine: DISABLED
+
+**Deployment gate:** HELD pending operator backup capture.
