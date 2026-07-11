@@ -262,7 +262,7 @@ def build_housekeeping_router(
     @router.get("/api/admin/r2/forensics")
     async def r2_forensics_inventory(
         prefix: Optional[str] = Query(None, description="Optional key prefix to scope the scan."),
-        limit: int = Query(2000, ge=1, le=10000),
+        limit: int = Query(2000, ge=1, le=200000),
         _admin=Depends(require_admin),
     ):
         """Enumerate live R2 objects with lifecycle classification.
@@ -271,64 +271,95 @@ def build_housekeeping_router(
         never mutates lifecycle rules. Powers Track 27.07 Phase 3
         forensic evidence.
 
+        Reuses the platform-standard `photo_storage._client()` which
+        already reads the correct env vars (`S3_ENDPOINT_URL`,
+        `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`) — no separate
+        credential wiring for this endpoint.
+
         Object classification:
             * `backup`      — objects under `backups/…`
-            * `report`      — objects under `reports/…`, `exports/…`
+            * `report`      — objects under `reports/…`, `exports/…`,
+                              `pdf/…`, `packages/…`
+            * `photo`       — objects under `photos/…`, `daily/…`
             * `attachment`  — anything else (defaults conservative)
         """
         try:
-            import boto3  # noqa: PLC0415
-        except ImportError:
-            raise HTTPException(503, "boto3 not installed on this environment.")
-        endpoint = os.environ.get("R2_ENDPOINT_URL") or os.environ.get("CLOUDFLARE_R2_ENDPOINT")
-        bucket = os.environ.get("R2_BUCKET") or os.environ.get("CLOUDFLARE_R2_BUCKET")
-        key_id = os.environ.get("R2_ACCESS_KEY_ID") or os.environ.get("CLOUDFLARE_R2_ACCESS_KEY_ID")
-        secret = os.environ.get("R2_SECRET_ACCESS_KEY") or os.environ.get("CLOUDFLARE_R2_SECRET_ACCESS_KEY")
-        if not (endpoint and bucket and key_id and secret):
-            raise HTTPException(503, "R2 credentials not configured in this environment.")
-        s3 = boto3.client(
-            "s3",
-            endpoint_url=endpoint,
-            aws_access_key_id=key_id,
-            aws_secret_access_key=secret,
-        )
-        # Paginate — R2 caps at 1000/page.
+            from photo_storage import _client as _r2_client, is_configured, _bucket  # noqa: PLC0415
+        except ImportError as e:
+            raise HTTPException(503, f"photo_storage module unavailable: {e}")
+        if not is_configured():
+            raise HTTPException(503, "R2/S3 credentials not configured in this environment.")
+        s3 = _r2_client()
+        if s3 is None:
+            raise HTTPException(503, "R2/S3 client initialization failed.")
+        bucket = _bucket()
+        # Paginate — R2 caps at 1000/page. Walk everything up to `limit`.
         paginator = s3.get_paginator("list_objects_v2")
         kwargs = {"Bucket": bucket}
         if prefix:
             kwargs["Prefix"] = prefix
-        classifications = {"backup": 0, "report": 0, "attachment": 0}
-        size_by_class = {"backup": 0, "report": 0, "attachment": 0}
+        classifications = {"backup": 0, "report": 0, "photo": 0, "attachment": 0}
+        size_by_class = {"backup": 0, "report": 0, "photo": 0, "attachment": 0}
+        prefix_bytes: Dict[str, int] = {}
+        prefix_count: Dict[str, int] = {}
         sample_objects: List[Dict[str, Any]] = []
         total_count = 0
         total_bytes = 0
+        zero_byte_count = 0
+        etag_seen: Dict[str, int] = {}
+        oldest_ts = None
+        newest_ts = None
         for page in paginator.paginate(**kwargs):
             for obj in page.get("Contents", []):
                 key = obj.get("Key", "")
                 size = int(obj.get("Size") or 0)
                 last_modified = obj.get("LastModified")
-                if key.startswith("backups/"):
+                etag = (obj.get("ETag") or "").strip('"')
+                # Classify
+                if key.startswith("backups/") or key.startswith("backup/"):
                     cls = "backup"
-                elif key.startswith("reports/") or key.startswith("exports/"):
+                elif (key.startswith("reports/") or key.startswith("exports/")
+                      or key.startswith("pdf/") or key.startswith("packages/")):
                     cls = "report"
+                elif key.startswith("photos/") or key.startswith("daily/") or key.startswith("photo/"):
+                    cls = "photo"
                 else:
                     cls = "attachment"
                 classifications[cls] += 1
                 size_by_class[cls] += size
+                # Prefix bucket = first-two path segments
+                parts = key.split("/", 2)
+                prefix_key = "/".join(parts[:2]) + "/" if len(parts) >= 2 else parts[0]
+                prefix_bytes[prefix_key] = prefix_bytes.get(prefix_key, 0) + size
+                prefix_count[prefix_key] = prefix_count.get(prefix_key, 0) + 1
+                # Anomaly buckets
+                if size == 0:
+                    zero_byte_count += 1
+                etag_seen[etag] = etag_seen.get(etag, 0) + 1
+                # Age extremes
+                if last_modified:
+                    if oldest_ts is None or last_modified < oldest_ts:
+                        oldest_ts = last_modified
+                    if newest_ts is None or last_modified > newest_ts:
+                        newest_ts = last_modified
                 total_count += 1
                 total_bytes += size
-                if len(sample_objects) < 25:
+                if len(sample_objects) < 50:
                     sample_objects.append({
                         "key": key,
                         "size_bytes": size,
                         "size_mb": round(size / (1024 * 1024), 3),
                         "class": cls,
+                        "etag": etag,
                         "last_modified": last_modified.isoformat() if last_modified else None,
                     })
                 if total_count >= limit:
                     break
             if total_count >= limit:
                 break
+        # Duplicate ETag candidates: any ETag seen more than once.
+        duplicate_candidates = sum(1 for c in etag_seen.values() if c > 1)
+        top_prefixes = sorted(prefix_bytes.items(), key=lambda kv: kv[1], reverse=True)[:50]
         return {
             "bucket": bucket,
             "prefix": prefix,
@@ -338,6 +369,14 @@ def build_housekeeping_router(
             "class_counts": classifications,
             "class_bytes": size_by_class,
             "class_gb": {k: round(v / (1024 ** 3), 3) for k, v in size_by_class.items()},
+            "zero_byte_count": zero_byte_count,
+            "duplicate_etag_candidates": duplicate_candidates,
+            "oldest_object": oldest_ts.isoformat() if oldest_ts else None,
+            "newest_object": newest_ts.isoformat() if newest_ts else None,
+            "top_prefixes_by_bytes": [
+                {"prefix": p, "gb": round(b / (1024 ** 3), 3), "count": prefix_count.get(p, 0)}
+                for p, b in top_prefixes
+            ],
             "sample_objects": sample_objects,
             "hard_delete_status": "PERMANENTLY DISABLED · Track 28.12 quarantine-only engine.",
             "generated_at": _utcnow().isoformat(),
