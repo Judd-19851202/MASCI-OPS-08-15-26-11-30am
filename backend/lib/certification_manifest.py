@@ -248,27 +248,35 @@ MANIFEST: List[CertEntry] = [
         regression_tests=[
             "backend/tests/test_track_28_07_session2_manifest_and_control_layer.py",
             "backend/tests/test_no_retired_sync_admin_validator_alone.py",
+            # Track 28.08 · Phase 0 · shared PortalShell mobile chrome
+            # regression lock — every Admin OS page consumes PortalShell.
+            "backend/tests/test_track_28_08_phase0_defects.py",
         ],
         cross_domain_deps=["platform.admin_auth_invariant"],
         last_certified_at="2026-07-11",
-        last_certified_commit="track-28.07-s2",
-        evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.07 Session 2",
+        last_certified_commit="track-28.08-phase0",
+        evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.07 Session 2 + Track 28.08 Phase 0 (D4 PortalShell mobile overflow fixed)",
         status="PASS",
     ),
     CertEntry(
         workflow_id="occ.trust_center",
         domain="Admin OS",
         owner="Platform Ops",
-        routes=["/admin/occ"],
+        # Track 28.08 · Phase 0 · D1 · legacy `/admin/occ` alias now
+        # redirects (Navigate replace) to the canonical
+        # `/admin/operations-control`. Both routes documented so
+        # bookmark discovery is complete.
+        routes=["/admin/occ", "/admin/operations-control"],
         apis=["/api/integrations/health"],
         collections=[],
         regression_tests=[
             "backend/tests/test_track_28_07_session2_manifest_and_control_layer.py",
+            "backend/tests/test_track_28_08_phase0_defects.py",
         ],
         cross_domain_deps=["platform.admin_auth_invariant"],
         last_certified_at="2026-07-11",
-        last_certified_commit="track-28.07-s2",
-        evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.07 Session 2",
+        last_certified_commit="track-28.08-phase0",
+        evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.07 Session 2 + Track 28.08 Phase 0 (D1 route alias fixed)",
         status="PASS",
     ),
     CertEntry(
@@ -323,11 +331,20 @@ MANIFEST: List[CertEntry] = [
         workflow_id="executive.dashboards_and_reports",
         domain="Executive",
         owner="Executive Intelligence",
-        routes=["/executive", "/executive-portal"],
+        # Track 28.08 · Phase 0 · D2 · legacy `/executive`,
+        # `/executive-dashboard`, and `/admin/executive` aliases now
+        # redirect to the canonical `/admin/executive-overview`.
+        routes=[
+            "/executive",
+            "/executive-dashboard",
+            "/admin/executive",
+            "/admin/executive-overview",
+        ],
         apis=["/api/executive/*"],
         collections=[],
         regression_tests=[
             "backend/tests/test_track_28_07_session2_manifest_and_control_layer.py",
+            "backend/tests/test_track_28_08_phase0_defects.py",
         ],
         cross_domain_deps=[
             "hr.employee_lifecycle", "field_ops.daily_report",
@@ -335,8 +352,8 @@ MANIFEST: List[CertEntry] = [
             "training.qualifications_and_credentials",
         ],
         last_certified_at="2026-07-11",
-        last_certified_commit="track-28.07-s2",
-        evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.07 Session 2",
+        last_certified_commit="track-28.08-phase0",
+        evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.07 Session 2 + Track 28.08 Phase 0 (D2 route aliases fixed)",
         status="PASS",
     ),
 ]

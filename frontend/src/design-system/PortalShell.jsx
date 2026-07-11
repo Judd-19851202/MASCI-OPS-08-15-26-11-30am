@@ -11,13 +11,14 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
-import { Home as HomeIcon, ArrowLeft, LogOut, Clock, User as UserIcon } from "lucide-react";
+import { Home as HomeIcon, ArrowLeft, LogOut, Clock, User as UserIcon, MoreHorizontal } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import GlobalSearch from "@/components/GlobalSearch";
 import NotificationBell from "@/components/NotificationBell";
 import PortalSwitcher from "@/components/PortalSwitcher";
 import { LangToggle } from "@/components/LangToggle";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useBranding } from "@/lib/BrandingProvider";
 // TRACK 27.03 · Final Completion · canonical local-time formatter.
 import { formatPlatformTimeOnly } from "@/lib/platformTime";
@@ -120,12 +121,12 @@ export function PortalShell({
       {/* MASCI top chrome — unified across all authenticated portals */}
       <header
         data-testid="ds-portal-shell-header"
-        className="sticky top-0 z-30 bg-slate-900 border-b-4 border-red-700 shadow-md"
+        className="sticky top-0 z-30 bg-slate-900 border-b-4 border-red-700 shadow-md overflow-hidden"
       >
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-2.5 flex items-center gap-3">
+        <div className="max-w-[1600px] mx-auto px-3 sm:px-6 py-2.5 flex items-center gap-2 sm:gap-3 min-w-0">
           {/* MASCI mark — anchors brand identity in every portal */}
-          <MasciLogo variant="mark" size="md" className="hidden sm:block" homeLink={homeHref} />
-          <MasciLogo variant="mark" size="sm" className="sm:hidden" homeLink={homeHref} />
+          <MasciLogo variant="mark" size="md" className="hidden sm:block shrink-0" homeLink={homeHref} />
+          <MasciLogo variant="mark" size="sm" className="sm:hidden shrink-0" homeLink={homeHref} />
 
           <div className="hidden md:block min-w-0 flex-1">
             <div
@@ -141,37 +142,41 @@ export function PortalShell({
             )}
           </div>
 
-          {/* Right-side nav cluster — unified MASCI chrome */}
-          <div className="ml-auto flex items-center gap-2">
+          {/* Right-side nav cluster — unified MASCI chrome.
+              TRACK 28.08 · Phase 0 · D4-PORTALSHELL-MOBILE-OVERFLOW:
+              on <md viewports, secondary controls (SEARCH, PortalSwitcher,
+              clock, LangToggle, user name) collapse into a "•••" overflow
+              popover so the row can never push past a 390px viewport. */}
+          <div className="ml-auto flex items-center gap-1.5 sm:gap-2 min-w-0 shrink">
             {showSearch && (
-              <div className="hidden lg:block" data-testid="ds-portal-shell-search">
+              <div className="hidden lg:block shrink-0" data-testid="ds-portal-shell-search">
                 <GlobalSearch accent="dark" />
               </div>
             )}
             {showNotifications && (
-              <div data-testid="ds-portal-shell-notifications">
+              <div className="shrink-0" data-testid="ds-portal-shell-notifications">
                 <NotificationBell accent="white" />
               </div>
             )}
             {showPortalSwitcher && (
-              <div className="hidden md:block" data-testid="ds-portal-shell-portal-switcher">
+              <div className="hidden md:block shrink-0" data-testid="ds-portal-shell-portal-switcher">
                 <PortalSwitcher current={portalSwitcherCurrent} />
               </div>
             )}
             <div
-              className="hidden sm:inline-flex items-center gap-1 px-2.5 h-9 rounded border border-slate-700 text-slate-200 text-xs font-mono tracking-widest tabular-nums"
+              className="hidden sm:inline-flex items-center gap-1 px-2.5 h-9 rounded border border-slate-700 text-slate-200 text-xs font-mono tracking-widest tabular-nums shrink-0"
               data-testid="ds-portal-shell-local-time"
               title="Local device time"
             >
               <Clock className="w-3 h-3 opacity-70" />
               {localTimeLabel}
             </div>
-            <div className="hidden md:block" data-testid="ds-portal-shell-lang-toggle">
+            <div className="hidden md:block shrink-0" data-testid="ds-portal-shell-lang-toggle">
               <LangToggle variant="dark" className="h-9" />
             </div>
             {signedInName && (
               <div
-                className="hidden xl:inline-flex items-center gap-1.5 px-2.5 h-9 rounded border border-slate-700 text-slate-200 text-xs font-bold tracking-wide max-w-[160px]"
+                className="hidden xl:inline-flex items-center gap-1.5 px-2.5 h-9 rounded border border-slate-700 text-slate-200 text-xs font-bold tracking-wide max-w-[160px] shrink-0"
                 data-testid="ds-portal-shell-user"
                 title={signedInName}
               >
@@ -179,10 +184,66 @@ export function PortalShell({
                 <span className="truncate">{signedInName}</span>
               </div>
             )}
+
+            {/* Mobile overflow popover — surfaces the secondary controls
+                that are hidden on <md (SEARCH, PortalSwitcher, clock,
+                LangToggle, signed-in name). Visible only on <md so it
+                doesn't clutter tablet/desktop chrome. */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className="md:hidden inline-flex items-center justify-center w-9 h-9 rounded border border-slate-700 text-slate-200 hover:bg-slate-800 shrink-0"
+                  aria-label="More options"
+                  title="More"
+                  data-testid="ds-portal-shell-mobile-more"
+                >
+                  <MoreHorizontal className="w-4 h-4" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent
+                align="end"
+                sideOffset={8}
+                className="w-64 p-3 bg-slate-900 border-slate-700 text-slate-100"
+                data-testid="ds-portal-shell-mobile-more-menu"
+              >
+                <div className="flex flex-col gap-3">
+                  <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-red-300">
+                    {portalName} · {portalRole}
+                  </div>
+                  {signedInName && (
+                    <div className="inline-flex items-center gap-1.5 text-xs text-slate-200 font-bold">
+                      <UserIcon className="w-3.5 h-3.5 opacity-70" />
+                      <span className="truncate">{signedInName}</span>
+                    </div>
+                  )}
+                  <div className="inline-flex items-center gap-1 text-xs font-mono tracking-widest tabular-nums text-slate-300">
+                    <Clock className="w-3 h-3 opacity-70" />
+                    {localTimeLabel}
+                  </div>
+                  {showSearch && (
+                    <div data-testid="ds-portal-shell-mobile-search">
+                      <GlobalSearch accent="dark" />
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between gap-2">
+                    {showPortalSwitcher && (
+                      <div data-testid="ds-portal-shell-mobile-portal-switcher">
+                        <PortalSwitcher current={portalSwitcherCurrent} />
+                      </div>
+                    )}
+                    <div data-testid="ds-portal-shell-mobile-lang-toggle">
+                      <LangToggle variant="dark" className="h-9" />
+                    </div>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+
             {showBack && backHref && (
               <Link
                 to={backHref}
-                className="hidden sm:inline-flex items-center gap-1 px-2.5 h-9 rounded border border-slate-700 text-slate-200 hover:bg-slate-800 text-xs font-bold uppercase tracking-wide"
+                className="hidden sm:inline-flex items-center gap-1 px-2.5 h-9 rounded border border-slate-700 text-slate-200 hover:bg-slate-800 text-xs font-bold uppercase tracking-wide shrink-0"
                 aria-label="Go back"
                 title="Back"
                 data-testid="ds-portal-shell-back"
@@ -193,7 +254,7 @@ export function PortalShell({
             {showHome && (
               <Link
                 to={homeHref}
-                className="inline-flex items-center gap-1 px-2.5 h-9 rounded border border-slate-700 text-slate-200 hover:bg-slate-800 text-xs font-bold uppercase tracking-wide"
+                className="inline-flex items-center gap-1 px-2.5 h-9 rounded border border-slate-700 text-slate-200 hover:bg-slate-800 text-xs font-bold uppercase tracking-wide shrink-0"
                 aria-label="Home"
                 title="Home"
                 data-testid="ds-portal-shell-home"
@@ -205,7 +266,7 @@ export function PortalShell({
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="inline-flex items-center gap-1 px-2.5 h-9 rounded border border-slate-700 text-slate-200 hover:bg-slate-800 text-xs font-bold uppercase tracking-wide"
+                className="inline-flex items-center gap-1 px-2.5 h-9 rounded border border-slate-700 text-slate-200 hover:bg-slate-800 text-xs font-bold uppercase tracking-wide shrink-0"
                 aria-label="Sign out"
                 title="Sign out"
                 data-testid="ds-portal-shell-signout"

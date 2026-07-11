@@ -1310,6 +1310,17 @@ export function AppRoutes() {
             {/* DR-UNIFY-002 · speculative Executive surface — no real Executive Portal exists.
                 Deferred to a future track. Redirected to Admin OI so any old link stays useful. */}
             <Route path="/executive/ods-intelligence" element={<Navigate to="/admin/operational-intelligence" replace />} />
+            {/* TRACK 28.08 · Phase 0 · D1-ROUTE-OCC-404 — legacy alias for Operations Control Center.
+                `/admin/occ` was historically documented but never routed; preserve bookmarks by
+                redirecting to the canonical `/admin/operations-control`. Query params and hashes
+                pass through automatically because Router matches the pathname only. */}
+            <Route path="/admin/occ" element={<Navigate to="/admin/operations-control" replace />} />
+            {/* TRACK 28.08 · Phase 0 · D2-ROUTE-EXECUTIVE-404 — legacy aliases for Executive Overview.
+                `/executive`, `/executive-dashboard`, and `/admin/executive` all resolve to the
+                canonical `/admin/executive-overview`. Preserves historical deep links. */}
+            <Route path="/executive" element={<Navigate to="/admin/executive-overview" replace />} />
+            <Route path="/executive-dashboard" element={<Navigate to="/admin/executive-overview" replace />} />
+            <Route path="/admin/executive" element={<Navigate to="/admin/executive-overview" replace />} />
             <Route path="*" element={<NotFound />} />
             {/* (catch-all is final) */}
           </Routes></React.Suspense>
