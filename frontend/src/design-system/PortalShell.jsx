@@ -290,7 +290,7 @@ export function PortalShell({
               </aside>
             )}
             <div className="min-w-0">
-          <div className="flex items-start justify-between gap-4" style={{ marginBottom: 16 }}>
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 md:gap-4" style={{ marginBottom: 16 }}>
             <div className="min-w-0 flex-1">
               {/* Mobile-only portal kicker (already in header on desktop) */}
               <div
@@ -327,7 +327,13 @@ export function PortalShell({
                 </p>
               )}
             </div>
-            <div className="flex flex-col items-end gap-2">
+            {/* TRACK 28.08 · Phase 0 · D4 — on <md, the primary actions cluster
+                stacks below the title (flex-col wrapper above) so the H1 can
+                claim the full row width and never collapses to 0. It also
+                `flex-wrap` internally so multi-button clusters like the Admin
+                OS (Search/Refresh/Export snapshot) don't extrude past a 390px
+                viewport. `min-w-0` lets any child shrink cleanly. */}
+            <div className="flex flex-row md:flex-col md:items-end flex-wrap items-center gap-2 min-w-0">
               {primaryActions}
               {renderedLastActivity && (
                 <aside style={{ color: "var(--ink-soft)", fontSize: 12 }} data-testid="ds-portal-shell-last-activity">

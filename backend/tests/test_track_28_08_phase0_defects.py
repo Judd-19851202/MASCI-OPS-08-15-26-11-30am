@@ -142,6 +142,59 @@ def test_d4_portal_shell_mobile_more_menu_surfaces_secondary_controls():
     )
 
 
+def test_d4_portal_shell_body_header_stacks_on_mobile():
+    """PortalShell body header (pageTitle + primaryActions cluster) must
+    stack vertically on <md so the H1 always gets full row width and never
+    collapses to 0px. Root cause of the /admin regression found in the
+    Phase 0 re-verify run."""
+    src = _read(PORTAL_SHELL)
+    # Body header row must switch from column to row at md+.
+    assert "flex flex-col md:flex-row md:items-start md:justify-between" in src, (
+        "D4 regression: PortalShell body header row must be `flex flex-col "
+        "md:flex-row md:items-start md:justify-between` so the H1 never "
+        "collides with the primary-actions cluster on mobile."
+    )
+    # Primary-actions wrapper must be flex-wrap so multi-button clusters
+    # (e.g. Admin OS Search / Refresh / Export snapshot) wrap on mobile.
+    assert "flex flex-row md:flex-col md:items-end flex-wrap items-center gap-2 min-w-0" in src, (
+        "D4 regression: PortalShell primaryActions wrapper must include "
+        "`flex-wrap`, `min-w-0`, and switch to column layout at md+."
+    )
+
+
+def test_d4_admin_os_posture_strip_wraps_on_mobile():
+    """The Admin OS posture strip is the shared 'summary + counters' pattern
+    that regressed on mobile. Lock the wrap-friendly layout."""
+    admin_os = FRONTEND / "pages" / "admin" / "AdminOS.jsx"
+    src = _read(admin_os)
+    # Counter row must wrap and gain gap-y on mobile.
+    assert 'className="md:ml-auto flex flex-wrap items-center gap-x-4 gap-y-2 text-sm"' in src, (
+        "D4 regression: /admin AdminOS posture counters row must wrap on "
+        "mobile (`flex flex-wrap items-center gap-x-4 gap-y-2`) with "
+        "`md:ml-auto` so it aligns right only on desktop."
+    )
+    # Pill + summary text must wrap and shrink.
+    assert 'className="mt-1 flex flex-wrap items-center gap-2 min-w-0"' in src, (
+        "D4 regression: /admin AdminOS posture pill+summary sub-row must "
+        "carry `flex-wrap` + `min-w-0` so the summary sentence never "
+        "extrudes past a 390px viewport."
+    )
+
+
+def test_d4_operations_control_trust_layer_wraps_on_mobile():
+    occ = FRONTEND / "pages" / "OperationsControlCenter.jsx"
+    src = _read(occ)
+    assert 'className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm"' in src, (
+        "D4 regression: OCC Trust Center summary row must wrap on mobile "
+        "(`flex flex-wrap items-center gap-x-4 gap-y-2`)."
+    )
+    assert 'className="mt-1 flex flex-wrap items-center gap-2 min-w-0"' in src, (
+        "D4 regression: OCC Trust Center pill+summary sub-row must carry "
+        "`flex-wrap` + `min-w-0` so the summary text never extrudes past "
+        "a 390px viewport."
+    )
+
+
 def test_d4_portal_shell_right_cluster_children_are_shrink_zero():
     """The utility cluster children must all carry `shrink-0` so a single
     child cannot force the row wider than its parent. This is the core

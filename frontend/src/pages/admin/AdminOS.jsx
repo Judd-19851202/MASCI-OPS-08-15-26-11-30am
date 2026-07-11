@@ -687,7 +687,7 @@ export default function AdminOS() {
         pageTitle="Admin Operating System"
         subtitle="Ten operational domains · one home per domain · live status from real endpoints."
         primaryActions={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 min-w-0">
             <button
               type="button"
               onClick={() => window.__masciAdminOpenPalette?.()}
@@ -734,16 +734,16 @@ export default function AdminOS() {
           className="mb-6 rounded-lg border border-slate-200 bg-white p-4 flex flex-wrap items-center gap-4"
           data-testid="admin-os-posture"
         >
-          <div>
+          <div className="min-w-0">
             <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">
               Platform posture
             </div>
-            <div className="mt-1 flex items-center gap-2">
+            <div className="mt-1 flex flex-wrap items-center gap-2 min-w-0">
               <StatusPill
                 status={overallStatus}
                 testid="admin-os-posture-pill"
               />
-              <span className="text-sm font-semibold text-slate-900">
+              <span className="text-sm font-semibold text-slate-900 min-w-0 break-words">
                 {overallStatus === "critical"
                   ? "One or more domains report a critical condition."
                   : overallStatus === "warning"
@@ -754,7 +754,7 @@ export default function AdminOS() {
               </span>
             </div>
           </div>
-          <div className="ml-auto flex items-center gap-4 text-sm">
+          <div className="md:ml-auto flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
             <div data-testid="admin-os-count-healthy">
               <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">
                 Healthy
