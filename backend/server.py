@@ -12158,6 +12158,18 @@ from routes.governance_self_protection import (  # noqa: E402
 )
 app.include_router(build_governance_self_protection_router(require_admin))
 
+# TRACK 28.12 / 27.07 · Governed housekeeping + soft-delete engine.
+# Provides the Track 15.59 residual cleanup + R2 forensics inventory
+# + R2 quarantine (SOFT TAG ONLY — hard delete permanently disabled
+# in this build). All endpoints are admin-only, dry-run by default,
+# and reversible for 30 days via the recycle bin.
+from routes.track_28_12_housekeeping import build_housekeeping_router  # noqa: E402
+
+async def _housekeeping_get_db():
+    return db
+
+app.include_router(build_housekeeping_router(_housekeeping_get_db, require_admin))
+
 # TRACK 28.11 · Idempotent auto-record of the running source_hash to
 # the deployment ledger. Ensures the governance self-protection card
 # never shows "not recorded yet" while a live deploy is in production.

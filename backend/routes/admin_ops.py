@@ -259,7 +259,11 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
 
         # 8. Build version — pull from live server module if the deploy
         # env vars weren't stamped (Emergent deploys don't set them,
-        # so we fall back to the runtime source_hash + start time).
+        # so we fall back to the runtime source_hash + startup timestamp).
+        # ATT-28.11C-1 fix: the previous fallback imported a symbol
+        # (`_STARTED_AT`) that never existed on server.py, so the except
+        # branch was always taken and the card rendered `built —`.
+        # The real module variable is `_STARTUP_TS` (a tz-aware datetime).
         version = os.environ.get("MASCI_BUILD_VERSION") or ""
         built_at = os.environ.get("MASCI_BUILD_AT") or ""
         if not version:
@@ -270,8 +274,8 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
                 version = "unknown"
         if not built_at:
             try:
-                from server import _STARTED_AT as started  # noqa: PLC0415
-                built_at = str(started) if started else "—"
+                from server import _STARTUP_TS as started  # noqa: PLC0415
+                built_at = started.isoformat() if started else "—"
             except Exception:
                 built_at = "—"
         cards.append({"key": "version", "label": "Build version",

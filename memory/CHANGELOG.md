@@ -1,3 +1,44 @@
+## 2026-07-11 · Track 28.12 + 27.07 (Phases 0-5) · 🟢 CLOSED WITH PASS · Housekeeping + Governed R2 Infrastructure
+
+Bounded technical-debt cleanup + delivery of the safe governed infrastructure for future R2 capacity remediation. **Zero R2 hard-delete calls exist in the shipped code. Hard delete is PERMANENTLY DISABLED via a defensive env-flag refusal at the endpoint layer.**
+
+### Fixed live
+* **ATT-28.11C-1 · System Health "built —"** — root cause: `admin_ops.py::compute_system_health` imported non-existent `_STARTED_AT` symbol from server.py; the real variable is `_STARTUP_TS`. Fix: correct symbol name + `.isoformat()` output. Preview verified: card now shows `5bdf0f87316d · built 2026-07-11T21:02:38.022832+00:00`.
+* **Governance freshness (GAP-28-08)** — `POST /api/admin/compliance/scan` executed on live prod. 358 fresh findings replace stale 2026-05-26 scan of 313. **25 stale CRITICAL findings cleared**. New live severity: `{critical: 0, high: 46, medium: 312}`. Governance freshness gap CLOSED. Non-destructive: scans re-detect + upsert without touching source data.
+
+### New governed endpoints (preview, ready for prod deploy)
+
+`GET  /api/admin/housekeeping/legacy-artifacts` — read-only inventory of `POST_DEPLOY_TEST_TRACK_15_59_DELETE` residuals (6 rows confirmed on prod: 2 tasks, 4 notifications).
+`POST /api/admin/housekeeping/legacy-artifacts/purge?confirm=true&dry_run=false` — soft-move to `housekeeping_recycle_bin` collection with 30-day restore window. Every purge writes an `audit_events` row.
+`POST /api/admin/housekeeping/legacy-artifacts/restore?recycle_id=…` — restore a single entry.
+`GET  /api/admin/r2/forensics?prefix=&limit=` — read-only R2 object inventory: `class_counts` / `class_bytes` / `class_gb` per {backup, report, attachment} + sample. Uses `list_objects_v2` only. No `GetObject`, no `PutObject`, no `DeleteObject`, no lifecycle mutation.
+`POST /api/admin/r2/quarantine?key=&reason=` — soft-tag intent only. **Never issues an R2 delete.** Refuses with HTTP 412 if `R2_HARD_DELETE_ENABLED` env is somehow flipped ON. Every mark writes `audit_events`. Idempotent.
+`GET  /api/admin/r2/quarantine` — list current tags. Every response includes `hard_delete_status: "PERMANENTLY DISABLED · Track 28.12"`.
+
+### Safety contract
+* Every mutation writes to a separate collection (`housekeeping_recycle_bin`, `r2_quarantine`) — never overwrites source data.
+* Every mutation writes an `audit_events` row.
+* `dry_run=true` is the default on the purge endpoint.
+* Zero `delete_object` / `delete_objects` / `DeleteObject` calls anywhere in the new module (verified by grep).
+* Env-flag defensive refusal: even if `R2_HARD_DELETE_ENABLED=true` ever appears, the quarantine endpoint returns 412 rather than escalating.
+
+### Files
+NEW: `backend/routes/track_28_12_housekeeping.py` · `backend/tests/test_track_28_12_housekeeping.py` · `memory/TRACK_28_12_HOUSEKEEPING.md`.
+EDITED: `backend/routes/admin_ops.py` (ATT-28.11C-1 fix) · `backend/server.py` (router mount) · `memory/PRD.md` · `memory/CHANGELOG.md` (this entry) · `memory/TRACK_28_CERTIFICATION_REGISTER.md`.
+
+### Regression
+74 tests pass in the direct blast-radius suite (Track 28.12 module contract + Track 28.11 canonical + 28.09D backup + 28.09A environment + 15.80 secrets + 25.01 OCC + MaintainX P0). No weakened assertions.
+
+### Not done in this session (deliberate)
+* **Track 27.07 Phase 6 · R2 capacity remediation execution** — actual reduction of the 320 GB bucket footprint requires operator sessions to review the forensic inventory prefix-by-prefix. This track delivers the infrastructure; the actual reduction is a separate coordinated pass.
+* Track 15.59 residual purge on production — one operator API call after next deploy, non-destructive (soft-move with 30-day restore).
+
+### Verdict
+🟢 **CLOSED WITH PASS**. Zero P0/P1 defects. Zero data loss risk. Zero R2 mutation. Zero environment drift. Full evidence: `/app/memory/TRACK_28_12_HOUSEKEEPING.md`.
+
+---
+
+
 ## 2026-07-11 · Track 28.11C · 🟢 PRODUCTION VERIFIED · CLOSED WITH PASS · Live Post-Deploy Verification
 
 Track 28.11 (Diagnostics Truthfulness) landed cleanly on production. Live source_hash `bdccb5300b16875210325b12ec6717b6` (built 2026-07-11T20:24:51Z) verified identical to preview build tree — no mixed replicas, no cache drift.
