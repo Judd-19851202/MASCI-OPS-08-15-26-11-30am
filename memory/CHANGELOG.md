@@ -1,3 +1,47 @@
+## 2026-07-11 · Track 28.11C · 🟢 PRODUCTION VERIFIED · CLOSED WITH PASS · Live Post-Deploy Verification
+
+Track 28.11 (Diagnostics Truthfulness) landed cleanly on production. Live source_hash `bdccb5300b16875210325b12ec6717b6` (built 2026-07-11T20:24:51Z) verified identical to preview build tree — no mixed replicas, no cache drift.
+
+### Live verification results
+* **System Health** — legacy counts=None → **`{healthy: 8, attention: 0, critical: 0, ..., total_applicable: 8}`**. UI now shows "**8/8 system health cards healthy**". The "0/8" filter bug is dead.
+* **Deploy Readiness** — `canonical_status=ATTENTION` explicitly emitted (was UNKNOWN pre-deploy). Card summary "11/12 checks passed · 0 blocker(s) · 1 warn(s)" with correct action.
+* **Governance Self-Protection** — `overall_status=amber` + `canonical_status=ATTENTION` (was null). Deployment ledger auto-recorded: `status=green`, `deployed_at=1783792980`, `source_hash=bdccb5300b16`, `prior_source_hash=965741df412f`, `history_size=10` (was 8, +2 for both restarts, no duplicates). Startup hook is idempotent.
+* **Warning classification** — `{current_actionable:0, historical_baselined:24, baseline_tolerated_new:60, informational:0}`. The 60 patterns are no longer misrepresented as new actionable problems.
+* **Field walks** — all 5 walks report `age_days=44 freshness=ATTENTION` under the new 30/60-day policy. No more "44 days old · shown current".
+* **MaintainX** — classified NOT_APPLICABLE across all consumers. System Health integrations card now shows "Motive: green · Maintainx: not_applicable" and is HEALTHY. OCC integrations card moved from RED → GREEN (this is why OCC red count dropped from 4 → 3 post-deploy).
+* **OCC canonical counts + root causes** — `canonical_counts={healthy:8, attention:2, critical:3, ...}` · `root_cause_groups={"r2_bucket_capacity": ["recovery_snapshot", "storage_health"]}` · `unique_critical_root_causes=2` (dedup effective — 3 red cards, 2 unique causes).
+* **R2 320 GB overage remains truthfully CRITICAL** — not suppressed, not weakened, threshold unchanged, delete engine still DISABLED. Now clearly attributed to one shared root cause.
+* **Backup** — 32.1 min old, 95 archives, scheduler alive — HEALTHY (Track 28.09D contract preserved).
+* **Environment identity** preserved — `app_env=production`, `db_name=masci_safety`, `db_isolation_enforced=true`, `scheduler_enabled=true`, `maintainx_write_enabled=false`, `dev_endpoints_enabled=false`.
+
+### Deployment
+* Intended git SHA: `576f7fb89b5d2bbdc3aa3a607e887fa8a6972a17` (frozen 2026-07-11T18:29:32Z)
+* Actual live source_hash: `bdccb5300b16875210325b12ec6717b6` — **matches preview build tree exactly** (Emergent build MD5, not git SHA).
+* Rollback target `fe34b609ca92` retained.
+* Cloudflare cache DYNAMIC, no stale content.
+* No pod restart loop; single clean startup; deploy ledger auto-record logged.
+* Zero environment variable changes.
+* Zero data mutations.
+* Zero R2 deletions.
+
+### Live Diagnostics UI (desktop 1920×800 · mobile 390×844)
+* Executive verdict names highest-risk item + shared root cause count.
+* Section counts match visible cards.
+* "Refresh" round-trip succeeds.
+* No console errors, no 404s.
+
+### Regression
+68 tests pass in the direct blast-radius suite (Track 28.11 canonical + 28.09D backup + 28.09A environment separation + 15.80 secrets + 25.01 OCC + MaintainX P0). No weakened assertions.
+
+### Defects
+Only one non-blocking cosmetic item found live: `ATT-28.11C-1` — System Health `version` card `detail` prints `built —` because runtime `_STARTED_AT` fallback stringifies a `datetime` object as `—` when None. `/api/version.built_at` returns the correct ISO. Filed for next housekeeping — zero operator-visible impact, card is HEALTHY.
+
+### Verdict
+**🟢 TRACK 28.11 · PRODUCTION VERIFIED · CLOSED WITH PASS.** All 61 phases (28.11: 25 + 28.11B: 20 + 28.11C: 16) complete. Rollback not required. Full evidence: `/app/memory/TRACK_28_11C_LIVE_POST_DEPLOY_VERIFICATION.md`.
+
+---
+
+
 # CHANGELOG
 ## 2026-07-11 · Track 28.11 · ✅ GO · Diagnostics Truthfulness & Operational Signal Cleanup
 
