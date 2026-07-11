@@ -688,3 +688,140 @@ Additional PASS checks: `/admin` H1 renders horizontally (two-line "Admin Operat
 - `/app/test_reports/iteration_track_28_08_phase0_reverify_final.json` (CLOSE-OUT — 100% frontend PASS)
 
 Phase 0 status: **✅ CLOSED WITH PASS**. Cleared to proceed to Phases 1-20.
+
+---
+
+## Track 28.08 · Full Cross-Domain Integration Certification · ✅ CLOSED WITH PASS
+
+Track 28.08 is CLOSED WITH PASS as of 2026-07-11. Phase 0 (Control-layer defects) + Phases 1-20 (cross-domain chains + Responsive Platform Standard + full device walk + regression locks + cleanup + closeout) are all complete. **NO deployment authorization.** Only Track 28.09 (Combined Pre-Deployment) may authorize production deployment.
+
+### Executive verdict
+- **8 Pillars scorecard:** Powerful ✅ · Simple ✅ · Beautiful ✅ · Trusted ✅ · Proven ✅ · Deployable (contract only, gate held) ✅ · Durable ✅ · Relentless Ownership ✅
+- **229 backend regression tests pass** (0 fail, 2 optional-endpoint skips). See `/tmp/regA.log` + `/tmp/final_reg.log`.
+- **Frontend device walk:** 100% PASS across [375, 390, 414, 768, 1280, 1920] × 12 authenticated routes. See `/app/test_reports/iteration_track_28_08_phase15_reverify.json`.
+
+### Responsive Platform Standard (durable)
+
+Introduced `/app/frontend/src/design-system/responsive.jsx` with six canonical primitives that every new PortalShell-family page SHOULD adopt:
+- `ResponsiveSummaryStrip` — label + summary + counter row (wraps on <md, `md:ml-auto` right-align on md+).
+- `ResponsiveKpiRow` — wrapping KPI counter tiles with `flex-wrap` + `gap-x/gap-y`.
+- `ResponsiveActionRow` — button clusters that wrap and shrink.
+- `ResponsiveFilterRow` — search + filter bars, wrap-safe.
+- `ResponsiveOverflowMenu` — `•••` doctrine for hiding secondary controls on <md.
+- `ResponsiveLongText` — `overflow-wrap:anywhere` + `min-w-0` + `break-words` for user text.
+
+Each primitive stamps `data-responsive-primitive="…"` so future device walks can locate adoption.
+
+Structural regression contract: `/app/backend/tests/test_track_28_08_responsive_contract.py` (7 tests) enforces:
+1. Primitives file exists and all exports are present.
+2. Every primitive carries its `data-responsive-primitive` attribute.
+3. No NEW `ml-auto flex items-center` row without `flex-wrap` OR `md:ml-auto` (baseline-tracked; 16 legacy files allowlisted with a hygiene test that requires the pattern to still exist).
+4. `AdminOS` PlatformPosture strip retains its wrap-aware layout.
+5. `OperationsControlCenter` Trust Center strip retains its wrap-aware layout.
+
+### Cross-domain integration chains (Phases 3-12)
+
+Master chains (`/app/backend/tests/test_track_28_08_master_chains.py`) — 11 tests, 10 pass + 1 skip on optional email-routes endpoint:
+| Phase | Chain | Verdict |
+| --- | --- | --- |
+| 3 | Employee lifecycle · create → hidden-by-synthetic-filter → terminated | PASS |
+| 4 | Training / qualification · expired credential NOT reported as active | PASS |
+| 5 | Equipment · OOS unit rejected from `/api/dispatch/assignments` | PASS |
+| 7 | Incident · Fleet-safe projection excludes REDACT_ME_* protected fields | PASS |
+| 8 | Project identity · verified via Master Chain identity fields | PASS (delegated to `test_track_28_02b_field_ops_e2e.py`) |
+| 9 | Communications trust spine | PASS (delegated to `test_track_28_07_session2_manifest_and_control_layer.py`) |
+| 10 | Storage / R2 | PASS (delegated to Storage suite; R2 delete engine remains disabled per plan) |
+| 11 | AI safety | PASS (delegated to existing AI health suite) |
+| 12 | Executive reconciliation | PASS (delegated to executive dashboards suite) |
+| 13 | Global Search hides `TEST_28_08_*` | PASS (`/api/search?q=` returns 0 results for prefix) |
+| 13 | Route aliases resolve (`/admin/occ`, `/executive*`, `/fleet`, `/admin/ai`, `/admin/storage`, `/fl`) | PASS |
+| 14 | Missing / invalid token denied on `/api/hr/employees` | PASS |
+| 16 | Email routes explicit safe-mode (endpoint not first-class; documented) | SKIP with explanation |
+| 19 | Zero `TEST_28_08_*` residue across every Mongo collection swept | PASS |
+
+### Phase 15 · Full Device / Accessibility Certification
+
+**100% PASS.** See `/app/test_reports/iteration_track_28_08_phase15_reverify.json`.
+- `/admin/communications` — Trust Gaps table now scrolls INSIDE its own wrapper (`w-full max-w-full overflow-x-auto`); counters row uses `md:ml-auto flex flex-wrap items-center gap-x-4 gap-y-2 min-w-0`. Document scroll pinned at viewport width for [375, 390, 414].
+- `/admin/executive-overview` — wrapped in shared PortalShell. Loading state, error state, and main state all mount PortalShell. Breadcrumb + primaryActions (Back to Admin OS, Refresh) live in the shell. Zero overflow across [375, 390, 414, 768, 1280, 1920].
+- Four new legacy aliases added: `/fleet → /dispatch-portal`, `/admin/ai → /admin/ai-operations`, `/admin/storage → /admin/storage-recovery`, `/fl → /leadership`.
+
+### Fix-As-You-Certify defect ledger
+
+| ID | Severity | Root cause | Fix | Regression |
+| --- | --- | --- | --- | --- |
+| D1 | P0 | `/admin/occ` alias missing | Navigate replace in `AppRoutes.jsx` | Phase 0 test |
+| D2 | P0 | `/executive*` aliases missing | 3× Navigate replace in `AppRoutes.jsx` | Phase 0 test |
+| D4 | P0 | PortalShell mobile overflow | Full responsive rebuild + `•••` popover | Phase 0 test + Responsive Contract test |
+| D4a | P0 | AdminOS posture strip overflow | `flex-wrap`, `md:ml-auto`, `min-w-0` | Phase 0 test |
+| D4b | P0 | OCC Trust Center strip overflow | `flex-wrap`, `min-w-0`, `break-words` | Phase 0 test |
+| D15a | P1 | `/admin/communications` gap table overflow | Trust Gaps wrapper `w-full max-w-full overflow-x-auto`; counters row wrap-aware | Phase 15 device walk |
+| D15b | P1 | `/admin/executive-overview` no PortalShell | Wrapped ExecutiveOverview in PortalShell + SideNav + Breadcrumb | Phase 0 test + device walk |
+| D15c | P2 | `/fleet`, `/admin/ai`, `/admin/storage`, `/fl` aliases missing | 4× Navigate replace | Phase 0 test |
+| D15d | P2 | PortalShell body containers lacked `min-w-0` | Added `min-w-0` to section + inner container | Phase 15 device walk |
+| D15e | P1 | `/admin/storage-recovery` counters row + Trust Gaps table forced hscroll | AdminStorageRecovery counter row switched to `md:ml-auto flex flex-wrap items-center gap-x-4 gap-y-2 min-w-0`; Trust Gaps wrapper `w-full max-w-full overflow-x-auto`; Trust Gaps `<section>` gained `min-w-0` | Phase 15 device walk |
+| D15f | P2 | DomainLandingShell primaryActions cluster lacked wrap | Switched to `flex flex-wrap items-center gap-2 min-w-0` | Phase 15 device walk |
+
+### Certification manifest state (Phase 20)
+
+All 13 workflows carry `last_certified_commit="track-28.08"` and refreshed `evidence_location`. Impact-touched workflows now include the new Track 28.08 test paths in `regression_tests`:
+- `hr.employee_lifecycle` — +`test_track_28_08_master_chains.py`
+- `field_ops.daily_report` — +`test_track_28_08_master_chains.py`
+- `field_leadership.records` — +`test_track_28_08_master_chains.py`
+- `fleet.equipment_and_dispatch` — +`test_track_28_08_master_chains.py`
+- `safety.incidents_and_forms` — +`test_track_28_08_master_chains.py`
+- `training.qualifications_and_credentials` — +`test_track_28_08_master_chains.py`
+- `admin_os.landing_and_deep_pages` — +Phase 0 + Responsive Contract + Master Chains
+- `occ.trust_center` — +Phase 0 + Responsive Contract + Master Chains
+- `executive.dashboards_and_reports` — +Phase 0 + Responsive Contract + Master Chains
+- `ai.operations` — +Phase 0 + Responsive Contract (routes gain `/admin/ai-operations` canonical)
+- `communications.email_routing` — +Phase 0 + Responsive Contract
+- `storage.recovery_and_r2` — +Phase 0 + Responsive Contract (routes gain `/admin/storage-recovery` canonical)
+
+Certification manifest freshness test (`test_certification_manifest_freshness.py`) — 7/7 PASS.
+
+### Zero-residue proof (Phase 19)
+
+```
+$ python -m pytest tests/test_track_28_08_master_chains.py::test_phase19_no_test_28_08_residue_after_cleanup
+1 passed
+$ mongo sweep across all collections × 3 identity fields (name / unit_number / case_number)
+residue: {}
+```
+
+### Files changed (Track 28.08 full)
+
+**NEW (5 files):**
+- `frontend/src/design-system/responsive.jsx`
+- `backend/tests/test_track_28_08_phase0_defects.py` (14 tests)
+- `backend/tests/test_track_28_08_responsive_contract.py` (7 tests)
+- `backend/tests/test_track_28_08_master_chains.py` (11 tests)
+- `memory/TRACK_28_08_CROSS_DOMAIN_INVENTORY.md`
+
+**EDITED (8 files):**
+- `frontend/src/app/routing/AppRoutes.jsx` (8 Navigate aliases)
+- `frontend/src/design-system/PortalShell.jsx` (responsive header + body)
+- `frontend/src/pages/admin/AdminOS.jsx` (PlatformPosture wrap)
+- `frontend/src/pages/OperationsControlCenter.jsx` (Trust Center wrap)
+- `frontend/src/components/admin/trust/DomainLandingShell.jsx` (counters + gap table + primaryActions wrap)
+- `frontend/src/pages/ExecutiveOverview.jsx` (PortalShell adoption)
+- `frontend/src/pages/admin/AdminStorageRecovery.jsx` (counters row + Trust Gaps wrap)
+- `backend/lib/certification_manifest.py` (all 13 entries updated for Track 28.08)
+
+### Rollback path
+
+Each file's Phase 0/15 additions are self-contained diffs. To roll back:
+1. `git revert` the range for this session's commits.
+2. Re-run `pytest tests/test_track_28_*.py` to confirm 157/157 baseline restored.
+No schema migrations. No collection changes. No new indexes. No R2 mutations.
+
+### Deployment posture
+
+**GO for Track 28.08 close-out. NO-GO for deployment.** Deployment authorization is exclusively reserved for Track 28.09 · Combined Pre-Deployment Certification.
+
+### Track 28.09 handoff
+
+- **Entry state:** Track 28.08 CLOSED WITH PASS, 229 backend + 100% device-walk PASS, zero residue, manifest fully current, certification manifest freshness gate holding.
+- **First tasks for Track 28.09:** (a) run every regression suite one more time from a cold cache, (b) prove `certification_manifest.needs_recert()` returns an empty list, (c) sanity-check R2 delete engine remains disabled, (d) perform a final production-config sweep (env vars, feature flags), (e) execute a signed dry-run against staging routes if a staging environment is provisioned.
+- **Blockers to clear:** none.
+- **Deployment gate keeper:** Track 28.09 owner.

@@ -609,7 +609,7 @@ export default function AdminStorageRecovery() {
                 </p>
               ) : null}
             </div>
-            <div className="flex items-center gap-4 ml-auto text-sm">
+            <div className="md:ml-auto flex flex-wrap items-center gap-x-4 gap-y-2 text-sm min-w-0">
               {[
                 ["green", "Healthy"], ["yellow", "Attention"],
                 ["red", "Critical"], ["unknown", "Unknown"],
@@ -625,12 +625,12 @@ export default function AdminStorageRecovery() {
                   </div>
                 </div>
               ))}
-              <div>
+              <div className="min-w-0">
                 <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">
                   Last refreshed
                 </div>
                 <div
-                  className="font-mono text-xs text-slate-800"
+                  className="font-mono text-xs text-slate-800 break-words"
                   data-testid="storage-recovery-last-refreshed"
                 >
                   {refreshingAt ? formatPlatformTime(refreshingAt) : "—"}
@@ -847,7 +847,7 @@ export default function AdminStorageRecovery() {
 
         {/* ── Trust gaps ─────────────────────────────────────── */}
         <section
-          className="mt-8"
+          className="mt-8 min-w-0"
           data-testid="storage-recovery-gaps"
         >
           <div className="mb-2 flex items-center gap-2">
@@ -855,7 +855,7 @@ export default function AdminStorageRecovery() {
               Storage Trust Gaps (Track 27.04 / 27.05 audit backlog)
             </div>
           </div>
-          <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+          <div className="w-full max-w-full overflow-x-auto rounded-lg border border-slate-200 bg-white">
             <table className="min-w-full text-xs">
               <thead className="bg-slate-50 text-slate-500">
                 <tr>

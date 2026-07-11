@@ -1,4 +1,33 @@
 # CHANGELOG
+## 2026-07-11 · Track 28.08 · ✅ CLOSED WITH PASS · Full Cross-Domain Integration Certification
+
+**Track 28.08 is CLOSED WITH PASS.** Phases 0-20 complete. Deployment gate REMAINS HELD; only Track 28.09 may authorize production deployment.
+
+### Executive verdict
+- 229 backend regression tests pass (0 fail, 2 optional-endpoint skips).
+- Frontend device walk 100% PASS across [375, 390, 414, 768, 1280, 1920] × 12 authenticated routes.
+- Zero `TEST_28_08_*` residue in MongoDB or R2.
+- All 13 certification-manifest workflows carry `last_certified_commit="track-28.08"` and refreshed evidence.
+
+### Responsive Platform Standard (durable)
+Introduced `/app/frontend/src/design-system/responsive.jsx` with six canonical primitives (`ResponsiveSummaryStrip`, `ResponsiveKpiRow`, `ResponsiveActionRow`, `ResponsiveFilterRow`, `ResponsiveOverflowMenu`, `ResponsiveLongText`) and a structural regression contract (`test_track_28_08_responsive_contract.py`, 7 tests). The Phase 0 mobile fix is now a platform-wide contract enforced at CI time.
+
+### Cross-domain master chains
+`test_track_28_08_master_chains.py` (11 tests, 10 PASS + 1 SKIP on optional email-routes endpoint) covers Employee lifecycle, Training/qualification, Equipment/Dispatch OOS-reject invariant, Incident Fleet-safe projection, Global Search synthetic exclusion, route alias resolution, missing/invalid token denial, and final zero-residue sweep.
+
+### Fix-As-You-Certify (all defects fixed in-session)
+D1 (`/admin/occ`), D2 (`/executive*`), D4 (PortalShell overflow), D4a (AdminOS strip), D4b (OCC strip), D15a (Communications gap table), D15b (ExecutiveOverview no shell), D15c (4 additional aliases), D15d (PortalShell body min-w-0).
+
+### Files changed
+NEW: `frontend/src/design-system/responsive.jsx`, `backend/tests/test_track_28_08_phase0_defects.py`, `backend/tests/test_track_28_08_responsive_contract.py`, `backend/tests/test_track_28_08_master_chains.py`, `memory/TRACK_28_08_CROSS_DOMAIN_INVENTORY.md`.
+EDITED: `frontend/src/app/routing/AppRoutes.jsx`, `frontend/src/design-system/PortalShell.jsx`, `frontend/src/pages/admin/AdminOS.jsx`, `frontend/src/pages/OperationsControlCenter.jsx`, `frontend/src/components/admin/trust/DomainLandingShell.jsx`, `frontend/src/pages/ExecutiveOverview.jsx`, `backend/lib/certification_manifest.py`.
+
+### Track 28.09 handoff
+Entry state clean. Zero blockers. Track 28.09 is the ONLY track that may authorize production deployment.
+
+---
+
+
 ## 2026-07-11 · Track 28.08 · Phase 0 · ✅ CLOSED WITH PASS
 
 **Track 28.08 (Final Cross-Domain Integration Certification) Phase 0** is CLOSED WITH PASS. Three P0 control-layer defects flagged during Track 28.07's device walk have been fixed, regression-locked with 11 new structural tests, and re-certified through a full 390×844 mobile device walk across every affected portal.

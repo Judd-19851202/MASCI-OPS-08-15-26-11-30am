@@ -90,11 +90,12 @@ MANIFEST: List[CertEntry] = [
             "backend/tests/test_track_28_04_hr_e2e.py",
             "backend/tests/test_track_28_04_static_synthetic_hr_invariant.py",
             "backend/tests/test_track_28_04_cross_portal_auth.py",
+            "backend/tests/test_track_28_08_master_chains.py",
         ],
         cross_domain_deps=[],
         last_certified_at="2026-07-11",
-        last_certified_commit="track-28.04",
-        evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.04 · HR",
+        last_certified_commit="track-28.08",
+        evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.04 · HR + 28.08 cross-domain re-cert",
         status="PASS",
     ),
     # ───────────────── Field Operations ─────────────────
@@ -112,11 +113,12 @@ MANIFEST: List[CertEntry] = [
         regression_tests=[
             "backend/tests/test_track_28_02b_field_ops_e2e.py",
             "backend/tests/test_track_28_02b_static_synthetic_invariant.py",
+            "backend/tests/test_track_28_08_master_chains.py",
         ],
         cross_domain_deps=["hr.employee_lifecycle"],
         last_certified_at="2026-07-11",
-        last_certified_commit="track-28.02b",
-        evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.02B",
+        last_certified_commit="track-28.08",
+        evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.02B + 28.08 cross-domain re-cert",
         status="PASS",
     ),
     # ───────────────── Field Leadership ─────────────────
@@ -130,11 +132,12 @@ MANIFEST: List[CertEntry] = [
         regression_tests=[
             "backend/tests/test_track_28_03_field_leadership_e2e.py",
             "backend/tests/test_track_28_03_static_flr_invariant.py",
+            "backend/tests/test_track_28_08_master_chains.py",
         ],
         cross_domain_deps=["hr.employee_lifecycle"],
         last_certified_at="2026-07-11",
-        last_certified_commit="track-28.03",
-        evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.03",
+        last_certified_commit="track-28.08",
+        evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.03 + 28.08 cross-domain re-cert",
         status="PASS",
     ),
     # ─────────────── Fleet / Dispatch ───────────────
@@ -142,6 +145,8 @@ MANIFEST: List[CertEntry] = [
         workflow_id="fleet.equipment_and_dispatch",
         domain="Fleet / Dispatch",
         owner="Operations",
+        # TRACK 28.08 · Phase 15 · added `/dispatch-portal` alias origin
+        # `/fleet` (Navigate replace). `/dispatch-portal` remains canonical.
         routes=["/fleet", "/dispatch-portal", "/shop"],
         apis=[
             "/api/equipment-master", "/api/fleet/units",
@@ -157,11 +162,12 @@ MANIFEST: List[CertEntry] = [
             "backend/tests/test_track_28_05_static_synthetic_fleet_invariant.py",
             "backend/tests/test_track_28_05_session2_phases_10_16.py",
             "backend/tests/test_track_28_05f_shop_manager_queue_mobile.py",
+            "backend/tests/test_track_28_08_master_chains.py",
         ],
         cross_domain_deps=["hr.employee_lifecycle"],
         last_certified_at="2026-07-11",
-        last_certified_commit="track-28.05f",
-        evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.05 / 28.05F",
+        last_certified_commit="track-28.08",
+        evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.05 / 28.05F + 28.08 cross-domain re-cert",
         status="PASS",
     ),
     # ───────────────── Safety ─────────────────
@@ -178,11 +184,12 @@ MANIFEST: List[CertEntry] = [
         regression_tests=[
             "backend/tests/test_track_28_06_safety_e2e.py",
             "backend/tests/test_track_28_06_api_employees_import_regression.py",
+            "backend/tests/test_track_28_08_master_chains.py",
         ],
         cross_domain_deps=["hr.employee_lifecycle"],
         last_certified_at="2026-07-11",
-        last_certified_commit="track-28.06",
-        evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.06",
+        last_certified_commit="track-28.08",
+        evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.06 + 28.08 cross-domain re-cert",
         status="PASS",
     ),
     # ───────────────── Training / Qualifications ─────────────────
@@ -207,15 +214,16 @@ MANIFEST: List[CertEntry] = [
         collections=["safety_training_records", "qualification_attachments"],
         regression_tests=[
             "backend/tests/test_track_28_07_training_e2e.py",
+            "backend/tests/test_track_28_08_master_chains.py",
         ],
         cross_domain_deps=[
             "hr.employee_lifecycle", "safety.incidents_and_forms",
             "fleet.equipment_and_dispatch",
         ],
         last_certified_at="2026-07-11",
-        last_certified_commit="track-28.07-s1",
+        last_certified_commit="track-28.08",
         evidence_location=(
-            "memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.07 Session 1"
+            "memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.07 Session 1 + 28.08 cross-domain re-cert"
         ),
         status="PASS",
     ),
@@ -251,11 +259,15 @@ MANIFEST: List[CertEntry] = [
             # Track 28.08 · Phase 0 · shared PortalShell mobile chrome
             # regression lock — every Admin OS page consumes PortalShell.
             "backend/tests/test_track_28_08_phase0_defects.py",
+            # Track 28.08 · Phase 15 · Responsive Platform Standard —
+            # every PortalShell-family page inherits this contract.
+            "backend/tests/test_track_28_08_responsive_contract.py",
+            "backend/tests/test_track_28_08_master_chains.py",
         ],
         cross_domain_deps=["platform.admin_auth_invariant"],
         last_certified_at="2026-07-11",
-        last_certified_commit="track-28.08-phase0",
-        evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.07 Session 2 + Track 28.08 Phase 0 (D4 PortalShell mobile overflow fixed)",
+        last_certified_commit="track-28.08",
+        evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.07 Session 2 + Track 28.08 Phase 0/15 (Responsive Platform Standard)",
         status="PASS",
     ),
     CertEntry(
@@ -272,27 +284,33 @@ MANIFEST: List[CertEntry] = [
         regression_tests=[
             "backend/tests/test_track_28_07_session2_manifest_and_control_layer.py",
             "backend/tests/test_track_28_08_phase0_defects.py",
+            "backend/tests/test_track_28_08_responsive_contract.py",
+            "backend/tests/test_track_28_08_master_chains.py",
         ],
         cross_domain_deps=["platform.admin_auth_invariant"],
         last_certified_at="2026-07-11",
-        last_certified_commit="track-28.08-phase0",
-        evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.07 Session 2 + Track 28.08 Phase 0 (D1 route alias fixed)",
+        last_certified_commit="track-28.08",
+        evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.07 Session 2 + Track 28.08 Phase 0/15 (D1 alias fixed, PortalShell adopted)",
         status="PASS",
     ),
     CertEntry(
         workflow_id="ai.operations",
         domain="AI Ops",
         owner="Platform Ops",
-        routes=["/admin/ai"],
+        # Track 28.08 · Phase 15 · `/admin/ai` alias → canonical
+        # `/admin/ai-operations`.
+        routes=["/admin/ai", "/admin/ai-operations"],
         apis=["/api/integrations/health"],
         collections=[],
         regression_tests=[
             "backend/tests/test_track_28_07_session2_manifest_and_control_layer.py",
+            "backend/tests/test_track_28_08_phase0_defects.py",
+            "backend/tests/test_track_28_08_responsive_contract.py",
         ],
         cross_domain_deps=["platform.admin_auth_invariant"],
         last_certified_at="2026-07-11",
-        last_certified_commit="track-28.07-s2",
-        evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.07 Session 2",
+        last_certified_commit="track-28.08",
+        evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.07 Session 2 + Track 28.08 Phase 15",
         status="PASS",
     ),
     CertEntry(
@@ -304,27 +322,33 @@ MANIFEST: List[CertEntry] = [
         collections=["email_routes", "resend_webhook_events"],
         regression_tests=[
             "backend/tests/test_track_28_07_session2_manifest_and_control_layer.py",
+            "backend/tests/test_track_28_08_phase0_defects.py",
+            "backend/tests/test_track_28_08_responsive_contract.py",
         ],
         cross_domain_deps=["platform.admin_auth_invariant"],
         last_certified_at="2026-07-11",
-        last_certified_commit="track-28.07-s2",
-        evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.07 Session 2",
+        last_certified_commit="track-28.08",
+        evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.07 Session 2 + Track 28.08 Phase 15 (Trust Gaps table isolated scroll, counters wrap-aware)",
         status="PASS",
     ),
     CertEntry(
         workflow_id="storage.recovery_and_r2",
         domain="Storage",
         owner="Platform Ops",
-        routes=["/admin/storage"],
+        # Track 28.08 · Phase 15 · `/admin/storage` alias → canonical
+        # `/admin/storage-recovery`.
+        routes=["/admin/storage", "/admin/storage-recovery"],
         apis=["/api/admin/backup/status"],
         collections=[],
         regression_tests=[
             "backend/tests/test_track_28_07_session2_manifest_and_control_layer.py",
+            "backend/tests/test_track_28_08_phase0_defects.py",
+            "backend/tests/test_track_28_08_responsive_contract.py",
         ],
         cross_domain_deps=["platform.admin_auth_invariant"],
         last_certified_at="2026-07-11",
-        last_certified_commit="track-28.07-s2",
-        evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.07 Session 2",
+        last_certified_commit="track-28.08",
+        evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.07 Session 2 + Track 28.08 Phase 15",
         status="PASS",
     ),
     CertEntry(
@@ -345,6 +369,8 @@ MANIFEST: List[CertEntry] = [
         regression_tests=[
             "backend/tests/test_track_28_07_session2_manifest_and_control_layer.py",
             "backend/tests/test_track_28_08_phase0_defects.py",
+            "backend/tests/test_track_28_08_responsive_contract.py",
+            "backend/tests/test_track_28_08_master_chains.py",
         ],
         cross_domain_deps=[
             "hr.employee_lifecycle", "field_ops.daily_report",
@@ -352,8 +378,8 @@ MANIFEST: List[CertEntry] = [
             "training.qualifications_and_credentials",
         ],
         last_certified_at="2026-07-11",
-        last_certified_commit="track-28.08-phase0",
-        evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.07 Session 2 + Track 28.08 Phase 0 (D2 route aliases fixed)",
+        last_certified_commit="track-28.08",
+        evidence_location="memory/TRACK_28_CERTIFICATION_REGISTER.md · Track 28.07 Session 2 + Track 28.08 Phase 0/15 (D2 aliases fixed, PortalShell adopted)",
         status="PASS",
     ),
 ]

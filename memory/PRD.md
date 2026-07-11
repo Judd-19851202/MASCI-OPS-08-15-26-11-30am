@@ -1,5 +1,8 @@
 # MASCI Operations Platform — PRD
 
+
+> **STATUS · 2026-07-11 · Track 28.08 CLOSED WITH PASS.** Full Cross-Domain Integration Certification complete. Phases 0-20 done. Responsive Platform Standard now durable (`design-system/responsive.jsx` + `test_track_28_08_responsive_contract.py`). 229 backend regression tests pass (0 fail, 2 optional-endpoint skips). Frontend device walk 100% PASS across [375, 390, 414, 768, 1280, 1920] × 11 authenticated PortalShell-family routes. Zero `TEST_28_08_*` residue. All 13 certification-manifest workflows carry `last_certified_commit="track-28.08"`. **NO DEPLOYMENT AUTHORIZATION** — deployment is reserved for Track 28.09.
+
 ## Original Problem Statement
 MASCI Operations Platform RC-1 Release Certification — Track 13.6+ "Operational Recovery Phase". Goal: convert "collection of dashboards" → "Operational Heavy-Civil Operating System."
 

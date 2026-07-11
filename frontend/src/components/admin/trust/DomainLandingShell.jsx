@@ -181,7 +181,7 @@ export default function DomainLandingShell({ manifest, testidPrefix }) {
         pageTitle={manifest.label}
         subtitle={manifest.subtitle}
         primaryActions={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 min-w-0">
             <Link
               to="/admin"
               className="inline-flex items-center gap-2 px-3 py-1.5 border border-slate-300 bg-white rounded-md text-xs font-semibold text-slate-800 hover:bg-slate-100"
@@ -310,7 +310,7 @@ export default function DomainLandingShell({ manifest, testidPrefix }) {
         </div>
 
         {/* Health sections */}
-        <div className="space-y-6" data-testid={`${testidPrefix}-sections`}>
+        <div className="space-y-6 min-w-0" data-testid={`${testidPrefix}-sections`}>
           {(manifest.sections || []).map((sec) => {
             const secCards = (sec.cards || []).map((id) => cardsById[id]).filter(Boolean);
             const filtered = sortCardsByAttention(secCards).filter(filterFn);
@@ -388,7 +388,7 @@ export default function DomainLandingShell({ manifest, testidPrefix }) {
 
         {/* Trust gaps */}
         {manifest.trust_gaps && manifest.trust_gaps.length > 0 && (
-          <section className="mt-8" data-testid={`${testidPrefix}-gaps`}>
+          <section className="mt-8 min-w-0" data-testid={`${testidPrefix}-gaps`}>
             <div className="mb-2 flex items-center gap-2">
               <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono font-bold">
                 Trust Gaps
