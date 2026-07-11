@@ -245,6 +245,172 @@ def build_r2_lifecycle_router(db, require_admin_strict_dep) -> APIRouter:
     ) -> Dict[str, Any]:
         return {"days": days, "series": await growth_series(db, days=days)}
 
+    # ── Track 27.07 Phase 3 · Break-the-classifier sampling harness ──
+    # Read-only. Never mutates R2 or Mongo. Returns adversarial samples
+    # (100 largest orphan candidates + 500 random + per-prefix + all
+    # zero-byte + all duplicate-ETag) so the operator can spot false
+    # orphans BEFORE any manifest is approved.
+    @router.get("/sample")
+    async def classifier_sample(
+        largest: int = Query(100, ge=0, le=1000),
+        random_n: int = Query(500, ge=0, le=5000),
+        per_prefix: int = Query(25, ge=0, le=200),
+        _: bool = Depends(require_admin_strict_dep),
+    ) -> Dict[str, Any]:
+        from services.r2_lifecycle.classification import ALLOWED_FOR_DELETION  # noqa: PLC0415
+        coll = db["r2_inventory"]
+        orphan_filter = {"classification": {"$in": list(ALLOWED_FOR_DELETION)}}
+        # 100 largest orphan candidates
+        cursor_largest = coll.find(orphan_filter).sort("size_bytes", -1).limit(largest)
+        largest_docs = await cursor_largest.to_list(largest) if largest else []
+        # Random 500 orphan candidates via $sample
+        random_docs: List[Dict[str, Any]] = []
+        if random_n:
+            random_docs = await coll.aggregate([
+                {"$match": orphan_filter},
+                {"$sample": {"size": random_n}},
+            ]).to_list(random_n)
+        # Per-prefix sample: top prefixes with N each
+        top = await top_prefixes(db, 40)
+        per_prefix_docs: List[Dict[str, Any]] = []
+        if per_prefix:
+            for p in top:
+                px = p.get("prefix") or ""
+                if not px:
+                    continue
+                docs = await coll.find({
+                    **orphan_filter, "key": {"$regex": f"^{px}"},
+                }).limit(per_prefix).to_list(per_prefix)
+                per_prefix_docs.extend(docs)
+        # All zero-byte orphans
+        zero = await coll.find({**orphan_filter, "size_bytes": 0}).to_list(2000)
+        # Duplicate-ETag candidates (best-effort — group by etag with >1 count)
+        dup_agg = await coll.aggregate([
+            {"$match": orphan_filter},
+            {"$group": {"_id": "$etag", "n": {"$sum": 1}, "keys": {"$push": "$key"}}},
+            {"$match": {"n": {"$gt": 1}}},
+            {"$limit": 500},
+        ]).to_list(500)
+
+        def _slim(d: Dict[str, Any]) -> Dict[str, Any]:
+            return {
+                "key": d.get("key"),
+                "size_bytes": d.get("size_bytes"),
+                "size_mb": round((d.get("size_bytes") or 0) / (1024 * 1024), 3),
+                "etag": d.get("etag"),
+                "last_modified": (d.get("last_modified").isoformat()
+                                  if hasattr(d.get("last_modified"), "isoformat")
+                                  else d.get("last_modified")),
+                "classification": d.get("classification"),
+                "reason_code": d.get("reason_code"),
+                "reference_count": d.get("reference_count", 0),
+                "project_number": d.get("project_number"),
+            }
+        return {
+            "harness_version": "27.07.phase3.v1",
+            "counts": {
+                "largest": len(largest_docs),
+                "random": len(random_docs),
+                "per_prefix": len(per_prefix_docs),
+                "zero_byte": len(zero),
+                "duplicate_etag_groups": len(dup_agg),
+            },
+            "largest": [_slim(d) for d in largest_docs],
+            "random_sample": [_slim(d) for d in random_docs][:random_n],
+            "per_prefix_sample": [_slim(d) for d in per_prefix_docs],
+            "zero_byte_all": [_slim(d) for d in zero],
+            "duplicate_etag_groups": [
+                {"etag": g["_id"], "count": g["n"], "keys_sample": g["keys"][:5]}
+                for g in dup_agg
+            ],
+            "invariant": (
+                "Every sampled row must be VERIFIED_ORPHAN. Any operator "
+                "spot-check that finds a live reference invalidates the "
+                "entire candidate set — re-register the reference source, "
+                "rerun scan/references/classify, then re-sample."
+            ),
+        }
+
+    # ── Track 27.07 Phase 6 · Logical (non-destructive) quarantine ──
+    # This endpoint marks approved orphan keys in the canonical
+    # `r2_inventory` collection with a `quarantine` sub-document.
+    # It does NOT copy, move, or delete anything in R2. The physical
+    # R2 objects remain untouched. This is the "logical quarantine
+    # only" option from the Track 27.07 Phase 6 spec. A separate,
+    # explicitly-approved future track authorizes any physical move.
+    @router.post("/quarantine")
+    async def quarantine_mark(
+        manifest_id: str = Query(..., description="Dry-run manifest ID (audit reference)."),
+        holding_hours: int = Query(168, ge=24, le=720, description="Holding window (24-720h, default 168h=7d)."),
+        _: bool = Depends(require_admin_strict_dep),
+    ) -> Dict[str, Any]:
+        from services.r2_lifecycle.classification import ALLOWED_FOR_DELETION  # noqa: PLC0415
+        from datetime import datetime, timezone, timedelta  # noqa: PLC0415
+        coll = db["r2_inventory"]
+        now = datetime.now(timezone.utc)
+        deadline = now + timedelta(hours=holding_hours)
+        # Only VERIFIED_ORPHAN, only objects not already quarantined.
+        query = {
+            "classification": {"$in": list(ALLOWED_FOR_DELETION)},
+            "quarantine": {"$exists": False},
+        }
+        candidates = await coll.find(query).to_list(200000)
+        if not candidates:
+            return {
+                "ok": True, "manifest_id": manifest_id,
+                "quarantined": 0, "reason": "No eligible VERIFIED_ORPHAN candidates.",
+                "hard_delete_status": "DISABLED",
+            }
+        result = await coll.update_many(query, {"$set": {"quarantine": {
+            "manifest_id": manifest_id,
+            "state": "HOLDING",
+            "quarantined_at": now,
+            "holding_until": deadline,
+            "release_authorized": False,
+        }}})
+        return {
+            "ok": True, "manifest_id": manifest_id,
+            "quarantined": result.modified_count,
+            "eligible_candidates": len(candidates),
+            "holding_hours": holding_hours,
+            "holding_until": deadline.isoformat(),
+            "physical_r2_state": "UNTOUCHED — this is a logical mark only.",
+            "hard_delete_status": "DISABLED",
+        }
+
+    @router.get("/quarantine")
+    async def quarantine_list(
+        _: bool = Depends(require_admin_strict_dep),
+        limit: int = Query(500, ge=1, le=5000),
+    ) -> Dict[str, Any]:
+        coll = db["r2_inventory"]
+        rows = await coll.find({"quarantine.state": "HOLDING"}).limit(limit).to_list(limit)
+        total_bytes = sum(int(r.get("size_bytes") or 0) for r in rows)
+        return {
+            "count": len(rows),
+            "total_bytes": total_bytes,
+            "total_gb": round(total_bytes / (1024 ** 3), 3),
+            "hard_delete_status": "DISABLED",
+            "rows": [{
+                "key": r.get("key"),
+                "size_bytes": r.get("size_bytes"),
+                "classification": r.get("classification"),
+                "quarantine": r.get("quarantine"),
+            } for r in rows],
+        }
+
+    @router.post("/quarantine/cancel")
+    async def quarantine_cancel(
+        manifest_id: str = Query(..., description="Cancel all quarantine marks for this manifest."),
+        _: bool = Depends(require_admin_strict_dep),
+    ) -> Dict[str, Any]:
+        coll = db["r2_inventory"]
+        result = await coll.update_many(
+            {"quarantine.manifest_id": manifest_id},
+            {"$unset": {"quarantine": ""}},
+        )
+        return {"ok": True, "manifest_id": manifest_id, "released": result.modified_count}
+
     return router
 
 
