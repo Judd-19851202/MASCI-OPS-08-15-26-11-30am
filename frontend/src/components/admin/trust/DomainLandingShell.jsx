@@ -239,7 +239,7 @@ export default function DomainLandingShell({ manifest, testidPrefix }) {
                 </p>
               ) : null}
             </div>
-            <div className="flex items-center gap-4 ml-auto text-sm">
+            <div className="md:ml-auto flex flex-wrap items-center gap-x-4 gap-y-2 text-sm min-w-0">
               {[["green","Healthy"],["yellow","Attention"],["red","Critical"],["unknown","Unknown"]].map(([k,label])=>(
                 <div key={k} data-testid={`${testidPrefix}-count-${k}`}>
                   <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">{label}</div>
@@ -248,9 +248,9 @@ export default function DomainLandingShell({ manifest, testidPrefix }) {
                   </div>
                 </div>
               ))}
-              <div>
+              <div className="min-w-0">
                 <div className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">Last refreshed</div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex flex-wrap items-center gap-1.5 min-w-0">
                   <span className="font-mono text-xs text-slate-800" data-testid={`${testidPrefix}-last-refreshed`}>
                     {refreshedAt ? formatPlatformTime(refreshedAt) : "—"}
                   </span>
@@ -394,7 +394,7 @@ export default function DomainLandingShell({ manifest, testidPrefix }) {
                 Trust Gaps
               </div>
             </div>
-            <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+            <div className="w-full max-w-full overflow-x-auto rounded-lg border border-slate-200 bg-white">
               <table className="min-w-full text-xs">
                 <thead className="bg-slate-50 text-slate-500">
                   <tr>

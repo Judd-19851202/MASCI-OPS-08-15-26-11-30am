@@ -1321,6 +1321,17 @@ export function AppRoutes() {
             <Route path="/executive" element={<Navigate to="/admin/executive-overview" replace />} />
             <Route path="/executive-dashboard" element={<Navigate to="/admin/executive-overview" replace />} />
             <Route path="/admin/executive" element={<Navigate to="/admin/executive-overview" replace />} />
+            {/* TRACK 28.08 · Phase 15 · additional legacy aliases discovered
+                during the full device walk. `/fleet` had no root — align it
+                with the Dispatch surface that owns fleet ops. `/admin/ai` and
+                `/admin/storage` are historical shorthands for the canonical
+                admin-domain landings. `/fl` is the shorthand for Field
+                Leadership. All use Navigate replace so bookmarks continue
+                to work without duplicating routes. */}
+            <Route path="/fleet" element={<Navigate to="/dispatch-portal" replace />} />
+            <Route path="/admin/ai" element={<Navigate to="/admin/ai-operations" replace />} />
+            <Route path="/admin/storage" element={<Navigate to="/admin/storage-recovery" replace />} />
+            <Route path="/fl" element={<Navigate to="/leadership" replace />} />
             <Route path="*" element={<NotFound />} />
             {/* (catch-all is final) */}
           </Routes></React.Suspense>

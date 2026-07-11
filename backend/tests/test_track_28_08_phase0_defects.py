@@ -75,6 +75,39 @@ def test_d2_canonical_executive_overview_still_mounted():
 
 
 # -------------------------------------------------------------------
+# TRACK 28.08 · Phase 15 · additional legacy aliases discovered
+# during the full device walk.
+# -------------------------------------------------------------------
+
+def test_phase15_legacy_shortcut_aliases_present():
+    src = _read(APP_ROUTES)
+    for alias in [
+        '<Route path="/fleet" element={<Navigate to="/dispatch-portal" replace />} />',
+        '<Route path="/admin/ai" element={<Navigate to="/admin/ai-operations" replace />} />',
+        '<Route path="/admin/storage" element={<Navigate to="/admin/storage-recovery" replace />} />',
+        '<Route path="/fl" element={<Navigate to="/leadership" replace />} />',
+    ]:
+        assert alias in src, (
+            f"Phase 15 alias missing — add this Route so the legacy path is "
+            f"never 404: {alias}"
+        )
+
+
+def test_phase15_executive_overview_mounts_portal_shell():
+    exe = FRONTEND / "pages" / "ExecutiveOverview.jsx"
+    src = _read(exe)
+    assert "import { PortalShell }" in src, (
+        "Phase 15 regression: ExecutiveOverview must import PortalShell so "
+        "the /admin/executive-overview route participates in the shared "
+        "responsive contract."
+    )
+    assert "<PortalShell" in src, (
+        "Phase 15 regression: ExecutiveOverview must render <PortalShell> "
+        "(loading, error, and main states). Was previously a raw <div>."
+    )
+
+
+# -------------------------------------------------------------------
 # D4-PORTALSHELL-MOBILE-OVERFLOW
 # -------------------------------------------------------------------
 

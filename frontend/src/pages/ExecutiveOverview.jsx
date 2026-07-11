@@ -19,6 +19,12 @@ import { getAdminToken } from "@/lib/adminAuth";
 import { AlertTriangle, CheckCircle2, AlertOctagon, RefreshCw } from "lucide-react";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
+// TRACK 28.08 · Phase 15 fix — mount the shared PortalShell so this
+// route participates in the responsive contract (mobile ••• menu,
+// H1, breadcrumb, sidebar). Was previously a raw <div>.
+import { PortalShell } from "@/design-system";
+import SideNavV3 from "@/components/admin/sidebar/SideNavV3";
+import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -107,16 +113,32 @@ export default function ExecutiveOverview() {
 
   if (loading) {
     return (
-      <div className="p-8 text-slate-600" data-testid="executive-overview-loading">
-        Loading executive overview…
-      </div>
+      <PortalShell
+        portalName="MASCI"
+        portalRole="Admin"
+        pageTitle="Executive Overview"
+        subtitle="Read-only · attention surface for executives"
+        sideNav={<SideNavV3 onOpenPalette={() => window.__masciAdminOpenPalette?.()} />}
+      >
+        <div className="p-8 text-slate-600" data-testid="executive-overview-loading">
+          Loading executive overview…
+        </div>
+      </PortalShell>
     );
   }
   if (err || !data) {
     return (
-      <div className="p-8 text-red-700" data-testid="executive-overview-error">
-        Failed to load executive overview: {err || "no data"}
-      </div>
+      <PortalShell
+        portalName="MASCI"
+        portalRole="Admin"
+        pageTitle="Executive Overview"
+        subtitle="Read-only · attention surface for executives"
+        sideNav={<SideNavV3 onOpenPalette={() => window.__masciAdminOpenPalette?.()} />}
+      >
+        <div className="p-8 text-red-700" data-testid="executive-overview-error">
+          Failed to load executive overview: {err || "no data"}
+        </div>
+      </PortalShell>
     );
   }
 
@@ -125,13 +147,43 @@ export default function ExecutiveOverview() {
   const VerdictIcon = theme.icon;
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8" data-testid="executive-overview">
+    <PortalShell
+      portalName="MASCI"
+      portalRole="Admin"
+      pageTitle="Executive Overview"
+      subtitle={`Read-only · v${data.foundation_version} · attention surface`}
+      primaryActions={
+        <div className="flex flex-wrap items-center gap-2 min-w-0">
+          <Link
+            to="/admin"
+            className="inline-flex items-center gap-2 px-3 py-1.5 border border-slate-300 bg-white rounded-md text-xs font-semibold text-slate-800 hover:bg-slate-100 shrink-0"
+            data-testid="executive-overview-back-adminos"
+          >
+            ← Admin OS
+          </Link>
+          <button
+            onClick={load}
+            className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-100 shrink-0"
+            data-testid="executive-refresh"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            Refresh
+          </button>
+        </div>
+      }
+      sideNav={<SideNavV3 onOpenPalette={() => window.__masciAdminOpenPalette?.()} />}
+    >
+      <AdminBreadcrumb
+        crumbs={[{ label: "Executive Overview" }]}
+        testidPrefix="executive-overview-breadcrumb"
+      />
+      <div data-testid="executive-overview" className="min-w-0">
       {/* HEADER + VERDICT BAR */}
       <div className={`rounded-lg ${theme.bg} border-l-4 ${theme.bar.replace("bg-", "border-")} p-5 mb-6`}>
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <VerdictIcon className={`w-9 h-9 ${theme.text}`} />
-            <div>
+        <div className="flex flex-wrap items-center justify-between gap-4 min-w-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <VerdictIcon className={`w-9 h-9 ${theme.text} shrink-0`} />
+            <div className="min-w-0">
               <div className={`text-2xl font-extrabold ${theme.text}`} data-testid="executive-verdict">
                 {theme.label}
               </div>
@@ -151,14 +203,6 @@ export default function ExecutiveOverview() {
               )}
             </div>
           </div>
-          <button
-            onClick={load}
-            className="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-100"
-            data-testid="executive-refresh"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            Refresh
-          </button>
         </div>
         <div className="mt-2 text-[11px] font-mono uppercase tracking-wider text-slate-500">
           Generated {formatPlatformTime(data.generated_at)} · Loaded in {tookMs}ms
@@ -305,6 +349,7 @@ export default function ExecutiveOverview() {
       <div className="mt-8 text-[10px] font-mono uppercase tracking-wider text-slate-400 text-center">
         Read-only · No new collections · No background jobs · No AI · Data from existing certified records only.
       </div>
-    </div>
+      </div>
+    </PortalShell>
   );
 }

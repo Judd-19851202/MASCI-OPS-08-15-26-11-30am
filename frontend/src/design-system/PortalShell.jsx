@@ -278,9 +278,9 @@ export function PortalShell({
         </div>
       </header>
 
-      <section style={{ padding: "var(--pad-section)" }} className="flex-1 blueprint-bg">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6">
-          <div className={sideNav ? "lg:grid lg:grid-cols-[260px_1fr] lg:gap-6" : ""}>
+      <section style={{ padding: "var(--pad-section)" }} className="flex-1 blueprint-bg min-w-0">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 min-w-0">
+          <div className={sideNav ? "lg:grid lg:grid-cols-[260px_1fr] lg:gap-6 min-w-0" : "min-w-0"}>
             {sideNav && (
               <aside
                 className="hidden lg:block sticky top-[68px] h-[calc(100vh-68px)] overflow-y-auto bg-slate-900 text-slate-100 -ml-4 sm:-ml-6 pl-4 sm:pl-6 pr-2 py-4 border-r border-slate-800"
