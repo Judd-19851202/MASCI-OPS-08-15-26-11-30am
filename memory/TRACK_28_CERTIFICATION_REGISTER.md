@@ -641,3 +641,50 @@ hr.employee_lifecycle · field_ops.daily_report · field_leadership.records · f
 * 3 known P2 backlog items (D1/D2/D4) documented; none block cross-domain cert.
 
 Track 28.07 status: **✅ CLOSED WITH PASS** · Sessions 1+2 complete.
+
+---
+
+## Track 28.08 · Final Cross-Domain Integration Certification
+
+**Status:** IN PROGRESS · Phase 0 CLOSED WITH PASS · Phases 1-20 pending
+
+### Phase 0 · Control-layer defects (2026-07-11)
+
+| Defect | Symptom | Fix | Regression test |
+| --- | --- | --- | --- |
+| D1-ROUTE-OCC-404 | `/admin/occ` returned 404 (legacy bookmark) | `<Route path="/admin/occ" element={<Navigate to="/admin/operations-control" replace/>}/>` in `AppRoutes.jsx` | `test_d1_admin_occ_alias_redirects_to_operations_control` |
+| D2-ROUTE-EXECUTIVE-404 | `/executive`, `/executive-dashboard`, `/admin/executive` returned 404 | Three `<Navigate replace>` aliases → `/admin/executive-overview` | `test_d2_executive_aliases_redirect_to_executive_overview`, `test_d2_canonical_executive_overview_still_mounted` |
+| D4-PORTALSHELL-MOBILE-OVERFLOW | Header row + PlatformPosture strip + Trust Center strip forced hscroll at 390×844 | (a) `PortalShell` header: `overflow-hidden` + right cluster `min-w-0 shrink` + every child `shrink-0` + new `•••` mobile popover surfacing SEARCH/PortalSwitcher/LangToggle; (b) `PortalShell` body header: `flex flex-col md:flex-row` with primaryActions wrapping below title on mobile; (c) `AdminOS` PlatformPosture strip + primaryActions get `flex-wrap`/`min-w-0`; (d) `OperationsControlCenter` Trust Center summary strip + pill row get `flex-wrap`/`min-w-0` | `test_d4_portal_shell_header_container_has_overflow_hidden`, `test_d4_portal_shell_row_has_min_width_zero`, `test_d4_portal_shell_mobile_more_trigger_exists`, `test_d4_portal_shell_mobile_more_menu_surfaces_secondary_controls`, `test_d4_portal_shell_right_cluster_children_are_shrink_zero`, `test_d4_portal_shell_body_header_stacks_on_mobile`, `test_d4_admin_os_posture_strip_wraps_on_mobile`, `test_d4_operations_control_trust_layer_wraps_on_mobile` |
+
+### Phase 0 · Device walk certification (390×844)
+
+| Route | scrollWidth | clientWidth | Verdict |
+| --- | --- | --- | --- |
+| `/admin` | 390 | 390 | PASS |
+| `/admin/operations-control` | 390 | 390 | PASS |
+| `/hr` | 390 | 390 | PASS |
+| `/fleet` | 390 | 390 | PASS |
+| `/safety` | 390 | 390 | PASS |
+| `/admin/executive-overview` | 390 | 390 | PASS |
+
+Additional PASS checks: `/admin` H1 renders horizontally (two-line "Admin Operating / System", no per-letter stack). PortalShell `•••` mobile more-menu popover surfaces search/portal-switcher/lang-toggle. Desktop 1280×800 layout unaffected (H1 + primaryActions side-by-side; PlatformPosture counters right-aligned via `md:ml-auto`).
+
+### Files changed (Phase 0)
+
+- **EDITED** `frontend/src/app/routing/AppRoutes.jsx` — 4 Navigate aliases for D1 + D2.
+- **EDITED** `frontend/src/design-system/PortalShell.jsx` — full header/body responsive rebuild; new mobile `•••` overflow popover (`ds-portal-shell-mobile-more` + `ds-portal-shell-mobile-more-menu`).
+- **EDITED** `frontend/src/pages/admin/AdminOS.jsx` — PlatformPosture flex-wrap; primaryActions flex-wrap.
+- **EDITED** `frontend/src/pages/OperationsControlCenter.jsx` — Trust Center summary flex-wrap.
+- **EDITED** `backend/lib/certification_manifest.py` — refreshed `admin_os.landing_and_deep_pages`, `occ.trust_center`, `executive.dashboards_and_reports` entries with Phase 0 test path + alias routes + evidence line.
+- **NEW** `backend/tests/test_track_28_08_phase0_defects.py` — 11 structural regression tests (all passing).
+
+### Manifest impact (Phase 2 preview)
+
+`workflows_touching_file()` will detect impact on: `admin_os.landing_and_deep_pages`, `occ.trust_center`, `executive.dashboards_and_reports`. All three manifest entries were updated to include the Phase 0 test path in `regression_tests` and now cite Track 28.08 Phase 0 evidence. Manifest freshness test (`test_certification_manifest_freshness.py`) still PASSES (7/7).
+
+### Phase 0 evidence
+- `/app/test_reports/iteration_track_28_08_phase0_mobile_walk.json` (first pass — caught OCC Trust Center residual)
+- `/app/test_reports/iteration_track_28_08_phase0_reverify.json` (caught AdminOS residual)
+- `/app/test_reports/iteration_track_28_08_phase0_reverify_final.json` (CLOSE-OUT — 100% frontend PASS)
+
+Phase 0 status: **✅ CLOSED WITH PASS**. Cleared to proceed to Phases 1-20.

@@ -1,4 +1,29 @@
 # CHANGELOG
+## 2026-07-11 · Track 28.08 · Phase 0 · ✅ CLOSED WITH PASS
+
+**Track 28.08 (Final Cross-Domain Integration Certification) Phase 0** is CLOSED WITH PASS. Three P0 control-layer defects flagged during Track 28.07's device walk have been fixed, regression-locked with 11 new structural tests, and re-certified through a full 390×844 mobile device walk across every affected portal.
+
+### Defects fixed
+- **D1-ROUTE-OCC-404** — legacy `/admin/occ` bookmark now `<Navigate replace>` redirects to canonical `/admin/operations-control`.
+- **D2-ROUTE-EXECUTIVE-404** — legacy `/executive`, `/executive-dashboard`, and `/admin/executive` bookmarks all redirect to canonical `/admin/executive-overview`.
+- **D4-PORTALSHELL-MOBILE-OVERFLOW** — shared `PortalShell` top-bar rebuilt for 390-viewport safety: `overflow-hidden` on the header, `min-w-0`/`shrink-0` invariants on every child, new `•••` mobile popover surfacing SEARCH / PortalSwitcher / LangToggle. Body header now stacks (flex-col → md:flex-row) so H1 never collapses to 0 width. Two additional page-level offenders fixed: AdminOS PlatformPosture strip + OperationsControlCenter Trust Center strip both wrap cleanly on mobile.
+
+### Device walk (390×844)
+`/admin`, `/admin/operations-control`, `/hr`, `/fleet`, `/safety`, `/admin/executive-overview` — all 6 pages report `scrollWidth == clientWidth == 390`. Zero horizontal overflow. `/admin` H1 renders horizontally. Desktop 1280×800 layout unchanged.
+
+### Manifest impact
+Updated `admin_os.landing_and_deep_pages`, `occ.trust_center`, `executive.dashboards_and_reports` to cite Phase 0 evidence + include `test_track_28_08_phase0_defects.py` in `regression_tests`. Manifest freshness test still 7/7 PASS.
+
+### Files changed
+NEW: `backend/tests/test_track_28_08_phase0_defects.py` (11 regression tests, all passing).
+EDITED: `frontend/src/app/routing/AppRoutes.jsx`, `frontend/src/design-system/PortalShell.jsx`, `frontend/src/pages/admin/AdminOS.jsx`, `frontend/src/pages/OperationsControlCenter.jsx`, `backend/lib/certification_manifest.py`, `memory/TRACK_28_CERTIFICATION_REGISTER.md`.
+
+### Deployment gate
+**HELD.** Phase 0 close-out unblocks Phases 1-20 (inventory → manifest impact → 9 master cross-domain chains → global search → multi-persona walk → cleanup → closeout). Deployment remains blocked until Track 28.08 fully closes and Track 28.09 (combined pre-deployment) also closes.
+
+---
+
+
 
 ## 2026-07-11 · Track 28.07 · SESSION 2 · ✅ CLOSED WITH PASS
 
