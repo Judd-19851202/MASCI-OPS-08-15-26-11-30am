@@ -28,6 +28,7 @@
 | — | 28.05 | Fleet/Dispatch domain deep-walk | ✅ CLOSED WITH PASS · 2026-07-11 | Session 1 + Session 2 complete. See "Track 28.05 · Fleet/Dispatch · Session 2 executive verdict" below. |
 | — | 28.06 | Safety domain deep-walk | NOT STARTED | — |
 | — | 28.07 | Training / Administration / Executive domain deep-walk | ✅ CLOSED WITH PASS · 2026-07-11 | Sessions 1+2 complete. See "Track 28.07 · Session 2 executive verdict" below. |
+| 2026-07-11 | 28.10 | Live Post-Deployment Certification (24 phases, non-destructive live probes against `https://mascidocs.com`) | ✅ PRODUCTION GO | See "Track 28.10 · Live Post-Deployment Certification executive verdict" below. |
 
 ## Registered gaps (carried forward, formalized)
 

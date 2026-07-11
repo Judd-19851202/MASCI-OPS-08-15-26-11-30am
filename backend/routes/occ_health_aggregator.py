@@ -320,7 +320,18 @@ def _eval_integrations(body, err, checked_at):
         return _mk("unknown", "Integration probes unreachable.",
                    {"error": str(err or "no response")}, "", checked_at)
     probes = body.get("probes") or []
-    degraded = [p for p in probes if p.get("status") not in ("ok", "healthy")]
+    # A probe whose status is "disabled" AND explicitly `mocked=True` is
+    # an intentional stub (e.g. MaintainX in production has
+    # `maintainx_write_enabled=false`). Such probes must NOT be counted
+    # as degraded — they represent a deliberate configuration choice,
+    # not a failure. Real failures use status "error"/"degraded"/etc.
+    def _is_intentional_stub(p):
+        st = str(p.get("status") or "").lower()
+        return st == "disabled" and bool(p.get("mocked"))
+
+    live_probes = [p for p in probes if not _is_intentional_stub(p)]
+    stubbed = [p for p in probes if _is_intentional_stub(p)]
+    degraded = [p for p in live_probes if p.get("status") not in ("ok", "healthy")]
     overall = str(body.get("overall_status") or "").lower()
     if overall == "critical" or degraded:
         status = "red"
@@ -328,11 +339,15 @@ def _eval_integrations(body, err, checked_at):
         status = "yellow"
     else:
         status = "green"
-    summary = f"{len(probes) - len(degraded)}/{len(probes)} probes healthy"
+    healthy_live = len(live_probes) - len(degraded)
+    total_live = len(live_probes)
+    stub_note = f" · {len(stubbed)} intentional stub(s)" if stubbed else ""
+    summary = f"{healthy_live}/{total_live} live probes healthy{stub_note}"
     action = ("Open Platform Configuration → Integrations to inspect degraded probes."
               if degraded else "")
     return _mk(status, summary,
-               {"probes": probes, "overall_status": body.get("overall_status")},
+               {"probes": probes, "overall_status": body.get("overall_status"),
+                "stubbed_probe_ids": [p.get("id") for p in stubbed]},
                action, body.get("checked_at") or checked_at)
 
 

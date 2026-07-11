@@ -1,4 +1,43 @@
 # CHANGELOG
+## 2026-07-11 · Track 28.10 · ✅ PRODUCTION GO · Live Post-Deployment Certification
+
+**24-phase non-destructive live certification against `https://mascidocs.com`.**
+
+Deployed source hash `fe34b609ca92ab60364677ad32865946` (built 2026-07-11T13:53:02Z) verified against the last 36 hours of feature work and architecture patches. Result: **PRODUCTION GO**.
+
+### What was verified live
+* **Env identity** (`/api/version.environment_identity`): `app_env=production`, `db_name=masci_safety`, `db_isolation_enforced=true`, `dev_endpoints_enabled=false`, `maintainx_write_enabled=false`, `scheduler_enabled=true`, `auto_email_reports=true`, `ai_provider_key_present=true`. Track **28.09A** deployed. ✅
+* **OCC dynamic recommended actions**: every RED/YELLOW card returns a per-evidence action string, no hardcoded "Investigate scheduler + R2 sync now." fallback. Track **28.09D** deployed. ✅
+* **Cross-domain integrity** (Tracks 28.02 / 28.03 / 28.04 / 28.05 / 28.06 / 28.07): 235 employees, 28 jobs, 604 equipment, 56 meetings, 9 incidents, 212 daily reports, 48 equipment inspections all readable via admin token; all 5 portal `/me` endpoints (PM/HR/Shop/Dispatch/FL) return 200 with correct portal tokens. ✅
+* **Auth gates** enforce correctly: bogus admin token → 401; unauth admin endpoints → 401; `/api/dev/*` → 404 on prod (dev endpoints stripped). ✅
+* **Security headers** live: HSTS `max-age=63072000; includeSubDomains; preload`, `X-Content-Type-Options: nosniff`, strict referrer, HTTP/2 via Cloudflare. ✅
+* **Responsive shell** (Track 28.08 Phase 0 D4 + Phases 1-20): sign-in and admin OS render clean on prod, no preview banner leak (`text=PREVIEW ENVIRONMENT` count = 0), OCC domain cards visible with correct RED/AMBER/GREEN badges. ✅
+* **Backup posture**: latest R2 archive 33 min old (982.88 MB · 229 824 records · `ok=true`), RPO GREEN, RTO AMBER (no restore drill yet — filed as backlog). ✅
+* **Zero synthetic residue** attributable to this session (search `groups=0` for TEST_28_/TRACK_28_/SYNTHETIC_/PROBE_28/cert.testing/cert_28; 0 residue in latest 30 notifications). ✅
+
+### Defect found + safe fix landed in preview
+**D1 · Integration Probe aggregator false RED** — `_eval_integrations` in `routes/occ_health_aggregator.py` counted any `status="disabled"` probe as `degraded`, which forced the Integration Probes card RED whenever MaintainX was intentionally stubbed (`maintainx_write_enabled=false`). Fix: evaluator now recognises `status="disabled" AND mocked=True` as an intentional stub, excludes it from the degraded count, and surfaces it via a new `stubbed_probe_ids` evidence key. Card summary now reads `"4/5 live probes healthy · 1 intentional stub(s)"` instead of misleading RED. Verified live on preview. Will land in prod on next redeploy — does NOT gate this GO verdict.
+
+### Truthful RED conditions on prod (not aggregator artifacts)
+1. **Backups & R2 Recovery** — RED because R2 bucket at 320.47 GB vs 50 GB alert threshold. Real capacity overflow; owner Track 27.07 (blocked P1).
+2. **R2 Storage Lifecycle Health** — score 40.0/100 driven by same capacity overflow.
+3. **Governance & Trust** — RED because `/api/admin/governance/summary.health_label="critical"` sourced from a 2026-05-26 audit (6+ weeks stale). Severity counts show `0 critical / 0 high / 233 medium (PPE_MISSING)`. Filed as GAP-28-08 · re-run detectors.
+4. **Integration Probes** — RED only because of MaintainX intentional stub (see D1 fix above).
+
+### Gaps added / carried forward
+* **GAP-28-07** (new): Two `POST_DEPLOY_TEST_TRACK_15_59_DELETE` residual safety-meeting tasks in prod from Track 15.59 post-deploy smoke on 2026-02-10 — non-blocking; cleanup at next housekeeping window.
+* **GAP-28-08** (new): Governance detector re-scan overdue (last: 2026-05-26).
+* GAP-28-03 (Track 27.07 R2 Delete Engine) remains open and continues to be the root of both storage RED cards.
+
+### Verdict
+🟢 **PRODUCTION GO** — deploy `fe34b609ca92` is certified stable. See `/app/memory/TRACK_28_10_LIVE_POST_DEPLOYMENT_CERTIFICATION.md` for the full evidence bundle.
+
+### Files
+EDITED (preview only): `backend/routes/occ_health_aggregator.py`, `memory/TRACK_28_CERTIFICATION_REGISTER.md`.
+NEW: `memory/TRACK_28_10_LIVE_POST_DEPLOYMENT_CERTIFICATION.md`.
+
+---
+
 ## 2026-07-11 · Track 28.09D · ✅ PASS · Backup Health Severity Aggregator Repair
 
 **Deployment-blocking trust defect fixed.** OCC Trust Center card `Backups & R2 Recovery` was showing `CRITICAL` with recommended action "Investigate scheduler + R2 sync now." while all evidence was healthy (backup 53.3m fresh, RPO GREEN, scheduler alive, R2 GREEN). Two truthfulness bugs in `occ_health_aggregator._eval_recovery_snapshot` repaired.

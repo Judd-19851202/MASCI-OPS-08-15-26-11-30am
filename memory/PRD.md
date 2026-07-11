@@ -1,6 +1,10 @@
 # MASCI Operations Platform — PRD
 
 
+> **STATUS · 2026-07-11 · Track 28.10 PRODUCTION GO issued.** 24-phase non-destructive live post-deployment certification complete against `https://mascidocs.com` (deployed source hash `fe34b609ca92`). Every last-36h change (28.08 responsive shell, 28.09A env identity, 28.09D dynamic OCC actions) is deployed and behaving as spec. Environment isolation observably enforced live (`app_env=production`, `db_name=masci_safety`, `db_isolation_enforced=true`, `dev_endpoints_enabled=false`). Cross-domain reads healthy (235 employees, 28 jobs, 604 equipment, 56 meetings, 9 incidents, 212 daily reports, 48 equipment inspections). Zero synthetic residue attributable to this session (search groups=0, notifications=0/30). All 8 portal tokens gate correctly. Security headers live (HSTS + nosniff + strict referrer, HTTP/2). 4 OCC RED cards are TRUTHFUL operational conditions (R2 bucket 320GB > 50GB alert · stale governance scan · MaintainX intentional stub). One safe aggregator defect fixed inline in preview (D1: `_eval_integrations` now treats `disabled + mocked=True` as intentional stub, not degraded) — does NOT gate this GO; lands on next redeploy. Full evidence: `/app/memory/TRACK_28_10_LIVE_POST_DEPLOYMENT_CERTIFICATION.md`.
+
+
+
 > **STATUS · 2026-07-11 · Track 28.09D PASS — Backup Health Severity Aggregator repaired.** Deployment-blocking trust defect (OCC card showing CRITICAL while all evidence healthy) fixed. Root cause: two truthfulness bugs in `occ_health_aggregator._eval_recovery_snapshot` — (1) `pill_map` missing `"amber"` so AMBER silently became "unknown" and misclassified; (2) single hardcoded "Investigate scheduler + R2 sync now" action for every RED regardless of true root cause. Repaired with 9 reason_codes and reason-specific actions; summary now separates backup freshness from restore readiness. 8-test regression contract locks both bugs. Full regression 63 pass / 1 skip / 0 fail. Card now shows GREEN when evidence is truly healthy; when it does escalate, action matches the actual reason.
 
 
