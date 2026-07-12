@@ -185,18 +185,18 @@ def _eval_recovery_snapshot(body, err, checked_at):
 
     # Derive the primary reason for the observed status. Order matters —
     # highest-severity, most-specific cause wins.
-    #
-    # TRACK 27.07A · PHASE 1 · `bucket_over_alert` / `bucket_over_warn`
-    # reason codes are RETIRED. Bucket-capacity signalling is now
-    # sourced from the composite policy verdict on the Storage Health
-    # card (id=`storage_health`). The recovery card is purely about
-    # backup freshness and integrity.
     reason_code = "healthy"
     reason_text = "Backups & R2 healthy."
     if last_backup_ok is False:
         reason_code, reason_text = "backup_failed", "Last backup attempt failed."
     elif age is None:
         reason_code, reason_text = "no_backup_evidence", "No recent backup evidence available."
+    elif str(bucket_usage.get("status", "")).upper() == "RED":
+        reason_code = "bucket_over_alert"
+        reason_text = (
+            f"R2 bucket usage {bucket_usage.get('gb', 0)} GB above alert "
+            f"threshold {bucket_usage.get('alert_gb', 0)} GB."
+        )
     elif target is not None and age > 2 * target:
         reason_code = "backup_stale_critical"
         reason_text = f"Backup age {age:.1f}m exceeds 2× target ({target}m)."
@@ -206,6 +206,12 @@ def _eval_recovery_snapshot(body, err, checked_at):
     elif int(body.get("failures_7d") or 0) > 0:
         reason_code = "recent_failures"
         reason_text = f"{body.get('failures_7d')} backup failure(s) in last 7 days."
+    elif str(bucket_usage.get("status", "")).upper() == "AMBER":
+        reason_code = "bucket_over_warn"
+        reason_text = (
+            f"R2 bucket usage {bucket_usage.get('gb', 0)} GB above warn "
+            f"threshold {bucket_usage.get('warn_gb', 0)} GB."
+        )
     elif not scheduler.get("is_healthy", scheduler.get("alive", True)):
         # Scheduler-quiet does not by itself drive the pill (recovery_dashboard
         # only adds it as a warning), but if the pill IS yellow/red and no
@@ -219,9 +225,11 @@ def _eval_recovery_snapshot(body, err, checked_at):
         "healthy": "",
         "backup_failed": "Open Storage & Recovery → run backup verification, then re-trigger backup.",
         "no_backup_evidence": "Open Storage & Recovery to trigger a fresh backup and confirm evidence.",
+        "bucket_over_alert": "Open Storage & Recovery → R2 Lifecycle to review capacity and rotate old archives.",
         "backup_stale_critical": "Trigger a fresh backup and verify the scheduler is running.",
         "backup_stale": "Verify the next backup completes on schedule.",
         "recent_failures": "Open Storage & Recovery → Backup History to inspect recent failures.",
+        "bucket_over_warn": "Plan R2 capacity review; usage approaching alert threshold.",
         "scheduler_quiet": "Check /admin/scheduler-runs; scheduler heartbeat is quiet.",
     }
     action = action_by_reason.get(reason_code, "")
@@ -262,12 +270,15 @@ def _eval_recovery_snapshot(body, err, checked_at):
                },
                action,
                last_backup.get("ts") or body.get("computed_at") or checked_at,
-               # TRACK 27.07A · PHASE 1 · Retired `bucket_over_alert` /
-               # `bucket_over_warn` from this card. Capacity-driven
-               # criticality now lives exclusively on the Storage
-               # Health card (composite policy verdict). This card is
-               # about backup freshness and integrity.
-               root_cause_id=None,
+               # TRACK 28.11 · Tag cards whose criticality is driven by
+               # the same shared root cause (R2 bucket over threshold)
+               # so Diagnostics can display them under a single "why"
+               # explanation instead of two independent disasters.
+               root_cause_id=(
+                   "r2_bucket_capacity"
+                   if reason_code in ("bucket_over_alert", "bucket_over_warn")
+                   else None
+               ),
                reason_code=reason_code)
 
 def _eval_storage_health(body, err, checked_at):
@@ -275,59 +286,40 @@ def _eval_storage_health(body, err, checked_at):
         return _mk("unknown", "Storage lifecycle unreachable.",
                    {"error": str(err or "no response")},
                    "Trigger a lifecycle scan from Storage & Recovery.", checked_at)
-
-    # TRACK 27.07A · PHASE 1 · Prefer the composite policy verdict.
-    # `policy_verdict` is the truthful signal; `band`/`overall_score`
-    # are retained for backward compatibility only.
-    verdict = body.get("policy_verdict") or {}
-    verdict_status = str(verdict.get("status", "")).upper()
-    _POLICY_STATUS_TO_PILL = {
-        "HEALTHY": "green",
-        "ATTENTION": "yellow",
-        "CRITICAL": "red",
-        "UNKNOWN": "yellow",
-        "POLICY_REQUIRED": "yellow",
-    }
-    if verdict_status in _POLICY_STATUS_TO_PILL:
-        status = _POLICY_STATUS_TO_PILL[verdict_status]
-    else:
-        band = str(body.get("band", "unknown")).lower()
-        status = {"green": "green", "amber": "yellow", "red": "red"}.get(band, "unknown")
-
+    band = str(body.get("band", "unknown")).lower()
+    status = {"green": "green", "amber": "yellow", "red": "red"}.get(band, "unknown")
     score = body.get("overall_score", 0)
     capacity = body.get("capacity") or {}
     objects = body.get("objects") or {}
     orphan_pct = objects.get("orphan_pct")
     summary = (
-        f"Composite {verdict_status or 'UNKNOWN'} · "
-        f"{capacity.get('gb', 0):.1f} GB · "
+        f"Score {score}/100 · {capacity.get('gb', 0):.1f} GB · "
         f"{objects.get('total', 0)} objects · "
         f"{objects.get('verified_orphan', 0)} orphan candidates"
         f"{' (' + str(orphan_pct) + '%)' if orphan_pct is not None else ''}"
     )
-    action = verdict.get("recommendation") or (
+    action = (
         "Open Storage & Recovery → R2 Lifecycle to review the dry-run."
         if status in ("red", "yellow") else ""
     )
-    # Detect capacity-driven critical for root_cause_id sharing with the
-    # recovery_snapshot card. Under the composite policy this only
-    # triggers when the `technical_capacity` dimension is CRITICAL —
-    # arbitrary GB > obsolete threshold no longer triggers it.
-    capacity_driven = any(
-        d.get("dimension") == "technical_capacity"
-        and str(d.get("status", "")).upper() == "CRITICAL"
-        for d in (verdict.get("dimensions") or [])
-    ) or bool(capacity.get("over_alert"))
-
     return _mk(status, summary,
-               {"overall_score": score,
-                "band": str(body.get("band", "unknown")).upper(),
-                "policy_verdict": verdict,
+               {"overall_score": score, "band": band.upper(),
                 "sub_scores": body.get("sub_scores"),
                 "capacity": capacity, "objects": objects,
                 "freshness": body.get("freshness")},
                action, body.get("generated_at") or checked_at,
-               root_cause_id=("r2_bucket_capacity" if capacity_driven else None),
+               # TRACK 28.11 · When lifecycle status is driven by
+               # capacity being over threshold, share the same
+               # root_cause_id as the recovery_snapshot card so a
+               # single R2-bucket-over-threshold issue is not
+               # counted as two independent disasters.
+               root_cause_id=(
+                   "r2_bucket_capacity"
+                   if capacity.get("over_alert") or (band in ("amber", "red")
+                                                     and capacity.get("gb", 0)
+                                                     >= capacity.get("warn_gb", 1e9))
+                   else None
+               ),
                reason_code=(
                    "storage_lifecycle_healthy" if status == "green"
                    else "storage_lifecycle_needs_review"

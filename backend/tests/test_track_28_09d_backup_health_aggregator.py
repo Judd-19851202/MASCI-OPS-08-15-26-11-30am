@@ -65,25 +65,18 @@ def test_green_pill_healthy_evidence_produces_healthy_card():
     assert out["recommended_action"] == ""
 
 
-def test_red_pill_with_bucket_alert_no_longer_uses_bucket_reason_code():
-    """TRACK 27.07A · PHASE 1 regression: bucket capacity signalling was
-    RETIRED from the recovery snapshot card. The composite policy verdict
-    on the Storage Health card is now the source of capacity truth. This
-    card is purely about backup freshness / integrity.
-
-    Given a RED pill whose original cause was bucket_usage.status=RED,
-    the recovery card must NOT emit `bucket_over_alert` reason_code."""
+def test_red_pill_with_bucket_alert_produces_bucket_action():
     body = _base_body(
         pill="RED",
-        bucket_usage={"gb": 55, "status": "RED"},
+        bucket_usage={"gb": 55, "warn_gb": 45, "alert_gb": 50, "status": "RED"},
     )
     out = _eval_recovery_snapshot(body, None, CHECKED_AT)
-    assert out["evidence"]["reason_code"] != "bucket_over_alert", (
-        "TRACK 27.07A P1 regression: `bucket_over_alert` reason_code is "
-        "retired; capacity now lives on the Storage Health card via the "
-        "composite policy verdict."
+    assert out["status"] == "red"
+    assert out["evidence"]["reason_code"] == "bucket_over_alert"
+    assert "R2 Lifecycle" in out["recommended_action"], (
+        "TRACK 28.09D regression: RED caused by bucket alert must "
+        "recommend R2 Lifecycle action, not scheduler/R2 sync."
     )
-    assert out["evidence"]["reason_code"] != "bucket_over_warn"
 
 
 # ------------------------------------------------------------------

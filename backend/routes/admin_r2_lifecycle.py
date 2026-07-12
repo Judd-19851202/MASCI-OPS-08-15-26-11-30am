@@ -220,15 +220,6 @@ def build_r2_lifecycle_router(db, require_admin_strict_dep) -> APIRouter:
     async def health(_: bool = Depends(require_admin_strict_dep)) -> Dict[str, Any]:
         return await compute_storage_health(db)
 
-    # ── TRACK 27.07A · PHASE 1 · Composite Policy Manifest ──────────
-    # Read-only. Returns the ONE canonical R2 storage policy definition
-    # so an auditor / operator can inspect the provenance of every
-    # threshold in use. Zero side-effects.
-    @router.get("/policy")
-    async def policy(_: bool = Depends(require_admin_strict_dep)) -> Dict[str, Any]:
-        from services.r2_lifecycle.policy import policy_manifest  # noqa: PLC0415
-        return policy_manifest()
-
     # ── Intelligence + cost ──────────────────────────────────────────
     @router.get("/intelligence")
     async def intelligence(

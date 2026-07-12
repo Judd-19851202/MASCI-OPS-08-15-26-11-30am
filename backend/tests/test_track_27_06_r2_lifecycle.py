@@ -150,7 +150,7 @@ def test_reference_sources_registry_shape():
     seen: List[str] = []
     for src in REFERENCE_SOURCES:
         assert src.collection and src.owner and src.feature
-        assert src.ref_scheme in {"photo://", "r2://", "raw_key"}
+        assert src.ref_scheme in {"photo://", "r2://", "raw_key", "doc://"}
         assert isinstance(src.paths, list) and src.paths
         seen.append(src.collection)
     # A minimum floor — the classifier depends on these being registered.

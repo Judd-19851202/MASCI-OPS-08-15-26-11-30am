@@ -78,6 +78,14 @@ _BACKUP_PREFIXES = (
 _HISTORICAL_PREFIXES = (
     "legacy-imports/",
     "historical/",
+    # TRACK 27.07B repair · `drill-photos/` are legacy restore-drill
+    # artifacts. No code path writes to this prefix in the current
+    # canonical architecture (grep proof:
+    # `grep -rn "drill-photos" backend/` returns only this file and
+    # `drill_runs.find_one` in recovery_dashboard.py — no writer).
+    # Historical objects with no live owner must remain protected;
+    # they must NOT be classified as VERIFIED_ORPHAN.
+    "drill-photos/",
 )
 
 _PENDING_MAX_AGE_HOURS = 2  # objects <2h old are considered PENDING
@@ -124,6 +132,8 @@ def classify_object(
     refs: List[Dict[str, Any]],
     *,
     now: Optional[datetime] = None,
+    reference_scan_complete: bool = True,
+    unresolved_refs_present: bool = False,
 ) -> Classification:
     """Classify a single object.
 
@@ -132,6 +142,17 @@ def classify_object(
     inv_row : the persisted `r2_inventory` doc.
     refs    : the list of `r2_references` docs matching the key.
     now     : injected clock for tests.
+    reference_scan_complete :
+        TRACK 27.07B repair E — must be True to permit any object to
+        become ``VERIFIED_ORPHAN``. False means at least one mandatory
+        reference source failed to scan, so orphan certification is
+        impossible for the entire run.
+    unresolved_refs_present :
+        TRACK 27.07B repair D — bucket-level flag indicating the
+        reference scan encountered at least one malformed / foreign-
+        bucket / unsupported-scheme reference. When true, objects
+        that would otherwise fall through to VERIFIED_ORPHAN instead
+        land in ``AMBIGUOUS`` — never orphan by assumption.
     """
     now = now or _now()
     key = inv_row["key"]
@@ -195,9 +216,44 @@ def classify_object(
             reason=f"Referenced by {len(refs)} Mongo document(s).",
         )
 
-    # 6) Verified orphan: inventoried, older than PENDING window, no
-    #    protective flag, no Mongo reference.  This is the ONLY class
-    #    the delete engine will ever accept.
+    # 6) TRACK 27.07B repair D + E · Conservative fall-through.
+    #    VERIFIED_ORPHAN must be an *affirmative* judgement, not the
+    #    default. When any of the following is true, the object stays
+    #    AMBIGUOUS or UNKNOWN — the delete engine will never accept it.
+    if not reference_scan_complete:
+        return Classification(
+            key=key, classification="UNKNOWN", confidence=0.5,
+            evidence=[
+                {"kind": "reference_scan_incomplete",
+                 "reason": "at least one reference source failed"},
+                {"kind": "age_ok", "hours_old": round(age, 2) if age is not None else None},
+            ],
+            protective_flags=["reference_scan_incomplete"],
+            reason=(
+                "Reference scan did not complete — one or more mandatory "
+                "sources failed. Orphan certification is impossible."
+            ),
+        )
+    if unresolved_refs_present:
+        return Classification(
+            key=key, classification="AMBIGUOUS", confidence=0.5,
+            evidence=[
+                {"kind": "unresolved_refs_present",
+                 "reason": "malformed / foreign-bucket / unsupported-scheme "
+                            "reference observed in the scan"},
+                {"kind": "age_ok", "hours_old": round(age, 2) if age is not None else None},
+            ],
+            protective_flags=["unresolved_refs"],
+            reason=(
+                "Reference scan observed at least one unresolved reference; "
+                "object cannot be certified orphan under this run."
+            ),
+        )
+
+    # 7) VERIFIED_ORPHAN: complete reference scan, no unresolved refs,
+    #    no protective prefix, no Mongo reference, older than PENDING
+    #    window. This is the ONLY class the delete engine will ever
+    #    accept.
     return Classification(
         key=key, classification="VERIFIED_ORPHAN", confidence=1.0,
         evidence=[
@@ -220,6 +276,16 @@ async def classify_all(db, *, now: Optional[datetime] = None) -> Dict[str, Any]:
     now = now or _now()
     run_id = f"cls-{uuid4().hex[:12]}"
 
+    # TRACK 27.07B repair E · Read the latest reference-scan summary
+    # so classification can honour completeness and unresolved-ref
+    # signals. If no reference scan has ever run, treat the run as
+    # incomplete (safer default).
+    ref_run = await db.r2_lifecycle_runs.find_one(
+        {"kind": "references"}, {"_id": 0}, sort=[("completed_at", -1)],
+    ) or {}
+    reference_scan_complete = bool(ref_run.get("complete", False))
+    unresolved_refs_present = int(ref_run.get("unresolved_refs") or 0) > 0
+
     # Preload references once — much cheaper than a per-key query.
     refs_by_key: Dict[str, List[Dict[str, Any]]] = {}
     async for r in db.r2_references.find({}, {"_id": 0}):
@@ -231,7 +297,12 @@ async def classify_all(db, *, now: Optional[datetime] = None) -> Dict[str, Any]:
     from pymongo import UpdateOne  # noqa: PLC0415 — lazy
 
     async for inv in db.r2_inventory.find({}, {"_id": 0}):
-        result = classify_object(inv, refs_by_key.get(inv["key"], []), now=now)
+        result = classify_object(
+            inv, refs_by_key.get(inv["key"], []),
+            now=now,
+            reference_scan_complete=reference_scan_complete,
+            unresolved_refs_present=unresolved_refs_present,
+        )
         counts[result.classification] += 1
         if result.classification == "VERIFIED_ORPHAN":
             orphan_bytes += int(inv.get("size") or 0)
@@ -267,6 +338,11 @@ async def classify_all(db, *, now: Optional[datetime] = None) -> Dict[str, Any]:
         "counts": counts,
         "verified_orphan_bytes": orphan_bytes,
         "total_classified": sum(counts.values()),
+        # TRACK 27.07B repair · Surface the completeness gates so an
+        # auditor can prove the classification is trustworthy.
+        "reference_scan_complete": reference_scan_complete,
+        "unresolved_refs_present": unresolved_refs_present,
+        "reference_run_id": ref_run.get("run_id"),
     }
     await db.r2_lifecycle_runs.insert_one(dict(summary))
     return summary

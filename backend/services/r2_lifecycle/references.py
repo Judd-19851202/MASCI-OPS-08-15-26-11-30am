@@ -59,19 +59,21 @@ REFERENCE_SOURCES: List[ReferenceSource] = [
     # forward compatibility (any future photo-index rebuild lands here).
     ReferenceSource("photos",                "Photo",             "photos",           ["storage_ref", "url", "photo_ref"]),
     # `daily_reports.photos` is a list of raw photo:// strings.
-    ReferenceSource("daily_reports",         "Daily Report",      "daily_reports",    ["photos.*", "attachments.*"]),
-    ReferenceSource("meetings",              "Meeting",           "meetings",         ["photos.*", "attachments.*"]),
-    ReferenceSource("qaqc_inspections",      "QA/QC Inspection",  "qaqc",             ["photos.*", "photo_captions.*"]),
-    ReferenceSource("site_inspections",      "Site Inspection",   "site_inspections", ["photos.*", "attachments.*"]),
+    # TRACK 27.07B repair C · `daily_reports.attachments[*]` are dicts
+    # whose R2 refs live in the `attachment_ref` field per Track 19.04.
+    ReferenceSource("daily_reports",         "Daily Report",      "daily_reports",    ["photos.*", "attachments.*", "attachments.*.attachment_ref"]),
+    ReferenceSource("meetings",              "Meeting",           "meetings",         ["photos.*", "attachments.*", "attachments.*.attachment_ref"]),
+    ReferenceSource("qaqc_inspections",      "QA/QC Inspection",  "qaqc",             ["photos.*", "photo_captions.*", "attachments.*", "attachments.*.attachment_ref"]),
+    ReferenceSource("site_inspections",      "Site Inspection",   "site_inspections", ["photos.*", "attachments.*", "attachments.*.attachment_ref"]),
     # `incidents.photos` is base64 data URIs — no R2 reference. Keep
     # attachments-style paths only in case a future migration lands.
-    ReferenceSource("incidents",             "Incident",          "incidents",        ["evidence.*", "attachments.*"]),
-    ReferenceSource("training_records",      "Training Record",   "training",         ["media.*", "attachments.*"]),
+    ReferenceSource("incidents",             "Incident",          "incidents",        ["evidence.*", "evidence.*.attachment_ref", "attachments.*", "attachments.*.attachment_ref"]),
+    ReferenceSource("training_records",      "Training Record",   "training",         ["media.*", "media.*.attachment_ref", "attachments.*", "attachments.*.attachment_ref"]),
     # Documents with raw-key pattern (bucket embedded in the key).
     ReferenceSource("equipment_documents",   "Equipment Document","equipment",        ["storage_ref", "url", "file_ref"]),
     ReferenceSource("asset_documents",       "Asset Document",    "assets",           ["storage_ref", "url", "file_ref"]),
-    ReferenceSource("dispatch_continuity",   "Dispatch Evidence", "dispatch",         ["photos.*", "attachments.*"]),
-    ReferenceSource("legacy_imports",        "Historical Import", "legacy_imports",   ["source_document_ref", "photos.*"]),
+    ReferenceSource("dispatch_continuity",   "Dispatch Evidence", "dispatch",         ["photos.*", "attachments.*", "attachments.*.attachment_ref"]),
+    ReferenceSource("legacy_imports",        "Historical Import", "legacy_imports",   ["source_document_ref", "photos.*", "attachments.*.attachment_ref"]),
     # Operational attachments — uses `r2_key` (raw key, not photo:// URI).
     ReferenceSource("operational_attachments","Operational Attachment","attachments", ["r2_key"], ref_scheme="raw_key"),
     # Carrier + driver document store — uses `file_ref` (photo:// URI).
@@ -86,31 +88,66 @@ REFERENCE_SOURCES: List[ReferenceSource] = [
     # Backups — the recovery archives themselves. These are BACKUP_PROTECTED.
     ReferenceSource("backup_health",         "Backup Archive",    "backups",          ["filename", "key", "url"], ref_scheme="raw_key"),
     ReferenceSource("recovery_snapshots",    "Recovery Snapshot", "recovery",         ["archive_key", "key"], ref_scheme="raw_key"),
+    # TRACK 27.07B repair A · Safety Portal document library.
+    # `safety_documents.file_data` holds a `doc://<bucket>/<key>` URI
+    # (see backend/routes/safety_portal/documents.py + safety_doc_storage.py).
+    ReferenceSource("safety_documents",      "Safety Document",   "safety_documents", ["file_data"], ref_scheme="doc://"),
+    # TRACK 27.07B repair A · Fire-extinguisher attachments live as an
+    # array of dicts on the `fire_extinguishers` doc; each dict carries
+    # `file_data: doc://<bucket>/<key>` (backend/routes/safety_portal/
+    # fire_ext_attachments.py L143). Nested traversal + `doc://` scheme.
+    ReferenceSource("fire_extinguishers",    "Fire Extinguisher Attachment", "fire_extinguishers",
+                                             ["attachments.*.file_data"], ref_scheme="doc://"),
 ]
 
 
 # ── Reference extraction ───────────────────────────────────────────────
 _PHOTO_REF_RE = re.compile(r"^photo://([^/]+)/(.+)$")
 _R2_REF_RE = re.compile(r"^r2://([^/]+)/(.+)$")
+_DOC_REF_RE = re.compile(r"^doc://([^/]+)/(.+)$")   # TRACK 27.07B repair B
+_HTTP_R2_HOST_RE = re.compile(
+    r"^https?://[^/]*(?:r2\.cloudflarestorage\.com|s3[.-][^/]+\.amazonaws\.com|r2\.dev)/[^/]+/(.+?)(?:\?.*)?$"
+)
+
+
+def _percent_decode(s: str) -> str:
+    from urllib.parse import unquote  # noqa: PLC0415 — lazy
+    try:
+        return unquote(s)
+    except Exception:  # noqa: BLE001
+        return s
 
 
 def _extract_key(ref: Any, scheme: str) -> Optional[str]:
     """Return the R2 key portion of ``ref``, or None if ``ref`` doesn't
-    match the expected scheme.  Empty strings and non-strings return
-    None (they're not R2 references — they're empty fields)."""
+    match the expected scheme.
+
+    Malformed references, mismatched buckets, and non-string values
+    return None (the caller counts these as *unresolved* — they never
+    become owner references, and they never become orphans either).
+    """
     if not ref or not isinstance(ref, str):
         return None
+    # TRACK 27.07B repair B · Also handle full HTTPS R2/S3 URLs
+    # regardless of the source's declared scheme (some legacy fields
+    # persist a full URL rather than a photo:///doc:// URI).
+    m = _HTTP_R2_HOST_RE.match(ref)
+    if m:
+        return _percent_decode(m.group(1).lstrip("/"))
     if scheme == "photo://":
         m = _PHOTO_REF_RE.match(ref)
-        return m.group(2) if m else None
+        return _percent_decode(m.group(2)) if m else None
     if scheme == "r2://":
         m = _R2_REF_RE.match(ref)
-        return m.group(2) if m else None
+        return _percent_decode(m.group(2)) if m else None
+    if scheme == "doc://":
+        m = _DOC_REF_RE.match(ref)
+        return _percent_decode(m.group(2)) if m else None
     if scheme == "raw_key":
-        # Direct S3 key — accept if it looks like a path (no scheme prefix).
+        # Direct S3 key — accept only if it looks like a path (no scheme prefix).
         if "://" in ref:
             return None
-        return ref.lstrip("/")
+        return _percent_decode(ref.lstrip("/"))
     return None
 
 
@@ -146,20 +183,43 @@ async def scan_mongo_references(db, *, now: Optional[datetime] = None) -> Dict[s
 
     total_sources_scanned = 0
     total_refs_found = 0
+    total_unresolved = 0
     by_source: Dict[str, int] = {}
+    unresolved_by_source: Dict[str, int] = {}
+    failed_sources: List[Dict[str, Any]] = []
     ops: List[Dict[str, Any]] = []
 
     for source in REFERENCE_SOURCES:
         try:
             total_sources_scanned += 1
             source_hits = 0
-            cursor = db[source.collection].find({}, {"_id": 0} | {p.split(".")[0]: 1 for p in source.paths} | {source.doc_id_field: 1})
+            source_unresolved = 0
+            # TRACK 27.07B repair · Project the full top-level field for
+            # every path, because nested paths like `attachments.*.attachment_ref`
+            # require the entire array (not just a projected sub-key).
+            projection: Dict[str, int] = {"_id": 0, source.doc_id_field: 1}
+            for p in source.paths:
+                projection[p.split(".")[0]] = 1
+            cursor = db[source.collection].find({}, projection)
             async for doc in cursor:
                 doc_id = doc.get(source.doc_id_field) or doc.get("_id")
                 for p in source.paths:
                     for val in _walk_path(doc, p):
+                        # Skip container types silently — the walker
+                        # yields them when a path terminates on an
+                        # array element that turned out to be a dict.
+                        if not isinstance(val, str):
+                            continue
                         key = _extract_key(val, source.ref_scheme)
-                        if not key:
+                        if key is None:
+                            # TRACK 27.07B repair D · malformed / foreign
+                            # bucket references are counted as UNRESOLVED
+                            # rather than silently dropped. They surface
+                            # via ``unresolved_by_source`` so downstream
+                            # classification can't turn ambiguity into
+                            # a false orphan.
+                            source_unresolved += 1
+                            total_unresolved += 1
                             continue
                         ops.append({
                             "r2_key": key,
@@ -168,7 +228,7 @@ async def scan_mongo_references(db, *, now: Optional[datetime] = None) -> Dict[s
                             "feature": source.feature,
                             "doc_id": str(doc_id) if doc_id is not None else None,
                             "field_path": p,
-                            "raw_ref": val if isinstance(val, str) else None,
+                            "raw_ref": val,
                             "captured_at": now.isoformat(),
                             "run_id": run_id,
                         })
@@ -178,16 +238,22 @@ async def scan_mongo_references(db, *, now: Optional[datetime] = None) -> Dict[s
                             await db.r2_references.insert_many(ops, ordered=False)
                             ops.clear()
             by_source[source.collection] = source_hits
+            unresolved_by_source[source.collection] = source_unresolved
         except Exception as e:  # noqa: BLE001
-            # Missing collection is fine — just report zero refs from it.
-            logger.info(
-                "[r2-references] skipping %s (source unavailable): %s",
+            # TRACK 27.07B repair E · A failed reference source is a
+            # completeness blocker — the classifier MUST NOT produce
+            # VERIFIED_ORPHANs when any mandatory source failed.
+            logger.warning(
+                "[r2-references] source failed: %s: %s",
                 source.collection, e,
             )
             by_source[source.collection] = 0
+            unresolved_by_source[source.collection] = 0
+            failed_sources.append({"collection": source.collection, "error": str(e)[:240]})
     if ops:
         await db.r2_references.insert_many(ops, ordered=False)
 
+    complete = not failed_sources
     summary = {
         "run_id": run_id,
         "kind": "references",
@@ -195,7 +261,11 @@ async def scan_mongo_references(db, *, now: Optional[datetime] = None) -> Dict[s
         "completed_at": datetime.now(timezone.utc).isoformat(),
         "sources_scanned": total_sources_scanned,
         "references_found": total_refs_found,
+        "unresolved_refs": total_unresolved,
         "refs_by_source": by_source,
+        "unresolved_by_source": unresolved_by_source,
+        "failed_sources": failed_sources,
+        "complete": complete,
     }
     await db.r2_lifecycle_runs.insert_one(dict(summary))
     return summary

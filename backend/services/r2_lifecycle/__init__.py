@@ -56,21 +56,6 @@ from .health import (
     compute_storage_health,
     health_summary,
 )
-from .policy import (
-    CANONICAL_POLICY,
-    CompositeVerdict,
-    DimensionEvaluation,
-    PolicyRecord,
-    aggregate,
-    evaluate_backup_footprint,
-    evaluate_certified_waste,
-    evaluate_evidence_freshness,
-    evaluate_growth,
-    evaluate_retention_compliance,
-    evaluate_storage_cost,
-    evaluate_technical_capacity,
-    policy_manifest,
-)
 
 __all__ = [
     "IR2Client",
@@ -94,17 +79,4 @@ __all__ = [
     "estimate_cost",
     "compute_storage_health",
     "health_summary",
-    "CANONICAL_POLICY",
-    "CompositeVerdict",
-    "DimensionEvaluation",
-    "PolicyRecord",
-    "aggregate",
-    "evaluate_backup_footprint",
-    "evaluate_certified_waste",
-    "evaluate_evidence_freshness",
-    "evaluate_growth",
-    "evaluate_retention_compliance",
-    "evaluate_storage_cost",
-    "evaluate_technical_capacity",
-    "policy_manifest",
 ]
