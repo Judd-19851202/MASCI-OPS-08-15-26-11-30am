@@ -1,0 +1,99 @@
+{
+  "archive_count": 876,
+  "archive_bytes": 347835260056,
+  "proven_failed_partial_corrupt_count": 0,
+  "proven_failed_partial_corrupt_bytes": 0,
+  "duplicate_etag_group_count": 0,
+  "duplicate_manifest_group_count": 0,
+  "proven_byte_identical_duplicate_count": 0,
+  "proven_byte_identical_duplicate_bytes": 0,
+  "unique_verified_recovery_point_count": 368,
+  "unique_verified_recovery_point_bytes": 323411794582,
+  "chain_anchor_count": 0,
+  "chain_anchor_bytes": 0,
+  "unknown_count": 508,
+  "unknown_bytes": 24423465474,
+  "oldest_proven_recoverable": "2026-05-25T23:25:17.732898+00:00",
+  "newest_proven_recoverable": "2026-07-12T15:05:17.823023+00:00",
+  "max_proven_recovery_gap_seconds": 389308.234156,
+  "max_proven_recovery_gap_hours": 108.141,
+  "max_proven_recovery_gap_pair": [
+    "2026-05-26T11:06:36.375160+00:00",
+    "2026-05-30T23:15:04.609316+00:00"
+  ],
+  "cohorts": {
+    "auto-90d": {
+      "count": 376,
+      "bytes": 323666427987,
+      "verified_count": 368,
+      "verified_bytes": 323411794582,
+      "unknown_count": 8,
+      "unknown_bytes": 254633405,
+      "oldest": "2026-05-17T23:55:29.692675+00:00",
+      "newest": "2026-07-12T15:05:17.823023+00:00",
+      "verified_oldest": "2026-05-25T23:25:17.732898+00:00",
+      "verified_newest": "2026-07-12T15:05:17.823023+00:00",
+      "max_gap_all_seconds": 389308.234156,
+      "max_gap_all_hours": 108.141,
+      "max_gap_verified_seconds": 389308.234156,
+      "max_gap_verified_hours": 108.141
+    },
+    "legacy-root": {
+      "count": 500,
+      "bytes": 24168832069,
+      "verified_count": 0,
+      "verified_bytes": 0,
+      "unknown_count": 500,
+      "unknown_bytes": 24168832069,
+      "oldest": "2026-05-11T14:15:41.136028+00:00",
+      "newest": "2026-05-17T21:24:36.282339+00:00",
+      "verified_oldest": null,
+      "verified_newest": null,
+      "max_gap_all_seconds": 34347.819213,
+      "max_gap_all_hours": 9.541,
+      "max_gap_verified_seconds": 0,
+      "max_gap_verified_hours": 0
+    }
+  },
+  "legacy_breakdown": {
+    "proven_unique": 0,
+    "proven_unique_bytes": 0,
+    "proven_duplicates": 0,
+    "proven_duplicates_bytes": 0,
+    "proven_failed_partial": 0,
+    "proven_failed_partial_bytes": 0,
+    "superseded_but_unique": 0,
+    "superseded_but_unique_bytes": 0,
+    "unknown": 500,
+    "unknown_bytes": 24168832069
+  },
+  "auto_breakdown": {
+    "archive_type": {
+      "complete": 376
+    },
+    "independent_full_archives": 376,
+    "independent_full_archives_bytes": 323666427987,
+    "dependent_chain_archives": 0,
+    "dependent_chain_archives_bytes": 0,
+    "verified_unique_points": 368,
+    "verified_unique_points_bytes": 323411794582,
+    "unknown": 8,
+    "unknown_bytes": 254633405
+  },
+  "latest_direct_manifest": {
+    "filename": "MASCI_complete_backup_2026-07-12_150040Z.zip",
+    "key": "backups/auto-90d/MASCI_complete_backup_2026-07-12_150040Z.zip",
+    "captured_collections_count": 206,
+    "total_records": 253533,
+    "size_bytes": 1048793938,
+    "manifest_sha256": "47eab1c48ac55f38b354037c5367b494ee0886f8aadce2969910bd5de3b806ae"
+  },
+  "live_backup_health_now": {
+    "latest_filename": "MASCI_complete_backup_2026-07-12_160028Z.zip",
+    "latest_ts": "2026-07-12T16:05:33.504970+00:00",
+    "latest_records": 253653,
+    "latest_size_mb": 1006.07,
+    "rpo_status": "GREEN",
+    "rto_status": "AMBER"
+  }
+}

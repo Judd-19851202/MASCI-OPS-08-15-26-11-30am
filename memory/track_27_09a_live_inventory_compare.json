@@ -1,0 +1,16 @@
+{
+  "backups": {
+    "total_matching": 891,
+    "count": 891,
+    "total_bytes_from_page": 359548936806,
+    "first_key": "backups/auto-90d/MASCI_complete_backup_2026-07-12_110118Z.zip",
+    "last_key": "backups/MASCI_complete_backup_2026-05-11_164958Z.zip"
+  },
+  "backups_slash": {
+    "total_matching": 0,
+    "count": 0,
+    "total_bytes_from_page": 0,
+    "first_key": null,
+    "last_key": null
+  }
+}

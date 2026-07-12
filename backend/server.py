@@ -3167,7 +3167,11 @@ from services.operations_control.audit import (  # noqa: E402
     ensure_indexes as ensure_occ_audit_indexes,
 )
 register_operations_control_routes(api_router, db, require_admin)
-asyncio.get_event_loop().create_task(ensure_occ_audit_indexes(db))
+
+
+@register_lifecycle_step("index-ensure")
+async def _ensure_occ_audit_indexes_step():
+    await ensure_occ_audit_indexes(db)
 
 # TRACK 25 · SPRINT 2 · Operations Control Center — Trust Layer aggregator.
 # One canonical read-only endpoint `GET /api/admin/occ/health` that fans
@@ -11376,7 +11380,6 @@ async def _assert_no_duplicate_routes():
     offenders.  If a legitimate duplicate ever needs to exist (e.g. a
     version-prefixed route), add its `(method, path)` to
     `_ALLOWED_DUPLICATES` below with a code-review justification."""
-    from collections import defaultdict
     _ALLOWED_DUPLICATES: set = set()          # empty — no exceptions.
     groups: Dict[tuple, List[str]] = defaultdict(list)
     for r in app.routes:
@@ -12405,10 +12408,6 @@ from routes.operational_timeline import (  # noqa: E402
 from routes.photo_governance import (  # noqa: E402
     build_photo_governance_router, ensure_photo_governance_indexes,
 )
-from routes.odr import (  # noqa: E402
-    build_odr_router, ensure_odr_indexes,
-)
-
 from routes.odr import (  # noqa: E402
     build_odr_router, ensure_odr_indexes,
     build_odr_continuity_router, ensure_continuity_indexes,

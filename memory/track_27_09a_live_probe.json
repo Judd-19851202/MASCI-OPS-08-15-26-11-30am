@@ -1,0 +1,1661 @@
+{
+  "summary": {
+    "checked_at": "2026-07-12T16:21:30.832876+00:00",
+    "version": {
+      "status": 200,
+      "app_env": "production",
+      "db_name": "masci_safety",
+      "source_hash": "9e79ada45d05d246df4819140c5fde91",
+      "environment_identity": {
+        "app_env": "production",
+        "db_name": "masci_safety",
+        "db_isolation_enforced": true,
+        "storage_bucket": "masci-hub",
+        "storage_endpoint_present": true,
+        "scheduler_enabled": true,
+        "email_safety_mode": "off",
+        "auto_email_reports": true,
+        "resend_webhook_secret_present": true,
+        "dev_endpoints_enabled": false,
+        "maintainx_write_enabled": false,
+        "ai_provider_key_present": true,
+        "delete_engine_status": "DISABLED"
+      }
+    },
+    "inventory_backups": {
+      "status": 200,
+      "total_matching": 891,
+      "count": 1,
+      "first_item_key": "backups/auto-90d/MASCI_complete_backup_2026-07-12_110118Z.zip"
+    },
+    "inventory_backups_slash": {
+      "status": 200,
+      "total_matching": 0,
+      "count": 0,
+      "first_item_key": null
+    },
+    "integrity_check": {
+      "status": 200,
+      "last_backup_filename": null,
+      "last_backup_object_key": null,
+      "last_backup_at": null,
+      "captured_collection_count": 0,
+      "captured_collections_preview": [],
+      "document_count": null,
+      "archive_size_bytes": null,
+      "evidence_source": null,
+      "integrity_result": null,
+      "ok": false,
+      "missing_from_backup_count": 209,
+      "reason": null
+    },
+    "recovery_snapshot": {
+      "status": 200,
+      "pill": "RED",
+      "rpo": {
+        "target_min": 60,
+        "actual_min": 15.9,
+        "status": "GREEN"
+      },
+      "rto": {
+        "target_min": 15,
+        "last_drill_min": null,
+        "status": "AMBER"
+      },
+      "scheduler": {
+        "alive": false,
+        "last_lock_ts": "2026-07-07T13:57:14.402000Z",
+        "owner_pod": "r-946258f6-abad-4f62-9333-c276cf9b943c-5578679b58-ftzn5",
+        "is_healthy": false
+      },
+      "last_backup": {
+        "filename": "MASCI_complete_backup_2026-07-12_160028Z.zip",
+        "size_mb": 1006.07,
+        "records": 253653,
+        "ok": true,
+        "ts": "2026-07-12T16:05:33.504970+00:00",
+        "inlined_photos": 0,
+        "source": "backup_health"
+      },
+      "last_drill": null,
+      "warnings": [
+        {
+          "kind": "scheduler-quiet",
+          "severity": "amber",
+          "message": "No scheduler lock heartbeat in the last 30 minutes"
+        }
+      ]
+    },
+    "occ_health": {
+      "status": 200
+    },
+    "system_health": {
+      "status": 200
+    },
+    "health_full": {
+      "status": 200,
+      "body": {
+        "ok": true,
+        "mongo": true,
+        "scheduler": true,
+        "backup_recent": true
+      }
+    },
+    "deployment_readiness": {
+      "status": 200
+    }
+  },
+  "raw": {
+    "version": {
+      "status": 200,
+      "json": {
+        "service": "masci-hub",
+        "commit": "9e79ada45d05",
+        "built_at": "2026-07-12T01:46:16.436974+00:00",
+        "source_hash": "9e79ada45d05d246df4819140c5fde91",
+        "release": "9e79ada45d05d246df4819140c5fde91",
+        "started_at": "2026-07-12T01:46:16.436974+00:00",
+        "uptime_s": 52507,
+        "session_timeouts": {
+          "enabled": true,
+          "tiers": {
+            "ADMIN_HR": {
+              "idle_min": 15,
+              "abs_hour": 4
+            },
+            "OPERATIONS": {
+              "idle_min": 30,
+              "abs_hour": 8
+            },
+            "FIELD": {
+              "idle_min": 60,
+              "abs_hour": 12
+            }
+          }
+        },
+        "sentry": {
+          "enabled": true
+        },
+        "app_env": "production",
+        "db_name": "masci_safety",
+        "environment_identity": {
+          "app_env": "production",
+          "db_name": "masci_safety",
+          "db_isolation_enforced": true,
+          "storage_bucket": "masci-hub",
+          "storage_endpoint_present": true,
+          "scheduler_enabled": true,
+          "email_safety_mode": "off",
+          "auto_email_reports": true,
+          "resend_webhook_secret_present": true,
+          "dev_endpoints_enabled": false,
+          "maintainx_write_enabled": false,
+          "ai_provider_key_present": true,
+          "delete_engine_status": "DISABLED"
+        }
+      }
+    },
+    "inventory_backups": {
+      "status": 200,
+      "json": {
+        "total_matching": 891,
+        "count": 1,
+        "items": [
+          {
+            "bucket": "masci-hub",
+            "etag": "3c6e33400826a0f9d09a12ed02717f63-126",
+            "first_seen_at": "2026-07-12T12:36:07.652115+00:00",
+            "first_seen_run_id": "inv-b4463f2c976e",
+            "key": "backups/auto-90d/MASCI_complete_backup_2026-07-12_110118Z.zip",
+            "last_modified": "2026-07-12T11:05:56.384000+00:00",
+            "last_seen_at": "2026-07-12T15:23:40.992595+00:00",
+            "last_seen_run_id": "inv-5d3c786fbb1b",
+            "prefix": "backups",
+            "project_number": "07-12",
+            "size": 1048829678,
+            "storage_class": "STANDARD",
+            "year": 2026
+          }
+        ]
+      }
+    },
+    "inventory_backups_slash": {
+      "status": 200,
+      "json": {
+        "total_matching": 0,
+        "count": 0,
+        "items": []
+      }
+    },
+    "integrity_check": {
+      "status": 200,
+      "json": {
+        "last_backup_filename": null,
+        "last_backup_at": null,
+        "live_collections": [
+          "activity_log",
+          "admin_audit",
+          "admin_audit_log",
+          "admin_step_ups",
+          "alert_events",
+          "asset_assignments",
+          "asset_holds",
+          "asset_mapping_proposals",
+          "asset_mappings",
+          "asset_spine_health_runs",
+          "asset_transfers",
+          "audit_events",
+          "backup_drift_history",
+          "backup_health",
+          "bilingual_records",
+          "brute_force_blocks",
+          "calculator_runs",
+          "cluster_capacity_history",
+          "command_center_calendar",
+          "command_center_thresholds",
+          "compliance_findings",
+          "compliance_scans",
+          "corrective_actions",
+          "daily_reports",
+          "deployment_decisions",
+          "digest_runs",
+          "digest_settings",
+          "directory_sessions",
+          "dispatch_assignments",
+          "dispatch_continuity_events",
+          "dispatch_driver_sessions",
+          "dispatch_magic_links",
+          "dispatch_state_events",
+          "dispatch_users",
+          "doc_id_counters",
+          "docs",
+          "document_expirations",
+          "dr_v1_photo_intel_jobs",
+          "dr_v2_ai_approvals",
+          "dr_v2_ai_audit_entries",
+          "dr_v2_ai_cache",
+          "dr_v2_alias_aggregate",
+          "dr_v2_alias_telemetry_events",
+          "dr_v2_drafts",
+          "dr_v2_photo_intelligence",
+          "dr_v2_photo_vision_cache",
+          "draft_telemetry",
+          "driver_qualification_audit",
+          "driver_qualification_import_previews",
+          "driver_qualification_imports",
+          "email_routes",
+          "email_routing_audit_v2",
+          "email_routing_config",
+          "employee_lifecycle_events",
+          "employee_mappings",
+          "employee_record_audit",
+          "employee_records",
+          "employee_requests",
+          "employees",
+          "equipment_inspections",
+          "equipment_master",
+          "equipment_parts",
+          "equipment_units",
+          "events",
+          "field_leadership_equipment_catalog",
+          "field_leadership_equipment_makes",
+          "field_leadership_records",
+          "field_leadership_users",
+          "field_memory_notes",
+          "field_submitter_bindings",
+          "fire_ext_import_runs",
+          "fire_extinguishers",
+          "fleet_audit",
+          "fleet_defects",
+          "fleet_status",
+          "guidance_search_misses",
+          "haul_cycles",
+          "health_monitor_runs",
+          "hill_scopes",
+          "hr_audit",
+          "hr_users",
+          "hub_banner_audit",
+          "hub_banners",
+          "idempotency_keys",
+          "incident_snapshots",
+          "incidents",
+          "inspections",
+          "integration_error_logs",
+          "integration_settings",
+          "integration_sync_logs",
+          "integration_wizard_runs",
+          "jha_acknowledgements",
+          "jhas",
+          "job_hazard_files",
+          "job_hazard_plans",
+          "job_photo_thumb_cache",
+          "job_photos",
+          "jobs_master",
+          "legacy_import_audit",
+          "legacy_imports",
+          "login_attempts",
+          "maintainx_work_orders",
+          "meetings",
+          "message_comments",
+          "messages",
+          "mfa_audit_events",
+          "motive_events",
+          "motive_geofences",
+          "notifications",
+          "odr",
+          "odr_amendments",
+          "odr_attachments",
+          "odr_consumer_index",
+          "odr_observation_events",
+          "odr_pdf_renders",
+          "odr_photos",
+          "odr_preload_attempts",
+          "odr_public_links",
+          "odr_section_events",
+          "odr_translation_events",
+          "operational_attachments",
+          "operational_constraints",
+          "operational_fact_links",
+          "operational_facts",
+          "operational_ingestion_runs",
+          "operational_kpi_snapshots",
+          "operational_links",
+          "operations_actions",
+          "operations_audit",
+          "operations_events",
+          "ops_manual_snapshots",
+          "payroll_variance_batches",
+          "payroll_variance_decisions",
+          "photo_migration_progress",
+          "po_requests",
+          "production_certification_session_audit",
+          "production_certification_sessions",
+          "production_incidents",
+          "project_managers",
+          "project_members",
+          "project_memberships",
+          "project_operational_config",
+          "project_team_assignments",
+          "projects",
+          "promo_assets",
+          "qaqc_inspections",
+          "r2_classifications",
+          "r2_degraded_events",
+          "r2_inventory",
+          "r2_lifecycle_runs",
+          "r2_references",
+          "record_import_batches",
+          "red_alert_state",
+          "resend_webhook_events",
+          "role_templates",
+          "safety_documents",
+          "safety_equipment_issuances",
+          "safety_equipment_trainings",
+          "safety_training_records",
+          "safety_users",
+          "scheduler_locks",
+          "scheduler_runs",
+          "session_activity",
+          "shop_users",
+          "signatures",
+          "suppliers",
+          "system_bootstrap_history",
+          "system_bootstrap_status",
+          "system_counters",
+          "system_health_events",
+          "tasks",
+          "temp_upload_chunks",
+          "tenant_ai_capabilities",
+          "time_off_public_links",
+          "todo_lists",
+          "todos",
+          "training_guides",
+          "training_hits",
+          "training_videos",
+          "transfer_requests",
+          "translation_audit",
+          "transport_action_items",
+          "transport_automation_runs",
+          "transport_command_digest_runs",
+          "transport_hr_sync_runs",
+          "transport_intelligence_audit",
+          "transport_orientation_modules",
+          "transport_packet_requirements",
+          "transport_rate_schedules",
+          "trench_boxes",
+          "trench_safety_assets",
+          "trench_safety_certifications",
+          "trench_safety_deployments",
+          "trench_safety_holds",
+          "trench_safety_inspections",
+          "trench_safety_leadership_digests",
+          "trench_safety_pulses",
+          "trench_safety_qr_scans",
+          "trench_safety_repairs",
+          "trust_score_history",
+          "trust_spine_events",
+          "ui_flags",
+          "usage_events",
+          "user_directory",
+          "user_passkeys",
+          "users",
+          "vendors",
+          "webauthn_challenges",
+          "workflow_state_events"
+        ],
+        "captured_collections": [],
+        "missing_from_backup": [
+          "activity_log",
+          "admin_audit",
+          "admin_audit_log",
+          "admin_step_ups",
+          "alert_events",
+          "asset_assignments",
+          "asset_holds",
+          "asset_mapping_proposals",
+          "asset_mappings",
+          "asset_spine_health_runs",
+          "asset_transfers",
+          "audit_events",
+          "backup_drift_history",
+          "backup_health",
+          "bilingual_records",
+          "brute_force_blocks",
+          "calculator_runs",
+          "cluster_capacity_history",
+          "command_center_calendar",
+          "command_center_thresholds",
+          "compliance_findings",
+          "compliance_scans",
+          "corrective_actions",
+          "daily_reports",
+          "deployment_decisions",
+          "digest_runs",
+          "digest_settings",
+          "directory_sessions",
+          "dispatch_assignments",
+          "dispatch_continuity_events",
+          "dispatch_driver_sessions",
+          "dispatch_magic_links",
+          "dispatch_state_events",
+          "dispatch_users",
+          "doc_id_counters",
+          "docs",
+          "document_expirations",
+          "dr_v1_photo_intel_jobs",
+          "dr_v2_ai_approvals",
+          "dr_v2_ai_audit_entries",
+          "dr_v2_ai_cache",
+          "dr_v2_alias_aggregate",
+          "dr_v2_alias_telemetry_events",
+          "dr_v2_drafts",
+          "dr_v2_photo_intelligence",
+          "dr_v2_photo_vision_cache",
+          "draft_telemetry",
+          "driver_qualification_audit",
+          "driver_qualification_import_previews",
+          "driver_qualification_imports",
+          "email_routes",
+          "email_routing_audit_v2",
+          "email_routing_config",
+          "employee_lifecycle_events",
+          "employee_mappings",
+          "employee_record_audit",
+          "employee_records",
+          "employee_requests",
+          "employees",
+          "equipment_inspections",
+          "equipment_master",
+          "equipment_parts",
+          "equipment_units",
+          "events",
+          "field_leadership_equipment_catalog",
+          "field_leadership_equipment_makes",
+          "field_leadership_records",
+          "field_leadership_users",
+          "field_memory_notes",
+          "field_submitter_bindings",
+          "fire_ext_import_runs",
+          "fire_extinguishers",
+          "fleet_audit",
+          "fleet_defects",
+          "fleet_status",
+          "guidance_search_misses",
+          "haul_cycles",
+          "health_monitor_runs",
+          "hill_scopes",
+          "hr_audit",
+          "hr_users",
+          "hub_banner_audit",
+          "hub_banners",
+          "idempotency_keys",
+          "incident_snapshots",
+          "incidents",
+          "inspections",
+          "integration_error_logs",
+          "integration_settings",
+          "integration_sync_logs",
+          "integration_wizard_runs",
+          "jha_acknowledgements",
+          "jhas",
+          "job_hazard_files",
+          "job_hazard_plans",
+          "job_photo_thumb_cache",
+          "job_photos",
+          "jobs_master",
+          "legacy_import_audit",
+          "legacy_imports",
+          "login_attempts",
+          "maintainx_work_orders",
+          "meetings",
+          "message_comments",
+          "messages",
+          "mfa_audit_events",
+          "motive_events",
+          "motive_geofences",
+          "notifications",
+          "odr",
+          "odr_amendments",
+          "odr_attachments",
+          "odr_consumer_index",
+          "odr_observation_events",
+          "odr_pdf_renders",
+          "odr_photos",
+          "odr_preload_attempts",
+          "odr_public_links",
+          "odr_section_events",
+          "odr_translation_events",
+          "operational_attachments",
+          "operational_constraints",
+          "operational_fact_links",
+          "operational_facts",
+          "operational_ingestion_runs",
+          "operational_kpi_snapshots",
+          "operational_links",
+          "operations_actions",
+          "operations_audit",
+          "operations_events",
+          "ops_manual_snapshots",
+          "payroll_variance_batches",
+          "payroll_variance_decisions",
+          "photo_migration_progress",
+          "po_requests",
+          "production_certification_session_audit",
+          "production_certification_sessions",
+          "production_incidents",
+          "project_managers",
+          "project_members",
+          "project_memberships",
+          "project_operational_config",
+          "project_team_assignments",
+          "projects",
+          "promo_assets",
+          "qaqc_inspections",
+          "r2_classifications",
+          "r2_degraded_events",
+          "r2_inventory",
+          "r2_lifecycle_runs",
+          "r2_references",
+          "record_import_batches",
+          "red_alert_state",
+          "resend_webhook_events",
+          "role_templates",
+          "safety_documents",
+          "safety_equipment_issuances",
+          "safety_equipment_trainings",
+          "safety_training_records",
+          "safety_users",
+          "scheduler_locks",
+          "scheduler_runs",
+          "session_activity",
+          "shop_users",
+          "signatures",
+          "suppliers",
+          "system_bootstrap_history",
+          "system_bootstrap_status",
+          "system_counters",
+          "system_health_events",
+          "tasks",
+          "temp_upload_chunks",
+          "tenant_ai_capabilities",
+          "time_off_public_links",
+          "todo_lists",
+          "todos",
+          "training_guides",
+          "training_hits",
+          "training_videos",
+          "transfer_requests",
+          "translation_audit",
+          "transport_action_items",
+          "transport_automation_runs",
+          "transport_command_digest_runs",
+          "transport_hr_sync_runs",
+          "transport_intelligence_audit",
+          "transport_orientation_modules",
+          "transport_packet_requirements",
+          "transport_rate_schedules",
+          "trench_boxes",
+          "trench_safety_assets",
+          "trench_safety_certifications",
+          "trench_safety_deployments",
+          "trench_safety_holds",
+          "trench_safety_inspections",
+          "trench_safety_leadership_digests",
+          "trench_safety_pulses",
+          "trench_safety_qr_scans",
+          "trench_safety_repairs",
+          "trust_score_history",
+          "trust_spine_events",
+          "ui_flags",
+          "usage_events",
+          "user_directory",
+          "user_passkeys",
+          "users",
+          "vendors",
+          "webauthn_challenges",
+          "workflow_state_events"
+        ],
+        "ok": false
+      }
+    },
+    "recovery_snapshot": {
+      "status": 200,
+      "json": {
+        "computed_at": "2026-07-12T16:21:25.701147+00:00",
+        "pill": "RED",
+        "last_backup": {
+          "filename": "MASCI_complete_backup_2026-07-12_160028Z.zip",
+          "size_mb": 1006.07,
+          "records": 253653,
+          "ok": true,
+          "ts": "2026-07-12T16:05:33.504970+00:00",
+          "inlined_photos": 0,
+          "source": "backup_health"
+        },
+        "last_drill": null,
+        "backup_age_minutes": 15.9,
+        "backup_age_target_minutes": 1440,
+        "rpo": {
+          "target_min": 60,
+          "actual_min": 15.9,
+          "status": "GREEN"
+        },
+        "rto": {
+          "target_min": 15,
+          "last_drill_min": null,
+          "status": "AMBER"
+        },
+        "archive_count": {
+          "r2_total": 95,
+          "last_7d": 95,
+          "last_30d": 95
+        },
+        "bucket_usage": {
+          "gb": 327.56,
+          "warn_gb": 45.0,
+          "alert_gb": 50.0,
+          "status": "RED",
+          "ts": "2026-07-12T16:05:42.127038+00:00"
+        },
+        "archive_size_trend": [
+          {
+            "ts": "2026-07-11T11:05:59.368916+00:00",
+            "size_mb": 982.83,
+            "records": 229769
+          },
+          {
+            "ts": "2026-07-11T12:05:50.857683+00:00",
+            "size_mb": 982.84,
+            "records": 229783
+          },
+          {
+            "ts": "2026-07-11T13:05:43.897904+00:00",
+            "size_mb": 982.82,
+            "records": 229722
+          },
+          {
+            "ts": "2026-07-11T14:05:10.891131+00:00",
+            "size_mb": 982.88,
+            "records": 229824
+          },
+          {
+            "ts": "2026-07-11T15:04:52.409737+00:00",
+            "size_mb": 982.9,
+            "records": 229884
+          },
+          {
+            "ts": "2026-07-11T16:09:55.171226+00:00",
+            "size_mb": 982.93,
+            "records": 229950
+          },
+          {
+            "ts": "2026-07-11T17:09:41.346029+00:00",
+            "size_mb": 982.96,
+            "records": 230008
+          },
+          {
+            "ts": "2026-07-11T18:09:47.735307+00:00",
+            "size_mb": 982.98,
+            "records": 230077
+          },
+          {
+            "ts": "2026-07-11T19:09:48.252177+00:00",
+            "size_mb": 983.23,
+            "records": 230523
+          },
+          {
+            "ts": "2026-07-11T20:09:59.628802+00:00",
+            "size_mb": 988.06,
+            "records": 230717
+          },
+          {
+            "ts": "2026-07-11T21:05:34.496452+00:00",
+            "size_mb": 989.29,
+            "records": 230810
+          },
+          {
+            "ts": "2026-07-11T22:06:25.778942+00:00",
+            "size_mb": 989.43,
+            "records": 231021
+          },
+          {
+            "ts": "2026-07-11T23:06:35.768102+00:00",
+            "size_mb": 989.49,
+            "records": 231156
+          },
+          {
+            "ts": "2026-07-12T00:06:18.827574+00:00",
+            "size_mb": 989.5,
+            "records": 231198
+          },
+          {
+            "ts": "2026-07-12T01:06:07.941529+00:00",
+            "size_mb": 1000.0,
+            "records": 253277
+          },
+          {
+            "ts": "2026-07-12T02:06:17.001757+00:00",
+            "size_mb": 1000.1,
+            "records": 253368
+          },
+          {
+            "ts": "2026-07-12T03:06:06.433561+00:00",
+            "size_mb": 1000.15,
+            "records": 253390
+          },
+          {
+            "ts": "2026-07-12T04:06:23.396299+00:00",
+            "size_mb": 1000.17,
+            "records": 253442
+          },
+          {
+            "ts": "2026-07-12T05:06:24.771161+00:00",
+            "size_mb": 1000.18,
+            "records": 253464
+          },
+          {
+            "ts": "2026-07-12T06:06:28.036302+00:00",
+            "size_mb": 1000.19,
+            "records": 253479
+          },
+          {
+            "ts": "2026-07-12T07:06:51.605191+00:00",
+            "size_mb": 1000.21,
+            "records": 253522
+          },
+          {
+            "ts": "2026-07-12T08:06:50.846986+00:00",
+            "size_mb": 1000.21,
+            "records": 253545
+          },
+          {
+            "ts": "2026-07-12T09:06:43.424365+00:00",
+            "size_mb": 1000.23,
+            "records": 253591
+          },
+          {
+            "ts": "2026-07-12T10:06:17.803080+00:00",
+            "size_mb": 1000.24,
+            "records": 253613
+          },
+          {
+            "ts": "2026-07-12T11:05:56.779089+00:00",
+            "size_mb": 1000.24,
+            "records": 253617
+          },
+          {
+            "ts": "2026-07-12T12:06:01.865598+00:00",
+            "size_mb": 1000.23,
+            "records": 253580
+          },
+          {
+            "ts": "2026-07-12T13:05:50.526648+00:00",
+            "size_mb": 1000.22,
+            "records": 253583
+          },
+          {
+            "ts": "2026-07-12T14:05:40.570641+00:00",
+            "size_mb": 1000.2,
+            "records": 253505
+          },
+          {
+            "ts": "2026-07-12T15:05:28.363112+00:00",
+            "size_mb": 1000.21,
+            "records": 253533
+          },
+          {
+            "ts": "2026-07-12T16:05:33.504970+00:00",
+            "size_mb": 1006.07,
+            "records": 253653
+          }
+        ],
+        "failures_7d": [
+          {
+            "ts": "2026-07-09T20:02:39.894641+00:00",
+            "mode": "complete-r2-error",
+            "error": "AutoReconnect('ac-cz4whli-shard-00-01.1nduwmg.mongodb.net:27017: connection pool paused')",
+            "filename": null
+          }
+        ],
+        "warnings": [
+          {
+            "kind": "scheduler-quiet",
+            "severity": "amber",
+            "message": "No scheduler lock heartbeat in the last 30 minutes"
+          }
+        ],
+        "scheduler": {
+          "alive": false,
+          "last_lock_ts": "2026-07-07T13:57:14.402000Z",
+          "owner_pod": "r-946258f6-abad-4f62-9333-c276cf9b943c-5578679b58-ftzn5",
+          "is_healthy": false
+        },
+        "disk_preflight": {
+          "ok": true,
+          "path": "/app",
+          "free_bytes": 97944530944,
+          "total_bytes": 445766692864,
+          "percent_free": 21.97,
+          "reason": null
+        },
+        "hourly_cadence_enabled": true,
+        "cached": false
+      }
+    },
+    "occ_health": {
+      "status": 200,
+      "json": {
+        "generated_at": "2026-07-12T16:21:25.880374+00:00",
+        "overall_status": "red",
+        "overall_canonical": "CRITICAL",
+        "counts": {
+          "green": 8,
+          "yellow": 2,
+          "red": 3,
+          "unknown": 0
+        },
+        "canonical_counts": {
+          "healthy": 8,
+          "attention": 2,
+          "critical": 3,
+          "unknown": 0,
+          "stale": 0,
+          "disabled": 0,
+          "not_applicable": 0,
+          "total_applicable": 13
+        },
+        "root_cause_groups": {
+          "r2_bucket_capacity": [
+            "recovery_snapshot",
+            "storage_health"
+          ]
+        },
+        "unique_critical_root_causes": 2,
+        "total_cards": 13,
+        "sections": [
+          {
+            "id": "platform_runtime",
+            "label": "Platform Runtime",
+            "status": "yellow",
+            "cards": [
+              {
+                "id": "api_health",
+                "section": "platform_runtime",
+                "title": "API Health",
+                "endpoint": "/api/health",
+                "drilldown": "/admin/system-health",
+                "status": "green",
+                "canonical_status": "HEALTHY",
+                "summary": "API service reporting OK",
+                "evidence": {
+                  "service": "masci-hub",
+                  "raw_ts": "2026-07-12T16:21:25.950896+00:00"
+                },
+                "recommended_action": "",
+                "reason_code": "",
+                "root_cause_id": null,
+                "applicable": true,
+                "enabled": true,
+                "checked_at": "2026-07-12T16:21:25.950896+00:00"
+              },
+              {
+                "id": "version",
+                "section": "platform_runtime",
+                "title": "Build & Uptime",
+                "endpoint": "/api/version",
+                "drilldown": "/admin/system-health",
+                "status": "green",
+                "canonical_status": "HEALTHY",
+                "summary": "masci-hub \u00b7 uptime 14h 35m",
+                "evidence": {
+                  "commit": "9e79ada45d05",
+                  "release": "9e79ada45d05d246df4819140c5fde91",
+                  "started_at": "2026-07-12T01:46:16.436974+00:00",
+                  "session_timeouts": {
+                    "enabled": true,
+                    "tiers": {
+                      "ADMIN_HR": {
+                        "idle_min": 15,
+                        "abs_hour": 4
+                      },
+                      "OPERATIONS": {
+                        "idle_min": 30,
+                        "abs_hour": 8
+                      },
+                      "FIELD": {
+                        "idle_min": 60,
+                        "abs_hour": 12
+                      }
+                    }
+                  }
+                },
+                "recommended_action": "",
+                "reason_code": "",
+                "root_cause_id": null,
+                "applicable": true,
+                "enabled": true,
+                "checked_at": "2026-07-12T01:46:16.436974+00:00"
+              },
+              {
+                "id": "operations_registry",
+                "section": "platform_runtime",
+                "title": "Registered Maintenance Ops",
+                "endpoint": "/api/admin/operations-control/overview",
+                "drilldown": "/admin/operations-control",
+                "status": "yellow",
+                "canonical_status": "ATTENTION",
+                "summary": "14 registered ops \u00b7 0 critical \u00b7 6 attention \u00b7 0 unavailable",
+                "evidence": {
+                  "total": 14,
+                  "critical": 0,
+                  "warning": 6,
+                  "unavailable": 0
+                },
+                "recommended_action": "Open Maintenance Operations console below and inspect the red items.",
+                "reason_code": "",
+                "root_cause_id": null,
+                "applicable": true,
+                "enabled": true,
+                "checked_at": "2026-07-12T16:21:25.880374+00:00"
+              }
+            ]
+          },
+          {
+            "id": "storage_recovery",
+            "label": "Storage & Recovery",
+            "status": "red",
+            "cards": [
+              {
+                "id": "recovery_snapshot",
+                "section": "storage_recovery",
+                "title": "Backups & R2 Recovery",
+                "endpoint": "/api/admin/recovery/snapshot",
+                "drilldown": "/admin/storage-recovery",
+                "status": "red",
+                "canonical_status": "CRITICAL",
+                "summary": "Backup 15.9m old \u00b7 target \u2264 1440m \u00b7 95 archives in R2  Restore drill: not yet run.",
+                "evidence": {
+                  "pill": "RED",
+                  "reason_code": "bucket_over_alert",
+                  "reason": "R2 bucket usage 327.56 GB above alert threshold 50.0 GB.",
+                  "backup_age_minutes": 15.9,
+                  "target_minutes": 1440,
+                  "archive_count": {
+                    "r2_total": 95,
+                    "last_7d": 95,
+                    "last_30d": 95
+                  },
+                  "rpo": {
+                    "target_min": 60,
+                    "actual_min": 15.9,
+                    "status": "GREEN"
+                  },
+                  "rto": {
+                    "target_min": 15,
+                    "last_drill_min": null,
+                    "status": "AMBER"
+                  },
+                  "bucket_usage": {
+                    "gb": 327.56,
+                    "warn_gb": 45.0,
+                    "alert_gb": 50.0,
+                    "status": "RED",
+                    "ts": "2026-07-12T16:05:42.127038+00:00"
+                  },
+                  "scheduler": {
+                    "alive": false,
+                    "is_healthy": false
+                  },
+                  "last_backup": {
+                    "filename": "MASCI_complete_backup_2026-07-12_160028Z.zip",
+                    "size_mb": 1006.07,
+                    "records": 253653,
+                    "ok": true,
+                    "ts": "2026-07-12T16:05:33.504970+00:00",
+                    "inlined_photos": 0,
+                    "source": "backup_health"
+                  },
+                  "last_drill": null,
+                  "warnings": [
+                    {
+                      "kind": "scheduler-quiet",
+                      "severity": "amber",
+                      "message": "No scheduler lock heartbeat in the last 30 minutes"
+                    }
+                  ],
+                  "hourly_cadence_enabled": true
+                },
+                "recommended_action": "Open Storage & Recovery \u2192 R2 Lifecycle to review capacity and rotate old archives.",
+                "reason_code": "bucket_over_alert",
+                "root_cause_id": "r2_bucket_capacity",
+                "applicable": true,
+                "enabled": true,
+                "checked_at": "2026-07-12T16:05:33.504970+00:00"
+              },
+              {
+                "id": "storage_health",
+                "section": "storage_recovery",
+                "title": "R2 Storage Lifecycle Health",
+                "endpoint": "/api/admin/r2/lifecycle/health",
+                "drilldown": "/admin/storage-recovery",
+                "status": "red",
+                "canonical_status": "CRITICAL",
+                "summary": "Score 63.1/100 \u00b7 327.6 GB \u00b7 10192 objects \u00b7 0 orphan candidates (0.0%)",
+                "evidence": {
+                  "overall_score": 63.1,
+                  "band": "RED",
+                  "sub_scores": {
+                    "capacity_score": 0.0,
+                    "ownership_score": 15.4,
+                    "orphan_score": 100.0,
+                    "retention_score": 100.0,
+                    "backup_score": 100.0,
+                    "lifecycle_score": 100.0,
+                    "freshness_score": 100.0
+                  },
+                  "capacity": {
+                    "gb": 327.56,
+                    "warn_gb": 45.0,
+                    "alert_gb": 50.0,
+                    "over_alert": true
+                  },
+                  "objects": {
+                    "total": 10192,
+                    "verified_owner": 1574,
+                    "verified_orphan": 0,
+                    "orphan_pct": 0.0,
+                    "orphan_bytes": 0
+                  },
+                  "freshness": {
+                    "inventory_age_minutes": 57.54120806666666,
+                    "backup_age_minutes": 15.8757954
+                  }
+                },
+                "recommended_action": "Open Storage & Recovery \u2192 R2 Lifecycle to review the dry-run.",
+                "reason_code": "storage_lifecycle_needs_review",
+                "root_cause_id": "r2_bucket_capacity",
+                "applicable": true,
+                "enabled": true,
+                "checked_at": "2026-07-12T16:21:26.052694+00:00"
+              }
+            ]
+          },
+          {
+            "id": "queues_workers",
+            "label": "Queues & Workers",
+            "status": "yellow",
+            "cards": [
+              {
+                "id": "backup_scheduler",
+                "section": "queues_workers",
+                "title": "Backup Scheduler Loop",
+                "endpoint": "/api/admin/backups-scheduler-state",
+                "drilldown": "/admin/scheduler-runs",
+                "status": "yellow",
+                "canonical_status": "ATTENTION",
+                "summary": "Scheduler dormant (may auto-resurrect on next tick).",
+                "evidence": {
+                  "alive": false,
+                  "resurrect_count": 0,
+                  "in_progress": false,
+                  "last_tick_ts": null,
+                  "last_attempt_outcome": null,
+                  "boot_step": null,
+                  "boot_exception": null
+                },
+                "recommended_action": "Watch for auto-resurrect within the next hour.",
+                "reason_code": "",
+                "root_cause_id": null,
+                "applicable": true,
+                "enabled": true,
+                "checked_at": "2026-07-12T16:21:25.880374+00:00"
+              }
+            ]
+          },
+          {
+            "id": "communications",
+            "label": "Communications",
+            "status": "green",
+            "cards": [
+              {
+                "id": "email_v2",
+                "section": "communications",
+                "title": "Email Routing",
+                "endpoint": "/api/admin/email-routing/v2/status",
+                "drilldown": "/admin/communications",
+                "status": "green",
+                "canonical_status": "HEALTHY",
+                "summary": "Mode legacy \u00b7 49 routes \u00b7 0 critical route(s) empty",
+                "evidence": {
+                  "mode": "legacy",
+                  "band": "green",
+                  "route_counts": {
+                    "total": 49,
+                    "enabled": 22,
+                    "disabled": 27,
+                    "critical_total": 4,
+                    "critical_populated": 4,
+                    "critical_empty": 0,
+                    "empty_non_critical": 5
+                  },
+                  "critical_empty_route_keys": [],
+                  "audit_counters": {
+                    "total": 132,
+                    "last_hour": 2,
+                    "last_24h": 2,
+                    "errors_last_24h": 0,
+                    "db_source_last_24h": 1,
+                    "legacy_source_last_24h": 1
+                  },
+                  "last_v2_audit_age_minutes": 20.00383515,
+                  "band_reason": "Legacy routing \u2014 V2 flag is OFF (safe baseline)"
+                },
+                "recommended_action": "",
+                "reason_code": "",
+                "root_cause_id": null,
+                "applicable": true,
+                "enabled": true,
+                "checked_at": "2026-07-12T16:21:26.064341+00:00"
+              }
+            ]
+          },
+          {
+            "id": "ai_operations",
+            "label": "AI Operations",
+            "status": "green",
+            "cards": [
+              {
+                "id": "ai_gateway",
+                "section": "ai_operations",
+                "title": "AI Gateway",
+                "endpoint": "/api/ai/gateway/status",
+                "drilldown": "/admin/ai-operations",
+                "status": "green",
+                "canonical_status": "HEALTHY",
+                "summary": "Gateway ON \u00b7 provider anthropic available.",
+                "evidence": {
+                  "gateway_enabled": true,
+                  "tenant_ai_default_enabled": true,
+                  "resolved_provider": "anthropic",
+                  "resolved_provider_available": true,
+                  "modules": {
+                    "daily_report_summary": {
+                      "deployment_flag": "AI_DAILY_REPORT_SUMMARY_ENABLED",
+                      "deployment_enabled": true,
+                      "tenant_default_flag": "TENANT_AI_DAILY_REPORT_SUMMARY_ENABLED",
+                      "tenant_default_enabled": true
+                    },
+                    "photo_intelligence": {
+                      "deployment_flag": "AI_PHOTO_VISION_ENABLED",
+                      "deployment_enabled": true,
+                      "tenant_default_flag": "TENANT_AI_PHOTO_INTELLIGENCE_ENABLED",
+                      "tenant_default_enabled": true
+                    },
+                    "pm_intelligence": {
+                      "deployment_flag": "AI_PM_INTELLIGENCE_ENABLED",
+                      "deployment_enabled": true,
+                      "tenant_default_flag": "TENANT_AI_PM_INTELLIGENCE_ENABLED",
+                      "tenant_default_enabled": true
+                    },
+                    "admin_intelligence": {
+                      "deployment_flag": "AI_ADMIN_INTELLIGENCE_ENABLED",
+                      "deployment_enabled": true,
+                      "tenant_default_flag": "TENANT_AI_ADMIN_INTELLIGENCE_ENABLED",
+                      "tenant_default_enabled": true
+                    },
+                    "safety_intelligence": {
+                      "deployment_flag": "AI_SAFETY_INTELLIGENCE_ENABLED",
+                      "deployment_enabled": true,
+                      "tenant_default_flag": "TENANT_AI_SAFETY_INTELLIGENCE_ENABLED",
+                      "tenant_default_enabled": true
+                    },
+                    "translation": {
+                      "deployment_flag": "AI_TRANSLATION_ENABLED",
+                      "deployment_enabled": true,
+                      "tenant_default_flag": "TENANT_AI_TRANSLATION_ENABLED",
+                      "tenant_default_enabled": true
+                    }
+                  },
+                  "transport": {
+                    "timeout_ms": 45000,
+                    "max_retries": 2,
+                    "failover_enabled": true
+                  }
+                },
+                "recommended_action": "",
+                "reason_code": "",
+                "root_cause_id": null,
+                "applicable": true,
+                "enabled": true,
+                "checked_at": "2026-07-12T16:21:25.880374+00:00"
+              }
+            ]
+          },
+          {
+            "id": "daily_reports",
+            "label": "Daily Report Operations",
+            "status": "green",
+            "cards": [
+              {
+                "id": "daily_report_drafts",
+                "section": "daily_reports",
+                "title": "Daily Report Drafts Health",
+                "endpoint": "/api/admin/draft-health",
+                "drilldown": "/admin/daily",
+                "status": "green",
+                "canonical_status": "HEALTHY",
+                "summary": "0 failed / 0 abandoned / 0 stale drafts (24h window)",
+                "evidence": {
+                  "buckets": {
+                    "active_lt_1h": 0,
+                    "stale_1h_to_24h": 0,
+                    "abandoned_gt_24h": 0,
+                    "failed_last_24h": 0,
+                    "quota_warn_last_24h": 0,
+                    "restore_offered_last_24h": 0,
+                    "restore_action_last_24h": 0
+                  },
+                  "sources": {
+                    "collection": "draft_telemetry",
+                    "populated_by": "frontend useFormDraft via POST /api/draft-telemetry"
+                  }
+                },
+                "recommended_action": "",
+                "reason_code": "",
+                "root_cause_id": null,
+                "applicable": true,
+                "enabled": true,
+                "checked_at": "2026-07-12T16:21:26.068717+00:00"
+              }
+            ]
+          },
+          {
+            "id": "identity_security",
+            "label": "HR / Identity / Security",
+            "status": "red",
+            "cards": [
+              {
+                "id": "sessions",
+                "section": "identity_security",
+                "title": "Active Sessions",
+                "endpoint": "/api/admin/sessions/recent",
+                "drilldown": "/admin/identity-security",
+                "status": "green",
+                "canonical_status": "HEALTHY",
+                "summary": "24 active session(s) \u00b7 timeouts on",
+                "evidence": {
+                  "count": 24,
+                  "timeouts_enabled": true,
+                  "tiers": {
+                    "ADMIN_HR": {
+                      "idle_min": 15,
+                      "abs_hour": 4
+                    },
+                    "OPERATIONS": {
+                      "idle_min": 30,
+                      "abs_hour": 8
+                    },
+                    "FIELD": {
+                      "idle_min": 60,
+                      "abs_hour": 12
+                    }
+                  }
+                },
+                "recommended_action": "",
+                "reason_code": "",
+                "root_cause_id": null,
+                "applicable": true,
+                "enabled": true,
+                "checked_at": "2026-07-12T16:21:26.252451+00:00"
+              },
+              {
+                "id": "governance",
+                "section": "identity_security",
+                "title": "Governance & Trust",
+                "endpoint": "/api/admin/governance/summary",
+                "drilldown": "/admin/governance-trust",
+                "status": "red",
+                "canonical_status": "CRITICAL",
+                "summary": "46 high/critical rules \u00b7 health label: critical",
+                "evidence": {
+                  "severity_counts": {
+                    "critical": 0,
+                    "high": 46,
+                    "medium": 312,
+                    "low": 0,
+                    "info": 0
+                  },
+                  "status_counts": {
+                    "open": 358,
+                    "acknowledged": 0,
+                    "resolved": 30
+                  },
+                  "health_label": "critical",
+                  "convergence_score": 0,
+                  "rule_counts": {
+                    "PPE_MISSING": 234,
+                    "EMP_LINK_MISSING_ID": 78,
+                    "EMP_LINK_UNRESOLVABLE": 46
+                  },
+                  "last_scan": {
+                    "started_at": "2026-07-11T21:04:32.310729+00:00",
+                    "finished_at": "2026-07-11T21:04:55.287938+00:00",
+                    "detected_total": 358,
+                    "upserts": 358,
+                    "auto_resolved": 30,
+                    "rule_counts": {
+                      "PPE_MISSING": 234,
+                      "EMP_LINK_UNRESOLVABLE": 46,
+                      "EMP_LINK_MISSING_ID": 78
+                    },
+                    "severity_counts": {
+                      "medium": 312,
+                      "high": 46
+                    },
+                    "detector_errors": {}
+                  }
+                },
+                "recommended_action": "Open Governance & Trust to triage high-severity rules.",
+                "reason_code": "",
+                "root_cause_id": null,
+                "applicable": true,
+                "enabled": true,
+                "checked_at": "2026-07-12T16:21:25.880374+00:00"
+              },
+              {
+                "id": "production_certification",
+                "section": "identity_security",
+                "title": "Production Certification",
+                "endpoint": "/api/admin/production-certification",
+                "drilldown": "/admin/governance-trust",
+                "status": "green",
+                "canonical_status": "HEALTHY",
+                "summary": "Platform band: green \u00b7 0 workflows certified",
+                "evidence": {
+                  "platform_band": "green",
+                  "counters": {
+                    "verified": 4,
+                    "failed": 0,
+                    "not_yet_exercised": 7,
+                    "total": 11
+                  },
+                  "workflows_summary_len": 11
+                },
+                "recommended_action": "",
+                "reason_code": "",
+                "root_cause_id": null,
+                "applicable": true,
+                "enabled": true,
+                "checked_at": "2026-07-12T16:21:27.307269+00:00"
+              }
+            ]
+          },
+          {
+            "id": "integrations",
+            "label": "Integrations",
+            "status": "green",
+            "cards": [
+              {
+                "id": "integrations",
+                "section": "integrations",
+                "title": "Integration Probes",
+                "endpoint": "/api/admin/integrations/health",
+                "drilldown": "/admin/platform-configuration",
+                "status": "green",
+                "canonical_status": "HEALTHY",
+                "summary": "5/5 live integration probes healthy \u00b7 1 not applicable",
+                "evidence": {
+                  "probes": [
+                    {
+                      "id": "mongo",
+                      "name": "MongoDB",
+                      "status": "ok",
+                      "latency_ms": 133,
+                      "message": "Ping OK",
+                      "checked_at": "2026-07-12T16:21:26.215824+00:00",
+                      "honesty_status": "LIVE",
+                      "canonical_status": "HEALTHY",
+                      "applicable": true
+                    },
+                    {
+                      "id": "r2",
+                      "name": "Cloudflare R2",
+                      "status": "ok",
+                      "latency_ms": 243,
+                      "message": "Bucket `masci-hub` reachable",
+                      "checked_at": "2026-07-12T16:21:26.325733+00:00",
+                      "honesty_status": "LIVE",
+                      "canonical_status": "HEALTHY",
+                      "applicable": true
+                    },
+                    {
+                      "id": "resend",
+                      "name": "Resend Email",
+                      "status": "ok",
+                      "latency_ms": 0,
+                      "message": "Key present \u00b7 auto-email ON",
+                      "checked_at": "2026-07-12T16:21:26.103410+00:00",
+                      "auto_email_enabled": true,
+                      "honesty_status": "LIVE",
+                      "canonical_status": "HEALTHY",
+                      "applicable": true
+                    },
+                    {
+                      "id": "maintainx",
+                      "name": "MaintainX (Work Orders)",
+                      "status": "disabled",
+                      "latency_ms": 0,
+                      "message": "MOCKED \u2014 live API not configured; events surfaced via operations_events",
+                      "checked_at": "2026-07-12T16:21:26.103445+00:00",
+                      "mocked": true,
+                      "honesty_status": "DISCONNECTED",
+                      "canonical_status": "NOT_APPLICABLE",
+                      "applicable": false
+                    },
+                    {
+                      "id": "motive",
+                      "name": "Motive (Telematics)",
+                      "status": "ok",
+                      "latency_ms": 0,
+                      "message": "Live \u00b7 enabled \u00b7 synced 2026-07-12T16:15:22.543444+00:00 \u00b7 webhook armed",
+                      "checked_at": "2026-07-12T16:21:26.215891+00:00",
+                      "mocked": false,
+                      "last_successful_sync_at": "2026-07-12T16:15:22.543444+00:00",
+                      "webhook_secret_present": true,
+                      "api_key_source": "db",
+                      "honesty_status": "LIVE",
+                      "canonical_status": "HEALTHY",
+                      "applicable": true
+                    },
+                    {
+                      "id": "emergent_llm",
+                      "name": "Emergent Universal LLM Key",
+                      "status": "ok",
+                      "latency_ms": 0,
+                      "message": "Key present (universal \u2014 OpenAI/Anthropic/Gemini)",
+                      "checked_at": "2026-07-12T16:21:26.103714+00:00",
+                      "honesty_status": "LIVE",
+                      "canonical_status": "HEALTHY",
+                      "applicable": true
+                    }
+                  ],
+                  "overall_status": "ok",
+                  "not_applicable_probe_ids": [
+                    "maintainx"
+                  ]
+                },
+                "recommended_action": "",
+                "reason_code": "integrations_healthy",
+                "root_cause_id": null,
+                "applicable": true,
+                "enabled": true,
+                "checked_at": "2026-07-12T16:21:26.331366+00:00"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "system_health": {
+      "status": 200,
+      "json": {
+        "overall": "green",
+        "overall_canonical": "HEALTHY",
+        "cards": [
+          {
+            "key": "database",
+            "label": "MongoDB",
+            "status": "green",
+            "detail": "Connected",
+            "canonical_status": "HEALTHY"
+          },
+          {
+            "key": "r2",
+            "label": "Cloudflare R2",
+            "status": "green",
+            "detail": "Configured \u00b7 ready \u00b7 no degraded events",
+            "canonical_status": "HEALTHY"
+          },
+          {
+            "key": "backup",
+            "label": "Last backup",
+            "status": "green",
+            "detail": "R2 newest object 0.2h ago",
+            "canonical_status": "HEALTHY"
+          },
+          {
+            "key": "auth_failures",
+            "label": "Auth failures (1h)",
+            "status": "green",
+            "detail": "0 attempts",
+            "canonical_status": "HEALTHY"
+          },
+          {
+            "key": "integrations",
+            "label": "Integrations",
+            "status": "green",
+            "detail": "Motive: green \u00b7 Maintainx: not_applicable",
+            "children": [
+              {
+                "provider": "motive",
+                "status": "green",
+                "detail": "Live \u00b7 synced 2026-07-12T16:15:22.543444+00:00 \u00b7 webhook armed",
+                "enabled": true,
+                "applicable": true,
+                "api_key_present": true,
+                "webhook_secret_present": true,
+                "last_successful_sync_at": "2026-07-12T16:15:22.543444+00:00",
+                "last_failed_sync_at": "2026-07-10T09:56:34.342478+00:00"
+              },
+              {
+                "provider": "maintainx",
+                "status": "not_applicable",
+                "detail": "Not applicable \u2014 MASCI does not use this integration.",
+                "enabled": false,
+                "applicable": false,
+                "api_key_present": false,
+                "webhook_secret_present": false,
+                "last_successful_sync_at": null,
+                "last_failed_sync_at": null
+              }
+            ],
+            "canonical_status": "HEALTHY"
+          },
+          {
+            "key": "failed_syncs",
+            "label": "Failed syncs (24h)",
+            "status": "green",
+            "detail": "0 failures",
+            "canonical_status": "HEALTHY"
+          },
+          {
+            "key": "active_sessions",
+            "label": "Active users (12h)",
+            "status": "green",
+            "detail": "1 signed-in users",
+            "canonical_status": "HEALTHY"
+          },
+          {
+            "key": "version",
+            "label": "Build version",
+            "status": "green",
+            "detail": "9e79ada45d05 \u00b7 built 2026-07-12T01:46:16.436974+00:00",
+            "canonical_status": "HEALTHY"
+          }
+        ],
+        "counts": {
+          "healthy": 8,
+          "attention": 0,
+          "critical": 0,
+          "unknown": 0,
+          "stale": 0,
+          "disabled": 0,
+          "not_applicable": 0,
+          "total_applicable": 8,
+          "total_cards": 8
+        },
+        "checked_at": "2026-07-12T16:21:28+00:00"
+      }
+    },
+    "health_full": {
+      "status": 200,
+      "json": {
+        "ok": true,
+        "mongo": true,
+        "scheduler": true,
+        "backup_recent": true
+      }
+    },
+    "deployment_readiness": {
+      "status": 200,
+      "json": {
+        "track": "15.78",
+        "generated_at": "2026-07-12T16:21:30.780631+00:00",
+        "decision": "pass",
+        "blocking_gates": [],
+        "advisory_findings": [
+          {
+            "id": "equipment_missing_unit_number",
+            "category": "master_data",
+            "summary": "247 equipment row(s) missing canonical unit_number \u2014 display label is being used as identity.",
+            "evidence": "samples=['4f24b870', '1b9783ae', '97079e6c', '1be2e603', 'fc55caa3']",
+            "remediation": "Go to Admin \u2192 Equipment & Suppliers \u2192 Status Board and assign a unit_number to each piece of equipment, or remove inactive rows via the Asset Administration \u2192 Canonical Taxonomy review queue.",
+            "remediation_link": "/admin/equipment-suppliers"
+          },
+          {
+            "id": "employee_missing_id",
+            "category": "master_data",
+            "summary": "200 active employee(s) saved without a canonical employee_id.",
+            "evidence": "samples=['Antulio Lopez', 'Brenton Carr', 'Carlos Meza', 'Christopher J Milson', 'Concepcion Rangel-Ruiz']",
+            "remediation": "Open Admin \u2192 People & Access \u2192 Employee Master and assign the canonical employee_id to each row below.",
+            "remediation_link": "/admin/people-and-access"
+          }
+        ],
+        "bootstrap": {
+          "version": 1,
+          "completed_at": "2026-07-12T01:47:27.655577+00:00",
+          "ok": true,
+          "missing_items": [],
+          "ran": true
+        },
+        "summary": {
+          "blocking_count": 0,
+          "advisory_count": 2,
+          "categories_red": [],
+          "categories_amber": [
+            "workflow_health"
+          ],
+          "workflows_red": 0,
+          "workflows_amber": 0,
+          "workflows_idle": 10,
+          "workflows_trusted": 1,
+          "unknown_audit_count_24h": 0,
+          "silent_failure_count_24h": 0
+        },
+        "trust_score": 90,
+        "trust_band": "green",
+        "regression_gate_count": 134
+      }
+    }
+  }
+}
