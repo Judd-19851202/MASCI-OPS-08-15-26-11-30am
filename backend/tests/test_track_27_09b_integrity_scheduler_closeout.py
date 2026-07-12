@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, "/app/backend")
 
 import server  # noqa: E402, PLC0415
-from routes.recovery_dashboard import _scheduler_state_is_alive  # noqa: E402, PLC0415
+from routes.recovery_dashboard import _scheduler_state_is_alive, canonical_scheduler_snapshot  # noqa: E402, PLC0415
 
 
 def test_integrity_missing_normalizes_legacy_manifest_aliases_and_exclusions():
@@ -48,6 +48,13 @@ def test_scheduler_state_alive_uses_last_tick_timestamp():
     assert _scheduler_state_is_alive({"last_tick_ts": "2999-01-01T00:00:00+00:00"}) is True
     assert _scheduler_state_is_alive({"last_tick_ts": "2000-01-01T00:00:00+00:00"}) is False
     assert _scheduler_state_is_alive({"last_tick_ts": None}) is False
+
+
+def test_canonical_scheduler_snapshot_returns_single_truth_tuple():
+    out = canonical_scheduler_snapshot({"last_tick_ts": "2999-01-01T00:00:00+00:00"})
+    assert out["alive"] is True
+    assert out["is_healthy"] is True
+    assert out["seconds_since_last_tick"] is not None
 
 
 class _AsyncCollection:

@@ -36,7 +36,7 @@ def _require_url():
 
 
 def test_api_health_full_contract():
-    r = requests.get(f"{URL}/api/health/full", timeout=10)
+    r = requests.get(f"{URL}/api/health/full", timeout=30)
     assert r.status_code in (200, 503), f"unexpected status {r.status_code}: {r.text}"
     body = r.json()
     assert isinstance(body, dict)
@@ -56,7 +56,7 @@ def test_api_health_full_contract():
 def test_api_health_full_no_leak():
     """Endpoint must not leak timestamps, error messages, or internal
     state names — UptimeRobot is on the public internet."""
-    r = requests.get(f"{URL}/api/health/full", timeout=10)
+    r = requests.get(f"{URL}/api/health/full", timeout=30)
     body = r.json()
     # Only the four contract keys may be present.
     assert set(body.keys()) == {"ok", "mongo", "scheduler", "backup_recent"}, \

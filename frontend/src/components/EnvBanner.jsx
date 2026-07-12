@@ -39,7 +39,7 @@ export default function EnvBanner() {
       role="status"
       aria-live="polite"
     >
-      {env === "preview" ? "⚠ PREVIEW ENVIRONMENT" : `⚠ ${env.toUpperCase()} ENVIRONMENT`}
+      {env === "preview" ? "⚠ NON-PRODUCTION ENVIRONMENT" : `⚠ ${env.toUpperCase()} ENVIRONMENT`}
       <span className="ml-2 opacity-70">· db: {info.db_name || "?"}</span>
       <span className="ml-2 opacity-70 hidden sm:inline">
         · do not enter real operational data

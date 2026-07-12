@@ -1289,11 +1289,9 @@ async def api_health_full(response: Response):
     # `backup_recent`) so the probe reflects functional truth rather
     # than a transient heartbeat gap.
     try:
-        last_tick = (_BACKUP_SCHEDULER_STATE or {}).get("last_tick_ts")
-        if last_tick:
-            last_dt = datetime.fromisoformat(last_tick)
-            age_s = (datetime.now(timezone.utc) - last_dt).total_seconds()
-            out["scheduler"] = age_s < 3600
+        from routes.recovery_dashboard import canonical_scheduler_snapshot  # noqa: PLC0415
+        sched = canonical_scheduler_snapshot(_BACKUP_SCHEDULER_STATE, max_age_minutes=60)
+        out["scheduler"] = bool(sched["alive"])
     except Exception:
         out["scheduler"] = False
 
@@ -9186,6 +9184,17 @@ async def admin_backup_integrity_check(_: bool = Depends(require_admin_strict)):
             archive_size_bytes = manifest_bundle.get("content_length")
             manifest_source = f"r2:{manifest_bundle.get('manifest_name')}"
 
+    recent_backups: List[Dict[str, Any]] = []
+    recent_backup_rows: List[Dict[str, Any]] = []
+    try:
+        recent_backup_rows = await db.backup_health.find(
+            {"mode": "complete-r2", "ok": True, "filename": {"$nin": [None, ""]}},
+            {"_id": 0, "filename": 1, "size_bytes": 1, "records": 1, "ts": 1},
+            sort=[("ts", -1)],
+        ).to_list(length=5)
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"integrity-check: recent lineage read failed: {e}")
+
     if not captured and drift_row:
         captured = sorted(drift_row.get("captured_collections") or [])
         raw_total_records = drift_row.get("total_records")
@@ -9255,6 +9264,17 @@ async def admin_backup_integrity_check(_: bool = Depends(require_admin_strict)):
 
     missing = _compute_backup_integrity_missing(live, captured, manifest_explicit_exclusions)
     integrity_result = "PASS" if captured and not missing else ("FAIL" if captured else "UNKNOWN")
+    for idx, row in enumerate(recent_backup_rows):
+        recent_backups.append({
+            "filename": row.get("filename"),
+            "object_key": f"backups/auto-90d/{row.get('filename')}" if row.get("filename") else None,
+            "ts": row.get("ts"),
+            "size_bytes": row.get("size_bytes") or 0,
+            "captured_collections": len(captured) if idx == 0 and captured else None,
+            "total_records": document_count if idx == 0 and document_count is not None else row.get("records"),
+            "integrity_result": integrity_result if idx == 0 else None,
+            "failed_check": missing[0] if idx == 0 and missing else None,
+        })
     return {
         "last_backup_filename": (
             latest_r2_filename
@@ -9274,6 +9294,7 @@ async def admin_backup_integrity_check(_: bool = Depends(require_admin_strict)):
         "verification_timestamp": datetime.now(timezone.utc).isoformat(),
         "restore_test_evidence": last_drill,
         "evidence_source": manifest_source,
+        "recent_backups": recent_backups,
         "ok": bool(captured) and len(missing) == 0,
     }
 
@@ -9660,14 +9681,11 @@ async def admin_backups_scheduler_state(_: bool = Depends(require_admin_strict))
     filename and 400 on the validator.
     """
     state = dict(_BACKUP_SCHEDULER_STATE)
-    last_tick = state.get("last_tick_ts")
-    seconds_since_last_tick: Optional[float] = None
-    if last_tick:
-        try:
-            last_dt = datetime.fromisoformat(last_tick)
-            seconds_since_last_tick = (datetime.now(timezone.utc) - last_dt).total_seconds()
-        except Exception:
-            pass
+    from routes.recovery_dashboard import canonical_scheduler_snapshot  # noqa: PLC0415
+    canonical = canonical_scheduler_snapshot(state)
+    seconds_since_last_tick: Optional[float] = canonical.get("seconds_since_last_tick")
+    state["alive"] = canonical.get("alive")
+    state["is_healthy"] = canonical.get("is_healthy")
 
     # last_run_for_hour keys are date objects → coerce to ISO strings for JSON.
     state["last_run_for_hour"] = {

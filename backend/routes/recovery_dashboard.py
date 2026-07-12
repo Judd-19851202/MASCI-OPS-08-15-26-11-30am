@@ -56,6 +56,29 @@ def _scheduler_state_is_alive(state: Any, *, max_age_minutes: int = 30) -> bool:
     return (datetime.now(timezone.utc) - ts) < timedelta(minutes=max_age_minutes)
 
 
+def canonical_scheduler_snapshot(state: Any, *, max_age_minutes: int = 30) -> Dict[str, Any]:
+    """Single source of truth for scheduler liveness / health."""
+    if not isinstance(state, dict):
+        return {
+            "alive": False,
+            "is_healthy": False,
+            "last_tick_ts": None,
+            "seconds_since_last_tick": None,
+        }
+    tick = state.get("last_tick_ts")
+    ts = _parse_ts(tick)
+    seconds_since_last_tick = None
+    if ts:
+        seconds_since_last_tick = (datetime.now(timezone.utc) - ts).total_seconds()
+    alive = _scheduler_state_is_alive(state, max_age_minutes=max_age_minutes)
+    return {
+        "alive": alive,
+        "is_healthy": alive,
+        "last_tick_ts": tick,
+        "seconds_since_last_tick": seconds_since_last_tick,
+    }
+
+
 def _compute_pill(
     last_backup_ok: Optional[bool],
     backup_age_minutes: Optional[float],
@@ -355,7 +378,8 @@ def build_recovery_dashboard_router(
                 scheduler_signal_source = "backup_scheduler_state"
                 scheduler_last_lock_ts = state_tick
                 scheduler_owner_pod = None
-                scheduler_alive = _scheduler_state_is_alive(state)
+                canonical = canonical_scheduler_snapshot(state)
+                scheduler_alive = bool(canonical["alive"])
             else:
                 lock_row = await db.scheduler_locks.find_one(
                     {"_id": "backup_scheduler"},
@@ -452,15 +476,7 @@ def build_recovery_dashboard_router(
                 "last_lock_ts": scheduler_last_lock_ts,
                 "owner_pod": scheduler_owner_pod,
                 "signal_source": scheduler_signal_source,
-                # TRACK 27.05 · P0-2 · true health = alive AND ticked in
-                # the last 15 min. Silent-death is now visible.
-                "is_healthy": bool(scheduler_alive) and (
-                    scheduler_last_lock_ts is not None
-                    and (
-                        (datetime.now(timezone.utc) - _parse_ts(scheduler_last_lock_ts)).total_seconds() < 900
-                        if _parse_ts(scheduler_last_lock_ts) else False
-                    )
-                ),
+                "is_healthy": bool(scheduler_alive),
             },
             # TRACK 27.05 · P0-4 · disk preflight state, surfaced so OCC
             # can display "storage will refuse new writes below N free".

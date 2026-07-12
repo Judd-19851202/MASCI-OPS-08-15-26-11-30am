@@ -43,16 +43,34 @@ class _AsyncCollection:
     async def find_one(self, *args, **kwargs):
         return self._doc
 
+    def find(self, *args, **kwargs):
+        class _Cursor:
+            def __init__(self, docs):
+                self._docs = docs if isinstance(docs, list) else ([docs] if docs else [])
+
+            async def to_list(self, length=None):
+                return self._docs[:length]
+
+        return _Cursor(self._doc)
+
 
 class _FakeDB:
     def __init__(self):
         self.backup_health = _AsyncCollection(
-            {
-                "filename": "MASCI_complete_backup_2026-07-12_140050Z.zip",
-                "size_bytes": 1048781324,
-                "records": 253505,
-                "ts": "2026-07-12T14:05:40.570641+00:00",
-            }
+            [
+                {
+                    "filename": "MASCI_complete_backup_2026-07-12_140050Z.zip",
+                    "size_bytes": 1048781324,
+                    "records": 253505,
+                    "ts": "2026-07-12T14:05:40.570641+00:00",
+                },
+                {
+                    "filename": "MASCI_complete_backup_2026-07-12_120000Z.zip",
+                    "size_bytes": 1040000000,
+                    "records": 250000,
+                    "ts": "2026-07-12T12:00:40.570641+00:00",
+                },
+            ]
         )
         self.backup_drift_history = _AsyncCollection(
             {
@@ -120,4 +138,6 @@ def test_track_27_09_integrity_check_prefers_r2_manifest(monkeypatch, server_mod
     assert out["archive_size_bytes"] == 1048781324
     assert out["evidence_source"] == "r2:MANIFEST.json"
     assert out["integrity_result"] == "PASS"
+    assert len(out["recent_backups"]) >= 2
+    assert out["recent_backups"][0]["filename"] == "MASCI_complete_backup_2026-07-12_140050Z.zip"
     assert out["ok"] is True

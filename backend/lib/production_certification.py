@@ -83,6 +83,15 @@ async def _audit_row_for_correlation(db, cid: str) -> Optional[Dict[str, Any]]:
     return aw
 
 
+async def _workflow_has_any_evidence(db, workflow: str) -> bool:
+    row = await db.trust_spine_events.find_one(
+        {"workflow": workflow},
+        projection={"_id": 0, "workflow": 1},
+        sort=[("ts", -1)],
+    )
+    return bool(row)
+
+
 def _operator_remediation_for_failure(failure_reason: Optional[str]) -> str:
     """Map known Trust Spine failure_reason strings to operator-facing
     actions. Falls back to a generic message that points at the
@@ -154,21 +163,22 @@ async def build_certification(db) -> Dict[str, Any]:
     for wf in workflows_known:
         latest = await _latest_completed(db, wf)
         if latest is None:
+            has_any_evidence = await _workflow_has_any_evidence(db, wf)
             rows.append({
                 "workflow": wf,
-                "status": STATUS_NOT_YET_EXERCISED,
+                "status": STATUS_FAILED if has_any_evidence else STATUS_NOT_YET_EXERCISED,
                 "first_verified_at": None,
                 "last_verified_at": None,
                 "successful_deliveries": 0,
                 "failed_deliveries": 0,
                 "last_failure": None,
-                "last_failure_reason": None,
-                "operator_remediation": None,
-                "engineering_remediation": None,
+                "last_failure_reason": "workflow_evidence_incomplete" if has_any_evidence else None,
+                "operator_remediation": "Complete the workflow end-to-end so certification has a real completed event." if has_any_evidence else None,
+                "engineering_remediation": "Ensure the workflow emits a canonical trust_spine completed event." if has_any_evidence else None,
                 "regression_protected": True,
                 "audit_row_observed": None,
             })
-            counters["not_yet_exercised"] += 1
+            counters["failed" if has_any_evidence else "not_yet_exercised"] += 1
             continue
 
         ok_count = await _count_completed(db, wf, "ok")

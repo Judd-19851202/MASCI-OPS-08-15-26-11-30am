@@ -263,3 +263,14 @@ async def test_platform_band_rules():
         assert band == "green"
     else:
         assert band == "amber"
+
+
+@pytest.mark.asyncio
+async def test_partial_workflow_evidence_is_failed_not_not_yet_exercised():
+    from lib.production_certification import build_certification  # noqa: PLC0415
+
+    db = _db()
+    out = await build_certification(db)
+    row = next(w for w in out["workflows"] if w["workflow"] == "jha")
+    assert row["status"] == "FAILED"
+    assert row["last_failure_reason"] == "workflow_evidence_incomplete"

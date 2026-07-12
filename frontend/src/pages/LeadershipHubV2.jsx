@@ -74,7 +74,7 @@ export default function LeadershipHubV2() {
     <div data-testid="leadership-hub-v2-root" style={{ background: "var(--paper-base)", minHeight: "100vh" }}>
       {isPreview && (
         <div data-testid="leadership-hub-v2-preview-banner" style={{ background: "var(--brand-primary)", color: "var(--brand-on-primary)", padding: "8px 16px", fontSize: 11, letterSpacing: "0.04em", textTransform: "uppercase", fontWeight: 700, textAlign: "center" }}>
-          Leadership Hub V2 · Cross-portal executive attention · Companion lane · Classic surfaces remain canonical
+          Leadership Hub V2 · Non-production companion lane · Classic surfaces remain canonical
         </div>
       )}
       <PortalShell
