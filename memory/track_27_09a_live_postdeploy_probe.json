@@ -1,0 +1,118 @@
+{
+  "checked_at": "2026-07-12T17:19:09.765825+00:00",
+  "versions": [
+    {
+      "status": 200,
+      "source_hash": "65f7aef2361479af1ffec50ff09f0083",
+      "built_at": "2026-07-12T16:54:41.514518+00:00",
+      "app_env": "production",
+      "db_name": "masci_safety"
+    },
+    {
+      "status": 200,
+      "source_hash": "65f7aef2361479af1ffec50ff09f0083",
+      "built_at": "2026-07-12T16:54:41.514518+00:00",
+      "app_env": "production",
+      "db_name": "masci_safety"
+    },
+    {
+      "status": 200,
+      "source_hash": "65f7aef2361479af1ffec50ff09f0083",
+      "built_at": "2026-07-12T16:54:41.514518+00:00",
+      "app_env": "production",
+      "db_name": "masci_safety"
+    },
+    {
+      "status": 200,
+      "source_hash": "65f7aef2361479af1ffec50ff09f0083",
+      "built_at": "2026-07-12T16:54:41.514518+00:00",
+      "app_env": "production",
+      "db_name": "masci_safety"
+    },
+    {
+      "status": 200,
+      "source_hash": "65f7aef2361479af1ffec50ff09f0083",
+      "built_at": "2026-07-12T16:54:41.514518+00:00",
+      "app_env": "production",
+      "db_name": "masci_safety"
+    }
+  ],
+  "replica_consistency": true,
+  "prefix_backups": {
+    "status": 200,
+    "total_matching": 891,
+    "count": 891,
+    "total_bytes": 359548936806,
+    "first_key": "backups/auto-90d/MASCI_complete_backup_2026-07-12_110118Z.zip",
+    "last_key": "backups/MASCI_complete_backup_2026-05-11_164958Z.zip"
+  },
+  "prefix_backups_slash": {
+    "status": 200,
+    "total_matching": 891,
+    "count": 891,
+    "total_bytes": 359548936806,
+    "first_key": "backups/auto-90d/MASCI_complete_backup_2026-07-12_110118Z.zip",
+    "last_key": "backups/MASCI_complete_backup_2026-05-11_164958Z.zip"
+  },
+  "integrity": {
+    "status": 200,
+    "last_backup_filename": "MASCI_complete_backup_2026-07-12_170033Z.zip",
+    "last_backup_object_key": "backups/auto-90d/MASCI_complete_backup_2026-07-12_170033Z.zip",
+    "last_backup_at": "2026-07-12T17:05:14.605712+00:00",
+    "captured_collections_count": 206,
+    "document_count": 253762,
+    "archive_size_bytes": 1054999651,
+    "evidence_source": "r2:MANIFEST.json",
+    "integrity_result": "FAIL",
+    "ok": false
+  },
+  "health_full": {
+    "status": 200,
+    "body": {
+      "ok": true,
+      "mongo": true,
+      "scheduler": true,
+      "backup_recent": true
+    }
+  },
+  "recovery_snapshot": {
+    "status": 200,
+    "pill": "RED",
+    "rpo": {
+      "target_min": 60,
+      "actual_min": 13.7,
+      "status": "GREEN"
+    },
+    "rto": {
+      "target_min": 15,
+      "last_drill_min": null,
+      "status": "AMBER"
+    },
+    "scheduler": {
+      "alive": false,
+      "last_lock_ts": "2026-07-07T13:57:14.402000Z",
+      "owner_pod": "r-946258f6-abad-4f62-9333-c276cf9b943c-5578679b58-ftzn5",
+      "is_healthy": false
+    },
+    "last_backup": {
+      "filename": "MASCI_complete_backup_2026-07-12_170033Z.zip",
+      "size_mb": 1006.13,
+      "records": 253762,
+      "ok": true,
+      "ts": "2026-07-12T17:05:26.674825+00:00",
+      "inlined_photos": 0,
+      "source": "backup_health"
+    },
+    "last_drill": null,
+    "warnings": [
+      {
+        "kind": "scheduler-quiet",
+        "severity": "amber",
+        "message": "No scheduler lock heartbeat in the last 30 minutes"
+      }
+    ]
+  },
+  "diagnostics_status": 404,
+  "occ_health_status": 200,
+  "r2_lifecycle_health_status": 200
+}
