@@ -25,7 +25,6 @@ from services.r2_lifecycle.classification import (
 )
 from services.r2_lifecycle.intelligence import estimate_cost
 from services.r2_lifecycle.health import (
-    _capacity_score,
     _band,
     _clamp,
 )
@@ -173,17 +172,11 @@ def test_estimate_cost_handles_zero_total():
     assert estimate_cost(0, 0)["projected_savings_pct"] == 0.0
 
 
-def test_capacity_score_green_below_warn():
-    assert _capacity_score(gb=10, warn_gb=45, alert_gb=50) == 100.0
-
-
-def test_capacity_score_amber_between_warn_and_alert():
-    v = _capacity_score(gb=47.5, warn_gb=45, alert_gb=50)
-    assert 25.0 < v < 100.0
-
-
-def test_capacity_score_zero_far_above_alert():
-    assert _capacity_score(gb=1000, warn_gb=45, alert_gb=50) == 0.0
+# TRACK 27.07A · PHASE 1 · The `_capacity_score` helper was retired
+# because it hardcoded the obsolete 45/50 GB heuristic. Capacity
+# signalling is now sourced from the composite policy (technical_capacity
+# dimension) against the *provider ceiling* only, and cost pressure is
+# a separate dimension. See test_track_27_07a_composite_policy.py.
 
 
 def test_band_thresholds():

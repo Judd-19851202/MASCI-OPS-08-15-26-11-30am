@@ -47,28 +47,28 @@ def _compute_pill(
     backup_age_minutes: Optional[float],
     backup_age_target_minutes: float,
     failures_7d: int,
-    bucket_usage_status: str,
+    bucket_usage_status: str,  # noqa: ARG001 — retained for BC; ignored per TRACK 27.07A P1
 ) -> str:
     """Pure function. Same inputs → same output. Unit-testable.
 
-    RED if  : last backup_health row is ok=false OR no backup in 2x target window OR bucket RED.
-    AMBER if: backup_age > target OR any failure in last 7d OR bucket AMBER.
+    Truthful signal is *backup freshness*, not bucket size. Bucket-size
+    escalation was retired by TRACK 27.07A · PHASE 1 — the composite
+    policy verdict now lives on the Storage Health card, and the
+    recovery card no longer duplicates that signal.
+
+    RED if  : last backup_health row is ok=false OR no backup in 2× target window.
+    AMBER if: backup_age > target OR any failure in last 7d.
     GREEN   : everything is fine.
     """
     if last_backup_ok is False:
         return "RED"
     if backup_age_minutes is None:
         return "RED"
-    # TRACK 27.05 · P0-3 · Bucket RED must escalate the overall pill to RED.
-    if bucket_usage_status == "RED":
-        return "RED"
     if backup_age_minutes > 2 * backup_age_target_minutes:
         return "RED"
     if backup_age_minutes > backup_age_target_minutes:
         return "AMBER"
     if failures_7d > 0:
-        return "AMBER"
-    if bucket_usage_status == "AMBER":
         return "AMBER"
     return "GREEN"
 

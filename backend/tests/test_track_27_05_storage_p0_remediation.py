@@ -26,28 +26,41 @@ from routes.recovery_dashboard import _compute_pill  # noqa: E402
 
 
 # ── P0-3 · Bucket-usage severity ─────────────────────────────────────
+# TRACK 27.07A · PHASE 1 update.
+# The obsolete 45/50 GB heuristic that escalated the recovery pill on
+# bucket_usage_status was RETIRED. Bucket-capacity signalling now lives
+# exclusively on the composite policy verdict (Storage Health card).
+# The Track 27.05 P0-3 promise ("bucket over alert must not be masked")
+# is preserved with a different truth carrier — see
+# `test_track_27_07a_composite_policy.py`.
 
-def test_p0_3_bucket_over_alert_promotes_to_red():
-    # Bucket usage above alert → overall pill = RED (not AMBER).
-    pill = _compute_pill(
-        last_backup_ok=True,
-        backup_age_minutes=5.0,          # healthy backup age
-        backup_age_target_minutes=60.0,
-        failures_7d=0,
-        bucket_usage_status="RED",       # this is what should now be RED
-    )
-    assert pill == "RED", f"bucket_usage=RED should escalate pill to RED, got {pill!r}"
-
-
-def test_p0_3_bucket_amber_stays_amber():
+def test_p0_3_bucket_status_no_longer_escalates_recovery_pill():
+    """Superseded by TRACK 27.07A P1: the recovery pill is a pure
+    backup-freshness signal. Capacity concerns route through the
+    composite policy verdict on the Storage Health card."""
     pill = _compute_pill(
         last_backup_ok=True,
         backup_age_minutes=5.0,
         backup_age_target_minutes=60.0,
         failures_7d=0,
-        bucket_usage_status="AMBER",
+        bucket_usage_status="RED",   # ignored per TRACK 27.07A P1
     )
-    assert pill == "AMBER"
+    assert pill == "GREEN", (
+        "TRACK 27.07A P1 regression: bucket_usage_status must NOT "
+        "escalate the recovery pill anymore — capacity is a Storage "
+        f"Health composite dimension. Got {pill!r}."
+    )
+
+
+def test_p0_3_bucket_amber_no_longer_escalates_recovery_pill():
+    pill = _compute_pill(
+        last_backup_ok=True,
+        backup_age_minutes=5.0,
+        backup_age_target_minutes=60.0,
+        failures_7d=0,
+        bucket_usage_status="AMBER",  # ignored per TRACK 27.07A P1
+    )
+    assert pill == "GREEN"
 
 
 def test_p0_3_bucket_green_stays_green():
@@ -61,23 +74,29 @@ def test_p0_3_bucket_green_stays_green():
     assert pill == "GREEN"
 
 
-def test_p0_3_bucket_red_dominates_backup_age_amber():
-    # Even with age just over target (would normally be AMBER),
-    # bucket=RED must still promote the whole pill to RED.
+def test_p0_3_bucket_red_no_longer_masks_backup_age_amber():
+    """When backup age is over target the pill is AMBER — bucket status
+    (retired input) must not flip that to RED anymore."""
     pill = _compute_pill(
         last_backup_ok=True,
         backup_age_minutes=65.0,
         backup_age_target_minutes=60.0,
         failures_7d=0,
-        bucket_usage_status="RED",
+        bucket_usage_status="RED",   # ignored per TRACK 27.07A P1
     )
-    assert pill == "RED"
+    assert pill == "AMBER"
 
 
 # ── P0-3 · Actual GB → status classifier (in-endpoint logic) ─────────
+# The classifier for `bucket_usage.status` is retained inside
+# `routes/recovery_dashboard.py` as a RAW EVIDENCE label only, using
+# env-driven defaults 45/50. It is no longer part of any policy
+# decision path. These tests continue to lock the raw signal.
 
 def _classify_gb(gb: float, warn: float = 45.0, alert: float = 50.0) -> str:
-    """Mirror of the classifier in `routes/recovery_dashboard.py`."""
+    """Mirror of the raw evidence label emitted by
+    `routes/recovery_dashboard.py`. NOT a policy decision — the label
+    exists only so UIs can render historical evidence rows."""
     if gb >= alert:
         return "RED"
     if gb >= warn:
@@ -85,20 +104,21 @@ def _classify_gb(gb: float, warn: float = 45.0, alert: float = 50.0) -> str:
     return "GREEN"
 
 
-def test_p0_3_prod_186gb_is_red():
-    # The exact production evidence from Track 27.04.
+def test_p0_3_prod_186gb_raw_label_is_red():
+    # Raw evidence label preserved. Composite policy verdict overrides
+    # this on the Storage Health card.
     assert _classify_gb(186.82) == "RED"
 
 
-def test_p0_3_50gb_alert_boundary_is_red():
+def test_p0_3_50gb_alert_boundary_raw_label_is_red():
     assert _classify_gb(50.0) == "RED"
 
 
-def test_p0_3_45gb_warn_boundary_is_amber():
+def test_p0_3_45gb_warn_boundary_raw_label_is_amber():
     assert _classify_gb(45.0) == "AMBER"
 
 
-def test_p0_3_44_9gb_is_green():
+def test_p0_3_44_9gb_raw_label_is_green():
     assert _classify_gb(44.9) == "GREEN"
 
 
