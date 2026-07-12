@@ -1,0 +1,20 @@
+{
+  "generated_at": "2026-07-12T15:50:03+00:00",
+  "integrity_metadata_defect": {
+    "captured_collections_count": 0,
+    "evidence_source": null,
+    "integrity_result": null,
+    "last_backup_filename": null,
+    "observed_status": "FAIL",
+    "path": "/api/admin/backups/integrity-check"
+  },
+  "inventory_prefix_defect": {
+    "control_query": "prefix=backups",
+    "control_total_matching": 891,
+    "defect_query": "prefix=backups/",
+    "defect_total_matching": 0,
+    "observed_status": "FAIL",
+    "path": "/api/admin/r2/lifecycle/inventory"
+  },
+  "production_source_hash": "9e79ada45d05d246df4819140c5fde91"
+}

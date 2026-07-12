@@ -22,6 +22,7 @@ Zero deletes.  Zero writes to R2.  Zero repair of Mongo references.
 from __future__ import annotations
 
 import logging
+import re
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
@@ -46,6 +47,26 @@ from services.r2_lifecycle import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _inventory_prefix_filter(prefix: Optional[str]) -> Dict[str, Any]:
+    """Normalize the operator-supplied prefix filter.
+
+    `r2_inventory.prefix` stores only the TOP-LEVEL segment (e.g. `backups`),
+    so queries like `backups/` must normalize to the same truthful population
+    as `backups`.
+
+    For deeper paths (e.g. `backups/auto-90d/`), match on the full object key
+    instead of the top-level prefix field.
+    """
+    if not prefix:
+        return {}
+    normalized = str(prefix).strip().lstrip("/").rstrip("/")
+    if not normalized:
+        return {}
+    if "/" in normalized:
+        return {"key": {"$regex": f"^{re.escape(normalized)}(?:/|$)"}}
+    return {"prefix": normalized}
 
 
 def build_r2_lifecycle_router(db, require_admin_strict_dep) -> APIRouter:
@@ -103,9 +124,7 @@ def build_r2_lifecycle_router(db, require_admin_strict_dep) -> APIRouter:
         skip: int = Query(0, ge=0),
         _: bool = Depends(require_admin_strict_dep),
     ) -> Dict[str, Any]:
-        q: Dict[str, Any] = {}
-        if prefix:
-            q["prefix"] = prefix
+        q: Dict[str, Any] = _inventory_prefix_filter(prefix)
         if min_bytes:
             q["size"] = {"$gte": int(min_bytes)}
         total = await db.r2_inventory.count_documents(q)

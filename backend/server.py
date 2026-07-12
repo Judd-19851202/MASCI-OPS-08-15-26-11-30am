@@ -9079,32 +9079,148 @@ async def admin_backup_integrity_check(_: bool = Depends(require_admin_strict)):
     `/admin/backups/{filename}` route below — otherwise the FastAPI router
     matches the literal "integrity-check" against the {filename} regex.
     """
-    import json as _ic_json
-    import zipfile as _ic_zip
+    from backup_verification import list_r2_backup_archives, read_r2_backup_manifest  # noqa: PLC0415
+
     files = _list_stored_backups()
     last = files[0] if files else None
     live = sorted(await db.list_collection_names())
     live = [c for c in live if not c.startswith("system.")]
+
+    latest_row = await db.backup_health.find_one(
+        {"mode": "complete-r2", "ok": True, "filename": {"$nin": [None, ""]}},
+        {"_id": 0, "filename": 1, "size_bytes": 1, "records": 1, "ts": 1},
+        sort=[("ts", -1)],
+    )
+
+    r2_archives = await list_r2_backup_archives(prefix="backups/")
+    latest_r2 = r2_archives[0] if r2_archives else None
+    latest_r2_filename = None
+    if latest_r2:
+        latest_r2_filename = latest_r2.get("filename")
+        if not latest_r2_filename:
+            latest_r2_key = str(latest_r2.get("key") or "")
+            latest_r2_filename = latest_r2_key.rsplit("/", 1)[-1] or None
+
+    drift_row = await db.backup_drift_history.find_one(
+        {},
+        {"_id": 0, "recorded_at": 1, "captured_collections": 1, "total_records": 1, "explicit_exclusions": 1},
+        sort=[("recorded_at", -1)],
+    )
+
     captured: List[str] = []
+    collection_counts: Optional[Dict[str, int]] = None
+    document_count: Optional[int] = None
     last_at = None
-    if last:
+    last_object_key = latest_r2.get("key") if latest_r2 else None
+    archive_size_bytes = None
+    manifest_source = "unavailable"
+
+    manifest_bundle = None
+    if latest_r2 and latest_r2.get("key"):
+        manifest_bundle = await read_r2_backup_manifest(latest_r2["key"])
+        if manifest_bundle and isinstance(manifest_bundle.get("manifest"), dict):
+            m = manifest_bundle["manifest"]
+            captured = sorted(m.get("captured_collections") or m.get("all_db_collections_at_backup_time") or [])
+            counts = m.get("per_kind")
+            collection_counts = counts if isinstance(counts, dict) else None
+            raw_total_records = m.get("total_records")
+            try:
+                document_count = int(raw_total_records) if raw_total_records is not None else None
+            except Exception:  # noqa: BLE001
+                document_count = None
+            last_at = m.get("generated_at") or manifest_bundle.get("last_modified_iso")
+            archive_size_bytes = manifest_bundle.get("content_length")
+            manifest_source = f"r2:{manifest_bundle.get('manifest_name')}"
+
+    if not captured and drift_row:
+        captured = sorted(drift_row.get("captured_collections") or [])
+        raw_total_records = drift_row.get("total_records")
+        try:
+            document_count = int(raw_total_records) if raw_total_records is not None else document_count
+        except Exception:  # noqa: BLE001
+            pass
+        if getattr(drift_row.get("recorded_at"), "isoformat", None):
+            last_at = last_at or drift_row["recorded_at"].isoformat()
+        manifest_source = "backup_drift_history"
+
+    if not captured and last:
         zip_path = BACKUPS_DIR / last["filename"]
         try:
+            import json as _ic_json
+            import zipfile as _ic_zip
             with _ic_zip.ZipFile(zip_path) as zf:
-                if "backup_manifest.json" in zf.namelist():
-                    m = _ic_json.loads(zf.read("backup_manifest.json").decode("utf-8"))
+                manifest_name = None
+                for candidate in ("backup_manifest.json", "MANIFEST.json"):
+                    if candidate in zf.namelist():
+                        manifest_name = candidate
+                        break
+                if manifest_name:
+                    m = _ic_json.loads(zf.read(manifest_name).decode("utf-8"))
                     captured = sorted(m.get("captured_collections") or m.get("all_db_collections_at_backup_time") or [])
-                    last_at = m.get("generated_at")
+                    counts = m.get("per_kind")
+                    collection_counts = counts if isinstance(counts, dict) else collection_counts
+                    raw_total_records = m.get("total_records")
+                    try:
+                        document_count = int(raw_total_records) if raw_total_records is not None else document_count
+                    except Exception:  # noqa: BLE001
+                        pass
+                    last_at = m.get("generated_at") or last_at
+                    archive_size_bytes = archive_size_bytes or last.get("size_bytes")
+                    manifest_source = f"disk:{manifest_name}"
         except Exception as e:  # noqa: BLE001
             logger.warning(f"integrity-check: read manifest failed: {e}")
+
+    if latest_r2:
+        archive_size_bytes = archive_size_bytes or latest_r2.get("size_bytes")
+        last_at = last_at or latest_r2.get("last_modified_iso")
+    if latest_row:
+        archive_size_bytes = archive_size_bytes or latest_row.get("size_bytes")
+        document_count = document_count if document_count is not None else latest_row.get("records")
+        last_at = last_at or latest_row.get("ts")
+
+    last_drill = None
+    try:
+        drill_row = await db.drill_runs.find_one(
+            {"state": "done"},
+            {"_id": 0, "finished_at": 1, "started_at": 1, "outcome": 1,
+             "records_restored": 1, "photos_rehydrated": 1, "duration_minutes": 1,
+             "archive_filename": 1},
+            sort=[("started_at", -1)],
+        )
+        if drill_row:
+            last_drill = {
+                "ts": drill_row.get("finished_at") or drill_row.get("started_at"),
+                "outcome": drill_row.get("outcome"),
+                "records": drill_row.get("records_restored") or 0,
+                "photos": drill_row.get("photos_rehydrated") or 0,
+                "duration_min": drill_row.get("duration_minutes"),
+                "archive_filename": drill_row.get("archive_filename"),
+            }
+    except Exception:
+        last_drill = None
+
     missing = [c for c in live if c not in set(captured)]
+    integrity_result = "PASS" if captured and not missing else ("FAIL" if captured else "UNKNOWN")
     return {
-        "last_backup_filename": last.get("filename") if last else None,
+        "last_backup_filename": (
+            latest_r2_filename
+            or (latest_row.get("filename") if latest_row else None)
+            or (last.get("filename") if last else None)
+        ),
+        "last_backup_object_key": last_object_key,
         "last_backup_at": last_at,
+        "archive_size_bytes": archive_size_bytes,
         "live_collections": live,
         "captured_collections": captured,
+        "captured_collection_count": len(captured),
+        "collection_counts": collection_counts,
+        "document_count": document_count,
         "missing_from_backup": missing,
-        "ok": (last is not None and len(missing) == 0),
+        "integrity_result": integrity_result,
+        "verification_timestamp": datetime.now(timezone.utc).isoformat(),
+        "restore_test_evidence": last_drill,
+        "evidence_source": manifest_source,
+        "ok": bool(captured) and len(missing) == 0,
     }
 
 

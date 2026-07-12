@@ -31,8 +31,11 @@ Env knobs:
 from __future__ import annotations
 
 import asyncio
+import io
+import json
 import logging
 import os
+import zipfile
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
@@ -43,6 +46,81 @@ logger = logging.getLogger(__name__)
 DEFAULT_DAY_OF_WEEK = 0       # Monday
 DEFAULT_HOUR_UTC = 14         # 14:00 UTC ≈ 10:00 AM ET Mon
 DEFAULT_MAX_AGE_HOURS = 36
+
+
+class _R2RangeReader(io.BufferedIOBase):
+    """Tiny seekable range reader for R2/S3-backed ZIP inspection.
+
+    Purposefully minimal: enough for `zipfile.ZipFile` to read the central
+    directory and a small manifest entry without downloading the entire
+    archive.
+    """
+
+    def __init__(self, s3, bucket: str, key: str, size: int, block_size: int = 1024 * 1024):
+        self._s3 = s3
+        self._bucket = bucket
+        self._key = key
+        self._size = max(0, int(size or 0))
+        self._block_size = max(64 * 1024, int(block_size or 1024 * 1024))
+        self._pos = 0
+        self._cache: Dict[int, bytes] = {}
+
+    def readable(self) -> bool:  # pragma: no cover - trivial
+        return True
+
+    def seekable(self) -> bool:  # pragma: no cover - trivial
+        return True
+
+    def tell(self) -> int:
+        return self._pos
+
+    def seek(self, offset: int, whence: int = io.SEEK_SET) -> int:
+        if whence == io.SEEK_SET:
+            new_pos = offset
+        elif whence == io.SEEK_CUR:
+            new_pos = self._pos + offset
+        elif whence == io.SEEK_END:
+            new_pos = self._size + offset
+        else:  # pragma: no cover - defensive
+            raise ValueError(f"unsupported whence: {whence}")
+        self._pos = max(0, min(self._size, int(new_pos)))
+        return self._pos
+
+    def _read_block(self, index: int) -> bytes:
+        cached = self._cache.get(index)
+        if cached is not None:
+            return cached
+        start = index * self._block_size
+        if start >= self._size:
+            data = b""
+        else:
+            end = min(self._size, start + self._block_size) - 1
+            resp = self._s3.get_object(
+                Bucket=self._bucket,
+                Key=self._key,
+                Range=f"bytes={start}-{end}",
+            )
+            data = resp["Body"].read()
+        self._cache[index] = data
+        return data
+
+    def read(self, size: int = -1) -> bytes:
+        if self._pos >= self._size:
+            return b""
+        if size is None or size < 0:
+            size = self._size - self._pos
+        end_pos = min(self._size, self._pos + int(size))
+        out: List[bytes] = []
+        while self._pos < end_pos:
+            block_idx = self._pos // self._block_size
+            block = self._read_block(block_idx)
+            if not block:
+                break
+            offset = self._pos % self._block_size
+            take = min(len(block) - offset, end_pos - self._pos)
+            out.append(block[offset: offset + take])
+            self._pos += take
+        return b"".join(out)
 
 
 def _env_int(name: str, default: int) -> int:
@@ -122,10 +200,13 @@ async def list_r2_backup_archives(prefix: str = "backups/") -> List[Dict[str, An
             resp = await asyncio.to_thread(s3.list_objects_v2, **kwargs)
             for it in resp.get("Contents") or []:
                 lm = it.get("LastModified")
+                key = it.get("Key")
                 out.append({
-                    "key": it.get("Key"),
+                    "key": key,
+                    "filename": (str(key).rsplit("/", 1)[-1] if key else None),
                     "size_bytes": int(it.get("Size") or 0),
                     "last_modified_iso": lm.isoformat() if lm else None,
+                    "etag": (it.get("ETag") or "").strip('"') or None,
                 })
             if resp.get("IsTruncated"):
                 token = resp.get("NextContinuationToken")
@@ -139,6 +220,62 @@ async def list_r2_backup_archives(prefix: str = "backups/") -> List[Dict[str, An
 
     out.sort(key=lambda r: r.get("last_modified_iso") or "", reverse=True)
     return out
+
+
+async def read_r2_backup_manifest(key: str) -> Optional[Dict[str, Any]]:
+    """Read only the backup manifest from an R2 archive.
+
+    Returns `None` when R2 is unavailable, the object is unreadable, or no
+    recognised manifest is present.
+    """
+    try:
+        from photo_storage import is_configured as _ps_cfg, _client, _bucket
+    except Exception:  # noqa: BLE001
+        logger.warning("[verify] photo_storage import failed during manifest read")
+        return None
+
+    if not _ps_cfg():
+        return None
+    s3 = _client()
+    if s3 is None:
+        return None
+    bucket = _bucket()
+
+    def _read() -> Optional[Dict[str, Any]]:
+        head = s3.head_object(Bucket=bucket, Key=key)
+        size = int(head.get("ContentLength") or 0)
+        reader = _R2RangeReader(s3, bucket, key, size)
+        with zipfile.ZipFile(reader, "r") as zf:
+            manifest_name = None
+            for candidate in ("backup_manifest.json", "MANIFEST.json"):
+                if candidate in zf.namelist():
+                    manifest_name = candidate
+                    break
+            if manifest_name is None:
+                return None
+            manifest = json.loads(zf.read(manifest_name).decode("utf-8"))
+            etag = (head.get("ETag") or "").strip('"') or None
+            last_modified = head.get("LastModified")
+            return {
+                "key": key,
+                "manifest_name": manifest_name,
+                "manifest": manifest,
+                "content_length": size,
+                "etag": etag,
+                "last_modified_iso": (
+                    last_modified.astimezone(timezone.utc).isoformat()
+                    if isinstance(last_modified, datetime)
+                    else None
+                ),
+                "checksum_sha256": head.get("ChecksumSHA256"),
+                "checksum_type": head.get("ChecksumType"),
+            }
+
+    try:
+        return await asyncio.to_thread(_read)
+    except Exception as e:  # noqa: BLE001
+        logger.warning("[verify] failed to read R2 backup manifest for %s: %s", key, e)
+        return None
 
 
 # ─────────────────────────────────────────────────────────────────────

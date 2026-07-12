@@ -1,0 +1,51 @@
+{
+  "bundle_sha256": "18c8e49f5c2802b8146347ea70459395f0956a07874fb2bc0e262448d2df2f0f",
+  "files": [
+    {
+      "bytes": 1330,
+      "file": "production_identity.json",
+      "sha256": "f79b887598a843c29cf755e867a7b03427784f1fd90796c1afd0944534334f66"
+    },
+    {
+      "bytes": 621,
+      "file": "endpoint_observability.json",
+      "sha256": "e8134f278785e379b5b42113ed2f03b2cf40d84d6037f2a43ec2d2ac85c487f8"
+    },
+    {
+      "bytes": 1143,
+      "file": "bucket_inventory.json",
+      "sha256": "cc9f162cdc050f21954c6871d4d93bf21c0d8dac02a8dae8d8ea5fa3a9a3a763"
+    },
+    {
+      "bytes": 5259213,
+      "file": "backup_inventory.json",
+      "sha256": "2991a67a491a410073a19c8f914181fd63896f3253c07459759da15a758dab35"
+    },
+    {
+      "bytes": 29801,
+      "file": "backup_lineage.json",
+      "sha256": "78a0acc86e2c081fa275e5d1be3f24e26c9e1c6f8cfe054686ceb8db141244d9"
+    },
+    {
+      "bytes": 189,
+      "file": "backup_duplicates.json",
+      "sha256": "b41a00886537fcd51fae659ddd1b25d5eb303c7919884952067788bd1631ac05"
+    },
+    {
+      "bytes": 19084,
+      "file": "restore_capability.json",
+      "sha256": "ea788d5661cc1c765815bcd3090cb7d0f9f8cbe5655c91f0ddd231589c45ef3f"
+    },
+    {
+      "bytes": 2592,
+      "file": "operator_decision_table.json",
+      "sha256": "ea181f9ad10a41c671352dfd1b143a477d37ff8b25dd72511198e19f215427b4"
+    },
+    {
+      "bytes": 97152,
+      "file": "production_endpoint_snapshots.json",
+      "sha256": "f1f7fccac9a0bfde276d7eb6abafd5445c9b34e429528f55f3631061731eaea1"
+    }
+  ],
+  "generated_at": "2026-07-12T15:50:03+00:00"
+}
