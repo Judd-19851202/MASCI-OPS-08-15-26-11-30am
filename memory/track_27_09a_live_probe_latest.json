@@ -1,0 +1,98 @@
+{
+  "checked_at": "2026-07-12T16:39:10.292151+00:00",
+  "version": {
+    "status": 200,
+    "source_hash": "9e79ada45d05d246df4819140c5fde91",
+    "built_at": "2026-07-12T01:46:04.878382+00:00",
+    "app_env": "production",
+    "db_name": "masci_safety",
+    "environment_identity": {
+      "app_env": "production",
+      "db_name": "masci_safety",
+      "db_isolation_enforced": true,
+      "storage_bucket": "masci-hub",
+      "storage_endpoint_present": true,
+      "scheduler_enabled": true,
+      "email_safety_mode": "off",
+      "auto_email_reports": true,
+      "resend_webhook_secret_present": true,
+      "dev_endpoints_enabled": false,
+      "maintainx_write_enabled": false,
+      "ai_provider_key_present": true,
+      "delete_engine_status": "DISABLED"
+    }
+  },
+  "prefix_backups": {
+    "status": 200,
+    "total_matching": 891,
+    "count": 891,
+    "total_bytes": 359548936806,
+    "first_key": "backups/auto-90d/MASCI_complete_backup_2026-07-12_110118Z.zip",
+    "last_key": "backups/MASCI_complete_backup_2026-05-11_164958Z.zip"
+  },
+  "prefix_backups_slash": {
+    "status": 200,
+    "total_matching": 0,
+    "count": 0,
+    "total_bytes": 0,
+    "first_key": null,
+    "last_key": null
+  },
+  "integrity": {
+    "status": 200,
+    "last_backup_filename": null,
+    "last_backup_object_key": null,
+    "last_backup_at": null,
+    "captured_collections_count": 0,
+    "document_count": null,
+    "archive_size_bytes": null,
+    "evidence_source": null,
+    "integrity_result": null,
+    "ok": false
+  },
+  "health_full": {
+    "status": 200,
+    "body": {
+      "ok": true,
+      "mongo": true,
+      "scheduler": true,
+      "backup_recent": true
+    }
+  },
+  "recovery_snapshot": {
+    "status": 200,
+    "pill": "RED",
+    "rpo": {
+      "target_min": 60,
+      "actual_min": 33.6,
+      "status": "GREEN"
+    },
+    "rto": {
+      "target_min": 15,
+      "last_drill_min": null,
+      "status": "AMBER"
+    },
+    "scheduler": {
+      "alive": false,
+      "last_lock_ts": "2026-07-07T13:57:14.402000Z",
+      "owner_pod": "r-946258f6-abad-4f62-9333-c276cf9b943c-5578679b58-ftzn5",
+      "is_healthy": false
+    },
+    "last_backup": {
+      "filename": "MASCI_complete_backup_2026-07-12_160028Z.zip",
+      "size_mb": 1006.07,
+      "records": 253653,
+      "ok": true,
+      "ts": "2026-07-12T16:05:33.504970+00:00",
+      "inlined_photos": 0,
+      "source": "backup_health"
+    },
+    "warnings": [
+      {
+        "kind": "scheduler-quiet",
+        "severity": "amber",
+        "message": "No scheduler lock heartbeat in the last 30 minutes"
+      }
+    ]
+  }
+}
