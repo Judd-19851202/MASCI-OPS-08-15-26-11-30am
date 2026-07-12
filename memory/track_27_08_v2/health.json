@@ -1,0 +1,52 @@
+{
+  "_meta": {
+    "app_env": "production",
+    "db_name": "masci_safety",
+    "endpoint": "/api/admin/r2/lifecycle/health",
+    "http_status": 200,
+    "method": "GET",
+    "run_at": "2026-07-12T13:56:53Z",
+    "sanitised": true,
+    "source_hash": "9e79ada45d05d246df4819140c5fde91"
+  },
+  "body": {
+    "band": "RED",
+    "capacity": {
+      "alert_gb": 50.0,
+      "gb": 326.8,
+      "over_alert": true,
+      "warn_gb": 45.0
+    },
+    "freshness": {
+      "backup_age_minutes": 51.04724136666667,
+      "inventory_age_minutes": 0.17681853333333333
+    },
+    "generated_at": "2026-07-12T13:56:53.361130+00:00",
+    "objects": {
+      "orphan_bytes": 0,
+      "orphan_pct": 0.0,
+      "total": 10190,
+      "verified_orphan": 0,
+      "verified_owner": 1574
+    },
+    "overall_score": 63.1,
+    "sub_scores": {
+      "backup_score": 100.0,
+      "capacity_score": 0.0,
+      "freshness_score": 100.0,
+      "lifecycle_score": 100.0,
+      "orphan_score": 100.0,
+      "ownership_score": 15.4,
+      "retention_score": 100.0
+    },
+    "weights": {
+      "backup_score": 0.15,
+      "capacity_score": 0.2,
+      "freshness_score": 0.1,
+      "lifecycle_score": 0.1,
+      "orphan_score": 0.15,
+      "ownership_score": 0.2,
+      "retention_score": 0.1
+    }
+  }
+}

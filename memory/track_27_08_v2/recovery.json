@@ -1,0 +1,227 @@
+{
+  "_meta": {
+    "app_env": "production",
+    "db_name": "masci_safety",
+    "endpoint": "/api/admin/recovery/snapshot",
+    "http_status": 200,
+    "method": "GET",
+    "run_at": "2026-07-12T13:56:56Z",
+    "sanitised": true,
+    "source_hash": "9e79ada45d05d246df4819140c5fde91"
+  },
+  "body": {
+    "archive_count": {
+      "last_30d": 95,
+      "last_7d": 95,
+      "r2_total": 95
+    },
+    "archive_size_trend": [
+      {
+        "records": 229632,
+        "size_mb": 982.78,
+        "ts": "2026-07-11T08:06:42.784831+00:00"
+      },
+      {
+        "records": 229683,
+        "size_mb": 982.8,
+        "ts": "2026-07-11T09:06:51.592629+00:00"
+      },
+      {
+        "records": 229726,
+        "size_mb": 982.81,
+        "ts": "2026-07-11T10:06:23.968392+00:00"
+      },
+      {
+        "records": 229769,
+        "size_mb": 982.83,
+        "ts": "2026-07-11T11:05:59.368916+00:00"
+      },
+      {
+        "records": 229783,
+        "size_mb": 982.84,
+        "ts": "2026-07-11T12:05:50.857683+00:00"
+      },
+      {
+        "records": 229722,
+        "size_mb": 982.82,
+        "ts": "2026-07-11T13:05:43.897904+00:00"
+      },
+      {
+        "records": 229824,
+        "size_mb": 982.88,
+        "ts": "2026-07-11T14:05:10.891131+00:00"
+      },
+      {
+        "records": 229884,
+        "size_mb": 982.9,
+        "ts": "2026-07-11T15:04:52.409737+00:00"
+      },
+      {
+        "records": 229950,
+        "size_mb": 982.93,
+        "ts": "2026-07-11T16:09:55.171226+00:00"
+      },
+      {
+        "records": 230008,
+        "size_mb": 982.96,
+        "ts": "2026-07-11T17:09:41.346029+00:00"
+      },
+      {
+        "records": 230077,
+        "size_mb": 982.98,
+        "ts": "2026-07-11T18:09:47.735307+00:00"
+      },
+      {
+        "records": 230523,
+        "size_mb": 983.23,
+        "ts": "2026-07-11T19:09:48.252177+00:00"
+      },
+      {
+        "records": 230717,
+        "size_mb": 988.06,
+        "ts": "2026-07-11T20:09:59.628802+00:00"
+      },
+      {
+        "records": 230810,
+        "size_mb": 989.29,
+        "ts": "2026-07-11T21:05:34.496452+00:00"
+      },
+      {
+        "records": 231021,
+        "size_mb": 989.43,
+        "ts": "2026-07-11T22:06:25.778942+00:00"
+      },
+      {
+        "records": 231156,
+        "size_mb": 989.49,
+        "ts": "2026-07-11T23:06:35.768102+00:00"
+      },
+      {
+        "records": 231198,
+        "size_mb": 989.5,
+        "ts": "2026-07-12T00:06:18.827574+00:00"
+      },
+      {
+        "records": 253277,
+        "size_mb": 1000.0,
+        "ts": "2026-07-12T01:06:07.941529+00:00"
+      },
+      {
+        "records": 253368,
+        "size_mb": 1000.1,
+        "ts": "2026-07-12T02:06:17.001757+00:00"
+      },
+      {
+        "records": 253390,
+        "size_mb": 1000.15,
+        "ts": "2026-07-12T03:06:06.433561+00:00"
+      },
+      {
+        "records": 253442,
+        "size_mb": 1000.17,
+        "ts": "2026-07-12T04:06:23.396299+00:00"
+      },
+      {
+        "records": 253464,
+        "size_mb": 1000.18,
+        "ts": "2026-07-12T05:06:24.771161+00:00"
+      },
+      {
+        "records": 253479,
+        "size_mb": 1000.19,
+        "ts": "2026-07-12T06:06:28.036302+00:00"
+      },
+      {
+        "records": 253522,
+        "size_mb": 1000.21,
+        "ts": "2026-07-12T07:06:51.605191+00:00"
+      },
+      {
+        "records": 253545,
+        "size_mb": 1000.21,
+        "ts": "2026-07-12T08:06:50.846986+00:00"
+      },
+      {
+        "records": 253591,
+        "size_mb": 1000.23,
+        "ts": "2026-07-12T09:06:43.424365+00:00"
+      },
+      {
+        "records": 253613,
+        "size_mb": 1000.24,
+        "ts": "2026-07-12T10:06:17.803080+00:00"
+      },
+      {
+        "records": 253617,
+        "size_mb": 1000.24,
+        "ts": "2026-07-12T11:05:56.779089+00:00"
+      },
+      {
+        "records": 253580,
+        "size_mb": 1000.23,
+        "ts": "2026-07-12T12:06:01.865598+00:00"
+      },
+      {
+        "records": 253583,
+        "size_mb": 1000.22,
+        "ts": "2026-07-12T13:05:50.526648+00:00"
+      }
+    ],
+    "backup_age_minutes": 51.1,
+    "backup_age_target_minutes": 1440,
+    "bucket_usage": {
+      "alert_gb": 50.0,
+      "gb": 326.8,
+      "status": "RED",
+      "ts": "2026-07-12T13:05:57.874711+00:00",
+      "warn_gb": 45.0
+    },
+    "cached": false,
+    "computed_at": "2026-07-12T13:56:56.137710+00:00",
+    "disk_preflight": {
+      "free_bytes": 78163509248,
+      "ok": true,
+      "path": "/app",
+      "percent_free": 17.53,
+      "reason": null,
+      "total_bytes": 445766692864
+    },
+    "failures_7d": [
+      {
+        "error": "AutoReconnect('ac-cz4whli-shard-00-01.1nduwmg.mongodb.net:27017: connection pool paused')",
+        "filename": null,
+        "mode": "complete-r2-error",
+        "ts": "2026-07-09T20:02:39.894641+00:00"
+      }
+    ],
+    "hourly_cadence_enabled": true,
+    "last_backup": {
+      "filename": "MASCI_complete_backup_2026-07-12_130102Z.zip",
+      "inlined_photos": 0,
+      "ok": true,
+      "records": 253583,
+      "size_mb": 1000.22,
+      "source": "backup_health",
+      "ts": "2026-07-12T13:05:50.526648+00:00"
+    },
+    "last_drill": null,
+    "pill": "RED",
+    "rpo": {
+      "actual_min": 51.1,
+      "status": "GREEN",
+      "target_min": 60
+    },
+    "rto": {
+      "last_drill_min": null,
+      "status": "AMBER",
+      "target_min": 15
+    },
+    "scheduler": {
+      "alive": true,
+      "is_healthy": true,
+      "last_lock_ts": "2026-07-12T13:56:46.945000Z",
+      "owner_pod": "r-55048087-2121-4b42-adbb-4b9ce39f1f5e-7d8b8cf886-b8vmf"
+    },
+    "warnings": []
+  }
+}
