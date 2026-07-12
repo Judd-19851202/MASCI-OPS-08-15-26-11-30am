@@ -9,12 +9,16 @@ Implements RECOVERY_DASHBOARD_SPEC.md exactly. No scope expansion.
 from __future__ import annotations
 
 import asyncio
+import logging
 import os
 import time
 from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
+
+
+logger = logging.getLogger(__name__)
 
 
 # ─────────────────── 15-second snapshot cache ───────────────────
@@ -40,6 +44,16 @@ def _minutes_since(ts: Optional[datetime]) -> Optional[float]:
         return None
     delta = datetime.now(timezone.utc) - ts
     return round(delta.total_seconds() / 60.0, 1)
+
+
+def _scheduler_state_is_alive(state: Any, *, max_age_minutes: int = 30) -> bool:
+    """Interpret the canonical in-process backup scheduler heartbeat."""
+    if not isinstance(state, dict):
+        return False
+    ts = _parse_ts(state.get("last_tick_ts"))
+    if not ts:
+        return False
+    return (datetime.now(timezone.utc) - ts) < timedelta(minutes=max_age_minutes)
 
 
 def _compute_pill(
@@ -331,23 +345,37 @@ def build_recovery_dashboard_router(
         scheduler_alive = False
         scheduler_last_lock_ts: Optional[str] = None
         scheduler_owner_pod: Optional[str] = None
+        scheduler_signal_source = "scheduler_locks"
         try:
-            lock_row = await db.scheduler_locks.find_one(
-                {"owner_id": {"$regex": "^backup_scheduler"}},
-                {"_id": 0},
-                sort=[("acquired_at", -1)],
-            ) or await db.scheduler_locks.find_one(
-                {},
-                {"_id": 0},
-                sort=[("acquired_at", -1)],
-            )
-            if lock_row:
-                scheduler_last_lock_ts = lock_row.get("acquired_at")
-                owner_id = lock_row.get("owner_id") or ""
-                scheduler_owner_pod = owner_id.split(":")[0] if owner_id else None
-                ts = _parse_ts(scheduler_last_lock_ts)
-                if ts and (datetime.now(timezone.utc) - ts) < timedelta(minutes=30):
-                    scheduler_alive = True
+            from server import _BACKUP_SCHEDULER_STATE  # noqa: PLC0415
+
+            state = dict(_BACKUP_SCHEDULER_STATE or {})
+            state_tick = state.get("last_tick_ts")
+            if state_tick:
+                scheduler_signal_source = "backup_scheduler_state"
+                scheduler_last_lock_ts = state_tick
+                scheduler_owner_pod = None
+                scheduler_alive = _scheduler_state_is_alive(state)
+            else:
+                lock_row = await db.scheduler_locks.find_one(
+                    {"_id": "backup_scheduler"},
+                    {"_id": 0},
+                ) or await db.scheduler_locks.find_one(
+                    {"owner_id": {"$regex": "^backup_scheduler"}},
+                    {"_id": 0},
+                    sort=[("acquired_at", -1)],
+                ) or await db.scheduler_locks.find_one(
+                    {},
+                    {"_id": 0},
+                    sort=[("acquired_at", -1)],
+                )
+                if lock_row:
+                    scheduler_last_lock_ts = lock_row.get("expires_at") or lock_row.get("acquired_at")
+                    owner_id = lock_row.get("owner_id") or ""
+                    scheduler_owner_pod = owner_id.split(":")[0] if owner_id else None
+                    ts = _parse_ts(scheduler_last_lock_ts)
+                    if ts and (datetime.now(timezone.utc) - ts) < timedelta(minutes=30):
+                        scheduler_alive = True
         except Exception:
             pass
 
@@ -423,6 +451,7 @@ def build_recovery_dashboard_router(
                 "alive": scheduler_alive,
                 "last_lock_ts": scheduler_last_lock_ts,
                 "owner_pod": scheduler_owner_pod,
+                "signal_source": scheduler_signal_source,
                 # TRACK 27.05 · P0-2 · true health = alive AND ticked in
                 # the last 15 min. Silent-death is now visible.
                 "is_healthy": bool(scheduler_alive) and (

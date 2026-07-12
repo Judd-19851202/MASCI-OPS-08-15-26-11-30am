@@ -1,0 +1,102 @@
+[
+  {
+    "filename": "MASCI_complete_backup_2026-07-12_170033Z.zip",
+    "key": "backups/auto-90d/MASCI_complete_backup_2026-07-12_170033Z.zip",
+    "manifest_name": "MANIFEST.json",
+    "captured_count": 206,
+    "generated_at": "2026-07-12T17:05:14.605712+00:00",
+    "explicit_exclusions": [
+      "health_monitor_runs",
+      "job_photo_thumb_cache",
+      "usage_events"
+    ],
+    "has_daily_reports": false,
+    "has_daily_reports_alias": true,
+    "has_equipment_inspections": false,
+    "has_equipment_inspections_alias": true,
+    "has_usage_events": false,
+    "has_health_monitor_runs": false,
+    "has_job_photo_thumb_cache": false,
+    "total_records": 253762
+  },
+  {
+    "filename": "MASCI_complete_backup_2026-07-12_160028Z.zip",
+    "key": "backups/auto-90d/MASCI_complete_backup_2026-07-12_160028Z.zip",
+    "manifest_name": "MANIFEST.json",
+    "captured_count": 206,
+    "generated_at": "2026-07-12T16:05:23.103115+00:00",
+    "explicit_exclusions": [
+      "health_monitor_runs",
+      "job_photo_thumb_cache",
+      "usage_events"
+    ],
+    "has_daily_reports": false,
+    "has_daily_reports_alias": true,
+    "has_equipment_inspections": false,
+    "has_equipment_inspections_alias": true,
+    "has_usage_events": false,
+    "has_health_monitor_runs": false,
+    "has_job_photo_thumb_cache": false,
+    "total_records": 253653
+  },
+  {
+    "filename": "MASCI_complete_backup_2026-07-12_150040Z.zip",
+    "key": "backups/auto-90d/MASCI_complete_backup_2026-07-12_150040Z.zip",
+    "manifest_name": "MANIFEST.json",
+    "captured_count": 206,
+    "generated_at": "2026-07-12T15:05:17.823023+00:00",
+    "explicit_exclusions": [
+      "health_monitor_runs",
+      "job_photo_thumb_cache",
+      "usage_events"
+    ],
+    "has_daily_reports": false,
+    "has_daily_reports_alias": true,
+    "has_equipment_inspections": false,
+    "has_equipment_inspections_alias": true,
+    "has_usage_events": false,
+    "has_health_monitor_runs": false,
+    "has_job_photo_thumb_cache": false,
+    "total_records": 253533
+  },
+  {
+    "filename": "MASCI_complete_backup_2026-07-12_140050Z.zip",
+    "key": "backups/auto-90d/MASCI_complete_backup_2026-07-12_140050Z.zip",
+    "manifest_name": "MANIFEST.json",
+    "captured_count": 206,
+    "generated_at": "2026-07-12T14:05:28.482609+00:00",
+    "explicit_exclusions": [
+      "health_monitor_runs",
+      "job_photo_thumb_cache",
+      "usage_events"
+    ],
+    "has_daily_reports": false,
+    "has_daily_reports_alias": true,
+    "has_equipment_inspections": false,
+    "has_equipment_inspections_alias": true,
+    "has_usage_events": false,
+    "has_health_monitor_runs": false,
+    "has_job_photo_thumb_cache": false,
+    "total_records": 253505
+  },
+  {
+    "filename": "MASCI_complete_backup_2026-07-12_130102Z.zip",
+    "key": "backups/auto-90d/MASCI_complete_backup_2026-07-12_130102Z.zip",
+    "manifest_name": "MANIFEST.json",
+    "captured_count": 206,
+    "generated_at": "2026-07-12T13:05:39.781274+00:00",
+    "explicit_exclusions": [
+      "health_monitor_runs",
+      "job_photo_thumb_cache",
+      "usage_events"
+    ],
+    "has_daily_reports": false,
+    "has_daily_reports_alias": true,
+    "has_equipment_inspections": false,
+    "has_equipment_inspections_alias": true,
+    "has_usage_events": false,
+    "has_health_monitor_runs": false,
+    "has_job_photo_thumb_cache": false,
+    "total_records": 253583
+  }
+]

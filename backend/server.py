@@ -9062,6 +9062,52 @@ async def admin_list_backups(_: bool = Depends(require_admin_strict)):
     }
 
 
+def _normalize_backup_manifest_collection_name(name: Any) -> str:
+    """Map manifest-facing aliases back to canonical Mongo collection names.
+
+    Complete R2 archives historically preserve the legacy export folder names for
+    a small fixed subset of collections (for example `daily-reports`), while the
+    live database exposes the real Mongo collection names (`daily_reports`).
+    Integrity comparisons must treat those as the same collection.
+    """
+    if not isinstance(name, str):
+        return ""
+    raw = name.strip()
+    return EXPORTABLE_KINDS.get(raw, raw)
+
+
+def _compute_backup_integrity_missing(
+    live_collections: List[str],
+    captured_collections: List[str],
+    explicit_exclusions: Optional[List[str]] = None,
+) -> List[str]:
+    """Return the canonical live collections missing from the backup manifest.
+
+    Two truths must hold:
+      1. Legacy manifest aliases like `daily-reports` are equivalent to their
+         Mongo collection names (`daily_reports`).
+      2. Collections explicitly excluded by the manifest are *not* actionable
+         integrity misses — they are intentional archive-shape exclusions.
+    """
+    excluded = {
+        _normalize_backup_manifest_collection_name(it)
+        for it in (explicit_exclusions or [])
+        if _normalize_backup_manifest_collection_name(it)
+    }
+    captured = {
+        _normalize_backup_manifest_collection_name(it)
+        for it in (captured_collections or [])
+        if _normalize_backup_manifest_collection_name(it)
+    }
+    live = {
+        _normalize_backup_manifest_collection_name(it)
+        for it in (live_collections or [])
+        if _normalize_backup_manifest_collection_name(it)
+    }
+    required_live = sorted(it for it in live if it not in excluded)
+    return [it for it in required_live if it not in captured]
+
+
 @api_router.get("/admin/backups/integrity-check")
 async def admin_backup_integrity_check(_: bool = Depends(require_admin_strict)):
     """Audit: every Mongo collection currently in the live DB vs the most
@@ -9118,6 +9164,7 @@ async def admin_backup_integrity_check(_: bool = Depends(require_admin_strict)):
     last_object_key = latest_r2.get("key") if latest_r2 else None
     archive_size_bytes = None
     manifest_source = "unavailable"
+    manifest_explicit_exclusions: List[str] = []
 
     manifest_bundle = None
     if latest_r2 and latest_r2.get("key"):
@@ -9127,6 +9174,9 @@ async def admin_backup_integrity_check(_: bool = Depends(require_admin_strict)):
             captured = sorted(m.get("captured_collections") or m.get("all_db_collections_at_backup_time") or [])
             counts = m.get("per_kind")
             collection_counts = counts if isinstance(counts, dict) else None
+            raw_exclusions = m.get("explicit_exclusions") or []
+            if isinstance(raw_exclusions, list):
+                manifest_explicit_exclusions = [str(it) for it in raw_exclusions if str(it)]
             raw_total_records = m.get("total_records")
             try:
                 document_count = int(raw_total_records) if raw_total_records is not None else None
@@ -9203,7 +9253,7 @@ async def admin_backup_integrity_check(_: bool = Depends(require_admin_strict)):
     except Exception:
         last_drill = None
 
-    missing = [c for c in live if c not in set(captured)]
+    missing = _compute_backup_integrity_missing(live, captured, manifest_explicit_exclusions)
     integrity_result = "PASS" if captured and not missing else ("FAIL" if captured else "UNKNOWN")
     return {
         "last_backup_filename": (

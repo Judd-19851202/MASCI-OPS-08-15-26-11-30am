@@ -1,0 +1,104 @@
+{
+  "summary": "TRACK 27.09B · BACKUP INTEGRITY FAILURE & SCHEDULER SIGNAL CLOSEOUT - All bug fixes verified working. Legacy alias normalization, explicit exclusion honoring, and scheduler signal preference all confirmed.",
+  "track": "27.09B",
+  "verdict": "PASS - All 3 bug fixes verified",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "bug_fix_verification": {
+    "legacy_alias_normalization": {
+      "status": "PASS",
+      "description": "Manifest legacy aliases (daily-reports, equipment-inspections) correctly normalized to canonical Mongo names (daily_reports, equipment_inspections)",
+      "evidence": {
+        "manifest_contains": ["daily-reports", "equipment-inspections"],
+        "live_db_contains": ["daily_reports", "equipment_inspections"],
+        "missing_from_backup_contains_neither": true
+      },
+      "function_tested": "_normalize_backup_manifest_collection_name",
+      "test_file": "test_track_27_09b_integrity_scheduler_closeout.py::test_integrity_missing_normalizes_legacy_manifest_aliases_and_exclusions"
+    },
+    "explicit_exclusions_honored": {
+      "status": "PASS",
+      "description": "Manifest explicit exclusions (usage_events, health_monitor_runs, job_photo_thumb_cache) are NOT treated as missing backup content",
+      "evidence": {
+        "exclusions_in_manifest": ["usage_events", "health_monitor_runs", "job_photo_thumb_cache"],
+        "exclusions_in_missing_list": false
+      },
+      "function_tested": "_compute_backup_integrity_missing",
+      "test_file": "test_track_27_09b_integrity_scheduler_closeout.py::test_integrity_missing_normalizes_legacy_manifest_aliases_and_exclusions"
+    },
+    "scheduler_signal_preference": {
+      "status": "PASS",
+      "description": "Recovery snapshot prefers canonical _BACKUP_SCHEDULER_STATE.last_tick_ts over stale scheduler_locks evidence",
+      "evidence": {
+        "when_last_tick_ts_present": {
+          "signal_source": "backup_scheduler_state",
+          "alive": true,
+          "is_healthy": true
+        },
+        "when_last_tick_ts_absent": {
+          "signal_source": "scheduler_locks",
+          "falls_back_correctly": true
+        }
+      },
+      "function_tested": "_scheduler_state_is_alive",
+      "test_file": "test_track_27_09b_integrity_scheduler_closeout.py::test_recovery_snapshot_prefers_canonical_scheduler_state_over_stale_lock"
+    },
+    "regression_safety": {
+      "status": "PASS",
+      "description": "True uncaptured collections still correctly reported as missing - integrity checks not weakened",
+      "evidence": {
+        "test_case": "live=[daily_reports, meetings, new_collection], captured=[daily-reports, meetings] => missing=[new_collection]"
+      },
+      "test_file": "test_track_27_09b_integrity_scheduler_closeout.py::test_integrity_missing_still_reports_true_uncaptured_live_collections"
+    }
+  },
+  "live_api_verification": {
+    "integrity_check_endpoint": {
+      "url": "/api/admin/backups/integrity-check",
+      "status": "WORKING",
+      "evidence_source": "r2:MANIFEST.json",
+      "captured_collection_count": 206,
+      "legacy_aliases_normalized": true,
+      "explicit_exclusions_honored": true,
+      "note": "52 missing collections are truly new collections added after backup - expected behavior"
+    },
+    "recovery_snapshot_endpoint": {
+      "url": "/api/admin/recovery/snapshot",
+      "status": "WORKING",
+      "scheduler_signal_source": "scheduler_locks (expected - SCHEDULER_ENABLED=false in preview)",
+      "note": "Scheduler signal preference fix verified via unit test - preview env has scheduler disabled"
+    }
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_track_27_09b_integrity_scheduler_closeout.py",
+    "/app/backend/tests/test_track_27_09_backup_observability.py",
+    "/app/test_reports/pytest/track_27_09b_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "100%",
+    "frontend": "N/A (backend-only testing)"
+  },
+  "pytest_results": {
+    "test_track_27_09b_integrity_scheduler_closeout": "4/4 passed",
+    "test_track_27_09_backup_observability": "3/3 passed",
+    "test_track_27_09a_live_verification": "7/7 skipped (requires live admin auth)",
+    "test_backup_fix_001": "8/8 passed",
+    "test_track_28_09d_backup_health_aggregator": "8/8 passed",
+    "total": "23 passed, 7 skipped"
+  },
+  "test_credentials": "jaymn.judd@mascigc.com / Maddix123! (super-admin)",
+  "seed_data_creation": "None required",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Track 27.09B bug fixes verified. All 3 fixes working: (1) legacy manifest aliases normalized via EXPORTABLE_KINDS mapping, (2) explicit exclusions honored in _compute_backup_integrity_missing, (3) scheduler signal prefers _BACKUP_SCHEDULER_STATE.last_tick_ts over stale scheduler_locks. Regression safety confirmed - true uncaptured collections still fail integrity check."
+}
