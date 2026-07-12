@@ -24,7 +24,7 @@ import requests
 
 BASE_URL = os.environ.get(
     "REACT_APP_BACKEND_URL",
-    "https://safety-audit-mobile-1.preview.emergentagent.com",
+    "https://backup-forensics.preview.emergentagent.com",
 ).rstrip("/")
 
 SAFETY_EMAIL = "safety@mascigc.com"

@@ -21,7 +21,7 @@ Regression-lock evidence: **250 backend tests executed, 249 passed, 7 skipped, 1
 
 # 1 · PIPELINE TRACE — RUNTIME EVIDENCE
 
-Every hop from operator tap to downstream consumer was probed against the live preview backend `https://safety-audit-mobile-1.preview.emergentagent.com`.
+Every hop from operator tap to downstream consumer was probed against the live preview backend `https://backup-forensics.preview.emergentagent.com`.
 
 | # | Layer | Endpoint / component | Runtime evidence | Status |
 |---|---|---|---|---|
@@ -31,7 +31,7 @@ Every hop from operator tap to downstream consumer was probed against the live p
 | 4 | Number preview | `GET /api/daily-reports/next-number?project_number=20-07` | HTTP 200 `DR-2026-02516` (increments live) | ✅ |
 | 5 | AI service meta | `GET /api/dr-v2/meta` | HTTP 200 `feature_flag=true, ai_available=true, model=claude-sonnet-4-5-20250929, provider=emergent` | ✅ |
 | 6 | AI synthesize | `POST /api/dr-v2/ai/synthesize` | HTTP 404 for stale report_id (draft-scoped by design); endpoint alive + Pydantic routing OK | ✅ |
-| 7 | Submit — canonical | `POST /api/daily-reports` w/ real V3 payload (all 26.02 label variants) | HTTP 200 → `id=5678e24e-c4c4-4415-a773-8265f3c89348` | ✅ |
+| 7 | Submit — canonical | `POST /api/daily-reports` w/ real V3 payload (all 26.02 label variants) | HTTP 200 → `id=backup-forensics` | ✅ |
 | 8 | Server-side normalization D-01 | production units `[Tons, Cubic Yards, Linear Feet, Loads]` | Stored as `[TON, CY, LF, OTHER+custom_unit_label="Loads"]` | ✅ |
 | 9 | Server-side extras D-03 | production row with `unit_snapshot`+`unit_code`+`percent_complete`+`activity_code`+`cost_code_snapshot` | HTTP 200 (would 422 pre-26.02) | ✅ |
 | 10 | Server-side normalization D-10 | constraint_type `[WEATHER, utility]` | Stored as `[weather, utility]` | ✅ |

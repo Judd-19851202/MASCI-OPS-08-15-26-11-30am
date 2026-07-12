@@ -118,7 +118,7 @@ mongosh "<prod connection string>" --eval 'JSON.stringify(db.adminCommand({conne
 
 **Preview:**
 ```bash
-curl -s https://safety-audit-mobile-1.preview.emergentagent.com/api/health  # expect ok:true
+curl -s https://backup-forensics.preview.emergentagent.com/api/health  # expect ok:true
 # Verify identity:
 cd /app/backend && python3 -c "
 import re

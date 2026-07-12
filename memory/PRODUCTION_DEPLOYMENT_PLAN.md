@@ -26,7 +26,7 @@ Estimated user-visible disruption: **0 seconds** (the deploy is a rolling Emerge
 | Authorize the deploy + migration window in chat | Operator | Written authorization timestamp |
 | Verify operator has tail access to backend logs and DB | Operator | `tail -f /var/log/supervisor/backend.err.log` reachable |
 | Confirm `/api/version` on prod = `8e8ec6da31cf225cae2db172573f49a0` | Agent (read-only) | `curl https://mascidocs.com/api/version` |
-| Confirm `/api/version` on preview = `550118913c503ae6d206223be384372f` | Agent (read-only) | `curl https://safety-audit-mobile-1.preview.emergentagent.com/api/version` |
+| Confirm `/api/version` on preview = `550118913c503ae6d206223be384372f` | Agent (read-only) | `curl https://backup-forensics.preview.emergentagent.com/api/version` |
 
 ### Step 1 · Cut a pre-deploy safety backup (T-25 min)
 

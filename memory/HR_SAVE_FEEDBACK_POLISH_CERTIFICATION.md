@@ -8,7 +8,7 @@
 
 ## 1 · Live UI walk-through — Playwright on preview
 
-Three scenarios exercised on `https://safety-audit-mobile-1.preview.emergentagent.com/hr/employees` with HR token; test employee `Alec Perkins`.
+Three scenarios exercised on `https://backup-forensics.preview.emergentagent.com/hr/employees` with HR token; test employee `Alec Perkins`.
 
 ### 1.1 · Scenario A — NOOP test (Save without changing the dropdown)
 

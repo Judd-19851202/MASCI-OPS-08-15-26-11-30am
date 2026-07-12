@@ -89,7 +89,7 @@ Every finding below includes: evidence · reproduction · root cause · fix reco
 ### 🔴 P0-A · `/api/hr/employee-roster` returns 200 with no authentication
 - **Evidence:** `curl https://…/api/hr/employee-roster` (no headers) → 200, 387 employee records with name · employee_id · trade · role · crew · supervisor · lifecycle_status · department · display_identity.
 - **Handler:** `server.py:4647` `@api_router.get("/hr/employee-roster")` — `dependencies: []`. No `Depends(require_hr_or_admin)` or equivalent.
-- **Reproduction:** `curl -H "User-Agent: curl/8.5.0" https://safety-audit-mobile-1.preview.emergentagent.com/api/hr/employee-roster | jq '.count'` → `387`.
+- **Reproduction:** `curl -H "User-Agent: curl/8.5.0" https://backup-forensics.preview.emergentagent.com/api/hr/employee-roster | jq '.count'` → `387`.
 - **Root cause:** endpoint decorator has no auth dep. Docstring implies "safe projection" makes it OK to expose broadly, but the endpoint is still publicly enumerable.
 - **Fix:** add `Depends(require_read_dep)` (or `require_hr_or_admin` since it's an HR canonical roster). Ensure the FE Employee-Picker sends its portal token — CompetentPersonCombo already does the right thing after this session's canonical-token fix.
 - **Risk:** competitor intelligence (org chart, crew composition, supervisor hierarchy, terminations via lifecycle_status), phishing pre-load (name+role targeting), OSHA/plaintiff evidence gathering by outsiders.

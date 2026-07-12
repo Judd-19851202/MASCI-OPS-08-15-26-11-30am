@@ -28,7 +28,7 @@ Each finding row carries the following fields, with no exceptions:
 | `status` | enum: ACTIVE / IN_PROGRESS / DEFERRED / RETIRED / SUPERSEDED / REJECTED | ✅ | |
 | `verified_source_date` | ISO-8601 | ✅ | Last time the finding was checked against `/app/` JSX + Python. |
 | `verified_ui_date` | ISO-8601 | optional | Last time the finding was checked against a screenshot from the preview environment. |
-| `verified_preview_date` | ISO-8601 | optional | Last time the finding was reproduced on `https://safety-audit-mobile-1.preview.emergentagent.com`. |
+| `verified_preview_date` | ISO-8601 | optional | Last time the finding was reproduced on `https://backup-forensics.preview.emergentagent.com`. |
 | `verified_production_date` | ISO-8601 | optional | Last time the finding was reproduced on `https://mascidocs.com`. **Operator-only.** AI cannot fill this. |
 | `evidence` | text | ✅ | File path + line numbers, or screenshot reference, or operator quote. |
 | `superseded_by` | TR-#### | conditional | If status = SUPERSEDED. |

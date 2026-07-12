@@ -86,7 +86,7 @@ The historical rows still carry their original (incorrect-but-historical) `"prev
 ### 8. Health endpoint remains green
 **PASS · live evidence:**
 ```
-$ curl -sS https://safety-audit-mobile-1.preview.emergentagent.com/api/health
+$ curl -sS https://backup-forensics.preview.emergentagent.com/api/health
 {"ok":true,"service":"masci-hub","ts":"2026-06-09T17:32:58.015595+00:00"}
 ```
 
@@ -132,7 +132,7 @@ backend: stopped
 backend: started
 $ sudo supervisorctl status backend
 backend                          RUNNING   pid 142121, uptime 0:00:27
-$ curl https://safety-audit-mobile-1.preview.emergentagent.com/api/health
+$ curl https://backup-forensics.preview.emergentagent.com/api/health
 {"ok":true,"service":"masci-hub","ts":"2026-06-09T17:32:58.015595+00:00"}
 ```
 

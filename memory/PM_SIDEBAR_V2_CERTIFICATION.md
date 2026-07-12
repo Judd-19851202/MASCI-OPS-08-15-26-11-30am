@@ -157,7 +157,7 @@ Per the P0 audit finding, the iOS scroll trap existed in PM regardless of flag s
 
 ## VII. Visual proof (preview screenshot · desktop · 1920×800)
 
-Screenshot captured at `https://safety-audit-mobile-1.preview.emergentagent.com/pm?pmSidebarV2=1` (preview environment).
+Screenshot captured at `https://backup-forensics.preview.emergentagent.com/pm?pmSidebarV2=1` (preview environment).
 
 Observed:
 - 6 calm domain rows with stripe colors (red · blue · amber · violet · orange · slate)

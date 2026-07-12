@@ -26,7 +26,7 @@
 }
 ```
 
-Frontend env: `REACT_APP_BACKEND_URL = https://safety-audit-mobile-1.preview.emergentagent.com`.
+Frontend env: `REACT_APP_BACKEND_URL = https://backup-forensics.preview.emergentagent.com`.
 
 Preview unambiguously identifies as Preview. Production will identify as Production via `APP_ENV=production` + `DB_NAME=masci_safety`.
 

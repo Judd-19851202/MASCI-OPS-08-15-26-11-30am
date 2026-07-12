@@ -1,6 +1,6 @@
 === Batch J · P0-B (continued) · DR photo schema + directory ===
 
-FIRST_DR_WITH_PHOTOS=346d7dfb-568d-41ae-8e32-2f289c7b3818
+FIRST_DR_WITH_PHOTOS=backup-forensics
 === J-P9 · GET /api/daily-reports/346d7dfb-568d-41ae-8e32-2f289c7b3818 ===
 top-level keys: ['project_name', 'project_number', 'location', 'report_date', 'report_number', 'prepared_by', 'superintendent', 'weather_summary', 'weather_snapshots', 'schedule_delays', 'schedule_delays_notes', 'weather_impact', 'weather_impact_notes', 'safety_incidents_today', 'injuries_reported', 'incident_notes', 'safety_notified', 'safety_contact_person', 'safety_contact_time', 'incident_report_filled', 'incident_report_time', 'general_notes', 'masci_crews', 'subcontractors', 'visitors', 'equipment', 'materials', 'activities', 'production', 'constraints']
 photo_count=None

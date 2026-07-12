@@ -14,7 +14,7 @@ waiting for a foreman to report it.
 Usage
 -----
 Local preview / preview env:
-    BASE_URL=https://safety-audit-mobile-1.preview.emergentagent.com \\
+    BASE_URL=https://backup-forensics.preview.emergentagent.com \\
     PM_PASSWORD=Happy123! ADMIN_PASSWORD=MASCI1982! \\
     python3 scripts/smoke_pm_routes.py
 
@@ -34,7 +34,7 @@ from typing import List, Tuple
 
 from playwright.async_api import async_playwright
 
-BASE = os.environ.get("BASE_URL", "https://safety-audit-mobile-1.preview.emergentagent.com").rstrip("/")
+BASE = os.environ.get("BASE_URL", "https://backup-forensics.preview.emergentagent.com").rstrip("/")
 PM_PWD = os.environ.get("PM_PASSWORD", "Happy123!")
 ADMIN_PWD = os.environ.get("ADMIN_PASSWORD", "MASCI1982!")
 

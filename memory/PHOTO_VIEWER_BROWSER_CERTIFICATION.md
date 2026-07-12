@@ -20,7 +20,7 @@ The operator deliverable list requires browser-level verification of the photo v
 
 ## 2 · Preview frontend smoke test (Playwright Chromium · 1440×900)
 
-* `goto https://safety-audit-mobile-1.preview.emergentagent.com/admin/login`
+* `goto https://backup-forensics.preview.emergentagent.com/admin/login`
 * Authenticate as `jaymn.judd@mascigc.com` / `Maddix123!` (super-admin)
 * `goto /admin/photos`
 * Page renders correctly with all 526 preview-DB photos indexed; orange banner `⚠ PREVIEW ENVIRONMENT · DB: MASCI_SAFETY_PREVIEW · DO NOT ENTER REAL OPERATIONAL DATA` confirms env isolation. Screenshot: `_cors_remediation_preview_grid.jpeg`.
@@ -42,7 +42,7 @@ Origin                                                              Status   ACA
 https://mascidocs.com                                               200 OK   access-control-allow-origin: https://mascidocs.com           ✅
 https://www.mascidocs.com                                           200 OK   access-control-allow-origin: https://www.mascidocs.com       ✅
 https://safety-audit-mobile-1.emergent.host                         200 OK   access-control-allow-origin: https://safety-audit-mobile-1.emergent.host   ✅ legacy bundle origin still allowed
-https://safety-audit-mobile-1.preview.emergentagent.com             200 OK   access-control-allow-origin: https://safety-audit-mobile-1.preview.emergentagent.com   ✅ preview origin still allowed
+https://backup-forensics.preview.emergentagent.com             200 OK   access-control-allow-origin: https://backup-forensics.preview.emergentagent.com   ✅ preview origin still allowed
 https://anything.emergentagent.com                                  200 OK   access-control-allow-origin: https://anything.emergentagent.com   ✅
 https://evil.com                                                    400 Bad Request   (none)                                              ✅ REJECTED · "Disallowed CORS origin"
 ```

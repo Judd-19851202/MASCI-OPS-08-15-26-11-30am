@@ -151,7 +151,7 @@ endpoint for anything new.
 
 ```
 $ curl -H "X-Admin-Token: $TOK" \
-    https://safety-audit-mobile-1.preview.emergentagent.com/api/admin/production-certification
+    https://backup-forensics.preview.emergentagent.com/api/admin/production-certification
 HTTP 200
 ok=true · track=15.79E · band=amber
 counters={verified:0, failed:0, not_yet_exercised:11, total:11}

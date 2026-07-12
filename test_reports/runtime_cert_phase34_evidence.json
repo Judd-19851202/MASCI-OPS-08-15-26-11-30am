@@ -18,7 +18,7 @@
       "pm"
     ],
     "landing": {
-      "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/pm/command-center",
+      "final_url": "https://backup-forensics.preview.emergentagent.com/pm/command-center",
       "status": 200,
       "title": "PM Command Center \u00b7 MASCI",
       "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\nMASCI \u00b7 PM PORTAL\nProject Management Center\nSEARCH\n\u2318K\n5\n2:42 AM\nEN\nES\nCert Project Manager\nBACK\nHOME\nSIGN OUT\nPROJECT OPERATIONS\nField activity across your assigned projects.\nOverview\nToday's signal across your projects.\nJobs\nJobs assigned to you (read-only).\nDaily Reports\nField production, manpower, progress.\nInspections\nField safety and quality checks.\nMeetings\nPre-shift, toolbox, project meetings.\nField Leadership\nCrew documentation across your projects.\nOperational Daily Records\nPM read-only consumption \u00b7 today's risk picture.\nJob Photos\nField photos by job and week.\nFINANCIALS & COST\nPurchase orders, change exposure, budget signals.\nFIELD COORDINATION\nFleet, pre-op, suppliers, people.\nDOCUMENT CONTROL\nJHAs, trench boxes, posters.\nCOMPLIANCE & RISK\nIncidents, QA/QC, crew compliance.\nSYSTEM & COMMUNICATIONS\nSign-in credentials.\nPINNED\nMy Tasks\nAction items across all domains.\nGuidance\nDoctrine, SOPs, training.\nProject Management Center\n\nProjects assigned to you\n\nPM HUB\nUpdated 2:42 AM\nPROJECT\nAll my projects\nUPDATED 2:42 AM\nSECTION A \u00b7 MY PROJECTS\nProjects Assigned to You\n\nEach PM only sees proje",
@@ -28,7 +28,7 @@
     "prohibited_attempts": [
       {
         "path": "/admin",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/admin",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/admin",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to Admin Console\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /admin\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -38,7 +38,7 @@
       },
       {
         "path": "/admin/system",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/admin/system",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/admin/system",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to Admin Console\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /admin/system\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -48,7 +48,7 @@
       },
       {
         "path": "/admin/people",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/admin/people",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/admin/people",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to Admin Console\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /admin/people\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -77,7 +77,7 @@
       "pm"
     ],
     "landing": {
-      "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/pm/command-center",
+      "final_url": "https://backup-forensics.preview.emergentagent.com/pm/command-center",
       "status": 200,
       "title": "PM Command Center \u00b7 MASCI",
       "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\nMASCI \u00b7 PM PORTAL\nProject Management Center\nSEARCH\n\u2318K\n5\n2:43 AM\nEN\nES\nCert Co-PM\nBACK\nHOME\nSIGN OUT\nPROJECT OPERATIONS\nField activity across your assigned projects.\nOverview\nToday's signal across your projects.\nJobs\nJobs assigned to you (read-only).\nDaily Reports\nField production, manpower, progress.\nInspections\nField safety and quality checks.\nMeetings\nPre-shift, toolbox, project meetings.\nField Leadership\nCrew documentation across your projects.\nOperational Daily Records\nPM read-only consumption \u00b7 today's risk picture.\nJob Photos\nField photos by job and week.\nFINANCIALS & COST\nPurchase orders, change exposure, budget signals.\nFIELD COORDINATION\nFleet, pre-op, suppliers, people.\nDOCUMENT CONTROL\nJHAs, trench boxes, posters.\nCOMPLIANCE & RISK\nIncidents, QA/QC, crew compliance.\nSYSTEM & COMMUNICATIONS\nSign-in credentials.\nPINNED\nMy Tasks\nAction items across all domains.\nGuidance\nDoctrine, SOPs, training.\nProject Management Center\n\nProjects assigned to you\n\nPM HUB\nUpdated 2:43 AM\nPROJECT\nAll my projects\nUPDATED 2:43 AM\nSECTION A \u00b7 MY PROJECTS\nProjects Assigned to You\n\nEach PM only sees projects they'v",
@@ -87,7 +87,7 @@
     "prohibited_attempts": [
       {
         "path": "/admin",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/admin",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/admin",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to Admin Console\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /admin\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -97,7 +97,7 @@
       },
       {
         "path": "/admin/system",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/admin/system",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/admin/system",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to Admin Console\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /admin/system\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -107,7 +107,7 @@
       },
       {
         "path": "/admin/people",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/admin/people",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/admin/people",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to Admin Console\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /admin/people\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -136,7 +136,7 @@
       "pm"
     ],
     "landing": {
-      "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/pm/command-center",
+      "final_url": "https://backup-forensics.preview.emergentagent.com/pm/command-center",
       "status": 200,
       "title": "PM Command Center \u00b7 MASCI",
       "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\nMASCI \u00b7 PM PORTAL\nProject Management Center\nSEARCH\n\u2318K\n5\n2:43 AM\nEN\nES\nCert Executive Oversight\nBACK\nHOME\nSIGN OUT\nPROJECT OPERATIONS\nField activity across your assigned projects.\nOverview\nToday's signal across your projects.\nJobs\nJobs assigned to you (read-only).\nDaily Reports\nField production, manpower, progress.\nInspections\nField safety and quality checks.\nMeetings\nPre-shift, toolbox, project meetings.\nField Leadership\nCrew documentation across your projects.\nOperational Daily Records\nPM read-only consumption \u00b7 today's risk picture.\nJob Photos\nField photos by job and week.\nFINANCIALS & COST\nPurchase orders, change exposure, budget signals.\nFIELD COORDINATION\nFleet, pre-op, suppliers, people.\nDOCUMENT CONTROL\nJHAs, trench boxes, posters.\nCOMPLIANCE & RISK\nIncidents, QA/QC, crew compliance.\nSYSTEM & COMMUNICATIONS\nSign-in credentials.\nPINNED\nMy Tasks\nAction items across all domains.\nGuidance\nDoctrine, SOPs, training.\nProject Management Center\n\nProjects assigned to you\n\nPM HUB\nUpdated 2:43 AM\nPROJECT\nAll my projects\nUPDATED 2:43 AM\nSECTION A \u00b7 MY PROJECTS\nProjects Assigned to You\n\nEach PM only sees p",
@@ -146,7 +146,7 @@
     "prohibited_attempts": [
       {
         "path": "/admin",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/admin",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/admin",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to Admin Console\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /admin\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -156,7 +156,7 @@
       },
       {
         "path": "/admin/system",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/admin/system",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/admin/system",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to Admin Console\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /admin/system\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -166,7 +166,7 @@
       },
       {
         "path": "/admin/people",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/admin/people",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/admin/people",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to Admin Console\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /admin/people\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -195,7 +195,7 @@
       "pm"
     ],
     "landing": {
-      "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/pm/command-center",
+      "final_url": "https://backup-forensics.preview.emergentagent.com/pm/command-center",
       "status": 200,
       "title": "PM Command Center \u00b7 MASCI",
       "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\nMASCI \u00b7 PM PORTAL\nProject Management Center\nSEARCH\n\u2318K\n5\n2:43 AM\nEN\nES\nCert Superintendent\nBACK\nHOME\nSIGN OUT\nPROJECT OPERATIONS\nField activity across your assigned projects.\nOverview\nToday's signal across your projects.\nJobs\nJobs assigned to you (read-only).\nDaily Reports\nField production, manpower, progress.\nInspections\nField safety and quality checks.\nMeetings\nPre-shift, toolbox, project meetings.\nField Leadership\nCrew documentation across your projects.\nOperational Daily Records\nPM read-only consumption \u00b7 today's risk picture.\nJob Photos\nField photos by job and week.\nFINANCIALS & COST\nPurchase orders, change exposure, budget signals.\nFIELD COORDINATION\nFleet, pre-op, suppliers, people.\nDOCUMENT CONTROL\nJHAs, trench boxes, posters.\nCOMPLIANCE & RISK\nIncidents, QA/QC, crew compliance.\nSYSTEM & COMMUNICATIONS\nSign-in credentials.\nPINNED\nMy Tasks\nAction items across all domains.\nGuidance\nDoctrine, SOPs, training.\nProject Management Center\n\nProjects assigned to you\n\nPM HUB\nUpdated 2:43 AM\nPROJECT\nAll my projects\nUPDATED 2:43 AM\nSECTION A \u00b7 MY PROJECTS\nProjects Assigned to You\n\nEach PM only sees projec",
@@ -205,7 +205,7 @@
     "prohibited_attempts": [
       {
         "path": "/admin",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/admin",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/admin",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to Admin Console\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /admin\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -215,7 +215,7 @@
       },
       {
         "path": "/hr",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/hr",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/hr",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to HR Portal\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /hr\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -225,7 +225,7 @@
       },
       {
         "path": "/safety-portal",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/safety-portal",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/safety-portal",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to Safety Portal\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /safety-portal\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -254,7 +254,7 @@
       "pm"
     ],
     "landing": {
-      "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/pm/command-center",
+      "final_url": "https://backup-forensics.preview.emergentagent.com/pm/command-center",
       "status": 200,
       "title": "PM Command Center \u00b7 MASCI",
       "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\nMASCI \u00b7 PM PORTAL\nProject Management Center\nSEARCH\n\u2318K\n5\n2:44 AM\nEN\nES\nCert Assistant Superintendent\nBACK\nHOME\nSIGN OUT\nPROJECT OPERATIONS\nField activity across your assigned projects.\nOverview\nToday's signal across your projects.\nJobs\nJobs assigned to you (read-only).\nDaily Reports\nField production, manpower, progress.\nInspections\nField safety and quality checks.\nMeetings\nPre-shift, toolbox, project meetings.\nField Leadership\nCrew documentation across your projects.\nOperational Daily Records\nPM read-only consumption \u00b7 today's risk picture.\nJob Photos\nField photos by job and week.\nFINANCIALS & COST\nPurchase orders, change exposure, budget signals.\nFIELD COORDINATION\nFleet, pre-op, suppliers, people.\nDOCUMENT CONTROL\nJHAs, trench boxes, posters.\nCOMPLIANCE & RISK\nIncidents, QA/QC, crew compliance.\nSYSTEM & COMMUNICATIONS\nSign-in credentials.\nPINNED\nMy Tasks\nAction items across all domains.\nGuidance\nDoctrine, SOPs, training.\nProject Management Center\n\nProjects assigned to you\n\nPM HUB\nUpdated 2:44 AM\nPROJECT\nAll my projects\nUPDATED 2:44 AM\nSECTION A \u00b7 MY PROJECTS\nProjects Assigned to You\n\nEach PM only s",
@@ -264,7 +264,7 @@
     "prohibited_attempts": [
       {
         "path": "/admin",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/admin",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/admin",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to Admin Console\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /admin\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -274,7 +274,7 @@
       },
       {
         "path": "/hr",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/hr",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/hr",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to HR Portal\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /hr\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -284,7 +284,7 @@
       },
       {
         "path": "/safety-portal",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/safety-portal",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/safety-portal",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to Safety Portal\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /safety-portal\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -314,7 +314,7 @@
       "fl"
     ],
     "landing": {
-      "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/leadership",
+      "final_url": "https://backup-forensics.preview.emergentagent.com/leadership",
       "status": 200,
       "title": "Field Leadership \u00b7 MASCI",
       "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\nMASCI \u00b7 FIELD LEADERSHIP\nField Leadership\nSEARCH\n\u2318K\n2:44 AM\nEN\nES\nCert Foreman\nBACK\nHOME\nSIGN OUT\nField Leadership\n\nCrew accountability, employee documentation, equipment responsibility, recognition, and workforce-management tools.\n\nRECORDS\nGUIDES\nCOMPANY INFO\nALL FORMS MUST BE FACTUAL, PROFESSIONAL, AND COMPLIANT WITH EMPLOYMENT-DOCUMENTATION BEST PRACTICES.\nRecent field memory\nASSIGNMENTa1\u2014 no1 d ago\nPROJECTp1\u2014 no1 d ago\nEQUIPMENTTEST-043af895\u2014 Shop hydraulic pressure note.1 d ago\nInspection filed\u00b79 hr ago\nDAILY CREW DOCUMENTATION\nWhat you fill out at the end of a shift to keep the paper trail clean.\nVerbal Coaching\n\nDocument a coaching conversation that is not a formal write-up.\n\nNEW ENTRY \u2192\nEmployee Write-Up\n\nDocument formal disciplinary or corrective action.\n\nNEW ENTRY \u2192\nAttendance / Tardy\n\nDocument attendance-related issues factually.\n\nNEW ENTRY \u2192\nRecognition / Reward\n\nRecognize outstanding work, safety leadership, or going above and beyond.\n\nNEW ENTRY \u2192\nEVALUATIONS & CAREER PATH\nPerformance, promotions, and training accountability.\nNew Employee Evaluation\n\n30 / 60 / 90-day evaluation for new ",
@@ -324,7 +324,7 @@
     "prohibited_attempts": [
       {
         "path": "/admin",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/admin",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/admin",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to Admin Console\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nSIGN IN\nPUBLIC HOME\nOTHER PORTALS YOU CAN ACCESS\nPath: /admin\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -334,7 +334,7 @@
       },
       {
         "path": "/hr",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/hr",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/hr",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to HR Portal\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nSIGN IN\nPUBLIC HOME\nOTHER PORTALS YOU CAN ACCESS\nPath: /hr\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -344,7 +344,7 @@
       },
       {
         "path": "/pm",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/pm",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/pm",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to PM Portal\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nSIGN IN\nPUBLIC HOME\nOTHER PORTALS YOU CAN ACCESS\nPath: /pm\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -373,7 +373,7 @@
       "pm"
     ],
     "landing": {
-      "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/pm/command-center",
+      "final_url": "https://backup-forensics.preview.emergentagent.com/pm/command-center",
       "status": 200,
       "title": "PM Command Center \u00b7 MASCI",
       "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\nMASCI \u00b7 PM PORTAL\nProject Management Center\nSEARCH\n\u2318K\n5\n2:44 AM\nEN\nES\nCert Project Engineer\nBACK\nHOME\nSIGN OUT\nPROJECT OPERATIONS\nField activity across your assigned projects.\nOverview\nToday's signal across your projects.\nJobs\nJobs assigned to you (read-only).\nDaily Reports\nField production, manpower, progress.\nInspections\nField safety and quality checks.\nMeetings\nPre-shift, toolbox, project meetings.\nField Leadership\nCrew documentation across your projects.\nOperational Daily Records\nPM read-only consumption \u00b7 today's risk picture.\nJob Photos\nField photos by job and week.\nFINANCIALS & COST\nPurchase orders, change exposure, budget signals.\nFIELD COORDINATION\nFleet, pre-op, suppliers, people.\nDOCUMENT CONTROL\nJHAs, trench boxes, posters.\nCOMPLIANCE & RISK\nIncidents, QA/QC, crew compliance.\nSYSTEM & COMMUNICATIONS\nSign-in credentials.\nPINNED\nMy Tasks\nAction items across all domains.\nGuidance\nDoctrine, SOPs, training.\nProject Management Center\n\nProjects assigned to you\n\nPM HUB\nUpdated 2:44 AM\nPROJECT\nAll my projects\nUPDATED 2:44 AM\nSECTION A \u00b7 MY PROJECTS\nProjects Assigned to You\n\nEach PM only sees proj",
@@ -383,7 +383,7 @@
     "prohibited_attempts": [
       {
         "path": "/admin",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/admin",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/admin",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to Admin Console\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /admin\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -393,7 +393,7 @@
       },
       {
         "path": "/hr",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/hr",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/hr",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to HR Portal\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /hr\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -403,7 +403,7 @@
       },
       {
         "path": "/safety-portal",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/safety-portal",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/safety-portal",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to Safety Portal\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /safety-portal\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -432,7 +432,7 @@
       "pm"
     ],
     "landing": {
-      "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/pm/command-center",
+      "final_url": "https://backup-forensics.preview.emergentagent.com/pm/command-center",
       "status": 200,
       "title": "PM Command Center \u00b7 MASCI",
       "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\nMASCI \u00b7 PM PORTAL\nProject Management Center\nSEARCH\n\u2318K\n9\n2:45 AM\nEN\nES\nCert Project Administrator\nBACK\nHOME\nSIGN OUT\nPROJECT OPERATIONS\nField activity across your assigned projects.\nOverview\nToday's signal across your projects.\nJobs\nJobs assigned to you (read-only).\nDaily Reports\nField production, manpower, progress.\nInspections\nField safety and quality checks.\nMeetings\nPre-shift, toolbox, project meetings.\nField Leadership\nCrew documentation across your projects.\nOperational Daily Records\nPM read-only consumption \u00b7 today's risk picture.\nJob Photos\nField photos by job and week.\nFINANCIALS & COST\nPurchase orders, change exposure, budget signals.\nFIELD COORDINATION\nFleet, pre-op, suppliers, people.\nDOCUMENT CONTROL\nJHAs, trench boxes, posters.\nCOMPLIANCE & RISK\nIncidents, QA/QC, crew compliance.\nSYSTEM & COMMUNICATIONS\nSign-in credentials.\nPINNED\nMy Tasks\nAction items across all domains.\nGuidance\nDoctrine, SOPs, training.\nProject Management Center\n\nProjects assigned to you\n\nPM HUB\nUpdated 2:45 AM\nPROJECT\nAll my projects\nUPDATED 2:45 AM\nSECTION A \u00b7 MY PROJECTS\nProjects Assigned to You\n\nEach PM only sees",
@@ -442,7 +442,7 @@
     "prohibited_attempts": [
       {
         "path": "/admin",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/admin",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/admin",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to Admin Console\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /admin\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -452,7 +452,7 @@
       },
       {
         "path": "/hr",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/hr",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/hr",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to HR Portal\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /hr\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -462,7 +462,7 @@
       },
       {
         "path": "/safety-portal",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/safety-portal",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/safety-portal",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to Safety Portal\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /safety-portal\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -491,7 +491,7 @@
       "pm"
     ],
     "landing": {
-      "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/pm/command-center",
+      "final_url": "https://backup-forensics.preview.emergentagent.com/pm/command-center",
       "status": 200,
       "title": "PM Command Center \u00b7 MASCI",
       "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\nMASCI \u00b7 PM PORTAL\nProject Management Center\nSEARCH\n\u2318K\n5\n2:45 AM\nEN\nES\nCert Project Coordinator\nBACK\nHOME\nSIGN OUT\nPROJECT OPERATIONS\nField activity across your assigned projects.\nOverview\nToday's signal across your projects.\nJobs\nJobs assigned to you (read-only).\nDaily Reports\nField production, manpower, progress.\nInspections\nField safety and quality checks.\nMeetings\nPre-shift, toolbox, project meetings.\nField Leadership\nCrew documentation across your projects.\nOperational Daily Records\nPM read-only consumption \u00b7 today's risk picture.\nJob Photos\nField photos by job and week.\nFINANCIALS & COST\nPurchase orders, change exposure, budget signals.\nFIELD COORDINATION\nFleet, pre-op, suppliers, people.\nDOCUMENT CONTROL\nJHAs, trench boxes, posters.\nCOMPLIANCE & RISK\nIncidents, QA/QC, crew compliance.\nSYSTEM & COMMUNICATIONS\nSign-in credentials.\nPINNED\nMy Tasks\nAction items across all domains.\nGuidance\nDoctrine, SOPs, training.\nProject Management Center\n\nProjects assigned to you\n\nPM HUB\nUpdated 2:45 AM\nPROJECT\nAll my projects\nUPDATED 2:45 AM\nSECTION A \u00b7 MY PROJECTS\nProjects Assigned to You\n\nEach PM only sees p",
@@ -501,7 +501,7 @@
     "prohibited_attempts": [
       {
         "path": "/admin",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/admin",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/admin",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to Admin Console\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /admin\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -511,7 +511,7 @@
       },
       {
         "path": "/hr",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/hr",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/hr",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to HR Portal\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /hr\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -521,7 +521,7 @@
       },
       {
         "path": "/safety-portal",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/safety-portal",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/safety-portal",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to Safety Portal\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /safety-portal\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -550,7 +550,7 @@
       "safety"
     ],
     "landing": {
-      "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/safety-portal",
+      "final_url": "https://backup-forensics.preview.emergentagent.com/safety-portal",
       "status": 200,
       "title": "MASCI Operations Platform",
       "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\nMASCI \u00b7 SAFETY PORTAL\nWhat safety work requires attention right now?\nSEARCH\n\u2318K\n99+\n2:46 AM\nEN\nES\nCert Safety Representative\nHOME\nSIGN OUT\nINCIDENTS & ESCALATION\n\nActive incidents, near misses, corrective action closure.\n\nINCIDENTS & NEAR MISSES\nSeverity-tagged review and follow-up.\nCORRECTIVE ACTIONS\nOpen, investigate, verify, close out.\nTASKS & ACTIONS\nCross-portal accountability and approvals.\nDOCUMENTS & TRAINING\n\nLibrary, certifications, accountability, PPE issuance.\n\nTRAINING & CERTIFICATIONS\nRecords, renewals, sign-in sheets.\nSAFETY DOCUMENT LIBRARY\nOSHA, SDS, EAPs, fall protection.\nEQUIPMENT & PPE ACCOUNTABILITY\nIssuance, returns, use and care training.\nEMPLOYEE SAFETY PROFILES\nPer-employee training, incidents, PPE.\nCOMPLIANCE & RECORDS\n\nExpirations, fire extinguishers, weekly digest, reports.\n\nDOCUMENT EXPIRATIONS\nCert and qualification windows.\nFIRE EXTINGUISHERS\nMonthly inspections and unit history.\nWEEKLY DIGEST\nMonday email of open and overdue items.\nREPORTS & EXPORTS\nOSHA 300, trend, executive roll-ups.\nAUDITS & GUIDANCE\n\nInspections, topic prep, fleet visibility, operator guides.\n\nAUDI",
@@ -560,7 +560,7 @@
     "prohibited_attempts": [
       {
         "path": "/admin",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/admin",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/admin",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to Admin Console\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO SAFETY PORTAL\nPUBLIC HOME\nPath: /admin\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -570,7 +570,7 @@
       },
       {
         "path": "/hr",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/hr",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/hr",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to HR Portal\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO SAFETY PORTAL\nPUBLIC HOME\nPath: /hr\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -580,7 +580,7 @@
       },
       {
         "path": "/pm",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/pm",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/pm",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to PM Portal\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO SAFETY PORTAL\nPUBLIC HOME\nPath: /pm\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -609,7 +609,7 @@
       "pm"
     ],
     "landing": {
-      "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/pm/command-center",
+      "final_url": "https://backup-forensics.preview.emergentagent.com/pm/command-center",
       "status": 200,
       "title": "PM Command Center \u00b7 MASCI",
       "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\nMASCI \u00b7 PM PORTAL\nProject Management Center\nSEARCH\n\u2318K\n5\n2:46 AM\nEN\nES\nCert QA/QC Representative\nBACK\nHOME\nSIGN OUT\nPROJECT OPERATIONS\nField activity across your assigned projects.\nOverview\nToday's signal across your projects.\nJobs\nJobs assigned to you (read-only).\nDaily Reports\nField production, manpower, progress.\nInspections\nField safety and quality checks.\nMeetings\nPre-shift, toolbox, project meetings.\nField Leadership\nCrew documentation across your projects.\nOperational Daily Records\nPM read-only consumption \u00b7 today's risk picture.\nJob Photos\nField photos by job and week.\nFINANCIALS & COST\nPurchase orders, change exposure, budget signals.\nFIELD COORDINATION\nFleet, pre-op, suppliers, people.\nDOCUMENT CONTROL\nJHAs, trench boxes, posters.\nCOMPLIANCE & RISK\nIncidents, QA/QC, crew compliance.\nSYSTEM & COMMUNICATIONS\nSign-in credentials.\nPINNED\nMy Tasks\nAction items across all domains.\nGuidance\nDoctrine, SOPs, training.\nProject Management Center\n\nProjects assigned to you\n\nPM HUB\nUpdated 2:46 AM\nPROJECT\nAll my projects\nUPDATED 2:46 AM\nSECTION A \u00b7 MY PROJECTS\nProjects Assigned to You\n\nEach PM only sees ",
@@ -619,7 +619,7 @@
     "prohibited_attempts": [
       {
         "path": "/admin",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/admin",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/admin",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to Admin Console\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /admin\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -629,7 +629,7 @@
       },
       {
         "path": "/hr",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/hr",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/hr",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to HR Portal\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /hr\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -639,7 +639,7 @@
       },
       {
         "path": "/safety-portal",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/safety-portal",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/safety-portal",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to Safety Portal\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /safety-portal\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -668,7 +668,7 @@
       "hr"
     ],
     "landing": {
-      "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/hr",
+      "final_url": "https://backup-forensics.preview.emergentagent.com/hr",
       "status": 200,
       "title": "MASCI Operations Platform",
       "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\nMASCI \u00b7 HR PORTAL\nWhat requires your attention today?\nSEARCH\n\u2318K\n99+\n2:46 AM\nEN\nES\nCert HR Representative\nHOME\nSIGN OUT\nPEOPLE OPERATIONS\n\nDay-to-day employee lifecycle and field accountability.\n\nOVERVIEW\nToday's HR signal across the field.\nEMPLOYEE LIFECYCLE\nAdd, status, offboarding, termination playbook.\nEMPLOYEE ACCOUNTABILITY\nPer-employee records, history, equipment, clearance.\nFIELD LEADERSHIP\nCrew docs, coaching, recognition, evaluations.\nTIME & PAYROLL\n\nTime verification, payroll variance, expense visibility.\n\nTIME VERIFICATION\nDaily report labor, lunch, payroll cross-check.\nPAYROLL VARIANCE\nReconcile Exact CSV against MASCI hours.\nTIME OFF REQUESTS\nVacation, sick, medical, bereavement approvals.\nPO REQUESTS\nPending approvals, receipts, employee-linked spend.\nCOMPLIANCE & RECORDS\n\nCertifications, driver qualification, safety overlap.\n\nDOCUMENT EXPIRATIONS\nOSHA, TWIC, CDL, training cert windows.\nTRAINING RECORDS\nCompleted tracks and certification roster.\nDRIVER QUALIFICATION\nCDL holders, endorsements, tanker capability.\nSAFETY RECORDS\nRead-only Safety document library and per-employee training.",
@@ -678,7 +678,7 @@
     "prohibited_attempts": [
       {
         "path": "/admin",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/admin",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/admin",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to Admin Console\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO HR PORTAL\nPUBLIC HOME\nPath: /admin\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -688,7 +688,7 @@
       },
       {
         "path": "/pm",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/pm",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/pm",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to PM Portal\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO HR PORTAL\nPUBLIC HOME\nPath: /pm\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -698,7 +698,7 @@
       },
       {
         "path": "/safety-portal",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/safety-portal",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/safety-portal",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to Safety Portal\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO HR PORTAL\nPUBLIC HOME\nPath: /safety-portal\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -727,7 +727,7 @@
       "dispatch"
     ],
     "landing": {
-      "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/dispatch-portal",
+      "final_url": "https://backup-forensics.preview.emergentagent.com/dispatch-portal",
       "status": 200,
       "title": "Dispatch Command \u00b7 MASCI",
       "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\nMASCI \u00b7 DISPATCH PORTAL\nDispatcher\nSEARCH\n\u2318K\n99+\n2:47 AM\nEN\nES\nCert Dispatch Representative\nHOME\nSIGN OUT\nDispatcher\nEquipment Maintenance Issues Requiring Attention: 189\nVIEW EQUIPMENT STATUS\nLIVE FLEET MAP\nNO RECENT UPDATES\nUPDATED 12:00 AM\n\u00a9 OpenStreetMap contributors \u00a9 CARTO | MapLibre\nATTENTION REQUIRED\n0\nNO RECENT POSITION\n190\nWORKING\n0\nIDLE\n0\nASSETS ASSIGNED\n90\nTOTAL ASSETS\n190\nOpen Full Live Map\nOpen Operational Board\nRIGHT NOW\nOperational Attention\n\nItems most likely to slow work today.\n\nTRUCKS IN BREAKDOWN\n0\nShop sees these too. Decide reassign vs hold.\nSTUCK > 30 MIN\n0\nLifecycle stalled. Tap the row on the board for context.\nEXTENDED WAIT\n0\nDriver waiting too long. Confirm the wait reason still applies.\nOPEN THE OPERATIONAL BOARD\nWhat requires dispatch attention\nPRIMARY ACTIONS\nIssue Work\n\nCreate assignment once \u00b7 downstream signals fan out automatically.\n\nCreate Assignment\nMATERIAL HAUL\nStart Equipment Move\nLOWBOY / EQUIPMENT HAUL\nTanker / Liquid Asphalt\nASPHALT OIL \u00b7 BINDER \u00b7 FUEL\nSupport / Misc Haul\nSPOILS \u00b7 SUPPORT \u00b7 MISC\nHow assignment issuance works\nHow the 5 haul types flow\nWATCH M",
@@ -737,7 +737,7 @@
     "prohibited_attempts": [
       {
         "path": "/admin",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/admin",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/admin",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to Admin Console\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO DISPATCH PORTAL\nPUBLIC HOME\nPath: /admin\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -747,7 +747,7 @@
       },
       {
         "path": "/hr",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/hr",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/hr",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to HR Portal\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO DISPATCH PORTAL\nPUBLIC HOME\nPath: /hr\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -757,7 +757,7 @@
       },
       {
         "path": "/pm",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/pm",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/pm",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to PM Portal\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO DISPATCH PORTAL\nPUBLIC HOME\nPath: /pm\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -786,7 +786,7 @@
       "shop"
     ],
     "landing": {
-      "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/shop",
+      "final_url": "https://backup-forensics.preview.emergentagent.com/shop",
       "status": 200,
       "title": "MASCI Operations Platform",
       "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\nMASCI \u00b7 SHOP PORTAL\nShop Command Center\nSEARCH\n\u2318K\n99+\n2:47 AM\nEN\nES\nCert Equipment Manager\nHOME\nSIGN OUT\nShop Command Center\n\nWhat needs attention \u00b7 what's assigned \u00b7 what's waiting. Repair complete still requires RTS verification by Dispatch.\n\nEquipment Pre-Ops\nFleet Visibility\nNew Fuel/Lube Visit\nRefreshed 2:47:28 AM\n\u2315\nYOUR QUEUE\nPick up where the shop left off\nManager Queue \u00b7 My Assignments \u00b7 Fuel / Lube Visit \u00b7 Unit History.\nManager Queue\n\nUnassigned \u00b7 Pending Review \u00b7 RTS Pending.\n\nMy Assignments\n\nMechanic queue \u2014 accept \u00b7 start \u00b7 complete.\n\nFuel / Lube Visit\n\nOne job \u00b7 many equipment lines.\n\nUnit History\n\nOne unit \u00b7 one timeline.\n\n01 \u00b7 ATTENTION REQUIRED\nWhat needs the shop's attention right now\n\nLive shop counts. Click any tile to open the underlying queue.\n\nOUT-OF-SERVICE UNITS\nAction\n90\nUnits flagged OOS in the equipment master.\nOPEN DEFECTS\nAction\n105\nActive defects across the fleet (pre-op + DVIR + fuel/lube).\nUNITS CARRYING DEFECTS\nAction\n14\nDistinct units with at least one open defect.\nWAITING ON PARTS\nClear\n0\nRecovery blocked pending parts arrival.\n02 \u00b7 ACTIVE WORK\nDefects in flight\n\nA",
@@ -796,7 +796,7 @@
     "prohibited_attempts": [
       {
         "path": "/admin",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/admin",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/admin",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to Admin Console\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO SHOP CONSOLE\nPUBLIC HOME\nPath: /admin\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -806,7 +806,7 @@
       },
       {
         "path": "/hr",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/hr",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/hr",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to HR Portal\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO SHOP CONSOLE\nPUBLIC HOME\nPath: /hr\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -816,7 +816,7 @@
       },
       {
         "path": "/pm",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/pm",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/pm",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to PM Portal\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO SHOP CONSOLE\nPUBLIC HOME\nPath: /pm\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -845,7 +845,7 @@
       "shop"
     ],
     "landing": {
-      "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/shop",
+      "final_url": "https://backup-forensics.preview.emergentagent.com/shop",
       "status": 200,
       "title": "MASCI Operations Platform",
       "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\nMASCI \u00b7 SHOP PORTAL\nShop Command Center\nSEARCH\n\u2318K\n99+\n2:47 AM\nEN\nES\nCert Shop Representative\nHOME\nSIGN OUT\nShop Command Center\n\nWhat needs attention \u00b7 what's assigned \u00b7 what's waiting. Repair complete still requires RTS verification by Dispatch.\n\nEquipment Pre-Ops\nFleet Visibility\nNew Fuel/Lube Visit\nRefreshed 2:47:49 AM\n\u2315\nYOUR QUEUE\nPick up where the shop left off\nManager Queue \u00b7 My Assignments \u00b7 Fuel / Lube Visit \u00b7 Unit History.\nManager Queue\n\nUnassigned \u00b7 Pending Review \u00b7 RTS Pending.\n\nMy Assignments\n\nMechanic queue \u2014 accept \u00b7 start \u00b7 complete.\n\nFuel / Lube Visit\n\nOne job \u00b7 many equipment lines.\n\nUnit History\n\nOne unit \u00b7 one timeline.\n\n01 \u00b7 ATTENTION REQUIRED\nWhat needs the shop's attention right now\n\nLive shop counts. Click any tile to open the underlying queue.\n\nOUT-OF-SERVICE UNITS\nAction\n90\nUnits flagged OOS in the equipment master.\nOPEN DEFECTS\nAction\n105\nActive defects across the fleet (pre-op + DVIR + fuel/lube).\nUNITS CARRYING DEFECTS\nAction\n14\nDistinct units with at least one open defect.\nWAITING ON PARTS\nClear\n0\nRecovery blocked pending parts arrival.\n02 \u00b7 ACTIVE WORK\nDefects in flight\n",
@@ -855,7 +855,7 @@
     "prohibited_attempts": [
       {
         "path": "/admin",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/admin",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/admin",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to Admin Console\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO SHOP CONSOLE\nPUBLIC HOME\nPath: /admin\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -865,7 +865,7 @@
       },
       {
         "path": "/hr",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/hr",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/hr",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to HR Portal\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO SHOP CONSOLE\nPUBLIC HOME\nPath: /hr\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -875,7 +875,7 @@
       },
       {
         "path": "/pm",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/pm",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/pm",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to PM Portal\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO SHOP CONSOLE\nPUBLIC HOME\nPath: /pm\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -904,7 +904,7 @@
       "pm"
     ],
     "landing": {
-      "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/pm/command-center",
+      "final_url": "https://backup-forensics.preview.emergentagent.com/pm/command-center",
       "status": 200,
       "title": "PM Command Center \u00b7 MASCI",
       "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\nMASCI \u00b7 PM PORTAL\nProject Management Center\nSEARCH\n\u2318K\n5\n2:48 AM\nEN\nES\nCert Survey Representative\nBACK\nHOME\nSIGN OUT\nPROJECT OPERATIONS\nField activity across your assigned projects.\nOverview\nToday's signal across your projects.\nJobs\nJobs assigned to you (read-only).\nDaily Reports\nField production, manpower, progress.\nInspections\nField safety and quality checks.\nMeetings\nPre-shift, toolbox, project meetings.\nField Leadership\nCrew documentation across your projects.\nOperational Daily Records\nPM read-only consumption \u00b7 today's risk picture.\nJob Photos\nField photos by job and week.\nFINANCIALS & COST\nPurchase orders, change exposure, budget signals.\nFIELD COORDINATION\nFleet, pre-op, suppliers, people.\nDOCUMENT CONTROL\nJHAs, trench boxes, posters.\nCOMPLIANCE & RISK\nIncidents, QA/QC, crew compliance.\nSYSTEM & COMMUNICATIONS\nSign-in credentials.\nPINNED\nMy Tasks\nAction items across all domains.\nGuidance\nDoctrine, SOPs, training.\nProject Management Center\n\nProjects assigned to you\n\nPM HUB\nUpdated 2:48 AM\nPROJECT\nAll my projects\nUPDATED 2:48 AM\nSECTION A \u00b7 MY PROJECTS\nProjects Assigned to You\n\nEach PM only sees",
@@ -914,7 +914,7 @@
     "prohibited_attempts": [
       {
         "path": "/admin",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/admin",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/admin",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to Admin Console\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /admin\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -924,7 +924,7 @@
       },
       {
         "path": "/hr",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/hr",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/hr",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to HR Portal\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /hr\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -934,7 +934,7 @@
       },
       {
         "path": "/safety-portal",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/safety-portal",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/safety-portal",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to Safety Portal\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /safety-portal\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -963,7 +963,7 @@
       "pm"
     ],
     "landing": {
-      "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/pm/command-center",
+      "final_url": "https://backup-forensics.preview.emergentagent.com/pm/command-center",
       "status": 200,
       "title": "PM Command Center \u00b7 MASCI",
       "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\nMASCI \u00b7 PM PORTAL\nProject Management Center\nSEARCH\n\u2318K\n5\n2:48 AM\nEN\nES\nCert Accounting Representative\nBACK\nHOME\nSIGN OUT\nPROJECT OPERATIONS\nField activity across your assigned projects.\nOverview\nToday's signal across your projects.\nJobs\nJobs assigned to you (read-only).\nDaily Reports\nField production, manpower, progress.\nInspections\nField safety and quality checks.\nMeetings\nPre-shift, toolbox, project meetings.\nField Leadership\nCrew documentation across your projects.\nOperational Daily Records\nPM read-only consumption \u00b7 today's risk picture.\nJob Photos\nField photos by job and week.\nFINANCIALS & COST\nPurchase orders, change exposure, budget signals.\nFIELD COORDINATION\nFleet, pre-op, suppliers, people.\nDOCUMENT CONTROL\nJHAs, trench boxes, posters.\nCOMPLIANCE & RISK\nIncidents, QA/QC, crew compliance.\nSYSTEM & COMMUNICATIONS\nSign-in credentials.\nPINNED\nMy Tasks\nAction items across all domains.\nGuidance\nDoctrine, SOPs, training.\nProject Management Center\n\nProjects assigned to you\n\nPM HUB\nUpdated 2:48 AM\nPROJECT\nAll my projects\nUPDATED 2:48 AM\nSECTION A \u00b7 MY PROJECTS\nProjects Assigned to You\n\nEach PM only ",
@@ -973,7 +973,7 @@
     "prohibited_attempts": [
       {
         "path": "/admin",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/admin",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/admin",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to Admin Console\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /admin\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -983,7 +983,7 @@
       },
       {
         "path": "/hr",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/hr",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/hr",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to HR Portal\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /hr\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",
@@ -993,7 +993,7 @@
       },
       {
         "path": "/safety-portal",
-        "final_url": "https://safety-audit-mobile-1.preview.emergentagent.com/safety-portal",
+        "final_url": "https://backup-forensics.preview.emergentagent.com/safety-portal",
         "status": 200,
         "title": "MASCI Operations Platform",
         "body_excerpt": "\u26a0 PREVIEW ENVIRONMENT\u00b7 DB: MASCI_SAFETY_PREVIEW\u00b7 DO NOT ENTER REAL OPERATIONAL DATA\n403 \u00b7 ACCESS RESTRICTED\nYou don't have access to Safety Portal\n\nThis section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.\n\nBACK TO PM PORTAL\nPUBLIC HOME\nPath: /safety-portal\nMASCI OPERATIONS PLATFORM\nPOWERED BY FORGEDOPS\u2122\nTERMS \u00b7 PRIVACY \u00b7 V2026.06.14-C0789DD",

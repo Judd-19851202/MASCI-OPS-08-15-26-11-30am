@@ -37,7 +37,7 @@
     "backend": "100% (23/23 tests passed — 5 read-gate regression + 18 Field-Ops read/dashboard/CSV/PDF)",
     "frontend": "94% (16/16 routes render; 1 UI drift — AdminBreadcrumb missing on 6 admin routes)"
   },
-  "test_credentials": "jaymn.judd@mascigc.com / Maddix123! via POST /api/auth/multi-login (canonical super-admin, returns portal_tokens.admin=UUID.HMAC form). Backend URL from REACT_APP_BACKEND_URL = https://safety-audit-mobile-1.preview.emergentagent.com. /app/memory/test_credentials.md not consulted (creds provided in review request).",
+  "test_credentials": "jaymn.judd@mascigc.com / Maddix123! via POST /api/auth/multi-login (canonical super-admin, returns portal_tokens.admin=UUID.HMAC form). Backend URL from REACT_APP_BACKEND_URL = https://backup-forensics.preview.emergentagent.com. /app/memory/test_credentials.md not consulted (creds provided in review request).",
   "seed_data_creation": "None. Preview DB (masci_safety_preview) already has 3,617 photo-linked jobs and several existing daily reports; used first available daily report id for PDF spot-check.",
   "retest_needed": false,
   "main_agent_can_self_test": true,

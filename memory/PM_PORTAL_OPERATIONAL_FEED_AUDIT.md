@@ -142,7 +142,7 @@ These items are explicitly carried forward into Phase 13 of the closure report, 
 1. Provision a preview-only PM user in `user_directory` with `email = "track15.11.cert.pm@masci.local"` and `must_change_password = false`, `password_hash = <known-bcrypt>`.
 2. Create one cert `jobs_master` row `26-07-CERT` with `pm_email = track15.11.cert.pm@masci.local`.
 3. Insert 1 `daily_reports` row, 1 `job_photos` row, 1 `incidents` row, 1 `equipment_inspections` row — all with `project_number = "26-07-CERT"`.
-4. Run Phase 13 scenarios 1–7 in a real browser session against `https://safety-audit-mobile-1.preview.emergentagent.com`, capturing API responses + screenshots.
+4. Run Phase 13 scenarios 1–7 in a real browser session against `https://backup-forensics.preview.emergentagent.com`, capturing API responses + screenshots.
 5. Roll back: delete the cert user / job / DR / photo / incident / inspection. Confirm `user_directory.find({"email":"track15.11.cert.pm@masci.local"})` returns nothing.
 
 The cert-data layer is intentionally NOT included in Track 15.11A — operator decides whether to seed it (per the hard rule: "DO NOT mutate production data" + "DO NOT create production users").

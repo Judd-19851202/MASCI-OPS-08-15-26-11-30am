@@ -40,7 +40,7 @@ webpack compiled successfully
 ## 4. Manual — SPA route reachability
 
 ```
-URL=https://safety-audit-mobile-1.preview.emergentagent.com
+URL=https://backup-forensics.preview.emergentagent.com
 
 /trench-safety/assets/TB-07          → 200  (PUBLIC QR landing)
 /safety/trench-safety                → 200  (Safety Hub)

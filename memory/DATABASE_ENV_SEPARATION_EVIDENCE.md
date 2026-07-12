@@ -10,7 +10,7 @@
 MONGO_URL  host  : masci-prod.1nduwmg.mongodb.net      (Atlas cluster)
 DB_NAME           : masci_safety_preview              ← verified in /app/backend/.env line 2
 APP_ENV           : preview                            ← verified in /app/backend/.env line 3
-PUBLIC_BASE_URL   : https://safety-audit-mobile-1.preview.emergentagent.com
+PUBLIC_BASE_URL   : https://backup-forensics.preview.emergentagent.com
                        (resolved via REACT_APP_BACKEND_URL · frontend/.env line 1)
 ```
 

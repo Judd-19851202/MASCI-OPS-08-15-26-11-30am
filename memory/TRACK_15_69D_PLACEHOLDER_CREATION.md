@@ -315,7 +315,7 @@ False
 ### 9.4 · Preview health POST-restart
 
 ```
-GET https://safety-audit-mobile-1.preview.emergentagent.com/api/health/full
+GET https://backup-forensics.preview.emergentagent.com/api/health/full
 HTTP 200
 {"ok":true,"mongo":true,"scheduler":true,"backup_recent":true}
 ```

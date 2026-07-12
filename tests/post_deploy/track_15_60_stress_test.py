@@ -35,7 +35,7 @@ import requests
 from playwright.async_api import async_playwright
 
 PREVIEW = os.environ.get(
-    "REACT_APP_BACKEND_URL", "https://safety-audit-mobile-1.preview.emergentagent.com"
+    "REACT_APP_BACKEND_URL", "https://backup-forensics.preview.emergentagent.com"
 ).rstrip("/")
 TAG = "TRACK_15_60_DELETE"
 REPORT_DIR = Path("/app/test_reports")

@@ -370,7 +370,7 @@ grep -E '<Route path=' /app/frontend/src/App.js | wc -l   # 320
 python3 -c "<dead-link scanner — see scan output in this report §3.1>"
 
 # Specific verification: /driver/hub_v2 returns 404
-curl -I https://safety-audit-mobile-1.preview.emergentagent.com/driver/hub_v2
+curl -I https://backup-forensics.preview.emergentagent.com/driver/hub_v2
 
 # Wave 1 surfacing smoke (PO card · ODR sidebar entries · OA sidebar entry · Project-Day panel · Scale-ticket flow)
 # See Tracks 13.10–13.14 reports for the per-surface evidence captured during execution.

@@ -58,7 +58,7 @@ $ curl -sk https://mascidocs.com/api/version
  "app_env":"production",
  "db_name":"masci_safety"}
 
-$ curl -sk https://safety-audit-mobile-1.preview.emergentagent.com/api/version
+$ curl -sk https://backup-forensics.preview.emergentagent.com/api/version
 {...
  "source_hash":"b1cfa3598c80665f606007f1e155a43c",
  "app_env":"preview",

@@ -7,7 +7,7 @@ recent hardening. Must be reviewed by an operator before deploy.
 **Timestamp:** 2026-07-06T02:15Z
 **Branch:** `main`
 **Commit:** `d55fa11e` (working tree includes Track 22.4d changes)
-**Preview URL:** https://safety-audit-mobile-1.preview.emergentagent.com
+**Preview URL:** https://backup-forensics.preview.emergentagent.com
 **DB:** `masci_safety_preview` (Atlas, preview)
 
 ---

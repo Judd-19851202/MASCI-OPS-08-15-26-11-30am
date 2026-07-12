@@ -131,7 +131,7 @@ Filed in this RCA: operator to send Emergent support a request asking for a **pr
 
 ```
 1. Verify preview head is the build you want to ship.
-   • curl https://safety-audit-mobile-1.preview.emergentagent.com/api/version
+   • curl https://backup-forensics.preview.emergentagent.com/api/version
    • confirm source_hash matches your intended head.
 
 2. Run preview-side pre-deploy checks (agent, ~2 min):

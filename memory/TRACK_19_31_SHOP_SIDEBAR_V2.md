@@ -33,7 +33,7 @@ Passes `sideNav={isShopSidebarV2Enabled() ? <ShopSideNavV2 /> : undefined}` to `
 
 ## Verification (smoke-tested live)
 
-Playwright smoke against `https://safety-audit-mobile-1.preview.emergentagent.com/shop` with real super-admin credentials (`jaymn.judd@mascigc.com`):
+Playwright smoke against `https://backup-forensics.preview.emergentagent.com/shop` with real super-admin credentials (`jaymn.judd@mascigc.com`):
 
 | Check | Result |
 |---|---|

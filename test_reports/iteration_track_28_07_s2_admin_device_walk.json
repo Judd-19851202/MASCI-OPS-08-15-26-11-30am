@@ -5,7 +5,7 @@
   "fail_count": 4,
   "summary": "Frontend-only device walk with super-admin (jaymn.judd@mascigc.com). Login OK, all reachable admin sub-pages render with no console errors and no raw ISO/UTC/GMT timestamps in labels. However, two spec URLs are unrouted (404), Cmd+K global search leaks synthetic TEST_/Cert data to a super-admin operator, and every PortalShell-hosted /admin/* page horizontally overflows at 390x844.",
   "environment": {
-    "preview_url": "https://safety-audit-mobile-1.preview.emergentagent.com",
+    "preview_url": "https://backup-forensics.preview.emergentagent.com",
     "credential_used": "jaymn.judd@mascigc.com (super-admin) — login succeeded, landed on /admin",
     "backend_db_banner": "MASCI_SAFETY_PREVIEW"
   },

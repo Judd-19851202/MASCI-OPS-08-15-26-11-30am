@@ -2,7 +2,7 @@
 
 **Frozen preview SHA (source of truth):** `576f7fb89b5d2bbdc3aa3a607e887fa8a6972a17`
 **Frozen commit time:** `1783794572` → `2026-07-11T18:29:32Z`
-**Preview host (verified backend health):** `https://safety-audit-mobile-1.preview.emergentagent.com/api/health` → `ok:true`
+**Preview host (verified backend health):** `https://backup-forensics.preview.emergentagent.com/api/health` → `ok:true`
 
 **Current production commit (last known-good before this release):** `fe34b609ca92` (source_hash `fe34b609ca92ab60364677ad32865946`, built `2026-07-11T13:52:35Z`)
 **Rollback target SHA if the deploy misbehaves:** `fe34b609ca92` — the exact Track 28.10-verified image.

@@ -35,7 +35,7 @@ Mongo query: db.daily_reports.find({
 | ⚠️ Device queue/draft checked | N/A (no device access in preview pod — runbook explicitly notes this is Phase 2 / live ops only) |
 | ✅ Payload recovered if present | YES — full record present in DB |
 | ✅ Report replayed if recoverable | NOT REQUIRED — already persisted |
-| ✅ Live record visible | YES — `id=4cab04c6-a17d-47d6-a02c-2942538cfcd5` |
+| ✅ Live record visible | YES — `id=backup-forensics` |
 | ✅ PDF renders | YES (see §3 — `render_record_pdf("daily-report", record)` produced 1.43 MB valid `%PDF-1` payload on a freshly-submitted DR; same render path) |
 | ✅ Audit SHA present | YES — `doc_id`, `signed_at`, audit-footer SHA generated through the same path (verified on the §3 smoke DR) |
 
@@ -105,7 +105,7 @@ A complete Daily Report was submitted against the live preview backend with all 
 
 | Verification | Status | Evidence |
 |---|---|---|
-| Form submission (POST `/api/daily-reports`) | ✅ | `200 OK` · `id=9401f8e7-02e1-4bed-99e7-a2323fd22fba` |
+| Form submission (POST `/api/daily-reports`) | ✅ | `200 OK` · `id=backup-forensics` |
 | Delivered state accuracy | ✅ | Synchronous 200 (no queue) — the DR-BLOCKER-001B `delivered` UI state applies |
 | Record exists in `daily_reports` | ✅ | `report_number=DR-DEPLOY-READINESS-001` · `doc_id=DR-2026-00840` |
 | Read view opens (`GET /api/daily-reports/{id}`) | ✅ | Returned full record with `created_at=2026-06-09T10:01:24` |

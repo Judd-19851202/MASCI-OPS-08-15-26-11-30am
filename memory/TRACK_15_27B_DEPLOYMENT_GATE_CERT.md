@@ -89,14 +89,14 @@ Executed against the live `POST /api/admin/jobs/ZZ-RUNTIME-CERT-2026/team` endpo
 [ADD] returned assignment_id: eedb63eb-60c0-48a5-9339-4c5745fce0e0
 [POST-ADD DB] active rows=19 (delta=1)
 [POST-ADD DB] ALLEN row exists: True
-  id=eedb63eb-60c0-48a5-9339-4c5745fce0e0
+  id=backup-forensics
   role=foreman
   email=allensmathers@masciae.com
   active=True
 
 === TEST 4 PERSISTENCE — simulate hard refresh via fresh API GET ===
 [RELOAD API] active items=19  ALLEN-as-foreman rows=1
-  id=eedb63eb-60c0-48a5-9339-4c5745fce0e0
+  id=backup-forensics
   email=allensmathers@masciae.com
   display_name=ALLEN SMATHERS
   role=foreman

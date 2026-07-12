@@ -133,7 +133,7 @@ Cleanup ran against the preview database only (`DB_NAME=masci_safety_preview`). 
 
 ## 4 · Regression probes (read-only)
 
-Smoke probes against the live preview backend at `https://safety-audit-mobile-1.preview.emergentagent.com`:
+Smoke probes against the live preview backend at `https://backup-forensics.preview.emergentagent.com`:
 
 | Surface | HTTP code | Verdict |
 |---|---|---|

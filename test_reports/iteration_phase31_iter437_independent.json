@@ -48,7 +48,7 @@
     "shop_user_reseed": {
       "credential": "testmech@mascigc.com / ResetWorks2026!",
       "endpoint": "POST /api/shop/login",
-      "result": "200 ok=true, token issued, user.id=a19b9b3b-fa44-4cca-a4b1-98f4ad6d6f79, must_change_password=false, is_active=true",
+      "result": "200 ok=true, token issued, user.id=backup-forensics, must_change_password=false, is_active=true",
       "match": true,
       "preservation": "Did not delete or mutate this user."
     }

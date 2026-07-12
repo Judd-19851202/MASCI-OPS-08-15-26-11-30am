@@ -53,7 +53,7 @@ Surfaces in the existing Accountability Timeline at `/hr/employees/{id}/accounta
 ```
 $ HR login → token len: 101
 $ GET /api/hr/employees?limit=1
-   EMP_ID=c9d7ebc3-a292-4d7a-8765-0ce2739c6029  ORIG_NAME="Alec Perkins"
+   EMP_ID=backup-forensics  ORIG_NAME="Alec Perkins"
 $ PATCH /api/hr/employees/{EMP_ID}  body={"name":"Alec Perkins [HR-EMP-001 test ...]"}
    → 200 · name applied
 $ db.employee_lifecycle_events.find_one({employee_id:EMP_ID, kind:"name_changed"})

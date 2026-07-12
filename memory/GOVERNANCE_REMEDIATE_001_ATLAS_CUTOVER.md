@@ -107,9 +107,9 @@ KEEP  APP_ENV   = preview                (UNCHANGED)
 
 **Operator verification:**
 ```
-curl -sk https://safety-audit-mobile-1.preview.emergentagent.com/api/health
+curl -sk https://backup-forensics.preview.emergentagent.com/api/health
   → expect: HTTP 200
-curl -sk https://safety-audit-mobile-1.preview.emergentagent.com/api/version
+curl -sk https://backup-forensics.preview.emergentagent.com/api/version
   → expect: app_env="preview", db_name="masci_safety_preview"
 ```
 

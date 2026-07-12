@@ -6,7 +6,7 @@
 **Author:** main agent · evidence-based · no marketing language.
 **Date:** 2026-06-19.
 **Foundation version under test:** 15.50.1.
-**Host of record:** `https://safety-audit-mobile-1.preview.emergentagent.com`.
+**Host of record:** `https://backup-forensics.preview.emergentagent.com`.
 
 ---
 

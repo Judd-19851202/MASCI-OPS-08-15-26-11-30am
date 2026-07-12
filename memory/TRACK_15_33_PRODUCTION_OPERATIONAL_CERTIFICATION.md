@@ -87,7 +87,7 @@ Workflow coverage is API-only here; UI workflow execution is in the mobile cert 
 
 ## 4 · DESKTOP SPA SANITY (1920×800 · Chromium-Playwright)
 
-`https://safety-audit-mobile-1.preview.emergentagent.com/sign-in`
+`https://backup-forensics.preview.emergentagent.com/sign-in`
 
 | Check | Result |
 |---|---|

@@ -3,7 +3,7 @@
 Field-first operations, safety, and asset-management platform for MASCI. Built as a React SPA + FastAPI backend on MongoDB with Cloudflare R2 for object storage and Resend for transactional email.
 
 Production URL: **https://mascidocs.com**
-Preview URL pattern: `https://<pod>.preview.emergentagent.com`
+Preview URL pattern: `https://backup-forensics.preview.emergentagent.com`
 
 ---
 

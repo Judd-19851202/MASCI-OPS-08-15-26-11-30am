@@ -51,7 +51,7 @@
 Live preview verification (curl):
 
 ```
-$ curl https://safety-audit-mobile-1.preview.emergentagent.com/api/platform/data-truth
+$ curl https://backup-forensics.preview.emergentagent.com/api/platform/data-truth
 → 200 · environment=preview · database=masci_safety_preview · ui_banner.text="PREVIEW / TEST DATA"
 ```
 

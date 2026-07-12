@@ -1,4 +1,4 @@
-AFTER STATE — Canary DR DR-2026-00011 (id=0fa21157-68e5-42d7-9634-343b61e28bee)
+AFTER STATE — Canary DR DR-2026-00011 (id=backup-forensics)
   Document JSON size: 32,957 bytes (32.2 KB)
   materials[0].ticket_photos[0]: photo://masci-hub/photos/2026/05/dr_0fa21157-68e5-42d7-9634-343b61e2_mat/8cf2499cfb2e47538
   ✅ Converted to photo:// ref (was inline base64)

@@ -78,7 +78,7 @@ test_r7_full_loop_dr_persists_super_and_pdf_renders_it      PASSED
 | 1 · Submit Daily Report → arrive at `/thank-you` | 🟢 (existing flow unchanged) |
 | 2 · Confirmation page renders | 🟢 — "Filed." headline + continuity line both visible (screenshot below) |
 | 3 · Click `Done` | 🟢 — Playwright run shows successful navigation |
-| 4 · Verify navigation lands on `/` (default) or `/submit` (public-submit continuity) | 🟢 — final URL: `https://safety-audit-mobile-1.preview.emergentagent.com/` |
+| 4 · Verify navigation lands on `/` (default) or `/submit` (public-submit continuity) | 🟢 — final URL: `https://backup-forensics.preview.emergentagent.com/` |
 | 5 · No browser blocks / errors | 🟢 — react-router `Link` is a normal SPA navigation, no `window.close()` |
 
 **Pytest assertions:**

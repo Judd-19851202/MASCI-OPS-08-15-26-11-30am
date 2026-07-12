@@ -44,7 +44,7 @@ The existing `Iter B Unification` header in `statusBadges.js` explicitly committ
   * Humanize fallback handles SCREAMING_SNAKE_CASE → Title Case
   * Null / undefined values handled safely
 * **ESLint clean**: 0 issues on both modified files.
-* **Live smoke**: `https://safety-audit-mobile-1.preview.emergentagent.com/po-requests` renders cleanly (auth-gate page) → frontend bundle hot-reloaded without errors.
+* **Live smoke**: `https://backup-forensics.preview.emergentagent.com/po-requests` renders cleanly (auth-gate page) → frontend bundle hot-reloaded without errors.
 
 ### Backwards-compatibility guarantee
 

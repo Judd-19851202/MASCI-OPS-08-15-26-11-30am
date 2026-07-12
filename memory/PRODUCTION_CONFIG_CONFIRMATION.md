@@ -20,7 +20,7 @@ What follows is therefore a comparison of the **only env this agent can see** ag
 | 1 | `APP_ENV` | `…review` · len 7 → **preview** | exact: `production` | **FAIL** |
 | 2 | `ENVIRONMENT` | `<UNSET>` | exact: `production` | **FAIL** |
 | 3 | `DB_NAME` | `…review` · len 20 → **`masci_safety_preview`** | NOT `masci_safety_preview` | **FAIL** |
-| 4 | `PUBLIC_BASE_URL` | `<UNSET>` (resolved via `REACT_APP_BACKEND_URL=https://safety-audit-mobile-1.preview.emergentagent.com`) | production hostname · NOT contain `preview` | **FAIL** |
+| 4 | `PUBLIC_BASE_URL` | `<UNSET>` (resolved via `REACT_APP_BACKEND_URL=https://backup-forensics.preview.emergentagent.com`) | production hostname · NOT contain `preview` | **FAIL** |
 | 5 | `CORS_ORIGINS` | `*` · len 1 → **wildcard** | explicit allowlist · NO `*` | **FAIL** |
 | 6 | `S3_BUCKET` | `…ci-hub` · len 9 → **`masci-hub`** (shared preview bucket) | production-only bucket (e.g. `masci-hub-production`) | **FAIL** |
 | 7 | `S3_ACCESS_KEY` / `S3_SECRET_KEY` | `…424cb3` / `…07981d` (preview-era keys) | production-scoped R2 token | **FAIL** |

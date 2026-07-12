@@ -124,7 +124,7 @@ backend  RUNNING  pid 46, uptime 0:53:33
 $ curl http://localhost:8001/api/health
 {"ok":true,"service":"masci-hub","ts":"2026-06-11T00:16:34Z"}
 
-$ curl https://safety-audit-mobile-1.preview.emergentagent.com/api/health
+$ curl https://backup-forensics.preview.emergentagent.com/api/health
 {"ok":true,"service":"masci-hub","ts":"2026-06-11T00:16:35Z"}
 ```
 

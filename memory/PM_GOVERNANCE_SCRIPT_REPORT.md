@@ -103,7 +103,7 @@ Aggregates per-route loudness score = sum(max(0, observed - target)) across the 
 
 ```bash
 python scripts/measure_visual_loudness.py \
-  --base-url https://safety-audit-mobile-1.preview.emergentagent.com \
+  --base-url https://backup-forensics.preview.emergentagent.com \
   --routes /admin /pm /pm/daily /pm/incidents \
   --iteration iter437-iv-beta-2
 ```

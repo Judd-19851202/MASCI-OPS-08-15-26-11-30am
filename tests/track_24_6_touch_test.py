@@ -3,7 +3,7 @@ import asyncio
 import os
 from playwright.async_api import async_playwright
 
-PREVIEW = "https://safety-audit-mobile-1.preview.emergentagent.com/daily/submit"
+PREVIEW = "https://backup-forensics.preview.emergentagent.com/daily/submit"
 PROD = "https://mascidocs.com/daily/submit"
 
 async def try_select(url, viewport, has_touch, is_mobile, method, label):

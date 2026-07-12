@@ -4,7 +4,7 @@
 
 ## Live Playwright smoke (preview URL)
 
-Environment: `https://safety-audit-mobile-1.preview.emergentagent.com`
+Environment: `https://backup-forensics.preview.emergentagent.com`
 Credential: `jaymn.judd@mascigc.com` (super-admin · all 8 portal tokens)
 
 ### Test matrix

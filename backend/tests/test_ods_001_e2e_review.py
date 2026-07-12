@@ -13,7 +13,7 @@ from typing import Any, Dict
 import pytest
 import requests
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://safety-audit-mobile-1.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://backup-forensics.preview.emergentagent.com").rstrip("/")
 PROJECT_NUMBER = "OD-100"
 REPORT_DATE = "2026-07-05"
 

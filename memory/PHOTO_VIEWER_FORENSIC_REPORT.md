@@ -164,7 +164,7 @@ CORS_ORIGIN_REGEX=https://.*\.(preview\.emergentagent\.com|emergent\.host|emerge
 ```
 
 The regex matches:
-* `https://*.preview.emergentagent.com` ✅
+* `https://backup-forensics.preview.emergentagent.com` ✅
 * `https://*.emergent.host` ✅ (covers `safety-audit-mobile-1.emergent.host`)
 * `https://*.emergentagent.com` ✅
 * `https://mascidocs.com` ❌

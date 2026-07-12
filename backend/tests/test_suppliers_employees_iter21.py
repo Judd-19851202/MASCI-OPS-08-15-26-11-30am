@@ -5,7 +5,7 @@ import json
 import pytest
 import requests
 
-BASE = os.environ.get("REACT_APP_BACKEND_URL", "https://safety-audit-mobile-1.preview.emergentagent.com").rstrip("/")
+BASE = os.environ.get("REACT_APP_BACKEND_URL", "https://backup-forensics.preview.emergentagent.com").rstrip("/")
 ADMIN_PWD = os.environ.get("ADMIN_PASSWORD") or "Maddix123!"
 SEED_FILE = "/app/backend/data/suppliers_seed.json"
 

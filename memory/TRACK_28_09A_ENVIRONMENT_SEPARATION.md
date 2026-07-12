@@ -28,7 +28,7 @@
 | Resource | Preview | Evidence |
 | --- | --- | --- |
 | Pod / service | this container (kubernetes pod, supervisor-managed) | `/app/.emergent/emergent.yml` job_id `436a87e2-...` |
-| Backend URL | `https://safety-audit-mobile-1.preview.emergentagent.com` | `/app/frontend/.env` |
+| Backend URL | `https://backup-forensics.preview.emergentagent.com` | `/app/frontend/.env` |
 | Backend runtime | FastAPI on `localhost:8001` supervisor process | `sudo supervisorctl status backend` |
 | Frontend runtime | CRA dev-server on `localhost:3000` | `sudo supervisorctl status frontend` |
 | APP_ENV | `preview` | `os.environ["APP_ENV"]` |
@@ -85,7 +85,7 @@ All secret values are **masked** in this report.
 
 **Preview build (this session):**
 - Command: `yarn build` in `/app/frontend`
-- Env: `/app/frontend/.env` with `REACT_APP_BACKEND_URL=https://safety-audit-mobile-1.preview.emergentagent.com`
+- Env: `/app/frontend/.env` with `REACT_APP_BACKEND_URL=https://backup-forensics.preview.emergentagent.com`
 - Result: 52 MB · 208 JS chunks · 3 CSS
 - Preview URL baked in bundle: **231 hits** (expected — this is the preview build)
 

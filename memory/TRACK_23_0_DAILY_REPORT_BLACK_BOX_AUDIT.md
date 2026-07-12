@@ -18,7 +18,7 @@
 | Branch | `main` |
 | HEAD commit | `1ebbae97e58858bb4e03e943a424ffd4b06b2fe9` |
 | Last commit subject | `auto-commit for 704f0d54-104f-4503-b50e-e08a3cc84b3a` (emergent-agent-e1 · 2026-07-06 15:21:10 UTC) |
-| Preview backend URL | `https://safety-audit-mobile-1.preview.emergentagent.com` |
+| Preview backend URL | `https://backup-forensics.preview.emergentagent.com` |
 | Deployment status | Preview only. Track 22.5A/22.5-RERUN gates passed pre-audit; no live production write during audit. |
 | supervisor.backend | RUNNING · pid 4436 · uptime ~36 min at audit start |
 | supervisor.frontend | RUNNING · pid 49 · uptime ~2h 17m at audit start |

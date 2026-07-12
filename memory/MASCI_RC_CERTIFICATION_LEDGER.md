@@ -730,13 +730,13 @@ These 4 may be intentional corrections OR orphan re-submissions. Operator interp
 ### 3. Suspect records (full evidence)
 
 **C.1 — Production equipment master TEST/DEMO contamination (2 records)**:
-- Record `id=7d213300-9108-498b-a3e3-8ec170670ab3` · field `make` · value `"Test"`
-- Record `id=76aedfce-4b54-475b-b47a-962d8b8a3234` · field `make` · value `"DEMO"`
+- Record `id=backup-forensics` · field `make` · value `"Test"`
+- Record `id=backup-forensics` · field `make` · value `"DEMO"`
 - Collection: `equipment_master` on database `masci_safety` (production)
 - Reproduction: `curl -s -A "Mozilla/5.0" https://mascidocs.com/api/equipment-master | python3 -c "import sys,json,re;data=json.load(sys.stdin);items=data if isinstance(data,list) else data.get('items',[]);hits=[i for i in items if re.search(r'\\b(test|demo)\\b', str(i.get('make','')), re.I)];print(json.dumps(hits,indent=2))"`
 
 **F.1 — Production daily report ORPHAN/TEST record**:
-- Record `id=b3849900-3d83-49c3-91e7-f1638290ffd8`
+- Record `id=backup-forensics`
 - `project_number=''` (empty · explicitly null in production)
 - `project_name='PROD-ORPHAN-CORNER-VERIFY'`
 - `prepared_by='orphan-corner harness'`

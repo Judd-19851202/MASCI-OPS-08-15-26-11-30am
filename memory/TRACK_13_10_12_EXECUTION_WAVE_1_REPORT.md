@@ -150,7 +150,7 @@ Pre-flight verification commands (run during Phase 0):
 
 ## 8 · REGRESSION VERIFICATION
 
-Hard-lock smoke screenshots captured from preview URL `https://safety-audit-mobile-1.preview.emergentagent.com`:
+Hard-lock smoke screenshots captured from preview URL `https://backup-forensics.preview.emergentagent.com`:
 
 | Hard lock | Verification | Result |
 |---|---|---|

@@ -51,7 +51,7 @@
 
 ### 3.2 🟡 LIMITATION-2 · Cold-pod race produced one audit-probe employee row
 
-* **Evidence**: the very first G-1 probe returned `HTTP 200 (created)` with employee `id=f5de1e78-f893-46d5-aa09-6369064e7906` inserted into `db.masci_safety.employees`. Subsequent probes returned the canonical 410.
+* **Evidence**: the very first G-1 probe returned `HTTP 200 (created)` with employee `id=backup-forensics` inserted into `db.masci_safety.employees`. Subsequent probes returned the canonical 410.
 * **Hypothesis**: a worker / pod served the request before route-registration completed during warm-up. Once route registration completed (≤ 5 s later) all subsequent probes returned 410.
 * **Production residual**: 1 employee row (`PROD AUDIT PROBE — DO NOT WRITE`) remains in `db.employees`. Operator should remove via `/hr/employees` drawer.
 * **Operational implication**: a tiny deploy-window vulnerability exists during pod warm-up. Recommendation for a future `iter453.6` polish iter — neither blocking nor in scope of this audit.

@@ -108,10 +108,10 @@ tests/test_webhook_harden_001.py::test_credential_auto_resolve                  
 
 ## LIVE / CONTROLLED VALIDATION
 
-Performed against the live preview backend (`https://safety-audit-mobile-1.preview.emergentagent.com`), preview DB only. Production was NOT touched. Synthetic test event was cleaned up after validation.
+Performed against the live preview backend (`https://backup-forensics.preview.emergentagent.com`), preview DB only. Production was NOT touched. Synthetic test event was cleaned up after validation.
 
 ```
-Target backend: https://safety-audit-mobile-1.preview.emergentagent.com
+Target backend: https://backup-forensics.preview.emergentagent.com
 Preview DB    : masci_safety_preview
 preserved (preview) creds — restore later
 

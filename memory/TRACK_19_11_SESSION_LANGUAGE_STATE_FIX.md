@@ -40,7 +40,7 @@ Result: **only one** rendering path (`SessionStatusOverlay.jsx`). `errorClassifi
 
 ### 2.4 Empirical verification (live Playwright against preview URL)
 
-Eight live tests executed on `https://safety-audit-mobile-1.preview.emergentagent.com/equipment/new`:
+Eight live tests executed on `https://backup-forensics.preview.emergentagent.com/equipment/new`:
 
 | # | Test | Result |
 |---|---|---|

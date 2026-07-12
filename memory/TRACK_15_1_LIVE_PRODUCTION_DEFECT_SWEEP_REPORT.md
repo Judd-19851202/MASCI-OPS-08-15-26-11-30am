@@ -3,7 +3,7 @@
 **Track:** TRACK 15.1 LIVE PRODUCTION OPERATIONAL DEFECT SWEEP
 **Mission:** Verify, fix, and certify real production usability against user-reported live defects.
 **Target:** `https://mascidocs.com` (live production · `app_env=production` · `db_name=masci_safety`)
-**Runtime-proof surface:** `https://safety-audit-mobile-1.preview.emergentagent.com` (`app_env=preview` · same `source_hash=740398bc1f9277a8edfdb1e92e5dc26d` as production)
+**Runtime-proof surface:** `https://backup-forensics.preview.emergentagent.com` (`app_env=preview` · same `source_hash=740398bc1f9277a8edfdb1e92e5dc26d` as production)
 **Verification window:** 2026-06-16 21:14:00 UTC → 2026-06-16 21:30:00 UTC
 **Final verdict:** 🟢 **PRODUCTION DEFECT SWEEP PASSED — WITH FOLLOW-UP ITEMS**
 

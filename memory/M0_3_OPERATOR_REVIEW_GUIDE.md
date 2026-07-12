@@ -43,7 +43,7 @@ This guide is the briefing for that review. Read top-to-bottom in
 
 ## 4 · What I would test myself first
 
-1. **Visit `/odr/public/ODR-2026-00003?link=552638e4-30ad-4a79-ab23-3b2ea824093b`** — confirm you see ONLY the public-safe envelope (header, crew, production, delays, safety flag, weather, signature, footer). NO coaching, NO readiness, NO telemetry.
+1. **Visit `/odr/public/ODR-2026-00003?link=backup-forensics`** — confirm you see ONLY the public-safe envelope (header, crew, production, delays, safety flag, weather, signature, footer). NO coaching, NO readiness, NO telemetry.
 2. **Visit `/odr/new`** on a phone-width viewport — toggle EN/ES, step through to the Sign step, attempt submit without ack (expect calm amber hard-stop), check ack and submit (expect navigation to `/odr/{id}/done`).
 3. **Visit `/odr/center`** — confirm seven tabs render with calm row layout, no "dashboard sludge."
 4. **Visit `/pm/odr`** — confirm 5 metric tiles, list of submitted ODRs, per-row PDF download.

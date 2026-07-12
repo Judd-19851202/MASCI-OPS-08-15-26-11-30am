@@ -15,7 +15,7 @@ The screenshot tool's preview container doesn't persist PNGs to the host, but ev
 
 ```bash
 # 1. Get a portal token (super-admin gets all portals via multi-login)
-API="https://safety-audit-mobile-1.preview.emergentagent.com/api"
+API="https://backup-forensics.preview.emergentagent.com/api"
 curl -s -X POST "$API/auth/multi-login" \
   -H "Content-Type: application/json" \
   -d '{"email":"jaymn.judd@mascigc.com","password":"Maddix123!"}' \

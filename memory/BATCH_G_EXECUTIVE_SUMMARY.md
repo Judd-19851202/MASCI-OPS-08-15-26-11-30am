@@ -46,7 +46,7 @@ All 4 authorized gaps closed by code + drill proof. Verdict upgraded from Batch 
 
 **Result:** Frontend artifact renders cleanly; every API the frontend depends on has been proven against restored data.
 
-- **Direct evidence:** Playwright screenshot of https://safety-audit-mobile-1.preview.emergentagent.com/ confirms full render — "MASCI Operations Platform" title, all 3 module cards (Field/QA-QC/Safety), preview-DB safety banner correctly displayed.
+- **Direct evidence:** Playwright screenshot of https://backup-forensics.preview.emergentagent.com/ confirms full render — "MASCI Operations Platform" title, all 3 module cards (Field/QA-QC/Safety), preview-DB safety banner correctly displayed.
 - **Compositional evidence:** Every endpoint the React app calls has been exercised against the drill backend (`localhost:8002` against the restored drill DB) in Batches F + G. Multi-login, daily-reports list/detail, PO list, equipment-inspections list, meetings list, employees list, search, and PDF rendering all return correct shapes.
 - **Stronger Playwright-against-localhost-8002 drill** was attempted but failed due to Playwright container-network-namespace isolation (not a frontend defect). Deferred since it adds no new failure mode beyond what's already covered.
 - **Recovery procedure note:** The frontend artifact does NOT need data-restoration. It's a static build deployed alongside the backend. If DNS changes during recovery, the only manual step is a 3-5 min frontend rebuild with the new `REACT_APP_BACKEND_URL`.

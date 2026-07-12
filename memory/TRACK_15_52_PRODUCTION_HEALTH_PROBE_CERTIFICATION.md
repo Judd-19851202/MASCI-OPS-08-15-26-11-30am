@@ -2,7 +2,7 @@
 
 **Status:** ✅ GREEN · all probes pass · no false alerts.
 **Measurement window:** 2026-06-19 20:39 – 20:42 UTC.
-**Target:** `https://safety-audit-mobile-1.preview.emergentagent.com`
+**Target:** `https://backup-forensics.preview.emergentagent.com`
 
 ## 1 · Direct contract — `/api/health/full`
 
@@ -17,7 +17,7 @@
 Live evidence (curl, captured 20:39:55 UTC, immediately after `sudo supervisorctl restart backend`):
 
 ```
-$ curl -s https://safety-audit-mobile-1.preview.emergentagent.com/api/health/full -w "\nHTTP: %{http_code}\n"
+$ curl -s https://backup-forensics.preview.emergentagent.com/api/health/full -w "\nHTTP: %{http_code}\n"
 {"ok":true,"mongo":true,"scheduler":true,"backup_recent":true}
 HTTP: 200
 ```

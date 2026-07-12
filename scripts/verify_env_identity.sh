@@ -22,7 +22,7 @@
 #   ./verify_env_identity.sh https://mascidocs.com production masci_safety
 #
 #   # Preview must report APP_ENV=preview · DB_NAME=masci_safety_preview
-#   ./verify_env_identity.sh https://safety-audit-mobile-1.preview.emergentagent.com preview masci_safety_preview
+#   ./verify_env_identity.sh https://backup-forensics.preview.emergentagent.com preview masci_safety_preview
 #
 # Exit codes:
 #   0   identity matches

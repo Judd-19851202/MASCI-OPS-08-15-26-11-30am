@@ -57,7 +57,7 @@ CORS_ORIGIN_REGEX=https://((.*\.)?mascidocs\.com|.*\.emergent\.host)
 
 ### Frontend `.env` audit
 ```
-REACT_APP_BACKEND_URL=https://safety-audit-mobile-1.preview.emergentagent.com
+REACT_APP_BACKEND_URL=https://backup-forensics.preview.emergentagent.com
 WDS_SOCKET_PORT=443
 ENABLE_HEALTH_CHECK=false
 REACT_APP_SENTRY_DSN=<live DSN>

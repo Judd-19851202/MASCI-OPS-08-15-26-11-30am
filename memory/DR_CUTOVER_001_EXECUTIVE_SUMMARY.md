@@ -60,7 +60,7 @@ weather_fact:            ~   (folded in above)
 
 ```
 POST /api/daily-reports  (X-Admin-Token · payload with 6 photos, 1 crew, 1 equipment, 1 material)
-    → 200 · id=4ba4a1d5-19d6-4d27-808c-6991e84fff5d · project=CUTOVER-E2E
+    → 200 · id=backup-forensics · project=CUTOVER-E2E
                 ↓
 services.ods_spine.ingest_dr_v1_report(db, doc, actor="Chris Wright", trigger="event")
                 ↓

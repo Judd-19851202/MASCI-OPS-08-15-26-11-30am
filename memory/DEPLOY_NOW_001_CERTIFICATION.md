@@ -106,11 +106,11 @@ Active; 2,430 events accumulated in `motive_events`; webhook signature gate (401
 ### 5.1 · Pre-deploy sanity (operator workstation)
 ```bash
 # Confirm preview is healthy
-curl -s https://safety-audit-mobile-1.preview.emergentagent.com/api/health
+curl -s https://backup-forensics.preview.emergentagent.com/api/health
 # Expect: {"ok":true,"service":"masci-hub",...}
 
 # Confirm preview build hash matches what we certified
-PREV_MAIN=$(curl -s https://safety-audit-mobile-1.preview.emergentagent.com | grep -oE '/static/js/main\.[a-z0-9]+\.js' | head -1)
+PREV_MAIN=$(curl -s https://backup-forensics.preview.emergentagent.com | grep -oE '/static/js/main\.[a-z0-9]+\.js' | head -1)
 echo "Preview is serving: $PREV_MAIN"
 # Expect: /static/js/main.fefe7e48.js  (or whatever hash the operator's freshest build produces)
 ```

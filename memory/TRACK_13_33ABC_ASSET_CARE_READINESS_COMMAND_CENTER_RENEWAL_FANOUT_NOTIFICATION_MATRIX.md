@@ -32,7 +32,7 @@ The Asset Administrator now has a dedicated **operational** workspace at `/shop/
 
 ## Asset Admin routing/home result
 
-**Live verification on `https://safety-audit-mobile-1.preview.emergentagent.com/shop/asset-care`:**
+**Live verification on `https://backup-forensics.preview.emergentagent.com/shop/asset-care`:**
 
 - Header reads "MASCI OPERATIONS · Asset Care" (operational portal style — NOT Admin Console)
 - KPI cards: Total 779 · Ready 1 · Warning 21 · Not Ready 55 · Needs Review 702 · Expired Renewals 2 · Missing Docs 187

@@ -36,12 +36,12 @@
   "seed_data_creation": "none",
   "retest_needed": true,
   "should_main_agent_self_test": false,
-  "context_for_next_testing_agent": "Preview URL: https://safety-audit-mobile-1.preview.emergentagent.com/daily/submit. Job list has 29 jobs including Oxford (24-12) and University High Parent Loop Ext (26-07). To simulate real touch when the Playwright context lacks has_touch, dispatch PointerEvents via page.evaluate — set pointerType:'touch', bubbles:true, composed:true. Use pointerdown→(20x pointermove increments)→pointerup pattern on a row's DIV via document.elementFromPoint. After fix, the scroll test MUST leave trigger label unchanged.",
+  "context_for_next_testing_agent": "Preview URL: https://backup-forensics.preview.emergentagent.com/daily/submit. Job list has 29 jobs including Oxford (24-12) and University High Parent Loop Ext (26-07). To simulate real touch when the Playwright context lacks has_touch, dispatch PointerEvents via page.evaluate — set pointerType:'touch', bubbles:true, composed:true. Use pointerdown→(20x pointermove increments)→pointerup pattern on a row's DIV via document.elementFromPoint. After fix, the scroll test MUST leave trigger label unchanged.",
   "rca_of_the_issue": {
     "symptom": "iOS user sees dropdown, taps 'University High School' row, but a DIFFERENT job commits. Also scrolling past a row commits whichever row the finger first touched.",
     "root_cause": "cmdk (shadcn Command) <Item> renders `<div ... onPointerMove={S} onClick={C}>` where the onPointerMove and onClick are placed AFTER the {...props} spread. The commitHandlersFor(...) from JobPicker.jsx passes onPointerDown/onPointerMove/onPointerUp via prop spread, but onPointerMove is overwritten by cmdk's internal selection-highlight handler. Therefore the movement-cancel branch (touchRef.current.active = false) never executes. onPointerUp still commits because active is still true, regardless of how far the finger travelled.",
     "reproduction_steps_preview": [
-      "GET https://safety-audit-mobile-1.preview.emergentagent.com/daily/submit at 390x844.",
+      "GET https://backup-forensics.preview.emergentagent.com/daily/submit at 390x844.",
       "Click job-picker-trigger to open popover.",
       "On the first row (data-testid job-picker-item-20-07) dispatch a synthetic touch pointerdown → 20 pointermove events dropping y by 10px each (total 200px) → pointerup.",
       "Observe trigger label becomes 'T5686 SR 15/SR600 (SANFORD, 17/92, LAKE MARY)  ·  #20-07' — a wrong commit from a pure scroll gesture."

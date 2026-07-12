@@ -31,7 +31,7 @@ All 17 tests green, including:
 
 ### B · Job Photos Library — preview UI verification (PROJECT-IDENTITY-003)
 
-URL: `https://safety-audit-mobile-1.preview.emergentagent.com/admin/photos`  
+URL: `https://backup-forensics.preview.emergentagent.com/admin/photos`  
 Auth: master sign-in (`jaymn.judd@mascigc.com`).  
 Folder probe result (32 folders, top entries):
 

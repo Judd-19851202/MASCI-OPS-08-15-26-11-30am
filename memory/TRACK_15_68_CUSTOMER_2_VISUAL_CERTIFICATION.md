@@ -4,7 +4,7 @@ _Status: ❌ FAILED — visual walkthrough confirmed MASCI leakage_
 
 ## Method
 1. Seeded synthetic tenant `track_15_68_tenant_test_delete` in `db.tenant_branding` (Customer #2 Construction LLC, all customer2.example contacts).
-2. Loaded preview at `https://safety-audit-mobile-1.preview.emergentagent.com/?tenantPreview=track_15_68_tenant_test_delete`.
+2. Loaded preview at `https://backup-forensics.preview.emergentagent.com/?tenantPreview=track_15_68_tenant_test_delete`.
 3. Captured login/splash screenshot.
 
 ## Visual evidence

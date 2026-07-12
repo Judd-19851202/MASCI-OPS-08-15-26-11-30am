@@ -102,7 +102,7 @@ All under `/api/admin/maintainx/p0/*` (admin-strict gate via the existing `requi
 
 ## 4 · Live preview verification (no API key set)
 
-Run against `https://safety-audit-mobile-1.preview.emergentagent.com` using admin token:
+Run against `https://backup-forensics.preview.emergentagent.com` using admin token:
 
 ```http
 GET /api/admin/maintainx/p0/config

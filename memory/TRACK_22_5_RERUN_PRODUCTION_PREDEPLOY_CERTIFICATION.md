@@ -2,7 +2,7 @@
 
 **Executed:** 2026-02-06 (UTC)
 **Branch / commit:** `main` @ `4a31ab64` (working tree contains this session's re-locks)
-**Preview URL:** https://safety-audit-mobile-1.preview.emergentagent.com
+**Preview URL:** https://backup-forensics.preview.emergentagent.com
 **Target production URL:** operator to confirm (mascidocs.com or equivalent per Save-to-Github + Emergent deploy flow)
 **Environment:** `APP_ENV=preview` · `DB_NAME=masci_safety_preview` · `EMAIL_SAFETY_MODE=strict`
 **Atlas host:** `masci-prod.1nduwmg.mongodb.net` (preview DB only — prod DB is a separate database in the same cluster)

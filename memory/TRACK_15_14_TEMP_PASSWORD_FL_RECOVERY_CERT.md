@@ -173,7 +173,7 @@ re-login with new password                                   → ok=True
 
 ```
 DEEP_LINK_AFTER_MCP_SET end_url =
-  https://safety-audit-mobile-1.preview.emergentagent.com/hr/change-password
+  https://backup-forensics.preview.emergentagent.com/hr/change-password
 deep_link_blocked_by_guard = True
 ```
 

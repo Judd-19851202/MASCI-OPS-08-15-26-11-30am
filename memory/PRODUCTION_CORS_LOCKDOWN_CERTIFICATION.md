@@ -38,7 +38,7 @@ After flip, operator verifies cross-origin request from:
   https://mascidocs.com           → 200 ✓
   https://www.mascidocs.com        → 200 ✓
   https://*.emergent.host          → 200 ✓
-  https://*.preview.emergentagent.com → CORS error ✗  (must be blocked from production)
+  https://backup-forensics.preview.emergentagent.com → CORS error ✗  (must be blocked from production)
   https://random.example.com       → CORS error ✗
 ```
 

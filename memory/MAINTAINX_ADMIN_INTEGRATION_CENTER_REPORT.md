@@ -49,7 +49,7 @@ Every dry-run result includes a bottom panel summarising `writes_performed.{main
 
 ## 3 · Live preview verification
 
-**URL:** `https://safety-audit-mobile-1.preview.emergentagent.com/admin/integrations` → tab "MaintainX · Read-First"
+**URL:** `https://backup-forensics.preview.emergentagent.com/admin/integrations` → tab "MaintainX · Read-First"
 
 ```
 KEY_STATUS = 'No — set MAINTAINX_API_KEY in env'

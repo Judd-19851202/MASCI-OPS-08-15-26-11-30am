@@ -149,7 +149,7 @@ Full CSV: `/tmp/routes_audit_v2.csv` (262 rows).
 
 ## 5 · Live Preview vs Production drift
 
-Verified against preview (`https://safety-audit-mobile-1.preview.emergentagent.com`) and production (`https://mascidocs.com`) using super-admin multi-login token:
+Verified against preview (`https://backup-forensics.preview.emergentagent.com`) and production (`https://mascidocs.com`) using super-admin multi-login token:
 
 | Endpoint | Preview | Production | Drift |
 |---|---|---|---|

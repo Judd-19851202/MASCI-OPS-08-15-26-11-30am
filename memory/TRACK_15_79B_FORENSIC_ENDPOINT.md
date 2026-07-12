@@ -186,7 +186,7 @@ X-Admin-Token: <super-admin token>   required
 ## PREVIEW VERIFICATION
 
 ```bash
-URL=https://safety-audit-mobile-1.preview.emergentagent.com
+URL=https://backup-forensics.preview.emergentagent.com
 TOK=$(curl … multi-login … jaymn.judd@…)
 curl -H "X-Admin-Token: $TOK" \
   "$URL/api/admin/daily-report-delivery/forensics?since_hours=72&limit=10"

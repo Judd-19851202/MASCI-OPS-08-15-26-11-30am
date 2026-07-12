@@ -55,7 +55,7 @@ curl -sI -H "Origin: https://attacker.example.com" \
 
 ### Test 4 · Preview origin REJECTED on production
 ```bash
-curl -sI -H "Origin: https://safety-audit-mobile-1.preview.emergentagent.com" \
+curl -sI -H "Origin: https://backup-forensics.preview.emergentagent.com" \
   $PROD_API_BASE/api/trench-safety/excavations/public/asset-roster | grep -i access-control
 ```
 **Expected**: NO matching allow-origin header (preview domain is intentionally excluded from production regex).

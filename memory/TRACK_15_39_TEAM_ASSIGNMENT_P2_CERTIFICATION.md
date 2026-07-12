@@ -30,7 +30,7 @@
 
 ```
 === T1 · ADD member (baseline) ===
-Add ok · ASSIGN_ID=81387195-5e79-46aa-acf6-6a0f80595771
+Add ok · ASSIGN_ID=backup-forensics
 
 === T2 · CHANGE ROLE (foreman → assistant_superintendent) ===
 ok= True role_changed= True

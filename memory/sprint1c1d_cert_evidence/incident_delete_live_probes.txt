@@ -1,6 +1,6 @@
 === Sprint 1C/1D · Incident Delete Live Preview Probes ===
 Timestamp: 2026-06-01T00:46:45Z
-URL: https://safety-audit-mobile-1.preview.emergentagent.com
+URL: https://backup-forensics.preview.emergentagent.com
 Admin token len: 64
 
 --- 1 · No-token DELETE → 401 ---

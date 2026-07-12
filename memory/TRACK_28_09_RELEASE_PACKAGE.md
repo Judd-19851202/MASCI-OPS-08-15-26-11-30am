@@ -149,7 +149,7 @@ Cache cleared (Python bytecode, `.pytest_cache`, `.pyc` files) before run.
 | Var | Preview value | Status |
 | --- | --- | --- |
 | `APP_ENV` | `preview` | ⚠️ **C4** set to `production` |
-| `REACT_APP_BACKEND_URL` | `https://safety-audit-mobile-1.preview.emergentagent.com` | ⚠️ **C1** swap to prod URL |
+| `REACT_APP_BACKEND_URL` | `https://backup-forensics.preview.emergentagent.com` | ⚠️ **C1** swap to prod URL |
 | `CORS_ORIGINS` | `*` | ⚠️ tighten for prod |
 | `CORS_ORIGIN_REGEX` | `https://((.*\.)?mascidocs\.com|...)` | ✅ already scoped |
 | `DEV_ENDPOINTS_ENABLED` | false | ✅ |

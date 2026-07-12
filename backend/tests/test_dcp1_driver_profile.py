@@ -29,7 +29,7 @@ def _raw_request(method: str, path: str, headers: dict, body: dict | None = None
 
 BASE = os.environ.get(
     "REACT_APP_BACKEND_URL",
-    "https://safety-audit-mobile-1.preview.emergentagent.com",
+    "https://backup-forensics.preview.emergentagent.com",
 ).rstrip("/")
 
 

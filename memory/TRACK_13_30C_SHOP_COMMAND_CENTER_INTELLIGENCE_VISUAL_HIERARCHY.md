@@ -223,7 +223,7 @@ Zero routes added · zero routes removed in `App.js`. The new search input is in
 
 ## 12 · Browser Smoke Evidence
 
-Single live capture against `https://safety-audit-mobile-1.preview.emergentagent.com/shop` with admin token planted:
+Single live capture against `https://backup-forensics.preview.emergentagent.com/shop` with admin token planted:
 
 - Hub root + Your-Queue strip + Search section + Search input × 2 (header + inline) + 5 manager metric tiles + 4 Section-01 priority tiles + Map section + Section-05 inline-search slot all render.
 - Live count check confirms real data: `Unassigned defects: 83`, `OOS Units: 71`, `Open Defects: 83`, `Units carrying defects: 11`, `Variance needs review (7d): 6`.

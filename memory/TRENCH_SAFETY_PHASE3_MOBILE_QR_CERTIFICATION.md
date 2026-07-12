@@ -32,7 +32,7 @@ NOT returned (and therefore not renderable):
 
 Verified live:
 ```
-$ curl https://safety-audit-mobile-1.preview.emergentagent.com/api/trench-safety/public/assets/TB-05
+$ curl https://backup-forensics.preview.emergentagent.com/api/trench-safety/public/assets/TB-05
 keys: asset_id, asset_type, manufacturer, model, size, rated_depth_ft, rated_soil_type,
       color, condition, operational_status, current_location, current_project_name,
       last_inspection_at, next_inspection_due, certification_expires_at,

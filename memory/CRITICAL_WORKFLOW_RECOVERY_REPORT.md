@@ -29,7 +29,7 @@
 ## 2 · Verbatim curl evidence
 
 ```
-[2.2] GET /api/daily-reports → 200 · count=86 · sample_id=346d7dfb-568d-41ae-8e32-2f289c7b3818
+[2.2] GET /api/daily-reports → 200 · count=86 · sample_id=backup-forensics
 [2.3] GET /api/daily-reports/346d7dfb...→ 200 · field_count=43 · has_activities=false
 [2.4] GET /api/po-requests → 200 · count=1 · sample_keys=['id','po_number','po_number_source','project_number','vendor','description','estimated_amount','approved_amount','category','urgency'] · receipt_present=True
 [2.5] GET /api/equipment-inspections → 200 · count=25

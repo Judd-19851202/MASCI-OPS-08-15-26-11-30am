@@ -158,7 +158,7 @@ All checks passed!
 
 ## 4 · Live-preview verification
 
-The fix is verified live against the preview backend at `https://safety-audit-mobile-1.preview.emergentagent.com`:
+The fix is verified live against the preview backend at `https://backup-forensics.preview.emergentagent.com`:
 
 ```
 $ curl -s "$URL/api/admin/command-center/snapshot?refresh=true" -H "X-Admin-Token: $ADMIN"

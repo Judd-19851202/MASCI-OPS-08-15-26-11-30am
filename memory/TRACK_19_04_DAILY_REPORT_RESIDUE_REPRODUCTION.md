@@ -11,7 +11,7 @@
 
 ### Setup
 
-* Preview URL: `https://safety-audit-mobile-1.preview.emergentagent.com`
+* Preview URL: `https://backup-forensics.preview.emergentagent.com`
 * Preview DB: `masci_safety_preview`
 * Two Chromium profiles simulating two office workstations.
 * Actor A: Admin `jaymn.judd@mascigc.com`, Project `T5686`.

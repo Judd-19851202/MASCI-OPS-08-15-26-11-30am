@@ -46,8 +46,8 @@ Net: 39 import lines transformed · 2 wrapping tags added. **Zero other files mo
 
 | Probe | Result |
 |---|---|
-| `curl https://safety-audit-mobile-1.preview.emergentagent.com/` | **HTTP 200 · 303 ms** |
-| `curl https://safety-audit-mobile-1.preview.emergentagent.com/admin/login` | **HTTP 200 · 145 ms** |
+| `curl https://backup-forensics.preview.emergentagent.com/` | **HTTP 200 · 303 ms** |
+| `curl https://backup-forensics.preview.emergentagent.com/admin/login` | **HTTP 200 · 145 ms** |
 | Landing page screenshot at 1920×800 | ✅ Renders cleanly · "Run Every Job. Control Every Detail. Protect Everything." · Field / QA/QC / Safety tiles visible · PREVIEW banner visible |
 | `/admin/login` screenshot | ✅ Renders cleanly · "Admin Sign In" · email + password inputs · Sign In button |
 | Backend `/api/health` | ✅ 200 |

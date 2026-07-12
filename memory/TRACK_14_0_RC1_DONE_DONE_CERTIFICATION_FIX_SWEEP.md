@@ -173,7 +173,7 @@ python3 -m pytest tests/test_project_team_assignments.py \
   tests/test_ownership_producer_routing.py -q
 # Expect: 46 passed in ~45s
 
-# Live UI verification: open https://safety-audit-mobile-1.preview.emergentagent.com/sign-in
+# Live UI verification: open https://backup-forensics.preview.emergentagent.com/sign-in
 # sign in as jaymn.judd@mascigc.com / Maddix123!
 # navigate to /pm/command-center → confirm NO Dispatch link visible
 # navigate to /pm/jobs → confirm 28 jobs, per-row Team link

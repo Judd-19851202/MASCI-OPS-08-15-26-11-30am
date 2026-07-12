@@ -91,7 +91,7 @@ Quiet watch on the preview deployment. **Do NOT overreact to
 single events.** Look for **patterns**.
 
 ### Daily quick-glance (1 minute, 2× / day)
-1. Hit `https://safety-audit-mobile-1.preview.emergentagent.com/admin/governance/self-protection`
+1. Hit `https://backup-forensics.preview.emergentagent.com/admin/governance/self-protection`
 2. Confirm overall pill is still **OK** (green)
 3. Check `Authority Protection · NEW VIOLATIONS = 0`
 4. Check `Open Governance Gaps · TOTAL = 0`

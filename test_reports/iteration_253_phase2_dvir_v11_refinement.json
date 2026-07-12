@@ -44,7 +44,7 @@
   "updated_files": [],
   "success_rate": {"backend": "n/a (frontend-only request; backend meta sanity-checked via curl — 100%)", "frontend": "100% on all v1.1 refinement acceptance items"},
   "test_credentials": "None · DVIR submission is anonymous · /api/employees/add is public + rate-limited",
-  "seed_data_creation": "1 employee row added to db.employees during dedup test: name='Phase2v11 Test Driver' id=74c8257a-5754-46ec-8a9b-0daabc27550b. No new DVIR submissions in this iteration (no fleet_defects / equipment_inspections / fleet_status rows added). Previous iter251 seed DVIR rows (TEST Driver Clear / OOS / Monitor) still pending cleanup per that report.",
+  "seed_data_creation": "1 employee row added to db.employees during dedup test: name='Phase2v11 Test Driver' id=backup-forensics. No new DVIR submissions in this iteration (no fleet_defects / equipment_inspections / fleet_status rows added). Previous iter251 seed DVIR rows (TEST Driver Clear / OOS / Monitor) still pending cleanup per that report.",
   "retest_needed": false,
   "main_agent_can_self_test": true,
   "context_for_next_testing_agent": "Phase 2 DVIR v1.1 refinement is functionally complete and production-ready. All 4 refinements (EmployeeCombo · v1.1 severity items · 4 new HelpTips · case-insensitive dedup) verified. Only outstanding items are (a) drop the seeded Phase2v11 Test Driver employee row and the iter251 DVIR test rows from MongoDB, and (b) consider adding a DELETE /api/employees/{id} endpoint for future test cleanup. Submit/confirmation pipeline was not re-exercised — already covered by iter251 + iter252 and untouched in v1.1.",

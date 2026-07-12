@@ -148,7 +148,7 @@ No App.js change. No Route added.
 ODR pending pill mounted: True
 PO Requests card still present (Track 13.11 intact): True
 ODR pill content excerpt: ODR PendingVerifiedOperational Daily Records needing PM rework (drafts + returned)0Source: /api/odr — draft + returned (PM-scoped server-side)
-Click landed on: https://safety-audit-mobile-1.preview.emergentagent.com/pm/odr
+Click landed on: https://backup-forensics.preview.emergentagent.com/pm/odr
 SUCCESS
 ```
 

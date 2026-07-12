@@ -39,7 +39,7 @@ Strictly out of scope (and observed): no new features, no orphan cleanup, no whi
 * `CORS_ORIGIN_REGEX` now matches:
   * `https://mascidocs.com` (root domain · `(.*\.)?mascidocs\.com` makes the subdomain optional)
   * `https://www.mascidocs.com` (and any other future `*.mascidocs.com` subdomain)
-  * `https://*.preview.emergentagent.com` (preview · preserved)
+  * `https://backup-forensics.preview.emergentagent.com` (preview · preserved)
   * `https://*.emergent.host` (Emergent prod ingress · preserved · this is the hostname the legacy bundle still calls)
   * `https://*.emergentagent.com` (preserved · general)
 * `https://evil.com` and any other unlisted origin → rejected.
@@ -125,7 +125,7 @@ Origin                                                              HTTP   ACAO
 https://mascidocs.com                                               200    https://mascidocs.com               ✅
 https://www.mascidocs.com                                           200    https://www.mascidocs.com           ✅
 https://safety-audit-mobile-1.emergent.host                         200    https://safety-audit-mobile-1.emergent.host  ✅ (legacy bundle origin preserved)
-https://safety-audit-mobile-1.preview.emergentagent.com             200    https://safety-audit-mobile-1.preview.emergentagent.com  ✅
+https://backup-forensics.preview.emergentagent.com             200    https://backup-forensics.preview.emergentagent.com  ✅
 https://anything.emergentagent.com                                  200    https://anything.emergentagent.com  ✅
 https://evil.com                                                    400    (none)                              ✅ (correctly rejected, "Disallowed CORS origin")
 ```

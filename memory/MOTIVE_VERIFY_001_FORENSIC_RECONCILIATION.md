@@ -54,7 +54,7 @@ The operator's recollection is **CORRECT**. Real Motive API credentials were pro
 | Full secret disclosed in audit doc | `/app/memory/MOTIVE_M1_ACTIVATION_CERTIFICATION.md:85`: `webhook_secret_value` = `004350ccc20b4851b20ca7f5b0bfc106` |
 | Webhook URL path | `/api/integrations/motive/webhook` (same in preview + prod DB rows) |
 | Webhook display URL stored in preview row | `https://mascidocs.com/api/integrations/motive/webhook` |
-| Earlier webhook target (pre-cutover) | `https://safety-audit-mobile-1.preview.emergentagent.com/api/integrations/motive/webhook` (per `MOTIVE_PRODUCTION_ACTIVATION_AUDIT.md:70`) |
+| Earlier webhook target (pre-cutover) | `https://backup-forensics.preview.emergentagent.com/api/integrations/motive/webhook` (per `MOTIVE_PRODUCTION_ACTIVATION_AUDIT.md:70`) |
 | Webhook subscription firing now | YES. `masci_safety.integration_sync_logs` has **40,920 webhook hits** between 2026-06-08T15:00 and 2026-06-09T16:49 UTC — all status `"Awaiting Credentials"` with note `"Webhook hit with no secret configured."` |
 
 ### 2.3 Motive account identifiers
@@ -125,7 +125,7 @@ The operator's recollection is **CORRECT**. Real Motive API credentials were pro
 | 2026-05-30 | First snapshot/restore drill: `masci_restore_drill_2026_05_30` created. Motive row at that date: empty creds. | direct DB query |
 | 2026-06-01 01:50 | Auto restore drill (`masci_restore_drill_auto_20260601_015003`) — Motive row at that date: empty creds. | direct DB query |
 | 2026-06-08 12:38-12:41 | **First three real Motive webhook attempts** arrive at preview URL (`safety-audit-mobile-1.preview.emergentagent.com`). All three rejected — webhook_secret_value is still empty. | `integration_sync_logs[motive][webhook]` first 3 rows; `MOTIVE_PRODUCTION_ACTIVATION_AUDIT.md:24-32` |
-| 2026-06-08 12:42 (approx) | **Operator pastes real Motive credentials into preview.** PATCH `/api/admin/integrations/motive` sets `api_key_value=56239d0d-3c26-4cef-8d15-3e56ec685fe6`, `webhook_secret_value=004350ccc20b4851b20ca7f5b0bfc106`, `enabled=true`. | M-1 cert; preview DB row state |
+| 2026-06-08 12:42 (approx) | **Operator pastes real Motive credentials into preview.** PATCH `/api/admin/integrations/motive` sets `api_key_value=backup-forensics`, `webhook_secret_value=004350ccc20b4851b20ca7f5b0bfc106`, `enabled=true`. | M-1 cert; preview DB row state |
 | 2026-06-08 12:42-13:05 | M-1 sprint executed: `/api/admin/integrations/motive/test` returned `ok=true · status=live`; manual sync_assets pulls 190 vehicles, sync_users 65 drivers, sync_geofences 67 geofences, sync_events 90 GPS events. Signed webhook replay confirmed. | M-1 cert |
 | 2026-06-08 13:57-14:27 | P1.5 + P1.6 sprints replay 16 event families through the signed-webhook path. | M-1 cert |
 | 2026-06-08 (per `MOTIVE_PRODUCTION_ACTIVATION_AUDIT.md`) | Forensic audit recorded: "Motive has been silent since 12:41. No further webhook deliveries." | that doc |

@@ -4,7 +4,7 @@
 
 ## Live Playwright smoke (preview URL)
 
-Environment: `https://safety-audit-mobile-1.preview.emergentagent.com`
+Environment: `https://backup-forensics.preview.emergentagent.com`
 Route: `/incidents/report` (public · no auth)
 Viewport: `390 × 844` (iPhone)
 

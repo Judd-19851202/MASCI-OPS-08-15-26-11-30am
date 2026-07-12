@@ -3,7 +3,7 @@ import os, time, json, statistics, requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-BASE = os.environ.get("REACT_APP_BACKEND_URL", "https://safety-audit-mobile-1.preview.emergentagent.com").rstrip("/")
+BASE = os.environ.get("REACT_APP_BACKEND_URL", "https://backup-forensics.preview.emergentagent.com").rstrip("/")
 API = f"{BASE}/api"
 
 s = requests.Session()

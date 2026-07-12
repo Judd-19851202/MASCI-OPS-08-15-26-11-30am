@@ -35,7 +35,7 @@ Coverage summary:
 
 **Command:**
 ```bash
-REACT_APP_BACKEND_URL="https://safety-audit-mobile-1.preview.emergentagent.com" \
+REACT_APP_BACKEND_URL="https://backup-forensics.preview.emergentagent.com" \
   python -m pytest \
     backend/tests/test_track_19_21_e2e_live.py \
     backend/tests/test_daily_reports.py \

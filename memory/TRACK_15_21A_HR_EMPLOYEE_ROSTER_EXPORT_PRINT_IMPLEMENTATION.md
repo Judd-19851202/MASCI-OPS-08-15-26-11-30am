@@ -89,7 +89,7 @@ All 5 mandated tests executed against the live preview backend using the rotated
 
 ### Preview ingress verification
 
-External preview URL `https://safety-audit-mobile-1.preview.emergentagent.com/api/hr/employees/export.xlsx` returned **HTTP 200** with 19,315 bytes (383 rows · 9 columns). Cloudflare/Kubernetes routing path proven end-to-end.
+External preview URL `https://backup-forensics.preview.emergentagent.com/api/hr/employees/export.xlsx` returned **HTTP 200** with 19,315 bytes (383 rows · 9 columns). Cloudflare/Kubernetes routing path proven end-to-end.
 
 ---
 

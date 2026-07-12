@@ -59,7 +59,7 @@ See companion documents:
 
 ## Live verification
 
-Playwright smoke at `https://safety-audit-mobile-1.preview.emergentagent.com/incidents/report` (public route, no auth required):
+Playwright smoke at `https://backup-forensics.preview.emergentagent.com/incidents/report` (public route, no auth required):
 - ✅ `[data-testid="incident-field-doctrine-banner"]` present.
 - ✅ `[data-testid="incident-type-picker"]` present.
 - ✅ 10/10 required incident-type cards render: `utility_strike`, `employee_injury`, `vehicle_accident`, `equipment_accident`, `property_damage`, `near_miss`, `environmental`, `workplace_violence`, `theft`, `other`.

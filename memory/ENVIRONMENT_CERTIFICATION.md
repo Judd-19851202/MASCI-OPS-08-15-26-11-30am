@@ -60,7 +60,7 @@ database outside its scope.
 
 ## Frontend env
 
-* `/app/frontend/.env` → `REACT_APP_BACKEND_URL=https://safety-audit-mobile-1.preview.emergentagent.com`
+* `/app/frontend/.env` → `REACT_APP_BACKEND_URL=https://backup-forensics.preview.emergentagent.com`
 * Production frontend gets `REACT_APP_BACKEND_URL=https://mascidocs.com`
   injected at build time by Emergent.
 

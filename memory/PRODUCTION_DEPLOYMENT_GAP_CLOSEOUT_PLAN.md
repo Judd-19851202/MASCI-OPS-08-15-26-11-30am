@@ -13,7 +13,7 @@
 | # | Check | Status | Evidence |
 |---|---|---|---|
 | 1 | Backend imports cleanly · server.py loads | ✅ | Preview backend running on this build (pid 4628) since 00:41 UTC with no crash. |
-| 2 | Frontend build present | ✅ | Preview frontend serves at `https://safety-audit-mobile-1.preview.emergentagent.com` (200 OK). |
+| 2 | Frontend build present | ✅ | Preview frontend serves at `https://backup-forensics.preview.emergentagent.com` (200 OK). |
 | 3 | Critical smoke flows | ✅ | Production cert table this session: 27/27 endpoints PASS authenticated. |
 | 4 | No preview-only test data hardcoded | ✅ | `cluster_capacity.py` references both DB names but `try/except` skips unreadable DBs → safe on prod. No fixtures imported at runtime. |
 | 5 | No preview-only credentials committed | ✅ | `git ls-files` shows `backend/.env`, `backend/.env.preview`, `frontend/.env` ALL untracked. |

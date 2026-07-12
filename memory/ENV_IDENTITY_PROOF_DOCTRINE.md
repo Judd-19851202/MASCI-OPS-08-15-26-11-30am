@@ -44,7 +44,7 @@ New stage added in this iteration:
 
 ```
 STAGE: Sigma-III preview env identity proof
-   url        : https://safety-audit-mobile-1.preview.emergentagent.com
+   url        : https://backup-forensics.preview.emergentagent.com
    app_env    : preview
    db_name    : masci_safety_preview
    source_hash: 45e66bd7a89e16894ba55dff064ce456
@@ -96,7 +96,7 @@ Three outcomes:
 ### Spot-check at any time (no deploy in flight)
 ```bash
 # Preview
-/app/scripts/verify_env_identity.sh https://safety-audit-mobile-1.preview.emergentagent.com preview masci_safety_preview
+/app/scripts/verify_env_identity.sh https://backup-forensics.preview.emergentagent.com preview masci_safety_preview
 
 # Production
 /app/scripts/verify_env_identity.sh https://mascidocs.com production masci_safety

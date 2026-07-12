@@ -2,7 +2,7 @@
 
 **Status:** ✅ GREEN · all measured paths under the 2-second SLO.
 **Measurement window:** 2026-06-19 20:18 – 20:23 UTC against live preview backend.
-**Host:** `https://safety-audit-mobile-1.preview.emergentagent.com`
+**Host:** `https://backup-forensics.preview.emergentagent.com`
 **Approach:** Fresh cURL probes against the current build. **No historical numbers reused.** Each row = cold + 2 warm samples back-to-back from a clean curl process.
 
 ## Read-path latency · live measurement

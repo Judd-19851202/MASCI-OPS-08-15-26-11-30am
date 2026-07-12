@@ -40,7 +40,7 @@ Coverage:
 ## 2. Live frontend smoke — GREEN
 
 **Environment:** Playwright headless Chromium (no webcam) = exactly the environmental condition the reporting field user hit on a desktop computer.
-**URL:** `https://safety-audit-mobile-1.preview.emergentagent.com/daily/submit` (public Daily Report intake).
+**URL:** `https://backup-forensics.preview.emergentagent.com/daily/submit` (public Daily Report intake).
 
 | # | Smoke check | Live result |
 |---|---|---|

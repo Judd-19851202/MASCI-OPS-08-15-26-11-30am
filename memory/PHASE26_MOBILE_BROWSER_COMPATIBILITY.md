@@ -15,7 +15,7 @@ Desktop is secondary, used by Admin, PM, HR, Safety, Dispatch staff.
 ## Mobile · 390 × 844 (iPhone 13/14 baseline)
 
 Captured via Playwright Chromium (`page.set_viewport_size({width:390,height:844})`)
-against `https://safety-audit-mobile-1.preview.emergentagent.com/`.
+against `https://backup-forensics.preview.emergentagent.com/`.
 
 | Surface | 390 px layout | Tap-target sizing | Scroll behavior |
 |---|---|---|---|

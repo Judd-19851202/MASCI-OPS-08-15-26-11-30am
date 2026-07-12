@@ -3,7 +3,7 @@
 **Mission:** Stabilization-only audit of real layout defects (field bleed, overlap, spacing, sizing, responsiveness) across the live MASCI Safety Hub platform. **NO redesigns. NO new primitives. NO color/branding/workflow/schema changes.**
 **Status:** ALL 5 DEFECTS FIXED AND VERIFIED — awaiting operator review.
 **Auditor:** Stabilization agent, fresh session
-**Preview URL:** `https://safety-audit-mobile-1.preview.emergentagent.com`
+**Preview URL:** `https://backup-forensics.preview.emergentagent.com`
 
 ---
 

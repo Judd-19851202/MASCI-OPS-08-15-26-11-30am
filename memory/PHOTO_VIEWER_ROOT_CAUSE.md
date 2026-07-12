@@ -50,7 +50,7 @@ CORS_ORIGIN_REGEX=https://.*\.(preview\.emergentagent\.com|emergent\.host|emerge
 
 | Origin | Match? |
 |---|---|
-| `https://safety-audit-mobile-1.preview.emergentagent.com` | ✅ |
+| `https://backup-forensics.preview.emergentagent.com` | ✅ |
 | `https://safety-audit-mobile-1.emergent.host` | ✅ |
 | `https://anything.emergentagent.com` | ✅ |
 | **`https://mascidocs.com`** | **❌ (no subdomain to match `.+\.`)** |

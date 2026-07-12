@@ -190,4 +190,4 @@ re-substituted `MASCI` → `MASCI Hub` repeatedly.
 
 **Live smoke (post-fix):** Hero reads `MASCI OPERATIONS PLATFORM` (single
 clean kicker) and subtext uses `Transportation Operations`. Hub
-verified at `https://safety-audit-mobile-1.preview.emergentagent.com/`.
+verified at `https://backup-forensics.preview.emergentagent.com/`.

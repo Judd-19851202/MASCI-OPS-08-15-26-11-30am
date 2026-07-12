@@ -14,7 +14,7 @@
 | Role used | **HR Manager** (NOT admin) |
 | Test user | `hrmanager@mascigc.com` (real HR token, no admin escalation) |
 | Backend | live preview · DB `masci_safety_preview` |
-| Frontend | https://safety-audit-mobile-1.preview.emergentagent.com |
+| Frontend | https://backup-forensics.preview.emergentagent.com |
 | Browser viewports | 1440×900 (desktop) · 1024×768 (iPad) · 390×844 (iPhone) |
 | Employee under test | `Alejandro Escobedo` (id `ce8f70db-095b-4ffa-ad13-b5d17868350c`) — non-critical, second row |
 

@@ -170,7 +170,7 @@ Phases 4A · 4B · 5 · 6 · 7 · 7.5C · 8A all green. Zero regressions.
 
 ### Frontend smoke
 
-`https://safety-audit-mobile-1.preview.emergentagent.com/trench-safety` renders the new ROAD PLATES stat tile in the public Fleet Overview (count = 4 live in preview DB after test fixtures retired test plates). Screenshot captured at `/tmp/phase8a_public_dashboard.png`.
+`https://backup-forensics.preview.emergentagent.com/trench-safety` renders the new ROAD PLATES stat tile in the public Fleet Overview (count = 4 live in preview DB after test fixtures retired test plates). Screenshot captured at `/tmp/phase8a_public_dashboard.png`.
 
 ---
 

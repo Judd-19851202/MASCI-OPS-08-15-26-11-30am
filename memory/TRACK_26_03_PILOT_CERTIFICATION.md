@@ -5,7 +5,7 @@
 > No physical iPhone / iPad / Android / Toughbook hardware was exercised.
 
 **Date:** 2026-07-08 UTC
-**Environment:** preview — `https://safety-audit-mobile-1.preview.emergentagent.com`
+**Environment:** preview — `https://backup-forensics.preview.emergentagent.com`
 **Backend .env at cert time:** `AUTO_EMAIL_REPORTS=false`, `RATE_LIMITING=off` (temporarily; restored to `on` post-cert)
 **Auth:** `jaymn.judd@mascigc.com` (super-admin, multi-portal, seeded via `/api/auth/multi-login` after UI `/sign-in`)
 **Feature flag:** `GET /api/feature-flags/dr-v3` → `{enabled:true, source:"tenant_default"}` ✅

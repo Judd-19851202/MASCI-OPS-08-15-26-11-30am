@@ -87,7 +87,7 @@ POST /api/daily-reports  payload={
   prepared_by:"post-deploy cert harness",
   submitter_email_at_submit:"prod-cert-smoke@example.com"
 }
-→ 200  DR_ID=f8dc6474-1596-43db-a871-b6ea9d47e4cc  DOC_ID=DR-2026-00283
+→ 200  DR_ID=backup-forensics  DOC_ID=DR-2026-00283
 
 Binding written:
   resolution_tier = "per_submit"             ✅ Tier 3 selected
@@ -105,7 +105,7 @@ POST /api/daily-reports  payload={
   prepared_by:"orphan-corner harness"
   // NO project_number, NO employee_id, NO email
 }
-→ 200  DR_ID=b3849900-3d83-49c3-91e7-f1638290ffd8
+→ 200  DR_ID=backup-forensics
 
 Binding written:
   resolution_tier = "dead_letter"            ✅ Tier 5 selected
@@ -123,7 +123,7 @@ POST /api/incidents  payload={
   submitter_email_at_submit:"prod-cert-incident@example.com",
   …
 }
-→ 200  INC_ID=b46c8f69-34d0-4385-bfc9-ba2a3cd96f46  DOC_ID=INC-2026-00302
+→ 200  INC_ID=backup-forensics  DOC_ID=INC-2026-00302
 
 Binding written:
   resolution_tier = "per_submit"             ✅

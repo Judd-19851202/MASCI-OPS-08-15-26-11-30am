@@ -35,7 +35,7 @@ Header comment in that file confirms the policy was changed in **Phase 4C (2026-
 The previous track wired `sideNav={<PmSideNavV2 />}` into **PmHubV2** (`/pm/hub`), but real users land on **PmCommandCenter** (`/pm/command-center`). The screenshot proved the sidebar rendered on `/pm/hub` — which is correct in isolation but **NOT** the page real users see.
 
 ### 6. Preview screenshots
-**Captured against the live preview environment:** `/tmp/pm_actual_landing.png`. Final URL after visiting `/pm`: `https://safety-audit-mobile-1.preview.emergentagent.com/pm/command-center`. H1 text: `"Project Management Center"`. Sidebar testid `ds-portal-shell-sidenav` count: **1**. Notification bell testid count: **1**.
+**Captured against the live preview environment:** `/tmp/pm_actual_landing.png`. Final URL after visiting `/pm`: `https://backup-forensics.preview.emergentagent.com/pm/command-center`. H1 text: `"Project Management Center"`. Sidebar testid `ds-portal-shell-sidenav` count: **1**. Notification bell testid count: **1**.
 
 ### 7. Route map (verified against `/app/frontend/src/App.js`)
 
@@ -69,7 +69,7 @@ Verified during the prior live walkthroughs (HUMAN-FIRST-OPERATIONAL-REALITY-SWE
 ## Live preview proof (the only proof that counts)
 
 ```
-Final URL:           https://safety-audit-mobile-1.preview.emergentagent.com/pm/command-center
+Final URL:           https://backup-forensics.preview.emergentagent.com/pm/command-center
 Page title (h1):     'Project Management Center'
 ds-portal-shell-sidenav count:        1   (expect 1)
 ds-portal-shell-notifications count:  1

@@ -90,10 +90,10 @@
 
 ```
 db.idempotency_keys sample (4 oversize entries):
-  4,693,407 bytes  key=01c27029-6fc9-43bd-a741-dabadbb24961
-  3,979,090 bytes  key=d3d664fb-4470-4a6f-ae61-dcc0aa247631
-  3,857,895 bytes  key=d451c158-9671-4f67-8ca3-a76d8d3677e6
-  2,097,576 bytes  key=e5ddbefb-088c-430b-bc38-cbc07fa05f7a
+  4,693,407 bytes  key=backup-forensics
+  3,979,090 bytes  key=backup-forensics
+  3,857,895 bytes  key=backup-forensics
+  2,097,576 bytes  key=backup-forensics
       1,233 bytes  key=preview-postenv-1778939207           ← healthy size
 ```
 

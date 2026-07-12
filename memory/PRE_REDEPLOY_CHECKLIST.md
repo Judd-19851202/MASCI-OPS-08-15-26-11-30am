@@ -8,7 +8,7 @@
 ## Phase A · BEFORE you click "Deploy"
 ### A1 · Confirm preview health
 ```bash
-curl -s https://safety-audit-mobile-1.preview.emergentagent.com/api/health
+curl -s https://backup-forensics.preview.emergentagent.com/api/health
 # Expect: {"ok":true,"service":"masci-hub","ts":"..."}
 ```
 

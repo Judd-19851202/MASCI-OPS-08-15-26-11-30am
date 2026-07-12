@@ -77,7 +77,7 @@ operational cards:
 
 ### Screenshot (preview, super-admin authed)
 
-URL: `https://safety-audit-mobile-1.preview.emergentagent.com/admin/database`
+URL: `https://backup-forensics.preview.emergentagent.com/admin/database`
 
 Captured 2026-02 — both cards rendered live:
 

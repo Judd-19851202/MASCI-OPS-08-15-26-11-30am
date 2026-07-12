@@ -67,7 +67,7 @@ Same outcome. ✅
 Tested with a **PM-only credential** (`track15.11b.cert.pm@mascicert.local`) on project `20-07` (where this PM is NOT pm-of-record).
 
 ```
-[pm-login] post-login url: https://safety-audit-mobile-1.preview.emergentagent.com/pm/command-center
+[pm-login] post-login url: https://backup-forensics.preview.emergentagent.com/pm/command-center
 [PM-403] access banner present: True
 [PM-403] add_btn disabled: True
 [PM-403] banner text: "You are not assigned as PM or Co-PM on this project.
@@ -144,11 +144,11 @@ The literal click count drops modestly (10→10) but the **perception** changes 
 
 ```
 # Backend reachable (preview)
-curl -s -o /dev/null -w "%{http_code}\n" https://safety-audit-mobile-1.preview.emergentagent.com/api/health
+curl -s -o /dev/null -w "%{http_code}\n" https://backup-forensics.preview.emergentagent.com/api/health
 # → 200
 
 # Browser cert (desktop)
-1. https://safety-audit-mobile-1.preview.emergentagent.com/sign-in
+1. https://backup-forensics.preview.emergentagent.com/sign-in
 2. jaymn.judd@mascigc.com / Maddix123!
 3. Navigate to: /admin/jobs/26-05/team
 4. Click "Add member"   → dialog appears centered immediately
@@ -156,7 +156,7 @@ curl -s -o /dev/null -w "%{http_code}\n" https://safety-audit-mobile-1.preview.e
 6. Open employee picker → type "Foreman" or any partial name → results narrow
 
 # PM-403 path (any PM-only account)
-1. https://safety-audit-mobile-1.preview.emergentagent.com/pm/login
+1. https://backup-forensics.preview.emergentagent.com/pm/login
 2. track15.11b.cert.pm@mascicert.local / Track15Cert!2026
 3. Navigate to: /pm/job/20-07/team
 4. Amber banner with the friendly message appears; "Add member" is disabled.

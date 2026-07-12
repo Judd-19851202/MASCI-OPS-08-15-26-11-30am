@@ -38,7 +38,7 @@ The previously-reported "Definition for rule 'react-hooks/set-state-in-effect' w
 
 ## Visual verification
 
-Playwright screenshot of `https://safety-audit-mobile-1.preview.emergentagent.com/safety`:
+Playwright screenshot of `https://backup-forensics.preview.emergentagent.com/safety`:
 - Full page renders (no compile-error overlay).
 - All 7 SafetyTiles visible (Site Inspections, Safety Meetings, Incident Reports, Job Hazard Plans, **Trench Safety**, Field Safety Cards, Safety Forms).
 

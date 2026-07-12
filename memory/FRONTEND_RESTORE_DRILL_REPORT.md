@@ -10,7 +10,7 @@
 
 The MASCI frontend is a static React build that exclusively interacts with the backend through HTTP API calls. Two facts together prove the frontend will work against a restored backend:
 
-1. **The frontend artifact itself renders correctly.** Playwright screenshot of the live preview frontend (https://safety-audit-mobile-1.preview.emergentagent.com/) confirms the React build loads, displays the platform header, surfaces all module entry points (Field / QA-QC / Safety), and includes the prominent preview-DB safety banner ("PREVIEW ENVIRONMENT · DB: MASCI_SAFETY_PREVIEW").
+1. **The frontend artifact itself renders correctly.** Playwright screenshot of the live preview frontend (https://backup-forensics.preview.emergentagent.com/) confirms the React build loads, displays the platform header, surfaces all module entry points (Field / QA-QC / Safety), and includes the prominent preview-DB safety banner ("PREVIEW ENVIRONMENT · DB: MASCI_SAFETY_PREVIEW").
 
 2. **Every API endpoint the frontend uses returns the same shape from the drill backend as from prod.** Batch F drilled 13 endpoints against a backend pointed at the restored drill DB. All returned the expected shapes (list endpoints, single-record endpoints, PDF rendering paths, search, auth). Batch G additionally proved that post-reseed multi-login returns full `portal_tokens` payloads for every directory user.
 

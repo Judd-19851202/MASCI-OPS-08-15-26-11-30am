@@ -75,7 +75,7 @@ Added a single read-only **Project-Day Events** panel to `PmProjectDetail.jsx` t
 ```
 
 ### Live preview-DB response confirmed
-Curl against `https://safety-audit-mobile-1.preview.emergentagent.com/api/operational-events/project-day/20-07/2026-06-12` returns:
+Curl against `https://backup-forensics.preview.emergentagent.com/api/operational-events/project-day/20-07/2026-06-12` returns:
 ```
 {"ok": true, "project_number": "20-07", "date": "2026-06-12", "assets": [], "total_events": 0}
 ```

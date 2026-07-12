@@ -3,7 +3,7 @@
 **Date**: 2026-02-12
 **App**: MASCI Operations Platform · Excavation Operations
 **Environment**: PREVIEW (`APP_ENV=preview`, `DB_NAME=masci_safety_preview`)
-**Preview URL**: https://safety-audit-mobile-1.preview.emergentagent.com
+**Preview URL**: https://backup-forensics.preview.emergentagent.com
 **Production URL** (NOT deployed): https://safety-audit-mobile-1.emergent.host
 
 ---

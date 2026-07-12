@@ -32,7 +32,7 @@ This honors all five pillars:
 * **Risk:** **Nil.** Starlette ships this middleware as a stable contract; behaviour change is opt-in by client.
 * **Evidence:**
   ```
-  $ curl -sS --compressed -D - https://safety-audit-mobile-1.preview.emergentagent.com/api/health
+  $ curl -sS --compressed -D - https://backup-forensics.preview.emergentagent.com/api/health
   content-encoding: gzip
   {"ok":true,"service":"masci-hub","ts":"2026-06-09T18:46:54Z"}
 

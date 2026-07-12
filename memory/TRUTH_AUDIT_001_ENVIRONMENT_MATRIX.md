@@ -10,7 +10,7 @@
 | # | Name | URL (entrypoint) | Database | Deployment Target | Purpose | Active? | Evidence |
 |---|---|---|---|---|---|---|---|
 | 1 | **Production** | `https://mascidocs.com` | `masci_safety` (Atlas cluster `masci-prod.1nduwmg.mongodb.net`) | Operator-managed Emergent deploy | Live MASCI customer environment for superintendents, HR, admins, dispatch, field crews | ✅ ACTIVE | `curl https://mascidocs.com/api/version` → `app_env=production`, `db_name=masci_safety`, uptime 4519s, source_hash `7f68853f791fb19709cee3be9f7e70b8` |
-| 2 | **Preview / Fork Container (this pod)** | `https://safety-audit-mobile-1.preview.emergentagent.com` | `masci_safety_preview` (SAME Atlas cluster) | Emergent preview pod (this fork agent's working container) | E1 fork development + agent testing without touching prod data at the *database default* level — but credentials carry cluster-wide reach (see §3) | ✅ ACTIVE | `/app/backend/.env` `APP_ENV="preview"`, `DB_NAME="masci_safety_preview"`. `/api/version` confirms same. `/app/frontend/.env` `REACT_APP_BACKEND_URL=https://safety-audit-mobile-1.preview.emergentagent.com` |
+| 2 | **Preview / Fork Container (this pod)** | `https://backup-forensics.preview.emergentagent.com` | `masci_safety_preview` (SAME Atlas cluster) | Emergent preview pod (this fork agent's working container) | E1 fork development + agent testing without touching prod data at the *database default* level — but credentials carry cluster-wide reach (see §3) | ✅ ACTIVE | `/app/backend/.env` `APP_ENV="preview"`, `DB_NAME="masci_safety_preview"`. `/api/version` confirms same. `/app/frontend/.env` `REACT_APP_BACKEND_URL=https://backup-forensics.preview.emergentagent.com` |
 | 3 | **Restore Drill 2026-05-30** | (no UI — DB-only restore target) | `masci_restore_drill_2026_05_30` | One-shot restore validation DB | Backup-restore drill from 2026-05-30 — left in place as evidence (referenced in PHASE26_2_BACKUP_CONTINUITY_CERTIFICATION) | 🟡 INACTIVE (dormant) | `motor.list_database_names()` returns it; `MOTIVE_VERIFY_001 §1` previously queried it |
 | 4 | **Restore Drill Auto 2026-06-01** | (no UI — DB-only) | `masci_restore_drill_auto_20260601_015003` | Automated restore drill | Auto-generated restore validation from 2026-06-01T01:50:03Z | 🟡 INACTIVE (dormant) | same |
 | 5 | **Ephemeral test DBs** (21 of them) | (none — created/dropped inside pytest) | `masci_test_autoresolve_*_preview` (5) · `masci_test_webhook_harden_001_*_preview` (15) · `masci_test_webhook_harden_*_preview` (3) · `scheduler_test_iter445` | n/a — created by pytest fixtures that did not clean up after themselves | Test isolation DBs from prior fork test runs | 🟡 INACTIVE (orphaned) | listed by `list_database_names()` — 21 entries; 0 have UI surfaces |
@@ -57,7 +57,7 @@ $ curl -sk https://mascidocs.com/api/version
  "source_hash":"7f68853f791fb19709cee3be9f7e70b8",
  "app_env":"production","db_name":"masci_safety", ...}
 
-$ curl -sk https://safety-audit-mobile-1.preview.emergentagent.com/api/version
+$ curl -sk https://backup-forensics.preview.emergentagent.com/api/version
 {"service":"masci-hub",
  "source_hash":"b1cfa3598c80665f606007f1e155a43c",
  "app_env":"preview","db_name":"masci_safety_preview", ...}

@@ -12,7 +12,7 @@
 Roster rows on `/admin/jobs/{project_number}/team` rendered the assignee
 as `"Unknown person — Admin review required"` even when the platform
 already had the person on file. The recurring reproducer was
-Alec Perkins (`user_id=c9d7ebc3-a292-4d7a-8765-0ce2739c6029`) on
+Alec Perkins (`user_id=backup-forensics`) on
 project `20-07`, where he holds two active assignments
 (foreman + safety_rep). The audit drawer suffered the same problem.
 

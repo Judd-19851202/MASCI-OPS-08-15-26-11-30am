@@ -85,7 +85,7 @@ When the future FleetWatcher map UI lands, every row already carries the lat/lng
 
 ---
 
-## 6 · Live preview verification (against `https://safety-audit-mobile-1.preview.emergentagent.com`)
+## 6 · Live preview verification (against `https://backup-forensics.preview.emergentagent.com`)
 
 ```
 /overview      → 200 · ok=True · 480B

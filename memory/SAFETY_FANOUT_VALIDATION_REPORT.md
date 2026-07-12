@@ -79,7 +79,7 @@
 
 **Live POST verification (preview, 2026-05-30T23:50Z):**
 ```
-POST /api/jhas → 200 · id=e8849e9f-3be5-4330-9695-0b807e7cf69a
+POST /api/jhas → 200 · id=backup-forensics
 → tasks.find_one({source_record_id: ..., source_module: 'safety.jha'})
   ✅ title="JHA — Phase B Validation"
 → notifications.find_one({linked_source_record_id: ..., type: 'jha.submitted'})
@@ -102,7 +102,7 @@ POST /api/jhas → 200 · id=e8849e9f-3be5-4330-9695-0b807e7cf69a
 
 **Live POST verification (preview, 2026-05-30T23:50Z):**
 ```
-POST /api/meetings → 200 · id=dfd9e754-0725-49f4-b16b-7b6843204baa
+POST /api/meetings → 200 · id=backup-forensics
 → tasks.find_one({source_record_id: ..., source_module: 'safety.meeting'})
   ✅ title="Safety Meeting — PHASE B FAN-OUT VALIDATION"
 → notifications.find_one({linked_source_record_id: ..., type: 'meeting.submitted'})

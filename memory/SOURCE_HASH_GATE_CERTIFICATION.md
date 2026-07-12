@@ -39,7 +39,7 @@ stage in `pre_deploy_check.sh`. It:
 ════════════════════════════════════════════════════════════════
   STAGE: Source-hash drift report (preview vs production · informational)
 ════════════════════════════════════════════════════════════════
-  preview (https://safety-audit-mobile-1.preview.emergentagent.com)
+  preview (https://backup-forensics.preview.emergentagent.com)
     source_hash = 0f5d997dffba4e95fefa9a58c7f02780
   production (https://mascidocs.com)
     source_hash = 0f5d997dffba4e95fefa9a58c7f02780
@@ -161,7 +161,7 @@ bash /app/scripts/test_source_hash_gate.sh
 ════════════════════════════════════════════════════════════════
   STAGE: Source-hash drift report (preview vs production · informational)
 ════════════════════════════════════════════════════════════════
-  preview (https://safety-audit-mobile-1.preview.emergentagent.com)
+  preview (https://backup-forensics.preview.emergentagent.com)
     source_hash = 0f5d997dffba4e95fefa9a58c7f02780
   production (https://mascidocs.com)
     source_hash = 0f5d997dffba4e95fefa9a58c7f02780

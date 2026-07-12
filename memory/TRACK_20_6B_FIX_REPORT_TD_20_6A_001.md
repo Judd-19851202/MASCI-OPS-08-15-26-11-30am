@@ -15,7 +15,7 @@ Before applying any fix, ran the current codebase against the live preview backe
 
 ```bash
 $ curl -s -o /dev/null -w "%{http_code}\n" \
-    "https://safety-audit-mobile-1.preview.emergentagent.com/api/employee-records/vocabulary"
+    "https://backup-forensics.preview.emergentagent.com/api/employee-records/vocabulary"
 401
 
 $ REACT_APP_BACKEND_URL=... python -m pytest \
@@ -54,7 +54,7 @@ backend/tests/test_track_19_21_e2e_live.py::test_vocabulary_unauth_401 PASSED
 Live curl confirms production behavior:
 ```
 $ curl -s -o /dev/null -w "%{http_code}\n" \
-    "https://safety-audit-mobile-1.preview.emergentagent.com/api/employee-records/vocabulary"
+    "https://backup-forensics.preview.emergentagent.com/api/employee-records/vocabulary"
 401
 ```
 

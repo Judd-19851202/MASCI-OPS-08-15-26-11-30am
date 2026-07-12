@@ -2,7 +2,7 @@
 
 **Phase:** OMEGA Phase P.1 · Post-Deployment Production Certification
 **Date:** 2026-05-30 (UTC)
-**Method:** Read-only live HTTP probes against `https://mascidocs.com` and `https://safety-audit-mobile-1.preview.emergentagent.com`. Zero writes. Zero modifications to prod / preview / DB / R2.
+**Method:** Read-only live HTTP probes against `https://mascidocs.com` and `https://backup-forensics.preview.emergentagent.com`. Zero writes. Zero modifications to prod / preview / DB / R2.
 **Author:** E1-AGENT
 **Operator-claimed deploy window:** ~T-8 min before this audit began (operator initiated production deploy at ~2026-05-30T18:38–18:46Z based on prod `started_at` observed)
 **Deploy mechanism:** Emergent platform rolling deploy

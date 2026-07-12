@@ -34,7 +34,7 @@ _Pre-redeploy verification · `mascidocs.com` · 2026-05-29 18:42–18:48 UTC._
 | 7 | Feature flags not flipped | ✅ PASS | `.env` only flips `SESSION_TIMEOUTS_ENABLED=true` (intended) and `SCHEDULER_ENABLED=false` (preview-only — production has its own deploy env) |
 | 8 | Daily Report workflow unchanged except approved improvements | ✅ PASS | Only approved Wave-1B/1C, FlUserCombo, auto-expand, FL-role refinements landed; no schema breaks |
 | 9 | DELETE `/api/daily-reports/{id}` returns 410 | ✅ PASS | `HTTP 410` · `daily_report_delete_frozen` · `LEGACY_RECORD_FREEZE_CERTIFICATION.md` |
-| 10 | POST `/api/daily-reports` works | ✅ PASS | Live probe returned `id=31490f52-6d56-4c85-acac-6bea1ad9227e` · `doc_id=DR-2026-00407` |
+| 10 | POST `/api/daily-reports` works | ✅ PASS | Live probe returned `id=backup-forensics` · `doc_id=DR-2026-00407` |
 | 11 | `production[]` / `constraints[]` optional + backward-compat | ✅ PASS | Bare POST (no fields) returns `production:[] constraints:[]` |
 | 12 | No Approval/Rejection implementation active | ✅ PASS | Zero `include_router(approval*)`, zero `/api/approval*` routes wired, zero `approval_status` field in models — architecture docs only |
 | 13 | No RFI / Schedule / P6 work active | ✅ PASS | Zero `include_router` calls for any of those scopes in `server.py` · zero `/rfi`, `/schedule`, `/p6` routes in `App.js` |
@@ -124,7 +124,7 @@ shape — production has 1–5 DRs per date.
 ADMIN_TOKEN acquired: 09e319868a10... (master directory login OK)
 
 CHECK 9  DELETE  → HTTP 410 · {"detail":{"error":"daily_report_delete_frozen", ...}}
-CHECK 10 POST    → HTTP 200 · id=31490f52-6d56-4c85-acac-6bea1ad9227e · doc_id=DR-2026-00407
+CHECK 10 POST    → HTTP 200 · id=backup-forensics · doc_id=DR-2026-00407
 CHECK 11 POST    → HTTP 200 · bare body (no production[]/constraints[]) accepted · returns []/[]
 ```
 

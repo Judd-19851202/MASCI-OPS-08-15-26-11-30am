@@ -35,7 +35,7 @@ load_dotenv("/app/backend/.env")
 
 FRONTEND_URL = os.environ.get(
     "TRACK_22_4C_FRONTEND_URL",
-    "https://safety-audit-mobile-1.preview.emergentagent.com",
+    "https://backup-forensics.preview.emergentagent.com",
 )
 ADMIN_EMAIL = os.environ.get("TEST_SUPER_ADMIN_EMAIL", "jaymn.judd@mascigc.com")
 ADMIN_PASS = os.environ.get("TEST_SUPER_ADMIN_PASSWORD", "Maddix123!")

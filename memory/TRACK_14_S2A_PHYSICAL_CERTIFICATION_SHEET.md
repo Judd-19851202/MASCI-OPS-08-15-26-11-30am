@@ -24,7 +24,7 @@ proves the field user's actual experience.
 
 **Steps:**
 
-1. Open Safari on the iPad. Visit `https://safety-audit-mobile-1.preview.emergentagent.com/sign-in`.
+1. Open Safari on the iPad. Visit `https://backup-forensics.preview.emergentagent.com/sign-in`.
 2. Verify: page loads in < 3 s on a typical office Wi-Fi.
 3. Tap the Spanish (ES) toggle in the top-right. Verify the UI
    switches to Spanish without any English leakage on the visible

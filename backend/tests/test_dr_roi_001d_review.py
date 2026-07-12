@@ -17,7 +17,7 @@ import requests
 from motor.motor_asyncio import AsyncIOMotorClient
 
 BASE = os.environ.get("REACT_APP_BACKEND_URL",
-                     "https://safety-audit-mobile-1.preview.emergentagent.com").rstrip("/")
+                     "https://backup-forensics.preview.emergentagent.com").rstrip("/")
 MONGO = os.environ.get("MONGO_URL") or open("/app/backend/.env").read().split('MONGO_URL="')[1].split('"')[0]
 DB = os.environ.get("DB_NAME") or "masci_safety_preview"
 

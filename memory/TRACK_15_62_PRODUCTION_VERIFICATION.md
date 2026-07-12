@@ -1,7 +1,7 @@
 # TRACK 15.62 · Production Verification (Session A)
 
 **Date:** 2026-06-22
-**Environment:** preview (`https://safety-audit-mobile-1.preview.emergentagent.com`)
+**Environment:** preview (`https://backup-forensics.preview.emergentagent.com`)
 **Why preview, not production:** Session A backend has NOT been deployed to production yet (preview is the proving ground per the platform's standard rollout). After operator approval of Session B, both sessions ship to production in the same deploy window per the architecture document.
 
 ## Harness
