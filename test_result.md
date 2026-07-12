@@ -101,3 +101,35 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: "Verify TRACK 27.10 on the live preview frontend at https://backup-forensics.preview.emergentagent.com/daily/new. Focus only on user-facing Daily Report behavior. Check desktop, tablet, and mobile widths. Confirm the Daily Report page renders, the summary gate messaging is visible, and the submit button stays disabled / blocked until an approved executive summary exists. Validate the presence and usability of the three summary paths in the UI: Accept AI Summary, Regenerate, and Reject AI & write manual summary."
+
+frontend:
+  - task: "TRACK 27.10 - Daily Report V3 Summary Gate"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/daily-report/DailySummaryAssist.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Tested on 2026-07-12. All requirements verified successfully. Daily Report V3 page renders correctly on desktop (1920x1080), tablet (768x1024), and mobile (390x844). Summary gate messaging is visible and correctly displays 'Submission is blocked until one approved executive summary exists.' Submit button (data-testid=dr-v3-submit-btn) is correctly disabled without an approved summary. All three summary paths are present and functional: Accept AI Summary (data-testid=daily-summary-assist-accept), Regenerate (data-testid=daily-summary-assist-regenerate), and Reject AI & write manual (data-testid=daily-summary-assist-reject-manual). Manual summary path works correctly - clicking Reject shows manual block with textarea (data-testid=daily-summary-assist-manual-textarea) and accept button (data-testid=daily-summary-assist-manual-accept). Gate message updates to 'AI summary rejected. Write the final supervisor summary below, then approve it to unlock submit.' All required data-testid elements are present. Note: Action buttons only appear when form has sufficient data (activities, crew, notes), which is correct behavior. AI provider may be mocked/unavailable but manual path still protects submission correctly."
+
+metadata:
+  created_by: "testing_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: true
+
+test_plan:
+  current_focus:
+    - "TRACK 27.10 - Daily Report V3 Summary Gate"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "testing"
+    message: "TRACK 27.10 testing completed successfully. All user-facing requirements verified: (1) Daily Report V3 page renders on desktop, tablet, and mobile, (2) Summary gate messaging is visible and correct, (3) Submit button stays disabled until approved summary exists, (4) All three summary paths (Accept AI, Regenerate, Reject & Manual) are present and functional with correct data-testid attributes, (5) Manual summary path works correctly when AI is unavailable/mocked. Screenshots saved: track_27_10_desktop_summary.png, track_27_10_with_data.png, track_27_10_manual_approved.png. No critical issues found. Ready for production."
