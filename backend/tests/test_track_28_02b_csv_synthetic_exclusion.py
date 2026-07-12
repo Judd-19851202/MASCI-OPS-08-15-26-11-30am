@@ -85,6 +85,12 @@ def test_csv_export_excludes_synthetic_daily_report(admin_headers: dict) -> None
         "location": "TEST · Cert",
         "report_date": date.today().isoformat(),
         "prepared_by": "TEST_28_02_Foreman",
+        "ai_accepted_summary": "Approved summary: synthetic CSV exclusion certification record.",
+        "ai_accepted_summary_meta": {
+            "source": "manual",
+            "approved_by": "TEST_28_02_Foreman",
+            "accepted_at": f"{date.today().isoformat()}T19:00:00Z",
+        },
     }
     # POST
     r = httpx.post(f"{BACKEND}/api/daily-reports", headers=admin_headers, json=payload, timeout=30)

@@ -45,6 +45,12 @@ def _payload(**overrides):
         "location": "X",
         "report_date": "2026-02-07",
         "prepared_by": "Cert",
+        "ai_accepted_summary": "Approved summary: regression payload accepted for daily report certification.",
+        "ai_accepted_summary_meta": {
+            "source": "manual",
+            "approved_by": "Cert",
+            "accepted_at": "2026-02-07T19:00:00Z",
+        },
         "photos": [],
     }
     base.update(overrides)

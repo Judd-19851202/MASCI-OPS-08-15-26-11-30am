@@ -56,6 +56,12 @@ def _new_payload() -> dict:
         "location": "Sta 12+00 to 14+00",
         "report_date": "2026-05-29",
         "prepared_by": "Pytest Foreman",
+        "ai_accepted_summary": "Approved summary: production and constraints captured for regression certification.",
+        "ai_accepted_summary_meta": {
+            "source": "manual",
+            "approved_by": "Pytest Foreman",
+            "accepted_at": "2026-05-29T19:00:00Z",
+        },
         "production": [
             {"description": "RCP install", "quantity": 240, "unit": "LF",
              "station_from": "12+50", "station_to": "13+00",

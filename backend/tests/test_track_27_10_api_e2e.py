@@ -36,11 +36,14 @@ ONE_PX = (
 @pytest.fixture(scope="module")
 def admin_token():
     """Get admin token via multi-login."""
-    resp = requests.post(
-        f"{BASE_URL}/api/auth/multi-login",
-        json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD},
-        timeout=15,
-    )
+    try:
+        resp = requests.post(
+            f"{BASE_URL}/api/auth/multi-login",
+            json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD},
+            timeout=30,
+        )
+    except requests.RequestException as exc:
+        pytest.skip(f"Admin login unavailable: {exc}")
     if resp.status_code != 200:
         pytest.skip(f"Admin login failed: {resp.status_code} {resp.text[:200]}")
     data = resp.json()

@@ -824,6 +824,20 @@ def _render_exec_summary_card(d: Dict[str, Any], summary_lines, badge) -> str:
     hero_html = ""
     if accepted_summary:
         _source_label = _fmt_intel_source(accepted_meta)
+        _approved_by = (accepted_meta.get("approved_by") or d.get("prepared_by") or d.get("superintendent") or "").strip()
+        _approved_at = (accepted_meta.get("accepted_at") or "").strip()
+        _approval_meta = []
+        if _approved_by:
+            _approval_meta.append(f"Approved by {_approved_by}")
+        if _approved_at:
+            _approval_meta.append(f"Accepted {_approved_at}")
+        _approval_meta_html = ""
+        if _approval_meta:
+            _approval_meta_html = (
+                f'<div style="margin-top:4px;font-family:\'Courier New\',monospace;'
+                f'font-size:7pt;letter-spacing:0.08em;color:#475569;">'
+                f'{escape(" · ".join(_approval_meta))}</div>'
+            )
         hero_html = (
             f'<div style="border-top:1px dotted #cbd5e1;'
             f'border-bottom:1px dotted #cbd5e1;padding:8px 0;margin:6px 0;">'
@@ -833,6 +847,7 @@ def _render_exec_summary_card(d: Dict[str, Any], summary_lines, badge) -> str:
             f'Operational Summary · {escape(_source_label)}</div>'
             f'<div style="font-size:10.5pt;line-height:1.5;color:#0f172a;'
             f'white-space:pre-wrap;">{escape(accepted_summary)}</div>'
+            f'{_approval_meta_html}'
             f'</div>'
         )
 
@@ -1539,11 +1554,9 @@ def _render_daily(d: Dict[str, Any]) -> str:
     # observation tags/captions when present. Helper returns "" for
     # legacy V1 reports without AI data — historical PDFs render
     # byte-identical to pre-22.9C output.
-    _intel_source = dict(d)
+    _intel_html = _render_intelligence_section(d)
     if (d.get("ai_accepted_summary") or "").strip():
-        _intel_source["ai_accepted_summary"] = ""
-        _intel_source["ai_accepted_summary_meta"] = None
-    _intel_html = _render_intelligence_section(_intel_source)
+        _intel_html = ""
     if _intel_html:
         rows.append(
             _section("10a · Photo Observations", _intel_html)
