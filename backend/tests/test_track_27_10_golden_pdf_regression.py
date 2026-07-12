@@ -70,6 +70,11 @@ def _golden_record():
         "production": [
             {"description": "Curb prep", "quantity": 420, "unit": "LF", "station_from": "10+00", "station_to": "14+20"},
             {"description": "Base rock placed", "quantity": 180, "unit": "TON", "station_from": "10+00", "station_to": "14+20"},
+            {"description": "Custom utility boxes", "quantity": 2, "unit": "OTHER", "custom_unit_label": "Vault Assemblies", "station_from": "12+10", "station_to": "12+20"},
+        ],
+        "constraints": [
+            {"constraint_type": "weather", "hours_impact": 1.5, "notes": "Rain delay before paving."},
+            {"constraint_type": "extra_work", "hours_impact": 2, "notes": "Added owner-requested cleanup."},
         ],
         "activities": [
             {"activity": "Curb prep and utility verification", "description": "Curb prep and utility verification", "percent_done": "100%"},
@@ -124,9 +129,12 @@ def test_golden_pdf_structural_lock(tmp_path: Path):
     assert "Maria Superintendent" in full
     assert "2026-07-11T19:00:00Z" in full
     assert "manual" in full.lower() or "supervisor accepted" in full.lower()
-    assert "29.4241, -98.4936" in full
+    assert "29.42410, -98.49360" in full
     assert full.count("Light rain") >= 1
     assert full.count("WEATHER") >= 1
+    assert "Vault Assemblies" in full
+    assert "Hours Delayed: 1.5 h" in full
+    assert "Extra Work Hours: 2 h" in full
     assert "Page 1 of" in full or "PAGE 1 OF" in full
 
 
@@ -160,7 +168,7 @@ def test_golden_pdf_section_order_and_single_weather_block(tmp_path: Path):
         assert idx != -1, f"missing section {marker}"
         assert idx > last, f"section order broke at {marker}"
         last = idx
-    assert full.count("GPS 29.4241, -98.4936") == 1
+    assert full.count("COORDINATES USED 29.42410, -98.49360") == 1
 
 
 def test_golden_pdf_equipment_and_signature_parity(tmp_path: Path):

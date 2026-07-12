@@ -37,6 +37,14 @@ export function buildDailyReportDefaults() {
     gps_lat: null,
     gps_lng: null,
     gps_accuracy: null,
+    location_captured_at: "",
+    location_permission_status: "unknown",
+    location_capture_result: "",
+    location_source: "",
+    location_error_code: "",
+    location_error_message: "",
+    location_capture_origin: "",
+    location_capture_attempts: 0,
     weather_summary: "", // e.g. "Sunny, high 82°F"
     weather_snapshots: [
       // [{time:"06:00", condition, temp_f, precip_in, humidity_pct, wind_mph}, ...]

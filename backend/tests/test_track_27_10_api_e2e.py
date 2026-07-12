@@ -145,6 +145,19 @@ class TestDailyReportSummaryGate:
             "report_date": "2026-01-15",
             "prepared_by": "Test Supervisor",
             "weather_summary": "Clear skies, 75°F",
+            "gps_lat": 29.4241,
+            "gps_lng": -98.4936,
+            "gps_accuracy": 6,
+            "location_source": "device_gps",
+            "location_captured_at": "2026-01-15T20:55:00Z",
+            "weather_snapshot_meta": {
+                "provider": "open-meteo",
+                "source": "open-meteo",
+                "gps_lat": 29.4241,
+                "gps_lng": -98.4936,
+                "observation_timestamp": "2026-01-15T15:00",
+                "timezone": "America/Chicago",
+            },
             "photos": [ONE_PX] * 6,
             "prepared_by_signature": ONE_PX,
             "ai_accepted_summary": "Crews completed curb prep and staging. No delays.",
@@ -249,6 +262,11 @@ class TestDailyReportSummaryGate:
             "report_date": "2026-01-15",
             "prepared_by": "Test Supervisor",
             "weather_summary": "Clear skies, 75°F",
+            "gps_lat": 29.4241,
+            "gps_lng": -98.4936,
+            "gps_accuracy": 6,
+            "location_source": "device_gps",
+            "location_captured_at": "2026-01-15T20:55:00Z",
             "photos": [ONE_PX] * 6,
             "prepared_by_signature": ONE_PX,
             "ai_accepted_summary": "Parity test summary.",
@@ -256,6 +274,14 @@ class TestDailyReportSummaryGate:
                 "source": "manual",
                 "approved_by": "Test Supervisor",
                 "accepted_at": "2026-01-15T21:00:00Z",
+            },
+            "weather_snapshot_meta": {
+                "provider": "open-meteo",
+                "source": "open-meteo",
+                "gps_lat": 29.4241,
+                "gps_lng": -98.4936,
+                "observation_timestamp": "2026-01-15T15:00",
+                "timezone": "America/Chicago",
             },
             "production": [{
                 "description": "Curb",
@@ -272,8 +298,14 @@ class TestDailyReportSummaryGate:
             "outbound_materials": [{
                 "material": "Spoils",
                 "quantity": 4,
+                "unit": "TRUCKLOAD",
+                "unit_snapshot": "Truckloads",
+            }, {
+                "material": "Bins",
+                "quantity": 1,
                 "unit": "OTHER",
                 "unit_snapshot": "Loads",
+                "custom_unit_label": "Vacuum Boxes",
             }],
             "equipment": [{
                 "description": "CAT 320",
@@ -288,12 +320,76 @@ class TestDailyReportSummaryGate:
         assert data["production"][0].get("custom_unit_label") == "Linear Feet"
         assert data["materials"][0]["unit"] == "TON"
         assert data["materials"][0].get("custom_unit_label") == "Tons"
-        assert data["outbound_materials"][0]["unit"] == "OTHER"
-        assert data["outbound_materials"][0].get("custom_unit_label") == "Loads"
+        assert data["outbound_materials"][0]["unit"] == "TRUCKLOAD"
+        assert data["outbound_materials"][0].get("custom_unit_label") == "Truckloads"
+        assert data["outbound_materials"][1]["unit"] == "OTHER"
+        assert data["outbound_materials"][1].get("custom_unit_label") == "Vacuum Boxes"
         assert data["equipment"][0].get("hours_used") == 6.5
         assert data["equipment"][0].get("idle_hours") == 1.25
         assert data["equipment"][0].get("run_time") == 6.5
         assert data["equipment"][0].get("idle_time") == 1.25
+        assert data.get("location_source") == "device_gps"
+        assert data.get("weather_snapshot_meta", {}).get("gps_lat") == 29.4241
+
+    def test_post_rejects_weather_coordinate_mismatch(self, api_client):
+        unique_id = str(uuid.uuid4())[:8]
+        payload = {
+            "project_name": f"TEST_Track27_10_GPS_{unique_id}",
+            "project_number": f"TEST-27-10-GPS-{unique_id}",
+            "location": "Test Location",
+            "report_date": "2026-01-15",
+            "prepared_by": "Test Supervisor",
+            "weather_summary": "Clear skies, 75°F",
+            "gps_lat": 29.4241,
+            "gps_lng": -98.4936,
+            "location_source": "device_gps",
+            "location_captured_at": "2026-01-15T20:55:00Z",
+            "photos": [ONE_PX] * 6,
+            "prepared_by_signature": ONE_PX,
+            "ai_accepted_summary": "Parity test summary.",
+            "ai_accepted_summary_meta": {
+                "source": "manual",
+                "approved_by": "Test Supervisor",
+                "accepted_at": "2026-01-15T21:00:00Z",
+            },
+            "weather_snapshot_meta": {
+                "provider": "open-meteo",
+                "gps_lat": 30.0,
+                "gps_lng": -97.0,
+                "observation_timestamp": "2026-01-15T15:00",
+            },
+        }
+        resp = api_client.post(f"{BASE_URL}/api/daily-reports", json=payload, timeout=30)
+        assert resp.status_code == 422
+        assert resp.json().get("detail", {}).get("error") == "weather_coordinates_mismatch"
+
+    def test_post_rejects_other_unit_without_description(self, api_client):
+        unique_id = str(uuid.uuid4())[:8]
+        payload = {
+            "project_name": f"TEST_Track27_10_OtherUnit_{unique_id}",
+            "project_number": f"TEST-27-10-OTH-{unique_id}",
+            "location": "Test Location",
+            "report_date": "2026-01-15",
+            "prepared_by": "Test Supervisor",
+            "weather_summary": "Clear skies, 75°F",
+            "photos": [ONE_PX] * 6,
+            "prepared_by_signature": ONE_PX,
+            "ai_accepted_summary": "Parity test summary.",
+            "ai_accepted_summary_meta": {
+                "source": "manual",
+                "approved_by": "Test Supervisor",
+                "accepted_at": "2026-01-15T21:00:00Z",
+            },
+            "production": [{
+                "description": "Custom placement",
+                "quantity": 9,
+                "unit": "OTHER",
+            }],
+        }
+        resp = api_client.post(f"{BASE_URL}/api/daily-reports", json=payload, timeout=30)
+        assert resp.status_code == 422, f"Expected 422, got {resp.status_code}: {resp.text[:500]}"
+        detail = resp.json().get("detail", {})
+        assert detail.get("error") == "other_unit_description_required"
 
 
 class TestDailyReportPDF:

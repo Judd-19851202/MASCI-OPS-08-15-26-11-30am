@@ -25,6 +25,8 @@ import { Link } from "react-router-dom";
 import { useT } from "@/lib/i18n";
 import { DEFAULT_MATERIAL_UNITS } from "@/components/daily-report-v3/UnitCombo";
 
+const UNIT_LIBRARY_MAP = new Map(DEFAULT_MATERIAL_UNITS.map((u) => [u.code, u]));
+
 function normalizeNumericInputValue(raw) {
   if (raw == null) return "";
   const value = String(raw);
@@ -44,8 +46,9 @@ function parseNumericField(raw, { integer = false, min = null, max = null } = {}
 }
 
 function numberInputProps(value) {
+  const displayValue = value === 0 ? "" : (value ?? "");
   return {
-    value: value ?? "",
+    value: displayValue,
     onFocus: (e) => {
       if (String(e.target.value) === "0") e.target.select();
     },
@@ -56,10 +59,12 @@ function numberInputProps(value) {
 }
 
 function resolveUnitDraftValue(row) {
+  const code = (row?.unit || "").trim();
+  const unitMeta = UNIT_LIBRARY_MAP.get(code);
   const custom = (row?.custom_unit_label || row?.unit_snapshot || "").trim();
-  const unit = (row?.unit || "").trim();
-  if (unit === "OTHER") return custom || "OTHER";
-  return custom || unit;
+  if (code === "OTHER") return custom ? `OTHER — ${custom}` : "OTHER — Other";
+  if (unitMeta) return `${unitMeta.code} — ${unitMeta.label}`;
+  return custom || code;
 }
 
 function applyPickedUnit(row, picked) {
@@ -70,32 +75,23 @@ function applyPickedUnit(row, picked) {
     unit: picked.code,
     unit_code: picked.code,
     unit_snapshot: picked.label,
-    custom_unit_label: isOther ? picked.label : "",
+    custom_unit_label: isOther ? (row?.custom_unit_label || "") : "",
   };
 }
 
-function applyTypedUnit(row, raw) {
+function updateOtherUnitDescription(row, raw) {
   const typed = (raw || "").trim();
-  if (!typed) {
-    return {
-      ...row,
-      unit: "",
-      unit_code: "",
-      unit_snapshot: "",
-      custom_unit_label: "",
-    };
-  }
-  const exact = DEFAULT_MATERIAL_UNITS.find((u) =>
-    [u.code, u.label, ...(u.search || [])].some((token) => token.toLowerCase() === typed.toLowerCase()),
-  );
-  if (exact) return applyPickedUnit(row, exact);
   return {
     ...row,
-    unit: typed.toUpperCase(),
-    unit_code: "",
-    unit_snapshot: typed,
-    custom_unit_label: "",
+    unit: "OTHER",
+    unit_code: "OTHER",
+    unit_snapshot: typed ? `Other — ${typed}` : "Other",
+    custom_unit_label: typed,
   };
+}
+
+function numericFieldClass() {
+  return "w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm";
 }
 
 // ── Shared section shell ──────────────────────────────────────────
@@ -914,7 +910,7 @@ export function SectionWorkProduction({ data, patch, costCodes }) {
               patch({
                 production: [
                   ...prod,
-                  { description: "", quantity: 0, unit: "LF", notes: "" },
+                  { description: "", quantity: 0, unit: "LF", unit_snapshot: "Linear Feet", notes: "" },
                 ],
               })
             }
@@ -943,10 +939,12 @@ export function SectionWorkProduction({ data, patch, costCodes }) {
                 className="w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm"
                 data-testid={`dr-v3-prod-desc-${i}`}
               />
+              <label className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-slate-600">{t("Production Quantity")}</span>
               <input
                 type="number"
                 step="0.01"
-                placeholder={t("Qty")}
+                placeholder="0"
                 {...numberInputProps(p.quantity)}
                 onChange={(e) => {
                   const next = prod.slice();
@@ -956,16 +954,14 @@ export function SectionWorkProduction({ data, patch, costCodes }) {
                   };
                   patch({ production: next });
                 }}
-                className="w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm"
+                className={numericFieldClass()}
                 data-testid={`dr-v3-prod-qty-${i}`}
               />
+              </label>
               <UnitCombo
                 value={resolveUnitDraftValue(p)}
-                onChange={(v) => {
-                  const next = prod.slice();
-                  next[i] = applyTypedUnit(p, v);
-                  patch({ production: next });
-                }}
+                selectedCode={p.unit || ""}
+                onChange={() => {}}
                 onPick={(u) => {
                   const next = prod.slice();
                   next[i] = applyPickedUnit(p, u);
@@ -1011,12 +1007,14 @@ export function SectionWorkProduction({ data, patch, costCodes }) {
                 className="w-full min-w-0 rounded-md border border-slate-200 px-2.5 py-1.5 text-sm"
                 data-testid={`dr-v3-prod-sta-to-${i}`}
               />
+              <label className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-slate-600">{t("Percent Complete")}</span>
               <input
                 type="number"
                 min="0"
                 max="100"
                 step="1"
-                placeholder={t("% complete")}
+                placeholder="0"
                 {...numberInputProps(p.percent_complete)}
                 onChange={(e) => {
                   const next = prod.slice();
@@ -1031,7 +1029,25 @@ export function SectionWorkProduction({ data, patch, costCodes }) {
                 className="w-full min-w-0 rounded-md border border-slate-200 px-2.5 py-1.5 text-sm"
                 data-testid={`dr-v3-prod-percent-${i}`}
               />
+              </label>
             </div>
+            {p.unit === "OTHER" && (
+              <label className="mt-2 flex flex-col gap-1">
+                <span className="text-xs font-medium text-slate-600">{t("Other Unit Description")}</span>
+                <input
+                  type="text"
+                  placeholder={t("Short unit description")}
+                  value={p.custom_unit_label || ""}
+                  onChange={(e) => {
+                    const next = prod.slice();
+                    next[i] = updateOtherUnitDescription(p, e.target.value);
+                    patch({ production: next });
+                  }}
+                  className="w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm"
+                  data-testid={`dr-v3-prod-other-unit-${i}`}
+                />
+              </label>
+            )}
             <input
               type="text"
               placeholder={t("Notes (optional)")}
@@ -1088,7 +1104,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
               patch({
                 materials: [
                   ...mats,
-                  { description: "", quantity: 0, unit: "TN", supplier: "", ticket_number: "" },
+                  { description: "", quantity: 0, unit: "TON", unit_snapshot: "Tons", supplier: "", ticket_number: "" },
                 ],
               })
             }
@@ -1111,10 +1127,12 @@ export function SectionMaterials({ data, patch, costCodes }) {
                 className="w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm"
                 data-testid={`dr-v3-mat-desc-${i}`}
               />
+              <label className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-slate-600">{t("Material Quantity")}</span>
               <input
                 type="number"
                 step="0.01"
-                placeholder={t("Qty")}
+                placeholder="0"
                 {...numberInputProps(m.quantity)}
                 onChange={(e) => {
                   const next = mats.slice();
@@ -1124,16 +1142,14 @@ export function SectionMaterials({ data, patch, costCodes }) {
                   };
                   patch({ materials: next });
                 }}
-                className="w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm"
+                className={numericFieldClass()}
                 data-testid={`dr-v3-mat-qty-${i}`}
               />
+              </label>
               <UnitCombo
                 value={resolveUnitDraftValue(m)}
-                onChange={(v) => {
-                  const next = mats.slice();
-                  next[i] = applyTypedUnit(m, v);
-                  patch({ materials: next });
-                }}
+                selectedCode={m.unit || ""}
+                onChange={() => {}}
                 onPick={(u) => {
                   const next = mats.slice();
                   next[i] = applyPickedUnit(m, u);
@@ -1151,6 +1167,23 @@ export function SectionMaterials({ data, patch, costCodes }) {
                 <Trash2 className="h-4 w-4" />
               </button>
             </div>
+            {m.unit === "OTHER" && (
+              <label className="mt-2 flex flex-col gap-1">
+                <span className="text-xs font-medium text-slate-600">{t("Other Unit Description")}</span>
+                <input
+                  type="text"
+                  placeholder={t("Short unit description")}
+                  value={m.custom_unit_label || ""}
+                  onChange={(e) => {
+                    const next = mats.slice();
+                    next[i] = updateOtherUnitDescription(m, e.target.value);
+                    patch({ materials: next });
+                  }}
+                  className="w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm"
+                  data-testid={`dr-v3-mat-other-unit-${i}`}
+                />
+              </label>
+            )}
 
             {/* Row 2 · Carrier — canonical SupplierCombo (single source of truth) */}
             <div className="mt-2 min-w-0">
@@ -1234,7 +1267,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
               patch({
                 outbound_materials: [
                   ...outs,
-                  { material: "", quantity: 0, unit: "TN", hauler: "", destination: "" },
+                  { material: "", quantity: 0, unit: "LOAD", unit_snapshot: "Loads", hauler: "", destination: "" },
                 ],
               })
             }
@@ -1257,10 +1290,12 @@ export function SectionMaterials({ data, patch, costCodes }) {
                 className="w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm"
                 data-testid={`dr-v3-out-mat-${i}`}
               />
+              <label className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-slate-600">{t("Outbound Quantity")}</span>
               <input
                 type="number"
                 step="0.01"
-                placeholder={t("Qty")}
+                placeholder="0"
                 {...numberInputProps(o.quantity)}
                 onChange={(e) => {
                   const next = outs.slice();
@@ -1270,16 +1305,14 @@ export function SectionMaterials({ data, patch, costCodes }) {
                   };
                   patch({ outbound_materials: next });
                 }}
-                className="w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm"
+                className={numericFieldClass()}
                 data-testid={`dr-v3-out-qty-${i}`}
               />
+              </label>
               <UnitCombo
                 value={resolveUnitDraftValue(o)}
-                onChange={(v) => {
-                  const next = outs.slice();
-                  next[i] = applyTypedUnit(o, v);
-                  patch({ outbound_materials: next });
-                }}
+                selectedCode={o.unit || ""}
+                onChange={() => {}}
                 onPick={(u) => {
                   const next = outs.slice();
                   next[i] = applyPickedUnit(o, u);
@@ -1297,6 +1330,23 @@ export function SectionMaterials({ data, patch, costCodes }) {
                 <Trash2 className="h-4 w-4" />
               </button>
             </div>
+            {o.unit === "OTHER" && (
+              <label className="mt-2 flex flex-col gap-1">
+                <span className="text-xs font-medium text-slate-600">{t("Other Unit Description")}</span>
+                <input
+                  type="text"
+                  placeholder={t("Short unit description")}
+                  value={o.custom_unit_label || ""}
+                  onChange={(e) => {
+                    const next = outs.slice();
+                    next[i] = updateOtherUnitDescription(o, e.target.value);
+                    patch({ outbound_materials: next });
+                  }}
+                  className="w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm"
+                  data-testid={`dr-v3-out-other-unit-${i}`}
+                />
+              </label>
+            )}
 
             {/* Row 2 · Carrier (SupplierCombo, canonical vendor master) */}
             <div className="mt-2 min-w-0">
@@ -1411,16 +1461,16 @@ export function SectionPhotos({ data, patch, photoMin }) {
 
 // ── Section 06 · Combined Impact / Safety gate ────────────────
 const IMPACT_TYPES = [
-  { key: "weather", label: "Weather" },
-  { key: "material", label: "Material" },
-  { key: "equipment", label: "Equipment" },
-  { key: "utility", label: "Utility conflict" },
-  { key: "inspection", label: "Inspection" },
-  { key: "owner_eng", label: "Owner / Engineering" },
-  { key: "subcontractor", label: "Subcontractor" },
-  { key: "traffic_mot", label: "Traffic / MOT" },
-  { key: "extra_work", label: "Extra work" },
-  { key: "other", label: "Other" },
+  { key: "weather", label: "Weather", hoursLabel: "Hours Delayed", helper: "Weather delay charged to the day." },
+  { key: "material", label: "Material", hoursLabel: "Hours Delayed", helper: "Material wait or shortage time." },
+  { key: "equipment", label: "Equipment", hoursLabel: "Hours Delayed", helper: "Equipment downtime impacting work." },
+  { key: "utility", label: "Utility Conflict", hoursLabel: "Hours Delayed", helper: "Utility conflict time affecting production." },
+  { key: "inspection", label: "Inspection", hoursLabel: "Hours Delayed", helper: "Inspection-related waiting time." },
+  { key: "owner_eng", label: "Owner", hoursLabel: "Hours Delayed", helper: "Owner / engineer direction delaying work." },
+  { key: "subcontractor", label: "Subcontractor", hoursLabel: "Hours Delayed", helper: "Subcontractor dependency or standby time." },
+  { key: "traffic_mot", label: "Traffic", hoursLabel: "Hours Delayed", helper: "Traffic / MOT restrictions slowing work." },
+  { key: "extra_work", label: "Extra Work", hoursLabel: "Extra Work Hours", helper: "Additional work added beyond planned production." },
+  { key: "other", label: "Other", hoursLabel: "Hours Impacted", helper: "Use only when no standard delay type fits." },
 ];
 
 const SAFETY_TYPES = [
@@ -1503,14 +1553,22 @@ export function SectionImpactSafety({ data, patch }) {
                     data-testid={`dr-v3-constraint-row-${i}`}
                     className="grid gap-2 rounded-md border border-slate-200 p-2 sm:grid-cols-[1fr_100px_2fr_auto]"
                   >
-                    <span className="text-xs font-medium text-slate-700">
-                      {IMPACT_TYPES.find((t) => t.key === c.constraint_type)?.label ||
-                        c.constraint_type}
-                    </span>
+                    <div className="min-w-0">
+                      <span className="text-xs font-medium text-slate-700">
+                        {IMPACT_TYPES.find((t) => t.key === c.constraint_type)?.label || c.constraint_type}
+                      </span>
+                      <p className="mt-1 text-[11px] text-slate-500" data-testid={`dr-v3-constraint-helper-${i}`}>
+                        {t(IMPACT_TYPES.find((t) => t.key === c.constraint_type)?.helper || "Describe the impact on today’s work.")}
+                      </p>
+                    </div>
+                    <label className="flex flex-col gap-1">
+                      <span className="text-[11px] font-medium uppercase tracking-wide text-slate-500">
+                        {t(IMPACT_TYPES.find((t) => t.key === c.constraint_type)?.hoursLabel || "Hours Impacted")}
+                      </span>
                     <input
                       type="number"
                       step="0.25"
-                      placeholder={t("Hrs")}
+                      placeholder="0"
                       {...numberInputProps(c.hours_impact)}
                       onChange={(e) => {
                         const next = constraints.slice();
@@ -1521,10 +1579,12 @@ export function SectionImpactSafety({ data, patch }) {
                         patch({ constraints: next });
                       }}
                       className="rounded-md border border-slate-300 px-2 py-1 text-sm"
+                      data-testid={`dr-v3-constraint-hours-${i}`}
                     />
+                    </label>
                     <input
                       type="text"
-                      placeholder={t("Notes")}
+                      placeholder={t("What caused the delay or extra work?")}
                       value={c.notes || ""}
                       onChange={(e) => {
                         const next = constraints.slice();
@@ -1532,6 +1592,7 @@ export function SectionImpactSafety({ data, patch }) {
                         patch({ constraints: next });
                       }}
                       className="rounded-md border border-slate-300 px-2 py-1 text-sm"
+                      data-testid={`dr-v3-constraint-notes-${i}`}
                     />
                     <button
                       type="button"
@@ -1539,6 +1600,7 @@ export function SectionImpactSafety({ data, patch }) {
                       onClick={() =>
                         patch({ constraints: constraints.filter((_, j) => j !== i) })
                       }
+                      data-testid={`dr-v3-constraint-remove-${i}`}
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>

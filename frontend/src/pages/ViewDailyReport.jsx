@@ -355,7 +355,7 @@ export default function ViewDailyReport() {
               {data.gps_lat != null && (
                 <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mt-1 flex items-center gap-1 flex-wrap">
                   <MapPin className="w-3 h-3 text-red-700" />
-                  GPS · {formatCoords(data.gps_lat, data.gps_lng, data.gps_accuracy)}
+                  {data.location_source || "GPS"} · {formatCoords(data.gps_lat, data.gps_lng, data.gps_accuracy)}
                 </div>
               )}
               {data.gps_lat != null && (
@@ -377,6 +377,13 @@ export default function ViewDailyReport() {
             <div className="font-mono text-xs uppercase tracking-[0.2em] text-slate-700 font-bold flex items-center gap-2">
               <CloudSun className="w-4 h-4 text-amber-600" />
               {data.weather_summary}
+            </div>
+          )}
+          {(data.weather_snapshot_meta?.provider || data.weather_snapshot_meta?.source || data.weather_snapshot_meta?.timezone) && (
+            <div className="mt-2 text-xs text-slate-600" data-testid="view-dr-weather-meta">
+              {data.weather_snapshot_meta?.provider || data.weather_snapshot_meta?.source || "—"}
+              {data.weather_snapshot_meta?.timezone ? ` · ${data.weather_snapshot_meta.timezone}` : ""}
+              {data.weather_snapshot_meta?.observation_timestamp ? ` · ${data.weather_snapshot_meta.observation_timestamp}` : ""}
             </div>
           )}
           {data.weather_snapshots?.length > 0 ? (

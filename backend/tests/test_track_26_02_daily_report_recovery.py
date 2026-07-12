@@ -74,11 +74,17 @@ def _post(payload):
 @pytest.mark.parametrize(
     "label",
     ["Tons", "Cubic Yards", "Loads", "Truckloads", "Gallons",
-     "LF", "TON", "CY", "SY", "EA", "ACRE", "cubes", "OTHER"],
+     "LF", "TON", "CY", "SY", "EA", "AC", "SF", "CF", "YD",
+     "TRIP", "DELIVERY", "ROLL_OFF", "DUMPSTER", "OTHER"],
 )
 def test_production_row_accepts_common_unit_labels(label):
     r = _post(_payload(production=[
-        {"description": "asphalt", "quantity": 10, "unit": label}
+        {
+            "description": "asphalt",
+            "quantity": 10,
+            "unit": label,
+            **({"custom_unit_label": "Custom tracked unit"} if label == "OTHER" else {}),
+        }
     ]))
     assert r.status_code == 200, (
         f"TRACK 26.02 · unit={label!r} should be accepted but got "
@@ -133,7 +139,7 @@ def test_constraint_row_ignores_ui_helper_fields():
 def test_material_and_outbound_units_accept_canonical_codes_and_labels():
     r = _post(_payload(
         materials=[{"description": "Rock", "quantity": 10, "unit": "TON", "unit_snapshot": "Tons"}],
-        outbound_materials=[{"material": "Spoils", "quantity": 6, "unit": "OTHER", "unit_snapshot": "Loads"}],
+        outbound_materials=[{"material": "Spoils", "quantity": 6, "unit": "LOAD", "unit_snapshot": "Loads"}],
     ))
     assert r.status_code == 200, (
         f"TRACK 27.10F · material/outbound unit parity must submit cleanly. Got {r.status_code}: {r.text[:400]}"
@@ -154,9 +160,10 @@ def test_equipment_run_idle_aliases_are_accepted():
 # ── D-01 · positive control: canonical codes still work ──────────
 
 def test_canonical_unit_codes_still_accepted():
-    for code in ("LF", "SY", "CY", "TON", "EA", "ACRE", "OTHER"):
+    for code in ("LF", "FT", "MI", "SF", "SY", "AC", "CY", "YD", "CF", "LB", "TON", "EA", "LOAD", "TRIP", "DELIVERY", "TRUCKLOAD", "ROLL_OFF", "DUMPSTER", "OTHER"):
         r = _post(_payload(production=[{
             "description": "row", "quantity": 1, "unit": code,
+            **({"custom_unit_label": "Custom tracked unit"} if code == "OTHER" else {}),
         }]))
         assert r.status_code == 200
 
@@ -231,7 +238,7 @@ def test_unit_combo_dropdown_codes_match_backend_literals():
     import re
     codes = set(re.findall(r'code:\s*"([^"]+)"', src))
     assert codes, "UnitCombo has no codes declared"
-    backend_canonical = {"LF", "SY", "CY", "TON", "EA", "ACRE", "OTHER"}
+    backend_canonical = {"EA", "LF", "FT", "MI", "SF", "SY", "AC", "CY", "YD", "CF", "LB", "TON", "LOAD", "TRIP", "DELIVERY", "TRUCKLOAD", "ROLL_OFF", "DUMPSTER", "GAL", "L", "LF_PIPE", "JOINT", "SECTION", "TON_ASPHALT", "SY_MILLING", "SY_TACK", "CY_CONCRETE", "VALVE", "STRUCTURE", "MANHOLE", "CATCH_BASIN", "INLET", "BOX", "SIGN", "POLE", "DEVICE", "TREE", "STUMP", "SHRUB", "PAIR", "SET", "ROLL", "BUNDLE", "PALLET", "OTHER"}
     orphans = codes - backend_canonical
     assert not orphans, (
         f"TRACK 26.02 · D-02: UnitCombo declares codes not in the "
@@ -242,11 +249,11 @@ def test_unit_combo_dropdown_codes_match_backend_literals():
 
 def test_unit_combo_uses_searchable_code_label_entries():
     src = UNIT_COMBO_JS.read_text(encoding="utf-8")
-    assert 'value={`${u.code} — ${u.label}`}' in src, (
-        "TRACK 27.10F · unit dropdown must show searchable code+label entries."
+    assert 'role="combobox"' in src and "CommandInput" in src and "PopoverContent" in src, (
+        "TRACK 27.10F · unit dropdown must be a real searchable combobox, not a free-text field."
     )
-    assert "resolveMatch" in src and "u.search" in src, (
-        "TRACK 27.10F · unit combo must resolve typed code/label synonyms consistently."
+    assert "CommandItem" in src and "u.search" in src, (
+        "TRACK 27.10F · unit combo must expose searchable canonical options."
     )
 
 
@@ -257,12 +264,31 @@ def test_numeric_fields_use_zero_replacement_helpers():
     assert "e.target.select()" in src, (
         "TRACK 27.10F · numeric inputs must select the default zero for first-keypress replacement."
     )
+    assert 'const displayValue = value === 0 ? "" : (value ?? "")' in src
 
 
 def test_equipment_run_idle_fields_are_written_both_ways():
     src = Path("/app/frontend/src/components/daily-report-v3/sections.jsx").read_text(encoding="utf-8")
     assert "run_time: runValue" in src
     assert "idle_time: idleValue" in src
+
+
+def test_other_units_require_short_description():
+    r = _post(_payload(production=[{"description": "Custom item", "quantity": 2, "unit": "OTHER"}]))
+    assert r.status_code == 422
+    detail = r.json().get("detail", {})
+    assert detail.get("error") == "other_unit_description_required"
+
+
+def test_daily_report_v3_gps_chain_persists_truth_fields_in_schema_and_ui():
+    schema = Path("/app/frontend/src/lib/dailyReportSchema.js").read_text(encoding="utf-8")
+    page = Path("/app/frontend/src/pages/NewDailyReportV3.jsx").read_text(encoding="utf-8")
+    section = Path("/app/frontend/src/components/daily-report-v3/SectionProjectConditions.jsx").read_text(encoding="utf-8")
+    assert "location_source" in schema and "location_captured_at" in schema
+    assert "PREVIEW_IFRAME_PERMISSION_BLOCK" in page
+    assert "Location captured · weather refreshed from captured coordinates" in page
+    assert "data-testid=\"dr-v3-location-status\"" in section
+    assert "data-testid=\"dr-v3-weather-coord-summary\"" in section
 
 
 # ── D-09 · submit toast surfaces Pydantic detail ─────────────────

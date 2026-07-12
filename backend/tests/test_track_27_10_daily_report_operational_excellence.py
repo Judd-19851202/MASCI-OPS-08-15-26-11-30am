@@ -34,6 +34,10 @@ def _doc(**overrides):
         "superintendent": "Maria Superintendent",
         "weather_summary": "Observed conditions: Light rain; temperature 73–86°F; humidity 72% avg; wind up to 18 mph, gusts up to 27 mph; precipitation 0.18 in; peak weather signal at 2026-07-11T15:00",
         "weather_snapshot_meta": {
+            "provider": "open-meteo",
+            "observation_timestamp": "2026-07-11T15:00",
+            "location_source": "device_gps",
+            "location_accuracy_meters": 8,
             "gps_lat": 29.4241,
             "gps_lng": -98.4936,
             "temperature_min_f": 73,
@@ -50,6 +54,11 @@ def _doc(**overrides):
             {"time": "15:00", "timestamp": "2026-07-11T15:00", "condition": "Light rain", "temp_f": 84, "humidity_pct": 68, "wind_mph": 18, "wind_gust_mph": 27, "precip_in": 0.18, "rain_in": 0.18},
         ],
         "schedule_delays": "No",
+        "gps_lat": 29.4241,
+        "gps_lng": -98.4936,
+        "gps_accuracy": 8,
+        "location_source": "device_gps",
+        "location_captured_at": "2026-07-11T14:50:00Z",
         "weather_impact": "No",
         "weather_impact_notes": "Supervisor confirmed no weather delay was charged today.",
         "safety_incidents_today": "No",
@@ -130,9 +139,11 @@ def test_pdf_one_summary_rule_suppresses_duplicate_narrative_block():
 
 def test_pdf_weather_block_renders_gps_facts_without_invented_impact():
     html = pdf_render._render_daily(_doc())
-    assert "29.4241, -98.4936" in html
+    assert "29.42410, -98.49360" in html
     assert "Wind / Gusts" in html
     assert "18 mph / 27 mph" in html
+    assert "Location Source" in html and "device_gps" in html
+    assert "Weather Source" in html and "open-meteo" in html
     assert "No schedule delay was charged today" not in html.split("Weather", 1)[1][:600]
 
 
@@ -182,6 +193,8 @@ async def test_weather_helper_builds_factual_daily_report_payload(monkeypatch):
     assert result["meta"]["gps_lat"] == 29.4241
     assert result["meta"]["wind_gust_max_mph"] == 27
     assert result["meta"]["precipitation_total_in"] == 0.18
+    assert result["meta"]["provider"] == "open-meteo"
+    assert result["meta"]["observation_timestamp"] == "2026-07-11T15:00"
     assert "temperature 73–86°F" in result["summary"]
     assert "gusts up to 27 mph" in result["summary"]
     assert "peak weather signal" in result["summary"]

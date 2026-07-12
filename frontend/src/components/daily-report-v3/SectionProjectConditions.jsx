@@ -138,9 +138,32 @@ export function SectionProjectConditions({
                 className="shrink-0"
               >
                 <MapPin className="mr-1.5 h-4 w-4" />
-                {isFetchingGps ? "…" : t("GPS")}
+                {isFetchingGps ? t("Locating…") : t("Use My Location")}
               </Button>
             </div>
+            <div className="mt-2 text-xs text-slate-600" data-testid="dr-v3-location-status">
+              {isFetchingGps
+                ? t("Locating…")
+                : data.location_capture_result === "failed"
+                  ? (data.location_error_code === "PREVIEW_IFRAME_PERMISSION_BLOCK"
+                    ? t("Embedded preview blocked location access. Open the preview in a new tab to test GPS.")
+                    : (data.location_error_message || t("Location capture failed.")))
+                  : data.location_source === "device_gps"
+                    ? t("Location captured")
+                    : data.location_source === "project_coordinates"
+                      ? t("Using verified project coordinates")
+                      : data.location_source === "saved_draft_location"
+                        ? t("Using saved draft location")
+                        : data.location_source === "manual"
+                          ? t("Using manual location")
+                          : t("Tap Use My Location or enter a verified location.")}
+            </div>
+            {data.gps_lat != null && data.gps_lng != null && (
+              <div className="mt-1 text-[11px] text-slate-500" data-testid="dr-v3-location-coords-summary">
+                {t("Source")}: {data.location_source || "—"} · {Number(data.gps_lat).toFixed(5)}, {Number(data.gps_lng).toFixed(5)}
+                {data.gps_accuracy != null ? ` · ±${Math.round(data.gps_accuracy)} m` : ""}
+              </div>
+            )}
           </div>
 
           <div>
@@ -193,7 +216,16 @@ export function SectionProjectConditions({
               <div className="font-medium">
                 {data.weather_summary || t("Weather not captured yet")}
               </div>
-              <div className="text-xs text-sky-700">{weatherLabel || t("Tap GPS to auto-fill weather.")}</div>
+              <div className="text-xs text-sky-700">
+                {weatherLabel || t("Tap Use My Location to refresh weather from verified coordinates.")}
+              </div>
+              {data.weather_snapshot_meta?.gps_lat != null && data.weather_snapshot_meta?.gps_lng != null && (
+                <div className="mt-1 text-[11px] text-sky-700" data-testid="dr-v3-weather-coord-summary">
+                  {t("Weather source")}: {data.weather_snapshot_meta?.provider || data.weather_snapshot_meta?.source || "—"} ·
+                  {` ${Number(data.weather_snapshot_meta.gps_lat).toFixed(5)}, ${Number(data.weather_snapshot_meta.gps_lng).toFixed(5)}`}
+                  {data.weather_snapshot_meta?.timezone ? ` · ${data.weather_snapshot_meta.timezone}` : ""}
+                </div>
+              )}
             </div>
           </div>
           <Button

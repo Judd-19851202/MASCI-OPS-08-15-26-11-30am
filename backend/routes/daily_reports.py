@@ -27,7 +27,14 @@ from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
 # ── Phase V.2 · Wave-1A · Structured production + constraints ────────
 
 
-_PRODUCTION_UNITS = {"LF", "SY", "CY", "TON", "EA", "ACRE", "OTHER"}
+_PRODUCTION_UNITS = {
+    "EA", "LF", "FT", "MI", "SF", "SY", "AC", "CY", "YD", "CF", "LB", "TON",
+    "LOAD", "TRIP", "DELIVERY", "TRUCKLOAD", "ROLL_OFF", "DUMPSTER", "GAL", "L",
+    "LF_PIPE", "JOINT", "SECTION", "TON_ASPHALT", "SY_MILLING", "SY_TACK",
+    "CY_CONCRETE", "VALVE", "STRUCTURE", "MANHOLE", "CATCH_BASIN", "INLET", "BOX",
+    "SIGN", "POLE", "DEVICE", "TREE", "STUMP", "SHRUB", "PAIR", "SET", "ROLL",
+    "BUNDLE", "PALLET", "OTHER",
+}
 _CONSTRAINT_TYPES = {
     "weather", "utility", "survey", "material", "equipment",
     "trucking", "mot", "cei_inspection", "owner_engineer", "safety", "other",
@@ -59,8 +66,8 @@ class ProductionRow(BaseModel):
     row_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     description: str = ""                       # what was placed/installed/poured
     quantity: float = 0.0                       # > 0 when row has substance
-    unit: str = "OTHER"                         # free-text; normalized server-side
-    custom_unit_label: Optional[str] = None     # only when unit does not map to a canonical code
+    unit: str = "OTHER"                         # canonical code; normalized server-side
+    custom_unit_label: Optional[str] = None     # required short description when unit=OTHER
     unit_snapshot: Optional[str] = None         # UI-visible label/code kept for PDF/email parity
     unit_code: Optional[str] = None             # UI helper preserved for audit/debug parity
     station_from: Optional[str] = None          # e.g. "12+50"
@@ -78,36 +85,71 @@ class ProductionRow(BaseModel):
 # `custom_unit_label` so the PDF/email render exactly what they typed.
 _UNIT_LABEL_TO_CODE = {
     "lf": "LF", "linear feet": "LF", "linear foot": "LF", "linear ft": "LF",
+    "ft": "FT", "feet": "FT", "foot": "FT",
+    "mi": "MI", "mile": "MI", "miles": "MI",
+    "sf": "SF", "square feet": "SF", "square foot": "SF",
     "sy": "SY", "square yards": "SY", "square yard": "SY", "sq yd": "SY",
     "sq yds": "SY",
     "cy": "CY", "cubic yards": "CY", "cubic yard": "CY", "cu yd": "CY",
     "cu yds": "CY",
+    "yd": "YD", "yard": "YD", "yards": "YD",
+    "cf": "CF", "cubic feet": "CF", "cubic foot": "CF", "cu ft": "CF",
+    "lb": "LB", "pound": "LB", "pounds": "LB",
     "ton": "TON", "tons": "TON", "tn": "TON",
     "ea": "EA", "each": "EA",
-    "acre": "ACRE", "acres": "ACRE", "ac": "ACRE",
-    "sf": "OTHER", "square feet": "OTHER", "square foot": "OTHER",
-    "sq ft": "OTHER",
-    "cf": "OTHER", "cubic feet": "OTHER", "cubic foot": "OTHER",
-    "cu ft": "OTHER",
-    "gal": "OTHER", "gallons": "OTHER", "gallon": "OTHER",
-    "load": "OTHER", "loads": "OTHER", "truckload": "OTHER",
-    "truckloads": "OTHER",
-    "bag": "OTHER", "bags": "OTHER",
-    "pair": "OTHER", "pairs": "OTHER",
-    "lot": "OTHER", "lots": "OTHER",
+    "acre": "AC", "acres": "AC", "ac": "AC",
+    "gal": "GAL", "gallons": "GAL", "gallon": "GAL",
+    "l": "L", "liter": "L", "liters": "L",
+    "load": "LOAD", "loads": "LOAD",
+    "trip": "TRIP", "trips": "TRIP",
+    "delivery": "DELIVERY", "deliveries": "DELIVERY",
+    "truckload": "TRUCKLOAD", "truckloads": "TRUCKLOAD", "truck_load": "TRUCKLOAD",
+    "roll_off": "ROLL_OFF", "roll off": "ROLL_OFF", "roll-off": "ROLL_OFF",
+    "roll-off containers": "ROLL_OFF",
+    "dumpster": "DUMPSTER", "dumpsters": "DUMPSTER",
+    "lf pipe": "LF_PIPE", "lf_pipe": "LF_PIPE", "pipe": "LF_PIPE",
+    "joint": "JOINT", "joints": "JOINT",
+    "section": "SECTION", "sections": "SECTION",
+    "ton asphalt": "TON_ASPHALT", "ton_asphalt": "TON_ASPHALT",
+    "sy milling": "SY_MILLING", "sy_milling": "SY_MILLING",
+    "sy tack": "SY_TACK", "sy_tack": "SY_TACK",
+    "cy concrete": "CY_CONCRETE", "cy_concrete": "CY_CONCRETE",
+    "valve": "VALVE", "valves": "VALVE",
+    "structure": "STRUCTURE", "structures": "STRUCTURE",
+    "manhole": "MANHOLE", "manholes": "MANHOLE",
+    "catch basin": "CATCH_BASIN", "catch basins": "CATCH_BASIN", "catch_basin": "CATCH_BASIN",
+    "inlet": "INLET", "inlets": "INLET",
+    "box": "BOX", "boxes": "BOX",
+    "sign": "SIGN", "signs": "SIGN",
+    "pole": "POLE", "poles": "POLE",
+    "device": "DEVICE", "devices": "DEVICE",
+    "tree": "TREE", "trees": "TREE",
+    "stump": "STUMP", "stumps": "STUMP",
+    "shrub": "SHRUB", "shrubs": "SHRUB",
+    "set": "SET", "sets": "SET",
+    "roll": "ROLL", "rolls": "ROLL",
+    "bundle": "BUNDLE", "bundles": "BUNDLE",
+    "pallet": "PALLET", "pallets": "PALLET",
+    "pair": "PAIR", "pairs": "PAIR",
     "other": "OTHER", "": "OTHER",
 }
 
-_CANONICAL_UNIT_CODES = {"LF", "SY", "CY", "TON", "EA", "ACRE", "OTHER"}
+_CANONICAL_UNIT_CODES = set(_PRODUCTION_UNITS)
 
 
 def _canonical_or_custom_unit_payload(row: Dict[str, Any]) -> Dict[str, Any]:
-    raw_unit = (row.get("unit") or "").strip()
+    raw_unit = (row.get("unit") or "").strip().upper()
     snapshot = (row.get("unit_snapshot") or "").strip()
     custom = (row.get("custom_unit_label") or "").strip()
+    if raw_unit == "TRUCK_LOAD":
+        raw_unit = "TRUCKLOAD"
+        row["unit"] = "TRUCKLOAD"
     if raw_unit in _CANONICAL_UNIT_CODES:
         if snapshot and snapshot.upper() != raw_unit and not custom:
-            row["custom_unit_label"] = snapshot
+            if raw_unit == "OTHER":
+                row["custom_unit_label"] = snapshot.replace("Other —", "").strip()
+            else:
+                row["custom_unit_label"] = snapshot
         return row
     if snapshot and snapshot.upper() in _CANONICAL_UNIT_CODES and not raw_unit:
         row["unit"] = snapshot.upper()
@@ -125,6 +167,8 @@ def _normalize_unit(row: Dict[str, Any]) -> Dict[str, Any]:
     row = _canonical_or_custom_unit_payload(row)
     raw = (row.get("unit") or "").strip()
     if raw in _CANONICAL_UNIT_CODES:
+        if raw == "OTHER":
+            row["custom_unit_label"] = (row.get("custom_unit_label") or "").strip()
         return row
     key = raw.lower()
     if key in _UNIT_LABEL_TO_CODE:
@@ -132,8 +176,7 @@ def _normalize_unit(row: Dict[str, Any]) -> Dict[str, Any]:
         # If the operator typed a non-canonical variant (e.g. "Tons"),
         # preserve it as custom_unit_label so PDF/email keep the
         # operator's word choice.
-        if canonical == "OTHER" and raw and raw != "OTHER" \
-                and not row.get("custom_unit_label"):
+        if canonical == "OTHER" and raw and raw != "OTHER" and not row.get("custom_unit_label"):
             row["custom_unit_label"] = raw
         row["unit"] = canonical
         return row
@@ -146,6 +189,56 @@ def _normalize_unit(row: Dict[str, Any]) -> Dict[str, Any]:
     else:
         row["unit"] = "OTHER"
     return row
+
+
+def _ensure_other_unit_descriptions(rows: List[Dict[str, Any]], field_name: str) -> None:
+    for idx, row in enumerate(rows):
+        if (row.get("unit") or "") == "OTHER":
+            desc = (row.get("custom_unit_label") or "").strip()
+            if not desc:
+                raise HTTPException(
+                    status_code=422,
+                    detail={
+                        "error": "other_unit_description_required",
+                        "field": field_name,
+                        "row_index": idx,
+                        "message": "OTHER units require a short description.",
+                    },
+                )
+
+
+def _validate_location_weather_parity(payload_dict: Dict[str, Any]) -> None:
+    source = (payload_dict.get("location_source") or "").strip()
+    lat = payload_dict.get("gps_lat")
+    lng = payload_dict.get("gps_lng")
+    wx = payload_dict.get("weather_snapshot_meta") or {}
+    has_location_facts = bool(
+        source
+        or lat is not None
+        or lng is not None
+        or payload_dict.get("gps_accuracy") is not None
+        or str(payload_dict.get("location_captured_at") or "").strip()
+    )
+    has_structured_weather = bool(wx or (payload_dict.get("weather_snapshots") or []))
+    if not has_location_facts and not has_structured_weather:
+        return
+    if has_location_facts and not source:
+        raise HTTPException(status_code=422, detail={"error": "location_source_required"})
+    if lat is not None and not (-90 <= float(lat) <= 90):
+        raise HTTPException(status_code=422, detail={"error": "invalid_latitude"})
+    if lng is not None and not (-180 <= float(lng) <= 180):
+        raise HTTPException(status_code=422, detail={"error": "invalid_longitude"})
+    if has_structured_weather:
+        if not source:
+            raise HTTPException(status_code=422, detail={"error": "location_source_required"})
+        if wx.get("gps_lat") is None or wx.get("gps_lng") is None:
+            raise HTTPException(status_code=422, detail={"error": "weather_coordinates_missing"})
+        if lat is None or lng is None:
+            raise HTTPException(status_code=422, detail={"error": "report_coordinates_missing"})
+        if float(wx.get("gps_lat")) != float(lat) or float(wx.get("gps_lng")) != float(lng):
+            raise HTTPException(status_code=422, detail={"error": "weather_coordinates_mismatch"})
+        if not str(wx.get("observation_timestamp") or wx.get("peak_timestamp") or "").strip():
+            raise HTTPException(status_code=422, detail={"error": "weather_timestamp_required"})
 
 
 # TRACK 26.02 · canonical constraint categories (lower-case).
@@ -220,6 +313,17 @@ class DailyReportCreate(BaseModel):
     weather_summary: Optional[str] = ""
     weather_snapshots: List[Dict[str, Any]] = Field(default_factory=list)
     weather_snapshot_meta: Optional[Dict[str, Any]] = None
+    gps_lat: Optional[float] = None
+    gps_lng: Optional[float] = None
+    gps_accuracy: Optional[float] = None
+    location_captured_at: Optional[str] = ""
+    location_permission_status: Optional[str] = "unknown"
+    location_capture_result: Optional[str] = ""
+    location_source: Optional[str] = ""
+    location_error_code: Optional[str] = ""
+    location_error_message: Optional[str] = ""
+    location_capture_origin: Optional[str] = ""
+    location_capture_attempts: Optional[int] = 0
 
     schedule_delays: Optional[str] = "No"
     schedule_delays_notes: Optional[str] = ""
@@ -521,18 +625,27 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
                 payload_dict["production"] = [
                     _normalize_unit(dict(r)) for r in (payload_dict.get("production") or [])
                 ]
+                _ensure_other_unit_descriptions(payload_dict["production"], "production")
+            except HTTPException:
+                raise
             except Exception:  # noqa: BLE001
                 pass
             try:
                 payload_dict["materials"] = [
                     _normalize_unit(dict(r)) for r in (payload_dict.get("materials") or [])
                 ]
+                _ensure_other_unit_descriptions(payload_dict["materials"], "materials")
+            except HTTPException:
+                raise
             except Exception:  # noqa: BLE001
                 pass
             try:
                 payload_dict["outbound_materials"] = [
                     _normalize_unit(dict(r)) for r in (payload_dict.get("outbound_materials") or [])
                 ]
+                _ensure_other_unit_descriptions(payload_dict["outbound_materials"], "outbound_materials")
+            except HTTPException:
+                raise
             except Exception:  # noqa: BLE001
                 pass
             try:
@@ -553,6 +666,7 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
                 payload_dict["equipment"] = normalized_equipment
             except Exception:  # noqa: BLE001
                 pass
+            _validate_location_weather_parity(payload_dict)
             try:
                 payload_dict["constraints"] = [
                     _normalize_constraint_type(dict(r)) for r in (payload_dict.get("constraints") or [])

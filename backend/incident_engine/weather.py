@@ -205,11 +205,13 @@ async def fetch_daily_report_weather(lat: float, lng: float, report_date: str) -
         "summary": "; ".join(summary_bits),
         "snapshots": snapshots,
         "meta": {
+            "provider": "open-meteo",
             "source": "open-meteo",
             "report_date": report_date,
             "timezone": data.get("timezone") or "",
             "gps_lat": float(lat),
             "gps_lng": float(lng),
+            "observation_timestamp": peak_time,
             "peak_condition": peak_condition,
             "peak_timestamp": peak_time,
             "temperature_min_f": round(min(valid_temps)) if valid_temps else None,

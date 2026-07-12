@@ -438,8 +438,18 @@ def _render_weather_fact_block(d: Dict[str, Any]) -> str:
         if meta.get("peak_timestamp"):
             peak_line += f' @ {meta.get("peak_timestamp")}'
         rows.append(("Peak Signal", peak_line))
+    if d.get("location_source"):
+        rows.append(("Location Source", d.get("location_source")))
+    if meta.get("provider") or meta.get("source"):
+        rows.append(("Weather Source", meta.get("provider") or meta.get("source")))
+    if meta.get("observation_timestamp"):
+        rows.append(("Observation Time", meta.get("observation_timestamp")))
+    if meta.get("timezone"):
+        rows.append(("Timezone", meta.get("timezone")))
     if meta.get("gps_lat") is not None and meta.get("gps_lng") is not None:
-        rows.append(("GPS", f'{meta.get("gps_lat")}, {meta.get("gps_lng")}'))
+        rows.append(("Coordinates Used", f'{float(meta.get("gps_lat")):.5f}, {float(meta.get("gps_lng")):.5f}'))
+    if meta.get("location_accuracy_meters") is not None:
+        rows.append(("GPS Accuracy", f'±{round(float(meta.get("location_accuracy_meters") or 0))} m'))
     return "".join(_kv(k, v) for k, v in rows)
 
 
@@ -954,11 +964,28 @@ def _render_daily(d: Dict[str, Any]) -> str:
     _excavation_rows = _extras["excavation_rows"]
 
     def _display_unit(row: Dict[str, Any]) -> str:
-        custom = (row.get("custom_unit_label") or row.get("unit_snapshot") or "").strip()
+        custom = (row.get("custom_unit_label") or "").strip()
         unit = (row.get("unit") or "").strip()
+        snapshot = (row.get("unit_snapshot") or "").strip()
+        canonical_labels = {
+            "EA": "Each", "LF": "Linear Feet", "FT": "Feet", "MI": "Miles",
+            "SF": "Square Feet", "SY": "Square Yards", "AC": "Acres",
+            "CY": "Cubic Yards", "YD": "Yards", "CF": "Cubic Feet",
+            "LB": "Pounds", "TON": "Tons", "LOAD": "Loads", "TRIP": "Trips",
+            "DELIVERY": "Deliveries", "TRUCKLOAD": "Truckloads",
+            "ROLL_OFF": "Roll-Off Containers", "DUMPSTER": "Dumpsters",
+            "GAL": "Gallons", "L": "Liters", "LF_PIPE": "LF Pipe", "JOINT": "Joint",
+            "SECTION": "Section", "TON_ASPHALT": "TON Asphalt", "SY_MILLING": "SY Milling",
+            "SY_TACK": "SY Tack", "CY_CONCRETE": "CY Concrete", "VALVE": "Valve",
+            "STRUCTURE": "Structure", "MANHOLE": "Manhole", "CATCH_BASIN": "Catch Basin",
+            "INLET": "Inlet", "BOX": "Box", "SIGN": "Sign", "POLE": "Pole",
+            "DEVICE": "Device", "TREE": "Tree", "STUMP": "Stump", "SHRUB": "Shrub",
+            "PAIR": "Pair", "SET": "Set", "ROLL": "Roll", "BUNDLE": "Bundle",
+            "PALLET": "Pallet", "OTHER": "Other",
+        }
         if unit == "OTHER":
-            return custom or "OTHER"
-        return custom or unit
+            return custom or snapshot or "Other"
+        return snapshot or canonical_labels.get(unit) or custom or unit
 
     # ── R-PDF-1 + R-PDF-2 · Executive Summary Card (page 1, before 01) ──
     _badge = _safe_day_badge(d)
@@ -1429,6 +1456,19 @@ def _render_daily(d: Dict[str, Any]) -> str:
     cons = d.get("constraints") or []
     if cons:
         body_rows = []
+        labels = {
+            "weather": ("Weather", "Hours Delayed"),
+            "material": ("Material", "Hours Delayed"),
+            "equipment": ("Equipment", "Hours Delayed"),
+            "utility": ("Utility Conflict", "Hours Delayed"),
+            "inspection": ("Inspection", "Hours Delayed"),
+            "owner_eng": ("Owner", "Hours Delayed"),
+            "owner_engineer": ("Owner", "Hours Delayed"),
+            "subcontractor": ("Subcontractor", "Hours Delayed"),
+            "traffic_mot": ("Traffic", "Hours Delayed"),
+            "extra_work": ("Extra Work", "Extra Work Hours"),
+            "other": ("Other", "Hours Impacted"),
+        }
         for c in cons:
             flags = []
             if c.get("may_require_rfi"):
@@ -1437,9 +1477,10 @@ def _render_daily(d: Dict[str, Any]) -> str:
                 flags.append("Schedule")
             flag_cell = " · ".join(flags) if flags else ""
             hi = c.get("hours_impact")
-            hi_cell = "" if hi in (None, "") else f"{hi} h"
+            type_label, hours_label = labels.get((c.get("constraint_type") or "").lower(), (c.get("constraint_type") or "", "Hours Impacted"))
+            hi_cell = "" if hi in (None, "") else f"{hours_label}: {hi} h"
             body_rows.append([
-                c.get("constraint_type") or "",
+                type_label,
                 hi_cell,
                 flag_cell,
                 c.get("notes") or "",

@@ -60,6 +60,66 @@ import { translateDrV3PayloadEsToEn } from "@/lib/drV3Translation";
 // still restore when the pilot flag flips the operator into V3 (and
 // vice versa on rollback). One draft. Two shells.
 const FORM_KEY = "daily-report";
+const GEO_TIMEOUT_MS = 12000;
+const GEO_MAX_AGE_MS = 30000;
+
+function detectEmbeddedPreviewRestriction() {
+  try {
+    return window.self !== window.top && window.location.hostname.includes("preview.emergentagent.com");
+  } catch {
+    return true;
+  }
+}
+
+function classifyGeolocationFailure(err, isEmbeddedPreview = false) {
+  const msg = String(err?.message || "").toLowerCase();
+  if (isEmbeddedPreview && (msg.includes("permissions policy") || msg.includes("permission denied") || err?.code === 1)) {
+    return "PREVIEW_IFRAME_PERMISSION_BLOCK";
+  }
+  if (!("geolocation" in navigator)) return "GEOLOCATION_API_UNAVAILABLE";
+  if (!window.isSecureContext) return "INSECURE_CONTEXT";
+  if (err?.code === 1) return msg.includes("dismiss") ? "PERMISSION_PROMPT_DISMISSED" : "PERMISSION_DENIED";
+  if (err?.code === 2) return "POSITION_UNAVAILABLE";
+  if (err?.code === 3) return "LOCATION_TIMEOUT";
+  if (msg.includes("permissions policy") || msg.includes("policy")) return "BROWSER_POLICY_RESTRICTION";
+  return "UNKNOWN";
+}
+
+function operatorGpsMessage(code, t) {
+  switch (code) {
+    case "PERMISSION_DENIED":
+      return t("Location permission is blocked. Allow location access for this site in your browser settings, then try again.");
+    case "PERMISSION_PROMPT_DISMISSED":
+      return t("Location permission was not completed. Tap Use My Location and approve the browser prompt.");
+    case "LOCATION_TIMEOUT":
+      return t("Your location could not be captured in time. Move to an open area or improve signal, then retry.");
+    case "POSITION_UNAVAILABLE":
+      return t("Your device could not determine its location. Check Location Services and cellular/Wi-Fi availability.");
+    case "PREVIEW_IFRAME_PERMISSION_BLOCK":
+      return t("Location access is blocked inside the embedded preview. Open the preview in a new tab to test GPS.");
+    case "GEOLOCATION_API_UNAVAILABLE":
+      return t("This browser does not support device location. Select the project location or enter coordinates manually.");
+    case "INSECURE_CONTEXT":
+      return t("This page is not running in a secure HTTPS context, so device location is unavailable.");
+    default:
+      return t("Location could not be captured. You can use project coordinates, a saved draft location, or enter coordinates manually.");
+  }
+}
+
+function buildLocationPatch({ latitude, longitude, accuracy, capturedAt, locationSource, permissionStatus, captureResult, captureOrigin }) {
+  return {
+    gps_lat: latitude,
+    gps_lng: longitude,
+    gps_accuracy: accuracy,
+    location_captured_at: capturedAt,
+    location_source: locationSource,
+    location_permission_status: permissionStatus,
+    location_capture_result: captureResult,
+    location_capture_origin: captureOrigin,
+    location_error_code: "",
+    location_error_message: "",
+  };
+}
 
 export default function NewDailyReportV3({ publicMode = false }) {
   const navigate = useNavigate();
@@ -187,29 +247,60 @@ export default function NewDailyReportV3({ publicMode = false }) {
 
   // ── GPS + weather ─────────────────────────────────────────
   const useGps = useCallback(async () => {
-    if (!navigator.geolocation) {
-      toast.error(t("GPS is not available on this device"));
+    const isEmbeddedPreview = detectEmbeddedPreviewRestriction();
+    if (!("geolocation" in navigator)) {
+      patch({
+        location_permission_status: "unsupported",
+        location_capture_result: "unsupported",
+        location_error_code: "GEOLOCATION_API_UNAVAILABLE",
+        location_error_message: "navigator.geolocation unavailable",
+        location_capture_origin: window.location.origin,
+      });
+      toast.error(operatorGpsMessage("GEOLOCATION_API_UNAVAILABLE", t));
       return;
     }
     setFetchingGps(true);
     try {
-      const pos = await new Promise((res, rej) =>
-        navigator.geolocation.getCurrentPosition(res, rej, {
-          enableHighAccuracy: true,
-          timeout: 12000,
-        }),
+      patch({
+        location_capture_result: "locating",
+        location_permission_status: "prompt",
+        location_error_code: "",
+        location_error_message: "",
+        location_capture_origin: window.location.origin,
+        location_capture_attempts: (data.location_capture_attempts || 0) + 1,
+      });
+      const getPosition = (options) => new Promise((res, rej) =>
+        navigator.geolocation.getCurrentPosition(res, rej, options),
       );
+      let pos;
+      try {
+        pos = await getPosition({ enableHighAccuracy: true, timeout: GEO_TIMEOUT_MS, maximumAge: GEO_MAX_AGE_MS });
+      } catch (firstErr) {
+        const code = classifyGeolocationFailure(firstErr, isEmbeddedPreview);
+        if (code === "POSITION_UNAVAILABLE" || code === "LOCATION_TIMEOUT") {
+          pos = await getPosition({ enableHighAccuracy: true, timeout: GEO_TIMEOUT_MS, maximumAge: 0 });
+        } else {
+          throw firstErr;
+        }
+      }
       const { latitude, longitude, accuracy } = pos.coords;
-      // TRACK 23.4B · Always fill Location with a STRING. reverseGeocode
-      // returns an object `{ display, lat, lng, raw }` — never spread it
-      // into the text input directly. Fall back to a plain coord string
-      // if reverse geocode fails or has no usable label.
+      const capturedAt = new Date().toISOString();
       const coordFallback = `${Number(latitude).toFixed(6)}, ${Number(longitude).toFixed(6)}`;
       patch({
-        gps_lat: latitude,
-        gps_lng: longitude,
-        gps_accuracy: accuracy,
+        ...buildLocationPatch({
+          latitude,
+          longitude,
+          accuracy,
+          capturedAt,
+          locationSource: "device_gps",
+          permissionStatus: "granted",
+          captureResult: "success",
+          captureOrigin: window.location.origin,
+        }),
         location: coordFallback,
+        weather_snapshot_meta: data.weather_snapshot_meta
+          ? { ...data.weather_snapshot_meta, stale_for_location_change: true }
+          : null,
       });
       try {
         const rev = await reverseGeocode(latitude, longitude);
@@ -228,31 +319,58 @@ export default function NewDailyReportV3({ publicMode = false }) {
             weather_snapshots: wx.snapshots || [],
             weather_snapshot_meta: {
               ...(wx?.meta || {}),
+              location_source: "device_gps",
+              location_captured_at: capturedAt,
+              location_accuracy_meters: accuracy,
+              weather_coordinates_match_report: true,
+              weather_fetch_status: "success",
               fetched_at_iso: wx?.fetched_at_iso || new Date().toISOString(),
             },
           });
+          toast.success(t("Location captured · weather refreshed from captured coordinates"));
         }
       } catch (e) {
-        // Graceful: no red toast on GPS path. Location + coords already set.
-        // Operator can retry via the explicit Refresh Weather button.
+        patch({
+          weather_snapshot_meta: {
+            ...(data.weather_snapshot_meta || {}),
+            location_source: "device_gps",
+            location_captured_at: capturedAt,
+            location_accuracy_meters: accuracy,
+            weather_fetch_status: "failed",
+            weather_fetch_error: String(e?.message || "weather fetch failed"),
+            gps_lat: latitude,
+            gps_lng: longitude,
+          },
+        });
+        toast(t("Location captured · weather unavailable. Retry weather when signal improves."));
       }
     } catch (e) {
-      toast.error(t("GPS unavailable — you can enter location manually"));
+      const code = classifyGeolocationFailure(e, isEmbeddedPreview);
+      patch({
+        location_permission_status: code === "PERMISSION_DENIED" ? "denied" : (data.location_permission_status || "unknown"),
+        location_capture_result: "failed",
+        location_error_code: code,
+        location_error_message: String(e?.message || code),
+        location_capture_origin: window.location.origin,
+      });
+      toast.error(operatorGpsMessage(code, t));
     } finally {
       setFetchingGps(false);
     }
-  }, [patch, data.report_date, t]);
+  }, [patch, data.report_date, data.location_capture_attempts, data.weather_snapshot_meta, data.location_permission_status, t]);
 
   const refreshWeather = useCallback(async () => {
-    if (!data.gps_lat || !data.gps_lng) {
-      toast.error(t("Tap GPS first so we know where to check the forecast."));
+    const lat = data.gps_lat;
+    const lng = data.gps_lng;
+    if (lat == null || lng == null) {
+      toast.error(t("Capture a location first so we know where to check the forecast."));
       return;
     }
     setFetchingWeather(true);
     try {
       const wx = await fetchDailyWeather(
-        data.gps_lat,
-        data.gps_lng,
+        lat,
+        lng,
         data.report_date || new Date().toISOString().slice(0, 10),
       );
       if (wx?.summary) {
@@ -261,6 +379,11 @@ export default function NewDailyReportV3({ publicMode = false }) {
           weather_snapshots: wx.snapshots || [],
           weather_snapshot_meta: {
             ...(wx?.meta || {}),
+            location_source: data.location_source || "",
+            location_captured_at: data.location_captured_at || "",
+            location_accuracy_meters: data.gps_accuracy,
+            weather_coordinates_match_report: Number(wx?.meta?.gps_lat) === Number(lat) && Number(wx?.meta?.gps_lng) === Number(lng),
+            weather_fetch_status: "success",
             fetched_at_iso: wx?.fetched_at_iso || new Date().toISOString(),
           },
         });
@@ -272,7 +395,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
     } finally {
       setFetchingWeather(false);
     }
-  }, [data.gps_lat, data.gps_lng, data.report_date, patch, t]);
+  }, [data.gps_lat, data.gps_lng, data.location_source, data.location_captured_at, data.gps_accuracy, data.report_date, patch, t]);
 
   // ── Submit-readiness derivation ────────────────────────────
   const photoMin = data.photo_min || 6;
@@ -280,6 +403,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
     const items = [
       { key: "project", ok: !!data.project_name, label: t("Project") },
       { key: "location", ok: !!data.location, label: t("Location") },
+      { key: "location_source", ok: !!data.location_source, label: t("Location source") },
       { key: "prepared_by", ok: !!data.prepared_by, label: t("Prepared By") },
       {
         key: "photos",
@@ -293,6 +417,18 @@ export default function NewDailyReportV3({ publicMode = false }) {
       },
       { key: "signature", ok: !!data.prepared_by_signature, label: t("Signature") },
     ];
+    if (data.weather_summary || (data.weather_snapshots || []).length > 0) {
+      items.push({
+        key: "weather_coordinate_parity",
+        ok:
+          data.gps_lat != null &&
+          data.gps_lng != null &&
+          !!(data.weather_snapshot_meta?.observation_timestamp || data.weather_snapshot_meta?.peak_timestamp) &&
+          Number(data.weather_snapshot_meta?.gps_lat) === Number(data.gps_lat) &&
+          Number(data.weather_snapshot_meta?.gps_lng) === Number(data.gps_lng),
+        label: t("Weather coordinates match report location"),
+      });
+    }
     // TRACK 23.4A · Full V1 safety-escalation gate. When the supervisor
     // flags any safety event, Safety must be contacted, contact fields
     // must be populated, and an Incident/Accident report must be filed
@@ -625,7 +761,11 @@ export default function NewDailyReportV3({ publicMode = false }) {
             onRefreshWeather={refreshWeather}
             isFetchingGps={isFetchingGps}
             isFetchingWeather={isFetchingWeather}
-            weatherLabel={data.weather_summary ? t("Auto-loaded from GPS.") : ""}
+            weatherLabel={data.weather_summary
+              ? t("Weather refreshed from the current verified location.")
+              : data.location_error_code === "PREVIEW_IFRAME_PERMISSION_BLOCK"
+                ? t("Embedded preview blocked location access. Open in a new tab to test GPS.")
+                : ""}
             reportNumberPreview={reportNumberPreview}
           />
           <SectionCrewEquipment data={data} patch={patch} costCodes={costCodes} />
