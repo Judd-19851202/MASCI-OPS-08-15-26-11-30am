@@ -118,7 +118,7 @@ export function SectionProjectConditions({
             <label className="mb-1.5 block text-sm font-medium text-slate-700">
               <RequiredLabel label={t("Location")} />
             </label>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <input
                 data-testid="dr-v3-location"
                 type="text"
@@ -126,7 +126,7 @@ export function SectionProjectConditions({
                 onChange={(e) => patch({ location: e.target.value })}
                 placeholder={t("e.g. Sta 12+50 · North side")}
                 spellCheck
-                className="flex-1 rounded-lg border border-slate-300 px-3 py-2.5 text-sm placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2.5 text-sm placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
               />
               <Button
                 type="button"
@@ -135,7 +135,7 @@ export function SectionProjectConditions({
                 onClick={onUseGps}
                 disabled={isFetchingGps}
                 data-testid="dr-v3-use-gps-btn"
-                className="shrink-0"
+                className="w-full shrink-0 sm:w-auto"
               >
                 <MapPin className="mr-1.5 h-4 w-4" />
                 {isFetchingGps ? t("Locating…") : t("Use My Location")}
