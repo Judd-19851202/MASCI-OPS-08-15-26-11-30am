@@ -102,7 +102,20 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Verify TRACK 27.10 on the live preview frontend at https://backup-forensics.preview.emergentagent.com/daily/new. Focus only on user-facing Daily Report behavior. Check desktop, tablet, and mobile widths. Confirm the Daily Report page renders, the summary gate messaging is visible, and the submit button stays disabled / blocked until an approved executive summary exists. Validate the presence and usability of the three summary paths in the UI: Accept AI Summary, Regenerate, and Reject AI & write manual summary."
+user_problem_statement: "Verify TRACK 27.10 backend behavior on https://backup-forensics.preview.emergentagent.com/api using admin credentials jaymn.judd@mascigc.com / Maddix123! via POST /api/auth/multi-login. Test these flows: 1) POST /api/daily-reports rejects missing approved summary with 422 approved_summary_required, 2) POST /api/daily-reports rejects missing accepted_at metadata and invalid source labels, 3) valid POST /api/daily-reports succeeds with frozen ai_accepted_summary + ai_accepted_summary_meta, 4) authenticated GET /api/daily-reports/{id}/pdf returns a valid PDF, 5) authenticated GET /api/daily-reports/{id}/audit-footer still works. Also verify the saved record retains weather_summary, weather_snapshot_meta, and the approved summary metadata."
+
+backend:
+  - task: "TRACK 27.10 - Daily Report V3 Summary Gate Backend API"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/daily_reports.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Tested on 2026-07-12T18:36:35 UTC. All 8 backend API tests passed successfully. (1) POST /api/auth/multi-login authentication works correctly with admin credentials jaymn.judd@mascigc.com / Maddix123!, returns admin token in portal_tokens.admin. (2) POST /api/daily-reports correctly rejects missing approved summary with 422 status and error code 'approved_summary_required'. (3) POST /api/daily-reports correctly rejects missing accepted_at metadata with 422 status and error code 'approved_summary_metadata_required'. (4) POST /api/daily-reports correctly rejects invalid source labels with 422 status and error code 'approved_summary_source_invalid'. (5) Valid POST /api/daily-reports succeeds with 200 status, correctly freezes ai_accepted_summary and ai_accepted_summary_meta, retains weather_summary and weather_snapshot_meta. Created test report DR-2026-02734. (6) GET /api/daily-reports/{id}/pdf returns valid PDF with Content-Type application/pdf, size 1503131 bytes, valid PDF header. (7) GET /api/daily-reports/{id}/audit-footer returns complete audit data with report_id, doc_id, 64-char sha256 hash, rendered_at_utc timestamp, and footer_text. (8) GET /api/daily-reports/{id} confirms saved record retains all required data: weather_summary, weather_snapshot_meta with source, ai_accepted_summary, ai_accepted_summary_meta with valid source and accepted_at, and audit_envelope_sha256 computed and stored. All validation gates working correctly. No backend defects found."
 
 frontend:
   - task: "TRACK 27.10 - Daily Report V3 Summary Gate"
@@ -119,17 +132,19 @@ frontend:
 
 metadata:
   created_by: "testing_agent"
-  version: "1.0"
-  test_sequence: 1
-  run_ui: true
+  version: "1.1"
+  test_sequence: 2
+  run_ui: false
 
 test_plan:
   current_focus:
-    - "TRACK 27.10 - Daily Report V3 Summary Gate"
+    - "TRACK 27.10 - Daily Report V3 Summary Gate Backend API"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
   - agent: "testing"
-    message: "TRACK 27.10 testing completed successfully. All user-facing requirements verified: (1) Daily Report V3 page renders on desktop, tablet, and mobile, (2) Summary gate messaging is visible and correct, (3) Submit button stays disabled until approved summary exists, (4) All three summary paths (Accept AI, Regenerate, Reject & Manual) are present and functional with correct data-testid attributes, (5) Manual summary path works correctly when AI is unavailable/mocked. Screenshots saved: track_27_10_desktop_summary.png, track_27_10_with_data.png, track_27_10_manual_approved.png. No critical issues found. Ready for production."
+    message: "TRACK 27.10 frontend testing completed successfully on 2026-07-12. All user-facing requirements verified: (1) Daily Report V3 page renders on desktop, tablet, and mobile, (2) Summary gate messaging is visible and correct, (3) Submit button stays disabled until approved summary exists, (4) All three summary paths (Accept AI, Regenerate, Reject & Manual) are present and functional with correct data-testid attributes, (5) Manual summary path works correctly when AI is unavailable/mocked. Screenshots saved: track_27_10_desktop_summary.png, track_27_10_with_data.png, track_27_10_manual_approved.png. No critical issues found. Ready for production."
+  - agent: "testing"
+    message: "TRACK 27.10 backend API testing completed successfully on 2026-07-12T18:36:35 UTC. All 8 backend API tests passed: (1) Admin authentication via POST /api/auth/multi-login works correctly, (2) POST /api/daily-reports validation gates work correctly - rejects missing approved summary (422 approved_summary_required), rejects missing accepted_at metadata (422 approved_summary_metadata_required), rejects invalid source labels (422 approved_summary_source_invalid), (3) Valid POST /api/daily-reports succeeds with frozen approved summary and metadata, (4) GET /api/daily-reports/{id}/pdf returns valid PDF (1.5MB), (5) GET /api/daily-reports/{id}/audit-footer returns complete audit data with sha256 hash, (6) Saved record data integrity verified - all fields retained correctly (weather_summary, weather_snapshot_meta, ai_accepted_summary, ai_accepted_summary_meta, audit_envelope_sha256). Test report created: DR-2026-02734. No backend defects found. All TRACK 27.10 requirements verified successfully."

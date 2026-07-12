@@ -1,345 +1,585 @@
-#!/usr/bin/env python3
-"""Track 27.09 backend verification - production endpoint testing"""
-import json
-import os
-import sys
-from pathlib import Path
+"""
+TRACK 27.10 Backend API Verification Test Suite
+
+Tests the Daily Report V3 Summary Gate backend behavior on the live preview API.
+Verifies:
+1. Authentication via POST /api/auth/multi-login
+2. POST /api/daily-reports validation gates (missing summary, missing metadata, invalid source)
+3. Valid POST /api/daily-reports with frozen approved summary
+4. GET /api/daily-reports/{id}/pdf returns valid PDF
+5. GET /api/daily-reports/{id}/audit-footer works correctly
+6. Saved record data integrity (weather_summary, weather_snapshot_meta, approved summary metadata)
+"""
 
 import requests
-from dotenv import load_dotenv
+import json
+from datetime import datetime, timezone
 
-# Load environment variables
-load_dotenv("/app/backend/.env")
+# Backend URL from frontend/.env
+BACKEND_URL = "https://backup-forensics.preview.emergentagent.com/api"
 
-PRODUCTION_BASE_URL = "https://mascidocs.com"
-SUPER_ADMIN_EMAIL = os.environ.get("SUPER_ADMIN_EMAIL")
-SUPER_ADMIN_PASSWORD = os.environ.get("SUPER_ADMIN_BOOTSTRAP_PASSWORD")
+# Admin credentials from test_credentials.md
+ADMIN_EMAIL = "jaymn.judd@mascigc.com"
+ADMIN_PASSWORD = "Maddix123!"
 
-def print_section(title):
-    print(f"\n{'='*80}")
-    print(f"  {title}")
-    print(f"{'='*80}\n")
+# Test results tracking
+test_results = {
+    "passed": [],
+    "failed": [],
+    "errors": []
+}
 
-def test_production_identity():
-    """Test GET /api/version for production identity"""
-    print_section("1. Production Identity Check")
-    
-    try:
-        response = requests.get(f"{PRODUCTION_BASE_URL}/api/version", timeout=30)
-        response.raise_for_status()
-        data = response.json()
-        
-        print(f"✓ GET /api/version successful")
-        print(f"  app_env: {data.get('app_env')}")
-        print(f"  db_name: {data.get('db_name')}")
-        print(f"  source_hash: {data.get('source_hash')}")
-        
-        # Verify expected values
-        if data.get('app_env') == 'production':
-            print(f"  ✓ app_env is 'production'")
-        else:
-            print(f"  ⚠ app_env is '{data.get('app_env')}' (expected 'production')")
-            
-        if data.get('db_name') == 'masci_safety':
-            print(f"  ✓ db_name is 'masci_safety'")
-        else:
-            print(f"  ⚠ db_name is '{data.get('db_name')}' (expected 'masci_safety')")
-            
-        if data.get('source_hash'):
-            print(f"  ✓ source_hash present")
-        else:
-            print(f"  ✗ source_hash missing")
-            
-        return data
-    except Exception as e:
-        print(f"✗ Failed to get production identity: {e}")
-        return None
+def log_pass(test_name):
+    """Log a passed test."""
+    print(f"✅ PASS: {test_name}")
+    test_results["passed"].append(test_name)
 
-def authenticate_admin():
-    """Authenticate and get admin token"""
-    print_section("2. Admin Authentication")
-    
-    try:
-        print(f"Authenticating as: {SUPER_ADMIN_EMAIL}")
-        response = requests.post(
-            f"{PRODUCTION_BASE_URL}/api/auth/multi-login",
-            json={"email": SUPER_ADMIN_EMAIL, "password": SUPER_ADMIN_PASSWORD},
-            timeout=60
-        )
-        response.raise_for_status()
-        data = response.json()
-        
-        admin_token = data.get("portal_tokens", {}).get("admin")
-        if admin_token:
-            print(f"✓ Authentication successful")
-            print(f"  Admin token obtained: {admin_token[:20]}...")
-            return admin_token
-        else:
-            print(f"✗ No admin token in response")
-            print(f"  Response keys: {list(data.keys())}")
-            return None
-    except Exception as e:
-        print(f"✗ Authentication failed: {e}")
-        return None
+def log_fail(test_name, reason):
+    """Log a failed test."""
+    print(f"❌ FAIL: {test_name}")
+    print(f"   Reason: {reason}")
+    test_results["failed"].append({"test": test_name, "reason": reason})
 
-def test_inventory_endpoints(admin_token):
-    """Test inventory endpoints with different prefix values"""
-    print_section("3. Inventory Endpoint Observability Check")
-    
-    headers = {"X-Admin-Token": admin_token}
-    
-    # Test 1: prefix=backups
-    print("Testing: GET /api/admin/r2/lifecycle/inventory?prefix=backups")
-    try:
-        response = requests.get(
-            f"{PRODUCTION_BASE_URL}/api/admin/r2/lifecycle/inventory?prefix=backups",
-            headers=headers,
-            timeout=180
-        )
-        response.raise_for_status()
-        data_backups = response.json()
-        total_backups = data_backups.get("total_matching", 0)
-        print(f"  ✓ Response received")
-        print(f"  total_matching: {total_backups}")
-    except Exception as e:
-        print(f"  ✗ Failed: {e}")
-        data_backups = None
-        total_backups = 0
-    
-    # Test 2: prefix=backups/
-    print("\nTesting: GET /api/admin/r2/lifecycle/inventory?prefix=backups/")
-    try:
-        response = requests.get(
-            f"{PRODUCTION_BASE_URL}/api/admin/r2/lifecycle/inventory?prefix=backups/",
-            headers=headers,
-            timeout=180
-        )
-        response.raise_for_status()
-        data_backups_slash = response.json()
-        total_backups_slash = data_backups_slash.get("total_matching", 0)
-        print(f"  ✓ Response received")
-        print(f"  total_matching: {total_backups_slash}")
-    except Exception as e:
-        print(f"  ✗ Failed: {e}")
-        data_backups_slash = None
-        total_backups_slash = 0
-    
-    # Compare results
-    print("\n--- Observability Defect Analysis ---")
-    if total_backups > 0 and total_backups_slash == 0:
-        print(f"  ✗ DEFECT OBSERVED: prefix=backups returns {total_backups} but prefix=backups/ returns 0")
-        print(f"     This is the known observability defect that Track 27.09 fixes")
-        defect_status = "FAIL"
-    elif total_backups == total_backups_slash:
-        print(f"  ✓ PASS: Both queries return the same count ({total_backups})")
-        defect_status = "PASS"
-    else:
-        print(f"  ⚠ UNEXPECTED: prefix=backups={total_backups}, prefix=backups/={total_backups_slash}")
-        defect_status = "UNEXPECTED"
-    
-    return {
-        "prefix_backups": data_backups,
-        "prefix_backups_slash": data_backups_slash,
-        "defect_status": defect_status
-    }
+def log_error(test_name, error):
+    """Log a test error."""
+    print(f"⚠️  ERROR: {test_name}")
+    print(f"   Error: {error}")
+    test_results["errors"].append({"test": test_name, "error": str(error)})
 
-def test_integrity_check(admin_token):
-    """Test integrity-check endpoint"""
-    print_section("4. Integrity Check Endpoint")
-    
-    headers = {"X-Admin-Token": admin_token}
-    
-    print("Testing: GET /api/admin/backups/integrity-check")
-    try:
-        response = requests.get(
-            f"{PRODUCTION_BASE_URL}/api/admin/backups/integrity-check",
-            headers=headers,
-            timeout=180
-        )
-        response.raise_for_status()
-        data = response.json()
-        
-        print(f"  ✓ Response received")
-        print(f"  last_backup_filename: {data.get('last_backup_filename')}")
-        print(f"  last_backup_object_key: {data.get('last_backup_object_key')}")
-        print(f"  evidence_source: {data.get('evidence_source')}")
-        print(f"  captured_collections: {len(data.get('captured_collections', []))} collections")
-        print(f"  document_count: {data.get('document_count')}")
-        print(f"  integrity_result: {data.get('integrity_result')}")
-        
-        # Check for observability defect
-        print("\n--- Observability Defect Analysis ---")
-        has_filename = bool(data.get('last_backup_filename'))
-        has_collections = len(data.get('captured_collections', [])) > 0
-        
-        if not has_filename or not has_collections:
-            print(f"  ✗ DEFECT OBSERVED:")
-            if not has_filename:
-                print(f"     - last_backup_filename is missing or empty")
-            if not has_collections:
-                print(f"     - captured_collections is empty")
-            print(f"     This is the known observability defect that Track 27.09 fixes")
-            defect_status = "FAIL"
-        else:
-            print(f"  ✓ PASS: Metadata is present (filename and collections)")
-            defect_status = "PASS"
-        
-        return {
-            "data": data,
-            "defect_status": defect_status
-        }
-    except Exception as e:
-        print(f"  ✗ Failed: {e}")
-        return {
-            "data": None,
-            "defect_status": "ERROR"
-        }
-
-def verify_evidence_artifacts():
-    """Verify evidence package artifacts exist"""
-    print_section("5. Evidence Package Verification")
-    
-    evidence_dir = Path("/app/memory/track_27_09")
-    report_path = Path("/app/memory/TRACK_27_09_BACKUP_PROVENANCE_COMPLETE.md")
-    
-    expected_files = [
-        "production_identity.json",
-        "endpoint_observability.json",
-        "bucket_inventory.json",
-        "backup_inventory.json",
-        "backup_lineage.json",
-        "backup_duplicates.json",
-        "restore_capability.json",
-        "operator_decision_table.json",
-        "production_endpoint_snapshots.json",
-        "evidence_manifest.json"
-    ]
-    
-    print(f"Checking evidence directory: {evidence_dir}")
-    all_present = True
-    
-    for filename in expected_files:
-        filepath = evidence_dir / filename
-        if filepath.exists():
-            size = filepath.stat().st_size
-            print(f"  ✓ {filename} ({size:,} bytes)")
-        else:
-            print(f"  ✗ {filename} MISSING")
-            all_present = False
-    
-    print(f"\nChecking report file: {report_path}")
-    if report_path.exists():
-        size = report_path.stat().st_size
-        print(f"  ✓ TRACK_27_09_BACKUP_PROVENANCE_COMPLETE.md ({size:,} bytes)")
-    else:
-        print(f"  ✗ TRACK_27_09_BACKUP_PROVENANCE_COMPLETE.md MISSING")
-        all_present = False
-    
-    return all_present
-
-def verify_reconciliation():
-    """Verify reconciliation checks"""
-    print_section("6. Reconciliation Checks")
-    
-    evidence_dir = Path("/app/memory/track_27_09")
-    
-    try:
-        # Load evidence files
-        with open(evidence_dir / "bucket_inventory.json") as f:
-            bucket_inventory = json.load(f)
-        
-        with open(evidence_dir / "backup_inventory.json") as f:
-            backup_inventory = json.load(f)
-        
-        with open(evidence_dir / "evidence_manifest.json") as f:
-            evidence_manifest = json.load(f)
-        
-        # Check 1: bucket_inventory total_bytes equals sum(prefix bytes)
-        print("Check 1: Bucket inventory reconciliation")
-        total_bytes = bucket_inventory.get("total_bytes", 0)
-        prefix_bytes_sum = sum(p.get("bytes", 0) for p in bucket_inventory.get("prefixes", []))
-        
-        if total_bytes == prefix_bytes_sum:
-            print(f"  ✓ PASS: total_bytes ({total_bytes:,}) == sum(prefix bytes) ({prefix_bytes_sum:,})")
-        else:
-            print(f"  ✗ FAIL: total_bytes ({total_bytes:,}) != sum(prefix bytes) ({prefix_bytes_sum:,})")
-        
-        # Check 2: backup_inventory archive_bytes equals sum(row size_bytes)
-        print("\nCheck 2: Backup inventory reconciliation")
-        archive_bytes = backup_inventory.get("archive_bytes", 0)
-        row_bytes_sum = sum(r.get("size_bytes", 0) for r in backup_inventory.get("rows", []))
-        
-        if archive_bytes == row_bytes_sum:
-            print(f"  ✓ PASS: archive_bytes ({archive_bytes:,}) == sum(row size_bytes) ({row_bytes_sum:,})")
-        else:
-            print(f"  ✗ FAIL: archive_bytes ({archive_bytes:,}) != sum(row size_bytes) ({row_bytes_sum:,})")
-        
-        # Check 3: evidence_manifest contains SHA256 rows and bundle hash
-        print("\nCheck 3: Evidence manifest integrity")
-        files = evidence_manifest.get("files", [])
-        bundle_hash = evidence_manifest.get("bundle_sha256")
-        
-        if len(files) > 0:
-            print(f"  ✓ Evidence manifest contains {len(files)} file entries")
-            all_have_sha256 = all("sha256" in f for f in files)
-            if all_have_sha256:
-                print(f"  ✓ All files have SHA256 hashes")
-            else:
-                print(f"  ✗ Some files missing SHA256 hashes")
-        else:
-            print(f"  ✗ Evidence manifest has no file entries")
-        
-        if bundle_hash:
-            print(f"  ✓ Bundle hash present: {bundle_hash}")
-        else:
-            print(f"  ✗ Bundle hash missing")
-        
-        return True
-    except Exception as e:
-        print(f"✗ Reconciliation check failed: {e}")
-        return False
-
-def main():
+def authenticate():
+    """Authenticate and return admin token."""
     print("\n" + "="*80)
-    print("  TRACK 27.09 BACKEND VERIFICATION")
-    print("  Read-only production endpoint testing")
+    print("TEST 1: POST /api/auth/multi-login - Admin Authentication")
     print("="*80)
     
-    # Test 1: Production identity
-    version_data = test_production_identity()
+    try:
+        response = requests.post(
+            f"{BACKEND_URL}/auth/multi-login",
+            json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD},
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            # Get admin token from portal_tokens
+            portal_tokens = data.get("portal_tokens", {})
+            admin_token = portal_tokens.get("admin")
+            if admin_token:
+                log_pass("Admin authentication via POST /api/auth/multi-login")
+                print(f"   Admin token obtained: {admin_token[:40]}...")
+                return admin_token
+            else:
+                log_fail("Admin authentication", "No admin token in portal_tokens")
+                return None
+        else:
+            log_fail("Admin authentication", f"Status {response.status_code}: {response.text}")
+            return None
+    except Exception as e:
+        log_error("Admin authentication", e)
+        return None
+
+def test_missing_approved_summary(admin_token):
+    """Test that POST /api/daily-reports rejects missing approved summary."""
+    print("\n" + "="*80)
+    print("TEST 2: POST /api/daily-reports - Missing Approved Summary (422)")
+    print("="*80)
     
-    # Test 2: Authentication
-    admin_token = authenticate_admin()
+    try:
+        payload = {
+            "project_name": "TRACK 27.10 Test Project",
+            "project_number": "TRACK-27-10-TEST",
+            "location": "Test Site Alpha",
+            "report_date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+            "prepared_by": "Test Supervisor",
+            "superintendent": "John Smith",
+            "weather_summary": "Clear skies, 72°F",
+            "weather_snapshot_meta": {
+                "source": "openweather",
+                "captured_at": datetime.now(timezone.utc).isoformat()
+            },
+            "masci_crews": [{"name": "Crew A", "count": 5}],
+            "activities": [{"description": "Excavation work"}],
+            "general_notes": "Daily operations proceeding normally",
+            # Missing ai_accepted_summary and ai_accepted_summary_meta
+        }
+        
+        headers = {"X-Admin-Token": admin_token}
+        response = requests.post(
+            f"{BACKEND_URL}/daily-reports",
+            json=payload,
+            headers=headers,
+            timeout=30
+        )
+        
+        if response.status_code == 422:
+            data = response.json()
+            detail = data.get("detail", {})
+            error_code = detail.get("error") if isinstance(detail, dict) else None
+            
+            if error_code == "approved_summary_required":
+                log_pass("POST /api/daily-reports rejects missing approved summary with 422 approved_summary_required")
+                print(f"   Response: {json.dumps(detail, indent=2)}")
+            else:
+                log_fail("Missing approved summary validation", f"Expected error code 'approved_summary_required', got: {error_code}")
+        else:
+            log_fail("Missing approved summary validation", f"Expected 422, got {response.status_code}: {response.text[:200]}")
+    except Exception as e:
+        log_error("Missing approved summary validation", e)
+
+def test_missing_accepted_at_metadata(admin_token):
+    """Test that POST /api/daily-reports rejects missing accepted_at metadata."""
+    print("\n" + "="*80)
+    print("TEST 3: POST /api/daily-reports - Missing accepted_at Metadata (422)")
+    print("="*80)
     
-    if not admin_token:
-        print("\n✗ Cannot proceed without admin token")
-        sys.exit(1)
+    try:
+        payload = {
+            "project_name": "TRACK 27.10 Test Project",
+            "project_number": "TRACK-27-10-TEST",
+            "location": "Test Site Beta",
+            "report_date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+            "prepared_by": "Test Supervisor",
+            "superintendent": "John Smith",
+            "weather_summary": "Partly cloudy, 68°F",
+            "weather_snapshot_meta": {
+                "source": "openweather",
+                "captured_at": datetime.now(timezone.utc).isoformat()
+            },
+            "masci_crews": [{"name": "Crew B", "count": 4}],
+            "activities": [{"description": "Paving operations"}],
+            "general_notes": "Operations on schedule",
+            "ai_accepted_summary": "Today's work included paving operations with Crew B.",
+            "ai_accepted_summary_meta": {
+                "source": "ai",
+                # Missing accepted_at
+            }
+        }
+        
+        headers = {"X-Admin-Token": admin_token}
+        response = requests.post(
+            f"{BACKEND_URL}/daily-reports",
+            json=payload,
+            headers=headers,
+            timeout=30
+        )
+        
+        if response.status_code == 422:
+            data = response.json()
+            detail = data.get("detail", {})
+            error_code = detail.get("error") if isinstance(detail, dict) else None
+            
+            if error_code == "approved_summary_metadata_required":
+                log_pass("POST /api/daily-reports rejects missing accepted_at metadata with 422")
+                print(f"   Response: {json.dumps(detail, indent=2)}")
+            else:
+                log_fail("Missing accepted_at metadata validation", f"Expected error code 'approved_summary_metadata_required', got: {error_code}")
+        else:
+            log_fail("Missing accepted_at metadata validation", f"Expected 422, got {response.status_code}: {response.text[:200]}")
+    except Exception as e:
+        log_error("Missing accepted_at metadata validation", e)
+
+def test_invalid_source_label(admin_token):
+    """Test that POST /api/daily-reports rejects invalid source labels."""
+    print("\n" + "="*80)
+    print("TEST 4: POST /api/daily-reports - Invalid Source Label (422)")
+    print("="*80)
     
-    # Test 3: Inventory endpoints
-    inventory_results = test_inventory_endpoints(admin_token)
+    try:
+        payload = {
+            "project_name": "TRACK 27.10 Test Project",
+            "project_number": "TRACK-27-10-TEST",
+            "location": "Test Site Gamma",
+            "report_date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+            "prepared_by": "Test Supervisor",
+            "superintendent": "John Smith",
+            "weather_summary": "Overcast, 65°F",
+            "weather_snapshot_meta": {
+                "source": "openweather",
+                "captured_at": datetime.now(timezone.utc).isoformat()
+            },
+            "masci_crews": [{"name": "Crew C", "count": 6}],
+            "activities": [{"description": "Grading work"}],
+            "general_notes": "Steady progress",
+            "ai_accepted_summary": "Grading work completed by Crew C today.",
+            "ai_accepted_summary_meta": {
+                "source": "invalid_source",  # Invalid source
+                "accepted_at": datetime.now(timezone.utc).isoformat()
+            }
+        }
+        
+        headers = {"X-Admin-Token": admin_token}
+        response = requests.post(
+            f"{BACKEND_URL}/daily-reports",
+            json=payload,
+            headers=headers,
+            timeout=30
+        )
+        
+        if response.status_code == 422:
+            data = response.json()
+            detail = data.get("detail", {})
+            error_code = detail.get("error") if isinstance(detail, dict) else None
+            
+            if error_code == "approved_summary_source_invalid":
+                log_pass("POST /api/daily-reports rejects invalid source label with 422")
+                print(f"   Response: {json.dumps(detail, indent=2)}")
+            else:
+                log_fail("Invalid source label validation", f"Expected error code 'approved_summary_source_invalid', got: {error_code}")
+        else:
+            log_fail("Invalid source label validation", f"Expected 422, got {response.status_code}: {response.text[:200]}")
+    except Exception as e:
+        log_error("Invalid source label validation", e)
+
+def test_valid_daily_report_submission(admin_token):
+    """Test valid POST /api/daily-reports with frozen approved summary."""
+    print("\n" + "="*80)
+    print("TEST 5: POST /api/daily-reports - Valid Submission with Approved Summary")
+    print("="*80)
     
-    # Test 4: Integrity check
-    integrity_results = test_integrity_check(admin_token)
+    try:
+        now_iso = datetime.now(timezone.utc).isoformat()
+        payload = {
+            "project_name": "TRACK 27.10 Test Project",
+            "project_number": "TRACK-27-10-VALID",
+            "location": "Test Site Delta",
+            "report_date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+            "prepared_by": "Test Supervisor Delta",
+            "superintendent": "Jane Doe",
+            "weather_summary": "Sunny and clear, 75°F with light breeze",
+            "weather_snapshots": [
+                {
+                    "time": "08:00",
+                    "temperature_f": 68,
+                    "conditions": "Clear"
+                },
+                {
+                    "time": "12:00",
+                    "temperature_f": 75,
+                    "conditions": "Sunny"
+                }
+            ],
+            "weather_snapshot_meta": {
+                "source": "openweather",
+                "captured_at": now_iso,
+                "api_version": "2.5"
+            },
+            "masci_crews": [
+                {"name": "Crew Delta", "count": 8, "foreman": "Mike Johnson"}
+            ],
+            "activities": [
+                {"description": "Concrete pouring for foundation", "hours": 6},
+                {"description": "Rebar installation", "hours": 4}
+            ],
+            "general_notes": "All operations completed successfully. Weather conditions were ideal.",
+            "ai_accepted_summary": "Today's operations focused on concrete foundation work. Crew Delta successfully completed concrete pouring and rebar installation. Weather conditions were ideal with sunny skies and temperatures reaching 75°F. All safety protocols were followed and no incidents occurred.",
+            "ai_accepted_summary_meta": {
+                "source": "ai",
+                "accepted_at": now_iso,
+                "provider": "openai",
+                "model": "gpt-4",
+                "accepted_by": "Test Supervisor Delta"
+            }
+        }
+        
+        headers = {"X-Admin-Token": admin_token}
+        response = requests.post(
+            f"{BACKEND_URL}/daily-reports",
+            json=payload,
+            headers=headers,
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            report_id = data.get("id")
+            doc_id = data.get("doc_id")
+            
+            # Verify frozen fields are present
+            saved_summary = data.get("ai_accepted_summary")
+            saved_meta = data.get("ai_accepted_summary_meta")
+            saved_weather_summary = data.get("weather_summary")
+            saved_weather_meta = data.get("weather_snapshot_meta")
+            
+            checks = []
+            if saved_summary == payload["ai_accepted_summary"]:
+                checks.append("✓ ai_accepted_summary frozen correctly")
+            else:
+                checks.append("✗ ai_accepted_summary mismatch")
+            
+            if saved_meta and saved_meta.get("source") == "ai" and saved_meta.get("accepted_at"):
+                checks.append("✓ ai_accepted_summary_meta frozen correctly")
+            else:
+                checks.append("✗ ai_accepted_summary_meta missing or incomplete")
+            
+            if saved_weather_summary == payload["weather_summary"]:
+                checks.append("✓ weather_summary retained")
+            else:
+                checks.append("✗ weather_summary mismatch")
+            
+            if saved_weather_meta and saved_weather_meta.get("source") == "openweather":
+                checks.append("✓ weather_snapshot_meta retained")
+            else:
+                checks.append("✗ weather_snapshot_meta missing or incomplete")
+            
+            all_passed = all("✓" in c for c in checks)
+            
+            if all_passed:
+                log_pass("Valid POST /api/daily-reports succeeds with frozen approved summary and metadata")
+                print(f"   Report ID: {report_id}")
+                print(f"   Doc ID: {doc_id}")
+                for check in checks:
+                    print(f"   {check}")
+                return report_id
+            else:
+                log_fail("Valid daily report submission", f"Data integrity checks failed: {checks}")
+                return report_id
+        else:
+            log_fail("Valid daily report submission", f"Expected 200, got {response.status_code}: {response.text[:500]}")
+            return None
+    except Exception as e:
+        log_error("Valid daily report submission", e)
+        return None
+
+def test_pdf_generation(admin_token, report_id):
+    """Test GET /api/daily-reports/{id}/pdf returns valid PDF."""
+    print("\n" + "="*80)
+    print("TEST 6: GET /api/daily-reports/{id}/pdf - PDF Generation")
+    print("="*80)
     
-    # Test 5: Evidence artifacts
-    artifacts_present = verify_evidence_artifacts()
+    if not report_id:
+        log_fail("PDF generation", "No report_id available from previous test")
+        return
     
-    # Test 6: Reconciliation
-    reconciliation_ok = verify_reconciliation()
+    try:
+        headers = {"X-Admin-Token": admin_token}
+        response = requests.get(
+            f"{BACKEND_URL}/daily-reports/{report_id}/pdf",
+            headers=headers,
+            timeout=60
+        )
+        
+        if response.status_code == 200:
+            content_type = response.headers.get("Content-Type", "")
+            content_length = len(response.content)
+            
+            # Check if it's a valid PDF
+            is_pdf = content_type == "application/pdf" or response.content[:4] == b"%PDF"
+            
+            if is_pdf and content_length > 1000:
+                log_pass("GET /api/daily-reports/{id}/pdf returns valid PDF")
+                print(f"   Content-Type: {content_type}")
+                print(f"   PDF Size: {content_length} bytes")
+                print(f"   PDF Header: {response.content[:20]}")
+            else:
+                log_fail("PDF generation", f"Invalid PDF: content_type={content_type}, size={content_length}")
+        else:
+            log_fail("PDF generation", f"Expected 200, got {response.status_code}: {response.text[:200]}")
+    except Exception as e:
+        log_error("PDF generation", e)
+
+def test_audit_footer(admin_token, report_id):
+    """Test GET /api/daily-reports/{id}/audit-footer works correctly."""
+    print("\n" + "="*80)
+    print("TEST 7: GET /api/daily-reports/{id}/audit-footer - Audit Footer")
+    print("="*80)
     
-    # Summary
-    print_section("SUMMARY")
-    print(f"✓ Pytest regression tests: PASSED (3/3)")
-    print(f"✓ Production identity: {'VERIFIED' if version_data else 'FAILED'}")
-    print(f"✓ Admin authentication: {'SUCCESS' if admin_token else 'FAILED'}")
-    print(f"  Inventory prefix defect: {inventory_results.get('defect_status', 'UNKNOWN')}")
-    print(f"  Integrity metadata defect: {integrity_results.get('defect_status', 'UNKNOWN')}")
-    print(f"✓ Evidence artifacts: {'ALL PRESENT' if artifacts_present else 'INCOMPLETE'}")
-    print(f"✓ Reconciliation checks: {'PASSED' if reconciliation_ok else 'FAILED'}")
+    if not report_id:
+        log_fail("Audit footer", "No report_id available from previous test")
+        return
+    
+    try:
+        headers = {"X-Admin-Token": admin_token}
+        response = requests.get(
+            f"{BACKEND_URL}/daily-reports/{report_id}/audit-footer",
+            headers=headers,
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            
+            # Verify required fields
+            has_report_id = data.get("report_id") == report_id
+            has_doc_id = bool(data.get("doc_id"))
+            has_sha256 = bool(data.get("sha256")) and len(data.get("sha256", "")) == 64
+            has_rendered_at = bool(data.get("rendered_at_utc"))
+            has_footer_text = bool(data.get("footer_text"))
+            
+            checks = [
+                f"{'✓' if has_report_id else '✗'} report_id matches",
+                f"{'✓' if has_doc_id else '✗'} doc_id present",
+                f"{'✓' if has_sha256 else '✗'} sha256 hash present (64 chars)",
+                f"{'✓' if has_rendered_at else '✗'} rendered_at_utc present",
+                f"{'✓' if has_footer_text else '✗'} footer_text present"
+            ]
+            
+            all_passed = all([has_report_id, has_doc_id, has_sha256, has_rendered_at, has_footer_text])
+            
+            if all_passed:
+                log_pass("GET /api/daily-reports/{id}/audit-footer returns complete audit data")
+                print(f"   Doc ID: {data.get('doc_id')}")
+                print(f"   SHA256: {data.get('sha256')[:32]}...")
+                print(f"   Rendered At: {data.get('rendered_at_utc')}")
+                for check in checks:
+                    print(f"   {check}")
+            else:
+                log_fail("Audit footer", f"Missing required fields: {checks}")
+        else:
+            log_fail("Audit footer", f"Expected 200, got {response.status_code}: {response.text[:200]}")
+    except Exception as e:
+        log_error("Audit footer", e)
+
+def test_saved_record_integrity(admin_token, report_id):
+    """Test that saved record retains all required data."""
+    print("\n" + "="*80)
+    print("TEST 8: GET /api/daily-reports/{id} - Saved Record Data Integrity")
+    print("="*80)
+    
+    if not report_id:
+        log_fail("Saved record integrity", "No report_id available from previous test")
+        return
+    
+    try:
+        headers = {"X-Admin-Token": admin_token}
+        response = requests.get(
+            f"{BACKEND_URL}/daily-reports/{report_id}",
+            headers=headers,
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            
+            # Verify all critical fields are retained
+            checks = []
+            
+            # Check weather_summary
+            if data.get("weather_summary"):
+                checks.append("✓ weather_summary retained")
+            else:
+                checks.append("✗ weather_summary missing")
+            
+            # Check weather_snapshot_meta
+            weather_meta = data.get("weather_snapshot_meta")
+            if weather_meta and isinstance(weather_meta, dict) and weather_meta.get("source"):
+                checks.append("✓ weather_snapshot_meta retained with source")
+            else:
+                checks.append("✗ weather_snapshot_meta missing or incomplete")
+            
+            # Check ai_accepted_summary
+            if data.get("ai_accepted_summary"):
+                checks.append("✓ ai_accepted_summary retained")
+            else:
+                checks.append("✗ ai_accepted_summary missing")
+            
+            # Check ai_accepted_summary_meta
+            summary_meta = data.get("ai_accepted_summary_meta")
+            if summary_meta and isinstance(summary_meta, dict):
+                has_source = summary_meta.get("source") in ["ai", "edited", "fallback", "manual"]
+                has_accepted_at = bool(summary_meta.get("accepted_at"))
+                if has_source and has_accepted_at:
+                    checks.append("✓ ai_accepted_summary_meta retained with valid source and accepted_at")
+                else:
+                    checks.append("✗ ai_accepted_summary_meta incomplete (missing source or accepted_at)")
+            else:
+                checks.append("✗ ai_accepted_summary_meta missing")
+            
+            # Check audit_envelope_sha256
+            if data.get("audit_envelope_sha256") and len(data.get("audit_envelope_sha256", "")) == 64:
+                checks.append("✓ audit_envelope_sha256 computed and stored")
+            else:
+                checks.append("✗ audit_envelope_sha256 missing or invalid")
+            
+            all_passed = all("✓" in c for c in checks)
+            
+            if all_passed:
+                log_pass("Saved record retains all required data (weather_summary, weather_snapshot_meta, approved summary metadata)")
+                for check in checks:
+                    print(f"   {check}")
+            else:
+                log_fail("Saved record integrity", f"Data integrity checks failed")
+                for check in checks:
+                    print(f"   {check}")
+        else:
+            log_fail("Saved record integrity", f"Expected 200, got {response.status_code}: {response.text[:200]}")
+    except Exception as e:
+        log_error("Saved record integrity", e)
+
+def print_summary():
+    """Print test summary."""
+    print("\n" + "="*80)
+    print("TEST SUMMARY")
+    print("="*80)
+    
+    total_tests = len(test_results["passed"]) + len(test_results["failed"]) + len(test_results["errors"])
+    passed_count = len(test_results["passed"])
+    failed_count = len(test_results["failed"])
+    error_count = len(test_results["errors"])
+    
+    print(f"\nTotal Tests: {total_tests}")
+    print(f"✅ Passed: {passed_count}")
+    print(f"❌ Failed: {failed_count}")
+    print(f"⚠️  Errors: {error_count}")
+    
+    if test_results["failed"]:
+        print("\n--- Failed Tests ---")
+        for fail in test_results["failed"]:
+            print(f"  • {fail['test']}")
+            print(f"    Reason: {fail['reason']}")
+    
+    if test_results["errors"]:
+        print("\n--- Test Errors ---")
+        for error in test_results["errors"]:
+            print(f"  • {error['test']}")
+            print(f"    Error: {error['error']}")
     
     print("\n" + "="*80)
-    print("  VERIFICATION COMPLETE")
-    print("="*80 + "\n")
+    
+    if failed_count == 0 and error_count == 0:
+        print("🎉 ALL TESTS PASSED!")
+    else:
+        print("⚠️  SOME TESTS FAILED OR ENCOUNTERED ERRORS")
+    print("="*80)
+
+def main():
+    """Run all TRACK 27.10 backend tests."""
+    print("\n" + "="*80)
+    print("TRACK 27.10 BACKEND API VERIFICATION TEST SUITE")
+    print("="*80)
+    print(f"Backend URL: {BACKEND_URL}")
+    print(f"Admin Email: {ADMIN_EMAIL}")
+    print(f"Test Time: {datetime.now(timezone.utc).isoformat()}")
+    
+    # Step 1: Authenticate
+    admin_token = authenticate()
+    if not admin_token:
+        print("\n❌ CRITICAL: Authentication failed. Cannot proceed with tests.")
+        print_summary()
+        return
+    
+    # Step 2: Test missing approved summary
+    test_missing_approved_summary(admin_token)
+    
+    # Step 3: Test missing accepted_at metadata
+    test_missing_accepted_at_metadata(admin_token)
+    
+    # Step 4: Test invalid source label
+    test_invalid_source_label(admin_token)
+    
+    # Step 5: Test valid submission
+    report_id = test_valid_daily_report_submission(admin_token)
+    
+    # Step 6: Test PDF generation
+    test_pdf_generation(admin_token, report_id)
+    
+    # Step 7: Test audit footer
+    test_audit_footer(admin_token, report_id)
+    
+    # Step 8: Test saved record integrity
+    test_saved_record_integrity(admin_token, report_id)
+    
+    # Print summary
+    print_summary()
 
 if __name__ == "__main__":
     main()
