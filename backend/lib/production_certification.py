@@ -6,11 +6,15 @@ dual-write, no separate state, no drift).
 
 Status state machine (closed set):
 
-  VERIFIED          ─ most recent ``completed`` event has ``status=ok``
-  FAILED            ─ most recent ``completed`` event has ``status=failed``
-                       (never auto-clears — only a subsequent successful
-                        ``completed/ok`` flips it back to VERIFIED)
-  NOT_YET_EXERCISED ─ no ``completed`` event exists for this workflow
+  VERIFIED          ─ most recent qualifying ``completed`` event has
+                      ``status=ok`` and evidence is current
+  FAILED            ─ most recent qualifying ``completed`` event has
+                      ``status=failed``
+  NOT_YET_EXERCISED ─ no qualifying execution exists
+  BLOCKED           ─ execution began (or was required) but could not
+                      complete because of a documented blocker
+  STALE             ─ qualifying evidence exists but is outside the
+                      freshness window
 
 Rules locked by regression:
 
@@ -26,7 +30,7 @@ Rules locked by regression:
 """
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from lib.trust_spine import WORKFLOW_EXPECTED_STAGES
@@ -35,6 +39,10 @@ from lib.trust_spine import WORKFLOW_EXPECTED_STAGES
 STATUS_VERIFIED = "VERIFIED"
 STATUS_FAILED = "FAILED"
 STATUS_NOT_YET_EXERCISED = "NOT_YET_EXERCISED"
+STATUS_BLOCKED = "BLOCKED"
+STATUS_STALE = "STALE"
+
+FRESHNESS_WINDOW = timedelta(days=2)
 
 
 async def _latest_completed(db, workflow: str, status: Optional[str] = None):
@@ -90,6 +98,57 @@ async def _workflow_has_any_evidence(db, workflow: str) -> bool:
         sort=[("ts", -1)],
     )
     return bool(row)
+
+
+async def _latest_any_event(db, workflow: str):
+    return await db.trust_spine_events.find_one(
+        {"workflow": workflow},
+        sort=[("ts", -1)],
+        projection={
+            "_id": 0, "ts": 1, "status": 1, "stage": 1, "correlation_id": 1,
+            "record_id": 1, "project_number": 1, "failure_reason": 1,
+            "remediation": 1, "module": 1,
+        },
+    )
+
+
+def _parse_iso(ts: Optional[str]) -> Optional[datetime]:
+    if not ts:
+        return None
+    try:
+        return datetime.fromisoformat(ts)
+    except Exception:
+        return None
+
+
+def _is_stale(ts: Optional[str]) -> bool:
+    dt = _parse_iso(ts)
+    if not dt:
+        return False
+    return (datetime.now(timezone.utc) - dt) > FRESHNESS_WINDOW
+
+
+def _blocked_reason_from_event(event: Optional[Dict[str, Any]]) -> Optional[str]:
+    if not event:
+        return None
+    fr = str(event.get("failure_reason") or "").strip()
+    rm = str(event.get("remediation") or "").strip()
+    combined = " ".join([fr.lower(), rm.lower()]).strip()
+    blockers = [
+        "email_safety_mode:strict",
+        "immutable",
+        "governance",
+        "blocked",
+        "dependency",
+        "unavailable prerequisite",
+        "prerequisite",
+        "requires operator",
+    ]
+    if any(b in combined for b in blockers):
+        return fr or rm or "workflow_blocked"
+    if event.get("status") == "skipped" and (fr or rm):
+        return fr or rm
+    return None
 
 
 def _operator_remediation_for_failure(failure_reason: Optional[str]) -> str:
@@ -157,28 +216,42 @@ async def build_certification(db) -> Dict[str, Any]:
 
     rows: List[Dict[str, Any]] = []
     counters = {
-        "verified": 0, "failed": 0, "not_yet_exercised": 0,
+        "verified": 0, "failed": 0, "not_yet_exercised": 0, "blocked": 0, "stale": 0,
         "total": len(workflows_known),
     }
     for wf in workflows_known:
         latest = await _latest_completed(db, wf)
+        latest_any = await _latest_any_event(db, wf)
+        blocked_reason = _blocked_reason_from_event(latest_any)
+        latest_any_ts = _parse_iso((latest_any or {}).get("ts"))
+        latest_completed_ts = _parse_iso((latest or {}).get("ts"))
         if latest is None:
-            has_any_evidence = await _workflow_has_any_evidence(db, wf)
+            if blocked_reason:
+                status = STATUS_BLOCKED
+                counters["blocked"] += 1
+            else:
+                status = STATUS_NOT_YET_EXERCISED
+                counters["not_yet_exercised"] += 1
             rows.append({
                 "workflow": wf,
-                "status": STATUS_FAILED if has_any_evidence else STATUS_NOT_YET_EXERCISED,
+                "status": status,
                 "first_verified_at": None,
                 "last_verified_at": None,
                 "successful_deliveries": 0,
                 "failed_deliveries": 0,
                 "last_failure": None,
-                "last_failure_reason": "workflow_evidence_incomplete" if has_any_evidence else None,
-                "operator_remediation": "Complete the workflow end-to-end so certification has a real completed event." if has_any_evidence else None,
-                "engineering_remediation": "Ensure the workflow emits a canonical trust_spine completed event." if has_any_evidence else None,
+                "last_failure_reason": blocked_reason,
+                "operator_remediation": (
+                    "Complete the blocked dependency or governance prerequisite, then rerun the workflow."
+                    if status == STATUS_BLOCKED else None
+                ),
+                "engineering_remediation": (
+                    "Ensure the workflow can emit a canonical completed event once its blocker clears."
+                    if status == STATUS_BLOCKED else None
+                ),
                 "regression_protected": True,
                 "audit_row_observed": None,
             })
-            counters["failed" if has_any_evidence else "not_yet_exercised"] += 1
             continue
 
         ok_count = await _count_completed(db, wf, "ok")
@@ -187,9 +260,17 @@ async def build_certification(db) -> Dict[str, Any]:
         latest_ok = await _latest_completed(db, wf, status="ok")
         latest_fail = await _latest_completed(db, wf, status="failed")
 
-        if latest.get("status") == "ok":
-            status = STATUS_VERIFIED
-            counters["verified"] += 1
+        if blocked_reason and latest_any_ts and (latest_completed_ts is None or latest_any_ts > latest_completed_ts):
+            status = STATUS_BLOCKED
+            counters["blocked"] += 1
+            audit_row = None
+        elif latest.get("status") == "ok":
+            if _is_stale(latest.get("ts")):
+                status = STATUS_STALE
+                counters["stale"] += 1
+            else:
+                status = STATUS_VERIFIED
+                counters["verified"] += 1
             audit_row = (
                 await _audit_row_for_correlation(db, latest.get("correlation_id"))
                 if latest.get("correlation_id") else None
@@ -228,10 +309,17 @@ async def build_certification(db) -> Dict[str, Any]:
         "track": "15.79E",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "counters": counters,
+        "release_counters": dict(counters),
         "platform_band": (
             "red" if counters["failed"] > 0
+            else "amber" if counters["blocked"] > 0 or counters["stale"] > 0
             else "green" if counters["verified"] > 0
             else "amber"
+        ),
+        "release_band": (
+            "hold" if counters["failed"] > 0 or counters["blocked"] > 0
+            else "review" if counters["stale"] > 0
+            else "pass"
         ),
         "workflows": rows,
     }
@@ -239,5 +327,5 @@ async def build_certification(db) -> Dict[str, Any]:
 
 __all__ = [
     "build_certification",
-    "STATUS_VERIFIED", "STATUS_FAILED", "STATUS_NOT_YET_EXERCISED",
+    "STATUS_VERIFIED", "STATUS_FAILED", "STATUS_NOT_YET_EXERCISED", "STATUS_BLOCKED", "STATUS_STALE",
 ]

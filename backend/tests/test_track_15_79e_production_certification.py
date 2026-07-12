@@ -4,12 +4,11 @@ Locks the state-machine contract for the
 ``/api/admin/production-certification`` endpoint.
 
 Closed-set status values:
-  VERIFIED            — most recent ``completed`` event is ``status=ok``
-  FAILED              — most recent ``completed`` event is ``status=failed``
-                         (never auto-clears; only a subsequent
-                          completed/ok flips it back to VERIFIED)
-  NOT_YET_EXERCISED   — no completed event exists for the workflow
-                         (informational; not a defect)
+  VERIFIED            — most recent qualifying ``completed`` event is ``status=ok`` and fresh
+  FAILED              — most recent qualifying ``completed`` event is ``status=failed``
+  NOT_YET_EXERCISED   — no qualifying execution exists
+  BLOCKED             — execution began but a documented blocker prevented completion
+  STALE               — qualifying evidence exists but is outside the freshness window
 
 These tests use a unique tenant-isolated workflow name suffix per
 test so concurrent runs / shared collections cannot cross-pollute.
@@ -65,8 +64,10 @@ async def test_payload_shape():
     assert out["ok"] is True
     assert out["track"] == "15.79E"
     assert "counters" in out
-    for k in ("verified", "failed", "not_yet_exercised", "total"):
+    for k in ("verified", "failed", "not_yet_exercised", "blocked", "stale", "total"):
         assert k in out["counters"], f"missing counter {k}"
+    assert "release_counters" in out
+    assert "release_band" in out
     assert isinstance(out["workflows"], list)
     # Every workflow row must carry these fields.
     for w in out["workflows"]:
@@ -80,7 +81,7 @@ async def test_payload_shape():
         ):
             assert required in w, f"missing field {required} in {w['workflow']}"
         assert w["status"] in (
-            "VERIFIED", "FAILED", "NOT_YET_EXERCISED",
+            "VERIFIED", "FAILED", "NOT_YET_EXERCISED", "BLOCKED", "STALE",
         )
 
 
@@ -223,9 +224,9 @@ async def test_not_yet_exercised_for_unused_workflow():
     # Sanity: every WORKFLOW_EXPECTED_STAGES key must appear.
     for known in WORKFLOW_EXPECTED_STAGES.keys():
         assert known in statuses, f"workflow {known} missing from cert"
-    # The closed-set rule: every status value must be one of three.
+    # The closed-set rule: every status value must be one of the supported branches.
     assert set(statuses.values()).issubset(
-        {"VERIFIED", "FAILED", "NOT_YET_EXERCISED"}
+        {"VERIFIED", "FAILED", "NOT_YET_EXERCISED", "BLOCKED", "STALE"}
     )
 
 
@@ -259,6 +260,8 @@ async def test_platform_band_rules():
     # red iff any failed
     if counters["failed"] > 0:
         assert band == "red", "any FAILED workflow must flip the band RED"
+    elif counters["blocked"] > 0 or counters["stale"] > 0:
+        assert band == "amber"
     elif counters["verified"] > 0:
         assert band == "green"
     else:
@@ -266,11 +269,90 @@ async def test_platform_band_rules():
 
 
 @pytest.mark.asyncio
-async def test_partial_workflow_evidence_is_failed_not_not_yet_exercised():
+async def test_partial_workflow_evidence_is_blocked_not_failed():
     from lib.production_certification import build_certification  # noqa: PLC0415
 
     db = _db()
+    wf = "jha"
+    cid = f"cid-cert-blocked-{uuid.uuid4().hex[:8]}"
+    try:
+        await db.trust_spine_events.insert_one({
+            "ts": _iso(_now()),
+            "workflow": wf,
+            "stage": "notification_queued",
+            "status": "skipped",
+            "correlation_id": cid,
+            "record_id": "r-blocked",
+            "module": "test_track_15_79e",
+            "failure_reason": "email_safety_mode:strict",
+            "remediation": "governance restriction in certification mode",
+        })
+        out = await build_certification(db)
+        row = next(w for w in out["workflows"] if w["workflow"] == wf)
+        assert row["status"] == "BLOCKED"
+        assert row["last_failure_reason"] == "email_safety_mode:strict"
+    finally:
+        await db.trust_spine_events.delete_many({"correlation_id": cid})
+
+
+@pytest.mark.asyncio
+async def test_stale_when_latest_verified_evidence_is_outside_window():
+    from lib.production_certification import build_certification  # noqa: PLC0415
+
+    db = _db()
+    wf = "dvir"
+    cid = f"cid-cert-stale-{uuid.uuid4().hex[:8]}"
+    try:
+        old_ts = _iso(_now() - timedelta(days=3))
+        await db.trust_spine_events.insert_one({
+            "ts": old_ts,
+            "workflow": wf,
+            "stage": "completed",
+            "status": "ok",
+            "correlation_id": cid,
+            "record_id": "r-stale",
+            "module": "test_track_15_79e",
+        })
+        out = await build_certification(db)
+        row = next(w for w in out["workflows"] if w["workflow"] == wf)
+        assert row["status"] == "STALE"
+    finally:
+        await db.trust_spine_events.delete_many({"correlation_id": cid})
+
+
+@pytest.mark.asyncio
+async def test_untouched_workflow_does_not_fail_release_band():
+    from lib.production_certification import build_certification  # noqa: PLC0415
+    db = _db()
     out = await build_certification(db)
-    row = next(w for w in out["workflows"] if w["workflow"] == "jha")
-    assert row["status"] == "FAILED"
-    assert row["last_failure_reason"] == "workflow_evidence_incomplete"
+    assert out["release_band"] in {"pass", "review", "hold"}
+    untouched = [w for w in out["workflows"] if w["status"] == "NOT_YET_EXERCISED"]
+    if untouched:
+        assert out["release_band"] != "hold" or out["counters"]["failed"] > 0 or out["counters"]["blocked"] > 0
+
+
+@pytest.mark.asyncio
+async def test_touched_workflow_without_required_evidence_holds_release_not_fails_status():
+    from lib.production_certification import build_certification  # noqa: PLC0415
+
+    db = _db()
+    wf = "meeting"
+    cid = f"cid-cert-touched-{uuid.uuid4().hex[:8]}"
+    try:
+        await db.trust_spine_events.insert_one({
+            "ts": _iso(_now()),
+            "workflow": wf,
+            "stage": "routing_resolved",
+            "status": "skipped",
+            "correlation_id": cid,
+            "record_id": "r-touched",
+            "module": "test_track_15_79e",
+            "failure_reason": "dependency unavailable",
+            "remediation": "await prerequisite",
+        })
+        out = await build_certification(db)
+        row = next(w for w in out["workflows"] if w["workflow"] == wf)
+        assert row["status"] == "BLOCKED"
+        assert out["release_band"] == "hold"
+    finally:
+        await db.trust_spine_events.delete_many({"correlation_id": cid})
