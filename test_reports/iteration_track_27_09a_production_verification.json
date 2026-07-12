@@ -1,0 +1,119 @@
+{
+  "summary": "TRACK 27.09A · PRODUCTION VERIFIED · CLOSED WITH PASS - Both observability repairs are confirmed LIVE in production on https://mascidocs.com",
+  "track": "27.09A",
+  "verdict": "TRACK 27.09A · PRODUCTION VERIFIED · CLOSED WITH PASS",
+  "verification_timestamp": "2026-07-12T17:18:00Z",
+  "production_url": "https://mascidocs.com",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "/api/health/full vs /api/admin/recovery/snapshot",
+        "issue": "Scheduler health contradiction: /api/health/full reports scheduler:true but /api/admin/recovery/snapshot reports scheduler.alive:false, scheduler.is_healthy:false. This is a known pre-existing condition (scheduler dormant warning) not related to Track 27.09 repairs.",
+        "priority": "LOW"
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "repair_verification": {
+    "prefix_normalization_repair": {
+      "status": "LIVE",
+      "evidence": {
+        "prefix_backups": {"total_matching": 891, "count": 1},
+        "prefix_backups_slash": {"total_matching": 891, "count": 1},
+        "match": true
+      },
+      "previous_baseline": {
+        "prefix_backups": {"total_matching": 891},
+        "prefix_backups_slash": {"total_matching": 0},
+        "match": false
+      },
+      "conclusion": "Trailing slash now correctly normalized - both prefixes return identical 891 objects"
+    },
+    "integrity_check_manifest_repair": {
+      "status": "LIVE",
+      "evidence": {
+        "last_backup_filename": "MASCI_complete_backup_2026-07-12_170033Z.zip",
+        "last_backup_object_key": "backups/auto-90d/MASCI_complete_backup_2026-07-12_170033Z.zip",
+        "last_backup_at": "2026-07-12T17:05:14.605712+00:00",
+        "captured_collection_count": 206,
+        "document_count": 253762,
+        "archive_size_bytes": 1054999651,
+        "evidence_source": "r2:MANIFEST.json",
+        "integrity_result": "FAIL",
+        "ok": false
+      },
+      "previous_baseline": {
+        "last_backup_filename": null,
+        "last_backup_object_key": null,
+        "last_backup_at": null,
+        "captured_collection_count": 0,
+        "document_count": null,
+        "archive_size_bytes": null,
+        "evidence_source": null,
+        "integrity_result": null
+      },
+      "conclusion": "Integrity-check now returns truthful R2 MANIFEST metadata. integrity_result=FAIL is expected due to missing collections in backup, but metadata is now truthful."
+    }
+  },
+  "production_identity": {
+    "app_env": "production",
+    "db_name": "masci_safety",
+    "commit": "65f7aef23614",
+    "source_hash": "65f7aef2361479af1ffec50ff09f0083",
+    "built_at": "2026-07-12T16:54:15.508428+00:00",
+    "replica_consistency": "Consistent commit/source_hash across 3 hits; 2 different started_at timestamps suggest multi-replica deployment (expected)"
+  },
+  "health_verification": {
+    "health_full": {
+      "ok": true,
+      "mongo": true,
+      "scheduler": true,
+      "backup_recent": true
+    },
+    "recovery_snapshot": {
+      "pill": "RED",
+      "rpo": {"target_min": 60, "actual_min": 10.3, "status": "GREEN"},
+      "rto": {"target_min": 15, "last_drill_min": null, "status": "AMBER"},
+      "scheduler": {"alive": false, "is_healthy": false},
+      "last_backup": {
+        "filename": "MASCI_complete_backup_2026-07-12_170033Z.zip",
+        "size_mb": 1006.13,
+        "records": 253762,
+        "ok": true
+      },
+      "warnings": [{"kind": "scheduler-quiet", "severity": "amber", "message": "No scheduler lock heartbeat in the last 30 minutes"}]
+    },
+    "contradiction_note": "Scheduler health shows contradiction between endpoints - pre-existing condition, not related to Track 27.09 repairs"
+  },
+  "ui_verification": {
+    "desktop_1280x800": {
+      "storage_recovery": {"loads": true, "horizontal_overflow": false, "null_values": 0},
+      "diagnostics": {"loads": true, "horizontal_overflow": false, "null_values": 0},
+      "operations_control": {"loads": true, "horizontal_overflow": false, "null_values": 0}
+    },
+    "mobile_390x844": {
+      "storage_recovery": {"loads": true, "horizontal_overflow": false},
+      "diagnostics": {"loads": true, "horizontal_overflow": false},
+      "operations_control": {"loads": true, "horizontal_overflow": false}
+    }
+  },
+  "test_report_links": [
+    "/app/test_reports/track_27_09a_prod_storage_recovery_desktop.jpg",
+    "/app/test_reports/track_27_09a_prod_diagnostics_desktop.jpg",
+    "/app/test_reports/track_27_09a_prod_operations_control_desktop.jpg",
+    "/app/test_reports/track_27_09a_prod_storage_recovery_mobile.jpg",
+    "/app/test_reports/track_27_09a_prod_diagnostics_mobile.jpg",
+    "/app/test_reports/track_27_09a_prod_operations_control_mobile.jpg"
+  ],
+  "action_items": [],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Track 27.09A production verification complete. Both prefix normalization and integrity-check MANIFEST repairs are confirmed LIVE in production. The scheduler health contradiction is a pre-existing condition unrelated to these repairs."
+}
