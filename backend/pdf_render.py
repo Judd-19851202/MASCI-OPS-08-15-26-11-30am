@@ -448,7 +448,7 @@ def _render_weather_fact_block(d: Dict[str, Any]) -> str:
 
 def _section(title: str, body_html: str) -> str:
     return (
-        f'<section class="sec">'
+        f'<section class="sec page-safe">'
         f'<div class="sec-t">{escape(title)}</div>'
         f"{body_html}"
         "</section>"
@@ -482,8 +482,8 @@ def _photos_block(photos: Optional[List[str]]) -> str:
     if not cells:
         return ""
     groups = []
-    for i in range(0, len(cells), 6):
-        groups.append(f'<div class="photos page-safe">{"".join(cells[i:i+6])}</div>')
+    for i in range(0, len(cells), 8):
+        groups.append(f'<div class="photos page-safe">{"".join(cells[i:i+8])}</div>')
     return "".join(groups)
 
 
@@ -503,7 +503,7 @@ def _signature(label: str, sig: Optional[str], name: str = "") -> str:
         if not src:
             return ""
     return (
-        f'<div class="sig">'
+        f'<div class="sig page-safe">'
         f'<div class="sig-img"><img src="{src}" /></div>'
         f'<div class="sig-meta"><span class="sig-label">{escape(label)}</span>'
         f"{(' · ' + escape(name)) if name else ''}</div>"
@@ -953,6 +953,13 @@ def _render_daily(d: Dict[str, Any]) -> str:
     _dispatch_rows = _extras["dispatch_rows"]
     _excavation_rows = _extras["excavation_rows"]
 
+    def _display_unit(row: Dict[str, Any]) -> str:
+        custom = (row.get("custom_unit_label") or row.get("unit_snapshot") or "").strip()
+        unit = (row.get("unit") or "").strip()
+        if unit == "OTHER":
+            return custom or "OTHER"
+        return custom or unit
+
     # ── R-PDF-1 + R-PDF-2 · Executive Summary Card (page 1, before 01) ──
     _badge = _safe_day_badge(d)
     _summary_lines = _exec_summary_lines(d, _dispatch_rows, _excavation_rows)
@@ -1225,11 +1232,18 @@ def _render_daily(d: Dict[str, Any]) -> str:
             _section(
                 "07 · Equipment Log",
                 _table(
-                    ["Unit / Equipment", "Hours Used", "Time Delivered", "Time Removed", "Notes"],
+                    ["Unit / Equipment", "Run Hours", "Idle Hours", "Time Delivered", "Time Removed", "Notes"],
                     [
                         [
-                            e.get("description") or e.get("name") or "",
-                            e.get("hours_used") or "",
+                            (
+                                e.get("description")
+                                or e.get("equipment_type")
+                                or e.get("name")
+                                or e.get("equipment_id")
+                                or ""
+                            ),
+                            e.get("hours_used") or e.get("run_time") or e.get("hours") or "",
+                            e.get("idle_hours") or e.get("idle_time") or "",
                             _fmt_time_12h(e.get("time_delivered")),
                             _fmt_time_12h(e.get("time_removed")),
                             e.get("notes") or "",
@@ -1256,7 +1270,7 @@ def _render_daily(d: Dict[str, Any]) -> str:
                 or m.get("vendor")
                 or ""
             )
-            _unit = m.get("unit_snapshot") or m.get("unit") or ""
+            _unit = _display_unit(m)
             body_rows.append([
                 m.get("description") or m.get("material") or m.get("name") or "",
                 m.get("quantity") or m.get("qty") or "",
@@ -1364,10 +1378,7 @@ def _render_daily(d: Dict[str, Any]) -> str:
         unit_totals: Dict[str, float] = {}
         for p in prods:
             unit_raw = (p.get("unit") or "").strip()
-            unit_label = unit_raw
-            if unit_raw == "OTHER":
-                custom = (p.get("custom_unit_label") or "").strip()
-                unit_label = custom or "OTHER"
+            unit_label = _display_unit(p)
             qty = p.get("quantity")
             try:
                 qty_num = float(qty) if qty not in (None, "") else 0.0
@@ -1376,9 +1387,7 @@ def _render_daily(d: Dict[str, Any]) -> str:
             if qty_num and unit_label:
                 unit_totals[unit_label] = unit_totals.get(unit_label, 0.0) + qty_num
             # Row render (existing behavior preserved).
-            unit_cell = unit_raw
-            if unit_raw == "OTHER" and p.get("custom_unit_label"):
-                unit_cell = f"OTHER · {p.get('custom_unit_label')}"
+            unit_cell = _display_unit(p)
             qty_str = "" if qty in (None, "", 0, 0.0) else str(qty)
             body_rows.append([
                 p.get("description") or "",
@@ -1511,7 +1520,7 @@ def _render_daily(d: Dict[str, Any]) -> str:
                     or o.get("carrier_name_snapshot")
                     or ""
                 )
-                _o_unit = o.get("unit_snapshot") or o.get("unit") or ""
+                _o_unit = _display_unit(o)
                 out_rows.append([
                     o.get("material") or o.get("description") or "",
                     o.get("quantity") if o.get("quantity") not in (None, "") else "",
@@ -1587,7 +1596,18 @@ def _render_daily(d: Dict[str, Any]) -> str:
         d.get("prepared_by") or "",
     )
     if sigs:
-        rows.append(_section("11 · Signature", sigs))
+        approved_meta = d.get("ai_accepted_summary_meta") or {}
+        sig_meta = ""
+        approved_by = (approved_meta.get("approved_by") or "").strip()
+        accepted_at = (approved_meta.get("accepted_at") or "").strip()
+        source = _fmt_intel_source(approved_meta)
+        if approved_by:
+            sig_meta += _kv("Executive Summary Approved By", approved_by)
+        if accepted_at:
+            sig_meta += _kv("Executive Summary Accepted At", accepted_at)
+        if source:
+            sig_meta += _kv("Executive Summary Source", source)
+        rows.append(_section("11 · Signature", sig_meta + sigs))
 
     return "".join(rows)
 
@@ -3141,10 +3161,10 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
   .photo {{ border: 1px solid #cbd5e1; border-radius: 2px;
             background: #f8fafc; height: 2.1in; overflow: hidden; break-inside: avoid; }}
   .photo img {{ width: 100%; height: 100%; object-fit: cover; }}
-  .sig {{ margin-bottom: 10px; }}
+  .sig {{ margin-bottom: 6px; }}
   .sig-img {{ border: 1px solid #cbd5e1; border-radius: 2px;
               background: #fff; padding: 4px; max-width: 240px; }}
-  .sig-img img {{ max-width: 100%; height: auto; }}
+  .sig-img img {{ max-width: 100%; max-height: 72px; width: auto; height: auto; }}
   .sig-meta {{ font-size: 8pt; color: #475569; margin-top: 3px;
                font-family: 'Courier New', monospace; letter-spacing: 0.12em;
                text-transform: uppercase; }}
@@ -3183,7 +3203,7 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
   <!-- Last-page only: safety disclaimer + ownership clarification.
        Renders after all body content, so it naturally lands on the
        final page of the record PDF (records are typically 1-2 pages). -->
-  <div class="last-page-legal" style="margin-top:0.4in;padding-top:8pt;
+  <div class="last-page-legal page-safe" style="margin-top:0.18in;padding-top:6pt;
        border-top:1px solid #cbd5e1;font-family:'Helvetica','Arial',sans-serif;
        font-size:8pt;color:#334155;line-height:1.45;font-style:italic;
        page-break-inside:avoid;">
@@ -3191,7 +3211,7 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
     support tool only and do not replace required safety supervision,
     inspections, or regulatory compliance responsibilities.
   </div>
-  <div style="margin-top:6pt;font-family:'Helvetica','Arial',sans-serif;
+  <div class="page-safe" style="margin-top:4pt;font-family:'Helvetica','Arial',sans-serif;
        font-size:7pt;color:#475569;page-break-inside:avoid;">
     mascidocs.com is a customer-branded deployment of a platform developed
     by ForgedOps LLC.

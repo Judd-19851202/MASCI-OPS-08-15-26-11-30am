@@ -61,10 +61,15 @@ class ProductionRow(BaseModel):
     quantity: float = 0.0                       # > 0 when row has substance
     unit: str = "OTHER"                         # free-text; normalized server-side
     custom_unit_label: Optional[str] = None     # only when unit does not map to a canonical code
+    unit_snapshot: Optional[str] = None         # UI-visible label/code kept for PDF/email parity
+    unit_code: Optional[str] = None             # UI helper preserved for audit/debug parity
     station_from: Optional[str] = None          # e.g. "12+50"
     station_to: Optional[str] = None            # e.g. "13+00"
     location: Optional[str] = None              # free-text fallback for non-station jobs
     notes: Optional[str] = None                 # ≤ 280 chars · voice or text
+    percent_complete: Optional[float] = None
+    activity_code: Optional[str] = None
+    cost_code_snapshot: Optional[str] = None
 
 
 # TRACK 26.02 · label → canonical code normalizer for production rows.
@@ -96,6 +101,20 @@ _UNIT_LABEL_TO_CODE = {
 _CANONICAL_UNIT_CODES = {"LF", "SY", "CY", "TON", "EA", "ACRE", "OTHER"}
 
 
+def _canonical_or_custom_unit_payload(row: Dict[str, Any]) -> Dict[str, Any]:
+    raw_unit = (row.get("unit") or "").strip()
+    snapshot = (row.get("unit_snapshot") or "").strip()
+    custom = (row.get("custom_unit_label") or "").strip()
+    if raw_unit in _CANONICAL_UNIT_CODES:
+        if snapshot and snapshot.upper() != raw_unit and not custom:
+            row["custom_unit_label"] = snapshot
+        return row
+    if snapshot and snapshot.upper() in _CANONICAL_UNIT_CODES and not raw_unit:
+        row["unit"] = snapshot.upper()
+        return row
+    return row
+
+
 def _normalize_unit(row: Dict[str, Any]) -> Dict[str, Any]:
     """Coerce ``row.unit`` to a canonical code. Preserve the original
     label as ``custom_unit_label`` when it does not map to a canonical
@@ -103,6 +122,7 @@ def _normalize_unit(row: Dict[str, Any]) -> Dict[str, Any]:
 
     Idempotent — safe to call multiple times.
     """
+    row = _canonical_or_custom_unit_payload(row)
     raw = (row.get("unit") or "").strip()
     if raw in _CANONICAL_UNIT_CODES:
         return row
@@ -501,6 +521,36 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
                 payload_dict["production"] = [
                     _normalize_unit(dict(r)) for r in (payload_dict.get("production") or [])
                 ]
+            except Exception:  # noqa: BLE001
+                pass
+            try:
+                payload_dict["materials"] = [
+                    _normalize_unit(dict(r)) for r in (payload_dict.get("materials") or [])
+                ]
+            except Exception:  # noqa: BLE001
+                pass
+            try:
+                payload_dict["outbound_materials"] = [
+                    _normalize_unit(dict(r)) for r in (payload_dict.get("outbound_materials") or [])
+                ]
+            except Exception:  # noqa: BLE001
+                pass
+            try:
+                normalized_equipment = []
+                for r in (payload_dict.get("equipment") or []):
+                    row = dict(r)
+                    run = row.get("run_time")
+                    idle = row.get("idle_time")
+                    if run not in (None, "") and row.get("hours_used") in (None, ""):
+                        row["hours_used"] = run
+                    if idle not in (None, "") and row.get("idle_hours") in (None, ""):
+                        row["idle_hours"] = idle
+                    if row.get("run_time") in (None, "") and row.get("hours_used") not in (None, ""):
+                        row["run_time"] = row.get("hours_used")
+                    if row.get("idle_time") in (None, "") and row.get("idle_hours") not in (None, ""):
+                        row["idle_time"] = row.get("idle_hours")
+                    normalized_equipment.append(row)
+                payload_dict["equipment"] = normalized_equipment
             except Exception:  # noqa: BLE001
                 pass
             try:

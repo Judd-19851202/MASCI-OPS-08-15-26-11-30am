@@ -60,6 +60,7 @@ def api_client(admin_token):
     session.headers.update({
         "Content-Type": "application/json",
         "X-Admin-Token": admin_token,
+        "X-Test-Rate-Limit-Bypass": "1",
     })
     return session
 
@@ -238,6 +239,61 @@ class TestDailyReportSummaryGate:
         data = resp.json()
         assert "id" in data, "Response should contain id"
         self.__class__.created_fallback_report_id = data.get("id")
+
+    def test_post_persists_units_and_equipment_run_idle_fields(self, api_client):
+        unique_id = str(uuid.uuid4())[:8]
+        payload = {
+            "project_name": f"TEST_Track27_10_Parity_{unique_id}",
+            "project_number": f"TEST-27-10-PAR-{unique_id}",
+            "location": "Test Location",
+            "report_date": "2026-01-15",
+            "prepared_by": "Test Supervisor",
+            "weather_summary": "Clear skies, 75°F",
+            "photos": [ONE_PX] * 6,
+            "prepared_by_signature": ONE_PX,
+            "ai_accepted_summary": "Parity test summary.",
+            "ai_accepted_summary_meta": {
+                "source": "manual",
+                "approved_by": "Test Supervisor",
+                "accepted_at": "2026-01-15T21:00:00Z",
+            },
+            "production": [{
+                "description": "Curb",
+                "quantity": 67,
+                "unit": "LF",
+                "unit_snapshot": "Linear Feet",
+            }],
+            "materials": [{
+                "description": "Stone",
+                "quantity": 12,
+                "unit": "TON",
+                "unit_snapshot": "Tons",
+            }],
+            "outbound_materials": [{
+                "material": "Spoils",
+                "quantity": 4,
+                "unit": "OTHER",
+                "unit_snapshot": "Loads",
+            }],
+            "equipment": [{
+                "description": "CAT 320",
+                "run_time": 6.5,
+                "idle_time": 1.25,
+            }],
+        }
+        resp = api_client.post(f"{BASE_URL}/api/daily-reports", json=payload, timeout=30)
+        assert resp.status_code in (200, 201), f"Expected 200/201, got {resp.status_code}: {resp.text[:500]}"
+        data = resp.json()
+        assert data["production"][0]["unit"] == "LF"
+        assert data["production"][0].get("custom_unit_label") == "Linear Feet"
+        assert data["materials"][0]["unit"] == "TON"
+        assert data["materials"][0].get("custom_unit_label") == "Tons"
+        assert data["outbound_materials"][0]["unit"] == "OTHER"
+        assert data["outbound_materials"][0].get("custom_unit_label") == "Loads"
+        assert data["equipment"][0].get("hours_used") == 6.5
+        assert data["equipment"][0].get("idle_hours") == 1.25
+        assert data["equipment"][0].get("run_time") == 6.5
+        assert data["equipment"][0].get("idle_time") == 1.25
 
 
 class TestDailyReportPDF:

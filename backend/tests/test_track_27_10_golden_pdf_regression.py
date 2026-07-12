@@ -126,7 +126,7 @@ def test_golden_pdf_structural_lock(tmp_path: Path):
     assert "manual" in full.lower() or "supervisor accepted" in full.lower()
     assert "29.4241, -98.4936" in full
     assert full.count("Light rain") >= 1
-    assert full.count("Weather") >= 1
+    assert full.count("WEATHER") >= 1
     assert "Page 1 of" in full or "PAGE 1 OF" in full
 
 
@@ -143,16 +143,16 @@ def test_golden_pdf_section_order_and_single_weather_block(tmp_path: Path):
     reader, _ = _reader(tmp_path)
     full = "\n".join((page.extract_text() or "") for page in reader.pages)
     order = [
-        "01 · Project Information",
-        "03 · General Information",
-        "04 · MASCI Crews on Site",
-        "05 · Subcontractors",
-        "06 · Visitors",
-        "07 · Equipment Log",
-        "09a · Activity Progress",
-        "09b · Production Quantities",
-        "10 · Photos",
-        "11 · Signature",
+        "01 · PROJECT INFORMATION",
+        "03 · GENERAL INFORMATION",
+        "04 · MASCI CREWS ON SITE",
+        "05 · SUBCONTRACTORS",
+        "06 · VISITORS",
+        "07 · EQUIPMENT LOG",
+        "09A · ACTIVITY PROGRESS",
+        "09B · PRODUCTION QUANTITIES",
+        "10 · PHOTOS",
+        "11 · SIGNATURE",
     ]
     last = -1
     for marker in order:
@@ -161,3 +161,15 @@ def test_golden_pdf_section_order_and_single_weather_block(tmp_path: Path):
         assert idx > last, f"section order broke at {marker}"
         last = idx
     assert full.count("GPS 29.4241, -98.4936") == 1
+
+
+def test_golden_pdf_equipment_and_signature_parity(tmp_path: Path):
+    reader, _ = _reader(tmp_path)
+    full = "\n".join((page.extract_text() or "") for page in reader.pages)
+
+    assert "Excavator" in full and "Water Truck" in full
+    assert "RUN HOURS" in full and "IDLE HOURS" in full
+    assert "EXECUTIVE SUMMARY APPROVED" in full
+    assert "EXECUTIVE SUMMARY ACCEPTED" in full
+    assert "EXECUTIVE SUMMARY SOURCE" in full
+    assert full.count("11 · SIGNATURE") == 1

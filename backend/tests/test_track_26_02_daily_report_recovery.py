@@ -59,7 +59,12 @@ def _payload(**overrides):
 
 def _post(payload):
     try:
-        return requests.post(POST_URL, json=payload, timeout=15)
+        return requests.post(
+            POST_URL,
+            json=payload,
+            timeout=15,
+            headers={"X-Test-Rate-Limit-Bypass": "1"},
+        )
     except requests.RequestException as e:  # pragma: no cover
         pytest.skip(f"Backend not reachable: {e}")
 
@@ -122,6 +127,27 @@ def test_constraint_row_ignores_ui_helper_fields():
     assert r.status_code == 200, (
         f"TRACK 26.02 · constraint UI helper fields must not 422. "
         f"Got {r.status_code}: {r.text[:400]}"
+    )
+
+
+def test_material_and_outbound_units_accept_canonical_codes_and_labels():
+    r = _post(_payload(
+        materials=[{"description": "Rock", "quantity": 10, "unit": "TON", "unit_snapshot": "Tons"}],
+        outbound_materials=[{"material": "Spoils", "quantity": 6, "unit": "OTHER", "unit_snapshot": "Loads"}],
+    ))
+    assert r.status_code == 200, (
+        f"TRACK 27.10F · material/outbound unit parity must submit cleanly. Got {r.status_code}: {r.text[:400]}"
+    )
+
+
+def test_equipment_run_idle_aliases_are_accepted():
+    r = _post(_payload(equipment=[{
+        "description": "CAT 320",
+        "run_time": 6.5,
+        "idle_time": 1.25,
+    }]))
+    assert r.status_code == 200, (
+        f"TRACK 27.10F · equipment run/idle aliases must be accepted. Got {r.status_code}: {r.text[:400]}"
     )
 
 
@@ -212,6 +238,31 @@ def test_unit_combo_dropdown_codes_match_backend_literals():
         f"backend canonical set: {orphans}. Every dropdown code must "
         "resolve to a backend-accepted canonical code (or 'OTHER')."
     )
+
+
+def test_unit_combo_uses_searchable_code_label_entries():
+    src = UNIT_COMBO_JS.read_text(encoding="utf-8")
+    assert 'value={`${u.code} — ${u.label}`}' in src, (
+        "TRACK 27.10F · unit dropdown must show searchable code+label entries."
+    )
+    assert "resolveMatch" in src and "u.search" in src, (
+        "TRACK 27.10F · unit combo must resolve typed code/label synonyms consistently."
+    )
+
+
+def test_numeric_fields_use_zero_replacement_helpers():
+    src = Path("/app/frontend/src/components/daily-report-v3/sections.jsx").read_text(encoding="utf-8")
+    assert "function normalizeNumericInputValue" in src
+    assert "function numberInputProps" in src
+    assert "e.target.select()" in src, (
+        "TRACK 27.10F · numeric inputs must select the default zero for first-keypress replacement."
+    )
+
+
+def test_equipment_run_idle_fields_are_written_both_ways():
+    src = Path("/app/frontend/src/components/daily-report-v3/sections.jsx").read_text(encoding="utf-8")
+    assert "run_time: runValue" in src
+    assert "idle_time: idleValue" in src
 
 
 # ── D-09 · submit toast surfaces Pydantic detail ─────────────────

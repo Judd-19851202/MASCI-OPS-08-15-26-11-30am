@@ -10,20 +10,13 @@ import { useT } from "@/lib/i18n";
 // value is the canonical code. Free-text units continue to work
 // because a `<datalist>` is not a `<select>`.
 export const DEFAULT_MATERIAL_UNITS = [
-  { code: "TON",  label: "Tons" },
-  { code: "CY",   label: "Cubic Yards" },
-  { code: "LF",   label: "Linear Feet" },
-  { code: "SY",   label: "Square Yards" },
-  { code: "EA",   label: "Each" },
-  { code: "ACRE", label: "Acres" },
-  { code: "OTHER", label: "Loads" },
-  { code: "OTHER", label: "Truckloads" },
-  { code: "OTHER", label: "Gallons" },
-  { code: "OTHER", label: "Square Feet" },
-  { code: "OTHER", label: "Cubic Feet" },
-  { code: "OTHER", label: "Bag" },
-  { code: "OTHER", label: "Pair" },
-  { code: "OTHER", label: "Lot" },
+  { code: "LF", label: "Linear Feet", search: ["LF", "Linear Feet", "Linear Foot", "Linear Ft"] },
+  { code: "SY", label: "Square Yards", search: ["SY", "Square Yards", "Square Yard", "Sq Yd"] },
+  { code: "CY", label: "Cubic Yards", search: ["CY", "Cubic Yards", "Cubic Yard", "Cu Yd"] },
+  { code: "TON", label: "Tons", search: ["TON", "Tons", "Ton"] },
+  { code: "EA", label: "Each", search: ["EA", "Each"] },
+  { code: "ACRE", label: "Acres", search: ["ACRE", "Acres", "Acre"] },
+  { code: "OTHER", label: "Loads", search: ["Loads", "Load", "Truckloads", "Gallons", "Square Feet", "Cubic Feet", "Bag", "Pair", "Lot"] },
 ];
 
 let _idSeed = 0;
@@ -44,15 +37,18 @@ export function UnitCombo({
   const listId = useDatalistId("dr-v3-unit");
   const ph = placeholder != null ? placeholder : t("Unit");
 
+  const resolveMatch = (raw) => {
+    const needle = (raw || "").trim().toLowerCase();
+    if (!needle) return null;
+    return DEFAULT_MATERIAL_UNITS.find((u) =>
+      [u.code, u.label, ...(u.search || [])].some((token) => token.toLowerCase() === needle),
+    ) || null;
+  };
+
   const handleChange = (e) => {
     const raw = e.target.value;
     onChange?.(raw);
-    // If the user picked a preset (matches a label or code), notify.
-    const match = DEFAULT_MATERIAL_UNITS.find(
-      (u) =>
-        u.label.toLowerCase() === raw.toLowerCase() ||
-        u.code.toLowerCase() === raw.toLowerCase(),
-    );
+    const match = resolveMatch(raw);
     if (match) onPick?.(match);
   };
 
@@ -74,8 +70,8 @@ export function UnitCombo({
       />
       <datalist id={listId}>
         {DEFAULT_MATERIAL_UNITS.map((u) => (
-          <option key={u.code} value={u.label}>
-            {u.code}
+          <option key={`${u.code}-${u.label}`} value={`${u.code} — ${u.label}`}>
+            {(u.search || []).join(" · ")}
           </option>
         ))}
       </datalist>

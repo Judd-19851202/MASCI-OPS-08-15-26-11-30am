@@ -23,6 +23,80 @@ import { fetchHrRoster } from "@/lib/hrRoster";
 import { resolveEmployeeByTypedName, pickHrFields } from "@/lib/hrAutofill";
 import { Link } from "react-router-dom";
 import { useT } from "@/lib/i18n";
+import { DEFAULT_MATERIAL_UNITS } from "@/components/daily-report-v3/UnitCombo";
+
+function normalizeNumericInputValue(raw) {
+  if (raw == null) return "";
+  const value = String(raw);
+  if (/^-?0\d+/.test(value) && !/^0\./.test(value)) {
+    return value.replace(/^(-?)0+(\d)/, "$1$2");
+  }
+  return value;
+}
+
+function parseNumericField(raw, { integer = false, min = null, max = null } = {}) {
+  if (raw === "") return "";
+  const parsed = integer ? parseInt(raw, 10) : parseFloat(raw);
+  let next = Number.isFinite(parsed) ? parsed : 0;
+  if (min != null) next = Math.max(min, next);
+  if (max != null) next = Math.min(max, next);
+  return next;
+}
+
+function numberInputProps(value) {
+  return {
+    value: value ?? "",
+    onFocus: (e) => {
+      if (String(e.target.value) === "0") e.target.select();
+    },
+    onClick: (e) => {
+      if (String(e.target.value) === "0") e.target.select();
+    },
+  };
+}
+
+function resolveUnitDraftValue(row) {
+  const custom = (row?.custom_unit_label || row?.unit_snapshot || "").trim();
+  const unit = (row?.unit || "").trim();
+  if (unit === "OTHER") return custom || "OTHER";
+  return custom || unit;
+}
+
+function applyPickedUnit(row, picked) {
+  if (!picked) return row;
+  const isOther = picked.code === "OTHER";
+  return {
+    ...row,
+    unit: picked.code,
+    unit_code: picked.code,
+    unit_snapshot: picked.label,
+    custom_unit_label: isOther ? picked.label : "",
+  };
+}
+
+function applyTypedUnit(row, raw) {
+  const typed = (raw || "").trim();
+  if (!typed) {
+    return {
+      ...row,
+      unit: "",
+      unit_code: "",
+      unit_snapshot: "",
+      custom_unit_label: "",
+    };
+  }
+  const exact = DEFAULT_MATERIAL_UNITS.find((u) =>
+    [u.code, u.label, ...(u.search || [])].some((token) => token.toLowerCase() === typed.toLowerCase()),
+  );
+  if (exact) return applyPickedUnit(row, exact);
+  return {
+    ...row,
+    unit: typed.toUpperCase(),
+    unit_code: "",
+    unit_snapshot: typed,
+    custom_unit_label: "",
+  };
+}
 
 // ── Shared section shell ──────────────────────────────────────────
 export function SectionShell({ step, title, testId, right = null, children }) {
@@ -302,11 +376,13 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                     min="0"
                     step="5"
                     placeholder="0"
-                    value={c.lunch_minutes ?? ""}
+                    {...numberInputProps(c.lunch_minutes)}
                     onChange={(e) =>
                       updateCrew(i, {
-                        lunch_minutes:
-                          e.target.value === "" ? "" : Math.max(0, parseInt(e.target.value, 10) || 0),
+                        lunch_minutes: parseNumericField(normalizeNumericInputValue(e.target.value), {
+                          integer: true,
+                          min: 0,
+                        }),
                       })
                     }
                     className="rounded-md border border-slate-300 px-2 py-2 text-sm"
@@ -319,10 +395,13 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                     type="number"
                     step="0.25"
                     min="0"
-                    value={c.hours ?? ""}
+                    {...numberInputProps(c.hours)}
                     onChange={(e) => {
                       const next = crews.slice();
-                      next[i] = { ...c, hours: parseFloat(e.target.value) || 0 };
+                      next[i] = {
+                        ...c,
+                        hours: parseNumericField(normalizeNumericInputValue(e.target.value), { min: 0 }),
+                      };
                       patch({ masci_crews: next });
                     }}
                     className="rounded-md border border-slate-300 bg-slate-50 px-2 py-2 text-sm font-medium"
@@ -481,12 +560,14 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                   step="0.25"
                   min="0"
                   placeholder="0.00"
-                  value={e.hours_used ?? ""}
+                  {...numberInputProps(e.hours_used)}
                   onChange={(ev) => {
+                    const runValue = parseNumericField(normalizeNumericInputValue(ev.target.value), { min: 0 });
                     const next = equipment.slice();
                     next[i] = {
                       ...e,
-                      hours_used: Math.max(0, parseFloat(ev.target.value) || 0),
+                      hours_used: runValue,
+                      run_time: runValue,
                     };
                     patch({ equipment: next });
                   }}
@@ -501,12 +582,14 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                   step="0.25"
                   min="0"
                   placeholder="0.00"
-                  value={e.idle_hours ?? ""}
+                  {...numberInputProps(e.idle_hours)}
                   onChange={(ev) => {
+                    const idleValue = parseNumericField(normalizeNumericInputValue(ev.target.value), { min: 0 });
                     const next = equipment.slice();
                     next[i] = {
                       ...e,
-                      idle_hours: Math.max(0, parseFloat(ev.target.value) || 0),
+                      idle_hours: idleValue,
+                      idle_time: idleValue,
                     };
                     patch({ equipment: next });
                   }}
@@ -704,12 +787,15 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                   type="number"
                   min="0"
                   step="1"
-                  value={s.count ?? ""}
+                    {...numberInputProps(s.count)}
                   onChange={(ev) => {
                     const next = subs.slice();
                     next[i] = {
                       ...s,
-                      count: Math.max(0, parseInt(ev.target.value, 10) || 0),
+                        count: parseNumericField(normalizeNumericInputValue(ev.target.value), {
+                          integer: true,
+                          min: 0,
+                        }),
                     };
                     patch({ subcontractors: next });
                   }}
@@ -723,12 +809,12 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
                   type="number"
                   min="0"
                   step="0.25"
-                  value={s.hours ?? ""}
+                    {...numberInputProps(s.hours)}
                   onChange={(ev) => {
                     const next = subs.slice();
                     next[i] = {
                       ...s,
-                      hours: Math.max(0, parseFloat(ev.target.value) || 0),
+                        hours: parseNumericField(normalizeNumericInputValue(ev.target.value), { min: 0 }),
                     };
                     patch({ subcontractors: next });
                   }}
@@ -861,25 +947,28 @@ export function SectionWorkProduction({ data, patch, costCodes }) {
                 type="number"
                 step="0.01"
                 placeholder={t("Qty")}
-                value={p.quantity ?? ""}
+                {...numberInputProps(p.quantity)}
                 onChange={(e) => {
                   const next = prod.slice();
-                  next[i] = { ...p, quantity: parseFloat(e.target.value) || 0 };
+                  next[i] = {
+                    ...p,
+                    quantity: parseNumericField(normalizeNumericInputValue(e.target.value), { min: 0 }),
+                  };
                   patch({ production: next });
                 }}
                 className="w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm"
                 data-testid={`dr-v3-prod-qty-${i}`}
               />
               <UnitCombo
-                value={p.unit || ""}
+                value={resolveUnitDraftValue(p)}
                 onChange={(v) => {
                   const next = prod.slice();
-                  next[i] = { ...p, unit: v, unit_snapshot: v };
+                  next[i] = applyTypedUnit(p, v);
                   patch({ production: next });
                 }}
                 onPick={(u) => {
                   const next = prod.slice();
-                  next[i] = { ...p, unit: u.label, unit_snapshot: u.label, unit_code: u.code };
+                  next[i] = applyPickedUnit(p, u);
                   patch({ production: next });
                 }}
                 testId={`dr-v3-prod-unit-${i}`}
@@ -928,10 +1017,14 @@ export function SectionWorkProduction({ data, patch, costCodes }) {
                 max="100"
                 step="1"
                 placeholder={t("% complete")}
-                value={p.percent_complete ?? ""}
+                {...numberInputProps(p.percent_complete)}
                 onChange={(e) => {
                   const next = prod.slice();
-                  const v = e.target.value === "" ? "" : Math.max(0, Math.min(100, parseInt(e.target.value, 10) || 0));
+                  const v = parseNumericField(normalizeNumericInputValue(e.target.value), {
+                    integer: true,
+                    min: 0,
+                    max: 100,
+                  });
                   next[i] = { ...p, percent_complete: v };
                   patch({ production: next });
                 }}
@@ -1022,25 +1115,28 @@ export function SectionMaterials({ data, patch, costCodes }) {
                 type="number"
                 step="0.01"
                 placeholder={t("Qty")}
-                value={m.quantity ?? ""}
+                {...numberInputProps(m.quantity)}
                 onChange={(e) => {
                   const next = mats.slice();
-                  next[i] = { ...m, quantity: parseFloat(e.target.value) || 0 };
+                  next[i] = {
+                    ...m,
+                    quantity: parseNumericField(normalizeNumericInputValue(e.target.value), { min: 0 }),
+                  };
                   patch({ materials: next });
                 }}
                 className="w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm"
                 data-testid={`dr-v3-mat-qty-${i}`}
               />
               <UnitCombo
-                value={m.unit || ""}
+                value={resolveUnitDraftValue(m)}
                 onChange={(v) => {
                   const next = mats.slice();
-                  next[i] = { ...m, unit: v, unit_snapshot: v };
+                  next[i] = applyTypedUnit(m, v);
                   patch({ materials: next });
                 }}
                 onPick={(u) => {
                   const next = mats.slice();
-                  next[i] = { ...m, unit: u.label, unit_snapshot: u.label, unit_code: u.code };
+                  next[i] = applyPickedUnit(m, u);
                   patch({ materials: next });
                 }}
                 testId={`dr-v3-mat-unit-${i}`}
@@ -1165,25 +1261,28 @@ export function SectionMaterials({ data, patch, costCodes }) {
                 type="number"
                 step="0.01"
                 placeholder={t("Qty")}
-                value={o.quantity ?? ""}
+                {...numberInputProps(o.quantity)}
                 onChange={(e) => {
                   const next = outs.slice();
-                  next[i] = { ...o, quantity: parseFloat(e.target.value) || 0 };
+                  next[i] = {
+                    ...o,
+                    quantity: parseNumericField(normalizeNumericInputValue(e.target.value), { min: 0 }),
+                  };
                   patch({ outbound_materials: next });
                 }}
                 className="w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm"
                 data-testid={`dr-v3-out-qty-${i}`}
               />
               <UnitCombo
-                value={o.unit || ""}
+                value={resolveUnitDraftValue(o)}
                 onChange={(v) => {
                   const next = outs.slice();
-                  next[i] = { ...o, unit: v, unit_snapshot: v };
+                  next[i] = applyTypedUnit(o, v);
                   patch({ outbound_materials: next });
                 }}
                 onPick={(u) => {
                   const next = outs.slice();
-                  next[i] = { ...o, unit: u.label, unit_snapshot: u.label, unit_code: u.code };
+                  next[i] = applyPickedUnit(o, u);
                   patch({ outbound_materials: next });
                 }}
                 testId={`dr-v3-out-unit-${i}`}
@@ -1412,10 +1511,13 @@ export function SectionImpactSafety({ data, patch }) {
                       type="number"
                       step="0.25"
                       placeholder={t("Hrs")}
-                      value={c.hours_impact ?? ""}
+                      {...numberInputProps(c.hours_impact)}
                       onChange={(e) => {
                         const next = constraints.slice();
-                        next[i] = { ...c, hours_impact: parseFloat(e.target.value) || 0 };
+                        next[i] = {
+                          ...c,
+                          hours_impact: parseNumericField(normalizeNumericInputValue(e.target.value), { min: 0 }),
+                        };
                         patch({ constraints: next });
                       }}
                       className="rounded-md border border-slate-300 px-2 py-1 text-sm"
