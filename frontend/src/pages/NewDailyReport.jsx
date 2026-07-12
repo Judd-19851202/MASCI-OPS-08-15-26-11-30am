@@ -53,7 +53,6 @@ import { getFlUser, getFlToken } from "@/lib/flAuth";
 import { isAdmin } from "@/lib/adminAuth";
 import { translateUserInput } from "@/lib/translateOnSubmit";
 import { toast } from "sonner";
-import DailyOperationalSummarySection from "@/components/daily-report/DailyOperationalSummarySection";
 // TRACK 22.9A · non-blocking AI summary assist wired into V1.
 import DailySummaryAssist from "@/components/daily-report/DailySummaryAssist";
 import {
@@ -363,6 +362,7 @@ function NewDailyReportInner({ publicMode = false }) {
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
   const [fetchingWeather, setFetchingWeather] = useState(false);
+  const [summaryGate, setSummaryGate] = useState({ canSubmit: false, manualNeeded: false });
   // Phase 6 · WS2/WS3 — submit-attempt flag for attentionOpen on collapsed
   // sections that have unresolved signal-driven detail.
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
@@ -849,6 +849,10 @@ function NewDailyReportInner({ publicMode = false }) {
           ...p,
           weather_summary: w.summary,
           weather_snapshots: w.snapshots,
+          weather_snapshot_meta: {
+            ...(w?.meta || {}),
+            fetched_at_iso: w?.fetched_at_iso || new Date().toISOString(),
+          },
         }));
         toast.success("Weather loaded");
       } catch (we) {
@@ -880,6 +884,10 @@ function NewDailyReportInner({ publicMode = false }) {
         ...p,
         weather_summary: w.summary,
         weather_snapshots: w.snapshots,
+        weather_snapshot_meta: {
+          ...(w?.meta || {}),
+          fetched_at_iso: w?.fetched_at_iso || new Date().toISOString(),
+        },
       }));
       toast.success("Weather updated");
     } catch (e) {
@@ -1019,6 +1027,14 @@ function NewDailyReportInner({ publicMode = false }) {
           (data.photos || []).length
         })`
       );
+      return false;
+    }
+    if (!(data.ai_accepted_summary || "").trim()) {
+      toast.error("Approve an executive summary before submitting this Daily Report");
+      return false;
+    }
+    if (!(data.ai_accepted_summary_meta?.accepted_at || "").trim()) {
+      toast.error("The approved executive summary is missing approval metadata");
       return false;
     }
     // Phase 10A-B · OMEGA Correction 1 — Excavation activity gate.
@@ -1294,7 +1310,7 @@ function NewDailyReportInner({ publicMode = false }) {
             <LangToggle />
             <Button
               onClick={submit}
-              disabled={saving}
+              disabled={saving || !(data.ai_accepted_summary || "").trim()}
               className="h-11 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
               data-testid="submit-top-btn"
             >
@@ -1303,7 +1319,7 @@ function NewDailyReportInner({ publicMode = false }) {
               ) : (
                 <Save className="w-4 h-4 mr-1" />
               )}
-              {t("Submit")}
+              {(data.ai_accepted_summary || "").trim() ? t("Submit") : t("Approve Summary")}
             </Button>
           </div>
         </div>
@@ -2874,20 +2890,12 @@ function NewDailyReportInner({ publicMode = false }) {
           />
         </Section>
 
-        {/* DR-CUTOVER-002 · Daily Operational Summary (optional; never blocks submit). */}
-        <DailyOperationalSummarySection data={data} set={set} t={t} />
-
-        {/* TRACK 22.9A · Draft Summary — non-blocking AI-assist. Never
-            blocks typing or submit. If the assist is unavailable a
-            deterministic fallback appears. Accepted text is copied
-            onto data.ai_accepted_summary for downstream consumers.
-            Accepted metadata (source, provider masked, evidence refs,
-            latency) lands on data.ai_accepted_summary_meta and flows
-            into the ODS spine as `day_summary_fact`. */}
+        {/* TRACK 27.10 · Hard executive-summary submission gate. */}
         <div className="mt-4">
           <DailySummaryAssist
             data={data}
             reportNumber={data.report_number}
+            onStateChange={setSummaryGate}
             onAccept={(text, meta) => {
               set("ai_accepted_summary", text);
               set("ai_accepted_summary_meta", meta || null);
@@ -2946,7 +2954,11 @@ function NewDailyReportInner({ publicMode = false }) {
               {drCompletionTone === "rose" ? t("Attention") : t("Status")}
             </span>
             <div className="flex-1 leading-snug">
-              {drCompletionLabel}
+              {!(data.ai_accepted_summary || "").trim()
+                ? (summaryGate.manualNeeded
+                    ? t("Submission blocked · reject AI and approve your manual summary to continue")
+                    : t("Submission blocked · approve one executive summary before continuing"))
+                : drCompletionLabel}
               {drAttentionItems.length > 0 && (
                 <div className="text-xs mt-1">
                   {t("Complete the highlighted section or mark it not used today.")}
@@ -2984,7 +2996,7 @@ function NewDailyReportInner({ publicMode = false }) {
           )}
           <Button
             onClick={submit}
-            disabled={saving || photosCount < photoMin}
+            disabled={saving || photosCount < photoMin || !(data.ai_accepted_summary || "").trim()}
             aria-busy={saving}
             className="w-full h-16 bg-red-700 hover:bg-red-800 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold uppercase tracking-wide text-base sm:text-lg border-b-4 border-red-900 disabled:border-slate-400"
             data-testid="submit-bottom-btn"
@@ -2993,6 +3005,10 @@ function NewDailyReportInner({ publicMode = false }) {
               <>
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />{" "}
                 {t("Saving Report...")}
+              </>
+            ) : !(data.ai_accepted_summary || "").trim() ? (
+              <>
+                <Save className="w-5 h-5 mr-2" /> {t("Approve summary to submit")}
               </>
             ) : photosCount < photoMin ? (
               <>
@@ -3022,13 +3038,15 @@ function NewDailyReportInner({ publicMode = false }) {
           <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 hidden sm:block">
             {saving
               ? t("Submitting daily report…")
+              : !(data.ai_accepted_summary || "").trim()
+                ? t("Executive summary approval required")
               : photosCount < photoMin
                 ? `${t("Need")} ${photoMin - photosCount} ${t("more photo(s)")}`
                 : t("Ready to submit · PM distribution will send")}
           </div>
           <Button
             onClick={submit}
-            disabled={saving || photosCount < photoMin}
+            disabled={saving || photosCount < photoMin || !(data.ai_accepted_summary || "").trim()}
             className="ml-auto h-12 px-6 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900 disabled:opacity-60"
             data-testid="submit-sticky-btn"
           >
@@ -3037,7 +3055,7 @@ function NewDailyReportInner({ publicMode = false }) {
             ) : (
               <Save className="w-4 h-4 mr-2" />
             )}
-            {saving ? t("Saving…") : t("Submit Daily Report")}
+            {saving ? t("Saving…") : ((data.ai_accepted_summary || "").trim() ? t("Submit Daily Report") : t("Approve summary first"))}
           </Button>
         </div>
       </div>

@@ -414,12 +414,33 @@ def _render_intelligence_section(d: Dict[str, Any]) -> str:
                 f'margin-bottom:4px;">{joined}</div>'
             )
 
-    return (
-        '<div style="margin-top:8px;padding-top:6px;'
-        'border-top:1px dashed #ccc;">'
-        + "".join(parts)
-        + "</div>"
-    )
+    return "".join(parts)
+
+
+def _render_weather_fact_block(d: Dict[str, Any]) -> str:
+    meta = d.get("weather_snapshot_meta") or {}
+    if not meta and not (d.get("weather_snapshots") or []):
+        return _kv("Weather", d.get("weather_summary"))
+
+    rows = []
+    if d.get("weather_summary"):
+        rows.append(("Weather", d.get("weather_summary")))
+    if meta.get("temperature_min_f") is not None or meta.get("temperature_max_f") is not None:
+        rows.append(("Temperature", f'{meta.get("temperature_min_f", "—")}–{meta.get("temperature_max_f", "—")}°F'))
+    if meta.get("humidity_avg_pct") is not None:
+        rows.append(("Humidity", f'{meta.get("humidity_avg_pct")}% avg'))
+    if meta.get("wind_max_mph") is not None or meta.get("wind_gust_max_mph") is not None:
+        rows.append(("Wind / Gusts", f'{meta.get("wind_max_mph", "—")} mph / {meta.get("wind_gust_max_mph", "—")} mph'))
+    if meta.get("precipitation_total_in") is not None:
+        rows.append(("Precipitation", f'{float(meta.get("precipitation_total_in") or 0):.2f} in'))
+    if meta.get("peak_condition"):
+        peak_line = str(meta.get("peak_condition"))
+        if meta.get("peak_timestamp"):
+            peak_line += f' @ {meta.get("peak_timestamp")}'
+        rows.append(("Peak Signal", peak_line))
+    if meta.get("gps_lat") is not None and meta.get("gps_lng") is not None:
+        rows.append(("GPS", f'{meta.get("gps_lat")}, {meta.get("gps_lng")}'))
+    return "".join(_kv(k, v) for k, v in rows)
 
 
 
@@ -460,7 +481,10 @@ def _photos_block(photos: Optional[List[str]]) -> str:
         cells.append(f'<div class="photo"><img src="{resolved}" /></div>')
     if not cells:
         return ""
-    return f'<div class="photos">{"".join(cells)}</div>'
+    groups = []
+    for i in range(0, len(cells), 6):
+        groups.append(f'<div class="photos page-safe">{"".join(cells[i:i+6])}</div>')
+    return "".join(groups)
 
 
 def _signature(label: str, sig: Optional[str], name: str = "") -> str:
@@ -930,15 +954,7 @@ def _render_daily(d: Dict[str, Any]) -> str:
                 + _kv("Report #", d.get("report_number"))
                 + _kv("Prepared By", d.get("prepared_by"))
                 + _kv("Superintendent", d.get("superintendent"))
-                + _kv("Weather", d.get("weather_summary"))
-                + (
-                    _kv(
-                        "GPS",
-                        f"{d.get('gps_lat')}, {d.get('gps_lng')}",
-                    )
-                    if d.get("gps_lat") is not None
-                    else ""
-                )
+                + _render_weather_fact_block(d)
             ),
         )
     )
@@ -1152,7 +1168,7 @@ def _render_daily(d: Dict[str, Any]) -> str:
                     f'<div style="font-size:11px;color:#334;font-style:italic;margin-top:2px;">{block["note"]}</div>'
                 )
             if block["photos"]:
-                section_html += '<div class="photos-grid" style="margin-top:6px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">'
+                section_html += '<div class="photos-grid page-safe" style="margin-top:6px;display:grid;grid-template-columns:repeat(2,1fr);gap:6px;">'
                 for src in block["photos"]:
                     resolved = _resolve_photo_ref(src) if isinstance(src, str) else ""
                     if not resolved:
@@ -1242,7 +1258,7 @@ def _render_daily(d: Dict[str, Any]) -> str:
             body_rows,
         )
         if ticket_imgs:
-            section_html += '<div class="photos-grid" style="margin-top:8px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">'
+            section_html += '<div class="photos-grid page-safe" style="margin-top:8px;display:grid;grid-template-columns:repeat(2,1fr);gap:6px;">'
             for src in ticket_imgs:
                 resolved = _resolve_photo_ref(src) if isinstance(src, str) else ""
                 if not resolved:
@@ -1523,10 +1539,14 @@ def _render_daily(d: Dict[str, Any]) -> str:
     # observation tags/captions when present. Helper returns "" for
     # legacy V1 reports without AI data — historical PDFs render
     # byte-identical to pre-22.9C output.
-    _intel_html = _render_intelligence_section(d)
+    _intel_source = dict(d)
+    if (d.get("ai_accepted_summary") or "").strip():
+        _intel_source["ai_accepted_summary"] = ""
+        _intel_source["ai_accepted_summary_meta"] = None
+    _intel_html = _render_intelligence_section(_intel_source)
     if _intel_html:
         rows.append(
-            _section("10a · Operational Intelligence Summary", _intel_html)
+            _section("10a · Photo Observations", _intel_html)
         )
 
     # TRACK 24.13 · Attachment Evidence section.
@@ -3051,11 +3071,11 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
     html = f"""<!doctype html>
 <html><head><meta charset="utf-8"><title>{escape(title)} · {escape(_wl.brand_name)}</title>
 <style>
-  @page {{ size: Letter; margin: 0.5in 0.5in 0.85in 0.5in;
+  @page {{ size: Letter; margin: 0.45in 0.45in 0.72in 0.45in;
            @bottom-left {{
-             content: "{_wl.footer_tagline}";
+             content: "{_wl.brand_name} · {title}";
              font-family: 'Courier New', monospace; font-size: 7pt;
-             letter-spacing: 0.16em; text-transform: uppercase;
+             letter-spacing: 0.08em; text-transform: uppercase;
              color: #334155; font-weight: bold;
            }}
            @bottom-right {{
@@ -3065,47 +3085,48 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
              color: #334155; font-weight: bold;
            }}
         }}
-  body {{ font-family: 'Helvetica', 'Arial', sans-serif; font-size: 9.5pt;
-         color: #0f172a; line-height: 1.35; }}
+  body {{ font-family: 'Helvetica', 'Arial', sans-serif; font-size: 9pt;
+         color: #0f172a; line-height: 1.26; }}
   .hdr {{ display: flex; align-items: flex-start; justify-content: space-between;
           gap: 12px; border-bottom: 3px solid #c8102e; padding-bottom: 8px;
-          margin-bottom: 14px; }}
-  .hdr img {{ height: 78px; width: auto; }}
+          margin-bottom: 10px; }}
+  .hdr img {{ height: 62px; width: auto; }}
   .hdr-r {{ text-align: right; }}
-  .hdr-title {{ font-size: 18pt; font-weight: 900; letter-spacing: -0.02em;
+  .hdr-title {{ font-size: 16pt; font-weight: 900; letter-spacing: -0.02em;
                 color: #0f172a; margin: 0; line-height: 1; }}
   .hdr-kicker {{ font-family: 'Courier New', monospace; font-size: 8pt;
                  letter-spacing: 0.25em; text-transform: uppercase;
                  color: #c8102e; font-weight: bold; margin-top: 4px; }}
-  .meta {{ font-family: 'Courier New', monospace; font-size: 8pt;
+  .meta {{ font-family: 'Courier New', monospace; font-size: 7pt;
            text-transform: uppercase; letter-spacing: 0.18em; color: #475569;
-           margin-bottom: 14px; }}
-  .sec {{ break-inside: avoid; margin-bottom: 12px; border: 1px solid #cbd5e1;
-          border-radius: 3px; padding: 8px 10px 6px; }}
+           margin-bottom: 8px; }}
+  .sec {{ margin-bottom: 8px; border: 1px solid #cbd5e1;
+         border-radius: 3px; padding: 6px 8px 5px; }}
+  .page-safe {{ break-inside: avoid; }}
   .sec-t {{ font-weight: 900; font-size: 10pt; text-transform: uppercase;
             letter-spacing: 0.06em; color: #0f172a; padding-bottom: 4px;
             border-bottom: 1px solid #e2e8f0; margin-bottom: 6px; }}
-  .kv {{ display: flex; gap: 10px; padding: 2px 0;
+  .kv {{ display: flex; gap: 8px; padding: 1px 0;
          border-bottom: 1px dotted #e2e8f0; }}
   .kv:last-child {{ border-bottom: 0; }}
-  .kv-k {{ flex: 0 0 32%; font-family: 'Courier New', monospace; font-size: 8pt;
+  .kv-k {{ flex: 0 0 28%; font-family: 'Courier New', monospace; font-size: 7pt;
            text-transform: uppercase; letter-spacing: 0.12em; color: #64748b; }}
-  .kv-v {{ flex: 1; font-size: 9.5pt; color: #0f172a; }}
+  .kv-v {{ flex: 1; font-size: 8.8pt; color: #0f172a; }}
   .esc {{ background: #fef2f2; border: 1.5px solid #c8102e; border-radius: 3px;
-          padding: 6px 8px; margin-top: 6px; }}
+         padding: 5px 7px; margin-top: 5px; }}
   .esc-t {{ font-family: 'Courier New', monospace; font-size: 8pt;
             color: #c8102e; font-weight: 900; text-transform: uppercase;
             letter-spacing: 0.18em; margin-bottom: 4px; }}
-  .tbl {{ width: 100%; border-collapse: collapse; font-size: 9pt;
-          margin-top: 4px; }}
-  .tbl th {{ text-align: left; background: #f1f5f9; padding: 5px 7px;
-             font-family: 'Courier New', monospace; font-size: 8pt;
+  .tbl {{ width: 100%; border-collapse: collapse; font-size: 8.4pt;
+         margin-top: 2px; }}
+  .tbl th {{ text-align: left; background: #f1f5f9; padding: 4px 6px;
+             font-family: 'Courier New', monospace; font-size: 7pt;
              text-transform: uppercase; letter-spacing: 0.1em; color: #334155;
              border-bottom: 2px solid #cbd5e1; }}
-  .tbl td {{ padding: 5px 7px; border-bottom: 1px solid #e2e8f0; }}
-  .photos {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }}
+  .tbl td {{ padding: 4px 6px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }}
+  .photos {{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 6px; }}
   .photo {{ border: 1px solid #cbd5e1; border-radius: 2px;
-            background: #f8fafc; aspect-ratio: 4/3; overflow: hidden; }}
+            background: #f8fafc; height: 2.1in; overflow: hidden; break-inside: avoid; }}
   .photo img {{ width: 100%; height: 100%; object-fit: cover; }}
   .sig {{ margin-bottom: 10px; }}
   .sig-img {{ border: 1px solid #cbd5e1; border-radius: 2px;
@@ -3138,9 +3159,9 @@ def render_record_pdf(kind: str, record: Dict[str, Any]) -> bytes:
     {('Date: ' + escape(date_str) + ' · ') if date_str else ''}
     Record ID: {escape(record_id)}
   </div>
-  {_t1541_metadata_block_for(kind, record, canonical_ref, project)}
+  {("" if kind == "daily-report" else _t1541_metadata_block_for(kind, record, canonical_ref, project))}
   {body}
-  {_t1541_audit_block_for(kind, record, canonical_ref, project)}
+  {("" if kind == "daily-report" else _t1541_audit_block_for(kind, record, canonical_ref, project))}
   <!-- iter310 · per-page footer comes from @page @bottom-left CSS rule.
        The redundant `<div class="ftr">` previously here caused
        footer text to render twice on every page of multi-page PDFs.

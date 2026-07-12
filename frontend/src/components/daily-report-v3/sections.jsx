@@ -1905,7 +1905,7 @@ export function SectionTomorrow({ data, patch }) {
 // a silent no-op, so the human-accepted summary never reached the
 // DR payload. The wrapper below now forwards the raw `(text, meta)`
 // tuple to the parent as `{summary, meta}` (V3 shell's shape).
-export function SectionAiSummary({ data, reportId, onAccepted }) {
+export function SectionAiSummary({ data, reportId, onAccepted, onStateChange }) {
   const { t } = useT();
   return (
     <SectionShell
@@ -1914,12 +1914,13 @@ export function SectionAiSummary({ data, reportId, onAccepted }) {
       testId="dr-v3-section-ai-summary"
     >
       <p className="mb-3 text-xs text-slate-500">
-        {t("AI drafts a summary from what you entered. You stay the source of truth — accept, edit, or ignore. This is what your PM will see.")}
+        {t("AI drafts a summary from what you entered. You stay the source of truth — accept it, regenerate and accept it, or reject it and approve a manual version. This is what your PM will see.")}
       </p>
       <DailySummaryAssist
         reportId={reportId}
         reportNumber={data.report_number}
         data={data}
+        onStateChange={onStateChange}
         onAccept={(text, meta) => onAccepted?.({ summary: text, meta })}
       />
     </SectionShell>
@@ -1928,7 +1929,7 @@ export function SectionAiSummary({ data, reportId, onAccepted }) {
 
 // ── Section 09 · Submit Readiness + Sign-Off ─────────────────
 export function SectionSignoff({
-  data, patch, readiness, onSubmit, saving, canSubmit,
+  data, patch, readiness, onSubmit, saving, canSubmit, submitLabel,
 }) {
   const { t } = useT();
   return (
@@ -1975,7 +1976,7 @@ export function SectionSignoff({
           onClick={onSubmit}
           data-testid="dr-v3-submit-btn"
         >
-          {saving ? t("Submitting…") : t("Submit Daily Report")}
+          {saving ? t("Submitting…") : (submitLabel || t("Submit Daily Report"))}
         </Button>
       </div>
     </SectionShell>

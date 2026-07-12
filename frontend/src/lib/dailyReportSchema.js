@@ -41,6 +41,7 @@ export function buildDailyReportDefaults() {
     weather_snapshots: [
       // [{time:"06:00", condition, temp_f, precip_in, humidity_pct, wind_mph}, ...]
     ],
+    weather_snapshot_meta: null,
 
     // General info / flags
     schedule_delays: "No",
@@ -115,6 +116,10 @@ export function buildDailyReportDefaults() {
     // Photos — MIN 6
     photos: [],
     photo_min: 6,
+
+    // Executive summary gate — must be frozen before submit.
+    ai_accepted_summary: "",
+    ai_accepted_summary_meta: null,
 
     // TRACK 19.04 · Unified document attachments (PDF, XLSX, XLS, CSV).
     // Each entry is the metadata envelope returned by

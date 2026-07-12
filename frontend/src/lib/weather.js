@@ -81,7 +81,7 @@ export async function fetchDailyWeather(lat, lng, dateStr) {
   const params = new URLSearchParams({
     latitude: lat,
     longitude: lng,
-    hourly: "temperature_2m,precipitation,relative_humidity_2m,wind_speed_10m,weather_code",
+    hourly: "temperature_2m,precipitation,rain,relative_humidity_2m,wind_speed_10m,wind_gusts_10m,weather_code",
     temperature_unit: "fahrenheit",
     wind_speed_unit: "mph",
     precipitation_unit: "inch",
@@ -97,8 +97,10 @@ export async function fetchDailyWeather(lat, lng, dateStr) {
   const times = data?.hourly?.time || [];
   const temps = data?.hourly?.temperature_2m || [];
   const precs = data?.hourly?.precipitation || [];
+  const rains = data?.hourly?.rain || [];
   const hums = data?.hourly?.relative_humidity_2m || [];
   const winds = data?.hourly?.wind_speed_10m || [];
+  const gusts = data?.hourly?.wind_gusts_10m || [];
   const codes = data?.hourly?.weather_code || [];
 
   // ── snapshots for the UI (8-hour picks including overnight) ────
@@ -108,49 +110,88 @@ export async function fetchDailyWeather(lat, lng, dateStr) {
     if (idx < 0) return null;
     return {
       time: hh,
+      timestamp: times[idx],
       condition: conditionFromCode(codes[idx]),
       code: codes[idx] ?? null,
       temp_f: temps[idx] != null ? Math.round(temps[idx]) : null,
       precip_in: precs[idx] != null ? Number(precs[idx].toFixed(2)) : 0,
+      rain_in: rains[idx] != null ? Number(rains[idx].toFixed(2)) : 0,
       humidity_pct: hums[idx] != null ? Math.round(hums[idx]) : null,
       wind_mph: winds[idx] != null ? Math.round(winds[idx]) : null,
+      wind_gust_mph: gusts[idx] != null ? Math.round(gusts[idx]) : null,
     };
   }).filter(Boolean);
 
   // ── summary uses the MAX-SEVERITY code across ALL 24 hours ─────
   let maxSeverity = -1;
   let maxSeverityCode = null;
+  let peakIdx = 0;
   let totalPrecip = 0;
+  let totalRain = 0;
   for (let i = 0; i < codes.length; i += 1) {
     const c = codes[i];
     const sev = WMO_SEVERITY[c] ?? -1;
     if (sev > maxSeverity) {
       maxSeverity = sev;
       maxSeverityCode = c;
+      peakIdx = i;
     }
     if (precs[i] != null) totalPrecip += Number(precs[i]);
+    if (rains[i] != null) totalRain += Number(rains[i]);
   }
   const validTemps = temps.filter((v) => v != null);
+  const validHums = hums.filter((v) => v != null);
+  const validWinds = winds.filter((v) => v != null);
+  const validGusts = gusts.filter((v) => v != null);
   const minT = validTemps.length ? Math.round(Math.min(...validTemps)) : null;
   const maxT = validTemps.length ? Math.round(Math.max(...validTemps)) : null;
   const dominantCondition = maxSeverityCode != null
     ? conditionFromCode(maxSeverityCode)
     : "";
-  const precipNote = totalPrecip >= 0.02
-    ? ` · ${totalPrecip.toFixed(2)}″ precipitation`
-    : "";
-  const summary =
-    dominantCondition && minT != null && maxT != null
-      ? `${dominantCondition}, ${minT}–${maxT}°F${precipNote}`
-      : "";
+  const humidityAvg = validHums.length
+    ? Math.round(validHums.reduce((a, b) => a + b, 0) / validHums.length)
+    : null;
+  const windMax = validWinds.length ? Math.round(Math.max(...validWinds)) : null;
+  const gustMax = validGusts.length ? Math.round(Math.max(...validGusts)) : null;
+  const summaryParts = [];
+  if (dominantCondition) summaryParts.push(`Observed conditions: ${dominantCondition}`);
+  if (minT != null && maxT != null) summaryParts.push(`temperature ${minT}–${maxT}°F`);
+  if (humidityAvg != null) summaryParts.push(`humidity ${humidityAvg}% avg`);
+  if (windMax != null) {
+    summaryParts.push(
+      gustMax != null
+        ? `wind up to ${windMax} mph, gusts up to ${gustMax} mph`
+        : `wind up to ${windMax} mph`,
+    );
+  }
+  if (totalPrecip >= 0.01) summaryParts.push(`precipitation ${totalPrecip.toFixed(2)} in`);
+  else if (totalRain >= 0.01) summaryParts.push(`rainfall ${totalRain.toFixed(2)} in`);
+  if (times[peakIdx]) summaryParts.push(`peak weather signal at ${times[peakIdx]}`);
+  const summary = summaryParts.join("; ");
 
   return {
     summary,
     snapshots,
     fetched_at_iso: new Date().toISOString(),
     total_precip_in: Number(totalPrecip.toFixed(2)),
+    total_rain_in: Number(totalRain.toFixed(2)),
     max_severity_code: maxSeverityCode,
     source_hours_sampled: codes.length,
     overridden: false,
+    meta: {
+      source: "open-meteo",
+      timezone: data?.timezone || "",
+      gps_lat: Number(lat),
+      gps_lng: Number(lng),
+      peak_condition: dominantCondition,
+      peak_timestamp: times[peakIdx] || "",
+      temperature_min_f: minT,
+      temperature_max_f: maxT,
+      humidity_avg_pct: humidityAvg,
+      wind_max_mph: windMax,
+      wind_gust_max_mph: gustMax,
+      precipitation_total_in: Number(totalPrecip.toFixed(2)),
+      rain_total_in: Number(totalRain.toFixed(2)),
+    },
   };
 }

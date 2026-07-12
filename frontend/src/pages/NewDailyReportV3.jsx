@@ -72,6 +72,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
   const [costCodes, setCostCodes] = useState([]);
   const [reportNumberPreview, setReportNumberPreview] = useState("");
   const [crewSetupOffer, setCrewSetupOffer] = useState(null);
+  const [summaryGate, setSummaryGate] = useState({ canSubmit: false, manualNeeded: false });
   const idempotencyKeyRef = useRef(null);
 
   const patch = useCallback((delta) => {
@@ -222,7 +223,14 @@ export default function NewDailyReportV3({ publicMode = false }) {
           data.report_date || new Date().toISOString().slice(0, 10),
         );
         if (wx?.summary) {
-          patch({ weather_summary: wx.summary, weather_snapshots: wx.snapshots || [] });
+          patch({
+            weather_summary: wx.summary,
+            weather_snapshots: wx.snapshots || [],
+            weather_snapshot_meta: {
+              ...(wx?.meta || {}),
+              fetched_at_iso: wx?.fetched_at_iso || new Date().toISOString(),
+            },
+          });
         }
       } catch (e) {
         // Graceful: no red toast on GPS path. Location + coords already set.
@@ -248,7 +256,14 @@ export default function NewDailyReportV3({ publicMode = false }) {
         data.report_date || new Date().toISOString().slice(0, 10),
       );
       if (wx?.summary) {
-        patch({ weather_summary: wx.summary, weather_snapshots: wx.snapshots || [] });
+        patch({
+          weather_summary: wx.summary,
+          weather_snapshots: wx.snapshots || [],
+          weather_snapshot_meta: {
+            ...(wx?.meta || {}),
+            fetched_at_iso: wx?.fetched_at_iso || new Date().toISOString(),
+          },
+        });
       } else {
         toast(t("Weather unavailable — enter conditions manually."));
       }
@@ -270,6 +285,11 @@ export default function NewDailyReportV3({ publicMode = false }) {
         key: "photos",
         ok: (data.photos || []).length >= photoMin,
         label: `${photoMin} ${t("photos")}`,
+      },
+      {
+        key: "approved_summary",
+        ok: !!(data.ai_accepted_summary || "").trim() && !!(data.ai_accepted_summary_meta?.accepted_at || "").trim(),
+        label: t("Approved executive summary"),
       },
       { key: "signature", ok: !!data.prepared_by_signature, label: t("Signature") },
     ];
@@ -320,6 +340,11 @@ export default function NewDailyReportV3({ publicMode = false }) {
   }, [data, photoMin, t]);
 
   const canSubmit = readiness.completed === readiness.total;
+  const submitLabel = useMemo(() => {
+    if ((data.ai_accepted_summary || "").trim()) return t("Submit Daily Report");
+    if (summaryGate.manualNeeded) return t("Approve manual summary to unlock submit");
+    return t("Approve the executive summary to unlock submit");
+  }, [data.ai_accepted_summary, summaryGate.manualNeeded, t]);
 
   // ── Submit — same contract as V1, offline-safe via enqueueUpload ──
   const onSubmit = useCallback(async () => {
@@ -621,6 +646,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
           <SectionAiSummary
             data={data}
             reportId={reportId}
+            onStateChange={setSummaryGate}
             onAccepted={(payload) =>
               patch({
                 ai_accepted_summary: payload?.summary || "",
@@ -635,6 +661,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
             canSubmit={canSubmit}
             saving={saving}
             onSubmit={onSubmit}
+            submitLabel={submitLabel}
           />
         </div>
       </div>

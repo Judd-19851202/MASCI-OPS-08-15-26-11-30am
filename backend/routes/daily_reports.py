@@ -199,6 +199,7 @@ class DailyReportCreate(BaseModel):
 
     weather_summary: Optional[str] = ""
     weather_snapshots: List[Dict[str, Any]] = Field(default_factory=list)
+    weather_snapshot_meta: Optional[Dict[str, Any]] = None
 
     schedule_delays: Optional[str] = "No"
     schedule_delays_notes: Optional[str] = ""
@@ -439,6 +440,37 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
         # Activity Today? = YES" the Daily Report MUST be linked to at
         # least one excavation record (existing or freshly created).
         _p = payload.model_dump()
+        _accepted_summary = str(_p.get("ai_accepted_summary") or "").strip()
+        _accepted_meta = _p.get("ai_accepted_summary_meta") or {}
+        _accepted_at = str(_accepted_meta.get("accepted_at") or "").strip()
+        _accepted_source = str(_accepted_meta.get("source") or "").strip().lower()
+        if not _accepted_summary:
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "error": "approved_summary_required",
+                    "message": (
+                        "Daily Report submission is blocked until one executive "
+                        "summary is approved and frozen into the record."
+                    ),
+                },
+            )
+        if not _accepted_at:
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "error": "approved_summary_metadata_required",
+                    "message": "Approved executive summary is missing the approval timestamp.",
+                },
+            )
+        if _accepted_source not in {"ai", "edited", "fallback", "manual"}:
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "error": "approved_summary_source_invalid",
+                    "message": "Approved executive summary is missing a valid source label.",
+                },
+            )
         _exc_activity = str(_p.get("excavation_activity_today") or "").strip().lower()
         _linked_excs = _p.get("linked_excavation_ids") or []
         if _exc_activity in ("yes", "true", "y", "1"):

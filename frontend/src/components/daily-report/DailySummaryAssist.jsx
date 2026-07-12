@@ -1,26 +1,17 @@
-// TRACK 22.9A · V1 Daily Report AI Summary Assist
-//
-// One calm, non-blocking summary section. Lives inside the V1
-// NewDailyReport form. Never blocks typing, never blocks submit.
-// If AI unavailable, a deterministic fallback appears. Supervisor
-// can Accept · Edit · Regenerate · Ignore. Accepted summary is
-// carried back to the parent form via onAccept() so it becomes
-// part of the DR payload at submit time.
-//
-// No V2 shell resurrection — this reuses /api/dr-v2/ai/synthesize
-// with an ephemeral draft keyed on the current DR's report_number.
-// If the DR is never submitted, the ephemeral draft is orphaned in
-// the drafts collection (30-day TTL cleans it up).
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Sparkles, RefreshCw, Check, Loader2 } from "lucide-react";
+import {
+  Sparkles,
+  RefreshCw,
+  Check,
+  Loader2,
+  FileWarning,
+  PencilLine,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
 
-// Deterministic fallback — used when AI is disabled OR the request
-// times out OR the provider returns an unhelpful envelope. Grounded
-// purely in the evidence bundle: no invention, no assumption.
 function buildDeterministicFallback(data) {
   const bits = [];
   if (data?.masci_crews?.length) {
@@ -36,23 +27,17 @@ function buildDeterministicFallback(data) {
   const delays = data?.delays || data?.delay_events || [];
   if (delays.length) bits.push(`${delays.length} delay/issue note(s).`);
   const safety = data?.safety_quality?.notes || data?.safety_notes || "";
-  if (safety?.trim()) bits.push(`Safety notes present.`);
+  if (safety?.trim()) bits.push("Safety notes present.");
   const weather = data?.weather_summary || data?.day_setup?.weather_summary || "";
   if (weather) bits.push(`Weather: ${weather}.`);
   return bits.join(" ") || "Daily activity recorded. No AI summary generated (assist disabled or unavailable).";
 }
 
-// Compact evidence bundle sent to the AI backend. Only the fields
-// the strict prompt actually cites are included — keeps prompt
-// tokens (and latency) down.
 function toEvidenceDraft(reportId, data, photoObservations = []) {
   return {
     report_id: reportId,
     project_number: data.project_number || "unknown",
     project_name: data.project_name || "",
-    // TRACK 24.11B · include full project metadata snapshot so the
-    // synthesizer can reference client / PM in narrative without
-    // hitting jobs_master.
     client: data.client || "",
     project_manager: data.project_manager || "",
     location: data.location || "",
@@ -71,19 +56,9 @@ function toEvidenceDraft(reportId, data, photoObservations = []) {
     outbound_materials: (data.outbound_materials || []).slice(0, 40),
     subcontractors: (data.subcontractors || data.subs_vendors || []).slice(0, 20),
     vendors: (data.vendors || []).slice(0, 20),
-    // TRACK 24.11B · Missing evidence categories the previous
-    // bundle silently dropped — the AI must see visitors, safety
-    // observations (structured + note), tomorrow plan, excavation
-    // + Competent Person snapshot, and work-stoppage / hold info.
     visitors: (data.visitors || []).slice(0, 15),
-    // TRACK 26.12 · Production rows (station from/to · qty · % complete).
     production: (data.production || []).slice(0, 25),
-    // TRACK 26.12 · Key fix: the V1/V3 forms store constraint rows on
-    // `data.constraints`. The prior `constraints_cards` key was NOT a
-    // DraftPayload field, so delays/constraints were silently dropped
-    // before ever reaching the AI.
     constraint_cards: (data.constraint_cards || data.constraints_cards || data.constraints || data.delays || []).slice(0, 15),
-    // TRACK 26.12 · Yes/No day-impact toggles + their notes.
     day_impacts: {
       schedule_delays: data.schedule_delays || "",
       schedule_delays_notes: data.schedule_delays_notes || "",
@@ -103,7 +78,6 @@ function toEvidenceDraft(reportId, data, photoObservations = []) {
       || (data.excavation ? data.excavation.competent_person : null)
       || null,
     work_stoppage: data.work_stoppage || data.work_hold || null,
-    // TRACK 26.12 · Tomorrow plan + PM needs live on narrative_sections.
     tomorrow_readiness: {
       ...(data.tomorrow_readiness || {}),
       tomorrow_plan: (data.narrative_sections || {}).tomorrow_plan || "",
@@ -111,20 +85,8 @@ function toEvidenceDraft(reportId, data, photoObservations = []) {
     },
     general_notes: data.general_notes || "",
     photos: (data.photos || []).slice(0, 10),
-    // TRACK 24.12 · Optional per-photo captions (V1 payload carries
-    // these on `photo_captions[]`). Metadata only — the AI must NOT
-    // describe a photo without a caption or observation on file.
     photo_captions: (data.photo_captions || []).slice(0, 10),
-    // TRACK 22.9B · Grounded photo observations from the async
-    // photo intelligence pipeline. Empty when analysis has not yet
-    // completed or when photo intel is disabled — never blocks the
-    // summary.
     photo_observations: (photoObservations || []).slice(0, 30),
-    // TRACK 24.11B · Document attachment metadata (filename +
-    // category + size) so the AI can reference "user uploaded a
-    // permit PDF" without hallucinating the file contents.
-    // Extraction (OCR / PDF text) is not currently implemented —
-    // metadata only. AI must NOT claim to have read file contents.
     attachments: (data.attachments || []).slice(0, 20).map((a) => ({
       filename: a.filename || "",
       category: a.category || "",
@@ -134,7 +96,6 @@ function toEvidenceDraft(reportId, data, photoObservations = []) {
   };
 }
 
-// Small guard: is there enough content to bother synthesizing?
 function hasEnoughEvidence(data) {
   const acts = (data.activity_cards || data.activities || []).length;
   const crew = (data.masci_crews || []).length;
@@ -147,20 +108,22 @@ function hasEnoughEvidence(data) {
 }
 
 const DEBOUNCE_MS = 1200;
-// TRACK 26.12 · Was 15000 — the AI narrative alone takes ~15-20s, and
-// photo vision (run inline at generate time) adds 10-20s more. The old
-// 15s timeout aborted virtually every successful generation and forced
-// the deterministic fallback.
 const REQUEST_TIMEOUT_MS = 60000;
 
-export default function DailySummaryAssist({ data, reportNumber, onAccept, testId = "daily-summary-assist" }) {
+export default function DailySummaryAssist({
+  data,
+  reportNumber,
+  onAccept,
+  onStateChange,
+  testId = "daily-summary-assist",
+}) {
   const { t } = useT();
   const reportId = useMemo(
     () => (reportNumber ? `dr-${reportNumber}` : `dr-draft-${Date.now()}`),
     [reportNumber],
   );
 
-  const [status, setStatus] = useState("idle"); // idle · building · ready · error · disabled
+  const [status, setStatus] = useState("idle");
   const [narrative, setNarrative] = useState("");
   const [edited, setEdited] = useState("");
   const [confidence, setConfidence] = useState(null);
@@ -173,20 +136,19 @@ export default function DailySummaryAssist({ data, reportNumber, onAccept, testI
   const [accepted, setAccepted] = useState(false);
   const [aiAvailable, setAiAvailable] = useState(true);
   const [error, setError] = useState(null);
+  const [decision, setDecision] = useState("pending");
 
   const abortRef = useRef(null);
   const debounceRef = useRef(null);
   const requestSeqRef = useRef(0);
 
-  // Cancel in-flight, start a fresh synthesize call.
   async function synthesize(force = false) {
     if (!hasEnoughEvidence(data)) {
       setStatus("idle");
       return;
     }
-    // Cancel prior request
     if (abortRef.current) {
-      try { abortRef.current.abort(); } catch { /* ignore */ }
+      try { abortRef.current.abort(); } catch (e) { void e; }
     }
     const controller = new AbortController();
     abortRef.current = controller;
@@ -195,13 +157,11 @@ export default function DailySummaryAssist({ data, reportNumber, onAccept, testI
     setError(null);
 
     const timeoutId = setTimeout(() => {
-      try { controller.abort(); } catch { /* ignore */ }
+      try { controller.abort(); } catch (e) { void e; }
     }, REQUEST_TIMEOUT_MS);
     const tStart = performance.now();
 
     try {
-      // TRACK 22.9B · Best-effort fetch of grounded photo observations
-      // from the async pipeline. Empty on failure; never blocks.
       let photoObservations = [];
       if (reportNumber) {
         try {
@@ -215,7 +175,6 @@ export default function DailySummaryAssist({ data, reportNumber, onAccept, testI
         }
       }
       const bundle = toEvidenceDraft(reportId, data, photoObservations);
-      // Save ephemeral V2 draft first (backend requires a draft to synthesize against).
       await api.post(`/dr-v2/drafts`, bundle, { signal: controller.signal }).catch(() => null);
       const { data: resp } = await api.post(
         `/dr-v2/ai/synthesize`,
@@ -223,15 +182,15 @@ export default function DailySummaryAssist({ data, reportNumber, onAccept, testI
         { signal: controller.signal },
       );
       const tElapsed = Math.round(performance.now() - tStart);
-      if (mySeq !== requestSeqRef.current) return; // stale
+      if (mySeq !== requestSeqRef.current) return;
       const out = (resp?.outputs || {}).day_narrative || {};
-      // Capture provider metadata for provenance (masked only — never raw keys)
       const provider = resp?.provider || out.provider || null;
       const model = resp?.model || out.model || null;
       setProviderMasked(provider ? String(provider).slice(0, 20) : null);
       setModelMasked(model ? String(model).slice(0, 40) : null);
       setGeneratedAt(new Date().toISOString());
       setLatencyMs(tElapsed);
+
       if (out.ai_available === false) {
         setAiAvailable(false);
         const reason = (out.fallback_reason || "").toString();
@@ -241,16 +200,13 @@ export default function DailySummaryAssist({ data, reportNumber, onAccept, testI
         setNarrative(fb);
         setEdited(fb);
         setEvidenceRefs([]);
-        // Surface auth / key failures so the supervisor understands
-        // WHY they are getting a mechanical summary instead of a
-        // grounded narrative. Silent fallbacks are the whole reason
-        // this bug got missed in production.
         if (reason && reason !== "flag_off_or_missing_key") {
           setError(`AI provider unavailable — reason: ${reason}${uns[0] ? ` (${uns[0]})` : ""}`);
         }
         setStatus("ready");
         return;
       }
+
       setAiAvailable(true);
       const text = (out.narrative || "").trim();
       const fb = text || buildDeterministicFallback(data);
@@ -261,7 +217,7 @@ export default function DailySummaryAssist({ data, reportNumber, onAccept, testI
       setEvidenceRefs(Array.isArray(out.evidence_refs) ? out.evidence_refs.slice(0, 20) : []);
       setStatus("ready");
     } catch (err) {
-      if (mySeq !== requestSeqRef.current) return; // stale
+      if (mySeq !== requestSeqRef.current) return;
       if (err?.name === "CanceledError" || err?.name === "AbortError") return;
       const fb = buildDeterministicFallback(data);
       setNarrative(fb);
@@ -274,9 +230,8 @@ export default function DailySummaryAssist({ data, reportNumber, onAccept, testI
     }
   }
 
-  // Debounced auto-synthesize when evidence changes.
   useEffect(() => {
-    if (accepted) return; // once accepted, do not overwrite
+    if (accepted) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => { synthesize(false); }, DEBOUNCE_MS);
     return () => {
@@ -299,6 +254,27 @@ export default function DailySummaryAssist({ data, reportNumber, onAccept, testI
     accepted,
   ]);
 
+  useEffect(() => {
+    const frozen = (data?.ai_accepted_summary || "").trim();
+    const meta = data?.ai_accepted_summary_meta || {};
+    if (!frozen) return;
+    setAccepted(true);
+    setEdited(frozen);
+    setDecision(meta?.source === "manual" ? "manual_accepted" : "ai_accepted");
+  }, [data?.ai_accepted_summary, data?.ai_accepted_summary_meta]);
+
+  useEffect(() => {
+    const hasFrozen = !!(data?.ai_accepted_summary || "").trim();
+    onStateChange?.({
+      decision,
+      accepted,
+      hasFrozen,
+      manualNeeded: decision === "manual_required",
+      manualReady: decision === "manual_required" && !!edited.trim(),
+      canSubmit: hasFrozen,
+    });
+  }, [accepted, data?.ai_accepted_summary, decision, edited, onStateChange]);
+
   function handleAccept() {
     const text = (edited || narrative || "").trim();
     if (!text) return;
@@ -306,41 +282,65 @@ export default function DailySummaryAssist({ data, reportNumber, onAccept, testI
     const source = !aiAvailable ? "fallback" : (editedByUser ? "edited" : "ai");
     const meta = {
       source,
+      approved_by: data?.prepared_by || data?.superintendent || "",
       provider_masked: providerMasked,
       model_masked: modelMasked,
       generated_at: generatedAt,
       accepted_at: new Date().toISOString(),
       edited_by_user: editedByUser,
+      edited_by_supervisor: editedByUser,
       confidence,
       evidence_refs: evidenceRefs,
       latency_ms: latencyMs,
     };
     setAccepted(true);
+    setDecision("ai_accepted");
     onAccept?.(text, meta);
   }
 
   function handleRegenerate() {
     setAccepted(false);
+    setDecision("pending");
+    onAccept?.("", null);
     synthesize(true);
   }
 
-  function handleClear() {
+  function handleRejectToManual() {
     setAccepted(false);
-    setNarrative("");
-    setEdited("");
+    setDecision("manual_required");
+    onAccept?.("", null);
+  }
+
+  function handleManualAccept() {
+    const text = edited.trim();
+    if (!text) return;
+    const meta = {
+      source: "manual",
+      approved_by: data?.prepared_by || data?.superintendent || "",
+      provider_masked: null,
+      model_masked: null,
+      generated_at: null,
+      accepted_at: new Date().toISOString(),
+      edited_by_user: true,
+      edited_by_supervisor: true,
+      confidence: null,
+      evidence_refs: [],
+      latency_ms: null,
+    };
+    setAccepted(true);
+    setDecision("manual_accepted");
+    onAccept?.(text, meta);
   }
 
   return (
-    <div data-testid={testId} className="border border-slate-200 rounded-lg bg-white p-4">
-      <div className="flex items-center gap-2 mb-2">
-        <Sparkles className="w-4 h-4 text-slate-600" aria-hidden="true" />
+    <div data-testid={testId} className="rounded-lg border border-slate-200 bg-white p-4">
+      <div className="mb-2 flex items-center gap-2">
+        <Sparkles className="h-4 w-4 text-slate-600" aria-hidden="true" />
         <h3 className="text-sm font-semibold text-slate-800">{t("Draft Summary")}</h3>
         {status === "building" && (
           <span className="ml-2 inline-flex items-center gap-1 text-xs text-slate-500" data-testid={`${testId}-status`}>
-            <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" />
-            {(data?.photos || []).length > 0
-              ? t("analyzing photos & writing summary…")
-              : t("writing summary…")}
+            <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
+            {(data?.photos || []).length > 0 ? t("analyzing photos & writing summary…") : t("writing summary…")}
           </span>
         )}
         {status === "ready" && !accepted && (
@@ -348,59 +348,70 @@ export default function DailySummaryAssist({ data, reportNumber, onAccept, testI
         )}
         {accepted && (
           <span className="ml-2 inline-flex items-center gap-1 text-xs text-emerald-700" data-testid={`${testId}-status`}>
-            <Check className="w-3 h-3" aria-hidden="true" />{t("accepted")}
-          </span>
-        )}
-        {!aiAvailable && status !== "building" && (
-          <span
-            className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200"
-            data-testid={`${testId}-fallback`}
-          >
-            {t("AI unavailable — using deterministic summary")}
+            <Check className="h-3 w-3" aria-hidden="true" />{t("accepted")}
           </span>
         )}
       </div>
-      <p className="text-xs text-slate-500 mb-3">
-        {t("Grounded in the fields you've entered. Never invents facts. Optional — you can accept, edit, regenerate, or ignore.")}
+
+      <p className="mb-3 text-xs text-slate-500">
+        {t("Grounded in the fields you've entered. Before submit, you must accept the AI summary, regenerate and then accept it, or reject it and approve a manual summary.")}
       </p>
 
+      <div className="mb-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700" data-testid={`${testId}-gate-note`}>
+        {decision === "manual_required"
+          ? t("AI summary rejected. Write the final supervisor summary below, then approve it to unlock submit.")
+          : accepted
+            ? t("Summary locked for submission. If you change it, you must approve it again.")
+            : t("Submission is blocked until one approved executive summary exists.")}
+      </div>
+
       {status === "idle" && !narrative && (
-        <p className="text-sm text-slate-500 italic" data-testid={`${testId}-empty`}>
+        <p className="text-sm italic text-slate-500" data-testid={`${testId}-empty`}>
           {t("Add activities, crew, or notes to see a draft summary here.")}
         </p>
       )}
 
-      {(narrative || status === "building") && (
+      {(narrative || status === "building" || decision === "manual_required" || decision === "manual_accepted") && (
         <>
           <Textarea
             data-testid={`${testId}-textarea`}
             value={edited}
-            onChange={(e) => { setAccepted(false); setEdited(e.target.value); }}
+            onChange={(e) => {
+              if (accepted || (data?.ai_accepted_summary || "").trim()) {
+                onAccept?.("", null);
+              }
+              setAccepted(false);
+              if (decision !== "manual_required" && decision !== "manual_accepted") setDecision("pending");
+              setEdited(e.target.value);
+            }}
             className="min-h-[110px] text-sm"
             placeholder={status === "building" ? "Building…" : ""}
             disabled={status === "building" && !narrative}
           />
+
           {typeof confidence === "number" && (
             <p className="mt-1 text-xs text-slate-400" data-testid={`${testId}-confidence`}>
               confidence: {(confidence * 100).toFixed(0)}%
             </p>
           )}
+
           {uncertainties.length > 0 && (
-            <ul className="mt-2 text-xs text-amber-700 list-disc pl-4" data-testid={`${testId}-uncertainties`}>
+            <ul className="mt-2 list-disc pl-4 text-xs text-amber-700" data-testid={`${testId}-uncertainties`}>
               {uncertainties.map((u, i) => <li key={i}>{u}</li>)}
             </ul>
           )}
+
           <div className="mt-3 flex flex-wrap gap-2">
             <Button
               type="button"
               size="sm"
               variant="default"
               onClick={handleAccept}
-              disabled={!edited?.trim() || accepted}
+              disabled={!edited.trim() || accepted || decision === "manual_required"}
               data-testid={`${testId}-accept`}
             >
-              <Check className="w-3 h-3 mr-1" />
-              {accepted ? "Accepted" : "Accept & attach"}
+              <Check className="mr-1 h-3 w-3" />
+              {accepted && decision === "ai_accepted" ? t("Accepted") : t("Accept AI summary")}
             </Button>
             <Button
               type="button"
@@ -410,28 +421,64 @@ export default function DailySummaryAssist({ data, reportNumber, onAccept, testI
               disabled={status === "building"}
               data-testid={`${testId}-regenerate`}
             >
-              <RefreshCw className="w-3 h-3 mr-1" />{t("Regenerate")}
+              <RefreshCw className="mr-1 h-3 w-3" />{t("Regenerate")}
             </Button>
             <Button
               type="button"
               size="sm"
-              variant="ghost"
-              onClick={handleClear}
-              data-testid={`${testId}-clear`}
+              variant="outline"
+              onClick={handleRejectToManual}
+              data-testid={`${testId}-reject-manual`}
             >
-              {t("Ignore")}
+              <FileWarning className="mr-1 h-3 w-3" />{t("Reject AI & write manual")}
             </Button>
           </div>
+
+          {(decision === "manual_required" || decision === "manual_accepted") && (
+            <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3" data-testid={`${testId}-manual-block`}>
+              <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-amber-900">
+                <PencilLine className="h-4 w-4" />{t("Supervisor manual summary")}
+              </div>
+              <Textarea
+                data-testid={`${testId}-manual-textarea`}
+                value={edited}
+                onChange={(e) => {
+                  if (accepted || (data?.ai_accepted_summary || "").trim()) {
+                    onAccept?.("", null);
+                  }
+                  setAccepted(false);
+                  setDecision("manual_required");
+                  setEdited(e.target.value);
+                }}
+                className="min-h-[130px] bg-white text-sm"
+                placeholder={t("Write the final approved executive summary exactly as it should appear on the permanent record.")}
+              />
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="default"
+                  onClick={handleManualAccept}
+                  disabled={!edited.trim()}
+                  data-testid={`${testId}-manual-accept`}
+                >
+                  <Check className="mr-1 h-3 w-3" />
+                  {accepted && decision === "manual_accepted" ? t("Manual summary accepted") : t("Approve manual summary")}
+                </Button>
+              </div>
+            </div>
+          )}
+
           {error && (
             <div
-              className="mt-3 p-3 rounded-md border border-rose-200 bg-rose-50 text-rose-800 text-xs"
+              className="mt-3 rounded-md border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800"
               data-testid={`${testId}-error`}
               role="alert"
             >
-              <div className="font-semibold mb-0.5">{t("Summary assist unavailable")}</div>
+              <div className="mb-0.5 font-semibold">{t("Summary assist unavailable")}</div>
               <div className="text-rose-700">{String(error)}</div>
               <div className="mt-1 text-rose-600/80">
-                {t("You can still submit normally — try Regenerate, or contact your admin to verify AI keys.")}
+                {t("Submission still requires an approved summary. Try Regenerate, or reject AI and approve a manual summary.")}
               </div>
             </div>
           )}
