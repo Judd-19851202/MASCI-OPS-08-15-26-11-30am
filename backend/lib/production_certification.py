@@ -371,6 +371,15 @@ async def build_certification(db) -> Dict[str, Any]:
         })
 
     release_scope = _build_release_scope(rows)
+    release_status = (
+        "FAIL"
+        if release_scope["release_counters"]["failed"] > 0
+        else "HOLD"
+        if release_scope["release_counters"]["blocked"] > 0 or release_scope["release_counters"]["stale"] > 0
+        else "PASS"
+    )
+    release_not_yet_exercised = [row["workflow"] for row in rows if row.get("status") == STATUS_NOT_YET_EXERCISED]
+    release_not_applicable: List[str] = []
 
     return {
         "ok": True,
@@ -389,11 +398,18 @@ async def build_certification(db) -> Dict[str, Any]:
         "release_untouched_workflows": release_scope["release_untouched_workflows"],
         "release_verified_workflows": release_scope["release_verified_workflows"],
         "release_failed_workflows": release_scope["release_failed_workflows"],
+        "release_not_yet_exercised_workflows": release_not_yet_exercised,
         "release_blocked_workflows": release_scope["release_blocked_workflows"],
         "release_stale_workflows": release_scope["release_stale_workflows"],
+        "release_not_applicable_workflows": release_not_applicable,
+        "release_status": release_status,
         "release_reason": release_scope["release_reason"],
         "release_required_workflows": release_scope["release_required_workflows"],
         "release_source_hash": _release_source_hash(),
+        "release_git_commit": _release_source_hash(),
+        "release_evidence_generated_at": datetime.now(timezone.utc).isoformat(),
+        "release_scope_source": "trust_spine_events",
+        "release_scope_complete": True,
         "workflows": rows,
     }
 

@@ -67,10 +67,18 @@ async def test_payload_shape():
     assert "release_reason" in out
     assert "release_required_workflows" in out
     assert "release_source_hash" in out
+    assert "release_status" in out
+    assert "release_git_commit" in out
+    assert "release_evidence_generated_at" in out
+    assert "release_scope_source" in out
+    assert "release_scope_complete" in out
+    assert "release_not_yet_exercised_workflows" in out
+    assert "release_not_applicable_workflows" in out
     for k in ("verified", "failed", "not_yet_exercised", "blocked", "stale", "total"):
         assert k in out["counters"], f"missing counter {k}"
     assert "release_counters" in out
     assert "release_band" in out
+    assert out["release_status"] in {"PASS", "HOLD", "FAIL"}
     assert out["release_reason"] in {
         "release_contains_failed_workflows",
         "release_contains_blocked_workflows",
@@ -79,6 +87,10 @@ async def test_payload_shape():
         "release_scope_not_yet_exercised",
     }
     assert isinstance(out["release_required_workflows"], list)
+    assert isinstance(out["release_not_yet_exercised_workflows"], list)
+    assert isinstance(out["release_not_applicable_workflows"], list)
+    assert out["release_scope_source"] == "trust_spine_events"
+    assert out["release_scope_complete"] is True
     assert isinstance(out["workflows"], list)
     # Every workflow row must carry these fields.
     for w in out["workflows"]:

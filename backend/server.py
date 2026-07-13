@@ -10087,12 +10087,39 @@ async def admin_complete_r2_state(_: bool = Depends(require_admin_strict)):
     """Live status of the most recent manual complete-archive-to-R2 run.
     Route uses dashes (not slashes) so it doesn't collide with the
     parameterized ``/admin/backups/{filename}`` download/delete route."""
+    nightly_last = _BACKUP_SCHEDULER_STATE.get("last_r2_complete")
+    nightly_last_date = _BACKUP_SCHEDULER_STATE.get("last_r2_complete_date")
+    nightly_last_hour = _BACKUP_SCHEDULER_STATE.get("last_r2_complete_hour")
+
+    if not nightly_last:
+        try:
+            latest_r2 = await db.backup_health.find_one(
+                {"mode": "complete-r2", "ok": True, "filename": {"$nin": [None, ""]}},
+                sort=[("ts", -1)],
+                projection={"_id": 0, "filename": 1, "size_bytes": 1, "ts": 1},
+            )
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"[backups-complete-r2-state] fallback probe failed: {e}")
+            latest_r2 = None
+        if latest_r2:
+            ts_value = str(latest_r2.get("ts") or "")
+            hour_bucket = ts_value[:13] if len(ts_value) >= 13 else None
+            date_bucket = ts_value[:10] if len(ts_value) >= 10 else None
+            nightly_last = {
+                "filename": latest_r2.get("filename"),
+                "size_bytes": latest_r2.get("size_bytes"),
+                "r2_key": f"backups/auto-90d/{latest_r2.get('filename')}",
+                "ts": latest_r2.get("ts"),
+            }
+            nightly_last_date = date_bucket
+            nightly_last_hour = hour_bucket
+
     return {
         "in_progress": _COMPLETE_R2_IN_PROGRESS,
         "last": dict(_COMPLETE_R2_LAST),
-        "nightly_last": _BACKUP_SCHEDULER_STATE.get("last_r2_complete"),
-        "nightly_last_date": _BACKUP_SCHEDULER_STATE.get("last_r2_complete_date"),
-        "nightly_last_hour": _BACKUP_SCHEDULER_STATE.get("last_r2_complete_hour"),
+        "nightly_last": nightly_last,
+        "nightly_last_date": nightly_last_date,
+        "nightly_last_hour": nightly_last_hour,
         "r2_full_hour_utc": int(os.environ.get("BACKUP_R2_FULL_HOUR_UTC", "3") or "3"),
         "r2_hourly": (os.environ.get("BACKUP_R2_HOURLY", "false") or "false").lower() in ("1", "true", "yes"),
     }
