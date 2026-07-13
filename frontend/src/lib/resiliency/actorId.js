@@ -30,6 +30,12 @@ import { getHrToken } from "@/lib/hrAuth";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import { getDispatchToken } from "@/lib/dispatchAuth";
 import { getLeadershipToken } from "@/lib/leadershipAuth";
+import { getFlToken } from "@/lib/flAuth";
+import { getDirectoryUser } from "@/lib/directoryAuth";
+import { getFlUser } from "@/lib/flAuth";
+import { getHrUser } from "@/lib/hrAuth";
+import { getDispatchUser } from "@/lib/dispatchAuth";
+import { getSafetyUser } from "@/lib/safetyAuth";
 import { getDeviceId } from "./deviceId";
 
 const _TOKEN_PROBES = [
@@ -40,6 +46,7 @@ const _TOKEN_PROBES = [
   ["sh", getShopToken],
   ["d", getDispatchToken],
   ["l", getLeadershipToken],
+  ["fl", getFlToken],
 ];
 
 function _liveTokenPair() {
@@ -86,6 +93,36 @@ export function getActorId() {
 export function getAuthActorFingerprint() {
   const [prefix, tok] = _liveTokenPair();
   if (prefix && tok) return `${prefix}.${tok}`;
+  return "anon";
+}
+
+function _stablePortalUser() {
+  try {
+    const dir = getDirectoryUser();
+    if (dir?.id) return { portal: "directory", id: String(dir.id) };
+  } catch { /* ignore */ }
+  try {
+    const fl = getFlUser();
+    if (fl?.id) return { portal: "fl", id: String(fl.id) };
+  } catch { /* ignore */ }
+  try {
+    const hr = getHrUser();
+    if (hr?.id) return { portal: "hr", id: String(hr.id) };
+  } catch { /* ignore */ }
+  try {
+    const disp = getDispatchUser();
+    if (disp?.id) return { portal: "dispatch", id: String(disp.id) };
+  } catch { /* ignore */ }
+  try {
+    const safety = getSafetyUser();
+    if (safety?.id) return { portal: "safety", id: String(safety.id) };
+  } catch { /* ignore */ }
+  return null;
+}
+
+export function getStableActorIdentity() {
+  const who = _stablePortalUser();
+  if (who?.id) return `${who.portal}.${who.id}`;
   return "anon";
 }
 

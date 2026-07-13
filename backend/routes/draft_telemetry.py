@@ -61,6 +61,7 @@ ALLOWED_EVENTS = {
     "draft.write.fail",
     "draft.restore.offered",
     "draft.restore.action",
+    "draft.restore.blocked_cross_actor",
     "draft.recovery.absent",
     "draft.lifecycle",
     "draft.actorId.rotated",

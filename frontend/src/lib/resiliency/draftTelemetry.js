@@ -20,6 +20,14 @@
 
 import { getDeviceId } from "./deviceId";
 import { getActorId } from "./actorId";
+import { getAdminToken } from "@/lib/adminAuth";
+import { getPmToken } from "@/lib/pmAuth";
+import { getHrToken } from "@/lib/hrAuth";
+import { getSafetyToken } from "@/lib/safetyAuth";
+import { getDispatchToken } from "@/lib/dispatchAuth";
+import { getLeadershipToken } from "@/lib/leadershipAuth";
+import { getShopToken } from "@/lib/shopAuth";
+import { getFlToken } from "@/lib/flAuth";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const ENDPOINT = "/api/draft-telemetry";
@@ -34,18 +42,20 @@ let _backoffTimer = null;
 let _flushing = false;
 
 function _portalToken() {
-  // Pick whichever live portal token is present; the backend accepts
-  // any. We don't pin to one because field operators move across
-  // portals.
   try {
-    // Local imports to avoid bundler cycles.
     const ks = [
-      "admin_token", "pm_token", "hr_token", "safety_token",
-      "dispatch_token", "leadership_token", "shop_token",
+      ["admin", getAdminToken],
+      ["pm", getPmToken],
+      ["hr", getHrToken],
+      ["safety", getSafetyToken],
+      ["dispatch", getDispatchToken],
+      ["leadership", getLeadershipToken],
+      ["shop", getShopToken],
+      ["fl", getFlToken],
     ];
-    for (const k of ks) {
+    for (const [k, fn] of ks) {
       try {
-        const v = localStorage.getItem(k);
+        const v = fn && fn();
         if (v) return [k, v];
       } catch { /* ignore */ }
     }
@@ -57,13 +67,14 @@ function _tokenHeader() {
   const [k, v] = _portalToken();
   if (!k || !v) return null;
   const headerName = {
-    admin_token: "X-Admin-Token",
-    pm_token: "X-Pm-Token",
-    hr_token: "X-Hr-Token",
-    safety_token: "X-Safety-Token",
-    dispatch_token: "X-Dispatch-Token",
-    leadership_token: "X-Leadership-Token",
-    shop_token: "X-Shop-Token",
+    admin: "X-Admin-Token",
+    pm: "X-PM-Token",
+    hr: "X-HR-Token",
+    safety: "X-Safety-Token",
+    dispatch: "X-Dispatch-Token",
+    leadership: "X-Leadership-Token",
+    shop: "X-Shop-Token",
+    fl: "X-FL-Token",
   }[k];
   return headerName ? { [headerName]: v } : null;
 }

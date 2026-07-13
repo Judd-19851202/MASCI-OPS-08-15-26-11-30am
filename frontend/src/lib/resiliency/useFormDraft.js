@@ -40,11 +40,16 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import {
-  saveDraft, getDraftEntry, discardDraft,
+  saveDraft, getDraftEntry, discardDraft, clearDraft,
   migrateLegacyDrafts, storeIdempotencyKey, getIdempotencyKey,
   clearIdempotencyKey,
 } from "./draftStore";
-import { getDeviceScopedActorId, getLegacyActorIds, getAuthActorFingerprint } from "./actorId";
+import {
+  getDeviceScopedActorId,
+  getLegacyActorIds,
+  getAuthActorFingerprint,
+  getStableActorIdentity,
+} from "./actorId";
 import { emitDraftEvent } from "./draftTelemetry";
 import { estimateQuota } from "./quotaProbe";
 import { markPriorUsage } from "./priorUsage";
@@ -121,7 +126,7 @@ export function useFormDraft(_formKeyBase, data, actorId, options = {}) {
         // Legacy drafts (no `savedByActor` stamp) are treated as
         // trusted for backward compat but flagged cross-token so
         // the UI can render the "unknown author" affordance.
-        const currentAuthActor = getAuthActorFingerprint();
+        const currentAuthActor = getStableActorIdentity();
         const draftAuthor = entry && entry.savedByActor;
         const authorMismatch = Boolean(
           entry && draftAuthor && draftAuthor !== currentAuthActor
@@ -173,7 +178,9 @@ export function useFormDraft(_formKeyBase, data, actorId, options = {}) {
     if (serialized === lastSavedKeyRef.current) return;
     setDraftStatus("saving");
     const t0 = (typeof performance !== "undefined") ? performance.now() : Date.now();
-    const r = await saveDraft(deviceActorId, formKey, dataRef.current);
+    const r = await saveDraft(deviceActorId, formKey, dataRef.current, {
+      savedByActor: getStableActorIdentity(),
+    });
     const dt = ((typeof performance !== "undefined") ? performance.now() : Date.now()) - t0;
     if (r.ok) {
       lastSavedKeyRef.current = serialized;
@@ -335,7 +342,7 @@ export function useFormDraft(_formKeyBase, data, actorId, options = {}) {
 
   const commit = useCallback(async () => {
     const deviceActorId = getDeviceScopedActorId();
-    await discardDraft(deviceActorId, formKey);
+    await clearDraft(deviceActorId, formKey);
     await clearIdempotencyKey(deviceActorId, formKey);
     setPendingDraft(null);
     setPendingSavedAt(null);
@@ -343,6 +350,7 @@ export function useFormDraft(_formKeyBase, data, actorId, options = {}) {
     setLastSavedAt(null);
     setLastError(null);
     lastSavedKeyRef.current = null;
+    emitDraftEvent("draft.restore.action", { formKey, choice: "commit" });
   }, [formKey]);
 
   return {

@@ -149,6 +149,13 @@ export async function discardDraft(actorId, formKey) {
   } catch { /* ignore */ }
 }
 
+export async function clearDraft(actorId, formKey) {
+  if (!formKey) return;
+  try {
+    await del(_draftKey(actorId, formKey));
+  } catch { /* ignore */ }
+}
+
 // Try to recover the most-recently-archived draft (within TTL).
 // Used as a defensive fallback when getDraft() returns null but the
 // operator insists they had work.
@@ -214,6 +221,28 @@ export async function clearAllDraftsForActor(actorId) {
   } catch { /* ignore */ }
 }
 
+export async function listDraftEntriesForPrefix(formKeyPrefix) {
+  if (!formKeyPrefix) return [];
+  try {
+    const ks = await idbKeys();
+    const rows = [];
+    for (const k of ks) {
+      if (typeof k !== "string") continue;
+      if (!k.startsWith(DRAFT_PREFIX) && !k.startsWith(ARCHIVE_PREFIX)) continue;
+      if (!k.includes(`.${formKeyPrefix}`)) continue;
+      try {
+        const v = await get(k);
+        rows.push({ key: k, entry: v || null });
+      } catch {
+        /* ignore corrupt/bad entries during recovery listing */
+      }
+    }
+    return rows;
+  } catch {
+    return [];
+  }
+}
+
 // --------------------------------------------------------- legacy migration
 // Re-keys any legacy token-derived drafts under the new device-scoped
 // actor id. One-time, idempotent, safe to call on every mount.
@@ -227,7 +256,7 @@ export async function migrateLegacyDrafts(deviceActorId, legacyActorIds, formKey
   try {
     const target = _draftKey(deviceActorId, formKey);
     const existing = await get(target);
-    const existingSavedAt = (existing && existing.savedAt) || 0;
+    let best = existing && existing.form ? { key: target, value: existing } : null;
     for (const legacyId of legacyActorIds) {
       if (!legacyId || legacyId === deviceActorId) continue;
       const legacyKey = _draftKey(legacyId, formKey);
@@ -235,20 +264,19 @@ export async function migrateLegacyDrafts(deviceActorId, legacyActorIds, formKey
       let v;
       try { v = await get(legacyKey); } catch { v = null; }
       if (!v || !v.form) continue;
-      const savedAt = v.savedAt || 0;
-      if (savedAt > existingSavedAt) {
-        // Newer legacy draft — promote it.
-        try {
-          await set(target, { form: v.form, savedAt });
+      const candidate = { key: legacyKey, value: v };
+      if (!best || (v.savedAt || 0) > (best.value.savedAt || 0)) best = candidate;
+      else kept += 1;
+    }
+    if (best && best.key !== target) {
+      try {
+        await set(target, best.value);
+        const readback = await get(target);
+        if (readback && readback.form && (readback.savedAt || 0) === (best.value.savedAt || 0)) {
           migrated += 1;
-        } catch { /* migration write failed; leave legacy in place */ }
-      } else {
-        kept += 1;
-      }
-      // Always delete the legacy key after considering it (the data
-      // is preserved at `target` if it was promoted; otherwise the
-      // current device-scoped draft is already newer).
-      try { await del(legacyKey); } catch { /* ignore */ }
+          try { await del(best.key); } catch { /* ignore */ }
+        }
+      } catch { /* leave legacy source intact on failed promotion */ }
     }
   } catch { /* ignore */ }
   return { migrated, kept };

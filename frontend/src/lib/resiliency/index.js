@@ -6,8 +6,9 @@
 
 export { mintIdempotencyKey } from "./idempotency";
 export {
-  saveDraft, getDraft, getDraftEntry, discardDraft, purgeStaleDrafts,
+  saveDraft, getDraft, getDraftEntry, discardDraft, clearDraft, purgeStaleDrafts,
   clearAllDraftsForActor, migrateLegacyDrafts, recoverArchivedDraft,
+  listDraftEntriesForPrefix,
   storeIdempotencyKey, getIdempotencyKey, clearIdempotencyKey,
 } from "./draftStore";
 export { useDraft } from "./useDraft";
@@ -43,6 +44,12 @@ export {
 } from "./photoDraftStore";
 export { emitDraftEvent, flushDraftTelemetry } from "./draftTelemetry";
 export { estimateQuota } from "./quotaProbe";
+export {
+  DAILY_REPORT_FORM_BASE,
+  buildDailyReportInstanceScope,
+  buildDailyReportScopedFormKey,
+  buildDailyReportTelemetryContext,
+} from "./dailyReportScope";
 export { default as OfflineIndicator } from "./OfflineIndicator";
 export { default as DraftStatusPill } from "./DraftStatusPill";
 export { default as DraftRestorePrompt } from "./DraftRestorePrompt";
@@ -50,5 +57,10 @@ export { default as DraftRecoveryNotice } from "./DraftRecoveryNotice";
 export { default as QuotaWarningChip } from "./QuotaWarningChip";
 export { default as PriorUsageBanner } from "./PriorUsageBanner";
 export { default as StagedPhotoBadge } from "./StagedPhotoBadge";
-export { getActorId, getDeviceScopedActorId, getLegacyActorIds } from "./actorId";
+export {
+  getActorId,
+  getDeviceScopedActorId,
+  getLegacyActorIds,
+  getStableActorIdentity,
+} from "./actorId";
 export { getDeviceId, ensureDeviceId } from "./deviceId";

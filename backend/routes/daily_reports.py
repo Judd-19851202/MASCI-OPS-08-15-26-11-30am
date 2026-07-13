@@ -1053,31 +1053,31 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
 
         buckets: Dict[str, Any] = {
             "active_lt_1h": await _count(
-                {"kind": "draft.save.ok", "ts": {"$gte": hour_ago.isoformat()}}
+                {"event": "draft.write.ok", "ts": {"$gte": hour_ago}}
             ),
             "stale_1h_to_24h": await _count({
-                "kind": "draft.save.ok",
-                "ts": {"$gte": day_ago.isoformat(), "$lt": hour_ago.isoformat()},
+                "event": "draft.write.ok",
+                "ts": {"$gte": day_ago, "$lt": hour_ago},
             }),
             "abandoned_gt_24h": await _count({
-                "kind": "draft.save.ok",
-                "ts": {"$lt": day_ago.isoformat()},
+                "event": "draft.write.ok",
+                "ts": {"$lt": day_ago},
             }),
             "failed_last_24h": await _count({
-                "kind": "draft.save.failed",
-                "ts": {"$gte": day_ago.isoformat()},
+                "event": "draft.write.fail",
+                "ts": {"$gte": day_ago},
             }),
             "quota_warn_last_24h": await _count({
-                "kind": "draft.quota.warn",
-                "ts": {"$gte": day_ago.isoformat()},
+                "event": "quota.warning",
+                "ts": {"$gte": day_ago},
             }),
             "restore_offered_last_24h": await _count({
-                "kind": "draft.restore.offered",
-                "ts": {"$gte": day_ago.isoformat()},
+                "event": "draft.restore.offered",
+                "ts": {"$gte": day_ago},
             }),
             "restore_action_last_24h": await _count({
-                "kind": "draft.restore.action",
-                "ts": {"$gte": day_ago.isoformat()},
+                "event": "draft.restore.action",
+                "ts": {"$gte": day_ago},
             }),
         }
 
@@ -1085,7 +1085,7 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
         per_form: Dict[str, int] = {}
         try:
             pipeline = [
-                {"$match": {"kind": "draft.save.ok", "ts": {"$gte": day_ago.isoformat()}}},
+                {"$match": {"event": "draft.write.ok", "ts": {"$gte": day_ago}}},
                 {"$group": {"_id": "$formKey", "n": {"$sum": 1}}},
                 {"$sort": {"n": -1}},
                 {"$limit": 20},

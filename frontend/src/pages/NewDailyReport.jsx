@@ -67,6 +67,10 @@ import {
   QuotaWarningChip, PriorUsageBanner,
   recoverArchivedDraft,
   getDeviceScopedActorId,
+  listDraftEntriesForPrefix,
+  DAILY_REPORT_FORM_BASE,
+  buildDailyReportInstanceScope,
+  buildDailyReportScopedFormKey,
   hasStalePriorUsage, getPriorUsage,
 } from "@/lib/resiliency";
 // iter437 · Phase 31.1 · Daily Report Crew Memory Continuity.
@@ -363,6 +367,9 @@ function NewDailyReportInner({ publicMode = false }) {
   const [locating, setLocating] = useState(false);
   const [fetchingWeather, setFetchingWeather] = useState(false);
   const [summaryGate, setSummaryGate] = useState({ canSubmit: false, manualNeeded: false });
+  const [legacyDraftRecovery, setLegacyDraftRecovery] = useState(null);
+  const [smartPrefillOffer, setSmartPrefillOffer] = useState(null);
+  const [smartPrefillLoadedKey, setSmartPrefillLoadedKey] = useState("");
   // Phase 6 · WS2/WS3 — submit-attempt flag for attentionOpen on collapsed
   // sections that have unresolved signal-driven detail.
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
@@ -405,12 +412,34 @@ function NewDailyReportInner({ publicMode = false }) {
   // savedAt, isCrossToken, lastSavedAt, lastError for the truthful
   // pill + restore prompt.
   const actorId = React.useMemo(() => getActorId(), []);
+  const draftScope = React.useMemo(() => buildDailyReportInstanceScope(data), [data]);
+  const scopedFormKey = React.useMemo(() => buildDailyReportScopedFormKey(data), [data]);
   const {
     pendingDraft, pendingSavedAt, pendingIsCrossToken,
     loaded: draftLoaded,
     draftStatus, lastSavedAt, lastError, quotaPressure,
     restore, discard, commit,
-  } = useFormDraft("daily-report-new", data, actorId);
+  } = useFormDraft(DAILY_REPORT_FORM_BASE, data, actorId, { scope: draftScope });
+
+  React.useEffect(() => {
+    if (!draftLoaded || pendingDraft) return undefined;
+    let cancelled = false;
+    (async () => {
+      const rows = await listDraftEntriesForPrefix("daily-report-new");
+      if (cancelled) return;
+      const legacy = (rows || [])
+        .filter((row) => typeof row?.key === "string" && row.key.includes(".daily-report-new") && !row.key.includes("daily-report-new::"))
+        .map((row) => row?.entry)
+        .find((entry) => entry?.form && Object.keys(entry.form || {}).length > 1);
+      if (legacy?.form) {
+        setLegacyDraftRecovery({
+          form: legacy.form,
+          savedAt: legacy.savedAt || null,
+        });
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [draftLoaded, pendingDraft]);
 
   // TRUST-1 · TF-016 — Recovery affordance for soft-deleted drafts.
   // After the hook reports loaded=true with no pendingDraft, probe the
@@ -425,9 +454,7 @@ function NewDailyReportInner({ publicMode = false }) {
     let cancelled = false;
     (async () => {
       try {
-        const arc = await recoverArchivedDraft(
-          getDeviceScopedActorId(), "daily-report-new",
-        );
+        const arc = await recoverArchivedDraft(getDeviceScopedActorId(), scopedFormKey);
         if (!cancelled && arc && arc.form) setArchivedDraft(arc);
       } catch { /* ignore */ }
     })();
@@ -450,13 +477,13 @@ function NewDailyReportInner({ publicMode = false }) {
     if (!draftLoaded) return;
     if (pendingDraft || archivedDraft) { setPriorUsage(null); return; }
     try {
-      if (hasStalePriorUsage("daily-report-new")) {
-        setPriorUsage(getPriorUsage("daily-report-new"));
+      if (hasStalePriorUsage(scopedFormKey)) {
+        setPriorUsage(getPriorUsage(scopedFormKey));
       } else {
         setPriorUsage(null);
       }
     } catch { /* ignore */ }
-  }, [draftLoaded, pendingDraft, archivedDraft]);
+  }, [draftLoaded, pendingDraft, archivedDraft, scopedFormKey]);
 
   // iter440 — hydrate any persisted idempotency key from IDB so a
   // reload mid-offline-queue does not mint a duplicate submission.
@@ -464,14 +491,14 @@ function NewDailyReportInner({ publicMode = false }) {
     let cancelled = false;
     (async () => {
       try {
-        const k = await loadIdempotencyKey("daily-report-new");
+        const k = await loadIdempotencyKey(scopedFormKey);
         if (!cancelled && k && !idempotencyKeyRef.current) {
           idempotencyKeyRef.current = k;
         }
       } catch { /* ignore */ }
     })();
     return () => { cancelled = true; };
-  }, []);
+  }, [scopedFormKey]);
 
   const onRestoreDraft = React.useCallback(() => {
     const d = restore();
@@ -501,6 +528,41 @@ function NewDailyReportInner({ publicMode = false }) {
       setCrewMemoryConfidence(getCrewMemoryConfidence());
     }
   }, []);
+
+  React.useEffect(() => {
+    if (!draftLoaded) return undefined;
+    const projectNumber = String(data.project_number || "").trim();
+    if (!projectNumber) return undefined;
+    const foreman = String(data.prepared_by || "").trim();
+    const superintendent = String(data.superintendent || "").trim();
+    const requestKey = `${projectNumber}::${foreman}::${superintendent}`;
+    if (requestKey === smartPrefillLoadedKey) return undefined;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: res } = await api.get(`/jobs/${encodeURIComponent(projectNumber)}/recent-context`, {
+          params: { foreman, superintendent },
+        });
+        if (cancelled) return;
+        const priorCrews = Array.isArray(res?.masci_crews) ? res.masci_crews : [];
+        const priorEquipment = Array.isArray(res?.equipment) ? res.equipment : [];
+        const sourceDate = String(res?.source_report_date || "").trim();
+        const hasReusable = Boolean(priorCrews.length || priorEquipment.length);
+        setSmartPrefillOffer(hasReusable ? {
+          actor_scoped: Boolean(res?.actor_scoped),
+          superintendent: res?.superintendent || data.superintendent || "",
+          priorCrews,
+          priorEquipment,
+          sourceDate,
+        } : null);
+      } catch {
+        if (!cancelled) setSmartPrefillOffer(null);
+      } finally {
+        if (!cancelled) setSmartPrefillLoadedKey(requestKey);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [draftLoaded, data.project_number, data.prepared_by, data.superintendent, smartPrefillLoadedKey]);
   const onUseCrewSetup = React.useCallback(() => {
     if (!crewSetup) return;
     // iter442 · project-change guard. If the operator has already
@@ -566,7 +628,6 @@ function NewDailyReportInner({ publicMode = false }) {
   // eliminating the "residue from another user's report" P0 that
   // production field-users reported for Track 19.04. Dismissal
   // clears the offer for the current session (per job change).
-  const [smartPrefillOffer, setSmartPrefillOffer] = React.useState(null);
   // TRACK 19.06 AMENDMENT · After the foreman accepts the Smart Prefill
   // offer, surface a persistent-but-dismissible notice above the crew
   // section reminding them to review and adjust hours before submit.
@@ -1090,7 +1151,7 @@ function NewDailyReportInner({ publicMode = false }) {
         idempotencyKeyRef.current = mintIdempotencyKey();
         // iter440 — persist immediately so a reload mid-queue does
         // not regenerate the key and produce a duplicate submission.
-        try { await persistIdempotencyKey("daily-report-new", idempotencyKeyRef.current); }
+        try { await persistIdempotencyKey(scopedFormKey, idempotencyKeyRef.current); }
         catch { /* ignore */ }
       }
       const r = await enqueueUpload({
@@ -1099,7 +1160,7 @@ function NewDailyReportInner({ publicMode = false }) {
         headers: getFlToken() ? { "X-FL-Token": getFlToken() } : {},
         body: payload,
         idempotencyKey: idempotencyKeyRef.current,
-        formKey: "daily-report-new",
+        formKey: scopedFormKey,
       });
       if (!r.ok && r.queued) {
         toast.message("Saved · will upload when reconnected", {
@@ -1119,13 +1180,13 @@ function NewDailyReportInner({ publicMode = false }) {
                 await commit();
                 import("@/lib/resiliency").then(({ emitDraftEvent }) =>
                   emitDraftEvent("draft.write.ok", {
-                    formKey: "daily-report-new",
+                    formKey: scopedFormKey,
                     trigger: "queue.commit.confirmed",
                   })).catch(() => {});
               } else {
                 import("@/lib/resiliency").then(({ emitDraftEvent }) =>
                   emitDraftEvent("draft.write.fail", {
-                    formKey: "daily-report-new",
+                    formKey: scopedFormKey,
                     trigger: "queue.commit.failed",
                     errorName: "QueueExhausted",
                     error: outcome?.lastError || "queue gave up",
@@ -1326,6 +1387,48 @@ function NewDailyReportInner({ publicMode = false }) {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6">
+        {legacyDraftRecovery && !pendingDraft ? (
+          <DraftRecoveryNotice
+            archivedDraft={legacyDraftRecovery}
+            onRestore={() => {
+              setData((prev) => ({ ...prev, ...(legacyDraftRecovery.form || {}) }));
+              setLegacyDraftRecovery(null);
+              toast.success(t("Recovered saved work from this device"));
+            }}
+            onDismiss={() => setLegacyDraftRecovery(null)}
+            testId="daily-report-legacy-recovery"
+          />
+        ) : null}
+
+        {smartPrefillOffer && !pendingDraft && !crewSetup ? (
+          <CrewSetupRestorePrompt
+            snapshot={{
+              project_name: data.project_name,
+              project_number: data.project_number,
+              superintendent: smartPrefillOffer.superintendent || data.superintendent,
+              masci_crews: smartPrefillOffer.priorCrews || [],
+              equipment: smartPrefillOffer.priorEquipment || [],
+              savedAt: smartPrefillOffer.sourceDate
+                ? Date.parse(`${smartPrefillOffer.sourceDate}T12:00:00Z`)
+                : Date.now(),
+              nickname: t("Previous submitted report"),
+            }}
+            confidence={{ level: smartPrefillOffer.actor_scoped ? "high" : "low" }}
+            onUseSetup={() => {
+              setData((prev) => ({
+                ...prev,
+                masci_crews: Array.isArray(smartPrefillOffer.priorCrews) ? smartPrefillOffer.priorCrews : prev.masci_crews,
+                equipment: Array.isArray(smartPrefillOffer.priorEquipment) ? smartPrefillOffer.priorEquipment : prev.equipment,
+              }));
+              setSmartPrefillOffer(null);
+              toast.success(t("Previous crew and equipment loaded"));
+            }}
+            onStartBlank={() => setSmartPrefillOffer(null)}
+            onClear={() => setSmartPrefillOffer(null)}
+            testId="daily-report-smart-prefill-prompt"
+          />
+        ) : null}
+
         <div className="mb-2">
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-red-700">
             {t("New Report")}
@@ -1444,7 +1547,7 @@ function NewDailyReportInner({ publicMode = false }) {
             when no live draft and no archive exists AND this device has
             saved this form > 24h ago. Reassuring, not alarming. */}
         <PriorUsageBanner
-          formKey="daily-report-new"
+          formKey={scopedFormKey}
           priorUsage={pendingDraft || archivedDraft ? null : priorUsage}
           onDismiss={() => setPriorUsage(null)}
           testId="daily-report-prior-usage"

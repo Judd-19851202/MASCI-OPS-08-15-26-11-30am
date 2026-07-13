@@ -1,3 +1,28 @@
+## 2026-07-13 · P0 Daily Report Continuity Incident Containment
+
+### Incident
+- Active production trust incident: Daily Report field data reportedly appearing blank on return to submit, with missing prior crew/equipment reuse.
+
+### Repository-proven defects contained
+- Added Field Leadership token participation to continuity actor fingerprinting in `frontend/src/lib/resiliency/actorId.js`.
+- Persisted `savedByActor` on autosave writes in `frontend/src/lib/resiliency/useFormDraft.js` for cross-user isolation.
+- Scoped canonical Daily Report drafts by project + report date using existing `useFormDraft(..., { scope })` support in `frontend/src/pages/NewDailyReport.jsx`.
+- Added discovery/recovery path for legacy unscoped `daily-report-new` drafts via `listDraftEntriesForPrefix()` in `frontend/src/lib/resiliency/draftStore.js` and surfaced recovery affordance in `NewDailyReport.jsx`.
+- Triggered Smart Prefill fetch when a remembered project loads, not only when the operator manually re-picks the job.
+- Corrected `/api/admin/draft-health` telemetry aggregation to query the real `draft_telemetry` schema (`event`, not stale `kind`) in `backend/routes/daily_reports.py`.
+
+### Production-safe evidence gathered
+- Read-only production checks confirmed sampled submitted Daily Reports still exist server-side and `/api/jobs/{project_number}/recent-context` returns prior crew/equipment context for at least one affected pattern.
+- Read-only production checks also confirmed `/api/admin/draft-health` was false-zero while `/api/draft-telemetry/recent` contained real draft events before the repair.
+
+### Testing
+- Browser smoke on `/daily/submit` passed in preview.
+- Incident-focused testing agent pass: `/app/test_reports/iteration_566.json`.
+
+### Status
+- Repair implemented and preview-tested.
+- Real iPad/Safari production certification still pending; final incident certification cannot be marked GO until that run is completed.
+
 ## 2026-07-13 · Track 27.11C / 27.11B Emergency Closeout
 
 - COMPLETE RECOVERY & CLOSEOUT REPAIR achieved in preview.
