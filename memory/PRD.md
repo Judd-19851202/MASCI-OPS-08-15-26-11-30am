@@ -1,3 +1,19 @@
+## 2026-07-13 · Track 27.11C / 27.11B Emergency Closeout
+
+- COMPLETE RECOVERY & CLOSEOUT REPAIR achieved in preview.
+- Fresh proof archive completed: `MASCI_complete_backup_2026-07-13_031902Z.zip`.
+- Verified via backend checks: `integrity_result=PASS`, `classification=PASS`, `captured_collection_count=251`, `expected_collection_count=251`, `missing_count=0`.
+- Repaired complete-R2 hourly dedupe so manual/same-hour successful runs stamp scheduler state and current-hour DB rows suppress duplicate restart-fires.
+- Added release-scoped certification response fields: `release_reason`, `release_source_hash`, `release_required_workflows`.
+- Added Daily Report certification contract fields and admin-only hidden-lane visibility enforcement.
+- Cleaned scoped frontend API consumers to use the shared API wrapper on the verified pages: admin recovery, storage recovery, project staffing, executive intelligence.
+- Targeted verification completed:
+  - `GET /api/admin/backups/integrity-check` → PASS on `MASCI_complete_backup_2026-07-13_031902Z.zip`
+  - `GET /api/admin/backups-complete-r2-state` → success state for `MASCI_complete_backup_2026-07-13_031902Z.zip`
+  - `GET /api/admin/production-certification` → required release-scoped fields present
+  - Pytest narrow regressions passed for release scope / certification contract updates
+  - Narrow frontend smoke passed on the four scoped routes after URL hygiene cleanup
+
 
 
 > **STATUS · 2026-07-12 · Track 27.11 Semantics Correction · CERTIFICATION STATUS SEMANTICS VERIFIED IN PREVIEW · ✅ READY FOR OPERATOR DEPLOYMENT.** Scope stayed exactly as ordered: only `backend/lib/production_certification.py` and directly related certification tests were reopened. The production-certification state machine now implements truthful 5-way semantics: **VERIFIED** = fresh completed/ok evidence, **FAILED** = affirmative completed failure only, **NOT_YET_EXERCISED** = no qualifying execution, **BLOCKED** = execution began or was required but could not complete because of a documented blocker, **STALE** = qualifying evidence exists but is outside the freshness window. Separate `platform_band` and `release_band` outputs are preserved, along with `counters` and `release_counters`. Requested regression evidence: production-certification tests **12/12 PASS**, closeout subset **32/32 PASS**, certification-manifest + deployment-gate + deployment-certification bundle **38/38 PASS**, mandatory testing-agent verification `/app/test_reports/iteration_565.json` **58/58 PASS**. Resulting live-preview certification snapshot from the testing agent is truthful: untouched workflows remain informational (`NOT_YET_EXERCISED`), touched blocked workflows produce `HOLD` semantics via `release_band=hold`, and no partial-evidence row is mislabeled `FAILED`.
