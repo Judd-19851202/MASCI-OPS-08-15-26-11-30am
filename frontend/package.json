@@ -71,6 +71,9 @@
     "build": "craco build",
     "test": "craco test"
   },
+  "resolutions": {
+    "@mapbox/jsonlint-lines-primitives": "2.0.2"
+  },
   "browserslist": {
     "production": [
       ">0.2%",
