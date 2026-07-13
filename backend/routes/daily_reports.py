@@ -423,6 +423,12 @@ class DailyReportCreate(BaseModel):
     # ────────────────────────────────────────────────────────────
     evidence_manifest: Optional[Dict[str, Any]] = None
 
+    # TRACK 27.11A · production-safe certification lane.
+    certification_record: bool = False
+    synthetic_record: bool = False
+    hidden_from_operations: bool = False
+    email_dispatch_suppressed: bool = False
+
 
 class DailyReport(DailyReportCreate):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -460,6 +466,20 @@ def _derive_advisory_flags(report: DailyReport) -> None:
             row.may_require_rfi = True
         if row.constraint_type in _SCHEDULE_IMPACT_TYPES:
             row.may_affect_schedule = True
+
+
+def _apply_certification_record_safety(doc: Dict[str, Any]) -> Dict[str, Any]:
+    if not bool(doc.get("certification_record")):
+        return doc
+    doc["certification_record"] = True
+    doc["synthetic_record"] = True
+    doc["hidden_from_operations"] = True
+    doc["email_dispatch_suppressed"] = True
+    return doc
+
+
+def _should_schedule_daily_report_email(doc: Dict[str, Any]) -> bool:
+    return not bool(doc.get("certification_record") or doc.get("email_dispatch_suppressed"))
 
 
 def _audit_envelope(doc: Dict[str, Any]) -> Dict[str, Any]:
@@ -689,6 +709,7 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
             # Wave-1A · advisory flag derivation (deterministic · operator-defined).
             _derive_advisory_flags(report)
             doc = report.model_dump()
+            doc = _apply_certification_record_safety(doc)
             # Stamp human-readable doc ID (DR-2026-00001) so the form, the PDF,
             # and the admin search bar can all reference the same number.
             from doc_ids import ensure_doc_id  # local import to keep startup fast
@@ -815,7 +836,8 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
                 )
             except Exception:  # noqa: BLE001
                 pass
-            schedule_auto_email("daily-report", doc)
+            if _should_schedule_daily_report_email(doc):
+                schedule_auto_email("daily-report", doc)
 
             # iter452.5 Tier 1 · Field Submitter Identity binding.
             # iter452.5.1 (P0) · FL token from header drives tier-1

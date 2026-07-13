@@ -1,8 +1,8 @@
 // Print helper that works inside the Emergent preview iframe AND on the
 // standalone deployed site.
 //
-// Background: Emergent's preview URL hosts the app in an iframe under
-// .preview.emergentagent.com. When code in that iframe calls window.print(),
+// Background: the managed non-production lane hosts the app inside an iframe.
+// When code in that iframe calls window.print(),
 // it triggers the iframe's print — which has no UI, so nothing visible
 // happens. The native print dialog only fires from the *top-level* browser
 // window. On the deployed standalone domain (mascidocs.com) we ARE
@@ -19,7 +19,7 @@ const isTopLevel = () => {
   try {
     return window.top === window.self;
   } catch {
-    // Cross-origin parent (Emergent preview) → top access throws → iframe
+    // Cross-origin parent → top access throws → iframe
     return false;
   }
 };

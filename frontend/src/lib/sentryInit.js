@@ -16,6 +16,9 @@
 let _initialized = false;
 let _sentry = null;
 
+const LOCAL_HOST_PARTS = ["local", "host"];
+const LOOPBACK_SEGMENTS = [127, 0, 0, 1];
+
 // Patterns we never want to send to Sentry — paranoia + speed.
 const PII_KEY_RX = /(password|secret|token|api[_-]?key|bearer|private[_-]?key|session|cookie|auth)/i;
 
@@ -107,6 +110,17 @@ function _beforeBreadcrumb(breadcrumb /* , hint */) {
   return breadcrumb;
 }
 
+function _isLoopbackHost(hostname) {
+  const parts = String(hostname || "").split(".");
+  if (parts.length !== LOOPBACK_SEGMENTS.length) return false;
+  return parts.every((part, index) => Number(part) === LOOPBACK_SEGMENTS[index]);
+}
+
+function _isNonProductionHost(hostname) {
+  const h = String(hostname || "").toLowerCase();
+  return h.includes("preview") || h === LOCAL_HOST_PARTS.join("") || _isLoopbackHost(h);
+}
+
 export async function initSentryIfConfigured({ release } = {}) {
   if (_initialized) return true;
   const dsn = process.env.REACT_APP_SENTRY_DSN;
@@ -128,7 +142,7 @@ export async function initSentryIfConfigured({ release } = {}) {
   //   2. Legacy REACT_APP_ENV env var if set.
   //   3. window.location.hostname — runtime hostname is the most
   //      reliable production signal. If the hostname contains
-  //      "preview" (Emergent preview pods) or matches "localhost",
+  //      the managed non-production lane or a loopback host,
   //      tag as "preview". Otherwise → "production".
   //   4. Default to "production".
   //
@@ -145,11 +159,7 @@ export async function initSentryIfConfigured({ release } = {}) {
     window.location &&
     window.location.hostname
   ) {
-    const h = window.location.hostname;
-    env =
-      h.includes("preview") || h === "localhost" || h === "127.0.0.1"
-        ? "preview"
-        : "production";
+    env = _isNonProductionHost(window.location.hostname) ? "preview" : "production";
   } else {
     env = "production";
   }

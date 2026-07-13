@@ -4,6 +4,8 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List
 
+from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
+
 from .registry import Operation, OperationCategory, RiskLevel
 
 
@@ -16,14 +18,14 @@ async def _dr_health(payload: Dict[str, Any]) -> Dict[str, Any]:
     cutoff = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
     try:
         total_24h = await db.daily_reports.count_documents(
-            {"created_at": {"$gte": cutoff}},
+            apply_synthetic_dr_exclusion({"created_at": {"$gte": cutoff}}),
         )
         with_ai = await db.daily_reports.count_documents({
-            "created_at": {"$gte": cutoff},
-            "ai_accepted_summary": {"$exists": True, "$ne": "", "$ne": None},
+            **apply_synthetic_dr_exclusion({"created_at": {"$gte": cutoff}}),
+            "ai_accepted_summary": {"$exists": True, "$nin": ["", None]},
         })
         with_manifest = await db.daily_reports.count_documents({
-            "created_at": {"$gte": cutoff},
+            **apply_synthetic_dr_exclusion({"created_at": {"$gte": cutoff}}),
             "evidence_manifest": {"$exists": True, "$ne": None},
         })
     except Exception as e:  # noqa: BLE001

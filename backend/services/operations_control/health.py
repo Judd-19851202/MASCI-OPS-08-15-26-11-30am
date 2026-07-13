@@ -6,6 +6,8 @@ import shutil
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List
 
+from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
+
 from .registry import Operation, OperationCategory, RiskLevel
 
 
@@ -81,7 +83,7 @@ async def _dr_recent(db) -> Dict[str, Any]:
     try:
         cutoff = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
         recent = await db.daily_reports.count_documents(
-            {"created_at": {"$gte": cutoff}},
+            apply_synthetic_dr_exclusion({"created_at": {"$gte": cutoff}}),
         )
         return {"state": "healthy", "count_last_24h": recent}
     except Exception as e:  # noqa: BLE001

@@ -20,6 +20,9 @@ from fastapi import APIRouter, Depends, HTTPException
 
 logger = logging.getLogger(__name__)
 
+SCHEDULER_HEARTBEAT_WINDOW_MINUTES = 30
+SCHEDULER_BACKUP_FALLBACK_WINDOW_MINUTES = 60
+
 
 # ─────────────────── 15-second snapshot cache ───────────────────
 _CACHE: Dict[str, Any] = {"computed_at": 0.0, "snapshot": None}
@@ -56,27 +59,144 @@ def _scheduler_state_is_alive(state: Any, *, max_age_minutes: int = 30) -> bool:
     return (datetime.now(timezone.utc) - ts) < timedelta(minutes=max_age_minutes)
 
 
-def canonical_scheduler_snapshot(state: Any, *, max_age_minutes: int = 30) -> Dict[str, Any]:
+def canonical_scheduler_snapshot(
+    state: Any,
+    *,
+    max_age_minutes: int = SCHEDULER_HEARTBEAT_WINDOW_MINUTES,
+    backup_fallback_ts: Any = None,
+    backup_fallback_max_age_minutes: int = SCHEDULER_BACKUP_FALLBACK_WINDOW_MINUTES,
+    lock_row: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
     """Single source of truth for scheduler liveness / health."""
+    now = datetime.now(timezone.utc)
     if not isinstance(state, dict):
-        return {
-            "alive": False,
-            "is_healthy": False,
-            "last_tick_ts": None,
-            "seconds_since_last_tick": None,
-        }
+        state = {}
+
     tick = state.get("last_tick_ts")
     ts = _parse_ts(tick)
     seconds_since_last_tick = None
     if ts:
-        seconds_since_last_tick = (datetime.now(timezone.utc) - ts).total_seconds()
-    alive = _scheduler_state_is_alive(state, max_age_minutes=max_age_minutes)
-    return {
-        "alive": alive,
-        "is_healthy": alive,
+        seconds_since_last_tick = (now - ts).total_seconds()
+
+    lock_ts_raw = None
+    owner_pod = None
+    if isinstance(lock_row, dict):
+        lock_ts_raw = lock_row.get("expires_at") or lock_row.get("acquired_at")
+        owner_id = lock_row.get("owner_id") or ""
+        owner_pod = owner_id.split(":")[0] if owner_id else None
+    lock_ts = _parse_ts(lock_ts_raw)
+    backup_dt = _parse_ts(backup_fallback_ts)
+
+    snapshot = {
+        "alive": False,
+        "is_healthy": False,
         "last_tick_ts": tick,
         "seconds_since_last_tick": seconds_since_last_tick,
+        "signal_source": "none",
+        "reason_code": "scheduler_signal_missing",
+        "evidence_ts": None,
+        "last_lock_ts": lock_ts_raw,
+        "owner_pod": owner_pod,
+        "heartbeat_window_minutes": max_age_minutes,
+        "backup_fallback_window_minutes": backup_fallback_max_age_minutes,
     }
+
+    if ts and (now - ts) < timedelta(minutes=max_age_minutes):
+        snapshot.update({
+            "alive": True,
+            "is_healthy": True,
+            "signal_source": "backup_scheduler_state",
+            "reason_code": "scheduler_heartbeat_current",
+            "evidence_ts": tick,
+        })
+        return snapshot
+
+    if backup_dt and (now - backup_dt) < timedelta(minutes=backup_fallback_max_age_minutes):
+        snapshot.update({
+            "alive": True,
+            "is_healthy": True,
+            "signal_source": "recent_successful_backup",
+            "reason_code": "recent_backup_fallback",
+            "evidence_ts": backup_fallback_ts,
+        })
+        return snapshot
+
+    if lock_ts and (now - lock_ts) < timedelta(minutes=max_age_minutes):
+        snapshot.update({
+            "alive": True,
+            "is_healthy": True,
+            "signal_source": "scheduler_lock_fallback",
+            "reason_code": "scheduler_lock_current",
+            "evidence_ts": lock_ts_raw,
+        })
+        return snapshot
+
+    if ts:
+        snapshot.update({
+            "signal_source": "backup_scheduler_state",
+            "reason_code": "scheduler_heartbeat_stale",
+            "evidence_ts": tick,
+        })
+    elif backup_dt:
+        snapshot.update({
+            "signal_source": "recent_successful_backup",
+            "reason_code": "recent_backup_stale",
+            "evidence_ts": backup_fallback_ts,
+        })
+    elif lock_ts:
+        snapshot.update({
+            "signal_source": "scheduler_lock_fallback",
+            "reason_code": "scheduler_lock_stale",
+            "evidence_ts": lock_ts_raw,
+        })
+
+    return snapshot
+
+
+async def build_canonical_scheduler_snapshot(
+    db: Any,
+    state: Any,
+    *,
+    max_age_minutes: int = SCHEDULER_HEARTBEAT_WINDOW_MINUTES,
+    backup_fallback_max_age_minutes: int = SCHEDULER_BACKUP_FALLBACK_WINDOW_MINUTES,
+    backup_fallback_ts: Any = None,
+    lock_row: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    if backup_fallback_ts is None:
+        try:
+            newest_r2 = await _newest_r2_backup_summary()
+        except Exception:
+            newest_r2 = None
+        backup_fallback_ts = (newest_r2 or {}).get("ts")
+        if backup_fallback_ts is None:
+            latest_ok = await db.backup_health.find_one(
+                {"mode": "complete-r2", "ok": True, "filename": {"$nin": [None, ""]}},
+                {"_id": 0, "ts": 1},
+                sort=[("ts", -1)],
+            )
+            backup_fallback_ts = (latest_ok or {}).get("ts")
+
+    if lock_row is None:
+        lock_row = await db.scheduler_locks.find_one(
+            {"_id": "backup_scheduler"},
+            {"_id": 0},
+        ) or await db.scheduler_locks.find_one(
+            {"owner_id": {"$regex": "^backup_scheduler"}},
+            {"_id": 0},
+            sort=[("acquired_at", -1)],
+        ) or await db.scheduler_locks.find_one(
+            {},
+            {"_id": 0},
+            sort=[("acquired_at", -1)],
+        )
+
+    return canonical_scheduler_snapshot(
+        state,
+        max_age_minutes=max_age_minutes,
+        backup_fallback_ts=backup_fallback_ts,
+        backup_fallback_max_age_minutes=backup_fallback_max_age_minutes,
+        lock_row=lock_row,
+    )
 
 
 def _compute_pill(
@@ -365,43 +485,28 @@ def build_recovery_dashboard_router(
             last_drill = None
 
         # --- scheduler liveness ---
-        scheduler_alive = False
-        scheduler_last_lock_ts: Optional[str] = None
-        scheduler_owner_pod: Optional[str] = None
-        scheduler_signal_source = "scheduler_locks"
+        canonical_scheduler = {
+            "alive": False,
+            "is_healthy": False,
+            "signal_source": "none",
+            "reason_code": "scheduler_signal_missing",
+            "evidence_ts": None,
+            "last_lock_ts": None,
+            "owner_pod": None,
+            "seconds_since_last_tick": None,
+            "heartbeat_window_minutes": SCHEDULER_HEARTBEAT_WINDOW_MINUTES,
+            "backup_fallback_window_minutes": SCHEDULER_BACKUP_FALLBACK_WINDOW_MINUTES,
+        }
         try:
             from server import _BACKUP_SCHEDULER_STATE  # noqa: PLC0415
-
-            state = dict(_BACKUP_SCHEDULER_STATE or {})
-            state_tick = state.get("last_tick_ts")
-            if state_tick:
-                scheduler_signal_source = "backup_scheduler_state"
-                scheduler_last_lock_ts = state_tick
-                scheduler_owner_pod = None
-                canonical = canonical_scheduler_snapshot(state)
-                scheduler_alive = bool(canonical["alive"])
-            else:
-                lock_row = await db.scheduler_locks.find_one(
-                    {"_id": "backup_scheduler"},
-                    {"_id": 0},
-                ) or await db.scheduler_locks.find_one(
-                    {"owner_id": {"$regex": "^backup_scheduler"}},
-                    {"_id": 0},
-                    sort=[("acquired_at", -1)],
-                ) or await db.scheduler_locks.find_one(
-                    {},
-                    {"_id": 0},
-                    sort=[("acquired_at", -1)],
-                )
-                if lock_row:
-                    scheduler_last_lock_ts = lock_row.get("expires_at") or lock_row.get("acquired_at")
-                    owner_id = lock_row.get("owner_id") or ""
-                    scheduler_owner_pod = owner_id.split(":")[0] if owner_id else None
-                    ts = _parse_ts(scheduler_last_lock_ts)
-                    if ts and (datetime.now(timezone.utc) - ts) < timedelta(minutes=30):
-                        scheduler_alive = True
+            canonical_scheduler = await build_canonical_scheduler_snapshot(
+                db,
+                dict(_BACKUP_SCHEDULER_STATE or {}),
+                backup_fallback_ts=(last_backup or {}).get("ts"),
+            )
         except Exception:
             pass
+        scheduler_alive = bool(canonical_scheduler.get("alive"))
 
         # --- hourly cadence flag (read-only — never modifies) ---
         hourly_flag = (os.environ.get("BACKUP_R2_HOURLY", "false") or "false").lower() in ("1", "true", "yes")
@@ -417,11 +522,15 @@ def build_recovery_dashboard_router(
 
         # --- active warnings (derived) ---
         warnings: List[Dict[str, str]] = []
-        if usage_status == "AMBER":
+        if usage_status in {"AMBER", "RED"}:
             warnings.append({
                 "kind": "bucket-usage",
-                "severity": "amber",
-                "message": f"R2 bucket usage {usage_gb} GB above ALERT={alert_gb} GB threshold",
+                "severity": "amber" if usage_status == "AMBER" else "red",
+                "message": (
+                    f"R2 bucket usage {usage_gb} GB above "
+                    f"{'WARN' if usage_status == 'AMBER' else 'ALERT'}="
+                    f"{warn_gb if usage_status == 'AMBER' else alert_gb} GB threshold"
+                ),
             })
         if not hourly_flag:
             warnings.append({
@@ -433,7 +542,10 @@ def build_recovery_dashboard_router(
             warnings.append({
                 "kind": "scheduler-quiet",
                 "severity": "amber",
-                "message": "No scheduler lock heartbeat in the last 30 minutes",
+                "message": (
+                    f"No canonical scheduler heartbeat or recent scheduler activity within "
+                    f"{canonical_scheduler.get('heartbeat_window_minutes', SCHEDULER_HEARTBEAT_WINDOW_MINUTES)} minutes"
+                ),
             })
         if (os.environ.get("PHOTO_COVERAGE_GAP_OPEN", "false") or "false").lower() in ("1", "true", "yes"):
             warnings.append({
@@ -473,10 +585,15 @@ def build_recovery_dashboard_router(
             "warnings": warnings,
             "scheduler": {
                 "alive": scheduler_alive,
-                "last_lock_ts": scheduler_last_lock_ts,
-                "owner_pod": scheduler_owner_pod,
-                "signal_source": scheduler_signal_source,
-                "is_healthy": bool(scheduler_alive),
+                "is_healthy": bool(canonical_scheduler.get("is_healthy")),
+                "signal_source": canonical_scheduler.get("signal_source"),
+                "reason_code": canonical_scheduler.get("reason_code"),
+                "evidence_ts": canonical_scheduler.get("evidence_ts"),
+                "last_lock_ts": canonical_scheduler.get("last_lock_ts"),
+                "owner_pod": canonical_scheduler.get("owner_pod"),
+                "seconds_since_last_tick": canonical_scheduler.get("seconds_since_last_tick"),
+                "heartbeat_window_minutes": canonical_scheduler.get("heartbeat_window_minutes"),
+                "backup_fallback_window_minutes": canonical_scheduler.get("backup_fallback_window_minutes"),
             },
             # TRACK 27.05 · P0-4 · disk preflight state, surfaced so OCC
             # can display "storage will refuse new writes below N free".

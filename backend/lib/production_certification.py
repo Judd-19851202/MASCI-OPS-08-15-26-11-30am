@@ -208,6 +208,45 @@ def _engineering_remediation_for_failure(failure_reason: Optional[str]) -> str:
     )
 
 
+def _build_release_scope(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
+    touched = [row for row in rows if row.get("status") != STATUS_NOT_YET_EXERCISED]
+    untouched = [row for row in rows if row.get("status") == STATUS_NOT_YET_EXERCISED]
+
+    def _workflows_with(status: str) -> List[str]:
+        return [row["workflow"] for row in touched if row.get("status") == status]
+
+    release_verified = _workflows_with(STATUS_VERIFIED)
+    release_failed = _workflows_with(STATUS_FAILED)
+    release_blocked = _workflows_with(STATUS_BLOCKED)
+    release_stale = _workflows_with(STATUS_STALE)
+    release_counters = {
+        "verified": len(release_verified),
+        "failed": len(release_failed),
+        "blocked": len(release_blocked),
+        "stale": len(release_stale),
+        "not_yet_exercised": 0,
+        "untouched": len(untouched),
+        "total": len(touched),
+    }
+    if release_counters["failed"] > 0 or release_counters["blocked"] > 0:
+        release_band = "hold"
+    elif release_counters["stale"] > 0:
+        release_band = "review"
+    else:
+        release_band = "pass"
+
+    return {
+        "release_band": release_band,
+        "release_counters": release_counters,
+        "release_touched_workflows": [row["workflow"] for row in touched],
+        "release_untouched_workflows": [row["workflow"] for row in untouched],
+        "release_verified_workflows": release_verified,
+        "release_failed_workflows": release_failed,
+        "release_blocked_workflows": release_blocked,
+        "release_stale_workflows": release_stale,
+    }
+
+
 async def build_certification(db) -> Dict[str, Any]:
     """Build the full per-workflow certification payload.
 
@@ -304,23 +343,27 @@ async def build_certification(db) -> Dict[str, Any]:
             "audit_row_observed": bool(audit_row),
         })
 
+    release_scope = _build_release_scope(rows)
+
     return {
         "ok": True,
         "track": "15.79E",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "counters": counters,
-        "release_counters": dict(counters),
+        "release_counters": release_scope["release_counters"],
         "platform_band": (
             "red" if counters["failed"] > 0
             else "amber" if counters["blocked"] > 0 or counters["stale"] > 0
             else "green" if counters["verified"] > 0
             else "amber"
         ),
-        "release_band": (
-            "hold" if counters["failed"] > 0 or counters["blocked"] > 0
-            else "review" if counters["stale"] > 0
-            else "pass"
-        ),
+        "release_band": release_scope["release_band"],
+        "release_touched_workflows": release_scope["release_touched_workflows"],
+        "release_untouched_workflows": release_scope["release_untouched_workflows"],
+        "release_verified_workflows": release_scope["release_verified_workflows"],
+        "release_failed_workflows": release_scope["release_failed_workflows"],
+        "release_blocked_workflows": release_scope["release_blocked_workflows"],
+        "release_stale_workflows": release_scope["release_stale_workflows"],
         "workflows": rows,
     }
 

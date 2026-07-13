@@ -10,8 +10,8 @@ function isSupported() {
   return (
     typeof window !== "undefined" &&
     "serviceWorker" in navigator &&
-    // Don't run in localhost dev (CRA's dev server confuses SW
-    // updates) — only when served from a real origin.
+    // Only run on a secure, real origin — local dev hot reload and
+    // non-HTTPS shells are intentionally excluded.
     window.location.protocol === "https:"
   );
 }

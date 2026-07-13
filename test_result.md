@@ -129,16 +129,28 @@ frontend:
       - working: true
         agent: "testing"
         comment: "Tested on 2026-07-12. All requirements verified successfully. Daily Report V3 page renders correctly on desktop (1920x1080), tablet (768x1024), and mobile (390x844). Summary gate messaging is visible and correctly displays 'Submission is blocked until one approved executive summary exists.' Submit button (data-testid=dr-v3-submit-btn) is correctly disabled without an approved summary. All three summary paths are present and functional: Accept AI Summary (data-testid=daily-summary-assist-accept), Regenerate (data-testid=daily-summary-assist-regenerate), and Reject AI & write manual (data-testid=daily-summary-assist-reject-manual). Manual summary path works correctly - clicking Reject shows manual block with textarea (data-testid=daily-summary-assist-manual-textarea) and accept button (data-testid=daily-summary-assist-manual-accept). Gate message updates to 'AI summary rejected. Write the final supervisor summary below, then approve it to unlock submit.' All required data-testid elements are present. Note: Action buttons only appear when form has sufficient data (activities, crew, notes), which is correct behavior. AI provider may be mocked/unavailable but manual path still protects submission correctly."
+  
+  - task: "TRACK 27.11A - Recovery/Bundle Surfaces Preview Verification"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/admin/AdminRecovery.jsx, /app/frontend/src/pages/admin/AdminStorageRecovery.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Tested on 2026-07-13. SHORT targeted frontend verification completed on preview URL https://backup-forensics.preview.emergentagent.com. All verification checks passed: (1) Sign-in page (/sign-in) loads without clipped text or broken layout on desktop (1920x1080), (2) Multi-login authentication successful with super-admin credentials jaymn.judd@mascigc.com / Maddix123!, (3) /admin/recovery page renders correctly on desktop and mobile (390x844) with no layout issues - Recovery Posture dashboard displays properly with all cards, charts, and data, (4) /admin/storage-recovery page renders correctly on desktop and mobile - Storage & Recovery domain landing displays properly with health cards, sections, and trust gaps table (table has intentional horizontal scroll on mobile for wide content), (5) No visible preview/dev backend URL leakage detected in user-facing text across all tested pages (verified no localhost, 127.0.0.1, :8001, :3000 in page text), (6) No obvious wording inconsistencies detected (no TODO/FIXME markers visible in user-facing text), (7) Mobile responsive layouts working correctly - no unintended horizontal scroll or text overflow on /admin/recovery, intentional horizontal scroll for wide table on /admin/storage-recovery is by design (overflow-x-auto wrapper). Screenshots captured: track_27_11a_signin_desktop.png, track_27_11a_recovery_desktop.png, track_27_11a_storage_recovery_desktop.png, track_27_11a_recovery_mobile.png, track_27_11a_storage_recovery_mobile.png. No critical issues found. Recovery surfaces are preview-ready."
 
 metadata:
   created_by: "testing_agent"
-  version: "1.1"
-  test_sequence: 2
+  version: "1.2"
+  test_sequence: 3
   run_ui: false
 
 test_plan:
   current_focus:
-    - "TRACK 27.10 - Daily Report V3 Summary Gate Backend API"
+    - "TRACK 27.11A - Recovery/Bundle Surfaces Preview Verification"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -148,3 +160,5 @@ agent_communication:
     message: "TRACK 27.10 frontend testing completed successfully on 2026-07-12. All user-facing requirements verified: (1) Daily Report V3 page renders on desktop, tablet, and mobile, (2) Summary gate messaging is visible and correct, (3) Submit button stays disabled until approved summary exists, (4) All three summary paths (Accept AI, Regenerate, Reject & Manual) are present and functional with correct data-testid attributes, (5) Manual summary path works correctly when AI is unavailable/mocked. Screenshots saved: track_27_10_desktop_summary.png, track_27_10_with_data.png, track_27_10_manual_approved.png. No critical issues found. Ready for production."
   - agent: "testing"
     message: "TRACK 27.10 backend API testing completed successfully on 2026-07-12T18:36:35 UTC. All 8 backend API tests passed: (1) Admin authentication via POST /api/auth/multi-login works correctly, (2) POST /api/daily-reports validation gates work correctly - rejects missing approved summary (422 approved_summary_required), rejects missing accepted_at metadata (422 approved_summary_metadata_required), rejects invalid source labels (422 approved_summary_source_invalid), (3) Valid POST /api/daily-reports succeeds with frozen approved summary and metadata, (4) GET /api/daily-reports/{id}/pdf returns valid PDF (1.5MB), (5) GET /api/daily-reports/{id}/audit-footer returns complete audit data with sha256 hash, (6) Saved record data integrity verified - all fields retained correctly (weather_summary, weather_snapshot_meta, ai_accepted_summary, ai_accepted_summary_meta, audit_envelope_sha256). Test report created: DR-2026-02734. No backend defects found. All TRACK 27.10 requirements verified successfully."
+  - agent: "testing"
+    message: "TRACK 27.11A targeted frontend verification completed on 2026-07-13. SHORT targeted verification of touched recovery/bundle-related surfaces on preview URL https://backup-forensics.preview.emergentagent.com. All checks passed: (1) Sign-in page loads without clipped text or broken layout on desktop (1920x1080), (2) Multi-login authentication works correctly with jaymn.judd@mascigc.com / Maddix123!, (3) /admin/recovery page renders correctly on desktop and mobile (390x844) with no layout issues, (4) /admin/storage-recovery page renders correctly on desktop and mobile with intentional horizontal scroll for wide tables, (5) No visible preview/dev backend URL leakage detected in user-facing text (no localhost, 127.0.0.1, :8001, :3000 found), (6) No obvious wording inconsistencies detected (no TODO/FIXME markers in visible text), (7) Mobile responsive layouts working correctly - no unintended horizontal scroll or overflow. Screenshots saved: track_27_11a_signin_desktop.png, track_27_11a_recovery_desktop.png, track_27_11a_storage_recovery_desktop.png, track_27_11a_recovery_mobile.png, track_27_11a_storage_recovery_mobile.png. No critical issues found. Recovery surfaces ready for preview."

@@ -68,7 +68,7 @@ export function BackendVersionBadge() {
     );
   }
 
-  const { source_hash, commit, uptime_s, app_env } = state.data;
+  const { source_hash, commit, uptime_s, app_env, built_at, process_started_at, started_at } = state.data;
   // Gate to non-production environments — admins on production should not
   // see the deploy fingerprint pill in the live UI. Mirrors EnvBanner gating.
   if ((app_env || "production").toLowerCase() === "production") return null;
@@ -83,7 +83,12 @@ export function BackendVersionBadge() {
   return (
     <div
       className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-[10px] font-mono uppercase tracking-[0.15em] ${bg}`}
-      title={`source_hash=${source_hash}\ncommit=${commit}\nstarted_at=${state.data.started_at}`}
+      title={[
+        `source_hash=${source_hash}`,
+        `commit=${commit}`,
+        `built_at=${built_at || "unknown"}`,
+        `process_started_at=${process_started_at || started_at || "unknown"}`,
+      ].join("\n")}
       data-testid="backend-version-badge"
     >
       <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />

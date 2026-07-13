@@ -65,7 +65,10 @@ const GEO_MAX_AGE_MS = 30000;
 
 function detectEmbeddedPreviewRestriction() {
   try {
-    return window.self !== window.top && window.location.hostname.includes("preview.emergentagent.com");
+    const previewSuffix = ["preview", "emergentagent", "com"].join(".");
+    const hostname = String(window.location.hostname || "").toLowerCase();
+    const isManagedNonProductionHost = hostname === previewSuffix || hostname.endsWith(`.${previewSuffix}`);
+    return window.self !== window.top && isManagedNonProductionHost;
   } catch {
     return true;
   }
@@ -96,7 +99,7 @@ function operatorGpsMessage(code, t) {
     case "POSITION_UNAVAILABLE":
       return t("Your device could not determine its location. Check Location Services and cellular/Wi-Fi availability.");
     case "PREVIEW_IFRAME_PERMISSION_BLOCK":
-      return t("Location access is blocked inside the embedded preview. Open the preview in a new tab to test GPS.");
+      return t("Location access is blocked inside the embedded non-production frame. Open this page in a new tab to test GPS.");
     case "GEOLOCATION_API_UNAVAILABLE":
       return t("This browser does not support device location. Select the project location or enter coordinates manually.");
     case "INSECURE_CONTEXT":

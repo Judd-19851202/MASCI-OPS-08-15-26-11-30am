@@ -16,8 +16,9 @@ Doctrine:
   * Never hard-delete a Daily Report. Audit history stays intact.
   * User-facing queries add `apply_synthetic_dr_exclusion(query)`
     which mixes an $and clause excluding synthetic docs.
-  * Explicit markers win: `synthetic_record=true` OR
-    `hidden_from_operations=true` → excluded unconditionally.
+  * Explicit markers win: `synthetic_record=true`,
+    `hidden_from_operations=true`, or `certification_record=true`
+    → excluded unconditionally.
   * Heuristic markers cover legacy fixtures that pre-date the
     explicit flags: project_number regex against `_TEST_PROJECT_RE`
     catches `TEST_*`, `TEST-*`, `0000-TEST`, `SMOKE-*`, etc.
@@ -77,7 +78,11 @@ _TEST_NAME_RE = (
 # facing screens. These are set by the Track 24.9 cleanup script
 # and by future synthetic submissions that opt into the hidden
 # lane. Never remove them from the exclusion set.
-_EXPLICIT_MARKERS = ["synthetic_record", "hidden_from_operations"]
+_EXPLICIT_MARKERS = [
+    "synthetic_record",
+    "hidden_from_operations",
+    "certification_record",
+]
 
 
 def synthetic_exclusion_clauses() -> List[Dict[str, Any]]:
@@ -85,6 +90,7 @@ def synthetic_exclusion_clauses() -> List[Dict[str, Any]]:
     return [
         {"synthetic_record": {"$ne": True}},
         {"hidden_from_operations": {"$ne": True}},
+        {"certification_record": {"$ne": True}},
         {"project_number": {"$not": {"$regex": _TEST_PROJECT_RE, "$options": "i"}}},
         {"project_name": {"$not": {"$regex": _TEST_NAME_RE, "$options": "i"}}},
     ]
@@ -115,6 +121,8 @@ def is_synthetic_dr(doc: Dict[str, Any]) -> bool:
     if doc.get("synthetic_record") is True:
         return True
     if doc.get("hidden_from_operations") is True:
+        return True
+    if doc.get("certification_record") is True:
         return True
     pn = (doc.get("project_number") or "").strip()
     if pn and re.match(_TEST_PROJECT_RE, pn, re.IGNORECASE):

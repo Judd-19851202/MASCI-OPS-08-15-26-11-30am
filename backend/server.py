@@ -1266,6 +1266,7 @@ async def _r2_backup_age_seconds_cached() -> Optional[float]:
 @api_router.get("/health/full")
 async def api_health_full(response: Response):
     out = {"ok": True, "mongo": False, "scheduler": False, "backup_recent": False}
+    backup_fallback_ts = None
 
     # Mongo ping — short timeout so a stuck DB doesn't hang the probe.
     try:
@@ -1273,27 +1274,6 @@ async def api_health_full(response: Response):
         out["mongo"] = True
     except Exception:
         out["mongo"] = False
-
-    # Scheduler: tick within last 60 min. The scheduler wakes every ~5 min
-    # so anything past an hour is degraded.
-    #
-    # RC-2.1 (2026-06-11) root-cause fix · observability accuracy:
-    # `last_tick_ts` is `None` for the first 30 s after the watchdog
-    # resurrects the scheduler (the new task is still in startup
-    # `asyncio.sleep(30)` before entering the main loop), and the
-    # ``alive`` flag in `_BACKUP_SCHEDULER_STATE` may also briefly trail.
-    # During that window the legacy probe returned `scheduler=False`
-    # even though the scheduler was demonstrably doing its job. Fall
-    # back to the "scheduler ran a successful backup within the last
-    # interval" signal (which we already compute below as
-    # `backup_recent`) so the probe reflects functional truth rather
-    # than a transient heartbeat gap.
-    try:
-        from routes.recovery_dashboard import canonical_scheduler_snapshot  # noqa: PLC0415
-        sched = canonical_scheduler_snapshot(_BACKUP_SCHEDULER_STATE, max_age_minutes=60)
-        out["scheduler"] = bool(sched["alive"])
-    except Exception:
-        out["scheduler"] = False
 
     # Most recent successful backup row within the last 26h. This is the
     # canonical "is the platform's data actually being captured?" signal.
@@ -1320,6 +1300,7 @@ async def api_health_full(response: Response):
     backup_age_s = await _r2_backup_age_seconds_cached()
     if backup_age_s is not None:
         out["backup_recent"] = backup_age_s < (26 * 3600)
+        backup_fallback_ts = (datetime.now(timezone.utc) - timedelta(seconds=backup_age_s)).isoformat()
     else:
         # Fallback: DB audit row.
         try:
@@ -1341,17 +1322,22 @@ async def api_health_full(response: Response):
                     ts_dt = ts_dt.replace(tzinfo=timezone.utc)
                 age_s = (datetime.now(timezone.utc) - ts_dt).total_seconds()
                 out["backup_recent"] = age_s < (26 * 3600)
+                backup_fallback_ts = ts_dt.isoformat()
         except Exception:
             out["backup_recent"] = False
 
+    try:
+        from routes.recovery_dashboard import build_canonical_scheduler_snapshot  # noqa: PLC0415
+        sched = await build_canonical_scheduler_snapshot(
+            db,
+            _BACKUP_SCHEDULER_STATE,
+            backup_fallback_ts=backup_fallback_ts,
+        )
+        out["scheduler"] = bool(sched["alive"])
+    except Exception:
+        out["scheduler"] = False
+
     out["ok"] = bool(out["mongo"] and out["scheduler"] and out["backup_recent"])
-    # RC-2.1 root-cause fix (2026-06-11): if the scheduler heartbeat
-    # is briefly missing but a successful backup is recent, the
-    # scheduler IS functional — promote it. Avoids a 30-s false-red
-    # window after every watchdog-driven resurrection.
-    if not out["scheduler"] and out["backup_recent"]:
-        out["scheduler"] = True
-        out["ok"] = bool(out["mongo"] and out["scheduler"] and out["backup_recent"])
     if not out["ok"]:
         response.status_code = 503
     return out
@@ -1379,16 +1365,19 @@ import hashlib as _hashlib  # noqa: E402 — deliberate inline import, local to 
 
 _STARTUP_TS = datetime.now(timezone.utc)
 
-def _compute_source_hash() -> str:
-    """Hash the key backend source files so a running server can prove
-    which commit it's executing without needing git in the container."""
-    paths = [
+
+def _build_fingerprint_paths() -> List[Path]:
+    return [
         ROOT_DIR / "server.py",
         ROOT_DIR / "training_pdf.py",
         ROOT_DIR / "pdf_render.py",
     ]
+
+def _compute_source_hash() -> str:
+    """Hash the key backend source files so a running server can prove
+    which commit it's executing without needing git in the container."""
     h = _hashlib.md5()
-    for p in paths:
+    for p in _build_fingerprint_paths():
         try:
             with open(p, "rb") as f:
                 h.update(f.read())
@@ -1397,7 +1386,26 @@ def _compute_source_hash() -> str:
             h.update(b"MISSING:" + str(p).encode())
     return h.hexdigest()
 
+
+def _resolve_build_timestamp_iso() -> tuple[str, str]:
+    explicit = (os.environ.get("BUILT_AT") or "").strip()
+    if explicit:
+        return explicit, "env:BUILT_AT"
+
+    newest_mtime = None
+    for p in _build_fingerprint_paths():
+        try:
+            mtime = p.stat().st_mtime
+        except OSError:
+            continue
+        newest_mtime = mtime if newest_mtime is None else max(newest_mtime, mtime)
+
+    if newest_mtime is None:
+        return _STARTUP_TS.isoformat(), "process_fallback"
+    return datetime.fromtimestamp(newest_mtime, timezone.utc).isoformat(), "artifact_mtime"
+
 _SOURCE_HASH = _compute_source_hash()
+_BUILT_AT_ISO, _BUILD_AT_SOURCE = _resolve_build_timestamp_iso()
 
 
 # ---------------------------------------------------------------------------
@@ -1469,9 +1477,11 @@ def api_version():
     return {
         "service": "masci-hub",
         "commit": os.environ.get("GIT_COMMIT") or _SOURCE_HASH[:12],
-        "built_at": os.environ.get("BUILT_AT") or _STARTUP_TS.isoformat(),
+        "built_at": _BUILT_AT_ISO,
+        "build_at_source": _BUILD_AT_SOURCE,
         "source_hash": _SOURCE_HASH,
         "release": sentry["release"],
+        "process_started_at": _STARTUP_TS.isoformat(),
         "started_at": _STARTUP_TS.isoformat(),
         "uptime_s": int((datetime.now(timezone.utc) - _STARTUP_TS).total_seconds()),
         "session_timeouts": sess,
@@ -9264,16 +9274,113 @@ async def admin_backup_integrity_check(_: bool = Depends(require_admin_strict)):
 
     missing = _compute_backup_integrity_missing(live, captured, manifest_explicit_exclusions)
     integrity_result = "PASS" if captured and not missing else ("FAIL" if captured else "UNKNOWN")
-    for idx, row in enumerate(recent_backup_rows):
-        recent_backups.append({
-            "filename": row.get("filename"),
-            "object_key": f"backups/auto-90d/{row.get('filename')}" if row.get("filename") else None,
+
+    row_by_filename = {
+        row.get("filename"): row
+        for row in recent_backup_rows
+        if row.get("filename")
+    }
+    recent_candidates: List[Dict[str, Any]] = []
+    seen_recent_filenames = set()
+    for archive in r2_archives[:5]:
+        filename = archive.get("filename") or str(archive.get("key") or "").rsplit("/", 1)[-1]
+        if not filename or filename in seen_recent_filenames:
+            continue
+        seen_recent_filenames.add(filename)
+        recent_candidates.append({
+            "filename": filename,
+            "object_key": archive.get("key"),
+            "ts": archive.get("last_modified_iso"),
+            "size_bytes": archive.get("size_bytes") or 0,
+            "records": (row_by_filename.get(filename) or {}).get("records"),
+        })
+    for row in recent_backup_rows:
+        filename = row.get("filename")
+        if not filename or filename in seen_recent_filenames or len(recent_candidates) >= 5:
+            continue
+        seen_recent_filenames.add(filename)
+        recent_candidates.append({
+            "filename": filename,
+            "object_key": f"backups/auto-90d/{filename}",
             "ts": row.get("ts"),
             "size_bytes": row.get("size_bytes") or 0,
-            "captured_collections": len(captured) if idx == 0 and captured else None,
-            "total_records": document_count if idx == 0 and document_count is not None else row.get("records"),
-            "integrity_result": integrity_result if idx == 0 else None,
-            "failed_check": missing[0] if idx == 0 and missing else None,
+            "records": row.get("records"),
+        })
+
+    for idx, candidate in enumerate(recent_candidates[:5]):
+        row_captured: List[str] = []
+        row_collection_counts: Optional[Dict[str, int]] = None
+        row_total_records = candidate.get("records")
+        row_manifest_exclusions: List[str] = []
+        row_evidence_source = "unavailable"
+        row_ts = candidate.get("ts")
+        row_size_bytes = candidate.get("size_bytes") or 0
+
+        if candidate.get("object_key"):
+            try:
+                row_manifest_bundle = await read_r2_backup_manifest(candidate["object_key"])
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"integrity-check: bounded manifest read failed for {candidate.get('object_key')}: {e}")
+                row_manifest_bundle = None
+            if row_manifest_bundle and isinstance(row_manifest_bundle.get("manifest"), dict):
+                manifest = row_manifest_bundle["manifest"]
+                row_captured = sorted(
+                    manifest.get("captured_collections")
+                    or manifest.get("all_db_collections_at_backup_time")
+                    or []
+                )
+                counts = manifest.get("per_kind")
+                row_collection_counts = counts if isinstance(counts, dict) else None
+                exclusions = manifest.get("explicit_exclusions") or []
+                if isinstance(exclusions, list):
+                    row_manifest_exclusions = [str(it) for it in exclusions if str(it)]
+                raw_total_records = manifest.get("total_records")
+                try:
+                    row_total_records = int(raw_total_records) if raw_total_records is not None else row_total_records
+                except Exception:  # noqa: BLE001
+                    pass
+                row_ts = manifest.get("generated_at") or row_manifest_bundle.get("last_modified_iso") or row_ts
+                row_size_bytes = row_manifest_bundle.get("content_length") or row_size_bytes
+                row_evidence_source = f"r2:{row_manifest_bundle.get('manifest_name')}"
+
+        if not row_captured and idx == 0 and captured:
+            row_captured = list(captured)
+            row_collection_counts = collection_counts
+            row_total_records = document_count if document_count is not None else row_total_records
+            row_manifest_exclusions = list(manifest_explicit_exclusions)
+            row_evidence_source = manifest_source
+            row_ts = last_at or row_ts
+            row_size_bytes = archive_size_bytes or row_size_bytes
+
+        row_missing = _compute_backup_integrity_missing(live, row_captured, row_manifest_exclusions)
+        row_integrity_result = "PASS" if row_captured and not row_missing else ("FAIL" if row_captured else "UNKNOWN")
+        failed_checks: List[Dict[str, Any]] = []
+        if not row_captured:
+            failed_checks.append({
+                "code": "manifest_unavailable",
+                "message": "No manifest evidence available for bounded evaluation.",
+            })
+        if row_missing:
+            failed_checks.append({
+                "code": "missing_from_backup",
+                "collections": row_missing,
+            })
+
+        recent_backups.append({
+            "filename": candidate.get("filename"),
+            "object_key": candidate.get("object_key"),
+            "ts": row_ts,
+            "size_bytes": row_size_bytes,
+            "captured_collections": row_captured,
+            "captured_collection_count": len(row_captured),
+            "collection_counts": row_collection_counts,
+            "explicit_exclusions": row_manifest_exclusions,
+            "total_records": row_total_records,
+            "missing_from_backup": row_missing,
+            "integrity_result": row_integrity_result,
+            "failed_checks": failed_checks,
+            "failed_check": row_missing[0] if row_missing else None,
+            "evidence_source": row_evidence_source,
         })
     return {
         "last_backup_filename": (
@@ -9681,11 +9788,18 @@ async def admin_backups_scheduler_state(_: bool = Depends(require_admin_strict))
     filename and 400 on the validator.
     """
     state = dict(_BACKUP_SCHEDULER_STATE)
-    from routes.recovery_dashboard import canonical_scheduler_snapshot  # noqa: PLC0415
-    canonical = canonical_scheduler_snapshot(state)
+    from routes.recovery_dashboard import build_canonical_scheduler_snapshot  # noqa: PLC0415
+    canonical = await build_canonical_scheduler_snapshot(db, state)
     seconds_since_last_tick: Optional[float] = canonical.get("seconds_since_last_tick")
     state["alive"] = canonical.get("alive")
     state["is_healthy"] = canonical.get("is_healthy")
+    state["signal_source"] = canonical.get("signal_source")
+    state["reason_code"] = canonical.get("reason_code")
+    state["evidence_ts"] = canonical.get("evidence_ts")
+    state["last_lock_ts"] = canonical.get("last_lock_ts")
+    state["owner_pod"] = canonical.get("owner_pod")
+    state["heartbeat_window_minutes"] = canonical.get("heartbeat_window_minutes")
+    state["backup_fallback_window_minutes"] = canonical.get("backup_fallback_window_minutes")
 
     # last_run_for_hour keys are date objects → coerce to ISO strings for JSON.
     state["last_run_for_hour"] = {
@@ -9709,6 +9823,15 @@ async def admin_backups_scheduler_state(_: bool = Depends(require_admin_strict))
         logger.warning(f"[scheduler-state] health history read failed: {e}")
 
     return {
+        "alive": state.get("alive"),
+        "is_healthy": state.get("is_healthy"),
+        "signal_source": state.get("signal_source"),
+        "reason_code": state.get("reason_code"),
+        "evidence_ts": state.get("evidence_ts"),
+        "last_lock_ts": state.get("last_lock_ts"),
+        "owner_pod": state.get("owner_pod"),
+        "heartbeat_window_minutes": state.get("heartbeat_window_minutes"),
+        "backup_fallback_window_minutes": state.get("backup_fallback_window_minutes"),
         "scheduler": state,
         "task_alive": bool(_backup_task is not None and not _backup_task.done()),
         "seconds_since_last_tick": seconds_since_last_tick,
