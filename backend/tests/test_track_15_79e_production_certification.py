@@ -64,10 +64,21 @@ async def test_payload_shape():
     assert out["ok"] is True
     assert out["track"] == "15.79E"
     assert "counters" in out
+    assert "release_reason" in out
+    assert "release_required_workflows" in out
+    assert "release_source_hash" in out
     for k in ("verified", "failed", "not_yet_exercised", "blocked", "stale", "total"):
         assert k in out["counters"], f"missing counter {k}"
     assert "release_counters" in out
     assert "release_band" in out
+    assert out["release_reason"] in {
+        "release_contains_failed_workflows",
+        "release_contains_blocked_workflows",
+        "release_contains_stale_workflows",
+        "release_scope_verified",
+        "release_scope_not_yet_exercised",
+    }
+    assert isinstance(out["release_required_workflows"], list)
     assert isinstance(out["workflows"], list)
     # Every workflow row must carry these fields.
     for w in out["workflows"]:

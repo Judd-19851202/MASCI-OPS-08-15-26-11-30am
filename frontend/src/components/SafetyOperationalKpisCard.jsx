@@ -18,9 +18,7 @@
 // Auth: safety token OR admin token (never PM-assignment restricted).
 import React from "react";
 import { ShieldAlert, ChevronRight, X } from "lucide-react";
-import { getSafetyToken } from "@/lib/safetyAuth";
-
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { api } from "@/lib/api";
 
 const WINDOWS = [
   { key: "7d", label: "Last 7 days" },
@@ -35,17 +33,6 @@ const BAND_STYLES = {
   red:   "bg-rose-50 border-rose-300 text-rose-900",
 };
 
-function authHeaders() {
-  const h = {};
-  const s = typeof getSafetyToken === "function" ? getSafetyToken() : null;
-  if (s) h["X-Safety-Token"] = s;
-  if (typeof window !== "undefined" && window.localStorage) {
-    const admin = window.localStorage.getItem("masci.admin.token");
-    if (admin) h["X-Admin-Token"] = admin;
-  }
-  return h;
-}
-
 export default function SafetyOperationalKpisCard({ className = "" }) {
   const [window, setWindow] = React.useState("30d");
   const [snap, setSnap] = React.useState(null);
@@ -56,12 +43,9 @@ export default function SafetyOperationalKpisCard({ className = "" }) {
   React.useEffect(() => {
     let cancelled = false;
     setLoading(true); setErr(null);
-    fetch(`${API}/safety/company/safety-kpis?window=${window}`, {
-      headers: authHeaders(),
-    })
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
-      .then((d) => { if (!cancelled) setSnap(d); })
-      .catch((e) => { if (!cancelled) setErr(e.message || String(e)); })
+    api.get(`/safety/company/safety-kpis?window=${window}`)
+      .then((r) => { if (!cancelled) setSnap(r.data); })
+      .catch((e) => { if (!cancelled) setErr(e?.response?.data?.detail || e.message || String(e)); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [window]);
@@ -278,12 +262,9 @@ function ProjectDrilldown({ projectNumber, window, onClose }) {
   React.useEffect(() => {
     let cancelled = false;
     setLoading(true); setErr(null);
-    fetch(`${API}/safety/projects/${encodeURIComponent(projectNumber)}/safety-kpis?window=${window}`, {
-      headers: authHeaders(),
-    })
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
-      .then((d) => { if (!cancelled) setData(d); })
-      .catch((e) => { if (!cancelled) setErr(e.message || String(e)); })
+    api.get(`/safety/projects/${encodeURIComponent(projectNumber)}/safety-kpis?window=${window}`)
+      .then((r) => { if (!cancelled) setData(r.data); })
+      .catch((e) => { if (!cancelled) setErr(e?.response?.data?.detail || e.message || String(e)); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [projectNumber, window]);

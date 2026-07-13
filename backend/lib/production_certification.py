@@ -244,7 +244,34 @@ def _build_release_scope(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
         "release_failed_workflows": release_failed,
         "release_blocked_workflows": release_blocked,
         "release_stale_workflows": release_stale,
+        "release_reason": _release_reason_for_scope({
+            "release_failed_workflows": release_failed,
+            "release_blocked_workflows": release_blocked,
+            "release_stale_workflows": release_stale,
+            "release_touched_workflows": [row["workflow"] for row in touched],
+        }),
+        "release_required_workflows": [row["workflow"] for row in touched],
     }
+
+
+def _release_reason_for_scope(release_scope: Dict[str, Any]) -> str:
+    if release_scope["release_failed_workflows"]:
+        return "release_contains_failed_workflows"
+    if release_scope["release_blocked_workflows"]:
+        return "release_contains_blocked_workflows"
+    if release_scope["release_stale_workflows"]:
+        return "release_contains_stale_workflows"
+    if release_scope["release_touched_workflows"]:
+        return "release_scope_verified"
+    return "release_scope_not_yet_exercised"
+
+
+def _release_source_hash() -> Optional[str]:
+    try:
+        from server import _SOURCE_HASH  # noqa: PLC0415
+        return _SOURCE_HASH
+    except Exception:  # noqa: BLE001
+        return None
 
 
 async def build_certification(db) -> Dict[str, Any]:
@@ -364,6 +391,9 @@ async def build_certification(db) -> Dict[str, Any]:
         "release_failed_workflows": release_scope["release_failed_workflows"],
         "release_blocked_workflows": release_scope["release_blocked_workflows"],
         "release_stale_workflows": release_scope["release_stale_workflows"],
+        "release_reason": release_scope["release_reason"],
+        "release_required_workflows": release_scope["release_required_workflows"],
+        "release_source_hash": _release_source_hash(),
         "workflows": rows,
     }
 

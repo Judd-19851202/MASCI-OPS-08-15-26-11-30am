@@ -8,9 +8,7 @@
 // for 15s).
 import React, { useEffect, useState, useCallback } from "react";
 import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
-import { getAdminToken } from "@/lib/adminAuth";
-
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { api } from "@/lib/api";
 const POLL_MS = 30000;
 
 const PILL_STYLES = {
@@ -109,18 +107,11 @@ export default function AdminRecovery() {
 
   const load = useCallback(async () => {
     try {
-      const r = await fetch(`${API}/admin/recovery/snapshot`, {
-        headers: { "X-Admin-Token": getAdminToken() || "" },
-      });
-      if (!r.ok) {
-        setErr(`HTTP ${r.status}`);
-        return;
-      }
-      const d = await r.json();
-      setSnap(d);
+      const r = await api.get("/admin/recovery/snapshot", { skipSessionStatus: true });
+      setSnap(r.data);
       setErr(null);
     } catch (e) {
-      setErr(String(e?.message || e));
+      setErr(String(e?.response?.data?.detail || e?.message || e));
     } finally {
       setLoading(false);
     }

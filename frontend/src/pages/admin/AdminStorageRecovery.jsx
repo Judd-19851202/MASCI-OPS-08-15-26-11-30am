@@ -32,7 +32,7 @@ import {
 import { PortalShell } from "../../design-system";
 import SideNavV3 from "@/components/admin/sidebar/SideNavV3";
 import R2LifecyclePanel from "@/components/admin/R2LifecyclePanel";
-import { getAdminToken } from "@/lib/adminAuth";
+import { api } from "@/lib/api";
 import { formatPlatformTime, formatRelativeTime } from "@/lib/platformTime";
 import {
   HealthCard,
@@ -45,16 +45,10 @@ import {
 } from "@/components/admin/trust/TrustPrimitives";
 import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
 
-const API = (process.env.REACT_APP_BACKEND_URL || "") + "/api";
-
 // ── HTTP helpers ─────────────────────────────────────────────────
-function authHeaders() {
-  const t = getAdminToken();
-  return t ? { "X-Admin-Token": t } : {};
-}
 async function probe(path) {
   try {
-    const r = await axios.get(`${API}${path}`, { headers: authHeaders() });
+    const r = await api.get(path, { skipSessionStatus: true });
     return { ok: true, body: r.data, status: r.status, error: null };
   } catch (e) {
     return {

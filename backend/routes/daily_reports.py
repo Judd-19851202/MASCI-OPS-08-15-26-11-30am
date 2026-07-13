@@ -428,6 +428,11 @@ class DailyReportCreate(BaseModel):
     synthetic_record: bool = False
     hidden_from_operations: bool = False
     email_dispatch_suppressed: bool = False
+    certification_track_id: Optional[str] = None
+    certification_run_id: Optional[str] = None
+    certification_release_source_hash: Optional[str] = None
+    certification_release_reason: Optional[str] = None
+    certification_required_workflows: Optional[List[str]] = None
 
 
 class DailyReport(DailyReportCreate):
@@ -475,6 +480,17 @@ def _apply_certification_record_safety(doc: Dict[str, Any]) -> Dict[str, Any]:
     doc["synthetic_record"] = True
     doc["hidden_from_operations"] = True
     doc["email_dispatch_suppressed"] = True
+    doc["certification_track_id"] = str(doc.get("certification_track_id") or "27.11B")
+    doc["certification_run_id"] = doc.get("certification_run_id")
+    doc["certification_release_source_hash"] = doc.get("certification_release_source_hash")
+    doc["certification_release_reason"] = doc.get("certification_release_reason")
+    required = doc.get("certification_required_workflows")
+    if required is None:
+        doc["certification_required_workflows"] = []
+    elif isinstance(required, list):
+        doc["certification_required_workflows"] = [str(x) for x in required if str(x).strip()]
+    else:
+        doc["certification_required_workflows"] = [str(required)]
     return doc
 
 
@@ -1347,6 +1363,8 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
             raise HTTPException(status_code=404, detail="Daily report not found")
         scope = await compute_pm_scope(db, actor)
         if not scope.allows(doc.get("project_number")):
+            raise HTTPException(status_code=404, detail="Daily report not found")
+        if bool(doc.get("hidden_from_operations")) and not scope.is_admin:
             raise HTTPException(status_code=404, detail="Daily report not found")
         return doc
 

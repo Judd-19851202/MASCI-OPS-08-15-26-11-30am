@@ -12,22 +12,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Users, AlertTriangle, ArrowRight, Search, ShieldAlert, ChevronDown, ChevronRight } from "lucide-react";
-import { getAdminToken } from "@/lib/adminAuth";
-import { getPmToken } from "@/lib/pmAuth";
+import { api } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-
-const API = process.env.REACT_APP_BACKEND_URL;
-
-function authHeaders() {
-  const h = { "Content-Type": "application/json" };
-  const a = getAdminToken();
-  const p = getPmToken();
-  if (a) h["X-Admin-Token"] = a;
-  if (p) h["X-PM-Token"] = p;
-  return h;
-}
 
 const PRIMARY_KEYS = [
   "pm", "superintendent", "foreman",
@@ -65,12 +53,9 @@ export default function ProjectStaffingHub({ scope = "admin" }) {
       setData((d) => ({ ...d, loaded: false }));
       setErr(null);
     });
-    fetch(`${API}/api/project-staffing/summary?limit=300`, { headers: authHeaders() })
-      .then(async (r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
-      .then((body) => {
+    api.get("/project-staffing/summary?limit=300")
+      .then((response) => {
+        const body = response.data || {};
         if (cancelled) return;
         setData({
           loaded: true,
@@ -81,7 +66,7 @@ export default function ProjectStaffingHub({ scope = "admin" }) {
           overload_threshold: body.overload_threshold || 5,
         });
       })
-      .catch((e) => { if (!cancelled) { setErr(e.message); setData((d) => ({ ...d, loaded: true })); } });
+      .catch((e) => { if (!cancelled) { setErr(e?.response?.data?.detail || e.message); setData((d) => ({ ...d, loaded: true })); } });
     return () => { cancelled = true; };
   }, []);
 

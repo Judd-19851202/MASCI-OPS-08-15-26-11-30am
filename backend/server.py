@@ -14,6 +14,7 @@ import secrets
 import asyncio
 import csv
 import io
+import tempfile
 from collections import defaultdict
 from threading import Lock
 from pathlib import Path
@@ -6244,6 +6245,28 @@ BACKUP_EXPLICIT_EXCLUSIONS = {
     "job_photo_thumb_cache",   # regenerable derivative photo cache (iter441)
 }
 
+BACKUP_EXCLUSION_DETAILS: Dict[str, Dict[str, str]] = {
+    "usage_events": {
+        "reason": "regenerable API telemetry",
+        "owner": "backup-platform",
+    },
+    "health_monitor_runs": {
+        "reason": "regenerable scheduler health series",
+        "owner": "backup-platform",
+    },
+    "job_photo_thumb_cache": {
+        "reason": "regenerable derivative photo cache",
+        "owner": "backup-platform",
+    },
+    "system.*": {
+        "reason": "MongoDB internal system collection",
+        "owner": "mongodb",
+    },
+}
+
+BACKUP_MANIFEST_VERSION = "27.11c-1"
+BACKUP_VERIFIER_VERSION = "27.11c-1"
+
 
 # Per-kind row schema — what each CSV column should contain. We deliberately
 # omit photos / signatures (binary blobs) and the raw checklist dict (renders
@@ -7879,17 +7902,49 @@ def _build_complete_archive_on_disk(db_unused, dst_zip: Path) -> dict:
     mongo_url = os.environ["MONGO_URL"]
     db_name = os.environ["DB_NAME"]
 
+    started_at = datetime.now(timezone.utc)
     total_records = 0
     per_kind: Dict[str, int] = {}
+    per_collection_record_counts: Dict[str, int] = {}
     inlined_photos = 0
     inlined_photo_bytes = 0
     failed_photos = 0
     seen_keys: set = set()  # dedupe — same photo referenced from 2 docs
 
     sync_client = _MC(mongo_url, serverSelectionTimeoutMS=10000)
+    expected_collections: List[str] = []
+    attempted_collections: List[str] = []
+    captured_collections: List[str] = []
+    captured_archive_members: List[str] = []
     excluded_logged: List[str] = []
+    excluded_collections: List[str] = []
+    exclusion_reasons: Dict[str, Dict[str, str]] = {}
+    failed_collections: List[str] = []
+    failed_collection_errors: Dict[str, str] = {}
+    skipped_collections: List[str] = []
+    skipped_collection_reasons: Dict[str, str] = {}
+    unknown_collections: List[str] = []
     try:
         sync_db = sync_client[db_name]
+        all_collections = sorted(sync_db.list_collection_names())
+        for coll_name in all_collections:
+            if coll_name.startswith("system."):
+                excluded_logged.append(coll_name)
+                excluded_collections.append(coll_name)
+                exclusion_reasons[coll_name] = dict(BACKUP_EXCLUSION_DETAILS["system.*"])
+                continue
+            if coll_name in BACKUP_EXPLICIT_EXCLUSIONS:
+                excluded_logged.append(coll_name)
+                excluded_collections.append(coll_name)
+                exclusion_reasons[coll_name] = dict(
+                    BACKUP_EXCLUSION_DETAILS.get(
+                        coll_name,
+                        {"reason": "explicit exclusion", "owner": "backup-platform"},
+                    )
+                )
+                continue
+            expected_collections.append(coll_name)
+
         with _zf.ZipFile(str(dst_zip), "w", _zf.ZIP_DEFLATED, compresslevel=6) as zf:
             # ════════════════════════════════════════════════════════════
             # iter425 · Phase 25.2 · AUTO-DISCOVERY (replaces EXPORTABLE_KINDS allowlist)
@@ -7905,13 +7960,11 @@ def _build_complete_archive_on_disk(db_unused, dst_zip: Path) -> dict:
             # Operational attachments store `data_b64` INLINE — they
             # restore from the JSON dump alone, no photo-walk needed.
             # ════════════════════════════════════════════════════════════
-            all_collections = sorted(sync_db.list_collection_names())
             for coll_name in all_collections:
                 # Skip Mongo system collections + module-level explicit
                 # exclusions (kept in BACKUP_EXPLICIT_EXCLUSIONS for audit
                 # visibility — see R2_BACKUP_CONTINUITY_AUDIT.md §9).
                 if coll_name in BACKUP_EXPLICIT_EXCLUSIONS or coll_name.startswith("system."):
-                    excluded_logged.append(coll_name)
                     continue
 
                 # Friendly "kind" for the in-zip folder — matches Pipeline A
@@ -7927,44 +7980,55 @@ def _build_complete_archive_on_disk(db_unused, dst_zip: Path) -> dict:
                 projection = BACKUP_SENSITIVE_FIELD_REDACTION.get(coll_name, {"_id": 0})
 
                 kind_count = 0
-                # iter428 · Phase 26.1 — Atlas M0 free tier caps in-memory
-                # sort at 32 MB and rejects `allowDiskUse`. Archive files
-                # are individually addressed by record ID
-                # (`{kind}/json/{safe_id}.json`), so the in-archive sort
-                # order is operationally irrelevant — drop the sort and
-                # iterate in natural order. Restore-time queries land
-                # against full Mongo, not the zip, so this preserves
-                # restore correctness.
-                cursor = sync_db[coll_name].find({}, projection)
-                for doc in cursor:
-                    rec_id = doc.get("id") or f"row_{kind_count:06d}"
-                    safe_id = "".join(c if c.isalnum() or c in "._-" else "_" for c in str(rec_id))
-                    zf.writestr(
-                        f"{kind}/json/{safe_id}.json",
-                        _json.dumps(doc, indent=2, default=str),
-                    )
-                    kind_count += 1
-                    # Walk this doc for photo:// refs to inline later
-                    for ref in _iter_photo_refs(doc):
-                        if not is_storage_ref(ref):
-                            continue
-                        try:
-                            key = ref.split("/", 3)[3]
-                        except (IndexError, AttributeError):
-                            continue
-                        if key in seen_keys:
-                            continue
-                        seen_keys.add(key)
-                        try:
-                            raw = read_photo_bytes_sync(ref)
-                            zf.writestr(f"photos/{key}", raw)
-                            inlined_photos += 1
-                            inlined_photo_bytes += len(raw)
-                        except Exception as e:  # noqa: BLE001
-                            logger.warning(f"[complete-archive] photo inline failed for {ref[:80]}: {e}")
-                            failed_photos += 1
+                attempted_collections.append(coll_name)
+                try:
+                    # iter428 · Phase 26.1 — Atlas M0 free tier caps in-memory
+                    # sort at 32 MB and rejects `allowDiskUse`. Archive files
+                    # are individually addressed by record ID
+                    # (`{kind}/json/{safe_id}.json`), so the in-archive sort
+                    # order is operationally irrelevant — drop the sort and
+                    # iterate in natural order. Restore-time queries land
+                    # against full Mongo, not the zip, so this preserves
+                    # restore correctness.
+                    cursor = sync_db[coll_name].find({}, projection)
+                    for doc in cursor:
+                        rec_id = doc.get("id") or f"row_{kind_count:06d}"
+                        safe_id = "".join(c if c.isalnum() or c in "._-" else "_" for c in str(rec_id))
+                        zf.writestr(
+                            f"{kind}/json/{safe_id}.json",
+                            _json.dumps(doc, indent=2, default=str),
+                        )
+                        kind_count += 1
+                        # Walk this doc for photo:// refs to inline later
+                        for ref in _iter_photo_refs(doc):
+                            if not is_storage_ref(ref):
+                                continue
+                            try:
+                                key = ref.split("/", 3)[3]
+                            except (IndexError, AttributeError):
+                                continue
+                            if key in seen_keys:
+                                continue
+                            seen_keys.add(key)
+                            try:
+                                raw = read_photo_bytes_sync(ref)
+                                zf.writestr(f"photos/{key}", raw)
+                                inlined_photos += 1
+                                inlined_photo_bytes += len(raw)
+                            except Exception as e:  # noqa: BLE001
+                                logger.warning(f"[complete-archive] photo inline failed for {ref[:80]}: {e}")
+                                failed_photos += 1
+                except Exception as e:  # noqa: BLE001
+                    failed_collections.append(coll_name)
+                    failed_collection_errors[coll_name] = repr(e)
+                    logger.exception(f"[complete-archive] collection capture failed for {coll_name}: {e}")
+                    continue
+
                 per_kind[kind] = kind_count
+                per_collection_record_counts[coll_name] = kind_count
                 total_records += kind_count
+                captured_collections.append(coll_name)
+                captured_archive_members.append(f"{kind}/json/")
 
             # iter425 · log every excluded collection so audit trail is
             # NEVER silent. R2_BACKUP_CONTINUITY_AUDIT.md §9 documents reasons.
@@ -7974,14 +8038,63 @@ def _build_complete_archive_on_disk(db_unused, dst_zip: Path) -> dict:
                     f"{', '.join(sorted(set(excluded_logged)))}",
                 )
 
+            coverage_gap = sorted(it for it in expected_collections if it not in captured_collections)
+            coverage_complete = not coverage_gap and not failed_collections
+            completed_at = datetime.now(timezone.utc)
+            classification = "COMPLETE" if coverage_complete else "BACKUP_INCOMPLETE"
+            integrity_failed_checks: List[Dict[str, Any]] = []
+            if coverage_gap:
+                integrity_failed_checks.append({
+                    "code": "missing_required_collections",
+                    "collections": coverage_gap,
+                })
+            if failed_collections:
+                integrity_failed_checks.append({
+                    "code": "failed_collections",
+                    "collections": list(failed_collections),
+                })
+
             manifest = {
-                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "manifest_version": BACKUP_MANIFEST_VERSION,
+                "backup_id": uuid.uuid4().hex,
+                "backup_type": "complete-r2",
+                "classification": classification,
+                "environment": os.environ.get("APP_ENV"),
+                "app_env": os.environ.get("APP_ENV"),
+                "database_name": db_name,
+                "db_name": db_name,
+                "source_hash": _SOURCE_HASH,
+                "git_commit": os.environ.get("GIT_COMMIT") or _SOURCE_HASH[:12],
+                "application_version": os.environ.get("GIT_COMMIT") or _SOURCE_HASH[:12],
+                "backup_started_at": started_at.isoformat(),
+                "backup_completed_at": completed_at.isoformat(),
+                "generated_at": completed_at.isoformat(),
                 "mode": "complete",
                 "source": "mascidocs.com",
-                "total_records": total_records,
-                "per_kind": per_kind,
-                "captured_collections": sorted(per_kind.keys()),
+                "expected_collections": sorted(expected_collections),
+                "expected_collection_count": len(expected_collections),
+                "captured_collections": sorted(captured_collections),
+                "captured_collection_count": len(captured_collections),
+                "excluded_collections": sorted(excluded_collections),
                 "explicit_exclusions": sorted(set(excluded_logged)),
+                "exclusion_reasons": exclusion_reasons,
+                "attempted_collections": sorted(attempted_collections),
+                "failed_collections": sorted(failed_collections),
+                "failed_collection_errors": failed_collection_errors,
+                "skipped_collections": sorted(skipped_collections),
+                "skipped_collection_reasons": skipped_collection_reasons,
+                "unknown_collections": sorted(unknown_collections),
+                "total_records": total_records,
+                "per_collection_record_counts": per_collection_record_counts,
+                "per_kind": per_kind,
+                "archive_members": sorted(captured_archive_members + ["MANIFEST.json"]),
+                "archive_member_count": len(captured_archive_members) + 1,
+                "archive_size_bytes": 0,
+                "coverage_complete": coverage_complete,
+                "coverage_gap": coverage_gap,
+                "integrity_result": "PASS" if coverage_complete else "FAIL",
+                "integrity_failed_checks": integrity_failed_checks,
+                "verifier_version": BACKUP_VERIFIER_VERSION,
                 "redaction_rules_applied": sorted(BACKUP_SENSITIVE_FIELD_REDACTION.keys()),
                 "inlined_photos": inlined_photos,
                 "inlined_photo_bytes": inlined_photo_bytes,
@@ -7997,13 +8110,28 @@ def _build_complete_archive_on_disk(db_unused, dst_zip: Path) -> dict:
                 ),
             }
             zf.writestr("MANIFEST.json", _json.dumps(manifest, indent=2))
+
+        final_size = dst_zip.stat().st_size
+        if not coverage_complete:
+            raise RuntimeError(
+                "complete backup coverage incomplete: "
+                f"missing={coverage_gap} failed={failed_collections}"
+            )
     finally:
         sync_client.close()
 
     return {
-        "size_bytes": dst_zip.stat().st_size,
+        "size_bytes": final_size,
         "total_records": total_records,
         "per_kind": per_kind,
+        "per_collection_record_counts": per_collection_record_counts,
+        "expected_collections": sorted(expected_collections),
+        "captured_collections": sorted(captured_collections),
+        "captured_collection_count": len(captured_collections),
+        "expected_collection_count": len(expected_collections),
+        "excluded_collections": sorted(excluded_collections),
+        "coverage_complete": True,
+        "coverage_gap": [],
         "inlined_photos": inlined_photos,
         "inlined_photo_bytes": inlined_photo_bytes,
         "failed_photos": failed_photos,
@@ -8302,10 +8430,12 @@ async def _run_complete_archive_to_r2(db) -> Optional[dict]:
         return None
 
     BACKUPS_DIR.mkdir(parents=True, exist_ok=True)
+    complete_tmp_dir = Path(tempfile.gettempdir()) / "masci_complete_archive_builds"
+    complete_tmp_dir.mkdir(parents=True, exist_ok=True)
     _now = datetime.now(timezone.utc)
     _stamp = _now.strftime("%Y-%m-%d_%H%M%SZ")
     filename = f"MASCI_complete_backup_{_stamp}.zip"
-    out = BACKUPS_DIR / filename
+    out = complete_tmp_dir / filename
     tmp = out.with_suffix(f".zip.tmp.{uuid.uuid4().hex[:8]}")
 
     try:
@@ -9116,6 +9246,202 @@ def _compute_backup_integrity_missing(
     return [it for it in required_live if it not in captured]
 
 
+def _normalize_manifest_required_set(manifest: Dict[str, Any]) -> Dict[str, Any]:
+    explicit_exclusions = manifest.get("explicit_exclusions") or manifest.get("excluded_collections") or []
+    captured_collections = (
+        manifest.get("captured_collections")
+        or manifest.get("all_db_collections_at_backup_time")
+        or []
+    )
+    expected_collections = manifest.get("expected_collections") or []
+    if expected_collections:
+        expected = sorted(
+            _normalize_backup_manifest_collection_name(it)
+            for it in expected_collections
+            if _normalize_backup_manifest_collection_name(it)
+        )
+    else:
+        captured = {
+            _normalize_backup_manifest_collection_name(it)
+            for it in captured_collections
+            if _normalize_backup_manifest_collection_name(it)
+        }
+        exclusions = {
+            _normalize_backup_manifest_collection_name(it)
+            for it in explicit_exclusions
+            if _normalize_backup_manifest_collection_name(it)
+        }
+        expected = sorted(it for it in captured if it not in exclusions)
+
+    captured = sorted(
+        _normalize_backup_manifest_collection_name(it)
+        for it in captured_collections
+        if _normalize_backup_manifest_collection_name(it)
+    )
+    exclusions = sorted(
+        _normalize_backup_manifest_collection_name(it)
+        for it in explicit_exclusions
+        if _normalize_backup_manifest_collection_name(it)
+    )
+    return {
+        "expected": expected,
+        "captured": captured,
+        "exclusions": exclusions,
+    }
+
+
+def _evaluate_backup_manifest_contract(
+    manifest: Dict[str, Any],
+    *,
+    live_collections: Optional[List[str]] = None,
+    archive_member_prefixes: Optional[List[str]] = None,
+) -> Dict[str, Any]:
+    now_iso = datetime.now(timezone.utc).isoformat()
+    normalized = _normalize_manifest_required_set(manifest)
+    expected = normalized["expected"]
+    captured = normalized["captured"]
+    exclusions = normalized["exclusions"]
+
+    manifest_expected_count = manifest.get("expected_collection_count")
+    manifest_captured_count = manifest.get("captured_collection_count")
+    manifest_total_records = manifest.get("total_records")
+    per_collection_record_counts = manifest.get("per_collection_record_counts")
+    coverage_gap = manifest.get("coverage_gap") or []
+    failed_collections = manifest.get("failed_collections") or []
+    skipped_collections = manifest.get("skipped_collections") or []
+    integrity_failed_checks = list(manifest.get("integrity_failed_checks") or [])
+    failed_checks: List[Dict[str, Any]] = []
+    unavailable_fields: List[str] = []
+
+    def _add_failed(code: str, expected_value: Any, actual_value: Any, evidence_source: str) -> None:
+        failed_checks.append({
+            "code": code,
+            "expected": expected_value,
+            "actual": actual_value,
+            "status": "FAIL",
+            "evidence_source": evidence_source,
+        })
+
+    check_matrix: List[Dict[str, Any]] = []
+    check_matrix.append({
+        "check": "manifest_parsing",
+        "expected": "manifest readable JSON",
+        "actual": "manifest readable JSON",
+        "status": "PASS",
+        "evidence_source": "manifest",
+    })
+    check_matrix.append({
+        "check": "manifest_version",
+        "expected": manifest.get("manifest_version") or manifest.get("version") or "legacy",
+        "actual": manifest.get("manifest_version") or manifest.get("version") or "legacy",
+        "status": "PASS",
+        "evidence_source": "manifest",
+    })
+
+    if manifest_expected_count is not None and manifest_expected_count != len(expected):
+        _add_failed("expected_collection_count_mismatch", manifest_expected_count, len(expected), "manifest")
+    if manifest_captured_count is not None and manifest_captured_count != len(captured):
+        _add_failed("captured_collection_count_mismatch", manifest_captured_count, len(captured), "manifest")
+
+    if isinstance(per_collection_record_counts, dict):
+        normalized_counts = {
+            _normalize_backup_manifest_collection_name(k): int(v)
+            for k, v in per_collection_record_counts.items()
+            if _normalize_backup_manifest_collection_name(k)
+        }
+        if expected and set(normalized_counts.keys()) != set(expected):
+            missing_counts = sorted(set(expected) - set(normalized_counts.keys()))
+            extra_counts = sorted(set(normalized_counts.keys()) - set(expected))
+            _add_failed(
+                "per_collection_record_counts_set_mismatch",
+                {"missing": [], "extra": []},
+                {"missing": missing_counts, "extra": extra_counts},
+                "manifest",
+            )
+        calc_total = sum(v for v in normalized_counts.values() if isinstance(v, int))
+        if manifest_total_records is not None and calc_total != manifest_total_records:
+            _add_failed("total_record_reconciliation_failed", manifest_total_records, calc_total, "manifest")
+    else:
+        unavailable_fields.append("per_collection_record_counts")
+
+    if coverage_gap:
+        _add_failed("coverage_gap_non_empty", [], coverage_gap, "manifest")
+    if failed_collections:
+        _add_failed("failed_collections_non_empty", [], failed_collections, "manifest")
+    if skipped_collections:
+        _add_failed("skipped_collections_non_empty", [], skipped_collections, "manifest")
+
+    missing_from_expected = [it for it in expected if it not in captured]
+    if missing_from_expected:
+        _add_failed("missing_from_expected_set", [], missing_from_expected, "manifest")
+
+    if live_collections is not None:
+        missing_vs_live = _compute_backup_integrity_missing(live_collections, captured, exclusions)
+        if missing_vs_live:
+            _add_failed("missing_from_live_required_set", [], missing_vs_live, "live+manifest")
+    else:
+        unavailable_fields.append("live_collection_comparison")
+        missing_vs_live = []
+
+    if archive_member_prefixes is not None:
+        archive_required = sorted(
+            _normalize_backup_manifest_collection_name(it)
+            for it in archive_member_prefixes
+            if _normalize_backup_manifest_collection_name(it)
+        )
+        if expected and set(expected) != set(archive_required):
+            _add_failed(
+                "archive_member_set_mismatch",
+                expected,
+                archive_required,
+                "archive",
+            )
+    else:
+        unavailable_fields.append("archive_member_set")
+
+    failed_checks.extend(integrity_failed_checks)
+    classification = "PASS"
+    reason_code = "verification_pass"
+    if failed_checks:
+        classification = "BACKUP_INCOMPLETE"
+        reason_code = failed_checks[0].get("code") or "backup_incomplete"
+    elif not expected and not captured:
+        classification = "UNKNOWN"
+        reason_code = "manifest_missing_collection_sets"
+
+    unavailable_reason = None
+    if unavailable_fields:
+        unavailable_reason = "Unavailable because this artifact/evidence path predates full verifier metadata or bounded archive inspection was not requested."
+
+    return {
+        "expected_collections": expected,
+        "expected_collection_count": len(expected),
+        "captured_collections": captured,
+        "captured_collection_count": len(captured),
+        "explicit_exclusions": exclusions,
+        "missing_from_backup": missing_vs_live if live_collections is not None else missing_from_expected,
+        "failed_checks": failed_checks,
+        "check_matrix": check_matrix + [
+            {
+                "check": item.get("code") or "failed_check",
+                "expected": item.get("expected"),
+                "actual": item.get("actual") if "actual" in item else item.get("collections") or item.get("message"),
+                "status": item.get("status") or "FAIL",
+                "evidence_source": item.get("evidence_source") or "manifest",
+            }
+            for item in failed_checks
+        ],
+        "integrity_result": "PASS" if classification == "PASS" else ("UNKNOWN" if classification == "UNKNOWN" else "FAIL"),
+        "classification_reason_code": reason_code,
+        "classification": classification,
+        "verification_timestamp": now_iso,
+        "verifier_version": BACKUP_VERIFIER_VERSION,
+        "evidence_mode": "LIVE_CALCULATED" if live_collections is not None else "MANIFEST_ONLY",
+        "unavailable_fields": unavailable_fields,
+        "unavailable_reason": unavailable_reason,
+    }
+
+
 @api_router.get("/admin/backups/integrity-check")
 async def admin_backup_integrity_check(_: bool = Depends(require_admin_strict)):
     """Audit: every Mongo collection currently in the live DB vs the most
@@ -9143,6 +9469,10 @@ async def admin_backup_integrity_check(_: bool = Depends(require_admin_strict)):
     last = files[0] if files else None
     live = sorted(await db.list_collection_names())
     live = [c for c in live if not c.startswith("system.")]
+    env_identity = {
+        "app_env": os.environ.get("APP_ENV"),
+        "db_name": os.environ.get("DB_NAME"),
+    }
 
     latest_row = await db.backup_health.find_one(
         {"mode": "complete-r2", "ok": True, "filename": {"$nin": [None, ""]}},
@@ -9150,7 +9480,7 @@ async def admin_backup_integrity_check(_: bool = Depends(require_admin_strict)):
         sort=[("ts", -1)],
     )
 
-    r2_archives = await list_r2_backup_archives(prefix="backups/")
+    r2_archives = await list_r2_backup_archives(prefix="backups/auto-90d/")
     latest_r2 = r2_archives[0] if r2_archives else None
     latest_r2_filename = None
     if latest_r2:
@@ -9175,24 +9505,42 @@ async def admin_backup_integrity_check(_: bool = Depends(require_admin_strict)):
     manifest_explicit_exclusions: List[str] = []
 
     manifest_bundle = None
-    if latest_r2 and latest_r2.get("key"):
-        manifest_bundle = await read_r2_backup_manifest(latest_r2["key"])
-        if manifest_bundle and isinstance(manifest_bundle.get("manifest"), dict):
-            m = manifest_bundle["manifest"]
-            captured = sorted(m.get("captured_collections") or m.get("all_db_collections_at_backup_time") or [])
-            counts = m.get("per_kind")
-            collection_counts = counts if isinstance(counts, dict) else None
-            raw_exclusions = m.get("explicit_exclusions") or []
-            if isinstance(raw_exclusions, list):
-                manifest_explicit_exclusions = [str(it) for it in raw_exclusions if str(it)]
-            raw_total_records = m.get("total_records")
-            try:
-                document_count = int(raw_total_records) if raw_total_records is not None else None
-            except Exception:  # noqa: BLE001
-                document_count = None
-            last_at = m.get("generated_at") or manifest_bundle.get("last_modified_iso")
-            archive_size_bytes = manifest_bundle.get("content_length")
-            manifest_source = f"r2:{manifest_bundle.get('manifest_name')}"
+    latest_r2_with_manifest = None
+    for archive in r2_archives:
+        key = archive.get("key")
+        if not key:
+            continue
+        bundle = await read_r2_backup_manifest(key)
+        if not bundle or not isinstance(bundle.get("manifest"), dict):
+            continue
+        manifest_bundle = bundle
+        latest_r2_with_manifest = archive
+        break
+
+    if latest_r2_with_manifest:
+        latest_r2 = latest_r2_with_manifest
+        latest_r2_filename = latest_r2.get("filename")
+        if not latest_r2_filename:
+            latest_r2_key = str(latest_r2.get("key") or "")
+            latest_r2_filename = latest_r2_key.rsplit("/", 1)[-1] or None
+        last_object_key = latest_r2.get("key")
+
+    if manifest_bundle and isinstance(manifest_bundle.get("manifest"), dict):
+        m = manifest_bundle["manifest"]
+        captured = sorted(m.get("captured_collections") or m.get("all_db_collections_at_backup_time") or [])
+        counts = m.get("per_kind")
+        collection_counts = counts if isinstance(counts, dict) else None
+        raw_exclusions = m.get("explicit_exclusions") or []
+        if isinstance(raw_exclusions, list):
+            manifest_explicit_exclusions = [str(it) for it in raw_exclusions if str(it)]
+        raw_total_records = m.get("total_records")
+        try:
+            document_count = int(raw_total_records) if raw_total_records is not None else None
+        except Exception:  # noqa: BLE001
+            document_count = None
+        last_at = m.get("generated_at") or manifest_bundle.get("last_modified_iso")
+        archive_size_bytes = manifest_bundle.get("content_length")
+        manifest_source = f"r2:{manifest_bundle.get('manifest_name')}"
 
     recent_backups: List[Dict[str, Any]] = []
     recent_backup_rows: List[Dict[str, Any]] = []
@@ -9272,8 +9620,39 @@ async def admin_backup_integrity_check(_: bool = Depends(require_admin_strict)):
     except Exception:
         last_drill = None
 
-    missing = _compute_backup_integrity_missing(live, captured, manifest_explicit_exclusions)
-    integrity_result = "PASS" if captured and not missing else ("FAIL" if captured else "UNKNOWN")
+    top_manifest = manifest_bundle.get("manifest") if manifest_bundle else None
+    top_contract = _evaluate_backup_manifest_contract(
+        top_manifest or {
+            "captured_collections": captured,
+            "explicit_exclusions": manifest_explicit_exclusions,
+            "total_records": document_count,
+        },
+        live_collections=live,
+    )
+    top_contract_env = {
+        "app_env": (top_manifest or {}).get("app_env") or (top_manifest or {}).get("environment"),
+        "db_name": (top_manifest or {}).get("db_name") or (top_manifest or {}).get("database_name"),
+    }
+    env_matches = bool(top_contract_env["app_env"] == env_identity["app_env"] and top_contract_env["db_name"] == env_identity["db_name"])
+    if top_manifest and (top_contract_env["app_env"] or top_contract_env["db_name"]) and not env_matches:
+        top_contract = _evaluate_backup_manifest_contract(
+            top_manifest,
+            live_collections=None,
+        )
+        top_contract["classification"] = "UNKNOWN"
+        top_contract["classification_reason_code"] = "environment_mismatch_manifest_vs_runtime"
+        top_contract["integrity_result"] = "UNKNOWN"
+        top_contract["failed_checks"] = []
+        top_contract["missing_from_backup"] = []
+        top_contract["evidence_mode"] = "MANIFEST_ONLY"
+        top_contract["unavailable_fields"] = sorted(set(top_contract["unavailable_fields"] + ["live_collection_comparison"]))
+        top_contract["unavailable_reason"] = (
+            "The latest manifest was generated for a different environment/database identity than the currently running backend; "
+            "live collection comparison is intentionally suppressed to avoid cross-environment false FAIL."
+        )
+
+    missing = top_contract["missing_from_backup"]
+    integrity_result = top_contract["integrity_result"]
 
     row_by_filename = {
         row.get("filename"): row
@@ -9308,79 +9687,121 @@ async def admin_backup_integrity_check(_: bool = Depends(require_admin_strict)):
         })
 
     for idx, candidate in enumerate(recent_candidates[:5]):
-        row_captured: List[str] = []
-        row_collection_counts: Optional[Dict[str, int]] = None
-        row_total_records = candidate.get("records")
-        row_manifest_exclusions: List[str] = []
+        row_manifest: Dict[str, Any] = {}
         row_evidence_source = "unavailable"
         row_ts = candidate.get("ts")
         row_size_bytes = candidate.get("size_bytes") or 0
+        row_archive_member_prefixes: Optional[List[str]] = None
+        row_contract = None
 
-        if candidate.get("object_key"):
-            try:
-                row_manifest_bundle = await read_r2_backup_manifest(candidate["object_key"])
-            except Exception as e:  # noqa: BLE001
-                logger.warning(f"integrity-check: bounded manifest read failed for {candidate.get('object_key')}: {e}")
-                row_manifest_bundle = None
-            if row_manifest_bundle and isinstance(row_manifest_bundle.get("manifest"), dict):
-                manifest = row_manifest_bundle["manifest"]
-                row_captured = sorted(
-                    manifest.get("captured_collections")
-                    or manifest.get("all_db_collections_at_backup_time")
-                    or []
-                )
-                counts = manifest.get("per_kind")
-                row_collection_counts = counts if isinstance(counts, dict) else None
-                exclusions = manifest.get("explicit_exclusions") or []
-                if isinstance(exclusions, list):
-                    row_manifest_exclusions = [str(it) for it in exclusions if str(it)]
-                raw_total_records = manifest.get("total_records")
+        if idx == 0 and candidate.get("object_key"):
+            row_manifest_bundle = None
+            if manifest_bundle and candidate.get("object_key") == (latest_r2 or {}).get("key"):
+                row_manifest_bundle = manifest_bundle
+            else:
                 try:
-                    row_total_records = int(raw_total_records) if raw_total_records is not None else row_total_records
-                except Exception:  # noqa: BLE001
-                    pass
-                row_ts = manifest.get("generated_at") or row_manifest_bundle.get("last_modified_iso") or row_ts
+                    row_manifest_bundle = await read_r2_backup_manifest(candidate["object_key"])
+                except Exception as e:  # noqa: BLE001
+                    logger.warning(f"integrity-check: bounded manifest read failed for {candidate.get('object_key')}: {e}")
+                    row_manifest_bundle = None
+            if row_manifest_bundle and isinstance(row_manifest_bundle.get("manifest"), dict):
+                row_manifest = row_manifest_bundle["manifest"]
+                row_ts = row_manifest.get("generated_at") or row_manifest_bundle.get("last_modified_iso") or row_ts
                 row_size_bytes = row_manifest_bundle.get("content_length") or row_size_bytes
                 row_evidence_source = f"r2:{row_manifest_bundle.get('manifest_name')}"
+        elif idx > 0:
+            row_evidence_source = "summary-only"
+            row_contract = {
+                "captured_collections": None,
+                "captured_collection_count": None,
+                "explicit_exclusions": None,
+                "missing_from_backup": [],
+                "integrity_result": "UNKNOWN",
+                "failed_checks": [],
+                "verification_timestamp": datetime.now(timezone.utc).isoformat(),
+                "verifier_version": "track-27.11c-summary",
+                "evidence_mode": "SUMMARY_ONLY",
+                "unavailable_fields": [
+                    "captured_collections",
+                    "integrity_result",
+                    "live_collection_comparison",
+                ],
+                "unavailable_reason": "Recent archive manifest parsing skipped for latency; open the archive directly for per-file proof.",
+                "classification_reason_code": "summary_only_recent_history",
+                "classification": "UNKNOWN",
+                "check_matrix": [],
+            }
 
-        if not row_captured and idx == 0 and captured:
-            row_captured = list(captured)
-            row_collection_counts = collection_counts
-            row_total_records = document_count if document_count is not None else row_total_records
-            row_manifest_exclusions = list(manifest_explicit_exclusions)
+        if not row_manifest and idx == 0 and captured:
+            row_manifest = {
+                "captured_collections": list(captured),
+                "per_kind": collection_counts,
+                "total_records": document_count,
+                "explicit_exclusions": list(manifest_explicit_exclusions),
+            }
             row_evidence_source = manifest_source
             row_ts = last_at or row_ts
             row_size_bytes = archive_size_bytes or row_size_bytes
 
-        row_missing = _compute_backup_integrity_missing(live, row_captured, row_manifest_exclusions)
-        row_integrity_result = "PASS" if row_captured and not row_missing else ("FAIL" if row_captured else "UNKNOWN")
-        failed_checks: List[Dict[str, Any]] = []
-        if not row_captured:
-            failed_checks.append({
-                "code": "manifest_unavailable",
-                "message": "No manifest evidence available for bounded evaluation.",
-            })
-        if row_missing:
-            failed_checks.append({
-                "code": "missing_from_backup",
-                "collections": row_missing,
-            })
+        normalized_env = {
+            "app_env": row_manifest.get("app_env") or row_manifest.get("environment"),
+            "db_name": row_manifest.get("db_name") or row_manifest.get("database_name"),
+        }
+        has_explicit_identity = bool(normalized_env["app_env"] or normalized_env["db_name"])
+        use_live_comparison = bool(
+            row_manifest and (
+                not has_explicit_identity
+                or (
+                    normalized_env["app_env"] == env_identity["app_env"]
+                    and normalized_env["db_name"] == env_identity["db_name"]
+                )
+            )
+        )
+        if row_contract is None:
+            row_contract = _evaluate_backup_manifest_contract(
+                row_manifest or {},
+                live_collections=live if use_live_comparison else None,
+                archive_member_prefixes=row_archive_member_prefixes,
+            )
+        if row_manifest and not use_live_comparison and has_explicit_identity:
+            row_contract["classification"] = "UNKNOWN"
+            row_contract["classification_reason_code"] = "environment_mismatch_manifest_vs_runtime"
+            row_contract["integrity_result"] = "UNKNOWN"
+            row_contract["failed_checks"] = []
+            row_contract["missing_from_backup"] = []
+            row_contract["evidence_mode"] = "MANIFEST_ONLY"
+            row_contract["unavailable_fields"] = sorted(set(row_contract["unavailable_fields"] + ["live_collection_comparison"]))
+            row_contract["unavailable_reason"] = (
+                "The manifest environment/database identity does not match the current runtime; cross-environment live comparison is intentionally suppressed."
+            )
 
         recent_backups.append({
             "filename": candidate.get("filename"),
             "object_key": candidate.get("object_key"),
+            "backup_at": row_ts,
+            "archive_size_bytes": row_size_bytes,
+            "captured_collections": row_contract["captured_collections"],
+            "captured_collection_count": row_contract["captured_collection_count"],
+            "collection_counts": row_manifest.get("per_kind") if isinstance(row_manifest.get("per_kind"), dict) else None,
+            "explicit_exclusions": row_contract["explicit_exclusions"],
+            "total_records": row_manifest.get("total_records") if row_manifest else candidate.get("records"),
+            "manifest_version": row_manifest.get("manifest_version") or row_manifest.get("version") if row_manifest else None,
+            "missing_from_backup": row_contract["missing_from_backup"],
+            "integrity_result": row_contract["integrity_result"],
+            "failed_checks": row_contract["failed_checks"],
+            "failed_check": (row_contract["missing_from_backup"] or [None])[0],
+            "verification_timestamp": row_contract["verification_timestamp"],
+            "verifier_version": row_contract["verifier_version"],
+            "evidence_source": row_evidence_source,
+            "evidence_mode": row_contract["evidence_mode"],
+            "unavailable_fields": row_contract["unavailable_fields"],
+            "unavailable_reason": row_contract["unavailable_reason"],
+            "classification_reason_code": row_contract["classification_reason_code"],
+            "classification": row_contract["classification"],
+            "check_matrix": row_contract["check_matrix"],
+            "live_persisted_indicator": "live_runtime_db" if use_live_comparison else "manifest_only",
             "ts": row_ts,
             "size_bytes": row_size_bytes,
-            "captured_collections": row_captured,
-            "captured_collection_count": len(row_captured),
-            "collection_counts": row_collection_counts,
-            "explicit_exclusions": row_manifest_exclusions,
-            "total_records": row_total_records,
-            "missing_from_backup": row_missing,
-            "integrity_result": row_integrity_result,
-            "failed_checks": failed_checks,
-            "failed_check": row_missing[0] if row_missing else None,
-            "evidence_source": row_evidence_source,
         })
     return {
         "last_backup_filename": (
@@ -9398,11 +9819,21 @@ async def admin_backup_integrity_check(_: bool = Depends(require_admin_strict)):
         "document_count": document_count,
         "missing_from_backup": missing,
         "integrity_result": integrity_result,
-        "verification_timestamp": datetime.now(timezone.utc).isoformat(),
+        "verification_timestamp": top_contract["verification_timestamp"],
+        "verifier_version": top_contract["verifier_version"],
+        "manifest_version": (top_manifest or {}).get("manifest_version") or (top_manifest or {}).get("version"),
+        "expected_collection_count": top_contract["expected_collection_count"],
+        "expected_collections": top_contract["expected_collections"],
+        "unavailable_fields": top_contract["unavailable_fields"],
+        "unavailable_reason": top_contract["unavailable_reason"],
+        "classification_reason_code": top_contract["classification_reason_code"],
+        "classification": top_contract["classification"],
+        "environment_identity": env_identity,
         "restore_test_evidence": last_drill,
         "evidence_source": manifest_source,
+        "evidence_mode": top_contract["evidence_mode"],
         "recent_backups": recent_backups,
-        "ok": bool(captured) and len(missing) == 0,
+        "ok": top_contract["integrity_result"] == "PASS",
     }
 
 

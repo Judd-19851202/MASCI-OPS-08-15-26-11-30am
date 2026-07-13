@@ -46,6 +46,13 @@ def test_release_scope_fields_are_explicit_and_touch_only_exercised_workflows():
     assert out["release_blocked_workflows"] == ["meeting"]
     assert out["release_stale_workflows"] == ["shop-defect"]
     assert out["release_failed_workflows"] == ["incident"]
+    assert out["release_reason"] == "release_contains_failed_workflows"
+    assert out["release_required_workflows"] == [
+        "daily-report",
+        "meeting",
+        "shop-defect",
+        "incident",
+    ]
     assert out["release_counters"] == {
         "verified": 1,
         "failed": 1,
@@ -63,12 +70,21 @@ def test_certification_record_is_hidden_and_email_suppressed():
         "id": "dr-cert-1",
         "project_name": "Certification Lane",
         "certification_record": True,
+        "certification_run_id": "run-27-11b-001",
+        "certification_release_source_hash": "abc123",
+        "certification_release_reason": "release_scope_verified",
+        "certification_required_workflows": ["daily-report", "meeting"],
     })
 
     assert doc["certification_record"] is True
     assert doc["synthetic_record"] is True
     assert doc["hidden_from_operations"] is True
     assert doc["email_dispatch_suppressed"] is True
+    assert doc["certification_track_id"] == "27.11B"
+    assert doc["certification_run_id"] == "run-27-11b-001"
+    assert doc["certification_release_source_hash"] == "abc123"
+    assert doc["certification_release_reason"] == "release_scope_verified"
+    assert doc["certification_required_workflows"] == ["daily-report", "meeting"]
     assert _should_schedule_daily_report_email(doc) is False
     assert is_synthetic_dr(doc) is True
     q = apply_synthetic_dr_exclusion({})
@@ -235,9 +251,13 @@ def test_integrity_check_exposes_rowwise_lineage_for_recent_backups(monkeypatch)
     assert all("integrity_result" in row for row in out["recent_backups"])
     assert all("failed_checks" in row for row in out["recent_backups"])
     assert all("evidence_source" in row for row in out["recent_backups"])
+    assert all("verification_timestamp" in row for row in out["recent_backups"])
+    assert all("verifier_version" in row for row in out["recent_backups"])
+    assert all("evidence_mode" in row for row in out["recent_backups"])
     assert out["recent_backups"][0]["integrity_result"] == "PASS"
-    assert out["recent_backups"][1]["integrity_result"] == "FAIL"
-    assert out["recent_backups"][1]["failed_checks"][0]["code"] == "missing_from_backup"
+    failed_row = next(row for row in out["recent_backups"] if row["filename"].endswith("150050Z.zip"))
+    assert failed_row["integrity_result"] == "FAIL"
+    assert failed_row["failed_checks"][0]["code"] == "missing_from_live_required_set"
 
 
 def test_version_endpoint_separates_build_and_process_timestamps(monkeypatch):

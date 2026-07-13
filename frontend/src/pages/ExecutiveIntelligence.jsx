@@ -2,36 +2,20 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useT } from "@/lib/i18n";
-import axios from "axios";
+import { api } from "@/lib/api";
 import { AlertTriangle, ArrowUpRight, TrendingDown, TrendingUp, Activity } from "lucide-react";
-
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-
-function _headers() {
-  const h = { "Content-Type": "application/json" };
-  try {
-    const s = localStorage.getItem("safety_token");
-    const a = localStorage.getItem("admin_token");
-    const p = localStorage.getItem("pm_token");
-    if (s) h["X-Safety-Token"] = s;
-    if (a) h["X-Admin-Token"] = a;
-    if (p) h["X-PM-Token"] = p;
-  } catch { /* ignore */ }
-  return h;
-}
-const c = () => axios.create({ baseURL: API, headers: _headers(), timeout: 20000 });
 
 async function loadAll() {
   const [home, rc, capa, projects, fleet, learn, brief, portfolio] = await Promise.all([
-    c().get("/incident-intelligence/home").then(r => r.data),
-    c().get("/incident-intelligence/root-causes").then(r => r.data).catch(() => null),
-    c().get("/incident-intelligence/corrective-actions").then(r => r.data).catch(() => null),
-    c().get("/incident-intelligence/projects").then(r => r.data).catch(() => null),
-    c().get("/incident-intelligence/fleet").then(r => r.data).catch(() => null),
-    c().get("/incident-intelligence/learning").then(r => r.data).catch(() => null),
-    c().get("/incident-intelligence/brief").then(r => r.data).catch(() => null),
+    api.get("/incident-intelligence/home", { skipSessionStatus: true }).then(r => r.data),
+    api.get("/incident-intelligence/root-causes", { skipSessionStatus: true }).then(r => r.data).catch(() => null),
+    api.get("/incident-intelligence/corrective-actions", { skipSessionStatus: true }).then(r => r.data).catch(() => null),
+    api.get("/incident-intelligence/projects", { skipSessionStatus: true }).then(r => r.data).catch(() => null),
+    api.get("/incident-intelligence/fleet", { skipSessionStatus: true }).then(r => r.data).catch(() => null),
+    api.get("/incident-intelligence/learning", { skipSessionStatus: true }).then(r => r.data).catch(() => null),
+    api.get("/incident-intelligence/brief", { skipSessionStatus: true }).then(r => r.data).catch(() => null),
     // Track 19.38 · additive · portfolio attention feed. Fails soft.
-    c().get("/incident-intelligence/portfolio-attention").then(r => r.data).catch(() => null),
+    api.get("/incident-intelligence/portfolio-attention", { skipSessionStatus: true }).then(r => r.data).catch(() => null),
   ]);
   return { home, rc, capa, projects, fleet, learn, brief, portfolio };
 }

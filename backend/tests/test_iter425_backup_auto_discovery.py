@@ -121,7 +121,21 @@ def test_iter425_manifest_shape(server_module, tmp_zip, seed_data):
     with zipfile.ZipFile(str(tmp_zip)) as zf:
         manifest = json.loads(zf.read("MANIFEST.json").decode("utf-8"))
     assert manifest["mode"] == "complete"
+    assert manifest["classification"] == "COMPLETE"
+    assert manifest["coverage_complete"] is True
+    assert manifest["integrity_result"] == "PASS"
     assert "captured_collections" in manifest
+    assert "expected_collections" in manifest
+    assert "expected_collection_count" in manifest
+    assert "captured_collection_count" in manifest
+    assert "excluded_collections" in manifest
+    assert "exclusion_reasons" in manifest
+    assert "attempted_collections" in manifest
+    assert "failed_collections" in manifest
+    assert "skipped_collections" in manifest
+    assert "per_collection_record_counts" in manifest
+    assert "archive_members" in manifest
+    assert "verifier_version" in manifest
     assert "explicit_exclusions" in manifest
     assert "redaction_rules_applied" in manifest
     # iter425 redaction rules MUST include user_directory + users
@@ -130,9 +144,13 @@ def test_iter425_manifest_shape(server_module, tmp_zip, seed_data):
     assert "user_directory" in redacted
     # NEW collections present
     captured = set(manifest["captured_collections"])
+    expected = set(manifest["expected_collections"])
     assert "dispatch_assignments" in captured
     assert "user_passkeys" in captured
     assert "operational_attachments" in captured
+    assert captured == expected
+    assert manifest["captured_collection_count"] == len(captured)
+    assert manifest["expected_collection_count"] == len(expected)
 
 
 # ──────────────────────────────────────────────────────────────
