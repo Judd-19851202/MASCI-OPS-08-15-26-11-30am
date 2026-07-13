@@ -8485,6 +8485,16 @@ async def _run_complete_archive_to_r2(db) -> Optional[dict]:
             emailed_to=None, mode="complete-r2",
         )
 
+        completed_bucket = _now.strftime("%Y-%m-%dT%H")
+        _BACKUP_SCHEDULER_STATE["last_r2_complete_hour"] = completed_bucket
+        _BACKUP_SCHEDULER_STATE["last_r2_complete_date"] = completed_bucket[:10]
+        _BACKUP_SCHEDULER_STATE["last_r2_complete"] = {
+            "filename": filename,
+            "size_bytes": int(size_mb * 1024 * 1024),
+            "r2_key": r2_key,
+            "ts": datetime.now(timezone.utc).isoformat(),
+        }
+
         # Phase-2 Round 2 — passive 50 GB bucket-usage probe (warn-only).
         # After every successful nightly R2 upload, sum the bucket size in
         # the background and log a WARNING if it crosses 45 GB (warn) or
@@ -9135,8 +9145,35 @@ async def _backup_scheduler_loop(db) -> None:
             r2_hour = 3
         r2_hourly = (os.environ.get("BACKUP_R2_HOURLY", "false") or "false").lower() in ("1", "true", "yes")
         hour_bucket = now.strftime("%Y-%m-%dT%H")
+        current_hour_r2_row = None
+        if r2_hourly and _BACKUP_SCHEDULER_STATE.get("last_r2_complete_hour") != hour_bucket:
+            try:
+                current_hour_r2_row = await db.backup_health.find_one(
+                    {
+                        "mode": "complete-r2",
+                        "ok": True,
+                        "ts": {"$regex": f"^{hour_bucket}"},
+                        "filename": {"$nin": [None, ""]},
+                    },
+                    sort=[("ts", -1)],
+                    projection={"_id": 0, "filename": 1, "size_bytes": 1, "ts": 1},
+                )
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"[scheduled-backup] current-hour complete-r2 dedupe probe failed: {e}")
+            if current_hour_r2_row:
+                _BACKUP_SCHEDULER_STATE["last_r2_complete_hour"] = hour_bucket
+                _BACKUP_SCHEDULER_STATE["last_r2_complete_date"] = hour_bucket[:10]
+                _BACKUP_SCHEDULER_STATE["last_r2_complete"] = {
+                    "filename": current_hour_r2_row.get("filename"),
+                    "size_bytes": current_hour_r2_row.get("size_bytes"),
+                    "r2_key": f"backups/auto-90d/{current_hour_r2_row.get('filename')}",
+                    "ts": current_hour_r2_row.get("ts"),
+                }
         if r2_hourly:
-            should_fire_r2 = _BACKUP_SCHEDULER_STATE.get("last_r2_complete_hour") != hour_bucket
+            should_fire_r2 = (
+                _BACKUP_SCHEDULER_STATE.get("last_r2_complete_hour") != hour_bucket
+                and current_hour_r2_row is None
+            )
         else:
             should_fire_r2 = (
                 now.hour >= r2_hour
