@@ -8,7 +8,7 @@ export { mintIdempotencyKey } from "./idempotency";
 export {
   saveDraft, getDraft, getDraftEntry, discardDraft, clearDraft, purgeStaleDrafts,
   clearAllDraftsForActor, migrateLegacyDrafts, recoverArchivedDraft,
-  listDraftEntriesForPrefix,
+  listDraftEntriesForPrefix, promoteDraftEntry,
   storeIdempotencyKey, getIdempotencyKey, clearIdempotencyKey,
 } from "./draftStore";
 export { useDraft } from "./useDraft";

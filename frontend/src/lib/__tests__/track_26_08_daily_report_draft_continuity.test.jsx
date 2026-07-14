@@ -1,3 +1,4 @@
+/* eslint-env jest */
 /**
  * TRACK 26.08 · Daily Report Draft / Restore / Device Continuity
  *               regression tests.
@@ -26,12 +27,12 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-// Stub the actor fingerprint before importing crewMemory (which reads
-// getAuthActorFingerprint() at call time via the imported symbol).
+// Stub the stable actor identity before importing crewMemory.
 jest.mock("../resiliency/actorId", () => {
   let _actor = "test.anon";
   return {
     getAuthActorFingerprint: () => _actor,
+    getStableActorIdentity: () => _actor,
     __setActor: (v) => { _actor = v || "test.anon"; },
     getDeviceScopedActorId: () => "d.test-device-id",
     getActorId: () => "d.test-device-id",

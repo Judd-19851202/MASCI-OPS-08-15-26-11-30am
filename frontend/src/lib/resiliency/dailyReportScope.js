@@ -1,6 +1,6 @@
 import { getDeviceId } from "./deviceId";
 
-export const DAILY_REPORT_FORM_BASE = "daily-report-new";
+export const DAILY_REPORT_FORM_BASE = "daily-report";
 
 function clean(value, fallback) {
   const out = String(value || "").trim();
@@ -8,10 +8,11 @@ function clean(value, fallback) {
 }
 
 export function buildDailyReportInstanceScope(data = {}) {
+  const actor = clean(data.actor_id, "anon");
   const project = clean(data.project_number, "unassigned");
   const reportDate = clean(data.report_date, "undated");
-  const reportNumber = clean(data.report_number, "default");
-  return `${project}::${reportDate}::${reportNumber}`;
+  const reportInstance = clean(data.report_instance, "primary");
+  return `${actor}::${project}::${reportDate}::${reportInstance}`;
 }
 
 export function buildDailyReportScopedFormKey(data = {}) {

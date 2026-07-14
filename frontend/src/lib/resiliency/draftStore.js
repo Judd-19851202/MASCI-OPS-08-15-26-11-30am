@@ -243,6 +243,21 @@ export async function listDraftEntriesForPrefix(formKeyPrefix) {
   }
 }
 
+export async function promoteDraftEntry(actorId, formKey, entry) {
+  if (!formKey || !entry || typeof entry !== "object" || !entry.form) return false;
+  try {
+    await set(_draftKey(actorId, formKey), {
+      ...entry,
+      savedByActor: entry.savedByActor || actorId || null,
+      promotedAt: Date.now(),
+    });
+    const readback = await get(_draftKey(actorId, formKey));
+    return Boolean(readback?.form);
+  } catch {
+    return false;
+  }
+}
+
 // --------------------------------------------------------- legacy migration
 // Re-keys any legacy token-derived drafts under the new device-scoped
 // actor id. One-time, idempotent, safe to call on every mount.

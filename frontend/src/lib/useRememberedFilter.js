@@ -23,6 +23,7 @@
 //     → wipe all keys prefixed with NAMESPACE (admin-only escape hatch)
 
 import { useCallback, useEffect, useState } from "react";
+import { getStableActorIdentity } from "@/lib/resiliency/actorId";
 
 // Bump if the storage shape needs to change in the future. Old keys
 // silently drop (we read with try/catch and JSON.parse).
@@ -30,38 +31,9 @@ const SCHEMA = "v1";
 const NAMESPACE = "masci.ux.remembered";
 
 function resolveActorKey() {
-  // Best-effort actor scoping. We don't have a global user-id var,
-  // but every portal stores its login token under a stable key.
-  // Fall back to "anon" so the cache still works pre-login.
   try {
-    if (typeof window === "undefined") return "anon";
-    // Canonical localStorage token-key names used across the app.
-    // These MUST match the per-portal auth modules' KEY constants
-    // (e.g. lib/safetyAuth.js stores at 'masci.safety.token').
-    const keys = [
-      "masci.directory.token",
-      "masci.admin.token",
-      "masci.safety.token",
-      "masci.hr.token",
-      "masci.pm.token",
-      "masci.shop.token",
-      "masci.dispatch.token",
-      "masci.leadership.token",
-    ];
-    for (const k of keys) {
-      const v = localStorage.getItem(k);
-      if (v && v.length > 8) {
-        // Truncated SHA-style hash of the token so we don't store
-        // the literal token in another key. 12 chars = plenty of
-        // uniqueness, no collision risk.
-        let h = 0;
-        for (let i = 0; i < v.length; i++) {
-          h = ((h << 5) - h) + v.charCodeAt(i);
-          h |= 0;
-        }
-        return `t${Math.abs(h).toString(36)}`;
-      }
-    }
+    const actor = getStableActorIdentity();
+    if (actor && actor !== "anon") return actor;
   } catch {
     /* silent */
   }
@@ -145,3 +117,5 @@ export function clearAllRememberedFilters() {
   }
   return n;
 }
+
+export default useRememberedFilter;

@@ -30,9 +30,18 @@ import {
   useOnlineStatus,
   DraftStatusPill,
   DraftRestorePrompt,
+  DraftRecoveryNotice,
+  recoverArchivedDraft,
+  listDraftEntriesForPrefix,
+  emitDraftEvent,
+  DAILY_REPORT_FORM_BASE,
+  buildDailyReportInstanceScope,
+  buildDailyReportScopedFormKey,
 } from "@/lib/resiliency";
 import DraftScopeChip from "@/lib/resiliency/DraftScopeChip";
 import { getDeviceId } from "@/lib/resiliency/deviceId";
+import { getStableActorIdentity } from "@/lib/resiliency/actorId";
+import { getDeviceScopedActorId } from "@/lib/resiliency";
 import {
   extractSetupSnapshot, saveCrewSetup, loadCrewSetup, applySetupSnapshotToData,
   refreshCrewFromEmployeeMaster,
@@ -55,13 +64,11 @@ import { CheckCircle2, History } from "lucide-react";
 import { useT } from "@/lib/i18n";
 import { LangToggle } from "@/components/LangToggle";
 import { translateDrV3PayloadEsToEn } from "@/lib/drV3Translation";
+import { useRememberedFormValue } from "@/lib/useRememberedFilter";
 
-// Form key MUST match V1 so that a mid-flight draft written in V1 can
-// still restore when the pilot flag flips the operator into V3 (and
-// vice versa on rollback). One draft. Two shells.
-const FORM_KEY = "daily-report";
 const GEO_TIMEOUT_MS = 12000;
 const GEO_MAX_AGE_MS = 30000;
+const LEGACY_DRAFT_PREFIXES = ["daily-report-new", "daily-report"];
 
 function detectEmbeddedPreviewRestriction() {
   try {
@@ -127,7 +134,16 @@ function buildLocationPatch({ latitude, longitude, accuracy, capturedAt, locatio
 export default function NewDailyReportV3({ publicMode = false }) {
   const navigate = useNavigate();
   const { t, lang } = useT();
-  const [data, setData] = useState(() => buildDailyReportDefaults());
+  const [lastProject, rememberLastProject] = useRememberedFormValue(
+    "NewDailyReport.last_project_number",
+    "",
+  );
+  const [data, setData] = useState(() => {
+    const defaults = buildDailyReportDefaults();
+    if (lastProject && !defaults.project_number) defaults.project_number = lastProject;
+    if (!defaults.report_instance) defaults.report_instance = "primary";
+    return defaults;
+  });
   const [reportId, setReportId] = useState("");
   const [saving, setSaving] = useState(false);
   const [isFetchingGps, setFetchingGps] = useState(false);
@@ -135,45 +151,99 @@ export default function NewDailyReportV3({ publicMode = false }) {
   const [costCodes, setCostCodes] = useState([]);
   const [reportNumberPreview, setReportNumberPreview] = useState("");
   const [crewSetupOffer, setCrewSetupOffer] = useState(null);
+  const [smartPrefillOffer, setSmartPrefillOffer] = useState(null);
+  const [smartPrefillLoadedKey, setSmartPrefillLoadedKey] = useState("");
+  const [smartPrefillError, setSmartPrefillError] = useState("");
+  const [prefillNotice, setPrefillNotice] = useState(null);
+  const [legacyDraftRecovery, setLegacyDraftRecovery] = useState(null);
+  const [archivedDraft, setArchivedDraft] = useState(null);
   const [summaryGate, setSummaryGate] = useState({ canSubmit: false, manualNeeded: false });
   const idempotencyKeyRef = useRef(null);
+  const actorId = getStableActorIdentity();
+  const draftScope = useMemo(() => buildDailyReportInstanceScope({ ...data, actor_id: actorId }), [data, actorId]);
+  const scopedFormKey = useMemo(() => buildDailyReportScopedFormKey({ ...data, actor_id: actorId }), [data, actorId]);
 
   const patch = useCallback((delta) => {
     setData((prev) => ({ ...prev, ...delta }));
   }, []);
 
-  // ── Field resiliency (autosave / draft restore / archive) ────
-  // TRACK 26.11 · scope the draft key to (project, report_date) when
-  // both are populated so a multi-project supervisor can carry an
-  // in-progress DR on project 26-07 for 2026-07-08 without it being
-  // overwritten by their DR on project 24-99 for the same day.
-  // Empty scope falls back to the ambient single-slot behaviour, so
-  // pre-project prelude drafts still work exactly as before.
-  const draftScope = ((data.project_number || "").trim() && (data.report_date || "").trim())
-    ? `${data.project_number.trim()}::${data.report_date.trim()}`
-    : "";
   const {
-    pendingDraft, pendingSavedAt, loaded: draftLoaded,
+    pendingDraft, pendingSavedAt, pendingIsCrossToken, loaded: draftLoaded,
     draftStatus, restore: restoreDraft, discard: discardDraft,
+    lastSavedAt,
     commit: commitDraft,
-  } = useFormDraft(FORM_KEY, data, undefined, { scope: draftScope });
+  } = useFormDraft(DAILY_REPORT_FORM_BASE, data, actorId, { scope: draftScope });
   const online = useOnlineStatus();
 
   // Idempotency key: load once from IDB (survives reload) or mint fresh.
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      let key = await loadIdempotencyKey(FORM_KEY);
+      let key = await loadIdempotencyKey(scopedFormKey);
       if (!key) {
         key = mintIdempotencyKey();
-        await persistIdempotencyKey(FORM_KEY, key);
+        await persistIdempotencyKey(scopedFormKey, key);
       }
       if (!cancelled) idempotencyKeyRef.current = key;
     })();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [scopedFormKey]);
+
+  useEffect(() => {
+    if (!draftLoaded || pendingDraft) return undefined;
+    let cancelled = false;
+    (async () => {
+      const rows = [];
+      for (const prefix of LEGACY_DRAFT_PREFIXES) {
+        try {
+          const found = await listDraftEntriesForPrefix(prefix);
+          rows.push(...found);
+        } catch {
+          // ignore
+        }
+      }
+      if (cancelled) return;
+      const legacy = rows
+        .filter((row) => typeof row?.key === "string")
+        .filter((row) => !row.key.includes(`.${scopedFormKey}`))
+        .map((row) => row?.entry)
+        .find((entry) => entry?.form && Object.keys(entry.form || {}).length > 1);
+      if (legacy?.form) {
+        setLegacyDraftRecovery({
+          form: legacy.form,
+          savedAt: legacy.savedAt || null,
+        });
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [draftLoaded, pendingDraft, scopedFormKey]);
+
+  useEffect(() => {
+    if (!draftLoaded) return undefined;
+    if (pendingDraft) {
+      setArchivedDraft(null);
+      return undefined;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const arc = await recoverArchivedDraft(getDeviceScopedActorId(), scopedFormKey);
+        if (!cancelled && arc?.form) setArchivedDraft(arc);
+      } catch {
+        // ignore
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [draftLoaded, pendingDraft, actorId, scopedFormKey]);
+
+  const onRecoverArchive = useCallback(() => {
+    if (!archivedDraft?.form) return;
+    setData(archivedDraft.form);
+    setArchivedDraft(null);
+    toast.success(t("Draft restored"));
+  }, [archivedDraft, t]);
 
   // ── Restore Yesterday Setup (smart crew memory) ──────────────
   useEffect(() => {
@@ -210,6 +280,103 @@ export default function NewDailyReportV3({ publicMode = false }) {
   }, [crewSetupOffer, data.project_number, t]);
 
   const onDismissCrewSetup = useCallback(() => setCrewSetupOffer(null), []);
+
+  useEffect(() => {
+    if (!draftLoaded || pendingDraft) return undefined;
+    const projectNumber = String(data.project_number || "").trim();
+    if (!projectNumber) {
+      setSmartPrefillOffer(null);
+      setSmartPrefillError("");
+      return undefined;
+    }
+    const foreman = String(data.prepared_by || "").trim();
+    const superintendent = String(data.superintendent || "").trim();
+    const requestKey = `${projectNumber}::${data.report_date || ""}::${foreman}::${superintendent}`;
+    if (requestKey === smartPrefillLoadedKey) return undefined;
+    let cancelled = false;
+    emitDraftEvent("draft.lifecycle", { formKey: scopedFormKey, trigger: "smart_prefill.requested" });
+    (async () => {
+      try {
+        const { data: res } = await api.get(`/jobs/${encodeURIComponent(projectNumber)}/recent-context`, {
+          params: { foreman, superintendent },
+        });
+        if (cancelled) return;
+        const priorCrews = Array.isArray(res?.masci_crews) ? res.masci_crews : [];
+        const priorEquipment = Array.isArray(res?.equipment) ? res.equipment : [];
+        const hasReusable = Boolean(priorCrews.length || priorEquipment.length);
+        setSmartPrefillOffer(hasReusable ? {
+          actor_scoped: Boolean(res?.actor_scoped),
+          superintendent: res?.superintendent || data.superintendent || "",
+          priorCrews,
+          priorEquipment,
+          sourceDate: String(res?.source_report_date || "").trim(),
+          sourceProject: projectNumber,
+        } : null);
+        setSmartPrefillError(hasReusable ? "" : t("No previous setup found for this project yet."));
+      } catch (error) {
+        if (cancelled) return;
+        setSmartPrefillOffer(null);
+        setSmartPrefillError(t("Previous setup could not be loaded. You can continue manually or try again."));
+        emitDraftEvent("draft.lifecycle", {
+          formKey: scopedFormKey,
+          trigger: "smart_prefill.failed",
+          errorName: error?.name || "Error",
+          error: error?.message || "request failed",
+        });
+      } finally {
+        if (!cancelled) setSmartPrefillLoadedKey(requestKey);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [draftLoaded, pendingDraft, data.project_number, data.report_date, data.prepared_by, data.superintendent, smartPrefillLoadedKey, scopedFormKey, t]);
+
+  const onApplySmartPrefill = useCallback(() => {
+    if (!smartPrefillOffer) return;
+    const hasCrewData = Array.isArray(data.masci_crews) && data.masci_crews.some((row) => row?.name || row?.employee_id || row?.hours || row?.start_time || row?.stop_time);
+    const hasEquipmentData = Array.isArray(data.equipment) && data.equipment.some((row) => row?.description || row?.hours_used || row?.notes);
+    if ((hasCrewData || hasEquipmentData) && !window.confirm(t("Your current setup already has values. Replace the reusable setup fields?"))) {
+      emitDraftEvent("draft.restore.action", { formKey: scopedFormKey, trigger: "smart_prefill.apply_rejected" });
+      return;
+    }
+    const { priorCrews = [], priorEquipment = [], sourceDate } = smartPrefillOffer;
+    setData((prev) => ({
+      ...prev,
+      masci_crews: priorCrews.map((c) => ({
+        name: c.name || "",
+        trade: c.trade || "",
+        employee_id: c.employee_id || "",
+        start_time: c.start_time || "",
+        lunch_minutes: (c.lunch_minutes === 0 || c.lunch_minutes) ? c.lunch_minutes : "",
+        stop_time: c.stop_time || "",
+        hours: c.hours || "",
+        work_performed: "",
+        _prefilled: true,
+      })),
+      equipment: priorEquipment.map((e) => ({
+        description: e.description || "",
+        hours_used: e.hours_used || "",
+        time_delivered: "",
+        time_removed: "",
+        notes: e.notes || "",
+      })),
+    }));
+    setPrefillNotice({
+      sourceDate: sourceDate || "",
+      crewCount: priorCrews.length,
+      equipCount: priorEquipment.length,
+    });
+    setSmartPrefillOffer(null);
+    setSmartPrefillError("");
+    emitDraftEvent("draft.restore.action", { formKey: scopedFormKey, trigger: "smart_prefill.applied" });
+    toast.success(
+      t("Prefilled from {d} — review and adjust before submit").replace("{d}", sourceDate || t("previous report")),
+    );
+  }, [smartPrefillOffer, data.masci_crews, data.equipment, scopedFormKey, t]);
+
+  const onDismissSmartPrefill = useCallback(() => {
+    setSmartPrefillOffer(null);
+    emitDraftEvent("draft.restore.action", { formKey: scopedFormKey, trigger: "smart_prefill.skipped" });
+  }, [scopedFormKey]);
 
   // ── Cost code fetch (CostCodeProvider) ─────────────────────
   useEffect(() => {
@@ -526,7 +693,24 @@ export default function NewDailyReportV3({ publicMode = false }) {
 
     setSaving(true);
     const idem = idempotencyKeyRef.current || mintIdempotencyKey();
-    let payload = { ...data, submit_language: lang, ui_shell: "v3" };
+    idempotencyKeyRef.current = idem;
+    await persistIdempotencyKey(scopedFormKey, idem);
+    const cleanCrews = Array.isArray(data.masci_crews)
+      ? data.masci_crews.map((row) => {
+          if (row && typeof row === "object" && "_prefilled" in row) {
+            const { _prefilled, ...rest } = row;
+            void _prefilled;
+            return rest;
+          }
+          return row;
+        })
+      : data.masci_crews;
+    let payload = {
+      ...data,
+      masci_crews: cleanCrews,
+      submit_language: lang,
+      ui_shell: "daily-report",
+    };
 
     // ── TRACK 24.3 · ES → EN canonical translation ──
     // If the operator authored in Spanish, translate every natural-
@@ -568,6 +752,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
         });
         try { saveCrewSetup(extractSetupSnapshot(payload)); } catch { /* silent */ }
         await commitDraft();
+        if (payload.project_number) rememberLastProject(String(payload.project_number));
         toast.success(t("Daily report submitted."));
         if (publicMode) navigate("/thank-you");
         else if (saved?.id) navigate(`/daily/${saved.id}`);
@@ -576,20 +761,22 @@ export default function NewDailyReportV3({ publicMode = false }) {
         // Offline: hand to the shared queue. The queue re-tries with
         // the same Idempotency-Key so a mid-flight reconnect never
         // creates a duplicate DR.
-        const item = enqueueUpload({
-          endpoint: "/daily-reports",
+        enqueueUpload({
+          url: "/daily-reports",
           method: "POST",
-          payload,
+          body: payload,
           idempotencyKey: idem,
-          formKey: FORM_KEY,
+          formKey: scopedFormKey,
         });
-        onQueueItemSettled(item?.id, async (res) => {
+        onQueueItemSettled(idem, async (res) => {
           if (res?.ok) {
             try { saveCrewSetup(extractSetupSnapshot(payload)); } catch { /* silent */ }
             await commitDraft();
           }
         });
-        toast(t("Queued — will send when connection returns."));
+        emitDraftEvent("draft.lifecycle", { formKey: scopedFormKey, trigger: "offline.queued" });
+        if (payload.project_number) rememberLastProject(String(payload.project_number));
+        toast(t("Offline — saved on this device and will send when connection returns."));
         navigate(publicMode ? "/thank-you?queued=1" : "/admin/daily");
       }
     } catch (err) {
@@ -616,7 +803,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
     } finally {
       setSaving(false);
     }
-  }, [saving, canSubmit, data, online, publicMode, navigate, readiness.missing, commitDraft, lang, t]);
+  }, [saving, canSubmit, data, online, publicMode, navigate, readiness.missing, commitDraft, lang, t, scopedFormKey, rememberLastProject]);
 
   return (
     <div className="min-h-screen blueprint-bg">
@@ -654,7 +841,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
                 if (draftStatus === "saved" || pendingSavedAt) return "saved";
                 return "draft";
               })()}
-              lastSavedAt={pendingSavedAt}
+              lastSavedAt={lastSavedAt || pendingSavedAt}
               testId="dr-v3-draft-pill"
             />
             {(draftStatus === "idle" && !pendingSavedAt && online && !canSubmit) && (
@@ -689,7 +876,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
               if (draftStatus === "saved" || pendingSavedAt) return "saved";
               return "draft";
             })()}
-            lastSavedAt={pendingSavedAt}
+            lastSavedAt={lastSavedAt || pendingSavedAt}
           />
         </div>
         <header className="mb-6 sm:mb-8">
@@ -705,11 +892,28 @@ export default function NewDailyReportV3({ publicMode = false }) {
           </p>
         </header>
 
+        {legacyDraftRecovery && !pendingDraft ? (
+          <div className="mb-4" data-testid="dr-v3-legacy-recovery-slot">
+            <DraftRecoveryNotice
+              archive={legacyDraftRecovery}
+              onRecover={() => {
+                setData((prev) => ({ ...prev, ...(legacyDraftRecovery.form || {}) }));
+                setLegacyDraftRecovery(null);
+                toast.success(t("Recovered saved work from this device"));
+              }}
+              onDismiss={() => setLegacyDraftRecovery(null)}
+              testId="dr-v3-legacy-recovery"
+            />
+          </div>
+        ) : null}
+
         {/* Draft restore prompt — never silently overwrites work. */}
         {pendingDraft && (
           <div className="mb-4" data-testid="dr-v3-draft-restore-prompt">
             <DraftRestorePrompt
+              pendingDraft={pendingDraft}
               savedAt={pendingSavedAt}
+              isCrossToken={pendingIsCrossToken}
               onRestore={() => {
                 const d = restoreDraft();
                 if (d) setData((prev) => ({ ...prev, ...d }));
@@ -718,6 +922,74 @@ export default function NewDailyReportV3({ publicMode = false }) {
             />
           </div>
         )}
+
+        <DraftRecoveryNotice
+          archive={pendingDraft ? null : archivedDraft}
+          onRecover={onRecoverArchive}
+          onDismiss={() => setArchivedDraft(null)}
+          testId="dr-v3-draft-recovery"
+        />
+
+        {smartPrefillOffer && !pendingDraft && !crewSetupOffer ? (
+          <div
+            data-testid="dr-v3-smart-prefill-offer"
+            className="mb-4 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4"
+          >
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-amber-800">
+                  {t("Use your previous submitted setup?")}
+                </p>
+                <p className="mt-1 text-sm text-slate-800">
+                  {t("{crew} crew · {equip} equipment from {date}")
+                    .replace("{crew}", String(smartPrefillOffer.priorCrews.length))
+                    .replace("{equip}", String(smartPrefillOffer.priorEquipment.length))
+                    .replace("{date}", smartPrefillOffer.sourceDate || t("the previous report"))}
+                </p>
+                <p className="mt-1 text-xs text-slate-600">
+                  {t("Hours and setup are editable before submit.")}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={onDismissSmartPrefill}
+                  data-testid="dr-v3-smart-prefill-dismiss"
+                  className="rounded-lg border border-amber-400 bg-white px-3 py-1.5 text-sm font-semibold text-amber-800 hover:bg-amber-100"
+                >
+                  {t("Start Fresh")}
+                </button>
+                <button
+                  type="button"
+                  onClick={onApplySmartPrefill}
+                  data-testid="dr-v3-smart-prefill-apply"
+                  className="rounded-lg bg-amber-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-amber-700"
+                >
+                  {t("Restore Setup")}
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {smartPrefillError ? (
+          <div
+            data-testid="dr-v3-smart-prefill-error"
+            className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+          >
+            {smartPrefillError}
+          </div>
+        ) : null}
+
+        {prefillNotice ? (
+          <div
+            data-testid="dr-v3-smart-prefill-notice"
+            className="mb-4 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900"
+          >
+            {t("Restored from {d} · review and adjust hours before submit")
+              .replace("{d}", prefillNotice.sourceDate || t("the previous report"))}
+          </div>
+        ) : null}
 
         {/* Restore Yesterday Setup — smart crew memory. */}
         {crewSetupOffer && !pendingDraft && (

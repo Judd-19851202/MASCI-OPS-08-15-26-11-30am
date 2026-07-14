@@ -14,11 +14,11 @@ class _FakeTelemetry:
     def __init__(self):
         now = datetime.now(timezone.utc)
         self.rows = [
-            {"event": "draft.write.ok", "ts": now - timedelta(minutes=10), "formKey": "daily-report-new::26-07::2026-07-13"},
-            {"event": "draft.write.fail", "ts": now - timedelta(minutes=5), "formKey": "daily-report-new::26-07::2026-07-13"},
-            {"event": "quota.warning", "ts": now - timedelta(minutes=3), "formKey": "daily-report-new::26-07::2026-07-13"},
-            {"event": "draft.restore.offered", "ts": now - timedelta(minutes=2), "formKey": "daily-report-new::26-07::2026-07-13"},
-            {"event": "draft.restore.action", "ts": now - timedelta(minutes=1), "formKey": "daily-report-new::26-07::2026-07-13"},
+            {"event": "draft.write.ok", "ts": now - timedelta(minutes=10), "formKey": "daily-report::26-07::2026-07-13::primary"},
+            {"event": "draft.write.fail", "ts": now - timedelta(minutes=5), "formKey": "daily-report::26-07::2026-07-13::primary"},
+            {"event": "quota.warning", "ts": now - timedelta(minutes=3), "formKey": "daily-report::26-07::2026-07-13::primary"},
+            {"event": "draft.restore.offered", "ts": now - timedelta(minutes=2), "formKey": "daily-report::26-07::2026-07-13::primary"},
+            {"event": "draft.restore.action", "ts": now - timedelta(minutes=1), "formKey": "daily-report::26-07::2026-07-13::primary"},
         ]
 
     async def count_documents(self, query):
@@ -38,7 +38,7 @@ class _FakeTelemetry:
         class _Cursor:
             def __aiter__(self_inner):
                 self_inner._iter = iter([
-                    {"_id": "daily-report-new::26-07::2026-07-13", "n": 1},
+                    {"_id": "daily-report::26-07::2026-07-13::primary", "n": 1},
                 ])
                 return self_inner
 
@@ -95,4 +95,4 @@ def test_admin_draft_health_reads_event_schema_not_legacy_kind():
     assert buckets["quota_warn_last_24h"] == 1
     assert buckets["restore_offered_last_24h"] == 1
     assert buckets["restore_action_last_24h"] == 1
-    assert out["per_form_last_24h"]["daily-report-new::26-07::2026-07-13"] == 1
+    assert out["per_form_last_24h"]["daily-report::26-07::2026-07-13::primary"] == 1

@@ -14,6 +14,7 @@ export function buildDailyReportDefaults() {
     location: "",
     report_date: todayLocalIso(),
     report_number: "", // optional, auto-incremented externally
+    report_instance: "primary",
     prepared_by: "",
     superintendent: "",
     // TRACK 24.9 Phase C · Project metadata snapshot.

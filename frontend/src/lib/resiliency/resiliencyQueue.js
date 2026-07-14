@@ -150,7 +150,7 @@ async function _attempt(entry) {
   // body is NEVER mutated, so a discard+restore round-trip remains
   // possible and no user-entered text is lost.
   let bodyToSend = entry.body;
-  if (entry.formKey === "daily-report-new") {
+  if ((entry.formKey || "") === "daily-report" || String(entry.formKey || "").startsWith("daily-report::")) {
     const repair = normalizeDailyReportPayload(entry.body);
     if (repair.errors.length > 0) {
       // Surface a field-level, human-readable failure instead of letting

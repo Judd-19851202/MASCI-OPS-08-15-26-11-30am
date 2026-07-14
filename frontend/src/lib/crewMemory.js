@@ -41,7 +41,7 @@
 // sessions fall back to a shared `.anon` slot by design (unauthenticated
 // public form flow — never contains identifying data).
 
-import { getAuthActorFingerprint } from "./resiliency/actorId";
+import { getStableActorIdentity } from "./resiliency/actorId";
 
 const STORAGE_KEY_BASE = "masci.crew-memory.daily-report.v1";
 const LEGACY_STORAGE_KEY = "masci.crew-memory.daily-report.v1";
@@ -50,7 +50,7 @@ const SCHEMA_VERSION = 1;
 
 function _actorKey() {
   try {
-    const actor = getAuthActorFingerprint() || "anon";
+    const actor = getStableActorIdentity() || "anon";
     return `${STORAGE_KEY_BASE}.${actor}`;
   } catch {
     return `${STORAGE_KEY_BASE}.anon`;
