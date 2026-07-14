@@ -7,6 +7,7 @@
 - `frontend/src/pages/NewDailyReportV3.jsx`
 - `frontend/src/app/routing/AppRoutes.jsx`
 - `frontend/src/pages/DailyReportsDashboard.jsx`
+- `frontend/src/pages/ViewDailyReport.jsx`
 - `frontend/src/pages/FieldLeadershipPortalDashboard.jsx`
 - `frontend/src/lib/resiliency/dailyReportScope.js`
 - `frontend/src/lib/resiliency/draftStore.js`
@@ -24,10 +25,14 @@
 - `backend/routes/dr_v2.py`
 - `backend/routes/dr_v2_canonicalize.py`
 - `backend/routes/dr_v2_photos.py`
+- `backend/routes/dispatch_portal_auth.py`
 - `backend/routes/daily_summary.py`
+- `backend/services/photo_intelligence/pipeline.py`
 - `backend/services/ods_spine/model.py`
 - `backend/services/ods_spine/ingest.py`
+- `backend/tests/test_dr03_gate5_containment_repair.py`
 - `backend/tests/test_daily_report_draft_health_contract.py`
+- `backend/tests/test_track_24_9_public_projections_and_synthetic_hygiene.py`
 - `backend/tests/test_dr03_route_convergence.py`
 - `backend/tests/test_dr03_summary_canonical_fields.py`
 - `backend/tests/test_dr_cutover_001_v1_to_ods.py`
@@ -43,6 +48,17 @@
 ## Documentation changed
 - `/app/memory/track_dr_03/*`
 - `/app/memory/PRD.md`
+
+## Gate 5 containment repair files
+- `frontend/src/pages/DailyReportsDashboard.jsx`
+- `frontend/src/pages/ViewDailyReport.jsx`
+- `frontend/src/app/routing/AppRoutes.jsx`
+- `backend/routes/dispatch_portal_auth.py`
+- `backend/services/photo_intelligence/pipeline.py`
+- `backend/tests/test_dr03_gate5_containment_repair.py`
+- `backend/tests/test_track_24_9_public_projections_and_synthetic_hygiene.py`
+- `backend/tests/test_track_28_02b_global_search_synthetic.py`
+- `/app/memory/track_dr_03/DR_03_GATE5_CONTAINMENT_REPAIR.md`
 
 ## Not changed
 - Database schema
