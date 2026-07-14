@@ -641,18 +641,70 @@ async def list_report_intelligence(db, report_id: str) -> Dict[str, Any]:
         return {"report_id": "", "photo_count": 0, "analyzed": 0,
                 "pending": 0, "observations": [], "narrative": "",
                 "photos": []}
+    doc: Optional[Dict[str, Any]] = None
+    ids = {str(report_id)}
     try:
-        rows = await db[COLL_PHOTO_INTEL].find(
-            {"report_id": report_id}, {"_id": 0},
-        ).to_list(length=200)
+        doc = await db["daily_reports"].find_one(
+            {"$or": [{"id": report_id}, {"doc_id": report_id}, {"report_number": report_id}]},
+            {
+                "_id": 0,
+                "id": 1,
+                "doc_id": 1,
+                "report_number": 1,
+                "photos": 1,
+                "subcontractors": 1,
+                "materials": 1,
+                "certification_record": 1,
+                "synthetic_record": 1,
+                "hidden_from_operations": 1,
+            },
+        )
     except Exception:  # noqa: BLE001
-        rows = []
-    try:
-        jobs = await db[COLL_INTEL_JOBS].find(
-            {"report_id": report_id}, {"_id": 0, "status": 1, "photo_id": 1},
-        ).to_list(length=200)
-    except Exception:  # noqa: BLE001
-        jobs = []
+        doc = None
+
+    if doc:
+        for key in ("id", "doc_id", "report_number"):
+            value = str(doc.get(key) or "").strip()
+            if value:
+                ids.add(value)
+
+    rows: List[Dict[str, Any]] = []
+    jobs: List[Dict[str, Any]] = []
+    for rid in ids:
+        try:
+            rows.extend(await db[COLL_PHOTO_INTEL].find(
+                {"report_id": rid}, {"_id": 0},
+            ).to_list(length=200))
+        except Exception:  # noqa: BLE001
+            pass
+        try:
+            jobs.extend(await db[COLL_INTEL_JOBS].find(
+                {"report_id": rid}, {"_id": 0, "status": 1, "photo_id": 1, "report_id": 1},
+            ).to_list(length=200))
+        except Exception:  # noqa: BLE001
+            pass
+
+    deduped_rows: List[Dict[str, Any]] = []
+    seen_row_keys = set()
+    for row in rows:
+        key = (row.get("report_id"), row.get("photo_id"), row.get("evidence_hash"))
+        if key in seen_row_keys:
+            continue
+        seen_row_keys.add(key)
+        deduped_rows.append(row)
+    rows = deduped_rows
+
+    deduped_jobs: List[Dict[str, Any]] = []
+    seen_job_keys = set()
+    for job in jobs:
+        key = (job.get("report_id"), job.get("photo_id"))
+        if key in seen_job_keys:
+            continue
+        seen_job_keys.add(key)
+        deduped_jobs.append(job)
+    jobs = deduped_jobs
+
+    photo_refs = _extract_photo_refs(doc or {}) if doc else []
 
     analyzed = sum(1 for r in rows if r.get("analysis_status") == "complete")
     pending = sum(
@@ -677,11 +729,37 @@ async def list_report_intelligence(db, report_id: str) -> Dict[str, Any]:
             })
         if r.get("narrative"):
             narrative_bits.append(str(r["narrative"])[:280])
+
+    if not photo_refs and not rows and not jobs:
+        status = "no_photos"
+    elif bool((doc or {}).get("certification_record") or (doc or {}).get("synthetic_record") or (doc or {}).get("hidden_from_operations")):
+        status = "suppressed"
+    elif pending > 0:
+        status = "pending"
+    elif any(j.get("status") == "failed" for j in jobs):
+        status = "failed"
+    elif analyzed > 0:
+        status = "complete_with_observations" if observations else "complete_zero_observations"
+    elif photo_refs and not rows and not jobs:
+        status = "not_requested"
+    elif rows and analyzed == 0:
+        status = "complete_zero_observations"
+    else:
+        status = "unknown"
+
     return {
-        "report_id": report_id,
-        "photo_count": len(jobs),
+        "report_id": (doc or {}).get("doc_id") or report_id,
+        "photo_count": len(jobs) or len(photo_refs),
         "analyzed": analyzed,
         "pending": pending,
+        "status": status,
+        "classification": (
+            "EXPECTED — CERTIFICATION/SYNTHETIC ANALYSIS SUPPRESSED"
+            if status == "suppressed"
+            else "EXPECTED — ANALYSIS WAS NEVER REQUESTED"
+            if status == "not_requested"
+            else None
+        ),
         "observations": observations[:60],
         "narrative": " ".join(narrative_bits)[:1200],
         "photos": rows,

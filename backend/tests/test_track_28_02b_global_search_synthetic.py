@@ -17,9 +17,11 @@ Blast radius pre-fix:
   • Every synthetic DR whose fields matched a user query.
 
 Regression contract (this test):
-  1. Create a TEST_28_02_ Daily Report.
+  1. Seed a synthetic/certification Daily Report fixture directly into
+     Mongo (submit route is now constitutionally gated by approved
+     summary requirements).
   2. Hit /api/global-search?q=TEST_28_02_ with an admin token.
-  3. Assert the newly created DR id is NOT in the `daily_reports`
+  3. Assert the seeded DR id is NOT in the `daily_reports`
      result kind.
   4. Cleanup via direct Mongo purge (DR delete is archive-locked 410).
 """
@@ -77,17 +79,23 @@ def admin_headers() -> dict:
 
 def test_global_search_excludes_synthetic_daily_reports(admin_headers: dict) -> None:
     pname = f"TEST_28_02_gsearch_{int(time.time() * 1000)}_{uuid.uuid4().hex[:6]}"
+    dr_id = f"dr-test-28-02b-{uuid.uuid4().hex[:10]}"
     payload = {
+        "id": dr_id,
+        "doc_id": f"DR-TEST-{uuid.uuid4().hex[:8]}",
+        "report_number": f"DR-TEST-{uuid.uuid4().hex[:8]}",
         "project_name": pname,
         "project_number": "TEST28",
         "location": "TEST · Cert",
         "report_date": date.today().isoformat(),
         "prepared_by": "TEST_28_02_GSearch_Foreman",
+        "synthetic_record": True,
+        "hidden_from_operations": True,
+        "certification_record": True,
+        "ai_accepted_summary": "Approved summary: synthetic global-search exclusion fixture.",
+        "ai_accepted_summary_meta": {"source": "manual", "accepted": True},
     }
-    hdrs_json = {**admin_headers, "Content-Type": "application/json"}
-    r = httpx.post(f"{BACKEND}/api/daily-reports", headers=hdrs_json, json=payload, timeout=30)
-    assert r.status_code == 200, r.text
-    dr_id = r.json()["id"]
+    _mongo().daily_reports.insert_one(dict(payload))
 
     try:
         # Query text should trivially match the synthetic project_name.

@@ -32,6 +32,11 @@ export default function DailyReportsDashboard() {
   const { pathname } = useLocation();
   // DR-JOB-003 admin opt-in for cert/test pollution tier
   const showCert = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("show") === "cert";
+  const dailyReportDetailBase = pathname.startsWith("/pm/")
+    ? "/pm/daily"
+    : pathname.startsWith("/admin/")
+      ? "/admin/daily"
+      : "/pm/daily";
 
   const load = async () => {
     setLoading(true);
@@ -180,7 +185,7 @@ export default function DailyReportsDashboard() {
               showCert={showCert}
               renderItem={(it) => (
                 <div
-                  onClick={() => navigate(`${pathname}/${it.id}`)}
+                  onClick={() => navigate(`${dailyReportDetailBase}/${it.id}`)}
                   className="p-4 sm:p-5 hover:bg-red-50 cursor-pointer transition-colors duration-150 flex flex-col sm:flex-row sm:items-center gap-3"
                   data-testid={`daily-row-${it.id}`}
                 >
@@ -219,7 +224,8 @@ export default function DailyReportsDashboard() {
                   </div>
                   <div className="flex gap-2">
                     <Link
-                      to={`${pathname}/${it.id}`}
+                      to={`${dailyReportDetailBase}/${it.id}`}
+                      state={{ returnTo: pathname }}
                       onClick={(e) => e.stopPropagation()}
                       className="inline-flex items-center justify-center h-10 px-4 rounded-md bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm uppercase tracking-wide"
                       data-testid={`view-${it.id}`}

@@ -26,6 +26,8 @@
 - `deep_testing_backend_v2` → PASS for public-safe backend validation checks
 
 ## Exact current counts
+- Gate 5 containment repair targeted test file added: `backend/tests/test_dr03_gate5_containment_repair.py`
+- Post-repair independent verification still required after Jaymn manually saves/deploys the approved source
 - Frontend unit/integration-style Jest tests passed in focused DR-03 run: 32
 - Backend contract/integration tests passed in focused DR-03 run: 75
 - Focused Phase H/I/J regression suite passed: 132

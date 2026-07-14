@@ -24,6 +24,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from pydantic import BaseModel, EmailStr
 
 from auth_must_change import enforce_password_change_required
+from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
 from dispatch_users import (
     add_dispatch_user,
     consume_dispatch_reset_token,
@@ -444,6 +445,7 @@ def build_dispatch_router(db, require_admin, directory_admin_minter: Optional[Ca
         Returns the most recent daily reports projected to logistics
         fields only (equipment · crew counts · subcontractors · weather)."""
         pipeline = [
+            {"$match": apply_synthetic_dr_exclusion({})},
             {"$sort": {"report_date": -1, "created_at": -1}},
             {"$limit": limit},
             {"$project": {

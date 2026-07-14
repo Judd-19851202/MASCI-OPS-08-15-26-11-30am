@@ -152,9 +152,12 @@ export default function ViewDailyReport() {
   // every mutating endpoint; UI hides the mutation controls so the
   // page looks read-only as well as behaves read-only.
   const isHrReadOnly = pathname.startsWith("/hr/");
+  const explicitReturnTo = typeof navState?.returnTo === "string" && navState.returnTo.trim()
+    ? navState.returnTo
+    : "";
   const backHref = cameFromPmPhotos
     ? (navState.returnTo || "/pm/command-center")
-    : (isHrReadOnly ? "/hr/daily-reports" : listUrl);
+    : (explicitReturnTo || (isHrReadOnly ? "/hr/daily-reports" : listUrl));
   const backLabel = cameFromPmPhotos
     ? t("Photos")
     : (isHrReadOnly ? t("Daily Reports") : t("Daily Reports"));

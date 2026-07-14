@@ -36,6 +36,7 @@
 
 ### Remaining outside this local closeout
 - Real-device field acceptance on target hardware/browser mix is still pending
+- Gate 5 containment repair still requires independent post-deploy verification for the three repaired live findings only
 
 ## 2026-07-14 · TRACK DR-03 · Daily Report Unification Implementation Checkpoint
 

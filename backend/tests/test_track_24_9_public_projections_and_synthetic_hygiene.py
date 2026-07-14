@@ -179,11 +179,11 @@ def test_synthetic_filter_flags_known_fixtures():
 
 
 def test_synthetic_filter_applies_to_empty_query():
-    from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
+    from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion, synthetic_exclusion_clauses
     q = apply_synthetic_dr_exclusion({})
     assert "$and" in q
     assert isinstance(q["$and"], list)
-    assert len(q["$and"]) == 4
+    assert q["$and"] == synthetic_exclusion_clauses()
 
 
 def test_synthetic_filter_is_idempotent():
