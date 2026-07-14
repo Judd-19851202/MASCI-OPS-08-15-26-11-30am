@@ -1,3 +1,19 @@
+## 2026-07-14 · TRACK DR-02 · Canonical Daily Report Architecture Lock
+
+### Scope
+- Read-only architecture lock only. No runtime/frontend/backend/database changes.
+
+### DR-02 output
+- Created canonical architecture lock at `/app/memory/track_dr_02/`
+- DR-02 explicitly supersedes DR-01 where conflicts exist
+
+### Core lock decisions
+- One permanent Daily Report shell, one draft/autosave/restore contract, one Smart Prefill contract, one accepted-summary/AI contract, one submission path, one lifecycle, one PDF/export/read model, and one ODS semantic contract
+- Legacy `dr_v2_*` surfaces are classified as compatibility-only and not part of the permanent field-entry architecture
+
+### Verdict
+- DR-02 architecture lock verdict: VERIFIED
+
 ## 2026-07-14 · TRACK DR-01 · Daily Report Unification & Trust Recovery Blueprint
 
 ### Scope
