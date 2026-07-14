@@ -15,9 +15,24 @@
 
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 const { execSync } = require("child_process");
 
 const OUT_FILE = path.join(__dirname, "..", "src", "buildVersion.generated.js");
+const REPO_ROOT = path.join(__dirname, "..", "..");
+const RELEASE_FINGERPRINT_RELATIVE_PATHS = [
+  "backend/server.py",
+  "backend/pdf_render.py",
+  "backend/training_pdf.py",
+  "backend/routes/daily_reports.py",
+  "backend/routes/dr_v2.py",
+  "backend/routes/dr_v2_canonicalize.py",
+  "backend/routes/dr_v2_pdf.py",
+  "backend/routes/dr_v2_photos.py",
+  "frontend/src/app/routing/AppRoutes.jsx",
+  "frontend/src/pages/NewDailyReportV3.jsx",
+  "frontend/src/pages/DailyReportsDashboard.jsx",
+];
 
 const pad = (n) => String(n).padStart(2, "0");
 const now = new Date();
@@ -28,7 +43,7 @@ const datePart = `${now.getUTCFullYear()}.${pad(now.getUTCMonth() + 1)}.${pad(
 let commit = "";
 try {
   commit = execSync("git rev-parse --short=7 HEAD", {
-    cwd: path.join(__dirname, "..", ".."),
+    cwd: REPO_ROOT,
     stdio: ["ignore", "pipe", "ignore"],
   })
     .toString()
@@ -41,6 +56,19 @@ try {
 const version = commit ? `v${datePart}-${commit}` : `v${datePart}`;
 const builtAtIso = now.toISOString();
 
+const sourceHash = (() => {
+  const h = crypto.createHash("md5");
+  for (const rel of RELEASE_FINGERPRINT_RELATIVE_PATHS) {
+    const abs = path.join(REPO_ROOT, rel);
+    try {
+      h.update(fs.readFileSync(abs));
+    } catch {
+      h.update(`MISSING:${rel}`);
+    }
+  }
+  return h.digest("hex");
+})();
+
 const content = `// AUTO-GENERATED — do not hand-edit.
 // Regenerated on every \`yarn build\` by /app/frontend/scripts/stamp-build-version.js
 //
@@ -48,6 +76,7 @@ const content = `// AUTO-GENERATED — do not hand-edit.
 // so we can pin the exact deployed code.
 export const BUILD_VERSION = ${JSON.stringify(version)};
 export const BUILT_AT_ISO = ${JSON.stringify(builtAtIso)};
+export const BUILD_SOURCE_HASH = ${JSON.stringify(sourceHash)};
 `;
 
 fs.writeFileSync(OUT_FILE, content, "utf8");

@@ -931,6 +931,43 @@ No implementation is release-ready unless:
 - dashboard and briefing lineage are proven
 - rollback triggers are explicit
 
+Release-ready for handoff is not the same as DONE. Hand-off readiness
+must still satisfy the Five-Gate Release Governance law below.
+
+### 23.4 Five-Gate Release Governance Rule
+The permanent MASCI release-governance sequence is:
+
+1. `CONTRACT_LOCKED`
+2. `LOCAL_ENGINEERING_VERIFIED`
+3. `INDEPENDENT_ADVERSARIAL_CERTIFIED`
+4. `IMMUTABLE_RELEASE_CANDIDATE_VERIFIED`
+5. `DEPLOYED_OPERATIONAL_ACCEPTANCE_VERIFIED`
+
+These five gates are mandatory, sequential, and non-substitutable.
+
+`DONE` is constitutionally reserved. `DONE` may be claimed only when all
+five gates are VERIFIED for the claimed scope.
+
+### 23.5 Gate Authority Separation Rule
+The implementing builder may establish `CONTRACT_LOCKED`, complete local
+engineering work, and produce evidence for `LOCAL_ENGINEERING_VERIFIED`.
+The implementing builder may not self-assert
+`INDEPENDENT_ADVERSARIAL_CERTIFIED`, may not self-assert
+`DEPLOYED_OPERATIONAL_ACCEPTANCE_VERIFIED` without deployed evidence, and
+may not declare `DONE` while either of those gates is unresolved.
+
+### 23.6 Immutable Release Candidate Rule
+`IMMUTABLE_RELEASE_CANDIDATE_VERIFIED` requires one frozen source/build/
+environment identity with a durable evidence chain. Mutable or drifting
+candidate identity is constitutionally insufficient for release claims.
+
+### 23.7 Deployed Operational Acceptance Rule
+`DEPLOYED_OPERATIONAL_ACCEPTANCE_VERIFIED` requires deployed environment
+verification plus the applicable operational acceptance lane(s). Where
+operator acceptance, field acceptance, or executive acceptance is in
+scope, those lanes are part of Gate 5 and may not be represented as
+already satisfied by local-only evidence.
+
 ## 24. Historical Preservation and Deletion Governance
 
 ### 24.1 Historical Preservation Rule

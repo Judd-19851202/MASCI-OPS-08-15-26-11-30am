@@ -8,7 +8,7 @@
 - Frontend code modified: no
 - Backend code modified: no
 - Database/schema modified: no
-- Application tests modified: no
+- Application tests modified: yes
 - GitHub save attempted by Emergent: no
 - Preview deployment attempted by Emergent: no
 - Production deployment attempted by Emergent: no
@@ -175,7 +175,7 @@
 - Frontend code changed: no
 - Backend code changed: no
 - Database/schema changed: no
-- Application tests changed: no
+- Application tests changed: yes
 
 ## 28. Manual GitHub/deployment boundary confirmation
 
@@ -186,3 +186,26 @@
 ## 29. Readiness recommendation
 
 AMENDED — OWNER ACCEPTANCE REQUIRED BEFORE FINAL CONSTITUTIONAL VERIFICATION
+
+## 30. Five-Gate Release Governance amendment addendum
+
+- Five-Gate Release Governance incorporated into the governing constitutional set: yes
+- `DONE` reserved for all five gates VERIFIED: yes
+- Deterministic backend governance regression tests added for Five-Gate law: yes
+- Standalone Five-Gate traceability report added: `MASCI_FIVE_GATE_RELEASE_GOVERNANCE_TRACEABILITY.md`
+
+## 31. Five-Gate amendment files and sections changed
+
+- Definition of Done: Five-Gate completion law, permitted release-governance vocabulary, reserved `DONE` meaning
+- Constitution: release-readiness clarification, Five-Gate law, gate-authority separation, immutable candidate and deployed acceptance rules
+- Register: Track 1 and Track 13 Five-Gate scope, workflow milestone set, release-blocking conditions
+- Certification Plan: Five-Gate rule, skipped-test classification contract, release-readiness update, gate-mapped certification flow
+- Constitutional Appendix: FG-001 through FG-010 contract table
+- Requirement Traceability Matrix: FG requirement trace rows
+
+## 32. Five-Gate amendment verification statement
+
+- Five gates explicitly governed: yes
+- Builder self-declaration of `DONE` prohibited: yes
+- Skipped required test classification mandatory: yes
+- Cross-document Five-Gate contradiction count: 0

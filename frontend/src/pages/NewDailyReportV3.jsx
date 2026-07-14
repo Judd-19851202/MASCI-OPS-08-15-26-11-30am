@@ -895,11 +895,11 @@ export default function NewDailyReportV3({ publicMode = false }) {
                 return "draft";
               })()}
               lastSavedAt={lastSavedAt || pendingSavedAt}
-              testId="dr-v3-draft-pill"
+              testId="daily-report-draft-status"
             />
             {(draftStatus === "idle" && !pendingSavedAt && online && !canSubmit) && (
               <span
-                data-testid="dr-v3-draft-pill"
+                data-testid="daily-report-autosave-status"
                 className="rounded-full bg-slate-800 px-3 py-1 text-xs font-medium text-slate-100 border border-slate-700"
               >
                 {t("Autosave on")}

@@ -1362,30 +1362,25 @@ async def api_health_full(response: Response):
 # this hash matches the one you get from running the same md5 locally
 # on the current commit, the backend code IS the current commit.
 # ---------------------------------------------------------------------------
-import hashlib as _hashlib  # noqa: E402 — deliberate inline import, local to this block
+from lib.release_identity import (  # noqa: E402 — release identity block is intentionally local
+    build_fingerprint_paths as _release_identity_paths,
+    build_instance_fingerprint,
+    compute_source_hash as _compute_release_source_hash,
+    read_frontend_build_identity,
+    release_identities_match,
+    resolve_runtime_commit,
+)
 
 _STARTUP_TS = datetime.now(timezone.utc)
+_REPO_ROOT = ROOT_DIR.parent
 
 
 def _build_fingerprint_paths() -> List[Path]:
-    return [
-        ROOT_DIR / "server.py",
-        ROOT_DIR / "training_pdf.py",
-        ROOT_DIR / "pdf_render.py",
-    ]
+    return _release_identity_paths(_REPO_ROOT)
 
 def _compute_source_hash() -> str:
-    """Hash the key backend source files so a running server can prove
-    which commit it's executing without needing git in the container."""
-    h = _hashlib.md5()
-    for p in _build_fingerprint_paths():
-        try:
-            with open(p, "rb") as f:
-                h.update(f.read())
-        except OSError:
-            # file missing — record that in the hash so drift is still visible
-            h.update(b"MISSING:" + str(p).encode())
-    return h.hexdigest()
+    """Hash the release-critical backend + frontend source files."""
+    return _compute_release_source_hash(_REPO_ROOT)
 
 
 def _resolve_build_timestamp_iso() -> tuple[str, str]:
@@ -1407,6 +1402,16 @@ def _resolve_build_timestamp_iso() -> tuple[str, str]:
 
 _SOURCE_HASH = _compute_source_hash()
 _BUILT_AT_ISO, _BUILD_AT_SOURCE = _resolve_build_timestamp_iso()
+_RESOLVED_COMMIT, _COMMIT_SOURCE = resolve_runtime_commit(
+    _REPO_ROOT,
+    frontend_build_commit=read_frontend_build_identity(_REPO_ROOT).get("commit"),
+    source_hash=_SOURCE_HASH,
+)
+_INSTANCE_FINGERPRINT = build_instance_fingerprint(
+    _RESOLVED_COMMIT,
+    _SOURCE_HASH,
+    _STARTUP_TS.isoformat(),
+)
 
 
 # ---------------------------------------------------------------------------
@@ -1460,6 +1465,13 @@ def api_version():
     # deployed" probe. Also expose lightweight ops config (session
     # timeout enablement + Sentry enablement) for ops visibility — these
     # never leak secrets, only "is this knob turned on".
+    frontend_build_identity = read_frontend_build_identity(_REPO_ROOT)
+    frontend_backend_release_match = release_identities_match(
+        backend_commit=_RESOLVED_COMMIT,
+        backend_source_hash=_SOURCE_HASH,
+        frontend_commit=frontend_build_identity.get("commit"),
+        frontend_source_hash=frontend_build_identity.get("source_hash"),
+    )
     try:
         from session_timeout import describe_config as _sess_cfg
         sess = _sess_cfg()
@@ -1477,11 +1489,20 @@ def api_version():
         sentry["release"] = _SOURCE_HASH[:16]
     return {
         "service": "masci-hub",
-        "commit": os.environ.get("GIT_COMMIT") or _SOURCE_HASH[:12],
+        "commit": _RESOLVED_COMMIT,
+        "commit_source": _COMMIT_SOURCE,
         "built_at": _BUILT_AT_ISO,
         "build_at_source": _BUILD_AT_SOURCE,
         "source_hash": _SOURCE_HASH,
+        "source_hash_scope_files": [str(p.relative_to(_REPO_ROOT)) for p in _build_fingerprint_paths()],
         "release": sentry["release"],
+        "frontend_build_version": frontend_build_identity.get("version"),
+        "frontend_build_commit": frontend_build_identity.get("commit"),
+        "frontend_build_built_at": frontend_build_identity.get("built_at"),
+        "frontend_build_source_hash": frontend_build_identity.get("source_hash"),
+        "frontend_build_source": frontend_build_identity.get("source"),
+        "frontend_backend_release_match": frontend_backend_release_match,
+        "instance_fingerprint": _INSTANCE_FINGERPRINT,
         "process_started_at": _STARTUP_TS.isoformat(),
         "started_at": _STARTUP_TS.isoformat(),
         "uptime_s": int((datetime.now(timezone.utc) - _STARTUP_TS).total_seconds()),

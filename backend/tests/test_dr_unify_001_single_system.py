@@ -130,6 +130,7 @@ def test_legacy_daily_report_routes_intact():
     routes = APP_ROUTES.read_text(encoding="utf-8")
     assert 'path="/daily/new" element={<Navigate to="/daily/submit" replace />}' in routes
     assert 'path="/daily/submit" element={<NewDailyReportV3 publicMode />} />' in routes
+    assert 'path="/daily-reports" element={AP(<DailyReportsDashboard />)} />' in routes
     assert 'path="/pm/daily"' in routes, "PM history route missing"
     assert 'path="/admin/daily"' in routes, "Admin history route missing"
 

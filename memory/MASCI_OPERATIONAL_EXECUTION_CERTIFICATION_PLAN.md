@@ -29,6 +29,38 @@ No unproven behavior may be marked VERIFIED.
 No prose-only claim may substitute for evidence.
 UNKNOWN may not be used as a convenience substitute for incomplete investigation.
 
+## 2A. Five-Gate Release Governance
+
+The permanent release-governance gates are:
+
+1. `CONTRACT_LOCKED`
+2. `LOCAL_ENGINEERING_VERIFIED`
+3. `INDEPENDENT_ADVERSARIAL_CERTIFIED`
+4. `IMMUTABLE_RELEASE_CANDIDATE_VERIFIED`
+5. `DEPLOYED_OPERATIONAL_ACCEPTANCE_VERIFIED`
+
+`DONE` is reserved for the state in which all five gates are VERIFIED.
+
+The implementing builder may satisfy Gate 1 and local evidence for Gate
+2, but may not self-assert Gate 3, may not self-assert Gate 5 without
+deployed evidence, and may not self-declare `DONE`.
+
+## 2B. Skipped-Test Classification Rule
+
+Any required test, probe, walkthrough, or certification lane that is
+skipped, deferred, or not exercised must carry all of the following:
+- explicit reason
+- explicit owner
+- exact skipped step or lane
+- `skip_classification`
+
+Permitted `skip_classification` values are:
+- `BLOCKING`
+- `NON_BLOCKING`
+
+No skipped required test may appear in evidence without
+`skip_classification`.
+
 ## 3. Universal Evidence Standard
 
 Every certification outcome must record:
@@ -530,10 +562,14 @@ Any unanswered question blocks certification.
 
 No track is release-ready until all applicable certification lanes are either:
 - VERIFIED
-- or NOT_YET_EXERCISED with explicit reason, explicit owner, and explicit non-blocking classification
+- or NOT_YET_EXERCISED with explicit reason, explicit owner, and explicit `skip_classification=NON_BLOCKING`
 - or NOT_APPLICABLE with explicit reason and scope statement
 
 Any BLOCKED, FAILED, STALE, or UNKNOWN item affecting a core truth surface blocks release.
+
+Release readiness for a candidate additionally requires Gates 1–4 of the
+Five-Gate framework to be VERIFIED. `DONE` additionally requires Gate 5
+to be VERIFIED.
 
 ## 33. Completion Evidence by Status
 
@@ -550,27 +586,38 @@ Requires explicit blocker evidence and exact blocked step.
 Requires prior evidence plus proof that freshness is outside the accepted window.
 
 ### NOT_YET_EXERCISED
-Requires explicit declaration that execution has not occurred.
+Requires explicit declaration that execution has not occurred, plus
+reason, owner, and `skip_classification`.
 
 ### NOT_APPLICABLE
-Requires explicit proof that the requirement does not apply to the governed object, workflow, environment, role, or track, plus the reason.
+Requires explicit proof that the requirement does not apply to the governed object, workflow, environment, role, or track, plus the reason. If represented as a skipped lane in evidence, it must still record `skip_classification=NON_BLOCKING`.
 
 ### UNKNOWN
 Requires explicit declaration that truth cannot currently be established, why BLOCKED or NOT_YET_EXERCISED do not adequately describe the condition, plus owner and resolution path.
 
 ## 34. Mandatory Certification Flow Per Implementation Track
 
-1. Constitutional dependency revalidation
-2. Engineering certification
-3. Schema/API/security/performance/concurrency/cache/sync/offline certification as applicable
-4. State-machine, dependency, lineage, KPI, AI, dashboard/notification, search, ODS, trust, and audit certification as applicable
-5. Focused test certification
-6. Preview verification
-7. Production deployment verification when in scope
-8. Production sanity verification when in scope
-9. Device/field acceptance when required
-10. Operator and executive acceptance when required
-11. Final constitutional status declaration
+1. Gate 1 — `CONTRACT_LOCKED`
+   - constitutional dependency revalidation
+   - governing-artifact consistency verification
+2. Gate 2 — `LOCAL_ENGINEERING_VERIFIED`
+   - engineering certification
+   - schema/API/security/performance/concurrency/cache/sync/offline certification as applicable
+   - state-machine, dependency, lineage, KPI, AI, dashboard/notification, search, ODS, trust, and audit certification as applicable
+   - focused test certification
+3. Gate 3 — `INDEPENDENT_ADVERSARIAL_CERTIFIED`
+   - independent adversarial validation by a certifying authority other than the implementing builder
+4. Gate 4 — `IMMUTABLE_RELEASE_CANDIDATE_VERIFIED`
+   - preview verification where applicable
+   - immutable source/build/environment identity verification
+5. Gate 5 — `DEPLOYED_OPERATIONAL_ACCEPTANCE_VERIFIED`
+   - production deployment verification when in scope
+   - production sanity verification when in scope
+   - device/field acceptance when required
+   - operator and executive acceptance when required
+
+Final constitutional status declaration may claim `DONE` only after all
+five gates are VERIFIED.
 
 ## 35. Constitutional Appendix Cross-Reference
 

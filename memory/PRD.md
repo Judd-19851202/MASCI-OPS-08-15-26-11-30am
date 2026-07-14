@@ -1,4 +1,4 @@
-## 2026-07-14 · TRACK DR-03 · LOCAL IMPLEMENTATION COMPLETE
+## 2026-07-14 · TRACK DR-03 · LOCAL_ENGINEERING_VERIFIED
 
 ### Scope completed
 - Phase H — Full Downstream Zero-Drift Runtime Parity
@@ -9761,9 +9761,8 @@ Close Executive YELLOW by building a read-only `ExecutiveOverview.jsx` that aggr
 
 
 ## Latest Closed Track (2026-02-12)
-- **14.0-RC1-DONE-DONE-CERTIFICATION-FIX-SWEEP CLOSED** — Canonical
-  `MASCI_DEFINITION_OF_DONE.md` created (5 states: NOT STARTED · BUILT ·
-  WIRED · OPERATIONAL · DONE-DONE). RC1-PORTAL-NAV-001 (PM Dispatch
+- **14.0-RC1 certification fix sweep CLOSED (legacy wording superseded by the Five-Gate Definition of Done)** — Canonical
+  `MASCI_DEFINITION_OF_DONE.md` created (legacy 5-state model later superseded by Five-Gate release governance). RC1-PORTAL-NAV-001 (PM Dispatch
   shortcut → 403) FIXED. RC1-OWNERSHIP-UX-001 (PM Project Roster card →
   404) FIXED. PM + Admin Project Team workflows verified OPERATIONAL
   end-to-end with live screenshots. 46/46 backend regression green.

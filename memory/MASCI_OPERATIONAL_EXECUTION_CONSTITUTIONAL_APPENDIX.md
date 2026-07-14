@@ -912,6 +912,21 @@ The Security / Tenant Contract is implemented per foundational object in the Zer
 ### 10.2 Workflow Milestones
 GOVERNANCE_DOCUMENTED, LOCAL_IMPLEMENTATION_COMPLETE, LOCAL_TESTS_VERIFIED, READY_FOR_JAYMN_GITHUB_SAVE, JAYMN_GITHUB_SAVE_CONFIRMED, GITHUB_SOURCE_VERIFIED, READY_FOR_JAYMN_PREVIEW_DEPLOYMENT, JAYMN_PREVIEW_DEPLOYMENT_CONFIRMED, PREVIEW_VERIFIED, READY_FOR_JAYMN_PRODUCTION_DEPLOYMENT, JAYMN_PRODUCTION_DEPLOYMENT_CONFIRMED, PRODUCTION_VERIFIED, FIELD_ACCEPTANCE_VERIFIED, EXECUTIVE_ACCEPTANCE_VERIFIED, FINAL_OPERATIONAL_CLOSEOUT
 
+### 10.3 Five-Gate Release Governance Contract
+
+| Five-Gate Requirement ID | Binding Rule |
+|---|---|
+| FG-001 | `CONTRACT_LOCKED` is the first mandatory release-governance gate. |
+| FG-002 | `LOCAL_ENGINEERING_VERIFIED` is the second mandatory release-governance gate. |
+| FG-003 | `INDEPENDENT_ADVERSARIAL_CERTIFIED` is the third mandatory release-governance gate and must be executed by a certifying authority other than the implementing builder. |
+| FG-004 | `IMMUTABLE_RELEASE_CANDIDATE_VERIFIED` is the fourth mandatory release-governance gate and requires frozen source/build/environment identity. |
+| FG-005 | `DEPLOYED_OPERATIONAL_ACCEPTANCE_VERIFIED` is the fifth mandatory release-governance gate and requires deployed-runtime verification plus the applicable operational acceptance lane(s). |
+| FG-006 | `DONE` is reserved for the condition in which FG-001 through FG-005 are all VERIFIED. |
+| FG-007 | The five gates are sequential and non-substitutable; later gates may not be claimed while earlier gates remain unresolved. |
+| FG-008 | The implementing builder may not self-assert FG-003, may not self-assert FG-005 without deployed evidence, and may not self-declare `DONE`. |
+| FG-009 | Any skipped, deferred, or not-yet-exercised required test or certification lane must record `skip_classification`, exact reason, and owner. |
+| FG-010 | Permitted `skip_classification` values are `BLOCKING` and `NON_BLOCKING`. |
+
 ## 11. Requirement Traceability Recognition
 
 The Requirement Traceability Matrix is a normative companion appendix and is authoritative for requirement-by-requirement mapping completeness:

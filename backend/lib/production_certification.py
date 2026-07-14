@@ -274,6 +274,14 @@ def _release_source_hash() -> Optional[str]:
         return None
 
 
+def _release_git_commit() -> Optional[str]:
+    try:
+        from server import _RESOLVED_COMMIT  # noqa: PLC0415
+        return _RESOLVED_COMMIT
+    except Exception:  # noqa: BLE001
+        return None
+
+
 async def build_certification(db) -> Dict[str, Any]:
     """Build the full per-workflow certification payload.
 
@@ -406,7 +414,7 @@ async def build_certification(db) -> Dict[str, Any]:
         "release_reason": release_scope["release_reason"],
         "release_required_workflows": release_scope["release_required_workflows"],
         "release_source_hash": _release_source_hash(),
-        "release_git_commit": _release_source_hash(),
+        "release_git_commit": _release_git_commit(),
         "release_evidence_generated_at": datetime.now(timezone.utc).isoformat(),
         "release_scope_source": "trust_spine_events",
         "release_scope_complete": True,

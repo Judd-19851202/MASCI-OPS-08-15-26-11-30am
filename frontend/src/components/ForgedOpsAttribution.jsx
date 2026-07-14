@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import forgedOpsLogo from "@/assets/forgedops-logo.png";
-import { BUILD_VERSION, BUILT_AT_ISO } from "@/buildVersion.generated";
+import { BUILD_SOURCE_HASH, BUILD_VERSION, BUILT_AT_ISO } from "@/buildVersion.generated";
 import { useT } from "@/lib/i18n";
 import { useBranding } from "@/lib/BrandingProvider";
 
@@ -107,7 +107,7 @@ export function ForgedOpsAttribution({ variant = "global", className = "" }) {
         </Link>{" "}
         ·{" "}
         <span
-          title={`Built ${BUILT_AT_ISO}`}
+          title={`Built ${BUILT_AT_ISO}\nSource ${BUILD_SOURCE_HASH}`}
           data-testid="build-version-stamp"
           className="cursor-help select-all"
         >

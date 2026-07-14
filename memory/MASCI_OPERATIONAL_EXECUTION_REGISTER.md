@@ -65,8 +65,8 @@ Before each track begins, all upstream assumptions must be revalidated under the
 - **dependencies:** none
 - **prerequisites:** repository-grounded understanding of MASCI’s current canonical systems, legacy boundaries, projection layers, role gates, and existing shared shell patterns
 - **constitutional_sections:** Constitution §§1–27, Appendix §§1–11, Role Matrix, Zero-Drift Matrix, Certification Plan, manual GitHub/deployment boundary
-- **stable_requirement_ids:** REG-001 through REG-007, ID-001 through ID-046, EVT-001 through EVT-026, LIF-001 through LIF-094, KPI-001 through KPI-029, DASH-001 through DASH-022, NOTIF-001 through NOTIF-028, BRIEF-001 through BRIEF-017, SEC-001 through SEC-026, UX-001 through UX-030, DEPLOY-001 through DEPLOY-004
-- **in_scope:** doctrine, ownership, identifiers, schema governance, API governance, performance governance, security governance, workflow dependency governance, state-machine governance, event governance, data-lineage governance, KPI governance, dashboard governance, notification governance, Daily Brief governance, AI governance, offline governance, synchronization governance, concurrency governance, caching governance, product identity governance, bilingual governance, accessibility governance, release governance, certification governance, manual GitHub/deployment boundary governance, appendix authority required to eliminate ambiguity
+- **stable_requirement_ids:** REG-001 through REG-007, FG-001 through FG-010, ID-001 through ID-046, EVT-001 through EVT-026, LIF-001 through LIF-094, KPI-001 through KPI-029, DASH-001 through DASH-022, NOTIF-001 through NOTIF-028, BRIEF-001 through BRIEF-017, SEC-001 through SEC-026, UX-001 through UX-030, DEPLOY-001 through DEPLOY-004
+- **in_scope:** doctrine, ownership, identifiers, schema governance, API governance, performance governance, security governance, workflow dependency governance, state-machine governance, event governance, data-lineage governance, KPI governance, dashboard governance, notification governance, Daily Brief governance, AI governance, offline governance, synchronization governance, concurrency governance, caching governance, product identity governance, bilingual governance, accessibility governance, release governance, Five-Gate Release Governance, certification governance, manual GitHub/deployment boundary governance, appendix authority required to eliminate ambiguity
 - **out_of_scope:** implementation code, runtime schema changes, endpoint implementation, UI implementation, background job implementation, deployment execution
 - **existing_architecture_to_preserve:** current canonical project identity in `jobs_master`, staffing authority in `project_team_assignments`, Daily Report actual authority in `daily_reports`, existing notification ecosystem, existing shared portal shell/navigation, existing ODS read patterns, existing Trust/audit append-only patterns, existing domain authorities in Dispatch, Transportation, Shop, Equipment/Fleet, Safety, QA/QC, HR, Training, Search, Backup/Recovery
 - **deliverables:** six normative constitutional artifacts plus `MASCI_OPERATIONAL_EXECUTION_ARTIFACT_VERIFICATION.md`
@@ -74,7 +74,7 @@ Before each track begins, all upstream assumptions must be revalidated under the
 - **entry_criteria:** governance remediation track approved; constitutional defects CAG-001 through CAG-012 confirmed
 - **exit_criteria:** no unresolved constitutional gap remains across the seven governing documents; no orphan requirement remains; no cross-document contradiction remains; owner acceptance pending
 - **release_blocking_conditions:** any unresolved owner, lifecycle, identifier, publication rule, dashboard authority, executive reporting authority, notification authority, briefing authority, scheduling authority, reconciliation authority, Trust Spine rule, ODS rule, AI rule, search rule, audit rule, security rule, API rule, schema rule, migration rule, release rule, performance rule, scalability rule, concurrency rule, caching rule, offline rule, synchronization rule, manual GitHub/deployment boundary rule, failure-mode rule, or constitutional conflict
-- **required_evidence:** cross-document traceability map, stable identifier catalog, lifecycle catalog, event envelope, KPI/dashboard contracts, notification contract, Daily Brief contract, security contract, product identity contract, manual deployment boundary contract, verification document
+- **required_evidence:** cross-document traceability map, stable identifier catalog, lifecycle catalog, event envelope, KPI/dashboard contracts, notification contract, Daily Brief contract, security contract, product identity contract, manual deployment boundary contract, Five-Gate governance traceability report, skipped-test classification contract, verification document
 - **owner_decisions:** none required for constitutional completeness if all defects are repaired; only post-amendment owner acceptance is required
 - **completion_state:** AMENDED — OWNER ACCEPTANCE REQUIRED BEFORE FINAL CONSTITUTIONAL VERIFICATION
 
@@ -301,20 +301,20 @@ Before each track begins, all upstream assumptions must be revalidated under the
 ## 16. Track 13 · Production Certification and Field Acceptance
 
 - **track_id:** T13
-- **purpose:** establish production-grade certification, manual GitHub/deployment handoff, field acceptance, executive acceptance, and operational closeout
+- **purpose:** establish the mandatory Five-Gate release-governance path through immutable candidate, deployed verification, operational acceptance, and truthful closeout
 - **dependencies:** T1 through T12
 - **prerequisites:** accepted constitutional package; all prior implementation tracks completed locally and certified for their scope
 - **constitutional_sections:** Constitution §§5, 21, 22, 23, 24, 25, 27; Certification Plan entire; manual GitHub/deployment boundary contract
-- **stable_requirement_ids:** DEPLOY-011 through DEPLOY-020, CERT-001 through CERT-040
-- **in_scope:** GitHub handoff status separation, preview verification, production verification, field acceptance, executive acceptance, final operational closeout, rollback triggers, source/build/environment verification
+- **stable_requirement_ids:** FG-001 through FG-010, DEPLOY-011 through DEPLOY-020, CERT-001 through CERT-040
+- **in_scope:** contract lock evidence, local engineering verification, independent adversarial certification, immutable release candidate verification, deployed operational acceptance, GitHub handoff status separation, preview verification, production verification, field acceptance, executive acceptance, final operational closeout, rollback triggers, source/build/environment verification
 - **out_of_scope:** automated GitHub publish by Emergent, automated deployment by Emergent
 - **existing_architecture_to_preserve:** existing deployment health checks, existing backup/recovery readiness patterns, existing preview/production distinction
 - **deliverables:** complete manual handoff and certification governance for Jaymn-controlled save and deployment actions
 - **prohibited_architecture:** prompts instructing Emergent to push/deploy, local work misrepresented as GitHub or deployment work, preview misrepresented as production, production misrepresented as field acceptance
-- **entry_criteria:** T12 accepted and implementation complete for governed scope
-- **exit_criteria:** Jaymn-controlled milestones and certification statuses are unambiguous, separately evidenced, and non-overlapping
-- **release_blocking_conditions:** missing GitHub/deployment boundary, missing status separation, unresolved rollback ownership, unresolved field or executive acceptance lane
-- **required_evidence:** milestone evidence chain, GitHub confirmation evidence, preview evidence, production evidence, field acceptance evidence, executive acceptance evidence
+- **entry_criteria:** T12 accepted; `CONTRACT_LOCKED` achieved; implementation complete for governed scope
+- **exit_criteria:** all five release-governance gates are unambiguous, separately evidenced, correctly ordered, and non-overlapping
+- **release_blocking_conditions:** any missing Five-Gate milestone, missing GitHub/deployment boundary, missing status separation, unresolved rollback ownership, unresolved independent adversarial lane, unresolved immutable candidate identity, unresolved deployed operational acceptance lane, or unresolved field/executive acceptance lane when in scope
+- **required_evidence:** milestone evidence chain, contract-lock evidence, local verification evidence, independent adversarial evidence, immutable release-candidate evidence, GitHub confirmation evidence when applicable, preview evidence, production evidence, field acceptance evidence, executive acceptance evidence
 - **owner_decisions:** Jaymn alone performs physical GitHub save/publish and physical preview/production deployment
 - **completion_state:** blocked until Jaymn executes manual actions and applicable acceptance lanes are VERIFIED
 
@@ -377,7 +377,17 @@ Emergent may inspect, implement locally, run tests, create evidence, prepare a c
 
 ## 20. Workflow Milestone Set
 
-The following milestones are mandatory workflow markers and do not replace certification statuses:
+The following Five-Gate milestones are mandatory workflow markers and do
+not replace certification statuses:
+- CONTRACT_LOCKED
+- LOCAL_ENGINEERING_VERIFIED
+- INDEPENDENT_ADVERSARIAL_CERTIFIED
+- IMMUTABLE_RELEASE_CANDIDATE_VERIFIED
+- DEPLOYED_OPERATIONAL_ACCEPTANCE_VERIFIED
+- DONE
+
+Supporting workflow markers may coexist, but they do not overrule the
+Five-Gate sequence:
 - GOVERNANCE_DOCUMENTED
 - LOCAL_IMPLEMENTATION_COMPLETE
 - LOCAL_TESTS_VERIFIED
@@ -394,4 +404,6 @@ The following milestones are mandatory workflow markers and do not replace certi
 - EXECUTIVE_ACCEPTANCE_VERIFIED
 - FINAL_OPERATIONAL_CLOSEOUT
 
-Each milestone must also carry one permitted certification status from the Certification Plan.
+Each milestone must also carry one permitted certification status from
+the Certification Plan. `DONE` may appear only when the five
+release-governance milestones above are all VERIFIED in order.

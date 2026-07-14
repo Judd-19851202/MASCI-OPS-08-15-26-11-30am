@@ -11,6 +11,7 @@ LEGACY_FLAG = Path("/app/frontend/src/lib/dailyReportV3Flag.js")
 def test_daily_submit_is_only_creation_mount():
     src = APP_ROUTES.read_text(encoding="utf-8")
     assert 'path="/daily/submit" element={<NewDailyReportV3 publicMode />} />' in src
+    assert 'path="/daily-reports" element={AP(<DailyReportsDashboard />)} />' in src
     assert 'path="/daily/new" element={<Navigate to="/daily/submit" replace />}' in src
     for retired in [
         '/daily-report/v2', '/daily/v1', '/daily/v2', '/daily/v3', '/daily-report/v1', '/daily-report/v3'

@@ -627,7 +627,7 @@ export function AppRoutes() {
                 page mid-workflow. Fixed at the source (button target →
                 /daily/new) AND redirected here so any legacy nav, poster,
                 or bookmarked URL still lands on the canonical V3 form. */}
-            <Route path="/daily-reports" element={<Navigate to="/daily/submit" replace />} />
+            <Route path="/daily-reports" element={AP(<DailyReportsDashboard />)} />
             <Route path="/safety/jha" element={<Navigate to="/jha" replace />} />
             <Route path="/safety/trench-boxes" element={<Navigate to="/trench-boxes" replace />} />
             {/* Phase 3 · Trench Safety inside the Safety portal */}

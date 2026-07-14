@@ -55,49 +55,64 @@ workaround. They can:
 5. Navigate back to it via the same path they used to arrive.
 6. The relevant audit chain captures the action.
 
-**OPERATIONAL is the minimum for any feature claimed as DONE in a
-release-candidate context.** It is not sufficient on its own — that
-threshold is DONE-DONE below.
+**OPERATIONAL is the minimum engineering state for Five-Gate Release
+Governance Gate 2 (`LOCAL_ENGINEERING_VERIFIED`).** It is necessary, but
+it is not sufficient for **DONE**.
 
-### 4 · DONE-DONE
-OPERATIONAL **plus** all of the following:
+### 4 · DONE
+`DONE` is a reserved constitutional status. It may be claimed only when
+OPERATIONAL **plus all five release-governance gates** are satisfied and
+evidenced:
 
-- **Tested.** Backend pytest + frontend lint + end-to-end smoke against
-  the live preview backend. Test rows cleaned up.
-- **Audited.** Every state change writes an audit row. Soft-delete
-  semantics preserved. No historical mutation.
-- **Notifications & email proven.** Where the feature emits or consumes
-  bell notifications or emails, the producer is wired to the active
-  roster (Phase 2B-2B), recipients resolve through the documented
-  ROLE_CHAIN, deep links open routes the recipient's token can satisfy,
-  and the leakage matrix is re-verified clean.
-- **Deep links valid.** Every `link_url` shipped from a producer points
-  at an existing route, with leading slash, no `null` / `undefined` /
-  empty string.
-- **Access correct.** No visible navigation surface lands a user on a
-  403. No PM-visible link points at an admin-only or dispatch-only
-  route unless the link itself is hidden behind a role check.
-- **Permissions verified.** PM cannot edit a project they do not own.
-  Co-PM scope works. Admin escalation works. Cross-portal scope
-  filters work. PM cannot add roles they are not entitled to assign.
-- **No test data left behind.** Every scratch user, scratch project
-  assignment, scratch operational record, scratch notification, and
-  scratch task is deleted in teardown. Cleanup is asserted with
-  `count_documents == 0` against the scratch tag.
-- **iPad + desktop proven** for any operator-facing surface (PM, FL,
-  Safety, Shop, Dispatch field user).
+1. **CONTRACT_LOCKED** — governing artifacts, scope, dependency chain,
+   and status vocabulary are accepted and non-contradictory.
+2. **LOCAL_ENGINEERING_VERIFIED** — local implementation is operational,
+   deterministic regression coverage passes, and touched-scope cleanup is
+   complete.
+3. **INDEPENDENT_ADVERSARIAL_CERTIFIED** — a certifying authority other
+   than the implementing builder has executed adversarial validation and
+   recorded the result.
+4. **IMMUTABLE_RELEASE_CANDIDATE_VERIFIED** — source, build, environment,
+   and evidence identity are frozen and verified as one immutable release
+   candidate.
+5. **DEPLOYED_OPERATIONAL_ACCEPTANCE_VERIFIED** — the deployed runtime is
+   verified in the target environment and the required operational
+   acceptance lane(s) have passed for the claimed scope.
 
-A track may only claim **CLOSED** at the DONE-DONE level. Any lesser
-state requires an explicit qualifier in the closure ledger:
+**DONE means all five gates are VERIFIED.**
 
-> _"Phase X CLOSED — BUILT ONLY (no UI wired yet)."_
-> _"Phase X CLOSED — WIRED ONLY (workflow not proven against real data)."_
+The implementing builder may produce evidence for Gates 1–2 and prepare
+inputs for later gates, but may not self-assert Gate 3, Gate 5, or
+`DONE` without the required independent and deployed evidence.
+
+### 5 · Permitted release-governance vocabulary
+The governing completion vocabulary is:
+
+- `BUILT ONLY`
+- `WIRED ONLY`
+- `OPERATIONAL`
+- `CONTRACT_LOCKED`
+- `LOCAL_ENGINEERING_VERIFIED`
+- `INDEPENDENT_ADVERSARIAL_CERTIFIED`
+- `IMMUTABLE_RELEASE_CANDIDATE_VERIFIED`
+- `DEPLOYED_OPERATIONAL_ACCEPTANCE_VERIFIED`
+- `DONE`
+
+Casual closure phrases, ungoverned approval shorthand, or bare
+completion claims are not governing completion statuses and may not be
+used as release authority.
+
+Any lesser state requires an explicit qualifier in the closure ledger:
+
+> _"Phase X — BUILT ONLY (no UI wired yet)."_
+> _"Phase X — WIRED ONLY (workflow not proven against real data)."_
+> _"Phase X — LOCAL_ENGINEERING_VERIFIED; independent adversarial certification still pending."_
 
 ---
 
-## The Five-Pillar relationship to DONE-DONE
+## The Five-Pillar relationship to DONE
 
-| Pillar | Minimum for OPERATIONAL | Minimum for DONE-DONE |
+| Pillar | Minimum for OPERATIONAL | Minimum for DONE |
 |--------|:-----------------------:|:----------------------:|
 | Powerful | 9.0 | 9.5 |
 | Simple | 9.0 | 9.5 |
@@ -105,14 +120,15 @@ state requires an explicit qualifier in the closure ledger:
 | Trusted | 9.5 | **9.9** |
 | Proven | 9.5 | **9.9** |
 
-Trusted and Proven scores are the gating signals. A feature with high
-Powerful/Simple but Trusted < 9.9 or Proven < 9.9 is not DONE-DONE.
+Trusted and Proven scores are necessary gates. A feature with high
+Powerful/Simple but Trusted < 9.9 or Proven < 9.9 is not DONE.
 
 ---
 
-## What DONE-DONE is NOT
+## What DONE is NOT
 
-DONE-DONE does **not** require:
+DONE does **not** waive the Five-Gate law, but it also does **not**
+require:
 - Spanish translation (unless explicitly in the track's scope).
 - Mobile app shell (unless explicitly in the track's scope).
 - PDF export polish (unless explicitly in the track's scope).
@@ -141,7 +157,9 @@ A feature is done when the operator can:
 8. Come back tomorrow and it still works (refresh + return).
 9. Get a real notification when something happens to it (bell + email + valid deep link).
 
-If any of 1–9 fails, the feature is not DONE-DONE.
+If any of 1–9 fails, the feature is not OPERATIONAL.
+If any of the five gates is missing, failed, blocked, stale, or
+unevidenced, the track is not DONE.
 
 ---
 
@@ -149,14 +167,15 @@ If any of 1–9 fails, the feature is not DONE-DONE.
 
 - This document is the **first reference** for every new closure ledger.
 - Every closure ledger must include a `## Definition-of-Done compliance`
-  section that maps each shipped feature to BUILT / WIRED / OPERATIONAL
-  / DONE-DONE with a one-line justification.
-- The RC-1 release gate is "every operator-facing feature on the RC-1
-  checklist must be DONE-DONE." No exceptions, no asterisks.
+  section that maps each shipped feature or track to `BUILT ONLY`,
+  `WIRED ONLY`, `OPERATIONAL`, the applicable Five-Gate milestone(s), or
+  `DONE`, with a one-line justification.
+- Every release ledger must show the status of all five gates and may use
+  `DONE` only when each gate is VERIFIED.
 
 ---
 
 ## Revision history
 
-- **2026-02-12** — Created during Track 14.0-RC1-DONE-DONE-CERTIFICATION-FIX-SWEEP.
+- **2026-02-12** — Created during the Track 14.0 RC1 certification fix sweep.
   Initial canonical version.

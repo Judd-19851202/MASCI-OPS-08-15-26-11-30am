@@ -289,6 +289,14 @@ def test_v3_no_longer_depends_on_runtime_flag_endpoint():
     assert "useDailyReportV3Flag" not in src
 
 
+def test_v3_draft_and_autosave_status_testids_are_unique_and_semantic():
+    src = _src(V3_SHELL)
+    assert 'testId="daily-report-draft-status"' in src
+    assert 'data-testid="daily-report-autosave-status"' in src
+    assert 'testId="dr-v3-draft-pill"' not in src
+    assert 'data-testid="dr-v3-draft-pill"' not in src
+
+
 def test_v3_shows_offline_chip():
     src = _src(V3_SHELL)
     assert "dr-v3-offline-chip" in src, "V3 must show an offline chip when navigator is offline"

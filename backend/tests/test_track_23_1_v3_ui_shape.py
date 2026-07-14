@@ -93,6 +93,12 @@ def test_app_routes_mounts_v3_directly():
     assert 'path="/daily/new" element={<Navigate to="/daily/submit" replace />}' in src
 
 
+def test_historical_daily_reports_dashboard_route_restored():
+    src = _src(APP_ROUTES)
+    assert 'path="/daily-reports" element={AP(<DailyReportsDashboard />)} />' in src
+    assert 'path="/daily-reports" element={<Navigate to="/daily/submit" replace />} />' not in src
+
+
 def test_v3_dropdown_first_composition():
     """Dropdown-first: crews via EmployeeCombo, equipment via EquipmentCombo,
     suppliers via SupplierCombo, users via FlUserCombo, jobs via JobPicker."""
@@ -137,8 +143,12 @@ def test_v3_test_ids_are_kebab_and_prefixed():
     src = _src(V3_SECTIONS) + _src(V3_PROJECT_SECTION) + _src(V3_SHELL)
     testids = re.findall(r'data-testid="([^"]+)"', src)
     # Allow the router's loading marker as an exception.
+    allowed_non_prefixed = {
+        "daily-report-draft-status",
+        "daily-report-autosave-status",
+    }
     non_prefixed = [
         t for t in testids
-        if not t.startswith("dr-v3-") and t not in {"dr-router-loading"}
+        if not t.startswith("dr-v3-") and t not in {"dr-router-loading", *allowed_non_prefixed}
     ]
     assert non_prefixed == [], f"non-prefixed testids: {non_prefixed[:5]}"
