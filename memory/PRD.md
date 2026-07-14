@@ -1,3 +1,18 @@
+## 2026-07-14 · FIVE-GATE RELEASE GOVERNANCE AMENDMENT
+
+### Scope
+- Constitutional/governance artifacts only. No feature work. No runtime Daily Report changes.
+
+### What changed
+- Amended existing canonical `MASCI_*.md` governing artifacts to encode the permanent Five-Gate Release Governance law.
+- Created the only new allowed artifact: `/app/memory/MASCI_FIVE_GATE_RELEASE_GOVERNANCE_TRACEABILITY.md`.
+- Added deterministic backend regression enforcement at `/app/backend/tests/test_five_gate_governance.py`.
+- Updated conflicting completion wording in `PRD.md` and governing artifacts so `DONE` now means all five gates are VERIFIED.
+
+### Validation
+- Local pytest passed: `11 passed` in `/app/backend/tests/test_five_gate_governance.py`.
+- Backend testing agent PASS: `/app/test_reports/iteration_566.json`.
+
 ## 2026-07-14 · TRACK DR-03 · LOCAL_ENGINEERING_VERIFIED
 
 ### Scope completed
