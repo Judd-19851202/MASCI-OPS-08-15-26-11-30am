@@ -96,12 +96,9 @@ def test_shell_uses_masci_platform_header():
     assert "MasciLogo" in banner, "Banner must render MasciLogo"
 
 
-def test_v1_banner_class_string_still_present():
-    """V1 NewDailyReport.jsx MUST retain the navy banner header line —
-    byte-untouched proof by string presence."""
-    v1 = Path("/app/frontend/src/pages/NewDailyReport.jsx").read_text(encoding="utf-8")
-    assert '<header className="bg-slate-900 border-b-4 border-red-700 sticky top-0 z-10">' in v1, \
-        "V1 banner header line missing / mutated"
+def test_legacy_v1_shell_removed_after_containment():
+    v1 = Path("/app/frontend/src/pages/NewDailyReport.jsx")
+    assert not v1.exists(), "legacy V1 shell should be removed after DR-03 containment"
 
 
 def test_pm_intelligence_panel_removed():
@@ -184,19 +181,16 @@ def test_ui_primitives_still_export_platform_grammar():
         assert name in text, f"_ui.jsx must export {name}"
 
 
-def test_v1_daily_report_byte_untouched_anchors():
-    v1 = Path("/app/frontend/src/pages/NewDailyReport.jsx")
-    assert v1.exists(), "V1 NewDailyReport.jsx must exist"
-    v1_text = v1.read_text(encoding="utf-8")
+def test_canonical_v3_shell_preserves_platform_component_anchors():
+    v3 = Path("/app/frontend/src/pages/NewDailyReportV3.jsx")
+    v3_text = v3.read_text(encoding="utf-8")
     for anchor in (
-        'import { Button } from "@/components/ui/button"',
-        'import { JobPicker } from "@/components/JobPicker"',
-        'import { PhotoUpload } from "@/components/PhotoUpload"',
-        'import { SignaturePad } from "@/components/SignaturePad"',
-        'import { EmployeeCombo } from "@/components/EmployeeCombo"',
-        'import { EquipmentCombo } from "@/components/EquipmentCombo"',
+        'import { DailyReportTopBanner } from "@/components/DailyReportTopBanner"',
+        'import { SectionProjectConditions } from "@/components/daily-report-v3/SectionProjectConditions"',
+        "useFormDraft",
+        'import { fetchDailyWeather } from "@/lib/weather"',
     ):
-        assert anchor in v1_text, f"V1 anchor missing: {anchor}"
+        assert anchor in v3_text, f"V3 anchor missing: {anchor}"
 
 
 def test_dr_v2_flag_still_gates_the_shell():

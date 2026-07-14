@@ -18,9 +18,10 @@ V3_SECTIONS = Path("/app/frontend/src/components/daily-report-v3/sections.jsx")
 V3_PROJECT_SECTION = Path(
     "/app/frontend/src/components/daily-report-v3/SectionProjectConditions.jsx"
 )
-ROUTER = Path("/app/frontend/src/pages/DailyReportRouter.jsx")
 APP_ROUTES = Path("/app/frontend/src/app/routing/AppRoutes.jsx")
-FLAG_HOOK = Path("/app/frontend/src/lib/dailyReportV3Flag.js")
+LEGACY_ROUTER = Path("/app/frontend/src/pages/DailyReportRouter.jsx")
+LEGACY_FLAG = Path("/app/frontend/src/lib/dailyReportV3Flag.js")
+LEGACY_V1 = Path("/app/frontend/src/pages/NewDailyReport.jsx")
 
 
 def _src(p: Path) -> str:
@@ -55,7 +56,7 @@ def test_v3_submits_to_canonical_endpoint_only():
 
 def test_v3_shell_never_names_v2():
     """No V2 resurrection anywhere in the V3 codepath."""
-    for p in [V3_SHELL, V3_SECTIONS, V3_PROJECT_SECTION, ROUTER, FLAG_HOOK]:
+    for p in [V3_SHELL, V3_SECTIONS, V3_PROJECT_SECTION, APP_ROUTES]:
         src = _src(p)
         assert "NewDailyReportV2" not in src, f"V2 shell name in {p}"
         assert "NewDailyReport_New" not in src, f"experimental name in {p}"
@@ -79,20 +80,17 @@ def test_v3_cost_code_picker_hides_when_empty():
     assert "return null" in src
 
 
-def test_v3_router_reads_flag_and_defers_to_v1_by_default():
-    src = _src(ROUTER)
-    assert "useDailyReportV3Flag" in src
-    assert "NewDailyReport" in src, "must import V1 shell as fallback"
-    assert "NewDailyReportV3" in src, "must import V3 shell for enabled path"
-    # Fail-closed: while loading, render nothing (not V1) so we don't flash.
-    assert "dr-router-loading" in src
-
-
-def test_app_routes_uses_router_wrapper():
+def test_v3_mounts_single_canonical_shell_only():
     src = _src(APP_ROUTES)
-    assert "DailyReportRouter" in src, \
-        "AppRoutes must render DailyReportRouter at /daily/new"
-    assert 'path="/daily/new" element={<DailyReportRouter' in src
+    assert 'import NewDailyReportV3 from "@/pages/NewDailyReportV3";' in src
+    assert "DailyReportRouter" not in src
+    assert 'path="/daily/submit" element={<NewDailyReportV3 publicMode />} />' in src
+
+
+def test_app_routes_mounts_v3_directly():
+    src = _src(APP_ROUTES)
+    assert 'path="/daily/submit" element={<NewDailyReportV3 publicMode />} />' in src
+    assert 'path="/daily/new" element={<Navigate to="/daily/submit" replace />}' in src
 
 
 def test_v3_dropdown_first_composition():
@@ -126,11 +124,10 @@ def test_v3_signature_still_required_via_signaturepad():
     assert "dr-v3-signature" in src
 
 
-def test_v3_uses_flag_hook_not_hardcoded():
-    router = _src(ROUTER)
-    hook = _src(FLAG_HOOK)
-    assert "useDailyReportV3Flag" in router
-    assert "/feature-flags/dr-v3" in hook
+def test_legacy_router_and_flag_files_removed():
+    assert not LEGACY_ROUTER.exists()
+    assert not LEGACY_FLAG.exists()
+    assert not LEGACY_V1.exists()
 
 
 def test_v3_test_ids_are_kebab_and_prefixed():

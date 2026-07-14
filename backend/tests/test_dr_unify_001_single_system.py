@@ -128,8 +128,8 @@ def test_no_user_facing_v1_v2_text():
 def test_legacy_daily_report_routes_intact():
     """The V1 field/history/detail routes remain wired."""
     routes = APP_ROUTES.read_text(encoding="utf-8")
-    assert 'path="/daily/new"' in routes, "V1 field entry route missing"
-    assert 'path="/daily/submit"' in routes, "V1 public submit route missing"
+    assert 'path="/daily/new" element={<Navigate to="/daily/submit" replace />}' in routes
+    assert 'path="/daily/submit" element={<NewDailyReportV3 publicMode />} />' in routes
     assert 'path="/pm/daily"' in routes, "PM history route missing"
     assert 'path="/admin/daily"' in routes, "Admin history route missing"
 
@@ -283,12 +283,7 @@ def test_no_ai_branding_on_approved_panel():
 # =========================================================================
 def test_v1_daily_report_native_components_intact():
     v1 = FRONTEND_SRC / "pages" / "NewDailyReport.jsx"
-    if not v1.exists():
-        return
-    text = v1.read_text(encoding="utf-8")
-    # Sanity: V1 still imports the platform dropdowns.
-    for import_name in ("JobPicker", "EmployeeCombo"):
-        assert import_name in text, f"V1 field form lost import: {import_name}"
+    assert not v1.exists(), "legacy V1 authoring shell should be removed after DR-03 containment"
 
 
 # =========================================================================

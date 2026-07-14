@@ -30,7 +30,8 @@ import pytest
 # ─────────────────────── file-level introspection ────────────────────
 
 _APP_ROUTES = Path("/app/frontend/src/app/routing/AppRoutes.jsx")
-_NEW_DAILY  = Path("/app/frontend/src/pages/NewDailyReport.jsx")
+_CANONICAL_DAILY = Path("/app/frontend/src/pages/NewDailyReportV3.jsx")
+_LEGACY_DAILY = Path("/app/frontend/src/pages/NewDailyReport.jsx")
 _DR_V2_PDF  = Path("/app/backend/routes/dr_v2_pdf.py")
 _DAILY_SUM  = Path("/app/backend/routes/daily_summary.py")
 _COMPAT_LIB = Path("/app/backend/lib/daily_report_collections.py")
@@ -77,17 +78,21 @@ def test_dr_v2_pdf_router_serves_both_canonical_and_alias():
     assert '/dr-v2/reports/{report_id}/pdf' in src
 
 
-def test_new_daily_report_form_has_no_v1_or_v2_user_facing_language():
+def test_canonical_daily_report_form_has_no_v1_or_v2_user_facing_language():
     """The single field form must never surface V1/V2 vocabulary or
     AI/model/provider/token/cost language to users."""
-    src = _NEW_DAILY.read_text(encoding="utf-8").lower()
+    src = _CANONICAL_DAILY.read_text(encoding="utf-8").lower()
     for banned in [
         "try v2", '"v1"', '"v2"', "next generation",
         "ai agent", "ai-agent",
         "\"model\":", "\"provider\":", "\"token_cost\":",
         "cost meter", "token cost",
     ]:
-        assert banned not in src, f"banned user-facing string in NewDailyReport: `{banned}`"
+        assert banned not in src, f"banned user-facing string in NewDailyReportV3: `{banned}`"
+
+
+def test_legacy_v1_authoring_file_removed_after_cutover():
+    assert not _LEGACY_DAILY.exists()
 
 
 def test_compat_helper_exposes_expected_aliases():

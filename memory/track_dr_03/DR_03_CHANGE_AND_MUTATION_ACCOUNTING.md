@@ -1,7 +1,9 @@
 # DR-03 Change and Mutation Accounting
 
 ## Frontend changed
-- `frontend/src/pages/DailyReportRouter.jsx`
+- `frontend/src/pages/DailyReportRouter.jsx` (removed)
+- `frontend/src/pages/NewDailyReport.jsx` (removed)
+- `frontend/src/lib/dailyReportV3Flag.js` (removed)
 - `frontend/src/pages/NewDailyReportV3.jsx`
 - `frontend/src/app/routing/AppRoutes.jsx`
 - `frontend/src/pages/DailyReportsDashboard.jsx`
@@ -19,6 +21,9 @@
 - `frontend/src/lib/resiliency/resiliencyQueue.test.js`
 
 ## Backend changed
+- `backend/routes/dr_v2.py`
+- `backend/routes/dr_v2_canonicalize.py`
+- `backend/routes/dr_v2_photos.py`
 - `backend/routes/daily_summary.py`
 - `backend/services/ods_spine/model.py`
 - `backend/services/ods_spine/ingest.py`
@@ -31,6 +36,9 @@
 - `backend/tests/test_rc2_route_inventory.py`
 - `backend/tests/test_track_22_9c_fix_shell_and_route.py`
 - `backend/tests/test_dr_unify_003_consolidation.py`
+- `backend/tests/test_dr_unify_001_single_system.py`
+- `backend/tests/test_dr_roi_001a_b_shell.py`
+- `backend/tests/test_dr_roi_001f_platform_consistency.py`
 
 ## Documentation changed
 - `/app/memory/track_dr_03/*`

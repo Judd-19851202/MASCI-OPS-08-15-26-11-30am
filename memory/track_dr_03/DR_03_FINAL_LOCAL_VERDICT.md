@@ -10,15 +10,16 @@ Status: INCOMPLETE — CONTINUE FROM CHECKPOINT
 - Phase E (Smart Prefill shell integration + retry control) — implemented
 - Phase F (core queue / idempotency canonicalization) — substantially advanced with deterministic proof
 - Phase G (canonical summary write family normalization) — partially advanced
+- Phase H (downstream zero-drift parity) — code/test evidence matrix updated; final runtime regression pending
+- Phase I (legacy containment) — frontend dead shells removed and legacy V2 writes blocked behind read-only compatibility adapters
 
 ## Last completed requirement
-- Canonical `/daily/submit` creation path, legacy draft promotion helper, Smart Prefill retry UX, queue ownership/cleanup proof, and canonical summary-field write path verified locally
+- Canonical `/daily/submit` direct mount, dead frontend shell removal, and dr_v2 legacy write containment implemented locally
 
 ## Next exact requirement
-- Complete full downstream zero-drift parity certification (viewer/PDF/email/export/search/audit/Trust/PM/Admin/ODS runtime proof), then finish legacy backend/runtime containment and frontend authoring cleanup after proof
+- Run focused local regression for Phase H/I/J, fix any failures, then replace this file with the strict completion verdict block
 
 ## Open defects / open work
-- downstream parity (viewer/PDF/email/export/search/audit/Trust/PM/Admin runtime proof) still open
-- legacy backend containment still open
-- frontend legacy authoring cleanup still open
+- regression execution pending
+- any failures discovered by focused Phase J regression remain to be fixed
 - real-device acceptance not yet exercised

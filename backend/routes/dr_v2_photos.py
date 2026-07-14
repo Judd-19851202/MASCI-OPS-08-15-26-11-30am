@@ -27,6 +27,13 @@ from services.photo_intelligence import (
 
 
 TENANT_DEFAULT = "masci"
+LEGACY_COMPAT_ERROR = {
+    "error": "legacy_daily_report_runtime_retired",
+    "message": "Legacy Daily Report V2 authoring is retired. Use the canonical /daily/submit flow.",
+    "canonical_route": "/daily/submit",
+    "canonical_api": "/api/daily-reports",
+    "compat_mode": "read_only",
+}
 
 
 class AnalyzeRequest(BaseModel):
@@ -45,6 +52,10 @@ class LinkActionRequest(BaseModel):
 class QuestionResolveRequest(BaseModel):
     supervisor_id: Optional[str] = None
     resolution: str
+
+
+def _raise_legacy_write_retired() -> None:
+    raise HTTPException(status_code=410, detail=LEGACY_COMPAT_ERROR)
 
 
 def register_dr_v2_photo_routes(api_router: APIRouter, db) -> None:
@@ -87,6 +98,7 @@ def register_dr_v2_photo_routes(api_router: APIRouter, db) -> None:
         photo_id: str = Path(...),
         payload: AnalyzeRequest = Body(...),
     ) -> Dict[str, Any]:
+        _raise_legacy_write_retired()
         if not photo_vision_enabled():
             return {"ok": False, "photo_vision_enabled": False,
                     "reason": "DR_V2_PHOTO_VISION_ENABLED off"}
@@ -162,6 +174,7 @@ def register_dr_v2_photo_routes(api_router: APIRouter, db) -> None:
         link_id: str = Path(...),
         payload: LinkActionRequest = Body(default=LinkActionRequest()),
     ) -> Dict[str, Any]:
+        _raise_legacy_write_retired()
         doc = await db[COLL_PHOTO_INTEL].find_one({"photo_id": photo_id}, {"_id": 0})
         if not doc:
             raise HTTPException(status_code=404, detail="photo intel not found")
@@ -196,6 +209,7 @@ def register_dr_v2_photo_routes(api_router: APIRouter, db) -> None:
         link_id: str = Path(...),
         payload: LinkActionRequest = Body(default=LinkActionRequest()),
     ) -> Dict[str, Any]:
+        _raise_legacy_write_retired()
         doc = await db[COLL_PHOTO_INTEL].find_one({"photo_id": photo_id}, {"_id": 0})
         if not doc:
             raise HTTPException(status_code=404, detail="photo intel not found")
@@ -214,6 +228,7 @@ def register_dr_v2_photo_routes(api_router: APIRouter, db) -> None:
         question_id: str = Path(...),
         payload: QuestionResolveRequest = Body(...),
     ) -> Dict[str, Any]:
+        _raise_legacy_write_retired()
         doc = await db[COLL_PHOTO_INTEL].find_one({"photo_id": photo_id}, {"_id": 0})
         if not doc:
             raise HTTPException(status_code=404, detail="photo intel not found")

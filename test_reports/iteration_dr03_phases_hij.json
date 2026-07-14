@@ -1,0 +1,100 @@
+{
+  "summary": "DR-03 LEGACY CONTAINMENT AND DOWNSTREAM PARITY VERIFICATION · VERDICT: PASS. Canonical Daily Report V3 shell is correctly mounted at /daily/submit. Legacy V2 write endpoints return 410 (retired). Compatibility reads remain available. Frontend legacy files removed.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "POST /api/dr-v2/drafts",
+        "issue": "Network timeout during first test run (intermittent), but endpoint correctly returns 410 when tested via curl",
+        "priority": "LOW"
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "legacy_write_containment": {
+      "POST /api/dr-v2/drafts": "PASS (returns 410 legacy_daily_report_runtime_retired)",
+      "POST /api/dr-v2/ai/synthesize": "PASS (returns 410)",
+      "POST /api/dr-v2/ai/approve": "PASS (returns 410)",
+      "POST /api/dr-v2/reports/{id}/canonicalize": "PASS (returns 410)",
+      "POST /api/dr-v2/photos/{id}/analyze": "PASS (returns 410)",
+      "POST /api/dr-v2/photos/{id}/links/{id}/accept": "PASS (returns 410)",
+      "POST /api/dr-v2/photos/{id}/links/{id}/dismiss": "PASS (returns 410)",
+      "POST /api/dr-v2/photos/{id}/questions/{id}/resolve": "PASS (returns 410)"
+    },
+    "compatibility_reads": {
+      "GET /api/dr-v2/meta": "PASS (returns read_only_compatibility: true, legacy_writes_blocked: true)",
+      "GET /api/dr-v2/drafts/{id}": "PASS (returns 404 for missing - read still works)",
+      "GET /api/dr-v2/ai/audit/{id}": "PASS (returns empty log for missing)",
+      "GET /api/dr-v2/photos/{id}/intelligence": "PASS (returns null intel for missing)"
+    },
+    "canonical_api": {
+      "GET /api/daily-reports": "PASS (requires auth as expected - 401)",
+      "GET /api/daily-reports/next-number": "PASS (returns doc_id_preview)",
+      "GET /api/daily-reports/duplicate-check": "PASS (returns exists field)"
+    },
+    "downstream_parity": {
+      "GET /api/jobs/{pn}/recent-context": "PASS (smart prefill endpoint available)",
+      "GET /api/cost-codes/for-project": "PASS (cost codes endpoint available)"
+    },
+    "frontend_verification": {
+      "/daily/submit_loads_v3_shell": "PASS",
+      "/daily/new_redirects_to_submit": "PASS",
+      "v3_shell_header_present": "PASS (Today's report)",
+      "language_toggle_present": "PASS (EN/ES)",
+      "draft_status_indicator_present": "PASS (DRAFT, Autosave on)",
+      "form_sections_present": "PASS (Step 1, Step 2, etc.)",
+      "no_error_messages": "PASS"
+    },
+    "legacy_file_removal": {
+      "NewDailyReport.jsx": "REMOVED (confirmed)",
+      "DailyReportRouter.jsx": "REMOVED (confirmed)",
+      "dailyReportV3Flag.js": "REMOVED (confirmed)",
+      "no_active_imports": "PASS (only comment references remain)"
+    }
+  },
+  "verified_containment": {
+    "canonical_route": "/daily/submit mounts NewDailyReportV3.jsx directly",
+    "legacy_aliases_redirect": "/daily/new redirects to /daily/submit",
+    "v2_writes_blocked": "All POST endpoints under /api/dr-v2/* return 410",
+    "v2_reads_preserved": "GET endpoints still work for historical data",
+    "frontend_dead_code_removed": "NewDailyReport.jsx, DailyReportRouter.jsx, dailyReportV3Flag.js removed"
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_dr_03_legacy_containment.py",
+    "/app/test_reports/pytest/dr_03_legacy_containment.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "AppRoutes.jsx correctly imports NewDailyReportV3 directly at line 125",
+    "Route at line 600 mounts NewDailyReportV3 at /daily/submit with publicMode",
+    "Route at line 599 redirects /daily/new to /daily/submit",
+    "dr_v2.py correctly calls _raise_legacy_write_retired() at start of POST handlers",
+    "dr_v2_canonicalize.py correctly calls _raise_legacy_write_retired() at start of POST handler",
+    "dr_v2_photos.py correctly calls _raise_legacy_write_retired() at start of mutation handlers",
+    "LEGACY_COMPAT_ERROR constant provides clear retirement message with canonical route info"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_dr_03_legacy_containment.py"
+  ],
+  "success_rate": {
+    "backend": "94% (16/17 tests passed, 1 network timeout)",
+    "frontend": "100% (all UI elements verified)"
+  },
+  "test_credentials": "N/A - public endpoints tested",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "DR-03 Phase H/I/J verification complete. Canonical V3 shell at /daily/submit is working. Legacy V2 write endpoints blocked with 410. Compatibility reads preserved. Legacy frontend files removed. The one test failure was a network timeout, not a code issue - verified via curl that the endpoint returns 410 correctly.",
+  "mocked_api": {
+    "has_mocked_apis": true,
+    "mocked_apis_list": [
+      "Emails mocked for tests",
+      "AI mocked for tests"
+    ]
+  }
+}

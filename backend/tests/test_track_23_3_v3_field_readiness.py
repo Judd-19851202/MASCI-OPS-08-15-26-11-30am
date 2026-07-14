@@ -214,7 +214,9 @@ async def test_empty_email_or_project_returns_ok_false():
 # ── Frontend wiring locks (static file inspection) ──────────────
 
 V3_SHELL = Path("/app/frontend/src/pages/NewDailyReportV3.jsx")
-V3_FLAG = Path("/app/frontend/src/lib/dailyReportV3Flag.js")
+LEGACY_ROUTER = Path("/app/frontend/src/pages/DailyReportRouter.jsx")
+LEGACY_V1 = Path("/app/frontend/src/pages/NewDailyReport.jsx")
+LEGACY_FLAG = Path("/app/frontend/src/lib/dailyReportV3Flag.js")
 
 
 def _src(p): return p.read_text(encoding="utf-8")
@@ -239,8 +241,10 @@ def test_v3_wires_offline_queue_and_idempotency():
 
 def test_v3_shares_form_key_with_v1():
     src = _src(V3_SHELL)
-    assert 'FORM_KEY = "daily-report"' in src, \
-        "V3 must reuse the V1 form key so drafts survive pilot flag flips"
+    assert "DAILY_REPORT_FORM_BASE" in src, \
+        "V3 must keep the shared Daily Report draft base key"
+    assert "useFormDraft(DAILY_REPORT_FORM_BASE" in src, \
+        "V3 must use the shared Daily Report draft base key in the draft hook"
 
 
 def test_v3_wires_crew_setup_memory_and_restore_yesterday():
@@ -273,18 +277,16 @@ def test_v3_never_restores_dangerous_fields_from_yesterday():
             f"crewMemory.js must never surface {banned} in setup snapshots"
 
 
-def test_v3_flag_hook_persists_admin_override_in_sessionstorage():
-    src = _src(V3_FLAG)
-    assert "sessionStorage" in src, "flag hook must persist admin URL override"
-    assert "dr_v3_admin_override" in src
-    assert '"1"' in src or "'1'" in src
+def test_legacy_flag_and_shell_switching_removed():
+    assert not LEGACY_FLAG.exists()
+    assert not LEGACY_ROUTER.exists()
+    assert not LEGACY_V1.exists()
 
 
-def test_v3_flag_hook_still_uses_relative_path():
-    """The axios `api` client already prefixes `/api`; the hook must not double-prefix."""
-    src = _src(V3_FLAG)
-    assert "/feature-flags/dr-v3" in src
-    assert "/api/feature-flags/dr-v3" not in src
+def test_v3_no_longer_depends_on_runtime_flag_endpoint():
+    src = _src(V3_SHELL)
+    assert "/feature-flags/dr-v3" not in src
+    assert "useDailyReportV3Flag" not in src
 
 
 def test_v3_shows_offline_chip():

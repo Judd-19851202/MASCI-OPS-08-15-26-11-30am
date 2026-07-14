@@ -122,8 +122,7 @@ import ExecutiveCaseReport from "@/pages/ExecutiveCaseReport";
 import IncidentReportViewer from "@/pages/IncidentReportViewer";
 import ViewIncident from "@/pages/ViewIncident";
 import DailyReportsDashboard from "@/pages/DailyReportsDashboard";
-import NewDailyReport from "@/pages/NewDailyReport";
-import DailyReportRouter from "@/pages/DailyReportRouter";
+import NewDailyReportV3 from "@/pages/NewDailyReportV3";
 import ViewDailyReport from "@/pages/ViewDailyReport";
 import EquipmentDashboard from "@/pages/EquipmentDashboard";
 import NewEquipmentInspection from "@/pages/NewEquipmentInspection";
@@ -598,7 +597,7 @@ export function AppRoutes() {
                 creation aliases redirect here and never mount a
                 competing shell. */}
             <Route path="/daily/new" element={<Navigate to="/daily/submit" replace />} />
-            <Route path="/daily/submit" element={<DailyReportRouter publicMode />} />
+            <Route path="/daily/submit" element={<NewDailyReportV3 publicMode />} />
 
             <Route path="/equipment/new" element={<NewEquipmentInspection />} />
             <Route path="/equipment/submit" element={<NewEquipmentInspection publicMode />} />

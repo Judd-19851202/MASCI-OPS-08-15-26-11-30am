@@ -27,6 +27,13 @@ from services.ai_gateway.registry import Gateway, get_gateway
 from services.ai_gateway.env import gateway_enabled
 
 BILINGUAL_AUDIT_COLL = "dr_v2_bilingual_audit"
+LEGACY_COMPAT_ERROR = {
+    "error": "legacy_daily_report_runtime_retired",
+    "message": "Legacy Daily Report V2 authoring is retired. Use the canonical /daily/submit flow.",
+    "canonical_route": "/daily/submit",
+    "canonical_api": "/api/daily-reports",
+    "compat_mode": "read_only",
+}
 
 # Fields on the draft (and their subpaths) whose freeform text is
 # subject to translation to English on submit.  Every path uses a
@@ -82,6 +89,12 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()  # TRACK-27.03-EXEMPT: machine envelope timestamp; frontend renders via formatPlatformTime
 
 
+def _raise_legacy_write_retired() -> None:
+    from fastapi import HTTPException
+
+    raise HTTPException(status_code=410, detail=LEGACY_COMPAT_ERROR)
+
+
 def register_dr_v2_canonicalize_routes(
     api_router: APIRouter, db, *, registry: Optional[Gateway] = None,
 ) -> None:
@@ -92,6 +105,7 @@ def register_dr_v2_canonicalize_routes(
         report_id: str,
         payload: Dict[str, Any] = Body(default_factory=dict),
     ) -> Dict[str, Any]:
+        _raise_legacy_write_retired()
         """Translate freeform Spanish text on the draft to canonical English.
 
         Request payload:

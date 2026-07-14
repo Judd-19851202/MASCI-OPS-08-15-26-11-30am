@@ -60,6 +60,14 @@ DRAFTS_COLL = "dr_v2_drafts"
 APPROVALS_COLL = "dr_v2_ai_approvals"          # summary doc (last_action, first/latest ts)
 APPROVAL_ENTRIES_COLL = "dr_v2_ai_audit_entries"  # append-only, one doc per entry (16MB-safe)
 
+LEGACY_COMPAT_ERROR = {
+    "error": "legacy_daily_report_runtime_retired",
+    "message": "Legacy Daily Report V2 authoring is retired. Use the canonical /daily/submit flow.",
+    "canonical_route": "/daily/submit",
+    "canonical_api": "/api/daily-reports",
+    "compat_mode": "read_only",
+}
+
 
 # -----------------------------------------------------------------------------
 # Request / response models
@@ -136,6 +144,10 @@ def _v2_ai_enabled() -> bool:
 
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()  # TRACK-27.03-EXEMPT: machine envelope timestamp; frontend renders via formatPlatformTime
+
+
+def _raise_legacy_write_retired() -> None:
+    raise HTTPException(status_code=410, detail=LEGACY_COMPAT_ERROR)
 
 
 def _draft_to_evidence(draft: Dict[str, Any]) -> Dict[str, Any]:
@@ -250,11 +262,16 @@ def register_dr_v2_routes(api_router: APIRouter, db) -> None:
             "model": pmeta["model"],
             "ai_available": pmeta["ai_available"] and _v2_ai_enabled(),
             "envelope_schema": AGENT_RESPONSE_SCHEMA,
+            "read_only_compatibility": True,
+            "legacy_writes_blocked": True,
+            "canonical_route": "/daily/submit",
+            "canonical_api": "/api/daily-reports",
         }
 
     # -------------------------------------------------------------------
     @api_router.post("/dr-v2/drafts")
     async def dr_v2_draft_save(payload: DraftPayload = Body(...)) -> Dict[str, Any]:
+        _raise_legacy_write_retired()
         report_id = payload.report_id or f"drv2-{uuid.uuid4().hex[:12]}"
         doc = payload.model_dump()
         doc["report_id"] = report_id
@@ -308,6 +325,7 @@ def register_dr_v2_routes(api_router: APIRouter, db) -> None:
     # -------------------------------------------------------------------
     @api_router.post("/dr-v2/ai/synthesize")
     async def dr_v2_ai_synthesize(payload: SynthesizeRequest = Body(...)) -> Dict[str, Any]:
+        _raise_legacy_write_retired()
         draft = await db[DRAFTS_COLL].find_one({"report_id": payload.report_id}, {"_id": 0})
         if not draft:
             raise HTTPException(status_code=404, detail="draft not found for report_id")
@@ -454,6 +472,7 @@ def register_dr_v2_routes(api_router: APIRouter, db) -> None:
     # -------------------------------------------------------------------
     @api_router.post("/dr-v2/ai/approve")
     async def dr_v2_ai_approve(payload: ApprovalRequest = Body(...)) -> Dict[str, Any]:
+        _raise_legacy_write_retired()
         action = (payload.action or "").lower()
         if action not in {"accept", "edit", "reject", "regenerate"}:
             raise HTTPException(status_code=400, detail="invalid action")
