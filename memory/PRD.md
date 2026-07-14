@@ -1,3 +1,20 @@
+## 2026-07-14 · TRACK DR-03 · Daily Report Unification Implementation Checkpoint
+
+### Current implementation status
+- DR-03 implementation is **IN PROGRESS**; this checkpoint converged the active shell to one canonical V3 authoring experience via `DailyReportRouter`, unified the draft base key to `daily-report`, added canonical actor/project/date/instance scope, stabilized crew-memory/remembered-project actor scoping, and added Smart Prefill + archive/legacy recovery surfaces to the canonical shell.
+
+### Local verification completed
+- Frontend smoke verified on `/daily/submit`
+- Frontend targeted tests passed: Daily Report scope + continuity tests
+- Backend targeted test passed: draft health contract
+- Frontend QA subagent and backend QA subagent reported no regressions in the implemented checkpoint
+
+### Open items before DR-03 can be closed
+- final single-route convergence
+- full legacy migration proof and safe retirement flow
+- full downstream zero-drift parity certification (viewer/PDF/email/export/search/audit/Trust/ODS)
+- real-device field acceptance
+
 ## 2026-07-14 · TRACK DR-02 · Canonical Daily Report Architecture Lock
 
 ### Scope
