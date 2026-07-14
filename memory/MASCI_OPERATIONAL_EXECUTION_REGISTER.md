@@ -1,179 +1,373 @@
 # MASCI Operational Execution Register
 
-## Purpose
+## 1. Register Authority
 
-This register permanently governs implementation sequencing for the Operational Work Foundation and all dependent execution systems.
+This register is the canonical sequencing and dependency authority for the MASCI Operational Execution build.
 
-Every implementation track is numbered.
-Every track defines dependencies, evidence, and completion.
-No downstream implementation may begin if its required upstream track is incomplete or uncertified.
+No downstream implementation may begin if its upstream constitutional, ownership, schema, API, lifecycle, certification, performance, security, or release prerequisites are unresolved.
 
----
+This register must be read together with:
+- `MASCI_OPERATIONAL_EXECUTION_CONSTITUTION.md`
+- `MASCI_OPERATIONAL_EXECUTION_ZERO_DRIFT_MATRIX.md`
+- `MASCI_OPERATIONAL_EXECUTION_ROLE_AND_OWNERSHIP_MATRIX.md`
+- `MASCI_OPERATIONAL_EXECUTION_CERTIFICATION_PLAN.md`
 
-## Track 1 · Operational Execution Constitution Lock
+## 2. Closed-Set Register Rules
 
-- **Purpose:** ratify the permanent constitutional governance for operational execution
+Every track must define:
+- purpose
+- dependencies
+- prerequisite constitutional decisions
+- canonical owner scope
+- schema impact
+- API impact
+- workflow dependency impact
+- state-machine impact
+- dashboard and briefing impact
+- Trust Spine impact
+- search and ODS impact
+- security impact
+- performance and scale impact
+- failure-mode coverage
+- certification gates
+- release-blocking conditions
+
+No track may rely on implied upstream behavior.
+No track may defer constitutional questions to later coding.
+
+## 3. Constitutional Sequence
+
+Track order is binding.
+No implementation may skip dependency validation.
+Before each track begins, all upstream assumptions must be revalidated under the release sequencing rule in the Constitution.
+
+## 4. Track 1 · Constitutional Lock and Governance Completion
+
+- **Purpose:** establish the complete constitutional foundation for the Operational Execution build
 - **Dependencies:** none
-- **Prerequisites:** repository forensic understanding of current MASCI architecture
-- **In Scope:** constitutional documents, zero-drift rules, ownership rules, certification rules
-- **Out of Scope:** code, schemas, APIs, UI
-- **Deliverables:** the five governing artifacts
-- **Required testing:** document consistency review, ownership conflict review
-- **Certification gate:** architecture governance review
+- **Prerequisites:** repository-level architectural understanding of MASCI’s existing canonical systems
+- **In Scope:** doctrine, ownership, identifiers, schema governance, API governance, performance governance, security governance, workflow dependency governance, state-machine governance, data-lineage governance, failure-mode governance, KPI governance, event governance, AI governance, UX governance, release governance, certification governance
+- **Out of Scope:** implementation code, UI buildout, runtime schema changes, endpoint changes
+- **Deliverables:** the five governing artifacts as a constitutionally complete set
+- **Required verification:** constitutional consistency review, cross-reference integrity review, zero-drift review, ownership completeness review
+- **Certification gate:** governance acceptance
 - **Production evidence required:** none
-- **Completion definition:** all five artifacts exist, are internally consistent, and define no duplicate systems
-- **Future dependency chain:** prerequisite for every track below
+- **Completion definition:** no unresolved constitutional gap remains across the five governing artifacts
+- **Release-blocking conditions:** any unresolved owner, lifecycle, identifier, publication rule, dashboard authority, briefing authority, scheduling authority, reconciliation authority, Trust Spine rule, ODS rule, AI rule, search rule, audit rule, security rule, API rule, schema rule, migration rule, release rule, performance rule, scalability rule, failure-mode rule, or constitutional conflict
 
-## Track 2 · Company Cost Code Catalog Foundation
+## 5. Track 2 · Canonical Company Cost Code Catalog Foundation
 
-- **Purpose:** establish canonical enterprise cost-code catalog ownership and lifecycle
+- **Purpose:** define the canonical enterprise cost-code catalog and remove all future ambiguity about cost-code authority
 - **Dependencies:** Track 1
-- **Prerequisites:** constitutional approval of cost-code philosophy
-- **In Scope:** master catalog ownership, identifiers, versioning, project assignment model
-- **Out of Scope:** financial ERP, accounting journal logic, estimating implementation
-- **Deliverables:** canonical model, zero-drift mapping, certification criteria
-- **Required testing:** ownership contract tests, search/export parity tests, version-history tests
-- **Certification gate:** architecture + source-of-truth proof
-- **Production evidence required:** catalog visibility, version lineage, search parity
-- **Completion definition:** company catalog exists as the only master source for operational code references
-- **Future dependency chain:** prerequisite for Tracks 3, 5, 6, 8, 10
+- **Prerequisites:** constitutional approval of company catalog philosophy and ownership model
+- **In Scope:** catalog ownership, identifier rules, schema contract, API contract, assignment readiness, history/versioning, search rules, ODS rules, audit rules, KPI participation, migration rules
+- **Out of Scope:** accounting ledger postings, ERP redesign, estimating platform redesign
+- **Canonical owner scope:** enterprise cost-code catalog authority only
+- **Schema impact:** master catalog collection/table, fields, indexes, version lineage, status and retention rules
+- **API impact:** read/admin mutation APIs, assignment-read contract support, search-safe projection rules
+- **Workflow dependency impact:** consumed by project cost-code assignment, Operational Work, Daily Reports, schedule grouping, reconciliation grouping, brief summaries
+- **State-machine impact:** catalog entry lifecycle, activation/deprecation/archive behavior
+- **Dashboard and briefing impact:** cost-code rollups, variance grouping, executive summaries where used
+- **Trust Spine impact:** catalog publication/change events if operator-visible downstream impact exists
+- **Search and ODS impact:** searchable code labels, ODS cost-code dimensions, permission-safe projections
+- **Security impact:** admin mutation authority only, read-scope safety, no unrestricted catalog mutation
+- **Performance and scale impact:** code lookup latency, assignment fan-out, filtered list performance, index coverage
+- **Failure-mode coverage:** stale catalog reads, assignment mismatch, deprecated code selection, duplicate code creation attempts
+- **Required testing:** ownership contract tests, schema tests, API contract tests, search parity, historical version tests, negative-path tests
+- **Certification gate:** source-of-truth proof + schema/API/performance/security review
+- **Production evidence required:** catalog visibility and lineage on affected consuming surfaces
+- **Completion definition:** the company catalog is the single authoritative cost-code source for all downstream operational usage
+- **Release-blocking conditions:** duplicate catalog logic, missing migration rules, undefined assignment API, unresolved lifecycle, unresolved search/ODS behavior
 
-## Track 3 · Project Cost Codes
+## 6. Track 3 · Project Cost Code Assignment Governance
 
-- **Purpose:** define project-specific cost-code assignment without duplicating the company catalog
+- **Purpose:** define project-scoped cost-code assignment without duplicating the company catalog
 - **Dependencies:** Tracks 1, 2
-- **Prerequisites:** canonical project spine and master catalog contract
-- **In Scope:** project assignment, override restrictions, version traceability, read projections
-- **Out of Scope:** financial actual costing engine
-- **Deliverables:** project mapping authority, search/export/reporting behavior
-- **Required testing:** project assignment integrity, historical reassignment safety, read-scope tests
-- **Certification gate:** source-owner proof + no duplicate catalog logic
-- **Production evidence required:** project read behavior across Daily Report/schedule/reconciliation surfaces
-- **Completion definition:** project-specific cost-code use is traceable to the company catalog
-- **Future dependency chain:** prerequisite for Tracks 5, 6, 8, 10
+- **Prerequisites:** approved master catalog authority, project identity lock
+- **In Scope:** assignment model, project-specific availability, override boundaries, historical traceability, dependency rules, API contracts, mutation rules
+- **Out of Scope:** financial actual-costing engine, invoice logic, accounting journal logic
+- **Canonical owner scope:** project-to-catalog assignment authority only
+- **Schema impact:** assignment collection/table, project/code references, indexes, version and retirement rules
+- **API impact:** assignment CRUD/read APIs, filter/sort behavior, validation and conflict handling
+- **Workflow dependency impact:** Operational Work coding, Daily Report coding, reconciliation grouping, schedule filters, brief grouping
+- **State-machine impact:** assignment draft/active/inactive/retired behavior if staged lifecycle exists
+- **Dashboard and briefing impact:** project cost-code filters and rollups must remain tied to catalog lineage
+- **Trust Spine impact:** assignment publication/change events when downstream planning behavior is affected
+- **Search and ODS impact:** project-scoped discoverability, ODS cost dimension mapping, stale-assignment detection
+- **Security impact:** project-scoped mutation authority, prevention of cross-project leakage
+- **Performance and scale impact:** assignment lookup speed, project-scoped filters, high-volume read efficiency
+- **Failure-mode coverage:** missing assignment, deprecated code usage, stale references, duplicate mapping attempts
+- **Required testing:** assignment integrity, backward-compatibility, historical reassignment safety, validation/error tests, search/export parity
+- **Certification gate:** no duplicate catalog authority + project-scope truthfulness
+- **Production evidence required:** project cost-code use across Daily Report, schedule, and reconciliation paths
+- **Completion definition:** project code usage is traceable to the master catalog with no duplicate truth source
+- **Release-blocking conditions:** alternate project catalog, unresolved lifecycle, unresolved conflict rules, unresolved migration behavior
 
-## Track 4 · Project Work Area Foundation
+## 7. Track 4 · Canonical Work Area Foundation
 
-- **Purpose:** define canonical work-area structure for planning and execution
+- **Purpose:** define the canonical spatial execution context for planning and execution
 - **Dependencies:** Track 1
-- **Prerequisites:** project identity lock
-- **In Scope:** work-area identity, hierarchy, stationing, spatial extensions, field UX rules
-- **Out of Scope:** GIS implementation, plan-room implementation
-- **Deliverables:** work-area ownership rules, mutation rules, derived consumer rules
-- **Required testing:** field usability, hierarchy integrity, project association tests
-- **Certification gate:** simple-field-UX review + zero-drift review
-- **Production evidence required:** use in Daily Report, schedule, reconciliation read surfaces
-- **Completion definition:** work areas exist as the single spatial execution context
-- **Future dependency chain:** prerequisite for Tracks 5, 6, 8, 10
+- **Prerequisites:** project identity lock, constitutional approval of work-area role
+- **In Scope:** identifiers, hierarchy, schema, state rules, field UX rules, history behavior, search behavior, ODS rules
+- **Out of Scope:** GIS platform replacement, plan-room implementation, surveying tool replacement
+- **Canonical owner scope:** work-area identity and lifecycle authority
+- **Schema impact:** work-area storage, hierarchy references, spatial metadata, indexes, archival rules
+- **API impact:** create/read/update APIs, hierarchy navigation, validation, filter/sort behavior
+- **Workflow dependency impact:** Operational Work, Daily Reports, schedule grouping, reconciliation grouping, briefing geography views
+- **State-machine impact:** active/inactive/archived/merged or equivalent work-area lifecycle states
+- **Dashboard and briefing impact:** location grouping and geography summaries
+- **Trust Spine impact:** publication or merge/archive events where downstream impact exists
+- **Search and ODS impact:** project-scoped search, spatial ODS dimension, hierarchy-safe projections
+- **Security impact:** project/company scoping, no unauthorized cross-project exposure
+- **Performance and scale impact:** hierarchy traversal, project-scoped listing, grouped dashboard reads
+- **Failure-mode coverage:** missing area reference, merged area lineage, stale area linkage, field-simple fallback behavior
+- **Required testing:** field usability, hierarchy integrity, project association, migration safety, history-preservation tests
+- **Certification gate:** simple-field-UX proof + zero-drift proof + schema/API review
+- **Production evidence required:** Daily Report, schedule, and reconciliation surfaces use the same work-area authority
+- **Completion definition:** one work-area model governs operational spatial context
+- **Release-blocking conditions:** duplicate area ownership, unresolved hierarchy rules, unresolved historical lineage
 
-## Track 5 · Operational Work Foundation
+## 8. Track 5 · Operational Work Foundation
 
 - **Purpose:** create the canonical planned work object for MASCI OPS
 - **Dependencies:** Tracks 1, 2, 3, 4
-- **Prerequisites:** job/project, cost-code, and work-area authority locked
-- **In Scope:** work identity, lifecycle, ownership, constraints, dependency model, evidence rules
-- **Out of Scope:** full advanced scheduling UI, AI scheduling, financial posting
-- **Deliverables:** canonical operational work authority, mutation contract, history rules
-- **Required testing:** ownership tests, lifecycle tests, audit tests, Trust Spine lifecycle tests
-- **Certification gate:** zero-drift matrix conformance + search/trust/ODS integration proof
-- **Production evidence required:** stable work IDs visible across consumers
-- **Completion definition:** a single operational work model governs scheduling, reconciliation, and briefing inputs
-- **Future dependency chain:** prerequisite for Tracks 6–11
+- **Prerequisites:** project authority, cost-code authority, work-area authority, constitutional lifecycle rules
+- **In Scope:** work identity, schema, API, state machine, ownership, dependency model, audit, Trust Spine, search, ODS, failure behavior, KPI participation
+- **Out of Scope:** full enterprise CPM engine, financial posting, speculative AI planning engine
+- **Canonical owner scope:** Operational Work source authority
+- **Schema impact:** operational work storage, relationships, indexes, state fields, history/version lineage, retention rules
+- **API impact:** work CRUD, scoped reads, mutation controls, validation, filtering, sorting, pagination, version conflict behavior
+- **Workflow dependency impact:** schedule, Daily Report linkage, reconciliation, briefing, dashboards, notifications, AI summaries
+- **State-machine impact:** work lifecycle including creation, readiness, commitment readiness, execution relevance, cancellation, archival, terminal conditions
+- **Dashboard and briefing impact:** source for work-oriented dashboards and key brief facts beyond raw source reports
+- **Trust Spine impact:** full lifecycle emission requirement
+- **Search and ODS impact:** canonical work indexing and operational work dimension in ODS
+- **Security impact:** project/company authority boundaries, owner-scoped mutation rights, approval rules
+- **Performance and scale impact:** list reads, board-style reads, state aggregation, index support, downstream projection cost
+- **Failure-mode coverage:** duplicate create, stale write, lost association, dependency conflict, partial publish, queue/recompute failure
+- **Required testing:** schema tests, API contract tests, lifecycle tests, audit tests, Trust Spine tests, search/ODS parity, negative-path tests, performance guard tests
+- **Certification gate:** zero-drift conformance + source-authority proof + security/performance review
+- **Production evidence required:** stable work IDs and lifecycle behavior visible across consumers
+- **Completion definition:** MASCI has one canonical work model for scheduling, reconciliation, briefing, and cross-domain consumption
+- **Release-blocking conditions:** duplicate work identity, unresolved lifecycle, undefined mutation rights, undefined event propagation, undefined migration path
 
-## Track 6 · Daily Report Work-Item Integration
+## 9. Track 6 · Daily Report to Operational Work Integration
 
-- **Purpose:** tie Daily Report actuals to canonical Operational Work without replacing Daily Report authority
+- **Purpose:** connect Daily Report actuals to canonical Operational Work without weakening Daily Report authority
 - **Dependencies:** Tracks 1, 4, 5
-- **Prerequisites:** work object + work-area contract
-- **In Scope:** source linkage, actuals mapping, evidence classification, carry-forward relevance
-- **Out of Scope:** rewriting Daily Report workflow
-- **Deliverables:** work-item reference model inside Daily Report domain
-- **Required testing:** exact field preservation, actuals linkage, history integrity, failed-submit survivability
-- **Certification gate:** Daily Report trust + reconciliation readiness
-- **Production evidence required:** linked Daily Reports remain operator-truthful and history-safe
-- **Completion definition:** Daily Reports can contribute actuals to work-level reconciliation without losing daily field truth
-- **Future dependency chain:** prerequisite for Tracks 7, 8, 9, 10
+- **Prerequisites:** work object authority, work-area authority, Daily Report source-truth rules preserved
+- **In Scope:** source linkage, actuals linkage, API alignment, lineage rules, failure recovery, duplicate-submit handling, UI behavior
+- **Out of Scope:** Daily Report workflow replacement, historical Daily Report redesign
+- **Canonical owner scope:** linkage contract between Daily Report facts and Operational Work references
+- **Schema impact:** references, linkage metadata, source lineage fields, indexes, migration/backfill rules if required
+- **API impact:** Daily Report contract updates, work-reference validation, duplicate-submit/idempotency behavior, backward compatibility
+- **Workflow dependency impact:** actual production projection, reconciliation, schedule actuals comparison, executive briefing, search and ODS projection updates
+- **State-machine impact:** linkage attachment/detachment rules, correction behavior, approved/finalized report constraints
+- **Dashboard and briefing impact:** actuals and variance must remain traceable to source report IDs
+- **Trust Spine impact:** report-to-work linkage events where governed lifecycle stages exist
+- **Search and ODS impact:** linked work discoverability, source report lineage in projections
+- **Security impact:** role-scoped linking authority, no unauthorized report reassignment across projects/users
+- **Performance and scale impact:** report load/write cost, linkage lookup cost, historical report retrieval cost
+- **Failure-mode coverage:** offline save, browser close, duplicate submit, retry safety, stale work reference, broken worker projections
+- **Required testing:** exact field preservation, linkage truth, history integrity, duplicate-submit safety, offline/continuity survivability, negative-path tests
+- **Certification gate:** Daily Report trust preservation + reconciliation readiness + API/schema compatibility proof
+- **Production evidence required:** linked reports remain operator-truthful and history-safe on live data
+- **Completion definition:** Daily Reports contribute actuals to work-level execution truth without losing source integrity
+- **Release-blocking conditions:** report fact drift, unclear ownership, duplicate source authority, unresolved continuity/failure behavior
 
-## Track 7 · Actual Production Projection Layer
+## 10. Track 7 · Actual Production Projection Layer
 
-- **Purpose:** derive operational production projections from verified Daily Report evidence
+- **Purpose:** derive operational production projections from verified Daily Report evidence and linked work context
 - **Dependencies:** Tracks 1, 5, 6
-- **Prerequisites:** work linkage and unit/cost-code/work-area truth
-- **In Scope:** projection rules, confidence rules, freshness rules, exception handling
-- **Out of Scope:** forecast optimization and financial earned value
-- **Deliverables:** canonical actual production projection rules
-- **Required testing:** unit parity, quantity parity, stale-data handling, confidence classification
-- **Certification gate:** verified-fact vs derived-value separation
-- **Production evidence required:** projections trace back to source Daily Reports
-- **Completion definition:** actual production can be consumed by reconciliation and briefing truthfully
-- **Future dependency chain:** prerequisite for Tracks 8, 9, 10
+- **Prerequisites:** linked work/source-report lineage, cost-code and work-area truth
+- **In Scope:** projection rules, confidence rules, freshness rules, KPI participation, dashboard/briefing semantics, queue/recompute behavior
+- **Out of Scope:** forecast optimization, finance-grade earned value, speculative AI productivity scoring
+- **Canonical owner scope:** actual production projection authority as a derived layer
+- **Schema impact:** materialized projection storage if used, projection versioning, source lineage fields, indexes
+- **API impact:** projection read APIs, filter/sort behavior, freshness and confidence response semantics
+- **Workflow dependency impact:** reconciliation, brief, dashboard rollups, exports, alerts, KPI cards
+- **State-machine impact:** projection refresh lifecycle if materialized, stale/failed/verified states
+- **Dashboard and briefing impact:** production cards and summaries must remain source-traceable and confidence-labeled
+- **Trust Spine impact:** projection publish/refresh/failure events if operator-visible outcomes exist
+- **Search and ODS impact:** searchable rollups only if authorized; ODS production dimensions must retain source lineage
+- **Security impact:** projection read scopes must mirror source visibility boundaries
+- **Performance and scale impact:** aggregation cost, materialization strategy, index strategy, dashboard fan-out risk
+- **Failure-mode coverage:** stale projection, partial source set, queue failure, duplicate recompute, AI-summary divergence from verified values
+- **Required testing:** unit parity, quantity parity, source traceability, stale-data handling, confidence classification, performance-path tests
+- **Certification gate:** verified-source vs derived-value separation + KPI consistency proof
+- **Production evidence required:** projected values trace directly to source Daily Reports and linked work
+- **Completion definition:** production actuals can be consumed truthfully across reconciliation and briefing surfaces
+- **Release-blocking conditions:** hidden calculations, KPI definition drift, unresolved stale-state handling, unresolved projection lineage
 
-## Track 8 · Rolling Two-Week Scheduling Engine
+## 11. Track 8 · Rolling Two-Week Scheduling Engine
 
-- **Purpose:** establish the canonical near-term schedule over Operational Work
+- **Purpose:** establish the canonical near-term commitment engine over Operational Work
 - **Dependencies:** Tracks 1–7
-- **Prerequisites:** work model, work areas, project cost-code linkage, Daily Report actuals integration
-- **In Scope:** commitment layer, sequencing, blocked-work status, carry-forward state, ownership visibility
-- **Out of Scope:** full CPM/Primavera-class engine, AI auto-scheduling
-- **Deliverables:** canonical rolling schedule authority and publication rules
-- **Required testing:** scope isolation, coexistence of multiple report instances, project/date isolation, history/publish tests
-- **Certification gate:** preview schedule truth + production schedule publication proof
-- **Production evidence required:** committed work survives read paths and feeds Daily Execution expectations
-- **Completion definition:** the platform has one schedule authority for near-term operational commitments
-- **Future dependency chain:** prerequisite for Tracks 9–11
+- **Prerequisites:** work authority, cost/work-area linkage, Daily Report actuals integration, projection rules
+- **In Scope:** commitment layer, sequencing, blocked status, carry-forward state, publication rules, approval/publish lifecycle, API and schema contracts
+- **Out of Scope:** Primavera replacement, long-range CPM solver, uncontrolled AI auto-scheduling
+- **Canonical owner scope:** near-term schedule commitment authority
+- **Schema impact:** schedule item and publication structures, version lineage, indexes, state fields, retention/archive rules
+- **API impact:** schedule create/update/read/publish APIs, conflict handling, filtering, sorting, pagination, state-transition validation
+- **Workflow dependency impact:** Daily Execution expectations, reconciliation baselines, brief commitments, dashboard and notification updates
+- **State-machine impact:** draft, reviewed, committed, published, superseded, cancelled, blocked, carried-forward or equivalent explicit transitions
+- **Dashboard and briefing impact:** schedule cards and brief commitments must cite publication versions and freshness
+- **Trust Spine impact:** publication, commit, supersession, and failure visibility
+- **Search and ODS impact:** searchable schedule surfaces, ODS schedule projections, publication version lineage
+- **Security impact:** project-scoped planning authority, approval boundaries, no unauthorized cross-project publication
+- **Performance and scale impact:** board rendering, high-volume list filtering, publish fan-out cost, actual-vs-plan comparison cost
+- **Failure-mode coverage:** overlapping publications, duplicate publish attempts, stale edits, queue failure, partial deployment, schedule supersession confusion
+- **Required testing:** scope isolation, publish/version tests, invalid transition tests, concurrency tests, history retention, search/ODS parity, performance-path tests
+- **Certification gate:** one schedule authority + truthful publication proof + lifecycle proof
+- **Production evidence required:** committed work survives live read paths and correctly feeds Daily Execution and reconciliation consumers
+- **Completion definition:** MASCI has one near-term schedule authority for operational commitments
+- **Release-blocking conditions:** competing schedule authority, ambiguous publication semantics, unresolved state machine, unresolved event propagation
 
-## Track 9 · Weekly Reconciliation Engine
+## 12. Track 9 · Weekly Reconciliation Engine
 
-- **Purpose:** compare planned, committed, and actual work for operational recovery and learning
+- **Purpose:** compare planned, committed, and actual work for truth, learning, and recovery
 - **Dependencies:** Tracks 1, 5, 6, 7, 8
-- **Prerequisites:** work, actuals, schedule, and source linkages complete
-- **In Scope:** reconciliation statuses, root cause, variance, carry-forward, recovery actions, lessons learned
-- **Out of Scope:** finance-grade cost variance and executive scorecard politics
-- **Deliverables:** canonical reconciliation authority and evidence model
-- **Required testing:** variance truth, ownership truth, blocked/partial/unplanned cases, audit history
-- **Certification gate:** reconciliation evidence completeness + no fact drift
-- **Production evidence required:** reconciliations trace to schedule + Daily Report + work source facts
-- **Completion definition:** weekly reconciliation becomes the official close-the-loop engine
-- **Future dependency chain:** prerequisite for Track 10
+- **Prerequisites:** work, actuals, schedule, projection, and linkage authorities complete
+- **In Scope:** reconciliation schema, state machine, variance classification, root cause, recovery actions, lessons learned, API contracts, publication rules
+- **Out of Scope:** finance-grade cost variance accounting, political scorecarding, non-operational executive scoring
+- **Canonical owner scope:** reconciliation source authority
+- **Schema impact:** reconciliation storage, variance and root-cause structures, indexes, evidence references, history/version rules
+- **API impact:** create/run/review/publish APIs, error/blocked states, filter/sort/search behavior, validation, permissions
+- **Workflow dependency impact:** Daily Report actuals, schedule commitments, Operational Work lifecycle, executive briefing, notifications, dashboards
+- **State-machine impact:** draft, under-review, published, superseded, reopened, blocked, cancelled or equivalent explicit transitions
+- **Dashboard and briefing impact:** reconciliation outputs are the canonical close-the-loop authority for plan-vs-actual learning
+- **Trust Spine impact:** reconciliation run/review/publication/failure stages
+- **Search and ODS impact:** searchable reconciliation artifacts, ODS reconciliation dimensions and freshness rules
+- **Security impact:** scoped access, role-bounded approval/publication rights, no unauthorized executive override of source facts
+- **Performance and scale impact:** batch compare cost, queue or background-job requirements, root-cause rollup efficiency
+- **Failure-mode coverage:** missing source data, stale schedule, duplicate run, partial run, timeout, worker death, publication conflict
+- **Required testing:** variance truth, ownership truth, blocked/partial/unplanned cases, audit history, state-machine negative-path tests, performance-path tests
+- **Certification gate:** evidence completeness + no fact drift + source-lineage proof
+- **Production evidence required:** reconciliations trace to live schedule, work, and Daily Report source facts
+- **Completion definition:** weekly reconciliation becomes the canonical operational learning and recovery loop
+- **Release-blocking conditions:** hidden calculations, missing evidence lineage, unresolved root-cause authority, unresolved publication lifecycle
 
-## Track 10 · Daily Company Operations Brief
+## 13. Track 10 · Daily Company Operations Brief
 
-- **Purpose:** create the canonical executive operational brief from verified and derived operational truth
+- **Purpose:** create the canonical executive operational publication from verified and derived operational truth
 - **Dependencies:** Tracks 1, 5, 6, 7, 8, 9
-- **Prerequisites:** work, schedule, actuals, reconciliation, and trust rules complete
-- **In Scope:** yesterday’s story, attention items, plan-vs-actual rollups, verified vs AI narrative separation
-- **Out of Scope:** marketing communications, external reporting, investor storytelling
-- **Deliverables:** briefing publication rules, fact provenance rules, confidence display rules
-- **Required testing:** source traceability, AI separation, search/export parity, PDF/brief consistency
-- **Certification gate:** executive brief truthfulness + trust/audit parity
-- **Production evidence required:** brief references real operational evidence and remains reproducible
-- **Completion definition:** one daily company brief becomes the executive operational truth surface
-- **Future dependency chain:** prerequisite for Track 11
+- **Prerequisites:** work, schedule, actuals, reconciliation, Trust Spine, KPI, and lineage rules complete
+- **In Scope:** briefing schema, publication lifecycle, fact lineage, KPI rollups, verified-vs-AI separation, dashboard/brief parity, export/PDF rules
+- **Out of Scope:** marketing communications, investor relations, unsupported storytelling surfaces
+- **Canonical owner scope:** executive brief publication authority
+- **Schema impact:** brief publication storage, source references, versioning, AI narrative separation, indexes, retention rules
+- **API impact:** generation/review/publish/read APIs, role permissions, validation, error semantics, version and supersession behavior
+- **Workflow dependency impact:** consumes Daily Report facts, production projections, schedule commitments, reconciliation outputs, safety/QA/QC/supporting domain signals
+- **State-machine impact:** draft, reviewed, published, superseded, withdrawn or equivalent explicit transitions
+- **Dashboard and briefing impact:** the brief itself is a governed publication surface; dashboard and brief values must not diverge semantically
+- **Trust Spine impact:** briefing generation/review/publication/failure stages
+- **Search and ODS impact:** searchable brief metadata and ODS publication dimensions where authorized
+- **Security impact:** executive visibility boundaries, AI-content labeling, no unauthorized exposure of restricted source facts
+- **Performance and scale impact:** publication generation cost, source aggregation cost, PDF/export cost, cache invalidation rules
+- **Failure-mode coverage:** missing upstream evidence, partial publication, AI failure, duplicate publish, stale source set, export failure
+- **Required testing:** source traceability, KPI definition parity, AI separation, PDF/export parity, version history, executive readability, negative-path tests
+- **Certification gate:** executive brief truthfulness + source-lineage proof + AI governance proof
+- **Production evidence required:** published briefs remain reproducible from live operational evidence
+- **Completion definition:** MASCI has one truthful daily executive brief surface for operational leadership
+- **Release-blocking conditions:** AI fact drift, hidden calculations, unresolved publication authority, unresolved dashboard-vs-brief semantics
 
-## Track 11 · Cross-Domain Operational Projections
+## 14. Track 11 · Cross-Domain Operational Projections
 
-- **Purpose:** project the Operational Work loop into Dispatch, Shop, Equipment, HR, Safety, QA/QC, Fleet, and Executive surfaces
+- **Purpose:** project the canonical execution chain into Dispatch, Shop, Equipment, Fleet, Safety, HR, QA/QC, PM, Executive, and other consuming domains without duplicating authority
 - **Dependencies:** Tracks 1–10
-- **Prerequisites:** canonical work, schedule, reconciliation, and briefing layers operational
-- **In Scope:** projections only; no duplicate source systems
-- **Out of Scope:** separate per-domain planning engines
-- **Deliverables:** projection contracts and read/write authority boundaries per domain
-- **Required testing:** read-scope, no duplicate ownership, projection freshness, search/trust parity
-- **Certification gate:** zero-drift review across all consuming modules
-- **Production evidence required:** consumers reference the same canonical work/schedule/reconciliation facts
-- **Completion definition:** all major domains consume one operational execution chain without drift
-- **Future dependency chain:** prerequisite for Track 12
+- **Prerequisites:** work, schedule, reconciliation, brief, KPI, event, Trust Spine, and ODS contracts locked
+- **In Scope:** read/projection contracts, cross-module event consumption, dashboard wiring, search and ODS propagation, notification boundaries
+- **Out of Scope:** independent per-domain planning engines, duplicate mutation systems
+- **Canonical owner scope:** projection contracts and authority boundaries only; source ownership stays with canonical domain owners
+- **Schema impact:** projection/materialization storage where needed, event correlation, source references, indexes, retention/freshness rules
+- **API impact:** projection reads, dashboard reads, event-driven refresh contracts, permissions and filtering rules
+- **Workflow dependency impact:** every consuming module must define exactly what it consumes and what it updates because of upstream change
+- **State-machine impact:** projection freshness, failed refresh, superseded projection states where materialized
+- **Dashboard and briefing impact:** downstream cards and views must remain semantically aligned to canonical source definitions
+- **Trust Spine impact:** projection update/failure visibility where operator-visible outcomes exist
+- **Search and ODS impact:** cross-domain discoverability and aggregation must remain source-authority-safe
+- **Security impact:** no cross-domain data leakage, no privilege widening through projections
+- **Performance and scale impact:** fan-out update cost, queue strategy, dashboard caching, projection invalidation, index support
+- **Failure-mode coverage:** missing event propagation, queue failure, partial refresh, stale dashboards, broken consumer assumptions
+- **Required testing:** read-scope tests, no-duplicate-authority tests, projection freshness tests, search/trust parity tests, performance-path tests
+- **Certification gate:** zero-drift review across consuming modules + event-map proof + security/performance proof
+- **Production evidence required:** all consumers reference the same canonical work/schedule/reconciliation/brief facts on live runtime
+- **Completion definition:** cross-domain consumption exists without orphan features or duplicate ownership
+- **Release-blocking conditions:** hidden consumers, undocumented event propagation, duplicate authority, unresolved search/ODS rules
 
-## Track 12 · Full Operational Certification and Release Gate
+## 15. Track 12 · Full Operational Certification and Release Gate
 
-- **Purpose:** establish production-grade certification for the full operational execution loop
+- **Purpose:** establish production-grade certification and release governance for the complete operational execution system
 - **Dependencies:** Tracks 1–11
-- **Prerequisites:** preview-complete operational foundation
-- **In Scope:** engineering certification, preview, production sanity, field acceptance, rollback criteria, audit/trust/search/ODS verification
-- **Out of Scope:** unrelated feature roadmap items
-- **Deliverables:** release gate implementation and evidence standards
-- **Required testing:** full regression suite, field acceptance suite, source-lineage proof, deployment proof
-- **Certification gate:** all constitutional statuses evidence-backed
-- **Production evidence required:** live operator workflows and live executive brief proof
-- **Completion definition:** the operational foundation is production-trusted and field-proven
-- **Future dependency chain:** prerequisite for future optimization/enhancement waves only
+- **Prerequisites:** preview-complete operational foundation and accepted constitutional set
+- **In Scope:** engineering certification, preview verification, production verification, field/device acceptance, security/performance validation, rollback governance, release sequencing validation
+- **Out of Scope:** unrelated roadmap features outside the operational execution chain
+- **Canonical owner scope:** release governance and final certification authority as defined by role matrix and certification plan
+- **Schema impact:** certification evidence storage, release lineage, approval audit, rollback evidence
+- **API impact:** certification and release-readiness surfaces, status contracts, evidence read contracts
+- **Workflow dependency impact:** all prior tracks must prove completeness and compatibility
+- **State-machine impact:** release candidate, ready, blocked, released, rolled back, superseded or equivalent lifecycle states
+- **Dashboard and briefing impact:** release and certification dashboards must truthfully reflect live evidence
+- **Trust Spine impact:** release/certification lifecycle events where governed
+- **Search and ODS impact:** certification surfaces only if administratively authorized and source-safe
+- **Security impact:** approval boundaries, environment isolation, no unauthorized release authority
+- **Performance and scale impact:** certification fan-out cost, production verification load, release-safe execution windows
+- **Failure-mode coverage:** partial deployment, stale bundle, source mismatch, production regression, device failure, rollback trigger execution
+- **Required testing:** full regression suite, field acceptance, source-lineage proof, performance and security verification, deployment proof, rollback proof
+- **Certification gate:** all constitutional gates evidence-backed
+- **Production evidence required:** live operator workflows, live dashboard truth, live briefing truth, live certification truth, live environment identity proof
+- **Completion definition:** the operational execution foundation is production-trusted and field-proven
+- **Release-blocking conditions:** any BLOCKED, FAILED, STALE, or UNKNOWN status affecting a core truth surface
+
+## 16. Dependency Enforcement Rules
+
+### 16.1 Hard Dependency Rule
+No track may begin if its dependencies are incomplete, uncertified, or constitutionally contradictory.
+
+### 16.2 Revalidation Rule
+Before any track starts, dependencies must be rechecked for:
+- schema assumptions
+- API assumptions
+- lifecycle assumptions
+- KPI assumptions
+- event assumptions
+- search assumptions
+- ODS assumptions
+- security assumptions
+- performance assumptions
+- release assumptions
+
+### 16.3 No Rework-by-Neglect Rule
+If a track would force redesign of an already accepted upstream track due to missing governance, that downstream track is blocked until constitutional correction occurs.
+
+## 17. Register-Level No Orphan Feature Rule
+
+No track deliverable may be approved unless it answers, for every major feature within that track:
+- Who creates it?
+- Who owns it?
+- Who consumes it?
+- What updates because of it?
+- What reports on it?
+- What dashboard displays it?
+- What audit trail records it?
+- What Trust Spine events are emitted?
+- What search indexes it?
+- What certification validates it?
+
+If any answer is unresolved, the track remains blocked.
+
+## 18. Register-Level Release Rule
+
+Implementation of Tracks 2–12 is constitutionally forbidden until Track 1 is accepted.
+
+For every later track, implementation is forbidden if:
+- unresolved constitutional gaps remain
+- unresolved upstream dependency conflicts remain
+- schema governance is incomplete
+- API governance is incomplete
+- security governance is incomplete
+- performance governance is incomplete
+- failure-mode governance is incomplete
+- certification requirements are incomplete
+
+The register is therefore both a sequencing instrument and a release-blocking instrument.
