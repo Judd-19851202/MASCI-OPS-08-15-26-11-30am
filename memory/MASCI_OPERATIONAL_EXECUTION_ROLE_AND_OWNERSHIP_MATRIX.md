@@ -137,3 +137,35 @@ For every governed feature, this matrix must be able to answer:
 - which role resolves conflicts about it?
 
 If any answer is missing, role governance is incomplete and implementation is blocked.
+
+## 12. Dashboard, Notification, and Executive Reporting Authority Rules
+
+### 12.1 Dashboard Rule by Role
+Roles may consume dashboard projections according to permission boundaries, but dashboard visibility does not create source-record authority, publication authority, or override authority.
+
+### 12.2 Executive Reporting Rule by Role
+Executive and Operations lanes may approve or publish executive reporting only within the governed publication and evidence rules.
+They may not directly rewrite source records for convenience.
+
+### 12.3 Notification Rule by Role
+No role owns notification truth as a source domain unless that role already owns the source workflow or governed publication that triggers the notification.
+Notifications remain delivery artifacts.
+
+## 13. Offline, Synchronization, and Concurrency Authority Rules
+
+### 13.1 Offline Authority
+Field roles may create local continuity artifacts only within governed workflow boundaries.
+Local continuity does not create enterprise source truth.
+
+### 13.2 Synchronization Authority
+System executes synchronization mechanics by approved rule only.
+Business roles resolve conflicts only where the workflow explicitly requires human choice.
+
+### 13.3 Concurrency Authority
+No role may silently win a concurrent collision by convenience.
+Conflict handling must remain governed, auditable, and role-bounded.
+
+## 14. Constitutional Appendix Cross-Reference
+
+Explicit lifecycle catalogs, event authorities, dashboard authorities, KPI authorities, notification authorities, and offline/synchronization authorities are normatively detailed in:
+- `MASCI_OPERATIONAL_EXECUTION_CONSTITUTIONAL_APPENDIX.md`

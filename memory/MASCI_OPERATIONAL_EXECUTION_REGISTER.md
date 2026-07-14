@@ -11,6 +11,7 @@ This register must be read together with:
 - `MASCI_OPERATIONAL_EXECUTION_ZERO_DRIFT_MATRIX.md`
 - `MASCI_OPERATIONAL_EXECUTION_ROLE_AND_OWNERSHIP_MATRIX.md`
 - `MASCI_OPERATIONAL_EXECUTION_CERTIFICATION_PLAN.md`
+- `MASCI_OPERATIONAL_EXECUTION_CONSTITUTIONAL_APPENDIX.md`
 
 ## 2. Closed-Set Register Rules
 
@@ -28,6 +29,9 @@ Every track must define:
 - search and ODS impact
 - security impact
 - performance and scale impact
+- concurrency impact
+- caching impact
+- offline and synchronization impact where applicable
 - failure-mode coverage
 - certification gates
 - release-blocking conditions
@@ -47,13 +51,16 @@ Before each track begins, all upstream assumptions must be revalidated under the
 - **Dependencies:** none
 - **Prerequisites:** repository-level architectural understanding of MASCI’s existing canonical systems
 - **In Scope:** doctrine, ownership, identifiers, schema governance, API governance, performance governance, security governance, workflow dependency governance, state-machine governance, data-lineage governance, failure-mode governance, KPI governance, event governance, AI governance, UX governance, release governance, certification governance
+- **In Scope:** doctrine, ownership, identifiers, schema governance, API governance, performance governance, security governance, workflow dependency governance, state-machine governance, data-lineage governance, failure-mode governance, KPI governance, event governance, notification governance, offline governance, synchronization governance, concurrency governance, caching governance, AI governance, UX governance, release governance, certification governance, constitutional appendix authority where required to eliminate ambiguity
 - **Out of Scope:** implementation code, UI buildout, runtime schema changes, endpoint changes
 - **Deliverables:** the five governing artifacts as a constitutionally complete set
+- **Deliverables:** the five governing artifacts and any mandatory constitutional appendix required to eliminate unresolved ambiguity
 - **Required verification:** constitutional consistency review, cross-reference integrity review, zero-drift review, ownership completeness review
 - **Certification gate:** governance acceptance
 - **Production evidence required:** none
 - **Completion definition:** no unresolved constitutional gap remains across the five governing artifacts
 - **Release-blocking conditions:** any unresolved owner, lifecycle, identifier, publication rule, dashboard authority, briefing authority, scheduling authority, reconciliation authority, Trust Spine rule, ODS rule, AI rule, search rule, audit rule, security rule, API rule, schema rule, migration rule, release rule, performance rule, scalability rule, failure-mode rule, or constitutional conflict
+- **Release-blocking conditions:** any unresolved owner, lifecycle, identifier, publication rule, dashboard authority, executive reporting authority, notification authority, briefing authority, scheduling authority, reconciliation authority, Trust Spine rule, ODS rule, AI rule, search rule, audit rule, security rule, API rule, schema rule, migration rule, release rule, performance rule, scalability rule, concurrency rule, caching rule, offline rule, synchronization rule, failure-mode rule, or constitutional conflict
 
 ## 5. Track 2 · Canonical Company Cost Code Catalog Foundation
 
@@ -72,6 +79,9 @@ Before each track begins, all upstream assumptions must be revalidated under the
 - **Search and ODS impact:** searchable code labels, ODS cost-code dimensions, permission-safe projections
 - **Security impact:** admin mutation authority only, read-scope safety, no unrestricted catalog mutation
 - **Performance and scale impact:** code lookup latency, assignment fan-out, filtered list performance, index coverage
+- **Concurrency impact:** concurrent assignment edits and retirement changes must be explicitly governed
+- **Caching impact:** cached catalog reads must retain freshness and invalidation truthfulness
+- **Offline and synchronization impact:** offline selection aids may exist, but catalog truth remains server-governed
 - **Failure-mode coverage:** stale catalog reads, assignment mismatch, deprecated code selection, duplicate code creation attempts
 - **Required testing:** ownership contract tests, schema tests, API contract tests, search parity, historical version tests, negative-path tests
 - **Certification gate:** source-of-truth proof + schema/API/performance/security review
@@ -96,6 +106,9 @@ Before each track begins, all upstream assumptions must be revalidated under the
 - **Search and ODS impact:** project-scoped discoverability, ODS cost dimension mapping, stale-assignment detection
 - **Security impact:** project-scoped mutation authority, prevention of cross-project leakage
 - **Performance and scale impact:** assignment lookup speed, project-scoped filters, high-volume read efficiency
+- **Concurrency impact:** duplicate or conflicting assignment mutations must be governed
+- **Caching impact:** project mapping cache invalidation must be explicit
+- **Offline and synchronization impact:** local project-scoped pickers may cache labels only under governed freshness rules
 - **Failure-mode coverage:** missing assignment, deprecated code usage, stale references, duplicate mapping attempts
 - **Required testing:** assignment integrity, backward-compatibility, historical reassignment safety, validation/error tests, search/export parity
 - **Certification gate:** no duplicate catalog authority + project-scope truthfulness
@@ -120,6 +133,9 @@ Before each track begins, all upstream assumptions must be revalidated under the
 - **Search and ODS impact:** project-scoped search, spatial ODS dimension, hierarchy-safe projections
 - **Security impact:** project/company scoping, no unauthorized cross-project exposure
 - **Performance and scale impact:** hierarchy traversal, project-scoped listing, grouped dashboard reads
+- **Concurrency impact:** merge/archive/rename conflicts must be explicitly governed
+- **Caching impact:** hierarchy cache invalidation and stale-display rules must be explicit
+- **Offline and synchronization impact:** local location aids may not create alternate area truth
 - **Failure-mode coverage:** missing area reference, merged area lineage, stale area linkage, field-simple fallback behavior
 - **Required testing:** field usability, hierarchy integrity, project association, migration safety, history-preservation tests
 - **Certification gate:** simple-field-UX proof + zero-drift proof + schema/API review
@@ -144,6 +160,9 @@ Before each track begins, all upstream assumptions must be revalidated under the
 - **Search and ODS impact:** canonical work indexing and operational work dimension in ODS
 - **Security impact:** project/company authority boundaries, owner-scoped mutation rights, approval rules
 - **Performance and scale impact:** list reads, board-style reads, state aggregation, index support, downstream projection cost
+- **Concurrency impact:** stale writes, simultaneous edits, and approval collisions must be governed
+- **Caching impact:** work-list and board caching must preserve freshness and source authority
+- **Offline and synchronization impact:** local draft association behavior must remain non-canonical until governed synchronization
 - **Failure-mode coverage:** duplicate create, stale write, lost association, dependency conflict, partial publish, queue/recompute failure
 - **Required testing:** schema tests, API contract tests, lifecycle tests, audit tests, Trust Spine tests, search/ODS parity, negative-path tests, performance guard tests
 - **Certification gate:** zero-drift conformance + source-authority proof + security/performance review
@@ -168,6 +187,9 @@ Before each track begins, all upstream assumptions must be revalidated under the
 - **Search and ODS impact:** linked work discoverability, source report lineage in projections
 - **Security impact:** role-scoped linking authority, no unauthorized report reassignment across projects/users
 - **Performance and scale impact:** report load/write cost, linkage lookup cost, historical report retrieval cost
+- **Concurrency impact:** duplicate submit, stale linkage, and simultaneous edits must be explicitly governed
+- **Caching impact:** recent-context and continuity caches must remain derived and freshness-labeled
+- **Offline and synchronization impact:** offline save, reconnect, merge, and retry behavior are core constitutional requirements for this track
 - **Failure-mode coverage:** offline save, browser close, duplicate submit, retry safety, stale work reference, broken worker projections
 - **Required testing:** exact field preservation, linkage truth, history integrity, duplicate-submit safety, offline/continuity survivability, negative-path tests
 - **Certification gate:** Daily Report trust preservation + reconciliation readiness + API/schema compatibility proof
@@ -192,6 +214,9 @@ Before each track begins, all upstream assumptions must be revalidated under the
 - **Search and ODS impact:** searchable rollups only if authorized; ODS production dimensions must retain source lineage
 - **Security impact:** projection read scopes must mirror source visibility boundaries
 - **Performance and scale impact:** aggregation cost, materialization strategy, index strategy, dashboard fan-out risk
+- **Concurrency impact:** duplicate recompute, overlapping refresh, and competing publish behavior must be governed
+- **Caching impact:** projection caches and materialized views must have explicit invalidation and stale-display rules
+- **Offline and synchronization impact:** downstream consumption of delayed-sync reports must define pending/stale semantics
 - **Failure-mode coverage:** stale projection, partial source set, queue failure, duplicate recompute, AI-summary divergence from verified values
 - **Required testing:** unit parity, quantity parity, source traceability, stale-data handling, confidence classification, performance-path tests
 - **Certification gate:** verified-source vs derived-value separation + KPI consistency proof
@@ -216,6 +241,9 @@ Before each track begins, all upstream assumptions must be revalidated under the
 - **Search and ODS impact:** searchable schedule surfaces, ODS schedule projections, publication version lineage
 - **Security impact:** project-scoped planning authority, approval boundaries, no unauthorized cross-project publication
 - **Performance and scale impact:** board rendering, high-volume list filtering, publish fan-out cost, actual-vs-plan comparison cost
+- **Concurrency impact:** simultaneous planner edits, publish races, and commit collisions must be governed
+- **Caching impact:** schedule board caches and publication caches must retain version/freshness truth
+- **Offline and synchronization impact:** field visibility of stale schedule snapshots must be truthfully marked if offline-capable views exist
 - **Failure-mode coverage:** overlapping publications, duplicate publish attempts, stale edits, queue failure, partial deployment, schedule supersession confusion
 - **Required testing:** scope isolation, publish/version tests, invalid transition tests, concurrency tests, history retention, search/ODS parity, performance-path tests
 - **Certification gate:** one schedule authority + truthful publication proof + lifecycle proof
@@ -240,6 +268,9 @@ Before each track begins, all upstream assumptions must be revalidated under the
 - **Search and ODS impact:** searchable reconciliation artifacts, ODS reconciliation dimensions and freshness rules
 - **Security impact:** scoped access, role-bounded approval/publication rights, no unauthorized executive override of source facts
 - **Performance and scale impact:** batch compare cost, queue or background-job requirements, root-cause rollup efficiency
+- **Concurrency impact:** duplicate run, overlapping publish/review, and correction collisions must be governed
+- **Caching impact:** reconciliation summaries may be cached only with explicit freshness/invalidation rules
+- **Offline and synchronization impact:** no offline artifact may masquerade as published reconciliation truth
 - **Failure-mode coverage:** missing source data, stale schedule, duplicate run, partial run, timeout, worker death, publication conflict
 - **Required testing:** variance truth, ownership truth, blocked/partial/unplanned cases, audit history, state-machine negative-path tests, performance-path tests
 - **Certification gate:** evidence completeness + no fact drift + source-lineage proof
@@ -264,6 +295,9 @@ Before each track begins, all upstream assumptions must be revalidated under the
 - **Search and ODS impact:** searchable brief metadata and ODS publication dimensions where authorized
 - **Security impact:** executive visibility boundaries, AI-content labeling, no unauthorized exposure of restricted source facts
 - **Performance and scale impact:** publication generation cost, source aggregation cost, PDF/export cost, cache invalidation rules
+- **Concurrency impact:** duplicate publish, supersession race, and executive review collisions must be governed
+- **Caching impact:** dashboard and brief caches must remain semantically aligned and freshness-labeled
+- **Offline and synchronization impact:** no offline-generated brief may become canonical without governed publication flow
 - **Failure-mode coverage:** missing upstream evidence, partial publication, AI failure, duplicate publish, stale source set, export failure
 - **Required testing:** source traceability, KPI definition parity, AI separation, PDF/export parity, version history, executive readability, negative-path tests
 - **Certification gate:** executive brief truthfulness + source-lineage proof + AI governance proof
@@ -288,6 +322,9 @@ Before each track begins, all upstream assumptions must be revalidated under the
 - **Search and ODS impact:** cross-domain discoverability and aggregation must remain source-authority-safe
 - **Security impact:** no cross-domain data leakage, no privilege widening through projections
 - **Performance and scale impact:** fan-out update cost, queue strategy, dashboard caching, projection invalidation, index support
+- **Concurrency impact:** competing consumer refreshes and event replay collisions must be governed
+- **Caching impact:** cross-domain dashboard caches must show truthful freshness and failure state
+- **Offline and synchronization impact:** delayed or replayed events from degraded clients must preserve idempotency and truthfulness
 - **Failure-mode coverage:** missing event propagation, queue failure, partial refresh, stale dashboards, broken consumer assumptions
 - **Required testing:** read-scope tests, no-duplicate-authority tests, projection freshness tests, search/trust parity tests, performance-path tests
 - **Certification gate:** zero-drift review across consuming modules + event-map proof + security/performance proof
@@ -312,6 +349,9 @@ Before each track begins, all upstream assumptions must be revalidated under the
 - **Search and ODS impact:** certification surfaces only if administratively authorized and source-safe
 - **Security impact:** approval boundaries, environment isolation, no unauthorized release authority
 - **Performance and scale impact:** certification fan-out cost, production verification load, release-safe execution windows
+- **Concurrency impact:** release/certification status collisions and re-run conflicts must be governed
+- **Caching impact:** certification dashboards may not hide stale or mixed release evidence through cache lag
+- **Offline and synchronization impact:** device evidence collection and deferred upload behavior must be governed where field certification depends on it
 - **Failure-mode coverage:** partial deployment, stale bundle, source mismatch, production regression, device failure, rollback trigger execution
 - **Required testing:** full regression suite, field acceptance, source-lineage proof, performance and security verification, deployment proof, rollback proof
 - **Certification gate:** all constitutional gates evidence-backed
@@ -335,6 +375,9 @@ Before any track starts, dependencies must be rechecked for:
 - ODS assumptions
 - security assumptions
 - performance assumptions
+- concurrency assumptions
+- caching assumptions
+- offline and synchronization assumptions
 - release assumptions
 
 ### 16.3 No Rework-by-Neglect Rule

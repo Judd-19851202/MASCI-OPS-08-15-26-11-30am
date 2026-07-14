@@ -283,6 +283,10 @@ No module may create an alternate truth for:
 - schedule commitment identity
 - reconciliation verdict identity
 - briefing fact source
+- dashboard authority
+- executive reporting authority
+- notification publication authority
+- attachment/evidence visibility authority
 - KPI definition
 - event contract
 - audit authority
@@ -338,6 +342,8 @@ Before implementation of any new governed concept, the architecture must explici
 - every index
 - every unique constraint
 - every reference / relationship / foreign-key equivalent
+- every attachment or evidence reference rule
+- every storage backend authority for evidence-bearing objects
 - every retention rule
 - archival behavior
 - every migration rule
@@ -373,6 +379,7 @@ Every new queryable workflow must declare index expectations for:
 - timeline/history reads
 - dashboard aggregation support
 - queue/worker processing
+- synchronization reconciliation lookups where offline or delayed sync exists
 
 ### 10.5 Retention and Historical Preservation Rule
 Retention rules must be explicit.
@@ -468,6 +475,26 @@ Any asynchronous workflow must define:
 - Trust Spine visibility when applicable
 - human fallback if automation fails
 
+### 12.5 Concurrency Governance Rule
+Every mutation-bearing workflow must define concurrency behavior, including:
+- optimistic or explicit versioning rules
+- duplicate-submit handling
+- stale-write handling
+- conflict-detection behavior
+- last-write-wins prohibition unless explicitly authorized and audited
+
+### 12.6 Caching Governance Rule
+Every cached or materialized read path must define:
+- canonical source authority
+- cache owner
+- freshness expectation
+- invalidation trigger
+- stale-display behavior
+- fallback behavior when cache is unavailable or stale
+
+Caching may improve performance.
+Caching may not redefine truth.
+
 ## 13. Security Governance
 
 ### 13.1 Security-by-Architecture Rule
@@ -556,6 +583,10 @@ This requirement applies to at least:
 Invalid transitions must fail truthfully and audibly.
 No illegal lifecycle jump may be silently accepted.
 
+### 15.4 Normative Lifecycle Appendix Rule
+The explicit lifecycle definitions, transition rules, rollback rules, and terminal-state rules for the core governed objects are normatively cataloged in:
+- `MASCI_OPERATIONAL_EXECUTION_CONSTITUTIONAL_APPENDIX.md`
+
 ## 16. Data Lineage Governance
 
 ### 16.1 Full Traceability Rule
@@ -604,6 +635,19 @@ Failure handling must prefer:
 
 ### 17.3 No Silent Failure Rule
 No operator-visible workflow may fail silently.
+
+### 17.4 Offline and Synchronization Governance Rule
+Where local draft, delayed sync, offline capture, retry queue, or reconnect merge behavior exists, the governing architecture must explicitly define:
+- what is local-only
+- what is canonical server truth
+- what is pending synchronization
+- what happens on reconnect
+- what happens on conflict
+- what audit or telemetry is required
+- what the operator sees during degraded state
+
+Local continuity artifacts may assist operators.
+They may not become hidden alternate enterprise truth.
 
 ## 18. Operational KPI Governance
 
@@ -657,6 +701,10 @@ Each event must define:
 - audit visibility
 
 No hidden or implied downstream propagation is permitted.
+
+### 19.3 Normative Event Appendix Rule
+The governing cross-module event, publication, dashboard, KPI, notification, and synchronization authorities are normatively cataloged in:
+- `MASCI_OPERATIONAL_EXECUTION_CONSTITUTIONAL_APPENDIX.md`
 
 ## 20. AI Governance
 
@@ -723,6 +771,74 @@ Schedule publications, reconciliation publications, executive briefs, exports, a
 - what downstream consumers are updated
 - what audit records are written
 
+### 22.6 Dashboard Governance
+Every dashboard surface must define:
+- owning route or surface
+- upstream authority for every value shown
+- KPI definition source
+- refresh and freshness rules
+- stale or failed-state behavior
+- permission boundaries
+
+Dashboards are projection surfaces.
+Dashboards are not source-record authorities.
+
+### 22.7 Executive Reporting Governance
+Executive reporting may consume:
+- verified source facts
+- constitutionally defined KPIs
+- derived metrics with explicit lineage
+- AI narrative with explicit separation
+
+Executive reporting may not invent new operational truth, competing KPI formulas, or alternate publication authority.
+
+### 22.8 Notification Governance
+Notifications are delivery artifacts, not source truth.
+
+Every notification class must define:
+- source workflow or publication trigger
+- delivery owner
+- deduplication rule
+- suppression rule
+- retry/failure rule
+- audit rule
+- user visibility scope
+
+### 22.9 Storage and Evidence Governance
+Evidence-bearing attachments, images, documents, and exports must define:
+- source-record authority
+- storage authority
+- visibility inheritance
+- retention rule
+- archival/withdrawal rule
+- link or token safety rule
+
+### 22.10 Offline Governance
+Offline and device-local continuity behavior must be explicit, permission-safe, and recoverable.
+No offline artifact may silently publish, reconcile, or certify enterprise truth without governed synchronization.
+
+### 22.11 Synchronization Governance
+Synchronization rules must define:
+- source of truth after reconnect
+- conflict detection and operator resolution path
+- retry and backoff behavior
+- duplicate prevention
+- stale local-state handling
+
+### 22.12 Concurrency Governance
+Concurrent edits, submissions, publications, and background recomputes must define:
+- collision detection
+- precedence rules
+- retry or user-resolution path
+- audit behavior for conflicts and overrides
+
+### 22.13 Caching Governance
+Cached dashboards, cached projections, and cached executive/reporting surfaces must show truthful freshness behavior and may not hide source failure or staleness.
+
+### 22.14 Constitutional Appendix Rule
+Where explicit lifecycle catalogs, event maps, dashboard authorities, KPI authorities, notification authorities, offline/synchronization authorities, or publication authorities are required to eliminate ambiguity, the constitutional appendix is part of the governing law:
+- `MASCI_OPERATIONAL_EXECUTION_CONSTITUTIONAL_APPENDIX.md`
+
 ## 23. Migration and Release Governance
 
 ### 23.1 Migration Governance
@@ -780,6 +896,11 @@ The constitution is complete only if every downstream implementation can answer,
 - how is history preserved?
 - how is security enforced?
 - how is scale protected?
+- how is concurrency protected?
+- how is caching governed?
+- how is offline state governed?
+- how is synchronization governed?
+- how are notifications governed?
 - how is failure handled?
 - how is AI separated?
 - how is it certified?
@@ -800,7 +921,7 @@ This constitution does not authorize:
 - duplicate search authorities
 - speculative architecture unrelated to the governed execution loop
 
-## 27. Constitutional Precedence Across the Five Governing Artifacts
+## 27. Constitutional Precedence Across the Core Governing Artifacts and Required Appendices
 
 These documents operate together as one constitutional set:
 - `MASCI_OPERATIONAL_EXECUTION_CONSTITUTION.md` defines doctrine and non-negotiable rules
@@ -808,6 +929,7 @@ These documents operate together as one constitutional set:
 - `MASCI_OPERATIONAL_EXECUTION_ZERO_DRIFT_MATRIX.md` defines canonical ownership and anti-duplication authority
 - `MASCI_OPERATIONAL_EXECUTION_ROLE_AND_OWNERSHIP_MATRIX.md` defines role authority, ownership, publication, and override boundaries
 - `MASCI_OPERATIONAL_EXECUTION_CERTIFICATION_PLAN.md` defines proof standards and release gates
+- `MASCI_OPERATIONAL_EXECUTION_CONSTITUTIONAL_APPENDIX.md` defines the normative lifecycle catalog, event authority map, KPI/dashboard authority, notification authority, and offline/synchronization authority required to eliminate remaining constitutional ambiguity
 
 No one artifact may be interpreted in conflict with the others.
 Any conflict blocks implementation until resolved by constitutional amendment.

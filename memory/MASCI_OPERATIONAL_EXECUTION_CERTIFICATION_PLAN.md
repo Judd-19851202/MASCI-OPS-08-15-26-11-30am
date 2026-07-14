@@ -11,6 +11,7 @@ This plan operates in lockstep with:
 - `MASCI_OPERATIONAL_EXECUTION_REGISTER.md`
 - `MASCI_OPERATIONAL_EXECUTION_ZERO_DRIFT_MATRIX.md`
 - `MASCI_OPERATIONAL_EXECUTION_ROLE_AND_OWNERSHIP_MATRIX.md`
+- `MASCI_OPERATIONAL_EXECUTION_CONSTITUTIONAL_APPENDIX.md`
 
 ## 2. Canonical Status Set
 
@@ -150,7 +151,33 @@ Must verify:
 
 Performance certification must assume growth to multi-year, high-volume, multi-company operations.
 
-## 10. Failure-Mode Certification
+## 10. Concurrency, Caching, and Synchronization Certification
+
+Required whenever a workflow supports repeated mutation, delayed sync, cached reads, background recompute, publish/review races, or offline continuity.
+
+Must verify:
+- stale-write handling is explicit
+- duplicate-submit handling is explicit
+- collision/conflict behavior is explicit
+- cache ownership and invalidation are explicit
+- stale-cache display behavior is explicit
+- synchronization ownership is explicit
+- reconnect and replay behavior are explicit
+- local continuity artifacts do not masquerade as enterprise source truth
+
+## 11. Offline and Mobile Continuity Certification
+
+Required whenever a workflow is interruption-sensitive, mobile-first, or continuity-sensitive.
+
+Must verify:
+- local continuity scope is explicit
+- server source-of-truth boundaries remain explicit
+- reconnect and recovery behavior are explicit
+- duplicate replay is prevented or safely resolved
+- operator-visible degraded-state messaging is truthful
+- mobile interruption handling remains usable under field conditions
+
+## 12. Failure-Mode Certification
 
 Required for every workflow creating, mutating, publishing, reconciling, projecting, or certifying operational truth.
 
@@ -168,7 +195,7 @@ Must verify the workflow’s behavior under:
 
 The workflow must preserve user-entered facts, avoid silent duplication, surface truthful status, and preserve audit lineage.
 
-## 11. State-Machine Certification
+## 13. State-Machine Certification
 
 Required whenever a governed object has lifecycle behavior.
 
@@ -183,7 +210,7 @@ Must verify:
 
 This applies to work, schedule, Daily Report lifecycle where applicable, reconciliation, briefing, queue-visible artifacts, and any published AI artifact.
 
-## 12. Workflow Dependency Certification
+## 14. Workflow Dependency Certification
 
 Required whenever a workflow creates, updates, or consumes data across domains.
 
@@ -200,7 +227,7 @@ Must verify:
 
 If any dependency is undocumented or broken, certification fails.
 
-## 13. Data Lineage Certification
+## 15. Data Lineage Certification
 
 Required for dashboards, reports, exports, executive briefs, AI-derived summaries, and KPI surfaces.
 
@@ -214,7 +241,7 @@ Must verify:
 
 No unverifiable dashboard or briefing value may be certified.
 
-## 14. KPI Certification
+## 16. KPI Certification
 
 Required whenever a track introduces or changes operational metrics.
 
@@ -231,7 +258,7 @@ Must verify:
 
 No KPI may be certified if multiple competing formulas exist.
 
-## 15. AI Governance Certification
+## 17. AI Governance Certification
 
 Required whenever AI contributes to user-visible output, ranking, summaries, classifications, drafting, or recommendations.
 
@@ -247,7 +274,7 @@ Must verify:
 
 AI certification fails if the user can mistake AI content for canonical fact.
 
-## 16. UX and Mobile-First Certification
+## 18. UX and Mobile-First Certification
 
 Required whenever a user-facing workflow or screen is introduced or changed.
 
@@ -262,7 +289,7 @@ Must verify:
 
 For field-critical workflows, desktop-only success is insufficient.
 
-## 17. Search Certification
+## 19. Search Certification
 
 Required whenever a new concept or artifact becomes discoverable in search.
 
@@ -275,7 +302,7 @@ Must verify:
 
 Search certification fails if search appears to own the record it merely indexes.
 
-## 18. ODS Certification
+## 20. ODS Certification
 
 Required whenever a concept is projected into ODS.
 
@@ -287,7 +314,7 @@ Must verify:
 - cross-domain consumers remain consistent with source authority
 - stale or failed projection states are visible where operator-visible outputs depend on them
 
-## 19. Trust Spine Certification
+## 21. Trust Spine Certification
 
 Required for every workflow participating in the Trust Spine.
 
@@ -300,7 +327,7 @@ Must verify:
 
 No fake green on missing or failed stages is permitted.
 
-## 20. Audit Certification
+## 22. Audit Certification
 
 Required whenever source records, ownership decisions, publications, overrides, approvals, or certifications occur.
 
@@ -316,7 +343,20 @@ Must verify:
 
 Audit certification fails if historical truth cannot be reconstructed.
 
-## 21. Preview Verification
+## 23. Dashboard, Executive Reporting, and Notification Certification
+
+Required whenever a track introduces or changes dashboards, executive reporting, brief-adjacent reporting, alerts, or notifications.
+
+Must verify:
+- dashboard source authority is explicit
+- dashboard KPI authority is explicit
+- dashboard freshness and stale-state behavior are explicit
+- executive reporting semantics align with brief and KPI authority
+- notification trigger authority is explicit
+- notification deduplication and retry rules are explicit
+- notifications do not become source or publication authority
+
+## 24. Preview Verification
 
 Preview verification is mandatory before production when the track affects runtime behavior.
 
@@ -328,7 +368,7 @@ Preview verification must prove:
 - no console/runtime errors exist in tested scope
 - visible behavior matches contracts and certification claims
 
-## 22. Production Verification
+## 25. Production Verification
 
 Production verification is mandatory for deployment-bearing tracks.
 
@@ -342,7 +382,7 @@ Production verification must prove:
 
 Preview does not overrule production truth.
 
-## 23. Device and Field Acceptance
+## 26. Device and Field Acceptance
 
 Device verification is mandatory for field-critical workflows.
 
@@ -362,7 +402,7 @@ Field acceptance must verify:
 
 If a physical-device run is required but not executed, the status is NOT_YET_EXERCISED, not VERIFIED.
 
-## 24. Operator and Executive Acceptance
+## 27. Operator and Executive Acceptance
 
 ### 24.1 Operator Acceptance
 Required when the track changes field, dispatch, PM, shop, fleet, safety, HR, QA/QC, or other operator-owned workflows.
@@ -380,7 +420,7 @@ Required for:
 
 Executive acceptance verifies truthfulness and actionability, not aesthetics alone.
 
-## 25. Release Sequencing Certification
+## 28. Release Sequencing Certification
 
 Before each track begins, certification must revalidate that upstream dependency assumptions still hold.
 
@@ -392,10 +432,12 @@ Must verify:
 - KPI assumptions remain valid
 - event/dependency assumptions remain valid
 - security/performance assumptions remain valid
+- concurrency/caching assumptions remain valid
+- offline/synchronization assumptions remain valid
 
 If any dependency is invalid, the downstream track is BLOCKED until corrected.
 
-## 26. Deployment Verification
+## 29. Deployment Verification
 
 Deployment verification must confirm:
 - source lineage proven
@@ -405,7 +447,7 @@ Deployment verification must confirm:
 - rollback criteria are recorded
 - release communications and acceptance lanes are correct for scope
 
-## 27. Rollback Criteria
+## 30. Rollback Criteria
 
 A release must define rollback triggers, including but not limited to:
 - source-lineage contradiction
@@ -417,10 +459,12 @@ A release must define rollback triggers, including but not limited to:
 - broken schema/API contract on live runtime
 - severe performance regression on core workflows
 - security regression
+- synchronization or replay corruption
+- stale-cache / mixed-release truth contradiction on operator-visible surfaces
 
 Rollback criteria must be explicit before production deployment.
 
-## 28. No-Orphan Feature Certification Rule
+## 31. No-Orphan Feature Certification Rule
 
 No feature may be certified unless it can answer:
 - Who creates it?
@@ -436,7 +480,7 @@ No feature may be certified unless it can answer:
 
 Any unanswered question blocks certification.
 
-## 29. Release Readiness Standard
+## 32. Release Readiness Standard
 
 No track is release-ready until all applicable certification lanes are either:
 - VERIFIED
@@ -444,7 +488,7 @@ No track is release-ready until all applicable certification lanes are either:
 
 Any BLOCKED, FAILED, STALE, or UNKNOWN item affecting a core truth surface blocks release.
 
-## 30. Completion Evidence by Status
+## 33. Completion Evidence by Status
 
 ### VERIFIED
 Requires executed evidence, matching expected results, and source/build/environment identity proof.
@@ -464,20 +508,26 @@ Requires explicit declaration that execution has not occurred.
 ### UNKNOWN
 Requires explicit declaration that truth cannot currently be established and why.
 
-## 31. Mandatory Certification Flow Per Implementation Track
+## 34. Mandatory Certification Flow Per Implementation Track
 
 1. Constitutional dependency revalidation
 2. Engineering certification
-3. Schema/API/security/performance/failure-mode certification as applicable
-4. Focused test certification
-5. Preview verification
-6. Production deployment verification when in scope
-7. Production sanity verification when in scope
-8. Device/field acceptance when required
-9. Operator and executive acceptance when required
-10. Final constitutional status declaration
+3. Schema/API/security/performance/concurrency/cache/sync/offline certification as applicable
+4. State-machine, dependency, lineage, KPI, AI, dashboard/notification, search, ODS, trust, and audit certification as applicable
+5. Focused test certification
+6. Preview verification
+7. Production deployment verification when in scope
+8. Production sanity verification when in scope
+9. Device/field acceptance when required
+10. Operator and executive acceptance when required
+11. Final constitutional status declaration
 
-## 32. No Fake PASS Rule
+## 35. Constitutional Appendix Cross-Reference
+
+Where lifecycle catalogs, event maps, dashboard authorities, KPI authorities, notification authorities, offline authorities, or synchronization authorities are required for unambiguous certification, the normative appendix is part of the certification authority:
+- `MASCI_OPERATIONAL_EXECUTION_CONSTITUTIONAL_APPENDIX.md`
+
+## 36. No Fake PASS Rule
 
 The MASCI OPS certification doctrine is absolute:
 - screenshots and live behavior outrank prose
