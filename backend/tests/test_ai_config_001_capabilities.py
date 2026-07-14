@@ -297,7 +297,7 @@ async def test_v1_submit_hook_still_works_with_all_ai_off():
     }
     facts = _build_facts_from_dr_v1_report(doc)
     assert len(facts) >= 7  # 1 labor + 6 photos minimum
-    assert all(f["source_type"] == "daily_report_v1" for f in facts)
+    assert all(f["source_type"] == "daily_report" for f in facts)
 
 
 def test_snake_field_helper_maps_env_names_to_doc_keys():

@@ -215,9 +215,9 @@ def test_no_new_route_deletes_a_legacy_alias():
 def test_daily_submit_form_still_mounts_the_summary_section():
     """Regression against DR-CUTOVER-002 — the summary section stays
     inside the real form."""
-    src = _NEW_DAILY.read_text(encoding="utf-8")
-    assert "DailyOperationalSummarySection" in src, \
-        "DR-CUTOVER-002 section must remain mounted"
+    src = Path("/app/frontend/src/components/daily-report-v3/sections.jsx").read_text(encoding="utf-8")
+    assert "DailySummaryAssist" in src, \
+        "Canonical Daily Report summary section must remain mounted"
 
 
 def test_no_user_facing_ai_language_in_daily_summary_backend_route():

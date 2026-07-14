@@ -4,16 +4,24 @@
 - V3 shell scans legacy Daily Report draft prefixes:
   - `daily-report-new`
   - `daily-report`
-- If a current canonical draft is absent, the shell exposes a legacy recovery slot instead of failing silently
+- Canonical helper `promoteLegacyDailyReportDraft(...)` now:
+  - parses legacy draft keys
+  - infers actor/project/date/instance context
+  - compares against canonical target freshness
+  - promotes only the newest valid candidate
+  - verifies readback
+  - retires only the promoted source after success
+  - preserves malformed/mismatched candidates
 
 ## Evidence
 - `frontend/src/pages/NewDailyReportV3.jsx`
 - `frontend/src/lib/resiliency/draftStore.js`
 
-## Not yet complete
-- Full non-destructive promotion + readback + safe retirement workflow for every legacy candidate
-- Archived legacy-key retirement proof
-- Queue-candidate migration proof
+## Deterministic proof added
+- frontend test: `dailyReportMigration.test.js`
+  - promotes newest valid legacy draft into canonical key
+  - does not overwrite newer canonical target
+  - preserves malformed/mismatched candidates
 
-## DR-03 checkpoint verdict for migration
-- Partial implementation only
+## Remaining open item
+- archived legacy-key retirement proof in full browser/runtime flow still not fully exercised

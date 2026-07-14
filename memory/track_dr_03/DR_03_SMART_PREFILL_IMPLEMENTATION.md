@@ -12,6 +12,7 @@
 - Explicit Smart Prefill offer card in V3 shell
 - Explicit Restore Setup / Start Fresh actions
 - Truthful calm error state when no reusable context or request failure occurs
+- Explicit `Try Again` control for retryable failures
 
 ## Implemented restored fields
 - crew identities
@@ -23,6 +24,12 @@
 ## Implemented protections
 - explicit overwrite confirmation if current setup rows are already non-empty
 - stale request-key suppression
+
+## Failure-state distinctions implemented
+- no prior report found
+- permission-restricted access
+- malformed/incomplete response
+- request/network/server failure
 
 ## Remaining open item
 - Production-style project with actual prior-report data still needs end-to-end proof in preview/field acceptance

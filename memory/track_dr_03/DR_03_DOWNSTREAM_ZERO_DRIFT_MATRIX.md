@@ -4,15 +4,16 @@
 |---|---|
 | Submission API | Implemented + smoke verified |
 | Draft health telemetry contract | Verified by backend unit test |
-| Viewer | Not yet re-certified in this checkpoint |
-| PDF | Not yet re-certified in this checkpoint |
-| Email | Not yet re-certified in this checkpoint |
-| Export | Not yet re-certified in this checkpoint |
-| Search | Not yet re-certified in this checkpoint |
-| Audit | Not yet re-certified in this checkpoint |
-| Trust Spine | Not yet re-certified in this checkpoint |
-| ODS | Not yet re-certified in this checkpoint |
+| Viewer | NOT_YET_EXERCISED |
+| PDF | NOT_YET_EXERCISED |
+| Email | NOT_YET_EXERCISED |
+| Export | NOT_YET_EXERCISED |
+| Search | NOT_YET_EXERCISED |
+| Audit | NOT_YET_EXERCISED |
+| Trust Spine | NOT_YET_EXERCISED |
+| ODS | partially re-certified by backend contract tests |
 
 ## DR-03 checkpoint note
 - Core authoring convergence is implemented.
-- Full downstream zero-drift proof remains open.
+- Canonical summary accept path and ODS source-family naming were normalized in code/tests.
+- Full downstream zero-drift runtime proof remains open.

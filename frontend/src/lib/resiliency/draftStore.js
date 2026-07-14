@@ -243,6 +243,137 @@ export async function listDraftEntriesForPrefix(formKeyPrefix) {
   }
 }
 
+function _parseStorageRowKey(key) {
+  if (typeof key !== "string") return null;
+  const isDraft = key.startsWith(DRAFT_PREFIX);
+  const isArchive = key.startsWith(ARCHIVE_PREFIX);
+  if (!isDraft && !isArchive) return null;
+  const prefix = isDraft ? DRAFT_PREFIX : ARCHIVE_PREFIX;
+  const rest = key.slice(prefix.length);
+  const firstDot = rest.indexOf(".");
+  if (firstDot < 0) return null;
+  const actorId = rest.slice(0, firstDot);
+  const tail = rest.slice(firstDot + 1);
+  if (isDraft) {
+    return { kind: "draft", actorId, formKey: tail, deletedAt: null };
+  }
+  const lastDot = tail.lastIndexOf(".");
+  if (lastDot < 0) return null;
+  const formKey = tail.slice(0, lastDot);
+  const deletedAt = Number(tail.slice(lastDot + 1) || 0) || null;
+  return { kind: "archive", actorId, formKey, deletedAt };
+}
+
+export function inferDailyReportContextFromForm(entry = {}, parsed = {}) {
+  const form = entry?.form || {};
+  const byForm = {
+    actor_id: entry?.savedByActor || parsed?.actorId || "",
+    project_number: form?.project_number || "",
+    report_date: form?.report_date || "",
+    report_instance: form?.report_instance || "primary",
+    report_number: form?.report_number || "",
+  };
+  const formKey = String(parsed?.formKey || "");
+  const match = formKey.match(/daily-report(?:-new)?::(.+)$/);
+  if (match && match[1]) {
+    const bits = match[1].split("::");
+    if (bits.length >= 4) {
+      byForm.actor_id = byForm.actor_id || bits[0] || "";
+      byForm.project_number = byForm.project_number || bits[1] || "";
+      byForm.report_date = byForm.report_date || bits[2] || "";
+      byForm.report_instance = byForm.report_instance || bits[3] || "primary";
+    } else if (bits.length === 3) {
+      byForm.project_number = byForm.project_number || bits[0] || "";
+      byForm.report_date = byForm.report_date || bits[1] || "";
+      byForm.report_number = byForm.report_number || bits[2] || "";
+      byForm.report_instance = byForm.report_instance || "primary";
+    } else if (bits.length === 2) {
+      byForm.project_number = byForm.project_number || bits[0] || "";
+      byForm.report_date = byForm.report_date || bits[1] || "";
+    }
+  }
+  return byForm;
+}
+
+export async function promoteLegacyDailyReportDraft({
+  targetActorId,
+  targetFormKey,
+  targetContext,
+  candidates,
+}) {
+  const out = {
+    promoted: false,
+    preserved: 0,
+    retired: 0,
+    reason: "no_candidate",
+    chosenKey: null,
+  };
+  if (!targetFormKey || !Array.isArray(candidates) || candidates.length === 0) return out;
+
+  const targetExisting = await get(_draftKey(targetActorId, targetFormKey)).catch(() => null);
+  const targetSavedAt = Number(targetExisting?.savedAt || 0);
+
+  const valid = candidates
+    .map((row) => {
+      const parsed = _parseStorageRowKey(row?.key);
+      const entry = row?.entry || null;
+      const context = inferDailyReportContextFromForm(entry, parsed || {});
+      const sameProject = String(context.project_number || "") === String(targetContext?.project_number || "");
+      const sameDate = String(context.report_date || "") === String(targetContext?.report_date || "");
+      const sameInstance = String(context.report_instance || "primary") === String(targetContext?.report_instance || "primary");
+      const actorMatch = !context.actor_id || String(context.actor_id) === String(targetContext?.actor_id || "");
+      return {
+        row,
+        parsed,
+        entry,
+        context,
+        valid: Boolean(entry?.form && sameProject && sameDate && sameInstance && actorMatch),
+      };
+    })
+    .filter((row) => row.valid)
+    .sort((a, b) => Number(b.entry?.savedAt || 0) - Number(a.entry?.savedAt || 0));
+
+  out.preserved = candidates.length;
+  if (!valid.length) {
+    out.reason = "no_valid_candidate";
+    return out;
+  }
+
+  const newest = valid[0];
+  out.chosenKey = newest.row.key;
+  if (targetSavedAt && targetSavedAt >= Number(newest.entry?.savedAt || 0)) {
+    out.reason = "target_newer";
+    return out;
+  }
+
+  const promoted = await promoteDraftEntry(targetActorId, targetFormKey, {
+    ...newest.entry,
+    savedByActor: targetContext?.actor_id || newest.entry?.savedByActor || null,
+    migratedFromKey: newest.row.key,
+    migratedAt: Date.now(),
+  });
+  if (!promoted) {
+    out.reason = "promote_failed";
+    return out;
+  }
+
+  const readback = await get(_draftKey(targetActorId, targetFormKey)).catch(() => null);
+  if (!readback?.form) {
+    out.reason = "readback_failed";
+    return out;
+  }
+
+  try {
+    await del(newest.row.key);
+    out.retired = 1;
+  } catch {
+    out.retired = 0;
+  }
+  out.promoted = true;
+  out.reason = "promoted";
+  return out;
+}
+
 export async function promoteDraftEntry(actorId, formKey, entry) {
   if (!formKey || !entry || typeof entry !== "object" || !entry.form) return false;
   try {

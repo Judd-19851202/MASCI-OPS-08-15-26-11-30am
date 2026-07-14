@@ -593,10 +593,11 @@ export function AppRoutes() {
             {/* TRACK 19.36 · Executive Case Report — boardroom-grade single-screen view. */}
             <Route path="/safety/cases/:caseId/executive-report" element={<ExecutiveCaseReport />} />
 
-            {/* TRACK 23.1 · flag-gated V1 vs V3 Daily Report shell.
-                Same backend, same payload, same downstream. Only the
-                React tree that renders here changes with the flag. */}
-            <Route path="/daily/new" element={<DailyReportRouter />} />
+            {/* DR-03 · Canonical Daily Report authoring route.
+                `/daily/submit` is the only creation route. Legacy
+                creation aliases redirect here and never mount a
+                competing shell. */}
+            <Route path="/daily/new" element={<Navigate to="/daily/submit" replace />} />
             <Route path="/daily/submit" element={<DailyReportRouter publicMode />} />
 
             <Route path="/equipment/new" element={<NewEquipmentInspection />} />
@@ -619,7 +620,7 @@ export function AppRoutes() {
                 If a poster already out in the field points at an older
                 URL pattern, redirect to the canonical route instead of
                 404-ing. Matches the /cheat-sheet redirect pattern. */}
-            <Route path="/reports/daily/new" element={<Navigate to="/daily/new" replace />} />
+            <Route path="/reports/daily/new" element={<Navigate to="/daily/submit" replace />} />
             {/* TRACK 22.9C-FIX · Field Leadership Portal Dashboard historically
                 pointed "Daily Reports" at the bare /daily-reports path (no
                 portal prefix). That path had no route registered, causing
@@ -627,7 +628,7 @@ export function AppRoutes() {
                 page mid-workflow. Fixed at the source (button target →
                 /daily/new) AND redirected here so any legacy nav, poster,
                 or bookmarked URL still lands on the canonical V3 form. */}
-            <Route path="/daily-reports" element={<Navigate to="/daily/new" replace />} />
+            <Route path="/daily-reports" element={<Navigate to="/daily/submit" replace />} />
             <Route path="/safety/jha" element={<Navigate to="/jha" replace />} />
             <Route path="/safety/trench-boxes" element={<Navigate to="/trench-boxes" replace />} />
             {/* Phase 3 · Trench Safety inside the Safety portal */}
@@ -1304,6 +1305,11 @@ export function AppRoutes() {
             {/* DR-UNIFY-003 · internal-only Daily Report shell RETIRED. Any old link
                 lands on the single canonical Daily Report at /daily/submit. */}
             <Route path="/daily-report/v2" element={<Navigate to="/daily/submit" replace />} />
+            <Route path="/daily/v1" element={<Navigate to="/daily/submit" replace />} />
+            <Route path="/daily/v2" element={<Navigate to="/daily/submit" replace />} />
+            <Route path="/daily/v3" element={<Navigate to="/daily/submit" replace />} />
+            <Route path="/daily-report/v1" element={<Navigate to="/daily/submit" replace />} />
+            <Route path="/daily-report/v3" element={<Navigate to="/daily/submit" replace />} />
             <Route path="/pm/operational-intelligence" element={<PmOperationalIntelligence />} />
             {/* DR-UNIFY-002 · orphaned duplicate collapsed into canonical Admin OI. */}
             <Route path="/admin/ods-intelligence" element={<Navigate to="/admin/operational-intelligence" replace />} />

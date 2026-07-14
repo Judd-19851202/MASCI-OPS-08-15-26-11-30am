@@ -370,7 +370,7 @@ def _build_facts_from_dr_v1_report(rec: Dict[str, Any]) -> List[Dict[str, Any]]:
     if not pid or not date:
         return []
 
-    src_type = "daily_report_v1"
+    src_type = "daily_report"
     src_id = rec.get("id") or rec.get("doc_id") or rec.get("report_number") or ""
     if not src_id:
         return []
@@ -784,27 +784,27 @@ async def ingest_dr_v1_report(
             pass
     if not facts:
         run_id = await record_ingestion_run(
-            db, source_type="daily_report_v1", source_id=src_id, source_version=0,
+            db, source_type="daily_report", source_id=src_id, source_version=0,
             actor=actor, trigger=trigger, ok=True,
             facts_inserted=0, facts_superseded=0, facts_unchanged=0,
             started_at=started, error="no_facts_derived",
         )
         return {"ok": True, "run_id": run_id, "facts_inserted": 0, "facts_superseded": 0}
 
-    superseded = await supersede_facts(db, source_type="daily_report_v1", source_id=src_id)
+    superseded = await supersede_facts(db, source_type="daily_report", source_id=src_id)
     run_id = uuid.uuid4().hex
     for f in facts:
         f["ingestion_run_id"] = run_id
     result = await write_facts(db, facts, ingestion_run_id=run_id)
     await record_ingestion_run(
-        db, source_type="daily_report_v1", source_id=src_id,
+        db, source_type="daily_report", source_id=src_id,
         source_version=facts[0].get("source_version", 0),
         actor=actor, trigger=trigger, ok=True,
         facts_inserted=result["inserted"], facts_superseded=superseded,
         facts_unchanged=0, started_at=started,
     )
     await db["operational_ingestion_runs"].update_many(
-        {"source_type": "daily_report_v1", "source_id": src_id, "started_at": started},
+        {"source_type": "daily_report", "source_id": src_id, "started_at": started},
         {"$set": {"run_id": run_id}},
     )
     return {

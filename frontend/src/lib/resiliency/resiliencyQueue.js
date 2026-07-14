@@ -21,6 +21,7 @@
 import { get, set, del } from "idb-keyval";
 import { api } from "@/lib/api";
 import { normalizeDailyReportPayload, formatUnrepairableErrors } from "../dailyReportPayloadRepair";
+import { getStableActorIdentity } from "./actorId";
 
 const QUEUE_KEY = "masci.resiliency.queue.v1";
 const MAX_TRIES = 5;
@@ -109,6 +110,19 @@ export function getQueueItems() {
   return [...(_queue || [])];
 }
 
+export async function clearQueueItemByIdempotency(idempotencyKey) {
+  if (!idempotencyKey) return { removed: 0 };
+  await _load();
+  const before = _queue.length;
+  _queue = _queue.filter((it) => it && it.idempotencyKey !== idempotencyKey);
+  const removed = before - _queue.length;
+  if (removed > 0) {
+    await _persist();
+    _notify();
+  }
+  return { removed };
+}
+
 /**
  * Add an upload to the queue. Tries once immediately; if it fails,
  * persists for retry. Returns {ok: true, data} on immediate success,
@@ -124,6 +138,7 @@ export async function enqueueUpload(item) {
     body: item.body,
     idempotencyKey: item.idempotencyKey,
     formKey: item.formKey,
+    actorId: item.actorId || getStableActorIdentity() || "anon",
     tries: 0,
     status: "pending",
     enqueuedAt: Date.now(),

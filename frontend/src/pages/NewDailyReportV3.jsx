@@ -9,10 +9,8 @@
 // same payload contract — so PM/ODS/Trust Spine/email/PDF continue
 // to work byte-identically.
 //
-// The flag hook (`useDailyReportV3Flag`) is consulted by AppRoutes
-// to decide whether this shell or the V1 shell renders at
-// `/daily/new`. This file itself never checks the flag — it's already
-// running.
+// DR-03 canonical shell. AppRoutes now sends all Daily Report creation
+// traffic to `/daily/submit`, which renders this component only.
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
@@ -33,6 +31,7 @@ import {
   DraftRecoveryNotice,
   recoverArchivedDraft,
   listDraftEntriesForPrefix,
+  promoteLegacyDailyReportDraft,
   emitDraftEvent,
   DAILY_REPORT_FORM_BASE,
   buildDailyReportInstanceScope,
@@ -154,6 +153,9 @@ export default function NewDailyReportV3({ publicMode = false }) {
   const [smartPrefillOffer, setSmartPrefillOffer] = useState(null);
   const [smartPrefillLoadedKey, setSmartPrefillLoadedKey] = useState("");
   const [smartPrefillError, setSmartPrefillError] = useState("");
+  const [smartPrefillFailureKind, setSmartPrefillFailureKind] = useState("");
+  const [smartPrefillLoading, setSmartPrefillLoading] = useState(false);
+  const [smartPrefillRetryNonce, setSmartPrefillRetryNonce] = useState(0);
   const [prefillNotice, setPrefillNotice] = useState(null);
   const [legacyDraftRecovery, setLegacyDraftRecovery] = useState(null);
   const [archivedDraft, setArchivedDraft] = useState(null);
@@ -205,9 +207,31 @@ export default function NewDailyReportV3({ publicMode = false }) {
         }
       }
       if (cancelled) return;
-      const legacy = rows
+      const candidates = rows
         .filter((row) => typeof row?.key === "string")
-        .filter((row) => !row.key.includes(`.${scopedFormKey}`))
+        .filter((row) => !row.key.includes(`.${scopedFormKey}`));
+
+      const migration = await promoteLegacyDailyReportDraft({
+        targetActorId: getDeviceScopedActorId(),
+        targetFormKey: scopedFormKey,
+        targetContext: {
+          actor_id: actorId,
+          project_number: data.project_number,
+          report_date: data.report_date,
+          report_instance: data.report_instance || "primary",
+        },
+        candidates,
+      });
+
+      if (migration.promoted) {
+        emitDraftEvent("draft.lifecycle", {
+          formKey: scopedFormKey,
+          trigger: "legacy_migration.promoted",
+        });
+        return;
+      }
+
+      const legacy = candidates
         .map((row) => row?.entry)
         .find((entry) => entry?.form && Object.keys(entry.form || {}).length > 1);
       if (legacy?.form) {
@@ -215,10 +239,14 @@ export default function NewDailyReportV3({ publicMode = false }) {
           form: legacy.form,
           savedAt: legacy.savedAt || null,
         });
+        emitDraftEvent("draft.lifecycle", {
+          formKey: scopedFormKey,
+          trigger: `legacy_migration.${migration.reason || "recovery_offered"}`,
+        });
       }
     })();
     return () => { cancelled = true; };
-  }, [draftLoaded, pendingDraft, scopedFormKey]);
+  }, [draftLoaded, pendingDraft, scopedFormKey, actorId, data.project_number, data.report_date, data.report_instance]);
 
   useEffect(() => {
     if (!draftLoaded) return undefined;
@@ -287,13 +315,15 @@ export default function NewDailyReportV3({ publicMode = false }) {
     if (!projectNumber) {
       setSmartPrefillOffer(null);
       setSmartPrefillError("");
+      setSmartPrefillFailureKind("");
       return undefined;
     }
     const foreman = String(data.prepared_by || "").trim();
     const superintendent = String(data.superintendent || "").trim();
     const requestKey = `${projectNumber}::${data.report_date || ""}::${foreman}::${superintendent}`;
-    if (requestKey === smartPrefillLoadedKey) return undefined;
+    if (requestKey === smartPrefillLoadedKey && smartPrefillRetryNonce === 0) return undefined;
     let cancelled = false;
+    setSmartPrefillLoading(true);
     emitDraftEvent("draft.lifecycle", { formKey: scopedFormKey, trigger: "smart_prefill.requested" });
     (async () => {
       try {
@@ -313,10 +343,20 @@ export default function NewDailyReportV3({ publicMode = false }) {
           sourceProject: projectNumber,
         } : null);
         setSmartPrefillError(hasReusable ? "" : t("No previous setup found for this project yet."));
+        setSmartPrefillFailureKind(hasReusable ? "" : "no_prior_report");
       } catch (error) {
         if (cancelled) return;
         setSmartPrefillOffer(null);
-        setSmartPrefillError(t("Previous setup could not be loaded. You can continue manually or try again."));
+        const status = Number(error?.response?.status || 0);
+        const failureKind = status === 403 ? "permission" : (status >= 500 ? "request_failed" : (status ? "malformed_response" : "request_failed"));
+        setSmartPrefillFailureKind(failureKind);
+        setSmartPrefillError(
+          failureKind === "permission"
+            ? t("Previous setup is not available for this account. You can continue manually.")
+            : failureKind === "malformed_response"
+              ? t("Previous setup returned incomplete data. You can continue manually or try again.")
+              : t("Previous setup could not be loaded. You can continue manually or try again."),
+        );
         emitDraftEvent("draft.lifecycle", {
           formKey: scopedFormKey,
           trigger: "smart_prefill.failed",
@@ -324,11 +364,15 @@ export default function NewDailyReportV3({ publicMode = false }) {
           error: error?.message || "request failed",
         });
       } finally {
-        if (!cancelled) setSmartPrefillLoadedKey(requestKey);
+        if (!cancelled) {
+          setSmartPrefillLoadedKey(requestKey);
+          setSmartPrefillLoading(false);
+          setSmartPrefillRetryNonce(0);
+        }
       }
     })();
     return () => { cancelled = true; };
-  }, [draftLoaded, pendingDraft, data.project_number, data.report_date, data.prepared_by, data.superintendent, smartPrefillLoadedKey, scopedFormKey, t]);
+  }, [draftLoaded, pendingDraft, data.project_number, data.report_date, data.prepared_by, data.superintendent, smartPrefillLoadedKey, smartPrefillRetryNonce, scopedFormKey, t]);
 
   const onApplySmartPrefill = useCallback(() => {
     if (!smartPrefillOffer) return;
@@ -377,6 +421,14 @@ export default function NewDailyReportV3({ publicMode = false }) {
     setSmartPrefillOffer(null);
     emitDraftEvent("draft.restore.action", { formKey: scopedFormKey, trigger: "smart_prefill.skipped" });
   }, [scopedFormKey]);
+
+  const onRetrySmartPrefill = useCallback(() => {
+    if (smartPrefillLoading) return;
+    setSmartPrefillOffer(null);
+    setSmartPrefillLoadedKey("");
+    setSmartPrefillRetryNonce((n) => n + 1);
+    emitDraftEvent("draft.lifecycle", { formKey: scopedFormKey, trigger: "smart_prefill.retry" });
+  }, [smartPrefillLoading, scopedFormKey]);
 
   // ── Cost code fetch (CostCodeProvider) ─────────────────────
   useEffect(() => {
@@ -767,6 +819,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
           body: payload,
           idempotencyKey: idem,
           formKey: scopedFormKey,
+          actorId,
         });
         onQueueItemSettled(idem, async (res) => {
           if (res?.ok) {
@@ -977,7 +1030,20 @@ export default function NewDailyReportV3({ publicMode = false }) {
             data-testid="dr-v3-smart-prefill-error"
             className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
           >
-            {smartPrefillError}
+            <div>{smartPrefillError}</div>
+            {smartPrefillFailureKind && smartPrefillFailureKind !== "no_prior_report" ? (
+              <div className="mt-3 flex gap-2">
+                <button
+                  type="button"
+                  onClick={onRetrySmartPrefill}
+                  disabled={smartPrefillLoading}
+                  data-testid="dr-v3-smart-prefill-retry"
+                  className="rounded-lg bg-amber-700 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60"
+                >
+                  {smartPrefillLoading ? t("Trying again…") : t("Try Again")}
+                </button>
+              </div>
+            ) : null}
           </div>
         ) : null}
 

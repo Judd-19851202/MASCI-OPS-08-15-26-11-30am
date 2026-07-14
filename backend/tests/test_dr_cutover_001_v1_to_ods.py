@@ -5,7 +5,7 @@ Enforces that:
   1. `ingest_dr_v1_report` builds the expected fact shape from V1 daily_reports.
   2. Idempotency holds: re-running supersedes rather than duplicating.
   3. The V1 submit hook path exists (grep on daily_reports.py).
-  4. Source type is `daily_report_v1` (valid per model.SOURCE_TYPES).
+  4. Source type is `daily_report` (valid per model.SOURCE_TYPES).
   5. Backfill script exists and has --dry-run + --live modes.
 
 All tests use in-memory fake collections. No live DB required.
@@ -127,9 +127,9 @@ def test_v1_builder_emits_material_facts():
     assert mats[0]["payload"]["quantity"] == 60
 
 
-def test_v1_builder_uses_source_type_daily_report_v1():
+def test_v1_builder_uses_source_type_daily_report():
     facts = _build_facts_from_dr_v1_report(_v1_doc())
-    assert all(f["source_type"] == "daily_report_v1" for f in facts)
+    assert all(f["source_type"] == "daily_report" for f in facts)
 
 
 def test_v1_builder_returns_empty_when_missing_project_or_date():
@@ -250,7 +250,7 @@ async def test_ingest_v1_records_ingestion_run():
     await ingest_dr_v1_report(db, _v1_doc(), actor="test", trigger="event")
     runs = db.operational_ingestion_runs.rows
     assert runs, "expected at least one ingestion run"
-    assert runs[0]["source_type"] == "daily_report_v1"
+    assert runs[0]["source_type"] == "daily_report"
 
 
 # ────────────────────────────── HOOK PROBE ────────────────────────────
@@ -274,6 +274,6 @@ def test_backfill_script_exists_with_dry_run_and_live_modes():
     assert "operational_ingestion_runs" in src
 
 
-def test_source_type_daily_report_v1_is_valid_per_model():
+def test_source_type_daily_report_is_valid_per_model():
     from services.ods_spine.model import SOURCE_TYPES
-    assert "daily_report_v1" in SOURCE_TYPES
+    assert "daily_report" in SOURCE_TYPES

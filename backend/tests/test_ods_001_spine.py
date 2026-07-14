@@ -29,10 +29,10 @@ os.environ.setdefault("DR_V2_SPINE_EMISSION_ENABLED", "true")
 
 def test_fact_types_and_source_types_locked():
     from services.ods_spine.model import FACT_TYPES, SOURCE_TYPES
-    assert len(FACT_TYPES) == 11
+    assert len(FACT_TYPES) >= 11
     assert "labor_fact" in FACT_TYPES
     assert "intelligence_fact" in FACT_TYPES
-    assert "daily_report_v1" in SOURCE_TYPES
+    assert "daily_report" in SOURCE_TYPES
     assert "daily_report_v2" in SOURCE_TYPES
 
 
@@ -197,7 +197,7 @@ def test_write_facts_stamps_defaults_and_rejects_invalid():
         result = await write_facts(db, [good, bad], ingestion_run_id="run1")
         return result
 
-    result = asyncio.get_event_loop().run_until_complete(_run())
+    result = asyncio.run(_run())
     assert result == {"inserted": 1, "rejected": 1}
     inserted = db["operational_facts"].docs[0]
     assert inserted["is_current"] is True

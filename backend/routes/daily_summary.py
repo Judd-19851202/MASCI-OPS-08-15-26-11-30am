@@ -385,11 +385,28 @@ def register_daily_summary_routes(
         )
         original_text = _clean_str(body.original_text, _MAX_SUMMARY_CHARS) or None
 
+        accepted_at = _now_iso()
+        summary_text = body.summary_text.strip()[:_MAX_SUMMARY_CHARS]
         patch: Dict[str, Any] = {
-            "daily_operational_summary": body.summary_text.strip()[:_MAX_SUMMARY_CHARS],
+            # Canonical Daily Report summary family for all new writes.
+            "ai_accepted_summary": summary_text,
+            "ai_accepted_summary_meta": {
+                "source": "edited" if source == "user_edited" else "manual",
+                "accepted_at": accepted_at,
+                "accepted_by": accepted_by,
+                "language": language,
+                "canonical_english": canonical_english,
+                "evidence_refs": list(body.evidence_refs or [])[:64],
+                "original_text": original_text,
+                "edited_by_user": source == "user_edited",
+                "provider_masked": None,
+                "model_masked": None,
+            },
+            # Legacy compatibility read fields retained temporarily.
+            "daily_operational_summary": summary_text,
             "daily_operational_summary_status": "accepted",
             "daily_operational_summary_source": source,
-            "daily_operational_summary_accepted_at": _now_iso(),
+            "daily_operational_summary_accepted_at": accepted_at,
             "daily_operational_summary_accepted_by": accepted_by,
             "daily_operational_summary_language": language,
             "daily_operational_summary_canonical_english": canonical_english,
@@ -420,7 +437,7 @@ def register_daily_summary_routes(
                         "agent": "daily_operational_summary",
                         "language": language,
                         "source": source,
-                        "chars": len(patch["daily_operational_summary"]),
+                        "chars": len(summary_text),
                     }
                     fact["accepted_at"] = _now_iso()
                     # Supersede previous is_current facts for same source_id+key.

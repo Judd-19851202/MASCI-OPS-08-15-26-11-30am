@@ -303,4 +303,32 @@ describe("resiliencyQueue · DR-QUEUE-RETRY-001 contract", () => {
       date: "2026-06-09",
     });
   });
+
+  test("canonical daily report queue entry preserves actor ownership and form key", async () => {
+    const mod = await freshModule();
+    mockRequest.mockRejectedValueOnce(new Error("offline"));
+    await mod.enqueueUpload({
+      url: "/daily-reports",
+      method: "POST",
+      body: { project_number: "26-07", report_date: "2026-07-13", report_instance: "primary" },
+      idempotencyKey: "idem-dr-canonical",
+      formKey: "daily-report::dir-1::26-07::2026-07-13::primary",
+      actorId: "dir-1",
+    });
+    const item = mod.getQueueItems()[0];
+    expect(item.url).toBe("/daily-reports");
+    expect(item.formKey).toBe("daily-report::dir-1::26-07::2026-07-13::primary");
+    expect(item.actorId).toBe("dir-1");
+  });
+
+  test("clearQueueItemByIdempotency removes only the matching queue item", async () => {
+    const mod = await freshModule();
+    mockRequest.mockRejectedValue(new Error("offline"));
+    await mod.enqueueUpload({ url: "/daily-reports", method: "POST", body: { n: 1 }, idempotencyKey: "idem-a", formKey: "daily-report::a", actorId: "a" });
+    await mod.enqueueUpload({ url: "/daily-reports", method: "POST", body: { n: 2 }, idempotencyKey: "idem-b", formKey: "daily-report::b", actorId: "b" });
+    const out = await mod.clearQueueItemByIdempotency("idem-a");
+    expect(out.removed).toBe(1);
+    expect(mod.getQueueItems()).toHaveLength(1);
+    expect(mod.getQueueItems()[0].idempotencyKey).toBe("idem-b");
+  });
 });

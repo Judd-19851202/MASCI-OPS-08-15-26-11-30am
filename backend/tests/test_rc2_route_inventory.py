@@ -32,7 +32,7 @@ BANNED_ROUTES = ["/api/equipment-units"]
 CANONICAL_ROUTES = [
     "/",
     "/sign-in",
-    "/daily/new",
+    "/daily/submit",
     "/jha",
     "/inspection/new",
     "/meeting/new",

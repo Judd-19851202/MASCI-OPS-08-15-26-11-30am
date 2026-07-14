@@ -313,6 +313,9 @@ def test_accept_persists_summary_onto_daily_report_doc():
     )
     assert r.status_code == 200, r.text
     stored = db.daily_reports.docs[0]
+    assert stored["ai_accepted_summary"] == "Final approved summary text."
+    assert stored["ai_accepted_summary_meta"]["accepted_by"] == "J. Doe"
+    assert stored["ai_accepted_summary_meta"]["language"] == "en"
     assert stored["daily_operational_summary"] == "Final approved summary text."
     assert stored["daily_operational_summary_status"] == "accepted"
     assert stored["daily_operational_summary_source"] == "user_edited"

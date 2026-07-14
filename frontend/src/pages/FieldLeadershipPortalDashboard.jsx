@@ -219,7 +219,7 @@ export default function FieldLeadershipPortalDashboard() {
             </p>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4">
               {[
-                { label: t("Daily Reports"), to: "/daily/new" },
+                { label: t("Daily Reports"), to: "/daily/submit" },
                 { label: t("Safety Meetings"), to: "/meetings" },
                 { label: t("JHAs"), to: "/jhas" },
                 { label: t("Pre-Ops / DVIRs"), to: "/equipment" },

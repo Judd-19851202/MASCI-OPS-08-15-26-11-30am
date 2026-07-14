@@ -85,7 +85,7 @@ export default function DailyReportsDashboard() {
             testIdPrefix="share-daily"
           />
           <Button
-            onClick={() => navigate("/daily/new")}
+            onClick={() => navigate("/daily/submit")}
             className="h-10 px-4 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-xs"
             data-testid="new-daily-btn"
           >
@@ -164,7 +164,7 @@ export default function DailyReportsDashboard() {
                 {t("File one before the crew leaves the site at end of day.")}
               </p>
               <Button
-                onClick={() => navigate("/daily/new")}
+                onClick={() => navigate("/daily/submit")}
                 className="mt-6 h-12 px-6 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide"
                 data-testid="empty-cta"
               >

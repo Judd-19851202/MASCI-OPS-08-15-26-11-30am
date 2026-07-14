@@ -24,7 +24,7 @@ FACT_TYPES = (
 )
 
 SOURCE_TYPES = (
-    "daily_report_v1", "daily_report_v2", "hr_time",
+    "daily_report", "daily_report_v2", "hr_time",
     "equipment_checkout", "safety_form", "qa_form", "job_photo",
     "dispatch_event", "manual_ingest", "mobile_submission",
 )
