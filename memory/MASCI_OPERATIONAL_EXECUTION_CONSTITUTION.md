@@ -60,6 +60,9 @@ The constitutional foundation is complete only when all governed concepts have e
 
 No TODO, placeholder, "to be defined later," or implementation-time improvisation is permitted for constitutional gaps.
 
+### 2.1 Stable Requirement IDs Rule
+Every binding constitutional rule requiring downstream implementation or certification must carry a stable requirement ID or be explicitly governed by a normative catalog carrying those IDs.
+
 ## 3. Permanent Platform Philosophy
 
 ### 3.1 Field First
@@ -85,6 +88,9 @@ Failure must degrade safely. No silent data loss. No silent drift. No irreversib
 
 ### 3.8 One Platform
 Scheduling, Daily Reports, Dispatch, Shop, Equipment, Fleet, Safety, HR, QA/QC, Trust, Search, ODS, and Executive Briefing are projections of one operational reality.
+
+### 3.9 One Ecosystem
+No portal-specific business truth, no dashboard-specific KPI formula, no duplicate briefing engine, no duplicate notification engine, no duplicate intelligence engine, and no duplicate status engine may be introduced.
 
 ## 4. The Eight Mandatory Engineering Pillars
 
@@ -187,6 +193,22 @@ The job/project is the canonical operational container.
 - canonical staffing ownership: `project_team_assignments`
 
 Jobs/projects may be referenced by schedule, Daily Reports, Dispatch, briefing, and reconciliation, but may not be redefined in those systems.
+
+### 7.0 Organization / Tenant
+The organization/tenant is the canonical top-level security and ownership boundary.
+
+- canonical owner: organization / tenant authority
+- canonical identifier: `tenant_id`
+- normative catalog: `MASCI_OPERATIONAL_EXECUTION_CONSTITUTIONAL_APPENDIX.md` §2 and §8
+
+### 7.01 Person / Professional Identity
+Person/professional identity is distinct from employee/company membership, email address, portal account, or display label.
+
+### 7.02 Employee / Company Membership
+Employee/company membership is the canonical governed relationship between a person and the company within a tenant.
+
+### 7.03 Daily Company Operations Brief Source Rule
+The Daily Company Operations Brief is the canonical executive publication layer only. It is never source truth.
 
 ### 7.2 Operational Work
 Operational Work is the canonical planned and owned unit of field execution.
@@ -307,6 +329,12 @@ If any of these are undefined, the concept is constitutionally incomplete.
 
 ## 9. Canonical Identifier and Reference Rules
 
+### 9.0 Stable Identifier Catalog Rule
+The normative stable identifier catalog is defined in:
+- `MASCI_OPERATIONAL_EXECUTION_CONSTITUTIONAL_APPENDIX.md` §2
+
+No governed cross-domain concept may exist outside that catalog.
+
 ### 9.1 Identifier Requirements
 Every governed object must have one immutable canonical identifier suitable for:
 - source storage
@@ -360,6 +388,8 @@ No collection, field, enum, index, or relationship may be introduced without ide
 - search impact
 - ODS impact
 - certification impact
+
+Schema contracts must trace to a stable identifier from the identifier catalog where the concept is identity-bearing.
 
 ### 10.3 Backward-Compatibility Rule
 Schema evolution must preserve historical readability and existing production behavior until migration is completed and certified.
@@ -434,6 +464,9 @@ Every endpoint must identify its downstream consumers, including:
 - AI workflows
 
 No endpoint may be treated as isolated if consumers exist.
+
+### 11.6 Manual Save and Deployment Boundary Rule
+No implementation prompt, API contract, or workflow description may imply that Emergent saves to GitHub or deploys preview/production.
 
 ## 12. Performance and Scale Governance
 
@@ -523,6 +556,10 @@ Read, create, modify, approve, publish, certify, override, and delete permission
 Attachments and evidence files must inherit governed visibility.
 Attachment URLs, exports, thumbnails, previews, and downloads may not bypass source-record authorization.
 
+### 13.5 Tenant and Security Contract Rule
+The normative tenant and security contract is defined in:
+- `MASCI_OPERATIONAL_EXECUTION_CONSTITUTIONAL_APPENDIX.md` §8
+
 ## 14. Workflow Dependency Governance
 
 ### 14.1 Complete Dependency Map Requirement
@@ -586,6 +623,8 @@ No illegal lifecycle jump may be silently accepted.
 ### 15.4 Normative Lifecycle Appendix Rule
 The explicit lifecycle definitions, transition rules, rollback rules, and terminal-state rules for the core governed objects are normatively cataloged in:
 - `MASCI_OPERATIONAL_EXECUTION_CONSTITUTIONAL_APPENDIX.md`
+
+No lifecycle may omit state meaning, entry/exit criteria, transition owner, evidence rule, audit rule, Trust mapping, notification impact, downstream projection impact, reversibility, or concurrency behavior where applicable.
 
 ## 16. Data Lineage Governance
 
@@ -673,6 +712,10 @@ This applies to production, labor hours, equipment utilization, schedule adheren
 
 No dashboard may invent its own competing KPI semantics.
 
+### 18.4 KPI Contract Rule
+The normative KPI contract is defined in:
+- `MASCI_OPERATIONAL_EXECUTION_CONSTITUTIONAL_APPENDIX.md` §5
+
 ## 19. Cross-Module Event Governance
 
 ### 19.1 Event Map Requirement
@@ -705,6 +748,10 @@ No hidden or implied downstream propagation is permitted.
 ### 19.3 Normative Event Appendix Rule
 The governing cross-module event, publication, dashboard, KPI, notification, and synchronization authorities are normatively cataloged in:
 - `MASCI_OPERATIONAL_EXECUTION_CONSTITUTIONAL_APPENDIX.md`
+
+### 19.4 Canonical Event Envelope Rule
+The canonical event envelope and event vocabulary are binding and defined in:
+- `MASCI_OPERATIONAL_EXECUTION_CONSTITUTIONAL_APPENDIX.md` §4
 
 ## 20. AI Governance
 
@@ -739,6 +786,10 @@ Nothing may feel bolted on, visually foreign, terminology-inconsistent, or behav
 
 ### 21.3 Mobile-First Workflow Rule
 Field workflows must be optimized for constrained width, intermittent connectivity, gloved/fast interaction, and interruption recovery.
+
+### 21.4 MASCI Product Identity and Experience Contract Rule
+The normative product identity, bilingual, and accessibility contract is defined in:
+- `MASCI_OPERATIONAL_EXECUTION_CONSTITUTIONAL_APPENDIX.md` §9
 
 ## 22. Search, ODS, Trust, Audit, and Publication Governance
 
@@ -804,6 +855,9 @@ Every notification class must define:
 - audit rule
 - user visibility scope
 
+The normative notification contract is defined in:
+- `MASCI_OPERATIONAL_EXECUTION_CONSTITUTIONAL_APPENDIX.md` §6
+
 ### 22.9 Storage and Evidence Governance
 Evidence-bearing attachments, images, documents, and exports must define:
 - source-record authority
@@ -838,6 +892,25 @@ Cached dashboards, cached projections, and cached executive/reporting surfaces m
 ### 22.14 Constitutional Appendix Rule
 Where explicit lifecycle catalogs, event maps, dashboard authorities, KPI authorities, notification authorities, offline/synchronization authorities, or publication authorities are required to eliminate ambiguity, the constitutional appendix is part of the governing law:
 - `MASCI_OPERATIONAL_EXECUTION_CONSTITUTIONAL_APPENDIX.md`
+
+### 22.15 Daily Company Operations Brief Contract Rule
+The normative Daily Company Operations Brief contract is defined in:
+- `MASCI_OPERATIONAL_EXECUTION_CONSTITUTIONAL_APPENDIX.md` §7
+
+### 22.16 Manual GitHub and Deployment Boundary Rule
+ONLY JAYMN MAY PHYSICALLY SAVE OR PUBLISH CHANGES TO GITHUB.
+ONLY JAYMN MAY PHYSICALLY DEPLOY PREVIEW OR PRODUCTION.
+
+Emergent may not push, publish, save to GitHub, deploy preview, deploy production, or claim those manual actions occurred.
+
+Emergent may inspect, implement locally, run tests, create evidence, prepare handoff, and verify later milestones only after Jaymn confirms the relevant manual action occurred.
+
+### 22.17 Workflow Milestone Rule
+The workflow milestones governing GitHub, preview, production, field acceptance, executive acceptance, and final closeout are defined in:
+- `MASCI_OPERATIONAL_EXECUTION_CONSTITUTIONAL_APPENDIX.md` §10
+
+### 22.18 Permanent Prohibited-Prompt Rule
+No future implementation prompt may instruct Emergent to save, push, publish, or deploy.
 
 ## 23. Migration and Release Governance
 
@@ -906,6 +979,13 @@ The constitution is complete only if every downstream implementation can answer,
 - how is it certified?
 
 If any implementation cannot answer those questions, it is constitutionally incomplete and implementation must not proceed.
+
+It must also answer:
+- what stable identifier governs it?
+- what tenant boundary governs it?
+- what dashboard mission consumes it?
+- what notification contract may deliver it?
+- what manual GitHub/deployment milestone applies before it can be claimed live?
 
 ## 26. Constitutional Non-Goals
 

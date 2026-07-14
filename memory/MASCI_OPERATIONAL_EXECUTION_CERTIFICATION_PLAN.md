@@ -21,11 +21,13 @@ Only the following certification statuses are permitted:
 - **BLOCKED** — execution could not complete due to a proven blocker
 - **STALE** — evidence exists but is outside the required freshness window
 - **NOT_YET_EXERCISED** — required evidence has not yet been executed
-- **UNKNOWN** — truth cannot currently be established
+- **NOT_APPLICABLE** — the requirement does not apply to the governed object, workflow, environment, role, or track; the reason must be explicit
+- **UNKNOWN** — truth cannot currently be established, and neither execution absence nor a proven blocker adequately describes the condition; reason, owner, and resolution path must be recorded
 
 No unexecuted test may be marked FAILED.
 No unproven behavior may be marked VERIFIED.
 No prose-only claim may substitute for evidence.
+UNKNOWN may not be used as a convenience substitute for incomplete investigation.
 
 ## 3. Universal Evidence Standard
 
@@ -41,6 +43,8 @@ Every certification outcome must record:
 - machine-verifiable outputs where applicable
 - role acceptance lane where applicable
 - blocker references where applicable
+- reason for NOT_APPLICABLE or UNKNOWN where used
+- owner and resolution path where UNKNOWN is used
 
 ## 4. Constitutional Certification Rule
 
@@ -62,6 +66,8 @@ For implementation tracks, certification must prove that the track remains const
 - security rules
 - performance rules
 - release rules
+- manual GitHub/deployment boundary rules
+- product identity and bilingual/accessibility rules
 
 ## 5. Engineering Certification
 
@@ -343,6 +349,14 @@ Must verify:
 
 Audit certification fails if historical truth cannot be reconstructed.
 
+## 22A. Lifecycle and Identifier Catalog Certification
+
+Must verify:
+- stable identifier catalog coverage is complete
+- no governed concept relies on display label or fuzzy text as canonical identity
+- lifecycle catalog covers every required governed object
+- split/merge/revision lineage is preserved
+
 ## 23. Dashboard, Executive Reporting, and Notification Certification
 
 Required whenever a track introduces or changes dashboards, executive reporting, brief-adjacent reporting, alerts, or notifications.
@@ -355,6 +369,38 @@ Must verify:
 - notification trigger authority is explicit
 - notification deduplication and retry rules are explicit
 - notifications do not become source or publication authority
+- English and Spanish text coverage exists where user-facing
+- existing notification ecosystem is reused
+
+## 23A. Daily Company Operations Brief Certification
+
+Must verify:
+- brief identity contract exists
+- reporting window and cutoff behavior are explicit
+- preliminary / revised / final lifecycle is explicit
+- late-data behavior is explicit
+- source-coverage and missing-data behavior are explicit
+- fact / derived / AI labeling is explicit
+- one canonical snapshot powers role-specific views
+- PDF/email/in-app delivery boundaries are explicit
+
+## 23B. Product Identity, Bilingual, and Accessibility Certification
+
+Must verify:
+- MASCI shared shell, navigation, typography, spacing, cards, selectors, drill-down, and permission-aware navigation are reused
+- English/Spanish parity exists for applicable user-facing surfaces
+- no color-only status communication exists
+- keyboard, screen-reader, focus, touch-target, semantic heading, and mobile/iPad responsiveness requirements are satisfied where applicable
+
+## 23C. Manual GitHub and Deployment Boundary Certification
+
+Must verify:
+- local work is not misrepresented as GitHub work
+- GitHub work is not misrepresented as deployed work
+- preview is not misrepresented as production
+- production is not misrepresented as field acceptance
+- field acceptance is not misrepresented as executive acceptance
+- only Jaymn is represented as the physical GitHub/deployment actor
 
 ## 24. Preview Verification
 
@@ -485,6 +531,7 @@ Any unanswered question blocks certification.
 No track is release-ready until all applicable certification lanes are either:
 - VERIFIED
 - or NOT_YET_EXERCISED with explicit reason, explicit owner, and explicit non-blocking classification
+- or NOT_APPLICABLE with explicit reason and scope statement
 
 Any BLOCKED, FAILED, STALE, or UNKNOWN item affecting a core truth surface blocks release.
 
@@ -505,8 +552,11 @@ Requires prior evidence plus proof that freshness is outside the accepted window
 ### NOT_YET_EXERCISED
 Requires explicit declaration that execution has not occurred.
 
+### NOT_APPLICABLE
+Requires explicit proof that the requirement does not apply to the governed object, workflow, environment, role, or track, plus the reason.
+
 ### UNKNOWN
-Requires explicit declaration that truth cannot currently be established and why.
+Requires explicit declaration that truth cannot currently be established, why BLOCKED or NOT_YET_EXERCISED do not adequately describe the condition, plus owner and resolution path.
 
 ## 34. Mandatory Certification Flow Per Implementation Track
 

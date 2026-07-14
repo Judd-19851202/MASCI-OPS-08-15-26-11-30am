@@ -2,170 +2,241 @@
 
 ## 1. Role Authority
 
-This matrix defines what each role may read, create, modify, approve, publish, commit, reconcile, override, certify, delegate, transfer, and audit within the MASCI Operational Execution system.
+This matrix defines explicit role/object/action authority for the MASCI Operational Execution system.
 
-No role may exceed the authority defined here.
-No implementation may widen role authority without updating this matrix and the related constitutional references.
+No shorthand letters are authoritative.
+Only the permission values defined below are authoritative.
 
-## 2. Legend
+## 2. Permission Value Set
 
-- **R** = read
-- **C** = create
-- **M** = modify
-- **A** = approve
-- **P** = publish
-- **K** = commit / finalize
-- **Q** = reconcile / run governed reconciliation action
-- **O** = override within explicitly governed boundaries only
-- **E** = escalate
-- **U** = audit review / evidence review
-- **T** = certification authority for the role’s governed acceptance lane
-- **D** = delegate within bounded role authority only
+- **ALLOWED** — actor may perform the action directly within governed scope
+- **READ_ONLY** — actor may view, but may not mutate or approve
+- **PROPOSE_ONLY** — actor may initiate a proposal/request, but another governed role must approve or complete
+- **APPROVAL_REQUIRED** — actor may perform the action only after required approval is attached or while acting in an approval lane explicitly granted elsewhere
+- **SYSTEM_DERIVED** — action may be executed only by deterministic preapproved automation
+- **PROHIBITED** — actor may not perform the action
+- **NOT_APPLICABLE** — action does not apply to this role/object combination
 
-## 3. Role Matrix
+## 3. Governed Roles
 
-| Role | Operational Work | Schedule | Daily Report | Reconciliation | Brief | Schema / API Governance Input | Security Governance Input | KPI Governance Input | Trust Spine / Audit Review | Override Authority | Certification Authority | Ownership Transfer | Delegation | Conflict Resolution |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Executive | R | R | R | R/A | R/A/P | review only, no direct engineering authority | review only, no direct implementation bypass | approves business KPI acceptance, not formulas by convenience | U | O only as governed business exception; cannot rewrite source facts | T for executive acceptance only | may approve ownership changes at business level, not perform source edits | D review authority only | final business deadlock escalator |
-| Operations | R/C/M | R/C/M/A/P/K | R | R/C/M/A/P/Q | R/C/M/A/P | required reviewer for operational dependency/governance impacts | required reviewer for operational boundary impacts | required reviewer for operational KPI semantics | U | O within governed operations rules only; no constitutional override | T for operations release acceptance | may transfer operational ownership where policy allows | D within operations chain | resolves cross-project and cross-domain execution conflicts |
-| Project Manager (PM) | R/C/M within project scope | R/C/M/A within project scope | R | R/C/M within project scope | R | input to project-scoped schema/API needs only | input to project-scope access and workflow boundaries | input to project KPI interpretation, not competing formula creation | U within scope | limited O within project scope; no override of constitutional or source-owner rules | contributes to certification evidence; not final platform authority | may request or approve scoped owner changes where policy allows | D within project staffing model | resolves project planning conflicts |
-| Superintendent | R/C/M on field execution scope | R/C/M on field commitment contribution | R/C/M/K on Daily Reports they own | R/C/M contribution | R contribution | no direct schema/API authority; operational input only | input on field authorization and continuity risk | input on field KPI usability | U on scoped records | may override field sequencing inside governed scope only | contributes to field acceptance | may request field ownership transfer | D to foreman within policy | resolves field execution conflicts |
-| Foreman | R/C/M on assigned work | R contribution | R/C/M/K on owned Daily Reports | R contribution | R | no | no direct authority; may report workflow risk | input on field KPI readability only | U on own records | no override beyond own entries and explicit field scope | field acceptance participant only | none | no general delegation authority | escalate to superintendent |
-| Field Leadership | R/C/M on scoped work and field records where authorized | R/C/M contribution within scope | R/C/M/K on scoped field records where authorized | R contribution | R contribution | no direct schema/API authority; field-operability input only | input on mobile-first, continuity, and role boundary impacts | input on field KPI consumption only | U on own scope | no constitutional override | required participant in field acceptance where affected | may request scoped ownership changes only | D within bounded field workflows | escalate to superintendent / PM |
-| Dispatcher | R on work affecting dispatch | R/C/M on dispatch projections only | R | R contribution | R contribution | input to dispatch API and event-contract impacts only | input to dispatch boundary and abuse-risk controls | input to dispatch KPI semantics only | U on dispatch actions | no override of source work or schedule authority | contributes to dispatch-related certification | none on source ownership | D dispatch tasks within dispatch workflow only | resolves dispatch resource conflicts |
-| Shop | R on work affecting shop and PM readiness | R on schedule constraints | R | R contribution | R contribution | input only for shop/PM integration points | input on readiness boundaries and attachment visibility where relevant | input to maintenance KPI consumption only | U | no override of source work | contributes to shop/equipment certification evidence | none | D internal only | escalate readiness conflicts |
-| Fleet | R on fleet/equipment impacts | R on fleet constraints | R | R contribution | R contribution | input only for fleet integration impacts | input on fleet visibility and authorization boundaries | input to fleet KPI semantics only | U | no override | contributes to fleet evidence | none | D internal only | escalate availability/safety conflicts |
-| Equipment | R/C/M on equipment state only | R on schedule readiness | R | R contribution | R contribution | input only for asset integration impacts | input on asset authorization and attachment safety | input to utilization and uptime KPIs only | U | no override of Operational Work or schedule authority | contributes to resource certification | none | D internal only | resolve/escalate equipment assignment conflicts |
-| Safety | R/C/M on safety source records | R on schedule blockers and stop-work constraints | R/C/M in safety workflows and safety-linked report facts where authorized | R/C/M on safety variance / root-cause sections | R/C/M safety brief contributions | required reviewer for safety schema/API implications where safety domain changes | required reviewer for safety access and stop-work boundaries | input to incident and safety KPI formulas | U | O only for governed safety stop-work and safety constraint authority | T for safety acceptance inside release gate | no source work ownership transfer | D safety review tasks within policy | resolves safety policy conflicts |
-| QA/QC | R/C/M on QA/QC source records | R on quality blockers | R on report references | R/C/M on quality variance sections | R/C/M quality brief contributions | required reviewer for QA/QC domain impacts | input on quality evidence visibility and permissions | input to QA/QC KPI formulas | U | may block acceptance within QA/QC domain only; no broad override | T for QA/QC acceptance in release gate | none | D internal only | resolves quality evidence conflicts |
-| HR | R on staffing and qualification context | R on qualification constraints | R | R contribution | R contribution | input only where people/qualification data is part of governed workflows | required reviewer for qualification visibility and eligibility boundaries | input to labor and qualification KPI definitions where HR-owned | U | no override of source work or schedule | T only for qualification/eligibility acceptance where required | may manage people-role eligibility, not work ownership | D within HR workflows | resolves qualification/eligibility conflicts |
-| Survey | R/C/M on survey source evidence | R on survey blockers / area definitions | R contribution | R contribution | R contribution | input to work-area schema/API impacts only | input on survey evidence boundaries | no KPI formula authority unless explicitly survey-owned | U | no source override | contributes to work-area certification | none | D internal only | resolves survey-control conflicts |
-| Training | R on qualification/training records | R on training constraints | R | R contribution | R contribution | no direct schema/API authority beyond training domain input | input on training visibility and compliance boundaries | input to training-readiness KPI semantics only | U | no override | contributes to readiness certification evidence | none | D internal only | escalate compliance/training conflicts |
-| Accounting | R on cost-code outputs and operational reports | R | R | R on reconciliation outputs | R | review only where accounting-facing data contracts are impacted | review only for financial visibility boundaries | review only for accounting-consumed KPI parity | U | no override | no platform certification authority | none | none | escalate to operations / executive |
-| Corporate Admin | R | R | R | R | R | no direct business-governance authority; administrative only | administers user/role system, not operational truth | no direct KPI authority | U | no direct operational override unless also acting in another governed role | no automatic certification authority | may manage administrative role assignments only | D for admin operations only | escalate to executive / system governance |
-| System | append, validate, compute, project by rule | project, publish, and validate by rule | store/route by rule | compute/run by explicit rule | publish by explicit rule | enforces approved schema/API contracts only | enforces approved security boundaries only | computes KPI formulas exactly as approved | writes audit/trust evidence mechanically | no discretionary override | executes mechanical gates only, never business acceptance | no business ownership transfer | none | none |
-| AI | suggest, summarize, classify only | suggest attention only | summarize, never source | summarize patterns, never decide | draft narrative, never verify | no schema/API authority | no security authority; must obey input/output boundaries | may assist explanation only, never redefine KPI formulas | attributed output only; no audit authority | no override | no certification authority | none | none | none |
+- Platform Admin
+- Company Admin
+- Owner/President
+- Executive
+- Operations Leadership
+- PM
+- Co-PM
+- Project Engineer
+- Superintendent
+- Foreman
+- Field Leadership
+- Dispatch
+- Transportation
+- Driver
+- Shop
+- Equipment/Fleet
+- Safety
+- HR
+- QA/QC
+- Survey
+- Accounting
+- Qualifications/Training Manager
+- Read-Only Leadership
+- System Automation
+- AI Assistant
 
-## 4. Ownership Rules
+## 4. Governed Objects
 
-### 4.1 Source Ownership Rule
-The source-record owner decides source truth within the authorized domain.
-No consumer role may silently overwrite source truth outside that authority.
+- Organization/Tenant
+- Person/Professional Identity
+- Employee/Company Membership
+- Project
+- Project Team Assignment
+- Company Cost Code
+- Project Cost Code
+- Cost-Code Alias
+- Work Area
+- Operational Work
+- Schedule Activity
+- Schedule Window
+- Published Schedule
+- Schedule Revision
+- Resource Demand
+- Resource Conflict
+- Constraint
+- Readiness
+- Daily Report
+- Daily Report Work Item
+- Production Actual
+- Labor Actual
+- Equipment Actual
+- Material Actual
+- Trucking Actual
+- Reconciliation
+- Carry-Forward
+- Executive Attention Item
+- KPI
+- Dashboard Projection
+- Daily Company Operations Brief
+- Brief Revision
+- Notification
+- Evidence/Attachment Reference
+- Audit Record
+- Trust Event
+- ODS Projection
+- Certification Artifact
 
-### 4.2 Publication Rule
-Reading a source record does not authorize publishing a derived operational artifact.
-Approval and publication rights must be explicit and role-bounded.
+## 5. Canonical Owner Matrix
 
-### 4.3 Dashboard Rule
-Seeing a dashboard does not authorize mutating the source records that feed it.
+| Object | Canonical Owner | Operational Contributor | Consumer | Escalation Owner | Backup Owner | SLA Note |
+|---|---|---|---|---|---|---|
+| Organization/Tenant | Company Admin / Platform authority | Company Admin | all scoped roles | Owner/President | Platform Admin | governance-critical |
+| Person/Professional Identity | identity authority | HR | all scoped domains | HR | Company Admin | identity-critical |
+| Employee/Company Membership | HR | Qualifications/Training Manager | PM, Safety, Dispatch, Operations | HR | Company Admin | workforce-critical |
+| Project | `jobs_master` | PM / Operations | all scoped domains | Operations Leadership | Company Admin | operational-critical |
+| Project Team Assignment | `project_team_assignments` | PM / Company Admin | PM, Executive, Operations, dashboards | Operations Leadership | Company Admin | staffing-critical |
+| Company Cost Code | company cost-code authority | Company Admin | PM, Operations, Daily Reports, Reconciliation | Operations Leadership | Accounting | financial classification |
+| Project Cost Code | project cost-code authority | PM | work, schedule, Daily Reports | Operations Leadership | Company Admin | project coding |
+| Cost-Code Alias | cost-code alias authority | PM / Company Admin | search, mapping, history | Operations Leadership | Company Admin | compatibility-only |
+| Work Area | work-area authority | Survey / PM | work, schedule, Daily Reports | Operations Leadership | Project Engineer | field-critical |
+| Operational Work | Operational Work authority | PM / Superintendent / Foreman / Field Leadership | schedule, reconciliation, brief | Operations Leadership | PM | core work truth |
+| Schedule Activity | schedule authority | PM / Superintendent / Field Leadership | dashboards, reconciliation, brief | Operations Leadership | Co-PM | commitment-critical |
+| Schedule Window | schedule authority | PM / Operations | schedule consumers | Operations Leadership | Co-PM | publication-critical |
+| Published Schedule | schedule authority | PM / Operations | Daily Execution, reconciliation, brief | Operations Leadership | Company Admin | publication-critical |
+| Schedule Revision | schedule authority | PM / Operations | schedule consumers | Operations Leadership | Company Admin | version-critical |
+| Resource Demand | source domain owner | PM / Superintendent / Dispatch / Shop | readiness/schedule/reconciliation | Operations Leadership | source domain backup owner | planning-critical |
+| Resource Conflict | conflict evaluation authority | Operations / PM / Dispatch / Shop | schedule/readiness/dashboards | Operations Leadership | source domain owner | action-critical |
+| Constraint | constraint authority | source domain + PM | schedule/readiness/reconciliation/brief | Operations Leadership or Safety when safety-bound | source domain backup owner | blocker-critical |
+| Readiness | readiness authority | PM / Dispatch / Shop / Safety / QA/QC | schedule/executive surfaces | Operations Leadership | PM | go/no-go critical |
+| Daily Report | `daily_reports` | Foreman / Superintendent / Field Leadership | PM, HR, Safety, ODS, reconciliation | PM for workflow, not source rewrite | Superintendent | field actual truth |
+| Daily Report Work Item | Daily Report authority | Foreman / Superintendent | ODS, work linkage, reconciliation | PM for workflow only | Superintendent | item-level actual truth |
+| Production Actual | Daily Report authority / governed projection | Foreman / Superintendent | ODS, KPI, reconciliation | PM / Operations | ODS projection authority | actuals-critical |
+| Labor Actual | Daily Report / HR as governed source split | Foreman / Superintendent / HR | payroll checks, KPI, reconciliation | HR | PM | labor-critical |
+| Equipment Actual | Daily Report / Equipment authority by concept | Foreman / Equipment/Fleet | KPI, reconciliation | Equipment/Fleet | Shop | asset-use critical |
+| Material Actual | Daily Report / source material domain | Foreman / PM | KPI, reconciliation, brief | PM | Operations | material-critical |
+| Trucking Actual | Transportation / Dispatch / Daily Report linkage | Dispatch / Transportation | KPI, reconciliation, brief | Operations Leadership | Dispatch | transport-critical |
+| Reconciliation | reconciliation authority | PM / Operations / Safety / QA/QC | brief, dashboards | Operations Leadership | PM | close-the-loop critical |
+| Carry-Forward | schedule/reconciliation authority | PM / Operations | schedule/reconciliation | Operations Leadership | PM | lineage-critical |
+| Executive Attention Item | executive attention authority | Executive / Operations | Executive / PM / Safety / HR as scoped | Owner/President | Executive | intervention-critical |
+| KPI | KPI owner per contract | source domain owners | dashboards, brief | Operations Leadership | Company Admin | decision-critical |
+| Dashboard Projection | governed dashboard authority | System Automation / source domains | role-specific users | owning role lane | source domain owner | read-only projection |
+| Daily Company Operations Brief | brief authority / Operational Intelligence | Executive / Operations reviewers | leadership consumers | Owner/President / Executive | Operations Leadership | publication-critical |
+| Brief Revision | brief authority | Executive / Operations | leadership consumers | Executive | Operations Leadership | version-critical |
+| Notification | notification authority over existing ecosystem | source workflow owner | targeted recipients | Operations Leadership / domain owner | Company Admin | delivery-only |
+| Evidence/Attachment Reference | source-record authority | source workflow roles | scoped viewers | source domain escalation owner | Company Admin | evidence-critical |
+| Audit Record | audit authority | System Automation | admins / scoped auditors | Platform Admin | Company Admin | append-only |
+| Trust Event | Trust Spine authority | System Automation | certification / operations | Platform Admin | Company Admin | append-only proof |
+| ODS Projection | ODS authority | System Automation | dashboards, brief, analytics | Operations Leadership | Platform Admin | derived-only |
+| Certification Artifact | certification authority | engineers / operators / executives per lane | approvers, auditors | Operations Leadership / Executive / Jaymn by milestone | Platform Admin | release-critical |
 
-### 4.4 Briefing Rule
-Contributing evidence to a brief does not grant authority to alter the source evidence or publish the executive brief.
+## 6. Action Matrix by Role Family
 
-## 5. Override Rules
+### 6.1 Source Record Protection Rules
 
-### 5.1 Exceptional and Governed Only
-Override authority is exceptional, bounded, auditable, and role-specific.
+| Role | Daily Report | Daily Report Work Item | Production/Labor/Equipment/Material/Trucking Actuals | Published Schedule | Reconciliation | Brief | Notification | Certification Artifact |
+|---|---|---|---|---|---|---|---|---|
+| Executive | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY | APPROVAL_REQUIRED | READ_ONLY | READ_ONLY |
+| Operations Leadership | READ_ONLY | READ_ONLY | READ_ONLY | APPROVAL_REQUIRED | ALLOWED | APPROVAL_REQUIRED | APPROVAL_REQUIRED | APPROVAL_REQUIRED |
+| PM | READ_ONLY | READ_ONLY | READ_ONLY | APPROVAL_REQUIRED | APPROVAL_REQUIRED | READ_ONLY | READ_ONLY | READ_ONLY |
+| Superintendent | APPROVAL_REQUIRED | APPROVAL_REQUIRED | READ_ONLY | PROPOSE_ONLY | PROPOSE_ONLY | READ_ONLY | READ_ONLY | ALLOWED |
+| Foreman | ALLOWED | ALLOWED | PROPOSE_ONLY | PROHIBITED | PROHIBITED | PROHIBITED | READ_ONLY | ALLOWED |
+| Field Leadership | ALLOWED | ALLOWED | PROPOSE_ONLY | PROPOSE_ONLY | PROHIBITED | PROHIBITED | READ_ONLY | ALLOWED |
+| Dispatch | READ_ONLY | READ_ONLY | PROPOSE_ONLY | PROHIBITED | READ_ONLY | READ_ONLY | ALLOWED | READ_ONLY |
+| Transportation | READ_ONLY | READ_ONLY | PROPOSE_ONLY | PROHIBITED | READ_ONLY | READ_ONLY | ALLOWED | READ_ONLY |
+| Shop | READ_ONLY | READ_ONLY | PROPOSE_ONLY | PROHIBITED | READ_ONLY | READ_ONLY | ALLOWED | READ_ONLY |
+| Equipment/Fleet | READ_ONLY | READ_ONLY | APPROVAL_REQUIRED | PROHIBITED | READ_ONLY | READ_ONLY | ALLOWED | READ_ONLY |
+| Safety | READ_ONLY | READ_ONLY | READ_ONLY | ALLOWED | APPROVAL_REQUIRED | APPROVAL_REQUIRED | ALLOWED | READ_ONLY |
+| HR | READ_ONLY | READ_ONLY | READ_ONLY | PROHIBITED | READ_ONLY | READ_ONLY | ALLOWED | READ_ONLY |
+| QA/QC | READ_ONLY | READ_ONLY | READ_ONLY | ALLOWED | APPROVAL_REQUIRED | APPROVAL_REQUIRED | ALLOWED | READ_ONLY |
+| System Automation | SYSTEM_DERIVED | SYSTEM_DERIVED | SYSTEM_DERIVED | SYSTEM_DERIVED | SYSTEM_DERIVED | SYSTEM_DERIVED | SYSTEM_DERIVED | SYSTEM_DERIVED |
+| AI Assistant | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROPOSE_ONLY | PROHIBITED | PROHIBITED |
 
-### 5.2 Override Never Means Source Erasure
-No override may erase historical truth, remove audit lineage, or hide prior state.
+### 6.2 Core Planning and Commitment Actions
 
-### 5.3 Constitutional Override Prohibition
-No business or operational role may override the Constitution itself through implementation convenience.
+| Role | Operational Work Create/Edit | Schedule Activity Create/Edit | Schedule Window Manage | Commit | Publish | Revise | Supersede | Cancel | Reopen | Reconcile |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Platform Admin | APPROVAL_REQUIRED | APPROVAL_REQUIRED | APPROVAL_REQUIRED | APPROVAL_REQUIRED | APPROVAL_REQUIRED | APPROVAL_REQUIRED | APPROVAL_REQUIRED | APPROVAL_REQUIRED | APPROVAL_REQUIRED | APPROVAL_REQUIRED |
+| Company Admin | APPROVAL_REQUIRED | APPROVAL_REQUIRED | APPROVAL_REQUIRED | APPROVAL_REQUIRED | APPROVAL_REQUIRED | APPROVAL_REQUIRED | APPROVAL_REQUIRED | APPROVAL_REQUIRED | APPROVAL_REQUIRED | APPROVAL_REQUIRED |
+| Owner/President | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY |
+| Executive | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY |
+| Operations Leadership | ALLOWED | ALLOWED | ALLOWED | ALLOWED | ALLOWED | ALLOWED | ALLOWED | ALLOWED | ALLOWED | ALLOWED |
+| PM | ALLOWED | ALLOWED | APPROVAL_REQUIRED | APPROVAL_REQUIRED | APPROVAL_REQUIRED | ALLOWED | APPROVAL_REQUIRED | APPROVAL_REQUIRED | APPROVAL_REQUIRED | APPROVAL_REQUIRED |
+| Co-PM | ALLOWED | ALLOWED | PROPOSE_ONLY | PROPOSE_ONLY | PROHIBITED | PROPOSE_ONLY | PROHIBITED | PROPOSE_ONLY | PROHIBITED | PROPOSE_ONLY |
+| Project Engineer | PROPOSE_ONLY | PROPOSE_ONLY | PROPOSE_ONLY | PROHIBITED | PROHIBITED | PROPOSE_ONLY | PROHIBITED | PROPOSE_ONLY | PROHIBITED | PROPOSE_ONLY |
+| Superintendent | PROPOSE_ONLY | PROPOSE_ONLY | PROPOSE_ONLY | PROHIBITED | PROHIBITED | PROPOSE_ONLY | PROHIBITED | PROPOSE_ONLY | APPROVAL_REQUIRED | PROPOSE_ONLY |
+| Foreman | PROPOSE_ONLY | PROPOSE_ONLY | PROHIBITED | PROHIBITED | PROHIBITED | PROPOSE_ONLY | PROHIBITED | PROPOSE_ONLY | PROHIBITED | PROHIBITED |
+| Field Leadership | PROPOSE_ONLY | PROPOSE_ONLY | PROHIBITED | PROHIBITED | PROHIBITED | PROPOSE_ONLY | PROHIBITED | PROPOSE_ONLY | PROHIBITED | PROPOSE_ONLY |
+| Dispatch | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | READ_ONLY |
+| Transportation | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | READ_ONLY |
+| Shop | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | READ_ONLY |
+| Equipment/Fleet | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | READ_ONLY |
+| Safety | PROHIBITED | READ_ONLY | READ_ONLY | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | APPROVAL_REQUIRED |
+| HR | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | READ_ONLY |
+| QA/QC | PROHIBITED | READ_ONLY | READ_ONLY | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | APPROVAL_REQUIRED |
+| Survey | PROPOSE_ONLY | READ_ONLY | READ_ONLY | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | READ_ONLY |
+| Accounting | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY |
+| Qualifications/Training Manager | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY |
+| Read-Only Leadership | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY | READ_ONLY |
+| System Automation | SYSTEM_DERIVED | SYSTEM_DERIVED | SYSTEM_DERIVED | SYSTEM_DERIVED | SYSTEM_DERIVED | SYSTEM_DERIVED | SYSTEM_DERIVED | SYSTEM_DERIVED | SYSTEM_DERIVED | SYSTEM_DERIVED |
+| AI Assistant | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED |
 
-## 6. Ownership Transfer Rules
+## 7. Notification and Brief Receipt Authority
 
-Ownership transfer must be:
-- explicit
-- authorized
-- auditable
-- historically preserved
-- non-retroactive for already published evidence unless governed correction rules explicitly permit it
+| Role | Receive Notification | Receive Brief | Export | Certify | Provide Field Acceptance | Administer |
+|---|---|---|---|---|---|---|
+| Platform Admin | ALLOWED | READ_ONLY | ALLOWED | APPROVAL_REQUIRED | NOT_APPLICABLE | ALLOWED |
+| Company Admin | ALLOWED | READ_ONLY | ALLOWED | APPROVAL_REQUIRED | NOT_APPLICABLE | ALLOWED |
+| Owner/President | ALLOWED | ALLOWED | READ_ONLY | READ_ONLY | NOT_APPLICABLE | PROHIBITED |
+| Executive | ALLOWED | ALLOWED | READ_ONLY | APPROVAL_REQUIRED | NOT_APPLICABLE | PROHIBITED |
+| Operations Leadership | ALLOWED | ALLOWED | READ_ONLY | APPROVAL_REQUIRED | NOT_APPLICABLE | PROHIBITED |
+| PM | ALLOWED | APPROVAL_REQUIRED | READ_ONLY | READ_ONLY | NOT_APPLICABLE | PROHIBITED |
+| Co-PM | ALLOWED | READ_ONLY | READ_ONLY | PROHIBITED | NOT_APPLICABLE | PROHIBITED |
+| Project Engineer | ALLOWED | READ_ONLY | READ_ONLY | PROHIBITED | NOT_APPLICABLE | PROHIBITED |
+| Superintendent | ALLOWED | READ_ONLY | READ_ONLY | PROHIBITED | ALLOWED | PROHIBITED |
+| Foreman | ALLOWED | READ_ONLY | READ_ONLY | PROHIBITED | ALLOWED | PROHIBITED |
+| Field Leadership | ALLOWED | READ_ONLY | READ_ONLY | PROHIBITED | ALLOWED | PROHIBITED |
+| Dispatch | ALLOWED | READ_ONLY | READ_ONLY | PROHIBITED | NOT_APPLICABLE | PROHIBITED |
+| Transportation | ALLOWED | READ_ONLY | READ_ONLY | PROHIBITED | NOT_APPLICABLE | PROHIBITED |
+| Driver | ALLOWED where scoped | NOT_APPLICABLE | PROHIBITED | PROHIBITED | NOT_APPLICABLE | PROHIBITED |
+| Shop | ALLOWED | READ_ONLY | READ_ONLY | PROHIBITED | NOT_APPLICABLE | PROHIBITED |
+| Equipment/Fleet | ALLOWED | READ_ONLY | READ_ONLY | PROHIBITED | NOT_APPLICABLE | PROHIBITED |
+| Safety | ALLOWED | APPROVAL_REQUIRED | READ_ONLY | APPROVAL_REQUIRED | NOT_APPLICABLE | PROHIBITED |
+| HR | ALLOWED | READ_ONLY | READ_ONLY | APPROVAL_REQUIRED | NOT_APPLICABLE | PROHIBITED |
+| QA/QC | ALLOWED | APPROVAL_REQUIRED | READ_ONLY | APPROVAL_REQUIRED | NOT_APPLICABLE | PROHIBITED |
+| Survey | ALLOWED | READ_ONLY | READ_ONLY | PROHIBITED | NOT_APPLICABLE | PROHIBITED |
+| Accounting | ALLOWED | READ_ONLY | READ_ONLY | PROHIBITED | NOT_APPLICABLE | PROHIBITED |
+| Qualifications/Training Manager | ALLOWED | READ_ONLY | READ_ONLY | APPROVAL_REQUIRED | NOT_APPLICABLE | PROHIBITED |
+| Read-Only Leadership | READ_ONLY | READ_ONLY | READ_ONLY | PROHIBITED | NOT_APPLICABLE | PROHIBITED |
+| System Automation | SYSTEM_DERIVED | SYSTEM_DERIVED | SYSTEM_DERIVED | PROHIBITED | NOT_APPLICABLE | SYSTEM_DERIVED |
+| AI Assistant | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED | PROHIBITED |
 
-No cross-role ownership transfer may bypass authorization, audit, or project/company boundaries.
+## 8. Permanent Boundary Rules
 
-## 7. Delegation Rules
+- AI never approves, commits, publishes, reconciles, closes, certifies, or owns.
+- Executives never rewrite field actuals.
+- PMs never rewrite submitted Daily Report actuals.
+- Foremen do not publish company schedule commitments unless explicitly delegated and approved.
+- Shop controls repair/recovery state, not schedule truth.
+- Dispatch controls assignments and movement, not work completion.
+- Safety may block work through safety authority but cannot rewrite production truth.
+- System Automation executes only deterministic, preapproved transitions.
 
-Delegation is role-bounded.
-Delegated authority may never exceed delegator authority.
-Delegated approvals and actions must remain attributable to the acting person and role.
+## 9. Manual GitHub and Deployment Boundary
 
-Delegation may not create shadow authority.
+ONLY JAYMN MAY PHYSICALLY SAVE OR PUBLISH CHANGES TO GITHUB.
+ONLY JAYMN MAY PHYSICALLY DEPLOY PREVIEW OR PRODUCTION.
 
-## 8. Security and Authorization Rules by Role
+Emergent roles, automation, or AI may not claim those manual actions occurred.
 
-### 8.1 Least Authority
-Every role receives only the minimum read/write/approve/publish authority necessary for its governed duties.
+## 10. Certification and Traceability Cross-Reference
 
-### 8.2 Cross-Company / Cross-Project Isolation
-No role may gain unauthorized access across company, project, or domain boundaries through dashboards, search, ODS, exports, attachments, AI, or debug endpoints.
-
-### 8.3 Attachment Access
-Roles may access attachments only through the governed visibility of the source record or publication that owns them.
-
-## 9. Certification and Acceptance Rules
-
-### 9.1 Certification Is Lane-Specific
-Certification authority is lane-specific:
-- executive acceptance is not engineering certification
-- field acceptance is not release authorization
-- domain acceptance is not constitutional authority
-- system automation is not business certification
-
-### 9.2 Required Participation
-Where workflows impact field trust, Field Leadership / Superintendent / Foreman lanes must participate in acceptance.
-Where workflows impact executive brief truth, Executive and Operations lanes must participate.
-Where workflows impact safety or QA/QC authority, those roles must participate in acceptance.
-
-## 10. Conflict Resolution Rules
-
-1. Source-record owner decides source truth within authorized domain.
-2. Cross-domain execution conflict escalates to Operations.
-3. Safety stop-work conflict escalates immediately to Safety + Operations.
-4. Executive resolves business-priority deadlock when operational governance cannot.
-5. Constitutional conflict escalates to constitutional amendment; implementation may not proceed until resolved.
-
-## 11. No Orphan Role Rule
-
-For every governed feature, this matrix must be able to answer:
-- which role creates it?
-- which role owns it?
-- which role approves it?
-- which role publishes it?
-- which role audits it?
-- which role certifies it?
-- which role resolves conflicts about it?
-
-If any answer is missing, role governance is incomplete and implementation is blocked.
-
-## 12. Dashboard, Notification, and Executive Reporting Authority Rules
-
-### 12.1 Dashboard Rule by Role
-Roles may consume dashboard projections according to permission boundaries, but dashboard visibility does not create source-record authority, publication authority, or override authority.
-
-### 12.2 Executive Reporting Rule by Role
-Executive and Operations lanes may approve or publish executive reporting only within the governed publication and evidence rules.
-They may not directly rewrite source records for convenience.
-
-### 12.3 Notification Rule by Role
-No role owns notification truth as a source domain unless that role already owns the source workflow or governed publication that triggers the notification.
-Notifications remain delivery artifacts.
-
-## 13. Offline, Synchronization, and Concurrency Authority Rules
-
-### 13.1 Offline Authority
-Field roles may create local continuity artifacts only within governed workflow boundaries.
-Local continuity does not create enterprise source truth.
-
-### 13.2 Synchronization Authority
-System executes synchronization mechanics by approved rule only.
-Business roles resolve conflicts only where the workflow explicitly requires human choice.
-
-### 13.3 Concurrency Authority
-No role may silently win a concurrent collision by convenience.
-Conflict handling must remain governed, auditable, and role-bounded.
-
-## 14. Constitutional Appendix Cross-Reference
-
-Explicit lifecycle catalogs, event authorities, dashboard authorities, KPI authorities, notification authorities, and offline/synchronization authorities are normatively detailed in:
-- `MASCI_OPERATIONAL_EXECUTION_CONSTITUTIONAL_APPENDIX.md`
+This role matrix is normatively linked to:
+- stable identifiers in the Appendix §2
+- lifecycle rules in the Appendix §3
+- event envelope in the Appendix §4
+- KPI/dashboard contracts in the Appendix §5
+- notification contract in the Appendix §6
+- brief contract in the Appendix §7
+- security contract in the Appendix §8
+- product identity contract in the Appendix §9
+- manual deployment boundary in the Appendix §10
