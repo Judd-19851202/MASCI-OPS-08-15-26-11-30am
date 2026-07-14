@@ -4,6 +4,13 @@ This file tracks **parked features** the user wants to revisit later. Surface th
 
 ---
 
+## 🟡 P1 · DR-03 Post-Local Acceptance
+
+- Real-device Daily Report field acceptance on target hardware/browser mix
+- Optional owner-led operational certification after local closeout evidence review
+
+---
+
 ## ✅ COMPLETE · Track 24.3 — DR V3 EN/ES Parity + Canonical English Submit Pipeline (2026-02-07)
 
 Closed the last P0 deployment blocker. Daily Report V3 fully supports Spanish UI (LangToggle in header, all 8 sections + AI assist + signature translated) while the backend remains 100 % canonical English via `POST /api/translate/dr-v3-freetext` (GPT-5.2 primary, Claude Sonnet 4.5 fallback, fail-closed). 18/18 backend tests green. Ready for Track 24.4 final production certification audit.

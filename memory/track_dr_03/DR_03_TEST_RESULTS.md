@@ -21,11 +21,14 @@
 
 ## QA subagent results
 - `testing_agent` report: `/app/test_reports/iteration_dr03_daily_report_unification.json` → PASS
+- `testing_agent` report: `/app/test_reports/iteration_dr03_phases_hij.json` → PASS
 - `auto_frontend_testing_agent` → PASS
 - `deep_testing_backend_v2` → PASS for public-safe backend validation checks
 
 ## Exact current counts
 - Frontend unit/integration-style Jest tests passed in focused DR-03 run: 32
 - Backend contract/integration tests passed in focused DR-03 run: 75
+- Focused Phase H/I/J regression suite passed: 132
+- Focused Phase H/I/J regression suite skipped: 9
 - Browser smoke checks executed: 2
 - Real-device status: NOT_YET_EXERCISED

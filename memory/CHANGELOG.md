@@ -1,3 +1,23 @@
+## 2026-07-14 · TRACK DR-03 · ✅ LOCAL IMPLEMENTATION COMPLETE · Daily Report Containment, Parity, and Regression Certification
+
+Closed the DR-03 local implementation pass for Daily Report unification. The canonical field-entry flow now mounts `NewDailyReportV3.jsx` directly at `/daily/submit`; legacy frontend authoring shells (`NewDailyReport.jsx`, `DailyReportRouter.jsx`, `dailyReportV3Flag.js`) were removed after dependency proof; and legacy `dr_v2*` write surfaces were contained as read-only compatibility adapters by returning `410 legacy_daily_report_runtime_retired` while preserving historical reads/PDF compatibility paths.
+
+### Completed
+* **Phase H — downstream zero-drift parity:** updated the DR-03 evidence matrix and regression locks covering viewer/PDF/email/export/search/audit/Trust Spine/ODS parity contracts.
+* **Phase I — containment-first cleanup:** removed proven-dead frontend shell-switching artifacts, mounted V3 directly in `AppRoutes.jsx`, and blocked competing legacy write endpoints in `dr_v2.py`, `dr_v2_canonicalize.py`, and `dr_v2_photos.py`.
+* **Phase J — local regression + certification:** focused pytest blast-radius suite passed **132 passed / 9 skipped / 0 failed**. Testing agent report `/app/test_reports/iteration_dr03_phases_hij.json` returned PASS. Frontend and backend testing subagents both returned PASS.
+
+### Files
+* Frontend: `frontend/src/app/routing/AppRoutes.jsx`, `frontend/src/pages/NewDailyReportV3.jsx`
+* Removed: `frontend/src/pages/NewDailyReport.jsx`, `frontend/src/pages/DailyReportRouter.jsx`, `frontend/src/lib/dailyReportV3Flag.js`
+* Backend: `backend/routes/dr_v2.py`, `backend/routes/dr_v2_canonicalize.py`, `backend/routes/dr_v2_photos.py`
+* Evidence: `/app/memory/track_dr_03/*`
+
+### Remaining outside local closeout
+* Real-device field acceptance is still not exercised in this session.
+
+---
+
 ## 2026-07-11 · Track 28.12 + 27.07 (Phases 0-5) · 🟢 CLOSED WITH PASS · Housekeeping + Governed R2 Infrastructure
 
 Bounded technical-debt cleanup + delivery of the safe governed infrastructure for future R2 capacity remediation. **Zero R2 hard-delete calls exist in the shipped code. Hard delete is PERMANENTLY DISABLED via a defensive env-flag refusal at the endpoint layer.**

@@ -1,3 +1,27 @@
+## 2026-07-14 · TRACK DR-03 · LOCAL IMPLEMENTATION COMPLETE
+
+### Scope completed
+- Phase H — Full Downstream Zero-Drift Runtime Parity
+- Phase I — Legacy Runtime Containment and Cleanup
+- Phase J — Final Local Regression and Certification
+
+### What changed
+- `AppRoutes.jsx` now mounts `NewDailyReportV3.jsx` directly at `/daily/submit`
+- Proven-dead frontend authoring artifacts removed: `frontend/src/pages/NewDailyReport.jsx`, `frontend/src/pages/DailyReportRouter.jsx`, `frontend/src/lib/dailyReportV3Flag.js`
+- Legacy V2 write endpoints now fail closed with `410 legacy_daily_report_runtime_retired` in `backend/routes/dr_v2.py`, `backend/routes/dr_v2_canonicalize.py`, and `backend/routes/dr_v2_photos.py`
+- Historical compatibility reads and PDF-related adapter surfaces remain preserved
+- DR-03 evidence package updated under `/app/memory/track_dr_03/`
+
+### Verification completed
+- Focused local regression suite passed: **132 passed, 9 skipped, 0 failed**
+- Testing agent report: `/app/test_reports/iteration_dr03_phases_hij.json` → PASS
+- Frontend testing subagent → PASS
+- Backend testing subagent → PASS
+- Browser smoke confirmed `/daily/submit` loads the canonical V3 shell and `/daily/new` redirects correctly
+
+### Remaining outside this local closeout
+- Real-device field acceptance on target hardware/browser mix is still pending
+
 ## 2026-07-14 · TRACK DR-03 · Daily Report Unification Implementation Checkpoint
 
 ### Current implementation status
