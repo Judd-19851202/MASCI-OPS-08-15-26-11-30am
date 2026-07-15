@@ -10,91 +10,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/lib/api";
+import { buildDailyReportSummaryPayload, buildDeterministicSummaryFallback } from "@/lib/dailyReportSummaryPayload";
 import { useT } from "@/lib/i18n";
-
-function buildDeterministicFallback(data) {
-  const bits = [];
-  if (data?.masci_crews?.length) {
-    const total = data.masci_crews.reduce((s, r) => s + (Number(r.hours_worked) || 0), 0);
-    bits.push(`Crew reported ${data.masci_crews.length} entries, ${total.toFixed(1)} labor hours.`);
-  }
-  const acts = data?.activity_cards || data?.activities || [];
-  if (acts.length) bits.push(`${acts.length} activity card(s) recorded.`);
-  const equip = data?.equipment_used || data?.equipment || [];
-  if (equip.length) bits.push(`${equip.length} equipment entries.`);
-  const mats = data?.materials || [];
-  if (mats.length) bits.push(`${mats.length} material deliveries.`);
-  const delays = data?.delays || data?.delay_events || [];
-  if (delays.length) bits.push(`${delays.length} delay/issue note(s).`);
-  const safety = data?.safety_quality?.notes || data?.safety_notes || "";
-  if (safety?.trim()) bits.push("Safety notes present.");
-  const weather = data?.weather_summary || data?.day_setup?.weather_summary || "";
-  if (weather) bits.push(`Weather: ${weather}.`);
-  return bits.join(" ") || "Daily activity recorded. No AI summary generated (assist disabled or unavailable).";
-}
-
-function toEvidenceDraft(reportId, data, photoObservations = []) {
-  return {
-    report_id: reportId,
-    project_number: data.project_number || "unknown",
-    project_name: data.project_name || "",
-    client: data.client || "",
-    project_manager: data.project_manager || "",
-    location: data.location || "",
-    report_date: data.report_date || "",
-    day_setup: {
-      weather_summary: data.weather_summary || data.day_setup?.weather_summary || "",
-      supervisor_name: data.supervisor_name || data.foreman || data.prepared_by || "",
-      temperature_f: data.temperature_f ?? data.weather_temp ?? null,
-      precipitation: data.precipitation ?? null,
-      conditions: data.weather_conditions || "",
-    },
-    activity_cards: (data.activity_cards || data.activities || []).slice(0, 25),
-    masci_crews: (data.masci_crews || []).slice(0, 40),
-    equipment_used: (data.equipment_used || data.equipment || []).slice(0, 40),
-    materials: (data.materials || []).slice(0, 40),
-    outbound_materials: (data.outbound_materials || []).slice(0, 40),
-    subcontractors: (data.subcontractors || data.subs_vendors || []).slice(0, 20),
-    vendors: (data.vendors || []).slice(0, 20),
-    visitors: (data.visitors || []).slice(0, 15),
-    production: (data.production || []).slice(0, 25),
-    constraint_cards: (data.constraint_cards || data.constraints_cards || data.constraints || data.delays || []).slice(0, 15),
-    day_impacts: {
-      schedule_delays: data.schedule_delays || "",
-      schedule_delays_notes: data.schedule_delays_notes || "",
-      weather_impact: data.weather_impact || "",
-      weather_impact_notes: data.weather_impact_notes || "",
-    },
-    safety_quality: {
-      notes: data.safety_quality?.notes || data.safety_notes || data.incident_notes || "",
-      incidents_today: data.safety_quality?.incidents_today
-        ?? (data.safety_incidents_today === "Yes" ? true : (data.incidents_today ?? false)),
-      injuries_today: data.safety_quality?.injuries_today
-        ?? (data.injuries_reported === "Yes" ? true : (data.injuries_today ?? false)),
-      near_misses: (data.safety_quality?.near_misses || data.near_misses || []).slice(0, 10),
-    },
-    excavation: data.excavation || data.excavation_section || null,
-    competent_person: data.competent_person
-      || (data.excavation ? data.excavation.competent_person : null)
-      || null,
-    work_stoppage: data.work_stoppage || data.work_hold || null,
-    tomorrow_readiness: {
-      ...(data.tomorrow_readiness || {}),
-      tomorrow_plan: (data.narrative_sections || {}).tomorrow_plan || "",
-      pm_needs: (data.narrative_sections || {}).follow_ups || "",
-    },
-    general_notes: data.general_notes || "",
-    photos: (data.photos || []).slice(0, 10),
-    photo_captions: (data.photo_captions || []).slice(0, 10),
-    photo_observations: (photoObservations || []).slice(0, 30),
-    attachments: (data.attachments || []).slice(0, 20).map((a) => ({
-      filename: a.filename || "",
-      category: a.category || "",
-      extension: a.extension || "",
-      file_size: a.file_size || 0,
-    })),
-  };
-}
+import { normalizeOperatorError } from "@/lib/operatorError";
 
 function hasEnoughEvidence(data) {
   const acts = (data.activity_cards || data.activities || []).length;
@@ -112,15 +30,16 @@ const REQUEST_TIMEOUT_MS = 60000;
 
 export default function DailySummaryAssist({
   data,
+  reportId,
   reportNumber,
   onAccept,
   onStateChange,
   testId = "daily-summary-assist",
 }) {
   const { t } = useT();
-  const reportId = useMemo(
-    () => (reportNumber ? `dr-${reportNumber}` : `dr-draft-${Date.now()}`),
-    [reportNumber],
+  const summaryReportId = useMemo(
+    () => reportId || (reportNumber ? `dr-${reportNumber}` : `dr-draft-${Date.now()}`),
+    [reportId, reportNumber],
   );
 
   const [status, setStatus] = useState("idle");
@@ -136,7 +55,9 @@ export default function DailySummaryAssist({
   const [accepted, setAccepted] = useState(false);
   const [aiAvailable, setAiAvailable] = useState(true);
   const [error, setError] = useState(null);
+  const [errorCode, setErrorCode] = useState(null);
   const [decision, setDecision] = useState("pending");
+  const [photoIntelStatus, setPhotoIntelStatus] = useState("no_photos");
 
   const abortRef = useRef(null);
   const debounceRef = useRef(null);
@@ -176,73 +97,81 @@ export default function DailySummaryAssist({
     const tStart = performance.now();
 
     try {
-      let photoObservations = [];
+      let photoIntel = null;
       if (reportNumber) {
         try {
-          const { data: photoIntel } = await api.get(
+          const { data: response } = await api.get(
             `/daily-reports/${encodeURIComponent(reportNumber)}/photo-intelligence`,
             { signal: controller.signal },
           );
-          photoObservations = photoIntel?.observations || [];
+          photoIntel = response || null;
         } catch {
-          photoObservations = [];
+          photoIntel = null;
         }
       }
-      const bundle = toEvidenceDraft(reportId, data, photoObservations);
-      await api.post(`/dr-v2/drafts`, bundle, { signal: controller.signal }).catch(() => null);
+      const payload = buildDailyReportSummaryPayload(data, photoIntel);
       const { data: resp } = await api.post(
-        `/dr-v2/ai/synthesize`,
-        { report_id: reportId, agents: ["day_narrative"], force },
+        `/daily-reports/summary/draft`,
+        { payload, force },
         { signal: controller.signal },
       );
       const tElapsed = Math.round(performance.now() - tStart);
       if (mySeq !== requestSeqRef.current) return;
-      const out = (resp?.outputs || {}).day_narrative || {};
-      const provider = resp?.provider || out.provider || null;
-      const model = resp?.model || out.model || null;
-      setProviderMasked(provider ? String(provider).slice(0, 20) : null);
-      setModelMasked(model ? String(model).slice(0, 40) : null);
+      setProviderMasked(null);
+      setModelMasked(null);
       setGeneratedAt(new Date().toISOString());
       setLatencyMs(tElapsed);
 
-      if (out.ai_available === false) {
-        setAiAvailable(false);
-        const reason = (out.fallback_reason || "").toString();
-        const uns = Array.isArray(out.uncertainties) ? out.uncertainties.slice(0, 5) : [];
-        setUncertainties(uns);
-        const fb = buildDeterministicFallback(data);
-        setNarrative(fb);
-        setEdited(fb);
-        setEvidenceRefs([]);
-        if (reason && reason !== "flag_off_or_missing_key") {
-          setError(`AI provider unavailable — reason: ${reason}${uns[0] ? ` (${uns[0]})` : ""}`);
-        }
-        setStatus("ready");
-        return;
-      }
-
-      setAiAvailable(true);
-      const text = (out.narrative || "").trim();
-      const fb = text || buildDeterministicFallback(data);
+      const statusFromPhotoIntel = photoIntel?.status || payload.summary_input?.photos?.status || "no_photos";
+      setPhotoIntelStatus(statusFromPhotoIntel);
+      setAiAvailable(Boolean(resp?.enabled));
+      const text = (resp?.summary_text || "").trim();
+      const fb = text || buildDeterministicSummaryFallback(data, photoIntel);
       setNarrative(fb);
       setEdited(fb);
-      setConfidence(typeof out.confidence === "number" ? out.confidence : null);
-      setUncertainties(Array.isArray(out.uncertainties) ? out.uncertainties.slice(0, 5) : []);
-      setEvidenceRefs(Array.isArray(out.evidence_refs) ? out.evidence_refs.slice(0, 20) : []);
+      setConfidence(typeof resp?.confidence === "number" ? resp.confidence : null);
+      const notes = [];
+      if (photoIntel?.classification) notes.push(photoIntel.classification);
+      if (!resp?.enabled && resp?.provider_state?.code) {
+        notes.push("Summary generated from typed report facts while live assist is unavailable.");
+      }
+      if (Array.isArray(resp?.warnings)) {
+        resp.warnings.forEach((item) => {
+          if (typeof item === "string" && item.trim()) notes.push(item.trim());
+        });
+      }
+      setUncertainties([...new Set(notes)].slice(0, 5));
+      setEvidenceRefs(Array.isArray(resp?.evidence_refs) ? resp.evidence_refs.slice(0, 20) : []);
+      if (!resp?.enabled && resp?.reason_disabled) {
+        const normalized = normalizeOperatorError(
+          { response: { data: { detail: { error: resp.reason_disabled } } } },
+          { fallbackMessage: "Summary assist is unavailable right now. You can approve the generated summary or write a manual summary." },
+        );
+        setError(normalized.message);
+        setErrorCode(normalized.code);
+      } else {
+        setError(null);
+        setErrorCode(null);
+      }
       setStatus("ready");
     } catch (err) {
       if (mySeq !== requestSeqRef.current) return;
       if (err?.name === "CanceledError" || err?.name === "AbortError") return;
-      const fb = buildDeterministicFallback(data);
+      const normalized = normalizeOperatorError(err, {
+        fallbackMessage: "Summary assist is unavailable right now. You can approve the generated summary or write a manual summary.",
+      });
+      const fb = buildDeterministicSummaryFallback(data, null);
       setNarrative(fb);
       setEdited(fb);
       setAiAvailable(false);
-      setError(err?.response?.data?.detail || err?.message || "assist_unavailable");
-      setStatus("error");
+      setPhotoIntelStatus((data?.photos || []).length > 0 ? "not_requested" : "no_photos");
+      setError(normalized.message);
+      setErrorCode(normalized.code);
+      setStatus("ready");
     } finally {
       clearTimeout(timeoutId);
     }
-  }, [data, reportId, reportNumber]);
+  }, [data, reportNumber]);
 
   useEffect(() => {
     if (accepted) return;
@@ -297,6 +226,7 @@ export default function DailySummaryAssist({
     const source = !aiAvailable ? "fallback" : (editedByUser ? "edited" : "ai");
     const meta = {
       source,
+      accepted_by: data?.prepared_by || data?.superintendent || "",
       approved_by: data?.prepared_by || data?.superintendent || "",
       provider_masked: providerMasked,
       model_masked: modelMasked,
@@ -307,6 +237,13 @@ export default function DailySummaryAssist({
       confidence,
       evidence_refs: evidenceRefs,
       latency_ms: latencyMs,
+      report_identity: {
+        report_id: summaryReportId || "",
+        report_number: data?.report_number || reportNumber || "",
+        report_instance: data?.report_instance || "primary",
+      },
+      photo_intelligence_status: photoIntelStatus,
+      error_code: errorCode,
     };
     setAccepted(true);
     setDecision("ai_accepted");
@@ -331,6 +268,7 @@ export default function DailySummaryAssist({
     if (!text) return;
     const meta = {
       source: "manual",
+      accepted_by: data?.prepared_by || data?.superintendent || "",
       approved_by: data?.prepared_by || data?.superintendent || "",
       provider_masked: null,
       model_masked: null,
@@ -341,6 +279,13 @@ export default function DailySummaryAssist({
       confidence: null,
       evidence_refs: [],
       latency_ms: null,
+      report_identity: {
+        report_id: summaryReportId || "",
+        report_number: data?.report_number || reportNumber || "",
+        report_instance: data?.report_instance || "primary",
+      },
+      photo_intelligence_status: photoIntelStatus,
+      error_code: errorCode,
     };
     setAccepted(true);
     setDecision("manual_accepted");
@@ -426,7 +371,7 @@ export default function DailySummaryAssist({
               data-testid={`${testId}-accept`}
             >
               <Check className="mr-1 h-3 w-3" />
-              {accepted && decision === "ai_accepted" ? t("Accepted") : t("Accept AI summary")}
+              {accepted && decision === "ai_accepted" ? t("Accepted") : !aiAvailable ? t("Accept generated summary") : t("Accept AI summary")}
             </Button>
             <Button
               type="button"
@@ -491,9 +436,9 @@ export default function DailySummaryAssist({
               role="alert"
             >
               <div className="mb-0.5 font-semibold">{t("Summary assist unavailable")}</div>
-              <div className="text-rose-700">{String(error)}</div>
+              <div className="text-rose-700" data-code={errorCode || "summary_unavailable"}>{error}</div>
               <div className="mt-1 text-rose-600/80">
-                {t("Submission still requires an approved summary. Try Regenerate, or reject AI and approve a manual summary.")}
+                {t("Submission still requires an approved summary. You can approve the generated summary, try Regenerate, or reject AI and approve a manual summary.")}
               </div>
             </div>
           )}

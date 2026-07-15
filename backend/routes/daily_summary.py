@@ -93,6 +93,13 @@ def _sum_hours(rows: List[Dict[str, Any]], key_candidates=("hours", "labor_hours
     return round(total, 2)
 
 
+def _num(v: Any) -> float:
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return 0.0
+
+
 def _uniq(seq: List[str]) -> List[str]:
     seen: List[str] = []
     for s in seq:
@@ -100,6 +107,113 @@ def _uniq(seq: List[str]) -> List[str]:
         if s and s not in seen:
             seen.append(s)
     return seen
+
+
+def _crew_hours(row: Dict[str, Any]) -> float:
+    for key in ("hours", "hours_worked", "labor_hours"):
+        if row.get(key) not in (None, ""):
+            return round(_num(row.get(key)), 2)
+    start = _clean_str(row.get("start_time"), 10)
+    stop = _clean_str(row.get("stop_time"), 10)
+    if not start or not stop or ":" not in start or ":" not in stop:
+        return 0.0
+    try:
+        sh, sm = [int(x) for x in start.split(":", 1)]
+        eh, em = [int(x) for x in stop.split(":", 1)]
+        gross = (eh * 60 + em) - (sh * 60 + sm)
+        if gross < 0:
+            gross += 24 * 60
+        lunch = max(0.0, _num(row.get("lunch_minutes")))
+        return round(max(0.0, gross - lunch) / 60, 2)
+    except Exception:  # noqa: BLE001
+        return 0.0
+
+
+def _build_summary_input(payload: Dict[str, Any]) -> Dict[str, Any]:
+    p = payload or {}
+    provided = p.get("summary_input") if isinstance(p.get("summary_input"), dict) else {}
+
+    crews = []
+    for row in _list_of_dicts(p.get("masci_crews")):
+        crews.append({
+            "employee_id": _clean_str(row.get("employee_id"), 80),
+            "name": _clean_str(row.get("name") or row.get("employee_name_snapshot"), 120),
+            "trade": _clean_str(row.get("trade") or row.get("trade_snapshot"), 80),
+            "hours": _crew_hours(row),
+        })
+
+    subs = []
+    for row in _list_of_dicts(p.get("subcontractors")):
+        subs.append({
+            "company": _clean_str(row.get("company") or row.get("vendor") or row.get("name"), 120),
+            "headcount": int(_num(row.get("count") or row.get("headcount")) or 0),
+            "hours": round(_num(row.get("hours")), 2),
+            "work_description": _clean_str(row.get("work_performed") or row.get("notes"), 240),
+        })
+
+    equipment = []
+    for row in _list_of_dicts(p.get("equipment")):
+        run_hours = round(_num(row.get("hours_used") or row.get("run_time") or row.get("run_hours")), 2)
+        idle_hours = round(_num(row.get("idle_hours") or row.get("idle_time") or row.get("idle")), 2)
+        equipment.append({
+            "description": _clean_str(row.get("description") or row.get("equipment") or row.get("label"), 120),
+            "unit_number": _clean_str(row.get("unit_number") or row.get("unit"), 60),
+            "operator": _clean_str(row.get("operator") or row.get("operator_name"), 120),
+            "run_hours": run_hours,
+            "idle_hours": idle_hours,
+            "total_usage_hours": round(run_hours + idle_hours, 2),
+        })
+
+    production_rows = []
+    for row in _list_of_dicts(p.get("production")):
+        production_rows.append({
+            "description": _clean_str(row.get("description") or row.get("activity") or row.get("name"), 160),
+            "quantity": round(_num(row.get("quantity")), 2),
+            "unit": _clean_str(row.get("unit"), 20),
+            "percent_complete": int(_num(row.get("percent_complete")) or 0),
+            "cost_code": _clean_str(row.get("cost_code"), 40),
+            "work_area": _clean_str(row.get("station_from") or row.get("work_area"), 80),
+        })
+
+    photos = p.get("photos") or []
+    photo_status = _clean_str(
+        (provided.get("photos") or {}).get("status")
+        or p.get("photo_intelligence_status")
+        or ("not_requested" if photos else "no_photos"),
+        60,
+    ) or ("not_requested" if photos else "no_photos")
+
+    return {
+        "labor": {
+            "employee_count": len(crews),
+            "total_employee_hours": round(sum(r["hours"] for r in crews), 2),
+            "rows": crews,
+        },
+        "subcontractors": {
+            "subcontractor_count": len(subs),
+            "total_headcount": sum(r["headcount"] for r in subs),
+            "total_hours": round(sum(r["hours"] for r in subs), 2),
+            "rows": subs,
+        },
+        "equipment": {
+            "equipment_count": len(equipment),
+            "total_run_hours": round(sum(r["run_hours"] for r in equipment), 2),
+            "total_idle_hours": round(sum(r["idle_hours"] for r in equipment), 2),
+            "total_usage_hours": round(sum(r["total_usage_hours"] for r in equipment), 2),
+            "rows": equipment,
+        },
+        "production": {
+            "rows": production_rows,
+        },
+        "photos": {
+            "photo_count": len(photos),
+            "status": photo_status,
+            "analyzed": int((provided.get("photos") or {}).get("analyzed") or 0),
+            "pending": int((provided.get("photos") or {}).get("pending") or 0),
+            "observations": list((provided.get("photos") or {}).get("observations") or p.get("photo_observations") or [])[:30],
+            "classification": _clean_str((provided.get("photos") or {}).get("classification"), 240),
+        },
+    }
 
 
 def _compose_deterministic_summary(
@@ -142,6 +256,7 @@ def _compose_deterministic_summary(
     general_notes = _clean_str(p.get("general_notes"), 800)
 
     tomorrow = _clean_str((p.get("narrative_sections") or {}).get("tomorrow_plan"), 500)
+    summary_input = _build_summary_input(p)
 
     lines: List[str] = []
     warnings: List[str] = []
@@ -173,11 +288,12 @@ def _compose_deterministic_summary(
         lines.append(f"Weather impact: {weather_impact_notes}.")
 
     # ── Crew composition.
-    if crews:
-        crew_count = sum(int(c.get("count") or 0) for c in crews if str(c.get("count") or "").strip())
-        crew_hours = _sum_hours(crews)
+    labor = summary_input.get("labor") or {}
+    if crews or labor.get("employee_count") or labor.get("total_employee_hours"):
+        crew_count = int(labor.get("employee_count") or 0)
+        crew_hours = round(_num(labor.get("total_employee_hours")), 2)
         trades = _uniq([_clean_str(c.get("trade") or c.get("role"), 60) for c in crews])
-        parts = [f"MASCI crew of {crew_count}"] if crew_count else ["MASCI crew"]
+        parts = [f"MASCI crew of {crew_count} employee{'s' if crew_count != 1 else ''}"] if crew_count else ["MASCI crew"]
         if trades:
             parts.append("across " + ", ".join(trades))
         if crew_hours:
@@ -185,19 +301,26 @@ def _compose_deterministic_summary(
         lines.append(" ".join(parts).strip() + ".")
 
     # ── Subcontractors.
+    sub_input = summary_input.get("subcontractors") or {}
     if subs:
         sub_names = _uniq([_clean_str(s.get("company") or s.get("name"), 80) for s in subs])
         if sub_names:
-            lines.append("Subcontractors on site: " + ", ".join(sub_names) + ".")
+            sentence = "Subcontractors on site: " + ", ".join(sub_names)
+            if sub_input.get("total_hours"):
+                sentence += f" · {sub_input.get('total_hours')} labor hours"
+            lines.append(sentence + ".")
 
     # ── Equipment.
+    equip_input = summary_input.get("equipment") or {}
     if equipment:
         eq_names = _uniq([_clean_str(e.get("description") or e.get("equipment") or e.get("unit_number"), 60) for e in equipment])
-        eq_hours = _sum_hours(equipment, key_candidates=("hours", "operating_hours"))
         if eq_names:
             head = "Equipment deployed: " + ", ".join(eq_names)
-            if eq_hours:
-                head += f" ({eq_hours} operating hours total)"
+            if equip_input.get("total_run_hours") or equip_input.get("total_idle_hours"):
+                head += (
+                    f" ({equip_input.get('total_run_hours', 0)} run hours"
+                    f", {equip_input.get('total_idle_hours', 0)} idle hours)"
+                )
             lines.append(head + ".")
 
     # ── Production rows (structured quantities).
@@ -209,7 +332,11 @@ def _compose_deterministic_summary(
             unit = _clean_str(row.get("unit"), 12) or ""
             if desc and qty is not None:
                 try:
-                    prod_bits.append(f"{float(qty):g} {unit} {desc}".strip())
+                    pct = int(_num(row.get("percent_complete")) or 0)
+                    chunk = f"{float(qty):g} {unit} {desc}".strip()
+                    if pct > 0:
+                        chunk += f" ({pct}% complete)"
+                    prod_bits.append(chunk)
                 except (TypeError, ValueError):
                     continue
         if prod_bits:
@@ -251,11 +378,14 @@ def _compose_deterministic_summary(
             parts.append(f"notes: {incident_notes}")
         lines.append("Safety: " + "; ".join(parts) + ".")
     # ── Photos — count only. Never fabricate photo content.
+    photo_input = summary_input.get("photos") or {}
     if photos:
         photo_line = f"{len(photos)} photo{'s' if len(photos) != 1 else ''} attached"
         if photo_captions:
             preview = "; ".join(photo_captions[:3])
             photo_line += f" — captions include: {preview}"
+        if photo_input.get("status") and photo_input.get("status") not in {"complete_with_observations", "complete_zero_observations"}:
+            photo_line += f" · photo intelligence {photo_input.get('status').replace('_', ' ')}"
         lines.append(photo_line + ".")
 
     # ── General notes.
@@ -282,6 +412,7 @@ def _compose_deterministic_summary(
         "warnings": warnings,
         "evidence_refs": evidence_refs,
         "sentence_count": len(lines),
+        "summary_input": summary_input,
     }
 
 
@@ -319,32 +450,35 @@ def register_daily_summary_routes(
         if language not in _ACCEPTED_LANGUAGES:
             language = "en"
 
-        # Resolve AI capability. If off, return graceful disabled state.
         cap = await resolve_ai_capabilities(db, tenant_id, _MODULE)
         request_id = _clean_str(request.headers.get("X-Request-Id"), 120) or None
-
+        composed = _compose_deterministic_summary(body.payload or {}, language=language)
         if not cap.enabled:
             return {
                 "ok": True,
                 "enabled": False,
                 "reason_disabled": cap.reason_disabled,
+                "mode": "deterministic_fallback",
                 "summary_text": None,
                 "language": language,
-                "warnings": [],
-                "evidence_refs": [],
+                "warnings": composed["warnings"],
+                "evidence_refs": composed["evidence_refs"],
+                "sentence_count": composed["sentence_count"],
+                "summary_input": composed["summary_input"],
                 "request_id": request_id,
             }
 
-        composed = _compose_deterministic_summary(body.payload or {}, language=language)
         return {
             "ok": True,
             "enabled": True,
             "reason_disabled": None,
+            "mode": "deterministic_live",
             "summary_text": composed["summary_text"],
             "language": language,
             "warnings": composed["warnings"],
             "evidence_refs": composed["evidence_refs"],
             "sentence_count": composed["sentence_count"],
+            "summary_input": composed["summary_input"],
             "request_id": request_id,
         }
 
