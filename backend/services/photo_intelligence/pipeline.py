@@ -30,7 +30,6 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Sequence
 
 from services.ai_gateway import get_gateway
-from services.ai_gateway.capabilities import resolve_ai_capabilities
 
 from .analyzer import analyze_photo, evidence_hash_for_photo
 from .store import COLL_PHOTO_INTEL, get_intel, upsert_intel
@@ -49,11 +48,6 @@ RECONCILER_INTERVAL_S = 60          # scan every ~60 s
 RECONCILER_STALE_AFTER_S = 90       # in_progress claim expires after 90 s
 RECONCILER_BATCH_LIMIT = 8          # cap per pass so we never hog CPU
 JOB_MAX_ATTEMPTS = 5                # after which the job is marked terminal
-
-# Feature flag guardrail — module-level check so BackgroundTasks
-# cost nothing when photo intelligence is intentionally off.
-_MODULE = "photo_intelligence"
-
 
 def _now() -> datetime:
     return datetime.now(timezone.utc)
@@ -449,27 +443,10 @@ async def _analyze_one(
     """
     started = _now()
 
-    # Capability check per call so a runtime flag flip is honored.
-    try:
-        cap = await resolve_ai_capabilities(db, TENANT_DEFAULT, _MODULE)
-    except Exception:  # noqa: BLE001
-        cap = None
-    tenant_gate_only = bool(
-        cap
-        and not cap.enabled
-        and getattr(cap, "reason_disabled", "") == "tenant_ai_disabled"
-        and str(report_id or "").startswith("daily-report::")
-    )
-
     ctx_hash = hashlib.sha256(
         json.dumps(draft_context, sort_keys=True).encode("utf-8")
     ).hexdigest()
-    b64: Optional[str] = None
-    # Only pay the R2 read cost if AI is actually available. If disabled
-    # we still write a placeholder intel row so consumers see a stable
-    # shape (`analysis_status="unavailable"`).
-    if (cap and cap.enabled) or tenant_gate_only:
-        b64 = await _read_photo_bytes_b64(photo_ref)
+    b64: Optional[str] = await _read_photo_bytes_b64(photo_ref)
 
     photo_hash = evidence_hash_for_photo(
         photo_ref=photo_ref,
@@ -486,29 +463,6 @@ async def _analyze_one(
             "ai_available": prior.get("analysis_status") == "complete",
             "duration_ms": 0,
         }
-
-    if cap and not cap.enabled and not tenant_gate_only:
-        # AI off — persist a placeholder so the UI can render "photo
-        # intelligence unavailable" without polling forever.
-        env_dict = {
-            "ai_available": False,
-            "fallback_reason": (getattr(cap, "reason_disabled", None)
-                                or "photo_intelligence_disabled"),
-            "narrative": "",
-            "confidence": 0.0,
-            "observations": [],
-            "suggested_links": [],
-            "questions": [],
-            "conflicts": [],
-        }
-        await upsert_intel(
-            db,
-            report_id=report_id, photo_id=photo_id,
-            project_id=project_id, tenant_id=TENANT_DEFAULT,
-            evidence_hash=photo_hash, envelope=env_dict,
-            provider="gateway", model="",
-        )
-        return {"ok": True, "cached": False, "ai_available": False, "duration_ms": 0}
 
     if b64 is None:
         # Bytes unreadable — surface via job status so reconciler retries.

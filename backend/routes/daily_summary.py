@@ -12,10 +12,8 @@ Doctrine
   that payload (crew counts, equipment names, weather text, etc.). No
   live LLM call happens in this track; every sentence is deterministic.
   That satisfies the "must not fabricate" contract mechanically.
-- AI is optional. Every call routes through
-  ``resolve_ai_capabilities(db, tenant_id, "daily_report_summary")``.
-  If disabled, the endpoint returns ``ok=True, enabled=False,
-  reason_disabled=<code>`` — never a 5xx.
+- Live AI synthesis is the primary path. If the provider fails, the
+  endpoint degrades to the deterministic fallback — never a 5xx.
 - The accepted summary lives on the existing ``daily_reports`` document
   under a small set of clearly-named optional fields. Legacy readers
   are unaffected by their absence.
@@ -31,7 +29,8 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
-from services.ai_gateway.capabilities import resolve_ai_capabilities
+from services.dr_ai import build_evidence_bundle, get_ai_provider
+from services.dr_ai.agents import AGENTS, AGENT_RESPONSE_SCHEMA
 
 
 # ─────────────────────── constants ────────────────────────────────
@@ -296,6 +295,34 @@ def _rank_photo_observations(items: List[Any]) -> List[str]:
     return ranked[:5]
 
 
+def _photo_observations_for_ai(photo_intel: Optional[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    items: List[Dict[str, Any]] = []
+    for row in list((photo_intel or {}).get("photos") or [])[:24]:
+        if not isinstance(row, dict):
+            continue
+        if _clean_str(row.get("analysis_status"), 40) != "complete":
+            continue
+        observations: List[str] = []
+        for entry in row.get("observations") or []:
+            if isinstance(entry, dict):
+                text = _clean_str(entry.get("description") or entry.get("label"), 240)
+            else:
+                text = _clean_str(entry, 240)
+            if text:
+                observations.append(text)
+        summary = _clean_str(row.get("narrative"), 600)
+        if not summary and not observations:
+            continue
+        items.append(
+            {
+                "photo_id": _clean_str(row.get("photo_id"), 80),
+                "summary": summary,
+                "observations": observations[:6],
+            }
+        )
+    return items
+
+
 def _compose_pm_grade_fallback(payload: Dict[str, Any], summary_input: Dict[str, Any]) -> str:
     paragraphs: List[str] = []
     production_rows = list((summary_input.get("production") or {}).get("rows") or [])
@@ -394,6 +421,98 @@ def _compose_pm_grade_fallback(payload: Dict[str, Any], summary_input: Dict[str,
         paragraphs.append(f"Next work: {tomorrow}.")
 
     return "\n\n".join([p for p in paragraphs if p]).strip()
+
+
+def _build_live_ai_bundle(payload: Dict[str, Any], photo_intel: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    summary_input = _build_summary_input(payload)
+    normalized = dict(payload or {})
+    supervisor = _clean_str(
+        normalized.get("supervisor_name")
+        or normalized.get("prepared_by")
+        or normalized.get("superintendent"),
+        120,
+    )
+    if supervisor and not normalized.get("supervisor_name"):
+        normalized["supervisor_name"] = supervisor
+    if normalized.get("equipment") and not normalized.get("equipment_used"):
+        normalized["equipment_used"] = normalized.get("equipment")
+    if normalized.get("activities") and not normalized.get("activity_cards"):
+        normalized["activity_cards"] = normalized.get("activities")
+    if normalized.get("constraints") and not normalized.get("constraint_cards"):
+        normalized["constraint_cards"] = normalized.get("constraints")
+    day_impacts = dict(normalized.get("day_impacts") or {})
+    if _clean_str(normalized.get("schedule_delays"), 20):
+        day_impacts["schedule_delays"] = _clean_str(normalized.get("schedule_delays"), 20)
+    if _clean_str(normalized.get("schedule_delays_notes"), 320):
+        day_impacts["schedule_delays_notes"] = _clean_str(normalized.get("schedule_delays_notes"), 320)
+    if _clean_str(normalized.get("weather_impact"), 20):
+        day_impacts["weather_impact"] = _clean_str(normalized.get("weather_impact"), 20)
+    if _clean_str(normalized.get("weather_impact_notes"), 320):
+        day_impacts["weather_impact_notes"] = _clean_str(normalized.get("weather_impact_notes"), 320)
+    if day_impacts:
+        normalized["day_impacts"] = day_impacts
+    normalized["crew_hours_total"] = round(_num((summary_input.get("labor") or {}).get("total_employee_hours")), 2)
+    normalized["equipment_hours"] = round(_num((summary_input.get("equipment") or {}).get("total_usage_hours")), 2)
+    ai_photo_obs = _photo_observations_for_ai(photo_intel)
+    if ai_photo_obs:
+        normalized["photo_observations"] = ai_photo_obs
+    return build_evidence_bundle(normalized)
+
+
+async def _compose_live_summary(
+    payload: Dict[str, Any],
+    *,
+    photo_intel: Optional[Dict[str, Any]],
+    language: str,
+    request_id: Optional[str],
+    session_key: str,
+) -> Dict[str, Any]:
+    composed = _compose_deterministic_summary(payload, language=language)
+    evidence_bundle = _build_live_ai_bundle(payload, photo_intel)
+    provider = get_ai_provider()
+    result = await provider.synthesize(
+        agent="day_narrative",
+        system_message=AGENTS["day_narrative"]["system"],
+        user_payload=evidence_bundle,
+        response_schema=AGENT_RESPONSE_SCHEMA,
+        session_id=f"daily-summary-{session_key[:80]}",
+    )
+
+    narrative = _clean_str(getattr(result, "narrative", ""), _MAX_SUMMARY_CHARS)
+    if getattr(result, "ai_available", False) and narrative:
+        return {
+            "ok": True,
+            "enabled": True,
+            "reason_disabled": None,
+            "mode": "live_ai",
+            "summary_text": narrative,
+            "language": language,
+            "warnings": list(getattr(result, "uncertainties", []) or [])[:12],
+            "evidence_refs": list(getattr(result, "evidence_refs", []) or [])[:64],
+            "sentence_count": max(1, narrative.count(".") + narrative.count("\n\n")),
+            "summary_input": composed["summary_input"],
+            "photo_intelligence": photo_intel,
+            "confidence": float(getattr(result, "confidence", 0.0) or 0.0),
+            "request_id": request_id,
+        }
+
+    fallback_warnings = list(composed["warnings"])
+    fallback_warnings.extend(list(getattr(result, "uncertainties", []) or [])[:6])
+    return {
+        "ok": True,
+        "enabled": False,
+        "reason_disabled": getattr(result, "fallback_reason", None) or "live_ai_unavailable",
+        "mode": "deterministic_fallback",
+        "summary_text": composed["summary_text"],
+        "language": language,
+        "warnings": fallback_warnings,
+        "evidence_refs": composed["evidence_refs"],
+        "sentence_count": composed["sentence_count"],
+        "summary_input": composed["summary_input"],
+        "photo_intelligence": photo_intel,
+        "confidence": 0.0,
+        "request_id": request_id,
+    }
 
 
 def _compose_deterministic_summary(
@@ -614,7 +733,8 @@ def register_daily_summary_routes(
     )
     async def draft_summary(body: SummaryDraftBody, request: Request):
         """Compose a preview summary from the current (unsaved)
-        report payload. Never issues a live provider call.
+        report payload. Uses live AI synthesis with deterministic
+        fallback only on provider failure.
 
         Response shape (both enabled + disabled paths):
 
@@ -629,21 +749,19 @@ def register_daily_summary_routes(
               "request_id": "..."
             }
         """
-        tenant_id = _clean_str(body.tenant_id, 60) or _DEFAULT_TENANT_ID
         language = (body.language or "en").lower()
         if language not in _ACCEPTED_LANGUAGES:
             language = "en"
 
-        cap = await resolve_ai_capabilities(db, tenant_id, _MODULE)
         request_id = _clean_str(request.headers.get("X-Request-Id"), 120) or None
         payload = dict(body.payload or {})
         photo_intel = None
+        form_key = _clean_str(body.form_key, 180) or _clean_str(payload.get("form_key"), 180)
         try:
             from services.photo_intelligence import (  # noqa: PLC0415
                 process_v1_draft,
                 list_v1_draft_intelligence,
             )
-            form_key = _clean_str(body.form_key, 180) or _clean_str(payload.get("form_key"), 180)
             if form_key and (payload.get("photos") or []):
                 await process_v1_draft(
                     db,
@@ -655,7 +773,7 @@ def register_daily_summary_routes(
                     draft_identity=form_key,
                     draft=payload,
                 )
-                payload["photo_observations"] = list(photo_intel.get("observations") or [])[:60]
+                payload["photo_observations"] = _photo_observations_for_ai(photo_intel)
                 payload["photo_intelligence_status"] = photo_intel.get("status") or payload.get("photo_intelligence_status")
                 payload["summary_input"] = {
                     **(payload.get("summary_input") or {}),
@@ -675,38 +793,14 @@ def register_daily_summary_routes(
                 }
         except Exception:  # noqa: BLE001
             photo_intel = None
-
-        composed = _compose_deterministic_summary(payload, language=language)
-        if not cap.enabled:
-            return {
-                "ok": True,
-                "enabled": False,
-                "reason_disabled": cap.reason_disabled,
-                "mode": "deterministic_fallback",
-                "summary_text": composed["summary_text"],
-                "language": language,
-                "warnings": composed["warnings"],
-                "evidence_refs": composed["evidence_refs"],
-                "sentence_count": composed["sentence_count"],
-                "summary_input": composed["summary_input"],
-                "photo_intelligence": photo_intel,
-                "request_id": request_id,
-            }
-
-        return {
-            "ok": True,
-            "enabled": True,
-            "reason_disabled": None,
-            "mode": "deterministic_live",
-            "summary_text": composed["summary_text"],
-            "language": language,
-            "warnings": composed["warnings"],
-            "evidence_refs": composed["evidence_refs"],
-            "sentence_count": composed["sentence_count"],
-            "summary_input": composed["summary_input"],
-            "photo_intelligence": photo_intel,
-            "request_id": request_id,
-        }
+        session_key = form_key or _clean_str(payload.get("project_number"), 40) or "draft"
+        return await _compose_live_summary(
+            payload,
+            photo_intel=photo_intel,
+            language=language,
+            request_id=request_id,
+            session_key=session_key,
+        )
 
     # ─────── POST /api/daily-reports/{report_id}/summary/accept ────
     @api_router.post(
