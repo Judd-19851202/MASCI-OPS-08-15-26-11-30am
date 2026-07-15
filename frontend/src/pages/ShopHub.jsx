@@ -25,7 +25,7 @@
  *   • Mobile-first 390px vertical rhythm · 44px touch targets
  *   • Wording: operational recovery (NOT fleet repair queue)
  */
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowLeft, Wrench, LogOut, KeyRound, BookOpen, ChevronRight,
@@ -191,7 +191,7 @@ export default function ShopHub() {
     return () => { alive = false; };
   }, []);
 
-  const loadRecovery = async () => {
+  const loadRecovery = useCallback(async () => {
     setRecoveryLoading(true);
     try {
       const r = await api.get("/dispatch/recovery/by-shop");
@@ -201,8 +201,8 @@ export default function ShopHub() {
     } finally {
       setRecoveryLoading(false);
     }
-  };
-  useEffect(() => { loadRecovery();   }, []);
+  }, [recovery]);
+  useEffect(() => { loadRecovery(); }, [loadRecovery]);
 
   const onLogout = async () => {
     await clearAllSessions();

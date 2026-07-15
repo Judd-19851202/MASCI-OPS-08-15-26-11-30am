@@ -150,7 +150,7 @@ export default function AdminMaterialLedgerQuality() {
       });
     return () => { cancelled = true; };
    
-  }, [reqId]);
+  }, [buildParams, reqId]);
 
   const downloadCsv = React.useCallback(async () => {
     try {

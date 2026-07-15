@@ -58,8 +58,7 @@ export default function HrFieldLeadership() {
 
   useEffect(() => {
     fetchRows();
-     
-  }, []);
+  }, [fetchRows]);
 
   const downloadPdf = async (rec) => {
     try {

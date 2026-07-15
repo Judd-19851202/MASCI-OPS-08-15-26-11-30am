@@ -38,7 +38,7 @@ export default function FieldLeadershipView() {
       .catch((err) => toast.error(err?.response?.data?.detail || t("Could not load record")))
       .finally(() => setLoading(false));
      
-  }, [id]);
+  }, [id, navigate, t]);
 
   const kindLabel = (k) => {
     const f = FIELD_LEADERSHIP_FORMS.find((x) => x.kind === k);

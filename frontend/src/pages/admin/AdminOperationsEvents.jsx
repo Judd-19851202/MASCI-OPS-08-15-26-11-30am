@@ -1,6 +1,6 @@
 // Admin Operations Event Log — central viewer for the operations
 // event collection ("nervous system" of the platform).
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Activity, Loader2, RefreshCcw, Filter, ChevronLeft, ChevronRight } from "lucide-react";
 import AdminShell from "@/components/AdminShell";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,7 @@ export default function AdminOperationsEvents() {
   const [offset, setOffset] = useState(0);
   const limit = 50;
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({ limit, offset });
@@ -40,8 +40,8 @@ export default function AdminOperationsEvents() {
       const r = await api.get(`/operations/events?${params.toString()}`);
       setData(r.data);
     } finally { setLoading(false); }
-  };
-  useEffect(() => { load();   }, [offset]);
+  }, [filters, limit, offset]);
+  useEffect(() => { load(); }, [load]);
 
   const apply = () => { setOffset(0); load(); };
   const reset = () => { setFilters({ event_type: "", severity: "", status: "", source_module: "", asset_id: "" }); setTimeout(load, 0); };

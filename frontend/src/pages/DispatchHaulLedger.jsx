@@ -136,7 +136,7 @@ export default function DispatchHaulLedger() {
       });
     return () => { cancelled = true; };
    
-  }, [reqId]);
+  }, [dateFrom, dateTo, materialCode, projectNumber, reqId, truck, verification]);
 
   const body = state.body || {};
   const rows = Array.isArray(body.rows) ? body.rows : [];

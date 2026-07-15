@@ -114,7 +114,6 @@ export default function HrEmployees() {
     if (statusFilter !== "all" && bucketStatuses && !bucketStatuses.includes(statusFilter)) {
       setStatusFilter("all");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bucket]);
 
   const fetchAll = useCallback(async () => {
@@ -230,7 +229,7 @@ export default function HrEmployees() {
     if (rehireFilter !== "all") chips.push({ key: "rehire", label: `Rehire: ${rehireFilter.replace(/_/g, " ")}`, onClear: () => setRehireFilter("all") });
     if (q) chips.push({ key: "q", label: `Search: "${q}"`, onClear: () => setQ("") });
     return chips;
-  }, [bucket, statusFilter, crewFilter, supervisorFilter, tradeFilter, rehireFilter, q]);
+  }, [bucket, statusFilter, crewFilter, supervisorFilter, tradeFilter, rehireFilter, q, setBucket, setCrewFilter, setRehireFilter, setStatusFilter, setSupervisorFilter, setTradeFilter]);
 
   const resetFilters = useCallback(() => {
     setBucket("active");

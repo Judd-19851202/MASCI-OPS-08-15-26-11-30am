@@ -90,8 +90,7 @@ export default function HrTimeVerification() {
 
   useEffect(() => {
     fetchData();
-     
-  }, [pendingFilters]);
+  }, [fetchData, pendingFilters]);
 
   const downloadCsv = async () => {
     const params = new URLSearchParams();
@@ -117,7 +116,7 @@ export default function HrTimeVerification() {
     }
   };
 
-  const summary = data?.summary || {};
+  const summary = useMemo(() => (data?.summary || {}), [data?.summary]);
   const weekly = data?.weekly || [];
   const rows = data?.rows || [];
 

@@ -6,7 +6,7 @@
 // Filters: form kind, employee, job, supervisor, date range, free-text search.
 // Actions: open record view, download PDF, export CSV, soft-delete (admin only).
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Search, FileDown, FileText, Trash2, ListChecks,
@@ -64,7 +64,7 @@ export default function FieldLeadershipRecords() {
   const [dateTo, setDateTo] = useState("");
   const [q, setQ] = useState("");
 
-  const fetchRecords = async () => {
+  const fetchRecords = useCallback(async () => {
     setLoading(true);
     try {
       const params = {};
@@ -83,10 +83,10 @@ export default function FieldLeadershipRecords() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [dateFrom, dateTo, filterKind, q, t]);
 
   // Initial load + refetch on filter change
-  useEffect(() => { fetchRecords();   }, [filterKind]);
+  useEffect(() => { fetchRecords(); }, [fetchRecords]);
   // Manual refetch after typing — debounced via the search button instead
 
   const totalCount = useMemo(

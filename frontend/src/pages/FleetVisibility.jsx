@@ -18,7 +18,7 @@
 //
 // Mobile-first · no horizontal overflow · matches existing portal palette.
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Truck, AlertOctagon, Wrench, CheckCircle2, Clock,
   RefreshCw, MessageSquareQuote, ShieldCheck, FileDown, ChevronDown, ChevronUp,
@@ -418,7 +418,7 @@ export default function FleetVisibility({ scope = "shop" }) {
   const [repairDefect, setRepairDefect] = useState(null);
   const [rtsDefect, setRtsDefect] = useState(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     setErr("");
     try {
@@ -439,11 +439,11 @@ export default function FleetVisibility({ scope = "shop" }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [scope]);
 
-  useEffect(() => { load();   }, [scope]);
+  useEffect(() => { load(); }, [load]);
 
-  const groups = data?.groups || [];
+  const groups = useMemo(() => (data?.groups || []), [data?.groups]);
   const counts = useMemo(() => ({
     units: data?.count_units || 0,
     defects: data?.count_defects || 0,

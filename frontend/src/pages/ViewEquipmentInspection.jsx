@@ -79,7 +79,7 @@ export default function ViewEquipmentInspection({ context = "admin" }) {
       }
     })();
     return () => { alive = false; };
-  }, [id, navigate]);  
+  }, [backHref, id, navigate, t]);  
 
   useEffect(() => {
     if (!loading && data) maybeAutoPrint();

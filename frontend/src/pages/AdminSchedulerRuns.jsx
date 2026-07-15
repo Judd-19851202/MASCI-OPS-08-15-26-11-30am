@@ -13,7 +13,7 @@
 //
 // All five questions are answered by a single row in this table.
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useCallback, useEffect, useState, useMemo } from "react";
 import { RefreshCw, ShieldAlert, ShieldCheck, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -74,7 +74,7 @@ export default function AdminSchedulerRuns() {
   const [totals, setTotals] = useState({ total: 0, dedup_total: 0, failed_total: 0 });
   const [loading, setLoading] = useState(false);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -91,9 +91,9 @@ export default function AdminSchedulerRuns() {
       console.error("[scheduler-runs] load failed", e);
       toast.error("Could not load scheduler runs. Try again.");
     } finally { setLoading(false); }
-  };
+  }, [scheduler]);
 
-  useEffect(() => { load();   }, [scheduler]);
+  useEffect(() => { load(); }, [load]);
 
   const summary = useMemo(() => ({
     headline: scheduler

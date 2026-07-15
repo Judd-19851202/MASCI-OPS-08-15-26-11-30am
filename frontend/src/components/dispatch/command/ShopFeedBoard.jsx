@@ -49,7 +49,7 @@ export default function ShopFeedBoard() {
   const items = useMemo(() => (data?.needs_attention || []), [data?.needs_attention]);
   const recovery = data?.active_recovery || [];
   const waitingParts = data?.waiting_on_parts || [];
-  const counts = data?.counts || {};
+  const counts = useMemo(() => (data?.counts || {}), [data?.counts]);
 
   const filterOptions = useMemo(() => [
     { value: "all",      label: "All",        count: counts.needs_attention },

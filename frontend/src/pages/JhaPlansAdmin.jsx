@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   FileText,
@@ -88,7 +88,7 @@ export default function JhaPlansAdmin() {
   const isSafetyContext = typeof window !== "undefined"
     && window.location.pathname.startsWith("/safety-portal/");
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     setLoading(true);
     try {
       const [r, j] = await Promise.all([
@@ -106,10 +106,10 @@ export default function JhaPlansAdmin() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isSafetyContext]);
   useEffect(() => {
     refresh();
-  }, []);
+  }, [refresh]);
 
   /** Map project_number → {project_name, location, client} from jobs_master. */
   const jobByNumber = useMemo(() => {

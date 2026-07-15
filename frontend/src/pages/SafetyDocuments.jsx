@@ -2,7 +2,7 @@
 // Upload via multipart form; list returns metadata only (no file_data);
 // download streams the inline base64 back through /download. Categories
 // are free-text tags (OSHA, SDS, EAP, training, sign-in sheets, etc.).
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import {
   FolderArchive, Upload, Loader2, Download, Trash2, X, Filter,
@@ -54,7 +54,7 @@ export default function SafetyDocuments() {
   });
   const [uploading, setUploading] = useState(false);
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     setLoading(true);
     try {
       const params = category ? `?category=${encodeURIComponent(category)}` : "";
@@ -65,8 +65,8 @@ export default function SafetyDocuments() {
     } finally {
       setLoading(false);
     }
-  };
-  useEffect(() => { refresh(); }, [category]);
+  }, [category]);
+  useEffect(() => { refresh(); }, [refresh]);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return items;

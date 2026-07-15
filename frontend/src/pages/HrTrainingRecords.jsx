@@ -63,8 +63,7 @@ export default function HrTrainingRecords() {
 
   useEffect(() => {
     fetchRows();
-     
-  }, [source]);
+  }, [fetchRows]);
 
   const summary = useMemo(() => counts, [counts]);
 

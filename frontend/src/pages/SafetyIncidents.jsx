@@ -64,7 +64,7 @@ export default function SafetyIncidents() {
           t("Your Safety session expired. Please sign in again.")));
       } finally { setLoading(false); }
     })();
-  }, []);   
+  }, [t]);   
 
   const filtered = useMemo(() => {
     return items.filter((i) => {

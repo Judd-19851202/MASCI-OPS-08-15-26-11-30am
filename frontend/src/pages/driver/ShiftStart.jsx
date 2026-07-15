@@ -82,7 +82,7 @@ function SearchableSelect({
   useEffect(() => {
     if (prefetch) refresh("");
      
-  }, []);
+  }, [prefetch, refresh]);
 
   useEffect(() => {
     if (!open) return;
@@ -342,7 +342,7 @@ export default function ShiftStart() {
         setSubmitting(false);
       }
     },
-    [API, canSubmit, driver, truck, trailer, hauler, navigate, t],
+    [canSubmit, driver, truck, trailer, hauler, navigate, t],
   );
 
   return (

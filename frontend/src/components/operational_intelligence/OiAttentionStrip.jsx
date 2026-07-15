@@ -115,7 +115,7 @@ export default function OiAttentionStrip({
       const filtered = all.filter((p) => productIds.includes(p.product_id));
       setState({ loaded: true, ok: r.ok, status: r.status, products: filtered, reason: r.reason || "" });
     });
-  }, [productIds, productIdsKey, timeoutMs]);
+  }, [productIds, timeoutMs]);
 
   useEffect(() => {
     let cancelled = false;

@@ -219,7 +219,7 @@ export default function Hub() {
   const session = useMemo(
     () => detectActiveSession(t, () => force((n) => n + 1)),
      
-    [t, renderTick],
+    [t],
   );
 
   return (

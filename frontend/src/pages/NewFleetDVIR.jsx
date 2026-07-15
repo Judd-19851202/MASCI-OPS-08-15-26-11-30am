@@ -228,7 +228,7 @@ export default function NewFleetDVIR({ kind = "dvir" } = {}) {
   }, [t]);
 
   const dvir = useMemo(() => meta?.kinds?.[kind] || null, [meta, kind]);
-  const truckItems = dvir?.truck_items || [];
+  const truckItems = useMemo(() => (dvir?.truck_items || []), [dvir?.truck_items]);
   const trailerItems = dvir?.trailer_items || [];
   const allowsTrailers = !!dvir?.allows_trailers;
 

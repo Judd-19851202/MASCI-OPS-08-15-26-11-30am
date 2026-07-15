@@ -54,7 +54,7 @@ export default function FleetBoard() {
   }, [load]);
 
   const rows = useMemo(() => (data?.rows || []), [data?.rows]);
-  const counts = data?.counts || {};
+  const counts = useMemo(() => (data?.counts || {}), [data?.counts]);
 
   const filterOptions = useMemo(() => [
     { value: "all",            label: "All",          count: counts.total },

@@ -1,7 +1,7 @@
 // AdminAuditLog.jsx — Iter130. Unified read-only audit timeline.
 // Aggregates audit_events + admin_audit + operations_events +
 // integration_wizard_runs into one filterable, paginated feed.
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   History, Search, RefreshCcw, Filter, Loader2, ChevronLeft, ChevronRight,
 } from "lucide-react";
@@ -36,7 +36,7 @@ export default function AdminAuditLog() {
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState({});
 
-  const load = async (opts = {}) => {
+  const load = useCallback(async (opts = {}) => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -51,9 +51,9 @@ export default function AdminAuditLog() {
     } catch (e) {
       toast.error(operationalError(e, "Failed to load audit log"));
     } finally { setLoading(false); }
-  };
+  }, [action, actor, offset, q, source]);
 
-  useEffect(() => { load({ offset: 0 });   }, []);
+  useEffect(() => { load({ offset: 0 }); }, [load]);
 
   const apply = () => { setOffset(0); load({ offset: 0 }); };
   const reset = () => { setQ(""); setActor(""); setAction(""); setSource(""); setOffset(0); load({ offset: 0 }); };

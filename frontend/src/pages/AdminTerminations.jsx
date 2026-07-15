@@ -5,7 +5,7 @@
 // project columns, and per-row "View" / "PDF" actions. Mirrors the
 // look-and-feel of the other admin record-list pages.
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   AlertOctagon, CheckCircle2, ShieldAlert, FileText,
@@ -62,7 +62,7 @@ export default function AdminTerminations() {
   const [q, setQ] = useState("");
   const [rehireFilter, setRehireFilter] = useState("all");
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     setLoading(true);
     try {
       const r = await api.get("/field-leadership", {
@@ -74,9 +74,9 @@ export default function AdminTerminations() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
-  useEffect(() => { refresh();   }, []);
+  useEffect(() => { refresh(); }, [refresh]);
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();

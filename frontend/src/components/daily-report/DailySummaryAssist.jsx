@@ -242,7 +242,7 @@ export default function DailySummaryAssist({
     } finally {
       clearTimeout(timeoutId);
     }
-  }, [data, reportId]);
+  }, [data, reportId, reportNumber]);
 
   useEffect(() => {
     if (accepted) return;

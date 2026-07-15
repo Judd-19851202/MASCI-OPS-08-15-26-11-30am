@@ -307,7 +307,7 @@ export default function AssignmentCreateDrawer({
       const cn = window.sessionStorage.getItem("branding.companyName");
       if (cn && cn !== "MASCI") setCarrier((c) => ({ ...c, label: cn }));
     } catch { /* noop */ }
-  }, []);
+  }, [DRAFT_TTL_MS]);
   const [project, setProject] = useState(null);
   const [source, setSource] = useState(null);
   const [destination, setDestination] = useState(null);
@@ -344,7 +344,7 @@ export default function AssignmentCreateDrawer({
       }
       return d;
     } catch { return null; }
-  }, []);
+  }, [DRAFT_TTL_MS]);
   const _writeDraft = useCallback((payload) => {
     try {
       localStorage.setItem(DRAFT_KEY, JSON.stringify({
@@ -450,7 +450,7 @@ export default function AssignmentCreateDrawer({
     return () => { if (draftTimerRef.current) clearTimeout(draftTimerRef.current); };
   }, [open, haulType, truck, driver, trailer, carrier, project, source,
       destination, material, equipment, pickup, dropoff, tankerSource,
-      tankerDestination, liquidProduct, note, initialHaulType]);
+      tankerDestination, liquidProduct, note, initialHaulType, _writeDraft]);
 
   const onRestoreDraft = useCallback(() => {
     if (!pendingDraft) return;
@@ -478,7 +478,7 @@ export default function AssignmentCreateDrawer({
     _clearDraft();
     setPendingDraft(null);
     toast.message(t("Draft discarded"));
-  }, [t]);
+  }, [_clearDraft, t]);
 
   // ── Option projections ─────────────────────────────────────────
   const truckOptions = useMemo(() => L.trucks.map((x) => ({
@@ -648,7 +648,7 @@ export default function AssignmentCreateDrawer({
     } finally {
       setSubmitting(false);
     }
-  }, [haulType, truck, driver, trailer, carrier, project, projectOptions, source, destination, material, equipment, pickup, dropoff, tankerSource, tankerDestination, liquidProduct, note, tenantOverride, onCreated, onClose, t]);
+  }, [haulType, truck, driver, trailer, carrier, project, projectOptions, source, destination, material, equipment, pickup, dropoff, tankerSource, tankerDestination, liquidProduct, note, tenantOverride, onCreated, onClose, t, txOverrideId, _clearDraft]);
 
   if (!open) return null;
 

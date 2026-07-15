@@ -122,7 +122,7 @@ export default function DriverQualificationReadOnlyView({
     } finally {
       setLoading(false);
     }
-  }, [endpoint, params, t]);
+  }, [authHeaders, endpoint, params, t]);
 
   useEffect(() => { load(); }, [load]);
 

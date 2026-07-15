@@ -58,7 +58,7 @@ export function SplashOverlay() {
     <div
       className={
         "fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900 " +
-        "transition-opacity duration-[400ms] ease-out " +
+        "transition-opacity duration-&lsqb;400ms&rsqb; ease-out " +
         (fading ? "opacity-0 pointer-events-none" : "opacity-100")
       }
       data-testid="splash-overlay"

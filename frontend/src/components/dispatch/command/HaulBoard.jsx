@@ -49,7 +49,7 @@ export default function HaulBoard() {
   }, [load]);
 
   const rows = useMemo(() => (data?.rows || []), [data?.rows]);
-  const counts = data?.counts || {};
+  const counts = useMemo(() => (data?.counts || {}), [data?.counts]);
   const fwConnected = data?.integration_readiness?.fleetwatcher !== "not_connected";
 
   const filterOptions = useMemo(() => [

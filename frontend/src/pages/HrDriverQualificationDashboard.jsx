@@ -95,8 +95,7 @@ export default function HrDriverQualificationDashboard() {
 
   useEffect(() => {
     fetchRows();
-     
-  }, []);
+  }, [fetchRows]);
 
   const toggleEndorsementFilter = (code) => {
     setFilters((f) => ({ ...f, endorsement: f.endorsement === code ? "" : code }));

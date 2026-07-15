@@ -132,7 +132,7 @@ export default function HrEmployeeRequestsQueue() {
     });
     // Only fire once per landing — subsequent re-fetches must not re-open.
      
-  }, [deepLinkRequestId, items.length]);
+  }, [approveOpen, deepLinkRequestId, items]);
 
   const openApprove = (req) => {
     setActive(req);

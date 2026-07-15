@@ -3,7 +3,7 @@
 // HR can now: + Add Training Record, + Upload Safety Document, edit/archive
 // records they or Safety entered. HR cannot hard-delete (operator policy).
 // Audit attribution (who/role) is surfaced on every row.
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import {
   FolderArchive, Award, Loader2, Download, Filter, AlertTriangle,
@@ -247,7 +247,7 @@ export default function HrSafetyRecords() {
   const [uploadDocOpen, setUploadDocOpen] = useState(false);
   const [archiving, setArchiving] = useState({});
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const [d, tr] = await Promise.all([
@@ -261,8 +261,8 @@ export default function HrSafetyRecords() {
     } finally {
       setLoading(false);
     }
-  };
-  useEffect(() => { load();   }, []);
+  }, [t]);
+  useEffect(() => { load(); }, [load]);
 
   const filteredDocs = useMemo(() => {
     if (!search.trim()) return docs;

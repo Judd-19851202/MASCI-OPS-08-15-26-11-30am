@@ -6,7 +6,7 @@
 // set, no audit drawer). All writes flow through the team-roster API
 // which enforces permissions server-side.
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   fetchRoleRegistry, fetchTeam, fetchTeamAudit, addTeamMember,
   patchTeamMember, removeTeamMember, fetchDirectoryUsers,
@@ -149,7 +149,7 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
   const [rowBusy, setRowBusy] = useState({});
   const [historyOpen, setHistoryOpen] = useState(false);
 
-  const reload = async () => {
+  const reload = useCallback(async () => {
     if (!projectNumber) return;
     setLoading(true);
     setErr(null);
@@ -191,9 +191,9 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [adminScope, projectNumber, scope]);
 
-  useEffect(() => { reload();   }, [projectNumber, scope]);
+  useEffect(() => { reload(); }, [reload]);
 
   const grouped = useMemo(() => {
     const out = {};

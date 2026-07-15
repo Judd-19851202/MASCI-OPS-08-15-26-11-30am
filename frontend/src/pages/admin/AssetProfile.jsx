@@ -35,7 +35,7 @@ export default function AssetProfile() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("overview");
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const r = await api.get(`/operations/assets/${assetId}/profile`);
@@ -43,8 +43,8 @@ export default function AssetProfile() {
     } catch (e) {
       setData({ error: e?.response?.data?.detail || "Failed to load asset" });
     } finally { setLoading(false); }
-  };
-  useEffect(() => { load();   }, [assetId]);
+  }, [assetId]);
+  useEffect(() => { load(); }, [load]);
 
   if (loading) return (
     <AdminShell title="Asset Profile">

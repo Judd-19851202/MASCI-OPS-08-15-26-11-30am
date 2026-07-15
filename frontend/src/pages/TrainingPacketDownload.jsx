@@ -95,7 +95,7 @@ export default function TrainingPacketDownload() {
       cancelled = true;
     };
      
-  }, [trackSlug, lang]);
+  }, [isAuthed, lang, requiredAudience, track, trackSlug]);
 
   if (!track) return <Navigate to="/training" replace />;
 

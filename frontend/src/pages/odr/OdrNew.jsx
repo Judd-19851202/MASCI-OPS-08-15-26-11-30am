@@ -110,7 +110,7 @@ export default function OdrNew() {
       lang,
     });
      
-  }, []);
+  }, [lang]);
 
   React.useEffect(() => {
     logObservation({
@@ -123,7 +123,7 @@ export default function OdrNew() {
       lang,
     });
      
-  }, [step]);
+  }, [lang, odr?.doc_id, odr?.id, step]);
 
   React.useEffect(() => {
     if (!crew.crew_type) return;

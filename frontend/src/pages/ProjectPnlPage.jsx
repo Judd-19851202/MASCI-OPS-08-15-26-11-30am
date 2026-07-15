@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   TrendingUp,
   Loader2,
@@ -36,7 +36,7 @@ export default function ProjectPnlPage() {
   const [loadingPnl, setLoadingPnl] = useState(false);
   const [error, setError] = useState("");
 
-  const loadProjects = async () => {
+  const loadProjects = useCallback(async () => {
     setLoadingList(true);
     try {
       const r = await api.get("/admin/projects/list");
@@ -50,14 +50,14 @@ export default function ProjectPnlPage() {
     } finally {
       setLoadingList(false);
     }
-  };
+  }, [projectNumber]);
 
   useEffect(() => {
     loadProjects();
      
-  }, []);
+  }, [loadProjects]);
 
-  const runPnl = async () => {
+  const runPnl = useCallback(async () => {
     if (!projectNumber) {
       setError("Pick a project first.");
       return;
@@ -78,16 +78,16 @@ export default function ProjectPnlPage() {
     } finally {
       setLoadingPnl(false);
     }
-  };
+  }, [dateFrom, dateTo, laborRate, projectNumber]);
 
   // Auto-run on first project load + whenever the project changes (no need
   // to click a button to see numbers)
   useEffect(() => {
     if (projectNumber) runPnl();
      
-  }, [projectNumber]);
+  }, [projectNumber, runPnl]);
 
-  const summary = data || {};
+  const summary = useMemo(() => (data || {}), [data]);
   const subTotalCount = useMemo(
     () => (summary.sub_breakdown || []).reduce((n, s) => n + (s.headcount_total || 0), 0),
     [summary]
