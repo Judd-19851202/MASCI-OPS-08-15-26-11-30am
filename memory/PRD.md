@@ -1,3 +1,34 @@
+## 2026-07-15 · DEFENSIVE BUILD REPAIR · IMPORT-SAFE BACKEND DB LIFECYCLE
+
+### Scope completed
+- Removed the proven import-time Mongo initialization defect from `backend/server.py`.
+- Backend import is now safe without `MONGO_URL` / `DB_NAME`; real runtime validation moved into governed startup.
+- Preserved the single canonical database authority by using a startup-initialized compatibility proxy instead of a mass route rewrite.
+
+### Architecture change
+- Previous behavior: module import executed env/runtime DB binding immediately (`AsyncIOMotorClient(...)` + `db = client[...]`) and could crash clean exports before startup.
+- New behavior: `RuntimeDbProxy` / `RuntimeCollectionProxy` allow import-time route wiring to keep using `db`, but the real Mongo client is created only in `_bootstrap_runtime_db()` during lifespan startup.
+- Shutdown now closes the runtime client exactly once and clears app/db state.
+
+### Additional import-safe cleanup
+- Removed import-time best-effort DB task scheduling from:
+  - `backend/routes/dr_v2.py`
+  - `backend/routes/dr_v2_photos.py`
+  - `backend/routes/ods.py`
+- Re-homed those index boots under a governed startup lifecycle step in `server.py`.
+- Moved the env/DB alignment guard out of module import and into runtime bootstrap.
+
+### Verification completed
+- Clean working-tree copy import without `MONGO_URL` / `DB_NAME` now succeeds (`IMPORT_SAFE`).
+- No-secret startup path fails clearly at runtime bootstrap instead of import time.
+- Startup with injected test config + mocked Mongo client creates one client and shutdown closes once.
+- Frontend production-equivalent build still passes (`CI=true yarn build` exit 0, warnings 0, errors 0).
+- Release identity passes and preview `/api/version` reports `frontend_backend_release_match=true`.
+- Focused backend proof bundle passes, including DB lifecycle tests and DR-03 targeted release checks.
+
+### Truthful note
+- This repair removes a proven source defect that could break build-time imports. It does **not** by itself prove the prior Cloud Build failure root cause, because the actual Cloud Build step logs were not available.
+
 ## 2026-07-15 · DR-03 FINAL GATE 5 REPAIR
 
 ### Scope completed
