@@ -462,6 +462,11 @@ class DraftPhotoIntelligenceBody(BaseModel):
     force: bool = False
 
 
+class DraftPhotoDebugBody(BaseModel):
+    form_key: str = Field(min_length=1, max_length=180)
+    payload: Dict[str, Any] = Field(default_factory=dict)
+
+
 # ── Phase V.2 · Wave-1A · helpers ───────────────────────────────────
 
 
@@ -1250,6 +1255,59 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
             draft_identity=draft_identity,
             draft=payload,
         )
+
+    @api_router.post("/daily-reports/photo-intelligence/draft-debug")
+    async def daily_report_draft_photo_intelligence_debug(body: DraftPhotoDebugBody):
+        from services.photo_intelligence.pipeline import (  # noqa: PLC0415
+            _extract_draft_photo_batches,
+            _extract_photo_refs,
+            COLL_INTEL_JOBS,
+            COLL_PHOTO_INTEL,
+        )
+
+        payload = dict(body.payload or {})
+        draft_identity = str(body.form_key or "").strip()
+        refs = _extract_photo_refs(payload)
+        draft_batches = _extract_draft_photo_batches(payload)
+        current_photo_ids = [row.get("photo_id") for row in draft_batches]
+        jobs = await db[COLL_INTEL_JOBS].find(
+            {"report_id": draft_identity, "photo_id": {"$in": current_photo_ids}},
+            {"_id": 0},
+        ).to_list(length=500)
+        intel = await db[COLL_PHOTO_INTEL].find(
+            {"report_id": draft_identity, "photo_id": {"$in": current_photo_ids}},
+            {"_id": 0},
+        ).to_list(length=500)
+        jobs_by_photo = {row.get("photo_id"): row for row in jobs if row.get("photo_id")}
+        intel_by_photo = {row.get("photo_id"): row for row in intel if row.get("photo_id")}
+        rows = []
+        for idx, item in enumerate(payload.get("photos") or []):
+            ref = refs[idx] if idx < len(refs) else None
+            batch = draft_batches[idx] if idx < len(draft_batches) else None
+            pid = (batch or ref or {}).get("photo_id")
+            job = jobs_by_photo.get(pid) or {}
+            ir = intel_by_photo.get(pid) or {}
+            rows.append({
+                "client_tile_index": idx,
+                "original_filename": item.get("name") if isinstance(item, dict) else None,
+                "client_id": item.get("id") if isinstance(item, dict) else None,
+                "content_hash": (batch or {}).get("photo_sha"),
+                "upload_status": "persisted" if isinstance(item, str) and (item.startswith("data:") or item.startswith("photo://")) else "unknown",
+                "persistent_reference": (batch or ref or {}).get("ref"),
+                "backend_photo_id": pid,
+                "enqueue_result": job.get("status"),
+                "processing_status": ir.get("analysis_status") or job.get("status"),
+                "terminal_result": ir.get("analysis_status") or job.get("status"),
+                "observation_count": len(ir.get("observations") or []),
+                "exclusion_or_failure_reason": ir.get("fallback_reason") or job.get("note") or "",
+            })
+        return {
+            "form_key": draft_identity,
+            "visible_tile_count": len(payload.get("photos") or []),
+            "extract_photo_refs_count": len(refs),
+            "extract_draft_batches_count": len(draft_batches),
+            "rows": rows,
+        }
 
     # ── TRACK 22.9B · Photo Intelligence read endpoint ─────────────
     # Returns aggregated grounded observations for a submitted Daily

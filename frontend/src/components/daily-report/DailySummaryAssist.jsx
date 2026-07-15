@@ -113,6 +113,18 @@ export default function DailySummaryAssist({
   const syncPhotoIntel = useCallback(async ({ force = false } = {}) => {
     const currentData = dataRef.current || {};
     const currentPhotos = currentData?.photos || [];
+    if (typeof window !== "undefined") {
+      window.__DR_ACTIVE_DRAFT__ = {
+        formKey,
+        photoCount: currentPhotos.length,
+        photos: currentPhotos.map((item, idx) => ({
+          idx,
+          type: typeof item,
+          prefix: typeof item === "string" ? item.slice(0, 40) : JSON.stringify(item || {}).slice(0, 80),
+          length: typeof item === "string" ? item.length : 0,
+        })),
+      };
+    }
     if (reportNumber) {
       try {
         const { data: response } = await api.get(
