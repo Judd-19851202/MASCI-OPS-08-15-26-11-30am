@@ -1,3 +1,26 @@
+## 2026-07-15 · CI STABILIZATION · ZERO-WARNING BUILD + REGRESSION GATE
+
+### Scope completed
+- Cleared the final `react-hooks/exhaustive-deps` CI blockers in the last 17 frontend files without weakening CI, adding blanket suppressions, or changing production build rules.
+- Verified the exact production-equivalent command `cd /app/frontend && CI=true yarn build` now passes with **0 warnings / 0 errors / exit 0**.
+- Re-synced preview release identity so `/api/version` now reports `frontend_backend_release_match=true` after backend restart.
+
+### Final warning batch repaired
+- Files stabilized: `JobTeamRosterPanel.jsx`, `FieldLeadershipRecords.jsx`, `HrEmployees.jsx`, `IncidentReport.jsx`, `JobPhotosLibrary.jsx`, `SafetyCaseWorkspace.jsx`, `SafetyCorrectiveActions.jsx`, `SafetyFireExtinguishers.jsx`, `AdminDispatch.jsx`, `AdminGovernance.jsx`, `AdminIntegrationCenter.jsx`, `OperationsActionDetail.jsx`, `OperationsActions.jsx`, `PmSchedules.jsx`, `PmWorkOrders.jsx`, `ExcavationOversight.jsx`, `TrenchSafetyReports.jsx`.
+- Repair patterns used: removed unnecessary deps, added true missing deps, memoized callbacks, memoized derived dependency keys, and avoided dependency-array expressions that could hide stale closures or cause render/request loops.
+
+### Verification completed
+- Local CI build proof: `/tmp/frontend_ci_build_round10.log` → `CI=true yarn build` exit `0`.
+- Release identity verifier passed: `backend/scripts/verify_release_identity.py`.
+- Backend import/startup smoke passed after restart.
+- Testing agent PASS: `/app/test_reports/iteration_567.json`.
+- Regression proof from testing agent: no render loops, no request storms, no duplicate requests, no console errors across sign-in, Daily Reports, Incident Report, Admin Dispatch, HR Employees, Safety Corrective Actions, Safety Fire Extinguishers, Operations Actions, Trench Safety, and Field Leadership Records.
+
+### Truthful notes
+- Preview now reports `frontend_backend_release_match=true` with release `0706118b2336a88ba054467d316bf390`.
+- Some unrelated historical pytest files remain stale against the current auth/routing contracts (for example old `/api/admin/login` assumptions and old route-inventory expectations). They were not changed in this stabilization and were treated as baseline debt, not regressions from the hook fixes.
+- Testing agent also observed a few legacy/renamed routes returning 404 (`/shop/pm-schedules`, `/shop/pm-work-orders`, `/safety-portal/excavation-oversight`, `/pm/job-photos`) and classified them as likely route drift rather than hook-fix regressions.
+
 ## 2026-07-14 · FIVE-GATE RELEASE GOVERNANCE AMENDMENT
 
 ### Scope
