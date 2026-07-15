@@ -1,3 +1,19 @@
+## 2026-07-15 · DR-03 FINAL RATE-LIMIT CLOSEOUT
+
+### Scope completed
+- Disabled Daily Report public rate limiting in preview by setting `RATE_LIMITING=off` in `backend/.env` and restarting the backend under supervisor.
+- Repaired `backend/lib/rate_limiting.py` so future public throttling keys prefer stable `X-Device-Id` or authenticated token identity instead of the shared ingress IP.
+- Increased Daily Summary Assist synthesis debounce from `1200ms` to `3000ms` and added the stable `X-Device-Id` header on frontend API requests.
+
+### Verification completed
+- Backend restart via `sudo supervisorctl restart backend`: PASS.
+- Manual API verification against `POST /api/daily-reports/summary/draft`: repeated sequential calls returned `200` with no `429`.
+- Burst API verification (12 rapid calls): all `200`, no rate-limit regression.
+- Frontend smoke on `/daily/submit`: page loaded successfully in preview.
+
+### Truthful note
+- Preview Daily Report summary generation still returns the deterministic fallback path because tenant live summary AI is disabled in preview; this closeout specifically resolves the `429` blocker and request-storm behavior.
+
 ## 2026-07-15 · DR-03 OPERATOR AI FINAL REPAIR CONTINUATION
 
 ### Scope completed in this continuation

@@ -25,7 +25,7 @@ function hasEnoughEvidence(data) {
   return acts > 0 || crew > 0 || photos > 0 || mats > 0 || subs > 0 || prod > 0 || notes.length > 20;
 }
 
-const DEBOUNCE_MS = 1200;
+const DEBOUNCE_MS = 3000;
 const REQUEST_TIMEOUT_MS = 60000;
 
 export default function DailySummaryAssist({

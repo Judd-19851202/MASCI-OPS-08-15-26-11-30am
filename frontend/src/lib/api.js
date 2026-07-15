@@ -11,6 +11,7 @@ import { getFlToken, clearFlToken } from "@/lib/flAuth";
 import { getSafetyToken, clearSafetyToken } from "@/lib/safetyAuth";
 import { getDispatchToken, clearDispatchToken } from "@/lib/dispatchAuth";
 import { setMustChange, redirectToChangePassword } from "@/lib/mustChangePassword";
+import { getDeviceId } from "@/lib/resiliency/deviceId";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
@@ -38,6 +39,12 @@ export const api = axios.create({
 
 // Attach Crew-Hub JWT, Safety-Admin token, and Shop token to every request.
 api.interceptors.request.use((config) => {
+  try {
+    const deviceId = getDeviceId();
+    if (deviceId) {
+      config.headers["X-Device-Id"] = deviceId;
+    }
+  } catch (_e) { /* ignore */ }
   const adminTok = getAdminToken();
   if (adminTok) {
     config.headers["X-Admin-Token"] = adminTok;

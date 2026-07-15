@@ -18,6 +18,7 @@ Extraction rule (Zero-Drift, Track 22.1):
 """
 from __future__ import annotations
 
+import hashlib
 import os
 import time
 from collections import defaultdict
@@ -51,12 +52,40 @@ def _is_test_request(request: Request | None = None) -> bool:
 
 
 def _client_ip(request: Request) -> str:
-    """Best-effort client IP. Trusts X-Forwarded-For when present (Kubernetes
-    ingress sets it). Falls back to the immediate peer IP."""
+    """Best-effort per-device / per-user rate-limit identity.
+
+    Order of preference:
+    1. Stable frontend device id header
+    2. Authenticated caller token hash (prevents all ingress traffic sharing one bucket)
+    3. Forwarded/peer IP as a last resort
+    """
+    device_id = (request.headers.get("x-device-id") or "").strip()
+    if device_id:
+        return f"device:{device_id[:120]}"
+
+    auth_headers = (
+        "x-directory-token",
+        "x-admin-token",
+        "x-pm-token",
+        "x-hr-token",
+        "x-shop-token",
+        "x-safety-token",
+        "x-dispatch-token",
+        "x-fl-token",
+        "x-leadership-token",
+        "authorization",
+    )
+    for header_name in auth_headers:
+        raw = (request.headers.get(header_name) or "").strip()
+        if not raw:
+            continue
+        digest = hashlib.sha256(raw.encode("utf-8", "ignore")).hexdigest()[:24]
+        return f"auth:{header_name}:{digest}"
+
     xff = request.headers.get("x-forwarded-for") or ""
     if xff:
-        return xff.split(",")[0].strip()
-    return request.client.host if request.client else "unknown"
+        return f"ip:{xff.split(',')[0].strip()}"
+    return f"ip:{request.client.host}" if request.client else "ip:unknown"
 
 
 def rate_limit_public_post(request: Request):
