@@ -285,34 +285,8 @@ def _rank_photo_observations(items: List[Any]) -> List[str]:
     for item in items[:60]:
         if not isinstance(item, dict):
             continue
-        if item.get("eligibility_reason") and not item.get("is_jobsite_photo", True):
-            continue
         desc = _clean_str(item.get("description"), 220)
         if not desc or _is_low_value_photo_fact(desc):
-            continue
-        if not any(
-            marker in desc.lower()
-            for marker in [
-                "curb",
-                "concrete",
-                "pour",
-                "truck",
-                "barrier",
-                "traffic control",
-                "equipment",
-                "work area",
-                "material",
-                "excavation",
-                "paving",
-                "staging",
-                "alignment",
-                "hose",
-                "hopper",
-                "crew",
-                "ppe",
-                "housekeeping",
-            ]
-        ):
             continue
         key = desc.lower()
         if key in seen:
@@ -390,12 +364,17 @@ def _compose_pm_grade_fallback(payload: Dict[str, Any], summary_input: Dict[str,
         paragraphs.append("Materials and logistics: " + "; ".join(material_bits) + ".")
 
     photo_facts = _rank_photo_observations(list(photos.get("observations") or []))
+    photo_observation_count = len(list(photos.get("observations") or []))
     if photo_facts:
         paragraphs.append("Photo-supported evidence: " + "; ".join(photo_facts[:2]) + ".")
     elif int(photos.get("photo_count") or 0) > 0:
-        paragraphs.append(
-            f"Photo-supported evidence: {int(photos.get('photo_count') or 0)} submitted photos were reviewed. The available images do not add stronger operational detail beyond the typed report facts."
-        )
+        failed_count = max(0, int(photos.get("photo_count") or 0) - photo_observation_count)
+        if failed_count > 0:
+            paragraphs.append(f"Photo-supported evidence: Photo analysis failed for {failed_count} photos.")
+        else:
+            paragraphs.append(
+                f"Photo-supported evidence: {int(photos.get('photo_count') or 0)} submitted photos were reviewed."
+            )
 
     issue_bits = []
     if _clean_str(payload.get("schedule_delays"), 20).lower() in {"yes", "y", "true"}:
