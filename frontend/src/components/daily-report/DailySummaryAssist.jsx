@@ -264,14 +264,14 @@ export default function DailySummaryAssist({
         setEdited(fb);
       }
       setAiAvailable(false);
-      setPhotoIntelStatus((latestPhotoIntel?.status) || ((data?.photos || []).length > 0 ? "queued" : "no_photos"));
+      setPhotoIntelStatus((latestPhotoIntel?.status) || ((dataRef.current?.photos || []).length > 0 ? "queued" : "no_photos"));
       setError(normalized.message);
       setErrorCode(normalized.code);
       setStatus("ready");
     } finally {
       clearTimeout(timeoutId);
     }
-  }, [data, formKey, latestPhotoIntel?.status, narrative, syncPhotoIntel]);
+  }, [data, formKey, latestPhotoIntel, narrative, syncPhotoIntel]);
 
   useEffect(() => {
     if (accepted) return undefined;
