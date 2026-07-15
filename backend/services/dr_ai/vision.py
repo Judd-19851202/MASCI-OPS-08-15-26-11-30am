@@ -27,23 +27,39 @@ VISION_BATCH_SIZE = 6
 VISION_MAX_CONCURRENCY = 3
 
 _VISION_SYSTEM = (
-    "You are a construction jobsite photo analyst supporting a Daily Job "
-    "Report. Analyze the attached photo and report ONLY what is clearly "
-    "visible. STRICT RULES:\n"
-    "0. First determine whether the image is an eligible construction/jobsite/supporting-evidence photo. "
-    "Screenshots, dashboards, browser windows, admin pages, chat UIs, and unrelated screen captures are NOT eligible. "
-    "For those, set is_jobsite_photo=false, provide a short eligibility_reason, and return no operational observations.\n"
-    "1. Describe the work in progress (paving, milling, forming, pouring, "
-    "excavation, grading, hauling, etc.) as specifically as the image allows.\n"
-    "2. Identify visible equipment (type, and unit numbers / brand names "
-    "only if legible), visible crew activity and approximate crew count, "
-    "visible materials, and site conditions.\n"
-    "3. If the photo is a delivery / scale / material ticket, transcribe the "
-    "legible fields into ticket_text (supplier, ticket number, material, "
-    "quantity, date). If partially legible, transcribe only what is legible.\n"
-    "4. NEVER invent quantities, activities, incidents, or safety violations "
-    "that are not clearly visible.\n"
-    "5. Return STRICT JSON only. No markdown, no preface."
+    "You are a senior construction superintendent and forensic jobsite photo analyst "
+    "supporting a Daily Job Report. Analyze the attached image and return ONLY what is "
+    "clearly visible and operationally meaningful. STRICT RULES:\n"
+    "0. First classify the image truthfully into one of these evidence types: "
+    "jobsite_construction_photo, document_or_ticket_evidence, screenshot_or_ui_artifact, "
+    "duplicate_image, or unsupported_or_ineligible. Screenshots, dashboards, browser windows, "
+    "admin pages, chat UIs, and unrelated screen captures are NOT jobsite evidence. "
+    "For those, set is_jobsite_photo=false, provide a short eligibility_reason, and return no "
+    "operational observations.\n"
+    "1. When the image is a genuine jobsite/construction photo, write like an experienced field "
+    "superintendent briefing a PM. Focus on specific work activity, progress, equipment in use, "
+    "material placement, access conditions, traffic control, visible safety controls, visible "
+    "quality concerns, and whether the photo supports or conflicts with the typed report.\n"
+    "2. Be technically specific when the image supports it. Identify equipment by best-supported "
+    "construction class first (excavator, skid steer, paver, roller, dump truck, loader, crane, "
+    "concrete chute, pump hose, trench box, shoring, etc.). Mention manufacturer or model only if "
+    "the marking is clearly legible. Do not guess. For example, say 'tracked excavator' unless "
+    "'John Deere' or another marking is clearly readable.\n"
+    "3. Do NOT waste summary value on low-signal trivia such as logos, colors, generic close-up "
+    "descriptions, browser text, or statements like 'no workers visible' unless that absence is "
+    "operationally meaningful.\n"
+    "4. If the photo is a delivery / scale / material ticket, transcribe only the clearly legible "
+    "fields into ticket_text (supplier, ticket number, material, quantity, date, load details). "
+    "Do not infer missing text.\n"
+    "5. NEVER invent quantities, completed work, incidents, violations, crew counts, or safety "
+    "conditions that are not clearly visible.\n"
+    "6. Observations must be short, technical, and PM-relevant. Prefer statements like: "
+    "'Fresh concrete is being discharged through a chute into the work area', "
+    "'curb alignment is visible along the trench line', "
+    "'traffic-control drums separate the live lane from the work zone', "
+    "'standing water is visible in the excavation', "
+    "'equipment is staged but no active placement is visible in this frame'.\n"
+    "7. Return STRICT JSON only. No markdown, no preface."
 )
 
 _VISION_SCHEMA: Dict[str, Any] = {
@@ -194,22 +210,22 @@ async def analyze_draft_photos(db, *, report_id: str, draft: Dict[str, Any]) -> 
     await _ensure_cache_index(db)
 
     results_by_sha: Dict[str, Dict[str, Any]] = {}
-    refs_by_sha: Dict[str, List[Dict[str, Any]]] = {}
     pending_unique: List[Dict[str, Any]] = []
+    seen_input_shas: set[str] = set()
     for p in photos:
-        refs_by_sha.setdefault(p["sha"], []).append(p)
-    for sha, grouped in refs_by_sha.items():
-        representative = grouped[0]
+        if p["sha"] in seen_input_shas:
+            continue
+        seen_input_shas.add(p["sha"])
         try:
             cached = await db[VISION_CACHE_COLL].find_one(
-                {"photo_sha": sha}, {"_id": 0, "envelope": 1},
+                {"photo_sha": p["sha"]}, {"_id": 0, "envelope": 1},
             )
         except Exception:  # noqa: BLE001
             cached = None
         if cached and cached.get("envelope"):
-            results_by_sha[sha] = cached["envelope"]
+            results_by_sha[p["sha"]] = cached["envelope"]
         else:
-            pending_unique.append(representative)
+            pending_unique.append(p)
 
     if pending_unique:
         gw = get_gateway()
@@ -279,6 +295,18 @@ async def analyze_draft_photos(db, *, report_id: str, draft: Dict[str, Any]) -> 
     for p in photos:
         envelope = results_by_sha.get(p["sha"])
         if not envelope:
+            ordered_results.append(
+                {
+                    "photo_ref": p["ref"],
+                    "source": p["source"],
+                    "summary": "",
+                    "observations": [],
+                    "confidence": 0.0,
+                    "is_jobsite_photo": False,
+                    "eligibility_reason": "analysis_unavailable_for_this_photo",
+                    "duplicate_reused": False,
+                }
+            )
             continue
         obs = _to_observation(p, envelope)
         if not obs.get("is_jobsite_photo", True):
