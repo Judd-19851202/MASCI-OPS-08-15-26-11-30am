@@ -297,7 +297,7 @@ def _rank_photo_observations(items: List[Any]) -> List[str]:
 
 def _photo_observations_for_ai(photo_intel: Optional[Dict[str, Any]]) -> List[Dict[str, Any]]:
     items: List[Dict[str, Any]] = []
-    for row in list((photo_intel or {}).get("photos") or [])[:24]:
+    for index, row in enumerate(list((photo_intel or {}).get("photos") or [])[:24], start=1):
         if not isinstance(row, dict):
             continue
         if _clean_str(row.get("analysis_status"), 40) != "complete":
@@ -315,12 +315,51 @@ def _photo_observations_for_ai(photo_intel: Optional[Dict[str, Any]]) -> List[Di
             continue
         items.append(
             {
+                "photo_number": index,
                 "photo_id": _clean_str(row.get("photo_id"), 80),
                 "summary": summary,
                 "observations": observations[:6],
+                "citation_hint": (
+                    f"Photo {index}"
+                    + (f" ({_clean_str(row.get('photo_id'), 24)})" if _clean_str(row.get("photo_id"), 24) else "")
+                ),
             }
         )
     return items
+
+
+def _build_photo_evidence_manifest(photo_items: List[Dict[str, Any]]) -> List[str]:
+    manifest: List[str] = []
+    for item in photo_items[:24]:
+        if not isinstance(item, dict):
+            continue
+        photo_number = int(item.get("photo_number") or 0)
+        citation = _clean_str(item.get("citation_hint"), 80) or (f"Photo {photo_number}" if photo_number else "Photo")
+        summary = _clean_str(item.get("summary"), 420)
+        observations = [
+            _clean_str(obs, 260)
+            for obs in list(item.get("observations") or [])[:6]
+            if _clean_str(obs, 260)
+        ]
+        if summary:
+            manifest.append(f"{citation}: summary evidence — {summary}")
+        for obs_index, obs in enumerate(observations, start=1):
+            manifest.append(f"{citation}: technical observation {obs_index} — {obs}")
+    return manifest[:120]
+
+
+def _day_narrative_system_prompt_with_photo_citations() -> str:
+    base = AGENTS["day_narrative"]["system"]
+    return (
+        base
+        + "\n\nPHOTO CITATION REQUIREMENT:\n"
+        + "When `photo_observations[]` is present, you MUST explicitly cite grounded photo evidence in the prose. "
+        + "Use direct photo references such as 'Photo 3 shows …', 'Photo 5 confirms …', or 'Photo 2 documents …'. "
+        + "Every photo citation MUST be tied to the exact `photo_observations[]` entry provided in the evidence bundle. "
+        + "Do NOT generalize as 'site photos show' when a numbered photo citation is available. "
+        + "If multiple photos contain technical evidence, weave the strongest numbered citations into the narrative. "
+        + "If no grounded numbered photo evidence exists, say nothing about photo content beyond acknowledging attached photos."
+    )
 
 
 def _compose_pm_grade_fallback(payload: Dict[str, Any], summary_input: Dict[str, Any]) -> str:
@@ -456,6 +495,7 @@ def _build_live_ai_bundle(payload: Dict[str, Any], photo_intel: Optional[Dict[st
     ai_photo_obs = _photo_observations_for_ai(photo_intel)
     if ai_photo_obs:
         normalized["photo_observations"] = ai_photo_obs
+        normalized["photo_evidence_manifest"] = _build_photo_evidence_manifest(ai_photo_obs)
     return build_evidence_bundle(normalized)
 
 
@@ -472,7 +512,7 @@ async def _compose_live_summary(
     provider = get_ai_provider()
     result = await provider.synthesize(
         agent="day_narrative",
-        system_message=AGENTS["day_narrative"]["system"],
+        system_message=_day_narrative_system_prompt_with_photo_citations(),
         user_payload=evidence_bundle,
         response_schema=AGENT_RESPONSE_SCHEMA,
         session_id=f"daily-summary-{session_key[:80]}",
