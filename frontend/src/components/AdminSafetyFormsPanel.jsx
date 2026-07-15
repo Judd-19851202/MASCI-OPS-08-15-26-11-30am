@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { brandSlug } from "@/lib/brandFilename";
 import {
@@ -65,7 +65,7 @@ export default function AdminSafetyFormsPanel() {
       ? "/safety-forms/equipment-issuances"
       : "/safety-forms/equipment-trainings";
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const params = {};
@@ -80,12 +80,11 @@ export default function AdminSafetyFormsPanel() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [apiBase, filters]);
 
   useEffect(() => {
     load();
-     
-  }, [tab]);
+  }, [load]);
 
   const reset = () =>
     setFilters({ q: "", employee: "", project: "", date_from: "", date_to: "" });

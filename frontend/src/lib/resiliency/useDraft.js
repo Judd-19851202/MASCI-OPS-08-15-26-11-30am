@@ -48,7 +48,7 @@ export function useDraft(formKey, initial, actorId) {
     })();
     return () => { cancelled = true; };
      
-  }, [formKey, actorId]);
+  }, [actorId, formData, formKey]);
 
   // Autosave debounced.
   useEffect(() => {

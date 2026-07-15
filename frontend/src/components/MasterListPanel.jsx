@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Loader2,
   Plus,
@@ -105,7 +105,7 @@ export default function MasterListPanel({
                    : accent === "slate" ? "text-amber-300"
                    : "text-amber-300";
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     setLoading(true);
     try {
       const [listR, statusR, archiveR] = await Promise.all([
@@ -123,12 +123,11 @@ export default function MasterListPanel({
     } finally {
       setLoading(false);
     }
-  };
+  }, [archiveEndpoint, entitySingular, listEndpoint, statusEndpoint, writeAllowed]);
 
   useEffect(() => {
     refresh();
-     
-  }, [listEndpoint]);
+  }, [refresh]);
 
   // Track 20.9 — TD-20.9-A01 hardening. The "Restore to active list"
   // button in the soft-deleted archive tab was calling `restoreRow(row)`

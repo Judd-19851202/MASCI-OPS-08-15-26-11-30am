@@ -10,7 +10,7 @@
 // SAFETY: This component triggers NO writes. There are no action
 // buttons that mutate any defect, asset, mapping, or MaintainX
 // record. It is intelligence-only.
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   RefreshCcw, Loader2, Layers, Truck, Wrench, Camera, AlertTriangle,
   CheckCircle2, ShieldAlert, Copy as CopyIcon, Eye, X as XIcon, Lock,
@@ -70,7 +70,7 @@ export default function MaintainxDefectCoverageSection({
   const [filterSource, setFilterSource] = useState(null);
   const [drawerDefect, setDrawerDefect] = useState(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await api.get(endpoint, { params: { sample_limit: 200, since_days: 60 } });
@@ -80,13 +80,13 @@ export default function MaintainxDefectCoverageSection({
     } finally {
       setLoading(false);
     }
-  };
+  }, [endpoint]);
 
-  useEffect(() => { load();   }, [endpoint]);
+  useEffect(() => { load(); }, [load]);
 
   const totals = data?.totals || {};
   const breakdown = data?.breakdown || [];
-  const defects = data?.defects || [];
+  const defects = useMemo(() => (data?.defects || []), [data?.defects]);
 
   const filteredDefects = useMemo(() => {
     if (!filterSource) return defects;

@@ -12,7 +12,7 @@
 // mono numerals, uppercase tracking kicker, single white card.
 //
 // Mounted at the top of /admin/people, above AdminAccessControlPanel.
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Users, Loader2 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
@@ -37,7 +37,7 @@ export default function AdminAccessStatsTile() {
   const [stats, setStats] = useState(null);
   const [error, setError] = useState(null);
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -60,12 +60,11 @@ export default function AdminAccessStatsTile() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     refresh();
-     
-  }, []);
+  }, [refresh]);
 
   return (
     <div

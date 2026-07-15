@@ -122,7 +122,7 @@ export default function TrenchBoxTabulatedLibrary({ adminMode = false }) {
       }
     }
     return out;
-  }, [groups, boxes, t, lang]);
+  }, [groups, boxes, t]);
 
   const toggleOpen = (k) =>
     setOpenMap((m) => ({ ...m, [k]: !m[k] }));

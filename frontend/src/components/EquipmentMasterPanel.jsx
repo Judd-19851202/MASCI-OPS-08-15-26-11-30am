@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { brandSlug, brandCompanyName } from "@/lib/brandFilename";
 import {
@@ -125,7 +125,7 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
   const [exporting, setExporting] = useState(false);
   const fileRef = useRef(null);
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     setLoading(true);
     try {
       const [listR, statusR, archR] = await Promise.all([
@@ -143,10 +143,10 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [writeAllowed]);
   useEffect(() => {
     refresh();
-  }, []);
+  }, [refresh]);
 
   const cats = useMemo(() => Object.keys(grouped).sort(), [grouped]);
   const filtered = useMemo(() => {

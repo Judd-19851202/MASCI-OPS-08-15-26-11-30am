@@ -46,7 +46,7 @@ export default function ShopFeedBoard() {
     return () => clearInterval(id);
   }, [load]);
 
-  const items = data?.needs_attention || [];
+  const items = useMemo(() => (data?.needs_attention || []), [data?.needs_attention]);
   const recovery = data?.active_recovery || [];
   const waitingParts = data?.waiting_on_parts || [];
   const counts = data?.counts || {};

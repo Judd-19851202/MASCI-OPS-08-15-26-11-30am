@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Loader2, RefreshCw, Hammer, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ const ShopActivityFeed = ({ baseHref = "/shop/equipment", limit = 20, testIdPref
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const r = await api.get(`/shop/activity?limit=${limit}`);
@@ -28,9 +28,9 @@ const ShopActivityFeed = ({ baseHref = "/shop/equipment", limit = 20, testIdPref
     } finally {
       setLoading(false);
     }
-  };
+  }, [limit]);
 
-  useEffect(() => { load(); }, []);  
+  useEffect(() => { load(); }, [load]);  
 
   const fmt = (iso) => {
     if (!iso) return "—";

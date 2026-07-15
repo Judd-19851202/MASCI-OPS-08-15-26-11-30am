@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { Check, ChevronDown, Search, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -87,19 +87,19 @@ export function TopicPicker({
   const { commitHandlersFor } = useCmdkTouchGuard(open);
 
   // Helper: returns the topic title in the active language.
-  const titleFor = (topic) => {
+  const titleFor = useCallback((topic) => {
     if (lang === "es" && TOPIC_LIBRARY_ES[topic.key]?.title) {
       return TOPIC_LIBRARY_ES[topic.key].title;
     }
     return topic.title;
-  };
+  }, [lang]);
 
   const selectedLabel = useMemo(() => {
     if (!value || value === customKey) return null;
     const found = topics.find((tt) => tt.key === value);
     return found ? titleFor(found) : null;
      
-  }, [value, topics, customKey, lang]);
+  }, [value, topics, customKey, titleFor]);
 
   // Domain counts (over the full topic list, ignoring current filter)
   const domainCounts = useMemo(() => {

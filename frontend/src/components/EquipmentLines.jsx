@@ -54,7 +54,7 @@ const fmtMoney = (n) =>
   `$${(Number(n) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 export function EquipmentLines({ value, onChange, lang, t }) {
-  const lines = Array.isArray(value) ? value : [];
+  const lines = useMemo(() => (Array.isArray(value) ? value : []), [value]);
   const [catalog, setCatalog] = useState([]);
   const [makes, setMakes] = useState([]);
   const [openCatalogIdx, setOpenCatalogIdx] = useState(null);

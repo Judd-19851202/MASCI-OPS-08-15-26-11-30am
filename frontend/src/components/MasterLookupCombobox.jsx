@@ -73,7 +73,7 @@ export default function MasterLookupCombobox({
     return () => { alive = false; };
     // Only fire when value first appears; we don't want re-resolve loops
      
-  }, [value, kind]);
+  }, [displayValue, kind, onPick, value]);
 
   // Close on outside click
   useEffect(() => {

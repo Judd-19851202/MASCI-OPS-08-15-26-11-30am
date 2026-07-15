@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { TrendingUp, AlertOctagon, AlertTriangle, RefreshCw, Loader2 } from "lucide-react";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ const EquipmentTrendsPanel = () => {
   const [days, setDays] = useState(90);
   const [tab, setTab] = useState("equipment");
 
-  const load = async (windowDays = days) => {
+  const load = useCallback(async (windowDays = days) => {
     setLoading(true);
     try {
       const r = await api.get(`/admin/equipment-inspections/trends?days=${windowDays}`);
@@ -24,12 +24,11 @@ const EquipmentTrendsPanel = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [days]);
 
   useEffect(() => {
     load(days);
-     
-  }, []);
+  }, [days, load]);
 
   const tabs = [
     { key: "equipment", label: "Equipment", count: data?.equipment?.length || 0 },

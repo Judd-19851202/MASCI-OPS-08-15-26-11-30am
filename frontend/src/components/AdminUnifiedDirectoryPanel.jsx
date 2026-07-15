@@ -15,7 +15,7 @@
 // Visual language matches existing /admin/people panels (Card +
 // Lucide icon + slate dense table + mono uppercase column headers).
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Database, Loader2, ShieldCheck, Link2, GitBranch, Search } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -86,7 +86,7 @@ export default function AdminUnifiedDirectoryPanel() {
   const [portal, setPortal] = useState("");
   const [source, setSource] = useState("");
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -112,12 +112,11 @@ export default function AdminUnifiedDirectoryPanel() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [portal, q, source]);
 
   useEffect(() => {
     refresh();
-     
-  }, [portal, source]);
+  }, [refresh]);
 
   const templateById = useMemo(() => {
     const m = {};

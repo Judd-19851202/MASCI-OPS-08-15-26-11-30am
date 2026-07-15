@@ -122,9 +122,9 @@ const rowBtn =
 // ── Section 02 · Crew + Equipment ─────────────────────────────────
 export function SectionCrewEquipment({ data, patch, costCodes }) {
   const { t } = useT();
-  const crews = data.masci_crews || [];
-  const equipment = data.equipment || [];
-  const subs = data.subcontractors || [];
+  const crews = useMemo(() => (data.masci_crews || []), [data.masci_crews]);
+  const equipment = useMemo(() => (data.equipment || []), [data.equipment]);
+  const subs = useMemo(() => (data.subcontractors || []), [data.subcontractors]);
   const hasCodes = (costCodes?.length || 0) > 0;
 
   // TRACK 23.4C · Keep a live roster reference so typed-and-blur

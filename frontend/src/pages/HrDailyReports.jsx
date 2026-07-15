@@ -9,7 +9,7 @@
 //
 // The detail view at `/hr/daily-reports/:id` re-uses the read-only
 // renderer below; no edit controls are rendered.
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ClipboardList, Search, Loader2, ChevronRight, Filter, ArrowLeft,
@@ -51,7 +51,7 @@ export default function HrDailyReports() {
   const setF = (k) => (e) =>
     setFilters((prev) => ({ ...prev, [k]: e.target.value }));
 
-  const fetchList = async (overrides, retryCount = 0) => {
+  const fetchList = useCallback(async (overrides, retryCount = 0) => {
     setLoading(true);
     try {
       const s = { ...filters, ...(overrides || {}) };
@@ -107,9 +107,9 @@ export default function HrDailyReports() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, t]);
 
-  useEffect(() => { fetchList(); }, []);  
+  useEffect(() => { fetchList(); }, [fetchList]);  
 
   const onApply = (e) => { e?.preventDefault?.(); fetchList(); };
   const onClear = () => {

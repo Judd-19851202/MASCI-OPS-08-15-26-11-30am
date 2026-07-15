@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Loader2, AlertOctagon, AlertTriangle, RefreshCw, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,7 @@ const OpenItemsPanel = ({ baseHref = "/admin/equipment", testIdPrefix = "open-it
   const [loading, setLoading] = useState(true);
   const [severity, setSeverity] = useState("all"); // all | oos | attn
 
-  const load = async (sev = severity) => {
+  const load = useCallback(async (sev = severity) => {
     setLoading(true);
     try {
       const r = await api.get(`/admin/equipment-inspections/open-items?severity=${sev}`);
@@ -29,12 +29,11 @@ const OpenItemsPanel = ({ baseHref = "/admin/equipment", testIdPrefix = "open-it
     } finally {
       setLoading(false);
     }
-  };
+  }, [severity]);
 
   useEffect(() => {
     load(severity);
-     
-  }, []);
+  }, [load, severity]);
 
   const onChangeSeverity = (s) => {
     setSeverity(s);

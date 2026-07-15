@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useCallback, useEffect, useState, useMemo } from "react";
 import { Download, FileSpreadsheet, Loader2, Archive } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -105,7 +105,7 @@ export default function ComplianceExportPanel({ hideBackupTools = false } = {}) 
     }
   };
 
-  const refresh = async (s = start, e = end) => {
+  const refresh = useCallback(async (s = start, e = end) => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -118,12 +118,11 @@ export default function ComplianceExportPanel({ hideBackupTools = false } = {}) 
     } finally {
       setLoading(false);
     }
-  };
+  }, [end, start]);
 
   useEffect(() => {
     refresh();
-     
-  }, []);
+  }, [refresh]);
 
   const total = counts?.total ?? 0;
 

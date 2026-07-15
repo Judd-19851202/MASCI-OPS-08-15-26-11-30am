@@ -10,7 +10,7 @@
  * Usage:
  *   <DriverCommandProfile driverKey={employeeId} />
  */
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   IdCard, Truck, ShieldCheck, GraduationCap, MapPin, Activity,
   AlertTriangle, RefreshCw, Loader2, CheckCircle2, Clock,
@@ -378,7 +378,7 @@ export default function DriverCommandProfile({ driverKey, className = "" }) {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
-  const load = async () => {
+  const load = useCallback(async () => {
     if (!driverKey) return;
     setLoading(true);
     setErr("");
@@ -390,9 +390,9 @@ export default function DriverCommandProfile({ driverKey, className = "" }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [driverKey]);
 
-  useEffect(() => { load();   }, [driverKey]);
+  useEffect(() => { load(); }, [load]);
 
   if (!driverKey) return null;
   if (loading) return (

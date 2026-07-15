@@ -48,7 +48,7 @@ export default function HaulBoard() {
     return () => clearInterval(id);
   }, [load]);
 
-  const rows = data?.rows || [];
+  const rows = useMemo(() => (data?.rows || []), [data?.rows]);
   const counts = data?.counts || {};
   const fwConnected = data?.integration_readiness?.fleetwatcher !== "not_connected";
 

@@ -5,7 +5,7 @@
 // resolves via multi-role gate). Shows Motive + MaintainX connection
 // status, mapping counts, and last-sync deltas. Used on SafetyHub,
 // ShopHub, HrHub, and AdminHub.
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import {
   Activity, Cable, AlertTriangle, RefreshCcw, Loader2, ExternalLink,
@@ -36,7 +36,7 @@ export default function IntegrationHealthCard({
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     setLoading(true);
     try {
       const r = await axios.get(`${API}/integrations/health`, { headers: tokenHeader });
@@ -46,8 +46,8 @@ export default function IntegrationHealthCard({
     } finally {
       setLoading(false);
     }
-  };
-  useEffect(() => { refresh();   }, []);
+  }, [tokenHeader]);
+  useEffect(() => { refresh(); }, [refresh]);
 
   const accentBorder = {
     slate:  "border-slate-700",

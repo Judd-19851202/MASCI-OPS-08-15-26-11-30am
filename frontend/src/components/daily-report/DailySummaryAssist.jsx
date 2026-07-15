@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Sparkles,
   RefreshCw,
@@ -142,7 +142,21 @@ export default function DailySummaryAssist({
   const debounceRef = useRef(null);
   const requestSeqRef = useRef(0);
 
-  async function synthesize(force = false) {
+  const activityCardsJson = useMemo(() => JSON.stringify(data?.activity_cards || data?.activities || []), [data?.activity_cards, data?.activities]);
+  const crewsJson = useMemo(() => JSON.stringify(data?.masci_crews || []), [data?.masci_crews]);
+  const equipmentJson = useMemo(() => JSON.stringify(data?.equipment_used || data?.equipment || []), [data?.equipment_used, data?.equipment]);
+  const materialsJson = useMemo(() => JSON.stringify((data?.materials || []).map((m) => ({ ...m, ticket_photos: (m?.ticket_photos || []).length }))), [data?.materials]);
+  const constraintsJson = useMemo(() => JSON.stringify(data?.constraint_cards || data?.constraints || data?.delays || []), [data?.constraint_cards, data?.constraints, data?.delays]);
+  const productionJson = useMemo(() => JSON.stringify(data?.production || []), [data?.production]);
+  const subcontractorsJson = useMemo(() => JSON.stringify(data?.subcontractors || []), [data?.subcontractors]);
+  const photoCount = (data?.photos || []).length;
+  const tomorrowPlan = (data?.narrative_sections || {}).tomorrow_plan;
+  const followUps = (data?.narrative_sections || {}).follow_ups;
+  const safetyNotes = data?.safety_quality?.notes;
+  const incidentNotes = data?.incident_notes;
+  const weatherSummary = data?.weather_summary;
+
+  const synthesize = useCallback(async (force = false) => {
     if (!hasEnoughEvidence(data)) {
       setStatus("idle");
       return;
@@ -228,7 +242,7 @@ export default function DailySummaryAssist({
     } finally {
       clearTimeout(timeoutId);
     }
-  }
+  }, [data, reportId]);
 
   useEffect(() => {
     if (accepted) return;
@@ -238,20 +252,21 @@ export default function DailySummaryAssist({
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [
-    JSON.stringify(data?.activity_cards || data?.activities || []),
-    JSON.stringify(data?.masci_crews || []),
-    JSON.stringify(data?.equipment_used || data?.equipment || []),
-    JSON.stringify((data?.materials || []).map((m) => ({ ...m, ticket_photos: (m?.ticket_photos || []).length }))),
-    JSON.stringify(data?.constraint_cards || data?.constraints || data?.delays || []),
-    JSON.stringify(data?.production || []),
-    JSON.stringify(data?.subcontractors || []),
-    (data?.photos || []).length,
-    (data?.narrative_sections || {}).tomorrow_plan,
-    (data?.narrative_sections || {}).follow_ups,
-    data?.safety_quality?.notes,
-    data?.incident_notes,
-    data?.weather_summary,
+    activityCardsJson,
+    crewsJson,
+    equipmentJson,
+    materialsJson,
+    constraintsJson,
+    productionJson,
+    subcontractorsJson,
+    photoCount,
+    tomorrowPlan,
+    followUps,
+    safetyNotes,
+    incidentNotes,
+    weatherSummary,
     accepted,
+    synthesize,
   ]);
 
   useEffect(() => {

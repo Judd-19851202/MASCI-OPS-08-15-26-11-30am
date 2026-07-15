@@ -53,7 +53,7 @@ export default function FleetBoard() {
     return () => clearInterval(id);
   }, [load]);
 
-  const rows = data?.rows || [];
+  const rows = useMemo(() => (data?.rows || []), [data?.rows]);
   const counts = data?.counts || {};
 
   const filterOptions = useMemo(() => [

@@ -55,7 +55,7 @@ const fmtMoney = (n) =>
   `$${(Number(n) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 export function EquipmentReturnLines({ value, onChange, lang, t }) {
-  const lines = Array.isArray(value) ? value : [];
+  const lines = useMemo(() => (Array.isArray(value) ? value : []), [value]);
   const [serialSearch, setSerialSearch] = useState("");
   const [searching, setSearching] = useState(false);
 

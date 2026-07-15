@@ -69,15 +69,15 @@ export function useRedirectIfDirectoryGrant(portal, hasToken, destination) {
   const nav = useNavigate();
   const location = useLocation();
   const ran = useRef(false);
+  const continueTo = location.state?.continuity?.continueTo || "";
+  const from = location.state?.from || "";
 
   useEffect(() => {
     if (ran.current) return;
     // Honor the existing portal-token short-circuit first.
     if (hasToken) {
       ran.current = true;
-      const intended = location.state?.continuity?.continueTo
-        || location.state?.from
-        || destination;
+      const intended = continueTo || from || destination;
       nav(intended, { replace: true });
       return;
     }
@@ -101,9 +101,7 @@ export function useRedirectIfDirectoryGrant(portal, hasToken, destination) {
         if (r?.data?.ok && r.data.token) {
           const setter = SETTERS[portal] || SETTERS[canonical];
           if (setter) setter(r.data.token);
-          const intended = location.state?.continuity?.continueTo
-            || location.state?.from
-            || destination;
+          const intended = continueTo || from || destination;
           nav(intended, { replace: true });
         }
       } catch {
@@ -114,7 +112,7 @@ export function useRedirectIfDirectoryGrant(portal, hasToken, destination) {
     })();
     return () => { cancelled = true; };
      
-  }, [hasToken]);
+  }, [continueTo, destination, from, hasToken, nav, portal]);
 }
 
 export default useRedirectIfDirectoryGrant;

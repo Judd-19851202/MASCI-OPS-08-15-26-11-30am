@@ -47,7 +47,7 @@ export default function JobBoard() {
     return () => clearInterval(id);
   }, [load]);
 
-  const rows = data?.rows || [];
+  const rows = useMemo(() => (data?.rows || []), [data?.rows]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();

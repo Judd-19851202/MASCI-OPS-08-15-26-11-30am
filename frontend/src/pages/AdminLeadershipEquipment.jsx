@@ -3,7 +3,7 @@
 // editing, disable/enable, search) and Manufacturers (add/disable). Plus
 // an Export button for the cumulative equipment-checkout CSV.
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Plus, Pencil, Search, Save, Power, X, Download, RefreshCw,
 } from "lucide-react";
@@ -36,7 +36,7 @@ export default function AdminLeadershipEquipment() {
   const [showMakeDialog, setShowMakeDialog] = useState(false);
   const [editingMake, setEditingMake] = useState(null);
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     try {
       const [c, m] = await Promise.all([
         api.get("/field-leadership/admin/equipment-catalog"),
@@ -47,9 +47,9 @@ export default function AdminLeadershipEquipment() {
     } catch (err) {
       toast.error(err?.response?.data?.detail || t("Could not load equipment catalog"));
     }
-  };
+  }, [t]);
 
-  useEffect(() => { refresh();   }, []);
+  useEffect(() => { refresh(); }, [refresh]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();

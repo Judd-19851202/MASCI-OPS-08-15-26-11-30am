@@ -12,7 +12,7 @@
 // Usage:
 //   <OperationsCenter compact />     ← Hub header strip (top 3-4 cards)
 //   <OperationsCenter />              ← full grid view
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { formatPlatformTime } from "@/lib/platformTime";
 import {
@@ -168,7 +168,7 @@ export default function OperationsCenter({ compact = false, className = "" }) {
   const [pulseSet, setPulseSet] = useState(() => new Set());
   const navigate = useNavigate();
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     setErr(null);
     try {
@@ -186,9 +186,9 @@ export default function OperationsCenter({ compact = false, className = "" }) {
       setErr(code === 401 ? "AUTH_REQUIRED" : "FAIL");
       setData(null);
     } finally { setLoading(false); }
-  };
+  }, [compact]);
 
-  useEffect(() => { load();   }, []);
+  useEffect(() => { load(); }, [load]);
 
   const visibleCards = useMemo(() => {
     if (!data?.cards) return [];

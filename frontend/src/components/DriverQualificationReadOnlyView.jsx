@@ -6,7 +6,7 @@
 // STRICTLY READ-ONLY surface: no edit, no import, no upload, no PATCH.
 // Search + filters + summary cards only. Highlights expiring/expired
 // dates where data exists.
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { Search, Filter, RefreshCw, AlertTriangle, ShieldCheck, Truck, FileX, Zap } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -112,7 +112,7 @@ export default function DriverQualificationReadOnlyView({
     return p;
   }, [q, cdl, approved, status, availableOnly]);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true); setErr("");
     try {
       const r = await axios.get(`${API}${endpoint}`, { headers: authHeaders(), params });
@@ -122,9 +122,9 @@ export default function DriverQualificationReadOnlyView({
     } finally {
       setLoading(false);
     }
-  };
+  }, [endpoint, params, t]);
 
-  useEffect(() => { load();   }, [params]);
+  useEffect(() => { load(); }, [load]);
 
   return (
     <div className="space-y-4" data-testid={`${testidPrefix}-view`}>

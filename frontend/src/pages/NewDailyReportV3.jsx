@@ -856,7 +856,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
     } finally {
       setSaving(false);
     }
-  }, [saving, canSubmit, data, online, publicMode, navigate, readiness.missing, commitDraft, lang, t, scopedFormKey, rememberLastProject]);
+  }, [saving, canSubmit, data, online, publicMode, navigate, readiness.missing, commitDraft, lang, t, scopedFormKey, rememberLastProject, actorId]);
 
   return (
     <div className="min-h-screen blueprint-bg">

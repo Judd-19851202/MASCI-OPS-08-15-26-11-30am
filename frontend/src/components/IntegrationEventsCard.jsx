@@ -5,7 +5,7 @@
 // Empty state renders when no rows are returned (typical until demo
 // mode is enabled or live data lands). Demo mode is controlled per-
 // provider in the Admin Integration Center.
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import {
   Activity, Wrench, AlertOctagon, Loader2, RefreshCcw, ChevronRight,
@@ -62,7 +62,7 @@ export default function IntegrationEventsCard({
     ? "Motive · Telematics & coaching events"
     : "MaintainX · Maintenance & repairs";
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     setLoading(true);
     try {
       const r = await axios.get(`${url}?limit=${limit}`, { headers: tokenHeader });
@@ -72,8 +72,8 @@ export default function IntegrationEventsCard({
     } finally {
       setLoading(false);
     }
-  };
-  useEffect(() => { refresh();   }, [provider]);
+  }, [limit, tokenHeader, url]);
+  useEffect(() => { refresh(); }, [refresh]);
 
   const border = ACCENT_BORDER[accent] || ACCENT_BORDER.slate;
 

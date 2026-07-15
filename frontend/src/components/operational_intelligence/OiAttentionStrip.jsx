@@ -103,6 +103,7 @@ export default function OiAttentionStrip({
   timeoutMs = 3000,
 }) {
   const [state, setState] = useState({ loaded: false, ok: false, status: 0, products: [], reason: "" });
+  const productIdsKey = React.useMemo(() => productIds.join("|"), [productIds]);
   // Track 19.54 · OGS — clicking a tile opens the universal
   // Guidance Card modal in place. No navigation.
   const [openProduct, setOpenProduct] = useState(null);
@@ -114,7 +115,7 @@ export default function OiAttentionStrip({
       const filtered = all.filter((p) => productIds.includes(p.product_id));
       setState({ loaded: true, ok: r.ok, status: r.status, products: filtered, reason: r.reason || "" });
     });
-  }, [productIds.join("|"), timeoutMs]);
+  }, [productIds, productIdsKey, timeoutMs]);
 
   useEffect(() => {
     let cancelled = false;
@@ -125,7 +126,7 @@ export default function OiAttentionStrip({
       setState({ loaded: true, ok: r.ok, status: r.status, products: filtered, reason: r.reason || "" });
     });
     return () => { cancelled = true; };
-  }, [productIds.join("|"), timeoutMs]);
+  }, [productIds, productIdsKey, timeoutMs]);
 
   const rootTestId = testId || "oi-attention-strip";
 
