@@ -1128,6 +1128,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
             data={data}
             reportId={reportId}
             formKey={scopedFormKey}
+            draftActorId={actorId}
             onStateChange={setSummaryGate}
             onAccepted={(payload) =>
               patch({

@@ -1,3 +1,22 @@
+## 2026-07-15 · DR-03 PRODUCTION TIMEOUT / DRAFT-LOSS HARDENING
+
+### Timeout settings found
+- `backend/services/ai_gateway/env.py` → `provider_timeout_ms()` defaults to `45000` ms.
+- `backend/.env` → `AI_PROVIDER_TIMEOUT_MS=45000`
+- `backend/.env` → `AI_PROVIDER_MAX_RETRIES=2`
+- `frontend/src/components/daily-report/DailySummaryAssist.jsx` → `REQUEST_TIMEOUT_MS = 60000`
+- `backend/server.py` notes Cloudflare disconnect behavior around `60 s` for long-running streams.
+
+### Performance + continuity changes applied
+- `backend/services/dr_ai/vision.py`: increased vision parallelism from batch-of-6 / concurrency-3 to full gathered execution with `asyncio.gather(...)` and concurrency-8, plus a per-photo async timeout guard (`25.0s`) so total wait stays bounded.
+- `frontend/src/components/daily-report/DailySummaryAssist.jsx`: added a save-state guard that writes the current report draft to local draft storage before AI synthesis begins.
+- `frontend/src/components/daily-report-v3/sections.jsx` and `frontend/src/pages/NewDailyReportV3.jsx`: passed the stable actor identity through so the pre-synthesis draft save lands in the correct scoped draft record.
+
+### Verification
+- Python + JS lint checks passed.
+- Backend and frontend restarted successfully in preview.
+- Backend logs show healthy startup after restart; preview frontend route is serving.
+
 ## 2026-07-15 · DR-03 FINAL PHOTO-CITATION HANDOFF
 
 ### Final synthesis handoff change

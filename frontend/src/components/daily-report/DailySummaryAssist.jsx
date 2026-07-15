@@ -13,6 +13,8 @@ import { api } from "@/lib/api";
 import { buildDailyReportSummaryPayload, buildDeterministicSummaryFallback } from "@/lib/dailyReportSummaryPayload";
 import { useT } from "@/lib/i18n";
 import { normalizeOperatorError } from "@/lib/operatorError";
+import { saveDraft } from "@/lib/resiliency/draftStore";
+import { getStableActorIdentity } from "@/lib/resiliency/actorId";
 
 function hasEnoughEvidence(data) {
   const acts = (data.activity_cards || data.activities || []).length;
@@ -33,11 +35,13 @@ export default function DailySummaryAssist({
   reportId,
   reportNumber,
   formKey,
+  draftActorId,
   onAccept,
   onStateChange,
   testId = "daily-summary-assist",
 }) {
   const { t } = useT();
+  const actorId = draftActorId || getStableActorIdentity();
   const summaryReportId = useMemo(
     () => formKey || reportId || (reportNumber ? `dr-${reportNumber}` : "dr-draft"),
     [formKey, reportId, reportNumber],
@@ -201,6 +205,13 @@ export default function DailySummaryAssist({
     const tStart = performance.now();
 
     try {
+      if (formKey) {
+        try {
+          await saveDraft(actorId, formKey, dataRef.current || {}, { savedByActor: actorId });
+        } catch {
+          // best-effort local draft guard
+        }
+      }
       let photoIntel = null;
       try {
         photoIntel = await syncPhotoIntel({ force });
@@ -271,7 +282,7 @@ export default function DailySummaryAssist({
     } finally {
       clearTimeout(timeoutId);
     }
-  }, [data, formKey, latestPhotoIntel, narrative, syncPhotoIntel]);
+  }, [actorId, data, formKey, latestPhotoIntel, narrative, syncPhotoIntel]);
 
   useEffect(() => {
     if (accepted) return undefined;

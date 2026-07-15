@@ -23,8 +23,8 @@ import photo_storage
 from services.ai_gateway import get_gateway
 
 VISION_CACHE_COLL = "dr_v2_photo_vision_cache"
-VISION_BATCH_SIZE = 6
-VISION_MAX_CONCURRENCY = 3
+VISION_BATCH_SIZE = 24
+VISION_MAX_CONCURRENCY = 8
 
 _VISION_SYSTEM = (
     "You are a senior construction superintendent and forensic jobsite photo analyst "
@@ -238,26 +238,24 @@ async def analyze_draft_photos(db, *, report_id: str, draft: Dict[str, Any]) -> 
         )
 
         semaphore = asyncio.Semaphore(VISION_MAX_CONCURRENCY)
+        timeout_s = 25.0
 
         async def _one(p: Dict[str, Any]):
             async with semaphore:
-                env = await gw.dispatch_vision(
-                    task="photo_vision",
-                    system=_VISION_SYSTEM,
-                    images=[p["b64"]],
-                    user=user_body,
-                    response_schema=_VISION_SCHEMA,
-                    session_id=f"drv2-vision-{p['sha'][:12]}",
+                env = await asyncio.wait_for(
+                    gw.dispatch_vision(
+                        task="photo_vision",
+                        system=_VISION_SYSTEM,
+                        images=[p["b64"]],
+                        user=user_body,
+                        response_schema=_VISION_SCHEMA,
+                        session_id=f"drv2-vision-{p['sha'][:12]}",
+                    ),
+                    timeout=timeout_s,
                 )
                 return p, env
 
-        async def _run_batch(batch: List[Dict[str, Any]]):
-            return await asyncio.gather(*[_one(p) for p in batch], return_exceptions=True)
-
-        gathered = []
-        for idx in range(0, len(pending_unique), VISION_BATCH_SIZE):
-            batch = pending_unique[idx: idx + VISION_BATCH_SIZE]
-            gathered.extend(await _run_batch(batch))
+        gathered = await asyncio.gather(*[_one(p) for p in pending_unique], return_exceptions=True)
         for item in gathered:
             if isinstance(item, BaseException):
                 continue
