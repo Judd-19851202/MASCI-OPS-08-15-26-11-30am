@@ -36,6 +36,9 @@ Status: IMPLEMENTATION READY FOR INDEPENDENT CERTIFICATION
 - `cd /app/frontend && CI=true yarn build` → PASS
 - Live telemetry POST (`/api/draft-telemetry`, long scoped key) → PASS
 - Live certification Daily Report POST (`/api/daily-reports`, governed project + cert FL identity) → PASS
+- `testing_agent` report `/app/test_reports/iteration_570.json` → PASS
+- `auto_frontend_testing_agent` → PASS
+- `deep_testing_backend_v2` → PASS
 
 ## Evidence
 - Long scoped telemetry payload no longer 422s

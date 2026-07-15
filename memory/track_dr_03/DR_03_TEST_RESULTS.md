@@ -65,4 +65,8 @@
   - FL login: `cert.foreman@example.com` → PASS
   - `POST /api/daily-reports` using project `ZZ-RUNTIME-CERT-2026` → PASS (`200`)
   - response proved `certification_record=true`, `email_dispatch_suppressed=false`, governed `routing_override`, and `certification_lane` evidence payload
+- Independent QA verification:
+  - `testing_agent` report: `/app/test_reports/iteration_570.json` → PASS
+  - `auto_frontend_testing_agent` → PASS
+  - `deep_testing_backend_v2` → PASS
 - Physical-device status: NOT EXECUTED BY BUILDER
