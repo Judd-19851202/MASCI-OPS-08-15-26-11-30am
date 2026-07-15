@@ -1,5 +1,18 @@
 # DR-03 Test Results
 
+## 2026-07-15 · Final Gate 5 repair verification
+- Frontend targeted Jest: `src/lib/__tests__/dailyReportSummaryPayload.test.js` → PASS (**4/4**)
+- Backend targeted suites:
+  - `backend/tests/test_dr03_final_gate5_summary_and_routes.py` → PASS (**3/3**)
+  - `backend/tests/test_dr03_gate5_containment_repair.py` → PASS
+  - `backend/tests/test_dr_cutover_002_daily_summary.py` → PASS
+  - Combined targeted backend run → PASS (**32/32**)
+- Preview-safe backend E2E: `backend/tests/test_dr03_gate5_e2e.py` → PASS (**8/8**)
+- `testing_agent` report: `/app/test_reports/iteration_568.json` → PASS (all 9 Gate 5 items)
+- `auto_frontend_testing_agent` → PASS (10/10 verified requirements)
+- `deep_testing_backend_v2` → PASS (32/32 checks; preview-safe)
+- Production-equivalent build: `cd /app/frontend && CI=true yarn build` → PASS (**exit 0 / warnings 0 / errors 0**)
+
 ## Frontend unit tests executed
 - `src/lib/resiliency/__tests__/dailyReportScope.test.js` → PASS (5/5)
 - `src/lib/__tests__/track_26_08_daily_report_draft_continuity.test.jsx` → PASS (15/15)

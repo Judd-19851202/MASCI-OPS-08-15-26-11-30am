@@ -1,3 +1,30 @@
+## 2026-07-15 · DR-03 FINAL GATE 5 REPAIR
+
+### Scope completed
+- Repaired the final confirmed Daily Report live defects without creating a new Daily Report architecture or parallel write path.
+- Added one canonical summary payload builder, one safe error normalizer, one contained backend summary normalization path, and one focused Gate 5 regression suite.
+- Preserved the existing advanced `/daily/submit` authoring shell, autosave/draft behavior, canonical accepted-summary fields, governed viewer route, and shared certification/synthetic exclusion rule.
+
+### Defects repaired
+- AI Summary operator failure path now degrades safely when the provider/tenant is disabled; no raw `[object Object]` rendering remains.
+- Summary totals now normalize from canonical current Daily Report state and preserve the required fixture values: `1 employee / 11.25h / 1 subcontractor / 11h / 1 equipment / 4 run / 6 idle / D curb 875 LF / 65% / 6 photos`.
+- Manual summary fallback is proven and writes canonical `ai_accepted_summary` + `ai_accepted_summary_meta`.
+- Daily Report deep links remain governed and resolve to the valid viewer path.
+- Dispatch operational lists continue excluding certification/synthetic/hidden Daily Reports through the shared predicate.
+- Photo-intelligence read behavior is now truthful via explicit status semantics instead of ambiguous zero-result handling.
+
+### Verification completed
+- Frontend targeted Jest: `4/4` passing.
+- Backend targeted DR-03 suites: `32/32` passing.
+- Preview-safe E2E suite: `8/8` passing.
+- Testing agent Gate 5 report: `/app/test_reports/iteration_568.json` → PASS.
+- Frontend verification agent: PASS.
+- Backend verification agent: PASS.
+- Production-equivalent build: `/tmp/frontend_ci_build_dr03_gate5_v3.log` → `CI=true yarn build` exit `0`, warnings `0`, errors `0`.
+
+### Truthful note
+- In preview, live AI generation for this module is tenant-disabled (`tenant_ai_disabled`), so preview verification proves the governed fallback/manual path rather than a live provider-generated summary. This is **MOCKED/disabled preview behavior**, not a production-live provider certification.
+
 ## 2026-07-15 · CI STABILIZATION · ZERO-WARNING BUILD + REGRESSION GATE
 
 ### Scope completed
