@@ -103,6 +103,20 @@ def _normalize_job_number(raw: str) -> str:
     return s
 
 
+def _normalize_override_emails(values: object) -> List[str]:
+    out: List[str] = []
+    seen = set()
+    for raw in values if isinstance(values, list) else []:
+        if not isinstance(raw, str):
+            continue
+        email = raw.strip().lower()
+        if not email or "@" not in email or email in seen:
+            continue
+        seen.add(email)
+        out.append(email)
+    return out
+
+
 # ---------------------------------------------------------------------------
 # DB-backed lookup (the canonical path)
 # ---------------------------------------------------------------------------
@@ -317,6 +331,26 @@ async def recipients_for_record_async(
 
     Returns: {pm_name, pm_email, co_pm_emails[], to[], cc[], all[]}.
     """
+    override = record.get("routing_override")
+    if isinstance(override, dict) and override.get("enabled"):
+        to = _normalize_override_emails(override.get("to"))
+        cc = _normalize_override_emails(override.get("cc"))
+        seen = set()
+        all_unique: List[str] = []
+        for email in to + cc:
+            if email in seen:
+                continue
+            seen.add(email)
+            all_unique.append(email)
+        return {
+            "pm_name": str(override.get("pm_name") or "Certification PM"),
+            "pm_email": str(override.get("pm_email") or (to[0] if to else "") or "").strip().lower() or None,
+            "co_pm_emails": cc,
+            "to": to,
+            "cc": cc,
+            "all": all_unique,
+        }
+
     pm = await resolve_pm_for_record_async(db, record)
     pm_name, pm_email = (pm if pm else (None, None))
 

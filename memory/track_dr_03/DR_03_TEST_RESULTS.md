@@ -47,3 +47,22 @@
 - Focused Phase H/I/J regression suite skipped: 9
 - Browser smoke checks executed: 2
 - Real-device status: NOT_YET_EXERCISED
+
+## 2026-07-15 · Governed certification lane + telemetry + timeout repair
+- Backend targeted pytest:
+  - `backend/tests/test_dr03_governed_certification_lane.py` → PASS
+  - `backend/tests/test_draft_telemetry_contract.py` → PASS
+  - `backend/tests/test_track_27_11a_final_closeout.py::test_certification_record_is_hidden_and_email_suppressed` → PASS
+  - `backend/tests/test_track_27_11c_daily_report_contract.py` → PASS
+- Frontend targeted Jest:
+  - `src/lib/resiliency/__tests__/draftTelemetry.test.js` → PASS
+  - `src/components/__tests__/OperationalIntelTimeouts.test.jsx` → PASS
+- Frontend CI build:
+  - `cd /app/frontend && CI=true yarn build` → PASS (**warnings 0 / errors 0**)
+- Live preview-safe telemetry verification:
+  - `POST /api/draft-telemetry` with long scoped Daily Report `formKey` → PASS (`200`)
+- Live preview-safe governed certification write-path verification:
+  - FL login: `cert.foreman@example.com` → PASS
+  - `POST /api/daily-reports` using project `ZZ-RUNTIME-CERT-2026` → PASS (`200`)
+  - response proved `certification_record=true`, `email_dispatch_suppressed=false`, governed `routing_override`, and `certification_lane` evidence payload
+- Physical-device status: NOT EXECUTED BY BUILDER

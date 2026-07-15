@@ -8,12 +8,30 @@
  *
  * Powered by: GET /api/operations/intelligence/shop
  */
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { AlertOctagon, AlertTriangle, WifiOff, CheckCircle2, MapPinOff, RefreshCw, Loader2 } from "lucide-react";
 import { api } from "@/lib/api";
 import { gpsBandClass } from "@/lib/gpsBand";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
+
+const SHOP_INTEL_TIMEOUT_MS = 5_000;
+
+function describeShopIntelError(error) {
+  if (error?.name === "CanceledError" || error?.code === "ERR_CANCELED") {
+    return { code: "cancelled", message: "Cancelled" };
+  }
+  if (error?.code === "ECONNABORTED" || /timeout/i.test(String(error?.message || ""))) {
+    return {
+      code: "timeout",
+      message: "Shop intelligence timed out. Equipment attention, repairs, and recovery workflows remain available.",
+    };
+  }
+  return {
+    code: "error",
+    message: error?.response?.data?.detail || "Failed to load shop intelligence",
+  };
+}
 
 function StatPill({ label, value, tone, testid }) {
   const toneCls = {
@@ -47,21 +65,37 @@ export default function ShopOpsIntelPanel({ className = "" }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
+  const requestRef = useRef(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
+    requestRef.current?.abort?.();
+    const controller = new AbortController();
+    requestRef.current = controller;
     setLoading(true);
     setErr("");
     try {
-      const r = await api.get("/operations/intelligence/shop");
+      const r = await api.get("/operations/intelligence/shop", {
+        signal: controller.signal,
+        timeout: SHOP_INTEL_TIMEOUT_MS,
+      });
+      if (controller.signal.aborted) return;
       setData(r.data);
     } catch (e) {
-      setErr(e?.response?.data?.detail || "Failed to load shop intelligence");
+      const next = describeShopIntelError(e);
+      if (next.code !== "cancelled") {
+        setErr(next.message);
+      }
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) {
+        setLoading(false);
+      }
     }
-  };
+  }, []);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    return () => requestRef.current?.abort?.();
+  }, [load]);
 
   if (loading) return (
     <div className={`bg-white border border-slate-200 rounded-md p-4 ${className}`} data-testid="ois-shop-panel-loading">
@@ -70,7 +104,17 @@ export default function ShopOpsIntelPanel({ className = "" }) {
   );
   if (err) return (
     <div className={`bg-rose-50 border-2 border-rose-200 rounded-md p-4 text-sm text-rose-800 ${className}`} data-testid="ois-shop-panel-error">
-      <AlertTriangle className="w-4 h-4 inline -mt-0.5 mr-1" /> {err}
+      <div className="flex items-center justify-between gap-3">
+        <div><AlertTriangle className="w-4 h-4 inline -mt-0.5 mr-1" /> {err}</div>
+        <button
+          type="button"
+          onClick={load}
+          className="text-[10px] font-mono uppercase tracking-wider text-rose-700 hover:text-rose-900"
+          data-testid="ois-shop-retry"
+        >
+          Retry
+        </button>
+      </div>
     </div>
   );
   if (!data) return null;
@@ -86,7 +130,8 @@ export default function ShopOpsIntelPanel({ className = "" }) {
         <button
           type="button"
           onClick={load}
-          className="text-[10px] font-mono uppercase tracking-wider text-slate-500 hover:text-slate-800 inline-flex items-center gap-1"
+          disabled={loading}
+          className="text-[10px] font-mono uppercase tracking-wider text-slate-500 hover:text-slate-800 inline-flex items-center gap-1 disabled:opacity-50"
           data-testid="ois-shop-refresh"
         >
           <RefreshCw className="w-3 h-3" /> Refresh

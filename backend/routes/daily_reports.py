@@ -479,7 +479,12 @@ def _apply_certification_record_safety(doc: Dict[str, Any]) -> Dict[str, Any]:
     doc["certification_record"] = True
     doc["synthetic_record"] = True
     doc["hidden_from_operations"] = True
-    doc["email_dispatch_suppressed"] = True
+    allow_controlled_routing = bool(
+        doc.get("certification_lane_allows_email")
+        and isinstance(doc.get("routing_override"), dict)
+        and bool(doc.get("routing_override", {}).get("enabled"))
+    )
+    doc["email_dispatch_suppressed"] = not allow_controlled_routing
     doc["certification_track_id"] = str(doc.get("certification_track_id") or "27.11B")
     doc["certification_run_id"] = doc.get("certification_run_id")
     doc["certification_release_source_hash"] = doc.get("certification_release_source_hash")
@@ -495,7 +500,7 @@ def _apply_certification_record_safety(doc: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def _should_schedule_daily_report_email(doc: Dict[str, Any]) -> bool:
-    return not bool(doc.get("certification_record") or doc.get("email_dispatch_suppressed"))
+    return not bool(doc.get("email_dispatch_suppressed"))
 
 
 def _audit_envelope(doc: Dict[str, Any]) -> Dict[str, Any]:
@@ -725,6 +730,35 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
             # Wave-1A · advisory flag derivation (deterministic · operator-defined).
             _derive_advisory_flags(report)
             doc = report.model_dump()
+            try:
+                from lib.governed_certification_lane import (  # noqa: PLC0415
+                    apply_governed_daily_report_lane,
+                    is_governed_certification_project,
+                )
+
+                project_doc = None
+                if bool(doc.get("certification_record")) or is_governed_certification_project(doc):
+                    project_doc = await db.jobs_master.find_one(
+                        {"project_number": doc.get("project_number")},
+                        {
+                            "_id": 0,
+                            "project_number": 1,
+                            "project_name": 1,
+                            "pm_email": 1,
+                            "co_pm_emails": 1,
+                            "active": 1,
+                        },
+                    )
+                doc = apply_governed_daily_report_lane(doc, project_doc=project_doc)
+                if doc.get("certification_record") and not doc.get("certification_release_source_hash"):
+                    try:
+                        from server import _SOURCE_HASH  # noqa: PLC0415
+
+                        doc["certification_release_source_hash"] = _SOURCE_HASH
+                    except Exception:  # noqa: BLE001
+                        pass
+            except Exception:  # noqa: BLE001
+                pass
             doc = _apply_certification_record_safety(doc)
             # Stamp human-readable doc ID (DR-2026-00001) so the form, the PDF,
             # and the admin search bar can all reference the same number.

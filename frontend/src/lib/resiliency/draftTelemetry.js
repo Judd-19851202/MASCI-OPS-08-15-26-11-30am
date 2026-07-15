@@ -35,6 +35,7 @@ const BUFFER_CAP = 200;
 const BATCH_CAP = 50;
 const FLUSH_DEBOUNCE_MS = 5_000;
 const RETRY_BACKOFF_MS = 30_000;
+export const DRAFT_TELEMETRY_FORM_KEY_MAX = 180;
 
 const _buf = [];
 let _flushTimer = null;
@@ -88,6 +89,23 @@ function _uuid() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+function _stableHash(input) {
+  let h = 5381;
+  for (let i = 0; i < input.length; i += 1) {
+    h = ((h << 5) + h) ^ input.charCodeAt(i);
+  }
+  return Math.abs(h >>> 0).toString(36);
+}
+
+export function sanitizeDraftTelemetryFormKey(raw) {
+  const value = (typeof raw === "string" ? raw : String(raw || "")).trim() || "unknown";
+  if (value.length <= DRAFT_TELEMETRY_FORM_KEY_MAX) return value;
+  const tail = value.slice(-18);
+  const glue = `…${_stableHash(value)}…`;
+  const headBudget = Math.max(24, DRAFT_TELEMETRY_FORM_KEY_MAX - glue.length - tail.length);
+  return `${value.slice(0, headBudget)}${glue}${tail}`.slice(0, DRAFT_TELEMETRY_FORM_KEY_MAX);
+}
+
 export function emitDraftEvent(eventName, meta) {
   if (!eventName) return;
   try {
@@ -96,14 +114,14 @@ export function emitDraftEvent(eventName, meta) {
       event: eventName,
       actorId: getActorId(),
       deviceId: getDeviceId(),
-      formKey: (meta && meta.formKey) || "unknown",
+      formKey: sanitizeDraftTelemetryFormKey((meta && meta.formKey) || "unknown"),
       ts: Date.now(),
       meta: meta || {},
     };
     // formKey lives at the top-level on the wire — keep it out of meta.
     if (evt.meta.formKey) {
       const { formKey, ...rest } = evt.meta;
-      evt.formKey = formKey;
+      evt.formKey = sanitizeDraftTelemetryFormKey(formKey);
       evt.meta = rest;
     }
     if (_buf.length >= BUFFER_CAP) _buf.shift();
@@ -173,7 +191,6 @@ export function flushDraftTelemetryBeacon() {
   try {
     if (typeof navigator === "undefined" || !navigator.sendBeacon) return;
     const tok = _tokenHeader();
-    if (!tok) return;
     // sendBeacon does not allow custom headers. We embed the token
     // header as a query-string fallback ONLY for telemetry; the
     // server accepts it via the same require_any_portal_token dep.
@@ -187,7 +204,7 @@ export function flushDraftTelemetryBeacon() {
       // keepalive: true is the iOS Safari way to flush on pagehide.
       fetch(`${API}${ENDPOINT}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", ...tok },
+        headers: { "Content-Type": "application/json", ...(tok || {}) },
         body,
         keepalive: true,
       });

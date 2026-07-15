@@ -24,6 +24,22 @@ import {
 import { getSafetyToken } from "@/lib/safetyAuth";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const TRENCH_INTEL_TIMEOUT_MS = 5_000;
+
+function fetchJsonWithTimeout(url, options = {}, timeoutMs = TRENCH_INTEL_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal })
+    .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+    .finally(() => clearTimeout(timer));
+}
+
+function trenchErrorMessage(error, fallback) {
+  if (error?.name === "AbortError") {
+    return `${fallback} timed out. Safety records, incidents, and trench workflows remain available.`;
+  }
+  return String(error || fallback);
+}
 
 const WINDOWS = [
   { key: "7d", label: "Last 7 days" },
@@ -113,18 +129,18 @@ function ProjectDrilldown({ pn, onClose }) {
   const [row, setRow] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [err, setErr] = React.useState(null);
+  const [retrySeq, setRetrySeq] = React.useState(0);
 
   React.useEffect(() => {
     let cancelled = false;
     setLoading(true); setErr(null);
-    fetch(`${API}/safety/projects/${encodeURIComponent(pn)}/trench-safety-kpis`, {
+    fetchJsonWithTimeout(`${API}/safety/projects/${encodeURIComponent(pn)}/trench-safety-kpis`, {
       headers: authHeaders(),
     })
-      .then((r) => r.ok ? r.json() : Promise.reject(r.status))
       .then((d) => { if (!cancelled) { setRow(d); setLoading(false); } })
-      .catch((e) => { if (!cancelled) { setErr(String(e)); setLoading(false); } });
+      .catch((e) => { if (!cancelled) { setErr(trenchErrorMessage(e, `Project trench intelligence for ${pn}`)); setLoading(false); } });
     return () => { cancelled = true; };
-  }, [pn]);
+  }, [pn, retrySeq]);
 
   const band = bandForProject(row);
 
@@ -154,8 +170,16 @@ function ProjectDrilldown({ pn, onClose }) {
       {loading ? (
         <div className="p-6 text-center text-slate-400">Loading…</div>
       ) : err ? (
-        <div className="p-6 text-center text-rose-600 text-sm">
-          {err === "403" ? "Not authorised" : `Error: ${err}`}
+        <div className="p-6 text-center text-rose-600 text-sm" data-testid="safety-trench-drilldown-error">
+          <div>{err === "403" ? "Not authorised" : `Error: ${err}`}</div>
+          <button
+            type="button"
+            onClick={() => setRetrySeq((v) => v + 1)}
+            className="mt-3 text-[11px] font-mono uppercase tracking-widest font-bold text-rose-700 hover:text-rose-900"
+            data-testid="safety-trench-drilldown-retry"
+          >
+            Retry
+          </button>
         </div>
       ) : !row ? null : (
         <>
@@ -367,18 +391,18 @@ export default function SafetyTrenchIntelligenceCard({ className = "" }) {
   const [loading, setLoading] = React.useState(true);
   const [selectedPn, setSelectedPn] = React.useState(null);
   const [cleanupOpen, setCleanupOpen] = React.useState(false);
+  const [retrySeq, setRetrySeq] = React.useState(0);
 
   React.useEffect(() => {
     let cancelled = false;
     setLoading(true); setErr(null);
-    fetch(`${API}/safety/company/trench-safety-kpis?window=${win}`, {
+    fetchJsonWithTimeout(`${API}/safety/company/trench-safety-kpis?window=${win}`, {
       headers: authHeaders(),
     })
-      .then((r) => r.ok ? r.json() : Promise.reject(r.status))
       .then((d) => { if (!cancelled) { setSnap(d); setLoading(false); } })
-      .catch((e) => { if (!cancelled) { setErr(String(e)); setLoading(false); } });
+      .catch((e) => { if (!cancelled) { setErr(trenchErrorMessage(e, "Company trench intelligence")); setLoading(false); } });
     return () => { cancelled = true; };
-  }, [win]);
+  }, [retrySeq, win]);
 
   const band = bandForCompany(snap);
   const t = snap?.trench || {};
@@ -433,6 +457,14 @@ export default function SafetyTrenchIntelligenceCard({ className = "" }) {
             {err === "403" ? "You need Safety or Admin role to view trench intelligence."
                             : `Could not load: ${err}`}
           </div>
+          <button
+            type="button"
+            onClick={() => setRetrySeq((v) => v + 1)}
+            className="mt-3 text-[11px] font-mono uppercase tracking-widest font-bold text-rose-700 hover:text-rose-900"
+            data-testid="safety-trench-retry"
+          >
+            Retry
+          </button>
         </div>
       ) : !snap ? (
         <div className="p-8 text-center text-slate-400">No data.</div>

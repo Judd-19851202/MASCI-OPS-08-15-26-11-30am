@@ -55,6 +55,7 @@ logger = logging.getLogger(__name__)
 
 # ----- Constants --------------------------------------------------------
 MAX_BATCH = 50
+FORM_KEY_MAX_LENGTH = 180
 MAX_META_BYTES = 2_048
 ALLOWED_EVENTS = {
     "draft.write.ok",
@@ -94,7 +95,7 @@ class DraftEvent(BaseModel):
     event: str = Field(..., min_length=1, max_length=64)
     actorId: str = Field(default="anon", max_length=80)
     deviceId: str = Field(default="anon", max_length=80)
-    formKey: str = Field(..., min_length=1, max_length=64)
+    formKey: str = Field(..., min_length=1, max_length=FORM_KEY_MAX_LENGTH)
     ts: int = Field(..., ge=0)
     meta: Dict[str, Any] = Field(default_factory=dict)
 
@@ -231,7 +232,7 @@ def build_draft_telemetry_router(db, require_any_portal_token, require_admin_dep
     @router.get("/api/draft-telemetry/recent")
     async def telemetry_recent(
         _admin=Depends(require_admin_dep),
-        formKey: Optional[str] = Query(default=None, max_length=64),
+        formKey: Optional[str] = Query(default=None, max_length=FORM_KEY_MAX_LENGTH),
         deviceId: Optional[str] = Query(default=None, max_length=80),
         event: Optional[str] = Query(default=None, max_length=64),
         limit: int = Query(default=50, ge=1, le=200),

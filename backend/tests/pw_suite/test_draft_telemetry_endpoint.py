@@ -92,6 +92,24 @@ def test_draft_telemetry_post_accepts_batch(base_url: str):
     assert body.get("deduplicated") == 0
 
 
+def test_draft_telemetry_accepts_scoped_form_keys_over_legacy_64(base_url: str):
+    batch = [
+        _ev(
+            f"pw-long-{uuid.uuid4().hex[:16]}",
+            form_key="daily-report::PROJECT-LONG-NUMBER-12345678901234567890::2026-07-08::primary",
+        )
+    ]
+    r = requests.post(
+        f"{base_url}/api/draft-telemetry",
+        headers={"Content-Type": "application/json"},
+        json={"batch": batch},
+        timeout=10,
+    )
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body.get("received") == 1
+
+
 def test_draft_telemetry_dedupes_same_event_id(base_url: str):
     tok = _admin_token(base_url)
     eid = f"pw-dedupe-{uuid.uuid4().hex[:16]}"

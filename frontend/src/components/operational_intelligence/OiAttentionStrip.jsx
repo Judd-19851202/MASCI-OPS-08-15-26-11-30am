@@ -103,7 +103,14 @@ export default function OiAttentionStrip({
   timeoutMs = 3000,
 }) {
   const [state, setState] = useState({ loaded: false, ok: false, status: 0, products: [], reason: "" });
-  const productIdsKey = React.useMemo(() => productIds.join("|"), [productIds]);
+  const productIdsKey = React.useMemo(
+    () => (Array.isArray(productIds) ? productIds.join("|") : ""),
+    [productIds],
+  );
+  const stableProductIds = React.useMemo(
+    () => (productIdsKey ? productIdsKey.split("|").filter(Boolean) : []),
+    [productIdsKey],
+  );
   // Track 19.54 · OGS — clicking a tile opens the universal
   // Guidance Card modal in place. No navigation.
   const [openProduct, setOpenProduct] = useState(null);
@@ -112,21 +119,14 @@ export default function OiAttentionStrip({
     setState((s) => ({ ...s, loaded: false }));
     fetchOiSummary({ timeoutMs }).then((r) => {
       const all = (r.body && Array.isArray(r.body.products)) ? r.body.products : [];
-      const filtered = all.filter((p) => productIds.includes(p.product_id));
+      const filtered = all.filter((p) => stableProductIds.includes(p.product_id));
       setState({ loaded: true, ok: r.ok, status: r.status, products: filtered, reason: r.reason || "" });
     });
-  }, [productIds, timeoutMs]);
+  }, [stableProductIds, timeoutMs]);
 
   useEffect(() => {
-    let cancelled = false;
-    fetchOiSummary({ timeoutMs }).then((r) => {
-      if (cancelled) return;
-      const all = (r.body && Array.isArray(r.body.products)) ? r.body.products : [];
-      const filtered = all.filter((p) => productIds.includes(p.product_id));
-      setState({ loaded: true, ok: r.ok, status: r.status, products: filtered, reason: r.reason || "" });
-    });
-    return () => { cancelled = true; };
-  }, [productIds, productIdsKey, timeoutMs]);
+    load();
+  }, [load]);
 
   const rootTestId = testId || "oi-attention-strip";
 

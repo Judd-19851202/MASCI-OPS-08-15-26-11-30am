@@ -20,6 +20,15 @@ import React from "react";
 import { ShieldAlert, ChevronRight, X } from "lucide-react";
 import { api } from "@/lib/api";
 
+const SAFETY_KPI_TIMEOUT_MS = 5_000;
+
+function describeSafetyKpiError(error, subject) {
+  if (error?.code === "ECONNABORTED" || /timeout/i.test(String(error?.message || ""))) {
+    return `${subject} timed out. Safety records, incidents, meetings, and trench workflows remain available.`;
+  }
+  return error?.response?.data?.detail || error?.message || `Unable to load ${subject.toLowerCase()}`;
+}
+
 const WINDOWS = [
   { key: "7d", label: "Last 7 days" },
   { key: "30d", label: "Last 30 days" },
@@ -39,16 +48,22 @@ export default function SafetyOperationalKpisCard({ className = "" }) {
   const [err, setErr] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [selectedPn, setSelectedPn] = React.useState(null);
+  const [retrySeq, setRetrySeq] = React.useState(0);
 
   React.useEffect(() => {
-    let cancelled = false;
+    const controller = new AbortController();
     setLoading(true); setErr(null);
-    api.get(`/safety/company/safety-kpis?window=${window}`)
-      .then((r) => { if (!cancelled) setSnap(r.data); })
-      .catch((e) => { if (!cancelled) setErr(e?.response?.data?.detail || e.message || String(e)); })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
-  }, [window]);
+    api.get(`/safety/company/safety-kpis?window=${window}`, {
+      signal: controller.signal,
+      timeout: SAFETY_KPI_TIMEOUT_MS,
+    })
+      .then((r) => { if (!controller.signal.aborted) setSnap(r.data); })
+      .catch((e) => {
+        if (!controller.signal.aborted) setErr(describeSafetyKpiError(e, "Company safety rollup"));
+      })
+      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    return () => controller.abort();
+  }, [retrySeq, window]);
 
   return (
     <section
@@ -80,7 +95,19 @@ export default function SafetyOperationalKpisCard({ className = "" }) {
       </header>
 
       {loading && <div className="mt-3 text-sm text-slate-500" data-testid="safety-kpis-loading">Loading company safety rollup…</div>}
-      {err && <div className="mt-3 text-sm text-rose-700" data-testid="safety-kpis-error">Unable to load ({err})</div>}
+      {err && (
+        <div className="mt-3 flex items-center justify-between gap-3 text-sm text-rose-700" data-testid="safety-kpis-error">
+          <span>{err}</span>
+          <button
+            type="button"
+            onClick={() => setRetrySeq((v) => v + 1)}
+            className="text-[11px] font-mono uppercase tracking-widest font-bold text-rose-700 hover:text-rose-900"
+            data-testid="safety-kpis-retry"
+          >
+            Retry
+          </button>
+        </div>
+      )}
       {!loading && !err && snap && (
         <>
           <div
@@ -258,16 +285,22 @@ function ProjectDrilldown({ projectNumber, window, onClose }) {
   const [data, setData] = React.useState(null);
   const [err, setErr] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
+  const [retrySeq, setRetrySeq] = React.useState(0);
 
   React.useEffect(() => {
-    let cancelled = false;
+    const controller = new AbortController();
     setLoading(true); setErr(null);
-    api.get(`/safety/projects/${encodeURIComponent(projectNumber)}/safety-kpis?window=${window}`)
-      .then((r) => { if (!cancelled) setData(r.data); })
-      .catch((e) => { if (!cancelled) setErr(e?.response?.data?.detail || e.message || String(e)); })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
-  }, [projectNumber, window]);
+    api.get(`/safety/projects/${encodeURIComponent(projectNumber)}/safety-kpis?window=${window}`, {
+      signal: controller.signal,
+      timeout: SAFETY_KPI_TIMEOUT_MS,
+    })
+      .then((r) => { if (!controller.signal.aborted) setData(r.data); })
+      .catch((e) => {
+        if (!controller.signal.aborted) setErr(describeSafetyKpiError(e, `Project safety drilldown for ${projectNumber}`));
+      })
+      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    return () => controller.abort();
+  }, [projectNumber, retrySeq, window]);
 
   return (
     <div
@@ -301,7 +334,19 @@ function ProjectDrilldown({ projectNumber, window, onClose }) {
         </div>
         <div className="p-5 space-y-4">
           {loading && <div className="text-sm text-slate-500">Loading project safety…</div>}
-          {err && <div className="text-sm text-rose-700">Unable to load ({err})</div>}
+          {err && (
+            <div className="flex items-center justify-between gap-3 text-sm text-rose-700" data-testid="safety-kpis-drilldown-error">
+              <span>{err}</span>
+              <button
+                type="button"
+                onClick={() => setRetrySeq((v) => v + 1)}
+                className="text-[11px] font-mono uppercase tracking-widest font-bold text-rose-700 hover:text-rose-900"
+                data-testid="safety-kpis-drilldown-retry"
+              >
+                Retry
+              </button>
+            </div>
+          )}
           {!loading && !err && data && (
             <>
               <div className="text-xs text-slate-500">
