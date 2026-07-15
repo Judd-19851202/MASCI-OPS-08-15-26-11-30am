@@ -55,10 +55,7 @@ def register_ods_routes(api_router: APIRouter, db) -> None:
         except Exception:  # noqa: BLE001
             pass
 
-    try:
-        asyncio.get_event_loop().create_task(_boot_indexes())
-    except RuntimeError:
-        pass
+    setattr(api_router, "_ods_boot_indexes", _boot_indexes)
 
     # ----- Meta -------------------------------------------------------
     @api_router.get("/ods/meta")

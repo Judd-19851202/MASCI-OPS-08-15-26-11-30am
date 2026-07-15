@@ -243,13 +243,7 @@ def register_dr_v2_routes(api_router: APIRouter, db) -> None:
         except Exception:  # noqa: BLE001
             pass
 
-    # Schedule index creation on the running loop without blocking boot.
-    try:
-        asyncio.get_event_loop().create_task(_ensure_all_indexes())
-    except RuntimeError:
-        # No running loop yet (module-import time on some environments).
-        # First request will still succeed — indexes are best-effort.
-        pass
+    setattr(api_router, "_dr_v2_ensure_all_indexes", _ensure_all_indexes)
 
     # -------------------------------------------------------------------
     @api_router.get("/dr-v2/meta")

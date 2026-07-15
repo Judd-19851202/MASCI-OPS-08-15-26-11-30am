@@ -2,36 +2,6 @@
   "schema": "DEPLOYMENT_HISTORY/v1",
   "history": [
     {
-      "source_hash": "9c08065382b13022e550cf6682c59156",
-      "deployed_at": 1779961018,
-      "note": "CUTOVER-READY initial baseline \u00b7 preview"
-    },
-    {
-      "source_hash": "6be55af54d218e7f7743026f5c76d062",
-      "deployed_at": 1779976951,
-      "note": "pytest idempotency probe"
-    },
-    {
-      "source_hash": "b82534d9caf103def5a514ef80c2c90c",
-      "deployed_at": 1780396835,
-      "note": "pytest idempotency probe"
-    },
-    {
-      "source_hash": "ab213a495518ae7fac93b60cad6d7c1e",
-      "deployed_at": 1780452922,
-      "note": "pytest idempotency probe"
-    },
-    {
-      "source_hash": "cb79f70c5c2eacf74801e170ccff48df",
-      "deployed_at": 1780955156,
-      "note": "pytest idempotency probe"
-    },
-    {
-      "source_hash": "7009bc171abeda4010ed884b916b09bf",
-      "deployed_at": 1781049449,
-      "note": "pytest idempotency probe"
-    },
-    {
       "source_hash": "216c3e1235eea6ce89dd619ea869b9da",
       "deployed_at": 1781372691,
       "note": "pytest idempotency probe"
@@ -249,6 +219,36 @@
     {
       "source_hash": "0706118b2336a88ba054467d316bf390",
       "deployed_at": 1784082257,
+      "note": "auto-recorded on backend startup"
+    },
+    {
+      "source_hash": "996752fe1f1c7b0bbf665da3617cfefc",
+      "deployed_at": 1784110854,
+      "note": "auto-recorded on backend startup"
+    },
+    {
+      "source_hash": "9d8f320b32d98c0a9da552bb8f984892",
+      "deployed_at": 1784111028,
+      "note": "auto-recorded on backend startup"
+    },
+    {
+      "source_hash": "0706118b2336a88ba054467d316bf390",
+      "deployed_at": 1784111322,
+      "note": "auto-recorded on backend startup"
+    },
+    {
+      "source_hash": "9d8f320b32d98c0a9da552bb8f984892",
+      "deployed_at": 1784111367,
+      "note": "auto-recorded on backend startup"
+    },
+    {
+      "source_hash": "390855701eb7a031fedfd5c3e4209233",
+      "deployed_at": 1784111416,
+      "note": "auto-recorded on backend startup"
+    },
+    {
+      "source_hash": "d77535604f2e4e630717aecb627022ae",
+      "deployed_at": 1784111433,
       "note": "auto-recorded on backend startup"
     }
   ]

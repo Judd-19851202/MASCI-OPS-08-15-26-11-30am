@@ -37,39 +37,111 @@ load_dotenv(ROOT_DIR / '.env')
 # System Keys (already correct).  See:
 #   /app/memory/PRODUCTION_DEPLOY_INCIDENT_RCA_2026_02_10.md
 
-# ── Startup consistency guard (defense in depth) ────────────────────────────
-# Hard-exits if env-vars are internally inconsistent (e.g. MONGO_URL contains
-# the production user but APP_ENV says preview, or vice-versa). This catches
-# any future config-contamination class of incident at boot before the pod
-# serves any traffic. Service-account-scoped; never touches JWT/sessions/RBAC.
-_app_env = (os.environ.get('APP_ENV', '') or '').strip().lower()
-_mongo_url = os.environ.get('MONGO_URL', '') or ''
-_db_name = (os.environ.get('DB_NAME', '') or '').strip()
 _PREVIEW_USER = 'masci_preview_user'
 _PROD_USER = 'masci_prod_user'
 _PREVIEW_DB = 'masci_safety_preview'
 _PROD_DB = 'masci_safety'
-if _PREVIEW_USER in _mongo_url and (_app_env != 'preview' or _db_name != _PREVIEW_DB):
-    sys.stderr.write(
-        f"\n🔴 STARTUP CONSISTENCY VIOLATION: MONGO_URL contains '{_PREVIEW_USER}' "
-        f"but APP_ENV='{_app_env}' (expected 'preview') OR DB_NAME='{_db_name}' "
-        f"(expected '{_PREVIEW_DB}'). Pod refuses to start to prevent env contamination.\n"
-    )
-    sys.exit(98)
-if _PROD_USER in _mongo_url and (_app_env != 'production' or _db_name != _PROD_DB):
-    sys.stderr.write(
-        f"\n🔴 STARTUP CONSISTENCY VIOLATION: MONGO_URL contains '{_PROD_USER}' "
-        f"but APP_ENV='{_app_env}' (expected 'production') OR DB_NAME='{_db_name}' "
-        f"(expected '{_PROD_DB}'). Pod refuses to start to prevent env contamination.\n"
-    )
-    sys.exit(98)
-del _app_env, _mongo_url, _db_name, _PREVIEW_USER, _PROD_USER, _PREVIEW_DB, _PROD_DB
-# ────────────────────────────────────────────────────────────────────────────
 
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url, tz_aware=True)
-db = client[os.environ['DB_NAME']]
+
+class RuntimeConfigError(RuntimeError):
+    """Raised when required runtime configuration is missing or invalid."""
+
+
+class RuntimeDbProxy:
+    """Compatibility proxy so import-time route wiring can keep using `db`."""
+
+    def __init__(self) -> None:
+        self._target = None
+
+    def set_target(self, target) -> None:
+        self._target = target
+
+    def get_target(self):
+        return self._target
+
+    def clear_target(self) -> None:
+        self._target = None
+
+    def _require_target(self):
+        if self._target is None:
+            raise RuntimeError("Database accessed before runtime initialization")
+        return self._target
+
+    def __getattr__(self, name):
+        if self._target is None:
+            return RuntimeCollectionProxy(self, name)
+        return getattr(self._target, name)
+
+    def __getitem__(self, key):
+        return RuntimeCollectionProxy(self, key)
+
+
+class RuntimeCollectionProxy:
+    """Lazy collection proxy captured safely during import-time route wiring."""
+
+    def __init__(self, db_proxy: RuntimeDbProxy, collection_name: str) -> None:
+        self._db_proxy = db_proxy
+        self._collection_name = collection_name
+
+    def _resolve(self):
+        return self._db_proxy._require_target()[self._collection_name]
+
+    def __getattr__(self, name):
+        return getattr(self._resolve(), name)
+
+    def __getitem__(self, key):
+        return self._resolve()[key]
+
+
+class RuntimeDbConfig(BaseModel):
+    context: str
+    app_env: str = ""
+    mongo_url: Optional[str] = None
+    db_name: Optional[str] = None
+
+
+def _runtime_context_label(app_env: str) -> str:
+    if os.environ.get("PYTEST_CURRENT_TEST"):
+        return "test"
+    if app_env == "preview":
+        return "preview_runtime"
+    if app_env == "production":
+        return "production_startup"
+    return "build_import"
+
+
+def _load_runtime_db_config(*, require_runtime: bool) -> RuntimeDbConfig:
+    app_env = (os.environ.get('APP_ENV', '') or '').strip().lower()
+    cfg = RuntimeDbConfig(
+        context=_runtime_context_label(app_env),
+        app_env=app_env,
+        mongo_url=(os.environ.get('MONGO_URL') or '').strip() or None,
+        db_name=(os.environ.get('DB_NAME') or '').strip() or None,
+    )
+    if not require_runtime:
+        return cfg
+
+    missing = []
+    if not cfg.mongo_url:
+        missing.append('MONGO_URL')
+    if not cfg.db_name:
+        missing.append('DB_NAME')
+    if missing:
+        raise RuntimeConfigError(f"Required runtime configuration missing: {', '.join(missing)}")
+
+    if _PREVIEW_USER in cfg.mongo_url and (cfg.app_env != 'preview' or cfg.db_name != _PREVIEW_DB):
+        raise RuntimeConfigError(
+            "Startup consistency violation: runtime database configuration does not match preview environment contract"
+        )
+    if _PROD_USER in cfg.mongo_url and (cfg.app_env != 'production' or cfg.db_name != _PROD_DB):
+        raise RuntimeConfigError(
+            "Startup consistency violation: runtime database configuration does not match production environment contract"
+        )
+    return cfg
+
+
+client = None
+db = RuntimeDbProxy()
 
 app = FastAPI(
     title="MASCI Job Site Safety Inspection API",
@@ -260,6 +332,47 @@ from lib.rate_limiting import (  # noqa: E402
 # into `LIFECYCLE_STEPS`. The lifespan orchestrator (Track 22.1D) runs
 # LIFECYCLE_STEPS first, then remaining legacy on_startup decorators.
 from lib.lifespan_bootstrap import register_lifecycle_step, register_shutdown_step  # noqa: E402
+
+
+def _set_db_target_for_tests(target) -> None:
+    db.set_target(target)
+
+
+def _get_db_target_for_tests():
+    return db.get_target()
+
+
+def _reset_runtime_db_state_for_tests() -> None:
+    global client
+    if client is not None:
+        try:
+            client.close()
+        except Exception:
+            pass
+    client = None
+    db.clear_target()
+    app.state.mongo_client = None
+    app.state.db = None
+    app.state.db_name = None
+
+
+@register_lifecycle_step("runtime-config", name="_bootstrap_runtime_db")
+async def _bootstrap_runtime_db() -> None:
+    global client
+    if client is not None and db.get_target() is not None:
+        app.state.mongo_client = client
+        app.state.db = db.get_target()
+        app.state.db_name = getattr(db.get_target(), "name", None)
+        return
+
+    cfg = _load_runtime_db_config(require_runtime=True)
+    _verify_env_db_alignment(cfg.app_env or "production", cfg.db_name, cfg.mongo_url)
+    client = AsyncIOMotorClient(cfg.mongo_url, tz_aware=True)
+    database = client[cfg.db_name]
+    db.set_target(database)
+    app.state.mongo_client = client
+    app.state.db = database
+    app.state.db_name = cfg.db_name
 
 
 # ------------------------- Admin auth -------------------------
@@ -1428,16 +1541,14 @@ _INSTANCE_FINGERPRINT = build_instance_fingerprint(
 # A misconfiguration raises RuntimeError before the server can accept
 # requests, which is far safer than silently corrupting production data.
 # ---------------------------------------------------------------------------
-def _verify_env_db_alignment() -> None:
-    app_env = os.environ.get("APP_ENV", "production").lower()
-    db_name = os.environ.get("DB_NAME", "")
+def _verify_env_db_alignment(app_env: str, db_name: str, mongo_url: str) -> None:
     is_preview_db = db_name.endswith("_preview")
     banner = "═" * 78
     print(f"\n{banner}")
     print(f"  MASCI-HUB ENVIRONMENT SAFETY CHECK")
     print(f"  APP_ENV : {app_env}")
     print(f"  DB_NAME : {db_name}")
-    print(f"  Atlas   : {os.environ.get('MONGO_URL','').split('@')[-1].split('/')[0] if '@' in os.environ.get('MONGO_URL','') else '(local)'}")
+    print(f"  Atlas   : {mongo_url.split('@')[-1].split('/')[0] if '@' in mongo_url else '(local)'}")
     if app_env == "preview" and not is_preview_db:
         print(f"  STATUS  : 🚨  REFUSING TO START — preview env pointed at non-preview DB")
         print(f"{banner}\n")
@@ -1453,9 +1564,6 @@ def _verify_env_db_alignment() -> None:
         )
     print(f"  STATUS  : 🟢 SAFE — env and database aligned")
     print(f"{banner}\n")
-
-
-_verify_env_db_alignment()
 
 
 @api_router.get("/version")
@@ -3203,6 +3311,16 @@ register_operations_control_routes(api_router, db, require_admin)
 async def _ensure_occ_audit_indexes_step():
     await ensure_occ_audit_indexes(db)
 
+
+@register_lifecycle_step("index-ensure")
+async def _ensure_production_certification_session_indexes_step():
+    await _pcs_ensure_indexes(db)
+
+
+@register_lifecycle_step("index-ensure")
+async def _ensure_dr_v2_alias_indexes_step():
+    await _ensure_dr_v2_alias_indexes(db)
+
 # TRACK 25 · SPRINT 2 · Operations Control Center — Trust Layer aggregator.
 # One canonical read-only endpoint `GET /api/admin/occ/health` that fans
 # out over the existing child health endpoints and returns a normalized
@@ -3301,10 +3419,6 @@ register_production_certification_session_routes(
     db=db,
     require_admin_strict=require_admin_strict,
 )
-try:
-    asyncio.get_event_loop().create_task(_pcs_ensure_indexes(db))
-except Exception:
-    pass
 
 # ------------------------------------------------------------
 # TRACK 22.3 · Integration Truth Surface + AI Key Status + DR-V2
@@ -3321,10 +3435,6 @@ register_integration_truth_routes(
     db=db,
     require_admin_strict=require_admin_strict,
 )
-try:
-    asyncio.get_event_loop().create_task(_ensure_dr_v2_alias_indexes(db))
-except RuntimeError:
-    pass
 
 # ------------------------------------------------------------
 # DR-ROI-001F · Part 2 · V2 PDF Output (already registered above via
@@ -3356,6 +3466,14 @@ register_dr_v3_flag_routes(api_router, db, require_admin=require_admin)
 # ============================================================
 from routes.ods import register_ods_routes  # noqa: E402
 register_ods_routes(api_router, db)
+
+
+@register_lifecycle_step("index-ensure")
+async def _boot_router_registered_import_safe_indexes():
+    for attr in ("_dr_v2_ensure_all_indexes", "_dr_v2_photo_ensure_indexes", "_ods_boot_indexes"):
+        fn = getattr(api_router, attr, None)
+        if fn:
+            await fn()
 
 # ============================================================
 # TRACK 23.7 · Operational KPI Spine (PM + Safety + future Scheduling)
@@ -17755,12 +17873,19 @@ logger = logging.getLogger(__name__)
 
 @register_shutdown_step("shutdown")
 async def shutdown_db_client():
+    global client
     try:
         if _backup_task is not None:
             _backup_task.cancel()
     except Exception:
         pass
-    client.close()
+    if client is not None:
+        client.close()
+        client = None
+    db.clear_target()
+    app.state.mongo_client = None
+    app.state.db = None
+    app.state.db_name = None
 
 
 # ──────────────────────────────────────────────────────────────────────

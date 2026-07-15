@@ -65,10 +65,7 @@ def register_dr_v2_photo_routes(api_router: APIRouter, db) -> None:
             await ensure_indexes(db)
         except Exception:  # noqa: BLE001
             pass
-    try:
-        asyncio.get_event_loop().create_task(_ensure_indexes())
-    except RuntimeError:
-        pass
+    setattr(api_router, "_dr_v2_photo_ensure_indexes", _ensure_indexes)
 
     def _draft_context(draft: Dict[str, Any]) -> Dict[str, Any]:
         """Compact context for the vision model — supervisor-entered items only."""

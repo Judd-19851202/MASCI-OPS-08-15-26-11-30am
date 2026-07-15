@@ -196,7 +196,7 @@ def test_integrity_check_exposes_rowwise_lineage_for_recent_backups(monkeypatch)
     import backup_verification  # noqa: PLC0415
 
     async def _fake_list_r2_backup_archives(prefix: str = "backups/"):
-        assert prefix == "backups/"
+        assert prefix == "backups/auto-90d/"
         return [
             {
                 "key": f"backups/auto-90d/MASCI_complete_backup_2026-07-12_1{i}0050Z.zip",
@@ -238,12 +238,12 @@ def test_integrity_check_exposes_rowwise_lineage_for_recent_backups(monkeypatch)
             for route in server.app.routes
             if getattr(route, "path", "") == "/api/admin/backups/integrity-check"
         )
-        old_db = server.db
-        server.db = fake_db
+        old_db = server._get_db_target_for_tests()
+        server._set_db_target_for_tests(fake_db)
         try:
             return await fn(True)
         finally:
-            server.db = old_db
+            server._set_db_target_for_tests(old_db)
 
     out = asyncio.run(_call_route())
 
