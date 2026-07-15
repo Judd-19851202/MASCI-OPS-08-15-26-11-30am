@@ -1,3 +1,18 @@
+## 2026-07-15 · DR-03 LIVE AI PARITY CUTOVER
+
+### Branching removed
+- Removed capability / tenant gating from `backend/routes/daily_summary.py`; the draft summary endpoint now uses the live AI provider path as the primary synthesis path.
+- Removed capability / tenant gating from `backend/services/photo_intelligence/pipeline.py`; draft photo intelligence now always reads photo bytes and runs the live analysis path.
+- Enabled provider flags in `backend/.env` for live Daily Report synthesis and vision execution.
+
+### Runtime verification
+- Manual API verification: `POST /api/daily-reports/summary/draft` now returns `mode=live_ai`, `enabled=true`.
+- 7-photo verification: response reported `photo_status=complete`, `photo_reviewed=7`, and returned a superintendent-grade live AI narrative.
+- Backend verification agent confirmed no remaining `resolve_ai_capabilities()` gating on the summary or draft photo intelligence path.
+
+### Current owner-visible result
+- The preview now exercises the same live Daily Report AI summary path and live photo intelligence path configured for the project codebase, with deterministic fallback only if the provider itself fails at runtime.
+
 ## 2026-07-15 · DR-03 FINAL RATE-LIMIT CLOSEOUT
 
 ### Scope completed
