@@ -141,6 +141,7 @@ def _build_summary_input(payload: Dict[str, Any]) -> Dict[str, Any]:
             "name": _clean_str(row.get("name") or row.get("employee_name_snapshot"), 120),
             "trade": _clean_str(row.get("trade") or row.get("trade_snapshot"), 80),
             "hours": _crew_hours(row),
+            "work_performed": _clean_str(row.get("work_performed") or row.get("notes"), 320),
         })
 
     subs = []
@@ -763,7 +764,7 @@ def _compose_deterministic_summary(
 # ─────────────────────── registration ─────────────────────────────
 
 def register_daily_summary_routes(
-    api_router: APIRouter, *, db, rate_limit_public_post,
+    api_router: APIRouter, *, db, rate_limit_public_post, require_admin=None,
 ) -> None:
     """Mount DR-CUTOVER-002 routes onto ``api_router``."""
 
@@ -955,6 +956,51 @@ def register_daily_summary_routes(
             "daily_operational_summary_accepted_at": patch["daily_operational_summary_accepted_at"],
             "language": language,
         }
+
+    if require_admin is not None:
+        @api_router.post(
+            "/admin/daily-reports/{report_id}/reprocess-photos",
+            dependencies=[Depends(require_admin)],
+        )
+        async def admin_reprocess_report_photos(report_id: str):
+            report_id = _clean_str(report_id, 120)
+            if not report_id:
+                raise HTTPException(status_code=400, detail="report_id required")
+
+            try:
+                existing = await db.daily_reports.find_one(
+                    {
+                        "$or": [
+                            {"id": report_id},
+                            {"doc_id": report_id},
+                            {"report_number": report_id},
+                        ]
+                    },
+                    {"_id": 0},
+                )
+            except Exception:  # noqa: BLE001
+                existing = None
+            if not existing:
+                raise HTTPException(status_code=404, detail="daily report not found")
+
+            try:
+                from services.photo_intelligence import (  # noqa: PLC0415
+                    reprocess_v1_report,
+                    list_v1_report_intelligence,
+                )
+                result = await reprocess_v1_report(db, existing)
+                intel = await list_v1_report_intelligence(db, report_id)
+            except HTTPException:
+                raise
+            except Exception as exc:  # noqa: BLE001
+                raise HTTPException(status_code=500, detail=f"photo reprocess failed: {exc}")
+
+            return {
+                "ok": bool(result.get("ok")),
+                "report_id": report_id,
+                "reprocess": result,
+                "photo_intelligence": intel,
+            }
 
 
 __all__ = ["register_daily_summary_routes", "_compose_deterministic_summary"]

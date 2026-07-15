@@ -49,7 +49,7 @@ def default_vision_provider() -> str:
 
 
 def default_vision_model() -> str:
-    return os.environ.get("AI_DEFAULT_VISION_MODEL") or "gpt-5.4"
+    return os.environ.get("AI_DEFAULT_VISION_MODEL") or "gpt-4o"
 
 
 def provider_timeout_ms() -> int:

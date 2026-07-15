@@ -1,3 +1,21 @@
+## 2026-07-15 · DR-03 FINAL PRODUCTION PATCH SET
+
+### Final changes applied
+- Fixed the photo vision model route typo by changing the `photo_vision` task from `gpt-5.4` to `gpt-4o` in the AI gateway routing/default vision model path.
+- Updated `backend/routes/daily_summary.py::_build_summary_input()` so every MASCI crew row now includes `work_performed` text in the summary input passed downstream.
+- Added `POST /api/admin/daily-reports/{report_id}/reprocess-photos` to trigger full photo-intelligence reprocessing for existing submitted reports.
+- Added `reprocess_report()` to `services/photo_intelligence/pipeline.py` and exported it via `services/photo_intelligence.__init__`.
+
+### Important continuity preserved
+- Senior-superintendent vision persona remains active in `services/dr_ai/vision.py`.
+- Per-photo iteration / parallel draft vision flow remains active.
+- `X-Device-Id` request identity and rate-limit keying fix remain active.
+
+### Verification
+- Updated backend files linted successfully.
+- Backend restarted successfully in preview.
+- Preview ingress briefly returned a 502 immediately after restart while warming, but backend health logs were clean after boot.
+
 ## 2026-07-15 · DR-03 PRODUCTION TIMEOUT / DRAFT-LOSS HARDENING
 
 ### Timeout settings found

@@ -3347,7 +3347,7 @@ register_occ_trust_events_routes(api_router, require_admin)
 # ------------------------------------------------------------
 from routes.daily_summary import register_daily_summary_routes  # noqa: E402
 register_daily_summary_routes(
-    api_router, db=db, rate_limit_public_post=rate_limit_public_post,
+    api_router, db=db, rate_limit_public_post=rate_limit_public_post, require_admin=require_admin,
 )
 # ------------------------------------------------------------
 # ADDITIVE mount. Zero drift on V1 daily_reports routes, models, or

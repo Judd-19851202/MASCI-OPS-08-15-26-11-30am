@@ -86,7 +86,7 @@ def _is_non_retryable(reason: Optional[str]) -> bool:
 # operators who want to pin a specific version in production.
 _PROVIDER_DEFAULT_MODELS = {
     "anthropic": "claude-sonnet-4-6",
-    "openai":    "gpt-5.4",
+    "openai":    "gpt-4o",
     "google":    "gemini-2.5-flash",
 }
 

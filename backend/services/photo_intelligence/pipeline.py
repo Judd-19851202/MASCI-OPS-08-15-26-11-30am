@@ -609,6 +609,56 @@ async def process_report(db, report: Dict[str, Any]) -> Dict[str, Any]:
         return {"ok": False, "reason": f"crash:{exc.__class__.__name__}"}
 
 
+async def reprocess_report(db, report: Dict[str, Any]) -> Dict[str, Any]:
+    """Force a full reprocess for an existing submitted report.
+
+    Clears prior job/intel rows for the report's current photos, then runs the
+    same first-pass processing path used for new reports.
+    """
+    try:
+        doc_id = (
+            report.get("doc_id")
+            or report.get("report_number")
+            or report.get("id")
+            or ""
+        )
+        if not doc_id:
+            return {"ok": False, "reason": "no_doc_id"}
+        refs = _extract_photo_refs(report)
+        if not refs:
+            return {"ok": True, "photos": 0, "cleared": 0, "completed": 0, "failed": 0}
+
+        photo_ids = [ref["photo_id"] for ref in refs if ref.get("photo_id")]
+        try:
+            await db[COLL_INTEL_JOBS].delete_many({
+                "report_id": doc_id,
+                "photo_id": {"$in": photo_ids},
+            })
+        except Exception:  # noqa: BLE001
+            pass
+        try:
+            await db[COLL_PHOTO_INTEL].delete_many({
+                "report_id": doc_id,
+                "photo_id": {"$in": photo_ids},
+            })
+        except Exception:  # noqa: BLE001
+            pass
+
+        result = await process_report(db, report)
+        return {
+            "ok": bool(result.get("ok")),
+            "report_id": doc_id,
+            "photos": len(refs),
+            "cleared": len(photo_ids),
+            "completed": int(result.get("completed") or 0),
+            "failed": int(result.get("failed") or 0),
+            "reason": result.get("reason"),
+        }
+    except Exception as exc:  # noqa: BLE001
+        logger.info("[photo-intel] reprocess_report crashed: %s", exc)
+        return {"ok": False, "reason": f"crash:{exc.__class__.__name__}"}
+
+
 async def enqueue_draft(db, draft_identity: str, draft: Dict[str, Any]) -> Dict[str, Any]:
     draft_identity = str(draft_identity or "").strip()
     if not draft_identity:

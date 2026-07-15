@@ -21,7 +21,7 @@ TASK_ROUTES: Dict[str, Tuple[str, str]] = {
     "delay_intelligence":     ("anthropic", "claude-sonnet-4-6"),
     "safety_intelligence":    ("anthropic", "claude-sonnet-4-6"),
     "equipment_intelligence": ("anthropic", "claude-sonnet-4-6"),
-    "photo_vision":           ("openai",    "gpt-5.4"),
+    "photo_vision":           ("openai",    "gpt-4o"),
     "pm_brief":               ("anthropic", "claude-sonnet-4-6"),
     "executive_brief":        ("anthropic", "claude-sonnet-4-6"),
     "confidence_validation":  ("anthropic", "claude-sonnet-4-6"),
