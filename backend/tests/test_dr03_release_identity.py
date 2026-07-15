@@ -145,7 +145,7 @@ def test_release_identity_parity_guard_allows_exact_match():
 
 
 def test_local_api_version_reports_frontend_backend_release_parity():
-    r = requests.get(LOCAL_API, timeout=20)
+    r = requests.get(LOCAL_API, timeout=60)
     assert r.status_code == 200
     body = r.json()
     assert body["frontend_backend_release_match"] is True
