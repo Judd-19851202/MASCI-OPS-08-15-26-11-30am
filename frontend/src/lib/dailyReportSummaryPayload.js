@@ -178,47 +178,52 @@ export function buildDailyReportSummaryPayload(data = {}, photoIntel = null, opt
 export function buildDeterministicSummaryFallback(data = {}, photoIntel = null) {
   const payload = buildDailyReportSummaryPayload(data, photoIntel);
   const summaryInput = payload.summary_input;
-  const bits = [];
+  const parts = [];
 
+  const workBits = summaryInput.production.rows.slice(0, 4).map((row) => {
+    const qty = row.quantity ? `${row.quantity} ${row.unit || ""}`.trim() : "";
+    const desc = String(row.description || "").trim();
+    if (!desc) return "";
+    return `${qty ? `${qty} ` : ""}${desc}${row.percent_complete ? ` (${row.percent_complete}% complete)` : ""}`.trim();
+  }).filter(Boolean);
+  if (workBits.length > 0) parts.push(`Work completed: ${workBits.join("; ")}.`);
+
+  const workforceBits = [];
   if (summaryInput.labor.employee_count || summaryInput.labor.total_employee_hours) {
-    bits.push(
-      `MASCI crew: ${summaryInput.labor.employee_count} ${summaryInput.labor.employee_count === 1 ? "employee" : "employees"}, ${summaryInput.labor.total_employee_hours.toFixed(2)} labor hours.`
-    );
+    workforceBits.push(`MASCI recorded ${summaryInput.labor.employee_count} ${summaryInput.labor.employee_count === 1 ? "employee" : "employees"} and ${summaryInput.labor.total_employee_hours.toFixed(2)} labor hours`);
   }
   if (summaryInput.subcontractors.subcontractor_count || summaryInput.subcontractors.total_hours) {
-    bits.push(
-      `Subcontractors/vendors: ${summaryInput.subcontractors.subcontractor_count} company rows, ${summaryInput.subcontractors.total_hours.toFixed(2)} hours.`
-    );
+    workforceBits.push(`${summaryInput.subcontractors.subcontractor_count} subcontractor/vendor ${summaryInput.subcontractors.subcontractor_count === 1 ? "entry" : "entries"} contributing ${summaryInput.subcontractors.total_hours.toFixed(2)} hours`);
   }
   if (summaryInput.equipment.equipment_count || summaryInput.equipment.total_usage_hours) {
-    bits.push(
-      `Equipment: ${summaryInput.equipment.equipment_count} ${summaryInput.equipment.equipment_count === 1 ? "unit" : "units"}, ${summaryInput.equipment.total_run_hours.toFixed(2)} run hours, ${summaryInput.equipment.total_idle_hours.toFixed(2)} idle hours.`
-    );
+    workforceBits.push(`${summaryInput.equipment.equipment_count} equipment ${summaryInput.equipment.equipment_count === 1 ? "unit" : "units"} logged ${summaryInput.equipment.total_run_hours.toFixed(2)} run hours and ${summaryInput.equipment.total_idle_hours.toFixed(2)} idle hours`);
   }
-  if (summaryInput.production.rows.length > 0) {
-    const row = summaryInput.production.rows[0];
-    bits.push(
-      `Production: ${row.quantity ? `${row.quantity} ${row.unit || ""} `.trimStart() : ""}${row.description || "Work activity"}${row.percent_complete ? ` (${row.percent_complete}% complete)` : ""}.`
-    );
+  if (workforceBits.length > 0) parts.push(`Workforce and equipment: ${workforceBits.join("; ")}.`);
+
+  const observations = Array.isArray(summaryInput.photos.observations) ? summaryInput.photos.observations : [];
+  const lowValue = /logo|branding|color|windows taskbar|browser tab|computer monitor is shown|desktop monitor is shown|web browser open|computer monitor is photographed|browser window|admin or database management webpage|screen/i;
+  const ranked = observations
+    .filter((item) => !(item?.eligibility_reason && item?.is_jobsite_photo === false))
+    .map((item) => String(item?.description || item?.summary || "").trim())
+    .filter(Boolean)
+    .filter((text, idx, arr) => arr.indexOf(text) === idx)
+    .filter((text) => !lowValue.test(text))
+    .filter((text) => /(curb|concrete|pour|truck|barrier|traffic control|equipment|work area|material|excavation|paving|staging|alignment|hose|hopper|crew|ppe|housekeeping)/i.test(text))
+    .slice(0, 3);
+  if (ranked.length > 0) {
+    parts.push(`Photo-supported evidence: ${ranked.join("; ")}.`);
+  } else if (summaryInput.photos.photo_count > 0) {
+    parts.push(`Photo-supported evidence: ${summaryInput.photos.photo_count} submitted ${summaryInput.photos.photo_count === 1 ? "photo was" : "photos were"} reviewed. The available images do not add stronger operational detail beyond the typed report facts.`);
   }
-  if (summaryInput.photos.photo_count > 0) {
-    const photoLifecycle = summaryInput.photos.lifecycle_status || summaryInput.photos.status;
-    bits.push(
-      `${summaryInput.photos.photo_count} ${summaryInput.photos.photo_count === 1 ? "photo" : "photos"} attached${photoLifecycle ? ` · photo intelligence ${photoLifecycle.replaceAll("_", " ")}` : ""}.`
-    );
-    if (Array.isArray(summaryInput.photos.observations) && summaryInput.photos.observations.length > 0) {
-      const snippets = summaryInput.photos.observations.slice(0, 2).flatMap((item) => {
-        if (!item || typeof item !== "object") return [];
-        const out = [];
-        if (item.summary) out.push(String(item.summary).trim());
-        if (Array.isArray(item.observations)) out.push(...item.observations.map((v) => String(v).trim()));
-        if (item.description) out.push(String(item.description).trim());
-        return out.filter(Boolean);
-      }).slice(0, 3);
-      if (snippets.length > 0) {
-        bits.push(`Photo observations: ${snippets.join("; ")}.`);
-      }
-    }
-  }
-  return bits.join(" ") || "Daily activity recorded. Summary generated from the current report facts.";
+
+  const issueBits = [];
+  if (String(payload.schedule_delays || "").toLowerCase() === "yes" && payload.schedule_delays_notes) issueBits.push(payload.schedule_delays_notes);
+  if (String(payload.weather_impact || "").toLowerCase() === "yes" && payload.weather_impact_notes) issueBits.push(payload.weather_impact_notes);
+  if (payload.general_notes) issueBits.push(String(payload.general_notes).trim());
+  if (issueBits.length > 0) parts.push(`Issues and attention: ${issueBits.slice(0, 3).join("; ")}.`);
+
+  const tomorrow = String(payload.narrative_sections?.tomorrow_plan || "").trim();
+  if (tomorrow) parts.push(`Next work: ${tomorrow}.`);
+
+  return parts.join("\n\n") || "Daily activity recorded. Summary generated from the current report facts.";
 }

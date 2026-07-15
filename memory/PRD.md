@@ -1,3 +1,44 @@
+## 2026-07-15 · DR-03 OPERATOR AI FINAL REPAIR CONTINUATION
+
+### Scope completed in this continuation
+- Removed all operator-facing debug / engineering payload UI from the canonical Daily Report authoring flow.
+- Reworked draft photo lifecycle aggregation so every attached photo is accounted for with truthful aggregate states, including duplicate reuse and terminal failure handling.
+- Added bounded photo-analysis batching and concurrency for draft photo analysis without creating a new pipeline or alternate write path.
+- Upgraded deterministic fallback summary synthesis so it produces PM-grade operational narratives from typed facts plus grounded photo observations, while filtering low-value trivia.
+- Added regenerate cooldown / last-valid-summary preservation behavior so rate-limited or unavailable summary attempts do not wipe a valid accepted draft summary.
+
+### Truthful operator proof boundary
+- The currently available local `9-photo` fixture in `/app/tmp_photo_fixture` is **not a construction-photo fixture**. It consists of screenshots/admin-interface images plus one extracted HEIC image. That means preview can truthfully prove:
+  - every attached photo is auto-accounted for,
+  - aggregate lifecycle is truthful,
+  - summary synthesis consumes completed observations,
+  - operator UI is clean,
+  - viewer/PDF parity persists,
+  - but **cannot truthfully prove elite construction-photo operational intelligence quality from construction imagery**, because the supplied fixture is not jobsite photography.
+
+### Verified in this continuation
+- Backend targeted pytest bundle: `29 passed` for the DR-03 operator/photo-intel focused suites.
+- Frontend build: `CI=true yarn build` → PASS (`exit 0`).
+- Preview smoke: operator debug UI count = `0`.
+- Preview API proof with 9-photo current fixture:
+  - `photo_status = complete`
+  - `status_message = Photo analysis complete — 9 photos reviewed.`
+  - `reviewed = 9 / 9`
+  - deterministic fallback summary path preserved
+
+### Files added/updated for this continuation
+- `/app/backend/services/dr_ai/vision.py`
+- `/app/backend/services/photo_intelligence/pipeline.py`
+- `/app/backend/routes/daily_summary.py`
+- `/app/frontend/src/components/daily-report/DailySummaryAssist.jsx`
+- `/app/frontend/src/lib/dailyReportSummaryPayload.js`
+- `/app/backend/scripts/build_dr03_nine_photo_fixture.py`
+- `/app/backend/tests/test_dr03_operator_photo_accounting.py`
+- `/app/backend/tests/test_iteration_571_photo_intel_summary.py`
+- `/app/backend/tests/test_dr03_final_gate5_summary_and_routes.py`
+- `/app/memory/track_dr_03/DR_03_OPERATOR_AI_FINAL_REPAIR.md`
+- `/app/memory/track_dr_03/DR_03_OPERATOR_AI_TEST_RESULTS.md`
+
 ## 2026-07-15 · DR-03 PHOTO INTELLIGENCE FINAL REBUILD
 
 ### Scope completed

@@ -60,8 +60,8 @@ export default function DailySummaryAssist({
   const [decision, setDecision] = useState("pending");
   const [photoIntelStatus, setPhotoIntelStatus] = useState("no_photos");
   const [latestPhotoIntel, setLatestPhotoIntel] = useState(null);
-  const [lastSummaryPayload, setLastSummaryPayload] = useState(null);
-  const [lastMergedPhotoPayload, setLastMergedPhotoPayload] = useState(null);
+  const [regenerateCooldownUntil, setRegenerateCooldownUntil] = useState(0);
+  const [cooldownNow, setCooldownNow] = useState(Date.now());
 
   const abortRef = useRef(null);
   const debounceRef = useRef(null);
@@ -120,14 +120,14 @@ export default function DailySummaryAssist({
         );
         photoIntelValueRef.current = response || null;
         setLatestPhotoIntel(response || null);
-        setPhotoIntelStatus(response?.status || (currentPhotos.length > 0 ? "not_requested" : "no_photos"));
+        setPhotoIntelStatus(response?.status || (currentPhotos.length > 0 ? "queued" : "no_photos"));
         return response || null;
       } catch {
         return null;
       }
     }
     if (!formKey) {
-      const fallbackStatus = currentPhotos.length > 0 ? "not_requested" : "no_photos";
+      const fallbackStatus = currentPhotos.length > 0 ? "queued" : "no_photos";
       setPhotoIntelStatus(fallbackStatus);
       return null;
     }
@@ -159,9 +159,15 @@ export default function DailySummaryAssist({
     photoIntelKeyRef.current = compactPhotoSignature;
     photoIntelValueRef.current = response || null;
     setLatestPhotoIntel(response || null);
-    setPhotoIntelStatus(response?.status || (currentPhotos.length > 0 ? "not_requested" : "no_photos"));
+    setPhotoIntelStatus(response?.status || (currentPhotos.length > 0 ? "queued" : "no_photos"));
     return response || null;
   }, [compactPhotoSignature, formKey, reportNumber]);
+
+  useEffect(() => {
+    if (!regenerateCooldownUntil) return undefined;
+    const timer = setInterval(() => setCooldownNow(Date.now()), 500);
+    return () => clearInterval(timer);
+  }, [regenerateCooldownUntil]);
 
   const synthesize = useCallback(async (force = false) => {
     if (!hasEnoughEvidence(data)) {
@@ -190,7 +196,6 @@ export default function DailySummaryAssist({
         photoIntel = null;
       }
       const payload = buildDailyReportSummaryPayload(dataRef.current, photoIntel, { formKey });
-      setLastMergedPhotoPayload(payload.summary_input?.photos || null);
       const { data: resp } = await api.post(
         `/daily-reports/summary/draft`,
         { payload, form_key: formKey, force },
@@ -206,26 +211,6 @@ export default function DailySummaryAssist({
       const summaryPhotoIntel = resp?.photo_intelligence || photoIntel;
       setLatestPhotoIntel(summaryPhotoIntel || null);
       const returnedSummaryInput = resp?.summary_input?.photos || null;
-      const finalSummaryPayload = {
-        ...payload,
-        photo_observations: Array.isArray(summaryPhotoIntel?.observations)
-          ? summaryPhotoIntel.observations
-          : Array.isArray(payload.photo_observations)
-            ? payload.photo_observations
-            : [],
-        photo_intelligence_status:
-          summaryPhotoIntel?.status
-          || returnedSummaryInput?.lifecycle_status
-          || returnedSummaryInput?.status
-          || payload.photo_intelligence_status
-          || "no_photos",
-        summary_input: {
-          ...(payload.summary_input || {}),
-          photos: returnedSummaryInput || payload.summary_input?.photos || {},
-        },
-      };
-      setLastSummaryPayload(finalSummaryPayload);
-      setLastMergedPhotoPayload(finalSummaryPayload.summary_input?.photos || null);
       const statusFromPhotoIntel =
         summaryPhotoIntel?.status
         || returnedSummaryInput?.lifecycle_status
@@ -252,17 +237,8 @@ export default function DailySummaryAssist({
       }
       setUncertainties([...new Set(notes)].slice(0, 5));
       setEvidenceRefs(Array.isArray(resp?.evidence_refs) ? resp.evidence_refs.slice(0, 20) : []);
-      if (!resp?.enabled && resp?.reason_disabled) {
-        const normalized = normalizeOperatorError(
-          { response: { data: { detail: { error: resp.reason_disabled } } } },
-          { fallbackMessage: "Summary assist is unavailable right now. You can approve the generated summary or write a manual summary." },
-        );
-        setError(normalized.message);
-        setErrorCode(normalized.code);
-      } else {
-        setError(null);
-        setErrorCode(null);
-      }
+      setError(null);
+      setErrorCode(null);
       setStatus("ready");
     } catch (err) {
       if (mySeq !== requestSeqRef.current) return;
@@ -270,9 +246,11 @@ export default function DailySummaryAssist({
       const normalized = normalizeOperatorError(err, {
         fallbackMessage: "Summary assist is unavailable right now. You can approve the generated summary or write a manual summary.",
       });
-      const fb = buildDeterministicSummaryFallback(dataRef.current, null);
-      setNarrative(fb);
-      setEdited(fb);
+      const fb = buildDeterministicSummaryFallback(dataRef.current, latestPhotoIntel || null);
+      if (!narrative.trim()) {
+        setNarrative(fb);
+        setEdited(fb);
+      }
       setAiAvailable(false);
       setPhotoIntelStatus((latestPhotoIntel?.status) || ((data?.photos || []).length > 0 ? "queued" : "no_photos"));
       setError(normalized.message);
@@ -281,7 +259,7 @@ export default function DailySummaryAssist({
     } finally {
       clearTimeout(timeoutId);
     }
-  }, [data, formKey, latestPhotoIntel?.status, syncPhotoIntel]);
+  }, [data, formKey, latestPhotoIntel?.status, narrative, syncPhotoIntel]);
 
   useEffect(() => {
     if (accepted) return undefined;
@@ -375,11 +353,36 @@ export default function DailySummaryAssist({
   }
 
   function handleRegenerate() {
+    if (Date.now() < regenerateCooldownUntil) return;
     setAccepted(false);
     setDecision("pending");
     onAccept?.("", null);
+    setRegenerateCooldownUntil(Date.now() + 3000);
     synthesize(true);
   }
+
+  const operatorPhotoStatus = useMemo(() => {
+    const intel = latestPhotoIntel || {};
+    const total = Number(intel.photo_count || photoCount || 0);
+    const reviewed = Number(intel.reviewed || intel.analyzed || 0);
+    const queued = Number(intel.queued || 0);
+    const processing = Number(intel.processing || 0);
+    const terminalFailures = Number(intel.terminal_failures || 0) + Number(intel.unavailable || 0);
+    const state = String(photoIntelStatus || "no_photos");
+    if (state === "no_photos") return "No photos attached yet.";
+    if (state === "uploading") return `Uploading ${total} photos…`;
+    if (state === "queued") return `Queued ${total} photos for analysis.`;
+    if (state === "analyzing") return `Analyzing ${reviewed} of ${total} photos…`;
+    if (state === "partially_analyzed") return `Analyzed ${reviewed} of ${total} photos so far.`;
+    if (state === "complete") return `Photo analysis complete — ${total} photos reviewed.`;
+    if (state === "complete_with_some_failures") return `${reviewed} of ${total} photos analyzed — ${terminalFailures} could not be processed.`;
+    if (state === "complete_with_observations") return `Photo analysis complete — ${total} photos reviewed.`;
+    return "Photo analysis unavailable — your report data is safe.";
+  }, [latestPhotoIntel, photoCount, photoIntelStatus]);
+
+  const showSummaryError = Boolean(error && !(edited || narrative || "").trim());
+
+  const cooldownSeconds = Math.max(0, Math.ceil((regenerateCooldownUntil - cooldownNow) / 1000));
 
   function handleRejectToManual() {
     setAccepted(false);
@@ -454,28 +457,8 @@ export default function DailySummaryAssist({
         className="mb-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600"
         data-testid={`${testId}-photo-status`}
       >
-        {photoCount > 0
-          ? `Photo intelligence status: ${String(photoIntelStatus || "not_requested").replaceAll("_", " ")}`
-          : "Photo intelligence status: no photos"}
+        {operatorPhotoStatus}
       </div>
-
-      {lastMergedPhotoPayload && (
-        <details className="mb-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700" data-testid={`${testId}-photo-payload-debug`}>
-          <summary className="cursor-pointer font-semibold">Photo payload merged into summary</summary>
-          <pre className="mt-2 whitespace-pre-wrap break-all" data-testid={`${testId}-photo-payload-debug-json`}>
-            {JSON.stringify(lastMergedPhotoPayload, null, 2)}
-          </pre>
-        </details>
-      )}
-
-      {lastSummaryPayload && (
-        <details className="mb-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700" data-testid={`${testId}-summary-payload-debug`}>
-          <summary className="cursor-pointer font-semibold">Exact summary generator payload</summary>
-          <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap break-all" data-testid={`${testId}-summary-payload-debug-json`}>
-            {JSON.stringify(lastSummaryPayload, null, 2)}
-          </pre>
-        </details>
-      )}
 
       {status === "idle" && !narrative && (
         <p className="text-sm italic text-slate-500" data-testid={`${testId}-empty`}>
@@ -530,10 +513,10 @@ export default function DailySummaryAssist({
               size="sm"
               variant="outline"
               onClick={handleRegenerate}
-              disabled={status === "building"}
+              disabled={status === "building" || cooldownSeconds > 0}
               data-testid={`${testId}-regenerate`}
             >
-              <RefreshCw className="mr-1 h-3 w-3" />{t("Regenerate")}
+              <RefreshCw className="mr-1 h-3 w-3" />{cooldownSeconds > 0 ? `${t("Regenerate")} (${cooldownSeconds}s)` : t("Regenerate")}
             </Button>
             <Button
               type="button"
@@ -581,7 +564,7 @@ export default function DailySummaryAssist({
             </div>
           )}
 
-          {error && (
+          {showSummaryError && (
             <div
               className="mt-3 rounded-md border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800"
               data-testid={`${testId}-error`}
@@ -590,7 +573,7 @@ export default function DailySummaryAssist({
               <div className="mb-0.5 font-semibold">{t("Summary assist unavailable")}</div>
               <div className="text-rose-700" data-code={errorCode || "summary_unavailable"}>{error}</div>
               <div className="mt-1 text-rose-600/80">
-                {t("Submission still requires an approved summary. You can approve the generated summary, try Regenerate, or reject AI and approve a manual summary.")}
+                {t("Submission still requires an approved summary. You can keep the last valid summary, try Regenerate after cooldown, or reject AI and approve a manual summary.")}
               </div>
             </div>
           )}

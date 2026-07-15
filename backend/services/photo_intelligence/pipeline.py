@@ -196,6 +196,66 @@ def _extract_draft_photo_batches(report: Dict[str, Any]) -> List[Dict[str, Any]]
     return out
 
 
+def _normalize_operator_photo_status(summary: Dict[str, Any]) -> str:
+    total = int(summary.get("photo_count") or 0)
+    uploading = int(summary.get("uploading") or 0)
+    queued = int(summary.get("queued") or 0)
+    processing = int(summary.get("processing") or 0)
+    completed = int(summary.get("completed") or 0)
+    completed_no_obs = int(summary.get("completed_no_observations") or 0)
+    duplicates = int(summary.get("duplicates_reused") or 0)
+    failed = int(summary.get("failed") or 0)
+    terminal = int(summary.get("terminal_failures") or 0)
+    unavailable = int(summary.get("unavailable") or 0)
+    ineligible = int(summary.get("ineligible") or 0)
+    suppressed = int(summary.get("suppressed") or 0)
+
+    accounted = completed + completed_no_obs + duplicates + terminal + unavailable + ineligible + suppressed
+    if total <= 0:
+        return "no_photos"
+    if uploading > 0:
+        return "uploading"
+    if queued > 0 and completed == 0 and processing == 0:
+        return "queued"
+    if processing > 0 and accounted == 0:
+        return "analyzing"
+    if processing > 0 or queued > 0:
+        return "partially_analyzed"
+    if accounted >= total and failed == 0 and terminal == 0 and unavailable == 0:
+        return "complete"
+    if accounted >= total and (failed > 0 or terminal > 0 or unavailable > 0):
+        return "complete_with_some_failures"
+    if accounted > 0:
+        return "partially_analyzed"
+    return "analysis_unavailable"
+
+
+def _operator_status_message(summary: Dict[str, Any]) -> str:
+    total = int(summary.get("photo_count") or 0)
+    queued = int(summary.get("queued") or 0)
+    processing = int(summary.get("processing") or 0)
+    reviewed = int(summary.get("reviewed") or 0)
+    terminal = int(summary.get("terminal_failures") or 0)
+    unavailable = int(summary.get("unavailable") or 0)
+    state = str(summary.get("status") or "")
+    if state == "no_photos":
+        return "No photos attached yet."
+    if state == "uploading":
+        return f"Uploading {total} photos…"
+    if state == "queued":
+        return f"Queued {total} photos for analysis."
+    if state == "analyzing":
+        return f"Analyzing {reviewed} of {total} photos…"
+    if state == "partially_analyzed":
+        return f"Analyzed {reviewed} of {total} photos so far."
+    if state == "complete":
+        return f"Photo analysis complete — {total} photos reviewed."
+    if state == "complete_with_some_failures":
+        missed = max(0, terminal + unavailable)
+        return f"{reviewed} of {total} photos analyzed — {missed} could not be processed."
+    return "Photo analysis unavailable — your report data is safe."
+
+
 def _draft_context_from_v1(report: Dict[str, Any]) -> Dict[str, Any]:
     """Compact grounded context for the vision model — supervisor-entered
     items only. Deliberately small so latency + tokens stay low."""
@@ -687,7 +747,7 @@ async def process_draft(db, *, draft_identity: str, draft: Dict[str, Any]) -> Di
                 {"report_id": draft_identity, "photo_id": ref["photo_id"]},
                 {"_id": 0, "status": 1},
             )
-            if prior and prior.get("status") == "complete":
+            if prior and prior.get("status") in {"complete", "duplicate_reused", "unavailable", "terminal"}:
                 skipped += 1
                 continue
             claimed = await _claim_job(
@@ -702,6 +762,8 @@ async def process_draft(db, *, draft_identity: str, draft: Dict[str, Any]) -> Di
             obs = obs_by_ref.get(ref.get("vision_ref") or "")
             if obs:
                 obs_conf = float(obs.get("confidence") or 0.0)
+                duplicate_reused = bool(obs.get("duplicate_reused"))
+                is_jobsite_photo = bool(obs.get("is_jobsite_photo", True))
                 raw_obs = [
                     {
                         "label": (ref.get("caption") or ref.get("source") or "photo observation")[:80],
@@ -713,6 +775,42 @@ async def process_draft(db, *, draft_identity: str, draft: Dict[str, Any]) -> Di
                     for text in (obs.get("observations") or [])
                     if str(text or "").strip()
                 ]
+                if not is_jobsite_photo:
+                    await upsert_intel(
+                        db,
+                        report_id=draft_identity,
+                        photo_id=ref["photo_id"],
+                        project_id=project_id,
+                        tenant_id=TENANT_DEFAULT,
+                        evidence_hash=evidence_hash_for_photo(
+                            photo_ref=ref["ref"],
+                            photo_bytes_b64=_extract_data_url_b64(ref["ref"]),
+                            draft_context_hash=ctx_hash,
+                        ),
+                        envelope={
+                            "ai_available": True,
+                            "narrative": "",
+                            "confidence": obs_conf,
+                            "observations": [],
+                            "suggested_links": [],
+                            "questions": [],
+                            "conflicts": [],
+                            "raw": {"observations": []},
+                            "fallback_reason": str(obs.get("eligibility_reason") or "ineligible_non_jobsite_photo")[:240],
+                        },
+                        provider="openai",
+                        model="gpt-5.4",
+                    )
+                    await _mark_job(
+                        db,
+                        report_id=draft_identity,
+                        photo_id=ref["photo_id"],
+                        status="ineligible",
+                        note=str(obs.get("eligibility_reason") or "ineligible_non_jobsite_photo")[:240],
+                        increment_attempts=False,
+                    )
+                    completed += 1
+                    continue
                 if not raw_obs and obs.get("summary"):
                     raw_obs = [
                         {
@@ -751,8 +849,8 @@ async def process_draft(db, *, draft_identity: str, draft: Dict[str, Any]) -> Di
                     db,
                     report_id=draft_identity,
                     photo_id=ref["photo_id"],
-                    status="complete",
-                    note="draft_cached_vision",
+                    status="duplicate_reused" if duplicate_reused else "complete",
+                    note="draft_cached_vision_duplicate" if duplicate_reused else "draft_cached_vision",
                 )
                 completed += 1
             else:
@@ -785,7 +883,7 @@ async def process_draft(db, *, draft_identity: str, draft: Dict[str, Any]) -> Di
                     db,
                     report_id=draft_identity,
                     photo_id=ref["photo_id"],
-                    status="unavailable",
+                    status="terminal",
                     note="draft_photo_observation_unavailable",
                     increment_attempts=False,
                 )
@@ -1143,48 +1241,87 @@ async def list_draft_intelligence(
     rows = [r for r in rows if (r.get("photo_id") in current_photo_ids)]
     jobs = [j for j in jobs if (j.get("photo_id") in current_photo_ids)]
 
-    analyzed = sum(1 for r in rows if r.get("analysis_status") == "complete")
-    processing = sum(1 for j in jobs if j.get("status") == "in_progress")
-    queued = sum(1 for j in jobs if j.get("status") == "pending")
-    failed_count = sum(1 for j in jobs if j.get("status") == "failed")
-    unavailable = sum(1 for r in rows if r.get("analysis_status") == "unavailable")
+    rows_by_photo = {r.get("photo_id"): r for r in rows if r.get("photo_id")}
+    jobs_by_photo = {j.get("photo_id"): j for j in jobs if j.get("photo_id")}
+
+    completed = 0
+    completed_no_observations = 0
+    duplicates_reused = 0
+    processing = 0
+    queued = 0
+    failed_count = 0
+    terminal_failures = 0
+    unavailable = 0
+    ineligible = 0
+    suppressed = 0
     observations: List[Dict[str, Any]] = []
     narrative_bits: List[str] = []
-    for r in rows:
-        if r.get("analysis_status") != "complete":
+    for ref in photo_refs:
+        pid = ref.get("photo_id")
+        row = rows_by_photo.get(pid)
+        job = jobs_by_photo.get(pid)
+        job_status = str((job or {}).get("status") or "")
+        if row and row.get("analysis_status") == "complete":
+            row_obs = row.get("observations") or []
+            if row_obs:
+                if job_status == "duplicate_reused":
+                    duplicates_reused += 1
+                else:
+                    completed += 1
+                for o in row_obs:
+                    observations.append({
+                        "photo_id": row.get("photo_id"),
+                        "label": o.get("label"),
+                        "description": o.get("description"),
+                        "category": o.get("category"),
+                        "confidence": o.get("confidence"),
+                        "requires_supervisor_confirmation": bool(
+                            o.get("requires_supervisor_confirmation", True)
+                        ),
+                    })
+            else:
+                completed_no_observations += 1
+            if row.get("narrative"):
+                narrative_bits.append(str(row["narrative"])[:280])
             continue
-        for o in (r.get("observations") or []):
-            observations.append({
-                "photo_id": r.get("photo_id"),
-                "label": o.get("label"),
-                "description": o.get("description"),
-                "category": o.get("category"),
-                "confidence": o.get("confidence"),
-                "requires_supervisor_confirmation": bool(
-                    o.get("requires_supervisor_confirmation", True)
-                ),
-            })
-        if r.get("narrative"):
-            narrative_bits.append(str(r["narrative"])[:280])
+        if row and row.get("analysis_status") == "unavailable":
+            if job_status == "terminal":
+                terminal_failures += 1
+            else:
+                unavailable += 1
+        elif job_status == "in_progress":
+            processing += 1
+        elif job_status == "pending":
+            queued += 1
+        elif job_status == "failed":
+            failed_count += 1
+        elif job_status == "terminal":
+            terminal_failures += 1
+        elif job_status == "suppressed":
+            suppressed += 1
+        elif job_status == "ineligible":
+            ineligible += 1
+        else:
+            queued += 1
 
-    if not photo_refs:
-        status = "no_photos"
-    elif processing > 0:
-        status = "processing"
-    elif queued > 0:
-        status = "queued"
-    elif failed_count > 0 and analyzed == 0:
-        status = "failed"
-    elif analyzed > 0:
-        status = "complete_with_observations" if observations else "complete_zero_observations"
-    elif unavailable > 0:
-        status = "unavailable"
-    elif photo_refs and not rows and not jobs:
-        status = "not_requested"
-    elif rows and analyzed == 0:
-        status = "complete_zero_observations"
-    else:
-        status = "unknown"
+    reviewed = completed + completed_no_observations + duplicates_reused
+    analyzed = reviewed
+    state_summary = {
+        "photo_count": len(photo_refs),
+        "uploading": 0,
+        "queued": queued,
+        "processing": processing,
+        "completed": completed,
+        "completed_no_observations": completed_no_observations,
+        "duplicates_reused": duplicates_reused,
+        "failed": failed_count,
+        "terminal_failures": terminal_failures,
+        "unavailable": unavailable,
+        "ineligible": ineligible,
+        "suppressed": suppressed,
+        "reviewed": reviewed,
+    }
+    status = _normalize_operator_photo_status(state_summary)
 
     return {
         "report_id": draft_identity,
@@ -1195,15 +1332,15 @@ async def list_draft_intelligence(
         "processing": processing,
         "failed": failed_count,
         "unavailable": unavailable,
+        "completed": completed,
+        "completed_no_observations": completed_no_observations,
+        "duplicates_reused": duplicates_reused,
+        "terminal_failures": terminal_failures,
+        "reviewed": reviewed,
         "status": status,
         "lifecycle_status": status,
-        "classification": (
-            "EXPECTED — ANALYSIS WAS NEVER REQUESTED"
-            if status == "not_requested"
-            else "EXPECTED — PHOTO INTELLIGENCE TEMPORARILY UNAVAILABLE"
-            if status == "unavailable"
-            else None
-        ),
+        "status_message": _operator_status_message({**state_summary, "status": status}),
+        "classification": None,
         "observations": observations[:60],
         "narrative": " ".join(narrative_bits)[:1200],
         "photos": rows,

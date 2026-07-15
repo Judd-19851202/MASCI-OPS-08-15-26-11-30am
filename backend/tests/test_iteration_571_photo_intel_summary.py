@@ -13,11 +13,23 @@ import pytest
 import requests
 import uuid
 import base64
+import time
 from datetime import datetime
 
 BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
 if not BASE_URL:
     BASE_URL = "https://backup-forensics.preview.emergentagent.com"
+
+
+def _post_json_with_retry(url, json_body, headers=None, timeout=240, attempts=3):
+    last = None
+    for _ in range(attempts):
+        resp = requests.post(url, json=json_body, headers=headers or {}, timeout=timeout)
+        if resp.status_code != 502:
+            return resp
+        last = resp
+        time.sleep(1.0)
+    return last
 
 
 class TestDraftPhotoIntelligence:
@@ -26,9 +38,9 @@ class TestDraftPhotoIntelligence:
     def test_draft_photo_intel_returns_lifecycle_status_not_not_requested(self):
         """When photos are attached, status should NOT be 'not_requested'"""
         form_key = f"test-photo-intel-{uuid.uuid4().hex[:8]}"
-        response = requests.post(
+        response = _post_json_with_retry(
             f"{BASE_URL}/api/daily-reports/photo-intelligence/draft",
-            json={
+            {
                 "form_key": form_key,
                 "payload": {
                     "project_number": "TEST-571",
@@ -46,7 +58,7 @@ class TestDraftPhotoIntelligence:
         assert data.get("lifecycle_status") != "not_requested", f"lifecycle_status should not be 'not_requested', got: {data.get('lifecycle_status')}"
         
         # Should be one of the valid processing states
-        valid_statuses = ["processing", "queued", "complete_with_observations", "complete_zero_observations", "unavailable", "failed"]
+        valid_statuses = ["processing", "queued", "complete_with_observations", "complete_zero_observations", "unavailable", "failed", "complete_with_some_failures", "analysis_unavailable", "partially_analyzed", "complete"]
         assert data.get("status") in valid_statuses, f"Status should be one of {valid_statuses}, got: {data.get('status')}"
         
         print(f"PASS: Draft photo intel status = {data.get('status')}, lifecycle_status = {data.get('lifecycle_status')}")
@@ -54,9 +66,9 @@ class TestDraftPhotoIntelligence:
     def test_draft_photo_intel_no_photos_returns_no_photos(self):
         """When no photos attached, status should be 'no_photos'"""
         form_key = f"test-no-photos-{uuid.uuid4().hex[:8]}"
-        response = requests.post(
+        response = _post_json_with_retry(
             f"{BASE_URL}/api/daily-reports/photo-intelligence/draft",
-            json={
+            {
                 "form_key": form_key,
                 "payload": {
                     "project_number": "TEST-571",
@@ -77,9 +89,9 @@ class TestDraftPhotoIntelligence:
         form_key = f"test-stable-{uuid.uuid4().hex[:8]}"
         
         # First call
-        response1 = requests.post(
+        response1 = _post_json_with_retry(
             f"{BASE_URL}/api/daily-reports/photo-intelligence/draft",
-            json={
+            {
                 "form_key": form_key,
                 "payload": {
                     "project_number": "TEST-571",
@@ -93,9 +105,9 @@ class TestDraftPhotoIntelligence:
         data1 = response1.json()
         
         # Second call with same form_key
-        response2 = requests.post(
+        response2 = _post_json_with_retry(
             f"{BASE_URL}/api/daily-reports/photo-intelligence/draft",
-            json={
+            {
                 "form_key": form_key,
                 "payload": {
                     "project_number": "TEST-571",
@@ -119,9 +131,9 @@ class TestSummaryDraftEndpoint:
     def test_summary_draft_merges_photo_intelligence(self):
         """Summary draft should include photo intelligence status and observations"""
         form_key = f"test-summary-{uuid.uuid4().hex[:8]}"
-        response = requests.post(
+        response = _post_json_with_retry(
             f"{BASE_URL}/api/daily-reports/summary/draft",
-            json={
+            {
                 "form_key": form_key,
                 "payload": {
                     "project_name": "Test Project 571",
@@ -153,15 +165,16 @@ class TestSummaryDraftEndpoint:
         photo_intel = data.get("photo_intelligence")
         assert photo_intel is not None, "photo_intelligence should be returned"
         assert photo_intel.get("status") != "not_requested", f"photo_intelligence.status should not be 'not_requested', got: {photo_intel.get('status')}"
+        assert "debug_payloads" not in data, "Operator summary endpoint must not return debug payloads"
         
         print(f"PASS: Summary draft photo status = {photos_input.get('status')}, photo_intel status = {photo_intel.get('status')}")
 
     def test_summary_draft_returns_deterministic_fallback(self):
         """When AI is disabled, should return deterministic fallback mode"""
         form_key = f"test-fallback-{uuid.uuid4().hex[:8]}"
-        response = requests.post(
+        response = _post_json_with_retry(
             f"{BASE_URL}/api/daily-reports/summary/draft",
-            json={
+            {
                 "form_key": form_key,
                 "payload": {
                     "project_name": "Test Project",
@@ -323,9 +336,9 @@ class TestRegenerateNoLoops:
         form_key = f"test-regen-{uuid.uuid4().hex[:8]}"
         
         # First call
-        response1 = requests.post(
+        response1 = _post_json_with_retry(
             f"{BASE_URL}/api/daily-reports/summary/draft",
-            json={
+            {
                 "form_key": form_key,
                 "payload": {
                     "project_name": "Test Project",
@@ -341,9 +354,9 @@ class TestRegenerateNoLoops:
         assert response1.status_code == 200
         
         # Regenerate call with force=true
-        response2 = requests.post(
+        response2 = _post_json_with_retry(
             f"{BASE_URL}/api/daily-reports/summary/draft",
-            json={
+            {
                 "form_key": form_key,
                 "payload": {
                     "project_name": "Test Project",
@@ -363,6 +376,85 @@ class TestRegenerateNoLoops:
         assert data2.get("ok") is True
         
         print(f"PASS: Regenerate with force=true completed without errors")
+
+
+class TestPhotoScaleAndQuality:
+    def test_thirty_photos_not_silently_truncated(self):
+        form_key = f"test-30-photo-{uuid.uuid4().hex[:8]}"
+        photos = [f"photo://scaled-{i}.jpg" for i in range(30)]
+        response = _post_json_with_retry(
+            f"{BASE_URL}/api/daily-reports/photo-intelligence/draft",
+            {
+                "form_key": form_key,
+                "payload": {
+                    "project_number": "TEST-571",
+                    "report_date": "2026-07-15",
+                    "photos": photos,
+                },
+                "force": False,
+            },
+        )
+        assert response.status_code == 200, response.text
+        data = response.json()
+        assert data.get("photo_count") == 30, data
+        reviewed = int(data.get("reviewed") or data.get("analyzed") or 0)
+        terminal = int(data.get("terminal_failures") or 0) + int(data.get("unavailable") or 0)
+        queued = int(data.get("queued") or 0)
+        processing = int(data.get("processing") or 0)
+        assert reviewed + terminal + queued + processing == 30, data
+
+    def test_summary_filters_low_value_photo_trivia(self):
+        form_key = f"test-summary-quality-{uuid.uuid4().hex[:8]}"
+        response = _post_json_with_retry(
+            f"{BASE_URL}/api/daily-reports/summary/draft",
+            {
+                "form_key": form_key,
+                "payload": {
+                    "project_name": "Quality Test",
+                    "project_number": "TEST-571",
+                    "report_date": "2026-07-15",
+                    "prepared_by": "Test Foreman",
+                    "masci_crews": [{"name": "Worker", "trade": "Concrete", "hours": 10.92}],
+                    "subcontractors": [{"company": "Vendor One", "count": 1, "hours": 4.0}],
+                    "equipment": [{"description": "Paver", "hours_used": 7, "idle_hours": 3}],
+                    "production": [
+                        {"description": "D curb", "quantity": 675, "unit": "LF", "percent_complete": 65},
+                        {"description": "concrete", "quantity": 35, "unit": "CY", "percent_complete": 65},
+                    ],
+                    "photo_intelligence_status": "complete",
+                    "photo_observations": [
+                        {"description": "Wirtgen branding is visible on the machine."},
+                        {"description": "Tracked paving equipment is shown in close-up."},
+                        {"description": "Fresh curb alignment is visible along the work area."},
+                    ],
+                    "summary_input": {
+                        "photos": {
+                            "photo_count": 9,
+                            "status": "complete",
+                            "lifecycle_status": "complete",
+                            "analyzed": 9,
+                            "pending": 0,
+                            "queued": 0,
+                            "processing": 0,
+                            "failed": 0,
+                            "observations": [
+                                {"description": "Wirtgen branding is visible on the machine."},
+                                {"description": "Tracked paving equipment is shown in close-up."},
+                                {"description": "Fresh curb alignment is visible along the work area."},
+                            ],
+                        }
+                    },
+                    "photos": [f"photo://{i}.jpg" for i in range(9)],
+                },
+                "force": False,
+            },
+        )
+        assert response.status_code == 200, response.text
+        data = response.json()
+        summary_text = data.get("summary_text") or ""
+        assert "branding is visible" not in summary_text.lower()
+        assert "close-up" not in summary_text.lower()
+        assert "fresh curb alignment is visible" in summary_text.lower() or data.get("enabled") is False
 
 
 if __name__ == "__main__":

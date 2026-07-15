@@ -53,7 +53,6 @@ class SummaryDraftBody(BaseModel):
     language: Optional[str] = "en"
     evidence_refs: Optional[List[str]] = None
     force: Optional[bool] = False
-    include_debug_payloads: Optional[bool] = False
 
 
 class SummaryAcceptBody(BaseModel):
@@ -233,6 +232,8 @@ def _photo_observation_lines(items: List[Any]) -> List[str]:
     for item in items[:8]:
         if not isinstance(item, dict):
             continue
+        if item.get("eligibility_reason") and not item.get("is_jobsite_photo", True):
+            continue
         if item.get("summary"):
             lines.append(_clean_str(item.get("summary"), 220))
         for obs in (item.get("observations") or [])[:3]:
@@ -255,6 +256,165 @@ def _photo_observation_lines(items: List[Any]) -> List[str]:
         seen.add(key)
         deduped.append(line)
     return deduped[:4]
+
+
+def _is_low_value_photo_fact(text: str) -> bool:
+    value = _clean_str(text, 240).lower()
+    if not value:
+        return True
+    low_value_markers = [
+        "logo",
+        "branding",
+        "color",
+        "windows taskbar",
+        "browser tab",
+        "computer monitor is shown",
+        "desktop monitor is shown",
+        "web browser open",
+        "computer monitor is photographed",
+        "browser window",
+        "admin or database management webpage",
+        "screen",
+    ]
+    return any(marker in value for marker in low_value_markers)
+
+
+def _rank_photo_observations(items: List[Any]) -> List[str]:
+    ranked: List[str] = []
+    seen = set()
+    for item in items[:60]:
+        if not isinstance(item, dict):
+            continue
+        if item.get("eligibility_reason") and not item.get("is_jobsite_photo", True):
+            continue
+        desc = _clean_str(item.get("description"), 220)
+        if not desc or _is_low_value_photo_fact(desc):
+            continue
+        if not any(
+            marker in desc.lower()
+            for marker in [
+                "curb",
+                "concrete",
+                "pour",
+                "truck",
+                "barrier",
+                "traffic control",
+                "equipment",
+                "work area",
+                "material",
+                "excavation",
+                "paving",
+                "staging",
+                "alignment",
+                "hose",
+                "hopper",
+                "crew",
+                "ppe",
+                "housekeeping",
+            ]
+        ):
+            continue
+        key = desc.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        ranked.append(desc)
+    return ranked[:5]
+
+
+def _compose_pm_grade_fallback(payload: Dict[str, Any], summary_input: Dict[str, Any]) -> str:
+    paragraphs: List[str] = []
+    production_rows = list((summary_input.get("production") or {}).get("rows") or [])
+    labor = summary_input.get("labor") or {}
+    subcontractors = summary_input.get("subcontractors") or {}
+    equipment = summary_input.get("equipment") or {}
+    photos = summary_input.get("photos") or {}
+
+    work_bits = []
+    for row in production_rows[:4]:
+        desc = _clean_str(row.get("description"), 120)
+        qty = row.get("quantity")
+        unit = _clean_str(row.get("unit"), 20)
+        pct = int(_num(row.get("percent_complete")) or 0)
+        if desc and qty:
+            phrase = f"{float(qty):g} {unit} {desc}".strip()
+            if pct > 0:
+                phrase += f" ({pct}% complete)"
+            work_bits.append(phrase)
+    if work_bits:
+        paragraphs.append("Work completed: " + "; ".join(work_bits) + ".")
+
+    workforce_bits = []
+    employee_count = int(labor.get("employee_count") or 0)
+    employee_hours = round(_num(labor.get("total_employee_hours")), 2)
+    if employee_count or employee_hours:
+        workforce_bits.append(
+            f"MASCI recorded {employee_count} employee{'s' if employee_count != 1 else ''} and {employee_hours:.2f} labor hours"
+        )
+    sub_count = int(subcontractors.get("subcontractor_count") or 0)
+    sub_hours = round(_num(subcontractors.get("total_hours")), 2)
+    if sub_count or sub_hours:
+        workforce_bits.append(
+            f"{sub_count} subcontractor/vendor entr{'ies' if sub_count != 1 else 'y'} contributing {sub_hours:.2f} hours"
+        )
+    equip_count = int(equipment.get("equipment_count") or 0)
+    run_hours = round(_num(equipment.get("total_run_hours")), 2)
+    idle_hours = round(_num(equipment.get("total_idle_hours")), 2)
+    if equip_count or run_hours or idle_hours:
+        workforce_bits.append(
+            f"{equip_count} equipment unit{'s' if equip_count != 1 else ''} logged {run_hours:.2f} run hours and {idle_hours:.2f} idle hours"
+        )
+    if workforce_bits:
+        paragraphs.append("Workforce and equipment: " + "; ".join(workforce_bits) + ".")
+
+    materials_rows = _list_of_dicts(payload.get("materials"))
+    outbound_rows = _list_of_dicts(payload.get("outbound_materials"))
+    material_bits = []
+    for row in materials_rows[:4]:
+        desc = _clean_str(row.get("material") or row.get("description"), 120)
+        qty = _clean_str(row.get("quantity"), 40)
+        unit = _clean_str(row.get("unit"), 20)
+        supplier = _clean_str(row.get("supplier"), 80)
+        if desc:
+            part = f"{qty} {unit} {desc}".strip() if qty else desc
+            if supplier:
+                part += f" from {supplier}"
+            material_bits.append(part)
+    for row in outbound_rows[:3]:
+        desc = _clean_str(row.get("material") or row.get("description"), 120)
+        qty = _clean_str(row.get("quantity"), 40)
+        unit = _clean_str(row.get("unit"), 20)
+        if desc:
+            material_bits.append((f"hauled {qty} {unit} {desc}".strip()))
+    if material_bits:
+        paragraphs.append("Materials and logistics: " + "; ".join(material_bits) + ".")
+
+    photo_facts = _rank_photo_observations(list(photos.get("observations") or []))
+    if photo_facts:
+        paragraphs.append("Photo-supported evidence: " + "; ".join(photo_facts[:2]) + ".")
+    elif int(photos.get("photo_count") or 0) > 0:
+        paragraphs.append(
+            f"Photo-supported evidence: {int(photos.get('photo_count') or 0)} submitted photos were reviewed. The available images do not add stronger operational detail beyond the typed report facts."
+        )
+
+    issue_bits = []
+    if _clean_str(payload.get("schedule_delays"), 20).lower() in {"yes", "y", "true"}:
+        notes = _clean_str(payload.get("schedule_delays_notes"), 240)
+        issue_bits.append(notes or "Schedule delay reported")
+    if _clean_str(payload.get("weather_impact"), 20).lower() in {"yes", "y", "true"}:
+        notes = _clean_str(payload.get("weather_impact_notes"), 240)
+        issue_bits.append(notes or "Weather impact reported")
+    general_notes = _clean_str(payload.get("general_notes"), 300)
+    if general_notes:
+        issue_bits.append(general_notes)
+    if issue_bits:
+        paragraphs.append("Issues and attention: " + "; ".join(issue_bits[:3]) + ".")
+
+    tomorrow = _clean_str((payload.get("narrative_sections") or {}).get("tomorrow_plan"), 320)
+    if tomorrow:
+        paragraphs.append(f"Next work: {tomorrow}.")
+
+    return "\n\n".join([p for p in paragraphs if p]).strip()
 
 
 def _compose_deterministic_summary(
@@ -444,7 +604,7 @@ def _compose_deterministic_summary(
     if len(lines) <= 1:
         warnings.append("insufficient_evidence_for_meaningful_summary")
 
-    summary_text = "\n\n".join(lines).strip()
+    summary_text = _compose_pm_grade_fallback(p, summary_input) or "\n\n".join(lines).strip()
     if len(summary_text) > _MAX_SUMMARY_CHARS:
         summary_text = summary_text[:_MAX_SUMMARY_CHARS].rstrip() + "…"
 
@@ -538,24 +698,19 @@ def register_daily_summary_routes(
             photo_intel = None
 
         composed = _compose_deterministic_summary(payload, language=language)
-        debug_payloads = {
-            "summary_generator_payload": payload,
-            "merged_photo_payload": ((payload.get("summary_input") or {}).get("photos") or {}),
-        } if body.include_debug_payloads else None
         if not cap.enabled:
             return {
                 "ok": True,
                 "enabled": False,
                 "reason_disabled": cap.reason_disabled,
                 "mode": "deterministic_fallback",
-                "summary_text": None,
+                "summary_text": composed["summary_text"],
                 "language": language,
                 "warnings": composed["warnings"],
                 "evidence_refs": composed["evidence_refs"],
                 "sentence_count": composed["sentence_count"],
                 "summary_input": composed["summary_input"],
                 "photo_intelligence": photo_intel,
-                "debug_payloads": debug_payloads,
                 "request_id": request_id,
             }
 
@@ -571,7 +726,6 @@ def register_daily_summary_routes(
             "sentence_count": composed["sentence_count"],
             "summary_input": composed["summary_input"],
             "photo_intelligence": photo_intel,
-            "debug_payloads": debug_payloads,
             "request_id": request_id,
         }
 

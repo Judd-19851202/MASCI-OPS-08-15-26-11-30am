@@ -84,6 +84,7 @@ def test_summary_draft_returns_live_fixture_totals_even_when_ai_disabled() -> No
     assert summary_input["photos"]["photo_count"] == 6
     assert body["summary_text"] is None
     assert body["reason_disabled"]
+    assert "debug_payloads" not in body
 
 
 def test_operational_record_viewer_uses_governed_daily_report_alias() -> None:
