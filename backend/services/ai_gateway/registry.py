@@ -7,7 +7,7 @@ from functools import lru_cache
 from typing import Any, Dict, Optional, Protocol
 
 from .env import (
-    default_provider, default_text_model, env_snapshot,
+    default_provider, default_text_model, default_vision_model, env_snapshot,
     failover_enabled, gateway_enabled, has_key,
     provider_max_retries, provider_timeout_ms,
 )
@@ -90,6 +90,12 @@ _PROVIDER_DEFAULT_MODELS = {
     "google":    "gemini-2.5-flash",
 }
 
+_VISION_PROVIDER_DEFAULT_MODELS = {
+    "anthropic": "claude-3-5-sonnet-latest",
+    "openai":    "gpt-4o",
+    "google":    "gemini-2.5-flash-image",
+}
+
 
 def _provider_default_model(provider: str) -> str:
     import os as _os
@@ -97,6 +103,16 @@ def _provider_default_model(provider: str) -> str:
     if override:
         return override
     return _PROVIDER_DEFAULT_MODELS.get(provider, default_text_model())
+
+
+def _provider_default_vision_model(provider: str) -> str:
+    import os as _os
+    override = _os.environ.get(f"AI_DEFAULT_VISION_MODEL_{provider.upper()}")
+    if override:
+        return override
+    if provider == "openai":
+        return default_vision_model()
+    return _VISION_PROVIDER_DEFAULT_MODELS.get(provider, default_vision_model())
 
 
 class Gateway:
@@ -155,24 +171,86 @@ class Gateway:
             return _fallback_envelope(task, "gateway", "", "gateway_disabled")
 
         provider_name, model = route(task)
+        return await self._dispatch_provider_vision(
+            provider_name, model, task,
+            system=system, images=images, user=user,
+            response_schema=response_schema, session_id=session_id,
+        )
+
+    async def _dispatch_provider_vision(
+        self, provider_name: str, model: str, task: str,
+        *, system, images, user, response_schema, session_id,
+        _attempted: Optional[set] = None,
+    ) -> AiEnvelope:
+        _attempted = _attempted or set()
+        _attempted.add(provider_name)
+
         adapter = self._adapters.get(provider_name)
         if adapter is None:
-            return _fallback_envelope(task, provider_name, model, "adapter_not_registered")
-        if not has_key(provider_name):
-            return _fallback_envelope(task, provider_name, model, "missing_provider_key")
-        timeout_s = max(1.0, provider_timeout_ms() / 1000.0)
-        try:
-            import asyncio as _a
-            return await _a.wait_for(
-                adapter.vision(
-                    system=system, images=images, user=user,
-                    response_schema=response_schema, session_id=session_id,
-                    model=model, task=task,
-                ),
-                timeout=timeout_s,
+            return await self._try_failover_vision(
+                task, provider_name, model, "adapter_not_registered",
+                _attempted, system=system, images=images, user=user,
+                response_schema=response_schema, session_id=session_id,
             )
-        except Exception as exc:  # noqa: BLE001
-            return _fallback_envelope(task, provider_name, model, f"vision_error:{exc.__class__.__name__}")
+        if not has_key(provider_name):
+            return await self._try_failover_vision(
+                task, provider_name, model, "missing_provider_key",
+                _attempted, system=system, images=images, user=user,
+                response_schema=response_schema, session_id=session_id,
+            )
+
+        retries = provider_max_retries()
+        timeout_s = max(1.0, provider_timeout_ms() / 1000.0)
+        last_reason: Optional[str] = None
+        for attempt in range(retries + 1):
+            try:
+                env = await asyncio.wait_for(
+                    adapter.vision(
+                        system=system, images=images, user=user,
+                        response_schema=response_schema, session_id=session_id,
+                        model=model, task=task,
+                    ),
+                    timeout=timeout_s,
+                )
+            except asyncio.TimeoutError:
+                last_reason = f"vision_timeout_attempt_{attempt+1}"
+                continue
+            except Exception as exc:  # noqa: BLE001
+                last_reason = f"vision_{exc.__class__.__name__}_attempt_{attempt+1}"
+                continue
+
+            if getattr(env, "ai_available", False):
+                return env
+            last_reason = f"{env.fallback_reason or 'vision_provider_unavailable'}_attempt_{attempt+1}"
+            if _is_non_retryable(env.fallback_reason):
+                break
+
+        return await self._try_failover_vision(
+            task, provider_name, model, last_reason or "unknown_error",
+            _attempted, system=system, images=images, user=user,
+            response_schema=response_schema, session_id=session_id,
+        )
+
+    async def _try_failover_vision(
+        self, task: str, primary: str, model: str, reason: str,
+        attempted: set, *, system, images, user, response_schema, session_id,
+    ) -> AiEnvelope:
+        if not failover_enabled():
+            return _fallback_envelope(task, primary, model, reason)
+        for fallback in self._failover_order(primary):
+            if fallback in attempted:
+                continue
+            if not (fallback in self._adapters and has_key(fallback)):
+                continue
+            env = await self._dispatch_provider_vision(
+                fallback, _provider_default_vision_model(fallback), task,
+                system=system, images=images, user=user,
+                response_schema=response_schema, session_id=session_id,
+                _attempted=attempted,
+            )
+            if getattr(env, "ai_available", False):
+                return env
+        return _fallback_envelope(task, primary, model, reason)
 
     async def _dispatch_provider(
         self, provider_name: str, model: str, task: str,

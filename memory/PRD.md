@@ -1,3 +1,23 @@
+## 2026-07-15 · DR-03 MULTI-MODEL FAILOVER HARDENING
+
+### Failover changes applied
+- Updated `services/ai_gateway/registry.py` so `dispatch_vision()` now uses retry + failover semantics parallel to the text path.
+- Added `_dispatch_provider_vision()` and `_try_failover_vision()` so vision requests can retry the primary provider and automatically fail over when the adapter reports `ai_available=False` or raises.
+- Added Anthropic vision support to `services/ai_gateway/adapters/anthropic_adapter.py` using the existing emergentintegrations chat adapter with image attachments and strict JSON parsing into `AiEnvelope`.
+
+### Environment changes applied in preview codebase
+- `backend/.env`: `TENANT_AI_ENABLED=true`
+- `backend/.env`: `AI_DEFAULT_VISION_MODEL=gpt-4o`
+
+### Routing verification
+- Verified all `TASK_ROUTES` entries in `services/ai_gateway/task_router.py` have a valid primary provider/model pair.
+- Verified secondary failover candidates exist by provider order:
+  - Anthropic-primary tasks → fallback candidates: OpenAI, Google
+  - `photo_vision` → primary OpenAI `gpt-4o`, fallback candidates: Anthropic, Google
+
+### Production note
+- Because this issue is on production, the code is ready here in preview, but the production deployment must also have `TENANT_AI_ENABLED=true` reflected in its secrets / environment during redeploy.
+
 ## 2026-07-15 · DR-03 FINAL PRODUCTION PATCH SET
 
 ### Final changes applied
