@@ -213,7 +213,12 @@ export function buildDeterministicSummaryFallback(data = {}, photoIntel = null) 
   if (ranked.length > 0) {
     parts.push(`Photo-supported evidence: ${ranked.join("; ")}.`);
   } else if (summaryInput.photos.photo_count > 0) {
-    parts.push(`Photo-supported evidence: ${summaryInput.photos.photo_count} submitted ${summaryInput.photos.photo_count === 1 ? "photo was" : "photos were"} reviewed. The available images do not add stronger operational detail beyond the typed report facts.`);
+    const failed = Math.max(0, summaryInput.photos.photo_count - Number(summaryInput.photos.analyzed || 0));
+    if (failed > 0) {
+      parts.push(`Photo-supported evidence: Photo analysis failed for ${failed} ${failed === 1 ? "photo" : "photos"}.`);
+    } else {
+      parts.push(`Photo-supported evidence: ${summaryInput.photos.photo_count} submitted ${summaryInput.photos.photo_count === 1 ? "photo was" : "photos were"} reviewed.`);
+    }
   }
 
   const issueBits = [];
@@ -225,5 +230,5 @@ export function buildDeterministicSummaryFallback(data = {}, photoIntel = null) 
   const tomorrow = String(payload.narrative_sections?.tomorrow_plan || "").trim();
   if (tomorrow) parts.push(`Next work: ${tomorrow}.`);
 
-  return parts.join("\n\n") || "Daily activity recorded. Summary generated from the current report facts.";
+  return parts.join("\n\n") || `Photo analysis failed for ${summaryInput.photos.photo_count || 0} photos.`;
 }
