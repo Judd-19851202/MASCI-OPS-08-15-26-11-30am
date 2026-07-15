@@ -451,22 +451,24 @@ function ReportSection({ report, filters, defaultOpen = false }) {
     Object.entries(filters || {}).forEach(([k, v]) => { if (v) out[k] = v; });
     return out;
   }, [filters]);
+  const paramsKey = useMemo(() => JSON.stringify(params), [params]);
 
   useEffect(() => {
     if (!open) return;
     let cancelled = false;
+    const requestParams = paramsKey ? JSON.parse(paramsKey) : {};
     (async () => {
       setLoading(true);
       setErr("");
       try {
-        const r = await api.get(`/trench-safety/reports/${report.id}`, { params });
+        const r = await api.get(`/trench-safety/reports/${report.id}`, { params: requestParams });
         if (!cancelled) setData(r.data || null);
       } catch (e) {
         if (!cancelled) setErr(e?.response?.data?.detail || e?.message || "Failed");
       } finally { if (!cancelled) setLoading(false); }
     })();
     return () => { cancelled = true; };
-  }, [open, report.id, JSON.stringify(params)]);
+  }, [open, paramsKey, report.id]);
 
   const Renderer = RENDERERS[report.id];
   const Icon = report.icon;

@@ -10,7 +10,7 @@
 // inspection / training / meeting / manual) + optional source_id so
 // admins can click straight to the originating record once the
 // cross-link routes are wired in Phase 5.
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import {
   AlertOctagon, Plus, Loader2, Pencil, Trash2, Save, X,
@@ -159,10 +159,10 @@ export default function SafetyCorrectiveActions() {
     if (typeof window !== "undefined" && window.history?.replaceState) {
       window.history.replaceState(window.history.state, "", _location.pathname);
     }
-     
-  }, []);
 
-  const refresh = async () => {
+  }, [_location.pathname, _location.search]);
+
+  const refresh = useCallback(async () => {
     setLoading(true);
     try {
       const params = {};
@@ -175,9 +175,9 @@ export default function SafetyCorrectiveActions() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterEmpId, filterEqId]);
 
-  useEffect(() => { refresh();   }, [filterEqId, filterEmpId]);
+  useEffect(() => { refresh(); }, [refresh]);
 
   const counts = useMemo(() => {
     const c = { All: items.length, Overdue: 0 };

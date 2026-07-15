@@ -19,7 +19,7 @@
 //
 // Zero legacy mutation. Mounts at /incidents/report (new route).
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useT } from "@/lib/i18n";
 import { FormShell } from "@/components/FormShell";
@@ -609,7 +609,7 @@ function IdentityConfirmField({ value, identity, onChange, testId }) {
     if (!value && suggestedName && !manual) {
       onChange(suggestedName);
     }
-  }, [suggestedName]);
+  }, [manual, onChange, suggestedName, value]);
 
   if (manual || !suggestedName) {
     return (
@@ -1240,11 +1240,11 @@ export default function IncidentReport() {
   const [identity, setIdentity] = useState(null);
   const [weatherAuto, setWeatherAuto] = useState(null);
   const [autoMap, setAutoMap] = useState({});
-  const markAuto = (keys) => setAutoMap((m) => {
+  const markAuto = useCallback((keys) => setAutoMap((m) => {
     const next = { ...m };
     for (const k of keys) next[k] = true;
     return next;
-  });
+  }), []);
   // On mount: fetch directory identity + default date/time to now.
   useEffect(() => {
     let alive = true;
@@ -1264,10 +1264,10 @@ export default function IncidentReport() {
       return { ...d, ...patch };
     });
     return () => { alive = false; };
-  }, []);
+  }, [markAuto]);
 
   // When a project is picked, auto-fill location + weather (if GPS).
-  const onSelectProject = async (job) => {
+  const onSelectProject = useCallback(async (job) => {
     if (!job) return;
     // Auto-fill the human-readable location label if empty. Keep any
     // user-authored value intact — never silently overwrite.
@@ -1290,10 +1290,10 @@ export default function IncidentReport() {
         setDraft((d) => ({ ...d, __project_context__: ctx }));
       }
     } catch { /* silent */ }
-  };
+  }, [markAuto]);
 
   // Refetch weather from current GPS coordinates.
-  const refetchWeatherFromGps = async () => {
+  const refetchWeatherFromGps = useCallback(async () => {
     const gps = draft.location_gps;
     if (!gps || typeof gps.lat !== "number" || typeof gps.lng !== "number") return;
     const w = await fetchWeather(gps.lat, gps.lng);
@@ -1304,23 +1304,26 @@ export default function IncidentReport() {
         markAuto(["weather"]);
       }
     }
-  };
+  }, [draft.location_gps, draft.weather, markAuto]);
+
+  const gpsLat = draft.location_gps?.lat;
+  const gpsLng = draft.location_gps?.lng;
+  const draftWeather = draft.weather;
 
   // Auto-fetch weather whenever GPS lands and no manual override exists.
   useEffect(() => {
-    const gps = draft.location_gps;
-    if (!gps || typeof gps.lat !== "number" || typeof gps.lng !== "number") return;
+    if (typeof gpsLat !== "number" || typeof gpsLng !== "number") return;
     let alive = true;
-    fetchWeather(gps.lat, gps.lng).then((w) => {
+    fetchWeather(gpsLat, gpsLng).then((w) => {
       if (!alive || !w) return;
       setWeatherAuto(w);
-      if (!draft.weather && w.summary) {
+      if (!draftWeather && w.summary) {
         setDraft((d) => (d.weather ? d : { ...d, weather: w.summary }));
         markAuto(["weather"]);
       }
     });
     return () => { alive = false; };
-  }, [draft.location_gps?.lat, draft.location_gps?.lng]);
+  }, [draftWeather, gpsLat, gpsLng, markAuto]);
 
   const ctx = useMemo(() => ({
     identity,
@@ -1329,7 +1332,7 @@ export default function IncidentReport() {
     onSelectProject,
     onRefetchWeather: refetchWeatherFromGps,
     setSelectedMeta: (key, meta) => _writeSelMeta(setDraft, markAuto, key, meta),
-  }), [identity, weatherAuto, draft, draft.location_gps?.lat, draft.location_gps?.lng]);
+  }), [identity, weatherAuto, draft, onSelectProject, refetchWeatherFromGps, markAuto]);
 
   // Autosave draft on any change. Persist stepIndex alongside so the
   // user resumes on the exact step they left.

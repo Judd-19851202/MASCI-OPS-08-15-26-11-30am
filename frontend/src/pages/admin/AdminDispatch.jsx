@@ -1,7 +1,7 @@
 // Admin Dispatch Portal — equipment availability, transfers, holds,
 // utilization. Admin-token gated for now; will accept dispatch_users
 // tokens in the follow-on iteration.
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Truck, Send, AlertTriangle, ShieldAlert, Wrench, Activity, Loader2,
@@ -727,7 +727,7 @@ export function DispatchIdleAlertsTab() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const r = await api.get(`/operations/idle-equipment?min_days=${minDays}&limit=500`);
@@ -735,8 +735,8 @@ export function DispatchIdleAlertsTab() {
     } catch {
       setData({ rows: [], totals: { d7: 0, d14: 0, d30: 0, matched: 0 }, min_days: minDays });
     } finally { setLoading(false); }
-  };
-  useEffect(() => { load();   }, [minDays]);
+  }, [minDays]);
+  useEffect(() => { load(); }, [load]);
 
   const totals = data?.totals || { d7: 0, d14: 0, d30: 0, matched: 0 };
   const rows = data?.rows || [];

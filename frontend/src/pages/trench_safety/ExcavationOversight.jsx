@@ -7,7 +7,7 @@
 // FV-7.5 · Superintendent Oversight Chips (top row)
 // FV-7.6 · Safety OSHA Rollup Chips (second row) — single-tap filter,
 //          no drill-down maze.
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Loader2, AlertTriangle, CheckCircle2, MessageSquare, Languages, CalendarClock, Link2, Siren, ShieldCheck, ShieldAlert, HardHat, Box, Layers, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -94,6 +94,7 @@ export default function ExcavationOversight() {
   const [activeChip, setActiveChip] = useState(null);
   const [chipCounts, setChipCounts] = useState({});
   const [reviewing, setReviewing] = useState(null);
+  const filterParamsKey = useMemo(() => JSON.stringify(filters || {}), [filters]);
 
   // FV-7.5/7.6 · Load chip counts (single deterministic call)
   useEffect(() => {
@@ -112,8 +113,9 @@ export default function ExcavationOversight() {
         if (tab === "reinspection") {
           r = await api.get("/trench-safety/excavations/reinspection-queue");
         } else {
+          const rawFilters = filterParamsKey ? JSON.parse(filterParamsKey) : {};
           const params = {};
-          Object.entries(filters).forEach(([k, v]) => { if (v) params[k] = v; });
+          Object.entries(rawFilters).forEach(([k, v]) => { if (v) params[k] = v; });
           if (activeChip) params.chip = activeChip;
           r = await api.get("/trench-safety/excavations", { params });
         }
@@ -124,7 +126,7 @@ export default function ExcavationOversight() {
     };
     fetchData();
     return () => { alive = false; };
-  }, [JSON.stringify(filters), tab, activeChip, state._bust]);
+  }, [activeChip, filterParamsKey, state._bust, tab]);
 
   const reload = () => setState((s) => ({ ...s, loading: true, _bust: Math.random() }));
 

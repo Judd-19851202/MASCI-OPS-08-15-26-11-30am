@@ -127,6 +127,11 @@ export default function SafetyFireExtinguishers() {
 
   const openCreate = () => setEditDlg({ open: true, mode: "create", id: null, form: blank() });
   const openEdit = (fe) => setEditDlg({ open: true, mode: "edit", id: fe.id, form: { ...blank(), ...fe } });
+  const editForm = editDlg.form || blank();
+  const editLocationKind = editForm.location_kind;
+  const editLocationValue = editForm.location_value || "";
+  const editEquipmentMasterId = editForm.equipment_master_id;
+
   const closeEdit = () => setEditDlg((d) => ({ ...d, open: false }));
 
   // iter139 — auto-suggest equipment_master_id from the truck location field.
@@ -135,10 +140,9 @@ export default function SafetyFireExtinguishers() {
   // not found (no guessing).
   useEffect(() => {
     if (!editDlg.open) return;
-    const f = editDlg.form;
-    if (f.equipment_master_id) return;
-    if (f.location_kind !== "truck") return;
-    const v = (f.location_value || "").trim();
+    if (editEquipmentMasterId) return;
+    if (editLocationKind !== "truck") return;
+    const v = editLocationValue.trim();
     if (v.length < 2) return;
     const handle = setTimeout(async () => {
       try {
@@ -156,7 +160,7 @@ export default function SafetyFireExtinguishers() {
       } catch { /* swallow — non-blocking */ }
     }, 350);
     return () => clearTimeout(handle);
-  }, [editDlg.open, editDlg.form.location_kind, editDlg.form.location_value, editDlg.form.equipment_master_id]);
+  }, [editDlg.open, editEquipmentMasterId, editLocationKind, editLocationValue]);
 
   const save = async () => {
     const f = editDlg.form;

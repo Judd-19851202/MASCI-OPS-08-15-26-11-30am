@@ -1,6 +1,6 @@
 // Track 13.31 — PM Schedules list + per-unit create form.
 // Route: /shop/pm/schedules (RequireShop).
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { getAdminToken } from "@/lib/adminAuth";
 import { getShopToken } from "@/lib/shopAuth";
@@ -39,7 +39,7 @@ export default function PmSchedules() {
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
 
-  async function refresh() {
+  const refresh = useCallback(async () => {
     try {
       const q = statusFilter ? `?status=${statusFilter}` : "";
       const [s, t] = await Promise.all([
@@ -49,8 +49,8 @@ export default function PmSchedules() {
       setItems(s.items || []);
       setTemplates(t.items || []);
     } catch (e) { setErr(e.message); }
-  }
-  useEffect(() => { refresh(); }, [statusFilter]);
+  }, [statusFilter]);
+  useEffect(() => { refresh(); }, [refresh]);
 
   function startEdit(s) {
     setEditingId(s.id);

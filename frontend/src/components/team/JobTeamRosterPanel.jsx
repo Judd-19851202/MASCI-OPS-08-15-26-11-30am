@@ -191,7 +191,7 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
     } finally {
       setLoading(false);
     }
-  }, [adminScope, projectNumber, scope]);
+  }, [adminScope, projectNumber]);
 
   useEffect(() => { reload(); }, [reload]);
 

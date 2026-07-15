@@ -114,7 +114,7 @@ export default function HrEmployees() {
     if (statusFilter !== "all" && bucketStatuses && !bucketStatuses.includes(statusFilter)) {
       setStatusFilter("all");
     }
-  }, [bucket]);
+  }, [bucketStatuses, setStatusFilter, statusFilter]);
 
   const fetchAll = useCallback(async () => {
     if (!allowed) { setLoading(false); return; }

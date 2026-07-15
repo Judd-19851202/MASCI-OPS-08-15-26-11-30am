@@ -44,6 +44,8 @@ const HEALTH_META = {
   critical: { tint: "border-rose-500 bg-rose-50 text-rose-900",          label: "Critical" },
 };
 
+const EMPTY_COUNTS = Object.freeze({});
+
 function SeverityTile({ severity, count }) {
   const meta = SEVERITY_META[severity] || SEVERITY_META.info;
   const Icon = meta.icon;
@@ -153,10 +155,10 @@ export default function AdminGovernance() {
     }
   }, [load]);
 
-  const sevCounts = summary?.severity_counts || {};
-  const statusCounts = summary?.status_counts || {};
-  const ruleCounts = summary?.rule_counts || {};
-  const catalog = summary?.rule_catalog || {};
+  const sevCounts = summary?.severity_counts || EMPTY_COUNTS;
+  const statusCounts = summary?.status_counts || EMPTY_COUNTS;
+  const ruleCounts = summary?.rule_counts || EMPTY_COUNTS;
+  const catalog = summary?.rule_catalog || EMPTY_COUNTS;
   const score = summary?.convergence_score ?? 0;
   const healthLabel = summary?.health_label || "fair";
   const healthMeta = HEALTH_META[healthLabel] || HEALTH_META.fair;

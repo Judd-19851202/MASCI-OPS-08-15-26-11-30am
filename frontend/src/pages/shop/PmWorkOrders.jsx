@@ -2,7 +2,7 @@
 // Routes:
 //   /shop/pm/work-orders      → queue (optional ?status=)
 //   /shop/pm/work-orders/:id  → detail + lifecycle actions
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Link, useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { getAdminToken } from "@/lib/adminAuth";
 import { getShopToken } from "@/lib/shopAuth";
@@ -97,7 +97,7 @@ function PmWorkOrderDetail({ id }) {
   const [reviewForm, setReviewForm] = useState({ decision: "approve", notes: "", reviewer_name: "" });
   const [assignForm, setAssignForm] = useState({ mechanic_id: "", mechanic_name: "" });
 
-  async function refresh() {
+  const refresh = useCallback(async () => {
     try {
       const r = await fetch(`${API}/api/shop/pm/work-orders/${id}`, { headers: authHeaders() });
       const b = await r.json();
@@ -105,8 +105,8 @@ function PmWorkOrderDetail({ id }) {
       setWo(b.work_order);
       setCompleteForm((f) => ({ ...f, checklist_results: (b.work_order.checklist_results || []).map(c => ({ ...c, pass: c.pass ?? true, notes: c.notes ?? "" })) }));
     } catch (e) { setErr(e.message); }
-  }
-  useEffect(() => { refresh(); }, [id]);
+  }, [id]);
+  useEffect(() => { refresh(); }, [refresh]);
 
   async function act(path, body) {
     setErr(""); setBusy(true);

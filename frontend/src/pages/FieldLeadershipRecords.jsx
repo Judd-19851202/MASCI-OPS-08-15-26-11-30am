@@ -83,7 +83,7 @@ export default function FieldLeadershipRecords() {
     } finally {
       setLoading(false);
     }
-  }, [dateFrom, dateTo, filterKind, q, t]);
+  }, [dateFrom, dateTo, employee, filterKind, job, q, supervisor, t]);
 
   // Initial load + refetch on filter change
   useEffect(() => { fetchRecords(); }, [fetchRecords]);

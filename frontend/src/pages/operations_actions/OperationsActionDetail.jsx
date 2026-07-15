@@ -2,7 +2,7 @@
  * OA-1 · OperationsActionDetail.jsx
  * Full ownership + status workflow + notes + photos + history.
  */
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft, Home, Loader2, AlertTriangle, RefreshCw, Save, Send, MessageSquare,
@@ -39,7 +39,7 @@ export default function OperationsActionDetail() {
   const [showAssign, setShowAssign] = useState(false);
   const [newOwner, setNewOwner] = useState(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true); setErr("");
     try {
       const r = await oaApi.read(id);
@@ -54,10 +54,10 @@ export default function OperationsActionDetail() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
    
-  useEffect(() => { load(); }, [id]);
+  useEffect(() => { load(); }, [load]);
 
   const saveEdits = async () => {
     setSaving(true);

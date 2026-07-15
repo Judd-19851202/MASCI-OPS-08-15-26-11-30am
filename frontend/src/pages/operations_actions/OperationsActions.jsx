@@ -3,7 +3,7 @@
  * Cross-portal inbox view. Filters · search · "Mine only" toggle.
  * Renders the mandatory coaching panel + new-action CTA at the top.
  */
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Plus, Search, Filter, RefreshCw, Loader2, ArrowLeft, Home, LayoutGrid } from "lucide-react";
 import { useT } from "@/lib/i18n";
@@ -33,14 +33,14 @@ export default function OperationsActions() {
   const [priorityF, setPriorityF] = useState("");
   const [mine, setMine] = useState(false);
 
-  const load = async () => {
+  const load = useCallback(async (searchValue = q) => {
     setLoading(true); setErr("");
     try {
       const params = {};
       if (statusF) params.status = statusF;
       if (categoryF) params.category = categoryF;
       if (priorityF) params.priority = priorityF;
-      if (q.trim()) params.q = q.trim();
+      if (searchValue.trim()) params.q = searchValue.trim();
       if (mine) params.mine = true;
       const [a, s] = await Promise.all([
         oaApi.list(params),
@@ -53,15 +53,14 @@ export default function OperationsActions() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [categoryF, mine, priorityF, q, statusF]);
 
-   
-  useEffect(() => { load(); }, [statusF, categoryF, priorityF, mine]);
+  useEffect(() => { load(q); }, [statusF, categoryF, priorityF, mine, load, q]);
   useEffect(() => {
-    const id = setTimeout(load, 250);
+    const id = setTimeout(() => load(q), 250);
     return () => clearTimeout(id);
-     
-  }, [q]);
+
+  }, [load, q]);
 
   const tiles = useMemo(() => {
     const c = summary?.counts || {};

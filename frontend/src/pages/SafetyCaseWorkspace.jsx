@@ -349,7 +349,7 @@ function RCAPanel({ caseDoc, onSave }) {
   useEffect(() => {
     setSummary(sb.root_cause_summary || "");
     setFactors((sb.contributing_factors || []).join("\n"));
-  }, [caseDoc?.id]);
+  }, [caseDoc?.id, sb.contributing_factors, sb.root_cause_summary]);
   return (
     <div className="space-y-3" data-testid="case-rca">
       <div>

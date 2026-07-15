@@ -7,7 +7,7 @@
 // the integration management endpoints. Every portal-facing view reads
 // from /api/integrations/health or /api/integrations/{motive,maintainx}/*
 // — never the /admin/integrations/* surface.
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Cable, Plug, Truck, Users, FileText, AlertOctagon, FileUp, FileDown,
   Loader2, RefreshCcw, Save, X, Pencil, Trash2, AlertTriangle,
@@ -214,15 +214,15 @@ function ProviderTab({ provider }) {
   const [showSecrets, setShowSecrets] = useState(false);
   const [notes, setNotes] = useState("");
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     setLoading(true);
     try {
       const r = await api.get(`/admin/integrations/${provider}`);
       setDoc(r.data); setNotes(r.data.notes || "");
     } catch { toast.error("Could not load settings"); }
     finally { setLoading(false); }
-  };
-  useEffect(() => { refresh();   }, [provider]);
+  }, [provider]);
+  useEffect(() => { refresh(); }, [refresh]);
 
   const save = async (patch) => {
     setSaving(true);
@@ -389,7 +389,7 @@ function MappingTab({ kind }) {
   const [dlg, setDlg] = useState({ open: false, mode: "create", id: null, form: {} });
   const [saving, setSaving] = useState(false);
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     setLoading(true);
     try {
       const [m, u] = await Promise.all([api.get(listUrl), api.get(unmappedUrl)]);
@@ -397,8 +397,8 @@ function MappingTab({ kind }) {
       setUnmapped(Array.isArray(u.data) ? u.data : []);
     } catch (e) { toast.error(operationalError(e, "Could not load")); }
     finally { setLoading(false); }
-  };
-  useEffect(() => { refresh();   }, [kind]);
+  }, [listUrl, unmappedUrl]);
+  useEffect(() => { refresh(); }, [refresh]);
 
   const openCreate = () => setDlg({ open: true, mode: "create", id: null, form: { [masciIdField]: "" } });
   const openEdit = (m) => {
@@ -635,7 +635,7 @@ function LogTable({ url, kind }) {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("");
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     setLoading(true);
     try {
       const params = filter ? `?integration=${filter}` : "";
@@ -643,8 +643,8 @@ function LogTable({ url, kind }) {
       setRows(Array.isArray(r.data) ? r.data : []);
     } catch (e) { toast.error("Could not load logs"); }
     finally { setLoading(false); }
-  };
-  useEffect(() => { refresh();   }, [filter, url]);
+  }, [filter, url]);
+  useEffect(() => { refresh(); }, [refresh]);
 
   return (
     <div className="space-y-3" data-testid={`ic-${kind}-log-table`}>
@@ -1370,7 +1370,7 @@ function GeofencesTab() {
   const [status, setStatus] = useState("all");
   const [category, setCategory] = useState("all");
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -1380,8 +1380,8 @@ function GeofencesTab() {
       setRows(Array.isArray(r.data) ? r.data : []);
     } catch (e) { toast.error(operationalError(e, "Could not load geofences")); setRows([]); }
     finally { setLoading(false); }
-  };
-  useEffect(() => { load();   }, [status, category]);
+  }, [category, status]);
+  useEffect(() => { load(); }, [load]);
 
   const categories = ["all", ...Array.from(new Set((rows || []).map((g) => g.category).filter(Boolean)))];
   const totalActive = (rows || []).filter((g) => g.status === "active").length;
