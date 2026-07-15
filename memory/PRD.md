@@ -1,3 +1,50 @@
+## 2026-07-15 · DR-03 PHOTO INTELLIGENCE FINAL REBUILD
+
+### Scope completed
+- Repaired draft-stage Daily Report photo intelligence so attached draft photos no longer remain `not_requested`.
+- Added stable draft identity wiring using the scoped Daily Report `formKey` and bound the draft photo lifecycle to that identity.
+- Preserved the existing Daily Report shell, submit contract, and submitted-report photo pipeline; no parallel Daily Report architecture was introduced.
+
+### What changed
+- Backend `photo_intelligence/pipeline.py`
+  - Added draft-aware enqueue + list logic keyed by the stable draft identity.
+  - Added safe inline data-URL handling for draft photos.
+  - Switched draft processing to the cached draft vision analyzer so the 8-photo draft path returns grounded observations and avoids duplicate provider calls on repeated requests.
+  - Added job-claim protection so duplicate draft requests do not double-process the same photo set.
+- Backend routes
+  - Added `POST /api/daily-reports/photo-intelligence/draft`.
+  - Updated `POST /api/daily-reports/summary/draft` to merge truthful photo lifecycle status + grounded photo observations into the summary payload and deterministic fallback summary.
+  - Persisted approved draft photo observations into submitted Daily Reports for downstream viewer/PDF parity.
+- Frontend
+  - `DailySummaryAssist` now auto-syncs draft photo intelligence after photo persistence and rechecks on Summary Assist generation / regenerate.
+  - Added visible truthful photo-intelligence status in Summary Assist.
+  - Persisted `photo_observations` + `photo_intelligence_status` on summary acceptance so submit carries the approved draft evidence.
+  - Viewer now renders an approved operational summary block and grounded photo observations block.
+
+### Verification completed
+- Exact 8-photo fixture proof (best available existing fixture from `/app/tmp_photo_fixture`): PASS
+  - attach → persist → draft photo endpoint → summary draft → regenerate → accept/manual fallback → submit → viewer/PDF parity
+- Backend targeted pytest:
+  - `test_track_22_9b_photo_intel_wireup.py`
+  - `test_dr03_gate5_containment_repair.py`
+  - `test_dr03_final_gate5_summary_and_routes.py`
+  - `test_iteration_571_photo_intel_summary.py`
+  - Result: PASS
+- Frontend smoke on `/daily/submit`: PASS
+- Testing agent report: `/app/test_reports/iteration_571.json` → PASS
+- `deep_testing_backend_v2`: PASS
+- `auto_frontend_testing_agent`: PASS after main-agent fix for the draft photo status regression
+- `CI=true yarn build`: PASS (`exit 0`, `warnings 0`, `errors 0`)
+
+### Truthful notes
+- Preview tenant summary AI remains disabled for the summary-generation module, so the final Daily Summary Assist proof in preview uses the deterministic fallback/manual-approval path while still carrying grounded photo observations.
+- The admin Daily Report read API expects the saved internal report `id`, not the human-facing `report_number`; the frontend viewer already routes with the saved internal id, so viewer/PDF parity is preserved.
+
+### Updated evidence
+- `/app/memory/track_dr_03/DR_03_PHOTO_INTELLIGENCE_FINAL_REPAIR.md`
+- `/app/memory/track_dr_03/DR_03_PHOTO_INTELLIGENCE_TEST_RESULTS.md`
+- `/app/memory/track_dr_03/DR_03_FINAL_RELEASE_LEDGER.md`
+
 ## 2026-07-15 · DR-03 closeout repair continuation
 
 ### Implemented in this continuation

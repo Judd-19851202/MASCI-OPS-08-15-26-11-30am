@@ -1,5 +1,18 @@
 # DR-03 Final Release Ledger
 
+## 2026-07-15 · Photo Intelligence Final Rebuild
+- Status: LOCAL REPAIR + TARGETED CERTIFICATION PASS
+- Scope: draft photo auto-enqueue, truthful photo lifecycle status, grounded summary merge, submit persistence, viewer/PDF parity
+- 8-photo fixture proof: PASS
+- Backend targeted pytest bundle: PASS
+- Testing agent: PASS (`/app/test_reports/iteration_571.json`)
+- Backend specialist verification: PASS
+- Frontend specialist verification: PASS after confirming fixed draft photo status behavior
+- Frontend build: `CI=true yarn build` → PASS (`exit 0`, `warnings 0`, `errors 0`)
+- Truthful preview note: summary AI remains tenant-disabled in preview; deterministic fallback/manual acceptance remains the certified preview path for summary text while draft photo observations are grounded and present.
+
+# DR-03 Final Release Ledger
+
 Status: IMPLEMENTATION READY FOR INDEPENDENT CERTIFICATION
 
 ## Release ledger
