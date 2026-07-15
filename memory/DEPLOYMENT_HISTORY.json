@@ -2,41 +2,6 @@
   "schema": "DEPLOYMENT_HISTORY/v1",
   "history": [
     {
-      "source_hash": "740398bc1f9277a8edfdb1e92e5dc26d",
-      "deployed_at": 1781575542,
-      "note": "pytest idempotency probe"
-    },
-    {
-      "source_hash": "965741df412f5e54f0ab65cbe74b83e5",
-      "deployed_at": 1783792787,
-      "note": "auto-recorded on backend startup"
-    },
-    {
-      "source_hash": "bdccb5300b16875210325b12ec6717b6",
-      "deployed_at": 1783792980,
-      "note": "auto-recorded on backend startup"
-    },
-    {
-      "source_hash": "5bdf0f87316de07ba7db32237b644d39",
-      "deployed_at": 1783803759,
-      "note": "auto-recorded on backend startup"
-    },
-    {
-      "source_hash": "9e79ada45d05d246df4819140c5fde91",
-      "deployed_at": 1783809612,
-      "note": "auto-recorded on backend startup"
-    },
-    {
-      "source_hash": "6c3c9aabbafecbc9ec010ceb8c746f9b",
-      "deployed_at": 1783868327,
-      "note": "auto-recorded on backend startup"
-    },
-    {
-      "source_hash": "1290d82a25056f7910ca18df1069f849",
-      "deployed_at": 1783870150,
-      "note": "auto-recorded on backend startup"
-    },
-    {
       "source_hash": "65f7aef2361479af1ffec50ff09f0083",
       "deployed_at": 1783873080,
       "note": "auto-recorded on backend startup"
@@ -249,6 +214,41 @@
     {
       "source_hash": "a794897715d2ba72aaae66a1439c0df3",
       "deployed_at": 1784117481,
+      "note": "auto-recorded on backend startup"
+    },
+    {
+      "source_hash": "63eaf79e769fe7bd0ecd1210cfc9d61c",
+      "deployed_at": 1784124619,
+      "note": "auto-recorded on backend startup"
+    },
+    {
+      "source_hash": "3e0e2ee339baaafed24b994a2ba6cae3",
+      "deployed_at": 1784124692,
+      "note": "auto-recorded on backend startup"
+    },
+    {
+      "source_hash": "f2066b66127935cdb0bb47bb5ee16fc3",
+      "deployed_at": 1784125037,
+      "note": "auto-recorded on backend startup"
+    },
+    {
+      "source_hash": "194087d7265591a8f88a9dc7cfeb0b79",
+      "deployed_at": 1784125075,
+      "note": "auto-recorded on backend startup"
+    },
+    {
+      "source_hash": "7cfcae6689c3aee0b510c4091d2da4d9",
+      "deployed_at": 1784125189,
+      "note": "auto-recorded on backend startup"
+    },
+    {
+      "source_hash": "92d73482510064acebee7e3dd545cff9",
+      "deployed_at": 1784125404,
+      "note": "auto-recorded on backend startup"
+    },
+    {
+      "source_hash": "ad8331fc644bb1e89cf2f7dacfe31869",
+      "deployed_at": 1784125614,
       "note": "auto-recorded on backend startup"
     }
   ]

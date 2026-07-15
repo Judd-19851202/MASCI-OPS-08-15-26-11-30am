@@ -91,6 +91,21 @@ const KV = ({ label, value, full }) => (
   </div>
 );
 
+function formatSummarySource(source, t) {
+  switch (String(source || "").toLowerCase()) {
+    case "manual":
+      return t("Manual summary approved");
+    case "fallback":
+      return t("Generated fallback summary approved");
+    case "edited":
+      return t("Edited AI summary approved");
+    case "ai":
+      return t("AI summary approved");
+    default:
+      return t("Approved summary");
+  }
+}
+
 const Table = ({ headers, rows, emptyText }) => {
   if (!rows?.length) {
     return <div className="text-slate-500 text-sm">{emptyText}</div>;
@@ -210,6 +225,13 @@ export default function ViewDailyReport() {
   if (!data) return null;
 
   const company = getCompanyInfo();
+  const acceptedSummary = (data.ai_accepted_summary || data.daily_operational_summary || "").trim();
+  const acceptedSummaryMeta = data.ai_accepted_summary_meta || {};
+  const photoObservations = Array.isArray(data.ai_photo_observations)
+    ? data.ai_photo_observations
+    : Array.isArray(data.photo_observations)
+      ? data.photo_observations
+      : [];
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -459,6 +481,24 @@ export default function ViewDailyReport() {
             )}
           </div>
         </ReportSection>
+
+        {acceptedSummary && (
+          <ReportSection number="03b" title={t("Operational Summary") }>
+            <div className="rounded-md border border-slate-200 bg-white p-4" data-testid="view-dr-operational-summary">
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-2">
+                {formatSummarySource(acceptedSummaryMeta.source, t)}
+              </div>
+              <div className="whitespace-pre-wrap text-sm leading-6 text-slate-900">
+                {acceptedSummary}
+              </div>
+              {acceptedSummaryMeta.accepted_at && (
+                <div className="mt-3 text-xs text-slate-500" data-testid="view-dr-operational-summary-meta">
+                  {t("Accepted")}: {formatPlatformTime(acceptedSummaryMeta.accepted_at)}
+                </div>
+              )}
+            </div>
+          </ReportSection>
+        )}
 
         <ReportSection number="04" title={`${t("Crews")} (${data.masci_crews?.length || 0})`}>
           <Table
@@ -720,6 +760,30 @@ export default function ViewDailyReport() {
                 </PhotoLightbox>
               ))}
             </div>
+            {photoObservations.length > 0 && (
+              <div className="mt-4 rounded-md border border-slate-200 bg-slate-50 p-4" data-testid="view-dr-photo-observations">
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-2">
+                  {t("Grounded Photo Observations")}
+                </div>
+                <div className="space-y-3">
+                  {photoObservations.slice(0, 8).map((item, idx) => (
+                    <div key={`${item.photo_ref || item.photo_id || idx}`} className="text-sm text-slate-800" data-testid={`view-dr-photo-observation-${idx}`}>
+                      {item.summary && <div className="font-medium text-slate-900">{item.summary}</div>}
+                      {Array.isArray(item.observations) && item.observations.length > 0 && (
+                        <ul className="mt-1 list-disc pl-5 text-slate-700">
+                          {item.observations.slice(0, 4).map((obs, obsIdx) => (
+                            <li key={obsIdx}>{obs}</li>
+                          ))}
+                        </ul>
+                      )}
+                      {item.ticket_text && (
+                        <div className="mt-1 text-xs text-slate-600">{item.ticket_text}</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </ReportSection>
         )}
 

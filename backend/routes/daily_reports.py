@@ -363,6 +363,8 @@ class DailyReportCreate(BaseModel):
     constraints: List[ConstraintRow] = Field(default_factory=list)
 
     photos: List[str] = Field(default_factory=list)
+    photo_observations: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
+    photo_intelligence_status: Optional[str] = ""
 
     # ────────────────────────────────────────────────────────────
     # TRACK 15.62 · Daily Report Recovery (additive · feature-flagged
@@ -452,6 +454,12 @@ class DailyReport(DailyReportCreate):
     #                          exposing structured identity in UI.
     prepared_by_identity: Optional[Dict[str, Any]] = None
     prepared_by_bound: bool = False
+
+
+class DraftPhotoIntelligenceBody(BaseModel):
+    form_key: str = Field(min_length=1, max_length=180)
+    payload: Dict[str, Any] = Field(default_factory=dict)
+    force: bool = False
 
 
 # ── Phase V.2 · Wave-1A · helpers ───────────────────────────────────
@@ -784,6 +792,11 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
             # photo:// refs BEFORE the audit hash is computed, so the hash
             # reflects the canonical (post-sanitization) saved state.
             _photo_sanitization_counters = await _sanitize_inline_photos(doc)  # noqa: F841
+            photo_observations = [
+                row for row in (doc.get("photo_observations") or []) if isinstance(row, dict)
+            ]
+            if photo_observations:
+                doc["ai_photo_observations"] = photo_observations
             # Wave-1A · audit envelope hash (continuity + tamper detection).
             doc["audit_envelope_sha256"] = _compute_audit_envelope_sha256(doc)
             # Build the response dict from the sanitized doc so the API
@@ -1214,6 +1227,29 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
             "doctrine": "PM_EXPOSURE_TILE_CERTIFICATION.md",
             "kind": "signal_only",
         }
+
+    @api_router.post("/daily-reports/photo-intelligence/draft")
+    async def daily_report_draft_photo_intelligence(body: DraftPhotoIntelligenceBody):
+        from services.photo_intelligence import (  # noqa: PLC0415
+            enqueue_v1_draft,
+            process_v1_draft,
+            list_v1_draft_intelligence,
+        )
+
+        payload = dict(body.payload or {})
+        draft_identity = str(body.form_key or "").strip()
+        await enqueue_v1_draft(db, draft_identity, payload)
+        if payload.get("photos"):
+            await process_v1_draft(
+                db,
+                draft_identity=draft_identity,
+                draft=payload,
+            )
+        return await list_v1_draft_intelligence(
+            db,
+            draft_identity=draft_identity,
+            draft=payload,
+        )
 
     # ── TRACK 22.9B · Photo Intelligence read endpoint ─────────────
     # Returns aggregated grounded observations for a submitted Daily

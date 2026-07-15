@@ -32,14 +32,15 @@ export default function DailySummaryAssist({
   data,
   reportId,
   reportNumber,
+  formKey,
   onAccept,
   onStateChange,
   testId = "daily-summary-assist",
 }) {
   const { t } = useT();
   const summaryReportId = useMemo(
-    () => reportId || (reportNumber ? `dr-${reportNumber}` : `dr-draft-${Date.now()}`),
-    [reportId, reportNumber],
+    () => formKey || reportId || (reportNumber ? `dr-${reportNumber}` : "dr-draft"),
+    [formKey, reportId, reportNumber],
   );
 
   const [status, setStatus] = useState("idle");
@@ -58,10 +59,18 @@ export default function DailySummaryAssist({
   const [errorCode, setErrorCode] = useState(null);
   const [decision, setDecision] = useState("pending");
   const [photoIntelStatus, setPhotoIntelStatus] = useState("no_photos");
+  const [latestPhotoIntel, setLatestPhotoIntel] = useState(null);
 
   const abortRef = useRef(null);
   const debounceRef = useRef(null);
   const requestSeqRef = useRef(0);
+  const dataRef = useRef(data);
+  const photoIntelKeyRef = useRef("");
+  const photoIntelValueRef = useRef(null);
+
+  useEffect(() => {
+    dataRef.current = data;
+  }, [data]);
 
   const activityCardsJson = useMemo(() => JSON.stringify(data?.activity_cards || data?.activities || []), [data?.activity_cards, data?.activities]);
   const crewsJson = useMemo(() => JSON.stringify(data?.masci_crews || []), [data?.masci_crews]);
@@ -76,6 +85,78 @@ export default function DailySummaryAssist({
   const safetyNotes = data?.safety_quality?.notes;
   const incidentNotes = data?.incident_notes;
   const weatherSummary = data?.weather_summary;
+
+  const compactPhotoSignature = useMemo(() => {
+    const sig = [];
+    const digest = (entry, idx, prefix) => {
+      if (typeof entry === "string") {
+        sig.push(`${prefix}${idx}:${entry.length}:${entry.slice(0, 40)}`);
+        return;
+      }
+      if (entry && typeof entry === "object") {
+        const raw = entry.dataUrl || entry.data_url || entry.data || entry.base64 || entry.ref || entry.url || entry.key || "";
+        sig.push(`${prefix}${idx}:${String(raw).length}:${String(raw).slice(0, 40)}`);
+      }
+    };
+    (data?.photos || []).forEach((entry, idx) => digest(entry, idx, "p"));
+    (data?.materials || []).forEach((row, rowIdx) => {
+      (row?.ticket_photos || []).forEach((entry, idx) => digest(entry, `${rowIdx}-${idx}`, "m"));
+    });
+    (data?.subcontractors || []).forEach((row, rowIdx) => {
+      (row?.photos || []).forEach((entry, idx) => digest(entry, `${rowIdx}-${idx}`, "s"));
+    });
+    return `${formKey || ""}::${sig.join("|")}`;
+  }, [data?.photos, data?.materials, data?.subcontractors, formKey]);
+
+  const syncPhotoIntel = useCallback(async ({ force = false } = {}) => {
+    const currentData = dataRef.current || {};
+    const currentPhotos = currentData?.photos || [];
+    if (reportNumber) {
+      try {
+        const { data: response } = await api.get(
+          `/daily-reports/${encodeURIComponent(reportNumber)}/photo-intelligence`,
+        );
+        photoIntelValueRef.current = response || null;
+        setPhotoIntelStatus(response?.status || (currentPhotos.length > 0 ? "not_requested" : "no_photos"));
+        return response || null;
+      } catch {
+        return null;
+      }
+    }
+    if (!formKey) {
+      const fallbackStatus = currentPhotos.length > 0 ? "not_requested" : "no_photos";
+      setPhotoIntelStatus(fallbackStatus);
+      return null;
+    }
+    if (currentPhotos.length === 0) {
+      photoIntelKeyRef.current = compactPhotoSignature;
+      photoIntelValueRef.current = {
+        photo_count: 0,
+        analyzed: 0,
+        pending: 0,
+        queued: 0,
+        processing: 0,
+        failed: 0,
+        observations: [],
+        status: "no_photos",
+        lifecycle_status: "no_photos",
+      };
+      setPhotoIntelStatus("no_photos");
+      return photoIntelValueRef.current;
+    }
+    if (!force && photoIntelKeyRef.current === compactPhotoSignature && photoIntelValueRef.current) {
+      return photoIntelValueRef.current;
+    }
+    const { data: response } = await api.post("/daily-reports/photo-intelligence/draft", {
+      form_key: formKey,
+      payload: currentData,
+      force,
+    });
+    photoIntelKeyRef.current = compactPhotoSignature;
+    photoIntelValueRef.current = response || null;
+    setPhotoIntelStatus(response?.status || (currentPhotos.length > 0 ? "not_requested" : "no_photos"));
+    return response || null;
+  }, [compactPhotoSignature, formKey, reportNumber]);
 
   const synthesize = useCallback(async (force = false) => {
     if (!hasEnoughEvidence(data)) {
@@ -98,21 +179,15 @@ export default function DailySummaryAssist({
 
     try {
       let photoIntel = null;
-      if (reportNumber) {
-        try {
-          const { data: response } = await api.get(
-            `/daily-reports/${encodeURIComponent(reportNumber)}/photo-intelligence`,
-            { signal: controller.signal },
-          );
-          photoIntel = response || null;
-        } catch {
-          photoIntel = null;
-        }
+      try {
+        photoIntel = await syncPhotoIntel({ force });
+      } catch {
+        photoIntel = null;
       }
-      const payload = buildDailyReportSummaryPayload(data, photoIntel);
+      const payload = buildDailyReportSummaryPayload(dataRef.current, photoIntel, { formKey });
       const { data: resp } = await api.post(
         `/daily-reports/summary/draft`,
-        { payload, force },
+        { payload, form_key: formKey, force },
         { signal: controller.signal },
       );
       const tElapsed = Math.round(performance.now() - tStart);
@@ -122,16 +197,18 @@ export default function DailySummaryAssist({
       setGeneratedAt(new Date().toISOString());
       setLatencyMs(tElapsed);
 
-      const statusFromPhotoIntel = photoIntel?.status || payload.summary_input?.photos?.status || "no_photos";
+      const summaryPhotoIntel = resp?.photo_intelligence || photoIntel;
+      setLatestPhotoIntel(summaryPhotoIntel || null);
+      const statusFromPhotoIntel = summaryPhotoIntel?.status || payload.summary_input?.photos?.lifecycle_status || payload.summary_input?.photos?.status || "no_photos";
       setPhotoIntelStatus(statusFromPhotoIntel);
       setAiAvailable(Boolean(resp?.enabled));
       const text = (resp?.summary_text || "").trim();
-      const fb = text || buildDeterministicSummaryFallback(data, photoIntel);
+      const fb = text || buildDeterministicSummaryFallback(dataRef.current, summaryPhotoIntel);
       setNarrative(fb);
       setEdited(fb);
       setConfidence(typeof resp?.confidence === "number" ? resp.confidence : null);
       const notes = [];
-      if (photoIntel?.classification) notes.push(photoIntel.classification);
+      if (summaryPhotoIntel?.classification) notes.push(summaryPhotoIntel.classification);
       if (!resp?.enabled && resp?.provider_state?.code) {
         notes.push("Summary generated from typed report facts while live assist is unavailable.");
       }
@@ -160,7 +237,7 @@ export default function DailySummaryAssist({
       const normalized = normalizeOperatorError(err, {
         fallbackMessage: "Summary assist is unavailable right now. You can approve the generated summary or write a manual summary.",
       });
-      const fb = buildDeterministicSummaryFallback(data, null);
+      const fb = buildDeterministicSummaryFallback(dataRef.current, null);
       setNarrative(fb);
       setEdited(fb);
       setAiAvailable(false);
@@ -171,7 +248,19 @@ export default function DailySummaryAssist({
     } finally {
       clearTimeout(timeoutId);
     }
-  }, [data, reportNumber]);
+  }, [data, formKey, syncPhotoIntel]);
+
+  useEffect(() => {
+    if (accepted) return undefined;
+    if (!formKey || photoCount === 0 || reportNumber) {
+      if (photoCount === 0) setPhotoIntelStatus("no_photos");
+      return undefined;
+    }
+    const timer = setTimeout(() => {
+      syncPhotoIntel({ force: false }).catch(() => undefined);
+    }, 450);
+    return () => clearTimeout(timer);
+  }, [accepted, formKey, photoCount, reportNumber, compactPhotoSignature, syncPhotoIntel]);
 
   useEffect(() => {
     if (accepted) return;
@@ -189,6 +278,7 @@ export default function DailySummaryAssist({
     productionJson,
     subcontractorsJson,
     photoCount,
+    compactPhotoSignature,
     tomorrowPlan,
     followUps,
     safetyNotes,
@@ -243,6 +333,7 @@ export default function DailySummaryAssist({
         report_instance: data?.report_instance || "primary",
       },
       photo_intelligence_status: photoIntelStatus,
+      photo_observations: Array.isArray(latestPhotoIntel?.observations) ? latestPhotoIntel.observations.slice(0, 60) : [],
       error_code: errorCode,
     };
     setAccepted(true);
@@ -285,6 +376,7 @@ export default function DailySummaryAssist({
         report_instance: data?.report_instance || "primary",
       },
       photo_intelligence_status: photoIntelStatus,
+      photo_observations: Array.isArray(latestPhotoIntel?.observations) ? latestPhotoIntel.observations.slice(0, 60) : [],
       error_code: errorCode,
     };
     setAccepted(true);
@@ -323,6 +415,15 @@ export default function DailySummaryAssist({
           : accepted
             ? t("Summary locked for submission. If you change it, you must approve it again.")
             : t("Submission is blocked until one approved executive summary exists.")}
+      </div>
+
+      <div
+        className="mb-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600"
+        data-testid={`${testId}-photo-status`}
+      >
+        {photoCount > 0
+          ? `Photo intelligence status: ${String(photoIntelStatus || "not_requested").replaceAll("_", " ")}`
+          : "Photo intelligence status: no photos"}
       </div>
 
       {status === "idle" && !narrative && (

@@ -80,7 +80,7 @@ function normalizePhotoIntelStatus(photoIntel, photoCount) {
   return "no_photos";
 }
 
-export function buildDailyReportSummaryPayload(data = {}, photoIntel = null) {
+export function buildDailyReportSummaryPayload(data = {}, photoIntel = null, options = {}) {
   const crews = (data.masci_crews || []).map(normalizeCrewRow).filter((row) => row.name || row.trade || row.hours > 0);
   const subcontractors = (data.subcontractors || []).map(normalizeSubcontractorRow).filter((row) => row.company || row.trade || row.hours > 0 || row.count > 0);
   const equipment = (data.equipment || []).map(normalizeEquipmentRow).filter((row) => row.description || row.unit_number || row.total_usage_hours > 0);
@@ -112,14 +112,19 @@ export function buildDailyReportSummaryPayload(data = {}, photoIntel = null) {
     photos: {
       photo_count: photos.length,
       status: normalizePhotoIntelStatus(photoIntel, photos.length),
+      lifecycle_status: String(photoIntel?.lifecycle_status || photoIntel?.status || normalizePhotoIntelStatus(photoIntel, photos.length)),
       analyzed: Number(photoIntel?.analyzed || 0),
       pending: Number(photoIntel?.pending || 0),
+      queued: Number(photoIntel?.queued || 0),
+      processing: Number(photoIntel?.processing || 0),
+      failed: Number(photoIntel?.failed || 0),
       observations: Array.isArray(photoIntel?.observations) ? photoIntel.observations : [],
       classification: String(photoIntel?.classification || "").trim(),
     },
   };
 
   return {
+    form_key: options.formKey || data.form_key || "",
     project_name: data.project_name || "",
     project_number: data.project_number || "",
     report_date: data.report_date || "",
@@ -197,9 +202,23 @@ export function buildDeterministicSummaryFallback(data = {}, photoIntel = null) 
     );
   }
   if (summaryInput.photos.photo_count > 0) {
+    const photoLifecycle = summaryInput.photos.lifecycle_status || summaryInput.photos.status;
     bits.push(
-      `${summaryInput.photos.photo_count} ${summaryInput.photos.photo_count === 1 ? "photo" : "photos"} attached${summaryInput.photos.status ? ` · photo intelligence ${summaryInput.photos.status.replaceAll("_", " ")}` : ""}.`
+      `${summaryInput.photos.photo_count} ${summaryInput.photos.photo_count === 1 ? "photo" : "photos"} attached${photoLifecycle ? ` · photo intelligence ${photoLifecycle.replaceAll("_", " ")}` : ""}.`
     );
+    if (Array.isArray(summaryInput.photos.observations) && summaryInput.photos.observations.length > 0) {
+      const snippets = summaryInput.photos.observations.slice(0, 2).flatMap((item) => {
+        if (!item || typeof item !== "object") return [];
+        const out = [];
+        if (item.summary) out.push(String(item.summary).trim());
+        if (Array.isArray(item.observations)) out.push(...item.observations.map((v) => String(v).trim()));
+        if (item.description) out.push(String(item.description).trim());
+        return out.filter(Boolean);
+      }).slice(0, 3);
+      if (snippets.length > 0) {
+        bits.push(`Photo observations: ${snippets.join("; ")}.`);
+      }
+    }
   }
   return bits.join(" ") || "Daily activity recorded. Summary generated from the current report facts.";
 }

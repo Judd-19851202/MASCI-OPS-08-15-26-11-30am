@@ -21,10 +21,13 @@ from .emitter import emit_photo_evidence_fact
 from .pipeline import (
     COLL_INTEL_JOBS,
     enqueue_report as enqueue_v1_report,
+    enqueue_draft as enqueue_v1_draft,
     process_report as process_v1_report,
+    process_draft as process_v1_draft,
     reconcile_once as reconcile_v1_once,
     reconciler_loop as v1_reconciler_loop,
     list_report_intelligence as list_v1_report_intelligence,
+    list_draft_intelligence as list_v1_draft_intelligence,
     ensure_indexes as ensure_v1_pipeline_indexes,
 )
 
@@ -35,7 +38,7 @@ __all__ = [
     "analyze_photo", "PHOTO_ENVELOPE_SCHEMA", "evidence_hash_for_photo",
     "emit_photo_evidence_fact",
     "COLL_INTEL_JOBS",
-    "enqueue_v1_report", "process_v1_report",
+    "enqueue_v1_report", "enqueue_v1_draft", "process_v1_report", "process_v1_draft",
     "reconcile_v1_once", "v1_reconciler_loop",
-    "list_v1_report_intelligence", "ensure_v1_pipeline_indexes",
+    "list_v1_report_intelligence", "list_v1_draft_intelligence", "ensure_v1_pipeline_indexes",
 ]

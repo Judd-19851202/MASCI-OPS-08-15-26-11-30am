@@ -1127,11 +1127,14 @@ export default function NewDailyReportV3({ publicMode = false }) {
           <SectionAiSummary
             data={data}
             reportId={reportId}
+            formKey={scopedFormKey}
             onStateChange={setSummaryGate}
             onAccepted={(payload) =>
               patch({
                 ai_accepted_summary: payload?.summary || "",
                 ai_accepted_summary_meta: payload?.meta || null,
+                photo_observations: Array.isArray(payload?.meta?.photo_observations) ? payload.meta.photo_observations : [],
+                photo_intelligence_status: payload?.meta?.photo_intelligence_status || "",
               })
             }
           />

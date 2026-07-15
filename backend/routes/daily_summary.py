@@ -48,9 +48,11 @@ class SummaryDraftBody(BaseModel):
     """Client sends the *current* (possibly unsaved) report payload
     so the composer can produce a preview before submit."""
     payload: Dict[str, Any] = Field(default_factory=dict)
+    form_key: Optional[str] = None
     tenant_id: Optional[str] = None
     language: Optional[str] = "en"
     evidence_refs: Optional[List[str]] = None
+    force: Optional[bool] = False
 
 
 class SummaryAcceptBody(BaseModel):
@@ -208,12 +210,50 @@ def _build_summary_input(payload: Dict[str, Any]) -> Dict[str, Any]:
         "photos": {
             "photo_count": len(photos),
             "status": photo_status,
+            "lifecycle_status": _clean_str(
+                (provided.get("photos") or {}).get("lifecycle_status")
+                or photo_status,
+                60,
+            )
+            or photo_status,
             "analyzed": int((provided.get("photos") or {}).get("analyzed") or 0),
             "pending": int((provided.get("photos") or {}).get("pending") or 0),
+            "queued": int((provided.get("photos") or {}).get("queued") or 0),
+            "processing": int((provided.get("photos") or {}).get("processing") or 0),
+            "failed": int((provided.get("photos") or {}).get("failed") or 0),
             "observations": list((provided.get("photos") or {}).get("observations") or p.get("photo_observations") or [])[:30],
             "classification": _clean_str((provided.get("photos") or {}).get("classification"), 240),
         },
     }
+
+
+def _photo_observation_lines(items: List[Any]) -> List[str]:
+    lines: List[str] = []
+    for item in items[:8]:
+        if not isinstance(item, dict):
+            continue
+        if item.get("summary"):
+            lines.append(_clean_str(item.get("summary"), 220))
+        for obs in (item.get("observations") or [])[:3]:
+            cleaned = _clean_str(obs, 180)
+            if cleaned:
+                lines.append(cleaned)
+        desc = _clean_str(item.get("description"), 180)
+        label = _clean_str(item.get("label"), 80)
+        if desc:
+            lines.append(f"{label}: {desc}" if label else desc)
+        ticket = _clean_str(item.get("ticket_text"), 220)
+        if ticket:
+            lines.append(ticket)
+    deduped: List[str] = []
+    seen = set()
+    for line in lines:
+        key = line.lower()
+        if not line or key in seen:
+            continue
+        seen.add(key)
+        deduped.append(line)
+    return deduped[:4]
 
 
 def _compose_deterministic_summary(
@@ -384,9 +424,13 @@ def _compose_deterministic_summary(
         if photo_captions:
             preview = "; ".join(photo_captions[:3])
             photo_line += f" — captions include: {preview}"
-        if photo_input.get("status") and photo_input.get("status") not in {"complete_with_observations", "complete_zero_observations"}:
-            photo_line += f" · photo intelligence {photo_input.get('status').replace('_', ' ')}"
+        photo_status = photo_input.get("lifecycle_status") or photo_input.get("status")
+        if photo_status and photo_status not in {"complete_with_observations", "complete_zero_observations"}:
+            photo_line += f" · photo intelligence {str(photo_status).replace('_', ' ')}"
         lines.append(photo_line + ".")
+    photo_obs_lines = _photo_observation_lines(photo_input.get("observations") or [])
+    if photo_obs_lines:
+        lines.append("Grounded photo observations: " + "; ".join(photo_obs_lines) + ".")
 
     # ── General notes.
     if general_notes:
@@ -452,7 +496,47 @@ def register_daily_summary_routes(
 
         cap = await resolve_ai_capabilities(db, tenant_id, _MODULE)
         request_id = _clean_str(request.headers.get("X-Request-Id"), 120) or None
-        composed = _compose_deterministic_summary(body.payload or {}, language=language)
+        payload = dict(body.payload or {})
+        photo_intel = None
+        try:
+            from services.photo_intelligence import (  # noqa: PLC0415
+                process_v1_draft,
+                list_v1_draft_intelligence,
+            )
+            form_key = _clean_str(body.form_key, 180) or _clean_str(payload.get("form_key"), 180)
+            if form_key and (payload.get("photos") or []):
+                await process_v1_draft(
+                    db,
+                    draft_identity=form_key,
+                    draft=payload,
+                )
+                photo_intel = await list_v1_draft_intelligence(
+                    db,
+                    draft_identity=form_key,
+                    draft=payload,
+                )
+                payload["photo_observations"] = list(photo_intel.get("observations") or [])[:60]
+                payload["photo_intelligence_status"] = photo_intel.get("status") or payload.get("photo_intelligence_status")
+                payload["summary_input"] = {
+                    **(payload.get("summary_input") or {}),
+                    "photos": {
+                        **((payload.get("summary_input") or {}).get("photos") or {}),
+                        "photo_count": int(photo_intel.get("photo_count") or len(payload.get("photos") or [])),
+                        "status": photo_intel.get("status") or "no_photos",
+                        "lifecycle_status": photo_intel.get("lifecycle_status") or photo_intel.get("status") or "no_photos",
+                        "analyzed": int(photo_intel.get("analyzed") or 0),
+                        "pending": int(photo_intel.get("pending") or 0),
+                        "queued": int(photo_intel.get("queued") or 0),
+                        "processing": int(photo_intel.get("processing") or 0),
+                        "failed": int(photo_intel.get("failed") or 0),
+                        "observations": list(photo_intel.get("observations") or [])[:60],
+                        "classification": photo_intel.get("classification") or "",
+                    },
+                }
+        except Exception:  # noqa: BLE001
+            photo_intel = None
+
+        composed = _compose_deterministic_summary(payload, language=language)
         if not cap.enabled:
             return {
                 "ok": True,
@@ -465,6 +549,7 @@ def register_daily_summary_routes(
                 "evidence_refs": composed["evidence_refs"],
                 "sentence_count": composed["sentence_count"],
                 "summary_input": composed["summary_input"],
+                "photo_intelligence": photo_intel,
                 "request_id": request_id,
             }
 
@@ -479,6 +564,7 @@ def register_daily_summary_routes(
             "evidence_refs": composed["evidence_refs"],
             "sentence_count": composed["sentence_count"],
             "summary_input": composed["summary_input"],
+            "photo_intelligence": photo_intel,
             "request_id": request_id,
         }
 
