@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import re
 import subprocess
@@ -8,7 +9,9 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 
-RELEASE_FINGERPRINT_RELATIVE_PATHS: Tuple[str, ...] = (
+DEFAULT_RELEASE_FINGERPRINT_RELATIVE_PATHS: Tuple[str, ...] = (
+    "release_identity_scope.json",
+    "backend/lib/release_identity.py",
     "backend/server.py",
     "backend/pdf_render.py",
     "backend/training_pdf.py",
@@ -17,20 +20,37 @@ RELEASE_FINGERPRINT_RELATIVE_PATHS: Tuple[str, ...] = (
     "backend/routes/dr_v2_canonicalize.py",
     "backend/routes/dr_v2_pdf.py",
     "backend/routes/dr_v2_photos.py",
+    "backend/routes/dispatch_portal_auth.py",
+    "backend/services/photo_intelligence/pipeline.py",
+    "backend/scripts/verify_release_identity.py",
+    "frontend/scripts/stamp-build-version.js",
     "frontend/src/app/routing/AppRoutes.jsx",
     "frontend/src/pages/NewDailyReportV3.jsx",
     "frontend/src/pages/DailyReportsDashboard.jsx",
+    "frontend/src/pages/ViewDailyReport.jsx",
 )
 
 FRONTEND_BUILD_VERSION_FILE = Path("frontend/src/buildVersion.generated.js")
+RELEASE_SCOPE_FILE = Path("release_identity_scope.json")
 _VERSION_RE = re.compile(r'BUILD_VERSION\s*=\s*"([^"]+)"')
+_COMMIT_RE = re.compile(r'BUILD_COMMIT\s*=\s*"([^"]+)"')
 _BUILT_AT_RE = re.compile(r'BUILT_AT_ISO\s*=\s*"([^"]+)"')
 _SOURCE_HASH_RE = re.compile(r'BUILD_SOURCE_HASH\s*=\s*"([^"]+)"')
 _HEXISH_RE = re.compile(r"^[a-f0-9]{7,40}$", re.IGNORECASE)
 
 
+def read_release_fingerprint_relative_paths(repo_root: Path) -> List[str]:
+    try:
+        raw = json.loads((repo_root / RELEASE_SCOPE_FILE).read_text(encoding="utf-8"))
+    except Exception:
+        return list(DEFAULT_RELEASE_FINGERPRINT_RELATIVE_PATHS)
+    if not isinstance(raw, list) or not all(isinstance(x, str) and x.strip() for x in raw):
+        return list(DEFAULT_RELEASE_FINGERPRINT_RELATIVE_PATHS)
+    return [x.strip() for x in raw]
+
+
 def build_fingerprint_paths(repo_root: Path) -> List[Path]:
-    return [repo_root / rel for rel in RELEASE_FINGERPRINT_RELATIVE_PATHS]
+    return [repo_root / rel for rel in read_release_fingerprint_relative_paths(repo_root)]
 
 
 def compute_source_hash(repo_root: Path) -> str:
@@ -55,6 +75,10 @@ def parse_frontend_build_identity_text(text: str) -> Dict[str, Optional[str]]:
         suffix = version.rsplit("-", 1)[-1] if "-" in version else ""
         if _HEXISH_RE.fullmatch(suffix or ""):
             commit = suffix.lower()
+
+    commit_match = _COMMIT_RE.search(text or "")
+    if commit_match:
+        commit = commit_match.group(1).lower()
 
     built_at_match = _BUILT_AT_RE.search(text or "")
     if built_at_match:
@@ -153,6 +177,25 @@ def release_identities_match(
     if backend_source_hash and frontend_source_hash:
         return backend_source_hash == frontend_source_hash
     return commits_match(backend_commit, frontend_commit)
+
+
+def assert_release_identity_parity(
+    *,
+    backend_commit: Optional[str],
+    backend_source_hash: Optional[str],
+    frontend_commit: Optional[str],
+    frontend_source_hash: Optional[str],
+) -> None:
+    matched = release_identities_match(
+        backend_commit=backend_commit,
+        backend_source_hash=backend_source_hash,
+        frontend_commit=frontend_commit,
+        frontend_source_hash=frontend_source_hash,
+    )
+    if matched is False:
+        raise RuntimeError(
+            "release identity mismatch: frontend and backend are serving different release identities"
+        )
 
 
 def build_instance_fingerprint(commit: str, source_hash: str, process_started_at: str) -> str:

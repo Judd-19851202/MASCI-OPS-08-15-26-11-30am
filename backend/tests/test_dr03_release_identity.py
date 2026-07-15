@@ -5,11 +5,13 @@ from pathlib import Path
 import requests
 
 from lib.release_identity import (
+    assert_release_identity_parity,
     build_fingerprint_paths,
     build_instance_fingerprint,
     commits_match,
     compute_source_hash,
     parse_frontend_build_identity_text,
+    read_release_fingerprint_relative_paths,
     read_frontend_build_identity,
     release_identities_match,
     resolve_runtime_commit,
@@ -36,7 +38,7 @@ def test_frontend_build_identity_parses_commit_and_timestamp():
     assert parsed["built_at"]
     assert parsed["source_hash"]
     assert parsed["commit"]
-    assert len(parsed["commit"]) == 7
+    assert len(parsed["commit"]) >= 7
 
 
 def test_resolve_runtime_commit_uses_env_commit_when_present():
@@ -86,12 +88,24 @@ def test_source_hash_includes_frontend_and_backend_release_files():
     rel_paths = [p.relative_to(REPO_ROOT).as_posix() for p in build_fingerprint_paths(REPO_ROOT)]
     assert len(release_hash) == 32
     for expected in (
+        "release_identity_scope.json",
+        "backend/lib/release_identity.py",
+        "backend/scripts/verify_release_identity.py",
+        "frontend/scripts/stamp-build-version.js",
         "frontend/src/app/routing/AppRoutes.jsx",
         "frontend/src/pages/NewDailyReportV3.jsx",
         "frontend/src/pages/DailyReportsDashboard.jsx",
+        "frontend/src/pages/ViewDailyReport.jsx",
         "backend/routes/daily_reports.py",
     ):
         assert expected in rel_paths
+
+
+def test_release_scope_file_is_single_source_of_truth():
+    rels = read_release_fingerprint_relative_paths(REPO_ROOT)
+    assert rels[0] == "release_identity_scope.json"
+    assert "backend/server.py" in rels
+    assert "frontend/src/pages/ViewDailyReport.jsx" in rels
 
 
 def test_instance_fingerprint_changes_when_runtime_identity_changes():
@@ -105,6 +119,29 @@ def test_instance_fingerprint_changes_when_runtime_identity_changes():
 def test_generated_frontend_source_hash_matches_current_release_scope():
     parsed = parse_frontend_build_identity_text(BUILD_FILE.read_text(encoding="utf-8"))
     assert parsed["source_hash"] == compute_source_hash(REPO_ROOT)
+
+
+def test_release_identity_parity_guard_raises_on_mismatch():
+    try:
+        assert_release_identity_parity(
+            backend_commit="abc1234",
+            backend_source_hash="hash-a",
+            frontend_commit="abc1234",
+            frontend_source_hash="hash-b",
+        )
+    except RuntimeError as exc:
+        assert "release identity mismatch" in str(exc)
+    else:
+        raise AssertionError("expected release identity parity guard to raise")
+
+
+def test_release_identity_parity_guard_allows_exact_match():
+    assert_release_identity_parity(
+        backend_commit="abc1234",
+        backend_source_hash="hash-a",
+        frontend_commit="abc1234",
+        frontend_source_hash="hash-a",
+    )
 
 
 def test_local_api_version_reports_frontend_backend_release_parity():

@@ -1,0 +1,20 @@
+[
+  "release_identity_scope.json",
+  "backend/lib/release_identity.py",
+  "backend/server.py",
+  "backend/pdf_render.py",
+  "backend/training_pdf.py",
+  "backend/routes/daily_reports.py",
+  "backend/routes/dr_v2.py",
+  "backend/routes/dr_v2_canonicalize.py",
+  "backend/routes/dr_v2_pdf.py",
+  "backend/routes/dr_v2_photos.py",
+  "backend/routes/dispatch_portal_auth.py",
+  "backend/services/photo_intelligence/pipeline.py",
+  "backend/scripts/verify_release_identity.py",
+  "frontend/scripts/stamp-build-version.js",
+  "frontend/src/app/routing/AppRoutes.jsx",
+  "frontend/src/pages/NewDailyReportV3.jsx",
+  "frontend/src/pages/DailyReportsDashboard.jsx",
+  "frontend/src/pages/ViewDailyReport.jsx"
+]
