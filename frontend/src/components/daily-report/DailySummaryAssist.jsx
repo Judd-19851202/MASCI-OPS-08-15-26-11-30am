@@ -60,6 +60,8 @@ export default function DailySummaryAssist({
   const [decision, setDecision] = useState("pending");
   const [photoIntelStatus, setPhotoIntelStatus] = useState("no_photos");
   const [latestPhotoIntel, setLatestPhotoIntel] = useState(null);
+  const [lastSummaryPayload, setLastSummaryPayload] = useState(null);
+  const [lastMergedPhotoPayload, setLastMergedPhotoPayload] = useState(null);
 
   const abortRef = useRef(null);
   const debounceRef = useRef(null);
@@ -117,6 +119,7 @@ export default function DailySummaryAssist({
           `/daily-reports/${encodeURIComponent(reportNumber)}/photo-intelligence`,
         );
         photoIntelValueRef.current = response || null;
+        setLatestPhotoIntel(response || null);
         setPhotoIntelStatus(response?.status || (currentPhotos.length > 0 ? "not_requested" : "no_photos"));
         return response || null;
       } catch {
@@ -142,6 +145,7 @@ export default function DailySummaryAssist({
         lifecycle_status: "no_photos",
       };
       setPhotoIntelStatus("no_photos");
+      setLatestPhotoIntel(photoIntelValueRef.current);
       return photoIntelValueRef.current;
     }
     if (!force && photoIntelKeyRef.current === compactPhotoSignature && photoIntelValueRef.current) {
@@ -154,6 +158,7 @@ export default function DailySummaryAssist({
     });
     photoIntelKeyRef.current = compactPhotoSignature;
     photoIntelValueRef.current = response || null;
+    setLatestPhotoIntel(response || null);
     setPhotoIntelStatus(response?.status || (currentPhotos.length > 0 ? "not_requested" : "no_photos"));
     return response || null;
   }, [compactPhotoSignature, formKey, reportNumber]);
@@ -185,6 +190,7 @@ export default function DailySummaryAssist({
         photoIntel = null;
       }
       const payload = buildDailyReportSummaryPayload(dataRef.current, photoIntel, { formKey });
+      setLastMergedPhotoPayload(payload.summary_input?.photos || null);
       const { data: resp } = await api.post(
         `/daily-reports/summary/draft`,
         { payload, form_key: formKey, force },
@@ -199,7 +205,34 @@ export default function DailySummaryAssist({
 
       const summaryPhotoIntel = resp?.photo_intelligence || photoIntel;
       setLatestPhotoIntel(summaryPhotoIntel || null);
-      const statusFromPhotoIntel = summaryPhotoIntel?.status || payload.summary_input?.photos?.lifecycle_status || payload.summary_input?.photos?.status || "no_photos";
+      const returnedSummaryInput = resp?.summary_input?.photos || null;
+      const finalSummaryPayload = {
+        ...payload,
+        photo_observations: Array.isArray(summaryPhotoIntel?.observations)
+          ? summaryPhotoIntel.observations
+          : Array.isArray(payload.photo_observations)
+            ? payload.photo_observations
+            : [],
+        photo_intelligence_status:
+          summaryPhotoIntel?.status
+          || returnedSummaryInput?.lifecycle_status
+          || returnedSummaryInput?.status
+          || payload.photo_intelligence_status
+          || "no_photos",
+        summary_input: {
+          ...(payload.summary_input || {}),
+          photos: returnedSummaryInput || payload.summary_input?.photos || {},
+        },
+      };
+      setLastSummaryPayload(finalSummaryPayload);
+      setLastMergedPhotoPayload(finalSummaryPayload.summary_input?.photos || null);
+      const statusFromPhotoIntel =
+        summaryPhotoIntel?.status
+        || returnedSummaryInput?.lifecycle_status
+        || returnedSummaryInput?.status
+        || payload.summary_input?.photos?.lifecycle_status
+        || payload.summary_input?.photos?.status
+        || "no_photos";
       setPhotoIntelStatus(statusFromPhotoIntel);
       setAiAvailable(Boolean(resp?.enabled));
       const text = (resp?.summary_text || "").trim();
@@ -241,14 +274,14 @@ export default function DailySummaryAssist({
       setNarrative(fb);
       setEdited(fb);
       setAiAvailable(false);
-      setPhotoIntelStatus((data?.photos || []).length > 0 ? "not_requested" : "no_photos");
+      setPhotoIntelStatus((latestPhotoIntel?.status) || ((data?.photos || []).length > 0 ? "queued" : "no_photos"));
       setError(normalized.message);
       setErrorCode(normalized.code);
       setStatus("ready");
     } finally {
       clearTimeout(timeoutId);
     }
-  }, [data, formKey, syncPhotoIntel]);
+  }, [data, formKey, latestPhotoIntel?.status, syncPhotoIntel]);
 
   useEffect(() => {
     if (accepted) return undefined;
@@ -425,6 +458,24 @@ export default function DailySummaryAssist({
           ? `Photo intelligence status: ${String(photoIntelStatus || "not_requested").replaceAll("_", " ")}`
           : "Photo intelligence status: no photos"}
       </div>
+
+      {lastMergedPhotoPayload && (
+        <details className="mb-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700" data-testid={`${testId}-photo-payload-debug`}>
+          <summary className="cursor-pointer font-semibold">Photo payload merged into summary</summary>
+          <pre className="mt-2 whitespace-pre-wrap break-all" data-testid={`${testId}-photo-payload-debug-json`}>
+            {JSON.stringify(lastMergedPhotoPayload, null, 2)}
+          </pre>
+        </details>
+      )}
+
+      {lastSummaryPayload && (
+        <details className="mb-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700" data-testid={`${testId}-summary-payload-debug`}>
+          <summary className="cursor-pointer font-semibold">Exact summary generator payload</summary>
+          <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap break-all" data-testid={`${testId}-summary-payload-debug-json`}>
+            {JSON.stringify(lastSummaryPayload, null, 2)}
+          </pre>
+        </details>
+      )}
 
       {status === "idle" && !narrative && (
         <p className="text-sm italic text-slate-500" data-testid={`${testId}-empty`}>

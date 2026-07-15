@@ -53,6 +53,7 @@ class SummaryDraftBody(BaseModel):
     language: Optional[str] = "en"
     evidence_refs: Optional[List[str]] = None
     force: Optional[bool] = False
+    include_debug_payloads: Optional[bool] = False
 
 
 class SummaryAcceptBody(BaseModel):
@@ -537,6 +538,10 @@ def register_daily_summary_routes(
             photo_intel = None
 
         composed = _compose_deterministic_summary(payload, language=language)
+        debug_payloads = {
+            "summary_generator_payload": payload,
+            "merged_photo_payload": ((payload.get("summary_input") or {}).get("photos") or {}),
+        } if body.include_debug_payloads else None
         if not cap.enabled:
             return {
                 "ok": True,
@@ -550,6 +555,7 @@ def register_daily_summary_routes(
                 "sentence_count": composed["sentence_count"],
                 "summary_input": composed["summary_input"],
                 "photo_intelligence": photo_intel,
+                "debug_payloads": debug_payloads,
                 "request_id": request_id,
             }
 
@@ -565,6 +571,7 @@ def register_daily_summary_routes(
             "sentence_count": composed["sentence_count"],
             "summary_input": composed["summary_input"],
             "photo_intelligence": photo_intel,
+            "debug_payloads": debug_payloads,
             "request_id": request_id,
         }
 
