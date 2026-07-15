@@ -358,7 +358,8 @@ def _day_narrative_system_prompt_with_photo_citations() -> str:
         + "Every photo citation MUST be tied to the exact `photo_observations[]` entry provided in the evidence bundle. "
         + "Do NOT generalize as 'site photos show' when a numbered photo citation is available. "
         + "If multiple photos contain technical evidence, weave the strongest numbered citations into the narrative. "
-        + "If no grounded numbered photo evidence exists, say nothing about photo content beyond acknowledging attached photos."
+        + "If no grounded numbered photo evidence exists, say nothing about photo content beyond acknowledging attached photos. "
+        + "When grounded photo evidence identifies equipment class, make, or model, preserve that detail verbatim in the narrative (for example: excavator, loader, John Deere 210G, CAT 320, trench roller, skid steer)."
     )
 
 

@@ -1,3 +1,16 @@
+## 2026-07-15 · DR-03 FINAL PHOTO-CITATION HANDOFF
+
+### Final synthesis handoff change
+- Added `_photo_observations_for_ai()` numbering + citation hints so each analyzed draft photo is represented as grounded, numbered evidence in `daily_summary.py`.
+- Added `_build_photo_evidence_manifest()` so the final summary synthesis payload includes explicit per-photo technical evidence strings.
+- Added `_day_narrative_system_prompt_with_photo_citations()` and updated the live `provider.synthesize(...)` call to require numbered photo citations in superintendent-grade prose, preserving equipment class / make / model when grounded by photo evidence.
+- `_build_live_ai_bundle()` now injects both `photo_observations` and `photo_evidence_manifest` into the normalized synthesis payload.
+
+### Final state
+- Live AI remains the only Daily Report summary path.
+- Tenant capability / preview branching is removed from Daily Report summary + draft photo intelligence.
+- Backend restarted successfully after the final handoff patch.
+
 ## 2026-07-15 · DR-03 LIVE AI PARITY CUTOVER
 
 ### Branching removed
