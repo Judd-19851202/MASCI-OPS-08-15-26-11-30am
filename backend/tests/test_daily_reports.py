@@ -52,6 +52,7 @@ def _full_payload(prefix="TEST_DR"):
         "project_name": f"{prefix}_Project A1A",
         "project_number": "TEST-25-23",
         "location": "Port Orange, FL",
+        "location_source": "manual",
         "report_date": "2026-01-15",
         "report_number": "DR-001",
         "prepared_by": "Test Foreman",

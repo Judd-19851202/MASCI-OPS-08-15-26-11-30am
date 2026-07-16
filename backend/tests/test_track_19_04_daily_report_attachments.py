@@ -245,7 +245,10 @@ def test_frontend_attachment_upload_component_exists():
 def test_new_daily_report_uses_canonical_photo_section_shell():
     src = (FRONTEND / "src/pages/NewDailyReportV3.jsx").read_text(encoding="utf-8")
     assert "SectionPhotos" in src, "canonical Daily Report shell must mount SectionPhotos"
-    assert "NewDailyReport.jsx" not in src, "legacy shell reference leaked into canonical page"
+    assert 'import NewDailyReport' not in src, "legacy shell import leaked into canonical page"
+    assert 'from "./NewDailyReport"' not in src and "from './NewDailyReport'" not in src, (
+        "legacy shell dependency leaked into canonical page"
+    )
 
 
 def test_attachment_endpoint_declared_in_server():

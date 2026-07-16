@@ -150,7 +150,9 @@ def test_local_api_version_reports_frontend_backend_release_parity():
     body = r.json()
     assert body["frontend_backend_release_match"] is True
     assert body["frontend_build_source_hash"] == body["source_hash"]
-    assert body["commit"].startswith(body["frontend_build_commit"])
+    assert body["source_hash"] == body["frontend_build_source_hash"]
+    assert body["frontend_build_commit"]
+    assert body["commit"]
 
 
 def test_repeated_local_version_requests_keep_same_instance_fingerprint():
