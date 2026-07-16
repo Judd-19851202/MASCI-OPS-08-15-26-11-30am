@@ -70,7 +70,7 @@ async def top_projects(db, limit: int = 20) -> List[Dict[str, Any]]:
 
 async def largest_objects(db, limit: int = 50) -> List[Dict[str, Any]]:
     out: List[Dict[str, Any]] = []
-    cursor = db.r2_inventory.find({}, {"_id": 0}).sort("size", -1).limit(limit)
+    cursor = db.r2_inventory.find({}, {"_id": 0, "key": 1, "size": 1, "last_modified": 1, "prefix": 1, "project_number": 1}).sort("size", -1).limit(limit)
     async for row in cursor:
         out.append({
             "key": row.get("key"),

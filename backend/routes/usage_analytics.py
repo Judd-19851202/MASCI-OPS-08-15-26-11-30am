@@ -369,7 +369,7 @@ def build_usage_routes(db, require_admin):
                 dependencies=[Depends(require_admin)])
     async def health():
         sink = get_sink()
-        total = await db.usage_events.count_documents({})
+        total = await db.usage_events.estimated_document_count()
         return {
             "sink_running": bool(sink and sink._task and not sink._task.done()),  # noqa: SLF001
             "queue_depth": len(sink.queue) if sink else 0,

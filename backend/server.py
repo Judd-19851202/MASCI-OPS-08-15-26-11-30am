@@ -12166,6 +12166,17 @@ async def _ensure_scheduler_lock_indexes_at_startup():
         logger.warning(f"[scheduler-runs] index ensure failed (non-fatal): {e}")
 
 
+@register_lifecycle_step("index-ensure")
+async def _ensure_production_bottleneck_indexes():
+    try:
+        await db.r2_inventory.create_index("size")
+        await db.r2_inventory.create_index("content_type")
+        await db.r2_references.create_index("r2_key")
+        await db.daily_reports.create_index("report_number")
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[db-bottleneck] index ensure failed (non-fatal): {e}")
+
+
 # ─── FORGEDOPS P0-B · DB isolation startup failsafe ─────────────────
 # Probes whether the pod can access the OTHER environment's MongoDB
 # namespace. Currently runs in "bridge" mode (loud warning on

@@ -2,11 +2,6 @@
   "schema": "DEPLOYMENT_HISTORY/v1",
   "history": [
     {
-      "source_hash": "ce155ff65c5878ec461230b652a621e1",
-      "deployed_at": 1783888510,
-      "note": "auto-recorded on backend startup"
-    },
-    {
       "source_hash": "bec28f1dfb3769264664e38294cc4db9",
       "deployed_at": 1783889070,
       "note": "auto-recorded on backend startup"
@@ -249,6 +244,11 @@
     {
       "source_hash": "24d5d1fc8ae815ba3b5825ec406c4d36",
       "deployed_at": 1784164154,
+      "note": "auto-recorded on backend startup"
+    },
+    {
+      "source_hash": "f5655b106807a79ea5957faaca305fb0",
+      "deployed_at": 1784196821,
       "note": "auto-recorded on backend startup"
     }
   ]

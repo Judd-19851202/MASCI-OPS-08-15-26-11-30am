@@ -288,7 +288,7 @@ async def classify_all(db, *, now: Optional[datetime] = None) -> Dict[str, Any]:
 
     # Preload references once — much cheaper than a per-key query.
     refs_by_key: Dict[str, List[Dict[str, Any]]] = {}
-    async for r in db.r2_references.find({}, {"_id": 0}):
+    async for r in db.r2_references.find({}, {"_id": 0, "r2_key": 1, "collection": 1, "owner": 1, "feature": 1, "doc_id": 1, "field_path": 1}).limit(250000):
         refs_by_key.setdefault(r["r2_key"], []).append(r)
 
     counts: Dict[str, int] = {c: 0 for c in CLASSIFICATIONS}
@@ -296,7 +296,7 @@ async def classify_all(db, *, now: Optional[datetime] = None) -> Dict[str, Any]:
     ops: List[Any] = []
     from pymongo import UpdateOne  # noqa: PLC0415 — lazy
 
-    async for inv in db.r2_inventory.find({}, {"_id": 0}):
+    async for inv in db.r2_inventory.find({}, {"_id": 0, "key": 1, "size": 1, "prefix": 1, "project_number": 1, "last_modified": 1}).limit(250000):
         result = classify_object(
             inv, refs_by_key.get(inv["key"], []),
             now=now,
