@@ -801,7 +801,7 @@ def _compose_timeout_fallback(
 # ─────────────────────── registration ─────────────────────────────
 
 def register_daily_summary_routes(
-    api_router: APIRouter, *, db, rate_limit_public_post, require_admin=None,
+    api_router: APIRouter, *, db, rate_limit_public_post, require_admin=None, require_admin_strict=None,
 ) -> None:
     """Mount DR-CUTOVER-002 routes onto ``api_router``."""
 
@@ -1006,12 +1006,12 @@ def register_daily_summary_routes(
             "language": language,
         }
 
-    if require_admin is not None:
+    if require_admin_strict is not None:
         @api_router.post(
             "/admin/daily-reports/{report_id}/reprocess-photos",
-            dependencies=[Depends(require_admin)],
+            dependencies=[Depends(require_admin_strict)],
         )
-        async def admin_reprocess_report_photos(report_id: str):
+        async def admin_reprocess_report_photos(report_id: str, request: Request):
             report_id = _clean_str(report_id, 120)
             if not report_id:
                 raise HTTPException(status_code=400, detail="report_id required")
@@ -1037,8 +1037,21 @@ def register_daily_summary_routes(
                     reprocess_v1_report,
                     list_v1_report_intelligence,
                 )
+                from admin_hardening import record_admin_action as _record_admin_action  # noqa: PLC0415
                 result = await reprocess_v1_report(db, existing)
                 intel = await list_v1_report_intelligence(db, report_id)
+                await _record_admin_action(
+                    db,
+                    "daily_report_photo_reprocess",
+                    request,
+                    report_id=report_id,
+                    matched_report_number=existing.get("report_number"),
+                    project_number=existing.get("project_number"),
+                    photo_count=int(result.get("photos") or 0),
+                    completed=int(result.get("completed") or 0),
+                    failed=int(result.get("failed") or 0),
+                    outcome="ok" if result.get("ok") else "failed",
+                )
             except HTTPException:
                 raise
             except Exception as exc:  # noqa: BLE001
