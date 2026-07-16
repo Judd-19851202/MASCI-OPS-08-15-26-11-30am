@@ -1,3 +1,20 @@
+## 2026-07-15 · DR-03 SYNTHESIS TIMEOUT HARDENING
+
+### Exact changes applied
+- `services/ai_gateway/task_router.py`: `TASK_ROUTES['operational_narrative']` now uses `default_text_model()` instead of a hardcoded model string.
+- `routes/daily_summary.py`: wrapped the live `_compose_live_summary()` call in `asyncio.wait_for(..., timeout=80.0)` and added deterministic timeout fallback via `_compose_timeout_fallback(..., reason='summary_timeout_80s')`.
+- `backend/.env`: capped provider budget to `AI_PROVIDER_TIMEOUT_MS=30000` and `AI_PROVIDER_MAX_RETRIES=1`.
+
+### Preserved behavior verified
+- Senior-superintendent vision persona remains active.
+- Parallel / per-photo vision loop remains active.
+- `X-Device-Id` request identity wiring remains active.
+
+### Verification
+- Backend lint passed.
+- Backend restarted successfully.
+- Testing agent report `/app/test_reports/iteration_572.json`: PASS (100% backend verification).
+
 ## 2026-07-15 · DR-03 DRAFT / RECONCILER RACE FIX
 
 ### Exact fix applied
