@@ -80,6 +80,7 @@ export default function DailySummaryAssist({
   const pendingSummaryKeyRef = useRef("");
   const acceptedSummaryKeyRef = useRef("");
   const previousUploadInFlightRef = useRef(false);
+  const pendingPostUploadRefreshRef = useRef(false);
 
   useEffect(() => {
     dataRef.current = data;
@@ -468,9 +469,10 @@ export default function DailySummaryAssist({
       if (photoCount === 0) setPhotoIntelStatus("no_photos");
       return undefined;
     }
+    setPhotoIntelStatus((prev) => (prev === "no_photos" ? "queued" : prev));
     const timer = setTimeout(() => {
       syncPhotoIntel({ force: false }).catch(() => undefined);
-    }, 450);
+    }, 50);
     return () => clearTimeout(timer);
   }, [accepted, formKey, photoCount, reportNumber, compactPhotoSignature, syncPhotoIntel]);
 
@@ -503,11 +505,19 @@ export default function DailySummaryAssist({
   useEffect(() => {
     const wasUploading = previousUploadInFlightRef.current;
     const isUploading = Boolean(photoUploadState?.inFlight);
+    if (!wasUploading && isUploading) {
+      pendingPostUploadRefreshRef.current = true;
+    }
     if (wasUploading && !isUploading && !accepted) {
+      pendingPostUploadRefreshRef.current = true;
+    }
+    if (!isUploading && !accepted && pendingPostUploadRefreshRef.current && photoCount > 0) {
+      setPhotoIntelStatus((prev) => (prev === "no_photos" ? "queued" : prev));
       queueSynthesis(false, 150);
+      pendingPostUploadRefreshRef.current = false;
     }
     previousUploadInFlightRef.current = isUploading;
-  }, [accepted, photoUploadState?.inFlight, queueSynthesis]);
+  }, [accepted, photoCount, photoUploadState?.inFlight, queueSynthesis]);
 
   useEffect(() => {
     const frozen = (data?.ai_accepted_summary || "").trim();
