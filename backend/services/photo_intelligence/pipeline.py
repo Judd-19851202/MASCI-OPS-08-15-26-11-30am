@@ -936,6 +936,7 @@ async def reconcile_once(db) -> Dict[str, Any]:
                 "status": {"$in": ["pending", "failed"]},
                 "next_attempt_at": {"$lte": now},
                 "attempts": {"$lt": JOB_MAX_ATTEMPTS},
+                "draft_mode": {"$ne": True},
             },
             {"_id": 0},
         ).sort("next_attempt_at", 1).limit(RECONCILER_BATCH_LIMIT)

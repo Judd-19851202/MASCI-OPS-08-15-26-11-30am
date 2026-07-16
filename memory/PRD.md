@@ -1,3 +1,17 @@
+## 2026-07-15 · DR-03 DRAFT / RECONCILER RACE FIX
+
+### Exact fix applied
+- Updated `services/photo_intelligence/pipeline.py::reconcile_once()` so the reconciler candidate query now excludes draft jobs with:
+  - `"draft_mode": {"$ne": True}`
+
+### Result
+- The reconciler no longer touches draft photo-intelligence jobs created by `process_draft()`.
+- This removes the reported race between draft processing and the submitted-report reconciler loop.
+
+### Verification
+- Python lint passed.
+- Backend restarted successfully in preview.
+
 ## 2026-07-15 · DR-03 MULTI-MODEL FAILOVER HARDENING
 
 ### Failover changes applied
