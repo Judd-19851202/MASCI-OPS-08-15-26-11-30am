@@ -160,6 +160,13 @@ export default function NewDailyReportV3({ publicMode = false }) {
   const [legacyDraftRecovery, setLegacyDraftRecovery] = useState(null);
   const [archivedDraft, setArchivedDraft] = useState(null);
   const [summaryGate, setSummaryGate] = useState({ canSubmit: false, manualNeeded: false });
+  const [photoBatchState, setPhotoBatchState] = useState({
+    inFlight: false,
+    total: 0,
+    completed: 0,
+    failed: 0,
+    phase: "idle",
+  });
   const idempotencyKeyRef = useRef(null);
   const actorId = getStableActorIdentity();
   const draftScope = useMemo(() => buildDailyReportInstanceScope({ ...data, actor_id: actorId }), [data, actorId]);
@@ -1112,7 +1119,12 @@ export default function NewDailyReportV3({ publicMode = false }) {
           <SectionCrewEquipment data={data} patch={patch} costCodes={costCodes} />
           <SectionWorkProduction data={data} patch={patch} costCodes={costCodes} />
           <SectionMaterials data={data} patch={patch} costCodes={costCodes} />
-          <SectionPhotos data={data} patch={patch} photoMin={photoMin} />
+          <SectionPhotos
+            data={data}
+            patch={patch}
+            photoMin={photoMin}
+            onPhotoBatchStateChange={setPhotoBatchState}
+          />
           <SectionImpactSafety data={data} patch={patch} />
           {/* TRACK 23.10-E · Excavation section — collapsed unless
               excavation today = Yes. Consumes Qualifications Engine. */}
@@ -1129,6 +1141,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
             reportId={reportId}
             formKey={scopedFormKey}
             draftActorId={actorId}
+            photoUploadState={photoBatchState}
             onStateChange={setSummaryGate}
             onAccepted={(payload) =>
               patch({

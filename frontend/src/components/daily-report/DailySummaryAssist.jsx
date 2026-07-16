@@ -27,8 +27,9 @@ function hasEnoughEvidence(data) {
   return acts > 0 || crew > 0 || photos > 0 || mats > 0 || subs > 0 || prod > 0 || notes.length > 20;
 }
 
-const DEBOUNCE_MS = 3000;
+const DEBOUNCE_MS = 1000;
 const REQUEST_TIMEOUT_MS = 60000;
+const buildDeterministicFallback = buildDeterministicSummaryFallback;
 
 export default function DailySummaryAssist({
   data,
@@ -36,6 +37,7 @@ export default function DailySummaryAssist({
   reportNumber,
   formKey,
   draftActorId,
+  photoUploadState,
   onAccept,
   onStateChange,
   testId = "daily-summary-assist",
@@ -50,7 +52,6 @@ export default function DailySummaryAssist({
   const [status, setStatus] = useState("idle");
   const [narrative, setNarrative] = useState("");
   const [edited, setEdited] = useState("");
-  const [confidence, setConfidence] = useState(null);
   const [uncertainties, setUncertainties] = useState([]);
   const [evidenceRefs, setEvidenceRefs] = useState([]);
   const [providerMasked, setProviderMasked] = useState(null);
@@ -73,10 +74,24 @@ export default function DailySummaryAssist({
   const dataRef = useRef(data);
   const photoIntelKeyRef = useRef("");
   const photoIntelValueRef = useRef(null);
+  const latestPhotoIntelRef = useRef(null);
+  const narrativeRef = useRef("");
+  const completedSummaryKeyRef = useRef("");
+  const pendingSummaryKeyRef = useRef("");
+  const acceptedSummaryKeyRef = useRef("");
+  const previousUploadInFlightRef = useRef(false);
 
   useEffect(() => {
     dataRef.current = data;
   }, [data]);
+
+  useEffect(() => {
+    latestPhotoIntelRef.current = latestPhotoIntel;
+  }, [latestPhotoIntel]);
+
+  useEffect(() => {
+    narrativeRef.current = narrative;
+  }, [narrative]);
 
   const activityCardsJson = useMemo(() => JSON.stringify(data?.activity_cards || data?.activities || []), [data?.activity_cards, data?.activities]);
   const crewsJson = useMemo(() => JSON.stringify(data?.masci_crews || []), [data?.masci_crews]);
@@ -91,6 +106,10 @@ export default function DailySummaryAssist({
   const safetyNotes = data?.safety_quality?.notes;
   const incidentNotes = data?.incident_notes;
   const weatherSummary = data?.weather_summary;
+  const generalNotes = data?.general_notes;
+  const location = data?.location;
+  const preparedBy = data?.prepared_by;
+  const superintendent = data?.superintendent;
 
   const compactPhotoSignature = useMemo(() => {
     const sig = [];
@@ -113,6 +132,112 @@ export default function DailySummaryAssist({
     });
     return `${formKey || ""}::${sig.join("|")}`;
   }, [data?.photos, data?.materials, data?.subcontractors, formKey]);
+
+  const photoIntelSignature = useMemo(() => JSON.stringify({
+    status: latestPhotoIntel?.status || photoIntelStatus || "",
+    lifecycle_status: latestPhotoIntel?.lifecycle_status || "",
+    analyzed: Number(latestPhotoIntel?.analyzed || 0),
+    queued: Number(latestPhotoIntel?.queued || 0),
+    processing: Number(latestPhotoIntel?.processing || 0),
+    failed: Number(latestPhotoIntel?.failed || 0),
+    reviewed: Number(latestPhotoIntel?.reviewed || 0),
+    duplicates_reused: Number(latestPhotoIntel?.duplicates_reused || 0),
+    observations: (latestPhotoIntel?.observations || []).map((item) => {
+      if (!item) return "";
+      if (typeof item === "string") return item;
+      return item.description || item.summary || item.label || item.photo_id || "";
+    }).slice(0, 24),
+  }), [latestPhotoIntel, photoIntelStatus]);
+
+  const summaryRequestKey = useMemo(() => JSON.stringify({
+    project_number: data?.project_number || "",
+    project_name: data?.project_name || "",
+    report_date: data?.report_date || "",
+    prepared_by: preparedBy || "",
+    superintendent: superintendent || "",
+    location: location || "",
+    weather_summary: weatherSummary || "",
+    general_notes: generalNotes || "",
+    incident_notes: incidentNotes || "",
+    safety_notes: safetyNotes || "",
+    tomorrow_plan: tomorrowPlan || "",
+    follow_ups: followUps || "",
+    activities: activityCardsJson,
+    crews: crewsJson,
+    equipment: equipmentJson,
+    materials: materialsJson,
+    constraints: constraintsJson,
+    production: productionJson,
+    subcontractors: subcontractorsJson,
+    photo_signature: compactPhotoSignature,
+    photo_intelligence_signature: photoIntelSignature,
+  }), [
+    activityCardsJson,
+    compactPhotoSignature,
+    constraintsJson,
+    crewsJson,
+    data?.project_name,
+    data?.project_number,
+    data?.report_date,
+    equipmentJson,
+    followUps,
+    generalNotes,
+    incidentNotes,
+    location,
+    materialsJson,
+    preparedBy,
+    productionJson,
+    photoIntelSignature,
+    safetyNotes,
+    subcontractorsJson,
+    superintendent,
+    tomorrowPlan,
+    weatherSummary,
+  ]);
+
+  const missingDetails = useMemo(() => {
+    const items = [];
+    const hasWorkEvidence = Boolean((data?.production || []).length || (data?.activity_cards || data?.activities || []).length);
+    const hasCrewEvidence = Boolean((data?.masci_crews || []).length || (data?.subcontractors || []).length);
+    if (!data?.project_name && !data?.project_number) items.push("project identification");
+    if (!location) items.push("work location");
+    if (!preparedBy && !superintendent) items.push("superintendent or preparer");
+    if (!weatherSummary) items.push("weather conditions");
+    if (!hasWorkEvidence) items.push("work performed or production quantities");
+    if (!hasCrewEvidence) items.push("crew or subcontractor labor");
+    if (!(data?.photos || []).length) items.push("photo evidence");
+    if (!tomorrowPlan && !followUps) items.push("tomorrow plan or follow-up");
+    return items;
+  }, [
+    data?.activity_cards,
+    data?.activities,
+    data?.masci_crews,
+    data?.photos,
+    data?.production,
+    data?.project_name,
+    data?.project_number,
+    data?.subcontractors,
+    followUps,
+    location,
+    preparedBy,
+    superintendent,
+    tomorrowPlan,
+    weatherSummary,
+  ]);
+
+  const completenessLabel = useMemo(() => {
+    if (photoUploadState?.inFlight || status === "building") return "Updating from new report information";
+    if (!hasEnoughEvidence(data)) return "More information needed";
+    if (missingDetails.length > 0) return "Summary ready — some details missing";
+    return "Summary ready";
+  }, [data, missingDetails.length, photoUploadState?.inFlight, status]);
+
+  const completenessTone = useMemo(() => {
+    if (photoUploadState?.inFlight || status === "building") return "border-sky-200 bg-sky-50 text-sky-800";
+    if (!hasEnoughEvidence(data)) return "border-amber-200 bg-amber-50 text-amber-900";
+    if (missingDetails.length > 0) return "border-amber-200 bg-amber-50 text-amber-900";
+    return "border-emerald-200 bg-emerald-50 text-emerald-800";
+  }, [data, missingDetails.length, photoUploadState?.inFlight, status]);
 
   const syncPhotoIntel = useCallback(async ({ force = false } = {}) => {
     const currentData = dataRef.current || {};
@@ -164,7 +289,18 @@ export default function DailySummaryAssist({
       setLatestPhotoIntel(photoIntelValueRef.current);
       return photoIntelValueRef.current;
     }
-    if (!force && photoIntelKeyRef.current === compactPhotoSignature && photoIntelValueRef.current) {
+    const cachedStatus = String(photoIntelValueRef.current?.status || "");
+    const terminalStatuses = new Set([
+      "no_photos",
+      "complete",
+      "complete_with_observations",
+      "complete_with_some_failures",
+      "complete_zero_observations",
+      "analysis_unavailable",
+      "unavailable",
+      "suppressed",
+    ]);
+    if (!force && photoIntelKeyRef.current === compactPhotoSignature && photoIntelValueRef.current && terminalStatuses.has(cachedStatus)) {
       return photoIntelValueRef.current;
     }
     const { data: response } = await api.post("/daily-reports/photo-intelligence/draft", {
@@ -180,16 +316,39 @@ export default function DailySummaryAssist({
   }, [compactPhotoSignature, formKey, reportNumber]);
 
   useEffect(() => {
+    if (accepted) return undefined;
+    if (photoUploadState?.inFlight) return undefined;
+    const status = String(latestPhotoIntel?.status || photoIntelStatus || "");
+    if (!["queued", "analyzing", "partially_analyzed", "uploading", "processing", "not_requested"].includes(status)) {
+      return undefined;
+    }
+    const timer = setTimeout(async () => {
+      try {
+        await syncPhotoIntel({ force: false });
+      } catch {
+        // best effort only
+      }
+    }, 2200);
+    return () => clearTimeout(timer);
+  }, [accepted, latestPhotoIntel, photoIntelStatus, photoUploadState?.inFlight, syncPhotoIntel]);
+
+  useEffect(() => {
     if (!regenerateCooldownUntil) return undefined;
     const timer = setInterval(() => setCooldownNow(Date.now()), 500);
     return () => clearInterval(timer);
   }, [regenerateCooldownUntil]);
 
-  const synthesize = useCallback(async (force = false) => {
-    if (!hasEnoughEvidence(data)) {
+  const synthesize = useCallback(async (force = false, overrideKey = null) => {
+    const currentData = dataRef.current || {};
+    const requestKey = overrideKey || summaryRequestKey;
+    if (!hasEnoughEvidence(currentData) || photoUploadState?.inFlight) {
       setStatus("idle");
       return;
     }
+    if (!force && (pendingSummaryKeyRef.current === requestKey || completedSummaryKeyRef.current === requestKey)) {
+      return;
+    }
+    pendingSummaryKeyRef.current = requestKey;
     if (abortRef.current) {
       try { abortRef.current.abort(); } catch (e) { void e; }
     }
@@ -218,7 +377,7 @@ export default function DailySummaryAssist({
       } catch {
         photoIntel = null;
       }
-      const payload = buildDailyReportSummaryPayload(dataRef.current, photoIntel, { formKey });
+      const payload = buildDailyReportSummaryPayload(currentData, photoIntel, { formKey });
       const { data: resp } = await api.post(
         `/daily-reports/summary/draft`,
         { payload, form_key: formKey, force },
@@ -244,10 +403,9 @@ export default function DailySummaryAssist({
       setPhotoIntelStatus(statusFromPhotoIntel);
       setAiAvailable(Boolean(resp?.enabled));
       const text = (resp?.summary_text || "").trim();
-      const fb = text || buildDeterministicSummaryFallback(dataRef.current, summaryPhotoIntel);
+      const fb = text || buildDeterministicFallback(dataRef.current, summaryPhotoIntel);
       setNarrative(fb);
       setEdited(fb);
-      setConfidence(typeof resp?.confidence === "number" ? resp.confidence : null);
       const notes = [];
       if (summaryPhotoIntel?.classification) notes.push(summaryPhotoIntel.classification);
       if (!resp?.enabled && resp?.provider_state?.code) {
@@ -263,26 +421,46 @@ export default function DailySummaryAssist({
       setError(null);
       setErrorCode(null);
       setStatus("ready");
+      completedSummaryKeyRef.current = requestKey;
     } catch (err) {
       if (mySeq !== requestSeqRef.current) return;
       if (err?.name === "CanceledError" || err?.name === "AbortError") return;
       const normalized = normalizeOperatorError(err, {
         fallbackMessage: "Summary assist is unavailable right now. You can approve the generated summary or write a manual summary.",
       });
-      const fb = buildDeterministicSummaryFallback(dataRef.current, latestPhotoIntel || null);
-      if (!narrative.trim()) {
+      const fb = buildDeterministicFallback(dataRef.current, latestPhotoIntelRef.current || null);
+      if (!narrativeRef.current.trim()) {
         setNarrative(fb);
         setEdited(fb);
       }
       setAiAvailable(false);
-      setPhotoIntelStatus((latestPhotoIntel?.status) || ((dataRef.current?.photos || []).length > 0 ? "queued" : "no_photos"));
+      setPhotoIntelStatus((latestPhotoIntelRef.current?.status) || ((dataRef.current?.photos || []).length > 0 ? "queued" : "no_photos"));
       setError(normalized.message);
       setErrorCode(normalized.code);
       setStatus("ready");
+      completedSummaryKeyRef.current = requestKey;
     } finally {
+      pendingSummaryKeyRef.current = "";
       clearTimeout(timeoutId);
     }
-  }, [actorId, data, formKey, latestPhotoIntel, narrative, syncPhotoIntel]);
+  }, [actorId, formKey, photoUploadState?.inFlight, summaryRequestKey, syncPhotoIntel]);
+
+  const queueSynthesis = useCallback((force = false, debounceMs = DEBOUNCE_MS) => {
+    if (acceptedSummaryKeyRef.current && acceptedSummaryKeyRef.current !== summaryRequestKey) {
+      acceptedSummaryKeyRef.current = "";
+      setAccepted(false);
+      setDecision("pending");
+      onAccept?.("", null);
+    }
+    if (photoUploadState?.inFlight) {
+      setStatus("building");
+      return;
+    }
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      synthesize(force, summaryRequestKey);
+    }, debounceMs);
+  }, [onAccept, photoUploadState?.inFlight, summaryRequestKey, synthesize]);
 
   useEffect(() => {
     if (accepted) return undefined;
@@ -297,9 +475,8 @@ export default function DailySummaryAssist({
   }, [accepted, formKey, photoCount, reportNumber, compactPhotoSignature, syncPhotoIntel]);
 
   useEffect(() => {
-    if (accepted) return;
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => { synthesize(false); }, DEBOUNCE_MS);
+    if (accepted && acceptedSummaryKeyRef.current === summaryRequestKey) return undefined;
+    queueSynthesis(false, DEBOUNCE_MS);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
@@ -319,8 +496,18 @@ export default function DailySummaryAssist({
     incidentNotes,
     weatherSummary,
     accepted,
-    synthesize,
+    queueSynthesis,
+    summaryRequestKey,
   ]);
+
+  useEffect(() => {
+    const wasUploading = previousUploadInFlightRef.current;
+    const isUploading = Boolean(photoUploadState?.inFlight);
+    if (wasUploading && !isUploading && !accepted) {
+      queueSynthesis(false, 150);
+    }
+    previousUploadInFlightRef.current = isUploading;
+  }, [accepted, photoUploadState?.inFlight, queueSynthesis]);
 
   useEffect(() => {
     const frozen = (data?.ai_accepted_summary || "").trim();
@@ -329,7 +516,8 @@ export default function DailySummaryAssist({
     setAccepted(true);
     setEdited(frozen);
     setDecision(meta?.source === "manual" ? "manual_accepted" : "ai_accepted");
-  }, [data?.ai_accepted_summary, data?.ai_accepted_summary_meta]);
+    acceptedSummaryKeyRef.current = String(meta?.report_state_signature || summaryRequestKey || "");
+  }, [data?.ai_accepted_summary, data?.ai_accepted_summary_meta, summaryRequestKey]);
 
   useEffect(() => {
     const hasFrozen = !!(data?.ai_accepted_summary || "").trim();
@@ -339,9 +527,9 @@ export default function DailySummaryAssist({
       hasFrozen,
       manualNeeded: decision === "manual_required",
       manualReady: decision === "manual_required" && !!edited.trim(),
-      canSubmit: hasFrozen,
+      canSubmit: hasFrozen && (!acceptedSummaryKeyRef.current || acceptedSummaryKeyRef.current === summaryRequestKey),
     });
-  }, [accepted, data?.ai_accepted_summary, decision, edited, onStateChange]);
+  }, [accepted, data?.ai_accepted_summary, decision, edited, onStateChange, summaryRequestKey]);
 
   function handleAccept() {
     const text = (edited || narrative || "").trim();
@@ -358,9 +546,9 @@ export default function DailySummaryAssist({
       accepted_at: new Date().toISOString(),
       edited_by_user: editedByUser,
       edited_by_supervisor: editedByUser,
-      confidence,
       evidence_refs: evidenceRefs,
       latency_ms: latencyMs,
+      report_state_signature: summaryRequestKey,
       report_identity: {
         report_id: summaryReportId || "",
         report_number: data?.report_number || reportNumber || "",
@@ -372,6 +560,7 @@ export default function DailySummaryAssist({
     };
     setAccepted(true);
     setDecision("ai_accepted");
+    acceptedSummaryKeyRef.current = summaryRequestKey;
     onAccept?.(text, meta);
   }
 
@@ -388,10 +577,12 @@ export default function DailySummaryAssist({
     const intel = latestPhotoIntel || {};
     const total = Number(intel.photo_count || photoCount || 0);
     const reviewed = Number(intel.reviewed || intel.analyzed || 0);
-    const queued = Number(intel.queued || 0);
-    const processing = Number(intel.processing || 0);
     const terminalFailures = Number(intel.terminal_failures || 0) + Number(intel.unavailable || 0);
     const state = String(photoIntelStatus || "no_photos");
+    if (photoUploadState?.inFlight) {
+      const totalUploads = Number(photoUploadState?.total || total || 0);
+      return `Uploading ${photoUploadState?.completed || 0} of ${totalUploads} photos…`;
+    }
     if (state === "no_photos") return "No photos attached yet.";
     if (state === "uploading") return `Uploading ${total} photos…`;
     if (state === "queued") return `Queued ${total} photos for analysis.`;
@@ -401,7 +592,7 @@ export default function DailySummaryAssist({
     if (state === "complete_with_some_failures") return `${reviewed} of ${total} photos analyzed — ${terminalFailures} could not be processed.`;
     if (state === "complete_with_observations") return `Photo analysis complete — ${total} photos reviewed.`;
     return "Photo analysis unavailable — your report data is safe.";
-  }, [latestPhotoIntel, photoCount, photoIntelStatus]);
+  }, [latestPhotoIntel, photoCount, photoIntelStatus, photoUploadState]);
 
   const showSummaryError = Boolean(error && !(edited || narrative || "").trim());
 
@@ -410,6 +601,16 @@ export default function DailySummaryAssist({
   function handleRejectToManual() {
     setAccepted(false);
     setDecision("manual_required");
+    onAccept?.("", null);
+  }
+
+  function handleClearApprovedSummary() {
+    acceptedSummaryKeyRef.current = "";
+    setAccepted(false);
+    setDecision("pending");
+    setEdited("");
+    setNarrative("");
+    setUncertainties([]);
     onAccept?.("", null);
   }
 
@@ -426,9 +627,9 @@ export default function DailySummaryAssist({
       accepted_at: new Date().toISOString(),
       edited_by_user: true,
       edited_by_supervisor: true,
-      confidence: null,
       evidence_refs: [],
       latency_ms: null,
+      report_state_signature: summaryRequestKey,
       report_identity: {
         report_id: summaryReportId || "",
         report_number: data?.report_number || reportNumber || "",
@@ -440,6 +641,7 @@ export default function DailySummaryAssist({
     };
     setAccepted(true);
     setDecision("manual_accepted");
+    acceptedSummaryKeyRef.current = summaryRequestKey;
     onAccept?.(text, meta);
   }
 
@@ -464,6 +666,13 @@ export default function DailySummaryAssist({
         )}
       </div>
 
+      <div
+        className={`mb-3 rounded-lg border px-3 py-2 text-xs font-semibold ${completenessTone}`}
+        data-testid={`${testId}-completeness-state`}
+      >
+        {completenessLabel}
+      </div>
+
       <p className="mb-3 text-xs text-slate-500">
         {t("Grounded in the fields you've entered. Before submit, you must accept the AI summary, regenerate and then accept it, or reject it and approve a manual summary.")}
       </p>
@@ -482,6 +691,18 @@ export default function DailySummaryAssist({
       >
         {operatorPhotoStatus}
       </div>
+
+      {missingDetails.length > 0 && (
+        <div
+          className="mb-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900"
+          data-testid={`${testId}-missing-details`}
+        >
+          <div className="font-semibold">Missing report details</div>
+          <ul className="mt-1 list-disc pl-4">
+            {missingDetails.map((item) => <li key={item}>{item}</li>)}
+          </ul>
+        </div>
+      )}
 
       {status === "idle" && !narrative && (
         <p className="text-sm italic text-slate-500" data-testid={`${testId}-empty`}>
@@ -507,16 +728,13 @@ export default function DailySummaryAssist({
             disabled={status === "building" && !narrative}
           />
 
-          {typeof confidence === "number" && (
-            <p className="mt-1 text-xs text-slate-400" data-testid={`${testId}-confidence`}>
-              confidence: {(confidence * 100).toFixed(0)}%
-            </p>
-          )}
-
           {uncertainties.length > 0 && (
-            <ul className="mt-2 list-disc pl-4 text-xs text-amber-700" data-testid={`${testId}-uncertainties`}>
-              {uncertainties.map((u, i) => <li key={i}>{u}</li>)}
-            </ul>
+            <div className="mt-2 rounded-md border border-slate-200 bg-slate-50 p-3" data-testid={`${testId}-uncertainties`}>
+              <div className="mb-1 text-xs font-semibold text-slate-800">Summary notes</div>
+              <ul className="list-disc pl-4 text-xs text-slate-700">
+                {uncertainties.map((u, i) => <li key={i}>{u}</li>)}
+              </ul>
+            </div>
           )}
 
           <div className="mt-3 flex flex-wrap gap-2">
@@ -549,6 +767,15 @@ export default function DailySummaryAssist({
               data-testid={`${testId}-reject-manual`}
             >
               <FileWarning className="mr-1 h-3 w-3" />{t("Reject AI & write manual")}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={handleClearApprovedSummary}
+              data-testid={`${testId}-clear`}
+            >
+              {t("Clear draft summary")}
             </Button>
           </div>
 

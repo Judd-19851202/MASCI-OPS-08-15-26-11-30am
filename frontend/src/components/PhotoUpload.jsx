@@ -74,6 +74,7 @@ function useCameraSupport() {
 export const PhotoUpload = ({
   photos = [],
   onChange,
+  onBatchStateChange,
   testIdBase = "photo-upload",
   forceCamera = false,
 }) => {
@@ -116,6 +117,7 @@ export const PhotoUpload = ({
 
     const total = imageFiles.length;
     setProgress({ current: 0, total });
+    onBatchStateChange?.({ inFlight: true, total, completed: 0, failed: 0, phase: "compressing" });
 
     // TRACK 24.12 Phase A1 · Read the FRESHEST photo list from the
     // ref, not the stale `photos` prop closure. Also mutate the ref
@@ -129,11 +131,13 @@ export const PhotoUpload = ({
     for (let i = 0; i < imageFiles.length; i += 1) {
       const file = imageFiles[i];
       setProgress({ current: i + 1, total });
+      onBatchStateChange?.({ inFlight: true, total, completed: i, failed, phase: "compressing" });
       try {
         const dataUrl = await compressImage(file, 1280, 0.78);
         next.push(dataUrl);
         photosRef.current = [...next];  // ← keep ref current in-flight
         onChange?.([...next]);
+        onBatchStateChange?.({ inFlight: true, total, completed: i + 1, failed, phase: "compressing" });
       } catch (err) {
         failed += 1;
         // TRACK 24.11 · Actionable HEIC error — the previous silent
@@ -151,6 +155,7 @@ export const PhotoUpload = ({
       }
     }
     setProgress(null);
+    onBatchStateChange?.({ inFlight: false, total, completed: total - failed, failed, phase: "complete" });
 
     if (heicFailed > 0) {
       // TRACK 24.11B · client-side heic2any now handles HEIC on

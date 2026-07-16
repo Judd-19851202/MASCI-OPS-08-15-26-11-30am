@@ -286,23 +286,39 @@ def _rank_photo_observations(items: List[Any]) -> List[str]:
     for item in items[:60]:
         if not isinstance(item, dict):
             continue
+        candidates = []
         desc = _clean_str(item.get("description"), 220)
-        if not desc or _is_low_value_photo_fact(desc):
-            continue
-        key = desc.lower()
-        if key in seen:
-            continue
-        seen.add(key)
-        ranked.append(desc)
+        if desc:
+            candidates.append(desc)
+        summary = _clean_str(item.get("summary"), 220)
+        if summary:
+            candidates.append(summary)
+        for obs in list(item.get("observations") or [])[:4]:
+            cleaned = _clean_str(obs, 220)
+            if cleaned:
+                candidates.append(cleaned)
+        for candidate in candidates:
+            if _is_low_value_photo_fact(candidate):
+                continue
+            key = candidate.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            ranked.append(candidate)
+            break
     return ranked[:5]
 
 
 def _photo_observations_for_ai(photo_intel: Optional[Dict[str, Any]]) -> List[Dict[str, Any]]:
     items: List[Dict[str, Any]] = []
-    for index, row in enumerate(list((photo_intel or {}).get("photos") or [])[:24], start=1):
+    source_rows = list((photo_intel or {}).get("photos") or [])[:24]
+    if not source_rows:
+        source_rows = list((photo_intel or {}).get("observations") or [])[:24]
+    for index, row in enumerate(source_rows, start=1):
         if not isinstance(row, dict):
             continue
-        if _clean_str(row.get("analysis_status"), 40) != "complete":
+        analysis_status = _clean_str(row.get("analysis_status") or row.get("status"), 40)
+        if analysis_status and analysis_status != "complete":
             continue
         observations: List[str] = []
         for entry in row.get("observations") or []:
@@ -520,6 +536,18 @@ def _build_live_ai_bundle(payload: Dict[str, Any], photo_intel: Optional[Dict[st
     if ai_photo_obs:
         normalized["photo_observations"] = ai_photo_obs
         normalized["photo_evidence_manifest"] = _build_photo_evidence_manifest(ai_photo_obs)
+    if normalized.get("subcontractors") and not normalized.get("subs_vendors"):
+        normalized["subs_vendors"] = normalized.get("subcontractors")
+    if normalized.get("photo_captions") and not normalized.get("photos_captions"):
+        normalized["photos_captions"] = normalized.get("photo_captions")
+    gps_location = dict(normalized.get("gps_location") or {})
+    if not gps_location:
+        lat = normalized.get("gps_lat")
+        lng = normalized.get("gps_lng")
+        if lat not in (None, "") or lng not in (None, ""):
+            gps_location = {"lat": lat, "lng": lng}
+    if gps_location:
+        normalized["gps_location"] = gps_location
     return build_evidence_bundle(normalized)
 
 
@@ -556,7 +584,6 @@ async def _compose_live_summary(
             "sentence_count": max(1, narrative.count(".") + narrative.count("\n\n")),
             "summary_input": composed["summary_input"],
             "photo_intelligence": photo_intel,
-            "confidence": float(getattr(result, "confidence", 0.0) or 0.0),
             "request_id": request_id,
         }
 
@@ -574,7 +601,6 @@ async def _compose_live_summary(
         "sentence_count": composed["sentence_count"],
         "summary_input": composed["summary_input"],
         "photo_intelligence": photo_intel,
-        "confidence": 0.0,
         "request_id": request_id,
     }
 
@@ -806,7 +832,6 @@ def _compose_timeout_fallback(
         "sentence_count": composed["sentence_count"],
         "summary_input": composed["summary_input"],
         "photo_intelligence": photo_intel,
-        "confidence": 0.0,
         "request_id": request_id,
     }
 
@@ -885,26 +910,14 @@ def register_daily_summary_routes(
                 }
         except Exception:  # noqa: BLE001
             photo_intel = None
-        session_key = form_key or _clean_str(payload.get("project_number"), 40) or "draft"
-        try:
-            return await asyncio.wait_for(
-                _compose_live_summary(
-                    payload,
-                    photo_intel=photo_intel,
-                    language=language,
-                    request_id=request_id,
-                    session_key=session_key,
-                ),
-                timeout=80.0,
-            )
-        except asyncio.TimeoutError:
-            return _compose_timeout_fallback(
-                payload,
-                photo_intel=photo_intel,
-                language=language,
-                request_id=request_id,
-                reason="summary_timeout_80s",
-            )
+        fast_path_reason = "draft_fast_path_deterministic"
+        return _compose_timeout_fallback(
+            payload,
+            photo_intel=photo_intel,
+            language=language,
+            request_id=request_id,
+            reason=fast_path_reason,
+        )
 
     # ─────── POST /api/daily-reports/{report_id}/summary/accept ────
     @api_router.post(

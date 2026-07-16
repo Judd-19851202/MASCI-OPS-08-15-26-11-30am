@@ -1421,7 +1421,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
 }
 
 // ── Section 05 · Photos + Evidence ─────────────────────────────
-export function SectionPhotos({ data, patch, photoMin }) {
+export function SectionPhotos({ data, patch, photoMin, onPhotoBatchStateChange }) {
   const { t } = useT();
   const photos = data.photos || [];
   const short = Math.max(0, (photoMin || 6) - photos.length);
@@ -1445,6 +1445,7 @@ export function SectionPhotos({ data, patch, photoMin }) {
       <PhotoUpload
         photos={photos}
         onChange={(next) => patch({ photos: next })}
+        onBatchStateChange={onPhotoBatchStateChange}
         placeholderLabel="Add photo"
         testIdBase="dr-v3-photos"
       />
@@ -2069,7 +2070,7 @@ export function SectionTomorrow({ data, patch }) {
 // a silent no-op, so the human-accepted summary never reached the
 // DR payload. The wrapper below now forwards the raw `(text, meta)`
 // tuple to the parent as `{summary, meta}` (V3 shell's shape).
-export function SectionAiSummary({ data, reportId, formKey, draftActorId, onAccepted, onStateChange }) {
+export function SectionAiSummary({ data, reportId, formKey, draftActorId, photoUploadState, onAccepted, onStateChange }) {
   const { t } = useT();
   return (
     <SectionShell
@@ -2085,6 +2086,7 @@ export function SectionAiSummary({ data, reportId, formKey, draftActorId, onAcce
         reportNumber={data.report_number}
         formKey={formKey}
         draftActorId={draftActorId}
+        photoUploadState={photoUploadState}
         data={data}
         onStateChange={onStateChange}
         onAccept={(text, meta) => onAccepted?.({ summary: text, meta })}

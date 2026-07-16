@@ -20,7 +20,7 @@ from pathlib import Path
 import pytest
 
 
-V1_FORM = Path("/app/frontend/src/pages/NewDailyReport.jsx")
+V1_FORM = Path("/app/frontend/src/pages/NewDailyReportV3.jsx")
 ASSIST = Path("/app/frontend/src/components/daily-report/DailySummaryAssist.jsx")
 ROUTES = Path("/app/frontend/src/app/routing/AppRoutes.jsx")
 
@@ -31,19 +31,16 @@ def _read(p: Path) -> str:
 
 def test_v1_form_imports_summary_assist():
     src = _read(V1_FORM)
-    assert "DailySummaryAssist" in src, "V1 form must import DailySummaryAssist"
-    assert re.search(r'from\s+"@/components/daily-report/DailySummaryAssist"', src), \
-        "import path must point to daily-report component"
+    assert "SectionAiSummary" in src, "V3 form must wire the summary section"
+    assert "daily-report-v3/sections" in src, "V3 form must import summary section bundle"
 
 
 def test_v1_form_renders_summary_assist_before_signoff():
     src = _read(V1_FORM)
-    assist_pos = src.find("<DailySummaryAssist")
-    # Sign-Off band may appear multiple places (LifecycleGuide + actual
-    # section); the actual band is the LAST occurrence.
-    signoff_pos = src.rfind("Sign-Off / Submit")
-    submit_pos = src.find("prepared-by-sig")
-    assert assist_pos > 0, "V1 form must render <DailySummaryAssist />"
+    assist_pos = src.find("<SectionAiSummary")
+    signoff_pos = src.find("<SectionSignoff")
+    submit_pos = src.find("onSubmit={onSubmit}")
+    assert assist_pos > 0, "V3 form must render <SectionAiSummary />"
     assert assist_pos < signoff_pos, "Summary assist must sit before Sign-Off band"
     assert assist_pos < submit_pos, "Summary assist must sit before signature pad"
 
@@ -81,10 +78,10 @@ def test_v2_shell_stays_retired():
 
 
 def test_assist_uses_existing_backend_no_new_ai_routes():
-    """Assist reuses /api/dr-v2/* endpoints — no new AI backend endpoints."""
+    """Assist reuses the existing daily report summary + draft photo paths; no new AI family."""
     src = _read(ASSIST)
-    assert "/dr-v2/drafts" in src
-    assert "/dr-v2/ai/synthesize" in src
+    assert "/daily-reports/photo-intelligence/draft" in src
+    assert "/daily-reports/summary/draft" in src
     # It must NOT invent a new /daily-reports/ai path.
     assert "/daily-reports/ai/" not in src
     assert "/api/ai/summary" not in src
@@ -119,7 +116,7 @@ def test_assist_has_hard_timeout():
 
 def test_assist_has_deterministic_fallback():
     src = _read(ASSIST)
-    assert "buildDeterministicFallback" in src
+    assert "buildDeterministicFallback" in src or "buildDeterministicSummaryFallback" in src
     # Fallback must be grounded — no AI branding, no invented facts.
     assert "invents" not in src.lower() or "never invents" in src.lower()
 
@@ -151,12 +148,8 @@ def test_accepted_summary_flows_into_dr_payload():
     ``day_summary_fact``. This is the only mechanism by which downstream
     consumers (PDF, PM screens, ODS) see the accepted narrative."""
     src = _read(V1_FORM)
-    assert re.search(
-        r'set\("ai_accepted_summary",\s*text\)', src
-    ), "V1 form must copy accepted summary text onto ai_accepted_summary"
-    assert re.search(
-        r'set\("ai_accepted_summary_meta",\s*meta\s*\|\|\s*null\)', src
-    ), "V1 form must copy provenance meta onto ai_accepted_summary_meta"
+    assert "ai_accepted_summary: payload?.summary || \"\"" in src, "V3 form must copy accepted summary text"
+    assert "ai_accepted_summary_meta: payload?.meta || null" in src, "V3 form must copy provenance meta"
 
 
 def test_dr_model_accepts_new_summary_fields():
@@ -166,11 +159,11 @@ def test_dr_model_accepts_new_summary_fields():
     payload = {
         "project_name": "Test", "location": "Test", "report_date": "2026-02-06",
         "prepared_by": "Test", "ai_accepted_summary": "test narrative",
-        "ai_accepted_summary_meta": {"source": "ai", "confidence": 0.72},
+        "ai_accepted_summary_meta": {"source": "ai", "report_state_signature": "abc123"},
     }
     m = DailyReportCreate(**payload)
     assert m.ai_accepted_summary == "test narrative"
-    assert m.ai_accepted_summary_meta == {"source": "ai", "confidence": 0.72}
+    assert m.ai_accepted_summary_meta == {"source": "ai", "report_state_signature": "abc123"}
 
 
 def test_ods_spine_emits_day_summary_fact_when_summary_present():
@@ -185,7 +178,7 @@ def test_ods_spine_emits_day_summary_fact_when_summary_present():
         "ai_accepted_summary": "Crew installed 200 LF of pipe.",
         "ai_accepted_summary_meta": {
             "source": "edited", "provider_masked": "emergent",
-            "model_masked": "claude-sonnet", "confidence": 0.72,
+            "model_masked": "claude-sonnet",
             "evidence_refs": ["masci_crews[0]", "materials[1]"],
             "latency_ms": 8600,
         },
@@ -196,7 +189,6 @@ def test_ods_spine_emits_day_summary_fact_when_summary_present():
     p = sums[0]["payload"]
     assert p["text"].startswith("Crew installed")
     assert p["source"] == "edited"
-    assert p["confidence"] == 0.72
     assert "masci_crews[0]" in (p["evidence_refs"] or [])
     assert p["latency_ms"] == 8600
 
@@ -219,6 +211,6 @@ def test_photo_upload_and_submit_paths_unchanged():
     """Sanity: existing photo upload + submit paths must remain intact."""
     src = _read(V1_FORM)
     assert 'url: "/daily-reports"' in src, "V1 submit endpoint must remain"
-    assert "PhotoUpload" in src, "photo upload must remain"
+    assert "SectionPhotos" in src, "photo upload section must remain"
     assert "idempotencyKeyRef" in src, "idempotency must remain"
     assert "enqueueUpload" in src, "offline queue must remain"
