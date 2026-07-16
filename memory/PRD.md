@@ -1,3 +1,14 @@
+## 2026-07-16 · PREVIEW DISK CLEANUP
+
+### Cleanup performed
+- Preview backup cleanup: retained only the newest available backup zip under `/app/backend/backups`.
+- Removed backend `__pycache__` directories.
+- Emptied frontend `.cache` and `node_modules/.cache` folders.
+- Truncated log files under `/var/log`.
+
+### Result
+- Final preview disk usage after cleanup: `63.79%` used.
+
 ## 2026-07-15 · TEMP BACKUP LOCK ROUTE METHOD CHANGE
 
 ### Change applied
