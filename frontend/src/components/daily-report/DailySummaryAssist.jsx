@@ -82,6 +82,8 @@ export default function DailySummaryAssist({
   const previousUploadInFlightRef = useRef(false);
   const pendingPostUploadRefreshRef = useRef(false);
 
+  const visibleSummary = useMemo(() => (edited || narrative || "").trim(), [edited, narrative]);
+
   useEffect(() => {
     dataRef.current = data;
   }, [data]);
@@ -604,7 +606,8 @@ export default function DailySummaryAssist({
     return "Photo analysis unavailable — your report data is safe.";
   }, [latestPhotoIntel, photoCount, photoIntelStatus, photoUploadState]);
 
-  const showSummaryError = Boolean(error && !(edited || narrative || "").trim());
+  const showSummaryError = Boolean(error && !visibleSummary);
+  const showInlineSummaryNotice = Boolean(error && visibleSummary);
 
   const cooldownSeconds = Math.max(0, Math.ceil((regenerateCooldownUntil - cooldownNow) / 1000));
 
@@ -753,7 +756,7 @@ export default function DailySummaryAssist({
               size="sm"
               variant="default"
               onClick={handleAccept}
-              disabled={!edited.trim() || accepted || decision === "manual_required"}
+              disabled={!visibleSummary || accepted || decision === "manual_required"}
               data-testid={`${testId}-accept`}
             >
               <Check className="mr-1 h-3 w-3" />
@@ -821,6 +824,17 @@ export default function DailySummaryAssist({
                   {accepted && decision === "manual_accepted" ? t("Manual summary accepted") : t("Approve manual summary")}
                 </Button>
               </div>
+            </div>
+          )}
+
+          {showInlineSummaryNotice && (
+            <div
+              className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900"
+              data-testid={`${testId}-notice`}
+              role="status"
+            >
+              <div className="mb-0.5 font-semibold">{t("Summary assist unavailable right now")}</div>
+              <div>{t("The visible summary is still available to approve. You can also regenerate after cooldown or switch to a manual summary.")}</div>
             </div>
           )}
 
