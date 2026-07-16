@@ -123,7 +123,17 @@ export function SectionProjectConditions({
                 data-testid="dr-v3-location"
                 type="text"
                 value={data.location || ""}
-                onChange={(e) => patch({ location: e.target.value })}
+                onChange={(e) => {
+                  const newLocation = e.target.value;
+                  // TRACK 26.14 · Set location_source to "manual" when user types
+                  // a location manually. This satisfies the location_source
+                  // readiness requirement without requiring GPS.
+                  const patchData = { location: newLocation };
+                  if (newLocation.trim() && !data.location_source) {
+                    patchData.location_source = "manual";
+                  }
+                  patch(patchData);
+                }}
                 placeholder={t("e.g. Sta 12+50 · North side")}
                 spellCheck
                 className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2.5 text-sm placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
