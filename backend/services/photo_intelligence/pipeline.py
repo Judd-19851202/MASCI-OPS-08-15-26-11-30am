@@ -30,6 +30,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Sequence
 
 from services.ai_gateway import get_gateway
+from services.ai_gateway.env import default_vision_model
 
 from .analyzer import analyze_photo, evidence_hash_for_photo
 from .store import COLL_PHOTO_INTEL, get_intel, upsert_intel
@@ -803,7 +804,7 @@ async def process_draft(db, *, draft_identity: str, draft: Dict[str, Any]) -> Di
                             "fallback_reason": str(obs.get("eligibility_reason") or "ineligible_non_jobsite_photo")[:240],
                         },
                         provider="openai",
-                        model="gpt-5.4",
+                        model=default_vision_model(),
                     )
                     await _mark_job(
                         db,
@@ -847,7 +848,7 @@ async def process_draft(db, *, draft_identity: str, draft: Dict[str, Any]) -> Di
                         "raw": {"observations": raw_obs},
                     },
                     provider="openai",
-                    model="gpt-5.4",
+                    model=default_vision_model(),
                 )
                 await _mark_job(
                     db,
@@ -881,7 +882,7 @@ async def process_draft(db, *, draft_identity: str, draft: Dict[str, Any]) -> Di
                         "raw": {"observations": []},
                     },
                     provider="openai",
-                    model="gpt-5.4",
+                    model=default_vision_model(),
                 )
                 await _mark_job(
                     db,

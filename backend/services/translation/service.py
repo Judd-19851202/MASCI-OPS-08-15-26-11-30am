@@ -22,8 +22,8 @@ Returns `TranslationResult`:
 
 Model policy
 ------------
-Primary : OpenAI GPT-5.2 via Emergent Universal Key.
-Fallback: Claude Sonnet 4.5 via Emergent Universal Key.
+Primary : task-router configured provider/model via Emergent Universal Key.
+Fallback: alternate provider/model via Emergent Universal Key.
 Both keyed on `EMERGENT_LLM_KEY`.
 
 Determinism policy
@@ -48,6 +48,8 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional, Set
+
+from services.ai_gateway.task_router import route
 
 logger = logging.getLogger("track24_3.translation")
 
@@ -155,15 +157,17 @@ async def _call_openai(
     payload_text: str,
     preserve_list: str,
 ) -> str:
-    """Call OpenAI GPT-5.2 via the Emergent integrations SDK."""
+    """Call the routed OpenAI translation model via the Emergent integrations SDK."""
     from emergentintegrations.llm.chat import LlmChat, UserMessage  # noqa: PLC0415
 
     system = _SYSTEM_MESSAGE + f"\nPreserve-tokens (verbatim): {preserve_list}"
+    provider, model = route("translation_es_en")
+    selected_model = model if provider == "openai" else (os.environ.get("AI_DEFAULT_TEXT_MODEL_OPENAI") or "gpt-4o")
     chat = LlmChat(
         api_key=api_key,
         session_id=f"dr-v3-translate-{uuid.uuid4().hex[:10]}",
         system_message=system,
-    ).with_model("openai", "gpt-5.2")
+    ).with_model("openai", selected_model)
     resp = await chat.send_message(UserMessage(text=payload_text))
     return str(resp or "")
 
@@ -173,15 +177,17 @@ async def _call_anthropic(
     payload_text: str,
     preserve_list: str,
 ) -> str:
-    """Call Claude Sonnet 4.5 via the Emergent integrations SDK."""
+    """Call the routed Anthropic translation model via the Emergent integrations SDK."""
     from emergentintegrations.llm.chat import LlmChat, UserMessage  # noqa: PLC0415
 
     system = _SYSTEM_MESSAGE + f"\nPreserve-tokens (verbatim): {preserve_list}"
+    provider, model = route("translation_es_en")
+    selected_model = model if provider == "anthropic" else (os.environ.get("AI_DEFAULT_TEXT_MODEL_ANTHROPIC") or os.environ.get("AI_DEFAULT_TEXT_MODEL") or "claude-sonnet-4-5-20250929")
     chat = LlmChat(
         api_key=api_key,
         session_id=f"dr-v3-translate-{uuid.uuid4().hex[:10]}",
         system_message=system,
-    ).with_model("anthropic", "claude-sonnet-4-6")
+    ).with_model("anthropic", selected_model)
     resp = await chat.send_message(UserMessage(text=payload_text))
     return str(resp or "")
 
@@ -263,8 +269,8 @@ async def translate_es_to_en_bulk(
     preserve_list = ", ".join(sorted(preserve_tokens)) or "(none)"
 
     providers = [
-        ("openai", "gpt-5.2", _call_openai),
-        ("anthropic", "claude-sonnet-4-6", _call_anthropic),
+        ("openai", route("translation_es_en")[1] if route("translation_es_en")[0] == "openai" else (os.environ.get("AI_DEFAULT_TEXT_MODEL_OPENAI") or "gpt-4o"), _call_openai),
+        ("anthropic", route("translation_es_en")[1] if route("translation_es_en")[0] == "anthropic" else (os.environ.get("AI_DEFAULT_TEXT_MODEL_ANTHROPIC") or os.environ.get("AI_DEFAULT_TEXT_MODEL") or "claude-sonnet-4-5-20250929"), _call_anthropic),
     ]
 
     last_error = "translation_service_unavailable"

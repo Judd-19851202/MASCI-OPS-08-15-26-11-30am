@@ -1,5 +1,5 @@
 from fastapi import FastAPI, APIRouter, HTTPException, Header, Depends, Response, Request, UploadFile, File, Form, BackgroundTasks, Query
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -17825,7 +17825,10 @@ _THUMB_HEADERS_TO_STRIP = (
 
 class PhotoEdgeCacheMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
-        response = await call_next(request)
+        try:
+            response = await call_next(request)
+        except Exception:
+            return JSONResponse(status_code=500, content={"detail": "internal_server_error"})
         try:
             if _THUMB_PATH_RE.match(request.url.path) and response.status_code == 200:
                 for h in _THUMB_HEADERS_TO_STRIP:

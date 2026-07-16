@@ -41,7 +41,7 @@ def default_provider() -> str:
 
 
 def default_text_model() -> str:
-    return os.environ.get("AI_DEFAULT_TEXT_MODEL") or "claude-sonnet-4-6"
+    return os.environ.get("AI_DEFAULT_TEXT_MODEL") or "claude-sonnet-4-5-20250929"
 
 
 def default_vision_provider() -> str:

@@ -19,17 +19,17 @@ TaskType = str  # See literal set in TASK_ROUTES.keys().
 # Provider names align with adapter registry keys.
 TASK_ROUTES: Dict[str, Tuple[str, str]] = {
     "operational_narrative":  ("anthropic", default_text_model()),
-    "production_intelligence":("anthropic", "claude-sonnet-4-6"),
-    "delay_intelligence":     ("anthropic", "claude-sonnet-4-6"),
-    "safety_intelligence":    ("anthropic", "claude-sonnet-4-6"),
-    "equipment_intelligence": ("anthropic", "claude-sonnet-4-6"),
+    "production_intelligence":("anthropic", default_text_model()),
+    "delay_intelligence":     ("anthropic", default_text_model()),
+    "safety_intelligence":    ("anthropic", default_text_model()),
+    "equipment_intelligence": ("anthropic", default_text_model()),
     "photo_vision":           ("openai",    "gpt-4o"),
-    "pm_brief":               ("anthropic", "claude-sonnet-4-6"),
-    "executive_brief":        ("anthropic", "claude-sonnet-4-6"),
-    "confidence_validation":  ("anthropic", "claude-sonnet-4-6"),
-    "evidence_trace":         ("anthropic", "claude-sonnet-4-6"),
-    "future_task":            ("anthropic", "claude-sonnet-4-6"),
-    "translation_es_en":      ("anthropic", "claude-sonnet-4-6"),
+    "pm_brief":               ("anthropic", default_text_model()),
+    "executive_brief":        ("anthropic", default_text_model()),
+    "confidence_validation":  ("anthropic", default_text_model()),
+    "evidence_trace":         ("anthropic", default_text_model()),
+    "future_task":            ("anthropic", default_text_model()),
+    "translation_es_en":      ("anthropic", default_text_model()),
 }
 
 
