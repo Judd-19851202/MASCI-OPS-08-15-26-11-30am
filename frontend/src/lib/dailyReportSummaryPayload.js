@@ -192,7 +192,10 @@ export function buildDeterministicSummaryFallback(data = {}, photoIntel = null) 
     if (!desc) return "";
     return `${qty ? `${qty} ` : ""}${desc}${row.percent_complete ? ` (${row.percent_complete}% complete)` : ""}`.trim();
   }).filter(Boolean);
-  if (workBits.length > 0) parts.push(`Work completed: ${workBits.join("; ")}.`);
+  if (workBits.length > 0) {
+    const locationHint = String(payload.location || "").trim();
+    parts.push(`Work completed: ${workBits.join("; ")}${locationHint ? ` at ${locationHint}` : ""}.`);
+  }
 
   const workforceBits = [];
   if (summaryInput.labor.employee_count || summaryInput.labor.total_employee_hours) {
@@ -204,7 +207,7 @@ export function buildDeterministicSummaryFallback(data = {}, photoIntel = null) 
   if (summaryInput.equipment.equipment_count || summaryInput.equipment.total_usage_hours) {
     workforceBits.push(`${summaryInput.equipment.equipment_count} equipment ${summaryInput.equipment.equipment_count === 1 ? "unit" : "units"} logged ${summaryInput.equipment.total_run_hours.toFixed(2)} run hours and ${summaryInput.equipment.total_idle_hours.toFixed(2)} idle hours`);
   }
-  if (workforceBits.length > 0) parts.push(`Workforce and equipment: ${workforceBits.join("; ")}.`);
+  if (workforceBits.length > 0) parts.push(`Labor and equipment: ${workforceBits.join("; ")}.`);
 
   const observations = Array.isArray(summaryInput.photos.observations) ? summaryInput.photos.observations : [];
   const lowValue = /logo|branding|color|windows taskbar|browser tab|computer monitor is shown|desktop monitor is shown|web browser open|computer monitor is photographed|browser window|admin or database management webpage|screen/i;
@@ -219,7 +222,8 @@ export function buildDeterministicSummaryFallback(data = {}, photoIntel = null) 
     .filter(Boolean)
     .slice(0, 3);
   if (ranked.length > 0) {
-    parts.push(`Photo-supported evidence: ${ranked.join("; ")}.`);
+    const integrated = ranked.filter((text) => /(paving|excavat|concrete|curb|truck|material|staging|work area|light|night|illum|visibility|traffic control|barrier|ppe)/i.test(text)).slice(0, 2);
+    parts.push(`Field verification: submitted photos support the reported operation, including ${(integrated.length ? integrated : ranked.slice(0, 2)).join("; ")}.`);
   } else if (summaryInput.photos.photo_count > 0) {
     const failed = Math.max(0, summaryInput.photos.photo_count - Number(summaryInput.photos.analyzed || 0));
     if (failed > 0) {
@@ -234,6 +238,12 @@ export function buildDeterministicSummaryFallback(data = {}, photoIntel = null) 
   if (String(payload.weather_impact || "").toLowerCase() === "yes" && payload.weather_impact_notes) issueBits.push(payload.weather_impact_notes);
   if (payload.general_notes) issueBits.push(String(payload.general_notes).trim());
   if (issueBits.length > 0) parts.push(`Issues and attention: ${issueBits.slice(0, 3).join("; ")}.`);
+
+  const pmAttention = [];
+  if (summaryInput.equipment.total_idle_hours > 0) pmAttention.push(`${summaryInput.equipment.total_idle_hours.toFixed(2)} idle equipment hours should be reviewed against production constraints`);
+  if (issueBits.length > 0) pmAttention.push("confirm schedule impacts and any owner/PM follow-up items are captured");
+  if (summaryInput.photos.photo_count > 0 && ranked.length > 0) pmAttention.push("photo record supports the day’s field activity and should be retained with the report");
+  if (pmAttention.length > 0) parts.push(`PM attention: ${pmAttention.slice(0, 2).join("; ")}.`);
 
   const tomorrow = String(payload.narrative_sections?.tomorrow_plan || "").trim();
   if (tomorrow) parts.push(`Next work: ${tomorrow}.`);

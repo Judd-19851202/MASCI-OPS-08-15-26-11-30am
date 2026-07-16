@@ -4,6 +4,7 @@ from fastapi import APIRouter, FastAPI
 from fastapi.testclient import TestClient
 
 from routes.daily_summary import register_daily_summary_routes
+from routes.daily_summary import _compose_pm_grade_fallback
 from routes.operational_records import _project_legacy
 from lib.synthetic_dr_filter import is_synthetic_dr, apply_synthetic_dr_exclusion
 
@@ -102,3 +103,33 @@ def test_certification_records_are_classified_as_hidden_everywhere() -> None:
     assert {"certification_record": {"$ne": True}} in clauses
     assert {"synthetic_record": {"$ne": True}} in clauses
     assert {"hidden_from_operations": {"$ne": True}} in clauses
+
+
+def test_pm_grade_fallback_integrates_photo_evidence_without_caption_join_artifacts() -> None:
+    payload = {
+        "location": "North lot",
+        "general_notes": "Night shift traffic control remained in place.",
+        "narrative_sections": {"tomorrow_plan": "Continue curb placement on the north run."},
+    }
+    summary_input = {
+        "production": {"rows": [{"description": "Excavation work", "quantity": 250, "unit": "LF", "percent_complete": 0}]},
+        "labor": {"employee_count": 1, "total_employee_hours": 8.5},
+        "subcontractors": {"subcontractor_count": 0, "total_hours": 0},
+        "equipment": {"equipment_count": 1, "total_run_hours": 6.0, "total_idle_hours": 0.0},
+        "photos": {
+            "photo_count": 6,
+            "observations": [
+                {"description": "tracked asphalt paver is laying a fresh layer of asphalt."},
+                {"description": "illuminated work area indicates night operation.."},
+                {"description": "orange branding on the paver"},
+            ],
+        },
+    }
+    text = _compose_pm_grade_fallback(payload, summary_input)
+    assert "Work completed: 250 LF Excavation work at North lot." in text
+    assert "Field verification: submitted photos support the reported operation" in text
+    assert "tracked asphalt paver is laying a fresh layer of asphalt" in text
+    assert "illuminated work area indicates night operation" in text
+    assert "branding" not in text.lower()
+    assert ".;" not in text
+    assert ".." not in text

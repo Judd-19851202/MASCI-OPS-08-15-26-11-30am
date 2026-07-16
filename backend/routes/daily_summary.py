@@ -406,6 +406,7 @@ def _compose_pm_grade_fallback(payload: Dict[str, Any], summary_input: Dict[str,
         return stripped[0].upper() + stripped[1:]
 
     work_bits = []
+    quantity_overview = []
     for row in production_rows[:4]:
         desc = _clean_str(row.get("description"), 120)
         qty = row.get("quantity")
@@ -416,8 +417,13 @@ def _compose_pm_grade_fallback(payload: Dict[str, Any], summary_input: Dict[str,
             if pct > 0:
                 phrase += f" ({pct}% complete)"
             work_bits.append(phrase)
+            quantity_overview.append(f"{float(qty):g} {unit} {desc}".strip())
     if work_bits:
-        paragraphs.append("Work completed: " + "; ".join(work_bits) + ".")
+        location_hint = _clean_str(payload.get("location"), 120)
+        lead = "Work completed: " + "; ".join(work_bits)
+        if location_hint:
+            lead += f" at {location_hint}"
+        paragraphs.append(lead + ".")
 
     workforce_bits = []
     employee_count = int(labor.get("employee_count") or 0)
@@ -440,7 +446,7 @@ def _compose_pm_grade_fallback(payload: Dict[str, Any], summary_input: Dict[str,
             f"{equip_count} equipment unit{'s' if equip_count != 1 else ''} logged {run_hours:.2f} run hours and {idle_hours:.2f} idle hours"
         )
     if workforce_bits:
-        paragraphs.append("Workforce and equipment: " + "; ".join(workforce_bits) + ".")
+        paragraphs.append("Labor and equipment: " + "; ".join(workforce_bits) + ".")
 
     materials_rows = _list_of_dicts(payload.get("materials"))
     outbound_rows = _list_of_dicts(payload.get("outbound_materials"))
@@ -462,13 +468,25 @@ def _compose_pm_grade_fallback(payload: Dict[str, Any], summary_input: Dict[str,
         if desc:
             material_bits.append((f"hauled {qty} {unit} {desc}".strip()))
     if material_bits:
-        paragraphs.append("Materials and logistics: " + "; ".join(material_bits) + ".")
+        paragraphs.append("Materials and logistics: " + "; ".join(material_bits[:3]) + ".")
 
     photo_facts = [_clean_photo_sentence(x) for x in _rank_photo_observations(list(photos.get("observations") or []))]
     photo_facts = [x for x in photo_facts if x]
     photo_observation_count = len(list(photos.get("observations") or []))
     if photo_facts:
-        paragraphs.append("Photo-supported evidence: " + "; ".join(photo_facts[:2]) + ".")
+        integrated_bits: List[str] = []
+        for fact in photo_facts:
+            lower = fact.lower()
+            if any(token in lower for token in ["paving", "excavat", "concrete", "curb", "truck", "material", "staging", "work area"]):
+                integrated_bits.append(fact)
+            elif any(token in lower for token in ["light", "night", "illum", "visibility", "traffic control", "barrier", "ppe"]):
+                integrated_bits.append(fact)
+        integrated_bits = integrated_bits[:2] or photo_facts[:2]
+        paragraphs.append(
+            "Field verification: submitted photos support the reported operation, including "
+            + "; ".join(integrated_bits)
+            + "."
+        )
     elif int(photos.get("photo_count") or 0) > 0:
         failed_count = max(0, int(photos.get("photo_count") or 0) - photo_observation_count)
         if failed_count > 0:
@@ -503,6 +521,16 @@ def _compose_pm_grade_fallback(payload: Dict[str, Any], summary_input: Dict[str,
         safety_parts.append(f"notes: {incident_notes}")
     if safety_parts:
         paragraphs.append("Safety: " + "; ".join(safety_parts) + ".")
+
+    pm_attention = []
+    if idle_hours > 0:
+        pm_attention.append(f"{idle_hours:.2f} idle equipment hours should be reviewed against production constraints")
+    if issue_bits:
+        pm_attention.append("confirm schedule impacts and any owner/PM follow-up items are captured")
+    if int(photos.get("photo_count") or 0) > 0 and photo_facts:
+        pm_attention.append("photo record supports the day’s field activity and should be retained with the report")
+    if pm_attention:
+        paragraphs.append("PM attention: " + "; ".join(pm_attention[:2]) + ".")
 
     tomorrow = _clean_str((payload.get("narrative_sections") or {}).get("tomorrow_plan"), 320)
     if tomorrow:

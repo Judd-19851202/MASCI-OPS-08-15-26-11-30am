@@ -80,6 +80,7 @@ describe("daily report summary payload", () => {
     expect(text).toContain("6.00 idle hours");
     expect(text).toContain("875 LF D curb");
     expect(text).toContain("65% complete");
+    expect(text).toContain("at North lot");
     expect(text).toContain("6 photos");
   });
 
@@ -95,6 +96,23 @@ describe("daily report summary payload", () => {
     expect(text).toContain("Photo-supported evidence: Paving machine is in operation with fresh asphalt being laid; Illuminated work area indicates night operation.");
     expect(text).not.toContain(".;");
     expect(text).not.toContain("..");
+  });
+
+  test("writes field verification and pm attention in a PM-grade fallback", () => {
+    const text = buildDeterministicSummaryFallback(FIXTURE, {
+      status: "complete_with_observations",
+      analyzed: 2,
+      observations: [
+        { description: "tracked excavator is loading material into a dump truck" },
+        { description: "illuminated work area indicates night operation" },
+        { description: "orange branding on the machine" },
+      ],
+    });
+    expect(text).toContain("Field verification: submitted photos support the reported operation");
+    expect(text).toContain("tracked excavator is loading material into a dump truck");
+    expect(text).toContain("illuminated work area indicates night operation");
+    expect(text).toContain("PM attention:");
+    expect(text).not.toContain("branding");
   });
 });
 
