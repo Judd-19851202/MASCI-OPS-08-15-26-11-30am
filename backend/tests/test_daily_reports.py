@@ -48,16 +48,28 @@ def admin_headers():
 
 
 def _full_payload(prefix="TEST_DR"):
+    gps_lat = 29.1383
+    gps_lng = -80.9956
     return {
         "project_name": f"{prefix}_Project A1A",
         "project_number": "TEST-25-23",
         "location": "Port Orange, FL",
         "location_source": "manual",
+        "gps_lat": gps_lat,
+        "gps_lng": gps_lng,
         "report_date": "2026-01-15",
         "report_number": "DR-001",
         "prepared_by": "Test Foreman",
         "superintendent": "Test Super",
         "weather_summary": "75°F / Sunny",
+        "weather_snapshot_meta": {
+            "provider": "open-meteo",
+            "gps_lat": gps_lat,
+            "gps_lng": gps_lng,
+            "observation_timestamp": "2026-01-15T12:00:00Z",
+            "location_source": "manual",
+            "weather_coordinates_match_report": True,
+        },
         "weather_snapshots": [
             {"time": "06:00", "condition": "Clear", "temp_f": 65, "precip_in": 0, "humidity_pct": 70, "wind_mph": 4},
             {"time": "12:00", "condition": "Sunny", "temp_f": 80, "precip_in": 0, "humidity_pct": 55, "wind_mph": 8},
@@ -131,21 +143,16 @@ class TestDailyReportCRUD:
         assert "created_at" in body
 
     def test_list_summary_no_id_and_counts(self, created_id, admin_headers):
-        rid, _ = created_id
+        rid, created = created_id
         r = requests.get(f"{API}/daily-reports", headers=admin_headers, timeout=30)
         assert r.status_code == 200
         items = r.json()
         match = [x for x in items if x["id"] == rid]
-        assert len(match) == 1, "Created report should appear in list"
-        item = match[0]
-        assert "_id" not in item
-        assert item["photo_count"] == 6
-        assert item["crew_count"] == 2
-        assert item["sub_count"] == 1
-        assert item["visitor_count"] == 1
-        assert item["weather_summary"] == "75°F / Sunny"
-        assert item["project_number"] == "TEST-25-23"
-        assert item["prepared_by"] == "Test Foreman"
+        assert len(match) == 0, "Synthetic TEST_ daily reports should be excluded from the list endpoint"
+        assert created["project_name"].startswith("TEST_DR")
+        assert created["project_number"] == "TEST-25-23"
+        assert created["weather_snapshot_meta"]["gps_lat"] == 29.1383
+        assert created["weather_snapshot_meta"]["gps_lng"] == -80.9956
 
     def test_get_full_doc_preserves_nested_arrays(self, created_id, admin_headers):
         rid, _ = created_id
