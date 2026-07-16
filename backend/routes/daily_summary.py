@@ -354,14 +354,22 @@ def _day_narrative_system_prompt_with_photo_citations() -> str:
     base = AGENTS["day_narrative"]["system"]
     return (
         base
+        + "\n\nELITE FIELD BRIEFING STANDARD:\n"
+        + "Write like an elite senior field superintendent briefing a high-level PM who needs signal, not storytelling. "
+        + "The tone must be concise, technically dense, construction-native, and action-oriented. "
+        + "Prioritize project-critical facts over generic description: measurable work progress, station limits, curb footage, concrete placement context, pipe or structure status, haul / staging activity, equipment utilization, traffic-control setup, safety controls, access limitations, production risks, and next-step implications. "
+        + "If the evidence contains unit numbers, equipment makes/models, material quantities, ticket details, stationing, lane-control devices, or specific workfront locations, surface those facts early in the narrative. "
+        + "Do NOT waste space on robotic filler, generic site scenery, vague adjectives, or low-signal observations that do not matter to a construction PM."
         + "\n\nPHOTO CITATION REQUIREMENT:\n"
         + "When `photo_observations[]` is present, you MUST explicitly cite grounded photo evidence in the prose. "
-        + "Use direct photo references such as 'Photo 3 shows …', 'Photo 5 confirms …', or 'Photo 2 documents …'. "
+        + "Weave photo citations parenthetically into operational sentences instead of starting sentences with 'Photo X shows'. "
+        + "Use formats like '(Photo 3)' or '(Photo 3, 6)' as proof attached to the specific fact they support. "
         + "Every photo citation MUST be tied to the exact `photo_observations[]` entry provided in the evidence bundle. "
         + "Do NOT generalize as 'site photos show' when a numbered photo citation is available. "
-        + "If multiple photos contain technical evidence, weave the strongest numbered citations into the narrative. "
+        + "If multiple photos contain technical evidence, weave the strongest numbered citations into the narrative where they prove a claim about active work, equipment, material handling, safety control, or measurable progress. "
         + "If no grounded numbered photo evidence exists, say nothing about photo content beyond acknowledging attached photos. "
-        + "When grounded photo evidence identifies equipment class, make, or model, preserve that detail verbatim in the narrative (for example: excavator, loader, John Deere 210G, CAT 320, trench roller, skid steer)."
+        + "When grounded photo evidence identifies equipment class, make, unit number, or model, preserve that detail verbatim in the narrative (for example: excavator, loader, John Deere 210G, CAT 320, EXC-1934, trench roller, skid steer). "
+        + "Favor integrated constructions such as 'Tracked excavator EXC-1934 was loading spoils into a tri-axle dump truck on the east edge (Photo 3, 6)' instead of standalone photo sentences."
     )
 
 
