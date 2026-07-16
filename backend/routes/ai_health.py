@@ -30,6 +30,9 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends
+from motor.motor_asyncio import AsyncIOMotorClient
+
+import os
 
 from services.ai_gateway import get_gateway
 from services.ai_gateway.env import env_snapshot, has_key
@@ -167,3 +170,30 @@ def register_ai_health_routes(api_router: APIRouter, *, require_admin) -> None:
         _CACHE["ts"] = 0.0
         _CACHE["payload"] = None
         return await _health_snapshot()
+
+    @api_router.post("/admin/clear-backup-lock")
+    async def clear_backup_lock(_actor=Depends(require_admin)) -> Dict[str, Any]:
+        mongo_url = (os.environ.get("MONGO_URL") or "").strip()
+        db_name = (os.environ.get("DB_NAME") or "").strip()
+        if not mongo_url or not db_name:
+            return {
+                "ok": False,
+                "deleted": False,
+                "detail": "missing_database_configuration",
+            }
+
+        client = AsyncIOMotorClient(mongo_url)
+        try:
+            target_db = client[db_name]
+            result = await target_db["scheduler_locks"].delete_one({"_id": "backup_scheduler"})
+            return {
+                "ok": True,
+                "database": db_name,
+                "collection": "scheduler_locks",
+                "lock_id": "backup_scheduler",
+                "deleted": bool(result.deleted_count),
+                "deleted_count": int(result.deleted_count or 0),
+                "detail": "backup_scheduler lock cleared" if result.deleted_count else "backup_scheduler lock not found",
+            }
+        finally:
+            client.close()

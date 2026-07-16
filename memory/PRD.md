@@ -1,3 +1,13 @@
+## 2026-07-15 · TEMP ADMIN BACKUP LOCK CLEAR ENDPOINT
+
+### Temporary route added
+- Added `POST /api/admin/clear-backup-lock` in `backend/routes/ai_health.py`.
+- Route is admin-gated via existing `require_admin` dependency.
+- Route reads `MONGO_URL` and `DB_NAME` at runtime, connects to the active database, deletes `{ "_id": "backup_scheduler" }` from `scheduler_locks`, and returns JSON with deleted/not-found status.
+
+### Intended use
+- Redeploy to production, call the route once to clear the stuck `backup_scheduler` lock in `masci_safety`, then remove the temporary endpoint in a follow-up cleanup patch.
+
 ## 2026-07-15 · DR-03 SYNTHESIS TIMEOUT HARDENING
 
 ### Exact changes applied
