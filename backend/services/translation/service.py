@@ -49,6 +49,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional, Set
 
+from services.ai_gateway.env import default_text_model, default_vision_model
 from services.ai_gateway.task_router import route
 
 logger = logging.getLogger("track24_3.translation")
@@ -162,7 +163,7 @@ async def _call_openai(
 
     system = _SYSTEM_MESSAGE + f"\nPreserve-tokens (verbatim): {preserve_list}"
     provider, model = route("translation_es_en")
-    selected_model = model if provider == "openai" else (os.environ.get("AI_DEFAULT_TEXT_MODEL_OPENAI") or "gpt-4o")
+    selected_model = model if provider == "openai" else (os.environ.get("AI_DEFAULT_TEXT_MODEL_OPENAI") or default_vision_model())
     chat = LlmChat(
         api_key=api_key,
         session_id=f"dr-v3-translate-{uuid.uuid4().hex[:10]}",
@@ -182,7 +183,7 @@ async def _call_anthropic(
 
     system = _SYSTEM_MESSAGE + f"\nPreserve-tokens (verbatim): {preserve_list}"
     provider, model = route("translation_es_en")
-    selected_model = model if provider == "anthropic" else (os.environ.get("AI_DEFAULT_TEXT_MODEL_ANTHROPIC") or os.environ.get("AI_DEFAULT_TEXT_MODEL") or "claude-sonnet-4-5-20250929")
+    selected_model = model if provider == "anthropic" else (os.environ.get("AI_DEFAULT_TEXT_MODEL_ANTHROPIC") or default_text_model())
     chat = LlmChat(
         api_key=api_key,
         session_id=f"dr-v3-translate-{uuid.uuid4().hex[:10]}",
@@ -269,8 +270,8 @@ async def translate_es_to_en_bulk(
     preserve_list = ", ".join(sorted(preserve_tokens)) or "(none)"
 
     providers = [
-        ("openai", route("translation_es_en")[1] if route("translation_es_en")[0] == "openai" else (os.environ.get("AI_DEFAULT_TEXT_MODEL_OPENAI") or "gpt-4o"), _call_openai),
-        ("anthropic", route("translation_es_en")[1] if route("translation_es_en")[0] == "anthropic" else (os.environ.get("AI_DEFAULT_TEXT_MODEL_ANTHROPIC") or os.environ.get("AI_DEFAULT_TEXT_MODEL") or "claude-sonnet-4-5-20250929"), _call_anthropic),
+        ("openai", route("translation_es_en")[1] if route("translation_es_en")[0] == "openai" else (os.environ.get("AI_DEFAULT_TEXT_MODEL_OPENAI") or default_vision_model()), _call_openai),
+        ("anthropic", route("translation_es_en")[1] if route("translation_es_en")[0] == "anthropic" else (os.environ.get("AI_DEFAULT_TEXT_MODEL_ANTHROPIC") or default_text_model()), _call_anthropic),
     ]
 
     last_error = "translation_service_unavailable"

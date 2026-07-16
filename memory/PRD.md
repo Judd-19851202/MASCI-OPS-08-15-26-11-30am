@@ -1,3 +1,34 @@
+## 2026-07-16 · FINAL AI/DB ENFORCEMENT PASS
+
+### Applied and verified
+- `routes/usage_analytics.py`: removed the broad exception wrapper from `ensure_usage_indexes()` so startup index creation now fails hard and surfaces the exact Mongo error.
+- Purged remaining hardcoded `claude-sonnet-4-6` / `gpt-5.4` literals from live code paths in:
+  - `services/ai_gateway/registry.py`
+  - `services/ai_gateway/task_router.py`
+  - `services/photo_intelligence/pipeline.py`
+  - `services/translation/service.py`
+- Confirmed preview `.env` parity flags are enabled:
+  - `TENANT_AI_ENABLED=true`
+  - `AI_ADMIN_INTELLIGENCE_ENABLED=true`
+  - `AI_PM_INTELLIGENCE_ENABLED=true`
+  - `AI_SAFETY_INTELLIGENCE_ENABLED=true`
+  - `AI_TRANSLATION_ENABLED=true`
+  - `SCHEDULER_ENABLED=true`
+- Verified preserved stability features remain active:
+  - `summary_timeout_80s`
+  - `X-Device-Id` rate-limit identity keying
+  - senior superintendent persona
+  - parallel per-photo vision loop
+
+### Direct database verification
+- Queried Mongo `usage_events` index metadata and confirmed required compound indexes exist:
+  - `kind_1_signal_1_at_-1`
+  - `kind_1_signal_1_at_-1_elapsed_ms_1`
+  - `kind_1_signal_1_at_-1_dims.equipment_id_1`
+
+### Remaining external gap
+- `initialDelaySeconds=150` for startup/readiness probes could not be patched from this repo because no Kubernetes/deployment manifest or probe config file exists in `/app` to modify. This remains an external deployment configuration step.
+
 ## 2026-07-16 · TEMP FORCE R2 ARCHIVE ROUTE
 
 ### Temporary route added

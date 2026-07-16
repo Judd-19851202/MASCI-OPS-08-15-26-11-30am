@@ -167,17 +167,14 @@ def get_sink() -> Optional[UsageEventSink]:
 async def ensure_usage_indexes(db) -> None:
     """TTL = 90 days. Plus the two indexes the dashboards actually
     use (kind/at and portal/at). All idempotent."""
-    try:
-        await db.usage_events.create_index([("at", 1)],
-                                           expireAfterSeconds=60 * 60 * 24 * 90)
-        await db.usage_events.create_index([("kind", 1), ("at", -1)])
-        await db.usage_events.create_index([("portal", 1), ("at", -1)])
-        await db.usage_events.create_index([("route", 1), ("at", -1)])
-        await db.usage_events.create_index([("kind", 1), ("signal", 1), ("at", -1)])
-        await db.usage_events.create_index([("kind", 1), ("signal", 1), ("at", -1), ("elapsed_ms", 1)])
-        await db.usage_events.create_index([("kind", 1), ("signal", 1), ("at", -1), ("dims.equipment_id", 1)])
-    except Exception as e:  # noqa: BLE001
-        logger.warning(f"[usage_events] index ensure failed: {e}")
+    await db.usage_events.create_index([("at", 1)],
+                                       expireAfterSeconds=60 * 60 * 24 * 90)
+    await db.usage_events.create_index([("kind", 1), ("at", -1)])
+    await db.usage_events.create_index([("portal", 1), ("at", -1)])
+    await db.usage_events.create_index([("route", 1), ("at", -1)])
+    await db.usage_events.create_index([("kind", 1), ("signal", 1), ("at", -1)])
+    await db.usage_events.create_index([("kind", 1), ("signal", 1), ("at", -1), ("elapsed_ms", 1)])
+    await db.usage_events.create_index([("kind", 1), ("signal", 1), ("at", -1), ("dims.equipment_id", 1)])
 
 
 def start_sink(db) -> None:

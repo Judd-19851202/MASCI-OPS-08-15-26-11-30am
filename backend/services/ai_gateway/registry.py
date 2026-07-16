@@ -78,31 +78,18 @@ def _is_non_retryable(reason: Optional[str]) -> bool:
     return any(tok in r for tok in ("auth", "401", "403", "key_missing", "invalid_key"))
 
 
-# Provider-appropriate default models used when failing over. Sending
-# a Claude model string to OpenAI (or vice-versa) would produce a 400
-# and defeat the whole point of failover. These are the current
-# recommended models per the Emergent integration playbook (Feb 2026)
-# and can be overridden by AI_DEFAULT_TEXT_MODEL_<PROVIDER> envs for
-# operators who want to pin a specific version in production.
-_PROVIDER_DEFAULT_MODELS = {
-    "anthropic": "claude-sonnet-4-6",
-    "openai":    "gpt-4o",
-    "google":    "gemini-2.5-flash",
-}
-
-_VISION_PROVIDER_DEFAULT_MODELS = {
-    "anthropic": "claude-3-5-sonnet-latest",
-    "openai":    "gpt-4o",
-    "google":    "gemini-2.5-flash-image",
-}
-
-
 def _provider_default_model(provider: str) -> str:
     import os as _os
     override = _os.environ.get(f"AI_DEFAULT_TEXT_MODEL_{provider.upper()}")
     if override:
         return override
-    return _PROVIDER_DEFAULT_MODELS.get(provider, default_text_model())
+    if provider == "anthropic":
+        return default_text_model()
+    if provider == "openai":
+        return _os.environ.get("AI_DEFAULT_TEXT_MODEL_OPENAI") or default_vision_model()
+    if provider == "google":
+        return _os.environ.get("AI_DEFAULT_TEXT_MODEL_GOOGLE") or default_text_model()
+    return default_text_model()
 
 
 def _provider_default_vision_model(provider: str) -> str:
@@ -110,9 +97,13 @@ def _provider_default_vision_model(provider: str) -> str:
     override = _os.environ.get(f"AI_DEFAULT_VISION_MODEL_{provider.upper()}")
     if override:
         return override
+    if provider == "anthropic":
+        return _os.environ.get("AI_DEFAULT_VISION_MODEL_ANTHROPIC") or _os.environ.get("AI_DEFAULT_TEXT_MODEL_ANTHROPIC") or default_text_model()
     if provider == "openai":
         return default_vision_model()
-    return _VISION_PROVIDER_DEFAULT_MODELS.get(provider, default_vision_model())
+    if provider == "google":
+        return _os.environ.get("AI_DEFAULT_VISION_MODEL_GOOGLE") or default_vision_model()
+    return default_vision_model()
 
 
 class Gateway:
