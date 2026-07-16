@@ -9,6 +9,8 @@ from __future__ import annotations
 import os
 from typing import Dict, Tuple
 
+from .env import default_text_model
+
 
 TaskType = str  # See literal set in TASK_ROUTES.keys().
 
@@ -16,7 +18,7 @@ TaskType = str  # See literal set in TASK_ROUTES.keys().
 # Default routing plan per architecture directive.
 # Provider names align with adapter registry keys.
 TASK_ROUTES: Dict[str, Tuple[str, str]] = {
-    "operational_narrative":  ("anthropic", "claude-sonnet-4-6"),
+    "operational_narrative":  ("anthropic", default_text_model()),
     "production_intelligence":("anthropic", "claude-sonnet-4-6"),
     "delay_intelligence":     ("anthropic", "claude-sonnet-4-6"),
     "safety_intelligence":    ("anthropic", "claude-sonnet-4-6"),

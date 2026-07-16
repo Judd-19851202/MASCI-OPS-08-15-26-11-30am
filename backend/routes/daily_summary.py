@@ -23,6 +23,7 @@ Doctrine
 """
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
@@ -761,6 +762,34 @@ def _compose_deterministic_summary(
     }
 
 
+def _compose_timeout_fallback(
+    payload: Dict[str, Any],
+    *,
+    photo_intel: Optional[Dict[str, Any]],
+    language: str,
+    request_id: Optional[str],
+    reason: str,
+) -> Dict[str, Any]:
+    composed = _compose_deterministic_summary(payload, language=language)
+    warnings = list(composed["warnings"])
+    warnings.append(reason)
+    return {
+        "ok": True,
+        "enabled": False,
+        "reason_disabled": reason,
+        "mode": "deterministic_fallback",
+        "summary_text": composed["summary_text"],
+        "language": language,
+        "warnings": warnings,
+        "evidence_refs": composed["evidence_refs"],
+        "sentence_count": composed["sentence_count"],
+        "summary_input": composed["summary_input"],
+        "photo_intelligence": photo_intel,
+        "confidence": 0.0,
+        "request_id": request_id,
+    }
+
+
 # ─────────────────────── registration ─────────────────────────────
 
 def register_daily_summary_routes(
@@ -836,13 +865,25 @@ def register_daily_summary_routes(
         except Exception:  # noqa: BLE001
             photo_intel = None
         session_key = form_key or _clean_str(payload.get("project_number"), 40) or "draft"
-        return await _compose_live_summary(
-            payload,
-            photo_intel=photo_intel,
-            language=language,
-            request_id=request_id,
-            session_key=session_key,
-        )
+        try:
+            return await asyncio.wait_for(
+                _compose_live_summary(
+                    payload,
+                    photo_intel=photo_intel,
+                    language=language,
+                    request_id=request_id,
+                    session_key=session_key,
+                ),
+                timeout=80.0,
+            )
+        except asyncio.TimeoutError:
+            return _compose_timeout_fallback(
+                payload,
+                photo_intel=photo_intel,
+                language=language,
+                request_id=request_id,
+                reason="summary_timeout_80s",
+            )
 
     # ─────── POST /api/daily-reports/{report_id}/summary/accept ────
     @api_router.post(
