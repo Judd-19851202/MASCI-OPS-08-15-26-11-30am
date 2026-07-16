@@ -82,6 +82,20 @@ describe("daily report summary payload", () => {
     expect(text).toContain("65% complete");
     expect(text).toContain("6 photos");
   });
+
+  test("sanitizes photo-supported evidence punctuation joins", () => {
+    const text = buildDeterministicSummaryFallback(FIXTURE, {
+      status: "complete_with_observations",
+      analyzed: 2,
+      observations: [
+        { description: "paving machine is in operation with fresh asphalt being laid." },
+        { description: "illuminated work area indicates night operation.." },
+      ],
+    });
+    expect(text).toContain("Photo-supported evidence: Paving machine is in operation with fresh asphalt being laid; Illuminated work area indicates night operation.");
+    expect(text).not.toContain(".;");
+    expect(text).not.toContain("..");
+  });
 });
 
 describe("operator error normalization", () => {

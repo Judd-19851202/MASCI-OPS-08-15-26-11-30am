@@ -179,6 +179,12 @@ export function buildDeterministicSummaryFallback(data = {}, photoIntel = null) 
   const payload = buildDailyReportSummaryPayload(data, photoIntel);
   const summaryInput = payload.summary_input;
   const parts = [];
+  const cleanPhotoSentence = (text) => {
+    const normalized = String(text || "").replace(/\s+/g, " ").trim();
+    const stripped = normalized.replace(/[.;:,\s]+$/g, "");
+    if (!stripped) return "";
+    return stripped.charAt(0).toUpperCase() + stripped.slice(1);
+  };
 
   const workBits = summaryInput.production.rows.slice(0, 4).map((row) => {
     const qty = row.quantity ? `${row.quantity} ${row.unit || ""}`.trim() : "";
@@ -209,6 +215,8 @@ export function buildDeterministicSummaryFallback(data = {}, photoIntel = null) 
     .filter((text, idx, arr) => arr.indexOf(text) === idx)
     .filter((text) => !lowValue.test(text))
     .filter((text) => /(curb|concrete|pour|truck|barrier|traffic control|equipment|work area|material|excavation|paving|staging|alignment|hose|hopper|crew|ppe|housekeeping)/i.test(text))
+    .map(cleanPhotoSentence)
+    .filter(Boolean)
     .slice(0, 3);
   if (ranked.length > 0) {
     parts.push(`Photo-supported evidence: ${ranked.join("; ")}.`);

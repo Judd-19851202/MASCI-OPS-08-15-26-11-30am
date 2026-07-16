@@ -24,6 +24,7 @@ Doctrine
 from __future__ import annotations
 
 import asyncio
+import re
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
@@ -397,6 +398,13 @@ def _compose_pm_grade_fallback(payload: Dict[str, Any], summary_input: Dict[str,
     equipment = summary_input.get("equipment") or {}
     photos = summary_input.get("photos") or {}
 
+    def _clean_photo_sentence(text: Any) -> str:
+        normalized = re.sub(r"\s+", " ", _clean_str(text, 260)).strip()
+        stripped = re.sub(r"[.;:,\s]+$", "", normalized)
+        if not stripped:
+            return ""
+        return stripped[0].upper() + stripped[1:]
+
     work_bits = []
     for row in production_rows[:4]:
         desc = _clean_str(row.get("description"), 120)
@@ -456,7 +464,8 @@ def _compose_pm_grade_fallback(payload: Dict[str, Any], summary_input: Dict[str,
     if material_bits:
         paragraphs.append("Materials and logistics: " + "; ".join(material_bits) + ".")
 
-    photo_facts = _rank_photo_observations(list(photos.get("observations") or []))
+    photo_facts = [_clean_photo_sentence(x) for x in _rank_photo_observations(list(photos.get("observations") or []))]
+    photo_facts = [x for x in photo_facts if x]
     photo_observation_count = len(list(photos.get("observations") or []))
     if photo_facts:
         paragraphs.append("Photo-supported evidence: " + "; ".join(photo_facts[:2]) + ".")
