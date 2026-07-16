@@ -171,7 +171,7 @@ def register_ai_health_routes(api_router: APIRouter, *, require_admin) -> None:
         _CACHE["payload"] = None
         return await _health_snapshot()
 
-    @api_router.post("/admin/clear-backup-lock")
+    @api_router.get("/admin/clear-backup-lock")
     async def clear_backup_lock(_actor=Depends(require_admin)) -> Dict[str, Any]:
         mongo_url = (os.environ.get("MONGO_URL") or "").strip()
         db_name = (os.environ.get("DB_NAME") or "").strip()

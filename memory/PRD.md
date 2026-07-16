@@ -1,3 +1,18 @@
+## 2026-07-15 · TEMP BACKUP LOCK ROUTE METHOD CHANGE
+
+### Change applied
+- Updated the temporary backup-lock clear endpoint in `backend/routes/ai_health.py` from:
+  - `POST /api/admin/clear-backup-lock`
+  to:
+  - `GET /api/admin/clear-backup-lock`
+
+### Reason
+- Allows the route to be triggered directly from a browser URL after production redeploy.
+
+### Verification
+- Python lint passed.
+- Backend restarted successfully.
+
 ## 2026-07-15 · TEMP ADMIN BACKUP LOCK CLEAR ENDPOINT
 
 ### Temporary route added
