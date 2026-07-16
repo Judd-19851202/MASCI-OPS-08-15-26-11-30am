@@ -1,3 +1,14 @@
+## 2026-07-16 · TEMP FORCE R2 ARCHIVE ROUTE
+
+### Temporary route added
+- Added `GET /api/admin/backups/force-r2-archive` in `backend/routes/ai_health.py`.
+- Route is admin-gated and reuses the existing complete-archive backup machinery by calling `_run_complete_archive_to_r2(...)` through the same in-progress state used by the manual backup endpoints.
+- Returns an accepted response with poll target `/api/admin/backups-complete-r2-state` so the archive can be triggered from a browser after redeploy.
+
+### Verification
+- Python lint passed.
+- Backend restarted successfully.
+
 ## 2026-07-16 · PREVIEW DISK CLEANUP
 
 ### Cleanup performed

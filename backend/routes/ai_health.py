@@ -25,18 +25,21 @@ UI polls the endpoint.
 from __future__ import annotations
 
 import asyncio
+import logging
+import os
 import time
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends
 from motor.motor_asyncio import AsyncIOMotorClient
-
-import os
 
 from services.ai_gateway import get_gateway
 from services.ai_gateway.env import env_snapshot, has_key
 from services.ai_gateway.task_router import route
+
+
+logger = logging.getLogger(__name__)
 
 
 _CACHE: Dict[str, Any] = {"ts": 0.0, "payload": None}
@@ -197,3 +200,49 @@ def register_ai_health_routes(api_router: APIRouter, *, require_admin) -> None:
             }
         finally:
             client.close()
+
+    @api_router.get("/admin/backups/force-r2-archive")
+    async def force_r2_archive(
+        background_tasks: BackgroundTasks,
+        _actor=Depends(require_admin),
+    ) -> Dict[str, Any]:
+        import server as _server  # noqa: PLC0415
+
+        if getattr(_server, "_COMPLETE_R2_IN_PROGRESS", False):
+            return {
+                "accepted": False,
+                "detail": "A complete archive is already in progress.",
+                "poll": "/api/admin/backups-complete-r2-state",
+            }
+
+        _server._COMPLETE_R2_IN_PROGRESS = True
+        _server._COMPLETE_R2_LAST["started_at"] = datetime.now(timezone.utc).isoformat()
+        _server._COMPLETE_R2_LAST["finished_at"] = None
+        _server._COMPLETE_R2_LAST["outcome"] = "in-progress"
+
+        async def _do_complete() -> None:
+            try:
+                res = await _server._run_complete_archive_to_r2(_server.db)
+                _server._COMPLETE_R2_LAST["finished_at"] = datetime.now(timezone.utc).isoformat()
+                if res:
+                    _server._COMPLETE_R2_LAST["outcome"] = "ok"
+                    _server._COMPLETE_R2_LAST["filename"] = res.get("filename")
+                    _server._COMPLETE_R2_LAST["size_bytes"] = res.get("size_bytes")
+                    _server._COMPLETE_R2_LAST["r2_key"] = res.get("r2_key")
+                    _server._COMPLETE_R2_LAST["presigned_url"] = res.get("presigned_url")
+                    _server._COMPLETE_R2_LAST["stats"] = res.get("stats")
+                else:
+                    _server._COMPLETE_R2_LAST["outcome"] = "FAILED — see logs"
+            except Exception as exc:  # noqa: BLE001
+                logger.exception("[force-r2-archive] crashed: %s", exc)
+                _server._COMPLETE_R2_LAST["outcome"] = f"EXCEPTION: {exc!r}"
+                _server._COMPLETE_R2_LAST["finished_at"] = datetime.now(timezone.utc).isoformat()
+            finally:
+                _server._COMPLETE_R2_IN_PROGRESS = False
+
+        background_tasks.add_task(_do_complete)
+        return {
+            "accepted": True,
+            "poll": "/api/admin/backups-complete-r2-state",
+            "started_at": _server._COMPLETE_R2_LAST["started_at"],
+        }
