@@ -21,7 +21,7 @@ from lib.release_identity import (
 REPO_ROOT = Path("/app")
 SERVER_PY = REPO_ROOT / "backend/server.py"
 BUILD_FILE = REPO_ROOT / "frontend/src/buildVersion.generated.js"
-LOCAL_API = "http://localhost:8001/api/version"
+LOCAL_API = "http://127.0.0.1:8001/api/version"
 
 
 def test_api_version_uses_release_identity_module():

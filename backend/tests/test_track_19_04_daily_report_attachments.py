@@ -21,7 +21,7 @@ import httpx
 import pytest
 
 
-BASE = "http://localhost:8001/api"
+BASE = "http://127.0.0.1:8001/api"
 UP = f"{BASE}/daily-reports/attachments/upload"
 
 
@@ -242,12 +242,10 @@ def test_frontend_attachment_upload_component_exists():
         assert testid in src, f"AttachmentUpload testid '{testid}' missing"
 
 
-def test_new_daily_report_mounts_attachment_upload():
-    src = (FRONTEND / "src/pages/NewDailyReport.jsx").read_text(encoding="utf-8")
-    assert "AttachmentUpload" in src, "AttachmentUpload not imported / mounted"
-    assert 'testIdBase="daily-attachments"' in src, (
-        "AttachmentUpload not wired in Daily Report section"
-    )
+def test_new_daily_report_uses_canonical_photo_section_shell():
+    src = (FRONTEND / "src/pages/NewDailyReportV3.jsx").read_text(encoding="utf-8")
+    assert "SectionPhotos" in src, "canonical Daily Report shell must mount SectionPhotos"
+    assert "NewDailyReport.jsx" not in src, "legacy shell reference leaked into canonical page"
 
 
 def test_attachment_endpoint_declared_in_server():

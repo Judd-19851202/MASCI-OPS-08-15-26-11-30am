@@ -82,8 +82,10 @@ def test_summary_draft_returns_live_fixture_totals_even_when_ai_disabled() -> No
     assert summary_input["equipment"]["total_run_hours"] == 4.0
     assert summary_input["equipment"]["total_idle_hours"] == 6.0
     assert summary_input["photos"]["photo_count"] == 6
-    assert body["summary_text"] is None
+    assert isinstance(body["summary_text"], str) and body["summary_text"].strip()
+    assert body["enabled"] is False
     assert body["reason_disabled"]
+    assert body["mode"] == "deterministic_fallback"
     assert "debug_payloads" not in body
 
 

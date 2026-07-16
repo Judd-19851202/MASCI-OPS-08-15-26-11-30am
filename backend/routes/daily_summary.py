@@ -466,6 +466,19 @@ def _compose_pm_grade_fallback(payload: Dict[str, Any], summary_input: Dict[str,
     if issue_bits:
         paragraphs.append("Issues and attention: " + "; ".join(issue_bits[:3]) + ".")
 
+    safety_incidents = _clean_str(payload.get("safety_incidents_today"), 20).lower()
+    injuries_reported = _clean_str(payload.get("injuries_reported"), 20).lower()
+    incident_notes = _clean_str(payload.get("incident_notes"), 320)
+    safety_parts = []
+    if safety_incidents in {"yes", "y", "true"}:
+        safety_parts.append("a safety incident was recorded")
+    if injuries_reported in {"yes", "y", "true"}:
+        safety_parts.append("an injury was reported")
+    if incident_notes:
+        safety_parts.append(f"notes: {incident_notes}")
+    if safety_parts:
+        paragraphs.append("Safety: " + "; ".join(safety_parts) + ".")
+
     tomorrow = _clean_str((payload.get("narrative_sections") or {}).get("tomorrow_plan"), 320)
     if tomorrow:
         paragraphs.append(f"Next work: {tomorrow}.")

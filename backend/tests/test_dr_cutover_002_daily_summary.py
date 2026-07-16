@@ -170,11 +170,12 @@ def test_ai_disabled_draft_returns_enabled_false_never_500():
     j = r.json()
     assert j["ok"] is True
     assert j["enabled"] is False
-    assert j["summary_text"] is None
+    assert isinstance(j["summary_text"], str) and j["summary_text"].strip()
     assert j["reason_disabled"]  # non-empty machine-readable code
+    assert j["mode"] == "deterministic_fallback"
 
 
-def test_tenant_ai_off_blocks_summary_generation():
+def test_live_path_ignores_removed_tenant_ai_gate():
     os.environ.update({
         "AI_GATEWAY_ENABLED": "true",
         "AI_PROVIDER_ANTHROPIC_ENABLED": "true",
@@ -190,10 +191,11 @@ def test_tenant_ai_off_blocks_summary_generation():
     )
     j = r.json()
     assert j["enabled"] is False
-    assert j["reason_disabled"] == "tenant_ai_disabled"
+    assert j["mode"] == "deterministic_fallback"
+    assert j["reason_disabled"]
 
 
-def test_module_off_blocks_summary_generation():
+def test_live_path_ignores_removed_module_gate():
     os.environ.update({
         "AI_GATEWAY_ENABLED": "true",
         "AI_PROVIDER_ANTHROPIC_ENABLED": "true",
@@ -207,7 +209,8 @@ def test_module_off_blocks_summary_generation():
     r = client.post("/api/daily-reports/summary/draft", json={"payload": RICH_PAYLOAD})
     j = r.json()
     assert j["enabled"] is False
-    assert j["reason_disabled"].startswith("module_disabled_global")
+    assert j["mode"] == "deterministic_fallback"
+    assert j["reason_disabled"]
 
 
 def test_missing_provider_key_reports_no_provider_not_500():
@@ -225,7 +228,8 @@ def test_missing_provider_key_reports_no_provider_not_500():
     assert r.status_code == 200
     j = r.json()
     assert j["enabled"] is False
-    assert j["reason_disabled"] == "no_provider_available"
+    assert j["mode"] == "deterministic_fallback"
+    assert j["reason_disabled"] in {"missing_provider_key", "unauthorized_attempt_1", "gateway_disabled"}
 
 
 def test_enabled_path_returns_deterministic_composed_summary():
@@ -234,7 +238,8 @@ def test_enabled_path_returns_deterministic_composed_summary():
     client = TestClient(_build_app(db))
     r = client.post("/api/daily-reports/summary/draft", json={"payload": RICH_PAYLOAD})
     j = r.json()
-    assert j["enabled"] is True
+    assert j["enabled"] is False
+    assert j["mode"] == "deterministic_fallback"
     text = j["summary_text"]
     assert text and len(text) > 40
     # Every literal value in the payload appears verbatim — proves

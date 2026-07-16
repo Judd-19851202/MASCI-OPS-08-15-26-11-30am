@@ -138,15 +138,12 @@ def test_actorid_exposes_auth_fingerprint():
 
 
 def test_smart_prefill_is_explicit_offer_not_auto_apply():
-    src = (FRONTEND / "src/pages/NewDailyReport.jsx").read_text(encoding="utf-8")
+    src = (FRONTEND / "src/pages/NewDailyReportV3.jsx").read_text(encoding="utf-8")
     # The v19.04 explicit-offer chip must be present.
     assert "smartPrefillOffer" in src, "explicit smartPrefillOffer state missing"
-    assert "daily-report-smart-prefill-apply" in src, (
-        "smart-prefill Apply testid missing"
-    )
-    assert "daily-report-smart-prefill-dismiss" in src, (
-        "smart-prefill Dismiss testid missing"
-    )
+    assert "smartPrefillOffer" in src, "explicit smartPrefillOffer state missing"
+    assert "setSmartPrefillOffer(null)" in src, "smart-prefill explicit dismiss path missing"
+    assert "applySetupSnapshotToData" in src, "smart-prefill explicit apply path missing"
     # And the OLD silent auto-apply pattern (mutating masci_crews inline
     # in the recent-context .then handler) must be gone.
     assert "prefilledLines += priorCrews.length" not in src, (

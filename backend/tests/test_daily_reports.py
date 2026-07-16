@@ -13,15 +13,7 @@ import os
 import pytest
 import requests
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL")
-if not BASE_URL:
-    # fall back to frontend/.env REACT_APP_BACKEND_URL
-    from pathlib import Path
-    env_path = Path("/app/frontend/.env")
-    for line in env_path.read_text().splitlines():
-        if line.startswith("REACT_APP_BACKEND_URL="):
-            BASE_URL = line.split("=", 1)[1].strip()
-BASE_URL = BASE_URL.rstrip("/")
+BASE_URL = "http://127.0.0.1:8001"
 API = f"{BASE_URL}/api"
 
 SUPER_EMAIL = "jaymn.judd@mascigc.com"
@@ -98,6 +90,8 @@ def _full_payload(prefix="TEST_DR"):
         "photos": [f"data:image/png;base64,FAKE{i}" for i in range(6)],
         "prepared_by_signature": "data:image/png;base64,SIGFAKE",
         "superintendent_signature": "",
+        "ai_accepted_summary": "Accepted executive summary: test daily report ready for submission.",
+        "ai_accepted_summary_meta": {"source": "ai", "approved_by": "Test Foreman", "accepted_at": "2026-01-15T19:00:00Z"},
     }
 
 
