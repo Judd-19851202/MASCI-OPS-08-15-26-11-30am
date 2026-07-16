@@ -367,7 +367,7 @@ async def _bootstrap_runtime_db() -> None:
 
     cfg = _load_runtime_db_config(require_runtime=True)
     _verify_env_db_alignment(cfg.app_env or "production", cfg.db_name, cfg.mongo_url)
-    client = AsyncIOMotorClient(cfg.mongo_url, tz_aware=True)
+    client = AsyncIOMotorClient(cfg.mongo_url, tz_aware=True, maxPoolSize=50)
     database = client[cfg.db_name]
     db.set_target(database)
     app.state.mongo_client = client
@@ -7953,7 +7953,7 @@ def _build_slim_backup_zip_on_disk(db, dst_zip: Path) -> dict:
     stripped_blob_count = 0
     stripped_blob_bytes = 0
     per_kind: Dict[str, int] = {}
-    sync_client = _MC(mongo_url, serverSelectionTimeoutMS=10000)
+    sync_client = _MC(mongo_url, serverSelectionTimeoutMS=10000, maxPoolSize=10)
     try:
         sync_db = sync_client[db_name]
         with _zf.ZipFile(str(dst_zip), "w", _zf.ZIP_DEFLATED, compresslevel=6) as zf:
@@ -8103,7 +8103,7 @@ def _build_complete_archive_on_disk(db_unused, dst_zip: Path) -> dict:
                 # Skip Mongo system collections + module-level explicit
                 # exclusions (kept in BACKUP_EXPLICIT_EXCLUSIONS for audit
                 # visibility — see R2_BACKUP_CONTINUITY_AUDIT.md §9).
-                if coll_name in BACKUP_EXPLICIT_EXCLUSIONS or coll_name.startswith("system."):
+                if coll_name == "usage_events" or coll_name in BACKUP_EXPLICIT_EXCLUSIONS or coll_name.startswith("system."):
                     continue
 
                 # Friendly "kind" for the in-zip folder — matches Pipeline A
@@ -12173,6 +12173,9 @@ async def _ensure_production_bottleneck_indexes():
         await db.r2_inventory.create_index("content_type")
         await db.r2_references.create_index("r2_key")
         await db.daily_reports.create_index("report_number")
+        await db.usage_events.create_index([("kind", 1), ("signal", 1), ("at", -1)])
+        await db.usage_events.create_index([("kind", 1), ("signal", 1), ("at", -1), ("elapsed_ms", 1)])
+        await db.usage_events.create_index([("kind", 1), ("signal", 1), ("at", -1), ("dims.equipment_id", 1)])
     except Exception as e:  # noqa: BLE001
         logger.warning(f"[db-bottleneck] index ensure failed (non-fatal): {e}")
 
