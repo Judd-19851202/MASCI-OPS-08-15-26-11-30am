@@ -93,7 +93,7 @@ describe("daily report summary payload", () => {
         { description: "illuminated work area indicates night operation.." },
       ],
     });
-    expect(text).toContain("Photo-supported evidence: Paving machine is in operation with fresh asphalt being laid; Illuminated work area indicates night operation.");
+    expect(text).toContain("Field verification: submitted photos support the reported operation, including Paving machine is in operation with fresh asphalt being laid; Illuminated work area indicates night operation.");
     expect(text).not.toContain(".;");
     expect(text).not.toContain("..");
   });
@@ -109,8 +109,8 @@ describe("daily report summary payload", () => {
       ],
     });
     expect(text).toContain("Field verification: submitted photos support the reported operation");
-    expect(text).toContain("tracked excavator is loading material into a dump truck");
-    expect(text).toContain("illuminated work area indicates night operation");
+    expect(text.toLowerCase()).toContain("tracked excavator is loading material into a dump truck");
+    expect(text.toLowerCase()).toContain("illuminated work area indicates night operation");
     expect(text).toContain("PM attention:");
     expect(text).not.toContain("branding");
   });

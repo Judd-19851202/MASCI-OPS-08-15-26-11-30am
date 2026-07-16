@@ -405,6 +405,10 @@ def _compose_pm_grade_fallback(payload: Dict[str, Any], summary_input: Dict[str,
             return ""
         return stripped[0].upper() + stripped[1:]
 
+    def _clean_sentence_tail(text: Any, limit: int = 320) -> str:
+        normalized = re.sub(r"\s+", " ", _clean_str(text, limit)).strip()
+        return re.sub(r"[.;:,\s]+$", "", normalized).strip()
+
     work_bits = []
     quantity_overview = []
     for row in production_rows[:4]:
@@ -498,12 +502,12 @@ def _compose_pm_grade_fallback(payload: Dict[str, Any], summary_input: Dict[str,
 
     issue_bits = []
     if _clean_str(payload.get("schedule_delays"), 20).lower() in {"yes", "y", "true"}:
-        notes = _clean_str(payload.get("schedule_delays_notes"), 240)
+        notes = _clean_sentence_tail(payload.get("schedule_delays_notes"), 240)
         issue_bits.append(notes or "Schedule delay reported")
     if _clean_str(payload.get("weather_impact"), 20).lower() in {"yes", "y", "true"}:
-        notes = _clean_str(payload.get("weather_impact_notes"), 240)
+        notes = _clean_sentence_tail(payload.get("weather_impact_notes"), 240)
         issue_bits.append(notes or "Weather impact reported")
-    general_notes = _clean_str(payload.get("general_notes"), 300)
+    general_notes = _clean_sentence_tail(payload.get("general_notes"), 300)
     if general_notes:
         issue_bits.append(general_notes)
     if issue_bits:
@@ -511,7 +515,7 @@ def _compose_pm_grade_fallback(payload: Dict[str, Any], summary_input: Dict[str,
 
     safety_incidents = _clean_str(payload.get("safety_incidents_today"), 20).lower()
     injuries_reported = _clean_str(payload.get("injuries_reported"), 20).lower()
-    incident_notes = _clean_str(payload.get("incident_notes"), 320)
+    incident_notes = _clean_sentence_tail(payload.get("incident_notes"), 320)
     safety_parts = []
     if safety_incidents in {"yes", "y", "true"}:
         safety_parts.append("a safety incident was recorded")
@@ -532,7 +536,7 @@ def _compose_pm_grade_fallback(payload: Dict[str, Any], summary_input: Dict[str,
     if pm_attention:
         paragraphs.append("PM attention: " + "; ".join(pm_attention[:2]) + ".")
 
-    tomorrow = _clean_str((payload.get("narrative_sections") or {}).get("tomorrow_plan"), 320)
+    tomorrow = _clean_sentence_tail((payload.get("narrative_sections") or {}).get("tomorrow_plan"), 320)
     if tomorrow:
         paragraphs.append(f"Next work: {tomorrow}.")
 
