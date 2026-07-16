@@ -1,3 +1,32 @@
+## 2026-07-16 · Daily Report speed + summary-quality repair
+
+### Completed
+- Daily Report summary assist now refreshes from meaningful report changes using a deduplicated request signature instead of re-firing from unchanged state.
+- Accepted summaries are invalidated automatically when upstream report data changes, so submit is gated again until the refreshed summary is re-accepted.
+- Photo upload/compression state now flows into the summary assist, which shows upload progress, avoids duplicate summary storms during batch adds, and continues draft photo-intelligence refresh after upload completion.
+- Confidence percentages were removed from the Daily Report summary UI and replaced with plain-language completeness states:
+  - `Summary ready`
+  - `Summary ready — some details missing`
+  - `Updating from new report information`
+  - `More information needed`
+- Missing report details now render in a separate block instead of being mixed into the accepted narrative.
+- Draft summary backend was hardened to a deterministic fast path for prompt, low-latency preview updates while preserving merged photo-intelligence payloads and PM-grade fallback prose.
+
+### Files updated in this checkpoint
+- `frontend/src/components/daily-report/DailySummaryAssist.jsx`
+- `frontend/src/components/PhotoUpload.jsx`
+- `frontend/src/components/daily-report-v3/sections.jsx`
+- `frontend/src/pages/NewDailyReportV3.jsx`
+- `backend/routes/daily_summary.py`
+- `backend/services/dr_ai/agents.py`
+- `backend/tests/test_track_22_9a_dr_ai_wireup.py`
+
+### Verification
+- `yarn build` ✅
+- `pytest -q backend/tests/test_track_22_9a_dr_ai_wireup.py backend/tests/test_track_24_12_ai_evidence_and_flow.py backend/tests/test_iteration_571_photo_intel_summary.py` ✅ (`36 passed`)
+- Preview smoke screenshot captured at `/daily/submit` ✅
+- Testing agent report: `/app/test_reports/iteration_577.json` ✅
+
 ## 2026-07-16 · Release cleanup closeout · backend starvation RCA and proof
 
 ### Final status
