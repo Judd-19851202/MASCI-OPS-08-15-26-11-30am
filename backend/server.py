@@ -8999,6 +8999,9 @@ _BACKUP_SCHEDULER_STATE: dict = {
     "boot_step": None,
     "boot_step_ts": None,
     "boot_exception": None,
+    "r2_hourly_requested": False,
+    "r2_hourly_effective": False,
+    "r2_hourly_locked_off": True,
 }
 
 
@@ -9321,7 +9324,14 @@ async def _backup_scheduler_loop(db) -> None:
             r2_hour = int(os.environ.get("BACKUP_R2_FULL_HOUR_UTC", "3") or "3")
         except ValueError:
             r2_hour = 3
-        r2_hourly = (os.environ.get("BACKUP_R2_HOURLY", "false") or "false").lower() in ("1", "true", "yes")
+        r2_hourly_requested = (os.environ.get("BACKUP_R2_HOURLY", "false") or "false").lower() in ("1", "true", "yes")
+        _BACKUP_SCHEDULER_STATE["r2_hourly_requested"] = r2_hourly_requested
+        _BACKUP_SCHEDULER_STATE["r2_hourly_effective"] = False
+        r2_hourly = False
+        if r2_hourly_requested:
+            _BACKUP_SCHEDULER_STATE["last_attempt_outcome"] = (
+                "HOURLY_COMPLETE_ARCHIVE_REQUESTED_BUT_LOCKED_OFF"
+            )
         hour_bucket = now.strftime("%Y-%m-%dT%H")
         current_hour_r2_row = None
         if r2_hourly and _BACKUP_SCHEDULER_STATE.get("last_r2_complete_hour") != hour_bucket:
@@ -10299,7 +10309,9 @@ async def admin_complete_r2_state(_: bool = Depends(require_admin_strict)):
         "nightly_last_date": nightly_last_date,
         "nightly_last_hour": nightly_last_hour,
         "r2_full_hour_utc": int(os.environ.get("BACKUP_R2_FULL_HOUR_UTC", "3") or "3"),
-        "r2_hourly": (os.environ.get("BACKUP_R2_HOURLY", "false") or "false").lower() in ("1", "true", "yes"),
+        "r2_hourly_requested": bool(_BACKUP_SCHEDULER_STATE.get("r2_hourly_requested")),
+        "r2_hourly_effective": False,
+        "r2_hourly_locked_off": True,
     }
 
 
@@ -18082,14 +18094,6 @@ async def _iter453_6_readiness_gate(request, call_next):
         response = await call_next(request)
         await observe_request_result(request.app, path=request.url.path or "", status_code=response.status_code)
         return response
-    except RuntimeError as exc:
-        from fastapi.responses import JSONResponse  # noqa: PLC0415
-        logging.getLogger(__name__).exception("[readiness-gate] runtime error: %s", exc)
-        await observe_request_result(request.app, path=request.url.path or "", status_code=500, exception=exc)
-        return JSONResponse(
-            status_code=500,
-            content={"detail": "internal_server_error"},
-        )
     except Exception as exc:
         await observe_request_result(request.app, path=request.url.path or "", status_code=500, exception=exc)
         raise
