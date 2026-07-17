@@ -4,7 +4,8 @@ Doctrine
 --------
 The V3 Daily Report needs cost-code selection without hardcoding *where*
 those codes come from. Today the source of truth is
-`jobs_master.cost_codes[]` (an additive optional field). Tomorrow the
+`jobs_master.assigned_cost_codes[]` with `jobs_master.cost_codes[]` kept
+only as a compatibility projection. Tomorrow the
 same UI must transparently read from Vista, Foundation, HCSS, Spectrum,
 Sage, an ERP CSV import, or a new dedicated collection — without a
 single line of UI or business-logic change.
@@ -89,7 +90,7 @@ class CostCodeProvider(ABC):
 # ── Concrete: jobs_master ──────────────────────────────────────────
 
 class JobsMasterCostCodeProvider(CostCodeProvider):
-    """Reads cost codes from ``jobs_master.cost_codes[]``.
+    """Reads cost codes from canonical ``jobs_master.assigned_cost_codes[]``.
 
     This is the launch provider for Track 23.1. Any code that has
     ``active is False`` is filtered out so PMs can archive without
@@ -107,12 +108,12 @@ class JobsMasterCostCodeProvider(CostCodeProvider):
         try:
             doc = await self._db.jobs_master.find_one(
                 {"project_number": project_number},
-                {"_id": 0, "cost_codes": 1},
+                {"_id": 0, "assigned_cost_codes": 1, "cost_codes": 1},
             )
         except Exception as exc:  # noqa: BLE001
             logger.info("[cost-codes] jobs_master read failed: %s", exc)
             return []
-        raw = (doc or {}).get("cost_codes") or []
+        raw = (doc or {}).get("assigned_cost_codes") or (doc or {}).get("cost_codes") or []
         out: List[CostCode] = []
         seen: set = set()
         for row in raw:

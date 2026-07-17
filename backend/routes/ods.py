@@ -18,6 +18,7 @@ from services.ods_spine import (
     compute_kpi_snapshot, get_snapshot,
     ingest_dr_v2_draft, list_facts, project_summary,
 )
+from services.cost_codes.foundation import build_ods_project_cost_code_doc, load_project_assignments
 from services.ods_spine.store import (
     COLL_PROJECT_CFG, ensure_indexes,
 )
@@ -133,7 +134,14 @@ def register_ods_routes(api_router: APIRouter, db) -> None:
     @api_router.get("/ods/projects/{project_id}/config")
     async def ods_get_project_config(project_id: str = Path(...)) -> Dict[str, Any]:
         doc = await db[COLL_PROJECT_CFG].find_one({"project_id": project_id}, {"_id": 0})
-        return {"project_id": project_id, "config": doc}
+        if doc:
+            return {"project_id": project_id, "config": doc}
+        assignments = await load_project_assignments(db, project_id)
+        if not assignments:
+            return {"project_id": project_id, "config": None}
+        projected = build_ods_project_cost_code_doc(project_number=project_id, assignments=assignments, tenant_id=TENANT_DEFAULT, version=1)
+        await db[COLL_PROJECT_CFG].update_one({"project_id": project_id}, {"$set": projected}, upsert=True)
+        return {"project_id": project_id, "config": projected}
 
     @api_router.put("/ods/projects/{project_id}/config")
     async def ods_put_project_config(
@@ -144,14 +152,29 @@ def register_ods_routes(api_router: APIRouter, db) -> None:
             raise HTTPException(status_code=409, detail="ODS_ENABLED is off")
         if payload.project_id != project_id:
             raise HTTPException(status_code=400, detail="project_id mismatch")
-        doc = payload.model_dump()
-        existing = await db[COLL_PROJECT_CFG].find_one({"project_id": project_id}, {"version": 1})
-        doc["version"] = int((existing or {}).get("version", 0)) + 1
-        doc["updated_at"] = _now()
+        assignments = await load_project_assignments(db, project_id)
+        if not assignments:
+            raise HTTPException(status_code=404, detail="No canonical assigned_cost_codes found for this project")
+        existing = await db[COLL_PROJECT_CFG].find_one({"project_id": project_id}, {"_id": 0, "version": 1, "tenant_id": 1})
+        doc = build_ods_project_cost_code_doc(
+            project_number=project_id,
+            assignments=assignments,
+            tenant_id=str((existing or {}).get("tenant_id") or payload.tenant_id or TENANT_DEFAULT),
+            version=int((existing or {}).get("version") or 0) + 1,
+        )
+        doc["sync_requested_by"] = payload.updated_by or "system"
+        doc["sync_mode"] = "canonical_projection"
         await db[COLL_PROJECT_CFG].update_one(
             {"project_id": project_id}, {"$set": doc}, upsert=True,
         )
-        return {"ok": True, "version": doc["version"]}
+        return {
+            "ok": True,
+            "version": doc["version"],
+            "project_id": project_id,
+            "source_authority": doc["source_authority"],
+            "projection_locked": True,
+            "cost_code_count": len(doc.get("cost_codes") or []),
+        }
 
     # ----- Manual ingest / regenerate for a DR-V2 draft --------------
     @api_router.post("/ods/ingest/dr-v2/{report_id}")

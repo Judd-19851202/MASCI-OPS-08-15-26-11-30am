@@ -1061,13 +1061,16 @@ export function SectionWorkProduction({ data, patch, costCodes, projectCostAssig
                 const progressRow = (projectCostProgress?.codes || []).find((item) => item.code === row.cost_code);
                 return (
                   <div key={row.row_id || row.cost_code || index} className="rounded-xl border border-blue-100 bg-white/90 p-3" data-testid={`dr-v3-cost-quantity-row-${index}`}>
-                    <div className="grid gap-3 lg:grid-cols-[1.4fr_0.7fr_0.8fr_1fr]">
+                    <div className="grid gap-3 lg:grid-cols-[1.25fr_0.7fr_0.8fr_1fr]">
                       <div>
                         <div className="text-sm font-semibold text-slate-900">{row.cost_code} · {row.item_name || t("Assigned code")}</div>
                         <div className="mt-1 text-xs text-slate-500" data-testid={`dr-v3-cost-quantity-row-meta-${index}`}>
-                          {t("Bid Qty")}: {progressRow?.bid_quantity ?? "—"} {row.unit_of_measure || ""}
+                          {t("Authorized Qty")}: {progressRow?.authorized_quantity ?? progressRow?.bid_quantity ?? "—"} {row.unit_of_measure || ""}
                           {row.cpm_activity_id ? ` · CPM ${row.cpm_activity_id}` : ""}
                           {row.schedule_phase ? ` · ${row.schedule_phase}` : ""}
+                        </div>
+                        <div className="mt-2 text-xs text-slate-600" data-testid={`dr-v3-cost-quantity-planned-performer-${index}`}>
+                          {t("Planned performer")}: {row.planned_performer || t("Not assigned")}
                         </div>
                       </div>
                       <div>
@@ -1098,9 +1101,53 @@ export function SectionWorkProduction({ data, patch, costCodes, projectCostAssig
                         />
                       </div>
                     </div>
+                    <div className="mt-3 grid gap-3 lg:grid-cols-4">
+                      <div>
+                        <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">{t("Actual performer")}</label>
+                        <input
+                          type="text"
+                          value={row.actual_performer || ""}
+                          onChange={(e) => updateCostQuantity(index, { actual_performer: e.target.value })}
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                          data-testid={`dr-v3-cost-quantity-actual-performer-${index}`}
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">{t("Location")}</label>
+                        <input
+                          type="text"
+                          value={row.location || ""}
+                          onChange={(e) => updateCostQuantity(index, { location: e.target.value })}
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                          data-testid={`dr-v3-cost-quantity-location-${index}`}
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">{t("Work area")}</label>
+                        <input
+                          type="text"
+                          value={row.work_area || ""}
+                          onChange={(e) => updateCostQuantity(index, { work_area: e.target.value })}
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                          data-testid={`dr-v3-cost-quantity-work-area-${index}`}
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">{t("Evidence links")}</label>
+                        <input
+                          type="text"
+                          value={(row.evidence_links || []).join(", ")}
+                          onChange={(e) => updateCostQuantity(index, { evidence_links: e.target.value.split(",").map((part) => part.trim()).filter(Boolean) })}
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                          placeholder={t("Comma-separated links or refs")}
+                          data-testid={`dr-v3-cost-quantity-evidence-links-${index}`}
+                        />
+                      </div>
+                    </div>
                     {progressRow ? (
                       <div className="mt-2 text-xs text-slate-600" data-testid={`dr-v3-cost-quantity-progress-${index}`}>
-                        {t("Overall")}: {Number(progressRow.progress_percent || 0).toFixed(2)}% · {t("Installed to date")}: {progressRow.installed_quantity} / {progressRow.bid_quantity} {progressRow.unit_of_measure}
+                        {t("Overall")}: {Number(progressRow.progress_percent || 0).toFixed(2)}% · {t("Installed to date")}: {progressRow.installed_quantity} / {progressRow.authorized_quantity || progressRow.bid_quantity} {progressRow.unit_of_measure}
+                        {Number(progressRow.overrun_quantity || 0) > 0 ? ` · ${t("Overrun")}: ${progressRow.overrun_quantity}` : ""}
                       </div>
                     ) : null}
                   </div>

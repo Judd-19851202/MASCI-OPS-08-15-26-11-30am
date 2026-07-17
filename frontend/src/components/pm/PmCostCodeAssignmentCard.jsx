@@ -40,9 +40,13 @@ export default function PmCostCodeAssignmentCard({ projectNumber }) {
       bid_unit_price: source.bid_unit_price,
       target_man_hours: source.target_man_hours,
       bid_quantity: 0,
+      original_quantity: 0,
+      authorized_quantity: 0,
+      forecast_quantity: 0,
       cpm_activity_id: "",
       cpm_activity_name: "",
       schedule_phase: "",
+      planned_performer: "",
       notes: "",
     }]));
   };
@@ -61,7 +65,10 @@ export default function PmCostCodeAssignmentCard({ projectNumber }) {
       const { data } = await api.put(`/cost-codes/projects/${encodeURIComponent(projectNumber)}/assignments`, {
         assignments: assignments.map((row) => ({
           ...row,
-          bid_quantity: Number(row.bid_quantity || 0),
+          bid_quantity: Number(row.authorized_quantity ?? row.bid_quantity ?? 0),
+          original_quantity: Number(row.original_quantity || row.authorized_quantity || row.bid_quantity || 0),
+          authorized_quantity: Number(row.authorized_quantity ?? row.bid_quantity ?? 0),
+          forecast_quantity: Number(row.forecast_quantity || row.authorized_quantity || row.bid_quantity || 0),
           bid_unit_price: Number(row.bid_unit_price || 0),
           target_man_hours: Number(row.target_man_hours || 0),
         })),
@@ -99,14 +106,17 @@ export default function PmCostCodeAssignmentCard({ projectNumber }) {
 
       <div className="mt-5 space-y-3">
         {assignments.map((row, index) => (
-          <div key={`${row.code}-${index}`} className="grid gap-3 rounded-2xl border border-slate-100 p-4 lg:grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr_1fr_auto]" data-testid={`pm-cost-code-assignment-row-${index}`}>
+          <div key={`${row.code}-${index}`} className="grid gap-3 rounded-2xl border border-slate-100 p-4 lg:grid-cols-[1.1fr_0.7fr_0.7fr_0.7fr_0.8fr_0.9fr_0.9fr_auto]" data-testid={`pm-cost-code-assignment-row-${index}`}>
             <div>
               <div className="text-sm font-semibold text-slate-900">{row.code}</div>
               <div className="text-xs text-slate-500">{row.item_name}</div>
             </div>
-            <input type="number" step="0.01" value={row.bid_quantity ?? ""} onChange={(e) => update(index, { bid_quantity: e.target.value })} className="rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Bid qty" data-testid={`pm-cost-code-bid-qty-${index}`} />
+            <input type="number" step="0.01" value={row.original_quantity ?? row.bid_quantity ?? ""} onChange={(e) => update(index, { original_quantity: e.target.value })} className="rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Original qty" data-testid={`pm-cost-code-original-qty-${index}`} />
+            <input type="number" step="0.01" value={row.authorized_quantity ?? row.bid_quantity ?? ""} onChange={(e) => update(index, { authorized_quantity: e.target.value, bid_quantity: e.target.value })} className="rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Authorized qty" data-testid={`pm-cost-code-authorized-qty-${index}`} />
+            <input type="number" step="0.01" value={row.forecast_quantity ?? row.authorized_quantity ?? row.bid_quantity ?? ""} onChange={(e) => update(index, { forecast_quantity: e.target.value })} className="rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Forecast qty" data-testid={`pm-cost-code-forecast-qty-${index}`} />
             <input type="text" value={row.cpm_activity_id || ""} onChange={(e) => update(index, { cpm_activity_id: e.target.value })} className="rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="CPM ID" data-testid={`pm-cost-code-cpm-id-${index}`} />
             <input type="text" value={row.schedule_phase || ""} onChange={(e) => update(index, { schedule_phase: e.target.value })} className="rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Phase" data-testid={`pm-cost-code-phase-${index}`} />
+            <input type="text" value={row.planned_performer || ""} onChange={(e) => update(index, { planned_performer: e.target.value })} className="rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Planned performer" data-testid={`pm-cost-code-planned-performer-${index}`} />
             <input type="text" value={row.cpm_activity_name || ""} onChange={(e) => update(index, { cpm_activity_name: e.target.value })} className="rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="CPM activity name" data-testid={`pm-cost-code-cpm-name-${index}`} />
             <button type="button" onClick={() => remove(index)} className="rounded-full border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700" data-testid={`pm-cost-code-remove-${index}`}>Remove</button>
           </div>

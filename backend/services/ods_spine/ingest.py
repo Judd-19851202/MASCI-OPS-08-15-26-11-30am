@@ -495,21 +495,47 @@ def _build_facts_from_dr_v1_report(rec: Dict[str, Any]) -> List[Dict[str, Any]]:
         }
         facts.append(f)
 
-    # ── Production facts from `activities[]`
-    for i, act in enumerate(rec.get("activities") or []):
-        if not isinstance(act, dict):
-            continue
-        item_id = f"activity:{i}:{act.get('id') or i}"
-        f = _base(src_type, src_id, src_ver, item_id, pid, date, submitted_by, "production_fact")
-        f["source_status"] = "partial"
-        f["payload"] = {
-            "cost_code": act.get("cost_code"),
-            "activity": act.get("activity") or act.get("name") or "",
-            "work_area": act.get("area"),
-            "quantity": coerce_number(act.get("quantity") or act.get("qty")),
-            "unit": act.get("unit") or "",
-        }
-        facts.append(f)
+    canonical_rows = [
+        row for row in (rec.get("cost_code_quantities") or [])
+        if isinstance(row, dict) and (row.get("cost_code") or row.get("code"))
+    ]
+    if canonical_rows:
+        for i, row in enumerate(canonical_rows):
+            code = row.get("cost_code") or row.get("code") or ""
+            item_id = f"cost-code:{i}:{code or i}"
+            f = _base(src_type, src_id, src_ver, item_id, pid, date, submitted_by, "production_fact")
+            f["source_status"] = "full"
+            f["payload"] = {
+                "cost_code": code,
+                "activity": row.get("item_name") or row.get("description") or code,
+                "work_area": row.get("work_area") or row.get("location") or "",
+                "location": row.get("location") or "",
+                "quantity": coerce_number(row.get("installed_quantity") or row.get("quantity")),
+                "unit": row.get("unit_of_measure") or row.get("unit") or "",
+                "actual_performer": row.get("actual_performer") or "",
+                "planned_performer": row.get("planned_performer") or "",
+                "notes": row.get("notes") or "",
+                "entry_mode": "assigned_cost_code_actual",
+                "evidence_links": row.get("evidence_links") or [],
+            }
+            facts.append(f)
+    else:
+        # ── Production facts from `activities[]` (legacy fallback only)
+        for i, act in enumerate(rec.get("activities") or []):
+            if not isinstance(act, dict):
+                continue
+            item_id = f"activity:{i}:{act.get('id') or i}"
+            f = _base(src_type, src_id, src_ver, item_id, pid, date, submitted_by, "production_fact")
+            f["source_status"] = "partial"
+            f["payload"] = {
+                "cost_code": act.get("cost_code"),
+                "activity": act.get("activity") or act.get("name") or "",
+                "work_area": act.get("area"),
+                "quantity": coerce_number(act.get("quantity") or act.get("qty")),
+                "unit": act.get("unit") or "",
+                "entry_mode": "legacy_activity",
+            }
+            facts.append(f)
 
     # ── Material facts
     for i, mat in enumerate(rec.get("materials") or []):
@@ -766,6 +792,8 @@ async def ingest_dr_v1_report(
     """
     if not ods_enabled() or not dr_v2_spine_emission_enabled():
         return {"ok": False, "skipped": True, "reason": "flags_off"}
+    if bool(report.get("synthetic_record")) or bool(report.get("certification_record")) or bool(report.get("hidden_from_operations")):
+        return {"ok": False, "skipped": True, "reason": "excluded_from_operations"}
 
     src_id = report.get("id") or report.get("doc_id") or report.get("report_number") or ""
     if not src_id:

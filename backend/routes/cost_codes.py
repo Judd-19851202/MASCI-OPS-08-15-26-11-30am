@@ -5,7 +5,6 @@ quantity tracking helpers, and additive job progress calculations.
 """
 from __future__ import annotations
 
-from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -15,10 +14,13 @@ from pm_auth import compute_pm_scope
 from services.cost_codes import get_provider
 from services.cost_codes.foundation import (
     ALLOWED_UNITS,
-    build_progress_snapshot,
+    build_project_cost_code_option,
+    load_project_assignments,
+    persist_project_assignments,
+    recompute_project_progress as recompute_project_progress_snapshot,
     normalize_job_assignment,
     normalize_registry_item,
-    now_iso,
+    serialize_assignment,
 )
 
 REGISTRY_COLLECTION = "cost_code_registry"
@@ -44,9 +46,13 @@ class ProjectAssignmentIn(BaseModel):
     bid_unit_price: float = 0.0
     target_man_hours: float = 0.0
     bid_quantity: float = 0.0
+    original_quantity: float = 0.0
+    authorized_quantity: float = 0.0
+    forecast_quantity: float = 0.0
     cpm_activity_id: Optional[str] = ""
     cpm_activity_name: Optional[str] = ""
     schedule_phase: Optional[str] = ""
+    planned_performer: Optional[str] = ""
     notes: Optional[str] = ""
 
 
@@ -73,53 +79,6 @@ async def _load_registry(db) -> List[Dict[str, Any]]:
 async def _registry_index(db) -> Dict[str, Dict[str, Any]]:
     rows = await _load_registry(db)
     return {str(row.get("code") or "").strip(): row for row in rows if str(row.get("code") or "").strip()}
-
-
-async def _assigned_cost_codes_for_project(db, project_number: str) -> List[Dict[str, Any]]:
-    job = await db.jobs_master.find_one({"project_number": str(project_number or "").strip()}, {"_id": 0, "assigned_cost_codes": 1})
-    rows = (job or {}).get("assigned_cost_codes") or []
-    clean: List[Dict[str, Any]] = []
-    for idx, row in enumerate(rows):
-        if not isinstance(row, dict):
-            continue
-        item = dict(row)
-        item.setdefault("sort_order", idx)
-        clean.append(item)
-    clean.sort(key=lambda r: (int(r.get("sort_order") or 0), str(r.get("code") or "")))
-    return clean
-
-
-async def _load_project_progress(db, project_number: str) -> Dict[str, Any]:
-    assignments = await _assigned_cost_codes_for_project(db, project_number)
-    reports = await db.daily_reports.find(
-        {"project_number": str(project_number or "").strip()},
-        {"_id": 0, "cost_code_quantities": 1},
-    ).to_list(5000)
-    daily_rows: List[Dict[str, Any]] = []
-    for report in reports:
-        rows = report.get("cost_code_quantities") or []
-        daily_rows.extend([row for row in rows if isinstance(row, dict)])
-    return build_progress_snapshot(assignments, daily_rows)
-
-
-async def _persist_project_progress(db, project_number: str) -> Dict[str, Any]:
-    progress = await _load_project_progress(db, project_number)
-    await db.jobs_master.update_one(
-        {"project_number": str(project_number or "").strip()},
-        {"$set": {
-            "cost_code_progress": progress,
-            "cost_code_progress_percent": progress.get("overall_percent_complete", 0.0),
-            "cost_code_progress_updated_at": now_iso(),
-            "schedule_cost_spine_ready": True,
-            "dot_cpm_ready": {
-                "fdot": True,
-                "txdot": True,
-                "foundation_completed_at": now_iso(),
-            },
-        }},
-        upsert=False,
-    )
-    return progress
 
 
 async def _ensure_spine_indexes(db) -> None:
@@ -161,36 +120,23 @@ def register_cost_code_routes(api_router: APIRouter, db, require_admin=None, req
     @api_router.get("/cost-codes/for-project")
     async def cost_codes_for_project(project_number: str = "") -> Dict[str, Any]:
         await _ensure_spine_indexes(db)
-        codes = await provider.list_for_project(db, project_number)
-        assigned = await _assigned_cost_codes_for_project(db, project_number)
+        codes = await provider.list_for_project(project_number)
+        assigned = await load_project_assignments(db, project_number)
         if assigned:
-            codes = [
-                {
-                    "code": row.get("code"),
-                    "description": row.get("item_name") or row.get("description") or row.get("code"),
-                    "active": row.get("active", True),
-                    "unit": row.get("unit_of_measure") or row.get("unit"),
-                    "bid_quantity": row.get("bid_quantity") or 0,
-                    "bid_unit_price": row.get("bid_unit_price") or 0,
-                    "target_man_hours": row.get("target_man_hours") or 0,
-                    "cpm_activity_id": row.get("cpm_activity_id") or "",
-                    "cpm_activity_name": row.get("cpm_activity_name") or "",
-                    "schedule_phase": row.get("schedule_phase") or "",
-                }
-                for row in assigned
-            ]
+            codes = [build_project_cost_code_option(row) for row in assigned]
         return {"project_number": project_number, "codes": codes}
 
     @api_router.get("/cost-codes/projects/{project_number}/assignments")
     async def get_project_assignments(project_number: str) -> Dict[str, Any]:
         await _ensure_spine_indexes(db)
-        assignments = await _assigned_cost_codes_for_project(db, project_number)
-        progress = await _load_project_progress(db, project_number)
+        assignments = await load_project_assignments(db, project_number)
+        progress = await recompute_project_progress_snapshot(db, project_number)
         return {
             "project_number": project_number,
-            "assignments": assignments,
+            "assignments": [serialize_assignment(row, include_financial=False) for row in assignments],
             "progress": progress,
             "supports_future_cpm": True,
+            "financials_included": False,
         }
 
     @api_router.put("/cost-codes/projects/{project_number}/assignments")
@@ -202,33 +148,47 @@ def register_cost_code_routes(api_router: APIRouter, db, require_admin=None, req
         if not scope.allows(project_number):
             raise HTTPException(status_code=403, detail="Project not in PM scope")
         registry = await _registry_index(db)
+        existing_assignments = {
+            str(row.get("code") or "").strip(): row
+            for row in await load_project_assignments(db, project_number)
+            if str(row.get("code") or "").strip()
+        }
         rows: List[Dict[str, Any]] = []
+        seen_codes = set()
         for idx, raw in enumerate(body.assignments):
+            code = str(raw.code).strip()
+            if code in seen_codes:
+                raise HTTPException(status_code=422, detail=f"Duplicate assignment submitted for cost code {code}")
+            seen_codes.add(code)
             item = registry.get(str(raw.code).strip())
-            merged = normalize_job_assignment(raw.model_dump(), item)
+            payload = raw.model_dump()
+            if payload.get("authorized_quantity") in (None, 0, 0.0) and payload.get("bid_quantity") not in (None, ""):
+                payload["authorized_quantity"] = payload.get("bid_quantity")
+            if payload.get("original_quantity") in (None, 0, 0.0) and payload.get("authorized_quantity") not in (None, ""):
+                payload["original_quantity"] = payload.get("authorized_quantity")
+            if payload.get("forecast_quantity") in (None, 0, 0.0) and payload.get("authorized_quantity") not in (None, ""):
+                payload["forecast_quantity"] = payload.get("authorized_quantity")
+            try:
+                merged = normalize_job_assignment(payload, item, existing_assignments.get(code))
+            except ValueError as exc:
+                raise HTTPException(status_code=422, detail=str(exc)) from exc
             merged["sort_order"] = idx
             rows.append(merged)
-        await db.jobs_master.update_one(
-            {"project_number": str(project_number or "").strip()},
-            {"$set": {
-                "assigned_cost_codes": rows,
-                "cost_codes": [
-                    {"code": row.get("code"), "description": row.get("item_name"), "active": True}
-                    for row in rows
-                ],
-                "schedule_cost_spine_ready": True,
-                "dot_cpm_ready": {"fdot": True, "txdot": True, "updated_at": now_iso()},
-                "updated_at": now_iso(),
-            }},
-            upsert=False,
-        )
-        progress = await _persist_project_progress(db, project_number)
-        return {"ok": True, "assignments": rows, "progress": progress}
+        try:
+            await persist_project_assignments(db, project_number, rows)
+        except LookupError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        progress = await recompute_project_progress_snapshot(db, project_number)
+        return {
+            "ok": True,
+            "assignments": [serialize_assignment(row, include_financial=True) for row in rows],
+            "progress": progress,
+        }
 
     @api_router.get("/cost-codes/projects/{project_number}/progress")
     async def get_project_progress(project_number: str) -> Dict[str, Any]:
         await _ensure_spine_indexes(db)
-        progress = await _load_project_progress(db, project_number)
+        progress = await recompute_project_progress_snapshot(db, project_number)
         return {"project_number": project_number, "progress": progress}
 
     @api_router.post("/cost-codes/projects/{project_number}/progress/recompute")
@@ -239,5 +199,5 @@ def register_cost_code_routes(api_router: APIRouter, db, require_admin=None, req
         scope = await compute_pm_scope(db, actor)
         if not scope.allows(project_number):
             raise HTTPException(status_code=403, detail="Project not in PM scope")
-        progress = await _persist_project_progress(db, project_number)
+        progress = await recompute_project_progress_snapshot(db, project_number)
         return {"ok": True, "project_number": project_number, "progress": progress}
