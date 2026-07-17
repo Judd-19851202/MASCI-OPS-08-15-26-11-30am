@@ -167,6 +167,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
     failed: 0,
     phase: "idle",
   });
+  const [photoWarmHint, setPhotoWarmHint] = useState(null);
   const idempotencyKeyRef = useRef(null);
   const actorId = getStableActorIdentity();
   const draftScope = useMemo(() => buildDailyReportInstanceScope({ ...data, actor_id: actorId }), [data, actorId]);
@@ -1124,6 +1125,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
             patch={patch}
             photoMin={photoMin}
             onPhotoBatchStateChange={setPhotoBatchState}
+            onPhotoReady={({ completed, total }) => setPhotoWarmHint({ completed, total, at: Date.now() })}
           />
           <SectionImpactSafety data={data} patch={patch} />
           {/* TRACK 23.10-E · Excavation section — collapsed unless
@@ -1141,7 +1143,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
             reportId={reportId}
             formKey={scopedFormKey}
             draftActorId={actorId}
-            photoUploadState={photoBatchState}
+            photoUploadState={{ ...photoBatchState, warmHint: photoWarmHint }}
             onStateChange={setSummaryGate}
             onAccepted={(payload) =>
               patch({

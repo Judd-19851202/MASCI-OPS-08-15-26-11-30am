@@ -24,13 +24,20 @@ Doctrine
 from __future__ import annotations
 
 import asyncio
+import logging
 import re
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
+from lib.async_jobs import (
+    complete_async_job_json,
+    create_async_job,
+    fail_async_job,
+    mark_async_job_processing,
+)
 from services.dr_ai import build_evidence_bundle, get_ai_provider
 from services.dr_ai.agents import AGENTS, AGENT_RESPONSE_SCHEMA
 
@@ -41,6 +48,7 @@ _MODULE = "daily_report_summary"
 _DEFAULT_TENANT_ID = "masci"
 _ACCEPTED_LANGUAGES = {"en", "es"}
 _MAX_SUMMARY_CHARS = 4000
+logger = logging.getLogger(__name__)
 
 
 # ─────────────────────── payload models ───────────────────────────
@@ -884,12 +892,115 @@ def register_daily_summary_routes(
 ) -> None:
     """Mount DR-CUTOVER-002 routes onto ``api_router``."""
 
+    async def _run_summary_job(
+        job_id: str,
+        *,
+        payload: Dict[str, Any],
+        language: str,
+        request_id: Optional[str],
+        form_key: str,
+    ) -> None:
+        photo_total = int(len(payload.get("photos") or []))
+        photo_intel = None
+        try:
+            await mark_async_job_processing(
+                job_id,
+                message=(f"AI is citing 0 of {photo_total} photos..." if photo_total > 0 else "Writing summary..."),
+                details={"total_photos": photo_total, "cited_photos": 0, "stage": "photo_warmup" if photo_total > 0 else "summary"},
+            )
+            try:
+                from services.photo_intelligence import (  # noqa: PLC0415
+                    process_v1_draft,
+                    list_v1_draft_intelligence,
+                )
+                if form_key and (payload.get("photos") or []):
+                    await process_v1_draft(
+                        db,
+                        draft_identity=form_key,
+                        draft=payload,
+                    )
+                    photo_intel = await list_v1_draft_intelligence(
+                        db,
+                        draft_identity=form_key,
+                        draft=payload,
+                    )
+                    reviewed = int(photo_intel.get("reviewed") or photo_intel.get("analyzed") or 0)
+                    payload["photo_observations"] = _photo_observations_for_ai(photo_intel)
+                    payload["photo_intelligence_status"] = photo_intel.get("status") or payload.get("photo_intelligence_status")
+                    payload["summary_input"] = {
+                        **(payload.get("summary_input") or {}),
+                        "photos": {
+                            **((payload.get("summary_input") or {}).get("photos") or {}),
+                            "photo_count": int(photo_intel.get("photo_count") or len(payload.get("photos") or [])),
+                            "status": photo_intel.get("status") or "no_photos",
+                            "lifecycle_status": photo_intel.get("lifecycle_status") or photo_intel.get("status") or "no_photos",
+                            "analyzed": int(photo_intel.get("analyzed") or 0),
+                            "pending": int(photo_intel.get("pending") or 0),
+                            "queued": int(photo_intel.get("queued") or 0),
+                            "processing": int(photo_intel.get("processing") or 0),
+                            "failed": int(photo_intel.get("failed") or 0),
+                            "observations": list(photo_intel.get("observations") or [])[:60],
+                            "classification": photo_intel.get("classification") or "",
+                        },
+                    }
+                    await mark_async_job_processing(
+                        job_id,
+                        message=f"AI is citing {min(reviewed, photo_total)} of {photo_total} photos...",
+                        details={
+                            "total_photos": photo_total,
+                            "cited_photos": min(reviewed, photo_total),
+                            "reviewed_photos": reviewed,
+                            "stage": "summary",
+                        },
+                    )
+            except Exception:  # noqa: BLE001
+                photo_intel = None
+
+            session_key = form_key or _clean_str(payload.get("project_number"), 40) or "draft"
+            try:
+                result = await asyncio.wait_for(
+                    _compose_live_summary(
+                        payload,
+                        photo_intel=photo_intel,
+                        language=language,
+                        request_id=request_id,
+                        session_key=session_key,
+                    ),
+                    timeout=80.0,
+                )
+            except asyncio.TimeoutError:
+                result = _compose_timeout_fallback(
+                    payload,
+                    photo_intel=photo_intel,
+                    language=language,
+                    request_id=request_id,
+                    reason="summary_timeout_80s",
+                )
+            except Exception:
+                result = _compose_timeout_fallback(
+                    payload,
+                    photo_intel=photo_intel,
+                    language=language,
+                    request_id=request_id,
+                    reason="live_ai_unavailable",
+                )
+            await complete_async_job_json(job_id, result, message="Summary ready.")
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("daily summary async job failed: %s", exc)
+            await fail_async_job(
+                job_id,
+                error_code="daily_summary_job_failed",
+                message="Summary processing failed.",
+                details={"total_photos": photo_total},
+            )
+
     # ─────── POST /api/daily-reports/summary/draft ─────────────────
     @api_router.post(
         "/daily-reports/summary/draft",
         dependencies=[Depends(rate_limit_public_post)],
+        status_code=202,
     )
-    async def draft_summary(body: SummaryDraftBody, request: Request):
+    async def draft_summary(body: SummaryDraftBody, request: Request, background_tasks: BackgroundTasks):
         """Compose a preview summary from the current (unsaved)
         report payload. Uses live AI synthesis with deterministic
         fallback only on provider failure.
@@ -913,72 +1024,32 @@ def register_daily_summary_routes(
 
         request_id = _clean_str(request.headers.get("X-Request-Id"), 120) or None
         payload = dict(body.payload or {})
-        photo_intel = None
         form_key = _clean_str(body.form_key, 180) or _clean_str(payload.get("form_key"), 180)
-        try:
-            from services.photo_intelligence import (  # noqa: PLC0415
-                process_v1_draft,
-                list_v1_draft_intelligence,
-            )
-            if form_key and (payload.get("photos") or []):
-                await process_v1_draft(
-                    db,
-                    draft_identity=form_key,
-                    draft=payload,
-                )
-                photo_intel = await list_v1_draft_intelligence(
-                    db,
-                    draft_identity=form_key,
-                    draft=payload,
-                )
-                payload["photo_observations"] = _photo_observations_for_ai(photo_intel)
-                payload["photo_intelligence_status"] = photo_intel.get("status") or payload.get("photo_intelligence_status")
-                payload["summary_input"] = {
-                    **(payload.get("summary_input") or {}),
-                    "photos": {
-                        **((payload.get("summary_input") or {}).get("photos") or {}),
-                        "photo_count": int(photo_intel.get("photo_count") or len(payload.get("photos") or [])),
-                        "status": photo_intel.get("status") or "no_photos",
-                        "lifecycle_status": photo_intel.get("lifecycle_status") or photo_intel.get("status") or "no_photos",
-                        "analyzed": int(photo_intel.get("analyzed") or 0),
-                        "pending": int(photo_intel.get("pending") or 0),
-                        "queued": int(photo_intel.get("queued") or 0),
-                        "processing": int(photo_intel.get("processing") or 0),
-                        "failed": int(photo_intel.get("failed") or 0),
-                        "observations": list(photo_intel.get("observations") or [])[:60],
-                        "classification": photo_intel.get("classification") or "",
-                    },
-                }
-        except Exception:  # noqa: BLE001
-            photo_intel = None
-        session_key = form_key or _clean_str(payload.get("project_number"), 40) or "draft"
-        try:
-            return await asyncio.wait_for(
-                _compose_live_summary(
-                    payload,
-                    photo_intel=photo_intel,
-                    language=language,
-                    request_id=request_id,
-                    session_key=session_key,
-                ),
-                timeout=80.0,
-            )
-        except asyncio.TimeoutError:
-            return _compose_timeout_fallback(
-                payload,
-                photo_intel=photo_intel,
-                language=language,
-                request_id=request_id,
-                reason="summary_timeout_80s",
-            )
-        except Exception:
-            return _compose_timeout_fallback(
-                payload,
-                photo_intel=photo_intel,
-                language=language,
-                request_id=request_id,
-                reason="live_ai_unavailable",
-            )
+        photo_total = int(len(payload.get("photos") or []))
+        job = await create_async_job(
+            "daily_summary_draft",
+            result_type="json",
+            message=(f"AI is citing 0 of {photo_total} photos..." if photo_total > 0 else "Writing summary..."),
+            details={"total_photos": photo_total, "cited_photos": 0},
+        )
+        background_tasks.add_task(
+            _run_summary_job,
+            str(job.get("job_id")),
+            payload=payload,
+            language=language,
+            request_id=request_id,
+            form_key=form_key,
+        )
+        return {
+            "ok": True,
+            "job_id": job.get("job_id"),
+            "kind": job.get("kind"),
+            "status": "queued",
+            "status_url": f"/api/jobs/{job.get('job_id')}/status",
+            "poll_after_ms": 1400,
+            "message": job.get("message"),
+            "details": job.get("details") or {},
+        }
 
     # ─────── POST /api/daily-reports/{report_id}/summary/accept ────
     @api_router.post(

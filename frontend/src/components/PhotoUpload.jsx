@@ -75,6 +75,7 @@ export const PhotoUpload = ({
   photos = [],
   onChange,
   onBatchStateChange,
+  onPhotoReady,
   testIdBase = "photo-upload",
   forceCamera = false,
 }) => {
@@ -138,6 +139,14 @@ export const PhotoUpload = ({
         photosRef.current = [...next];  // ← keep ref current in-flight
         onChange?.([...next]);
         onBatchStateChange?.({ inFlight: true, total, completed: i + 1, failed, phase: "compressing" });
+        onPhotoReady?.({
+          dataUrl,
+          photos: [...next],
+          completed: i + 1,
+          total,
+          failed,
+          phase: "compressing",
+        });
       } catch (err) {
         failed += 1;
         // TRACK 24.11 · Actionable HEIC error — the previous silent
@@ -245,7 +254,7 @@ export const PhotoUpload = ({
           appearing one-by-one underneath while the bar fills. */}
       {progress && (
         <div
-          className="bg-blue-50 border-2 border-blue-300 rounded-md p-3"
+          className="elite-glass-panel border-2 border-blue-300 rounded-[1rem] p-3"
           data-testid={`${testIdBase}-progress`}
         >
           <div className="flex items-center gap-2 mb-2">

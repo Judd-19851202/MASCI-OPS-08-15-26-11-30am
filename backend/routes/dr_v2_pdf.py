@@ -36,8 +36,15 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Response
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Path
 
+from lib.async_jobs import (
+    complete_async_job_binary,
+    create_async_job,
+    fail_async_job,
+    mark_async_job_processing,
+)
+from lib.runtime_cache import get_or_set_runtime_json
 from pdf_render import render_record_pdf
 
 
@@ -304,6 +311,7 @@ def register_dr_v2_pdf_routes(
 
         # ── Scope resolution ────────────────────────────────────────
         pm_project_filter: Optional[Dict[str, Any]] = None
+        cache_scope_key = "admin"
         is_admin = actor is True
         is_hr = isinstance(actor, dict) and actor.get("_actor_kind") == "hr_user"
         if not is_admin and not is_hr and isinstance(actor, dict):
@@ -313,132 +321,124 @@ def register_dr_v2_pdf_routes(
                 if not nums:
                     return {"items": []}
                 pm_project_filter = {"$in": nums}
+                cache_scope_key = "pm:" + "|".join(sorted(nums))
+        elif is_hr:
+            cache_scope_key = "hr"
 
-        items: List[Dict[str, Any]] = []
+        cache_key = f"dashboard:approved-daily-reports:{cache_scope_key}:limit:{limit}"
 
-        # ── Modern approvals (dr_v2_drafts + accept audit entry) ────
-        recent_accepts_cursor = (
-            db[APPROVAL_ENTRIES_COLL]
-            .find({"action": "accept"}, {"_id": 0, "report_id": 1, "ts": 1})
-            .sort("ts", -1)
-            .limit(limit * 3)
-        )
-        seen_modern: set = set()
-        modern_ids: List[str] = []
-        modern_ts: Dict[str, str] = {}
-        async for entry in recent_accepts_cursor:
-            rid = entry.get("report_id")
-            if not rid or rid in seen_modern:
-                continue
-            seen_modern.add(rid)
-            modern_ts[rid] = entry.get("ts") or ""
-            modern_ids.append(rid)
-            if len(modern_ids) >= limit:
-                break
+        async def _build_items() -> Dict[str, Any]:
+            items: List[Dict[str, Any]] = []
 
-        if modern_ids:
-            draft_query: Dict[str, Any] = {"report_id": {"$in": modern_ids}}
+            # ── Modern approvals (dr_v2_drafts + accept audit entry) ────
+            recent_accepts_cursor = (
+                db[APPROVAL_ENTRIES_COLL]
+                .find({"action": "accept"}, {"_id": 0, "report_id": 1, "ts": 1})
+                .sort("ts", -1)
+                .limit(limit * 3)
+            )
+            seen_modern: set = set()
+            modern_ids: List[str] = []
+            modern_ts: Dict[str, str] = {}
+            async for entry in recent_accepts_cursor:
+                rid = entry.get("report_id")
+                if not rid or rid in seen_modern:
+                    continue
+                seen_modern.add(rid)
+                modern_ts[rid] = entry.get("ts") or ""
+                modern_ids.append(rid)
+                if len(modern_ids) >= limit:
+                    break
+
+            if modern_ids:
+                draft_query: Dict[str, Any] = {"report_id": {"$in": modern_ids}}
+                if pm_project_filter is not None:
+                    draft_query["$or"] = [
+                        {"project_number": pm_project_filter},
+                        {"day_setup.project_number": pm_project_filter},
+                    ]
+                async for d in db[DRAFTS_COLL].find(
+                    draft_query,
+                    {
+                        "_id": 0,
+                        "report_id": 1,
+                        "project_number": 1,
+                        "report_date": 1,
+                        "day_setup": 1,
+                        "field_language": 1,
+                    },
+                ):
+                    setup = d.get("day_setup") or {}
+                    from lib.synthetic_dr_filter import is_synthetic_dr
+                    merged = {
+                        "project_number": setup.get("project_number") or d.get("project_number") or "",
+                        "project_name": setup.get("project_name") or "",
+                    }
+                    if is_synthetic_dr(merged):
+                        continue
+                    items.append({
+                        "id": d.get("report_id"),
+                        "source": "modern",
+                        "report_id": d.get("report_id"),
+                        "project_number": merged["project_number"],
+                        "project_name": merged["project_name"],
+                        "report_date": d.get("report_date") or setup.get("report_date") or "",
+                        "supervisor_name": setup.get("supervisor_name") or "",
+                        "field_language": d.get("field_language") or "en",
+                        "approved_at": modern_ts.get(d.get("report_id"), ""),
+                    })
+
+            legacy_query: Dict[str, Any] = {}
             if pm_project_filter is not None:
-                draft_query["$or"] = [
-                    {"project_number": pm_project_filter},
-                    {"day_setup.project_number": pm_project_filter},
-                ]
-            async for d in db[DRAFTS_COLL].find(
-                draft_query,
-                {
-                    "_id": 0,
-                    "report_id": 1,
-                    "project_number": 1,
-                    "report_date": 1,
-                    "day_setup": 1,
-                    "field_language": 1,
-                },
-            ):
-                setup = d.get("day_setup") or {}
-                # TRACK 24.9 · Post-filter modern rows using the same
-                # synthetic classifier applied to legacy rows. The
-                # `dr_v2_drafts` collection stores project info in a
-                # nested `day_setup` dict which is why a mongo-level
-                # $regex filter is awkward — a per-row classifier is
-                # cheaper and cleaner given the small (limit*3) window.
-                from lib.synthetic_dr_filter import is_synthetic_dr
-                merged = {
-                    "project_number": setup.get("project_number") or d.get("project_number") or "",
-                    "project_name": setup.get("project_name") or "",
-                }
-                if is_synthetic_dr(merged):
+                legacy_query["project_number"] = pm_project_filter
+            from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
+            legacy_query = apply_synthetic_dr_exclusion(legacy_query)
+            legacy_cursor = (
+                db[LEGACY_COLL]
+                .find(
+                    legacy_query,
+                    {
+                        "_id": 0,
+                        "id": 1,
+                        "doc_id": 1,
+                        "report_number": 1,
+                        "project_number": 1,
+                        "project_name": 1,
+                        "report_date": 1,
+                        "prepared_by": 1,
+                        "superintendent": 1,
+                        "created_at": 1,
+                        "updated_at": 1,
+                        "state": 1,
+                        "lifecycle": 1,
+                    },
+                )
+                .sort([("report_date", -1), ("created_at", -1)])
+                .limit(limit)
+            )
+            async for d in legacy_cursor:
+                state = d.get("state") or (d.get("lifecycle") or {}).get("state")
+                if state and state not in LEGACY_APPROVED_STATES:
+                    continue
+                rid = d.get("id") or d.get("doc_id") or d.get("report_number")
+                if not rid:
                     continue
                 items.append({
-                    "id": d.get("report_id"),
-                    "source": "modern",
-                    "report_id": d.get("report_id"),
-                    "project_number": merged["project_number"],
-                    "project_name": merged["project_name"],
-                    "report_date": d.get("report_date") or setup.get("report_date") or "",
-                    "supervisor_name": setup.get("supervisor_name") or "",
-                    "field_language": d.get("field_language") or "en",
-                    "approved_at": modern_ts.get(d.get("report_id"), ""),
+                    "id": rid,
+                    "source": "legacy",
+                    "report_id": rid,
+                    "project_number": d.get("project_number") or "",
+                    "project_name": d.get("project_name") or "",
+                    "report_date": d.get("report_date") or "",
+                    "supervisor_name": d.get("prepared_by") or d.get("superintendent") or "",
+                    "field_language": "en",
+                    "approved_at": d.get("updated_at") or d.get("created_at") or d.get("report_date") or "",
                 })
 
-        # ── Legacy approvals (daily_reports collection) ─────────────
-        legacy_query: Dict[str, Any] = {}
-        if pm_project_filter is not None:
-            legacy_query["project_number"] = pm_project_filter
-        # TRACK 24.9 · Exclude synthetic/test records from the
-        # user-facing Approved Daily Reports export.
-        from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
-        legacy_query = apply_synthetic_dr_exclusion(legacy_query)
-        # We include ALL legacy records; lifecycle state is optional
-        # (pre-lifecycle records don't have `state` set). This matches
-        # the existing /pm/daily and /admin/daily listing semantics.
-        legacy_cursor = (
-            db[LEGACY_COLL]
-            .find(
-                legacy_query,
-                {
-                    "_id": 0,
-                    "id": 1,
-                    "doc_id": 1,
-                    "report_number": 1,
-                    "project_number": 1,
-                    "project_name": 1,
-                    "report_date": 1,
-                    "prepared_by": 1,
-                    "superintendent": 1,
-                    "created_at": 1,
-                    "updated_at": 1,
-                    "state": 1,
-                    "lifecycle": 1,
-                },
-            )
-            .sort([("report_date", -1), ("created_at", -1)])
-            .limit(limit)
-        )
-        async for d in legacy_cursor:
-            # Honor lifecycle gating when present; otherwise fall back
-            # to "any submitted record is visible" so pre-lifecycle
-            # documents keep flowing through the unified list.
-            state = d.get("state") or (d.get("lifecycle") or {}).get("state")
-            if state and state not in LEGACY_APPROVED_STATES:
-                continue
-            rid = d.get("id") or d.get("doc_id") or d.get("report_number")
-            if not rid:
-                continue
-            items.append({
-                "id": rid,
-                "source": "legacy",
-                "report_id": rid,
-                "project_number": d.get("project_number") or "",
-                "project_name": d.get("project_name") or "",
-                "report_date": d.get("report_date") or "",
-                "supervisor_name": d.get("prepared_by") or d.get("superintendent") or "",
-                "field_language": "en",
-                "approved_at": d.get("updated_at") or d.get("created_at") or d.get("report_date") or "",
-            })
+            items.sort(key=lambda it: it.get("approved_at") or "", reverse=True)
+            return {"items": items[:limit]}
 
-        # Newest first across both sources.
-        items.sort(key=lambda it: it.get("approved_at") or "", reverse=True)
-        return {"items": items[:limit]}
+        return await get_or_set_runtime_json(cache_key, ttl_seconds=45, builder=_build_items)
 
     @api_router.get("/dr-v2/reports/approved")
     async def dr_v2_list_approved(
@@ -458,23 +458,45 @@ def register_dr_v2_pdf_routes(
         approved Daily Reports for management-side export."""
         return await _list_approved_impl(limit, actor)
 
-    @api_router.get("/dr-v2/reports/{report_id}/pdf")
+    @api_router.get("/dr-v2/reports/{report_id}/pdf", status_code=202)
     async def dr_v2_report_pdf(
         report_id: str = Path(..., min_length=1),
         actor=Depends(require_admin_pm_or_hr_read),
+        background_tasks: BackgroundTasks = None,
     ):
-        return await _render_pdf_impl(report_id, actor)
+        return await _queue_pdf_job(report_id, actor, background_tasks)
 
-    @api_router.get("/daily-reports/{report_id}/pdf")
+    @api_router.get("/daily-reports/{report_id}/pdf", status_code=202)
     async def daily_reports_pdf(
         report_id: str = Path(..., min_length=1),
         actor=Depends(require_admin_pm_or_hr_read),
+        background_tasks: BackgroundTasks = None,
     ):
         """DR-UNIFY-002 canonical alias · dispatches to modern or
         legacy renderer based on which collection owns the id."""
-        return await _render_pdf_impl(report_id, actor)
+        return await _queue_pdf_job(report_id, actor, background_tasks)
 
-    async def _render_pdf_impl(report_id: str, actor: Any):
+    async def _queue_pdf_job(report_id: str, actor: Any, background_tasks: Optional[BackgroundTasks]):
+        job = await create_async_job(
+            "daily_report_pdf",
+            result_type="binary",
+            message="Preparing PDF...",
+            details={"report_id": report_id},
+        )
+        if background_tasks is not None:
+            background_tasks.add_task(_run_pdf_job, str(job.get("job_id")), report_id, actor)
+        return {
+            "ok": True,
+            "job_id": job.get("job_id"),
+            "kind": job.get("kind"),
+            "status": "queued",
+            "status_url": f"/api/jobs/{job.get('job_id')}/status",
+            "poll_after_ms": 1400,
+            "message": job.get("message"),
+            "details": job.get("details") or {},
+        }
+
+    async def _render_pdf_export_impl(report_id: str, actor: Any) -> Dict[str, Any]:
         # 1. Look up the report in BOTH collections. Modern
         # `dr_v2_drafts` wins if both exist (should not happen in
         # practice — ids are namespaced).
@@ -519,19 +541,12 @@ def register_dr_v2_pdf_routes(
                 ) from ex
             filename = f"MASCI_Daily_Report_{report_id}.pdf"
             rendered_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")  # TRACK-27.03-EXEMPT: machine-consumed HTTP header (X-Daily-Report-Rendered-At)
-            return Response(
-                content=pdf_bytes,
-                media_type="application/pdf",
-                headers={
-                    "Content-Disposition": f'inline; filename="{filename}"',
-                    "X-Content-Type-Options": "nosniff",
-                    "X-Daily-Report-Id": report_id,
-                    "X-Daily-Report-Source": "legacy",
-                    "X-Daily-Report-Rendered-At": rendered_at,
-                    "X-Daily-Report-Canonical-Language": "en",
-                    "Cache-Control": "no-store",
-                },
-            )
+            return {
+                "pdf_bytes": pdf_bytes,
+                "filename": filename,
+                "rendered_at": rendered_at,
+                "source": "legacy",
+            }
 
         # 4. Modern path — require an accept entry.
         accept = await _latest_accept_entry(db, report_id)
@@ -568,21 +583,40 @@ def register_dr_v2_pdf_routes(
 
         filename = f"MASCI_Daily_Report_{report_id}.pdf"
         rendered_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")  # TRACK-27.03-EXEMPT: machine-consumed HTTP header (X-Daily-Report-Rendered-At)
-        return Response(
-            content=pdf_bytes,
-            media_type="application/pdf",
-            headers={
-                "Content-Disposition": f'inline; filename="{filename}"',
-                "X-Content-Type-Options": "nosniff",
-                "X-Daily-Report-Id": report_id,
-                "X-Daily-Report-Source": "modern",
-                "X-Daily-Report-Rendered-At": rendered_at,
-                "X-Daily-Report-Canonical-Language": "en",
-                # Retain legacy headers for backwards compatibility
-                # with any existing internal caller reading them.
-                "X-Dr-V2-Report-Id": report_id,
-                "X-Dr-V2-Rendered-At": rendered_at,
-                "X-Dr-V2-Canonical-Language": "en",
-                "Cache-Control": "no-store",
-            },
-        )
+        return {
+            "pdf_bytes": pdf_bytes,
+            "filename": filename,
+            "rendered_at": rendered_at,
+            "source": "modern",
+        }
+
+    async def _run_pdf_job(job_id: str, report_id: str, actor: Any) -> None:
+        await mark_async_job_processing(job_id, message="Rendering PDF...", details={"report_id": report_id})
+        try:
+            export = await _render_pdf_export_impl(report_id, actor)
+            await complete_async_job_binary(
+                job_id,
+                content=export.get("pdf_bytes") or b"",
+                media_type="application/pdf",
+                filename=str(export.get("filename") or f"MASCI_Daily_Report_{report_id}.pdf"),
+                message="PDF ready.",
+                result_meta={
+                    "rendered_at": export.get("rendered_at") or "",
+                    "source": export.get("source") or "",
+                    "report_id": report_id,
+                },
+            )
+        except HTTPException as exc:
+            await fail_async_job(
+                job_id,
+                error_code=f"pdf_http_{exc.status_code}",
+                message=str(exc.detail),
+                details={"report_id": report_id},
+            )
+        except Exception as exc:  # noqa: BLE001
+            await fail_async_job(
+                job_id,
+                error_code="pdf_render_failed",
+                message=f"PDF render failed: {type(exc).__name__}",
+                details={"report_id": report_id},
+            )

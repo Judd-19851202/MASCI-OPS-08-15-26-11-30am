@@ -234,6 +234,9 @@ if _EMAIL_SAFETY_MODE in ("strict", "silent", "test"):
 app.state.ready = False
 api_router = APIRouter(prefix="/api")
 
+from routes.async_jobs import register_async_job_routes  # noqa: E402
+register_async_job_routes(api_router)
+
 
 # ─────────────────────────────────────────────────────────────────────────
 # Track 15.16 · Production healthcheck compatibility.

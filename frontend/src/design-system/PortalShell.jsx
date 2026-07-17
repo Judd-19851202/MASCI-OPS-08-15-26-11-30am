@@ -121,7 +121,7 @@ export function PortalShell({
       {/* MASCI top chrome — unified across all authenticated portals */}
       <header
         data-testid="ds-portal-shell-header"
-        className="sticky top-0 z-30 bg-slate-900 border-b-4 border-red-700 shadow-md overflow-hidden"
+        className="sticky top-0 z-30 border-b-4 border-red-700 shadow-md overflow-hidden elite-shell-header"
       >
         <div className="max-w-[1600px] mx-auto px-3 sm:px-6 py-2.5 flex items-center gap-2 sm:gap-3 min-w-0">
           {/* MASCI mark — anchors brand identity in every portal */}
@@ -204,7 +204,7 @@ export function PortalShell({
               <PopoverContent
                 align="end"
                 sideOffset={8}
-                className="w-64 p-3 bg-slate-900 border-slate-700 text-slate-100"
+                className="w-64 p-3 bg-slate-900/78 border-slate-700 text-slate-100 elite-glass-modal"
                 data-testid="ds-portal-shell-mobile-more-menu"
               >
                 <div className="flex flex-col gap-3">
@@ -283,7 +283,7 @@ export function PortalShell({
           <div className={sideNav ? "lg:grid lg:grid-cols-[260px_1fr] lg:gap-6 min-w-0" : "min-w-0"}>
             {sideNav && (
               <aside
-                className="hidden lg:block sticky top-[68px] h-[calc(100vh-68px)] overflow-y-auto bg-slate-900 text-slate-100 -ml-4 sm:-ml-6 pl-4 sm:pl-6 pr-2 py-4 border-r border-slate-800"
+                className="hidden lg:block sticky top-[4.25rem] h-[calc(100vh-4.25rem)] overflow-y-auto text-slate-100 -ml-4 sm:-ml-6 pl-4 sm:pl-6 pr-2 py-4 border-r border-slate-800 elite-glass-sidebar"
                 data-testid="ds-portal-shell-sidenav"
               >
                 {sideNav}

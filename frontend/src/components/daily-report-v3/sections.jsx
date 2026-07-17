@@ -1421,7 +1421,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
 }
 
 // ── Section 05 · Photos + Evidence ─────────────────────────────
-export function SectionPhotos({ data, patch, photoMin, onPhotoBatchStateChange }) {
+export function SectionPhotos({ data, patch, photoMin, onPhotoBatchStateChange, onPhotoReady }) {
   const { t } = useT();
   const photos = data.photos || [];
   const short = Math.max(0, (photoMin || 6) - photos.length);
@@ -1446,6 +1446,7 @@ export function SectionPhotos({ data, patch, photoMin, onPhotoBatchStateChange }
         photos={photos}
         onChange={(next) => patch({ photos: next })}
         onBatchStateChange={onPhotoBatchStateChange}
+        onPhotoReady={onPhotoReady}
         placeholderLabel="Add photo"
         testIdBase="dr-v3-photos"
       />

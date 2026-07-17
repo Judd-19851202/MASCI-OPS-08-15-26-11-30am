@@ -38,7 +38,7 @@ export function ModalFooter({
       className={[
         "flex items-center gap-2",
         sticky
-          ? "sticky bottom-0 bg-white border-t border-slate-200 px-5 py-3 z-10"
+          ? "sticky bottom-0 bg-white/80 border-t border-white/60 px-5 py-3 z-10 elite-glass-modal"
           : "pt-3",
         className,
       ].join(" ")}

@@ -127,7 +127,7 @@ export default function SideNavV3({ onNavigate, onOpenPalette }) {
       setOpenDomains(next);
       writeOpenDomains(next);
     }
-  }, [activeDomainId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeDomainId, openDomains]);
 
   const toggle = (id) => {
     const next = openDomains.includes(id)
@@ -139,14 +139,14 @@ export default function SideNavV3({ onNavigate, onOpenPalette }) {
 
   return (
     <nav
-      className="space-y-3 p-3"
+      className="space-y-3 p-3 elite-fluid-stack"
       data-testid="admin-side-nav-v3"
       aria-label="Administrative navigation"
     >
       <button
         type="button"
         onClick={onOpenPalette}
-        className="w-full flex items-center gap-2 px-3 py-2 rounded-md bg-slate-900/60 border border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
+        className="w-full flex items-center gap-2 px-3 py-2 rounded-[1rem] bg-slate-900/60 border border-white/15 text-slate-300 hover:bg-slate-800 hover:text-white transition-colors elite-glass-panel"
         data-testid="admin-nav-v3-open-palette"
         aria-label="Open universal search"
       >

@@ -26,11 +26,25 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 
 /** @typedef {import('react').ChangeEvent} ChangeEvent */
+const JOB_POLL_MS = 1400;
 
 export default function DailyOperationalSummarySection({ data, set, t }) {
   const translate = t || ((s) => s);
   const [drafting, setDrafting] = useState(false);
   const [availability, setAvailability] = useState(/** @type {null|{enabled:boolean, reason:string|null}} */ (null));
+
+  const pollDraftJob = useCallback(async (jobId) => {
+    const step = async () => {
+      const { data: state } = await api.get(`/jobs/${encodeURIComponent(jobId)}/status`);
+      if (state?.status === "completed") return state?.result || null;
+      if (state?.status === "failed") {
+        throw new Error(state?.error?.message || "Summary assistance is not available right now.");
+      }
+      await new Promise((resolve) => window.setTimeout(resolve, Number(state?.poll_after_ms || JOB_POLL_MS)));
+      return step();
+    };
+    return step();
+  }, []);
 
   const summary = data?.daily_operational_summary ?? "";
   const status = data?.daily_operational_summary_status ?? "empty"; // empty | drafted | accepted
@@ -64,13 +78,15 @@ export default function DailyOperationalSummarySection({ data, set, t }) {
           language: data?.dr_language === "es" ? "es" : "en",
         },
       );
-      setAvailability({ enabled: !!resp?.enabled, reason: resp?.reason_disabled || null });
-      if (!resp?.enabled) {
+      const resolved = resp?.job_id ? await pollDraftJob(resp.job_id) : resp;
+      const finalResp = resolved || resp;
+      setAvailability({ enabled: !!finalResp?.enabled, reason: finalResp?.reason_disabled || null });
+      if (!finalResp?.enabled) {
         // Non-alarming, no AI vocabulary.
         toast.message(translate("Summary assistance is not enabled. You may submit the report normally."));
         return;
       }
-      const text = (resp?.summary_text || "").trim();
+      const text = (finalResp?.summary_text || "").trim();
       if (!text) {
         toast.message(translate("Not enough details yet to draft a summary. Fill in more sections and try again."));
         return;
@@ -80,7 +96,7 @@ export default function DailyOperationalSummarySection({ data, set, t }) {
       set("daily_operational_summary_source", "draft");
       set("daily_operational_summary_language",
           data?.dr_language === "es" ? "es" : "en");
-      set("daily_operational_summary_evidence_refs", resp?.evidence_refs || []);
+      set("daily_operational_summary_evidence_refs", finalResp?.evidence_refs || []);
       toast.success(translate("Draft summary ready — review and edit before submitting."));
     } catch (e) {
       // Never block the form. Report a graceful, non-technical message.
@@ -89,7 +105,7 @@ export default function DailyOperationalSummarySection({ data, set, t }) {
     } finally {
       setDrafting(false);
     }
-  }, [buildPayload, data, set, translate]);
+  }, [buildPayload, data, pollDraftJob, set, translate]);
 
   const acceptSummary = useCallback(() => {
     if (!hasSummary) return;

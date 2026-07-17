@@ -130,6 +130,11 @@ body {
     padding-right: env(safe-area-inset-right, 0px);
 }
 
+textarea,
+[data-field-style="technical-notes"] {
+    line-height: 1.65;
+}
+
 /* R1 — Normalized sticky header utility used by all shells */
 .app-sticky-header {
     position: sticky;

@@ -28,6 +28,38 @@ export function DrV2ApprovedReportsPanel({
   const [error, setError] = React.useState(null);
   const [downloading, setDownloading] = React.useState(null);
 
+  const downloadBlobFromUrl = React.useCallback(async (downloadUrl, reportId) => {
+    const relativeUrl = String(downloadUrl || "").replace(/^\/api/, "") || `/jobs/${reportId}/result`;
+    const resp = await api.get(relativeUrl, { responseType: "blob" });
+    const blob = new Blob([resp.data], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `MASCI_Daily_Report_${reportId}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+  }, []);
+
+  const pollPdfJob = React.useCallback(async (jobId, reportId) => {
+    const step = async () => {
+      const { data } = await api.get(`/jobs/${encodeURIComponent(jobId)}/status`);
+      if (data?.status === "completed") {
+        if (data?.result?.download_url) {
+          await downloadBlobFromUrl(data.result.download_url, reportId);
+        }
+        return;
+      }
+      if (data?.status === "failed") {
+        throw new Error(data?.error?.message || "Download failed");
+      }
+      await new Promise((resolve) => window.setTimeout(resolve, Number(data?.poll_after_ms || 1400)));
+      return step();
+    };
+    return step();
+  }, [downloadBlobFromUrl]);
+
   React.useEffect(() => {
     let alive = true;
     (async () => {
@@ -53,17 +85,13 @@ export function DrV2ApprovedReportsPanel({
     try {
       const resp = await api.get(
         `/daily-reports/${encodeURIComponent(reportId)}/pdf`,
-        { responseType: "blob" },
+        { headers: { Accept: "application/json" } },
       );
-      const blob = new Blob([resp.data], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `MASCI_Daily_Report_${reportId}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 5000);
+      if (resp?.data?.job_id) {
+        await pollPdfJob(resp.data.job_id, reportId);
+      } else if (resp?.data?.result?.download_url) {
+        await downloadBlobFromUrl(resp.data.result.download_url, reportId);
+      }
     } catch (e) {
       const status = e?.response?.status;
       let msg;

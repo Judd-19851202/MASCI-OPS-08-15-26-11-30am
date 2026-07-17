@@ -29,6 +29,7 @@ function hasEnoughEvidence(data) {
 
 const DEBOUNCE_MS = 1000;
 const REQUEST_TIMEOUT_MS = 60000;
+const JOB_POLL_MS = 1400;
 const buildDeterministicFallback = buildDeterministicSummaryFallback;
 
 export default function DailySummaryAssist({
@@ -67,6 +68,7 @@ export default function DailySummaryAssist({
   const [latestPhotoIntel, setLatestPhotoIntel] = useState(null);
   const [regenerateCooldownUntil, setRegenerateCooldownUntil] = useState(0);
   const [cooldownNow, setCooldownNow] = useState(Date.now());
+  const [activeJob, setActiveJob] = useState(null);
 
   const abortRef = useRef(null);
   const debounceRef = useRef(null);
@@ -81,6 +83,7 @@ export default function DailySummaryAssist({
   const acceptedSummaryKeyRef = useRef("");
   const previousUploadInFlightRef = useRef(false);
   const pendingPostUploadRefreshRef = useRef(false);
+  const jobPollRef = useRef(null);
 
   const visibleSummary = useMemo(() => (edited || narrative || "").trim(), [edited, narrative]);
 
@@ -318,9 +321,106 @@ export default function DailySummaryAssist({
     return response || null;
   }, [compactPhotoSignature, formKey, reportNumber]);
 
+  const clearJobPoll = useCallback(() => {
+    if (jobPollRef.current) {
+      window.clearTimeout(jobPollRef.current);
+      jobPollRef.current = null;
+    }
+  }, []);
+
+  const applyCompletedSummary = useCallback((resp, tElapsed, requestKey, summaryPhotoIntel, payload) => {
+    setProviderMasked(null);
+    setModelMasked(null);
+    setGeneratedAt(new Date().toISOString());
+    setLatencyMs(tElapsed);
+    setLatestPhotoIntel(summaryPhotoIntel || null);
+    const returnedSummaryInput = resp?.summary_input?.photos || null;
+    const statusFromPhotoIntel =
+      summaryPhotoIntel?.status
+      || returnedSummaryInput?.lifecycle_status
+      || returnedSummaryInput?.status
+      || payload?.summary_input?.photos?.lifecycle_status
+      || payload?.summary_input?.photos?.status
+      || "no_photos";
+    setPhotoIntelStatus(statusFromPhotoIntel);
+    setAiAvailable(Boolean(resp?.enabled));
+    const text = (resp?.summary_text || "").trim();
+    const fb = text || buildDeterministicFallback(dataRef.current, summaryPhotoIntel);
+    setNarrative(fb);
+    setEdited(fb);
+    const notes = [];
+    if (summaryPhotoIntel?.classification) notes.push(summaryPhotoIntel.classification);
+    if (!resp?.enabled && resp?.provider_state?.code) {
+      notes.push("Summary generated from typed report facts while live assist is unavailable.");
+    }
+    if (Array.isArray(resp?.warnings)) {
+      resp.warnings.forEach((item) => {
+        if (typeof item === "string" && item.trim()) notes.push(item.trim());
+      });
+    }
+    setUncertainties([...new Set(notes)].slice(0, 5));
+    setEvidenceRefs(Array.isArray(resp?.evidence_refs) ? resp.evidence_refs.slice(0, 20) : []);
+    setError(null);
+    setErrorCode(null);
+    setStatus("ready");
+    setActiveJob(null);
+    completedSummaryKeyRef.current = requestKey;
+  }, []);
+
+  const pollSummaryJob = useCallback(async ({ jobId, startedAt, requestKey, payload, mySeq }) => {
+    try {
+      const { data: state } = await api.get(`/jobs/${encodeURIComponent(jobId)}/status`);
+      if (mySeq !== requestSeqRef.current) return;
+      setActiveJob(state || null);
+      if (state?.status === "completed") {
+        clearJobPoll();
+        const elapsed = Math.round(performance.now() - startedAt);
+        const summaryPhotoIntel = state?.result?.photo_intelligence || latestPhotoIntelRef.current || null;
+        applyCompletedSummary(state?.result || {}, elapsed, requestKey, summaryPhotoIntel, payload);
+        return;
+      }
+      if (state?.status === "failed") {
+        clearJobPoll();
+        const fb = buildDeterministicFallback(dataRef.current, latestPhotoIntelRef.current || null);
+        if (!narrativeRef.current.trim()) {
+          setNarrative(fb);
+          setEdited(fb);
+        }
+        setAiAvailable(false);
+        setError(state?.error?.message || "Summary assist is unavailable right now. You can approve the generated summary or write a manual summary.");
+        setErrorCode(state?.error?.code || "summary_job_failed");
+        setStatus("ready");
+        setActiveJob(null);
+        completedSummaryKeyRef.current = requestKey;
+        return;
+      }
+      clearJobPoll();
+      jobPollRef.current = window.setTimeout(() => {
+        pollSummaryJob({ jobId, startedAt, requestKey, payload, mySeq }).catch(() => undefined);
+      }, Number(state?.poll_after_ms || JOB_POLL_MS));
+    } catch (err) {
+      if (mySeq !== requestSeqRef.current) return;
+      clearJobPoll();
+      const normalized = normalizeOperatorError(err, {
+        fallbackMessage: "Summary assist is unavailable right now. You can approve the generated summary or write a manual summary.",
+      });
+      const fb = buildDeterministicFallback(dataRef.current, latestPhotoIntelRef.current || null);
+      if (!narrativeRef.current.trim()) {
+        setNarrative(fb);
+        setEdited(fb);
+      }
+      setAiAvailable(false);
+      setPhotoIntelStatus((latestPhotoIntelRef.current?.status) || ((dataRef.current?.photos || []).length > 0 ? "queued" : "no_photos"));
+      setError(normalized.message);
+      setErrorCode(normalized.code);
+      setStatus("ready");
+      setActiveJob(null);
+      completedSummaryKeyRef.current = requestKey;
+    }
+  }, [applyCompletedSummary, clearJobPoll]);
+
   useEffect(() => {
     if (accepted) return undefined;
-    if (photoUploadState?.inFlight) return undefined;
     const status = String(latestPhotoIntel?.status || photoIntelStatus || "");
     if (!["queued", "analyzing", "partially_analyzed", "uploading", "processing", "not_requested"].includes(status)) {
       return undefined;
@@ -334,6 +434,8 @@ export default function DailySummaryAssist({
     }, 2200);
     return () => clearTimeout(timer);
   }, [accepted, latestPhotoIntel, photoIntelStatus, photoUploadState?.inFlight, syncPhotoIntel]);
+
+  useEffect(() => () => clearJobPoll(), [clearJobPoll]);
 
   useEffect(() => {
     if (!regenerateCooldownUntil) return undefined;
@@ -360,6 +462,7 @@ export default function DailySummaryAssist({
     const mySeq = ++requestSeqRef.current;
     setStatus("building");
     setError(null);
+    setActiveJob(null);
 
     const timeoutId = setTimeout(() => {
       try { controller.abort(); } catch (e) { void e; }
@@ -386,45 +489,15 @@ export default function DailySummaryAssist({
         { payload, form_key: formKey, force },
         { signal: controller.signal },
       );
-      const tElapsed = Math.round(performance.now() - tStart);
       if (mySeq !== requestSeqRef.current) return;
-      setProviderMasked(null);
-      setModelMasked(null);
-      setGeneratedAt(new Date().toISOString());
-      setLatencyMs(tElapsed);
-
+      if (resp?.job_id) {
+        setActiveJob(resp);
+        await pollSummaryJob({ jobId: resp.job_id, startedAt: tStart, requestKey, payload, mySeq });
+        return;
+      }
+      const tElapsed = Math.round(performance.now() - tStart);
       const summaryPhotoIntel = resp?.photo_intelligence || photoIntel;
-      setLatestPhotoIntel(summaryPhotoIntel || null);
-      const returnedSummaryInput = resp?.summary_input?.photos || null;
-      const statusFromPhotoIntel =
-        summaryPhotoIntel?.status
-        || returnedSummaryInput?.lifecycle_status
-        || returnedSummaryInput?.status
-        || payload.summary_input?.photos?.lifecycle_status
-        || payload.summary_input?.photos?.status
-        || "no_photos";
-      setPhotoIntelStatus(statusFromPhotoIntel);
-      setAiAvailable(Boolean(resp?.enabled));
-      const text = (resp?.summary_text || "").trim();
-      const fb = text || buildDeterministicFallback(dataRef.current, summaryPhotoIntel);
-      setNarrative(fb);
-      setEdited(fb);
-      const notes = [];
-      if (summaryPhotoIntel?.classification) notes.push(summaryPhotoIntel.classification);
-      if (!resp?.enabled && resp?.provider_state?.code) {
-        notes.push("Summary generated from typed report facts while live assist is unavailable.");
-      }
-      if (Array.isArray(resp?.warnings)) {
-        resp.warnings.forEach((item) => {
-          if (typeof item === "string" && item.trim()) notes.push(item.trim());
-        });
-      }
-      setUncertainties([...new Set(notes)].slice(0, 5));
-      setEvidenceRefs(Array.isArray(resp?.evidence_refs) ? resp.evidence_refs.slice(0, 20) : []);
-      setError(null);
-      setErrorCode(null);
-      setStatus("ready");
-      completedSummaryKeyRef.current = requestKey;
+      applyCompletedSummary(resp, tElapsed, requestKey, summaryPhotoIntel, payload);
     } catch (err) {
       if (mySeq !== requestSeqRef.current) return;
       if (err?.name === "CanceledError" || err?.name === "AbortError") return;
@@ -441,12 +514,13 @@ export default function DailySummaryAssist({
       setError(normalized.message);
       setErrorCode(normalized.code);
       setStatus("ready");
+      setActiveJob(null);
       completedSummaryKeyRef.current = requestKey;
     } finally {
       pendingSummaryKeyRef.current = "";
       clearTimeout(timeoutId);
     }
-  }, [actorId, formKey, photoUploadState?.inFlight, summaryRequestKey, syncPhotoIntel]);
+  }, [actorId, applyCompletedSummary, formKey, photoUploadState?.inFlight, pollSummaryJob, summaryRequestKey, syncPhotoIntel]);
 
   const queueSynthesis = useCallback((force = false, debounceMs = DEBOUNCE_MS) => {
     if (acceptedSummaryKeyRef.current && acceptedSummaryKeyRef.current !== summaryRequestKey) {
@@ -507,6 +581,7 @@ export default function DailySummaryAssist({
   useEffect(() => {
     const wasUploading = previousUploadInFlightRef.current;
     const isUploading = Boolean(photoUploadState?.inFlight);
+    const completedUploads = Number(photoUploadState?.completed || 0);
     if (!wasUploading && isUploading) {
       pendingPostUploadRefreshRef.current = true;
     }
@@ -518,8 +593,11 @@ export default function DailySummaryAssist({
       queueSynthesis(false, 150);
       pendingPostUploadRefreshRef.current = false;
     }
+    if (isUploading && completedUploads > 0 && photoCount > 0 && formKey && !accepted) {
+      syncPhotoIntel({ force: false }).catch(() => undefined);
+    }
     previousUploadInFlightRef.current = isUploading;
-  }, [accepted, photoCount, photoUploadState?.inFlight, queueSynthesis]);
+  }, [accepted, formKey, photoCount, photoUploadState?.completed, photoUploadState?.inFlight, queueSynthesis, syncPhotoIntel]);
 
   useEffect(() => {
     const frozen = (data?.ai_accepted_summary || "").trim();
@@ -591,9 +669,18 @@ export default function DailySummaryAssist({
     const reviewed = Number(intel.reviewed || intel.analyzed || 0);
     const terminalFailures = Number(intel.terminal_failures || 0) + Number(intel.unavailable || 0);
     const state = String(photoIntelStatus || "no_photos");
+    const activeDetails = activeJob?.details || {};
+    const activeTotal = Number(activeDetails?.total_photos || total || 0);
+    const activeCited = Number(activeDetails?.cited_photos || 0);
+    if (status === "building" && activeTotal > 0) {
+      return `AI is citing ${Math.min(activeCited, activeTotal)} of ${activeTotal} photos...`;
+    }
     if (photoUploadState?.inFlight) {
       const totalUploads = Number(photoUploadState?.total || total || 0);
-      return `Uploading ${photoUploadState?.completed || 0} of ${totalUploads} photos…`;
+      const completed = Number(photoUploadState?.completed || 0);
+      return completed > 0
+        ? `Uploading ${completed} of ${totalUploads} photos — pre-warming AI now...`
+        : `Uploading ${completed} of ${totalUploads} photos…`;
     }
     if (state === "no_photos") return "No photos attached yet.";
     if (state === "uploading") return `Uploading ${total} photos…`;
@@ -604,7 +691,7 @@ export default function DailySummaryAssist({
     if (state === "complete_with_some_failures") return `${reviewed} of ${total} photos analyzed — ${terminalFailures} could not be processed.`;
     if (state === "complete_with_observations") return `Photo analysis complete — ${total} photos reviewed.`;
     return "Photo analysis unavailable — your report data is safe.";
-  }, [latestPhotoIntel, photoCount, photoIntelStatus, photoUploadState]);
+  }, [activeJob, latestPhotoIntel, photoCount, photoIntelStatus, photoUploadState, status]);
 
   const showSummaryError = Boolean(error && !visibleSummary);
   const showInlineSummaryNotice = Boolean(error && visibleSummary);
@@ -659,14 +746,14 @@ export default function DailySummaryAssist({
   }
 
   return (
-    <div data-testid={testId} className="rounded-lg border border-slate-200 bg-white p-4">
+    <div data-testid={testId} className={`elite-glass-panel rounded-[1.2rem] border border-white/60 p-4 ${status === "building" ? "elite-processing-glow" : ""}`}>
       <div className="mb-2 flex items-center gap-2">
         <Sparkles className="h-4 w-4 text-slate-600" aria-hidden="true" />
         <h3 className="text-sm font-semibold text-slate-800">{t("Draft Summary")}</h3>
         {status === "building" && (
           <span className="ml-2 inline-flex items-center gap-1 text-xs text-slate-500" data-testid={`${testId}-status`}>
             <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
-            {(data?.photos || []).length > 0 ? t("analyzing photos & writing summary…") : t("writing summary…")}
+            {(activeJob?.message || ((data?.photos || []).length > 0 ? t("analyzing photos & writing summary…") : t("writing summary…")))}
           </span>
         )}
         {status === "ready" && !accepted && (
@@ -680,7 +767,7 @@ export default function DailySummaryAssist({
       </div>
 
       <div
-        className={`mb-3 rounded-lg border px-3 py-2 text-xs font-semibold ${completenessTone}`}
+        className={`mb-3 rounded-lg border px-3 py-2 text-xs font-semibold backdrop-blur-sm ${completenessTone}`}
         data-testid={`${testId}-completeness-state`}
       >
         {completenessLabel}
@@ -690,7 +777,7 @@ export default function DailySummaryAssist({
         {t("Grounded in the fields you've entered. Before submit, you must accept the AI summary, regenerate and then accept it, or reject it and approve a manual summary.")}
       </p>
 
-      <div className="mb-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700" data-testid={`${testId}-gate-note`}>
+      <div className="mb-3 rounded-lg border border-white/60 bg-white/60 p-3 text-xs text-slate-700 backdrop-blur-sm" data-testid={`${testId}-gate-note`}>
         {decision === "manual_required"
           ? t("AI summary rejected. Write the final supervisor summary below, then approve it to unlock submit.")
           : accepted
@@ -699,7 +786,7 @@ export default function DailySummaryAssist({
       </div>
 
       <div
-        className="mb-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600"
+        className="mb-3 rounded-lg border border-white/60 bg-white/60 p-3 text-xs text-slate-700 backdrop-blur-sm"
         data-testid={`${testId}-photo-status`}
       >
         {operatorPhotoStatus}
@@ -736,7 +823,7 @@ export default function DailySummaryAssist({
               if (decision !== "manual_required" && decision !== "manual_accepted") setDecision("pending");
               setEdited(e.target.value);
             }}
-            className="min-h-[110px] text-sm"
+            className="min-h-[110px] text-sm leading-[1.65]"
             placeholder={status === "building" ? "Building…" : ""}
             disabled={status === "building" && !narrative}
           />
@@ -808,7 +895,7 @@ export default function DailySummaryAssist({
                   setDecision("manual_required");
                   setEdited(e.target.value);
                 }}
-                className="min-h-[130px] bg-white text-sm"
+                className="min-h-[130px] bg-white text-sm leading-[1.65]"
                 placeholder={t("Write the final approved executive summary exactly as it should appear on the permanent record.")}
               />
               <div className="mt-3 flex flex-wrap gap-2">
