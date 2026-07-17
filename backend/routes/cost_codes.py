@@ -5,6 +5,7 @@ quantity tracking helpers, and additive job progress calculations.
 """
 from __future__ import annotations
 
+import logging
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -24,6 +25,8 @@ from services.cost_codes.foundation import (
 )
 
 REGISTRY_COLLECTION = "cost_code_registry"
+logger = logging.getLogger(__name__)
+_SPINE_INDEXES_READY = False
 
 
 class CostRegistryItemIn(BaseModel):
@@ -82,9 +85,16 @@ async def _registry_index(db) -> Dict[str, Dict[str, Any]]:
 
 
 async def _ensure_spine_indexes(db) -> None:
-    await db[REGISTRY_COLLECTION].create_index("code", unique=True)
-    await db.jobs_master.create_index("project_number")
-    await db.daily_reports.create_index([("project_number", 1), ("report_date", 1)])
+    global _SPINE_INDEXES_READY
+    if _SPINE_INDEXES_READY:
+        return
+    try:
+        await db[REGISTRY_COLLECTION].create_index("code", unique=True)
+        await db.jobs_master.create_index("project_number")
+        await db.daily_reports.create_index([("project_number", 1), ("report_date", 1)])
+        _SPINE_INDEXES_READY = True
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("[cost-codes] spine index ensure skipped: %s", exc)
 
 
 def register_cost_code_routes(api_router: APIRouter, db, require_admin=None, require_admin_pm_or_hr_read=None) -> None:

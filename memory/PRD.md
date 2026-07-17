@@ -1,3 +1,29 @@
+## 2026-07-17 · TRACK CC-01 checkpoint — authority lock in progress
+
+### Status
+- ✅ Backend foundation extended so `jobs_master.assigned_cost_codes` is the canonical assignment authority and `jobs_master.cost_codes` is derived compatibility data only on the write path.
+- ✅ Shared cost-code progress authority now lives in `services/cost_codes/foundation.py` and is used by both explicit recompute routes and Daily Report submission.
+- ✅ Daily Report cost-code actual rows now normalize and retain `actual_performer`, `location`, `work_area`, `notes`, and `evidence_links`.
+- ✅ ODS V1 ingest now prefers `cost_code_quantities` over legacy activity quantity rows and skips synthetic/certification/hidden rows.
+- ✅ Frontend Daily Report field quantity section now surfaces planned performer + actual performer + location/work area + evidence linkage inputs with test IDs.
+- ✅ Focused backend unit coverage added in `/app/backend/tests/test_track_cc01_authority.py` (6/6 passing).
+- ⚠️ Full live Preview proof is still not claimable: external Preview API ingress remains unstable and same-origin `/api/*` proxying from `http://10.208.132.76:3000` currently returns frontend 404s instead of backend responses in this fork.
+
+### Verification completed
+- ✅ Python lint clean on updated backend files.
+- ✅ JavaScript lint clean on updated frontend files.
+- ✅ Smoke screenshot captured for `/daily/submit` showing the updated field form shell.
+- ✅ Testing agent report stored at `/app/test_reports/iteration_589.json`.
+
+### Remaining P0 work
+- P0: complete authenticated live API proof for registry create → project assignment → field submit → progress recompute once Preview/API routing is usable in this fork.
+- P0: verify and, if needed, harden authenticated registry/assignment write routes with real admin/PM tokens against the running backend (unit logic passes, live routing is still environment-constrained).
+- P0: execute the controlled CC-01 preview proof sequence with browser/operator evidence once ingress/API routing is stable.
+
+### Remaining P1 work
+- P1: add route-level integration coverage for authenticated admin/PM flows once the runtime auth/API path is stable.
+- P1: run frontend build and final CC-01 end-to-end regression once live proof blockers clear.
+
 ## 2026-07-17 · Voice-to-Report + Watchdog + polling parity update
 
 ### Status

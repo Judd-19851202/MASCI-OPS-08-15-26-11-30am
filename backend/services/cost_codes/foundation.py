@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import uuid
+import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
@@ -9,6 +10,7 @@ from services.ods_spine.store import COLL_PROJECT_CFG
 
 ALLOWED_UNITS = {"LF", "CY", "TONS", "LS"}
 FINANCIAL_FIELDS = {"bid_unit_price", "target_man_hours", "contract_value", "margin", "margin_percent"}
+logger = logging.getLogger(__name__)
 
 
 def now_iso() -> str:
@@ -309,10 +311,14 @@ async def load_project_assignments(db, project_number: str) -> List[Dict[str, An
     project_number = _clean_str(project_number)
     if not project_number:
         return []
-    job = await db.jobs_master.find_one(
-        {"project_number": project_number},
-        {"_id": 0, "assigned_cost_codes": 1},
-    )
+    try:
+        job = await db.jobs_master.find_one(
+            {"project_number": project_number},
+            {"_id": 0, "assigned_cost_codes": 1},
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("[cost-codes] assignment load failed for %s: %s", project_number, exc)
+        return []
     rows = (job or {}).get("assigned_cost_codes") or []
     clean: List[Dict[str, Any]] = []
     for idx, row in enumerate(rows):
@@ -330,7 +336,11 @@ async def load_project_cost_code_actuals(db, project_number: str) -> List[Dict[s
     if not project_number:
         return []
     query = apply_synthetic_dr_exclusion({"project_number": project_number})
-    reports = await db.daily_reports.find(query, {"_id": 0, "cost_code_quantities": 1}).to_list(5000)
+    try:
+        reports = await db.daily_reports.find(query, {"_id": 0, "cost_code_quantities": 1}).to_list(5000)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("[cost-codes] actual load failed for %s: %s", project_number, exc)
+        return []
     rows: List[Dict[str, Any]] = []
     for report in reports:
         for row in (report.get("cost_code_quantities") or []):
@@ -403,7 +413,11 @@ def build_ods_project_cost_code_doc(
 
 async def sync_ods_project_cost_code_projection(db, project_number: str, assignments: List[Dict[str, Any]]) -> Dict[str, Any]:
     project_number = _clean_str(project_number)
-    current = await db[COLL_PROJECT_CFG].find_one({"project_id": project_number}, {"_id": 0})
+    try:
+        current = await db[COLL_PROJECT_CFG].find_one({"project_id": project_number}, {"_id": 0})
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("[cost-codes] ODS projection read failed for %s: %s", project_number, exc)
+        current = None
     tenant_id = _clean_str((current or {}).get("tenant_id")) or "masci"
     next_doc = build_ods_project_cost_code_doc(
         project_number=project_number,
@@ -417,11 +431,14 @@ async def sync_ods_project_cost_code_projection(db, project_number: str, assignm
     comparable_next.pop("updated_at", None)
     if comparable_current == comparable_next and current:
         return current
-    await db[COLL_PROJECT_CFG].update_one(
-        {"project_id": project_number},
-        {"$set": next_doc},
-        upsert=True,
-    )
+    try:
+        await db[COLL_PROJECT_CFG].update_one(
+            {"project_id": project_number},
+            {"$set": next_doc},
+            upsert=True,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("[cost-codes] ODS projection write skipped for %s: %s", project_number, exc)
     return next_doc
 
 
