@@ -1,3 +1,24 @@
+## 2026-07-17 · Ultimate Elite async polling + glass UI upgrade
+
+### Status
+- ✅ Async job polling implemented for Daily Report AI summary drafting and approved-report PDF generation.
+- ✅ Redis-ready runtime cache scaffolding added in **DISABLED** mode with memory fallback active.
+- ✅ Elite Glass UI shipped for sidebar/header/modal surfaces with `-webkit-backdrop-filter` and `@supports` fallbacks.
+- ✅ Staggered photo handoff wiring and smart status text shipped.
+
+### Implementation notes
+- New backend job endpoints: `GET /api/jobs/{job_id}/status`, `GET /api/jobs/{job_id}/result?token=...`
+- Summary and PDF routes now return `202 + job_id` instead of blocking the user.
+- Summary UI now polls automatically, shows a pulsing active glow, and reports progress like `AI is citing X of Y photos...` when applicable.
+- Photo upload flow now exposes per-photo completion hooks for pre-warming.
+- Technical note fields now use increased line-height for readability.
+
+### Verification
+- Self-tested async summary queue/poll flow locally against the preview backend.
+- Self-tested async PDF queue/poll/download flow locally against the preview backend.
+- Preview smoke screenshot succeeded.
+- Testing agent report: `/app/test_reports/iteration_586.json` — backend 11/11 pass, frontend verified pass.
+
 ## 2026-07-16 · iter584 · Daily Report speed + summary-quality repair
 
 Preview verified ✅

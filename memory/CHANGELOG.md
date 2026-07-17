@@ -1,3 +1,28 @@
+## 2026-07-17 · Ultimate Elite async polling + glass UI upgrade
+
+Delivered the approved full-pass upgrade for Daily Reports: async job polling for heavy summary/PDF work, disabled Redis-ready runtime cache scaffolding, staggered photo pre-warm wiring, and premium glass UI polish.
+
+### Completed
+* **Async summary jobs:** `POST /api/daily-reports/summary/draft` now returns `202 + job_id` and completes through `GET /api/jobs/{job_id}/status`.
+* **Async PDF jobs:** approved-report PDF routes now queue work, poll completion, and download through `GET /api/jobs/{job_id}/result?token=...`.
+* **Redis scaffold (DISABLED):** added runtime cache abstraction with in-memory fallback active by default and Redis enablement ready for future secrets.
+* **Approved reports cache:** lightweight cache wrapper added for the approved daily reports list without changing auth or list semantics.
+* **Summary UI upgrade:** `DailySummaryAssist.jsx` now shows non-blocking processing, smart photo citation copy, and pulsing active glow while generation runs.
+* **Photo pre-warm wiring:** per-photo `onPhotoReady` callbacks now fire during upload so the AI/photo pipeline can start warming before the full batch finishes.
+* **Glass UI + readability:** sidebar, header, and modal footer now use prefixed blur, `@supports` fallbacks, fluid spacing, and technical note line-height increased to `1.65`.
+
+### Files
+* Backend: `backend/routes/daily_summary.py`, `backend/routes/dr_v2_pdf.py`, `backend/routes/async_jobs.py`, `backend/lib/async_jobs.py`, `backend/lib/runtime_cache.py`, `backend/server.py`
+* Frontend: `frontend/src/components/daily-report/DailySummaryAssist.jsx`, `frontend/src/components/daily-report/DailyOperationalSummarySection.jsx`, `frontend/src/components/DrV2ApprovedReportsPanel.jsx`, `frontend/src/components/PhotoUpload.jsx`, `frontend/src/components/daily-report-v3/sections.jsx`, `frontend/src/pages/NewDailyReportV3.jsx`, `frontend/src/design-system/PortalShell.jsx`, `frontend/src/components/admin/sidebar/SideNavV3.jsx`, `frontend/src/components/ModalFooter.jsx`, `frontend/src/styles/portal-system.css`, `frontend/src/index.css`
+
+### Verification
+* Local backend self-test: async summary queue + polling ✅
+* Local backend self-test: async PDF queue + polling + binary download ✅
+* Preview smoke screenshot captured successfully ✅
+* Testing agent report `/app/test_reports/iteration_586.json` ✅ (`11/11 backend pass`, frontend verified pass)
+
+---
+
 ## 2026-07-14 · TRACK DR-03 · ✅ LOCAL IMPLEMENTATION COMPLETE · Daily Report Containment, Parity, and Regression Certification
 
 Closed the DR-03 local implementation pass for Daily Report unification. The canonical field-entry flow now mounts `NewDailyReportV3.jsx` directly at `/daily/submit`; legacy frontend authoring shells (`NewDailyReport.jsx`, `DailyReportRouter.jsx`, `dailyReportV3Flag.js`) were removed after dependency proof; and legacy `dr_v2*` write surfaces were contained as read-only compatibility adapters by returning `410 legacy_daily_report_runtime_retired` while preserving historical reads/PDF compatibility paths.

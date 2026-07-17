@@ -4,6 +4,23 @@ This file tracks **parked features** the user wants to revisit later. Surface th
 
 ---
 
+## 🔴 P0 · Ultimate Elite follow-through (2026-07-17)
+
+- Monitor the new async polling pattern in production-like usage and extend it to any remaining heavy Daily Report actions if needed.
+- Keep backward compatibility intact for all existing Daily Report, PDF, auth, and device-id flows while the new job pattern bakes in.
+
+## 🟡 P1 · Ultimate Elite next layer
+
+- Add richer live photo-intelligence progress snapshots if backend begins emitting deeper per-photo progress telemetry.
+- Add a fuller browser automation pass for `/daily/submit` with real photo uploads and summary acceptance when a stable fixture path is ready.
+
+## 🟢 P2 · Redis enablement
+
+- Switch runtime job/cache state from memory fallback to Redis once the user provides Redis secrets.
+- Expand runtime caching to other high-frequency dashboard lookups after Redis is enabled and benchmarked.
+
+---
+
 ## 🟡 P1 · DR-03 Post-Local Acceptance
 
 - Real-device Daily Report field acceptance on target hardware/browser mix
