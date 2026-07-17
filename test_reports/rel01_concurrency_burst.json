@@ -1,0 +1,56 @@
+{
+  "health": {
+    "count": 8,
+    "statuses": [
+      200
+    ],
+    "p50_ms": 212.0,
+    "p95_ms": 646,
+    "max_ms": 661
+  },
+  "ready": {
+    "count": 8,
+    "statuses": [
+      200
+    ],
+    "p50_ms": 226.5,
+    "p95_ms": 637,
+    "max_ms": 690
+  },
+  "daily_reports": {
+    "count": 8,
+    "statuses": [
+      200
+    ],
+    "p50_ms": 429.5,
+    "p95_ms": 938,
+    "max_ms": 972
+  },
+  "search": {
+    "count": 8,
+    "statuses": [
+      200
+    ],
+    "p50_ms": 732.5,
+    "p95_ms": 1031,
+    "max_ms": 1151
+  },
+  "dispatch": {
+    "count": 8,
+    "statuses": [
+      200
+    ],
+    "p50_ms": 693.0,
+    "p95_ms": 1145,
+    "max_ms": 1561
+  },
+  "runtime_health": {
+    "count": 8,
+    "statuses": [
+      200
+    ],
+    "p50_ms": 366.5,
+    "p95_ms": 689,
+    "max_ms": 1007
+  }
+}

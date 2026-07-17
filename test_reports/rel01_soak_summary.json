@@ -1,0 +1,92 @@
+{
+  "started_at": 1784316844.008308,
+  "ended_at": 1784318662.0193095,
+  "cycles": 45,
+  "summary": {
+    "public_health": {
+      "count": 45,
+      "errors": 4,
+      "status_counts": {
+        "200": 38,
+        "502": 3,
+        "None": 4
+      },
+      "p50_ms": 244,
+      "p95_ms": 25116,
+      "max_ms": 25175
+    },
+    "public_version": {
+      "count": 45,
+      "errors": 2,
+      "status_counts": {
+        "200": 41,
+        "502": 2,
+        "None": 2
+      },
+      "p50_ms": 122,
+      "p95_ms": 4458,
+      "max_ms": 25134
+    },
+    "readiness": {
+      "count": 45,
+      "errors": 2,
+      "status_counts": {
+        "200": 40,
+        "502": 2,
+        "503": 1,
+        "None": 2
+      },
+      "p50_ms": 120,
+      "p95_ms": 164,
+      "max_ms": 25153
+    },
+    "daily_reports": {
+      "count": 45,
+      "errors": 1,
+      "status_counts": {
+        "200": 41,
+        "502": 3,
+        "None": 1
+      },
+      "p50_ms": 253,
+      "p95_ms": 387,
+      "max_ms": 25134
+    },
+    "search": {
+      "count": 45,
+      "errors": 1,
+      "status_counts": {
+        "200": 41,
+        "502": 3,
+        "None": 1
+      },
+      "p50_ms": 509,
+      "p95_ms": 799,
+      "max_ms": 25086
+    },
+    "dispatch": {
+      "count": 45,
+      "errors": 1,
+      "status_counts": {
+        "200": 41,
+        "502": 3,
+        "None": 1
+      },
+      "p50_ms": 483,
+      "p95_ms": 570,
+      "max_ms": 25136
+    },
+    "persistence": {
+      "count": 45,
+      "errors": 2,
+      "status_counts": {
+        "200": 40,
+        "502": 3,
+        "None": 2
+      },
+      "p50_ms": 426,
+      "p95_ms": 475,
+      "max_ms": 25098
+    }
+  }
+}

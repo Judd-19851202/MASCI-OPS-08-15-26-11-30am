@@ -1,3 +1,23 @@
+## 2026-07-17 · TRACK REL-01 · Runtime reliability hardening + hourly archive lock-off
+
+Focused the fork on the P0 production reliability track. Added runtime health/readiness layers, bounded incident forensics, managed background-task tracking/cancellation, and hardened external probe evidence capture.
+
+### Completed
+* **Layered health:** added `GET /api/ready` + `GET /readyz`, liveness headers on `GET /api/health`, and kept `GET /api/health/full` on the legacy boolean contract.
+* **Automatic forensics:** added runtime incident capture for worker restarts, Mongo distress, request-failure streaks, event-loop lag/resource thresholds, with admin-safe access at `GET /api/admin-strict/diag/incident-forensics`.
+* **Managed scheduler/runtime tasks:** core startup loops now register through a central task registry and are cancelled during shutdown before DB teardown.
+* **Probe hardening:** updated `.github/workflows/production-health-probe.yml`, `tools/verify-production.sh`, and admin production health diagnostics to capture headers, timing, response excerpts, and readiness checks.
+* **Hourly complete archive lock:** proved hourly complete R2 archives were still appearing in practice and hard-disabled the hourly code path (`r2_hourly_effective=false`, `r2_hourly_locked_off=true`).
+
+### Verification
+* Focused pytest suites green for REL-01 runtime/probe/readiness coverage.
+* Backend testing agent pass: `/app/test_reports/iteration_590.json`.
+* Deep backend verification pass (health, readiness, diagnostics, auth, daily-report read, search, dispatch, concurrent burst).
+* Frontend smoke screenshot pass after backend runtime changes.
+* Fresh 30-minute soak launched: `/app/test_reports/rel01_soak_v2.log` → `/app/test_reports/rel01_soak_v2_summary.json`.
+
+---
+
 ## 2026-07-17 · Ultimate Elite async polling + glass UI upgrade
 
 Delivered the approved full-pass upgrade for Daily Reports: async job polling for heavy summary/PDF work, disabled Redis-ready runtime cache scaffolding, staggered photo pre-warm wiring, and premium glass UI polish.

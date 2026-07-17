@@ -1,3 +1,36 @@
+## 2026-07-17 · TRACK REL-01 checkpoint — runtime reliability hardening in progress
+
+### Status
+- ✅ CC-01 remains paused; work preserved.
+- ✅ Added layered runtime health surfaces: `GET /api/health` (liveness headers), `GET /api/ready`, `GET /readyz`, and hardened `GET /api/health/full`.
+- ✅ Added automatic runtime incident forensics with bounded admin access at `GET /api/admin-strict/diag/runtime-health` and `GET /api/admin-strict/diag/incident-forensics`.
+- ✅ Added runtime monitor for event-loop lag, Mongo probe latency, resource pressure, request-failure streaks, and worker-restart snapshots.
+- ✅ Registered/cancelled core background tasks centrally so scheduler loops are no longer blind fire-and-forget tasks during restart/shutdown.
+- ✅ Hardened production probe artifacts to capture headers, timing, readiness, and classification evidence.
+- ✅ Proved a live recurrence-capable scheduler contributor: complete R2 archives were still appearing on an hourly cadence (`19:09`, `18:07`, `17:07`, `16:06`, `15:05` UTC in backup verification preview) despite the intended lock-off. Code is now hard-locked to `r2_hourly_effective=false` and `/api/admin/backups-complete-r2-state` reports the effective lock.
+- ⚠️ A fresh 30-minute post-repair soak is running in `/app/test_reports/rel01_soak_v2.log` / `rel01_soak_v2_summary.json` and must be allowed to complete before claiming final certification.
+
+### Verification completed so far
+- ✅ Python lint clean on REL-01 backend changes.
+- ✅ Focused backend pytest blast-radius pass: reliability + probe + readiness suites green.
+- ✅ Backend testing agent pass: `/app/test_reports/iteration_590.json`.
+- ✅ Deep backend verification pass: health, readiness, diagnostics, auth, daily-report read, search, dispatch, and concurrent burst all passed.
+- ✅ Frontend smoke screenshot captured — app shell still loads after backend runtime changes.
+
+### Proven contributors / evidence
+- Proven contributor 1: shallow health model previously had no externally usable readiness endpoint; runtime now exposes `/api/ready` and `/readyz`.
+- Proven contributor 2: background tasks previously launched as unmanaged `asyncio.create_task(...)` loops with no central shutdown cancellation or forensic state.
+- Proven contributor 3: historical hourly complete R2 archive cadence remained active in practice even though it should have been locked off; this path is now forcibly disabled in code.
+
+### Remaining P0 work
+- P0: let the fresh 30-minute REL-01 soak finish and review `/app/test_reports/rel01_soak_v2_summary.json`.
+- P0: complete the incident timeline write-up with the final soak timestamps + latest runtime incident rows.
+- P0: operator/deployment owner must point production ingress/readiness to `/api/ready` (not bare `/healthz`) to enforce READY-only routing.
+
+### Remaining P1 work
+- P1: extend scheduler-specific runtime metrics/heartbeats for long-sleep jobs whose work windows do not occur during the current preview session.
+- P1: broaden delivery forensics beyond Daily Reports if the user wants workflow-by-workflow routing proof exposed in one admin endpoint.
+
 ## 2026-07-17 · TRACK CC-01 checkpoint — authority lock in progress
 
 ### Status

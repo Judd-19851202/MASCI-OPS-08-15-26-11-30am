@@ -58,6 +58,7 @@ fi
 PROBES=(
   "GET  /api/health|ok|GET||${PROD_URL}/api/health"
   "GET  /api/version|ok|GET||${PROD_URL}/api/version"
+  "GET  /api/ready|ok|GET||${PROD_URL}/api/ready"
   "POST /api/passkeys/login/options|route|POST|-H|Content-Type: application/json|-d|{\"email\":\"smoke@example.com\"}|${PROD_URL}/api/passkeys/login/options"
   "GET  /api/admin-strict/diag/persistence-health|auth|GET||${PROD_URL}/api/admin-strict/diag/persistence-health"
   "GET  /api/field-memory/recent|auth|GET||${PROD_URL}/api/field-memory/recent"
