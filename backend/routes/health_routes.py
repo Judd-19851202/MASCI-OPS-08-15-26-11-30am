@@ -15,14 +15,19 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request, Response
+
+from lib.runtime_reliability import public_liveness_headers, public_readiness_payload
 
 
 def build_health_router() -> APIRouter:
     router = APIRouter(prefix="/api", tags=["health"])
 
     @router.get("/health")
-    def api_health():
+    def api_health(request: Request, response: Response):
+        for key, value in public_liveness_headers(request.app).items():
+            if value:
+                response.headers[key] = value
         return {
             "ok": True,
             "service": "masci-hub",
@@ -30,8 +35,21 @@ def build_health_router() -> APIRouter:
         }
 
     @router.get("/healthz")
-    def api_healthz():
+    def api_healthz(request: Request, response: Response):
+        for key, value in public_liveness_headers(request.app).items():
+            if value:
+                response.headers[key] = value
         return {"ok": True}
+
+    @router.get("/ready")
+    def api_ready(request: Request, response: Response):
+        payload = public_readiness_payload(request.app)
+        for key, value in public_liveness_headers(request.app).items():
+            if value:
+                response.headers[key] = value
+        if not payload["ok"]:
+            response.status_code = 503
+        return payload
 
     return router
 

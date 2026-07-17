@@ -46,7 +46,8 @@ def _read_mongo_url():
 async def _setup_db():
     from motor.motor_asyncio import AsyncIOMotorClient
     client = AsyncIOMotorClient(_read_mongo_url())
-    db = client.get_database("scheduler_test_iter445")
+    db_name = os.environ.get("DB_NAME") or "masci_safety"
+    db = client.get_database(db_name)
     await ensure_scheduler_runs_indexes(db)
     await db[SCHEDULER_RUNS_COLLECTION].delete_many({})
     return client, db

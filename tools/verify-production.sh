@@ -57,6 +57,7 @@ fi
 #   route  → must be 100-499 (route exists, no 5xx, no network failure)
 PROBES=(
   "GET  /api/health|ok|GET||${PROD_URL}/api/health"
+  "GET  /api/version|ok|GET||${PROD_URL}/api/version"
   "POST /api/passkeys/login/options|route|POST|-H|Content-Type: application/json|-d|{\"email\":\"smoke@example.com\"}|${PROD_URL}/api/passkeys/login/options"
   "GET  /api/admin-strict/diag/persistence-health|auth|GET||${PROD_URL}/api/admin-strict/diag/persistence-health"
   "GET  /api/field-memory/recent|auth|GET||${PROD_URL}/api/field-memory/recent"
@@ -67,7 +68,8 @@ PROBES=(
 # probe_once: run one HTTP probe with full diagnostic capture.
 # Returns 0 if healthy, 1 if unhealthy.
 # Side effects: sets PROBE_CODE, PROBE_EXITCODE, PROBE_ERRMSG, PROBE_DNS,
-#               PROBE_CONNECT, PROBE_TOTAL, PROBE_BODY_EXCERPT.
+#               PROBE_CONNECT, PROBE_APPCONNECT, PROBE_TOTAL, PROBE_REMOTE_IP,
+#               PROBE_BODY_EXCERPT, PROBE_HEADERS_EXCERPT, PROBE_CLASSIFICATION.
 # ---------------------------------------------------------------------------
 probe_once() {
   local label="$1"; local expect="$2"; local method="$3"; shift 3
@@ -78,7 +80,9 @@ probe_once() {
 
   local body_file
   body_file=$(mktemp)
-  local writeout="code=%{http_code}|exitcode=%{exitcode}|errormsg=%{errormsg}|dns=%{time_namelookup}|connect=%{time_connect}|total=%{time_total}"
+  local headers_file
+  headers_file=$(mktemp)
+  local writeout="code=%{http_code}|exitcode=%{exitcode}|errormsg=%{errormsg}|dns=%{time_namelookup}|connect=%{time_connect}|tls=%{time_appconnect}|total=%{time_total}|remote_ip=%{remote_ip}"
 
   local raw
   # NOTE: NO --retry here. We do the retry ourselves via the double-take
@@ -86,6 +90,7 @@ probe_once() {
   raw=$(curl -sS -m 8 \
               -X "$method" \
               "${extra_args[@]}" \
+              -D "$headers_file" \
               -o "$body_file" \
               -w "$writeout" \
               "$url" 2>/dev/null || true)
@@ -95,9 +100,12 @@ probe_once() {
   PROBE_ERRMSG=$(echo "$raw" | sed -n 's/.*errormsg=\([^|]*\)|dns=.*/\1/p')
   PROBE_DNS=$(echo "$raw" | sed -n 's/.*dns=\([0-9.]\+\).*/\1/p')
   PROBE_CONNECT=$(echo "$raw" | sed -n 's/.*connect=\([0-9.]\+\).*/\1/p')
-  PROBE_TOTAL=$(echo "$raw" | sed -n 's/.*total=\([0-9.]\+\)$/\1/p')
+  PROBE_APPCONNECT=$(echo "$raw" | sed -n 's/.*tls=\([0-9.]\+\).*/\1/p')
+  PROBE_TOTAL=$(echo "$raw" | sed -n 's/.*total=\([0-9.]\+\)|remote_ip=.*/\1/p')
+  PROBE_REMOTE_IP=$(echo "$raw" | sed -n 's/.*remote_ip=\([^|]*\)$/\1/p')
   PROBE_BODY_EXCERPT=$(head -c 200 "$body_file" 2>/dev/null | tr '\n' ' ')
-  rm -f "$body_file"
+  PROBE_HEADERS_EXCERPT=$(grep -Ei '^(server:|via:|cf-ray:|content-type:|content-length:)' "$headers_file" | tr '\n' '; ' | cut -c1-240)
+  rm -f "$body_file" "$headers_file"
 
   # Defaults in case sed missed anything
   PROBE_CODE="${PROBE_CODE:-000}"
@@ -105,7 +113,21 @@ probe_once() {
   PROBE_ERRMSG="${PROBE_ERRMSG:-}"
   PROBE_DNS="${PROBE_DNS:-0}"
   PROBE_CONNECT="${PROBE_CONNECT:-0}"
+  PROBE_APPCONNECT="${PROBE_APPCONNECT:-0}"
   PROBE_TOTAL="${PROBE_TOTAL:-0}"
+  PROBE_REMOTE_IP="${PROBE_REMOTE_IP:-}"
+
+  if [[ "$PROBE_CODE" == "520" && "$PROBE_HEADERS_EXCERPT" == *"cloudflare"* ]]; then
+    PROBE_CLASSIFICATION="cloudflare_edge_origin_error"
+  elif [[ "$PROBE_CODE" == "000" ]]; then
+    PROBE_CLASSIFICATION="network_transport_failure"
+  elif [[ "$PROBE_CODE" =~ ^5 ]]; then
+    PROBE_CLASSIFICATION="origin_or_application_failure"
+  elif [[ "$PROBE_CODE" =~ ^[1-4] ]]; then
+    PROBE_CLASSIFICATION="route_or_auth_response"
+  else
+    PROBE_CLASSIFICATION="unknown"
+  fi
 
   # Strict status code evaluation — regex-based, no bash arithmetic on
   # possibly-empty/non-numeric strings.
@@ -131,9 +153,13 @@ render_probe() {
   else
     printf "  ${BAD} %-58s ${DIM}HTTP %s · curl_exit=%s${RESET}\n" "$label" "$PROBE_CODE" "$PROBE_EXITCODE"
     if [[ "$detail_on_fail" == "1" ]]; then
-      printf "        ${DIM}└─ DNS=${PROBE_DNS}s  connect=${PROBE_CONNECT}s  total=${PROBE_TOTAL}s${RESET}\n"
+      printf "        ${DIM}└─ DNS=${PROBE_DNS}s  connect=${PROBE_CONNECT}s  tls=${PROBE_APPCONNECT}s  total=${PROBE_TOTAL}s${RESET}\n"
+      printf "        ${DIM}└─ remote_ip=%s  class=%s${RESET}\n" "$PROBE_REMOTE_IP" "$PROBE_CLASSIFICATION"
       if [[ -n "$PROBE_ERRMSG" ]]; then
         printf "        ${DIM}└─ curl: %s${RESET}\n" "$PROBE_ERRMSG"
+      fi
+      if [[ -n "$PROBE_HEADERS_EXCERPT" ]]; then
+        printf "        ${DIM}└─ headers: %s${RESET}\n" "$PROBE_HEADERS_EXCERPT"
       fi
       if [[ -n "$PROBE_BODY_EXCERPT" ]]; then
         printf "        ${DIM}└─ body: %s${RESET}\n" "${PROBE_BODY_EXCERPT:0:180}"

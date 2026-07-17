@@ -255,6 +255,18 @@ register_async_job_routes(api_router)
 from lib.health_probes import attach_health_probes  # noqa: E402
 attach_health_probes(app)
 
+from lib.runtime_reliability import (  # noqa: E402
+    build_public_full_health_payload,
+    cancel_registered_background_tasks,
+    configure_runtime,
+    observe_request_result,
+    register_background_task,
+    set_readiness,
+    set_startup_complete,
+    start_runtime_monitor,
+    track_existing_background_task,
+)
+
 
 # ─────────────────────────────────────────────────────────────────────────
 # Sentry (Phase 2 Initiative 1) — env-gated. If SENTRY_DSN is unset, this
@@ -376,6 +388,9 @@ async def _bootstrap_runtime_db() -> None:
     app.state.mongo_client = client
     app.state.db = database
     app.state.db_name = cfg.db_name
+    if not getattr(app.state, "runtime_monitor_started", False):
+        start_runtime_monitor(app, database)
+        app.state.runtime_monitor_started = True
 
 
 # ------------------------- Admin auth -------------------------
@@ -1454,7 +1469,11 @@ async def api_health_full(response: Response):
     except Exception:
         out["scheduler"] = False
 
-    out["ok"] = bool(out["mongo"] and out["scheduler"] and out["backup_recent"])
+    out = await build_public_full_health_payload(
+        app,
+        backup_recent=bool(out["backup_recent"]),
+        scheduler_alive=bool(out["scheduler"]),
+    )
     if not out["ok"]:
         response.status_code = 503
     return out
@@ -1527,6 +1546,18 @@ _INSTANCE_FINGERPRINT = build_instance_fingerprint(
     _RESOLVED_COMMIT,
     _SOURCE_HASH,
     _STARTUP_TS.isoformat(),
+)
+configure_runtime(
+    app,
+    release_identity={
+        "source_hash": _SOURCE_HASH,
+        "commit": _RESOLVED_COMMIT,
+        "app_env": (os.environ.get("APP_ENV") or "production").lower(),
+        "db_name": os.environ.get("DB_NAME") or "unknown",
+        "instance_fingerprint": _INSTANCE_FINGERPRINT,
+        "reload_enabled": True,
+        "server_command": "uvicorn server:app --host 0.0.0.0 --port 8001 --workers 1 --reload",
+    },
 )
 
 
@@ -12282,7 +12313,14 @@ async def _tune_asyncio_thread_pool():
 
 @register_lifecycle_step("scheduler-nonemail")
 async def _start_job_photos_indexer():
-    asyncio.create_task(_job_photos_indexer_loop(db))
+    register_background_task(
+        app,
+        name="job-photos-indexer",
+        coro=_job_photos_indexer_loop(db),
+        category="scheduler",
+        critical=False,
+        long_running=True,
+    )
 
 
 # ── TRACK 22.9B · Photo Intelligence V1 pipeline ──────────────────
@@ -12340,7 +12378,14 @@ async def _start_dr_v1_photo_intel_reconciler():
     switch: ``DR_V1_PHOTO_INTEL_RECONCILER_ENABLED=false``.
     """
     from services.photo_intelligence import v1_reconciler_loop
-    asyncio.create_task(v1_reconciler_loop(db))
+    register_background_task(
+        app,
+        name="photo-intelligence-v1-reconciler",
+        coro=v1_reconciler_loop(db),
+        category="scheduler",
+        critical=False,
+        long_running=True,
+    )
 
 
 @register_lifecycle_step("seed")
@@ -12475,7 +12520,14 @@ async def _start_motive_reliability_loop():
     """
     try:
         from lib.motive_reliability import motive_reliability_supervisor  # noqa: PLC0415
-        asyncio.create_task(motive_reliability_supervisor(db))
+        register_background_task(
+            app,
+            name="motive-reliability-supervisor",
+            coro=motive_reliability_supervisor(db),
+            category="scheduler",
+            critical=False,
+            long_running=True,
+        )
         logging.getLogger(__name__).info(
             "[motive-reliability] supervisor task scheduled"
         )
@@ -13585,7 +13637,14 @@ from health_monitor import start_health_monitor_loop  # noqa: E402
 @register_lifecycle_step("scheduler-nonemail")
 async def _start_health_monitor():
     try:
-        start_health_monitor_loop(db, _admin_ops_router.compute_system_health)
+        track_existing_background_task(
+            app,
+            name="synthetic-health-monitor",
+            task=start_health_monitor_loop(db, _admin_ops_router.compute_system_health),
+            category="health-monitor",
+            critical=False,
+            long_running=True,
+        )
         # Pre-warm the health_monitor_runs collection so the first call
         # to /admin/system-health/recent doesn't pay a 36 s cold-start
         # cost (motor lazy-allocates collections on first use).
@@ -13829,8 +13888,13 @@ async def _start_safety_digest_cron():
                 render_html=render_digest_html,
                 send_email_fn=_safety_send_email,
             )
-        _safety_digest_task = asyncio.create_task(
-            run_with_singleton_lock(db, "safety_digest", _safety_digest_wrapped)
+        _safety_digest_task = register_background_task(
+            app,
+            name="safety-digest-singleton",
+            coro=run_with_singleton_lock(db, "safety_digest", _safety_digest_wrapped),
+            category="email-scheduler",
+            critical=False,
+            long_running=True,
         )
         logger.info("[safety-digest] weekly cron started")
     except Exception as e:  # noqa: BLE001
@@ -13856,8 +13920,13 @@ async def _start_operator_digest_cron():
                 _db,
                 send_email_fn=_safety_send_email,
             )
-        _operator_digest_task = asyncio.create_task(
-            run_with_singleton_lock(db, "operator_digest", _operator_digest_wrapped)
+        _operator_digest_task = register_background_task(
+            app,
+            name="operator-digest-singleton",
+            coro=run_with_singleton_lock(db, "operator_digest", _operator_digest_wrapped),
+            category="email-scheduler",
+            critical=False,
+            long_running=True,
         )
         logger.info("[operator-digest] weekly cron started")
     except Exception as e:  # noqa: BLE001
@@ -13928,8 +13997,13 @@ async def _start_po_digest_cron():
                 send_email_fn=_po_digest_send_email,
                 portal_url=portal_url,
             )
-        _po_digest_task = asyncio.create_task(
-            run_with_singleton_lock(db, "po_digest", _po_digest_wrapped)
+        _po_digest_task = register_background_task(
+            app,
+            name="po-digest-singleton",
+            coro=run_with_singleton_lock(db, "po_digest", _po_digest_wrapped),
+            category="email-scheduler",
+            critical=False,
+            long_running=True,
         )
         logger.info("[po-digest] weekly cron started")
     except Exception as e:  # noqa: BLE001
@@ -14543,6 +14617,13 @@ app.include_router(build_production_health_router(
     require_admin_dep=require_admin_strict,
 ))
 
+from routes.admin_runtime_reliability import build_runtime_reliability_router  # noqa: E402
+app.include_router(build_runtime_reliability_router(
+    app=app,
+    db=db,
+    require_admin_dep=require_admin_strict,
+))
+
 # iter440 · Last Activity probe · powers the calm "Last submission · N
 # minutes ago" indicator on every role hub. Per-portal scoping ·
 # read-only · 7-day lookback cap.
@@ -14584,7 +14665,14 @@ async def _cluster_capacity_history_loop() -> None:
             except Exception as e:  # noqa: BLE001
                 logger.warning("[cluster-capacity-history] tick failed: %s", e)
 
-    asyncio.create_task(_loop())
+    register_background_task(
+        app,
+        name="cluster-capacity-history",
+        coro=_loop(),
+        category="scheduler",
+        critical=False,
+        long_running=True,
+    )
 
 # iter431 · Phase 29 · Part 4 · admin-strict stability sweepers
 from routes.admin_stability import build_admin_stability_router  # noqa: E402
@@ -14719,8 +14807,13 @@ async def _start_backup_verification_cron():
     crash in this loop never disturbs the actual backup scheduler."""
     global _backup_verify_task
     try:
-        _backup_verify_task = asyncio.create_task(
-            run_with_singleton_lock(db, "backup_verification", verification_scheduler_loop)
+        _backup_verify_task = register_background_task(
+            app,
+            name="backup-verification-singleton",
+            coro=run_with_singleton_lock(db, "backup_verification", verification_scheduler_loop),
+            category="email-scheduler",
+            critical=False,
+            long_running=True,
         )
         logging.getLogger(__name__).info(
             "[verify] weekly cron started"
@@ -15464,8 +15557,14 @@ async def _track_16_10_bootstrap_on_startup():
     try:
         async def _wrapped(_db):
             return await transport_automation_scheduler_loop(_db)
-        _transport_automation_task = asyncio.create_task(
-            run_with_singleton_lock(db, "transport_automation", _wrapped))
+        _transport_automation_task = register_background_task(
+            app,
+            name="transport-automation-singleton",
+            coro=run_with_singleton_lock(db, "transport_automation", _wrapped),
+            category="scheduler",
+            critical=False,
+            long_running=True,
+        )
         logger.info("[track-16-10] automation scheduler armed")
     except Exception as exc:  # noqa: BLE001
         logging.getLogger(__name__).warning(
@@ -15476,9 +15575,14 @@ async def _track_16_10_bootstrap_on_startup():
     try:
         async def _wrapped_digest(_db):
             return await transport_command_digest_scheduler_loop(_db)
-        asyncio.create_task(
-            run_with_singleton_lock(db, "transport_command_digest",
-                                     _wrapped_digest))
+        register_background_task(
+            app,
+            name="transport-command-digest-singleton",
+            coro=run_with_singleton_lock(db, "transport_command_digest", _wrapped_digest),
+            category="scheduler",
+            critical=False,
+            long_running=True,
+        )
         logger.info("[track-16-10a] command-digest scheduler armed")
     except Exception as exc:  # noqa: BLE001
         logging.getLogger(__name__).warning(
@@ -17620,13 +17724,25 @@ async def _start_backup_scheduler():
                 f"[scheduled-backup] disk at {pct}% on boot — running emergency prune"
             )
             _emergency_prune_backups(reason=f"boot disk {pct}%")
-        _backup_task = asyncio.create_task(
-            _backup_scheduler_loop_with_capture(db)
+        _backup_task = register_background_task(
+            app,
+            name="scheduled-backup-loop",
+            coro=_backup_scheduler_loop_with_capture(db),
+            category="scheduler",
+            critical=True,
+            long_running=True,
         )
         # FORGEDOPS-P0.2 · nightly Asset Spine reconciliation scan.
         try:
             from services.asset_spine_scheduler import asset_spine_nightly_loop
-            asyncio.create_task(asset_spine_nightly_loop(db))
+            register_background_task(
+                app,
+                name="asset-spine-nightly-loop",
+                coro=asset_spine_nightly_loop(db),
+                category="scheduler",
+                critical=False,
+                long_running=True,
+            )
             logging.getLogger(__name__).info("[asset-spine-scheduler] task scheduled")
         except Exception as _e:
             logging.getLogger(__name__).warning("[asset-spine-scheduler] failed to start: %s", _e)
@@ -17718,8 +17834,13 @@ async def _start_backup_scheduler():
                         _BACKUP_SCHEDULER_STATE["last_resurrect_ts"] = (
                             datetime.now(timezone.utc).isoformat()
                         )
-                        _backup_task = asyncio.create_task(
-                            _backup_scheduler_loop_with_capture(db)
+                        _backup_task = register_background_task(
+                            app,
+                            name="scheduled-backup-loop",
+                            coro=_backup_scheduler_loop_with_capture(db),
+                            category="scheduler",
+                            critical=True,
+                            long_running=True,
                         )
                 except asyncio.CancelledError:
                     raise
@@ -17730,7 +17851,14 @@ async def _start_backup_scheduler():
 
         # The supervisor task is fire-and-forget. If it dies, the
         # watchdog email alarm at 25h is still the last line of defense.
-        asyncio.create_task(_scheduler_supervisor())
+        register_background_task(
+            app,
+            name="scheduled-backup-supervisor",
+            coro=_scheduler_supervisor(),
+            category="scheduler-supervisor",
+            critical=True,
+            long_running=True,
+        )
         logging.getLogger(__name__).info(
             "[scheduled-backup] supervisor armed — checks task health every 5 min"
         )
@@ -17900,8 +18028,7 @@ logger = logging.getLogger(__name__)
 async def shutdown_db_client():
     global client
     try:
-        if _backup_task is not None:
-            _backup_task.cancel()
+        await cancel_registered_background_tasks(app)
     except Exception:
         pass
     if client is not None:
@@ -17952,14 +18079,20 @@ async def _iter453_6_readiness_gate(request, call_next):
                 content={"detail": "service_starting"},
             )
     try:
-        return await call_next(request)
+        response = await call_next(request)
+        await observe_request_result(request.app, path=request.url.path or "", status_code=response.status_code)
+        return response
     except RuntimeError as exc:
         from fastapi.responses import JSONResponse  # noqa: PLC0415
         logging.getLogger(__name__).exception("[readiness-gate] runtime error: %s", exc)
+        await observe_request_result(request.app, path=request.url.path or "", status_code=500, exception=exc)
         return JSONResponse(
             status_code=500,
             content={"detail": "internal_server_error"},
         )
+    except Exception as exc:
+        await observe_request_result(request.app, path=request.url.path or "", status_code=500, exception=exc)
+        raise
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -18050,7 +18183,7 @@ async def _iter453_6_flip_ready_flag():
     registration is the LAST one in server.py, so by the time this
     runs every index/scheduler/router setup above is finished.
     """
-    app.state.ready = True
+    set_startup_complete(app, ready=True, reason="startup_complete")
     logging.getLogger(__name__).info(
         "[iter453.6] startup-readiness gate FLIPPED · public writes now accepted",
     )
@@ -18065,7 +18198,14 @@ async def _iter453_6_flip_ready_flag():
 async def _dispatch_reminder_scheduler_start():
     try:
         from dispatch_reminders import reminder_scheduler_loop  # noqa: PLC0415
-        asyncio.create_task(reminder_scheduler_loop(db))
+        register_background_task(
+            app,
+            name="dispatch-reminder-scheduler",
+            coro=reminder_scheduler_loop(db),
+            category="scheduler",
+            critical=False,
+            long_running=True,
+        )
         logging.getLogger(__name__).info(
             "[dispatch-reminders] background task scheduled",
         )

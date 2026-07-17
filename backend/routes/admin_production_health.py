@@ -26,6 +26,8 @@ from typing import Any, Dict, List, Optional
 import httpx
 from fastapi import APIRouter, Depends
 
+from lib.runtime_reliability import classify_public_failure, redact_text
+
 
 PROD_URL_DEFAULT = "https://mascidocs.com"
 _PROBE_TIMEOUT_S = 5.0
@@ -67,12 +69,19 @@ async def _run_probe(client: httpx.AsyncClient, base: str, probe: Dict[str, Any]
     url = f"{base}{probe['path']}"
     code = 0
     err: Optional[str] = None
+    headers: Dict[str, str] = {}
+    body_excerpt = ""
     try:
         if probe["method"] == "GET":
             r = await client.get(url, timeout=_PROBE_TIMEOUT_S)
         else:
             r = await client.post(url, json=probe.get("json"), timeout=_PROBE_TIMEOUT_S)
         code = r.status_code
+        headers = {
+            k.lower(): v for k, v in r.headers.items()
+            if k.lower() in {"server", "via", "cf-ray", "content-type", "content-length"}
+        }
+        body_excerpt = redact_text((r.text or "")[:200])
     except Exception as exc:  # noqa: BLE001
         err = type(exc).__name__
     return {
@@ -84,6 +93,13 @@ async def _run_probe(client: httpx.AsyncClient, base: str, probe: Dict[str, Any]
         "ok": _is_ok(probe["expect"], code),
         "error": err,
         "elapsed_ms": int((time.monotonic() - started) * 1000),
+        "response_headers": headers,
+        "response_excerpt": body_excerpt,
+        "classification": classify_public_failure(
+            status_code=code,
+            headers=headers,
+            body_excerpt=body_excerpt,
+        ),
     }
 
 

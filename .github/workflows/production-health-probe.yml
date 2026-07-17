@@ -135,11 +135,15 @@ jobs:
           set -eu
           echo "→ GET ${PROD_URL}/api/health"
           tmp=$(mktemp)
-          status=$(curl -sS --max-time 15 -o "$tmp" -w "%{http_code}" "${PROD_URL}/api/health" || echo "000")
+          hdr=$(mktemp)
+          status=$(curl -sS --max-time 15 -D "$hdr" -o "$tmp" -w "%{http_code}|dns=%{time_namelookup}|connect=%{time_connect}|tls=%{time_appconnect}|total=%{time_total}|remote_ip=%{remote_ip}" "${PROD_URL}/api/health" || echo "000")
           body=$(cat "$tmp")
           echo "  HTTP ${status}"
+          echo "  headers:"
+          grep -Ei '^(server:|via:|cf-ray:|content-type:|content-length:)' "$hdr" || true
           echo "  body: ${body}"
-          if [ "${status}" != "200" ]; then
+          code=$(printf '%s' "$status" | cut -d'|' -f1)
+          if [ "${code}" != "200" ]; then
             echo "::error::/api/health returned HTTP ${status} (expected 200)"
             exit 1
           fi
@@ -157,9 +161,13 @@ jobs:
           set -eu
           echo "→ GET ${PROD_URL}/api/version"
           tmp=$(mktemp)
-          status=$(curl -sS --max-time 15 -o "$tmp" -w "%{http_code}" "${PROD_URL}/api/version" || echo "000")
+          hdr=$(mktemp)
+          status=$(curl -sS --max-time 15 -D "$hdr" -o "$tmp" -w "%{http_code}|dns=%{time_namelookup}|connect=%{time_connect}|tls=%{time_appconnect}|total=%{time_total}|remote_ip=%{remote_ip}" "${PROD_URL}/api/version" || echo "000")
           echo "  HTTP ${status}"
-          if [ "${status}" != "200" ]; then
+          echo "  headers:"
+          grep -Ei '^(server:|via:|cf-ray:|content-type:|content-length:)' "$hdr" || true
+          code=$(printf '%s' "$status" | cut -d'|' -f1)
+          if [ "${code}" != "200" ]; then
             echo "::error::/api/version returned HTTP ${status} (expected 200)"
             cat "$tmp"
             exit 1
