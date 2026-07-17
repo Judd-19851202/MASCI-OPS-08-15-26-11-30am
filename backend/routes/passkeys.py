@@ -54,6 +54,16 @@ CHALLENGE_TTL_SECONDS = 300  # 5 min
 MAX_PASSKEYS_PER_USER = 10   # anti-abuse · per-account ceiling
 
 
+def _configured_passkey_rp_id() -> str:
+    explicit = (os.environ.get("PASSKEY_RP_ID") or "").strip().lower()
+    if explicit:
+        return explicit
+    app_env = (os.environ.get("APP_ENV") or "").strip().lower()
+    if app_env in {"production", "prod"}:
+        return "mascidocs.com"
+    return "localhost"
+
+
 # ════════════════════════════════════════════════════════════════════
 # RP ID derivation · stable across preview subdomains + custom prod domain
 # ════════════════════════════════════════════════════════════════════
@@ -90,7 +100,7 @@ def _client_visible_host(request: Request) -> str:
     for h in candidates:
         if h:
             return h
-    return os.environ.get("PASSKEY_RP_ID", "localhost")
+    return _configured_passkey_rp_id()
 
 
 def derive_rp_id(request: Request) -> str:
@@ -101,7 +111,10 @@ def derive_rp_id(request: Request) -> str:
     host = _client_visible_host(request)
     if host.endswith(PREVIEW_SUFFIX):
         return PREVIEW_SUFFIX.lstrip(".")
-    return host
+    configured = _configured_passkey_rp_id()
+    if host in {"mascidocs.com", "www.mascidocs.com"}:
+        return configured if configured != "localhost" else "mascidocs.com"
+    return host or configured
 
 
 def derive_expected_origins(request: Request) -> List[str]:

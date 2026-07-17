@@ -4,7 +4,7 @@ Env-driven so we can flip Claude → GPT → Gemini via one variable
 without changing route code or agent prompts.
 
 DR_AI_PROVIDER=emergent     (default)
-DR_AI_MODEL=claude-sonnet-4-6  (default; overridable)
+DR_AI_MODEL=default_text_model()  (default; overridable)
 DR_AI_LLM_PROVIDER=anthropic (default; use "openai" / "gemini" to swap)
 """
 from __future__ import annotations

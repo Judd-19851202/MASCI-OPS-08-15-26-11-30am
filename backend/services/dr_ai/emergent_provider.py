@@ -13,6 +13,7 @@ from typing import Any, Dict
 
 from .provider import AiSynthesisResult
 from services.ai_gateway import get_gateway
+from services.ai_gateway.env import default_text_model
 from services.ai_gateway.env import gateway_enabled
 
 
@@ -21,7 +22,7 @@ class EmergentClaudeProvider:
 
     name = "emergent"
     # Kept for backward-compat display; real routing lives in the gateway.
-    model = os.environ.get("AI_DEFAULT_TEXT_MODEL", "claude-sonnet-4-6")
+    model = default_text_model()
     llm_provider = os.environ.get("AI_DEFAULT_PROVIDER", "anthropic")
 
     def __init__(self):

@@ -13,7 +13,7 @@ Body
 Response
 --------
     200  {"ok": true, "translations": {...}, "provider": "openai",
-           "model": "gpt-5.2", "latency_ms": 823,
+           "model": "default_text_model()", "latency_ms": 823,
            "translation_metadata": {...}}
     502  {"ok": false, "error": "translation_service_unavailable"} — fail-closed.
 

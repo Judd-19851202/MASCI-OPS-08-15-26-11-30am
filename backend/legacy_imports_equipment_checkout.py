@@ -38,6 +38,8 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
+from services.ai_gateway.env import default_text_model
+
 logger = logging.getLogger(__name__)
 
 
@@ -51,7 +53,7 @@ def pilot_cap() -> int:
 
 def ocr_model() -> str:
     return os.environ.get(
-        "LEGACY_OCR_MODEL", "claude-sonnet-4-6"
+        "LEGACY_OCR_MODEL", default_text_model()
     )
 
 
