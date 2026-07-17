@@ -6,9 +6,9 @@ This file tracks **parked features** the user wants to revisit later. Surface th
 
 ## 🔴 P0 · TRACK REL-01 completion steps (2026-07-17)
 
-- Let the fresh 30-minute REL-01 soak finish and certify `/app/test_reports/rel01_soak_v2_summary.json`.
-- Write the final incident timeline from runtime incident snapshots + soak timestamps.
-- Coordinate the deployment-side readiness probe change so production routes only to `/api/ready` healthy instances.
+- Verify real production readiness path is `/api/ready` and production does not run `uvicorn --reload`.
+- Close delivery truth for production environment email safety/configuration and complete-R2 notification behavior.
+- Write the final incident timeline from runtime incident snapshots + preserved restart/soak evidence.
 
 ## 🟡 P1 · REL-01 follow-through
 

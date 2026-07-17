@@ -23,9 +23,23 @@
 - Proven contributor 3: historical hourly complete R2 archive cadence remained active in practice even though it should have been locked off; this path is now forcibly disabled in code.
 
 ### Remaining P0 work
-- P0: let the fresh 30-minute REL-01 soak finish and review `/app/test_reports/rel01_soak_v2_summary.json`.
+- P0: long soak stopped on operator instruction; preserved samples only (`rel01_soak_v2.log`, `rel01_soak_v3.log`). No further idle soak required in this stage.
 - P0: complete the incident timeline write-up with the final soak timestamps + latest runtime incident rows.
 - P0: operator/deployment owner must point production ingress/readiness to `/api/ready` (not bare `/healthz`) to enforce READY-only routing.
+
+### 2026-07-17 · REL-01 delivery/backup truth checkpoint
+- ✅ Audited trust evidence directly from `trust_spine_events`, `email_routing_audit_v2`, admin trust endpoints, and notifications.
+- ✅ Proved a shared current preview delivery block across `daily-report`, `meeting`, `jha`, `incident`, `qaqc`, `equipment-inspection`, and `inspection`: `record_created=ok` followed by `notification_queued=skipped` with `failure_reason=email_safety_mode:strict`.
+- ✅ Added forensic truth fix so preview safety suppression is classified distinctly from `auto_email_not_scheduled`.
+- ✅ Controlled preview submissions succeeded for representative families: `meeting`, `qaqc`, `equipment-inspection`; controlled Daily Report submission hit the existing summary-approval gate (`approved_summary_required`) before delivery.
+- ✅ Bell/in-app evidence confirmed for `meeting.submitted` and historical `jha.submitted`; not every delivery family currently shows bell evidence.
+- ✅ Non-email workflows `hr-request`, `dispatch-assignment`, and `shop-defect` show completed trust chains in current data.
+- ✅ Backup truth audit confirmed:
+  - scheduled lite DB backups are active and recent
+  - complete R2 archives historically ran hourly and remain visible in stored artifacts
+  - runtime state now exposes hourly archive hard lock (`r2_hourly_effective=false`, `r2_hourly_locked_off=true`)
+  - lite backup notifications are recorded (`emailed_to=jaymn.judd@mascigc.com`)
+  - complete R2 archive notification closure remains incomplete (`emailed_to=None` on recent archive runs)
 
 ### Remaining P1 work
 - P1: extend scheduler-specific runtime metrics/heartbeats for long-sleep jobs whose work windows do not occur during the current preview session.

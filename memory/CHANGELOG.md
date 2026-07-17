@@ -15,6 +15,13 @@ Focused the fork on the P0 production reliability track. Added runtime health/re
 * Deep backend verification pass (health, readiness, diagnostics, auth, daily-report read, search, dispatch, concurrent burst).
 * Frontend smoke screenshot pass after backend runtime changes.
 * Fresh 30-minute soak launched: `/app/test_reports/rel01_soak_v2.log` → `/app/test_reports/rel01_soak_v2_summary.json`.
+* Long soak later stopped on operator instruction; preserved evidence only.
+
+### Delivery / backup truth follow-through
+* Audited live `trust_spine_events`, `email_routing_audit_v2`, notifications, and backup admin diagnostics.
+* Confirmed current preview-side email-driven workflows are blocked by `email_safety_mode:strict`, not by lost task scheduling.
+* Fixed the forensics classifier so environment suppression is reported as `delivery_suppressed_by_environment` instead of `auto_email_not_scheduled`.
+* Confirmed backup lite notifications are present, while complete R2 archive notification closure is still incomplete.
 
 ---
 

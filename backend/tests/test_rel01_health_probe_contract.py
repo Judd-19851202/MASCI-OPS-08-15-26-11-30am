@@ -38,3 +38,10 @@ def test_hourly_complete_archive_is_hard_locked_off_in_server_source():
     assert '"r2_hourly_effective": False' in src
     assert '"r2_hourly_locked_off": True' in src
     assert 'r2_hourly = False' in src
+
+
+def test_backup_scheduler_state_exposes_hourly_archive_lock_truth():
+    src = open(SERVER_PATH, encoding="utf-8").read()
+    assert '"r2_hourly_requested"' in src
+    assert '"r2_hourly_effective"' in src
+    assert '"r2_hourly_locked_off"' in src

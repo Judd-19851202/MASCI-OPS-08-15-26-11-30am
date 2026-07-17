@@ -41,6 +41,8 @@ ROOT_CAUSE_CODES = {
     "resolver_bypassed_roster",
     "recipients_empty",
     "auto_email_not_scheduled",
+    "delivery_suppressed_by_environment",
+    "delivery_suppressed_synthetic_test_record",
     "dispatch_skipped",
     "provider_rejected",
     "audit_missing",
@@ -144,6 +146,11 @@ def _classify(
     # Notification stage skipped entirely (auto-email disabled).
     nq = spine_stage_index.get("notification_queued") or {}
     if nq.get("status") == "skipped":
+        fr = str(nq.get("failure_reason") or "")
+        if fr.startswith("email_safety_mode:"):
+            return "delivery_suppressed_by_environment"
+        if fr == "synthetic_test_record":
+            return "delivery_suppressed_synthetic_test_record"
         return "auto_email_not_scheduled"
 
     # Resolver fell back to dead-letter — PM never resolved, but the
@@ -587,6 +594,13 @@ def make_router(db, require_admin_dep) -> APIRouter:
                 "auto_email_not_scheduled":
                     "AUTO_EMAIL_REPORTS env var is false OR RESEND_API_KEY missing. "
                     "Verify production env vars on this deploy.",
+                "delivery_suppressed_by_environment":
+                    "Email dispatch was intentionally suppressed by EMAIL_SAFETY_MODE "
+                    "for this environment. This is expected in preview/staging and "
+                    "must be OFF in production.",
+                "delivery_suppressed_synthetic_test_record":
+                    "Email dispatch was intentionally suppressed because the record was "
+                    "submitted as a synthetic TEST_ fixture. This is expected for test submissions.",
                 "dispatch_skipped":
                     "schedule_auto_email() did not invoke _dispatch_auto_email. "
                     "Inspect backend logs for the exception swallowed in the "
@@ -616,6 +630,8 @@ def make_router(db, require_admin_dep) -> APIRouter:
                 "trust_spine_missing_notification_stage",
                 "audit_missing",
                 "auto_email_not_scheduled",
+                "delivery_suppressed_by_environment",
+                "delivery_suppressed_synthetic_test_record",
             }
 
             # Bump counters
