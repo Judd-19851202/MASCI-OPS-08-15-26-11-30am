@@ -385,6 +385,7 @@ def build_router(
     require_safety_or_admin,
     require_admin_strict,
     require_any_fleet_portal=None,
+    schedule_auto_email=None,
 ) -> APIRouter:
     """All RBAC dependencies are injected · keeps this module free of
     server.py auth coupling. Phase B (driver UX) and Phase C (dashboards)
@@ -672,6 +673,24 @@ def build_router(
                 },
             )
 
+            # REL-01 · DVIR delivery/trust closeout.
+            # Only the canonical DVIR workflow participates here; weekly
+            # fleet inspections stay untouched. Emit the record-created
+            # Trust Spine stage once per submit and arm the shared
+            # delivery dispatcher only when the DVIR actually produced a
+            # defect / OOS condition that needs shop delivery.
+            if payload.kind == "dvir":
+                try:
+                    from lib.trust_spine import emit_record_created  # noqa: PLC0415
+                    await emit_record_created(
+                        db,
+                        workflow="dvir",
+                        record=insp_doc,
+                        module="routes/fleet_ops.py:submit_fleet_inspection",
+                    )
+                except Exception:  # noqa: BLE001
+                    pass
+
             # BATCH L · OMEGA-3 / G-P0-01 — Fleet DVIR fan-out per approved
             # decision package matrix · 2026-05-30.
             #
@@ -770,6 +789,12 @@ def build_router(
                     # Fail-soft · NEVER block the inspection submission
                     # itself · matches the safety pattern across the codebase.
                     pass
+
+                if schedule_auto_email is not None:
+                    try:
+                        schedule_auto_email("dvir", insp_doc)
+                    except Exception:  # noqa: BLE001
+                        pass
 
             return {
                 "ok": True,

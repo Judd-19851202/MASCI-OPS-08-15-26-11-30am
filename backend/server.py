@@ -14479,6 +14479,7 @@ _fleet_router = _fleet_build_router(
     require_safety_or_admin=_require_safety_or_admin_fleet,
     require_admin_strict=require_admin_strict,
     require_any_fleet_portal=_require_any_fleet_portal,
+    schedule_auto_email=lambda kind, record: schedule_auto_email(kind, record),
 )
 app.include_router(_fleet_router)
 logging.getLogger(__name__).info("[fleet-ops] iter251 Phase A router mounted · backend-only foundation")
@@ -15921,20 +15922,13 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
 
         dist = await recipients_for_record_async(db, record, kind)
         recipients: List[str] = list(dist["all"])  # type: ignore[arg-type]
-        # Trust Spine — routing resolution stage. Status is "ok" if at
-        # least one recipient resolved, otherwise "failed".
-        await emit_workflow_stage(
-            db, workflow=kind, stage=STAGE_ROUTING_RESOLVED,
-            record=record, module="pm_routing.recipients_for_record_async",
-            status="ok" if recipients else "failed",
-            failure_reason=(
-                None if recipients
-                else f"no recipients resolved (kind={kind})"
-            ),
-            remediation=(
-                None if recipients
-                else "Assign a PM in project_team_assignments or set ADMIN_DEAD_LETTER_TO."
-            ),
+        routing_module = "pm_routing.recipients_for_record_async"
+        routing_failure_reason = (
+            None if recipients else f"no recipients resolved (kind={kind})"
+        )
+        routing_remediation = (
+            None if recipients
+            else "Assign a PM in project_team_assignments or set ADMIN_DEAD_LETTER_TO."
         )
 
         # iter238 — Equipment Pre-Op routing simplification (operator
@@ -15948,7 +15942,14 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
         # mechanics / parts coordinators are excluded. Falls back to the
         # ``shop_manager_fallback`` env value when no Shop Manager role
         # exists in the shop_users collection (deploy bootstrap).
-        if kind == "equipment-inspection":
+        if kind in {"equipment-inspection", "dvir"}:
+            routing_module = "shop_users.list_shop_users"
+            routing_failure_reason = (
+                f"no shop recipients resolved (kind={kind})"
+            )
+            routing_remediation = (
+                "Seed an active Shop Manager or configure PRE_OP_FAIL_FALLBACK / SHOP_MANAGER_EMAIL."
+            )
             shop_manager_emails: List[str] = []
             try:
                 from shop_users import list_shop_users  # noqa: PLC0415
@@ -16017,6 +16018,19 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
                 except Exception:  # noqa: BLE001
                     pass
                 recipients = list(dead_to)
+                routing_module = "shop_routing_unresolved"
+
+        # Trust Spine — routing resolution stage. Status is based on the
+        # FINAL recipient source after any workflow-specific overrides
+        # (Shop Manager fan-out, dead-letter fallback, etc.). This keeps
+        # the stage truthful for DVIR / Pre-Op shop-only delivery.
+        await emit_workflow_stage(
+            db, workflow=kind, stage=STAGE_ROUTING_RESOLVED,
+            record=record, module=routing_module,
+            status="ok" if recipients else "failed",
+            failure_reason=(None if recipients else routing_failure_reason),
+            remediation=(None if recipients else routing_remediation),
+        )
 
         # Severity fan-out for incidents (Major/Severe currently mirrors the
         # always-CC; future ops/GC list can be appended here from env.)
@@ -16173,12 +16187,13 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
                 _tk = resolve_tenant_key()
             except Exception:
                 _tk = "masci"
+            _shop_delivery_kind = kind in {"equipment-inspection", "dvir"}
             _route_key = (
-                "PRE_OP_FAIL_FALLBACK" if kind == "equipment-inspection"
+                "PRE_OP_FAIL_FALLBACK" if _shop_delivery_kind
                 else "AUTO_EMAIL_REPORTS"
             )
             _calling_module = (
-                "shop_preop_dispatch" if kind == "equipment-inspection"
+                "shop_preop_dispatch" if _shop_delivery_kind
                 else f"auto_email_dispatch:{kind}"
             )
             await _v2_audit(
@@ -16234,12 +16249,13 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
                 _tk = resolve_tenant_key()
             except Exception:
                 _tk = "masci"
+            _shop_delivery_kind = kind in {"equipment-inspection", "dvir"}
             _route_key = (
-                "PRE_OP_FAIL_FALLBACK" if kind == "equipment-inspection"
+                "PRE_OP_FAIL_FALLBACK" if _shop_delivery_kind
                 else "AUTO_EMAIL_REPORTS"
             )
             _calling_module = (
-                "shop_preop_dispatch" if kind == "equipment-inspection"
+                "shop_preop_dispatch" if _shop_delivery_kind
                 else f"auto_email_dispatch:{kind}"
             )
             await _v2_audit(
