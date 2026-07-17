@@ -17943,7 +17943,15 @@ async def _iter453_6_readiness_gate(request, call_next):
                 status_code=503,
                 content={"detail": "service_starting"},
             )
-    return await call_next(request)
+    try:
+        return await call_next(request)
+    except RuntimeError as exc:
+        from fastapi.responses import JSONResponse  # noqa: PLC0415
+        logging.getLogger(__name__).exception("[readiness-gate] runtime error: %s", exc)
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "internal_server_error"},
+        )
 
 
 # ─────────────────────────────────────────────────────────────────────

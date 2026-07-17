@@ -46,6 +46,13 @@ def _truthy(v: Optional[str]) -> bool:
 
 
 def _env(name: str) -> str:
+    if name in {
+        "AI_ADMIN_INTELLIGENCE_ENABLED",
+        "AI_PM_INTELLIGENCE_ENABLED",
+        "AI_SAFETY_INTELLIGENCE_ENABLED",
+        "AI_TRANSLATION_ENABLED",
+    }:
+        return os.environ.get(name, "true")
     return os.environ.get(name, "")
 
 

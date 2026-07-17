@@ -951,14 +951,34 @@ def register_daily_summary_routes(
                 }
         except Exception:  # noqa: BLE001
             photo_intel = None
-        fast_path_reason = "draft_fast_path_deterministic"
-        return _compose_timeout_fallback(
-            payload,
-            photo_intel=photo_intel,
-            language=language,
-            request_id=request_id,
-            reason=fast_path_reason,
-        )
+        session_key = form_key or _clean_str(payload.get("project_number"), 40) or "draft"
+        try:
+            return await asyncio.wait_for(
+                _compose_live_summary(
+                    payload,
+                    photo_intel=photo_intel,
+                    language=language,
+                    request_id=request_id,
+                    session_key=session_key,
+                ),
+                timeout=80.0,
+            )
+        except asyncio.TimeoutError:
+            return _compose_timeout_fallback(
+                payload,
+                photo_intel=photo_intel,
+                language=language,
+                request_id=request_id,
+                reason="summary_timeout_80s",
+            )
+        except Exception:
+            return _compose_timeout_fallback(
+                payload,
+                photo_intel=photo_intel,
+                language=language,
+                request_id=request_id,
+                reason="live_ai_unavailable",
+            )
 
     # ─────── POST /api/daily-reports/{report_id}/summary/accept ────
     @api_router.post(
