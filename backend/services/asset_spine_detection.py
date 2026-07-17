@@ -32,7 +32,7 @@ async def detect_duplicates(db) -> List[Dict[str, Any]]:
     for field, label in (("vin_serial_number", "vin"), ("serial_number", "serial"), ("unit_number", "unit_number")):
         groups: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
         cur = db.equipment_master.find(
-            {field: {"$exists": True, "$ne": None, "$ne": ""}},
+            {field: {"$exists": True, "$nin": [None, ""]}},
             {"_id": 0, "id": 1, "unit_number": 1, "label": 1, field: 1, "is_active": 1, "active": 1},
         )
         async for doc in cur:

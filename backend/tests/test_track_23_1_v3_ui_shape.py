@@ -21,7 +21,7 @@ V3_PROJECT_SECTION = Path(
 APP_ROUTES = Path("/app/frontend/src/app/routing/AppRoutes.jsx")
 LEGACY_ROUTER = Path("/app/frontend/src/pages/DailyReportRouter.jsx")
 LEGACY_FLAG = Path("/app/frontend/src/lib/dailyReportV3Flag.js")
-LEGACY_V1 = Path("/app/frontend/src/pages/NewDailyReport.jsx")
+LEGACY_V1 = Path("/app/frontend/src/pages/NewDailyReportV3.jsx")
 
 
 def _src(p: Path) -> str:

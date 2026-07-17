@@ -2,7 +2,7 @@
 
 _Phase TRUST-TIME-1B · self-protection probe · 🔴 FAIL_
 
-- Scanned files     : **1259**
+- Scanned files     : **1267**
 - Patterns           : **5**
 - New violations     : **44**
 - New warnings       : **0**
@@ -26,7 +26,7 @@ _Phase TRUST-TIME-1B · self-protection probe · 🔴 FAIL_
 - `components/pm/command/PmResourcesBoard.jsx:139` · `F1·slice16-replaceT` · `String(r.last_activity_at || "—").slice(0, 16).replace("T", " ")` → Use formatLocalDateTime() or formatLocalShort() from lib/dateUtils.js
 - `components/pm/command/PmSafetyImpactBoard.jsx:72` · `F1·slice16-replaceT` · `{String(r.occurred_at || "—").slice(0, 16).replace("T", " ")}` → Use formatLocalDateTime() or formatLocalShort() from lib/dateUtils.js
 - `components/pm/command/PmSafetyImpactBoard.jsx:106` · `F1·slice16-replaceT` · `{String(r.due_at || "—").slice(0, 16).replace("T", " ")}` → Use formatLocalDateTime() or formatLocalShort() from lib/dateUtils.js
-- `pages/HrEmployees.jsx:1840` · `F2·slice19-replaceT` · `<Row2 label="Last Transportation sync" value={data.last_sync_at ? data.last_sync` → Use formatLocalDateTime() or formatUtcForAudit() from lib/dateUtils.js
+- `pages/HrEmployees.jsx:1839` · `F2·slice19-replaceT` · `<Row2 label="Last Transportation sync" value={data.last_sync_at ? data.last_sync` → Use formatLocalDateTime() or formatUtcForAudit() from lib/dateUtils.js
 - `pages/OperationsCenterCommand.jsx:475` · `F1·slice16-replaceT` · `<span className="font-mono text-[10.5px] text-slate-500">{String(ev.timestamp ||` → Use formatLocalDateTime() or formatLocalShort() from lib/dateUtils.js
 - `pages/AdminLegacyImports.jsx:298` · `F1·slice16-replaceT` · `{firstFile?.uploaded_by_name || "—"} · {(row.created_at || "").slice(0, 16).repl` → Use formatLocalDateTime() or formatLocalShort() from lib/dateUtils.js
 - `pages/HrPayrollVariance.jsx:273` · `F1·slice16-replaceT` · `<td className="px-3 py-2 text-slate-600 font-mono text-xs">{(b.created_at || "")` → Use formatLocalDateTime() or formatLocalShort() from lib/dateUtils.js

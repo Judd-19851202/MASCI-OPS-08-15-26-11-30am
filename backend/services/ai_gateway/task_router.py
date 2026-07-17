@@ -9,7 +9,7 @@ from __future__ import annotations
 import os
 from typing import Dict, Tuple
 
-from .env import default_text_model
+from .env import default_text_model, default_vision_model
 
 
 TaskType = str  # See literal set in TASK_ROUTES.keys().
@@ -23,7 +23,7 @@ TASK_ROUTES: Dict[str, Tuple[str, str]] = {
     "delay_intelligence":     ("anthropic", default_text_model()),
     "safety_intelligence":    ("anthropic", default_text_model()),
     "equipment_intelligence": ("anthropic", default_text_model()),
-    "photo_vision":           ("openai",    "gpt-4o"),
+    "photo_vision":           ("openai",    default_vision_model()),
     "pm_brief":               ("anthropic", default_text_model()),
     "executive_brief":        ("anthropic", default_text_model()),
     "confidence_validation":  ("anthropic", default_text_model()),

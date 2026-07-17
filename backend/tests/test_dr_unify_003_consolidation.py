@@ -31,7 +31,7 @@ import pytest
 
 _APP_ROUTES = Path("/app/frontend/src/app/routing/AppRoutes.jsx")
 _CANONICAL_DAILY = Path("/app/frontend/src/pages/NewDailyReportV3.jsx")
-_LEGACY_DAILY = Path("/app/frontend/src/pages/NewDailyReport.jsx")
+_LEGACY_DAILY = Path("/app/frontend/src/pages/NewDailyReportV3.jsx")
 _DR_V2_PDF  = Path("/app/backend/routes/dr_v2_pdf.py")
 _DAILY_SUM  = Path("/app/backend/routes/daily_summary.py")
 _COMPAT_LIB = Path("/app/backend/lib/daily_report_collections.py")

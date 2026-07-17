@@ -110,6 +110,10 @@ def _dir_stats(root: Path) -> Dict[str, Any]:
     return out
 
 
+def _safe_nonempty_file_filter() -> Dict[str, Any]:
+    return {"$and": [{"$ne": None}, {"$ne": ""}]}
+
+
 def _log_stats() -> Dict[str, Any]:
     entries = []
     total = 0
@@ -314,7 +318,7 @@ async def _r2_migration_dry_run(payload: Dict[str, Any]) -> Dict[str, Any]:
     project = (payload or {}).get("project")
     limit = int((payload or {}).get("limit") or 500)
     q: Dict[str, Any] = {
-        "file_path": {"$exists": True, "$ne": None, "$ne": ""},
+        "file_path": {"$exists": True, "$nin": [None, ""]},
         "attachment_ref": {"$in": [None, ""]},
     }
     if project:

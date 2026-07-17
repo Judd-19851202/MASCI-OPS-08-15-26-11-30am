@@ -252,7 +252,7 @@ export default function R2LifecyclePanel() {
               </li>
             ))}
             {(intel?.top_prefixes || []).length === 0 && (
-              <li className="text-slate-500 italic">No inventory yet — click "Full lifecycle scan".</li>
+              <li className="text-slate-500 italic">No inventory yet — click &quot;Full lifecycle scan&quot;.</li>
             )}
           </ul>
         </div>

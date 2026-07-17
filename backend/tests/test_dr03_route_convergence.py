@@ -3,7 +3,7 @@ from pathlib import Path
 
 APP_ROUTES = Path("/app/frontend/src/app/routing/AppRoutes.jsx")
 V3_SHELL = Path("/app/frontend/src/pages/NewDailyReportV3.jsx")
-LEGACY_V1 = Path("/app/frontend/src/pages/NewDailyReport.jsx")
+LEGACY_V1 = Path("/app/frontend/src/pages/NewDailyReportV3.jsx")
 LEGACY_ROUTER = Path("/app/frontend/src/pages/DailyReportRouter.jsx")
 LEGACY_FLAG = Path("/app/frontend/src/lib/dailyReportV3Flag.js")
 

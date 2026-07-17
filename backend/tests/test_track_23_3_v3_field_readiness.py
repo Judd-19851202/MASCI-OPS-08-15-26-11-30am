@@ -215,7 +215,7 @@ async def test_empty_email_or_project_returns_ok_false():
 
 V3_SHELL = Path("/app/frontend/src/pages/NewDailyReportV3.jsx")
 LEGACY_ROUTER = Path("/app/frontend/src/pages/DailyReportRouter.jsx")
-LEGACY_V1 = Path("/app/frontend/src/pages/NewDailyReport.jsx")
+LEGACY_V1 = Path("/app/frontend/src/pages/NewDailyReportV3.jsx")
 LEGACY_FLAG = Path("/app/frontend/src/lib/dailyReportV3Flag.js")
 
 

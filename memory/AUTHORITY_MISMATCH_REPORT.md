@@ -2,8 +2,8 @@
 
 _Phase GOVERNANCE-INFRA-1 · Workstream 1 · Authority Mismatch Probe._
 
-* Generated: 2026-07-12 00:05:37 UTC
-* Scan duration: 177 ms
+* Generated: 2026-07-17 01:54:32 UTC
+* Scan duration: 276 ms
 * Frontend tree: `/app/frontend/src`
 * Baseline: `/app/scripts/authority_pattern_baseline.json`
 
@@ -11,13 +11,15 @@ _Phase GOVERNANCE-INFRA-1 · Workstream 1 · Authority Mismatch Probe._
 
 * **New violations** (fail the gate): **0**
 * **New warnings** (review): 60
-* **Baselined** (previously approved): 24
+* **Baselined** (previously approved): 22
 
 ## 🟡 New warnings
 
 * `lib/constraintCapabilities.js:48` · ad-hoc canApprove variable · `const hasHr = isHr();`
 * `lib/constraintCapabilities.js:49` · ad-hoc canApprove variable · `const hasAdmin = isAdmin();`
 * `components/RequireTransportationPortal.jsx:32` · ad-hoc canApprove variable · `if (isAdmin() || isDispatch()) return true;`
+* `components/ComplianceExportPanel.jsx:314` · ad-hoc canApprove variable · `{!hideBackupTools && isAdmin() && (`
+* `components/ComplianceExportPanel.jsx:358` · ad-hoc canApprove variable · `{!hideBackupTools && isAdmin() && (`
 * `components/RequireShop.jsx:25` · ad-hoc canApprove variable · `const hasToken = isShop() || isAdmin();`
 * `components/RequireAdmin.jsx:24` · ad-hoc canApprove variable · `const hasToken = isAdmin();`
 * `components/RequireHr.jsx:31` · ad-hoc canApprove variable · `const hasToken = isHr();`
@@ -62,8 +64,6 @@ _Phase GOVERNANCE-INFRA-1 · Workstream 1 · Authority Mismatch Probe._
 * `pages/FieldLeadershipView.jsx:32` · ad-hoc canApprove variable · `if (!getLeadershipToken() && !isAdmin() && !getPmToken()) {`
 * `pages/FieldLeadershipView.jsx:112` · ad-hoc canApprove variable · `to={isAdmin() ? "/admin" : getPmToken() ? "/pm" : "/leadership"}`
 * `pages/FieldLeadershipView.jsx:117` · ad-hoc canApprove variable · `{isAdmin() ? t("Administration") : getPmToken() ? t("Project Management") : t("F`
-* `pages/NewDailyReport.jsx:1126` · ad-hoc canApprove variable · `if (publicMode || !isAdmin()) {`
-* `pages/NewDailyReport.jsx:1175` · ad-hoc canApprove variable · `if (publicMode || !isAdmin()) {`
 * `pages/NewInspection.jsx:238` · ad-hoc canApprove variable · `if (publicMode || !isAdmin()) {`
 * `pages/NewInspection.jsx:257` · ad-hoc canApprove variable · `if (publicMode || !isAdmin()) {`
 * `pages/DocumentExpirations.jsx:71` · ad-hoc canApprove variable · `const admin = isAdmin();`
@@ -81,8 +81,6 @@ _Phase GOVERNANCE-INFRA-1 · Workstream 1 · Authority Mismatch Probe._
 * `lib/tokenValidation.js:4` · ad-hoc canApprove variable
 * `components/BackLink.jsx:31` · ad-hoc canApprove variable
 * `components/BackLink.jsx:33` · ad-hoc canApprove variable
-* `components/ComplianceExportPanel.jsx:315` · ad-hoc canApprove variable
-* `components/ComplianceExportPanel.jsx:359` · ad-hoc canApprove variable
 * `components/RequireAdminPmOrSafety.jsx:30` · token-coexistence rendering · 2-way OR
 * `components/RequireAdminPmOrSafety.jsx:30` · ad-hoc canApprove variable
 * `components/RequireAdminOrPm.jsx:22` · ad-hoc canApprove variable

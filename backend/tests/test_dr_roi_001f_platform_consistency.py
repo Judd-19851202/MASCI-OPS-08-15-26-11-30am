@@ -97,7 +97,7 @@ def test_shell_uses_masci_platform_header():
 
 
 def test_legacy_v1_shell_removed_after_containment():
-    v1 = Path("/app/frontend/src/pages/NewDailyReport.jsx")
+    v1 = Path("/app/frontend/src/pages/NewDailyReportV3.jsx")
     assert not v1.exists(), "legacy V1 shell should be removed after DR-03 containment"
 
 
