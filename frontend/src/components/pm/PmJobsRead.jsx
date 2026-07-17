@@ -118,7 +118,7 @@ export default function PmJobsRead() {
           </p>
         ) : (
           <div className="overflow-auto border-2 border-slate-200 rounded max-h-[520px]">
-            <table className="w-full min-w-[900px] text-sm">
+            <table className="w-full min-w-[1040px] text-sm">
               <thead className="sticky top-0 bg-slate-50 z-[1]">
                 <tr>
                   <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold whitespace-nowrap">Project #</th>
@@ -127,6 +127,8 @@ export default function PmJobsRead() {
                   <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold whitespace-nowrap">Primary PM</th>
                   <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold whitespace-nowrap">Co-PMs</th>
                   <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold whitespace-nowrap">Team</th>
+                  <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold whitespace-nowrap">Setup</th>
+                  <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 font-bold whitespace-nowrap">% Complete</th>
                 </tr>
               </thead>
               <tbody>
@@ -176,6 +178,20 @@ export default function PmJobsRead() {
                           Team
                         </Link>
                       ) : <span className="text-slate-400">—</span>}
+                    </td>
+                    <td className="px-3 py-2 text-slate-500 text-xs">
+                      {j.project_number ? (
+                        <Link
+                          to={`/pm/projects/${encodeURIComponent(j.project_number)}`}
+                          className="text-amber-700 hover:underline"
+                          data-testid={`pm-jobs-setup-link-${j.project_number}`}
+                        >
+                          Job setup
+                        </Link>
+                      ) : <span className="text-slate-400">—</span>}
+                    </td>
+                    <td className="px-3 py-2 text-slate-700 text-xs font-semibold" data-testid={`pm-jobs-progress-${j.project_number}`}>
+                      {Number(j.cost_code_progress_percent || 0).toFixed(2)}%
                     </td>
                   </tr>
                 ))}

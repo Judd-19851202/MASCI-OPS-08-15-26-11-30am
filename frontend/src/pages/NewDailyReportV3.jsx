@@ -148,6 +148,8 @@ export default function NewDailyReportV3({ publicMode = false }) {
   const [isFetchingGps, setFetchingGps] = useState(false);
   const [isFetchingWeather, setFetchingWeather] = useState(false);
   const [costCodes, setCostCodes] = useState([]);
+  const [projectCostAssignments, setProjectCostAssignments] = useState([]);
+  const [projectCostProgress, setProjectCostProgress] = useState(null);
   const [reportNumberPreview, setReportNumberPreview] = useState("");
   const [crewSetupOffer, setCrewSetupOffer] = useState(null);
   const [smartPrefillOffer, setSmartPrefillOffer] = useState(null);
@@ -444,6 +446,8 @@ export default function NewDailyReportV3({ publicMode = false }) {
     let cancelled = false;
     if (!data.project_number) {
       setCostCodes([]);
+      setProjectCostAssignments([]);
+      setProjectCostProgress(null);
       return;
     }
     api
@@ -454,6 +458,37 @@ export default function NewDailyReportV3({ publicMode = false }) {
       })
       .catch(() => {
         if (!cancelled) setCostCodes([]);
+      });
+    api
+      .get(`/cost-codes/projects/${encodeURIComponent(data.project_number)}/assignments`)
+      .then(({ data: res }) => {
+        if (cancelled) return;
+        const assignments = Array.isArray(res?.assignments) ? res.assignments : [];
+        setProjectCostAssignments(assignments);
+        setProjectCostProgress(res?.progress || null);
+        setData((prev) => {
+          const existing = Array.isArray(prev.cost_code_quantities) ? prev.cost_code_quantities : [];
+          const nextRows = assignments.map((assignment, index) => {
+            const found = existing.find((row) => String(row?.cost_code || row?.code || "") === String(assignment?.code || ""));
+            return {
+              row_id: found?.row_id || `${assignment.code}-${index}`,
+              cost_code: assignment.code || "",
+              item_name: assignment.item_name || assignment.description || "",
+              unit_of_measure: assignment.unit_of_measure || assignment.unit || "",
+              installed_quantity: found?.installed_quantity ?? "",
+              notes: found?.notes || "",
+              cpm_activity_id: assignment.cpm_activity_id || "",
+              cpm_activity_name: assignment.cpm_activity_name || "",
+              schedule_phase: assignment.schedule_phase || "",
+            };
+          });
+          return { ...prev, cost_code_quantities: nextRows };
+        });
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setProjectCostAssignments([]);
+        setProjectCostProgress(null);
       });
     return () => {
       cancelled = true;
@@ -1119,7 +1154,13 @@ export default function NewDailyReportV3({ publicMode = false }) {
             reportNumberPreview={reportNumberPreview}
           />
           <SectionCrewEquipment data={data} patch={patch} costCodes={costCodes} />
-          <SectionWorkProduction data={data} patch={patch} costCodes={costCodes} />
+          <SectionWorkProduction
+            data={data}
+            patch={patch}
+            costCodes={costCodes}
+            projectCostAssignments={projectCostAssignments}
+            projectCostProgress={projectCostProgress}
+          />
           <SectionMaterials data={data} patch={patch} costCodes={costCodes} />
           <SectionPhotos
             data={data}

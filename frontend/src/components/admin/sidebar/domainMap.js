@@ -29,6 +29,7 @@ export const DOMAINS_V2 = [
       { to: "/admin",                   label: "Overview",            desc: "KPIs, search, snapshot",                     icon: Activity, end: true },
       { to: "/admin/command-center",    label: "Command Center",      desc: "Executive single-glass · cross-portal.",     icon: Activity },
       { to: "/admin/jobs",              label: "Jobs & Field",        desc: "Job master · posters · banners",             icon: Building2 },
+      { to: "/admin/cost-registry",     label: "Cost Registry",       desc: "Universal cost codes · units · targets",     icon: Building2 },
       { to: "/admin/operations-events", label: "Operations Events",   desc: "Append-only operational record",             icon: Activity },
       { to: "/admin/daily-reports",     label: "Daily Reports",       desc: "Cross-portal daily reports · admin view.",  icon: FileText },
       { to: "/odr/center",              label: "Operational Daily Records", desc: "Field-day system of record · FLL-aware",      icon: NotebookPen },

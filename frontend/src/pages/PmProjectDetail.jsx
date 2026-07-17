@@ -26,6 +26,7 @@ import PmShell from "@/components/PmShell";
 import OperationalTimelineSidecar from "@/components/operational/OperationalTimelineSidecar";
 import TrenchSafetyOnProjectPanel from "@/components/trench/TrenchSafetyOnProjectPanel";
 import JobTeamRosterPanel from "@/components/team/JobTeamRosterPanel";
+import PmCostCodeAssignmentCard from "@/components/pm/PmCostCodeAssignmentCard";
 import PmOperationalKPIs from "@/components/PmOperationalKPIs";
 import {
   TransportationReadinessCard,
@@ -549,7 +550,7 @@ export default function PmProjectDetail() {
       section="jobs"
       intro={
         <p className="text-xs text-slate-500">
-          Single-project chronology view (read-only).
+          Single-project chronology with job setup for cost-code assignments.
         </p>
       }
     >
@@ -583,8 +584,7 @@ export default function PmProjectDetail() {
           </Link>
         </header>
         <p className="text-xs text-slate-500 mt-1">
-          Operational chronology for this project. Calm, text-only —
-          no charts, no notifications, no editing surface.
+          Operational chronology for this project, plus the enterprise job-setup spine for cost-code assignments.
         </p>
       </div>
 
@@ -594,6 +594,12 @@ export default function PmProjectDetail() {
           NO cost data. Consumes the shared aggregator spine used by
           Safety Portal and future Scheduling. */}
       {pn && <PmOperationalKPIs projectNumber={pn} />}
+
+      {pn && (
+        <div className="mt-4">
+          <PmCostCodeAssignmentCard projectNumber={pn} />
+        </div>
+      )}
 
       {/* TRACK 16.16 · Operations × Transportation Integration Layer.
           Calm read-only awareness on the per-project workspace —

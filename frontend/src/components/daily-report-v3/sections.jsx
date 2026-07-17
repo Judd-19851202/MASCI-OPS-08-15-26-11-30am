@@ -1017,10 +1017,18 @@ export function CostCodePicker({ value, options, onChange, testId }) {
 }
 
 // ── Section 03 · Work Performed + Production ───────────────────
-export function SectionWorkProduction({ data, patch, costCodes }) {
+export function SectionWorkProduction({ data, patch, costCodes, projectCostAssignments = [], projectCostProgress = null }) {
   const { t } = useT();
   const prod = data.production || [];
+  const costQuantities = data.cost_code_quantities || [];
   const hasCodes = (costCodes?.length || 0) > 0;
+
+  const updateCostQuantity = (index, delta) => {
+    const next = costQuantities.slice();
+    next[index] = { ...next[index], ...delta };
+    patch({ cost_code_quantities: next });
+  };
+
   return (
     <SectionShell
       step={t("Step 3 · What got done?")}
@@ -1029,6 +1037,78 @@ export function SectionWorkProduction({ data, patch, costCodes }) {
     >
       <div className="space-y-3">
         <VoiceToReportCard data={data} patch={patch} />
+        <div className="rounded-2xl border border-blue-100 bg-blue-50/70 p-4" data-testid="dr-v3-cost-quantity-card">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-700">{t("Field quantity tracking")}</div>
+              <p className="mt-1 text-sm text-slate-700" data-testid="dr-v3-cost-quantity-helper">
+                {t("Assigned project cost codes appear here so crews can log today’s installed quantity against bid quantity.")}
+              </p>
+            </div>
+            {projectCostProgress ? (
+              <div className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-700" data-testid="dr-v3-cost-progress-pill">
+                {t("Job progress")}: {Number(projectCostProgress?.overall_percent_complete || 0).toFixed(2)}%
+              </div>
+            ) : null}
+          </div>
+          {projectCostAssignments.length === 0 ? (
+            <p className="mt-3 rounded-xl bg-white/80 px-3 py-2 text-sm text-slate-500" data-testid="dr-v3-cost-quantity-empty">
+              {t("No assigned project cost codes yet. PM job setup will populate this section.")}
+            </p>
+          ) : (
+            <div className="mt-4 space-y-3">
+              {costQuantities.map((row, index) => {
+                const progressRow = (projectCostProgress?.codes || []).find((item) => item.code === row.cost_code);
+                return (
+                  <div key={row.row_id || row.cost_code || index} className="rounded-xl border border-blue-100 bg-white/90 p-3" data-testid={`dr-v3-cost-quantity-row-${index}`}>
+                    <div className="grid gap-3 lg:grid-cols-[1.4fr_0.7fr_0.8fr_1fr]">
+                      <div>
+                        <div className="text-sm font-semibold text-slate-900">{row.cost_code} · {row.item_name || t("Assigned code")}</div>
+                        <div className="mt-1 text-xs text-slate-500" data-testid={`dr-v3-cost-quantity-row-meta-${index}`}>
+                          {t("Bid Qty")}: {progressRow?.bid_quantity ?? "—"} {row.unit_of_measure || ""}
+                          {row.cpm_activity_id ? ` · CPM ${row.cpm_activity_id}` : ""}
+                          {row.schedule_phase ? ` · ${row.schedule_phase}` : ""}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">{t("Installed today")}</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={row.installed_quantity ?? ""}
+                          onChange={(e) => updateCostQuantity(index, { installed_quantity: e.target.value })}
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                          data-testid={`dr-v3-cost-quantity-input-${index}`}
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">{t("Unit")}</label>
+                        <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700" data-testid={`dr-v3-cost-quantity-unit-${index}`}>
+                          {row.unit_of_measure || "—"}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">{t("Notes")}</label>
+                        <input
+                          type="text"
+                          value={row.notes || ""}
+                          onChange={(e) => updateCostQuantity(index, { notes: e.target.value })}
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                          data-testid={`dr-v3-cost-quantity-notes-${index}`}
+                        />
+                      </div>
+                    </div>
+                    {progressRow ? (
+                      <div className="mt-2 text-xs text-slate-600" data-testid={`dr-v3-cost-quantity-progress-${index}`}>
+                        {t("Overall")}: {Number(progressRow.progress_percent || 0).toFixed(2)}% · {t("Installed to date")}: {progressRow.installed_quantity} / {progressRow.bid_quantity} {progressRow.unit_of_measure}
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
         <div className="flex items-center justify-between">
           <div className="text-sm font-medium text-slate-700">{t("Production rows")}</div>
           <Button

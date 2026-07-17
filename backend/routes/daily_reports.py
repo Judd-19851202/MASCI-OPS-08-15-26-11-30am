@@ -30,6 +30,7 @@ from lib.async_jobs import (
 )
 from pm_auth import compute_pm_scope
 from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
+from services.cost_codes.foundation import build_progress_snapshot, now_iso
 
 
 # ── Phase V.2 · Wave-1A · Structured production + constraints ────────
@@ -282,6 +283,30 @@ def _normalize_constraint_type(row: Dict[str, Any]) -> Dict[str, Any]:
     return row
 
 
+def _normalize_cost_code_quantity_rows(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    clean: List[Dict[str, Any]] = []
+    for idx, raw in enumerate(rows or []):
+        if not isinstance(raw, dict):
+            continue
+        code = str(raw.get("cost_code") or raw.get("code") or "").strip()
+        if not code:
+            continue
+        installed_quantity = float(raw.get("installed_quantity") or raw.get("quantity") or 0)
+        clean.append({
+            "row_id": str(raw.get("row_id") or uuid.uuid4()),
+            "sort_order": int(raw.get("sort_order") or idx),
+            "cost_code": code,
+            "item_name": str(raw.get("item_name") or raw.get("description") or "").strip(),
+            "unit_of_measure": str(raw.get("unit_of_measure") or raw.get("unit") or "").strip().upper(),
+            "installed_quantity": installed_quantity,
+            "notes": str(raw.get("notes") or "").strip(),
+            "cpm_activity_id": str(raw.get("cpm_activity_id") or "").strip(),
+            "cpm_activity_name": str(raw.get("cpm_activity_name") or "").strip(),
+            "schedule_phase": str(raw.get("schedule_phase") or "").strip(),
+        })
+    return clean
+
+
 class ConstraintRow(BaseModel):
     """One structured constraint/delay entry on a Daily Report.
 
@@ -369,6 +394,7 @@ class DailyReportCreate(BaseModel):
     # Phase V.2 · Wave-1A · structured production + constraints.
     production: List[ProductionRow] = Field(default_factory=list)
     constraints: List[ConstraintRow] = Field(default_factory=list)
+    cost_code_quantities: List[Dict[str, Any]] = Field(default_factory=list)
 
     photos: List[str] = Field(default_factory=list)
     photo_observations: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
@@ -735,6 +761,36 @@ async def _run_daily_reports_csv_job(db, job_id: str, actor: Any) -> None:
         )
 
 
+async def _update_project_cost_code_progress(db, project_number: str) -> Optional[Dict[str, Any]]:
+    pn = str(project_number or "").strip()
+    if not pn:
+        return None
+    job = await db.jobs_master.find_one({"project_number": pn}, {"_id": 0, "assigned_cost_codes": 1})
+    assignments = (job or {}).get("assigned_cost_codes") or []
+    if not assignments:
+        return None
+    reports = await db.daily_reports.find({"project_number": pn}, {"_id": 0, "cost_code_quantities": 1}).to_list(5000)
+    rows: List[Dict[str, Any]] = []
+    for report in reports:
+        rows.extend([row for row in (report.get("cost_code_quantities") or []) if isinstance(row, dict)])
+    progress = build_progress_snapshot(assignments, rows)
+    await db.jobs_master.update_one(
+        {"project_number": pn},
+        {"$set": {
+            "cost_code_progress": progress,
+            "cost_code_progress_percent": progress.get("overall_percent_complete", 0.0),
+            "cost_code_progress_updated_at": now_iso(),
+            "schedule_cost_spine_ready": True,
+            "dot_cpm_ready": {
+                "fdot": True,
+                "txdot": True,
+                "updated_at": now_iso(),
+            },
+        }},
+    )
+    return progress
+
+
 def _apply_certification_record_safety(doc: Dict[str, Any]) -> Dict[str, Any]:
     if not bool(doc.get("certification_record")):
         return doc
@@ -1062,6 +1118,12 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
                 ]
             except Exception:  # noqa: BLE001
                 pass
+            try:
+                payload_dict["cost_code_quantities"] = _normalize_cost_code_quantity_rows(
+                    payload_dict.get("cost_code_quantities") or []
+                )
+            except Exception:  # noqa: BLE001
+                payload_dict["cost_code_quantities"] = []
             report = DailyReport(**payload_dict)
             # ── DR-FIX-3 · R9 · Prepared By Directory Binding ──────
             # Inspect incoming portal tokens; if one resolves to a
@@ -1157,6 +1219,9 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
             except Exception:  # noqa: BLE001 — snapshot is best-effort
                 pass
             await db.daily_reports.insert_one(doc)
+            progress_snapshot = await _update_project_cost_code_progress(db, doc.get("project_number") or "")
+            if progress_snapshot:
+                doc["job_cost_code_progress"] = progress_snapshot
             doc.pop("_id", None)
             # DR-CUTOVER-001 · Wire V1 submission into the ODS spine so
             # PM/Admin Operational Intelligence dashboards see REAL

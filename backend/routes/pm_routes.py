@@ -297,6 +297,9 @@ def build_pm_router(
         if not scope.is_admin:
             nums = scope.project_numbers or set()
             items = [j for j in items if (j.get("project_number") or "") in nums]
+        for item in items:
+            item["cost_code_progress_percent"] = item.get("cost_code_progress_percent") or 0
+            item["schedule_cost_spine_ready"] = bool(item.get("schedule_cost_spine_ready"))
         return {
             "ok": True,
             "items": items,

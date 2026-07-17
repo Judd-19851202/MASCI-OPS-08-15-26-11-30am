@@ -3457,7 +3457,12 @@ register_dr_v2_photo_routes(api_router, db)
 # ── TRACK 23.1 · Cost Code Provider + V3 UI feature flag ───────────
 from routes.cost_codes import register_cost_code_routes  # noqa: E402
 from routes.ui_flags import register_dr_v3_flag_routes  # noqa: E402
-register_cost_code_routes(api_router, db)
+register_cost_code_routes(
+    api_router,
+    db,
+    require_admin=require_admin,
+    require_admin_pm_or_hr_read=require_admin_pm_or_hr_read,
+)
 register_dr_v3_flag_routes(api_router, db, require_admin=require_admin)
 
 

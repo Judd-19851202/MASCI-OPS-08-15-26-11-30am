@@ -122,6 +122,11 @@ export function buildDailyReportDefaults() {
     // Per row: { constraint_type, hours_impact, notes }
     constraints: [],
 
+    // Enterprise Spine · field quantity tracking tied to assigned job cost codes.
+    // Per row: { cost_code, item_name, unit_of_measure, installed_quantity, notes,
+    //            cpm_activity_id, cpm_activity_name, schedule_phase }
+    cost_code_quantities: [],
+
     // Photos — MIN 6
     photos: [],
     photo_min: 6,

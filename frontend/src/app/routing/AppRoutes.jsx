@@ -173,6 +173,7 @@ const AdminPeople = React.lazy(() => import("@/pages/admin/AdminPeople"));
 const AdminMfa = React.lazy(() => import("@/pages/admin/AdminMfa"));
 const AdminPromoAssets = React.lazy(() => import("@/pages/admin/AdminPromoAssets"));
 const AdminJobs = React.lazy(() => import("@/pages/admin/AdminJobs"));
+const AdminCostRegistry = React.lazy(() => import("@/pages/admin/AdminCostRegistry"));
 const AdminJobTeam = React.lazy(() => import("@/pages/admin/AdminJobTeam"));
 const PmJobTeam = React.lazy(() => import("@/pages/pm/PmJobTeam"));
 // Track 14.0-PM-STAFFING-UI-DISCOVERABILITY-CLOSURE — cross-project staffing.
@@ -680,6 +681,7 @@ export function AppRoutes() {
             <Route path="/admin/mfa" element={A(<AdminMfa />)} />
             <Route path="/admin/promo-assets" element={A(<AdminPromoAssets />)} />
             <Route path="/admin/jobs" element={A(<AdminJobs />)} />
+            <Route path="/admin/cost-registry" element={A(<AdminCostRegistry />)} />
             <Route path="/admin/jobs/:projectNumber/team" element={A(<AdminJobTeam />)} />
             {/* Track 14.0-PM-STAFFING-UI-DISCOVERABILITY-CLOSURE */}
             <Route path="/admin/project-staffing" element={A(<AdminProjectStaffing />)} />
