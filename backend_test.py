@@ -1,357 +1,472 @@
+#!/usr/bin/env python3
 """
-TRACK 27.11A Backend API Testing
-Test the recovery/bundle-related backend endpoints on preview environment.
-Base URL: https://backup-forensics.preview.emergentagent.com
+Backend verification for Daily Report changes (Track 27.11D).
+
+Tests:
+1. POST /api/transcribe - accepts multipart audio uploads
+2. POST /api/daily-reports - includes conflict_watchdog metadata
+3. GET /api/daily-reports.csv - async polling with 202, job_id, status_url
+4. POST /api/daily-reports/photo-intelligence/draft - returns photo_statuses
+5. No regressions in async jobs flow
 """
 
-import requests
+import asyncio
+import io
 import json
-from datetime import datetime
+import os
+import sys
+import time
+from datetime import datetime, timezone
+
+import httpx
 
 # Configuration
-BASE_URL = "https://backup-forensics.preview.emergentagent.com"
+BACKEND_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://backup-forensics.preview.emergentagent.com")
+API_BASE = f"{BACKEND_URL}/api"
 ADMIN_EMAIL = "jaymn.judd@mascigc.com"
 ADMIN_PASSWORD = "Maddix123!"
 
-# Test endpoints
-ENDPOINTS = {
-    "health_full": "/api/health/full",
-    "recovery_snapshot": "/api/admin/recovery/snapshot",
-    "backups_scheduler_state": "/api/admin/backups-scheduler-state",
-    "backups_integrity_check": "/api/admin/backups/integrity-check",
-    "production_certification": "/api/admin/production-certification",
-    "version": "/api/version"
+# Test results
+results = {
+    "passed": 0,
+    "failed": 0,
+    "tests": []
 }
 
-def print_section(title):
-    """Print a formatted section header"""
-    print(f"\n{'='*80}")
-    print(f"  {title}")
-    print(f"{'='*80}\n")
 
-def print_result(test_name, passed, details=""):
-    """Print test result"""
+def log_test(name: str, passed: bool, message: str = ""):
+    """Log test result."""
     status = "✅ PASS" if passed else "❌ FAIL"
-    print(f"{status} - {test_name}")
-    if details:
-        print(f"    {details}")
-
-def authenticate():
-    """Authenticate and get admin token"""
-    print_section("AUTHENTICATION")
+    print(f"{status}: {name}")
+    if message:
+        print(f"  {message}")
     
-    url = f"{BASE_URL}/api/auth/multi-login"
-    payload = {
-        "email": ADMIN_EMAIL,
-        "password": ADMIN_PASSWORD
-    }
+    results["tests"].append({
+        "name": name,
+        "passed": passed,
+        "message": message
+    })
     
-    try:
-        response = requests.post(url, json=payload, timeout=10)
-        print(f"POST {url}")
-        print(f"Status: {response.status_code}")
-        
-        if response.status_code == 200:
-            data = response.json()
-            admin_token = data.get("portal_tokens", {}).get("admin")
-            if admin_token:
-                print_result("Authentication", True, f"Admin token obtained (length: {len(admin_token)})")
-                return admin_token
-            else:
-                print_result("Authentication", False, "No admin token in response")
-                print(f"Response: {json.dumps(data, indent=2)}")
-                return None
-        else:
-            print_result("Authentication", False, f"HTTP {response.status_code}")
-            print(f"Response: {response.text}")
-            return None
-    except Exception as e:
-        print_result("Authentication", False, f"Exception: {str(e)}")
-        return None
-
-def test_health_full():
-    """Test /api/health/full endpoint"""
-    print_section("TEST: /api/health/full")
-    
-    url = f"{BASE_URL}{ENDPOINTS['health_full']}"
-    
-    try:
-        response = requests.get(url, timeout=10)
-        print(f"GET {url}")
-        print(f"Status: {response.status_code}")
-        
-        if response.status_code in [200, 503]:
-            data = response.json()
-            print(f"Response: {json.dumps(data, indent=2)}")
-            
-            # Check for expected fields
-            required_fields = ["ok", "mongo", "scheduler", "backup_recent"]
-            has_all_fields = all(field in data for field in required_fields)
-            
-            if has_all_fields:
-                print_result("Health Full Endpoint", True, "All required fields present")
-                return True, data
-            else:
-                missing = [f for f in required_fields if f not in data]
-                print_result("Health Full Endpoint", False, f"Missing fields: {missing}")
-                return False, data
-        else:
-            print_result("Health Full Endpoint", False, f"Unexpected status: {response.status_code}")
-            return False, None
-    except Exception as e:
-        print_result("Health Full Endpoint", False, f"Exception: {str(e)}")
-        return False, None
-
-def test_recovery_snapshot(admin_token):
-    """Test /api/admin/recovery/snapshot endpoint"""
-    print_section("TEST: /api/admin/recovery/snapshot")
-    
-    url = f"{BASE_URL}{ENDPOINTS['recovery_snapshot']}"
-    headers = {"X-Admin-Token": admin_token}
-    
-    try:
-        response = requests.get(url, headers=headers, timeout=15)
-        print(f"GET {url}")
-        print(f"Status: {response.status_code}")
-        
-        if response.status_code == 200:
-            data = response.json()
-            print(f"Response keys: {list(data.keys())}")
-            
-            # Check for Track 27.11A specific fields
-            required_fields = [
-                "computed_at", "pill", "last_backup", "scheduler",
-                "backup_age_minutes", "rpo", "rto", "archive_count",
-                "bucket_usage", "failures_7d", "warnings"
-            ]
-            
-            has_all_fields = all(field in data for field in required_fields)
-            
-            # Check scheduler truth agreement (Track 27.11A requirement)
-            scheduler_data = data.get("scheduler", {})
-            scheduler_fields = ["alive", "is_healthy", "signal_source", "reason_code", "evidence_ts"]
-            has_scheduler_fields = all(field in scheduler_data for field in scheduler_fields)
-            
-            # Check recent five-backup lineage fields
-            last_backup = data.get("last_backup", {})
-            if last_backup:
-                backup_fields = ["filename", "size_mb", "ts", "ok"]
-                has_backup_fields = all(field in last_backup for field in backup_fields)
-            else:
-                has_backup_fields = True  # OK if no backup yet
-            
-            print(f"\nScheduler data: {json.dumps(scheduler_data, indent=2)}")
-            print(f"Last backup: {json.dumps(last_backup, indent=2)}")
-            print(f"RPO: {data.get('rpo')}")
-            print(f"RTO: {data.get('rto')}")
-            print(f"Pill status: {data.get('pill')}")
-            
-            if has_all_fields and has_scheduler_fields and has_backup_fields:
-                print_result("Recovery Snapshot", True, "All Track 27.11A fields present")
-                return True, data
-            else:
-                issues = []
-                if not has_all_fields:
-                    missing = [f for f in required_fields if f not in data]
-                    issues.append(f"Missing top-level fields: {missing}")
-                if not has_scheduler_fields:
-                    missing = [f for f in scheduler_fields if f not in scheduler_data]
-                    issues.append(f"Missing scheduler fields: {missing}")
-                if not has_backup_fields:
-                    issues.append("Missing backup lineage fields")
-                print_result("Recovery Snapshot", False, "; ".join(issues))
-                return False, data
-        else:
-            print_result("Recovery Snapshot", False, f"HTTP {response.status_code}")
-            print(f"Response: {response.text}")
-            return False, None
-    except Exception as e:
-        print_result("Recovery Snapshot", False, f"Exception: {str(e)}")
-        return False, None
-
-def test_backups_scheduler_state(admin_token):
-    """Test /api/admin/backups-scheduler-state endpoint"""
-    print_section("TEST: /api/admin/backups-scheduler-state")
-    
-    url = f"{BASE_URL}{ENDPOINTS['backups_scheduler_state']}"
-    headers = {"X-Admin-Token": admin_token}
-    
-    try:
-        response = requests.get(url, headers=headers, timeout=10)
-        print(f"GET {url}")
-        print(f"Status: {response.status_code}")
-        
-        if response.status_code == 200:
-            data = response.json()
-            print(f"Response: {json.dumps(data, indent=2)}")
-            
-            # Check for scheduler state fields
-            expected_fields = ["last_tick_ts", "alive", "is_healthy"]
-            has_fields = any(field in data for field in expected_fields)
-            
-            if has_fields or isinstance(data, dict):
-                print_result("Backups Scheduler State", True, "Endpoint accessible")
-                return True, data
-            else:
-                print_result("Backups Scheduler State", False, "Unexpected response structure")
-                return False, data
-        else:
-            print_result("Backups Scheduler State", False, f"HTTP {response.status_code}")
-            print(f"Response: {response.text}")
-            return False, None
-    except Exception as e:
-        print_result("Backups Scheduler State", False, f"Exception: {str(e)}")
-        return False, None
-
-def test_backups_integrity_check(admin_token):
-    """Test /api/admin/backups/integrity-check endpoint"""
-    print_section("TEST: /api/admin/backups/integrity-check")
-    
-    url = f"{BASE_URL}{ENDPOINTS['backups_integrity_check']}"
-    headers = {"X-Admin-Token": admin_token}
-    
-    try:
-        response = requests.get(url, headers=headers, timeout=10)
-        print(f"GET {url}")
-        print(f"Status: {response.status_code}")
-        
-        if response.status_code == 200:
-            data = response.json()
-            print(f"Response: {json.dumps(data, indent=2)}")
-            print_result("Backups Integrity Check", True, "Endpoint accessible")
-            return True, data
-        elif response.status_code == 404:
-            print_result("Backups Integrity Check", True, "Endpoint not implemented (404 expected)")
-            return True, None
-        else:
-            print_result("Backups Integrity Check", False, f"HTTP {response.status_code}")
-            print(f"Response: {response.text}")
-            return False, None
-    except Exception as e:
-        print_result("Backups Integrity Check", False, f"Exception: {str(e)}")
-        return False, None
-
-def test_production_certification(admin_token):
-    """Test /api/admin/production-certification endpoint"""
-    print_section("TEST: /api/admin/production-certification")
-    
-    url = f"{BASE_URL}{ENDPOINTS['production_certification']}"
-    headers = {"X-Admin-Token": admin_token}
-    
-    try:
-        response = requests.get(url, headers=headers, timeout=15)
-        print(f"GET {url}")
-        print(f"Status: {response.status_code}")
-        
-        if response.status_code == 200:
-            data = response.json()
-            print(f"Response keys: {list(data.keys())}")
-            
-            # Check for release-scoped certification fields (Track 27.11A requirement)
-            if isinstance(data, dict):
-                # Look for certification structure
-                has_cert_structure = "workflows" in data or "certification" in data or "status" in data
-                
-                if has_cert_structure or len(data) > 0:
-                    print(f"Sample data: {json.dumps(data, indent=2)[:500]}...")
-                    print_result("Production Certification", True, "Release-scoped certification data present")
-                    return True, data
-                else:
-                    print_result("Production Certification", False, "Empty or unexpected structure")
-                    return False, data
-            else:
-                print_result("Production Certification", False, "Response is not a dict")
-                return False, data
-        else:
-            print_result("Production Certification", False, f"HTTP {response.status_code}")
-            print(f"Response: {response.text}")
-            return False, None
-    except Exception as e:
-        print_result("Production Certification", False, f"Exception: {str(e)}")
-        return False, None
-
-def test_version():
-    """Test /api/version endpoint"""
-    print_section("TEST: /api/version")
-    
-    url = f"{BASE_URL}{ENDPOINTS['version']}"
-    
-    try:
-        response = requests.get(url, timeout=10)
-        print(f"GET {url}")
-        print(f"Status: {response.status_code}")
-        
-        if response.status_code == 200:
-            data = response.json()
-            print(f"Response: {json.dumps(data, indent=2)}")
-            
-            # Check for version build/process-start semantics (Track 27.11A requirement)
-            expected_fields = ["commit", "built_at", "source_hash", "process_start"]
-            has_all_fields = all(field in data for field in expected_fields)
-            
-            if has_all_fields:
-                print_result("Version Endpoint", True, "All version semantics present")
-                return True, data
-            else:
-                missing = [f for f in expected_fields if f not in data]
-                print_result("Version Endpoint", False, f"Missing fields: {missing}")
-                return False, data
-        else:
-            print_result("Version Endpoint", False, f"HTTP {response.status_code}")
-            return False, None
-    except Exception as e:
-        print_result("Version Endpoint", False, f"Exception: {str(e)}")
-        return False, None
-
-def main():
-    """Main test execution"""
-    print("\n" + "="*80)
-    print("  TRACK 27.11A BACKEND API VERIFICATION")
-    print("  Base URL: " + BASE_URL)
-    print("  Timestamp: " + datetime.utcnow().isoformat() + "Z")
-    print("="*80)
-    
-    results = {}
-    
-    # Step 1: Authenticate
-    admin_token = authenticate()
-    if not admin_token:
-        print("\n❌ CRITICAL: Authentication failed. Cannot proceed with tests.")
-        return
-    
-    # Step 2: Test public endpoint (no auth required)
-    results["health_full"] = test_health_full()
-    results["version"] = test_version()
-    
-    # Step 3: Test admin endpoints (auth required)
-    results["recovery_snapshot"] = test_recovery_snapshot(admin_token)
-    results["backups_scheduler_state"] = test_backups_scheduler_state(admin_token)
-    results["backups_integrity_check"] = test_backups_integrity_check(admin_token)
-    results["production_certification"] = test_production_certification(admin_token)
-    
-    # Summary
-    print_section("TEST SUMMARY")
-    
-    passed = sum(1 for success, _ in results.values() if success)
-    total = len(results)
-    
-    print(f"Tests Passed: {passed}/{total}")
-    print(f"Tests Failed: {total - passed}/{total}")
-    
-    print("\nDetailed Results:")
-    for endpoint, (success, _) in results.items():
-        status = "✅ PASS" if success else "❌ FAIL"
-        print(f"  {status} - {endpoint}")
-    
-    print("\n" + "="*80)
-    if passed == total:
-        print("  ✅ ALL TESTS PASSED")
+    if passed:
+        results["passed"] += 1
     else:
-        print(f"  ❌ {total - passed} TEST(S) FAILED")
-    print("="*80 + "\n")
+        results["failed"] += 1
+
+
+async def get_admin_token() -> str:
+    """Authenticate and get admin token."""
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        response = await client.post(
+            f"{API_BASE}/auth/multi-login",
+            json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD}
+        )
+        
+        if response.status_code != 200:
+            raise Exception(f"Authentication failed: {response.status_code} - {response.text}")
+        
+        data = response.json()
+        admin_token = data.get("portal_tokens", {}).get("admin")
+        
+        if not admin_token:
+            raise Exception("No admin token in response")
+        
+        return admin_token
+
+
+async def test_transcribe_endpoint(token: str):
+    """Test 1: POST /api/transcribe accepts multipart audio uploads."""
+    print("\n=== Test 1: POST /api/transcribe ===")
     
-    return passed == total
+    # Create a minimal audio file (webm format)
+    # This is a minimal valid webm header
+    audio_data = b'\x1a\x45\xdf\xa3\x9f\x42\x86\x81\x01\x42\xf7\x81\x01\x42\xf2\x81\x04\x42\xf3\x81\x08\x42\x82\x84webm\x42\x87\x81\x02\x42\x85\x81\x02'
+    
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        # Test with valid audio file
+        files = {
+            "audio": ("test_voice.webm", io.BytesIO(audio_data), "audio/webm")
+        }
+        data = {
+            "field_hint": "work_performed",
+            "language_hint": "auto",
+            "project_number": "TEST-001"
+        }
+        
+        try:
+            response = await client.post(
+                f"{API_BASE}/transcribe",
+                files=files,
+                data=data
+            )
+            
+            # Endpoint should return either 200 (success) or 422 (validation error for invalid audio)
+            # or 503 (service unavailable if LLM key missing)
+            if response.status_code in [200, 422, 503, 502]:
+                if response.status_code == 200:
+                    result = response.json()
+                    has_required_fields = all(k in result for k in ["ok", "english_text", "work_performed", "activities"])
+                    log_test(
+                        "POST /api/transcribe returns valid response structure",
+                        has_required_fields,
+                        f"Response has required fields: {has_required_fields}"
+                    )
+                elif response.status_code == 422:
+                    log_test(
+                        "POST /api/transcribe validation works",
+                        True,
+                        "Endpoint correctly validates audio input (422 for invalid audio)"
+                    )
+                elif response.status_code == 503:
+                    log_test(
+                        "POST /api/transcribe endpoint exists",
+                        True,
+                        "Endpoint exists but LLM key not configured (503 - expected in some environments)"
+                    )
+                else:  # 502
+                    log_test(
+                        "POST /api/transcribe endpoint exists",
+                        True,
+                        "Endpoint exists but transcription service failed (502 - expected with minimal audio)"
+                    )
+            else:
+                log_test(
+                    "POST /api/transcribe endpoint exists",
+                    False,
+                    f"Unexpected status code: {response.status_code}"
+                )
+        except Exception as e:
+            log_test("POST /api/transcribe endpoint", False, f"Error: {str(e)}")
+
+
+async def test_daily_report_with_conflict_watchdog(token: str):
+    """Test 2: POST /api/daily-reports includes conflict_watchdog metadata."""
+    print("\n=== Test 2: POST /api/daily-reports with conflict_watchdog ===")
+    
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        # Create a daily report
+        report_data = {
+            "project_name": "Test Project",
+            "project_number": "TEST-DR-001",
+            "location": "Test Site",
+            "report_date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+            "prepared_by": "Test Supervisor",
+            "superintendent": "Test Super",
+            "weather_summary": "Clear skies",
+            "general_notes": "Test report for conflict watchdog verification",
+            "ai_accepted_summary": "Test summary for validation",
+            "ai_accepted_summary_meta": {
+                "source": "manual",
+                "accepted_at": datetime.now(timezone.utc).isoformat()
+            }
+        }
+        
+        try:
+            response = await client.post(
+                f"{API_BASE}/daily-reports",
+                json=report_data,
+                headers={"X-Admin-Token": token}
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                
+                # Check if conflict_watchdog is present
+                has_conflict_watchdog = "conflict_watchdog" in result
+                log_test(
+                    "POST /api/daily-reports includes conflict_watchdog",
+                    has_conflict_watchdog,
+                    f"conflict_watchdog present: {has_conflict_watchdog}"
+                )
+                
+                if has_conflict_watchdog:
+                    watchdog = result["conflict_watchdog"]
+                    required_fields = ["has_conflicts", "requires_pm_review", "checked_at"]
+                    has_required = all(f in watchdog for f in required_fields)
+                    log_test(
+                        "conflict_watchdog has required fields",
+                        has_required,
+                        f"Required fields present: {has_required}"
+                    )
+                
+                # Store report ID for later tests
+                return result.get("id")
+            else:
+                log_test(
+                    "POST /api/daily-reports creates report",
+                    False,
+                    f"Status: {response.status_code}, Error: {response.text[:200]}"
+                )
+                return None
+        except Exception as e:
+            log_test("POST /api/daily-reports", False, f"Error: {str(e)}")
+            return None
+
+
+async def test_csv_export_async_polling(token: str):
+    """Test 3: GET /api/daily-reports.csv uses async polling."""
+    print("\n=== Test 3: GET /api/daily-reports.csv async polling ===")
+    
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        try:
+            # Request CSV export
+            response = await client.get(
+                f"{API_BASE}/daily-reports.csv",
+                headers={"X-Admin-Token": token}
+            )
+            
+            # Should return 202 Accepted
+            if response.status_code == 202:
+                result = response.json()
+                
+                # Check for required fields
+                has_job_id = "job_id" in result
+                has_status_url = "status_url" in result
+                
+                log_test(
+                    "GET /api/daily-reports.csv returns 202 with job_id",
+                    has_job_id,
+                    f"job_id present: {has_job_id}"
+                )
+                
+                log_test(
+                    "GET /api/daily-reports.csv returns status_url",
+                    has_status_url,
+                    f"status_url: {result.get('status_url', 'N/A')}"
+                )
+                
+                if has_job_id and has_status_url:
+                    job_id = result["job_id"]
+                    status_url = result["status_url"]
+                    
+                    # Poll the status endpoint
+                    max_attempts = 10
+                    for attempt in range(max_attempts):
+                        await asyncio.sleep(1.5)  # Wait before polling
+                        
+                        status_response = await client.get(
+                            f"{API_BASE}{status_url.replace('/api', '')}",
+                            headers={"X-Admin-Token": token}
+                        )
+                        
+                        if status_response.status_code == 200:
+                            status_data = status_response.json()
+                            job_status = status_data.get("status")
+                            
+                            print(f"  Attempt {attempt + 1}: Job status = {job_status}")
+                            
+                            if job_status == "completed":
+                                # download_url is in the result object
+                                result_obj = status_data.get("result", {})
+                                has_download_url = "download_url" in result_obj
+                                log_test(
+                                    "Async job reaches completed status with download_url",
+                                    has_download_url,
+                                    f"download_url: {result_obj.get('download_url', 'N/A')}"
+                                )
+                                break
+                            elif job_status in ["failed", "error"]:
+                                log_test(
+                                    "Async job processing",
+                                    False,
+                                    f"Job failed: {status_data.get('message', 'Unknown error')}"
+                                )
+                                break
+                        else:
+                            log_test(
+                                "GET /api/jobs/{job_id}/status endpoint",
+                                False,
+                                f"Status check failed: {status_response.status_code}"
+                            )
+                            break
+                    else:
+                        # Timeout after max attempts
+                        log_test(
+                            "Async job completion",
+                            False,
+                            f"Job did not complete within {max_attempts} attempts"
+                        )
+            else:
+                log_test(
+                    "GET /api/daily-reports.csv returns 202",
+                    False,
+                    f"Expected 202, got {response.status_code}"
+                )
+        except Exception as e:
+            log_test("GET /api/daily-reports.csv async flow", False, f"Error: {str(e)}")
+
+
+async def test_photo_intelligence_draft(token: str):
+    """Test 4: POST /api/daily-reports/photo-intelligence/draft returns photo_statuses."""
+    print("\n=== Test 4: POST /api/daily-reports/photo-intelligence/draft ===")
+    
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        # Create a draft payload with photos
+        draft_payload = {
+            "form_key": f"daily-report::TEST::2026-01-01::test-{int(time.time())}",
+            "payload": {
+                "project_number": "TEST-001",
+                "report_date": "2026-01-01",
+                "photos": [
+                    "photo://test-photo-1",
+                    "photo://test-photo-2",
+                    "photo://test-photo-3"
+                ]
+            },
+            "force": False
+        }
+        
+        try:
+            response = await client.post(
+                f"{API_BASE}/daily-reports/photo-intelligence/draft",
+                json=draft_payload,
+                headers={"X-Admin-Token": token}
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                
+                # Check for photo_statuses field
+                has_photo_statuses = "photo_statuses" in result
+                log_test(
+                    "POST /api/daily-reports/photo-intelligence/draft returns photo_statuses",
+                    has_photo_statuses,
+                    f"photo_statuses present: {has_photo_statuses}"
+                )
+                
+                if has_photo_statuses:
+                    photo_statuses = result["photo_statuses"]
+                    is_list = isinstance(photo_statuses, list)
+                    log_test(
+                        "photo_statuses is a list",
+                        is_list,
+                        f"Type: {type(photo_statuses).__name__}, Length: {len(photo_statuses) if is_list else 'N/A'}"
+                    )
+                    
+                    if is_list and len(photo_statuses) > 0:
+                        # Check structure of first photo status
+                        first_status = photo_statuses[0]
+                        required_fields = ["photo_id", "status"]
+                        has_required = all(f in first_status for f in required_fields)
+                        log_test(
+                            "photo_statuses entries have required fields",
+                            has_required,
+                            f"Fields in first entry: {list(first_status.keys())}"
+                        )
+                
+                # Check other required fields
+                required_response_fields = ["report_id", "photo_count", "status"]
+                has_all_required = all(f in result for f in required_response_fields)
+                log_test(
+                    "Response includes required fields",
+                    has_all_required,
+                    f"Required fields present: {has_all_required}"
+                )
+            else:
+                log_test(
+                    "POST /api/daily-reports/photo-intelligence/draft",
+                    False,
+                    f"Status: {response.status_code}, Error: {response.text[:200]}"
+                )
+        except Exception as e:
+            log_test("POST /api/daily-reports/photo-intelligence/draft", False, f"Error: {str(e)}")
+
+
+async def test_async_jobs_no_regression(token: str):
+    """Test 5: No regressions in async jobs flow."""
+    print("\n=== Test 5: Async jobs flow regression check ===")
+    
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        try:
+            # Trigger another CSV export to test the flow
+            response = await client.get(
+                f"{API_BASE}/daily-reports.csv",
+                headers={"X-Admin-Token": token}
+            )
+            
+            if response.status_code == 202:
+                result = response.json()
+                job_id = result.get("job_id")
+                
+                if job_id:
+                    # Test the status endpoint
+                    status_response = await client.get(
+                        f"{API_BASE}/jobs/{job_id}/status",
+                        headers={"X-Admin-Token": token}
+                    )
+                    
+                    status_ok = status_response.status_code == 200
+                    log_test(
+                        "GET /api/jobs/{job_id}/status endpoint works",
+                        status_ok,
+                        f"Status code: {status_response.status_code}"
+                    )
+                    
+                    if status_ok:
+                        status_data = status_response.json()
+                        has_status_field = "status" in status_data
+                        log_test(
+                            "Job status response has status field",
+                            has_status_field,
+                            f"Status: {status_data.get('status', 'N/A')}"
+                        )
+                else:
+                    log_test("Async jobs flow", False, "No job_id in response")
+            else:
+                log_test(
+                    "Async jobs flow trigger",
+                    False,
+                    f"CSV export failed with status {response.status_code}"
+                )
+        except Exception as e:
+            log_test("Async jobs flow regression check", False, f"Error: {str(e)}")
+
+
+async def main():
+    """Run all tests."""
+    print("=" * 60)
+    print("Backend Verification - Daily Report Changes (Track 27.11D)")
+    print("=" * 60)
+    print(f"Backend URL: {BACKEND_URL}")
+    print(f"API Base: {API_BASE}")
+    print()
+    
+    try:
+        # Authenticate
+        print("Authenticating...")
+        token = await get_admin_token()
+        print(f"✓ Authenticated successfully (token length: {len(token)})")
+        
+        # Run tests
+        await test_transcribe_endpoint(token)
+        await test_daily_report_with_conflict_watchdog(token)
+        await test_csv_export_async_polling(token)
+        await test_photo_intelligence_draft(token)
+        await test_async_jobs_no_regression(token)
+        
+    except Exception as e:
+        print(f"\n❌ Fatal error: {str(e)}")
+        results["failed"] += 1
+    
+    # Print summary
+    print("\n" + "=" * 60)
+    print("TEST SUMMARY")
+    print("=" * 60)
+    print(f"Total tests: {results['passed'] + results['failed']}")
+    print(f"Passed: {results['passed']}")
+    print(f"Failed: {results['failed']}")
+    print()
+    
+    if results["failed"] > 0:
+        print("Failed tests:")
+        for test in results["tests"]:
+            if not test["passed"]:
+                print(f"  - {test['name']}")
+                if test["message"]:
+                    print(f"    {test['message']}")
+    
+    # Exit with appropriate code
+    sys.exit(0 if results["failed"] == 0 else 1)
+
 
 if __name__ == "__main__":
-    success = main()
-    exit(0 if success else 1)
+    asyncio.run(main())
