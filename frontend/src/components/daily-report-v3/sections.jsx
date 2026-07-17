@@ -3,7 +3,7 @@
 // Each section is a small, focused presentational component that
 // composes existing shared primitives (EmployeeCombo, EquipmentCombo,
 // PhotoUpload, DailySummaryAssist). Same payload keys as V1.
-import React, { useMemo } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { EmployeeCombo } from "@/components/EmployeeCombo";
 import { EquipmentCombo } from "@/components/EquipmentCombo";
 import { SupplierCombo } from "@/components/SupplierCombo";
@@ -12,9 +12,12 @@ import { SignaturePad } from "@/components/SignaturePad";
 import DailySummaryAssist from "@/components/daily-report/DailySummaryAssist";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
 import {
   Plus, Trash2, ShieldAlert, TrafficCone, Clock, Camera, Users, Wrench,
   Truck, AlertTriangle, ExternalLink,
+  Mic, Loader2, Languages,
 } from "lucide-react";
 import { computeCrewHours, grossNetPreview, sumCrewHours, sumEquipmentHours }
   from "@/lib/crewHoursMath";
@@ -92,6 +95,132 @@ function updateOtherUnitDescription(row, raw) {
 
 function numericFieldClass() {
   return "w-full min-w-0 rounded-md border border-slate-300 px-2.5 py-2 text-sm";
+}
+
+function VoiceToReportCard({ data, patch }) {
+  const { t } = useT();
+  const mediaRecorderRef = useRef(null);
+  const chunksRef = useRef([]);
+  const [recording, setRecording] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [voiceMode, setVoiceMode] = useState("work_performed");
+  const [lastVoiceDraft, setLastVoiceDraft] = useState("");
+
+  const applyVoiceDraft = (englishText, mode) => {
+    const cleanText = String(englishText || "").trim();
+    if (!cleanText) return;
+    if (mode === "activities") {
+      const next = [...(data.production || [])];
+      next.push({ description: cleanText, quantity: 0, unit: "LF", unit_snapshot: "Linear Feet", notes: "Voice draft" });
+      patch({ production: next, activities: [...(data.activities || []), { description: cleanText, notes: "Voice draft" }] });
+    } else {
+      const ns = data.narrative_sections || {};
+      patch({ narrative_sections: { ...ns, work_completed: [ns.work_completed, cleanText].filter(Boolean).join(" ").trim() } });
+    }
+  };
+
+  const stopRecording = async () => {
+    if (!mediaRecorderRef.current || mediaRecorderRef.current.state === "inactive") return;
+    mediaRecorderRef.current.stop();
+  };
+
+  const startRecording = async () => {
+    if (busy || recording) return;
+    if (!navigator?.mediaDevices?.getUserMedia) {
+      toast.error(t("Voice capture is not available on this device."));
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+      chunksRef.current = [];
+      recorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) chunksRef.current.push(event.data);
+      };
+      recorder.onstop = async () => {
+        setRecording(false);
+        stream.getTracks().forEach((track) => track.stop());
+        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        if (!blob.size) return;
+        setBusy(true);
+        try {
+          const form = new FormData();
+          form.append("audio", new File([blob], "voice-note.webm", { type: "audio/webm" }));
+          form.append("field_hint", voiceMode);
+          form.append("language_hint", "auto");
+          form.append("project_number", String(data.project_number || ""));
+          const { data: response } = await api.post("/transcribe", form, {
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+          const englishText = String(response?.english_text || response?.work_performed || response?.activities || "").trim();
+          setLastVoiceDraft(englishText);
+          applyVoiceDraft(englishText, voiceMode);
+          toast.success(t("Voice note translated to English and added."));
+        } catch (error) {
+          toast.error(error?.response?.data?.detail || t("Voice note could not be processed."));
+        } finally {
+          setBusy(false);
+        }
+      };
+      mediaRecorderRef.current = recorder;
+      recorder.start();
+      setRecording(true);
+    } catch {
+      toast.error(t("Microphone permission is required to record."));
+    }
+  };
+
+  return (
+    <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4" data-testid="dr-v3-voice-report-card">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
+            <Languages className="h-3.5 w-3.5" /> {t("Voice to report")}
+          </div>
+          <p className="mt-1 text-sm text-slate-700" data-testid="dr-v3-voice-report-helper">
+            {t("Hold the mic, speak in any language, and I’ll add English text to Work Performed or Activities.")}
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setVoiceMode("work_performed")}
+            className={`rounded-full px-3 py-1.5 text-xs font-semibold ${voiceMode === "work_performed" ? "bg-slate-900 text-white" : "bg-white text-slate-700 border border-slate-200"}`}
+            data-testid="dr-v3-voice-mode-work"
+          >
+            {t("Work Performed")}
+          </button>
+          <button
+            type="button"
+            onClick={() => setVoiceMode("activities")}
+            className={`rounded-full px-3 py-1.5 text-xs font-semibold ${voiceMode === "activities" ? "bg-slate-900 text-white" : "bg-white text-slate-700 border border-slate-200"}`}
+            data-testid="dr-v3-voice-mode-activities"
+          >
+            {t("Activities")}
+          </button>
+        </div>
+      </div>
+      <button
+        type="button"
+        onMouseDown={startRecording}
+        onMouseUp={stopRecording}
+        onMouseLeave={stopRecording}
+        onTouchStart={(e) => { e.preventDefault(); startRecording(); }}
+        onTouchEnd={(e) => { e.preventDefault(); stopRecording(); }}
+        disabled={busy}
+        className={`mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-4 text-sm font-semibold transition-colors ${recording ? "bg-red-600 text-white" : "bg-slate-900 text-white hover:bg-slate-800"} ${busy ? "opacity-70" : ""}`}
+        data-testid="dr-v3-voice-record-button"
+      >
+        {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mic className="h-4 w-4" />}
+        {recording ? t("Recording — release to insert") : busy ? t("Translating to English…") : t("Hold to speak")}
+      </button>
+      {lastVoiceDraft ? (
+        <div className="mt-3 rounded-xl bg-white/90 p-3 text-sm text-slate-700" data-testid="dr-v3-voice-last-draft">
+          {lastVoiceDraft}
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 // ── Shared section shell ──────────────────────────────────────────
@@ -899,6 +1028,7 @@ export function SectionWorkProduction({ data, patch, costCodes }) {
       testId="dr-v3-section-work"
     >
       <div className="space-y-3">
+        <VoiceToReportCard data={data} patch={patch} />
         <div className="flex items-center justify-between">
           <div className="text-sm font-medium text-slate-700">{t("Production rows")}</div>
           <Button
@@ -1421,7 +1551,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
 }
 
 // ── Section 05 · Photos + Evidence ─────────────────────────────
-export function SectionPhotos({ data, patch, photoMin, onPhotoBatchStateChange, onPhotoReady }) {
+export function SectionPhotos({ data, patch, photoMin, photoIntelStatus, onPhotoBatchStateChange, onPhotoReady }) {
   const { t } = useT();
   const photos = data.photos || [];
   const short = Math.max(0, (photoMin || 6) - photos.length);
@@ -1445,6 +1575,7 @@ export function SectionPhotos({ data, patch, photoMin, onPhotoBatchStateChange, 
       <PhotoUpload
         photos={photos}
         onChange={(next) => patch({ photos: next })}
+        photoStatuses={(photoIntelStatus?.photo_statuses || []).filter((item) => item?.source === "photos")}
         onBatchStateChange={onPhotoBatchStateChange}
         onPhotoReady={onPhotoReady}
         placeholderLabel="Add photo"
@@ -2071,7 +2202,7 @@ export function SectionTomorrow({ data, patch }) {
 // a silent no-op, so the human-accepted summary never reached the
 // DR payload. The wrapper below now forwards the raw `(text, meta)`
 // tuple to the parent as `{summary, meta}` (V3 shell's shape).
-export function SectionAiSummary({ data, reportId, formKey, draftActorId, photoUploadState, onAccepted, onStateChange }) {
+export function SectionAiSummary({ data, reportId, formKey, draftActorId, photoUploadState, onAccepted, onStateChange, onPhotoIntelChange }) {
   const { t } = useT();
   return (
     <SectionShell
@@ -2090,6 +2221,7 @@ export function SectionAiSummary({ data, reportId, formKey, draftActorId, photoU
         photoUploadState={photoUploadState}
         data={data}
         onStateChange={onStateChange}
+        onPhotoIntelChange={onPhotoIntelChange}
         onAccept={(text, meta) => onAccepted?.({ summary: text, meta })}
       />
     </SectionShell>

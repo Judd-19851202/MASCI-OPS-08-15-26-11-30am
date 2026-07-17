@@ -168,6 +168,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
     phase: "idle",
   });
   const [photoWarmHint, setPhotoWarmHint] = useState(null);
+  const [photoIntelStatusState, setPhotoIntelStatusState] = useState(null);
   const idempotencyKeyRef = useRef(null);
   const actorId = getStableActorIdentity();
   const draftScope = useMemo(() => buildDailyReportInstanceScope({ ...data, actor_id: actorId }), [data, actorId]);
@@ -1124,6 +1125,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
             data={data}
             patch={patch}
             photoMin={photoMin}
+            photoIntelStatus={photoIntelStatusState}
             onPhotoBatchStateChange={setPhotoBatchState}
             onPhotoReady={({ completed, total }) => setPhotoWarmHint({ completed, total, at: Date.now() })}
           />
@@ -1144,6 +1146,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
             formKey={scopedFormKey}
             draftActorId={actorId}
             photoUploadState={{ ...photoBatchState, warmHint: photoWarmHint }}
+            onPhotoIntelChange={setPhotoIntelStatusState}
             onStateChange={setSummaryGate}
             onAccepted={(payload) =>
               patch({

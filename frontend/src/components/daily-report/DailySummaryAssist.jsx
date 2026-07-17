@@ -40,6 +40,7 @@ export default function DailySummaryAssist({
   draftActorId,
   photoUploadState,
   onAccept,
+  onPhotoIntelChange,
   onStateChange,
   testId = "daily-summary-assist",
 }) {
@@ -94,6 +95,10 @@ export default function DailySummaryAssist({
   useEffect(() => {
     latestPhotoIntelRef.current = latestPhotoIntel;
   }, [latestPhotoIntel]);
+
+  useEffect(() => {
+    onPhotoIntelChange?.(latestPhotoIntel || null);
+  }, [latestPhotoIntel, onPhotoIntelChange]);
 
   useEffect(() => {
     narrativeRef.current = narrative;

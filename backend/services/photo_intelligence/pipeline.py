@@ -1329,6 +1329,32 @@ async def list_draft_intelligence(
     }
     status = _normalize_operator_photo_status(state_summary)
 
+    photo_statuses: List[Dict[str, Any]] = []
+    for ref in photo_refs:
+        pid = ref.get("photo_id")
+        row = rows_by_photo.get(pid)
+        job = jobs_by_photo.get(pid)
+        row_obs = (row or {}).get("observations") or []
+        status = "queued"
+        if row and row.get("analysis_status") == "complete":
+            status = "cited" if row_obs else "complete"
+        elif row and row.get("analysis_status") == "unavailable":
+            status = "unavailable"
+        elif str((job or {}).get("status") or "") == "in_progress":
+            status = "analyzing"
+        elif str((job or {}).get("status") or "") in {"failed", "terminal"}:
+            status = "failed"
+        elif str((job or {}).get("status") or "") == "suppressed":
+            status = "suppressed"
+        photo_statuses.append({
+            "photo_id": pid,
+            "source": ref.get("source"),
+            "status": status,
+            "job_status": str((job or {}).get("status") or ""),
+            "analysis_status": str((row or {}).get("analysis_status") or ""),
+            "has_observations": bool(row_obs),
+        })
+
     return {
         "report_id": draft_identity,
         "photo_count": len(photo_refs),
@@ -1349,6 +1375,7 @@ async def list_draft_intelligence(
         "classification": None,
         "observations": observations[:60],
         "narrative": " ".join(narrative_bits)[:1200],
+        "photo_statuses": photo_statuses,
         "photos": rows,
     }
 

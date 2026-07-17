@@ -74,6 +74,7 @@ function useCameraSupport() {
 export const PhotoUpload = ({
   photos = [],
   onChange,
+  photoStatuses = [],
   onBatchStateChange,
   onPhotoReady,
   testIdBase = "photo-upload",
@@ -104,6 +105,32 @@ export const PhotoUpload = ({
   // back to the gallery file picker so the user is never trapped.
   const cameraSupported = useCameraSupport();
   const cameraKnownUnsupported = cameraSupported === false;
+  const statusByIndex = (photoStatuses || []).reduce((acc, item, index) => {
+    acc[index] = item;
+    return acc;
+  }, {});
+
+  const statusLabel = (status) => {
+    switch (status) {
+      case "analyzing": return t("Analyzing…");
+      case "complete": return t("Complete");
+      case "cited": return t("Cited");
+      case "failed": return t("Retry needed");
+      case "unavailable": return t("Unavailable");
+      default: return t("Queued");
+    }
+  };
+
+  const statusTone = (status) => {
+    switch (status) {
+      case "analyzing": return "bg-sky-600 text-white";
+      case "complete": return "bg-emerald-600 text-white";
+      case "cited": return "bg-amber-500 text-slate-950";
+      case "failed": return "bg-red-600 text-white";
+      case "unavailable": return "bg-slate-500 text-white";
+      default: return "bg-slate-900/80 text-white";
+    }
+  };
 
   const handleFiles = async (files) => {
     if (!files || files.length === 0) return;
@@ -402,6 +429,12 @@ export const PhotoUpload = ({
               >
                 <X className="w-4 h-4" />
               </Button>
+              <div
+                className={`absolute bottom-1 left-1 z-10 rounded-full px-2 py-1 text-[10px] font-semibold shadow ${statusTone(statusByIndex[i]?.status)}`}
+                data-testid={`${testIdBase}-status-${i}`}
+              >
+                {statusLabel(statusByIndex[i]?.status)}
+              </div>
             </div>
           ))}
         </div>
