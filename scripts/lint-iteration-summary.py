@@ -24,12 +24,12 @@ just a guardrail the agent runs before claiming the iteration done.
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import sys
 from pathlib import Path
 
 
-DEFAULT_PRD = "/app/memory/PRD.md"
 RE_ITER_HEADER = re.compile(r"^##\s+\d{4}-\d{2}-\d{2}.*iter\d+", re.MULTILINE)
 REQUIRED_MARKERS = {
     "preview_or_production_label": re.compile(
@@ -39,6 +39,28 @@ REQUIRED_MARKERS = {
         r"standing operator actions", re.IGNORECASE,
     ),
 }
+
+
+def candidate_prd_paths(script_file: Path | None = None, github_workspace: str | None = None) -> list[Path]:
+    script_path = (script_file or Path(__file__)).resolve()
+    repo_root = script_path.parent.parent
+    candidates: list[Path] = []
+
+    workspace = (github_workspace or os.environ.get("GITHUB_WORKSPACE") or "").strip()
+    if workspace:
+        candidates.append(Path(workspace).resolve() / "memory" / "PRD.md")
+
+    candidates.append(repo_root / "memory" / "PRD.md")
+    candidates.append(Path("/app/memory/PRD.md"))
+    return candidates
+
+
+def resolve_default_prd_path(script_file: Path | None = None, github_workspace: str | None = None) -> Path:
+    candidates = candidate_prd_paths(script_file=script_file, github_workspace=github_workspace)
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return candidates[0] if github_workspace else candidates[1]
 
 
 def latest_iteration_block(text: str) -> str | None:
@@ -87,8 +109,9 @@ def lint(path: str) -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--path", default=DEFAULT_PRD,
-                    help=f"Path to PRD.md (default: {DEFAULT_PRD})")
+    resolved_default = resolve_default_prd_path()
+    ap.add_argument("--path", default=str(resolved_default),
+                    help=f"Path to PRD.md (default: {resolved_default})")
     args = ap.parse_args()
     return lint(args.path)
 
