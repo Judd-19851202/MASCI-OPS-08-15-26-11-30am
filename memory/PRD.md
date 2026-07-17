@@ -49,6 +49,31 @@
   - readiness path implemented at `/api/ready`
 - ⚠️ Production email/PDF truth is still externally blocked: repo-visible diagnostics only prove the current preview pod is suppressing outbound email by design; they do not prove the live production environment has `EMAIL_SAFETY_MODE=off` and `AUTO_EMAIL_REPORTS=true`.
 
+### 2026-07-17 · Live production interrogation checkpoint
+- ✅ Live production was inspected directly at `https://mascidocs.com`.
+- ✅ Production now has proven effective values from `/api/version` and integration/admin diagnostics:
+  - `app_env=production`
+  - `db_name=masci_safety`
+  - `EMAIL_SAFETY_MODE=off`
+  - `AUTO_EMAIL_REPORTS=true`
+  - Resend key present and integration health = `ok`
+- ✅ Live production Daily Report delivery chain is proven end-to-end by admin forensics:
+  - `routing_resolved`
+  - `recipients_built`
+  - `email_attempted`
+  - `provider_accepted`
+  - PM recipient resolved (`leomasci@mascigc.com`) with Co-PM CC (`asphaltpm@mascigc.com`)
+- ✅ Live production does create bell notifications for `meeting.submitted` (confirmed via `/api/search?q=meeting.submitted`).
+- ✅ Live production still exposes a deployment/runtime defect:
+  - `/api/ready` returns `404`
+  - `/api/health/full` returns `200`
+  - therefore the deployed production build does **not** include the repaired readiness endpoint yet.
+- ✅ Live production also still shows an older code path than preview:
+  - `email_routing.mode=legacy`
+  - `v2_enabled=false`
+  - `/api/admin-strict/diag/runtime-health` and `/incident-forensics` return `404`
+- ⚠️ Live production email root cause is **not** preview suppression. Current production evidence shows email is enabled and at least Daily Reports send successfully. The remaining user-reported non-delivery risk is now narrowed to workflow-specific stale/unexercised families and bell-parity gaps, not a global provider/config outage.
+
 ### Remaining P1 work
 - P1: extend scheduler-specific runtime metrics/heartbeats for long-sleep jobs whose work windows do not occur during the current preview session.
 - P1: broaden delivery forensics beyond Daily Reports if the user wants workflow-by-workflow routing proof exposed in one admin endpoint.

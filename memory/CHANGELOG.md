@@ -23,6 +23,8 @@ Focused the fork on the P0 production reliability track. Added runtime health/re
 * Fixed the forensics classifier so environment suppression is reported as `delivery_suppressed_by_environment` instead of `auto_email_not_scheduled`.
 * Confirmed backup lite notifications are present, while complete R2 archive notification closure is still incomplete.
 * Fixed a readiness regression where restart left runtime state `shutdown_requested=true`, causing `/api/ready` to stay false after startup. Verified `/api/ready` and `/api/health/full` return `200` again after controlled restart.
+* Interrogated live production directly and proved production is running with `EMAIL_SAFETY_MODE=off`, `AUTO_EMAIL_REPORTS=true`, Resend configured, and Daily Report provider acceptance working.
+* Proved live production still lacks `/api/ready` and still exposes older legacy delivery/runtime surfaces (`/api/admin-strict/diag/runtime-health` absent, email routing mode `legacy`).
 
 ---
 
