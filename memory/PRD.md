@@ -1,4 +1,9 @@
-## 2026-07-16 · Daily Report speed + summary-quality repair
+## 2026-07-16 · iter584 · Daily Report speed + summary-quality repair
+
+Preview verified ✅
+
+🔴 STANDING OPERATOR ACTIONS
+- Production redeploy required to push the verified Preview fixes live.
 
 ### Completed
 - Daily Report summary assist now refreshes from meaningful report changes using a deduplicated request signature instead of re-firing from unchanged state.
