@@ -74,6 +74,23 @@
   - `/api/admin-strict/diag/runtime-health` and `/incident-forensics` return `404`
 - ⚠️ Live production email root cause is **not** preview suppression. Current production evidence shows email is enabled and at least Daily Reports send successfully. The remaining user-reported non-delivery risk is now narrowed to workflow-specific stale/unexercised families and bell-parity gaps, not a global provider/config outage.
 
+### 2026-07-17 · REL-01 release-candidate source closeout
+- ✅ Added explicit backup notification truth fields to `backup_health` writes:
+  - `notification_outcome`
+  - `notification_recipients`
+  - `notification_recipient_count`
+  - `notification_reason`
+  - `notification_message_id`
+  - `notification_ts`
+  - `archive_identifier`
+  - `audit_reference`
+- ✅ Removed ambiguous final backup states for lite/full/complete-R2/usage-alert/error paths in source. `emailed_to=None` is no longer the only terminal signal in the repaired source.
+- ✅ Added focused bell-parity source tests for Daily Report pending review, Safety Meeting, JHA, Incident, Inspection deficiency, QA/QC deficiency, and Equipment failure notifications.
+- ✅ Fixed task-registry stale-cancelled-state reuse so readiness no longer remains false after hot reload/restart. Verified:
+  - `/api/ready` = `200`
+  - `/api/health/full` = `200`
+  - `/api/admin-strict/diag/runtime-health` = healthy/ready after restart.
+
 ### Remaining P1 work
 - P1: extend scheduler-specific runtime metrics/heartbeats for long-sleep jobs whose work windows do not occur during the current preview session.
 - P1: broaden delivery forensics beyond Daily Reports if the user wants workflow-by-workflow routing proof exposed in one admin endpoint.

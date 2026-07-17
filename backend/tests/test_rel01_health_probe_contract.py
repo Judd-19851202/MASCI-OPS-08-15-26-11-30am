@@ -7,6 +7,7 @@ import re
 WORKFLOW_PATH = "/app/.github/workflows/production-health-probe.yml"
 SCRIPT_PATH = "/app/tools/verify-production.sh"
 SERVER_PATH = "/app/backend/server.py"
+RUNTIME_ROUTE_PATH = "/app/backend/routes/admin_runtime_reliability.py"
 
 
 def test_probe_workflow_captures_headers_and_timings():
@@ -45,3 +46,9 @@ def test_backup_scheduler_state_exposes_hourly_archive_lock_truth():
     assert '"r2_hourly_requested"' in src
     assert '"r2_hourly_effective"' in src
     assert '"r2_hourly_locked_off"' in src
+
+
+def test_runtime_forensics_admin_routes_exist_in_source():
+    src = open(RUNTIME_ROUTE_PATH, encoding="utf-8").read()
+    assert '/runtime-health' in src
+    assert '/incident-forensics' in src

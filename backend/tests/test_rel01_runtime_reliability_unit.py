@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from fastapi import FastAPI
 
-from lib.runtime_reliability import RUNTIME_STATE, runtime_health_snapshot, set_readiness
+from lib.runtime_reliability import BACKGROUND_TASKS, RUNTIME_STATE, _task_meta, runtime_health_snapshot, set_readiness
 
 
 def _app() -> FastAPI:
@@ -27,3 +27,19 @@ def test_set_readiness_true_clears_shutdown_requested_and_restores_ready_snapsho
     assert RUNTIME_STATE["shutdown_requested"] is False
     assert snapshot["readiness"]["ok"] is True
     assert snapshot["readiness"]["state"] == "ready"
+
+
+class _DoneTask:
+    def done(self):
+        return True
+
+
+def test_task_meta_discards_finished_cancelled_task_state():
+    BACKGROUND_TASKS['x-task'] = {
+        'name': 'x-task',
+        'status': 'cancelled',
+        'task': _DoneTask(),
+    }
+    meta = _task_meta('x-task')
+    assert meta['status'] == 'pending'
+    assert meta['name'] == 'x-task'

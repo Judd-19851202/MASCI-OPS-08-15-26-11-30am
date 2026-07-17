@@ -10,6 +10,7 @@ This file tracks **parked features** the user wants to revisit later. Surface th
 - Close delivery truth for production environment email safety/configuration and complete-R2 notification behavior.
 - Write the final incident timeline from runtime incident snapshots + preserved restart/soak evidence.
 - Promote the repaired readiness/runtime-forensics build to production so live `/api/ready` and runtime diagnostics exist there.
+- After deployment, confirm live production now exposes `/api/ready`, runtime diagnostics, explicit backup notification outcomes, and no hourly complete-R2 execution.
 
 ## 🟡 P1 · REL-01 follow-through
 

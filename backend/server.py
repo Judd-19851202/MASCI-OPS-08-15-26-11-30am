@@ -7523,14 +7523,37 @@ async def _run_scheduled_backup(db, lite_mode: bool = False) -> Optional[dict]:
                 f"({slim_size/1024/1024:.2f} MB · {stats.get('total_records', 0)} records)"
             )
             emailed_to = None
+            notification_outcome = "notification_not_required"
+            notification_reason = None
+            notification_message_id = None
+            notification_recipients = []
             try:
+                notification_recipients = [x.strip() for x in (((os.environ.get("BACKUP_EMAIL_TO") or "").strip()).split(",")) if x.strip()]
                 emailed_to = await _email_lite_backup_zip(slim_out, stats)
+                if emailed_to:
+                    notification_outcome = "notification_sent"
+                    notification_message_id = emailed_to if "@" not in str(emailed_to) else None
+                elif notification_recipients:
+                    notification_outcome = "notification_failed"
+                    notification_reason = "email_helper_returned_no_delivery_confirmation"
+                else:
+                    notification_outcome = "notification_suppressed"
+                    notification_reason = "backup_email_to_missing"
             except Exception as e:  # noqa: BLE001
                 logger.warning(f"[scheduled-backup] lite email step failed: {e}")
+                notification_outcome = "notification_failed"
+                notification_reason = type(e).__name__
             await _record_backup_health(
                 db, ok=True, filename=slim_out.name, size_bytes=slim_size,
                 records=stats.get("total_records", 0), emailed_to=emailed_to,
                 mode="lite",
+                notification_outcome=notification_outcome,
+                notification_recipients=notification_recipients,
+                notification_recipient_count=len(notification_recipients),
+                notification_reason=notification_reason,
+                notification_message_id=notification_message_id,
+                archive_identifier=slim_out.name,
+                audit_reference=f"backup_health:{slim_out.name}",
             )
             # iter299 · Lane D — hygiene log line after lite-backup run.
             try:
@@ -7579,14 +7602,37 @@ async def _run_scheduled_backup(db, lite_mode: bool = False) -> Optional[dict]:
         # The email helper reads the file lazily to keep memory low when
         # building the slim version for the inbox attachment.
         emailed_to = None
+        notification_outcome = "notification_not_required"
+        notification_reason = None
+        notification_message_id = None
+        notification_recipients = []
         try:
+            notification_recipients = [x.strip() for x in (((os.environ.get("BACKUP_EMAIL_TO") or "").strip()).split(",")) if x.strip()]
             emailed_to = await _email_backup_zip_from_path(out, total_records)
+            if emailed_to:
+                notification_outcome = "notification_sent"
+                notification_message_id = emailed_to if "@" not in str(emailed_to) else None
+            elif notification_recipients:
+                notification_outcome = "notification_failed"
+                notification_reason = "email_helper_returned_no_delivery_confirmation"
+            else:
+                notification_outcome = "notification_suppressed"
+                notification_reason = "backup_email_to_missing"
         except Exception as e:
             logger.warning(f"[scheduled-backup] email step failed (non-fatal): {e}")
+            notification_outcome = "notification_failed"
+            notification_reason = type(e).__name__
 
         await _record_backup_health(
             db, ok=True, filename=out.name, size_bytes=size_bytes,
             records=total_records, emailed_to=emailed_to, mode="full",
+            notification_outcome=notification_outcome,
+            notification_recipients=notification_recipients,
+            notification_recipient_count=len(notification_recipients),
+            notification_reason=notification_reason,
+            notification_message_id=notification_message_id,
+            archive_identifier=out.name,
+            audit_reference=f"backup_health:{out.name}",
         )
         # iter299 · Lane D — emit a hygiene log line after every successful
         # full backup so operators can verify retention + disk pressure
@@ -7605,7 +7651,15 @@ async def _run_scheduled_backup(db, lite_mode: bool = False) -> Optional[dict]:
     except Exception as e:
         logger.exception(f"[scheduled-backup] FAILED: {e}")
         try:
-            await _record_backup_health(db, ok=False, error=repr(e), mode="error")
+            await _record_backup_health(
+                db,
+                ok=False,
+                error=repr(e),
+                mode="error",
+                notification_outcome="notification_not_required",
+                notification_reason="backup_execution_failed_before_notification",
+                audit_reference="backup_health:error",
+            )
         except Exception:
             pass
         return None
@@ -7684,6 +7738,13 @@ async def _record_backup_health(
     emailed_to: Optional[str] = None,
     mode: str = "full",
     error: Optional[str] = None,
+    notification_outcome: Optional[str] = None,
+    notification_recipients: Optional[list[str]] = None,
+    notification_recipient_count: Optional[int] = None,
+    notification_reason: Optional[str] = None,
+    notification_message_id: Optional[str] = None,
+    archive_identifier: Optional[str] = None,
+    audit_reference: Optional[str] = None,
 ) -> None:
     """Append a row to ``backup_health``. Best-effort — a Mongo write
     failure here MUST NOT block the backup itself, so we swallow errors."""
@@ -7698,6 +7759,14 @@ async def _record_backup_health(
             "records": records,
             "emailed_to": emailed_to,
             "error": error,
+            "notification_outcome": notification_outcome,
+            "notification_recipients": notification_recipients or [],
+            "notification_recipient_count": notification_recipient_count,
+            "notification_reason": notification_reason,
+            "notification_message_id": notification_message_id,
+            "notification_ts": datetime.now(timezone.utc).isoformat(),
+            "archive_identifier": archive_identifier or filename,
+            "audit_reference": audit_reference,
         }
         await db.backup_health.insert_one(dict(doc))
         # Mongo mutates the dict in place to add _id — we don't care, doc is
@@ -8526,6 +8595,9 @@ async def _log_r2_usage_warning() -> None:
         await _record_backup_health(
             db, ok=True, size_bytes=int(total_bytes), mode=mode,
             error=f"r2-usage gb={gb:.2f} objects={count}",
+            notification_outcome="notification_not_required",
+            notification_reason="storage_threshold_observation_only",
+            audit_reference=f"backup_health:{mode}:{bucket}",
         )
     except Exception as e:  # noqa: BLE001
         logger.warning(f"[r2-usage] couldn't record health row: {e}")
@@ -8661,6 +8733,10 @@ async def _run_complete_archive_to_r2(db) -> Optional[dict]:
             db, ok=True, filename=filename, size_bytes=int(size_mb * 1024 * 1024),
             records=stats.get("total_records", 0),
             emailed_to=None, mode="complete-r2",
+            notification_outcome="notification_not_required",
+            notification_reason="complete_r2_archive_has_no_direct_email_policy",
+            archive_identifier=filename,
+            audit_reference=f"backup_health:{filename}",
         )
 
         completed_bucket = _now.strftime("%Y-%m-%dT%H")
@@ -8711,7 +8787,15 @@ async def _run_complete_archive_to_r2(db) -> Optional[dict]:
         except Exception:
             pass
         try:
-            await _record_backup_health(db, ok=False, error=repr(e), mode="complete-r2-error")
+            await _record_backup_health(
+                db,
+                ok=False,
+                error=repr(e),
+                mode="complete-r2-error",
+                notification_outcome="notification_not_required",
+                notification_reason="complete_r2_archive_failed_before_notification",
+                audit_reference="backup_health:complete-r2-error",
+            )
         except Exception:
             pass
         return None
@@ -8926,7 +9010,7 @@ async def _send_backup_email(
         result = await asyncio.to_thread(resend.Emails.send, params)
         rid = (result or {}).get("id", "?")
         logger.info(f"[scheduled-backup] emailed backup to {to} (resend_id={rid})")
-        return to
+        return rid if rid and rid != "?" else to
     except Exception as e:
         logger.warning(f"[scheduled-backup] Resend send failed: {e}")
         return None

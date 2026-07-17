@@ -174,18 +174,26 @@ def set_readiness(app: Any, *, ready: bool, reason: str) -> None:
 
 
 def _task_meta(name: str) -> Dict[str, Any]:
-    return BACKGROUND_TASKS.setdefault(name, {
-        "name": name,
-        "category": "background",
-        "critical": False,
-        "status": "pending",
-        "started_at": None,
-        "ended_at": None,
-        "last_seen_at": None,
-        "last_error": None,
-        "long_running": True,
-        "timeout_seconds": None,
-    })
+    meta = BACKGROUND_TASKS.get(name)
+    task = (meta or {}).get("task") if isinstance(meta, dict) else None
+    if meta and task is not None and getattr(task, "done", lambda: True)() and meta.get("status") in {"cancelled", "failed", "completed"}:
+        BACKGROUND_TASKS.pop(name, None)
+        meta = None
+    if meta is None:
+        meta = {
+            "name": name,
+            "category": "background",
+            "critical": False,
+            "status": "pending",
+            "started_at": None,
+            "ended_at": None,
+            "last_seen_at": None,
+            "last_error": None,
+            "long_running": True,
+            "timeout_seconds": None,
+        }
+        BACKGROUND_TASKS[name] = meta
+    return meta
 
 
 def heartbeat_background_task(name: str, *, note: Optional[str] = None) -> None:
