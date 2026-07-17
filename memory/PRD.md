@@ -1,3 +1,24 @@
+## 2026-07-17 · Voice-to-Report + Watchdog + polling parity update
+
+### Status
+- ✅ Added `POST /api/transcribe` for Daily Report voice capture with multilingual speech-to-text and English normalization, preserving construction terms.
+- ✅ Added frontend Voice-to-Report controls in Step 3 with hold-to-record mic UI, mode toggles for **Work Performed** and **Activities**, and direct form mapping.
+- ✅ Added backend `conflict_watchdog` metadata on Daily Report submit, comparing new reports against yesterday’s report and the currently available schedule source.
+- ✅ Moved `GET /api/daily-reports.csv` onto the async jobs pattern (`202 + job_id + poll/download`).
+- ✅ Added per-photo `photo_statuses` plumbing and tile badge rendering (`Queued / Analyzing / Complete / Cited / Retry needed / Unavailable`).
+
+### Verification
+- ✅ Lint pass: updated backend and frontend files.
+- ✅ Smoke screenshot pass: `/daily/submit` renders correctly in preview.
+- ✅ Testing agent pass: `/app/test_reports/iteration_587.json`.
+- ✅ Frontend verification pass: voice UI, photo badges, and AI summary section verified by frontend testing agent.
+- ✅ Backend verification pass: transcribe route, watchdog metadata, async CSV export, async job polling, and photo intelligence draft checks passed.
+
+### Remaining priorities
+- P1: Extend per-photo status surfaces beyond the top-level report photo tiles if material/subcontractor photo tiles also need live AI badges.
+- P1: Broaden async polling parity to any remaining Daily Report heavy actions still outside the new jobs flow.
+- P2: Deferred legacy test cleanup and CRA bundle-size optimization.
+
 ## 2026-07-17 · Ultimate Elite async polling + glass UI upgrade
 
 ### Status

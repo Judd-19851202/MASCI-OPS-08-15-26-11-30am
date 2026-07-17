@@ -673,7 +673,7 @@ export default function DailySummaryAssist({
     const total = Number(intel.photo_count || photoCount || 0);
     const reviewed = Number(intel.reviewed || intel.analyzed || 0);
     const terminalFailures = Number(intel.terminal_failures || 0) + Number(intel.unavailable || 0);
-    const state = String(photoIntelStatus || "no_photos");
+    const state = String(photoIntelStatus || (total > 0 ? "queued" : "no_photos"));
     const activeDetails = activeJob?.details || {};
     const activeTotal = Number(activeDetails?.total_photos || total || 0);
     const activeCited = Number(activeDetails?.cited_photos || 0);
