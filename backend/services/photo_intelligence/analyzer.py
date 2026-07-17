@@ -4,6 +4,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import asyncio
 from typing import Any, Dict, List, Optional
 
 
@@ -81,6 +82,9 @@ _SYSTEM = (
     "Return STRICT JSON only, no markdown, no preface."
 )
 
+VISION_RETRY_ATTEMPTS = 3
+VISION_RETRY_BASE_DELAY_SECONDS = 0.75
+
 
 def _sha(x: str) -> str:
     return hashlib.sha256(x.encode("utf-8")).hexdigest()
@@ -117,12 +121,20 @@ async def analyze_photo(
         "suggested_links to any items in draft context that match, and "
         "up to 3 questions the supervisor should verify."
     )
-    env = await gateway.dispatch_vision(
-        task="photo_vision",
-        system=_SYSTEM,
-        images=images,
-        user=user_body,
-        response_schema=PHOTO_ENVELOPE_SCHEMA,
-        session_id=session_id,
-    )
-    return env
+    last_exc = None
+    for attempt in range(1, VISION_RETRY_ATTEMPTS + 1):
+        try:
+            return await gateway.dispatch_vision(
+                task="photo_vision",
+                system=_SYSTEM,
+                images=images,
+                user=user_body,
+                response_schema=PHOTO_ENVELOPE_SCHEMA,
+                session_id=session_id,
+            )
+        except Exception as exc:  # noqa: BLE001
+            last_exc = exc
+            if attempt >= VISION_RETRY_ATTEMPTS:
+                raise
+            await asyncio.sleep(VISION_RETRY_BASE_DELAY_SECONDS * (2 ** (attempt - 1)))
+    raise last_exc  # pragma: no cover

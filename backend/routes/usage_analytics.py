@@ -175,6 +175,7 @@ async def ensure_usage_indexes(db) -> None:
     await db.usage_events.create_index([("kind", 1), ("signal", 1), ("at", -1)])
     await db.usage_events.create_index([("kind", 1), ("signal", 1), ("at", -1), ("elapsed_ms", 1)])
     await db.usage_events.create_index([("kind", 1), ("signal", 1), ("at", -1), ("dims.equipment_id", 1)])
+    await db.usage_events.create_index([("viewport", 1), ("at", -1)])
 
 
 def start_sink(db) -> None:

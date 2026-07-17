@@ -63,6 +63,39 @@ def _generate_owner_id() -> str:
     return f"{socket.gethostname()}:{os.getpid()}:{uuid.uuid4().hex[:8]}"
 
 
+def _coerce_lock_expiry(value: Any) -> Optional[datetime]:
+    if isinstance(value, datetime):
+        return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+    if isinstance(value, str) and value.strip():
+        raw = value.strip()
+        if raw.endswith("Z"):
+            raw = raw[:-1] + "+00:00"
+        try:
+            parsed = datetime.fromisoformat(raw)
+            return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+        except ValueError:
+            return None
+    return None
+
+
+async def migrate_string_lock_expiries(db: Any) -> int:
+    migrated = 0
+    try:
+        cursor = db[LOCK_COLLECTION].find({"expires_at": {"$type": "string"}}, {"_id": 1, "expires_at": 1})
+        async for row in cursor:
+            parsed = _coerce_lock_expiry(row.get("expires_at"))
+            if not parsed:
+                continue
+            result = await db[LOCK_COLLECTION].update_one(
+                {"_id": row["_id"]},
+                {"$set": {"expires_at": parsed}},
+            )
+            migrated += int(getattr(result, "modified_count", 0) or 0)
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[singleton-lock] migrate string expiries failed (non-fatal): {e}")
+    return migrated
+
+
 async def ensure_lock_indexes(db: Any) -> None:
     """Create the TTL index on ``expires_at`` so dead locks are auto-cleaned
     even if no worker is alive to release them. Idempotent · safe to call
@@ -71,6 +104,9 @@ async def ensure_lock_indexes(db: Any) -> None:
         await db[LOCK_COLLECTION].create_index(
             "expires_at", expireAfterSeconds=0, name="ix_scheduler_locks_ttl"
         )
+        migrated = await migrate_string_lock_expiries(db)
+        if migrated:
+            logger.info(f"[singleton-lock] migrated {migrated} string expires_at values to BSON datetime")
     except Exception as e:  # noqa: BLE001
         # If the index can't be created we still function — the lock TTL
         # check below uses explicit datetime comparison.
