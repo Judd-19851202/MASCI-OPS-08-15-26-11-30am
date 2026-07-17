@@ -13490,3 +13490,38 @@ Potential improvement: would you like me to add a **built-in in-form image previ
 
 **Track 26.12 · Elite AI Daily Report Summary Fix — SHIPPED (2026-07-09)**:
 P0 root-caused: base64 photos poisoned the LLM prompt (instant call failure → silent deterministic fallback), 15s frontend timeout aborted successful generations, photo vision never ran pre-submit, availability check ignored direct provider keys, invalid vision model name, and production/constraints/day-impacts/tomorrow-plan field groups were dropped before the AI. All fixed: inline draft-time photo vision (gpt-5.4, content-hash cached), binary-stripped evidence bundle, superintendent-grade day_narrative prompt with full coverage contract, 60s timeout, direct-key availability, exact-match crew autofill, JobPicker key fix. Verified by testing agent (iteration_track_2612.json) + live browser flow. Full detail: `/app/memory/TRACK_26_12_ELITE_AI_SUMMARY_FIX.md` + CHANGELOG 2026-07-09. **User must redeploy production to receive the fix.**
+
+---
+
+## 2026-07-17 · P0 Production Data Visibility Incident — shared admin scope repair verified in preview
+
+### What was proven
+- Live production `mascidocs.com` was returning empty operational data to Admin across multiple modules even though historical records still existed.
+- Preview and live code inspection proved a shared read-path defect in `backend/pm_auth.py::compute_pm_scope()`.
+- Dict-shaped admin actors from cross-portal gates (especially `routes/integrations/_deps.py::make_require_any_portal_token`) were being treated like PM-scoped actors instead of unrestricted admins.
+
+### Repair applied
+- `compute_pm_scope()` now recognizes admin actors by multiple explicit admin markers, including `_actor == "admin"`, `role == "admin"`, `is_admin`, `is_super_admin`, `_auth_path == "admin_token"`, and `'admin' in portals`.
+- Non-admin dict actors without an email now fail closed to empty scope instead of being implicitly elevated.
+
+### Verification completed
+- Added regression lock: `/app/backend/tests/test_prod_visibility_compute_pm_scope.py`.
+- Testing agent pass: `/app/test_reports/iteration_591.json`.
+- Preview verification after fix showed non-empty Admin responses for:
+  - `/api/daily-reports`
+  - `/api/meetings`
+  - `/api/incidents`
+  - `/api/jhas`
+  - `/api/equipment-inspections`
+  - `/api/inspections`
+  - `/api/notifications`
+  - `/api/search`
+  - `/api/job-photos`
+  - `/api/operations-center`
+  - `/api/ods/facts`
+- PM isolation remained intact in automated verification (`cert.pm@example.com` remained project-scoped).
+- Admin UI smoke proof captured on preview `/admin/daily` showing `1000 on file` after the fix.
+
+### Remaining incident work
+- Production/live is still on older commit `a6b4580d...`; the repair is verified in preview, not yet proven deployed on live production.
+- The user-expanded production acceptance matrix still requires full live module-by-module parity verification beyond the shared-scope subset already proven in preview.
