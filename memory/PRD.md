@@ -40,6 +40,14 @@
   - runtime state now exposes hourly archive hard lock (`r2_hourly_effective=false`, `r2_hourly_locked_off=true`)
   - lite backup notifications are recorded (`emailed_to=jaymn.judd@mascigc.com`)
   - complete R2 archive notification closure remains incomplete (`emailed_to=None` on recent archive runs)
+- ✅ Fixed a real readiness regression: runtime state left `shutdown_requested=true` after restart, which kept `/api/ready` false even after startup completed. Readiness now returns `200` again after restart.
+- ✅ Live runtime truth now confirms this preview pod is configured as:
+  - `EMAIL_SAFETY_MODE=strict`
+  - `AUTO_EMAIL_REPORTS=false`
+  - `RESEND_API_KEY present`
+  - process command includes `uvicorn ... --reload`
+  - readiness path implemented at `/api/ready`
+- ⚠️ Production email/PDF truth is still externally blocked: repo-visible diagnostics only prove the current preview pod is suppressing outbound email by design; they do not prove the live production environment has `EMAIL_SAFETY_MODE=off` and `AUTO_EMAIL_REPORTS=true`.
 
 ### Remaining P1 work
 - P1: extend scheduler-specific runtime metrics/heartbeats for long-sleep jobs whose work windows do not occur during the current preview session.

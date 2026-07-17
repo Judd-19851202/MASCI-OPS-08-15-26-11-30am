@@ -160,6 +160,7 @@ def set_startup_complete(app: Any, *, ready: bool, reason: str) -> None:
     RUNTIME_STATE["ready"] = ready
     RUNTIME_STATE["readiness_reason"] = reason
     RUNTIME_STATE["last_readiness_change_at"] = _iso(_now())
+    RUNTIME_STATE["shutdown_requested"] = False
 
 
 def set_readiness(app: Any, *, ready: bool, reason: str) -> None:
@@ -168,6 +169,8 @@ def set_readiness(app: Any, *, ready: bool, reason: str) -> None:
     app.state.ready = ready
     RUNTIME_STATE["ready"] = ready
     RUNTIME_STATE["readiness_reason"] = reason
+    if ready:
+        RUNTIME_STATE["shutdown_requested"] = False
 
 
 def _task_meta(name: str) -> Dict[str, Any]:

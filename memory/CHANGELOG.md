@@ -22,6 +22,7 @@ Focused the fork on the P0 production reliability track. Added runtime health/re
 * Confirmed current preview-side email-driven workflows are blocked by `email_safety_mode:strict`, not by lost task scheduling.
 * Fixed the forensics classifier so environment suppression is reported as `delivery_suppressed_by_environment` instead of `auto_email_not_scheduled`.
 * Confirmed backup lite notifications are present, while complete R2 archive notification closure is still incomplete.
+* Fixed a readiness regression where restart left runtime state `shutdown_requested=true`, causing `/api/ready` to stay false after startup. Verified `/api/ready` and `/api/health/full` return `200` again after controlled restart.
 
 ---
 
