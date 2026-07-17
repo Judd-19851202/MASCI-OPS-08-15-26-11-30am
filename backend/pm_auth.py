@@ -345,6 +345,13 @@ async def compute_pm_scope(db, actor) -> PmScope:
     # mutate; this only widens read scope for HR Daily Report viewing.
     if actor.get("_actor_kind") == "hr_user":
         return PmScope(is_admin=True)
+    explicit_pm = (
+        actor.get("_actor") == "pm"
+        or actor.get("role") in {"pm", "co_pm"}
+        or actor.get("_actor_kind") == "pm_user"
+    )
+    if not explicit_pm:
+        return PmScope(is_admin=False, project_numbers=set(), pm=actor)
     email = (actor.get("email") or "").strip().lower()
     if not email:
         return PmScope(is_admin=False, project_numbers=set(), pm=actor)

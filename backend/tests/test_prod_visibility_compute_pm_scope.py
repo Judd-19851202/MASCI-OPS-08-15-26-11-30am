@@ -111,6 +111,17 @@ def test_pm_actor_collects_jobs_and_team_assignments():
     assert set(scope.filter({})["project_number"]["$in"]) == {"26-05", "26-06", "26-07", "26-08"}
 
 
+def test_co_pm_actor_collects_assigned_projects():
+    scope = _run(
+        compute_pm_scope(
+            _DB(),
+            {"_actor": "pm", "role": "co_pm", "id": "pm-1", "email": "pm@example.com"},
+        )
+    )
+    assert scope.is_admin is False
+    assert scope.project_numbers == {"26-05", "26-06", "26-07", "26-08"}
+
+
 def test_unassigned_pm_gets_empty_scope():
     scope = _run(
         compute_pm_scope(
@@ -128,6 +139,18 @@ def test_non_admin_without_email_fails_closed():
         compute_pm_scope(
             _DB(),
             {"_actor": "leadership", "name": "Field Leadership"},
+        )
+    )
+    assert scope.is_admin is False
+    assert scope.project_numbers == set()
+    assert scope.filter({}) == {"__pm_empty_scope__": True}
+
+
+def test_email_only_actor_does_not_gain_pm_or_admin_scope():
+    scope = _run(
+        compute_pm_scope(
+            _DB(),
+            {"email": "pm@example.com", "name": "Ambiguous Actor"},
         )
     )
     assert scope.is_admin is False
