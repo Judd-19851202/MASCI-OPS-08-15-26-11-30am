@@ -320,6 +320,17 @@ async def compute_pm_scope(db, actor) -> PmScope:
     """
     if actor is True or not isinstance(actor, dict):
         return PmScope(is_admin=True)
+    portals = actor.get("portals")
+    if (
+        actor.get("_actor") == "admin"
+        or actor.get("role") == "admin"
+        or actor.get("_actor_kind") == "admin_user"
+        or actor.get("is_admin") is True
+        or actor.get("is_super_admin") is True
+        or actor.get("_auth_path") == "admin_token"
+        or (isinstance(portals, (list, tuple, set)) and "admin" in portals)
+    ):
+        return PmScope(is_admin=True)
     # Shop users (cross-job, not project-scoped)
     if actor.get("_actor_kind") == "shop_user":
         return PmScope(is_admin=True)
@@ -336,7 +347,7 @@ async def compute_pm_scope(db, actor) -> PmScope:
         return PmScope(is_admin=True)
     email = (actor.get("email") or "").strip().lower()
     if not email:
-        return PmScope(is_admin=True)
+        return PmScope(is_admin=False, project_numbers=set(), pm=actor)
     uid = actor.get("id") or actor.get("user_id") or actor.get("_id")
     # Pull every job where this PM is primary OR appears in co_pm_emails.
     cursor = db.jobs_master.find(

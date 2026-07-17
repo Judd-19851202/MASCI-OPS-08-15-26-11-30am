@@ -1,0 +1,135 @@
+from __future__ import annotations
+
+import asyncio
+import sys
+from pathlib import Path
+
+
+ROOT = Path("/app/backend")
+sys.path.insert(0, str(ROOT))
+
+from pm_auth import compute_pm_scope  # noqa: E402
+
+
+class _AsyncCursor:
+    def __init__(self, rows):
+        self._rows = list(rows)
+        self._index = 0
+
+    def __aiter__(self):
+        self._index = 0
+        return self
+
+    async def __anext__(self):
+        if self._index >= len(self._rows):
+            raise StopAsyncIteration
+        row = self._rows[self._index]
+        self._index += 1
+        return row
+
+
+class _Collection:
+    def __init__(self, rows):
+        self.rows = list(rows)
+
+    def find(self, query, projection=None):  # noqa: ARG002
+        query = query or {}
+        out = []
+        for row in self.rows:
+            if query.get("deleted_at") == {"$in": [None, ""]} and row.get("deleted_at") not in (None, ""):
+                continue
+            ors = query.get("$or") or []
+            if ors:
+                matched = False
+                for clause in ors:
+                    if all(row.get(k) == v for k, v in clause.items()):
+                        matched = True
+                        break
+                if not matched:
+                    continue
+            if query.get("active") is True and row.get("active") is not True:
+                continue
+            out.append(row)
+        return _AsyncCursor(out)
+
+
+class _DB:
+    def __init__(self):
+        self.jobs_master = _Collection(
+            [
+                {"project_number": "26-05", "pm_email": "pm@example.com", "deleted_at": ""},
+                {"project_number": "26-06", "co_pm_emails": "pm@example.com", "deleted_at": None},
+                {"project_number": "OLD-01", "pm_email": "pm@example.com", "deleted_at": "2026-01-01"},
+            ]
+        )
+        self.project_team_assignments = _Collection(
+            [
+                {"project_number": "26-07", "email": "pm@example.com", "active": True},
+                {"project_number": "26-08", "user_id": "pm-1", "active": True},
+                {"project_number": "26-09", "email": "pm@example.com", "active": False},
+            ]
+        )
+
+
+def _run(coro):
+    return asyncio.run(coro)
+
+
+def test_directory_admin_actor_gets_unrestricted_scope():
+    scope = _run(
+        compute_pm_scope(
+            _DB(),
+            {
+                "_actor": "admin",
+                "email": "jaymn.judd@mascigc.com",
+                "name": "Super Admin",
+                "portals": ["admin", "pm", "shop"],
+                "is_super_admin": True,
+            },
+        )
+    )
+    assert scope.is_admin is True
+    assert scope.project_numbers is None
+    assert scope.filter({"status": "open"}) == {"status": "open"}
+
+
+def test_legacy_true_admin_stays_unrestricted():
+    scope = _run(compute_pm_scope(_DB(), True))
+    assert scope.is_admin is True
+    assert scope.project_numbers is None
+
+
+def test_pm_actor_collects_jobs_and_team_assignments():
+    scope = _run(
+        compute_pm_scope(
+            _DB(),
+            {"_actor": "pm", "id": "pm-1", "email": "pm@example.com"},
+        )
+    )
+    assert scope.is_admin is False
+    assert scope.project_numbers == {"26-05", "26-06", "26-07", "26-08"}
+    assert set(scope.filter({})["project_number"]["$in"]) == {"26-05", "26-06", "26-07", "26-08"}
+
+
+def test_unassigned_pm_gets_empty_scope():
+    scope = _run(
+        compute_pm_scope(
+            _DB(),
+            {"_actor": "pm", "id": "pm-404", "email": "noprojects@example.com"},
+        )
+    )
+    assert scope.is_admin is False
+    assert scope.project_numbers == set()
+    assert scope.filter({}) == {"__pm_empty_scope__": True}
+
+
+def test_non_admin_without_email_fails_closed():
+    scope = _run(
+        compute_pm_scope(
+            _DB(),
+            {"_actor": "leadership", "name": "Field Leadership"},
+        )
+    )
+    assert scope.is_admin is False
+    assert scope.project_numbers == set()
+    assert scope.filter({}) == {"__pm_empty_scope__": True}

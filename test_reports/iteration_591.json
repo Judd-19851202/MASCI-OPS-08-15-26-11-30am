@@ -1,0 +1,44 @@
+{
+  "summary": "P0 Production Data Visibility Incident - Admin Historical Data Visibility Fix VERIFIED. All 18 tests passed (13 API + 5 unit tests). The fix in compute_pm_scope correctly treats dict-shaped admin actors from cross-portal reads as unrestricted admins. Admin can now see 1000+ daily reports, 470 meetings, 52 incidents, 131 JHAs, 1000+ equipment inspections, 341 inspections, and 6301 total records in operations center. PM isolation is preserved - cert.pm user sees only 5 daily reports (project-scoped).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_p0_admin_visibility_fix.py",
+    "/app/backend/tests/test_prod_visibility_compute_pm_scope.py",
+    "/app/test_reports/pytest/pytest_results_591.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "VERIFIED: compute_pm_scope in pm_auth.py correctly identifies admin actors via multiple paths: _actor=='admin', role=='admin', _actor_kind=='admin_user', is_admin==True, is_super_admin==True, _auth_path=='admin_token', or 'admin' in portals list",
+    "VERIFIED: Admin login via multi-login returns all portal tokens and is_super_admin=true",
+    "VERIFIED: /api/daily-reports returns 1000 records for admin (not empty)",
+    "VERIFIED: /api/meetings returns 470 records for admin",
+    "VERIFIED: /api/incidents returns 52 records for admin",
+    "VERIFIED: /api/jhas returns 131 records for admin",
+    "VERIFIED: /api/equipment-inspections returns 1000 records for admin",
+    "VERIFIED: /api/inspections returns 341 records for admin",
+    "VERIFIED: /api/operations-center returns 6301 total records for admin",
+    "VERIFIED: PM isolation preserved - cert.pm@example.com sees only 5 daily reports (project-scoped to ZZ-RUNTIME-CERT-2026)",
+    "VERIFIED: Frontend Admin Daily Reports page shows '1000 ON FILE' count with visible project folders",
+    "VERIFIED: No synthetic/certification leakage - apply_synthetic_dr_exclusion filter is applied in list_daily_reports"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_p0_admin_visibility_fix.py"
+  ],
+  "success_rate": {
+    "backend": "100% (18/18 tests passed - 13 API tests + 5 unit tests)",
+    "frontend": "100% (Admin Daily Reports page loads with 1000 records visible)"
+  },
+  "seed_data_creation": "None - used existing production data and test credentials",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "P0 Admin visibility fix is verified. The fix in compute_pm_scope (lines 306-378) correctly identifies dict-shaped admin actors from make_require_any_portal_token as unrestricted admins by checking multiple admin indicators including 'admin' in portals list. All operational endpoints return non-empty data for admin. PM scoping is preserved - cert.pm user remains project-scoped. Test credentials: Admin=jaymn.judd@mascigc.com/Maddix123!, PM=cert.pm@example.com/CertProof2026!",
+  "rca_of_the_issue": "Root Cause: In compute_pm_scope, dict-shaped admin actors from cross-portal reads (via make_require_any_portal_token in routes/integrations/_deps.py) were not being recognized as admins because the function only checked for specific actor markers like _actor=='admin' or is_admin==True, but the cross-portal admin actor had 'admin' in its portals list instead. Fix: Added check for 'admin' in portals list at line 331: (isinstance(portals, (list, tuple, set)) and 'admin' in portals). This ensures admin actors from any authentication path are correctly identified as unrestricted."
+}
