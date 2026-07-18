@@ -28,7 +28,9 @@ from branding_resolver import resolve_sender_email as _resolve_sender_email, res
 
 
 ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
+_BOOT_APP_ENV = (os.environ.get("APP_ENV") or "").strip().lower()
+if _BOOT_APP_ENV != "production":
+    load_dotenv(ROOT_DIR / '.env')
 # 2026-02-10 · `.env.preview` loader REMOVED following the production-deploy
 # incident where preview env-vars contaminated production. The deploy pipeline
 # snapshots the preview pod's filesystem so any preview-only override file
@@ -1639,25 +1641,35 @@ configure_runtime(
 # requests, which is far safer than silently corrupting production data.
 # ---------------------------------------------------------------------------
 def _verify_env_db_alignment(app_env: str, db_name: str, mongo_url: str) -> None:
-    is_preview_db = db_name.endswith("_preview")
+    if not mongo_url:
+        raise RuntimeConfigError('MONGO_URL missing at runtime')
+    if not db_name:
+        raise RuntimeConfigError('DB_NAME missing at runtime')
+    normalized_env = (app_env or '').strip().lower()
+    if normalized_env not in {'preview', 'production', 'test'}:
+        raise RuntimeConfigError(
+            f'APP_ENV must be preview or production at runtime, got {normalized_env or "<missing>"}'
+        )
+
+    normalized_db_name = str(db_name).strip()
+    is_preview_db = normalized_db_name.lower().endswith("_preview")
     banner = "═" * 78
     print(f"\n{banner}")
     print(f"  MASCI-HUB ENVIRONMENT SAFETY CHECK")
-    print(f"  APP_ENV : {app_env}")
-    print(f"  DB_NAME : {db_name}")
+    print(f"  APP_ENV : {normalized_env}")
+    print(f"  DB_NAME : {normalized_db_name}")
     print(f"  Atlas   : {mongo_url.split('@')[-1].split('/')[0] if '@' in mongo_url else '(local)'}")
-    if app_env == "preview" and not is_preview_db:
+    if normalized_env == "preview" and not is_preview_db:
         print(f"  STATUS  : 🚨  REFUSING TO START — preview env pointed at non-preview DB")
         print(f"{banner}\n")
         raise RuntimeError(
-            f"APP_ENV=preview must use a DB_NAME ending in `_preview`. "
-            f"Refusing to start with DB_NAME={db_name!r} to prevent production data corruption."
+            f"Preview runtime must use a preview DB name; got {normalized_db_name!r}"
         )
-    if app_env != "preview" and is_preview_db:
+    if normalized_env == "production" and is_preview_db:
         print(f"  STATUS  : 🚨  REFUSING TO START — production env pointed at preview DB")
         print(f"{banner}\n")
         raise RuntimeError(
-            f"APP_ENV={app_env} cannot use a `_preview` database. Refusing to start with DB_NAME={db_name!r}."
+            f"Production runtime refuses preview DB name {normalized_db_name!r}; owner/support must confirm the correct production DB_NAME in deployment config"
         )
     print(f"  STATUS  : 🟢 SAFE — env and database aligned")
     print(f"{banner}\n")

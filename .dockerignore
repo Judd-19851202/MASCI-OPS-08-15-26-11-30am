@@ -2,3 +2,5 @@ memory/
 tmp_photo_fixture/
 backend/backups/
 test_reports/
+node_modules/
+frontend/node_modules/
