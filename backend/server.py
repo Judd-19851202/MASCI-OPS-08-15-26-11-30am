@@ -143,6 +143,27 @@ def _load_runtime_db_config(*, require_runtime: bool) -> RuntimeDbConfig:
 client = None
 db = RuntimeDbProxy()
 
+
+def _mongo_client_kwargs() -> Dict[str, Any]:
+    """Fail fast on Atlas / remote-Mongo startup issues.
+
+    Preview's local Mongo connects quickly, but production deploys use a
+    dedicated Atlas cluster. Without explicit server-selection / connect /
+    socket timeouts, a bad Atlas URI, DNS/TLS stall, auth mismatch, or IP
+    allowlist problem can keep startup handlers blocked for too long and the
+    Kubernetes rollout never becomes ready.
+
+    Tight, explicit timeouts let the pod fail fast with a truthful startup
+    error instead of hanging until the deployment readiness window expires.
+    """
+    return {
+        "tz_aware": True,
+        "maxPoolSize": 50,
+        "serverSelectionTimeoutMS": int(os.environ.get("MONGO_SERVER_SELECTION_TIMEOUT_MS", "8000") or "8000"),
+        "connectTimeoutMS": int(os.environ.get("MONGO_CONNECT_TIMEOUT_MS", "8000") or "8000"),
+        "socketTimeoutMS": int(os.environ.get("MONGO_SOCKET_TIMEOUT_MS", "15000") or "15000"),
+    }
+
 app = FastAPI(
     title="MASCI Job Site Safety Inspection API",
     # TRACK 22.1D · Deterministic FastAPI lifespan foundation.
@@ -382,8 +403,12 @@ async def _bootstrap_runtime_db() -> None:
 
     cfg = _load_runtime_db_config(require_runtime=True)
     _verify_env_db_alignment(cfg.app_env or "production", cfg.db_name, cfg.mongo_url)
-    client = AsyncIOMotorClient(cfg.mongo_url, tz_aware=True, maxPoolSize=50)
+    client = AsyncIOMotorClient(cfg.mongo_url, **_mongo_client_kwargs())
     database = client[cfg.db_name]
+    # Force an upfront handshake so Atlas / auth / DNS failures surface during
+    # startup immediately instead of stalling later lifecycle steps until the
+    # deployment readiness window times out.
+    await database.command("ping")
     db.set_target(database)
     app.state.mongo_client = client
     app.state.db = database
