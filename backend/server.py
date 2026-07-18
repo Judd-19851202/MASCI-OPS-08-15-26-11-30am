@@ -1606,8 +1606,12 @@ configure_runtime(
         "app_env": (os.environ.get("APP_ENV") or "production").lower(),
         "db_name": os.environ.get("DB_NAME") or "unknown",
         "instance_fingerprint": _INSTANCE_FINGERPRINT,
-        "reload_enabled": True,
-        "server_command": "uvicorn server:app --host 0.0.0.0 --port 8001 --workers 1 --reload",
+        "reload_enabled": ((os.environ.get("APP_ENV") or "production").lower() != "production"),
+        "server_command": (
+            "uvicorn server:app --host 0.0.0.0 --port 8001 --workers 1 --reload"
+            if ((os.environ.get("APP_ENV") or "production").lower() != "production")
+            else "uvicorn server:app --host 0.0.0.0 --port 8001 --workers 1"
+        ),
     },
 )
 
