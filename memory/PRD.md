@@ -13590,3 +13590,30 @@ P0 root-caused: base64 photos poisoned the LLM prompt (instant call failure → 
 
 ### Notes
 - This phase is a strong foundation for Predictive Operations, but the broader user-requested phase still has room for enhancement (true drag/drop timeline editing persistence UX, richer CPM diagnostics, and future Monday Look-Behind reporting view).
+
+---
+
+## 2026-07-18 · Definitive production redeploy hardening
+
+### Applied for owner-directed restore build
+- Added root `.dockerignore` to cut deployment build context by excluding:
+  - `memory/`
+  - `tmp_photo_fixture/`
+  - `backend/backups/`
+  - `test_reports/`
+- Increased Mongo/Atlas startup timeouts to 30 seconds for:
+  - `serverSelectionTimeoutMS`
+  - `connectTimeoutMS`
+  - `socketTimeoutMS`
+- Added startup ping stabilisation retry logic:
+  - first ping failure logs a warning
+  - backend waits, then retries instead of exiting immediately
+- Runtime DB config now still reads `DB_NAME` from env, but in `APP_ENV=production` it defaults to `masci_safety_preview` if `DB_NAME` is absent, matching the owner/support-directed production target for this deployment.
+
+### Verification
+- `.dockerignore` created at repo root
+- Focused backend tests cover:
+  - 30s Mongo timeout defaults
+  - production DB name default fallback
+  - retry-once ping stabilisation behavior
+- Existing Elite layers were preserved; no Voice / Watchdog / Glass UI code paths were removed by this redeploy hardening.

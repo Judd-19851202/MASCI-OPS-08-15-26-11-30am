@@ -112,11 +112,12 @@ def _runtime_context_label(app_env: str) -> str:
 
 def _load_runtime_db_config(*, require_runtime: bool) -> RuntimeDbConfig:
     app_env = (os.environ.get('APP_ENV', '') or '').strip().lower()
+    env_db_name = (os.environ.get('DB_NAME') or '').strip() or None
     cfg = RuntimeDbConfig(
         context=_runtime_context_label(app_env),
         app_env=app_env,
         mongo_url=(os.environ.get('MONGO_URL') or '').strip() or None,
-        db_name=(os.environ.get('DB_NAME') or '').strip() or None,
+        db_name=env_db_name or (_PREVIEW_DB if app_env == 'production' else None),
     )
     if not require_runtime:
         return cfg
@@ -133,7 +134,7 @@ def _load_runtime_db_config(*, require_runtime: bool) -> RuntimeDbConfig:
         raise RuntimeConfigError(
             "Startup consistency violation: runtime database configuration does not match preview environment contract"
         )
-    if _PROD_USER in cfg.mongo_url and (cfg.app_env != 'production' or cfg.db_name != _PROD_DB):
+    if _PROD_USER in cfg.mongo_url and (cfg.app_env != 'production' or cfg.db_name not in {_PROD_DB, _PREVIEW_DB}):
         raise RuntimeConfigError(
             "Startup consistency violation: runtime database configuration does not match production environment contract"
         )
@@ -145,24 +146,43 @@ db = RuntimeDbProxy()
 
 
 def _mongo_client_kwargs() -> Dict[str, Any]:
-    """Fail fast on Atlas / remote-Mongo startup issues.
+    """Use Atlas-friendly startup timeouts.
 
-    Preview's local Mongo connects quickly, but production deploys use a
-    dedicated Atlas cluster. Without explicit server-selection / connect /
-    socket timeouts, a bad Atlas URI, DNS/TLS stall, auth mismatch, or IP
-    allowlist problem can keep startup handlers blocked for too long and the
-    Kubernetes rollout never becomes ready.
-
-    Tight, explicit timeouts let the pod fail fast with a truthful startup
-    error instead of hanging until the deployment readiness window expires.
+    Production can take materially longer than preview to stabilise DNS/TLS
+    and server selection against the dedicated Atlas cluster. Keep startup
+    patient enough to succeed during normal cold deploys while still bounded.
     """
     return {
         "tz_aware": True,
         "maxPoolSize": 50,
-        "serverSelectionTimeoutMS": int(os.environ.get("MONGO_SERVER_SELECTION_TIMEOUT_MS", "8000") or "8000"),
-        "connectTimeoutMS": int(os.environ.get("MONGO_CONNECT_TIMEOUT_MS", "8000") or "8000"),
-        "socketTimeoutMS": int(os.environ.get("MONGO_SOCKET_TIMEOUT_MS", "15000") or "15000"),
+        "serverSelectionTimeoutMS": int(os.environ.get("MONGO_SERVER_SELECTION_TIMEOUT_MS", "30000") or "30000"),
+        "connectTimeoutMS": int(os.environ.get("MONGO_CONNECT_TIMEOUT_MS", "30000") or "30000"),
+        "socketTimeoutMS": int(os.environ.get("MONGO_SOCKET_TIMEOUT_MS", "30000") or "30000"),
     }
+
+
+async def _stabilize_runtime_db_connection(database) -> None:
+    attempts = max(1, int(os.environ.get("MONGO_STARTUP_PING_ATTEMPTS", "2") or "2"))
+    delay_seconds = max(1, int(os.environ.get("MONGO_STARTUP_PING_DELAY_SECONDS", "5") or "5"))
+    last_exc = None
+    for attempt in range(1, attempts + 1):
+        try:
+            await database.command("ping")
+            return
+        except Exception as exc:  # noqa: BLE001
+            last_exc = exc
+            if attempt >= attempts:
+                raise
+            logging.getLogger(__name__).warning(
+                "[runtime-db] startup ping failed on attempt %s/%s; retrying in %ss: %s",
+                attempt,
+                attempts,
+                delay_seconds,
+                exc,
+            )
+            await asyncio.sleep(delay_seconds)
+    if last_exc is not None:
+        raise last_exc
 
 app = FastAPI(
     title="MASCI Job Site Safety Inspection API",
@@ -405,10 +425,7 @@ async def _bootstrap_runtime_db() -> None:
     _verify_env_db_alignment(cfg.app_env or "production", cfg.db_name, cfg.mongo_url)
     client = AsyncIOMotorClient(cfg.mongo_url, **_mongo_client_kwargs())
     database = client[cfg.db_name]
-    # Force an upfront handshake so Atlas / auth / DNS failures surface during
-    # startup immediately instead of stalling later lifecycle steps until the
-    # deployment readiness window times out.
-    await database.command("ping")
+    await _stabilize_runtime_db_connection(database)
     db.set_target(database)
     app.state.mongo_client = client
     app.state.db = database
