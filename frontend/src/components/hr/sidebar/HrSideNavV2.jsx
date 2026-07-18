@@ -88,7 +88,7 @@ const SideNavLink = ({ to, label, desc, icon: Icon, end = false, stripe }) => {
       to={to}
       end={end}
       className={({ isActive }) =>
-        `block px-3 py-2.5 rounded-md transition-colors ${
+        `block px-3 py-2.5 rounded-xl transition-colors glass-blur glass-bg glass-dark ${
           isActive
             ? "bg-slate-800 text-white"
             : "text-slate-300 hover:bg-slate-800/60 hover:text-white"
@@ -105,10 +105,10 @@ const SideNavLink = ({ to, label, desc, icon: Icon, end = false, stripe }) => {
             style={isActive ? { color: stripe } : undefined}
           />
           <div className="min-w-0">
-            <div className="font-mono text-[11px] uppercase tracking-wide font-bold leading-tight">
+            <div className="font-mono text-[11px] uppercase tracking-wide font-bold leading-tight glass-text-light">
               {label}
             </div>
-            <div className="text-[10.5px] text-slate-400 leading-snug mt-0.5">
+            <div className="text-[10.5px] leading-snug mt-0.5 glass-text-muted-light">
               {desc}
             </div>
           </div>
@@ -132,7 +132,7 @@ const DomainGroup = ({ domain }) => (
         {domain.label}
       </span>
     </div>
-    <p className="px-3 text-[10.5px] text-slate-500 leading-snug mb-2">
+    <p className="px-3 text-[10.5px] leading-snug mb-2 glass-text-muted-light">
       {domain.subline}
     </p>
     <div className="space-y-0.5">
@@ -146,7 +146,7 @@ const DomainGroup = ({ domain }) => (
 export default function HrSideNavV2({ className = "" }) {
   return (
     <nav
-      className={`bg-slate-900 border-r border-slate-800 overflow-y-auto py-5 ${className}`}
+      className={`bg-slate-900 border-r border-slate-800 overflow-y-auto py-5 glass-blur glass-bg glass-dark elite-glass-sidebar rounded-[1.75rem] ${className}`}
       data-testid="hr-side-nav-desktop"
       aria-label="HR sidebar"
     >

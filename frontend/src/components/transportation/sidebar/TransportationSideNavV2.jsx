@@ -43,7 +43,7 @@ function DomainRow({ groupKey, label, meta, open, onToggle, active }) {
       onClick={() => onToggle(groupKey)}
       data-testid={`tx-nav-v2-domain-${groupKey}`}
       aria-expanded={open}
-      className={`group w-full flex items-stretch gap-0 rounded-md transition-colors text-left ${
+      className={`group w-full flex items-stretch gap-0 rounded-xl transition-colors text-left glass-blur glass-bg glass-dark ${
         active ? "bg-slate-800/60" : "hover:bg-slate-800/40"
       }`}
     >
@@ -53,13 +53,13 @@ function DomainRow({ groupKey, label, meta, open, onToggle, active }) {
         style={{ backgroundColor: meta.stripe }}
       />
       <span className="flex-1 min-w-0 flex items-start gap-2.5 px-3 py-2.5">
-        <Icon className="w-4 h-4 mt-0.5 shrink-0 text-slate-300" />
+        <Icon className="w-4 h-4 mt-0.5 shrink-0 text-slate-100 drop-shadow-[0_2px_8px_rgba(15,23,42,0.5)]" />
         <span className="flex-1 min-w-0">
-          <span className="block text-xs font-mono uppercase tracking-wider text-slate-200 font-semibold leading-tight">
+          <span className="block text-xs font-mono uppercase tracking-wider font-semibold leading-tight glass-text-light">
             {label}
           </span>
           {meta.subline && (
-            <span className="block text-[10px] text-slate-500 mt-0.5 leading-tight truncate">
+            <span className="block text-[10px] mt-0.5 leading-tight truncate glass-text-muted-light">
               {meta.subline}
             </span>
           )}
@@ -81,7 +81,7 @@ function ChildRow({ item, prefix, onNavigate }) {
       end={!!item.end}
       onClick={onNavigate}
       className={({ isActive }) =>
-        `flex items-start gap-2 pl-7 pr-3 py-2 rounded-md transition-colors min-h-[44px] ${
+        `flex items-start gap-2 pl-7 pr-3 py-2 rounded-xl transition-colors min-h-[44px] glass-blur glass-bg glass-dark ${
           isActive
             ? "bg-slate-800 text-white"
             : "text-slate-300 hover:bg-slate-800/60 hover:text-white"
@@ -91,7 +91,7 @@ function ChildRow({ item, prefix, onNavigate }) {
     >
       <Icon className="w-3.5 h-3.5 mt-1 shrink-0 opacity-70" />
       <span className="min-w-0">
-        <span className="block text-sm font-medium leading-tight">{item.label}</span>
+        <span className="block text-sm font-medium leading-tight glass-text-light">{item.label}</span>
       </span>
     </NavLink>
   );
@@ -143,7 +143,7 @@ export default function TransportationSideNavV2({ onNavigate }) {
   };
 
   return (
-    <nav className="space-y-3 p-3" data-testid="tx-side-nav-v2">
+    <nav className="space-y-3 p-3 glass-blur glass-bg glass-dark elite-glass-sidebar rounded-[1.75rem]" data-testid="tx-side-nav-v2">
       {groups.map((g) => {
         const meta = TX_DOMAIN_META[g.key] || TX_DOMAIN_DEFAULT_META;
         const open = openDomains.includes(g.key);

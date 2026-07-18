@@ -39,7 +39,7 @@ function DomainRow({ domain, open, onToggle, activeId }) {
       onClick={() => onToggle(domain.id)}
       data-testid={`admin-nav-v2-domain-${domain.id}`}
       aria-expanded={open}
-      className={`group w-full flex items-stretch gap-0 rounded-md transition-colors text-left ${
+      className={`group w-full flex items-stretch gap-0 rounded-xl transition-colors text-left glass-blur glass-bg glass-dark ${
         isActive ? "bg-slate-800/60" : "hover:bg-slate-800/40"
       }`}
     >
@@ -49,12 +49,12 @@ function DomainRow({ domain, open, onToggle, activeId }) {
         style={{ backgroundColor: domain.stripe }}
       />
       <span className="flex-1 min-w-0 flex items-start gap-2.5 px-3 py-2.5">
-        <Icon className="w-4 h-4 mt-0.5 shrink-0 text-slate-300" />
+        <Icon className="w-4 h-4 mt-0.5 shrink-0 text-slate-100 drop-shadow-[0_2px_8px_rgba(15,23,42,0.5)]" />
         <span className="flex-1 min-w-0">
-          <span className="block text-xs font-mono uppercase tracking-wider text-slate-200 font-semibold leading-tight">
+          <span className="block text-xs font-mono uppercase tracking-wider font-semibold leading-tight glass-text-light">
             {domain.label}
           </span>
-          <span className="block text-[10px] text-slate-500 mt-0.5 leading-tight truncate">
+          <span className="block text-[10px] mt-0.5 leading-tight truncate glass-text-muted-light">
             {domain.subline}
           </span>
         </span>
@@ -74,7 +74,7 @@ function ChildRow({ route, onNavigate }) {
       end={!!route.end}
       onClick={onNavigate}
       className={({ isActive }) =>
-        `flex items-start gap-2 pl-7 pr-3 py-2 rounded-md transition-colors min-h-[44px] ${
+        `flex items-start gap-2 pl-7 pr-3 py-2 rounded-xl transition-colors min-h-[44px] glass-blur glass-bg glass-dark ${
           isActive
             ? "bg-slate-800 text-white"
             : "text-slate-300 hover:bg-slate-800/60 hover:text-white"
@@ -84,8 +84,8 @@ function ChildRow({ route, onNavigate }) {
     >
       <Icon className="w-3.5 h-3.5 mt-1 shrink-0 opacity-70" />
       <span className="min-w-0">
-        <span className="block text-sm font-medium leading-tight">{route.label}</span>
-        <span className="block text-[10px] text-slate-500 mt-0.5 leading-tight truncate">
+        <span className="block text-sm font-medium leading-tight glass-text-light">{route.label}</span>
+        <span className="block text-[10px] mt-0.5 leading-tight truncate glass-text-muted-light">
           {route.desc}
         </span>
       </span>
@@ -122,7 +122,7 @@ export default function SideNavV2({ onNavigate }) {
   };
 
   return (
-    <nav className="space-y-3 p-3" data-testid="admin-side-nav admin-side-nav-v2">
+    <nav className="space-y-3 p-3 glass-blur glass-bg glass-dark elite-glass-sidebar rounded-[1.75rem]" data-testid="admin-side-nav admin-side-nav-v2">
       {DOMAINS_V2.map((domain) => {
         const open = openDomains.includes(domain.id);
         return (
@@ -139,8 +139,8 @@ export default function SideNavV2({ onNavigate }) {
         );
       })}
 
-      <div className="pt-3 mt-3 border-t border-slate-800 space-y-0.5" data-testid="admin-nav-v2-footer-rail">
-        <div className="px-3 pb-1 text-[10px] font-mono uppercase tracking-wider text-slate-500">Pinned</div>
+      <div className="pt-3 mt-3 border-t border-slate-700/70 space-y-0.5" data-testid="admin-nav-v2-footer-rail">
+        <div className="px-3 pb-1 text-[10px] font-mono uppercase tracking-wider glass-text-muted-light">Pinned</div>
         {FOOTER_RAIL_V2.map((r) => (
           <ChildRow key={r.to} route={r} onNavigate={onNavigate} />
         ))}

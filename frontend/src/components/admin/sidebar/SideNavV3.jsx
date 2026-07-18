@@ -45,7 +45,7 @@ function DomainRow({ domain, open, onToggle, activeId }) {
       onClick={() => onToggle(domain.id)}
       data-testid={`admin-nav-v3-domain-${domain.id}`}
       aria-expanded={open}
-      className={`group w-full flex items-stretch gap-0 rounded-md transition-colors text-left ${
+      className={`group w-full flex items-stretch gap-0 rounded-xl transition-colors text-left glass-blur glass-bg glass-dark ${
         isActive ? "bg-slate-800/70" : "hover:bg-slate-800/40"
       }`}
     >
@@ -55,12 +55,12 @@ function DomainRow({ domain, open, onToggle, activeId }) {
         style={{ backgroundColor: domain.stripe }}
       />
       <span className="flex-1 min-w-0 flex items-start gap-2.5 px-3 py-2.5">
-        <Icon className="w-4 h-4 mt-0.5 shrink-0 text-slate-200" />
+        <Icon className="w-4 h-4 mt-0.5 shrink-0 text-slate-100 drop-shadow-[0_2px_8px_rgba(15,23,42,0.5)]" />
         <span className="flex-1 min-w-0">
-          <span className="block text-xs uppercase tracking-wider text-slate-100 font-semibold leading-tight">
+          <span className="block text-xs uppercase tracking-wider font-semibold leading-tight glass-text-light">
             {domain.label}
           </span>
-          <span className="block text-[10.5px] text-slate-400 mt-0.5 leading-tight truncate">
+          <span className="block text-[10.5px] mt-0.5 leading-tight truncate glass-text-muted-light">
             {domain.subline}
           </span>
         </span>
@@ -82,7 +82,7 @@ function ChildRow({ route, onNavigate }) {
       end={!!route.end}
       onClick={onNavigate}
       className={({ isActive }) =>
-        `flex items-start gap-2 pl-8 pr-3 py-2 rounded-md transition-colors min-h-[40px] ${
+        `flex items-start gap-2 pl-8 pr-3 py-2 rounded-xl transition-colors min-h-[40px] glass-blur glass-bg glass-dark ${
           isActive
             ? "bg-slate-800 text-white"
             : "text-slate-300 hover:bg-slate-800/60 hover:text-white"
@@ -92,11 +92,11 @@ function ChildRow({ route, onNavigate }) {
     >
       {Icon ? <Icon className="w-3.5 h-3.5 mt-1 shrink-0 opacity-70" /> : null}
       <span className="min-w-0">
-        <span className="block text-sm font-medium leading-tight">
+        <span className="block text-sm font-medium leading-tight glass-text-light">
           {route.label}
         </span>
         {route.desc ? (
-          <span className="block text-[10.5px] text-slate-500 mt-0.5 leading-tight truncate">
+          <span className="block text-[10.5px] mt-0.5 leading-tight truncate glass-text-muted-light">
             {route.desc}
           </span>
         ) : null}
@@ -139,22 +139,22 @@ export default function SideNavV3({ onNavigate, onOpenPalette }) {
 
   return (
     <nav
-      className="space-y-3 p-3 elite-fluid-stack"
+      className="space-y-3 p-3 elite-fluid-stack glass-blur glass-bg glass-dark elite-glass-sidebar rounded-[1.75rem]"
       data-testid="admin-side-nav-v3"
       aria-label="Administrative navigation"
     >
       <button
         type="button"
         onClick={onOpenPalette}
-        className="w-full flex items-center gap-2 px-3 py-2 rounded-[1rem] bg-slate-900/60 border border-white/15 text-slate-300 hover:bg-slate-800 hover:text-white transition-colors elite-glass-panel"
+        className="w-full flex items-center gap-2 px-3 py-2 rounded-[1rem] bg-slate-900/60 border border-white/15 hover:bg-slate-800 transition-colors elite-glass-panel glass-blur glass-bg glass-dark"
         data-testid="admin-nav-v3-open-palette"
         aria-label="Open universal search"
       >
         <Search className="w-3.5 h-3.5 shrink-0" />
-        <span className="text-xs font-medium flex-1 text-left">
+        <span className="text-xs font-medium flex-1 text-left glass-text-light">
           Search everything
         </span>
-        <kbd className="text-[10px] px-1.5 py-0.5 rounded border border-slate-700 text-slate-400 font-mono">
+        <kbd className="text-[10px] px-1.5 py-0.5 rounded border border-slate-700 font-mono glass-text-muted-light">
           ⌘K
         </kbd>
       </button>

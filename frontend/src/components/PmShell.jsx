@@ -71,7 +71,7 @@ export { SECTIONS };
 
 function SideNav({ active, onNavigate }) {
   return (
-    <nav className="space-y-1 p-3" data-testid="pm-side-nav">
+    <nav className="space-y-1 p-3 glass-blur glass-bg glass-dark elite-glass-sidebar rounded-[1.75rem]" data-testid="pm-side-nav">
       {SECTIONS.map((s) => (
         <NavLink
           key={s.key}
@@ -79,7 +79,7 @@ function SideNav({ active, onNavigate }) {
           end={s.key === "overview"}
           onClick={onNavigate}
           className={({ isActive }) =>
-            `group flex items-start gap-2.5 rounded-md px-3 py-2.5 transition-colors ${
+            `group flex items-start gap-2.5 rounded-xl px-3 py-2.5 transition-colors glass-blur glass-bg glass-dark ${
               isActive || s.key === active
                 ? "bg-amber-600 text-white shadow-sm"
                 : "text-slate-200 hover:bg-slate-800 hover:text-white"
@@ -89,8 +89,8 @@ function SideNav({ active, onNavigate }) {
         >
           <s.icon className="w-4 h-4 mt-0.5 shrink-0" />
           <div className="min-w-0">
-            <div className="text-sm font-bold leading-tight">{s.label}</div>
-            <div className="text-[10px] uppercase tracking-wider opacity-70 mt-0.5 leading-tight font-mono">
+            <div className="text-sm font-bold leading-tight glass-text-light">{s.label}</div>
+            <div className="text-[10px] uppercase tracking-wider opacity-90 mt-0.5 leading-tight font-mono glass-text-muted-light">
               {s.desc}
             </div>
           </div>
@@ -137,9 +137,9 @@ export default function PmShell({ title, section, children, intro }) {
                 <MenuIcon className="w-5 h-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="bg-slate-900 border-r-2 border-amber-600 p-0 w-72 flex flex-col">
-              <SheetHeader className="px-4 pt-4 pb-2 border-b border-slate-800 shrink-0">
-                <SheetTitle className="text-white font-display text-lg flex items-center gap-2">
+            <SheetContent side="left" className="bg-slate-900 border-r-2 border-amber-600 p-0 w-72 flex flex-col glass-blur glass-bg glass-dark elite-glass-sidebar">
+              <SheetHeader className="px-4 pt-4 pb-2 border-b border-slate-800 shrink-0 glass-blur glass-bg glass-dark">
+                <SheetTitle className="font-display text-lg flex items-center gap-2 glass-text-light">
                   <Briefcase className="w-4 h-4 text-amber-400" /> Project Management
                 </SheetTitle>
               </SheetHeader>
@@ -238,7 +238,7 @@ export default function PmShell({ title, section, children, intro }) {
           className="hidden lg:block w-64 shrink-0 self-start sticky top-[72px]"
           data-testid="pm-side-nav-desktop"
         >
-          <div className="rounded-md bg-slate-900 border-2 border-slate-800 overflow-hidden">
+          <div className="rounded-[1.75rem] bg-slate-900 border-2 border-slate-800 overflow-hidden glass-blur glass-bg glass-dark elite-glass-sidebar">
             {renderNav()}
           </div>
           <div className="mt-3 px-3 text-[9px] font-mono uppercase tracking-[0.22em] text-slate-400 flex items-center justify-between">
