@@ -113,11 +113,12 @@ def _runtime_context_label(app_env: str) -> str:
 def _load_runtime_db_config(*, require_runtime: bool) -> RuntimeDbConfig:
     app_env = (os.environ.get('APP_ENV', '') or '').strip().lower()
     env_db_name = (os.environ.get('DB_NAME') or '').strip() or None
+    forced_production_db_name = _PREVIEW_DB if app_env == 'production' else None
     cfg = RuntimeDbConfig(
         context=_runtime_context_label(app_env),
         app_env=app_env,
         mongo_url=(os.environ.get('MONGO_URL') or '').strip() or None,
-        db_name=env_db_name or (_PREVIEW_DB if app_env == 'production' else None),
+        db_name=forced_production_db_name or env_db_name,
     )
     if not require_runtime:
         return cfg
