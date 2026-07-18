@@ -118,6 +118,9 @@ def normalize_job_assignment(
         "cpm_activity_id": str(src.get("cpm_activity_id") or "").strip(),
         "cpm_activity_name": str(src.get("cpm_activity_name") or "").strip(),
         "schedule_phase": str(src.get("schedule_phase") or "").strip(),
+        "schedule_start_date": _clean_str(src.get("schedule_start_date") or src.get("planned_start_date")),
+        "duration_days": max(1, int(_to_float(src.get("duration_days"), default=1))),
+        "predecessor_codes": _coerce_string_list(src.get("predecessor_codes") or src.get("predecessors")),
         "planned_performer": _clean_str(src.get("planned_performer") or src.get("performer_plan")),
         "notes": str(src.get("notes") or "").strip(),
     }
@@ -140,6 +143,9 @@ def serialize_assignment(row: Dict[str, Any], *, include_financial: bool = False
         "cpm_activity_id": _clean_str(row.get("cpm_activity_id")),
         "cpm_activity_name": _clean_str(row.get("cpm_activity_name")),
         "schedule_phase": _clean_str(row.get("schedule_phase")),
+        "schedule_start_date": _clean_str(row.get("schedule_start_date")),
+        "duration_days": max(1, int(_to_float(row.get("duration_days"), default=1))),
+        "predecessor_codes": _coerce_string_list(row.get("predecessor_codes") or row.get("predecessors")),
         "planned_performer": _clean_str(row.get("planned_performer") or row.get("performer_plan")),
         "notes": _clean_str(row.get("notes")),
     }
@@ -161,6 +167,9 @@ def build_project_cost_code_option(row: Dict[str, Any]) -> Dict[str, Any]:
         "cpm_activity_id": assignment.get("cpm_activity_id") or "",
         "cpm_activity_name": assignment.get("cpm_activity_name") or "",
         "schedule_phase": assignment.get("schedule_phase") or "",
+        "schedule_start_date": assignment.get("schedule_start_date") or "",
+        "duration_days": assignment.get("duration_days") or 1,
+        "predecessor_codes": assignment.get("predecessor_codes") or [],
     }
 
 
@@ -170,6 +179,9 @@ def build_legacy_cost_code_projection(assignments: List[Dict[str, Any]]) -> List
             "code": _clean_str(row.get("code")),
             "description": _clean_str(row.get("item_name") or row.get("description") or row.get("code")),
             "active": bool(row.get("active", True)),
+            "schedule_start_date": _clean_str(row.get("schedule_start_date")),
+            "duration_days": max(1, int(_to_float(row.get("duration_days"), default=1))),
+            "predecessor_codes": _coerce_string_list(row.get("predecessor_codes") or row.get("predecessors")),
         }
         for row in assignments or []
         if _clean_str(row.get("code"))
@@ -257,6 +269,14 @@ def build_progress_snapshot(assignments: List[Dict[str, Any]], daily_rows: List[
         )
         installed_quantity = round(totals_by_code.get(code, 0.0), 4)
         progress_pct = round((installed_quantity / authorized_quantity) * 100.0, 2) if authorized_quantity > 0 else 0.0
+        report_dates = sorted({
+            str(row.get("report_date") or "")
+            for row in (daily_rows or [])
+            if str(row.get("cost_code") or "").strip() == code and str(row.get("report_date") or "").strip()
+        })
+        actual_start_date = report_dates[0] if report_dates else ""
+        actual_finish_date = report_dates[-1] if report_dates and progress_pct >= 100 else ""
+        last_progress_date = report_dates[-1] if report_dates else ""
         overrun_quantity = round(max(installed_quantity - authorized_quantity, 0.0), 4)
         original_total += original_quantity
         authorized_total += authorized_quantity
@@ -281,6 +301,12 @@ def build_progress_snapshot(assignments: List[Dict[str, Any]], daily_rows: List[
             "cpm_activity_id": str(assignment.get("cpm_activity_id") or ""),
             "cpm_activity_name": str(assignment.get("cpm_activity_name") or ""),
             "schedule_phase": str(assignment.get("schedule_phase") or ""),
+            "schedule_start_date": _clean_str(assignment.get("schedule_start_date")),
+            "duration_days": max(1, int(_to_float(assignment.get("duration_days"), default=1))),
+            "predecessor_codes": _coerce_string_list(assignment.get("predecessor_codes") or assignment.get("predecessors")),
+            "actual_start_date": actual_start_date,
+            "actual_finish_date": actual_finish_date,
+            "last_progress_date": last_progress_date,
             "status": "overrun" if overrun_quantity > 0 else ("in_progress" if installed_quantity > 0 else "not_started"),
         })
 
@@ -337,7 +363,7 @@ async def load_project_cost_code_actuals(db, project_number: str) -> List[Dict[s
         return []
     query = apply_synthetic_dr_exclusion({"project_number": project_number})
     try:
-        reports = await db.daily_reports.find(query, {"_id": 0, "cost_code_quantities": 1}).to_list(5000)
+        reports = await db.daily_reports.find(query, {"_id": 0, "cost_code_quantities": 1, "report_date": 1}).to_list(5000)
     except Exception as exc:  # noqa: BLE001
         logger.warning("[cost-codes] actual load failed for %s: %s", project_number, exc)
         return []
@@ -345,7 +371,9 @@ async def load_project_cost_code_actuals(db, project_number: str) -> List[Dict[s
     for report in reports:
         for row in (report.get("cost_code_quantities") or []):
             if isinstance(row, dict):
-                rows.append(dict(row))
+                item = dict(row)
+                item.setdefault("report_date", report.get("report_date") or "")
+                rows.append(item)
     return rows
 
 
@@ -398,6 +426,9 @@ def build_ods_project_cost_code_doc(
             "sort_order": item.get("sort_order", 0),
             "notes": item.get("notes") or "",
             "planned_performer": item.get("planned_performer") or "",
+            "schedule_start_date": item.get("schedule_start_date") or "",
+            "duration_days": item.get("duration_days") or 1,
+            "predecessor_codes": item.get("predecessor_codes") or [],
         })
     return {
         "project_id": project_number,

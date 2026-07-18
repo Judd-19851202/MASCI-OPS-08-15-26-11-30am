@@ -8,21 +8,24 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel, Field
 
 from pm_auth import compute_pm_scope
 from services.cost_codes import get_provider
 from services.cost_codes.foundation import (
     ALLOWED_UNITS,
+    build_progress_snapshot,
     build_project_cost_code_option,
     load_project_assignments,
+    load_project_cost_code_actuals,
     persist_project_assignments,
     recompute_project_progress as recompute_project_progress_snapshot,
     normalize_job_assignment,
     normalize_registry_item,
     serialize_assignment,
 )
+from services.cost_codes.schedule_engine import build_schedule_snapshot, render_dot_schedule_pdf
 
 REGISTRY_COLLECTION = "cost_code_registry"
 logger = logging.getLogger(__name__)
@@ -63,6 +66,22 @@ class ProjectAssignmentsBody(BaseModel):
     assignments: List[ProjectAssignmentIn] = Field(default_factory=list)
 
 
+class ScheduleTaskUpdateIn(BaseModel):
+    code: str = Field(min_length=1, max_length=120)
+    schedule_start_date: Optional[str] = ""
+    duration_days: int = Field(default=1, ge=1, le=365)
+    predecessor_codes: List[str] = Field(default_factory=list)
+    cpm_activity_id: Optional[str] = ""
+    cpm_activity_name: Optional[str] = ""
+    schedule_phase: Optional[str] = ""
+    planned_performer: Optional[str] = ""
+    notes: Optional[str] = ""
+
+
+class ProjectScheduleBody(BaseModel):
+    tasks: List[ScheduleTaskUpdateIn] = Field(default_factory=list)
+
+
 async def _is_admin_actor(actor: Any) -> bool:
     if actor is True:
         return True
@@ -77,6 +96,27 @@ async def _is_admin_actor(actor: Any) -> bool:
 async def _load_registry(db) -> List[Dict[str, Any]]:
     rows = await db[REGISTRY_COLLECTION].find({}, {"_id": 0}).sort("code", 1).to_list(5000)
     return rows
+
+
+def _actor_role(actor: Any) -> str:
+    if actor is True:
+        return "admin"
+    if isinstance(actor, dict):
+        return str(actor.get("role") or actor.get("_actor") or actor.get("_actor_kind") or "")
+    return ""
+
+
+async def _resolve_project_schedule(db, project_number: str) -> Dict[str, Any]:
+    assignments = await load_project_assignments(db, project_number)
+    progress = build_progress_snapshot(assignments, await load_project_cost_code_actuals(db, project_number)) if assignments else None
+    schedule = build_schedule_snapshot(assignments, progress)
+    return {
+        "project_number": project_number,
+        "assignments": [serialize_assignment(row, include_financial=False) for row in assignments],
+        "progress": progress,
+        "schedule": schedule,
+        "monday_look_behind_ready": True,
+    }
 
 
 async def _registry_index(db) -> Dict[str, Dict[str, Any]]:
@@ -200,6 +240,76 @@ def register_cost_code_routes(api_router: APIRouter, db, require_admin=None, req
         await _ensure_spine_indexes(db)
         progress = await recompute_project_progress_snapshot(db, project_number)
         return {"project_number": project_number, "progress": progress}
+
+    @api_router.get("/cost-codes/projects/{project_number}/schedule")
+    async def get_project_schedule(project_number: str, actor=Depends(read_dep)) -> Dict[str, Any]:
+        await _ensure_spine_indexes(db)
+        if _actor_role(actor) == "hr":
+            raise HTTPException(status_code=403, detail="PM or admin access required")
+        scope = await compute_pm_scope(db, actor)
+        if not scope.allows(project_number):
+            raise HTTPException(status_code=403, detail="Project not in PM scope")
+        payload = await _resolve_project_schedule(db, project_number)
+        payload["can_edit"] = True
+        payload["master_control"] = await _is_admin_actor(actor)
+        return payload
+
+    @api_router.put("/cost-codes/projects/{project_number}/schedule")
+    async def put_project_schedule(project_number: str, body: ProjectScheduleBody, actor=Depends(read_dep)) -> Dict[str, Any]:
+        await _ensure_spine_indexes(db)
+        if _actor_role(actor) == "hr":
+            raise HTTPException(status_code=403, detail="PM or admin access required")
+        scope = await compute_pm_scope(db, actor)
+        if not scope.allows(project_number):
+            raise HTTPException(status_code=403, detail="Project not in PM scope")
+        existing = await load_project_assignments(db, project_number)
+        if not existing:
+            raise HTTPException(status_code=404, detail="Project has no assigned cost codes to schedule")
+        existing_map = {str(row.get("code") or "").strip(): dict(row) for row in existing if str(row.get("code") or "").strip()}
+        for task in body.tasks:
+            code = str(task.code or "").strip()
+            if code not in existing_map:
+                raise HTTPException(status_code=404, detail=f"Cost code {code} is not assigned to this project")
+            current = dict(existing_map[code])
+            current.update({
+                "schedule_start_date": task.schedule_start_date or "",
+                "duration_days": int(task.duration_days or 1),
+                "predecessor_codes": list(task.predecessor_codes or []),
+                "cpm_activity_id": task.cpm_activity_id or current.get("cpm_activity_id") or "",
+                "cpm_activity_name": task.cpm_activity_name or current.get("cpm_activity_name") or "",
+                "schedule_phase": task.schedule_phase or current.get("schedule_phase") or "",
+                "planned_performer": task.planned_performer or current.get("planned_performer") or "",
+                "notes": task.notes if task.notes is not None else current.get("notes") or "",
+            })
+            existing_map[code] = normalize_job_assignment(current, None, current)
+        rows = [existing_map[str(row.get("code") or "").strip()] for row in existing if str(row.get("code") or "").strip() in existing_map]
+        for idx, row in enumerate(rows):
+            row["sort_order"] = idx
+        try:
+            await persist_project_assignments(db, project_number, rows)
+        except LookupError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        payload = await _resolve_project_schedule(db, project_number)
+        payload["ok"] = True
+        payload["can_edit"] = True
+        payload["master_control"] = await _is_admin_actor(actor)
+        return payload
+
+    @api_router.get("/cost-codes/projects/{project_number}/schedule/dot-report.pdf")
+    async def export_project_schedule_pdf(project_number: str, actor=Depends(read_dep)):
+        await _ensure_spine_indexes(db)
+        if _actor_role(actor) == "hr":
+            raise HTTPException(status_code=403, detail="PM or admin access required")
+        scope = await compute_pm_scope(db, actor)
+        if not scope.allows(project_number):
+            raise HTTPException(status_code=403, detail="Project not in PM scope")
+        payload = await _resolve_project_schedule(db, project_number)
+        pdf = render_dot_schedule_pdf(project_number, payload["schedule"])
+        return Response(
+            content=pdf,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f'attachment; filename="DOT_Schedule_{project_number}.pdf"'},
+        )
 
     @api_router.post("/cost-codes/projects/{project_number}/progress/recompute")
     async def recompute_project_progress(project_number: str, actor=Depends(read_dep)) -> Dict[str, Any]:

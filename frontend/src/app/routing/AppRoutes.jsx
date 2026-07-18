@@ -362,6 +362,7 @@ const PmProjectDetail = React.lazy(() => import("@/pages/PmProjectDetail"));
 // layer over certified project / recent-context / project-day /
 // material-movement / JHA / project_intelligence endpoints.
 const PmProjectThread = React.lazy(() => import("@/pages/PmProjectThread"));
+const PmProjectSchedule = React.lazy(() => import("@/pages/PmProjectSchedule"));
 // PM Command Center · Phase 4B · 2026-02-10
 // One operational command screen for the PM (resources · hauls ·
 // materials · shop · safety · timeline). Reads strictly from the
@@ -848,6 +849,7 @@ export function AppRoutes() {
             <Route path="/pm/job/:projectNumber/team" element={P(<PmJobTeam />)} />
             {/* Track 14.0-PM-STAFFING-UI-DISCOVERABILITY-CLOSURE */}
             <Route path="/pm/project-staffing"  element={P(<PmProjectStaffing />)} />
+            <Route path="/pm/project-schedule"  element={P(<PmProjectSchedule />)} />
             {/* Phase V-Prelude · Wave 1.1 · 2026-05-28.
                 Calm per-project detail surface hosting the Operational
                 Timeline sidecar. Mounted under /pm/* (PM portal

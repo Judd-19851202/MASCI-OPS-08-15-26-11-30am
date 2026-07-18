@@ -13558,3 +13558,35 @@ P0 root-caused: base64 photos poisoned the LLM prompt (instant call failure → 
 - This intentionally tightens CORS back to MASCI + the current preview domain only, with no arbitrary tenant wildcard trust.
 - Server CORS logic also hardened so the explicit allow-list path now disables `allow_origin_regex`; this prevents unrelated `*.emergent.host` / `*.emergentagent.com` tenants from being accepted when a strict list is configured.
 - `DB_NAME` was restored to `masci_safety_preview` in the preview sandbox because forcing `masci_safety` there trips the built-in preview/prod isolation guard and prevents startup. Production redeploy must still use the dedicated production environment value `DB_NAME=masci_safety` on the real production connection.
+
+---
+
+## 2026-07-18 · Predictive Operations phase — Scheduling & Cost-Code module foundation
+
+### Implemented
+- Added PM Portal route `/pm/project-schedule` with a single-project dashboard flow.
+- Built a 14-day rolling Project Schedule board (7 days back / 7 days forward) using Elite Glass UI.
+- Linked cost-code `% Complete` from Daily Report quantities directly into the schedule bars.
+- Added predecessor-driven CPM scheduling logic so delayed upstream tasks slide dependent forecast dates.
+- Added DOT Schedule PDF export endpoint:
+  - `/api/cost-codes/projects/{project_number}/schedule/dot-report.pdf`
+- Preserved PM/Co-PM scope via `compute_pm_scope`; Admin retains master access.
+- Marked Monday Look-Behind readiness in the schedule payload for later expansion this week.
+
+### Backend additions
+- `backend/services/cost_codes/schedule_engine.py`
+- `GET /api/cost-codes/projects/{project_number}/schedule`
+- `PUT /api/cost-codes/projects/{project_number}/schedule`
+- `GET /api/cost-codes/projects/{project_number}/schedule/dot-report.pdf`
+
+### Tests / verification
+- Added tests:
+  - `backend/tests/test_project_schedule_engine.py`
+  - `backend/tests/test_project_schedule_api.py`
+- Verified:
+  - `python -m pytest /app/backend/tests/test_project_schedule_engine.py /app/backend/tests/test_project_schedule_api.py -q` → `5 passed`
+  - local backend `/api/health` and `/api/version` return 200
+  - PM schedule preview page renders via screenshot smoke check
+
+### Notes
+- This phase is a strong foundation for Predictive Operations, but the broader user-requested phase still has room for enhancement (true drag/drop timeline editing persistence UX, richer CPM diagnostics, and future Monday Look-Behind reporting view).

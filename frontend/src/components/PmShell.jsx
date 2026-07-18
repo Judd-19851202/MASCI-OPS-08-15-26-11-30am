@@ -13,7 +13,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Building2, Wrench, Mail, Users, Truck, FileImage,
   ClipboardCheck, LogOut, Menu as MenuIcon, Home, Briefcase, UserCheck, KeyRound,
-  Activity, AlertOctagon, Camera, NotebookPen, ListChecks, Clock, ShieldAlert,
+  Activity, AlertOctagon, Camera, NotebookPen, ListChecks, Clock, ShieldAlert, CalendarRange,
   ClipboardList, Construction,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -45,6 +45,7 @@ const SECTIONS = [
   { key: "holds",           to: "/pm/holds",             icon: ClipboardList,   label: "Holds",           desc: "Unified hold queue across projects" },
   { key: "due-today",       to: "/pm/due-today",         icon: Clock,           label: "Due Today",       desc: "Actions and approvals due today" },
   { key: "jobs",            to: "/pm/jobs",              icon: Briefcase,       label: "Jobs",            desc: "Jobs assigned to you (read-only)" },
+  { key: "project-schedule", to: "/pm/project-schedule", icon: CalendarRange,    label: "Project Schedule", desc: "14-day rolling CPM board" },
   { key: "daily",           to: "/pm/daily",             icon: NotebookPen,     label: "Daily Reports",   desc: "Field activity across your projects" },
   { key: "incidents",       to: "/pm/incidents",         icon: AlertOctagon,    label: "Incidents · CAPAs", desc: "Severity-tagged review · open CAPAs" },
   { key: "meetings",        to: "/pm/meetings",          icon: Users,           label: "Safety Meetings", desc: "Toolbox talks · jobsite huddles" },
