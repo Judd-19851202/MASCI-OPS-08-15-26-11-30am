@@ -1,7 +1,0 @@
-defect_id,severity,status,portal_or_form,route,viewport,evidence,fix_ref
-B-05a,P1,CLOSED,PM Command Center,/pm/command-center,390px,docWidth==innerWidth==390 (regression-locked),already resolved in prior track; test_pm_command_center_390px_no_horizontal_overflow
-B-05b,P1,CLOSED,Dispatch Hub / Dispatch Map,/dispatch-portal,390px,docWidth==innerWidth==390 (regression-locked),already resolved in prior track; test_dispatch_map_390px_no_horizontal_overflow
-B-07,P1,CLOSED,PortalShell H1 wrap,shared design-system,390px,H1 measured at right=542 pre-hydration; fixed with overflowWrap:anywhere + min-w-0 flex-1,PortalShell.jsx
-B-08,P3,DEFERRED,Daily Report /dr/new,/dr/new,390px+1024px,route returns 404 shell (shell itself responsive),future route-inventory investigation
-B-08b,P3,DEFERRED,HR Request /hr/requests/new,/hr/requests/new,390px+1024px,route returns 404 shell (shell itself responsive),future route-inventory investigation
-P3-NAV-01,P3,DEFERRED,Leave-site modal on long forms,platform-wide,n/a,operator report,Unsaved-Changes / Leave-Site Modal Audit

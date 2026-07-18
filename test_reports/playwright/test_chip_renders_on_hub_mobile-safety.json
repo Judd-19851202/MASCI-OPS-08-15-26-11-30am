@@ -1,9 +1,0 @@
-{
-  "viewport": "mobile",
-  "url": "https://backup-forensics.preview.emergentagent.com/safety-portal?safetySidebarV2=1",
-  "console_tail": [
-    "[info] [sentry] initialised {env: preview, release: 740398bc1f9277a8edfdb1e92e5dc26d}",
-    "[warning] The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio",
-    "[warning] The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio"
-  ]
-}

@@ -1,3 +1,0 @@
-defect_id,severity,status,description,route,evidence,owner,fix_ref
-B-06,P1,CLOSED_2026-07-06,Driver Portal / DVIR routing blocked — no driver token for end-to-end certification,/api/dispatch/driver/* + /api/fleet/inspections,test_track_22_4b_followup_driver.py::test_driver_dvir_failure_routes_to_shop_queue,TRACK_22_4B_FOLLOWUP_DRIVER,driver_sessions.py::make_require_driver_session (PVI fallback added)
-P3-NAV-01,P3,DEFERRED,Repeated "Leave this page?" browser modal on long-form navigation,platform-wide,operator report,platform-wide Unsaved-Changes / Navigation Audit track,pending

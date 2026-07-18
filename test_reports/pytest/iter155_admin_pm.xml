@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="3" time="1.578" timestamp="2026-05-15T22:17:40.482373+00:00" hostname="agent-env-048a8fa0-4afe-49ee-81b3-30f0d0fa8b74"><testcase classname="backend.tests.test_iter155_admin_pm" name="test_admin_sees_all_14_kinds" time="0.810" /><testcase classname="backend.tests.test_iter155_admin_pm" name="test_pm_scope_kinds" time="0.559" /><testcase classname="backend.tests.test_iter155_admin_pm" name="test_pm_project_scope_enforced" time="0.170"><failure message="assert 422 == 200&#10; +  where 422 = &lt;Response [422]&gt;.status_code">backend/tests/test_iter155_admin_pm.py:115: in test_pm_project_scope_enforced
-    assert r.status_code == 200
-E   assert 422 == 200
-E    +  where 422 = &lt;Response [422]&gt;.status_code</failure></testcase></testsuite></testsuites>

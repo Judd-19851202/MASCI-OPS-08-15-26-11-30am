@@ -1,9 +1,0 @@
-NOW=2026-05-30T20:00:10.484330+00:00
-  scheduler_locks count: 5
-    lock=safety_digest             owner=safety-audit-mobile-1-5b8c946df5-fgpcv:23:6dbb6725 acq_age=1498s
-    lock=operator_digest           owner=safety-audit-mobile-1-5b8c946df5-fgpcv:23:454c0fc8 acq_age=1498s
-    lock=po_digest                 owner=safety-audit-mobile-1-5b8c946df5-fgpcv:23:bd4b7d22 acq_age=1498s
-    lock=backup_verification       owner=safety-audit-mobile-1-5b8c946df5-fgpcv:23:766326dd acq_age=1497s
-    lock=backup_scheduler          owner=safety-audit-mobile-1-5b8c946df5-fgpcv:23:a12e6832 acq_age=1492s
-  Latest complete-r2: 2026-05-30T19:42:51.287498+00:00 (age 17.3 min)
-  health_monitor latest: 2026-05-30 19:59:20.457000 age=50s overall=yellow

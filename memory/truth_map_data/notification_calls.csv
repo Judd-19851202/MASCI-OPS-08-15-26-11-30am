@@ -1,9 +1,0 @@
-file,line,code
-health_monitor.py,49,"async def _send_alert(red_cards: List[Dict[str, Any]], overall: str) -> bool:"
-health_monitor.py,200,"sent = await _send_alert(to_alert, overall)"
-server.py,8336,"async def _job_photos_send_email(*, to: str, subject: str, text: str, attachments=None):"
-server.py,8376,"async def _field_leadership_send_email(recipients, subject, html_body, attachments=None):"
-server.py,8543,"async def _hr_send_email(to_email: str, subject: str, html: str):"
-server.py,8619,"async def _safety_send_email(to_email: str, subject: str, html: str) -> bool:"
-server.py,9350,"async def _po_digest_send_email(to_email: str, subject: str, html: str) -> bool:"
-server.py,10027,"async def _directory_send_email(to: str, subject: str, html: str) -> None:"

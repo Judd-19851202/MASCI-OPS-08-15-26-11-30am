@@ -1,9 +1,0 @@
-event,source_file,triggered_by,side_effects,fires_leave_prompt,post_fix
-beforeunload,frontend/src/lib/resiliency/useFormDraft.js,form unmount / page nav / tab close,synchronously flush current form state to IDB,NO (silent),unchanged
-beforeunload,frontend/src/lib/usageTracker.js,any page unload,flush usage telemetry to backend,NO (silent),unchanged
-pagehide,frontend/src/lib/resiliency/useFormDraft.js,iOS bfcache eviction / tab close,flush current form state to IDB,NO,unchanged
-visibilitychange,frontend/src/lib/resiliency/useFormDraft.js,tab hidden,flush current form state to IDB,NO,unchanged
-publishSessionStatus{session_expired},axios interceptor on 401,any authed endpoint returning 401,shows SessionStatusOverlay unless ack-suppressed,NO (custom overlay - not the native prompt),unchanged behavior; ack-suppression now sticky
-publishSessionStatus{success_loaded},axios interceptor on 2xx,any endpoint 2xx (INCLUDING PUBLIC),clears the visual overlay; TRACK 22.4d FIX: no longer clears _ackSuppressed,NO,ROOT CAUSE FIXED — sticky ack persists across public-endpoint 2xx events
-clearSessionStatus,SessionStatusOverlay "Stay Here" button,user click,hides overlay + sets sticky ack for auth kinds,NO,unchanged
-resetSessionAck,SessionStatusOverlay "Log Back In" button + login pages on mount,user explicit re-auth,lifts sticky ack so next 401 can raise modal again,NO,unchanged

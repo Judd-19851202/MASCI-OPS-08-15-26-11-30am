@@ -1,2 +1,0 @@
-endpoint,method,handler_file,workflow_name,collection,identity_field,protection_before,protection_after,rollof_handling,tests
-POST /api/dispatch/assignments,POST,routes/dispatch_lifecycle.py :: create_assignment,dispatch_assignment,dispatch_assignments,id (uuid),UNPROTECTED (P2),PROTECTED (with_idempotency workflow=dispatch_assignment),Same handler · haul_type='Roll-Off' preserved · no separate roll_off_assignments collection,test_track_22_4b_followup_dispatch_idempotency.py (5 pass · 1 skip)

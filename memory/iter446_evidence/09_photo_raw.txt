@@ -1,4 +1,0 @@
-=== E · Photo raw endpoint sample (prior-batch regression check) ===
-PHOTO_ID=daily_report:9f05e2d1-43be-4550-bc1e-9a62a3a2f106:2
-HTTP=200 size=818B content-type=application/json
-{"data_url":"https://46400762d3027afbb26819a8de8528e6.r2.cloudflarestorage.com/masci-hub/photos/2026

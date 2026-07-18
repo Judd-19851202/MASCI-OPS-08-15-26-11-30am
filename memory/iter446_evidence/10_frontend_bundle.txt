@@ -1,3 +1,0 @@
-=== F · Frontend bundle probe — does /admin/scheduler-runs route exist in JS bundle? ===
-MAIN_JS=/static/js/main.c23ae9cd.js
-/static/js/main.c23ae9cd.js

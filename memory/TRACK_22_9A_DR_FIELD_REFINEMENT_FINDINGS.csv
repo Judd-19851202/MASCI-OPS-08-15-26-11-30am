@@ -1,6 +1,0 @@
-id,phase,severity,category,title,disposition,fix_applied
-D-01,3,P1,ai_wireup,"V1 Daily Report form had zero AI wiring",Fixed by inserting <DailySummaryAssist/> component before the sign-off band,YES
-D-02,2,P1,tenant_config,"masci tenant AI master switch was OFF (tenant_ai_enabled=false with note 'test cleanup')",Flipped ON via audited PUT /api/admin/ai/tenants/masci/capabilities — tenant_ai_enabled=true, daily_report_summary_enabled=true, version=10,YES
-D-03,4,P2,latency_target,"Cold synthesis at 25.69s (3 agents) exceeded operator's <10s target",Fixed by using single-agent (day_narrative only) synthesis in the assist — measured 8.66s cold, meets <10s target,YES
-D-04,5,P3,photo_intel,"Photo intelligence service exists but not wired into V1",Deferred to Track 22.9B — assist currently text-only. Photos still upload normally.,DEFERRED
-D-05,6,P3,pm_dashboard,"PM/project screens don't yet consume AI-generated summary",Deferred — accepted summary is persisted on the DR document as ai_accepted_summary field (schema-safe additive). PM screen consumers can pick it up in a follow-up track without any DR-side change.,DEFERRED

@@ -1,1 +1,0 @@
-{"detail":[{"type":"less_than_equal","loc":["query","since_hours"],"msg":"Input should be less than or equal to 168","input":"336","ctx":{"le":168},"url":"https://errors.pydantic.dev/2.12/v/less_than_equal"}]}

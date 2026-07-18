@@ -1,5 +1,0 @@
-=== B1 · sanity · unknown admin route should be 404, not 401 ===
-HTTP=404
-{"detail":"Not Found"}=== B2 · scheduler-runs detail route exists? ===
-HTTP=401
-{"detail":"Admin login required"}

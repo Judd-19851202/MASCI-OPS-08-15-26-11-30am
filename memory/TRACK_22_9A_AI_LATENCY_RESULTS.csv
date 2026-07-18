@@ -1,7 +1,0 @@
-scenario,agents,cache,measured_seconds,target_seconds,pass_fail,notes
-first useful summary (single agent),day_narrative,cold force=true,8.66,under 10,PASS,"Claude Sonnet 4.5 via Emergent Universal — grounded narrative, confidence 0.45"
-warm cache (evidence unchanged),day_narrative,warm,0.37,under 5,PASS,"cache hit — bypasses provider entirely"
-draft save,-,-,0.24,under 1,PASS,"POST /api/dr-v2/drafts"
-hard timeout (in component),day_narrative,-,15.0 max,-,ENFORCED,"REQUEST_TIMEOUT_MS=15000 · AbortController triggers deterministic fallback if provider exceeds this bound"
-submit path impact,-,-,0.0,0.0,PASS,"submit never awaits on assist — proven by test_v1_form_does_not_block_submit_on_assist"
-debounce interval,-,-,1.2,-,SET,"DEBOUNCE_MS=1200 — within 800-1500ms field-friendly range"
