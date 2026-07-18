@@ -18029,6 +18029,7 @@ if cors_origins_env and cors_origins_env != '*':
     # Explicit allow-list (preferred for production hardening).
     _cors_origins = [o.strip() for o in cors_origins_env.split(',') if o.strip()]
     _cors_credentials = True
+    cors_origin_regex = None
 else:
     # Empty OR explicit '*' → fall through to regex with credentials.
     # We intentionally never honor wildcard CORS — it disables credentialed

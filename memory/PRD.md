@@ -13551,3 +13551,10 @@ P0 root-caused: base64 photos poisoned the LLM prompt (instant call failure → 
   - Result: `12 passed`
 - Changed Python files lint-clean.
 - Deployment scan after fix no longer showed a startup code blocker; remaining generic deployment-agent concern was resolved by the CORS env correction above.
+
+### Owner-directed deployment override (2026-07-18)
+- `backend/.env` updated for the controlled production redeploy:
+  - `CORS_ORIGINS="https://mascidocs.com, https://www.mascidocs.com, https://backup-forensics.preview.emergentagent.com"`
+- This intentionally tightens CORS back to MASCI + the current preview domain only, with no arbitrary tenant wildcard trust.
+- Server CORS logic also hardened so the explicit allow-list path now disables `allow_origin_regex`; this prevents unrelated `*.emergent.host` / `*.emergentagent.com` tenants from being accepted when a strict list is configured.
+- `DB_NAME` was restored to `masci_safety_preview` in the preview sandbox because forcing `masci_safety` there trips the built-in preview/prod isolation guard and prevents startup. Production redeploy must still use the dedicated production environment value `DB_NAME=masci_safety` on the real production connection.
