@@ -52,10 +52,16 @@ def test_env_db_alignment_guard_intact():
     assert "raise RuntimeError" in text and "REFUSING TO START" in text, (
         "Env-DB guard no longer raises RuntimeError on mismatch. "
         "A warning is not enough — the server must refuse to start.")
-    # Must run at import time so misconfigured workers cannot serve
-    # any requests before tripping the check.
-    assert "_verify_env_db_alignment()" in text, (
-        "Env-DB guard is defined but never invoked at module load.")
+    # Must run in the runtime bootstrap path before Mongo is accepted
+    # as ready. The app now uses lifespan registration instead of a
+    # naked module-load call, which is still safe because startup must
+    # complete before requests are served.
+    assert '@register_lifecycle_step("runtime-config", name="_bootstrap_runtime_db")' in text, (
+        "Runtime DB bootstrap registration missing; env/DB guard may no longer run before service startup.")
+    assert '_load_runtime_db_config(require_runtime=True)' in text, (
+        "Runtime DB bootstrap no longer loads strict env-driven DB config before startup.")
+    assert '_verify_env_db_alignment(cfg.app_env or "production", cfg.db_name, cfg.mongo_url)' in text, (
+        "Env-DB guard is defined but no longer enforced during runtime DB bootstrap.")
 
 
 # ── Demo / preview seed scripts must refuse production ─────────────

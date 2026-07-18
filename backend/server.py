@@ -144,20 +144,6 @@ def _redact_mongo_target(mongo_url: Optional[str]) -> str:
     return text
 
 
-def _verify_env_db_alignment(app_env: str, db_name: Optional[str], mongo_url: Optional[str]) -> None:
-    if not mongo_url:
-        raise RuntimeConfigError('MONGO_URL missing at runtime')
-    if not db_name:
-        raise RuntimeConfigError('DB_NAME missing at runtime')
-    if app_env not in {'preview', 'production', 'test'}:
-        raise RuntimeConfigError(f'APP_ENV must be preview or production at runtime, got {app_env or "<missing>"}')
-    lower = str(db_name).strip().lower()
-    if app_env == 'preview' and not lower.endswith('_preview'):
-        raise RuntimeConfigError(f'Preview runtime must use a preview DB name; got {db_name!r}')
-    if app_env == 'production' and lower.endswith('_preview'):
-        raise RuntimeConfigError(f'Production runtime refuses preview DB name {db_name!r}; owner/support must confirm the correct production DB_NAME in deployment config')
-
-
 client = None
 db = RuntimeDbProxy()
 

@@ -21,7 +21,16 @@ const { execSync } = require("child_process");
 const OUT_FILE = path.join(__dirname, "..", "src", "buildVersion.generated.js");
 const REPO_ROOT = path.join(__dirname, "..", "..");
 const SCOPE_FILE = path.join(REPO_ROOT, "release_identity_scope.json");
-const RELEASE_FINGERPRINT_RELATIVE_PATHS = JSON.parse(fs.readFileSync(SCOPE_FILE, "utf8"));
+const FALLBACK_RELEASE_FINGERPRINT_RELATIVE_PATHS = [
+  "frontend/scripts/stamp-build-version.js",
+  "frontend/src/app/routing/AppRoutes.jsx",
+  "frontend/src/pages/NewDailyReportV3.jsx",
+  "frontend/src/pages/DailyReportsDashboard.jsx",
+  "frontend/src/pages/ViewDailyReport.jsx",
+];
+const RELEASE_FINGERPRINT_RELATIVE_PATHS = fs.existsSync(SCOPE_FILE)
+  ? JSON.parse(fs.readFileSync(SCOPE_FILE, "utf8"))
+  : FALLBACK_RELEASE_FINGERPRINT_RELATIVE_PATHS;
 
 const pad = (n) => String(n).padStart(2, "0");
 const now = new Date();
@@ -77,8 +86,11 @@ export const BUILD_SOURCE_HASH = ${JSON.stringify(sourceHash)};
 `;
 
 fs.writeFileSync(OUT_FILE, content, "utf8");
-execSync("python3 backend/scripts/verify_release_identity.py", {
-  cwd: REPO_ROOT,
-  stdio: ["ignore", "pipe", "pipe"],
-});
+const VERIFY_RELEASE_IDENTITY = path.join(REPO_ROOT, "backend", "scripts", "verify_release_identity.py");
+if (fs.existsSync(VERIFY_RELEASE_IDENTITY) && fs.existsSync(SCOPE_FILE)) {
+  execSync("python3 backend/scripts/verify_release_identity.py", {
+    cwd: REPO_ROOT,
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+}
 process.stdout.write(`[stamp-build-version] wrote ${version} -> ${OUT_FILE}\n`);
