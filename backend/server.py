@@ -113,12 +113,11 @@ def _runtime_context_label(app_env: str) -> str:
 def _load_runtime_db_config(*, require_runtime: bool) -> RuntimeDbConfig:
     app_env = (os.environ.get('APP_ENV', '') or '').strip().lower()
     env_db_name = (os.environ.get('DB_NAME') or '').strip() or None
-    forced_production_db_name = _PREVIEW_DB if app_env == 'production' else None
     cfg = RuntimeDbConfig(
         context=_runtime_context_label(app_env),
         app_env=app_env,
         mongo_url=(os.environ.get('MONGO_URL') or '').strip() or None,
-        db_name=forced_production_db_name or env_db_name,
+        db_name=env_db_name,
     )
     if not require_runtime:
         return cfg
@@ -131,15 +130,30 @@ def _load_runtime_db_config(*, require_runtime: bool) -> RuntimeDbConfig:
     if missing:
         raise RuntimeConfigError(f"Required runtime configuration missing: {', '.join(missing)}")
 
-    if _PREVIEW_USER in cfg.mongo_url and (cfg.app_env != 'preview' or cfg.db_name != _PREVIEW_DB):
-        raise RuntimeConfigError(
-            "Startup consistency violation: runtime database configuration does not match preview environment contract"
-        )
-    if _PROD_USER in cfg.mongo_url and (cfg.app_env != 'production' or cfg.db_name not in {_PROD_DB, _PREVIEW_DB}):
-        raise RuntimeConfigError(
-            "Startup consistency violation: runtime database configuration does not match production environment contract"
-        )
     return cfg
+
+
+def _redact_mongo_target(mongo_url: Optional[str]) -> str:
+    text = str(mongo_url or '').strip()
+    if not text:
+        return '<missing>'
+    text = re.sub(r'//[^@/]+@', '//<redacted>@', text)
+    text = re.sub(r'([?&](?:authSource|replicaSet|retryWrites|tls|ssl)=[^&]+)', '<redacted-param>', text)
+    return text
+
+
+def _verify_env_db_alignment(app_env: str, db_name: Optional[str], mongo_url: Optional[str]) -> None:
+    if not mongo_url:
+        raise RuntimeConfigError('MONGO_URL missing at runtime')
+    if not db_name:
+        raise RuntimeConfigError('DB_NAME missing at runtime')
+    if app_env not in {'preview', 'production', 'test'}:
+        raise RuntimeConfigError(f'APP_ENV must be preview or production at runtime, got {app_env or "<missing>"}')
+    lower = str(db_name).strip().lower()
+    if app_env == 'preview' and not lower.endswith('_preview'):
+        raise RuntimeConfigError(f'Preview runtime must use a preview DB name; got {db_name!r}')
+    if app_env == 'production' and lower.endswith('_preview'):
+        raise RuntimeConfigError(f'Production runtime refuses preview DB name {db_name!r}; owner/support must confirm the correct production DB_NAME in deployment config')
 
 
 client = None
@@ -179,7 +193,7 @@ async def _stabilize_runtime_db_connection(database) -> None:
                 attempt,
                 attempts,
                 delay_seconds,
-                exc,
+                type(exc).__name__,
             )
             await asyncio.sleep(delay_seconds)
     if last_exc is not None:
@@ -424,6 +438,12 @@ async def _bootstrap_runtime_db() -> None:
 
     cfg = _load_runtime_db_config(require_runtime=True)
     _verify_env_db_alignment(cfg.app_env or "production", cfg.db_name, cfg.mongo_url)
+    logging.getLogger(__name__).info(
+        "[runtime-db] boot env=%s db=%s target=%s",
+        cfg.app_env or '<missing>',
+        cfg.db_name or '<missing>',
+        _redact_mongo_target(cfg.mongo_url),
+    )
     client = AsyncIOMotorClient(cfg.mongo_url, **_mongo_client_kwargs())
     database = client[cfg.db_name]
     await _stabilize_runtime_db_connection(database)

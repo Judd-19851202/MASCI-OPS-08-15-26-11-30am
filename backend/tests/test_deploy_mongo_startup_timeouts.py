@@ -42,8 +42,12 @@ def test_load_runtime_db_config_defaults_production_db_name_to_preview(monkeypat
     monkeypatch.setenv("MONGO_URL", "mongodb+srv://masci_prod_user:pw@example.mongodb.net/")
     monkeypatch.delenv("DB_NAME", raising=False)
     srv = _fresh_server_module()
-    cfg = srv._load_runtime_db_config(require_runtime=True)
-    assert cfg.db_name == "masci_safety_preview"
+    try:
+        srv._load_runtime_db_config(require_runtime=True)
+    except RuntimeError as exc:
+        assert 'DB_NAME' in str(exc)
+    else:
+        raise AssertionError('expected missing DB_NAME to fail')
 
 
 def test_stabilize_runtime_db_connection_retries_once_before_succeeding(monkeypatch):
@@ -71,3 +75,20 @@ def test_stabilize_runtime_db_connection_retries_once_before_succeeding(monkeypa
     srv.asyncio.run(srv._stabilize_runtime_db_connection(db))
     assert db.calls == 2
     assert sleeps == [1]
+
+
+def test_verify_env_db_alignment_blocks_preview_name_in_production():
+    srv = _fresh_server_module()
+    try:
+        srv._verify_env_db_alignment('production', 'masci_safety_preview', 'mongodb+srv://masci_prod_user:<redacted>@example.mongodb.net/')
+    except RuntimeError as exc:
+        assert 'refuses preview DB name' in str(exc)
+    else:
+        raise AssertionError('expected production preview-name rejection')
+
+
+def test_redact_mongo_target_hides_credentials():
+    srv = _fresh_server_module()
+    redacted = srv._redact_mongo_target('mongodb+srv://user:secret@masci-prod.1nduwmg.mongodb.net/?retryWrites=true')
+    assert 'secret' not in redacted
+    assert '<redacted>@' in redacted
