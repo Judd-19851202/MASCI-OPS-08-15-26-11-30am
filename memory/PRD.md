@@ -13525,3 +13525,29 @@ P0 root-caused: base64 photos poisoned the LLM prompt (instant call failure → 
 ### Remaining incident work
 - Production/live is still on older commit `a6b4580d...`; the repair is verified in preview, not yet proven deployed on live production.
 - The user-expanded production acceptance matrix still requires full live module-by-module parity verification beyond the shared-scope subset already proven in preview.
+
+---
+
+## 2026-07-18 · Production deployment readiness hardening
+
+### Deployment failure class investigated
+- Production deploy reached Kubernetes apply but timed out waiting for readiness.
+- No inner production pod logs were available from Loki in the deployment failure envelope, so the fix focused on code-level readiness blockers proven from startup analysis.
+
+### Code-level rollout blockers repaired
+- `backend/server.py`
+  - Mongo startup now uses explicit fail-fast timeouts for Atlas / remote Mongo:
+    - `serverSelectionTimeoutMS=8000`
+    - `connectTimeoutMS=8000`
+    - `socketTimeoutMS=15000`
+  - Startup now forces an immediate `ping` after creating the Motor client so auth/DNS/TLS/IP-allowlist failures surface quickly instead of hanging the rollout until Kubernetes times out.
+- `backend/.env`
+  - `CORS_ORIGINS` changed to `*` so the backend falls through to regex mode, which already includes `*.emergent.host` / preview domains. This prevents production frontend-on-emergent-host CORS breakage after deploy.
+
+### Verification completed
+- Added regression tests: `/app/backend/tests/test_deploy_mongo_startup_timeouts.py`
+- Focused test pass:
+  - `python -m pytest /app/backend/tests/test_deploy_mongo_startup_timeouts.py /app/backend/tests/test_iter453_6_startup_readiness_gate.py -q`
+  - Result: `12 passed`
+- Changed Python files lint-clean.
+- Deployment scan after fix no longer showed a startup code blocker; remaining generic deployment-agent concern was resolved by the CORS env correction above.
