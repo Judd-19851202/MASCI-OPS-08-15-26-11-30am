@@ -21,8 +21,6 @@ class EmergentClaudeProvider:
     """Model-agnostic wrapper backed by the AI Gateway."""
 
     name = "emergent"
-    # Kept for backward-compat display; real routing lives in the gateway.
-    model = default_text_model()
     llm_provider = os.environ.get("AI_DEFAULT_PROVIDER", "anthropic")
 
     def __init__(self):
@@ -60,7 +58,7 @@ class EmergentClaudeProvider:
                 agent=agent, narrative=(env.narrative if env else "") or "",
                 confidence=0.0, evidence_refs=[], sources_used=[],
                 uncertainties=[reason],
-                model=self.model, provider=self.name,
+                model=default_text_model(), provider=self.name,
                 generated_at=started, ai_available=False,
                 fallback_reason=reason,
             )
@@ -72,7 +70,7 @@ class EmergentClaudeProvider:
             evidence_refs=list(env.evidence_refs),
             sources_used=list(env.sources_used),
             uncertainties=list(env.uncertainties),
-            model=env.model or self.model,
+            model=env.model or default_text_model(),
             provider=env.provider or self.name,
             generated_at=env.generated_at or started,
             ai_available=True,

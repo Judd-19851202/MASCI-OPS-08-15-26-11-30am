@@ -148,7 +148,7 @@ const DomainGroup = ({ domain }) => (
         style={{ backgroundColor: domain.stripe }}
       />
       <span
-        className="font-mono text-[10px] uppercase tracking-[0.22em] font-bold"
+        className="font-mono text-[10px] uppercase tracking-[0.22em] font-bold glass-text-light"
         style={{ color: domain.stripe }}
       >
         {domain.label}
