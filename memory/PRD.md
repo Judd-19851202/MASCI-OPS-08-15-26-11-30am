@@ -11,6 +11,15 @@ Preview verified ✅
 - No deployment in this checkpoint.
 - Owner-triggered deployment evidence is still required later to prove live Preview/Production deployed SHA.
 
+### D5/D6 completion update
+- Canonical release gate established at `docs/governance/release_gate_manifest.json` with machine-readable Preview/Production acceptance gates.
+- Canonical deployment authority docs added: `RELEASE_GATE_REGISTER.md`, `DEPLOYMENT_PIPELINE_REGISTER.md`, `MIGRATION_COMPATIBILITY_REGISTER.md`.
+- Recovery/deploy contracts added: Preview contract, Production contract, rollback runbook, post-deploy certificate schema.
+- Release identity hardened to include dependency-manifest hash, migration-manifest hash, and release-gate manifest hash across backend/frontend verification.
+- Legacy workflow governance narrowed to `main` only and wired to canonical release-gate generation/verification.
+- Secret scan, PRD governance lint, D1/D2/D3/D4/D5-D6 focused regressions, and independent D5/D6 verification all passed.
+- Independent D5/D6 verification passed: `/app/test_reports/iteration_9.json`.
+
 ## 2026-07-19 — MASTER TRACK Checkpoint D in progress
 
 Checkpoint status
