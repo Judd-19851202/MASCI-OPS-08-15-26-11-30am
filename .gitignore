@@ -162,3 +162,6 @@ walkthrough_reports/
 .emergent/cron/applied.hash
 .emergent/cron/webhook-crons
 .emergent/emergent.yml
+frontend/node_modules/.cache/default-development/7.pack
+frontend/node_modules/.cache/default-development/7.pack
+frontend/node_modules/.cache/default-development/10.pack
