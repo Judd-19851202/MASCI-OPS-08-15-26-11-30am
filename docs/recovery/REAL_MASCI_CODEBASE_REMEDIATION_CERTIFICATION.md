@@ -63,4 +63,12 @@ Deleted from original tracked locations after preservation/reference updates:
 
 ## Current status
 
-Checkpoint C remains in progress. Classification and first bounded cleanup batch are complete; clean-checkout verification and independent review still pending.
+Checkpoint C remains in progress. Classification, first bounded cleanup batch, and second bounded cleanup batch are complete; full clean-checkout verification and final independent review still pending.
+
+## Second bounded cleanup batch
+
+- Untracked/preserved locally:
+  - `.emergent/cron/applied.hash`
+  - `.emergent/cron/webhook-crons`
+- Archived runtime-adjacent backup artifacts:
+  - `backend/data/equipment_master.*.bak.json` → `docs/archive/incidents/backend-data-backups/`

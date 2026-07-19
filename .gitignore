@@ -162,6 +162,9 @@ walkthrough_reports/
 .emergent/cron/applied.hash
 .emergent/cron/webhook-crons
 .emergent/emergent.yml
+
+# Archived backend data backups must not return to runtime source
+backend/data/*.bak.json
 frontend/node_modules/.cache/default-development/7.pack
 frontend/node_modules/.cache/default-development/7.pack
 frontend/node_modules/.cache/default-development/10.pack

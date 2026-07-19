@@ -40,13 +40,13 @@
   },
   {
     "path": ".emergent/cron/applied.hash",
-    "classification": "PLATFORM_LOCAL_NOT_PRODUCT",
+    "classification": "UNTRACK_PRESERVE_LOCALLY",
     "rationale": "Platform-local metadata/config",
     "references_found": 0,
     "runtime_image_presence": "unknown",
     "ci_test_use": "unknown",
     "legal_audit_recovery_value": "unknown",
-    "proposed_action": "review for untrack",
+    "proposed_action": "untracked/preserved locally",
     "risk": "high",
     "owner": "Checkpoint C main agent",
     "verification_required": "clean-checkout + focused tests"
@@ -79,13 +79,13 @@
   },
   {
     "path": ".emergent/cron/webhook-crons",
-    "classification": "PLATFORM_LOCAL_NOT_PRODUCT",
+    "classification": "UNTRACK_PRESERVE_LOCALLY",
     "rationale": "Platform-local metadata/config",
     "references_found": 0,
     "runtime_image_presence": "unknown",
     "ci_test_use": "unknown",
     "legal_audit_recovery_value": "unknown",
-    "proposed_action": "review for untrack",
+    "proposed_action": "untracked/preserved locally",
     "risk": "high",
     "owner": "Checkpoint C main agent",
     "verification_required": "clean-checkout + focused tests"
@@ -345,7 +345,7 @@
     "runtime_image_presence": "unknown",
     "ci_test_use": "unknown",
     "legal_audit_recovery_value": "unknown",
-    "proposed_action": "archive/remove from product source",
+    "proposed_action": "moved to docs/archive/incidents/backend-data-backups/",
     "risk": "high",
     "owner": "Checkpoint C main agent",
     "verification_required": "clean-checkout + focused tests"
@@ -358,7 +358,7 @@
     "runtime_image_presence": "unknown",
     "ci_test_use": "unknown",
     "legal_audit_recovery_value": "unknown",
-    "proposed_action": "archive/remove from product source",
+    "proposed_action": "moved to docs/archive/incidents/backend-data-backups/",
     "risk": "high",
     "owner": "Checkpoint C main agent",
     "verification_required": "clean-checkout + focused tests"
@@ -371,7 +371,7 @@
     "runtime_image_presence": "unknown",
     "ci_test_use": "unknown",
     "legal_audit_recovery_value": "unknown",
-    "proposed_action": "archive/remove from product source",
+    "proposed_action": "moved to docs/archive/incidents/backend-data-backups/",
     "risk": "high",
     "owner": "Checkpoint C main agent",
     "verification_required": "clean-checkout + focused tests"
@@ -384,7 +384,7 @@
     "runtime_image_presence": "unknown",
     "ci_test_use": "unknown",
     "legal_audit_recovery_value": "unknown",
-    "proposed_action": "archive/remove from product source",
+    "proposed_action": "moved to docs/archive/incidents/backend-data-backups/",
     "risk": "high",
     "owner": "Checkpoint C main agent",
     "verification_required": "clean-checkout + focused tests"
@@ -397,7 +397,7 @@
     "runtime_image_presence": "unknown",
     "ci_test_use": "unknown",
     "legal_audit_recovery_value": "unknown",
-    "proposed_action": "archive/remove from product source",
+    "proposed_action": "moved to docs/archive/incidents/backend-data-backups/",
     "risk": "high",
     "owner": "Checkpoint C main agent",
     "verification_required": "clean-checkout + focused tests"
@@ -410,7 +410,7 @@
     "runtime_image_presence": "unknown",
     "ci_test_use": "unknown",
     "legal_audit_recovery_value": "unknown",
-    "proposed_action": "archive/remove from product source",
+    "proposed_action": "moved to docs/archive/incidents/backend-data-backups/",
     "risk": "high",
     "owner": "Checkpoint C main agent",
     "verification_required": "clean-checkout + focused tests"
@@ -423,7 +423,7 @@
     "runtime_image_presence": "unknown",
     "ci_test_use": "unknown",
     "legal_audit_recovery_value": "unknown",
-    "proposed_action": "archive/remove from product source",
+    "proposed_action": "moved to docs/archive/incidents/backend-data-backups/",
     "risk": "high",
     "owner": "Checkpoint C main agent",
     "verification_required": "clean-checkout + focused tests"
@@ -436,7 +436,7 @@
     "runtime_image_presence": "unknown",
     "ci_test_use": "unknown",
     "legal_audit_recovery_value": "unknown",
-    "proposed_action": "archive/remove from product source",
+    "proposed_action": "moved to docs/archive/incidents/backend-data-backups/",
     "risk": "high",
     "owner": "Checkpoint C main agent",
     "verification_required": "clean-checkout + focused tests"
@@ -449,7 +449,7 @@
     "runtime_image_presence": "unknown",
     "ci_test_use": "unknown",
     "legal_audit_recovery_value": "unknown",
-    "proposed_action": "archive/remove from product source",
+    "proposed_action": "moved to docs/archive/incidents/backend-data-backups/",
     "risk": "high",
     "owner": "Checkpoint C main agent",
     "verification_required": "clean-checkout + focused tests"

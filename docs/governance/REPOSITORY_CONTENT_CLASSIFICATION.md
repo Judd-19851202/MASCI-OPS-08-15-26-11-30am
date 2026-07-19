@@ -105,3 +105,46 @@ Machine-readable inventory source:
 ## Bounded cleanup manifest status
 
 Not executed yet. This document records classification only. No move/delete/untrack has occurred in this Checkpoint C pass so far.
+
+## Additional granular findings (second pass)
+
+### `.emergent/**`
+- `.emergent/emergent.yml` → `PORTABLE_APP_CONFIGURATION`
+- `.emergent/cron/dispatch_webhook.sh` → `GENERATED_CRON_WRAPPER`
+- `.emergent/cron/watch_crons.sh` → `GENERATED_CRON_WRAPPER`
+- `.emergent/cron/webhook_crond.sh` → `GENERATED_CRON_WRAPPER`
+- `.emergent/cron/webhook-crons` → `GENERATED_APPLIED_STATE`
+- `.emergent/cron/applied.hash` → `GENERATED_APPLIED_STATE`
+
+Executed direction:
+- `.emergent/cron/applied.hash` and `.emergent/cron/webhook-crons` were untracked/preserved locally;
+- generated cron wrapper scripts remain tracked pending portable/platform-required review;
+- `.emergent/emergent.yml` remains tracked as current portable app/platform configuration.
+
+### `backend/data/**`
+- `employees_seed.json`, `suppliers_seed.json`, `jobs_master.json` → `CANONICAL_BOOTSTRAP_SEED`
+- `equipment_master.json` → `REQUIRED_RUNTIME_REFERENCE_DATA`
+- `equipment_master.*.bak.json` → `GENERATED_BACKUP` + `ARCHIVE_CANDIDATE`
+
+Evidence:
+- canonical JSON files are directly referenced by backend runtime/scripts/tests;
+- timestamped `.bak.json` copies have only inventory/self references and mirror older snapshots.
+
+Executed direction:
+- `equipment_master.*.bak.json` moved out of `backend/data/` into governed archive evidence.
+
+### Root `backend_test_*.py`
+- 14 files collect under pytest and should remain `ACTIVE_CERTIFICATION_TEST`
+- `backend_test_429_fix.py` collects no pytest tests and is best classified as `OPERATOR_DIAGNOSTIC`
+
+Current direction:
+- retain active cert tests in place during Checkpoint C unless relocation proof is completed;
+- move only clearly non-pytest diagnostic helpers in a bounded later batch if desired.
+
+### Public/static asset duplicates
+- exact duplicate hash group: `frontend/public/forgedops-logo.png` == `frontend/src/assets/forgedops-logo.png`
+- exact duplicate hash group: `frontend/public/masci-full-lockup-onlight.png` == `backend/static/masci-logo-email.png` == `backend/static/masci-logo.png`
+- exact duplicate hash group: `frontend/public/masci-mark-onlight.png` == `frontend/public/masci-mark.png` == `backend/static/masci-mark.png`
+
+Current classification:
+- these are `INTENTIONAL_VARIANT_OR_MULTI_CONSUMER` until each frontend/public/backend PDF consumer is resolved. No deletion yet.

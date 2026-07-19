@@ -29,6 +29,7 @@ The repository will use one coherent archive structure:
 - `deploy_reports/**` → `docs/archive/deployments/`
 - `test_reports/**` and root process evidence → `docs/archive/testing-evidence/`
 - stale tracked backups like `backend/data/*.bak.json` → `docs/archive/incidents/` or `ops/archive/migrations/` after per-file preservation check
+- current Checkpoint C implementation path: `docs/archive/incidents/backend-data-backups/`
 - `scripts/source/**` and underscore-prefixed public master assets → `assets/source/`
 
 ## Safety constraints
