@@ -57,6 +57,8 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from typing import Any, AsyncIterator, Callable, List
 
+from lib.runtime_identity import is_read_only_validation_active_bundle
+
 logger = logging.getLogger(__name__)
 
 
@@ -168,6 +170,17 @@ async def orchestrated_lifespan(app: Any) -> AsyncIterator[None]:
         len(non_readiness_steps),
     )
     for i, step in enumerate(non_readiness_steps):
+        if step.group != "runtime-config" and is_read_only_validation_active_bundle(
+            getattr(app.state, "runtime_identity_bundle", None)
+        ):
+            setattr(app.state, "read_only_validation_startup_write_suppressed", True)
+            logger.warning(
+                "[runtime-identity] read-only validation active — skipping lifecycle step %s.%s (group=%s)",
+                step.source_module,
+                step.name,
+                step.group,
+            )
+            continue
         try:
             await _run_callable(step.fn)
         except Exception:
@@ -181,6 +194,13 @@ async def orchestrated_lifespan(app: Any) -> AsyncIterator[None]:
     # ---- STARTUP: remaining on_startup handlers ------------------------
     startup_handlers = list(getattr(app.router, "on_startup", []) or [])
     logger.info("[track-22.1d] lifespan.startup: executing %d handlers", len(startup_handlers))
+    if is_read_only_validation_active_bundle(getattr(app.state, "runtime_identity_bundle", None)):
+        setattr(app.state, "read_only_validation_startup_write_suppressed", True)
+        logger.warning(
+            "[runtime-identity] read-only validation active — skipping %d legacy startup handlers",
+            len(startup_handlers),
+        )
+        startup_handlers = []
     for i, fn in enumerate(startup_handlers):
         name = getattr(fn, "__qualname__", getattr(fn, "__name__", repr(fn)))
         try:

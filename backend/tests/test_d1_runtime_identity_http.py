@@ -3,7 +3,7 @@ Test D1 Production Identity Contract - HTTP Integration Tests
 
 Tests the runtime identity contract via live HTTP endpoints to verify:
 1. Production identity contract accepts approved production hostname + database + environment
-2. Preview runtime remains bootable but surfaces production-cluster mismatch honestly
+2. Preview runtime surfaces production-cluster mismatch honestly and is no longer a valid D1 completion state until startup refuses it
 3. Identity output is redacted and does not expose raw Mongo credentials
 4. Readiness and full health degrade when runtime identity is mismatched
 5. Legacy safety contracts from Track 28.09A and Checkpoint B remain intact
@@ -215,43 +215,19 @@ class TestD1LegacySafetyContracts:
         assert ":" not in hostname or hostname.count(":") == 0  # No port in SRV hostnames
 
 
-class TestD1PreviewBootability:
-    """Tests verifying preview runtime remains bootable despite mismatch."""
-
-    def test_preview_backend_is_running(self):
-        """Preview backend should be running and responding."""
-        response = requests.get(f"{BASE_URL}/api/health", timeout=10)
-        assert response.status_code == 200
-
-    def test_preview_can_access_database(self):
-        """Preview should be able to access the database despite identity mismatch."""
-        response = requests.get(f"{BASE_URL}/api/health/full", timeout=10)
-        data = response.json()
-        
-        # Mongo should be accessible
-        assert data["mongo"] is True
-
-    def test_preview_scheduler_is_running(self):
-        """Preview scheduler should be running despite identity mismatch."""
-        response = requests.get(f"{BASE_URL}/api/health/full", timeout=10)
-        data = response.json()
-        
-        # Scheduler should be alive
-        assert data["scheduler"] is True
+class TestD1PreviewIsolationTruth:
+    """Tests documenting the currently exposed preview→production mismatch truth."""
 
     def test_preview_surfaces_mismatch_honestly(self):
-        """Preview should honestly surface the production-cluster mismatch."""
+        """Preview should clearly expose the production-cluster mismatch category."""
         response = requests.get(f"{BASE_URL}/api/version", timeout=10)
         data = response.json()
-        
+
         ri = data["runtime_identity"]
-        
-        # Should clearly indicate the mismatch
         assert ri["valid"] is False
         assert ri["status"] == "MISMATCH"
         assert ri["mismatch_category"] == "PREVIEW_PRODUCTION_CLUSTER_REFUSED"
-        
-        # Should show the actual vs expected values
+
         identity = ri["identity"]
         assert identity["app_env"] == "preview"
         assert identity["db_name"] == "masci_safety_preview"

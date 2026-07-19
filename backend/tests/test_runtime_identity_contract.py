@@ -7,6 +7,7 @@ from lib.runtime_identity import (
     STATUS_VERIFIED,
     assert_runtime_identity_valid,
     build_runtime_identity_bundle,
+    is_read_only_validation_active_bundle,
     parse_mongo_url,
     runtime_identity_public_payload,
 )
@@ -73,6 +74,69 @@ def test_production_db_refused_in_preview() -> None:
     })
     assert bundle["validation"].valid is False
     assert bundle["validation"].mismatch_category == "PREVIEW_PRODUCTION_DB_REFUSED"
+
+
+def test_preview_prod_hostname_without_ro_validation_hard_fails() -> None:
+    bundle = _bundle({
+        "APP_ENV": "preview",
+        "DB_NAME": "masci_safety_preview",
+        "MONGO_URL": "mongodb+srv://masci_prod_user:s3cret@masci-prod.1nduwmg.mongodb.net/masci_safety_preview",
+        "ENFORCE_DB_ISOLATION": "true",
+    })
+    assert bundle["validation"].valid is False
+    assert bundle["validation"].mismatch_category == "PREVIEW_PRODUCTION_CLUSTER_REFUSED"
+
+
+def test_preview_local_preview_database_passes() -> None:
+    bundle = _bundle({
+        "APP_ENV": "preview",
+        "DB_NAME": "masci_safety_preview",
+        "MONGO_URL": "mongodb://localhost:27017/masci_safety_preview",
+        "ENFORCE_DB_ISOLATION": "false",
+    })
+    assert bundle["validation"].valid is True
+
+
+def test_ro_validation_requested_but_incomplete_hard_fails() -> None:
+    bundle = _bundle({
+        "APP_ENV": "preview",
+        "DB_NAME": "masci_safety_preview",
+        "MONGO_URL": "mongodb+srv://masci_prod_user:s3cret@masci-prod.1nduwmg.mongodb.net/masci_safety_preview",
+        "ENFORCE_DB_ISOLATION": "true",
+        "READ_ONLY_VALIDATION": "true",
+        "READ_ONLY_MODE": "true",
+    })
+    assert bundle["validation"].valid is False
+    assert bundle["validation"].mismatch_category == "READ_ONLY_VALIDATION_INCOMPLETE"
+    assert "zero_write_proof_missing" in bundle["validation"].errors
+
+
+def test_ro_validation_fully_valid_allows_boot_in_read_only_mode() -> None:
+    bundle = _bundle({
+        "APP_ENV": "preview",
+        "DB_NAME": "masci_safety_preview",
+        "MONGO_URL": "mongodb+srv://masci_prod_user:s3cret@masci-prod.1nduwmg.mongodb.net/masci_safety_preview",
+        "ENFORCE_DB_ISOLATION": "true",
+        "READ_ONLY_VALIDATION": "true",
+        "READ_ONLY_MODE": "true",
+        "READ_ONLY_VALIDATION_DB_AUTHORITY": "read_only",
+        "SESSION_TIMEOUTS_ENABLED": "false",
+        "SCHEDULER_ENABLED": "false",
+        "AUTO_EMAIL_REPORTS": "false",
+        "MAINTAINX_WRITE_ENABLED": "false",
+        "MAINTAINX_SYNC_ENABLED": "false",
+        "AI_GATEWAY_ENABLED": "false",
+        "DR_V2_AI_ENABLED": "false",
+        "ODS_ENABLED": "false",
+        "READ_ONLY_VALIDATION_TRUST_SPINE_DISABLED": "true",
+        "READ_ONLY_VALIDATION_WEBHOOKS_DISABLED": "true",
+        "READ_ONLY_VALIDATION_ZERO_WRITE_PROVEN": "true",
+        "APP_DOMAIN": "preview-readonly.example.test",
+    })
+    assert bundle["validation"].valid is True
+    assert is_read_only_validation_active_bundle(bundle) is True
+    assert bundle["identity"].read_only_validation["http_mutation_barrier_active"] is True
+    assert bundle["identity"].read_only_validation["startup_write_suppressed"] is True
 
 
 def test_unknown_hostname_hard_fails() -> None:

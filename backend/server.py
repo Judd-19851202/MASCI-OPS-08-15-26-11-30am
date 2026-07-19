@@ -25,7 +25,12 @@ from datetime import datetime, timezone, timedelta
 from branded_portal_emails import render_portal_email
 from lib.operator_safety import require_destructive_confirmation, require_destructive_runtime_guard
 from lib.operator_safety import require_non_empty_destructive_scope
-from lib.runtime_identity import assert_runtime_identity_valid, build_runtime_identity_bundle, runtime_identity_public_payload
+from lib.runtime_identity import (
+    assert_runtime_identity_valid,
+    build_runtime_identity_bundle,
+    is_read_only_validation_active_bundle,
+    runtime_identity_public_payload,
+)
 # Track 15.67 Phase 3 · tenant-safe sender resolver wrapper.
 from branding_resolver import resolve_sender_email as _resolve_sender_email, resolve_reply_to_email as _resolve_reply_to_email  # noqa: E402
 
@@ -431,8 +436,7 @@ async def _bootstrap_runtime_db() -> None:
     _verify_env_db_alignment(cfg.app_env or "production", cfg.db_name, cfg.mongo_url)
     identity_bundle = _compute_runtime_identity_bundle()
     app.state.runtime_identity_bundle = identity_bundle
-    if (cfg.app_env or "production").strip().lower() == "production":
-        assert_runtime_identity_valid(identity_bundle)
+    assert_runtime_identity_valid(identity_bundle)
     logging.getLogger(__name__).info(
         "[runtime-db] boot env=%s db=%s target=%s",
         cfg.app_env or '<missing>',
@@ -446,7 +450,11 @@ async def _bootstrap_runtime_db() -> None:
     app.state.mongo_client = client
     app.state.db = database
     app.state.db_name = cfg.db_name
-    if not getattr(app.state, "runtime_monitor_started", False):
+    app.state.read_only_validation_active = is_read_only_validation_active_bundle(identity_bundle)
+    if (
+        not getattr(app.state, "runtime_monitor_started", False)
+        and not getattr(app.state, "read_only_validation_active", False)
+    ):
         start_runtime_monitor(app, database)
         app.state.runtime_monitor_started = True
 
@@ -18390,6 +18398,15 @@ async def _canonical_security_headers(request, call_next):
 
 @app.middleware("http")
 async def _iter453_6_readiness_gate(request, call_next):
+    if getattr(request.app.state, "read_only_validation_active", False):
+        method = (request.method or "").upper()
+        path = request.url.path or ""
+        if method in {"POST", "PUT", "PATCH", "DELETE"} and path.startswith("/api/"):
+            from fastapi.responses import JSONResponse  # noqa: PLC0415
+            return JSONResponse(
+                status_code=503,
+                content={"detail": "read_only_validation_mode"},
+            )
     if not getattr(request.app.state, "ready", False):
         method = (request.method or "").upper()
         path = request.url.path or ""

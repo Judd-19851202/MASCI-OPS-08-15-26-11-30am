@@ -34,6 +34,8 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 
+from lib.runtime_identity import is_read_only_validation_requested_from_env
+
 logger = logging.getLogger(__name__)
 
 # Tier defaults — env vars override these.
@@ -78,6 +80,8 @@ def _truthy(v: Optional[str]) -> bool:
 
 
 def _timeouts_enabled() -> bool:
+    if is_read_only_validation_requested_from_env():
+        return False
     return _truthy(os.environ.get("SESSION_TIMEOUTS_ENABLED"))
 
 

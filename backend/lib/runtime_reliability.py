@@ -14,6 +14,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Awaitable, Dict, Optional
 
+from lib.runtime_identity import is_read_only_validation_requested_from_env
+
 try:
     import psutil  # type: ignore
 except Exception:  # pragma: no cover
@@ -616,6 +618,8 @@ async def _public_health_correlation() -> Optional[Dict[str, Any]]:
 
 
 async def capture_incident_snapshot(app: Any, *, trigger: str, details: Dict[str, Any]) -> Optional[str]:
+    if is_read_only_validation_requested_from_env():
+        return None
     if not _should_capture(trigger):
         return None
     health = runtime_health_snapshot(app)
@@ -693,6 +697,8 @@ async def capture_incident_snapshot(app: Any, *, trigger: str, details: Dict[str
 
 
 async def ensure_incident_indexes(db: Any) -> None:
+    if is_read_only_validation_requested_from_env():
+        return
     try:
         await db[INCIDENT_COLLECTION].create_index("captured_dt", expireAfterSeconds=INCIDENT_RETENTION_DAYS * 86400)
         await db[INCIDENT_COLLECTION].create_index([("trigger", 1), ("captured_dt", -1)])
@@ -702,6 +708,8 @@ async def ensure_incident_indexes(db: Any) -> None:
 
 
 async def record_worker_boot(app: Any, db: Any) -> None:
+    if is_read_only_validation_requested_from_env():
+        return
     await ensure_incident_indexes(db)
     now = _now()
     release = dict(RUNTIME_STATE.get("release") or {})

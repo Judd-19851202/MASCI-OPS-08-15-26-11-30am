@@ -12,6 +12,7 @@ DEFAULT_APPROVED_PRODUCTION_CLUSTER = "MASCI-prod"
 DEFAULT_APPROVED_PRODUCTION_HOSTNAME = "masci-prod.1nduwmg.mongodb.net"
 DEFAULT_APPROVED_PRODUCTION_DB = "masci_safety"
 DEFAULT_APPROVED_PRODUCTION_USER = "masci_prod_user"
+DEFAULT_APPROVED_PREVIEW_DB = "masci_safety_preview"
 
 STATUS_VERIFIED = "VERIFIED"
 STATUS_MISMATCH = "MISMATCH"
@@ -36,6 +37,21 @@ def _truthy(value: Optional[str]) -> bool:
 def _safe_text(value: Optional[str]) -> Optional[str]:
     text = (value or "").strip()
     return text or None
+
+
+def _split_csv(value: Optional[str]) -> tuple[str, ...]:
+    if not value:
+        return tuple()
+    return tuple(part.strip().lower() for part in value.split(",") if part.strip())
+
+
+def _read_only_validation_requested(source: Mapping[str, str]) -> bool:
+    mode = (source.get("READ_ONLY_VALIDATION_MODE") or "").strip().lower()
+    return (
+        _truthy(source.get("READ_ONLY_VALIDATION"))
+        or _truthy(source.get("READ_ONLY_VALIDATION_REQUESTED"))
+        or mode in {"read_only_validation", "enabled"}
+    )
 
 
 def _sha_prefix(*parts: Optional[str]) -> str:
@@ -128,6 +144,7 @@ class RuntimeIdentity:
     parse_error: Optional[str]
     is_atlas: bool
     is_local: bool
+    read_only_validation: Dict[str, Any]
 
     def to_safe_dict(self) -> Dict[str, Any]:
         return {
@@ -153,6 +170,7 @@ class RuntimeIdentity:
             "query_duplicates": self.query_duplicates,
             "is_atlas": self.is_atlas,
             "is_local": self.is_local,
+            "read_only_validation": self.read_only_validation,
         }
 
 
@@ -190,6 +208,83 @@ def build_runtime_identity(*, env: Optional[Mapping[str, str]] = None, release_i
     approved_db_name = _safe_text(source.get("APPROVED_PRODUCTION_DB_NAME")) or DEFAULT_APPROVED_PRODUCTION_DB
     approved_username = _safe_text(source.get("APPROVED_PRODUCTION_DB_USER")) or DEFAULT_APPROVED_PRODUCTION_USER
     approved_cluster_identifier = _safe_text(source.get("APPROVED_PRODUCTION_CLUSTER_ID")) or DEFAULT_APPROVED_PRODUCTION_CLUSTER
+    approved_preview_db_name = _safe_text(source.get("APPROVED_PREVIEW_DB_NAME")) or DEFAULT_APPROVED_PREVIEW_DB
+    approved_preview_hosts = _split_csv(source.get("APPROVED_PREVIEW_MONGO_HOSTS")) or (
+        "localhost",
+        "127.0.0.1",
+        "::1",
+    )
+    resolved_domain_host = domain_host_context or _safe_text(source.get("APP_DOMAIN")) or _safe_text(source.get("REACT_APP_BACKEND_URL"))
+    read_only_validation_requested = _read_only_validation_requested(source)
+    read_only_mode = _truthy(source.get("READ_ONLY_MODE"))
+    session_writes_suppressed = not _truthy(source.get("SESSION_TIMEOUTS_ENABLED"))
+    scheduler_disabled = not _truthy(source.get("SCHEDULER_ENABLED"))
+    email_disabled = not _truthy(source.get("AUTO_EMAIL_REPORTS"))
+    maintainx_disabled = (
+        not _truthy(source.get("MAINTAINX_WRITE_ENABLED"))
+        and not _truthy(source.get("MAINTAINX_SYNC_ENABLED"))
+    )
+    ai_disabled = (
+        _truthy(source.get("READ_ONLY_VALIDATION_AI_DISABLED"))
+        or (
+            not _truthy(source.get("AI_GATEWAY_ENABLED"))
+            and not _truthy(source.get("DR_V2_AI_ENABLED"))
+        )
+    )
+    ods_disabled = not _truthy(source.get("ODS_ENABLED"))
+    trust_spine_disabled = _truthy(source.get("READ_ONLY_VALIDATION_TRUST_SPINE_DISABLED"))
+    webhooks_disabled = _truthy(source.get("READ_ONLY_VALIDATION_WEBHOOKS_DISABLED"))
+    zero_write_proven = _truthy(source.get("READ_ONLY_VALIDATION_ZERO_WRITE_PROVEN"))
+    db_authority = (_safe_text(source.get("READ_ONLY_VALIDATION_DB_AUTHORITY")) or "unknown").lower()
+    non_production_domain = bool(resolved_domain_host and "mascidocs.com" not in resolved_domain_host.lower())
+    read_only_validation_errors: list[str] = []
+    if read_only_validation_requested:
+        if not read_only_mode:
+            read_only_validation_errors.append("read_only_mode_not_enabled")
+        if db_authority not in {"read_only", "readonly", "read-only"}:
+            read_only_validation_errors.append("database_authority_not_proven_read_only")
+        if not session_writes_suppressed:
+            read_only_validation_errors.append("session_writes_not_suppressed")
+        if not scheduler_disabled:
+            read_only_validation_errors.append("schedulers_not_disabled")
+        if not email_disabled:
+            read_only_validation_errors.append("email_not_disabled")
+        if not maintainx_disabled:
+            read_only_validation_errors.append("maintainx_not_disabled")
+        if not ai_disabled:
+            read_only_validation_errors.append("ai_not_disabled")
+        if not ods_disabled:
+            read_only_validation_errors.append("ods_not_disabled")
+        if not trust_spine_disabled:
+            read_only_validation_errors.append("trust_spine_not_disabled")
+        if not webhooks_disabled:
+            read_only_validation_errors.append("webhooks_not_disabled")
+        if not non_production_domain:
+            read_only_validation_errors.append("domain_not_non_production")
+        if not zero_write_proven:
+            read_only_validation_errors.append("zero_write_proof_missing")
+    read_only_validation = {
+        "requested": read_only_validation_requested,
+        "active": bool(read_only_validation_requested and not read_only_validation_errors),
+        "db_authority": db_authority,
+        "read_only_mode": read_only_mode,
+        "startup_write_suppressed": bool(read_only_validation_requested),
+        "http_mutation_barrier_active": bool(read_only_validation_requested),
+        "session_writes_suppressed": session_writes_suppressed,
+        "scheduler_disabled": scheduler_disabled,
+        "backup_scheduler_disabled": scheduler_disabled,
+        "email_disabled": email_disabled,
+        "ai_disabled": ai_disabled,
+        "ods_disabled": ods_disabled,
+        "trust_spine_disabled": trust_spine_disabled,
+        "maintainx_disabled": maintainx_disabled,
+        "webhooks_disabled": webhooks_disabled,
+        "non_production_domain": non_production_domain,
+        "zero_write_proven": zero_write_proven,
+        "approved_preview_db_name": approved_preview_db_name,
+        "approved_preview_hosts": list(approved_preview_hosts),
+        "errors": list(read_only_validation_errors),
+    }
     release_commit = _safe_text(str(release.get("commit") or ""))
     release_source_hash = _safe_text(str(release.get("source_hash") or ""))
     source_identity = release_source_hash or release_commit or "unknown-release"
@@ -207,7 +302,7 @@ def build_runtime_identity(*, env: Optional[Mapping[str, str]] = None, release_i
         preview_distinction="production" if app_env == "production" else "preview",
         scheduler_authority="enabled" if _truthy(source.get("SCHEDULER_ENABLED")) else "disabled",
         read_write_mode="read_only" if _truthy(source.get("READ_ONLY_MODE")) else "read_write",
-        domain_host_context=domain_host_context or _safe_text(source.get("APP_DOMAIN")) or _safe_text(source.get("REACT_APP_BACKEND_URL")),
+        domain_host_context=resolved_domain_host,
         source_identity=source_identity,
         approved_cluster_identifier=approved_cluster_identifier,
         approved_hostname=approved_hostname,
@@ -218,6 +313,7 @@ def build_runtime_identity(*, env: Optional[Mapping[str, str]] = None, release_i
         parse_error=parsed.parse_error,
         is_atlas=parsed.is_atlas,
         is_local=parsed.is_local,
+        read_only_validation=read_only_validation,
     )
 
 
@@ -239,7 +335,27 @@ def validate_runtime_identity(identity: RuntimeIdentity) -> RuntimeIdentityValid
         errors.append("path_db_mismatch")
         mismatch_category = mismatch_category or "DATABASE_NAME_MISMATCH"
 
+    preview_hosts = tuple(identity.read_only_validation.get("approved_preview_hosts") or ())
+    preview_db_name = identity.read_only_validation.get("approved_preview_db_name") or DEFAULT_APPROVED_PREVIEW_DB
+    preview_host_allowed = bool(
+        identity.mongo_hostname
+        and (
+            identity.mongo_hostname in preview_hosts
+            or any(marker in identity.mongo_hostname for marker in ("preview", "staging", "dev", "test"))
+        )
+    )
+    preview_target_uses_production = any(
+        (
+            identity.db_name == identity.approved_db_name,
+            identity.mongo_hostname == identity.approved_hostname,
+            identity.mongo_username == identity.approved_username,
+        )
+    )
+
     if identity.app_env == "production":
+        if identity.read_only_validation.get("requested"):
+            errors.append("read_only_validation_not_permitted_in_production")
+            mismatch_category = mismatch_category or "READ_ONLY_VALIDATION_NOT_PERMITTED"
         if not identity.enforce_db_isolation:
             errors.append("db_isolation_not_enforced")
             mismatch_category = mismatch_category or "ISOLATION_NOT_ENFORCED"
@@ -264,15 +380,33 @@ def validate_runtime_identity(identity: RuntimeIdentity) -> RuntimeIdentityValid
             errors.append("atlas_identity_unproven")
             mismatch_category = mismatch_category or "CLUSTER_HOST_MISMATCH"
     else:
-        if identity.db_name == identity.approved_db_name:
-            errors.append("preview_using_production_db_name")
-            mismatch_category = mismatch_category or "PREVIEW_PRODUCTION_DB_REFUSED"
-        if identity.mongo_hostname == identity.approved_hostname:
-            errors.append("preview_pointing_to_production_cluster")
-            mismatch_category = mismatch_category or "PREVIEW_PRODUCTION_CLUSTER_REFUSED"
-        if identity.mongo_username == identity.approved_username:
-            errors.append("preview_using_production_user")
-            mismatch_category = mismatch_category or "PREVIEW_PRODUCTION_USER_REFUSED"
+        if preview_target_uses_production:
+            if identity.read_only_validation.get("requested") and identity.read_only_validation.get("active"):
+                warnings.append("read_only_validation_active")
+            elif identity.read_only_validation.get("requested"):
+                errors.append("read_only_validation_incomplete")
+                errors.extend(identity.read_only_validation.get("errors") or [])
+                mismatch_category = mismatch_category or "READ_ONLY_VALIDATION_INCOMPLETE"
+            else:
+                if identity.db_name == identity.approved_db_name:
+                    errors.append("preview_using_production_db_name")
+                    mismatch_category = mismatch_category or "PREVIEW_PRODUCTION_DB_REFUSED"
+                if identity.mongo_hostname == identity.approved_hostname:
+                    errors.append("preview_pointing_to_production_cluster")
+                    mismatch_category = mismatch_category or "PREVIEW_PRODUCTION_CLUSTER_REFUSED"
+                if identity.mongo_username == identity.approved_username:
+                    errors.append("preview_using_production_user")
+                    mismatch_category = mismatch_category or "PREVIEW_PRODUCTION_USER_REFUSED"
+        else:
+            if identity.read_only_validation.get("requested"):
+                errors.append("read_only_validation_not_required_for_non_production_target")
+                mismatch_category = mismatch_category or "READ_ONLY_VALIDATION_NOT_REQUIRED"
+            if identity.db_name != preview_db_name:
+                errors.append("preview_db_name_unapproved")
+                mismatch_category = mismatch_category or "PREVIEW_TARGET_UNAPPROVED"
+            if not (identity.is_local or preview_host_allowed):
+                errors.append("preview_hostname_unapproved")
+                mismatch_category = mismatch_category or "PREVIEW_TARGET_UNAPPROVED"
         if identity.db_name and "preview" not in identity.db_name.lower():
             warnings.append("preview_db_name_not_explicitly_preview")
 
@@ -304,6 +438,20 @@ def build_runtime_identity_bundle(*, env: Optional[Mapping[str, str]] = None, re
     identity = build_runtime_identity(env=env, release_identity=release_identity, domain_host_context=domain_host_context)
     validation = validate_runtime_identity(identity)
     return {"identity": identity, "validation": validation}
+
+
+def is_read_only_validation_requested_from_env(env: Optional[Mapping[str, str]] = None) -> bool:
+    return _read_only_validation_requested(env or os.environ)
+
+
+def is_read_only_validation_active_bundle(bundle: Optional[Mapping[str, Any]]) -> bool:
+    if not bundle:
+        return False
+    identity = bundle.get("identity")
+    if identity is None:
+        return False
+    contract = getattr(identity, "read_only_validation", None) or {}
+    return bool(contract.get("active"))
 
 
 def runtime_identity_public_payload(bundle: Mapping[str, Any]) -> Dict[str, Any]:
@@ -339,6 +487,8 @@ __all__ = [
     "STATUS_VERIFIED",
     "assert_runtime_identity_valid",
     "build_runtime_identity_bundle",
+    "is_read_only_validation_active_bundle",
+    "is_read_only_validation_requested_from_env",
     "parse_mongo_url",
     "runtime_identity_public_payload",
 ]
