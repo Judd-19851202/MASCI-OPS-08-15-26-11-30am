@@ -1,0 +1,114 @@
+{
+  "summary": "Checkpoint B Final validation complete. All 21 static regression tests pass. DOP-006 restore guards, DOP-007 supplier upload guards, governance self-protection runtime-image closure, canonical security headers, and prior Phase 2 repairs all verified intact. No production config changed, no dangerous scripts executed.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_track_28_11_checkpoint_b_runtime_and_guards.py",
+    "/app/backend/tests/test_track_28_12_checkpoint_b_restore_supplier_and_headers.py",
+    "/app/backend/tests/test_track_28_13_checkpoint_b_script_register_and_guards.py",
+    "/app/backend/tests/test_track_28_10_phase2_reconciliation_repairs.py",
+    "/app/test_reports/pytest/pytest_checkpoint_b_final_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "100% (21/21 tests passed)",
+    "frontend": "N/A (backend-only testing)"
+  },
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Checkpoint B Final validation complete. All guard contracts verified via static assertions. No live restore or supplier replace operations executed per testing doctrine.",
+  "checkpoint_b_final_validation": {
+    "dop_006_restore_guards": {
+      "confirm_phrase_required": "RESTORE_REPLACE_ALL_COLLECTIONS",
+      "backup_ack_required": true,
+      "runtime_db_assertion": "masci_safety",
+      "dry_run_preflight_supported": true,
+      "empty_scope_refused": true,
+      "partial_failure_reporting": true,
+      "test_status": "PASSED"
+    },
+    "dop_007_supplier_upload_guards": {
+      "default_mode": "preflight",
+      "replace_all_requires_confirm": "REPLACE_ALL_SUPPLIERS",
+      "replace_all_requires_backup_ack": true,
+      "preflight_counts_surfaced": true,
+      "test_status": "PASSED"
+    },
+    "governance_self_protection_runtime_closure": {
+      "test_reports_not_shipped": true,
+      "regression_suite_status": "unavailable_in_runtime_image",
+      "memory_dir_points_to_shipped_static": "backend/static/runtime-data",
+      "trust_surfaces_path": "backend/static/runtime-data/TRUST_SURFACES.json",
+      "test_status": "PASSED"
+    },
+    "canonical_security_headers": {
+      "x_content_type_options": "nosniff",
+      "referrer_policy": "strict-origin-when-cross-origin",
+      "x_frame_options": "DENY",
+      "frame_ancestors": "'none'",
+      "middleware_location": "server.py:18338-18351",
+      "test_status": "PASSED"
+    },
+    "prior_repairs_intact": {
+      "pm_actor_tagging": "PASSED",
+      "splash_duration_class": "PASSED",
+      "daily_reports_new_redirect": "PASSED",
+      "openai_wrapped_json": "PASSED",
+      "restore_drill_content_hash": "PASSED"
+    },
+    "dangerous_script_register": {
+      "seed_project_memberships": "registered",
+      "seed_equipment_make_model": "registered",
+      "track_15_65_seed_email_routes": "registered",
+      "migrate_local_project_docs_to_r2": "registered",
+      "no_scripts_executed": true
+    },
+    "production_config_unchanged": {
+      "backend_env_mongo_url": "masci_preview_user (unchanged)",
+      "backend_env_db_name": "masci_safety_preview (unchanged)",
+      "backend_env_app_env": "preview (unchanged)",
+      "frontend_env": "unchanged"
+    }
+  },
+  "tests_executed": {
+    "track_28_11_runtime_and_guards": {
+      "test_runtime_routes_no_longer_point_to_memory_paths": "PASSED",
+      "test_governance_runtime_paths_use_shipped_static_runtime_data": "PASSED",
+      "test_governance_self_protection_no_longer_reads_test_reports": "PASSED",
+      "test_operator_safety_requires_confirmation_and_backup_ack": "PASSED",
+      "test_destructive_routes_use_shared_guard_tokens": "PASSED",
+      "test_cost_code_bulk_replace_guarded": "PASSED",
+      "test_jobs_bulk_replace_refuses_empty_rows": "PASSED"
+    },
+    "track_28_12_restore_supplier_headers": {
+      "test_restore_replace_mode_guard_contract_present": "PASSED",
+      "test_supplier_replace_all_guard_contract_present": "PASSED",
+      "test_operator_safety_non_empty_scope_refuses_empty": "PASSED",
+      "test_governance_self_protection_runtime_image_honesty": "PASSED",
+      "test_canonical_security_headers_present_and_ordered": "PASSED"
+    },
+    "track_28_13_script_register": {
+      "test_seed_project_memberships_is_still_unguarded_and_registered": "PASSED",
+      "test_seed_equipment_make_model_is_registered": "PASSED",
+      "test_track_15_65_seed_email_routes_is_registered": "PASSED",
+      "test_migrate_local_project_docs_to_r2_is_registered": "PASSED"
+    },
+    "track_28_10_phase2_reconciliation": {
+      "test_openai_wrapped_json_extractor_handles_fenced_payloads": "PASSED",
+      "test_restore_drill_supports_collections_name_json_layout_and_content_hash_key": "PASSED",
+      "test_daily_reports_new_alias_redirect_present": "PASSED",
+      "test_splash_overlay_duration_class_repaired": "PASSED",
+      "test_pm_actor_tagging_present_on_shared_auth_gates": "PASSED"
+    }
+  }
+}

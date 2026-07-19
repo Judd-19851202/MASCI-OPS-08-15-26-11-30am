@@ -6,13 +6,13 @@ that already exist on disk and returns a calm, text-first JSON payload
 that the page renders 1:1 — NO database, NO live aggregation, NO
 charts, NO analytics creep.
 
-Sources (all read-only · all already maintained by other workstreams)
+Sources (all read-only · shipped runtime sources only where applicable)
 * `scripts/authority_pattern_baseline.json`
-* `memory/TRUST_SURFACES.json`
-* `memory/SHARED_SURFACE_CONTEXT_MATRIX.json`
-* `memory/TRUTHFUL_STATE_TEST_MATRIX.json`
-* `memory/TELEMETRY_SIGNAL_MATRIX.json`
-* `memory/FIELD_WALK_CHECKLISTS/` (file mtimes as "last walk")
+* `backend/static/runtime-data/TRUST_SURFACES.json`
+* `backend/static/runtime-data/SHARED_SURFACE_CONTEXT_MATRIX.json`
+* `backend/static/runtime-data/TRUTHFUL_STATE_TEST_MATRIX.json`
+* `backend/static/runtime-data/TELEMETRY_SIGNAL_MATRIX.json`
+* `backend/static/runtime-data/FIELD_WALK_CHECKLISTS/` (file mtimes as "last walk")
 * `scripts/authority_mismatch_probe.py` (invoked with a 60s cache)
 
 Doctrine
@@ -39,7 +39,6 @@ from fastapi import APIRouter, Body, Depends, HTTPException
 REPO_ROOT = Path("/app")
 SCRIPTS_DIR = REPO_ROOT / "scripts"
 MEMORY_DIR = REPO_ROOT / "backend" / "static" / "runtime-data"
-TEST_REPORTS_DIR = REPO_ROOT / "test_reports"
 FIELD_WALKS_DIR = MEMORY_DIR / "FIELD_WALK_CHECKLISTS"
 DEPLOY_HISTORY_PATH = MEMORY_DIR / "DEPLOYMENT_HISTORY.json"
 DEPLOY_HISTORY_MAX = 50
@@ -201,26 +200,10 @@ def _telemetry_doctrine_status() -> Dict[str, Any]:
 
 
 def _regression_suite_status() -> Dict[str, Any]:
-    """Read the most recent test_reports/iteration_*.json (if any)
-    plus the test_credentials marker. Status is reported AS-IS — we
-    don't run tests on this page request."""
-    reports: List[Path] = []
-    if TEST_REPORTS_DIR.exists():
-        reports = sorted(TEST_REPORTS_DIR.glob("iteration_*.json"))
-    if not reports:
-        return {"status": "unknown", "last_iteration": None}
-    last = reports[-1]
-    try:
-        body = json.loads(last.read_text())
-    except (json.JSONDecodeError, OSError):
-        return {"status": "unknown", "last_iteration": last.name}
-    # Best-effort summary extraction (structure varies by iteration).
-    # We're calm here — partial extraction is fine.
     return {
-        "status": "green",
-        "last_iteration": last.name,
-        "last_iteration_at": int(last.stat().st_mtime),
-        "summary_keys": list(body.keys())[:10],
+        "status": "unavailable_in_runtime_image",
+        "last_iteration": None,
+        "reason": "test_reports_not_shipped",
     }
 
 
@@ -380,6 +363,7 @@ def _record_deploy_entry(*, source_hash: str, note: str) -> Dict[str, Any]:
         "schema": "DEPLOYMENT_HISTORY/v1",
         "history": history,
     }
+    DEPLOY_HISTORY_PATH.parent.mkdir(parents=True, exist_ok=True)
     DEPLOY_HISTORY_PATH.write_text(json.dumps(payload, indent=2))
     return {"appended": True, "entry": entry, "history_size": len(history)}
 
@@ -402,11 +386,7 @@ def build_governance_self_protection_router(require_admin):
         context = _context_governance_status()
         truthful = _truthful_state_status()
         telemetry = _telemetry_doctrine_status()
-        regression = {
-            "status": "unavailable_in_runtime_image",
-            "last_iteration": None,
-            "reason": "test_reports_not_shipped",
-        }
+        regression = _regression_suite_status()
         walks = _field_walk_status()
         drift = _drift_status(context=context, probe=probe)
         deployment = _deployment_status(current_hash=current_hash)

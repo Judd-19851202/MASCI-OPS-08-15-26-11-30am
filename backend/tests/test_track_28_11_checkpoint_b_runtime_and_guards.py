@@ -31,6 +31,13 @@ def test_governance_runtime_paths_use_shipped_static_runtime_data():
     assert '/app/memory/HUB_VISUAL_BASELINE.json' not in src
 
 
+def test_governance_self_protection_no_longer_reads_test_reports():
+    src = Path("/app/backend/routes/governance_self_protection.py").read_text(encoding="utf-8")
+    assert 'TEST_REPORTS_DIR' not in src
+    assert 'test_reports/iteration_' not in src
+    assert 'test_reports_not_shipped' in src
+
+
 def test_operator_safety_requires_confirmation_and_backup_ack(monkeypatch):
     from lib.operator_safety import require_destructive_confirmation, require_destructive_runtime_guard
 

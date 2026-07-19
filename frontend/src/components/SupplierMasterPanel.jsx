@@ -25,7 +25,7 @@ const SupplierMasterPanel = ({ readOnly = false }) => (
     archiveEndpoint="/admin/suppliers/archive"
     restoreEndpoint="/admin/suppliers/{id}/restore"
     uploadAccept=".xlsx,.xlsm,.csv"
-    uploadHint="XLSX or CSV — first column is the company name · max 10 MB"
+    uploadHint="XLSX or CSV — first column is the company name · upload returns preflight by default; replace-all requires explicit destructive confirmation · max 10 MB"
     fields={[
       { key: "name", label: "Company Name", required: true, placeholder: "Acme Asphalt LLC" },
     ]}

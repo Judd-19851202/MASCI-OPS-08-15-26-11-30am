@@ -1,0 +1,10 @@
+{
+  "schema": "DEPLOYMENT_HISTORY/v1",
+  "history": [
+    {
+      "source_hash": "a982aea19b5c7a224eb048fb41d5357c",
+      "deployed_at": 1784466622,
+      "note": "auto-recorded on backend startup"
+    }
+  ]
+}

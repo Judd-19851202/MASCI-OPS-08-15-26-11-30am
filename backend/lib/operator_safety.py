@@ -49,3 +49,8 @@ def require_destructive_runtime_guard(
             detail="Destructive action blocked because the active DB_NAME does not match the approved target.",
         )
     return target
+
+
+def require_non_empty_destructive_scope(items: list[Any] | None, *, detail: str) -> None:
+    if not items:
+        raise HTTPException(status_code=400, detail=detail)

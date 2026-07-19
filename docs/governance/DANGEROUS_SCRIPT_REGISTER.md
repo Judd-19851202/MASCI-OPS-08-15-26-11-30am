@@ -32,6 +32,15 @@ Checkpoint: B
 4. `backend/scripts/track_15_65_seed_email_routes.py` — P1  
    Root cause: apply path exists but lacks production-only typed confirmation discipline.
 
+5. `backend/scripts/basecamp_import.py` / `basecamp_import_big.py` — P1  
+   Root cause: active import-style mutation tooling detected by write-surface scan; requires full classification before Checkpoint B closes.
+
+6. `backend/scripts/migrate_dr_v2_collections_to_daily_report.py` — P1  
+   Root cause: migration tooling with write surfaces detected; requires guard classification.
+
+7. `backend/scripts/track_15_28c_canonicalization_migration.py` — P1  
+   Root cause: write-enabled migration detected; requires safety-classification closure.
+
 ## Shared doctrine for future repair
 
 - Prefer `lib/operator_safety.py` style shared confirmation/runtime guards.

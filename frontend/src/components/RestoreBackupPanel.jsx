@@ -31,6 +31,7 @@ export default function RestoreBackupPanel() {
   const [source, setSource] = useState("file"); // 'file' | 'r2'
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
+  const [backupAck, setBackupAck] = useState(false);
   const [pendingFile, setPendingFile] = useState(null);
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [archives, setArchives] = useState(null);
@@ -91,6 +92,11 @@ export default function RestoreBackupPanel() {
     const fd = new FormData();
     fd.append("file", file);
     fd.append("merge", merge ? "true" : "false");
+    fd.append("dry_run", "false");
+    if (!merge) {
+      fd.append("confirm", "RESTORE_REPLACE_ALL_COLLECTIONS");
+      fd.append("backup_ack", backupAck ? "true" : "false");
+    }
     try {
       const r = await api.post("/exports/restore", fd, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -110,7 +116,7 @@ export default function RestoreBackupPanel() {
   };
 
   const confirmReplace = () => {
-    if (confirmText !== "REPLACE" || !pendingFile) return;
+    if (confirmText !== "REPLACE" || !pendingFile || !backupAck) return;
     setConfirmOpen(false);
     // Second gate — admin must re-type the password before any
     // collection is wiped. The pending file is already vetted.
@@ -349,7 +355,7 @@ export default function RestoreBackupPanel() {
           <>
             <strong>Replace mode</strong> — every collection found in the .zip is <strong>wiped first</strong>,
             then repopulated from the backup. Any records added since the backup will be lost.
-            Requires typing <strong>REPLACE</strong> to confirm.
+            Requires typing <strong>REPLACE</strong> and acknowledging backup safety to confirm.
           </>
         )}
       </div>
@@ -405,11 +411,20 @@ export default function RestoreBackupPanel() {
             className="w-full h-11 px-3 border-2 border-slate-300 focus:border-red-700 focus:outline-none rounded font-mono text-sm"
             data-testid="restore-confirm-input"
           />
+          <label className="flex items-center gap-2 text-sm text-red-900" data-testid="restore-backup-ack-label">
+            <input
+              type="checkbox"
+              checked={backupAck}
+              onChange={(e) => setBackupAck(e.target.checked)}
+              data-testid="restore-backup-ack-checkbox"
+            />
+            I acknowledge backup and recovery expectations before replace mode.
+          </label>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setConfirmOpen(false)}>Cancel</Button>
             <Button
               onClick={confirmReplace}
-              disabled={confirmText !== "REPLACE"}
+              disabled={confirmText !== "REPLACE" || !backupAck}
               className="bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide disabled:bg-slate-400"
               data-testid="restore-confirm-btn"
             >

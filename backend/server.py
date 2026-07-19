@@ -24,6 +24,7 @@ import uuid
 from datetime import datetime, timezone, timedelta
 from branded_portal_emails import render_portal_email
 from lib.operator_safety import require_destructive_confirmation, require_destructive_runtime_guard
+from lib.operator_safety import require_non_empty_destructive_scope
 # Track 15.67 Phase 3 · tenant-safe sender resolver wrapper.
 from branding_resolver import resolve_sender_email as _resolve_sender_email, resolve_reply_to_email as _resolve_reply_to_email  # noqa: E402
 
@@ -5741,6 +5742,9 @@ async def restore_supplier(supplier_id: str, _: bool = Depends(require_admin)):
 @api_router.post("/admin/suppliers/upload")
 async def upload_suppliers(
     file: UploadFile = File(...),
+    replace_all: bool = Form(False),
+    confirm: str = Form(""),
+    backup_ack: bool = Form(False),
     _: bool = Depends(require_admin),
 ):
     """Replace the supplier list from an .xlsx or .csv file.
@@ -5797,9 +5801,42 @@ async def upload_suppliers(
     if not items:
         raise HTTPException(status_code=400, detail="No supplier names found.")
 
+    current_count = await db.suppliers.count_documents({})
+    duplicate_count = max(0, len(names) - len(items))
+    preflight = {
+        "current_suppliers": current_count,
+        "incoming_suppliers": len(items),
+        "duplicates_filtered": duplicate_count,
+        "invalid_rows": 0,
+    }
+
+    if not replace_all:
+        return {
+            "ok": True,
+            "mode": "preflight",
+            "replace_all": False,
+            "preflight": preflight,
+        }
+
+    require_destructive_confirmation(
+        {"confirm": confirm, "backup_ack": backup_ack},
+        expected_confirm="REPLACE_ALL_SUPPLIERS",
+    )
+    require_destructive_runtime_guard(expected_db_name="masci_safety")
+
     await db.suppliers.delete_many({})
     await db.suppliers.insert_many(items)
-    return {"ok": True, "count": len(items)}
+    return {
+        "ok": True,
+        "mode": "replace_all",
+        "count": len(items),
+        "preflight": {
+            **preflight,
+            "removed": current_count,
+            "added": len(items),
+            "changed": len(items),
+        },
+    }
 
 
 @api_router.post("/admin/suppliers")
@@ -11052,6 +11089,9 @@ _RESTORE_MAX_BYTES = _restore_max_bytes()
 async def exports_restore(
     file: UploadFile = File(...),
     merge: bool = Form(True),
+    confirm: str = Form(""),
+    backup_ack: bool = Form(False),
+    dry_run: bool = Form(False),
     _: bool = Depends(require_admin_strict),
 ):
     """Restore a `/api/exports/full-backup` .zip back into MongoDB.
@@ -11139,6 +11179,7 @@ async def exports_restore(
         "archive_backup_id": manifest.get("backup_id"),
         "archive_generated_at": manifest.get("generated_at"),
         "merge": merge,
+        "dry_run": dry_run,
         "result": None,
         "reason": None,
     }
@@ -11191,6 +11232,13 @@ async def exports_restore(
             f"Restore blocked. Archive database `{archive_db}` does not "
             f"match the current database `{current_db}`.",
         )
+
+    if not merge:
+        require_destructive_confirmation(
+            {"confirm": confirm, "backup_ack": backup_ack},
+            expected_confirm="RESTORE_REPLACE_ALL_COLLECTIONS",
+        )
+        require_destructive_runtime_guard(expected_db_name="masci_safety")
 
     # 2. Walk the ZIP and group docs by destination collection.
     bucket: Dict[str, List[dict]] = {}
@@ -11302,8 +11350,39 @@ async def exports_restore(
             "<kind>/json/, crew_hub/, safety_aux/, collections/, or disk_files/).",
         )
 
+    if not merge:
+        require_non_empty_destructive_scope(
+            list(bucket.keys()),
+            detail="Replace-mode restore refused because the archive does not contain any restorable collection set.",
+        )
+
+    preflight_collections = {
+        coll: {
+            "incoming_records": len([d for d in docs if isinstance(d, dict)]),
+            "existing_records": await db[coll].count_documents({}),
+        }
+        for coll, docs in bucket.items()
+    }
+
+    if dry_run:
+        result = {
+            "ok": True,
+            "mode": "replace" if not merge else "merge",
+            "dry_run": True,
+            "backup_generated_at": manifest.get("generated_at"),
+            "backup_version": manifest.get("version", "unknown"),
+            "archive_environment": archive_env or "unknown",
+            "archive_backup_id": manifest.get("backup_id"),
+            "collections": preflight_collections,
+            "total_processed": sum(v["incoming_records"] for v in preflight_collections.values()),
+            "disk_files": disk_restored,
+        }
+        await _record_audit("accepted", f"dry_run merge={merge}; collections={len(preflight_collections)}")
+        return result
+
     # 3. Write back to MongoDB.
     summary: Dict[str, dict] = {}
+    failed_docs: Dict[str, List[str]] = {}
     # If the users / user_directory collections are being restored, the export
     # redacts password_hash. Precompute the seed hash so restored rows always
     # have a usable password (Welcome2MASCI! + must_change_password).
@@ -11365,31 +11444,44 @@ async def exports_restore(
                     modified += 1
                 upserted += 1
             except Exception as e:  # noqa: BLE001
-                logger.warning(f"restore: {coll}/{d.get('id')} failed: {e}")
+                doc_id = str(d.get("id") or "unknown")
+                failed_docs.setdefault(coll, []).append(doc_id)
+                logger.warning(
+                    "restore: collection=%s doc_id=%s status=failed error=%s",
+                    coll,
+                    doc_id,
+                    type(e).__name__,
+                )
 
         summary[coll] = {
             "deleted": deleted,
             "processed": len(clean),
             "inserted": inserted,
             "updated": modified,
+            "failed": len(failed_docs.get(coll) or []),
         }
 
     logger.info(f"restore: processed {sum(s['processed'] for s in summary.values())} records across {len(summary)} collections")
 
+    total_failed = sum(len(v) for v in failed_docs.values())
     result = {
-        "ok": True,
+        "ok": total_failed == 0,
         "mode": "replace" if not merge else "merge",
+        "dry_run": False,
         "backup_generated_at": manifest.get("generated_at"),
         "backup_version": manifest.get("version", "unknown"),
         "archive_environment": archive_env or "unknown",
         "archive_backup_id": manifest.get("backup_id"),
         "collections": summary,
         "total_processed": sum(s["processed"] for s in summary.values()),
+        "total_failed": total_failed,
+        "failed_docs": failed_docs,
+        "status": "partial_failure" if total_failed else "success",
     }
     # Track 14.0-I1: success audit (counterpart to the rejection audits above).
     await _record_audit(
-        "accepted",
-        f"merge={merge}; processed={result['total_processed']}",
+        "accepted" if total_failed == 0 else "partial_failure",
+        f"merge={merge}; processed={result['total_processed']}; failed={total_failed}",
     )
     return result
 
@@ -18241,6 +18333,22 @@ _READINESS_EXEMPT_PATHS = {
     "/api/health",
     "/api/version",
 }
+
+
+@app.middleware("http")
+async def _canonical_security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    csp = response.headers.get("Content-Security-Policy", "").strip()
+    if "frame-ancestors" not in csp:
+        response.headers["Content-Security-Policy"] = (
+            f"{csp}; frame-ancestors 'none'".strip('; ').strip()
+        )
+    if (os.environ.get("APP_ENV") or "").strip().lower() == "production":
+        response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+    return response
 
 
 @app.middleware("http")

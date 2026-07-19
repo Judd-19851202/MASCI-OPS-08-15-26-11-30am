@@ -20,8 +20,8 @@ Checkpoint: B
 | DOP-003 | `backend/routes/cost_codes.py:159-168` | `/api/cost-codes/registry/bulk-replace` | literal `delete_many({})` | P1 before fix | REPAIRED |
 | DOP-004 | `backend/server.py:10768-10792` | `/api/admin/crew-recovery/force-reseed` | literal `delete_many({})` over seeded collections | P1 before fix | REPAIRED |
 | DOP-005 | `backend/server.py:10795-10840` | `/api/admin/crew-recovery/scrap-crew-hub` | literal `delete_many({})` across Crew Hub collections | P1 before fix | REPAIRED |
-| DOP-006 | `backend/server.py:11347-11350` | `/api/exports/restore` replace mode | literal `delete_many({})` before restore | P1 | OWNED_NOT_REPAIRED |
-| DOP-007 | `backend/server.py:5797-5798` | supplier import replace-all | literal `delete_many({})` | P2 | OWNED_NOT_REPAIRED |
+| DOP-006 | `backend/server.py:11051-11394` | `/api/exports/restore` replace mode | literal `delete_many({})` before restore | P1 before fix | REPAIRED |
+| DOP-007 | `backend/server.py:5741-5802` | supplier import replace-all | literal `delete_many({})` | P1 before fix | REPAIRED |
 | DOP-008 | `backend/routes/job_photos.py:304-329` | photo reindex | literal `delete_many({})` | P2 | ACCEPTED_INTENTIONAL_ADMIN_RESET |
 | DOP-009 | `backend/services/r2_lifecycle/references.py:174-188` | R2 reference scan refresh | literal `delete_many({})` | P2 | ACCEPTED_INTENTIONAL_EPHEMERAL_RESET |
 
@@ -48,17 +48,26 @@ Checkpoint: B
 - Added required `backup_ack=true`
 - Added runtime DB assertion through shared operator safety helper
 
-## Deferred / owned
-
-### DOP-006 — `/api/exports/restore` replace mode
-- Severity: P1
-- Owner: Checkpoint B follow-on within same track
-- Reason deferred: needs a narrow UX-safe contract for explicit replace-mode confirmation without weakening existing archive validation.
+### DOP-006 — exports restore replace mode
+- Added required confirmation token: `RESTORE_REPLACE_ALL_COLLECTIONS`
+- Added required `backup_ack=true`
+- Added runtime DB assertion through shared operator safety helper
+- Added dry-run support in-route
+- Added explicit empty-collection refusal for replace mode
+- Added per-collection preflight counts and partial-failure honesty
 
 ### DOP-007 — supplier replace-all import
-- Severity: P2
-- Owner: Checkpoint B follow-on within same track
-- Reason deferred: bounded admin-only import path, but still lacks explicit full-reset confirmation/backups acknowledgment.
+- Added explicit `replace_all` mode gate
+- Default upload now returns preflight only
+- Added required confirmation token: `REPLACE_ALL_SUPPLIERS`
+- Added required `backup_ack=true`
+- Added runtime DB assertion through shared operator safety helper
+- Added preflight counts for current/incoming/duplicates
+
+## Deferred / owned
+
+### Remaining open destructive path ownership
+- None in the previously open DOP-006 / DOP-007 pair.
 
 ## Guard doctrine proven this checkpoint
 

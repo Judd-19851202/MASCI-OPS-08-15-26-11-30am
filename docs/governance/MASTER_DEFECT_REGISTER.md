@@ -48,8 +48,8 @@ Checkpoint: B
 | DOP-003 | P1 | cost code bulk replace lacked full-reset confirmation discipline | FIXED | Main agent |
 | DOP-004 | P1 | crew force-reseed lacked confirmation/backups acknowledgment | FIXED | Main agent |
 | DOP-005 | P1 | scrap crew hub lacked shared destructive runtime guard | FIXED | Main agent |
-| DOP-006 | P1 | exports restore replace mode still lacks explicit replace confirmation | OPEN | Main agent |
-| DOP-007 | P2 | supplier import replace-all lacks explicit destructive confirmation | OPEN | Main agent |
+| DOP-006 | P1 | exports restore replace mode lacked explicit replace confirmation | FIXED | Main agent |
+| DOP-007 | P1 | supplier import replace-all lacked explicit destructive confirmation | FIXED | Main agent |
 
 ## Dangerous scripts
 
@@ -59,6 +59,9 @@ Checkpoint: B
 | B-DSR-002 | P1 | `seed_equipment_make_model.py` mutates repo data + DB without safety contract | OPEN | Main agent |
 | B-DSR-003 | P1 | `migrate_local_project_docs_to_r2.py` lacks explicit typed production opt-in | OPEN | Main agent |
 | B-DSR-004 | P1 | `track_15_65_seed_email_routes.py` apply mode lacks production confirmation doctrine | OPEN | Main agent |
+| B-DSR-005 | P1 | `basecamp_import.py` / `basecamp_import_big.py` mutation tooling still needs full safety classification | OPEN | Main agent |
+| B-DSR-006 | P1 | `migrate_dr_v2_collections_to_daily_report.py` still needs full safety classification | OPEN | Main agent |
+| B-DSR-007 | P1 | `track_15_28c_canonicalization_migration.py` still needs full safety classification | OPEN | Main agent |
 
 ## Critical exception register
 
@@ -67,8 +70,10 @@ Checkpoint: B
 | B-CER-001 | P2 | governance self-protection startup auto-record swallows write failure | `backend/routes/governance_self_protection.py:489-490` | OVERLY_BROAD_BUT_HARMLESS | OWNED |
 | B-CER-002 | P2 | governance health JSON file loads use safe deterministic fallback | `backend/routes/governance_health.py:78-94` | SAFE_DETERMINISTIC_FALLBACK | ACCEPTED |
 | B-CER-003 | P2 | deployment readiness route swallows CI/test enumeration failures | `backend/routes/admin_deployment_readiness.py:90-134,285` | MASKS_REAL_FAILURE | PARTIALLY_FIXED |
-| B-CER-004 | P1 | restore route continues after per-doc failures with warning-only logs | `backend/server.py:11202-11366` | INSUFFICIENT_LOGGING | OPEN |
+| B-CER-004 | P1 | restore route per-document failures were warning-only and could overstate success | `backend/server.py:11203-11394` | INSUFFICIENT_LOGGING | FIXED |
 | B-CER-005 | P2 | OpenAI adapter fallbacks are best-effort but fail closed to explicit statuses | `backend/services/ai_gateway/adapters/openai_adapter.py` | CORRECTLY_FAIL_CLOSED | ACCEPTED |
+| RC09D-1 | P1 | canonical security-header middleware absent | `backend/server.py` | FIXED |
+| RC10-E | P1 | mutation barrier / handled responses lacked guaranteed canonical security headers | `backend/server.py` | FIXED |
 
 ## Production mutation accounting
 
