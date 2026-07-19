@@ -12,8 +12,9 @@ Current objective
 Completed in current Checkpoint D slice
 - D0 baseline confirmed from the live working tree: workspace `/app`, branch `main`, HEAD `b42d8586f950d656cb5128e6d199f5603f9e7563`
 - D1 Production Identity Contract implemented as canonical library: `backend/lib/runtime_identity.py`
-- Startup now computes one shared runtime identity bundle and hard-fails Production-only identity mismatches from `_bootstrap_runtime_db`
+- Startup now computes one shared runtime identity bundle and hard-fails both Production mismatches and Preview→Production access without a fully valid read-only validation contract
 - Added isolated D1 matrix tests: `backend/tests/test_runtime_identity_contract.py`
+- Added startup-enforcement tests: `backend/tests/test_runtime_identity_startup_enforcement.py`
 - Integrated runtime identity into D2 truth surfaces already touched in this slice:
   - `/api/version`
   - `/api/ready`
@@ -21,13 +22,16 @@ Completed in current Checkpoint D slice
   - `/api/platform/data-truth`
   - `/api/cluster/capacity`
 - `backend/lib/operator_safety.py` now uses the shared runtime identity contract for target identity reporting
-- Independent verification passed for D1 and partial D2: `/app/test_reports/iteration_3.json`
+- Reopened and completed D1 corrective continuation: preview→production access now fails closed at startup before the canonical DB client becomes usable
+- Independent verification passed for corrected D1: `/app/test_reports/iteration_5.json`
 
 Key D1 behavior now enforced
 - Production requires approved hostname `masci-prod.1nduwmg.mongodb.net`, DB `masci_safety`, and `ENFORCE_DB_ISOLATION=true`
 - Wrong-cluster / correct-DB scenario is rejected by the canonical validator
-- Preview remains bootable but degrades readiness/full health when pointed at Production cluster identity
+- Preview pointing at Production cluster/database now hard-fails startup unless an explicitly armed and fully valid `READ_ONLY_VALIDATION` contract is active
+- `READ_ONLY_VALIDATION` is never inferred; incomplete contracts hard-fail; valid contracts enable startup-write suppression, session-write suppression, and HTTP mutation barriers in isolated tests
 - Public/admin-safe payloads expose only redacted hostname and identity metadata, never raw Mongo credentials or full URIs
+- Live preview state now intentionally refuses startup because its current preview configuration still targets the Production hostname without a valid read-only validation contract
 
 Files added/updated in this slice
 - `backend/lib/runtime_identity.py`
@@ -37,12 +41,14 @@ Files added/updated in this slice
 - `backend/routes/cluster_capacity.py`
 - `backend/server.py`
 - `backend/tests/test_runtime_identity_contract.py`
+- `backend/tests/test_runtime_identity_startup_enforcement.py`
 - `backend/tests/test_d1_runtime_identity_http.py` (independent reviewer artifact)
 
 Testing completed
 - Focused lint passed for updated Python files
-- Local focused pytest pass: 31 tests passed with safe preview env overrides
-- Independent backend verification passed via testing agent (`/app/test_reports/iteration_3.json`)
+- Local focused pytest pass: 42 tests passed with safe preview env overrides
+- Independent backend verification passed via testing agent (`/app/test_reports/iteration_5.json`)
+- Live supervisor restart verified the expected fail-closed startup refusal for the preview→production mismatch (`PREVIEW_PRODUCTION_CLUSTER_REFUSED`)
 
 Safety/accounting
 - No deployment
@@ -54,7 +60,8 @@ Safety/accounting
 - No migration, seed, restore, purge, cleanup script, or index mutation executed
 
 Prioritized next actions
-- P0: Finish D2 canonical truth-surface rollout across remaining health/trust/admin surfaces (`/api/health`, `/api/version`, `/api/platform/data-truth`, Operations Trust Center, deployment readiness surfaces)
+- P0: D1 is now complete; before any D2 work, the owner must decide whether preview should be re-pointed to an approved preview/local target or intentionally armed under a separately governed read-only validation contract
+- P1: After that decision, continue D2 canonical truth-surface rollout across remaining health/trust/admin surfaces (`/api/health`, `/api/version`, `/api/platform/data-truth`, Operations Trust Center, deployment readiness surfaces)
 - P1: D3 database client authority inventory and register
 - P1: D4 dependency classification document and evidence-backed runtime/test split analysis
 - P1: D5/D6 deployment gate audit and clean isolated build proof
