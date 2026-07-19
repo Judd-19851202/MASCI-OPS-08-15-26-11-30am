@@ -1,0 +1,134 @@
+from __future__ import annotations
+
+from lib.runtime_identity import (
+    STATUS_DEGRADED,
+    STATUS_MISMATCH,
+    STATUS_NOT_APPLICABLE,
+    STATUS_VERIFIED,
+    assert_runtime_identity_valid,
+    build_runtime_identity_bundle,
+    parse_mongo_url,
+    runtime_identity_public_payload,
+)
+
+
+def _bundle(env: dict[str, str]):
+    return build_runtime_identity_bundle(
+        env=env,
+        release_identity={"commit": "abc123", "source_hash": "deadbeef"},
+        domain_host_context="preview.example.test",
+    )
+
+
+def test_production_identity_passes_with_approved_target() -> None:
+    bundle = _bundle({
+        "APP_ENV": "production",
+        "DB_NAME": "masci_safety",
+        "MONGO_URL": "mongodb+srv://masci_prod_user:s3cret@masci-prod.1nduwmg.mongodb.net/masci_safety?retryWrites=true&w=majority",
+        "ENFORCE_DB_ISOLATION": "true",
+    })
+    assert bundle["validation"].valid is True
+    assert bundle["validation"].status == STATUS_VERIFIED
+    assert_runtime_identity_valid(bundle)
+
+
+def test_wrong_cluster_correct_db_hard_fails() -> None:
+    bundle = _bundle({
+        "APP_ENV": "production",
+        "DB_NAME": "masci_safety",
+        "MONGO_URL": "mongodb+srv://masci_prod_user:s3cret@wrong-cluster.mongodb.net/masci_safety?retryWrites=true&w=majority",
+        "ENFORCE_DB_ISOLATION": "true",
+    })
+    assert bundle["validation"].valid is False
+    assert bundle["validation"].status == STATUS_MISMATCH
+    assert bundle["validation"].mismatch_category == "CLUSTER_HOST_MISMATCH"
+
+
+def test_preview_cluster_refused_in_production() -> None:
+    bundle = _bundle({
+        "APP_ENV": "production",
+        "DB_NAME": "masci_safety",
+        "MONGO_URL": "mongodb+srv://masci_preview_user:s3cret@masci-preview.mongodb.net/masci_safety",
+        "ENFORCE_DB_ISOLATION": "true",
+    })
+    assert bundle["validation"].valid is False
+
+
+def test_local_mongo_refused_in_production() -> None:
+    bundle = _bundle({
+        "APP_ENV": "production",
+        "DB_NAME": "masci_safety",
+        "MONGO_URL": "mongodb://localhost:27017/masci_safety",
+        "ENFORCE_DB_ISOLATION": "true",
+    })
+    assert "local_mongo_refused" in bundle["validation"].errors
+
+
+def test_production_db_refused_in_preview() -> None:
+    bundle = _bundle({
+        "APP_ENV": "preview",
+        "DB_NAME": "masci_safety",
+        "MONGO_URL": "mongodb://localhost:27017/masci_safety",
+        "ENFORCE_DB_ISOLATION": "false",
+    })
+    assert bundle["validation"].valid is False
+    assert bundle["validation"].mismatch_category == "PREVIEW_PRODUCTION_DB_REFUSED"
+
+
+def test_unknown_hostname_hard_fails() -> None:
+    bundle = _bundle({
+        "APP_ENV": "production",
+        "DB_NAME": "masci_safety",
+        "MONGO_URL": "mongodb:///masci_safety",
+        "ENFORCE_DB_ISOLATION": "true",
+    })
+    assert bundle["validation"].valid is False
+
+
+def test_credentials_redacted_in_public_payload() -> None:
+    bundle = _bundle({
+        "APP_ENV": "production",
+        "DB_NAME": "masci_safety",
+        "MONGO_URL": "mongodb+srv://user%40domain.com:p%40ss%2Fword@masci-prod.1nduwmg.mongodb.net/masci_safety",
+        "ENFORCE_DB_ISOLATION": "true",
+    })
+    payload = runtime_identity_public_payload(bundle)
+    text = str(payload)
+    assert "mongodb+srv://" not in text
+    assert "p%40ss" not in text
+    assert "word" not in text
+
+
+def test_ipv6_options_and_query_parameters_parse() -> None:
+    parsed = parse_mongo_url("mongodb://user:pass@[::1]:27017/masci_safety_preview?retryWrites=true&authSource=admin")
+    assert parsed.scheme == "mongodb"
+    assert parsed.hostname == "::1"
+    assert parsed.path_database == "masci_safety_preview"
+
+
+def test_url_encoded_credentials_do_not_break_parsing() -> None:
+    parsed = parse_mongo_url("mongodb+srv://masci_prod_user%40tenant:p%40ss%2Fword@masci-prod.1nduwmg.mongodb.net/masci_safety")
+    assert parsed.username == "masci_prod_user@tenant"
+    assert parsed.hostname == "masci-prod.1nduwmg.mongodb.net"
+
+
+def test_duplicate_query_values_are_surfaced() -> None:
+    bundle = _bundle({
+        "APP_ENV": "production",
+        "DB_NAME": "masci_safety",
+        "MONGO_URL": "mongodb+srv://masci_prod_user:s3cret@masci-prod.1nduwmg.mongodb.net/masci_safety?retryWrites=true&retryWrites=false",
+        "ENFORCE_DB_ISOLATION": "true",
+    })
+    assert bundle["validation"].valid is False
+    assert bundle["validation"].mismatch_category == "DUPLICATE_CONFIG_VALUES"
+
+
+def test_normal_preview_remains_bootable() -> None:
+    bundle = _bundle({
+        "APP_ENV": "preview",
+        "DB_NAME": "masci_safety_preview",
+        "MONGO_URL": "mongodb://localhost:27017/masci_safety_preview",
+        "ENFORCE_DB_ISOLATION": "false",
+    })
+    assert bundle["validation"].valid is True
+    assert bundle["validation"].status in {STATUS_NOT_APPLICABLE, STATUS_DEGRADED}

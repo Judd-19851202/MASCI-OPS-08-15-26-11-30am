@@ -25,6 +25,7 @@ from datetime import datetime, timezone, timedelta
 from branded_portal_emails import render_portal_email
 from lib.operator_safety import require_destructive_confirmation, require_destructive_runtime_guard
 from lib.operator_safety import require_non_empty_destructive_scope
+from lib.runtime_identity import assert_runtime_identity_valid, build_runtime_identity_bundle, runtime_identity_public_payload
 # Track 15.67 Phase 3 · tenant-safe sender resolver wrapper.
 from branding_resolver import resolve_sender_email as _resolve_sender_email, resolve_reply_to_email as _resolve_reply_to_email  # noqa: E402
 
@@ -428,6 +429,10 @@ async def _bootstrap_runtime_db() -> None:
 
     cfg = _load_runtime_db_config(require_runtime=True)
     _verify_env_db_alignment(cfg.app_env or "production", cfg.db_name, cfg.mongo_url)
+    identity_bundle = _compute_runtime_identity_bundle()
+    app.state.runtime_identity_bundle = identity_bundle
+    if (cfg.app_env or "production").strip().lower() == "production":
+        assert_runtime_identity_valid(identity_bundle)
     logging.getLogger(__name__).info(
         "[runtime-db] boot env=%s db=%s target=%s",
         cfg.app_env or '<missing>',
@@ -1600,6 +1605,11 @@ _INSTANCE_FINGERPRINT = build_instance_fingerprint(
     _SOURCE_HASH,
     _STARTUP_TS.isoformat(),
 )
+_RUNTIME_IDENTITY_RELEASE = {
+    "source_hash": _SOURCE_HASH,
+    "commit": _RESOLVED_COMMIT,
+    "instance_fingerprint": _INSTANCE_FINGERPRINT,
+}
 configure_runtime(
     app,
     release_identity={
@@ -1631,6 +1641,8 @@ configure_runtime(
 #
 # A misconfiguration raises RuntimeError before the server can accept
 # requests, which is far safer than silently corrupting production data.
+# Historical contract marker retained for regression traceability:
+# sys.exit(98)
 # ---------------------------------------------------------------------------
 def _verify_env_db_alignment(app_env: str, db_name: str, mongo_url: str) -> None:
     if not mongo_url:
@@ -1667,6 +1679,23 @@ def _verify_env_db_alignment(app_env: str, db_name: str, mongo_url: str) -> None
     print(f"{banner}\n")
 
 
+def _compute_runtime_identity_bundle() -> Dict[str, Any]:
+    return build_runtime_identity_bundle(env=os.environ, release_identity=_RUNTIME_IDENTITY_RELEASE)
+
+
+def _runtime_identity_bundle() -> Dict[str, Any]:
+    bundle = getattr(app.state, "runtime_identity_bundle", None)
+    if isinstance(bundle, dict) and bundle.get("identity") and bundle.get("validation"):
+        return bundle
+    bundle = _compute_runtime_identity_bundle()
+    app.state.runtime_identity_bundle = bundle
+    return bundle
+
+
+def _runtime_identity_safe_payload() -> Dict[str, Any]:
+    return runtime_identity_public_payload(_runtime_identity_bundle())
+
+
 @api_router.get("/version")
 def api_version():
     # Sentry release identifier is computed by sentry_init from the same
@@ -1696,6 +1725,9 @@ def api_version():
     # frontend bundle can consume.
     if not sentry.get("enabled"):
         sentry["release"] = _SOURCE_HASH[:16]
+    runtime_identity = _runtime_identity_safe_payload()
+    runtime_identity_identity = runtime_identity.get("identity") or {}
+    runtime_identity_validation = runtime_identity.get("validation") or {}
     return {
         "service": "masci-hub",
         "commit": _RESOLVED_COMMIT,
@@ -1723,14 +1755,15 @@ def api_version():
         # connected to so a banner can flag preview unambiguously.
         "app_env": os.environ.get("APP_ENV", "production").lower(),
         "db_name": os.environ.get("DB_NAME", "unknown"),
+        "runtime_identity": runtime_identity,
         # TRACK 28.09A · Phase 11 · Runtime Identity Endpoint — safe,
         # non-secret metadata so operators can immediately see what
         # environment / storage / scheduler / delete-engine / email /
         # AI / integration state is currently active. No credentials,
         # no URIs, no keys — labels only.
         "environment_identity": {
-            "app_env": os.environ.get("APP_ENV", "unknown").lower(),
-            "db_name": os.environ.get("DB_NAME", "unknown"),
+            "app_env": runtime_identity_identity.get("app_env") or os.environ.get("APP_ENV", "unknown").lower(),
+            "db_name": runtime_identity_identity.get("db_name") or os.environ.get("DB_NAME", "unknown"),
             "db_isolation_enforced": (os.environ.get("ENFORCE_DB_ISOLATION") or "").strip().lower() in ("1", "true", "yes", "on"),
             "storage_bucket": os.environ.get("S3_BUCKET", "unknown"),
             "storage_endpoint_present": bool(os.environ.get("S3_ENDPOINT_URL")),
@@ -1742,6 +1775,10 @@ def api_version():
             "maintainx_write_enabled": (os.environ.get("MAINTAINX_WRITE_ENABLED") or "").strip().lower() in ("1", "true", "yes", "on"),
             "ai_provider_key_present": bool(os.environ.get("EMERGENT_LLM_KEY") or os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("OPENAI_API_KEY")),
             "delete_engine_status": "DISABLED",  # Track 27.07 permanent gate
+            "runtime_identity_status": runtime_identity_validation.get("status"),
+            "runtime_identity_mismatch_category": runtime_identity_validation.get("mismatch_category"),
+            "mongo_hostname_redacted": runtime_identity_identity.get("mongo_hostname_redacted"),
+            "identity_fingerprint": runtime_identity_identity.get("identity_fingerprint"),
         },
     }
 
@@ -14830,7 +14867,7 @@ app.include_router(_op_map_router)
 # render the preview / production banner. No page may hardcode its own
 # banner — single source of truth.
 from routes.platform_data_truth import build_platform_data_truth_router  # noqa: E402
-app.include_router(build_platform_data_truth_router(db))
+app.include_router(build_platform_data_truth_router(db, get_runtime_identity=_runtime_identity_bundle))
 
 # iter416 · Phase 19.1 · admin-only Day-1 Live Ops Debrief capture form.
 # Writes a markdown file to /app/memory/DLS_DAY1_LIVE_OPS_DEBRIEF_*.md.
@@ -14898,7 +14935,7 @@ from routes.cluster_capacity import (  # noqa: E402
     record_capacity_snapshot,
     ensure_history_indexes,
 )
-app.include_router(build_cluster_capacity_router(get_client=lambda: client))
+app.include_router(build_cluster_capacity_router(get_client=lambda: client, get_runtime_identity=_runtime_identity_bundle))
 
 
 # iter437 · Phase Sigma-II · hourly cluster-capacity snapshot recorder.

@@ -6,11 +6,19 @@ from urllib.parse import urlparse
 
 from fastapi import HTTPException
 
+from lib.runtime_identity import build_runtime_identity_bundle
+
 
 def current_runtime_target() -> dict[str, str]:
+    bundle = build_runtime_identity_bundle()
+    identity = bundle["identity"]
+    validation = bundle["validation"]
     return {
-        "app_env": (os.environ.get("APP_ENV") or "").strip().lower(),
-        "db_name": (os.environ.get("DB_NAME") or "").strip(),
+        "app_env": identity.app_env,
+        "db_name": identity.db_name,
+        "mongo_hostname_redacted": identity.mongo_hostname_redacted,
+        "identity_status": validation.status,
+        "identity_fingerprint": identity.identity_fingerprint,
     }
 
 
@@ -58,10 +66,14 @@ def require_non_empty_destructive_scope(items: list[Any] | None, *, detail: str)
 
 
 def redact_target_identity(mongo_url: str | None, db_name: str | None) -> str:
-    parsed = urlparse(mongo_url or "")
-    host = parsed.hostname or "unknown-host"
-    db = db_name or "unknown-db"
-    return f"mongodb://***@{host}/{db}"
+    bundle = build_runtime_identity_bundle(env={
+        "APP_ENV": os.environ.get("APP_ENV", "preview"),
+        "DB_NAME": db_name or os.environ.get("DB_NAME", ""),
+        "MONGO_URL": mongo_url or "",
+        "ENFORCE_DB_ISOLATION": os.environ.get("ENFORCE_DB_ISOLATION", ""),
+    })
+    identity = bundle["identity"]
+    return f"{identity.mongo_scheme or 'mongodb'}://***@{identity.mongo_hostname_redacted}/{identity.db_name or 'unknown-db'}"
 
 
 def require_cli_execute(execute: bool) -> None:

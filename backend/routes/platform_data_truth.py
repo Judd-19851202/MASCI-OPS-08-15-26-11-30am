@@ -28,16 +28,20 @@ from typing import Any, Dict
 
 from fastapi import APIRouter
 
+from lib.runtime_identity import runtime_identity_public_payload
+
 
 CERTIFICATION_DATE = "2026-02-10"
 CERTIFICATION_STAMP = "FORGEDOPS Trust Sprint · T1+T2 · environment isolation certified preview-only"
 
 
-def build_platform_data_truth_router(db=None) -> APIRouter:
+def build_platform_data_truth_router(db=None, *, get_runtime_identity=None) -> APIRouter:
     router = APIRouter(prefix="/api/platform", tags=["platform-data-truth"])
 
     @router.get("/data-truth")
     async def data_truth() -> Dict[str, Any]:
+        runtime_identity = get_runtime_identity() if callable(get_runtime_identity) else None
+        runtime_identity_payload = runtime_identity_public_payload(runtime_identity) if runtime_identity else None
         app_env_raw = (os.environ.get("APP_ENV") or "").strip().lower()
         environment = (
             "production" if app_env_raw in ("production", "prod") else
@@ -98,9 +102,10 @@ def build_platform_data_truth_router(db=None) -> APIRouter:
             "environment": environment,
             "data_source": "mongodb",
             "database": db_name,
-            "verified": environment in ("preview", "production"),
+            "verified": bool((runtime_identity_payload or {}).get("valid", environment in ("preview", "production"))),
             "certification_date": CERTIFICATION_DATE,
             "certification_stamp": CERTIFICATION_STAMP,
+            "runtime_identity": runtime_identity_payload,
 
             # ── UI banner contract (single source of truth) ──────────
             "ui_banner": {

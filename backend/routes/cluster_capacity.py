@@ -43,6 +43,8 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Query
 from motor.motor_asyncio import AsyncIOMotorClient
 
+from lib.runtime_identity import runtime_identity_public_payload
+
 logger = logging.getLogger(__name__)
 
 # Cache the probe result for 60s — `dbStats` is cheap but no need to hit
@@ -75,7 +77,7 @@ def _quota_mb() -> int:
     return v
 
 
-def build_cluster_capacity_router(get_client: callable) -> APIRouter:
+def build_cluster_capacity_router(get_client: callable, get_runtime_identity: callable | None = None) -> APIRouter:
     """`get_client` is a zero-arg callable that returns the live
     AsyncIOMotorClient. We accept it as a closure rather than importing
     server.py to avoid circular imports."""
@@ -134,6 +136,8 @@ def build_cluster_capacity_router(get_client: callable) -> APIRouter:
             "dbs": dbs,
             "ts": datetime.now(timezone.utc).isoformat(),
         }
+        if callable(get_runtime_identity):
+            payload["runtime_identity"] = runtime_identity_public_payload(get_runtime_identity())
         _CACHE["ts"] = now
         _CACHE["payload"] = payload
         return payload

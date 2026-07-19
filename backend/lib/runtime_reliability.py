@@ -152,6 +152,7 @@ def configure_runtime(app: Any, *, release_identity: Dict[str, Any]) -> None:
     RUNTIME_STATE["release"] = dict(release_identity or {})
     app.state.runtime_reliability = RUNTIME_STATE
     app.state.runtime_background_tasks = BACKGROUND_TASKS
+    app.state.runtime_identity_bundle = None
 
 
 def set_startup_complete(app: Any, *, ready: bool, reason: str) -> None:
@@ -498,20 +499,31 @@ def public_liveness_headers(app: Any) -> Dict[str, str]:
 
 def public_readiness_payload(app: Any) -> Dict[str, Any]:
     health = runtime_health_snapshot(app)
+    identity_bundle = getattr(app.state, "runtime_identity_bundle", None)
+    identity_validation = ((identity_bundle or {}).get("validation") if isinstance(identity_bundle, dict) else None)
+    identity_ok = bool(getattr(identity_validation, "valid", True))
     return {
-        "ok": bool(health["readiness"]["ok"]),
+        "ok": bool(health["readiness"]["ok"] and identity_ok),
         "state": health["readiness"]["state"],
         "reason": health["readiness"]["reason"],
         "event_loop_ok": health["event_loop_lag_ms"] < EVENT_LOOP_LAG_FAIL_MS,
         "mongo_ok": health["mongo_ok"],
         "startup_complete": bool(RUNTIME_STATE.get("startup_complete")),
+        "runtime_identity": {
+            "ok": identity_ok,
+            "status": getattr(identity_validation, "status", "NOT_APPLICABLE"),
+            "mismatch_category": getattr(identity_validation, "mismatch_category", None),
+        },
     }
 
 
 async def build_public_full_health_payload(app: Any, *, backup_recent: bool, scheduler_alive: bool) -> Dict[str, bool]:
     health = runtime_health_snapshot(app)
     mongo_ok = bool(health["mongo_ok"] and health["event_loop_lag_ms"] < EVENT_LOOP_LAG_FAIL_MS)
-    ok = bool(health["readiness"]["ok"] and mongo_ok and scheduler_alive and backup_recent)
+    identity_bundle = getattr(app.state, "runtime_identity_bundle", None)
+    identity_validation = ((identity_bundle or {}).get("validation") if isinstance(identity_bundle, dict) else None)
+    identity_ok = bool(getattr(identity_validation, "valid", True))
+    ok = bool(health["readiness"]["ok"] and mongo_ok and scheduler_alive and backup_recent and identity_ok)
     if ok:
         RUNTIME_STATE["last_successful_health_at"] = _iso(_now())
     return {
@@ -519,6 +531,8 @@ async def build_public_full_health_payload(app: Any, *, backup_recent: bool, sch
         "mongo": mongo_ok,
         "scheduler": bool(scheduler_alive),
         "backup_recent": bool(backup_recent),
+        "runtime_identity_ok": identity_ok,
+        "runtime_identity_status": getattr(identity_validation, "status", "NOT_APPLICABLE"),
     }
 
 
