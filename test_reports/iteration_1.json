@@ -1,75 +1,92 @@
 {
-  "summary": "MASCI Docs Checkpoint B remediation validation complete. All 11 static regression tests pass. Runtime-image references, destructive-operation guards, and prior Phase 2 repairs verified intact. No production config changed.",
+  "summary": "Checkpoint C first bounded cleanup batch verification PASSED. All evidence-backed cleanup actions verified: deploy_reports and test_reports archived to docs/archive/, root evidence files archived, underscore-prefixed public assets moved to assets/source/, scripts/source/red_m_master.png moved to assets/source/. Runtime/build references updated correctly in all 7 scripts. No regression detected.",
   "backend_issues": {
     "critical": [],
-    "minor": []
+    "minor": [
+      {
+        "file": "/app/scripts/install_icons.py",
+        "issue": "Docstring line 12 still references old path '/app/scripts/source/red_m_master.png' but actual code (line 36) correctly uses '/app/assets/source/red_m_master.png'. Documentation-only inconsistency, no runtime impact.",
+        "priority": "LOW"
+      }
+    ]
   },
   "frontend_issues": {
     "ui_bugs": [],
     "integration_issues": [],
     "design_issues": []
   },
+  "verification_results": {
+    "archive_targets_verified": {
+      "docs/archive/deployments/": "32 deploy summary files present",
+      "docs/archive/testing-evidence/": "iteration_1-4.json, image_testing.md, test_result.md, playwright/, pytest/, rc2/ present"
+    },
+    "moved_assets_verified": {
+      "assets/source/logo_source_2026-05-03.png": "present (1135864 bytes)",
+      "assets/source/icon_master_1024.png": "present (330774 bytes)",
+      "assets/source/splash_links.html": "present (1911 bytes)",
+      "assets/source/demo_tor_*.png": "4 files present",
+      "assets/source/red_m_master.png": "present (680917 bytes)"
+    },
+    "original_locations_cleaned": {
+      "deploy_reports/": "does not exist (expected)",
+      "test_reports/": "did not exist before this run (expected - archived)",
+      "test_result.md": "does not exist (expected)",
+      "image_testing.md": "does not exist (expected)",
+      "frontend/public/_logo_source_2026-05-03.png": "does not exist (expected)",
+      "frontend/public/_icon_master_1024.png": "does not exist (expected)",
+      "frontend/public/_splash_links.html": "does not exist (expected)",
+      "frontend/public/_demo_*": "do not exist (expected)",
+      "scripts/source/red_m_master.png": "does not exist (expected)",
+      "scripts/source/": "directory does not exist (expected)",
+      "tmp_real_photos/": "does not exist (expected)"
+    },
+    "runtime_reference_updates_verified": {
+      "backend/export_pdf_fallback.py": "compiles OK, references assets/source/logo_source_2026-05-03.png as fallback",
+      "scripts/install_new_logo.py": "compiles OK, writes audit copy to assets/source/logo_source_2026-05-03.png",
+      "scripts/install_icons.py": "compiles OK, reads from assets/source/red_m_master.png",
+      "scripts/install_og_image.py": "compiles OK, reads from assets/source/red_m_master.png",
+      "scripts/install_mark.py": "compiles OK, reads from assets/source/red_m_master.png",
+      "backend/scripts/generate_ios_splash.py": "compiles OK, reads from assets/source/icon_master_1024.png, writes to assets/source/splash_links.html",
+      "backend/scripts/generate_icons.py": "compiles OK, writes to assets/source/icon_master_1024.png"
+    },
+    "ignore_governance_verified": {
+      ".gitignore": "contains deploy_reports/, test_reports/, tmp_real_photos/, walkthrough_reports/ rules",
+      ".dockerignore": "contains assets/source/, test_reports/, deploy_reports/, tmp_real_photos/, walkthrough_reports/ rules"
+    },
+    "backend_compile_import_verified": {
+      "python -m compileall backend/": "PASSED",
+      "import server": "PASSED",
+      "test_track_15_80_no_secrets_in_repo.py": "3/3 PASSED"
+    }
+  },
+  "safety_accounting": {
+    "deployment": "none",
+    "production_access": "none",
+    "mutation_script_execution": "none",
+    "atlas_reads_writes": "0/0",
+    "r2_reads_writes": "0/0",
+    "provider_email_calls": "0"
+  },
   "test_report_links": [
-    "/app/backend/tests/test_track_28_11_checkpoint_b_runtime_and_guards.py",
-    "/app/backend/tests/test_track_28_10_phase2_reconciliation_repairs.py",
-    "/app/test_reports/pytest/pytest_checkpoint_b_results.xml"
+    "/app/test_reports/iteration_1.json"
   ],
-  "action_items": [],
-  "critical_code_review_comments": [],
+  "action_items": [
+    "OPTIONAL: Update docstring in /app/scripts/install_icons.py line 12 to reference correct path /app/assets/source/red_m_master.png"
+  ],
+  "critical_code_review_comments": [
+    "All 7 updated scripts correctly reference assets/source/ paths in executable code",
+    "export_pdf_fallback.py has proper fallback chain: masci-mark-onlight.png -> masci-mark.png -> assets/source/logo_source_2026-05-03.png",
+    ".gitignore and .dockerignore are coherent for cleaned artifact groups",
+    "No production/external access occurred during cleanup batch"
+  ],
   "updated_files": [],
   "success_rate": {
     "backend": "100%",
-    "frontend": "N/A (backend-only testing)"
+    "frontend": "N/A (skip requested)"
   },
-  "seed_data_creation": "None",
+  "seed_data_creation": "none",
   "retest_needed": false,
   "should_main_agent_self_test": false,
-  "context_for_next_testing_agent": "Checkpoint B static regression suite validated. All runtime-image references now point to shipped paths (static/runtime-data/), not /app/memory/. Destructive admin routes (jobs bulk replace, crew force-reseed, scrap crew hub, cost-code bulk replace) all enforce require_destructive_confirmation + require_destructive_runtime_guard. Jobs bulk_replace helper refuses empty rows. Prior Phase 2 repairs intact: PM actor tagging, Splash duration class fix, daily-reports/new redirect, OpenAI wrapped JSON extraction, restore drill content-hash fallback.",
-  "checkpoint_b_validation_details": {
-    "runtime_image_references_verified": {
-      "dispatch_day1_debrief.py": "storage: operator_workspace_memory (correct)",
-      "platform_data_truth.py": "doctrine ref: docs/recovery/LIVE_VS_RECOVERY_RECONCILIATION.md (correct)",
-      "asset_mapping_recon.py": "runbook_ref: operator_runbook_not_shipped_in_runtime_image (correct)",
-      "governance_health.py": "paths use /app/backend/static/runtime-data/ (correct)",
-      "governance_self_protection.py": "MEMORY_DIR = backend/static/runtime-data (correct), regression_suite returns unavailable_in_runtime_image (correct)",
-      "db_isolation_failsafe.py": "runbook ref: docs/recovery/LIVE_VS_RECOVERY_RECONCILIATION.md (correct)"
-    },
-    "destructive_guards_verified": {
-      "jobs_bulk_replace": "REPLACE_ALL_JOBS_MASTER confirm + backup_ack + runtime_guard",
-      "crew_force_reseed": "FORCE_RESEED_CREW_COLLECTIONS confirm + backup_ack + runtime_guard",
-      "scrap_crew_hub": "SCRAP_CREW_HUB confirm + backup_ack + runtime_guard",
-      "cost_code_bulk_replace": "REPLACE_COST_CODE_REGISTRY confirm + backup_ack + runtime_guard"
-    },
-    "jobs_bulk_replace_empty_rows_guard": "ValueError raised when rows=[] (prevents accidental wipe)",
-    "phase2_repairs_intact": {
-      "pm_actor_tagging": "4+ occurrences of _actor_kind: pm_user in server.py",
-      "splash_duration_class": "duration-[400ms] present in SplashOverlay.jsx",
-      "daily_reports_new_redirect": "/daily-reports/new redirects to /daily/submit",
-      "openai_wrapped_json": "_extract_wrapped_json handles fenced payloads",
-      "restore_drill_content_hash": "_content_hash_key + _restore_content_hash present"
-    },
-    "ai_fail_closed_behavior": "AI capabilities module returns enabled=False with reason_disabled when any check fails",
-    "production_config_unchanged": {
-      "backend_env_mongo_url": "unchanged (masci_preview_user)",
-      "backend_env_db_name": "unchanged (masci_safety_preview)",
-      "frontend_env": "unchanged"
-    }
-  },
-  "tests_executed": {
-    "checkpoint_b_suite": {
-      "test_runtime_routes_no_longer_point_to_memory_paths": "PASSED",
-      "test_governance_runtime_paths_use_shipped_static_runtime_data": "PASSED",
-      "test_operator_safety_requires_confirmation_and_backup_ack": "PASSED",
-      "test_destructive_routes_use_shared_guard_tokens": "PASSED",
-      "test_cost_code_bulk_replace_guarded": "PASSED",
-      "test_jobs_bulk_replace_refuses_empty_rows": "PASSED"
-    },
-    "phase2_reconciliation_suite": {
-      "test_openai_wrapped_json_extractor_handles_fenced_payloads": "PASSED",
-      "test_restore_drill_supports_collections_name_json_layout_and_content_hash_key": "PASSED",
-      "test_daily_reports_new_alias_redirect_present": "PASSED",
-      "test_splash_overlay_duration_class_repaired": "PASSED",
-      "test_pm_actor_tagging_present_on_shared_auth_gates": "PASSED"
-    }
-  }
+  "context_for_next_testing_agent": "Checkpoint C first bounded cleanup batch is verified. Original test_reports directory was archived to docs/archive/testing-evidence/. New test_reports/ directory created for this iteration. The test_build_import_db_lifecycle.py has 1 failing test due to mock issue (unrelated to cleanup batch).",
+  "checkpoint_c_status": "IN PROGRESS - First bounded cleanup batch verified as valid evidence-backed progress. No defects requiring repair before continuing."
 }

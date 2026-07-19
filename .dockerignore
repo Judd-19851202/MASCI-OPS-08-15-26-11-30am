@@ -1,4 +1,5 @@
 memory/
+assets/source/
 tmp_photo_fixture/
 backend/backups/
 test_reports/
@@ -16,4 +17,5 @@ walkthrough_reports/
 tmp_real_photos/
 tests/
 deploy_reports/
+.gitignore
 .ruff_cache/

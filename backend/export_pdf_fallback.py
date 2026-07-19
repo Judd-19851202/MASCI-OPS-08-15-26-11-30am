@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 _LOGO_CANDIDATES = [
     Path(__file__).parent.parent / "frontend" / "public" / "masci-mark-onlight.png",
     Path(__file__).parent.parent / "frontend" / "public" / "masci-mark.png",
-    Path(__file__).parent.parent / "frontend" / "public" / "_logo_source_2026-05-03.png",
+    Path(__file__).parent.parent / "assets" / "source" / "logo_source_2026-05-03.png",
 ]
 
 

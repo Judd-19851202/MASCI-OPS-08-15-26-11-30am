@@ -11,7 +11,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 OUT = Path("/app/frontend/public")
-MASTER = OUT / "_icon_master_1024.png"
+MASTER = Path("/app/assets/source/icon_master_1024.png")
 SLATE_900 = (15, 23, 42)
 RED_700 = (185, 28, 28)
 WHITE = (255, 255, 255)
@@ -147,7 +147,8 @@ def main():
             f'href="/splash-{w}x{h}.png" />'
         )
 
-    snippet_file = OUT / "_splash_links.html"
+    snippet_file = Path("/app/assets/source/splash_links.html")
+    snippet_file.parent.mkdir(parents=True, exist_ok=True)
     snippet_file.write_text("\n".join(snippets) + "\n")
     print(f"\nWrote {snippet_file} ({len(snippets)} link tags)")
 

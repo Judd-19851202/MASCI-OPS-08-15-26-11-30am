@@ -17,7 +17,7 @@ from emergentintegrations.llm.chat import LlmChat, UserMessage
 load_dotenv("/app/backend/.env")
 
 OUT = Path("/app/frontend/public")
-MASTER = OUT / "_icon_master_1024.png"
+MASTER = Path("/app/assets/source/icon_master_1024.png")
 
 PROMPT = (
     "Generate ONE square 1024x1024 app icon for a heavy-civil construction "

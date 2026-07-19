@@ -19,7 +19,7 @@ from __future__ import annotations
 from pathlib import Path
 from PIL import Image
 
-SRC_M = Path("/app/scripts/source/red_m_master.png")
+SRC_M = Path("/app/assets/source/red_m_master.png")
 OUT_DIR = Path("/app/frontend/public")
 DARK_BG = (15, 23, 42)   # slate-900 — matches index.html theme_color
 

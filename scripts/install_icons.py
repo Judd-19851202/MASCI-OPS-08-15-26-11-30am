@@ -33,7 +33,7 @@ from __future__ import annotations
 from pathlib import Path
 from PIL import Image
 
-SRC = Path("/app/scripts/source/red_m_master.png")
+SRC = Path("/app/assets/source/red_m_master.png")
 OUT = Path("/app/frontend/public")
 
 # Brand colours

@@ -17,7 +17,7 @@ from __future__ import annotations
 from pathlib import Path
 from PIL import Image
 
-SRC = Path("/app/scripts/source/red_m_master.png")
+SRC = Path("/app/assets/source/red_m_master.png")
 OUT_DIR = Path("/app/frontend/public")
 SIZE = 512  # plenty of headroom; CSS scales it down
 PADDING = 0.08   # 8% padding per side

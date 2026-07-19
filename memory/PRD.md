@@ -1,28 +1,29 @@
-## 2026-07-19 — MASTER TRACK Checkpoint B complete
+## 2026-07-19 — MASTER TRACK Checkpoint C in progress
 
-Original mission
-- Governed MASCI/ForgedOps remediation track: live-vs-recovery reconciliation, correctness repair, runtime-image contract repair, destructive-operation safety, dangerous-script inventory, and critical exception governance.
+Checkpoint status
+- Checkpoint A: COMPLETE
+- Checkpoint B: COMPLETE
+- Checkpoint C: IN PROGRESS
 
-Completed in this fork
-- Checkpoint A completed: source identity + `docs/recovery/LIVE_VS_RECOVERY_RECONCILIATION.md`
-- Checkpoint B completed: all scoped P0/P1 correctness repairs, runtime-image reference repairs, destructive route guards, dangerous-script discovery/register, machine-readable critical exception inventory, canonical security-header middleware, and independent verification
-- All 8 previously OPEN_P1 scripts now fail closed by default or are technically blocked from Production use
-- `docs/governance/critical_exception_inventory.json` created with 2106 per-occurrence records
+Current objective
+- Repository classification and governed cleanup without touching runtime behavior or Production configuration.
 
-Governed outputs now present
-- `docs/recovery/LIVE_VS_RECOVERY_RECONCILIATION.md`
-- `docs/governance/DANGEROUS_SCRIPT_REGISTER.md`
-- `docs/governance/DESTRUCTIVE_OPERATION_REGISTER.md`
-- `docs/governance/CRITICAL_EXCEPTION_REGISTER.md`
-- `docs/governance/MASTER_DEFECT_REGISTER.md`
-- `docs/governance/critical_exception_inventory.json`
+Completed in current Checkpoint C slice
+- Source/worktree baseline captured
+- Machine-readable candidate inventory created: `docs/governance/repository_content_inventory.json`
+- Human classification summary created: `docs/governance/REPOSITORY_CONTENT_CLASSIFICATION.md`
+- Canonical archive policy created: `docs/governance/ARCHIVE_POLICY.md`
+- First bounded cleanup batch executed for archived reports, test evidence, source/demo public assets, and `scripts/source/red_m_master.png`
+- Runtime/script references updated to new `assets/source/` locations
+- `.gitignore` and `.dockerignore` governance tightened for local artifacts and source assets
+- Checkpoint C remediation certification draft created: `docs/recovery/REAL_MASCI_CODEBASE_REMEDIATION_CERTIFICATION.md`
 
-Verification status
-- Backend lint clean
-- Compileall pass
-- Server import pass
-- Checkpoint B focused suites pass
-- Independent verification pass (`/app/test_reports/iteration_4.json`)
+Files moved/archived in this slice
+- `deploy_reports/**` → `docs/archive/deployments/`
+- `test_reports/**` → `docs/archive/testing-evidence/`
+- `test_result.md`, `image_testing.md` → `docs/archive/testing-evidence/`
+- underscore-prefixed public master/demo assets → `assets/source/`
+- `scripts/source/red_m_master.png` → `assets/source/red_m_master.png`
 
 Safety/accounting
 - No deployment
@@ -34,5 +35,7 @@ Safety/accounting
 - Provider/email calls: 0
 - Mutation scripts executed: none
 
-Next track (after owner review)
-- Begin Checkpoint C only if explicitly requested; do not assume cleanup/deletion/archive work automatically.
+Next required work for Checkpoint C
+- Clean-checkout/build/test verification
+- Independent review of classification and bounded cleanup
+- Final Checkpoint C GO/NO-GO determination

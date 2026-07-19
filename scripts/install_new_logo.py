@@ -327,7 +327,8 @@ def main() -> None:
         _save(path, img)
 
     # Audit copy of original source
-    audit = PUBLIC / "_logo_source_2026-05-03.png"
+    audit = Path("/app/assets/source/logo_source_2026-05-03.png")
+    audit.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(SRC, audit)
     print(f"[install-logo] audit copy: {audit}")
 
