@@ -150,7 +150,7 @@ def test_authenticated_readiness_step_gated_to_non_pr():
         )
 
 
-def test_step_summary_always_published():
+def test_step_summary_always_published_duplicate_guard():
     """Diagnostic output must reach GitHub Step Summary on every run.
     Track 16.00 lifecycle gate writes the summary unconditionally in
     its first step instead of via a separate `if: always()` tail

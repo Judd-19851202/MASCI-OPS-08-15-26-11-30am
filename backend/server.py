@@ -731,7 +731,7 @@ async def require_admin_async(
             pm_doc = await is_valid_pm_user_token_async(db, x_pm_token)
             if pm_doc:
                 enforce_password_change_required(request, pm_doc)
-                return pm_doc
+                return {**pm_doc, "_actor_kind": "pm_user", "_actor": "pm", "role": "pm"}
         # TRACK 15.32 — legacy shared-PM token path retired.
     if admin_namespace:
         if not x_admin_token:
@@ -869,7 +869,7 @@ async def _require_any_portal_read(  # noqa: C901
             from pm_auth import is_valid_pm_user_token_async  # noqa: PLC0415
             pm_doc = await is_valid_pm_user_token_async(db, x_pm_token)
             if pm_doc:
-                return {**pm_doc, "_actor": "pm", "role": "pm"}
+                return {**pm_doc, "_actor_kind": "pm_user", "_actor": "pm", "role": "pm"}
         elif _is_valid_pm_token(x_pm_token):
             return {"_actor": "pm", "role": "pm"}
     # Safety
@@ -969,7 +969,7 @@ async def require_shop_or_admin(
             pm_doc = await is_valid_pm_user_token_async(db, x_pm_token)
             if pm_doc:
                 enforce_password_change_required(request, pm_doc)
-                return pm_doc
+                return {**pm_doc, "_actor_kind": "pm_user", "_actor": "pm", "role": "pm"}
         # TRACK 15.32 — legacy shared-PM token path retired.
     # TRACK 15.30 — shared SHOP_PASSWORD HMAC branch removed.
     # Per-shop-user token (canonical)
@@ -1147,7 +1147,7 @@ async def require_admin_pm_or_hr_read(
             pm_doc = await is_valid_pm_user_token_async(db, x_pm_token)
             if pm_doc:
                 enforce_password_change_required(request, pm_doc)
-                return pm_doc
+                return {**pm_doc, "_actor_kind": "pm_user", "_actor": "pm", "role": "pm"}
         elif _is_valid_pm_token(x_pm_token):
             return True
     if x_hr_token:

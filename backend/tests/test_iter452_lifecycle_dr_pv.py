@@ -456,7 +456,7 @@ def test_pv_full_lifecycle(fresh_pv_batch, admin_headers):
     assert rows[0]["reason"].startswith("Overtime miscalc")
 
 
-def test_pv_no_auto_finalize_from_open(fresh_pv_batch, admin_headers):
+def test_pv_no_auto_finalize_from_open_http(fresh_pv_batch, admin_headers):
     base = f"{API}/hr/payroll-variance/batches/{fresh_pv_batch}/transition"
     r = requests.post(
         base,

@@ -776,7 +776,7 @@ def test_cross_link_add_and_remove(db):
     assert stored["cross_links"] == []
 
 
-def test_cross_link_rejects_unknown_kind(db):
+def test_cross_link_service_rejects_unknown_kind(db):
     c = _mk(db)
     with pytest.raises(ValueError):
         _run(case_service.add_cross_link(

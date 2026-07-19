@@ -622,6 +622,7 @@ export function AppRoutes() {
                 URL pattern, redirect to the canonical route instead of
                 404-ing. Matches the /cheat-sheet redirect pattern. */}
             <Route path="/reports/daily/new" element={<Navigate to="/daily/submit" replace />} />
+            <Route path="/daily-reports/new" element={<Navigate to="/daily/submit" replace />} />
             {/* TRACK 22.9C-FIX · Field Leadership Portal Dashboard historically
                 pointed "Daily Reports" at the bare /daily-reports path (no
                 portal prefix). That path had no route registered, causing

@@ -18,6 +18,20 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _extract_wrapped_json(raw: Any) -> str:
+    text = (raw or "").strip()
+    if text.startswith("```"):
+        lines = text.splitlines()
+        if lines and lines[0].strip().lower() in {"```", "```json"}:
+            lines = lines[1:]
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+        text = "\n".join(lines).strip()
+    if text.lower().startswith("json"):
+        text = text[4:].strip()
+    return text
+
+
 class OpenAIAdapter:
     name = "openai"
 
@@ -73,9 +87,7 @@ class OpenAIAdapter:
                               provider=self.name, model=model, generated_at=_now(),
                               ai_available=False, fallback_reason=reason)
 
-        text = (raw or "").strip().lstrip("`")
-        if text.lower().startswith("json"):
-            text = text[4:].strip()
+        text = _extract_wrapped_json(raw)
         try:
             data = json.loads(text)
         except Exception:  # noqa: BLE001
@@ -160,9 +172,7 @@ class OpenAIAdapter:
                               provider=self.name, model=model, generated_at=_now(),
                               ai_available=False, fallback_reason="vision_call_failed")
 
-        text = (raw or "").strip().lstrip("`")
-        if text.lower().startswith("json"):
-            text = text[4:].strip()
+        text = _extract_wrapped_json(raw)
         try:
             data = json.loads(text)
         except Exception:  # noqa: BLE001

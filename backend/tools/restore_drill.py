@@ -27,6 +27,7 @@ import os
 import sys
 import time
 import zipfile
+import hashlib
 from collections import defaultdict
 from pathlib import Path
 
@@ -91,6 +92,8 @@ for n in names:
         parts = n.split("/")
         if len(parts) == 3 and parts[1] == "json":
             by_coll[parts[0]].append(n)
+        elif len(parts) == 2 and parts[0] == "collections":
+            single_payload[Path(parts[1]).stem] = n
         elif len(parts) == 2:
             # collection/<name>.json single-file dump
             single_payload[parts[0]] = n
@@ -145,6 +148,11 @@ def _strip_id(doc: dict) -> dict:
     doc.pop("_id", None)
     return doc
 
+
+def _content_hash_key(doc: dict) -> str:
+    payload = json.dumps(doc, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
 def _bulk_upsert(coll_name: str, docs: list[dict]) -> dict:
     """Upsert by `id` (string UUID) if present, else by hash of payload."""
     ops = []
@@ -156,7 +164,9 @@ def _bulk_upsert(coll_name: str, docs: list[dict]) -> dict:
         _strip_id(d)
         key = d.get("id") or d.get("_uid") or d.get("uuid")
         if not key:
-            skipped += 1
+            key = _content_hash_key(d)
+            d = {**d, "_restore_content_hash": key}
+            ops.append(UpdateOne({"_restore_content_hash": key}, {"$set": d}, upsert=True))
             continue
         ops.append(UpdateOne({"id": key}, {"$set": d}, upsert=True))
     if not ops:

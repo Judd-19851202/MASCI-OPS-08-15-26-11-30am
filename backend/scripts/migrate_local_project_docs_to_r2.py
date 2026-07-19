@@ -117,7 +117,11 @@ async def _iter_candidates(
 ) -> List[Dict[str, Any]]:
     """Yield docs that are disk-backed AND not already R2-backed."""
     q: Dict[str, Any] = {
-        "file_path": {"$exists": True, "$ne": None, "$ne": ""},
+        "$and": [
+            {"file_path": {"$exists": True}},
+            {"file_path": {"$ne": None}},
+            {"file_path": {"$ne": ""}},
+        ],
         "attachment_ref": {"$in": [None, ""]},
     }
     if project:

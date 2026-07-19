@@ -250,7 +250,7 @@ def test_inspections_distinct_keys_produce_distinct_records():
 # ── 6. Parallel independence · 10 concurrent submits across four ─
 #      workflows must all complete without global blocking ────────
 
-def test_parallel_independence_across_workflows():
+def test_parallel_independence_across_workflows_shape_only():
     """Prove the reservation-lock is scoped to (key, actor, workflow),
     NOT a global mutex. 10 concurrent submits across 4 workflows must
     all complete and produce distinct records."""
@@ -271,7 +271,7 @@ def test_parallel_independence_across_workflows():
                              "meeting_time": "07:00", "conducted_by": "PAR",
                              "topic": f"PAR-MTG-{i}", "attendees": []}))
 
-def test_parallel_independence_across_workflows():
+def test_parallel_independence_across_workflows_live():
     """Prove the reservation-lock is scoped to (key, actor, workflow),
     NOT a global mutex. 10 concurrent submits across 4 workflows must
     all complete and produce distinct records."""
