@@ -5,6 +5,8 @@ Checkpoint status
 - Checkpoint B: COMPLETE
 - Checkpoint C: COMPLETE
 - Checkpoint D: IN PROGRESS
+- Checkpoint D1: COMPLETE
+- Checkpoint D2: COMPLETE
 
 Current objective
 - Harden real MASCI runtime identity, deployment truth, dependency governance, and database client authority without touching Production configuration or performing any live mutation.
@@ -28,6 +30,18 @@ Completed in current Checkpoint D slice
 - `backend/lib/operator_safety.py` now uses the shared runtime identity contract for target identity reporting
 - Reopened and completed D1 corrective continuation: preview→production access now fails closed at startup before the canonical DB client becomes usable
 - Independent verification passed for corrected D1: `/app/test_reports/iteration_5.json`
+- Completed D2 runtime truth normalization across governed truth surfaces:
+  - `backend/routes/admin_ops.py`
+  - `backend/routes/occ_health_aggregator.py`
+  - `backend/routes/integration_truth.py`
+  - `backend/routes/platform_data_truth.py`
+  - `backend/routes/health_routes.py`
+  - `backend/lib/platform_status.py`
+  - `backend/lib/canonical_status.py`
+- All D2 truth surfaces now consume canonical runtime identity from `backend/lib/runtime_identity.py`
+- Status vocabulary normalized to only: `VERIFIED`, `MISMATCH`, `UNVERIFIABLE`, `DEGRADED`, `NOT_APPLICABLE`
+- Authoritative governance matrix created: `docs/governance/RUNTIME_IDENTITY_CONSUMPTION_MATRIX.md`
+- Independent D2 verification passed: `/app/test_reports/iteration_6.json`
 
 Key D1 behavior now enforced
 - Production requires approved hostname `masci-prod.1nduwmg.mongodb.net`, DB `masci_safety`, and `ENFORCE_DB_ISOLATION=true`
@@ -44,15 +58,25 @@ Files added/updated in this slice
 - `backend/routes/platform_data_truth.py`
 - `backend/routes/cluster_capacity.py`
 - `backend/server.py`
+- `backend/lib/canonical_status.py`
+- `backend/lib/platform_status.py`
+- `backend/routes/admin_ops.py`
+- `backend/routes/occ_health_aggregator.py`
+- `backend/routes/integration_truth.py`
+- `backend/routes/health_routes.py`
 - `backend/tests/test_runtime_identity_contract.py`
 - `backend/tests/test_runtime_identity_startup_enforcement.py`
 - `backend/tests/test_d1_runtime_identity_http.py` (independent reviewer artifact)
+- `backend/tests/test_checkpoint_d2_runtime_truth_normalization.py`
+- `backend/tests/test_track_25_sprint_2_occ_trust_layer.py`
+- `backend/tests/test_track_28_11_canonical_status.py`
 - `docs/governance/RUNTIME_IDENTITY_CONSUMPTION_MATRIX.md`
 
 Testing completed
 - Focused lint passed for updated Python files
-- Local focused pytest pass: 42 tests passed with safe preview env overrides
+- Local focused pytest pass: 89 tests passed for D1 + D2 isolated verification
 - Independent backend verification passed via testing agent (`/app/test_reports/iteration_5.json`)
+- Independent D2 backend verification passed via testing agent (`/app/test_reports/iteration_6.json`)
 - Live supervisor restart verified the expected fail-closed startup refusal for the preview→production mismatch (`PREVIEW_PRODUCTION_CLUSTER_REFUSED`)
 
 Safety/accounting
@@ -65,8 +89,7 @@ Safety/accounting
 - No migration, seed, restore, purge, cleanup script, or index mutation executed
 
 Prioritized next actions
-- P0: D1 is now complete; before any D2 work, the owner must decide whether preview should be re-pointed to an approved preview/local target or intentionally armed under a separately governed read-only validation contract
-- P1: After that decision, continue D2 canonical truth-surface rollout across remaining health/trust/admin surfaces (`/api/health`, `/api/version`, `/api/platform/data-truth`, Operations Trust Center, deployment readiness surfaces)
+- P0: Checkpoint D2 is complete and independently verified; stop here and await approval before beginning D3
 - P1: D3 database client authority inventory and register
 - P1: D4 dependency classification document and evidence-backed runtime/test split analysis
 - P1: D5/D6 deployment gate audit and clean isolated build proof
