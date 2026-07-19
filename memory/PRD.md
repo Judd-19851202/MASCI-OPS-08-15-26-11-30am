@@ -7,7 +7,7 @@ Checkpoint status
 - Checkpoint D: IN PROGRESS
 - Checkpoint D1: COMPLETE
 - Checkpoint D2: COMPLETE
-- Checkpoint D3: IN PROGRESS (implementation complete, independent verification pending)
+- Checkpoint D3: COMPLETE
 
 Current objective
 - Harden real MASCI runtime identity, deployment truth, dependency governance, and database client authority without touching Production configuration or performing any live mutation.
@@ -61,6 +61,7 @@ Completed in current Checkpoint D slice
   - backup/archive sync helper paths in `backend/server.py`
 - Runtime route/service local DB identity reads normalized across cluster capacity, persistence health, platform trust, operations-map contract, notify test seed gating, and OCC security payloads
 - Focused D1+D2+D3 local backend matrix passed: 105 tests
+- Independent D3 verification passed: `/app/test_reports/iteration_7.json`
 
 Key D1 behavior now enforced
 - Production requires approved hostname `masci-prod.1nduwmg.mongodb.net`, DB `masci_safety`, and `ENFORCE_DB_ISOLATION=true`
@@ -109,6 +110,7 @@ Testing completed
 - Focused lint passed for updated Python files
 - Local focused pytest pass: 89 tests passed for D1 + D2 isolated verification
 - Local focused pytest pass: 105 tests passed for D1 + D2 + D3 isolated verification
+- Independent D3 backend verification passed via testing agent (`/app/test_reports/iteration_7.json`)
 - Independent backend verification passed via testing agent (`/app/test_reports/iteration_5.json`)
 - Independent D2 backend verification passed via testing agent (`/app/test_reports/iteration_6.json`)
 - Live supervisor restart verified the expected fail-closed startup refusal for the preview→production mismatch (`PREVIEW_PRODUCTION_CLUSTER_REFUSED`)
@@ -124,7 +126,7 @@ Safety/accounting
 
 Prioritized next actions
 - P0: Checkpoint D2 is complete and independently verified; stop here and await approval before beginning D3
-- P0: D3 independent verification pending via testing agent
+- P0: Checkpoint D3 is complete and independently verified; stop here and await approval before beginning D4
 - P1: D4 dependency classification document and evidence-backed runtime/test split analysis
 - P1: D5/D6 deployment gate audit and clean isolated build proof
 - P1: D7/D8 performance baseline and index/query recommendation register
