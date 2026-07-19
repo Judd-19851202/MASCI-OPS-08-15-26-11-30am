@@ -1761,8 +1761,8 @@ def api_version():
         # frontend banner. After today's prod/preview crossover incident,
         # both environments now expose the database they are actually
         # connected to so a banner can flag preview unambiguously.
-        "app_env": os.environ.get("APP_ENV", "production").lower(),
-        "db_name": os.environ.get("DB_NAME", "unknown"),
+        "app_env": runtime_identity_identity.get("app_env") or "unknown",
+        "db_name": runtime_identity_identity.get("db_name") or "unknown",
         "runtime_identity": runtime_identity,
         # TRACK 28.09A · Phase 11 · Runtime Identity Endpoint — safe,
         # non-secret metadata so operators can immediately see what
@@ -1770,18 +1770,18 @@ def api_version():
         # AI / integration state is currently active. No credentials,
         # no URIs, no keys — labels only.
         "environment_identity": {
-            "app_env": runtime_identity_identity.get("app_env") or os.environ.get("APP_ENV", "unknown").lower(),
-            "db_name": runtime_identity_identity.get("db_name") or os.environ.get("DB_NAME", "unknown"),
-            "db_isolation_enforced": (os.environ.get("ENFORCE_DB_ISOLATION") or "").strip().lower() in ("1", "true", "yes", "on"),
-            "storage_bucket": os.environ.get("S3_BUCKET", "unknown"),
-            "storage_endpoint_present": bool(os.environ.get("S3_ENDPOINT_URL")),
-            "scheduler_enabled": (os.environ.get("SCHEDULER_ENABLED") or "").strip().lower() in ("1", "true", "yes", "on"),
-            "email_safety_mode": os.environ.get("EMAIL_SAFETY_MODE", "unknown"),
-            "auto_email_reports": (os.environ.get("AUTO_EMAIL_REPORTS") or "").strip().lower() in ("1", "true", "yes", "on"),
-            "resend_webhook_secret_present": bool(os.environ.get("RESEND_WEBHOOK_SECRET")),
-            "dev_endpoints_enabled": (os.environ.get("DEV_ENDPOINTS_ENABLED") or "").strip().lower() in ("1", "true", "yes", "on"),
-            "maintainx_write_enabled": (os.environ.get("MAINTAINX_WRITE_ENABLED") or "").strip().lower() in ("1", "true", "yes", "on"),
-            "ai_provider_key_present": bool(os.environ.get("EMERGENT_LLM_KEY") or os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("OPENAI_API_KEY")),
+            "app_env": runtime_identity_identity.get("app_env") or "unknown",
+            "db_name": runtime_identity_identity.get("db_name") or "unknown",
+            "db_isolation_enforced": runtime_identity_identity.get("enforce_db_isolation"),
+            "storage_bucket": "unknown",
+            "storage_endpoint_present": None,
+            "scheduler_enabled": runtime_identity_identity.get("scheduler_authority") == "enabled",
+            "email_safety_mode": "unknown",
+            "auto_email_reports": None,
+            "resend_webhook_secret_present": None,
+            "dev_endpoints_enabled": None,
+            "maintainx_write_enabled": None,
+            "ai_provider_key_present": None,
             "delete_engine_status": "DISABLED",  # Track 27.07 permanent gate
             "runtime_identity_status": runtime_identity_validation.get("status"),
             "runtime_identity_mismatch_category": runtime_identity_validation.get("mismatch_category"),
@@ -3580,6 +3580,7 @@ register_integration_truth_routes(
     api_router,
     db=db,
     require_admin_strict=require_admin_strict,
+    get_runtime_identity=_runtime_identity_bundle,
 )
 
 # ------------------------------------------------------------
@@ -13894,6 +13895,7 @@ app.include_router(build_dispatch_router(
 from routes.admin_ops import build_admin_ops_router  # noqa: E402
 
 _admin_ops_router = build_admin_ops_router(db, require_admin_strict)
+_admin_ops_router._get_runtime_identity = _runtime_identity_bundle  # type: ignore[attr-defined]
 app.include_router(_admin_ops_router)
 
 

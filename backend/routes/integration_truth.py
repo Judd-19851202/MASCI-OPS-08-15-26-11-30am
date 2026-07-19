@@ -34,6 +34,9 @@ from fastapi import APIRouter, Depends, Query
 
 logger = logging.getLogger(__name__)
 
+from lib.canonical_status import DEGRADED, MISMATCH, NOT_APPLICABLE, UNVERIFIABLE, VERIFIED, to_canonical
+from lib.runtime_identity import runtime_identity_public_payload
+
 
 # ─────────────────── constants / enums ────────────────────────────
 
@@ -154,7 +157,10 @@ def _ai_key_row(provider_key: str, display_name: str, env_var: str,
 async def _ai_keys_status_payload() -> Dict[str, Any]:
     rows = [_ai_key_row(*p) for p in _AI_PROVIDERS]
     any_present = any(r["key_present"] or r["covered_by_universal"] for r in rows)
+    for row in rows:
+        row["canonical_status"] = to_canonical(row.get("status"))
     return {
+        "status": VERIFIED if any_present else DEGRADED,
         "checked_at": _now_iso(),
         "reads_from": "os.environ (runtime — not dotenv/.env placeholders)",
         "any_provider_available": any_present,
@@ -282,6 +288,7 @@ async def _motive_truth(db) -> Dict[str, Any]:
         "last_successful_sync_at": last_success.isoformat() if isinstance(last_success, datetime) else last_success,
         "activity_age_seconds": activity_age_seconds,
         "live_window_seconds": LIVE_ACTIVITY_WINDOW_MINUTES * 60,
+        "canonical_status": to_canonical(overall),
     }
 
 
@@ -306,6 +313,7 @@ def _maintainx_truth() -> Dict[str, Any]:
             "MOCKED — no live API integration; events surface via "
             "operations_events. Reality by design."
         ),
+        "canonical_status": NOT_APPLICABLE,
     }
 
 
@@ -338,6 +346,7 @@ def _resend_truth() -> Dict[str, Any]:
         "api_key_last4": _mask_last4(key),
         "auto_email_enabled": auto,
         "detail": detail,
+        "canonical_status": to_canonical(overall),
     }
 
 
@@ -355,9 +364,10 @@ async def _mongo_truth(db) -> Dict[str, Any]:
             "connectivity_status": "REACHABLE",
             "operational_status": "LIVE_VERIFIED",
             "overall": "LIVE_VERIFIED",
-            "api_key_present": _env_present("MONGO_URL"),
+            "api_key_present": True,
             "connectivity_latency_ms": latency,
             "detail": f"Ping OK · {latency}ms",
+            "canonical_status": VERIFIED,
         }
     except Exception as exc:  # noqa: BLE001
         return {
@@ -370,6 +380,7 @@ async def _mongo_truth(db) -> Dict[str, Any]:
             "operational_status": "NO_ACTIVITY",
             "overall": "ERROR",
             "detail": f"Ping failed: {str(exc)[:120]}",
+            "canonical_status": MISMATCH,
         }
 
 
@@ -402,6 +413,7 @@ def _r2_truth() -> Dict[str, Any]:
         "overall": overall,
         "api_key_present": access and secret,
         "detail": detail,
+        "canonical_status": to_canonical(overall),
     }
 
 
@@ -419,6 +431,7 @@ def _sentry_truth() -> Dict[str, Any]:
             "overall": "DISABLED",
             "api_key_present": False,
             "detail": "SENTRY_DSN not set — error tracking off",
+            "canonical_status": NOT_APPLICABLE,
         }
     return {
         "id": "sentry",
@@ -432,6 +445,7 @@ def _sentry_truth() -> Dict[str, Any]:
         "api_key_present": True,
         "api_key_last4": _mask_last4(dsn),
         "detail": "Sentry DSN present at runtime",
+        "canonical_status": VERIFIED,
     }
 
 
@@ -462,10 +476,11 @@ def _emergent_llm_truth() -> Dict[str, Any]:
         "api_key_source": "env" if key else "none",
         "api_key_last4": _mask_last4(key),
         "detail": detail,
+        "canonical_status": to_canonical(overall),
     }
 
 
-async def _integrations_truth_payload(db) -> Dict[str, Any]:
+async def _integrations_truth_payload(db, runtime_identity_payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     motive, mongo = await asyncio.gather(
         _motive_truth(db),
         _mongo_truth(db),
@@ -484,30 +499,24 @@ async def _integrations_truth_payload(db) -> Dict[str, Any]:
     # but a single UNREACHABLE integration does not collapse the whole
     # surface (the operator can see per-row status). ERROR is reserved
     # for true failures (e.g. Mongo down).
-    overall = "LIVE_VERIFIED"
-    severity_rank = {
-        "LIVE_VERIFIED": 0, "CONFIGURED": 1, "MOCKED": 1, "DISABLED": 1,
-        "PARTIAL": 2, "MISSING_CONFIG": 3, "MISSING_SECRET": 3,
-        "UNREACHABLE": 4, "ERROR": 5,
-    }
-    worst_rank = 0
-    for row in integrations:
-        state = row["overall"]
-        # Only surface a truly-fatal state for integrations we depend on
-        # at runtime. Optional integrations (Sentry, R2) don't collapse
-        # the overall roll-up when merely missing.
-        expected_live = row.get("expected_state") == "LIVE"
-        if state in ("MOCKED", "DISABLED"):
-            continue
-        if state in ("MISSING_CONFIG", "MISSING_SECRET") and not expected_live:
-            continue
-        rank = severity_rank.get(state, 2)
-        if rank > worst_rank:
-            worst_rank = rank
-            overall = state
+    runtime_identity_status = (runtime_identity_payload or {}).get("status", UNVERIFIABLE)
+    canonical_states = [row.get("canonical_status", UNVERIFIABLE) for row in integrations]
+    if runtime_identity_status not in {VERIFIED, NOT_APPLICABLE}:
+        overall = runtime_identity_status
+    elif MISMATCH in canonical_states:
+        overall = MISMATCH
+    elif UNVERIFIABLE in canonical_states:
+        overall = UNVERIFIABLE
+    elif DEGRADED in canonical_states:
+        overall = DEGRADED
+    elif canonical_states:
+        overall = VERIFIED
+    else:
+        overall = NOT_APPLICABLE
     return {
         "checked_at": _now_iso(),
         "overall": overall,
+        "runtime_identity": runtime_identity_payload,
         "integrations": integrations,
         "doctrine": (
             "Three-state truth: configuration, connectivity, and operational "
@@ -586,7 +595,10 @@ async def record_dr_v2_alias_hit(db, request) -> None:
         method = request.method
         route_key = f"{method} {path}"
         now = _now()
-        env = _read_env("APP_ENV") or "unknown"
+        runtime_identity_bundle = getattr(getattr(request, "app", None), "state", None)
+        runtime_identity_bundle = getattr(runtime_identity_bundle, "runtime_identity_bundle", None)
+        runtime_identity_payload = runtime_identity_public_payload(runtime_identity_bundle) if runtime_identity_bundle else None
+        env = (((runtime_identity_payload or {}).get("identity") or {}).get("app_env")) or "unknown"
         role = _classify_role(request)
 
         # Detail event (TTL-expired after 30 days).
@@ -707,6 +719,7 @@ def register_integration_truth_routes(
     db,
     require_admin_strict,
     require_dispatch_or_admin=None,
+    get_runtime_identity=None,
 ) -> None:
     """Attach TRACK 22.3 routes onto the shared API router.
 
@@ -722,7 +735,9 @@ def register_integration_truth_routes(
 
     @api_router.get("/admin/integrations/truth-status")
     async def admin_integrations_truth(_admin=Depends(require_admin_strict)):
-        return await _integrations_truth_payload(db)
+        runtime_identity = get_runtime_identity() if callable(get_runtime_identity) else None
+        runtime_identity_payload = runtime_identity_public_payload(runtime_identity) if runtime_identity else None
+        return await _integrations_truth_payload(db, runtime_identity_payload=runtime_identity_payload)
 
     @api_router.get("/admin/dr-v2-alias-telemetry")
     async def admin_dr_v2_alias_telemetry(

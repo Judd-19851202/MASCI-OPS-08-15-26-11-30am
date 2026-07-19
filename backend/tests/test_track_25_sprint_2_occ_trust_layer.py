@@ -68,79 +68,79 @@ class TestEvaluatorDegradation:
 
     def test_api_health_none_is_red(self):
         r = _eval_api_health(None, "conn refused", NOW)
-        assert r["status"] == "red"
+        assert r["status"] == "MISMATCH"
         assert "not reachable" in r["summary"].lower()
 
     def test_version_none_is_unknown(self):
         r = _eval_version(None, "timeout", NOW)
-        assert r["status"] == "unknown"
+        assert r["status"] == "UNVERIFIABLE"
 
     def test_operations_registry_none_is_unknown(self):
         r = _eval_operations_overview(None, "auth", NOW)
-        assert r["status"] == "unknown"
+        assert r["status"] == "UNVERIFIABLE"
 
     def test_recovery_snapshot_none_is_unknown(self):
         r = _eval_recovery_snapshot(None, "http 500", NOW)
-        assert r["status"] == "unknown"
+        assert r["status"] == "UNVERIFIABLE"
 
     def test_backups_scheduler_none_is_unknown(self):
         r = _eval_backups_scheduler(None, "no body", NOW)
-        assert r["status"] == "unknown"
+        assert r["status"] == "UNVERIFIABLE"
 
     def test_integrations_none_is_unknown(self):
         r = _eval_integrations(None, "http 500", NOW)
-        assert r["status"] == "unknown"
+        assert r["status"] == "UNVERIFIABLE"
 
     def test_email_v2_none_is_unknown(self):
         r = _eval_email_v2(None, "timeout", NOW)
-        assert r["status"] == "unknown"
+        assert r["status"] == "UNVERIFIABLE"
 
     def test_ai_gateway_none_is_unknown(self):
         r = _eval_ai_gateway(None, "http 500", NOW)
-        assert r["status"] == "unknown"
+        assert r["status"] == "UNVERIFIABLE"
 
     def test_draft_health_none_is_unknown(self):
         r = _eval_draft_health(None, "http 500", NOW)
-        assert r["status"] == "unknown"
+        assert r["status"] == "UNVERIFIABLE"
 
     def test_sessions_none_is_unknown(self):
         r = _eval_sessions(None, "http 500", NOW)
-        assert r["status"] == "unknown"
+        assert r["status"] == "UNVERIFIABLE"
 
     def test_governance_none_is_unknown(self):
         r = _eval_governance(None, "http 500", NOW)
-        assert r["status"] == "unknown"
+        assert r["status"] == "UNVERIFIABLE"
 
     def test_production_cert_none_is_unknown(self):
         r = _eval_production_cert(None, "http 500", NOW)
-        assert r["status"] == "unknown"
+        assert r["status"] == "UNVERIFIABLE"
 
 
 class TestEvaluatorTruth:
     def test_api_health_ok_is_green(self):
         r = _eval_api_health({"ok": True, "service": "svc", "ts": NOW}, None, NOW)
-        assert r["status"] == "green"
+        assert r["status"] == "VERIFIED"
 
     def test_api_health_ok_false_is_red(self):
         r = _eval_api_health({"ok": False, "service": "svc"}, None, NOW)
-        assert r["status"] == "red"
+        assert r["status"] == "MISMATCH"
 
     def test_operations_overview_critical_ops_produce_red(self):
         body = {"operations": [
             {"status_snapshot": {"status": "critical"}},
             {"status_snapshot": {"status": "healthy"}},
         ]}
-        assert _eval_operations_overview(body, None, NOW)["status"] == "red"
+        assert _eval_operations_overview(body, None, NOW)["status"] == "MISMATCH"
 
     def test_operations_overview_all_healthy_is_green(self):
         body = {"operations": [
             {"status_snapshot": {"status": "healthy"}},
             {"status_snapshot": {"status": "healthy"}},
         ]}
-        assert _eval_operations_overview(body, None, NOW)["status"] == "green"
+        assert _eval_operations_overview(body, None, NOW)["status"] == "VERIFIED"
 
     def test_recovery_pill_maps_directly(self):
-        for pill, expected in (("GREEN", "green"), ("YELLOW", "yellow"), ("RED", "red")):
+        for pill, expected in (("GREEN", "VERIFIED"), ("YELLOW", "DEGRADED"), ("RED", "MISMATCH")):
             body = {"pill": pill, "backup_age_minutes": 5,
                     "backup_age_target_minutes": 1440,
                     "archive_count": {"r2_total": 10}}
@@ -148,33 +148,33 @@ class TestEvaluatorTruth:
 
     def test_scheduler_alive_is_green(self):
         r = _eval_backups_scheduler({"scheduler": {"alive": True}}, None, NOW)
-        assert r["status"] == "green"
+        assert r["status"] == "VERIFIED"
 
     def test_scheduler_dormant_low_resurrects_is_yellow(self):
         r = _eval_backups_scheduler(
             {"scheduler": {"alive": False, "resurrect_count": 1}}, None, NOW,
         )
-        assert r["status"] == "yellow"
+        assert r["status"] == "DEGRADED"
 
     def test_scheduler_many_resurrects_is_red(self):
         r = _eval_backups_scheduler(
             {"scheduler": {"alive": False, "resurrect_count": 10}}, None, NOW,
         )
-        assert r["status"] == "red"
+        assert r["status"] == "MISMATCH"
 
     def test_email_v2_empty_critical_route_is_red(self):
         r = _eval_email_v2({"critical_empty_route_keys": ["po"], "band": "green",
                             "mode": "v2"}, None, NOW)
-        assert r["status"] == "red"
+        assert r["status"] == "MISMATCH"
 
     def test_email_v2_yellow_band_no_empty_is_yellow(self):
         r = _eval_email_v2({"critical_empty_route_keys": [], "band": "yellow",
                             "mode": "v2"}, None, NOW)
-        assert r["status"] == "yellow"
+        assert r["status"] == "DEGRADED"
 
     def test_ai_gateway_off_is_yellow(self):
         r = _eval_ai_gateway({"gateway_enabled": False}, None, NOW)
-        assert r["status"] == "yellow"
+        assert r["status"] == "DEGRADED"
 
     def test_ai_gateway_on_provider_unavailable_is_red(self):
         r = _eval_ai_gateway({
@@ -182,29 +182,29 @@ class TestEvaluatorTruth:
             "resolved_provider_available": False,
             "resolved_selected_provider": "anthropic",
         }, None, NOW)
-        assert r["status"] == "red"
+        assert r["status"] == "MISMATCH"
 
     def test_ai_gateway_on_provider_available_is_green(self):
         r = _eval_ai_gateway({
             "gateway_enabled": True,
             "resolved_provider_available": True,
         }, None, NOW)
-        assert r["status"] == "green"
+        assert r["status"] == "VERIFIED"
 
     def test_draft_health_failed_drafts_is_red(self):
         r = _eval_draft_health(
             {"buckets": {"failed_last_24h": 1, "abandoned_gt_24h": 0}},
             None, NOW,
         )
-        assert r["status"] == "red"
+        assert r["status"] == "MISMATCH"
 
     def test_draft_health_zero_is_green(self):
         r = _eval_draft_health({"buckets": {}}, None, NOW)
-        assert r["status"] == "green"
+        assert r["status"] == "VERIFIED"
 
     def test_sessions_timeouts_off_is_yellow(self):
         r = _eval_sessions({"count": 10, "timeouts_enabled": False}, None, NOW)
-        assert r["status"] == "yellow"
+        assert r["status"] == "DEGRADED"
 
     def test_governance_last_scan_object_does_not_break_checked_at(self):
         """Regression: `last_scan` in the governance summary is a nested
@@ -222,22 +222,22 @@ class TestEvaluatorTruth:
     def test_governance_no_scan_is_green(self):
         r = _eval_governance({"severity_counts": {}, "health_label": "healthy"},
                               None, NOW)
-        assert r["status"] == "green"
+        assert r["status"] == "VERIFIED"
 
 
 class TestWorstStatus:
     def test_empty_returns_green(self):
-        assert _worst_status([]) == "green"
+        assert _worst_status([]) == "NOT_APPLICABLE"
 
     def test_red_wins_over_yellow_and_green(self):
         assert _worst_status([
             {"status": "green"}, {"status": "yellow"}, {"status": "red"},
-        ]) == "red"
+        ]) == "MISMATCH"
 
     def test_yellow_wins_over_green_and_unknown(self):
         assert _worst_status([
             {"status": "green"}, {"status": "unknown"}, {"status": "yellow"},
-        ]) == "yellow"
+        ]) == "UNVERIFIABLE"
 
     def test_unknown_wins_over_green(self):
-        assert _worst_status([{"status": "green"}, {"status": "unknown"}]) == "unknown"
+        assert _worst_status([{"status": "green"}, {"status": "unknown"}]) == "UNVERIFIABLE"

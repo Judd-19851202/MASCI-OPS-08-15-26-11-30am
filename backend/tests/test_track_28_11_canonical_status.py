@@ -57,7 +57,7 @@ class TestSummarize:
     def test_all_healthy(self):
         cards = [{"canonical_status": HEALTHY} for _ in range(5)]
         s = summarize(cards)
-        assert s["healthy"] == 5
+        assert s["verified"] == 5
         assert s["total_applicable"] == 5
         assert s["highest"] == HEALTHY
 
@@ -68,11 +68,10 @@ class TestSummarize:
             {"canonical_status": NOT_APPLICABLE},
         ]
         s = summarize(cards)
-        assert s["healthy"] == 1
-        assert s["disabled"] == 1
-        assert s["not_applicable"] == 1
-        assert s["critical"] == 0
-        assert s["attention"] == 0
+        assert s["verified"] == 1
+        assert s["not_applicable"] == 2
+        assert s["mismatch"] == 0
+        assert s["degraded"] == 0
         assert s["total_applicable"] == 1
         # Highest severity across the set: still HEALTHY because DISABLED
         # + NOT_APPLICABLE never escalate.
@@ -90,13 +89,13 @@ class TestSummarize:
 
     def test_missing_status_becomes_unknown(self):
         s = summarize([{"canonical_status": None}, {}])
-        assert s["unknown"] == 2
+        assert s["unverifiable"] == 2
 
     def test_legacy_status_key(self):
         # Cards using the legacy `status` key still normalize correctly.
         s = summarize([{"status": "green"}, {"status": "red"}])
-        assert s["healthy"] == 1
-        assert s["critical"] == 1
+        assert s["verified"] == 1
+        assert s["mismatch"] == 1
 
 
 # ─── highest / severity ──────────────────────────────────────────────
@@ -105,10 +104,10 @@ class TestHighestAndSeverity:
     def test_severity_ordering(self):
         assert severity(HEALTHY) < severity(ATTENTION)
         assert severity(ATTENTION) < severity(CRITICAL)
-        assert severity(UNKNOWN) < severity(ATTENTION)
+        assert severity(ATTENTION) < severity(UNKNOWN)
 
     def test_highest_empty_is_healthy(self):
-        assert highest([]) == HEALTHY
+        assert highest([]) == NOT_APPLICABLE
 
     def test_highest_picks_worst(self):
         assert highest([HEALTHY, ATTENTION, CRITICAL, HEALTHY]) == CRITICAL
@@ -174,5 +173,5 @@ class TestMaintainXNotApplicable:
         s = summarize(cards)
         assert s["highest"] == HEALTHY
         assert s["not_applicable"] == 1
-        assert s["critical"] == 0
-        assert s["attention"] == 0
+        assert s["mismatch"] == 0
+        assert s["degraded"] == 0

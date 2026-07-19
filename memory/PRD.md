@@ -9,6 +9,10 @@ Checkpoint status
 Current objective
 - Harden real MASCI runtime identity, deployment truth, dependency governance, and database client authority without touching Production configuration or performing any live mutation.
 
+Checkpoint D2 governance reference
+- Runtime Identity Consumption Matrix authority: `docs/governance/RUNTIME_IDENTITY_CONSUMPTION_MATRIX.md`
+- PRD keeps only the active engineering summary; the governed matrix above is the permanent source of truth.
+
 Completed in current Checkpoint D slice
 - D0 baseline confirmed from the live working tree: workspace `/app`, branch `main`, HEAD `b42d8586f950d656cb5128e6d199f5603f9e7563`
 - D1 Production Identity Contract implemented as canonical library: `backend/lib/runtime_identity.py`
@@ -43,6 +47,7 @@ Files added/updated in this slice
 - `backend/tests/test_runtime_identity_contract.py`
 - `backend/tests/test_runtime_identity_startup_enforcement.py`
 - `backend/tests/test_d1_runtime_identity_http.py` (independent reviewer artifact)
+- `docs/governance/RUNTIME_IDENTITY_CONSUMPTION_MATRIX.md`
 
 Testing completed
 - Focused lint passed for updated Python files

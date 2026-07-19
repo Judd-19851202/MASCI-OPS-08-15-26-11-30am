@@ -18,6 +18,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Request, Response
 
 from lib.runtime_reliability import public_liveness_headers, public_readiness_payload
+from lib.runtime_identity import runtime_identity_public_payload
 
 
 def build_health_router() -> APIRouter:
@@ -28,10 +29,17 @@ def build_health_router() -> APIRouter:
         for key, value in public_liveness_headers(request.app).items():
             if value:
                 response.headers[key] = value
+        bundle = getattr(getattr(request, "app", None).state, "runtime_identity_bundle", None)
+        runtime_identity = runtime_identity_public_payload(bundle) if bundle else None
         return {
             "ok": True,
             "service": "masci-hub",
             "ts": datetime.now(timezone.utc).isoformat(),
+            "runtime_identity": {
+                "status": (runtime_identity or {}).get("status", "UNVERIFIABLE"),
+                "valid": (runtime_identity or {}).get("valid", False),
+                "mismatch_category": (runtime_identity or {}).get("mismatch_category"),
+            },
         }
 
     @router.get("/healthz")

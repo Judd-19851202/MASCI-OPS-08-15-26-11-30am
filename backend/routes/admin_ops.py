@@ -22,6 +22,8 @@ from typing import Any, Callable, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+from lib.runtime_identity import runtime_identity_public_payload
+
 logger = logging.getLogger(__name__)
 
 
@@ -43,6 +45,21 @@ def _iso(dt: Optional[datetime]) -> Optional[str]:
 def build_admin_ops_router(db, require_admin) -> APIRouter:
     router = APIRouter(prefix="/api/admin", tags=["admin-ops"])
 
+    def _runtime_identity_summary() -> Dict[str, Any]:
+        bundle_getter = getattr(router, "_get_runtime_identity", None)
+        bundle = bundle_getter() if callable(bundle_getter) else None
+        payload = runtime_identity_public_payload(bundle) if bundle else None
+        validation = (payload or {}).get("validation") or {}
+        identity = (payload or {}).get("identity") or {}
+        return {
+            "status": (payload or {}).get("status", "UNVERIFIABLE"),
+            "valid": (payload or {}).get("valid", False),
+            "mismatch_category": (payload or {}).get("mismatch_category"),
+            "app_env": identity.get("app_env"),
+            "db_name": identity.get("db_name"),
+            "detail": validation.get("detail") or "Runtime identity unavailable",
+        }
+
     # ════════════════════════════════════════════════════════════════
     #  system_health computation — exposed as a reusable coroutine
     #  so the background health_monitor can call it without paying
@@ -51,14 +68,29 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
     async def compute_system_health() -> Dict[str, Any]:
         cards: List[Dict[str, Any]] = []
         now = _now()
+        runtime_identity = _runtime_identity_summary()
+
+        cards.append({
+            "key": "runtime_identity",
+            "label": "Runtime Identity Authority",
+            "status": runtime_identity["status"],
+            "detail": runtime_identity["detail"],
+            "applicable": True,
+            "enabled": True,
+            "evidence": {
+                "app_env": runtime_identity["app_env"],
+                "db_name": runtime_identity["db_name"],
+                "mismatch_category": runtime_identity["mismatch_category"],
+            },
+        })
 
         # 1. Database connectivity
         try:
             await db.command("ping")
-            cards.append({"key": "database", "label": "MongoDB", "status": "green",
+            cards.append({"key": "database", "label": "MongoDB", "status": "VERIFIED",
                           "detail": "Connected"})
         except Exception as e:  # noqa: BLE001
-            cards.append({"key": "database", "label": "MongoDB", "status": "red",
+            cards.append({"key": "database", "label": "MongoDB", "status": "MISMATCH",
                           "detail": f"Ping failed: {e!s}"[:120]})
 
         # 2. R2 / object storage status (from photo_storage helper)
@@ -84,18 +116,18 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
                 pass
             if not ok:
                 cards.append({"key": "r2", "label": "Cloudflare R2",
-                              "status": "yellow",
+                              "status": "DEGRADED",
                               "detail": "Not configured (inline-only — large files going to MongoDB)"})
             elif degraded > 0:
                 cards.append({"key": "r2", "label": "Cloudflare R2",
-                              "status": "red",
+                              "status": "MISMATCH",
                               "detail": f"DEGRADED — {degraded} uploads fell back to Mongo in last 24h. Check R2 credentials."})
             else:
                 cards.append({"key": "r2", "label": "Cloudflare R2",
-                              "status": "green",
+                              "status": "VERIFIED",
                               "detail": "Configured · ready · no degraded events"})
         except Exception as e:  # noqa: BLE001
-            cards.append({"key": "r2", "label": "Cloudflare R2", "status": "yellow",
+            cards.append({"key": "r2", "label": "Cloudflare R2", "status": "UNVERIFIABLE",
                           "detail": f"Probe error: {e!s}"[:120]})
 
         # 3. Last successful backup (any kind)
@@ -119,7 +151,7 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
         try:
             if r2_age_s is not None:
                 hrs = r2_age_s / 3600.0
-                status = "green" if hrs < 24 else "yellow" if hrs < 72 else "red"
+                status = "VERIFIED" if hrs < 24 else "DEGRADED" if hrs < 72 else "MISMATCH"
                 cards.append({"key": "backup", "label": "Last backup",
                               "status": status,
                               "detail": f"R2 newest object {hrs:.1f}h ago"})
@@ -132,16 +164,16 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
                     started_at = last.get("ts")
                     dt = _parse_iso(started_at)
                     hrs = (now - dt).total_seconds() / 3600.0 if dt else 999
-                    status = "green" if hrs < 24 else "yellow" if hrs < 72 else "red"
+                    status = "VERIFIED" if hrs < 24 else "DEGRADED" if hrs < 72 else "MISMATCH"
                     cards.append({"key": "backup", "label": "Last backup",
                                   "status": status,
                                   "detail": f"{started_at} ({hrs:.1f}h ago)"})
                 else:
                     cards.append({"key": "backup", "label": "Last backup",
-                                  "status": "yellow", "detail": "No backup runs recorded"})
+                                  "status": "UNVERIFIABLE", "detail": "No backup runs recorded"})
         except Exception:  # noqa: BLE001
             cards.append({"key": "backup", "label": "Last backup",
-                          "status": "yellow", "detail": "Backup state unknown"})
+                          "status": "UNVERIFIABLE", "detail": "Backup state unknown"})
 
         # 4. Recent auth failures (last 1h)
         try:
@@ -150,12 +182,12 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
                 "action": {"$in": ["login_failed", "auth_failed", "login_blocked"]},
                 "at": {"$gte": since.isoformat()},
             })
-            status = "green" if cnt < 10 else "yellow" if cnt < 50 else "red"
+            status = "VERIFIED" if cnt < 10 else "DEGRADED" if cnt < 50 else "MISMATCH"
             cards.append({"key": "auth_failures", "label": "Auth failures (1h)",
                           "status": status, "detail": f"{cnt} attempts"})
         except Exception:
             cards.append({"key": "auth_failures", "label": "Auth failures (1h)",
-                          "status": "yellow", "detail": "Audit query unavailable"})
+                          "status": "UNVERIFIABLE", "detail": "Audit query unavailable"})
 
         # 5. Integration health (Motive + MaintainX) — DB-backed truth
         # via shared helper. No more hard-coded yellow; surfaces last
@@ -168,7 +200,7 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
             from routes.integrations._storage import compute_provider_status  # noqa: PLC0415
             integrations: List[Dict[str, Any]] = []
             env_var_map = {"motive": "MOTIVE_API_KEY", "maintainx": "MAINTAINX_API_KEY"}
-            colour_map = {"ok": "green", "degraded": "yellow", "disabled": "not_applicable"}
+            colour_map = {"ok": "VERIFIED", "degraded": "DEGRADED", "disabled": "NOT_APPLICABLE"}
             child_statuses: List[str] = []
             for prov in ("motive", "maintainx"):
                 snap = await compute_provider_status(
@@ -177,9 +209,9 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
                 snap_status = snap["status"]
                 # TRACK 28.11 · NOT_APPLICABLE for MASCI-unused integrations.
                 if snap_status == "disabled" and snap.get("mocked"):
-                    colour = "not_applicable"
+                    colour = "NOT_APPLICABLE"
                 else:
-                    colour = colour_map.get(snap_status, "yellow")
+                    colour = colour_map.get(snap_status, "UNVERIFIABLE")
                 detail_bits: List[str] = []
                 if snap_status == "ok":
                     detail_bits.append("Live")
@@ -199,7 +231,7 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
                     "status":                 colour,
                     "detail":                 " · ".join(detail_bits),
                     "enabled":                snap["enabled"],
-                    "applicable":             colour != "not_applicable",
+                    "applicable":             colour != "NOT_APPLICABLE",
                     "api_key_present":        snap["api_key_present"],
                     "webhook_secret_present": snap["webhook_secret_present"],
                     "last_successful_sync_at": snap["last_successful_sync_at"],
@@ -208,15 +240,15 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
                 child_statuses.append(colour)
             # Outer card colour reflects the worst APPLICABLE child.
             # not_applicable children never escalate the parent.
-            applicable_statuses = [s for s in child_statuses if s != "not_applicable"]
-            if "red" in applicable_statuses:
-                outer = "red"
-            elif "yellow" in applicable_statuses:
-                outer = "yellow"
+            applicable_statuses = [s for s in child_statuses if s != "NOT_APPLICABLE"]
+            if "MISMATCH" in applicable_statuses:
+                outer = "MISMATCH"
+            elif "DEGRADED" in applicable_statuses or "UNVERIFIABLE" in applicable_statuses:
+                outer = "DEGRADED"
             elif applicable_statuses:
-                outer = "green"
+                outer = "VERIFIED"
             else:
-                outer = "not_applicable"
+                outer = "NOT_APPLICABLE"
             outer_detail_parts: List[str] = []
             for child in integrations:
                 outer_detail_parts.append(f"{child['provider'].title()}: {child['status']}")
@@ -230,7 +262,7 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
         except Exception as e:  # noqa: BLE001
             logger.warning(f"[system-health:integrations] {e}")
             cards.append({"key": "integrations", "label": "Integrations",
-                          "status": "yellow", "detail": "Status query failed"})
+                          "status": "UNVERIFIABLE", "detail": "Status query failed"})
 
         # 6. Recent failed sync count (24h)
         try:
@@ -238,12 +270,12 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
             cnt = await db.integration_error_logs.count_documents({
                 "at": {"$gte": since.isoformat()},
             })
-            status = "green" if cnt == 0 else "yellow" if cnt < 5 else "red"
+            status = "VERIFIED" if cnt == 0 else "DEGRADED" if cnt < 5 else "MISMATCH"
             cards.append({"key": "failed_syncs", "label": "Failed syncs (24h)",
                           "status": status, "detail": f"{cnt} failures"})
         except Exception:
             cards.append({"key": "failed_syncs", "label": "Failed syncs (24h)",
-                          "status": "green", "detail": "0 failures"})
+                          "status": "UNVERIFIABLE", "detail": "Query unavailable"})
 
         # 7. Active sessions (rough — directory tokens issued in last 12h)
         try:
@@ -252,10 +284,10 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
                 "last_login_at": {"$gte": since.isoformat()},
             })
             cards.append({"key": "active_sessions", "label": "Active users (12h)",
-                          "status": "green", "detail": f"{cnt} signed-in users"})
+                          "status": "VERIFIED", "detail": f"{cnt} signed-in users"})
         except Exception:
             cards.append({"key": "active_sessions", "label": "Active users (12h)",
-                          "status": "green", "detail": "—"})
+                          "status": "UNVERIFIABLE", "detail": "—"})
 
         # 8. Build version — pull from live server module if the deploy
         # env vars weren't stamped (Emergent deploys don't set them,
@@ -279,12 +311,10 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
             except Exception:
                 built_at = "—"
         cards.append({"key": "version", "label": "Build version",
-                      "status": "green",
+                      "status": "VERIFIED",
                       "detail": f"{version} · built {built_at}"})
 
-        # Roll-up overall status — TRACK 28.11: canonical vocabulary,
-        # not-applicable and disabled cards do NOT escalate severity.
-        from lib.canonical_status import to_canonical, summarize, highest  # noqa: PLC0415
+        from lib.canonical_status import summarize, to_canonical  # noqa: PLC0415
         for c in cards:
             c["canonical_status"] = to_canonical(
                 c.get("status"),
@@ -292,25 +322,17 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
                 enabled=c.get("enabled", True),
             )
         canonical_summary = summarize(cards)
-        overall = "green"
-        if canonical_summary["critical"] > 0:
-            overall = "red"
-        elif canonical_summary["attention"] > 0:
-            overall = "yellow"
-        elif canonical_summary["unknown"] > 0:
-            overall = "yellow"
+        overall = canonical_summary["highest"]
 
         return {
             "overall": overall,
             "overall_canonical": canonical_summary["highest"],
             "cards": cards,
             "counts": {
-                "healthy": canonical_summary["healthy"],
-                "attention": canonical_summary["attention"],
-                "critical": canonical_summary["critical"],
-                "unknown": canonical_summary["unknown"],
-                "stale": canonical_summary["stale"],
-                "disabled": canonical_summary["disabled"],
+                "verified": canonical_summary["verified"],
+                "degraded": canonical_summary["degraded"],
+                "mismatch": canonical_summary["mismatch"],
+                "unverifiable": canonical_summary["unverifiable"],
                 "not_applicable": canonical_summary["not_applicable"],
                 "total_applicable": canonical_summary["total_applicable"],
                 "total_cards": canonical_summary["total_cards"],

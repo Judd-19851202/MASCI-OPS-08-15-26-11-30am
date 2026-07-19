@@ -29,6 +29,8 @@ from typing import Any, Awaitable, Callable, Dict, List, Optional
 import httpx
 from fastapi import APIRouter, Depends, Request
 
+from lib.runtime_identity import runtime_identity_public_payload
+
 # Backend listens on 0.0.0.0:8001 (supervisor-managed). We fan out over
 # localhost so we do not depend on the ingress being reachable from
 # inside the pod (some environments block that).
@@ -66,7 +68,7 @@ SECTIONS = [
     ("integrations",         "Integrations"),
 ]
 
-Status = str  # "green" | "yellow" | "red" | "unknown"
+Status = str
 
 
 def _mk(status: Status, summary: str, evidence: Optional[Dict[str, Any]] = None,
@@ -101,10 +103,10 @@ def _mk(status: Status, summary: str, evidence: Optional[Dict[str, Any]] = None,
 
 def _eval_api_health(body, err, checked_at):
     if err or not body:
-        return _mk("red", "API not reachable.", {"error": str(err or "no response")},
+        return _mk("MISMATCH", "API not reachable.", {"error": str(err or "no response")},
                    "Check backend supervisor status.", checked_at)
     ok = bool(body.get("ok"))
-    return _mk("green" if ok else "red",
+    return _mk("VERIFIED" if ok else "MISMATCH",
                f"API service {'reporting OK' if ok else 'FAILING'}",
                {"service": body.get("service"), "raw_ts": body.get("ts")},
                "" if ok else "Investigate backend logs immediately.",
@@ -113,12 +115,12 @@ def _eval_api_health(body, err, checked_at):
 
 def _eval_version(body, err, checked_at):
     if err or not body:
-        return _mk("unknown", "Version endpoint not reachable.",
+        return _mk("UNVERIFIABLE", "Version endpoint not reachable.",
                    {"error": str(err or "no response")},
                    "Restart backend supervisor if persistent.", checked_at)
     uptime_s = int(body.get("uptime_s") or 0)
     h, m = uptime_s // 3600, (uptime_s % 3600) // 60
-    return _mk("green",
+    return _mk("VERIFIED",
                f"{body.get('service', 'service')} · uptime {h}h {m}m",
                {"commit": body.get("commit"), "release": body.get("release"),
                 "started_at": body.get("started_at"), "session_timeouts": body.get("session_timeouts")},
@@ -128,14 +130,14 @@ def _eval_version(body, err, checked_at):
 
 def _eval_operations_overview(body, err, checked_at):
     if err or not body:
-        return _mk("unknown", "OCC operations registry unreachable.",
+        return _mk("UNVERIFIABLE", "OCC operations registry unreachable.",
                    {"error": str(err or "no response")}, "Check admin auth.", checked_at)
     ops = body.get("operations", []) or []
     critical = sum(1 for o in ops if (o.get("status_snapshot") or {}).get("status") == "critical")
     warning = sum(1 for o in ops if (o.get("status_snapshot") or {}).get("status") == "warning")
     unavail = sum(1 for o in ops if (o.get("status_snapshot") or {}).get("status") == "unavailable")
     total = len(ops)
-    status = "red" if critical else ("yellow" if warning or unavail else "green")
+    status = "MISMATCH" if critical else ("DEGRADED" if warning or unavail else "VERIFIED")
     summary = f"{total} registered ops · {critical} critical · {warning} attention · {unavail} unavailable"
     action = "Open Maintenance Operations console below and inspect the red items." if critical or warning else ""
     return _mk(status, summary,
@@ -145,7 +147,7 @@ def _eval_operations_overview(body, err, checked_at):
 
 def _eval_recovery_snapshot(body, err, checked_at):
     if err or not body:
-        return _mk("unknown", "Recovery snapshot unreachable.",
+        return _mk("UNVERIFIABLE", "Recovery snapshot unreachable.",
                    {"error": str(err or "no response")},
                    "Verify /api/admin/recovery/snapshot returns 200.", checked_at)
 
@@ -164,12 +166,12 @@ def _eval_recovery_snapshot(body, err, checked_at):
     pill_raw = str(body.get("pill", ""))
     pill = pill_raw.lower()
     status = {
-        "green": "green",
-        "yellow": "yellow",
-        "amber": "yellow",  # canonical mapping — recovery_dashboard uses AMBER
-        "red": "red",
-        "critical": "red",
-    }.get(pill, "unknown")
+        "green": "VERIFIED",
+        "yellow": "DEGRADED",
+        "amber": "DEGRADED",
+        "red": "MISMATCH",
+        "critical": "MISMATCH",
+    }.get(pill, "UNVERIFIABLE")
 
     last_backup = (body.get("last_backup") or {})
     age = body.get("backup_age_minutes")
@@ -283,11 +285,11 @@ def _eval_recovery_snapshot(body, err, checked_at):
 
 def _eval_storage_health(body, err, checked_at):
     if err or not body:
-        return _mk("unknown", "Storage lifecycle unreachable.",
+        return _mk("UNVERIFIABLE", "Storage lifecycle unreachable.",
                    {"error": str(err or "no response")},
                    "Trigger a lifecycle scan from Storage & Recovery.", checked_at)
     band = str(body.get("band", "unknown")).lower()
-    status = {"green": "green", "amber": "yellow", "red": "red"}.get(band, "unknown")
+    status = {"green": "VERIFIED", "amber": "DEGRADED", "red": "MISMATCH"}.get(band, "UNVERIFIABLE")
     score = body.get("overall_score", 0)
     capacity = body.get("capacity") or {}
     objects = body.get("objects") or {}
@@ -300,7 +302,7 @@ def _eval_storage_health(body, err, checked_at):
     )
     action = (
         "Open Storage & Recovery → R2 Lifecycle to review the dry-run."
-        if status in ("red", "yellow") else ""
+        if status in ("MISMATCH", "DEGRADED") else ""
     )
     return _mk(status, summary,
                {"overall_score": score, "band": band.upper(),
@@ -330,20 +332,20 @@ def _eval_storage_health(body, err, checked_at):
 
 def _eval_backups_scheduler(body, err, checked_at):
     if err or not body:
-        return _mk("unknown", "Scheduler state unreachable.",
+        return _mk("UNVERIFIABLE", "Scheduler state unreachable.",
                    {"error": str(err or "no response")}, "", checked_at)
     sch = body.get("scheduler") or {}
     alive = bool(sch.get("alive"))
     resurrects = int(sch.get("resurrect_count") or 0)
     in_progress = bool(sch.get("in_progress"))
     if not alive and resurrects > 3:
-        status, summary = "red", f"Scheduler not alive · {resurrects} resurrects."
+        status, summary = "MISMATCH", f"Scheduler not alive · {resurrects} resurrects."
         action = "Investigate backup scheduler loop crash (see /admin/scheduler-runs)."
     elif not alive:
-        status, summary = "yellow", "Scheduler dormant (may auto-resurrect on next tick)."
+        status, summary = "DEGRADED", "Scheduler dormant (may auto-resurrect on next tick)."
         action = "Watch for auto-resurrect within the next hour."
     else:
-        status, summary = "green", f"Scheduler alive{' · run in progress' if in_progress else ''}."
+        status, summary = "VERIFIED", f"Scheduler alive{' · run in progress' if in_progress else ''}."
         action = ""
     return _mk(status, summary,
                {"alive": alive, "resurrect_count": resurrects, "in_progress": in_progress,
@@ -356,7 +358,7 @@ def _eval_backups_scheduler(body, err, checked_at):
 
 def _eval_integrations(body, err, checked_at):
     if err or not body:
-        return _mk("unknown", "Integration probes unreachable.",
+        return _mk("UNVERIFIABLE", "Integration probes unreachable.",
                    {"error": str(err or "no response")}, "", checked_at)
     probes = body.get("probes") or []
     # TRACK 28.11: A probe whose status is "disabled" AND explicitly
@@ -384,14 +386,16 @@ def _eval_integrations(body, err, checked_at):
 
     live_probes = [p for p in probes if p.get("applicable")]
     stubbed = [p for p in probes if not p.get("applicable")]
-    degraded = [p for p in live_probes if p.get("status") not in ("ok", "healthy")]
+    degraded = [p for p in live_probes if p.get("canonical_status") != "VERIFIED"]
     overall = str(body.get("overall_status") or "").lower()
     if overall == "critical" or degraded:
-        status = "red"
+        status = "MISMATCH"
     elif overall == "warning":
-        status = "yellow"
+        status = "DEGRADED"
+    elif any(p.get("canonical_status") in {"DEGRADED", "UNVERIFIABLE"} for p in degraded):
+        status = "DEGRADED"
     else:
-        status = "green"
+        status = "VERIFIED"
     healthy_live = len(live_probes) - len(degraded)
     total_live = len(live_probes)
     stub_note = f" · {len(stubbed)} not applicable" if stubbed else ""
@@ -402,28 +406,28 @@ def _eval_integrations(body, err, checked_at):
                {"probes": probes, "overall_status": body.get("overall_status"),
                 "not_applicable_probe_ids": [p.get("id") for p in stubbed]},
                action, body.get("checked_at") or checked_at,
-               reason_code=("integrations_healthy" if status == "green"
+               reason_code=("integrations_healthy" if status == "VERIFIED"
                             else "integrations_degraded"))
 
 
 def _eval_email_v2(body, err, checked_at):
     if err or not body:
-        return _mk("unknown", "Email routing status unreachable.",
+        return _mk("UNVERIFIABLE", "Email routing status unreachable.",
                    {"error": str(err or "no response")}, "", checked_at)
     empty = list(body.get("critical_empty_route_keys") or [])
     band = str(body.get("band") or "").lower()
     mode = body.get("mode") or "—"
     if empty or band == "red":
-        status = "red"
+        status = "MISMATCH"
     elif band in ("yellow", "amber"):
-        status = "yellow"
+        status = "DEGRADED"
     else:
-        status = "green"
+        status = "VERIFIED"
     counts = body.get("route_counts") or {}
     summary = f"Mode {mode} · {counts.get('total', 0)} routes · {len(empty)} critical route(s) empty"
     if empty:
         action = "Fill or reroute the missing critical route keys."
-    elif status == "yellow":
+    elif status == "DEGRADED":
         action = body.get("band_reason") or "Investigate email routing degradation."
     else:
         action = ""
@@ -438,20 +442,20 @@ def _eval_email_v2(body, err, checked_at):
 
 def _eval_ai_gateway(body, err, checked_at):
     if err or not body:
-        return _mk("unknown", "AI gateway status unreachable.",
+        return _mk("UNVERIFIABLE", "AI gateway status unreachable.",
                    {"error": str(err or "no response")}, "", checked_at)
     enabled = bool(body.get("gateway_enabled"))
     tenant_default = bool(body.get("tenant_ai_default_enabled"))
     resolved_ok = bool(body.get("resolved_provider_available"))
     provider = body.get("resolved_selected_provider") or body.get("default_provider") or "—"
     if not enabled:
-        status, summary = "yellow", f"Gateway OFF · tenant default {'ON' if tenant_default else 'OFF'}."
+        status, summary = "DEGRADED", f"Gateway OFF · tenant default {'ON' if tenant_default else 'OFF'}."
         action = "Enable in AI configuration only if platform requires AI."
     elif not resolved_ok:
-        status, summary = "red", f"Gateway ON · resolved provider {provider} UNAVAILABLE."
+        status, summary = "MISMATCH", f"Gateway ON · resolved provider {provider} UNAVAILABLE."
         action = "Rotate provider key or switch failover provider."
     else:
-        status, summary = "green", f"Gateway ON · provider {provider} available."
+        status, summary = "VERIFIED", f"Gateway ON · provider {provider} available."
         action = ""
     return _mk(status, summary,
                {"gateway_enabled": enabled, "tenant_ai_default_enabled": tenant_default,
@@ -464,18 +468,18 @@ def _eval_ai_gateway(body, err, checked_at):
 
 def _eval_draft_health(body, err, checked_at):
     if err or not body:
-        return _mk("unknown", "Draft health endpoint unreachable.",
+        return _mk("UNVERIFIABLE", "Draft health endpoint unreachable.",
                    {"error": str(err or "no response")}, "", checked_at)
     buckets = body.get("buckets") or {}
     abandoned = int(buckets.get("abandoned_gt_24h", 0) or 0)
     failed = int(buckets.get("failed_last_24h", 0) or 0)
     stale = int(buckets.get("stale_1h_to_24h", 0) or 0)
     if failed > 0 or abandoned > 5:
-        status = "red"
+        status = "MISMATCH"
     elif abandoned > 0 or stale > 0:
-        status = "yellow"
+        status = "DEGRADED"
     else:
-        status = "green"
+        status = "VERIFIED"
     summary = (
         f"{failed} failed / {abandoned} abandoned / {stale} stale drafts (24h window)"
     )
@@ -489,12 +493,12 @@ def _eval_draft_health(body, err, checked_at):
 
 def _eval_sessions(body, err, checked_at):
     if err or not body:
-        return _mk("unknown", "Session inventory unreachable.",
+        return _mk("UNVERIFIABLE", "Session inventory unreachable.",
                    {"error": str(err or "no response")}, "", checked_at)
     count = int(body.get("count") or 0)
     timeouts_on = bool(body.get("timeouts_enabled"))
     summary = f"{count} active session(s) · timeouts {'on' if timeouts_on else 'OFF'}"
-    status = "green" if timeouts_on else "yellow"
+    status = "VERIFIED" if timeouts_on else "DEGRADED"
     action = "Enable session timeouts before production." if not timeouts_on else ""
     return _mk(status, summary,
                {"count": count, "timeouts_enabled": timeouts_on,
@@ -504,17 +508,17 @@ def _eval_sessions(body, err, checked_at):
 
 def _eval_governance(body, err, checked_at):
     if err or not body:
-        return _mk("unknown", "Governance summary unreachable.",
+        return _mk("UNVERIFIABLE", "Governance summary unreachable.",
                    {"error": str(err or "no response")}, "", checked_at)
     sev = body.get("severity_counts") or {}
     highs = int(sev.get("high", 0) or 0) + int(sev.get("critical", 0) or 0)
     health = str(body.get("health_label") or "").lower()
     if health == "critical" or highs > 20:
-        status = "red"
+        status = "MISMATCH"
     elif health == "warning" or highs > 0:
-        status = "yellow"
+        status = "DEGRADED"
     else:
-        status = "green"
+        status = "VERIFIED"
     summary = f"{highs} high/critical rules · health label: {body.get('health_label', 'unknown')}"
     action = ("Open Governance & Trust to triage high-severity rules."
               if highs else "")
@@ -533,17 +537,17 @@ def _eval_governance(body, err, checked_at):
 
 def _eval_production_cert(body, err, checked_at):
     if err or not body:
-        return _mk("unknown", "Production certification endpoint unreachable.",
+        return _mk("UNVERIFIABLE", "Production certification endpoint unreachable.",
                    {"error": str(err or "no response")}, "", checked_at)
     band = str(body.get("platform_band") or "").lower()
     if band in ("green", "healthy"):
-        status = "green"
+        status = "VERIFIED"
     elif band in ("yellow", "warning"):
-        status = "yellow"
+        status = "DEGRADED"
     elif band in ("red", "critical"):
-        status = "red"
+        status = "MISMATCH"
     else:
-        status = "unknown"
+        status = "UNVERIFIABLE"
     counters = body.get("counters") or {}
     summary = f"Platform band: {band or 'unknown'} · {counters.get('workflows_certified', 0)} workflows certified"
     return _mk(status, summary,
@@ -679,6 +683,27 @@ def register_occ_health_routes(api_router: APIRouter, require_admin: Callable):
             ]
             results = await asyncio.gather(*probes, return_exceptions=False)
 
+        bundle = getattr(getattr(request, "app", None).state, "runtime_identity_bundle", None)
+        runtime_identity = runtime_identity_public_payload(bundle) if bundle else None
+        runtime_identity_card = {
+            "id": "runtime_identity",
+            "section": "platform_runtime",
+            "title": "Runtime Identity Authority",
+            "endpoint": "internal:runtime_identity_bundle",
+            "drilldown": "/admin/system-health",
+            "status": (runtime_identity or {}).get("status", "UNVERIFIABLE"),
+            "canonical_status": (runtime_identity or {}).get("status", "UNVERIFIABLE"),
+            "summary": ((runtime_identity or {}).get("validation") or {}).get("detail") or "Runtime identity unavailable.",
+            "evidence": runtime_identity or {},
+            "recommended_action": "" if (runtime_identity or {}).get("valid") else "Resolve runtime identity authority before trusting downstream surfaces.",
+            "reason_code": (runtime_identity or {}).get("mismatch_category") or "runtime_identity",
+            "root_cause_id": "runtime_identity_authority",
+            "applicable": True,
+            "enabled": True,
+            "checked_at": now_iso,
+        }
+        results = [runtime_identity_card, *results]
+
         # Group results by section, preserving the declared section order.
         sections: List[Dict[str, Any]] = []
         by_section: Dict[str, List[Dict[str, Any]]] = {sid: [] for sid, _ in SECTIONS}
@@ -696,7 +721,7 @@ def register_occ_health_routes(api_router: APIRouter, require_admin: Callable):
 
         # Overall posture = worst status across all cards.
         overall = _worst_status(results)
-        counts = {"green": 0, "yellow": 0, "red": 0, "unknown": 0}
+        counts = {"VERIFIED": 0, "DEGRADED": 0, "MISMATCH": 0, "UNVERIFIABLE": 0, "NOT_APPLICABLE": 0}
         for r in results:
             counts[r["status"]] = counts.get(r["status"], 0) + 1
 
@@ -720,23 +745,22 @@ def register_occ_health_routes(api_router: APIRouter, require_admin: Callable):
             "generated_at": now_iso,
             "overall_status": overall,
             "overall_canonical": canonical_summary["highest"],
+            "runtime_identity": runtime_identity,
             "counts": counts,
             "canonical_counts": {
-                "healthy": canonical_summary["healthy"],
-                "attention": canonical_summary["attention"],
-                "critical": canonical_summary["critical"],
-                "unknown": canonical_summary["unknown"],
-                "stale": canonical_summary["stale"],
-                "disabled": canonical_summary["disabled"],
+                "verified": canonical_summary["verified"],
+                "degraded": canonical_summary["degraded"],
+                "mismatch": canonical_summary["mismatch"],
+                "unverifiable": canonical_summary["unverifiable"],
                 "not_applicable": canonical_summary["not_applicable"],
                 "total_applicable": canonical_summary["total_applicable"],
             },
             "root_cause_groups": root_cause_groups,
             "unique_critical_root_causes": len({
                 r.get("root_cause_id") for r in results
-                if r["status"] == "red" and r.get("root_cause_id")
+                if r["status"] == "MISMATCH" and r.get("root_cause_id")
             }) + sum(1 for r in results
-                     if r["status"] == "red" and not r.get("root_cause_id")),
+                     if r["status"] == "MISMATCH" and not r.get("root_cause_id")),
             "total_cards": len(results),
             "sections": sections,
         }
@@ -745,10 +769,12 @@ def register_occ_health_routes(api_router: APIRouter, require_admin: Callable):
 
 
 def _worst_status(cards: List[Dict[str, Any]]) -> Status:
-    order = {"red": 3, "yellow": 2, "unknown": 1, "green": 0}
-    worst = "green"
+    from lib.canonical_status import to_canonical
+
+    order = {"MISMATCH": 4, "UNVERIFIABLE": 3, "DEGRADED": 2, "VERIFIED": 1, "NOT_APPLICABLE": 0}
+    worst = "NOT_APPLICABLE"
     for c in cards:
-        s = c.get("status", "green")
+        s = to_canonical(c.get("status", "NOT_APPLICABLE"))
         if order.get(s, 0) > order.get(worst, 0):
             worst = s
     return worst

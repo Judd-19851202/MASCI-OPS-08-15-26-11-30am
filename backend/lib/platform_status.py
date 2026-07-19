@@ -24,6 +24,8 @@ from __future__ import annotations
 import os
 from typing import Any, Dict
 
+from lib.runtime_identity import runtime_identity_public_payload
+
 
 _MIGRATION_TARGETS = {
     # Groups that are already fully migrated (or will be, per roadmap)
@@ -263,13 +265,16 @@ def platform_status(app) -> Dict[str, Any]:
 
     Read-only. No side effects. No secrets.
     """
+    runtime_identity_bundle = getattr(getattr(app, "state", None), "runtime_identity_bundle", None)
+    runtime_identity = runtime_identity_public_payload(runtime_identity_bundle) if runtime_identity_bundle else None
     return {
         "service": "masci-hub",
         "attestation_version": "22.1K",
         "runtime": {
-            "app_env": (os.environ.get("APP_ENV") or "production").strip().lower(),
+            "app_env": ((runtime_identity or {}).get("identity") or {}).get("app_env") or "unknown",
             "worker_pid": os.getpid(),
         },
+        "runtime_identity": runtime_identity,
         "routes": _routes_summary(app),
         "middleware": {
             "count": len(app.user_middleware),
