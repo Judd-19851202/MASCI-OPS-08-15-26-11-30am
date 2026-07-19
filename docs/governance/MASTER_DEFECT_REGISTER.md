@@ -62,6 +62,10 @@ Checkpoint: B
 | B-DSR-005 | P1 | `basecamp_import.py` / `basecamp_import_big.py` mutation tooling still needs full safety classification | OPEN | Main agent |
 | B-DSR-006 | P1 | `migrate_dr_v2_collections_to_daily_report.py` still needs full safety classification | OPEN | Main agent |
 | B-DSR-007 | P1 | `track_15_28c_canonicalization_migration.py` still needs full safety classification | OPEN | Main agent |
+| B-DSR-008 | P1 | `track_15_67_second_tenant_simulation.py` remains active multi-collection mutation tooling without modern fail-closed contract | OPEN | Main agent |
+| B-DSR-009 | P1 | `scripts/automated_drill.py` remains high-risk operator mutation tool (drop DB + R2 writes) without modern fail-closed contract | OPEN | Main agent |
+| B-DSR-010 | P1 | `scripts/cleanup_production_contamination.py` remains direct destructive cleanup tooling without modern fail-closed contract | OPEN | Main agent |
+| B-DSR-011 | P1 | `scripts/r2_lifecycle_apply.py` remains storage mutation tooling without completed safety classification | OPEN | Main agent |
 
 ## Critical exception register
 
@@ -74,6 +78,7 @@ Checkpoint: B
 | B-CER-005 | P2 | OpenAI adapter fallbacks are best-effort but fail closed to explicit statuses | `backend/services/ai_gateway/adapters/openai_adapter.py` | CORRECTLY_FAIL_CLOSED | ACCEPTED |
 | RC09D-1 | P1 | canonical security-header middleware absent | `backend/server.py` | FIXED |
 | RC10-E | P1 | mutation barrier / handled responses lacked guaranteed canonical security headers | `backend/server.py` | FIXED |
+| B-CER-006 | P1 | critical broad-exception inventory is not yet normalized into per-occurrence owned findings across all required families | `docs/governance/CRITICAL_EXCEPTION_REGISTER.md` | OPEN |
 
 ## Production mutation accounting
 

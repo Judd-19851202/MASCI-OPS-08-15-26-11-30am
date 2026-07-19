@@ -17,11 +17,19 @@ import os
 import re
 import shutil
 import sys
+import argparse
 from datetime import datetime, timezone
 from pathlib import Path
 
 from dotenv import dotenv_values
 from pymongo import MongoClient
+from lib.operator_safety import (
+    redact_target_identity,
+    require_cli_backup_ack,
+    require_cli_confirmation,
+    require_cli_execute,
+    require_cli_runtime_guard,
+)
 
 ROOT = Path("/app/backend")
 DATA = ROOT / "data" / "equipment_master.json"
@@ -216,12 +224,40 @@ def split_make_model(make_model: str) -> tuple[str, str]:
 
 
 def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--execute", action="store_true")
+    ap.add_argument("--allow-production", action="store_true")
+    ap.add_argument("--confirm", default="")
+    ap.add_argument("--backup-ack", action="store_true")
+    args = ap.parse_args()
+
     env = dotenv_values(str(ROOT / ".env"))
     mongo_url = env.get("MONGO_URL") or os.environ.get("MONGO_URL")
     db_name = env.get("DB_NAME") or os.environ.get("DB_NAME")
+    app_env = env.get("APP_ENV") or os.environ.get("APP_ENV") or ""
     if not (mongo_url and db_name):
         print("ERROR: MONGO_URL / DB_NAME missing from /app/backend/.env", file=sys.stderr)
         return 2
+
+    target = redact_target_identity(mongo_url, db_name)
+    if args.execute:
+        try:
+            require_cli_execute(args.execute)
+            require_cli_confirmation(args.confirm, expected="SEED_EQUIPMENT_MAKE_MODEL")
+            require_cli_backup_ack(args.backup_ack)
+            require_cli_runtime_guard(
+                app_env=app_env,
+                db_name=db_name,
+                allow_production=args.allow_production,
+                expected_db_name="masci_safety",
+            )
+        except RuntimeError as exc:
+            print(str(exc), file=sys.stderr)
+            return 3
+
+    if not DATA.exists():
+        print(f"ERROR: missing source file {DATA}", file=sys.stderr)
+        return 4
 
     # Backup the JSON file
     if DATA.exists():
@@ -251,6 +287,15 @@ def main() -> int:
             item["model"] = model
 
     print(f"[split] populated make/model on {fixed} items")
+
+    if not args.execute:
+        print(json.dumps({
+            "mode": "dry-run",
+            "target": target,
+            "items": len(items),
+            "fixed": fixed,
+        }, indent=2))
+        return 0
 
     # Write JSON back atomically
     tmp = DATA.with_suffix(".tmp")

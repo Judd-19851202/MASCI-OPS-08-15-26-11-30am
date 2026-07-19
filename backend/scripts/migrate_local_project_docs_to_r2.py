@@ -63,6 +63,13 @@ if str(_BACKEND) not in sys.path:
     sys.path.insert(0, str(_BACKEND))
 
 from motor.motor_asyncio import AsyncIOMotorClient  # noqa: E402
+from lib.operator_safety import (
+    redact_target_identity,
+    require_cli_backup_ack,
+    require_cli_confirmation,
+    require_cli_execute,
+    require_cli_runtime_guard,
+)
 
 
 STORAGE_DIR = Path("/app/backend/storage/project_docs")
@@ -221,10 +228,27 @@ async def _run(args) -> int:
 
     mongo_url = os.environ.get("MONGO_URL") or ""
     db_name = os.environ.get("DB_NAME") or ""
+    app_env = os.environ.get("APP_ENV") or ""
     if not mongo_url or not db_name:
         print("[abort] MONGO_URL / DB_NAME missing from environment.",
               file=sys.stderr)
         return 4
+
+    target = redact_target_identity(mongo_url, db_name)
+    if args.apply:
+        try:
+            require_cli_execute(args.apply)
+            require_cli_confirmation(args.confirm, expected="MIGRATE_LOCAL_PROJECT_DOCS_TO_R2")
+            require_cli_backup_ack(args.backup_ack)
+            require_cli_runtime_guard(
+                app_env=app_env,
+                db_name=db_name,
+                allow_production=args.allow_production,
+                expected_db_name="masci_safety",
+            )
+        except RuntimeError as exc:
+            print(f"[abort] {exc}", file=sys.stderr)
+            return 5
 
     client = AsyncIOMotorClient(mongo_url)
     db = client[db_name]
@@ -248,6 +272,7 @@ async def _run(args) -> int:
           f"total bytes: {total_bytes / (1024 * 1024):.1f} MB")
     print(f"  Project filter: {args.project or '(all)'}")
     print(f"  Limit: {args.limit}")
+    print(f"  Target: {target}")
     if args.project:
         print(f"  Project filter: {args.project}")
     print()
@@ -304,6 +329,9 @@ def _parse_args():
         "--apply", action="store_true",
         help="Actually migrate. Default is dry-run.",
     )
+    ap.add_argument("--allow-production", action="store_true")
+    ap.add_argument("--confirm", default="")
+    ap.add_argument("--backup-ack", action="store_true")
     ap.add_argument("--project", default=None, help="Limit to a project_id.")
     ap.add_argument("--limit", type=int, default=500,
                     help="Cap the number of docs per invocation (default 500).")

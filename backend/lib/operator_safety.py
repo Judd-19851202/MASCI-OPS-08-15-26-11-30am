@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from typing import Any, Mapping
+from urllib.parse import urlparse
 
 from fastapi import HTTPException
 
@@ -54,3 +55,45 @@ def require_destructive_runtime_guard(
 def require_non_empty_destructive_scope(items: list[Any] | None, *, detail: str) -> None:
     if not items:
         raise HTTPException(status_code=400, detail=detail)
+
+
+def redact_target_identity(mongo_url: str | None, db_name: str | None) -> str:
+    parsed = urlparse(mongo_url or "")
+    host = parsed.hostname or "unknown-host"
+    db = db_name or "unknown-db"
+    return f"mongodb://***@{host}/{db}"
+
+
+def require_cli_execute(execute: bool) -> None:
+    if not execute:
+        raise RuntimeError("Refusing to mutate without explicit --execute.")
+
+
+def require_cli_confirmation(confirm: str | None, *, expected: str) -> None:
+    if (confirm or "").strip() != expected:
+        raise RuntimeError(f'Refusing to mutate without --confirm "{expected}".')
+
+
+def require_cli_backup_ack(backup_ack: bool) -> None:
+    if backup_ack is not True:
+        raise RuntimeError("Refusing to mutate without --backup-ack.")
+
+
+def require_cli_runtime_guard(
+    *,
+    app_env: str,
+    db_name: str,
+    allow_production: bool,
+    expected_db_name: str | None = None,
+) -> None:
+    normalized_env = (app_env or "").strip().lower()
+    normalized_db = (db_name or "").strip()
+    if expected_db_name and normalized_db != expected_db_name:
+        raise RuntimeError(
+            f"Refusing to mutate because DB_NAME={normalized_db or 'unknown'} does not match expected {expected_db_name}."
+        )
+    if normalized_env in {"production", "prod"} or normalized_db == "masci_safety":
+        if not allow_production:
+            raise RuntimeError(
+                "Refusing to mutate against Production semantics without explicit --allow-production."
+            )

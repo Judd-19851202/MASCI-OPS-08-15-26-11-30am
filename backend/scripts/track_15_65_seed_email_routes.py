@@ -39,6 +39,13 @@ sys.path.insert(0, str(HERE.parent))
 
 from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
+from lib.operator_safety import (
+    redact_target_identity,
+    require_cli_backup_ack,
+    require_cli_confirmation,
+    require_cli_execute,
+    require_cli_runtime_guard,
+)
 load_dotenv(HERE.parent / ".env")
 
 
@@ -416,18 +423,31 @@ def main() -> None:
     p.add_argument("--force", action="store_true", help="overwrite admin-customised rows")
     p.add_argument("--allow-prod", action="store_true",
                    help="allow execution against APP_ENV=production (default: refuse)")
+    p.add_argument("--confirm", default="")
+    p.add_argument("--backup-ack", action="store_true")
     args = p.parse_args()
 
     app_env = (os.environ.get("APP_ENV") or "").strip().lower()
-    if app_env == "production" and not args.allow_prod:
-        print(json.dumps({
-            "ok": False,
-            "error": "refusing to run against APP_ENV=production without --allow-prod",
-        }, indent=2))
-        sys.exit(1)
+    db_name = (os.environ.get("DB_NAME") or "").strip()
+    mongo_url = os.environ.get("MONGO_URL") or ""
+    if args.apply:
+        try:
+            require_cli_execute(args.apply)
+            require_cli_confirmation(args.confirm, expected="SEED_EMAIL_ROUTES")
+            require_cli_backup_ack(args.backup_ack)
+            require_cli_runtime_guard(
+                app_env=app_env,
+                db_name=db_name,
+                allow_production=args.allow_prod,
+                expected_db_name="masci_safety",
+            )
+        except RuntimeError as exc:
+            print(json.dumps({"ok": False, "error": str(exc)}, indent=2))
+            sys.exit(1)
 
     mode = "dry-run" if args.dry_run else ("apply" if args.apply else "verify")
     result = asyncio.run(run(mode=mode, force=args.force))
+    result["target"] = redact_target_identity(mongo_url, db_name)
 
     out_path = Path("/app/memory/track_15_65_data") / f"preseed_{mode}.json"
     out_path.parent.mkdir(parents=True, exist_ok=True)
