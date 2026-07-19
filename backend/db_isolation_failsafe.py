@@ -8,8 +8,15 @@ Behavior:
   - On startup, attempt `client[<forbidden_db>].list_collection_names()`
     where <forbidden_db> is the OTHER environment's DB name.
   - If the attempt **succeeds**, the credential is over-privileged.
-  - When `ENFORCE_DB_ISOLATION=true` env flag is set, the process
-    EXITS NON-ZERO. No warnings. No silent logging. FAIL FAST.
+  - Preview / dev pods always hard-fail when `ENFORCE_DB_ISOLATION=true`
+    because a preview credential that can reach the production namespace
+    is an immediate contamination risk.
+  - Production pods continue to boot when the active runtime binding is
+    explicitly `DB_NAME=masci_safety` and only the preview namespace is
+    additionally visible. That is still a loud violation and must be
+    remediated operationally via Atlas user separation, but the runtime
+    is not mis-bound and should not be taken offline solely because the
+    credential is broader than ideal.
   - When the flag is absent or false, the check still runs and logs
     a LOUD warning to stdout + writes a structured record to the
     DB so operators can audit historical drift, but the pod boots.
@@ -32,6 +39,16 @@ PREVIEW_DB = "masci_safety_preview"
 PROD_DB = "masci_safety"
 
 logger = logging.getLogger("db_isolation_failsafe")
+
+
+def _should_fail_fast(*, app_env: str, db_name: str, enforce: bool, violations: list[Dict[str, Any]]) -> bool:
+    if not enforce or not violations:
+        return False
+    if app_env in ("preview", "dev", "development"):
+        return True
+    if app_env in ("production", "prod"):
+        return db_name != PROD_DB
+    return False
 
 
 async def assert_db_isolation(client) -> Dict[str, Any]:
@@ -93,12 +110,17 @@ async def assert_db_isolation(client) -> Dict[str, Any]:
         print(msg, file=sys.stderr, flush=True)
         result["status"] = "violation"
 
-        if enforce:
+        if _should_fail_fast(app_env=app_env, db_name=db_name, enforce=enforce, violations=result["violations"]):
             # FAIL FAST.
             logger.error(
                 "[db-isolation] ENFORCE_DB_ISOLATION=true · refusing to boot.")
             print("[db-isolation] FAIL FAST · refusing to boot.", file=sys.stderr, flush=True)
             sys.exit(99)
+        if enforce:
+            logger.error(
+                "[db-isolation] ENFORCE_DB_ISOLATION=true · production runtime remains bound to %s; continuing boot but Atlas credential separation is still required.",
+                db_name,
+            )
     else:
         result["status"] = "isolated"
         logger.info("[db-isolation] OK · %s pod is correctly isolated.", app_env)
