@@ -78,7 +78,8 @@ Checkpoint: B
 | B-CER-005 | P2 | OpenAI adapter fallbacks are best-effort but fail closed to explicit statuses | `backend/services/ai_gateway/adapters/openai_adapter.py` | CORRECTLY_FAIL_CLOSED | ACCEPTED |
 | RC09D-1 | P1 | canonical security-header middleware absent | `backend/server.py` | FIXED |
 | RC10-E | P1 | mutation barrier / handled responses lacked guaranteed canonical security headers | `backend/server.py` | FIXED |
-| B-CER-006 | P1 | critical broad-exception inventory is not yet normalized into per-occurrence owned findings across all required families | `docs/governance/CRITICAL_EXCEPTION_REGISTER.md` | OPEN |
+| B-CER-006 | P1 | critical broad-exception inventory was incomplete and lacked stable per-occurrence records | `docs/governance/critical_exception_inventory.json` | PARTIALLY_FIXED |
+| B-CER-007 | P1 | 882 P1-candidate broad catches remain to be normalized/triaged across required families | `docs/governance/CRITICAL_EXCEPTION_REGISTER.md` | OPEN |
 
 ## Production mutation accounting
 

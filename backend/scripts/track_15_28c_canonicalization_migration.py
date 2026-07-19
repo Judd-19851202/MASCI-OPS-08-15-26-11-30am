@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import sys
 import uuid
 from datetime import datetime, timezone
@@ -45,6 +46,13 @@ load_dotenv(str(ROOT / "backend" / ".env"))
 
 import os  # noqa: E402
 from pymongo import MongoClient  # noqa: E402
+from lib.operator_safety import (  # noqa: E402
+    redact_target_identity,
+    require_cli_backup_ack,
+    require_cli_confirmation,
+    require_cli_execute,
+    require_cli_runtime_guard,
+)
 
 
 def compute_idempotency_key(payload: Dict[str, Any]) -> str:
@@ -394,6 +402,9 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--dry-run", action="store_true", default=True)
     parser.add_argument("--apply", action="store_true", default=False)
+    parser.add_argument("--allow-production", action="store_true")
+    parser.add_argument("--confirm", default="")
+    parser.add_argument("--backup-ack", action="store_true")
     args = parser.parse_args()
     apply = bool(args.apply) and not args.dry_run if args.apply else False
     if args.apply:
@@ -401,14 +412,31 @@ def main() -> int:
 
     mongo_url = os.environ.get("MONGO_URL")
     db_name = os.environ.get("DB_NAME")
+    app_env = os.environ.get("APP_ENV") or ""
     if not mongo_url or not db_name:
         print("FATAL: MONGO_URL / DB_NAME not set.", file=sys.stderr)
         return 2
+    target = redact_target_identity(mongo_url, db_name)
+    if apply:
+        try:
+            require_cli_execute(args.apply)
+            require_cli_confirmation(args.confirm, expected="RUN_CANONICALIZATION_MIGRATION")
+            require_cli_backup_ack(args.backup_ack)
+            require_cli_runtime_guard(
+                app_env=app_env,
+                db_name=db_name,
+                allow_production=args.allow_production,
+                expected_db_name="masci_safety",
+            )
+        except RuntimeError as exc:
+            print(str(exc), file=sys.stderr)
+            return 3
     client = MongoClient(mongo_url)
     db = client[db_name]
 
     mode = "APPLY" if apply else "DRY-RUN"
     print(f"\n==== TRACK 15.28C MIGRATION · MODE={mode} · DB={db_name} ====\n")
+    print(json.dumps({"target": target, "mode": mode, "confirmation_token": "RUN_CANONICALIZATION_MIGRATION"}, indent=2))
 
     print("BEFORE:")
     for k, v in verification_table(db).items():

@@ -33,12 +33,21 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import json
 import os
 import sys
+import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Tuple
 
 from motor.motor_asyncio import AsyncIOMotorClient  # type: ignore
+from lib.operator_safety import (  # type: ignore  # noqa: E402
+    redact_target_identity,
+    require_cli_backup_ack,
+    require_cli_confirmation,
+    require_cli_execute,
+    require_cli_runtime_guard,
+)
 
 # Canonical → legacy pairs; import from lib/ so a single source of truth exists.
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -87,7 +96,8 @@ async def _dry_run(db) -> Dict[str, Any]:
 
 
 async def _live(db) -> Dict[str, Any]:
-    report: Dict[str, Any] = {"mode": "live", "pairs": [], "started_at": _now_iso()}
+    report: Dict[str, Any] = {"mode": "live", "pairs": [], "started_at": _now_iso(), "migration_batch_id": str(uuid.uuid4())}
+    failed_records: Dict[str, List[str]] = {}
     for canonical, legacy in _pairs():
         copied = 0
         skipped = 0
@@ -97,6 +107,7 @@ async def _live(db) -> Dict[str, Any]:
                 await db[canonical].insert_one(dict(doc))
                 copied += 1
             except Exception:
+                failed_records.setdefault(canonical, []).append(str(doc.get("id") or doc.get("_id") or "unknown"))
                 skipped += 1  # duplicate key or transient — skip; keep going
         report["pairs"].append({
             "canonical": canonical, "legacy": legacy,
@@ -105,6 +116,9 @@ async def _live(db) -> Dict[str, Any]:
             "source_count_still": await _count(db, legacy),
         })
     report["completed_at"] = _now_iso()
+    report["failed_records"] = failed_records
+    report["ok"] = sum(len(v) for v in failed_records.values()) == 0
+    report["status"] = "success" if report["ok"] else "partial_failure"
     return report
 
 
@@ -150,17 +164,27 @@ def _now_iso() -> str:
 
 async def _run(args) -> int:
     app_env = (os.environ.get("APP_ENV") or "").lower()
-    if app_env in ("production", "prod") and not args.allow_prod:
-        sys.stderr.write(
-            f"REFUSING to run against APP_ENV={app_env!r} without --allow-prod\n"
-        )
-        return 2
-
     mongo_url = os.environ.get("MONGO_URL")
     db_name = os.environ.get("DB_NAME")
     if not mongo_url or not db_name:
         sys.stderr.write("MONGO_URL and DB_NAME env vars are required.\n")
         return 3
+
+    target = redact_target_identity(mongo_url, db_name)
+    if args.live:
+        try:
+            require_cli_execute(args.live)
+            require_cli_confirmation(args.confirm, expected="MIGRATE_DR_V2_TO_DAILY_REPORTS")
+            require_cli_backup_ack(args.backup_ack)
+            require_cli_runtime_guard(
+                app_env=app_env,
+                db_name=db_name,
+                allow_production=args.allow_prod,
+                expected_db_name="masci_safety",
+            )
+        except RuntimeError as exc:
+            sys.stderr.write(f"{exc}\n")
+            return 4
 
     client = AsyncIOMotorClient(mongo_url)
     db = client[db_name]
@@ -177,7 +201,7 @@ async def _run(args) -> int:
     finally:
         client.close()
 
-    import json
+    print(json.dumps({"target": target, "requested_mode": "live" if args.live else "verify" if args.verify else "rollback" if args.rollback else "dry-run"}, indent=2))
     print(json.dumps(report, indent=2, default=str))
     if isinstance(report, dict) and report.get("ok") is False:
         return 1
@@ -196,6 +220,8 @@ def main() -> int:
                     help="Print the one-line rollback plan; performs no writes.")
     ap.add_argument("--allow-prod", action="store_true",
                     help="Explicitly allow APP_ENV=production. Off by default.")
+    ap.add_argument("--confirm", default="")
+    ap.add_argument("--backup-ack", action="store_true")
     args = ap.parse_args()
     return asyncio.run(_run(args))
 

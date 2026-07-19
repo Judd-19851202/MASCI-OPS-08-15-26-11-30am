@@ -13,28 +13,38 @@ Deterministic static inventory was run across critical runtime and script famili
 - best-effort catches that log and continue
 
 Inventory artifact count:
-- total broad catches reviewed in critical families: **1984**
+- total broad catches reviewed in critical families: **2106**
+- machine-readable inventory: `docs/governance/critical_exception_inventory.json`
 
 ## Totals by family
 
-- Database identity and startup: heavy concentration in `backend/server.py` and `db_isolation_failsafe.py`
-- Authentication and authorization: `pm_auth.py`, `auth_must_change.py`, auth dependencies in `server.py`
-- Daily Reports: multiple handlers in `server.py`
-- Backup and restore: `server.py`, `backend/tools/restore_drill.py`, backup-related routes/services
-- Storage and integrations: `photo_storage`, AI gateway adapters, R2-related services, email/notification routes
-- Trust and governance: governance routes, deployment readiness, release identity, certification paths
-- Destructive scripts and migrations: write-capable scripts inventory
+- startup/DB identity: **1508**
+- authentication/authorization: **75**
+- Daily Reports/PDF/files: **145**
+- backup/restore: **32**
+- R2/storage: **21**
+- notifications/email/integrations: **27**
+- AI/providers: **13**
+- Trust/governance: **94**
+- schedulers/background: **30**
+- active mutation scripts/migrations: **161**
 
-## Totals by classification (current reviewed subset)
+## Totals by behavior after catch
 
-- INTENTIONAL_BEST_EFFORT: accepted in non-critical audit/telemetry/report generation paths
-- SAFE_DETERMINISTIC_FALLBACK: governance/runtime file-read fallbacks, selected config-read paths
-- CORRECTLY_FAIL_CLOSED: auth/password-change, OpenAI wrapped-json parsing, restore guard refusals
-- OVERLY_BROAD_BUT_HARMLESS: selected startup hygiene and report emitters
-- MASKS_REAL_FAILURE: still present in multiple unreviewed broad-catch clusters
-- INSUFFICIENT_LOGGING: repaired for restore partial-failure reporting; still open in wider families
-- WRONG_EXCEPTION_TYPE: not fully inventoried yet
-- REQUIRES_REPAIR: still open in the remaining unreviewed families
+- re-raise: **219**
+- pass: **241**
+- fallback: **461**
+- return success: **657**
+- log only: **276**
+- continue loop: **68**
+- return default: **182**
+- retry: **2**
+
+## Totals by static risk classification
+
+- P1 candidates: **882**
+- P2 candidates: **385**
+- P3/info: **839**
 
 ## Key repaired finding
 
@@ -52,9 +62,9 @@ Inventory artifact count:
 
 ## Open findings preventing Checkpoint B closure
 
-1. The inventory is complete enough to prove broad-catch density, but not fully normalized into per-occurrence owned findings across every required family.
-2. Several script/migration/operator families still contain broad catches whose semantics have not been individually classified.
-3. Multiple startup/governance/server broad catches remain untriaged at finding granularity.
+1. The machine-readable inventory now contains stable per-occurrence records, but human-governed ownership is not yet normalized for all 2106 occurrences.
+2. 882 P1 candidates require risk-based normalization/closure or containment reasoning before Checkpoint B can close.
+3. Startup/governance/server families still dominate the untriaged set.
 
 ## Completion note
 

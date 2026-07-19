@@ -41,6 +41,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
+sys.path.insert(0, "/app/backend")
+from lib.operator_safety import redact_target_identity  # noqa: E402
 
 
 # ─── Env bootstrap ──────────────────────────────────────────────────
@@ -162,6 +164,9 @@ async def main() -> int:
         "--expected-counts", default=None,
         help="Optional JSON: {'notifications': 109, 'tasks': 25, ...} — abort if mismatch",
     )
+    parser.add_argument("--allow-production", action="store_true")
+    parser.add_argument("--confirm", default="")
+    parser.add_argument("--backup-ack", action="store_true")
     args = parser.parse_args()
 
     expected = {
@@ -178,6 +183,18 @@ async def main() -> int:
     client = AsyncIOMotorClient(os.environ["MONGO_URL"])
     db = client[PROD_DB]
     assert db.name == PROD_DB
+
+    target = redact_target_identity(os.environ.get("MONGO_URL"), PROD_DB)
+    if args.apply:
+        if not args.allow_production:
+            print(json.dumps({"ok": False, "error": "Refusing mutation without --allow-production.", "target": target}, indent=2))
+            return 5
+        if args.confirm != "REMOVE_VERIFIED_PRODUCTION_CONTAMINATION":
+            print(json.dumps({"ok": False, "error": "Refusing mutation without exact contamination confirmation token.", "target": target}, indent=2))
+            return 5
+        if args.backup_ack is not True:
+            print(json.dumps({"ok": False, "error": "Refusing mutation without --backup-ack.", "target": target}, indent=2))
+            return 5
 
     print(f"\n══════════════════════════════════════════════════════════════")
     print(f"  iter437 · Production Contamination Cleanup")

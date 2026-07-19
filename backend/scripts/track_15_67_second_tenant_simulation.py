@@ -23,7 +23,7 @@ Usage:
     cd /app/backend && python3 scripts/track_15_67_second_tenant_simulation.py
 """
 from __future__ import annotations
-import asyncio, os, json, sys
+import argparse, asyncio, os, json, sys
 from pathlib import Path
 from datetime import datetime, timezone
 
@@ -32,6 +32,7 @@ sys.path.insert(0, str(HERE.parent))
 from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 load_dotenv(HERE.parent / ".env")
+from lib.operator_safety import redact_target_identity
 import email_routing_v2 as v2
 from tenant_context import set_current_tenant, resolve_tenant_key
 from branding_resolver import resolve_sender, resolve_sender_email, UnconfiguredSenderError
@@ -77,9 +78,29 @@ def _contains_masci(s) -> bool:
 
 
 async def main():
-    keep = "--keep" in sys.argv
-    client = AsyncIOMotorClient(os.environ["MONGO_URL"])
-    db = client[os.environ["DB_NAME"]]
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--keep", action="store_true")
+    args = parser.parse_args()
+    keep = args.keep
+    mongo_url = os.environ["MONGO_URL"]
+    db_name = os.environ["DB_NAME"]
+    app_env = (os.environ.get("APP_ENV") or "").strip().lower()
+    if app_env in {"production", "prod"} or db_name == "masci_safety":
+        print(json.dumps({
+            "ok": False,
+            "error": "Refusing second-tenant simulation against production semantics.",
+            "target": redact_target_identity(mongo_url, db_name),
+        }, indent=2))
+        return 3
+    if "preview" not in db_name and "demo" not in db_name and "test" not in db_name:
+        print(json.dumps({
+            "ok": False,
+            "error": "Simulation is restricted to preview/demo/test DB namespaces.",
+            "target": redact_target_identity(mongo_url, db_name),
+        }, indent=2))
+        return 4
+    client = AsyncIOMotorClient(mongo_url)
+    db = client[db_name]
     report = {"tenant": DEMO_TENANT, "ts": datetime.now(timezone.utc).isoformat(),
               "checks": [], "summary": {"pass": 0, "fail": 0}}
 
@@ -265,4 +286,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    raise SystemExit(asyncio.run(main()))

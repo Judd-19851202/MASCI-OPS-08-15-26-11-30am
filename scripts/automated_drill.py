@@ -45,6 +45,8 @@ from typing import Any, Dict, List, Optional
 REPO_ROOT = Path(__file__).resolve().parent.parent
 BACKEND_ENV = REPO_ROOT / "backend" / ".env"
 MEMORY_DIR = REPO_ROOT / "memory"
+sys.path.insert(0, str(REPO_ROOT / 'backend'))
+from lib.operator_safety import redact_target_identity  # noqa: E402
 
 
 def _load_env() -> Dict[str, str]:
@@ -530,11 +532,31 @@ def main() -> int:
                     help="Skip dropping the drill DB on success (for inspection)")
     ap.add_argument("--target-uri",
                     help="Override target Mongo URI (defaults to MONGO_URL)")
+    ap.add_argument("--execute", action="store_true")
+    ap.add_argument("--allow-production", action="store_true")
+    ap.add_argument("--backup-ack", action="store_true")
+    ap.add_argument("--confirm", default="")
     args = ap.parse_args()
 
     if not args.auto and not args.backup:
         ap.print_help()
         return 1
+    if not args.execute:
+        print(json.dumps({"ok": False, "error": "Refusing drill without --execute.", "target": redact_target_identity(env.get('MONGO_URL'), env.get('DB_NAME'))}, indent=2))
+        return 2
+    if args.confirm != "RUN_ISOLATED_RECOVERY_DRILL":
+        print(json.dumps({"ok": False, "error": "Refusing drill without --confirm RUN_ISOLATED_RECOVERY_DRILL.", "target": redact_target_identity(env.get('MONGO_URL'), env.get('DB_NAME'))}, indent=2))
+        return 2
+    if not args.backup_ack:
+        print(json.dumps({"ok": False, "error": "Refusing drill without --backup-ack.", "target": redact_target_identity(env.get('MONGO_URL'), env.get('DB_NAME'))}, indent=2))
+        return 2
+    db_name = env.get('DB_NAME') or ''
+    if db_name == 'masci_safety':
+        if not args.allow_production:
+            print(json.dumps({"ok": False, "error": "Refusing drill from production DB semantics without --allow-production.", "target": redact_target_identity(env.get('MONGO_URL'), db_name)}, indent=2))
+            return 2
+        print(json.dumps({"ok": False, "error": "Production drill execution remains technically blocked in this track.", "target": redact_target_identity(env.get('MONGO_URL'), db_name)}, indent=2))
+        return 2
 
     return run_drill(env, explicit_key=args.backup, keep_db=args.keep_db,
                      target_uri=args.target_uri)

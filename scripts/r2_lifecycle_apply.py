@@ -37,6 +37,7 @@ non-MASCI rules already present under different IDs.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import sys
@@ -151,6 +152,22 @@ def cmd_apply(args, env):
     if args.dry_run:
         print("DRY-RUN — no changes applied.")
         return 0
+
+    if not args.execute:
+        print("FAIL: refusing lifecycle apply without --execute", file=sys.stderr)
+        return 3
+    if not args.allow_production:
+        print("FAIL: refusing lifecycle apply without --allow-production", file=sys.stderr)
+        return 3
+    if not args.backup_ack:
+        print("FAIL: refusing lifecycle apply without --backup-ack", file=sys.stderr)
+        return 3
+    if args.confirm != "APPLY_R2_LIFECYCLE_POLICY":
+        print("FAIL: refusing lifecycle apply without exact confirmation token", file=sys.stderr)
+        return 3
+    if args.policy_hash != hashlib.sha256(json.dumps(new_rules, sort_keys=True).encode()).hexdigest():
+        print("FAIL: provided --policy-hash does not match the planned lifecycle payload", file=sys.stderr)
+        return 3
 
     try:
         client.put_bucket_lifecycle_configuration(
@@ -277,6 +294,11 @@ def main():
     ap.add_argument("--show", action="store_true", help="just show current config")
     ap.add_argument("--verify", action="store_true",
                     help="round-trip sentinel + confirm lifecycle rule active")
+    ap.add_argument("--execute", action="store_true")
+    ap.add_argument("--allow-production", action="store_true")
+    ap.add_argument("--backup-ack", action="store_true")
+    ap.add_argument("--confirm", default="")
+    ap.add_argument("--policy-hash", default="")
     args = ap.parse_args()
 
     if args.show:
