@@ -26,6 +26,8 @@ from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends
 
+from lib.runtime_identity import runtime_identity_public_payload
+
 
 ALLOWED_STATUSES = {
     "sent",
@@ -62,7 +64,7 @@ WORKFLOW_SOURCE_COLLECTION = {
 }
 
 
-def make_router(db, require_admin_only_dep) -> APIRouter:
+def make_router(db, require_admin_only_dep, get_runtime_identity=None) -> APIRouter:
     router = APIRouter()
 
     @router.get("/api/admin/platform-trust/validate")
@@ -76,9 +78,11 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
         amber_reasons: List[str] = []
 
         # ----- system (no secrets) -----
+        runtime_identity = runtime_identity_public_payload(get_runtime_identity()) if callable(get_runtime_identity) else {}
+        identity = (runtime_identity or {}).get("identity") or {}
         system_block: Dict[str, Any] = {
-            "app_env": os.environ.get("APP_ENV") or "preview",
-            "db_name": os.environ.get("DB_NAME") or "",
+            "app_env": identity.get("app_env") or "preview",
+            "db_name": identity.get("db_name") or "",
             "source_hash": os.environ.get("SOURCE_HASH") or "unknown",
             "started_at": getattr(
                 router, "_started_at_iso", None

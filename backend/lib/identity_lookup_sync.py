@@ -12,6 +12,9 @@ from __future__ import annotations
 import os
 from typing import Any, Dict, Iterable, List
 
+from lib.database_authority import build_sync_helper_client
+from lib.runtime_identity import build_runtime_identity_bundle
+
 
 def lookup_employees_sync(employee_ids: Iterable[str]) -> Dict[str, Dict[str, Any]]:
     """Return `{employee_id: employee_doc}` for each id supplied.
@@ -25,16 +28,22 @@ def lookup_employees_sync(employee_ids: Iterable[str]) -> Dict[str, Dict[str, An
     try:
         from pymongo import MongoClient
 
-        mongo_url = os.environ.get("MONGO_URL")
-        db_name = os.environ.get("DB_NAME")
-        if not mongo_url or not db_name:
+        runtime_identity_bundle = build_runtime_identity_bundle(env=os.environ)
+        db_name = ((runtime_identity_bundle.get("identity") or {}).get("db_name") or "").strip()
+        if not db_name:
             return {}
         # Reuse a module-level client across calls (cheaper than per-call).
         global _CLIENT
         try:
             _CLIENT
         except NameError:
-            _CLIENT = MongoClient(mongo_url, serverSelectionTimeoutMS=2000)  # noqa: F841
+            _CLIENT = build_sync_helper_client(
+                runtime_identity_bundle=runtime_identity_bundle,
+                env=os.environ,
+                helper_name="identity_lookup_sync",
+                client_factory=MongoClient,
+                extra_options={"serverSelectionTimeoutMS": 2000},
+            )  # noqa: F841
         client = _CLIENT  # type: ignore[name-defined]
         db = client[db_name]
         rows = list(db.employees.find({"id": {"$in": ids}}, {"_id": 0}))

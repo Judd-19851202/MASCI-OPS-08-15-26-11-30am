@@ -89,3 +89,14 @@ Checkpoint: B
 - Production R2 writes = 0
 - email/provider calls = 0
 - scripts executed = none
+
+## Checkpoint D3 database authority register
+
+| ID | Severity | Title | Status | Owner | Evidence |
+|---|---:|---|---|---|---|
+| D3-DEF-001 | P1 | runtime database authority lived only in `server.py` without governed standalone contract | FIXED | Main agent | `backend/lib/database_authority.py`, `backend/tests/test_checkpoint_d3_database_authority.py` |
+| D3-DEF-002 | P1 | executive overview retained duplicate runtime client fallback | FIXED | Main agent | `backend/routes/executive_overview.py`, inventory/register |
+| D3-DEF-003 | P1 | OCC storage migration operations created local runtime clients outside canonical authority | FIXED | Main agent | `backend/services/operations_control/storage.py`, `backend/routes/operations_control.py` |
+| D3-DEF-004 | P1 | startup could leak a partially created client when stabilization failed | FIXED | Main agent | `test_failed_startup_closes_partial_client` |
+| D3-DEF-005 | P1 | runtime/admin truth surfaces still had local DB identity decisions outside governed authority | FIXED | Main agent | `cluster_capacity.py`, `admin_persistence_health.py`, `admin_platform_trust.py`, `operations_map_contract.py` |
+| D3-OWN-001 | P2 | connection-pool tuning beyond correctness/lifecycle proof deferred to D7 evidence phase | OWNED | Main agent | `docs/governance/DATABASE_CLIENT_AUTHORITY_REGISTER.md` connection option register |

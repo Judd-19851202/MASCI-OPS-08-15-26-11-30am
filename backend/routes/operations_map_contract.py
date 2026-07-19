@@ -40,6 +40,8 @@ from typing import Any, Awaitable, Callable, Dict, List, Optional, Set, Tuple
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+from lib.runtime_identity import runtime_identity_public_payload
+
 import dispatch_lifecycle as DLS
 from pm_auth import compute_pm_scope
 from routes.pm_command_center import (
@@ -396,6 +398,7 @@ def _build_row(
 def build_operations_map_contract_router(
     db,
     require_any_portal_token_dep: Callable[..., Awaitable[Dict[str, Any]]],
+    get_runtime_identity: Optional[Callable[[], Dict[str, Any]]] = None,
 ) -> APIRouter:
     router = APIRouter(prefix="/api/operations-map",
                        tags=["operations-map-contract"])
@@ -575,12 +578,14 @@ def build_operations_map_contract_router(
             "equipment": sum(1 for r in rows if r["asset_family"] == "heavy_equipment"),
         }
 
+        runtime_identity = runtime_identity_public_payload(get_runtime_identity()) if callable(get_runtime_identity) else {}
+        identity = (runtime_identity or {}).get("identity") or {}
         return {
             "ok": True,
             "as_of": _now_iso(),
             # Phase T2/T5 — environment stamp on every contract response.
-            "environment": (os.environ.get("APP_ENV") or "preview").strip().lower(),
-            "database": os.environ.get("DB_NAME") or "unknown",
+            "environment": (identity.get("app_env") or "preview").strip().lower(),
+            "database": identity.get("db_name") or "unknown",
             "scope": scope,
             "project_number_filter": project_number,
             "asset_family_filter": asset_family,

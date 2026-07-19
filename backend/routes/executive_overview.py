@@ -23,12 +23,10 @@ Admin-only (uses the existing require_admin_dep).
 from __future__ import annotations
 
 import logging
-import os
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends
-from motor.motor_asyncio import AsyncIOMotorClient
 
 from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
 
@@ -39,7 +37,9 @@ def register(app, *, db=None, require_admin_dep=None):
     router = APIRouter()
 
     if db is None:
-        db = AsyncIOMotorClient(os.environ["MONGO_URL"])[os.environ["DB_NAME"]]
+        db = getattr(app.state, "db", None)
+    if db is None:
+        raise RuntimeError("Executive overview requires canonical runtime database injection")
 
     @router.get("/api/admin/executive/overview")
     async def executive_overview(actor=Depends(require_admin_dep)):  # noqa: ARG001

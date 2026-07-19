@@ -23,6 +23,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List
 
+from lib.database_authority import create_async_runtime_client
+
 from .registry import Operation, OperationCategory, RiskLevel
 
 # In-memory dry-run cache. Small and short-lived — a fresh dry-run
@@ -307,13 +309,12 @@ async def _safe_cleanup_apply(payload: Dict[str, Any]) -> Dict[str, Any]:
 # ── 3 · Project docs → R2 Migration (dry-run + apply) ──────────────
 
 async def _r2_migration_dry_run(payload: Dict[str, Any]) -> Dict[str, Any]:
+    authority_plan = payload.get("_database_authority_plan")
+    if authority_plan is None:
+        return {"status": "failed", "error": "database authority missing"}
     from motor.motor_asyncio import AsyncIOMotorClient  # noqa: PLC0415
-    mongo_url = os.environ.get("MONGO_URL") or ""
-    db_name = os.environ.get("DB_NAME") or ""
-    if not mongo_url or not db_name:
-        return {"status": "failed", "error": "MONGO_URL/DB_NAME missing"}
-    client = AsyncIOMotorClient(mongo_url)
-    db = client[db_name]
+    client = None
+    client, db = create_async_runtime_client(authority_plan, client_factory=AsyncIOMotorClient)
 
     project = (payload or {}).get("project")
     limit = int((payload or {}).get("limit") or 500)
@@ -367,17 +368,21 @@ async def _r2_migration_dry_run(payload: Dict[str, Any]) -> Dict[str, Any]:
             "already been migrated, or `db.docs` has no file_path-"
             "backed records under this filter."
         )
-    return {
-        "status": "dry_run_ready",
-        "dry_run_id": dry_run_id,
-        "candidate_count": len(candidates),
-        "total_bytes": total_bytes,
-        "total_bytes_human": _human(total_bytes),
-        "candidates": candidates[:100],
-        "r2_configured": r2_ok,
-        "warnings": warnings,
-        "generated_at": _now_iso(),
-    }
+    try:
+        return {
+            "status": "dry_run_ready",
+            "dry_run_id": dry_run_id,
+            "candidate_count": len(candidates),
+            "total_bytes": total_bytes,
+            "total_bytes_human": _human(total_bytes),
+            "candidates": candidates[:100],
+            "r2_configured": r2_ok,
+            "warnings": warnings,
+            "generated_at": _now_iso(),
+        }
+    finally:
+        if client is not None:
+            client.close()
 
 
 async def _r2_migration_apply(payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -395,9 +400,12 @@ async def _r2_migration_apply(payload: Dict[str, Any]) -> Dict[str, Any]:
         return {"status": "failed",
                 "error": "R2 env vars missing. Set them and rerun the dry-run."}
 
+    authority_plan = payload.get("_database_authority_plan")
+    if authority_plan is None:
+        return {"status": "failed", "error": "database authority missing"}
     from motor.motor_asyncio import AsyncIOMotorClient  # noqa: PLC0415
-    client = AsyncIOMotorClient(os.environ.get("MONGO_URL", ""))
-    db = client[os.environ.get("DB_NAME", "")]
+    client = None
+    client, db = create_async_runtime_client(authority_plan, client_factory=AsyncIOMotorClient)
 
     before = _disk_stats()
     candidates = saved["payload"]["candidates"]
@@ -432,18 +440,22 @@ async def _r2_migration_apply(payload: Dict[str, Any]) -> Dict[str, Any]:
             failures.append({**c, "reason": f"exception:{e}"})
     after = _disk_stats()
     _DRY_RUNS.pop(dry_run_id, None)
-    return {
-        "status": "completed" if not failures else "warning",
-        "before": before,
-        "after": after,
-        "migrated_count": len(migrated),
-        "failed_count": len(failures),
-        "migrated": migrated[:50],
-        "failures": failures[:20],
-        "reclaimed_bytes": max(0, before["used_bytes"] - after["used_bytes"]),
-        "reclaimed_human": _human(max(0, before["used_bytes"] - after["used_bytes"])),
-        "generated_at": _now_iso(),
-    }
+    try:
+        return {
+            "status": "completed" if not failures else "warning",
+            "before": before,
+            "after": after,
+            "migrated_count": len(migrated),
+            "failed_count": len(failures),
+            "migrated": migrated[:50],
+            "failures": failures[:20],
+            "reclaimed_bytes": max(0, before["used_bytes"] - after["used_bytes"]),
+            "reclaimed_human": _human(max(0, before["used_bytes"] - after["used_bytes"])),
+            "generated_at": _now_iso(),
+        }
+    finally:
+        if client is not None:
+            client.close()
 
 
 # ── Registry ───────────────────────────────────────────────────────

@@ -30,6 +30,9 @@ from typing import Any, Awaitable, Callable, Dict, Optional
 
 from fastapi import APIRouter, Depends
 
+from lib.database_authority import database_authority_public_payload
+from lib.runtime_identity import runtime_identity_public_payload
+
 
 def _is_atlas_url(url: str) -> bool:
     # MongoDB Atlas SRV connection strings always start with mongodb+srv://
@@ -145,6 +148,7 @@ async def _persistent_storage_confirmed(db) -> Dict[str, Any]:
 
 def build_admin_persistence_health_router(
     *,
+    app,
     db,
     require_admin_strict_dep: Callable[..., Awaitable[Any]],
 ) -> APIRouter:
@@ -163,8 +167,10 @@ def build_admin_persistence_health_router(
         """Return a tiny JSON object that lets the operator verify
         production Atlas + R2 backup continuity with one curl. Never
         raises — always returns 200 with the captured field values."""
-        mongo_url = os.environ.get("MONGO_URL", "")
-        db_name = os.environ.get("DB_NAME", "")
+        runtime_identity = runtime_identity_public_payload(getattr(app.state, "runtime_identity_bundle", None))
+        identity = (runtime_identity or {}).get("identity") or {}
+        mongo_url = identity.get("mongo_url_redacted") or ""
+        db_name = identity.get("db_name") or ""
         atlas_connected = _is_atlas_url(mongo_url)
 
         mongo_version = await _safe_mongo_version(db)
@@ -208,6 +214,13 @@ def build_admin_persistence_health_router(
             "persistent_storage_confirmed": persisted,
             "drift_watch_active": drift_active,
             "drift_watch_reason": drift_reason,
+            "database_authority": database_authority_public_payload(
+                getattr(app.state, "database_authority_plan", None),
+                lifecycle_state="ready" if getattr(app.state, "mongo_client", None) is not None else "not_initialized",
+                connection_state="connected" if getattr(app.state, "db", None) is not None else "disconnected",
+                last_successful_ping=getattr(app.state, "database_authority_last_ping", None),
+                last_error_category=getattr(app.state, "database_authority_last_error", None),
+            ),
         }
 
     return router

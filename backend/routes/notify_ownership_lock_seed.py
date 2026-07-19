@@ -16,6 +16,8 @@ from typing import Any, Callable, Dict, List, Optional
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from pydantic import BaseModel
 
+from lib.runtime_identity import runtime_identity_public_payload
+
 
 class SeedItem(BaseModel):
     type: str
@@ -36,13 +38,14 @@ class FlagBody(BaseModel):
     is_asset_admin: bool
 
 
-def _is_preview_db() -> bool:
-    name = (os.environ.get("DB_NAME") or "").lower()
+def _is_preview_db(runtime_identity_bundle: Optional[Dict[str, Any]] = None) -> bool:
+    identity = (runtime_identity_public_payload(runtime_identity_bundle).get("identity") or {}) if runtime_identity_bundle else {}
+    name = (identity.get("db_name") or "").lower()
     return "preview" in name or "test" in name
 
 
 def register_notify_ownership_lock_seed(
-    app, db, require_admin_dep: Callable,
+    app, db, require_admin_dep: Callable, get_runtime_identity: Optional[Callable[[], Dict[str, Any]]] = None,
 ) -> APIRouter:
     router = APIRouter(tags=["notify-ownership-lock-seed"])
 
@@ -51,7 +54,7 @@ def register_notify_ownership_lock_seed(
         body: SeedBatch = Body(...),
         actor=Depends(require_admin_dep),  # noqa: ARG001
     ):
-        if not _is_preview_db():
+        if not _is_preview_db(get_runtime_identity() if callable(get_runtime_identity) else None):
             raise HTTPException(
                 403, "Test seed endpoint disabled in production DB.",
             )

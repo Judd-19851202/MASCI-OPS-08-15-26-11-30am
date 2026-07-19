@@ -65,6 +65,30 @@ Deleted from original tracked locations after preservation/reference updates:
 
 Checkpoint C remains in progress. Classification, first bounded cleanup batch, and second bounded cleanup batch are complete; full clean-checkout verification and final independent review still pending.
 
+## Checkpoint D3 database authority remediation
+
+- Canonical runtime database authority established in `backend/lib/database_authority.py`
+- Deterministic repository-wide database client discovery generated:
+  - `docs/governance/database_client_inventory.json`
+  - `docs/governance/DATABASE_CLIENT_AUTHORITY_REGISTER.md`
+- Runtime duplicate client paths removed from:
+  - `backend/routes/executive_overview.py`
+  - `backend/services/operations_control/storage.py`
+- Runtime route/service DB identity reads normalized to canonical runtime identity / authority surfaces
+- Canonical authority lifecycle now closes partial startup clients and exposes governed redacted payloads
+- Focused D1+D2+D3 backend matrix passed locally: `105 passed`
+
+## D3 safety accounting
+
+- No deployment
+- No `.env` changes
+- No `MONGO_URL` changes
+- No `DB_NAME` changes
+- No Atlas reads/writes
+- No R2 reads/writes
+- No provider/email calls
+- No migration/seed/restore/purge/reindex/live-data operations
+
 ## Second bounded cleanup batch
 
 - Untracked/preserved locally:

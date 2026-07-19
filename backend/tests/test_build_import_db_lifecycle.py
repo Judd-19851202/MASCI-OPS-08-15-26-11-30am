@@ -102,26 +102,50 @@ def test_runtime_db_startup_and_shutdown_use_single_client(monkeypatch) -> None:
     created = []
 
     class _FakeClient:
-        def __init__(self, url, tz_aware=True):
+        def __init__(self, url, **kwargs):
             self.url = url
-            self.tz_aware = tz_aware
+            self.kwargs = kwargs
             self.close_count = 0
 
         def __getitem__(self, name):
-            return type("FakeDB", (), {"name": name, "client": self})()
+                class FakeDB:
+                    def __init__(self, db_name, client):
+                        self.name = db_name
+                        self.client = client
+
+                    async def command(self, _cmd):
+                        return {"ok": 1}
+
+                return FakeDB(name, self)
 
         def close(self):
             self.close_count += 1
 
-    def _fake_client(url, tz_aware=True):
-        inst = _FakeClient(url, tz_aware=tz_aware)
+    def _fake_client(url, **kwargs):
+        inst = _FakeClient(url, **kwargs)
         created.append(inst)
         return inst
 
     server._reset_runtime_db_state_for_tests()
-    monkeypatch.setenv("MONGO_URL", "mongodb://127.0.0.1:27017")
-    monkeypatch.setenv("DB_NAME", "build_validation")
-    monkeypatch.setenv("APP_ENV", "production")
+    monkeypatch.setenv("MONGO_URL", "mongodb+srv://masci_prod_user:s3cret@masci-prod.1nduwmg.mongodb.net/masci_safety_preview")
+    monkeypatch.setenv("DB_NAME", "masci_safety_preview")
+    monkeypatch.setenv("APP_ENV", "preview")
+    monkeypatch.setenv("ENFORCE_DB_ISOLATION", "true")
+    monkeypatch.setenv("READ_ONLY_VALIDATION", "true")
+    monkeypatch.setenv("READ_ONLY_MODE", "true")
+    monkeypatch.setenv("READ_ONLY_VALIDATION_DB_AUTHORITY", "read_only")
+    monkeypatch.setenv("SESSION_TIMEOUTS_ENABLED", "false")
+    monkeypatch.setenv("SCHEDULER_ENABLED", "false")
+    monkeypatch.setenv("AUTO_EMAIL_REPORTS", "false")
+    monkeypatch.setenv("MAINTAINX_WRITE_ENABLED", "false")
+    monkeypatch.setenv("MAINTAINX_SYNC_ENABLED", "false")
+    monkeypatch.setenv("AI_GATEWAY_ENABLED", "false")
+    monkeypatch.setenv("DR_V2_AI_ENABLED", "false")
+    monkeypatch.setenv("ODS_ENABLED", "false")
+    monkeypatch.setenv("READ_ONLY_VALIDATION_TRUST_SPINE_DISABLED", "true")
+    monkeypatch.setenv("READ_ONLY_VALIDATION_WEBHOOKS_DISABLED", "true")
+    monkeypatch.setenv("READ_ONLY_VALIDATION_ZERO_WRITE_PROVEN", "true")
+    monkeypatch.setenv("APP_DOMAIN", "preview-readonly.example.test")
     monkeypatch.setattr(server, "AsyncIOMotorClient", _fake_client)
 
     asyncio.run(server._bootstrap_runtime_db())
@@ -130,7 +154,7 @@ def test_runtime_db_startup_and_shutdown_use_single_client(monkeypatch) -> None:
     assert len(created) == 1
     assert server.client is created[0]
     assert server.db.get_target() is not None
-    assert server.app.state.db_name == "build_validation"
+    assert server.app.state.db_name == "masci_safety_preview"
 
     asyncio.run(server.shutdown_db_client())
     assert created[0].close_count == 1

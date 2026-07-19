@@ -43,6 +43,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Query
 from motor.motor_asyncio import AsyncIOMotorClient
 
+from lib.database_authority import managed_database_names
 from lib.runtime_identity import runtime_identity_public_payload
 
 logger = logging.getLogger(__name__)
@@ -96,11 +97,8 @@ def build_cluster_capacity_router(get_client: callable, get_runtime_identity: ca
 
         # List candidate DB names (the two MASCI databases). We never
         # touch other Atlas projects.
-        candidates = [
-            os.environ.get("DB_NAME", "masci_safety"),
-            "masci_safety",
-            "masci_safety_preview",
-        ]
+        runtime_identity = get_runtime_identity() if callable(get_runtime_identity) else None
+        candidates = managed_database_names(runtime_identity or {})
         seen = set()
         for db_name in candidates:
             if not db_name or db_name in seen:
@@ -137,7 +135,7 @@ def build_cluster_capacity_router(get_client: callable, get_runtime_identity: ca
             "ts": datetime.now(timezone.utc).isoformat(),
         }
         if callable(get_runtime_identity):
-            payload["runtime_identity"] = runtime_identity_public_payload(get_runtime_identity())
+            payload["runtime_identity"] = runtime_identity_public_payload(runtime_identity)
         _CACHE["ts"] = now
         _CACHE["payload"] = payload
         return payload
@@ -159,7 +157,11 @@ def build_cluster_capacity_router(get_client: callable, get_runtime_identity: ca
         # `cluster_capacity_history` lives in masci_safety_preview when
         # APP_ENV=preview, masci_safety when production. We never read
         # cross-environment for history (preview history is preview-only).
-        db = client[os.environ.get("DB_NAME", "masci_safety")]
+        runtime_identity = get_runtime_identity() if callable(get_runtime_identity) else None
+        db_name = ((runtime_identity_public_payload(runtime_identity).get("identity") or {}).get("db_name") if runtime_identity else None) or ""
+        if not db_name:
+            return {"status": "UNVERIFIABLE", "error": "canonical database name unavailable"}
+        db = client[db_name]
         cutoff = datetime.now(timezone.utc) - timedelta(days=days)
 
         cursor = db[HISTORY_COLLECTION].find(
@@ -221,11 +223,10 @@ async def record_capacity_snapshot(client) -> Optional[Dict[str, Any]]:
     """Insert a single capacity snapshot into `cluster_capacity_history`."""
     try:
         quota_mb = _quota_mb()
-        candidates = [
-            os.environ.get("DB_NAME", "masci_safety"),
-            "masci_safety",
-            "masci_safety_preview",
-        ]
+        target_name = getattr(client, "_authority_db_name", None)
+        if not target_name:
+            return None
+        candidates = managed_database_names({"identity": {"db_name": target_name}})
         seen = set()
         dbs: Dict[str, float] = {}
         total_mb = 0.0
@@ -251,7 +252,7 @@ async def record_capacity_snapshot(client) -> Optional[Dict[str, Any]]:
             "dbs": dbs,
         }
         # Write to the DB the backend is currently using (preview or prod).
-        target_db = client[os.environ.get("DB_NAME", "masci_safety")]
+        target_db = client[target_name]
         await ensure_history_indexes(target_db)
         await target_db[HISTORY_COLLECTION].insert_one(record)
         # Strip _id for return

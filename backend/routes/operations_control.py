@@ -16,7 +16,7 @@ exact confirmation phrase.
 """
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException
 
@@ -26,10 +26,19 @@ from services.operations_control import audit as occ_audit
 
 def register_operations_control_routes(
     api_router: APIRouter, db, require_admin,
+    get_database_authority_plan: Optional[Callable[[], Any]] = None,
 ):
     """Attach the OCC endpoints to the platform's ``api_router``."""
 
     registry = build_registry(db)
+
+    def _payload_envelope(payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        envelope = dict(payload or {})
+        envelope["_db"] = db
+        envelope["_database_authority_plan"] = get_database_authority_plan() if callable(get_database_authority_plan) else None
+        runtime_identity_getter = getattr(api_router, "_get_runtime_identity", None)
+        envelope["_runtime_identity_bundle"] = runtime_identity_getter() if callable(runtime_identity_getter) else None
+        return envelope
 
     async def _actor_dict(actor: Any) -> Dict[str, Any]:
         # `require_admin` returns different shapes across the codebase;
@@ -56,7 +65,7 @@ def register_operations_control_routes(
             card: Dict[str, Any] = {**op.to_public_dict()}
             if op.status_fn:
                 try:
-                    card["status_snapshot"] = await op.status_fn({"_db": db})
+                    card["status_snapshot"] = await op.status_fn(_payload_envelope())
                 except Exception as e:  # noqa: BLE001
                     card["status_snapshot"] = {
                         "status": "unavailable", "error": str(e)[:200],
@@ -92,8 +101,7 @@ def register_operations_control_routes(
                 400, f"operation `{operation_id}` has no dry-run handler",
             )
         actor_dict = await _actor_dict(actor)
-        p = dict(payload or {})
-        p["_db"] = db
+        p = _payload_envelope(payload)
         p["actor_email"] = actor_dict.get("email")
         try:
             result = await op.dry_run_fn(p)
@@ -123,7 +131,7 @@ def register_operations_control_routes(
                 f"operation `{operation_id}` is read-only or "
                 "manual-required; no apply handler.",
             )
-        p = dict(payload or {})
+        p = _payload_envelope(payload)
 
         # Enforce dry-run + confirmation contracts.
         if op.requires_dry_run and not p.get("dry_run_id"):
@@ -137,7 +145,6 @@ def register_operations_control_routes(
             )
 
         actor_dict = await _actor_dict(actor)
-        p["_db"] = db
         p["actor_email"] = actor_dict.get("email")
         error: Optional[str] = None
         try:

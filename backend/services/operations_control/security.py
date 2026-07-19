@@ -5,6 +5,8 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
+from lib.runtime_identity import runtime_identity_public_payload
+
 from .registry import Operation, OperationCategory, RiskLevel
 
 
@@ -22,9 +24,11 @@ _OPTIONAL_ENV_KEYS = (
 
 
 async def _security_posture(_payload: Dict[str, Any]) -> Dict[str, Any]:
-    app_env = os.environ.get("APP_ENV") or ""
+    runtime_identity = runtime_identity_public_payload(_payload.get("_runtime_identity_bundle")) if _payload.get("_runtime_identity_bundle") else {}
+    identity = (runtime_identity or {}).get("identity") or {}
+    app_env = identity.get("app_env") or ""
     cors = os.environ.get("CORS_ORIGINS") or ""
-    db_name = os.environ.get("DB_NAME") or ""
+    db_name = identity.get("db_name") or ""
 
     warnings: List[str] = []
     state = "healthy"

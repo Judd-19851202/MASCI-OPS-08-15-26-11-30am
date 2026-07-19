@@ -31,6 +31,11 @@ from lib.runtime_identity import (
     is_read_only_validation_active_bundle,
     runtime_identity_public_payload,
 )
+from lib.database_authority import (
+    build_runtime_database_authority,
+    create_async_runtime_client,
+    database_authority_public_payload,
+)
 # Track 15.67 Phase 3 · tenant-safe sender resolver wrapper.
 from branding_resolver import resolve_sender_email as _resolve_sender_email, resolve_reply_to_email as _resolve_reply_to_email  # noqa: E402
 
@@ -421,6 +426,9 @@ def _reset_runtime_db_state_for_tests() -> None:
     app.state.mongo_client = None
     app.state.db = None
     app.state.db_name = None
+    app.state.database_authority_plan = None
+    app.state.database_authority_last_ping = None
+    app.state.database_authority_last_error = None
 
 
 @register_lifecycle_step("runtime-config", name="_bootstrap_runtime_db")
@@ -437,26 +445,40 @@ async def _bootstrap_runtime_db() -> None:
     identity_bundle = _compute_runtime_identity_bundle()
     app.state.runtime_identity_bundle = identity_bundle
     assert_runtime_identity_valid(identity_bundle)
+    authority_plan = build_runtime_database_authority(runtime_identity_bundle=identity_bundle, env=os.environ)
     logging.getLogger(__name__).info(
         "[runtime-db] boot env=%s db=%s target=%s",
         cfg.app_env or '<missing>',
         cfg.db_name or '<missing>',
         _redact_mongo_target(cfg.mongo_url),
     )
-    client = AsyncIOMotorClient(cfg.mongo_url, **_mongo_client_kwargs())
-    database = client[cfg.db_name]
-    await _stabilize_runtime_db_connection(database)
-    db.set_target(database)
-    app.state.mongo_client = client
-    app.state.db = database
-    app.state.db_name = cfg.db_name
-    app.state.read_only_validation_active = is_read_only_validation_active_bundle(identity_bundle)
-    if (
-        not getattr(app.state, "runtime_monitor_started", False)
-        and not getattr(app.state, "read_only_validation_active", False)
-    ):
-        start_runtime_monitor(app, database)
-        app.state.runtime_monitor_started = True
+    created_client = None
+    try:
+        created_client, database = create_async_runtime_client(authority_plan, client_factory=AsyncIOMotorClient)
+        await _stabilize_runtime_db_connection(database)
+        client = created_client
+        db.set_target(database)
+        app.state.mongo_client = client
+        app.state.db = database
+        app.state.db_name = authority_plan.db_name
+        app.state.database_authority_plan = authority_plan
+        app.state.database_authority_last_ping = authority_plan.identity_payload.get("captured_at")
+        app.state.database_authority_last_error = None
+        app.state.read_only_validation_active = is_read_only_validation_active_bundle(identity_bundle)
+        if (
+            not getattr(app.state, "runtime_monitor_started", False)
+            and not getattr(app.state, "read_only_validation_active", False)
+        ):
+            start_runtime_monitor(app, database)
+            app.state.runtime_monitor_started = True
+    except Exception as exc:
+        app.state.database_authority_last_error = exc.__class__.__name__
+        if created_client is not None:
+            try:
+                created_client.close()
+            except Exception:
+                pass
+        raise
 
 
 # ------------------------- Admin auth -------------------------
@@ -1634,6 +1656,9 @@ configure_runtime(
         ),
     },
 )
+app.state.database_authority_plan = None
+app.state.database_authority_last_ping = None
+app.state.database_authority_last_error = None
 
 
 # ---------------------------------------------------------------------------
@@ -1702,6 +1727,24 @@ def _runtime_identity_bundle() -> Dict[str, Any]:
 
 def _runtime_identity_safe_payload() -> Dict[str, Any]:
     return runtime_identity_public_payload(_runtime_identity_bundle())
+
+
+def _database_authority_safe_payload() -> Dict[str, Any]:
+    return database_authority_public_payload(
+        getattr(app.state, "database_authority_plan", None),
+        lifecycle_state="ready" if getattr(app.state, "mongo_client", None) is not None else "not_initialized",
+        connection_state="connected" if getattr(app.state, "db", None) is not None else "disconnected",
+        last_successful_ping=getattr(app.state, "database_authority_last_ping", None),
+        last_error_category=getattr(app.state, "database_authority_last_error", None),
+    )
+
+
+def _canonical_db_name() -> str:
+    return ((_runtime_identity_safe_payload().get("identity") or {}).get("db_name") or "unknown")
+
+
+def _canonical_app_env() -> str:
+    return ((_runtime_identity_safe_payload().get("identity") or {}).get("app_env") or "unknown")
 
 
 @api_router.get("/version")
@@ -3450,7 +3493,8 @@ from routes.operations_control import (  # noqa: E402
 from services.operations_control.audit import (  # noqa: E402
     ensure_indexes as ensure_occ_audit_indexes,
 )
-register_operations_control_routes(api_router, db, require_admin)
+api_router._get_runtime_identity = _runtime_identity_bundle  # type: ignore[attr-defined]
+register_operations_control_routes(api_router, db, require_admin, get_database_authority_plan=lambda: getattr(app.state, "database_authority_plan", None))
 
 
 @register_lifecycle_step("index-ensure")
@@ -7158,8 +7202,8 @@ async def _build_backup_zip_to_path(db, out_path: Path) -> tuple[int, str]:
         # restore endpoint can refuse a preview-origin archive in
         # production. This closes the cross-env restore vector that
         # remained as a manual-checklist item after Track 14.0-P0.
-        _app_env = os.environ.get("APP_ENV", "production").lower()
-        _db_name = os.environ.get("DB_NAME", "")
+        _app_env = _canonical_app_env().lower()
+        _db_name = _canonical_db_name()
         zf.writestr(
             "backup_manifest.json",
             _backup_json.dumps({
@@ -8205,8 +8249,11 @@ def _build_slim_backup_zip_on_disk(db, dst_zip: Path) -> dict:
     import json as _json
     from pymongo import MongoClient as _MC
 
-    mongo_url = os.environ["MONGO_URL"]
-    db_name = os.environ["DB_NAME"]
+    plan = getattr(app.state, "database_authority_plan", None)
+    if plan is None:
+        raise RuntimeError("database authority plan missing for slim backup export")
+    mongo_url = plan.mongo_url
+    db_name = _canonical_db_name()
 
     total_records = 0
     stripped_blob_count = 0
@@ -8297,8 +8344,11 @@ def _build_complete_archive_on_disk(db_unused, dst_zip: Path) -> dict:
         def read_photo_bytes_sync(_):
             raise RuntimeError("photo_storage unavailable")
 
-    mongo_url = os.environ["MONGO_URL"]
-    db_name = os.environ["DB_NAME"]
+    plan = getattr(app.state, "database_authority_plan", None)
+    if plan is None:
+        raise RuntimeError("database authority plan missing for complete archive export")
+    mongo_url = plan.mongo_url
+    db_name = _canonical_db_name()
 
     started_at = datetime.now(timezone.utc)
     total_records = 0
@@ -9930,8 +9980,8 @@ async def admin_backup_integrity_check(_: bool = Depends(require_admin_strict)):
     live = sorted(await db.list_collection_names())
     live = [c for c in live if not c.startswith("system.")]
     env_identity = {
-        "app_env": os.environ.get("APP_ENV"),
-        "db_name": os.environ.get("DB_NAME"),
+        "app_env": _canonical_app_env(),
+        "db_name": _canonical_db_name(),
     }
 
     latest_row = await db.backup_health.find_one(
@@ -10991,7 +11041,7 @@ async def admin_persistence_check(_: bool = Depends(require_admin)):
     git push/redeploy wipes the container's Mongo volume. This endpoint
     powers the admin-hub warning banner so the office never redeploys blind.
     """
-    mongo_url = os.environ.get("MONGO_URL", "")
+    mongo_url = ((_runtime_identity_safe_payload().get("identity") or {}).get("mongo_url_redacted") or "")
     # Local/in-container Mongo hostnames. Atlas URLs start with mongodb+srv://
     # or include an explicit external host. Anything pointing at localhost,
     # 127.0.0.1 or no hostname is treated as ephemeral.
@@ -11200,8 +11250,8 @@ async def exports_restore(
     # This closes the last manual-checklist item from Track 14.0-P0
     # ("verify backup archive origin before importing into prod").
     # ---------------------------------------------------------------
-    current_env = os.environ.get("APP_ENV", "production").lower()
-    current_db = os.environ.get("DB_NAME", "")
+    current_env = _canonical_app_env().lower()
+    current_db = _canonical_db_name()
     archive_env = (manifest.get("environment") or manifest.get("app_env") or "").lower()
     archive_db = manifest.get("database_name") or manifest.get("db_name") or ""
 
@@ -13539,7 +13589,7 @@ from routes.admin_pm_coverage import make_router as _pm_cov_make_router  # noqa:
 app.include_router(_pm_cov_make_router(db, require_admin))
 # TRACK 15.75D · In-app Platform Trust Validator (admin-gated, read-only).
 from routes.admin_platform_trust import make_router as _trust_make_router  # noqa: E402
-app.include_router(_trust_make_router(db, require_admin))
+app.include_router(_trust_make_router(db, require_admin, get_runtime_identity=_runtime_identity_bundle))
 # TRACK 15.76 · Platform Trust Spine — lifecycle event observability.
 from routes.admin_trust_spine import make_router as _spine_make_router  # noqa: E402
 app.include_router(_spine_make_router(db, require_admin))
@@ -14861,6 +14911,7 @@ from routes.operations_map_contract import build_operations_map_contract_router 
 _op_map_router = build_operations_map_contract_router(
     db,
     require_any_portal_token_dep=_require_any_portal_token,
+    get_runtime_identity=_runtime_identity_bundle,
 )
 # Phase 5B V1 · live map aggregator endpoints mounted on the SAME
 # /api/operations-map router (no parallel system).
@@ -14907,6 +14958,7 @@ app.include_router(_op_attachments_admin_router)
 # iter430 · Phase 28.2 · Part 1B · admin-strict persistence-health diag.
 from routes.admin_persistence_health import build_admin_persistence_health_router  # noqa: E402
 app.include_router(build_admin_persistence_health_router(
+    app=app,
     db=db,
     require_admin_strict_dep=require_admin_strict,
 ))
@@ -15622,7 +15674,7 @@ from routes.asset_admin_settings import register_asset_admin_settings_routes  # 
 register_asset_admin_settings_routes(app, db, require_admin, require_admin_or_asset_admin_dep=require_admin_or_asset_admin)
 
 from routes.notify_ownership_lock_seed import register_notify_ownership_lock_seed  # noqa: E402
-register_notify_ownership_lock_seed(app, db, require_admin)
+register_notify_ownership_lock_seed(app, db, require_admin, get_runtime_identity=_runtime_identity_bundle)
 
 from routes.scheduled_producers_d456 import register_scheduled_producers_d456  # noqa: E402
 register_scheduled_producers_d456(app, db, require_admin)
@@ -17353,8 +17405,8 @@ async def admin_v2_status(_: bool = Depends(require_admin)):
     # Container info (proves operator looking at fresh build, not stale
     # cached page). Pulled directly from `_version_payload` so we never
     # drift away from /api/version.
-    app_env  = os.environ.get("APP_ENV", "unknown")
-    db_name  = os.environ.get("DB_NAME", "unknown")
+    app_env  = _canonical_app_env()
+    db_name  = _canonical_db_name()
     started_at_iso = _STARTUP_TS.isoformat() if isinstance(_STARTUP_TS, datetime) else str(_STARTUP_TS)
     uptime_s = max(0, int((now - _STARTUP_TS).total_seconds())) if isinstance(_STARTUP_TS, datetime) else None
 
@@ -18357,6 +18409,7 @@ async def shutdown_db_client():
     app.state.mongo_client = None
     app.state.db = None
     app.state.db_name = None
+    app.state.database_authority_plan = None
 
 
 # ──────────────────────────────────────────────────────────────────────

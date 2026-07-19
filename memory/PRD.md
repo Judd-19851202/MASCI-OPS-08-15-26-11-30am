@@ -7,6 +7,7 @@ Checkpoint status
 - Checkpoint D: IN PROGRESS
 - Checkpoint D1: COMPLETE
 - Checkpoint D2: COMPLETE
+- Checkpoint D3: IN PROGRESS (implementation complete, independent verification pending)
 
 Current objective
 - Harden real MASCI runtime identity, deployment truth, dependency governance, and database client authority without touching Production configuration or performing any live mutation.
@@ -14,6 +15,11 @@ Current objective
 Checkpoint D2 governance reference
 - Runtime Identity Consumption Matrix authority: `docs/governance/RUNTIME_IDENTITY_CONSUMPTION_MATRIX.md`
 - PRD keeps only the active engineering summary; the governed matrix above is the permanent source of truth.
+
+Checkpoint D3 governance reference
+- Database client inventory authority: `docs/governance/database_client_inventory.json`
+- Database client authority register authority: `docs/governance/DATABASE_CLIENT_AUTHORITY_REGISTER.md`
+- PRD keeps only the active engineering summary; the governed inventory/register above are the permanent source of truth.
 
 Completed in current Checkpoint D slice
 - D0 baseline confirmed from the live working tree: workspace `/app`, branch `main`, HEAD `b42d8586f950d656cb5128e6d199f5603f9e7563`
@@ -42,6 +48,19 @@ Completed in current Checkpoint D slice
 - Status vocabulary normalized to only: `VERIFIED`, `MISMATCH`, `UNVERIFIABLE`, `DEGRADED`, `NOT_APPLICABLE`
 - Authoritative governance matrix created: `docs/governance/RUNTIME_IDENTITY_CONSUMPTION_MATRIX.md`
 - Independent D2 verification passed: `/app/test_reports/iteration_6.json`
+- D3 source/worktree truth recorded from the verified D2 tree: workspace `/app`, branch `main`, runtime authority source confirmed by MASCI-specific D1/D2 governance artifacts and canonical runtime modules
+- D3 canonical database authority added: `backend/lib/database_authority.py`
+- D3 deterministic discovery/governance added: `backend/lib/database_client_governance.py`
+- Governed outputs generated:
+  - `docs/governance/database_client_inventory.json`
+  - `docs/governance/DATABASE_CLIENT_AUTHORITY_REGISTER.md`
+- Runtime duplicate/local client paths removed or governed in:
+  - `backend/routes/executive_overview.py`
+  - `backend/services/operations_control/storage.py`
+  - `backend/lib/identity_lookup_sync.py`
+  - backup/archive sync helper paths in `backend/server.py`
+- Runtime route/service local DB identity reads normalized across cluster capacity, persistence health, platform trust, operations-map contract, notify test seed gating, and OCC security payloads
+- Focused D1+D2+D3 local backend matrix passed: 105 tests
 
 Key D1 behavior now enforced
 - Production requires approved hostname `masci-prod.1nduwmg.mongodb.net`, DB `masci_safety`, and `ENFORCE_DB_ISOLATION=true`
@@ -59,22 +78,37 @@ Files added/updated in this slice
 - `backend/routes/cluster_capacity.py`
 - `backend/server.py`
 - `backend/lib/canonical_status.py`
+- `backend/lib/database_authority.py`
+- `backend/lib/database_client_governance.py`
 - `backend/lib/platform_status.py`
 - `backend/routes/admin_ops.py`
 - `backend/routes/occ_health_aggregator.py`
 - `backend/routes/integration_truth.py`
 - `backend/routes/health_routes.py`
+- `backend/routes/executive_overview.py`
+- `backend/routes/operations_control.py`
+- `backend/routes/admin_persistence_health.py`
+- `backend/routes/admin_platform_trust.py`
+- `backend/routes/operations_map_contract.py`
+- `backend/routes/notify_ownership_lock_seed.py`
 - `backend/tests/test_runtime_identity_contract.py`
 - `backend/tests/test_runtime_identity_startup_enforcement.py`
 - `backend/tests/test_d1_runtime_identity_http.py` (independent reviewer artifact)
 - `backend/tests/test_checkpoint_d2_runtime_truth_normalization.py`
 - `backend/tests/test_track_25_sprint_2_occ_trust_layer.py`
 - `backend/tests/test_track_28_11_canonical_status.py`
+- `backend/tests/test_checkpoint_d3_database_authority.py`
+- `backend/tests/test_checkpoint_d3_database_client_governance.py`
 - `docs/governance/RUNTIME_IDENTITY_CONSUMPTION_MATRIX.md`
+- `docs/governance/database_client_inventory.json`
+- `docs/governance/DATABASE_CLIENT_AUTHORITY_REGISTER.md`
+- `docs/governance/MASTER_DEFECT_REGISTER.md`
+- `docs/recovery/REAL_MASCI_CODEBASE_REMEDIATION_CERTIFICATION.md`
 
 Testing completed
 - Focused lint passed for updated Python files
 - Local focused pytest pass: 89 tests passed for D1 + D2 isolated verification
+- Local focused pytest pass: 105 tests passed for D1 + D2 + D3 isolated verification
 - Independent backend verification passed via testing agent (`/app/test_reports/iteration_5.json`)
 - Independent D2 backend verification passed via testing agent (`/app/test_reports/iteration_6.json`)
 - Live supervisor restart verified the expected fail-closed startup refusal for the preview→production mismatch (`PREVIEW_PRODUCTION_CLUSTER_REFUSED`)
@@ -90,7 +124,7 @@ Safety/accounting
 
 Prioritized next actions
 - P0: Checkpoint D2 is complete and independently verified; stop here and await approval before beginning D3
-- P1: D3 database client authority inventory and register
+- P0: D3 independent verification pending via testing agent
 - P1: D4 dependency classification document and evidence-backed runtime/test split analysis
 - P1: D5/D6 deployment gate audit and clean isolated build proof
 - P1: D7/D8 performance baseline and index/query recommendation register
