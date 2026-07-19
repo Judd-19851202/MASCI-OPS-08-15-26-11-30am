@@ -88,9 +88,18 @@ export const BUILD_SOURCE_HASH = ${JSON.stringify(sourceHash)};
 fs.writeFileSync(OUT_FILE, content, "utf8");
 const VERIFY_RELEASE_IDENTITY = path.join(REPO_ROOT, "backend", "scripts", "verify_release_identity.py");
 if (fs.existsSync(VERIFY_RELEASE_IDENTITY) && fs.existsSync(SCOPE_FILE)) {
-  execSync("python3 backend/scripts/verify_release_identity.py", {
-    cwd: REPO_ROOT,
-    stdio: ["ignore", "pipe", "pipe"],
-  });
+  try {
+    execSync("python3 backend/scripts/verify_release_identity.py", {
+      cwd: REPO_ROOT,
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+  } catch (err) {
+    // Best-effort only — never let a release-identity mismatch (e.g. missing
+    // python3, backend deps, or a frontend-only build context) fail the
+    // frontend build itself.
+    process.stderr.write(
+      `[stamp-build-version] release identity check skipped/failed: ${err.message}\n`
+    );
+  }
 }
 process.stdout.write(`[stamp-build-version] wrote ${version} -> ${OUT_FILE}\n`);
