@@ -8,6 +8,7 @@ Checkpoint status
 - Checkpoint D1: COMPLETE
 - Checkpoint D2: COMPLETE
 - Checkpoint D3: COMPLETE
+- Checkpoint D4: COMPLETE
 
 Current objective
 - Harden real MASCI runtime identity, deployment truth, dependency governance, and database client authority without touching Production configuration or performing any live mutation.
@@ -20,6 +21,12 @@ Checkpoint D3 governance reference
 - Database client inventory authority: `docs/governance/database_client_inventory.json`
 - Database client authority register authority: `docs/governance/DATABASE_CLIENT_AUTHORITY_REGISTER.md`
 - PRD keeps only the active engineering summary; the governed inventory/register above are the permanent source of truth.
+
+Checkpoint D4 governance reference
+- Dependency inventory authority: `docs/governance/dependency_inventory.json`
+- Dependency classification authority: `docs/governance/DEPENDENCY_CLASSIFICATION.md`
+- Dependency version register authority: `docs/governance/DEPENDENCY_VERSION_REGISTER.md`
+- PRD keeps only the active engineering summary; the governed dependency artifacts above are the permanent source of truth.
 
 Completed in current Checkpoint D slice
 - D0 baseline confirmed from the live working tree: workspace `/app`, branch `main`, HEAD `b42d8586f950d656cb5128e6d199f5603f9e7563`
@@ -62,6 +69,17 @@ Completed in current Checkpoint D slice
 - Runtime route/service local DB identity reads normalized across cluster capacity, persistence health, platform trust, operations-map contract, notify test seed gating, and OCC security payloads
 - Focused D1+D2+D3 local backend matrix passed: 105 tests
 - Independent D3 verification passed: `/app/test_reports/iteration_7.json`
+- D4 dependency authority/governance generator added: `backend/scripts/generate_dependency_governance.py`
+- D4 focused regression guard added: `backend/tests/test_checkpoint_d4_dependency_governance.py`
+- D4 governed outputs generated:
+  - `docs/governance/dependency_inventory.json`
+  - `docs/governance/DEPENDENCY_CLASSIFICATION.md`
+  - `docs/governance/DEPENDENCY_VERSION_REGISTER.md`
+- Backend dependency authority preserved with `backend/requirements.txt` retained as the deployment entrypoint
+- Frontend bounded cleanup executed with proof: removed `cra-template` from `frontend/package.json` only after inventory evidence + fresh isolated install + fresh isolated production build + focused regression confirmation
+- D4 classification keeps provider boundaries distinct across `emergentintegrations`, `openai`, `litellm`, `google-generativeai`, `google-genai`, `boto3`, `botocore`, `resend`, `stripe`, `twilio`, and `webauthn`
+- Fresh isolated proofs completed and documented for backend install, backend compileall, frontend install, and frontend production build
+- Independent D4 verification passed: `/app/test_reports/iteration_8.json`
 
 Key D1 behavior now enforced
 - Production requires approved hostname `masci-prod.1nduwmg.mongodb.net`, DB `masci_safety`, and `ENFORCE_DB_ISOLATION=true`
@@ -100,9 +118,14 @@ Files added/updated in this slice
 - `backend/tests/test_track_28_11_canonical_status.py`
 - `backend/tests/test_checkpoint_d3_database_authority.py`
 - `backend/tests/test_checkpoint_d3_database_client_governance.py`
+- `backend/scripts/generate_dependency_governance.py`
+- `backend/tests/test_checkpoint_d4_dependency_governance.py`
 - `docs/governance/RUNTIME_IDENTITY_CONSUMPTION_MATRIX.md`
 - `docs/governance/database_client_inventory.json`
 - `docs/governance/DATABASE_CLIENT_AUTHORITY_REGISTER.md`
+- `docs/governance/dependency_inventory.json`
+- `docs/governance/DEPENDENCY_CLASSIFICATION.md`
+- `docs/governance/DEPENDENCY_VERSION_REGISTER.md`
 - `docs/governance/MASTER_DEFECT_REGISTER.md`
 - `docs/recovery/REAL_MASCI_CODEBASE_REMEDIATION_CERTIFICATION.md`
 
@@ -110,7 +133,13 @@ Testing completed
 - Focused lint passed for updated Python files
 - Local focused pytest pass: 89 tests passed for D1 + D2 isolated verification
 - Local focused pytest pass: 105 tests passed for D1 + D2 + D3 isolated verification
+- Local focused pytest pass: 5 tests passed for D4 dependency governance verification
+- Fresh isolated backend dependency proof passed: temporary virtualenv `pip install --no-cache-dir -r backend/requirements.txt`
+- Fresh isolated backend compile proof passed: `python -m compileall backend`
+- Local frontend production build passed after bounded cleanup
+- Fresh isolated frontend dependency/build proof passed: temporary copy `yarn install --frozen-lockfile --ignore-scripts && yarn build`
 - Independent D3 backend verification passed via testing agent (`/app/test_reports/iteration_7.json`)
+- Independent D4 backend verification passed via testing agent (`/app/test_reports/iteration_8.json`)
 - Independent backend verification passed via testing agent (`/app/test_reports/iteration_5.json`)
 - Independent D2 backend verification passed via testing agent (`/app/test_reports/iteration_6.json`)
 - Live supervisor restart verified the expected fail-closed startup refusal for the preview→production mismatch (`PREVIEW_PRODUCTION_CLUSTER_REFUSED`)
@@ -125,10 +154,8 @@ Safety/accounting
 - No migration, seed, restore, purge, cleanup script, or index mutation executed
 
 Prioritized next actions
-- P0: Checkpoint D2 is complete and independently verified; stop here and await approval before beginning D3
-- P0: Checkpoint D3 is complete and independently verified; stop here and await approval before beginning D4
-- P1: D4 dependency classification document and evidence-backed runtime/test split analysis
-- P1: D5/D6 deployment gate audit and clean isolated build proof
+- P0: Checkpoint D4 is complete and independently verified; next sequential checkpoint is D5/D6
+- P1: D5/D6 build and release pipeline proof
 - P1: D7/D8 performance baseline and index/query recommendation register
 - P1: D9/D10/D11 governed architecture docs only (no feature work, no monolith rewrite)
 
