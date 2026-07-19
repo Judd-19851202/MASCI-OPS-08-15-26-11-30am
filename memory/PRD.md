@@ -1,3 +1,16 @@
+## 2026-07-19 — iter440 · Checkpoint D5/D6 release governance in progress
+
+Preview verified ✅
+
+### Current status
+- D1–D4 remain complete and preserved.
+- D5/D6 release-gate manifest, deployment pipeline register, migration compatibility register, preview/production contracts, rollback runbook, and post-deploy schema have been added.
+- Canonical release identity now carries dependency-manifest hash, migration-manifest hash, and release-gate manifest hash across backend/frontend verification.
+
+### Standing operator actions
+- No deployment in this checkpoint.
+- Owner-triggered deployment evidence is still required later to prove live Preview/Production deployed SHA.
+
 ## 2026-07-19 — MASTER TRACK Checkpoint D in progress
 
 Checkpoint status

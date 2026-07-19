@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MASCI Post Deploy Certificate",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "probe_id",
+      "timestamp",
+      "environment",
+      "source_sha",
+      "result",
+      "evidence",
+      "blocker_severity"
+    ],
+    "properties": {
+      "probe_id": {
+        "type": "string"
+      },
+      "timestamp": {
+        "type": "string"
+      },
+      "environment": {
+        "type": "string",
+        "enum": [
+          "preview",
+          "production"
+        ]
+      },
+      "source_sha": {
+        "type": "string"
+      },
+      "result": {
+        "type": "string",
+        "enum": [
+          "PASS",
+          "FAIL",
+          "NOT_EXERCISED"
+        ]
+      },
+      "evidence": {
+        "type": "string"
+      },
+      "blocker_severity": {
+        "type": "string",
+        "enum": [
+          "P0",
+          "P1",
+          "P2",
+          "P3",
+          "NONE"
+        ]
+      },
+      "notes": {
+        "type": "string"
+      }
+    }
+  }
+}

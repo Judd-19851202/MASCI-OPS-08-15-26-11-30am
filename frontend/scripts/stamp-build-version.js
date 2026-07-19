@@ -22,6 +22,7 @@ const OUT_FILE = path.join(__dirname, "..", "src", "buildVersion.generated.js");
 const REPO_ROOT = path.join(__dirname, "..", "..");
 const SCOPE_FILE = path.join(REPO_ROOT, "release_identity_scope.json");
 const FALLBACK_RELEASE_FINGERPRINT_RELATIVE_PATHS = [
+  "docs/governance/release_gate_manifest.json",
   "frontend/scripts/stamp-build-version.js",
   "frontend/src/app/routing/AppRoutes.jsx",
   "frontend/src/pages/NewDailyReportV3.jsx",
@@ -40,6 +41,8 @@ const datePart = `${now.getUTCFullYear()}.${pad(now.getUTCMonth() + 1)}.${pad(
 
 let commit = "";
 let commitFull = "";
+let branch = "";
+let workspaceDirty = false;
 try {
   commitFull = execSync("git rev-parse HEAD", {
     cwd: REPO_ROOT,
@@ -53,6 +56,20 @@ try {
   })
     .toString()
     .trim();
+  branch = execSync("git branch --show-current", {
+    cwd: REPO_ROOT,
+    stdio: ["ignore", "pipe", "ignore"],
+  })
+    .toString()
+    .trim();
+  workspaceDirty = Boolean(
+    execSync("git status --short", {
+      cwd: REPO_ROOT,
+      stdio: ["ignore", "pipe", "ignore"],
+    })
+      .toString()
+      .trim()
+  );
 } catch {
   // git not available (e.g. inside a stripped Docker layer) — that's fine,
   // we'll just stamp the date.
@@ -65,14 +82,52 @@ const sourceHash = (() => {
   const h = crypto.createHash("md5");
   for (const rel of RELEASE_FINGERPRINT_RELATIVE_PATHS) {
     const abs = path.join(REPO_ROOT, rel);
+    h.update(rel);
+    h.update("\0");
     try {
       h.update(fs.readFileSync(abs));
     } catch {
       h.update(`MISSING:${rel}`);
     }
+    h.update("\0");
   }
   return h.digest("hex");
 })();
+
+const hashFiles = (algo, rels) => {
+  const h = crypto.createHash(algo);
+  for (const rel of rels) {
+    const abs = path.join(REPO_ROOT, rel);
+    h.update(rel);
+    h.update("\0");
+    try {
+      h.update(fs.readFileSync(abs));
+    } catch {
+      h.update(`MISSING:${rel}`);
+    }
+    h.update("\0");
+  }
+  return h.digest("hex");
+};
+
+const dependencyManifestHash = hashFiles("sha256", [
+  "backend/requirements.txt",
+  "frontend/package.json",
+  "frontend/yarn.lock",
+]);
+const migrationManifestHash = hashFiles("sha256", [
+  "docs/governance/MIGRATION_COMPATIBILITY_REGISTER.md",
+]);
+const releaseGateManifestHash = hashFiles("sha256", [
+  "docs/governance/release_gate_manifest.json",
+]);
+let releaseGateManifestVersion = "missing";
+let releaseGateManifestId = "missing";
+try {
+  const manifest = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, "docs", "governance", "release_gate_manifest.json"), "utf8"));
+  releaseGateManifestVersion = manifest.schema_version || "missing";
+  releaseGateManifestId = manifest.manifest_id || "missing";
+} catch {}
 
 const content = `// AUTO-GENERATED — do not hand-edit.
 // Regenerated on every \`yarn build\` by /app/frontend/scripts/stamp-build-version.js
@@ -83,6 +138,14 @@ export const BUILD_VERSION = ${JSON.stringify(version)};
 export const BUILD_COMMIT = ${JSON.stringify(commitFull)};
 export const BUILT_AT_ISO = ${JSON.stringify(builtAtIso)};
 export const BUILD_SOURCE_HASH = ${JSON.stringify(sourceHash)};
+export const BUILD_DEPENDENCY_MANIFEST_HASH = ${JSON.stringify(dependencyManifestHash)};
+export const BUILD_MIGRATION_MANIFEST_HASH = ${JSON.stringify(migrationManifestHash)};
+export const RELEASE_GATE_MANIFEST_HASH = ${JSON.stringify(releaseGateManifestHash)};
+export const RELEASE_GATE_MANIFEST_VERSION = ${JSON.stringify(releaseGateManifestVersion)};
+export const RELEASE_GATE_MANIFEST_ID = ${JSON.stringify(releaseGateManifestId)};
+export const BUILD_REPOSITORY = ${JSON.stringify(path.basename(REPO_ROOT))};
+export const BUILD_BRANCH = ${JSON.stringify(branch)};
+export const BUILD_WORKSPACE_DIRTY = ${workspaceDirty};
 `;
 
 fs.writeFileSync(OUT_FILE, content, "utf8");
@@ -94,12 +157,13 @@ if (fs.existsSync(VERIFY_RELEASE_IDENTITY) && fs.existsSync(SCOPE_FILE)) {
       stdio: ["ignore", "pipe", "pipe"],
     });
   } catch (err) {
-    // Best-effort only — never let a release-identity mismatch (e.g. missing
-    // python3, backend deps, or a frontend-only build context) fail the
-    // frontend build itself.
     process.stderr.write(
-      `[stamp-build-version] release identity check skipped/failed: ${err.message}\n`
+      `[stamp-build-version] release identity verification failed: ${err.message}\n`
     );
+    process.exit(1);
   }
+} else {
+  process.stderr.write("[stamp-build-version] release identity verifier or scope file missing\n");
+  process.exit(1);
 }
 process.stdout.write(`[stamp-build-version] wrote ${version} -> ${OUT_FILE}\n`);

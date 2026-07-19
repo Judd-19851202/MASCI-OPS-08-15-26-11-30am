@@ -99,7 +99,7 @@ async def test_preview_to_production_cluster_without_ro_validation_refuses_boot(
     await _run_boot(server, monkeypatch, {
         "APP_ENV": "preview",
         "DB_NAME": "masci_safety_preview",
-        "MONGO_URL": "mongodb+srv://masci_prod_user:s3cret@masci-prod.1nduwmg.mongodb.net/masci_safety_preview",
+        "MONGO_URL": "mongodb+srv://masci_prod_user:s3cret@masci-prod.1nduwmg.mongodb.net/masci_safety_preview",  # secret-scan: allow-line
         "ENFORCE_DB_ISOLATION": "true",
         "SCHEDULER_ENABLED": "false",
         "AUTO_EMAIL_REPORTS": "false",
@@ -148,7 +148,7 @@ async def test_production_approved_target_boots(server_module, monkeypatch):
     started_monitor = await _run_boot(server, monkeypatch, {
         "APP_ENV": "production",
         "DB_NAME": "masci_safety",
-        "MONGO_URL": "mongodb+srv://masci_prod_user:s3cret@masci-prod.1nduwmg.mongodb.net/masci_safety",
+        "MONGO_URL": "mongodb+srv://masci_prod_user:s3cret@masci-prod.1nduwmg.mongodb.net/masci_safety",  # secret-scan: allow-line
         "ENFORCE_DB_ISOLATION": "true",
         "SCHEDULER_ENABLED": "false",
         "AUTO_EMAIL_REPORTS": "false",
@@ -164,7 +164,7 @@ async def test_production_wrong_host_correct_db_refuses_boot(server_module, monk
     await _run_boot(server, monkeypatch, {
         "APP_ENV": "production",
         "DB_NAME": "masci_safety",
-        "MONGO_URL": "mongodb+srv://masci_prod_user:s3cret@wrong-cluster.mongodb.net/masci_safety",
+        "MONGO_URL": "mongodb+srv://masci_prod_user:s3cret@wrong-cluster.mongodb.net/masci_safety",  # secret-scan: allow-line
         "ENFORCE_DB_ISOLATION": "true",
     })
 
@@ -177,7 +177,7 @@ async def test_ro_validation_requested_but_incomplete_refuses_boot(server_module
     await _run_boot(server, monkeypatch, {
         "APP_ENV": "preview",
         "DB_NAME": "masci_safety_preview",
-        "MONGO_URL": "mongodb+srv://masci_prod_user:s3cret@masci-prod.1nduwmg.mongodb.net/masci_safety_preview",
+        "MONGO_URL": "mongodb+srv://masci_prod_user:s3cret@masci-prod.1nduwmg.mongodb.net/masci_safety_preview",  # secret-scan: allow-line
         "ENFORCE_DB_ISOLATION": "true",
         "READ_ONLY_VALIDATION": "true",
         "READ_ONLY_MODE": "true",
@@ -196,7 +196,7 @@ async def test_ro_validation_fully_valid_permits_boot_and_suppresses_monitor(ser
     started_monitor = await _run_boot(server, monkeypatch, {
         "APP_ENV": "preview",
         "DB_NAME": "masci_safety_preview",
-        "MONGO_URL": "mongodb+srv://masci_prod_user:s3cret@masci-prod.1nduwmg.mongodb.net/masci_safety_preview",
+        "MONGO_URL": "mongodb+srv://masci_prod_user:s3cret@masci-prod.1nduwmg.mongodb.net/masci_safety_preview",  # secret-scan: allow-line
         "ENFORCE_DB_ISOLATION": "true",
         "READ_ONLY_VALIDATION": "true",
         "READ_ONLY_MODE": "true",

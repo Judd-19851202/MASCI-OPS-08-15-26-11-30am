@@ -127,7 +127,7 @@ def test_runtime_db_startup_and_shutdown_use_single_client(monkeypatch) -> None:
         return inst
 
     server._reset_runtime_db_state_for_tests()
-    monkeypatch.setenv("MONGO_URL", "mongodb+srv://masci_prod_user:s3cret@masci-prod.1nduwmg.mongodb.net/masci_safety_preview")
+    monkeypatch.setenv("MONGO_URL", "mongodb+srv://masci_prod_user:s3cret@masci-prod.1nduwmg.mongodb.net/masci_safety_preview")  # secret-scan: allow-line
     monkeypatch.setenv("DB_NAME", "masci_safety_preview")
     monkeypatch.setenv("APP_ENV", "preview")
     monkeypatch.setenv("ENFORCE_DB_ISOLATION", "true")

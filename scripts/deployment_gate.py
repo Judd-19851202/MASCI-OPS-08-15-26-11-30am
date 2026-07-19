@@ -49,6 +49,15 @@ import urllib.request
 from typing import Any, Dict, List
 
 
+RELEASE_GATE_MANIFEST = "/app/docs/governance/release_gate_manifest.json"
+
+
+def _load_regression_files() -> List[str]:
+    with open(RELEASE_GATE_MANIFEST, encoding="utf-8") as handle:
+        manifest = json.load(handle)
+    return list(((manifest.get("test_groups") or {}).get("trust_gate_regression") or {}).get("paths") or [])
+
+
 REGRESSION_FILES = [
     "/app/backend/tests/test_track_15_76_trust_spine.py",
     "/app/backend/tests/test_track_15_76_trust_spine_extended.py",
@@ -259,6 +268,13 @@ REGRESSION_FILES = [
     # the `ADMIN_PAGE_ALLOWLIST` covers every current admin surface.
     "/app/backend/tests/test_track_22_5a_linter_modernization_lock.py",
 ]
+
+try:
+    REGRESSION_FILES = _load_regression_files()
+except Exception:
+    pass
+
+REGRESSION_FILES = _load_regression_files() if os.path.exists(RELEASE_GATE_MANIFEST) else REGRESSION_FILES
 
 DEFAULT_BASE_URL = (
     os.environ.get("REACT_APP_BACKEND_URL")

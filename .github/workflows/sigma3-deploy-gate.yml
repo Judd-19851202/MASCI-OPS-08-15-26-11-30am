@@ -24,9 +24,9 @@ name: sigma3-deploy-gate
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
   pull_request:
-    branches: [main, master]
+    branches: [main]
   workflow_dispatch: {}
 
 permissions:
@@ -155,22 +155,28 @@ jobs:
         run: |
           test -x scripts/deployment_gate.py || chmod +x scripts/deployment_gate.py
           python3 scripts/deployment_gate.py --help 2>&1 | head -5 || true
-      - name: Verify regression files exist (no skips, no bypass)
+      - name: Generate canonical D5/D6 governance artifacts
         run: |
-          for f in \
-            backend/tests/test_track_15_76_trust_spine.py \
-            backend/tests/test_track_15_76_trust_spine_extended.py \
-            backend/tests/test_track_15_76_email_render_wl_regression.py \
-            backend/tests/test_track_15_76a_operations_trust_center.py \
-            backend/tests/test_track_15_76b_finalization.py \
-            backend/tests/test_track_15_77_production_lock.py \
-            backend/tests/test_track_15_78_deployment_gate.py \
-            backend/tests/test_track_15_79_pipeline_lock.py \
-            backend/tests/test_track_15_79b_dr_forensics.py \
-            backend/tests/test_track_15_79c_dispatch_task_retention.py \
-            backend/tests/test_track_15_79e_production_certification.py \
-            backend/tests/test_track_15_80_no_secrets_in_repo.py \
-            ; do
-            test -f "$f" || { echo "❌ Missing required regression file: $f"; exit 1; }
-            echo "✅ Found: $f"
-          done
+          python3 backend/scripts/generate_release_gate_governance.py
+      - name: Verify manifest-driven regression files exist (no skips, no bypass)
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          manifest = json.loads(Path('docs/governance/release_gate_manifest.json').read_text())
+          files = (((manifest.get('test_groups') or {}).get('trust_gate_regression') or {}).get('paths') or [])
+          missing = [f for f in files if not Path(f).exists()]
+          if missing:
+              for f in missing:
+                  print(f"❌ Missing required regression file: {f}")
+              raise SystemExit(1)
+          for f in files:
+              print(f"✅ Found: {f}")
+          PY
+      - name: Run canonical release gate manifest lint
+        run: |
+          python3 -m pytest -q backend/tests/test_checkpoint_d5_d6_release_gate.py -k 'manifest or workflow or one_body'
+      - name: Run canonical release gate (preview contract)
+        run: |
+          RELEASE_GATE_SKIP_FOCUSED_REGRESSIONS=1 python3 scripts/release_gate.py --target preview --json

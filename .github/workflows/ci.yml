@@ -19,9 +19,9 @@ name: MASCI Hub CI Gate
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
   pull_request:
-    branches: [main, master]
+    branches: [main]
   workflow_dispatch: {}
 
 jobs:
@@ -41,6 +41,12 @@ jobs:
       - name: Ruff (errors only — E9/F63/F7/F82)
         run: |
           ruff check backend/server.py backend/routes --select=E9,F63,F7,F82
+      - name: Generate canonical D5/D6 governance artifacts
+        run: |
+          python3 backend/scripts/generate_release_gate_governance.py
+      - name: Canonical release identity verifier
+        run: |
+          python3 backend/scripts/verify_release_identity.py --strict
 
   frontend-build:
     name: Frontend lint + build
@@ -71,3 +77,27 @@ jobs:
           CI: 'true'
           REACT_APP_BACKEND_URL: 'https://ci-placeholder.invalid'
         run: yarn build
+
+  canonical-release-gate:
+    name: Canonical release gate (preview contract)
+    runs-on: ubuntu-latest
+    needs: [backend-static, frontend-build]
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+      - name: Enable Corepack & Yarn
+        run: |
+          corepack enable
+          corepack prepare yarn@stable --activate
+      - name: Generate canonical D5/D6 governance artifacts
+        run: |
+          python3 backend/scripts/generate_release_gate_governance.py
+      - name: Run canonical release gate
+        run: |
+          python3 scripts/release_gate.py --target preview --json

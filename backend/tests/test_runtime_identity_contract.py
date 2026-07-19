@@ -25,7 +25,7 @@ def test_production_identity_passes_with_approved_target() -> None:
     bundle = _bundle({
         "APP_ENV": "production",
         "DB_NAME": "masci_safety",
-        "MONGO_URL": "mongodb+srv://masci_prod_user:s3cret@masci-prod.1nduwmg.mongodb.net/masci_safety?retryWrites=true&w=majority",
+        "MONGO_URL": "mongodb+srv://masci_prod_user:s3cret@masci-prod.1nduwmg.mongodb.net/masci_safety?retryWrites=true&w=majority",  # secret-scan: allow-line
         "ENFORCE_DB_ISOLATION": "true",
     })
     assert bundle["validation"].valid is True
@@ -37,7 +37,7 @@ def test_wrong_cluster_correct_db_hard_fails() -> None:
     bundle = _bundle({
         "APP_ENV": "production",
         "DB_NAME": "masci_safety",
-        "MONGO_URL": "mongodb+srv://masci_prod_user:s3cret@wrong-cluster.mongodb.net/masci_safety?retryWrites=true&w=majority",
+        "MONGO_URL": "mongodb+srv://masci_prod_user:s3cret@wrong-cluster.mongodb.net/masci_safety?retryWrites=true&w=majority",  # secret-scan: allow-line
         "ENFORCE_DB_ISOLATION": "true",
     })
     assert bundle["validation"].valid is False
@@ -49,7 +49,7 @@ def test_preview_cluster_refused_in_production() -> None:
     bundle = _bundle({
         "APP_ENV": "production",
         "DB_NAME": "masci_safety",
-        "MONGO_URL": "mongodb+srv://masci_preview_user:s3cret@masci-preview.mongodb.net/masci_safety",
+        "MONGO_URL": "mongodb+srv://masci_preview_user:s3cret@masci-preview.mongodb.net/masci_safety",  # secret-scan: allow-line
         "ENFORCE_DB_ISOLATION": "true",
     })
     assert bundle["validation"].valid is False
@@ -80,7 +80,7 @@ def test_preview_prod_hostname_without_ro_validation_hard_fails() -> None:
     bundle = _bundle({
         "APP_ENV": "preview",
         "DB_NAME": "masci_safety_preview",
-        "MONGO_URL": "mongodb+srv://masci_prod_user:s3cret@masci-prod.1nduwmg.mongodb.net/masci_safety_preview",
+        "MONGO_URL": "mongodb+srv://masci_prod_user:s3cret@masci-prod.1nduwmg.mongodb.net/masci_safety_preview",  # secret-scan: allow-line
         "ENFORCE_DB_ISOLATION": "true",
     })
     assert bundle["validation"].valid is False
@@ -101,7 +101,7 @@ def test_ro_validation_requested_but_incomplete_hard_fails() -> None:
     bundle = _bundle({
         "APP_ENV": "preview",
         "DB_NAME": "masci_safety_preview",
-        "MONGO_URL": "mongodb+srv://masci_prod_user:s3cret@masci-prod.1nduwmg.mongodb.net/masci_safety_preview",
+        "MONGO_URL": "mongodb+srv://masci_prod_user:s3cret@masci-prod.1nduwmg.mongodb.net/masci_safety_preview",  # secret-scan: allow-line
         "ENFORCE_DB_ISOLATION": "true",
         "READ_ONLY_VALIDATION": "true",
         "READ_ONLY_MODE": "true",
@@ -115,7 +115,7 @@ def test_ro_validation_fully_valid_allows_boot_in_read_only_mode() -> None:
     bundle = _bundle({
         "APP_ENV": "preview",
         "DB_NAME": "masci_safety_preview",
-        "MONGO_URL": "mongodb+srv://masci_prod_user:s3cret@masci-prod.1nduwmg.mongodb.net/masci_safety_preview",
+        "MONGO_URL": "mongodb+srv://masci_prod_user:s3cret@masci-prod.1nduwmg.mongodb.net/masci_safety_preview",  # secret-scan: allow-line
         "ENFORCE_DB_ISOLATION": "true",
         "READ_ONLY_VALIDATION": "true",
         "READ_ONLY_MODE": "true",
@@ -153,7 +153,7 @@ def test_credentials_redacted_in_public_payload() -> None:
     bundle = _bundle({
         "APP_ENV": "production",
         "DB_NAME": "masci_safety",
-        "MONGO_URL": "mongodb+srv://user%40domain.com:p%40ss%2Fword@masci-prod.1nduwmg.mongodb.net/masci_safety",
+        "MONGO_URL": "mongodb+srv://user%40domain.com:p%40ss%2Fword@masci-prod.1nduwmg.mongodb.net/masci_safety",  # secret-scan: allow-line
         "ENFORCE_DB_ISOLATION": "true",
     })
     payload = runtime_identity_public_payload(bundle)
@@ -164,14 +164,14 @@ def test_credentials_redacted_in_public_payload() -> None:
 
 
 def test_ipv6_options_and_query_parameters_parse() -> None:
-    parsed = parse_mongo_url("mongodb://user:pass@[::1]:27017/masci_safety_preview?retryWrites=true&authSource=admin")
+    parsed = parse_mongo_url("mongodb://user:pass@[::1]:27017/masci_safety_preview?retryWrites=true&authSource=admin")  # secret-scan: allow-line
     assert parsed.scheme == "mongodb"
     assert parsed.hostname == "::1"
     assert parsed.path_database == "masci_safety_preview"
 
 
 def test_url_encoded_credentials_do_not_break_parsing() -> None:
-    parsed = parse_mongo_url("mongodb+srv://masci_prod_user%40tenant:p%40ss%2Fword@masci-prod.1nduwmg.mongodb.net/masci_safety")
+    parsed = parse_mongo_url("mongodb+srv://masci_prod_user%40tenant:p%40ss%2Fword@masci-prod.1nduwmg.mongodb.net/masci_safety")  # secret-scan: allow-line
     assert parsed.username == "masci_prod_user@tenant"
     assert parsed.hostname == "masci-prod.1nduwmg.mongodb.net"
 
@@ -180,7 +180,7 @@ def test_duplicate_query_values_are_surfaced() -> None:
     bundle = _bundle({
         "APP_ENV": "production",
         "DB_NAME": "masci_safety",
-        "MONGO_URL": "mongodb+srv://masci_prod_user:s3cret@masci-prod.1nduwmg.mongodb.net/masci_safety?retryWrites=true&retryWrites=false",
+        "MONGO_URL": "mongodb+srv://masci_prod_user:s3cret@masci-prod.1nduwmg.mongodb.net/masci_safety?retryWrites=true&retryWrites=false",  # secret-scan: allow-line
         "ENFORCE_DB_ISOLATION": "true",
     })
     assert bundle["validation"].valid is False
