@@ -9,7 +9,7 @@ intentionally restrained — monochrome, no animation, secondary
 hierarchy.
 
 Design:
-  - Reads /app/memory/HUB_VISUAL_BASELINE.json on every call (small file,
+  - Reads /app/backend/static/runtime-data/HUB_VISUAL_BASELINE.json on every call (small file,
     rare reads).
   - NO database I/O.
   - NO auth requirement — the chip surfaces on all four portals; gating
@@ -34,8 +34,8 @@ from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, HTTPException
 
-BASELINE_PATH = Path("/app/memory/HUB_VISUAL_BASELINE.json")
-TRENDLINE_PATH = Path("/app/memory/DOCTRINE_TRENDLINE.json")
+BASELINE_PATH = Path("/app/backend/static/runtime-data/HUB_VISUAL_BASELINE.json")
+TRENDLINE_PATH = Path("/app/backend/static/runtime-data/DOCTRINE_TRENDLINE.json")
 
 VALID_PORTALS = {"admin", "pm", "hr", "safety"}
 

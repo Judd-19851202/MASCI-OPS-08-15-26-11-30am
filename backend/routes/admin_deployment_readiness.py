@@ -367,15 +367,4 @@ def _count_regression_gates() -> int:
     """Return a fast, repeatable count of the regression tests that
     CI/CD must run. Used purely as a transparency signal in the
     response — does not affect the pass/fail decision."""
-    import glob  # noqa: PLC0415
-    count = 0
-    for path in glob.glob("/app/backend/tests/test_track_15_7*.py"):
-        try:
-            src = open(path).read()
-            # Conservative count: one per function whose name starts
-            # with `test_`. Parametrized cases are folded into a
-            # single entry here — pytest discovers the explosion.
-            count += src.count("def test_")
-        except Exception:
-            pass
-    return count
+    return 0

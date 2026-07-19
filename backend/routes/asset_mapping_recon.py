@@ -609,7 +609,7 @@ def build_asset_mapping_router(db, require_admin_dep: Callable) -> APIRouter:
             },
             "readiness":        readiness,
             "readiness_reason": readiness_reason,
-            "runbook_path":     "/app/memory/MOTIVE_DAY1_ACTIVATION_RUNBOOK.md",
+            "runbook_ref":      "operator_runbook_not_shipped_in_runtime_image",
         }
 
     # ── Executive summary (002G) ──────────────────────────────────────

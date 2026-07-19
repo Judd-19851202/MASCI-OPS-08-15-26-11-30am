@@ -157,7 +157,7 @@ def build_platform_data_truth_router(db=None) -> APIRouter:
                 "preview_counts_are_fixtures": True,
                 "production_must_not_backfill_from_preview": True,
                 "data_truth_correction_ref": (
-                    "/app/memory/DATA_TRUTH_CORRECTION_PREVIEW_VS_PROD_CERTIFICATION.md"),
+                    "docs/recovery/LIVE_VS_RECOVERY_RECONCILIATION.md"),
             },
         }
 

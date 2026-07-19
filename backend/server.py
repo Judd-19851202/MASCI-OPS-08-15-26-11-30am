@@ -23,6 +23,7 @@ from typing import List, Optional, Dict, Any, Tuple
 import uuid
 from datetime import datetime, timezone, timedelta
 from branded_portal_emails import render_portal_email
+from lib.operator_safety import require_destructive_confirmation, require_destructive_runtime_guard
 # Track 15.67 Phase 3 · tenant-safe sender resolver wrapper.
 from branding_resolver import resolve_sender_email as _resolve_sender_email, resolve_reply_to_email as _resolve_reply_to_email  # noqa: E402
 
@@ -4949,6 +4950,8 @@ async def admin_bulk_replace_jobs(body: dict, _: bool = Depends(require_admin)):
     rows = body.get("rows") or []
     if not isinstance(rows, list):
         raise HTTPException(400, "rows must be a list")
+    require_destructive_confirmation(body, expected_confirm="REPLACE_ALL_JOBS_MASTER")
+    require_destructive_runtime_guard(expected_db_name="masci_safety")
     try:
         return await bulk_replace(db, rows)
     except ValueError as e:
@@ -10766,7 +10769,7 @@ async def admin_crew_recovery_reset(
 
 
 @api_router.post("/admin/crew-recovery/force-reseed")
-async def admin_crew_recovery_force_reseed(_: bool = Depends(require_admin_strict)):
+async def admin_crew_recovery_force_reseed(body: dict | None = None, _: bool = Depends(require_admin_strict)):
     """Force-rerun the equipment_master / employees / suppliers JSON seeds even
     if those collections already have rows. Useful when a partial-wipe leaves
     incomplete data and the boot guard (`count > 0`) skips re-seeding.
@@ -10775,6 +10778,8 @@ async def admin_crew_recovery_force_reseed(_: bool = Depends(require_admin_stric
     this endpoint deletes the seed-managed collections first so they re-seed
     from JSON cleanly. Safety/projects/users are NOT touched.
     """
+    require_destructive_confirmation(body, expected_confirm="FORCE_RESEED_CREW_COLLECTIONS")
+    require_destructive_runtime_guard(expected_db_name="masci_safety")
     summary = {}
     for coll in ["equipment_master", "equipment_units", "employees", "suppliers"]:
         before = await db[coll].count_documents({})
@@ -10809,11 +10814,8 @@ async def admin_scrap_crew_hub(body: dict, _: bool = Depends(require_admin_stric
       - Equipment master + units + inspections, employees, suppliers
       - Backups
     """
-    if (body or {}).get("confirm") != "SCRAP_CREW_HUB":
-        raise HTTPException(
-            400,
-            'Pass {"confirm": "SCRAP_CREW_HUB"} to confirm this destructive action',
-        )
+    require_destructive_confirmation(body, expected_confirm="SCRAP_CREW_HUB")
+    require_destructive_runtime_guard(expected_db_name="masci_safety")
     wipe_collections = [
         "projects",
         "project_members",

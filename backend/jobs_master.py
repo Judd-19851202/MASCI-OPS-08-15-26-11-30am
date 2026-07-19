@@ -223,6 +223,8 @@ async def set_active(db, job_id: str, active: bool) -> Optional[Dict[str, Any]]:
 async def bulk_replace(db, rows: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Replace the whole collection with a new list (used by admin upload)."""
     docs = [_normalize(r) for r in rows]
+    if not docs:
+        raise ValueError("bulk replace refused: rows must be non-empty for full replacement")
     # Validate before wiping
     for d in docs:
         if not d["project_number"] or not d["project_name"]:

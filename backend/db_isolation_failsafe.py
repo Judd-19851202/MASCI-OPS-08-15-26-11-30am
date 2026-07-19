@@ -22,7 +22,8 @@ Behavior:
     DB so operators can audit historical drift, but the pod boots.
     This bridge mode exists so that pre-rotation deployments don't
     crash before the operator has executed the Atlas user
-    separation runbook (`/app/memory/PHASE1_ATLAS_SEPARATION_REPORT.md`).
+    separation runbook (`docs/recovery/LIVE_VS_RECOVERY_RECONCILIATION.md`,
+    Checkpoint B runtime-image reference register).
   - After rotation, set `ENFORCE_DB_ISOLATION=true` in both pods. From
     that day on, any future credential drift will fail boot loudly.
 """
@@ -103,7 +104,7 @@ async def assert_db_isolation(client) -> Dict[str, Any]:
             "\n🔴 DB ISOLATION VIOLATION · " + app_env.upper() + " pod can access " +
             ", ".join(v["db"] for v in result["violations"]) +
             "\n   Credential: admin_db_user (or equivalent over-privileged user)" +
-            "\n   Runbook:    /app/memory/PHASE1_ATLAS_SEPARATION_REPORT.md" +
+            "\n   Runbook:    docs/recovery/LIVE_VS_RECOVERY_RECONCILIATION.md (Checkpoint B)" +
             "\n" + "=" * 78 + "\n")
         # Loud no matter what.
         logger.error(msg)

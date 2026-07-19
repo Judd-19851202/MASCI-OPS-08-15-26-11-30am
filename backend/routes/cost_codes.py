@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel, Field
 
+from lib.operator_safety import require_destructive_confirmation, require_destructive_runtime_guard
 from pm_auth import compute_pm_scope
 from services.cost_codes import get_provider
 from services.cost_codes.foundation import (
@@ -161,6 +162,11 @@ def register_cost_code_routes(api_router: APIRouter, db, require_admin=None, req
         await _ensure_spine_indexes(db)
         if not await _is_admin_actor(actor):
             raise HTTPException(status_code=403, detail="Admin login required")
+        require_destructive_confirmation(
+            body.model_dump(),
+            expected_confirm="REPLACE_COST_CODE_REGISTRY",
+        )
+        require_destructive_runtime_guard(expected_db_name="masci_safety")
         items = [normalize_registry_item(row.model_dump()) for row in body.items]
         await db[REGISTRY_COLLECTION].delete_many({})
         if items:

@@ -38,7 +38,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException
 
 REPO_ROOT = Path("/app")
 SCRIPTS_DIR = REPO_ROOT / "scripts"
-MEMORY_DIR = REPO_ROOT / "memory"
+MEMORY_DIR = REPO_ROOT / "backend" / "static" / "runtime-data"
 TEST_REPORTS_DIR = REPO_ROOT / "test_reports"
 FIELD_WALKS_DIR = MEMORY_DIR / "FIELD_WALK_CHECKLISTS"
 DEPLOY_HISTORY_PATH = MEMORY_DIR / "DEPLOYMENT_HISTORY.json"
@@ -402,7 +402,11 @@ def build_governance_self_protection_router(require_admin):
         context = _context_governance_status()
         truthful = _truthful_state_status()
         telemetry = _telemetry_doctrine_status()
-        regression = _regression_suite_status()
+        regression = {
+            "status": "unavailable_in_runtime_image",
+            "last_iteration": None,
+            "reason": "test_reports_not_shipped",
+        }
         walks = _field_walk_status()
         drift = _drift_status(context=context, probe=probe)
         deployment = _deployment_status(current_hash=current_hash)

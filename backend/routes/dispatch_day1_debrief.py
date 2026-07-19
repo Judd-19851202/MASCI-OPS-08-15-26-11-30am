@@ -229,7 +229,7 @@ def build_day1_debrief_router(
             "ok": True,
             "debrief_type": variant_key,
             "filename": file_path.name,
-            "path": f"/app/memory/{file_path.name}",
+            "storage": "operator_workspace_memory",
             "captured_at": iso_ts,
             "question_count": len(variant["questions"]),
             "captured_admin": actor_email,
