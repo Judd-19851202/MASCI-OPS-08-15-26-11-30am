@@ -12,16 +12,8 @@ Result: **FAIL / NOT PROVEN**
   - `backend/tests/test_iter369_auth_regression_lock.py`
 
 ## Why certification fails
-- The exact workspace is missing multiple auth governance/support artifacts required by the existing auth continuity suite:
-  - `memory/test_credentials.md`
-  - `memory/AUTH_INVENTORY.md`
-  - `memory/AUTH_PASSWORD_CONTRACT.md`
-  - `memory/AUTH_EXISTING_USER_PROTECTION_CERTIFICATION.md`
-  - `memory/AUTH_LOCKOUT_CERTIFICATION.md`
-  - `memory/AUTH_RESET_CERTIFICATION.md`
-  - `memory/AUTH_SESSION_CERTIFICATION.md`
-  - `memory/AUTH_RUNTIME_PROOF_MATRIX.md`
-  - `memory/AUTH_REGRESSION_SUITE_SUMMARY.md`
+- The exact workspace did not yet have a canonical deployment-grade authentication continuity register.
+- The legacy auth parity suite was still wired to stale `/app/memory/` support artifacts instead of a governed deployment artifact.
 - The existing auth parity suite also flags a lockout-configuration contract mismatch in `server.py`.
 - Live HTTP auth-regression proof cannot be used for deploy certification because the current preview/API state is intentionally fail-closed (502), so Production-user continuity is not provable from runtime behavior in this workspace.
 

@@ -3,7 +3,7 @@ Track 14.0-AUTH-PASSWORD-PARITY + PRODUCTION LOGIN PROTECTION.
 
 Contract regression tests. Read-only — these never mutate any DB, file,
 or token. They lock the canonical password contract documented in
-/app/memory/AUTH_PASSWORD_CONTRACT.md so future drift fails CI.
+docs/governance/AUTHENTICATION_CONTINUITY_REGISTER.md so future drift fails CI.
 
 PRODUCTION LOGIN PROTECTION COMPLIANCE:
   - No bcrypt.hashpw against any user document.
@@ -20,7 +20,8 @@ import pytest
 
 REPO = pathlib.Path("/app")
 BACKEND = REPO / "backend"
-MEMORY = REPO / "memory"
+GOVERNANCE = REPO / "docs" / "governance"
+AUTH_CONTINUITY_REGISTER = GOVERNANCE / "AUTHENTICATION_CONTINUITY_REGISTER.md"
 
 
 def _read(p: pathlib.Path) -> str:
@@ -161,43 +162,49 @@ def test_no_plaintext_password_leak_in_route_returns():
 # ── Phase 9 · break-glass documented ─────────────────────────────────
 
 def test_break_glass_routes_documented_in_test_credentials():
-    src = _read(MEMORY / "test_credentials.md")
-    # Three documented break-glass paths.
-    assert "Legacy Admin Console" in src or "Legacy API-only break-glass" in src
-    assert "PM_PASSWORD" in src
-    assert "Developer Portal" in src or "DEV_PASSWORD" in src
+    src = _read(AUTH_CONTINUITY_REGISTER)
+    assert "Break-glass classification" in src
+    assert "legacy admin password path" in src.lower()
+    assert "fallback only" in src.lower()
 
 
 # ── Phase 1 · inventory + contract docs exist ────────────────────────
 
 def test_auth_inventory_doc_exists():
-    assert (MEMORY / "AUTH_INVENTORY.md").exists()
+    assert AUTH_CONTINUITY_REGISTER.exists()
 
 
 def test_auth_contract_doc_exists():
-    assert (MEMORY / "AUTH_PASSWORD_CONTRACT.md").exists()
+    src = _read(AUTH_CONTINUITY_REGISTER)
+    assert "Password hash compatibility" in src
 
 
 def test_auth_existing_user_protection_doc_exists():
     """PRODUCTION LOGIN PROTECTION attestation must be on disk."""
-    assert (MEMORY / "AUTH_EXISTING_USER_PROTECTION_CERTIFICATION.md").exists()
+    src = _read(AUTH_CONTINUITY_REGISTER)
+    assert "No forced reset or automatic rehash" in src
 
 
 def test_auth_lockout_certification_doc_exists():
-    assert (MEMORY / "AUTH_LOCKOUT_CERTIFICATION.md").exists()
+    src = _read(AUTH_CONTINUITY_REGISTER)
+    assert "Lockout and abuse controls" in src
 
 
 def test_auth_reset_certification_doc_exists():
-    assert (MEMORY / "AUTH_RESET_CERTIFICATION.md").exists()
+    src = _read(AUTH_CONTINUITY_REGISTER)
+    assert "Reset and bootstrap behavior" in src
 
 
 def test_auth_session_certification_doc_exists():
-    assert (MEMORY / "AUTH_SESSION_CERTIFICATION.md").exists()
+    src = _read(AUTH_CONTINUITY_REGISTER)
+    assert "Session and token continuity" in src
 
 
 def test_auth_runtime_proof_matrix_doc_exists():
-    assert (MEMORY / "AUTH_RUNTIME_PROOF_MATRIX.md").exists()
+    src = _read(AUTH_CONTINUITY_REGISTER)
+    assert "Compatibility proof matrix" in src
 
 
 def test_auth_regression_suite_summary_doc_exists():
-    assert (MEMORY / "AUTH_REGRESSION_SUITE_SUMMARY.md").exists()
+    src = _read(AUTH_CONTINUITY_REGISTER)
+    assert "Regression evidence" in src

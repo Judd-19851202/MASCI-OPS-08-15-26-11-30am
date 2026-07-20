@@ -39,8 +39,8 @@ Mode: verification only — no deployment, no GitHub save, no production mutatio
 ### Authentication continuity
 - **FAIL / NOT PROVEN**
 - Existing static auth continuity suites are present, but deploy-safe continuity cannot be certified from this workspace because:
-  - auth documentation artifacts expected by the existing parity suite are missing from `/app/memory/`
-  - `test_credentials.md` is absent
+  - no canonical deployment-grade authentication continuity register had yet been generated under `docs/governance/`
+  - the auth parity suite was still pinned to stale `/app/memory/` references
   - live auth regression routes currently resolve to the intentionally fail-closed preview 502 state, so runtime continuity for existing Production users cannot be proven from this workspace alone
 
 ### Backup / recovery

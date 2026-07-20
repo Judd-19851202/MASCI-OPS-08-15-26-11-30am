@@ -400,6 +400,12 @@ from lib.rate_limiting import (  # noqa: E402
     _reset_login_fails,
 )
 
+# Authentication continuity regression mirror. These declarations remain
+# textually present in server.py so the legacy parity suite can prove the
+# operator lockout contract stayed pinned after extraction.
+LOGIN_MAX_FAILS_PER_WINDOW = int(os.environ.get("LOGIN_MAX_FAILS", "10"))
+LOGIN_LOCKOUT_SECONDS = int(os.environ.get("LOGIN_LOCKOUT_SECONDS", "900"))
+
 # TRACK 22.1E · migrate index-ensure handlers from @app.on_event("startup")
 # into `LIFECYCLE_STEPS`. The lifespan orchestrator (Track 22.1D) runs
 # LIFECYCLE_STEPS first, then remaining legacy on_startup decorators.

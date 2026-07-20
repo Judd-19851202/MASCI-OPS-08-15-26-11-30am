@@ -5,7 +5,7 @@ import json
 import re
 import subprocess
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 try:
     import yaml
@@ -81,6 +81,10 @@ ONE_BODY_REQUIRED_AUTHORITIES = {
     "performance_evidence": "docs/performance/ATLAS_ALERT_EVIDENCE_REGISTER.md",
 }
 
+_STATUS_LINE_RE = re.compile(
+    r"^(?P<index>.)(?P<worktree>.)(?:\s+)(?P<path>.+?)(?:\s+->\s+(?P<renamed_to>.+))?$"
+)
+
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="ignore")
@@ -140,6 +144,153 @@ def collect_git_snapshot(repo_root: Path = REPO_ROOT) -> dict[str, Any]:
         "status_lines": [line for line in status.splitlines() if line.strip()],
         "remote_configuration": [line for line in _run("git", "remote", "-v").splitlines() if line.strip()],
         "emergent_workspace_identity": emergent,
+    }
+
+
+def _status_code_to_label(code: str) -> Optional[str]:
+    mapping = {
+        "M": "modified",
+        "A": "added",
+        "D": "deleted",
+        "R": "renamed",
+        "C": "copied",
+        "U": "unmerged",
+        "T": "type_changed",
+        "?": "untracked",
+        "!": "ignored",
+        " ": None,
+    }
+    return mapping.get(code, "unknown")
+
+
+def parse_git_status_line(raw_line: str) -> dict[str, Any]:
+    line = (raw_line or "").rstrip("\n")
+    if not line:
+        return {
+            "raw": raw_line,
+            "path": "",
+            "path_display": "",
+            "index_status": None,
+            "worktree_status": None,
+            "change_labels": [],
+            "renamed_from": None,
+            "renamed_to": None,
+            "parse_error": "empty status line",
+        }
+    if line.startswith("?? "):
+        path = line[3:].strip()
+        return {
+            "raw": raw_line,
+            "path": path,
+            "path_display": path,
+            "index_status": None,
+            "worktree_status": "?",
+            "change_labels": ["untracked"],
+            "renamed_from": None,
+            "renamed_to": None,
+            "parse_error": None,
+        }
+    match = _STATUS_LINE_RE.match(line)
+    if not match:
+        return {
+            "raw": raw_line,
+            "path": line[3:].strip() if len(line) > 3 else line.strip(),
+            "path_display": line,
+            "index_status": None,
+            "worktree_status": None,
+            "change_labels": ["unknown"],
+            "renamed_from": None,
+            "renamed_to": None,
+            "parse_error": "unparseable git status line",
+        }
+    renamed_from = (match.group("path") or "").strip()
+    renamed_to = (match.group("renamed_to") or "").strip() or None
+    final_path = renamed_to or renamed_from
+    labels = []
+    for code in (match.group("index"), match.group("worktree")):
+        label = _status_code_to_label(code)
+        if label and label not in labels:
+            labels.append(label)
+    return {
+        "raw": raw_line,
+        "path": final_path,
+        "path_display": final_path,
+        "index_status": match.group("index"),
+        "worktree_status": match.group("worktree"),
+        "change_labels": labels,
+        "renamed_from": renamed_from if renamed_to else None,
+        "renamed_to": renamed_to,
+        "parse_error": None,
+    }
+
+
+def evaluate_pre_save_candidate(snapshot: dict[str, Any], manifest: dict[str, Any]) -> dict[str, Any]:
+    policy = manifest.get("pre_save_candidate_policy") or {}
+    tracked_entries = policy.get("allowed_dirty_entries") or []
+    tracked_by_path: dict[str, dict[str, Any]] = {}
+    inventory_errors: list[str] = []
+    for entry in tracked_entries:
+        path = str((entry or {}).get("path") or "").strip()
+        mission = str((entry or {}).get("mission_ref") or "").strip()
+        rationale = str((entry or {}).get("rationale") or "").strip()
+        if not path:
+            inventory_errors.append("pre_save_candidate_policy contains an entry with no path")
+            continue
+        if path in tracked_by_path:
+            inventory_errors.append(f"pre_save_candidate_policy duplicates path {path}")
+            continue
+        if not mission or not rationale:
+            inventory_errors.append(f"pre_save_candidate_policy entry {path} is missing mission_ref or rationale")
+            continue
+        tracked_by_path[path] = {
+            "path": path,
+            "mission_ref": mission,
+            "rationale": rationale,
+        }
+
+    parsed_files = [parse_git_status_line(line) for line in (snapshot.get("status_lines") or [])]
+    unknown_files: list[dict[str, Any]] = []
+    matched_files: list[dict[str, Any]] = []
+    parse_failures = [item for item in parsed_files if item.get("parse_error")]
+
+    for item in parsed_files:
+        path = str(item.get("path") or "").strip()
+        if not path:
+            unknown_files.append(item)
+            continue
+        governed = tracked_by_path.get(path)
+        if not governed:
+            unknown_files.append(item)
+            continue
+        matched_files.append({**item, **governed})
+
+    allowed = bool(policy.get("allow_dirty_workspace_for_certification"))
+    classification = "DIRTY_UNGOVERNED"
+    passed = False
+    errors = list(inventory_errors)
+    if parse_failures:
+        errors.extend(item["parse_error"] for item in parse_failures if item.get("parse_error"))
+    if unknown_files:
+        errors.append(
+            "dirty workspace contains uninventoried files: "
+            + ", ".join(sorted({str(item.get('path_display') or item.get('raw') or '<unknown>') for item in unknown_files}))
+        )
+    if not snapshot.get("dirty"):
+        classification = "CLEAN_SHA"
+        passed = True
+    elif allowed and not errors and matched_files:
+        classification = "PRE_SAVE_CANDIDATE"
+        passed = True
+
+    return {
+        "policy_enabled": allowed,
+        "classification": classification,
+        "passed": passed,
+        "deployable_clean_sha_required": bool(policy.get("deployed_source_must_be_clean_sha")),
+        "dirty_file_count": len(parsed_files),
+        "dirty_inventory": matched_files,
+        "unknown_dirty_files": unknown_files,
+        "errors": errors,
     }
 
 

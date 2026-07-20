@@ -20,6 +20,7 @@ SKIP_FOCUSED_REGRESSIONS = os.environ.get("RELEASE_GATE_SKIP_FOCUSED_REGRESSIONS
 from lib.release_gate_governance import (  # noqa: E402
     collect_git_snapshot,
     compute_dependency_manifest_hash,
+    evaluate_pre_save_candidate,
     compute_migration_manifest_hash,
     compute_release_gate_manifest_hash,
     load_release_gate_manifest,
@@ -254,10 +255,13 @@ def _source_authority_gate(manifest: dict[str, Any], target: str) -> dict[str, A
         errors.append("git branch unavailable")
     elif branch not in governed:
         errors.append(f"branch {branch} is not governed for {target}")
-    if dirty:
-        errors.append("workspace is dirty")
     if not head:
         errors.append("git HEAD unavailable")
+    pre_save = evaluate_pre_save_candidate(snapshot, manifest)
+    if dirty and not pre_save.get("passed"):
+        errors.extend(pre_save.get("errors") or [])
+        if not any("dirty workspace" in err for err in errors):
+            errors.append("workspace is dirty")
     if env_mode:
         snapshot["clean_checkout_proof"] = {
             "declared_branch": env_branch,
@@ -267,7 +271,12 @@ def _source_authority_gate(manifest: dict[str, Any], target: str) -> dict[str, A
     snapshot["evaluated_branch"] = branch
     snapshot["evaluated_head"] = head
     snapshot["evaluated_dirty"] = dirty
-    return {"returncode": 0 if not errors else 1, "snapshot": snapshot, "errors": errors}
+    return {
+        "returncode": 0 if not errors else 1,
+        "snapshot": snapshot,
+        "pre_save_candidate": pre_save,
+        "errors": errors,
+    }
 
 
 CHECK_RUNNERS = {

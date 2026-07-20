@@ -32,6 +32,19 @@
     "traceable_to_exact_git_sha_without_local_governance": false,
     "governance_position": "Workspace state is the real Emergent deploy source; canonical release gate + git metadata + governed source hash are required for authority."
   },
+  "pre_save_candidate_policy": {
+    "allow_dirty_workspace_for_certification": true,
+    "deployed_source_must_be_clean_sha": true,
+    "classification_label": "PRE_SAVE_CANDIDATE",
+    "mission_scope": "PDC-01A pre-deployment blocker remediation only",
+    "allowed_dirty_entries": [
+      {
+        "path": "frontend/yarn.lock",
+        "mission_ref": "PDC-01A Blocker 1 and Blocker 3",
+        "rationale": "Dependency lockfile drift is explicitly inventoried as the governed pre-save candidate delta that must be reconciled before clean-SHA deploy certification."
+      }
+    ]
+  },
   "one_body_authorities": {
     "runtime_identity": "backend/lib/runtime_identity.py",
     "database_authority": "backend/lib/database_authority.py",
@@ -565,6 +578,7 @@
     "release_identity_certificate": "release_gate_report.gates[release-identity-verifier]",
     "build_certificate": "release_gate_report.gates[clean-backend-build] + release_gate_report.gates[clean-frontend-build]",
     "test_certificate": "release_gate_report.gates[focused-regressions]",
+    "authentication_continuity_register": "docs/governance/AUTHENTICATION_CONTINUITY_REGISTER.md",
     "performance_baseline": "docs/performance/performance_baseline.json",
     "atlas_alert_evidence_register": "docs/performance/ATLAS_ALERT_EVIDENCE_REGISTER.md",
     "query_inventory": "docs/performance/query_inventory.json",

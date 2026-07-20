@@ -11,6 +11,7 @@ from lib.release_gate_governance import (
     ONE_BODY_REQUIRED_AUTHORITIES,
     collect_git_snapshot,
     compute_dependency_manifest_hash,
+    evaluate_pre_save_candidate,
     compute_migration_manifest_hash,
     compute_release_gate_manifest_hash,
     load_release_gate_manifest,
@@ -107,6 +108,46 @@ def test_source_authority_snapshot_reports_dirty_state():
     assert "dirty" in snapshot
     assert "branch" in snapshot
     assert "head" in snapshot
+
+
+def test_pre_save_candidate_policy_is_governed_and_specific():
+    manifest = load_release_gate_manifest(REPO_ROOT)
+    policy = manifest.get("pre_save_candidate_policy") or {}
+    assert policy.get("allow_dirty_workspace_for_certification") is True
+    assert policy.get("deployed_source_must_be_clean_sha") is True
+    allowed = policy.get("allowed_dirty_entries") or []
+    assert allowed == [
+        {
+            "path": "frontend/yarn.lock",
+            "mission_ref": "PDC-01A Blocker 1 and Blocker 3",
+            "rationale": "Dependency lockfile drift is explicitly inventoried as the governed pre-save candidate delta that must be reconciled before clean-SHA deploy certification.",
+        }
+    ]
+
+
+def test_pre_save_candidate_allows_only_governed_inventory():
+    manifest = load_release_gate_manifest(REPO_ROOT)
+    snapshot = {
+        "dirty": True,
+        "status_lines": [" M frontend/yarn.lock"],
+    }
+    result = evaluate_pre_save_candidate(snapshot, manifest)
+    assert result["passed"] is True
+    assert result["classification"] == "PRE_SAVE_CANDIDATE"
+    assert result["unknown_dirty_files"] == []
+
+
+def test_pre_save_candidate_rejects_unrelated_dirty_files():
+    manifest = load_release_gate_manifest(REPO_ROOT)
+    snapshot = {
+        "dirty": True,
+        "status_lines": [" M frontend/yarn.lock", "?? scratch.txt"],
+    }
+    result = evaluate_pre_save_candidate(snapshot, manifest)
+    assert result["passed"] is False
+    assert result["classification"] == "DIRTY_UNGOVERNED"
+    assert result["unknown_dirty_files"]
+    assert any("uninventoried files" in err for err in result["errors"])
 
 
 def test_post_deploy_schema_allows_not_exercised():
