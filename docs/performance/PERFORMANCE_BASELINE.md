@@ -8,7 +8,8 @@
 ## Baseline Highlights
 - Backend dependency count: 169 Python packages.
 - Frontend dependency count: 72 packages.
-- Frontend build artifact footprint: 52,671,395 bytes total.
+- Frontend build artifact footprint: 52,672,013 bytes total.
+- Frontend production build completed in 63.82s in the current workspace.
 - Workspace footprint: backend 121,450,458 bytes, frontend 2,208,055,527 bytes, docs 7,373,458 bytes, /tmp 2,448,030 bytes.
 - Scheduler inventory: 17 registered long-running or scheduled tasks.
 

@@ -187,3 +187,41 @@ Explicit constraints still in force
 - Do not modify Production secrets or `.env`
 - Do not connect intentionally to Production Atlas or R2 for this remediation track
 - Do not start feature work or monolith decomposition implementation
+
+## 2026-07-20 — D7/D8 complete: performance engineering, query targeting, observability, bounded resilience
+
+What shipped
+- Repaired the proven `operational_facts` one-row trench read path by tightening the shared trench fact query helpers and adjacent trench readers to the tenant-aware hot-query shape.
+- Eliminated Mongo reads for definitively empty PM scope on the read-heavy PM-scoped routes by adding `PmScope.is_definitively_empty()` and route-level short-circuits.
+- Added the canonical D7/D8 evidence set under `docs/performance/` and `docs/architecture/`, plus the `performance-baseline-contract` release-gate hook and admin performance-baseline diagnostics endpoint.
+- Extended runtime reliability with bounded workspace cleanup evidence under resource distress while preserving fail-closed behavior and incident capture.
+
+Files/areas changed
+- Backend query targeting: `backend/services/safety_portal_trench/trench_kpi_lift.py`, `backend/routes/trench_project_intelligence.py`, `backend/services/trench_safety/derived_views.py`, `backend/services/operational_kpis/aggregator.py`, `backend/routes/operational_kpis.py`
+- PM-scope short-circuiting: `backend/pm_auth.py`, `backend/routes/qaqc.py`, `backend/routes/daily_reports.py`, `backend/routes/safety.py`, `backend/routes/equipment.py`, `backend/routes/job_photos.py`, `backend/server.py`
+- Runtime/governance: `backend/lib/runtime_reliability.py`, `backend/routes/admin_runtime_reliability.py`, `backend/lib/release_gate_governance.py`, `scripts/release_gate.py`, `docs/governance/release_gate_manifest.json`
+- Evidence artifacts: `docs/performance/*`, `docs/architecture/PERFORMANCE_EVENT_CONTRACT.md`, `docs/architecture/SAFE_SELF_HEALING_FOUNDATION.md`
+
+Testing completed
+- Local D7/D8 core proof: `backend/tests/test_checkpoint_d7_d8_performance_repairs.py` — passed
+- Existing trench regression coverage: `backend/tests/test_track_23_10_d_safety_trench_lift.py` and `backend/tests/test_track_23_10_c_project_linker_and_facts.py` — passed
+- Runtime reliability regression coverage: `backend/tests/test_rel01_runtime_reliability.py` and unit tests — passed
+- Focused D1–D8 backend stack (excluding the slow CLI-only gate test) — 68 passed
+- Frontend production build — passed (`yarn build`, ~63.82s)
+- Smoke screenshot of preview root captured the intentional D1 fail-closed 502 state
+- Independent reviews passed: frontend fail-closed smoke via `auto_frontend_testing_agent`, backend review via `deep_testing_backend_v2`, and formal verification via `testing_agent` (`/app/test_reports/iteration_10.json`)
+
+Safety/accounting for this slice
+- No deployment
+- No GitHub save
+- No `.env` changes
+- No Atlas index creation/hide/drop
+- No Production database or storage mutation
+- No migration or restore execution
+
+Prioritized next actions
+- P1: D9 safe self-healing foundation expansion on top of the bounded D7/D8 runtime contract
+- P1: D10 one-body integration contract
+- P1: D11 monolith decomposition blueprint
+- P1: D12 governed outputs documentation
+- P1: D13/D14 focused testing and independent verification for the full Checkpoint D track

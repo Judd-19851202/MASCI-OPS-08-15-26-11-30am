@@ -23,11 +23,12 @@
   "frontend": {
     "dependency_count": 72,
     "bundle": {
-      "js_bytes": 43445765,
+      "js_bytes": 43446383,
+      "build_duration_seconds": 63.82,
       "css_bytes": 483068,
       "media_bytes": 107016,
       "other_bytes": 8635546,
-      "total_bytes": 52671395
+      "total_bytes": 52672013
     },
     "workspace_bytes": 2208055527,
     "bundle_disposition": "BASELINE_CAPTURE_ONLY"
