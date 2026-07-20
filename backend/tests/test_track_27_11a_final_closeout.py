@@ -260,6 +260,107 @@ def test_integrity_check_exposes_rowwise_lineage_for_recent_backups(monkeypatch)
     assert failed_row["failed_checks"][0]["code"] == "missing_from_live_required_set"
 
 
+def test_integrity_rows_preserve_newest_fail_and_older_pass(monkeypatch):
+    import backup_verification  # noqa: PLC0415
+
+    async def _fake_list_r2_backup_archives(prefix: str = "backups/"):
+        assert prefix == "backups/auto-90d/"
+        return [
+            {
+                "key": f"backups/auto-90d/MASCI_complete_backup_2026-07-12_1{i}0050Z.zip",
+                "filename": f"MASCI_complete_backup_2026-07-12_1{i}0050Z.zip",
+                "size_bytes": 1040000000 + i,
+                "last_modified_iso": f"2026-07-12T1{i}:05:40.000000+00:00",
+            }
+            for i in range(4, 9)
+        ]
+
+    async def _fake_read_r2_backup_manifest(key: str):
+        hour = key.split("_")[-2][-2:]
+        generated_at = f"2026-07-12T{hour}:05:40.000000+00:00"
+        manifest = {
+            "generated_at": generated_at,
+            "captured_collections": ["backup_health", "daily_reports", "meetings"],
+            "per_kind": {"backup_health": 20, "daily_reports": 215, "meetings": 56},
+            "total_records": 253000 + int(hour),
+            "explicit_exclusions": [],
+        }
+        if key.endswith("180050Z.zip"):
+            manifest["captured_collections"] = ["backup_health", "daily_reports"]
+        return {
+            "manifest_name": "MANIFEST.json",
+            "content_length": 1048781324,
+            "last_modified_iso": generated_at,
+            "manifest": manifest,
+        }
+
+    monkeypatch.setattr(backup_verification, "list_r2_backup_archives", _fake_list_r2_backup_archives)
+    monkeypatch.setattr(backup_verification, "read_r2_backup_manifest", _fake_read_r2_backup_manifest)
+    monkeypatch.setattr(server, "_list_stored_backups", lambda: [])
+
+    fake_db = _FakeDB()
+
+    async def _call_route():
+        fn = next(
+            route.endpoint
+            for route in server.app.routes
+            if getattr(route, "path", "") == "/api/admin/backups/integrity-check"
+        )
+        old_db = server._get_db_target_for_tests()
+        server._set_db_target_for_tests(fake_db)
+        try:
+            return await fn(True)
+        finally:
+            server._set_db_target_for_tests(old_db)
+
+    out = asyncio.run(_call_route())
+    newest = next(row for row in out["recent_backups"] if row["filename"].endswith("180050Z.zip"))
+    older = next(row for row in out["recent_backups"] if row["filename"].endswith("170050Z.zip"))
+    assert newest["integrity_result"] == "FAIL"
+    assert older["integrity_result"] == "PASS"
+
+
+def test_integrity_rows_without_manifest_evidence_remain_unknown(monkeypatch):
+    import backup_verification  # noqa: PLC0415
+
+    async def _fake_list_r2_backup_archives(prefix: str = "backups/"):
+        return [
+            {
+                "key": "backups/auto-90d/MASCI_complete_backup_2026-07-12_180050Z.zip",
+                "filename": "MASCI_complete_backup_2026-07-12_180050Z.zip",
+                "size_bytes": 1040000008,
+                "last_modified_iso": "2026-07-12T18:05:40.000000+00:00",
+            }
+        ]
+
+    async def _fake_read_r2_backup_manifest(key: str):
+        return None
+
+    monkeypatch.setattr(backup_verification, "list_r2_backup_archives", _fake_list_r2_backup_archives)
+    monkeypatch.setattr(backup_verification, "read_r2_backup_manifest", _fake_read_r2_backup_manifest)
+    monkeypatch.setattr(server, "_list_stored_backups", lambda: [])
+
+    fake_db = _FakeDB()
+
+    async def _call_route():
+        fn = next(
+            route.endpoint
+            for route in server.app.routes
+            if getattr(route, "path", "") == "/api/admin/backups/integrity-check"
+        )
+        old_db = server._get_db_target_for_tests()
+        server._set_db_target_for_tests(fake_db)
+        try:
+            return await fn(True)
+        finally:
+            server._set_db_target_for_tests(old_db)
+
+    out = asyncio.run(_call_route())
+    row = out["recent_backups"][0]
+    assert row["integrity_result"] == "UNKNOWN"
+    assert row["evidence_mode"] in {"SUMMARY_ONLY", "MANIFEST_ONLY"}
+
+
 def test_version_endpoint_separates_build_and_process_timestamps(monkeypatch):
     monkeypatch.setattr(server, "_BUILT_AT_ISO", "2026-07-12T01:46:04+00:00")
     monkeypatch.setattr(server, "_BUILD_AT_SOURCE", "env:BUILT_AT")

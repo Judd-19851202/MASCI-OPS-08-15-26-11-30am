@@ -10230,7 +10230,7 @@ async def admin_backup_integrity_check(_: bool = Depends(require_admin_strict)):
         row_archive_member_prefixes: Optional[List[str]] = None
         row_contract = None
 
-        if idx == 0 and candidate.get("object_key"):
+        if candidate.get("object_key"):
             row_manifest_bundle = None
             if manifest_bundle and candidate.get("object_key") == (latest_r2 or {}).get("key"):
                 row_manifest_bundle = manifest_bundle
