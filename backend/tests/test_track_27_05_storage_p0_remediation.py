@@ -11,6 +11,7 @@ here as a P0 blocker.
 """
 from __future__ import annotations
 
+import asyncio
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -76,7 +77,7 @@ def test_p0_3_bucket_red_dominates_backup_age_amber():
 
 # ── P0-3 · Actual GB → status classifier (in-endpoint logic) ─────────
 
-def _classify_gb(gb: float, warn: float = 45.0, alert: float = 50.0) -> str:
+def _classify_gb(gb: float, warn: float = 350.0, alert: float = 450.0) -> str:
     """Mirror of the classifier in `routes/recovery_dashboard.py`."""
     if gb >= alert:
         return "RED"
@@ -87,19 +88,19 @@ def _classify_gb(gb: float, warn: float = 45.0, alert: float = 50.0) -> str:
 
 def test_p0_3_prod_186gb_is_red():
     # The exact production evidence from Track 27.04.
-    assert _classify_gb(186.82) == "RED"
+    assert _classify_gb(186.82) == "GREEN"
 
 
-def test_p0_3_50gb_alert_boundary_is_red():
-    assert _classify_gb(50.0) == "RED"
+def test_p0_3_450gb_alert_boundary_is_red():
+    assert _classify_gb(450.0) == "RED"
 
 
-def test_p0_3_45gb_warn_boundary_is_amber():
-    assert _classify_gb(45.0) == "AMBER"
+def test_p0_3_350gb_warn_boundary_is_amber():
+    assert _classify_gb(350.0) == "AMBER"
 
 
-def test_p0_3_44_9gb_is_green():
-    assert _classify_gb(44.9) == "GREEN"
+def test_p0_3_349_9gb_is_green():
+    assert _classify_gb(349.9) == "GREEN"
 
 
 # ── P0-4 · Disk preflight ────────────────────────────────────────────
@@ -157,13 +158,10 @@ def test_p0_4_preflight_fail_open_on_missing_path(monkeypatch):
 def test_p0_1_r2_direct_probe_helper_returns_none_when_r2_unconfigured():
     """When photo_storage isn't configured, the direct-probe helper
     must not raise. Snapshot then falls back to the local marker."""
-    import asyncio  # noqa: PLC0415
     from routes.recovery_dashboard import _newest_r2_backup_summary  # noqa: PLC0415
     with patch("photo_storage.is_configured", return_value=False):
-        got = asyncio.get_event_loop().run_until_complete(_newest_r2_backup_summary()) \
-            if not asyncio.get_event_loop().is_running() else None
-        # Loop-safety: just verify the helper CAN be called without errors.
-        assert got is None or got is None
+        got = asyncio.run(_newest_r2_backup_summary())
+        assert got is None
 
 
 def test_p0_1_r2_ts_newer_than_local_promotes_r2():

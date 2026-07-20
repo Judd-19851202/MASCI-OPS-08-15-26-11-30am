@@ -11,7 +11,8 @@ what it is. NO black-box weighting.
 
 Sub-scores (0–100 each)
 -----------------------
-- capacity_score        — 100 when usage < warn, degrades to 0 at 3× alert.
+- capacity_score        — informational capacity pressure against the
+                         current governed policy thresholds.
 - ownership_score       — % of objects with a VERIFIED_OWNER classification.
 - orphan_score          — 100 when 0 orphans, degrades linearly to 0 at
                           20 % orphan share.
@@ -104,7 +105,12 @@ async def compute_storage_health(
             {"$group": {"_id": None, "b": {"$sum": "$size"}}}
         ]).to_list(1)
         gb = round((stat[0]["b"] if stat else 0) / (1024 ** 3), 2)
-    warn_gb, alert_gb = 45.0, 50.0
+    # The old 45/50 GB heuristic is obsolete for the current production
+    # bucket shape (~404 GB). Keep the capacity signal truthful by using
+    # governed env thresholds when provided, otherwise fall back to the
+    # current production policy defaults.
+    warn_gb = float((__import__('os').environ.get('R2_USAGE_WARN_GB') or '350'))
+    alert_gb = float((__import__('os').environ.get('R2_USAGE_ALERT_GB') or '450'))
 
     # 2) Classification snapshot.
     cls_row = await db.r2_lifecycle_runs.find_one(

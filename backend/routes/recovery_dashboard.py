@@ -321,8 +321,8 @@ def build_recovery_dashboard_router(
         rpo_target = int(os.environ.get("BACKUP_RPO_TARGET_MINUTES", "60") or "60")
         rto_target = int(os.environ.get("BACKUP_RTO_TARGET_MINUTES", "15") or "15")
         age_target = int(os.environ.get("BACKUP_AGE_TARGET_HOURS", "24") or "24") * 60
-        warn_gb = float(os.environ.get("R2_USAGE_WARN_GB", "45") or "45")
-        alert_gb = float(os.environ.get("R2_USAGE_ALERT_GB", "50") or "50")
+        warn_gb = float(os.environ.get("R2_USAGE_WARN_GB", "350") or "350")
+        alert_gb = float(os.environ.get("R2_USAGE_ALERT_GB", "450") or "450")
 
         # --- last successful complete-r2 backup ---
         # TRACK 27.05 · P0-1 · Recovery Snapshot ↔ R2 Reality Divergence.

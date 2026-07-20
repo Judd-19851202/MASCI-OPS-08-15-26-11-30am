@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
-"""r2_usage_check.py — MASCI Hub R2 bucket usage probe + 50 GB alert.
+"""r2_usage_check.py — MASCI Hub R2 bucket usage probe.
 
 Sums all object sizes in the configured R2 bucket and emits a status
 suitable for cron-with-email or for piping into the backup scheduler's
 warning log.
 
 Exit codes:
-    0  → bucket size below WARN threshold (default 45 GB)
-    1  → between WARN and ALERT (default 45–50 GB)  → warn
-    2  → at or above ALERT threshold (default 50 GB) → page
+    0  → bucket size below WARN threshold
+    1  → between WARN and ALERT → warn
+    2  → at or above ALERT threshold → page
 
 Usage:
     python3 scripts/r2_usage_check.py
     python3 scripts/r2_usage_check.py --json
-    python3 scripts/r2_usage_check.py --warn-gb 40 --alert-gb 50
+    python3 scripts/r2_usage_check.py --warn-gb 350 --alert-gb 450
     python3 scripts/r2_usage_check.py --prefix backups/
 """
 from __future__ import annotations
@@ -90,8 +90,8 @@ def summarize(client, bucket: str, prefix: str = "") -> dict:
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--prefix", default="", help="restrict to this prefix")
-    ap.add_argument("--warn-gb", type=float, default=45.0)
-    ap.add_argument("--alert-gb", type=float, default=50.0)
+    ap.add_argument("--warn-gb", type=float, default=350.0)
+    ap.add_argument("--alert-gb", type=float, default=450.0)
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args()
 

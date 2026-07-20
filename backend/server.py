@@ -10176,7 +10176,8 @@ async def admin_backup_integrity_check(_: bool = Depends(require_admin_strict)):
         )
         top_contract["classification"] = "UNKNOWN"
         top_contract["classification_reason_code"] = "environment_mismatch_manifest_vs_runtime"
-        top_contract["integrity_result"] = "UNKNOWN"
+        if top_contract.get("integrity_result") == "PASS":
+            top_contract["integrity_result"] = "UNKNOWN"
         top_contract["failed_checks"] = []
         top_contract["missing_from_backup"] = []
         top_contract["evidence_mode"] = "MANIFEST_ONLY"
@@ -10244,7 +10245,7 @@ async def admin_backup_integrity_check(_: bool = Depends(require_admin_strict)):
                 row_ts = row_manifest.get("generated_at") or row_manifest_bundle.get("last_modified_iso") or row_ts
                 row_size_bytes = row_manifest_bundle.get("content_length") or row_size_bytes
                 row_evidence_source = f"r2:{row_manifest_bundle.get('manifest_name')}"
-        elif idx > 0:
+        if row_contract is None and idx > 0 and not candidate.get("object_key"):
             row_evidence_source = "summary-only"
             row_contract = {
                 "captured_collections": None,
@@ -10301,9 +10302,8 @@ async def admin_backup_integrity_check(_: bool = Depends(require_admin_strict)):
         if row_manifest and not use_live_comparison and has_explicit_identity:
             row_contract["classification"] = "UNKNOWN"
             row_contract["classification_reason_code"] = "environment_mismatch_manifest_vs_runtime"
-            row_contract["integrity_result"] = "UNKNOWN"
-            row_contract["failed_checks"] = []
-            row_contract["missing_from_backup"] = []
+            if row_contract.get("integrity_result") == "PASS":
+                row_contract["integrity_result"] = "UNKNOWN"
             row_contract["evidence_mode"] = "MANIFEST_ONLY"
             row_contract["unavailable_fields"] = sorted(set(row_contract["unavailable_fields"] + ["live_collection_comparison"]))
             row_contract["unavailable_reason"] = (
