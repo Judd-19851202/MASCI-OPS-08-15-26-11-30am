@@ -53,6 +53,43 @@ _DIRTY_RE = re.compile(r'BUILD_WORKSPACE_DIRTY\s*=\s*(true|false)')
 _HEXISH_RE = re.compile(r"^[a-f0-9]{7,40}$", re.IGNORECASE)
 
 
+def collect_workspace_snapshot(repo_root: Path) -> Dict[str, Any]:
+    def _run(*args: str) -> str:
+        try:
+            return subprocess.check_output(args, cwd=str(repo_root), stderr=subprocess.DEVNULL, text=True).strip()
+        except Exception:
+            return ""
+
+    status = _run("git", "status", "--short")
+    lines = [line for line in status.splitlines() if line.strip()]
+    return {
+        "branch": _run("git", "branch", "--show-current"),
+        "head": _run("git", "rev-parse", "HEAD"),
+        "status_lines": lines,
+        "dirty": bool(lines),
+    }
+
+
+def workspace_candidate_identity(repo_root: Path, *, env: Optional[Dict[str, str]] = None) -> Tuple[str, str, Dict[str, Any]]:
+    """Return (candidate_id, source, snapshot) for the current workspace.
+
+    - Clean checkout: candidate is git HEAD.
+    - Dirty but governed workspace: candidate is PRE_SAVE_CANDIDATE:<HEAD>:<source_hash_prefix>.
+    This never claims a dirty workspace is a committed SHA.
+    """
+    snapshot = collect_workspace_snapshot(repo_root)
+    source_hash = compute_source_hash(repo_root)
+    env_commit, env_source = _env_commit(env)
+    if env_commit:
+        return env_commit, env_source or "env", snapshot
+    head = snapshot.get("head") or ""
+    if head and not snapshot.get("dirty"):
+        return head, "git:HEAD", snapshot
+    if head:
+        return f"PRE_SAVE_CANDIDATE:{head}:{source_hash[:12]}", "workspace:pre_save_candidate", snapshot
+    return f"PRE_SAVE_CANDIDATE:UNPROVEN:{source_hash[:12]}", "workspace:pre_save_candidate", snapshot
+
+
 def read_release_fingerprint_relative_paths(repo_root: Path) -> List[str]:
     try:
         raw = json.loads((repo_root / RELEASE_SCOPE_FILE).read_text(encoding="utf-8"))
