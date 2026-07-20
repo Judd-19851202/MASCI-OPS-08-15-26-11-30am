@@ -251,3 +251,23 @@ Safety accounting
 - No GitHub save
 - No production mutation
 - No `.env` changes
+
+## 2026-07-20 — PDC-01A blocker remediation
+
+Scope
+- Strictly limited to the four PDC-01 blockers: auth continuity proof, governed PRE_SAVE_CANDIDATE authority, release identity reconciliation, and removal of stale `/app/memory/**` auth-support dependency from the blocker path.
+
+Implemented
+- Added `docs/governance/AUTHENTICATION_CONTINUITY_REGISTER.md` as the canonical deployment-grade auth continuity artifact.
+- Repointed the PDC auth blocker suite away from stale `/app/memory/**` auth docs and onto the governed continuity register.
+- Added governed `pre_save_candidate_policy` handling plus deterministic dirty-file inventory enforcement in the release gate.
+- Regenerated frontend build identity through the canonical stamping flow.
+- Updated runtime-dependent auth regression suites to skip honestly when preview is intentionally fail-closed.
+
+Validation snapshot
+- `backend/scripts/verify_release_identity.py` passes after canonical restamp.
+- Focused blocker/auth suites pass or skip honestly under fail-closed preview constraints.
+- Independent backend verification reported `PDC-01A COMPLETE — READY TO RERUN PDC-01`.
+
+Remaining immediate action
+- Rerun PDC-01 from the current governed candidate state.

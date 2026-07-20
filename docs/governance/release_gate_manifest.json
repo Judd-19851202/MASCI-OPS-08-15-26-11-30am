@@ -42,6 +42,41 @@
         "path": "frontend/yarn.lock",
         "mission_ref": "PDC-01A Blocker 1 and Blocker 3",
         "rationale": "Dependency lockfile drift is explicitly inventoried as the governed pre-save candidate delta that must be reconciled before clean-SHA deploy certification."
+      },
+      {
+        "path": "backend/lib/release_gate_governance.py",
+        "mission_ref": "PDC-01A Blocker 1",
+        "rationale": "PRE_SAVE_CANDIDATE authority parsing and inventory enforcement live here and are allowed as a governed pre-save delta only."
+      },
+      {
+        "path": "docs/governance/release_gate_manifest.json",
+        "mission_ref": "PDC-01A Blocker 1 and Blocker 4",
+        "rationale": "The canonical manifest itself must carry the governed pre-save inventory and auth continuity reference updates for this remediation slice."
+      },
+      {
+        "path": "frontend/src/buildVersion.generated.js",
+        "mission_ref": "PDC-01A Blocker 3",
+        "rationale": "Canonical build stamping regenerates the frontend release identity artifact for the governed pre-save candidate source."
+      },
+      {
+        "path": "backend/scripts/verify_release_identity.py",
+        "mission_ref": "PDC-01A Blocker 3",
+        "rationale": "The release identity verifier now classifies PRE_SAVE_CANDIDATE workspaces honestly and is part of the governed identity reconciliation change-set."
+      },
+      {
+        "path": "backend/tests/test_checkpoint_d5_d6_release_gate.py",
+        "mission_ref": "PDC-01A Blocker 1",
+        "rationale": "The release-gate regression suite itself is updated to lock the governed PRE_SAVE_CANDIDATE contract and reject unknown dirty files."
+      },
+      {
+        "path": "backend/static/runtime-data/DEPLOYMENT_HISTORY.json",
+        "mission_ref": "PDC-01A Focused validation",
+        "rationale": "Release-gate execution appends governed workspace certification history here; the file is explicitly inventoried to avoid hidden validation-side drift."
+      },
+      {
+        "path": "memory/PRD.md",
+        "mission_ref": "PDC-01A Blocker 4",
+        "rationale": "The project record is updated to reference the new canonical auth continuity artifact and the exact blocker-remediation scope."
       }
     ]
   },

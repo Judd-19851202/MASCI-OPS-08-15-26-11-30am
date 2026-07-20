@@ -26,10 +26,12 @@ def main() -> int:
         read_frontend_build_identity,
         read_release_fingerprint_relative_paths,
         resolve_runtime_commit,
+        workspace_candidate_identity,
     )
 
     frontend = read_frontend_build_identity(repo_root)
     source_hash = compute_source_hash(repo_root)
+    workspace_candidate, workspace_source, workspace_snapshot = workspace_candidate_identity(repo_root, env={})
     runtime_commit, _ = resolve_runtime_commit(
         repo_root,
         frontend_build_commit=frontend.get("commit"),
@@ -52,7 +54,11 @@ def main() -> int:
     if frontend.get("release_gate_manifest_hash") != manifest_hash:
         raise RuntimeError("frontend release gate manifest hash mismatch")
 
-    if frontend.get("commit") and not commits_match(runtime_commit, frontend.get("commit")):
+    workspace_dirty = bool(workspace_snapshot.get("dirty"))
+    if workspace_dirty and frontend.get("workspace_dirty") is False:
+        raise RuntimeError("frontend generated build identity falsely claims a clean workspace")
+
+    if frontend.get("commit") and not workspace_dirty and not commits_match(runtime_commit, frontend.get("commit")):
         raise RuntimeError(
             f"frontend generated commit {frontend.get('commit')} != runtime commit {runtime_commit}"
         )
@@ -75,6 +81,9 @@ def main() -> int:
     payload = {
         "ok": True,
         "runtime_commit": runtime_commit,
+        "workspace_candidate": workspace_candidate,
+        "workspace_candidate_source": workspace_source,
+        "workspace_dirty": workspace_dirty,
         "frontend_commit": frontend.get("commit"),
         "source_hash": source_hash,
         "dependency_manifest_hash": dependency_hash,

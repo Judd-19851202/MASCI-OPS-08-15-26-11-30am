@@ -190,6 +190,20 @@ def parse_git_status_line(raw_line: str) -> dict[str, Any]:
             "renamed_to": None,
             "parse_error": None,
         }
+    if len(line) >= 3 and line[1] == " ":
+        path = line[2:].strip()
+        label = _status_code_to_label(line[0])
+        return {
+            "raw": raw_line,
+            "path": path,
+            "path_display": path,
+            "index_status": None,
+            "worktree_status": line[0],
+            "change_labels": [label] if label else [],
+            "renamed_from": None,
+            "renamed_to": None,
+            "parse_error": None,
+        }
     match = _STATUS_LINE_RE.match(line)
     if not match:
         return {
