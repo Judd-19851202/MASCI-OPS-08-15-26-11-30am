@@ -845,6 +845,8 @@ def attach_routes(app, db, require_caller, send_email_fn) -> None:
             if date_to:
                 rng["$lte"] = date_to
             q["record_date"] = rng
+        if scope.is_definitively_empty():
+            return {"items": [], "count": 0}
         q = scope.filter(q)
         cursor = db.job_photos.find(q, {"_id": 0}).sort("record_date", -1).limit(5000)
         items = await cursor.to_list(length=5000)

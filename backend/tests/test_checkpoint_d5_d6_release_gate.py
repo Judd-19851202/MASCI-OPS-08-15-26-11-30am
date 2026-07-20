@@ -134,6 +134,23 @@ def test_preview_and_production_acceptance_gates_are_distinct():
     production = set(manifest["production_acceptance_gates"])
     assert production > preview
     assert "backup-verification-contract" in production
+    assert "performance-baseline-contract" in preview
+    assert "performance-baseline-contract" in production
+
+
+def test_performance_contract_fields_present():
+    perf = load_release_gate_manifest(REPO_ROOT)["performance_prerequisites"]
+    for field in [
+        "authority_route",
+        "machine_readable_baseline",
+        "query_inventory",
+        "atlas_evidence_register",
+        "index_query_recommendation_register",
+        "safe_self_healing_contract",
+        "regression_thresholds",
+    ]:
+        assert field in perf
+    assert perf["regression_thresholds"]["api_health_max_seconds"] == 1.0
 
 
 def test_failure_injection_contract_cases_present():
@@ -182,6 +199,11 @@ def test_release_gate_cli_emits_manifest_hashes():
     "release_identity_certificate",
     "build_certificate",
     "test_certificate",
+    "performance_baseline",
+    "atlas_alert_evidence_register",
+    "query_inventory",
+    "index_query_recommendation_register",
+    "safe_self_healing_foundation",
     "dependency_certificate",
     "runtime_identity_certificate",
     "database_authority_certificate",

@@ -87,6 +87,11 @@ RUNTIME_STATE: Dict[str, Any] = {
     "last_successful_health_at": None,
     "restart_count": 0,
     "shutdown_requested": False,
+    "safe_self_healing": {
+        "last_resource_relief_at": None,
+        "resource_relief_actions": [],
+        "cooldown_active": False,
+    },
 }
 
 BACKGROUND_TASKS: Dict[str, Dict[str, Any]] = {}
@@ -486,7 +491,68 @@ def runtime_health_snapshot(app: Any) -> Dict[str, Any]:
         "restart_count": int(RUNTIME_STATE.get("restart_count") or 0),
         "last_successful_health_at": RUNTIME_STATE.get("last_successful_health_at"),
         "last_successful_db_at": RUNTIME_STATE["mongo"].get("last_success_at"),
+        "safe_self_healing": dict(RUNTIME_STATE.get("safe_self_healing") or {}),
     }
+
+
+def _record_resource_relief(action: str, details: Optional[Dict[str, Any]] = None) -> None:
+    state = RUNTIME_STATE.setdefault("safe_self_healing", {})
+    actions = list(state.get("resource_relief_actions") or [])
+    actions.append({
+        "at": _iso(_now()),
+        "action": action,
+        "details": {k: _clip(v, 120) for k, v in (details or {}).items()},
+    })
+    state["resource_relief_actions"] = actions[-12:]
+    state["last_resource_relief_at"] = _iso(_now())
+
+
+def _bounded_safe_resource_relief() -> Dict[str, Any]:
+    freed_bytes = 0
+    removed_files = 0
+    removed_dirs = 0
+    targets = [Path("/tmp"), INCIDENT_DIR, Path("/app/test_reports")]
+    for base in targets:
+        if not base.exists():
+            continue
+        try:
+            items = sorted(base.iterdir(), key=lambda p: p.stat().st_mtime)
+        except Exception:
+            continue
+        if base == Path("/app/test_reports"):
+            stale = items[:-10] if len(items) > 10 else []
+        elif base == INCIDENT_DIR:
+            stale = items[:-20] if len(items) > 20 else []
+        else:
+            cutoff = time.time() - 86400
+            stale = []
+            for p in items:
+                try:
+                    if p.stat().st_mtime < cutoff:
+                        stale.append(p)
+                except Exception:
+                    continue
+        for path in stale[:50]:
+            try:
+                if path.is_dir():
+                    size = sum(f.stat().st_size for f in path.rglob("*") if f.is_file()) if path.exists() else 0
+                    shutil.rmtree(path, ignore_errors=True)
+                    freed_bytes += int(size)
+                    removed_dirs += 1
+                else:
+                    size = path.stat().st_size
+                    path.unlink(missing_ok=True)
+                    freed_bytes += int(size)
+                    removed_files += 1
+            except Exception:
+                continue
+    details = {
+        "freed_bytes": freed_bytes,
+        "removed_files": removed_files,
+        "removed_dirs": removed_dirs,
+    }
+    _record_resource_relief("bounded_workspace_cleanup", details)
+    return details
 
 
 def public_liveness_headers(app: Any) -> Dict[str, str]:
@@ -821,6 +887,8 @@ async def _monitor_tick(app: Any, db: Any) -> None:
         or float(resources.get("cpu_percent") or 0.0) >= CPU_FAIL_PERCENT
         or fd_ratio >= FD_FAIL_RATIO
     ):
+        relief = _bounded_safe_resource_relief()
+        RUNTIME_STATE.setdefault("safe_self_healing", {})["cooldown_active"] = True
         await capture_incident_snapshot(
             app,
             trigger="resource_threshold_crossed",
@@ -829,8 +897,11 @@ async def _monitor_tick(app: Any, db: Any) -> None:
                 "rss_mb": resources.get("rss_mb"),
                 "cpu_percent": resources.get("cpu_percent"),
                 "fd_ratio": round(fd_ratio, 3),
+                "relief_freed_bytes": relief.get("freed_bytes", 0),
             },
         )
+    else:
+        RUNTIME_STATE.setdefault("safe_self_healing", {})["cooldown_active"] = False
 
 
 def start_runtime_monitor(app: Any, db: Any) -> asyncio.Task:
@@ -877,6 +948,7 @@ __all__ = [
     "redact_text",
     "register_background_task",
     "runtime_health_snapshot",
+    "_bounded_safe_resource_relief",
     "set_readiness",
     "set_startup_complete",
     "start_runtime_monitor",

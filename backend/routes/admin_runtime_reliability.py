@@ -16,6 +16,18 @@ def build_runtime_reliability_router(*, app, db, require_admin_dep) -> APIRouter
     async def runtime_health(_admin: Any = Depends(require_admin_dep)) -> Dict[str, Any]:
         return runtime_health_snapshot(app)
 
+    @router.get("/performance-baseline")
+    async def performance_baseline(_admin: Any = Depends(require_admin_dep)) -> Dict[str, Any]:
+        path = Path("/app/docs/performance/performance_baseline.json")
+        payload: Dict[str, Any] = {"ok": False, "path": str(path), "exists": path.exists()}
+        if path.exists():
+            try:
+                payload = json.loads(path.read_text(encoding="utf-8"))
+                payload["ok"] = True
+            except Exception as exc:
+                payload = {"ok": False, "path": str(path), "exists": True, "error": type(exc).__name__}
+        return payload
+
     @router.get("/incident-forensics")
     async def incident_forensics(
         limit: int = Query(25, ge=1, le=100),

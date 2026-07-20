@@ -131,6 +131,7 @@ def _focused_regressions() -> dict[str, Any]:
         "/app/backend/tests/test_checkpoint_d3_database_authority.py",
         "/app/backend/tests/test_checkpoint_d4_dependency_governance.py",
         "/app/backend/tests/test_checkpoint_d5_d6_release_gate.py",
+        "/app/backend/tests/test_checkpoint_d7_d8_performance_repairs.py",
     ], cwd=REPO_ROOT, timeout=1800)
 
 
@@ -176,6 +177,37 @@ def _backup_contract_gate(manifest: dict[str, Any]) -> dict[str, Any]:
     if missing:
         errors.append("backup prerequisites missing required checks: " + ", ".join(missing))
     return {"returncode": 0 if not errors else 1, "errors": errors}
+
+
+def _performance_baseline_gate(manifest: dict[str, Any]) -> dict[str, Any]:
+    perf = manifest.get("performance_prerequisites") or {}
+    errors = []
+    payloads = {}
+    required_paths = {
+        "machine_readable_baseline": perf.get("machine_readable_baseline"),
+        "query_inventory": perf.get("query_inventory"),
+        "atlas_evidence_register": perf.get("atlas_evidence_register"),
+        "index_query_recommendation_register": perf.get("index_query_recommendation_register"),
+        "safe_self_healing_contract": perf.get("safe_self_healing_contract"),
+    }
+    for key, rel in required_paths.items():
+        if not rel:
+            errors.append(f"performance prerequisite missing path for {key}")
+            continue
+        path = REPO_ROOT / rel
+        if not path.exists():
+            errors.append(f"missing performance artifact: {rel}")
+            continue
+        if path.suffix == ".json":
+            try:
+                payloads[key] = json.loads(path.read_text(encoding="utf-8"))
+            except Exception as exc:
+                errors.append(f"invalid json in {rel}: {type(exc).__name__}")
+    baseline = payloads.get("machine_readable_baseline") or {}
+    for field in ["checkpoint", "captured_at", "backend", "frontend", "scheduler", "workspace_resources"]:
+        if field not in baseline:
+            errors.append(f"performance baseline missing {field}")
+    return {"returncode": 0 if not errors else 1, "errors": errors, "baseline": baseline}
 
 
 def _migration_contract_gate(manifest: dict[str, Any]) -> dict[str, Any]:
@@ -243,6 +275,7 @@ CHECK_RUNNERS = {
     "release-identity-verifier": lambda manifest, target: _release_identity_verifier(),
     "release-gate-manifest": lambda manifest, target: _manifest_gate(manifest),
     "one-body-authorities": lambda manifest, target: _one_body_gate(manifest),
+    "performance-baseline-contract": lambda manifest, target: _performance_baseline_gate(manifest),
     "workflow-audit": lambda manifest, target: _workflow_gate(),
     "backup-verification-contract": lambda manifest, target: _backup_contract_gate(manifest),
     "migration-compatibility-contract": lambda manifest, target: _migration_contract_gate(manifest),

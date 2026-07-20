@@ -167,7 +167,7 @@ def register_operational_kpis_routes(
         # Also fold in any project_number that has recorded facts in
         # the window (so a job that hasn't been added to jobs_master
         # yet still surfaces).
-        q_facts: Dict[str, Any] = {"is_current": True}
+        q_facts: Dict[str, Any] = {"tenant_id": "masci", "is_current": True}
         if date_from or date_to:
             d: Dict[str, Any] = {}
             if date_from:

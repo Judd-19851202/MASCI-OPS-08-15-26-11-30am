@@ -37,6 +37,8 @@ BANNED_COST_KEYS = frozenset({
     "invoice", "billing", "charge",
 })
 
+TENANT_DEFAULT = "masci"
+
 
 def _assert_no_cost(payload: Dict[str, Any]) -> Dict[str, Any]:
     """Runtime guard — strip any cost-adjacent key before responding.
@@ -82,6 +84,7 @@ def _classify_source(linked: int, partial: int, missing: int) -> str:
 def _fact_query(fact_type: str, window_start: Optional[str] = None,
                 project_id: Optional[str] = None) -> Dict[str, Any]:
     q: Dict[str, Any] = {
+        "tenant_id": TENANT_DEFAULT,
         "source_type": SOURCE_TYPE_TRENCH,
         "source_id": "trench_safety",
         "fact_type": fact_type,
@@ -331,14 +334,14 @@ async def project_trench_safety_kpis(
     })
     # Latest excavation-day signal.
     latest_ex = await db[COLL_FACTS].find(
-        {**_fact_query("excavation_day_fact"), **q_proj},
+        _fact_query("excavation_day_fact", project_id=str(project_number)),
         {"_id": 0},
     ).sort("date", -1).to_list(1)
     latest_ex = latest_ex[0] if latest_ex else None
 
     # CP snapshot: latest CP assignment on this project.
     latest_cp_assignments = await db[COLL_FACTS].find(
-        {**_fact_query("competent_person_assignment_fact"), **q_proj},
+        _fact_query("competent_person_assignment_fact", project_id=str(project_number)),
         {"_id": 0},
     ).sort("created_at", -1).to_list(5)
 

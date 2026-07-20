@@ -1,0 +1,76 @@
+{
+  "checkpoint": "D7/D8",
+  "generated_at": "2026-07-20T00:00:00Z",
+  "collections": [
+    {
+      "collection": "operational_facts",
+      "entries": [
+        {
+          "id": "trench-project-latest-excavation",
+          "file": "backend/services/safety_portal_trench/trench_kpi_lift.py",
+          "lines": [333, 343],
+          "operation": "find.sort.limit(1)",
+          "query_shape": ["tenant_id", "source_type", "source_id", "fact_type", "is_current", "project_id"],
+          "disposition": "CODE_REPAIR_COMPLETE",
+          "owner_alert_link": "operational_facts_162406_to_1"
+        },
+        {
+          "id": "trench-project-summary-latest",
+          "file": "backend/routes/trench_project_intelligence.py",
+          "lines": [79, 93],
+          "operation": "find.to_list(limit)",
+          "query_shape": ["tenant_id", "source_type", "source_id", "project_id", "fact_type", "is_current"],
+          "disposition": "CODE_REPAIR_COMPLETE",
+          "owner_alert_link": "adjacent_one_row_reader"
+        },
+        {
+          "id": "trench-derived-release-view",
+          "file": "backend/services/trench_safety/derived_views.py",
+          "lines": [114, 180],
+          "operation": "find",
+          "query_shape": ["tenant_id", "source_type", "source_id", "is_current", "project_id", "fact_type"],
+          "disposition": "CODE_REPAIR_COMPLETE",
+          "owner_alert_link": "adjacent_release_reader"
+        },
+        {
+          "id": "operational-kpis-project-rollup",
+          "file": "backend/services/operational_kpis/aggregator.py",
+          "lines": [100, 113],
+          "operation": "find",
+          "query_shape": ["tenant_id", "project_id", "is_current", "date"],
+          "disposition": "CODE_REPAIR_COMPLETE",
+          "owner_alert_link": "adjacent_project_rollup"
+        },
+        {
+          "id": "operational-kpis-company-project-distinct",
+          "file": "backend/routes/operational_kpis.py",
+          "lines": [170, 178],
+          "operation": "distinct",
+          "query_shape": ["tenant_id", "is_current", "date"],
+          "disposition": "CODE_REPAIR_COMPLETE",
+          "owner_alert_link": "adjacent_company_project_lookup"
+        }
+      ]
+    },
+    {
+      "collection": "pm_scoped_read_routes",
+      "entries": [
+        {
+          "id": "pm-empty-scope-short-circuit",
+          "files": [
+            "backend/routes/qaqc.py",
+            "backend/routes/daily_reports.py",
+            "backend/routes/safety.py",
+            "backend/routes/equipment.py",
+            "backend/routes/job_photos.py",
+            "backend/server.py"
+          ],
+          "operation": "pre-query short-circuit",
+          "query_shape": ["scope.is_definitively_empty()"],
+          "disposition": "CODE_REPAIR_COMPLETE",
+          "owner_alert_link": "pm_empty_scope_sentinel"
+        }
+      ]
+    }
+  ]
+}

@@ -292,6 +292,15 @@ class PmScope:
         q["project_number"] = {"$in": nums}
         return q
 
+    def is_definitively_empty(self) -> bool:
+        """True when this scope fail-closed to no authorized projects.
+
+        Callers that can safely return an empty payload should branch on
+        this before issuing any Mongo query. This avoids impossible-match
+        sentinel queries that still force collection scans on large tables.
+        """
+        return (not self.is_admin) and not bool(self.project_numbers)
+
     def allows(self, project_number: Optional[str]) -> bool:
         """Used by single-record GETs to decide whether the PM can read
         a given record. Admin → always True. PM → only if the record's

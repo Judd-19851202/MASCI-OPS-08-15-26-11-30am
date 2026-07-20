@@ -98,6 +98,7 @@ async def _fetch_facts(
     fact_type. Cheaper than a per-type query and lets the aggregator
     walk the whole set once."""
     q: Dict[str, Any] = {
+        "tenant_id": "masci",
         "project_id": project_number,
         "is_current": True,
     }
@@ -578,6 +579,7 @@ async def _safety_source_classification(
         return "LIVE" if count > 0 else "PARTIAL"
 
     daily_safety = await db.operational_facts.count_documents({
+        "tenant_id": "masci",
         "fact_type": "safety_fact", "project_id": project_number,
     })
     incident_count = await db.incidents.count_documents({

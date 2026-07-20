@@ -6107,6 +6107,8 @@ async def list_projects_in_dailies(actor=Depends(require_admin)):
     from pm_auth import compute_pm_scope
     from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion  # noqa: PLC0415
     scope = await compute_pm_scope(db, actor)
+    if scope.is_definitively_empty():
+        return {"items": [], "count": 0}
     # TRACK 28.02B · exclude synthetic/TEST rows so the P&L picker
     # never surfaces certification projects to real operators.
     pipeline = [

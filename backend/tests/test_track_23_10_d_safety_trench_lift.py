@@ -80,6 +80,7 @@ def _seed_fact(db, fact_type, project_id, payload=None, is_active=None,
         "confidence": confidence or ("high" if project_id != "unknown" else "none"),
     })
     db.operational_facts.docs.append({
+        "tenant_id": "masci",
         "fact_id": uuid.uuid4().hex,
         "fact_type": fact_type,
         "source_type": "safety_form",

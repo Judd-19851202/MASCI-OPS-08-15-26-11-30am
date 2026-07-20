@@ -29,6 +29,8 @@ from services.ods_spine.store import COLL_FACTS
 from .facts_emitter import SOURCE_TYPE_TRENCH
 from .project_linker import resolve_project
 
+TENANT_DEFAULT = "masci"
+
 
 async def deployment_view(
     db, project_number: Optional[str] = None,
@@ -110,6 +112,7 @@ async def trench_release_view(
     """
     events: List[Dict[str, Any]] = []
     q_base = {
+        "tenant_id": TENANT_DEFAULT,
         "source_type": SOURCE_TYPE_TRENCH,
         "source_id": "trench_safety",
         "is_current": True,
@@ -163,6 +166,7 @@ async def excavation_activity_view(
     if not project_number:
         return {"project_number": None, "days": []}
     q = {
+        "tenant_id": TENANT_DEFAULT,
         "source_type": SOURCE_TYPE_TRENCH,
         "source_id": "trench_safety",
         "project_id": str(project_number),

@@ -444,6 +444,18 @@ def register_equipment_routes(
         most failed inspections, and jobsites trending bad. Last `days` days.
         """
         scope = await compute_pm_scope(db, actor)
+        if scope.is_definitively_empty():
+            return {
+                "window_days": days,
+                "totals": {
+                    "inspections": 0,
+                    "out_of_service_fails": 0,
+                    "needs_attention_fails": 0,
+                },
+                "equipment": [],
+                "operators": [],
+                "jobsites": [],
+            }
         since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
         cursor = db.equipment_inspections.find(
             scope.filter({"created_at": {"$gte": since}}),
@@ -524,6 +536,8 @@ def register_equipment_routes(
         """Every still-open FAIL item (no shop sign-off yet) across all
         equipment inspections, sorted by inspection date desc."""
         scope = await compute_pm_scope(db, actor)
+        if scope.is_definitively_empty():
+            return {"items": [], "count": 0}
         cursor = db.equipment_inspections.find(
             scope.filter({"fail_count": {"$gt": 0}}), {"_id": 0}
         ).sort("created_at", -1)

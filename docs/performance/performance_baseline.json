@@ -1,0 +1,106 @@
+{
+  "checkpoint": "D7/D8",
+  "captured_at": "2026-07-20T00:00:00Z",
+  "mode": "preview_workspace_governed",
+  "notes": [
+    "Preview API probes returned 502 by design because D1 fail-closed protection remains active.",
+    "All values were captured from the workspace, generated build artifacts, repository manifests, and current code inventory only.",
+    "No Atlas indexes were created, hidden, or removed. No production systems were contacted or mutated."
+  ],
+  "backend": {
+    "preview_probe": {
+      "base_url": "https://backup-forensics.preview.emergentagent.com",
+      "health": {"status": 502, "seconds": 0.297627, "disposition": "INTENTIONAL_FAIL_CLOSED"},
+      "ready": {"status": 502, "seconds": 0.116346, "disposition": "INTENTIONAL_FAIL_CLOSED"},
+      "version": {"status": 502, "seconds": 0.130585, "disposition": "INTENTIONAL_FAIL_CLOSED"},
+      "health_full": {"status": 502, "seconds": 0.135725, "disposition": "INTENTIONAL_FAIL_CLOSED"}
+    },
+    "dependency_count": 169,
+    "workspace_bytes": 121450458,
+    "authority_route": "/api/admin-strict/diag/runtime-health",
+    "performance_authority_route": "/api/admin-strict/diag/performance-baseline"
+  },
+  "frontend": {
+    "dependency_count": 72,
+    "bundle": {
+      "js_bytes": 43445765,
+      "css_bytes": 483068,
+      "media_bytes": 107016,
+      "other_bytes": 8635546,
+      "total_bytes": 52671395
+    },
+    "workspace_bytes": 2208055527,
+    "bundle_disposition": "BASELINE_CAPTURE_ONLY"
+  },
+  "pdf_file": {
+    "modules": [
+      {"path": "backend/training_pdf.py", "bytes": 136065, "kind": "pdf_generation"},
+      {"path": "backend/routes/job_photos.py", "bytes": 54905, "kind": "file_photo_read_surface"},
+      {"path": "backend/routes/daily_reports.py", "bytes": 85706, "kind": "daily_report_export_surface"}
+    ],
+    "disposition": "SOURCE_CAPTURED_FROM_WORKSPACE"
+  },
+  "scheduler": {
+    "registered_task_count": 17,
+    "registered_tasks": [
+      "job-photos-indexer",
+      "photo-intelligence-v1-reconciler",
+      "motive-reliability-supervisor",
+      "synthetic-health-monitor",
+      "safety-digest-singleton",
+      "operator-digest-singleton",
+      "po-digest-singleton",
+      "cluster-capacity-history",
+      "backup-verification-singleton",
+      "transport-automation-singleton",
+      "transport-command-digest-singleton",
+      "scheduled-backup-loop",
+      "asset-spine-nightly-loop",
+      "scheduled-backup-loop",
+      "scheduled-backup-supervisor",
+      "dispatch-reminder-scheduler",
+      "runtime-reliability-monitor"
+    ],
+    "disposition": "CODE_INVENTORY_CAPTURED"
+  },
+  "backup_workload": {
+    "authority_module": "backend/routes/recovery_dashboard.py",
+    "authority_bytes": 23841,
+    "verification_mode": "VERIFICATION_ONLY",
+    "release_gate_contract": "docs/governance/release_gate_manifest.json"
+  },
+  "workspace_resources": {
+    "backend_bytes": 121450458,
+    "frontend_bytes": 2208055527,
+    "docs_bytes": 7373458,
+    "tmp_bytes": 2448030,
+    "bounded_cleanup_targets": [
+      "/tmp",
+      "/app/runtime_incidents",
+      "/app/test_reports"
+    ]
+  },
+  "regression_thresholds": {
+    "api_health_max_seconds": 1.0,
+    "api_ready_max_seconds": 1.0,
+    "frontend_bundle_total_bytes_max": 55000000,
+    "workspace_frontend_bytes_max": 2500000000,
+    "workspace_tmp_bytes_max": 50000000,
+    "disk_percent_fail": 92.0
+  },
+  "safe_self_healing_foundation": {
+    "authority": "backend/lib/runtime_reliability.py",
+    "automatic_actions": [
+      "capture_incident_snapshot",
+      "bounded_workspace_cleanup",
+      "incident_retention_enforcement",
+      "fail_closed_readiness_preservation"
+    ],
+    "forbidden_actions": [
+      "atlas_index_mutation",
+      "production_database_mutation",
+      "unbounded_workspace_deletion",
+      "silent_auto_restart_without_evidence"
+    ]
+  }
+}

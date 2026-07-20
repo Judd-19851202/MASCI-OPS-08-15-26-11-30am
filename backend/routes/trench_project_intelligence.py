@@ -48,6 +48,8 @@ from services.trench_safety.derived_views import (
     trench_asset_utilization,
     trench_release_view,
 )
+
+TENANT_DEFAULT = "masci"
 from services.trench_safety.project_linker import resolve_project
 
 
@@ -76,6 +78,7 @@ async def _pm_project_numbers(db, actor: Dict[str, Any]) -> Optional[List[str]]:
 
 def _facts_query(project_number: str, fact_type: str) -> Dict[str, Any]:
     return {
+        "tenant_id": TENANT_DEFAULT,
         "source_type": SOURCE_TYPE_TRENCH,
         "source_id": "trench_safety",
         "project_id": str(project_number),

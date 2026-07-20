@@ -712,6 +712,24 @@ async def _run_daily_reports_csv_export(db, actor: Any) -> Dict[str, Any]:
     import io as _io    # noqa: PLC0415
 
     scope = await compute_pm_scope(db, actor)
+    if scope.is_definitively_empty():
+        buf = _io.StringIO()
+        fields = [
+            "report_number", "report_date", "project_number", "project_name",
+            "location", "prepared_by", "superintendent", "weather_summary",
+            "schedule_delays", "weather_impact",
+            "safety_incidents_today", "injuries_reported",
+            "crew_count", "sub_count", "visitor_count", "photo_count",
+            "created_at",
+        ]
+        writer = _csv.DictWriter(buf, fieldnames=fields, extrasaction="ignore")
+        writer.writeheader()
+        return {
+            "content": buf.getvalue().encode("utf-8"),
+            "filename": "daily_reports.csv",
+            "content_type": "text/csv; charset=utf-8",
+            "rows": 0,
+        }
     match_stage = apply_synthetic_dr_exclusion(scope.filter({}))
     pipeline = [
         {"$match": match_stage},
@@ -1329,6 +1347,8 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
     @api_router.get("/daily-reports", response_model=List[DailyReportSummary])
     async def list_daily_reports(actor=Depends(require_admin)):
         scope = await compute_pm_scope(db, actor)
+        if scope.is_definitively_empty():
+            return []
         # TRACK 24.9 · Exclude synthetic/test records from user-
         # facing operational listings. Preserves audit history —
         # marked records remain in the collection with
@@ -1570,6 +1590,18 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
         from collections import Counter
         cutoff = (_dt.utcnow() - _td(days=max(1, min(days, 90)))).strftime("%Y-%m-%d")
         scope = await compute_pm_scope(db, actor)
+        if scope.is_definitively_empty():
+            return {
+                "window_days": days,
+                "reports_with_constraints": 0,
+                "rfi_signal_count": 0,
+                "schedule_signal_count": 0,
+                "top_constraint_types": [],
+                "recent_trend": [],
+                "top_projects": [],
+                "doctrine": "PM_EXPOSURE_TILE_CERTIFICATION.md",
+                "kind": "signal_only",
+            }
         # TRACK 28.02B · exclude synthetic/certification DRs — an admin
         # exposure rollup is a user-facing surface even for admins.
         q = apply_synthetic_dr_exclusion(scope.filter({"report_date": {"$gte": cutoff}}))

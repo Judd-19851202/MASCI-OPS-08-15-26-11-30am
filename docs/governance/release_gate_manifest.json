@@ -39,7 +39,9 @@
     "trust_spine": "backend/lib/trust_spine.py",
     "backup_recovery": "backend/routes/recovery_dashboard.py",
     "deployment": "scripts/release_gate.py",
-    "runtime_health": "backend/lib/runtime_reliability.py"
+    "runtime_health": "backend/lib/runtime_reliability.py",
+    "performance_baseline": "docs/performance/performance_baseline.json",
+    "performance_evidence": "docs/performance/ATLAS_ALERT_EVIDENCE_REGISTER.md"
   },
   "mandatory_checks": [
     {
@@ -123,6 +125,28 @@
       "severity": "P0",
       "failure_message": "A subsystem is defining competing truth outside the canonical authority graph.",
       "remediation_reference": "docs/governance/RELEASE_GATE_REGISTER.md#one-body-enforcement"
+    },
+    {
+      "gate_id": "performance-baseline-contract",
+      "description": "Validate the canonical D7/D8 performance baseline, Atlas evidence register, query inventory, and bounded self-healing contract.",
+      "command_or_verifier": "python3 scripts/release_gate.py --target <preview|production> --json",
+      "execution_environment": "workspace",
+      "blocking_status": "BLOCK",
+      "timeout_seconds": 180,
+      "evidence_output": "release_gate_report.gates[performance-baseline-contract]",
+      "owner": "jaymn.judd@mascigc.com",
+      "failure_action": "Repair performance governance artifacts before certification",
+      "applicability": [
+        "preview",
+        "production"
+      ],
+      "dependencies": [
+        "release-gate-manifest",
+        "one-body-authorities"
+      ],
+      "severity": "P0",
+      "failure_message": "Performance baseline, query inventory, or bounded self-healing contract is missing or invalid.",
+      "remediation_reference": "docs/performance/PERFORMANCE_BASELINE.md"
     },
     {
       "gate_id": "workflow-audit",
@@ -321,7 +345,8 @@
         "backend/tests/test_checkpoint_d2_runtime_truth_normalization.py",
         "backend/tests/test_checkpoint_d3_database_authority.py",
         "backend/tests/test_checkpoint_d4_dependency_governance.py",
-        "backend/tests/test_checkpoint_d5_d6_release_gate.py"
+        "backend/tests/test_checkpoint_d5_d6_release_gate.py",
+        "backend/tests/test_checkpoint_d7_d8_performance_repairs.py"
       ]
     },
     "trust_gate_regression": {
@@ -429,6 +454,20 @@
   },
   "performance_prerequisites": {
     "baseline_capture_only": true,
+    "authority_route": "backend/routes/admin_runtime_reliability.py",
+    "machine_readable_baseline": "docs/performance/performance_baseline.json",
+    "query_inventory": "docs/performance/query_inventory.json",
+    "atlas_evidence_register": "docs/performance/ATLAS_ALERT_EVIDENCE_REGISTER.md",
+    "index_query_recommendation_register": "docs/performance/INDEX_QUERY_RECOMMENDATION_REGISTER.md",
+    "safe_self_healing_contract": "docs/architecture/SAFE_SELF_HEALING_FOUNDATION.md",
+    "regression_thresholds": {
+      "api_health_max_seconds": 1.0,
+      "api_ready_max_seconds": 1.0,
+      "frontend_bundle_total_bytes_max": 55000000,
+      "workspace_frontend_bytes_max": 2500000000,
+      "workspace_tmp_bytes_max": 50000000,
+      "disk_percent_fail": 92.0
+    },
     "metrics": [
       "backend_startup_time_seconds",
       "api_readiness_time_seconds",
@@ -436,7 +475,13 @@
       "backend_build_duration_seconds",
       "bundle_size_bytes",
       "python_dependency_count",
-      "node_dependency_count"
+      "node_dependency_count",
+      "workspace_bytes",
+      "runtime_resource_snapshot",
+      "scheduler_runtime_snapshot",
+      "backup_workload_snapshot",
+      "pdf_file_read_baseline",
+      "query_targeting_disposition"
     ]
   },
   "preview_acceptance_gates": [
@@ -444,6 +489,7 @@
     "release-identity-verifier",
     "release-gate-manifest",
     "one-body-authorities",
+    "performance-baseline-contract",
     "workflow-audit",
     "secret-scan",
     "prd-governance-lint",
@@ -456,6 +502,7 @@
     "release-identity-verifier",
     "release-gate-manifest",
     "one-body-authorities",
+    "performance-baseline-contract",
     "workflow-audit",
     "secret-scan",
     "prd-governance-lint",
@@ -491,6 +538,7 @@
     "backup_health",
     "error_log_spike",
     "query_performance_baseline",
+    "performance_baseline_authority",
     "security_headers",
     "hsts_in_production_https",
     "cors_webauthn_domain_behavior"
@@ -503,6 +551,8 @@
     "backup_verification_unavailable_for_production",
     "migration_state_unknown_for_production",
     "post_deploy_probe_not_exercised_but_reported_green"
+    ,"performance_baseline_missing_or_unreadable"
+    ,"query_targeting_regression_unexplained"
   ],
   "severity_rules": {
     "P0": "deploy/source authority unproven, mandatory gate bypass, wrong cluster can start, rollback can mutate data, reproducibility failure",
@@ -515,6 +565,11 @@
     "release_identity_certificate": "release_gate_report.gates[release-identity-verifier]",
     "build_certificate": "release_gate_report.gates[clean-backend-build] + release_gate_report.gates[clean-frontend-build]",
     "test_certificate": "release_gate_report.gates[focused-regressions]",
+    "performance_baseline": "docs/performance/performance_baseline.json",
+    "atlas_alert_evidence_register": "docs/performance/ATLAS_ALERT_EVIDENCE_REGISTER.md",
+    "query_inventory": "docs/performance/query_inventory.json",
+    "index_query_recommendation_register": "docs/performance/INDEX_QUERY_RECOMMENDATION_REGISTER.md",
+    "safe_self_healing_foundation": "docs/architecture/SAFE_SELF_HEALING_FOUNDATION.md",
     "dependency_certificate": "docs/governance/dependency_inventory.json",
     "runtime_identity_certificate": "docs/governance/RUNTIME_IDENTITY_CONSUMPTION_MATRIX.md",
     "database_authority_certificate": "docs/governance/DATABASE_CLIENT_AUTHORITY_REGISTER.md",

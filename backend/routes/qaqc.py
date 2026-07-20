@@ -308,6 +308,8 @@ def register_qaqc_routes(api_router: APIRouter, db, require_admin, rate_limit_pu
     @api_router.get("/qaqc-inspections", response_model=List[QaqcInspectionSummary])
     async def list_qaqc(actor=Depends(require_admin)):
         scope = await compute_pm_scope(db, actor)
+        if scope.is_definitively_empty():
+            return []
         cursor = db.qaqc_inspections.find(scope.filter({}), {"_id": 0}).sort("created_at", -1).limit(2000)
         out: List[QaqcInspectionSummary] = []
         async for d in cursor:
@@ -367,6 +369,8 @@ def register_qaqc_routes(api_router: APIRouter, db, require_admin, rate_limit_pu
     @api_router.get("/admin/qaqc-inspections/stats")
     async def qaqc_stats(actor=Depends(require_admin)):
         scope = await compute_pm_scope(db, actor)
+        if scope.is_definitively_empty():
+            return {"total": 0, "by_kind": [], "last": None}
         base = scope.filter({})
         total = await db.qaqc_inspections.count_documents(base)
         rows = []
@@ -390,6 +394,13 @@ def register_qaqc_routes(api_router: APIRouter, db, require_admin, rate_limit_pu
             "Location", "Inspector", "Subcontractor", "Pass", "Fail", "N/A",
             "Photos", "Deficiencies",
         ])
+        if scope.is_definitively_empty():
+            buf.seek(0)
+            return Response(
+                content=buf.read(),
+                media_type="text/csv",
+                headers={"Content-Disposition": 'attachment; filename="masci-qaqc-inspections.csv"'},
+            )
         cursor = db.qaqc_inspections.find(scope.filter({}), {"_id": 0}).sort("created_at", -1)
         async for d in cursor:
             w.writerow([

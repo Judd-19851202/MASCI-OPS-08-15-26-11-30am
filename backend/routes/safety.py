@@ -587,6 +587,8 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
     async def list_inspections(actor=Depends(_read_gate)):
         from lib.synthetic_safety_filter import apply_synthetic_inspection_exclusion  # noqa: PLC0415
         scope = await compute_pm_scope(db, actor)
+        if scope.is_definitively_empty():
+            return []
         pipeline = [
             {"$match": apply_synthetic_inspection_exclusion(scope.filter({}))},
             {"$sort": {"created_at": -1}},
@@ -735,6 +737,8 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
     async def list_meetings(actor=Depends(_read_gate)):
         from lib.synthetic_safety_filter import apply_synthetic_meeting_exclusion  # noqa: PLC0415
         scope = await compute_pm_scope(db, actor)
+        if scope.is_definitively_empty():
+            return []
         cursor = db.meetings.find(
             apply_synthetic_meeting_exclusion(scope.filter({})),
             {"_id": 0, "id": 1, "project_name": 1, "location": 1, "meeting_date": 1,
@@ -857,6 +861,8 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
     async def list_jhas(actor=Depends(_read_gate)):
         from lib.synthetic_safety_filter import apply_synthetic_jha_exclusion  # noqa: PLC0415
         scope = await compute_pm_scope(db, actor)
+        if scope.is_definitively_empty():
+            return []
         cursor = db.jhas.find(
             apply_synthetic_jha_exclusion(scope.filter({})),
             {"_id": 0, "id": 1, "project_name": 1, "location": 1, "jha_date": 1,
@@ -1259,6 +1265,8 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
     async def list_incidents(actor=Depends(_read_gate)):
         from lib.synthetic_safety_filter import apply_synthetic_incident_exclusion  # noqa: PLC0415
         scope = await compute_pm_scope(db, actor)
+        if scope.is_definitively_empty():
+            return []
         pipeline = [
             {"$match": apply_synthetic_incident_exclusion(scope.filter({}))},
             {"$sort": {"created_at": -1}},
@@ -1309,6 +1317,25 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         from fastapi.responses import Response as _Resp  # noqa: PLC0415
         from lib.synthetic_safety_filter import apply_synthetic_incident_exclusion  # noqa: PLC0415
         scope = await compute_pm_scope(db, actor)
+        if scope.is_definitively_empty():
+            buf = _io.StringIO()
+            fields = [
+                "doc_id", "incident_date", "incident_time", "project_number",
+                "project_name", "location", "incident_type", "severity",
+                "person_name", "reported_by", "supervisor_name",
+                "osha_recordable", "work_stopped",
+                "description", "immediate_actions_taken", "created_at",
+            ]
+            writer = _csv.DictWriter(buf, fieldnames=fields, extrasaction="ignore")
+            writer.writeheader()
+            return _Resp(
+                content=buf.getvalue(),
+                media_type="text/csv; charset=utf-8",
+                headers={
+                    "Content-Disposition": 'attachment; filename="incidents.csv"',
+                    "Cache-Control": "private, no-store",
+                },
+            )
         pipeline = [
             {"$match": apply_synthetic_incident_exclusion(scope.filter({}))},
             {"$sort": {"created_at": -1}},

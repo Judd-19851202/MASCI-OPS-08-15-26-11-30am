@@ -77,6 +77,8 @@ ONE_BODY_REQUIRED_AUTHORITIES = {
     "backup_recovery": "backend/routes/recovery_dashboard.py",
     "deployment": "scripts/release_gate.py",
     "runtime_health": "backend/lib/runtime_reliability.py",
+    "performance_baseline": "docs/performance/performance_baseline.json",
+    "performance_evidence": "docs/performance/ATLAS_ALERT_EVIDENCE_REGISTER.md",
 }
 
 
@@ -220,6 +222,28 @@ def validate_release_gate_manifest(manifest: dict[str, Any], repo_root: Path = R
         errors.append(f"production acceptance gates missing definitions: {', '.join(missing_production_gate_ids)}")
     if not production > preview:
         errors.append("production acceptance gates must be strictly stronger than preview")
+    perf = manifest.get("performance_prerequisites") or {}
+    for key in (
+        "authority_route",
+        "machine_readable_baseline",
+        "query_inventory",
+        "atlas_evidence_register",
+        "index_query_recommendation_register",
+        "safe_self_healing_contract",
+        "regression_thresholds",
+    ):
+        if key not in perf:
+            errors.append(f"performance_prerequisites missing {key}")
+    for rel_path in (
+        perf.get("authority_route"),
+        perf.get("machine_readable_baseline"),
+        perf.get("query_inventory"),
+        perf.get("atlas_evidence_register"),
+        perf.get("index_query_recommendation_register"),
+        perf.get("safe_self_healing_contract"),
+    ):
+        if rel_path and not (repo_root / rel_path).exists():
+            errors.append(f"performance authority missing {rel_path}")
     backup = manifest.get("backup_dr_prerequisites") or {}
     for key in (
         "latest_scheduled_backup_completed_successfully",
