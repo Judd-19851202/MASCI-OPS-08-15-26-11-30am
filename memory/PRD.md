@@ -225,3 +225,29 @@ Prioritized next actions
 - P1: D11 monolith decomposition blueprint
 - P1: D12 governed outputs documentation
 - P1: D13/D14 focused testing and independent verification for the full Checkpoint D track
+
+## 2026-07-20 — PDC-01 pre-deployment certification
+
+Outcome
+- PDC-01 result is **NO-GO** for the exact current workspace.
+
+Verified passes
+- Core identity/runtime/database/release-governance suites still pass.
+- Backend compile proof passed.
+- Backup, migration, and post-deploy governance contract tests passed.
+- D7/D8 performance baseline contract remains present and governed.
+
+P0 blockers found
+- Dirty worktree: `frontend/yarn.lock` differs from HEAD, so `source-authority` fails.
+- Release identity drift: `frontend/src/buildVersion.generated.js` commit differs from current runtime HEAD, so `release-identity-verifier` fails.
+- Authentication continuity cannot be proven to deployment standard because required auth certification/support artifacts are missing from `/app/memory/`, and live preview auth checks are blocked by the intentional D1 fail-closed 502 runtime.
+
+Artifacts added
+- `docs/governance/PDC_01_PRE_DEPLOYMENT_CERTIFICATION.md`
+- `docs/governance/PDC_01_AUTH_CONTINUITY_CERTIFICATION.md`
+
+Safety accounting
+- No deployment
+- No GitHub save
+- No production mutation
+- No `.env` changes
