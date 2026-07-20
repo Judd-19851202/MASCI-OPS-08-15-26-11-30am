@@ -271,3 +271,18 @@ Validation snapshot
 
 Remaining immediate action
 - Rerun PDC-01 from the current governed candidate state.
+
+## 2026-07-20 — PDC-01B release-evidence closure
+
+Scope
+- Bounded to exact-candidate build-certification currency, backup/recovery certification evidence, and migration/platform continuity dispositions for the current governed PRE_SAVE_CANDIDATE.
+
+Implemented
+- Refreshed exact-candidate release identity and production frontend build evidence.
+- Captured canonical backup/recovery release evidence in `docs/governance/BACKUP_RECOVERY_RELEASE_CERTIFICATE.md`.
+- Narrowed migration dispositions to the actual release diff in `docs/governance/MIGRATION_COMPATIBILITY_REGISTER.md`.
+
+Key truth
+- This exact candidate changes only `frontend/yarn.lock` and `frontend/src/buildVersion.generated.js`.
+- Authentication continuity remains PASS and unchanged.
+- Production-grade live backup/restore proof still requires owner / infrastructure evidence and is represented honestly as such.

@@ -77,6 +77,41 @@
         "path": "memory/PRD.md",
         "mission_ref": "PDC-01A Blocker 4",
         "rationale": "The project record is updated to reference the new canonical auth continuity artifact and the exact blocker-remediation scope."
+      },
+      {
+        "path": "backend/server.py",
+        "mission_ref": "PDC-01B Build and backup evidence",
+        "rationale": "The complete archive export path was hardened to derive database authority truth in verification contexts without weakening runtime database authority protections."
+      },
+      {
+        "path": "backend/tests/test_track_27_09b_integrity_scheduler_closeout.py",
+        "mission_ref": "PDC-01B Backup evidence",
+        "rationale": "The recovery scheduler closeout regression now matches the canonical informational-warning classification used by the governed backup OCC surface."
+      },
+      {
+        "path": "backend/tests/test_track_28_09d_backup_health_aggregator.py",
+        "mission_ref": "PDC-01B Backup evidence",
+        "rationale": "The backup health aggregator regression now matches the canonical D2 backup/recovery status vocabulary for this governed release."
+      },
+      {
+        "path": "docs/governance/MIGRATION_COMPATIBILITY_REGISTER.md",
+        "mission_ref": "PDC-01B Migration continuity",
+        "rationale": "The migration register now records exact-release dispositions proving this candidate does not introduce or require a migration."
+      },
+      {
+        "path": "docs/governance/BACKUP_RECOVERY_RELEASE_CERTIFICATE.md",
+        "mission_ref": "PDC-01B Backup evidence",
+        "rationale": "Canonical release-facing backup/recovery evidence is captured here with honest VERIFIED / STALE / NOT_EXERCISED / OWNER_EVIDENCE_REQUIRED classifications."
+      },
+      {
+        "path": "docs/governance/PDC_01B_RELEASE_EVIDENCE.md",
+        "mission_ref": "PDC-01B Build certification",
+        "rationale": "This bounded closure pass records exact-candidate build, gate, and regression evidence for the current PRE_SAVE_CANDIDATE."
+      },
+      {
+        "path": "scripts/release_gate.py",
+        "mission_ref": "PDC-01B Build certification",
+        "rationale": "The release gate itself was repaired to avoid recursive self-invocation in focused regressions and to return correct top-level build gate statuses for this candidate."
       }
     ]
   },
@@ -626,6 +661,7 @@
     "preview_certification": "docs/recovery/PREVIEW_DEPLOYMENT_CERTIFICATION_CONTRACT.md",
     "production_certification": "docs/recovery/PRODUCTION_DEPLOYMENT_CERTIFICATION_CONTRACT.md",
     "rollback_manifest": "docs/recovery/DEPLOYMENT_ROLLBACK_RUNBOOK.md",
+    "backup_recovery_release_certificate": "docs/governance/BACKUP_RECOVERY_RELEASE_CERTIFICATE.md",
     "open_owner_gates_list": "docs/governance/MASTER_DEFECT_REGISTER.md"
   }
 }

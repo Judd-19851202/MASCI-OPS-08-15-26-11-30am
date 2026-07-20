@@ -32,7 +32,9 @@ from lib.release_gate_governance import (  # noqa: E402
 
 def _run(cmd: list[str], *, cwd: Path, timeout: int) -> dict[str, Any]:
     started = time.perf_counter()
-    proc = subprocess.run(cmd, cwd=str(cwd), capture_output=True, text=True, timeout=timeout)
+    env = os.environ.copy()
+    env["RELEASE_GATE_RUNNING"] = "1"
+    proc = subprocess.run(cmd, cwd=str(cwd), capture_output=True, text=True, timeout=timeout, env=env)
     return {
         "returncode": proc.returncode,
         "stdout_tail": proc.stdout[-4000:],
@@ -68,14 +70,16 @@ def _backend_build_gate() -> dict[str, Any]:
     import_server = _run(["bash", "-lc", f". '{venv}/bin/activate' && PYTHONPATH=backend python -c \"import server; print('IMPORT_OK')\""], cwd=repo, timeout=1200) if install["returncode"] == 0 else None
     verify = _run(["bash", "-lc", f". '{venv}/bin/activate' && python backend/scripts/verify_release_identity.py --strict"], cwd=repo, timeout=1200) if install["returncode"] == 0 else None
     count = len([line for line in (repo / "backend" / "requirements.txt").read_text().splitlines() if line.strip() and not line.startswith("#")])
+    passed = bool(install["returncode"] == 0 and compileall and compileall["returncode"] == 0 and import_server and import_server["returncode"] == 0 and verify and verify["returncode"] == 0)
     return {
+        "returncode": 0 if passed else 1,
         "python_version": _run(["python3", "--version"], cwd=repo, timeout=60),
         "clean_install": install,
         "compileall": compileall,
         "import_server": import_server,
         "verify_release_identity": verify,
         "python_dependency_count": count,
-        "passed": bool(install["returncode"] == 0 and compileall and compileall["returncode"] == 0 and import_server and import_server["returncode"] == 0 and verify and verify["returncode"] == 0),
+        "passed": passed,
     }
 
 
@@ -103,17 +107,20 @@ def _frontend_build_gate() -> dict[str, Any]:
             "passed": True,
         }
     repo = _copy_repo()
-    install = _run(["yarn", "install", "--frozen-lockfile", "--ignore-scripts"], cwd=repo / "frontend", timeout=1800)
+    cache_dir = repo.parent / "yarn-cache"
+    install = _run(["yarn", "install", "--frozen-lockfile", "--ignore-scripts", "--cache-folder", str(cache_dir)], cwd=repo / "frontend", timeout=1800)
     build = _run(["yarn", "build"], cwd=repo / "frontend", timeout=1800) if install["returncode"] == 0 else None
     package_json = json.loads((repo / "frontend" / "package.json").read_text())
     metrics = _frontend_metrics(repo) if build and build["returncode"] == 0 else {}
+    passed = bool(build and build["returncode"] == 0)
     return {
+        "returncode": 0 if passed else 1,
         "node_version": _run(["node", "--version"], cwd=repo, timeout=60),
         "yarn_version": _run(["yarn", "--version"], cwd=repo, timeout=60),
         "clean_install": install,
         "build": build,
         "node_dependency_count": len(package_json.get("dependencies", {})) + len(package_json.get("devDependencies", {})),
-        "passed": bool(build and build["returncode"] == 0),
+        "passed": passed,
         **metrics,
     }
 

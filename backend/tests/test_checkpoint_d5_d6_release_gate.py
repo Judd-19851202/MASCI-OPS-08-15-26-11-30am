@@ -157,6 +157,41 @@ def test_pre_save_candidate_policy_is_governed_and_specific():
             "mission_ref": "PDC-01A Blocker 4",
             "rationale": "The project record is updated to reference the new canonical auth continuity artifact and the exact blocker-remediation scope.",
         },
+        {
+            "path": "backend/server.py",
+            "mission_ref": "PDC-01B Build and backup evidence",
+            "rationale": "The complete archive export path was hardened to derive database authority truth in verification contexts without weakening runtime database authority protections.",
+        },
+        {
+            "path": "backend/tests/test_track_27_09b_integrity_scheduler_closeout.py",
+            "mission_ref": "PDC-01B Backup evidence",
+            "rationale": "The recovery scheduler closeout regression now matches the canonical informational-warning classification used by the governed backup OCC surface.",
+        },
+        {
+            "path": "backend/tests/test_track_28_09d_backup_health_aggregator.py",
+            "mission_ref": "PDC-01B Backup evidence",
+            "rationale": "The backup health aggregator regression now matches the canonical D2 backup/recovery status vocabulary for this governed release.",
+        },
+        {
+            "path": "docs/governance/MIGRATION_COMPATIBILITY_REGISTER.md",
+            "mission_ref": "PDC-01B Migration continuity",
+            "rationale": "The migration register now records exact-release dispositions proving this candidate does not introduce or require a migration.",
+        },
+        {
+            "path": "docs/governance/BACKUP_RECOVERY_RELEASE_CERTIFICATE.md",
+            "mission_ref": "PDC-01B Backup evidence",
+            "rationale": "Canonical release-facing backup/recovery evidence is captured here with honest VERIFIED / STALE / NOT_EXERCISED / OWNER_EVIDENCE_REQUIRED classifications.",
+        },
+        {
+            "path": "docs/governance/PDC_01B_RELEASE_EVIDENCE.md",
+            "mission_ref": "PDC-01B Build certification",
+            "rationale": "This bounded closure pass records exact-candidate build, gate, and regression evidence for the current PRE_SAVE_CANDIDATE.",
+        },
+        {
+            "path": "scripts/release_gate.py",
+            "mission_ref": "PDC-01B Build certification",
+            "rationale": "The release gate itself was repaired to avoid recursive self-invocation in focused regressions and to return correct top-level build gate statuses for this candidate.",
+        },
     ]
 
 
@@ -173,6 +208,13 @@ def test_pre_save_candidate_allows_only_governed_inventory():
             "M backend/tests/test_checkpoint_d5_d6_release_gate.py",
             "M backend/static/runtime-data/DEPLOYMENT_HISTORY.json",
             "M memory/PRD.md",
+            "M backend/server.py",
+            "M backend/tests/test_track_27_09b_integrity_scheduler_closeout.py",
+            "M backend/tests/test_track_28_09d_backup_health_aggregator.py",
+            "M docs/governance/MIGRATION_COMPATIBILITY_REGISTER.md",
+            "?? docs/governance/BACKUP_RECOVERY_RELEASE_CERTIFICATE.md",
+            "?? docs/governance/PDC_01B_RELEASE_EVIDENCE.md",
+            "M scripts/release_gate.py",
         ],
     }
     result = evaluate_pre_save_candidate(snapshot, manifest)
@@ -262,6 +304,8 @@ def test_preview_production_and_rollback_contract_docs_are_explicit():
 
 
 def test_release_gate_cli_emits_manifest_hashes():
+    if os.environ.get("RELEASE_GATE_RUNNING") == "1":
+        pytest.skip("avoid recursive release-gate invocation inside focused regressions")
     env = os.environ.copy()
     env["RELEASE_GATE_SKIP_HEAVY_BUILDS"] = "1"
     completed = subprocess.run(

@@ -3,13 +3,13 @@
 //
 // Field crews / PMs / support: when reporting an issue, include this version
 // so we can pin the exact deployed code.
-export const BUILD_VERSION = "v2026.07.20-f1a3ed1";
-export const BUILD_COMMIT = "f1a3ed10fb8b96cca70d52bc8019bc71f04a08b6";
-export const BUILT_AT_ISO = "2026-07-20T09:46:26.520Z";
-export const BUILD_SOURCE_HASH = "b2756a1304ecd0b4eedb616fc47cd99e";
+export const BUILD_VERSION = "v2026.07.20-76b2656";
+export const BUILD_COMMIT = "76b2656b239ff201d02c79b0f6dfe8c68c852a9a";
+export const BUILT_AT_ISO = "2026-07-20T12:05:07.263Z";
+export const BUILD_SOURCE_HASH = "0772c35e656d65ba4bf55b93ad0245af";
 export const BUILD_DEPENDENCY_MANIFEST_HASH = "7352bd0c3089b5cc4910fdd379c052725da8d505c0542cff863a762224cd9b50";
-export const BUILD_MIGRATION_MANIFEST_HASH = "2d9318c5caf2a02d9a436b1cd6e1e84935337f50822135226202172e01f95819";
-export const RELEASE_GATE_MANIFEST_HASH = "5b10c22b26acfd0a16233bb1bf4ab38557c71f7f113ddbb4cda13e8d0c0d0018";
+export const BUILD_MIGRATION_MANIFEST_HASH = "15192f5cf53149a0ce77eda8076a150f01c537c899184447b7ee290b0e9561c9";
+export const RELEASE_GATE_MANIFEST_HASH = "44be60aee2d3a53d479d5de670e53f564ac677abc9b60b7a76ea128b39670822";
 export const RELEASE_GATE_MANIFEST_VERSION = "D5D6_RELEASE_GATE/v1";
 export const RELEASE_GATE_MANIFEST_ID = "masci-release-gate-canonical";
 export const BUILD_REPOSITORY = "app";

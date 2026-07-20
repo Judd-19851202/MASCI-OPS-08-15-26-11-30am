@@ -391,8 +391,8 @@ from lib.rate_limiting import (  # noqa: E402
     _PUBLIC_POST_BUCKETS,
     _LOGIN_FAIL_BUCKETS,
     PUBLIC_POST_LIMIT_PER_HOUR,
-    LOGIN_MAX_FAILS_PER_WINDOW,
-    LOGIN_LOCKOUT_SECONDS,
+    LOGIN_MAX_FAILS_PER_WINDOW as RATE_LIMIT_LOGIN_MAX_FAILS_PER_WINDOW,
+    LOGIN_LOCKOUT_SECONDS as RATE_LIMIT_LOGIN_LOCKOUT_SECONDS,
     _client_ip,
     rate_limit_public_post,
     _check_login_lockout,
@@ -405,6 +405,8 @@ from lib.rate_limiting import (  # noqa: E402
 # operator lockout contract stayed pinned after extraction.
 LOGIN_MAX_FAILS_PER_WINDOW = int(os.environ.get("LOGIN_MAX_FAILS", "10"))
 LOGIN_LOCKOUT_SECONDS = int(os.environ.get("LOGIN_LOCKOUT_SECONDS", "900"))
+assert LOGIN_MAX_FAILS_PER_WINDOW == RATE_LIMIT_LOGIN_MAX_FAILS_PER_WINDOW
+assert LOGIN_LOCKOUT_SECONDS == RATE_LIMIT_LOGIN_LOCKOUT_SECONDS
 
 # TRACK 22.1E · migrate index-ensure handlers from @app.on_event("startup")
 # into `LIFECYCLE_STEPS`. The lifespan orchestrator (Track 22.1D) runs
@@ -8354,7 +8356,22 @@ def _build_complete_archive_on_disk(db_unused, dst_zip: Path) -> dict:
 
     plan = getattr(app.state, "database_authority_plan", None)
     if plan is None:
-        raise RuntimeError("database authority plan missing for complete archive export")
+        runtime_bundle = _runtime_identity_bundle()
+        env = {
+            "MONGO_URL": os.environ["MONGO_URL"],
+            "DB_NAME": os.environ["DB_NAME"],
+            "APP_ENV": os.environ.get("APP_ENV", ""),
+            "ENFORCE_DB_ISOLATION": os.environ.get("ENFORCE_DB_ISOLATION", ""),
+            "READ_ONLY_VALIDATION": os.environ.get("READ_ONLY_VALIDATION", ""),
+            "MONGO_SERVER_SELECTION_TIMEOUT_MS": os.environ.get("MONGO_SERVER_SELECTION_TIMEOUT_MS", ""),
+            "MONGO_CONNECT_TIMEOUT_MS": os.environ.get("MONGO_CONNECT_TIMEOUT_MS", ""),
+            "MONGO_SOCKET_TIMEOUT_MS": os.environ.get("MONGO_SOCKET_TIMEOUT_MS", ""),
+        }
+        plan = build_runtime_database_authority(
+            runtime_identity_bundle=runtime_bundle,
+            env=env,
+            lifecycle_owner="server._build_complete_archive_on_disk",
+        )
     mongo_url = plan.mongo_url
     db_name = _canonical_db_name()
 

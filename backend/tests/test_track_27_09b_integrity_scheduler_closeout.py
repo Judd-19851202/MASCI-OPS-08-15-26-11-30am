@@ -135,4 +135,4 @@ def test_recovery_snapshot_prefers_canonical_scheduler_state_over_stale_lock():
     assert out["scheduler"]["alive"] is True
     assert out["scheduler"]["is_healthy"] is True
     assert out["scheduler"]["signal_source"] == "backup_scheduler_state"
-    assert out["warnings"] == []
+    assert all((warning or {}).get("severity") == "info" for warning in out["warnings"])

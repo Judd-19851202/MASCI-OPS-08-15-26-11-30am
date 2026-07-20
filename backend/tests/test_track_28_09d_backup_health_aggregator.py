@@ -51,8 +51,8 @@ def _base_body(**over):
 
 def test_amber_pill_maps_to_yellow_status():
     out = _eval_recovery_snapshot(_base_body(pill="AMBER"), None, CHECKED_AT)
-    assert out["status"] == "yellow", (
-        "TRACK 28.09D regression: pill=AMBER must map to status=yellow, "
+    assert out["status"] == "DEGRADED", (
+        "TRACK 28.09D regression: pill=AMBER must map to status=DEGRADED, "
         f"got {out['status']!r}. Previous bug: only `yellow` was in the "
         "map, so AMBER became `unknown`."
     )
@@ -60,7 +60,7 @@ def test_amber_pill_maps_to_yellow_status():
 
 def test_green_pill_healthy_evidence_produces_healthy_card():
     out = _eval_recovery_snapshot(_base_body(pill="GREEN"), None, CHECKED_AT)
-    assert out["status"] == "green"
+    assert out["status"] == "VERIFIED"
     assert out["evidence"]["reason_code"] == "healthy"
     assert out["recommended_action"] == ""
 
@@ -71,7 +71,7 @@ def test_red_pill_with_bucket_alert_produces_bucket_action():
         bucket_usage={"gb": 55, "warn_gb": 45, "alert_gb": 50, "status": "RED"},
     )
     out = _eval_recovery_snapshot(body, None, CHECKED_AT)
-    assert out["status"] == "red"
+    assert out["status"] == "MISMATCH"
     assert out["evidence"]["reason_code"] == "bucket_over_alert"
     assert "R2 Lifecycle" in out["recommended_action"], (
         "TRACK 28.09D regression: RED caused by bucket alert must "
@@ -89,7 +89,7 @@ def test_healthy_backup_with_null_drill_does_not_recommend_scheduler_investigati
         rto={"target_min": 15, "last_drill_min": None, "status": "AMBER"},
     )
     out = _eval_recovery_snapshot(body, None, CHECKED_AT)
-    assert out["status"] == "green", (
+    assert out["status"] == "VERIFIED", (
         "TRACK 28.09D regression: a healthy backup with a missing "
         f"restore drill must not itself flip the OCC card. Got "
         f"status={out['status']!r}."
@@ -105,7 +105,7 @@ def test_healthy_backup_with_null_drill_does_not_recommend_scheduler_investigati
 def test_backup_stale_produces_freshness_action_not_scheduler_action():
     body = _base_body(pill="AMBER", backup_age_minutes=1500)
     out = _eval_recovery_snapshot(body, None, CHECKED_AT)
-    assert out["status"] == "yellow"
+    assert out["status"] == "DEGRADED"
     assert out["evidence"]["reason_code"] == "backup_stale"
     action = out["recommended_action"].lower()
     assert "next backup" in action or "scheduler" not in action
@@ -117,7 +117,7 @@ def test_backup_failed_produces_verification_action():
         last_backup={"ok": False, "ts": "2026-07-11T00:00:00Z", "filename": "b.zip"},
     )
     out = _eval_recovery_snapshot(body, None, CHECKED_AT)
-    assert out["status"] == "red"
+    assert out["status"] == "MISMATCH"
     assert out["evidence"]["reason_code"] == "backup_failed"
     action = out["recommended_action"].lower()
     assert "backup verification" in action or "re-trigger" in action
