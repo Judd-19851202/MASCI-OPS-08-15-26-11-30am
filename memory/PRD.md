@@ -1,3 +1,55 @@
+## 2026-07-21 — Checkpoint C2 logout revocation certification complete
+
+Preview verified ✅
+
+### What was repaired
+- Closed the active C2 P0 auth gap: backend portal validators no longer accept logged-out deterministic HMAC portal tokens just because the signature still matches.
+- `session_activity` is now an enforced shared revocation layer for directory-admin, PM, HR, Safety, Shop, Dispatch, and Field Leadership validators.
+- `/api/auth/multi-logout` now clears all stamped portal sessions for the shared user, and frontend `sessionReset.js` forwards the available token set so server-side revocation happens before browser cleanup completes.
+
+### Files changed in this certification slice
+- `backend/session_timeout.py`
+- `backend/user_directory.py`
+- `backend/pm_auth.py`
+- `backend/hr_users.py`
+- `backend/safety_users.py`
+- `backend/shop_users.py`
+- `backend/dispatch_users.py`
+- `backend/field_leadership_users.py`
+- `backend/routes/auth_directory_routes.py`
+- `frontend/src/lib/sessionReset.js`
+- `backend/tests/regression/test_c2_server_side_logout_revocation.py`
+
+### Exact C2.15 / C2.16 evidence
+- Independent verification passed: `/app/test_reports/iteration_12.json`
+- Shared auth matrix exact counts:
+  - portal endpoints accepted before logout: `7/7`
+  - portal endpoints rejected after logout: `7/7`
+  - directory session rejected after logout: `1/1`
+  - relogin restore checks passed: `7/7`
+- Independent report success rates:
+  - backend: `87.5% (7/8 tests passed, 1 initial preview-network timeout)`
+  - frontend: `100%`
+- Portal matrix certified:
+  - admin → `/api/admin/check`
+  - pm → `/api/pm/check`
+  - shop → `/api/shop/check`
+  - hr → `/api/hr/me`
+  - safety → `/api/safety/me`
+  - dispatch → `/api/dispatch/me`
+  - field leadership → `/api/field-leadership/portal/me`
+
+### Final C2 verdict
+- **GO** — C2.15 shared authentication certification and C2.16 sign-out/browser certification are independently verified.
+- No deployment.
+- No GitHub save.
+- No `.env` changes.
+
+### Prioritized next actions
+- P0: Stop C2 here unless the user asks for one more narrow C2 extension.
+- P1: Begin Checkpoint C3+ only on explicit user direction.
+- P1: If desired later, reduce preview auth test flakiness by adding a slightly longer first-request timeout in certification harnesses.
+
 ## 2026-07-21 — Checkpoint C2 complete: canonical truth foundation proven
 
 Preview verified ✅
