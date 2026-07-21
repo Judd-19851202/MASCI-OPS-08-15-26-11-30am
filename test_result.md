@@ -160,6 +160,19 @@ backend:
         timestamp: "2026-07-21 15:38:00 UTC"
         comment: "✅ VERIFIED: READ-ONLY production backend certification completed successfully against https://mascidocs.com/api. All 7 test objectives PASSED: (1) GET /api/version returns stable release identity (commit=91a3398ec74e, source_hash=91a3398ec74e6e1be2bbd279fbb9b9ce) with frontend_backend_release_match=true across 3 repeated calls, (2) GET /api/health returns ok=true with runtime_identity status=VERIFIED, (3) GET /api/health/full returns ok=true with all subsystems healthy (mongo=true, scheduler=true, backup_recent=true, runtime_identity_ok=true), (4) POST /api/auth/multi-login succeeds for super admin jaymn.judd@mascigc.com returning session_token and portal_tokens for all portals (admin, pm, shop, hr, safety, dispatch, field_leadership), (5) Authenticated GET /api/daily-reports?limit=5 succeeds with X-Admin-Token header returning 218 daily reports, (6) Authenticated GET /api/daily-reports/{id} succeeds returning full report detail for report 6e96211e-19a8-4206-9d82-d3d171197461, (7) Search for project_number ZZ-RUNTIME-CERT-2026 returns zero matching results (verified by checking all 218 daily reports - none match the certification project number). Production runtime identity verified: app_env=production, db_name=masci_safety, mongo_hostname=masci-prod.1nduwmg.mongodb.net, runtime_identity_status=VERIFIED, identity_fingerprint=a7cb1602d8a3. No data mutation performed except approved read operations. Certification evidence saved to /app/production_cert_results.json."
 
+  - task: "Daily Report Governed Certification Lane - Recipient Selection Repair"
+    implemented: true
+    working: true
+    file: "backend/lib/governed_certification_lane.py, backend/tests/test_dr03_governed_certification_lane.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        timestamp: "2026-07-21 17:30:00 UTC"
+        comment: "✅ VERIFIED: PREVIEW-only bounded backend repair for Daily Report governed certification lane completed successfully. All 4 required proof points validated: (1) Placeholder example.com certification recipients are NO LONGER selected - _is_reserved_or_invalid_email() correctly identifies and filters example.com/example.org/example.net domains and subdomains, _select_governed_recipients() skips all placeholder emails. (2) Correct governed recipients ARE selected from live project routing when available - build_governed_routing_override() properly extracts valid pm_email and co_pm_emails from project_doc, sets recipient_source='project_doc' when valid recipients found. (3) Normal non-certification behavior REMAINS UNCHANGED - apply_governed_daily_report_lane() returns unmodified doc for non-certification reports, no certification flags set outside governed lane. (4) All focused proof tests PASS - test_dr03_governed_certification_lane.py: 4/4 tests passed including test_governed_lane_skips_placeholder_project_recipients_and_uses_env_fallback which validates placeholder filtering and environment fallback behavior. Integration verified: pm_routing.py recipients_for_record_async() properly honors routing_override from governed lane. Module-level verification confirms all edge cases handled correctly (mixed valid/invalid emails, empty project_doc, None project_doc). Preview backend unavailable due to pre-existing runtime-identity startup refusal (unrelated to this repair) - validation performed via focused backend tests and module-level verification as instructed."
+
 ## Frontend Tasks
 
 frontend:
@@ -194,16 +207,18 @@ frontend:
 metadata:
   created_by: "testing_agent"
   version: "1.0"
-  test_sequence: 4
-  last_updated: "2026-07-21 16:55:00 UTC"
+  test_sequence: 5
+  last_updated: "2026-07-21 17:30:00 UTC"
   pdc_01a_status: "COMPLETE"
   production_cert_status: "COMPLETE"
   hub_signout_fix_status: "VERIFIED"
+  governed_cert_lane_repair_status: "VERIFIED"
 
 ## Test Plan
 
 test_plan:
   current_focus:
+    - "Daily Report Governed Certification Lane - Recipient Selection Repair"
     - "Hub Sign-Out Bug Fix - PREVIEW-only bounded frontend repair"
     - "Production Backend Certification - Runtime Reliability"
     - "PDC-01A Authentication Continuity Proof"
@@ -214,7 +229,7 @@ test_plan:
   stuck_tasks: []
   test_all: false
   test_priority: "critical_first"
-  notes: "Hub sign-out fix verified successfully. Production backend certification completed successfully - all runtime reliability checks passed"
+  notes: "Daily Report governed certification lane repair verified successfully - all 4 proof points validated. Hub sign-out fix verified successfully. Production backend certification completed successfully - all runtime reliability checks passed"
 
   
   - agent: "testing"
@@ -240,3 +255,7 @@ agent_communication:
   - agent: "testing"
     timestamp: "2026-07-21 16:55:00 UTC"
     message: "HUB SIGN-OUT BUG FIX VERIFICATION COMPLETE. Tested PREVIEW-only bounded frontend repair for Hub sign-out functionality. All 5 user-facing behaviors validated successfully: (1) Welcome Back card sign-out button (data-testid='hub-welcome-back-signout') is visible and clickable when signed-in session exists, (2) Signing out clears ALL session/auth state including all portal tokens (admin/pm/hr/safety/shop/dispatch), directory session, and user objects from localStorage, (3) User is redirected to /sign-in after logout with replace: true, (4) Protected routes /admin and /pm correctly require authentication after logout (redirect to login pages), (5) Browser refresh and back button do NOT restore authenticated access. The shared clearAllSessions() helper from frontend/src/lib/sessionReset.js is working correctly. Backend API 502 errors are expected per review request (pre-existing runtime identity refusal unrelated to this bounded repair). Frontend-only session management and route guards functioning as designed. No critical issues found."
+
+  - agent: "testing"
+    timestamp: "2026-07-21 17:30:00 UTC"
+    message: "DAILY REPORT GOVERNED CERTIFICATION LANE REPAIR VERIFICATION COMPLETE. Tested PREVIEW-only bounded backend repair for recipient selection and governed-lane invariants. All 4 required proof points validated: (1) Placeholder example.com certification recipients are NO LONGER selected - validation confirms _is_reserved_or_invalid_email() correctly identifies example.com/example.org/example.net domains and all subdomains, _select_governed_recipients() properly filters out all placeholder emails. (2) Correct governed recipients ARE selected from live project routing when available - build_governed_routing_override() extracts valid pm_email and co_pm_emails from project_doc, sets recipient_source='project_doc', test confirms jaymn.judd@mascigc.com correctly selected as primary PM with co-PMs in CC. (3) Normal non-certification behavior REMAINS UNCHANGED outside the certification lane - apply_governed_daily_report_lane() returns unmodified doc for non-certification reports, no certification flags set. (4) All focused proof tests PASS - test_dr03_governed_certification_lane.py: 4/4 tests passed including critical test_governed_lane_skips_placeholder_project_recipients_and_uses_env_fallback which validates placeholder filtering and environment fallback. Integration verified: pm_routing.py recipients_for_record_async() properly honors routing_override from governed lane. Module-level verification confirms edge cases handled (mixed valid/invalid emails, empty/None project_doc). Preview backend unavailable due to pre-existing runtime-identity startup refusal (unrelated to this repair) - validation performed via focused backend tests and module-level verification as instructed. No critical issues found."
