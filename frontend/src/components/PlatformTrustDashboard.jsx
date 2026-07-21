@@ -36,6 +36,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { TruthOwnerPanel } from "@/components/admin/trust/TrustPrimitives";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
@@ -94,31 +95,16 @@ function fmtPct(rate) {
   return `${Math.round(rate * 1000) / 10}%`;
 }
 
-function TruthOwnerBanner({ surface, canonicalStatus, checkedAt }) {
+function TruthOwnerBanner({ surface, relationship, canonicalStatus, checkedAt }) {
   if (!surface) return null;
   return (
-    <div
-      className="mt-3 rounded-xl border border-slate-200 bg-white/80 p-3"
-      data-testid="trust-spine-owner-banner"
-    >
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">
-          Canonical truth owner
-        </span>
-        <Badge band={canonicalStatus === "VERIFIED" ? "green" : canonicalStatus === "MISMATCH" ? "red" : "amber"}>
-          {canonicalStatus || surface.canonical_status || "UNVERIFIABLE"}
-        </Badge>
-      </div>
-      <p className="mt-2 text-xs text-slate-700" data-testid="trust-spine-owner-contract">
-        {surface.contract}
-      </p>
-      <div className="mt-2 grid gap-2 text-xs text-slate-600 md:grid-cols-2">
-        <div data-testid="trust-spine-owner-endpoint"><span className="font-semibold">Endpoint:</span> {surface.owner_endpoint || "—"}</div>
-        <div data-testid="trust-spine-owner-module"><span className="font-semibold">Owner module:</span> {surface.owner_module || "—"}</div>
-        <div data-testid="trust-spine-owner-type"><span className="font-semibold">Owner type:</span> {surface.owner_type || "—"}</div>
-        <div data-testid="trust-spine-owner-checked-at"><span className="font-semibold">Last checked:</span> {fmtTs(checkedAt)}</div>
-      </div>
-    </div>
+    <TruthOwnerPanel
+      title="Canonical truth owner"
+      surface={surface}
+      relationship={{ ...relationship, canonical_status: canonicalStatus || relationship?.canonical_status }}
+      checkedAt={fmtTs(checkedAt)}
+      testidPrefix="trust-spine-owner-banner"
+    />
   );
 }
 
@@ -516,6 +502,7 @@ export default function PlatformTrustDashboard() {
 
         <TruthOwnerBanner
           surface={data.truth_surface}
+          relationship={data.truth_relationship}
           canonicalStatus={data.canonical_status}
           checkedAt={data.generated_at}
         />

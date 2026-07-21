@@ -29,6 +29,7 @@ import AdminShell from "@/components/AdminShell";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { TruthOwnerPanel } from "@/components/admin/trust/TrustPrimitives";
 import { operationalError } from "@/lib/errors";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
@@ -110,7 +111,7 @@ const fmtRelative = (iso) => {
 };
 
 // ── AI Keys panel ───────────────────────────────────────────────────
-function AiKeysPanel({ data, onRefresh, loading }) {
+function AiKeysPanel({ data, onRefresh, loading, refreshCapability }) {
   return (
     <Panel
       title="AI Key Status"
@@ -122,7 +123,8 @@ function AiKeysPanel({ data, onRefresh, loading }) {
           size="sm"
           variant="outline"
           onClick={onRefresh}
-          disabled={loading}
+          disabled={loading || refreshCapability?.available !== true}
+          title={refreshCapability?.disabled_reason || "Refresh AI key status"}
         >
           {loading ? (
             <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
@@ -189,7 +191,7 @@ function AiKeysPanel({ data, onRefresh, loading }) {
 }
 
 // ── Integrations panel ──────────────────────────────────────────────
-function IntegrationsPanel({ data, onRefresh, loading }) {
+function IntegrationsPanel({ data, onRefresh, loading, refreshCapability }) {
   return (
     <Panel
       title="Integration Truth"
@@ -203,7 +205,8 @@ function IntegrationsPanel({ data, onRefresh, loading }) {
             size="sm"
             variant="outline"
             onClick={onRefresh}
-            disabled={loading}
+            disabled={loading || refreshCapability?.available !== true}
+            title={refreshCapability?.disabled_reason || "Refresh integration truth"}
           >
             {loading ? (
               <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
@@ -289,7 +292,7 @@ function IntegrationsPanel({ data, onRefresh, loading }) {
 }
 
 // ── Alias Telemetry panel ───────────────────────────────────────────
-function AliasTelemetryPanel({ data, onRefresh, loading }) {
+function AliasTelemetryPanel({ data, onRefresh, loading, refreshCapability }) {
   return (
     <Panel
       title="Legacy /api/dr-v2/* Alias Telemetry"
@@ -301,7 +304,8 @@ function AliasTelemetryPanel({ data, onRefresh, loading }) {
           size="sm"
           variant="outline"
           onClick={onRefresh}
-          disabled={loading}
+          disabled={loading || refreshCapability?.available !== true}
+          title={refreshCapability?.disabled_reason || "Refresh alias telemetry"}
         >
           {loading ? (
             <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
@@ -407,39 +411,16 @@ function AliasTelemetryPanel({ data, onRefresh, loading }) {
   );
 }
 
-function TruthOwnerBanner({ surface, checkedAt, canonicalStatus }) {
+function TruthOwnerBanner({ surface, relationship, checkedAt, canonicalStatus }) {
   if (!surface) return null;
   return (
-    <div
-      className="rounded-xl border border-slate-200 bg-slate-50 p-4"
-      data-testid="integration-truth-owner-banner"
-    >
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">
-          Canonical owner
-        </span>
-        <Badge status={canonicalStatus || surface.canonical_status || "UNKNOWN"}>
-          {canonicalStatus || surface.canonical_status || "UNKNOWN"}
-        </Badge>
-      </div>
-      <div className="mt-2 text-sm text-slate-800" data-testid="integration-truth-owner-contract">
-        {surface.contract}
-      </div>
-      <div className="mt-3 grid gap-3 md:grid-cols-2 text-xs text-slate-600">
-        <div data-testid="integration-truth-owner-endpoint">
-          <span className="font-semibold text-slate-700">Endpoint:</span> {surface.owner_endpoint || "—"}
-        </div>
-        <div data-testid="integration-truth-owner-module">
-          <span className="font-semibold text-slate-700">Owner module:</span> {surface.owner_module || "—"}
-        </div>
-        <div data-testid="integration-truth-owner-type">
-          <span className="font-semibold text-slate-700">Owner type:</span> {surface.owner_type || "—"}
-        </div>
-        <div data-testid="integration-truth-owner-checked-at">
-          <span className="font-semibold text-slate-700">Last checked:</span> {fmtTime(checkedAt)}
-        </div>
-      </div>
-    </div>
+    <TruthOwnerPanel
+      title="Canonical truth owner"
+      surface={surface}
+      relationship={{ ...relationship, canonical_status: canonicalStatus || relationship?.canonical_status }}
+      checkedAt={fmtTime(checkedAt)}
+      testidPrefix="integration-truth-owner-banner"
+    />
   );
 }
 
@@ -449,6 +430,10 @@ export default function IntegrationTruth() {
   const [integrations, setIntegrations] = useState(null);
   const [telemetry, setTelemetry] = useState(null);
   const [loading, setLoading] = useState({ ai: false, int: false, tel: false });
+  const [refreshCapability, setRefreshCapability] = useState({
+    available: false,
+    disabled_reason: "Resolving refresh capability…",
+  });
 
   const loadAiKeys = useCallback(async () => {
     setLoading((s) => ({ ...s, ai: true }));
@@ -488,11 +473,24 @@ export default function IntegrationTruth() {
     }
   }, []);
 
+  const loadCapabilities = useCallback(async () => {
+    try {
+      const { data } = await api.get("/admin/shared-capabilities");
+      const match = (data.capabilities || []).find(
+        (item) => item.capability_id === "truth.integration_truth.refresh",
+      );
+      setRefreshCapability(match || { available: false, disabled_reason: "Integration truth capability missing." });
+    } catch {
+      setRefreshCapability({ available: false, disabled_reason: "Unable to verify refresh capability." });
+    }
+  }, []);
+
   useEffect(() => {
     loadAiKeys();
     loadIntegrations();
     loadTelemetry();
-  }, [loadAiKeys, loadIntegrations, loadTelemetry]);
+    loadCapabilities();
+  }, [loadAiKeys, loadCapabilities, loadIntegrations, loadTelemetry]);
 
   return (
     <AdminShell>
@@ -526,26 +524,30 @@ export default function IntegrationTruth() {
 
         <TruthOwnerBanner
           surface={integrations?.truth_surface || telemetry?.truth_surface}
+          relationship={integrations?.truth_relationship || telemetry?.truth_relationship}
           checkedAt={integrations?.checked_at || telemetry?.checked_at}
           canonicalStatus={integrations?.overall}
         />
 
         <AiKeysPanel
           data={aiKeys}
-          onRefresh={loadAiKeys}
+          onRefresh={refreshCapability.available ? loadAiKeys : undefined}
           loading={loading.ai}
+          refreshCapability={refreshCapability}
         />
 
         <IntegrationsPanel
           data={integrations}
-          onRefresh={loadIntegrations}
+          onRefresh={refreshCapability.available ? loadIntegrations : undefined}
           loading={loading.int}
+          refreshCapability={refreshCapability}
         />
 
         <AliasTelemetryPanel
           data={telemetry}
-          onRefresh={loadTelemetry}
+          onRefresh={refreshCapability.available ? loadTelemetry : undefined}
           loading={loading.tel}
+          refreshCapability={refreshCapability}
         />
       </div>
     </AdminShell>

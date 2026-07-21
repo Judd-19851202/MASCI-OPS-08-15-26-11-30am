@@ -25,6 +25,7 @@ import os
 from typing import Any, Dict
 
 from lib.canonical_truth import canonical_truth_contract
+from lib.trust_reconciliation import reconcile_shared_foundation
 from lib.runtime_identity import runtime_identity_public_payload
 
 
@@ -272,6 +273,7 @@ def platform_status(app) -> Dict[str, Any]:
         "service": "masci-hub",
         "attestation_version": "22.1K",
         "canonical_truth": canonical_truth_contract(),
+        "reconciliation": reconcile_shared_foundation(),
         "runtime": {
             "app_env": ((runtime_identity or {}).get("identity") or {}).get("app_env") or "unknown",
             "worker_pid": os.getpid(),

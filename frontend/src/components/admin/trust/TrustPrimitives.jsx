@@ -132,6 +132,55 @@ export function EvidenceSummary({ value, testidPrefix = "evidence-summary" }) {
   );
 }
 
+export function TruthOwnerPanel({
+  title = "Truth ownership",
+  surface,
+  relationship,
+  checkedAt,
+  testidPrefix = "truth-owner-panel",
+}) {
+  if (!surface) return null;
+  const role = relationship?.role || surface.role || "UNREGISTERED";
+  const canonicalStatus = relationship?.canonical_status || "UNVERIFIABLE";
+  const derivedStatus = relationship?.derived_status || canonicalStatus;
+  const conflicts = relationship?.conflicts || [];
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3" data-testid={testidPrefix}>
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">{title}</span>
+        <span className="inline-flex rounded-full bg-slate-100 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-slate-700" data-testid={`${testidPrefix}-role`}>{role}</span>
+        <span className="inline-flex rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-emerald-700" data-testid={`${testidPrefix}-canonical-status`}>Canonical {canonicalStatus}</span>
+        <span className="inline-flex rounded-full bg-amber-50 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-amber-700" data-testid={`${testidPrefix}-derived-status`}>Displayed {derivedStatus}</span>
+      </div>
+      <p className="text-sm text-slate-800" data-testid={`${testidPrefix}-summary`}>{relationship?.derivation_explanation || surface.surface_name || "Structured truth contract."}</p>
+      <div className="grid gap-2 md:grid-cols-2 text-xs text-slate-600">
+        <div data-testid={`${testidPrefix}-owner-endpoint`}><span className="font-semibold text-slate-800">Owner endpoint:</span> {surface.owner_endpoint || "—"}</div>
+        <div data-testid={`${testidPrefix}-owner-module`}><span className="font-semibold text-slate-800">Owner module:</span> {surface.owner_module || "—"}</div>
+        <div data-testid={`${testidPrefix}-canonical-owner`}><span className="font-semibold text-slate-800">Canonical owner:</span> {relationship?.canonical_owner_id || surface.canonical_owner_id || surface.surface_id || "—"}</div>
+        <div data-testid={`${testidPrefix}-evidence-age`}><span className="font-semibold text-slate-800">Evidence age:</span> {checkedAt || relationship?.evidence_age_source || "—"}</div>
+      </div>
+      <div className="grid gap-2 md:grid-cols-2">
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-3" data-testid={`${testidPrefix}-upstream`}>
+          <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 mb-2">Upstream owners</div>
+          {surface.upstream_owner_ids?.length ? (
+            <ul className="space-y-1 text-xs text-slate-700">
+              {surface.upstream_owner_ids.map((id) => <li key={id}>{id}</li>)}
+            </ul>
+          ) : <div className="text-xs text-slate-500">This surface is the source owner.</div>}
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-3" data-testid={`${testidPrefix}-conflicts`}>
+          <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 mb-2">Conflict state</div>
+          {conflicts.length ? (
+            <ul className="space-y-1 text-xs text-rose-700">
+              {conflicts.map((conflict, index) => <li key={`${testidPrefix}-conflict-${index}`}>{conflict}</li>)}
+            </ul>
+          ) : <div className="text-xs text-emerald-700">No contradiction detected for this surface.</div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Canonical status palette ────────────────────────────────────
 export const TRUST_STATUS_STYLES = {
   green: {

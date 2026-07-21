@@ -29,6 +29,7 @@ from typing import Any, Awaitable, Callable, Dict, List, Optional
 import httpx
 from fastapi import APIRouter, Depends, Request
 
+from lib.canonical_truth import canonical_truth_surface, derived_truth_payload
 from lib.runtime_identity import runtime_identity_public_payload
 
 # Backend listens on 0.0.0.0:8001 (supervisor-managed). We fan out over
@@ -646,6 +647,7 @@ async def _probe_one(client: httpx.AsyncClient, card_meta: Dict[str, Any],
         "title": card_meta["title"],
         "endpoint": card_meta["endpoint"],
         "drilldown": card_meta["drilldown"],
+        "source_probe_state": "probe_failure" if isinstance(evaluated.get("evidence"), dict) and evaluated.get("evidence", {}).get("error") else "source_success",
         **evaluated,
     }
 
@@ -745,6 +747,17 @@ def register_occ_health_routes(api_router: APIRouter, require_admin: Callable):
             "generated_at": now_iso,
             "overall_status": overall,
             "overall_canonical": canonical_summary["highest"],
+            "truth_surface": canonical_truth_surface("occ_health_aggregator"),
+            "truth_relationship": derived_truth_payload(
+                "occ_health_aggregator",
+                canonical_owner_route="/api/admin/occ/health",
+                derivation_explanation="OCC health is a derived aggregator over fresh child probes; upstream canonical owners remain authoritative for their own subjects.",
+                canonical_status=canonical_summary["highest"],
+                derived_status=overall,
+                conflicts=[] if overall == canonical_summary["highest"] else ["Aggregate status differs from canonical summary; review child cards for contradiction."],
+                evidence_age_source="generated_at",
+                stale_evidence=False,
+            )["relationship"],
             "runtime_identity": runtime_identity,
             "counts": counts,
             "canonical_counts": {

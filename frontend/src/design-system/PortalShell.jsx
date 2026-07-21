@@ -20,6 +20,7 @@ import PortalSwitcher from "@/components/PortalSwitcher";
 import { LangToggle } from "@/components/LangToggle";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useBranding } from "@/lib/BrandingProvider";
+import { clearAllSessions } from "@/lib/sessionReset";
 // TRACK 27.03 · Final Completion · canonical local-time formatter.
 import { formatPlatformTimeOnly } from "@/lib/platformTime";
 
@@ -89,6 +90,7 @@ export function PortalShell({
   showNotifications = true,
   showPortalSwitcher = true,
   showSignOut = true,
+  signOutCapability = null,
   portalSwitcherCurrent = null,
   hideProviderLine = false,
   onSignOut = null,
@@ -103,12 +105,13 @@ export function PortalShell({
   const clock = useLocalClock();
   const localTimeLabel = formatPlatformTimeOnly(clock);
   const signedInName = React.useMemo(() => resolveSignedInName(), []);
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
+    if (signOutCapability && signOutCapability.available !== true) return;
     if (typeof onSignOut === "function") {
       onSignOut();
       return;
     }
-    try { localStorage.removeItem("masci_token"); } catch { /* noop */ }
+    await clearAllSessions();
     window.location.assign("/sign-in");
   };
 
@@ -266,9 +269,10 @@ export function PortalShell({
               <button
                 type="button"
                 onClick={handleSignOut}
+                disabled={!!signOutCapability && signOutCapability.available !== true}
                 className="inline-flex items-center gap-1 px-2.5 h-9 rounded border border-slate-700 text-slate-200 hover:bg-slate-800 text-xs font-bold uppercase tracking-wide shrink-0"
                 aria-label="Sign out"
-                title="Sign out"
+                title={signOutCapability?.disabled_reason || "Sign out"}
                 data-testid="ds-portal-shell-signout"
               >
                 <LogOut className="w-3.5 h-3.5" /> <span className="hidden lg:inline">Sign out</span>

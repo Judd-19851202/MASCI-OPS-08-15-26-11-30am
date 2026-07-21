@@ -19,8 +19,9 @@ import NotificationBell from "@/components/NotificationBell";
 import { OfflineIndicator } from "@/lib/resiliency";
 import GlobalSearch from "@/components/GlobalSearch";
 import { useT } from "@/lib/i18n";
-import { clearSafetyToken, getSafetyUser } from "@/lib/safetyAuth";
+import { getSafetyUser } from "@/lib/safetyAuth";
 import { clearAllSessions } from "@/lib/sessionReset";
+import { api } from "@/lib/api";
 import SafetySideNavV2, { useSafetySidebarV2Enabled } from "@/components/safety/sidebar/SafetySideNavV2";
 
 export default function SafetyShell({ title, kicker, children }) {
@@ -30,7 +31,7 @@ export default function SafetyShell({ title, kicker, children }) {
   const sidebarV2 = useSafetySidebarV2Enabled();
 
   const signOut = async () => {
-    // P0 (iter179): wipe every auth artifact, not just Safety.
+    try { await api.post("/auth/multi-logout"); } catch { /* ignore */ }
     await clearAllSessions();
     nav("/safety-portal/login");
   };

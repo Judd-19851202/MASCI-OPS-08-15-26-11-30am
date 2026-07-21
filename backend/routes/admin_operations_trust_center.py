@@ -36,6 +36,7 @@ from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends
 
+from lib.canonical_truth import canonical_truth_surface, derived_truth_payload
 from lib.trust_score import compute_score
 from lib.trust_score_v2 import compute_categorized_score, CATEGORY_WEIGHTS
 from lib.trust_score_history import (
@@ -465,6 +466,17 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
         return {
             "track": "15.76B",
             "generated_at": datetime.now(timezone.utc).isoformat(),
+            "truth_surface": canonical_truth_surface("operations_trust_center"),
+            "truth_relationship": derived_truth_payload(
+                "operations_trust_center",
+                canonical_owner_route="/api/admin/trust-spine",
+                derivation_explanation="Operations Trust Center is a derived consumer. Its score and narrative are built from trust spine and master-data evidence and may not override canonical platform truth.",
+                canonical_status=spine_payload.get("canonical_status") or "UNVERIFIABLE",
+                derived_status={"green": "VERIFIED", "amber": "DEGRADED", "red": "MISMATCH"}.get(cat["score_band"], "UNVERIFIABLE"),
+                conflicts=[] if cat["score_band"] == spine_payload.get("platform_band") else ["Derived trust score differs from trust-spine platform band; treat this as a derived operational perspective, not canonical truth."],
+                evidence_age_source="summary.last_success_at",
+                stale_evidence=summary.get("workflows_idle", 0) > 0,
+            )["relationship"],
             # Flat fields (15.76A compatibility).
             "trust_score": cat["trust_score"],
             "score_band": cat["score_band"],

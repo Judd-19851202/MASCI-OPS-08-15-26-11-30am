@@ -20,6 +20,8 @@ from typing import Any, Callable, Dict, Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException
 
+from lib.trust_reconciliation import reconcile_shared_foundation
+from lib.shared_capabilities import occ_operation_capability, shell_signout_capability, truth_action_capability
 from services.operations_control import build_registry
 from services.operations_control import audit as occ_audit
 
@@ -63,6 +65,11 @@ def register_operations_control_routes(
         cards = []
         for op in registry.values():
             card: Dict[str, Any] = {**op.to_public_dict()}
+            card["capability"] = occ_operation_capability(
+                {**op.to_public_dict(), "confirmation_phrase": op.confirmation_phrase},
+                available=bool(op.status_fn or op.apply_fn or op.dry_run_fn),
+                disabled_reason=op.manual_reason or "",
+            )
             if op.status_fn:
                 try:
                     card["status_snapshot"] = await op.status_fn(_payload_envelope())
@@ -72,6 +79,31 @@ def register_operations_control_routes(
                     }
             cards.append(card)
         return {"count": len(cards), "operations": cards}
+
+    @api_router.get("/admin/shared-capabilities")
+    async def shared_capabilities(actor=Depends(require_admin)):
+        shell_caps = [
+            shell_signout_capability(portal="admin", route="/api/admin/logout"),
+            shell_signout_capability(portal="pm", route="/api/pm/logout"),
+            shell_signout_capability(portal="hr", route="/api/auth/multi-logout"),
+            shell_signout_capability(portal="safety", route="/api/auth/multi-logout"),
+            shell_signout_capability(portal="dispatch", route="/api/auth/multi-logout"),
+            shell_signout_capability(portal="shop", route="/api/auth/multi-logout"),
+        ]
+        truth_caps = [truth_action_capability(surface_id="integration_truth", route="/api/admin/integrations/truth-status")]
+        occ_caps = [
+            occ_operation_capability(
+                {**op.to_public_dict(), "confirmation_phrase": op.confirmation_phrase},
+                available=bool(op.status_fn or op.apply_fn or op.dry_run_fn),
+                disabled_reason=op.manual_reason or "",
+            )
+            for op in registry.values()
+        ]
+        return {"count": len(shell_caps) + len(truth_caps) + len(occ_caps), "capabilities": shell_caps + truth_caps + occ_caps}
+
+    @api_router.get("/admin/trust-reconciliation")
+    async def trust_reconciliation(actor=Depends(require_admin)):
+        return reconcile_shared_foundation()
 
     @api_router.get("/admin/operations-control/operations")
     async def list_operations(actor=Depends(require_admin)):

@@ -51,6 +51,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { TruthOwnerPanel } from "@/components/admin/trust/TrustPrimitives";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
@@ -713,6 +714,16 @@ export default function OperationsTrustCenter() {
               Refresh
             </Button>
           </div>
+        </div>
+
+        <div className="mt-4">
+          <TruthOwnerPanel
+            title="Derived trust relationship"
+            surface={data.truth_surface}
+            relationship={data.truth_relationship}
+            checkedAt={summary.last_success_at || lastRun}
+            testidPrefix="operations-trust-owner-panel"
+          />
         </div>
 
         {/* Why isn't this 100? */}

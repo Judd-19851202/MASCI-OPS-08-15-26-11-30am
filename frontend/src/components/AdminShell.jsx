@@ -22,8 +22,10 @@
 // The `SECTIONS` named export is preserved because a few call sites
 // import it for their own nav rendering.
 
-import React from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
+import { api } from "@/lib/api";
+import { clearAllSessions } from "@/lib/sessionReset";
 import {
   LayoutDashboard, Users, Building2, Wrench, Mail, BookOpen, ClipboardCheck,
   ShieldCheck, Cable, Truck, Activity, Rocket, History, GraduationCap,
@@ -105,10 +107,42 @@ export default function AdminShell({
   ...rest
 }) {
   const key = section || active;
+  const [signOutCapability, setSignOutCapability] = useState({
+    available: false,
+    disabled_reason: "Resolving sign-out capability…",
+  });
   const parent = key ? SECTION_TO_DOMAIN[key] : null;
   const breadcrumb = parent
     ? [parent, { label: title || "" }]
     : [{ label: title || "" }];
+
+  useEffect(() => {
+    let mounted = true;
+    api.get("/admin/shared-capabilities")
+      .then((response) => {
+        if (!mounted) return;
+        const match = (response.data?.capabilities || []).find(
+          (item) => item.capability_id === "shared-shell.sign-out.admin",
+        );
+        setSignOutCapability(match || { available: false, disabled_reason: "Sign-out capability missing." });
+      })
+      .catch(() => {
+        if (mounted) {
+          setSignOutCapability({ available: false, disabled_reason: "Unable to verify sign-out capability." });
+        }
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handleSignOut = useCallback(async () => {
+    if (signOutCapability.available !== true) return;
+    try { await api.post("/auth/multi-logout"); } catch { /* noop */ }
+    try { await api.post("/admin/logout"); } catch { /* noop */ }
+    await clearAllSessions();
+    window.location.assign("/admin/login");
+  }, [signOutCapability]);
 
   return (
     <LegacyAdminModernShell
@@ -116,6 +150,8 @@ export default function AdminShell({
       subtitle={typeof kicker === "string" ? kicker : null}
       breadcrumb={breadcrumb}
       testidPrefix={`admin-shell${key ? "-" + key : ""}`}
+      onSignOut={handleSignOut}
+      signOutCapability={signOutCapability}
       {...rest}
     >
       {intro && (

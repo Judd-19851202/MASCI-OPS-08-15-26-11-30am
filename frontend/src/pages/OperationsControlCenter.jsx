@@ -399,14 +399,18 @@ function OperationCard({ op, onRun, onApply, dryRunState, highlighted, cardRef }
   const [confirmPhrase, setConfirmPhrase] = useState("");
   const [reason, setReason] = useState("");
   const snapshot = op.status_snapshot || {};
+  const capability = op.capability || {};
   const canDryRun = op.has_dry_run;
   const canApply =
     op.has_apply &&
+    capability.available !== false &&
     (!op.requires_dry_run || dryRunState?.dry_run_id) &&
     (!op.requires_confirmation ||
       confirmPhrase === (dryRunState?.confirmation_phrase || ""));
   const applyReason = !op.has_apply
     ? op.manual_reason || "Read-only operation — no apply available."
+    : capability.available === false
+      ? capability.disabled_reason || "Capability unavailable."
     : op.requires_dry_run && !dryRunState?.dry_run_id
       ? "Run the preview first."
       : op.requires_confirmation && !confirmPhrase
@@ -466,6 +470,8 @@ function OperationCard({ op, onRun, onApply, dryRunState, highlighted, cardRef }
             type="button"
             className="rounded-md border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-medium text-sky-800 hover:bg-sky-100 disabled:cursor-not-allowed disabled:opacity-50"
             onClick={() => onRun(op)}
+            disabled={capability.available === false}
+            title={capability.disabled_reason || "Run dry-run"}
             data-testid={`occ-dry-run-${op.id}`}
           >
             {op.risk === "info" ? "Refresh status" : "Preview / dry-run"}

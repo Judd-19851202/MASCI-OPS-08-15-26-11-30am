@@ -24,7 +24,7 @@ from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends
 
-from lib.canonical_truth import canonical_truth_surface
+from lib.canonical_truth import canonical_truth_surface, derived_truth_payload
 from lib.trust_spine import WORKFLOW_EXPECTED_STAGES
 
 
@@ -186,6 +186,16 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
             "platform_band": platform_band,
             "canonical_status": canonical_status,
             "truth_surface": canonical_truth_surface("trust_spine"),
+            "truth_relationship": derived_truth_payload(
+                "trust_spine",
+                canonical_owner_route="/api/admin/trust-spine",
+                derivation_explanation="Workflow lifecycle truth comes directly from trust_spine_events rollups.",
+                canonical_status=canonical_status,
+                derived_status=canonical_status,
+                conflicts=[],
+                evidence_age_source="generated_at",
+                stale_evidence=False,
+            )["relationship"],
             "total_events_24h": total_events_24h,
             "total_failed_24h": total_failed_24h,
             "workflow_count": len(rows),

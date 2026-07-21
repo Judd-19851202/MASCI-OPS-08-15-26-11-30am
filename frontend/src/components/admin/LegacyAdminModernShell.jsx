@@ -49,6 +49,8 @@ export default function LegacyAdminModernShell({
   breadcrumb = [],
   primaryActions = null,
   testidPrefix = "legacy-admin-modern",
+  onSignOut = null,
+  signOutCapability = null,
   children,
 }) {
   const actions = (
@@ -73,6 +75,8 @@ export default function LegacyAdminModernShell({
         pageTitle={title}
         subtitle={subtitle}
         primaryActions={actions}
+        onSignOut={onSignOut}
+        signOutCapability={signOutCapability}
         sideNav={<SideNavV3 onOpenPalette={() => window.__masciAdminOpenPalette?.()} />}
       >
         <AdminBreadcrumb

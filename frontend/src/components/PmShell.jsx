@@ -30,7 +30,6 @@ import {
 } from "@/components/ui/sheet";
 import SideNavV2, { isPmSidebarV2Enabled } from "@/components/pm/sidebar/SideNavV2";
 import { api } from "@/lib/api";
-import { clearPmToken } from "@/lib/pmAuth";
 import { clearAllSessions } from "@/lib/sessionReset";
 import { toast } from "sonner";
 
@@ -114,8 +113,8 @@ export default function PmShell({ title, section, children, intro }) {
       : <SideNav active={section} onNavigate={onNavigate} />;
 
   const signOut = async () => {
+    try { await api.post("/auth/multi-logout"); } catch { /* ignore */ }
     try { await api.post("/pm/logout"); } catch { /* ignore */ }
-    // P0 (iter179): wipe every auth artifact, not just PM.
     await clearAllSessions();
     toast.success("Signed out");
     navigate("/pm/login", { replace: true });

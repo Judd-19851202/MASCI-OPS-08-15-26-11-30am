@@ -12,8 +12,9 @@ import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/lib/i18n";
-import { clearHrToken, getHrUser } from "@/lib/hrAuth";
+import { getHrUser } from "@/lib/hrAuth";
 import { clearAllSessions } from "@/lib/sessionReset";
+import { api } from "@/lib/api";
 import HrSideNavV2, { useHrSidebarV2Enabled } from "@/components/hr/sidebar/HrSideNavV2";
 
 export default function HrPageShell({ title, kicker, children }) {
@@ -23,7 +24,7 @@ export default function HrPageShell({ title, kicker, children }) {
   const sidebarV2 = useHrSidebarV2Enabled();
 
   const signOut = async () => {
-    // P0 (iter179): wipe every auth artifact, not just HR.
+    try { await api.post("/auth/multi-logout"); } catch { /* ignore */ }
     await clearAllSessions();
     nav("/hr/login");
   };

@@ -39,6 +39,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { TruthOwnerPanel } from "@/components/admin/trust/TrustPrimitives";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
@@ -155,6 +156,14 @@ export default function PlatformTrustValidator() {
 
   return (
     <div data-testid="platform-trust-validator" className="space-y-4">
+      <TruthOwnerPanel
+        title="Validation relationship"
+        surface={data?.canonical_truth?.validation_surface}
+        relationship={data?.truth_relationship}
+        checkedAt={data?.generated_at || lastRun}
+        testidPrefix="platform-trust-validator-owner-panel"
+      />
+
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
           <div className="flex items-center gap-2">
@@ -164,7 +173,7 @@ export default function PlatformTrustValidator() {
             <Badge band={finalBand} />
           </div>
           <p className="text-xs text-slate-500">
-            Admin-gated, read-only · {lastRun && `last run ${lastRun}`}
+            Admin-gated, read-only validator · {lastRun && `last run ${lastRun}`}
           </p>
         </div>
         <Button

@@ -26,6 +26,7 @@ from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends
 
+from lib.canonical_truth import canonical_truth_surface, derived_truth_payload
 from lib.runtime_identity import runtime_identity_public_payload
 
 
@@ -360,9 +361,29 @@ def make_router(db, require_admin_only_dep, get_runtime_identity=None) -> APIRou
         else:
             final_band = "green"
 
+        validation_status = {
+            "green": "VERIFIED",
+            "amber": "DEGRADED",
+            "red": "MISMATCH",
+        }.get(final_band, "UNVERIFIABLE")
+
         return {
             "track": "15.75D",
             "generated_at": now.isoformat(),
+            "canonical_truth": {
+                "platform_truth_owner": canonical_truth_surface("platform_attestation"),
+                "validation_surface": canonical_truth_surface("platform_trust_validator"),
+            },
+            "truth_relationship": derived_truth_payload(
+                "platform_trust_validator",
+                canonical_owner_route="/api/admin/platform/status",
+                derivation_explanation="This route is a validator. It checks admin-safe evidence against canonical platform truth and must not replace the platform owner.",
+                canonical_status=validation_status,
+                derived_status=validation_status,
+                conflicts=["Validation result is separate from canonical platform truth."] if final_band in {"amber", "red"} else [],
+                evidence_age_source="generated_at",
+                stale_evidence=False,
+            )["relationship"],
             "system": system_block,
             "email_routing": email_routing,
             "audit_status_integrity": audit_integrity,
