@@ -286,3 +286,50 @@ Key truth
 - This exact candidate changes only `frontend/yarn.lock` and `frontend/src/buildVersion.generated.js`.
 - Authentication continuity remains PASS and unchanged.
 - Production-grade live backup/restore proof still requires owner / infrastructure evidence and is represented honestly as such.
+
+## 2026-07-21 — Preview-only bounded repair for Daily Report lane + Hub sign-out
+
+Scope
+- Strict PREVIEW-only bounded repair per operator instruction.
+- No deployment, no GitHub save, no `.env` change, no auth architecture refactor, no Trust Spine refactor, no new feature work.
+
+Implemented
+- Repaired governed Daily Report certification recipient selection in `backend/lib/governed_certification_lane.py`.
+  - Placeholder `example.com` governed recipients are no longer selected for actual governed routing.
+  - Governed routing now prefers valid live `project_doc` recipients and falls back to configured environment recipients only when project routing remains placeholder-only.
+  - Added bounded recipient-proof metadata (`recipient_source`, placeholder-selection proof) to the governed lane payload for verification.
+- Repaired Hub sign-out in `frontend/src/pages/Hub.jsx`.
+  - Hub now uses the shared `clearAllSessions()` flow and redirects to `/sign-in`.
+  - Sign-out clears session/auth state, directory session, portal context, and must-change state instead of only removing the first detected portal token.
+- Strengthened shared browser auth cleanup in `frontend/src/lib/sessionReset.js`.
+  - Added cleanup for leadership token, safety-forms token, JWT, driver session, asset-admin flag, and must-change flags.
+- Added `/app/memory/test_credentials.md` with preview-only credentials referenced from existing preview certification seed/test artifacts.
+
+Verification completed
+- Backend focused proof suite passed: `pytest -q /app/backend/tests/test_dr03_governed_certification_lane.py` → `4 passed`.
+- Backend bounded verification confirmed:
+  - placeholder `example.com` recipients are not selected,
+  - valid governed recipients are selected from live project routing when available,
+  - environment fallback is used when project routing is placeholder-only,
+  - non-certification behavior remains unchanged.
+- Frontend Hub sign-out smoke/certification passed via browser automation on the running frontend:
+  - sign-out button works,
+  - auth storage clears,
+  - redirect lands on `/sign-in`,
+  - protected `/admin` route re-requires auth,
+  - browser Back does not restore authenticated access.
+
+Blocking environment fact
+- Full live preview end-to-end backend regression remains blocked by a pre-existing runtime startup refusal already present in this forked environment:
+  - `PREVIEW_PRODUCTION_CLUSTER_REFUSED`
+  - backend is not serving HTTP on port `8001`, so live provider/Trust-Spine proof for `provider_accepted`, `audit_written`, and `completed=ok` could not be re-run in this environment without unrelated runtime/environment intervention.
+
+Current status
+- Bounded code repair: COMPLETE
+- Focused verification for both repaired areas: COMPLETE
+- Full live preview certification batch: BLOCKED by pre-existing backend startup refusal unrelated to the bounded repair itself
+
+Next actions
+- P0: Restore preview backend runtime availability without changing production behavior, then re-run live governed Daily Report certification and capture `provider_accepted`, `audit_written`, `completed=ok` evidence.
+- P0: Re-run live sign-out round-trip against preview auth endpoints once backend is serving again.
+- P1: Execute the requested preview regression batch across governed workflows after backend recovery.
