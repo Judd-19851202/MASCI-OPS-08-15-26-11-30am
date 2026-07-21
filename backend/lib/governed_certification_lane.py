@@ -1,10 +1,80 @@
 from __future__ import annotations
 
+import os
 from typing import Any, Dict, Iterable, List, Optional
 
 
 GOVERNED_CERTIFICATION_PROJECT_NUMBER = "ZZ-RUNTIME-CERT-2026"
 GOVERNED_CERTIFICATION_PROJECT_NAME = "Runtime Certification — Internal Test Project"
+def _clean_email(value: Any) -> str:
+    return str(value or "").strip().lower()
+
+
+def _clean_emails(values: Optional[Iterable[Any]]) -> List[str]:
+    out: List[str] = []
+    seen = set()
+    for raw in values or []:
+        email = _clean_email(raw)
+        if not email or "@" not in email or email in seen:
+            continue
+        seen.add(email)
+        out.append(email)
+    return out
+
+
+def _is_reserved_or_invalid_email(email: str) -> bool:
+    clean = _clean_email(email)
+    if not clean or "@" not in clean:
+        return True
+    domain = clean.split("@", 1)[1]
+    return domain in {"example.com", "example.org", "example.net"} or domain.endswith(".example.com")
+
+
+def _governed_recipient_fallbacks() -> List[str]:
+    return _clean_emails(
+        [
+            os.environ.get("ADMIN_DEAD_LETTER_EMAIL"),
+            os.environ.get("ADMIN_DEAD_LETTER_TO"),
+            os.environ.get("BACKUP_EMAIL_TO"),
+            os.environ.get("OUTAGE_ALERT_TO"),
+            os.environ.get("REPLY_TO_EMAIL"),
+            os.environ.get("SENDER_EMAIL"),
+        ]
+    )
+
+
+def _select_governed_recipients(
+    *,
+    project_doc: Optional[Dict[str, Any]] = None,
+) -> Dict[str, List[str]]:
+    pm_email = _clean_email((project_doc or {}).get("pm_email"))
+    co_pm_emails = _clean_emails((project_doc or {}).get("co_pm_emails"))
+
+    to: List[str] = []
+    cc: List[str] = []
+    seen = set()
+
+    def append_unique(bucket: List[str], email: str) -> None:
+        clean = _clean_email(email)
+        if not clean or _is_reserved_or_invalid_email(clean) or clean in seen:
+            return
+        seen.add(clean)
+        bucket.append(clean)
+
+    append_unique(to, pm_email)
+    for email in co_pm_emails:
+        append_unique(cc, email)
+
+    if not to:
+        fallbacks = _governed_recipient_fallbacks()
+        if fallbacks:
+            append_unique(to, fallbacks[0])
+            for email in fallbacks[1:]:
+                append_unique(cc, email)
+
+    return {"to": to, "cc": cc}
+
+
 GOVERNED_CERTIFICATION_PM_EMAIL = "cert.pm@example.com"
 GOVERNED_CERTIFICATION_CO_PM_EMAILS = ["cert.copm@example.com"]
 GOVERNED_CERTIFICATION_EMAILS = {
@@ -24,24 +94,6 @@ GOVERNED_CERTIFICATION_WORKFLOWS = [
     "search",
     "pdf",
 ]
-
-
-def _clean_email(value: Any) -> str:
-    return str(value or "").strip().lower()
-
-
-def _clean_emails(values: Optional[Iterable[Any]]) -> List[str]:
-    out: List[str] = []
-    seen = set()
-    for raw in values or []:
-        email = _clean_email(raw)
-        if not email or "@" not in email or email in seen:
-            continue
-        seen.add(email)
-        out.append(email)
-    return out
-
-
 def is_governed_certification_identity(identity: Optional[Dict[str, Any]]) -> bool:
     if not isinstance(identity, dict):
         return False
@@ -70,17 +122,27 @@ def is_governed_certification_project(doc_or_project_number: Any, project_name: 
     )
 
 
-def build_governed_routing_override() -> Dict[str, Any]:
-    to = [GOVERNED_CERTIFICATION_PM_EMAIL]
-    cc = list(GOVERNED_CERTIFICATION_CO_PM_EMAILS)
+def build_governed_routing_override(
+    *,
+    project_doc: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    selected = _select_governed_recipients(project_doc=project_doc)
+    to = selected["to"]
+    cc = selected["cc"]
+    pm_email = to[0] if to else None
     return {
         "enabled": True,
         "reason": "governed_production_certification_lane",
-        "pm_email": GOVERNED_CERTIFICATION_PM_EMAIL,
+        "pm_email": pm_email,
         "pm_name": "Certification PM",
         "to": to,
         "cc": cc,
         "all": to + cc,
+        "recipient_source": (
+            "project_doc"
+            if _clean_email((project_doc or {}).get("pm_email")) and not _is_reserved_or_invalid_email(_clean_email((project_doc or {}).get("pm_email")))
+            else "environment_fallback"
+        ),
     }
 
 
@@ -127,7 +189,7 @@ def apply_governed_daily_report_lane(
         merged_required.append(value)
     out["certification_required_workflows"] = merged_required
 
-    routing_override = build_governed_routing_override()
+    routing_override = build_governed_routing_override(project_doc=project_doc)
     out["routing_override"] = routing_override
     out["certification_lane_allows_email"] = True
     out["email_dispatch_suppressed"] = False
@@ -153,6 +215,13 @@ def apply_governed_daily_report_lane(
         },
         "routing": routing_override,
         "project_snapshot": snapshot,
+        "recipient_validation": {
+            "placeholder_example_domain_selected": any(
+                _is_reserved_or_invalid_email(email) for email in routing_override.get("all", [])
+            ),
+            "resolved_to": routing_override.get("all", []),
+            "source": routing_override.get("recipient_source"),
+        },
         "preserves": {
             "trust_spine": True,
             "audit": True,

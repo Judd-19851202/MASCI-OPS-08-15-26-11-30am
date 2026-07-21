@@ -18,7 +18,7 @@
 // unauthorized viewers.
 
 import React, { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   HardHat, ClipboardList, Building2, Shield, Wrench, ClipboardCheck,
   GraduationCap, UserCheck, Users, ArrowRight, MapPin, Lock, Phone,
@@ -37,6 +37,7 @@ import { getSafetyToken, getSafetyUser, clearSafetyToken } from "@/lib/safetyAut
 import { isLeadershipAuthed, clearLeadershipToken } from "@/lib/leadershipAuth";
 import { paletteFor, heroPaletteFor } from "@/lib/portalPalette";
 import { authorizedPortals, isSignedInAnywhere } from "@/lib/permissions";
+import { clearAllSessions } from "@/lib/sessionReset";
 
 // ─── Shared tile component ──────────────────────────────────────────────
 
@@ -211,15 +212,21 @@ function WelcomeBackHero({ session }) {
 
 export default function Hub() {
   const { t, lang } = useT();
+  const navigate = useNavigate();
   // Re-render cue: signing out updates this counter to recompute the
   // detected session (it reads localStorage synchronously, so a state
   // bump is enough — no listener needed).
   const [renderTick, force] = useState(0);
 
+  const handleSignOut = async () => {
+    await clearAllSessions();
+    force((n) => n + 1);
+    navigate("/sign-in", { replace: true });
+  };
+
   const session = useMemo(
-    () => detectActiveSession(t, () => force((n) => n + 1)),
-     
-    [t],
+    () => detectActiveSession(t, handleSignOut, renderTick),
+    [t, renderTick],
   );
 
   return (
@@ -498,41 +505,37 @@ function ReferenceLink({ to, icon: Icon, title, desc, testId }) {
  * present (rare, dev sessions), admin wins because admin is the only
  * scope that can see everything.
  */
-function detectActiveSession(t, rerender) {
-  const onSignOut = (clearFn) => () => {
-    try { clearFn(); } catch { /* noop */ }
-    rerender?.();
-  };
+function detectActiveSession(t, signOut) {
   if (getAdminToken()) {
     return { kind: "admin", scopeLabel: "Admin Console", name: "Admin", to: "/admin",
-             signOut: onSignOut(clearAdminToken) };
+             signOut };
   }
   if (getHrToken()) {
     const u = getHrUser() || {};
     return { kind: "hr", scopeLabel: "HR Portal", name: u.name || u.email || "HR", to: "/hr",
-             signOut: onSignOut(clearHrToken) };
+             signOut };
   }
   if (getSafetyToken()) {
     const u = getSafetyUser() || {};
     return { kind: "safety", scopeLabel: "Safety Portal", name: u.name || u.email || "Safety", to: "/safety-portal",
-             signOut: onSignOut(clearSafetyToken) };
+             signOut };
   }
   if (getPmToken()) {
     return { kind: "pm", scopeLabel: "PM Portal", name: "Project Manager", to: "/pm",
-             signOut: onSignOut(clearPmToken) };
+             signOut };
   }
   if (getShopToken()) {
     return { kind: "shop", scopeLabel: "Shop Console", name: "Shop", to: "/shop",
-             signOut: onSignOut(clearShopToken) };
+             signOut };
   }
   if (getDispatchToken()) {
     const u = getDispatchUser() || {};
     return { kind: "dispatch", scopeLabel: "Dispatch Portal", name: u.name || u.email || "Dispatcher", to: "/dispatch-portal",
-             signOut: onSignOut(clearDispatchToken) };
+             signOut };
   }
   if (isLeadershipAuthed()) {
     return { kind: "leadership", scopeLabel: "Field Leadership", name: "Field Leadership", to: "/leadership",
-             signOut: onSignOut(clearLeadershipToken) };
+             signOut };
   }
   return null;
 }

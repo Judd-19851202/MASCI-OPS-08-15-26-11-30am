@@ -163,6 +163,19 @@ backend:
 ## Frontend Tasks
 
 frontend:
+  - task: "Hub Sign-Out Bug Fix - PREVIEW-only bounded frontend repair"
+    implemented: true
+    working: true
+    file: "frontend/src/pages/Hub.jsx, frontend/src/lib/sessionReset.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        timestamp: "2026-07-21 16:55:00 UTC"
+        comment: "✅ VERIFIED: Hub sign-out functionality working correctly. All 5 user-facing behaviors validated: (1) Welcome Back card with sign-out button (data-testid='hub-welcome-back-signout') is visible and clickable when signed-in session exists, (2) Signing out successfully clears ALL session/auth state including admin/pm/hr/safety/shop/dispatch tokens, directory session, and all user objects from localStorage, (3) User is correctly redirected to /sign-in after logout (replace: true), (4) Protected routes /admin and /pm correctly require authentication after logout (redirect to /admin/login and /pm/login respectively), (5) Browser refresh and back button do NOT restore authenticated access - session remains cleared. The shared clearAllSessions() helper from sessionReset.js is working as designed. Backend API 502 errors are expected per review request (pre-existing runtime identity refusal unrelated to this bounded repair). Frontend-only session management and route guards functioning correctly."
+
   - task: "External Preview Fail-Closed State Verification"
     implemented: true
     working: true
@@ -181,15 +194,17 @@ frontend:
 metadata:
   created_by: "testing_agent"
   version: "1.0"
-  test_sequence: 3
-  last_updated: "2026-07-21 15:38:00 UTC"
+  test_sequence: 4
+  last_updated: "2026-07-21 16:55:00 UTC"
   pdc_01a_status: "COMPLETE"
   production_cert_status: "COMPLETE"
+  hub_signout_fix_status: "VERIFIED"
 
 ## Test Plan
 
 test_plan:
   current_focus:
+    - "Hub Sign-Out Bug Fix - PREVIEW-only bounded frontend repair"
     - "Production Backend Certification - Runtime Reliability"
     - "PDC-01A Authentication Continuity Proof"
     - "PDC-01A Governed PRE_SAVE_CANDIDATE Authority"
@@ -199,7 +214,7 @@ test_plan:
   stuck_tasks: []
   test_all: false
   test_priority: "critical_first"
-  notes: "Production backend certification completed successfully - all runtime reliability checks passed"
+  notes: "Hub sign-out fix verified successfully. Production backend certification completed successfully - all runtime reliability checks passed"
 
   
   - agent: "testing"
@@ -221,3 +236,7 @@ agent_communication:
   - agent: "testing"
     timestamp: "2026-07-20 03:00:00 UTC"
     message: "PDC-01A BLOCKER REMEDIATION VERIFICATION COMPLETE. All 5 PDC-01A objectives verified: (1) Authentication continuity proof exists at canonical governance location with all 29 auth parity tests passing. (2) Governed PRE_SAVE_CANDIDATE authority properly restricts dirty workspace to only frontend/yarn.lock with explicit mission reference. (3) Release identity reconciliation confirmed - frontend/backend agree on commit and source hash, verifier script succeeds. (4) Stale /app/memory auth dependency removed - tests now reference canonical governance document. (5) Auth regression suites executed - 37 static tests PASSED, 54 HTTP tests skipped due to intentional fail-closed preview state (environment-limited, not application regression). Preview backend 502 state is EXPECTED per review request instructions and does not indicate auth continuity failure. All test suites executed successfully with no critical blockers found."
+
+  - agent: "testing"
+    timestamp: "2026-07-21 16:55:00 UTC"
+    message: "HUB SIGN-OUT BUG FIX VERIFICATION COMPLETE. Tested PREVIEW-only bounded frontend repair for Hub sign-out functionality. All 5 user-facing behaviors validated successfully: (1) Welcome Back card sign-out button (data-testid='hub-welcome-back-signout') is visible and clickable when signed-in session exists, (2) Signing out clears ALL session/auth state including all portal tokens (admin/pm/hr/safety/shop/dispatch), directory session, and user objects from localStorage, (3) User is redirected to /sign-in after logout with replace: true, (4) Protected routes /admin and /pm correctly require authentication after logout (redirect to login pages), (5) Browser refresh and back button do NOT restore authenticated access. The shared clearAllSessions() helper from frontend/src/lib/sessionReset.js is working correctly. Backend API 502 errors are expected per review request (pre-existing runtime identity refusal unrelated to this bounded repair). Frontend-only session management and route guards functioning as designed. No critical issues found."

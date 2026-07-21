@@ -29,6 +29,10 @@ import { clearSafetyToken } from "./safetyAuth";
 import { clearDispatchToken } from "./dispatchAuth";
 import { clearDevToken } from "./devAuth";
 import { clearFlToken } from "./flAuth";
+import { clearLeadershipToken } from "./leadershipAuth";
+import { clearSafetyFormsToken } from "./safetyFormsAuth";
+import { clearJwt } from "./jwtAuth";
+import { clearDriverSession } from "./driverAuth";
 import {
   clearDirectorySession,
   getDirectoryToken,
@@ -51,6 +55,21 @@ const IDENTITY_KEYS = [
   "masci.dispatch.user",
   "masci.admin.user",
   "masci.fl.user",
+  "masci.leadership.token",
+  "masci.leadership.issued",
+  "masci.driver.token",
+  "masci.driver.session",
+  "masci.driver.tenant",
+  "masci.is_asset_admin",
+  "admin_must_change_password",
+  "pm_must_change_password",
+  "shop_must_change_password",
+  "hr_must_change_password",
+  "safety_must_change_password",
+  "dispatch_must_change_password",
+  "field_leadership_must_change_password",
+  "fl_must_change_password",
+  "directory_must_change_password",
   // Safety-forms standalone auth (separate from safety portal)
   "masci.safetyforms.token",
   "masci.safetyforms.user",
@@ -87,7 +106,11 @@ export async function clearAllSessions({ notifyBackend = true } = {}) {
   try { clearSafetyToken(); } catch { /* ignore */ }
   try { clearDispatchToken(); } catch { /* ignore */ }
   try { clearFlToken(); } catch { /* ignore */ }
+  try { clearLeadershipToken(); } catch { /* ignore */ }
   try { clearDevToken(); } catch { /* ignore */ }
+  try { clearSafetyFormsToken(); } catch { /* ignore */ }
+  try { clearJwt(); } catch { /* ignore */ }
+  try { clearDriverSession(); } catch { /* ignore */ }
   try { clearDirectorySession(); } catch { /* ignore */ }
 
   for (const key of IDENTITY_KEYS) {

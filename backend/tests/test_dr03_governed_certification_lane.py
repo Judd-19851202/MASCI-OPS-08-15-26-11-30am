@@ -7,8 +7,8 @@ sys.path.insert(0, "/app/backend")
 
 from lib.governed_certification_lane import (  # noqa: E402, PLC0415
     GOVERNED_CERTIFICATION_CO_PM_EMAILS,
-    GOVERNED_CERTIFICATION_PM_EMAIL,
     apply_governed_daily_report_lane,
+    build_governed_routing_override,
 )
 from pm_routing import recipients_for_record_async  # noqa: E402, PLC0415
 from routes.daily_reports import (  # noqa: E402, PLC0415
@@ -48,14 +48,36 @@ def test_governed_lane_auto_classifies_runtime_cert_daily_report() -> None:
     assert doc["email_dispatch_suppressed"] is False
     assert doc["certification_lane_allows_email"] is True
     assert doc["certification_release_reason"] == "governed_production_certification_lane"
-    assert doc["routing_override"]["to"] == [GOVERNED_CERTIFICATION_PM_EMAIL]
-    assert doc["routing_override"]["cc"] == GOVERNED_CERTIFICATION_CO_PM_EMAILS
+    assert doc["routing_override"]["to"] == ["jaymn.judd@mascigc.com"]
+    assert doc["routing_override"]["cc"] == []
     assert doc["certification_lane"]["project_verified"] is True
     assert doc["certification_lane"]["identity_verified"] is True
     assert doc["certification_lane"]["project_snapshot"]["pm_email"] == "jaymn.judd@mascigc.com"
+    assert doc["certification_lane"]["recipient_validation"]["placeholder_example_domain_selected"] is False
+    assert doc["certification_lane"]["recipient_validation"]["resolved_to"] == [
+        "jaymn.judd@mascigc.com"
+    ]
+    assert doc["routing_override"]["recipient_source"] == "project_doc"
     assert "trust-spine" in doc["certification_required_workflows"]
     assert "pdf" in doc["certification_required_workflows"]
     assert _should_schedule_daily_report_email(doc) is True
+
+
+def test_governed_lane_skips_placeholder_project_recipients_and_uses_env_fallback(monkeypatch) -> None:
+    monkeypatch.setenv("ADMIN_DEAD_LETTER_EMAIL", "preview-cert@mascigc.com")
+    monkeypatch.setenv("BACKUP_EMAIL_TO", "preview-cert-cc@mascigc.com")
+
+    routing = build_governed_routing_override(
+        project_doc={
+            "pm_email": "cert.pm@example.com",
+            "co_pm_emails": ["cert.copm@example.com"],
+        }
+    )
+
+    assert routing["to"] == ["preview-cert@mascigc.com"]
+    assert routing["cc"] == ["preview-cert-cc@mascigc.com"]
+    assert routing["recipient_source"] == "environment_fallback"
+    assert all("example.com" not in email for email in routing["all"])
 
 
 def test_generic_certification_record_still_suppresses_email() -> None:
@@ -114,7 +136,7 @@ def test_pm_routing_honors_governed_override_recipients() -> None:
                 "routing_override": {
                     "enabled": True,
                     "pm_name": "Certification PM",
-                    "to": [GOVERNED_CERTIFICATION_PM_EMAIL],
+                        "to": ["cert.pm@example.com"],
                     "cc": GOVERNED_CERTIFICATION_CO_PM_EMAILS,
                 },
             },
@@ -122,7 +144,7 @@ def test_pm_routing_honors_governed_override_recipients() -> None:
         )
 
     dist = asyncio.run(_run())
-    assert dist["pm_email"] == GOVERNED_CERTIFICATION_PM_EMAIL
-    assert dist["to"] == [GOVERNED_CERTIFICATION_PM_EMAIL]
+    assert dist["pm_email"] == "cert.pm@example.com"
+    assert dist["to"] == ["cert.pm@example.com"]
     assert dist["cc"] == GOVERNED_CERTIFICATION_CO_PM_EMAILS
-    assert dist["all"] == [GOVERNED_CERTIFICATION_PM_EMAIL, *GOVERNED_CERTIFICATION_CO_PM_EMAILS]
+    assert dist["all"] == ["cert.pm@example.com", *GOVERNED_CERTIFICATION_CO_PM_EMAILS]
