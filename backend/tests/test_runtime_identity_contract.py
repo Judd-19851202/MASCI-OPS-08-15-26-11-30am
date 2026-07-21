@@ -76,7 +76,17 @@ def test_production_db_refused_in_preview() -> None:
     assert bundle["validation"].mismatch_category == "PREVIEW_PRODUCTION_DB_REFUSED"
 
 
-def test_preview_prod_hostname_without_ro_validation_hard_fails() -> None:
+def test_preview_prod_hostname_with_preview_user_and_preview_db_passes() -> None:
+    bundle = _bundle({
+        "APP_ENV": "preview",
+        "DB_NAME": "masci_safety_preview",
+        "MONGO_URL": "mongodb+srv://masci_preview_user:s3cret@masci-prod.1nduwmg.mongodb.net/masci_safety_preview",  # secret-scan: allow-line
+        "ENFORCE_DB_ISOLATION": "true",
+    })
+    assert bundle["validation"].valid is True
+
+
+def test_preview_prod_hostname_with_production_user_still_hard_fails() -> None:
     bundle = _bundle({
         "APP_ENV": "preview",
         "DB_NAME": "masci_safety_preview",
@@ -84,7 +94,7 @@ def test_preview_prod_hostname_without_ro_validation_hard_fails() -> None:
         "ENFORCE_DB_ISOLATION": "true",
     })
     assert bundle["validation"].valid is False
-    assert bundle["validation"].mismatch_category == "PREVIEW_PRODUCTION_CLUSTER_REFUSED"
+    assert bundle["validation"].mismatch_category == "PREVIEW_PRODUCTION_USER_REFUSED"
 
 
 def test_preview_local_preview_database_passes() -> None:

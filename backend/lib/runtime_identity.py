@@ -45,6 +45,10 @@ def _split_csv(value: Optional[str]) -> tuple[str, ...]:
     return tuple(part.strip().lower() for part in value.split(",") if part.strip())
 
 
+def _is_preview_db_name(db_name: Optional[str]) -> bool:
+    return bool((db_name or "").strip().lower().endswith("_preview"))
+
+
 def _read_only_validation_requested(source: Mapping[str, str]) -> bool:
     mode = (source.get("READ_ONLY_VALIDATION_MODE") or "").strip().lower()
     return (
@@ -347,7 +351,6 @@ def validate_runtime_identity(identity: RuntimeIdentity) -> RuntimeIdentityValid
     preview_target_uses_production = any(
         (
             identity.db_name == identity.approved_db_name,
-            identity.mongo_hostname == identity.approved_hostname,
             identity.mongo_username == identity.approved_username,
         )
     )
@@ -380,6 +383,10 @@ def validate_runtime_identity(identity: RuntimeIdentity) -> RuntimeIdentityValid
             errors.append("atlas_identity_unproven")
             mismatch_category = mismatch_category or "CLUSTER_HOST_MISMATCH"
     else:
+        preview_db_name_is_valid = identity.db_name == preview_db_name
+        preview_user_is_valid = bool(identity.mongo_username and identity.mongo_username != identity.approved_username)
+        preview_host_is_shared_but_expected = identity.mongo_hostname == identity.approved_hostname and preview_db_name_is_valid and preview_user_is_valid
+
         if preview_target_uses_production:
             if identity.read_only_validation.get("requested") and identity.read_only_validation.get("active"):
                 warnings.append("read_only_validation_active")
@@ -391,12 +398,12 @@ def validate_runtime_identity(identity: RuntimeIdentity) -> RuntimeIdentityValid
                 if identity.db_name == identity.approved_db_name:
                     errors.append("preview_using_production_db_name")
                     mismatch_category = mismatch_category or "PREVIEW_PRODUCTION_DB_REFUSED"
-                if identity.mongo_hostname == identity.approved_hostname:
-                    errors.append("preview_pointing_to_production_cluster")
-                    mismatch_category = mismatch_category or "PREVIEW_PRODUCTION_CLUSTER_REFUSED"
                 if identity.mongo_username == identity.approved_username:
                     errors.append("preview_using_production_user")
                     mismatch_category = mismatch_category or "PREVIEW_PRODUCTION_USER_REFUSED"
+                if identity.mongo_hostname == identity.approved_hostname and not preview_host_is_shared_but_expected:
+                    errors.append("preview_pointing_to_production_cluster")
+                    mismatch_category = mismatch_category or "PREVIEW_PRODUCTION_CLUSTER_REFUSED"
         else:
             if identity.read_only_validation.get("requested"):
                 errors.append("read_only_validation_not_required_for_non_production_target")
@@ -404,10 +411,10 @@ def validate_runtime_identity(identity: RuntimeIdentity) -> RuntimeIdentityValid
             if identity.db_name != preview_db_name:
                 errors.append("preview_db_name_unapproved")
                 mismatch_category = mismatch_category or "PREVIEW_TARGET_UNAPPROVED"
-            if not (identity.is_local or preview_host_allowed):
+            if not (identity.is_local or preview_host_allowed or preview_host_is_shared_but_expected):
                 errors.append("preview_hostname_unapproved")
                 mismatch_category = mismatch_category or "PREVIEW_TARGET_UNAPPROVED"
-        if identity.db_name and "preview" not in identity.db_name.lower():
+        if identity.db_name and not _is_preview_db_name(identity.db_name):
             warnings.append("preview_db_name_not_explicitly_preview")
 
     if errors:

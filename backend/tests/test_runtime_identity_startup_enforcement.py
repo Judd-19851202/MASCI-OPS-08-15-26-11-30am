@@ -94,7 +94,24 @@ async def _run_boot(server, monkeypatch, env: dict[str, str]):
     return started_monitor
 
 
-async def test_preview_to_production_cluster_without_ro_validation_refuses_boot(server_module, monkeypatch):
+async def test_preview_shared_atlas_with_preview_user_and_preview_db_boots(server_module, monkeypatch):
+    server = server_module
+    started_monitor = await _run_boot(server, monkeypatch, {
+        "APP_ENV": "preview",
+        "DB_NAME": "masci_safety_preview",
+        "MONGO_URL": "mongodb+srv://masci_preview_user:s3cret@masci-prod.1nduwmg.mongodb.net/masci_safety_preview",  # secret-scan: allow-line
+        "ENFORCE_DB_ISOLATION": "true",
+        "SCHEDULER_ENABLED": "false",
+        "AUTO_EMAIL_REPORTS": "false",
+    })
+
+    await server._bootstrap_runtime_db()
+
+    assert server.db.get_target() is not None
+    assert started_monitor["count"] == 1
+
+
+async def test_preview_to_production_user_without_ro_validation_refuses_boot(server_module, monkeypatch):
     server = server_module
     await _run_boot(server, monkeypatch, {
         "APP_ENV": "preview",
@@ -105,7 +122,7 @@ async def test_preview_to_production_cluster_without_ro_validation_refuses_boot(
         "AUTO_EMAIL_REPORTS": "false",
     })
 
-    with pytest.raises(RuntimeError, match="PREVIEW_PRODUCTION_CLUSTER_REFUSED"):
+    with pytest.raises(RuntimeError, match="PREVIEW_PRODUCTION_USER_REFUSED"):
         await server._bootstrap_runtime_db()
 
     assert server.db.get_target() is None
