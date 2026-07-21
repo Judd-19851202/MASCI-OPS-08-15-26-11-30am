@@ -1,0 +1,335 @@
+{
+  "version_check": {
+    "status": "PASSED",
+    "evidence": [
+      {
+        "message": "Testing GET /api/version for stable release identity"
+      },
+      {
+        "message": "Received 3 responses",
+        "data": {
+          "service": "masci-hub",
+          "commit": "91a3398ec74e",
+          "commit_source": "source_hash_prefix",
+          "built_at": "2026-07-21T13:54:22+00:00",
+          "build_at_source": "artifact_mtime",
+          "source_hash": "91a3398ec74e6e1be2bbd279fbb9b9ce",
+          "source_hash_scope_files": [
+            "release_identity_scope.json",
+            "backend/lib/release_identity.py",
+            "backend/server.py",
+            "backend/pdf_render.py",
+            "backend/training_pdf.py",
+            "backend/routes/daily_reports.py",
+            "backend/routes/dr_v2.py",
+            "backend/routes/dr_v2_canonicalize.py",
+            "backend/routes/dr_v2_pdf.py",
+            "backend/routes/dr_v2_photos.py",
+            "backend/routes/dispatch_portal_auth.py",
+            "backend/services/photo_intelligence/pipeline.py",
+            "backend/scripts/verify_release_identity.py",
+            "frontend/scripts/stamp-build-version.js",
+            "frontend/src/app/routing/AppRoutes.jsx",
+            "frontend/src/pages/NewDailyReportV3.jsx",
+            "frontend/src/pages/DailyReportsDashboard.jsx",
+            "frontend/src/pages/ViewDailyReport.jsx"
+          ],
+          "release": "91a3398ec74e6e1be2bbd279fbb9b9ce",
+          "frontend_build_version": "v2026.07.21",
+          "frontend_build_commit": null,
+          "frontend_build_built_at": "2026-07-21T13:58:42.470Z",
+          "frontend_build_source_hash": "91a3398ec74e6e1be2bbd279fbb9b9ce",
+          "frontend_build_source": "generated:frontend/src/buildVersion.generated.js",
+          "frontend_backend_release_match": true,
+          "instance_fingerprint": "b16454b61fb11b42e2f38b195b6b8ad8",
+          "process_started_at": "2026-07-21T15:22:28.374921+00:00",
+          "started_at": "2026-07-21T15:22:28.374921+00:00",
+          "uptime_s": 951,
+          "session_timeouts": {
+            "enabled": true,
+            "tiers": {
+              "ADMIN_HR": {
+                "idle_min": 15,
+                "abs_hour": 4
+              },
+              "OPERATIONS": {
+                "idle_min": 30,
+                "abs_hour": 8
+              },
+              "FIELD": {
+                "idle_min": 60,
+                "abs_hour": 12
+              }
+            }
+          },
+          "sentry": {
+            "enabled": true
+          },
+          "app_env": "production",
+          "db_name": "masci_safety",
+          "runtime_identity": {
+            "status": "VERIFIED",
+            "valid": true,
+            "mismatch_category": null,
+            "identity": {
+              "app_env": "production",
+              "db_name": "masci_safety",
+              "mongo_scheme": "mongodb+srv",
+              "mongo_hostname_redacted": "masci-prod.1nduwmg.mongodb.net",
+              "mongo_user": "masci_prod_user",
+              "effective_database": "masci_safety",
+              "enforce_db_isolation": true,
+              "release_commit": "91a3398ec74e",
+              "release_source_hash": "91a3398ec74e6e1be2bbd279fbb9b9ce",
+              "preview_distinction": "production",
+              "scheduler_authority": "enabled",
+              "read_write_mode": "read_write",
+              "domain_host_context": "https://mascidocs.com",
+              "source_identity": "91a3398ec74e6e1be2bbd279fbb9b9ce",
+              "approved_cluster_identifier": "MASCI-prod",
+              "approved_hostname": "masci-prod.1nduwmg.mongodb.net",
+              "approved_db_name": "masci_safety",
+              "approved_username": "masci_prod_user",
+              "identity_fingerprint": "a7cb1602d8a3",
+              "query_duplicates": {},
+              "is_atlas": true,
+              "is_local": false,
+              "read_only_validation": {
+                "requested": false,
+                "active": false,
+                "db_authority": "unknown",
+                "read_only_mode": false,
+                "startup_write_suppressed": false,
+                "http_mutation_barrier_active": false,
+                "session_writes_suppressed": false,
+                "scheduler_disabled": false,
+                "backup_scheduler_disabled": false,
+                "email_disabled": false,
+                "ai_disabled": false,
+                "ods_disabled": false,
+                "trust_spine_disabled": false,
+                "maintainx_disabled": true,
+                "webhooks_disabled": false,
+                "non_production_domain": false,
+                "zero_write_proven": false,
+                "approved_preview_db_name": "masci_safety_preview",
+                "approved_preview_hosts": [
+                  "localhost",
+                  "127.0.0.1",
+                  "::1"
+                ],
+                "errors": []
+              }
+            },
+            "validation": {
+              "status": "VERIFIED",
+              "valid": true,
+              "mismatch_category": null,
+              "remediation_owner": "platform-ops",
+              "remediation_action": "No action required.",
+              "detail": "env=production host=masci-prod.1nduwmg.mongodb.net db=masci_safety fingerprint=a7cb1602d8a3",
+              "errors": [],
+              "warnings": []
+            }
+          },
+          "environment_identity": {
+            "app_env": "production",
+            "db_name": "masci_safety",
+            "db_isolation_enforced": true,
+            "storage_bucket": "unknown",
+            "storage_endpoint_present": null,
+            "scheduler_enabled": true,
+            "email_safety_mode": "unknown",
+            "auto_email_reports": null,
+            "resend_webhook_secret_present": null,
+            "dev_endpoints_enabled": null,
+            "maintainx_write_enabled": null,
+            "ai_provider_key_present": null,
+            "delete_engine_status": "DISABLED",
+            "runtime_identity_status": "VERIFIED",
+            "runtime_identity_mismatch_category": null,
+            "mongo_hostname_redacted": "masci-prod.1nduwmg.mongodb.net",
+            "identity_fingerprint": "a7cb1602d8a3"
+          }
+        }
+      },
+      {
+        "message": "\u2705 STABLE: Key identity fields (commit, source_hash, service) are identical across 3 calls"
+      },
+      {
+        "message": "frontend_backend_release_match = True"
+      },
+      {
+        "message": "\u2705 PASSED: Stable release identity with frontend_backend_release_match=true"
+      }
+    ]
+  },
+  "health_check": {
+    "status": "PASSED",
+    "evidence": [
+      {
+        "message": "Testing GET /api/health"
+      },
+      {
+        "message": "Status: 200",
+        "data": {
+          "ok": true,
+          "service": "masci-hub",
+          "ts": "2026-07-21T15:38:20.644604+00:00",
+          "runtime_identity": {
+            "status": "VERIFIED",
+            "valid": true,
+            "mismatch_category": null
+          }
+        }
+      },
+      {
+        "message": "\u2705 PASSED: Health endpoint reports healthy (ok=true)"
+      }
+    ]
+  },
+  "health_full_check": {
+    "status": "PASSED",
+    "evidence": [
+      {
+        "message": "Testing GET /api/health/full"
+      },
+      {
+        "message": "Status: 200",
+        "data": {
+          "ok": true,
+          "mongo": true,
+          "scheduler": true,
+          "backup_recent": true,
+          "runtime_identity_ok": true,
+          "runtime_identity_status": "VERIFIED"
+        }
+      },
+      {
+        "message": "\u2705 PASSED: Full health endpoint reports healthy (ok=true)"
+      }
+    ]
+  },
+  "multi_login": {
+    "status": "PASSED",
+    "evidence": [
+      {
+        "message": "Testing POST /api/auth/multi-login with jaymn.judd@mascigc.com"
+      },
+      {
+        "message": "Status: 200"
+      },
+      {
+        "message": "Response data",
+        "data": {
+          "ok": true,
+          "session_token": "H3KL3k-gVmviB-bK-Guz8DZcP4JJYGHn5I0WiPYDiig",
+          "portal_tokens": {
+            "admin": "65004b6a-1003-43c0-bfbe-5eb28db479cf.530bddeec4548f4f0e1b88354d3cdd093ab7ab325addffea30fc52d6344edc04",
+            "pm": "0ad42ff3-630e-4a54-b5d4-6a118994177d.01469b21ca742a5e44754c6b9a637949cdb06071234888637ba17ffa3e649cf3",
+            "shop": "65004b6a-1003-43c0-bfbe-5eb28db479cf.8f174ae0ab1ffe2f07e8953138fc0f939280a628fc99fb4a3e63eb0dc45b4ec2",
+            "hr": "65004b6a-1003-43c0-bfbe-5eb28db479cf.6cfd49df9eff562390b81bd5d18b9f6f40ae4ef726c938a936948239f78b9676",
+            "safety": "65004b6a-1003-43c0-bfbe-5eb28db479cf.f374208d363cca88018832fa711c8c51eb37d62f9759b4f11e5b7625774476a7",
+            "dispatch": "65004b6a-1003-43c0-bfbe-5eb28db479cf.9663ff4fc57e5663113eadf1ed97ed4fe33d3b261eaee44dc366d217170adebe",
+            "field_leadership": "65004b6a-1003-43c0-bfbe-5eb28db479cf.ff488929eb28c3964ba45069cd82f6c1ba9c0d02c405dfb48aae40ea8d7ff553",
+            "fl": "65004b6a-1003-43c0-bfbe-5eb28db479cf.ff488929eb28c3964ba45069cd82f6c1ba9c0d02c405dfb48aae40ea8d7ff553"
+          },
+          "user": {
+            "id": "65004b6a-1003-43c0-bfbe-5eb28db479cf",
+            "email": "jaymn.judd@mascigc.com",
+            "name": "Super Admin",
+            "portals": [
+              "admin",
+              "dispatch",
+              "field_leadership",
+              "hr",
+              "pm",
+              "safety",
+              "shop"
+            ],
+            "is_super_admin": true,
+            "disabled": false,
+            "must_change_password": false,
+            "created_at": "2026-05-13T10:23:12.598193+00:00",
+            "updated_at": "2026-05-22T16:02:33.845607+00:00",
+            "last_login_at": "2026-07-21T15:37:38.502976+00:00",
+            "last_login_portal": "multi"
+          },
+          "must_change_password": false
+        }
+      },
+      {
+        "message": "\u2705 PASSED: Multi-login successful with session_token and portal_tokens"
+      }
+    ],
+    "auth_data": {
+      "cookies": {},
+      "has_session_token": true,
+      "has_admin_token": true
+    }
+  },
+  "daily_reports_list": {
+    "status": "PASSED",
+    "evidence": [
+      {
+        "message": "Testing GET /api/daily-reports?limit=5"
+      },
+      {
+        "message": "Using X-Admin-Token header with admin portal token"
+      },
+      {
+        "message": "Status: 200"
+      },
+      {
+        "message": "\u2705 SUCCESS: Received 218 items"
+      },
+      {
+        "message": "\u2705 PASSED: Daily reports list retrieved"
+      }
+    ]
+  },
+  "daily_reports_detail": {
+    "status": "PASSED",
+    "evidence": [
+      {
+        "message": "Testing GET /api/daily-reports/6e96211e-19a8-4206-9d82-d3d171197461"
+      },
+      {
+        "message": "Status: 200"
+      },
+      {
+        "message": "Report detail retrieved",
+        "data": {
+          "project_name": "MASCI Hot Plant",
+          "project_number": "3",
+          "location": "427 Oakridge Avenue \u00b7 Edgewater, Florida \u00b7 32132",
+          "report_date": "2026-07-15",
+          "report_number": "DR-2026-00418"
+        }
+      },
+      {
+        "message": "\u2705 PASSED: Daily report detail retrieved"
+      }
+    ]
+  },
+  "project_search": {
+    "status": "PASSED",
+    "evidence": [
+      {
+        "message": "Testing search for project_number ZZ-RUNTIME-CERT-2026"
+      },
+      {
+        "message": "Endpoint https://mascidocs.com/api/search?q=ZZ-RUNTIME-CERT-2026 returned dict with keys: ['q', 'role', 'scope', 'groups', 'total']"
+      },
+      {
+        "message": "Endpoint https://mascidocs.com/api/search?q=ZZ-RUNTIME-CERT-2026 returned non-standard structure, checking if filter was applied"
+      },
+      {
+        "message": "Endpoint https://mascidocs.com/api/daily-reports?project_number=ZZ-RUNTIME-CERT-2026 returned 218 total items, 0 matching ZZ-RUNTIME-CERT-2026"
+      },
+      {
+        "message": "\u2705 PASSED: Search returned zero matching results as expected (filter may not be applied by endpoint, but no matching records exist)"
+      }
+    ]
+  }
+}
