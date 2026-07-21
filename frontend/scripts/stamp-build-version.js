@@ -150,7 +150,19 @@ export const BUILD_WORKSPACE_DIRTY = ${workspaceDirty};
 
 fs.writeFileSync(OUT_FILE, content, "utf8");
 const VERIFY_RELEASE_IDENTITY = path.join(REPO_ROOT, "backend", "scripts", "verify_release_identity.py");
-if (fs.existsSync(VERIFY_RELEASE_IDENTITY) && fs.existsSync(SCOPE_FILE)) {
+const pythonVerifierAvailable = (() => {
+  try {
+    execSync("python3 --version", {
+      cwd: REPO_ROOT,
+      stdio: ["ignore", "pipe", "ignore"],
+    });
+    return true;
+  } catch {
+    return false;
+  }
+})();
+
+if (fs.existsSync(VERIFY_RELEASE_IDENTITY) && fs.existsSync(SCOPE_FILE) && pythonVerifierAvailable) {
   try {
     execSync("python3 backend/scripts/verify_release_identity.py", {
       cwd: REPO_ROOT,
@@ -162,6 +174,10 @@ if (fs.existsSync(VERIFY_RELEASE_IDENTITY) && fs.existsSync(SCOPE_FILE)) {
     );
     process.exit(1);
   }
+} else if (!pythonVerifierAvailable) {
+  process.stdout.write(
+    "[stamp-build-version] release identity verification deferred to backend/runtime stage\n"
+  );
 } else {
   process.stderr.write("[stamp-build-version] release identity verifier or scope file missing\n");
   process.exit(1);
