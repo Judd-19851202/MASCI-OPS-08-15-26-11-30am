@@ -319,17 +319,65 @@ Verification completed
   - protected `/admin` route re-requires auth,
   - browser Back does not restore authenticated access.
 
-Blocking environment fact
-- Full live preview end-to-end backend regression remains blocked by a pre-existing runtime startup refusal already present in this forked environment:
-  - `PREVIEW_PRODUCTION_CLUSTER_REFUSED`
-  - backend is not serving HTTP on port `8001`, so live provider/Trust-Spine proof for `provider_accepted`, `audit_written`, and `completed=ok` could not be re-run in this environment without unrelated runtime/environment intervention.
+Runtime-startup blocker root cause and repair
+- Root cause: `backend/lib/runtime_identity.py` falsely treated the shared Atlas hostname (`masci-prod.1nduwmg.mongodb.net`) as a hard Preview→Production violation even when Preview was correctly using `APP_ENV=preview`, `DB_NAME=masci_safety_preview`, and preview DB user `masci_preview_user`.
+- Why Preview refused startup: runtime identity classified the shared Atlas host itself as `PREVIEW_PRODUCTION_CLUSTER_REFUSED`, aborting startup before runtime DB bootstrap completed.
+- Why it was triggered: code assumed Preview required a distinct hostname, but this environment’s approved separation model is shared Atlas + preview DB name + preview DB user + DB isolation.
+- Type: code-level runtime identity validation defect.
+- Production impact: **No**. Production still requires production DB name, production DB user, approved hostname, and enforced isolation. The updated runtime-identity proof suites passed (`24 passed`) and Preview now boots cleanly.
+
+Preview-only temporary certification window
+- Verified before window:
+  - `APP_ENV=preview`
+  - `DB_NAME=masci_safety_preview`
+  - runtime identity valid
+  - DB isolation PASS
+- Captured original Preview email flags:
+  - `AUTO_EMAIL_REPORTS=false`
+  - `EMAIL_SAFETY_MODE=strict`
+- Opened a temporary Preview-only certification window by changing only:
+  - `AUTO_EMAIL_REPORTS=true`
+  - `EMAIL_SAFETY_MODE=off`
+- Temporarily changed the certification project's governed recipient target in `jobs_master.pm_email` to the operator-approved certification inbox `jaymn@forgedopshq.com`, then restored the project record immediately after the single attempt.
+
+Final Preview certification evidence
+- Hub Sign Out live verification: PASS
+  - Login succeeds
+  - Hub opens
+  - `SIGN OUT` clears session + portal context
+  - redirect lands on `/sign-in`
+  - protected `/admin` route re-requires auth
+  - refresh and browser Back do not restore authenticated access
+- Daily Report governed certification lane: PARTIAL / NOT GREEN
+  - The repaired governed lane selected the approved test recipient and excluded placeholder `example.com` addresses.
+  - Exactly one governed Daily Report certification attempt was executed.
+  - `notification_queued=ok` and one `AUTO_EMAIL_REPORTS` audit/send attempt row were recorded.
+  - Live provider acceptance did **not** succeed because Resend rejected the configured Preview key with `API key is invalid`.
+  - Therefore `provider_accepted`, `audit_written`, and `completed=ok` did not complete; the final lifecycle state was `completed=failed`.
+
+Preview safety restoration verification
+- Restored Preview email flags immediately after the single certification attempt:
+  - `AUTO_EMAIL_REPORTS=false`
+  - `EMAIL_SAFETY_MODE=strict`
+- Restored the certification project routing source record:
+  - `jobs_master.pm_email=jaymn.judd@mascigc.com`
+  - `project_manager=Jaymn Judd`
+  - `co_pm_emails=[]`
+- Verified restored Preview backend startup and identity after restart.
+- Verified restored Preview protection state via runtime identity / environment evidence: preview email is disabled again under restored strict safety mode.
+
+Permanent engineering rule
+- Controlled Certification Recipients
+  - Every environment (Development, Preview, and Production Certification) shall have one documented, owner-approved certification recipient or recipient group.
+  - Certification workflows must never default to project personnel, operational distribution lists, employee production addresses, or placeholder addresses such as `example.com`.
+  - If no approved certification recipient exists, this is an environment configuration deficiency, not a product defect, and must be corrected as environment setup rather than by creating new product code, infrastructure, or repeated approval requests.
 
 Current status
 - Bounded code repair: COMPLETE
-- Focused verification for both repaired areas: COMPLETE
-- Full live preview certification batch: BLOCKED by pre-existing backend startup refusal unrelated to the bounded repair itself
+- Preview runtime-startup repair: COMPLETE
+- Hub Sign Out live Preview certification: PASS
+- Daily Report live Preview certification: NOT GREEN due to invalid Preview Resend API key in environment
 
 Next actions
-- P0: Restore preview backend runtime availability without changing production behavior, then re-run live governed Daily Report certification and capture `provider_accepted`, `audit_written`, `completed=ok` evidence.
-- P0: Re-run live sign-out round-trip against preview auth endpoints once backend is serving again.
-- P1: Execute the requested preview regression batch across governed workflows after backend recovery.
+- P0: Correct the Preview Resend credential/environment and rerun one controlled Daily Report certification attempt.
+- P0: Re-check `provider_accepted`, `audit_written`, and `completed=ok` after the Preview credential is corrected.
