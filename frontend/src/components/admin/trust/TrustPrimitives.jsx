@@ -30,6 +30,108 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 
+function labelizeKey(key) {
+  return String(key || "")
+    .replace(/[_-]+/g, " ")
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/^./, (c) => c.toUpperCase());
+}
+
+function isPlainObject(value) {
+  return Object.prototype.toString.call(value) === "[object Object]";
+}
+
+function scalarText(value) {
+  if (value == null || value === "") return "—";
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  return String(value);
+}
+
+function flattenEvidence(value, prefix = "", depth = 0, rows = [], limit = 18) {
+  if (rows.length >= limit) return rows;
+
+  if (value == null || value === "") {
+    rows.push({ label: prefix || "Value", value: "—" });
+    return rows;
+  }
+
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+    rows.push({ label: prefix || "Value", value: scalarText(value) });
+    return rows;
+  }
+
+  if (Array.isArray(value)) {
+    if (!value.length) {
+      rows.push({ label: prefix || "Items", value: "None recorded." });
+      return rows;
+    }
+    value.slice(0, 5).forEach((item, index) => {
+      if (rows.length >= limit) return;
+      if (isPlainObject(item) || Array.isArray(item)) {
+        flattenEvidence(item, `${prefix || "Item"} ${index + 1}`, depth + 1, rows, limit);
+      } else {
+        rows.push({
+          label: `${prefix || "Item"} ${index + 1}`,
+          value: scalarText(item),
+        });
+      }
+    });
+    if (value.length > 5 && rows.length < limit) {
+      rows.push({ label: prefix || "Items", value: `+${value.length - 5} more item(s)` });
+    }
+    return rows;
+  }
+
+  if (isPlainObject(value)) {
+    Object.entries(value)
+      .filter(([, item]) => item !== undefined)
+      .slice(0, 8)
+      .forEach(([key, item]) => {
+        if (rows.length >= limit) return;
+        const nextLabel = prefix ? `${prefix} • ${labelizeKey(key)}` : labelizeKey(key);
+        if (isPlainObject(item) || Array.isArray(item)) {
+          flattenEvidence(item, nextLabel, depth + 1, rows, limit);
+        } else {
+          rows.push({ label: nextLabel, value: scalarText(item) });
+        }
+      });
+    return rows;
+  }
+
+  rows.push({ label: prefix || "Value", value: String(value) });
+  return rows;
+}
+
+export function EvidenceSummary({ value, testidPrefix = "evidence-summary" }) {
+  const rows = flattenEvidence(value);
+  return (
+    <div className="space-y-2" data-testid={testidPrefix}>
+      {rows.length ? (
+        <dl className="grid gap-2">
+          {rows.map((row, index) => (
+            <div
+              key={`${testidPrefix}-${index}`}
+              className="rounded-md border border-slate-200 bg-white p-2"
+              data-testid={`${testidPrefix}-row-${index}`}
+            >
+              <dt className="mb-1 text-[10px] font-mono uppercase tracking-widest text-slate-500">
+                {row.label}
+              </dt>
+              <dd className="text-xs text-slate-800 break-words">{row.value}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : (
+        <div className="text-xs text-slate-500" data-testid={`${testidPrefix}-empty`}>
+          No structured evidence captured.
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Canonical status palette ────────────────────────────────────
 export const TRUST_STATUS_STYLES = {
   green: {
@@ -251,14 +353,14 @@ export function EvidenceDrawer({ card, open, onOpenChange, testidPrefix = "trust
 
           <div>
             <div className="text-[10px] font-mono uppercase tracking-widest text-slate-500 font-bold mb-1">
-              Evidence payload
+              Evidence observed
             </div>
-            <pre
-              className="text-[10px] leading-snug bg-slate-900 text-slate-100 rounded p-2 max-h-64 overflow-auto"
-              data-testid={`${testidPrefix}-payload`}
-            >
-              {JSON.stringify(card.evidence || {}, null, 2)}
-            </pre>
+            <div className="rounded-md border border-slate-200 bg-slate-50 p-2">
+              <EvidenceSummary
+                value={card.evidence || {}}
+                testidPrefix={`${testidPrefix}-payload`}
+              />
+            </div>
           </div>
 
           {card.drilldown ? (

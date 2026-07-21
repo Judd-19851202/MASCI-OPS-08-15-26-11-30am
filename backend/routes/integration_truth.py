@@ -34,6 +34,7 @@ from fastapi import APIRouter, Depends, Query
 
 logger = logging.getLogger(__name__)
 
+from lib.canonical_truth import canonical_truth_surface
 from lib.canonical_status import DEGRADED, MISMATCH, NOT_APPLICABLE, UNVERIFIABLE, VERIFIED, to_canonical
 from lib.runtime_identity import runtime_identity_public_payload
 
@@ -516,6 +517,7 @@ async def _integrations_truth_payload(db, runtime_identity_payload: Optional[Dic
     return {
         "checked_at": _now_iso(),
         "overall": overall,
+        "truth_surface": canonical_truth_surface("integration_truth"),
         "runtime_identity": runtime_identity_payload,
         "integrations": integrations,
         "doctrine": (
@@ -696,6 +698,7 @@ async def _dr_v2_alias_telemetry_payload(db, recent_limit: int = 50) -> Dict[str
     )
     return {
         "checked_at": _now_iso(),
+        "truth_surface": canonical_truth_surface("integration_truth"),
         "ttl_days": DR_V2_ALIAS_TTL_DAYS,
         "route_count": len(aggregates),
         "lifetime_hits": total_hits,

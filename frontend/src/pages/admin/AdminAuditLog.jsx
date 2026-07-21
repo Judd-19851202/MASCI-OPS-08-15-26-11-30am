@@ -14,6 +14,7 @@ import {
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
+import { EvidenceSummary } from "@/components/admin/trust/TrustPrimitives";
 // TRACK 27.03 · Canonical local-time formatter.
 import { formatPlatformTime } from "@/lib/platformTime";
 
@@ -170,7 +171,15 @@ export default function AdminAuditLog() {
                       {open && (
                         <tr className="bg-slate-50">
                           <td colSpan={6} className="px-3 py-2">
-                            <pre className="text-[10px] font-mono whitespace-pre-wrap break-words text-slate-700">{JSON.stringify(r.detail || {}, null, 2)}</pre>
+                            <div
+                              className="rounded-md border border-slate-200 bg-white p-2"
+                              data-testid={`audit-detail-${i}`}
+                            >
+                              <EvidenceSummary
+                                value={r.detail || {}}
+                                testidPrefix={`audit-detail-${i}-evidence`}
+                              />
+                            </div>
                           </td>
                         </tr>
                       )}

@@ -24,6 +24,7 @@ from __future__ import annotations
 import os
 from typing import Any, Dict
 
+from lib.canonical_truth import canonical_truth_contract
 from lib.runtime_identity import runtime_identity_public_payload
 
 
@@ -270,6 +271,7 @@ def platform_status(app) -> Dict[str, Any]:
     return {
         "service": "masci-hub",
         "attestation_version": "22.1K",
+        "canonical_truth": canonical_truth_contract(),
         "runtime": {
             "app_env": ((runtime_identity or {}).get("identity") or {}).get("app_env") or "unknown",
             "worker_pid": os.getpid(),

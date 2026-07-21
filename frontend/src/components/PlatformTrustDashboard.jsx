@@ -94,6 +94,34 @@ function fmtPct(rate) {
   return `${Math.round(rate * 1000) / 10}%`;
 }
 
+function TruthOwnerBanner({ surface, canonicalStatus, checkedAt }) {
+  if (!surface) return null;
+  return (
+    <div
+      className="mt-3 rounded-xl border border-slate-200 bg-white/80 p-3"
+      data-testid="trust-spine-owner-banner"
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">
+          Canonical truth owner
+        </span>
+        <Badge band={canonicalStatus === "VERIFIED" ? "green" : canonicalStatus === "MISMATCH" ? "red" : "amber"}>
+          {canonicalStatus || surface.canonical_status || "UNVERIFIABLE"}
+        </Badge>
+      </div>
+      <p className="mt-2 text-xs text-slate-700" data-testid="trust-spine-owner-contract">
+        {surface.contract}
+      </p>
+      <div className="mt-2 grid gap-2 text-xs text-slate-600 md:grid-cols-2">
+        <div data-testid="trust-spine-owner-endpoint"><span className="font-semibold">Endpoint:</span> {surface.owner_endpoint || "—"}</div>
+        <div data-testid="trust-spine-owner-module"><span className="font-semibold">Owner module:</span> {surface.owner_module || "—"}</div>
+        <div data-testid="trust-spine-owner-type"><span className="font-semibold">Owner type:</span> {surface.owner_type || "—"}</div>
+        <div data-testid="trust-spine-owner-checked-at"><span className="font-semibold">Last checked:</span> {fmtTs(checkedAt)}</div>
+      </div>
+    </div>
+  );
+}
+
 function WorkflowRow({ row, expanded, onToggle, drill }) {
   const cfg = BAND[row.band] || BAND.amber;
   const lastSuccess = row.last_success?.ts;
@@ -485,6 +513,12 @@ export default function PlatformTrustDashboard() {
             <Clock size={12} /> {data.generated_at && fmtTs(data.generated_at)}
           </span>
         </div>
+
+        <TruthOwnerBanner
+          surface={data.truth_surface}
+          canonicalStatus={data.canonical_status}
+          checkedAt={data.generated_at}
+        />
       </div>
 
       <div

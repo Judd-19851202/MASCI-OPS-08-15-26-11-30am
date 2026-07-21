@@ -407,6 +407,42 @@ function AliasTelemetryPanel({ data, onRefresh, loading }) {
   );
 }
 
+function TruthOwnerBanner({ surface, checkedAt, canonicalStatus }) {
+  if (!surface) return null;
+  return (
+    <div
+      className="rounded-xl border border-slate-200 bg-slate-50 p-4"
+      data-testid="integration-truth-owner-banner"
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500">
+          Canonical owner
+        </span>
+        <Badge status={canonicalStatus || surface.canonical_status || "UNKNOWN"}>
+          {canonicalStatus || surface.canonical_status || "UNKNOWN"}
+        </Badge>
+      </div>
+      <div className="mt-2 text-sm text-slate-800" data-testid="integration-truth-owner-contract">
+        {surface.contract}
+      </div>
+      <div className="mt-3 grid gap-3 md:grid-cols-2 text-xs text-slate-600">
+        <div data-testid="integration-truth-owner-endpoint">
+          <span className="font-semibold text-slate-700">Endpoint:</span> {surface.owner_endpoint || "—"}
+        </div>
+        <div data-testid="integration-truth-owner-module">
+          <span className="font-semibold text-slate-700">Owner module:</span> {surface.owner_module || "—"}
+        </div>
+        <div data-testid="integration-truth-owner-type">
+          <span className="font-semibold text-slate-700">Owner type:</span> {surface.owner_type || "—"}
+        </div>
+        <div data-testid="integration-truth-owner-checked-at">
+          <span className="font-semibold text-slate-700">Last checked:</span> {fmtTime(checkedAt)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Page shell ──────────────────────────────────────────────────────
 export default function IntegrationTruth() {
   const [aiKeys, setAiKeys] = useState(null);
@@ -487,6 +523,12 @@ export default function IntegrationTruth() {
             </span>
           </div>
         </header>
+
+        <TruthOwnerBanner
+          surface={integrations?.truth_surface || telemetry?.truth_surface}
+          checkedAt={integrations?.checked_at || telemetry?.checked_at}
+          canonicalStatus={integrations?.overall}
+        />
 
         <AiKeysPanel
           data={aiKeys}

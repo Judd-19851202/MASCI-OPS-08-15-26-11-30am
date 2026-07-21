@@ -24,6 +24,7 @@ from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends
 
+from lib.canonical_truth import canonical_truth_surface
 from lib.trust_spine import WORKFLOW_EXPECTED_STAGES
 
 
@@ -171,15 +172,20 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
         # any workflow is amber (incl. no-activity), else green.
         if any(r["band"] == "red" for r in rows):
             platform_band = "red"
+            canonical_status = "MISMATCH"
         elif any(r["band"] in {"amber", "amber-no-activity"} for r in rows):
             platform_band = "amber"
+            canonical_status = "DEGRADED"
         else:
             platform_band = "green"
+            canonical_status = "VERIFIED"
 
         return {
             "track": "15.76",
             "generated_at": now.isoformat(),
             "platform_band": platform_band,
+            "canonical_status": canonical_status,
+            "truth_surface": canonical_truth_surface("trust_spine"),
             "total_events_24h": total_events_24h,
             "total_failed_24h": total_failed_24h,
             "workflow_count": len(rows),
