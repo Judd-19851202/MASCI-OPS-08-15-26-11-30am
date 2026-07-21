@@ -1,3 +1,53 @@
+## 2026-07-21 — Checkpoint C2 complete: canonical truth foundation proven
+
+Preview verified ✅
+
+### Exact PRD mismatch reconciled
+- The prior `PRD.md` was still centered on later D-series release/performance governance and did **not** reflect the active user-directed **Checkpoint C2** trust-program scope.
+- Per handoff governance, the C2 handoff + repository evidence were treated as authoritative until runtime proof was complete.
+- This entry reconciles that mismatch after C2 was implemented and independently verified.
+
+### Checkpoint C2 outcome
+- C2 is now complete: shared shell, canonical truth architecture, KPI/status provenance, and operator evidence foundation were proven and repaired.
+- Canonical owner contract added in `backend/lib/canonical_truth.py` and attached to `/api/admin/platform/status`, `/api/admin/trust-spine`, and `/api/admin/integrations/truth-status`.
+- Touched operator surfaces no longer use raw JSON as the primary result; they render structured evidence summaries and canonical owner banners.
+
+### Canonical truth owners established
+- Platform attestation → `/api/admin/platform/status`
+- Trust spine lifecycle truth → `/api/admin/trust-spine`
+- Integration truth → `/api/admin/integrations/truth-status`
+- Shared auth/session ownership → `/api/auth/multi-login`
+- Shared admin shell ownership → `frontend/src/components/AdminShell.jsx`
+
+### Touched files in this C2 slice
+- `backend/lib/canonical_truth.py`
+- `backend/lib/platform_status.py`
+- `backend/routes/admin_trust_spine.py`
+- `backend/routes/integration_truth.py`
+- `frontend/src/components/admin/trust/TrustPrimitives.jsx`
+- `frontend/src/pages/OperationsControlCenter.jsx`
+- `frontend/src/pages/admin/AdminAuditLog.jsx`
+- `frontend/src/pages/admin/IntegrationTruth.jsx`
+- `frontend/src/components/PlatformTrustDashboard.jsx`
+- `/app/memory/platform_trust_inventory.json`
+
+### Verification completed
+- Independent C2 verification passed: `/app/test_reports/iteration_11.json`
+- Backend: `100% (14/14 tests passed)`
+- Frontend: canonical owner banners, structured evidence rendering, admin-protected route continuity, and OCC trust drawer all verified via Playwright
+
+### Safety / execution constraints preserved
+- No deployment
+- No GitHub save
+- No `.env` changes
+- No restart of completed C1 discovery
+
+### Prioritized next actions
+- P0: Begin Checkpoint C3+ only after user confirmation of next trust-program slice
+- P1: Extend canonical truth-owner enforcement to remaining duplicate truth-surface candidates beyond the touched C2 scope
+- P1: Continue Admin OS / platform operations governance and downstream domain checkpoints (PM, Daily Reports, Field Ops, Safety, HR/Training, Dispatch, Shop)
+- P2: Mount or retire remaining unused trust widgets/components so every surviving trust surface is visibly canonical
+
 ## 2026-07-19 — iter440 · Checkpoint D5/D6 release governance in progress
 
 Preview verified ✅
