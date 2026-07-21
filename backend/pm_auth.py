@@ -30,6 +30,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, Optional, Tuple
 
 import bcrypt
+from session_timeout import has_active_session_activity
 
 
 # ----- bcrypt helpers ------------------------------------------------------
@@ -143,6 +144,8 @@ async def is_valid_pm_user_token_async(db, token: str) -> Optional[dict]:
         return None
     expected = make_pm_token(pm_id, pwh)
     if not hmac.compare_digest(token, expected):
+        return None
+    if not await has_active_session_activity(db, token):
         return None
     return pm
 

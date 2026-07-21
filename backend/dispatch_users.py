@@ -37,6 +37,7 @@ from pm_auth import (
     generate_temp_password,
     _pm_hmac_secret,
 )
+from session_timeout import has_active_session_activity
 
 logger = logging.getLogger(__name__)
 
@@ -123,6 +124,8 @@ async def is_valid_dispatch_user_token_async(db, token: str) -> Optional[dict]:
         return None
     expected = make_dispatch_user_token(user_id, pwh)
     if not hmac.compare_digest(token, expected):
+        return None
+    if not await has_active_session_activity(db, token):
         return None
     return user
 

@@ -53,6 +53,7 @@ _HEADER_TIER = {
     "x-shop-token":             "OPERATIONS",
     "x-dispatch-token":         "OPERATIONS",
     "x-safety-token":           "OPERATIONS",
+    "x-fl-token":               "FIELD",
     "x-field-leadership-token": "FIELD",
 }
 
@@ -134,7 +135,7 @@ async def ensure_indexes(db) -> None:
 
 
 async def _check_or_update(db, token: str, tier: str) -> str:
-    """Return one of: 'ok', 'expired_idle', 'expired_absolute'."""
+    """Return one of: 'ok', 'missing', 'expired_idle', 'expired_absolute'."""
     idle_s, abs_s = _tier_ttl(tier)
     now = datetime.now(timezone.utc)
     th = _hash_token(token)
@@ -143,18 +144,11 @@ async def _check_or_update(db, token: str, tier: str) -> str:
                                              projection={"_id": 0})
 
     if doc is None:
-        # First time we've seen this token. Treat as freshly-issued.
-        await db.session_activity.update_one(
-            {"token_hash": th},
-            {"$setOnInsert": {
-                "token_hash": th,
-                "tier": tier,
-                "first_seen_at": now,
-                "last_seen_at": now,
-            }},
-            upsert=True,
-        )
-        return "ok"
+        # Fail closed. Freshly-issued tokens MUST already have been stamped
+        # by their login route via reset_session_activity(). If the row is
+        # missing here, the token was either logged out/revoked or never
+        # minted through the canonical login flow.
+        return "missing"
 
     first_seen = doc.get("first_seen_at") or now
     last_seen = doc.get("last_seen_at") or now
@@ -218,6 +212,15 @@ class SessionTimeoutMiddleware(BaseHTTPMiddleware):
                     "detail": "session_idle_timeout",
                     "tier": tier,
                     "message": "Your session expired due to inactivity. Please sign in again.",
+                },
+            )
+        if decision == "missing":
+            return JSONResponse(
+                status_code=401,
+                content={
+                    "detail": "session_not_active",
+                    "tier": tier,
+                    "message": "Your session is no longer active. Please sign in again.",
                 },
             )
         if decision == "expired_absolute":
@@ -313,6 +316,45 @@ async def clear_session_activity(db, token: str) -> None:
         await db.session_activity.delete_one({"token_hash": th})
     except Exception as e:  # noqa: BLE001
         logger.warning("[session-timeout] clear_session_activity failed: %s", e)
+
+
+async def get_session_activity(db, token: str) -> Optional[dict]:
+    """Return the session row for ``token`` without mutating state."""
+    if not token:
+        return None
+    try:
+        th = _hash_token(token)
+        return await db.session_activity.find_one({"token_hash": th}, {"_id": 0})
+    except Exception as e:  # noqa: BLE001
+        logger.warning("[session-timeout] get_session_activity failed: %s", e)
+        return None
+
+
+async def has_active_session_activity(
+    db,
+    token: str,
+    *,
+    expected_user_id: Optional[str] = None,
+) -> bool:
+    """Require an extant session row for server-side revocation support."""
+    row = await get_session_activity(db, token)
+    if not row:
+        return False
+    if expected_user_id and row.get("user_id") != expected_user_id:
+        return False
+    return True
+
+
+async def clear_session_activity_for_user(db, user_id: str) -> int:
+    """Delete all stamped portal sessions for one logical user."""
+    if not user_id:
+        return 0
+    try:
+        result = await db.session_activity.delete_many({"user_id": user_id})
+        return int(getattr(result, "deleted_count", 0) or 0)
+    except Exception as e:  # noqa: BLE001
+        logger.warning("[session-timeout] clear_session_activity_for_user failed: %s", e)
+        return 0
 
 
 

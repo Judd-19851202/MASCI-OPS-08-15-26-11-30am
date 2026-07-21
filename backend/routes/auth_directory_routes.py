@@ -34,6 +34,11 @@ from lib.rate_limiting import (
     _record_login_fail,
     _reset_login_fails,
 )
+from session_timeout import (
+    clear_session_activity,
+    clear_session_activity_for_user,
+    get_session_activity,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -362,7 +367,44 @@ def build_auth_directory_router(
         }
 
     @router.post("/api/auth/multi-logout")
-    async def multi_logout(x_directory_token: Optional[str] = Header(default=None)):
+    async def multi_logout(
+        x_directory_token: Optional[str] = Header(default=None),
+        x_admin_token: Optional[str] = Header(default=None),
+        x_pm_token: Optional[str] = Header(default=None),
+        x_hr_token: Optional[str] = Header(default=None),
+        x_safety_token: Optional[str] = Header(default=None),
+        x_shop_token: Optional[str] = Header(default=None),
+        x_dispatch_token: Optional[str] = Header(default=None),
+        x_fl_token: Optional[str] = Header(default=None, alias="X-FL-Token"),
+    ):
+        user_id: Optional[str] = None
+        row = await ud.session_user(db, token=x_directory_token or "")
+        if row:
+            user_id = row.get("id")
+
+        portal_tokens = [
+            x_admin_token,
+            x_pm_token,
+            x_hr_token,
+            x_safety_token,
+            x_shop_token,
+            x_dispatch_token,
+            x_fl_token,
+        ]
+
+        if not user_id:
+            for tok in [t for t in portal_tokens if t]:
+                sess = await get_session_activity(db, tok)
+                if sess and sess.get("user_id"):
+                    user_id = sess.get("user_id")
+                    break
+
+        if user_id:
+            await clear_session_activity_for_user(db, user_id)
+        else:
+            for tok in [t for t in portal_tokens if t]:
+                await clear_session_activity(db, tok)
+
         if x_directory_token:
             await ud.kill_session(db, token=x_directory_token)
         return {"ok": True}

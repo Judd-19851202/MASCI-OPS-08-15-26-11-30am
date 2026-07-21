@@ -46,6 +46,7 @@ from pm_auth import (
     generate_temp_password,
     _pm_hmac_secret,
 )
+from session_timeout import has_active_session_activity
 
 logger = logging.getLogger(__name__)
 
@@ -255,7 +256,7 @@ async def is_valid_fl_user_token_async(db, token: str) -> Optional[dict]:
         pwh = user.get("password_hash") or ""
         if pwh:
             expected = make_fl_user_token(user_id, pwh)
-            if hmac.compare_digest(token, expected):
+            if hmac.compare_digest(token, expected) and await has_active_session_activity(db, token):
                 return user
     # iter345 · FL Phase B · Hybrid · validate directory-granted FL tokens.
     # If the embedded id isn't in field_leadership_users, look it up in
@@ -272,6 +273,8 @@ async def is_valid_fl_user_token_async(db, token: str) -> Optional[dict]:
         return None
     expected = make_fl_user_token(user_id, pwh)
     if not hmac.compare_digest(token, expected):
+        return None
+    if not await has_active_session_activity(db, token):
         return None
     # Return a normalized FL-user-shaped view so downstream code that
     # reads `user["id"]`, `user["email"]`, etc. keeps working unchanged.

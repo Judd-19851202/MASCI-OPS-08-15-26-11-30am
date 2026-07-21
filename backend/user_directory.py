@@ -62,6 +62,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 import bcrypt
+from session_timeout import has_active_session_activity
 
 logger = logging.getLogger(__name__)
 
@@ -516,5 +517,7 @@ async def is_valid_directory_admin_token_async(
         return None
     expected = make_directory_admin_token(uid, pwh)
     if not _hmac.compare_digest(token, expected):
+        return None
+    if not await has_active_session_activity(db, token):
         return None
     return row

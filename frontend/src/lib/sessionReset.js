@@ -21,16 +21,16 @@
 // device id, posthog distinct id). Those are intentionally preserved
 // across logins so resiliency / analytics state isn't lost.
 
-import { clearAdminToken } from "./adminAuth";
-import { clearPmToken } from "./pmAuth";
-import { clearShopToken } from "./shopAuth";
-import { clearHrToken } from "./hrAuth";
-import { clearSafetyToken } from "./safetyAuth";
-import { clearDispatchToken } from "./dispatchAuth";
+import { clearAdminToken, getAdminToken } from "./adminAuth";
+import { clearPmToken, getPmToken } from "./pmAuth";
+import { clearShopToken, getShopToken } from "./shopAuth";
+import { clearHrToken, getHrToken } from "./hrAuth";
+import { clearSafetyToken, getSafetyToken } from "./safetyAuth";
+import { clearDispatchToken, getDispatchToken } from "./dispatchAuth";
 import { clearDevToken } from "./devAuth";
-import { clearFlToken } from "./flAuth";
-import { clearLeadershipToken } from "./leadershipAuth";
-import { clearSafetyFormsToken } from "./safetyFormsAuth";
+import { clearFlToken, getFlToken } from "./flAuth";
+import { clearLeadershipToken, getLeadershipToken } from "./leadershipAuth";
+import { clearSafetyFormsToken, getSafetyFormsToken } from "./safetyFormsAuth";
 import { clearJwt } from "./jwtAuth";
 import { clearDriverSession } from "./driverAuth";
 import {
@@ -95,6 +95,33 @@ export async function clearAllSessions({ notifyBackend = true } = {}) {
       return "";
     }
   })();
+  const adminTok = (() => {
+    try { return getAdminToken(); } catch { return ""; }
+  })();
+  const pmTok = (() => {
+    try { return getPmToken(); } catch { return ""; }
+  })();
+  const shopTok = (() => {
+    try { return getShopToken(); } catch { return ""; }
+  })();
+  const hrTok = (() => {
+    try { return getHrToken(); } catch { return ""; }
+  })();
+  const safetyTok = (() => {
+    try { return getSafetyToken(); } catch { return ""; }
+  })();
+  const dispatchTok = (() => {
+    try { return getDispatchToken(); } catch { return ""; }
+  })();
+  const flTok = (() => {
+    try { return getFlToken(); } catch { return ""; }
+  })();
+  const leadershipTok = (() => {
+    try { return getLeadershipToken(); } catch { return ""; }
+  })();
+  const safetyFormsTok = (() => {
+    try { return getSafetyFormsToken(); } catch { return ""; }
+  })();
 
   // Local wipe FIRST. We must not depend on the network call to
   // succeed before clearing in-browser state — a flaky/offline browser
@@ -121,14 +148,28 @@ export async function clearAllSessions({ notifyBackend = true } = {}) {
   // Best-effort server-side invalidation. Failures here are non-fatal:
   // we already cleared the client. A 401/network error simply means
   // we logged out a session that was already gone.
-  if (notifyBackend && dirTok && API) {
+  if (
+    notifyBackend
+    && API
+    && (dirTok || adminTok || pmTok || shopTok || hrTok || safetyTok || dispatchTok || flTok || leadershipTok || safetyFormsTok)
+  ) {
     try {
+      const headers = {
+        "Content-Type": "application/json",
+        ...(dirTok ? { "X-Directory-Token": dirTok } : {}),
+        ...(adminTok ? { "X-Admin-Token": adminTok } : {}),
+        ...(pmTok ? { "X-PM-Token": pmTok } : {}),
+        ...(shopTok ? { "X-Shop-Token": shopTok } : {}),
+        ...(hrTok ? { "X-HR-Token": hrTok } : {}),
+        ...(safetyTok ? { "X-Safety-Token": safetyTok } : {}),
+        ...(dispatchTok ? { "X-Dispatch-Token": dispatchTok } : {}),
+        ...(flTok ? { "X-FL-Token": flTok } : {}),
+        ...(leadershipTok ? { "X-Leadership-Token": leadershipTok } : {}),
+        ...(safetyFormsTok ? { "X-Safety-Forms-Token": safetyFormsTok } : {}),
+      };
       await fetch(`${API}/api/auth/multi-logout`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Directory-Token": dirTok,
-        },
+        headers,
         cache: "no-store",
       });
     } catch {
