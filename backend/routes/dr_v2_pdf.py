@@ -300,13 +300,8 @@ def register_dr_v2_pdf_routes(
         limit: int,
         actor: Any,
     ) -> Dict[str, Any]:
-        """DR-UNIFY-002 · union of legacy `daily_reports` + modern
-        approved records into ONE list.
-
-        Each row carries a `source` badge: `"legacy"` or `"modern"`.
-        Scoping mirrors the PDF route (admin → all, PM → assigned
-        projects, HR-read → all-read).
-        """
+        """Canonical approved Daily Reports list sourced from
+        `daily_reports` only."""
         limit = max(1, min(int(limit or 50), 200))
 
         # ── Scope resolution ────────────────────────────────────────
@@ -329,65 +324,6 @@ def register_dr_v2_pdf_routes(
 
         async def _build_items() -> Dict[str, Any]:
             items: List[Dict[str, Any]] = []
-
-            # ── Modern approvals (dr_v2_drafts + accept audit entry) ────
-            recent_accepts_cursor = (
-                db[APPROVAL_ENTRIES_COLL]
-                .find({"action": "accept"}, {"_id": 0, "report_id": 1, "ts": 1})
-                .sort("ts", -1)
-                .limit(limit * 3)
-            )
-            seen_modern: set = set()
-            modern_ids: List[str] = []
-            modern_ts: Dict[str, str] = {}
-            async for entry in recent_accepts_cursor:
-                rid = entry.get("report_id")
-                if not rid or rid in seen_modern:
-                    continue
-                seen_modern.add(rid)
-                modern_ts[rid] = entry.get("ts") or ""
-                modern_ids.append(rid)
-                if len(modern_ids) >= limit:
-                    break
-
-            if modern_ids:
-                draft_query: Dict[str, Any] = {"report_id": {"$in": modern_ids}}
-                if pm_project_filter is not None:
-                    draft_query["$or"] = [
-                        {"project_number": pm_project_filter},
-                        {"day_setup.project_number": pm_project_filter},
-                    ]
-                async for d in db[DRAFTS_COLL].find(
-                    draft_query,
-                    {
-                        "_id": 0,
-                        "report_id": 1,
-                        "project_number": 1,
-                        "report_date": 1,
-                        "day_setup": 1,
-                        "field_language": 1,
-                    },
-                ):
-                    setup = d.get("day_setup") or {}
-                    from lib.synthetic_dr_filter import is_synthetic_dr
-                    merged = {
-                        "project_number": setup.get("project_number") or d.get("project_number") or "",
-                        "project_name": setup.get("project_name") or "",
-                    }
-                    if is_synthetic_dr(merged):
-                        continue
-                    items.append({
-                        "id": d.get("report_id"),
-                        "source": "modern",
-                        "report_id": d.get("report_id"),
-                        "project_number": merged["project_number"],
-                        "project_name": merged["project_name"],
-                        "report_date": d.get("report_date") or setup.get("report_date") or "",
-                        "supervisor_name": setup.get("supervisor_name") or "",
-                        "field_language": d.get("field_language") or "en",
-                        "approved_at": modern_ts.get(d.get("report_id"), ""),
-                    })
-
             legacy_query: Dict[str, Any] = {}
             if pm_project_filter is not None:
                 legacy_query["project_number"] = pm_project_filter
@@ -425,7 +361,7 @@ def register_dr_v2_pdf_routes(
                     continue
                 items.append({
                     "id": rid,
-                    "source": "legacy",
+                    "source": "canonical",
                     "report_id": rid,
                     "project_number": d.get("project_number") or "",
                     "project_name": d.get("project_name") or "",
@@ -440,31 +376,13 @@ def register_dr_v2_pdf_routes(
 
         return await get_or_set_runtime_json(cache_key, ttl_seconds=45, builder=_build_items)
 
-    @api_router.get("/dr-v2/reports/approved")
-    async def dr_v2_list_approved(
-        limit: int = 50,
-        actor=Depends(require_admin_pm_or_hr_read),
-    ):
-        """Legacy path — retained for internal callers. Same contract
-        as `/api/daily-reports/approved` (the canonical alias)."""
-        return await _list_approved_impl(limit, actor)
-
     @api_router.get("/daily-reports/approved")
     async def daily_reports_list_approved(
         limit: int = 50,
         actor=Depends(require_admin_pm_or_hr_read),
     ):
-        """DR-UNIFY-002 canonical alias · union of legacy + modern
-        approved Daily Reports for management-side export."""
+        """Canonical approved Daily Reports list."""
         return await _list_approved_impl(limit, actor)
-
-    @api_router.get("/dr-v2/reports/{report_id}/pdf", status_code=202)
-    async def dr_v2_report_pdf(
-        report_id: str = Path(..., min_length=1),
-        actor=Depends(require_admin_pm_or_hr_read),
-        background_tasks: BackgroundTasks = None,
-    ):
-        return await _queue_pdf_job(report_id, actor, background_tasks)
 
     @api_router.get("/daily-reports/{report_id}/pdf", status_code=202)
     async def daily_reports_pdf(
@@ -472,8 +390,7 @@ def register_dr_v2_pdf_routes(
         actor=Depends(require_admin_pm_or_hr_read),
         background_tasks: BackgroundTasks = None,
     ):
-        """DR-UNIFY-002 canonical alias · dispatches to modern or
-        legacy renderer based on which collection owns the id."""
+        """Canonical Daily Report PDF export."""
         return await _queue_pdf_job(report_id, actor, background_tasks)
 
     async def _queue_pdf_job(report_id: str, actor: Any, background_tasks: Optional[BackgroundTasks]):
@@ -497,29 +414,18 @@ def register_dr_v2_pdf_routes(
         }
 
     async def _render_pdf_export_impl(report_id: str, actor: Any) -> Dict[str, Any]:
-        # 1. Look up the report in BOTH collections. Modern
-        # `dr_v2_drafts` wins if both exist (should not happen in
-        # practice — ids are namespaced).
-        draft = await db[DRAFTS_COLL].find_one({"report_id": report_id}, {"_id": 0})
-        legacy = None
-        if not draft:
-            legacy = await db[LEGACY_COLL].find_one(
-                {"$or": [
-                    {"id": report_id},
-                    {"doc_id": report_id},
-                    {"report_number": report_id},
-                ]},
-                {"_id": 0},
-            )
-        if not draft and not legacy:
+        legacy = await db[LEGACY_COLL].find_one(
+            {"$or": [
+                {"id": report_id},
+                {"doc_id": report_id},
+                {"report_number": report_id},
+            ]},
+            {"_id": 0},
+        )
+        if not legacy:
             raise HTTPException(status_code=404, detail="report not found")
 
-        record_project = (
-            (draft or {}).get("day_setup", {}).get("project_number")
-            or (draft or {}).get("project_number")
-            or (legacy or {}).get("project_number")
-            or ""
-        )
+        record_project = (legacy or {}).get("project_number") or ""
 
         # 2. Enforce PM scope. Admin sentinel (True) and HR actor
         # (`_actor_kind == "hr_user"`) bypass this check.
@@ -528,53 +434,8 @@ def register_dr_v2_pdf_routes(
             if not scope.allows(record_project):
                 raise HTTPException(status_code=404, detail="report not found")
 
-        # 3. Legacy path — render directly (no approval gate; the
-        # legacy record IS the approved record by virtue of being
-        # submitted, matching current V1 PDF email pipeline behavior).
-        if legacy:
-            try:
-                pdf_bytes = render_record_pdf("daily-report", legacy)
-            except Exception as ex:  # noqa: BLE001
-                raise HTTPException(
-                    status_code=500,
-                    detail=f"PDF render failed: {type(ex).__name__}",
-                ) from ex
-            filename = f"MASCI_Daily_Report_{report_id}.pdf"
-            rendered_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")  # TRACK-27.03-EXEMPT: machine-consumed HTTP header (X-Daily-Report-Rendered-At)
-            return {
-                "pdf_bytes": pdf_bytes,
-                "filename": filename,
-                "rendered_at": rendered_at,
-                "source": "legacy",
-            }
-
-        # 4. Modern path — require an accept entry.
-        accept = await _latest_accept_entry(db, report_id)
-        if not accept:
-            raise HTTPException(
-                status_code=409,
-                detail="report is not yet approved; PDF export blocked",
-            )
-
-        # 5. Canonicalize ES → EN if needed.
-        canonical = await _canonical_draft(db, report_id, draft)
-
-        # 6. Pick up supervisor-edited summary.
-        accepted_summary = ""
-        edit_entry = await db[APPROVAL_ENTRIES_COLL].find_one(
-            {"report_id": report_id, "edited_narrative": {"$exists": True, "$ne": None}},
-            {"_id": 0, "edited_narrative": 1},
-            sort=[("ts", -1)],
-        )
-        if edit_entry:
-            accepted_summary = (edit_entry.get("edited_narrative") or "").strip()
-        if not accepted_summary:
-            accepted_summary = (canonical.get("accepted_summary") or "").strip() if isinstance(canonical.get("accepted_summary"), str) else ""
-
-        # 7. Map to V1 record shape and render.
-        record = _v2_to_v1_daily_record(canonical, accepted_summary=accepted_summary)
         try:
-            pdf_bytes = render_record_pdf("daily-report", record)
+            pdf_bytes = render_record_pdf("daily-report", legacy)
         except Exception as ex:  # noqa: BLE001
             raise HTTPException(
                 status_code=500,
@@ -587,7 +448,7 @@ def register_dr_v2_pdf_routes(
             "pdf_bytes": pdf_bytes,
             "filename": filename,
             "rendered_at": rendered_at,
-            "source": "modern",
+            "source": "canonical",
         }
 
     async def _run_pdf_job(job_id: str, report_id: str, actor: Any) -> None:

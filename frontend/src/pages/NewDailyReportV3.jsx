@@ -30,8 +30,6 @@ import {
   DraftRestorePrompt,
   DraftRecoveryNotice,
   recoverArchivedDraft,
-  listDraftEntriesForPrefix,
-  promoteLegacyDailyReportDraft,
   emitDraftEvent,
   DAILY_REPORT_FORM_BASE,
   buildDailyReportInstanceScope,
@@ -161,7 +159,6 @@ export default function NewDailyReportV3({ publicMode = false }) {
   const [smartPrefillLoading, setSmartPrefillLoading] = useState(false);
   const [smartPrefillRetryNonce, setSmartPrefillRetryNonce] = useState(0);
   const [prefillNotice, setPrefillNotice] = useState(null);
-  const [legacyDraftRecovery, setLegacyDraftRecovery] = useState(null);
   const [archivedDraft, setArchivedDraft] = useState(null);
   const [summaryGate, setSummaryGate] = useState({ canSubmit: false, manualNeeded: false });
   const [photoBatchState, setPhotoBatchState] = useState({
@@ -206,61 +203,6 @@ export default function NewDailyReportV3({ publicMode = false }) {
       cancelled = true;
     };
   }, [scopedFormKey]);
-
-  useEffect(() => {
-    if (!draftLoaded || pendingDraft) return undefined;
-    let cancelled = false;
-    (async () => {
-      const rows = [];
-      for (const prefix of LEGACY_DRAFT_PREFIXES) {
-        try {
-          const found = await listDraftEntriesForPrefix(prefix);
-          rows.push(...found);
-        } catch {
-          // ignore
-        }
-      }
-      if (cancelled) return;
-      const candidates = rows
-        .filter((row) => typeof row?.key === "string")
-        .filter((row) => !row.key.includes(`.${scopedFormKey}`));
-
-      const migration = await promoteLegacyDailyReportDraft({
-        targetActorId: getDeviceScopedActorId(),
-        targetFormKey: scopedFormKey,
-        targetContext: {
-          actor_id: actorId,
-          project_number: data.project_number,
-          report_date: data.report_date,
-          report_instance: data.report_instance || "primary",
-        },
-        candidates,
-      });
-
-      if (migration.promoted) {
-        emitDraftEvent("draft.lifecycle", {
-          formKey: scopedFormKey,
-          trigger: "legacy_migration.promoted",
-        });
-        return;
-      }
-
-      const legacy = candidates
-        .map((row) => row?.entry)
-        .find((entry) => entry?.form && Object.keys(entry.form || {}).length > 1);
-      if (legacy?.form) {
-        setLegacyDraftRecovery({
-          form: legacy.form,
-          savedAt: legacy.savedAt || null,
-        });
-        emitDraftEvent("draft.lifecycle", {
-          formKey: scopedFormKey,
-          trigger: `legacy_migration.${migration.reason || "recovery_offered"}`,
-        });
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [draftLoaded, pendingDraft, scopedFormKey, actorId, data.project_number, data.report_date, data.report_instance]);
 
   useEffect(() => {
     if (!draftLoaded) return undefined;
@@ -1025,21 +967,6 @@ export default function NewDailyReportV3({ publicMode = false }) {
             {t("Nine short steps. Dropdowns first. AI drafts your summary.")}
           </p>
         </header>
-
-        {legacyDraftRecovery && !pendingDraft ? (
-          <div className="mb-4" data-testid="dr-v3-legacy-recovery-slot">
-            <DraftRecoveryNotice
-              archive={legacyDraftRecovery}
-              onRecover={() => {
-                setData((prev) => ({ ...prev, ...(legacyDraftRecovery.form || {}) }));
-                setLegacyDraftRecovery(null);
-                toast.success(t("Recovered saved work from this device"));
-              }}
-              onDismiss={() => setLegacyDraftRecovery(null)}
-              testId="dr-v3-legacy-recovery"
-            />
-          </div>
-        ) : null}
 
         {/* Draft restore prompt — never silently overwrites work. */}
         {pendingDraft && (

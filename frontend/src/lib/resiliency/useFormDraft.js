@@ -41,13 +41,11 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import {
   saveDraft, getDraftEntry, discardDraft, clearDraft,
-  migrateLegacyDrafts, storeIdempotencyKey, getIdempotencyKey,
+  storeIdempotencyKey, getIdempotencyKey,
   clearIdempotencyKey,
 } from "./draftStore";
 import {
   getDeviceScopedActorId,
-  getLegacyActorIds,
-  getAuthActorFingerprint,
   getStableActorIdentity,
 } from "./actorId";
 import { emitDraftEvent } from "./draftTelemetry";
@@ -90,34 +88,16 @@ export function useFormDraft(_formKeyBase, data, actorId, options = {}) {
   const lastSaveAtMsRef = useRef(0);
   const dataRef = useRef(data);
   const idleTimerRef = useRef(null);
-  const migrationDoneRef = useRef(false);
-
   // Keep a live ref to the current `data` so the lifecycle listeners
   // (which close over no dep array) always flush the latest state.
   useEffect(() => { dataRef.current = data; }, [data]);
 
-  // ── Mount: migrate legacy drafts + load any existing draft ────────
+  // ── Mount: load only the exact current-scope draft ────────────────
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         const deviceActorId = getDeviceScopedActorId();
-        // One-time legacy migration — re-key any token-derived
-        // orphaned drafts under the new device id.
-        if (!migrationDoneRef.current) {
-          migrationDoneRef.current = true;
-          try {
-            const legacy = getLegacyActorIds();
-            const r = await migrateLegacyDrafts(deviceActorId, legacy, formKey);
-            if (r.migrated > 0) {
-              emitDraftEvent("draft.actorId.rotated", {
-                formKey,
-                migratedDrafts: r.migrated,
-                kept: r.kept,
-              });
-            }
-          } catch { /* migration must never crash mount */ }
-        }
         const entry = await getDraftEntry(deviceActorId, formKey);
         // TRACK 19.04 · Form Session Isolation.
         // Only OFFER the draft if it was saved by the currently
@@ -134,21 +114,12 @@ export function useFormDraft(_formKeyBase, data, actorId, options = {}) {
         if (!cancelled && entry && !authorMismatch) {
           setPendingDraft(entry.form);
           setPendingSavedAt(entry.savedAt);
-          // We can't reliably know whether the draft was originally
-          // saved under a different actorId after migration (we
-          // already merged keys), so we treat any post-migration
-          // recovery as "potentially cross-token" if the operator's
-          // current portal token differs from the device id, or if
-          // the draft has no author stamp (pre-19.04 legacy).
-          setPendingIsCrossToken(
-            (actorId && actorId !== deviceActorId) || !draftAuthor
-          );
+          setPendingIsCrossToken(Boolean(actorId && actorId !== deviceActorId));
           emitDraftEvent("draft.restore.offered", {
             formKey,
             ageSeconds: Math.floor((Date.now() - (entry.savedAt || 0)) / 1000),
             payloadBytes: JSON.stringify(entry.form || {}).length,
             isCrossToken: Boolean(actorId && actorId !== deviceActorId),
-            legacyAuthor: !draftAuthor,
           });
         } else if (!cancelled && entry && authorMismatch) {
           // Actor B on the same device — do NOT offer Actor A's
