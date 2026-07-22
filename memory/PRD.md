@@ -1,3 +1,13 @@
+## 2026-07-22 — C2 Recovery Blocker Elimination Closed to Owner Gate
+
+- Canonical repo-controlled candidate advanced to pre-save state anchored on `7141d5bcec2ac4a60f9ae91188b3bafea64814e2` with frontend/backend identity re-aligned and strict identity verification passing.
+- Repaired `restore_drill.py` twice in bounded scope: first replaced collection `drop()` with `delete_many({})` for side-DB compatibility, then added ZIP streaming restore to avoid full-archive extraction timeout on the 1.5 GB complete backup. Added focused regression tests in `backend/tests/test_c2_restore_drill_side_db_cleanup.py`.
+- Repaired runtime readiness truth in `backend/lib/runtime_reliability.py` so `/api/ready` and `/api/health/full` are consistent and healthy after startup.
+- Fresh backup integrity reverified live against `MASCI_complete_backup_2026-07-22_155504Z.zip`; `notification_capture_v1` present, `missing_from_backup=[]`, `integrity_result=PASS`.
+- Isolated restore proof completed on local Mongo side DB `masci_restore_drill_20260722_local_stream`: 223 collections and 1,603,090 records restored; key C2 collections restored exactly (including `notification_capture_v1`, `user_directory`, `session_activity`, `backup_health`, `trust_spine_events`).
+- Atlas preview-user disposable side-DB restore remains privilege-limited for arbitrary restore DBs; owner gate package now records this as an environment constraint already worked around with successful local isolated restore.
+- Current program status: **C2 TECHNICALLY COMPLETE — EXACT OWNER INFRASTRUCTURE ACTION REQUIRED**. Next checkpoint work (roadmap lock for C3+/D-series) must wait until Jaymn performs Save-to-GitHub and Production deployment/verification.
+
 ## 2026-07-21 — Checkpoint C2 logout revocation certification complete
 
 Preview verified ✅
