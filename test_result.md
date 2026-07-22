@@ -312,13 +312,26 @@ frontend:
         timestamp: "2026-07-22 12:55:00 UTC"
         comment: "✅ VERIFIED: C2 final authorization focused frontend regression completed successfully against https://backup-forensics.preview.emergentagent.com. ALL 8 REQUIRED TEST OBJECTIVES PASSED: (1) Valid admin login through visible UI - jaymn.judd@mascigc.com successfully authenticates and redirects to /admin with full portal rendering. (2) Admin logout through visible UI - sign-out button (data-testid='ds-portal-shell-signout') found and functional, successfully redirects to /sign-in. Note: Button requires ~10 seconds after login to become enabled (waits for /admin/shared-capabilities API call). (3) Browser back after logout does NOT restore protected access - correctly shows 'SIGN-IN REQUIRED' message and redirects to /admin/login (SECURE behavior verified). (4) Direct protected route access without auth correctly redirects to login - /admin/daily-reports redirects to /pm/login when not authenticated (route guards working). (5) Valid PM login with role-appropriate landing - cert.pm@example.com successfully authenticates and lands on /pm/command-center with full portal rendering (3379 chars). (6) Invalid login shows error and doesn't authenticate - invalid credentials stay on login page, no authentication granted. (7) Smoke test of major active routes - ALL routes render without blank screens or crashes: Admin Console (266 chars), Daily Reports (582 chars), Safety (547 chars), Equipment/Pre-Ops/DVIR (266 chars), Recovery/Backup (266 chars). (8) No auth loops, repeated console errors, or route/render crashes detected - console shows only expected 401 errors for portal check endpoints (normal multi-portal behavior). IMPORTANT CONTEXT VERIFIED: Preview email is SAFE_CAPTURE only (not treated as bug per review request). This is a release-authorization smoke pass focused on user-visible and release-blocking findings only. NO RELEASE-BLOCKING ISSUES FOUND. Application is ready for C2 final authorization. Screenshots saved: c2_complete_before_logout.png, c2_complete_after_logout.png, c2_complete_browser_back.png, c2_complete_direct_route.png."
 
+  - task: "C2 Candidate Final Restamp - Minimal Frontend Smoke Check"
+    implemented: true
+    working: true
+    file: "N/A - Minimal smoke test after candidate restamp"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        timestamp: "2026-07-22 20:15:30 UTC"
+        comment: "✅ VERIFIED: C2 candidate final restamp minimal frontend smoke check completed successfully for commit 7141d5bcec2ac4a60f9ae91188b3bafea64814e2. This was a minimal smoke test only (NOT a broad UI sweep) to confirm the frontend is not blank/broken after the final candidate restamp. ALL 4 SMOKE TEST OBJECTIVES PASSED: (1) Preview app root URL loads successfully - React SPA renders with 2740 characters of visible content, 334 visible elements, proper page structure with MASCI Operations Platform landing page displaying 'One System. Every Crew. Every Job.' heading. (2) Initial route loads visible content and basic navigation shell/UI is present - navigation with SIGN IN button, language selector (EN/ES), three main portal sections (Field, QA/QC, Safety), Leadership Tools section, and non-production environment banner all rendering correctly. (3) Login/landing surface renders without obvious console/runtime errors - no fatal JavaScript errors detected, no page errors, console shows only expected 401 responses from portal check endpoints (normal behavior). (4) No blocking frontend crash detected - no error overlay, no crash screen, no blank page. Screenshot captured at .screenshots/c2_candidate_smoke_test.png shows proper rendering with full UI shell and content. CONCLUSION: Frontend is NOT blank/broken after final candidate restamp. Application renders successfully with no blocking issues. This was a smoke check only as requested - no deep workflow testing performed."
+
 ## Metadata
 
 metadata:
   created_by: "testing_agent"
   version: "1.0"
-  test_sequence: 12
-  last_updated: "2026-07-22 20:11:30 UTC"
+  test_sequence: 13
+  last_updated: "2026-07-22 20:15:30 UTC"
   pdc_01a_status: "COMPLETE"
   production_cert_status: "COMPLETE"
   hub_signout_fix_status: "VERIFIED"
@@ -331,6 +344,7 @@ metadata:
   c2_final_authorization_backend_status: "PASS_ALL_TESTS"
   c2_final_authorization_frontend_status: "PASS_READY_FOR_AUTHORIZATION"
   c2_recovery_identity_validation_status: "PASS_ALL_TESTS"
+  c2_candidate_final_restamp_smoke_status: "PASS_NO_BLOCKING_ISSUES"
 
 ## Test Plan
 
@@ -368,6 +382,10 @@ test_plan:
 agent_communication:
   - agent: "testing"
     timestamp: "2026-07-22 20:11:30 UTC"
+  - agent: "testing"
+    timestamp: "2026-07-22 20:15:30 UTC"
+    message: "C2 CANDIDATE FINAL RESTAMP MINIMAL FRONTEND SMOKE CHECK COMPLETE - PASS. Executed minimal frontend smoke test for C2 candidate commit 7141d5bcec2ac4a60f9ae91188b3bafea64814e2 per review request. This was a minimal smoke check only (NOT a broad UI sweep) to confirm the frontend is not blank/broken after the final candidate restamp. ALL 4 SMOKE TEST OBJECTIVES PASSED: (1) Preview app root URL (https://backup-forensics.preview.emergentagent.com) loads successfully - React SPA renders with 2740 characters of visible content and 334 visible elements. (2) Initial route loads visible content and basic navigation shell/UI is present - MASCI Operations Platform landing page displays correctly with 'One System. Every Crew. Every Job.' heading, SIGN IN button, language selector (EN/ES), three main portal sections (Field, QA/QC, Safety), Leadership Tools section, and non-production environment banner. (3) Login/landing surface renders without obvious console/runtime errors - no fatal JavaScript errors detected, no page errors, console shows only expected 401 responses from portal check endpoints (normal behavior). (4) No blocking frontend crash detected - no error overlay, no crash screen, no blank page. Screenshot captured at .screenshots/c2_candidate_smoke_test.png confirms proper rendering with full UI shell and content. CONCLUSION: Frontend is NOT blank/broken after final candidate restamp. Application renders successfully with no blocking issues. This was a smoke check only as requested - no deep workflow testing performed. NO DEPLOYMENT BLOCKERS FOUND."
+
     message: "C2 LATE RECOVERY/IDENTITY/RECOVERABILITY VALIDATION COMPLETE - ALL TESTS PASSED. Executed focused curl-level backend checks for C2 candidate commit 7141d5bcec2ac4a60f9ae91188b3bafea64814e2 against localhost:8001 per review request. ALL 5 REQUIRED TESTS PASSED (100% pass rate). TEST 1 - Version Endpoint (PASS): GET /api/version returns 200 with commit=7141d5bcec2ac4a60f9ae91188b3bafea64814e2, frontend_build_commit=7141d5bcec2ac4a60f9ae91188b3bafea64814e2, frontend_backend_release_match=true, source_hash=1fbc59391fad799f7cf40ad0ddf7b2b9. Commit matches expected candidate anchor exactly. TEST 2 - Ready Endpoint (PASS): GET /api/ready returns 200 with ok=true, state=ready, mongo_ok=true. System is ready and operational. TEST 3 - Health Full Endpoint (PASS): GET /api/health/full returns 200 with ok=true, mongo=true, scheduler=true, backup_recent=true. All subsystems healthy. TEST 4 - Multi-Login Authentication (PASS): POST /api/auth/multi-login with admin credentials (jaymn.judd@mascigc.com / Maddix123!) succeeds with status 200 and returns both session_token and portal_tokens.admin. Response includes 8 portal tokens: admin, pm, shop, hr, safety, dispatch, field_leadership, fl. Authentication working correctly. TEST 5 - Backup Integrity Check (PASS): GET /api/admin/backups/integrity-check with both X-Admin-Token and X-Directory-Token headers returns 200 and reflects fresh complete backup MASCI_complete_backup_2026-07-22_155504Z.zip (matches expected pattern). Verification confirms: (1) notification_capture_v1 IS present in captured_collections list, (2) NO BACKUP_INCOMPLETE false-positive condition (backup_incomplete=false), (3) integrity_result=PASS, (4) 256 collections captured (expected 256), (5) 1,603,090 documents captured, (6) missing_from_backup=[] (empty array - no missing collections). Candidate 7141d5bcec2ac4a60f9ae91188b3bafea64814e2 includes: backup integrity fix, restore_drill streaming ZIP fix, readiness truth fix. NO MOCKED APIs - all tests performed against real backend endpoints. All concrete pass/fail results verified with exact response bodies captured. Test evidence saved to /app/c2_recovery_identity_test_results_complete.json. Candidate is READY FOR C2 RECOVERY/IDENTITY/RECOVERABILITY AUTHORIZATION."
 
   - agent: "testing"
