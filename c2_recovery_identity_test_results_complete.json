@@ -1,0 +1,69 @@
+{
+  "test_timestamp": "2026-07-22T20:10:17Z",
+  "candidate_commit": "7141d5bcec2ac4a60f9ae91188b3bafea64814e2",
+  "backend_url": "http://localhost:8001",
+  "tests": [
+    {
+      "test": "1. Version Endpoint",
+      "passed": true,
+      "details": {
+        "status_code": 200,
+        "commit": "7141d5bcec2ac4a60f9ae91188b3bafea64814e2",
+        "frontend_build_commit": "7141d5bcec2ac4a60f9ae91188b3bafea64814e2",
+        "frontend_backend_release_match": true,
+        "source_hash": "1fbc59391fad799f7cf40ad0ddf7b2b9"
+      }
+    },
+    {
+      "test": "2. Ready Endpoint",
+      "passed": true,
+      "details": {
+        "status_code": 200,
+        "ok": true,
+        "state": "ready",
+        "mongo_ok": true
+      }
+    },
+    {
+      "test": "3. Health Full Endpoint",
+      "passed": true,
+      "details": {
+        "status_code": 200,
+        "ok": true,
+        "mongo": true,
+        "scheduler": true,
+        "backup_recent": true
+      }
+    },
+    {
+      "test": "4. Multi-Login Authentication",
+      "passed": true,
+      "details": {
+        "status_code": 200,
+        "has_session_token": true,
+        "has_admin_token": true,
+        "portal_list": ["admin", "pm", "shop", "hr", "safety", "dispatch", "field_leadership", "fl"]
+      }
+    },
+    {
+      "test": "5. Backup Integrity Check",
+      "passed": true,
+      "details": {
+        "status_code": 200,
+        "backup_file": "MASCI_complete_backup_2026-07-22_155504Z.zip",
+        "notification_capture_v1_present": true,
+        "backup_incomplete": false,
+        "integrity_result": "PASS",
+        "captured_collection_count": 256,
+        "document_count": 1603090,
+        "missing_from_backup": []
+      }
+    }
+  ],
+  "summary": {
+    "total_tests": 5,
+    "passed": 5,
+    "failed": 0,
+    "pass_rate": "100.0%"
+  }
+}

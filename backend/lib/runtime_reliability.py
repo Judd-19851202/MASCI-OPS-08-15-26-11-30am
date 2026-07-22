@@ -433,7 +433,12 @@ def runtime_health_snapshot(app: Any) -> Dict[str, Any]:
     mongo_ok = bool(RUNTIME_STATE["mongo"].get("ok"))
     mongo_latency = RUNTIME_STATE["mongo"].get("latency_ms")
     resources = dict(RUNTIME_STATE.get("resources") or {})
-    ready_flag = bool(getattr(app.state, "ready", False))
+    ready_flag = bool(RUNTIME_STATE.get("ready"))
+    if bool(getattr(app.state, "ready", False)) != ready_flag:
+        try:
+            app.state.ready = ready_flag
+        except Exception:
+            pass
     failed_tasks = [t for t in _task_rows() if t.get("status") == "failed"]
 
     readiness_ok = (

@@ -164,6 +164,79 @@ def _restore_side_db(extracted: Path, target_uri: str, target_db: str,
     return counters
 
 
+def _restore_zip_side_db(archive: Path, target_uri: str, target_db: str,
+                         verbose: bool = True, batch_size: int = 1000) -> dict:
+    """Stream ZIP-backed JSON rows straight into target_db without extracting
+    the entire archive to disk first. This keeps the drill workable for
+    very large backup archives with hundreds of thousands of JSON members.
+    """
+    from pymongo import MongoClient
+
+    client = MongoClient(target_uri, serverSelectionTimeoutMS=5000)
+    sdb = client[target_db]
+    counters: dict = {}
+
+    with zipfile.ZipFile(archive, "r") as zf:
+        grouped: dict[str, list[str]] = {}
+        for name in zf.namelist():
+            if not name.endswith(".json") or name == "MANIFEST.json":
+                continue
+            parts = Path(name).parts
+            if len(parts) < 3 or parts[1] != "json":
+                continue
+            coll_name = parts[0].replace("-", "_")
+            grouped.setdefault(coll_name, []).append(name)
+
+        for coll_name in sorted(grouped):
+            coll = sdb[coll_name]
+            file_names = grouped[coll_name]
+            inserted = 0
+            bad = 0
+            batch = []
+            try:
+                coll.delete_many({})
+            except Exception as e:
+                if verbose:
+                    print(f"  [{coll_name}] cleanup warnings: {e}", file=sys.stderr)
+            for member_name in file_names:
+                try:
+                    with zf.open(member_name) as fh:
+                        row = json.loads(fh.read().decode("utf-8"))
+                    if not isinstance(row, dict):
+                        bad += 1
+                        continue
+                    batch.append(row)
+                    if len(batch) >= batch_size:
+                        try:
+                            coll.insert_many(batch, ordered=False)
+                        except Exception as e:
+                            if verbose:
+                                print(f"  [{coll_name}] insert warnings: {e}", file=sys.stderr)
+                        inserted += len(batch)
+                        batch = []
+                except Exception:
+                    bad += 1
+            if batch:
+                try:
+                    coll.insert_many(batch, ordered=False)
+                except Exception as e:
+                    if verbose:
+                        print(f"  [{coll_name}] insert warnings: {e}", file=sys.stderr)
+                inserted += len(batch)
+            counters[coll_name] = {
+                "inserted": inserted,
+                "skipped_bad": bad,
+                "files_seen": len(file_names),
+            }
+            if verbose:
+                print(
+                    f"  {coll_name:<32}  inserted={inserted:>5}  "
+                    f"bad={bad:>3}  files={len(file_names):>5}"
+                )
+    client.close()
+    return counters
+
+
 def _validate_restore(target_uri: str, target_db: str) -> dict:
     """Sample integrity checks on the side DB. Returns a dict."""
     from pymongo import MongoClient
@@ -345,18 +418,25 @@ def cmd_restore(args, env):
             client.download_file(bucket, args.backup, str(archive))
             print(f"  Downloaded: {archive.stat().st_size / (1024*1024):.1f} MB")
 
-        extracted = tmp_path / "extracted"
         if args.dry_run:
+            extracted = tmp_path / "extracted"
             print(f"  [dry-run] would extract to {extracted} and restore.")
             return 0
-        extracted.mkdir()
-        fmt = _extract_archive(archive, extracted)
-        print(f"  Extracted format: {fmt}")
 
         print("")
         print("  Restoring into side DB ...")
         try:
-            counters = _restore_side_db(extracted, args.target, args.target_db)
+            if zipfile.is_zipfile(archive) and not args.restore_photos:
+                print("  ZIP archive detected · using streaming restore path")
+                counters = _restore_zip_side_db(archive, args.target, args.target_db)
+                fmt = "zip-stream"
+                extracted = None
+            else:
+                extracted = tmp_path / "extracted"
+                extracted.mkdir()
+                fmt = _extract_archive(archive, extracted)
+                print(f"  Extracted format: {fmt}")
+                counters = _restore_side_db(extracted, args.target, args.target_db)
         except Exception as e:
             print(f"  FAIL: restore: {e}", file=sys.stderr)
             return 8
@@ -375,6 +455,9 @@ def cmd_restore(args, env):
 
         # Batch G · GAP-4 — re-upload photo bytes to R2 if requested
         if args.restore_photos:
+            if extracted is None:
+                print("  FAIL: restore-photos requires extracted archive layout.", file=sys.stderr)
+                return 8
             print("")
             print("  Re-hydrating R2 photo bytes from archive (GAP-4) ...")
             _rehydrate_photos_to_r2(extracted, env)

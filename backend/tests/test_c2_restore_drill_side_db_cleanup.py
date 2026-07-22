@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import sys
+import zipfile
 from pathlib import Path
 
 
@@ -12,7 +13,7 @@ SCRIPTS = ROOT / "scripts"
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
-from restore_drill import _restore_side_db
+from restore_drill import _restore_side_db, _restore_zip_side_db
 
 
 class _FakeCollection:
@@ -84,4 +85,45 @@ def test_restore_side_db_uses_delete_many_instead_of_drop(monkeypatch, tmp_path:
     assert fake_coll.drop_called is False
     assert fake_coll.inserted_docs == [
         {"docs": [{"id": "case-1", "summary": "restore proof"}], "ordered": False}
+    ]
+
+
+def test_restore_zip_side_db_streams_without_full_extract(monkeypatch, tmp_path: Path):
+    archive = tmp_path / "probe.zip"
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr(
+            "notification-capture-v1/json/row_000000.json",
+            json.dumps({"id": "notif-1", "message": "hello"}),
+        )
+        zf.writestr(
+            "notification-capture-v1/json/row_000001.json",
+            json.dumps({"id": "notif-2", "message": "world"}),
+        )
+        zf.writestr("MANIFEST.json", json.dumps({"ok": True}))
+
+    monkeypatch.setattr("pymongo.MongoClient", _FakeClient)
+
+    counters = _restore_zip_side_db(
+        archive,
+        "mongodb://example.invalid",
+        "masci_restore_drill_test_zip",
+        verbose=False,
+        batch_size=1,
+    )
+
+    fake_client = _FakeClient.latest
+    assert fake_client is not None
+    fake_db = fake_client.databases["masci_restore_drill_test_zip"]
+    fake_coll = fake_db.collections["notification_capture_v1"]
+
+    assert counters["notification_capture_v1"] == {
+        "inserted": 2,
+        "skipped_bad": 0,
+        "files_seen": 2,
+    }
+    assert fake_coll.deleted_queries == [{}]
+    assert fake_coll.drop_called is False
+    assert fake_coll.inserted_docs == [
+        {"docs": [{"id": "notif-1", "message": "hello"}], "ordered": False},
+        {"docs": [{"id": "notif-2", "message": "world"}], "ordered": False},
     ]
