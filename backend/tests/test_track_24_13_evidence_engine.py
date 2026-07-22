@@ -322,6 +322,32 @@ def test_pdf_attachment_evidence_section_renders_when_manifest_present():
     assert "Evidence Warnings" in html
 
 
+def test_pdf_attachment_evidence_section_falls_back_to_raw_attachment_refs():
+    from pdf_render import _render_attachment_evidence_section
+
+    d = {
+        "attachments": [
+            {
+                "filename": "daily_ticket.pdf",
+                "category": "PDF",
+                "uploaded_at": "2026-07-22T23:14:30Z",
+                "attachment_ref": "photo://masci-hub/documents/2026/07/dr_attachment_daily_ticket.pdf",
+            },
+            {
+                "filename": "notes with spaces & punctuation!.txt",
+                "category": "Document",
+                "uploaded_at": "2026-07-22T23:14:31Z",
+            },
+        ],
+    }
+
+    html = _render_attachment_evidence_section(d)
+    assert "daily_ticket.pdf" in html
+    assert "notes with spaces &amp; punctuation!.txt" in html
+    assert "Attachment status" in html
+    assert "Saved · photo://masci-hub/documents/2026/07/dr_attach" in html
+
+
 # ── V1 DR shape carries `evidence_manifest` field ──────────────────
 
 def test_daily_report_model_accepts_evidence_manifest():

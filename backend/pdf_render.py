@@ -225,7 +225,8 @@ def _render_attachment_evidence_section(d: Dict[str, Any]) -> str:
     attachments = manifest.get("attachments") or []
     recon = manifest.get("material_reconciliation") or {}
     warnings = manifest.get("warnings") or []
-    if not attachments and not recon.get("matched") and not warnings:
+    raw_attachments = d.get("attachments") or []
+    if not attachments and not recon.get("matched") and not warnings and not raw_attachments:
         return ""
 
     parts: List[str] = []
@@ -287,6 +288,40 @@ def _render_attachment_evidence_section(d: Dict[str, Any]) -> str:
             'font-size:8pt;letter-spacing:0.1em;text-transform:uppercase;">Reason</th>'
             f'</tr></thead><tbody>{rows_html}</tbody></table>'
         )
+    elif raw_attachments:
+        rows_html = ""
+        for a in raw_attachments[:20]:
+            if not isinstance(a, dict):
+                continue
+            fname = escape(str(a.get("filename") or "—"))
+            category = escape(str(a.get("category") or a.get("kind") or "Document"))
+            uploaded = escape(str(a.get("uploaded_at") or "—"))
+            ref = escape(str(a.get("attachment_ref") or ""))
+            status = escape(f"Saved · {ref[:48]}") if ref else "Metadata only"
+            rows_html += (
+                f'<tr>'
+                f'<td style="padding:3px 6px;border:1px solid #cbd5e1;font-size:9pt;">{fname}</td>'
+                f'<td style="padding:3px 6px;border:1px solid #cbd5e1;font-size:9pt;">{category}</td>'
+                f'<td style="padding:3px 6px;border:1px solid #cbd5e1;font-size:9pt;">{uploaded}</td>'
+                f'<td style="padding:3px 6px;border:1px solid #cbd5e1;font-size:8.5pt;color:#475569;">{status}</td>'
+                f'</tr>'
+            )
+        if rows_html:
+            parts.append(
+                '<div style="font-family:\'Courier New\',monospace;font-size:9px;'
+                'letter-spacing:0.12em;text-transform:uppercase;color:#475569;'
+                'margin:0 0 4px;">Uploaded Documents</div>'
+                '<table style="width:100%;border-collapse:collapse;">'
+                '<thead><tr style="background:#f1f5f9;">'
+                '<th style="padding:3px 6px;border:1px solid #cbd5e1;text-align:left;font-size:8pt;letter-spacing:0.1em;text-transform:uppercase;">Filename</th>'
+                '<th style="padding:3px 6px;border:1px solid #cbd5e1;text-align:left;font-size:8pt;letter-spacing:0.1em;text-transform:uppercase;">Category</th>'
+                '<th style="padding:3px 6px;border:1px solid #cbd5e1;text-align:left;font-size:8pt;letter-spacing:0.1em;text-transform:uppercase;">Uploaded</th>'
+                '<th style="padding:3px 6px;border:1px solid #cbd5e1;text-align:left;font-size:8pt;letter-spacing:0.1em;text-transform:uppercase;">Attachment status</th>'
+                f'</tr></thead><tbody>{rows_html}</tbody></table>'
+                '<div style="margin-top:6px;font-size:9pt;color:#475569;">'
+                'These files were attached to the canonical Daily Report record. Extraction results were not persisted on this report, so the PDF is listing the stored evidence references directly.'
+                '</div>'
+            )
 
     if recon.get("matched") or recon.get("unmatched_extracted") or recon.get("advisories"):
         matched = recon.get("matched") or []
