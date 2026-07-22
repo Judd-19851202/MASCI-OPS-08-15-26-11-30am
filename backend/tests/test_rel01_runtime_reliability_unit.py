@@ -29,6 +29,21 @@ def test_set_readiness_true_clears_shutdown_requested_and_restores_ready_snapsho
     assert snapshot["readiness"]["state"] == "ready"
 
 
+def test_runtime_health_snapshot_heals_startup_complete_ready_drift():
+    app = _app()
+    RUNTIME_STATE["shutdown_requested"] = True
+    RUNTIME_STATE["ready"] = False
+    RUNTIME_STATE["readiness_reason"] = "startup_complete"
+
+    snapshot = runtime_health_snapshot(app)
+
+    assert snapshot["readiness"]["ok"] is True
+    assert snapshot["readiness"]["state"] == "ready"
+    assert RUNTIME_STATE["ready"] is True
+    assert RUNTIME_STATE["shutdown_requested"] is False
+    assert app.state.ready is True
+
+
 class _DoneTask:
     def done(self):
         return True

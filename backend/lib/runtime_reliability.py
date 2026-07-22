@@ -434,6 +434,16 @@ def runtime_health_snapshot(app: Any) -> Dict[str, Any]:
     mongo_latency = RUNTIME_STATE["mongo"].get("latency_ms")
     resources = dict(RUNTIME_STATE.get("resources") or {})
     ready_flag = bool(RUNTIME_STATE.get("ready"))
+    startup_complete = bool(RUNTIME_STATE.get("startup_complete"))
+    readiness_reason = str(RUNTIME_STATE.get("readiness_reason") or "")
+    if (
+        startup_complete
+        and readiness_reason in {"startup_complete", "ready", "all_systems_operational"}
+        and (not ready_flag or RUNTIME_STATE.get("shutdown_requested"))
+    ):
+        ready_flag = True
+        RUNTIME_STATE["ready"] = True
+        RUNTIME_STATE["shutdown_requested"] = False
     if bool(getattr(app.state, "ready", False)) != ready_flag:
         try:
             app.state.ready = ready_flag
