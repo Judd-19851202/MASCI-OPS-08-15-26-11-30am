@@ -30,6 +30,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 # ── Failure classification (closed set) ────────────────────────────
 ROOT_CAUSE_CODES = {
     "ok_delivered",
+    "ok_captured_preview",
     "dead_letter_only",
     "project_number_mismatch",
     "tenant_mismatch",
@@ -54,6 +55,12 @@ ROOT_CAUSE_CODES = {
 EXPECTED_STAGES_DAILY_REPORT = [
     "record_created", "routing_resolved", "recipients_built",
     "notification_queued", "provider_accepted", "audit_written", "completed",
+]
+
+EXPECTED_STAGES_DAILY_REPORT_PREVIEW_CAPTURE = [
+    "record_created", "routing_resolved", "recipients_built",
+    "notification_queued", "audit_written", "delivery_captured_preview",
+    "completed_for_environment",
 ]
 
 
@@ -128,8 +135,11 @@ def _classify(
     Order matters: more specific causes win over generic ones."""
     # Delivered cleanly.
     completed = spine_stage_index.get("completed") or {}
+    completed_for_environment = spine_stage_index.get("completed_for_environment") or {}
     provider = spine_stage_index.get("provider_accepted") or {}
     audit_sent = any((r.get("status") or "").lower() == "sent" for r in audit_rows)
+    audit_captured_preview = any((r.get("status") or "").lower() == "captured_preview" for r in audit_rows)
+    delivery_captured_preview = spine_stage_index.get("delivery_captured_preview") or {}
     if (
         completed.get("status") == "ok"
         and provider.get("status") == "ok"
@@ -138,6 +148,15 @@ def _classify(
         and not routed_via_dead_letter
     ):
         return "ok_delivered"
+
+    if (
+        delivery_captured_preview.get("status") == "ok"
+        and completed_for_environment.get("status") == "ok"
+        and audit_captured_preview
+        and recipients
+        and not routed_via_dead_letter
+    ):
+        return "ok_captured_preview"
 
     # Provider rejected: spine recorded a queued/provider-failed event.
     if provider.get("status") == "failed":
@@ -496,11 +515,6 @@ def make_router(db, require_admin_dep) -> APIRouter:
             spine_stage_index: Dict[str, Dict[str, Any]] = {}
             for ev in spine_events:
                 spine_stage_index[ev["stage"]] = ev
-            missing_stages = [
-                s for s in EXPECTED_STAGES_DAILY_REPORT
-                if s not in spine_stage_index
-            ]
-
             # 6 · email_routing_audit_v2 — find audit rows from the
             #     dispatcher for this DR. The dispatcher writes
             #     calling_module="auto_email_dispatch:daily-report" so
@@ -535,6 +549,20 @@ def make_router(db, require_admin_dep) -> APIRouter:
                     if not audit_rows:
                         audit_rows.append(ar)
 
+            preview_capture_mode = (
+                (spine_stage_index.get("delivery_captured_preview") or {}).get("status") == "ok"
+                or any((row.get("status") or "").lower() == "captured_preview" for row in audit_rows)
+            )
+            expected_stage_contract = (
+                EXPECTED_STAGES_DAILY_REPORT_PREVIEW_CAPTURE
+                if preview_capture_mode
+                else EXPECTED_STAGES_DAILY_REPORT
+            )
+            missing_stages = [
+                s for s in expected_stage_contract
+                if s not in spine_stage_index
+            ]
+
             # 7 · classify the failure point.
             root_cause = _classify(
                 assignments=assignments_raw,
@@ -558,6 +586,8 @@ def make_router(db, require_admin_dep) -> APIRouter:
 
             operator_remediation = {
                 "ok_delivered": "No action — delivery proven.",
+                "ok_captured_preview":
+                    "No action — preview SAFE_CAPTURE proven. The notification payload was stored for inspection and no live provider call occurred.",
                 "dead_letter_only":
                     "No primary PM was resolved by the platform but "
                     "ADMIN_DEAD_LETTER_TO IS configured — so the email "
@@ -671,6 +701,7 @@ def make_router(db, require_admin_dep) -> APIRouter:
                 "project_number_normalized": pn_norm,
                 "project_name": dr.get("project_name"),
                 "submitted_by": dr.get("prepared_by") or dr.get("submitted_by"),
+                "preview_capture_mode": preview_capture_mode,
                 "job_master_match": {
                     "found": bool(job_master_match),
                     "project_number": (job_master_match or {}).get("project_number"),
@@ -749,6 +780,7 @@ def make_router(db, require_admin_dep) -> APIRouter:
                 "root_cause_code": root_cause,
                 "operator_remediation": operator_remediation,
                 "platform_fix_required": platform_fix_required,
+                "expected_stage_contract": expected_stage_contract,
             })
 
         return {

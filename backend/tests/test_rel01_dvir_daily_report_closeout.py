@@ -361,7 +361,7 @@ def test_rel01_daily_report_governed_delivery_proof(admin_token: str, field_toke
         assert footer_body.get("sha256")
         assert footer_body.get("footer_text")
 
-        # Preview suppression + routing truth come from the existing forensic endpoint.
+        # Preview SAFE_CAPTURE + routing truth come from the existing forensic endpoint.
         forensic = requests.get(
             f"{BASE_URL}/api/admin/daily-report-delivery/forensics",
             params={"project_number": CERT_PROJECT_NUMBER, "since_hours": 48, "limit": 50},
@@ -374,11 +374,16 @@ def test_rel01_daily_report_governed_delivery_proof(admin_token: str, field_toke
         assert row, rows[:3]
         assert row.get("resolver_result", {}).get("to") == ["cert.pm@example.com"]
         assert row.get("resolver_result", {}).get("cc") == ["cert.copm@example.com"]
-        assert row.get("root_cause_code") == "delivery_suppressed_by_environment"
+        assert row.get("root_cause_code") == "ok_captured_preview"
+        assert row.get("preview_capture_mode") is True
         stages = row.get("trust_spine_stages") or []
         queued = next((s for s in reversed(stages) if s.get("stage") == "notification_queued"), None)
-        assert queued and queued.get("status") == "skipped"
-        assert queued.get("failure_reason") == "email_safety_mode:strict"
+        captured = next((s for s in reversed(stages) if s.get("stage") == "delivery_captured_preview"), None)
+        completed_env = next((s for s in reversed(stages) if s.get("stage") == "completed_for_environment"), None)
+        assert queued and queued.get("status") == "ok"
+        assert queued.get("failure_reason") is None
+        assert captured and captured.get("status") == "ok"
+        assert completed_env and completed_env.get("status") == "ok"
 
         # Bell parity and audit trail.
         cli, db = _db()

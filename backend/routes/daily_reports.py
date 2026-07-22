@@ -37,6 +37,7 @@ from services.cost_codes.foundation import (
     now_iso,
     recompute_project_progress,
 )
+from lib.notification_delivery import STATUS_PENDING, delivery_contract
 
 
 # ── Phase V.2 · Wave-1A · Structured production + constraints ────────
@@ -1213,6 +1214,16 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
             doc["audit_envelope_sha256"] = _compute_audit_envelope_sha256(doc)
             # Build the response dict from the sanitized doc so the API
             # response matches what was persisted (refs not inline).
+            _notification_contract = delivery_contract()
+            doc["business_state"] = "submitted"
+            doc["notification_state"] = STATUS_PENDING
+            doc["notification_delivery_mode"] = _notification_contract.get("delivery_mode")
+            doc["notification_environment"] = _notification_contract.get("environment")
+            doc["notification_provider"] = _notification_contract.get("provider")
+            doc["notification_provider_required"] = bool(_notification_contract.get("provider_acceptance_required"))
+            doc["notification_provider_configured"] = bool(_notification_contract.get("provider_configured"))
+            doc["notification_provider_validation_status"] = _notification_contract.get("provider_validation_status")
+            doc["notification_capture_available"] = bool(_notification_contract.get("capture_required"))
             report_dict = dict(doc)
             # ── Phase 2B-2A · Job-ownership team_snapshot embed ──
             # Freeze the active project roster at submit time so future

@@ -99,6 +99,25 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
 
             expected = WORKFLOW_EXPECTED_STAGES.get(wf, [])
             seen_ok_stages = set()
+            if wf == "daily-report":
+                expected = [
+                    "record_created", "routing_resolved", "recipients_built",
+                    "notification_queued", "audit_written",
+                ]
+                provider_ok = slot["stages_seen"].get("provider_accepted", 0) - slot["stages_failed"].get("provider_accepted", 0) > 0
+                preview_ok = slot["stages_seen"].get("delivery_captured_preview", 0) - slot["stages_failed"].get("delivery_captured_preview", 0) > 0
+                completed_ok = slot["stages_seen"].get("completed", 0) - slot["stages_failed"].get("completed", 0) > 0
+                completed_env_ok = slot["stages_seen"].get("completed_for_environment", 0) - slot["stages_failed"].get("completed_for_environment", 0) > 0
+                if provider_ok:
+                    expected = [*expected, "provider_accepted", "completed"]
+                elif preview_ok:
+                    expected = [*expected, "delivery_captured_preview", "completed_for_environment"]
+                else:
+                    expected = [*expected, "provider_accepted"]
+                slot["delivery_path"] = (
+                    "provider_live" if provider_ok else "preview_capture" if preview_ok else "unresolved"
+                )
+                slot["delivery_terminal_stage_ok"] = provider_ok or preview_ok or completed_ok or completed_env_ok
             # A stage is "satisfied" only if we have at least one ok
             # event for it within the last 24h (fake-green guard).
             for stg in expected:
@@ -202,8 +221,9 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
             "workflows": rows,
             "allowed_stages": sorted([
                 "record_created", "validation_complete", "routing_resolved",
-                "recipients_built", "notification_queued", "provider_accepted",
-                "audit_written", "dashboard_updated", "completed",
+                "recipients_built", "notification_queued", "delivery_captured_preview",
+                "provider_accepted", "audit_written", "dashboard_updated", "completed",
+                "completed_for_environment",
             ]),
         }
 

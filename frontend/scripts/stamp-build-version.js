@@ -127,7 +127,9 @@ try {
   const manifest = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, "docs", "governance", "release_gate_manifest.json"), "utf8"));
   releaseGateManifestVersion = manifest.schema_version || "missing";
   releaseGateManifestId = manifest.manifest_id || "missing";
-} catch {}
+} catch {
+  void 0;
+}
 
 const content = `// AUTO-GENERATED — do not hand-edit.
 // Regenerated on every \`yarn build\` by /app/frontend/scripts/stamp-build-version.js
@@ -149,6 +151,23 @@ export const BUILD_WORKSPACE_DIRTY = ${workspaceDirty};
 `;
 
 fs.writeFileSync(OUT_FILE, content, "utf8");
+try {
+  workspaceDirty = Boolean(
+    execSync("git status --short", {
+      cwd: REPO_ROOT,
+      stdio: ["ignore", "pipe", "ignore"],
+    })
+      .toString()
+      .trim()
+  );
+} catch {
+  void 0;
+}
+const finalizedContent = content.replace(
+  /export const BUILD_WORKSPACE_DIRTY = (true|false);/,
+  `export const BUILD_WORKSPACE_DIRTY = ${workspaceDirty};`
+);
+fs.writeFileSync(OUT_FILE, finalizedContent, "utf8");
 const VERIFY_RELEASE_IDENTITY = path.join(REPO_ROOT, "backend", "scripts", "verify_release_identity.py");
 const pythonVerifierAvailable = (() => {
   try {

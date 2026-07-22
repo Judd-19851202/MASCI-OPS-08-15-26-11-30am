@@ -232,6 +232,19 @@ export default function ViewDailyReport() {
     : Array.isArray(data.photo_observations)
       ? data.photo_observations
       : [];
+  const notificationState = String(data.notification_state || "").toLowerCase();
+  const deliveryMode = String(data.notification_delivery_mode || "");
+  const notificationMessage = notificationState === "captured_preview"
+    ? t("Preview capture recorded. No live email was sent.")
+    : notificationState === "provider_accepted"
+      ? t("Provider accepted the notification for delivery.")
+      : notificationState === "configuration_blocked"
+        ? t("Notification delivery is configuration-blocked and requires follow-up.")
+        : notificationState === "retryable_failure"
+          ? t("Notification delivery failed and is retryable.")
+          : notificationState === "permanent_failure"
+            ? t("Notification delivery failed and requires operator correction.")
+            : t("Notification state pending or not yet recorded.");
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -394,6 +407,36 @@ export default function ViewDailyReport() {
             <KV label={t("Date")} value={formatDateLong(data.report_date)} />
             <KV label={t("Prepared By")} value={data.prepared_by} />
             <KV label={t("Superintendent")} value={data.superintendent} />
+          </div>
+          <div
+            className="mt-4 rounded-xl border border-slate-200 bg-white/90 p-4"
+            data-testid="daily-report-notification-status"
+          >
+            <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">
+              {t("Notification Delivery")}
+            </div>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <span
+                className="rounded-full border border-slate-300 bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-900"
+                data-testid="daily-report-notification-state-badge"
+              >
+                {notificationState || t("pending")}
+              </span>
+              <span
+                className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-900"
+                data-testid="daily-report-delivery-mode-badge"
+              >
+                {deliveryMode || t("unknown")}
+              </span>
+            </div>
+            <p className="mt-2 text-sm text-slate-700" data-testid="daily-report-notification-status-text">
+              {notificationMessage}
+            </p>
+            {data.notification_failure_reason && (
+              <p className="mt-2 text-xs text-slate-500" data-testid="daily-report-notification-reason">
+                {data.notification_failure_reason}
+              </p>
+            )}
           </div>
         </ReportSection>
 

@@ -32,6 +32,7 @@ def main() -> int:
     frontend = read_frontend_build_identity(repo_root)
     source_hash = compute_source_hash(repo_root)
     workspace_candidate, workspace_source, workspace_snapshot = workspace_candidate_identity(repo_root, env={})
+    workspace_head_commit = (workspace_snapshot.get("head") or "").strip() or None
     runtime_commit, _ = resolve_runtime_commit(
         repo_root,
         frontend_build_commit=frontend.get("commit"),
@@ -58,9 +59,23 @@ def main() -> int:
     if workspace_dirty and frontend.get("workspace_dirty") is False:
         raise RuntimeError("frontend generated build identity falsely claims a clean workspace")
 
+    if workspace_head_commit and frontend.get("commit") and not commits_match(workspace_head_commit, frontend.get("commit")):
+        raise RuntimeError(
+            f"workspace HEAD {workspace_head_commit} != frontend generated commit {frontend.get('commit')}"
+        )
+
+    if workspace_head_commit and not commits_match(workspace_head_commit, runtime_commit):
+        raise RuntimeError(f"workspace HEAD {workspace_head_commit} != runtime commit {runtime_commit}")
+
     if frontend.get("commit") and not workspace_dirty and not commits_match(runtime_commit, frontend.get("commit")):
         raise RuntimeError(
             f"frontend generated commit {frontend.get('commit')} != runtime commit {runtime_commit}"
+        )
+
+    canonical_release_commit = workspace_head_commit or runtime_commit or frontend.get("commit")
+    if canonical_release_commit and frontend.get("commit") and not commits_match(canonical_release_commit, frontend.get("commit")):
+        raise RuntimeError(
+            f"canonical release commit {canonical_release_commit} != frontend generated commit {frontend.get('commit')}"
         )
 
     scope_paths = read_release_fingerprint_relative_paths(repo_root)
@@ -80,11 +95,16 @@ def main() -> int:
 
     payload = {
         "ok": True,
+        "canonical_release_commit": canonical_release_commit,
         "runtime_commit": runtime_commit,
+        "workspace_head_commit": workspace_head_commit,
         "workspace_candidate": workspace_candidate,
         "workspace_candidate_source": workspace_source,
         "workspace_dirty": workspace_dirty,
         "frontend_commit": frontend.get("commit"),
+        "workspace_head_matches_runtime": commits_match(workspace_head_commit, runtime_commit),
+        "workspace_head_matches_frontend": commits_match(workspace_head_commit, frontend.get("commit")),
+        "frontend_matches_runtime": commits_match(frontend.get("commit"), runtime_commit),
         "source_hash": source_hash,
         "dependency_manifest_hash": dependency_hash,
         "migration_manifest_hash": migration_hash,

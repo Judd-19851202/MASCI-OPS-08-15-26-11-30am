@@ -16079,6 +16079,16 @@ from lib.email_dispatch import (  # noqa: E402
     schedule_auto_email,
     register_dispatcher as _register_email_dispatcher,
 )
+from lib.notification_delivery import (  # noqa: E402
+    DELIVERY_MODE_PROVIDER_LIVE,
+    STATUS_CAPTURED_PREVIEW,
+    STATUS_CONFIGURATION_BLOCKED,
+    STATUS_PERMANENT_FAILURE,
+    STATUS_PROVIDER_ACCEPTED,
+    STATUS_RETRYABLE_FAILURE,
+    deliver_notification,
+    delivery_contract,
+)
 # _KIND_TO_COLLECTION is also re-exported for callers that reference it via
 # the server module attribute (e.g. /api/auto-email-preview).
 from lib.email_dispatch import _KIND_TO_COLLECTION as _KIND_TO_COLLECTION_LIB  # noqa: E402, F401
@@ -16127,7 +16137,8 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
         attach_correlation, emit_workflow_stage,
         STAGE_ROUTING_RESOLVED, STAGE_RECIPIENTS_BUILT,
         STAGE_NOTIFICATION_QUEUED, STAGE_PROVIDER_ACCEPTED,
-        STAGE_AUDIT_WRITTEN, STAGE_COMPLETED,
+        STAGE_DELIVERY_CAPTURED_PREVIEW, STAGE_AUDIT_WRITTEN,
+        STAGE_COMPLETED, STAGE_COMPLETED_FOR_ENVIRONMENT,
     )
     # Thread / attach the cid before any branch so every stage in
     # this dispatch shares one correlation_id.
@@ -16139,44 +16150,6 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
     # where the test suite runs and where a live send would leak).
     try:
         _pname = str(record.get("project_name") or "").strip()
-        # ─────────────────────────────────────────────────────────────────
-        # Track 21.2 · CLASS-A EMAIL SAFETY HARDENING (2026-07-04)
-        # ─────────────────────────────────────────────────────────────────
-        # Runtime kill-switch that supersedes AUTO_EMAIL_REPORTS.
-        # When EMAIL_SAFETY_MODE=strict, every dispatch is short-circuited
-        # regardless of project_name / AUTO_EMAIL_REPORTS / RESEND_API_KEY.
-        # This is the preview default. Production sets EMAIL_SAFETY_MODE=off
-        # (or leaves it unset) to allow live sends.
-        #
-        # Root cause captured by 21.2 audit: 105+ pre-existing test files
-        # submit workflow payloads with non-TEST_ project_name literals
-        # ("Cert Project", "iter451 lifecycle test", "Iter42 Test Job",
-        # "Phase2B-2B · Test", "SD test", "X", "D5.1 test", "NSB Airport",
-        # etc.). The Track 20.6B TEST_-prefix gate was insufficient to
-        # cover these legacy signatures — hence this stricter, env-driven
-        # gate that requires an explicit production opt-in.
-        # ─────────────────────────────────────────────────────────────────
-        _safety_mode = (os.environ.get("EMAIL_SAFETY_MODE") or "").strip().lower()
-        if _safety_mode in ("strict", "silent", "test"):
-            logger.info(
-                "auto-email skipped (Track 21.2 EMAIL_SAFETY_MODE=%s hard-kill) "
-                "— %s %s project_name=%r",
-                _safety_mode, kind, record.get("id"), _pname,
-            )
-            try:
-                await emit_workflow_stage(
-                    db, workflow=kind, stage=STAGE_NOTIFICATION_QUEUED,
-                    record=record, module=_spine_module, status="skipped",
-                    failure_reason=f"email_safety_mode:{_safety_mode}",
-                    remediation=(
-                        "Preview / staging environments hard-kill live email "
-                        "sends. Production opts in via EMAIL_SAFETY_MODE=off "
-                        "(or leaves the variable unset)."
-                    ),
-                )
-            except Exception:  # noqa: BLE001
-                pass
-            return
         if _pname.startswith("TEST_"):
             logger.info(
                 "auto-email skipped (Track 20.6B synthetic-test-record gate) "
@@ -16202,23 +16175,6 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
         # normal auto_email_enabled() path (which itself is safe).
         pass
     try:
-        if not auto_email_enabled():
-            logger.info(
-                "auto-email skipped (RESEND_API_KEY missing or AUTO_EMAIL_REPORTS=false) "
-                f"— {kind} {record.get('id')}"
-            )
-            await emit_workflow_stage(
-                db, workflow=kind, stage=STAGE_NOTIFICATION_QUEUED,
-                record=record, module=_spine_module, status="skipped",
-                failure_reason=(
-                    "auto-email disabled (RESEND_API_KEY missing or AUTO_EMAIL_REPORTS=false)"
-                ),
-                remediation=(
-                    "Set RESEND_API_KEY and AUTO_EMAIL_REPORTS=true in backend env."
-                ),
-            )
-            return
-
         dist = await recipients_for_record_async(db, record, kind)
         recipients: List[str] = list(dist["all"])  # type: ignore[arg-type]
         routing_module = "pm_routing.recipients_for_record_async"
@@ -16372,11 +16328,6 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
             record=record, module=_spine_module, status="ok",
         )
 
-        import resend  # noqa: E402
-        resend.api_key = os.environ["RESEND_API_KEY"]
-        sender_email = await _resolve_sender_email(db)
-        reply_to = (await _resolve_reply_to_email(db)) or ""
-
         pdf_bytes = await asyncio.to_thread(render_record_pdf, kind, await _maybe_enrich_for_pdf(db, kind, record))
 
         pm_name = dist.get("pm_name")
@@ -16433,44 +16384,33 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
                 "office distribution only — please assign a PM in the office."
             )
 
-        params = {
-            "from": f"MASCI Operations Platform <{sender_email}>",
-            "to": recipients,
-            "subject": subject,
-            "html": render_email_html(kind, record, note),
-            "attachments": [
-                {
-                    "filename": _filename_for(kind, record),
-                    "content": _email_b64.b64encode(pdf_bytes).decode(),
-                }
-            ],
-        }
-        if reply_to:
-            params["reply_to"] = reply_to
-
         # Trust Spine — about to call provider.
         await emit_workflow_stage(
             db, workflow=kind, stage=STAGE_NOTIFICATION_QUEUED,
             record=record, module=_spine_module, status="ok",
         )
-        result = await asyncio.to_thread(resend.Emails.send, params)
-        # Trust Spine — provider accepted (Resend returned an id).
-        await emit_workflow_stage(
-            db, workflow=kind, stage=STAGE_PROVIDER_ACCEPTED,
-            record=record, module="resend.Emails.send",
-            status="ok" if (result or {}).get("id") else "failed",
-            failure_reason=(
-                None if (result or {}).get("id")
-                else "resend returned no message id"
-            ),
-            remediation=(
-                None if (result or {}).get("id")
-                else "Inspect RESEND_API_KEY validity + Resend status."
-            ),
-        )
-        logger.info(
-            f"auto-email sent: kind={kind} id={record.get('id')} pm={pm_name} "
-            f"to={recipients} resend_id={(result or {}).get('id')}"
+        attachments = [
+            {
+                "filename": _filename_for(kind, record),
+                "content": _email_b64.b64encode(pdf_bytes).decode(),
+            }
+        ]
+        html = render_email_html(kind, record, note)
+        contract = delivery_contract()
+        delivery = await deliver_notification(
+            db=db,
+            workflow=kind,
+            correlation_id=_spine_cid,
+            record_id=str(record.get("id") or record.get("doc_id") or ""),
+            recipients=recipients,
+            subject=subject,
+            html=html,
+            reply_to=(await _resolve_reply_to_email(db)) or "",
+            attachments=attachments,
+            metadata={
+                "project_number": record.get("project_number") or "",
+                "kind": kind,
+            },
         )
         # TRACK 15.75C · UNIVERSAL per-send audit row. Every workflow
         # email send (daily-report, meeting, incident, qaqc, jha,
@@ -16495,6 +16435,13 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
                 "shop_preop_dispatch" if _shop_delivery_kind
                 else f"auto_email_dispatch:{kind}"
             )
+            audit_status = "sent"
+            if delivery.get("notification_state") == STATUS_CAPTURED_PREVIEW:
+                audit_status = "captured_preview"
+            elif delivery.get("notification_state") == STATUS_CONFIGURATION_BLOCKED:
+                audit_status = "configuration_blocked"
+            elif delivery.get("notification_state") in {STATUS_RETRYABLE_FAILURE, STATUS_PERMANENT_FAILURE}:
+                audit_status = delivery.get("notification_state")
             await _v2_audit(
                 db,
                 route_key=_route_key,
@@ -16504,23 +16451,74 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
                 cc_count=0,
                 bcc_count=0,
                 subject=subject,
-                sender_email=sender_email,
-                resend_message_id=(result or {}).get("id"),
-                status="sent",
+                sender_email=await _resolve_sender_email(db),
+                resend_message_id=delivery.get("provider_message_id"),
+                status=audit_status,
                 calling_module=_calling_module,
-                dry_run=False,
+                dry_run=(delivery.get("notification_state") == STATUS_CAPTURED_PREVIEW),
             )
-            # TRACK 15.76 · Trust Spine — audit_written + completed
-            # stages using the *threaded* correlation_id so the
-            # dashboard can stitch the lifecycle end-to-end.
+
+            record_update = {
+                "notification_delivery_mode": delivery.get("delivery_mode"),
+                "notification_state": delivery.get("notification_state"),
+                "notification_provider_accepted": bool(delivery.get("provider_accepted")),
+                "notification_provider_called": bool(delivery.get("provider_called")),
+                "notification_failure_reason": delivery.get("failure_reason"),
+                "notification_last_updated_at": delivery.get("ts"),
+                "notification_provider_validation_status": contract.get("provider_validation_status"),
+                "business_state": "submitted",
+            }
+            if delivery.get("capture_id"):
+                record_update["notification_capture_id"] = delivery.get("capture_id")
+            if delivery.get("provider_message_id"):
+                record_update["notification_provider_message_id"] = delivery.get("provider_message_id")
+            record.update(record_update)
+            if kind == "daily-report":
+                try:
+                    await db.daily_reports.update_one({"id": record.get("id")}, {"$set": record_update})
+                except Exception:
+                    pass
+
             await emit_workflow_stage(
                 db, workflow=kind, stage=STAGE_AUDIT_WRITTEN,
                 record=record, module=_calling_module, status="ok",
             )
-            await emit_workflow_stage(
-                db, workflow=kind, stage=STAGE_COMPLETED,
-                record=record, module=_spine_module, status="ok",
-            )
+            if delivery.get("notification_state") == STATUS_CAPTURED_PREVIEW:
+                await emit_workflow_stage(
+                    db, workflow=kind, stage=STAGE_DELIVERY_CAPTURED_PREVIEW,
+                    record=record, module=_spine_module, status="ok",
+                    remediation="Preview safe-capture stored; no live provider was contacted.",
+                )
+                await emit_workflow_stage(
+                    db, workflow=kind, stage=STAGE_COMPLETED_FOR_ENVIRONMENT,
+                    record=record, module=_spine_module, status="ok",
+                )
+            elif delivery.get("provider_accepted"):
+                await emit_workflow_stage(
+                    db, workflow=kind, stage=STAGE_PROVIDER_ACCEPTED,
+                    record=record, module="resend.Emails.send", status="ok",
+                )
+                await emit_workflow_stage(
+                    db, workflow=kind, stage=STAGE_COMPLETED,
+                    record=record, module=_spine_module, status="ok",
+                )
+            else:
+                await emit_workflow_stage(
+                    db, workflow=kind, stage=STAGE_PROVIDER_ACCEPTED,
+                    record=record, module="resend.Emails.send", status="failed",
+                    failure_reason=str(delivery.get("failure_reason") or "notification_delivery_failed"),
+                    remediation=(
+                        "Resolve live provider configuration before production release."
+                        if contract.get("delivery_mode") == DELIVERY_MODE_PROVIDER_LIVE
+                        else "Inspect preview notification capture and retry semantics."
+                    ),
+                )
+                if kind == "daily-report":
+                    await emit_workflow_stage(
+                        db, workflow=kind, stage=STAGE_COMPLETED_FOR_ENVIRONMENT,
+                        record=record, module=_spine_module, status="ok",
+                        remediation="Business record persisted; notification requires operator follow-up.",
+                    )
         except Exception:  # noqa: BLE001
             pass
     except Exception as e:  # noqa: BLE001
@@ -16530,14 +16528,19 @@ async def _dispatch_auto_email(kind: str, record: dict) -> None:
         # exact failure point + a remediation hint.
         try:
             await emit_workflow_stage(
-                db, workflow=kind, stage=STAGE_COMPLETED,
+                db, workflow=kind, stage=STAGE_PROVIDER_ACCEPTED,
                 record=record, module=_spine_module, status="failed",
                 failure_reason=str(e)[:240],
                 remediation=(
-                    "Inspect backend logs for stack; check Resend status and "
-                    "PDF rendering for this kind."
+                    "Inspect backend logs for stack; check delivery mode, provider status, and PDF rendering."
                 ),
             )
+            if kind == "daily-report":
+                await emit_workflow_stage(
+                    db, workflow=kind, stage=STAGE_COMPLETED_FOR_ENVIRONMENT,
+                    record=record, module=_spine_module, status="ok",
+                    remediation="Daily Report persisted; downstream notification failed.",
+                )
         except Exception:  # noqa: BLE001
             pass
         # TRACK 15.75C · UNIVERSAL per-send failure audit row.

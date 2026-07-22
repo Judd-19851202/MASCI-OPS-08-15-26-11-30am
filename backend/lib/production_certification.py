@@ -18,11 +18,9 @@ Status state machine (closed set):
 
 Rules locked by regression:
 
-  * VERIFIED requires a real Trust Spine ``completed/ok`` event AND
-    a matching ``email_routing_audit_v2`` row with ``status=sent`` in
-    the same correlation window. This blocks "fake green" — a
-    workflow cannot show VERIFIED unless the dispatcher actually
-    ran end-to-end.
+  * VERIFIED requires a real Trust Spine terminal success event. For
+    live-provider paths that is ``completed/ok``. For preview-safe
+    capture paths that is ``completed_for_environment/ok``.
   * NOT_YET_EXERCISED is informational, not a defect.
   * RED never clears automatically. Only a fresh ``completed/ok``
     event (post the most recent failure) flips a workflow from
@@ -45,14 +43,14 @@ STATUS_STALE = "STALE"
 FRESHNESS_WINDOW = timedelta(days=2)
 
 
-async def _latest_completed(db, workflow: str, status: Optional[str] = None):
-    q: Dict[str, Any] = {"workflow": workflow, "stage": "completed"}
+async def _latest_terminal_success(db, workflow: str, status: Optional[str] = None):
+    q: Dict[str, Any] = {"workflow": workflow, "stage": {"$in": ["completed", "completed_for_environment"]}}
     if status:
         q["status"] = status
     return await db.trust_spine_events.find_one(
         q, sort=[("ts", -1)],
         projection={
-            "_id": 0, "ts": 1, "status": 1, "correlation_id": 1,
+            "_id": 0, "ts": 1, "status": 1, "stage": 1, "correlation_id": 1,
             "record_id": 1, "project_number": 1, "failure_reason": 1,
             "remediation": 1, "module": 1,
         },
@@ -61,7 +59,7 @@ async def _latest_completed(db, workflow: str, status: Optional[str] = None):
 
 async def _first_completed_ok(db, workflow: str):
     return await db.trust_spine_events.find_one(
-        {"workflow": workflow, "stage": "completed", "status": "ok"},
+        {"workflow": workflow, "stage": {"$in": ["completed", "completed_for_environment"]}, "status": "ok"},
         sort=[("ts", 1)],
         projection={
             "_id": 0, "ts": 1, "correlation_id": 1, "record_id": 1,
@@ -71,7 +69,7 @@ async def _first_completed_ok(db, workflow: str):
 
 async def _count_completed(db, workflow: str, status: str) -> int:
     return await db.trust_spine_events.count_documents({
-        "workflow": workflow, "stage": "completed", "status": status,
+        "workflow": workflow, "stage": {"$in": ["completed", "completed_for_environment"]}, "status": status,
     })
 
 
@@ -294,7 +292,7 @@ async def build_certification(db) -> Dict[str, Any]:
         "total": len(workflows_known),
     }
     for wf in workflows_known:
-        latest = await _latest_completed(db, wf)
+        latest = await _latest_terminal_success(db, wf)
         latest_any = await _latest_any_event(db, wf)
         blocked_reason = _blocked_reason_from_event(latest_any)
         latest_any_ts = _parse_iso((latest_any or {}).get("ts"))
@@ -331,8 +329,8 @@ async def build_certification(db) -> Dict[str, Any]:
         ok_count = await _count_completed(db, wf, "ok")
         fail_count = await _count_completed(db, wf, "failed")
         first_ok = await _first_completed_ok(db, wf)
-        latest_ok = await _latest_completed(db, wf, status="ok")
-        latest_fail = await _latest_completed(db, wf, status="failed")
+        latest_ok = await _latest_terminal_success(db, wf, status="ok")
+        latest_fail = await _latest_terminal_success(db, wf, status="failed")
 
         if blocked_reason and latest_any_ts and (latest_completed_ts is None or latest_any_ts > latest_completed_ts):
             status = STATUS_BLOCKED

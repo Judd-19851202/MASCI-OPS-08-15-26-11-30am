@@ -854,7 +854,18 @@ export default function NewDailyReportV3({ publicMode = false }) {
         try { saveCrewSetup(extractSetupSnapshot(payload)); } catch { /* silent */ }
         await commitDraft();
         if (payload.project_number) rememberLastProject(String(payload.project_number));
-        toast.success(t("Daily report submitted."));
+        const notificationState = String(saved?.notification_state || "").toLowerCase();
+        if (notificationState === "captured_preview") {
+          toast.success(t("Daily report submitted · email safely captured in Preview."), {
+            id: "daily-report-preview-capture-toast",
+          });
+        } else if (notificationState && notificationState !== "provider_accepted") {
+          toast.success(t("Daily report submitted · notification recorded separately."), {
+            id: "daily-report-notification-recorded-toast",
+          });
+        } else {
+          toast.success(t("Daily report submitted."));
+        }
         if (publicMode) navigate("/thank-you");
         else if (saved?.id) navigate(`/daily/${saved.id}`);
         else navigate("/admin/daily");

@@ -54,3 +54,19 @@ def test_classify_true_not_scheduled_when_generic_skip_reason():
         }
     }
     assert _classify(**kwargs) == "auto_email_not_scheduled"
+
+
+def test_classify_preview_safe_capture_as_successful_non_provider_completion():
+    kwargs = _base_kwargs()
+    kwargs["recipients"] = ["pm@example.com"]
+    kwargs["audit_rows"] = [{"status": "captured_preview"}]
+    kwargs["spine_stage_index"] = {
+        "record_created": {"status": "ok"},
+        "routing_resolved": {"status": "ok"},
+        "recipients_built": {"status": "ok"},
+        "notification_queued": {"status": "ok"},
+        "audit_written": {"status": "ok"},
+        "delivery_captured_preview": {"status": "ok"},
+        "completed_for_environment": {"status": "ok"},
+    }
+    assert _classify(**kwargs) == "ok_captured_preview"

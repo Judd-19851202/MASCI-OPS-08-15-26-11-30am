@@ -39,6 +39,7 @@ from fastapi import APIRouter, Depends
 
 from lib.trust_score_v2 import compute_categorized_score
 from lib.master_data_trust import collect_findings
+from lib.notification_delivery import delivery_contract, DELIVERY_MODE_PROVIDER_LIVE, DELIVERY_MODE_SAFE_CAPTURE
 
 
 # ──────────────────────────────────────────────────────────────────
@@ -148,6 +149,7 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
         # 5) Build the gate list.
         blocking: List[Dict[str, Any]] = []
         advisory: List[Dict[str, Any]] = []
+        contract = delivery_contract()
 
         # Workflow integrity — a RED workflow with a failure event
         # that has a code-level reason (no remediation hint, or hint
@@ -157,6 +159,21 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
                 continue
             lf = w.get("last_failure") or {}
             reason = (lf.get("failure_reason") or "").lower()
+            workflow_name = str(w.get("workflow") or "")
+            if workflow_name == "daily-report" and contract.get("environment") == "preview":
+                preview_capture_ok = (w.get("stages_seen") or {}).get("delivery_captured_preview", 0) > 0
+                preview_completed_ok = (w.get("stages_seen") or {}).get("completed_for_environment", 0) > 0
+                if preview_capture_ok and preview_completed_ok and (
+                    "invalid api key" in reason or "api key is invalid" in reason or "provider_configuration" in reason
+                ):
+                    advisory.append({
+                        "id": f"preview_capture:{workflow_name}",
+                        "category": "workflow",
+                        "summary": "Preview workflow completed with safe capture; live provider acceptance not required in preview.",
+                        "evidence": f"delivery_mode={contract.get('delivery_mode')} · provider_validation_status={contract.get('provider_validation_status')}",
+                        "remediation": "No preview remediation required. Production still requires a valid live provider configuration.",
+                    })
+                    continue
             # Heuristic: if the recent failure's remediation links to
             # operator-managed data (project_team_assignments, env
             # variable), classify as advisory. Otherwise — and by
@@ -267,6 +284,19 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
                 ),
             })
 
+        if contract.get("environment") == "production" and (
+            contract.get("delivery_mode") != DELIVERY_MODE_PROVIDER_LIVE or contract.get("blocking")
+        ):
+            blocking.append({
+                "id": "production_notification_provider_not_ready",
+                "category": "notification",
+                "summary": "Production notification delivery is not configured for live provider mode.",
+                "evidence": (
+                    f"delivery_mode={contract.get('delivery_mode')} · provider_validation_status={contract.get('provider_validation_status')}"
+                ),
+                "remediation": "Provide a valid RESEND_API_KEY and approved sender configuration for production release certification.",
+            })
+
         # TRACK 15.93 · System bootstrap state. The platform must run
         # its own canonical bootstrap on every startup; if that run
         # was missing, failed, or reports missing items, the deploy
@@ -355,6 +385,7 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
                 "unknown_audit_count_24h": unknown_audit,
                 "silent_failure_count_24h": silent_failures,
             },
+            "notification_delivery": contract,
             "trust_score": score["trust_score"],
             "trust_band": score["score_band"],
             "regression_gate_count": _count_regression_gates(),
