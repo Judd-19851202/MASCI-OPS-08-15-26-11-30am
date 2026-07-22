@@ -92,3 +92,36 @@ Mode: verification-only; no backup, restore, or migration execution performed in
 - For exact-candidate source proof: VERIFIED.
 - For final Production backup/recovery proof: OWNER_EVIDENCE_REQUIRED.
 - This artifact is intentionally honest and does not claim live backup or restore success.
+
+## 2026-07-22 addendum — live operational re-verification for C2 final authorization
+
+### Live signals observed
+- `GET /api/admin/recovery/snapshot`
+  - latest backup: `MASCI_complete_backup_2026-07-21_230346Z.zip`
+  - latest backup timestamp: `2026-07-21T23:15:42.788632+00:00`
+  - records: `1564129`
+  - scheduler: alive/healthy via `backup_scheduler_state`
+  - bucket usage: `AMBER` at `409.86 GB`
+- latest governed restore-drill evidence surfaced by the same recovery endpoint:
+  - timestamp: `2026-06-01T02:00:07.547342+00:00`
+  - outcome: `ok`
+  - records: `24152`
+  - photos: `678`
+  - duration: `5.1 min`
+
+### Integrity re-verification
+- `GET /api/admin/backups/integrity-check` on `2026-07-22T15:11:47.678035+00:00` returned:
+  - `ok=false`
+  - `integrity_result=FAIL`
+  - `classification=BACKUP_INCOMPLETE`
+  - `missing_from_backup=["notification_capture_v1"]`
+
+### Updated honest classification
+- Tooling/source repair for backup/restore workflows: VERIFIED
+- Latest backup freshness signal: VERIFIED
+- Latest live backup completeness for final authorization: NOT GREEN
+- Fresh final release-window restore-drill proof: OWNER_ACTION_REQUIRED
+
+### Addendum conclusion
+- This candidate is not blocked by source-code backup tooling defects anymore.
+- It remains blocked for final Production authorization until live backup completeness is green and fresh restore-drill evidence is captured for the release window.

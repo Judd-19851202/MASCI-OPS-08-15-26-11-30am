@@ -549,3 +549,18 @@ Remaining work
 - P0: Obtain owner-supplied backup / rollback proof for F-005. Do not fabricate or downgrade.
 - P1: None inside this bounded C2 remediation scope.
 - P2: Future C3 work remains out of scope until explicitly requested.
+
+## 2026-07-22 — C2 final release-authorization evidence package generated
+- Generated `/app/test_reports/c2_final_release_authorization/` with final identity, query-alert, auth/security, regression, backup/restore/rollback, owner-action, and decision artifacts.
+- Re-verified frozen candidate `384c4f347773bd75b00b8dba148919fb251cf4be`: release identity PASS, final auth/frontend/backend regressions PASS, MongoDB query-targeting remediation documented as resolved.
+- Live recovery surfaces show latest backup success and healthy scheduler, but final Production authorization remains blocked because `/api/admin/backups/integrity-check` currently reports `BACKUP_INCOMPLETE` with `missing_from_backup=["notification_capture_v1"]`, and the latest restore-drill evidence visible to this package is dated `2026-06-01`.
+
+Current status
+- Exact C2 code candidate: GO / release-clean
+- Final Production release authorization: OPTION B — WITHHOLD pending owner recovery proof reconciliation
+- No deployment performed, no Save to GitHub, no C3 work started
+
+Next actions
+- P0: Reconcile backup completeness until integrity-check returns PASS with no missing collections.
+- P0: Run and persist a fresh disposable side-DB restore drill for the frozen release window.
+- P0: Owner-confirm the real rollback candidate on controlled infrastructure before any Production release decision.
