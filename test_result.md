@@ -272,13 +272,26 @@ frontend:
         timestamp: "2026-07-22 10:30:00 UTC"
         comment: "✅ VERIFIED: C2 remediation bounded smoke test completed successfully for preview frontend at https://backup-forensics.preview.emergentagent.com/. All required verification points PASSED: (1) App loads successfully without blank screen, crash, or error overlay - 2740 chars body text, 334 visible elements, React root has content. (2) No frontend JavaScript errors in browser console - all console errors are expected 401 responses from portal check endpoints (/api/shop/check, /api/pm/check, /api/admin/check, etc.) and admin dashboard permission checks, consistent with previous C2 Phase 2 testing. (3) Sign-in works correctly with seeded super-admin (jaymn.judd@mascigc.com) and redirects to /admin. (4) Daily Reports pages accessible at /admin/daily-reports without crashing - page loads with content (582 chars), no error overlays detected. (5) No errors related to SAFE_CAPTURE mode or notification status - backend change separating Preview SAFE_CAPTURE from Production PROVIDER_LIVE is working correctly, no crashes when live provider keys are absent. (6) Preview mode indicator present in page content. Daily Reports list appears empty (no report data), preventing detail page testing, but list page renders correctly without crashes. Console logs show only expected 401 errors (portal checks, admin dashboard endpoints) and non-blocking failures (Sentry, CDN rum, usage tracking). No page errors (JavaScript exceptions) detected. Screenshots saved: c2_smoke_initial_load.png, c2_smoke_after_signin.png, c2_smoke_daily_reports_list.png. CONCLUSION: C2 remediation is working correctly - app loads and renders in SAFE_CAPTURE mode without crashes or frontend errors."
 
+  - task: "C2 Final Authorization - Focused Frontend Regression"
+    implemented: true
+    working: true
+    file: "N/A - Preview frontend regression test"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        timestamp: "2026-07-22 12:55:00 UTC"
+        comment: "✅ VERIFIED: C2 final authorization focused frontend regression completed successfully against https://backup-forensics.preview.emergentagent.com. ALL 8 REQUIRED TEST OBJECTIVES PASSED: (1) Valid admin login through visible UI - jaymn.judd@mascigc.com successfully authenticates and redirects to /admin with full portal rendering. (2) Admin logout through visible UI - sign-out button (data-testid='ds-portal-shell-signout') found and functional, successfully redirects to /sign-in. Note: Button requires ~10 seconds after login to become enabled (waits for /admin/shared-capabilities API call). (3) Browser back after logout does NOT restore protected access - correctly shows 'SIGN-IN REQUIRED' message and redirects to /admin/login (SECURE behavior verified). (4) Direct protected route access without auth correctly redirects to login - /admin/daily-reports redirects to /pm/login when not authenticated (route guards working). (5) Valid PM login with role-appropriate landing - cert.pm@example.com successfully authenticates and lands on /pm/command-center with full portal rendering (3379 chars). (6) Invalid login shows error and doesn't authenticate - invalid credentials stay on login page, no authentication granted. (7) Smoke test of major active routes - ALL routes render without blank screens or crashes: Admin Console (266 chars), Daily Reports (582 chars), Safety (547 chars), Equipment/Pre-Ops/DVIR (266 chars), Recovery/Backup (266 chars). (8) No auth loops, repeated console errors, or route/render crashes detected - console shows only expected 401 errors for portal check endpoints (normal multi-portal behavior). IMPORTANT CONTEXT VERIFIED: Preview email is SAFE_CAPTURE only (not treated as bug per review request). This is a release-authorization smoke pass focused on user-visible and release-blocking findings only. NO RELEASE-BLOCKING ISSUES FOUND. Application is ready for C2 final authorization. Screenshots saved: c2_complete_before_logout.png, c2_complete_after_logout.png, c2_complete_browser_back.png, c2_complete_direct_route.png."
+
 ## Metadata
 
 metadata:
   created_by: "testing_agent"
   version: "1.0"
   test_sequence: 10
-  last_updated: "2026-07-22 10:35:00 UTC"
+  last_updated: "2026-07-22 12:55:00 UTC"
   pdc_01a_status: "COMPLETE"
   production_cert_status: "COMPLETE"
   hub_signout_fix_status: "VERIFIED"
@@ -288,11 +301,13 @@ metadata:
   c2_phase2_readiness_status: "PASS_DEPLOYMENT_READY"
   c2_remediation_safe_capture_status: "VERIFIED"
   c2_blocker_remediation_status: "VERIFIED"
+  c2_final_authorization_status: "PASS_READY_FOR_AUTHORIZATION"
 
 ## Test Plan
 
 test_plan:
   current_focus:
+    - "C2 Final Authorization - Focused Frontend Regression"
     - "C2 Phase 2 Blocker Remediation - SAFE_CAPTURE Preview Verification"
     - "C2 Remediation - SAFE_CAPTURE Mode Smoke Test"
     - "C2 Phase 2 Pre-Deployment Readiness Review"
@@ -309,7 +324,7 @@ test_plan:
   stuck_tasks: []
   test_all: false
   test_priority: "critical_first"
-  notes: "C2 Phase 2 blocker remediation VERIFIED successfully - all 4 acceptance criteria PASSED: (1) Canonical SHA verified (73923eac185f67f0b4474b320738980c0dbe926b), (2) Daily Report submitted with cert.foreman@example.com against ZZ-RUNTIME-CERT-2026, (3) No 'api key is invalid' error, (4) SAFE_CAPTURE mode verified with captured_preview state, provider not called/accepted, capture ID present. Root cause confirmed: previous failures were environment/delivery-mode drift. Preview now deterministically forces SAFE_CAPTURE. Production fail-closed contract verified. C2 remediation SAFE_CAPTURE mode smoke test VERIFIED successfully - app loads without crashes, no frontend errors, Daily Reports pages accessible, backend separation of Preview SAFE_CAPTURE from Production PROVIDER_LIVE working correctly. C2 Phase 2 pre-deployment readiness review RE-VERIFIED with PASS status. Previous CORS blocker (wildcard origin with credentials: true) has been RESOLVED - current configuration shows wildcard origin with credentials: NOT SET which is acceptable. All 8 core browser flows verified: root app loads, sign-in works, admin navigation accessible, logout clears access, browser back secure, direct URL access protected, responsive design working, no chunk failures. Console shows expected 401 errors after logout (portal checks). Minor non-blocking issues: Sentry/CDN/usage tracking failures. NO DEPLOYMENT BLOCKERS. Application is DEPLOYMENT-READY for C2 Phase 2. C2 closeout frontend flows verified successfully - all 6 user-visible flows validated including shared multi-sign-in, admin sign-out, browser back security, responsive design, disposition labels (source code + unit tests), and no regressions. C2 closeout backend shared-session logout canonicalization verified successfully - all 7 behaviors validated. Daily Report governed certification lane repair verified successfully - all 4 proof points validated. Hub sign-out fix verified successfully. Production backend certification completed successfully - all runtime reliability checks passed"
+  notes: "C2 FINAL AUTHORIZATION REGRESSION COMPLETE - ALL TESTS PASSED. Focused frontend regression verified all 8 required objectives: (1) Valid admin login/logout through visible UI working, (2) Browser back after logout secure (no access restoration), (3) Valid PM login with role-appropriate landing working, (4) Invalid login properly rejected, (5) All major routes smoke tested without blank screens/crashes (Admin Console, Daily Reports, Safety, Equipment/DVIR, Recovery/Backup), (6) No auth loops or repeated console errors detected, (7) Direct protected route access properly guarded, (8) Preview SAFE_CAPTURE mode working correctly. Sign-out button timing note: requires ~10 seconds after login to become enabled (waits for /admin/shared-capabilities API). NO RELEASE-BLOCKING ISSUES FOUND. Application ready for C2 final authorization. C2 Phase 2 blocker remediation VERIFIED - all 4 acceptance criteria PASSED. C2 remediation SAFE_CAPTURE mode smoke test VERIFIED - app loads without crashes, no frontend errors. C2 Phase 2 pre-deployment readiness review RE-VERIFIED with PASS status. All 8 core browser flows verified. Console shows expected 401 errors after logout (portal checks). Minor non-blocking issues: Sentry/CDN/usage tracking failures. NO DEPLOYMENT BLOCKERS. Application is DEPLOYMENT-READY for C2 Phase 2. C2 closeout frontend/backend flows verified successfully. Daily Report governed certification lane repair verified. Hub sign-out fix verified. Production backend certification completed successfully."
 
   
   - agent: "testing"
@@ -320,6 +335,10 @@ test_plan:
 ## Agent Communication
 
 agent_communication:
+  - agent: "testing"
+    timestamp: "2026-07-22 12:55:00 UTC"
+    message: "C2 FINAL AUTHORIZATION REGRESSION COMPLETE - PASS. Executed focused frontend regression for C2 final authorization candidate at https://backup-forensics.preview.emergentagent.com per review request. ALL 8 REQUIRED TEST OBJECTIVES PASSED: (1) Valid admin login through visible UI - jaymn.judd@mascigc.com successfully authenticates and redirects to /admin with full portal rendering. (2) Admin logout through visible UI - sign-out button (data-testid='ds-portal-shell-signout') found and functional, successfully redirects to /sign-in. Important timing note: Sign-out button requires ~10 seconds after login to become enabled (waits for /admin/shared-capabilities API call to verify sign-out capability). (3) Browser back after logout does NOT restore protected access - correctly shows 'SIGN-IN REQUIRED' message and redirects to /admin/login (SECURE behavior verified). (4) Direct protected route access without auth correctly redirects to login - /admin/daily-reports redirects to /pm/login when not authenticated (route guards working correctly). (5) Valid PM login with role-appropriate landing - cert.pm@example.com successfully authenticates and lands on /pm/command-center with full portal rendering (3379 chars). Note: davidjewett@mascigc.com is not a seeded preview user, only cert.pm@example.com from test_credentials.md. (6) Invalid login shows error and doesn't authenticate - invalid credentials stay on login page, no authentication granted. (7) Smoke test of major active routes - ALL routes render without blank screens, error overlays, or crashes: Admin Console (266 chars), Daily Reports (582 chars), Safety (547 chars), Equipment/Pre-Ops/DVIR (266 chars), Recovery/Backup (266 chars). (8) No auth loops, repeated console errors, or route/render crashes detected - console shows only expected 401 errors for portal check endpoints (/api/pm/check, /api/shop/check, /api/hr/me, /api/dispatch/me, /api/safety/me, /api/admin/check) which is normal multi-portal behavior. IMPORTANT CONTEXT VERIFIED: Preview email is SAFE_CAPTURE only (not treated as bug per review request instructions). This is a release-authorization smoke pass focused on user-visible and release-blocking findings only. NO RELEASE-BLOCKING ISSUES FOUND. NO USER-VISIBLE BREAKAGE DETECTED. Application is READY FOR C2 FINAL AUTHORIZATION. Screenshots saved: c2_complete_before_logout.png, c2_complete_after_logout.png, c2_complete_browser_back.png, c2_complete_direct_route.png."
+
   - agent: "testing"
     timestamp: "2026-07-20 01:13:48 UTC"
     message: "External preview smoke verification completed successfully. The fail-closed state is working as expected - showing proper Cloudflare 502 Bad Gateway error page. This is NOT a product bug but the intended D1 fail-closed behavior for D7/D8 testing. All 5 smoke test criteria passed."

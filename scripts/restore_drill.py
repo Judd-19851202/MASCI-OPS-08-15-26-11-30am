@@ -38,6 +38,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import secrets
 import sys
 import tarfile
 import tempfile
@@ -199,8 +200,9 @@ def _validate_restore(target_uri: str, target_db: str) -> dict:
 
 def _seed_user_password_hashes(target_uri: str, target_db: str, verbose: bool = True) -> dict:
     """Batch G · GAP-2 — Re-seed redacted password_hash fields on `users` and
-    `user_directory` after restore. Stamps bcrypt(Welcome2MASCI!) +
-    must_change_password=True so accounts can log in but are forced to rotate.
+    `user_directory` after restore. Uses either an operator-supplied
+    `RESTORE_DRILL_SEED_PASSWORD` or a generated per-run secret, and always
+    stamps `must_change_password=True` so accounts are forced to rotate.
     Returns counters."""
     from pymongo import MongoClient
     try:
@@ -208,10 +210,12 @@ def _seed_user_password_hashes(target_uri: str, target_db: str, verbose: bool = 
     except ImportError:
         return {"seeded": 0, "skipped": 0, "err": "bcrypt not installed"}
 
-    seed_hash = _bc.hashpw(b"Welcome2MASCI!", _bc.gensalt()).decode("utf-8")
+    seed_secret = (os.environ.get("RESTORE_DRILL_SEED_PASSWORD") or "").strip() or secrets.token_urlsafe(18)
+    seed_mode = "env" if os.environ.get("RESTORE_DRILL_SEED_PASSWORD") else "generated_ephemeral"
+    seed_hash = _bc.hashpw(seed_secret.encode("utf-8"), _bc.gensalt()).decode("utf-8")
     client = MongoClient(target_uri, serverSelectionTimeoutMS=5000)
     sdb = client[target_db]
-    counters = {"seeded": 0, "skipped": 0, "by_coll": {}}
+    counters = {"seeded": 0, "skipped": 0, "by_coll": {}, "seed_mode": seed_mode}
     for coll in ("users", "user_directory"):
         if coll not in sdb.list_collection_names():
             counters["by_coll"][coll] = "absent"
@@ -246,6 +250,22 @@ def _rehydrate_photos_to_r2(extracted: Path, env: dict, verbose: bool = True) ->
         return {"uploaded": 0, "skipped": 0, "failed": 0, "note": "no photos/ in archive"}
 
     import boto3  # noqa: PLC0415
+    drill_bucket = (env.get("RESTORE_DRILL_R2_BUCKET") or env.get("S3_DRILL_BUCKET") or "").strip()
+    live_bucket = (env.get("S3_BUCKET") or "").strip()
+    if not drill_bucket:
+        return {
+            "uploaded": 0,
+            "skipped": 0,
+            "failed": 0,
+            "note": "restore-photos refused: RESTORE_DRILL_R2_BUCKET / S3_DRILL_BUCKET not set",
+        }
+    if drill_bucket == live_bucket:
+        return {
+            "uploaded": 0,
+            "skipped": 0,
+            "failed": 0,
+            "note": "restore-photos refused: drill bucket matches live S3_BUCKET",
+        }
     s3 = boto3.client(
         "s3",
         endpoint_url=env.get("S3_ENDPOINT_URL"),
@@ -253,7 +273,7 @@ def _rehydrate_photos_to_r2(extracted: Path, env: dict, verbose: bool = True) ->
         aws_secret_access_key=env.get("S3_SECRET_KEY"),
         region_name=env.get("S3_REGION", "auto"),
     )
-    bucket = env.get("S3_BUCKET")
+    bucket = drill_bucket
     counters = {"uploaded": 0, "skipped": 0, "failed": 0, "bytes_uploaded": 0}
 
     for photo_path in photo_root.rglob("*"):

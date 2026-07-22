@@ -35,6 +35,7 @@ import io
 import json
 import logging
 import os
+import uuid
 import zipfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -319,10 +320,10 @@ async def build_verification_report(db) -> Dict[str, Any]:
 
     # ── 1. R2 archives ─────────────────────────────────────────────
     archives = await list_r2_backup_archives()
-    r2_configured = bool(archives) or False
+    r2_configured = bool(archives)
     try:
         from photo_storage import is_configured as _ps_cfg
-        r2_configured = _ps_cfg()
+        r2_configured = bool(_ps_cfg() or r2_configured)
     except Exception:  # noqa: BLE001
         pass
 
@@ -657,9 +658,13 @@ def render_verification_email_html(report: Dict[str, Any]) -> str:
 async def send_verification_email(db, *, force_recipients: Optional[List[str]] = None) -> Dict[str, Any]:
     """Build the report and email it. Returns
     {sent, recipients, verdict, report, error?}."""
+    from lib.notification_delivery import deliver_notification  # noqa: PLC0415
+    from branding_resolver import (  # noqa: PLC0415
+        resolve_reply_to_email as _resolve_reply_to_email,
+    )
+
     report = await build_verification_report(db)
     recipients = force_recipients or _verification_recipients()
-    api_key = (os.environ.get("RESEND_API_KEY") or "").strip()
 
     result: Dict[str, Any] = {
         "sent": False,
@@ -673,33 +678,38 @@ async def send_verification_email(db, *, force_recipients: Optional[List[str]] =
         logger.warning(f"[verify] {result['error']}")
         return result
 
-    if not api_key:
-        result["error"] = "RESEND_API_KEY not configured."
-        logger.warning(f"[verify] {result['error']}")
-        return result
-
     try:
-        import resend  # noqa: E402
-        from branding_resolver import (
-            resolve_sender_email as _resolve_sender_email,
-            resolve_reply_to_email as _resolve_reply_to_email,
+        delivery = await deliver_notification(
+            db=db,
+            workflow="backup-verification",
+            correlation_id=f"cid-backup-verify-{uuid.uuid4().hex}",
+            record_id=f"backup-verify-{report.get('generated_at') or datetime.now(timezone.utc).isoformat()}",
+            recipients=recipients,
+            subject=render_verification_subject(report),
+            html=render_verification_email_html(report),
+            reply_to=(await _resolve_reply_to_email(db)) if db is not None else None,
+            metadata={
+                "kind": "backup_verification",
+                "verdict": report.get("verdict"),
+                "archive_count": ((report.get("r2") or {}).get("archive_count")),
+            },
         )
-        resend.api_key = api_key
-        sender_email = await _resolve_sender_email(db, safe_fallback="noreply@mascidocs.com") if db is not None else os.environ.get("SENDER_EMAIL", "noreply@mascidocs.com")
-        params = {
-            "from": f"MASCI Operations Platform <{sender_email}>",
-            "to": recipients,
-            "subject": render_verification_subject(report),
-            "html": render_verification_email_html(report),
-        }
-        reply_to = (await _resolve_reply_to_email(db)) if db is not None else (os.environ.get("REPLY_TO_EMAIL") or "").strip()
-        if reply_to:
-            params["reply_to"] = reply_to
-        await asyncio.to_thread(resend.Emails.send, params)
-        result["sent"] = True
+        result.update({
+            "delivery_mode": delivery.get("delivery_mode"),
+            "delivery_status": delivery.get("notification_state"),
+            "provider_called": delivery.get("provider_called"),
+            "provider_accepted": delivery.get("provider_accepted"),
+            "notification_capture_available": delivery.get("notification_capture_available"),
+            "notification_capture_id": delivery.get("capture_id"),
+        })
+        result["sent"] = bool(delivery.get("provider_accepted"))
+        result["captured_preview"] = delivery.get("notification_state") == "captured_preview"
+        if delivery.get("notification_state") == "configuration_blocked":
+            result["error"] = delivery.get("failure_reason") or "notification configuration blocked"
         logger.info(
-            f"[verify] sent verification email → {recipients} · "
-            f"verdict={report['verdict']} · archives={report['r2']['archive_count']}"
+            f"[verify] notification dispatched → {recipients} · "
+            f"verdict={report['verdict']} · status={delivery.get('notification_state')} · "
+            f"archives={report['r2']['archive_count']}"
         )
     except Exception as e:  # noqa: BLE001
         logger.exception(f"[verify] email send failed: {e}")
