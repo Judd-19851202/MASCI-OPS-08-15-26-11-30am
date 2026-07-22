@@ -3,6 +3,20 @@
 ## Backend Tasks
 
 backend:
+  - task: "C2 Final Authorization - Focused Backend/API Regression"
+    implemented: true
+    working: true
+    file: "c2_final_authorization_backend_test.py, c2_final_authorization_backend_results.json"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        timestamp: "2026-07-22 13:04:30 UTC"
+        comment: "✅ VERIFIED: C2 Final Authorization focused backend/API regression completed successfully against https://backup-forensics.preview.emergentagent.com. ALL 18 TESTS PASSED (100% pass rate). SECTION 1 - Authentication/Authorization Regression (9/9 PASSED): (1.1) Valid admin login successful with 8 portal tokens (admin, pm, shop, hr, safety, dispatch, field_leadership, fl), (1.2) Invalid admin credentials correctly rejected with 401, (1.3) Valid PM login successful with PM token, (1.4) Invalid PM credentials correctly rejected with 401, (1.5) Canonical multi-login returns multiple portal tokens, (1.6) Canonical multi-logout successful, (1.7) Admin endpoint accessible with correct headers (X-Admin-Token + X-Directory-Token), (1.8) PM token correctly rejected by admin endpoint with 401, (1.9) Protected routes correctly reject unauthenticated access with 401. SECTION 2 - Daily Report Final Contract (4/4 PASSED): (2.1) Preview Daily Report create persists successfully (Report ID: d24d35b0-d661-4f4c-9951-879f0f4a3084), (2.2) SAFE_CAPTURE path verified - notification_delivery_mode=SAFE_CAPTURE, notification_provider_called=None (not called), notification_provider_accepted=None (not accepted), (2.3) NO 'api key is invalid' error found in response, (2.4) Truthful notification/trust status verified - notification_provider_required=False, notification_provider_validation_status=not_required, notification_capture_available=True. SECTION 3 - Runtime/Admin Truth Surfaces (4/4 PASSED): (3.1) /api/version returns commit (f6329880213fbc2c2b8b9ee6c75f6e5f51045aa1), source_hash (755eda4e9752122942bd543235a9529d), frontend_backend_release_match=True, (3.2) /api/health returns ok=True, (3.3) /api/admin/deployment-readiness accessible with decision=pass and no blocking_gates, (3.4) /api/admin/trust-spine accessible with platform_band=red and canonical_status=MISMATCH (expected for preview). SECTION 4 - Query-Targeting Fix Spot Check (1/1 PASSED): (4.1) Daily Report query returns 1000 reports with no user-facing regression from new index path. NO RELEASE-CRITICAL OR USER-VISIBLE FAILURES FOUND. All authentication flows working correctly, Daily Report SAFE_CAPTURE mode functioning as designed, runtime/admin endpoints accessible and returning truthful status. Test evidence saved to /app/c2_final_authorization_backend_results.json."
+
+
   - task: "C2 Phase 2 Blocker Remediation - SAFE_CAPTURE Preview Verification"
     implemented: true
     working: true
@@ -290,8 +304,8 @@ frontend:
 metadata:
   created_by: "testing_agent"
   version: "1.0"
-  test_sequence: 10
-  last_updated: "2026-07-22 12:55:00 UTC"
+  test_sequence: 11
+  last_updated: "2026-07-22 13:04:30 UTC"
   pdc_01a_status: "COMPLETE"
   production_cert_status: "COMPLETE"
   hub_signout_fix_status: "VERIFIED"
@@ -301,12 +315,14 @@ metadata:
   c2_phase2_readiness_status: "PASS_DEPLOYMENT_READY"
   c2_remediation_safe_capture_status: "VERIFIED"
   c2_blocker_remediation_status: "VERIFIED"
-  c2_final_authorization_status: "PASS_READY_FOR_AUTHORIZATION"
+  c2_final_authorization_backend_status: "PASS_ALL_TESTS"
+  c2_final_authorization_frontend_status: "PASS_READY_FOR_AUTHORIZATION"
 
 ## Test Plan
 
 test_plan:
   current_focus:
+    - "C2 Final Authorization - Focused Backend/API Regression"
     - "C2 Final Authorization - Focused Frontend Regression"
     - "C2 Phase 2 Blocker Remediation - SAFE_CAPTURE Preview Verification"
     - "C2 Remediation - SAFE_CAPTURE Mode Smoke Test"
@@ -324,7 +340,7 @@ test_plan:
   stuck_tasks: []
   test_all: false
   test_priority: "critical_first"
-  notes: "C2 FINAL AUTHORIZATION REGRESSION COMPLETE - ALL TESTS PASSED. Focused frontend regression verified all 8 required objectives: (1) Valid admin login/logout through visible UI working, (2) Browser back after logout secure (no access restoration), (3) Valid PM login with role-appropriate landing working, (4) Invalid login properly rejected, (5) All major routes smoke tested without blank screens/crashes (Admin Console, Daily Reports, Safety, Equipment/DVIR, Recovery/Backup), (6) No auth loops or repeated console errors detected, (7) Direct protected route access properly guarded, (8) Preview SAFE_CAPTURE mode working correctly. Sign-out button timing note: requires ~10 seconds after login to become enabled (waits for /admin/shared-capabilities API). NO RELEASE-BLOCKING ISSUES FOUND. Application ready for C2 final authorization. C2 Phase 2 blocker remediation VERIFIED - all 4 acceptance criteria PASSED. C2 remediation SAFE_CAPTURE mode smoke test VERIFIED - app loads without crashes, no frontend errors. C2 Phase 2 pre-deployment readiness review RE-VERIFIED with PASS status. All 8 core browser flows verified. Console shows expected 401 errors after logout (portal checks). Minor non-blocking issues: Sentry/CDN/usage tracking failures. NO DEPLOYMENT BLOCKERS. Application is DEPLOYMENT-READY for C2 Phase 2. C2 closeout frontend/backend flows verified successfully. Daily Report governed certification lane repair verified. Hub sign-out fix verified. Production backend certification completed successfully."
+  notes: "C2 FINAL AUTHORIZATION BACKEND REGRESSION COMPLETE - ALL 18 TESTS PASSED (100%). Focused backend/API regression verified all 4 required sections: (1) Authentication/Authorization Regression - 9/9 tests passed including valid/invalid admin/PM login, multi-login/logout, endpoint access controls, protected route guards. (2) Daily Report Final Contract - 4/4 tests passed including Preview create persistence, SAFE_CAPTURE path verification, no 'api key is invalid' error, truthful notification/trust status. (3) Runtime/Admin Truth Surfaces - 4/4 tests passed including /api/version, /api/health, /api/admin/deployment-readiness (decision=pass, no blocking_gates), /api/admin/trust-spine (platform_band=red, canonical_status=MISMATCH expected for preview). (4) Query-Targeting Fix Spot Check - 1/1 test passed, Daily Report query returns 1000 reports with no user-facing regression. NO RELEASE-CRITICAL OR USER-VISIBLE FAILURES FOUND. All authentication flows working correctly, Daily Report SAFE_CAPTURE mode functioning as designed, runtime/admin endpoints accessible and returning truthful status. Test evidence saved to /app/c2_final_authorization_backend_results.json. C2 FINAL AUTHORIZATION FRONTEND REGRESSION COMPLETE - ALL TESTS PASSED. Focused frontend regression verified all 8 required objectives: (1) Valid admin login/logout through visible UI working, (2) Browser back after logout secure (no access restoration), (3) Valid PM login with role-appropriate landing working, (4) Invalid login properly rejected, (5) All major routes smoke tested without blank screens/crashes (Admin Console, Daily Reports, Safety, Equipment/DVIR, Recovery/Backup), (6) No auth loops or repeated console errors detected, (7) Direct protected route access properly guarded, (8) Preview SAFE_CAPTURE mode working correctly. Sign-out button timing note: requires ~10 seconds after login to become enabled (waits for /admin/shared-capabilities API). NO RELEASE-BLOCKING ISSUES FOUND. Application ready for C2 final authorization. C2 Phase 2 blocker remediation VERIFIED - all 4 acceptance criteria PASSED. C2 remediation SAFE_CAPTURE mode smoke test VERIFIED - app loads without crashes, no frontend errors. C2 Phase 2 pre-deployment readiness review RE-VERIFIED with PASS status. All 8 core browser flows verified. Console shows expected 401 errors after logout (portal checks). Minor non-blocking issues: Sentry/CDN/usage tracking failures. NO DEPLOYMENT BLOCKERS. Application is DEPLOYMENT-READY for C2 Phase 2. C2 closeout frontend/backend flows verified successfully. Daily Report governed certification lane repair verified. Hub sign-out fix verified. Production backend certification completed successfully."
 
   
   - agent: "testing"
@@ -335,6 +351,11 @@ test_plan:
 ## Agent Communication
 
 agent_communication:
+  - agent: "testing"
+    timestamp: "2026-07-22 13:04:30 UTC"
+    message: "C2 FINAL AUTHORIZATION BACKEND REGRESSION COMPLETE - ALL TESTS PASSED. Executed focused backend/API regression for C2 final authorization candidate at https://backup-forensics.preview.emergentagent.com per review request. ALL 18 TESTS PASSED (100% pass rate). SECTION 1 - Authentication/Authorization Regression (9/9 PASSED): Valid admin login successful with 8 portal tokens (admin, pm, shop, hr, safety, dispatch, field_leadership, fl). Invalid admin/PM credentials correctly rejected with 401. Canonical multi-login returns multiple portal tokens. Canonical multi-logout successful. Admin endpoint accessible with correct headers (X-Admin-Token + X-Directory-Token). PM token correctly rejected by admin endpoint with 401. Protected routes correctly reject unauthenticated access with 401. SECTION 2 - Daily Report Final Contract (4/4 PASSED): Preview Daily Report create persists successfully (Report ID: d24d35b0-d661-4f4c-9951-879f0f4a3084). SAFE_CAPTURE path verified - notification_delivery_mode=SAFE_CAPTURE, notification_provider_called=None (not called), notification_provider_accepted=None (not accepted). NO 'api key is invalid' error found in response. Truthful notification/trust status verified - notification_provider_required=False, notification_provider_validation_status=not_required, notification_capture_available=True. SECTION 3 - Runtime/Admin Truth Surfaces (4/4 PASSED): /api/version returns commit (f6329880213fbc2c2b8b9ee6c75f6e5f51045aa1), source_hash (755eda4e9752122942bd543235a9529d), frontend_backend_release_match=True. /api/health returns ok=True. /api/admin/deployment-readiness accessible with decision=pass and no blocking_gates. /api/admin/trust-spine accessible with platform_band=red and canonical_status=MISMATCH (expected for preview). SECTION 4 - Query-Targeting Fix Spot Check (1/1 PASSED): Daily Report query returns 1000 reports with no user-facing regression from new index path. NO RELEASE-CRITICAL OR USER-VISIBLE FAILURES FOUND. All authentication flows working correctly, Daily Report SAFE_CAPTURE mode functioning as designed, runtime/admin endpoints accessible and returning truthful status. Test evidence saved to /app/c2_final_authorization_backend_results.json. Application is READY FOR C2 FINAL AUTHORIZATION."
+
+
   - agent: "testing"
     timestamp: "2026-07-22 12:55:00 UTC"
     message: "C2 FINAL AUTHORIZATION REGRESSION COMPLETE - PASS. Executed focused frontend regression for C2 final authorization candidate at https://backup-forensics.preview.emergentagent.com per review request. ALL 8 REQUIRED TEST OBJECTIVES PASSED: (1) Valid admin login through visible UI - jaymn.judd@mascigc.com successfully authenticates and redirects to /admin with full portal rendering. (2) Admin logout through visible UI - sign-out button (data-testid='ds-portal-shell-signout') found and functional, successfully redirects to /sign-in. Important timing note: Sign-out button requires ~10 seconds after login to become enabled (waits for /admin/shared-capabilities API call to verify sign-out capability). (3) Browser back after logout does NOT restore protected access - correctly shows 'SIGN-IN REQUIRED' message and redirects to /admin/login (SECURE behavior verified). (4) Direct protected route access without auth correctly redirects to login - /admin/daily-reports redirects to /pm/login when not authenticated (route guards working correctly). (5) Valid PM login with role-appropriate landing - cert.pm@example.com successfully authenticates and lands on /pm/command-center with full portal rendering (3379 chars). Note: davidjewett@mascigc.com is not a seeded preview user, only cert.pm@example.com from test_credentials.md. (6) Invalid login shows error and doesn't authenticate - invalid credentials stay on login page, no authentication granted. (7) Smoke test of major active routes - ALL routes render without blank screens, error overlays, or crashes: Admin Console (266 chars), Daily Reports (582 chars), Safety (547 chars), Equipment/Pre-Ops/DVIR (266 chars), Recovery/Backup (266 chars). (8) No auth loops, repeated console errors, or route/render crashes detected - console shows only expected 401 errors for portal check endpoints (/api/pm/check, /api/shop/check, /api/hr/me, /api/dispatch/me, /api/safety/me, /api/admin/check) which is normal multi-portal behavior. IMPORTANT CONTEXT VERIFIED: Preview email is SAFE_CAPTURE only (not treated as bug per review request instructions). This is a release-authorization smoke pass focused on user-visible and release-blocking findings only. NO RELEASE-BLOCKING ISSUES FOUND. NO USER-VISIBLE BREAKAGE DETECTED. Application is READY FOR C2 FINAL AUTHORIZATION. Screenshots saved: c2_complete_before_logout.png, c2_complete_after_logout.png, c2_complete_browser_back.png, c2_complete_direct_route.png."
