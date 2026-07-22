@@ -130,8 +130,6 @@ def _restore_side_db(extracted: Path, target_uri: str, target_db: str,
             continue
         coll_name = json_dir.parent.name.replace("-", "_")
         coll = sdb[coll_name]
-        # Drop first so the drill is deterministic on the side DB.
-        coll.drop()
         files = list(json_dir.glob("*.json"))
         docs = []
         bad = 0
@@ -144,6 +142,13 @@ def _restore_side_db(extracted: Path, target_uri: str, target_db: str,
                     bad += 1
             except Exception:
                 bad += 1
+        # Prefer delete_many over drop so the drill still works under
+        # Atlas roles that allow document writes but deny collection drop.
+        try:
+            coll.delete_many({})
+        except Exception as e:
+            if verbose:
+                print(f"  [{coll_name}] cleanup warnings: {e}", file=sys.stderr)
         if docs:
             try:
                 coll.insert_many(docs, ordered=False)
