@@ -10043,6 +10043,7 @@ async def admin_backup_integrity_check(_: bool = Depends(require_admin_strict)):
 
     manifest_bundle = None
     latest_r2_with_manifest = None
+    latest_r2_matching_runtime_with_manifest = None
     for archive in r2_archives:
         key = archive.get("key")
         if not key:
@@ -10050,12 +10051,24 @@ async def admin_backup_integrity_check(_: bool = Depends(require_admin_strict)):
         bundle = await read_r2_backup_manifest(key)
         if not bundle or not isinstance(bundle.get("manifest"), dict):
             continue
-        manifest_bundle = bundle
-        latest_r2_with_manifest = archive
-        break
+        if manifest_bundle is None:
+            manifest_bundle = bundle
+            latest_r2_with_manifest = archive
+        manifest = bundle.get("manifest") or {}
+        manifest_env = {
+            "app_env": manifest.get("app_env") or manifest.get("environment"),
+            "db_name": manifest.get("db_name") or manifest.get("database_name"),
+        }
+        if (
+            manifest_env["app_env"] == env_identity["app_env"]
+            and manifest_env["db_name"] == env_identity["db_name"]
+        ):
+            latest_r2_matching_runtime_with_manifest = archive
+            manifest_bundle = bundle
+            break
 
-    if latest_r2_with_manifest:
-        latest_r2 = latest_r2_with_manifest
+    if latest_r2_matching_runtime_with_manifest or latest_r2_with_manifest:
+        latest_r2 = latest_r2_matching_runtime_with_manifest or latest_r2_with_manifest
         latest_r2_filename = latest_r2.get("filename")
         if not latest_r2_filename:
             latest_r2_key = str(latest_r2.get("key") or "")

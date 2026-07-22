@@ -213,3 +213,97 @@ def test_track_27_09_integrity_check_suppresses_cross_environment_false_fail(mon
     assert out["classification_reason_code"] == "environment_mismatch_manifest_vs_runtime"
     assert out["missing_from_backup"] == []
     assert out["ok"] is False
+
+
+def test_track_27_09_integrity_check_prefers_latest_matching_runtime_manifest(monkeypatch, server_module):
+    import backup_verification  # noqa: PLC0415
+
+    async def _fake_list_r2_backup_archives(prefix: str = "backups/"):
+        return [
+            {
+                "key": "backups/auto-90d/MASCI_complete_backup_2026-07-22_155504Z.zip",
+                "filename": "MASCI_complete_backup_2026-07-22_155504Z.zip",
+                "size_bytes": 1596157914,
+                "last_modified_iso": "2026-07-22T16:04:14.577250+00:00",
+            },
+            {
+                "key": "backups/auto-90d/MASCI_complete_backup_2026-07-22_154935Z.zip",
+                "filename": "MASCI_complete_backup_2026-07-22_154935Z.zip",
+                "size_bytes": 1184300000,
+                "last_modified_iso": "2026-07-22T15:54:50.333000+00:00",
+            },
+        ]
+
+    async def _fake_read_r2_backup_manifest(key: str):
+        if key.endswith("155504Z.zip"):
+            return {
+                "manifest_name": "MANIFEST.json",
+                "content_length": 1596157914,
+                "manifest": {
+                    "generated_at": "2026-07-22T16:03:52.212049+00:00",
+                    "app_env": "preview",
+                    "db_name": "masci_safety_preview",
+                    "captured_collections": ["backup_health", "daily_reports", "meetings", "notification_capture_v1"],
+                    "per_kind": {"backup_health": 20, "daily_reports": 215, "meetings": 56, "notification_capture_v1": 10},
+                    "total_records": 301,
+                },
+            }
+        return {
+            "manifest_name": "MANIFEST.json",
+            "content_length": 1184300000,
+            "manifest": {
+                "generated_at": "2026-07-22T15:54:22.036148+00:00",
+                "app_env": "production",
+                "db_name": "masci_safety",
+                "captured_collections": ["backup_health", "daily_reports", "meetings"],
+                "per_kind": {"backup_health": 20, "daily_reports": 215, "meetings": 56},
+                "total_records": 291,
+            },
+        }
+
+    monkeypatch.setattr(backup_verification, "list_r2_backup_archives", _fake_list_r2_backup_archives)
+    monkeypatch.setattr(backup_verification, "read_r2_backup_manifest", _fake_read_r2_backup_manifest)
+    monkeypatch.setattr(server_module, "_list_stored_backups", lambda: [])
+
+    old_env = server_module.os.environ.get("APP_ENV")
+    old_db_name = server_module.os.environ.get("DB_NAME")
+    server_module.os.environ["APP_ENV"] = "preview"
+    server_module.os.environ["DB_NAME"] = "masci_safety_preview"
+
+    class _RuntimeMatchingDB(_FakeDB):
+        async def list_collection_names(self):
+            return ["backup_health", "daily_reports", "meetings", "notification_capture_v1"]
+
+    fake_db = _RuntimeMatchingDB()
+
+    async def _call_route():
+        fn = None
+        for route in server_module.app.routes:
+            if getattr(route, "path", "") == "/api/admin/backups/integrity-check":
+                fn = route.endpoint
+                break
+        assert fn is not None
+        old_runtime_db = server_module.db
+        server_module.db = fake_db
+        try:
+            return await fn(True)
+        finally:
+            server_module.db = old_runtime_db
+
+    try:
+        out = asyncio.run(_call_route())
+    finally:
+        if old_env is None:
+            server_module.os.environ.pop("APP_ENV", None)
+        else:
+            server_module.os.environ["APP_ENV"] = old_env
+        if old_db_name is None:
+            server_module.os.environ.pop("DB_NAME", None)
+        else:
+            server_module.os.environ["DB_NAME"] = old_db_name
+
+    assert out["last_backup_filename"] == "MASCI_complete_backup_2026-07-22_155504Z.zip"
+    assert out["classification"] == "PASS"
+    assert out["classification_reason_code"] == "verification_pass"
+    assert out["missing_from_backup"] == []
+    assert out["ok"] is True
