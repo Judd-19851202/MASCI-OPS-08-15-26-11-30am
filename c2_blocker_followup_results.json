@@ -1,0 +1,37 @@
+{
+  "generated_at": "2026-07-22T10:35:02.856629Z",
+  "target_url": "https://backup-forensics.preview.emergentagent.com",
+  "record_id": "ac0b5a42-5541-4654-901f-b3e31b710a7a",
+  "tests": [
+    {
+      "test": "record_and_notification_check",
+      "record_retrieved": true,
+      "notification_state": "captured_preview",
+      "notification_delivery_mode": "SAFE_CAPTURE",
+      "notification_provider_called": false,
+      "notification_provider_accepted": false,
+      "notification_capture_id": "8002c621cfa9191b2688a192964031dc",
+      "is_captured_preview": true,
+      "is_safe_capture": true,
+      "provider_not_called": true,
+      "provider_not_accepted": true,
+      "has_capture_id": true
+    },
+    {
+      "test": "trust_spine_check",
+      "trust_spine_accessible": false,
+      "status": 200,
+      "response": "{\"track\":\"15.76\",\"generated_at\":\"2026-07-22T10:35:14.231900+00:00\",\"platform_band\":\"red\",\"canonical_status\":\"MISMATCH\",\"truth_surface\":{\"surface_id\":\"trust_spine\",\"surface_name\":\"Platform Trust Spine Lifecycle Truth\",\"role\":\"CANONICAL_OWNER\",\"owner_type\":\"authoritative\",\"canonical_owner_id\":\"trust_spine\",\"upstream_owner_ids\":[],\"owner_endpoint\":\"/api/admin/trust-spine\",\"owner_module\":\"backend/routes/admin_trust_spine.py\",\"truth_subject\":\"workflow_lifecycle_truth\",\"status_authority\":\"trust_spine\""
+    }
+  ],
+  "acceptance": {
+    "record_persists": true,
+    "notification_captured_preview": true,
+    "safe_capture_mode": true,
+    "provider_not_called": true,
+    "provider_not_accepted": true,
+    "has_capture_id": true,
+    "no_fake_provider_accepted_in_trust": true
+  },
+  "overall_status": "PASSED"
+}

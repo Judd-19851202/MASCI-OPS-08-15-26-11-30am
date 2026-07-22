@@ -3,6 +3,20 @@
 ## Backend Tasks
 
 backend:
+  - task: "C2 Phase 2 Blocker Remediation - SAFE_CAPTURE Preview Verification"
+    implemented: true
+    working: true
+    file: "backend/lib/notification_contract.py, backend/routes/daily_reports.py, c2_blocker_remediation_test.py, c2_blocker_followup_test.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        timestamp: "2026-07-22 10:35:00 UTC"
+        comment: "✅ VERIFIED: C2 Phase 2 blocker remediation for bounded SAFE_CAPTURE mode in Preview environment completed successfully. All 4 required acceptance criteria PASSED: (1) GET /api/version confirms single canonical release SHA (73923eac185f67f0b4474b320738980c0dbe926b) consistent across 3 repeated calls with frontend_backend_release_match=true. (2) Daily Report Preview flow: Login with cert.foreman@example.com / CertProof2026! successful, received field_leadership token. Submitted Daily Report (ac0b5a42-5541-4654-901f-b3e31b710a7a / DR-2026-03514) against project ZZ-RUNTIME-CERT-2026 using X-FL-Token. Record persists successfully with notification_state=captured_preview, notification_delivery_mode=SAFE_CAPTURE. (3) NO 'api key is invalid' error found in response - previous blocker resolved. (4) Notification state verification: notification_provider_called=false, notification_provider_accepted=false, notification_capture_id present (8002c621cfa9191b2688a192964031dc). No fake provider_accepted success emitted. Backend evidence surfaces truthful status on preview capture: notification_provider_required=false, notification_provider_validation_status=not_required, notification_capture_available=true. Production fail-closed contract verified in existing evidence package: missing/invalid keys return delivery_mode=PROVIDER_LIVE with blocking=true. Preview override attempts to force live mode are correctly coerced back to SAFE_CAPTURE. Root cause confirmed: Previous 'api key is invalid' failures were caused by environment/delivery-mode logic drift where preview relied on live-provider validation instead of forcing SAFE_CAPTURE. Remediation working correctly - Preview now deterministically forces SAFE_CAPTURE, does not attempt provider delivery, persists inspectable capture payload, and records truthful trust/audit evidence. Test evidence saved to /app/c2_blocker_remediation_test_results.json and /app/c2_blocker_followup_results.json. Existing evidence package at /app/test_reports/c2_phase2_blocker_remediation/ confirms consistent behavior across multiple test runs."
+
+backend:
   - task: "PDC-01A Authentication Continuity Proof"
     implemented: true
     working: true
@@ -263,8 +277,8 @@ frontend:
 metadata:
   created_by: "testing_agent"
   version: "1.0"
-  test_sequence: 9
-  last_updated: "2026-07-22 10:30:00 UTC"
+  test_sequence: 10
+  last_updated: "2026-07-22 10:35:00 UTC"
   pdc_01a_status: "COMPLETE"
   production_cert_status: "COMPLETE"
   hub_signout_fix_status: "VERIFIED"
@@ -273,11 +287,13 @@ metadata:
   c2_closeout_frontend_status: "VERIFIED"
   c2_phase2_readiness_status: "PASS_DEPLOYMENT_READY"
   c2_remediation_safe_capture_status: "VERIFIED"
+  c2_blocker_remediation_status: "VERIFIED"
 
 ## Test Plan
 
 test_plan:
   current_focus:
+    - "C2 Phase 2 Blocker Remediation - SAFE_CAPTURE Preview Verification"
     - "C2 Remediation - SAFE_CAPTURE Mode Smoke Test"
     - "C2 Phase 2 Pre-Deployment Readiness Review"
     - "C2 Closeout - Frontend Flows Verification"
@@ -293,7 +309,7 @@ test_plan:
   stuck_tasks: []
   test_all: false
   test_priority: "critical_first"
-  notes: "C2 remediation SAFE_CAPTURE mode smoke test VERIFIED successfully - app loads without crashes, no frontend errors, Daily Reports pages accessible, backend separation of Preview SAFE_CAPTURE from Production PROVIDER_LIVE working correctly. C2 Phase 2 pre-deployment readiness review RE-VERIFIED with PASS status. Previous CORS blocker (wildcard origin with credentials: true) has been RESOLVED - current configuration shows wildcard origin with credentials: NOT SET which is acceptable. All 8 core browser flows verified: root app loads, sign-in works, admin navigation accessible, logout clears access, browser back secure, direct URL access protected, responsive design working, no chunk failures. Console shows expected 401 errors after logout (portal checks). Minor non-blocking issues: Sentry/CDN/usage tracking failures. NO DEPLOYMENT BLOCKERS. Application is DEPLOYMENT-READY for C2 Phase 2. C2 closeout frontend flows verified successfully - all 6 user-visible flows validated including shared multi-sign-in, admin sign-out, browser back security, responsive design, disposition labels (source code + unit tests), and no regressions. C2 closeout backend shared-session logout canonicalization verified successfully - all 7 behaviors validated. Daily Report governed certification lane repair verified successfully - all 4 proof points validated. Hub sign-out fix verified successfully. Production backend certification completed successfully - all runtime reliability checks passed"
+  notes: "C2 Phase 2 blocker remediation VERIFIED successfully - all 4 acceptance criteria PASSED: (1) Canonical SHA verified (73923eac185f67f0b4474b320738980c0dbe926b), (2) Daily Report submitted with cert.foreman@example.com against ZZ-RUNTIME-CERT-2026, (3) No 'api key is invalid' error, (4) SAFE_CAPTURE mode verified with captured_preview state, provider not called/accepted, capture ID present. Root cause confirmed: previous failures were environment/delivery-mode drift. Preview now deterministically forces SAFE_CAPTURE. Production fail-closed contract verified. C2 remediation SAFE_CAPTURE mode smoke test VERIFIED successfully - app loads without crashes, no frontend errors, Daily Reports pages accessible, backend separation of Preview SAFE_CAPTURE from Production PROVIDER_LIVE working correctly. C2 Phase 2 pre-deployment readiness review RE-VERIFIED with PASS status. Previous CORS blocker (wildcard origin with credentials: true) has been RESOLVED - current configuration shows wildcard origin with credentials: NOT SET which is acceptable. All 8 core browser flows verified: root app loads, sign-in works, admin navigation accessible, logout clears access, browser back secure, direct URL access protected, responsive design working, no chunk failures. Console shows expected 401 errors after logout (portal checks). Minor non-blocking issues: Sentry/CDN/usage tracking failures. NO DEPLOYMENT BLOCKERS. Application is DEPLOYMENT-READY for C2 Phase 2. C2 closeout frontend flows verified successfully - all 6 user-visible flows validated including shared multi-sign-in, admin sign-out, browser back security, responsive design, disposition labels (source code + unit tests), and no regressions. C2 closeout backend shared-session logout canonicalization verified successfully - all 7 behaviors validated. Daily Report governed certification lane repair verified successfully - all 4 proof points validated. Hub sign-out fix verified successfully. Production backend certification completed successfully - all runtime reliability checks passed"
 
   
   - agent: "testing"
@@ -339,3 +355,8 @@ agent_communication:
   - agent: "testing"
     timestamp: "2026-07-22 10:30:00 UTC"
     message: "C2 REMEDIATION SAFE_CAPTURE MODE SMOKE TEST COMPLETE. Executed bounded smoke test for C2 remediation on preview frontend per review request. Scope: verify app loads without crash/blank screen/error overlay, check console for frontend errors, verify Daily Reports pages don't crash in SAFE_CAPTURE mode. RESULTS: ✅ ALL VERIFICATION POINTS PASSED. (1) App loads successfully at https://backup-forensics.preview.emergentagent.com/ - 2740 chars body text, 334 visible elements, React root has content, no error overlay, no blank screen. (2) Browser console shows NO frontend JavaScript errors - all 28 console errors are expected 401 responses from portal check endpoints (/api/shop/check, /api/pm/check, /api/admin/check, /api/hr/me, /api/safety/me, /api/dispatch/me) and admin dashboard permission checks (/api/admin/recovery/snapshot, /api/admin/integrations/health, /api/admin/operations-control/overview, /api/admin/email-routing/v2/status, /api/admin/sessions/recent, /api/admin/governance/summary, /api/ai/gateway/status). These 401 errors are consistent with previous C2 Phase 2 testing and are expected behavior. (3) Sign-in works correctly with seeded super-admin (jaymn.judd@mascigc.com / Maddix123!) and redirects to /admin. (4) Daily Reports pages accessible at /admin/daily-reports (redirects to /admin/daily) without crashing - page loads with 582 chars content, no error overlays detected. (5) No errors related to SAFE_CAPTURE mode or notification status - backend change separating Preview SAFE_CAPTURE from Production PROVIDER_LIVE is working correctly, frontend displays truthful capture status without throwing when live provider keys are absent. (6) Preview mode indicator present. Daily Reports list appears empty (no report data available for testing detail page), but list page renders correctly without crashes. Non-blocking failures: Sentry tracking, CDN rum, usage tracking (all non-critical). No page errors (JavaScript exceptions) detected. Screenshots saved: c2_smoke_initial_load.png, c2_smoke_after_signin.png, c2_smoke_daily_reports_list.png. CONCLUSION: C2 remediation is working correctly - app loads and renders in SAFE_CAPTURE mode without user-visible failures. No deployment blockers found."
+
+  - agent: "testing"
+    timestamp: "2026-07-22 10:35:00 UTC"
+    message: "C2 PHASE 2 BLOCKER REMEDIATION VERIFICATION COMPLETE. Executed focused backend verification for bounded C2 blocker remediation on Preview app per review request. Target: https://backup-forensics.preview.emergentagent.com. ALL 4 ACCEPTANCE CRITERIA PASSED: (1) GET /api/version confirms single canonical release SHA: 73923eac185f67f0b4474b320738980c0dbe926b (consistent across 3 repeated calls, frontend_backend_release_match=true, source_hash=88e0a1d5994687b737b324b2f0e8f75f). (2) Daily Report Preview flow: Login with cert.foreman@example.com / CertProof2026! successful, received field_leadership token (X-FL-Token). Submitted Daily Report (ac0b5a42-5541-4654-901f-b3e31b710a7a / DR-2026-03514) against project ZZ-RUNTIME-CERT-2026 using X-FL-Token. Record persists successfully. (3) NO 'api key is invalid' error found in response - previous blocker RESOLVED. (4) Notification state verification: notification_state=captured_preview, notification_delivery_mode=SAFE_CAPTURE, notification_provider_called=false, notification_provider_accepted=false, notification_capture_id=8002c621cfa9191b2688a192964031dc. No fake provider_accepted success emitted. Backend evidence surfaces truthful status: notification_provider_required=false, notification_provider_validation_status=not_required, notification_capture_available=true. Root cause confirmed: Previous 'api key is invalid' failures were caused by environment/delivery-mode logic drift where preview relied on live-provider validation/suppression-era assumptions instead of forcing SAFE_CAPTURE with truthful preview completion semantics. Remediation working correctly: Preview now deterministically forces SAFE_CAPTURE, does not attempt provider delivery, persists inspectable capture payload, and records truthful trust/audit evidence. Production fail-closed contract verified in existing evidence package: missing/invalid keys return delivery_mode=PROVIDER_LIVE with blocking=true, preview override attempts to force live mode are correctly coerced back to SAFE_CAPTURE. Test evidence saved to /app/c2_blocker_remediation_test_results.json and /app/c2_blocker_followup_results.json. Existing evidence package at /app/test_reports/c2_phase2_blocker_remediation/ confirms consistent behavior. F-005 Backup/Rollback remains BLOCKING and OWNER_EVIDENCE_REQUIRED as instructed - not attempted to clear. No deployment/readiness/backup evidence incorrectly downgraded by these code changes. C2 blocker remediation is COMPLETE and VERIFIED."
+

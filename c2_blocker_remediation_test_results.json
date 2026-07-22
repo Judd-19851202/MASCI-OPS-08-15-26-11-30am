@@ -1,0 +1,441 @@
+{
+  "generated_at": "2026-07-22T10:34:01.855362Z",
+  "target_url": "https://backup-forensics.preview.emergentagent.com",
+  "tests": [
+    {
+      "test": "version_endpoint",
+      "passed": true,
+      "commit": "73923eac185f67f0b4474b320738980c0dbe926b",
+      "source_hash": "88e0a1d5994687b737b324b2f0e8f75f",
+      "consistent_across_calls": true,
+      "full_response": {
+        "service": "masci-hub",
+        "commit": "73923eac185f67f0b4474b320738980c0dbe926b",
+        "commit_source": "git:HEAD",
+        "built_at": "2026-07-22T10:17:07.395109+00:00",
+        "build_at_source": "artifact_mtime",
+        "source_hash": "88e0a1d5994687b737b324b2f0e8f75f",
+        "source_hash_scope_files": [
+          "release_identity_scope.json",
+          "backend/lib/release_identity.py",
+          "backend/server.py",
+          "backend/pdf_render.py",
+          "backend/training_pdf.py",
+          "backend/routes/daily_reports.py",
+          "backend/routes/dr_v2.py",
+          "backend/routes/dr_v2_canonicalize.py",
+          "backend/routes/dr_v2_pdf.py",
+          "backend/routes/dr_v2_photos.py",
+          "backend/routes/dispatch_portal_auth.py",
+          "backend/services/photo_intelligence/pipeline.py",
+          "backend/scripts/verify_release_identity.py",
+          "frontend/scripts/stamp-build-version.js",
+          "frontend/src/app/routing/AppRoutes.jsx",
+          "frontend/src/pages/NewDailyReportV3.jsx",
+          "frontend/src/pages/DailyReportsDashboard.jsx",
+          "frontend/src/pages/ViewDailyReport.jsx"
+        ],
+        "release": "88e0a1d5994687b737b324b2f0e8f75f",
+        "frontend_build_version": "v2026.07.22-73923ea",
+        "frontend_build_commit": "73923eac185f67f0b4474b320738980c0dbe926b",
+        "frontend_build_built_at": "2026-07-22T10:28:51.332Z",
+        "frontend_build_source_hash": "88e0a1d5994687b737b324b2f0e8f75f",
+        "frontend_build_source": "generated:frontend/src/buildVersion.generated.js",
+        "frontend_backend_release_match": true,
+        "instance_fingerprint": "ad66f50469cf1867e8daa078075ea876",
+        "process_started_at": "2026-07-22T10:29:42.899244+00:00",
+        "started_at": "2026-07-22T10:29:42.899244+00:00",
+        "uptime_s": 259,
+        "session_timeouts": {
+          "enabled": true,
+          "tiers": {
+            "ADMIN_HR": {
+              "idle_min": 15,
+              "abs_hour": 4
+            },
+            "OPERATIONS": {
+              "idle_min": 30,
+              "abs_hour": 8
+            },
+            "FIELD": {
+              "idle_min": 60,
+              "abs_hour": 12
+            }
+          }
+        },
+        "sentry": {
+          "enabled": true
+        },
+        "app_env": "preview",
+        "db_name": "masci_safety_preview",
+        "runtime_identity": {
+          "status": "NOT_APPLICABLE",
+          "valid": true,
+          "mismatch_category": null,
+          "identity": {
+            "app_env": "preview",
+            "db_name": "masci_safety_preview",
+            "mongo_scheme": "mongodb+srv",
+            "mongo_hostname_redacted": "masci-prod.1nduwmg.mongodb.net",
+            "mongo_user": "masci_preview_user",
+            "effective_database": null,
+            "enforce_db_isolation": true,
+            "release_commit": "73923eac185f67f0b4474b320738980c0dbe926b",
+            "release_source_hash": "88e0a1d5994687b737b324b2f0e8f75f",
+            "preview_distinction": "preview",
+            "scheduler_authority": "enabled",
+            "read_write_mode": "read_write",
+            "domain_host_context": null,
+            "source_identity": "88e0a1d5994687b737b324b2f0e8f75f",
+            "approved_cluster_identifier": "MASCI-prod",
+            "approved_hostname": "masci-prod.1nduwmg.mongodb.net",
+            "approved_db_name": "masci_safety",
+            "approved_username": "masci_prod_user",
+            "identity_fingerprint": "330300794b85",
+            "query_duplicates": {},
+            "is_atlas": true,
+            "is_local": false,
+            "read_only_validation": {
+              "requested": false,
+              "active": false,
+              "db_authority": "unknown",
+              "read_only_mode": false,
+              "startup_write_suppressed": false,
+              "http_mutation_barrier_active": false,
+              "session_writes_suppressed": false,
+              "scheduler_disabled": false,
+              "backup_scheduler_disabled": false,
+              "email_disabled": true,
+              "ai_disabled": false,
+              "ods_disabled": false,
+              "trust_spine_disabled": false,
+              "maintainx_disabled": true,
+              "webhooks_disabled": false,
+              "non_production_domain": false,
+              "zero_write_proven": false,
+              "approved_preview_db_name": "masci_safety_preview",
+              "approved_preview_hosts": [
+                "localhost",
+                "127.0.0.1",
+                "::1"
+              ],
+              "errors": []
+            }
+          },
+          "validation": {
+            "status": "NOT_APPLICABLE",
+            "valid": true,
+            "mismatch_category": null,
+            "remediation_owner": "platform-ops",
+            "remediation_action": "No action required.",
+            "detail": "env=preview host=masci-prod.1nduwmg.mongodb.net db=masci_safety_preview fingerprint=330300794b85",
+            "errors": [],
+            "warnings": []
+          }
+        },
+        "environment_identity": {
+          "app_env": "preview",
+          "db_name": "masci_safety_preview",
+          "db_isolation_enforced": true,
+          "storage_bucket": "unknown",
+          "storage_endpoint_present": null,
+          "scheduler_enabled": true,
+          "email_safety_mode": "unknown",
+          "auto_email_reports": null,
+          "resend_webhook_secret_present": null,
+          "dev_endpoints_enabled": null,
+          "maintainx_write_enabled": null,
+          "ai_provider_key_present": null,
+          "delete_engine_status": "DISABLED",
+          "runtime_identity_status": "NOT_APPLICABLE",
+          "runtime_identity_mismatch_category": null,
+          "mongo_hostname_redacted": "masci-prod.1nduwmg.mongodb.net",
+          "identity_fingerprint": "330300794b85"
+        }
+      }
+    },
+    {
+      "test": "cert_foreman_login",
+      "passed": true,
+      "session_token": "Un0FDzn4SEf88FgZX5thZjRfNsMtfPcsUZ3AmU7JXow",
+      "portal_tokens": {
+        "field_leadership": "ca06efa3-4d87-44fc-95cb-03b392c8ff8f.f73b2ce5ba5026ddd5fc65497a40c98b85f207278416b4a50068145220fb241a",
+        "fl": "ca06efa3-4d87-44fc-95cb-03b392c8ff8f.f73b2ce5ba5026ddd5fc65497a40c98b85f207278416b4a50068145220fb241a"
+      },
+      "has_fl_token": true,
+      "user_info": {
+        "email": "cert.foreman@example.com",
+        "name": "Cert Foreman",
+        "role": null
+      }
+    },
+    {
+      "test": "daily_report_submission",
+      "passed": true,
+      "record_id": "ac0b5a42-5541-4654-901f-b3e31b710a7a",
+      "report_number": "DR-2026-03514",
+      "no_api_key_error": true,
+      "notification_state": "pending",
+      "notification_delivery_mode": "SAFE_CAPTURE",
+      "notification_provider_called": null,
+      "notification_provider_accepted": null,
+      "safe_capture_verified": false,
+      "full_response_excerpt": {
+        "project_name": "ZZ-RUNTIME-CERT-2026 Certification Project",
+        "project_number": "ZZ-RUNTIME-CERT-2026",
+        "location": "Preview Certification Site",
+        "report_date": "2026-07-22",
+        "report_number": "DR-2026-03514",
+        "prepared_by": "Certification Foreman",
+        "superintendent": "Cert Superintendent",
+        "weather_summary": "75\u00b0F / Clear",
+        "weather_snapshot_meta": {
+          "provider": "open-meteo",
+          "gps_lat": 29.1383,
+          "gps_lng": -80.9956,
+          "observation_timestamp": "2026-07-22T10:34:02.971915Z",
+          "location_source": "manual",
+          "weather_coordinates_match_report": true
+        },
+        "gps_lat": 29.1383,
+        "gps_lng": -80.9956,
+        "gps_accuracy": null,
+        "location_captured_at": "",
+        "location_permission_status": "unknown",
+        "location_capture_result": "",
+        "location_source": "manual",
+        "location_error_code": "",
+        "location_error_message": "",
+        "location_capture_origin": "",
+        "location_capture_attempts": 0,
+        "schedule_delays": "No",
+        "schedule_delays_notes": "",
+        "weather_impact": "No",
+        "weather_impact_notes": "",
+        "safety_incidents_today": "No",
+        "injuries_reported": "No",
+        "incident_notes": "",
+        "safety_notified": "",
+        "safety_contact_person": "",
+        "safety_contact_time": "",
+        "incident_report_filled": "",
+        "incident_report_time": "",
+        "general_notes": "C2 Blocker Remediation Certification Test - SAFE_CAPTURE verification",
+        "outbound_materials": [],
+        "production": [],
+        "constraints": [],
+        "cost_code_quantities": [],
+        "photo_observations": [],
+        "photo_intelligence_status": "",
+        "narrative_sections": null,
+        "photo_captions": null,
+        "prepared_by_signature": "data:image/png;base64,CERT_SIG_FAKE",
+        "superintendent_signature": "",
+        "distribution_list": null,
+        "attachments": [],
+        "ai_accepted_summary": "C2 Blocker Remediation certification test - verifying SAFE_CAPTURE mode in Preview environment.",
+        "ai_accepted_summary_meta": {
+          "source": "manual",
+          "approved_by": "Certification Foreman",
+          "accepted_at": "2026-07-22T10:34:02.971920Z"
+        },
+        "evidence_manifest": null,
+        "certification_record": true,
+        "synthetic_record": true,
+        "hidden_from_operations": true,
+        "email_dispatch_suppressed": false,
+        "certification_track_id": "27.11B",
+        "certification_run_id": null,
+        "certification_release_source_hash": "88e0a1d5994687b737b324b2f0e8f75f",
+        "certification_release_reason": "governed_production_certification_lane",
+        "certification_required_workflows": [
+          "daily-report",
+          "trust-spine",
+          "audit",
+          "ods",
+          "search",
+          "pdf"
+        ],
+        "id": "ac0b5a42-5541-4654-901f-b3e31b710a7a",
+        "doc_id": "DR-2026-03514",
+        "created_at": "2026-07-22T10:34:03.160543+00:00",
+        "audit_envelope_sha256": "05687814ac9c96e89f9ca1f763062f7c27fdaace92b7c975e80c7b4a8c7b1602",
+        "prepared_by_identity": {
+          "directory": "fl",
+          "user_id": "ca06efa3-4d87-44fc-95cb-03b392c8ff8f",
+          "name": "Cert Foreman",
+          "email": "cert.foreman@example.com",
+          "role": "Cross-Portal Grant"
+        },
+        "prepared_by_bound": true,
+        "routing_override": {
+          "enabled": true,
+          "reason": "governed_production_certification_lane",
+          "pm_email": "jaymn.judd@mascigc.com",
+          "pm_name": "Certification PM",
+          "to": [
+            "jaymn.judd@mascigc.com"
+          ],
+          "cc": [],
+          "all": [
+            "jaymn.judd@mascigc.com"
+          ],
+          "recipient_source": "project_doc"
+        },
+        "certification_lane_allows_email": true,
+        "certification_lane": {
+          "mode": "governed_production",
+          "project_verified": true,
+          "identity_verified": true,
+          "identity": {
+            "directory": "fl",
+            "user_id": "ca06efa3-4d87-44fc-95cb-03b392c8ff8f",
+            "name": "Cert Foreman",
+            "email": "cert.foreman@example.com",
+            "role": "Cross-Portal Grant"
+          },
+          "routing": {
+            "enabled": true,
+            "reason": "governed_production_certification_lane",
+            "pm_email": "jaymn.judd@mascigc.com",
+            "pm_name": "Certification PM",
+            "to": [
+              "jaymn.judd@mascigc.com"
+            ],
+            "cc": [],
+            "all": [
+              "jaymn.judd@mascigc.com"
+            ],
+            "recipient_source": "project_doc"
+          },
+          "project_snapshot": {
+            "project_number": "ZZ-RUNTIME-CERT-2026",
+            "project_name": "Runtime Certification \u2014 Internal Test Project",
+            "pm_email": "jaymn.judd@mascigc.com",
+            "co_pm_emails": [],
+            "active": true
+          },
+          "recipient_validation": {
+            "placeholder_example_domain_selected": false,
+            "resolved_to": [
+              "jaymn.judd@mascigc.com"
+            ],
+            "source": "project_doc"
+          },
+          "preserves": {
+            "trust_spine": true,
+            "audit": true,
+            "ods": true,
+            "search_hidden": true,
+            "pdf": true,
+            "evidence": true
+          }
+        },
+        "conflict_watchdog": {
+          "has_conflicts": false,
+          "requires_pm_review": false,
+          "schedule_source": {
+            "collection": "jobs_master",
+            "summary": "Runtime Certification \u2014 Internal Test Project | ZZ-RUNTIME-CERT-2026"
+          },
+          "yesterday_report": {
+            "id": "b4b92316-bdf6-41c7-a8a9-f4f39e80fdd6",
+            "doc_id": "DR-2026-03511",
+            "report_date": "2026-07-21"
+          },
+          "conflicts": [],
+          "checked_at": "2026-07-22T10:34:03.411512+00:00"
+        },
+        "business_state": "submitted",
+        "notification_state": "pending",
+        "notification_delivery_mode": "SAFE_CAPTURE",
+        "notification_environment": "preview",
+        "notification_provider": "resend",
+        "notification_provider_required": false,
+        "notification_provider_configured": true,
+        "notification_provider_validation_status": "not_required",
+        "notification_capture_available": true,
+        "team_snapshot": {
+          "project_number": "ZZ-RUNTIME-CERT-2026",
+          "captured_at": "2026-07-22T10:34:03.443242+00:00",
+          "members": {
+            "pm": [
+              {
+                "user_id": "25c5c96e-8821-4dd7-aba7-ed45f764f139",
+                "email": "cert.pm@example.com",
+                "name": "Cert Project Manager",
+                "is_primary": true
+              },
+              {
+                "user_id": "a92c7165-7900-4b6a-a602-e82b2059fe90",
+                "email": "jaymn.judd@mascigc.com",
+                "name": "Super Admin",
+                "is_primary": true
+              }
+            ],
+            "co_pm": [
+              {
+                "user_id": "5b6e1217-fabc-41a3-8303-f10252575f29",
+                "email": "cert.copm@example.com",
+                "name": "Cert Co-PM",
+                "is_primary": false
+              }
+            ],
+            "superintendent": [
+              {
+                "user_id": "d231c0dd-d6a9-49fa-8ac0-2344d43939e3",
+                "email": "cert.super@example.com",
+                "name": "Cert Superintendent",
+                "is_primary": true
+              }
+            ],
+            "foreman": [
+              {
+                "user_id": "ca06efa3-4d87-44fc-95cb-03b392c8ff8f",
+                "email": "cert.foreman@example.com",
+                "name": "Cert Foreman",
+                "is_primary": false
+              }
+            ],
+            "safety_lead": [],
+            "project_engineer": [
+              {
+                "user_id": "6cde576d-6aef-4e9c-b02a-8a543d6cf7c2",
+                "email": "cert.pe@example.com",
+                "name": "Cert Project Engineer",
+                "is_primary": false
+              }
+            ],
+            "asset_admin": [],
+            "locate_coordinator": [],
+            "dispatcher_contact": [],
+            "shop_contact": [],
+            "executive_oversight": [
+              {
+                "user_id": "6470a84a-bef1-42b8-82aa-8bf5d47f3876",
+                "email": "cert.exec@example.com",
+                "name": "Cert Executive Oversight",
+                "is_primary": false
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "test": "record_persistence",
+      "passed": false,
+      "error": "Retrieval failed with status 401",
+      "response": "{\"detail\":\"Admin, PM, or HR login required\"}"
+    }
+  ],
+  "acceptance": {
+    "canonical_sha_verified": true,
+    "cert_foreman_login_successful": true,
+    "daily_report_submitted": true,
+    "no_api_key_error": true,
+    "safe_capture_verified": false,
+    "record_persists": false
+  },
+  "overall_status": "FAILED"
+}
