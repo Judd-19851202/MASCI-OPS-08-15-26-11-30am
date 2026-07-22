@@ -37,6 +37,7 @@ import logging
 import os
 import zipfile
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from operational_footer import render_operational_footer_html
@@ -46,6 +47,53 @@ logger = logging.getLogger(__name__)
 DEFAULT_DAY_OF_WEEK = 0       # Monday
 DEFAULT_HOUR_UTC = 14         # 14:00 UTC ≈ 10:00 AM ET Mon
 DEFAULT_MAX_AGE_HOURS = 36
+_BACKEND_ENV_PATH = Path(__file__).resolve().parent / ".env"
+
+
+def _runtime_env() -> Dict[str, str]:
+    """Return a merged env with backend/.env fallback for standalone tools.
+
+    Runtime server processes already populate os.environ before importing this
+    module. Standalone verification scripts in the repo sometimes import this
+    module directly, so we opportunistically hydrate missing keys from
+    backend/.env without overwriting real process env vars.
+    """
+    merged = dict(os.environ)
+    if _BACKEND_ENV_PATH.exists():
+        for raw_line in _BACKEND_ENV_PATH.read_text(encoding="utf-8").splitlines():
+            line = raw_line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            key = key.strip()
+            if merged.get(key):
+                continue
+            merged[key] = value.strip().strip('"')
+    return merged
+
+
+def _r2_client_from_runtime_env():
+    env = _runtime_env()
+    endpoint = (env.get("R2_ENDPOINT") or env.get("S3_ENDPOINT_URL") or "").strip()
+    bucket = (env.get("R2_BUCKET") or env.get("S3_BUCKET") or "").strip()
+    access = (env.get("R2_ACCESS_KEY_ID") or env.get("S3_ACCESS_KEY") or "").strip()
+    secret = (env.get("R2_SECRET_ACCESS_KEY") or env.get("S3_SECRET_KEY") or "").strip()
+    if not all([endpoint, bucket, access, secret]):
+        return None, None
+    try:
+        import boto3  # noqa: PLC0415
+        from botocore.config import Config as _BotoConfig  # noqa: PLC0415
+    except Exception:  # noqa: BLE001
+        return None, None
+    client = boto3.client(
+        "s3",
+        endpoint_url=endpoint,
+        aws_access_key_id=access,
+        aws_secret_access_key=secret,
+        region_name=(env.get("S3_REGION") or env.get("R2_REGION") or "auto").strip() or "auto",
+        config=_BotoConfig(signature_version="s3v4", s3={"addressing_style": "path"}),
+    )
+    return client, bucket
 
 
 class _R2RangeReader(io.BufferedIOBase):
@@ -174,20 +222,9 @@ async def list_r2_backup_archives(prefix: str = "backups/") -> List[Dict[str, An
     """List every object under r2://<bucket>/backups/. Returns
     [{key, size_bytes, last_modified_iso}], newest first. Empty list when
     R2 is not configured."""
-    try:
-        from photo_storage import is_configured as _ps_cfg, _client, _bucket
-    except Exception:  # noqa: BLE001
-        logger.warning("[verify] photo_storage import failed")
+    s3, bucket = _r2_client_from_runtime_env()
+    if s3 is None or not bucket:
         return []
-
-    if not _ps_cfg():
-        return []
-
-    s3 = _client()
-    if s3 is None:
-        return []
-
-    bucket = _bucket()
     out: List[Dict[str, Any]] = []
     try:
         # boto3 list_objects_v2 is sync — wrap in to_thread. Paginate by
@@ -228,18 +265,9 @@ async def read_r2_backup_manifest(key: str) -> Optional[Dict[str, Any]]:
     Returns `None` when R2 is unavailable, the object is unreadable, or no
     recognised manifest is present.
     """
-    try:
-        from photo_storage import is_configured as _ps_cfg, _client, _bucket
-    except Exception:  # noqa: BLE001
-        logger.warning("[verify] photo_storage import failed during manifest read")
+    s3, bucket = _r2_client_from_runtime_env()
+    if s3 is None or not bucket:
         return None
-
-    if not _ps_cfg():
-        return None
-    s3 = _client()
-    if s3 is None:
-        return None
-    bucket = _bucket()
 
     def _read() -> Optional[Dict[str, Any]]:
         head = s3.head_object(Bucket=bucket, Key=key)

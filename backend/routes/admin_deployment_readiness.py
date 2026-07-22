@@ -109,6 +109,7 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
                 "ts": {"$gte": since_iso},
                 "status": {"$nin": [
                     "ok", "sent", "delivered", "failed", "skipped",
+                    "captured_preview", "configuration_blocked",
                     "dead_letter", "dead-letter", "routed_to_dead_letter",
                     "dry_run", "dry-run", "resolved",
                     # TRACK 22.5A · `needs_configuration` is the audit

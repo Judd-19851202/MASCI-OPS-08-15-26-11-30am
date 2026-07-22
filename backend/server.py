@@ -18049,6 +18049,17 @@ async def _create_safety_indexes():
         await db.daily_reports.create_index("created_at")
         await db.daily_reports.create_index("report_date")
         await db.daily_reports.create_index("project_number")
+        # C2 final authorization · query-targeting remediation
+        # PM / Admin haul-material views query a narrow subset of Daily Reports:
+        #   report_date window + optional project_number + outbound_materials exists.
+        # Production Atlas raised a high scanned/returned alert on 2026-07-22.
+        # A partial compound index keeps those reads bounded without indexing the
+        # full collection or changing result semantics.
+        await db.daily_reports.create_index(
+            [("report_date", -1), ("project_number", 1)],
+            name="daily_reports_outbound_by_date_project",
+            partialFilterExpression={"outbound_materials.0": {"$exists": True}},
+        )
         # TRACK 26.07: index the `updated_at` field used by the job-photos
         # background indexer loop (routes/job_photos.py::background_indexer_loop)
         # which filters `daily_reports.find({photos.0: {$exists}, updated_at:

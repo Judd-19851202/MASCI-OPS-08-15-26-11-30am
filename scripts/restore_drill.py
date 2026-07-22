@@ -91,7 +91,7 @@ def cmd_list(args, env):
     print(f"Listing R2 backups in bucket: {bucket}")
     print("-" * 78)
     objs = []
-    for page in client.get_paginator("list_objects_v2").paginate(Bucket=bucket):
+    for page in client.get_paginator("list_objects_v2").paginate(Bucket=bucket, Prefix="backups/"):
         for o in page.get("Contents", []):
             objs.append(o)
     objs.sort(key=lambda o: o["LastModified"], reverse=True)
