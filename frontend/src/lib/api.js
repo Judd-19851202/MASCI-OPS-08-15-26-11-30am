@@ -127,7 +127,9 @@ api.interceptors.response.use(
     // the moment the backend responds with a real payload. Cheap to do
     // on every successful 2xx.
     try {
-      publishSessionStatus({ kind: "success_loaded", status: res?.status ?? 200 });
+      if (!res?.config?.skipSessionStatus) {
+        publishSessionStatus({ kind: "success_loaded", status: res?.status ?? 200 });
+      }
     } catch { /* never break the response path */ }
     return res;
   },
@@ -377,7 +379,13 @@ api.interceptors.response.use(
     try {
       if (!cfg.skipSessionStatus && !_namespacedHandled) {
         const classification = classifyApiError(err);
-        publishSessionStatus(classification);
+        publishSessionStatus({
+          ...classification,
+          meta: {
+            endpoint: cfg.url || "",
+            method: String(cfg.method || "get").toUpperCase(),
+          },
+        });
       }
     } catch { /* never break the response path */ }
     return Promise.reject(err);

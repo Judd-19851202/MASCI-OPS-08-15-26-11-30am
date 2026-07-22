@@ -102,6 +102,7 @@ export default function SessionStatusOverlay() {
   const navigate = useNavigate();
   const { t } = useT();
   const [state, setState] = useState({ kind: null, status: null });
+  const [retryBusy, setRetryBusy] = useState(false);
 
   useEffect(() => {
     const unsub = subscribeSessionStatus(setState);
@@ -109,7 +110,7 @@ export default function SessionStatusOverlay() {
   }, []);
 
   const onDismiss = useCallback(() => { clearSessionStatus(); }, []);
-  const onPrimary = useCallback(() => {
+  const onPrimary = useCallback(async () => {
     if (state.kind === ERROR_KINDS.SESSION_EXPIRED) {
       // TRACK 19.11 AMENDMENT — user is explicitly re-authenticating.
       // Lift the ack-suppression so a genuinely fresh 401 after login
@@ -119,13 +120,18 @@ export default function SessionStatusOverlay() {
       navigate(_loginRouteForCurrent(location.pathname));
       return;
     }
-    // Retry for network / backend — close the modal; whatever loader
-    // is mounted on the page can refire on user re-action.
+    const retry = state?.meta?.retry;
+    if (typeof retry === "function") {
+      try {
+        setRetryBusy(true);
+        await Promise.resolve(retry());
+      } finally {
+        setRetryBusy(false);
+      }
+      return;
+    }
     clearSessionStatus();
-    // A light page-level reload is the safest universal "retry" — every
-    // page-level loader re-runs without us touching their code.
-    try { window.location.reload(); } catch { /* ignore */ }
-  }, [state.kind, location.pathname, navigate]);
+  }, [state, location.pathname, navigate]);
 
   // Suppress on login / portal routes — the user is mid-auth.
   const suppressed = SUPPRESS_PREFIXES.some((p) => location.pathname.startsWith(p));
@@ -185,10 +191,11 @@ export default function SessionStatusOverlay() {
             <button
               type="button"
               onClick={onPrimary}
+              disabled={retryBusy}
               className="px-4 py-2 rounded font-bold uppercase tracking-wider text-xs bg-slate-900 hover:bg-black text-white transition-colors"
               data-testid="session-status-primary"
             >
-              {copy.primary}
+              {retryBusy ? t("Retrying…") : copy.primary}
             </button>
           )}
         </div>

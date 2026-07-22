@@ -65,7 +65,7 @@ function _notify(items) {
  * @param {string} opts.department        Server-side department filter.
  */
 export async function fetchHrRoster(opts = {}) {
-  const { includeInactive = false, role, department, q } = opts;
+  const { includeInactive = false, role, department, q, publicFallback = false } = opts;
   const params = {};
   if (includeInactive) params.include_inactive = true;
   if (role) params.role = role;
@@ -78,8 +78,13 @@ export async function fetchHrRoster(opts = {}) {
   if (_inflight && _inflight.key === key) {
     return _inflight.promise;
   }
+  const endpoint = publicFallback ? `${ENDPOINT}/public` : ENDPOINT;
   const promise = api
-    .get(ENDPOINT, { params, timeout: 30000 })
+    .get(endpoint, {
+      params,
+      timeout: 30000,
+      skipSessionStatus: publicFallback,
+    })
     .then((r) => {
       const items = Array.isArray(r?.data?.items) ? r.data.items : [];
       _notify(items);
@@ -94,7 +99,7 @@ export async function fetchHrRoster(opts = {}) {
       // test). Any other error → return last known good snapshot
       // so pickers never poison an existing render.
       const status = err?.response?.status;
-      if (status === 401) {
+      if (status === 401 && publicFallback && endpoint === ENDPOINT) {
         try {
           const pub = await api.get(`${ENDPOINT}/public`, {
             params: (q ? { q } : {}),

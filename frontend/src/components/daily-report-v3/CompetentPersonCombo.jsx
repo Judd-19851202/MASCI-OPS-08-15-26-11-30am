@@ -61,10 +61,12 @@ export default function CompetentPersonCombo({
     // section.
     const authed = `${API}/employees/qualifications?type=COMPETENT_PERSON&active=true`;
     const publicUrl = `${API}/employees/competent-persons/public`;
-    fetch(authed, { headers: authHeaders() })
+    const headers = authHeaders();
+    const useAuthed = Object.keys(headers).length > 0;
+    fetch(useAuthed ? authed : publicUrl, useAuthed ? { headers } : undefined)
       .then((r) => {
         if (r.ok) return r.json();
-        if (r.status === 401) {
+        if (useAuthed && r.status === 401) {
           return fetch(publicUrl).then((r2) =>
             r2.ok ? r2.json() : Promise.reject(r2.status),
           );
@@ -90,9 +92,14 @@ export default function CompetentPersonCombo({
   async function pick(qid) {
     const it = items.find((x) => x.qualification_id === qid);
     if (!it) { onChange?.({ qualification_id: "", snapshot: null }); return; }
+    const headers = authHeaders();
+    if (Object.keys(headers).length === 0) {
+      onChange?.({ qualification_id: qid, snapshot: null, row: it });
+      return;
+    }
     try {
       const r = await fetch(`${API}/hr/qualifications/${encodeURIComponent(qid)}/snapshot`, {
-        headers: authHeaders(),
+        headers,
       });
       const snap = r.ok ? await r.json() : null;
       onChange?.({ qualification_id: qid, snapshot: snap, row: it });

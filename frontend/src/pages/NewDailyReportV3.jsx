@@ -64,6 +64,8 @@ import { useT } from "@/lib/i18n";
 import { LangToggle } from "@/components/LangToggle";
 import { translateDrV3PayloadEsToEn } from "@/lib/drV3Translation";
 import { useRememberedFormValue } from "@/lib/useRememberedFilter";
+import { classifyApiError } from "@/lib/errorClassification";
+import { publishSessionStatus } from "@/lib/sessionStatusBus";
 
 const GEO_TIMEOUT_MS = 12000;
 const GEO_MAX_AGE_MS = 30000;
@@ -172,6 +174,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
   const [photoWarmHint, setPhotoWarmHint] = useState(null);
   const [photoIntelStatusState, setPhotoIntelStatusState] = useState(null);
   const idempotencyKeyRef = useRef(null);
+  const submitRetryRef = useRef(() => {});
   const actorId = getStableActorIdentity();
   const draftScope = useMemo(() => buildDailyReportInstanceScope({ ...data, actor_id: actorId }), [data, actorId]);
   const scopedFormKey = useMemo(() => buildDailyReportScopedFormKey({ ...data, actor_id: actorId }), [data, actorId]);
@@ -340,6 +343,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
       try {
         const { data: res } = await api.get(`/jobs/${encodeURIComponent(projectNumber)}/recent-context`, {
           params: { foreman, superintendent },
+          skipSessionStatus: true,
         });
         if (cancelled) return;
         const priorCrews = Array.isArray(res?.masci_crews) ? res.masci_crews : [];
@@ -775,7 +779,9 @@ export default function NewDailyReportV3({ publicMode = false }) {
           report_date: data.report_date.trim(),
           ...(preparedBy ? { submitted_by: preparedBy } : {}),
         });
-        const { data: dup } = await api.get(`/daily-reports/duplicate-check?${q.toString()}`);
+        const { data: dup } = await api.get(`/daily-reports/duplicate-check?${q.toString()}`, {
+          skipSessionStatus: true,
+        });
         if (dup && dup.exists) {
           const first = (dup.matches || [])[0] || {};
           const existing = first.report_number || first.doc_id || first.id || "another report";
@@ -893,6 +899,17 @@ export default function NewDailyReportV3({ publicMode = false }) {
         navigate(publicMode ? "/thank-you?queued=1" : "/admin/daily");
       }
     } catch (err) {
+      const classified = classifyApiError(err);
+      if (classified.kind === "network_unreachable" || classified.kind === "backend_unavailable") {
+        publishSessionStatus({
+          ...classified,
+          meta: {
+            endpoint: "/daily-reports",
+            method: "POST",
+            retry: () => submitRetryRef.current?.(),
+          },
+        });
+      }
       // TRACK 26.02 · D-09 · Surface Pydantic 422 detail to the operator
       // instead of the generic "Submit failed. Please retry." fallback.
       // FastAPI returns `detail` as either a string (raise HTTPException)
@@ -917,6 +934,10 @@ export default function NewDailyReportV3({ publicMode = false }) {
       setSaving(false);
     }
   }, [saving, canSubmit, data, online, publicMode, navigate, readiness.missing, commitDraft, lang, t, scopedFormKey, rememberLastProject, actorId]);
+
+  useEffect(() => {
+    submitRetryRef.current = () => onSubmit();
+  }, [onSubmit]);
 
   return (
     <div className="min-h-screen blueprint-bg">

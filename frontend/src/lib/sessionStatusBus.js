@@ -53,7 +53,7 @@ const ACK_STICKY_KINDS = new Set([
   "access_restricted",
 ]);
 
-let _state = { kind: null, status: null, at: 0 };
+let _state = { kind: null, status: null, at: 0, meta: null };
 const _listeners = new Set();
 let _lastEmitKind = null;
 let _lastEmitAt = 0;
@@ -119,7 +119,7 @@ export function publishSessionStatus(classification) {
   // route-guard behavior.
   if (kind === "success_loaded") {
     if (_state.kind !== null) {
-      _state = { kind: null, status: null, at: Date.now() };
+      _state = { kind: null, status: null, at: Date.now(), meta: null };
       _notify();
     }
     _lastEmitKind = null;
@@ -155,6 +155,7 @@ export function publishSessionStatus(classification) {
     kind,
     status: classification.status ?? null,
     at: now,
+    meta: classification.meta ?? null,
   };
   _notify();
 }
@@ -173,7 +174,7 @@ export function clearSessionStatus() {
   if (ACK_STICKY_KINDS.has(dismissedKind)) {
     _ackSuppressed.add(dismissedKind);
   }
-  _state = { kind: null, status: null, at: Date.now() };
+  _state = { kind: null, status: null, at: Date.now(), meta: null };
   _notify();
 }
 
@@ -206,7 +207,7 @@ export function getSessionAckState() {
 
 // For tests only — reset internal counters between cases.
 export const _testReset = () => {
-  _state = { kind: null, status: null, at: 0 };
+  _state = { kind: null, status: null, at: 0, meta: null };
   _listeners.clear();
   _lastEmitKind = null;
   _lastEmitAt = 0;

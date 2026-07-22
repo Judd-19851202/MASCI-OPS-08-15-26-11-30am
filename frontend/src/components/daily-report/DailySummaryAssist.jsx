@@ -269,6 +269,7 @@ export default function DailySummaryAssist({
       try {
         const { data: response } = await api.get(
           `/daily-reports/${encodeURIComponent(reportNumber)}/photo-intelligence`,
+          { skipSessionStatus: true },
         );
         photoIntelValueRef.current = response || null;
         setLatestPhotoIntel(response || null);
@@ -314,11 +315,15 @@ export default function DailySummaryAssist({
     if (!force && photoIntelKeyRef.current === compactPhotoSignature && photoIntelValueRef.current && terminalStatuses.has(cachedStatus)) {
       return photoIntelValueRef.current;
     }
-    const { data: response } = await api.post("/daily-reports/photo-intelligence/draft", {
-      form_key: formKey,
-      payload: currentData,
-      force,
-    });
+    const { data: response } = await api.post(
+      "/daily-reports/photo-intelligence/draft",
+      {
+        form_key: formKey,
+        payload: currentData,
+        force,
+      },
+      { skipSessionStatus: true },
+    );
     photoIntelKeyRef.current = compactPhotoSignature;
     photoIntelValueRef.current = response || null;
     setLatestPhotoIntel(response || null);
@@ -374,7 +379,9 @@ export default function DailySummaryAssist({
 
   const pollSummaryJob = useCallback(async ({ jobId, startedAt, requestKey, payload, mySeq }) => {
     try {
-      const { data: state } = await api.get(`/jobs/${encodeURIComponent(jobId)}/status`);
+      const { data: state } = await api.get(`/jobs/${encodeURIComponent(jobId)}/status`, {
+        skipSessionStatus: true,
+      });
       if (mySeq !== requestSeqRef.current) return;
       setActiveJob(state || null);
       if (state?.status === "completed") {
@@ -492,7 +499,7 @@ export default function DailySummaryAssist({
       const { data: resp } = await api.post(
         `/daily-reports/summary/draft`,
         { payload, form_key: formKey, force },
-        { signal: controller.signal },
+        { signal: controller.signal, skipSessionStatus: true },
       );
       if (mySeq !== requestSeqRef.current) return;
       if (resp?.job_id) {

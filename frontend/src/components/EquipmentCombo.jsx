@@ -38,7 +38,7 @@ async function loadMaster() {
   }
   if (_cachePromise) return _cachePromise;
   _cachePromise = api
-    .get("/equipment-master", { timeout: 30000 })
+    .get("/equipment-master", { timeout: 30000, skipSessionStatus: true })
     .then((r) => {
       if (r?.data && Array.isArray(r.data.items) && r.data.items.length > 0) {
         _cache = r.data;

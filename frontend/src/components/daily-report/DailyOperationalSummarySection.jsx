@@ -35,7 +35,9 @@ export default function DailyOperationalSummarySection({ data, set, t }) {
 
   const pollDraftJob = useCallback(async (jobId) => {
     const step = async () => {
-      const { data: state } = await api.get(`/jobs/${encodeURIComponent(jobId)}/status`);
+      const { data: state } = await api.get(`/jobs/${encodeURIComponent(jobId)}/status`, {
+        skipSessionStatus: true,
+      });
       if (state?.status === "completed") return state?.result || null;
       if (state?.status === "failed") {
         throw new Error(state?.error?.message || "Summary assistance is not available right now.");
@@ -77,6 +79,7 @@ export default function DailyOperationalSummarySection({ data, set, t }) {
           payload: buildPayload(),
           language: data?.dr_language === "es" ? "es" : "en",
         },
+        { skipSessionStatus: true },
       );
       const resolved = resp?.job_id ? await pollDraftJob(resp.job_id) : resp;
       const finalResp = resolved || resp;

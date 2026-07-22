@@ -18505,7 +18505,13 @@ _READINESS_EXEMPT_PATHS = {
 
 @app.middleware("http")
 async def _canonical_security_headers(request, call_next):
-    response = await call_next(request)
+    try:
+        response = await call_next(request)
+    except RuntimeError as exc:
+        if str(exc) == "No response returned.":
+            from starlette.responses import Response  # noqa: PLC0415
+            return Response(status_code=204)
+        raise
     response.headers.setdefault("X-Content-Type-Options", "nosniff")
     response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
     response.headers.setdefault("X-Frame-Options", "DENY")
@@ -18567,7 +18573,13 @@ async def _track_22_3_dr_v2_alias_telemetry(request, call_next):
         should_track = path.startswith("/api/dr-v2/") or path.startswith("/api/dr-v2")
     except Exception:  # noqa: BLE001
         should_track = False
-    response = await call_next(request)
+    try:
+        response = await call_next(request)
+    except RuntimeError as exc:
+        if str(exc) == "No response returned.":
+            from starlette.responses import Response  # noqa: PLC0415
+            return Response(status_code=204)
+        raise
     if should_track:
         try:
             asyncio.get_event_loop().create_task(_record_dr_v2_alias_hit(db, request))

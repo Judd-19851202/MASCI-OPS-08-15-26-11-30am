@@ -64,6 +64,7 @@ export const EmployeeCombo = ({
   placeholder,
   testId = "employee-combo",
   className = "",
+  publicFallback = false,
 }) => {
   const { t } = useT();
   const ph = placeholder || t("Type or pick an employee…");
@@ -82,7 +83,7 @@ export const EmployeeCombo = ({
     // any HR Save anywhere in the app.
     const unsub = subscribeHrRoster(apply);
     const tryLoad = (attempt) => {
-      fetchHrRoster().then((items) => {
+      fetchHrRoster({ publicFallback }).then((items) => {
         if (!alive) return;
         apply(items);
         // Auto-retry up to 2x if the first load returns empty — handles
@@ -98,7 +99,7 @@ export const EmployeeCombo = ({
       unsub();
       if (retryTimer) clearTimeout(retryTimer);
     };
-  }, []);
+  }, [publicFallback]);
 
   useEffect(() => {
     const onDoc = (e) => {
@@ -264,7 +265,7 @@ export const EmployeeCombo = ({
             // is no persistent cache — we simply invalidate + re-fetch.
             if ((data?.items?.length || 0) === 0) {
               invalidateHrRoster();
-              fetchHrRoster().then((items) =>
+              fetchHrRoster({ publicFallback }).then((items) =>
                 setData({ items: items || [], count: (items || []).length })
               );
             }

@@ -36,7 +36,7 @@ async function loadJobs() {
   if (_jobsCache) return _jobsCache;
   if (_jobsPromise) return _jobsPromise;
   _jobsPromise = api
-    .get("/jobs")
+    .get("/jobs", { skipSessionStatus: true })
     .then((r) => {
       const items = Array.isArray(r.data?.items) ? r.data.items : [];
       _jobsCache = items.length ? items : STATIC_LIBRARY;

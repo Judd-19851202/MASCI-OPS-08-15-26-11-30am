@@ -31,7 +31,7 @@ async function loadRoster() {
   }
   if (_cachePromise) return _cachePromise;
   _cachePromise = api
-    .get("/field-leadership-roster", { timeout: 30000 })
+    .get("/field-leadership-roster", { timeout: 30000, skipSessionStatus: true })
     .then((r) => {
       if (Array.isArray(r?.data?.items)) {
         _cache = r.data;

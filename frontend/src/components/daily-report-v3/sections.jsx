@@ -263,7 +263,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
   const rosterRef = React.useRef(null);
   React.useEffect(() => {
     let alive = true;
-    fetchHrRoster()
+    fetchHrRoster({ publicFallback: true })
       .then((items) => { if (alive) rosterRef.current = items || []; })
       .catch(() => { if (alive) rosterRef.current = []; });
     return () => { alive = false; };
@@ -402,6 +402,7 @@ export function SectionCrewEquipment({ data, patch, costCodes }) {
               <div className="grid gap-2 sm:grid-cols-[2fr_1fr_auto]">
                 <EmployeeCombo
                   value={c.name || ""}
+                  publicFallback
                   onChange={(name) => {
                     // TRACK 23.4C · Resolve the typed name against the
                     // HR roster. TRACK 26.12 fix: only autofill when the
