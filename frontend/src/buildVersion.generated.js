@@ -3,9 +3,9 @@
 //
 // Field crews / PMs / support: when reporting an issue, include this version
 // so we can pin the exact deployed code.
-export const BUILD_VERSION = "v2026.07.22-d4efb69";
-export const BUILD_COMMIT = "d4efb693b4f17abfbd64d6d32e3ba3996d983eba";
-export const BUILT_AT_ISO = "2026-07-22T21:10:46.491Z";
+export const BUILD_VERSION = "v2026.07.22-8199324";
+export const BUILD_COMMIT = "8199324ab55bf256390b3d9ac3801b763e7dd2ec";
+export const BUILT_AT_ISO = "2026-07-22T21:44:25.591Z";
 export const BUILD_SOURCE_HASH = "b5e4fd73b6f2ff8127abfdb69270e632";
 export const BUILD_DEPENDENCY_MANIFEST_HASH = "b6e3daa826554186ba5c7ed5a2a058b3434be2679f621cb3c51b5aee2fcc6faf";
 export const BUILD_MIGRATION_MANIFEST_HASH = "15192f5cf53149a0ce77eda8076a150f01c537c899184447b7ee290b0e9561c9";
@@ -13,5 +13,5 @@ export const RELEASE_GATE_MANIFEST_HASH = "44be60aee2d3a53d479d5de670e53f564ac67
 export const RELEASE_GATE_MANIFEST_VERSION = "D5D6_RELEASE_GATE/v1";
 export const RELEASE_GATE_MANIFEST_ID = "masci-release-gate-canonical";
 export const BUILD_REPOSITORY = "app";
-export const BUILD_BRANCH = "main";
+export const BUILD_BRANCH = "";
 export const BUILD_WORKSPACE_DIRTY = true;

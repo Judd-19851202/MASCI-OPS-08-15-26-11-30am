@@ -8,6 +8,34 @@
 - Atlas preview-user disposable side-DB restore remains privilege-limited for arbitrary restore DBs; owner gate package now records this as an environment constraint already worked around with successful local isolated restore.
 - Current program status: **C2 TECHNICALLY COMPLETE — EXACT OWNER INFRASTRUCTURE ACTION REQUIRED**. Next checkpoint work (roadmap lock for C3+/D-series) must wait until Jaymn performs Save-to-GitHub and Production deployment/verification.
 
+## 2026-07-22 — Daily Report Production Reliability Incident Repair (P0)
+
+- Incident scope stayed bounded to Daily Report reliability, shared request classification, and the smallest required backend noise suppression. No C3/D-series work started.
+- Root causes identified in repo/preview investigation:
+  1. Public Daily Report flows mounted optional/reference loaders that could still escalate global session/outage state (`/hr/employee-roster`, `/jobs`, `/equipment-master`, `/field-leadership-roster`, `/jobs/{project}/recent-context`, `/daily-reports/summary/draft`, photo-intelligence helper calls) even when the form could continue safely.
+  2. `SessionStatusOverlay` Retry performed a hard page reload for network/backend failures, creating the exact form-reset/data-loss path field users reported.
+  3. Public crew entry used auth-gated HR roster access before public fallback, creating false-auth/global-status churn on anonymous Daily Report routes.
+  4. Aborted background summary-sync requests could bubble `RuntimeError("No response returned.")` through backend middleware, amplifying false outage noise in logs.
+- Repairs completed:
+  - `frontend/src/components/SessionStatusOverlay.jsx`: Retry now uses targeted `state.meta.retry` callback and never reloads the page for network/backend incidents.
+  - `frontend/src/lib/sessionStatusBus.js`: state now carries retry metadata through the bus.
+  - `frontend/src/lib/api.js`: optional/background calls marked with `skipSessionStatus` no longer publish false global recovery signals; session-status payload now includes endpoint/method metadata.
+  - `frontend/src/lib/hrRoster.js`, `frontend/src/components/EmployeeCombo.jsx`, `frontend/src/components/daily-report-v3/sections.jsx`: public Daily Report crew flows now use public roster paths directly and nonblocking fallback behavior.
+  - `frontend/src/components/JobPicker.jsx`, `EquipmentCombo.jsx`, `FlUserCombo.jsx`, `pages/NewDailyReportV3.jsx`, `components/daily-report/DailySummaryAssist.jsx`, `DailyOperationalSummarySection.jsx`, `daily-report-v3/CompetentPersonCombo.jsx`: optional/reference/background requests downgraded to local/nonblocking handling.
+  - `frontend/src/pages/NewDailyReportV3.jsx`: submit failure path now publishes a targeted retry callback for `/daily-reports` instead of relying on reload behavior.
+  - `backend/server.py`: middleware now converts aborted `No response returned.` request chains into empty 204-style responses instead of false backend-error noise.
+- Regression coverage added:
+  - `frontend/src/lib/__tests__/dailyReportReliabilityIncident.test.js`
+  - `frontend/src/components/__tests__/SessionStatusOverlay.dailyReport.test.jsx`
+  - `backend/tests/test_p0_daily_report_reliability.py`
+- Verification completed in repo-accessible preview:
+  - Frontend focused suite: 52 passing tests covering draft continuity, retry preservation, public roster fallback, and session-status behavior.
+  - Backend/preview health: `/api/ready`, `/api/health/full`, `/api/version` healthy and aligned.
+  - Browser verification: public Daily Report route opens cleanly, Add Crew no longer triggers blocking modals, offline editing preserves values, reconnect preserves the same report, and only the calm offline banner appears during disconnect.
+  - Restore compatibility remains proven on local side DB `masci_restore_drill_20260722_local_stream`; rollback simulation still PASS.
+- Production access and real iPad Safari were not directly available from the repo environment. Final owner-only validation must use the exact public Daily Report flow on Production/iPad before Save/Deploy promotion.
+- Current final pre-save candidate after incident repair: `PRE_SAVE_CANDIDATE:8199324ab55bf256390b3d9ac3801b763e7dd2ec:b5e4fd73b6f2`.
+
 ## 2026-07-21 — Checkpoint C2 logout revocation certification complete
 
 Preview verified ✅
