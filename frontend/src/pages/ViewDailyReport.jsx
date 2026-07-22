@@ -144,6 +144,26 @@ const Table = ({ headers, rows, emptyText }) => {
   );
 };
 
+function formatAttachmentSize(bytes) {
+  const size = Number(bytes || 0);
+  if (!size) return "—";
+  if (size >= 1024 * 1024) return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+  if (size >= 1024) return `${Math.round(size / 1024)} KB`;
+  return `${size} B`;
+}
+
+function attachmentKindLabel(rawKind, rawCategory) {
+  const key = String(rawKind || rawCategory || "other").trim().toLowerCase();
+  const labels = {
+    pdf: "PDF",
+    spreadsheet: "Spreadsheet",
+    text: "Text",
+    document: "Document",
+    other: "Other",
+  };
+  return labels[key] || String(rawCategory || rawKind || "Other");
+}
+
 export default function ViewDailyReport() {
   const branding = useBranding();
   const { t } = useT();
@@ -827,6 +847,23 @@ export default function ViewDailyReport() {
                 </div>
               </div>
             )}
+          </ReportSection>
+        )}
+
+        {data.attachments?.length > 0 && (
+          <ReportSection number="10A" title={`${t("Attachments & document evidence")} (${data.attachments.length})`}>
+            <div data-testid="dr-view-attachments">
+              <Table
+                headers={[t("Kind"), t("Filename"), t("Size"), t("Uploaded")]}
+                rows={(data.attachments || []).map((attachment) => [
+                  attachmentKindLabel(attachment?.kind, attachment?.category),
+                  attachment?.filename || t("Attachment"),
+                  formatAttachmentSize(attachment?.file_size),
+                  attachment?.uploaded_at ? formatPlatformTime(attachment.uploaded_at) : "—",
+                ])}
+                emptyText={t("No attachments uploaded.")}
+              />
+            </div>
           </ReportSection>
         )}
 

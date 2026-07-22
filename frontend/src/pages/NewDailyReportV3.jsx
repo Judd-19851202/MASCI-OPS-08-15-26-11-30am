@@ -130,6 +130,11 @@ function buildLocationPatch({ latitude, longitude, accuracy, capturedAt, locatio
   };
 }
 
+function formatDailyReportNumberPreview(nextNumber) {
+  if (nextNumber === null || nextNumber === undefined || nextNumber === "") return "";
+  return `Report #${String(nextNumber).trim()}`;
+}
+
 export default function NewDailyReportV3({ publicMode = false }) {
   const navigate = useNavigate();
   const { t, lang } = useT();
@@ -454,9 +459,12 @@ export default function NewDailyReportV3({ publicMode = false }) {
       .get(`/daily-reports/next-number?report_date=${encodeURIComponent(data.report_date)}`)
       .then(({ data: res }) => {
         if (cancelled) return;
-        if (res?.next_number) setReportNumberPreview(res.next_number);
+        const nextNumber = res?.next_number ?? res?.report_number ?? "";
+        setReportNumberPreview(formatDailyReportNumberPreview(nextNumber));
       })
-      .catch(() => {});
+      .catch(() => {
+        if (!cancelled) setReportNumberPreview("");
+      });
     return () => {
       cancelled = true;
     };

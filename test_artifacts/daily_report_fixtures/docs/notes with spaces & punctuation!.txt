@@ -1,0 +1,3 @@
+Fixture attachment for Daily Report evidence extraction.
+Quantity: 125 LF
+Delay: utility conflict

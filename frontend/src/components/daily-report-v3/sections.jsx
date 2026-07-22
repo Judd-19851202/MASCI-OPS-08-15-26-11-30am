@@ -8,6 +8,7 @@ import { EmployeeCombo } from "@/components/EmployeeCombo";
 import { EquipmentCombo } from "@/components/EquipmentCombo";
 import { SupplierCombo } from "@/components/SupplierCombo";
 import { PhotoUpload } from "@/components/PhotoUpload";
+import AttachmentUpload from "@/components/AttachmentUpload";
 import { SignaturePad } from "@/components/SignaturePad";
 import DailySummaryAssist from "@/components/daily-report/DailySummaryAssist";
 import { Button } from "@/components/ui/button";
@@ -1682,6 +1683,7 @@ export function SectionMaterials({ data, patch, costCodes }) {
 export function SectionPhotos({ data, patch, photoMin, photoIntelStatus, onPhotoBatchStateChange, onPhotoReady }) {
   const { t } = useT();
   const photos = data.photos || [];
+  const attachments = data.attachments || [];
   const short = Math.max(0, (photoMin || 6) - photos.length);
   return (
     <SectionShell
@@ -1716,6 +1718,27 @@ export function SectionPhotos({ data, patch, photoMin, photoIntelStatus, onPhoto
             : `${t("Add at least")} ${short} ${t("more photos before submit.")}`}
         </p>
       )}
+      <div className="mt-5 border-t border-slate-200 pt-4" data-testid="dr-v3-attachments-section">
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <div>
+            <div className="text-sm font-medium text-slate-800">{t("Attachments & document evidence")}</div>
+            <p className="mt-1 text-xs text-slate-500">
+              {t("Upload delivery tickets, quantity spreadsheets, CEI notes, or other supporting files.")}
+            </p>
+          </div>
+          <span
+            className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600"
+            data-testid="dr-v3-attachments-count"
+          >
+            {attachments.length} {attachments.length === 1 ? t("file") : t("files")}
+          </span>
+        </div>
+        <AttachmentUpload
+          attachments={attachments}
+          onChange={(next) => patch({ attachments: next })}
+          testIdBase="dr-v3-attachments"
+        />
+      </div>
     </SectionShell>
   );
 }

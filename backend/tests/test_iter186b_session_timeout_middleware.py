@@ -38,6 +38,11 @@ class _FakeColl:
         existing = self.store.get(th)
         if "$setOnInsert" in update and existing is None and upsert:
             self.store[th] = dict(update["$setOnInsert"])
+        if "$set" in update:
+            self.store.setdefault(th, {}).update(update["$set"])
+        if "$unset" in update:
+            for k in update["$unset"].keys():
+                self.store.setdefault(th, {}).pop(k, None)
         if "$max" in update:
             for k, v in update["$max"].items():
                 cur = self.store.get(th, {}).get(k)
@@ -188,3 +193,31 @@ def test_middleware_dev_token_excluded(monkeypatch):
     assert r.status_code == 200
     # No row written for dev tokens
     assert db._store == {}
+
+
+@pytest.mark.asyncio
+async def test_reset_session_activity_clears_stale_directory_binding(monkeypatch):
+    monkeypatch.setenv("SESSION_TIMEOUTS_ENABLED", "true")
+    from session_timeout import reset_session_activity, _hash_token
+
+    db = _FakeDB()
+    token = "pm-token-123"
+    token_hash = _hash_token(token)
+    db._store[token_hash] = {
+        "token_hash": token_hash,
+        "tier": "OPERATIONS",
+        "directory_session_token_hash": "stale-directory-binding",
+    }
+
+    await reset_session_activity(
+        db,
+        token,
+        "OPERATIONS",
+        user_id="pm-1",
+        email="pm@example.com",
+        actor_label="pm",
+    )
+
+    assert db._store[token_hash]["user_id"] == "pm-1"
+    assert db._store[token_hash]["email"] == "pm@example.com"
+    assert "directory_session_token_hash" not in db._store[token_hash]

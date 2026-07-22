@@ -313,8 +313,11 @@ async def reset_session_activity(
             doc["last_login_ip"] = ip
         if user_agent:
             doc["last_user_agent"] = user_agent[:240]
+        update_doc: dict = {"$set": doc}
+        if not directory_token:
+          update_doc["$unset"] = {"directory_session_token_hash": ""}
         await db.session_activity.update_one(
-            {"token_hash": th}, {"$set": doc}, upsert=True,
+            {"token_hash": th}, update_doc, upsert=True,
         )
     except Exception as e:  # noqa: BLE001
         logger.warning("[session-timeout] reset_session_activity failed: %s", e)
