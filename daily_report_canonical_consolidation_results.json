@@ -1,0 +1,190 @@
+{
+  "test_suite": "Daily Report Canonical Consolidation - Final Backend Verification",
+  "base_url": "http://localhost:8001",
+  "expected_commit": "8c4f2655ef2d29f5b58685e5770b766a213c9b2f",
+  "timestamp": "2026-07-22T22:43:16.199962Z",
+  "tests": [
+    {
+      "test": "Test 1: /api/ready returns 200 ok=true",
+      "passed": true,
+      "details": {
+        "status_code": 200,
+        "ok": true,
+        "state": "ready",
+        "mongo_ok": true,
+        "event_loop_ok": true,
+        "startup_complete": true
+      }
+    },
+    {
+      "test": "Test 2: /api/health/full returns 200 ok=true",
+      "passed": true,
+      "details": {
+        "status_code": 200,
+        "ok": true,
+        "mongo": true,
+        "scheduler": true,
+        "backup_recent": true,
+        "runtime_identity_ok": true
+      }
+    },
+    {
+      "test": "Test 3: /api/version returns correct commit and frontend_backend_release_match=true",
+      "passed": true,
+      "details": {
+        "status_code": 200,
+        "commit": "8c4f2655ef2d29f5b58685e5770b766a213c9b2f",
+        "expected_commit": "8c4f2655ef2d29f5b58685e5770b766a213c9b2f",
+        "commit_match": true,
+        "frontend_backend_release_match": true,
+        "source_hash": "17d03939a5824e8dd3d38275148c3be8",
+        "frontend_build_commit": "8c4f2655ef2d29f5b58685e5770b766a213c9b2f"
+      }
+    },
+    {
+      "test": "Test 4: POST /api/auth/multi-login succeeds",
+      "passed": true,
+      "details": {
+        "status_code": 200,
+        "has_session_token": true,
+        "has_portal_tokens": true,
+        "portal_tokens_keys": [
+          "admin",
+          "pm",
+          "shop",
+          "hr",
+          "safety",
+          "dispatch",
+          "field_leadership",
+          "fl"
+        ]
+      }
+    },
+    {
+      "test": "Test 5: /api/daily-reports/approved returns items with source=canonical only",
+      "passed": true,
+      "details": {
+        "status_code": 200,
+        "total_items": 50,
+        "all_canonical": true,
+        "non_canonical_count": 0,
+        "non_canonical_samples": []
+      }
+    },
+    {
+      "test": "Test 6: /api/daily-reports/{id}/pdf returns queued PDF job payload",
+      "passed": true,
+      "details": {
+        "status_code": 202,
+        "report_id": "5741b9a8-4546-4310-84e1-95e5e13981c3",
+        "response_keys": [
+          "ok",
+          "job_id",
+          "kind",
+          "status",
+          "status_url",
+          "poll_after_ms",
+          "message",
+          "details"
+        ],
+        "has_job_id": true,
+        "response_sample": "{'ok': True, 'job_id': '65ba76e5-9f10-4d03-bd2a-3467ccc0aad0', 'kind': 'daily_report_pdf', 'status': 'queued', 'status_url': '/api/jobs/65ba76e5-9f10-4d03-bd2a-3467ccc0aad0/status', 'poll_after_ms': 1"
+      }
+    },
+    {
+      "test": "Test 7: /api/dr-v2/meta is read-only compatibility (legacy_writes_blocked=true)",
+      "passed": true,
+      "details": {
+        "status_code": 200,
+        "legacy_writes_blocked": true,
+        "canonical_route": "/daily/submit",
+        "canonical_api": "/api/daily-reports",
+        "full_response": {
+          "feature_flag": true,
+          "agents": [
+            "day_narrative",
+            "risk_and_constraints",
+            "tomorrow_readiness"
+          ],
+          "provider": "emergent",
+          "model": "",
+          "ai_available": true,
+          "envelope_schema": {
+            "type": "object",
+            "required": [
+              "narrative",
+              "confidence",
+              "evidence_refs",
+              "sources_used"
+            ],
+            "properties": {
+              "narrative": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "confidence": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "evidence_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "sources_used": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "uncertainties": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          "read_only_compatibility": true,
+          "legacy_writes_blocked": true,
+          "canonical_route": "/daily/submit",
+          "canonical_api": "/api/daily-reports"
+        }
+      }
+    },
+    {
+      "test": "Test 8: Admin backup integrity check passes",
+      "passed": true,
+      "details": {
+        "status_code": 200,
+        "integrity_result": "PASS",
+        "last_backup_filename": "MASCI_complete_backup_2026-07-22_155504Z.zip",
+        "collections_captured": null,
+        "documents_captured": null,
+        "missing_from_backup": []
+      }
+    },
+    {
+      "test": "Test 9: Rollback simulation artifact exists and shows PASS",
+      "passed": true,
+      "details": {
+        "artifact_path": "/app/test_reports/track_15_69_rollback_simulation.json",
+        "exists": true,
+        "rollback_within_budget": true,
+        "drift_count": 0,
+        "rollback_duration_s": 0.03,
+        "rollback_target_s": 300
+      }
+    }
+  ],
+  "summary": {
+    "total_tests": 9,
+    "passed": 9,
+    "failed": 0,
+    "pass_rate": "100.0%"
+  },
+  "overall_status": "PASS"
+}
