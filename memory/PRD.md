@@ -36,6 +36,23 @@
 - Production access and real iPad Safari were not directly available from the repo environment. Final owner-only validation must use the exact public Daily Report flow on Production/iPad before Save/Deploy promotion.
 - Current final pre-save candidate after incident repair: `PRE_SAVE_CANDIDATE:8199324ab55bf256390b3d9ac3801b763e7dd2ec:b5e4fd73b6f2`.
 
+## 2026-07-22 — Daily Report Canonical Consolidation & Production Certification Pass
+
+- Bounded consolidation completed without redesign or D-series drift.
+- Canonical operator route remains `/daily/submit` → `NewDailyReportV3` → `POST /api/daily-reports`.
+- Removed automatic legacy draft migration/recovery from the active operator flow. Restore authority is now exact-scope draft only; archived recovery remains explicit operator action.
+- Quarantined legacy DR V2 runtime from canonical reads:
+  - `daily-reports/approved` now returns canonical `daily_reports` records only.
+  - `daily-reports/{id}/pdf` now resolves from canonical `daily_reports` only.
+  - `dr-v2/meta` remains as read-only compatibility metadata with `legacy_writes_blocked=true`.
+- Legacy `/api/dr-v2/*` write behavior remains blocked, but compatibility metadata is still exposed for bounded historical awareness.
+- Verified in preview/backend:
+  - Browser operator flow: canonical V3 form loads, crew/job/equipment pickers work, autosave works, no blocking outage modal in normal entry, offline banner behavior verified in browser-simulated disconnect, reconnect preserves values.
+  - Backend canonical checks: `/api/ready`, `/api/health/full`, `/api/version`, `/api/daily-reports/approved`, `/api/daily-reports/{id}/pdf`, backup integrity, rollback simulation all passed.
+  - Restore compatibility remains valid on local isolated restore DB `masci_restore_drill_20260722_local_stream`.
+- Current final pre-save candidate after canonical consolidation: `PRE_SAVE_CANDIDATE:8c4f2655ef2d29f5b58685e5770b766a213c9b2f:17d03939a582`.
+- Remaining owner-only verification is limited to real device / production-only surfaces: real iPad Safari, installed iPad PWA, camera, microphone, native speech recognition, physical restart cycles, production URL/infrastructure, and production email delivery.
+
 ## 2026-07-21 — Checkpoint C2 logout revocation certification complete
 
 Preview verified ✅
