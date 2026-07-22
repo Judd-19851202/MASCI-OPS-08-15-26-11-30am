@@ -498,3 +498,54 @@ Current status
 - Checkpoint C2: GO
 - Final bounded evidence closeout: COMPLETE
 - Next sequential work remains blocked until explicit user instruction: Checkpoint C3
+
+## 2026-07-22 — C2 Phase 2 blocker remediation complete
+
+Scope
+- Bounded remediation only for F-001/F-002 (release identity), F-003/F-004 (Preview SAFE_CAPTURE vs Production PROVIDER_LIVE), while keeping F-005 explicitly BLOCKING as `OWNER_EVIDENCE_REQUIRED`.
+- No deployment performed. No C3 work started.
+
+Implemented
+- `backend/lib/notification_delivery.py`
+  - Preview/test now force `SAFE_CAPTURE` even if a live-mode override is attempted.
+  - Production now force-selects `PROVIDER_LIVE` and fails closed on missing/invalid `RESEND_API_KEY`.
+  - Added contract metadata (`delivery_mode_source`, explicit override visibility) and env-injected delivery testing support.
+- `backend/scripts/verify_release_identity.py`
+  - Added canonical release commit reporting and explicit parity checks for workspace HEAD, frontend build commit, and runtime commit.
+- `backend/routes/admin_dr_delivery_forensics.py`
+  - Added truthful preview SAFE_CAPTURE classification (`ok_captured_preview`) and environment-aware expected stage contract.
+- Regression/unit coverage added for preview SAFE_CAPTURE coercion, production fail-closed behavior, canonical release identity parity, and preview-capture forensic classification.
+
+Verification completed
+- `verify_release_identity.py --strict` passes with canonical SHA parity.
+- `/api/version` now reports the same canonical SHA across workspace evidence, generated frontend build identity, backend runtime, and Preview runtime.
+- Live Preview Daily Report proof completed successfully:
+  - record persisted,
+  - `notification_state=captured_preview`,
+  - `notification_delivery_mode=SAFE_CAPTURE`,
+  - `notification_provider_called=false`,
+  - `notification_provider_accepted=false`,
+  - inspectable capture payload stored,
+  - trust spine shows `notification_queued -> audit_written -> delivery_captured_preview -> completed_for_environment`,
+  - no `api key is invalid` surfaced.
+- Independent backend QA and frontend smoke testing passed.
+
+Evidence package
+- `/app/test_reports/c2_phase2_blocker_remediation/release_identity_evidence.json`
+- `/app/test_reports/c2_phase2_blocker_remediation/notification_environment_contract.json`
+- `/app/test_reports/c2_phase2_blocker_remediation/daily_report_preview_capture_evidence.json`
+- `/app/test_reports/c2_phase2_blocker_remediation/root_cause_analysis.json`
+- `/app/test_reports/c2_phase2_blocker_remediation/before_after_evidence.md`
+- `/app/test_reports/c2_phase2_blocker_remediation/independent_rereview.json`
+
+Decision
+- F-001: RESOLVED
+- F-002: RESOLVED
+- F-003: RESOLVED
+- F-004: RESOLVED
+- F-005: BLOCKING — `OWNER_EVIDENCE_REQUIRED`
+
+Remaining work
+- P0: Obtain owner-supplied backup / rollback proof for F-005. Do not fabricate or downgrade.
+- P1: None inside this bounded C2 remediation scope.
+- P2: Future C3 work remains out of scope until explicitly requested.
