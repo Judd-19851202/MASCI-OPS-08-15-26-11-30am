@@ -483,3 +483,18 @@ Current status
 Next actions
 - P0: Correct the Preview Resend credential/environment and rerun one controlled Daily Report certification attempt.
 - P0: Re-check `provider_accepted`, `audit_written`, and `completed=ok` after the Preview credential is corrected.
+
+## 2026-07-22 — Checkpoint C2 bounded final evidence closeout
+- Closed Workstream 2 by routing `/api/admin/logout` and `/api/pm/logout` through canonical `/api/auth/multi-logout`, while binding shared portal access to `X-Directory-Token` in `backend/session_timeout.py`.
+- Added exact closeout proofs: backend `test_c2_closeout_logout_reconciliation.py` (5/5 PASS), reran `test_c2_15_16_server_side_logout.py` (8/8 PASS), and frontend `c2_closeout_trust_surfaces.test.jsx` (2/2 PASS).
+- Captured honest browser matrix evidence in `/app/test_reports/c2_closeout_browser_matrix.json` and `/app/test_reports/screenshots/c2_closeout/` for Chromium desktop/tablet/mobile; non-executable engines/devices are logged as `UNAVAILABLE` / `NOT_CERTIFIABLE`.
+- Recorded definitive C2-R4/C2-R5 closeout dispositions:
+  - `operations_trust_center` → `ACTIVE_REPAIRED`, `DERIVED_CONSUMER`, canonical owner `trust_spine`
+  - `platform_trust_validator` → `ACTIVE_REPAIRED`, `VALIDATOR`, canonical owner `platform_attestation`
+- Independent verification passed in `/app/test_reports/iteration_13.json`: backend 13/13 and frontend/browser closeout flows 100%.
+- Governance evidence recorded in `/app/test_reports/c2_closeout_governance_evidence.json`: preview-only execution, no deployment, no Save-to-GitHub action.
+
+Current status
+- Checkpoint C2: GO
+- Final bounded evidence closeout: COMPLETE
+- Next sequential work remains blocked until explicit user instruction: Checkpoint C3
