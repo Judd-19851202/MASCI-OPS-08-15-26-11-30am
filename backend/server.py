@@ -12898,10 +12898,16 @@ async def _start_motive_reliability_loop():
     """
     try:
         from lib.motive_reliability import motive_reliability_supervisor  # noqa: PLC0415
+        target_db = db.get_target()
+        if target_db is None:
+            logging.getLogger(__name__).warning(
+                "[motive-reliability] runtime database target unavailable at scheduler registration; skipping"
+            )
+            return
         register_background_task(
             app,
             name="motive-reliability-supervisor",
-            coro=motive_reliability_supervisor(db),
+            coro=motive_reliability_supervisor(target_db),
             category="scheduler",
             critical=False,
             long_running=True,

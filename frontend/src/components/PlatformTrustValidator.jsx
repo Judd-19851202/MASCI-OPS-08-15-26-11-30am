@@ -109,12 +109,24 @@ export default function PlatformTrustValidator() {
     run();
   }, [run]);
 
+  const dispositionMeta = (
+    <div
+      data-testid="platform-trust-validator-disposition"
+      className="hidden"
+      data-trust-surface-id="platform_trust_validator"
+      data-trust-disposition="ACTIVE_REPAIRED"
+      data-trust-role="VALIDATOR"
+      data-canonical-owner="platform_attestation"
+    />
+  );
+
   if (loading && !data) {
     return (
       <div
         data-testid="platform-trust-loading"
         className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500"
       >
+        {dispositionMeta}
         <RotateCw className="inline-block animate-spin mr-2" size={14} />
         Running validation…
       </div>
@@ -127,6 +139,7 @@ export default function PlatformTrustValidator() {
         data-testid="platform-trust-error"
         className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800"
       >
+        {dispositionMeta}
         <strong>Trust validator unavailable:</strong> {error}
         <div className="mt-2">
           <Button
@@ -156,14 +169,7 @@ export default function PlatformTrustValidator() {
 
   return (
     <div data-testid="platform-trust-validator" className="space-y-4">
-      <div
-        data-testid="platform-trust-validator-disposition"
-        className="hidden"
-        data-trust-surface-id="platform_trust_validator"
-        data-trust-disposition="ACTIVE_REPAIRED"
-        data-trust-role="VALIDATOR"
-        data-canonical-owner="platform_attestation"
-      />
+      {dispositionMeta}
       <TruthOwnerPanel
         title="Validation relationship"
         surface={data?.canonical_truth?.validation_surface}

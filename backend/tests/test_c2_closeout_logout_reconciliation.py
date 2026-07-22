@@ -149,14 +149,20 @@ def test_old_token_cannot_revive_after_fresh_relogin():
 
         stale_admin = session.get(
             f"{base}/api/admin/check",
-            headers={"X-Admin-Token": old_admin},
+            headers={
+                "X-Admin-Token": old_admin,
+                "X-Directory-Token": bundle["session_token"],
+            },
             timeout=30,
         )
         assert stale_admin.status_code == 401, stale_admin.text[:200]
 
         stale_pm = session.get(
             f"{base}/api/pm/check",
-            headers={"X-PM-Token": old_pm},
+            headers={
+                "X-PM-Token": old_pm,
+                "X-Directory-Token": bundle["session_token"],
+            },
             timeout=30,
         )
         assert stale_pm.status_code == 401, stale_pm.text[:200]
@@ -164,7 +170,10 @@ def test_old_token_cannot_revive_after_fresh_relogin():
         fresh_admin = payload["portal_tokens"]["admin"]
         fresh_check = session.get(
             f"{base}/api/admin/check",
-            headers={"X-Admin-Token": fresh_admin},
+            headers={
+                "X-Admin-Token": fresh_admin,
+                "X-Directory-Token": payload["session_token"],
+            },
             timeout=30,
         )
         assert fresh_check.status_code == 200, fresh_check.text[:200]

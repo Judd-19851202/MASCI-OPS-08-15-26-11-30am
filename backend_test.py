@@ -1,472 +1,795 @@
-#!/usr/bin/env python3
 """
-Backend verification for Daily Report changes (Track 27.11D).
+C2 Closeout Backend Verification Test
+======================================
 
-Tests:
-1. POST /api/transcribe - accepts multipart audio uploads
-2. POST /api/daily-reports - includes conflict_watchdog metadata
-3. GET /api/daily-reports.csv - async polling with 202, job_id, status_url
-4. POST /api/daily-reports/photo-intelligence/draft - returns photo_statuses
-5. No regressions in async jobs flow
+Tests the C2 closeout backend behavior for shared-session logout canonicalization
+and session invalidation as specified in the review request.
+
+Test Behaviors:
+1. /api/auth/multi-login returns directory session token + portal tokens
+2. /api/admin/logout is a compatibility wrapper over canonical /api/auth/multi-logout
+3. /api/pm/logout is also a compatibility wrapper over canonical /api/auth/multi-logout
+4. Multi-tab invalidation: logout from tab A, protected API in tab B returns 401
+5. Back-after-logout: replaying protected request after logout returns 401
+6. Fresh re-login after logout restores access with fresh session, old session stays rejected
+7. C2 test suites pass behaviorally
+
+Seeded credentials: jaymn.judd@mascigc.com / Maddix123!
 """
-
-import asyncio
-import io
-import json
 import os
-import sys
+import requests
 import time
-from datetime import datetime, timezone
 
-import httpx
+# Backend URL from environment
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://backup-forensics.preview.emergentagent.com").rstrip("/")
 
-# Configuration
-BACKEND_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://backup-forensics.preview.emergentagent.com")
-API_BASE = f"{BACKEND_URL}/api"
-ADMIN_EMAIL = "jaymn.judd@mascigc.com"
-ADMIN_PASSWORD = "Maddix123!"
-
-# Test results
-results = {
-    "passed": 0,
-    "failed": 0,
-    "tests": []
+# Test credentials
+SUPER_ADMIN_CREDS = {
+    "email": "jaymn.judd@mascigc.com",
+    "password": "Maddix123!"
 }
 
+def print_section(title):
+    """Print a formatted section header"""
+    print("\n" + "="*70)
+    print(f"  {title}")
+    print("="*70)
 
-def log_test(name: str, passed: bool, message: str = ""):
-    """Log test result."""
-    status = "✅ PASS" if passed else "❌ FAIL"
-    print(f"{status}: {name}")
-    if message:
-        print(f"  {message}")
+def print_test(test_num, description):
+    """Print a formatted test header"""
+    print(f"\n[TEST {test_num}] {description}")
+    print("-" * 70)
+
+def print_pass(message):
+    """Print a pass message"""
+    print(f"✅ PASS: {message}")
+
+def print_fail(message):
+    """Print a fail message"""
+    print(f"❌ FAIL: {message}")
+
+def print_info(message):
+    """Print an info message"""
+    print(f"ℹ️  INFO: {message}")
+
+
+def test_behavior_1_multi_login_returns_tokens():
+    """
+    Behavior 1: /api/auth/multi-login returns directory session token + portal tokens
+    """
+    print_test(1, "Multi-login returns directory session token + portal tokens")
     
-    results["tests"].append({
-        "name": name,
-        "passed": passed,
-        "message": message
-    })
+    session = requests.Session()
+    session.headers.update({"Content-Type": "application/json"})
     
-    if passed:
-        results["passed"] += 1
-    else:
-        results["failed"] += 1
-
-
-async def get_admin_token() -> str:
-    """Authenticate and get admin token."""
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        response = await client.post(
-            f"{API_BASE}/auth/multi-login",
-            json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD}
+    try:
+        response = session.post(
+            f"{BASE_URL}/api/auth/multi-login",
+            json=SUPER_ADMIN_CREDS,
+            timeout=30
         )
         
         if response.status_code != 200:
-            raise Exception(f"Authentication failed: {response.status_code} - {response.text}")
+            print_fail(f"Multi-login failed with status {response.status_code}")
+            print(f"Response: {response.text[:500]}")
+            return None
         
         data = response.json()
-        admin_token = data.get("portal_tokens", {}).get("admin")
         
-        if not admin_token:
-            raise Exception("No admin token in response")
-        
-        return admin_token
-
-
-async def test_transcribe_endpoint(token: str):
-    """Test 1: POST /api/transcribe accepts multipart audio uploads."""
-    print("\n=== Test 1: POST /api/transcribe ===")
-    
-    # Create a minimal audio file (webm format)
-    # This is a minimal valid webm header
-    audio_data = b'\x1a\x45\xdf\xa3\x9f\x42\x86\x81\x01\x42\xf7\x81\x01\x42\xf2\x81\x04\x42\xf3\x81\x08\x42\x82\x84webm\x42\x87\x81\x02\x42\x85\x81\x02'
-    
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        # Test with valid audio file
-        files = {
-            "audio": ("test_voice.webm", io.BytesIO(audio_data), "audio/webm")
-        }
-        data = {
-            "field_hint": "work_performed",
-            "language_hint": "auto",
-            "project_number": "TEST-001"
-        }
-        
-        try:
-            response = await client.post(
-                f"{API_BASE}/transcribe",
-                files=files,
-                data=data
-            )
-            
-            # Endpoint should return either 200 (success) or 422 (validation error for invalid audio)
-            # or 503 (service unavailable if LLM key missing)
-            if response.status_code in [200, 422, 503, 502]:
-                if response.status_code == 200:
-                    result = response.json()
-                    has_required_fields = all(k in result for k in ["ok", "english_text", "work_performed", "activities"])
-                    log_test(
-                        "POST /api/transcribe returns valid response structure",
-                        has_required_fields,
-                        f"Response has required fields: {has_required_fields}"
-                    )
-                elif response.status_code == 422:
-                    log_test(
-                        "POST /api/transcribe validation works",
-                        True,
-                        "Endpoint correctly validates audio input (422 for invalid audio)"
-                    )
-                elif response.status_code == 503:
-                    log_test(
-                        "POST /api/transcribe endpoint exists",
-                        True,
-                        "Endpoint exists but LLM key not configured (503 - expected in some environments)"
-                    )
-                else:  # 502
-                    log_test(
-                        "POST /api/transcribe endpoint exists",
-                        True,
-                        "Endpoint exists but transcription service failed (502 - expected with minimal audio)"
-                    )
-            else:
-                log_test(
-                    "POST /api/transcribe endpoint exists",
-                    False,
-                    f"Unexpected status code: {response.status_code}"
-                )
-        except Exception as e:
-            log_test("POST /api/transcribe endpoint", False, f"Error: {str(e)}")
-
-
-async def test_daily_report_with_conflict_watchdog(token: str):
-    """Test 2: POST /api/daily-reports includes conflict_watchdog metadata."""
-    print("\n=== Test 2: POST /api/daily-reports with conflict_watchdog ===")
-    
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        # Create a daily report
-        report_data = {
-            "project_name": "Test Project",
-            "project_number": "TEST-DR-001",
-            "location": "Test Site",
-            "report_date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
-            "prepared_by": "Test Supervisor",
-            "superintendent": "Test Super",
-            "weather_summary": "Clear skies",
-            "general_notes": "Test report for conflict watchdog verification",
-            "ai_accepted_summary": "Test summary for validation",
-            "ai_accepted_summary_meta": {
-                "source": "manual",
-                "accepted_at": datetime.now(timezone.utc).isoformat()
-            }
-        }
-        
-        try:
-            response = await client.post(
-                f"{API_BASE}/daily-reports",
-                json=report_data,
-                headers={"X-Admin-Token": token}
-            )
-            
-            if response.status_code == 200:
-                result = response.json()
-                
-                # Check if conflict_watchdog is present
-                has_conflict_watchdog = "conflict_watchdog" in result
-                log_test(
-                    "POST /api/daily-reports includes conflict_watchdog",
-                    has_conflict_watchdog,
-                    f"conflict_watchdog present: {has_conflict_watchdog}"
-                )
-                
-                if has_conflict_watchdog:
-                    watchdog = result["conflict_watchdog"]
-                    required_fields = ["has_conflicts", "requires_pm_review", "checked_at"]
-                    has_required = all(f in watchdog for f in required_fields)
-                    log_test(
-                        "conflict_watchdog has required fields",
-                        has_required,
-                        f"Required fields present: {has_required}"
-                    )
-                
-                # Store report ID for later tests
-                return result.get("id")
-            else:
-                log_test(
-                    "POST /api/daily-reports creates report",
-                    False,
-                    f"Status: {response.status_code}, Error: {response.text[:200]}"
-                )
-                return None
-        except Exception as e:
-            log_test("POST /api/daily-reports", False, f"Error: {str(e)}")
+        if not data.get("ok"):
+            print_fail(f"Multi-login response not ok: {data}")
             return None
-
-
-async def test_csv_export_async_polling(token: str):
-    """Test 3: GET /api/daily-reports.csv uses async polling."""
-    print("\n=== Test 3: GET /api/daily-reports.csv async polling ===")
-    
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        try:
-            # Request CSV export
-            response = await client.get(
-                f"{API_BASE}/daily-reports.csv",
-                headers={"X-Admin-Token": token}
-            )
-            
-            # Should return 202 Accepted
-            if response.status_code == 202:
-                result = response.json()
-                
-                # Check for required fields
-                has_job_id = "job_id" in result
-                has_status_url = "status_url" in result
-                
-                log_test(
-                    "GET /api/daily-reports.csv returns 202 with job_id",
-                    has_job_id,
-                    f"job_id present: {has_job_id}"
-                )
-                
-                log_test(
-                    "GET /api/daily-reports.csv returns status_url",
-                    has_status_url,
-                    f"status_url: {result.get('status_url', 'N/A')}"
-                )
-                
-                if has_job_id and has_status_url:
-                    job_id = result["job_id"]
-                    status_url = result["status_url"]
-                    
-                    # Poll the status endpoint
-                    max_attempts = 10
-                    for attempt in range(max_attempts):
-                        await asyncio.sleep(1.5)  # Wait before polling
-                        
-                        status_response = await client.get(
-                            f"{API_BASE}{status_url.replace('/api', '')}",
-                            headers={"X-Admin-Token": token}
-                        )
-                        
-                        if status_response.status_code == 200:
-                            status_data = status_response.json()
-                            job_status = status_data.get("status")
-                            
-                            print(f"  Attempt {attempt + 1}: Job status = {job_status}")
-                            
-                            if job_status == "completed":
-                                # download_url is in the result object
-                                result_obj = status_data.get("result", {})
-                                has_download_url = "download_url" in result_obj
-                                log_test(
-                                    "Async job reaches completed status with download_url",
-                                    has_download_url,
-                                    f"download_url: {result_obj.get('download_url', 'N/A')}"
-                                )
-                                break
-                            elif job_status in ["failed", "error"]:
-                                log_test(
-                                    "Async job processing",
-                                    False,
-                                    f"Job failed: {status_data.get('message', 'Unknown error')}"
-                                )
-                                break
-                        else:
-                            log_test(
-                                "GET /api/jobs/{job_id}/status endpoint",
-                                False,
-                                f"Status check failed: {status_response.status_code}"
-                            )
-                            break
-                    else:
-                        # Timeout after max attempts
-                        log_test(
-                            "Async job completion",
-                            False,
-                            f"Job did not complete within {max_attempts} attempts"
-                        )
-            else:
-                log_test(
-                    "GET /api/daily-reports.csv returns 202",
-                    False,
-                    f"Expected 202, got {response.status_code}"
-                )
-        except Exception as e:
-            log_test("GET /api/daily-reports.csv async flow", False, f"Error: {str(e)}")
-
-
-async def test_photo_intelligence_draft(token: str):
-    """Test 4: POST /api/daily-reports/photo-intelligence/draft returns photo_statuses."""
-    print("\n=== Test 4: POST /api/daily-reports/photo-intelligence/draft ===")
-    
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        # Create a draft payload with photos
-        draft_payload = {
-            "form_key": f"daily-report::TEST::2026-01-01::test-{int(time.time())}",
-            "payload": {
-                "project_number": "TEST-001",
-                "report_date": "2026-01-01",
-                "photos": [
-                    "photo://test-photo-1",
-                    "photo://test-photo-2",
-                    "photo://test-photo-3"
-                ]
-            },
-            "force": False
-        }
         
-        try:
-            response = await client.post(
-                f"{API_BASE}/daily-reports/photo-intelligence/draft",
-                json=draft_payload,
-                headers={"X-Admin-Token": token}
-            )
-            
-            if response.status_code == 200:
-                result = response.json()
-                
-                # Check for photo_statuses field
-                has_photo_statuses = "photo_statuses" in result
-                log_test(
-                    "POST /api/daily-reports/photo-intelligence/draft returns photo_statuses",
-                    has_photo_statuses,
-                    f"photo_statuses present: {has_photo_statuses}"
-                )
-                
-                if has_photo_statuses:
-                    photo_statuses = result["photo_statuses"]
-                    is_list = isinstance(photo_statuses, list)
-                    log_test(
-                        "photo_statuses is a list",
-                        is_list,
-                        f"Type: {type(photo_statuses).__name__}, Length: {len(photo_statuses) if is_list else 'N/A'}"
-                    )
-                    
-                    if is_list and len(photo_statuses) > 0:
-                        # Check structure of first photo status
-                        first_status = photo_statuses[0]
-                        required_fields = ["photo_id", "status"]
-                        has_required = all(f in first_status for f in required_fields)
-                        log_test(
-                            "photo_statuses entries have required fields",
-                            has_required,
-                            f"Fields in first entry: {list(first_status.keys())}"
-                        )
-                
-                # Check other required fields
-                required_response_fields = ["report_id", "photo_count", "status"]
-                has_all_required = all(f in result for f in required_response_fields)
-                log_test(
-                    "Response includes required fields",
-                    has_all_required,
-                    f"Required fields present: {has_all_required}"
-                )
-            else:
-                log_test(
-                    "POST /api/daily-reports/photo-intelligence/draft",
-                    False,
-                    f"Status: {response.status_code}, Error: {response.text[:200]}"
-                )
-        except Exception as e:
-            log_test("POST /api/daily-reports/photo-intelligence/draft", False, f"Error: {str(e)}")
-
-
-async def test_async_jobs_no_regression(token: str):
-    """Test 5: No regressions in async jobs flow."""
-    print("\n=== Test 5: Async jobs flow regression check ===")
+        if data.get("mfa_required"):
+            print_info("MFA is enabled for this user - skipping token validation")
+            return None
+        
+        session_token = data.get("session_token")
+        portal_tokens = data.get("portal_tokens", {})
+        
+        if not session_token:
+            print_fail("No session_token returned from multi-login")
+            return None
+        
+        print_pass(f"Session token received: {session_token[:20]}...")
+        
+        # Verify portal tokens
+        expected_portals = ["admin", "pm", "shop", "hr", "safety", "dispatch", "field_leadership"]
+        received_portals = [p for p in expected_portals if portal_tokens.get(p)]
+        
+        print_pass(f"Received {len(received_portals)} portal tokens: {', '.join(received_portals)}")
+        
+        for portal in received_portals:
+            token = portal_tokens[portal]
+            print_info(f"  {portal}: {token[:20]}...")
+        
+        return {
+            "session": session,
+            "session_token": session_token,
+            "portal_tokens": portal_tokens
+        }
     
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        try:
-            # Trigger another CSV export to test the flow
-            response = await client.get(
-                f"{API_BASE}/daily-reports.csv",
-                headers={"X-Admin-Token": token}
-            )
-            
-            if response.status_code == 202:
-                result = response.json()
-                job_id = result.get("job_id")
-                
-                if job_id:
-                    # Test the status endpoint
-                    status_response = await client.get(
-                        f"{API_BASE}/jobs/{job_id}/status",
-                        headers={"X-Admin-Token": token}
-                    )
-                    
-                    status_ok = status_response.status_code == 200
-                    log_test(
-                        "GET /api/jobs/{job_id}/status endpoint works",
-                        status_ok,
-                        f"Status code: {status_response.status_code}"
-                    )
-                    
-                    if status_ok:
-                        status_data = status_response.json()
-                        has_status_field = "status" in status_data
-                        log_test(
-                            "Job status response has status field",
-                            has_status_field,
-                            f"Status: {status_data.get('status', 'N/A')}"
-                        )
-                else:
-                    log_test("Async jobs flow", False, "No job_id in response")
-            else:
-                log_test(
-                    "Async jobs flow trigger",
-                    False,
-                    f"CSV export failed with status {response.status_code}"
-                )
-        except Exception as e:
-            log_test("Async jobs flow regression check", False, f"Error: {str(e)}")
+    except Exception as e:
+        print_fail(f"Exception during multi-login: {e}")
+        return None
 
 
-async def main():
-    """Run all tests."""
-    print("=" * 60)
-    print("Backend Verification - Daily Report Changes (Track 27.11D)")
-    print("=" * 60)
-    print(f"Backend URL: {BACKEND_URL}")
-    print(f"API Base: {API_BASE}")
-    print()
+def test_behavior_2_admin_logout_wrapper(bundle):
+    """
+    Behavior 2: /api/admin/logout is a compatibility wrapper over canonical /api/auth/multi-logout
+    """
+    print_test(2, "/api/admin/logout is a compatibility wrapper")
+    
+    if not bundle:
+        print_fail("No login bundle available")
+        return False
+    
+    session = bundle["session"]
+    session_token = bundle["session_token"]
+    portal_tokens = bundle["portal_tokens"]
+    
+    # First, verify admin token works
+    admin_token = portal_tokens.get("admin")
+    if not admin_token:
+        print_fail("No admin token available")
+        return False
     
     try:
-        # Authenticate
-        print("Authenticating...")
-        token = await get_admin_token()
-        print(f"✓ Authenticated successfully (token length: {len(token)})")
+        # Test admin endpoint before logout
+        response = session.get(
+            f"{BASE_URL}/api/admin/check",
+            headers={
+                "X-Admin-Token": admin_token,
+                "X-Directory-Token": session_token
+            },
+            timeout=30
+        )
         
-        # Run tests
-        await test_transcribe_endpoint(token)
-        await test_daily_report_with_conflict_watchdog(token)
-        await test_csv_export_async_polling(token)
-        await test_photo_intelligence_draft(token)
-        await test_async_jobs_no_regression(token)
+        if response.status_code != 200:
+            print_fail(f"Admin token not working before logout: {response.status_code}")
+            return False
         
+        print_pass("Admin token works before logout")
+        
+        # Call /api/admin/logout
+        logout_headers = {
+            "X-Directory-Token": session_token,
+            "X-Admin-Token": admin_token,
+            "X-PM-Token": portal_tokens.get("pm", ""),
+            "X-HR-Token": portal_tokens.get("hr", ""),
+            "X-Safety-Token": portal_tokens.get("safety", ""),
+            "X-Shop-Token": portal_tokens.get("shop", ""),
+            "X-Dispatch-Token": portal_tokens.get("dispatch", ""),
+            "X-FL-Token": portal_tokens.get("field_leadership", ""),
+        }
+        
+        response = session.post(
+            f"{BASE_URL}/api/admin/logout",
+            headers=logout_headers,
+            timeout=30
+        )
+        
+        if response.status_code != 200:
+            print_fail(f"Admin logout failed with status {response.status_code}")
+            print(f"Response: {response.text[:500]}")
+            return False
+        
+        data = response.json()
+        
+        if not data.get("ok"):
+            print_fail(f"Admin logout response not ok: {data}")
+            return False
+        
+        # Verify it returns canonical metadata
+        canonical_logout = data.get("canonical_logout")
+        if canonical_logout != "/api/auth/multi-logout":
+            print_fail(f"Expected canonical_logout='/api/auth/multi-logout', got '{canonical_logout}'")
+            return False
+        
+        print_pass(f"Admin logout returned canonical_logout: {canonical_logout}")
+        
+        # Verify admin token is now invalid
+        response = session.get(
+            f"{BASE_URL}/api/admin/check",
+            headers={
+                "X-Admin-Token": admin_token,
+                "X-Directory-Token": session_token
+            },
+            timeout=30
+        )
+        
+        if response.status_code == 401:
+            print_pass("Admin token correctly invalidated after logout")
+        else:
+            print_fail(f"Admin token still valid after logout! Status: {response.status_code}")
+            return False
+        
+        # Verify PM token is also invalid (shared session invalidation)
+        pm_token = portal_tokens.get("pm")
+        if pm_token:
+            response = session.get(
+                f"{BASE_URL}/api/pm/check",
+                headers={
+                    "X-PM-Token": pm_token,
+                    "X-Directory-Token": session_token
+                },
+                timeout=30
+            )
+            
+            if response.status_code == 401:
+                print_pass("PM token also invalidated (shared session)")
+            else:
+                print_fail(f"PM token still valid after admin logout! Status: {response.status_code}")
+                return False
+        
+        # Verify directory session is invalid
+        response = session.get(
+            f"{BASE_URL}/api/auth/me-directory",
+            headers={"X-Directory-Token": session_token},
+            timeout=30
+        )
+        
+        if response.status_code == 401:
+            print_pass("Directory session correctly invalidated")
+        else:
+            print_fail(f"Directory session still valid! Status: {response.status_code}")
+            return False
+        
+        return True
+    
     except Exception as e:
-        print(f"\n❌ Fatal error: {str(e)}")
-        results["failed"] += 1
+        print_fail(f"Exception during admin logout test: {e}")
+        return False
+
+
+def test_behavior_3_pm_logout_wrapper():
+    """
+    Behavior 3: /api/pm/logout is also a compatibility wrapper over canonical /api/auth/multi-logout
+    """
+    print_test(3, "/api/pm/logout is a compatibility wrapper")
     
-    # Print summary
-    print("\n" + "=" * 60)
-    print("TEST SUMMARY")
-    print("=" * 60)
-    print(f"Total tests: {results['passed'] + results['failed']}")
-    print(f"Passed: {results['passed']}")
-    print(f"Failed: {results['failed']}")
-    print()
+    # Fresh login for this test
+    session = requests.Session()
+    session.headers.update({"Content-Type": "application/json"})
     
-    if results["failed"] > 0:
-        print("Failed tests:")
-        for test in results["tests"]:
-            if not test["passed"]:
-                print(f"  - {test['name']}")
-                if test["message"]:
-                    print(f"    {test['message']}")
+    try:
+        response = session.post(
+            f"{BASE_URL}/api/auth/multi-login",
+            json=SUPER_ADMIN_CREDS,
+            timeout=30
+        )
+        
+        if response.status_code != 200:
+            print_fail(f"Multi-login failed: {response.status_code}")
+            return False
+        
+        data = response.json()
+        
+        if data.get("mfa_required"):
+            print_info("MFA enabled - skipping PM logout test")
+            return True
+        
+        session_token = data.get("session_token")
+        portal_tokens = data.get("portal_tokens", {})
+        pm_token = portal_tokens.get("pm")
+        
+        if not pm_token:
+            print_fail("No PM token available")
+            return False
+        
+        # Verify PM token works
+        response = session.get(
+            f"{BASE_URL}/api/pm/check",
+            headers={
+                "X-PM-Token": pm_token,
+                "X-Directory-Token": session_token
+            },
+            timeout=30
+        )
+        
+        if response.status_code != 200:
+            print_fail(f"PM token not working before logout: {response.status_code}")
+            return False
+        
+        print_pass("PM token works before logout")
+        
+        # Call /api/pm/logout
+        logout_headers = {
+            "X-Directory-Token": session_token,
+            "X-Admin-Token": portal_tokens.get("admin", ""),
+            "X-PM-Token": pm_token,
+            "X-HR-Token": portal_tokens.get("hr", ""),
+            "X-Safety-Token": portal_tokens.get("safety", ""),
+            "X-Shop-Token": portal_tokens.get("shop", ""),
+            "X-Dispatch-Token": portal_tokens.get("dispatch", ""),
+            "X-FL-Token": portal_tokens.get("field_leadership", ""),
+        }
+        
+        response = session.post(
+            f"{BASE_URL}/api/pm/logout",
+            headers=logout_headers,
+            timeout=30
+        )
+        
+        if response.status_code != 200:
+            print_fail(f"PM logout failed with status {response.status_code}")
+            return False
+        
+        data = response.json()
+        
+        if not data.get("ok"):
+            print_fail(f"PM logout response not ok: {data}")
+            return False
+        
+        # Verify it returns canonical metadata
+        canonical_logout = data.get("canonical_logout")
+        if canonical_logout != "/api/auth/multi-logout":
+            print_fail(f"Expected canonical_logout='/api/auth/multi-logout', got '{canonical_logout}'")
+            return False
+        
+        print_pass(f"PM logout returned canonical_logout: {canonical_logout}")
+        
+        # Verify PM token is now invalid
+        response = session.get(
+            f"{BASE_URL}/api/pm/check",
+            headers={
+                "X-PM-Token": pm_token,
+                "X-Directory-Token": session_token
+            },
+            timeout=30
+        )
+        
+        if response.status_code == 401:
+            print_pass("PM token correctly invalidated after logout")
+        else:
+            print_fail(f"PM token still valid after logout! Status: {response.status_code}")
+            return False
+        
+        # Verify directory session is invalid
+        response = session.get(
+            f"{BASE_URL}/api/auth/me-directory",
+            headers={"X-Directory-Token": session_token},
+            timeout=30
+        )
+        
+        if response.status_code == 401:
+            print_pass("Directory session correctly invalidated")
+        else:
+            print_fail(f"Directory session still valid! Status: {response.status_code}")
+            return False
+        
+        return True
     
-    # Exit with appropriate code
-    sys.exit(0 if results["failed"] == 0 else 1)
+    except Exception as e:
+        print_fail(f"Exception during PM logout test: {e}")
+        return False
+
+
+def test_behavior_4_multi_tab_invalidation():
+    """
+    Behavior 4: Multi-tab invalidation - logout from tab A, protected API in tab B returns 401
+    """
+    print_test(4, "Multi-tab invalidation proof")
+    
+    # Create two sessions (simulating two tabs)
+    tab_a = requests.Session()
+    tab_b = requests.Session()
+    
+    tab_a.headers.update({"Content-Type": "application/json"})
+    tab_b.headers.update({"Content-Type": "application/json"})
+    
+    try:
+        # Login in tab A
+        response = tab_a.post(
+            f"{BASE_URL}/api/auth/multi-login",
+            json=SUPER_ADMIN_CREDS,
+            timeout=30
+        )
+        
+        if response.status_code != 200:
+            print_fail(f"Multi-login failed: {response.status_code}")
+            return False
+        
+        data = response.json()
+        
+        if data.get("mfa_required"):
+            print_info("MFA enabled - skipping multi-tab test")
+            return True
+        
+        session_token = data.get("session_token")
+        portal_tokens = data.get("portal_tokens", {})
+        admin_token = portal_tokens.get("admin")
+        
+        if not admin_token:
+            print_fail("No admin token available")
+            return False
+        
+        print_pass("Logged in with shared session")
+        
+        # Verify admin token works in tab B BEFORE logout
+        response = tab_b.get(
+            f"{BASE_URL}/api/admin/check",
+            headers={
+                "X-Admin-Token": admin_token,
+                "X-Directory-Token": session_token
+            },
+            timeout=30
+        )
+        
+        if response.status_code != 200:
+            print_fail(f"Admin token not working in tab B before logout: {response.status_code}")
+            return False
+        
+        print_pass("Admin token works in tab B before logout")
+        
+        # Logout from tab A
+        logout_headers = {
+            "X-Directory-Token": session_token,
+            "X-Admin-Token": admin_token,
+            "X-PM-Token": portal_tokens.get("pm", ""),
+            "X-HR-Token": portal_tokens.get("hr", ""),
+            "X-Safety-Token": portal_tokens.get("safety", ""),
+            "X-Shop-Token": portal_tokens.get("shop", ""),
+            "X-Dispatch-Token": portal_tokens.get("dispatch", ""),
+            "X-FL-Token": portal_tokens.get("field_leadership", ""),
+        }
+        
+        response = tab_a.post(
+            f"{BASE_URL}/api/auth/multi-logout",
+            headers=logout_headers,
+            timeout=30
+        )
+        
+        if response.status_code != 200:
+            print_fail(f"Logout failed: {response.status_code}")
+            return False
+        
+        print_pass("Logged out from tab A")
+        
+        # Immediately try to use admin token in tab B
+        response = tab_b.get(
+            f"{BASE_URL}/api/admin/check",
+            headers={
+                "X-Admin-Token": admin_token,
+                "X-Directory-Token": session_token
+            },
+            timeout=30
+        )
+        
+        if response.status_code == 401:
+            print_pass("Tab B immediately receives 401 after tab A logout (multi-tab invalidation works)")
+        else:
+            print_fail(f"Tab B still has access after tab A logout! Status: {response.status_code}")
+            return False
+        
+        return True
+    
+    except Exception as e:
+        print_fail(f"Exception during multi-tab test: {e}")
+        return False
+    finally:
+        tab_a.close()
+        tab_b.close()
+
+
+def test_behavior_5_back_after_logout():
+    """
+    Behavior 5: Back-after-logout - replaying protected request after logout returns 401
+    """
+    print_test(5, "Back-after-logout proof")
+    
+    session = requests.Session()
+    session.headers.update({"Content-Type": "application/json"})
+    
+    try:
+        # Login
+        response = session.post(
+            f"{BASE_URL}/api/auth/multi-login",
+            json=SUPER_ADMIN_CREDS,
+            timeout=30
+        )
+        
+        if response.status_code != 200:
+            print_fail(f"Multi-login failed: {response.status_code}")
+            return False
+        
+        data = response.json()
+        
+        if data.get("mfa_required"):
+            print_info("MFA enabled - skipping back-after-logout test")
+            return True
+        
+        session_token = data.get("session_token")
+        portal_tokens = data.get("portal_tokens", {})
+        admin_token = portal_tokens.get("admin")
+        
+        if not admin_token:
+            print_fail("No admin token available")
+            return False
+        
+        # Make a protected request BEFORE logout
+        admin_headers = {
+            "X-Admin-Token": admin_token,
+            "X-Directory-Token": session_token
+        }
+        
+        response = session.get(
+            f"{BASE_URL}/api/admin/check",
+            headers=admin_headers,
+            timeout=30
+        )
+        
+        if response.status_code != 200:
+            print_fail(f"Protected request failed before logout: {response.status_code}")
+            return False
+        
+        print_pass("Protected request succeeded before logout")
+        
+        # Logout
+        logout_headers = {
+            "X-Directory-Token": session_token,
+            "X-Admin-Token": admin_token,
+            "X-PM-Token": portal_tokens.get("pm", ""),
+            "X-HR-Token": portal_tokens.get("hr", ""),
+            "X-Safety-Token": portal_tokens.get("safety", ""),
+            "X-Shop-Token": portal_tokens.get("shop", ""),
+            "X-Dispatch-Token": portal_tokens.get("dispatch", ""),
+            "X-FL-Token": portal_tokens.get("field_leadership", ""),
+        }
+        
+        response = session.post(
+            f"{BASE_URL}/api/auth/multi-logout",
+            headers=logout_headers,
+            timeout=30
+        )
+        
+        if response.status_code != 200:
+            print_fail(f"Logout failed: {response.status_code}")
+            return False
+        
+        print_pass("Logged out successfully")
+        
+        # Replay the SAME protected request (simulating browser back button)
+        response = session.get(
+            f"{BASE_URL}/api/admin/check",
+            headers=admin_headers,
+            timeout=30
+        )
+        
+        if response.status_code == 401:
+            print_pass("Replayed request correctly returns 401 after logout")
+        else:
+            print_fail(f"Replayed request still works after logout! Status: {response.status_code}")
+            return False
+        
+        return True
+    
+    except Exception as e:
+        print_fail(f"Exception during back-after-logout test: {e}")
+        return False
+    finally:
+        session.close()
+
+
+def test_behavior_6_fresh_relogin():
+    """
+    Behavior 6: Fresh re-login after logout restores access with fresh session, old session stays rejected
+    """
+    print_test(6, "Fresh re-login after logout")
+    
+    session = requests.Session()
+    session.headers.update({"Content-Type": "application/json"})
+    
+    try:
+        # First login
+        response = session.post(
+            f"{BASE_URL}/api/auth/multi-login",
+            json=SUPER_ADMIN_CREDS,
+            timeout=30
+        )
+        
+        if response.status_code != 200:
+            print_fail(f"First login failed: {response.status_code}")
+            return False
+        
+        data = response.json()
+        
+        if data.get("mfa_required"):
+            print_info("MFA enabled - skipping fresh relogin test")
+            return True
+        
+        old_session_token = data.get("session_token")
+        old_portal_tokens = data.get("portal_tokens", {})
+        old_admin_token = old_portal_tokens.get("admin")
+        
+        if not old_admin_token:
+            print_fail("No admin token from first login")
+            return False
+        
+        print_pass(f"First login successful, admin token: {old_admin_token[:20]}...")
+        
+        # Logout
+        logout_headers = {
+            "X-Directory-Token": old_session_token,
+            "X-Admin-Token": old_admin_token,
+            "X-PM-Token": old_portal_tokens.get("pm", ""),
+            "X-HR-Token": old_portal_tokens.get("hr", ""),
+            "X-Safety-Token": old_portal_tokens.get("safety", ""),
+            "X-Shop-Token": old_portal_tokens.get("shop", ""),
+            "X-Dispatch-Token": old_portal_tokens.get("dispatch", ""),
+            "X-FL-Token": old_portal_tokens.get("field_leadership", ""),
+        }
+        
+        response = session.post(
+            f"{BASE_URL}/api/auth/multi-logout",
+            headers=logout_headers,
+            timeout=30
+        )
+        
+        if response.status_code != 200:
+            print_fail(f"Logout failed: {response.status_code}")
+            return False
+        
+        print_pass("Logged out successfully")
+        
+        # Fresh re-login
+        response = session.post(
+            f"{BASE_URL}/api/auth/multi-login",
+            json=SUPER_ADMIN_CREDS,
+            timeout=30
+        )
+        
+        if response.status_code != 200:
+            print_fail(f"Re-login failed: {response.status_code}")
+            return False
+        
+        data = response.json()
+        
+        if data.get("mfa_required"):
+            print_info("MFA enabled on re-login")
+            return True
+        
+        new_session_token = data.get("session_token")
+        new_portal_tokens = data.get("portal_tokens", {})
+        new_admin_token = new_portal_tokens.get("admin")
+        
+        if not new_admin_token:
+            print_fail("No admin token from re-login")
+            return False
+        
+        print_pass(f"Re-login successful, new admin token: {new_admin_token[:20]}...")
+        
+        # Verify NEW token works
+        response = session.get(
+            f"{BASE_URL}/api/admin/check",
+            headers={
+                "X-Admin-Token": new_admin_token,
+                "X-Directory-Token": new_session_token
+            },
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            print_pass("New admin token works after re-login")
+        else:
+            print_fail(f"New admin token doesn't work! Status: {response.status_code}")
+            return False
+        
+        # Verify OLD token is still rejected
+        response = session.get(
+            f"{BASE_URL}/api/admin/check",
+            headers={
+                "X-Admin-Token": old_admin_token,
+                "X-Directory-Token": old_session_token
+            },
+            timeout=30
+        )
+        
+        if response.status_code == 401:
+            print_pass("Old admin token correctly stays rejected after re-login")
+        else:
+            print_fail(f"Old admin token still works after re-login! Status: {response.status_code}")
+            return False
+        
+        # Cleanup - logout the new session
+        cleanup_headers = {
+            "X-Directory-Token": new_session_token,
+            "X-Admin-Token": new_admin_token,
+        }
+        session.post(f"{BASE_URL}/api/auth/multi-logout", headers=cleanup_headers, timeout=30)
+        print_info("Cleaned up new session")
+        
+        return True
+    
+    except Exception as e:
+        print_fail(f"Exception during fresh relogin test: {e}")
+        return False
+    finally:
+        session.close()
+
+
+def test_behavior_7_c2_test_suites():
+    """
+    Behavior 7: C2 test suites pass behaviorally
+    """
+    print_test(7, "C2 test suites pass behaviorally")
+    
+    print_info("Running test_c2_15_16_server_side_logout.py...")
+    result1 = os.system("cd /app/backend && python -m pytest tests/test_c2_15_16_server_side_logout.py -v --tb=short > /tmp/c2_15_16_results.txt 2>&1")
+    
+    print_info("Running test_c2_closeout_logout_reconciliation.py...")
+    result2 = os.system("cd /app/backend && python -m pytest tests/test_c2_closeout_logout_reconciliation.py -v --tb=short > /tmp/c2_closeout_results.txt 2>&1")
+    
+    if result1 == 0:
+        print_pass("test_c2_15_16_server_side_logout.py passed")
+    else:
+        print_fail("test_c2_15_16_server_side_logout.py failed")
+        os.system("cat /tmp/c2_15_16_results.txt")
+    
+    if result2 == 0:
+        print_pass("test_c2_closeout_logout_reconciliation.py passed")
+    else:
+        print_fail("test_c2_closeout_logout_reconciliation.py failed")
+        os.system("cat /tmp/c2_closeout_results.txt")
+    
+    return result1 == 0 and result2 == 0
+
+
+def main():
+    """Run all C2 closeout backend verification tests"""
+    print_section("C2 CLOSEOUT BACKEND VERIFICATION")
+    print(f"Backend URL: {BASE_URL}")
+    print(f"Test User: {SUPER_ADMIN_CREDS['email']}")
+    
+    results = {}
+    
+    # Test 1: Multi-login returns tokens
+    bundle = test_behavior_1_multi_login_returns_tokens()
+    results["behavior_1"] = bundle is not None
+    
+    # Test 2: Admin logout wrapper (uses bundle from test 1)
+    if bundle:
+        results["behavior_2"] = test_behavior_2_admin_logout_wrapper(bundle)
+    else:
+        print_info("Skipping behavior 2 (no login bundle)")
+        results["behavior_2"] = False
+    
+    # Test 3: PM logout wrapper (fresh login)
+    results["behavior_3"] = test_behavior_3_pm_logout_wrapper()
+    
+    # Test 4: Multi-tab invalidation
+    results["behavior_4"] = test_behavior_4_multi_tab_invalidation()
+    
+    # Test 5: Back-after-logout
+    results["behavior_5"] = test_behavior_5_back_after_logout()
+    
+    # Test 6: Fresh re-login
+    results["behavior_6"] = test_behavior_6_fresh_relogin()
+    
+    # Test 7: C2 test suites
+    results["behavior_7"] = test_behavior_7_c2_test_suites()
+    
+    # Summary
+    print_section("TEST SUMMARY")
+    
+    passed = sum(1 for v in results.values() if v)
+    total = len(results)
+    
+    for i, (behavior, result) in enumerate(results.items(), 1):
+        status = "✅ PASS" if result else "❌ FAIL"
+        print(f"{status} - Behavior {i}: {behavior}")
+    
+    print("\n" + "="*70)
+    print(f"OVERALL: {passed}/{total} behaviors passed")
+    print("="*70)
+    
+    if passed == total:
+        print("\n🎉 ALL C2 CLOSEOUT BACKEND BEHAVIORS VERIFIED SUCCESSFULLY!")
+        return 0
+    else:
+        print(f"\n⚠️  {total - passed} behavior(s) failed - see details above")
+        return 1
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    exit(main())

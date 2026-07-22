@@ -639,12 +639,24 @@ export default function OperationsTrustCenter() {
     return data.subsystems || [];
   }, [data]);
 
+  const dispositionMeta = (
+    <div
+      data-testid="operations-trust-center-disposition"
+      className="hidden"
+      data-trust-surface-id="operations_trust_center"
+      data-trust-disposition="ACTIVE_REPAIRED"
+      data-trust-role="DERIVED_CONSUMER"
+      data-canonical-owner="trust_spine"
+    />
+  );
+
   if (loading && !data) {
     return (
       <div
         data-testid="otc-loading"
         className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500"
       >
+        {dispositionMeta}
         <RotateCw className="inline-block animate-spin mr-2" size={14} />
         Loading Operations Trust Center…
       </div>
@@ -657,6 +669,7 @@ export default function OperationsTrustCenter() {
         data-testid="otc-error"
         className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800"
       >
+        {dispositionMeta}
         <strong>Trust Center unavailable:</strong> {error}
         <div className="mt-2">
           <Button size="sm" variant="outline" onClick={() => run(trendHours)} data-testid="otc-retry">
@@ -671,14 +684,7 @@ export default function OperationsTrustCenter() {
 
   return (
     <div data-testid="operations-trust-center" className="space-y-4">
-      <div
-        data-testid="operations-trust-center-disposition"
-        className="hidden"
-        data-trust-surface-id="operations_trust_center"
-        data-trust-disposition="ACTIVE_REPAIRED"
-        data-trust-role="DERIVED_CONSUMER"
-        data-canonical-owner="trust_spine"
-      />
+      {dispositionMeta}
       {/* 1 · Executive Status Header — read in 15 seconds */}
       <div
         className={`rounded-2xl border p-5 ${cfg.tone}`}

@@ -73,18 +73,18 @@ describe("C2 closeout trust surfaces", () => {
   test("Operations Trust Center declares its active repaired disposition", async () => {
     render(<OperationsTrustCenter />);
     const node = await screen.findByTestId("operations-trust-center-disposition");
-    expect(node).toHaveAttribute("data-trust-surface-id", "operations_trust_center");
-    expect(node).toHaveAttribute("data-trust-disposition", "ACTIVE_REPAIRED");
-    expect(node).toHaveAttribute("data-trust-role", "DERIVED_CONSUMER");
-    expect(node).toHaveAttribute("data-canonical-owner", "trust_spine");
+    expect(node.getAttribute("data-trust-surface-id")).toBe("operations_trust_center");
+    expect(node.getAttribute("data-trust-disposition")).toBe("ACTIVE_REPAIRED");
+    expect(node.getAttribute("data-trust-role")).toBe("DERIVED_CONSUMER");
+    expect(node.getAttribute("data-canonical-owner")).toBe("trust_spine");
   });
 
   test("Platform Trust Validator declares its active repaired disposition", async () => {
     render(<PlatformTrustValidator />);
     const node = await screen.findByTestId("platform-trust-validator-disposition");
-    expect(node).toHaveAttribute("data-trust-surface-id", "platform_trust_validator");
-    expect(node).toHaveAttribute("data-trust-disposition", "ACTIVE_REPAIRED");
-    expect(node).toHaveAttribute("data-trust-role", "VALIDATOR");
-    expect(node).toHaveAttribute("data-canonical-owner", "platform_attestation");
+    expect(node.getAttribute("data-trust-surface-id")).toBe("platform_trust_validator");
+    expect(node.getAttribute("data-trust-disposition")).toBe("ACTIVE_REPAIRED");
+    expect(node.getAttribute("data-trust-role")).toBe("VALIDATOR");
+    expect(node.getAttribute("data-canonical-owner")).toBe("platform_attestation");
   });
 });

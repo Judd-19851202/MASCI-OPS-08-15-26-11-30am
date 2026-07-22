@@ -50,6 +50,13 @@ class TestC2ServerSideLogoutRevocation:
         yield
         self.session.close()
 
+    def _portal_headers(self, header_name, token, session_token=None):
+        headers = {header_name: token}
+        active_session_token = session_token or getattr(self.__class__, 'session_token', None)
+        if active_session_token:
+            headers["X-Directory-Token"] = active_session_token
+        return headers
+
     def test_01_multi_login_returns_portal_tokens(self):
         """C2.15.1: Multi-login should return tokens for all authorized portals"""
         print(f"\n[TEST] Multi-login with super admin credentials to {BASE_URL}")
@@ -107,7 +114,7 @@ class TestC2ServerSideLogoutRevocation:
             
             response = self.session.get(
                 f"{BASE_URL}{endpoint}",
-                headers={header_name: token},
+                headers=self._portal_headers(header_name, token),
                 timeout=30
             )
             
@@ -209,7 +216,7 @@ class TestC2ServerSideLogoutRevocation:
             
             response = self.session.get(
                 f"{BASE_URL}{endpoint}",
-                headers={header_name: token},
+                headers=self._portal_headers(header_name, token),
                 timeout=30
             )
             
@@ -256,7 +263,7 @@ class TestC2ServerSideLogoutRevocation:
             
             response = self.session.get(
                 f"{BASE_URL}{endpoint}",
-                headers={header_name: token},
+                headers=self._portal_headers(header_name, token, new_session_token),
                 timeout=30
             )
             
@@ -314,7 +321,11 @@ class TestC2FullLogoutCycle:
             token = portal_tokens.get(portal)
             if not token:
                 continue
-            resp = session.get(f"{BASE_URL}{endpoint}", headers={header_name: token}, timeout=30)
+            resp = session.get(
+                f"{BASE_URL}{endpoint}",
+                headers={header_name: token, "X-Directory-Token": session_token},
+                timeout=30,
+            )
             if resp.status_code == 200:
                 working_portals.append(portal)
         print(f"[OK] {len(working_portals)} portal tokens verified working: {working_portals}")
@@ -342,7 +353,11 @@ class TestC2FullLogoutCycle:
             token = portal_tokens.get(portal)
             if not token:
                 continue
-            resp = session.get(f"{BASE_URL}{endpoint}", headers={header_name: token}, timeout=30)
+            resp = session.get(
+                f"{BASE_URL}{endpoint}",
+                headers={header_name: token, "X-Directory-Token": session_token},
+                timeout=30,
+            )
             if resp.status_code == 200:
                 still_valid.append(portal)
                 print(f"[P0 FAIL] {portal} token still valid!")

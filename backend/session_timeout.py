@@ -114,6 +114,7 @@ def _pick_token_and_tier(headers) -> Tuple[Optional[str], Optional[str]]:
     # Strict precedence — Admin first, then HR, then ops portals, then field.
     order = ["x-admin-token", "x-hr-token",
              "x-pm-token", "x-shop-token", "x-dispatch-token", "x-safety-token",
+             "x-fl-token",
              "x-field-leadership-token"]
     by_key = dict(items)
     for k in order:

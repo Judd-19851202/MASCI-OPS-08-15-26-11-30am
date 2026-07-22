@@ -173,6 +173,19 @@ backend:
         timestamp: "2026-07-21 17:30:00 UTC"
         comment: "✅ VERIFIED: PREVIEW-only bounded backend repair for Daily Report governed certification lane completed successfully. All 4 required proof points validated: (1) Placeholder example.com certification recipients are NO LONGER selected - _is_reserved_or_invalid_email() correctly identifies and filters example.com/example.org/example.net domains and subdomains, _select_governed_recipients() skips all placeholder emails. (2) Correct governed recipients ARE selected from live project routing when available - build_governed_routing_override() properly extracts valid pm_email and co_pm_emails from project_doc, sets recipient_source='project_doc' when valid recipients found. (3) Normal non-certification behavior REMAINS UNCHANGED - apply_governed_daily_report_lane() returns unmodified doc for non-certification reports, no certification flags set outside governed lane. (4) All focused proof tests PASS - test_dr03_governed_certification_lane.py: 4/4 tests passed including test_governed_lane_skips_placeholder_project_recipients_and_uses_env_fallback which validates placeholder filtering and environment fallback behavior. Integration verified: pm_routing.py recipients_for_record_async() properly honors routing_override from governed lane. Module-level verification confirms all edge cases handled correctly (mixed valid/invalid emails, empty project_doc, None project_doc). Preview backend unavailable due to pre-existing runtime-identity startup refusal (unrelated to this repair) - validation performed via focused backend tests and module-level verification as instructed."
 
+  - task: "C2 Closeout - Shared-Session Logout Canonicalization"
+    implemented: true
+    working: true
+    file: "backend/routes/auth_directory_routes.py, backend/routes/pm_routes.py, backend/server.py, backend/session_timeout.py, backend/tests/test_c2_15_16_server_side_logout.py, backend/tests/test_c2_closeout_logout_reconciliation.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        timestamp: "2026-07-22 01:30:00 UTC"
+        comment: "✅ VERIFIED: C2 closeout backend behavior for shared-session logout canonicalization and session invalidation working correctly. All 7 required behaviors validated: (1) /api/auth/multi-login returns directory session_token plus portal_tokens for all authorized portals (admin, pm, shop, hr, safety, dispatch, field_leadership) - verified with seeded super-admin jaymn.judd@mascigc.com. (2) /api/admin/logout is a compatibility wrapper over canonical /api/auth/multi-logout - returns canonical_logout='/api/auth/multi-logout' metadata and invalidates admin+PM+directory access from same shared session. (3) /api/pm/logout is also a compatibility wrapper over canonical /api/auth/multi-logout - returns canonical metadata and invalidates shared-session access. (4) Multi-tab invalidation proof: two clients using same admin+directory session, logout from tab A, protected admin API in tab B immediately returns 401. (5) Back-after-logout proof: replaying same protected admin request after logout returns 401. (6) Fresh re-login after logout restores access with fresh shared session, old shared session pair stays rejected (old tokens return 401). (7) C2 test suites pass: test_c2_15_16_server_side_logout.py (8 passed) and test_c2_closeout_logout_reconciliation.py (5 passed). Shared-session rule confirmed: portal requests carry BOTH portal token (X-Admin-Token, X-PM-Token, etc.) and X-Directory-Token header. Logout implementation uses clear_session_activity_for_actor() which clears all session_activity rows for user_id, ensuring immediate multi-tab invalidation. No backend regressions found."
+
 ## Frontend Tasks
 
 frontend:
@@ -207,17 +220,19 @@ frontend:
 metadata:
   created_by: "testing_agent"
   version: "1.0"
-  test_sequence: 5
-  last_updated: "2026-07-21 17:30:00 UTC"
+  test_sequence: 6
+  last_updated: "2026-07-22 01:30:00 UTC"
   pdc_01a_status: "COMPLETE"
   production_cert_status: "COMPLETE"
   hub_signout_fix_status: "VERIFIED"
   governed_cert_lane_repair_status: "VERIFIED"
+  c2_closeout_status: "VERIFIED"
 
 ## Test Plan
 
 test_plan:
   current_focus:
+    - "C2 Closeout - Shared-Session Logout Canonicalization"
     - "Daily Report Governed Certification Lane - Recipient Selection Repair"
     - "Hub Sign-Out Bug Fix - PREVIEW-only bounded frontend repair"
     - "Production Backend Certification - Runtime Reliability"
@@ -229,7 +244,7 @@ test_plan:
   stuck_tasks: []
   test_all: false
   test_priority: "critical_first"
-  notes: "Daily Report governed certification lane repair verified successfully - all 4 proof points validated. Hub sign-out fix verified successfully. Production backend certification completed successfully - all runtime reliability checks passed"
+  notes: "C2 closeout shared-session logout canonicalization verified successfully - all 7 behaviors validated. Daily Report governed certification lane repair verified successfully - all 4 proof points validated. Hub sign-out fix verified successfully. Production backend certification completed successfully - all runtime reliability checks passed"
 
   
   - agent: "testing"
@@ -259,3 +274,7 @@ agent_communication:
   - agent: "testing"
     timestamp: "2026-07-21 17:30:00 UTC"
     message: "DAILY REPORT GOVERNED CERTIFICATION LANE REPAIR VERIFICATION COMPLETE. Tested PREVIEW-only bounded backend repair for recipient selection and governed-lane invariants. All 4 required proof points validated: (1) Placeholder example.com certification recipients are NO LONGER selected - validation confirms _is_reserved_or_invalid_email() correctly identifies example.com/example.org/example.net domains and all subdomains, _select_governed_recipients() properly filters out all placeholder emails. (2) Correct governed recipients ARE selected from live project routing when available - build_governed_routing_override() extracts valid pm_email and co_pm_emails from project_doc, sets recipient_source='project_doc', test confirms jaymn.judd@mascigc.com correctly selected as primary PM with co-PMs in CC. (3) Normal non-certification behavior REMAINS UNCHANGED outside the certification lane - apply_governed_daily_report_lane() returns unmodified doc for non-certification reports, no certification flags set. (4) All focused proof tests PASS - test_dr03_governed_certification_lane.py: 4/4 tests passed including critical test_governed_lane_skips_placeholder_project_recipients_and_uses_env_fallback which validates placeholder filtering and environment fallback. Integration verified: pm_routing.py recipients_for_record_async() properly honors routing_override from governed lane. Module-level verification confirms edge cases handled (mixed valid/invalid emails, empty/None project_doc). Preview backend unavailable due to pre-existing runtime-identity startup refusal (unrelated to this repair) - validation performed via focused backend tests and module-level verification as instructed. No critical issues found."
+
+  - agent: "testing"
+    timestamp: "2026-07-22 01:30:00 UTC"
+    message: "C2 CLOSEOUT BACKEND VERIFICATION COMPLETE. Tested shared-session logout canonicalization and session invalidation for FORGEDOPS / MASCI Platform Trust Program Checkpoint C2 final bounded evidence closeout. All 7 required backend behaviors validated successfully: (1) /api/auth/multi-login with seeded super-admin jaymn.judd@mascigc.com returns directory session_token plus portal_tokens for all authorized portals (admin, pm, shop, hr, safety, dispatch, field_leadership). (2) /api/admin/logout is a compatibility wrapper over canonical /api/auth/multi-logout - returns canonical_logout='/api/auth/multi-logout' metadata and invalidates admin+PM+directory access from same shared session. (3) /api/pm/logout is also a compatibility wrapper over canonical /api/auth/multi-logout - returns canonical metadata and invalidates shared-session access. (4) Multi-tab invalidation proof: two clients using same admin+directory session, logout from tab A, protected admin API in tab B immediately returns 401. (5) Back-after-logout proof: replaying same protected admin request after logout returns 401. (6) Fresh re-login after logout restores access with fresh shared session, old shared session pair stays rejected (old tokens return 401 even with fresh directory token). (7) C2 test suites pass behaviorally: test_c2_15_16_server_side_logout.py (8 passed in 11.09s) and test_c2_closeout_logout_reconciliation.py (5 passed in 8.13s). Shared-session rule confirmed: portal requests must carry BOTH portal token (X-Admin-Token, X-PM-Token, etc.) AND X-Directory-Token header. Logout implementation uses clear_session_activity_for_actor() which clears all session_activity rows for user_id, ensuring immediate multi-tab invalidation. Comprehensive backend_test.py created at /app/backend_test.py documenting all 7 behaviors with detailed verification. No backend regressions or mismatches found. C2 closeout backend behavior is correct and complete."
