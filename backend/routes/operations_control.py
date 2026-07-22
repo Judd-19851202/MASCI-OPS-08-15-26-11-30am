@@ -83,8 +83,8 @@ def register_operations_control_routes(
     @api_router.get("/admin/shared-capabilities")
     async def shared_capabilities(actor=Depends(require_admin)):
         shell_caps = [
-            shell_signout_capability(portal="admin", route="/api/admin/logout"),
-            shell_signout_capability(portal="pm", route="/api/pm/logout"),
+            shell_signout_capability(portal="admin", route="/api/auth/multi-logout"),
+            shell_signout_capability(portal="pm", route="/api/auth/multi-logout"),
             shell_signout_capability(portal="hr", route="/api/auth/multi-logout"),
             shell_signout_capability(portal="safety", route="/api/auth/multi-logout"),
             shell_signout_capability(portal="dispatch", route="/api/auth/multi-logout"),

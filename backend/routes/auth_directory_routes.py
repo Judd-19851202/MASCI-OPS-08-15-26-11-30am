@@ -36,6 +36,7 @@ from lib.rate_limiting import (
 )
 from session_timeout import (
     clear_session_activity,
+    clear_session_activity_for_actor,
     clear_session_activity_for_user,
     get_session_activity,
 )
@@ -106,6 +107,65 @@ def build_auth_directory_router(
     render_portal_email_fn: Optional[Callable] = None,
 ) -> APIRouter:
     router = APIRouter(tags=["auth-directory"])
+
+    async def _resolve_logout_actor(
+        *,
+        x_directory_token: Optional[str] = None,
+        portal_tokens: Optional[List[Optional[str]]] = None,
+    ) -> Optional[str]:
+        user_id: Optional[str] = None
+        row = await ud.session_user(db, token=x_directory_token or "")
+        if row:
+            user_id = row.get("id")
+        if user_id:
+            return user_id
+        for tok in [t for t in (portal_tokens or []) if t]:
+            sess = await get_session_activity(db, tok)
+            if sess and sess.get("user_id"):
+                return sess.get("user_id")
+        return None
+
+    async def _perform_multi_logout(
+        *,
+        x_directory_token: Optional[str] = None,
+        x_admin_token: Optional[str] = None,
+        x_pm_token: Optional[str] = None,
+        x_hr_token: Optional[str] = None,
+        x_safety_token: Optional[str] = None,
+        x_shop_token: Optional[str] = None,
+        x_dispatch_token: Optional[str] = None,
+        x_fl_token: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        portal_tokens = [
+            x_admin_token,
+            x_pm_token,
+            x_hr_token,
+            x_safety_token,
+            x_shop_token,
+            x_dispatch_token,
+            x_fl_token,
+        ]
+        user_id = await _resolve_logout_actor(
+            x_directory_token=x_directory_token,
+            portal_tokens=portal_tokens,
+        )
+
+        cleared_count = 0
+        if user_id:
+            cleared_count = await clear_session_activity_for_actor(db, user_id=user_id)
+        else:
+            for tok in [t for t in portal_tokens if t]:
+                cleared_count += await clear_session_activity_for_actor(db, token=tok)
+
+        if x_directory_token:
+            await ud.kill_session(db, token=x_directory_token)
+
+        return {
+            "ok": True,
+            "canonical_logout": "/api/auth/multi-logout",
+            "cleared_session_rows": cleared_count,
+            "resolved_user_id": user_id,
+        }
 
     # ────────────────────────────────────────────────────────────────
     # Welcome / reset-password email — iter90
@@ -284,11 +344,11 @@ def build_auth_directory_router(
                 "mfa_challenge_token": challenge,
                 "user": {"email": row.get("email"), "name": row.get("name")},
             }
-        # Mint per-portal tokens + directory session token
-        portal_tokens = await _mint_all(row)
         session_token = ud.make_directory_token()
         await ud.persist_session(db, token=session_token, user_id=row["id"])
         await ud.stamp_last_login(db, user_id=row["id"], portal="multi")
+        # Mint per-portal tokens + directory session token
+        portal_tokens = await _mint_all(row)
 
         # Track 15.14A · Layer 1 — TEMP-PASSWORD ENFORCEMENT.
         # If the directory user still owes a password rotation, do NOT
@@ -339,6 +399,7 @@ def build_auth_directory_router(
                     user_id=row.get("id"),
                     email=row.get("email"),
                     actor_label=_portal,
+                    directory_token=session_token,
                     ip=_ip,
                     user_agent=_ua,
                 )
@@ -377,37 +438,18 @@ def build_auth_directory_router(
         x_dispatch_token: Optional[str] = Header(default=None),
         x_fl_token: Optional[str] = Header(default=None, alias="X-FL-Token"),
     ):
-        user_id: Optional[str] = None
-        row = await ud.session_user(db, token=x_directory_token or "")
-        if row:
-            user_id = row.get("id")
+        return await _perform_multi_logout(
+            x_directory_token=x_directory_token,
+            x_admin_token=x_admin_token,
+            x_pm_token=x_pm_token,
+            x_hr_token=x_hr_token,
+            x_safety_token=x_safety_token,
+            x_shop_token=x_shop_token,
+            x_dispatch_token=x_dispatch_token,
+            x_fl_token=x_fl_token,
+        )
 
-        portal_tokens = [
-            x_admin_token,
-            x_pm_token,
-            x_hr_token,
-            x_safety_token,
-            x_shop_token,
-            x_dispatch_token,
-            x_fl_token,
-        ]
-
-        if not user_id:
-            for tok in [t for t in portal_tokens if t]:
-                sess = await get_session_activity(db, tok)
-                if sess and sess.get("user_id"):
-                    user_id = sess.get("user_id")
-                    break
-
-        if user_id:
-            await clear_session_activity_for_user(db, user_id)
-        else:
-            for tok in [t for t in portal_tokens if t]:
-                await clear_session_activity(db, tok)
-
-        if x_directory_token:
-            await ud.kill_session(db, token=x_directory_token)
-        return {"ok": True}
+    router._perform_multi_logout = _perform_multi_logout  # type: ignore[attr-defined]
 
     @router.get("/api/auth/me-directory")
     async def me_directory(x_directory_token: Optional[str] = Header(default=None)):
@@ -515,6 +557,8 @@ def build_auth_directory_router(
         fresh_row = await db.user_directory.find_one(
             {"id": row["id"]}, {"_id": 0},
         )
+        session_token = ud.make_directory_token()
+        await ud.persist_session(db, token=session_token, user_id=row["id"])
         portal_tokens = await _mint_all(fresh_row or row)
         try:
             from session_timeout import reset_session_activity
@@ -532,7 +576,10 @@ def build_auth_directory_router(
                     db, _tok, _tier.get(_p, "OPERATIONS"),
                     user_id=(fresh_row or row).get("id"),
                     email=(fresh_row or row).get("email"),
-                    actor_label=_p, ip=_ip, user_agent=_ua,
+                    actor_label=_p,
+                    directory_token=session_token,
+                    ip=_ip,
+                    user_agent=_ua,
                 )
                 for _p, _tok in (portal_tokens or {}).items() if _tok
             ]
@@ -542,6 +589,7 @@ def build_auth_directory_router(
             pass
         return {
             "ok": True,
+            "session_token": session_token,
             "portal_tokens": portal_tokens,
             "user": ud.public_view(fresh_row or row),
             "must_change_password": False,

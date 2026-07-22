@@ -2405,11 +2405,7 @@ async def admin_check(_: bool = Depends(require_admin)):
 
 @api_router.post("/admin/logout")
 async def admin_logout(request: Request, _: bool = Depends(require_admin)):
-    """Iter135: no-op audit-only logout. Token revocation happens
-    client-side (token cleared from local/sessionStorage); this endpoint
-    just records the event so the Audit Log timeline has a 'signed out'
-    marker. Returns 200 regardless so a stale token still feels clean.
-    """
+    """Legacy compatibility wrapper over canonical shared logout."""
     try:
         await db.audit_events.insert_one({
             "at": datetime.now(timezone.utc),
@@ -2417,15 +2413,21 @@ async def admin_logout(request: Request, _: bool = Depends(require_admin)):
             "actor": "admin",
             "ip": _client_ip(request),
             "user_agent": (request.headers.get("user-agent") or "")[:240],
+            "logout_route": "/api/admin/logout",
+            "canonical_logout": "/api/auth/multi-logout",
         })
     except Exception:  # noqa: BLE001
         pass
-    # Initiative 4 — explicit server-side session clearance for the
-    # logging-out admin's token. Keeps the row from outliving the
-    # token's client-side lifetime; the next login will upsert fresh.
-    x_admin_token = request.headers.get("x-admin-token") or ""
-    await _clear_session_activity(db, x_admin_token)
-    return {"ok": True}
+    return await _canonical_multi_logout(
+        x_directory_token=request.headers.get("x-directory-token") or None,
+        x_admin_token=request.headers.get("x-admin-token") or None,
+        x_pm_token=request.headers.get("x-pm-token") or None,
+        x_hr_token=request.headers.get("x-hr-token") or None,
+        x_safety_token=request.headers.get("x-safety-token") or None,
+        x_shop_token=request.headers.get("x-shop-token") or None,
+        x_dispatch_token=request.headers.get("x-dispatch-token") or None,
+        x_fl_token=request.headers.get("x-fl-token") or None,
+    )
 
 
 @api_router.post("/admin/auth/verify-password")
@@ -15387,6 +15389,13 @@ _auth_directory_router = build_auth_directory_router(
 app.include_router(_auth_directory_router)
 
 
+async def _canonical_multi_logout(**kwargs):
+    perform = getattr(_auth_directory_router, "_perform_multi_logout", None)
+    if not callable(perform):
+        raise RuntimeError("canonical multi-logout handler unavailable")
+    return await perform(**kwargs)
+
+
 # iter375 · Phase 4B · MFA TOTP router for super-admin directory users.
 # Mounts /api/admin/mfa/* (admin-strict gated) and /api/auth/mfa/verify-login (public).
 from routes.mfa_routes import build_mfa_router  # noqa: E402
@@ -15477,6 +15486,7 @@ _pm_router = build_pm_router(
         "directory_admin_token_fn": _directory_admin_token,
         "reset_session_activity_fn": _reset_session_activity,
         "clear_session_activity_fn": _clear_session_activity,
+        "canonical_multi_logout_fn": _canonical_multi_logout,
         "render_portal_email_fn": render_portal_email,
         # Track 15.87 · directory `pm` grant path. Wrapped in a
         # lambda so name resolution defers (_directory_pm_token is

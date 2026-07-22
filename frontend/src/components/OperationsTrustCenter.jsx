@@ -671,6 +671,14 @@ export default function OperationsTrustCenter() {
 
   return (
     <div data-testid="operations-trust-center" className="space-y-4">
+      <div
+        data-testid="operations-trust-center-disposition"
+        className="hidden"
+        data-trust-surface-id="operations_trust_center"
+        data-trust-disposition="ACTIVE_REPAIRED"
+        data-trust-role="DERIVED_CONSUMER"
+        data-canonical-owner="trust_spine"
+      />
       {/* 1 · Executive Status Header — read in 15 seconds */}
       <div
         className={`rounded-2xl border p-5 ${cfg.tone}`}

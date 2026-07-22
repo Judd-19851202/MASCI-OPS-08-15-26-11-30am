@@ -156,6 +156,14 @@ export default function PlatformTrustValidator() {
 
   return (
     <div data-testid="platform-trust-validator" className="space-y-4">
+      <div
+        data-testid="platform-trust-validator-disposition"
+        className="hidden"
+        data-trust-surface-id="platform_trust_validator"
+        data-trust-disposition="ACTIVE_REPAIRED"
+        data-trust-role="VALIDATOR"
+        data-canonical-owner="platform_attestation"
+      />
       <TruthOwnerPanel
         title="Validation relationship"
         surface={data?.canonical_truth?.validation_surface}

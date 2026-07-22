@@ -138,8 +138,6 @@ export default function AdminShell({
 
   const handleSignOut = useCallback(async () => {
     if (signOutCapability.available !== true) return;
-    try { await api.post("/auth/multi-logout"); } catch { /* noop */ }
-    try { await api.post("/admin/logout"); } catch { /* noop */ }
     await clearAllSessions();
     window.location.assign("/admin/login");
   }, [signOutCapability]);

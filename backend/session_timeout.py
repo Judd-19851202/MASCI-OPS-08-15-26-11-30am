@@ -26,6 +26,7 @@ from __future__ import annotations
 import hashlib
 import logging
 import os
+from contextvars import ContextVar
 from datetime import datetime, timezone
 from typing import Optional, Tuple
 
@@ -37,6 +38,11 @@ from starlette.requests import Request
 from lib.runtime_identity import is_read_only_validation_requested_from_env
 
 logger = logging.getLogger(__name__)
+
+_CURRENT_DIRECTORY_TOKEN: ContextVar[Optional[str]] = ContextVar(
+    "current_directory_token",
+    default=None,
+)
 
 # Tier defaults — env vars override these.
 _TIER_DEFAULTS = {
@@ -198,41 +204,47 @@ class SessionTimeoutMiddleware(BaseHTTPMiddleware):
             # Anonymous request — let the route's require_* dep handle it.
             return await call_next(request)
 
+        ctx_reset = _CURRENT_DIRECTORY_TOKEN.set(
+            request.headers.get("x-directory-token") or None,
+        )
         try:
-            decision = await _check_or_update(self.db, token, tier)
-        except Exception as e:  # noqa: BLE001
-            # Never block traffic on a Mongo hiccup — fail open + log.
-            logger.warning("[session-timeout] check failed: %s", e)
-            return await call_next(request)
+            try:
+                decision = await _check_or_update(self.db, token, tier)
+            except Exception as e:  # noqa: BLE001
+                # Never block traffic on a Mongo hiccup — fail open + log.
+                logger.warning("[session-timeout] check failed: %s", e)
+                return await call_next(request)
 
-        if decision == "expired_idle":
-            return JSONResponse(
-                status_code=401,
-                content={
-                    "detail": "session_idle_timeout",
-                    "tier": tier,
-                    "message": "Your session expired due to inactivity. Please sign in again.",
-                },
-            )
-        if decision == "missing":
-            return JSONResponse(
-                status_code=401,
-                content={
-                    "detail": "session_not_active",
-                    "tier": tier,
-                    "message": "Your session is no longer active. Please sign in again.",
-                },
-            )
-        if decision == "expired_absolute":
-            return JSONResponse(
-                status_code=401,
-                content={
-                    "detail": "session_absolute_timeout",
-                    "tier": tier,
-                    "message": "Your session reached its maximum lifetime. Please sign in again.",
-                },
-            )
-        return await call_next(request)
+            if decision == "expired_idle":
+                return JSONResponse(
+                    status_code=401,
+                    content={
+                        "detail": "session_idle_timeout",
+                        "tier": tier,
+                        "message": "Your session expired due to inactivity. Please sign in again.",
+                    },
+                )
+            if decision == "missing":
+                return JSONResponse(
+                    status_code=401,
+                    content={
+                        "detail": "session_not_active",
+                        "tier": tier,
+                        "message": "Your session is no longer active. Please sign in again.",
+                    },
+                )
+            if decision == "expired_absolute":
+                return JSONResponse(
+                    status_code=401,
+                    content={
+                        "detail": "session_absolute_timeout",
+                        "tier": tier,
+                        "message": "Your session reached its maximum lifetime. Please sign in again.",
+                    },
+                )
+            return await call_next(request)
+        finally:
+            _CURRENT_DIRECTORY_TOKEN.reset(ctx_reset)
 
 
 def install_session_timeout_middleware(app: FastAPI, db) -> None:
@@ -260,6 +272,7 @@ async def reset_session_activity(
     user_id: Optional[str] = None,
     email: Optional[str] = None,
     actor_label: Optional[str] = None,
+    directory_token: Optional[str] = None,
     ip: Optional[str] = None,
     user_agent: Optional[str] = None,
 ) -> None:
@@ -293,6 +306,8 @@ async def reset_session_activity(
             doc["email"] = email.strip().lower()
         if actor_label:
             doc["actor_label"] = actor_label
+        if directory_token:
+            doc["directory_session_token_hash"] = _hash_token(directory_token)
         if ip:
             doc["last_login_ip"] = ip
         if user_agent:
@@ -342,6 +357,26 @@ async def has_active_session_activity(
         return False
     if expected_user_id and row.get("user_id") != expected_user_id:
         return False
+    directory_binding = row.get("directory_session_token_hash")
+    if directory_binding:
+        current_directory_token = _CURRENT_DIRECTORY_TOKEN.get()
+        if not current_directory_token:
+            return False
+        if _hash_token(current_directory_token) != directory_binding:
+            return False
+        directory_session = await db.directory_sessions.find_one(
+            {"token": current_directory_token},
+            {"_id": 0, "user_id": 1, "expires_at_ts": 1},
+        )
+        if not directory_session:
+            return False
+        if expected_user_id and directory_session.get("user_id") != expected_user_id:
+            return False
+        if row.get("user_id") and directory_session.get("user_id") != row.get("user_id"):
+            return False
+        now_ts = int(datetime.now(timezone.utc).timestamp())
+        if int(directory_session.get("expires_at_ts") or 0) < now_ts:
+            return False
     return True
 
 
@@ -355,6 +390,23 @@ async def clear_session_activity_for_user(db, user_id: str) -> int:
     except Exception as e:  # noqa: BLE001
         logger.warning("[session-timeout] clear_session_activity_for_user failed: %s", e)
         return 0
+
+
+async def clear_session_activity_for_actor(db, *, user_id: Optional[str] = None, token: Optional[str] = None) -> int:
+    """Canonical revocation helper.
+
+    Prefer user-scoped revocation so every stamped portal token for the same
+    logical actor is removed in one step. Fall back to token-scoped clearance
+    only when the actor identity cannot be resolved.
+    """
+    if user_id:
+        deleted = await clear_session_activity_for_user(db, user_id)
+        if deleted > 0:
+            return deleted
+    if token:
+        await clear_session_activity(db, token)
+        return 1
+    return 0
 
 
 

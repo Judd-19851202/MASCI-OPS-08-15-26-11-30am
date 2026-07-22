@@ -113,8 +113,6 @@ export default function PmShell({ title, section, children, intro }) {
       : <SideNav active={section} onNavigate={onNavigate} />;
 
   const signOut = async () => {
-    try { await api.post("/auth/multi-logout"); } catch { /* ignore */ }
-    try { await api.post("/pm/logout"); } catch { /* ignore */ }
     await clearAllSessions();
     toast.success("Signed out");
     navigate("/pm/login", { replace: true });

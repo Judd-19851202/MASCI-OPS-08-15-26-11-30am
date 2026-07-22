@@ -322,6 +322,7 @@ def build_pm_router(
     _directory_admin_token = login_deps["directory_admin_token_fn"]
     _reset_session_activity = login_deps["reset_session_activity_fn"]
     _clear_session_activity = login_deps["clear_session_activity_fn"]
+    _canonical_multi_logout = login_deps.get("canonical_multi_logout_fn")
     # Track 15.87 · directory PM-grant minter. Optional — falls back
     # to None which disables the new directory PM path (legacy
     # behaviour). Provided by server.py wiring.
@@ -677,8 +678,7 @@ def build_pm_router(
 
     @router.post("/pm/logout")
     async def pm_logout(request: Request, actor=Depends(require_admin_async_dep)):
-        """Iter135: audit-only PM logout. Token revocation is client-side.
-        Returns 200 regardless so the FE always feels clean."""
+        """Legacy compatibility wrapper over canonical shared logout."""
         try:
             pm_id = (actor.get("id") if isinstance(actor, dict) else "") or ""
             await db.audit_events.insert_one({
@@ -688,12 +688,25 @@ def build_pm_router(
                 "pm_id": pm_id,
                 "ip": _client_ip(request),
                 "user_agent": (request.headers.get("user-agent") or "")[:240],
+                "logout_route": "/api/pm/logout",
+                "canonical_logout": "/api/auth/multi-logout",
             })
         except Exception:  # noqa: BLE001
             pass
+        if callable(_canonical_multi_logout):
+            return await _canonical_multi_logout(
+                x_directory_token=request.headers.get("x-directory-token") or None,
+                x_admin_token=request.headers.get("x-admin-token") or None,
+                x_pm_token=request.headers.get("x-pm-token") or None,
+                x_hr_token=request.headers.get("x-hr-token") or None,
+                x_safety_token=request.headers.get("x-safety-token") or None,
+                x_shop_token=request.headers.get("x-shop-token") or None,
+                x_dispatch_token=request.headers.get("x-dispatch-token") or None,
+                x_fl_token=request.headers.get("x-fl-token") or None,
+            )
         x_pm_token = request.headers.get("x-pm-token") or ""
         await _clear_session_activity(db, x_pm_token)
-        return {"ok": True}
+        return {"ok": True, "canonical_logout": None}
 
     return router
 
