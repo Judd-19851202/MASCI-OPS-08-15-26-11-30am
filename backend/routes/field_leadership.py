@@ -356,6 +356,18 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
         _sweep_expired()
         tok = _gen_token()
         _LEADERSHIP_TOKENS[tok] = datetime.now(timezone.utc) + _TOKEN_TTL
+        try:
+            from session_timeout import reset_session_activity  # noqa: PLC0415
+
+            await reset_session_activity(
+                db,
+                tok,
+                "FIELD",
+                user_id="field-leadership",
+                actor_label="field_leadership",
+            )
+        except Exception:
+            pass
         return {"token": tok, "expires_in_s": int(_TOKEN_TTL.total_seconds())}
 
     @router.get("/check")
