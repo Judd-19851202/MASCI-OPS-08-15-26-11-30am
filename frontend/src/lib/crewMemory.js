@@ -309,6 +309,7 @@ export function saveCrewSetup(snapshot, { nickname } = {}) {
 export function loadCrewSetup(context = {}) {
   const meta = _contextMeta(context);
   if (!meta.projectNumber) return null;
+  if (meta.operatorToken === "shared") return null;
 
   const candidates = _listDeviceKeys(_projectPrefix(context))
     .map((key) => ({ key, rec: _readRecord(key) }))

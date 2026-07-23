@@ -172,6 +172,15 @@ describe("TRACK 26.08 · G-2 · crewMemory is per-device-project-operator", () =
     expect(loadCrewSetup({ projectNumber: "26-08", preparedBy: "Foreman A" })).toBeNull();
   });
 
+  test("blank operator context does not auto-restore a crew setup on shared devices", () => {
+    saveCrewSetup({
+      prepared_by: "Foreman A",
+      project_number: "26-07",
+      masci_crews: [{ name: "Alice" }],
+    });
+    expect(loadCrewSetup({ projectNumber: "26-07" })).toBeNull();
+  });
+
   test("legacy pre-26.08 slot readable ONCE then migrates on next save", () => {
     window.localStorage.setItem(
       CREW_MEM_TESTING.LEGACY_STORAGE_KEY,

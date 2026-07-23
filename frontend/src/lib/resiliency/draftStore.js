@@ -119,16 +119,16 @@ export async function getDraftEntry(actorId, formKey) {
   }
 }
 
-export async function findLatestDraftEntryForBase(actorId, formKeyBase, options = {}) {
-  if (!formKeyBase) return null;
+export async function findDraftEntriesForBase(actorId, formKeyBase, options = {}) {
+  if (!formKeyBase) return [];
   const prefix = `${DRAFT_PREFIX}${actorId || "anon"}.${formKeyBase}::`;
   const excludeKey = options.excludeFormKey ? _draftKey(actorId, options.excludeFormKey) : "";
   const filter = typeof options.filter === "function" ? options.filter : null;
+  const limit = Number.isFinite(options.limit) ? Math.max(1, Number(options.limit)) : Infinity;
   try {
     const ks = (await idbKeys())
-      .filter((k) => typeof k === "string" && k.startsWith(prefix) && k !== excludeKey)
-      .sort()
-      .reverse();
+      .filter((k) => typeof k === "string" && k.startsWith(prefix) && k !== excludeKey);
+    const out = [];
     for (const key of ks) {
       const entry = await get(key);
       if (!entry || !entry.form) continue;
@@ -143,12 +143,18 @@ export async function findLatestDraftEntryForBase(actorId, formKeyBase, options 
         formKey: key.slice(`${DRAFT_PREFIX}${actorId || "anon"}.`.length),
       };
       if (filter && !filter(candidate)) continue;
-      return candidate;
+      out.push(candidate);
     }
+    out.sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
+    return out.slice(0, limit);
   } catch {
-    return null;
+    return [];
   }
-  return null;
+}
+
+export async function findLatestDraftEntryForBase(actorId, formKeyBase, options = {}) {
+  const matches = await findDraftEntriesForBase(actorId, formKeyBase, { ...options, limit: 1 });
+  return matches[0] || null;
 }
 
 // ---------------------------------------------------------------- discard

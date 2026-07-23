@@ -30,7 +30,7 @@ import {
   DraftRestorePrompt,
   DraftRecoveryNotice,
   recoverArchivedDraft,
-  findLatestDraftEntryForBase,
+  findDraftEntriesForBase,
   discardDraft as discardStoredDraft,
   emitDraftEvent,
   DAILY_REPORT_FORM_BASE,
@@ -145,7 +145,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
   );
   const [data, setData] = useState(() => {
     const defaults = buildDailyReportDefaults();
-    if (lastProject && !defaults.project_number) defaults.project_number = lastProject;
+    if (!publicMode && lastProject && !defaults.project_number) defaults.project_number = lastProject;
     if (!defaults.report_instance) defaults.report_instance = "primary";
     return defaults;
   });
@@ -249,15 +249,16 @@ export default function NewDailyReportV3({ publicMode = false }) {
     let cancelled = false;
     (async () => {
       try {
-        const candidate = await findLatestDraftEntryForBase(getDeviceScopedActorId(), DAILY_REPORT_FORM_BASE, {
+        const matches = await findDraftEntriesForBase(getDeviceScopedActorId(), DAILY_REPORT_FORM_BASE, {
           excludeFormKey: scopedFormKey,
+          limit: 4,
           filter: ({ form }) => (
             !!String(form?.project_number || "").trim()
             && String(form?.report_date || "") === String(data.report_date || "")
             && String(form?.report_instance || "primary") === String(data.report_instance || "primary")
           ),
         });
-        if (!cancelled) setFallbackDraftOffer(candidate || null);
+        if (!cancelled) setFallbackDraftOffer(matches.length === 1 ? matches[0] : null);
       } catch {
         if (!cancelled) setFallbackDraftOffer(null);
       }
@@ -327,6 +328,12 @@ export default function NewDailyReportV3({ publicMode = false }) {
     }
     const foreman = String(data.prepared_by || "").trim();
     const superintendent = String(data.superintendent || "").trim();
+    if (!foreman && !superintendent) {
+      setSmartPrefillOffer(null);
+      setSmartPrefillError("");
+      setSmartPrefillFailureKind("");
+      return undefined;
+    }
     const requestKey = `${projectNumber}::${data.report_date || ""}::${foreman}::${superintendent}`;
     if (requestKey === smartPrefillLoadedKey && smartPrefillRetryNonce === 0) return undefined;
     let cancelled = false;
@@ -855,7 +862,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
         });
         try { saveCrewSetup(extractSetupSnapshot(payload)); } catch { /* silent */ }
         await commitDraft();
-        if (payload.project_number) rememberLastProject(String(payload.project_number));
+        if (!publicMode && payload.project_number) rememberLastProject(String(payload.project_number));
         const notificationState = String(saved?.notification_state || "").toLowerCase();
         if (notificationState === "captured_preview") {
           toast.success(t("Daily report submitted · email safely captured in Preview."), {
@@ -890,7 +897,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
           }
         });
         emitDraftEvent("draft.lifecycle", { formKey: scopedFormKey, trigger: "offline.queued" });
-        if (payload.project_number) rememberLastProject(String(payload.project_number));
+        if (!publicMode && payload.project_number) rememberLastProject(String(payload.project_number));
         toast(t("Offline — saved on this device and will send when connection returns."));
         navigate(publicMode ? "/thank-you?queued=1" : "/admin/daily");
       }

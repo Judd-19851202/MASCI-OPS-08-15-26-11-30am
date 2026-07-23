@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import os
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -11,6 +12,9 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from lib.runtime_cache import get_runtime_cache
 
 JOB_META_TTL_SECONDS = 60 * 60
+MAX_JSON_RESULT_BYTES = 256 * 1024
+MAX_BINARY_RESULT_BYTES = 10 * 1024 * 1024
+TERMINAL_STATUSES = {"completed", "failed", "expired"}
 
 _BINARY_RESULTS: Dict[str, Dict[str, Any]] = {}
 _BINARY_LOCK = asyncio.Lock()
@@ -43,6 +47,74 @@ def _mongo_expiry_dt(meta: Dict[str, Any]) -> datetime:
         except Exception:  # noqa: BLE001
             pass
     return datetime.now(timezone.utc) + timedelta(seconds=JOB_META_TTL_SECONDS)
+
+
+def _is_expired_meta(meta: Dict[str, Any]) -> bool:
+    raw = str(meta.get("expires_at") or "").strip()
+    if not raw:
+        return False
+    try:
+        dt = datetime.fromisoformat(raw)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt <= datetime.now(timezone.utc)
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def _json_size_bytes(value: Any) -> int:
+    return len(json.dumps(value, default=str, ensure_ascii=False).encode("utf-8"))
+
+
+def _is_json_serializable(value: Any) -> bool:
+    try:
+        json.dumps(value, ensure_ascii=False)
+        return True
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def _validate_meta(meta: Dict[str, Any]) -> bool:
+    if not isinstance(meta, dict):
+        return False
+    if not str(meta.get("job_id") or "").strip():
+        return False
+    status = str(meta.get("status") or "").strip().lower()
+    if status not in {"queued", "processing", "completed", "failed", "expired"}:
+        return False
+    result_type = str(meta.get("result_type") or "json").strip().lower()
+    if result_type not in {"json", "binary"}:
+        return False
+    try:
+        if result_type == "json" and meta.get("result") is not None:
+            if not _is_json_serializable(meta.get("result")):
+                return False
+            if _json_size_bytes(meta.get("result")) > MAX_JSON_RESULT_BYTES:
+                return False
+        if result_type == "binary" and meta.get("result") is not None:
+            result = meta.get("result") or {}
+            if not isinstance(result, dict):
+                return False
+            if result.get("download_url") and not str(result.get("download_url")).startswith("/api/jobs/"):
+                return False
+    except Exception:  # noqa: BLE001
+        return False
+    return True
+
+
+async def _delete_persisted_job(job_id: str) -> None:
+    coll = await _get_job_meta_collection()
+    if coll is not None:
+        try:
+            await coll.delete_one({"job_id": job_id})
+        except Exception:  # noqa: BLE001
+            pass
+    bcoll = await _get_job_binary_collection()
+    if bcoll is not None:
+        try:
+            await bcoll.delete_one({"job_id": job_id})
+        except Exception:  # noqa: BLE001
+            pass
 
 
 async def _ensure_mongo_collections():
@@ -101,6 +173,8 @@ async def _load_persisted_job_meta(job_id: str) -> Optional[Dict[str, Any]]:
     doc = await coll.find_one({"job_id": job_id}, {"_id": 0, "expires_at_dt": 0})
     if not isinstance(doc, dict):
         return None
+    if not _validate_meta(doc):
+        return None
     return doc
 
 
@@ -125,6 +199,12 @@ async def _load_persisted_binary_result(job_id: str) -> Optional[Dict[str, Any]]
         return None
     doc = await coll.find_one({"job_id": job_id}, {"_id": 0, "expires_at_dt": 0, "job_id": 0})
     if not isinstance(doc, dict):
+        return None
+    if not isinstance(doc.get("content"), (bytes, bytearray)):
+        return None
+    if len(doc.get("content") or b"") > MAX_BINARY_RESULT_BYTES:
+        return None
+    if not str(doc.get("token") or "").strip():
         return None
     return doc
 
@@ -166,12 +246,31 @@ async def get_async_job(job_id: str) -> Optional[Dict[str, Any]]:
     cache = get_runtime_cache()
     meta = await cache.get_json(_job_meta_key(job_id))
     if isinstance(meta, dict):
+        if not _validate_meta(meta):
+            try:
+                await cache.delete(_job_meta_key(job_id))
+            except Exception:  # noqa: BLE001
+                pass
+            meta = None
+        elif _is_expired_meta(meta):
+            try:
+                await cache.delete(_job_meta_key(job_id))
+            except Exception:  # noqa: BLE001
+                pass
+            await _delete_persisted_job(job_id)
+            return None
+        else:
+            return meta
+    if isinstance(meta, dict):
         return meta
     try:
         persisted = await _load_persisted_job_meta(job_id)
     except Exception:  # noqa: BLE001
         persisted = None
     if not isinstance(persisted, dict):
+        return None
+    if _is_expired_meta(persisted):
+        await _delete_persisted_job(job_id)
         return None
     try:
         await cache.set_json(_job_meta_key(job_id), persisted, ttl_seconds=JOB_META_TTL_SECONDS)
@@ -196,6 +295,14 @@ async def patch_async_job(job_id: str, **updates: Any) -> Optional[Dict[str, Any
     meta = await get_async_job(job_id)
     if not meta:
         return None
+    if str(meta.get("status") or "") in TERMINAL_STATUSES:
+        next_status = str(updates.get("status") or meta.get("status") or "")
+        if next_status != str(meta.get("status") or ""):
+            return meta
+        if "result" in updates and updates.get("result") != meta.get("result"):
+            return meta
+        if "error" in updates and updates.get("error") != meta.get("error"):
+            return meta
     for key, value in updates.items():
         if key == "details" and isinstance(value, dict):
             merged = dict(meta.get("details") or {})
@@ -226,6 +333,13 @@ async def complete_async_job_json(
     *,
     message: str = "Completed",
 ) -> Optional[Dict[str, Any]]:
+    if _json_size_bytes(result) > MAX_JSON_RESULT_BYTES:
+        return await fail_async_job(
+            job_id,
+            error_code="result_too_large",
+            message="Async job result exceeded JSON size limit",
+            details={"max_bytes": MAX_JSON_RESULT_BYTES, "actual_bytes": _json_size_bytes(result)},
+        )
     return await patch_async_job(
         job_id,
         status="completed",
@@ -244,13 +358,21 @@ async def complete_async_job_binary(
     message: str = "Completed",
     result_meta: Optional[Dict[str, Any]] = None,
 ) -> Optional[Dict[str, Any]]:
+    content_bytes = bytes(content or b"")
+    if len(content_bytes) > MAX_BINARY_RESULT_BYTES:
+        return await fail_async_job(
+            job_id,
+            error_code="binary_result_too_large",
+            message="Async job binary exceeded size limit",
+            details={"max_bytes": MAX_BINARY_RESULT_BYTES, "actual_bytes": len(content_bytes)},
+        )
     meta = await get_async_job(job_id)
     if not meta:
         return None
     token = str(meta.get("result_token") or "")
     async with _BINARY_LOCK:
         _BINARY_RESULTS[job_id] = {
-            "content": content,
+            "content": content_bytes,
             "media_type": media_type,
             "filename": filename,
             "token": token,
@@ -306,6 +428,10 @@ async def get_async_job_binary_result(job_id: str, token: str) -> Optional[Tuple
             stored = None
     if not stored or str(stored.get("token") or "") != str(token or ""):
         return None
+    if not isinstance(stored.get("content"), (bytes, bytearray)):
+        return None
+    if len(stored.get("content") or b"") > MAX_BINARY_RESULT_BYTES:
+        return None
     return meta, stored
 
 
@@ -334,6 +460,8 @@ __all__ = [
     "fail_async_job",
     "get_async_job",
     "get_async_job_binary_result",
+    "MAX_BINARY_RESULT_BYTES",
+    "MAX_JSON_RESULT_BYTES",
     "mark_async_job_processing",
     "patch_async_job",
     "serialize_async_job_status",

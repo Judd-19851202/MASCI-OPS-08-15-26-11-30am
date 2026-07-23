@@ -7,11 +7,21 @@ function clean(value, fallback) {
   return out || fallback;
 }
 
+function cleanOperator(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
+
 export function buildDailyReportInstanceScope(data = {}) {
   const project = clean(data.project_number, "unassigned");
   const reportDate = clean(data.report_date, "undated");
   const reportInstance = clean(data.report_instance, "primary");
-  return `${project}::${reportDate}::${reportInstance}`;
+  const operator = cleanOperator(data.prepared_by || data.superintendent || "") || "shared";
+  return `${project}::${reportDate}::${reportInstance}::${operator}`;
 }
 
 export function buildDailyReportScopedFormKey(data = {}) {
