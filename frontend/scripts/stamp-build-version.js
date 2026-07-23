@@ -35,10 +35,7 @@ const RELEASE_FINGERPRINT_RELATIVE_PATHS = fs.existsSync(SCOPE_FILE)
   : FALLBACK_RELEASE_FINGERPRINT_RELATIVE_PATHS;
 
 const pad = (n) => String(n).padStart(2, "0");
-const now = new Date();
-const datePart = `${now.getUTCFullYear()}.${pad(now.getUTCMonth() + 1)}.${pad(
-  now.getUTCDate()
-)}`;
+let builtAtIso = (process.env.BUILT_AT || process.env.DEPLOY_BUILT_AT || "").trim();
 
 let commit = "";
 let commitFull = "";
@@ -95,8 +92,24 @@ try {
   // we'll just stamp the date.
 }
 
+if (!builtAtIso) {
+  try {
+    builtAtIso = execSync(`git show -s --format=%cI ${commitFull || "HEAD"}`, {
+      cwd: REPO_ROOT,
+      stdio: ["ignore", "pipe", "ignore"],
+    })
+      .toString()
+      .trim();
+  } catch {
+    builtAtIso = new Date().toISOString();
+  }
+}
+const builtAtDate = new Date(builtAtIso);
+const safeBuiltAtDate = Number.isNaN(builtAtDate.getTime()) ? new Date() : builtAtDate;
+const datePart = `${safeBuiltAtDate.getUTCFullYear()}.${pad(safeBuiltAtDate.getUTCMonth() + 1)}.${pad(
+  safeBuiltAtDate.getUTCDate()
+)}`;
 const version = commit ? `v${datePart}-${commit}` : `v${datePart}`;
-const builtAtIso = now.toISOString();
 
 const sourceHash = (() => {
   const h = crypto.createHash("md5");

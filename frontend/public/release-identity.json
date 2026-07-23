@@ -1,9 +1,9 @@
 {
-  "version": "v2026.07.23-bab5a86",
-  "commit": "bab5a86811ebeebcdf97c657a17df33ad83c2712",
+  "version": "v2026.07.23-cad2385",
+  "commit": "cad2385f8dafc55555bfda93d09eb04cddfccf7c",
   "commit_source": "git:HEAD",
-  "built_at": "2026-07-23T22:52:33.925Z",
-  "source_hash": "3d4df395a6cbe294b2bf66a0a72d1792",
+  "built_at": "2026-07-23T22:59:14+00:00",
+  "source_hash": "8e7593cde4152c12b3809eb07e98ced8",
   "dependency_manifest_hash": "b6e3daa826554186ba5c7ed5a2a058b3434be2679f621cb3c51b5aee2fcc6faf",
   "migration_manifest_hash": "15192f5cf53149a0ce77eda8076a150f01c537c899184447b7ee290b0e9561c9",
   "release_gate_manifest_hash": "44be60aee2d3a53d479d5de670e53f564ac677abc9b60b7a76ea128b39670822",

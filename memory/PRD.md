@@ -137,3 +137,37 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - Daily Report work must stay **public and anonymous**.
 - Do not use admin/test credentials for Daily Report creation testing.
 - Use the marker `LIVE-AI-DRY-RUN-NO-SUBMIT` for dry-run scenarios and avoid unintended submission during non-submit verification.
+
+## 2026-07-23 — MASCI OPS 8 C2 Deployment Identity & Automatic Governance Closure
+
+### What changed
+- Verified Preview frontend serve path: `craco start` compiles the actual browser-served bundle, so frontend release identity is now stamped before that compile path and exposed through `/release-identity.json`.
+- Backend `/api/version` now compares backend runtime identity against the served frontend artifact identity (`served:http://127.0.0.1:3000/release-identity.json`) instead of relying only on a source file.
+- Protected governance verification now follows the proven dual-token contract from `/api/auth/multi-login`: `X-Admin-Token` + `X-Directory-Token`.
+- `/api/health/full` now evaluates backup freshness against the configured scheduler mode honestly: Preview `lite` backup mode uses recent successful backup evidence instead of a stale R2-only signal.
+- Added automatic startup deployment verification that writes canonical idempotent ledger rows to `deployment_decisions` and canonical deployment audit/trust outcomes to `admin_audit` / OCC trust events.
+- Hardened `scripts/post_deploy_verify.sh` to verify `/api/version`, `/api/health/full`, readiness, ledger read-back, and trust-event read-back against Preview.
+- Added/updated focused regression tests for release identity, health contract, trust events, and deployment ledger idempotency.
+
+### Canonical ownership after repair
+- Release identity input: `backend/lib/release_identity.py`
+- Frontend artifact identity: `frontend/scripts/stamp-build-version.js` + `frontend/public/release-identity.json`
+- Backend runtime identity: `/api/version` in `backend/server.py`
+- Parity decision: `/api/version` in `backend/server.py`
+- Automatic deployment verification: startup background task in `backend/server.py`
+- Canonical deployment ledger: `backend/routes/admin_deployment_ledger.py` -> `deployment_decisions`
+- Canonical Trust/C2 deployment outcome: `admin_audit` rows classified by `backend/routes/occ_trust_events.py`
+
+### Latest live Preview proof
+- Current backend/runtime commit: `cad2385f8dafc55555bfda93d09eb04cddfccf7c`
+- Current served frontend commit: `cad2385f8dafc55555bfda93d09eb04cddfccf7c`
+- Frontend/backend parity: `true`
+- Health full: `200 OK` with `mongo=true`, `scheduler=true`, `backup_recent=true`
+- Latest automatic deployment ledger decision: `pass / GO`
+- Latest automatic deployment trust outcome: `deployment_verification` audit row with `outcome=pass`
+- Focused pytest on new/updated governance tests: `12 passed`
+
+### Remaining backlog
+- P0: None for this bounded repair track.
+- P1: If the platform later introduces a clean immutable deploy-commit injection variable for Preview, point `intended_release_commit` at that canonical value instead of the current governed `PRE_SAVE_CANDIDATE:<HEAD>:<source_hash_prefix>` representation.
+- P2: None.
