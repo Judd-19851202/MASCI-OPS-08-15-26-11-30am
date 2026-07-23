@@ -30,6 +30,8 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
+from services.photo_intelligence.pipeline import _photo_id_for
+
 from .materials import (
     NormalizedTicket,
     normalize_ticket_row,
@@ -167,10 +169,11 @@ def _photos_from_intelligence(
                 pid = str(item)
                 ref = str(item)
                 caption = ""
+            normalized_pid = _photo_id_for(ref) or _photo_id_for(pid) or ""
             # Match against intelligence store by trimmed id if present.
             row = None
             for k, r in intel_by_id.items():
-                if k and k in (pid or "") or (ref and (r.get("photo_ref") == ref)):
+                if (normalized_pid and str(k or "") == normalized_pid) or (ref and (r.get("photo_ref") == ref)):
                     row = r
                     break
             mp = ManifestPhoto(
@@ -190,6 +193,23 @@ def _photos_from_intelligence(
                     for o in (row.get("observations") or [])[:12]
                 ]
                 mp.confidence = float(row.get("confidence") or 0.0)
+            elif intel_rows:
+                for r in intel_rows:
+                    photo_ref = str(r.get("photo_ref") or "")
+                    if photo_ref and photo_ref == ref:
+                        mp.analysis_status = r.get("analysis_status") or "not_started"
+                        mp.narrative = (r.get("narrative") or "")[:280]
+                        mp.observations = [
+                            {
+                                "label": o.get("label"),
+                                "description": o.get("description"),
+                                "category": o.get("category"),
+                                "confidence": o.get("confidence"),
+                            }
+                            for o in (r.get("observations") or [])[:12]
+                        ]
+                        mp.confidence = float(r.get("confidence") or 0.0)
+                        break
             out.append(mp)
 
     _walk(report.get("photos"), "photos")

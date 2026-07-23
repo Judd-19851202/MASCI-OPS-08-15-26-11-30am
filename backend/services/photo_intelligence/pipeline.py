@@ -605,6 +605,23 @@ async def process_report(db, report: Dict[str, Any]) -> Dict[str, Any]:
                     status="failed", note=res.get("reason") or "unknown",
                 )
                 failed += 1
+        try:
+            intel = await list_report_intelligence(db, report_id=doc_id)
+            accepted_meta = dict(report.get("ai_accepted_summary_meta") or {})
+            accepted_meta["photo_intelligence_status"] = str(intel.get("status") or "")
+            accepted_meta["photo_observations"] = list(intel.get("observations") or [])[:60]
+            await db.daily_reports.update_one(
+                {"doc_id": doc_id},
+                {
+                    "$set": {
+                        "photo_intelligence_status": str(intel.get("status") or ""),
+                        "photo_observations": list(intel.get("observations") or [])[:60],
+                        "ai_accepted_summary_meta": accepted_meta,
+                    }
+                },
+            )
+        except Exception:  # noqa: BLE001
+            pass
         return {
             "ok": True, "photos": len(refs),
             "completed": completed, "failed": failed,

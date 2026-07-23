@@ -1207,6 +1207,13 @@ def register_daily_reports_routes(api_router: APIRouter, db, require_admin, rate
             ]
             if photo_observations:
                 doc["ai_photo_observations"] = photo_observations
+            if isinstance(doc.get("photos"), list) and doc.get("photos"):
+                doc["photo_intelligence_status"] = "queued"
+                doc["photo_observations"] = []
+                accepted_meta = dict(doc.get("ai_accepted_summary_meta") or {})
+                accepted_meta["photo_intelligence_status"] = "queued"
+                accepted_meta["photo_observations"] = []
+                doc["ai_accepted_summary_meta"] = accepted_meta
             doc["conflict_watchdog"] = await _build_watchdog_flags(db, doc)
             if doc["conflict_watchdog"].get("requires_pm_review"):
                 doc["pm_review_required"] = True
