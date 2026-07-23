@@ -58,6 +58,8 @@ export default function DraftRestorePrompt({
   const draftProject = (pendingDraft.project_number || "").trim();
   const draftProjectName = (pendingDraft.project_name || "").trim();
   const draftDate = (pendingDraft.report_date || "").trim();
+  const draftPreparedBy = (pendingDraft.prepared_by || "").trim();
+  const draftSuperintendent = (pendingDraft.superintendent || "").trim();
   return (
     <section
       data-testid={testId}
@@ -93,6 +95,16 @@ export default function DraftRestorePrompt({
                 ? `${t("Project")}: ${draftProjectName ? `${draftProjectName} (${draftProject})` : draftProject}`
                 : t("Project not yet selected")}
               {draftDate ? ` · ${t("Date")}: ${draftDate}` : ""}
+            </p>
+          ) : null}
+          {(draftPreparedBy || draftSuperintendent) ? (
+            <p
+              className="text-xs text-amber-800 mt-1"
+              data-testid={`${testId}-operator`}
+            >
+              {draftPreparedBy ? `${t("Prepared By")}: ${draftPreparedBy}` : ""}
+              {draftPreparedBy && draftSuperintendent ? " · " : ""}
+              {draftSuperintendent ? `${t("Superintendent")}: ${draftSuperintendent}` : ""}
             </p>
           ) : null}
           {isCrossToken ? (

@@ -318,6 +318,12 @@ export default function NewDailyReportV3({ publicMode = false }) {
   const onDismissCrewSetup = useCallback(() => setCrewSetupOffer(null), []);
 
   useEffect(() => {
+    if (publicMode) {
+      setSmartPrefillOffer(null);
+      setSmartPrefillError("");
+      setSmartPrefillFailureKind("");
+      return undefined;
+    }
     if (!draftLoaded || pendingDraft) return undefined;
     const projectNumber = String(data.project_number || "").trim();
     if (!projectNumber) {
@@ -387,7 +393,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
       }
     })();
     return () => { cancelled = true; };
-  }, [draftLoaded, pendingDraft, data.project_number, data.report_date, data.prepared_by, data.superintendent, smartPrefillLoadedKey, smartPrefillRetryNonce, scopedFormKey, t]);
+  }, [publicMode, draftLoaded, pendingDraft, data.project_number, data.report_date, data.prepared_by, data.superintendent, smartPrefillLoadedKey, smartPrefillRetryNonce, scopedFormKey, t]);
 
   const onApplySmartPrefill = useCallback(() => {
     if (!smartPrefillOffer) return;
@@ -1068,7 +1074,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
           testId="dr-v3-draft-recovery"
         />
 
-        {smartPrefillOffer && !pendingDraft && !crewSetupOffer ? (
+        {!publicMode && smartPrefillOffer && !pendingDraft && !crewSetupOffer ? (
           <div
             data-testid="dr-v3-smart-prefill-offer"
             className="mb-4 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4"
