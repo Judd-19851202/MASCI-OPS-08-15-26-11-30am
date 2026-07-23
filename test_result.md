@@ -430,6 +430,19 @@ frontend:
         timestamp: "2026-07-22 20:15:30 UTC"
         comment: "✅ VERIFIED: C2 candidate final restamp minimal frontend smoke check completed successfully for commit 7141d5bcec2ac4a60f9ae91188b3bafea64814e2. This was a minimal smoke test only (NOT a broad UI sweep) to confirm the frontend is not blank/broken after the final candidate restamp. ALL 4 SMOKE TEST OBJECTIVES PASSED: (1) Preview app root URL loads successfully - React SPA renders with 2740 characters of visible content, 334 visible elements, proper page structure with MASCI Operations Platform landing page displaying 'One System. Every Crew. Every Job.' heading. (2) Initial route loads visible content and basic navigation shell/UI is present - navigation with SIGN IN button, language selector (EN/ES), three main portal sections (Field, QA/QC, Safety), Leadership Tools section, and non-production environment banner all rendering correctly. (3) Login/landing surface renders without obvious console/runtime errors - no fatal JavaScript errors detected, no page errors, console shows only expected 401 responses from portal check endpoints (normal behavior). (4) No blocking frontend crash detected - no error overlay, no crash screen, no blank page. Screenshot captured at .screenshots/c2_candidate_smoke_test.png shows proper rendering with full UI shell and content. CONCLUSION: Frontend is NOT blank/broken after final candidate restamp. Application renders successfully with no blocking issues. This was a smoke check only as requested - no deep workflow testing performed."
 
+  - task: "C2 Deployment/Version/C2 Visibility Verification"
+    implemented: true
+    working: "partial"
+    file: "c2_deployment_version_visibility_report.md"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "partial"
+        agent: "testing"
+        timestamp: "2026-07-23 21:45:00 UTC"
+        comment: "✅ VERIFIED: C2 deployment/version/C2 visibility verification completed for Preview environment (https://backup-forensics.preview.emergentagent.com). SCOPE: Read-only verification of deployment version visibility, trust/governance surfaces, and deployment history. RESULTS: ✅ DEPLOYMENT VERSION INFO IS VISIBLE through multiple surfaces: (1) API Endpoints - /api/version returns full commit hashes (Backend: 2718dc1866e47a6e176a78d22026c02b632d7e78, Frontend: af31a84d0e60b512df9fcdede603f9ff1e48d882, Source Hash: 7ae9607be49196a1edc37011bfa7ac5d), /api/health returns OK=true, /api/health/full returns 503 degraded (backup_recent=false, runtime_identity_ok=true, runtime_identity_status=NOT_APPLICABLE), /api/admin/deployment-readiness returns decision=pass with blocking_gates=[], /api/admin/trust-spine returns platform_band=amber with canonical_status=DEGRADED. (2) Admin UI - Platform Overview card displays 'Build 2718dc18 - masci-hub' with uptime '0h 14m' (short commit hash visible), Admin Operating System dashboard shows 10 domain cards including Governance & Trust (CRITICAL, 0% rules tracked) and Operations Control Center (ATTENTION, 14 items). (3) Trust/Governance Surfaces - Governance & Trust card present in admin dashboard, Operations Trust Center page exists at /admin/email but shows 'Trust Center unavailable: session_not_active' and 'Trust validator unavailable: session_not_active', 2 disposition elements found with data-trust-surface-id/data-trust-disposition/data-trust-role/data-canonical-owner attributes present in DOM. ❌ DEPLOYMENT HISTORY NOT VISIBLE - No UI surface found showing previous deployments, release timeline, commit history, or deployment audit trail in any admin pages tested (/admin, /admin/operations-control, /admin/governance, /admin/recovery, /admin/email). ⚠️ ISSUES DETECTED: (1) Frontend/Backend Release Mismatch - frontend_backend_release_match=false (different commits deployed, may be intentional in Preview), (2) Backup Age Exceeds Threshold - causing /api/health/full to return 503, (3) Trust Center Session Issues - trust surfaces not loading data due to session_not_active, (4) Governance & Trust Critical - 0% rules tracked, (5) Platform Configuration Critical - 5/6 integrations degraded. CONCLUSION: Current deployment version/commit info IS VISIBLE in Preview through API endpoints and Admin UI Platform Overview card. Trust/governance API endpoints are accessible and returning status. However, deployment history UI is NOT IMPLEMENTED, and some trust surfaces are experiencing session state issues. Detailed findings documented in /app/c2_deployment_version_visibility_report.md. Screenshots: c2_version_initial.png, c2_version_after_login.png, c2_version_admin_console.png, c2_version_operations_trust.png, c2_final_admin_dashboard.png."
+
 ## Metadata
 
 metadata:
@@ -450,6 +463,7 @@ metadata:
   c2_final_authorization_frontend_status: "PASS_READY_FOR_AUTHORIZATION"
   c2_recovery_identity_validation_status: "PASS_ALL_TESTS"
   c2_candidate_final_restamp_smoke_status: "PASS_NO_BLOCKING_ISSUES"
+  c2_deployment_version_visibility_status: "PARTIAL_VERSION_VISIBLE_HISTORY_NOT_VISIBLE"
   daily_report_reliability_final_backend_status: "VERIFIED_PASS"
   daily_report_canonical_consolidation_status: "VERIFIED_PASS_ALL_TESTS"
   daily_report_canonical_workflow_status: "VERIFIED_PASS_ALL_TESTS"
