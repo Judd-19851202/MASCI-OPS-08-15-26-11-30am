@@ -34,7 +34,13 @@ EVIDENCE_FIELD_WHITELIST = {
     "supervisor_name", "weather", "gps_location",
     # TRACK 24.12 · project metadata snapshot from the DR payload.
     "client", "project_manager", "location", "weather_summary",
-    "day_setup",
+    "day_setup", "prepared_by", "superintendent", "report_number",
+    "report_instance", "distribution_list",
+    # GPS/location/weather acquisition facts
+    "gps_lat", "gps_lng", "gps_accuracy", "location_captured_at",
+    "location_permission_status", "location_capture_result", "location_source",
+    "location_error_code", "location_error_message", "location_capture_origin",
+    "location_capture_attempts", "weather_snapshots", "weather_snapshot_meta",
     # ── Crew / labor ──────────────────────────────────────────
     "masci_crews", "crew_hours_total", "absent_early_chips",
     "visitors",
@@ -46,19 +52,26 @@ EVIDENCE_FIELD_WHITELIST = {
     "production", "constraints", "day_impacts", "narrative_sections",
     # ── Materials / hauling ───────────────────────────────────
     "materials", "outbound_materials", "subcontractors", "vendors",
+    "cost_code_quantities",
     # ── Safety / quality ──────────────────────────────────────
     "safety_incidents", "quality_findings", "jha_ack",
-    "safety_quality", "near_misses",
+    "safety_quality", "near_misses", "safety_notes",
+    "safety_incidents_today", "injuries_reported", "incident_notes",
+    "safety_notified", "safety_contact_person", "safety_contact_time",
+    "incident_report_filled", "incident_report_time",
     # ── Excavation / trench (Track 23.10-E) ───────────────────
     "excavation", "competent_person", "work_stoppage",
+    "excavation_activity_today", "linked_excavation_ids",
     # ── Free-text narrative ───────────────────────────────────
-    "general_notes",
+    "general_notes", "notes",
     # ── Photos + photo intel ──────────────────────────────────
     "photos", "photo_captions", "photo_observations",
     # ── Attachment metadata (never file contents) ─────────────
     "attachments",
     # ── Weather / production context ──────────────────────────
     "temperature_f", "precipitation", "wind_mph",
+    "schedule_delays", "schedule_delays_notes", "weather_impact",
+    "weather_impact_notes",
 }
 
 

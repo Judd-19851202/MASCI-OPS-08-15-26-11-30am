@@ -243,8 +243,12 @@ def _operator_status_message(summary: Dict[str, Any]) -> str:
         return f"Analyzing {reviewed} of {total} photos…"
     if state == "partially_analyzed":
         return f"Analyzed {reviewed} of {total} photos so far."
+    if state in {"cited", "complete_with_observations"}:
+        return f"Photo analysis reviewed {reviewed or total} of {total} photos."
     if state == "complete":
         return f"Photo analysis complete — {total} photos reviewed."
+    if state == "complete_zero_observations":
+        return "Photo analysis completed, but no operational observations were extracted."
     if state == "complete_with_some_failures":
         missed = max(0, terminal + unavailable)
         return f"{reviewed} of {total} photos analyzed — {missed} could not be processed."
