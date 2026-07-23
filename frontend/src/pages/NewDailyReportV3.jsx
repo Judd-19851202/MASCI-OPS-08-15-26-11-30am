@@ -881,7 +881,20 @@ export default function NewDailyReportV3({ publicMode = false }) {
         } else {
           toast.success(t("Daily report submitted."));
         }
-        if (publicMode) navigate("/thank-you");
+        if (publicMode) {
+          navigate("/thank-you", {
+            state: {
+              formType: "Daily Report",
+              projectName: payload.project_name || payload.project_number || "",
+              returnTo: "/daily/submit",
+              recordId: saved?.report_number || saved?.doc_id || saved?.id || "",
+              submissionState: "delivered",
+              notificationState,
+              notificationDeliveryMode: saved?.notification_delivery_mode || "",
+              notificationCaptureAvailable: !!saved?.notification_capture_available,
+            },
+          });
+        }
         else if (saved?.id) navigate(`/daily/${saved.id}`);
         else navigate("/admin/daily");
       } else {
@@ -905,7 +918,19 @@ export default function NewDailyReportV3({ publicMode = false }) {
         emitDraftEvent("draft.lifecycle", { formKey: scopedFormKey, trigger: "offline.queued" });
         if (!publicMode && payload.project_number) rememberLastProject(String(payload.project_number));
         toast(t("Offline — saved on this device and will send when connection returns."));
-        navigate(publicMode ? "/thank-you?queued=1" : "/admin/daily");
+        if (publicMode) {
+          navigate("/thank-you", {
+            state: {
+              formType: "Daily Report",
+              projectName: payload.project_name || payload.project_number || "",
+              returnTo: "/daily/submit",
+              submissionState: "queued",
+              notificationDeliveryMode: payload?.notification_delivery_mode || "",
+            },
+          });
+        } else {
+          navigate("/admin/daily");
+        }
       }
     } catch (err) {
       const classified = classifyApiError(err);

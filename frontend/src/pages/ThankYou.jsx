@@ -36,6 +36,9 @@ export default function ThankYou() {
   const formType = state?.formType || "Inspection";
   const returnTo = state?.returnTo || "/submit";
   const recordId = state?.recordId || "";
+  const notificationState = state?.notificationState || "";
+  const notificationDeliveryMode = state?.notificationDeliveryMode || "";
+  const notificationCaptureAvailable = !!state?.notificationCaptureAvailable;
   // DR-BLOCKER-001B · submission state — defaults to "delivered" for
   // backward compatibility with the dozens of other forms that route
   // through this page on success without passing the flag.
@@ -48,6 +51,11 @@ export default function ThankYou() {
 
   const continuityLine = CONTINUITY_LINE[formType]
     || "The right people have visibility. You're done unless contacted.";
+  const isPreviewNotificationCapture = submissionState === "delivered" && (
+    notificationState === "captured_preview"
+    || notificationDeliveryMode === "SAFE_CAPTURE"
+    || notificationCaptureAvailable
+  );
 
   const [retrying, setRetrying] = useState(false);
   const [retryNote, setRetryNote] = useState("");
@@ -79,7 +87,9 @@ export default function ThankYou() {
       kicker: `${t(formType)} · ${t("On file")}`,
       kickerColor: "text-red-700",
       headline: t("Filed."),
-      message: continuityLine,
+      message: isPreviewNotificationCapture
+        ? t("This Preview submission was stored successfully. Notification was safely captured for certification and no operational email was sent.")
+        : continuityLine,
       showRecordId: true,
       buttons: (
         <>
@@ -248,7 +258,11 @@ export default function ThankYou() {
               </div>
               <ul className="list-disc list-inside space-y-1 text-sm text-slate-800">
                 <li data-testid="commitment-pdf">{t("PDF is being rendered and stored.")}</li>
-                <li data-testid="commitment-email">{t("Auto-emails have been queued.")}</li>
+                <li data-testid="commitment-email">
+                  {isPreviewNotificationCapture
+                    ? t("Preview only: notification was safely captured and no external email was sent.")
+                    : t("Auto-emails have been queued.")}
+                </li>
                 <li data-testid="commitment-shop">{t("Shop and Dispatch will see any defects immediately.")}</li>
                 <li data-testid="commitment-safety-pm">{t("Safety and the PM will be notified per project routing.")}</li>
               </ul>
