@@ -92,6 +92,32 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - Additional frontend public flow QA: PASS
 - Backend anonymous public API contract QA: PASS
 
+## 2026-07-23 — Release Closure Follow-up
+
+### Narrow Scope Completed
+- Fixed canonical submitted-report photo intelligence sync so the saved Daily Report record now reflects the submitted report's actual photo-intelligence outcome instead of stale draft-era status.
+- Fixed evidence manifest photo status mapping so manifest `photos[].analysis_status` now matches the canonical photo-intelligence store for submitted records.
+- Verified canonical Summary B persistence after regeneration using two distinct draft summary generations (A and B), then submitting B and confirming the saved record preserved B rather than A.
+
+### Exact Commit
+- `75f97eb4` — `daily report: sync canonical photo intel and certify summary B persistence`
+
+### Certification Evidence
+- Canonical photo-analysis/citation parity: PASS
+  - Submitted record `DR-2026-03536` now shows:
+    - `daily_reports.photo_intelligence_status = unavailable`
+    - `/api/daily-reports/DR-2026-03536/photo-intelligence -> status=unavailable`
+    - `/api/daily-reports/DR-2026-03536/evidence-manifest -> photos[].analysis_status=unavailable`
+- Canonical Summary B persistence after regeneration: PASS
+  - Generated distinct Summary A and Summary B for the same public Daily Report draft context.
+  - Submitted Summary B.
+  - Canonical saved record `DR-2026-03536` contains Summary B, not Summary A.
+  - Saved `ai_accepted_summary_meta.report_state_signature = SUMMARY-B-CERT-SIGNATURE`.
+
+### Final Verification State For This Narrow Follow-up
+- Working tree clean after commit: YES
+- Targeted backend tests from final commit: PASS
+
 ## Prioritized Backlog
 
 ### P0
