@@ -2,12 +2,13 @@
   "generated_at": "2026-07-23T00:14:25.029912+00:00",
   "final_decision_candidate": "DAILY REPORT FUNCTIONALLY REPAIRED BUT BLOCKED BY SPECIFIC EXTERNAL ACCESS",
   "release_candidate": {
-    "commit": "a0a3b0f5b32938f43573278a72cb268d12b17453",
+    "workspace_commit": "dffb6f5a252e7bd2397a5a4115cf08057ea16577",
+    "runtime_commit": "dffb6f5a252e7bd2397a5a4115cf08057ea16577",
     "release": "321aa1e5a33d57990faea6116e2c5e11",
     "source_hash": "321aa1e5a33d57990faea6116e2c5e11",
     "frontend_backend_release_match": true,
-    "frontend_build_version": "v2026.07.22-a0a3b0f",
-    "process_started_at": "2026-07-22T23:43:18.341916+00:00"
+    "frontend_build_version": "v2026.07.23-dffb6f5",
+    "process_started_at": "2026-07-23T00:23:54.268602+00:00"
   },
   "runtime": {
     "ready": {
@@ -30,6 +31,151 @@
       "backup_recent": true,
       "runtime_identity_ok": true,
       "runtime_identity_status": "NOT_APPLICABLE"
+    },
+    "version": {
+      "service": "masci-hub",
+      "commit": "dffb6f5a252e7bd2397a5a4115cf08057ea16577",
+      "commit_source": "git:HEAD",
+      "built_at": "2026-07-22T23:43:15.857900+00:00",
+      "build_at_source": "artifact_mtime",
+      "source_hash": "321aa1e5a33d57990faea6116e2c5e11",
+      "source_hash_scope_files": [
+        "release_identity_scope.json",
+        "backend/lib/release_identity.py",
+        "backend/server.py",
+        "backend/pdf_render.py",
+        "backend/training_pdf.py",
+        "backend/routes/daily_reports.py",
+        "backend/routes/dr_v2.py",
+        "backend/routes/dr_v2_canonicalize.py",
+        "backend/routes/dr_v2_pdf.py",
+        "backend/routes/dr_v2_photos.py",
+        "backend/routes/dispatch_portal_auth.py",
+        "backend/services/photo_intelligence/pipeline.py",
+        "backend/scripts/verify_release_identity.py",
+        "frontend/scripts/stamp-build-version.js",
+        "frontend/src/app/routing/AppRoutes.jsx",
+        "frontend/src/pages/NewDailyReportV3.jsx",
+        "frontend/src/pages/DailyReportsDashboard.jsx",
+        "frontend/src/pages/ViewDailyReport.jsx"
+      ],
+      "release": "321aa1e5a33d57990faea6116e2c5e11",
+      "frontend_build_version": "v2026.07.23-dffb6f5",
+      "frontend_build_commit": "dffb6f5a252e7bd2397a5a4115cf08057ea16577",
+      "frontend_build_built_at": "2026-07-23T00:23:23.197Z",
+      "frontend_build_source_hash": "321aa1e5a33d57990faea6116e2c5e11",
+      "frontend_build_source": "generated:frontend/src/buildVersion.generated.js",
+      "frontend_backend_release_match": true,
+      "instance_fingerprint": "f39838f463de86ad9e3335a3981871fd",
+      "process_started_at": "2026-07-23T00:23:54.268602+00:00",
+      "started_at": "2026-07-23T00:23:54.268602+00:00",
+      "uptime_s": 66,
+      "session_timeouts": {
+        "enabled": true,
+        "tiers": {
+          "ADMIN_HR": {
+            "idle_min": 15,
+            "abs_hour": 4
+          },
+          "OPERATIONS": {
+            "idle_min": 30,
+            "abs_hour": 8
+          },
+          "FIELD": {
+            "idle_min": 60,
+            "abs_hour": 12
+          }
+        }
+      },
+      "sentry": {
+        "enabled": true
+      },
+      "app_env": "preview",
+      "db_name": "masci_safety_preview",
+      "runtime_identity": {
+        "status": "NOT_APPLICABLE",
+        "valid": true,
+        "mismatch_category": null,
+        "identity": {
+          "app_env": "preview",
+          "db_name": "masci_safety_preview",
+          "mongo_scheme": "mongodb+srv",
+          "mongo_hostname_redacted": "masci-prod.1nduwmg.mongodb.net",
+          "mongo_user": "masci_preview_user",
+          "effective_database": null,
+          "enforce_db_isolation": true,
+          "release_commit": "dffb6f5a252e7bd2397a5a4115cf08057ea16577",
+          "release_source_hash": "321aa1e5a33d57990faea6116e2c5e11",
+          "preview_distinction": "preview",
+          "scheduler_authority": "enabled",
+          "read_write_mode": "read_write",
+          "domain_host_context": null,
+          "source_identity": "321aa1e5a33d57990faea6116e2c5e11",
+          "approved_cluster_identifier": "MASCI-prod",
+          "approved_hostname": "masci-prod.1nduwmg.mongodb.net",
+          "approved_db_name": "masci_safety",
+          "approved_username": "masci_prod_user",
+          "identity_fingerprint": "d58e2aecd48f",
+          "query_duplicates": {},
+          "is_atlas": true,
+          "is_local": false,
+          "read_only_validation": {
+            "requested": false,
+            "active": false,
+            "db_authority": "unknown",
+            "read_only_mode": false,
+            "startup_write_suppressed": false,
+            "http_mutation_barrier_active": false,
+            "session_writes_suppressed": false,
+            "scheduler_disabled": false,
+            "backup_scheduler_disabled": false,
+            "email_disabled": true,
+            "ai_disabled": false,
+            "ods_disabled": false,
+            "trust_spine_disabled": false,
+            "maintainx_disabled": true,
+            "webhooks_disabled": false,
+            "non_production_domain": false,
+            "zero_write_proven": false,
+            "approved_preview_db_name": "masci_safety_preview",
+            "approved_preview_hosts": [
+              "localhost",
+              "127.0.0.1",
+              "::1"
+            ],
+            "errors": []
+          }
+        },
+        "validation": {
+          "status": "NOT_APPLICABLE",
+          "valid": true,
+          "mismatch_category": null,
+          "remediation_owner": "platform-ops",
+          "remediation_action": "No action required.",
+          "detail": "env=preview host=masci-prod.1nduwmg.mongodb.net db=masci_safety_preview fingerprint=d58e2aecd48f",
+          "errors": [],
+          "warnings": []
+        }
+      },
+      "environment_identity": {
+        "app_env": "preview",
+        "db_name": "masci_safety_preview",
+        "db_isolation_enforced": true,
+        "storage_bucket": "unknown",
+        "storage_endpoint_present": null,
+        "scheduler_enabled": true,
+        "email_safety_mode": "unknown",
+        "auto_email_reports": null,
+        "resend_webhook_secret_present": null,
+        "dev_endpoints_enabled": null,
+        "maintainx_write_enabled": null,
+        "ai_provider_key_present": null,
+        "delete_engine_status": "DISABLED",
+        "runtime_identity_status": "NOT_APPLICABLE",
+        "runtime_identity_mismatch_category": null,
+        "mongo_hostname_redacted": "masci-prod.1nduwmg.mongodb.net",
+        "identity_fingerprint": "d58e2aecd48f"
+      }
     }
   },
   "certification_report": {
@@ -105,8 +251,19 @@
       "/app/frontend/src/components/daily-report/DailySummaryAssist.jsx",
       "/app/frontend/src/pages/ViewDailyReport.jsx"
     ],
-    "unique_data_testids": 0,
-    "sample_testids": []
+    "unique_data_testids": 96,
+    "sample_testids": [
+      "dr-v3-attachments-section",
+      "dr-v3-attachments-count",
+      "dr-v3-photo-short",
+      "dr-v3-voice-card",
+      "dr-v3-voice-last-draft",
+      "dr-v3-summary-section",
+      "daily-summary-assist-regenerate",
+      "daily-summary-assist-accept",
+      "daily-summary-assist-reject",
+      "dr-view-attachments"
+    ]
   },
   "artifacts": [
     "/app/test_reports/iteration_15.json",

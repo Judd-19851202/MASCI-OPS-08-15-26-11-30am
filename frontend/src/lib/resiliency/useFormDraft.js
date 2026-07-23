@@ -140,7 +140,7 @@ export function useFormDraft(_formKeyBase, data, actorId, options = {}) {
     })();
     return () => { cancelled = true; };
      
-  }, [actorId, data, formKey]);
+  }, [actorId, formKey]);
 
   // ── Core save routine — used by debounce, interval, and lifecycle.
   const _doSave = useCallback(async (trigger) => {
