@@ -1,0 +1,169 @@
+{
+  "test_run_timestamp": "2026-07-23T18:45:18.199485+00:00",
+  "base_url": "https://backup-forensics.preview.emergentagent.com/api",
+  "tests": [
+    {
+      "test_name": "GET /hr/employee-roster/public - Public Employee Roster",
+      "passed": true,
+      "timestamp": "2026-07-23T18:45:18.529708+00:00",
+      "details": {
+        "status_code": 200,
+        "response_size": 38919,
+        "has_items": true,
+        "has_count": true,
+        "has_public_flag": true,
+        "item_count": 281,
+        "sample_item": {
+          "has_name": true,
+          "has_role": true,
+          "keys": [
+            "crew",
+            "name",
+            "active",
+            "id",
+            "employee_id",
+            "trade",
+            "role"
+          ]
+        }
+      }
+    },
+    {
+      "test_name": "GET /suppliers - Public Supplier/Vendor List",
+      "passed": true,
+      "timestamp": "2026-07-23T18:45:18.732598+00:00",
+      "details": {
+        "status_code": 200,
+        "response_size": 30939,
+        "has_items": true,
+        "item_count": 162,
+        "sample_item": {
+          "has_name": true,
+          "keys": [
+            "id",
+            "name",
+            "is_active",
+            "created_at",
+            "updated_at"
+          ]
+        }
+      }
+    },
+    {
+      "test_name": "GET /equipment-master - Public Equipment Master",
+      "passed": true,
+      "timestamp": "2026-07-23T18:45:19.129296+00:00",
+      "details": {
+        "status_code": 200,
+        "response_size": 801910,
+        "has_items": true,
+        "has_categories": true,
+        "has_grouped": true,
+        "item_count": 766,
+        "sample_item": {
+          "keys": [
+            "unit_number",
+            "year",
+            "make_model",
+            "plate",
+            "vin_serial_number",
+            "comments",
+            "company",
+            "category",
+            "preop_equipment_type",
+            "display_label",
+            "id",
+            "make",
+            "model"
+          ]
+        }
+      }
+    },
+    {
+      "test_name": "POST /daily-reports/photo-intelligence/draft - Anonymous Photo Intelligence Draft",
+      "passed": true,
+      "timestamp": "2026-07-23T18:45:19.942467+00:00",
+      "details": {
+        "status_code": 200,
+        "response_size": 1884,
+        "response_keys": [
+          "report_id",
+          "photo_count",
+          "analyzed",
+          "pending",
+          "queued",
+          "processing",
+          "failed",
+          "unavailable",
+          "completed",
+          "completed_no_observations",
+          "duplicates_reused",
+          "terminal_failures",
+          "reviewed",
+          "status",
+          "lifecycle_status",
+          "status_message",
+          "classification",
+          "observations",
+          "narrative",
+          "photo_statuses",
+          "photos"
+        ],
+        "has_ok_field": false,
+        "has_status_field": true,
+        "has_photos_field": true
+      }
+    },
+    {
+      "test_name": "POST /daily-reports/summary/draft + GET /jobs/{job_id}/status - Anonymous Summary Draft",
+      "passed": true,
+      "timestamp": "2026-07-23T18:45:32.490320+00:00",
+      "details": {
+        "summary_draft_status_code": 202,
+        "summary_draft_response_size": 273,
+        "summary_draft_response_keys": [
+          "ok",
+          "job_id",
+          "kind",
+          "status",
+          "status_url",
+          "poll_after_ms",
+          "message",
+          "details"
+        ],
+        "has_job_id": true,
+        "has_summary_text": false,
+        "job_id": "276f7640-7458-49d9-beb7-ee674e9735ed",
+        "job_status_poll_1_status_code": 200,
+        "job_status_poll_1_status": "completed",
+        "job_status_poll_1_keys": [
+          "ok",
+          "job_id",
+          "kind",
+          "status",
+          "message",
+          "details",
+          "error",
+          "result",
+          "created_at",
+          "updated_at",
+          "expires_at",
+          "poll_after_ms",
+          "cache_backend"
+        ],
+        "job_final_status": "completed",
+        "job_polls_needed": 1,
+        "job_has_result": true,
+        "job_result_has_summary_text": true,
+        "summary_text_length": 565,
+        "job_status_endpoint_working": true
+      }
+    }
+  ],
+  "summary": {
+    "total_tests": 5,
+    "passed": 5,
+    "failed": 0,
+    "pass_rate": "100.0%"
+  }
+}
