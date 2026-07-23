@@ -14,6 +14,7 @@ import secrets
 import asyncio
 import csv
 import io
+import json
 import tempfile
 from collections import defaultdict
 from threading import Lock
@@ -1437,7 +1438,7 @@ _R2_BACKUP_AGE_TTL_S = 300  # 5 minutes
 
 async def _r2_backup_age_seconds_cached() -> Optional[float]:
     """Return the age (in seconds) of the newest object under the
-    ``backups/`` prefix in R2, or ``None`` if R2 isn't configured /
+    canonical complete-backup ``backups/auto-90d/`` prefix in R2, or ``None`` if R2 isn't configured /
     listing fails. Cached for 5 minutes per process.
 
     Crucially: a real outage where the bucket has NO recent backups
@@ -1471,7 +1472,7 @@ async def _r2_backup_age_seconds_cached() -> Optional[float]:
             # cache amortizes it to ~1 list per process per 5 min.
             paginator = c.get_paginator("list_objects_v2")
             newest = None
-            for page in paginator.paginate(Bucket=_bucket(), Prefix="backups/"):
+            for page in paginator.paginate(Bucket=_bucket(), Prefix="backups/auto-90d/"):
                 for o in (page.get("Contents") or []):
                     lm = o.get("LastModified")
                     if lm and (newest is None or lm > newest):
@@ -1491,85 +1492,133 @@ async def _r2_backup_age_seconds_cached() -> Optional[float]:
     return age_s
 
 
-@api_router.get("/health/full")
-async def api_health_full(response: Response):
-    out = {"ok": True, "mongo": False, "scheduler": False, "backup_recent": False}
-    backup_fallback_ts = None
+async def _latest_successful_backup_row() -> Optional[Dict[str, Any]]:
+    try:
+        return await asyncio.wait_for(
+            db.backup_health.find_one(
+                {"ok": True, "filename": {"$nin": [None, ""]}},
+                sort=[("ts", -1)],
+                projection={"_id": 0, "ts": 1, "mode": 1, "filename": 1},
+            ),
+            timeout=2.0,
+        )
+    except Exception:
+        return None
 
-    # Mongo ping — short timeout so a stuck DB doesn't hang the probe.
+
+def _parse_backup_ts(ts_val: Any) -> Optional[datetime]:
+    if not ts_val:
+        return None
+    try:
+        if isinstance(ts_val, str):
+            ts_dt = datetime.fromisoformat(ts_val.replace("Z", "+00:00"))
+        else:
+            ts_dt = ts_val
+        if ts_dt.tzinfo is None:
+            ts_dt = ts_dt.replace(tzinfo=timezone.utc)
+        return ts_dt
+    except Exception:
+        return None
+
+
+async def _evaluate_backup_recent_truth() -> Dict[str, Any]:
+    threshold_s = 26 * 3600
+    latest_ok = await _latest_successful_backup_row()
+    latest_ok_dt = _parse_backup_ts((latest_ok or {}).get("ts"))
+    latest_ok_age_s = (
+        (datetime.now(timezone.utc) - latest_ok_dt).total_seconds()
+        if latest_ok_dt is not None else None
+    )
+    r2_age_s = await _r2_backup_age_seconds_cached()
+    scheduler_prefers_backup_health = bool(
+        _BACKUP_SCHEDULER_STATE.get("r2_hourly_locked_off")
+        or _BACKUP_SCHEDULER_STATE.get("lite_mode_only_env")
+        or not _BACKUP_SCHEDULER_STATE.get("r2_hourly_effective")
+    )
+    if scheduler_prefers_backup_health and latest_ok_age_s is not None:
+        return {
+            "ok": latest_ok_age_s < threshold_s,
+            "signal_source": f"backup_health:{(latest_ok or {}).get('mode') or 'unknown'}",
+            "evidence_ts": latest_ok_dt.isoformat(),
+            "age_s": latest_ok_age_s,
+            "filename": (latest_ok or {}).get("filename"),
+        }
+    if r2_age_s is not None:
+        return {
+            "ok": r2_age_s < threshold_s,
+            "signal_source": "r2:auto-90d",
+            "evidence_ts": (datetime.now(timezone.utc) - timedelta(seconds=r2_age_s)).isoformat(),
+            "age_s": r2_age_s,
+            "filename": None,
+        }
+    if latest_ok_age_s is not None:
+        return {
+            "ok": latest_ok_age_s < threshold_s,
+            "signal_source": f"backup_health:{(latest_ok or {}).get('mode') or 'unknown'}",
+            "evidence_ts": latest_ok_dt.isoformat(),
+            "age_s": latest_ok_age_s,
+            "filename": (latest_ok or {}).get("filename"),
+        }
+    return {
+        "ok": False,
+        "signal_source": "unavailable",
+        "evidence_ts": None,
+        "age_s": None,
+        "filename": None,
+    }
+
+
+async def _compute_public_full_health_snapshot() -> Dict[str, Any]:
+    public = {"ok": True, "mongo": False, "scheduler": False, "backup_recent": False}
     try:
         await asyncio.wait_for(db.command("ping"), timeout=2.0)
-        out["mongo"] = True
+        public["mongo"] = True
     except Exception:
-        out["mongo"] = False
+        public["mongo"] = False
 
-    # Most recent successful backup row within the last 26h. This is the
-    # canonical "is the platform's data actually being captured?" signal.
-    #
-    # Track 15.52 (2026-06-19) — root-cause fix: previously this only
-    # consulted `backup_health.find_one({ok: true})` (the in-DB audit
-    # row). In a shared-R2-bucket / multi-environment deployment, the
-    # audit row can drift stale (e.g. a worker restart, an audit-write
-    # exception, or — in the preview pod we discovered today — a code
-    # path where the hourly R2 upload succeeded but the audit row was
-    # never written). Meanwhile R2 itself holds 855 hourly snapshots
-    # with the newest 17 min old. UptimeRobot and predeploy_certify.sh
-    # both consume this endpoint, so a false-red here triggers an email
-    # storm AND blocks deploys.
-    #
-    # The fix consults the R2 bucket directly (same source of truth as
-    # /api/admin/backups-list-r2) and treats its newest object as the
-    # primary signal. The DB audit row is now a FALLBACK only — if R2
-    # listing fails or the env isn't R2-configured, we still answer
-    # truthfully from the audit collection. Both paths apply the same
-    # 26h staleness rule, so a real outage (no backups in 26h) still
-    # returns 503 correctly. R2 result is cached in-process for 5 min
-    # via _R2_BACKUP_AGE_CACHE to keep the anonymous probe cheap.
-    backup_age_s = await _r2_backup_age_seconds_cached()
-    if backup_age_s is not None:
-        out["backup_recent"] = backup_age_s < (26 * 3600)
-        backup_fallback_ts = (datetime.now(timezone.utc) - timedelta(seconds=backup_age_s)).isoformat()
-    else:
-        # Fallback: DB audit row.
-        try:
-            latest_ok = await asyncio.wait_for(
-                db.backup_health.find_one(
-                    {"ok": True, "filename": {"$nin": [None, ""]}},
-                    sort=[("ts", -1)],
-                    projection={"_id": 0, "ts": 1},
-                ),
-                timeout=2.0,
-            )
-            if latest_ok and latest_ok.get("ts"):
-                ts_val = latest_ok["ts"]
-                if isinstance(ts_val, str):
-                    ts_dt = datetime.fromisoformat(ts_val.replace("Z", "+00:00"))
-                else:
-                    ts_dt = ts_val
-                if ts_dt.tzinfo is None:
-                    ts_dt = ts_dt.replace(tzinfo=timezone.utc)
-                age_s = (datetime.now(timezone.utc) - ts_dt).total_seconds()
-                out["backup_recent"] = age_s < (26 * 3600)
-                backup_fallback_ts = ts_dt.isoformat()
-        except Exception:
-            out["backup_recent"] = False
+    backup_truth = await _evaluate_backup_recent_truth()
+    public["backup_recent"] = bool(backup_truth.get("ok"))
 
     try:
         from routes.recovery_dashboard import build_canonical_scheduler_snapshot  # noqa: PLC0415
         sched = await build_canonical_scheduler_snapshot(
             db,
             _BACKUP_SCHEDULER_STATE,
-            backup_fallback_ts=backup_fallback_ts,
+            backup_fallback_ts=backup_truth.get("evidence_ts"),
         )
-        out["scheduler"] = bool(sched["alive"])
+        public["scheduler"] = bool(sched["alive"])
     except Exception:
-        out["scheduler"] = False
+        public["scheduler"] = False
+        sched = {"reason_code": "scheduler_snapshot_error"}
 
-    out = await build_public_full_health_payload(
+    public_payload = await build_public_full_health_payload(
         app,
-        backup_recent=bool(out["backup_recent"]),
-        scheduler_alive=bool(out["scheduler"]),
+        backup_recent=bool(public["backup_recent"]),
+        scheduler_alive=bool(public["scheduler"]),
     )
+    diagnostics = {
+        "backup": backup_truth,
+        "scheduler": sched,
+        "failing_check": next(
+            (
+                key for key, value in (
+                    ("mongo", public_payload.get("mongo")),
+                    ("scheduler", public_payload.get("scheduler")),
+                    ("backup_recent", public_payload.get("backup_recent")),
+                    ("runtime_identity_ok", public_payload.get("runtime_identity_ok")),
+                ) if not bool(value)
+            ),
+            None,
+        ),
+    }
+    app.state.last_public_full_health_detail = diagnostics
+    return {"public": public_payload, "diagnostics": diagnostics}
+
+
+@api_router.get("/health/full")
+async def api_health_full(response: Response):
+    snap = await _compute_public_full_health_snapshot()
+    out = snap["public"]
     if not out["ok"]:
         response.status_code = 503
     return out
@@ -1596,14 +1645,24 @@ async def api_health_full(response: Response):
 from lib.release_identity import (  # noqa: E402 — release identity block is intentionally local
     build_fingerprint_paths as _release_identity_paths,
     build_instance_fingerprint,
+    commits_match,
     compute_source_hash as _compute_release_source_hash,
+    intended_release_matches_runtime,
+    normalize_frontend_release_identity_payload,
     read_frontend_build_identity,
+    read_frontend_public_identity,
     release_identities_match,
     resolve_runtime_commit,
+    workspace_candidate_identity,
 )
 
 _STARTUP_TS = datetime.now(timezone.utc)
 _REPO_ROOT = ROOT_DIR.parent
+_FRONTEND_INTERNAL_RELEASE_IDENTITY_URL = os.environ.get(
+    "FRONTEND_INTERNAL_RELEASE_IDENTITY_URL",
+    "http://127.0.0.1:3000/release-identity.json",
+).rstrip("/")
+_FRONTEND_SERVED_IDENTITY_CACHE = {"ts": 0.0, "identity": None}
 
 
 def _build_fingerprint_paths() -> List[Path]:
@@ -1612,6 +1671,71 @@ def _build_fingerprint_paths() -> List[Path]:
 def _compute_source_hash() -> str:
     """Hash the release-critical backend + frontend source files."""
     return _compute_release_source_hash(_REPO_ROOT)
+
+
+def _empty_frontend_identity(source: str, *, error: Optional[str] = None) -> Dict[str, Any]:
+    return {
+        "version": None,
+        "commit": None,
+        "commit_source": None,
+        "built_at": None,
+        "source_hash": None,
+        "dependency_manifest_hash": None,
+        "migration_manifest_hash": None,
+        "release_gate_manifest_hash": None,
+        "release_gate_manifest_version": None,
+        "release_gate_manifest_id": None,
+        "repository": None,
+        "branch": None,
+        "workspace_dirty": None,
+        "source": source,
+        "error": error,
+    }
+
+
+def _read_served_frontend_identity() -> Dict[str, Any]:
+    import urllib.request as _urlreq
+
+    now = time.time()
+    cached = _FRONTEND_SERVED_IDENTITY_CACHE.get("identity")
+    if cached and (now - float(_FRONTEND_SERVED_IDENTITY_CACHE.get("ts") or 0.0)) < 5.0:
+        return cached
+    try:
+        with _urlreq.urlopen(_FRONTEND_INTERNAL_RELEASE_IDENTITY_URL, timeout=1.5) as resp:
+            payload = json.loads(resp.read().decode("utf-8"))
+        identity = normalize_frontend_release_identity_payload(
+            payload if isinstance(payload, dict) else None,
+            source=f"served:{_FRONTEND_INTERNAL_RELEASE_IDENTITY_URL}",
+        )
+    except Exception as exc:  # noqa: BLE001
+        identity = _empty_frontend_identity(
+            f"served:{_FRONTEND_INTERNAL_RELEASE_IDENTITY_URL}",
+            error=f"{type(exc).__name__}: {exc}",
+        )
+    _FRONTEND_SERVED_IDENTITY_CACHE.update({"ts": now, "identity": identity})
+    return identity
+
+
+def _release_match_reason(
+    *,
+    backend_commit: Optional[str],
+    backend_source_hash: Optional[str],
+    frontend_commit: Optional[str],
+    frontend_source_hash: Optional[str],
+    frontend_source: Optional[str],
+) -> str:
+    if not frontend_commit and not frontend_source_hash:
+        return f"frontend_artifact_identity_unavailable:{frontend_source or 'unknown'}"
+    if not backend_commit and not backend_source_hash:
+        return "backend_runtime_identity_unavailable"
+    if backend_source_hash and frontend_source_hash and backend_source_hash != frontend_source_hash:
+        return "source_hash_mismatch"
+    commit_match = commits_match(backend_commit, frontend_commit)
+    if commit_match is False:
+        return "commit_mismatch"
+    if commit_match is None:
+        return "identity_incomplete"
+    return "match"
 
 
 def _resolve_build_timestamp_iso() -> tuple[str, str]:
@@ -1633,6 +1757,10 @@ def _resolve_build_timestamp_iso() -> tuple[str, str]:
 
 _SOURCE_HASH = _compute_source_hash()
 _BUILT_AT_ISO, _BUILD_AT_SOURCE = _resolve_build_timestamp_iso()
+_INTENDED_RELEASE_COMMIT, _INTENDED_RELEASE_SOURCE, _WORKSPACE_IDENTITY_SNAPSHOT = workspace_candidate_identity(
+    _REPO_ROOT,
+    env=os.environ,
+)
 _RESOLVED_COMMIT, _COMMIT_SOURCE = resolve_runtime_commit(
     _REPO_ROOT,
     frontend_build_commit=read_frontend_build_identity(_REPO_ROOT).get("commit"),
@@ -1762,12 +1890,29 @@ def api_version():
     # deployed" probe. Also expose lightweight ops config (session
     # timeout enablement + Sentry enablement) for ops visibility — these
     # never leak secrets, only "is this knob turned on".
-    frontend_build_identity = read_frontend_build_identity(_REPO_ROOT)
-    frontend_backend_release_match = release_identities_match(
+    frontend_generated_identity = read_frontend_build_identity(_REPO_ROOT)
+    frontend_public_identity = read_frontend_public_identity(_REPO_ROOT)
+    frontend_served_identity = _read_served_frontend_identity()
+    frontend_effective_identity = frontend_served_identity
+    raw_release_match = release_identities_match(
         backend_commit=_RESOLVED_COMMIT,
         backend_source_hash=_SOURCE_HASH,
-        frontend_commit=frontend_build_identity.get("commit"),
-        frontend_source_hash=frontend_build_identity.get("source_hash"),
+        frontend_commit=frontend_effective_identity.get("commit"),
+        frontend_source_hash=frontend_effective_identity.get("source_hash"),
+    )
+    frontend_backend_release_match = bool(raw_release_match)
+    frontend_backend_release_match_reason = _release_match_reason(
+        backend_commit=_RESOLVED_COMMIT,
+        backend_source_hash=_SOURCE_HASH,
+        frontend_commit=frontend_effective_identity.get("commit"),
+        frontend_source_hash=frontend_effective_identity.get("source_hash"),
+        frontend_source=frontend_effective_identity.get("source"),
+    )
+    generated_vs_served_match = release_identities_match(
+        backend_commit=frontend_generated_identity.get("commit"),
+        backend_source_hash=frontend_generated_identity.get("source_hash"),
+        frontend_commit=frontend_effective_identity.get("commit"),
+        frontend_source_hash=frontend_effective_identity.get("source_hash"),
     )
     try:
         from session_timeout import describe_config as _sess_cfg
@@ -1796,12 +1941,31 @@ def api_version():
         "source_hash": _SOURCE_HASH,
         "source_hash_scope_files": [str(p.relative_to(_REPO_ROOT)) for p in _build_fingerprint_paths()],
         "release": sentry["release"],
-        "frontend_build_version": frontend_build_identity.get("version"),
-        "frontend_build_commit": frontend_build_identity.get("commit"),
-        "frontend_build_built_at": frontend_build_identity.get("built_at"),
-        "frontend_build_source_hash": frontend_build_identity.get("source_hash"),
-        "frontend_build_source": frontend_build_identity.get("source"),
+        "intended_release_commit": _INTENDED_RELEASE_COMMIT,
+        "intended_release_source": _INTENDED_RELEASE_SOURCE,
+        "runtime_matches_intended_release": bool(
+            intended_release_matches_runtime(
+                _INTENDED_RELEASE_COMMIT,
+                _RESOLVED_COMMIT,
+                source_hash=_SOURCE_HASH,
+            )
+        ),
+        "frontend_build_version": frontend_effective_identity.get("version"),
+        "frontend_build_commit": frontend_effective_identity.get("commit"),
+        "frontend_build_commit_source": frontend_effective_identity.get("commit_source"),
+        "frontend_build_built_at": frontend_effective_identity.get("built_at"),
+        "frontend_build_source_hash": frontend_effective_identity.get("source_hash"),
+        "frontend_build_source": frontend_effective_identity.get("source"),
+        "frontend_build_dependency_manifest_hash": frontend_effective_identity.get("dependency_manifest_hash"),
+        "frontend_build_release_gate_manifest_hash": frontend_effective_identity.get("release_gate_manifest_hash"),
+        "frontend_generated_build_commit": frontend_generated_identity.get("commit"),
+        "frontend_generated_build_source": frontend_generated_identity.get("source"),
+        "frontend_public_release_commit": frontend_public_identity.get("commit"),
+        "frontend_public_release_source": frontend_public_identity.get("source"),
         "frontend_backend_release_match": frontend_backend_release_match,
+        "frontend_backend_release_match_reason": frontend_backend_release_match_reason,
+        "frontend_generated_vs_served_match": bool(generated_vs_served_match),
+        "frontend_served_identity_error": frontend_served_identity.get("error"),
         "instance_fingerprint": _INSTANCE_FINGERPRINT,
         "process_started_at": _STARTUP_TS.isoformat(),
         "started_at": _STARTUP_TS.isoformat(),
@@ -1840,6 +2004,122 @@ def api_version():
             "identity_fingerprint": runtime_identity_identity.get("identity_fingerprint"),
         },
     }
+
+
+def _deployment_verification_id(version_payload: Dict[str, Any]) -> str:
+    raw = "|".join([
+        str(version_payload.get("instance_fingerprint") or ""),
+        str(version_payload.get("frontend_build_commit") or ""),
+        str(version_payload.get("frontend_build_built_at") or ""),
+        str(version_payload.get("app_env") or ""),
+    ]).encode("utf-8")
+    return hashlib.sha256(raw).hexdigest()[:40]
+
+
+async def _deployment_readiness_payload_internal() -> Dict[str, Any]:
+    from routes.admin_deployment_readiness import make_router as _make_router  # noqa: PLC0415
+
+    router = _make_router(db, lambda: None)
+    handler = next(
+        r.endpoint for r in router.routes
+        if getattr(r, "path", "") == "/api/admin/deployment-readiness"
+    )
+    return await handler(_=None)
+
+
+async def _record_deployment_verification_outcome(payload: Dict[str, Any]) -> None:
+    from routes.admin_deployment_ledger import write_snapshot_doc  # noqa: PLC0415
+
+    verification_id = payload["verification_id"]
+    await write_snapshot_doc(db, payload)
+    audit_doc = {
+        "id": str(uuid.uuid4()),
+        "ts": datetime.now(timezone.utc).isoformat(),
+        "actor_email": "system",
+        "action": "deployment_verification",
+        "outcome": "pass" if payload.get("decision") == "pass" else "fail",
+        "diff": {
+            "verification_id": verification_id,
+            "go_no_go": payload.get("go_no_go"),
+            "backend_runtime_commit": payload.get("backend_runtime_commit"),
+            "frontend_build_commit": payload.get("frontend_build_commit"),
+            "intended_release_commit": payload.get("intended_release_commit"),
+            "parity_result": payload.get("parity_result"),
+            "parity_reason": payload.get("parity_reason"),
+            "health_ok": payload.get("health_ok"),
+            "health_reason": payload.get("health_reason"),
+            "verification_source": payload.get("verification_source"),
+            "failure_reason": payload.get("failure_reason"),
+        },
+    }
+    await db.admin_audit.update_one(
+        {"action": "deployment_verification", "diff.verification_id": verification_id},
+        {"$setOnInsert": audit_doc},
+        upsert=True,
+    )
+
+
+async def _run_automatic_deployment_governance_verification() -> None:
+    await asyncio.sleep(5)
+    version_payload = api_version()
+    for _ in range(7):
+        if version_payload.get("frontend_build_commit") and str(version_payload.get("frontend_build_source") or "").startswith("served:"):
+            break
+        await asyncio.sleep(3)
+        version_payload = api_version()
+
+    health_snapshot = await _compute_public_full_health_snapshot()
+    readiness_payload = await _deployment_readiness_payload_internal()
+    verification_id = _deployment_verification_id(version_payload)
+    parity_ok = bool(version_payload.get("frontend_backend_release_match"))
+    health_ok = bool(health_snapshot["public"].get("ok"))
+    readiness_ok = readiness_payload.get("decision") == "pass"
+    failure_reasons = []
+    if not bool(version_payload.get("runtime_matches_intended_release")):
+        failure_reasons.append("runtime_commit_does_not_match_intended_release")
+    if not parity_ok:
+        failure_reasons.append(str(version_payload.get("frontend_backend_release_match_reason") or "release_identity_mismatch"))
+    if not health_ok:
+        failure_reasons.append(f"health_full:{health_snapshot['diagnostics'].get('failing_check') or 'unhealthy'}")
+    if not readiness_ok:
+        failure_reasons.append("deployment_readiness_fail")
+    decision = "pass" if not failure_reasons else "fail"
+    payload = {
+        "verification_id": verification_id,
+        "decision": decision,
+        "exit_code": 0 if decision == "pass" else 1,
+        "commit": version_payload.get("commit"),
+        "backend_runtime_commit": version_payload.get("commit"),
+        "frontend_build_commit": version_payload.get("frontend_build_commit"),
+        "intended_release_commit": version_payload.get("intended_release_commit"),
+        "branch": (_WORKSPACE_IDENTITY_SNAPSHOT.get("branch") or "")[:64],
+        "environment": version_payload.get("app_env") or _canonical_app_env(),
+        "operator": "automated deployment verification",
+        "duration_ms": 0,
+        "trust_score": int(readiness_payload.get("trust_score") or 0),
+        "trust_band": readiness_payload.get("trust_band") or "",
+        "blocking_count": len(readiness_payload.get("blocking_gates") or []),
+        "advisory_count": len(readiness_payload.get("advisory_findings") or []),
+        "regression_count": int(readiness_payload.get("regression_gate_count") or 0),
+        "blocking_ids": [g.get("id") for g in (readiness_payload.get("blocking_gates") or [])][:32],
+        "build_version": version_payload.get("frontend_build_version"),
+        "build_timestamp": version_payload.get("frontend_build_built_at"),
+        "parity_result": parity_ok,
+        "parity_reason": version_payload.get("frontend_backend_release_match_reason"),
+        "health_ok": health_ok,
+        "health_status_code": 200 if health_ok else 503,
+        "health_reason": health_snapshot["diagnostics"].get("failing_check") or "ok",
+        "go_no_go": "GO" if decision == "pass" else "NO-GO",
+        "failure_reason": "; ".join(failure_reasons),
+        "script_version": "startup-auto-c2-v1",
+        "source_hash": version_payload.get("source_hash"),
+        "dependency_manifest_hash": version_payload.get("frontend_build_dependency_manifest_hash"),
+        "governance_hash": version_payload.get("frontend_build_release_gate_manifest_hash"),
+        "verification_source": "automatic_startup_verification",
+        "runtime_identity_status": health_snapshot["public"].get("runtime_identity_status"),
+    }
+    await _record_deployment_verification_outcome(payload)
+    app.state.last_deployment_verification = payload
 
 
 # ---------------------------------------------------------------------------
@@ -18655,6 +18935,18 @@ async def _iter453_6_flip_ready_flag():
     set_startup_complete(app, ready=True, reason="startup_complete")
     logging.getLogger(__name__).info(
         "[iter453.6] startup-readiness gate FLIPPED · public writes now accepted",
+    )
+
+
+@register_lifecycle_step("deployment-governance")
+async def _schedule_deployment_governance_verification():
+    register_background_task(
+        app,
+        name="deployment-governance-verification",
+        coro=_run_automatic_deployment_governance_verification(),
+        category="governance",
+        critical=False,
+        long_running=False,
     )
 
 

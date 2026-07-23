@@ -32,6 +32,7 @@ DEFAULT_RELEASE_FINGERPRINT_RELATIVE_PATHS: Tuple[str, ...] = (
 )
 
 FRONTEND_BUILD_VERSION_FILE = Path("frontend/src/buildVersion.generated.js")
+FRONTEND_PUBLIC_RELEASE_IDENTITY_FILE = Path("frontend/public/release-identity.json")
 RELEASE_SCOPE_FILE = Path("release_identity_scope.json")
 DEPENDENCY_MANIFEST_RELATIVE_PATHS: Tuple[str, ...] = (
     "backend/requirements.txt",
@@ -40,6 +41,7 @@ DEPENDENCY_MANIFEST_RELATIVE_PATHS: Tuple[str, ...] = (
 )
 _VERSION_RE = re.compile(r'BUILD_VERSION\s*=\s*"([^"]+)"')
 _COMMIT_RE = re.compile(r'BUILD_COMMIT\s*=\s*"([^"]+)"')
+_COMMIT_SOURCE_RE = re.compile(r'BUILD_COMMIT_SOURCE\s*=\s*"([^"]+)"')
 _BUILT_AT_RE = re.compile(r'BUILT_AT_ISO\s*=\s*"([^"]+)"')
 _SOURCE_HASH_RE = re.compile(r'BUILD_SOURCE_HASH\s*=\s*"([^"]+)"')
 _DEPENDENCY_HASH_RE = re.compile(r'BUILD_DEPENDENCY_MANIFEST_HASH\s*=\s*"([^"]+)"')
@@ -153,6 +155,7 @@ def parse_frontend_build_identity_text(text: str) -> Dict[str, Optional[str]]:
     commit_match = _COMMIT_RE.search(text or "")
     if commit_match:
         commit = commit_match.group(1).lower()
+    commit_source_match = _COMMIT_SOURCE_RE.search(text or "")
 
     built_at_match = _BUILT_AT_RE.search(text or "")
     if built_at_match:
@@ -173,6 +176,7 @@ def parse_frontend_build_identity_text(text: str) -> Dict[str, Optional[str]]:
     return {
         "version": version,
         "commit": commit,
+        "commit_source": commit_source_match.group(1) if commit_source_match else None,
         "built_at": built_at,
         "source_hash": source_hash,
         "dependency_manifest_hash": dependency_hash_match.group(1) if dependency_hash_match else None,
@@ -195,6 +199,7 @@ def read_frontend_build_identity(repo_root: Path) -> Dict[str, Optional[str]]:
         return {
             "version": None,
             "commit": None,
+            "commit_source": None,
             "built_at": None,
             "source_hash": None,
             "dependency_manifest_hash": None,
@@ -207,6 +212,45 @@ def read_frontend_build_identity(repo_root: Path) -> Dict[str, Optional[str]]:
             "workspace_dirty": None,
             "source": "missing",
         }
+
+
+def normalize_frontend_release_identity_payload(
+    payload: Optional[Dict[str, Any]],
+    *,
+    source: str,
+) -> Dict[str, Optional[str]]:
+    data = payload or {}
+    commit = data.get("commit") or None
+    if isinstance(commit, str):
+        commit = commit.strip().lower() or None
+    return {
+        "version": data.get("version") or data.get("build_version") or None,
+        "commit": commit,
+        "commit_source": data.get("commit_source") or None,
+        "built_at": data.get("built_at") or data.get("built_at_iso") or None,
+        "source_hash": data.get("source_hash") or data.get("build_source_hash") or None,
+        "dependency_manifest_hash": data.get("dependency_manifest_hash") or None,
+        "migration_manifest_hash": data.get("migration_manifest_hash") or None,
+        "release_gate_manifest_hash": data.get("release_gate_manifest_hash") or None,
+        "release_gate_manifest_version": data.get("release_gate_manifest_version") or None,
+        "release_gate_manifest_id": data.get("release_gate_manifest_id") or None,
+        "repository": data.get("repository") or None,
+        "branch": data.get("branch") or None,
+        "workspace_dirty": data.get("workspace_dirty") if isinstance(data.get("workspace_dirty"), bool) else None,
+        "source": source,
+    }
+
+
+def read_frontend_public_identity(repo_root: Path) -> Dict[str, Optional[str]]:
+    path = repo_root / FRONTEND_PUBLIC_RELEASE_IDENTITY_FILE
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return normalize_frontend_release_identity_payload(None, source="missing")
+    return normalize_frontend_release_identity_payload(
+        payload if isinstance(payload, dict) else None,
+        source="generated:frontend/public/release-identity.json",
+    )
 
 
 def _env_commit(env: Optional[Dict[str, str]] = None) -> Tuple[Optional[str], Optional[str]]:
@@ -264,6 +308,31 @@ def commits_match(a: Optional[str], b: Optional[str]) -> Optional[bool]:
     if not aa or not bb:
         return None
     return aa.startswith(bb) or bb.startswith(aa)
+
+
+def intended_release_matches_runtime(
+    intended_release: Optional[str],
+    runtime_commit: Optional[str],
+    *,
+    source_hash: Optional[str] = None,
+) -> Optional[bool]:
+    intended = (intended_release or "").strip()
+    runtime = (runtime_commit or "").strip()
+    if not intended or not runtime:
+        return None
+    if intended.startswith("PRE_SAVE_CANDIDATE:"):
+        parts = intended.split(":", 2)
+        if len(parts) != 3:
+            return False
+        _, head, source_prefix = parts
+        if head == "UNPROVEN":
+            return False
+        if commits_match(head, runtime) is not True:
+            return False
+        if source_prefix and source_hash:
+            return str(source_hash).startswith(source_prefix)
+        return True
+    return commits_match(intended, runtime)
 
 
 def release_identities_match(

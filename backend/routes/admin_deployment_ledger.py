@@ -26,6 +26,9 @@ async def ensure_indexes(db) -> None:
         await db[COLLECTION].create_index([("ts", -1)])
         await db[COLLECTION].create_index([("commit", 1), ("ts", -1)])
         await db[COLLECTION].create_index([("decision", 1), ("ts", -1)])
+        await db[COLLECTION].create_index(
+            [("verification_id", 1)], unique=True, sparse=True
+        )
         # 365-day TTL on the ts_dt field (immutable for the operator's
         # forensic window; older entries auto-expire to keep the
         # collection small).
@@ -34,6 +37,64 @@ async def ensure_indexes(db) -> None:
         )
     except Exception:
         pass
+
+
+async def write_snapshot_doc(db, body: Dict[str, Any]) -> Dict[str, Any]:
+    await ensure_indexes(db)
+    decision = (body.get("decision") or "").lower()
+    if decision not in {"pass", "fail"}:
+        raise HTTPException(400, "decision must be exactly 'pass' or 'fail'")
+    now = datetime.now(timezone.utc)
+    verification_id = str(body.get("verification_id") or "")[:96] or None
+    doc: Dict[str, Any] = {
+        "ts": now.isoformat(),
+        "ts_dt": now,
+        "decision": decision,
+        "exit_code": int(body.get("exit_code") or 0),
+        "commit": str(body.get("commit") or body.get("backend_runtime_commit") or "")[:64],
+        "branch": str(body.get("branch") or "")[:64],
+        "environment": str(body.get("environment") or "")[:32],
+        "operator": str(body.get("operator") or "")[:128],
+        "duration_ms": int(body.get("duration_ms") or 0),
+        "trust_score": int(body.get("trust_score") or 0),
+        "trust_band": str(body.get("trust_band") or "")[:16],
+        "blocking_count": int(body.get("blocking_count") or 0),
+        "advisory_count": int(body.get("advisory_count") or 0),
+        "regression_count": int(body.get("regression_count") or 0),
+        "blocking_ids": (body.get("blocking_ids") or [])[:32],
+        "frontend_build_commit": str(body.get("frontend_build_commit") or "")[:64],
+        "backend_runtime_commit": str(body.get("backend_runtime_commit") or body.get("commit") or "")[:64],
+        "intended_release_commit": str(body.get("intended_release_commit") or "")[:128],
+        "build_version": str(body.get("build_version") or "")[:128],
+        "build_timestamp": str(body.get("build_timestamp") or "")[:64],
+        "parity_result": bool(body.get("parity_result")),
+        "parity_reason": str(body.get("parity_reason") or "")[:256],
+        "health_ok": bool(body.get("health_ok")),
+        "health_status_code": int(body.get("health_status_code") or 0),
+        "health_reason": str(body.get("health_reason") or "")[:256],
+        "go_no_go": str(body.get("go_no_go") or decision.upper())[:16],
+        "failure_reason": str(body.get("failure_reason") or "")[:512],
+        "script_version": str(body.get("script_version") or "")[:64],
+        "source_hash": str(body.get("source_hash") or "")[:64],
+        "dependency_manifest_hash": str(body.get("dependency_manifest_hash") or "")[:128],
+        "governance_hash": str(body.get("governance_hash") or body.get("release_gate_manifest_hash") or "")[:128],
+        "verification_source": str(body.get("verification_source") or "")[:64],
+        "runtime_identity_status": str(body.get("runtime_identity_status") or "")[:64],
+    }
+    if verification_id:
+        doc["verification_id"] = verification_id
+        await db[COLLECTION].update_one(
+            {"verification_id": verification_id},
+            {"$setOnInsert": doc},
+            upsert=True,
+        )
+    else:
+        await db[COLLECTION].insert_one(doc)
+    return {
+        "ok": True,
+        "ts": doc["ts"],
+        "verification_id": verification_id,
+    }
 
 
 def make_router(db, require_admin_only_dep) -> APIRouter:
@@ -64,36 +125,11 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
               "blocking_ids": ["..."]
             }
         """
-        await ensure_indexes(db)
         try:
             body = await request.json()
         except Exception:
             raise HTTPException(400, "invalid JSON body")
-        decision = (body.get("decision") or "").lower()
-        if decision not in {"pass", "fail"}:
-            raise HTTPException(
-                400, "decision must be exactly 'pass' or 'fail'"
-            )
-        now = datetime.now(timezone.utc)
-        doc: Dict[str, Any] = {
-            "ts": now.isoformat(),
-            "ts_dt": now,
-            "decision": decision,
-            "exit_code": int(body.get("exit_code") or 0),
-            "commit": str(body.get("commit") or "")[:40],
-            "branch": str(body.get("branch") or "")[:64],
-            "environment": str(body.get("environment") or "")[:32],
-            "operator": str(body.get("operator") or "")[:128],
-            "duration_ms": int(body.get("duration_ms") or 0),
-            "trust_score": int(body.get("trust_score") or 0),
-            "trust_band": str(body.get("trust_band") or "")[:16],
-            "blocking_count": int(body.get("blocking_count") or 0),
-            "advisory_count": int(body.get("advisory_count") or 0),
-            "regression_count": int(body.get("regression_count") or 0),
-            "blocking_ids": (body.get("blocking_ids") or [])[:32],
-        }
-        await db[COLLECTION].insert_one(doc)
-        return {"ok": True, "ts": doc["ts"]}
+        return await write_snapshot_doc(db, body)
 
     @router.get("/api/admin/deployment-readiness/history")
     async def history(

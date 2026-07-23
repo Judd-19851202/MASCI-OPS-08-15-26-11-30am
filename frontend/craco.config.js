@@ -1,10 +1,22 @@
 // craco.config.js
 const path = require("path");
+const { execFileSync } = require("child_process");
 require("dotenv").config();
 
 // Check if we're in development/preview mode (not production build)
 // Craco sets NODE_ENV=development for start, NODE_ENV=production for build
 const isDevServer = process.env.NODE_ENV !== "production";
+
+if (isDevServer) {
+  try {
+    execFileSync(process.execPath, [path.join(__dirname, "scripts", "stamp-build-version.js")], {
+      cwd: __dirname,
+      stdio: "inherit",
+    });
+  } catch (err) {
+    throw new Error(`[release-identity] failed to stamp frontend artifact identity before dev compile: ${err.message}`);
+  }
+}
 
 // Environment variable overrides
 const config = {

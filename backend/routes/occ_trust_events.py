@@ -50,6 +50,11 @@ _AUTH_ACTIONS = {
     "password_reset", "password_change", "mfa_enroll", "mfa_verify",
     "session_revoked", "session_terminated",
 }
+_DEPLOY_ACTIONS = {
+    "deployment_verification",
+    "deployment_verification_pass",
+    "deployment_verification_fail",
+}
 
 
 def _mk(ts: Optional[str], kind: str, severity: str, summary: str,
@@ -86,6 +91,9 @@ def _classify_audit(row: Dict[str, Any]) -> Dict[str, Any]:
             severity = "warning"
     if outcome in ("fail", "failed", "error"):
         severity = "critical"
+    if action in _DEPLOY_ACTIONS or action.startswith("deployment_verification"):
+        kind = "deploy"
+        severity = "critical" if outcome in ("fail", "failed", "error", "no-go") else "info"
     summary = f"{row.get('actor_email') or row.get('actor_id') or 'system'} · {action or 'admin action'}"
     return _mk(
         ts=row.get("ts") or row.get("at"),
@@ -93,7 +101,7 @@ def _classify_audit(row: Dict[str, Any]) -> Dict[str, Any]:
         source_endpoint="/api/admin/audit",
         evidence={k: v for k, v in row.items() if k in (
             "action", "actor_id", "actor_email", "outcome", "target",
-            "target_id", "ip", "ua_hash",
+            "target_id", "ip", "ua_hash", "diff",
         )},
     )
 
@@ -154,7 +162,7 @@ def register_occ_trust_events_routes(api_router: APIRouter, require_admin: Calla
         now_iso = datetime.now(timezone.utc).isoformat()
 
         headers: Dict[str, str] = {}
-        for h in ("x-admin-token", "authorization"):
+        for h in ("x-admin-token", "x-directory-token", "authorization"):
             v = request.headers.get(h)
             if v:
                 headers[h.replace("x-", "X-").title().replace("Token", "Token")] = v

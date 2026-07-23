@@ -8,6 +8,8 @@ def test_stamp_script_tracks_final_git_status_after_generation() -> None:
     src = Path('/app/frontend/scripts/stamp-build-version.js').read_text(encoding='utf-8')
     assert 'git status --short' in src
     assert 'BUILD_WORKSPACE_DIRTY' in src
+    assert 'PUBLIC_IDENTITY_FILE' in src
+    assert 'BUILD_COMMIT_SOURCE' in src
 
 
 def test_release_identity_scope_contains_canonical_files() -> None:
@@ -40,3 +42,11 @@ def test_release_identity_verifier_reports_one_canonical_sha() -> None:
     assert payload['workspace_head_matches_runtime'] is True
     assert payload['workspace_head_matches_frontend'] is True
     assert payload['frontend_matches_runtime'] is True
+
+
+def test_public_release_identity_file_exists_and_matches_generated_commit() -> None:
+    payload = json.loads(Path('/app/frontend/public/release-identity.json').read_text(encoding='utf-8'))
+    generated = Path('/app/frontend/src/buildVersion.generated.js').read_text(encoding='utf-8')
+    assert payload['commit']
+    assert payload['commit'] in generated
+    assert payload['commit_source']

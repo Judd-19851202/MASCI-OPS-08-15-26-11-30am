@@ -9,20 +9,22 @@ ADMIN_PASS = 'Maddix123!'
 
 
 @pytest.fixture(scope='module')
-def admin_token():
+def admin_headers():
     r = requests.post(f"{BASE_URL}/api/auth/multi-login",
                       json={"email": ADMIN_EMAIL, "password": ADMIN_PASS}, timeout=45)
     assert r.status_code == 200, f"Login failed: {r.status_code} {r.text[:300]}"
     data = r.json()
     tok = (data.get('portal_tokens') or {}).get('admin') or data.get('token')
     assert tok, f"No admin token in response: {list(data.keys())}"
-    return tok
+    session_token = data.get('session_token')
+    assert session_token, f"No directory session token in response: {list(data.keys())}"
+    return {"X-Admin-Token": tok, "X-Directory-Token": session_token}
 
 
 class TestOccTrustEvents:
-    def test_endpoint_reachable(self, admin_token):
+    def test_endpoint_reachable(self, admin_headers):
         r = requests.get(f"{BASE_URL}/api/admin/occ/trust-events",
-                         headers={"X-Admin-Token": admin_token, "Authorization": f"Bearer {admin_token}"},
+                         headers=admin_headers,
                          timeout=20)
         assert r.status_code == 200, f"{r.status_code}: {r.text[:400]}"
         body = r.json()
@@ -42,11 +44,18 @@ class TestOccTrustEvents:
         r = requests.get(f"{BASE_URL}/api/admin/occ/trust-events", timeout=30)
         assert r.status_code in (401, 403), f"Expected 401/403 without auth, got {r.status_code}"
 
-    def test_event_shape(self, admin_token):
+    def test_event_shape(self, admin_headers):
         r = requests.get(f"{BASE_URL}/api/admin/occ/trust-events?limit=10",
-                         headers={"X-Admin-Token": admin_token}, timeout=20)
+                         headers=admin_headers, timeout=20)
         assert r.status_code == 200
         for ev in r.json()["events"]:
             for k in ("ts", "kind", "severity", "summary", "source_endpoint", "evidence"):
                 assert k in ev, f"Event missing '{k}': {ev}"
             assert ev["severity"] in ("info", "warning", "critical")
+
+    def test_deployment_verification_event_is_classified(self, admin_headers):
+        r = requests.get(f"{BASE_URL}/api/admin/occ/trust-events?limit=50",
+                         headers=admin_headers, timeout=20)
+        assert r.status_code == 200
+        deploy_events = [ev for ev in r.json()["events"] if ev.get("kind") == "deploy"]
+        assert deploy_events, "expected at least one deploy event in trust feed"

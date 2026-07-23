@@ -239,14 +239,20 @@ jobs:
             exit 1
           fi
           admin_tok=$(python3 -c 'import json,sys;print((json.load(open(sys.argv[1])).get("portal_tokens") or {}).get("admin",""))' "$login_tmp")
+          dir_tok=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1])).get("session_token", ""))' "$login_tmp")
           if [ -z "$admin_tok" ]; then
             echo "::error::multi-login response did not include an admin portal token"
+            exit 1
+          fi
+          if [ -z "$dir_tok" ]; then
+            echo "::error::multi-login response did not include a directory session token"
             exit 1
           fi
           echo "  admin token length: ${#admin_tok}"
           rdy_tmp=$(mktemp)
           rstatus=$(curl -sS --max-time 20 -o "$rdy_tmp" -w "%{http_code}" \
             -H "X-Admin-Token: ${admin_tok}" \
+            -H "X-Directory-Token: ${dir_tok}" \
             "${PROD_URL}/api/admin/deployment-readiness" || echo "000")
           echo "  /api/admin/deployment-readiness HTTP ${rstatus}"
           if [ "${rstatus}" != "200" ]; then

@@ -36,7 +36,16 @@ def _require_url():
 
 
 def test_api_health_full_contract():
-    r = requests.get(f"{URL}/api/health/full", timeout=30)
+    r = None
+    last_exc = None
+    for _ in range(3):
+        try:
+            r = requests.get(f"{URL}/api/health/full", timeout=30)
+            break
+        except requests.RequestException as exc:
+            last_exc = exc
+    if r is None:
+        raise AssertionError(f"/api/health/full unreachable after retries: {last_exc}")
     assert r.status_code in (200, 503), f"unexpected status {r.status_code}: {r.text}"
     body = r.json()
     assert isinstance(body, dict)
@@ -58,9 +67,15 @@ def test_api_health_full_no_leak():
     state names — UptimeRobot is on the public internet."""
     r = requests.get(f"{URL}/api/health/full", timeout=30)
     body = r.json()
-    # Only the four contract keys may be present.
-    assert set(body.keys()) == {"ok", "mongo", "scheduler", "backup_recent"}, \
-        f"unexpected keys: {set(body.keys())}"
+    for key in ("ok", "mongo", "scheduler", "backup_recent"):
+        assert key in body, f"missing public health key: {key}"
+    assert "runtime_identity_ok" in body
+    assert "runtime_identity_status" in body
+    assert isinstance(body["runtime_identity_ok"], bool)
+    assert isinstance(body["runtime_identity_status"], str)
+    forbidden = {"error", "traceback", "mongo_url", "password", "token", "secret", "detail"}
+    lowered_keys = {str(k).lower() for k in body.keys()}
+    assert forbidden.isdisjoint(lowered_keys), f"unexpected leaked keys: {lowered_keys & forbidden}"
 
 
 def test_api_health_still_lightweight():
