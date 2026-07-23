@@ -8,11 +8,10 @@ function clean(value, fallback) {
 }
 
 export function buildDailyReportInstanceScope(data = {}) {
-  const actor = clean(data.actor_id, "anon");
   const project = clean(data.project_number, "unassigned");
   const reportDate = clean(data.report_date, "undated");
   const reportInstance = clean(data.report_instance, "primary");
-  return `${actor}::${project}::${reportDate}::${reportInstance}`;
+  return `${project}::${reportDate}::${reportInstance}`;
 }
 
 export function buildDailyReportScopedFormKey(data = {}) {
@@ -23,7 +22,7 @@ export function buildDailyReportTelemetryContext(data = {}, actorId = "") {
   return {
     formKey: buildDailyReportScopedFormKey(data),
     scope: buildDailyReportInstanceScope(data),
-    actorId: actorId || "",
+    actorId: actorId || getDeviceId(),
     deviceId: getDeviceId(),
   };
 }

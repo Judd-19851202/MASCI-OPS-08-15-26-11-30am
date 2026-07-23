@@ -69,6 +69,7 @@ export function useFormDraft(_formKeyBase, data, actorId, options = {}) {
   // empty — preserving pre-26.11 behavior for the "no project yet"
   // prelude and for every module that doesn't opt into scoping.
   const rawScope = (options.scope || "").trim();
+  const publicAnonymous = Boolean(options.publicAnonymous);
   const formKey = rawScope ? `${_formKeyBase}::${rawScope}` : _formKeyBase;
 
   const [pendingDraft, setPendingDraft] = useState(null);
@@ -106,21 +107,21 @@ export function useFormDraft(_formKeyBase, data, actorId, options = {}) {
         // Legacy drafts (no `savedByActor` stamp) are treated as
         // trusted for backward compat but flagged cross-token so
         // the UI can render the "unknown author" affordance.
-        const currentAuthActor = getStableActorIdentity();
+        const currentAuthActor = publicAnonymous ? deviceActorId : getStableActorIdentity();
         const draftAuthor = entry && entry.savedByActor;
-        const allowAnonTransition = draftAuthor === "anon";
+        const allowAnonTransition = draftAuthor === "anon" || draftAuthor === deviceActorId;
         const authorMismatch = Boolean(
           entry && draftAuthor && draftAuthor !== currentAuthActor && !allowAnonTransition
         );
         if (!cancelled && entry && !authorMismatch) {
           setPendingDraft(entry.form);
           setPendingSavedAt(entry.savedAt);
-          setPendingIsCrossToken(Boolean(actorId && actorId !== deviceActorId));
+          setPendingIsCrossToken(publicAnonymous ? false : Boolean(actorId && actorId !== deviceActorId));
           emitDraftEvent("draft.restore.offered", {
             formKey,
             ageSeconds: Math.floor((Date.now() - (entry.savedAt || 0)) / 1000),
             payloadBytes: JSON.stringify(entry.form || {}).length,
-            isCrossToken: Boolean(actorId && actorId !== deviceActorId),
+            isCrossToken: publicAnonymous ? false : Boolean(actorId && actorId !== deviceActorId),
           });
         } else if (!cancelled && entry && authorMismatch) {
           // Actor B on the same device — do NOT offer Actor A's
@@ -141,7 +142,7 @@ export function useFormDraft(_formKeyBase, data, actorId, options = {}) {
     })();
     return () => { cancelled = true; };
      
-  }, [actorId, formKey]);
+  }, [actorId, formKey, publicAnonymous]);
 
   // ── Core save routine — used by debounce, interval, and lifecycle.
   const _doSave = useCallback(async (trigger) => {
@@ -151,7 +152,7 @@ export function useFormDraft(_formKeyBase, data, actorId, options = {}) {
     setDraftStatus("saving");
     const t0 = (typeof performance !== "undefined") ? performance.now() : Date.now();
     const r = await saveDraft(deviceActorId, formKey, dataRef.current, {
-      savedByActor: getStableActorIdentity(),
+      savedByActor: publicAnonymous ? deviceActorId : getStableActorIdentity(),
     });
     const dt = ((typeof performance !== "undefined") ? performance.now() : Date.now()) - t0;
     if (r.ok) {
@@ -183,7 +184,7 @@ export function useFormDraft(_formKeyBase, data, actorId, options = {}) {
         trigger,
       });
     }
-  }, [formKey]);
+  }, [formKey, publicAnonymous]);
 
   // ── Autosave on data changes (debounced) ──────────────────────────
   useEffect(() => {

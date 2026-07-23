@@ -39,7 +39,6 @@ import {
 } from "@/lib/resiliency";
 import DraftScopeChip from "@/lib/resiliency/DraftScopeChip";
 import { getDeviceId } from "@/lib/resiliency/deviceId";
-import { getStableActorIdentity } from "@/lib/resiliency/actorId";
 import { getDeviceScopedActorId } from "@/lib/resiliency";
 import {
   extractSetupSnapshot, saveCrewSetup, loadCrewSetup, applySetupSnapshotToData,
@@ -180,9 +179,9 @@ export default function NewDailyReportV3({ publicMode = false }) {
   const [photoIntelStatusState, setPhotoIntelStatusState] = useState(null);
   const idempotencyKeyRef = useRef(null);
   const submitRetryRef = useRef(() => {});
-  const actorId = getStableActorIdentity();
-  const draftScope = useMemo(() => buildDailyReportInstanceScope({ ...data, actor_id: actorId }), [data, actorId]);
-  const scopedFormKey = useMemo(() => buildDailyReportScopedFormKey({ ...data, actor_id: actorId }), [data, actorId]);
+  const deviceId = getDeviceScopedActorId();
+  const draftScope = useMemo(() => buildDailyReportInstanceScope(data), [data]);
+  const scopedFormKey = useMemo(() => buildDailyReportScopedFormKey(data), [data]);
 
   const patch = useCallback((delta) => {
     setData((prev) => ({ ...prev, ...delta }));
@@ -193,7 +192,10 @@ export default function NewDailyReportV3({ publicMode = false }) {
     draftStatus, restore: restoreDraft, discard: discardDraft,
     lastSavedAt,
     commit: commitDraft,
-  } = useFormDraft(DAILY_REPORT_FORM_BASE, data, actorId, { scope: draftScope });
+  } = useFormDraft(DAILY_REPORT_FORM_BASE, data, deviceId, {
+    scope: draftScope,
+    publicAnonymous: true,
+  });
   const online = useOnlineStatus();
   const preferFallbackDraft = useMemo(() => {
     if (!fallbackDraftOffer?.form) return false;
@@ -235,7 +237,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
       }
     })();
     return () => { cancelled = true; };
-  }, [draftLoaded, pendingDraft, actorId, scopedFormKey]);
+  }, [draftLoaded, pendingDraft, scopedFormKey]);
 
   useEffect(() => {
     if (!draftLoaded || pendingDraft) return undefined;
@@ -249,11 +251,10 @@ export default function NewDailyReportV3({ publicMode = false }) {
       try {
         const candidate = await findLatestDraftEntryForBase(getDeviceScopedActorId(), DAILY_REPORT_FORM_BASE, {
           excludeFormKey: scopedFormKey,
-          filter: ({ form, savedByActor }) => (
+          filter: ({ form }) => (
             !!String(form?.project_number || "").trim()
             && String(form?.report_date || "") === String(data.report_date || "")
             && String(form?.report_instance || "primary") === String(data.report_instance || "primary")
-            && (!savedByActor || savedByActor === "anon" || savedByActor === actorId)
           ),
         });
         if (!cancelled) setFallbackDraftOffer(candidate || null);
@@ -274,12 +275,20 @@ export default function NewDailyReportV3({ publicMode = false }) {
   // ── Restore Yesterday Setup (smart crew memory) ──────────────
   useEffect(() => {
     if (!draftLoaded || pendingDraft) return;
+    if (!String(data.project_number || "").trim()) {
+      setCrewSetupOffer(null);
+      return;
+    }
     try {
-      const snap = loadCrewSetup();
+      const snap = loadCrewSetup({
+        projectNumber: data.project_number,
+        preparedBy: data.prepared_by,
+        superintendent: data.superintendent,
+      });
       if (!snap) return;
       setCrewSetupOffer(snap);
     } catch { /* silent */ }
-  }, [draftLoaded, pendingDraft]);
+  }, [draftLoaded, pendingDraft, data.project_number, data.prepared_by, data.superintendent]);
 
   const onUseCrewSetup = useCallback(async () => {
     if (!crewSetupOffer) return;
@@ -872,7 +881,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
           body: payload,
           idempotencyKey: idem,
           formKey: scopedFormKey,
-          actorId,
+          actorId: deviceId,
         });
         onQueueItemSettled(idem, async (res) => {
           if (res?.ok) {
@@ -920,7 +929,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
     } finally {
       setSaving(false);
     }
-  }, [saving, canSubmit, data, online, publicMode, navigate, readiness.missing, commitDraft, lang, t, scopedFormKey, rememberLastProject, actorId]);
+  }, [saving, canSubmit, data, online, publicMode, navigate, readiness.missing, commitDraft, lang, t, scopedFormKey, rememberLastProject, deviceId]);
 
   useEffect(() => {
     submitRetryRef.current = () => onSubmit();
@@ -1210,7 +1219,6 @@ export default function NewDailyReportV3({ publicMode = false }) {
             data={data}
             reportId={reportId}
             formKey={scopedFormKey}
-            draftActorId={actorId}
             photoUploadState={{ ...photoBatchState, warmHint: photoWarmHint }}
             onPhotoIntelChange={setPhotoIntelStatusState}
             onStateChange={setSummaryGate}

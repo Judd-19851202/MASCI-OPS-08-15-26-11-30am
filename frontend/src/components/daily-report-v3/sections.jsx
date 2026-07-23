@@ -2353,7 +2353,7 @@ export function SectionTomorrow({ data, patch }) {
 // a silent no-op, so the human-accepted summary never reached the
 // DR payload. The wrapper below now forwards the raw `(text, meta)`
 // tuple to the parent as `{summary, meta}` (V3 shell's shape).
-export function SectionAiSummary({ data, reportId, formKey, draftActorId, photoUploadState, onAccepted, onStateChange, onPhotoIntelChange }) {
+export function SectionAiSummary({ data, reportId, formKey, photoUploadState, onAccepted, onStateChange, onPhotoIntelChange }) {
   const { t } = useT();
   return (
     <SectionShell
@@ -2368,7 +2368,6 @@ export function SectionAiSummary({ data, reportId, formKey, draftActorId, photoU
         reportId={reportId}
         reportNumber={data.report_number}
         formKey={formKey}
-        draftActorId={draftActorId}
         photoUploadState={photoUploadState}
         data={data}
         onStateChange={onStateChange}

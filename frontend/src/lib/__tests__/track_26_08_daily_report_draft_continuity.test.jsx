@@ -39,6 +39,9 @@ jest.mock("../resiliency/actorId", () => {
     getLegacyActorIds: () => [],
   };
 });
+jest.mock("../resiliency/deviceId", () => ({
+  getDeviceId: () => "d.test-device-id",
+}));
 
 jest.mock("../i18n", () => ({
   useT: () => ({ t: (s) => (typeof s === "string" ? s : ""), lang: "en" }),
@@ -129,12 +132,11 @@ describe("TRACK 26.08 · G-1 · restore prompt surfaces project + date", () => {
 });
 
 // ─────────────────────────────────────────────────────────────────
-// G-2 · Crew memory is actor-scoped (cross-crew contamination guard)
+// G-2 · Crew memory is device/project/operator scoped (cross-crew guard)
 // ─────────────────────────────────────────────────────────────────
 
-describe("TRACK 26.08 · G-2 · crewMemory is per-authenticated-actor", () => {
-  test("Foreman A saves a setup, Foreman B on the same device sees nothing", () => {
-    __setActor("p.foremanA-token-slice");
+describe("TRACK 26.08 · G-2 · crewMemory is per-device-project-operator", () => {
+  test("Foreman A setup does not bleed into Foreman B on the same device and project", () => {
     saveCrewSetup({
       prepared_by: "Foreman A",
       superintendent: "Super A",
@@ -143,26 +145,31 @@ describe("TRACK 26.08 · G-2 · crewMemory is per-authenticated-actor", () => {
       masci_crews: [{ name: "Alice", trade: "Op" }],
       equipment: [{ description: "CAT 336" }],
     });
-    expect(loadCrewSetup()).not.toBeNull();
-    expect(loadCrewSetup().prepared_by).toBe("Foreman A");
+    expect(loadCrewSetup({ projectNumber: "26-07", preparedBy: "Foreman A" })).not.toBeNull();
+    expect(loadCrewSetup({ projectNumber: "26-07", preparedBy: "Foreman A" }).prepared_by).toBe("Foreman A");
 
-    __setActor("p.foremanB-token-slice");
-    expect(loadCrewSetup()).toBeNull();
+    expect(loadCrewSetup({ projectNumber: "26-07", preparedBy: "Foreman B" })).toBeNull();
   });
 
-  test("Foreman A's setup returns when Foreman A signs back in", () => {
-    __setActor("p.foremanA-token-slice");
+  test("same foreman on same device and project gets the setup back", () => {
     saveCrewSetup({
       prepared_by: "Foreman A",
       project_number: "26-07",
       masci_crews: [{ name: "Alice" }],
     });
-    __setActor("p.foremanB-token-slice");
-    expect(loadCrewSetup()).toBeNull();
-    __setActor("p.foremanA-token-slice");
-    const rec = loadCrewSetup();
+    expect(loadCrewSetup({ projectNumber: "26-07", preparedBy: "Foreman B" })).toBeNull();
+    const rec = loadCrewSetup({ projectNumber: "26-07", preparedBy: "Foreman A" });
     expect(rec).not.toBeNull();
     expect(rec.prepared_by).toBe("Foreman A");
+  });
+
+  test("same device but different project does not restore the wrong setup", () => {
+    saveCrewSetup({
+      prepared_by: "Foreman A",
+      project_number: "26-07",
+      masci_crews: [{ name: "Alice" }],
+    });
+    expect(loadCrewSetup({ projectNumber: "26-08", preparedBy: "Foreman A" })).toBeNull();
   });
 
   test("legacy pre-26.08 slot readable ONCE then migrates on next save", () => {
@@ -176,8 +183,7 @@ describe("TRACK 26.08 · G-2 · crewMemory is per-authenticated-actor", () => {
         savedAt: Date.now(),
       }),
     );
-    __setActor("p.new-actor");
-    const rec = loadCrewSetup();
+    const rec = loadCrewSetup({ projectNumber: "24-99", preparedBy: "Legacy Foreman" });
     expect(rec).not.toBeNull();
     expect(rec.prepared_by).toBe("Legacy Foreman");
     saveCrewSetup({
@@ -185,12 +191,12 @@ describe("TRACK 26.08 · G-2 · crewMemory is per-authenticated-actor", () => {
       project_number: "26-07",
       masci_crews: [{ name: "Alice" }],
     });
-    const perActor = window.localStorage.getItem(CREW_MEM_TESTING._actorKey());
-    expect(perActor).toMatch(/New Foreman/);
+    const scopedKey = CREW_MEM_TESTING._contextKey({ projectNumber: "26-07", preparedBy: "New Foreman" });
+    const scoped = window.localStorage.getItem(scopedKey);
+    expect(scoped).toMatch(/New Foreman/);
   });
 
-  test("clearCrewSetup wipes BOTH the per-actor and the legacy slot", () => {
-    __setActor("p.foremanA");
+  test("clearCrewSetup wipes device-scoped setup keys and the legacy slot", () => {
     window.localStorage.setItem(
       CREW_MEM_TESTING.LEGACY_STORAGE_KEY,
       JSON.stringify({ schemaVersion: 1, prepared_by: "Legacy", savedAt: Date.now() }),
@@ -201,7 +207,8 @@ describe("TRACK 26.08 · G-2 · crewMemory is per-authenticated-actor", () => {
       masci_crews: [{ name: "X" }],
     });
     clearCrewSetup();
-    expect(window.localStorage.getItem(CREW_MEM_TESTING._actorKey())).toBeNull();
+    const keys = Object.keys(window.localStorage).filter((k) => k.startsWith(CREW_MEM_TESTING._devicePrefix()));
+    expect(keys).toHaveLength(0);
     expect(window.localStorage.getItem(CREW_MEM_TESTING.LEGACY_STORAGE_KEY)).toBeNull();
   });
 });

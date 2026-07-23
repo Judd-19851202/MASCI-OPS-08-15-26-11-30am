@@ -14,7 +14,7 @@ import { buildDailyReportSummaryPayload, buildDeterministicSummaryFallback } fro
 import { useT } from "@/lib/i18n";
 import { normalizeOperatorError } from "@/lib/operatorError";
 import { saveDraft } from "@/lib/resiliency/draftStore";
-import { getStableActorIdentity } from "@/lib/resiliency/actorId";
+import { getDeviceScopedActorId } from "@/lib/resiliency/actorId";
 
 function hasEnoughEvidence(data) {
   const acts = (data.activity_cards || data.activities || []).length;
@@ -59,7 +59,6 @@ export default function DailySummaryAssist({
   reportId,
   reportNumber,
   formKey,
-  draftActorId,
   photoUploadState,
   onAccept,
   onPhotoIntelChange,
@@ -67,7 +66,7 @@ export default function DailySummaryAssist({
   testId = "daily-summary-assist",
 }) {
   const { t } = useT();
-  const actorId = draftActorId || getStableActorIdentity();
+  const draftDeviceId = getDeviceScopedActorId();
   const summaryReportId = useMemo(
     () => formKey || reportId || (reportNumber ? `dr-${reportNumber}` : "dr-draft"),
     [formKey, reportId, reportNumber],
@@ -510,7 +509,7 @@ export default function DailySummaryAssist({
     try {
       if (formKey) {
         try {
-          await saveDraft(actorId, formKey, dataRef.current || {}, { savedByActor: actorId });
+          await saveDraft(draftDeviceId, formKey, dataRef.current || {}, { savedByActor: draftDeviceId });
         } catch {
           // best-effort local draft guard
         }
@@ -563,7 +562,7 @@ export default function DailySummaryAssist({
       pendingSummaryKeyRef.current = "";
       clearTimeout(timeoutId);
     }
-  }, [actorId, applyCompletedSummary, formKey, photoUploadState?.inFlight, pollSummaryJob, summaryRequestKey, syncPhotoIntel]);
+  }, [applyCompletedSummary, draftDeviceId, formKey, photoUploadState?.inFlight, pollSummaryJob, summaryRequestKey, syncPhotoIntel]);
 
   const queueSynthesis = useCallback((force = false, debounceMs = DEBOUNCE_MS) => {
     if (acceptedSummaryKeyRef.current && acceptedSummaryKeyRef.current !== summaryRequestKey) {

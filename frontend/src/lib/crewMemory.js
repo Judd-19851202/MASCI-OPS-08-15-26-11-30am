@@ -29,32 +29,88 @@
 //   renameCrewSetup(nickname)               → snapshot | null
 //   applySetupSnapshotToData(data, snap)    → merged data (immutable)
 //
-// Storage key: `masci.crew-memory.daily-report.v1.<authActor>`
-// (per-actor slot on the same device · TRACK 26.08 fix G-2)
+// Storage key: `masci.crew-memory.daily-report.v1.<device>.<project>.<operator>`
+// (device-scoped and public-flow safe)
 //
-// Prior to Track 26.08 the storage key was a single device-wide slot
-// (`masci.crew-memory.daily-report.v1`) which allowed cross-crew
-// contamination on shared iPads: Foreman A's saved setup was offered
-// to Foreman B on the same device. The key is now suffixed with the
-// authenticated actor fingerprint (portal-prefix + token slice, same
-// primitive already used by the draft-restore isolation). Anonymous
-// sessions fall back to a shared `.anon` slot by design (unauthenticated
-// public form flow — never contains identifying data).
+// Prior versions used either a single shared device slot or an auth-
+// actor slot. Neither fits the public Daily Report workflow. The key is
+// now device-scoped and further segmented by project + preparer/super-
+// intendent context so shared field devices do not offer the wrong
+// crew/equipment setup.
 
-import { getStableActorIdentity } from "./resiliency/actorId";
+import { getDeviceId } from "./resiliency/deviceId";
 
 const STORAGE_KEY_BASE = "masci.crew-memory.daily-report.v1";
 const LEGACY_STORAGE_KEY = "masci.crew-memory.daily-report.v1";
 const TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const SCHEMA_VERSION = 1;
 
-function _actorKey() {
+function _normalizeKeyPart(value, fallback = "shared") {
+  const normalized = String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+  return normalized || fallback;
+}
+
+function _contextMeta(context = {}) {
+  const deviceId = getDeviceId();
+  const projectNumber = String(context.projectNumber || context.project_number || "").trim();
+  const preparedBy = String(context.preparedBy || context.prepared_by || "").trim();
+  const superintendent = String(context.superintendent || "").trim();
+  const operatorLabel = preparedBy || superintendent || "";
+  return {
+    deviceId,
+    projectNumber,
+    preparedBy,
+    superintendent,
+    operatorLabel,
+    projectToken: _normalizeKeyPart(projectNumber, "no-project"),
+    operatorToken: _normalizeKeyPart(operatorLabel, "shared"),
+  };
+}
+
+function _contextKey(context = {}) {
+  const meta = _contextMeta(context);
+  return `${STORAGE_KEY_BASE}.${meta.deviceId}.${meta.projectToken}.${meta.operatorToken}`;
+}
+
+function _projectPrefix(context = {}) {
+  const meta = _contextMeta(context);
+  return `${STORAGE_KEY_BASE}.${meta.deviceId}.${meta.projectToken}.`;
+}
+
+function _devicePrefix() {
+  return `${STORAGE_KEY_BASE}.${getDeviceId()}.`;
+}
+
+function _listDeviceKeys(prefix = _devicePrefix()) {
   try {
-    const actor = getStableActorIdentity() || "anon";
-    return `${STORAGE_KEY_BASE}.${actor}`;
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i += 1) {
+      const key = localStorage.key(i);
+      if (typeof key === "string" && key.startsWith(prefix)) keys.push(key);
+    }
+    return keys;
   } catch {
-    return `${STORAGE_KEY_BASE}.anon`;
+    return [];
   }
+}
+
+function _readRecord(key) {
+  try {
+    return _safeJson(localStorage.getItem(key));
+  } catch {
+    return null;
+  }
+}
+
+function _recordIsFresh(rec) {
+  if (!rec || rec.schemaVersion !== SCHEMA_VERSION) return false;
+  const savedAt = rec.savedAt || 0;
+  return (_now() - savedAt) <= TTL_MS;
 }
 
 // --- internals ----------------------------------------------------------
@@ -66,9 +122,9 @@ function _safeJson(raw) {
   try { return JSON.parse(raw); } catch { return null; }
 }
 
-function _writeRaw(snapshot) {
+function _writeRaw(snapshot, context = {}) {
   try {
-    localStorage.setItem(_actorKey(), JSON.stringify(snapshot));
+    localStorage.setItem(_contextKey(context), JSON.stringify(snapshot));
   } catch {
     /* localStorage unavailable — calm degrade */
   }
@@ -221,7 +277,7 @@ export function saveCrewSetup(snapshot, { nickname } = {}) {
     clean.project_number || clean.masci_crews.length ||
     clean.subcontractors.length || clean.equipment.length;
   if (!hasAnything) return null;
-  const existing = loadCrewSetup();
+  const existing = loadCrewSetup(clean);
   // Confidence accrual — bump usageCount when the SAME project number
   // is being saved again. New project → reset to 1 (the operator is
   // shifting context; the prior accrual no longer applies).
@@ -234,76 +290,63 @@ export function saveCrewSetup(snapshot, { nickname } = {}) {
   const record = {
     ...clean,
     nickname: (nickname || existing?.nickname || "").trim().slice(0, 60),
+    device_id: getDeviceId(),
+    prepared_by_key: _normalizeKeyPart(clean.prepared_by, "shared"),
+    superintendent_key: _normalizeKeyPart(clean.superintendent, "shared"),
+    project_key: _normalizeKeyPart(clean.project_number, "no-project"),
     savedAt: _now(),
     lastUsedAt: _now(),
     firstSeenAt,
     usageCount,
   };
-  return _writeRaw(record);
+  return _writeRaw(record, clean);
 }
 
 /**
  * Returns the persisted snapshot if present + not expired, else null.
  * Reads are silent — they never mutate the entry.
  */
-export function loadCrewSetup() {
-  // TRACK 26.08 · read the per-actor slot first; fall back to the
-  // pre-fix device-wide legacy slot ONLY if the current actor has no
-  // per-actor entry yet AND the legacy entry looks like it belongs to
-  // this actor (best-effort compat — a foreman upgrading from a
-  // pre-26.08 build should still see yesterday's setup once, then it
-  // migrates forward on next save).
-  const currentKey = _actorKey();
-  let raw = null;
-  try {
-    raw = typeof localStorage !== "undefined"
-      ? localStorage.getItem(currentKey)
-      : null;
-  } catch {
-    raw = null;
+export function loadCrewSetup(context = {}) {
+  const meta = _contextMeta(context);
+  if (!meta.projectNumber) return null;
+
+  const candidates = _listDeviceKeys(_projectPrefix(context))
+    .map((key) => ({ key, rec: _readRecord(key) }))
+    .filter(({ rec }) => _recordIsFresh(rec))
+    .sort((a, b) => (b.rec?.savedAt || 0) - (a.rec?.savedAt || 0));
+
+  const exact = candidates.find(({ rec }) => {
+    const prepared = _normalizeKeyPart(rec?.prepared_by || "", "shared");
+    const superLabel = _normalizeKeyPart(rec?.superintendent || "", "shared");
+    return meta.operatorToken !== "shared" && (prepared === meta.operatorToken || superLabel === meta.operatorToken);
+  });
+  if (exact?.rec) return exact.rec;
+
+  if (meta.operatorToken === "shared" && candidates.length === 1) {
+    return candidates[0].rec;
   }
-  // Legacy fallback: only used if the per-actor slot is empty. Read
-  // the historical single-slot key and treat it as belonging to the
-  // current actor (safe because Track 26.08 activation happens on the
-  // same device where the legacy data was written).
-  if (!raw) {
-    try {
-      raw = typeof localStorage !== "undefined"
-        ? localStorage.getItem(LEGACY_STORAGE_KEY)
-        : null;
-    } catch {
-      raw = null;
-    }
-  }
-  const rec = _safeJson(raw);
-  if (!rec) return null;
-  if (rec.schemaVersion !== SCHEMA_VERSION) {
-    clearCrewSetup();
-    return null;
-  }
-  const savedAt = rec.savedAt || 0;
-  if (_now() - savedAt > TTL_MS) {
-    clearCrewSetup();
-    return null;
-  }
-  return rec;
+
+  const legacy = _safeJson((() => {
+    try { return localStorage.getItem(LEGACY_STORAGE_KEY); } catch { return null; }
+  })());
+  if (!_recordIsFresh(legacy)) return null;
+  return String(legacy?.project_number || "").trim() === meta.projectNumber ? legacy : null;
 }
 
 /** Explicit operator action · matches "Clear Saved Setup" prompt button. */
 export function clearCrewSetup() {
-  // TRACK 26.08 · clear BOTH the per-actor slot and the legacy device-
-  // wide slot so the explicit clear affordance never leaves stale data
-  // that could resurface on a subsequent load-legacy-fallback path.
-  try { localStorage.removeItem(_actorKey()); } catch { /* noop */ }
+  for (const key of _listDeviceKeys()) {
+    try { localStorage.removeItem(key); } catch { /* noop */ }
+  }
   try { localStorage.removeItem(LEGACY_STORAGE_KEY); } catch { /* noop */ }
 }
 
 /** Optional nickname rename · returns the updated record or null. */
-export function renameCrewSetup(nickname) {
-  const rec = loadCrewSetup();
+export function renameCrewSetup(nickname, context = {}) {
+  const rec = loadCrewSetup(context);
   if (!rec) return null;
   rec.nickname = (nickname || "").trim().slice(0, 60);
-  return _writeRaw(rec);
+  return _writeRaw(rec, rec);
 }
 
 /**
@@ -320,10 +363,10 @@ export function applySetupSnapshotToData(data, snapshot) {
   const d = data || {};
   const s = snapshot || {};
   // Rolling expiration: touch lastUsedAt + persist.
-  const rec = loadCrewSetup();
+  const rec = loadCrewSetup(d);
   if (rec) {
     rec.lastUsedAt = _now();
-    _writeRaw(rec);
+    _writeRaw(rec, rec);
   }
   return {
     ...d,
@@ -371,7 +414,9 @@ export const __TESTING__ = {
   LEGACY_STORAGE_KEY,
   TTL_MS,
   SCHEMA_VERSION,
-  _actorKey,
+  _contextKey,
+  _devicePrefix,
+  _projectPrefix,
 };
 
 // iter442 · confidence proxy. Doctrine-locked:
@@ -385,8 +430,8 @@ export const __TESTING__ = {
 // device. Pages use this to decide whether to surface a calm preload
 // banner ("Recent crew and equipment may preload to speed up daily
 // reporting.") vs. always require the manual Use Setup tap.
-export function getCrewMemoryConfidence() {
-  const rec = loadCrewSetup();
+export function getCrewMemoryConfidence(context = {}) {
+  const rec = loadCrewSetup(context);
   if (!rec) return { level: "low", usageCount: 0, projectNumber: "" };
   const n = rec.usageCount || 1;
   let level = "low";
