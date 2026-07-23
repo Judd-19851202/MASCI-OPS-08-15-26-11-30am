@@ -124,7 +124,7 @@ export const AttachmentUpload = ({
         const resp = await api.post(
           "/daily-reports/attachments/upload",
           { file_data: dataUrl, filename: file.name || "" },
-          { timeout: 60000 },
+          { timeout: 60000, skipSessionStatus: true },
         );
         if (resp?.data?.attachment_ref) {
           next.push(resp.data);

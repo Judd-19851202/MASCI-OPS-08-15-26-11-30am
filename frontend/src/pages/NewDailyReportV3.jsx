@@ -288,7 +288,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
     // TRACK 23.4B / HR autofill · re-hydrate trade / crew / supervisor
     // from the CURRENT Employee Master, never yesterday's snapshot.
     try {
-      const { data: empRes } = await api.get("/employees");
+      const { data: empRes } = await api.get("/employees", { skipSessionStatus: true });
       const list = empRes?.items || empRes || [];
       setData((prev) => ({
         ...prev,

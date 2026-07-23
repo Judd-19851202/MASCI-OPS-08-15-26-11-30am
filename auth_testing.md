@@ -1,17 +1,19 @@
 # Auth Testing Playbook
 
-- Shared-session portals must send both the portal token header and `X-Directory-Token`.
-- Canonical logout endpoint: `/api/auth/multi-logout`.
-- Legacy compatibility wrappers:
-  - `/api/admin/logout`
-  - `/api/pm/logout`
-- Required proofs for C2 closeout:
-  - multi-login returns directory + portal tokens
-  - logout invalidates directory + portal access immediately
-  - second tab loses access after first-tab logout
-  - browser back cannot revive protected API access
-  - fresh re-login restores only the fresh shared session
-- Verified suites:
-  - `/app/backend/tests/test_c2_15_16_server_side_logout.py`
-  - `/app/backend/tests/test_c2_closeout_logout_reconciliation.py`
-  - `/app/frontend/src/components/__tests__/c2_closeout_trust_surfaces.test.jsx`
+Step 1: MongoDB Verification
+```
+mongosh
+use <database_name>
+db.users.find({role: "admin"}).pretty()
+db.users.findOne({role: "admin"}, {password_hash: 1})
+```
+Verify: bcrypt hash starts with `$2b$`, indexes exist on users.email (unique), login_attempts.identifier, password_reset_tokens.expires_at (TTL).
+
+Step 2: API Testing
+```
+curl -c cookies.txt -X POST http://localhost:8001/api/auth/login -H "Content-Type: application/json" -d '{"email":"admin@example.com","password":"admin123"}'
+cat cookies.txt
+curl -b cookies.txt http://localhost:8001/api/auth/me
+```
+
+Login should return the user object and set `access_token` + `refresh_token` cookies. The `/me` call should return the same user using those cookies.
