@@ -32,6 +32,26 @@ const REQUEST_TIMEOUT_MS = 60000;
 const JOB_POLL_MS = 1400;
 const buildDeterministicFallback = buildDeterministicSummaryFallback;
 
+const TERMINAL_PHOTO_INTEL_STATUSES = new Set([
+  "no_photos",
+  "complete",
+  "complete_with_observations",
+  "complete_with_some_failures",
+  "complete_zero_observations",
+  "analysis_unavailable",
+  "unavailable",
+  "suppressed",
+]);
+
+function normalizePhotoIntelStatus(rawStatus, totalPhotos) {
+  const status = String(rawStatus || "").trim();
+  if (totalPhotos > 0 && (!status || status === "no_photos" || status === "not_requested")) {
+    return "queued";
+  }
+  if (status) return status;
+  return totalPhotos > 0 ? "queued" : "no_photos";
+}
+
 export default function DailySummaryAssist({
   data,
   reportId,
@@ -79,9 +99,11 @@ export default function DailySummaryAssist({
   const photoIntelValueRef = useRef(null);
   const latestPhotoIntelRef = useRef(null);
   const narrativeRef = useRef("");
+  const activeJobRef = useRef(null);
   const completedSummaryKeyRef = useRef("");
   const pendingSummaryKeyRef = useRef("");
   const acceptedSummaryKeyRef = useRef("");
+  const rerunAfterCurrentJobRef = useRef(false);
   const previousUploadInFlightRef = useRef(false);
   const pendingPostUploadRefreshRef = useRef(false);
   const jobPollRef = useRef(null);
@@ -95,6 +117,10 @@ export default function DailySummaryAssist({
   useEffect(() => {
     latestPhotoIntelRef.current = latestPhotoIntel;
   }, [latestPhotoIntel]);
+
+  useEffect(() => {
+    activeJobRef.current = activeJob;
+  }, [activeJob]);
 
   useEffect(() => {
     onPhotoIntelChange?.(latestPhotoIntel || null);
@@ -144,21 +170,10 @@ export default function DailySummaryAssist({
     return `${formKey || ""}::${sig.join("|")}`;
   }, [data?.photos, data?.materials, data?.subcontractors, formKey]);
 
-  const photoIntelSignature = useMemo(() => JSON.stringify({
-    status: latestPhotoIntel?.status || photoIntelStatus || "",
-    lifecycle_status: latestPhotoIntel?.lifecycle_status || "",
-    analyzed: Number(latestPhotoIntel?.analyzed || 0),
-    queued: Number(latestPhotoIntel?.queued || 0),
-    processing: Number(latestPhotoIntel?.processing || 0),
-    failed: Number(latestPhotoIntel?.failed || 0),
-    reviewed: Number(latestPhotoIntel?.reviewed || 0),
-    duplicates_reused: Number(latestPhotoIntel?.duplicates_reused || 0),
-    observations: (latestPhotoIntel?.observations || []).map((item) => {
-      if (!item) return "";
-      if (typeof item === "string") return item;
-      return item.description || item.summary || item.label || item.photo_id || "";
-    }).slice(0, 24),
-  }), [latestPhotoIntel, photoIntelStatus]);
+  const effectivePhotoIntelStatus = useMemo(
+    () => normalizePhotoIntelStatus(latestPhotoIntel?.status || photoIntelStatus || "", photoCount),
+    [latestPhotoIntel?.status, photoIntelStatus, photoCount],
+  );
 
   const summaryRequestKey = useMemo(() => JSON.stringify({
     project_number: data?.project_number || "",
@@ -181,7 +196,6 @@ export default function DailySummaryAssist({
     production: productionJson,
     subcontractors: subcontractorsJson,
     photo_signature: compactPhotoSignature,
-    photo_intelligence_signature: photoIntelSignature,
   }), [
     activityCardsJson,
     compactPhotoSignature,
@@ -198,7 +212,6 @@ export default function DailySummaryAssist({
     materialsJson,
     preparedBy,
     productionJson,
-    photoIntelSignature,
     safetyNotes,
     subcontractorsJson,
     superintendent,
@@ -280,7 +293,7 @@ export default function DailySummaryAssist({
       }
     }
     if (!formKey) {
-      const fallbackStatus = currentPhotos.length > 0 ? "queued" : "no_photos";
+      const fallbackStatus = normalizePhotoIntelStatus("", currentPhotos.length);
       setPhotoIntelStatus(fallbackStatus);
       return null;
     }
@@ -301,18 +314,8 @@ export default function DailySummaryAssist({
       setLatestPhotoIntel(photoIntelValueRef.current);
       return photoIntelValueRef.current;
     }
-    const cachedStatus = String(photoIntelValueRef.current?.status || "");
-    const terminalStatuses = new Set([
-      "no_photos",
-      "complete",
-      "complete_with_observations",
-      "complete_with_some_failures",
-      "complete_zero_observations",
-      "analysis_unavailable",
-      "unavailable",
-      "suppressed",
-    ]);
-    if (!force && photoIntelKeyRef.current === compactPhotoSignature && photoIntelValueRef.current && terminalStatuses.has(cachedStatus)) {
+    const cachedStatus = normalizePhotoIntelStatus(photoIntelValueRef.current?.status || "", currentPhotos.length);
+    if (!force && photoIntelKeyRef.current === compactPhotoSignature && photoIntelValueRef.current && TERMINAL_PHOTO_INTEL_STATUSES.has(cachedStatus)) {
       return photoIntelValueRef.current;
     }
     const { data: response } = await api.post(
@@ -327,7 +330,9 @@ export default function DailySummaryAssist({
     photoIntelKeyRef.current = compactPhotoSignature;
     photoIntelValueRef.current = response || null;
     setLatestPhotoIntel(response || null);
-    setPhotoIntelStatus(response?.status || (currentPhotos.length > 0 ? "queued" : "no_photos"));
+    setPhotoIntelStatus(
+      normalizePhotoIntelStatus(response?.status || response?.lifecycle_status || "", currentPhotos.length),
+    );
     return response || null;
   }, [compactPhotoSignature, formKey, reportNumber]);
 
@@ -352,7 +357,8 @@ export default function DailySummaryAssist({
       || payload?.summary_input?.photos?.lifecycle_status
       || payload?.summary_input?.photos?.status
       || "no_photos";
-    setPhotoIntelStatus(statusFromPhotoIntel);
+    const totalPhotos = Array.isArray(payload?.photos) ? payload.photos.length : ((dataRef.current?.photos || []).length);
+    setPhotoIntelStatus(normalizePhotoIntelStatus(statusFromPhotoIntel, totalPhotos));
     setAiAvailable(Boolean(resp?.enabled));
     const text = (resp?.summary_text || "").trim();
     const fb = text || buildDeterministicFallback(dataRef.current, summaryPhotoIntel);
@@ -422,7 +428,12 @@ export default function DailySummaryAssist({
         setEdited(fb);
       }
       setAiAvailable(false);
-      setPhotoIntelStatus((latestPhotoIntelRef.current?.status) || ((dataRef.current?.photos || []).length > 0 ? "queued" : "no_photos"));
+      setPhotoIntelStatus(
+        normalizePhotoIntelStatus(
+          latestPhotoIntelRef.current?.status || latestPhotoIntelRef.current?.lifecycle_status || "",
+          (dataRef.current?.photos || []).length,
+        ),
+      );
       setError(normalized.message);
       setErrorCode(normalized.code);
       setStatus("ready");
@@ -433,7 +444,7 @@ export default function DailySummaryAssist({
 
   useEffect(() => {
     if (accepted) return undefined;
-    const status = String(latestPhotoIntel?.status || photoIntelStatus || "");
+    const status = effectivePhotoIntelStatus;
     if (!["queued", "analyzing", "partially_analyzed", "uploading", "processing", "not_requested"].includes(status)) {
       return undefined;
     }
@@ -445,7 +456,7 @@ export default function DailySummaryAssist({
       }
     }, 2200);
     return () => clearTimeout(timer);
-  }, [accepted, latestPhotoIntel, photoIntelStatus, photoUploadState?.inFlight, syncPhotoIntel]);
+  }, [accepted, effectivePhotoIntelStatus, latestPhotoIntel, photoUploadState?.inFlight, syncPhotoIntel]);
 
   useEffect(() => () => clearJobPoll(), [clearJobPoll]);
 
@@ -460,6 +471,10 @@ export default function DailySummaryAssist({
     const requestKey = overrideKey || summaryRequestKey;
     if (!hasEnoughEvidence(currentData) || photoUploadState?.inFlight) {
       setStatus("idle");
+      return;
+    }
+    if (!force && (pendingSummaryKeyRef.current || activeJobRef.current?.job_id)) {
+      rerunAfterCurrentJobRef.current = true;
       return;
     }
     if (!force && (pendingSummaryKeyRef.current === requestKey || completedSummaryKeyRef.current === requestKey)) {
@@ -522,7 +537,12 @@ export default function DailySummaryAssist({
         setEdited(fb);
       }
       setAiAvailable(false);
-      setPhotoIntelStatus((latestPhotoIntelRef.current?.status) || ((dataRef.current?.photos || []).length > 0 ? "queued" : "no_photos"));
+      setPhotoIntelStatus(
+        normalizePhotoIntelStatus(
+          latestPhotoIntelRef.current?.status || latestPhotoIntelRef.current?.lifecycle_status || "",
+          (dataRef.current?.photos || []).length,
+        ),
+      );
       setError(normalized.message);
       setErrorCode(normalized.code);
       setStatus("ready");
@@ -545,11 +565,23 @@ export default function DailySummaryAssist({
       setStatus("building");
       return;
     }
+    if (!force && (pendingSummaryKeyRef.current || activeJobRef.current?.job_id)) {
+      rerunAfterCurrentJobRef.current = true;
+      return;
+    }
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       synthesize(force, summaryRequestKey);
     }, debounceMs);
   }, [onAccept, photoUploadState?.inFlight, summaryRequestKey, synthesize]);
+
+  useEffect(() => {
+    if (accepted || status === "building" || activeJob?.job_id || !rerunAfterCurrentJobRef.current) {
+      return;
+    }
+    rerunAfterCurrentJobRef.current = false;
+    queueSynthesis(false, 150);
+  }, [accepted, activeJob?.job_id, queueSynthesis, status, summaryRequestKey]);
 
   useEffect(() => {
     if (accepted) return undefined;
@@ -656,7 +688,7 @@ export default function DailySummaryAssist({
         report_number: data?.report_number || reportNumber || "",
         report_instance: data?.report_instance || "primary",
       },
-      photo_intelligence_status: photoIntelStatus,
+      photo_intelligence_status: effectivePhotoIntelStatus,
       photo_observations: Array.isArray(latestPhotoIntel?.observations) ? latestPhotoIntel.observations.slice(0, 60) : [],
       error_code: errorCode,
     };
@@ -680,11 +712,11 @@ export default function DailySummaryAssist({
     const total = Number(intel.photo_count || photoCount || 0);
     const reviewed = Number(intel.reviewed || intel.analyzed || 0);
     const terminalFailures = Number(intel.terminal_failures || 0) + Number(intel.unavailable || 0);
-    const state = String(photoIntelStatus || (total > 0 ? "queued" : "no_photos"));
+    const state = normalizePhotoIntelStatus(effectivePhotoIntelStatus, total || photoCount || 0);
     const activeDetails = activeJob?.details || {};
     const activeTotal = Number(activeDetails?.total_photos || total || 0);
     const activeCited = Number(activeDetails?.cited_photos || 0);
-    if (status === "building" && activeTotal > 0) {
+    if (status === "building" && activeJob?.job_id && activeTotal > 0) {
       return `AI is citing ${Math.min(activeCited, activeTotal)} of ${activeTotal} photos...`;
     }
     if (photoUploadState?.inFlight) {
@@ -703,7 +735,7 @@ export default function DailySummaryAssist({
     if (state === "complete_with_some_failures") return `${reviewed} of ${total} photos analyzed — ${terminalFailures} could not be processed.`;
     if (state === "complete_with_observations") return `Photo analysis complete — ${total} photos reviewed.`;
     return "Photo analysis unavailable — your report data is safe.";
-  }, [activeJob, latestPhotoIntel, photoCount, photoIntelStatus, photoUploadState, status]);
+  }, [activeJob, effectivePhotoIntelStatus, latestPhotoIntel, photoCount, photoUploadState, status]);
 
   const showSummaryError = Boolean(error && !visibleSummary);
   const showInlineSummaryNotice = Boolean(error && visibleSummary);
@@ -747,7 +779,7 @@ export default function DailySummaryAssist({
         report_number: data?.report_number || reportNumber || "",
         report_instance: data?.report_instance || "primary",
       },
-      photo_intelligence_status: photoIntelStatus,
+      photo_intelligence_status: effectivePhotoIntelStatus,
       photo_observations: Array.isArray(latestPhotoIntel?.observations) ? latestPhotoIntel.observations.slice(0, 60) : [],
       error_code: errorCode,
     };

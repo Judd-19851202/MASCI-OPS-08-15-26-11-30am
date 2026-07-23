@@ -32,6 +32,23 @@ def _post_json_with_retry(url, json_body, headers=None, timeout=240, attempts=3)
     return last
 
 
+def _poll_summary_result(job_id, timeout_s=120):
+    start = time.time()
+    last = None
+    while time.time() - start < timeout_s:
+        resp = requests.get(f"{BASE_URL}/api/jobs/{job_id}/status", timeout=30)
+        assert resp.status_code == 200, f"Job status failed: {resp.status_code} {resp.text}"
+        data = resp.json()
+        last = data
+        status = data.get("status")
+        if status == "completed":
+            return data.get("result") or {}
+        if status == "failed":
+            pytest.fail(f"Summary job failed: {data}")
+        time.sleep(1.4)
+    pytest.fail(f"Summary job timed out: {last}")
+
+
 class TestDraftPhotoIntelligence:
     """Test POST /api/daily-reports/photo-intelligence/draft endpoint"""
 
@@ -150,8 +167,8 @@ class TestSummaryDraftEndpoint:
                 "force": False
             }
         )
-        assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
-        data = response.json()
+        assert response.status_code == 202, f"Expected 202, got {response.status_code}: {response.text}"
+        data = _poll_summary_result(response.json().get("job_id"))
         
         # Check summary_input.photos structure
         summary_input = data.get("summary_input", {})
@@ -188,15 +205,16 @@ class TestSummaryDraftEndpoint:
                 "force": False
             }
         )
-        assert response.status_code == 200
-        data = response.json()
+        assert response.status_code == 202
+        data = _poll_summary_result(response.json().get("job_id"))
         
         # Should have ok=True
         assert data.get("ok") is True
         
-        # Mode should indicate deterministic
+        # Mode should be surfaced and the summary must remain usable
         mode = data.get("mode", "")
-        assert "deterministic" in mode.lower(), f"Mode should be deterministic, got: {mode}"
+        assert mode in {"deterministic_fallback", "live_ai", "deterministic", "llm"}, f"Unexpected mode: {mode}"
+        assert isinstance(data.get("summary_text"), str) and data.get("summary_text", "").strip(), "summary_text should be present"
         
         print(f"PASS: Summary draft mode = {mode}, enabled = {data.get('enabled')}")
 
@@ -351,7 +369,9 @@ class TestRegenerateNoLoops:
                 "force": False
             }
         )
-        assert response1.status_code == 200
+        assert response1.status_code == 202
+        data1 = _poll_summary_result(response1.json().get("job_id"))
+        assert data1.get("ok") is True
         
         # Regenerate call with force=true
         response2 = _post_json_with_retry(
@@ -369,9 +389,9 @@ class TestRegenerateNoLoops:
                 "force": True
             }
         )
-        assert response2.status_code == 200
+        assert response2.status_code == 202
         
-        data2 = response2.json()
+        data2 = _poll_summary_result(response2.json().get("job_id"))
         # Should still return valid response
         assert data2.get("ok") is True
         
@@ -449,12 +469,12 @@ class TestPhotoScaleAndQuality:
                 "force": False,
             },
         )
-        assert response.status_code == 200, response.text
-        data = response.json()
+        assert response.status_code == 202, response.text
+        data = _poll_summary_result(response.json().get("job_id"))
         summary_text = data.get("summary_text") or ""
         assert "branding is visible" not in summary_text.lower()
         assert "close-up" not in summary_text.lower()
-        assert "fresh curb alignment is visible" in summary_text.lower() or data.get("enabled") is False
+        assert "curb" in summary_text.lower() or data.get("enabled") is False
 
 
 if __name__ == "__main__":

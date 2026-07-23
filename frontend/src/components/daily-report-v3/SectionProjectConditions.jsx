@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { MapPin, Cloud, CalendarClock } from "lucide-react";
 import { useT } from "@/lib/i18n";
 import { RequiredLabel } from "@/components/RequiredLabel";
+import { findJob } from "@/lib/jobLibrary";
 
 export function SectionProjectConditions({
   data,
@@ -22,6 +23,20 @@ export function SectionProjectConditions({
   reportNumberPreview,
 }) {
   const { t } = useT();
+  const [manualProjectMode, setManualProjectMode] = React.useState(false);
+  const hasKnownProject = React.useMemo(
+    () => Boolean(findJob(data.project_number || "")),
+    [data.project_number],
+  );
+
+  React.useEffect(() => {
+    if ((data.project_name || data.project_number) && !hasKnownProject) {
+      setManualProjectMode(true);
+    }
+  }, [data.project_name, data.project_number, hasKnownProject]);
+
+  const showManualProjectFields = manualProjectMode && !hasKnownProject;
+
   return (
     <section
       data-testid="dr-v3-section-project"
@@ -65,6 +80,19 @@ export function SectionProjectConditions({
               // for that field — no fabrication, honest fallback.
               // The `location` merge keeps a hand-typed location
               // when the jobs_master row lacks one.
+              if (!job) {
+                setManualProjectMode(true);
+                patch({
+                  project_number: "",
+                  project_name: "",
+                  client: "",
+                  project_manager: "",
+                  pm_email: "",
+                  co_pm_emails: [],
+                });
+                return;
+              }
+              setManualProjectMode(false);
               patch({
                 project_number: job?.project_number || "",
                 project_name: job?.project_name || "",
@@ -79,6 +107,47 @@ export function SectionProjectConditions({
             }}
             data-testid="dr-v3-job-picker"
           />
+          {showManualProjectFields ? (
+            <div
+              className="mt-3 rounded-lg border border-amber-200 bg-amber-50/70 p-3"
+              data-testid="dr-v3-custom-job-fields"
+            >
+              <div className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-amber-800">
+                {t("Custom Job")}
+              </div>
+              <p className="mb-3 text-xs text-amber-900">
+                {t("Enter the project number and name exactly as you want them saved in this draft.")}
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                    <RequiredLabel label={t("Project Number")} />
+                  </label>
+                  <input
+                    type="text"
+                    value={data.project_number || ""}
+                    onChange={(e) => patch({ project_number: e.target.value })}
+                    placeholder={t("e.g. LIVE-AI-DRY-RUN-NO-SUBMIT")}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                    data-testid="dr-v3-custom-project-number"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                    <RequiredLabel label={t("Project Name")} />
+                  </label>
+                  <input
+                    type="text"
+                    value={data.project_name || ""}
+                    onChange={(e) => patch({ project_name: e.target.value })}
+                    placeholder={t("e.g. Live AI Dry Run No Submit")}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                    data-testid="dr-v3-custom-project-name"
+                  />
+                </div>
+              </div>
+            </div>
+          ) : null}
           {/* TRACK 24.9 Phase C · Project metadata card.
               Shows the client / PM / co-PM context AFTER project
               select so the field foreman can visually confirm the
@@ -200,7 +269,7 @@ export function SectionProjectConditions({
               value={data.prepared_by || ""}
               onChange={(v) => patch({ prepared_by: v })}
               placeholder={t("Field supervisor")}
-              data-testid="dr-v3-prepared-by"
+              testId="dr-v3-prepared-by"
             />
           </div>
           <div>
@@ -211,7 +280,7 @@ export function SectionProjectConditions({
               value={data.superintendent || ""}
               onChange={(v) => patch({ superintendent: v })}
               placeholder={t("Optional")}
-              data-testid="dr-v3-superintendent"
+              testId="dr-v3-superintendent"
             />
           </div>
         </div>
