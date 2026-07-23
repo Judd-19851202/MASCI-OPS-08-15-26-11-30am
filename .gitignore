@@ -186,3 +186,6 @@ frontend/node_modules/.cache/default-development/20.pack
 frontend/node_modules/.cache/default-development/21.pack
 frontend/node_modules/.cache/default-development/22.pack
 frontend/node_modules/.cache/default-development/25.pack
+frontend/src/buildVersion.generated.js
+frontend/public/release-identity.json
+backend/static/runtime-data/DEPLOYMENT_HISTORY.json
