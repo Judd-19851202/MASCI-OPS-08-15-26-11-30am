@@ -1331,7 +1331,7 @@ async def list_draft_intelligence(
         "suppressed": suppressed,
         "reviewed": reviewed,
     }
-    status = _normalize_operator_photo_status(state_summary)
+    summary_status = _normalize_operator_photo_status(state_summary)
 
     photo_statuses: List[Dict[str, Any]] = []
     for ref in photo_refs:
@@ -1339,21 +1339,21 @@ async def list_draft_intelligence(
         row = rows_by_photo.get(pid)
         job = jobs_by_photo.get(pid)
         row_obs = (row or {}).get("observations") or []
-        status = "queued"
+        photo_status = "queued"
         if row and row.get("analysis_status") == "complete":
-            status = "cited" if row_obs else "complete"
+            photo_status = "cited" if row_obs else "complete"
         elif row and row.get("analysis_status") == "unavailable":
-            status = "unavailable"
+            photo_status = "unavailable"
         elif str((job or {}).get("status") or "") == "in_progress":
-            status = "analyzing"
+            photo_status = "analyzing"
         elif str((job or {}).get("status") or "") in {"failed", "terminal"}:
-            status = "failed"
+            photo_status = "failed"
         elif str((job or {}).get("status") or "") == "suppressed":
-            status = "suppressed"
+            photo_status = "suppressed"
         photo_statuses.append({
             "photo_id": pid,
             "source": ref.get("source"),
-            "status": status,
+            "status": photo_status,
             "job_status": str((job or {}).get("status") or ""),
             "analysis_status": str((row or {}).get("analysis_status") or ""),
             "has_observations": bool(row_obs),
@@ -1373,9 +1373,9 @@ async def list_draft_intelligence(
         "duplicates_reused": duplicates_reused,
         "terminal_failures": terminal_failures,
         "reviewed": reviewed,
-        "status": status,
-        "lifecycle_status": status,
-        "status_message": _operator_status_message({**state_summary, "status": status}),
+        "status": summary_status,
+        "lifecycle_status": summary_status,
+        "status_message": _operator_status_message({**state_summary, "status": summary_status}),
         "classification": None,
         "observations": observations[:60],
         "narrative": " ".join(narrative_bits)[:1200],
