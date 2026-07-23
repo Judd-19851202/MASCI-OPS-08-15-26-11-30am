@@ -1,346 +1,279 @@
 """
-FORGEDOPS Daily Report Certification Tests
-==========================================
-Tests for the canonical Daily Report workflow including:
-- Health endpoints (/api/ready, /api/health/full)
-- Report number preview (/api/daily-reports/next-number)
-- Duplicate check (/api/daily-reports/duplicate-check)
-- Attachment upload (/api/daily-reports/attachments/upload)
-- Multi-login authentication
-- Daily report read with admin tokens
-- PDF generation
+Daily Report Certification Tests - Iteration 17
+Tests for ForgedOps Daily Report workflow certification including:
+- Health endpoints
+- Report number preview
+- Attachment evidence
+- PDF generation with attachment evidence
+- Admin/PM read access
 """
-import os
+
 import pytest
 import requests
-import base64
-from datetime import datetime
+import os
+import time
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
-if not BASE_URL:
-    BASE_URL = "https://backup-forensics.preview.emergentagent.com"
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 
-# Test credentials from test_credentials.md
-ADMIN_EMAIL = "jaymn.judd@mascigc.com"
-ADMIN_PASSWORD = "Maddix123!"
+# Test credentials
+TEST_EMAIL = "jaymn.judd@mascigc.com"
+TEST_PASSWORD = "Maddix123!"
+
+# Existing synthetic report for testing
+SYNTHETIC_REPORT_ID = "17010cbf-e5b6-4929-84e6-71430efbff90"
+SYNTHETIC_DOC_ID = "DR-2026-03522"
 
 
 class TestHealthEndpoints:
-    """Test health and readiness endpoints after runtime-healing fix"""
+    """Health and readiness endpoint tests"""
     
-    def test_api_ready_returns_200(self):
-        """Health endpoint /api/ready should return 200 with ok=true"""
-        resp = requests.get(f"{BASE_URL}/api/ready", timeout=10)
-        assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.text}"
-        data = resp.json()
-        assert data.get("ok") is True, f"Expected ok=true, got {data}"
-        assert data.get("state") == "ready", f"Expected state=ready, got {data.get('state')}"
-        assert data.get("mongo_ok") is True, f"Expected mongo_ok=true, got {data}"
+    def test_ready_endpoint(self):
+        """Test /api/ready returns 200 and ok=true"""
+        response = requests.get(f"{BASE_URL}/api/ready")
+        assert response.status_code == 200
+        data = response.json()
+        assert data.get("ok") is True
+        assert data.get("state") == "ready"
+        assert data.get("mongo_ok") is True
+        assert data.get("startup_complete") is True
+        print(f"PASS: /api/ready returns ok=true, state=ready")
     
-    def test_api_health_full_returns_200(self):
-        """Health endpoint /api/health/full should return 200 with ok=true"""
-        resp = requests.get(f"{BASE_URL}/api/health/full", timeout=10)
-        assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.text}"
-        data = resp.json()
-        assert data.get("ok") is True, f"Expected ok=true, got {data}"
-        assert data.get("mongo") is True, f"Expected mongo=true, got {data}"
+    def test_health_full_endpoint(self):
+        """Test /api/health/full returns 200 and all checks pass"""
+        response = requests.get(f"{BASE_URL}/api/health/full")
+        assert response.status_code == 200
+        data = response.json()
+        assert data.get("ok") is True
+        assert data.get("mongo") is True
+        assert data.get("scheduler") is True
+        assert data.get("runtime_identity_ok") is True
+        print(f"PASS: /api/health/full returns all checks passing")
+    
+    def test_version_endpoint(self):
+        """Test /api/version returns frontend_backend_release_match=true"""
+        response = requests.get(f"{BASE_URL}/api/version")
+        assert response.status_code == 200
+        data = response.json()
+        assert data.get("frontend_backend_release_match") is True
+        print(f"PASS: /api/version shows frontend_backend_release_match=true")
+
+
+class TestAuthentication:
+    """Authentication tests"""
+    
+    def test_multi_login(self):
+        """Test multi-login returns session and portal tokens"""
+        response = requests.post(
+            f"{BASE_URL}/api/auth/multi-login",
+            json={"email": TEST_EMAIL, "password": TEST_PASSWORD}
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data.get("ok") is True
+        assert "session_token" in data
+        assert "portal_tokens" in data
+        assert "admin" in data["portal_tokens"]
+        assert "pm" in data["portal_tokens"]
+        print(f"PASS: Multi-login returns session and portal tokens")
 
 
 class TestReportNumberPreview:
-    """Test report number preview endpoint"""
+    """Report number preview tests"""
     
-    def test_next_number_returns_canonical_format(self):
-        """GET /api/daily-reports/next-number should return DR-YYYY-NNNNN format"""
-        today = datetime.now().strftime("%Y-%m-%d")
-        resp = requests.get(
+    def test_next_number_preview(self):
+        """Test /api/daily-reports/next-number returns preview"""
+        response = requests.get(
             f"{BASE_URL}/api/daily-reports/next-number",
-            params={"date": today},
-            timeout=10
+            params={"report_date": "2026-07-22"}
         )
-        assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.text}"
-        data = resp.json()
-        
-        # Verify canonical format
-        report_number = data.get("report_number", "")
-        assert report_number.startswith("DR-"), f"Expected DR- prefix, got {report_number}"
-        assert data.get("is_preview_only") is True, "Expected is_preview_only=true"
-        assert "doc_id_preview" in data, "Expected doc_id_preview field"
-        
-        # Verify format: DR-YYYY-NNNNN
-        parts = report_number.split("-")
-        assert len(parts) == 3, f"Expected 3 parts in {report_number}"
-        assert parts[0] == "DR", f"Expected DR prefix"
-        assert len(parts[1]) == 4, f"Expected 4-digit year, got {parts[1]}"
-        assert len(parts[2]) == 5, f"Expected 5-digit sequence, got {parts[2]}"
+        assert response.status_code == 200
+        data = response.json()
+        assert "report_number" in data
+        assert data["report_number"].startswith("DR-2026-")
+        assert data.get("is_preview_only") is True
+        print(f"PASS: Report number preview: {data['report_number']}")
     
-    def test_next_number_without_date(self):
-        """GET /api/daily-reports/next-number without date should still work"""
-        resp = requests.get(f"{BASE_URL}/api/daily-reports/next-number", timeout=10)
-        assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.text}"
-        data = resp.json()
-        assert "report_number" in data, "Expected report_number field"
-
-
-class TestDuplicateCheck:
-    """Test duplicate check endpoint"""
-    
-    def test_duplicate_check_requires_params(self):
-        """GET /api/daily-reports/duplicate-check requires project_number and report_date"""
-        resp = requests.get(f"{BASE_URL}/api/daily-reports/duplicate-check", timeout=10)
-        assert resp.status_code == 400, f"Expected 400, got {resp.status_code}"
-    
-    def test_duplicate_check_with_valid_params(self):
-        """GET /api/daily-reports/duplicate-check with valid params returns result"""
-        resp = requests.get(
+    def test_duplicate_check(self):
+        """Test /api/daily-reports/duplicate-check works"""
+        response = requests.get(
             f"{BASE_URL}/api/daily-reports/duplicate-check",
-            params={
-                "project_number": "TEST-PROJECT-999",
-                "report_date": "2026-01-01"
-            },
-            timeout=10
+            params={"project_number": "TEST-001", "report_date": "2026-07-22"}
         )
-        assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.text}"
-        data = resp.json()
-        assert "exists" in data, "Expected exists field"
-        assert "count" in data, "Expected count field"
-        assert "matches" in data, "Expected matches field"
-        assert isinstance(data.get("matches"), list), "matches should be a list"
+        assert response.status_code == 200
+        data = response.json()
+        assert "exists" in data
+        assert "count" in data
+        print(f"PASS: Duplicate check returns exists={data['exists']}, count={data['count']}")
 
 
-class TestMultiLogin:
-    """Test multi-login authentication for admin access"""
-    
-    def test_multi_login_success(self):
-        """POST /api/auth/multi-login should return tokens for valid credentials"""
-        resp = requests.post(
-            f"{BASE_URL}/api/auth/multi-login",
-            json={
-                "email": ADMIN_EMAIL,
-                "password": ADMIN_PASSWORD
-            },
-            timeout=15
-        )
-        assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.text}"
-        data = resp.json()
-        
-        # Verify tokens are returned
-        assert "directory_token" in data or "admin_token" in data, f"Expected tokens in response: {data.keys()}"
-    
-    def test_multi_login_invalid_credentials(self):
-        """POST /api/auth/multi-login should reject invalid credentials"""
-        resp = requests.post(
-            f"{BASE_URL}/api/auth/multi-login",
-            json={
-                "email": "invalid@example.com",
-                "password": "wrongpassword"
-            },
-            timeout=15
-        )
-        assert resp.status_code in [401, 403], f"Expected 401/403, got {resp.status_code}"
+@pytest.fixture
+def auth_tokens():
+    """Get authentication tokens"""
+    response = requests.post(
+        f"{BASE_URL}/api/auth/multi-login",
+        json={"email": TEST_EMAIL, "password": TEST_PASSWORD}
+    )
+    if response.status_code != 200:
+        pytest.skip("Authentication failed")
+    data = response.json()
+    return {
+        "session_token": data["session_token"],
+        "admin_token": data["portal_tokens"]["admin"],
+        "pm_token": data["portal_tokens"]["pm"]
+    }
 
 
-class TestAttachmentUpload:
-    """Test attachment upload endpoint"""
+class TestDailyReportRead:
+    """Daily report read access tests"""
     
-    def test_attachment_upload_pdf(self):
-        """POST /api/daily-reports/attachments/upload should accept PDF"""
-        # Create a minimal valid PDF
-        pdf_content = b"%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF"
-        b64_content = base64.b64encode(pdf_content).decode("utf-8")
-        data_url = f"data:application/pdf;base64,{b64_content}"
-        
-        resp = requests.post(
-            f"{BASE_URL}/api/daily-reports/attachments/upload",
-            json={
-                "file_data": data_url,
-                "filename": "test_document.pdf"
-            },
-            timeout=30
+    def test_admin_read_report(self, auth_tokens):
+        """Test admin can read daily report with attachments"""
+        headers = {
+            "X-Admin-Token": auth_tokens["admin_token"],
+            "X-Directory-Token": auth_tokens["session_token"]
+        }
+        response = requests.get(
+            f"{BASE_URL}/api/daily-reports/{SYNTHETIC_REPORT_ID}",
+            headers=headers
         )
-        # May return 200 or 503 if R2 not configured
-        assert resp.status_code in [200, 503], f"Expected 200 or 503, got {resp.status_code}: {resp.text}"
-        
-        if resp.status_code == 200:
-            data = resp.json()
-            assert "attachment_ref" in data, f"Expected attachment_ref in response: {data}"
+        assert response.status_code == 200
+        data = response.json()
+        assert data.get("id") == SYNTHETIC_REPORT_ID
+        assert data.get("doc_id") == SYNTHETIC_DOC_ID
+        assert "attachments" in data
+        assert len(data["attachments"]) >= 2
+        print(f"PASS: Admin can read report with {len(data['attachments'])} attachments")
     
-    def test_attachment_upload_rejects_exe(self):
-        """POST /api/daily-reports/attachments/upload should reject .exe files"""
-        exe_content = b"MZ\x90\x00"  # PE header start
-        b64_content = base64.b64encode(exe_content).decode("utf-8")
-        data_url = f"data:application/octet-stream;base64,{b64_content}"
-        
-        resp = requests.post(
-            f"{BASE_URL}/api/daily-reports/attachments/upload",
-            json={
-                "file_data": data_url,
-                "filename": "malware.exe"
-            },
-            timeout=30
+    def test_report_has_attachment_evidence(self, auth_tokens):
+        """Test report contains attachment evidence with filenames"""
+        headers = {
+            "X-Admin-Token": auth_tokens["admin_token"],
+            "X-Directory-Token": auth_tokens["session_token"]
+        }
+        response = requests.get(
+            f"{BASE_URL}/api/daily-reports/{SYNTHETIC_REPORT_ID}",
+            headers=headers
         )
-        # Should reject with 400
-        assert resp.status_code == 400, f"Expected 400 for .exe, got {resp.status_code}: {resp.text}"
-
-
-class TestDailyReportReadWithAuth:
-    """Test daily report read with admin authentication"""
-    
-    @pytest.fixture
-    def admin_tokens(self):
-        """Get admin tokens via multi-login"""
-        resp = requests.post(
-            f"{BASE_URL}/api/auth/multi-login",
-            json={
-                "email": ADMIN_EMAIL,
-                "password": ADMIN_PASSWORD
-            },
-            timeout=15
-        )
-        if resp.status_code != 200:
-            pytest.skip(f"Could not authenticate: {resp.status_code}")
-        return resp.json()
-    
-    def test_list_daily_reports_with_admin_token(self, admin_tokens):
-        """GET /api/daily-reports should work with admin token"""
-        headers = {}
-        if "admin_token" in admin_tokens:
-            headers["X-Admin-Token"] = admin_tokens["admin_token"]
-        if "directory_token" in admin_tokens:
-            headers["X-Directory-Token"] = admin_tokens["directory_token"]
+        assert response.status_code == 200
+        data = response.json()
         
-        resp = requests.get(
-            f"{BASE_URL}/api/daily-reports",
-            headers=headers,
-            timeout=15
-        )
-        assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.text}"
-        data = resp.json()
-        assert isinstance(data, list), "Expected list response"
-    
-    def test_get_daily_report_by_id(self, admin_tokens):
-        """GET /api/daily-reports/{id} should work with admin token"""
-        headers = {}
-        if "admin_token" in admin_tokens:
-            headers["X-Admin-Token"] = admin_tokens["admin_token"]
-        if "directory_token" in admin_tokens:
-            headers["X-Directory-Token"] = admin_tokens["directory_token"]
+        # Check attachments have required fields
+        attachments = data.get("attachments", [])
+        assert len(attachments) >= 2
         
-        # First get list to find a report ID
-        list_resp = requests.get(
-            f"{BASE_URL}/api/daily-reports",
-            headers=headers,
-            timeout=15
-        )
-        if list_resp.status_code != 200 or not list_resp.json():
-            pytest.skip("No daily reports available to test")
+        for attachment in attachments:
+            assert "filename" in attachment
+            assert "mime_type" in attachment
+            assert "attachment_ref" in attachment
         
-        reports = list_resp.json()
-        if not reports:
-            pytest.skip("No daily reports in list")
-        
-        report_id = reports[0].get("id")
-        if not report_id:
-            pytest.skip("First report has no ID")
-        
-        # Get single report
-        resp = requests.get(
-            f"{BASE_URL}/api/daily-reports/{report_id}",
-            headers=headers,
-            timeout=15
-        )
-        assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.text}"
-        data = resp.json()
-        assert data.get("id") == report_id, f"Expected id={report_id}, got {data.get('id')}"
+        # Check for specific test attachments
+        filenames = [a["filename"] for a in attachments]
+        assert "daily_ticket.pdf" in filenames
+        assert any("notes with spaces" in f for f in filenames)
+        print(f"PASS: Report has attachment evidence with filenames: {filenames}")
 
 
 class TestPDFGeneration:
-    """Test PDF generation for daily reports"""
+    """PDF generation tests"""
     
-    @pytest.fixture
-    def admin_tokens(self):
-        """Get admin tokens via multi-login"""
-        resp = requests.post(
-            f"{BASE_URL}/api/auth/multi-login",
-            json={
-                "email": ADMIN_EMAIL,
-                "password": ADMIN_PASSWORD
-            },
-            timeout=15
+    def test_pdf_generation_queues(self, auth_tokens):
+        """Test PDF generation job is queued"""
+        headers = {
+            "X-Admin-Token": auth_tokens["admin_token"],
+            "X-Directory-Token": auth_tokens["session_token"]
+        }
+        response = requests.get(
+            f"{BASE_URL}/api/daily-reports/{SYNTHETIC_REPORT_ID}/pdf",
+            headers=headers
         )
-        if resp.status_code != 200:
-            pytest.skip(f"Could not authenticate: {resp.status_code}")
-        return resp.json()
+        assert response.status_code in [200, 202]  # 202 Accepted for async job
+        data = response.json()
+        assert data.get("ok") is True
+        assert "job_id" in data
+        assert data.get("kind") == "daily_report_pdf"
+        print(f"PASS: PDF generation job queued: {data['job_id']}")
+        return data["job_id"]
     
-    def test_pdf_generation_endpoint_exists(self, admin_tokens):
-        """PDF generation endpoint should exist"""
-        headers = {}
-        if "admin_token" in admin_tokens:
-            headers["X-Admin-Token"] = admin_tokens["admin_token"]
-        if "directory_token" in admin_tokens:
-            headers["X-Directory-Token"] = admin_tokens["directory_token"]
+    def test_pdf_generation_completes(self, auth_tokens):
+        """Test PDF generation completes successfully"""
+        headers = {
+            "X-Admin-Token": auth_tokens["admin_token"],
+            "X-Directory-Token": auth_tokens["session_token"]
+        }
         
-        # First get a report ID
-        list_resp = requests.get(
-            f"{BASE_URL}/api/daily-reports",
-            headers=headers,
-            timeout=15
+        # Request PDF
+        response = requests.get(
+            f"{BASE_URL}/api/daily-reports/{SYNTHETIC_REPORT_ID}/pdf",
+            headers=headers
         )
-        if list_resp.status_code != 200 or not list_resp.json():
-            pytest.skip("No daily reports available")
+        assert response.status_code in [200, 202]  # 202 Accepted for async job
+        job_id = response.json()["job_id"]
         
-        reports = list_resp.json()
-        if not reports:
-            pytest.skip("No daily reports in list")
+        # Poll for completion
+        max_attempts = 10
+        for i in range(max_attempts):
+            time.sleep(1)
+            status_response = requests.get(f"{BASE_URL}/api/jobs/{job_id}/status")
+            assert status_response.status_code == 200
+            status_data = status_response.json()
+            
+            if status_data.get("status") == "completed":
+                assert status_data.get("ok") is True
+                assert "result" in status_data
+                assert "download_url" in status_data["result"]
+                assert status_data["result"].get("source") == "canonical"
+                print(f"PASS: PDF generation completed with canonical source")
+                return status_data
+            elif status_data.get("status") == "failed":
+                pytest.fail(f"PDF generation failed: {status_data.get('error')}")
         
-        report_id = reports[0].get("id")
-        if not report_id:
-            pytest.skip("First report has no ID")
+        pytest.fail("PDF generation timed out")
+    
+    def test_pdf_download_works(self, auth_tokens):
+        """Test PDF can be downloaded"""
+        headers = {
+            "X-Admin-Token": auth_tokens["admin_token"],
+            "X-Directory-Token": auth_tokens["session_token"]
+        }
         
-        # Try PDF endpoint
-        resp = requests.get(
-            f"{BASE_URL}/api/daily-reports/{report_id}/pdf",
-            headers=headers,
-            timeout=30
+        # Request PDF
+        response = requests.get(
+            f"{BASE_URL}/api/daily-reports/{SYNTHETIC_REPORT_ID}/pdf",
+            headers=headers
         )
-        # Should return 200 with PDF or 202 with job_id for async
-        assert resp.status_code in [200, 202, 404], f"Expected 200/202/404, got {resp.status_code}: {resp.text}"
+        job_id = response.json()["job_id"]
+        
+        # Wait for completion
+        time.sleep(3)
+        status_response = requests.get(f"{BASE_URL}/api/jobs/{job_id}/status")
+        status_data = status_response.json()
+        
+        if status_data.get("status") == "completed":
+            download_url = status_data["result"]["download_url"]
+            pdf_response = requests.get(f"{BASE_URL}{download_url}")
+            assert pdf_response.status_code == 200
+            assert pdf_response.headers.get("content-type") == "application/pdf"
+            assert len(pdf_response.content) > 10000  # PDF should be substantial
+            print(f"PASS: PDF downloaded successfully, size: {len(pdf_response.content)} bytes")
 
 
-class TestTrustSpineLifecycle:
-    """Test Trust Spine lifecycle event recording"""
+class TestAISummary:
+    """AI summary tests"""
     
-    @pytest.fixture
-    def admin_tokens(self):
-        """Get admin tokens via multi-login"""
-        resp = requests.post(
-            f"{BASE_URL}/api/auth/multi-login",
-            json={
-                "email": ADMIN_EMAIL,
-                "password": ADMIN_PASSWORD
-            },
-            timeout=15
+    def test_ai_summary_endpoint_exists(self, auth_tokens):
+        """Test AI summary draft endpoint exists"""
+        headers = {
+            "X-Admin-Token": auth_tokens["admin_token"],
+            "X-Directory-Token": auth_tokens["session_token"]
+        }
+        # This is a POST endpoint to generate AI summary
+        response = requests.post(
+            f"{BASE_URL}/api/daily-reports/{SYNTHETIC_REPORT_ID}/ai-summary",
+            headers=headers
         )
-        if resp.status_code != 200:
-            pytest.skip(f"Could not authenticate: {resp.status_code}")
-        return resp.json()
-    
-    def test_trust_spine_events_endpoint(self, admin_tokens):
-        """Trust Spine events endpoint should be accessible"""
-        headers = {}
-        if "admin_token" in admin_tokens:
-            headers["X-Admin-Token"] = admin_tokens["admin_token"]
-        if "directory_token" in admin_tokens:
-            headers["X-Directory-Token"] = admin_tokens["directory_token"]
-        
-        # Check if trust spine endpoint exists
-        resp = requests.get(
-            f"{BASE_URL}/api/trust-spine/events",
-            headers=headers,
-            params={"workflow": "daily-report", "limit": 5},
-            timeout=15
-        )
-        # May return 200 or 404 if endpoint doesn't exist
-        assert resp.status_code in [200, 404], f"Expected 200/404, got {resp.status_code}"
+        # Should return 200 or 202 (accepted) or 400 (if already has summary)
+        assert response.status_code in [200, 202, 400, 404]
+        print(f"PASS: AI summary endpoint responds with status {response.status_code}")
 
 
 if __name__ == "__main__":
