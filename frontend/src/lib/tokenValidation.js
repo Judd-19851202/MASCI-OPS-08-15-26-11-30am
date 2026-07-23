@@ -30,9 +30,14 @@ const API = (process.env.REACT_APP_BACKEND_URL || "").replace(/\/$/, "");
 async function accepts(path, header, token) {
   if (!token) return true;
   try {
+    const dirToken = getDirectoryToken();
+    const headers = { [header]: token };
+    if (dirToken && header !== "X-Directory-Token") {
+      headers["X-Directory-Token"] = dirToken;
+    }
     const res = await fetch(`${API}${path}`, {
       method: "GET",
-      headers: { [header]: token },
+      headers,
       // Critical: auth check must bypass any HTTP cache. Otherwise a
       // previously-cached 200 (from before a password rotation) will
       // mask a real 401 and we'll never clear the stale token.

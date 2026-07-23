@@ -1,0 +1,133 @@
+{
+  "generated_at": "2026-07-23T00:14:25.029912+00:00",
+  "final_decision_candidate": "DAILY REPORT FUNCTIONALLY REPAIRED BUT BLOCKED BY SPECIFIC EXTERNAL ACCESS",
+  "release_candidate": {
+    "commit": "a0a3b0f5b32938f43573278a72cb268d12b17453",
+    "release": "321aa1e5a33d57990faea6116e2c5e11",
+    "source_hash": "321aa1e5a33d57990faea6116e2c5e11",
+    "frontend_backend_release_match": true,
+    "frontend_build_version": "v2026.07.22-a0a3b0f",
+    "process_started_at": "2026-07-22T23:43:18.341916+00:00"
+  },
+  "runtime": {
+    "ready": {
+      "ok": true,
+      "state": "ready",
+      "reason": "startup_complete",
+      "event_loop_ok": true,
+      "mongo_ok": true,
+      "startup_complete": true,
+      "runtime_identity": {
+        "ok": true,
+        "status": "NOT_APPLICABLE",
+        "mismatch_category": null
+      }
+    },
+    "health_full": {
+      "ok": true,
+      "mongo": true,
+      "scheduler": true,
+      "backup_recent": true,
+      "runtime_identity_ok": true,
+      "runtime_identity_status": "NOT_APPLICABLE"
+    }
+  },
+  "certification_report": {
+    "report_id": "17010cbf-e5b6-4929-84e6-71430efbff90",
+    "doc_id": "DR-2026-03522",
+    "project_name": "T5686 SR 15/SR600 (SANFORD, 17/92, LAKE MARY)",
+    "report_date": "2026-07-22",
+    "photos_count": 3,
+    "attachments_count": 2,
+    "summary_excerpt": "Field forces installed 120 LF of 18 in storm pipe, set 2 inlets, managed a utility conflict, and maintained trench safety controls while preparing to continue the south run tomorrow.",
+    "pdf_local_path": "/app/test_artifacts/daily_report_fixtures/generated_report.pdf",
+    "pdf_exists": true
+  },
+  "trust_spine_events": [
+    {
+      "ts": "2026-07-22T23:14:30.992299+00:00",
+      "workflow": "daily-report",
+      "stage": "record_created",
+      "status": "ok"
+    },
+    {
+      "ts": "2026-07-22T23:14:31.520462+00:00",
+      "workflow": "daily-report",
+      "stage": "routing_resolved",
+      "status": "ok"
+    },
+    {
+      "ts": "2026-07-22T23:14:31.555298+00:00",
+      "workflow": "daily-report",
+      "stage": "recipients_built",
+      "status": "ok"
+    },
+    {
+      "ts": "2026-07-22T23:14:34.168254+00:00",
+      "workflow": "daily-report",
+      "stage": "notification_queued",
+      "status": "ok"
+    },
+    {
+      "ts": "2026-07-22T23:14:35.954049+00:00",
+      "workflow": "daily-report",
+      "stage": "audit_written",
+      "status": "ok"
+    },
+    {
+      "ts": "2026-07-22T23:14:35.989594+00:00",
+      "workflow": "daily-report",
+      "stage": "delivery_captured_preview",
+      "status": "ok"
+    },
+    {
+      "ts": "2026-07-22T23:14:36.028206+00:00",
+      "workflow": "daily-report",
+      "stage": "completed_for_environment",
+      "status": "ok"
+    }
+  ],
+  "notification_preview_capture": [
+    {
+      "recipients": [
+        "safety@mascigc.com",
+        "pm.demo@mascigc.com"
+      ],
+      "subject": "[MASCI \u00b7 DAILY] T5686 SR 15/SR600 (SANFORD, 17/\u2026 \u00b7 20-07 \u00b7 Daily Report \u00b7 DR-2026-03522"
+    }
+  ],
+  "control_inventory": {
+    "source_files": [
+      "/app/frontend/src/pages/NewDailyReportV3.jsx",
+      "/app/frontend/src/components/daily-report-v3/sections.jsx",
+      "/app/frontend/src/components/PhotoUpload.jsx",
+      "/app/frontend/src/components/AttachmentUpload.jsx",
+      "/app/frontend/src/components/daily-report/DailySummaryAssist.jsx",
+      "/app/frontend/src/pages/ViewDailyReport.jsx"
+    ],
+    "unique_data_testids": 0,
+    "sample_testids": []
+  },
+  "artifacts": [
+    "/app/test_reports/iteration_15.json",
+    "/app/test_reports/iteration_16.json",
+    "/app/test_reports/iteration_17.json",
+    "/app/daily_report_canonical_workflow_results.json",
+    "/app/daily_report_canonical_workflow_test.py",
+    "/app/test_artifacts/daily_report_fixtures/generated_report.pdf"
+  ],
+  "external_blockers": [
+    {
+      "resource": "Native iPad camera capture and permission UI",
+      "why_blocked": "No real-device cloud iPad Safari environment was available in this workspace.",
+      "automated_equivalent_completed": "Fixture image upload, photo storage, summary/photo-intel consumption, canonical submit, and PDF rendering were all exercised.",
+      "residual_risk": "Low-to-moderate risk limited to native iOS camera capture UX and permission prompts."
+    },
+    {
+      "resource": "Native iPad microphone permission and live speech capture",
+      "why_blocked": "No real-device or synthetic spoken-audio generator was available here for a trustworthy live STT proof.",
+      "automated_equivalent_completed": "Voice UI presence was inventoried; downstream narrative/summary/persistence paths were exercised with realistic text and AI summary output.",
+      "residual_risk": "Moderate risk limited to native iOS microphone permission and real spoken-audio capture behavior."
+    }
+  ]
+}

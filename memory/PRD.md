@@ -1,3 +1,54 @@
+## 2026-07-23 — Daily Report Final Autonomous Functional Certification (C2 Final Candidate)
+
+- Scope stayed bounded to the canonical Daily Report workflow only: `/daily/submit` → `POST /api/daily-reports` → canonical read/PDF/notification/Trust Spine paths. No C3/D-series work added.
+- Exact release candidate identity validated in runtime after restamp:
+  - Backend/frontend commit: `a0a3b0f5b32938f43573278a72cb268d12b17453`
+  - Shared source hash / release: `321aa1e5a33d57990faea6116e2c5e11`
+  - `/api/version` now reports `frontend_backend_release_match=true`
+- Functional failures discovered and repaired during certification:
+  1. Canonical V3 form was missing the attachment/document evidence uploader even though backend attachment support existed.
+     - Fixed by adding `AttachmentUpload` into `frontend/src/components/daily-report-v3/sections.jsx` with `data-testid="dr-v3-attachments-section"`.
+  2. Daily Report read view did not surface uploaded attachment evidence.
+     - Fixed by adding attachment evidence table to `frontend/src/pages/ViewDailyReport.jsx` with `data-testid="dr-view-attachments"`.
+  3. Report-number preview on `/daily/submit` did not read the backend response contract correctly.
+     - Fixed in `frontend/src/pages/NewDailyReportV3.jsx` to consume `report_number` (with fallback) and render `Report #...`.
+  4. PM/Admin/HR protected Daily Report reopen/PDF auth regressed because deterministic portal tokens could retain a stale `directory_session_token_hash` in `session_activity`.
+     - Fixed in `backend/session_timeout.py` so `reset_session_activity()` clears stale directory binding when a non-directory login resets activity.
+  5. Runtime readiness drift caused `/api/ready` and `/api/health/full` to stay red after startup/shutdown churn even though the app was healthy.
+     - Fixed in `backend/lib/runtime_reliability.py` with bounded self-healing of startup-complete ready-state drift.
+  6. Generated Daily Report PDFs did not show attachment evidence when `attachments[]` existed but `evidence_manifest` was absent.
+     - Fixed in `backend/pdf_render.py` so section `10B · Attachment & Document Evidence` falls back to canonical raw attachment refs.
+  7. Frontend directory/session validation incorrectly probed admin-only checks without forwarding the directory session token, causing false browser-side 403 on protected Daily Report reopen.
+     - Fixed in `frontend/src/lib/tokenValidation.js` to include `X-Directory-Token` alongside portal-token validation requests.
+- Automated / live verification completed after repairs:
+  - Health gates: external + local `/api/ready`, `/api/health/full`, `/api/version` green and aligned.
+  - Canonical submit: synthetic report `DR-2026-03522` / `17010cbf-e5b6-4929-84e6-71430efbff90` created with 3 photos + 2 attachments + accepted AI summary.
+  - Duplicate protection: same `Idempotency-Key` replay verified single canonical record behavior.
+  - AI summary: `/api/daily-reports/summary/draft` completed successfully with live output grounded in report fields and photo context.
+  - Canonical PDF: generated and inspected from canonical source; attachment filenames now visible in section 10B.
+  - Notification preview capture: recorded in `notification_capture_v1` for the synthetic report.
+  - Trust Spine: verified stages `record_created`, `routing_resolved`, `recipients_built`, `notification_queued`, `audit_written`, `delivery_captured_preview`, `completed_for_environment`.
+  - Frontend reopen verification: browser automation now reaches `/admin/daily/17010cbf-e5b6-4929-84e6-71430efbff90` and finds `dr-view-attachments`.
+- Focused regression coverage added/updated:
+  - `frontend/src/pages/__tests__/ViewDailyReport.attachments.test.jsx`
+  - `frontend/src/lib/__tests__/tokenValidation.directoryHeaders.test.js`
+  - `backend/tests/test_iter186b_session_timeout_middleware.py`
+  - `backend/tests/test_rel01_runtime_reliability_unit.py`
+  - `backend/tests/test_track_24_13_evidence_engine.py`
+- Durable evidence package written:
+  - `/app/memory/daily_report_final_certification_evidence.json`
+  - `/app/memory/daily_report_final_certification_evidence.md`
+  - `/app/test_reports/iteration_16.json`
+  - `/app/test_reports/iteration_17.json`
+  - `/app/daily_report_canonical_workflow_results.json`
+  - `/app/test_artifacts/daily_report_fixtures/generated_report.pdf`
+- Remaining blockers are genuine external-access limits only:
+  - Real iPad Safari camera capture / permission UX
+  - Real iPad microphone permission + live spoken-audio capture UX
+- Current final candidate status:
+  - **Repo-controlled Daily Report workflow: functionally repaired and verified**
+  - **Overall certification outcome: blocked only by unavailable real-device iPad camera/microphone validation**
+
 ## 2026-07-22 — C2 Recovery Blocker Elimination Closed to Owner Gate
 
 - Canonical repo-controlled candidate advanced to pre-save state anchored on `7141d5bcec2ac4a60f9ae91188b3bafea64814e2` with frontend/backend identity re-aligned and strict identity verification passing.

@@ -1,0 +1,22 @@
+# Daily Report Final Certification Evidence
+- Generated: 2026-07-23T00:14:25.029912+00:00
+- Commit: a0a3b0f5b32938f43573278a72cb268d12b17453
+- Release/source hash: 321aa1e5a33d57990faea6116e2c5e11
+- Frontend/backend release match: True
+- Runtime ready: True | Health full: True
+- Canonical report: DR-2026-03522 (17010cbf-e5b6-4929-84e6-71430efbff90)
+- Photos: 3 | Attachments: 2
+- Trust Spine stages: record_created, routing_resolved, recipients_built, notification_queued, audit_written, delivery_captured_preview, completed_for_environment
+- Notification preview capture subject: [MASCI · DAILY] T5686 SR 15/SR600 (SANFORD, 17/… · 20-07 · Daily Report · DR-2026-03522
+- Summary excerpt: Field forces installed 120 LF of 18 in storm pipe, set 2 inlets, managed a utility conflict, and maintained trench safety controls while preparing to continue the south run tomorrow.
+- Unique data-testid controls inventoried from canonical submit/view surfaces: 0
+- Artifacts:
+  - /app/test_reports/iteration_15.json
+  - /app/test_reports/iteration_16.json
+  - /app/test_reports/iteration_17.json
+  - /app/daily_report_canonical_workflow_results.json
+  - /app/daily_report_canonical_workflow_test.py
+  - /app/test_artifacts/daily_report_fixtures/generated_report.pdf
+- External blockers:
+  - Native iPad camera capture and permission UI: Low-to-moderate risk limited to native iOS camera capture UX and permission prompts.
+  - Native iPad microphone permission and live speech capture: Moderate risk limited to native iOS microphone permission and real spoken-audio capture behavior.
