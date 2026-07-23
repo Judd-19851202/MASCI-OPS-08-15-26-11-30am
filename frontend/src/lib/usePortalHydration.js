@@ -38,6 +38,8 @@ import { setSafetyToken } from "@/lib/safetyAuth";
 import { setDispatchToken } from "@/lib/dispatchAuth";
 import { setFlToken } from "@/lib/flAuth";
 
+const HYDRATION_TIMEOUT_MS = 5000;
+
 const SETTERS = {
   admin: (t) => setAdminToken(t, { remember: true }),
   pm: (t) => setPmToken(t, { remember: true }),
@@ -93,11 +95,19 @@ export function usePortalHydration(portal, hasToken) {
     if (state !== "hydrating" || ranOnce.current) return;
     ranOnce.current = true;
     const dirToken = getDirectoryToken();
+    const dirUser = getDirectoryUser();
     if (!dirToken) {
       setState("deny");
       return;
     }
+    if (!_hasGrant(dirUser, portal)) {
+      setState("deny");
+      return;
+    }
     let cancelled = false;
+    const timeoutId = window.setTimeout(() => {
+      if (!cancelled) setState("deny");
+    }, HYDRATION_TIMEOUT_MS);
     (async () => {
       try {
         // TRACK 14.0-SSO · Resolve the alias to the canonical portal
@@ -112,15 +122,24 @@ export function usePortalHydration(portal, hasToken) {
         if (r?.data?.ok && r.data.token) {
           const setter = SETTERS[portal] || SETTERS[canonical];
           if (setter) setter(r.data.token);
+          clearTimeout(timeoutId);
           setState("ready");
         } else {
+          clearTimeout(timeoutId);
           setState("deny");
         }
-      } catch {
-        if (!cancelled) setState("deny");
+      } catch (err) {
+        clearTimeout(timeoutId);
+        if (!cancelled) {
+          if (Number(err?.response?.status || 0) === 401) setState("deny");
+          else setState("deny");
+        }
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
   }, [state, portal]);
 
   // When `hasToken` flips true due to an outside setter, jump to ready.
