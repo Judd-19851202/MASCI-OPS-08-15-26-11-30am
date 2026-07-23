@@ -33,7 +33,7 @@ async function loadList() {
   }
   if (_cachePromise) return _cachePromise;
   _cachePromise = api
-    .get("/suppliers", { timeout: 30000 })
+    .get("/suppliers", { timeout: 30000, skipSessionStatus: true })
     .then((r) => {
       if (Array.isArray(r?.data?.items)) {
         _cache = r.data;
@@ -64,10 +64,12 @@ export const SupplierCombo = ({
   onChange,
   onPick,
   placeholder,
+  "data-testid": dataTestId,
   testId = "supplier-combo",
   className = "",
 }) => {
   const { t } = useT();
+  const testIdBase = dataTestId || testId;
   const ph = placeholder || t("Type or pick a supplier…");
   const [data, setData] = useState({ items: [], count: 0 });
   const [open, setOpen] = useState(false);
@@ -126,7 +128,7 @@ export const SupplierCombo = ({
     if (name.length < 2) return;
     setAddingNew(true);
     try {
-      const r = await api.post("/suppliers/add", { name });
+      const r = await api.post("/suppliers/add", { name }, { skipSessionStatus: true });
       const created = r?.data?.created;
       const sup = r?.data?.supplier;
       clearSupplierCache();
@@ -155,7 +157,7 @@ export const SupplierCombo = ({
   const showCustomTag = !!(value || "").trim() && !exactMatch && total > 0;
 
   return (
-    <div className={`relative ${className}`} ref={wrapRef}>
+    <div className={`relative ${className}`} ref={wrapRef} data-testid={testIdBase}>
       <div className="flex gap-1.5">
         <Input
           value={value}
@@ -166,7 +168,7 @@ export const SupplierCombo = ({
           onFocus={() => setOpen(true)}
           placeholder={ph}
           className="flex-1 h-11 text-base border-2 border-slate-300 focus:border-red-700"
-          data-testid={`${testId}-input`}
+          data-testid={`${testIdBase}-input`}
           autoComplete="off"
         />
         <Button
@@ -183,7 +185,7 @@ export const SupplierCombo = ({
             }
             setOpen((v) => !v);
           }}
-          data-testid={`${testId}-toggle`}
+          data-testid={`${testIdBase}-toggle`}
           title={t("Browse supplier list")}
           aria-label={t("Browse supplier list")}
         >
@@ -194,7 +196,7 @@ export const SupplierCombo = ({
       {open && (
         <div
           className="absolute z-30 mt-1 w-full max-h-72 overflow-auto rounded-md border-2 border-slate-300 bg-white shadow-xl"
-          data-testid={`${testId}-panel`}
+          data-testid={`${testIdBase}-panel`}
         >
           {filtered.length === 0 ? (
             <div className="p-3 text-sm text-slate-700">
@@ -210,7 +212,7 @@ export const SupplierCombo = ({
                   disabled={addingNew}
                   onMouseDown={(e) => e.preventDefault()}
                   className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold uppercase tracking-wide text-xs h-10 rounded border-b-2 border-emerald-800"
-                  data-testid={`${testId}-add-btn`}
+                  data-testid={`${testIdBase}-add-btn`}
                 >
                   {addingNew ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -235,7 +237,7 @@ export const SupplierCombo = ({
                     disabled={addingNew}
                     onMouseDown={(e) => e.preventDefault()}
                     className="inline-flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold uppercase tracking-wider text-[10px] h-7 px-2 rounded border-b-2 border-emerald-800 shrink-0"
-                    data-testid={`${testId}-add-btn`}
+                    data-testid={`${testIdBase}-add-btn`}
                   >
                     {addingNew ? (
                       <Loader2 className="w-3 h-3 animate-spin" />
@@ -257,7 +259,7 @@ export const SupplierCombo = ({
                     className={`w-full text-left px-3 py-2 text-sm hover:bg-red-50 border-b border-slate-100 ${
                       selected ? "bg-red-100" : ""
                     }`}
-                    data-testid={`${testId}-item-${idx}`}
+                    data-testid={`${testIdBase}-item-${idx}`}
                   >
                     <div className="flex items-center gap-2">
                       <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />

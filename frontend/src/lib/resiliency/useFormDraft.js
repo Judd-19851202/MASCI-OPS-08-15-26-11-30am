@@ -108,8 +108,9 @@ export function useFormDraft(_formKeyBase, data, actorId, options = {}) {
         // the UI can render the "unknown author" affordance.
         const currentAuthActor = getStableActorIdentity();
         const draftAuthor = entry && entry.savedByActor;
+        const allowAnonTransition = draftAuthor === "anon";
         const authorMismatch = Boolean(
-          entry && draftAuthor && draftAuthor !== currentAuthActor
+          entry && draftAuthor && draftAuthor !== currentAuthActor && !allowAnonTransition
         );
         if (!cancelled && entry && !authorMismatch) {
           setPendingDraft(entry.form);

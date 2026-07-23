@@ -195,6 +195,14 @@ export default function NewDailyReportV3({ publicMode = false }) {
     commit: commitDraft,
   } = useFormDraft(DAILY_REPORT_FORM_BASE, data, actorId, { scope: draftScope });
   const online = useOnlineStatus();
+  const preferFallbackDraft = useMemo(() => {
+    if (!fallbackDraftOffer?.form) return false;
+    if (!pendingDraft) return true;
+    const pendingProject = String(pendingDraft?.project_number || "").trim();
+    const pendingAge = Number(pendingSavedAt || 0);
+    const fallbackAge = Number(fallbackDraftOffer?.savedAt || 0);
+    return !pendingProject && fallbackAge >= pendingAge;
+  }, [fallbackDraftOffer, pendingDraft, pendingSavedAt]);
 
   // Idempotency key: load once from IDB (survives reload) or mint fresh.
   useEffect(() => {
@@ -243,10 +251,11 @@ export default function NewDailyReportV3({ publicMode = false }) {
       try {
         const candidate = await findLatestDraftEntryForBase(getDeviceScopedActorId(), DAILY_REPORT_FORM_BASE, {
           excludeFormKey: scopedFormKey,
-          filter: ({ form }) => (
+          filter: ({ form, savedByActor }) => (
             !!String(form?.project_number || "").trim()
             && String(form?.report_date || "") === String(data.report_date || "")
             && String(form?.report_instance || "primary") === String(data.report_instance || "primary")
+            && (!savedByActor || savedByActor === "anon" || savedByActor === actorId)
           ),
         });
         if (!cancelled) setFallbackDraftOffer(candidate || null);
@@ -1010,11 +1019,11 @@ export default function NewDailyReportV3({ publicMode = false }) {
         {(pendingDraft || fallbackDraftOffer?.form) && (
           <div className="mb-4" data-testid="dr-v3-draft-restore-prompt">
             <DraftRestorePrompt
-              pendingDraft={pendingDraft || fallbackDraftOffer?.form}
-              savedAt={pendingSavedAt || fallbackDraftOffer?.savedAt}
+              pendingDraft={preferFallbackDraft ? fallbackDraftOffer?.form : pendingDraft || fallbackDraftOffer?.form}
+              savedAt={preferFallbackDraft ? fallbackDraftOffer?.savedAt : pendingSavedAt || fallbackDraftOffer?.savedAt}
               isCrossToken={pendingIsCrossToken}
               onRestore={() => {
-                if (pendingDraft) {
+                if (pendingDraft && !preferFallbackDraft) {
                   const d = restoreDraft();
                   if (d) setData((prev) => ({ ...prev, ...d }));
                   return;
@@ -1025,7 +1034,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
                 }
               }}
               onDiscard={async () => {
-                if (pendingDraft) {
+                if (pendingDraft && !preferFallbackDraft) {
                   await discardDraft();
                   return;
                 }

@@ -64,10 +64,12 @@ export const EquipmentCombo = ({
   onPick,
   placeholder,
   filterCategories = null,
+  "data-testid": dataTestId,
   testId = "equipment-combo",
   className = "",
 }) => {
   const { t } = useT();
+  const testIdBase = dataTestId || testId;
   const ph = placeholder || t("Type or pick a unit…");
   const [data, setData] = useState({ categories: [], items: [], grouped: {} });
   const [open, setOpen] = useState(false);
@@ -151,7 +153,7 @@ export const EquipmentCombo = ({
   };
 
   return (
-    <div className={`relative ${className}`} ref={wrapRef}>
+    <div className={`relative ${className}`} ref={wrapRef} data-testid={testIdBase}>
       <div className="flex gap-1.5">
         <Input
           value={value}
@@ -162,7 +164,7 @@ export const EquipmentCombo = ({
           onFocus={() => setOpen(true)}
           placeholder={ph}
           className="flex-1 h-11 text-base border-2 border-slate-300 focus:border-red-700"
-          data-testid={`${testId}-input`}
+          data-testid={`${testIdBase}-input`}
           autoComplete="off"
         />
         <Button
@@ -178,7 +180,7 @@ export const EquipmentCombo = ({
             }
             setOpen((v) => !v);
           }}
-          data-testid={`${testId}-toggle`}
+          data-testid={`${testIdBase}-toggle`}
           title={t("Browse fleet")}
           aria-label={t("Browse fleet")}
         >
@@ -189,7 +191,7 @@ export const EquipmentCombo = ({
       {open && (
         <div
           className="absolute z-30 mt-1 w-full max-h-80 overflow-auto rounded-md border-2 border-slate-300 bg-white shadow-xl"
-          data-testid={`${testId}-panel`}
+          data-testid={`${testIdBase}-panel`}
         >
           {totalShown === 0 ? (
             <div className="p-4 text-sm text-slate-500 text-center">
@@ -218,7 +220,7 @@ export const EquipmentCombo = ({
                       className={`w-full text-left px-3 py-2 text-sm hover:bg-red-50 border-b border-slate-100 ${
                         selected ? "bg-red-100" : ""
                       }`}
-                      data-testid={`${testId}-item-${cat}-${idx}`}
+                      data-testid={`${testIdBase}-item-${cat}-${idx}`}
                     >
                       <div className="flex items-center gap-2">
                         {selected && <Check className="w-3.5 h-3.5 text-red-700 shrink-0" />}

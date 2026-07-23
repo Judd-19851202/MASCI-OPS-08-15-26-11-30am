@@ -687,3 +687,17 @@ Next actions
 - P0 Resolved: Daily Report refresh restore losing saved draft when returning through the unassigned prelude scope.
 - P1 Remaining: Broader interruption scenarios (navigate-away, sign-out/sign-in, offline/reconnect, AI-state interruption, photo-upload interruption) can be extended into a fuller certification pack if requested.
 - P2 Backlog: Additional operator guidance around draft scope precedence and optional evidence-package formatting improvements.
+
+
+## 2026-07-23 — Extended Daily Report certification continuation
+- Added restore-precedence improvements so newer scoped Daily Report drafts can be offered ahead of older blank/unscoped prompts during recovery.
+- Added safer Daily Report background-call handling to reduce false session-expired overlays on public/non-submit workflows (`/employees`, attachment upload, and supplier list/add paths now skip global session-status escalation; helper Daily Report reads already used the same pattern).
+- Added EquipmentCombo and SupplierCombo `data-testid` compatibility so repeated row inputs can be exercised reliably in browser certification.
+- Verified additional scenarios in-browser: refresh restore with photo, navigate-away restore, attachment upload path, repeated crew/equipment/subcontractor rows with restore, and bounded AI request counts under rapid interaction.
+- Remaining blocker under this job context: authenticated sign-out/sign-back-in certification still intersects with preview-only access + public-route actor/session behavior, so exact production-session continuity could not be fully closed from this environment alone.
+
+
+## 2026-07-23 — Certification status after extended live-browser runs
+- Verified in live browser runs: autosave acknowledgement (~1.14s to first saved state), refresh restore, navigate-away restore, repeated crew/equipment/subcontractor row restore, attachment upload path, manual-summary fallback, and bounded AI generation (~19.85s click-to-visible).
+- Remaining certification blockers under the current job context are not fully cleared: authenticated sign-out/sign-back-in continuity could not be conclusively certified on the non-production preview/public Daily Report route, tab-close/reopen + offline/reconnect were not fully closed, and photo-intelligence status still reported `analysis unavailable` even when the generated summary referenced all three uploaded photos.
+- Latest exact git commit for this checkpoint: `b367fd3deacb42318ee6e3bf11a3510730ab0f2f`.
