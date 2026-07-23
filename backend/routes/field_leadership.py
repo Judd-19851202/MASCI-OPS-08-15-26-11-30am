@@ -298,6 +298,7 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
 
     async def _is_authed(
         x_leadership_token: Optional[str] = Header(default=None, alias="X-Leadership-Token"),
+        x_fl_token: Optional[str] = Header(default=None, alias="X-FL-Token"),
         x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
         x_pm_token: Optional[str] = Header(default=None, alias="X-PM-Token"),
     ) -> Dict[str, Any]:
@@ -310,8 +311,9 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
             pm = await _pm_token_valid(x_pm_token)
             if pm:
                 return {"role": "pm", "token": x_pm_token, "pm": pm}
-        if _check_leadership_token(x_leadership_token):
-            return {"role": "leadership", "token": x_leadership_token}
+        leadership_token = x_leadership_token or x_fl_token
+        if _check_leadership_token(leadership_token):
+            return {"role": "leadership", "token": leadership_token}
         raise HTTPException(status_code=401, detail="Field Leadership access required")
 
     async def _admin_token_valid(tok: str) -> bool:
