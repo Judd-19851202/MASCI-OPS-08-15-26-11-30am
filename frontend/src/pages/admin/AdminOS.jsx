@@ -45,7 +45,7 @@ import {
 
 import { PortalShell } from "../../design-system";
 import SideNavV3 from "@/components/admin/sidebar/SideNavV3";
-import { getAdminToken } from "@/lib/adminAuth";
+import { buildPortalAuthHeaders } from "@/lib/authHeaders";
 import { formatRelativeTime } from "@/lib/platformTime";
 import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
 
@@ -53,10 +53,7 @@ const API = process.env.REACT_APP_BACKEND_URL;
 
 // ── HTTP helper ─────────────────────────────────────────────────────
 function adminHeaders() {
-  const t = getAdminToken();
-  return t
-    ? { "Content-Type": "application/json", "X-Admin-Token": t }
-    : { "Content-Type": "application/json" };
+  return buildPortalAuthHeaders({ "Content-Type": "application/json" });
 }
 
 async function probe(path) {

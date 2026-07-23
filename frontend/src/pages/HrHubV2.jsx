@@ -26,20 +26,14 @@ import HrSideNavV2 from "@/components/hr/sidebar/HrSideNavV2";
 import HrComplianceAtRiskWidget from "@/components/hr/HrComplianceAtRiskWidget";
 import HrCompletenessTile from "@/components/HrCompletenessTile";
 import OiAttentionStrip from "@/components/operational_intelligence/OiAttentionStrip";
-import { getHrToken } from "@/lib/hrAuth";
-import { getAdminToken } from "@/lib/adminAuth";
+import { buildPortalAuthHeaders } from "@/lib/authHeaders";
 // TRACK 27.03 · Phase 3 · Canonical local-time formatter.
 import { formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 function authHeaders() {
-  const hr = getHrToken();
-  const admin = getAdminToken();
-  const h = {};
-  if (hr) h["X-HR-Token"] = hr;
-  if (admin) h["X-Admin-Token"] = admin;
-  return h;
+  return buildPortalAuthHeaders();
 }
 
 // Generic safe fetch — returns { ok, status, body } and never throws.

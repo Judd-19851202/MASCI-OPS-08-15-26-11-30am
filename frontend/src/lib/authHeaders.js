@@ -1,0 +1,42 @@
+import { getAdminToken } from "@/lib/adminAuth";
+import { getPmToken } from "@/lib/pmAuth";
+import { getHrToken } from "@/lib/hrAuth";
+import { getShopToken } from "@/lib/shopAuth";
+import { getSafetyToken } from "@/lib/safetyAuth";
+import { getDispatchToken } from "@/lib/dispatchAuth";
+import { getLeadershipToken } from "@/lib/leadershipAuth";
+import { getFlToken } from "@/lib/flAuth";
+import { getDirectoryToken } from "@/lib/directoryAuth";
+
+export function buildPortalAuthHeaders(extra = {}) {
+  const headers = { ...extra };
+
+  const admin = getAdminToken();
+  if (admin) headers["X-Admin-Token"] = admin;
+
+  const pm = getPmToken();
+  if (pm) headers["X-PM-Token"] = pm;
+
+  const hr = getHrToken();
+  if (hr) headers["X-HR-Token"] = hr;
+
+  const shop = getShopToken();
+  if (shop) headers["X-Shop-Token"] = shop;
+
+  const safety = getSafetyToken();
+  if (safety) headers["X-Safety-Token"] = safety;
+
+  const dispatch = getDispatchToken();
+  if (dispatch) headers["X-Dispatch-Token"] = dispatch;
+
+  const leadership = getLeadershipToken();
+  if (leadership) headers["X-Leadership-Token"] = leadership;
+
+  const fl = getFlToken();
+  if (fl) headers["X-FL-Token"] = fl;
+
+  const directory = getDirectoryToken();
+  if (directory) headers["X-Directory-Token"] = directory;
+
+  return headers;
+}

@@ -58,6 +58,7 @@ import { useT } from "@/lib/i18n";
 import { formatEmployeeIdentity } from "@/lib/identity";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
+import { buildPortalAuthHeaders } from "@/lib/authHeaders";
 
 const SEPARATION_TYPES = ["voluntary", "involuntary", "layoff"];
 const DRIVER_STATUSES = ["active", "suspended", "restricted", "inactive"];
@@ -973,12 +974,7 @@ function EmployeeDrawer({ id, onClose, initialTab = "details" }) {
       // (preferred resolution key); falls back to employee id.
       const key = s?.employee?.email || s?.employee?.id || id;
       const API = process.env.REACT_APP_BACKEND_URL;
-      const hrTok = (typeof window !== "undefined" && window.localStorage)
-        ? (window.localStorage.getItem("masci.hr.token") || window.localStorage.getItem("masci.admin.token"))
-        : null;
-      const headers = hrTok
-        ? { "X-HR-Token": window.localStorage.getItem("masci.hr.token") || "", "X-Admin-Token": window.localStorage.getItem("masci.admin.token") || "" }
-        : {};
+      const headers = buildPortalAuthHeaders();
       fetch(`${API}/api/employees/${encodeURIComponent(key)}/project-assignments`, { headers })
         .then((r) => r.ok ? r.json() : { items: [] })
         .then((body) => setProjectAssignments({ loaded: true, items: body.items || [] }))
