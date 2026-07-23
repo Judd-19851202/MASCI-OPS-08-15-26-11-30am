@@ -17,10 +17,11 @@ jest.mock("@/lib/resiliency/draftStore", () => ({
 }));
 
 const mockPost = jest.fn();
+const mockGet = jest.fn();
 jest.mock("@/lib/api", () => ({
   api: {
     post: (...args) => mockPost(...args),
-    get: jest.fn(),
+    get: (...args) => mockGet(...args),
   },
 }));
 
@@ -28,6 +29,7 @@ describe("DailySummaryAssist photo sync after upload", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    mockGet.mockReset();
     mockPost.mockImplementation(async (url) => {
       if (url === "/daily-reports/photo-intelligence/draft") {
         return {
@@ -64,6 +66,7 @@ describe("DailySummaryAssist photo sync after upload", () => {
         },
       };
     });
+    mockGet.mockResolvedValue({ data: { status: "completed", result: { ok: true, enabled: false, summary_text: "Draft summary", photo_intelligence: { status: "queued", lifecycle_status: "queued", photo_count: 6, reviewed: 0, observations: [] } } } });
   });
 
   test("promotes post-upload photo status out of no-photos without regenerate", async () => {
@@ -283,6 +286,169 @@ describe("DailySummaryAssist photo sync after upload", () => {
 
     await waitFor(() => {
       expect(screen.getByTestId("daily-summary-assist-photo-status").textContent).not.toContain("No photos attached yet.");
+    });
+  });
+
+  test("keeps polling through transient job-not-found responses and hydrates completed photo status", async () => {
+    let pollCount = 0;
+    mockPost.mockImplementation(async (url) => {
+      if (url === "/daily-reports/photo-intelligence/draft") {
+        return {
+          data: {
+            status: "queued",
+            lifecycle_status: "queued",
+            photo_count: 3,
+            queued: 3,
+            reviewed: 0,
+            observations: [],
+          },
+        };
+      }
+      return {
+        data: {
+          ok: true,
+          job_id: "job-123",
+          status: "queued",
+          status_url: "/api/jobs/job-123/status",
+          message: "AI is citing 0 of 3 photos...",
+          details: { total_photos: 3, cited_photos: 0 },
+        },
+      };
+    });
+    mockGet.mockImplementation(async () => {
+      pollCount += 1;
+      if (pollCount <= 2) {
+        const err = new Error("job not found");
+        err.response = { status: 404 };
+        throw err;
+      }
+      return {
+        data: {
+          status: "completed",
+          result: {
+            ok: true,
+            enabled: true,
+            summary_text: "Completed summary from final job state.",
+            photo_intelligence: {
+              status: "complete_with_observations",
+              lifecycle_status: "complete_with_observations",
+              photo_count: 3,
+              reviewed: 3,
+              observations: [{ description: "Crew staged pipe" }],
+            },
+          },
+        },
+      };
+    });
+
+    render(
+      <DailySummaryAssist
+        data={{
+          project_number: "DR-TEST",
+          project_name: "Test Project",
+          report_date: "2026-07-16",
+          location: "North lot",
+          production: [{ description: "Pipe installation", quantity: 180, unit: "LF" }],
+          masci_crews: [{ name: "Crew", hours: 8.5 }],
+          photos: Array.from({ length: 3 }, (_, i) => `data:image/jpeg;base64,photo-${i + 1}`),
+        }}
+        formKey="draft-test"
+        photoUploadState={{ inFlight: false, total: 3, completed: 3, failed: 0, phase: "complete" }}
+      />,
+    );
+
+    await act(async () => {
+      jest.advanceTimersByTime(1200);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      jest.advanceTimersByTime(1200);
+      await Promise.resolve();
+      await Promise.resolve();
+      jest.advanceTimersByTime(1600);
+      await Promise.resolve();
+      await Promise.resolve();
+      jest.advanceTimersByTime(1600);
+      await Promise.resolve();
+      await Promise.resolve();
+      jest.advanceTimersByTime(1600);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId("daily-summary-assist-textarea").value).toContain("Completed summary from final job state.");
+      expect(screen.getByTestId("daily-summary-assist-photo-status").textContent).toContain("3 photos reviewed");
+    });
+  });
+
+  test("treats cited photo state as reviewed instead of unavailable", async () => {
+    mockPost.mockImplementation(async (url) => {
+      if (url === "/daily-reports/photo-intelligence/draft") {
+        return {
+          data: {
+            status: "cited",
+            lifecycle_status: "cited",
+            photo_count: 3,
+            reviewed: 3,
+            analyzed: 3,
+            observations: [{ description: "Crew staged pipe" }],
+          },
+        };
+      }
+      return {
+        data: {
+          ok: true,
+          enabled: true,
+          summary_text: "Completed summary with cited photos.",
+          photo_intelligence: {
+            status: "cited",
+            lifecycle_status: "cited",
+            photo_count: 3,
+            reviewed: 3,
+            analyzed: 3,
+            observations: [{ description: "Crew staged pipe" }],
+          },
+          summary_input: {
+            photos: {
+              status: "cited",
+              lifecycle_status: "cited",
+              photo_count: 3,
+              analyzed: 3,
+            },
+          },
+        },
+      };
+    });
+
+    render(
+      <DailySummaryAssist
+        data={{
+          project_number: "DR-TEST",
+          project_name: "Test Project",
+          report_date: "2026-07-16",
+          location: "North lot",
+          production: [{ description: "Pipe installation", quantity: 180, unit: "LF" }],
+          masci_crews: [{ name: "Crew", hours: 8.5 }],
+          photos: Array.from({ length: 3 }, (_, i) => `data:image/jpeg;base64,photo-${i + 1}`),
+        }}
+        formKey="draft-test"
+        photoUploadState={{ inFlight: false, total: 3, completed: 3, failed: 0, phase: "complete" }}
+      />,
+    );
+
+    await act(async () => {
+      jest.advanceTimersByTime(1200);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      const text = screen.getByTestId("daily-summary-assist-photo-status").textContent || "";
+      expect(text).toContain("3 photos reviewed");
+      expect(text).not.toContain("Photo analysis unavailable");
     });
   });
 });

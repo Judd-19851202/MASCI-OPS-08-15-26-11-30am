@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional, Tuple
+
+from motor.motor_asyncio import AsyncIOMotorClient
 
 from lib.runtime_cache import get_runtime_cache
 
@@ -11,6 +14,10 @@ JOB_META_TTL_SECONDS = 60 * 60
 
 _BINARY_RESULTS: Dict[str, Dict[str, Any]] = {}
 _BINARY_LOCK = asyncio.Lock()
+_MONGO_CLIENT: Optional[AsyncIOMotorClient] = None
+_MONGO_META_COLLECTION = None
+_MONGO_BINARY_COLLECTION = None
+_MONGO_LOCK = asyncio.Lock()
 
 
 def _now_iso() -> str:
@@ -23,6 +30,103 @@ def _expires_at_iso(ttl_seconds: int = JOB_META_TTL_SECONDS) -> str:
 
 def _job_meta_key(job_id: str) -> str:
     return f"async-job:{job_id}:meta"
+
+
+def _mongo_expiry_dt(meta: Dict[str, Any]) -> datetime:
+    raw = str(meta.get("expires_at") or "").strip()
+    if raw:
+        try:
+            dt = datetime.fromisoformat(raw)
+            if dt.tzinfo is None:
+                return dt.replace(tzinfo=timezone.utc)
+            return dt
+        except Exception:  # noqa: BLE001
+            pass
+    return datetime.now(timezone.utc) + timedelta(seconds=JOB_META_TTL_SECONDS)
+
+
+async def _ensure_mongo_collections():
+    global _MONGO_CLIENT, _MONGO_META_COLLECTION, _MONGO_BINARY_COLLECTION
+    if _MONGO_META_COLLECTION is not None and _MONGO_BINARY_COLLECTION is not None:
+        return _MONGO_META_COLLECTION, _MONGO_BINARY_COLLECTION
+    mongo_url = (os.environ.get("MONGO_URL") or "").strip()
+    db_name = (os.environ.get("DB_NAME") or "").strip()
+    if not mongo_url or not db_name:
+        return None, None
+    async with _MONGO_LOCK:
+        if _MONGO_META_COLLECTION is None or _MONGO_BINARY_COLLECTION is None:
+            if _MONGO_CLIENT is None:
+                _MONGO_CLIENT = AsyncIOMotorClient(mongo_url, tz_aware=True)
+            database = _MONGO_CLIENT[db_name]
+            _MONGO_META_COLLECTION = database["async_job_meta"]
+            _MONGO_BINARY_COLLECTION = database["async_job_binary"]
+            try:
+                await _MONGO_META_COLLECTION.create_index("job_id", unique=True)
+                await _MONGO_META_COLLECTION.create_index("expires_at_dt", expireAfterSeconds=0)
+                await _MONGO_BINARY_COLLECTION.create_index("job_id", unique=True)
+                await _MONGO_BINARY_COLLECTION.create_index("expires_at_dt", expireAfterSeconds=0)
+            except Exception:  # noqa: BLE001
+                pass
+    return _MONGO_META_COLLECTION, _MONGO_BINARY_COLLECTION
+
+
+async def _get_job_meta_collection():
+    coll, _ = await _ensure_mongo_collections()
+    return coll
+
+
+async def _get_job_binary_collection():
+    _, coll = await _ensure_mongo_collections()
+    return coll
+
+
+def _meta_doc(meta: Dict[str, Any]) -> Dict[str, Any]:
+    doc = dict(meta)
+    doc["expires_at_dt"] = _mongo_expiry_dt(meta)
+    return doc
+
+
+async def _persist_job_meta(meta: Dict[str, Any]) -> None:
+    coll = await _get_job_meta_collection()
+    if coll is None:
+        return
+    doc = _meta_doc(meta)
+    await coll.replace_one({"job_id": str(meta.get("job_id"))}, doc, upsert=True)
+
+
+async def _load_persisted_job_meta(job_id: str) -> Optional[Dict[str, Any]]:
+    coll = await _get_job_meta_collection()
+    if coll is None:
+        return None
+    doc = await coll.find_one({"job_id": job_id}, {"_id": 0, "expires_at_dt": 0})
+    if not isinstance(doc, dict):
+        return None
+    return doc
+
+
+async def _persist_binary_result(job_id: str, stored: Dict[str, Any]) -> None:
+    coll = await _get_job_binary_collection()
+    if coll is None:
+        return
+    expires_at = str(stored.get("expires_at") or "").strip()
+    try:
+        expires_dt = datetime.fromisoformat(expires_at) if expires_at else datetime.now(timezone.utc) + timedelta(seconds=JOB_META_TTL_SECONDS)
+    except Exception:  # noqa: BLE001
+        expires_dt = datetime.now(timezone.utc) + timedelta(seconds=JOB_META_TTL_SECONDS)
+    if expires_dt.tzinfo is None:
+        expires_dt = expires_dt.replace(tzinfo=timezone.utc)
+    doc = {**stored, "job_id": job_id, "expires_at_dt": expires_dt}
+    await coll.replace_one({"job_id": job_id}, doc, upsert=True)
+
+
+async def _load_persisted_binary_result(job_id: str) -> Optional[Dict[str, Any]]:
+    coll = await _get_job_binary_collection()
+    if coll is None:
+        return None
+    doc = await coll.find_one({"job_id": job_id}, {"_id": 0, "expires_at_dt": 0, "job_id": 0})
+    if not isinstance(doc, dict):
+        return None
+    return doc
 
 
 async def create_async_job(
@@ -51,15 +155,29 @@ async def create_async_job(
         "cache_backend": cache.meta(),
     }
     await cache.set_json(_job_meta_key(job_id), meta, ttl_seconds=JOB_META_TTL_SECONDS)
+    try:
+        await _persist_job_meta(meta)
+    except Exception:  # noqa: BLE001
+        pass
     return meta
 
 
 async def get_async_job(job_id: str) -> Optional[Dict[str, Any]]:
     cache = get_runtime_cache()
     meta = await cache.get_json(_job_meta_key(job_id))
-    if not isinstance(meta, dict):
+    if isinstance(meta, dict):
+        return meta
+    try:
+        persisted = await _load_persisted_job_meta(job_id)
+    except Exception:  # noqa: BLE001
+        persisted = None
+    if not isinstance(persisted, dict):
         return None
-    return meta
+    try:
+        await cache.set_json(_job_meta_key(job_id), persisted, ttl_seconds=JOB_META_TTL_SECONDS)
+    except Exception:  # noqa: BLE001
+        pass
+    return persisted
 
 
 async def _save_job_meta(meta: Dict[str, Any]) -> Dict[str, Any]:
@@ -67,6 +185,10 @@ async def _save_job_meta(meta: Dict[str, Any]) -> Dict[str, Any]:
     meta["updated_at"] = _now_iso()
     meta["expires_at"] = _expires_at_iso()
     await cache.set_json(_job_meta_key(str(meta.get("job_id"))), meta, ttl_seconds=JOB_META_TTL_SECONDS)
+    try:
+        await _persist_job_meta(meta)
+    except Exception:  # noqa: BLE001
+        pass
     return meta
 
 
@@ -135,6 +257,11 @@ async def complete_async_job_binary(
             "meta": dict(result_meta or {}),
             "expires_at": _expires_at_iso(),
         }
+        stored = dict(_BINARY_RESULTS[job_id])
+    try:
+        await _persist_binary_result(job_id, stored)
+    except Exception:  # noqa: BLE001
+        pass
     result_payload = {
         "filename": filename,
         "media_type": media_type,
@@ -172,6 +299,11 @@ async def get_async_job_binary_result(job_id: str, token: str) -> Optional[Tuple
         return None
     async with _BINARY_LOCK:
         stored = _BINARY_RESULTS.get(job_id)
+    if not stored:
+        try:
+            stored = await _load_persisted_binary_result(job_id)
+        except Exception:  # noqa: BLE001
+            stored = None
     if not stored or str(stored.get("token") or "") != str(token or ""):
         return None
     return meta, stored

@@ -199,9 +199,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
     if (!fallbackDraftOffer?.form) return false;
     if (!pendingDraft) return true;
     const pendingProject = String(pendingDraft?.project_number || "").trim();
-    const pendingAge = Number(pendingSavedAt || 0);
-    const fallbackAge = Number(fallbackDraftOffer?.savedAt || 0);
-    return !pendingProject && fallbackAge >= pendingAge;
+    return !pendingProject;
   }, [fallbackDraftOffer, pendingDraft, pendingSavedAt]);
 
   // Idempotency key: load once from IDB (survives reload) or mint fresh.
@@ -495,7 +493,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
     if (!data.report_date) return;
     let cancelled = false;
     api
-      .get(`/daily-reports/next-number?report_date=${encodeURIComponent(data.report_date)}`)
+      .get(`/daily-reports/next-number?report_date=${encodeURIComponent(data.report_date)}`, { skipSessionStatus: true })
       .then(({ data: res }) => {
         if (cancelled) return;
         const nextNumber = res?.next_number ?? res?.report_number ?? "";

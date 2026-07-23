@@ -30,10 +30,12 @@ function hasEnoughEvidence(data) {
 const DEBOUNCE_MS = 1000;
 const REQUEST_TIMEOUT_MS = 60000;
 const JOB_POLL_MS = 1400;
+const JOB_NOT_FOUND_RETRY_WINDOW_MS = 15000;
 const buildDeterministicFallback = buildDeterministicSummaryFallback;
 
 const TERMINAL_PHOTO_INTEL_STATUSES = new Set([
   "no_photos",
+  "cited",
   "complete",
   "complete_with_observations",
   "complete_with_some_failures",
@@ -418,6 +420,15 @@ export default function DailySummaryAssist({
       }, Number(state?.poll_after_ms || JOB_POLL_MS));
     } catch (err) {
       if (mySeq !== requestSeqRef.current) return;
+      const transient404 = Number(err?.response?.status || 0) === 404;
+      const elapsed = Math.round(performance.now() - startedAt);
+      if (transient404 && elapsed <= JOB_NOT_FOUND_RETRY_WINDOW_MS) {
+        clearJobPoll();
+        jobPollRef.current = window.setTimeout(() => {
+          pollSummaryJob({ jobId, startedAt, requestKey, payload, mySeq }).catch(() => undefined);
+        }, JOB_POLL_MS);
+        return;
+      }
       clearJobPoll();
       const normalized = normalizeOperatorError(err, {
         fallbackMessage: "Summary assist is unavailable right now. You can approve the generated summary or write a manual summary.",
@@ -731,6 +742,7 @@ export default function DailySummaryAssist({
     if (state === "queued") return `Queued ${total} photos for analysis.`;
     if (state === "analyzing") return `Analyzing ${reviewed} of ${total} photos…`;
     if (state === "partially_analyzed") return `Analyzed ${reviewed} of ${total} photos so far.`;
+    if (state === "cited") return `Photo analysis complete — ${reviewed || total} photos reviewed.`;
     if (state === "complete") return `Photo analysis complete — ${total} photos reviewed.`;
     if (state === "complete_with_some_failures") return `${reviewed} of ${total} photos analyzed — ${terminalFailures} could not be processed.`;
     if (state === "complete_with_observations") return `Photo analysis complete — ${total} photos reviewed.`;
