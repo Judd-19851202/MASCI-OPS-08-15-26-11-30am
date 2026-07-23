@@ -119,6 +119,38 @@ export async function getDraftEntry(actorId, formKey) {
   }
 }
 
+export async function findLatestDraftEntryForBase(actorId, formKeyBase, options = {}) {
+  if (!formKeyBase) return null;
+  const prefix = `${DRAFT_PREFIX}${actorId || "anon"}.${formKeyBase}::`;
+  const excludeKey = options.excludeFormKey ? _draftKey(actorId, options.excludeFormKey) : "";
+  const filter = typeof options.filter === "function" ? options.filter : null;
+  try {
+    const ks = (await idbKeys())
+      .filter((k) => typeof k === "string" && k.startsWith(prefix) && k !== excludeKey)
+      .sort()
+      .reverse();
+    for (const key of ks) {
+      const entry = await get(key);
+      if (!entry || !entry.form) continue;
+      if (Date.now() - (entry.savedAt || 0) > STALE_MS) {
+        try { await del(key); } catch { /* ignore */ }
+        continue;
+      }
+      const candidate = {
+        form: entry.form,
+        savedAt: entry.savedAt || 0,
+        savedByActor: entry.savedByActor || null,
+        formKey: key.slice(`${DRAFT_PREFIX}${actorId || "anon"}.`.length),
+      };
+      if (filter && !filter(candidate)) continue;
+      return candidate;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
 // ---------------------------------------------------------------- discard
 // SOFT-DELETE — moves the draft into an archive key with 24 h TTL so
 // a mis-tap on "Discard" does not destroy the morning's work.

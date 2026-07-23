@@ -30,6 +30,8 @@ import {
   DraftRestorePrompt,
   DraftRecoveryNotice,
   recoverArchivedDraft,
+  findLatestDraftEntryForBase,
+  discardDraft as discardStoredDraft,
   emitDraftEvent,
   DAILY_REPORT_FORM_BASE,
   buildDailyReportInstanceScope,
@@ -165,6 +167,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
   const [smartPrefillRetryNonce, setSmartPrefillRetryNonce] = useState(0);
   const [prefillNotice, setPrefillNotice] = useState(null);
   const [archivedDraft, setArchivedDraft] = useState(null);
+  const [fallbackDraftOffer, setFallbackDraftOffer] = useState(null);
   const [summaryGate, setSummaryGate] = useState({ canSubmit: false, manualNeeded: false });
   const [photoBatchState, setPhotoBatchState] = useState({
     inFlight: false,
@@ -213,6 +216,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
     if (!draftLoaded) return undefined;
     if (pendingDraft) {
       setArchivedDraft(null);
+      setFallbackDraftOffer(null);
       return undefined;
     }
     let cancelled = false;
@@ -226,6 +230,32 @@ export default function NewDailyReportV3({ publicMode = false }) {
     })();
     return () => { cancelled = true; };
   }, [draftLoaded, pendingDraft, actorId, scopedFormKey]);
+
+  useEffect(() => {
+    if (!draftLoaded || pendingDraft) return undefined;
+    const isUnscopedPrelude = !(data.project_number || "").trim();
+    if (!isUnscopedPrelude) {
+      setFallbackDraftOffer(null);
+      return undefined;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const candidate = await findLatestDraftEntryForBase(getDeviceScopedActorId(), DAILY_REPORT_FORM_BASE, {
+          excludeFormKey: scopedFormKey,
+          filter: ({ form }) => (
+            !!String(form?.project_number || "").trim()
+            && String(form?.report_date || "") === String(data.report_date || "")
+            && String(form?.report_instance || "primary") === String(data.report_instance || "primary")
+          ),
+        });
+        if (!cancelled) setFallbackDraftOffer(candidate || null);
+      } catch {
+        if (!cancelled) setFallbackDraftOffer(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [draftLoaded, pendingDraft, scopedFormKey, data.project_number, data.report_date, data.report_instance]);
 
   const onRecoverArchive = useCallback(() => {
     if (!archivedDraft?.form) return;
@@ -922,7 +952,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
                 if (draftStatus === "failed") return "failed";
                 if (!online) return "offline";
                 if (canSubmit) return "ready";
-                if (draftStatus === "saved" || pendingSavedAt) return "saved";
+                if (draftStatus === "saved" || pendingSavedAt || lastSavedAt) return "saved";
                 return "draft";
               })()}
               lastSavedAt={lastSavedAt || pendingSavedAt}
@@ -957,7 +987,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
               if (draftStatus === "failed") return "failed";
               if (!online) return "offline";
               if (canSubmit) return "ready";
-              if (draftStatus === "saved" || pendingSavedAt) return "saved";
+                if (draftStatus === "saved" || pendingSavedAt || lastSavedAt) return "saved";
               return "draft";
             })()}
             lastSavedAt={lastSavedAt || pendingSavedAt}
@@ -977,17 +1007,33 @@ export default function NewDailyReportV3({ publicMode = false }) {
         </header>
 
         {/* Draft restore prompt — never silently overwrites work. */}
-        {pendingDraft && (
+        {(pendingDraft || fallbackDraftOffer?.form) && (
           <div className="mb-4" data-testid="dr-v3-draft-restore-prompt">
             <DraftRestorePrompt
-              pendingDraft={pendingDraft}
-              savedAt={pendingSavedAt}
+              pendingDraft={pendingDraft || fallbackDraftOffer?.form}
+              savedAt={pendingSavedAt || fallbackDraftOffer?.savedAt}
               isCrossToken={pendingIsCrossToken}
               onRestore={() => {
-                const d = restoreDraft();
-                if (d) setData((prev) => ({ ...prev, ...d }));
+                if (pendingDraft) {
+                  const d = restoreDraft();
+                  if (d) setData((prev) => ({ ...prev, ...d }));
+                  return;
+                }
+                if (fallbackDraftOffer?.form) {
+                  setData((prev) => ({ ...prev, ...fallbackDraftOffer.form }));
+                  setFallbackDraftOffer(null);
+                }
               }}
-              onDiscard={discardDraft}
+              onDiscard={async () => {
+                if (pendingDraft) {
+                  await discardDraft();
+                  return;
+                }
+                if (fallbackDraftOffer?.formKey) {
+                  await discardStoredDraft(getDeviceScopedActorId(), fallbackDraftOffer.formKey);
+                  setFallbackDraftOffer(null);
+                }
+              }}
             />
           </div>
         )}

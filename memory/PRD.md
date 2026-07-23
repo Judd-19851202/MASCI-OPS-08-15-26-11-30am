@@ -673,3 +673,17 @@ Next actions
 - P0: Reconcile backup completeness until integrity-check returns PASS with no missing collections.
 - P0: Run and persist a fresh disposable side-DB restore drill for the frozen release window.
 - P0: Owner-confirm the real rollback candidate on controlled infrastructure before any Production release decision.
+
+
+## 2026-07-23 — Daily Report AI non-submit dry run repairs
+- Fixed DailySummaryAssist browser-side regeneration loop by guarding queued reruns while a summary job is already in flight. Live browser retest now shows a single bounded POST to `/api/daily-reports/summary/draft`, finite job polling, and terminal `ready` state with generated summary text.
+- Fixed operator control defects in `SectionProjectConditions.jsx`: the Custom Job path now reveals manual Project Number / Project Name fields, and Prepared By / Superintendent now expose unique working data-testid controls (`dr-v3-prepared-by-*`, `dr-v3-superintendent-*`).
+- Fixed truthful autosave/restore behavior for Daily Report V3: the header/status chip now keeps showing saved state after successful autosave, and refresh on an unscoped prelude now offers the latest matching saved draft for restore instead of silently dropping operator work. Verified restore fidelity for location, tomorrow plan, follow-ups, and uploaded photo in a strict NON-SUBMIT browser refresh test.
+- Added/updated regression coverage: `DailySummaryAssist.photoSync.test.jsx`, `SectionProjectConditions.customJob.test.jsx`, and aligned backend async summary tests in `test_iteration_571_photo_intel_summary.py`.
+- Verification completed: self-tests, browser Playwright dry runs, testing agent, frontend QA agent, and backend deep testing all passed without any submit action. Current redeploy checkpoint: `e7a06a8c`.
+
+### Current P0/P1/P2 snapshot
+- P0 Resolved: Daily Report AI infinite generation loop / false no-photo state in the browser path.
+- P0 Resolved: Daily Report refresh restore losing saved draft when returning through the unassigned prelude scope.
+- P1 Remaining: Broader interruption scenarios (navigate-away, sign-out/sign-in, offline/reconnect, AI-state interruption, photo-upload interruption) can be extended into a fuller certification pack if requested.
+- P2 Backlog: Additional operator guidance around draft scope precedence and optional evidence-package formatting improvements.
