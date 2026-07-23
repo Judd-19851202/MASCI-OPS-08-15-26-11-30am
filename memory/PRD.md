@@ -2,7 +2,7 @@
 
 - Scope stayed bounded to the canonical Daily Report workflow only: `/daily/submit` → `POST /api/daily-reports` → canonical read/PDF/notification/Trust Spine paths. No C3/D-series work added.
 - Exact release candidate identity validated in runtime after restamp:
-  - Backend/frontend commit: `a0a3b0f5b32938f43573278a72cb268d12b17453`
+  - Backend/frontend commit: `dffb6f5a252e7bd2397a5a4115cf08057ea16577`
   - Shared source hash / release: `321aa1e5a33d57990faea6116e2c5e11`
   - `/api/version` now reports `frontend_backend_release_match=true`
 - Functional failures discovered and repaired during certification:
@@ -20,6 +20,8 @@
      - Fixed in `backend/pdf_render.py` so section `10B · Attachment & Document Evidence` falls back to canonical raw attachment refs.
   7. Frontend directory/session validation incorrectly probed admin-only checks without forwarding the directory session token, causing false browser-side 403 on protected Daily Report reopen.
      - Fixed in `frontend/src/lib/tokenValidation.js` to include `X-Directory-Token` alongside portal-token validation requests.
+  8. Daily Report autosave/restore could get stuck forever on "Saving draft…" because the initial draft-load effect in `useFormDraft()` depended on `data`, resetting `lastSavedKeyRef` on every keystroke and preventing actual draft persistence.
+     - Fixed in `frontend/src/lib/resiliency/useFormDraft.js` by reducing the initial load effect deps from `[actorId, data, formKey]` to `[actorId, formKey]`.
 - Automated / live verification completed after repairs:
   - Health gates: external + local `/api/ready`, `/api/health/full`, `/api/version` green and aligned.
   - Canonical submit: synthetic report `DR-2026-03522` / `17010cbf-e5b6-4929-84e6-71430efbff90` created with 3 photos + 2 attachments + accepted AI summary.
@@ -32,6 +34,7 @@
 - Focused regression coverage added/updated:
   - `frontend/src/pages/__tests__/ViewDailyReport.attachments.test.jsx`
   - `frontend/src/lib/__tests__/tokenValidation.directoryHeaders.test.js`
+  - `frontend/src/lib/__tests__/useFormDraft.mountDeps.test.js`
   - `backend/tests/test_iter186b_session_timeout_middleware.py`
   - `backend/tests/test_rel01_runtime_reliability_unit.py`
   - `backend/tests/test_track_24_13_evidence_engine.py`

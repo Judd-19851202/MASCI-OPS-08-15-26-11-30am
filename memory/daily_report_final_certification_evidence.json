@@ -69,7 +69,7 @@
       "instance_fingerprint": "f39838f463de86ad9e3335a3981871fd",
       "process_started_at": "2026-07-23T00:23:54.268602+00:00",
       "started_at": "2026-07-23T00:23:54.268602+00:00",
-      "uptime_s": 66,
+      "uptime_s": 764,
       "session_timeouts": {
         "enabled": true,
         "tiers": {

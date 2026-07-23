@@ -1,7 +1,5 @@
 # Daily Report Final Certification Evidence
-- Generated: 2026-07-23T00:14:25.029912+00:00
-- Workspace commit: dffb6f5a252e7bd2397a5a4115cf08057ea16577
-- Runtime commit: dffb6f5a252e7bd2397a5a4115cf08057ea16577
+- Runtime/workspace commit: dffb6f5a252e7bd2397a5a4115cf08057ea16577
 - Release/source hash: 321aa1e5a33d57990faea6116e2c5e11
 - Frontend/backend release match: True
 - Runtime ready: True | Health full: True
@@ -9,12 +7,6 @@
 - Photos: 3 | Attachments: 2
 - Trust Spine: record_created → routing_resolved → recipients_built → notification_queued → audit_written → delivery_captured_preview → completed_for_environment
 - AI summary evidence: live job completed with cited_photos=1 and reviewed_photos=1
-- Control inventory sample: dr-v3-attachments-section, dr-v3-submit-btn, dr-v3-voice-record-button, daily-summary-assist-accept, dr-view-attachments
-- Artifacts:
-  - /app/memory/daily_report_final_certification_evidence.json
-  - /app/test_reports/iteration_16.json
-  - /app/test_reports/iteration_17.json
-  - /app/test_reports/iteration_18.json
-  - /app/daily_report_canonical_workflow_results.json
-  - /app/test_artifacts/daily_report_fixtures/generated_report.pdf
+- Autosave evidence: restore prompt appears after reload; restored textarea value verified on current candidate
+- Artifacts: iteration_16.json, iteration_17.json, iteration_18.json, iteration_19.json, generated_report.pdf
 - External blockers: native iPad camera capture; native iPad microphone/live speech capture
