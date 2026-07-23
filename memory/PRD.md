@@ -159,8 +159,8 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - Canonical Trust/C2 deployment outcome: `admin_audit` rows classified by `backend/routes/occ_trust_events.py`
 
 ### Latest live Preview proof
-- Current backend/runtime commit: `cad2385f8dafc55555bfda93d09eb04cddfccf7c`
-- Current served frontend commit: `cad2385f8dafc55555bfda93d09eb04cddfccf7c`
+- Current backend/runtime commit: see latest `/api/version` evidence for the committed Preview candidate.
+- Current served frontend commit: see latest `/release-identity.json` and `/api/version` evidence for the committed Preview candidate.
 - Frontend/backend parity: `true`
 - Health full: `200 OK` with `mongo=true`, `scheduler=true`, `backup_recent=true`
 - Latest automatic deployment ledger decision: `pass / GO`
