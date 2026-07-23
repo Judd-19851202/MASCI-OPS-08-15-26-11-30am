@@ -5,6 +5,8 @@ import App from "@/App";
 import { registerThumbCache } from "@/lib/thumbCache";
 import { initSentryIfConfigured } from "@/lib/sentryInit";
 import { installPortalFetchAuth } from "@/lib/fetchPortalAuth";
+import { installPortalAxiosAuth } from "@/lib/axiosPortalAuth";
+import { installPortalXhrAuth } from "@/lib/xhrPortalAuth";
 
 // TRACK 15.39A · Suppress the benign "ResizeObserver loop completed with
 // undelivered notifications" warning that Radix primitives (Select, Sheet,
@@ -14,6 +16,8 @@ import { installPortalFetchAuth } from "@/lib/fetchPortalAuth";
 // visible but harmless in prod.
 if (typeof window !== "undefined") {
   installPortalFetchAuth();
+  installPortalAxiosAuth();
+  installPortalXhrAuth();
   const swallowResizeObserverLoop = (event) => {
     const msg = (event && (event.message || event.reason?.message)) || "";
     if (

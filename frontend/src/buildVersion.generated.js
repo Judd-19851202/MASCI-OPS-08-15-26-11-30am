@@ -3,9 +3,9 @@
 //
 // Field crews / PMs / support: when reporting an issue, include this version
 // so we can pin the exact deployed code.
-export const BUILD_VERSION = "v2026.07.23-49bb977";
-export const BUILD_COMMIT = "49bb9775aacd8a6ad361574b72e4151d94551ab7";
-export const BUILT_AT_ISO = "2026-07-23T03:14:32.837Z";
+export const BUILD_VERSION = "v2026.07.23-250ed62";
+export const BUILD_COMMIT = "250ed62e084efe355b6fa6d9d124fddd71a478db";
+export const BUILT_AT_ISO = "2026-07-23T10:50:55.719Z";
 export const BUILD_SOURCE_HASH = "2566b7b03eb71a21340ff8543098893f";
 export const BUILD_DEPENDENCY_MANIFEST_HASH = "b6e3daa826554186ba5c7ed5a2a058b3434be2679f621cb3c51b5aee2fcc6faf";
 export const BUILD_MIGRATION_MANIFEST_HASH = "15192f5cf53149a0ce77eda8076a150f01c537c899184447b7ee290b0e9561c9";
