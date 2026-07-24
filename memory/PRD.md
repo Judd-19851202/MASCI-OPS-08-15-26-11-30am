@@ -278,3 +278,62 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - Production code repair commit: `2c5b4a7638477f7fff898299a87a37d3ae5d2e7f`
 - Release finalization commit purpose: record corrected release traceability after the bounded PM-scope repair and added fail-closed regression coverage.
 - Deploy candidate SHA: repository HEAD created by the release-finalization commit (capture exact SHA from git after finalization; do not infer from earlier evidence placeholders).
+
+## 2026-07-24 — MASCI OPS 8 Backup, Recovery & Restore Trust System (Preview hardening)
+- Phase 1 forensic artifacts created:
+  - `/app/test_reports/backup_recovery_forensic_report.md`
+  - `/app/test_reports/backup_recovery_forensic_report.json`
+  - `/app/test_reports/backup_architecture_map.json`
+- Implemented bounded Phase 2 safe-execution hardening in Preview code only. Production hourly complete backups remain explicitly disabled.
+- Added durable backup runtime state in `backend/lib/backup_runtime.py` with:
+  - persistent `backup_jobs` state
+  - queued/running/completed/failed/deferred/stale evidence
+  - overlap classification for backup vs restore work
+  - stale-job recovery sweep
+- Hardened `backend/server.py` backup flows:
+  - scheduled ZIP runs now claim durable scheduler slots (`scheduler_runs`) to prevent duplicate slot execution
+  - complete R2 archive jobs now claim persistent backup jobs and record deferred/failed/success outcomes
+  - complete archive execution now performs temp-disk/resource preflight and defers instead of silently risking capacity
+  - restore endpoint now streams uploads to temp disk instead of reading the full ZIP into memory first
+  - restore endpoint blocks while backup jobs are active
+  - admin scheduler and complete-R2 state endpoints now expose `backup_runtime`
+- Hardened weekly verification in `backend/backup_verification.py` and `backend/routes/backup_verification_routes.py`:
+  - latest `complete-r2` truth no longer gets replaced by `r2-usage-alert` rows
+  - verification marker rows no longer pollute `last_failure`
+  - manual run-now uses a manual slot identity instead of colliding with the scheduler weekly slot
+  - Preview run-now now returns `ok=true` when the report is built even if email delivery is safety-blocked in Preview
+- Added Backup Trust Score API and UI:
+  - backend endpoint: `/api/admin/backup-trust-score`
+  - frontend Recovery page now shows trust score, band, reason, and `production_activation_disabled=true`
+- Hardened admin surfaces:
+  - Cloud Archives panel now shows hourly activation disabled state, overlap guard state, stale-job sweep count, and recent complete-job evidence
+  - Backup Verification panel now shows recent complete-job evidence when present
+  - Recovery page now surfaces the Backup Trust Score card
+- Isolated restore validation exercised successfully in Preview using new script:
+  - `/app/scripts/ops8_namespace_restore_drill.py`
+  - successful evidence: `/app/memory/OPS8_DRILL_4d1e9f83d494_REPORT.md`
+  - recovery snapshot and backup trust score now reflect the fresh drill evidence
+- Additional Preview evidence files created:
+  - `/app/test_reports/backup_preview_validation_report.md`
+  - `/app/test_reports/backup_staged_activation_checklist.md`
+- Automated verification passed:
+  - testing agent report `/app/test_reports/iteration_34.json` passed backend and frontend checks
+  - `deep_testing_backend_v2` passed backup/recovery backend validation
+  - `auto_frontend_testing_agent` passed Recovery and System/Backups admin UI validation
+- Current Preview trust posture after hardening:
+  - Backup Trust Score = `80` / `AMBER`
+  - remaining penalties are intentionally due to hourly complete R2 still disabled and R2 bucket usage above WARN threshold
+  - production activation is still disabled and still requires staged operator-controlled rollout using `/app/test_reports/backup_staged_activation_checklist.md`
+
+### Remaining P0 / production-only verification
+- Keep production hourly complete backups disabled until a watched activation window is approved.
+- Validate production temp-disk and bucket headroom before any hourly activation.
+- Execute a fresh isolated restore drill against a newly created hourly archive only after operator-enabled hourly activation in production.
+- Confirm at least one weekly verification cycle after production activation.
+
+### Remaining P1 / follow-up improvements
+- Add archive checksum/sidecar evidence for newer complete archives if stronger cryptographic archive lineage is required.
+- Consider surfacing recent restore drill and trust evidence directly on System & Backups page as a dedicated operator card.
+
+### Backlog / out of scope
+- Earlier minor PM auth cleanup remains backlog only and was not touched during MASCI OPS 8 backup work.
