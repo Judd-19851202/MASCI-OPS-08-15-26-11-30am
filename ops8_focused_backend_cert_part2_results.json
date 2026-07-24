@@ -1,0 +1,82 @@
+{
+  "timestamp": "2026-07-24T11:57:43.743541Z",
+  "environment": "https://backup-forensics.preview.emergentagent.com",
+  "tests": [
+    {
+      "name": "admin_incidents_dual_token",
+      "status": "PASS",
+      "details": {
+        "dual_token_status": 200,
+        "portal_only_status": 401,
+        "contract": "enforced"
+      },
+      "error": null,
+      "timestamp": "2026-07-24T11:57:44.952563Z"
+    },
+    {
+      "name": "admin_incident_cases_dual_token",
+      "status": "PASS",
+      "details": {
+        "dual_token_status": 200,
+        "portal_only_status": 401,
+        "contract": "enforced"
+      },
+      "error": null,
+      "timestamp": "2026-07-24T11:57:47.958218Z"
+    },
+    {
+      "name": "super_admin_multi_portal",
+      "status": "PASS",
+      "details": {
+        "portals_tested": [
+          "admin",
+          "pm",
+          "safety"
+        ],
+        "all_succeeded": true
+      },
+      "error": null,
+      "timestamp": "2026-07-24T11:57:51.619465Z"
+    },
+    {
+      "name": "backup_integrity_with_auth",
+      "status": "FAIL",
+      "details": null,
+      "error": "Status 502",
+      "timestamp": "2026-07-24T11:58:54.376374Z"
+    },
+    {
+      "name": "backup_integrity_no_auth",
+      "status": "PASS",
+      "details": {
+        "status_code": 401
+      },
+      "error": null,
+      "timestamp": "2026-07-24T11:58:56.802724Z"
+    },
+    {
+      "name": "backup_integrity_portal_only",
+      "status": "PASS",
+      "details": {
+        "status_code": 401
+      },
+      "error": null,
+      "timestamp": "2026-07-24T11:59:00.930769Z"
+    },
+    {
+      "name": "revoked_token",
+      "status": "PASS",
+      "details": {
+        "status_code": 401
+      },
+      "error": null,
+      "timestamp": "2026-07-24T11:59:04.144952Z"
+    }
+  ],
+  "summary": {
+    "total": 7,
+    "passed": 6,
+    "failed": 1,
+    "skipped": 0
+  }
+}
