@@ -508,8 +508,14 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
 
         async def _do_create():
             rec = _normalize_record(payload)
-            # Stamp who submitted (best-effort — leadership-only doesn't have a user id)
+            # Stamp who submitted.
             rec["submitted_via_role"] = auth["role"]
+            rec["submitted_by_name"] = auth.get("name") or payload.supervisor_name or ""
+            rec["submitted_by_email"] = auth.get("email") or payload.supervisor_email or ""
+            rec["created_by"] = auth.get("user_id")
+            rec["created_by_email"] = auth.get("email")
+            rec["updated_by"] = auth.get("user_id")
+            rec["updated_by_email"] = auth.get("email")
 
             # Equipment_return: compute deltas vs the original checkout value
             # and mark the matched checkout lines as returned.

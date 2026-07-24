@@ -217,3 +217,25 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - Verified fixed routes: `/admin/incidents`, `/pm/incidents`, `/safety-portal/incidents`, `/project-health`, `/asset-transfers`, `/odr/center`, `/operational-records`, `/operations-actions`, `/admin/operational-intelligence/recipients`.
 - Final regression status: frontend PASS `22/22`, backend PASS `20/20`. Evidence: `/root/.emergent/automation_output/20260724_094043/console_20260724_094043.log`, `/root/.emergent/automation_output/20260724_093046/console_20260724_093046.log`, `/root/.emergent/automation_output/20260724_093017/console_20260724_093017.log`, plus Batch 1 verification summaries from `auto_frontend_testing_agent` and `deep_testing_backend_v2`.
 - Batch 1 verdict reached: `VERIFIED — READY FOR FULL CERTIFICATION CONTINUATION`.
+
+## 2026-07-24 — MASCI OPS 8 bounded repairs and certification checkpoint
+- **Repair B verified**: retired legacy Field Leadership shared-secret auth, removed the canonical UI entry to the legacy gate, enforced canonical FL auth on `/api/field-leadership/*`, denied unassigned users, and restored per-user audit identity on created FL records.
+- **Repair A verified**: converted `/api/admin/backups/integrity-check` from a blocking browser request into an async persisted workflow (`start/status/latest`) with duplicate-run guard, audit/trust events, and honest operator-facing state. External `502` timeout is resolved.
+- **Combined checkpoint**: code checkpoint `4306bde8`; combined regression checkpoint `439f2adf`. Regression evidence: `/app/test_reports/iteration_31.json`, `/app/test_reports/iteration_32.json`.
+- **Current certification verdict**: `VERIFIED WITH DOCUMENTED PRODUCTION-ONLY CHECKS`.
+
+### Remaining documented production-only checks
+- Idle and absolute session expiry with timeout-enabled environment
+- Safe portal-grant removal / downgrade exercise on dedicated Preview fixtures
+- Real-recipient notification delivery outside SAFE_CAPTURE
+- Physical-device coverage: iPad Safari, iPhone Safari, Android Chrome, Windows Edge, Mac Safari/Chrome
+- Actual restore drill / recoverability evidence separate from manifest integrity
+
+### Evidence artifacts added
+- `/app/consolidated_final_ledger.json`
+- `/app/consolidated_final_ledger.md`
+- `/app/certification_surface_matrix.json`
+- `/app/certification_surface_matrix.md`
+- `/app/final_coverage_report.json`
+- `/app/final_coverage_report.md`
+- `/app/final_verdict.md`

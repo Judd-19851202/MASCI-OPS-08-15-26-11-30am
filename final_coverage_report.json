@@ -1,0 +1,27 @@
+{
+  "generated_at": "2026-07-24T13:55:00Z",
+  "verdict": "VERIFIED WITH DOCUMENTED PRODUCTION-ONLY CHECKS",
+  "checkpoint": {
+    "code_sha": "4306bde8",
+    "combined_regression_sha": "439f2adf"
+  },
+  "coverage": {
+    "phase_1_legacy_contract_disposition": {"total": 7, "passed": 7, "failed": 0, "blocked": 0, "not_yet_exercised": 0, "coverage_percent": 100.0},
+    "phase_2_auth_session_security": {"total": 12, "passed": 8, "failed": 0, "blocked": 1, "not_yet_exercised": 2, "documented_only": 1, "coverage_percent": 75.0},
+    "phase_3_file_pdf_attachment": {"total": 8, "passed": 3, "failed": 0, "blocked": 0, "not_supported_in_current_product": 3, "documented_only": 2, "coverage_percent": 62.5},
+    "phase_4_notifications_trust": {"total": 3, "passed": 2, "failed": 0, "blocked": 0, "not_yet_exercised": 1, "coverage_percent": 66.7},
+    "phase_5_backup_recovery_visibility": {"total": 2, "passed": 1, "failed": 0, "blocked": 0, "not_yet_exercised": 1, "coverage_percent": 50.0},
+    "phase_6_device_browser_coverage": {"total": 6, "passed": 1, "failed": 0, "blocked": 0, "not_yet_exercised": 5, "coverage_percent": 16.7}
+  },
+  "documented_production_only_checks": [
+    "Idle and absolute session expiry under a timeout-enabled environment.",
+    "Portal-grant removal / downgrade mutation using dedicated Preview-safe fixtures.",
+    "Live-recipient notification delivery beyond Preview SAFE_CAPTURE.",
+    "Physical-device verification on iPad Safari, iPhone Safari, Android Chrome, Windows Edge, and Mac Safari/Chrome.",
+    "Actual restore drill / recoverability validation separate from manifest integrity."
+  ],
+  "key_completed_repairs": [
+    {"id": "Repair B", "name": "Field Leadership legacy auth retirement", "sha": "4306bde8", "verified_by": ["/app/test_reports/iteration_31.json", "/app/test_reports/iteration_32.json"]},
+    {"id": "Repair A", "name": "Async backup integrity operator workflow", "sha": "4306bde8", "verified_by": ["/app/test_reports/iteration_31.json", "/app/test_reports/iteration_32.json"]}
+  ]
+}
