@@ -3,9 +3,11 @@ import { getPortalContext } from "@/lib/portalContext";
 const PATH_PORTAL_PREFIXES = [
   ["/admin", "admin"],
   ["/hr", "hr"],
+  ["/safety-portal", "safety"],
   ["/safety", "safety"],
   ["/pm", "pm"],
   ["/shop", "shop"],
+  ["/dispatch-portal", "dispatch"],
   ["/dispatch", "dispatch"],
   ["/field-leadership", "fl"],
   ["/leadership", "leadership"],
