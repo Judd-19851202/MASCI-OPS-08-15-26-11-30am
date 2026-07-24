@@ -685,16 +685,25 @@ def build_pm_router(
                 raise HTTPException(status_code=400, detail=str(ve))
             if not ok:
                 raise HTTPException(status_code=401, detail="Old password is wrong")
-            updated = await set_pm_password(db, pm["id"], body.new_password, must_change=False)
+            fresh_row = await _ud_local.find_by_id(db, pm["id"])
+            if not fresh_row or not fresh_row.get("password_hash"):
+                raise HTTPException(status_code=404, detail="user not found")
+            await db.project_managers.update_one(
+                {"id": pm["id"]},
+                {"$set": {
+                    "password_hash": fresh_row["password_hash"],
+                    "must_change_password": False,
+                    "password_set_at": datetime.now(timezone.utc).isoformat(),
+                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                }},
+            )
+            updated = await db.project_managers.find_one({"id": pm["id"]}, {"_id": 0})
             if not updated:
                 raise HTTPException(status_code=500, detail="Failed to update password")
-            fresh_row = await _ud_local.find_by_id(db, pm["id"])
-            if not fresh_row:
-                raise HTTPException(status_code=404, detail="user not found")
-            fresh_token = make_pm_token(updated["id"], updated["password_hash"])
+            fresh_token = make_pm_token(fresh_row["id"], fresh_row["password_hash"])
             await _reset_session_activity(
                 db, fresh_token, "OPERATIONS",
-                user_id=updated.get("id"), email=updated.get("email"),
+                user_id=fresh_row.get("id"), email=fresh_row.get("email"),
                 actor_label="pm_via_directory",
             )
             return {

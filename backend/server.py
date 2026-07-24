@@ -3225,20 +3225,27 @@ async def shop_change_password(
             _record_login_fail(ip)
             raise HTTPException(status_code=401, detail="Current password is wrong")
         _reset_login_fails(ip)
-        saved = await set_shop_user_password(
-            db, actor["id"], body.new_password, must_change=False
+        fresh_row = await _ud.find_by_id(db, actor["id"])
+        if not fresh_row or not fresh_row.get("password_hash"):
+            raise HTTPException(status_code=404, detail="user not found")
+        await db.shop_users.update_one(
+            {"id": actor["id"]},
+            {"$set": {
+                "password_hash": fresh_row["password_hash"],
+                "must_change_password": False,
+                "password_set_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            }},
         )
+        saved = await db.shop_users.find_one({"id": actor["id"]}, {"_id": 0})
         if not saved:
             raise HTTPException(status_code=500, detail="Failed to set password")
-        fresh_row = await _ud.find_by_id(db, actor["id"])
-        if not fresh_row:
-            raise HTTPException(status_code=404, detail="user not found")
         fresh = await find_shop_user_by_email(db, saved["email"])
-        fresh_token = make_shop_user_token(saved["id"], saved.get("password_hash") or "")
+        fresh_token = make_shop_user_token(fresh_row["id"], fresh_row["password_hash"])
         try:
             await _reset_session_activity(
                 db, fresh_token, "OPERATIONS",
-                user_id=saved.get("id"), email=saved.get("email"),
+                user_id=fresh_row.get("id"), email=fresh_row.get("email"),
                 actor_label="shop_via_directory", ip=ip,
                 user_agent=request.headers.get("user-agent") or "",
             )

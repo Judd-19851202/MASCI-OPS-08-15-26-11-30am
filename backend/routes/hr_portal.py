@@ -263,13 +263,22 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
                 raise HTTPException(400, str(ve))
             if not ok:
                 raise HTTPException(401, "Current password is incorrect")
-            updated = await set_hr_user_password(db, actor["id"], payload.new_password, must_change=False)
+            fresh_row = await _ud.find_by_id(db, actor["id"])
+            if not fresh_row or not fresh_row.get("password_hash"):
+                raise HTTPException(404, "user not found")
+            await db.hr_users.update_one(
+                {"id": actor["id"]},
+                {"$set": {
+                    "password_hash": fresh_row["password_hash"],
+                    "must_change_password": False,
+                    "password_set_at": datetime.now(timezone.utc).isoformat(),
+                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                }},
+            )
+            updated = await db.hr_users.find_one({"id": actor["id"]}, {"_id": 0})
             if not updated:
                 raise HTTPException(404, "user not found")
-            fresh_row = await _ud.find_by_id(db, actor["id"])
-            if not fresh_row:
-                raise HTTPException(404, "user not found")
-            new_token = make_hr_user_token(updated["id"], updated["password_hash"])
+            new_token = make_hr_user_token(fresh_row["id"], fresh_row["password_hash"])
             try:
                 from session_timeout import reset_session_activity  # noqa: PLC0415
                 await reset_session_activity(

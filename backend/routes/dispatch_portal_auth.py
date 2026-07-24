@@ -18,6 +18,7 @@ Mirrors `routes/safety_portal/auth_users.py` exactly. Endpoints:
 from __future__ import annotations
 
 import logging
+from datetime import datetime, timezone
 from typing import Callable, Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
@@ -287,13 +288,22 @@ def build_dispatch_router(db, require_admin, directory_admin_minter: Optional[Ca
                 raise HTTPException(400, str(ve))
             if not ok:
                 raise HTTPException(401, "Current password is incorrect")
-            updated = await set_dispatch_user_password(db, user["id"], body.new_password, must_change=False)
+            fresh_row = await _ud.find_by_id(db, user["id"])
+            if not fresh_row or not fresh_row.get("password_hash"):
+                raise HTTPException(404, "user not found")
+            await db.dispatch_users.update_one(
+                {"id": user["id"]},
+                {"$set": {
+                    "password_hash": fresh_row["password_hash"],
+                    "must_change_password": False,
+                    "password_set_at": datetime.now(timezone.utc).isoformat(),
+                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                }},
+            )
+            updated = await find_dispatch_user_by_email(db, user.get("email") or fresh_row.get("email"))
             if not updated:
                 raise HTTPException(404, "user not found")
-            fresh_row = await _ud.find_by_id(db, user["id"])
-            if not fresh_row:
-                raise HTTPException(404, "user not found")
-            new_token = make_dispatch_user_token(updated["id"], updated["password_hash"])
+            new_token = make_dispatch_user_token(fresh_row["id"], fresh_row["password_hash"])
             try:
                 from session_timeout import reset_session_activity  # noqa: PLC0415
                 await reset_session_activity(
