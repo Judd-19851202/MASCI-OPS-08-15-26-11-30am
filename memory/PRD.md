@@ -138,6 +138,49 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - Do not use admin/test credentials for Daily Report creation testing.
 - Use the marker `LIVE-AI-DRY-RUN-NO-SUBMIT` for dry-run scenarios and avoid unintended submission during non-submit verification.
 
+## 2026-07-24 — BCSS Release 1 / Program 1 / Checkpoint 1 Completed
+
+### Scope
+- Completed the bounded BCSS checkpoint for **Canonical Ownership & Registration** using the existing MASCI OPS canonical architecture only.
+- Verified constitutional registration gap existed (`BCSS-R01`) and applied the smallest safe repair by extending the existing canonical truth registry.
+
+### Implemented
+- Added 10 BCSS truth-subject registrations to `backend/lib/canonical_truth.py`:
+  - `bcss_runtime_state_authority`
+  - `bcss_backup_slot_execution`
+  - `bcss_backup_job_execution`
+  - `bcss_backup_archive_lineage`
+  - `bcss_restore_execution`
+  - `bcss_restore_drill_evidence`
+  - `bcss_recovery_posture`
+  - `bcss_recovery_trust`
+  - `bcss_recovery_certification`
+  - `bcss_external_dependency_continuity`
+- Formalized BCSS recovery posture/trust role separation inside the same registry.
+- Added checkpoint verification tests in `backend/tests/test_bcss_checkpoint1_truth_registration.py`.
+- Independent testing added a broader suite in `backend/tests/test_bcss_checkpoint1_comprehensive.py`.
+- Full checkpoint artifact created at `/app/memory/BCSS_RELEASE1_PROGRAM1_CHECKPOINT1_CANONICAL_OWNERSHIP_AND_REGISTRATION.md`.
+
+### Verified
+- Local targeted pytest: `3 passed`
+- Independent checkpoint report: `/app/test_reports/iteration_36.json` with `24/24` backend checks passing
+- Independent backend verification: PASS
+- Independent frontend smoke verification: PASS
+- Backend health remained healthy: `/api/health -> ok=true`
+
+### Boundaries honored
+- No new registry, truth system, evidence engine, trust engine, recovery engine, certification engine, dashboard, status engine, or schema.
+- No runtime, frontend, deployment, or production behavior changes beyond the minimal canonical registry extension required to complete the checkpoint.
+
+### Checkpoint verdict
+- `GO — BCSS CANONICAL OWNERSHIP & REGISTRATION COMPLETE`
+
+### Next BCSS backlog
+- P0: BCSS-R02 archive-lineage/freshness precedence convergence
+- P1: BCSS-R08 / R12 evidence taxonomy and operator-surface binding
+- P1: BCSS-R13 recovery certification class model adoption
+- P1: BCSS-R15 future-module survivability registration implementation
+
 ## 2026-07-23 — MASCI OPS 8 C2 Deployment Identity & Automatic Governance Closure
 
 ### What changed
