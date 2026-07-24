@@ -181,6 +181,49 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - P1: BCSS-R13 recovery certification class model adoption
 - P1: BCSS-R15 future-module survivability registration implementation
 
+## 2026-07-24 — BCSS Release 1 / Program 1 / Checkpoint 2 Completed
+
+### Scope
+- Completed the bounded BCSS checkpoint for **Archive Lineage & Freshness Precedence Convergence**.
+- Preserved Checkpoint 1 ownership registration and extended the existing canonical architecture with a single archive-lineage resolver.
+
+### Implemented
+- Added canonical archive-lineage resolver in `backend/lib/archive_lineage.py`.
+- Redirected active freshness consumers to the canonical resolver:
+  - `backend/server.py`
+  - `backend/routes/recovery_dashboard.py`
+  - `backend/backup_verification.py`
+  - `backend/routes/admin_ops.py`
+  - `backend/routes/admin_platform_trust.py`
+  - `backend/services/r2_lifecycle/health.py`
+- Updated affected operator surfaces:
+  - `frontend/src/components/CloudArchivesPanel.jsx`
+  - `frontend/src/components/AdminBackupVerificationPanel.jsx`
+  - `frontend/src/pages/admin/AdminRecovery.jsx`
+- Added checkpoint tests:
+  - `backend/tests/test_bcss_checkpoint2_archive_lineage.py`
+  - `backend/tests/test_bcss_checkpoint2_api_contracts.py`
+  - independent verification added `backend/tests/test_bcss_checkpoint2_integration.py`
+- Full checkpoint artifact created at `/app/memory/BCSS_RELEASE1_PROGRAM1_CHECKPOINT2_ARCHIVE_LINEAGE_AND_FRESHNESS_PRECEDENCE_CONVERGENCE.md`.
+
+### Verified
+- Backend regression suite: `40 passed, 1 skipped`
+- `/api/health` and `/api/health/full` healthy after changes
+- Frontend smoke verification passed
+- Independent verification passed: `/app/test_reports/iteration_37.json`
+
+### Key BCSS result
+- `BCSS-R02` implemented with one canonical lineage model, one canonical freshness resolver, deterministic timestamp precedence, truthful legacy degradation, and converged active consumers.
+
+### Remaining BCSS backlog
+- P1: BCSS-R08 / R12 evidence taxonomy and operator-surface binding
+- P1: BCSS-R13 recovery certification class model adoption
+- P1: threshold governance formalization where authority is pending
+- P1: BCSS-R15 future survivability registration automation
+
+### Checkpoint verdict
+- `GO — BCSS ARCHIVE LINEAGE & FRESHNESS PRECEDENCE CONVERGENCE COMPLETE`
+
 ## 2026-07-23 — MASCI OPS 8 C2 Deployment Identity & Automatic Governance Closure
 
 ### What changed
