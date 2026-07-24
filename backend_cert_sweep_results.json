@@ -1,0 +1,1661 @@
+{
+  "test_timestamp": "2026-07-24T03:05:42.131955Z",
+  "base_url": "https://backup-forensics.preview.emergentagent.com/api",
+  "defect_reclassification": [
+    {
+      "test_name": "DEF-001: /api/admin/login deprecated endpoint",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:05:42.352722Z",
+      "details": {
+        "classification": "UNVERIFIABLE",
+        "verdict": "UNVERIFIABLE: Unexpected status 410",
+        "status_code": 410,
+        "endpoint": "/api/admin/login",
+        "evidence": "{\"detail\":\"The shared-password admin login was retired in TRACK 15.32. Use POST /api/auth/multi-login with your assigned admin user email + password instead.\"}"
+      }
+    },
+    {
+      "test_name": "DEF-002: /api/hr/check canonical status",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:05:43.445705Z",
+      "details": {
+        "classification": "DEAD",
+        "verdict": "NON-DEFECT: /api/hr/check removed, /api/hr/employees is canonical",
+        "hr_check_status": 404,
+        "hr_employees_status": 200,
+        "evidence": {
+          "check_response": "{\"detail\":\"Not Found\"}",
+          "employees_response": "{\"items\":[{\"id\":\"c9d7ebc3-a292-4d7a-8765-0ce2739c6029\",\"name\":\"Alec Perkins\",\"employee_id\":\"\",\"trade\":\"General Laborer\",\"role\":\"\",\"crew\":\"Shop\",\"email\":\"\",\"phone\":\"555-6786\",\"is_active\":true,\"created_at\":\"2026-06-02T10:44:16.614618+00:00\",\"updated_at\":\"2026-07-11T19:06:26.729373+00:00\",\"last_day_worked\":\"2026-06-02\",\"lifecycle_status\":\"Active\",\"rehire_eligibility\":\"eligible\",\"rehire_eligibility_reason\":null,\"separation_type\":\"voluntary\",\"status_history\":[{\"at\":\"2026-06-02T14:10:01.338365+00:00\","
+        }
+      }
+    },
+    {
+      "test_name": "DEF-003: Field Leadership direct login",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:05:44.038028Z",
+      "details": {
+        "classification": "UNVERIFIABLE",
+        "verdict": "UNVERIFIABLE: Unexpected status 401",
+        "direct_login_status": 401,
+        "multi_login_status": 200,
+        "evidence": {
+          "direct_login": "{\"detail\":\"Invalid password\"}",
+          "multi_login": "{\"ok\":true,\"session_token\":\"vqyPrRCMaQXW77ZJ12eJfmj9ejTiGnq7oIEQBlBH73I\",\"portal_tokens\":{\"field_leadership\":\"ca06efa3-4d87-44fc-95cb-03b392c8ff8f.f73b2ce5ba5026ddd5fc65497a40c98b85f207278416b4a50068145220fb241a\",\"fl\":\"ca06efa3-4d87-44fc-95cb-03b392c8ff8f.f73b2ce5ba5026ddd5fc65497a40c98b85f207278416b4a50068145220fb241a\"},\"user\":{\"id\":\"ca06efa3-4d87-44fc-95cb-03b392c8ff8f\",\"email\":\"cert.foreman@example.com\",\"name\":\"Cert Foreman\",\"portals\":[\"field_leadership\"],\"is_super_admin\":false,\"disabled\":fal"
+        }
+      }
+    },
+    {
+      "test_name": "DEF-004: Forced password change",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:05:44.473704Z",
+      "details": {
+        "classification": "FIXTURE-STATE",
+        "verdict": "EXPECTED FIXTURE STATE: must_change_password=true is test fixture state, not a defect",
+        "must_change_password": true,
+        "evidence": {
+          "token": "bd4425f3-bf30-473a-bc05-5ee8b181c852.8fa879a5de43b879ddac818a35c5d9f324d0ef27266de13ee91a013b2fbac511",
+          "user": {
+            "id": "bd4425f3-bf30-473a-bc05-5ee8b181c852",
+            "email": "cert.dispatch@example.com",
+            "name": "Cert Dispatch Representative",
+            "disabled": false,
+            "must_change_password": true,
+            "created_at": "2026-06-15T02:08:58.646789+00:00",
+            "updated_at": "2026-07-21T17:34:26.428054+00:00",
+            "linked_to_directory": true,
+            "source": "directory-shadow",
+            "password_set_at": "2026-06-16T10:52:25.787103+00:00",
+            "temp_password_issued_at": "2026-06-16T10:52:25.843714+00:00",
+            "temp_password_issued_by": "admin-token",
+            "last_login_at": "2026-07-24T02:53:21.714396+00:00",
+            "last_login_ip": "10.208.151.66",
+            "has_password": true
+          },
+          "must_change_password": true,
+          "kind": "dispatch"
+        }
+      }
+    },
+    {
+      "test_name": "DEF-005/006: Incident review authorization",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:05:47.211075Z",
+      "details": {
+        "classification": "CANONICAL",
+        "verdict": "CANONICAL: Super Admin, Admin, and Safety all have access (expected)",
+        "persona_results": {
+          "Super Admin": {
+            "status": "SUCCESS",
+            "code": 200,
+            "portals": [
+              "admin",
+              "pm",
+              "shop",
+              "hr",
+              "safety",
+              "dispatch",
+              "field_leadership",
+              "fl"
+            ]
+          },
+          "Admin-only": {
+            "status": "SUCCESS",
+            "code": 200,
+            "portals": [
+              "admin"
+            ]
+          },
+          "Safety-only": {
+            "status": "SUCCESS",
+            "code": 200,
+            "portals": [
+              "safety"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "auth_session_tests": [
+    {
+      "test_name": "Multi-login: super_admin",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:05:47.897173Z",
+      "details": {
+        "persona": "super_admin",
+        "email": "jaymn.judd@mascigc.com",
+        "status_code": 200,
+        "success": true,
+        "session_token_present": true,
+        "portal_tokens": [
+          "admin",
+          "pm",
+          "shop",
+          "hr",
+          "safety",
+          "dispatch",
+          "field_leadership",
+          "fl"
+        ]
+      }
+    },
+    {
+      "test_name": "Multi-login: admin_only",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:05:48.394867Z",
+      "details": {
+        "persona": "admin_only",
+        "email": "ops8-admin-only-preview@example.com",
+        "status_code": 200,
+        "success": true,
+        "session_token_present": true,
+        "portal_tokens": [
+          "admin"
+        ]
+      }
+    },
+    {
+      "test_name": "Multi-login: admin_pm",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:05:48.908377Z",
+      "details": {
+        "persona": "admin_pm",
+        "email": "ops8-admin-pm-preview@example.com",
+        "status_code": 200,
+        "success": true,
+        "session_token_present": true,
+        "portal_tokens": [
+          "admin",
+          "pm"
+        ]
+      }
+    },
+    {
+      "test_name": "Multi-login: admin_shop",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:05:49.449620Z",
+      "details": {
+        "persona": "admin_shop",
+        "email": "ops8-admin-shop-preview@example.com",
+        "status_code": 200,
+        "success": true,
+        "session_token_present": true,
+        "portal_tokens": [
+          "admin",
+          "shop"
+        ]
+      }
+    },
+    {
+      "test_name": "Multi-login: pm_shop",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:05:50.004400Z",
+      "details": {
+        "persona": "pm_shop",
+        "email": "ops8-pm-shop-preview@example.com",
+        "status_code": 200,
+        "success": true,
+        "session_token_present": true,
+        "portal_tokens": [
+          "pm",
+          "shop"
+        ]
+      }
+    },
+    {
+      "test_name": "Multi-login: pm_only",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:05:50.527500Z",
+      "details": {
+        "persona": "pm_only",
+        "email": "cert.pm@example.com",
+        "status_code": 200,
+        "success": true,
+        "session_token_present": true,
+        "portal_tokens": [
+          "pm"
+        ]
+      }
+    },
+    {
+      "test_name": "Multi-login: hr_only",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:05:51.050846Z",
+      "details": {
+        "persona": "hr_only",
+        "email": "cert.hr@example.com",
+        "status_code": 200,
+        "success": true,
+        "session_token_present": true,
+        "portal_tokens": [
+          "hr"
+        ]
+      }
+    },
+    {
+      "test_name": "Multi-login: safety_only",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:05:51.571887Z",
+      "details": {
+        "persona": "safety_only",
+        "email": "cert.safety@example.com",
+        "status_code": 200,
+        "success": true,
+        "session_token_present": true,
+        "portal_tokens": [
+          "safety"
+        ]
+      }
+    },
+    {
+      "test_name": "Multi-login: shop_only",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:05:52.095146Z",
+      "details": {
+        "persona": "shop_only",
+        "email": "cert.shop@example.com",
+        "status_code": 200,
+        "success": true,
+        "session_token_present": true,
+        "portal_tokens": [
+          "shop"
+        ]
+      }
+    },
+    {
+      "test_name": "Multi-login: dispatch_only",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:05:52.619877Z",
+      "details": {
+        "persona": "dispatch_only",
+        "email": "cert.dispatch@example.com",
+        "status_code": 200,
+        "success": true,
+        "session_token_present": true,
+        "portal_tokens": [
+          "dispatch"
+        ]
+      }
+    },
+    {
+      "test_name": "Multi-login: field_leadership_only",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:05:53.149171Z",
+      "details": {
+        "persona": "field_leadership_only",
+        "email": "cert.foreman@example.com",
+        "status_code": 200,
+        "success": true,
+        "session_token_present": true,
+        "portal_tokens": [
+          "field_leadership",
+          "fl"
+        ]
+      }
+    },
+    {
+      "test_name": "Multi-login: disabled_hr",
+      "status": "EXPECTED_FAIL",
+      "timestamp": "2026-07-24T03:05:53.319687Z",
+      "details": {
+        "persona": "disabled_hr",
+        "email": "ops8-disabled-hr-preview@example.com",
+        "status_code": 401,
+        "success": false
+      }
+    },
+    {
+      "test_name": "Invalid credentials rejection",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:05:53.490257Z",
+      "details": {
+        "status_code": 401,
+        "expected": 401,
+        "response": "{\"detail\":\"Invalid email or password.\"}"
+      }
+    },
+    {
+      "test_name": "Disabled user rejection",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:05:53.653945Z",
+      "details": {
+        "status_code": 401,
+        "expected": 401,
+        "response": "{\"detail\":\"Invalid email or password.\"}"
+      }
+    },
+    {
+      "test_name": "Portal tokens: super_admin",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:05:54.309512Z",
+      "details": {
+        "persona": "super_admin",
+        "expected_portals": [
+          "admin",
+          "pm",
+          "shop",
+          "hr",
+          "safety",
+          "dispatch",
+          "field_leadership",
+          "fl"
+        ],
+        "actual_portals": [
+          "admin",
+          "pm",
+          "shop",
+          "hr",
+          "safety",
+          "dispatch",
+          "field_leadership",
+          "fl"
+        ],
+        "matches": true
+      }
+    },
+    {
+      "test_name": "Portal tokens: admin_only",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:05:54.799789Z",
+      "details": {
+        "persona": "admin_only",
+        "expected_portals": [
+          "admin"
+        ],
+        "actual_portals": [
+          "admin"
+        ],
+        "matches": true
+      }
+    },
+    {
+      "test_name": "Portal tokens: admin_pm",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:05:55.321166Z",
+      "details": {
+        "persona": "admin_pm",
+        "expected_portals": [
+          "admin",
+          "pm"
+        ],
+        "actual_portals": [
+          "admin",
+          "pm"
+        ],
+        "matches": true
+      }
+    },
+    {
+      "test_name": "Portal tokens: admin_shop",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:05:55.838012Z",
+      "details": {
+        "persona": "admin_shop",
+        "expected_portals": [
+          "admin",
+          "shop"
+        ],
+        "actual_portals": [
+          "admin",
+          "shop"
+        ],
+        "matches": true
+      }
+    },
+    {
+      "test_name": "Portal tokens: pm_shop",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:05:56.384001Z",
+      "details": {
+        "persona": "pm_shop",
+        "expected_portals": [
+          "pm",
+          "shop"
+        ],
+        "actual_portals": [
+          "pm",
+          "shop"
+        ],
+        "matches": true
+      }
+    },
+    {
+      "test_name": "Portal tokens: pm_only",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:05:56.909566Z",
+      "details": {
+        "persona": "pm_only",
+        "expected_portals": [
+          "pm"
+        ],
+        "actual_portals": [
+          "pm"
+        ],
+        "matches": true
+      }
+    },
+    {
+      "test_name": "Portal tokens: hr_only",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:05:57.420793Z",
+      "details": {
+        "persona": "hr_only",
+        "expected_portals": [
+          "hr"
+        ],
+        "actual_portals": [
+          "hr"
+        ],
+        "matches": true
+      }
+    },
+    {
+      "test_name": "Portal tokens: safety_only",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:05:57.941693Z",
+      "details": {
+        "persona": "safety_only",
+        "expected_portals": [
+          "safety"
+        ],
+        "actual_portals": [
+          "safety"
+        ],
+        "matches": true
+      }
+    },
+    {
+      "test_name": "Portal tokens: shop_only",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:05:58.481451Z",
+      "details": {
+        "persona": "shop_only",
+        "expected_portals": [
+          "shop"
+        ],
+        "actual_portals": [
+          "shop"
+        ],
+        "matches": true
+      }
+    },
+    {
+      "test_name": "Portal tokens: dispatch_only",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:05:58.997833Z",
+      "details": {
+        "persona": "dispatch_only",
+        "expected_portals": [
+          "dispatch"
+        ],
+        "actual_portals": [
+          "dispatch"
+        ],
+        "matches": true
+      }
+    },
+    {
+      "test_name": "Portal tokens: field_leadership_only",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:05:59.481758Z",
+      "details": {
+        "persona": "field_leadership_only",
+        "expected_portals": [
+          "field_leadership",
+          "fl"
+        ],
+        "actual_portals": [
+          "field_leadership",
+          "fl"
+        ],
+        "matches": true
+      }
+    },
+    {
+      "test_name": "Protected endpoint: /admin/deployment-readiness",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:06:02.894357Z",
+      "details": {
+        "endpoint": "/admin/deployment-readiness",
+        "portal": "admin",
+        "status_code": 200,
+        "auth_working": true
+      }
+    },
+    {
+      "test_name": "Protected endpoint: /pm/projects",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:06:03.071683Z",
+      "details": {
+        "endpoint": "/pm/projects",
+        "portal": "pm",
+        "status_code": 404,
+        "auth_working": true
+      }
+    },
+    {
+      "test_name": "Protected endpoint: /hr/employees?limit=1",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:06:03.441869Z",
+      "details": {
+        "endpoint": "/hr/employees?limit=1",
+        "portal": "hr",
+        "status_code": 200,
+        "auth_working": true
+      }
+    },
+    {
+      "test_name": "Protected endpoint: /inspections",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:06:03.955377Z",
+      "details": {
+        "endpoint": "/inspections",
+        "portal": "safety",
+        "status_code": 200,
+        "auth_working": true
+      }
+    },
+    {
+      "test_name": "Protected endpoint: /shop/equipment",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:06:04.120210Z",
+      "details": {
+        "endpoint": "/shop/equipment",
+        "portal": "shop",
+        "status_code": 404,
+        "auth_working": true
+      }
+    },
+    {
+      "test_name": "Protected endpoint: /dispatch/dashboard",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:06:04.290023Z",
+      "details": {
+        "endpoint": "/dispatch/dashboard",
+        "portal": "dispatch",
+        "status_code": 404,
+        "auth_working": true
+      }
+    },
+    {
+      "test_name": "Protected endpoint: /field-leadership/portal/me",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:06:04.602001Z",
+      "details": {
+        "endpoint": "/field-leadership/portal/me",
+        "portal": "field_leadership",
+        "status_code": 200,
+        "auth_working": true
+      }
+    },
+    {
+      "test_name": "Multi-logout",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:06:05.481972Z",
+      "details": {
+        "status_code": 200,
+        "success": true
+      }
+    }
+  ],
+  "public_protected_tests": [
+    {
+      "test_name": "Public endpoint: /hr/employee-roster/public",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:06:05.714121Z",
+      "details": {
+        "endpoint": "/hr/employee-roster/public",
+        "status_code": 200,
+        "accessible": true
+      }
+    },
+    {
+      "test_name": "Public endpoint: /suppliers",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:06:05.909760Z",
+      "details": {
+        "endpoint": "/suppliers",
+        "status_code": 200,
+        "accessible": true
+      }
+    },
+    {
+      "test_name": "Public endpoint: /equipment-master",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:06:06.275272Z",
+      "details": {
+        "endpoint": "/equipment-master",
+        "status_code": 200,
+        "accessible": true
+      }
+    },
+    {
+      "test_name": "Public endpoint: /jobs",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:06:06.419638Z",
+      "details": {
+        "endpoint": "/jobs",
+        "status_code": 200,
+        "accessible": true
+      }
+    },
+    {
+      "test_name": "Public endpoint: /field-leadership-roster",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:06:06.561133Z",
+      "details": {
+        "endpoint": "/field-leadership-roster",
+        "status_code": 200,
+        "accessible": true
+      }
+    },
+    {
+      "test_name": "Protected endpoint rejects anon: /daily-reports",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:06:06.660790Z",
+      "details": {
+        "endpoint": "/daily-reports",
+        "status_code": 401,
+        "properly_protected": true
+      }
+    },
+    {
+      "test_name": "Protected endpoint rejects anon: /daily-reports/approved",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:06:06.762025Z",
+      "details": {
+        "endpoint": "/daily-reports/approved",
+        "status_code": 401,
+        "properly_protected": true
+      }
+    },
+    {
+      "test_name": "Protected endpoint rejects anon: /admin/deployment-readiness",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:06:06.902400Z",
+      "details": {
+        "endpoint": "/admin/deployment-readiness",
+        "status_code": 401,
+        "properly_protected": true
+      }
+    },
+    {
+      "test_name": "Protected endpoint rejects anon: /hr/employees",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:06:07.005040Z",
+      "details": {
+        "endpoint": "/hr/employees",
+        "status_code": 401,
+        "properly_protected": true
+      }
+    },
+    {
+      "test_name": "Protected endpoint rejects anon: /incidents",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:06:07.111787Z",
+      "details": {
+        "endpoint": "/incidents",
+        "status_code": 401,
+        "properly_protected": true
+      }
+    },
+    {
+      "test_name": "Workflow: Daily Reports List",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:06:08.205242Z",
+      "details": {
+        "endpoint": "/daily-reports?limit=5",
+        "status_code": 200,
+        "accessible": true
+      }
+    },
+    {
+      "test_name": "Workflow: Daily Reports Approved",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:06:08.625419Z",
+      "details": {
+        "endpoint": "/daily-reports/approved?limit=5",
+        "status_code": 200,
+        "accessible": true
+      }
+    },
+    {
+      "test_name": "Workflow: Equipment Pre-Ops",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:06:08.795755Z",
+      "details": {
+        "endpoint": "/equipment-pre-ops?limit=5",
+        "status_code": 404,
+        "accessible": false
+      }
+    },
+    {
+      "test_name": "Workflow: DVIR List",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:06:08.960899Z",
+      "details": {
+        "endpoint": "/dvir?limit=5",
+        "status_code": 404,
+        "accessible": false
+      }
+    },
+    {
+      "test_name": "Workflow: JHA List",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:06:09.131059Z",
+      "details": {
+        "endpoint": "/jha?limit=5",
+        "status_code": 404,
+        "accessible": false
+      }
+    },
+    {
+      "test_name": "Workflow: Safety Meetings",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:06:09.295279Z",
+      "details": {
+        "endpoint": "/safety-meetings?limit=5",
+        "status_code": 404,
+        "accessible": false
+      }
+    },
+    {
+      "test_name": "Workflow: Incidents",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:06:09.584432Z",
+      "details": {
+        "endpoint": "/incidents?limit=5",
+        "status_code": 200,
+        "accessible": true
+      }
+    },
+    {
+      "test_name": "Workflow: Inspections",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:06:09.905005Z",
+      "details": {
+        "endpoint": "/inspections?limit=5",
+        "status_code": 200,
+        "accessible": true
+      }
+    }
+  ],
+  "governance_trust_tests": [
+    {
+      "test_name": "Governance endpoint: /version",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:06:10.007315Z",
+      "details": {
+        "endpoint": "/version",
+        "status_code": 200,
+        "accessible": true,
+        "response_data": {
+          "service": "masci-hub",
+          "commit": "0b94600078b00ace661e984c913d7fe6bca8940f",
+          "commit_source": "git:HEAD",
+          "built_at": "2026-07-24T01:28:38.113595+00:00",
+          "build_at_source": "artifact_mtime",
+          "source_hash": "d7a4a79b9f5486135ea4e5e609d78fbd",
+          "source_hash_scope_files": [
+            "release_identity_scope.json",
+            "backend/lib/release_identity.py",
+            "backend/server.py",
+            "backend/pdf_render.py",
+            "backend/training_pdf.py",
+            "backend/routes/daily_reports.py",
+            "backend/routes/dr_v2.py",
+            "backend/routes/dr_v2_canonicalize.py",
+            "backend/routes/dr_v2_pdf.py",
+            "backend/routes/dr_v2_photos.py",
+            "backend/routes/dispatch_portal_auth.py",
+            "backend/services/photo_intelligence/pipeline.py",
+            "backend/scripts/verify_release_identity.py",
+            "frontend/scripts/stamp-build-version.js",
+            "frontend/src/app/routing/AppRoutes.jsx",
+            "frontend/src/pages/NewDailyReportV3.jsx",
+            "frontend/src/pages/DailyReportsDashboard.jsx",
+            "frontend/src/pages/ViewDailyReport.jsx"
+          ],
+          "release": "d7a4a79b9f5486135ea4e5e609d78fbd",
+          "intended_release_commit": "PRE_SAVE_CANDIDATE:0b94600078b00ace661e984c913d7fe6bca8940f:d7a4a79b9f54",
+          "intended_release_source": "workspace:pre_save_candidate",
+          "runtime_matches_intended_release": true,
+          "frontend_build_version": "v2026.07.23-4d70537",
+          "frontend_build_commit": "4d70537d5d1b656b52cfa14569ea24dccc22bb86",
+          "frontend_build_commit_source": "git:HEAD",
+          "frontend_build_built_at": "2026-07-23T23:05:26+00:00",
+          "frontend_build_source_hash": "8e7593cde4152c12b3809eb07e98ced8",
+          "frontend_build_source": "served:http://127.0.0.1:3000/release-identity.json",
+          "frontend_build_dependency_manifest_hash": "b6e3daa826554186ba5c7ed5a2a058b3434be2679f621cb3c51b5aee2fcc6faf",
+          "frontend_build_release_gate_manifest_hash": "44be60aee2d3a53d479d5de670e53f564ac677abc9b60b7a76ea128b39670822",
+          "frontend_generated_build_commit": "4d70537d5d1b656b52cfa14569ea24dccc22bb86",
+          "frontend_generated_build_source": "generated:frontend/src/buildVersion.generated.js",
+          "frontend_public_release_commit": "4d70537d5d1b656b52cfa14569ea24dccc22bb86",
+          "frontend_public_release_source": "generated:frontend/public/release-identity.json",
+          "frontend_backend_release_match": false,
+          "frontend_backend_release_match_reason": "source_hash_mismatch",
+          "frontend_generated_vs_served_match": true,
+          "frontend_served_identity_error": null,
+          "instance_fingerprint": "98f4c9d6da565fcf54f5da4ccbc6e5d1",
+          "process_started_at": "2026-07-24T02:50:50.384434+00:00",
+          "started_at": "2026-07-24T02:50:50.384434+00:00",
+          "uptime_s": 919,
+          "session_timeouts": {
+            "enabled": true,
+            "tiers": {
+              "ADMIN_HR": {
+                "idle_min": 15,
+                "abs_hour": 4
+              },
+              "OPERATIONS": {
+                "idle_min": 30,
+                "abs_hour": 8
+              },
+              "FIELD": {
+                "idle_min": 60,
+                "abs_hour": 12
+              }
+            }
+          },
+          "sentry": {
+            "enabled": true
+          },
+          "app_env": "preview",
+          "db_name": "masci_safety_preview",
+          "runtime_identity": {
+            "status": "NOT_APPLICABLE",
+            "valid": true,
+            "mismatch_category": null,
+            "identity": {
+              "app_env": "preview",
+              "db_name": "masci_safety_preview",
+              "mongo_scheme": "mongodb+srv",
+              "mongo_hostname_redacted": "masci-prod.1nduwmg.mongodb.net",
+              "mongo_user": "masci_preview_user",
+              "effective_database": null,
+              "enforce_db_isolation": true,
+              "release_commit": "0b94600078b00ace661e984c913d7fe6bca8940f",
+              "release_source_hash": "d7a4a79b9f5486135ea4e5e609d78fbd",
+              "preview_distinction": "preview",
+              "scheduler_authority": "enabled",
+              "read_write_mode": "read_write",
+              "domain_host_context": null,
+              "source_identity": "d7a4a79b9f5486135ea4e5e609d78fbd",
+              "approved_cluster_identifier": "MASCI-prod",
+              "approved_hostname": "masci-prod.1nduwmg.mongodb.net",
+              "approved_db_name": "masci_safety",
+              "approved_username": "masci_prod_user",
+              "identity_fingerprint": "89d054f7a9c2",
+              "query_duplicates": {},
+              "is_atlas": true,
+              "is_local": false,
+              "read_only_validation": {
+                "requested": false,
+                "active": false,
+                "db_authority": "unknown",
+                "read_only_mode": false,
+                "startup_write_suppressed": false,
+                "http_mutation_barrier_active": false,
+                "session_writes_suppressed": false,
+                "scheduler_disabled": false,
+                "backup_scheduler_disabled": false,
+                "email_disabled": true,
+                "ai_disabled": false,
+                "ods_disabled": false,
+                "trust_spine_disabled": false,
+                "maintainx_disabled": true,
+                "webhooks_disabled": false,
+                "non_production_domain": false,
+                "zero_write_proven": false,
+                "approved_preview_db_name": "masci_safety_preview",
+                "approved_preview_hosts": [
+                  "localhost",
+                  "127.0.0.1",
+                  "::1"
+                ],
+                "errors": []
+              }
+            },
+            "validation": {
+              "status": "NOT_APPLICABLE",
+              "valid": true,
+              "mismatch_category": null,
+              "remediation_owner": "platform-ops",
+              "remediation_action": "No action required.",
+              "detail": "env=preview host=masci-prod.1nduwmg.mongodb.net db=masci_safety_preview fingerprint=89d054f7a9c2",
+              "errors": [],
+              "warnings": []
+            }
+          },
+          "environment_identity": {
+            "app_env": "preview",
+            "db_name": "masci_safety_preview",
+            "db_isolation_enforced": true,
+            "storage_bucket": "unknown",
+            "storage_endpoint_present": null,
+            "scheduler_enabled": true,
+            "email_safety_mode": "unknown",
+            "auto_email_reports": null,
+            "resend_webhook_secret_present": null,
+            "dev_endpoints_enabled": null,
+            "maintainx_write_enabled": null,
+            "ai_provider_key_present": null,
+            "delete_engine_status": "DISABLED",
+            "runtime_identity_status": "NOT_APPLICABLE",
+            "runtime_identity_mismatch_category": null,
+            "mongo_hostname_redacted": "masci-prod.1nduwmg.mongodb.net",
+            "identity_fingerprint": "89d054f7a9c2"
+          }
+        }
+      }
+    },
+    {
+      "test_name": "Governance endpoint: /health",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:06:10.108887Z",
+      "details": {
+        "endpoint": "/health",
+        "status_code": 200,
+        "accessible": true,
+        "response_data": {
+          "ok": true,
+          "service": "masci-hub",
+          "ts": "2026-07-24T03:06:10.090798+00:00",
+          "runtime_identity": {
+            "status": "NOT_APPLICABLE",
+            "valid": true,
+            "mismatch_category": null
+          }
+        }
+      }
+    },
+    {
+      "test_name": "Governance endpoint: /ready",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:06:10.203922Z",
+      "details": {
+        "endpoint": "/ready",
+        "status_code": 200,
+        "accessible": true,
+        "response_data": {
+          "ok": true,
+          "state": "ready",
+          "reason": "startup_complete",
+          "event_loop_ok": true,
+          "mongo_ok": true,
+          "startup_complete": true,
+          "runtime_identity": {
+            "ok": true,
+            "status": "NOT_APPLICABLE",
+            "mismatch_category": null
+          }
+        }
+      }
+    },
+    {
+      "test_name": "Governance endpoint: /health/full",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:06:10.402971Z",
+      "details": {
+        "endpoint": "/health/full",
+        "status_code": 200,
+        "accessible": true,
+        "response_data": {
+          "ok": true,
+          "mongo": true,
+          "scheduler": true,
+          "backup_recent": true,
+          "runtime_identity_ok": true,
+          "runtime_identity_status": "NOT_APPLICABLE"
+        }
+      }
+    },
+    {
+      "test_name": "Protected governance: /admin/deployment-readiness",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:06:13.707868Z",
+      "details": {
+        "endpoint": "/admin/deployment-readiness",
+        "status_code": 200,
+        "accessible": true,
+        "response_data": {
+          "track": "15.78",
+          "generated_at": "2026-07-24T03:06:13.687185+00:00",
+          "decision": "pass",
+          "blocking_gates": [],
+          "advisory_findings": [
+            {
+              "id": "pm_missing_route",
+              "category": "master_data",
+              "summary": "4 active project(s) have no resolvable PM or Co-PM email \u2014 every notification on these projects will dead-letter.",
+              "evidence": "samples=['22-08', '24-08', '26-04', '26-07']",
+              "remediation": "Open Admin \u2192 People & Access \u2192 Multi-Portal Directory and assign a PM in project_team_assignments for each project listed below. (Legacy fallback: set pm_email on the jobs_master row.)",
+              "remediation_link": "/admin/people-and-access"
+            },
+            {
+              "id": "equipment_missing_unit_number",
+              "category": "master_data",
+              "summary": "247 equipment row(s) missing canonical unit_number \u2014 display label is being used as identity.",
+              "evidence": "samples=['100adffe', '4f24b870', '536a1cbd', '1b9783ae', 'a8d1552a']",
+              "remediation": "Go to Admin \u2192 Equipment & Suppliers \u2192 Status Board and assign a unit_number to each piece of equipment, or remove inactive rows via the Asset Administration \u2192 Canonical Taxonomy review queue.",
+              "remediation_link": "/admin/equipment-suppliers"
+            },
+            {
+              "id": "employee_missing_id",
+              "category": "master_data",
+              "summary": "200 active employee(s) saved without a canonical employee_id.",
+              "evidence": "samples=['Alec Perkins', 'Alejandro Escobedo', 'Alex Stansbury', 'Alfonso Flores-rosas', 'Allen Smathers']",
+              "remediation": "Open Admin \u2192 People & Access \u2192 Employee Master and assign the canonical employee_id to each row below.",
+              "remediation_link": "/admin/people-and-access"
+            }
+          ],
+          "bootstrap": {
+            "version": 1,
+            "completed_at": "2026-07-24T02:51:28.350074+00:00",
+            "ok": true,
+            "missing_items": [],
+            "ran": true
+          },
+          "summary": {
+            "blocking_count": 0,
+            "advisory_count": 3,
+            "categories_red": [
+              "routing_integrity"
+            ],
+            "categories_amber": [
+              "workflow_health"
+            ],
+            "workflows_red": 0,
+            "workflows_amber": 0,
+            "workflows_idle": 10,
+            "workflows_trusted": 1,
+            "unknown_audit_count_24h": 0,
+            "silent_failure_count_24h": 0
+          },
+          "notification_delivery": {
+            "environment": "preview",
+            "delivery_mode": "SAFE_CAPTURE",
+            "delivery_mode_source": "environment_forced_safe_capture",
+            "explicit_delivery_mode": null,
+            "provider": "resend",
+            "provider_key_required": false,
+            "provider_configured": true,
+            "provider_key_shape_valid": true,
+            "provider_validation_status": "not_required",
+            "external_send_allowed": false,
+            "provider_acceptance_required": false,
+            "capture_required": true,
+            "blocking": false,
+            "credential_source_name": "RESEND_API_KEY"
+          },
+          "trust_score": 50,
+          "trust_band": "red",
+          "regression_gate_count": 0
+        }
+      }
+    },
+    {
+      "test_name": "Protected governance: /admin/occ/trust-events",
+      "status": "PASS",
+      "timestamp": "2026-07-24T03:06:15.589094Z",
+      "details": {
+        "endpoint": "/admin/occ/trust-events",
+        "status_code": 200,
+        "accessible": true,
+        "response_data": {
+          "generated_at": "2026-07-24T03:06:13.997108+00:00",
+          "counts": {
+            "info": 38,
+            "warning": 0,
+            "critical": 0
+          },
+          "by_kind": {
+            "auth": 22,
+            "audit": 3,
+            "ops_audit": 13
+          },
+          "auth_failures_in_window": 0,
+          "unresolved_blockers": [],
+          "events": [
+            {
+              "ts": "2026-07-24T03:06:11.006679+00:00",
+              "kind": "auth",
+              "severity": "info",
+              "summary": "jaymn.judd@mascigc.com \u00b7 multi_login",
+              "source_endpoint": "/api/admin/audit",
+              "evidence": {
+                "actor_email": "jaymn.judd@mascigc.com",
+                "action": "multi_login",
+                "diff": {
+                  "portals_granted": [
+                    "admin",
+                    "dispatch",
+                    "field_leadership",
+                    "fl",
+                    "hr",
+                    "pm",
+                    "safety",
+                    "shop"
+                  ]
+                },
+                "ip": "104.198.214.223"
+              }
+            },
+            {
+              "ts": "2026-07-24T03:06:07.710941+00:00",
+              "kind": "auth",
+              "severity": "info",
+              "summary": "jaymn.judd@mascigc.com \u00b7 multi_login",
+              "source_endpoint": "/api/admin/audit",
+              "evidence": {
+                "actor_email": "jaymn.judd@mascigc.com",
+                "action": "multi_login",
+                "diff": {
+                  "portals_granted": [
+                    "admin",
+                    "dispatch",
+                    "field_leadership",
+                    "fl",
+                    "hr",
+                    "pm",
+                    "safety",
+                    "shop"
+                  ]
+                },
+                "ip": "104.198.214.223"
+              }
+            },
+            {
+              "ts": "2026-07-24T03:06:05.200289+00:00",
+              "kind": "auth",
+              "severity": "info",
+              "summary": "jaymn.judd@mascigc.com \u00b7 multi_login",
+              "source_endpoint": "/api/admin/audit",
+              "evidence": {
+                "actor_email": "jaymn.judd@mascigc.com",
+                "action": "multi_login",
+                "diff": {
+                  "portals_granted": [
+                    "admin",
+                    "dispatch",
+                    "field_leadership",
+                    "fl",
+                    "hr",
+                    "pm",
+                    "safety",
+                    "shop"
+                  ]
+                },
+                "ip": "104.198.214.223"
+              }
+            },
+            {
+              "ts": "2026-07-24T03:06:00.103446+00:00",
+              "kind": "auth",
+              "severity": "info",
+              "summary": "jaymn.judd@mascigc.com \u00b7 multi_login",
+              "source_endpoint": "/api/admin/audit",
+              "evidence": {
+                "actor_email": "jaymn.judd@mascigc.com",
+                "action": "multi_login",
+                "diff": {
+                  "portals_granted": [
+                    "admin",
+                    "dispatch",
+                    "field_leadership",
+                    "fl",
+                    "hr",
+                    "pm",
+                    "safety",
+                    "shop"
+                  ]
+                },
+                "ip": "104.198.214.223"
+              }
+            },
+            {
+              "ts": "2026-07-24T03:05:59.431631+00:00",
+              "kind": "auth",
+              "severity": "info",
+              "summary": "cert.foreman@example.com \u00b7 multi_login",
+              "source_endpoint": "/api/admin/audit",
+              "evidence": {
+                "actor_email": "cert.foreman@example.com",
+                "action": "multi_login",
+                "diff": {
+                  "portals_granted": [
+                    "field_leadership",
+                    "fl"
+                  ]
+                },
+                "ip": "104.198.214.223"
+              }
+            },
+            {
+              "ts": "2026-07-24T03:05:58.946941+00:00",
+              "kind": "auth",
+              "severity": "info",
+              "summary": "cert.dispatch@example.com \u00b7 multi_login",
+              "source_endpoint": "/api/admin/audit",
+              "evidence": {
+                "actor_email": "cert.dispatch@example.com",
+                "action": "multi_login",
+                "diff": {
+                  "portals_granted": [
+                    "dispatch"
+                  ]
+                },
+                "ip": "104.198.214.223"
+              }
+            },
+            {
+              "ts": "2026-07-24T03:05:58.431290+00:00",
+              "kind": "auth",
+              "severity": "info",
+              "summary": "cert.shop@example.com \u00b7 multi_login",
+              "source_endpoint": "/api/admin/audit",
+              "evidence": {
+                "actor_email": "cert.shop@example.com",
+                "action": "multi_login",
+                "diff": {
+                  "portals_granted": [
+                    "shop"
+                  ]
+                },
+                "ip": "104.198.214.223"
+              }
+            },
+            {
+              "ts": "2026-07-24T03:05:57.889749+00:00",
+              "kind": "auth",
+              "severity": "info",
+              "summary": "cert.safety@example.com \u00b7 multi_login",
+              "source_endpoint": "/api/admin/audit",
+              "evidence": {
+                "actor_email": "cert.safety@example.com",
+                "action": "multi_login",
+                "diff": {
+                  "portals_granted": [
+                    "safety"
+                  ]
+                },
+                "ip": "104.198.214.223"
+              }
+            },
+            {
+              "ts": "2026-07-24T03:05:57.371165+00:00",
+              "kind": "auth",
+              "severity": "info",
+              "summary": "cert.hr@example.com \u00b7 multi_login",
+              "source_endpoint": "/api/admin/audit",
+              "evidence": {
+                "actor_email": "cert.hr@example.com",
+                "action": "multi_login",
+                "diff": {
+                  "portals_granted": [
+                    "hr"
+                  ]
+                },
+                "ip": "104.198.214.223"
+              }
+            },
+            {
+              "ts": "2026-07-24T03:05:56.858620+00:00",
+              "kind": "auth",
+              "severity": "info",
+              "summary": "cert.pm@example.com \u00b7 multi_login",
+              "source_endpoint": "/api/admin/audit",
+              "evidence": {
+                "actor_email": "cert.pm@example.com",
+                "action": "multi_login",
+                "diff": {
+                  "portals_granted": [
+                    "pm"
+                  ]
+                },
+                "ip": "104.198.214.223"
+              }
+            },
+            {
+              "ts": "2026-07-24T03:05:56.333382+00:00",
+              "kind": "auth",
+              "severity": "info",
+              "summary": "ops8-pm-shop-preview@example.com \u00b7 multi_login",
+              "source_endpoint": "/api/admin/audit",
+              "evidence": {
+                "actor_email": "ops8-pm-shop-preview@example.com",
+                "action": "multi_login",
+                "diff": {
+                  "portals_granted": [
+                    "pm",
+                    "shop"
+                  ]
+                },
+                "ip": "104.198.214.223"
+              }
+            },
+            {
+              "ts": "2026-07-24T03:05:55.784877+00:00",
+              "kind": "auth",
+              "severity": "info",
+              "summary": "ops8-admin-shop-preview@example.com \u00b7 multi_login",
+              "source_endpoint": "/api/admin/audit",
+              "evidence": {
+                "actor_email": "ops8-admin-shop-preview@example.com",
+                "action": "multi_login",
+                "diff": {
+                  "portals_granted": [
+                    "admin",
+                    "shop"
+                  ]
+                },
+                "ip": "104.198.214.223"
+              }
+            },
+            {
+              "ts": "2026-07-24T03:05:55.271946+00:00",
+              "kind": "auth",
+              "severity": "info",
+              "summary": "ops8-admin-pm-preview@example.com \u00b7 multi_login",
+              "source_endpoint": "/api/admin/audit",
+              "evidence": {
+                "actor_email": "ops8-admin-pm-preview@example.com",
+                "action": "multi_login",
+                "diff": {
+                  "portals_granted": [
+                    "admin",
+                    "pm"
+                  ]
+                },
+                "ip": "104.198.214.223"
+              }
+            },
+            {
+              "ts": "2026-07-24T03:05:54.746259+00:00",
+              "kind": "auth",
+              "severity": "info",
+              "summary": "ops8-admin-only-preview@example.com \u00b7 multi_login",
+              "source_endpoint": "/api/admin/audit",
+              "evidence": {
+                "actor_email": "ops8-admin-only-preview@example.com",
+                "action": "multi_login",
+                "diff": {
+                  "portals_granted": [
+                    "admin"
+                  ]
+                },
+                "ip": "104.198.214.223"
+              }
+            },
+            {
+              "ts": "2026-07-24T03:05:54.259996+00:00",
+              "kind": "auth",
+              "severity": "info",
+              "summary": "jaymn.judd@mascigc.com \u00b7 multi_login",
+              "source_endpoint": "/api/admin/audit",
+              "evidence": {
+                "actor_email": "jaymn.judd@mascigc.com",
+                "action": "multi_login",
+                "diff": {
+                  "portals_granted": [
+                    "admin",
+                    "dispatch",
+                    "field_leadership",
+                    "fl",
+                    "hr",
+                    "pm",
+                    "safety",
+                    "shop"
+                  ]
+                },
+                "ip": "104.198.214.223"
+              }
+            },
+            {
+              "ts": "2026-07-24T03:05:53.604086+00:00",
+              "kind": "audit",
+              "severity": "info",
+              "summary": "ops8-disabled-hr-preview@example.com \u00b7 multi_login_failed",
+              "source_endpoint": "/api/admin/audit",
+              "evidence": {
+                "actor_email": "ops8-disabled-hr-preview@example.com",
+                "action": "multi_login_failed",
+                "diff": {},
+                "ip": "104.198.214.223"
+              }
+            },
+            {
+              "ts": "2026-07-24T03:05:53.437655+00:00",
+              "kind": "audit",
+              "severity": "info",
+              "summary": "invalid@example.com \u00b7 multi_login_failed",
+              "source_endpoint": "/api/admin/audit",
+              "evidence": {
+                "actor_email": "invalid@example.com",
+                "action": "multi_login_failed",
+                "diff": {},
+                "ip": "104.198.214.223"
+              }
+            },
+            {
+              "ts": "2026-07-24T03:05:53.266878+00:00",
+              "kind": "audit",
+              "severity": "info",
+              "summary": "ops8-disabled-hr-preview@example.com \u00b7 multi_login_failed",
+              "source_endpoint": "/api/admin/audit",
+              "evidence": {
+                "actor_email": "ops8-disabled-hr-preview@example.com",
+                "action": "multi_login_failed",
+                "diff": {},
+                "ip": "104.198.214.223"
+              }
+            },
+            {
+              "ts": "2026-07-24T03:05:53.094999+00:00",
+              "kind": "auth",
+              "severity": "info",
+              "summary": "cert.foreman@example.com \u00b7 multi_login",
+              "source_endpoint": "/api/admin/audit",
+              "evidence": {
+                "actor_email": "cert.foreman@example.com",
+                "action": "multi_login",
+                "diff": {
+                  "portals_granted": [
+                    "field_leadership",
+                    "fl"
+                  ]
+                },
+                "ip": "104.198.214.223"
+              }
+            },
+            {
+              "ts": "2026-07-24T03:05:52.566997+00:00",
+              "kind": "auth",
+              "severity": "info",
+              "summary": "cert.dispatch@example.com \u00b7 multi_login",
+              "source_endpoint": "/api/admin/audit",
+              "evidence": {
+                "actor_email": "cert.dispatch@example.com",
+                "action": "multi_login",
+                "diff": {
+                  "portals_granted": [
+                    "dispatch"
+                  ]
+                },
+                "ip": "104.198.214.223"
+              }
+            },
+            {
+              "ts": "2026-07-24T03:05:52.043532+00:00",
+              "kind": "auth",
+              "severity": "info",
+              "summary": "cert.shop@example.com \u00b7 multi_login",
+              "source_endpoint": "/api/admin/audit",
+              "evidence": {
+                "actor_email": "cert.shop@example.com",
+                "action": "multi_login",
+                "diff": {
+                  "portals_granted": [
+                    "shop"
+                  ]
+                },
+                "ip": "104.198.214.223"
+              }
+            },
+            {
+              "ts": "2026-07-24T03:05:51.519749+00:00",
+              "kind": "auth",
+              "severity": "info",
+              "summary": "cert.safety@example.com \u00b7 multi_login",
+              "source_endpoint": "/api/admin/audit",
+              "evidence": {
+                "actor_email": "cert.safety@example.com",
+                "action": "multi_login",
+                "diff": {
+                  "portals_granted": [
+                    "safety"
+                  ]
+                },
+                "ip": "104.198.214.223"
+              }
+            },
+            {
+              "ts": "2026-07-24T03:05:50.997486+00:00",
+              "kind": "auth",
+              "severity": "info",
+              "summary": "cert.hr@example.com \u00b7 multi_login",
+              "source_endpoint": "/api/admin/audit",
+              "evidence": {
+                "actor_email": "cert.hr@example.com",
+                "action": "multi_login",
+                "diff": {
+                  "portals_granted": [
+                    "hr"
+                  ]
+                },
+                "ip": "104.198.214.223"
+              }
+            },
+            {
+              "ts": "2026-07-24T03:05:50.473813+00:00",
+              "kind": "auth",
+              "severity": "info",
+              "summary": "cert.pm@example.com \u00b7 multi_login",
+              "source_endpoint": "/api/admin/audit",
+              "evidence": {
+                "actor_email": "cert.pm@example.com",
+                "action": "multi_login",
+                "diff": {
+                  "portals_granted": [
+                    "pm"
+                  ]
+                },
+                "ip": "104.198.214.223"
+              }
+            },
+            {
+              "ts": "2026-07-24T03:05:49.951857+00:00",
+              "kind": "auth",
+              "severity": "info",
+              "summary": "ops8-pm-shop-preview@example.com \u00b7 multi_login",
+              "source_endpoint": "/api/admin/audit",
+              "evidence": {
+                "actor_email": "ops8-pm-shop-preview@example.com",
+                "action": "multi_login",
+                "diff": {
+                  "portals_granted": [
+                    "pm",
+                    "shop"
+                  ]
+                },
+                "ip": "104.198.214.223"
+              }
+            }
+          ],
+          "probe_errors": {}
+        }
+      }
+    },
+    {
+      "test_name": "Protected governance: /admin/backups/integrity-check",
+      "status": "FAIL",
+      "timestamp": "2026-07-24T03:06:25.652588Z",
+      "details": {
+        "endpoint": "/admin/backups/integrity-check",
+        "error": "HTTPSConnectionPool(host='backup-forensics.preview.emergentagent.com', port=443): Read timed out. (read timeout=10)"
+      }
+    }
+  ],
+  "exercised_surfaces": [
+    "DEF-001: /api/admin/login deprecated endpoint",
+    "DEF-002: /api/hr/check canonical status",
+    "DEF-003: Field Leadership direct login",
+    "DEF-004: Forced password change",
+    "DEF-005/006: Incident review authorization",
+    "Multi-login: super_admin",
+    "Multi-login: admin_only",
+    "Multi-login: admin_pm",
+    "Multi-login: admin_shop",
+    "Multi-login: pm_shop",
+    "Multi-login: pm_only",
+    "Multi-login: hr_only",
+    "Multi-login: safety_only",
+    "Multi-login: shop_only",
+    "Multi-login: dispatch_only",
+    "Multi-login: field_leadership_only",
+    "Multi-login: disabled_hr",
+    "Invalid credentials rejection",
+    "Disabled user rejection",
+    "Portal tokens: super_admin",
+    "Portal tokens: admin_only",
+    "Portal tokens: admin_pm",
+    "Portal tokens: admin_shop",
+    "Portal tokens: pm_shop",
+    "Portal tokens: pm_only",
+    "Portal tokens: hr_only",
+    "Portal tokens: safety_only",
+    "Portal tokens: shop_only",
+    "Portal tokens: dispatch_only",
+    "Portal tokens: field_leadership_only",
+    "Protected endpoint: /admin/deployment-readiness",
+    "Protected endpoint: /pm/projects",
+    "Protected endpoint: /hr/employees?limit=1",
+    "Protected endpoint: /inspections",
+    "Protected endpoint: /shop/equipment",
+    "Protected endpoint: /dispatch/dashboard",
+    "Protected endpoint: /field-leadership/portal/me",
+    "Multi-logout",
+    "Public endpoint: /hr/employee-roster/public",
+    "Public endpoint: /suppliers",
+    "Public endpoint: /equipment-master",
+    "Public endpoint: /jobs",
+    "Public endpoint: /field-leadership-roster",
+    "Protected endpoint rejects anon: /daily-reports",
+    "Protected endpoint rejects anon: /daily-reports/approved",
+    "Protected endpoint rejects anon: /admin/deployment-readiness",
+    "Protected endpoint rejects anon: /hr/employees",
+    "Protected endpoint rejects anon: /incidents",
+    "Workflow: Daily Reports List",
+    "Workflow: Daily Reports Approved",
+    "Workflow: Equipment Pre-Ops",
+    "Workflow: DVIR List",
+    "Workflow: JHA List",
+    "Workflow: Safety Meetings",
+    "Workflow: Incidents",
+    "Workflow: Inspections",
+    "Governance endpoint: /version",
+    "Governance endpoint: /health",
+    "Governance endpoint: /ready",
+    "Governance endpoint: /health/full",
+    "Protected governance: /admin/deployment-readiness",
+    "Protected governance: /admin/occ/trust-events",
+    "Protected governance: /admin/backups/integrity-check"
+  ],
+  "unverified_surfaces": [],
+  "coverage_stats": {
+    "total_surfaces": 50,
+    "exercised": 63,
+    "unverified": 0,
+    "coverage_percentage": 126.0
+  }
+}
