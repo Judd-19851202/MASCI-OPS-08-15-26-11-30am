@@ -376,3 +376,64 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 
 ### Remaining P1
 - If approved later, revise the coded R2 retention policy to a tighter bounded steady-state model aligned to observed 2.39–2.79 TiB / 90d hourly growth.
+
+## 2026-07-24 — MASCI OPS 8 Final Hourly R2 Activation Readiness Track
+- Starting reviewed baseline: `9867e93861854a95011d04e1848a7d7492bed126`
+- Current implementation head after readiness work: `a823d05b52376a11a963048194c635aa5ba61163`
+- Implemented one canonical hourly activation model with Preview fail-closed behavior and shared backend truth surfaces consumed by:
+  - `GET /api/admin/backups-complete-r2-state`
+  - `GET /api/admin/backups-scheduler-state`
+  - `GET /api/admin/backup-trust-score`
+  - `GET /api/admin/recovery/snapshot`
+- Canonical hourly state now returns:
+  - `r2_hourly_requested`
+  - `r2_hourly_effective`
+  - `r2_hourly_locked_off`
+  - `hourly_cadence_enabled`
+  - `activation_blockers`
+  - `activation_status`
+  - `environment`
+  - `last_evaluated_at`
+  - `next_eligible_hourly_slot`
+- Added bounded ownership/fencing primitives for long-running backup jobs and restore jobs in `backend/lib/backup_runtime.py`.
+- Added durable heartbeat ownership checks used by complete-R2 backup and restore execution paths.
+- Approved retention policy now coded in `backend/lib/r2_retention.py` as selected surviving hourly archives:
+  - hourly: 72h
+  - daily: 30d
+  - weekly: 90d
+  - monthly: 12m
+- Capacity severity now uses canonical mapping:
+  - below warning → GREEN
+  - warning threshold and between warning/alert → AMBER
+  - alert threshold and above → RED
+  - missing evidence → AMBER
+  - probe failure policy helper supports RED fail state
+- Operator surfaces updated so hourly panels no longer say `HARD-CODED DISABLED`; they now consume backend activation truth directly.
+- Preview verification after implementation:
+  - `GET /api/admin/backups-complete-r2-state` returned canonical `hourly_activation` payload with `r2_hourly_effective=false`
+  - `GET /api/admin/backup-trust-score` returned `hourly_activation` and `bucket_usage` evidence
+  - Admin Recovery UI loaded and testing agent verified the new hourly activation / restore scope cards
+- Automated validation completed:
+  - backend targeted pytest: readiness + retention + runtime hardening + backup recovery passing
+  - testing agent report: `/app/test_reports/iteration_35.json`
+  - QA success summary: backend `62/62`, frontend `100%`
+
+### Changed files in readiness track
+- `backend/lib/backup_runtime.py`
+- `backend/lib/hourly_activation.py`
+- `backend/lib/r2_retention.py`
+- `backend/routes/recovery_dashboard.py`
+- `backend/server.py`
+- `backend/tests/test_ops8_backup_recovery.py`
+- `backend/tests/test_ops8_hourly_activation_readiness.py`
+- `backend/tests/test_track_15_28a_r2_retention.py`
+- `backend/tests/test_ops8_final_hourly_r2_readiness.py`
+- `frontend/src/components/CloudArchivesPanel.jsx`
+- `frontend/src/components/PreDeploySnapshotPanel.jsx`
+- `frontend/src/pages/admin/AdminRecovery.jsx`
+
+### Remaining next gate
+- Independent code review of the readiness candidate only.
+- No deployment performed.
+- No production activation performed.
+- No production configuration changed.
