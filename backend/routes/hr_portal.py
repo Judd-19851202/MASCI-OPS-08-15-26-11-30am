@@ -283,8 +283,8 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
                 from session_timeout import reset_session_activity  # noqa: PLC0415
                 await reset_session_activity(
                     db, new_token, "ADMIN_HR",
-                    user_id=updated.get("id"),
-                    email=updated.get("email"),
+                    user_id=fresh_row.get("id"),
+                    email=fresh_row.get("email"),
                     actor_label="hr_via_directory",
                 )
             except Exception:  # noqa: BLE001

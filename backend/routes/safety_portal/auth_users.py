@@ -203,8 +203,8 @@ def register_auth_routes(
                 from session_timeout import reset_session_activity  # noqa: PLC0415
                 await reset_session_activity(
                     db, new_token, "OPERATIONS",
-                    user_id=updated.get("id"),
-                    email=updated.get("email"),
+                    user_id=fresh_row.get("id"),
+                    email=fresh_row.get("email"),
                     actor_label="safety_via_directory",
                 )
             except Exception:  # noqa: BLE001

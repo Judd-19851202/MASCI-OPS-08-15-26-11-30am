@@ -300,7 +300,7 @@ def build_dispatch_router(db, require_admin, directory_admin_minter: Optional[Ca
                     "updated_at": datetime.now(timezone.utc).isoformat(),
                 }},
             )
-            updated = await find_dispatch_user_by_email(db, user.get("email") or fresh_row.get("email"))
+            updated = await db.dispatch_users.find_one({"id": user["id"]}, {"_id": 0})
             if not updated:
                 raise HTTPException(404, "user not found")
             new_token = make_dispatch_user_token(fresh_row["id"], fresh_row["password_hash"])
@@ -308,8 +308,8 @@ def build_dispatch_router(db, require_admin, directory_admin_minter: Optional[Ca
                 from session_timeout import reset_session_activity  # noqa: PLC0415
                 await reset_session_activity(
                     db, new_token, "OPERATIONS",
-                    user_id=updated.get("id"),
-                    email=updated.get("email"),
+                    user_id=fresh_row.get("id"),
+                    email=fresh_row.get("email"),
                     actor_label="dispatch_via_directory",
                 )
             except Exception:  # noqa: BLE001
