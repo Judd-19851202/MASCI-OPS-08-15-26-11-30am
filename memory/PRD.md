@@ -337,3 +337,42 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 
 ### Backlog / out of scope
 - Earlier minor PM auth cleanup remains backlog only and was not touched during MASCI OPS 8 backup work.
+
+## 2026-07-24 — MASCI OPS 8 Closeout Evidence Reconciliation
+- Corrected operator-surface truth on Preview admin/recovery screens so wording now distinguishes archive freshness, hourly activation state, archive-integrity verification, representative namespace restore evidence, and production-probe status without overclaiming production verification.
+- Updated frontend files:
+  - `frontend/src/components/PreDeploySnapshotPanel.jsx`
+  - `frontend/src/components/CloudArchivesPanel.jsx`
+  - `frontend/src/components/AdminBackupVerificationPanel.jsx`
+  - `frontend/src/components/PersistenceHealthBanner.jsx`
+  - `frontend/src/components/admin/ProductionHealthLine.jsx`
+  - `frontend/src/pages/admin/AdminRecovery.jsx`
+  - `frontend/src/pages/admin/AdminSystem.jsx`
+  - `frontend/src/lib/i18n.js`
+- Refreshed staged activation documentation in `test_reports/backup_staged_activation_checklist.md` to include Stage 6 production closeout gating.
+- Re-verified Preview evidence after copy reconciliation:
+  - `GET /api/admin/backup-trust-score` → `trust_score=80`, `score_band=amber`, `production_activation_disabled=true`
+  - `GET /api/admin/backups-complete-r2-state` → `r2_hourly_requested=false`, `r2_hourly_effective=false`, `r2_hourly_locked_off=true`
+  - `GET /api/admin/recovery/snapshot` → `pill=AMBER`, `hourly_cadence_enabled=false`, latest drill remains namespace-only evidence (`records=3428`, `photos=6`, `duration_min=0.201`)
+  - `GET /api/admin-strict/diag/persistence-health` confirms Preview runtime uses `db_name=masci_safety_preview` with `persistent_storage_confirmed.confirmed=true`
+- Storage-growth math captured from live R2 listing during closeout:
+  - 341 complete archives in `backups/auto-90d/`
+  - 330.34 GiB current total
+  - average archive size last 30 = 1162.19 MiB → projected hourly growth 27.24 GiB/day → 2.39 TiB/90d
+  - average archive size last 7 = 1354.35 MiB → projected hourly growth 31.74 GiB/day → 2.79 TiB/90d
+- Frontend verification passed after reconciliation:
+  - `auto_frontend_testing_agent` reported all 8 operator-surface truth checks PASS on Preview
+  - earlier backend regression evidence remains `iteration_34.json` with 23/23 backend checks passing
+
+### Updated closeout posture
+- Hourly complete R2 backups remain disabled. No retention code changed. No production config changed. No deploy performed.
+- Restore evidence remains correctly classified as a **representative namespace restore**, not a full platform restore.
+- Weekly verification remains correctly classified as **archive-integrity validation**, not restore proof.
+
+### Remaining P0 / production-only checks
+- Keep hourly complete backups disabled until an operator-approved production activation window is executed.
+- Run a fresh representative namespace restore against a production-created hourly archive after activation.
+- Allow one post-activation weekly verification cycle to complete and capture that evidence.
+
+### Remaining P1
+- If approved later, revise the coded R2 retention policy to a tighter bounded steady-state model aligned to observed 2.39–2.79 TiB / 90d hourly growth.
