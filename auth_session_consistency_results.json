@@ -1,0 +1,541 @@
+{
+  "test_run_timestamp": "2026-07-24T00:50:16.915251Z",
+  "backend_url": "https://backup-forensics.preview.emergentagent.com",
+  "tests": [
+    {
+      "name": "Multi-login returns directory token + portal tokens",
+      "passed": true,
+      "blocking": true,
+      "details": {
+        "status_code": 200,
+        "response_keys": [
+          "ok",
+          "session_token",
+          "portal_tokens",
+          "user",
+          "must_change_password"
+        ],
+        "session_token_present": true,
+        "portal_tokens_found": [
+          "admin",
+          "pm",
+          "shop",
+          "hr",
+          "safety",
+          "dispatch",
+          "field_leadership",
+          "fl"
+        ],
+        "expected_portals": [
+          "admin",
+          "pm",
+          "shop",
+          "hr",
+          "safety",
+          "dispatch",
+          "field_leadership",
+          "fl"
+        ],
+        "notes": "Multi-login successful with 8 portal tokens"
+      },
+      "timestamp": "2026-07-24T00:50:17.578548Z"
+    },
+    {
+      "name": "Admin endpoints succeed with admin+directory, fail anonymously",
+      "passed": true,
+      "blocking": true,
+      "details": {
+        "authenticated_status": 200,
+        "anonymous_status": 401,
+        "authenticated_response": {
+          "track": "15.78",
+          "generated_at": "2026-07-24T00:50:20.181109+00:00",
+          "decision": "pass",
+          "blocking_gates": [],
+          "advisory_findings": [
+            {
+              "id": "pm_missing_route",
+              "category": "master_data",
+              "summary": "4 active project(s) have no resolvable PM or Co-PM email \u2014 every notification on these projects will dead-letter.",
+              "evidence": "samples=['22-08', '24-08', '26-04', '26-07']",
+              "remediation": "Open Admin \u2192 People & Access \u2192 Multi-Portal Directory and assign a PM in project_team_assignments for each project listed below. (Legacy fallback: set pm_email on the jobs_master row.)",
+              "remediation_link": "/admin/people-and-access"
+            },
+            {
+              "id": "equipment_missing_unit_number",
+              "category": "master_data",
+              "summary": "247 equipment row(s) missing canonical unit_number \u2014 display label is being used as identity.",
+              "evidence": "samples=['100adffe', '4f24b870', '536a1cbd', '1b9783ae', 'a8d1552a']",
+              "remediation": "Go to Admin \u2192 Equipment & Suppliers \u2192 Status Board and assign a unit_number to each piece of equipment, or remove inactive rows via the Asset Administration \u2192 Canonical Taxonomy review queue.",
+              "remediation_link": "/admin/equipment-suppliers"
+            },
+            {
+              "id": "employee_missing_id",
+              "category": "master_data",
+              "summary": "200 active employee(s) saved without a canonical employee_id.",
+              "evidence": "samples=['Alec Perkins', 'Alejandro Escobedo', 'Alex Stansbury', 'Alfonso Flores-rosas', 'Allen Smathers']",
+              "remediation": "Open Admin \u2192 People & Access \u2192 Employee Master and assign the canonical employee_id to each row below.",
+              "remediation_link": "/admin/people-and-access"
+            }
+          ],
+          "bootstrap": {
+            "version": 1,
+            "completed_at": "2026-07-23T23:06:44.138208+00:00",
+            "ok": true,
+            "missing_items": [],
+            "ran": true
+          },
+          "summary": {
+            "blocking_count": 0,
+            "advisory_count": 3,
+            "categories_red": [
+              "workflow_health",
+              "routing_integrity"
+            ],
+            "categories_amber": [],
+            "workflows_red": 0,
+            "workflows_amber": 5,
+            "workflows_idle": 5,
+            "workflows_trusted": 1,
+            "unknown_audit_count_24h": 0,
+            "silent_failure_count_24h": 0
+          },
+          "notification_delivery": {
+            "environment": "preview",
+            "delivery_mode": "SAFE_CAPTURE",
+            "delivery_mode_source": "environment_forced_safe_capture",
+            "explicit_delivery_mode": null,
+            "provider": "resend",
+            "provider_key_required": false,
+            "provider_configured": true,
+            "provider_key_shape_valid": true,
+            "provider_validation_status": "not_required",
+            "external_send_allowed": false,
+            "provider_acceptance_required": false,
+            "capture_required": true,
+            "blocking": false,
+            "credential_source_name": "RESEND_API_KEY"
+          },
+          "trust_score": 50,
+          "trust_band": "red",
+          "regression_gate_count": 0
+        },
+        "notes": "Admin endpoint accessible with auth, blocked without auth"
+      },
+      "timestamp": "2026-07-24T00:50:20.333676Z"
+    },
+    {
+      "name": "HR endpoints succeed with hr+directory, remain protected anonymously",
+      "passed": true,
+      "blocking": true,
+      "details": {
+        "authenticated_status": 200,
+        "anonymous_status": 401,
+        "notes": "HR endpoint accessible with auth, blocked without auth"
+      },
+      "timestamp": "2026-07-24T00:50:21.451672Z"
+    },
+    {
+      "name": "Safety endpoints succeed with safety+directory, remain protected anonymously",
+      "passed": true,
+      "blocking": true,
+      "details": {
+        "authenticated_status": 200,
+        "anonymous_status": 401,
+        "notes": "Safety endpoint accessible with auth, blocked without auth"
+      },
+      "timestamp": "2026-07-24T00:50:22.504629Z"
+    },
+    {
+      "name": "PM/Dispatch/Shop/FL endpoints succeed with scoped portal+directory",
+      "passed": true,
+      "blocking": true,
+      "details": {
+        "portal_tests": [
+          {
+            "portal": "PM",
+            "status": 404,
+            "success": true
+          },
+          {
+            "portal": "Dispatch",
+            "status": 404,
+            "success": true
+          },
+          {
+            "portal": "Shop",
+            "status": 404,
+            "success": true
+          },
+          {
+            "portal": "FL",
+            "status": 200,
+            "success": true
+          }
+        ],
+        "notes": "Tested 4 portals with scoped auth"
+      },
+      "timestamp": "2026-07-24T00:50:25.388226Z"
+    },
+    {
+      "name": "Anonymous access to protected HR Daily Reports stays blocked",
+      "passed": true,
+      "blocking": true,
+      "details": {
+        "status_code": 401,
+        "notes": "Protected HR Daily Reports correctly blocked for anonymous"
+      },
+      "timestamp": "2026-07-24T00:50:25.490918Z"
+    },
+    {
+      "name": "Public root stays public",
+      "passed": true,
+      "blocking": false,
+      "details": {
+        "status_code": 200,
+        "notes": "Public root accessible without auth"
+      },
+      "timestamp": "2026-07-24T00:50:25.592152Z"
+    },
+    {
+      "name": "/api/version parity and /api/health/full remain healthy",
+      "passed": true,
+      "blocking": true,
+      "details": {
+        "version_status": 200,
+        "health_status": 200,
+        "version_parity": true,
+        "health_ok": true,
+        "version_data": {
+          "service": "masci-hub",
+          "commit": "4d70537d5d1b656b52cfa14569ea24dccc22bb86",
+          "commit_source": "git:HEAD",
+          "built_at": "2026-07-23T23:01:45.051544+00:00",
+          "build_at_source": "artifact_mtime",
+          "source_hash": "8e7593cde4152c12b3809eb07e98ced8",
+          "source_hash_scope_files": [
+            "release_identity_scope.json",
+            "backend/lib/release_identity.py",
+            "backend/server.py",
+            "backend/pdf_render.py",
+            "backend/training_pdf.py",
+            "backend/routes/daily_reports.py",
+            "backend/routes/dr_v2.py",
+            "backend/routes/dr_v2_canonicalize.py",
+            "backend/routes/dr_v2_pdf.py",
+            "backend/routes/dr_v2_photos.py",
+            "backend/routes/dispatch_portal_auth.py",
+            "backend/services/photo_intelligence/pipeline.py",
+            "backend/scripts/verify_release_identity.py",
+            "frontend/scripts/stamp-build-version.js",
+            "frontend/src/app/routing/AppRoutes.jsx",
+            "frontend/src/pages/NewDailyReportV3.jsx",
+            "frontend/src/pages/DailyReportsDashboard.jsx",
+            "frontend/src/pages/ViewDailyReport.jsx"
+          ],
+          "release": "8e7593cde4152c12b3809eb07e98ced8",
+          "intended_release_commit": "4d70537d5d1b656b52cfa14569ea24dccc22bb86",
+          "intended_release_source": "git:HEAD",
+          "runtime_matches_intended_release": true,
+          "frontend_build_version": "v2026.07.23-4d70537",
+          "frontend_build_commit": "4d70537d5d1b656b52cfa14569ea24dccc22bb86",
+          "frontend_build_commit_source": "git:HEAD",
+          "frontend_build_built_at": "2026-07-23T23:05:26+00:00",
+          "frontend_build_source_hash": "8e7593cde4152c12b3809eb07e98ced8",
+          "frontend_build_source": "served:http://127.0.0.1:3000/release-identity.json",
+          "frontend_build_dependency_manifest_hash": "b6e3daa826554186ba5c7ed5a2a058b3434be2679f621cb3c51b5aee2fcc6faf",
+          "frontend_build_release_gate_manifest_hash": "44be60aee2d3a53d479d5de670e53f564ac677abc9b60b7a76ea128b39670822",
+          "frontend_generated_build_commit": "4d70537d5d1b656b52cfa14569ea24dccc22bb86",
+          "frontend_generated_build_source": "generated:frontend/src/buildVersion.generated.js",
+          "frontend_public_release_commit": "4d70537d5d1b656b52cfa14569ea24dccc22bb86",
+          "frontend_public_release_source": "generated:frontend/public/release-identity.json",
+          "frontend_backend_release_match": true,
+          "frontend_backend_release_match_reason": "match",
+          "frontend_generated_vs_served_match": true,
+          "frontend_served_identity_error": null,
+          "instance_fingerprint": "98bc264ab0faa06f9bbc5615c0a8d7fa",
+          "process_started_at": "2026-07-23T23:06:08.610126+00:00",
+          "started_at": "2026-07-23T23:06:08.610126+00:00",
+          "uptime_s": 6257,
+          "session_timeouts": {
+            "enabled": true,
+            "tiers": {
+              "ADMIN_HR": {
+                "idle_min": 15,
+                "abs_hour": 4
+              },
+              "OPERATIONS": {
+                "idle_min": 30,
+                "abs_hour": 8
+              },
+              "FIELD": {
+                "idle_min": 60,
+                "abs_hour": 12
+              }
+            }
+          },
+          "sentry": {
+            "enabled": true
+          },
+          "app_env": "preview",
+          "db_name": "masci_safety_preview",
+          "runtime_identity": {
+            "status": "NOT_APPLICABLE",
+            "valid": true,
+            "mismatch_category": null,
+            "identity": {
+              "app_env": "preview",
+              "db_name": "masci_safety_preview",
+              "mongo_scheme": "mongodb+srv",
+              "mongo_hostname_redacted": "masci-prod.1nduwmg.mongodb.net",
+              "mongo_user": "masci_preview_user",
+              "effective_database": null,
+              "enforce_db_isolation": true,
+              "release_commit": "4d70537d5d1b656b52cfa14569ea24dccc22bb86",
+              "release_source_hash": "8e7593cde4152c12b3809eb07e98ced8",
+              "preview_distinction": "preview",
+              "scheduler_authority": "enabled",
+              "read_write_mode": "read_write",
+              "domain_host_context": null,
+              "source_identity": "8e7593cde4152c12b3809eb07e98ced8",
+              "approved_cluster_identifier": "MASCI-prod",
+              "approved_hostname": "masci-prod.1nduwmg.mongodb.net",
+              "approved_db_name": "masci_safety",
+              "approved_username": "masci_prod_user",
+              "identity_fingerprint": "16f488f4ab02",
+              "query_duplicates": {},
+              "is_atlas": true,
+              "is_local": false,
+              "read_only_validation": {
+                "requested": false,
+                "active": false,
+                "db_authority": "unknown",
+                "read_only_mode": false,
+                "startup_write_suppressed": false,
+                "http_mutation_barrier_active": false,
+                "session_writes_suppressed": false,
+                "scheduler_disabled": false,
+                "backup_scheduler_disabled": false,
+                "email_disabled": true,
+                "ai_disabled": false,
+                "ods_disabled": false,
+                "trust_spine_disabled": false,
+                "maintainx_disabled": true,
+                "webhooks_disabled": false,
+                "non_production_domain": false,
+                "zero_write_proven": false,
+                "approved_preview_db_name": "masci_safety_preview",
+                "approved_preview_hosts": [
+                  "localhost",
+                  "127.0.0.1",
+                  "::1"
+                ],
+                "errors": []
+              }
+            },
+            "validation": {
+              "status": "NOT_APPLICABLE",
+              "valid": true,
+              "mismatch_category": null,
+              "remediation_owner": "platform-ops",
+              "remediation_action": "No action required.",
+              "detail": "env=preview host=masci-prod.1nduwmg.mongodb.net db=masci_safety_preview fingerprint=16f488f4ab02",
+              "errors": [],
+              "warnings": []
+            }
+          },
+          "environment_identity": {
+            "app_env": "preview",
+            "db_name": "masci_safety_preview",
+            "db_isolation_enforced": true,
+            "storage_bucket": "unknown",
+            "storage_endpoint_present": null,
+            "scheduler_enabled": true,
+            "email_safety_mode": "unknown",
+            "auto_email_reports": null,
+            "resend_webhook_secret_present": null,
+            "dev_endpoints_enabled": null,
+            "maintainx_write_enabled": null,
+            "ai_provider_key_present": null,
+            "delete_engine_status": "DISABLED",
+            "runtime_identity_status": "NOT_APPLICABLE",
+            "runtime_identity_mismatch_category": null,
+            "mongo_hostname_redacted": "masci-prod.1nduwmg.mongodb.net",
+            "identity_fingerprint": "16f488f4ab02"
+          }
+        },
+        "health_data": {
+          "ok": true,
+          "mongo": true,
+          "scheduler": true,
+          "backup_recent": true,
+          "runtime_identity_ok": true,
+          "runtime_identity_status": "NOT_APPLICABLE"
+        },
+        "notes": "Version parity and health checks passed"
+      },
+      "timestamp": "2026-07-24T00:50:25.898263Z"
+    },
+    {
+      "name": "/api/admin/deployment-readiness and /api/admin/occ/trust-events functional",
+      "passed": true,
+      "blocking": true,
+      "details": {
+        "deployment_readiness_status": 200,
+        "trust_events_status": 200,
+        "deployment_readiness_data": {
+          "track": "15.78",
+          "generated_at": "2026-07-24T00:50:28.521772+00:00",
+          "decision": "pass",
+          "blocking_gates": [],
+          "advisory_findings": [
+            {
+              "id": "pm_missing_route",
+              "category": "master_data",
+              "summary": "4 active project(s) have no resolvable PM or Co-PM email \u2014 every notification on these projects will dead-letter.",
+              "evidence": "samples=['22-08', '24-08', '26-04', '26-07']",
+              "remediation": "Open Admin \u2192 People & Access \u2192 Multi-Portal Directory and assign a PM in project_team_assignments for each project listed below. (Legacy fallback: set pm_email on the jobs_master row.)",
+              "remediation_link": "/admin/people-and-access"
+            },
+            {
+              "id": "equipment_missing_unit_number",
+              "category": "master_data",
+              "summary": "247 equipment row(s) missing canonical unit_number \u2014 display label is being used as identity.",
+              "evidence": "samples=['100adffe', '4f24b870', '536a1cbd', '1b9783ae', 'a8d1552a']",
+              "remediation": "Go to Admin \u2192 Equipment & Suppliers \u2192 Status Board and assign a unit_number to each piece of equipment, or remove inactive rows via the Asset Administration \u2192 Canonical Taxonomy review queue.",
+              "remediation_link": "/admin/equipment-suppliers"
+            },
+            {
+              "id": "employee_missing_id",
+              "category": "master_data",
+              "summary": "200 active employee(s) saved without a canonical employee_id.",
+              "evidence": "samples=['Alec Perkins', 'Alejandro Escobedo', 'Alex Stansbury', 'Alfonso Flores-rosas', 'Allen Smathers']",
+              "remediation": "Open Admin \u2192 People & Access \u2192 Employee Master and assign the canonical employee_id to each row below.",
+              "remediation_link": "/admin/people-and-access"
+            }
+          ],
+          "bootstrap": {
+            "version": 1,
+            "completed_at": "2026-07-23T23:06:44.138208+00:00",
+            "ok": true,
+            "missing_items": [],
+            "ran": true
+          },
+          "summary": {
+            "blocking_count": 0,
+            "advisory_count": 3,
+            "categories_red": [
+              "workflow_health",
+              "routing_integrity"
+            ],
+            "categories_amber": [],
+            "workflows_red": 0,
+            "workflows_amber": 5,
+            "workflows_idle": 5,
+            "workflows_trusted": 1,
+            "unknown_audit_count_24h": 0,
+            "silent_failure_count_24h": 0
+          },
+          "notification_delivery": {
+            "environment": "preview",
+            "delivery_mode": "SAFE_CAPTURE",
+            "delivery_mode_source": "environment_forced_safe_capture",
+            "explicit_delivery_mode": null,
+            "provider": "resend",
+            "provider_key_required": false,
+            "provider_configured": true,
+            "provider_key_shape_valid": true,
+            "provider_validation_status": "not_required",
+            "external_send_allowed": false,
+            "provider_acceptance_required": false,
+            "capture_required": true,
+            "blocking": false,
+            "credential_source_name": "RESEND_API_KEY"
+          },
+          "trust_score": 50,
+          "trust_band": "red",
+          "regression_gate_count": 0
+        },
+        "notes": "Admin endpoints functional with multi-login credentials"
+      },
+      "timestamp": "2026-07-24T00:50:30.338991Z"
+    },
+    {
+      "name": "Daily Reports public submission path remains public",
+      "passed": true,
+      "blocking": false,
+      "details": {
+        "endpoint_results": [
+          {
+            "endpoint": "/hr/employee-roster/public",
+            "status": 200,
+            "success": true
+          },
+          {
+            "endpoint": "/jobs",
+            "status": 200,
+            "success": true
+          },
+          {
+            "endpoint": "/field-leadership-roster",
+            "status": 200,
+            "success": true
+          },
+          {
+            "endpoint": "/equipment-master",
+            "status": 200,
+            "success": true
+          }
+        ],
+        "notes": "All public daily report support endpoints accessible"
+      },
+      "timestamp": "2026-07-24T00:50:31.542112Z"
+    },
+    {
+      "name": "User identity records unchanged (read-only verification)",
+      "passed": true,
+      "blocking": false,
+      "details": {
+        "status_code": 404,
+        "notes": "Read-only user identity check completed (no modifications made)"
+      },
+      "timestamp": "2026-07-24T00:50:31.720196Z"
+    },
+    {
+      "name": "No auth regressions in repaired blast radius",
+      "passed": true,
+      "blocking": true,
+      "details": {
+        "endpoint_results": [
+          {
+            "endpoint": "https://backup-forensics.preview.emergentagent.com/api/admin/deployment-readiness",
+            "expected_status": 200,
+            "actual_status": 200,
+            "success": true
+          },
+          {
+            "endpoint": "https://backup-forensics.preview.emergentagent.com/api/version",
+            "expected_status": 200,
+            "actual_status": 200,
+            "success": true
+          },
+          {
+            "endpoint": "https://backup-forensics.preview.emergentagent.com/api/health/full",
+            "expected_status": 200,
+            "actual_status": 200,
+            "success": true
+          }
+        ],
+        "notes": "No auth regressions detected in repaired blast radius"
+      },
+      "timestamp": "2026-07-24T00:50:35.496143Z"
+    }
+  ],
+  "summary": {
+    "total": 12,
+    "passed": 12,
+    "failed": 0,
+    "blocking_issues": [],
+    "non_blocking_issues": []
+  }
+}
