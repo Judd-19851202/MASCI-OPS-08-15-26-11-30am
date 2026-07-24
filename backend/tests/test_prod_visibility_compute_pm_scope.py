@@ -215,6 +215,78 @@ def test_super_admin_retains_unrestricted_scope_in_pm_token_context():
     assert scope.project_numbers is None
 
 
+def test_password_hash_mismatch_does_not_recover_super_admin_or_broaden_scope():
+    scope = _run(
+        compute_pm_scope(
+            _DB(),
+            {
+                "id": "admin-pm-1",
+                "email": "super@example.com",
+                "password_hash": "WRONG-HASH",
+                "linked_to_directory": True,
+                "source": "directory-shadow",
+            },
+        )
+    )
+    assert scope.is_admin is False
+    assert scope.project_numbers == set()
+    assert scope.filter({"status": "open"}) == {"status": "open", "__pm_empty_scope__": True}
+    assert scope.allows("99-01") is False
+
+
+def test_directory_id_email_mismatch_does_not_elevate_or_grant_cross_project_access():
+    db = _DB()
+    db.project_managers.rows.append(
+        {
+            "id": "collision-pm-1",
+            "email": "collision.pm@example.com",
+            "password_hash": "collision-hash",
+            "linked_to_directory": True,
+            "source": "directory-shadow",
+        }
+    )
+    db.user_directory.rows.append(
+        {
+            "id": "collision-pm-1",
+            "email": "different-admin@example.com",
+            "portals": ["admin", "pm"],
+            "is_super_admin": True,
+        }
+    )
+    db.jobs_master.rows.append(
+        {
+            "project_number": "77-01",
+            "pm_email": "collision.pm@example.com",
+            "deleted_at": None,
+        }
+    )
+    db.project_team_assignments.rows.append(
+        {
+            "project_number": "77-02",
+            "user_id": "collision-pm-1",
+            "active": True,
+        }
+    )
+
+    scope = _run(
+        compute_pm_scope(
+            db,
+            {
+                "id": "collision-pm-1",
+                "email": "collision.pm@example.com",
+                "password_hash": "collision-hash",
+                "linked_to_directory": True,
+                "source": "directory-shadow",
+            },
+        )
+    )
+    assert scope.is_admin is False
+    assert scope.project_numbers == {"77-01", "77-02"}
+    assert set(scope.filter({})["project_number"]["$in"]) == {"77-01", "77-02"}
+    assert scope.allows("77-01") is True
+    assert scope.allows("26-05") is False
+
+
 def test_co_pm_actor_collects_assigned_projects():
     scope = _run(
         compute_pm_scope(

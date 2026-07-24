@@ -275,4 +275,6 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
   - `/app/test_reports/pm_scoping_route_api_matrix.json`
   - `/app/test_reports/pm_scoping_role_matrix.json`
   - `/app/test_reports/pm_scoping_shared_caller_regression.json`
-- Exact ending commit after repair/testing: `81a7420bae23b3c6402eb8a922859d85ad5601cc`
+- Production code repair commit: `2c5b4a7638477f7fff898299a87a37d3ae5d2e7f`
+- Test/evidence correction commit: `UNCOMMITTED_LOCAL_CORRECTIONS`
+- Deploy candidate SHA: `UNRESOLVED_NO_COMMITTED_SHA`
