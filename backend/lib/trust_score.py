@@ -197,3 +197,71 @@ def compute_score(
         "score_reason": reason,
         "score_inputs": inputs,
     }
+
+
+def compute_backup_trust_score(
+    *,
+    hourly_disabled: bool,
+    newest_r2_age_hours: float | None,
+    restore_drill_age_days: float | None,
+    restore_drill_ok: bool,
+    integrity_ok: bool,
+    overlap_blocked: bool,
+    active_failures_7d: int,
+    bucket_usage_status: str,
+) -> Dict[str, Any]:
+    inputs: List[Dict[str, Any]] = []
+    score = 100
+
+    if hourly_disabled:
+        score -= 12
+        inputs.append({"code": "hourly_disabled", "penalty": 12, "reason": "Hourly complete R2 remains disabled by safety lock"})
+    if newest_r2_age_hours is None:
+        score -= 30
+        inputs.append({"code": "r2_missing", "penalty": 30, "reason": "No recent complete R2 archive evidence found"})
+    elif newest_r2_age_hours > 36:
+        score -= 25
+        inputs.append({"code": "r2_stale", "penalty": 25, "reason": f"Newest complete R2 archive is stale ({newest_r2_age_hours:.1f}h)"})
+    elif newest_r2_age_hours > 24:
+        score -= 10
+        inputs.append({"code": "r2_aging", "penalty": 10, "reason": f"Newest complete R2 archive is aging ({newest_r2_age_hours:.1f}h)"})
+    if not integrity_ok:
+        score -= 25
+        inputs.append({"code": "integrity_missing", "penalty": 25, "reason": "Manifest or integrity evidence is missing"})
+    if not restore_drill_ok:
+        score -= 25
+        inputs.append({"code": "restore_drill_failed", "penalty": 25, "reason": "Restore drill missing or failed"})
+    elif restore_drill_age_days is not None and restore_drill_age_days > 14:
+        score -= 12
+        inputs.append({"code": "restore_drill_stale", "penalty": 12, "reason": f"Restore drill evidence is stale ({restore_drill_age_days:.1f}d)"})
+    if overlap_blocked:
+        score -= 8
+        inputs.append({"code": "overlap_guard_triggered", "penalty": 8, "reason": "Backup/restore overlap guard was triggered"})
+    if active_failures_7d:
+        penalty = min(20, active_failures_7d * 5)
+        score -= penalty
+        inputs.append({"code": "failures_7d", "penalty": penalty, "reason": f"{active_failures_7d} backup failure event(s) in last 7d"})
+    if bucket_usage_status == "AMBER":
+        score -= 8
+        inputs.append({"code": "bucket_usage_amber", "penalty": 8, "reason": "R2 usage above warning threshold"})
+    elif bucket_usage_status == "RED":
+        score -= 20
+        inputs.append({"code": "bucket_usage_red", "penalty": 20, "reason": "R2 usage above alert threshold"})
+
+    score = max(0, min(100, score))
+    if score >= 85:
+        band = "green"
+        label = "Trusted"
+    elif score >= 60:
+        band = "amber"
+        label = "Missing evidence"
+    else:
+        band = "red"
+        label = "Not trusted"
+    return {
+        "trust_score": score,
+        "score_band": band,
+        "score_band_label": label,
+        "score_reason": inputs[0]["reason"] if inputs else "All backup trust signals are healthy",
+        "score_inputs": inputs,
+    }

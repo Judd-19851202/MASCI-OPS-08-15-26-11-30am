@@ -107,6 +107,9 @@ export default function CloudArchivesPanel() {
   const inFlight = state?.in_progress;
   const r2Hour = state?.r2_full_hour_utc ?? 3;
   const last = state?.last;
+  const runtime = state?.backup_runtime || {};
+  const overlap = runtime?.overlap || {};
+  const recentJobs = runtime?.recent_complete_jobs || [];
 
   return (
     <section
@@ -196,6 +199,32 @@ export default function CloudArchivesPanel() {
         </div>
       )}
 
+      {!r2Disabled && (
+        <div
+          className="mt-3 bg-slate-50 border border-slate-200 rounded-md px-4 py-3 grid gap-2 md:grid-cols-3 text-xs"
+          data-testid="cloud-archives-runtime-state"
+        >
+          <div>
+            <div className="font-mono uppercase tracking-[0.15em] text-slate-500">Hourly activation</div>
+            <div className="mt-1 text-slate-900 font-semibold">
+              Disabled in code · safe-execution hardening in progress
+            </div>
+          </div>
+          <div>
+            <div className="font-mono uppercase tracking-[0.15em] text-slate-500">Overlap guard</div>
+            <div className="mt-1 text-slate-900 font-semibold" data-testid="cloud-archives-overlap-state">
+              backup={String(!!overlap.backup_active)} · restore={String(!!overlap.restore_active)}
+            </div>
+          </div>
+          <div>
+            <div className="font-mono uppercase tracking-[0.15em] text-slate-500">Stale recovery sweep</div>
+            <div className="mt-1 text-slate-900 font-semibold">
+              Marked stale jobs: {runtime?.stale_marked ?? 0}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* In-flight build banner */}
       {!r2Disabled && inFlight && (
         <div
@@ -226,6 +255,27 @@ export default function CloudArchivesPanel() {
               ? `OK · ${last.filename} (${fmtBytes(last.size_bytes)})`
               : last.outcome}
           </span>
+        </div>
+      )}
+
+      {!r2Disabled && recentJobs.length > 0 && (
+        <div className="mt-4 bg-white border border-slate-200 rounded-md overflow-hidden" data-testid="cloud-archives-job-history">
+          <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
+            Recent complete backup jobs
+          </div>
+          <ul className="divide-y divide-slate-100">
+            {recentJobs.map((job) => (
+              <li key={job.job_id} className="px-4 py-3 text-xs" data-testid={`cloud-archive-job-${job.job_id}`}>
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div className="font-mono text-slate-800">{job.slot_key}</div>
+                  <div className="font-semibold uppercase tracking-wide text-slate-600">{job.state}</div>
+                </div>
+                <div className="mt-1 text-slate-500 break-all">
+                  trigger={job.trigger} · outcome={job.outcome || "—"} · updated={fmtDate(job.updated_at)}
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 

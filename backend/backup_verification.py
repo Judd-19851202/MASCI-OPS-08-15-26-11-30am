@@ -42,6 +42,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from operational_footer import render_operational_footer_html
+from lib.backup_runtime import backup_slot_key_for_day, claim_backup_job, complete_backup_job, fail_backup_job, list_backup_jobs, start_backup_job
+from lib.scheduler_runs import claim_slot as scheduler_claim_slot, mark_completed as scheduler_mark_completed, mark_failed as scheduler_mark_failed
 
 logger = logging.getLogger(__name__)
 
@@ -366,17 +368,23 @@ async def build_verification_report(db) -> Dict[str, Any]:
     try:
         async for r in db.backup_health.find({}, {"_id": 0}).sort("ts", -1).limit(20):
             recent_runs.append(r)
+            mode = (r.get("mode") or "").lower()
             if r.get("ok"):
-                mode = (r.get("mode") or "").lower()
                 if last_full is None and mode in FULL_BACKUP_MODES:
                     last_full = r
-                if last_r2 is None and "r2" in mode:
+                if last_r2 is None and mode == "complete-r2":
                     last_r2 = r
             else:
-                if last_failure is None:
+                if last_failure is None and not str(r.get("id") or "").startswith("_verification_") and mode not in ("r2-usage-alert", "r2-usage-warn"):
                     last_failure = r
     except Exception as e:  # noqa: BLE001
         logger.warning(f"[verify] backup_health read failed: {e}")
+
+    recent_complete_jobs = []
+    try:
+        recent_complete_jobs = await list_backup_jobs(db, kind="complete-r2", limit=5)
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[verify] backup job read failed: {e}")
 
     ledger_status = "ok"
     ledger_issues: List[str] = []
@@ -448,6 +456,9 @@ async def build_verification_report(db) -> Dict[str, Any]:
             "last_r2": last_r2,
             "last_failure": last_failure,
             "recent_runs_count": len(recent_runs),
+        },
+        "backup_jobs": {
+            "recent_complete_jobs": recent_complete_jobs,
         },
         "data": {
             "per_collection_counts": per_collection_counts,
@@ -655,7 +666,7 @@ def render_verification_email_html(report: Dict[str, Any]) -> str:
 # ─────────────────────────────────────────────────────────────────────
 # Email send
 # ─────────────────────────────────────────────────────────────────────
-async def send_verification_email(db, *, force_recipients: Optional[List[str]] = None) -> Dict[str, Any]:
+async def send_verification_email(db, *, force_recipients: Optional[List[str]] = None, manual: bool = False) -> Dict[str, Any]:
     """Build the report and email it. Returns
     {sent, recipients, verdict, report, error?}."""
     from lib.notification_delivery import deliver_notification  # noqa: PLC0415
@@ -663,6 +674,30 @@ async def send_verification_email(db, *, force_recipients: Optional[List[str]] =
         resolve_reply_to_email as _resolve_reply_to_email,
     )
 
+    if manual or force_recipients:
+        slot_key = backup_slot_key_for_day(datetime.now(timezone.utc)) + f"::weekly-verification-manual::{datetime.now(timezone.utc).strftime('%H%M%S')}"
+        slot_claim = {"manual": True}
+    else:
+        slot_key = backup_slot_key_for_day(datetime.now(timezone.utc)) + "::weekly-verification"
+        slot_claim = await scheduler_claim_slot(db, "backup_verification", slot_key)
+        if slot_claim is None:
+            return {
+                "sent": False,
+                "recipients": force_recipients or _verification_recipients(),
+                "verdict": "warn",
+                "report": None,
+                "error": "Verification already claimed for this slot.",
+            }
+    verify_job = await claim_backup_job(
+        db,
+        job_type="verification",
+        kind="verification",
+        slot_key=slot_key,
+        trigger="manual" if (manual or force_recipients) else "scheduled",
+        metadata={"force_recipients": force_recipients or []},
+    )
+    if verify_job:
+        await start_backup_job(db, verify_job["job_id"])
     report = await build_verification_report(db)
     recipients = force_recipients or _verification_recipients()
 
@@ -676,6 +711,9 @@ async def send_verification_email(db, *, force_recipients: Optional[List[str]] =
     if not recipients:
         result["error"] = "No recipients configured (BACKUP_VERIFICATION_TO / BACKUP_EMAIL_TO / SAFETY_EMAIL_TO all empty)."
         logger.warning(f"[verify] {result['error']}")
+        if verify_job:
+            await fail_backup_job(db, verify_job["job_id"], error=result["error"], state="failed")
+        await scheduler_mark_failed(db, "backup_verification", slot_key, error=result["error"])
         return result
 
     try:
@@ -711,9 +749,24 @@ async def send_verification_email(db, *, force_recipients: Optional[List[str]] =
             f"verdict={report['verdict']} · status={delivery.get('notification_state')} · "
             f"archives={report['r2']['archive_count']}"
         )
+        if verify_job:
+            await complete_backup_job(db, verify_job["job_id"], outcome="ok" if result["sent"] else "warn", result=result)
+        if not manual and not force_recipients:
+            await scheduler_mark_completed(
+                db,
+                "backup_verification",
+                slot_key,
+                recipients=len(recipients),
+                status="done",
+                meta={"sent": bool(result.get("sent")), "verdict": report.get("verdict")},
+            )
     except Exception as e:  # noqa: BLE001
         logger.exception(f"[verify] email send failed: {e}")
         result["error"] = repr(e)
+        if verify_job:
+            await fail_backup_job(db, verify_job["job_id"], error=repr(e))
+        if not manual and not force_recipients:
+            await scheduler_mark_failed(db, "backup_verification", slot_key, error=repr(e))
 
     return result
 

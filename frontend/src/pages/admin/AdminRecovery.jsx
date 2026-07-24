@@ -102,13 +102,18 @@ function Sparkline({ data, width = 600, height = 80 }) {
 
 export default function AdminRecovery() {
   const [snap, setSnap] = useState(null);
+  const [backupTrust, setBackupTrust] = useState(null);
   const [err, setErr] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     try {
-      const r = await api.get("/admin/recovery/snapshot", { skipSessionStatus: true });
+      const [r, trust] = await Promise.all([
+        api.get("/admin/recovery/snapshot", { skipSessionStatus: true }),
+        api.get("/admin/backup-trust-score", { skipSessionStatus: true }).catch(() => null),
+      ]);
       setSnap(r.data);
+      setBackupTrust(trust?.data || null);
       setErr(null);
     } catch (e) {
       setErr(String(e?.response?.data?.detail || e?.message || e));
@@ -238,6 +243,21 @@ export default function AdminRecovery() {
                 target ≤ {fmtAge(snap.backup_age_target_minutes)}
               </div>
             </Card>
+
+            <Card
+              title="Backup Trust Score"
+              status={(backupTrust?.score_band || "amber").toUpperCase()}
+              testid="card-backup-trust-score"
+            >
+              <div className="space-y-1 text-sm" data-testid="backup-trust-score-panel">
+                <div className="text-3xl font-bold text-slate-900">{backupTrust?.trust_score ?? "—"}</div>
+                <div className="font-semibold text-slate-700">{backupTrust?.score_band_label || "Missing evidence"}</div>
+                <div className="text-xs text-slate-500">{backupTrust?.score_reason || "Backup trust evidence not yet loaded."}</div>
+                <div className="text-xs text-slate-500">
+                  Production activation disabled: {String(backupTrust?.production_activation_disabled ?? true)}
+                </div>
+              </div>
+            </Card>
           </div>
 
           {/* Row 2: RPO/RTO · archive count · bucket usage */}
@@ -341,7 +361,8 @@ export default function AdminRecovery() {
             last lock = {fmtTs(snap.scheduler.last_lock_ts)} · pod={" "}
             <span className="font-mono">{snap.scheduler.owner_pod || "—"}</span> ·
             BACKUP_R2_HOURLY={String(snap.hourly_cadence_enabled)} ·
-            cached={String(snap.cached)}
+            cached={String(snap.cached)} ·
+            overlap_blocked={String(snap.scheduler?.backup_runtime?.overlap?.overlap_blocked || false)}
           </div>
         </div>
       )}

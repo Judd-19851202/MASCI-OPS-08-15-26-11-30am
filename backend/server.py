@@ -350,6 +350,24 @@ from lib.singleton_scheduler import (  # noqa: E402
 from lib.scheduler_runs import (  # noqa: E402
     ensure_scheduler_runs_indexes as _ensure_scheduler_runs_indexes,
 )
+from lib.backup_runtime import (  # noqa: E402
+    BACKUP_JOB_KIND_COMPLETE_R2,
+    BACKUP_JOB_KIND_RESTORE_IMPORT,
+    backup_owner_id,
+    backup_slot_key_for_day,
+    backup_slot_key_for_hour,
+    claim_backup_job,
+    classify_backup_overlap,
+    complete_backup_job,
+    ensure_backup_runtime_indexes,
+    fail_backup_job,
+    get_active_backup_jobs,
+    heartbeat_backup_job,
+    list_backup_jobs,
+    mark_stale_backup_jobs,
+    start_backup_job,
+)
+from lib.scheduler_runs import claim_slot as scheduler_claim_slot, mark_completed as scheduler_mark_completed, mark_failed as scheduler_mark_failed
 
 # Session-timeout middleware (Phase 2 Initiative 4) — env-gated.
 # Default disabled. Installed during startup after db handle is ready.
@@ -7703,6 +7721,10 @@ BACKUP_DISK_HIGH_WATERMARK = int(os.environ.get("BACKUP_DISK_HIGH_WATERMARK", "7
 # 90% hard-abort threshold inside _run_scheduled_backup so the warning
 # fires earlier than the abort.
 BACKUP_DISK_WARN_WATERMARK = int(os.environ.get("BACKUP_DISK_WARN_WATERMARK", "85"))
+BACKUP_COMPLETE_TMP_DIR = Path(tempfile.gettempdir()) / "masci_complete_archive_builds"
+BACKUP_COMPLETE_MIN_FREE_BYTES = int(os.environ.get("BACKUP_COMPLETE_MIN_FREE_BYTES", str(3 * 1024 * 1024 * 1024)) or str(3 * 1024 * 1024 * 1024))
+BACKUP_COMPLETE_MAX_BUILD_BYTES = int(os.environ.get("BACKUP_COMPLETE_MAX_BUILD_BYTES", str(3 * 1024 * 1024 * 1024)) or str(3 * 1024 * 1024 * 1024))
+BACKUP_RESTORE_STREAM_CHUNK_BYTES = int(os.environ.get("BACKUP_RESTORE_STREAM_CHUNK_BYTES", str(8 * 1024 * 1024)) or str(8 * 1024 * 1024))
 
 
 def _disk_pct_used(path: str = "/app") -> int:
@@ -7713,6 +7735,78 @@ def _disk_pct_used(path: str = "/app") -> int:
         return int((used / total) * 100) if total else 0
     except Exception:
         return 0
+
+
+def _disk_free_bytes(path: str | Path = "/app") -> int:
+    try:
+        import shutil as _sh
+        _total, _used, free = _sh.disk_usage(str(path))
+        return int(free)
+    except Exception:
+        return 0
+
+
+def _backup_resource_preflight(*, archive_size_bytes: Optional[int] = None) -> Dict[str, Any]:
+    tmp_free = _disk_free_bytes(BACKUP_COMPLETE_TMP_DIR.parent)
+    app_pct = _disk_pct_used()
+    estimated = int(archive_size_bytes or 0)
+    reasons: List[str] = []
+    ok = True
+    if tmp_free < BACKUP_COMPLETE_MIN_FREE_BYTES:
+        ok = False
+        reasons.append(f"tmp_free_below_floor:{tmp_free}")
+    if app_pct >= 85:
+        ok = False
+        reasons.append(f"app_disk_pressure:{app_pct}")
+    if estimated and estimated > BACKUP_COMPLETE_MAX_BUILD_BYTES:
+        ok = False
+        reasons.append(f"estimated_archive_too_large:{estimated}")
+    if estimated and estimated > max(0, tmp_free - (512 * 1024 * 1024)):
+        ok = False
+        reasons.append(f"tmp_headroom_insufficient:{estimated}")
+    return {
+        "ok": ok,
+        "reasons": reasons,
+        "app_disk_percent_used": app_pct,
+        "tmp_disk_free_bytes": tmp_free,
+        "min_free_bytes_required": BACKUP_COMPLETE_MIN_FREE_BYTES,
+        "max_build_bytes": BACKUP_COMPLETE_MAX_BUILD_BYTES,
+        "archive_size_bytes_estimate": estimated,
+    }
+
+
+async def _latest_complete_backup_hint(db) -> Dict[str, Any]:
+    row = await db.backup_health.find_one(
+        {"mode": "complete-r2", "ok": True, "filename": {"$nin": [None, ""]}},
+        {"_id": 0, "size_bytes": 1, "filename": 1, "ts": 1},
+        sort=[("ts", -1)],
+    )
+    return row or {}
+
+
+async def _collect_backup_runtime_state(db) -> Dict[str, Any]:
+    stale_before = (datetime.now(timezone.utc) - timedelta(minutes=240)).isoformat()
+    try:
+        stale_marked = await mark_stale_backup_jobs(db, stale_before_iso=stale_before)
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[backup-runtime] stale sweep failed: {e}")
+        stale_marked = 0
+    try:
+        active_jobs = await get_active_backup_jobs(db)
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[backup-runtime] active jobs read failed: {e}")
+        active_jobs = []
+    try:
+        recent_complete_jobs = await list_backup_jobs(db, kind=BACKUP_JOB_KIND_COMPLETE_R2, limit=10)
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[backup-runtime] recent jobs read failed: {e}")
+        recent_complete_jobs = []
+    return {
+        "stale_marked": stale_marked,
+        "active_jobs": active_jobs,
+        "overlap": classify_backup_overlap(active_jobs),
+        "recent_complete_jobs": recent_complete_jobs,
+    }
 
 
 
@@ -9267,17 +9361,32 @@ async def _run_complete_archive_to_r2(db) -> Optional[dict]:
         return None
 
     BACKUPS_DIR.mkdir(parents=True, exist_ok=True)
-    complete_tmp_dir = Path(tempfile.gettempdir()) / "masci_complete_archive_builds"
-    complete_tmp_dir.mkdir(parents=True, exist_ok=True)
+    BACKUP_COMPLETE_TMP_DIR.mkdir(parents=True, exist_ok=True)
     _now = datetime.now(timezone.utc)
     _stamp = _now.strftime("%Y-%m-%d_%H%M%SZ")
     filename = f"MASCI_complete_backup_{_stamp}.zip"
-    out = complete_tmp_dir / filename
+    out = BACKUP_COMPLETE_TMP_DIR / filename
     tmp = out.with_suffix(f".zip.tmp.{uuid.uuid4().hex[:8]}")
 
     try:
+        latest_hint = await _latest_complete_backup_hint(db)
+        preflight = _backup_resource_preflight(archive_size_bytes=latest_hint.get("size_bytes"))
+        if not preflight.get("ok"):
+            logger.warning(f"[complete-archive] deferred by resource guard: {preflight.get('reasons')}")
+            await _record_backup_health(
+                db,
+                ok=False,
+                error=f"deferred_by_resource_guard:{','.join(preflight.get('reasons') or [])}",
+                mode="complete-r2-deferred",
+                notification_outcome="notification_not_required",
+                notification_reason="resource_guard_deferred_execution",
+                audit_reference="backup_health:complete-r2-deferred",
+            )
+            return {"deferred": True, "reason": "resource_guard", "preflight": preflight}
         stats = await asyncio.to_thread(_build_complete_archive_on_disk, db, tmp)
         tmp.replace(out)
+        if out.stat().st_size > BACKUP_COMPLETE_MAX_BUILD_BYTES:
+            raise RuntimeError(f"complete archive exceeded bounded size ceiling {BACKUP_COMPLETE_MAX_BUILD_BYTES} bytes")
         size_mb = out.stat().st_size / 1024 / 1024
         logger.info(
             f"[complete-archive] built {out.name} · {size_mb:.1f} MB · "
@@ -9365,6 +9474,7 @@ async def _run_complete_archive_to_r2(db) -> Optional[dict]:
             "r2_key": r2_key,
             "presigned_url": presigned,
             "stats": stats,
+            "resource_preflight": preflight,
         }
     except Exception as e:  # noqa: BLE001
         logger.exception(f"[complete-archive] FAILED: {e}")
@@ -9673,6 +9783,18 @@ _BACKUP_SCHEDULER_STATE: dict = {
     "r2_hourly_requested": False,
     "r2_hourly_effective": False,
     "r2_hourly_locked_off": True,
+    "backup_runtime": {
+        "stale_marked": 0,
+        "active_jobs": [],
+        "overlap": {
+            "backup_active": False,
+            "restore_active": False,
+            "active_backups": [],
+            "active_restores": [],
+            "overlap_blocked": False,
+        },
+        "recent_complete_jobs": [],
+    },
 }
 
 
@@ -9797,6 +9919,7 @@ async def _backup_scheduler_loop(db) -> None:
         attempt actually did — without triggering a fresh backup.
     """
     MAX_DAILY_ATTEMPTS = 3
+    scheduler_owner = backup_owner_id()
 
     # iter462 · 2026-02-01 · Batch A Phase 1 — first boot step. If we never
     # see this in the diagnostic state, the loop body is being skipped
@@ -9926,6 +10049,7 @@ async def _backup_scheduler_loop(db) -> None:
             now = datetime.now(timezone.utc)
             today = now.date()
             _BACKUP_SCHEDULER_STATE["last_tick_ts"] = now.isoformat()
+            _BACKUP_SCHEDULER_STATE["backup_runtime"] = await _collect_backup_runtime_state(db)
             # Find the latest scheduled hour crossed today that hasn't fired.
             due_hour: Optional[int] = None
             for h in BACKUP_HOURS_UTC:
@@ -9953,6 +10077,20 @@ async def _backup_scheduler_loop(db) -> None:
                         f"[scheduled-backup] firing for {today} "
                         f"(slot {due_hour:02d}:00 UTC, attempt #{attempts + 1})"
                     )
+                    slot_key = backup_slot_key_for_day(
+                        datetime(now.year, now.month, now.day, due_hour, 0, tzinfo=timezone.utc)
+                    ) + f"::zip::{due_hour:02d}"
+                    slot_claim = await scheduler_claim_slot(
+                        db,
+                        "backup_scheduler_zip",
+                        slot_key,
+                        owner_id=scheduler_owner,
+                    )
+                    if slot_claim is None:
+                        logger.warning(f"[scheduled-backup] duplicate zip slot prevented: {slot_key}")
+                        last_run_for_hour[due_hour] = today
+                        await asyncio.sleep(300)
+                        continue
                     _BACKUP_SCHEDULER_STATE["in_progress"] = True
                     _BACKUP_SCHEDULER_STATE["last_attempt_started_at"] = now.isoformat()
                     try:
@@ -9969,6 +10107,18 @@ async def _backup_scheduler_loop(db) -> None:
                             f"ok · {result.get('filename')} · {result.get('size_bytes', 0)} bytes · "
                             f"emailed_to={result.get('emailed_to')}"
                         )
+                        await scheduler_mark_completed(
+                            db,
+                            "backup_scheduler_zip",
+                            slot_key,
+                            recipients=1 if result.get("emailed_to") else 0,
+                            status="done",
+                            meta={
+                                "filename": result.get("filename"),
+                                "size_bytes": result.get("size_bytes"),
+                                "lite_mode": bool(result.get("lite_mode")),
+                            },
+                        )
                     else:
                         failed_attempts[today] = attempts + 1
                         logger.warning(
@@ -9978,6 +10128,7 @@ async def _backup_scheduler_loop(db) -> None:
                         _BACKUP_SCHEDULER_STATE["last_attempt_outcome"] = (
                             f"FAILED (attempt {attempts + 1}, no result returned)"
                         )
+                        await scheduler_mark_failed(db, "backup_scheduler_zip", slot_key, error="scheduled_zip_returned_no_result")
         except asyncio.CancelledError:
             raise
         except Exception as e:
@@ -10040,9 +10191,37 @@ async def _backup_scheduler_loop(db) -> None:
             )
         if should_fire_r2:
             try:
+                active_jobs = await get_active_backup_jobs(db)
+                overlap = classify_backup_overlap(active_jobs)
+                if overlap.get("restore_active"):
+                    logger.warning("[scheduled-backup] complete-archive deferred — restore job active")
+                    _BACKUP_SCHEDULER_STATE["last_attempt_outcome"] = "COMPLETE_ARCHIVE_DEFERRED_RESTORE_ACTIVE"
+                    await asyncio.sleep(300)
+                    continue
+                slot_key = backup_slot_key_for_hour(now)
+                job = await claim_backup_job(
+                    db,
+                    job_type="scheduled_backup",
+                    kind=BACKUP_JOB_KIND_COMPLETE_R2,
+                    slot_key=slot_key,
+                    trigger="scheduler_nightly",
+                    owner_id=scheduler_owner,
+                    metadata={"hour_bucket": hour_bucket, "hourly_requested": r2_hourly_requested, "hourly_effective": False},
+                )
+                if job is None:
+                    logger.warning(f"[scheduled-backup] duplicate complete-archive slot prevented: {slot_key}")
+                    await asyncio.sleep(300)
+                    continue
+                await start_backup_job(db, job["job_id"])
+                await heartbeat_backup_job(db, job["job_id"], extra={"stage": "preflight"})
                 logger.info(f"[scheduled-backup] firing complete-archive → R2 ({'hourly' if r2_hourly else 'nightly'}) bucket={hour_bucket}")
                 r2_res = await _run_complete_archive_to_r2(db)
                 if r2_res:
+                    if r2_res.get("deferred"):
+                        await fail_backup_job(db, job["job_id"], error=f"deferred:{r2_res.get('reason')}", result=r2_res, state="deferred")
+                        _BACKUP_SCHEDULER_STATE["last_attempt_outcome"] = "COMPLETE_ARCHIVE_DEFERRED_RESOURCE_GUARD"
+                        await asyncio.sleep(300)
+                        continue
                     _BACKUP_SCHEDULER_STATE["last_r2_complete_date"] = str(today)
                     _BACKUP_SCHEDULER_STATE["last_r2_complete_hour"] = hour_bucket
                     _BACKUP_SCHEDULER_STATE["last_r2_complete"] = {
@@ -10055,10 +10234,16 @@ async def _backup_scheduler_loop(db) -> None:
                         f"[scheduled-backup] complete archive in R2: "
                         f"{r2_res.get('r2_key')} · {(r2_res.get('size_bytes') or 0)/1024/1024:.1f} MB"
                     )
+                    await complete_backup_job(db, job["job_id"], outcome="ok", result=r2_res)
                 else:
                     logger.warning("[scheduled-backup] complete-archive → R2 returned no result")
+                    await fail_backup_job(db, job["job_id"], error="complete_archive_returned_no_result")
             except Exception as e:  # noqa: BLE001
                 logger.exception(f"[scheduled-backup] complete-archive → R2 failed: {e}")
+                try:
+                    await fail_backup_job(db, job["job_id"], error=repr(e))
+                except Exception:
+                    pass
 
         # WATCHDOG — runs every tick (cheap: one Mongo read), fires alarm
         # email if backups have been silent past the threshold. Rate-limited
@@ -11176,6 +11361,20 @@ async def admin_run_complete_backup_now(
     global _COMPLETE_R2_IN_PROGRESS
     if _COMPLETE_R2_IN_PROGRESS:
         raise HTTPException(409, "A complete archive is already in progress.")
+    active_jobs = await get_active_backup_jobs(db)
+    overlap = classify_backup_overlap(active_jobs)
+    if overlap.get("backup_active") or overlap.get("restore_active"):
+        raise HTTPException(409, "Another backup or restore job is already active.")
+    manual_job = await claim_backup_job(
+        db,
+        job_type="manual_backup",
+        kind=BACKUP_JOB_KIND_COMPLETE_R2,
+        slot_key=backup_slot_key_for_hour(datetime.now(timezone.utc)) + "::manual",
+        trigger="manual_admin",
+        metadata={"requested_by": "admin_run_complete_backup_now"},
+    )
+    if manual_job is None:
+        raise HTTPException(409, "A complete backup was already claimed for this slot.")
     _COMPLETE_R2_IN_PROGRESS = True
     _COMPLETE_R2_LAST["started_at"] = datetime.now(timezone.utc).isoformat()
     _COMPLETE_R2_LAST["finished_at"] = None
@@ -11184,21 +11383,38 @@ async def admin_run_complete_backup_now(
     async def _do_complete():
         global _COMPLETE_R2_IN_PROGRESS
         try:
+            await start_backup_job(db, manual_job["job_id"])
             res = await _run_complete_archive_to_r2(db)
             _COMPLETE_R2_LAST["finished_at"] = datetime.now(timezone.utc).isoformat()
             if res:
+                if res.get("deferred"):
+                    _COMPLETE_R2_LAST["outcome"] = f"deferred ({res.get('reason')})"
+                    await fail_backup_job(
+                        db,
+                        manual_job["job_id"],
+                        error=f"deferred:{res.get('reason')}",
+                        result=res,
+                        state="deferred",
+                    )
+                    return
                 _COMPLETE_R2_LAST["outcome"] = "ok"
                 _COMPLETE_R2_LAST["filename"] = res.get("filename")
                 _COMPLETE_R2_LAST["size_bytes"] = res.get("size_bytes")
                 _COMPLETE_R2_LAST["r2_key"] = res.get("r2_key")
                 _COMPLETE_R2_LAST["presigned_url"] = res.get("presigned_url")
                 _COMPLETE_R2_LAST["stats"] = res.get("stats")
+                await complete_backup_job(db, manual_job["job_id"], outcome="ok", result=res)
             else:
                 _COMPLETE_R2_LAST["outcome"] = "FAILED — see logs"
+                await fail_backup_job(db, manual_job["job_id"], error="manual_complete_backup_returned_no_result")
         except Exception as e:  # noqa: BLE001
             logger.exception(f"[manual-complete-r2] crashed: {e}")
             _COMPLETE_R2_LAST["outcome"] = f"EXCEPTION: {e!r}"
             _COMPLETE_R2_LAST["finished_at"] = datetime.now(timezone.utc).isoformat()
+            try:
+                await fail_backup_job(db, manual_job["job_id"], error=repr(e))
+            except Exception:
+                pass
         finally:
             _COMPLETE_R2_IN_PROGRESS = False
 
@@ -11252,6 +11468,7 @@ async def admin_complete_r2_state(_: bool = Depends(require_admin_strict)):
         "r2_hourly_requested": bool(_BACKUP_SCHEDULER_STATE.get("r2_hourly_requested")),
         "r2_hourly_effective": False,
         "r2_hourly_locked_off": True,
+        "backup_runtime": await _collect_backup_runtime_state(db),
     }
 
 
@@ -11469,6 +11686,76 @@ async def admin_backups_scheduler_state(_: bool = Depends(require_admin_strict))
         "scheduled_hours_utc": list(BACKUP_HOURS_UTC),
         "circuit_breaker_max_attempts_per_day": 3,
         "recent_health": recent_health,
+        "backup_runtime": state.get("backup_runtime") or await _collect_backup_runtime_state(db),
+    }
+
+
+@app.get("/api/admin/backup-trust-score")
+async def admin_backups_trust_score(_: bool = Depends(require_admin_strict)):
+    from lib.trust_score import compute_backup_trust_score  # noqa: PLC0415
+
+    def _coerce_iso_dt(raw):
+        if isinstance(raw, datetime):
+            return raw if raw.tzinfo else raw.replace(tzinfo=timezone.utc)
+        if isinstance(raw, str) and raw:
+            try:
+                return datetime.fromisoformat(raw.replace("Z", "+00:00"))
+            except Exception:
+                return None
+        return None
+
+    latest_complete = await db.backup_health.find_one(
+        {"mode": "complete-r2", "ok": True, "filename": {"$nin": [None, ""]}},
+        {"_id": 0, "ts": 1, "filename": 1, "size_bytes": 1},
+        sort=[("ts", -1)],
+    )
+    newest_r2_age_hours = None
+    latest_ts = _coerce_iso_dt((latest_complete or {}).get("ts"))
+    if latest_ts:
+        newest_r2_age_hours = round((datetime.now(timezone.utc) - latest_ts).total_seconds() / 3600.0, 2)
+
+    last_drill = await db.drill_runs.find_one({"state": "done"}, {"_id": 0}, sort=[("started_at", -1)])
+    drill_ts = _coerce_iso_dt((last_drill or {}).get("finished_at") or (last_drill or {}).get("started_at"))
+    restore_drill_age_days = None
+    if drill_ts:
+        restore_drill_age_days = round((datetime.now(timezone.utc) - drill_ts).total_seconds() / 86400.0, 2)
+
+    runtime = await _collect_backup_runtime_state(db)
+    failures_7d = await db.backup_health.count_documents({
+        "ok": False,
+        "ts": {"$gte": (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()},
+        "mode": {"$regex": "complete-r2|restore|verification", "$options": "i"},
+    })
+    usage_row = await db.backup_health.find_one(
+        {"mode": {"$in": ["r2-usage-alert", "r2-usage-warn"]}},
+        {"_id": 0, "mode": 1},
+        sort=[("ts", -1)],
+    )
+    bucket_usage_status = "GREEN"
+    if (usage_row or {}).get("mode") == "r2-usage-alert":
+        bucket_usage_status = "AMBER"
+
+    score = compute_backup_trust_score(
+        hourly_disabled=True,
+        newest_r2_age_hours=newest_r2_age_hours,
+        restore_drill_age_days=restore_drill_age_days,
+        restore_drill_ok=((last_drill or {}).get("outcome") == "ok"),
+        integrity_ok=bool(latest_complete),
+        overlap_blocked=bool((runtime.get("overlap") or {}).get("overlap_blocked")),
+        active_failures_7d=int(failures_7d or 0),
+        bucket_usage_status=bucket_usage_status,
+    )
+    return {
+        **score,
+        "production_activation_disabled": True,
+        "evidence": {
+            "latest_complete_backup": latest_complete,
+            "newest_r2_age_hours": newest_r2_age_hours,
+            "last_restore_drill": last_drill,
+            "restore_drill_age_days": restore_drill_age_days,
+            "runtime": runtime,
+            "bucket_usage_status": bucket_usage_status,
+        },
     }
 
 
@@ -11855,14 +12142,56 @@ async def exports_restore(
     The zip's `backup_manifest.json` is used to validate that this is a real
     MASCI backup before we touch any data.
     """
+    active_jobs = await get_active_backup_jobs(db)
+    overlap = classify_backup_overlap(active_jobs)
+    if overlap.get("backup_active"):
+        raise HTTPException(409, "Restore blocked while a backup job is active.")
+    restore_job = await claim_backup_job(
+        db,
+        job_type="restore_operation",
+        kind=BACKUP_JOB_KIND_RESTORE_IMPORT,
+        slot_key=f"restore::{datetime.now(timezone.utc).isoformat()}::{uuid.uuid4().hex[:6]}",
+        trigger="admin_restore_endpoint",
+        metadata={"merge": bool(merge), "dry_run": bool(dry_run)},
+    )
+    if restore_job is None:
+        raise HTTPException(409, "Restore slot claim failed.")
+    await start_backup_job(db, restore_job["job_id"])
     # 1. Read + validate the upload
+    spool_path = None
     try:
-        payload = await file.read()
+        BACKUP_COMPLETE_TMP_DIR.mkdir(parents=True, exist_ok=True)
+        spool_path = BACKUP_COMPLETE_TMP_DIR / f"restore_upload_{uuid.uuid4().hex}.zip"
+        payload_size = 0
+        with spool_path.open("wb") as handle:
+            while True:
+                chunk = await file.read(BACKUP_RESTORE_STREAM_CHUNK_BYTES)
+                if not chunk:
+                    break
+                payload_size += len(chunk)
+                if payload_size > _RESTORE_MAX_BYTES:
+                    raise HTTPException(
+                        413,
+                        f"Backup file exceeds the configured restore ceiling ({_RESTORE_MAX_BYTES // (1024 * 1024)} MB).",
+                    )
+                handle.write(chunk)
     except Exception as e:
+        try:
+            await fail_backup_job(db, restore_job["job_id"], error=f"restore_upload_read_failed:{e!r}")
+        except Exception:
+            pass
         raise HTTPException(400, f"Failed to read upload: {e}")
-    if not payload:
+    if not spool_path or payload_size <= 0:
+        try:
+            await fail_backup_job(db, restore_job["job_id"], error="empty_upload")
+        except Exception:
+            pass
         raise HTTPException(400, "Empty upload")
-    if len(payload) > _RESTORE_MAX_BYTES:
+    if payload_size > _RESTORE_MAX_BYTES:
+        try:
+            await fail_backup_job(db, restore_job["job_id"], error="upload_too_large")
+        except Exception:
+            pass
         raise HTTPException(
             413,
             f"Backup file exceeds the configured restore ceiling "
@@ -11873,8 +12202,12 @@ async def exports_restore(
         )
 
     try:
-        zf = zipfile.ZipFile(io.BytesIO(payload), "r")
+        zf = zipfile.ZipFile(str(spool_path), "r")
     except zipfile.BadZipFile:
+        try:
+            await fail_backup_job(db, restore_job["job_id"], error="bad_zip_file")
+        except Exception:
+            pass
         raise HTTPException(400, "Uploaded file is not a valid ZIP archive")
 
     names = set(zf.namelist())
@@ -12129,6 +12462,12 @@ async def exports_restore(
             "disk_files": disk_restored,
         }
         await _record_audit("accepted", f"dry_run merge={merge}; collections={len(preflight_collections)}")
+        await complete_backup_job(db, restore_job["job_id"], outcome="dry_run_ok", result=result, state="completed")
+        try:
+            if spool_path and spool_path.exists():
+                spool_path.unlink()
+        except Exception:
+            pass
         return result
 
     # 3. Write back to MongoDB.
@@ -12234,6 +12573,12 @@ async def exports_restore(
         "accepted" if total_failed == 0 else "partial_failure",
         f"merge={merge}; processed={result['total_processed']}; failed={total_failed}",
     )
+    await complete_backup_job(db, restore_job["job_id"], outcome="ok" if total_failed == 0 else "partial_failure", result=result, state="completed")
+    try:
+        if spool_path and spool_path.exists():
+            spool_path.unlink()
+    except Exception:
+        pass
     return result
 
 
@@ -13209,6 +13554,10 @@ async def _ensure_scheduler_lock_indexes_at_startup():
         await _ensure_scheduler_runs_indexes(db)
     except Exception as e:  # noqa: BLE001
         logger.warning(f"[scheduler-runs] index ensure failed (non-fatal): {e}")
+    try:
+        await ensure_backup_runtime_indexes(db)
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[backup-runtime] index ensure failed (non-fatal): {e}")
 
 
 @register_lifecycle_step("index-ensure")

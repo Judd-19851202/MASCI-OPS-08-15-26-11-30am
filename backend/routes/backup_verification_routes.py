@@ -44,7 +44,7 @@ def build_backup_verification_router(db, require_admin_strict_dep: Callable) -> 
         raw = body.get("recipients") if isinstance(body, dict) else None
         if isinstance(raw, list) and raw:
             force_recipients = [str(r).strip() for r in raw if str(r).strip()]
-        result = await send_verification_email(db, force_recipients=force_recipients)
+        result = await send_verification_email(db, force_recipients=force_recipients, manual=True)
         # Stamp the manual-run marker as well so the weekly cron doesn't
         # double-send right after a manual one.
         try:
@@ -62,7 +62,7 @@ def build_backup_verification_router(db, require_admin_strict_dep: Callable) -> 
             err = result.get("error") or ""
             if "RESEND_API_KEY" in err or "recipient" in err.lower():
                 raise HTTPException(status_code=400, detail=err)
-        return {"ok": result.get("sent", False), **result}
+        return {"ok": bool(result.get("sent") or result.get("report")), **result}
 
     @router.get("/state", dependencies=[Depends(require_admin_strict_dep)])
     async def cron_state() -> Dict[str, Any]:

@@ -112,6 +112,7 @@ export default function AdminBackupVerificationPanel() {
   const tone = verdict ? VERDICT_TONE[verdict] : null;
   const r2 = report?.r2 || {};
   const ledger = report?.ledger || {};
+  const jobs = report?.backup_jobs || {};
   const issues = [...(r2.issues || []), ...(ledger.issues || [])];
 
   return (
@@ -263,6 +264,27 @@ export default function AdminBackupVerificationPanel() {
               </div>
             </div>
           </div>
+
+          {(jobs.recent_complete_jobs || []).length > 0 && (
+            <div className="mt-4 border-t border-slate-200 pt-3" data-testid="bv-job-evidence">
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold mb-2">
+                Recent complete backup job evidence
+              </div>
+              <div className="space-y-2 text-xs text-slate-700">
+                {(jobs.recent_complete_jobs || []).map((job) => (
+                  <div key={job.job_id} className="rounded border border-slate-200 bg-white px-3 py-2" data-testid={`bv-job-${job.job_id}`}>
+                    <div className="flex items-center justify-between gap-3 flex-wrap">
+                      <span className="font-mono">{job.slot_key}</span>
+                      <span className="font-semibold uppercase tracking-wide">{job.state}</span>
+                    </div>
+                    <div className="mt-1 text-slate-500 break-all">
+                      trigger={job.trigger} · outcome={job.outcome || "—"} · updated={job.updated_at || "—"}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </Card>

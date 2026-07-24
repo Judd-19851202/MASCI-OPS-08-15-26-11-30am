@@ -506,6 +506,12 @@ def build_recovery_dashboard_router(
             )
         except Exception:
             pass
+        backup_runtime = {}
+        try:
+            from server import _collect_backup_runtime_state  # noqa: PLC0415
+            backup_runtime = await _collect_backup_runtime_state(db)
+        except Exception:
+            backup_runtime = {}
         scheduler_alive = bool(canonical_scheduler.get("alive"))
 
         # --- hourly cadence flag (read-only — never modifies) ---
@@ -546,6 +552,12 @@ def build_recovery_dashboard_router(
                     f"No canonical scheduler heartbeat or recent scheduler activity within "
                     f"{canonical_scheduler.get('heartbeat_window_minutes', SCHEDULER_HEARTBEAT_WINDOW_MINUTES)} minutes"
                 ),
+            })
+        if (backup_runtime.get("overlap") or {}).get("overlap_blocked"):
+            warnings.append({
+                "kind": "backup-restore-overlap",
+                "severity": "amber",
+                "message": "Backup and restore overlap detected or blocked by runtime guard",
             })
         if (os.environ.get("PHOTO_COVERAGE_GAP_OPEN", "false") or "false").lower() in ("1", "true", "yes"):
             warnings.append({
@@ -594,6 +606,7 @@ def build_recovery_dashboard_router(
                 "seconds_since_last_tick": canonical_scheduler.get("seconds_since_last_tick"),
                 "heartbeat_window_minutes": canonical_scheduler.get("heartbeat_window_minutes"),
                 "backup_fallback_window_minutes": canonical_scheduler.get("backup_fallback_window_minutes"),
+                "backup_runtime": backup_runtime,
             },
             # TRACK 27.05 · P0-4 · disk preflight state, surfaced so OCC
             # can display "storage will refuse new writes below N free".
