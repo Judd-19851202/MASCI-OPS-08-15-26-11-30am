@@ -1,0 +1,91 @@
+{
+  "timestamp": "2026-07-24T02:26:22.863320+00:00",
+  "base_url": "https://backup-forensics.preview.emergentagent.com/api",
+  "test_user": "cert.dispatch@example.com",
+  "summary": {
+    "total": 4,
+    "passed": 4,
+    "failed": 0,
+    "skipped": 0
+  },
+  "results": {
+    "dispatch_login": {
+      "test": "dispatch_login",
+      "status": "PASS",
+      "token": "bd4425f3-bf30-473a-bc05-5ee8b181c852.8fa879a5de43b879ddac818a35c5d9f324d0ef27266de13ee91a013b2fbac511",
+      "user": {
+        "id": "bd4425f3-bf30-473a-bc05-5ee8b181c852",
+        "email": "cert.dispatch@example.com",
+        "name": "Cert Dispatch Representative",
+        "disabled": false,
+        "must_change_password": true,
+        "created_at": "2026-06-15T02:08:58.646789+00:00",
+        "updated_at": "2026-07-21T17:34:26.428054+00:00",
+        "linked_to_directory": true,
+        "source": "directory-shadow",
+        "password_set_at": "2026-06-16T10:52:25.787103+00:00",
+        "temp_password_issued_at": "2026-06-16T10:52:25.843714+00:00",
+        "temp_password_issued_by": "admin-token",
+        "last_login_at": "2026-07-24T02:23:06.769629+00:00",
+        "last_login_ip": "10.208.151.66",
+        "has_password": true
+      },
+      "must_change_password": true,
+      "kind": "dispatch",
+      "response": {
+        "token": "bd4425f3-bf30-473a-bc05-5ee8b181c852.8fa879a5de43b879ddac818a35c5d9f324d0ef27266de13ee91a013b2fbac511",
+        "user": {
+          "id": "bd4425f3-bf30-473a-bc05-5ee8b181c852",
+          "email": "cert.dispatch@example.com",
+          "name": "Cert Dispatch Representative",
+          "disabled": false,
+          "must_change_password": true,
+          "created_at": "2026-06-15T02:08:58.646789+00:00",
+          "updated_at": "2026-07-21T17:34:26.428054+00:00",
+          "linked_to_directory": true,
+          "source": "directory-shadow",
+          "password_set_at": "2026-06-16T10:52:25.787103+00:00",
+          "temp_password_issued_at": "2026-06-16T10:52:25.843714+00:00",
+          "temp_password_issued_by": "admin-token",
+          "last_login_at": "2026-07-24T02:23:06.769629+00:00",
+          "last_login_ip": "10.208.151.66",
+          "has_password": true
+        },
+        "must_change_password": true,
+        "kind": "dispatch"
+      }
+    },
+    "response_contract": {
+      "test": "response_contract",
+      "status": "PASS"
+    },
+    "must_change_password": {
+      "test": "must_change_password",
+      "status": "PASS",
+      "must_change_password": true
+    },
+    "no_regression": {
+      "test": "no_regression",
+      "status": "PASS",
+      "me_response": {
+        "user": {
+          "id": "bd4425f3-bf30-473a-bc05-5ee8b181c852",
+          "email": "cert.dispatch@example.com",
+          "name": "Cert Dispatch Representative",
+          "disabled": false,
+          "must_change_password": true,
+          "created_at": "2026-06-15T02:08:58.646789+00:00",
+          "updated_at": "2026-07-21T17:34:26.428054+00:00",
+          "linked_to_directory": true,
+          "source": "directory-shadow",
+          "password_set_at": "2026-06-16T10:52:25.787103+00:00",
+          "temp_password_issued_at": "2026-06-16T10:52:25.843714+00:00",
+          "temp_password_issued_by": "admin-token",
+          "last_login_at": "2026-07-24T02:26:22.507340+00:00",
+          "last_login_ip": "10.208.151.66",
+          "has_password": true
+        }
+      }
+    }
+  }
+}
