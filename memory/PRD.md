@@ -187,3 +187,11 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - Preview identity-preservation diff passed for all pre-existing non-fixture accounts: no deletions, no disablement changes, no portal-array changes, no super-admin flag changes, and no password-hash presence changes.
 - Admin-only verification partially passed and exposed an existing policy mismatch relative to the requested acceptance criteria: the current canonical frontend/backend contract still allows admin users into PM and Shop routes by design, while HR, Safety, Dispatch, and Field Leadership stayed blocked.
 - Because that PM/Shop admin reach is pre-existing canonical behavior and changing it would exceed the authorized bounded repair scope, this track remains blocked from redeployment approval until that policy expectation is resolved explicitly.
+
+## 2026-07-24 — PM/Shop Authorization Policy Repair (Resolved)
+- Canonical policy clarified: Super Admin retains universal access; ordinary Admin is not Super Admin and may reach PM/Shop only through explicit PM/Shop assignment.
+- Implemented bounded PM/Shop repair only: PM portal routes now require PM token (or true Super Admin fallback), Shop portal routes now require Shop token (or true Super Admin fallback), and portal-specific PM/Shop login fallbacks no longer let ordinary Admin inherit access.
+- Added Preview-only explicit-grant fixtures for verification: `ops8-admin-pm-preview@example.com`, `ops8-admin-shop-preview@example.com`, `ops8-pm-shop-preview@example.com`.
+- Full policy matrix passed in Preview: Super Admin full access; Admin-only denied PM/Shop; Admin+PM allowed only Admin+PM; Admin+Shop allowed only Admin+Shop; PM+Shop allowed PM+Shop only; PM-only and Shop-only remained correctly scoped.
+- Existing pre-fixture Preview identities remained unchanged after the repair and fixture creation (`existing_accounts_changed_count = 0`, `new_nonfixture_accounts_after_count = 0`).
+- Core regressions still passed: `/api/version`, `/api/health/full`, deployment readiness, OCC trust events, public/protected Daily Report boundary, and the previously completed dual-token session repair.
