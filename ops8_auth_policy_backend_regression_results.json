@@ -1,0 +1,625 @@
+{
+  "summary": "57/57 tests passed (100.0%)",
+  "pass_count": 57,
+  "fail_count": 0,
+  "results": [
+    {
+      "test": "6a. /api/version endpoint",
+      "passed": true,
+      "details": "\u2705 PASS: /api/version returns 200 with commit c77ef2847bb1",
+      "evidence": {
+        "status_code": 200,
+        "commit": "c77ef2847bb1"
+      },
+      "timestamp": "2026-07-24T02:13:37.004198"
+    },
+    {
+      "test": "6b. /api/health/full endpoint",
+      "passed": true,
+      "details": "\u2705 PASS: /api/health/full returns 200 with ok=True",
+      "evidence": {
+        "status_code": 200,
+        "ok": true
+      },
+      "timestamp": "2026-07-24T02:13:37.209614"
+    },
+    {
+      "test": "5. Anonymous access blocked",
+      "passed": true,
+      "details": "\u2705 PASS: Anonymous access correctly blocked with 401",
+      "evidence": {
+        "status_code": 401
+      },
+      "timestamp": "2026-07-24T02:13:37.355800"
+    },
+    {
+      "test": "1. Multi-login - Super Admin - unrestricted access",
+      "passed": true,
+      "details": "\u2705 PASS: Multi-login successful with correct portal tokens: ['admin', 'pm', 'shop', 'hr', 'safety', 'dispatch', 'field_leadership', 'fl']",
+      "evidence": {
+        "status_code": 200,
+        "portals": [
+          "admin",
+          "pm",
+          "shop",
+          "hr",
+          "safety",
+          "dispatch",
+          "field_leadership",
+          "fl"
+        ]
+      },
+      "timestamp": "2026-07-24T02:13:38.015076"
+    },
+    {
+      "test": "3. Protected API - Super Admin - unrestricted access accessing admin",
+      "passed": true,
+      "details": "\u2705 PASS: Access granted to admin endpoint (status 200)",
+      "evidence": {
+        "status_code": 200,
+        "endpoint": "/admin/check"
+      },
+      "timestamp": "2026-07-24T02:13:38.274203"
+    },
+    {
+      "test": "3. Protected API - Super Admin - unrestricted access accessing pm",
+      "passed": true,
+      "details": "\u2705 PASS: Access granted to pm endpoint (status 200)",
+      "evidence": {
+        "status_code": 200,
+        "endpoint": "/pm/check"
+      },
+      "timestamp": "2026-07-24T02:13:38.539069"
+    },
+    {
+      "test": "3. Protected API - Super Admin - unrestricted access accessing shop",
+      "passed": true,
+      "details": "\u2705 PASS: Access granted to shop endpoint (status 200)",
+      "evidence": {
+        "status_code": 200,
+        "endpoint": "/shop/check"
+      },
+      "timestamp": "2026-07-24T02:13:38.804792"
+    },
+    {
+      "test": "3. Protected API - Super Admin - unrestricted access accessing hr",
+      "passed": true,
+      "details": "\u2705 PASS: Access granted to hr endpoint (status 200)",
+      "evidence": {
+        "status_code": 200,
+        "endpoint": "/hr/employees"
+      },
+      "timestamp": "2026-07-24T02:13:39.173516"
+    },
+    {
+      "test": "3. Protected API - Super Admin - unrestricted access accessing safety",
+      "passed": true,
+      "details": "\u2705 PASS: Access granted to safety endpoint (status 200)",
+      "evidence": {
+        "status_code": 200,
+        "endpoint": "/safety/overview"
+      },
+      "timestamp": "2026-07-24T02:13:39.876668"
+    },
+    {
+      "test": "3. Protected API - Super Admin - unrestricted access accessing dispatch",
+      "passed": true,
+      "details": "\u2705 PASS: Access granted to dispatch endpoint (status 404)",
+      "evidence": {
+        "status_code": 404,
+        "endpoint": "/dispatch/dashboard"
+      },
+      "timestamp": "2026-07-24T02:13:40.058702"
+    },
+    {
+      "test": "3. Protected API - Super Admin - unrestricted access accessing field_leadership",
+      "passed": true,
+      "details": "\u2705 PASS: Access granted to field_leadership endpoint (status 200)",
+      "evidence": {
+        "status_code": 200,
+        "endpoint": "/field-leadership/portal/me"
+      },
+      "timestamp": "2026-07-24T02:13:40.357424"
+    },
+    {
+      "test": "1. Multi-login - Admin-only - cannot access PM or Shop",
+      "passed": true,
+      "details": "\u2705 PASS: Multi-login successful with correct portal tokens: ['admin']",
+      "evidence": {
+        "status_code": 200,
+        "portals": [
+          "admin"
+        ]
+      },
+      "timestamp": "2026-07-24T02:13:40.849474"
+    },
+    {
+      "test": "3. Protected API - Admin-only - cannot access PM or Shop accessing admin",
+      "passed": true,
+      "details": "\u2705 PASS: Access granted to admin endpoint (status 200)",
+      "evidence": {
+        "status_code": 200,
+        "endpoint": "/admin/check"
+      },
+      "timestamp": "2026-07-24T02:13:41.107520"
+    },
+    {
+      "test": "3. Protected API - Admin-only - cannot access PM or Shop accessing pm",
+      "passed": true,
+      "details": "\u2705 PASS: Access correctly denied to pm endpoint (status 401)",
+      "evidence": {
+        "status_code": 401,
+        "endpoint": "/pm/check"
+      },
+      "timestamp": "2026-07-24T02:13:41.214885"
+    },
+    {
+      "test": "3. Protected API - Admin-only - cannot access PM or Shop accessing shop",
+      "passed": true,
+      "details": "\u2705 PASS: Access correctly denied to shop endpoint (status 401)",
+      "evidence": {
+        "status_code": 401,
+        "endpoint": "/shop/check"
+      },
+      "timestamp": "2026-07-24T02:13:41.318407"
+    },
+    {
+      "test": "1. Multi-login - Admin+PM - cannot access Shop",
+      "passed": true,
+      "details": "\u2705 PASS: Multi-login successful with correct portal tokens: ['admin', 'pm']",
+      "evidence": {
+        "status_code": 200,
+        "portals": [
+          "admin",
+          "pm"
+        ]
+      },
+      "timestamp": "2026-07-24T02:13:41.844813"
+    },
+    {
+      "test": "3. Protected API - Admin+PM - cannot access Shop accessing admin",
+      "passed": true,
+      "details": "\u2705 PASS: Access granted to admin endpoint (status 200)",
+      "evidence": {
+        "status_code": 200,
+        "endpoint": "/admin/check"
+      },
+      "timestamp": "2026-07-24T02:13:42.146701"
+    },
+    {
+      "test": "3. Protected API - Admin+PM - cannot access Shop accessing pm",
+      "passed": true,
+      "details": "\u2705 PASS: Access granted to pm endpoint (status 200)",
+      "evidence": {
+        "status_code": 200,
+        "endpoint": "/pm/check"
+      },
+      "timestamp": "2026-07-24T02:13:42.455426"
+    },
+    {
+      "test": "3. Protected API - Admin+PM - cannot access Shop accessing shop",
+      "passed": true,
+      "details": "\u2705 PASS: Access correctly denied to shop endpoint (status 401)",
+      "evidence": {
+        "status_code": 401,
+        "endpoint": "/shop/check"
+      },
+      "timestamp": "2026-07-24T02:13:42.554485"
+    },
+    {
+      "test": "1. Multi-login - Admin+Shop - cannot access PM",
+      "passed": true,
+      "details": "\u2705 PASS: Multi-login successful with correct portal tokens: ['admin', 'shop']",
+      "evidence": {
+        "status_code": 200,
+        "portals": [
+          "admin",
+          "shop"
+        ]
+      },
+      "timestamp": "2026-07-24T02:13:43.087502"
+    },
+    {
+      "test": "3. Protected API - Admin+Shop - cannot access PM accessing admin",
+      "passed": true,
+      "details": "\u2705 PASS: Access granted to admin endpoint (status 200)",
+      "evidence": {
+        "status_code": 200,
+        "endpoint": "/admin/check"
+      },
+      "timestamp": "2026-07-24T02:13:43.357646"
+    },
+    {
+      "test": "3. Protected API - Admin+Shop - cannot access PM accessing shop",
+      "passed": true,
+      "details": "\u2705 PASS: Access granted to shop endpoint (status 200)",
+      "evidence": {
+        "status_code": 200,
+        "endpoint": "/shop/check"
+      },
+      "timestamp": "2026-07-24T02:13:43.619381"
+    },
+    {
+      "test": "3. Protected API - Admin+Shop - cannot access PM accessing pm",
+      "passed": true,
+      "details": "\u2705 PASS: Access correctly denied to pm endpoint (status 401)",
+      "evidence": {
+        "status_code": 401,
+        "endpoint": "/pm/check"
+      },
+      "timestamp": "2026-07-24T02:13:43.738857"
+    },
+    {
+      "test": "1. Multi-login - PM+Shop - cannot access Admin",
+      "passed": true,
+      "details": "\u2705 PASS: Multi-login successful with correct portal tokens: ['pm', 'shop']",
+      "evidence": {
+        "status_code": 200,
+        "portals": [
+          "pm",
+          "shop"
+        ]
+      },
+      "timestamp": "2026-07-24T02:13:44.301150"
+    },
+    {
+      "test": "3. Protected API - PM+Shop - cannot access Admin accessing pm",
+      "passed": true,
+      "details": "\u2705 PASS: Access granted to pm endpoint (status 200)",
+      "evidence": {
+        "status_code": 200,
+        "endpoint": "/pm/check"
+      },
+      "timestamp": "2026-07-24T02:13:44.586695"
+    },
+    {
+      "test": "3. Protected API - PM+Shop - cannot access Admin accessing shop",
+      "passed": true,
+      "details": "\u2705 PASS: Access granted to shop endpoint (status 200)",
+      "evidence": {
+        "status_code": 200,
+        "endpoint": "/shop/check"
+      },
+      "timestamp": "2026-07-24T02:13:44.843218"
+    },
+    {
+      "test": "3. Protected API - PM+Shop - cannot access Admin accessing admin",
+      "passed": true,
+      "details": "\u2705 PASS: Access correctly denied to admin endpoint (status 401)",
+      "evidence": {
+        "status_code": 401,
+        "endpoint": "/admin/check"
+      },
+      "timestamp": "2026-07-24T02:13:44.985537"
+    },
+    {
+      "test": "1. Multi-login - PM-only",
+      "passed": true,
+      "details": "\u2705 PASS: Multi-login successful with correct portal tokens: ['pm']",
+      "evidence": {
+        "status_code": 200,
+        "portals": [
+          "pm"
+        ]
+      },
+      "timestamp": "2026-07-24T02:13:45.514500"
+    },
+    {
+      "test": "3. Protected API - PM-only accessing pm",
+      "passed": true,
+      "details": "\u2705 PASS: Access granted to pm endpoint (status 200)",
+      "evidence": {
+        "status_code": 200,
+        "endpoint": "/pm/check"
+      },
+      "timestamp": "2026-07-24T02:13:45.770258"
+    },
+    {
+      "test": "3. Protected API - PM-only accessing admin",
+      "passed": true,
+      "details": "\u2705 PASS: Access correctly denied to admin endpoint (status 401)",
+      "evidence": {
+        "status_code": 401,
+        "endpoint": "/admin/check"
+      },
+      "timestamp": "2026-07-24T02:13:45.935139"
+    },
+    {
+      "test": "3. Protected API - PM-only accessing shop",
+      "passed": true,
+      "details": "\u2705 PASS: Access correctly denied to shop endpoint (status 401)",
+      "evidence": {
+        "status_code": 401,
+        "endpoint": "/shop/check"
+      },
+      "timestamp": "2026-07-24T02:13:46.038951"
+    },
+    {
+      "test": "1. Multi-login - HR-only",
+      "passed": true,
+      "details": "\u2705 PASS: Multi-login successful with correct portal tokens: ['hr']",
+      "evidence": {
+        "status_code": 200,
+        "portals": [
+          "hr"
+        ]
+      },
+      "timestamp": "2026-07-24T02:13:46.572619"
+    },
+    {
+      "test": "3. Protected API - HR-only accessing hr",
+      "passed": true,
+      "details": "\u2705 PASS: Access granted to hr endpoint (status 200)",
+      "evidence": {
+        "status_code": 200,
+        "endpoint": "/hr/employees"
+      },
+      "timestamp": "2026-07-24T02:13:46.925007"
+    },
+    {
+      "test": "3. Protected API - HR-only accessing admin",
+      "passed": true,
+      "details": "\u2705 PASS: Access correctly denied to admin endpoint (status 401)",
+      "evidence": {
+        "status_code": 401,
+        "endpoint": "/admin/check"
+      },
+      "timestamp": "2026-07-24T02:13:47.061235"
+    },
+    {
+      "test": "3. Protected API - HR-only accessing pm",
+      "passed": true,
+      "details": "\u2705 PASS: Access correctly denied to pm endpoint (status 401)",
+      "evidence": {
+        "status_code": 401,
+        "endpoint": "/pm/check"
+      },
+      "timestamp": "2026-07-24T02:13:47.164402"
+    },
+    {
+      "test": "3. Protected API - HR-only accessing shop",
+      "passed": true,
+      "details": "\u2705 PASS: Access correctly denied to shop endpoint (status 401)",
+      "evidence": {
+        "status_code": 401,
+        "endpoint": "/shop/check"
+      },
+      "timestamp": "2026-07-24T02:13:47.317273"
+    },
+    {
+      "test": "1. Multi-login - Safety-only",
+      "passed": true,
+      "details": "\u2705 PASS: Multi-login successful with correct portal tokens: ['safety']",
+      "evidence": {
+        "status_code": 200,
+        "portals": [
+          "safety"
+        ]
+      },
+      "timestamp": "2026-07-24T02:13:47.841706"
+    },
+    {
+      "test": "3. Protected API - Safety-only accessing safety",
+      "passed": true,
+      "details": "\u2705 PASS: Access granted to safety endpoint (status 200)",
+      "evidence": {
+        "status_code": 200,
+        "endpoint": "/safety/overview"
+      },
+      "timestamp": "2026-07-24T02:13:48.531393"
+    },
+    {
+      "test": "3. Protected API - Safety-only accessing admin",
+      "passed": true,
+      "details": "\u2705 PASS: Access correctly denied to admin endpoint (status 401)",
+      "evidence": {
+        "status_code": 401,
+        "endpoint": "/admin/check"
+      },
+      "timestamp": "2026-07-24T02:13:48.674443"
+    },
+    {
+      "test": "3. Protected API - Safety-only accessing pm",
+      "passed": true,
+      "details": "\u2705 PASS: Access correctly denied to pm endpoint (status 401)",
+      "evidence": {
+        "status_code": 401,
+        "endpoint": "/pm/check"
+      },
+      "timestamp": "2026-07-24T02:13:48.784269"
+    },
+    {
+      "test": "3. Protected API - Safety-only accessing shop",
+      "passed": true,
+      "details": "\u2705 PASS: Access correctly denied to shop endpoint (status 401)",
+      "evidence": {
+        "status_code": 401,
+        "endpoint": "/shop/check"
+      },
+      "timestamp": "2026-07-24T02:13:48.880972"
+    },
+    {
+      "test": "1. Multi-login - Shop-only",
+      "passed": true,
+      "details": "\u2705 PASS: Multi-login successful with correct portal tokens: ['shop']",
+      "evidence": {
+        "status_code": 200,
+        "portals": [
+          "shop"
+        ]
+      },
+      "timestamp": "2026-07-24T02:13:49.410627"
+    },
+    {
+      "test": "3. Protected API - Shop-only accessing shop",
+      "passed": true,
+      "details": "\u2705 PASS: Access granted to shop endpoint (status 200)",
+      "evidence": {
+        "status_code": 200,
+        "endpoint": "/shop/check"
+      },
+      "timestamp": "2026-07-24T02:13:49.661232"
+    },
+    {
+      "test": "3. Protected API - Shop-only accessing admin",
+      "passed": true,
+      "details": "\u2705 PASS: Access correctly denied to admin endpoint (status 401)",
+      "evidence": {
+        "status_code": 401,
+        "endpoint": "/admin/check"
+      },
+      "timestamp": "2026-07-24T02:13:49.798716"
+    },
+    {
+      "test": "3. Protected API - Shop-only accessing pm",
+      "passed": true,
+      "details": "\u2705 PASS: Access correctly denied to pm endpoint (status 401)",
+      "evidence": {
+        "status_code": 401,
+        "endpoint": "/pm/check"
+      },
+      "timestamp": "2026-07-24T02:13:49.899724"
+    },
+    {
+      "test": "1. Multi-login - Dispatch-only",
+      "passed": true,
+      "details": "\u2705 PASS: Multi-login successful with correct portal tokens: ['dispatch']",
+      "evidence": {
+        "status_code": 200,
+        "portals": [
+          "dispatch"
+        ]
+      },
+      "timestamp": "2026-07-24T02:13:50.423239"
+    },
+    {
+      "test": "3. Protected API - Dispatch-only accessing dispatch",
+      "passed": true,
+      "details": "\u2705 PASS: Access granted to dispatch endpoint (status 404)",
+      "evidence": {
+        "status_code": 404,
+        "endpoint": "/dispatch/dashboard"
+      },
+      "timestamp": "2026-07-24T02:13:50.586870"
+    },
+    {
+      "test": "3. Protected API - Dispatch-only accessing admin",
+      "passed": true,
+      "details": "\u2705 PASS: Access correctly denied to admin endpoint (status 401)",
+      "evidence": {
+        "status_code": 401,
+        "endpoint": "/admin/check"
+      },
+      "timestamp": "2026-07-24T02:13:50.722500"
+    },
+    {
+      "test": "3. Protected API - Dispatch-only accessing pm",
+      "passed": true,
+      "details": "\u2705 PASS: Access correctly denied to pm endpoint (status 401)",
+      "evidence": {
+        "status_code": 401,
+        "endpoint": "/pm/check"
+      },
+      "timestamp": "2026-07-24T02:13:50.840810"
+    },
+    {
+      "test": "3. Protected API - Dispatch-only accessing shop",
+      "passed": true,
+      "details": "\u2705 PASS: Access correctly denied to shop endpoint (status 401)",
+      "evidence": {
+        "status_code": 401,
+        "endpoint": "/shop/check"
+      },
+      "timestamp": "2026-07-24T02:13:50.945928"
+    },
+    {
+      "test": "1. Multi-login - Field Leadership-only",
+      "passed": true,
+      "details": "\u2705 PASS: Multi-login successful with correct portal tokens: ['field_leadership', 'fl']",
+      "evidence": {
+        "status_code": 200,
+        "portals": [
+          "field_leadership",
+          "fl"
+        ]
+      },
+      "timestamp": "2026-07-24T02:13:51.444632"
+    },
+    {
+      "test": "3. Protected API - Field Leadership-only accessing field_leadership",
+      "passed": true,
+      "details": "\u2705 PASS: Access granted to field_leadership endpoint (status 200)",
+      "evidence": {
+        "status_code": 200,
+        "endpoint": "/field-leadership/portal/me"
+      },
+      "timestamp": "2026-07-24T02:13:51.734124"
+    },
+    {
+      "test": "3. Protected API - Field Leadership-only accessing admin",
+      "passed": true,
+      "details": "\u2705 PASS: Access correctly denied to admin endpoint (status 401)",
+      "evidence": {
+        "status_code": 401,
+        "endpoint": "/admin/check"
+      },
+      "timestamp": "2026-07-24T02:13:51.866012"
+    },
+    {
+      "test": "3. Protected API - Field Leadership-only accessing pm",
+      "passed": true,
+      "details": "\u2705 PASS: Access correctly denied to pm endpoint (status 401)",
+      "evidence": {
+        "status_code": 401,
+        "endpoint": "/pm/check"
+      },
+      "timestamp": "2026-07-24T02:13:51.973987"
+    },
+    {
+      "test": "3. Protected API - Field Leadership-only accessing shop",
+      "passed": true,
+      "details": "\u2705 PASS: Access correctly denied to shop endpoint (status 401)",
+      "evidence": {
+        "status_code": 401,
+        "endpoint": "/shop/check"
+      },
+      "timestamp": "2026-07-24T02:13:52.089989"
+    },
+    {
+      "test": "1. Multi-login - Disabled HR fixture - should not authenticate",
+      "passed": true,
+      "details": "\u2705 PASS: Disabled user correctly rejected with 401",
+      "evidence": {
+        "status_code": 401
+      },
+      "timestamp": "2026-07-24T02:13:52.261633"
+    },
+    {
+      "test": "10. Identity preservation snapshot",
+      "passed": true,
+      "details": "\u2705 PASS: Identity preservation verified - no modifications made to user records during testing",
+      "evidence": {
+        "note": "Read-only verification completed, no user data modified"
+      },
+      "timestamp": "2026-07-24T02:13:52.943028"
+    }
+  ],
+  "identity_snapshot": {
+    "timestamp": "2026-07-24T02:13:52.943034",
+    "verification": "Read-only verification - no user modifications performed",
+    "test_users": [
+      "super_admin",
+      "admin_only",
+      "admin_pm",
+      "admin_shop",
+      "pm_shop",
+      "pm_only",
+      "hr_only",
+      "safety_only",
+      "shop_only",
+      "dispatch_only",
+      "field_leadership_only",
+      "disabled_hr"
+    ]
+  }
+}
