@@ -3,8 +3,8 @@
 ## 1. Title Page
 
 **Document Name:** MASCI OPS — Business Continuity & Survivability System Constitution  
-**Version:** 1.0 Freeze Amendment Candidate  
-**Status:** Constitutional freeze amendment candidate; formal adoption pending  
+**Version:** 1.0  
+**Status:** Adopted and frozen constitutional standard  
 **Scope:** Platform-wide BCSS governing standard  
 **Execution posture:** Documentation only. No implementation. No remediation execution. No deployment. No production activation.
 
@@ -15,24 +15,36 @@
 | Field | Value |
 |---|---|
 | Document name | MASCI OPS — Business Continuity & Survivability System Constitution |
-| Version | 1.0 Freeze Amendment Candidate |
-| Status | **CONSTITUTION COMPLETE** · **PLATFORM CONFORMANCE NOT COMPLETE** · **INDEPENDENT FREEZE VERIFICATION PENDING** |
+| Version | 1.0 |
+| Constitutional status | **ADOPTED AND FROZEN** |
+| Status | **CONSTITUTION COMPLETE** · **IMPLEMENTATION CONFORMANCE NOT COMPLETE** · **FINAL INDEPENDENT VERIFICATION PASSED** |
 | Constitutional authority | Platform-wide governing authority for Backup, Recovery, Disaster Recovery, Business Continuity, Operational Continuity, Survivability, Recovery Intelligence, Recovery Trust, Recovery KPIs, Recovery Evidence, Recovery Certification, Dependency Continuity, Data Protection, Restore Readiness, and Operational Resilience |
 | Repository path | `/app/memory/BCSS_CONSTITUTION_v1.0.md` |
 | Repository SHA reviewed during independent review | `fbb7045b083fb509e9d448d6615d248c727c153c` |
 | Repository SHA containing this amendment | `d51b486fb428ca4beddd832226061267db0e605a` |
-| Effective date | **PENDING FORMAL ADOPTION** |
-| Adoption authority | **APPROVAL AUTHORITY REQUIRED — NOT YET CONSTITUTIONALLY DESIGNATED** |
+| Final pre-adoption verification HEAD | `01fb629a48587f6c9a5c1dea88e9e9cc719a17d9` |
+| Metadata-synchronization SHA | `01fb629a48587f6c9a5c1dea88e9e9cc719a17d9` |
+| Effective date | `2026-07-24` |
+| Adoption authority | `Jaymn Kurtis Judd — Platform Owner, MASCI OPS / ForgedOps` |
+| Adoption date | `2026-07-24` |
+| Final independent verification | **PASSED — READY FOR OWNER ADOPTION AND CONSTITUTIONAL FREEZE** |
+| Adoption commit | **TO BE RECORDED BY POST-COMMIT ADOPTION VERIFICATION** |
 | Supersedes | BCSS Constitution v1.0 Candidate; BCSS Constitutional Phase 0 artifact |
 | Amendment history reference | Section 40 and Annex A |
-| Platform conformance status | Platform conformance is not complete; remediation register remains active |
-| Independent-review status | Initial independent review completed; final independent freeze verification pending |
+| Platform conformance status | **IMPLEMENTATION CONFORMANCE NOT COMPLETE** |
+| Recovery certification status | **NOT YET PROVEN** |
+| Independent-review status | Final independent freeze verification passed; owner adoption recorded |
+| Amendment rule | Changes require formal constitutional amendment governance |
 
 ### Repository Materialization Note
 
 This repository stores architecture, governance, certification, and standards artefacts in `/app/memory/`, including files such as `DEPLOYMENT_GOVERNANCE_MATURITY.md`, `ENGINEERING_STANDARDS.md`, `TRACK_15_78_FINAL_CERTIFICATION.md`, and `TRACK_15_79_FINAL_CERTIFICATION.md`. Consistent with that verified convention, the BCSS constitution is materialized at `/app/memory/BCSS_CONSTITUTION_v1.0.md`. No competing constitutional documentation hierarchy is introduced.
 
 ## 3. Constitutional Authority
+
+### Frozen Version Notice
+
+BCSS Constitution v1.0 is adopted and frozen as of `2026-07-24`. Version 1.0 may be changed only through formal constitutional amendment governance. Ordinary implementation work, remediation work, or implementation discoveries shall not silently rewrite this constitution.
 
 This constitution governs MASCI OPS platform-wide wherever backup, recovery, disaster recovery, business continuity, operational continuity, survivability, recovery intelligence, recovery trust, recovery KPIs, recovery evidence, recovery certification, dependency continuity, data protection, restore readiness, or operational resilience are implicated.
 
@@ -1624,6 +1636,7 @@ This document reaches **Constitution Complete**. It does **not** claim **Platfor
 | Phase 0 Draft | Complete baseline | Established 11 deliverables, evidence-backed discovery, architecture, conformance matrix, and remediation register. |
 | Version 1.0 Candidate | Completed and submitted for independent review | Added platform-wide purpose, scope, definitions, invariants, ownership model, evidence taxonomy, certification classes, BC/DR governance, conformance lifecycle, and freeze annexes. |
 | Version 1.0 Freeze Amendment Candidate | Independent-review findings corrected; artifact repository-materialized; formal freeze verification pending | Resolved repository materialization gap, owner-role ambiguity, conformance overstatement, class non-linearity, evidence taxonomy unevenness, BC/DR truth boundaries, exception expiry, approval-authority pending-state, and remediation boundary/dependency issues. |
+| Version 1.0 Adopted and Frozen | Owner-adopted constitutional baseline | Final independent verification passed, owner adoption recorded, Version 1.0 frozen as governing BCSS standard, implementation conformance still incomplete, recovery certification not yet proven. |
 
 ### Amendment Record
 
@@ -1646,6 +1659,10 @@ MASCI OPS already contains meaningful survivability capability. The repository p
 This Version 1.0 Freeze Amendment Candidate preserves the established BCSS architecture, resolves the independent-review blockers and major constitutional defects, materially saves the constitution into the repository, and prepares the artifact for one final independent freeze verification.
 
 The platform may now proceed to final read-only independent verification and then, if approved, to bounded remediation tracks that extend existing canonical systems rather than create new survivability architecture.
+
+### Formal Adoption and Freeze Statement
+
+BCSS Constitution v1.0 is hereby adopted as the governing Business Continuity and Survivability constitutional standard for MASCI OPS. Version 1.0 is frozen as of `2026-07-24`. Existing and future platform systems are subject to its requirements. Platform conformance and recovery certification must be established through separately verified implementation and exercise evidence.
 
 ---
 
