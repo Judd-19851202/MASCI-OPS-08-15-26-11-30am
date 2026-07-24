@@ -3209,8 +3209,46 @@ async def shop_change_password(
         raise HTTPException(status_code=400, detail="New password must be at least 6 characters")
     if body.new_password == body.old_password:
         raise HTTPException(status_code=400, detail="New password must be different from the old one")
-
     ip = _client_ip(request)
+
+    if actor.get("linked_to_directory") or actor.get("source") == "directory-shadow":
+        try:
+            ok = await _ud.self_change_password(
+                db,
+                user_id=actor["id"],
+                current_password=body.old_password,
+                new_password=body.new_password,
+            )
+        except ValueError as ve:
+            raise HTTPException(status_code=400, detail=str(ve))
+        if not ok:
+            _record_login_fail(ip)
+            raise HTTPException(status_code=401, detail="Current password is wrong")
+        _reset_login_fails(ip)
+        saved = await set_shop_user_password(
+            db, actor["id"], body.new_password, must_change=False
+        )
+        if not saved:
+            raise HTTPException(status_code=500, detail="Failed to set password")
+        fresh_row = await _ud.find_by_id(db, actor["id"])
+        if not fresh_row:
+            raise HTTPException(status_code=404, detail="user not found")
+        fresh = await find_shop_user_by_email(db, saved["email"])
+        fresh_token = make_shop_user_token(saved["id"], saved.get("password_hash") or "")
+        try:
+            await _reset_session_activity(
+                db, fresh_token, "OPERATIONS",
+                user_id=saved.get("id"), email=saved.get("email"),
+                actor_label="shop_via_directory", ip=ip,
+                user_agent=request.headers.get("user-agent") or "",
+            )
+        except Exception:  # noqa: BLE001
+            pass
+        return {
+            "ok": True,
+            "token": fresh_token,
+            "user": public_shop_user_view(fresh or saved),
+        }
     _check_login_lockout(ip)
     pwh = actor.get("password_hash") or ""
     if not pwh or not verify_password(body.old_password, pwh):
@@ -3225,6 +3263,15 @@ async def shop_change_password(
         raise HTTPException(status_code=500, detail="Failed to set password")
     new_pwh = saved.get("password_hash") or ""
     fresh = await find_shop_user_by_email(db, saved["email"])
+    try:
+        await _reset_session_activity(
+            db, make_shop_user_token(saved["id"], new_pwh), "OPERATIONS",
+            user_id=saved.get("id"), email=saved.get("email"),
+            actor_label="shop", ip=ip,
+            user_agent=request.headers.get("user-agent") or "",
+        )
+    except Exception:  # noqa: BLE001
+        pass
     return {
         "ok": True,
         "token": make_shop_user_token(saved["id"], new_pwh),
@@ -3375,6 +3422,12 @@ async def shop_reset_password(body: ShopResetPasswordBody, request: Request):
         raise HTTPException(status_code=500, detail="Failed to update password")
     _reset_login_fails(ip)
     await stamp_shop_login(db, updated["id"], ip=ip)
+    await _reset_session_activity(
+        db, make_shop_user_token(updated["id"], updated.get("password_hash") or ""), "OPERATIONS",
+        user_id=updated.get("id"), email=updated.get("email"),
+        actor_label="shop", ip=ip,
+        user_agent=request.headers.get("user-agent") or "",
+    )
     return {
         "ok": True,
         "token": make_shop_user_token(updated["id"], updated.get("password_hash") or ""),

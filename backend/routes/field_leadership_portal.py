@@ -277,6 +277,47 @@ def build_field_leadership_portal_router(
     async def fl_change_password(
         payload: FLChangePasswordPayload, actor=Depends(require_fl_user)
     ):
+        if actor.get("_directory_user") or actor.get("directory_user"):
+            try:
+                import user_directory as _ud  # noqa: WPS433
+                ok = await _ud.self_change_password(
+                    db,
+                    user_id=actor["id"],
+                    current_password=payload.current_password or "",
+                    new_password=payload.new_password,
+                )
+            except ValueError as ve:
+                raise HTTPException(400, str(ve))
+            if not ok:
+                raise HTTPException(401, "Current password is incorrect")
+            fresh_row = await _ud.find_by_id(db, actor["id"])
+            if not fresh_row or not fresh_row.get("password_hash"):
+                raise HTTPException(404, "user not found")
+            new_token = make_fl_user_token(fresh_row["id"], fresh_row["password_hash"])
+            try:
+                from session_timeout import reset_session_activity  # noqa: PLC0415
+                await reset_session_activity(
+                    db, new_token, "ADMIN_FL",
+                    user_id=fresh_row.get("id"), email=fresh_row.get("email"),
+                    actor_label="field_leadership_via_directory",
+                )
+            except Exception:  # noqa: BLE001
+                pass
+            return {
+                "ok": True,
+                "token": new_token,
+                "user": {
+                    "id": fresh_row.get("id"),
+                    "email": fresh_row.get("email"),
+                    "name": fresh_row.get("name") or fresh_row.get("email"),
+                    "role": "Cross-Portal Grant",
+                    "is_active": True,
+                    "disabled": bool(fresh_row.get("disabled")),
+                    "must_change_password": False,
+                    "directory_user": True,
+                    "granted_portals": fresh_row.get("portals") or [],
+                },
+            }
         pwh = actor.get("password_hash") or ""
         if payload.current_password:
             if not pwh or not verify_password(payload.current_password, pwh):
@@ -287,6 +328,15 @@ def build_field_leadership_portal_router(
         if not updated:
             raise HTTPException(404, "user not found")
         new_token = make_fl_user_token(updated["id"], updated["password_hash"])
+        try:
+            from session_timeout import reset_session_activity  # noqa: PLC0415
+            await reset_session_activity(
+                db, new_token, "ADMIN_FL",
+                user_id=updated.get("id"), email=updated.get("email"),
+                actor_label="field_leadership",
+            )
+        except Exception:  # noqa: BLE001
+            pass
         return {"ok": True, "token": new_token, "user": public_fl_user_view(updated)}
 
     @router.post("/field-leadership/portal/forgot-password")
@@ -343,6 +393,15 @@ def build_field_leadership_portal_router(
             db, user["id"], payload.new_password, must_change=False
         )
         new_token = make_fl_user_token(updated["id"], updated["password_hash"])
+        try:
+            from session_timeout import reset_session_activity  # noqa: PLC0415
+            await reset_session_activity(
+                db, new_token, "ADMIN_FL",
+                user_id=updated.get("id"), email=updated.get("email"),
+                actor_label="field_leadership",
+            )
+        except Exception:  # noqa: BLE001
+            pass
         return {"ok": True, "token": new_token, "user": public_fl_user_view(updated)}
 
     @router.get("/field-leadership/portal/me")

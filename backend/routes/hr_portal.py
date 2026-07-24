@@ -250,6 +250,37 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
 
     @router.post("/hr/change-password")
     async def hr_change_password(payload: ChangePasswordPayload, actor=Depends(require_hr_user)):
+        if actor.get("linked_to_directory") or actor.get("source") == "directory-shadow":
+            try:
+                import user_directory as _ud  # noqa: WPS433
+                ok = await _ud.self_change_password(
+                    db,
+                    user_id=actor["id"],
+                    current_password=payload.current_password or "",
+                    new_password=payload.new_password,
+                )
+            except ValueError as ve:
+                raise HTTPException(400, str(ve))
+            if not ok:
+                raise HTTPException(401, "Current password is incorrect")
+            updated = await set_hr_user_password(db, actor["id"], payload.new_password, must_change=False)
+            if not updated:
+                raise HTTPException(404, "user not found")
+            fresh_row = await _ud.find_by_id(db, actor["id"])
+            if not fresh_row:
+                raise HTTPException(404, "user not found")
+            new_token = make_hr_user_token(updated["id"], updated["password_hash"])
+            try:
+                from session_timeout import reset_session_activity  # noqa: PLC0415
+                await reset_session_activity(
+                    db, new_token, "ADMIN_HR",
+                    user_id=updated.get("id"),
+                    email=updated.get("email"),
+                    actor_label="hr_via_directory",
+                )
+            except Exception:  # noqa: BLE001
+                pass
+            return {"ok": True, "token": new_token, "user": public_hr_user_view(updated)}
         # If a current_password is supplied, validate. Otherwise trust
         # the bearer token (admin just reset; user must change now).
         pwh = actor.get("password_hash") or ""
@@ -260,6 +291,16 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
         if not updated:
             raise HTTPException(404, "user not found")
         new_token = make_hr_user_token(updated["id"], updated["password_hash"])
+        try:
+            from session_timeout import reset_session_activity  # noqa: PLC0415
+            await reset_session_activity(
+                db, new_token, "ADMIN_HR",
+                user_id=updated.get("id"),
+                email=updated.get("email"),
+                actor_label="hr",
+            )
+        except Exception:  # noqa: BLE001
+            pass
         return {"ok": True, "token": new_token, "user": public_hr_user_view(updated)}
 
     @router.post("/hr/forgot-password")

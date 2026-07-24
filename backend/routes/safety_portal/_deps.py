@@ -165,10 +165,10 @@ def make_require_safety_admin_or_pm(
         if x_admin_token:
             # Sync legacy sentinel (retired in 15.32 — always False) …
             if is_valid_admin_token and is_valid_admin_token(x_admin_token):
-                return True
+                return {"role": "admin", "_actor": "admin", "_actor_kind": "admin"}
             # … then the directory-hydrated per-user admin token (TRACK 28.02).
             if is_valid_admin_token_async and await is_valid_admin_token_async(x_admin_token):
-                return True
+                return {"role": "admin", "_actor": "admin", "_actor_kind": "admin"}
         if x_pm_token:
             # Per-PM token (has ".") → DB lookup; legacy shared PM → env bypass.
             if "." in x_pm_token:

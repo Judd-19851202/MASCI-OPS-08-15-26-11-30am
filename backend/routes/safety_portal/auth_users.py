@@ -170,6 +170,37 @@ def register_auth_routes(
     async def safety_change_password(
         body: PasswordChangeBody, user: dict = Depends(require_safety_token),
     ):
+        if user.get("linked_to_directory") or user.get("source") == "directory-shadow":
+            try:
+                import user_directory as _ud  # noqa: WPS433
+                ok = await _ud.self_change_password(
+                    db,
+                    user_id=user["id"],
+                    current_password=body.current_password,
+                    new_password=body.new_password,
+                )
+            except ValueError as ve:
+                raise HTTPException(400, str(ve))
+            if not ok:
+                raise HTTPException(401, "Current password is incorrect")
+            updated = await set_safety_user_password(db, user["id"], body.new_password, must_change=False)
+            if not updated:
+                raise HTTPException(404, "user not found")
+            fresh_row = await _ud.find_by_id(db, user["id"])
+            if not fresh_row:
+                raise HTTPException(404, "user not found")
+            new_token = make_safety_user_token(updated["id"], updated["password_hash"])
+            try:
+                from session_timeout import reset_session_activity  # noqa: PLC0415
+                await reset_session_activity(
+                    db, new_token, "OPERATIONS",
+                    user_id=updated.get("id"),
+                    email=updated.get("email"),
+                    actor_label="safety_via_directory",
+                )
+            except Exception:  # noqa: BLE001
+                pass
+            return {"ok": True, "token": new_token, "user": public_safety_user_view(updated)}
         if not body.new_password or len(body.new_password) < 8:
             raise HTTPException(400, "New password must be at least 8 characters")
         pwh = user.get("password_hash") or ""
@@ -181,6 +212,16 @@ def register_auth_routes(
         # Token is bcrypt-hash-bound → old token is now invalid. Mint a
         # fresh one so the client keeps the session without bouncing.
         new_token = make_safety_user_token(updated["id"], updated["password_hash"])
+        try:
+            from session_timeout import reset_session_activity  # noqa: PLC0415
+            await reset_session_activity(
+                db, new_token, "OPERATIONS",
+                user_id=updated.get("id"),
+                email=updated.get("email"),
+                actor_label="safety",
+            )
+        except Exception:  # noqa: BLE001
+            pass
         return {"ok": True, "token": new_token, "user": public_safety_user_view(updated)}
 
     # ---------- Forgot password ----------
@@ -217,6 +258,16 @@ def register_auth_routes(
         if not updated:
             raise HTTPException(404, "user not found")
         new_token = make_safety_user_token(updated["id"], updated["password_hash"])
+        try:
+            from session_timeout import reset_session_activity  # noqa: PLC0415
+            await reset_session_activity(
+                db, new_token, "OPERATIONS",
+                user_id=updated.get("id"),
+                email=updated.get("email"),
+                actor_label="safety",
+            )
+        except Exception:  # noqa: BLE001
+            pass
         return {"ok": True, "token": new_token, "user": public_safety_user_view(updated)}
 
     # ════════════════════════════════════════════════════════════════
