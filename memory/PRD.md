@@ -179,3 +179,11 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - Aligned portal reachability messaging (`AccessDenied`, `PortalSwitcher`, permissions helpers) so assigned access is distinguished from currently reachable session state.
 - Preview verification passed for Super Admin across Admin, HR, Safety, PM, Dispatch, Shop, and Field Leadership, including refresh/new-tab continuity; public root remained public and protected HR review remained protected.
 - Remaining gap: disabled-user and genuine expired-session preview verification remain unproven because no seeded credential/session fixture was provided and identity data mutation was intentionally avoided.
+
+## 2026-07-24 — MASCI OPS 8 Remaining Verification Completion
+- Added isolated Preview-only fixtures for the remaining bounded checks: one explicit admin-only identity and one disabled HR identity.
+- Disabled-user verification passed: authentication denied, no directory session created, no portal tokens issued, no protected portal access granted, and the browser stayed on explicit sign-in instead of showing a false empty state.
+- Genuine expired-session verification passed using a Preview-only harness that expired a real directory session in `directory_sessions`: protected APIs rejected the stale session, stale browser tokens were cleared, the user was redirected to sign-in, and a normal re-login created a fresh valid session.
+- Preview identity-preservation diff passed for all pre-existing non-fixture accounts: no deletions, no disablement changes, no portal-array changes, no super-admin flag changes, and no password-hash presence changes.
+- Admin-only verification partially passed and exposed an existing policy mismatch relative to the requested acceptance criteria: the current canonical frontend/backend contract still allows admin users into PM and Shop routes by design, while HR, Safety, Dispatch, and Field Leadership stayed blocked.
+- Because that PM/Shop admin reach is pre-existing canonical behavior and changing it would exceed the authorized bounded repair scope, this track remains blocked from redeployment approval until that policy expectation is resolved explicitly.
