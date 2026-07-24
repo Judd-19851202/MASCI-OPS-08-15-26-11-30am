@@ -171,3 +171,11 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - P0: None for this bounded repair track.
 - P1: If the platform later introduces a clean immutable deploy-commit injection variable for Preview, point `intended_release_commit` at that canonical value instead of the current governed `PRE_SAVE_CANDIDATE:<HEAD>:<source_hash_prefix>` representation.
 - P2: None.
+
+## 2026-07-24 — MASCI OPS 8 Auth/Session Consistency Bounded Repair
+- Accepted forensic finding: backend dual-token contract remains canonical; repair scope limited to frontend request/header consistency, 401 handling, and reachable-session messaging.
+- Implemented scoped auth propagation across shared clients and verified blast-radius pages so multi-login requests consistently send the correct portal token plus `X-Directory-Token`.
+- Repaired session-clearing behavior to avoid wiping valid portal/directory state on localized 401s unless the canonical session is actually invalid/expired.
+- Aligned portal reachability messaging (`AccessDenied`, `PortalSwitcher`, permissions helpers) so assigned access is distinguished from currently reachable session state.
+- Preview verification passed for Super Admin across Admin, HR, Safety, PM, Dispatch, Shop, and Field Leadership, including refresh/new-tab continuity; public root remained public and protected HR review remained protected.
+- Remaining gap: disabled-user and genuine expired-session preview verification remain unproven because no seeded credential/session fixture was provided and identity data mutation was intentionally avoided.
