@@ -130,11 +130,10 @@ export default function AdminBackupVerificationPanel() {
               Backup Verification Cron
             </h3>
             <p className="text-xs text-slate-600 mt-1 max-w-2xl">
-              Weekly automated email that confirms your Cloudflare R2 backup
-              archive is alive, recent, and well-sized. Catches the case where
-              the backend thinks it backed up but R2 actually rejected the
-              upload — gives you a positive heartbeat instead of only firing
-              when something breaks.
+              Weekly archive-integrity validation that confirms the latest
+              complete R2 archive is present, recent, and plausibly sized.
+              It is a verification heartbeat, not a restore drill and not
+              proof of production restore execution.
             </p>
           </div>
         </div>
@@ -160,7 +159,7 @@ export default function AdminBackupVerificationPanel() {
                   <strong>{String(state.schedule.hour_utc).padStart(2, "0")}:00 platform time</strong>
                 </>
               ) : (
-                <span className="text-slate-500 italic">Cron disabled</span>
+                <span className="text-slate-500 italic">DISABLED BY CONFIGURATION</span>
               )}
             </div>
             <div className="text-xs text-slate-600 mt-1">
@@ -194,7 +193,7 @@ export default function AdminBackupVerificationPanel() {
           data-testid="bv-preview-btn"
         >
           {previewing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Eye className="w-4 h-4 mr-2" />}
-          Preview Report
+          Preview Verification Report
         </Button>
         <Button
           onClick={handleRunNow}

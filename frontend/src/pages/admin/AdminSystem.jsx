@@ -31,8 +31,8 @@ export default function AdminSystem() {
         <p className="text-sm text-slate-600 leading-relaxed">
           Disaster-recovery toolkit. Trigger a backup, browse the Cloudflare R2 cloud archive
           library, run weekly verification on demand, restore from a file or directly from a
-          cloud archive, and recover terminated crew data. Keep the verification cron green and
-          you&apos;ll get a positive weekly heartbeat email.
+          cloud archive, and recover terminated crew data. Weekly verification is archive-integrity
+          validation only; representative namespace restore evidence appears separately.
         </p>
       }
     >

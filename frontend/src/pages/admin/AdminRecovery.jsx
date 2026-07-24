@@ -208,6 +208,9 @@ export default function AdminRecovery() {
             <Card title="Last restore drill" status={snap.last_drill?.outcome === "ok" ? "GREEN" : "AMBER"} testid="card-last-drill">
               {snap.last_drill ? (
                 <div className="text-sm space-y-1">
+                  <div className="text-xs font-mono uppercase tracking-wide text-slate-500">
+                    Representative namespace restore
+                  </div>
                   <div className="font-semibold">
                     outcome: {snap.last_drill.outcome}
                   </div>
@@ -222,7 +225,7 @@ export default function AdminRecovery() {
                 </div>
               ) : (
                 <div className="text-sm text-slate-400">
-                  No automated drill on file. Use scripts/restore_drill.py.
+                  No representative namespace restore drill on file.
                 </div>
               )}
             </Card>

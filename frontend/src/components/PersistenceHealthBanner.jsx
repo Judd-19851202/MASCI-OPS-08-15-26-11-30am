@@ -84,7 +84,7 @@ export default function PersistenceHealthBanner() {
             <div className="font-bold font-display">{t("Persistent database connected")}</div>
             <div className="text-emerald-800 mt-0.5">
               {t("Mongo host:")} <code className="font-mono">{status.mongo_host}</code>
-              {status.mongo_is_atlas && " (MongoDB Atlas)"}. {t("Redeploys will not wipe your data.")}
+              {status.mongo_is_atlas && " (MongoDB Atlas)"}. {t("Preview is connected to an external persistent database, so preview redeploys should not wipe this database.")}
             </div>
           </div>
         </div>
@@ -109,7 +109,7 @@ export default function PersistenceHealthBanner() {
             {" "}{t("which means every new deploy destroys your database.")} <strong>{t("Before you redeploy next time, always click the button below to grab + email a full backup")}</strong>{t(", or you will lose everything created since the last nightly backup.")}
           </p>
           <p className="text-sm text-red-900 mt-2 leading-relaxed">
-            <strong>{t("Permanent fix:")}</strong> {t("switch the production app to")} <strong>MongoDB Atlas</strong> {t("(free tier, 15-min setup) — see the instructions your developer sent. Once the Atlas connection string is in your production env vars, this banner will turn green and redeploys become safe forever.")}
+            <strong>{t("Permanent fix:")}</strong> {t("switch the affected environment to")} <strong>MongoDB Atlas</strong> {t("so redeploy durability no longer depends on container disk.")}
           </p>
 
           <div className="mt-4 flex flex-wrap gap-2 items-center">

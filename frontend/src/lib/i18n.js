@@ -754,6 +754,9 @@ const ES = {
   "Production verified": "Producción verificada",
   "Production unreachable": "Producción no accesible",
   "Checking production…": "Verificando producción…",
+  "Production probes healthy": "Sondas de producción sanas",
+  "Production probes failing": "Sondas de producción con fallas",
+  "Checking production probes…": "Verificando sondas de producción…",
   "healthy": "sano",
   "a moment ago": "hace un momento",
   // iter440 · Last Activity line strings per portal write kind.

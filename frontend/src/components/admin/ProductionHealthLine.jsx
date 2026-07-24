@@ -4,7 +4,7 @@
 // Hits the admin-strict /api/admin-strict/diag/production-health endpoint
 // and renders ONE of three states:
 //
-//   ✅ Production verified · 5/5 healthy · 2m ago
+//   ✅ Production probes healthy · 5/5 healthy · 2m ago
 //   ❌ Production unreachable · 0/5 healthy · 2m ago
 //   ⏳ Checking production…
 //
@@ -69,7 +69,7 @@ export default function ProductionHealthLine({ testId = "production-health-line"
         className="flex items-center gap-2 text-xs text-slate-500 italic"
       >
         <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
-        <span>{t("Checking production…")}</span>
+        <span>{t("Checking production probes…")}</span>
       </div>
     );
   }
@@ -86,7 +86,7 @@ export default function ProductionHealthLine({ testId = "production-health-line"
         <div className="flex items-center gap-2 text-xs text-rose-700">
           <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />
           <span className="font-medium">
-            {t("Production unreachable")}
+            {t("Production probes failing")}
             {total > 0 && (
               <span className="text-rose-600 font-normal">
                 {" · "}{healthy}/{total} {t("healthy")}{" · "}
@@ -124,7 +124,7 @@ export default function ProductionHealthLine({ testId = "production-health-line"
     >
       <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />
       <span className="font-medium">
-        {t("Production verified")}
+        {t("Production probes healthy")}
         <span className="text-emerald-600 font-normal">
           {" · "}{healthy}/{total} {t("healthy")}{" · "}
           {_relative(state.data?.probed_at, t)}

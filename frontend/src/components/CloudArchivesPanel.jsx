@@ -207,7 +207,11 @@ export default function CloudArchivesPanel() {
           <div>
             <div className="font-mono uppercase tracking-[0.15em] text-slate-500">Hourly activation</div>
             <div className="mt-1 text-slate-900 font-semibold">
-              Disabled in code · safe-execution hardening in progress
+              {state?.r2_hourly_locked_off
+                ? "HARD-CODED DISABLED"
+                : state?.r2_hourly === false
+                ? "DISABLED BY CONFIGURATION"
+                : "ACTIVE"}
             </div>
           </div>
           <div>
@@ -346,9 +350,9 @@ export default function CloudArchivesPanel() {
 
       <p className="mt-3 text-[11px] text-slate-500 leading-relaxed">
         Complete archives include every record AND every photo (fetched
-        from R2 and inlined), so the zip is fully self-contained — restore
-        the entire platform from this one file even if Cloudflare R2
-        becomes unreachable. Nightly build runs at{" "}
+        from R2 and inlined), so the zip is fully self-contained for archive-integrity
+        validation and operator-led restore workflows. This screen does not claim a full
+        production restore was exercised. Nightly build runs at{" "}
         {String(r2Hour).padStart(2, "0")}:00 platform time. Change the
         hour via the deploy configuration. Download links above are
         Cloudflare R2 presigned URLs — valid 7 days, no admin token needed

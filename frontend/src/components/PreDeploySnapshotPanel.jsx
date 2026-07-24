@@ -4,14 +4,10 @@
 // muscle memory. Renders at the top of /admin/system and gives admins
 // a single visible answer to: "Am I safe to redeploy RIGHT NOW?"
 //
-// Color logic (last R2 complete archive age):
-//   🟢 GREEN  · <  1 hour old → safe to redeploy
-//   🟡 YELLOW · 1-12 h old    → consider a fresh snapshot first
-//   🔴 RED    · > 12 h old    → run a snapshot NOW
-//
-// Pairs with the backend ``BACKUP_R2_HOURLY=true`` env so the cron also
-// captures an archive every hour automatically — this widget is the
-// "click me 30 seconds before I redeploy" safety net.
+// Color logic (last complete archive age from the active runtime state):
+//   🟢 GREEN  · <  1 hour old → fresh archive evidence exists
+//   🟡 YELLOW · 1-12 h old    → archive is aging
+//   🔴 RED    · > 12 h old    → archive is stale for redeploy confidence
 
 import React, { useEffect, useState, useCallback } from "react";
 import {
@@ -135,8 +131,8 @@ export default function PreDeploySnapshotPanel() {
       text: "text-emerald-900",
       accent: "text-emerald-700",
       icon: CheckCircle2,
-      label: "SAFE TO REDEPLOY",
-      msg: "A fresh complete archive landed in R2 less than an hour ago — your data is safe.",
+      label: "FRESH ARCHIVE EVIDENCE",
+      msg: "A fresh complete archive landed in R2 less than an hour ago. Preview archive evidence is current.",
     };
   } else if (hrs < 12) {
     zone = {
@@ -146,8 +142,8 @@ export default function PreDeploySnapshotPanel() {
       text: "text-amber-900",
       accent: "text-amber-700",
       icon: ShieldAlert,
-      label: "SNAPSHOT IS STALE",
-      msg: "Last archive is more than an hour old. Click below to capture a fresh one before redeploying.",
+      label: "ARCHIVE IS AGING",
+      msg: "Last complete archive is more than an hour old. Capture a fresh preview snapshot before any redeploy decision.",
     };
   } else {
     zone = {
@@ -157,8 +153,8 @@ export default function PreDeploySnapshotPanel() {
       text: "text-red-900",
       accent: "text-red-700",
       icon: AlertOctagon,
-      label: "ARCHIVE IS DANGEROUSLY OLD",
-      msg: "No fresh snapshot in the last 12 hours. Run one NOW before any redeploy.",
+      label: "ARCHIVE IS STALE",
+      msg: "No fresh complete archive in the last 12 hours. Run a new preview snapshot before any redeploy decision.",
     };
   }
 
@@ -212,8 +208,8 @@ export default function PreDeploySnapshotPanel() {
       <div className={`mt-3 text-[10px] font-mono uppercase tracking-[0.2em] ${zone.accent} flex items-center gap-2 flex-wrap`}>
         <ShieldCheck className="w-3 h-3" />
         <span>
-          Hourly auto-snapshot {state?.r2_hourly === false ? "OFF" : "ON"} ·
-          Nightly fallback {String(state?.r2_full_hour_utc ?? 3).padStart(2, "0")}:00 platform time
+          Hourly complete archive {state?.r2_hourly_locked_off ? "HARD-CODED DISABLED" : state?.r2_hourly === false ? "DISABLED BY CONFIGURATION" : "ACTIVE"} ·
+          Nightly complete archive {String(state?.r2_full_hour_utc ?? 3).padStart(2, "0")}:00 platform time
         </span>
       </div>
     </section>
