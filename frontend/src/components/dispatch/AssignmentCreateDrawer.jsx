@@ -307,7 +307,7 @@ export default function AssignmentCreateDrawer({
       const cn = window.sessionStorage.getItem("branding.companyName");
       if (cn && cn !== "MASCI") setCarrier((c) => ({ ...c, label: cn }));
     } catch { /* noop */ }
-  }, [DRAFT_TTL_MS]);
+  }, []);
   const [project, setProject] = useState(null);
   const [source, setSource] = useState(null);
   const [destination, setDestination] = useState(null);

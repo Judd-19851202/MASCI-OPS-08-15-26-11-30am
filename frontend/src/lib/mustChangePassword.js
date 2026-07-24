@@ -17,7 +17,7 @@ export const PORTAL_CHANGE_PASSWORD_PATH = {
   pm: "/pm/change-password",
   shop: "/shop/change-password",
   safety: "/safety-portal/change-password",
-  dispatch: "/dispatch/change-password",
+  dispatch: "/dispatch-portal/change-password",
   field_leadership: "/field-leadership/portal/change-password",
   fl: "/field-leadership/portal/change-password",
   admin: "/change-password", // directory user master rotation

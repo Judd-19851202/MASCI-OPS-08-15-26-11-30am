@@ -30,7 +30,7 @@ import { useT } from "@/lib/i18n";
 // active login form and confuse the user).
 const SUPPRESS_PREFIXES = [
   "/admin/login", "/login", "/safety-login", "/hr-login",
-  "/dispatch/login", "/pm/login", "/shop/login",
+  "/dispatch-portal/login", "/pm/login", "/shop/login",
   "/field-leadership/portal", "/field-leadership/login",
   "/auth", "/portal/login",
 ];
@@ -41,7 +41,7 @@ function _loginRouteForCurrent(pathname) {
   if (pathname.startsWith("/admin")) return "/admin/login";
   if (pathname.startsWith("/safety")) return "/safety-login";
   if (pathname.startsWith("/hr")) return "/hr-login";
-  if (pathname.startsWith("/dispatch")) return "/dispatch/login";
+  if (pathname.startsWith("/dispatch")) return "/dispatch-portal/login";
   if (pathname.startsWith("/pm")) return "/pm/login";
   if (pathname.startsWith("/shop")) return "/shop/login";
   if (pathname.startsWith("/field-leadership")) return "/field-leadership/portal";
