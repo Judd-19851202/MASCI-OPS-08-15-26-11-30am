@@ -20,7 +20,7 @@
 | Constitutional authority | Platform-wide governing authority for Backup, Recovery, Disaster Recovery, Business Continuity, Operational Continuity, Survivability, Recovery Intelligence, Recovery Trust, Recovery KPIs, Recovery Evidence, Recovery Certification, Dependency Continuity, Data Protection, Restore Readiness, and Operational Resilience |
 | Repository path | `/app/memory/BCSS_CONSTITUTION_v1.0.md` |
 | Repository SHA reviewed during independent review | `fbb7045b083fb509e9d448d6615d248c727c153c` |
-| Repository SHA containing this amendment | **COMMIT NOT CREATED — WORKTREE ARTIFACT PREPARED** |
+| Repository SHA containing this amendment | `d51b486fb428ca4beddd832226061267db0e605a` |
 | Effective date | **PENDING FORMAL ADOPTION** |
 | Adoption authority | **APPROVAL AUTHORITY REQUIRED — NOT YET CONSTITUTIONALLY DESIGNATED** |
 | Supersedes | BCSS Constitution v1.0 Candidate; BCSS Constitutional Phase 0 artifact |
@@ -1631,7 +1631,7 @@ This document reaches **Constitution Complete**. It does **not** claim **Platfor
 |---|---|
 | Amendment date | 2026-07-24 |
 | Reviewed SHA | `fbb7045b083fb509e9d448d6615d248c727c153c` |
-| Amendment SHA / repository state | **COMMIT NOT CREATED — WORKTREE ARTIFACT PREPARED** |
+| Amendment SHA / repository state | `d51b486fb428ca4beddd832226061267db0e605a` |
 | Findings resolved | F-001 through F-011 resolved; F-012 accepted as observation |
 | Sections changed | 2, 18, 19, 20, 24, 25, 27, 29, 32, 33, 35, 36, 39, Annexes |
 | Remediation entries changed | BCSS-R01, R03, R08, R09, R12, R13, R15 |
