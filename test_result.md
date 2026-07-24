@@ -71,6 +71,19 @@
 
 
 backend:
+  - task: "Batch 1 Bounded Repair - Final Backend/API Confirmation"
+    implemented: true
+    working: true
+    file: "batch1_final_backend_verification.py, batch1_final_backend_verification_results.json"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        timestamp: "2026-07-24 09:52:00 UTC"
+        comment: "✅ VERIFIED: Batch 1 bounded repair final backend/API confirmation completed successfully against https://backup-forensics.preview.emergentagent.com/api. ALL 20 BACKEND TESTS PASSED (100% pass rate). SCOPE: Final backend/API confirmation for approved Batch 1 bounded repair. Verify incidents auth contract with canonical dual-token usage, shared non-prefixed route APIs, no regressions on previously passing auth APIs, and negative checks. NO CODE MODIFICATIONS - verification only. TEST 1 - INCIDENTS AUTH CONTRACT WITH CANONICAL DUAL-TOKEN USAGE (6/6 PASS): ✅ Super Admin with admin token: 200. ✅ Super Admin with pm token: 200. ✅ Super Admin with safety token: 200. ✅ Admin-only with admin token: 200. ✅ PM-only with pm token: 200. ✅ Safety-only with safety token: 200. All incidents auth contract tests passed. Super Admin can read /api/incidents with admin/pm/safety portal tokens. Admin-only can read with admin token. PM-only can read with pm token. Safety-only can read with safety token. No widened access detected. TEST 2 - SHARED NON-PREFIXED ROUTE APIs WITH PROPER CANONICAL TOKENS (6/6 PASS): ✅ GET /api/project-health: 200. ✅ GET /api/asset-transfers: 200. ✅ GET /api/odr?status=draft: 200. ✅ GET /api/operational-records: 200. ✅ GET /api/operations-actions: 200. ✅ GET /api/operational-intelligence/recipients?limit=5: 200. All shared non-prefixed route APIs working correctly with proper canonical tokens. TEST 3 - NO REGRESSIONS ON PREVIOUSLY PASSING AUTH APIs (5/5 PASS): ✅ GET /api/admin/check: 200. ✅ GET /api/pm/check: 200. ✅ GET /api/safety/overview: 200. ✅ GET /api/version: 200. ✅ GET /api/health/full: 200. No regressions detected on previously passing auth APIs. TEST 4 - NEGATIVE CHECKS - MISSING/WRONG TOKENS SHOULD FAIL (3/3 PASS): ✅ GET /api/incidents without auth: 401 (expected 401). ✅ PM-only accessing /api/admin/check: 401 (expected 401). ✅ Admin-only accessing /api/pm/check: 401 (expected 401). Missing required portal token on /api/incidents correctly fails. Wrong-role access correctly fails. AUTHENTICATION SUMMARY: All 5 test users authenticated successfully via /api/auth/multi-login. Super Admin received 8 portal tokens (admin, pm, shop, hr, safety, dispatch, field_leadership, fl). Admin-only received 1 token (admin). PM-only received 1 token (pm). Safety-only received 1 token (safety). PM+Shop received 2 tokens (pm, shop). RESULTS BY CATEGORY: INCIDENTS: 6/6 PASS (100%). NON-PREFIXED: 6/6 PASS (100%). REGRESSION: 5/5 PASS (100%). NEGATIVE: 3/3 PASS (100%). FINAL BACKEND VERDICT: ✅ PASS. All backend API tests passed. No regressions found. Incidents auth contract still passes with canonical dual-token usage. Shared non-prefixed route APIs still work with proper canonical tokens. No regressions on previously passing auth APIs. Negative checks working correctly - missing/wrong tokens still fail. Test evidence saved to /app/batch1_final_backend_verification_results.json."
+
   - task: "Dispatch Portal Sign-In Contract Verification"
     implemented: true
     working: true

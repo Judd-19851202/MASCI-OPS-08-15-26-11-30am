@@ -1,0 +1,318 @@
+{
+  "summary": {
+    "total": 20,
+    "passed": 20,
+    "failed": 0,
+    "pass_rate": "100.0%"
+  },
+  "categories": {
+    "INCIDENTS": {
+      "passed": 6,
+      "failed": 0,
+      "tests": [
+        {
+          "category": "INCIDENTS",
+          "test": "Super Admin with admin token",
+          "passed": true,
+          "details": "Status: 200",
+          "timestamp": "2026-07-24T09:51:53.926328"
+        },
+        {
+          "category": "INCIDENTS",
+          "test": "Super Admin with pm token",
+          "passed": true,
+          "details": "Status: 200",
+          "timestamp": "2026-07-24T09:51:54.274441"
+        },
+        {
+          "category": "INCIDENTS",
+          "test": "Super Admin with safety token",
+          "passed": true,
+          "details": "Status: 200",
+          "timestamp": "2026-07-24T09:51:54.598045"
+        },
+        {
+          "category": "INCIDENTS",
+          "test": "Admin-only with admin token",
+          "passed": true,
+          "details": "Status: 200",
+          "timestamp": "2026-07-24T09:51:54.893317"
+        },
+        {
+          "category": "INCIDENTS",
+          "test": "PM-only with pm token",
+          "passed": true,
+          "details": "Status: 200",
+          "timestamp": "2026-07-24T09:51:55.237661"
+        },
+        {
+          "category": "INCIDENTS",
+          "test": "Safety-only with safety token",
+          "passed": true,
+          "details": "Status: 200",
+          "timestamp": "2026-07-24T09:51:55.530909"
+        }
+      ]
+    },
+    "NON-PREFIXED": {
+      "passed": 6,
+      "failed": 0,
+      "tests": [
+        {
+          "category": "NON-PREFIXED",
+          "test": "GET /project-health",
+          "passed": true,
+          "details": "Status: 200",
+          "timestamp": "2026-07-24T09:51:55.885719"
+        },
+        {
+          "category": "NON-PREFIXED",
+          "test": "GET /asset-transfers",
+          "passed": true,
+          "details": "Status: 200",
+          "timestamp": "2026-07-24T09:51:56.312184"
+        },
+        {
+          "category": "NON-PREFIXED",
+          "test": "GET /odr?status=draft",
+          "passed": true,
+          "details": "Status: 200",
+          "timestamp": "2026-07-24T09:51:56.593461"
+        },
+        {
+          "category": "NON-PREFIXED",
+          "test": "GET /operational-records",
+          "passed": true,
+          "details": "Status: 200",
+          "timestamp": "2026-07-24T09:51:57.021051"
+        },
+        {
+          "category": "NON-PREFIXED",
+          "test": "GET /operations-actions",
+          "passed": true,
+          "details": "Status: 200",
+          "timestamp": "2026-07-24T09:51:57.372742"
+        },
+        {
+          "category": "NON-PREFIXED",
+          "test": "GET /operational-intelligence/recipients?limit=5",
+          "passed": true,
+          "details": "Status: 200",
+          "timestamp": "2026-07-24T09:51:57.653775"
+        }
+      ]
+    },
+    "REGRESSION": {
+      "passed": 5,
+      "failed": 0,
+      "tests": [
+        {
+          "category": "REGRESSION",
+          "test": "GET /admin/check",
+          "passed": true,
+          "details": "Status: 200",
+          "timestamp": "2026-07-24T09:51:57.946593"
+        },
+        {
+          "category": "REGRESSION",
+          "test": "GET /pm/check",
+          "passed": true,
+          "details": "Status: 200",
+          "timestamp": "2026-07-24T09:51:58.202514"
+        },
+        {
+          "category": "REGRESSION",
+          "test": "GET /safety/overview",
+          "passed": true,
+          "details": "Status: 200",
+          "timestamp": "2026-07-24T09:51:58.887386"
+        },
+        {
+          "category": "REGRESSION",
+          "test": "GET /version",
+          "passed": true,
+          "details": "Status: 200",
+          "timestamp": "2026-07-24T09:51:58.989288"
+        },
+        {
+          "category": "REGRESSION",
+          "test": "GET /health/full",
+          "passed": true,
+          "details": "Status: 200",
+          "timestamp": "2026-07-24T09:51:59.182819"
+        }
+      ]
+    },
+    "NEGATIVE": {
+      "passed": 3,
+      "failed": 0,
+      "tests": [
+        {
+          "category": "NEGATIVE",
+          "test": "GET /incidents without auth",
+          "passed": true,
+          "details": "Status: 401 (expected 401)",
+          "timestamp": "2026-07-24T09:51:59.275840"
+        },
+        {
+          "category": "NEGATIVE",
+          "test": "PM-only accessing /admin/check",
+          "passed": true,
+          "details": "Status: 401 (expected 401)",
+          "timestamp": "2026-07-24T09:51:59.469928"
+        },
+        {
+          "category": "NEGATIVE",
+          "test": "Admin-only accessing /pm/check",
+          "passed": true,
+          "details": "Status: 401 (expected 401)",
+          "timestamp": "2026-07-24T09:51:59.752538"
+        }
+      ]
+    }
+  },
+  "all_tests": [
+    {
+      "category": "INCIDENTS",
+      "test": "Super Admin with admin token",
+      "passed": true,
+      "details": "Status: 200",
+      "timestamp": "2026-07-24T09:51:53.926328"
+    },
+    {
+      "category": "INCIDENTS",
+      "test": "Super Admin with pm token",
+      "passed": true,
+      "details": "Status: 200",
+      "timestamp": "2026-07-24T09:51:54.274441"
+    },
+    {
+      "category": "INCIDENTS",
+      "test": "Super Admin with safety token",
+      "passed": true,
+      "details": "Status: 200",
+      "timestamp": "2026-07-24T09:51:54.598045"
+    },
+    {
+      "category": "INCIDENTS",
+      "test": "Admin-only with admin token",
+      "passed": true,
+      "details": "Status: 200",
+      "timestamp": "2026-07-24T09:51:54.893317"
+    },
+    {
+      "category": "INCIDENTS",
+      "test": "PM-only with pm token",
+      "passed": true,
+      "details": "Status: 200",
+      "timestamp": "2026-07-24T09:51:55.237661"
+    },
+    {
+      "category": "INCIDENTS",
+      "test": "Safety-only with safety token",
+      "passed": true,
+      "details": "Status: 200",
+      "timestamp": "2026-07-24T09:51:55.530909"
+    },
+    {
+      "category": "NON-PREFIXED",
+      "test": "GET /project-health",
+      "passed": true,
+      "details": "Status: 200",
+      "timestamp": "2026-07-24T09:51:55.885719"
+    },
+    {
+      "category": "NON-PREFIXED",
+      "test": "GET /asset-transfers",
+      "passed": true,
+      "details": "Status: 200",
+      "timestamp": "2026-07-24T09:51:56.312184"
+    },
+    {
+      "category": "NON-PREFIXED",
+      "test": "GET /odr?status=draft",
+      "passed": true,
+      "details": "Status: 200",
+      "timestamp": "2026-07-24T09:51:56.593461"
+    },
+    {
+      "category": "NON-PREFIXED",
+      "test": "GET /operational-records",
+      "passed": true,
+      "details": "Status: 200",
+      "timestamp": "2026-07-24T09:51:57.021051"
+    },
+    {
+      "category": "NON-PREFIXED",
+      "test": "GET /operations-actions",
+      "passed": true,
+      "details": "Status: 200",
+      "timestamp": "2026-07-24T09:51:57.372742"
+    },
+    {
+      "category": "NON-PREFIXED",
+      "test": "GET /operational-intelligence/recipients?limit=5",
+      "passed": true,
+      "details": "Status: 200",
+      "timestamp": "2026-07-24T09:51:57.653775"
+    },
+    {
+      "category": "REGRESSION",
+      "test": "GET /admin/check",
+      "passed": true,
+      "details": "Status: 200",
+      "timestamp": "2026-07-24T09:51:57.946593"
+    },
+    {
+      "category": "REGRESSION",
+      "test": "GET /pm/check",
+      "passed": true,
+      "details": "Status: 200",
+      "timestamp": "2026-07-24T09:51:58.202514"
+    },
+    {
+      "category": "REGRESSION",
+      "test": "GET /safety/overview",
+      "passed": true,
+      "details": "Status: 200",
+      "timestamp": "2026-07-24T09:51:58.887386"
+    },
+    {
+      "category": "REGRESSION",
+      "test": "GET /version",
+      "passed": true,
+      "details": "Status: 200",
+      "timestamp": "2026-07-24T09:51:58.989288"
+    },
+    {
+      "category": "REGRESSION",
+      "test": "GET /health/full",
+      "passed": true,
+      "details": "Status: 200",
+      "timestamp": "2026-07-24T09:51:59.182819"
+    },
+    {
+      "category": "NEGATIVE",
+      "test": "GET /incidents without auth",
+      "passed": true,
+      "details": "Status: 401 (expected 401)",
+      "timestamp": "2026-07-24T09:51:59.275840"
+    },
+    {
+      "category": "NEGATIVE",
+      "test": "PM-only accessing /admin/check",
+      "passed": true,
+      "details": "Status: 401 (expected 401)",
+      "timestamp": "2026-07-24T09:51:59.469928"
+    },
+    {
+      "category": "NEGATIVE",
+      "test": "Admin-only accessing /pm/check",
+      "passed": true,
+      "details": "Status: 401 (expected 401)",
+      "timestamp": "2026-07-24T09:51:59.752538"
+    }
+  ],
+  "verdict": "PASS",
+  "timestamp": "2026-07-24T09:51:59.752651"
+}
