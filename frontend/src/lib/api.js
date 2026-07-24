@@ -14,6 +14,7 @@ import { setMustChange, redirectToChangePassword } from "@/lib/mustChangePasswor
 import { getDeviceId } from "@/lib/resiliency/deviceId";
 import { getDirectoryToken, clearDirectorySession } from "@/lib/directoryAuth";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
+import { inferActivePortalForAuth, inferPortalsForApiPath } from "@/lib/portalAuthScope";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
@@ -39,56 +40,12 @@ export const api = axios.create({
   timeout: 60000,
 });
 
-function inferActivePortal() {
-  try {
-    const path = window.location?.pathname || "";
-    if (path.startsWith("/admin")) return "admin";
-    if (path.startsWith("/hr")) return "hr";
-    if (path.startsWith("/safety")) return "safety";
-    if (path.startsWith("/pm")) return "pm";
-    if (path.startsWith("/shop")) return "shop";
-    if (path.startsWith("/dispatch")) return "dispatch";
-    if (path.startsWith("/field-leadership")) return "fl";
-    if (path.startsWith("/leadership")) return "leadership";
-    return null;
-  } catch {
-    return null;
-  }
-}
-
-function inferPortalsForApiPath(path = "") {
-  if (!path) return [];
-  if (path.startsWith("/admin/")) return ["admin"];
-  if (path.startsWith("/hr/")) return ["hr"];
-  if (path.startsWith("/safety/")) return ["safety"];
-  if (path.startsWith("/pm/")) return ["pm"];
-  if (path.startsWith("/shop/")) return ["shop"];
-  if (path.startsWith("/dispatch/")) return ["dispatch"];
-  if (path.startsWith("/field-leadership/")) return ["fl"];
-  if (path.startsWith("/leadership/")) return ["leadership"];
-  if (path.startsWith("/auth/me-directory")) return ["directory"];
-  if (path.startsWith("/auth/issue-portal-token")) return ["directory"];
-  if (path.startsWith("/auth/")) return [];
-  if (
-    path.startsWith("/notifications/") ||
-    path.startsWith("/tasks/") ||
-    path.startsWith("/workflows/") ||
-    path.startsWith("/operations-actions/") ||
-    path.startsWith("/operations-map/") ||
-    path.startsWith("/operations/") ||
-    path.startsWith("/operations-center") ||
-    path.startsWith("/employees") ||
-    path.startsWith("/daily-reports")
-  ) {
-    const active = inferActivePortal();
-    return active ? [active] : [];
-  }
-  return [];
-}
-
 function applyScopedAuthHeaders(config) {
   const path = String(config?.url || "");
-  const scopedPortals = inferPortalsForApiPath(path);
+  const activePortal = inferActivePortalForAuth(
+    typeof window !== "undefined" ? window.location?.pathname || "" : ""
+  );
+  const scopedPortals = inferPortalsForApiPath(path, activePortal);
   const scopedHeaders =
     scopedPortals.length === 1 && scopedPortals[0] === "directory"
       ? (getDirectoryToken() ? { "X-Directory-Token": getDirectoryToken() } : {})
@@ -357,19 +314,9 @@ api.interceptors.response.use(
         // The fix: only clear the active portal's token, and only
         // broadcast `session_expired` if the request actually carried
         // that token. Other portal sessions remain live.
-        let activePortal = null;
-        try {
-          const p = (typeof window !== "undefined" && window.location && window.location.pathname) || "";
-          if (p.startsWith("/admin/") || p === "/admin") activePortal = "admin";
-          else if (p.startsWith("/hr/") || p === "/hr") activePortal = "hr";
-          else if (p.startsWith("/shop/") || p === "/shop") activePortal = "shop";
-          else if (p.startsWith("/pm/") || p === "/pm") activePortal = "pm";
-          else if (p.startsWith("/safety/") || p === "/safety") activePortal = "safety";
-          else if (p.startsWith("/dispatch/") || p === "/dispatch") activePortal = "dispatch";
-          else if (p.startsWith("/field-leadership/") || p === "/field-leadership") activePortal = "fl";
-          else if (p.startsWith("/leadership/") || p === "/leadership") activePortal = "leadership";
-          else if (p.startsWith("/dev/") || p === "/dev") activePortal = "dev";
-        } catch { /* keep activePortal = null */ }
+        const activePortal = inferActivePortalForAuth(
+          (typeof window !== "undefined" && window.location && window.location.pathname) || ""
+        );
 
         if (activePortal) {
           // TRACK 15.13H — Portal-scoped 401 absorption.

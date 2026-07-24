@@ -795,7 +795,7 @@ export function AppRoutes() {
 
             <Route path="/admin/posters/print-all" element={AP(<PosterErrorBoundary><AllPostersPrint /></PosterErrorBoundary>)} />
 
-            <Route path="/admin/incidents" element={AP(<IncidentsDashboard />)} />
+            <Route path="/admin/incidents" element={A(<IncidentsDashboard />)} />
             <Route path="/admin/incidents/:id" element={APS(<ViewIncident />)} />
 
             <Route path="/admin/daily" element={AP(<DailyReportsDashboard />)} />

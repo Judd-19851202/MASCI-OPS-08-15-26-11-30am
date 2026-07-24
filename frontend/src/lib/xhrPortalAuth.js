@@ -1,5 +1,6 @@
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { getDirectoryToken } from "@/lib/directoryAuth";
+import { inferActivePortalForAuth, inferPortalsForApiPath } from "@/lib/portalAuthScope";
 
 function shouldAttach(url) {
   if (typeof window === "undefined") return false;
@@ -13,33 +14,15 @@ function shouldAttach(url) {
 }
 
 function inferPortalsForUrl(url) {
-  const activePath = typeof window !== "undefined" ? window.location?.pathname || "" : "";
-  const activePortal =
-    activePath.startsWith("/admin") ? "admin"
-    : activePath.startsWith("/hr") ? "hr"
-    : activePath.startsWith("/safety") ? "safety"
-    : activePath.startsWith("/pm") ? "pm"
-    : activePath.startsWith("/shop") ? "shop"
-    : activePath.startsWith("/dispatch") ? "dispatch"
-    : activePath.startsWith("/field-leadership") ? "fl"
-    : activePath.startsWith("/leadership") ? "leadership"
-    : null;
   try {
     const target = new URL(url, window.location.origin);
-    const path = target.pathname;
-    if (path.startsWith("/api/admin/")) return ["admin"];
-    if (path.startsWith("/api/hr/")) return ["hr"];
-    if (path.startsWith("/api/safety/")) return ["safety"];
-    if (path.startsWith("/api/pm/")) return ["pm"];
-    if (path.startsWith("/api/shop/")) return ["shop"];
-    if (path.startsWith("/api/dispatch/")) return ["dispatch"];
-    if (path.startsWith("/api/field-leadership/")) return ["fl"];
-    if (path.startsWith("/api/auth/me-directory") || path.startsWith("/api/auth/issue-portal-token")) return ["directory"];
-    if ((path.startsWith("/api/operations-actions/") || path.startsWith("/api/operations-map/")) && activePortal) return [activePortal];
+    const activePortal = inferActivePortalForAuth(
+      typeof window !== "undefined" ? window.location?.pathname || "" : ""
+    );
+    return inferPortalsForApiPath(target.pathname, activePortal);
   } catch {
     return [];
   }
-  return [];
 }
 
 export function installPortalXhrAuth() {

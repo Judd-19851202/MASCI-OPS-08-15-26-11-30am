@@ -4,7 +4,6 @@
 // to corrective actions. Writes happen in the Incident Intelligence
 // engine flow at /incidents/report; this view is review-only.
 import React, { useEffect, useMemo, useState } from "react";
-import axios from "axios";
 import { Link } from "react-router-dom";
 import {
   ClipboardCheck, Search, Loader2, AlertTriangle, ChevronRight, Filter,
@@ -14,13 +13,10 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import SafetyShell from "@/components/SafetyShell";
-import { getSafetyToken } from "@/lib/safetyAuth";
+import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
 import { operationalError } from "@/lib/errors";
 import { toast } from "sonner";
-
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-const auth = () => ({ headers: { "X-Safety-Token": getSafetyToken() } });
 
 // SEV_PILL — colour bound to severity DATA, not theme.
 // Reserved as the primary urgent-scan signal (do not desaturate).
@@ -56,7 +52,7 @@ export default function SafetyIncidents() {
     (async () => {
       setLoading(true);
       try {
-        const r = await axios.get(`${API}/incidents`, auth());
+        const r = await api.get("/incidents");
         setItems(Array.isArray(r.data) ? r.data : []);
       } catch (e) {
         toast.error(operationalError(e,
