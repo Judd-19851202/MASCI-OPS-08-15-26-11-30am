@@ -41,6 +41,7 @@ import LastActivityLine from "@/components/admin/LastActivityLine";
 import GovernanceHealthChip from "@/components/GovernanceHealthChip";
 import ExpirationsSummary from "@/components/ExpirationsSummary";
 import OperationsActionsTile from "@/components/oa/OperationsActionsTile";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -170,7 +171,7 @@ export default function SafetyHub() {
     (async () => {
       try {
         const r = await axios.get(`${API}/safety/overview`, {
-          headers: { "X-Safety-Token": getSafetyToken() },
+          headers: buildScopedPortalAuthHeaders(["safety"]),
         });
         if (alive) setKpis(r.data);
       } catch (e) {
@@ -185,7 +186,7 @@ export default function SafetyHub() {
       try {
         const { isAgingAccountability } = await import("@/lib/safetyAccountabilityClass");
         const resp = await axios.get(`${API}/safety-forms/equipment-issuances`, {
-          headers: { "X-Safety-Token": getSafetyToken() },
+          headers: buildScopedPortalAuthHeaders(["safety"]),
         });
         const list = Array.isArray(resp.data?.items) ? resp.data.items : [];
         const count = list.filter((rec) => isAgingAccountability(rec, 90)).length;
@@ -489,13 +490,13 @@ export default function SafetyHub() {
           data-testid="safety-integrations-strip"
         >
           <IntegrationHealthCard
-            tokenHeader={{ "X-Safety-Token": getSafetyToken() }}
+            tokenHeader={buildScopedPortalAuthHeaders(["safety"])}
             accent="cyan"
             showAdminLink={false}
           />
           <IntegrationEventsCard
             provider="motive"
-            tokenHeader={{ "X-Safety-Token": getSafetyToken() }}
+            tokenHeader={buildScopedPortalAuthHeaders(["safety"])}
             accent="cyan"
           />
         </div>

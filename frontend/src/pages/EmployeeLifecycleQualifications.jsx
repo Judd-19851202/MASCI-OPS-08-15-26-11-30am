@@ -24,6 +24,7 @@ import {
   renewQualification,
   listActiveQualifications,
 } from "@/lib/qualificationsApi";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 
 const inputCls =
   "h-10 text-sm border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-purple-600";
@@ -52,7 +53,7 @@ async function fetchEmployees() {
   try {
     const url = `${process.env.REACT_APP_BACKEND_URL}/api/hr/employee-roster`;
     const hr = window.localStorage.getItem("hr_token") || "";
-    const r = await fetch(url, { headers: { "X-HR-Token": hr } });
+    const r = await fetch(url, { headers: buildScopedPortalAuthHeaders(["hr"]) });
     if (!r.ok) return [];
     const data = await r.json();
     return data.items || data || [];

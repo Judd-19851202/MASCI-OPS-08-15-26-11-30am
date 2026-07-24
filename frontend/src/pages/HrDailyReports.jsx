@@ -26,12 +26,13 @@ import { resolvePhotoSrc } from "@/lib/photoSrc";
 import { useT } from "@/lib/i18n";
 import { paletteFor } from "@/lib/portalPalette";
 import { operationalError } from "@/lib/errors";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { toast } from "sonner";
 import axios from "axios";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const HR_PAL = paletteFor("hr");
-const auth = () => ({ headers: { "X-HR-Token": getHrToken() } });
+const auth = () => ({ headers: buildScopedPortalAuthHeaders(["hr"]) });
 
 export default function HrDailyReports() {
   const { t } = useT();

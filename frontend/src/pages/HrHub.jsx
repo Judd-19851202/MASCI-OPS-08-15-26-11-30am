@@ -25,6 +25,7 @@ import { formatPlatformTime } from "@/lib/platformTime";
 import { PasskeyEnrollPrompt } from "@/components/auth/PasskeyEnrollPrompt";
 import GovernanceHealthChip from "@/components/GovernanceHealthChip";
 import { setPortalContext } from "@/lib/portalContext";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 
 const HR_PAL = paletteFor("hr");
 
@@ -177,13 +178,13 @@ export default function HrHub() {
         const tok = getHrToken();
         if (!tok) return;
         const r = await fetch(`${API}/field-leadership/time-off/stats`, {
-          headers: { "X-HR-Token": tok },
+          headers: buildScopedPortalAuthHeaders(["hr"]),
         });
         if (r.ok) setStats(await r.json());
         // OMEGA · Phase Alpha · pending employee-requests badge count.
         try {
           const r2 = await fetch(`${API}/hr/employee-requests?status=pending&limit=1`, {
-            headers: { "X-HR-Token": tok },
+            headers: buildScopedPortalAuthHeaders(["hr"]),
           });
           if (r2.ok) {
             const d2 = await r2.json();
@@ -350,7 +351,7 @@ export default function HrHub() {
           <IntegrationEventsCard
             provider="motive"
             title={t("Driver Safety Events (HR Review)")}
-            tokenHeader={{ "X-HR-Token": getHrToken() || "" }}
+            tokenHeader={buildScopedPortalAuthHeaders(["hr"])}
             accent="purple"
           />
         </div>
@@ -370,12 +371,7 @@ function TransportationReadinessWidget() {
       setData(null);
       return;
     }
-    const headers = {
-      "X-HR-Token": tok || "",
-      "X-Admin-Token": (typeof window !== "undefined" && window.localStorage)
-        ? (window.localStorage.getItem("masci.admin.token") || "")
-        : "",
-    };
+    const headers = buildScopedPortalAuthHeaders(["hr", "admin"]);
     fetch(`${API}/admin/hr/transportation-readiness`, { headers })
       .then(async (r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);

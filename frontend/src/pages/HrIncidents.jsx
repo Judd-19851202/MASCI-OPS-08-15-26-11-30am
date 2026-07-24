@@ -18,6 +18,7 @@ import { getHrToken } from "@/lib/hrAuth";
 import { operationalError } from "@/lib/errors";
 import { useT } from "@/lib/i18n";
 import { LifecycleGuide } from "@/components/LifecycleGuide";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -61,7 +62,7 @@ export default function HrIncidents() {
     setLoading(true); setErr("");
     try {
       const r = await axios.get(`${API}/hr/incidents`, {
-        headers: { "X-HR-Token": getHrToken() || "" },
+        headers: buildScopedPortalAuthHeaders(["hr"]),
         params,
       });
       setData(r.data || { items: [] });

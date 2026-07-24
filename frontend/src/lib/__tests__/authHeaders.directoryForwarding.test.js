@@ -1,7 +1,7 @@
 /* eslint-env jest */
 /* global jest, describe, test, expect */
 
-import { buildPortalAuthHeaders } from "@/lib/authHeaders";
+import { buildPortalAuthHeaders, buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 
 jest.mock("@/lib/adminAuth", () => ({ getAdminToken: () => "admin-token" }));
 jest.mock("@/lib/pmAuth", () => ({ getPmToken: () => "" }));
@@ -21,5 +21,14 @@ describe("buildPortalAuthHeaders", () => {
     expect(headers["X-Admin-Token"]).toBe("admin-token");
     expect(headers["X-HR-Token"]).toBe("hr-token");
     expect(headers["X-Directory-Token"]).toBe("directory-token");
+  });
+
+  test("can scope to a single portal while preserving directory token", () => {
+    const headers = buildScopedPortalAuthHeaders(["hr"], { "Content-Type": "application/json" });
+
+    expect(headers["Content-Type"]).toBe("application/json");
+    expect(headers["X-HR-Token"]).toBe("hr-token");
+    expect(headers["X-Directory-Token"]).toBe("directory-token");
+    expect(headers["X-Admin-Token"]).toBeUndefined();
   });
 });

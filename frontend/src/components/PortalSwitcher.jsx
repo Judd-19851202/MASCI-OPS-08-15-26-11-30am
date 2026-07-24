@@ -18,7 +18,7 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
-import { getDirectoryUser, clearDirectorySession } from "@/lib/directoryAuth";
+import { getDirectoryToken, getDirectoryUser, clearDirectorySession } from "@/lib/directoryAuth";
 import { getHrUser } from "@/lib/hrAuth";
 import { getSafetyUser } from "@/lib/safetyAuth";
 import { getDispatchUser } from "@/lib/dispatchAuth";
@@ -83,7 +83,8 @@ function _emailOf(user) {
  */
 export default function PortalSwitcher({ current, className = "" }) {
   const user = getDirectoryUser();
-  if (!user || !Array.isArray(user.portals) || user.portals.length < 2) {
+  const dirToken = getDirectoryToken();
+  if (!dirToken || !user || !Array.isArray(user.portals) || user.portals.length < 2) {
     return null;
   }
 

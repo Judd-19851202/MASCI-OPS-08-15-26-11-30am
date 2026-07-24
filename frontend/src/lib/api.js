@@ -12,6 +12,8 @@ import { getSafetyToken, clearSafetyToken } from "@/lib/safetyAuth";
 import { getDispatchToken, clearDispatchToken } from "@/lib/dispatchAuth";
 import { setMustChange, redirectToChangePassword } from "@/lib/mustChangePassword";
 import { getDeviceId } from "@/lib/resiliency/deviceId";
+import { getDirectoryToken, clearDirectorySession } from "@/lib/directoryAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
@@ -37,62 +39,87 @@ export const api = axios.create({
   timeout: 60000,
 });
 
+function inferActivePortal() {
+  try {
+    const path = window.location?.pathname || "";
+    if (path.startsWith("/admin")) return "admin";
+    if (path.startsWith("/hr")) return "hr";
+    if (path.startsWith("/safety")) return "safety";
+    if (path.startsWith("/pm")) return "pm";
+    if (path.startsWith("/shop")) return "shop";
+    if (path.startsWith("/dispatch")) return "dispatch";
+    if (path.startsWith("/field-leadership")) return "fl";
+    if (path.startsWith("/leadership")) return "leadership";
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function inferPortalsForApiPath(path = "") {
+  if (!path) return [];
+  if (path.startsWith("/admin/")) return ["admin"];
+  if (path.startsWith("/hr/")) return ["hr"];
+  if (path.startsWith("/safety/")) return ["safety"];
+  if (path.startsWith("/pm/")) return ["pm"];
+  if (path.startsWith("/shop/")) return ["shop"];
+  if (path.startsWith("/dispatch/")) return ["dispatch"];
+  if (path.startsWith("/field-leadership/")) return ["fl"];
+  if (path.startsWith("/leadership/")) return ["leadership"];
+  if (path.startsWith("/auth/me-directory")) return ["directory"];
+  if (path.startsWith("/auth/issue-portal-token")) return ["directory"];
+  if (path.startsWith("/auth/")) return [];
+  if (
+    path.startsWith("/notifications/") ||
+    path.startsWith("/tasks/") ||
+    path.startsWith("/workflows/") ||
+    path.startsWith("/operations-actions/") ||
+    path.startsWith("/operations-map/") ||
+    path.startsWith("/operations/") ||
+    path.startsWith("/operations-center") ||
+    path.startsWith("/employees") ||
+    path.startsWith("/daily-reports")
+  ) {
+    const active = inferActivePortal();
+    return active ? [active] : [];
+  }
+  return [];
+}
+
+function applyScopedAuthHeaders(config) {
+  const path = String(config?.url || "");
+  const scopedPortals = inferPortalsForApiPath(path);
+  const scopedHeaders =
+    scopedPortals.length === 1 && scopedPortals[0] === "directory"
+      ? (getDirectoryToken() ? { "X-Directory-Token": getDirectoryToken() } : {})
+      : buildScopedPortalAuthHeaders(scopedPortals);
+  Object.entries(scopedHeaders).forEach(([key, value]) => {
+    if (value) config.headers[key] = value;
+  });
+}
+
 // Attach Crew-Hub JWT, Safety-Admin token, and Shop token to every request.
 api.interceptors.request.use((config) => {
+  config.headers = config.headers || {};
   try {
     const deviceId = getDeviceId();
     if (deviceId) {
       config.headers["X-Device-Id"] = deviceId;
     }
   } catch (_e) { /* ignore */ }
-  const adminTok = getAdminToken();
-  if (adminTok) {
-    config.headers["X-Admin-Token"] = adminTok;
-  }
-  const shopTok = getShopToken();
-  if (shopTok) {
-    config.headers["X-Shop-Token"] = shopTok;
-  }
-  const pmTok = getPmToken();
-  if (pmTok) {
-    config.headers["X-PM-Token"] = pmTok;
-  }
+  applyScopedAuthHeaders(config);
   const devTok = getDevToken();
-  if (devTok) {
+  if (devTok && String(config?.url || "").startsWith("/dev/")) {
     config.headers["X-Dev-Token"] = devTok;
   }
   const sfTok = getSafetyFormsToken();
-  if (sfTok) {
+  if (sfTok && String(config?.url || "").includes("/safety-forms/")) {
     config.headers["X-Safety-Forms-Token"] = sfTok;
   }
   const leadTok = getLeadershipToken();
-  if (leadTok) {
+  if (leadTok && String(config?.url || "").startsWith("/leadership/")) {
     config.headers["X-Leadership-Token"] = leadTok;
   }
-  const hrTok = getHrToken();
-  if (hrTok) {
-    config.headers["X-HR-Token"] = hrTok;
-  }
-  const flTok = getFlToken();
-  if (flTok) {
-    config.headers["X-FL-Token"] = flTok;
-  }
-  const safetyTok = getSafetyToken();
-  if (safetyTok) {
-    config.headers["X-Safety-Token"] = safetyTok;
-  }
-  const dispatchTok = getDispatchToken();
-  if (dispatchTok) {
-    config.headers["X-Dispatch-Token"] = dispatchTok;
-  }
-  // iter375 · Phase 4B · directory session token (used by MFA management routes)
-  try {
-    const dirTok = window.localStorage.getItem("masci.directory.token") ||
-                   window.sessionStorage.getItem("masci.directory.token");
-    if (dirTok) {
-      config.headers["X-Directory-Token"] = dirTok;
-    }
-  } catch (_e) { /* ignore */ }
   const jwt = getJwt();
   if (jwt && !config.headers.Authorization) {
     config.headers.Authorization = `Bearer ${jwt}`;
@@ -120,6 +147,25 @@ import { safeErrorMessage } from "./safeErrorMessage";
 // instead of "SERVER UNREACHABLE" + N × "Failed to load…" toasts.
 import { classifyApiError } from "./errorClassification";
 import { publishSessionStatus } from "./sessionStatusBus";
+
+function classifyAuthFailure(err) {
+  const status = Number(err?.response?.status || 0);
+  const detail = err?.response?.data?.detail;
+  const message = String(
+    typeof detail === "string" ? detail : detail?.message || detail?.code || ""
+  ).toLowerCase();
+  if (status !== 401) return { kind: "non_401", shouldClearPortal: false, shouldClearDirectory: false };
+  if (message.includes("session_not_active") || message.includes("session_idle_timeout") || message.includes("session_absolute_timeout")) {
+    return { kind: "directory_expired", shouldClearPortal: true, shouldClearDirectory: true };
+  }
+  if (message.includes("not signed in") || message.includes("directory session required")) {
+    return { kind: "directory_missing", shouldClearPortal: false, shouldClearDirectory: true };
+  }
+  if (message.includes("portal authentication required") || message.includes("login required") || message.includes("invalid") || message.includes("expired")) {
+    return { kind: "portal_unauthorized", shouldClearPortal: true, shouldClearDirectory: false };
+  }
+  return { kind: "unauthorized", shouldClearPortal: false, shouldClearDirectory: false };
+}
 
 api.interceptors.response.use(
   (res) => {
@@ -232,6 +278,7 @@ api.interceptors.response.use(
     const cfg = err.config || {};
     let _namespacedHandled = false;
     if (err?.response?.status === 401) {
+      const authFailure = classifyAuthFailure(err);
       const url = String(cfg.url || "");
       const isAdminNamespace = url.startsWith("/admin/") || url.includes("/api/admin/");
       const isShopNamespace = url.startsWith("/shop/") || url.includes("/api/shop/");
@@ -254,34 +301,43 @@ api.interceptors.response.use(
       const isCrossPortalHelper = isWorkflowsHelper || isNotificationsHelper || isOperationsHelper;
 
       if (isAdminNamespace) {
-        if (cfg.headers?.["X-Admin-Token"]) clearAdminToken();
+        if (authFailure.shouldClearPortal && cfg.headers?.["X-Admin-Token"]) clearAdminToken();
+        if (authFailure.shouldClearDirectory && getDirectoryToken()) clearDirectorySession();
         _namespacedHandled = true;
       } else if (isShopNamespace) {
-        if (cfg.headers?.["X-Shop-Token"]) clearShopToken();
+        if (authFailure.shouldClearPortal && cfg.headers?.["X-Shop-Token"]) clearShopToken();
+        if (authFailure.shouldClearDirectory && getDirectoryToken()) clearDirectorySession();
         _namespacedHandled = true;
       } else if (isHrNamespace) {
-        if (cfg.headers?.["X-HR-Token"]) clearHrToken();
+        if (authFailure.shouldClearPortal && cfg.headers?.["X-HR-Token"]) clearHrToken();
+        if (authFailure.shouldClearDirectory && getDirectoryToken()) clearDirectorySession();
         _namespacedHandled = true;
       } else if (isPmNamespace) {
-        if (cfg.headers?.["X-PM-Token"]) clearPmToken();
+        if (authFailure.shouldClearPortal && cfg.headers?.["X-PM-Token"]) clearPmToken();
+        if (authFailure.shouldClearDirectory && getDirectoryToken()) clearDirectorySession();
         _namespacedHandled = true;
       } else if (isSafetyNamespace) {
-        if (cfg.headers?.["X-Safety-Token"]) clearSafetyToken();
+        if (authFailure.shouldClearPortal && cfg.headers?.["X-Safety-Token"]) clearSafetyToken();
+        if (authFailure.shouldClearDirectory && getDirectoryToken()) clearDirectorySession();
         _namespacedHandled = true;
       } else if (isDispatchNamespace) {
-        if (cfg.headers?.["X-Dispatch-Token"]) clearDispatchToken();
+        if (authFailure.shouldClearPortal && cfg.headers?.["X-Dispatch-Token"]) clearDispatchToken();
+        if (authFailure.shouldClearDirectory && getDirectoryToken()) clearDirectorySession();
         _namespacedHandled = true;
       } else if (isFlNamespace) {
-        if (cfg.headers?.["X-FL-Token"]) clearFlToken();
+        if (authFailure.shouldClearPortal && cfg.headers?.["X-FL-Token"]) clearFlToken();
+        if (authFailure.shouldClearDirectory && getDirectoryToken()) clearDirectorySession();
         _namespacedHandled = true;
       } else if (isLeadershipNamespace) {
-        if (cfg.headers?.["X-Leadership-Token"]) clearLeadershipToken();
+        if (authFailure.shouldClearPortal && cfg.headers?.["X-Leadership-Token"]) clearLeadershipToken();
+        if (authFailure.shouldClearDirectory && getDirectoryToken()) clearDirectorySession();
         _namespacedHandled = true;
       } else if (isSafetyFormsNamespace) {
-        if (cfg.headers?.["X-Safety-Forms-Token"]) clearSafetyFormsToken();
+        if (authFailure.shouldClearPortal && cfg.headers?.["X-Safety-Forms-Token"]) clearSafetyFormsToken();
+        if (authFailure.shouldClearDirectory && getDirectoryToken()) clearDirectorySession();
         _namespacedHandled = true;
       } else if (isDevNamespace) {
-        if (cfg.headers?.["X-Dev-Token"]) clearDevToken();
+        if (authFailure.shouldClearPortal && cfg.headers?.["X-Dev-Token"]) clearDevToken();
         _namespacedHandled = true;
       } else if (isCrossPortalHelper) {
         // Cross-portal helper 401 — silent. Do NOT clear any tokens
@@ -349,16 +405,17 @@ api.interceptors.response.use(
           // legacy behavior of clearing every token the request
           // carried so the next protected click bounces to the right
           // login. This branch should be rare in production.
-          if (cfg.headers?.["X-Admin-Token"]) clearAdminToken();
-          if (cfg.headers?.["X-Shop-Token"]) clearShopToken();
-          if (cfg.headers?.["X-PM-Token"]) clearPmToken();
-          if (cfg.headers?.["X-Dev-Token"]) clearDevToken();
-          if (cfg.headers?.["X-Safety-Forms-Token"]) clearSafetyFormsToken();
-          if (cfg.headers?.["X-Leadership-Token"]) clearLeadershipToken();
-          if (cfg.headers?.["X-HR-Token"]) clearHrToken();
-          if (cfg.headers?.["X-Safety-Token"]) clearSafetyToken();
-          if (cfg.headers?.["X-Dispatch-Token"]) clearDispatchToken();
-          if (cfg.headers?.["X-FL-Token"]) clearFlToken();
+          if (authFailure.shouldClearPortal && cfg.headers?.["X-Admin-Token"]) clearAdminToken();
+          if (authFailure.shouldClearPortal && cfg.headers?.["X-Shop-Token"]) clearShopToken();
+          if (authFailure.shouldClearPortal && cfg.headers?.["X-PM-Token"]) clearPmToken();
+          if (authFailure.shouldClearPortal && cfg.headers?.["X-Dev-Token"]) clearDevToken();
+          if (authFailure.shouldClearPortal && cfg.headers?.["X-Safety-Forms-Token"]) clearSafetyFormsToken();
+          if (authFailure.shouldClearPortal && cfg.headers?.["X-Leadership-Token"]) clearLeadershipToken();
+          if (authFailure.shouldClearPortal && cfg.headers?.["X-HR-Token"]) clearHrToken();
+          if (authFailure.shouldClearPortal && cfg.headers?.["X-Safety-Token"]) clearSafetyToken();
+          if (authFailure.shouldClearPortal && cfg.headers?.["X-Dispatch-Token"]) clearDispatchToken();
+          if (authFailure.shouldClearPortal && cfg.headers?.["X-FL-Token"]) clearFlToken();
+          if (authFailure.shouldClearDirectory && getDirectoryToken()) clearDirectorySession();
           if (cfg.headers?.Authorization) clearJwt();
         }
       }

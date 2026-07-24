@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { getHrToken } from "@/lib/hrAuth";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { formatEmployeeIdentity } from "@/lib/identity";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 // TRACK 27.03 · Phase 3 · Canonical local-time formatter.
 import { formatPlatformTime } from "@/lib/platformTime";
 
@@ -96,7 +97,7 @@ export default function HrEmployeeRequestsQueue() {
       if (kindFilter) qs.set("kind", kindFilter);
       qs.set("limit", "200");
       const r = await fetch(`${API}/hr/employee-requests?${qs}`, {
-        headers: { "X-HR-Token": tok },
+        headers: buildScopedPortalAuthHeaders(["hr"]),
       });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const d = await r.json();
@@ -186,7 +187,7 @@ export default function HrEmployeeRequestsQueue() {
           };
       const r = await fetch(`${API}/hr/employee-requests/${active.id}/approve`, {
         method: "POST",
-        headers: { "X-HR-Token": tok, "Content-Type": "application/json" },
+        headers: buildScopedPortalAuthHeaders(["hr"], { "Content-Type": "application/json" }),
         body: JSON.stringify(body),
       });
       if (!r.ok) {
@@ -219,7 +220,7 @@ export default function HrEmployeeRequestsQueue() {
       const tok = getHrToken();
       const r = await fetch(`${API}/hr/employee-requests/${active.id}/reject`, {
         method: "POST",
-        headers: { "X-HR-Token": tok, "Content-Type": "application/json" },
+        headers: buildScopedPortalAuthHeaders(["hr"], { "Content-Type": "application/json" }),
         body: JSON.stringify({ reason: rejectReason.trim() }),
       });
       if (!r.ok) {

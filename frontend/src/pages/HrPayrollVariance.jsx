@@ -26,6 +26,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { PayrollVarianceLifecyclePanel } from "@/components/PayrollVarianceLifecyclePanel";
 import HrPageShell from "@/components/HrPageShell";
 import { getHrToken } from "@/lib/hrAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { HelpTipBlock } from "@/components/HelpTip";
@@ -154,7 +155,7 @@ export default function HrPayrollVariance() {
     if (!batch) return;
     try {
       const tok = getHrToken();
-      const r = await fetch(`${API}/hr/payroll-variance/${batch.id}.csv`, { headers: { "X-HR-Token": tok } });
+      const r = await fetch(`${API}/hr/payroll-variance/${batch.id}.csv`, { headers: buildScopedPortalAuthHeaders(["hr"]) });
       if (!r.ok) throw new Error("HTTP " + r.status);
       const blob = await r.blob();
       const a = document.createElement("a");

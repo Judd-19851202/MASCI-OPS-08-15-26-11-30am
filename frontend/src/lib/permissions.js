@@ -21,7 +21,7 @@ import { getHrToken } from "@/lib/hrAuth";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import { getDispatchToken } from "@/lib/dispatchAuth";
 import { isLeadershipAuthed } from "@/lib/leadershipAuth";
-import { getDirectoryUser } from "@/lib/directoryAuth";
+import { getDirectoryToken, getDirectoryUser } from "@/lib/directoryAuth";
 
 // Canonical portal keys (order = preference for "home portal" detection)
 export const PORTALS = ["admin", "hr", "safety", "pm", "shop", "dispatch", "leadership"];
@@ -85,9 +85,19 @@ export function activePortals() {
  */
 export function authorizedPortals() {
   const dir = getDirectoryUser();
-  const fromDirectory = Array.isArray(dir?.portals) ? dir.portals : [];
+  const hasDirectorySession = !!getDirectoryToken();
+  const fromDirectory = hasDirectorySession && Array.isArray(dir?.portals) ? dir.portals : [];
   const active = activePortals();
   return Array.from(new Set([...fromDirectory, ...active]));
+}
+
+export function assignedPortals() {
+  const dir = getDirectoryUser();
+  return Array.isArray(dir?.portals) ? Array.from(new Set(dir.portals)) : [];
+}
+
+export function reachablePortals() {
+  return authorizedPortals();
 }
 
 /**
@@ -107,7 +117,7 @@ export function homePortal() {
  */
 export function canAccessPortal(portal) {
   if (!portal) return false;
-  return authorizedPortals().includes(portal);
+  return reachablePortals().includes(portal);
 }
 
 /**

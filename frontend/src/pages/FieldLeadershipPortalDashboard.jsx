@@ -9,6 +9,7 @@ import { HelpTipBlock } from "@/components/HelpTip";
 import { useT } from "@/lib/i18n";
 import { api } from "@/lib/api";
 import { getFlUser, clearFlToken, getFlToken } from "@/lib/flAuth";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { toast } from "sonner";
 import FlAccountabilityWidget from "@/components/FlAccountabilityWidget";
 import MyAssignedProjectsWidget from "@/components/team/MyAssignedProjectsWidget";
@@ -31,7 +32,7 @@ function FlAccountabilityLookup() {
     setSearching(true);
     try {
       const url = `${process.env.REACT_APP_BACKEND_URL}/api/field-leadership/portal/driver-qualification?q=${encodeURIComponent(q.trim())}&limit=10`;
-      const r = await fetch(url, { headers: { "X-FL-Token": getFlToken() || "" } });
+      const r = await fetch(url, { headers: buildScopedPortalAuthHeaders(["fl"]) });
       const d = await r.json();
       setResults((d.items || []).slice(0, 10));
     } catch (e) {

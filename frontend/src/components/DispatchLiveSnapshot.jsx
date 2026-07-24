@@ -19,17 +19,14 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AlertTriangle, CircleSlash, CheckCircle2, Clock, Boxes, Activity, RefreshCcw, ExternalLink } from "lucide-react";
 import { useT } from "@/lib/i18n";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 function _authHeaders() {
-  const t =
-    sessionStorage.getItem("masci.dispatch.token") ||
-    sessionStorage.getItem("masci.admin.token") ||
-    "";
-  return t ? { "X-Admin-Token": t } : {};
+  return buildScopedPortalAuthHeaders(["dispatch", "admin"]);
 }
 
 const ICON_BY_ID = {

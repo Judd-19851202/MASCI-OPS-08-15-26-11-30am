@@ -15,7 +15,7 @@ import { Link, useLocation } from "react-router-dom";
 import { ShieldOff, ArrowRight, Home, LogIn } from "lucide-react";
 import { MasciLogo } from "@/components/MasciLogo";
 import {
-  authorizedPortals, homePortal, isSignedInAnywhere,
+  assignedPortals, homePortal, isSignedInAnywhere, reachablePortals,
   PORTAL_LABEL, PORTAL_HOME,
 } from "@/lib/permissions";
 import { useT } from "@/lib/i18n";
@@ -24,7 +24,10 @@ export default function AccessDenied({ attemptedPortal }) {
   const { t } = useT();
   const location = useLocation();
   const home = homePortal();
-  const others = authorizedPortals().filter((p) => p !== home);
+  const reachable = reachablePortals();
+  const assigned = assignedPortals();
+  const others = reachable.filter((p) => p !== home && p !== attemptedPortal);
+  const assignedButUnavailable = assigned.filter((p) => !reachable.includes(p) && p !== attemptedPortal);
   const signedIn = isSignedInAnywhere();
   // attempted portal label — for the body copy
   const what = attemptedPortal
@@ -54,7 +57,7 @@ export default function AccessDenied({ attemptedPortal }) {
           </h1>
           <p className="text-slate-600 mt-3 leading-relaxed text-sm sm:text-base">
             {signedIn
-              ? t("This section belongs to a different portal scope. Your current session can't open it, but you can jump back to a portal you do have access to below. If this is unexpected, contact your administrator.")
+              ? t("This section belongs to a different portal scope or your current browser session for it is not reachable right now. You can jump back to a portal that is currently reachable below. If this is unexpected, contact your administrator.")
               : t("You need to sign in to view this section. Pick the right portal sign-in below — or head back to the public home.")}
           </p>
 
@@ -90,7 +93,7 @@ export default function AccessDenied({ attemptedPortal }) {
           {signedIn && others.length > 0 && (
             <div className="mt-8 pt-6 border-t border-slate-200">
               <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500 font-bold mb-2.5">
-                {t("Other portals you can access")}
+                {t("Other portals currently reachable in this session")}
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4.5">
                 {others.map((p) => (
@@ -107,6 +110,17 @@ export default function AccessDenied({ attemptedPortal }) {
                   </Link>
                 ))}
               </div>
+            </div>
+          )}
+
+          {signedIn && assignedButUnavailable.length > 0 && (
+            <div className="mt-6 rounded-md border border-amber-300 bg-amber-50 px-4 py-3" data-testid="access-denied-assigned-unreachable">
+              <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-amber-900 font-bold mb-1">
+                {t("Assigned portals not currently reachable")}
+              </div>
+              <p className="text-sm text-amber-900">
+                {assignedButUnavailable.map((p) => PORTAL_LABEL[p] || p).join(", ")}
+              </p>
             </div>
           )}
 

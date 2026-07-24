@@ -14,6 +14,7 @@ import {
 import HrPageShell from "@/components/HrPageShell";
 import { getHrToken } from "@/lib/hrAuth";
 import { HelpTipBlock } from "@/components/HelpTip";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 
@@ -63,7 +64,7 @@ export default function HrFieldLeadership() {
   const downloadPdf = async (rec) => {
     try {
       const tok = getHrToken();
-      const r = await fetch(`${API}/hr/field-leadership/${rec.id}/pdf`, { headers: { "X-HR-Token": tok } });
+      const r = await fetch(`${API}/hr/field-leadership/${rec.id}/pdf`, { headers: buildScopedPortalAuthHeaders(["hr"]) });
       if (!r.ok) throw new Error("HTTP " + r.status);
       const blob = await r.blob();
       const a = document.createElement("a");

@@ -1,4 +1,4 @@
-import { buildPortalAuthHeaders } from "@/lib/authHeaders";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 
 function toAbsoluteUrl(input) {
   if (typeof window === "undefined") return null;
@@ -9,6 +9,31 @@ function toAbsoluteUrl(input) {
   } catch {
     return null;
   }
+}
+
+function inferPortalsForPath(pathname = "") {
+  const activePath = typeof window !== "undefined" ? window.location?.pathname || "" : "";
+  const activePortal =
+    activePath.startsWith("/admin") ? "admin"
+    : activePath.startsWith("/hr") ? "hr"
+    : activePath.startsWith("/safety") ? "safety"
+    : activePath.startsWith("/pm") ? "pm"
+    : activePath.startsWith("/shop") ? "shop"
+    : activePath.startsWith("/dispatch") ? "dispatch"
+    : activePath.startsWith("/field-leadership") ? "fl"
+    : activePath.startsWith("/leadership") ? "leadership"
+    : null;
+  if (!pathname) return [];
+  if (pathname.startsWith("/api/admin/") || pathname === "/api/admin") return ["admin"];
+  if (pathname.startsWith("/api/hr/") || pathname === "/api/hr") return ["hr"];
+  if (pathname.startsWith("/api/safety/") || pathname === "/api/safety") return ["safety"];
+  if (pathname.startsWith("/api/pm/") || pathname === "/api/pm") return ["pm"];
+  if (pathname.startsWith("/api/shop/") || pathname === "/api/shop") return ["shop"];
+  if (pathname.startsWith("/api/dispatch/") || pathname === "/api/dispatch") return ["dispatch"];
+  if (pathname.startsWith("/api/field-leadership/") || pathname === "/api/field-leadership") return ["fl"];
+  if (pathname.startsWith("/api/leadership/") || pathname === "/api/leadership") return ["leadership"];
+  if ((pathname.startsWith("/api/operations-actions/") || pathname.startsWith("/api/operations-map/")) && activePortal) return [activePortal];
+  return [];
 }
 
 export function shouldAttachPortalAuth(input) {
@@ -25,14 +50,15 @@ export function shouldAttachPortalAuth(input) {
   }
 }
 
-function mergeAuthHeaders(...sources) {
+function mergeAuthHeaders(input, ...sources) {
   const headers = new Headers();
   for (const source of sources) {
     if (!source) continue;
     const next = new Headers(source);
     next.forEach((value, key) => headers.set(key, value));
   }
-  const authHeaders = buildPortalAuthHeaders();
+  const target = toAbsoluteUrl(input);
+  const authHeaders = buildScopedPortalAuthHeaders(inferPortalsForPath(target?.pathname || ""));
   Object.entries(authHeaders).forEach(([key, value]) => {
     if (value && !headers.has(key)) headers.set(key, value);
   });
@@ -52,14 +78,14 @@ export function installPortalFetchAuth() {
       if (input instanceof Request) {
         const request = new Request(input, {
           ...init,
-          headers: mergeAuthHeaders(input.headers, init.headers),
+          headers: mergeAuthHeaders(input, input.headers, init.headers),
         });
         return nativeFetch(request);
       }
 
       return nativeFetch(input, {
         ...init,
-        headers: mergeAuthHeaders(init.headers),
+        headers: mergeAuthHeaders(input, init.headers),
       });
     } catch {
       return nativeFetch(input, init);

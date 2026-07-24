@@ -8,6 +8,18 @@ import { getLeadershipToken } from "@/lib/leadershipAuth";
 import { getFlToken } from "@/lib/flAuth";
 import { getDirectoryToken } from "@/lib/directoryAuth";
 
+const PORTAL_HEADER_MAP = {
+  admin: "X-Admin-Token",
+  pm: "X-PM-Token",
+  hr: "X-HR-Token",
+  shop: "X-Shop-Token",
+  safety: "X-Safety-Token",
+  dispatch: "X-Dispatch-Token",
+  leadership: "X-Leadership-Token",
+  field_leadership: "X-FL-Token",
+  fl: "X-FL-Token",
+};
+
 export function buildPortalAuthHeaders(extra = {}) {
   const headers = { ...extra };
 
@@ -39,4 +51,17 @@ export function buildPortalAuthHeaders(extra = {}) {
   if (directory) headers["X-Directory-Token"] = directory;
 
   return headers;
+}
+
+export function buildScopedPortalAuthHeaders(portals = [], extra = {}) {
+  const requested = Array.isArray(portals) ? portals : [portals];
+  const all = buildPortalAuthHeaders(extra);
+  const scoped = { ...extra };
+
+  for (const portal of requested) {
+    const key = PORTAL_HEADER_MAP[portal];
+    if (key && all[key]) scoped[key] = all[key];
+  }
+  if (all["X-Directory-Token"]) scoped["X-Directory-Token"] = all["X-Directory-Token"];
+  return scoped;
 }
