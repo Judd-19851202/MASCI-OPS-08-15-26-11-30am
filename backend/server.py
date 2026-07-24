@@ -579,6 +579,30 @@ async def _is_valid_directory_admin_token_async(token: Optional[str]) -> bool:
         return False
 
 
+async def _super_admin_row_for_token_async(token: Optional[str]) -> Optional[Dict[str, Any]]:
+    """Resolve a validated directory-admin token to its row for Super Admin only."""
+    if not token or "." not in token:
+        return None
+    try:
+        import user_directory as _ud_local  # noqa: PLC0415
+        row = await _ud_local.is_valid_directory_admin_token_async(db, token)
+    except Exception:  # noqa: BLE001
+        return None
+    if not row:
+        return None
+    email = (row.get("email") or "").strip().lower()
+    super_email = (os.environ.get("SUPER_ADMIN_EMAIL") or "").strip().lower()
+    if row.get("is_super_admin") is True:
+        return row
+    if super_email and email == super_email:
+        return row
+    return None
+
+
+async def _is_valid_super_admin_token_async(token: Optional[str]) -> bool:
+    return (await _super_admin_row_for_token_async(token)) is not None
+
+
 def _is_valid_admin_token(tok: Optional[str]) -> bool:
     """TRACK 15.32 — shared ADMIN_PASSWORD HMAC retired.
 
@@ -786,6 +810,38 @@ async def require_admin_async(
     raise HTTPException(status_code=401, detail="Admin or PM login required")
 
 
+async def require_pm_portal_or_super_admin(
+    request: Request,
+    x_admin_token: Optional[str] = Header(default=None),
+    x_pm_token: Optional[str] = Header(default=None),
+):
+    if x_admin_token and await _super_admin_row_for_token_async(x_admin_token):
+        return True
+    if x_pm_token and "." in x_pm_token:
+        from pm_auth import is_valid_pm_user_token_async
+        pm_doc = await is_valid_pm_user_token_async(db, x_pm_token)
+        if pm_doc:
+            enforce_password_change_required(request, pm_doc)
+            return pm_doc
+    raise HTTPException(status_code=401, detail="PM login required")
+
+
+async def require_pm_portal_or_super_admin_async(
+    request: Request,
+    x_admin_token: Optional[str] = Header(default=None),
+    x_pm_token: Optional[str] = Header(default=None),
+):
+    if x_admin_token and await _super_admin_row_for_token_async(x_admin_token):
+        return True
+    if x_pm_token and "." in x_pm_token:
+        from pm_auth import is_valid_pm_user_token_async
+        pm_doc = await is_valid_pm_user_token_async(db, x_pm_token)
+        if pm_doc:
+            enforce_password_change_required(request, pm_doc)
+            return {**pm_doc, "_actor_kind": "pm_user", "_actor": "pm", "role": "pm"}
+    raise HTTPException(status_code=401, detail="PM login required")
+
+
 async def require_admin_strict(
     request: Request,
     x_admin_token: Optional[str] = Header(default=None),
@@ -974,34 +1030,11 @@ async def require_shop_or_admin(
     request: Request,
     x_admin_token: Optional[str] = Header(default=None),
     x_shop_token: Optional[str] = Header(default=None),
-    x_pm_token: Optional[str] = Header(default=None),
 ):
-    """Accepts an Admin, PM, or Shop token — EXCEPT on routes under
-    ``/api/admin/``, where PM and Shop tokens are rejected and only
-    Admin tokens unlock.
-
-    Used on equipment master / equipment-parts / inspection-signoff
-    routes that any of the three personas can legitimately touch.
-    Backup & recovery routes still use ``require_admin_strict``.
-
-    Iter180 P0 follow-up (2026-05-16) — per user mandate, every
-    ``/api/admin/*`` route must be strict-admin. The
-    ``require_shop_or_admin`` gate previously leaked Shop and PM
-    tokens onto admin-namespace routes (notably
-    ``/api/admin/equipment-master/archive``). This change closes that
-    surface without touching non-``/admin/*`` routes (equipment lists,
-    inspections, etc.) that all three personas legitimately read.
-
-    Returns ``True`` for admin / shop / legacy-shared-PM, returns the
-    PM doc for per-PM tokens (so list endpoints can apply data
-    scoping). Existing ``_: bool = Depends(...)`` callers keep working
-    because non-empty dicts are truthy.
-    """
-    # TRACK 15.32 — env-disable escape hatch removed; gate always-on.
-    if x_admin_token and await _is_valid_directory_admin_token_async(x_admin_token):
+    """Accept a true Super Admin token or an explicit Shop token only."""
+    if x_admin_token and await _super_admin_row_for_token_async(x_admin_token):
         return True
 
-    # Iter180: Shop + PM tokens are NOT accepted on the admin namespace.
     path = (request.scope.get("path") or request.url.path or "").lower()
     admin_namespace = path.startswith("/api/admin/") or path == "/api/admin"
     if admin_namespace:
@@ -1009,37 +1042,18 @@ async def require_shop_or_admin(
             raise HTTPException(status_code=401, detail="Admin login required")
         raise HTTPException(status_code=401, detail="Invalid admin token")
 
-    if x_pm_token:
-        if "." in x_pm_token:
-            from pm_auth import is_valid_pm_user_token_async
-            pm_doc = await is_valid_pm_user_token_async(db, x_pm_token)
-            if pm_doc:
-                enforce_password_change_required(request, pm_doc)
-                return {**pm_doc, "_actor_kind": "pm_user", "_actor": "pm", "role": "pm"}
-        # TRACK 15.32 — legacy shared-PM token path retired.
-    # TRACK 15.30 — shared SHOP_PASSWORD HMAC branch removed.
-    # Per-shop-user token (canonical)
     if x_shop_token and "." in x_shop_token:
         from shop_users import is_valid_shop_user_token_async
         user = await is_valid_shop_user_token_async(db, x_shop_token)
         if user:
-            # Tag the actor so ``compute_pm_scope`` knows this is a shop
-            # user (cross-job mechanic/shop-manager/parts-coordinator) and
-            # NOT a project-scoped PM. Without this tag the scope helper
-            # would treat the shop user's email as a PM email, find zero
-            # assigned jobs, and 404 every record fetch. Fixed iter69.
             enforce_password_change_required(request, user)
             return {**user, "_actor_kind": "shop_user"}
-    # TRACK 22.4b-followup-Safety · preview-only PVI shop fallback.
-    # Only fires when real auth failed AND caller offered a shop token
-    # AND we are in a preview-class env with the feature flag on. Never
-    # runs on the admin namespace (guarded above).
     if x_shop_token:
         from routes.role_guard_validation_seam import try_validation_fallback
         pvi = await try_validation_fallback(db, x_shop_token, expected_role="shop")
         if pvi:
             return {**pvi, "_actor_kind": "shop_user"}
-    raise HTTPException(status_code=401, detail="Shop, PM, or admin login required")
+    raise HTTPException(status_code=401, detail="Shop login required")
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -3040,7 +3054,7 @@ async def shop_login(body: AdminLoginRequest, request: Request):
         except Exception as exc:  # noqa: BLE001
             logger.warning(f"shop_login directory fallback error: {exc}")
             return None
-        if row and not row.get("disabled") and "admin" in (row.get("portals") or []):
+        if row and not row.get("disabled") and await _super_admin_row_for_token_async(_directory_admin_token(row)):
             admin_tok = _directory_admin_token(row)
             if admin_tok:
                 await _reset_session_activity(
@@ -15007,7 +15021,7 @@ from routes.shop_portal_deps import (  # noqa: E402
 )
 _shared_shop_or_admin_fleet = _make_shop_or_admin_fleet(
     db, _is_valid_admin_token,
-    is_valid_admin_token_async=_is_valid_directory_admin_token_async,
+    is_valid_admin_token_async=_is_valid_super_admin_token_async,
 )
 
 
@@ -15177,7 +15191,7 @@ _shop_intel_router = build_shop_intel_router(
     db,
     require_shop_or_admin_dep=_require_shop_or_admin_fleet,
     is_valid_admin_token_fn=_is_valid_admin_token,
-    is_valid_admin_token_async=_is_valid_directory_admin_token_async,
+    is_valid_admin_token_async=_is_valid_super_admin_token_async,
 )
 app.include_router(_shop_intel_router)
 
@@ -15775,8 +15789,8 @@ async def _ensure_passkey_indexes() -> None:
 from routes.pm_routes import build_pm_router  # noqa: E402
 _pm_router = build_pm_router(
     db,
-    require_admin_dep=require_admin,
-    require_admin_async_dep=require_admin_async,
+    require_admin_dep=require_pm_portal_or_super_admin,
+    require_admin_async_dep=require_pm_portal_or_super_admin_async,
     login_deps={
         "client_ip_fn": _client_ip,
         "check_login_lockout_fn": _check_login_lockout,

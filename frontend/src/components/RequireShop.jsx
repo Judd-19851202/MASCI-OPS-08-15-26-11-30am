@@ -1,7 +1,6 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { isShop } from "@/lib/shopAuth";
-import { isAdmin } from "@/lib/adminAuth";
 import { usePortalHydration } from "@/lib/usePortalHydration";
 import PortalHydratingLoader from "@/components/PortalHydratingLoader";
 import { isSignedInAnywhere } from "@/lib/permissions";
@@ -10,8 +9,7 @@ import { getMustChange } from "@/lib/mustChangePassword";
 import AccessDenied from "@/pages/AccessDenied";
 
 /**
- * Allows the route through if the user holds EITHER a shop token or an
- * admin token (admin can see everything the shop sees).
+ * Allows the route through only with an explicit Shop token.
  *
  * Iter88: if neither token is present but the user has a live /sign-in
  * directory session that authorizes Shop access, we silently re-mint
@@ -22,7 +20,7 @@ import AccessDenied from "@/pages/AccessDenied";
  */
 export function RequireShop({ children }) {
   const location = useLocation();
-  const hasToken = isShop() || isAdmin();
+  const hasToken = isShop();
   const state = usePortalHydration("shop", hasToken);
   if (state === "ready") {
     if (getMustChange("shop") && !/\/shop\/change-password/.test(location.pathname)) {

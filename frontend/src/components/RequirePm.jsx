@@ -1,6 +1,5 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { isAdmin } from "@/lib/adminAuth";
 import { isPm } from "@/lib/pmAuth";
 import { usePortalHydration } from "@/lib/usePortalHydration";
 import PortalHydratingLoader from "@/components/PortalHydratingLoader";
@@ -10,10 +9,7 @@ import { getMustChange } from "@/lib/mustChangePassword";
 import AccessDenied from "@/pages/AccessDenied";
 
 /**
- * Wrap any PM-portal route. Accepts EITHER a valid admin token OR a valid
- * PM token (admin should be able to view anything a PM can view, but the
- * PM portal also needs its own dedicated entry point with the strict-admin
- * controls — backups, restore, force-reseed — hidden from view).
+ * Wrap any PM-portal route. Requires an explicit PM token.
  *
  * Iter88: if neither token is present but the user has a live /sign-in
  * directory session that authorizes PM access, we silently re-mint the
@@ -24,7 +20,7 @@ import AccessDenied from "@/pages/AccessDenied";
  */
 export function RequirePm({ children }) {
   const location = useLocation();
-  const hasToken = isPm() || isAdmin();
+  const hasToken = isPm();
   const state = usePortalHydration("pm", hasToken);
   if (state === "ready") {
     if (getMustChange("pm") && !/\/pm\/change-password/.test(location.pathname)) {

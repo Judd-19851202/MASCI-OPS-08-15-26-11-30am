@@ -404,7 +404,7 @@ def build_pm_router(
                     "pm": res["user"],
                 }
 
-            # iter346-B · universal super-admin fallback.
+            # Super Admin fallback only.
             async def _try_directory_admin_fallback():
                 try:
                     import user_directory as _ud_local  # noqa: PLC0415
@@ -412,7 +412,7 @@ def build_pm_router(
                 except Exception as exc:  # noqa: BLE001
                     logger.warning(f"pm_login directory fallback error: {exc}")
                     return None
-                if row and not row.get("disabled") and "admin" in (row.get("portals") or []):
+                if row and not row.get("disabled") and row.get("is_super_admin") is True:
                     admin_tok = _directory_admin_token(row)
                     if admin_tok:
                         await _reset_session_activity(

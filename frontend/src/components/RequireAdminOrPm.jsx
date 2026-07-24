@@ -1,15 +1,13 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { isAdmin } from "@/lib/adminAuth";
 import { isPm } from "@/lib/pmAuth";
 import { isSignedInAnywhere } from "@/lib/permissions";
+import { usePortalHydration } from "@/lib/usePortalHydration";
+import PortalHydratingLoader from "@/components/PortalHydratingLoader";
 import AccessDenied from "@/pages/AccessDenied";
 
 /**
- * Shared sub-route guard for pages that EITHER an Admin OR a PM should
- * be able to view (inspections, equipment, daily reports, jobs master,
- * employees, etc.). The Admin Hub (/admin) and any backup/restore route
- * stay admin-strict via the plain ``RequireAdmin`` guard.
+ * Shared PM sub-route guard. Requires an explicit PM token.
  *
  * Falls back to /pm/login if no token is present (PM is the lower-trust
  * persona, so we route uninvited visitors there).
@@ -19,7 +17,10 @@ import AccessDenied from "@/pages/AccessDenied";
  */
 export function RequireAdminOrPm({ children }) {
   const location = useLocation();
-  if (!isAdmin() && !isPm()) {
+  const state = usePortalHydration("pm", isPm());
+  if (state === "ready") return children;
+  if (state === "hydrating") return <PortalHydratingLoader portal="pm" />;
+  if (!isPm()) {
     if (isSignedInAnywhere()) {
       return <AccessDenied attemptedPortal="pm" />;
     }
