@@ -120,12 +120,17 @@ class TestBackupsCompleteR2State:
         """Hourly R2 backups are disabled by default."""
         resp = api_client.get(f"{BASE_URL}/api/admin/backups-complete-r2-state", timeout=30)
         data = resp.json()
-        # r2_hourly_effective should be False (disabled)
+        # r2_hourly_effective should be False in Preview until production activation
         assert data.get("r2_hourly_effective") is False, \
             f"Expected r2_hourly_effective=False, got {data.get('r2_hourly_effective')}"
-        # r2_hourly_locked_off should be True
-        assert data.get("r2_hourly_locked_off") is True, \
-            f"Expected r2_hourly_locked_off=True, got {data.get('r2_hourly_locked_off')}"
+        hourly = data.get("hourly_activation") or {}
+        assert hourly.get("activation_status") in {
+            "DISABLED BY CONFIGURATION",
+            "BLOCKED BY ENVIRONMENT",
+            "READY BUT DISABLED",
+            "BLOCKED BY SAFETY GUARD",
+            "STALE",
+        }
 
 
 class TestBackupsSchedulerState:
@@ -174,6 +179,7 @@ class TestBackupTrustScore:
         data = resp.json()
         assert data.get("production_activation_disabled") is True, \
             f"Expected production_activation_disabled=True, got {data.get('production_activation_disabled')}"
+        assert "hourly_activation" in data
 
     def test_backup_trust_score_has_evidence(self, api_client):
         """Response includes evidence field with backup details."""

@@ -353,9 +353,11 @@ from lib.scheduler_runs import (  # noqa: E402
 from lib.backup_runtime import (  # noqa: E402
     BACKUP_JOB_KIND_COMPLETE_R2,
     BACKUP_JOB_KIND_RESTORE_IMPORT,
+    BackupJobOwnershipLost,
     backup_owner_id,
     backup_slot_key_for_day,
     backup_slot_key_for_hour,
+    assert_backup_job_ownership,
     claim_backup_job,
     classify_backup_overlap,
     complete_backup_job,
@@ -364,10 +366,13 @@ from lib.backup_runtime import (  # noqa: E402
     get_active_backup_jobs,
     heartbeat_backup_job,
     list_backup_jobs,
+    list_stale_backup_jobs,
     mark_stale_backup_jobs,
+    record_backup_job_heartbeat_failure,
     start_backup_job,
 )
 from lib.scheduler_runs import claim_slot as scheduler_claim_slot, mark_completed as scheduler_mark_completed, mark_failed as scheduler_mark_failed
+from lib.hourly_activation import build_hourly_activation_state, classify_capacity_state  # noqa: E402
 
 # Session-timeout middleware (Phase 2 Initiative 4) — env-gated.
 # Default disabled. Installed during startup after db handle is ready.
@@ -7809,6 +7814,153 @@ async def _collect_backup_runtime_state(db) -> Dict[str, Any]:
     }
 
 
+async def _backup_persistence_available(db) -> bool:
+    try:
+        await asyncio.wait_for(db.backup_jobs.estimated_document_count(), timeout=2.0)
+        return True
+    except Exception:
+        return False
+
+
+async def _stale_scheduler_lock_present(db) -> bool:
+    try:
+        now_iso = datetime.now(timezone.utc).isoformat()
+        row = await asyncio.wait_for(
+            db.scheduler_locks.find_one(
+                {"expires_at": {"$lt": now_iso}},
+                {"_id": 0, "scheduler": 1},
+            ),
+            timeout=2.0,
+        )
+        return bool(row)
+    except Exception:
+        return True
+
+
+def _backup_scheduler_healthy() -> bool:
+    if not _BACKUP_SCHEDULER_STATE.get("alive"):
+        return False
+    last_tick = _BACKUP_SCHEDULER_STATE.get("last_tick_ts")
+    if not last_tick:
+        return False
+    try:
+        dt = datetime.fromisoformat(str(last_tick).replace("Z", "+00:00"))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return (datetime.now(timezone.utc) - dt) <= timedelta(minutes=10)
+    except Exception:
+        return False
+
+
+def _retention_policy_state() -> Dict[str, Any]:
+    policy = dict(_BACKUP_RETENTION_POLICY)
+    valid = bool(
+        policy.get("hourly_hours") == 72
+        and policy.get("daily_days") == 30
+        and policy.get("weekly_days") == 90
+        and policy.get("monthly_months") == 12
+        and policy.get("architecture") == "selected_surviving_hourly_archives"
+    )
+    return {
+        "valid": valid,
+        "reason": "approved_tiered_retention" if valid else "retention_policy_invalid",
+        "policy": policy,
+    }
+
+
+async def _build_hourly_activation_state(db, *, runtime_state: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    runtime_state = runtime_state or await _collect_backup_runtime_state(db)
+    overlap = runtime_state.get("overlap") or {}
+    stale_jobs = await list_stale_backup_jobs(db, limit=10)
+    stale_lock_present = await _stale_scheduler_lock_present(db)
+    persistence_available = await _backup_persistence_available(db)
+    retention = _retention_policy_state()
+    latest_hint = await _latest_complete_backup_hint(db)
+    preflight = _backup_resource_preflight(archive_size_bytes=latest_hint.get("size_bytes"))
+    active_job = None
+    active_jobs = runtime_state.get("active_jobs") or []
+    if active_jobs:
+        current = active_jobs[0]
+        active_job = {
+            "job_id": current.get("job_id"),
+            "kind": current.get("kind"),
+            "state": current.get("state"),
+            "heartbeat_at": current.get("heartbeat_at"),
+        }
+    state = build_hourly_activation_state(
+        requested_raw=os.environ.get("BACKUP_R2_HOURLY"),
+        environment=_canonical_app_env().lower(),
+        scheduler_healthy=_backup_scheduler_healthy(),
+        persistence_available=persistence_available,
+        backup_active=bool(overlap.get("backup_active")),
+        restore_active=bool(overlap.get("restore_active")),
+        stale_job_count=len(stale_jobs),
+        stale_lock_present=stale_lock_present,
+        resource_preflight=preflight,
+        r2_configured=bool(os.environ.get("S3_BUCKET") and os.environ.get("S3_ENDPOINT_URL")),
+        retention_valid=bool(retention.get("valid")),
+        retention_reason=str(retention.get("reason") or "retention_unknown"),
+        current_active_job=active_job,
+    )
+    state["retention_state"] = retention
+    state["stale_job_count"] = len(stale_jobs)
+    state["stale_lock_present"] = stale_lock_present
+    state["persistence_available"] = persistence_available
+    _BACKUP_SCHEDULER_STATE["r2_hourly_requested"] = state["r2_hourly_requested"]
+    _BACKUP_SCHEDULER_STATE["r2_hourly_effective"] = state["r2_hourly_effective"]
+    _BACKUP_SCHEDULER_STATE["r2_hourly_locked_off"] = state["r2_hourly_locked_off"]
+    _BACKUP_SCHEDULER_STATE["hourly_cadence_enabled"] = state["hourly_cadence_enabled"]
+    _BACKUP_SCHEDULER_STATE["activation_blockers"] = state["activation_blockers"]
+    _BACKUP_SCHEDULER_STATE["activation_status"] = state["activation_status"]
+    _BACKUP_SCHEDULER_STATE["activation_environment"] = state["environment"]
+    _BACKUP_SCHEDULER_STATE["last_activation_evaluated_at"] = state["last_evaluated_at"]
+    _BACKUP_SCHEDULER_STATE["next_eligible_hourly_slot"] = state["next_eligible_hourly_slot"]
+    return state
+
+
+async def _run_job_heartbeat(db, *, job_id: str, owner_token: str, stage_fn, interval_seconds: float = 30.0):
+    stop = asyncio.Event()
+
+    async def _loop():
+        while not stop.is_set():
+            try:
+                await heartbeat_backup_job(
+                    db,
+                    job_id,
+                    owner_token=owner_token,
+                    extra={"stage": stage_fn(), "heartbeat_loop": True},
+                )
+            except BackupJobOwnershipLost:
+                stop.set()
+                raise
+            except Exception as exc:  # noqa: BLE001
+                await record_backup_job_heartbeat_failure(
+                    db,
+                    job_id,
+                    owner_token=owner_token,
+                    error=f"{type(exc).__name__}:{exc}",
+                )
+            try:
+                await asyncio.wait_for(stop.wait(), timeout=interval_seconds)
+            except asyncio.TimeoutError:
+                continue
+
+    return stop, asyncio.create_task(_loop())
+
+
+async def _sha256_file(path: Path) -> str:
+    def _calc() -> str:
+        h = hashlib.sha256()
+        with path.open("rb") as fh:
+            while True:
+                chunk = fh.read(1024 * 1024)
+                if not chunk:
+                    break
+                h.update(chunk)
+        return h.hexdigest()
+    return await asyncio.to_thread(_calc)
+
+
 
 async def _log_operational_hygiene(reason: str = "startup", db=None) -> None:
     """iter299 · Lane D · Operational hygiene visibility log.
@@ -9156,10 +9308,11 @@ def _iter_photo_refs(doc):
 async def _run_r2_tiered_retention_async() -> None:
     """TRACK 15.28A · Enforce the R2 tiered retention policy.
 
-    Tier 1: keep all hourly zips for the last 14 days.
-    Tier 2: 14–90 days · keep only newest per calendar day (UTC).
-    Tier 3: 90–365 days · keep only newest per calendar month (UTC).
-    Tier 4: >365 days · delete.
+    Approved steady state:
+      • hourly recovery points: last 72h
+      • daily recovery points: 30d
+      • weekly recovery points: 90d
+      • monthly recovery points: 12m
 
     Idempotent. Touches only ``backups/auto-90d/`` (the active R2 prefix).
     Legacy ``backups/*.zip`` is out of scope by design — see comment at
@@ -9190,8 +9343,30 @@ async def _run_r2_tiered_retention_async() -> None:
             )
         elif not result.get("ok"):
             logger.warning(f"[r2-retention] errors: {result.get('errors')}")
+        if not result.get("ok") or (result.get("error_count") or 0) > 0:
+            await _record_backup_health(
+                db,
+                ok=False,
+                mode="complete-r2-retention-error",
+                error=_json.dumps(result.get("errors") or [])[:1500],
+                notification_outcome="notification_not_required",
+                notification_reason="r2_retention_failed",
+                audit_reference="backup_health:complete-r2-retention-error",
+            )
     except Exception as _e:  # noqa: BLE001
         logger.warning(f"[r2-retention] failed: {_e}")
+        try:
+            await _record_backup_health(
+                db,
+                ok=False,
+                mode="complete-r2-retention-error",
+                error=repr(_e),
+                notification_outcome="notification_not_required",
+                notification_reason="r2_retention_failed",
+                audit_reference="backup_health:complete-r2-retention-error",
+            )
+        except Exception:
+            pass
 
 
 
@@ -9256,10 +9431,17 @@ async def _log_r2_usage_warning() -> None:
     WARN_GB = float(os.environ.get("R2_USAGE_WARN_GB", "45") or 45)
     ALERT_GB = float(os.environ.get("R2_USAGE_ALERT_GB", "50") or 50)
 
-    if gb >= ALERT_GB:
+    capacity_state = classify_capacity_state(
+        total_bytes=int(total_bytes),
+        warn_gb=WARN_GB,
+        alert_gb=ALERT_GB,
+        probe_state="ok",
+        as_of=datetime.now(timezone.utc).isoformat(),
+    )
+    if capacity_state["status"] == "RED":
         level = "ALERT"
         mode = "r2-usage-alert"
-    elif gb >= WARN_GB:
+    elif capacity_state["status"] == "AMBER":
         level = "WARN"
         mode = "r2-usage-warn"
     else:
@@ -9346,6 +9528,10 @@ async def _run_complete_archive_to_r2(db) -> Optional[dict]:
     ``r2://<bucket>/backups/auto-90d/<filename>``, then delete the local file.
     Returns ``{filename, size_bytes, r2_key, presigned_url, stats}``
     or ``None`` on any failure (errors are logged + health-recorded)."""
+    current_job = None
+    heartbeat_stop = None
+    heartbeat_task = None
+    stage = {"name": "preflight"}
     try:
         from photo_storage import (
             is_configured as _ps_cfg,
@@ -9369,6 +9555,18 @@ async def _run_complete_archive_to_r2(db) -> Optional[dict]:
     tmp = out.with_suffix(f".zip.tmp.{uuid.uuid4().hex[:8]}")
 
     try:
+        current_job = await db.backup_jobs.find_one(
+            {"kind": BACKUP_JOB_KIND_COMPLETE_R2, "state": "running"},
+            {"_id": 0, "job_id": 1, "owner_token": 1, "owner_id": 1, "trigger": 1, "slot_key": 1},
+            sort=[("updated_at", -1)],
+        )
+        if current_job and current_job.get("owner_token"):
+            heartbeat_stop, heartbeat_task = await _run_job_heartbeat(
+                db,
+                job_id=current_job["job_id"],
+                owner_token=current_job["owner_token"],
+                stage_fn=lambda: stage["name"],
+            )
         latest_hint = await _latest_complete_backup_hint(db)
         preflight = _backup_resource_preflight(archive_size_bytes=latest_hint.get("size_bytes"))
         if not preflight.get("ok"):
@@ -9383,6 +9581,9 @@ async def _run_complete_archive_to_r2(db) -> Optional[dict]:
                 audit_reference="backup_health:complete-r2-deferred",
             )
             return {"deferred": True, "reason": "resource_guard", "preflight": preflight}
+        if current_job and current_job.get("owner_token"):
+            await assert_backup_job_ownership(db, current_job["job_id"], owner_token=current_job["owner_token"])
+        stage["name"] = "archive_construction"
         stats = await asyncio.to_thread(_build_complete_archive_on_disk, db, tmp)
         tmp.replace(out)
         if out.stat().st_size > BACKUP_COMPLETE_MAX_BUILD_BYTES:
@@ -9412,14 +9613,43 @@ async def _run_complete_archive_to_r2(db) -> Optional[dict]:
         # sub-prefix) are intentionally OUT of scope so existing history
         # is not retroactively deleted — they will be cleaned up manually
         # later with explicit operator approval. See R2_RETENTION_AUDIT.md.
+        stage["name"] = "checksum"
+        archive_sha256 = await _sha256_file(out)
+        stage["name"] = "upload"
         r2_key = f"backups/auto-90d/{filename}"
         await upload_local_file(out, key=r2_key, content_type="application/zip")
         logger.info(f"[complete-archive] uploaded to r2://{os.environ.get('S3_BUCKET','')}/{r2_key}")
 
         # Generate a 7-day presigned URL the admin can click from email
+        stage["name"] = "verification"
         presigned = await presigned_get_url_for_key(r2_key, ttl_seconds=7 * 24 * 3600)
 
+        lineage = {
+            "job_id": (current_job or {}).get("job_id"),
+            "trigger": (current_job or {}).get("trigger"),
+            "scheduler_slot": (current_job or {}).get("slot_key"),
+            "release_sha": _SOURCE_HASH,
+            "environment": _canonical_app_env().lower(),
+            "database_name": _canonical_db_name(),
+            "archive_key": r2_key,
+            "archive_size_bytes": int(out.stat().st_size),
+            "manifest_identity": {
+                "manifest_name": "MANIFEST.json",
+                "manifest_schema": BACKUP_MANIFEST_VERSION,
+            },
+            "checksum_sha256": archive_sha256,
+            "created_at": _now.isoformat(),
+            "uploaded_at": datetime.now(timezone.utc).isoformat(),
+            "verification_status": "uploaded",
+        }
+        if current_job and current_job.get("job_id"):
+            await db.backup_jobs.update_one(
+                {"job_id": current_job["job_id"], "owner_token": current_job.get("owner_token")},
+                {"$set": {"archive_lineage": lineage, "updated_at": datetime.now(timezone.utc).isoformat()}},
+            )
+
         # Delete the local copy now that R2 has it — keeps worker disk clean
+        stage["name"] = "cleanup"
         try:
             out.unlink()
         except Exception:
@@ -9433,6 +9663,7 @@ async def _run_complete_archive_to_r2(db) -> Optional[dict]:
             notification_reason="complete_r2_archive_has_no_direct_email_policy",
             archive_identifier=filename,
             audit_reference=f"backup_health:{filename}",
+            error=_json.dumps({"lineage": lineage})[:1500],
         )
 
         completed_bucket = _now.strftime("%Y-%m-%dT%H")
@@ -9475,6 +9706,7 @@ async def _run_complete_archive_to_r2(db) -> Optional[dict]:
             "presigned_url": presigned,
             "stats": stats,
             "resource_preflight": preflight,
+            "archive_lineage": lineage,
         }
     except Exception as e:  # noqa: BLE001
         logger.exception(f"[complete-archive] FAILED: {e}")
@@ -9496,6 +9728,16 @@ async def _run_complete_archive_to_r2(db) -> Optional[dict]:
         except Exception:
             pass
         return None
+    finally:
+        try:
+            if heartbeat_stop is not None:
+                heartbeat_stop.set()
+            if heartbeat_task is not None:
+                await heartbeat_task
+        except BackupJobOwnershipLost:
+            logger.warning("[complete-archive] heartbeat ownership lost")
+        except Exception:
+            pass
 
 
 async def _email_lite_backup_zip(zip_path: Path, stats: dict) -> Optional[str]:
@@ -9783,6 +10025,12 @@ _BACKUP_SCHEDULER_STATE: dict = {
     "r2_hourly_requested": False,
     "r2_hourly_effective": False,
     "r2_hourly_locked_off": True,
+    "hourly_cadence_enabled": False,
+    "activation_blockers": [],
+    "activation_status": "DISABLED BY CONFIGURATION",
+    "activation_environment": "unknown",
+    "last_activation_evaluated_at": None,
+    "next_eligible_hourly_slot": None,
     "backup_runtime": {
         "stale_marked": 0,
         "active_jobs": [],
@@ -9795,6 +10043,14 @@ _BACKUP_SCHEDULER_STATE: dict = {
         },
         "recent_complete_jobs": [],
     },
+}
+
+_BACKUP_RETENTION_POLICY = {
+    "architecture": "selected_surviving_hourly_archives",
+    "hourly_hours": 72,
+    "daily_days": 30,
+    "weekly_days": 90,
+    "monthly_months": 12,
 }
 
 
@@ -10146,14 +10402,10 @@ async def _backup_scheduler_loop(db) -> None:
             r2_hour = int(os.environ.get("BACKUP_R2_FULL_HOUR_UTC", "3") or "3")
         except ValueError:
             r2_hour = 3
-        r2_hourly_requested = (os.environ.get("BACKUP_R2_HOURLY", "false") or "false").lower() in ("1", "true", "yes")
-        _BACKUP_SCHEDULER_STATE["r2_hourly_requested"] = r2_hourly_requested
-        _BACKUP_SCHEDULER_STATE["r2_hourly_effective"] = False
-        r2_hourly = False
-        if r2_hourly_requested:
-            _BACKUP_SCHEDULER_STATE["last_attempt_outcome"] = (
-                "HOURLY_COMPLETE_ARCHIVE_REQUESTED_BUT_LOCKED_OFF"
-            )
+        activation_state = await _build_hourly_activation_state(db, runtime_state=_BACKUP_SCHEDULER_STATE.get("backup_runtime"))
+        r2_hourly = bool(activation_state.get("r2_hourly_effective"))
+        if activation_state.get("activation_status") != "ACTIVE":
+            _BACKUP_SCHEDULER_STATE["last_attempt_outcome"] = activation_state.get("activation_status")
         hour_bucket = now.strftime("%Y-%m-%dT%H")
         current_hour_r2_row = None
         if r2_hourly and _BACKUP_SCHEDULER_STATE.get("last_r2_complete_hour") != hour_bucket:
@@ -10206,19 +10458,19 @@ async def _backup_scheduler_loop(db) -> None:
                     slot_key=slot_key,
                     trigger="scheduler_nightly",
                     owner_id=scheduler_owner,
-                    metadata={"hour_bucket": hour_bucket, "hourly_requested": r2_hourly_requested, "hourly_effective": False},
+                    metadata={"hour_bucket": hour_bucket, "hourly_requested": bool(activation_state.get("r2_hourly_requested")), "hourly_effective": bool(activation_state.get("r2_hourly_effective"))},
                 )
                 if job is None:
                     logger.warning(f"[scheduled-backup] duplicate complete-archive slot prevented: {slot_key}")
                     await asyncio.sleep(300)
                     continue
-                await start_backup_job(db, job["job_id"])
-                await heartbeat_backup_job(db, job["job_id"], extra={"stage": "preflight"})
+                lease = await start_backup_job(db, job["job_id"])
+                await heartbeat_backup_job(db, job["job_id"], owner_token=lease.owner_token, extra={"stage": "preflight"})
                 logger.info(f"[scheduled-backup] firing complete-archive → R2 ({'hourly' if r2_hourly else 'nightly'}) bucket={hour_bucket}")
                 r2_res = await _run_complete_archive_to_r2(db)
                 if r2_res:
                     if r2_res.get("deferred"):
-                        await fail_backup_job(db, job["job_id"], error=f"deferred:{r2_res.get('reason')}", result=r2_res, state="deferred")
+                        await fail_backup_job(db, job["job_id"], error=f"deferred:{r2_res.get('reason')}", result=r2_res, state="deferred", owner_token=lease.owner_token)
                         _BACKUP_SCHEDULER_STATE["last_attempt_outcome"] = "COMPLETE_ARCHIVE_DEFERRED_RESOURCE_GUARD"
                         await asyncio.sleep(300)
                         continue
@@ -10234,14 +10486,14 @@ async def _backup_scheduler_loop(db) -> None:
                         f"[scheduled-backup] complete archive in R2: "
                         f"{r2_res.get('r2_key')} · {(r2_res.get('size_bytes') or 0)/1024/1024:.1f} MB"
                     )
-                    await complete_backup_job(db, job["job_id"], outcome="ok", result=r2_res)
+                    await complete_backup_job(db, job["job_id"], outcome="ok", result=r2_res, owner_token=lease.owner_token)
                 else:
                     logger.warning("[scheduled-backup] complete-archive → R2 returned no result")
-                    await fail_backup_job(db, job["job_id"], error="complete_archive_returned_no_result")
+                    await fail_backup_job(db, job["job_id"], error="complete_archive_returned_no_result", owner_token=lease.owner_token)
             except Exception as e:  # noqa: BLE001
                 logger.exception(f"[scheduled-backup] complete-archive → R2 failed: {e}")
                 try:
-                    await fail_backup_job(db, job["job_id"], error=repr(e))
+                    await fail_backup_job(db, job["job_id"], error=repr(e), owner_token=lease.owner_token)
                 except Exception:
                     pass
 
@@ -11382,8 +11634,9 @@ async def admin_run_complete_backup_now(
 
     async def _do_complete():
         global _COMPLETE_R2_IN_PROGRESS
+        lease = None
         try:
-            await start_backup_job(db, manual_job["job_id"])
+            lease = await start_backup_job(db, manual_job["job_id"])
             res = await _run_complete_archive_to_r2(db)
             _COMPLETE_R2_LAST["finished_at"] = datetime.now(timezone.utc).isoformat()
             if res:
@@ -11395,6 +11648,7 @@ async def admin_run_complete_backup_now(
                         error=f"deferred:{res.get('reason')}",
                         result=res,
                         state="deferred",
+                        owner_token=lease.owner_token if lease else None,
                     )
                     return
                 _COMPLETE_R2_LAST["outcome"] = "ok"
@@ -11403,16 +11657,16 @@ async def admin_run_complete_backup_now(
                 _COMPLETE_R2_LAST["r2_key"] = res.get("r2_key")
                 _COMPLETE_R2_LAST["presigned_url"] = res.get("presigned_url")
                 _COMPLETE_R2_LAST["stats"] = res.get("stats")
-                await complete_backup_job(db, manual_job["job_id"], outcome="ok", result=res)
+                await complete_backup_job(db, manual_job["job_id"], outcome="ok", result=res, owner_token=lease.owner_token if lease else None)
             else:
                 _COMPLETE_R2_LAST["outcome"] = "FAILED — see logs"
-                await fail_backup_job(db, manual_job["job_id"], error="manual_complete_backup_returned_no_result")
+                await fail_backup_job(db, manual_job["job_id"], error="manual_complete_backup_returned_no_result", owner_token=lease.owner_token if lease else None)
         except Exception as e:  # noqa: BLE001
             logger.exception(f"[manual-complete-r2] crashed: {e}")
             _COMPLETE_R2_LAST["outcome"] = f"EXCEPTION: {e!r}"
             _COMPLETE_R2_LAST["finished_at"] = datetime.now(timezone.utc).isoformat()
             try:
-                await fail_backup_job(db, manual_job["job_id"], error=repr(e))
+                await fail_backup_job(db, manual_job["job_id"], error=repr(e), owner_token=lease.owner_token if lease else None)
             except Exception:
                 pass
         finally:
@@ -11458,6 +11712,7 @@ async def admin_complete_r2_state(_: bool = Depends(require_admin_strict)):
             nightly_last_date = date_bucket
             nightly_last_hour = hour_bucket
 
+    activation_state = await _build_hourly_activation_state(db)
     return {
         "in_progress": _COMPLETE_R2_IN_PROGRESS,
         "last": dict(_COMPLETE_R2_LAST),
@@ -11465,9 +11720,11 @@ async def admin_complete_r2_state(_: bool = Depends(require_admin_strict)):
         "nightly_last_date": nightly_last_date,
         "nightly_last_hour": nightly_last_hour,
         "r2_full_hour_utc": int(os.environ.get("BACKUP_R2_FULL_HOUR_UTC", "3") or "3"),
-        "r2_hourly_requested": bool(_BACKUP_SCHEDULER_STATE.get("r2_hourly_requested")),
-        "r2_hourly_effective": False,
-        "r2_hourly_locked_off": True,
+        "r2_hourly_requested": bool(activation_state.get("r2_hourly_requested")),
+        "r2_hourly_effective": bool(activation_state.get("r2_hourly_effective")),
+        "r2_hourly_locked_off": bool(activation_state.get("r2_hourly_locked_off")),
+        "hourly_cadence_enabled": bool(activation_state.get("hourly_cadence_enabled")),
+        "hourly_activation": activation_state,
         "backup_runtime": await _collect_backup_runtime_state(db),
     }
 
@@ -11664,6 +11921,7 @@ async def admin_backups_scheduler_state(_: bool = Depends(require_admin_strict))
     except Exception as e:  # noqa: BLE001
         logger.warning(f"[scheduler-state] health history read failed: {e}")
 
+    activation_state = await _build_hourly_activation_state(db, runtime_state=state.get("backup_runtime") or await _collect_backup_runtime_state(db))
     return {
         "alive": state.get("alive"),
         "is_healthy": state.get("is_healthy"),
@@ -11687,6 +11945,7 @@ async def admin_backups_scheduler_state(_: bool = Depends(require_admin_strict))
         "circuit_breaker_max_attempts_per_day": 3,
         "recent_health": recent_health,
         "backup_runtime": state.get("backup_runtime") or await _collect_backup_runtime_state(db),
+        "hourly_activation": activation_state,
     }
 
 
@@ -11721,22 +11980,23 @@ async def admin_backups_trust_score(_: bool = Depends(require_admin_strict)):
         restore_drill_age_days = round((datetime.now(timezone.utc) - drill_ts).total_seconds() / 86400.0, 2)
 
     runtime = await _collect_backup_runtime_state(db)
+    activation_state = await _build_hourly_activation_state(db, runtime_state=runtime)
     failures_7d = await db.backup_health.count_documents({
         "ok": False,
         "ts": {"$gte": (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()},
-        "mode": {"$regex": "complete-r2|restore|verification", "$options": "i"},
+        "mode": {"$regex": "complete-r2|restore|verification|retention", "$options": "i"},
     })
-    usage_row = await db.backup_health.find_one(
-        {"mode": {"$in": ["r2-usage-alert", "r2-usage-warn"]}},
-        {"_id": 0, "mode": 1},
-        sort=[("ts", -1)],
+    bucket_state = classify_capacity_state(
+        total_bytes=((latest_complete or {}).get("size_bytes") or 0),
+        warn_gb=float(os.environ.get("R2_USAGE_WARN_GB", "700") or "700"),
+        alert_gb=float(os.environ.get("R2_USAGE_ALERT_GB", "820") or "820"),
+        probe_state="ok" if latest_complete else "missing",
+        as_of=(latest_complete or {}).get("ts"),
     )
-    bucket_usage_status = "GREEN"
-    if (usage_row or {}).get("mode") == "r2-usage-alert":
-        bucket_usage_status = "AMBER"
+    bucket_usage_status = bucket_state.get("status", "AMBER")
 
     score = compute_backup_trust_score(
-        hourly_disabled=True,
+        hourly_disabled=not bool(activation_state.get("r2_hourly_effective")),
         newest_r2_age_hours=newest_r2_age_hours,
         restore_drill_age_days=restore_drill_age_days,
         restore_drill_ok=((last_drill or {}).get("outcome") == "ok"),
@@ -11747,14 +12007,16 @@ async def admin_backups_trust_score(_: bool = Depends(require_admin_strict)):
     )
     return {
         **score,
-        "production_activation_disabled": True,
+        "production_activation_disabled": not bool(activation_state.get("r2_hourly_effective")),
+        "hourly_activation": activation_state,
         "evidence": {
             "latest_complete_backup": latest_complete,
             "newest_r2_age_hours": newest_r2_age_hours,
             "last_restore_drill": last_drill,
             "restore_drill_age_days": restore_drill_age_days,
             "runtime": runtime,
-            "bucket_usage_status": bucket_usage_status,
+            "bucket_usage": bucket_state,
+            "hourly_activation": activation_state,
         },
     }
 
@@ -12156,7 +12418,14 @@ async def exports_restore(
     )
     if restore_job is None:
         raise HTTPException(409, "Restore slot claim failed.")
-    await start_backup_job(db, restore_job["job_id"])
+    restore_lease = await start_backup_job(db, restore_job["job_id"])
+    restore_stage = {"name": "restore_upload"}
+    restore_heartbeat_stop, restore_heartbeat_task = await _run_job_heartbeat(
+        db,
+        job_id=restore_job["job_id"],
+        owner_token=restore_lease.owner_token,
+        stage_fn=lambda: restore_stage["name"],
+    )
     # 1. Read + validate the upload
     spool_path = None
     try:
@@ -12177,19 +12446,19 @@ async def exports_restore(
                 handle.write(chunk)
     except Exception as e:
         try:
-            await fail_backup_job(db, restore_job["job_id"], error=f"restore_upload_read_failed:{e!r}")
+            await fail_backup_job(db, restore_job["job_id"], error=f"restore_upload_read_failed:{e!r}", owner_token=restore_lease.owner_token)
         except Exception:
             pass
         raise HTTPException(400, f"Failed to read upload: {e}")
     if not spool_path or payload_size <= 0:
         try:
-            await fail_backup_job(db, restore_job["job_id"], error="empty_upload")
+            await fail_backup_job(db, restore_job["job_id"], error="empty_upload", owner_token=restore_lease.owner_token)
         except Exception:
             pass
         raise HTTPException(400, "Empty upload")
     if payload_size > _RESTORE_MAX_BYTES:
         try:
-            await fail_backup_job(db, restore_job["job_id"], error="upload_too_large")
+            await fail_backup_job(db, restore_job["job_id"], error="upload_too_large", owner_token=restore_lease.owner_token)
         except Exception:
             pass
         raise HTTPException(
@@ -12205,7 +12474,7 @@ async def exports_restore(
         zf = zipfile.ZipFile(str(spool_path), "r")
     except zipfile.BadZipFile:
         try:
-            await fail_backup_job(db, restore_job["job_id"], error="bad_zip_file")
+            await fail_backup_job(db, restore_job["job_id"], error="bad_zip_file", owner_token=restore_lease.owner_token)
         except Exception:
             pass
         raise HTTPException(400, "Uploaded file is not a valid ZIP archive")
@@ -12227,6 +12496,7 @@ async def exports_restore(
             "this does not look like a MASCI backup .zip.",
         )
     try:
+        restore_stage["name"] = "restore_manifest_validation"
         manifest = _backup_json.loads(zf.read(manifest_name).decode("utf-8"))
     except Exception as e:
         raise HTTPException(400, f"Corrupt manifest ({manifest_name}): {e}")
@@ -12333,6 +12603,7 @@ async def exports_restore(
         bucket.setdefault(coll, []).extend(docs)
 
     # 2a. Safety kinds — every json under <kind>/json/*.json
+    restore_stage["name"] = "restore_extraction"
     for kind, coll in _RESTORE_KIND_TO_COLL.items():
         prefix = f"{kind}/json/"
         docs: List[dict] = []
@@ -12462,10 +12733,15 @@ async def exports_restore(
             "disk_files": disk_restored,
         }
         await _record_audit("accepted", f"dry_run merge={merge}; collections={len(preflight_collections)}")
-        await complete_backup_job(db, restore_job["job_id"], outcome="dry_run_ok", result=result, state="completed")
+        await complete_backup_job(db, restore_job["job_id"], outcome="dry_run_ok", result=result, state="completed", owner_token=restore_lease.owner_token)
         try:
             if spool_path and spool_path.exists():
                 spool_path.unlink()
+        except Exception:
+            pass
+        restore_heartbeat_stop.set()
+        try:
+            await restore_heartbeat_task
         except Exception:
             pass
         return result
@@ -12489,6 +12765,7 @@ async def exports_restore(
         except Exception as e:  # noqa: BLE001
             logger.warning(f"restore: could not generate seed hash ({e}); restored users may be locked out")
 
+    restore_stage["name"] = "restore_replay"
     for coll, docs in bucket.items():
         # Strip any _id from the docs (they're exported without, but be safe).
         clean = []
@@ -12573,13 +12850,19 @@ async def exports_restore(
         "accepted" if total_failed == 0 else "partial_failure",
         f"merge={merge}; processed={result['total_processed']}; failed={total_failed}",
     )
-    await complete_backup_job(db, restore_job["job_id"], outcome="ok" if total_failed == 0 else "partial_failure", result=result, state="completed")
+    await complete_backup_job(db, restore_job["job_id"], outcome="ok" if total_failed == 0 else "partial_failure", result=result, state="completed", owner_token=restore_lease.owner_token)
     try:
         if spool_path and spool_path.exists():
             spool_path.unlink()
     except Exception:
         pass
+    restore_heartbeat_stop.set()
+    try:
+        await restore_heartbeat_task
+    except Exception:
+        pass
     return result
+
 
 
 

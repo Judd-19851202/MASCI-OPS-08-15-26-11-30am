@@ -263,6 +263,23 @@ export default function AdminRecovery() {
             </Card>
           </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <Card title="Hourly activation" status={snap.hourly_activation?.hourly_cadence_enabled ? "GREEN" : "AMBER"} testid="card-hourly-activation">
+              <div className="space-y-1 text-sm" data-testid="hourly-activation-panel">
+                <div className="font-semibold">{snap.hourly_activation?.activation_status || "DISABLED BY CONFIGURATION"}</div>
+                <div>requested={String(snap.hourly_activation?.r2_hourly_requested)} · effective={String(snap.hourly_activation?.r2_hourly_effective)}</div>
+                <div className="text-xs text-slate-500">environment={snap.hourly_activation?.environment || "unknown"} · next slot={fmtTs(snap.hourly_activation?.next_eligible_hourly_slot)}</div>
+              </div>
+            </Card>
+            <Card title="Restore scope" status="AMBER" testid="card-restore-scope">
+              <div className="space-y-1 text-sm">
+                <div className="font-semibold">{snap.full_restore_status?.status || "NOT YET EXERCISED"}</div>
+                <div className="text-xs text-slate-500">{snap.full_restore_status?.message}</div>
+                <div className="text-xs text-slate-500">{snap.production_only_evidence_status?.message}</div>
+              </div>
+            </Card>
+          </div>
+
           {/* Row 2: RPO/RTO · archive count · bucket usage */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <Card title="RPO / RTO" status={
@@ -364,6 +381,7 @@ export default function AdminRecovery() {
             last lock = {fmtTs(snap.scheduler.last_lock_ts)} · pod={" "}
             <span className="font-mono">{snap.scheduler.owner_pod || "—"}</span> ·
             BACKUP_R2_HOURLY={String(snap.hourly_cadence_enabled)} ·
+            status={<span className="font-semibold">{snap.hourly_activation?.activation_status || "DISABLED BY CONFIGURATION"}</span>} ·
             cached={String(snap.cached)} ·
             overlap_blocked={String(snap.scheduler?.backup_runtime?.overlap?.overlap_blocked || false)}
           </div>

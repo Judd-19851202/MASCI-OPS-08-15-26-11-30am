@@ -108,6 +108,7 @@ export default function PreDeploySnapshotPanel() {
   const lastTs = state?.nightly_last?.ts || state?.last?.ts;
   const hrs = ageHrs(lastTs);
   const inProgress = state?.in_progress;
+  const hourly = state?.hourly_activation || {};
 
   // Pick zone
   let zone;
@@ -208,7 +209,7 @@ export default function PreDeploySnapshotPanel() {
       <div className={`mt-3 text-[10px] font-mono uppercase tracking-[0.2em] ${zone.accent} flex items-center gap-2 flex-wrap`}>
         <ShieldCheck className="w-3 h-3" />
         <span>
-          Hourly complete archive {state?.r2_hourly_locked_off ? "HARD-CODED DISABLED" : state?.r2_hourly === false ? "DISABLED BY CONFIGURATION" : "ACTIVE"} ·
+          Hourly complete archive {hourly.activation_status || "DISABLED BY CONFIGURATION"} ·
           Nightly complete archive {String(state?.r2_full_hour_utc ?? 3).padStart(2, "0")}:00 platform time
         </span>
       </div>

@@ -110,6 +110,7 @@ export default function CloudArchivesPanel() {
   const runtime = state?.backup_runtime || {};
   const overlap = runtime?.overlap || {};
   const recentJobs = runtime?.recent_complete_jobs || [];
+  const hourly = state?.hourly_activation || {};
 
   return (
     <section
@@ -206,12 +207,8 @@ export default function CloudArchivesPanel() {
         >
           <div>
             <div className="font-mono uppercase tracking-[0.15em] text-slate-500">Hourly activation</div>
-            <div className="mt-1 text-slate-900 font-semibold">
-              {state?.r2_hourly_locked_off
-                ? "HARD-CODED DISABLED"
-                : state?.r2_hourly === false
-                ? "DISABLED BY CONFIGURATION"
-                : "ACTIVE"}
+            <div className="mt-1 text-slate-900 font-semibold" data-testid="cloud-archives-hourly-status">
+              {hourly.activation_status || "DISABLED BY CONFIGURATION"}
             </div>
           </div>
           <div>
@@ -221,9 +218,9 @@ export default function CloudArchivesPanel() {
             </div>
           </div>
           <div>
-            <div className="font-mono uppercase tracking-[0.15em] text-slate-500">Stale recovery sweep</div>
+            <div className="font-mono uppercase tracking-[0.15em] text-slate-500">Environment / next slot</div>
             <div className="mt-1 text-slate-900 font-semibold">
-              Marked stale jobs: {runtime?.stale_marked ?? 0}
+              {(hourly.environment || "unknown").toUpperCase()} · {hourly.next_eligible_hourly_slot || "—"}
             </div>
           </div>
         </div>

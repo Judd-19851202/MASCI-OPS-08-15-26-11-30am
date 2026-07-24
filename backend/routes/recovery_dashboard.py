@@ -317,6 +317,7 @@ def build_recovery_dashboard_router(
             cached = dict(_CACHE["snapshot"])
             cached["cached"] = True
             return cached
+        from server import _build_hourly_activation_state  # noqa: PLC0415
 
         rpo_target = int(os.environ.get("BACKUP_RPO_TARGET_MINUTES", "60") or "60")
         rto_target = int(os.environ.get("BACKUP_RTO_TARGET_MINUTES", "15") or "15")
@@ -538,11 +539,12 @@ def build_recovery_dashboard_router(
                     f"{warn_gb if usage_status == 'AMBER' else alert_gb} GB threshold"
                 ),
             })
-        if not hourly_flag:
+        hourly_activation = await _build_hourly_activation_state(db, runtime_state=backup_runtime)
+        if hourly_activation.get("activation_status") != "ACTIVE":
             warnings.append({
                 "kind": "hourly-disabled",
                 "severity": "info",
-                "message": "BACKUP_R2_HOURLY is currently false (operator-controlled)",
+                "message": f"Hourly complete R2 is {hourly_activation.get('activation_status')}",
             })
         if not scheduler_alive:
             warnings.append({
@@ -611,7 +613,20 @@ def build_recovery_dashboard_router(
             # TRACK 27.05 · P0-4 · disk preflight state, surfaced so OCC
             # can display "storage will refuse new writes below N free".
             "disk_preflight": _disk_preflight_summary(),
-            "hourly_cadence_enabled": hourly_flag,
+            "hourly_cadence_enabled": bool(hourly_activation.get("hourly_cadence_enabled")),
+            "hourly_activation": hourly_activation,
+            "full_restore_status": {
+                "status": "NOT YET EXERCISED",
+                "message": "Full-platform restore remains not yet exercised.",
+            },
+            "production_only_evidence_status": {
+                "status": "PREVIEW_ONLY" if hourly_activation.get("environment") != "production" else "PRODUCTION_REVIEW_REQUIRED",
+                "message": (
+                    "Preview evidence only; production activation has not been exercised."
+                    if hourly_activation.get("environment") != "production"
+                    else "Production activation remains gated on independent review."
+                ),
+            },
             "cached": False,
         }
 

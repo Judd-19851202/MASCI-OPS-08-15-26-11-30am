@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import socket
 import uuid
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
 
@@ -13,6 +14,17 @@ BACKUP_JOB_TTL_DAYS = 120
 BACKUP_JOB_KIND_COMPLETE_R2 = "complete-r2"
 BACKUP_JOB_KIND_RESTORE_DRILL = "restore-drill"
 BACKUP_JOB_KIND_RESTORE_IMPORT = "restore-import"
+
+
+class BackupJobOwnershipLost(RuntimeError):
+    pass
+
+
+@dataclass
+class BackupJobLease:
+    job_id: str
+    owner_id: str
+    owner_token: str
 
 
 def backup_now() -> datetime:
@@ -78,23 +90,75 @@ async def claim_backup_job(
 
 async def start_backup_job(db: Any, job_id: str) -> None:
     now = backup_now().isoformat()
+    owner_token = uuid.uuid4().hex
     await db[BACKUP_JOBS_COLLECTION].update_one(
         {"job_id": job_id},
-        {"$set": {"state": "running", "started_at": now, "updated_at": now, "heartbeat_at": now}, "$inc": {"attempt_count": 1}},
+        {
+            "$set": {
+                "state": "running",
+                "started_at": now,
+                "updated_at": now,
+                "heartbeat_at": now,
+                "owner_token": owner_token,
+                "ownership_revoked": False,
+                "heartbeat_failure": None,
+            },
+            "$inc": {"attempt_count": 1, "lease_epoch": 1},
+        },
     )
+    row = await db[BACKUP_JOBS_COLLECTION].find_one({"job_id": job_id}, {"_id": 0, "owner_id": 1}) or {}
+    return BackupJobLease(job_id=job_id, owner_id=str(row.get("owner_id") or ""), owner_token=owner_token)
 
 
-async def heartbeat_backup_job(db: Any, job_id: str, *, extra: Optional[Dict[str, Any]] = None) -> None:
+async def heartbeat_backup_job(db: Any, job_id: str, *, owner_token: str, extra: Optional[Dict[str, Any]] = None) -> None:
     payload: Dict[str, Any] = {
         "updated_at": backup_now().isoformat(),
         "heartbeat_at": backup_now().isoformat(),
     }
     if extra:
         payload.update(extra)
-    await db[BACKUP_JOBS_COLLECTION].update_one({"job_id": job_id}, {"$set": payload})
+    result = await db[BACKUP_JOBS_COLLECTION].update_one(
+        {
+            "job_id": job_id,
+            "state": "running",
+            "owner_token": owner_token,
+            "ownership_revoked": {"$ne": True},
+        },
+        {"$set": payload},
+    )
+    if int(getattr(result, "modified_count", 0) or 0) == 0:
+        raise BackupJobOwnershipLost(f"backup job ownership lost: {job_id}")
 
 
-async def complete_backup_job(db: Any, job_id: str, *, outcome: str, result: Optional[Dict[str, Any]] = None, state: str = "completed") -> None:
+async def record_backup_job_heartbeat_failure(db: Any, job_id: str, *, owner_token: str, error: str) -> None:
+    await db[BACKUP_JOBS_COLLECTION].update_one(
+        {"job_id": job_id, "owner_token": owner_token},
+        {
+            "$set": {
+                "updated_at": backup_now().isoformat(),
+                "heartbeat_failure": error[:500],
+                "heartbeat_failure_at": backup_now().isoformat(),
+            },
+            "$inc": {"heartbeat_failure_count": 1},
+        },
+    )
+
+
+async def assert_backup_job_ownership(db: Any, job_id: str, *, owner_token: str) -> None:
+    row = await db[BACKUP_JOBS_COLLECTION].find_one(
+        {
+            "job_id": job_id,
+            "state": "running",
+            "owner_token": owner_token,
+            "ownership_revoked": {"$ne": True},
+        },
+        {"_id": 0, "job_id": 1},
+    )
+    if not row:
+        raise BackupJobOwnershipLost(f"backup job ownership lost: {job_id}")
+
+
+async def complete_backup_job(db: Any, job_id: str, *, outcome: str, result: Optional[Dict[str, Any]] = None, state: str = "completed", owner_token: Optional[str] = None) -> None:
     now = backup_now()
     payload: Dict[str, Any] = {
         "state": state,
@@ -106,13 +170,18 @@ async def complete_backup_job(db: Any, job_id: str, *, outcome: str, result: Opt
     }
     if result is not None:
         payload["result"] = result
-    await db[BACKUP_JOBS_COLLECTION].update_one({"job_id": job_id}, {"$set": payload})
+    query: Dict[str, Any] = {"job_id": job_id}
+    if owner_token is not None:
+        query.update({"owner_token": owner_token, "ownership_revoked": {"$ne": True}})
+    result_doc = await db[BACKUP_JOBS_COLLECTION].update_one(query, {"$set": payload})
+    if owner_token is not None and int(getattr(result_doc, "modified_count", 0) or 0) == 0:
+        raise BackupJobOwnershipLost(f"backup job ownership lost: {job_id}")
 
 
-async def fail_backup_job(db: Any, job_id: str, *, error: str, result: Optional[Dict[str, Any]] = None, state: str = "failed") -> None:
+async def fail_backup_job(db: Any, job_id: str, *, error: str, result: Optional[Dict[str, Any]] = None, state: str = "failed", owner_token: Optional[str] = None) -> None:
     payload = dict(result or {})
     payload.setdefault("error", error[:1500])
-    await complete_backup_job(db, job_id, outcome="failed", result=payload, state=state)
+    await complete_backup_job(db, job_id, outcome="failed", result=payload, state=state, owner_token=owner_token)
 
 
 async def list_backup_jobs(db: Any, *, kind: Optional[str] = None, limit: int = 20) -> list[Dict[str, Any]]:
@@ -128,13 +197,27 @@ async def get_active_backup_jobs(db: Any) -> list[Dict[str, Any]]:
     return [row async for row in cursor]
 
 
+async def list_stale_backup_jobs(db: Any, *, limit: int = 20) -> list[Dict[str, Any]]:
+    cursor = db[BACKUP_JOBS_COLLECTION].find({"state": "stale"}, {"_id": 0}).sort("updated_at", -1).limit(int(limit))
+    return [row async for row in cursor]
+
+
 async def mark_stale_backup_jobs(db: Any, *, stale_before_iso: str) -> int:
     result = await db[BACKUP_JOBS_COLLECTION].update_many(
         {
             "state": {"$in": ["queued", "running"]},
             "heartbeat_at": {"$lt": stale_before_iso},
         },
-        {"$set": {"state": "stale", "updated_at": backup_now().isoformat(), "failure_reason": "stale_job_recovered"}},
+        {
+            "$set": {
+                "state": "stale",
+                "updated_at": backup_now().isoformat(),
+                "failure_reason": "stale_job_recovered",
+                "ownership_revoked": True,
+                "ownership_revoked_at": backup_now().isoformat(),
+                "owner_token": None,
+            }
+        },
     )
     return int(getattr(result, "modified_count", 0) or 0)
 
@@ -165,7 +248,12 @@ __all__ = [
     "complete_backup_job",
     "fail_backup_job",
     "list_backup_jobs",
+    "list_stale_backup_jobs",
     "get_active_backup_jobs",
     "mark_stale_backup_jobs",
+    "BackupJobLease",
+    "BackupJobOwnershipLost",
+    "record_backup_job_heartbeat_failure",
+    "assert_backup_job_ownership",
     "classify_backup_overlap",
 ]
