@@ -1,0 +1,626 @@
+{
+  "summary": {
+    "total": 24,
+    "passed": 24,
+    "failed": 0,
+    "pass_rate": 100.0
+  },
+  "tests": [
+    {
+      "test": "backups-complete-r2-state: HTTP 200",
+      "passed": true,
+      "details": "Endpoint accessible",
+      "timestamp": "2026-07-24T18:47:36.404259"
+    },
+    {
+      "test": "backups-complete-r2-state: backup_runtime present",
+      "passed": true,
+      "details": "backup_runtime field present",
+      "timestamp": "2026-07-24T18:47:36.404315",
+      "response_data": {
+        "stale_marked": 0,
+        "active_jobs": [],
+        "overlap": {
+          "backup_active": false,
+          "restore_active": false,
+          "active_backups": [],
+          "active_restores": [],
+          "overlap_blocked": false
+        },
+        "recent_complete_jobs": []
+      }
+    },
+    {
+      "test": "backups-complete-r2-state: r2_hourly_effective=false",
+      "passed": true,
+      "details": "r2_hourly_effective=False (expected False)",
+      "timestamp": "2026-07-24T18:47:36.404323",
+      "response_data": {
+        "r2_hourly_effective": false
+      }
+    },
+    {
+      "test": "backups-complete-r2-state: r2_hourly_locked_off=true",
+      "passed": true,
+      "details": "r2_hourly_locked_off=True (expected True)",
+      "timestamp": "2026-07-24T18:47:36.404329",
+      "response_data": {
+        "r2_hourly_locked_off": true
+      }
+    },
+    {
+      "test": "backups-complete-r2-state: no production activation hints",
+      "passed": true,
+      "details": "Production hints: none",
+      "timestamp": "2026-07-24T18:47:36.404335",
+      "response_data": {}
+    },
+    {
+      "test": "backups-scheduler-state: HTTP 200",
+      "passed": true,
+      "details": "Endpoint accessible",
+      "timestamp": "2026-07-24T18:47:37.712334"
+    },
+    {
+      "test": "backups-scheduler-state: scheduler health fields present",
+      "passed": true,
+      "details": "Health fields: ['alive', 'is_healthy', 'signal_source', 'reason_code']",
+      "timestamp": "2026-07-24T18:47:37.712434",
+      "response_data": {
+        "alive": true,
+        "is_healthy": true,
+        "signal_source": "backup_scheduler_state",
+        "reason_code": "scheduler_heartbeat_current"
+      }
+    },
+    {
+      "test": "backups-scheduler-state: backup_runtime present",
+      "passed": true,
+      "details": "backup_runtime field present",
+      "timestamp": "2026-07-24T18:47:37.712442",
+      "response_data": {
+        "stale_marked": 0,
+        "active_jobs": [],
+        "overlap": {
+          "backup_active": false,
+          "restore_active": false,
+          "active_backups": [],
+          "active_restores": [],
+          "overlap_blocked": false
+        },
+        "recent_complete_jobs": []
+      }
+    },
+    {
+      "test": "backups-scheduler-state: scheduler status",
+      "passed": true,
+      "details": "alive=True, is_healthy=True",
+      "timestamp": "2026-07-24T18:47:37.712449",
+      "response_data": {
+        "alive": true,
+        "is_healthy": true,
+        "signal_source": "backup_scheduler_state"
+      }
+    },
+    {
+      "test": "backup-trust-score: HTTP 200",
+      "passed": true,
+      "details": "Endpoint accessible",
+      "timestamp": "2026-07-24T18:47:38.200904"
+    },
+    {
+      "test": "backup-trust-score: trust_score present",
+      "passed": true,
+      "details": "trust_score=80",
+      "timestamp": "2026-07-24T18:47:38.200997",
+      "response_data": {
+        "trust_score": 80
+      }
+    },
+    {
+      "test": "backup-trust-score: production_activation_disabled=true",
+      "passed": true,
+      "details": "production_activation_disabled=True (expected True)",
+      "timestamp": "2026-07-24T18:47:38.201005",
+      "response_data": {
+        "production_activation_disabled": true
+      }
+    },
+    {
+      "test": "backup-trust-score: restore drill evidence present",
+      "passed": true,
+      "details": "last_restore_drill present (outcome=ok)",
+      "timestamp": "2026-07-24T18:47:38.201011",
+      "response_data": {
+        "id": "4d1e9f83d494",
+        "drill_id": "4d1e9f83d494",
+        "state": "done",
+        "started_at": "2026-07-24T18:30:36.703300+00:00",
+        "target_db": "masci_safety_preview",
+        "target_namespace_prefix": "ops8_drill_20260724_183036",
+        "archive_filename": "MASCI_complete_backup_2026-07-20_230322Z.zip",
+        "archive_size_mb": 9.44,
+        "axes": {
+          "A1_archive_available": {
+            "ok": true,
+            "message": "downloaded backups/auto-90d/MASCI_complete_backup_2026-07-20_230322Z.zip"
+          },
+          "A2_archive_integrity": {
+            "ok": true,
+            "message": "manifest.total_records=3428"
+          },
+          "A3_record_count_parity": {
+            "ok": true,
+            "message": "restored=3428 manifest=3428 mismatches=0"
+          },
+          "A4_namespace_isolation": {
+            "ok": true,
+            "message": "restored into collection prefix ops8_drill_20260724_183036__* within masci_safety_preview"
+          },
+          "A5_photo_refs_reconcile": {
+            "ok": true,
+            "message": "unique_refs=6 archive_photos=6 missing=0"
+          },
+          "A6_photo_rehydration": {
+            "ok": true,
+            "message": "uploaded=6 skipped=0 failed=0"
+          }
+        },
+        "cleanup_complete": true,
+        "duration_minutes": 0.201,
+        "finished_at": "2026-07-24T18:30:48.735311+00:00",
+        "outcome": "ok",
+        "per_kind": {
+          "admin_audit": {
+            "inserted": 28,
+            "files_seen": 28,
+            "skipped_bad": 0
+          },
+          "asset_spine_health_runs": {
+            "inserted": 16,
+            "files_seen": 16,
+            "skipped_bad": 0
+          },
+          "audit_events": {
+            "inserted": 826,
+            "files_seen": 826,
+            "skipped_bad": 0
+          },
+          "backup_drift_history": {
+            "inserted": 3,
+            "files_seen": 3,
+            "skipped_bad": 0
+          },
+          "backup_health": {
+            "inserted": 14,
+            "files_seen": 14,
+            "skipped_bad": 0
+          },
+          "cluster_capacity_history": {
+            "inserted": 354,
+            "files_seen": 354,
+            "skipped_bad": 0
+          },
+          "command_center_calendar": {
+            "inserted": 1,
+            "files_seen": 1,
+            "skipped_bad": 0
+          },
+          "command_center_thresholds": {
+            "inserted": 1,
+            "files_seen": 1,
+            "skipped_bad": 0
+          },
+          "daily_reports": {
+            "inserted": 1,
+            "files_seen": 1,
+            "skipped_bad": 0
+          },
+          "directory_sessions": {
+            "inserted": 26,
+            "files_seen": 26,
+            "skipped_bad": 0
+          },
+          "dispatch_users": {
+            "inserted": 2,
+            "files_seen": 2,
+            "skipped_bad": 0
+          },
+          "doc_id_counters": {
+            "inserted": 1,
+            "files_seen": 1,
+            "skipped_bad": 0
+          },
+          "dr_v1_photo_intel_jobs": {
+            "inserted": 15,
+            "files_seen": 15,
+            "skipped_bad": 0
+          },
+          "dr_v2_photo_intelligence": {
+            "inserted": 15,
+            "files_seen": 15,
+            "skipped_bad": 0
+          },
+          "dr_v2_photo_vision_cache": {
+            "inserted": 9,
+            "files_seen": 9,
+            "skipped_bad": 0
+          },
+          "draft_telemetry": {
+            "inserted": 284,
+            "files_seen": 284,
+            "skipped_bad": 0
+          },
+          "email_routes": {
+            "inserted": 49,
+            "files_seen": 49,
+            "skipped_bad": 0
+          },
+          "email_routing_audit_v2": {
+            "inserted": 11,
+            "files_seen": 11,
+            "skipped_bad": 0
+          },
+          "employees": {
+            "inserted": 234,
+            "files_seen": 234,
+            "skipped_bad": 0
+          },
+          "equipment_master": {
+            "inserted": 596,
+            "files_seen": 596,
+            "skipped_bad": 0
+          },
+          "equipment_units": {
+            "inserted": 484,
+            "files_seen": 484,
+            "skipped_bad": 0
+          },
+          "field_leadership_equipment_catalog": {
+            "inserted": 31,
+            "files_seen": 31,
+            "skipped_bad": 0
+          },
+          "field_leadership_equipment_makes": {
+            "inserted": 9,
+            "files_seen": 9,
+            "skipped_bad": 0
+          },
+          "field_leadership_users": {
+            "inserted": 1,
+            "files_seen": 1,
+            "skipped_bad": 0
+          },
+          "field_submitter_bindings": {
+            "inserted": 1,
+            "files_seen": 1,
+            "skipped_bad": 0
+          },
+          "hr_users": {
+            "inserted": 2,
+            "files_seen": 2,
+            "skipped_bad": 0
+          },
+          "idempotency_keys": {
+            "inserted": 1,
+            "files_seen": 1,
+            "skipped_bad": 0
+          },
+          "integration_settings": {
+            "inserted": 2,
+            "files_seen": 2,
+            "skipped_bad": 0
+          },
+          "job_photos": {
+            "inserted": 6,
+            "files_seen": 6,
+            "skipped_bad": 0
+          },
+          "jobs_master": {
+            "inserted": 28,
+            "files_seen": 28,
+            "skipped_bad": 0
+          },
+          "odr_observation_events": {
+            "inserted": 1,
+            "files_seen": 1,
+            "skipped_bad": 0
+          },
+          "operational_facts": {
+            "inserted": 15,
+            "files_seen": 15,
+            "skipped_bad": 0
+          },
+          "operational_ingestion_runs": {
+            "inserted": 1,
+            "files_seen": 1,
+            "skipped_bad": 0
+          },
+          "photo_migration_progress": {
+            "inserted": 1,
+            "files_seen": 1,
+            "skipped_bad": 0
+          },
+          "platform_audit": {
+            "inserted": 1,
+            "files_seen": 1,
+            "skipped_bad": 0
+          },
+          "project_managers": {
+            "inserted": 4,
+            "files_seen": 4,
+            "skipped_bad": 0
+          },
+          "red_alert_state": {
+            "inserted": 1,
+            "files_seen": 1,
+            "skipped_bad": 0
+          },
+          "resend_webhook_events": {
+            "inserted": 8,
+            "files_seen": 8,
+            "skipped_bad": 0
+          },
+          "role_templates": {
+            "inserted": 31,
+            "files_seen": 31,
+            "skipped_bad": 0
+          },
+          "runtime_boot_markers": {
+            "inserted": 1,
+            "files_seen": 1,
+            "skipped_bad": 0
+          },
+          "runtime_incident_forensics": {
+            "inserted": 50,
+            "files_seen": 50,
+            "skipped_bad": 0
+          },
+          "safety_users": {
+            "inserted": 2,
+            "files_seen": 2,
+            "skipped_bad": 0
+          },
+          "scheduler_locks": {
+            "inserted": 7,
+            "files_seen": 7,
+            "skipped_bad": 0
+          },
+          "scheduler_runs": {
+            "inserted": 3,
+            "files_seen": 3,
+            "skipped_bad": 0
+          },
+          "session_activity": {
+            "inserted": 7,
+            "files_seen": 7,
+            "skipped_bad": 0
+          },
+          "shop_users": {
+            "inserted": 2,
+            "files_seen": 2,
+            "skipped_bad": 0
+          },
+          "suppliers": {
+            "inserted": 145,
+            "files_seen": 145,
+            "skipped_bad": 0
+          },
+          "system_bootstrap_history": {
+            "inserted": 12,
+            "files_seen": 12,
+            "skipped_bad": 0
+          },
+          "system_bootstrap_status": {
+            "inserted": 1,
+            "files_seen": 1,
+            "skipped_bad": 0
+          },
+          "tenant_ai_capabilities": {
+            "inserted": 1,
+            "files_seen": 1,
+            "skipped_bad": 0
+          },
+          "transport_automation_runs": {
+            "inserted": 5,
+            "files_seen": 5,
+            "skipped_bad": 0
+          },
+          "transport_command_digest_runs": {
+            "inserted": 3,
+            "files_seen": 3,
+            "skipped_bad": 0
+          },
+          "transport_hr_sync_runs": {
+            "inserted": 5,
+            "files_seen": 5,
+            "skipped_bad": 0
+          },
+          "transport_orientation_modules": {
+            "inserted": 23,
+            "files_seen": 23,
+            "skipped_bad": 0
+          },
+          "transport_packet_requirements": {
+            "inserted": 16,
+            "files_seen": 16,
+            "skipped_bad": 0
+          },
+          "transport_rate_schedules": {
+            "inserted": 1,
+            "files_seen": 1,
+            "skipped_bad": 0
+          },
+          "trench_safety_assets": {
+            "inserted": 7,
+            "files_seen": 7,
+            "skipped_bad": 0
+          },
+          "trust_score_history": {
+            "inserted": 2,
+            "files_seen": 2,
+            "skipped_bad": 0
+          },
+          "trust_spine_events": {
+            "inserted": 7,
+            "files_seen": 7,
+            "skipped_bad": 0
+          },
+          "user_directory": {
+            "inserted": 9,
+            "files_seen": 9,
+            "skipped_bad": 0
+          },
+          "users": {
+            "inserted": 5,
+            "files_seen": 5,
+            "skipped_bad": 0
+          }
+        },
+        "photos_rehydrated": 6,
+        "records_in_manifest": 3428,
+        "records_restored": 3428,
+        "report_path": "/app/memory/OPS8_DRILL_4d1e9f83d494_REPORT.md"
+      }
+    },
+    {
+      "test": "backup-trust-score: evidence structure complete",
+      "passed": true,
+      "details": "Evidence keys: ['latest_complete_backup', 'newest_r2_age_hours', 'restore_drill_age_days', 'runtime']",
+      "timestamp": "2026-07-24T18:47:38.201020",
+      "response_data": {
+        "latest_complete_backup": {
+          "ts": "2026-07-23T23:15:01.420320+00:00",
+          "filename": "MASCI_complete_backup_2026-07-23_230712Z.zip",
+          "size_bytes": 1807592322
+        },
+        "newest_r2_age_hours": 19.54,
+        "restore_drill_age_days": 0.01,
+        "runtime": {
+          "stale_marked": 0,
+          "active_jobs": [],
+          "overlap": {
+            "backup_active": false,
+            "restore_active": false,
+            "active_backups": [],
+            "active_restores": [],
+            "overlap_blocked": false
+          },
+          "recent_complete_jobs": []
+        }
+      }
+    },
+    {
+      "test": "backup-verification/run-now: HTTP 200",
+      "passed": true,
+      "details": "Endpoint accessible",
+      "timestamp": "2026-07-24T18:47:40.100605"
+    },
+    {
+      "test": "backup-verification/run-now: ok=true",
+      "passed": true,
+      "details": "ok=True (expected True)",
+      "timestamp": "2026-07-24T18:47:40.100688",
+      "response_data": {
+        "ok": true
+      }
+    },
+    {
+      "test": "backup-verification/run-now: report built",
+      "passed": true,
+      "details": "Report present with 6 keys",
+      "timestamp": "2026-07-24T18:47:40.100697",
+      "response_data": {
+        "report_keys": [
+          "ts",
+          "verdict",
+          "r2",
+          "ledger",
+          "backup_jobs",
+          "data"
+        ]
+      }
+    },
+    {
+      "test": "backup-verification/run-now: email safety-blocked in Preview",
+      "passed": true,
+      "details": "sent=False, safety_mode=None",
+      "timestamp": "2026-07-24T18:47:40.100705",
+      "response_data": {
+        "sent": false,
+        "safety_mode": null,
+        "mode": null
+      }
+    },
+    {
+      "test": "backup-verification/run-now: report structure",
+      "passed": true,
+      "details": "Report contains: ['ts', 'verdict', 'r2', 'ledger', 'backup_jobs']...",
+      "timestamp": "2026-07-24T18:47:40.100714",
+      "response_data": {
+        "report_keys": [
+          "ts",
+          "verdict",
+          "r2",
+          "ledger",
+          "backup_jobs",
+          "data"
+        ]
+      }
+    },
+    {
+      "test": "recovery/snapshot: HTTP 200",
+      "passed": true,
+      "details": "Endpoint accessible",
+      "timestamp": "2026-07-24T18:47:41.633193"
+    },
+    {
+      "test": "recovery/snapshot: last_drill present",
+      "passed": true,
+      "details": "last_drill present (outcome=ok)",
+      "timestamp": "2026-07-24T18:47:41.633264",
+      "response_data": {
+        "ts": "2026-07-24T18:30:48.735311+00:00",
+        "outcome": "ok",
+        "records": 3428,
+        "photos": 6,
+        "duration_min": 0.201,
+        "archive_filename": "MASCI_complete_backup_2026-07-20_230322Z.zip"
+      }
+    },
+    {
+      "test": "recovery/snapshot: drill evidence structure",
+      "passed": true,
+      "details": "Drill keys: ['ts', 'outcome', 'records', 'photos']",
+      "timestamp": "2026-07-24T18:47:41.633277",
+      "response_data": {
+        "ts": "2026-07-24T18:30:48.735311+00:00",
+        "outcome": "ok",
+        "records": 3428,
+        "photos": 6
+      }
+    },
+    {
+      "test": "recovery/snapshot: snapshot structure complete",
+      "passed": true,
+      "details": "Snapshot keys: ['last_backup', 'backup_age_minutes', 'scheduler', 'bucket_usage']",
+      "timestamp": "2026-07-24T18:47:41.633286",
+      "response_data": {
+        "last_backup": "dict",
+        "backup_age_minutes": "float",
+        "scheduler": "dict",
+        "bucket_usage": "dict"
+      }
+    },
+    {
+      "test": "no-production-activation: all endpoints",
+      "passed": true,
+      "details": "Production hints: none found (GOOD)",
+      "timestamp": "2026-07-24T18:47:44.352091",
+      "response_data": {
+        "hints": []
+      }
+    }
+  ],
+  "timestamp": "2026-07-24T18:47:44.352926"
+}
