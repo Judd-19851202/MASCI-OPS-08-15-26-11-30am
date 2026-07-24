@@ -55,6 +55,12 @@ export function inferActivePortalForAuth(pathname = "") {
     if (path === prefix || path.startsWith(`${prefix}/`)) return portal;
   }
 
+  if (path === "/project-health" || path.startsWith("/project-health/")) return "pm";
+  if (path === "/asset-transfers" || path.startsWith("/asset-transfers/")) return "pm";
+  if (path === "/operational-records" || path.startsWith("/operational-records/")) return "fl";
+  if (path === "/odr" || path.startsWith("/odr/")) return "fl";
+  if (path === "/operations-actions" || path.startsWith("/operations-actions/")) return "admin";
+
   try {
     const contextPortal = CONTEXT_PORTAL_MAP[getPortalContext()];
     if (contextPortal) return contextPortal;
