@@ -252,3 +252,27 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
   - `/app/test_reports/pm_scoping_route_api_matrix.json`
   - `/app/test_reports/pm_scoping_role_matrix.json`
 - Exact Preview commit audited: `06d3737fa35188c9348a4f92bfbc22a015bb26f8`
+
+## 2026-07-24 — Authorized bounded PM scope repair implemented
+- Authorized production files changed only:
+  - `backend/pm_auth.py`
+  - `frontend/src/lib/portalAuthScope.js`
+- Added targeted regression tests only:
+  - `backend/tests/test_prod_visibility_compute_pm_scope.py` (expanded)
+  - `backend/tests/test_pm_scope_preview_api_regression.py`
+  - `frontend/src/lib/__tests__/portalAuthScoping.test.js` (expanded)
+- Repair summary:
+  - `compute_pm_scope()` now safely recognizes the verified raw PM actor shape returned by `require_admin()` for valid PM-token requests by cross-checking canonical `project_managers` identity and password hash.
+  - `compute_pm_scope()` now preserves unrestricted Super Admin visibility in PM-token context by recovering the canonical linked `user_directory` admin/super-admin identity and failing closed otherwise.
+  - PM shared route inference now includes `/job-photos`, so PM browser requests send both `X-Directory-Token` and `X-PM-Token` on the Job Photos page.
+- Verification status:
+  - Existing PM fixture now sees assigned Daily Reports and Job Photos, assigned Daily Report detail, and assigned raw photos; unassigned raw photo remains denied.
+  - Isolated forensic PM fixture sees only the two assigned projects; unassigned Daily Report detail remains `404`, unassigned raw photo remains `403`.
+  - Super Admin remains unrestricted in both Admin-token and PM-token context on repaired shared PM routes.
+- Evidence created/updated:
+  - `/app/test_reports/pm_scoping_repair_report.md`
+  - `/app/test_reports/pm_scoping_repair_report.json`
+  - `/app/test_reports/pm_scoping_route_api_matrix.json`
+  - `/app/test_reports/pm_scoping_role_matrix.json`
+  - `/app/test_reports/pm_scoping_shared_caller_regression.json`
+- Exact ending commit after repair/testing: `81a7420bae23b3c6402eb8a922859d85ad5601cc`

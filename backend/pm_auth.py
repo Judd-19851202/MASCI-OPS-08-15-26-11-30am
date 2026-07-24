@@ -357,17 +357,115 @@ async def compute_pm_scope(db, actor) -> PmScope:
     # mutate; this only widens read scope for HR Daily Report viewing.
     if actor.get("_actor_kind") == "hr_user":
         return PmScope(is_admin=True)
+    def _actor_email(row: Optional[Dict[str, Any]]) -> str:
+        if not isinstance(row, dict):
+            return ""
+        return (row.get("email") or "").strip().lower()
+
+    def _actor_id(row: Optional[Dict[str, Any]]) -> Optional[str]:
+        if not isinstance(row, dict):
+            return None
+        return row.get("id") or row.get("user_id") or row.get("_id")
+
+    async def _resolve_verified_raw_pm_actor() -> Optional[Dict[str, Any]]:
+        """Recognize the raw PM doc returned by require_admin() for a
+        valid X-PM-Token request.
+
+        Security doctrine:
+          • never infer PM from email/name alone
+          • require repository-backed PM identity (matching id/email)
+          • require the actor to carry the canonical project_managers
+            password_hash so arbitrary directory-shaped dicts fail closed
+        """
+        actor_id = _actor_id(actor)
+        email = _actor_email(actor)
+        pwh = (actor.get("password_hash") or "").strip()
+        if not pwh or (not actor_id and not email):
+            return None
+        pm_row = None
+        try:
+            if actor_id:
+                pm_row = await find_pm_by_id(db, str(actor_id))
+            if not pm_row and email:
+                pm_row = await find_pm_by_email(db, email)
+        except Exception:
+            return None
+        if not pm_row:
+            return None
+        if actor_id and str(pm_row.get("id") or "") != str(actor_id):
+            return None
+        if email and _actor_email(pm_row) != email:
+            return None
+        if (pm_row.get("password_hash") or "") != pwh:
+            return None
+        merged = dict(pm_row)
+        merged.setdefault("_actor", "pm")
+        merged.setdefault("_actor_kind", "pm_user")
+        return merged
+
+    async def _resolve_linked_directory_admin(pm_actor: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Recover trusted directory identity for PM shadow actors only.
+
+        This preserves unrestricted visibility for canonical directory
+        admins / super-admins operating in PM-token context, while
+        leaving ordinary PM users project-scoped.
+        """
+        if not isinstance(pm_actor, dict):
+            return None
+        shadow_source = str(pm_actor.get("source") or "").strip().lower()
+        if not pm_actor.get("linked_to_directory") and shadow_source not in {"directory-shadow", "forensic-shadow"}:
+            return None
+        coll = getattr(db, "user_directory", None)
+        if coll is None:
+            return None
+        actor_id = _actor_id(pm_actor)
+        email = _actor_email(pm_actor)
+        if not actor_id and not email:
+            return None
+        try:
+            row = None
+            if actor_id:
+                row = await coll.find_one({"id": str(actor_id)}, {"_id": 0})
+            if row and email and _actor_email(row) != email:
+                return None
+            if not row and email:
+                row = await coll.find_one({"email": email}, {"_id": 0})
+            if not isinstance(row, dict):
+                return None
+            if row and actor_id and str(row.get("id") or "") != str(actor_id):
+                # Some legacy / manually-created PM shadow rows are linked by
+                # canonical email but do not reuse the directory user's id.
+                # Only trust this fallback when the PM actor is explicitly
+                # marked as directory-linked AND the canonical directory email
+                # still matches the authenticated PM shadow.
+                if not pm_actor.get("linked_to_directory") or _actor_email(row) != email:
+                    return None
+            portals = row.get("portals")
+            if (
+                row.get("is_super_admin") is True
+                or row.get("role") == "admin"
+                or (isinstance(portals, (list, tuple, set)) and "admin" in portals)
+            ):
+                return row
+        except Exception:
+            return None
+        return None
+
     explicit_pm = (
         actor.get("_actor") == "pm"
         or actor.get("role") in {"pm", "co_pm"}
         or actor.get("_actor_kind") == "pm_user"
     )
-    if not explicit_pm:
+    effective_actor = actor if explicit_pm else await _resolve_verified_raw_pm_actor()
+    if not effective_actor:
         return PmScope(is_admin=False, project_numbers=set(), pm=actor)
-    email = (actor.get("email") or "").strip().lower()
+    linked_directory_admin = await _resolve_linked_directory_admin(effective_actor)
+    if linked_directory_admin:
+        return PmScope(is_admin=True, pm=effective_actor)
+    email = _actor_email(effective_actor)
     if not email:
-        return PmScope(is_admin=False, project_numbers=set(), pm=actor)
-    uid = actor.get("id") or actor.get("user_id") or actor.get("_id")
+        return PmScope(is_admin=False, project_numbers=set(), pm=effective_actor)
+    uid = _actor_id(effective_actor)
     # Pull every job where this PM is primary OR appears in co_pm_emails.
     cursor = db.jobs_master.find(
         {
@@ -405,7 +503,7 @@ async def compute_pm_scope(db, actor) -> PmScope:
     except Exception:
         # Defensive — never let staffing-roster lookup break PM scope.
         pass
-    return PmScope(is_admin=False, project_numbers=nums, pm=actor)
+    return PmScope(is_admin=False, project_numbers=nums, pm=effective_actor)
 
 
 def public_pm_view(pm: dict) -> dict:

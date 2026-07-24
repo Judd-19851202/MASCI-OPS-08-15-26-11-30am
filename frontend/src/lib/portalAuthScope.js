@@ -37,6 +37,7 @@ const SHARED_API_PREFIXES = [
   "/operations-center",
   "/employees",
   "/daily-reports",
+  "/job-photos",
   "/incidents",
   "/project-health",
   "/asset-transfers",

@@ -32,6 +32,18 @@ class _Collection:
     def __init__(self, rows):
         self.rows = list(rows)
 
+    async def find_one(self, query, projection=None):  # noqa: ARG002
+        query = query or {}
+        for row in self.rows:
+            matched = True
+            for key, value in query.items():
+                if row.get(key) != value:
+                    matched = False
+                    break
+            if matched:
+                return row
+        return None
+
     def find(self, query, projection=None):  # noqa: ARG002
         query = query or {}
         out = []
@@ -55,11 +67,52 @@ class _Collection:
 
 class _DB:
     def __init__(self):
+        self.project_managers = _Collection(
+            [
+                {
+                    "id": "pm-1",
+                    "email": "pm@example.com",
+                    "password_hash": "pm-hash",
+                    "linked_to_directory": False,
+                },
+                {
+                    "id": "admin-pm-1",
+                    "email": "super@example.com",
+                    "password_hash": "admin-pm-hash",
+                    "linked_to_directory": True,
+                    "source": "directory-shadow",
+                },
+                {
+                    "id": "pm-shadow-1",
+                    "email": "pm.shadow@example.com",
+                    "password_hash": "pm-shadow-hash",
+                    "linked_to_directory": True,
+                    "source": "directory-shadow",
+                },
+            ]
+        )
+        self.user_directory = _Collection(
+            [
+                {
+                    "id": "admin-pm-1",
+                    "email": "super@example.com",
+                    "portals": ["admin", "pm"],
+                    "is_super_admin": True,
+                },
+                {
+                    "id": "pm-shadow-1",
+                    "email": "pm.shadow@example.com",
+                    "portals": ["pm"],
+                    "is_super_admin": False,
+                },
+            ]
+        )
         self.jobs_master = _Collection(
             [
                 {"project_number": "26-05", "pm_email": "pm@example.com", "deleted_at": ""},
                 {"project_number": "26-06", "co_pm_emails": "pm@example.com", "deleted_at": None},
                 {"project_number": "OLD-01", "pm_email": "pm@example.com", "deleted_at": "2026-01-01"},
+                {"project_number": "99-01", "pm_email": "pm.shadow@example.com", "deleted_at": None},
             ]
         )
         self.project_team_assignments = _Collection(
@@ -67,6 +120,7 @@ class _DB:
                 {"project_number": "26-07", "email": "pm@example.com", "active": True},
                 {"project_number": "26-08", "user_id": "pm-1", "active": True},
                 {"project_number": "26-09", "email": "pm@example.com", "active": False},
+                {"project_number": "99-02", "user_id": "pm-shadow-1", "active": True},
             ]
         )
 
@@ -109,6 +163,56 @@ def test_pm_actor_collects_jobs_and_team_assignments():
     assert scope.is_admin is False
     assert scope.project_numbers == {"26-05", "26-06", "26-07", "26-08"}
     assert set(scope.filter({})["project_number"]["$in"]) == {"26-05", "26-06", "26-07", "26-08"}
+
+
+def test_raw_pm_actor_shape_collects_assigned_projects():
+    scope = _run(
+        compute_pm_scope(
+            _DB(),
+            {
+                "id": "pm-1",
+                "email": "pm@example.com",
+                "password_hash": "pm-hash",
+                "linked_to_directory": False,
+            },
+        )
+    )
+    assert scope.is_admin is False
+    assert scope.project_numbers == {"26-05", "26-06", "26-07", "26-08"}
+
+
+def test_raw_pm_actor_does_not_gain_unrestricted_scope():
+    scope = _run(
+        compute_pm_scope(
+            _DB(),
+            {
+                "id": "pm-shadow-1",
+                "email": "pm.shadow@example.com",
+                "password_hash": "pm-shadow-hash",
+                "linked_to_directory": True,
+                "source": "directory-shadow",
+            },
+        )
+    )
+    assert scope.is_admin is False
+    assert scope.project_numbers == {"99-01", "99-02"}
+
+
+def test_super_admin_retains_unrestricted_scope_in_pm_token_context():
+    scope = _run(
+        compute_pm_scope(
+            _DB(),
+            {
+                "id": "admin-pm-1",
+                "email": "super@example.com",
+                "password_hash": "admin-pm-hash",
+                "linked_to_directory": True,
+                "source": "directory-shadow",
+            },
+        )
+    )
+    assert scope.is_admin is True
+    assert scope.project_numbers is None
 
 
 def test_co_pm_actor_collects_assigned_projects():
