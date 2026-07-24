@@ -4,7 +4,6 @@ import { getHrToken } from "@/lib/hrAuth";
 import { getShopToken } from "@/lib/shopAuth";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import { getDispatchToken } from "@/lib/dispatchAuth";
-import { getLeadershipToken } from "@/lib/leadershipAuth";
 import { getFlToken } from "@/lib/flAuth";
 import { getDirectoryToken } from "@/lib/directoryAuth";
 
@@ -15,7 +14,6 @@ const PORTAL_HEADER_MAP = {
   shop: "X-Shop-Token",
   safety: "X-Safety-Token",
   dispatch: "X-Dispatch-Token",
-  leadership: "X-Leadership-Token",
   field_leadership: "X-FL-Token",
   fl: "X-FL-Token",
 };
@@ -40,9 +38,6 @@ export function buildPortalAuthHeaders(extra = {}) {
 
   const dispatch = getDispatchToken();
   if (dispatch) headers["X-Dispatch-Token"] = dispatch;
-
-  const leadership = getLeadershipToken();
-  if (leadership) headers["X-Leadership-Token"] = leadership;
 
   const fl = getFlToken();
   if (fl) headers["X-FL-Token"] = fl;

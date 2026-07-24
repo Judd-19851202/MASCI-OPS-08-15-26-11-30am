@@ -1,9 +1,4 @@
-// Field Leadership password gate.
-// Stores the leadership token in sessionStorage so it clears when the tab
-// closes — supervisors must re-enter the password at the start of each
-// browser session. Backend issues a 12h token; we also age-check on read.
-
-import { api } from "@/lib/api";
+// Legacy Field Leadership shared-secret auth has been retired.
 import { clearThumbCache } from "@/lib/thumbCache";
 
 const KEY = "masci.leadership.token";
@@ -26,16 +21,6 @@ export function getLeadershipToken() {
   }
 }
 
-export function setLeadershipToken(tok) {
-  try {
-    window.sessionStorage.setItem(KEY, tok);
-    window.sessionStorage.setItem(ISSUED_KEY, String(Date.now()));
-    clearThumbCache();
-  } catch {
-    /* sessionStorage disabled — gate becomes per-page-load */
-  }
-}
-
 export function clearLeadershipToken() {
   try {
     window.sessionStorage.removeItem(KEY);
@@ -45,10 +30,7 @@ export function clearLeadershipToken() {
 }
 
 export async function loginLeadership(password) {
-  const res = await api.post("/field-leadership/login", { password });
-  const tok = res.data?.token;
-  if (tok) setLeadershipToken(tok);
-  return tok;
+  throw new Error("Legacy Field Leadership shared-secret login has been retired.");
 }
 
 export function isLeadershipAuthed() {

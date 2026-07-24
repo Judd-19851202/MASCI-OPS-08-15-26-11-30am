@@ -194,13 +194,6 @@ def build_field_leadership_portal_router(
                     "user": public_fl_user_view(user),
                     "must_change_password": bool(user.get("must_change_password")),
                 }
-        # ── Path 2 · iter344 · master-directory fallback (super-admin
-        #   accessing FL portal via the unified login screen). Admin
-        #   credentials authenticate against `user_directory`; if the
-        #   user has the `admin` portal grant, we mint a regular admin
-        #   token (same one /api/admin/* routes accept). The Hub gate
-        #   already accepts admin tokens via isAdmin(). No duplicate
-        #   FL identity is created. ──────────────────────────────────
         # ── Path 3 · iter345 · FL Phase B Hybrid · directory-granted FL
         #   For any directory user with `field_leadership` portal grant
         #   (PM/HR/Safety/Shop/Dispatch/etc. who have been granted FL
@@ -217,26 +210,6 @@ def build_field_leadership_portal_router(
                 row = None
             if row and not row.get("disabled"):
                 row_portals = row.get("portals") or []
-                # Path 2 · admin grant → admin token
-                if "admin" in row_portals:
-                    admin_tok = directory_admin_minter(row)
-                    if admin_tok:
-                        try:
-                            from session_timeout import reset_session_activity
-                            await reset_session_activity(
-                                db, admin_tok, "ADMIN_HR",
-                                user_id=row.get("id"), email=row.get("email"),
-                                actor_label="admin_via_fl",
-                                ip=_client_ip(request),
-                                user_agent=request.headers.get("user-agent") or "",
-                            )
-                        except Exception:  # noqa: BLE001
-                            pass
-                        return {
-                            "ok": True, "token": admin_tok, "kind": "admin",
-                            "user": _ud.public_view(row),
-                            "must_change_password": False,
-                        }
                 # Path 3 · directory-granted FL → FL token tied to master pwh
                 if "field_leadership" in row_portals:
                     pwh = row.get("password_hash") or ""

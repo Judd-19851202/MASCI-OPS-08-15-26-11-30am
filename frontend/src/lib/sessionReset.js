@@ -29,7 +29,7 @@ import { clearSafetyToken, getSafetyToken } from "./safetyAuth";
 import { clearDispatchToken, getDispatchToken } from "./dispatchAuth";
 import { clearDevToken } from "./devAuth";
 import { clearFlToken, getFlToken } from "./flAuth";
-import { clearLeadershipToken, getLeadershipToken } from "./leadershipAuth";
+import { clearLeadershipToken } from "./leadershipAuth";
 import { clearSafetyFormsToken, getSafetyFormsToken } from "./safetyFormsAuth";
 import { clearJwt } from "./jwtAuth";
 import { clearDriverSession } from "./driverAuth";
@@ -116,9 +116,7 @@ export async function clearAllSessions({ notifyBackend = true } = {}) {
   const flTok = (() => {
     try { return getFlToken(); } catch { return ""; }
   })();
-  const leadershipTok = (() => {
-    try { return getLeadershipToken(); } catch { return ""; }
-  })();
+  const leadershipTok = flTok;
   const safetyFormsTok = (() => {
     try { return getSafetyFormsToken(); } catch { return ""; }
   })();
@@ -164,7 +162,6 @@ export async function clearAllSessions({ notifyBackend = true } = {}) {
         ...(safetyTok ? { "X-Safety-Token": safetyTok } : {}),
         ...(dispatchTok ? { "X-Dispatch-Token": dispatchTok } : {}),
         ...(flTok ? { "X-FL-Token": flTok } : {}),
-        ...(leadershipTok ? { "X-Leadership-Token": leadershipTok } : {}),
         ...(safetyFormsTok ? { "X-Safety-Forms-Token": safetyFormsTok } : {}),
       };
       await fetch(`${API}/api/auth/multi-logout`, {

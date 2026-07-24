@@ -35,8 +35,6 @@ import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { usePageTitle } from "@/lib/usePageTitle";
 import { PortalShell } from "@/design-system";
 import {
-  getLeadershipToken,
-  loginLeadership,
   clearLeadershipToken,
 } from "@/lib/leadershipAuth";
 // iter342 · Hub now also accepts the modern per-user FL portal token
@@ -275,111 +273,6 @@ function LeadershipTile({ to, href, icon: Icon, title, desc, accent = "red", cta
   return <Link to={to} className={base} data-testid={testId}>{inner}</Link>;
 }
 
-function PasswordGate({ onAuthed }) {
-  const { t } = useT();
-  const [pw, setPw] = useState("");
-  const [busy, setBusy] = useState(false);
-
-  const submit = async (e) => {
-    e.preventDefault();
-    if (!pw.trim()) return;
-    setBusy(true);
-    try {
-      await loginLeadership(pw.trim());
-      toast.success(t("Access granted"));
-      onAuthed();
-    } catch {
-      toast.error(t("Incorrect password"));
-      setPw("");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <div className="min-h-screen blueprint-bg flex flex-col">
-      <div className="caution-stripe" />
-      <header className={`bg-slate-900 border-b-4 ${FL_PAL.hubHeaderBar}`}>
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <Link
-            to="/"
-            className={`inline-flex items-center text-white ${FL_PAL.hubLinkHover} text-sm font-bold uppercase tracking-wide`}
-            data-testid="leadership-login-back"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1" /> {t("Home")}
-          </Link>
-          <MasciLogo variant="mark" size="lg" className="hidden sm:block" homeLink="/" />
-          <MasciLogo variant="mark" size="md" className="sm:hidden" homeLink="/" />
-          <div className="flex items-center gap-2">
-            <LangToggle />
-            <CompanyInfoDialog />
-          </div>
-        </div>
-      </header>
-
-      <main className="flex-1 flex items-center justify-center px-5 sm:px-8 py-12">
-        <div className="w-full max-w-md bg-white border border-slate-200 rounded-md p-7 sm:p-9 shadow-xl">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-md bg-slate-700 text-white">
-              <Lock className="w-6 h-6" />
-            </div>
-            <div>
-              <div className={`font-mono text-[10px] uppercase tracking-[0.25em] ${FL_PAL.hubKicker}`}>
-                {t("Restricted Area")}
-              </div>
-              <h1 className="font-display text-2xl font-black text-slate-900 leading-none mt-1">
-                {t("Field Leadership Sign In")}
-              </h1>
-            </div>
-          </div>
-          <p className="text-slate-600 text-sm mt-3 mb-6">
-            {t("This section is restricted to MASCI field supervisors, foremen, superintendents, PMs, Safety, and Admin. Enter the leadership password to continue.")}
-          </p>
-
-          <form onSubmit={submit} className="space-y-4" data-testid="leadership-gate-form">
-            <div>
-              <Label htmlFor="leadership-password" className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
-                {t("Leadership Password")}
-              </Label>
-              <PasswordInput
-                id="leadership-password"
-                value={pw}
-                onChange={(e) => setPw(e.target.value)}
-                autoFocus
-                autoComplete="current-password"
-                className="mt-2 h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-600"
-                data-testid="leadership-pw-input"
-                toggleTestId="leadership-pw-toggle"
-              />
-            </div>
-            <Button
-              type="submit"
-              disabled={busy || !pw.trim()}
-              className="w-full h-12 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
-              data-testid="leadership-pw-submit"
-            >
-              {busy ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t("Verifying…")}
-                </>
-              ) : (
-                <>{t("Sign In")}</>
-              )}
-            </Button>
-          </form>
-        </div>
-      </main>
-
-      <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-6 flex flex-col items-center gap-3">
-        <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-slate-500">
-          {t("MASCI · Field Leadership · Restricted")}
-        </div>
-        <ForgedOpsAttribution variant="login" />
-      </footer>
-    </div>
-  );
-}
-
 /**
  * Resolve a `kind` key to a form definition. Schema kinds come from
  * FIELD_LEADERSHIP_FORMS; the one external kind comes from
@@ -403,11 +296,11 @@ export default function FieldLeadershipHub() {
   const { t, lang } = useT();
   const navigate = useNavigate();
   const [authed, setAuthed] = useState(
-    () => Boolean(getLeadershipToken()) || Boolean(getFlToken()) || isAdmin() || Boolean(getPmToken())
+    () => Boolean(getFlToken()) || isAdmin() || Boolean(getPmToken())
   );
 
   useEffect(() => {
-    const next = Boolean(getLeadershipToken()) || Boolean(getFlToken()) || isAdmin() || Boolean(getPmToken());
+    const next = Boolean(getFlToken()) || isAdmin() || Boolean(getPmToken());
     setAuthed(next);
     // TRUST-PO-1 · 2026-05-28 — declare portal context on every mount
     // so shared pages (e.g., /po-requests) can render capability-scoped
@@ -416,18 +309,13 @@ export default function FieldLeadershipHub() {
     if (next) {
       try { setPortalContext("field-leadership"); } catch { /* noop */ }
     }
-    // Pass 4 — first-class /leadership/login. If not authed, send the
-    // user to the dedicated portal door instead of rendering the
-    // inline password gate. The inline PasswordGate below is retained
-    // as a safety net (link from older bookmarks / mid-session token
-    // expiry) but the canonical entry is /leadership/login.
     if (!next) {
       navigate("/leadership/login", { replace: true });
     }
   }, [navigate]);
 
   if (!authed) {
-    return <PasswordGate onAuthed={() => setAuthed(true)} />;
+    return null;
   }
 
   const signOut = () => {

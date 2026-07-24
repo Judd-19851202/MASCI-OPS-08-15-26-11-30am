@@ -163,16 +163,13 @@ async function _fetchTips(formKey) {
   // reach the right portal. Storage keys match the canonical auth libs:
   //   masci.admin.token · masci.hr.token · masci.safety.token ·
   //   masci.pm.token · masci.shop.token · masci.dispatch.token ·
-  //   masci.leadership.token (sessionStorage).
+  //   masci.fl.token (sessionStorage).
   const adminTok = _readToken("masci.admin.token");           if (adminTok) headers["X-Admin-Token"] = adminTok;
   const hrTok = _readToken("masci.hr.token");                 if (hrTok) headers["X-HR-Token"] = hrTok;
   const safetyTok = _readToken("masci.safety.token");         if (safetyTok) headers["X-Safety-Token"] = safetyTok;
   const pmTok = _readToken("masci.pm.token");                 if (pmTok) headers["X-PM-Token"] = pmTok;
   const shopTok = _readToken("masci.shop.token");             if (shopTok) headers["X-Shop-Token"] = shopTok;
   const dispatchTok = _readToken("masci.dispatch.token");     if (dispatchTok) headers["X-Dispatch-Token"] = dispatchTok;
-  const leadershipTok = _readToken("masci.leadership.token"); if (leadershipTok) headers["X-Leadership-Token"] = leadershipTok;
-  // iter317-A · Field Leadership Portal token (per-user · iter314) —
-  // distinct from the legacy shared-password leadership token above.
   const flTok = _readToken("masci.fl.token");                 if (flTok) headers["X-FL-Token"] = flTok;
   const r = await fetch(url, { headers });
   if (!r.ok) return [];

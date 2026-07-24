@@ -6982,6 +6982,7 @@ BACKUP_EXPLICIT_EXCLUSIONS = {
     "usage_events",            # regenerable API telemetry (iter441)
     "health_monitor_runs",     # regenerable scheduler health series (iter441)
     "job_photo_thumb_cache",   # regenerable derivative photo cache (iter441)
+    "backup_integrity_jobs",   # regenerable operator job ledger (iter OPS8 Repair A)
 }
 
 BACKUP_EXCLUSION_DETAILS: Dict[str, Dict[str, str]] = {
@@ -6995,6 +6996,10 @@ BACKUP_EXCLUSION_DETAILS: Dict[str, Dict[str, str]] = {
     },
     "job_photo_thumb_cache": {
         "reason": "regenerable derivative photo cache",
+        "owner": "backup-platform",
+    },
+    "backup_integrity_jobs": {
+        "reason": "regenerable operator integrity job ledger",
         "owner": "backup-platform",
     },
     "system.*": {
@@ -10123,6 +10128,11 @@ def _compute_backup_integrity_missing(
         for it in (explicit_exclusions or [])
         if _normalize_backup_manifest_collection_name(it)
     }
+    excluded.update(
+        _normalize_backup_manifest_collection_name(it)
+        for it in BACKUP_EXPLICIT_EXCLUSIONS
+        if _normalize_backup_manifest_collection_name(it)
+    )
     captured = {
         _normalize_backup_manifest_collection_name(it)
         for it in (captured_collections or [])
@@ -10335,6 +10345,15 @@ def _evaluate_backup_manifest_contract(
 
 @api_router.get("/admin/backups/integrity-check")
 async def admin_backup_integrity_check(_: bool = Depends(require_admin_strict)):
+    status = await db.backup_integrity_jobs.find_one(
+        {"job_type": "integrity_check"},
+        {"_id": 0},
+        sort=[("created_at", -1)],
+    )
+    if status and status.get("state") in {"queued", "running"}:
+        return JSONResponse(status_code=202, content=status)
+    if status and status.get("state") in {"completed", "failed", "stale"}:
+        return status
     """Audit: every Mongo collection currently in the live DB vs the most
     recent backup's manifest. Surfaces any collection that exists right now
     but wasn't captured in the last backup — proves nothing is slipping
@@ -10739,6 +10758,248 @@ async def admin_backup_integrity_check(_: bool = Depends(require_admin_strict)):
         "recent_backups": recent_backups,
         "ok": top_contract["integrity_result"] == "PASS",
     }
+
+
+async def _run_backup_integrity_job(job_id: str, actor_email: str = "admin"):
+    from backup_verification import list_r2_backup_archives, read_r2_backup_manifest  # noqa: PLC0415
+    from lib.trust_spine import emit_stage, new_correlation_id, STAGE_AUDIT_WRITTEN, STAGE_COMPLETED, STAGE_RECORD_CREATED  # noqa: PLC0415
+    started = datetime.now(timezone.utc)
+    correlation_id = new_correlation_id()
+    try:
+        await db.backup_integrity_jobs.update_one(
+            {"job_id": job_id},
+            {"$set": {"state": "running", "started_at": started.isoformat(), "correlation_id": correlation_id, "error": None}},
+        )
+        await emit_stage(db, workflow="backup-integrity", stage=STAGE_RECORD_CREATED, correlation_id=correlation_id, record_id=job_id, module="server.py", status="ok")
+
+        files = _list_stored_backups()
+        last = files[0] if files else None
+        live = sorted(await db.list_collection_names())
+        live = [c for c in live if not c.startswith("system.")]
+        env_identity = {"app_env": _canonical_app_env(), "db_name": _canonical_db_name()}
+        latest_row = await db.backup_health.find_one(
+            {"mode": "complete-r2", "ok": True, "filename": {"$nin": [None, ""]}},
+            {"_id": 0, "filename": 1, "size_bytes": 1, "records": 1, "ts": 1},
+            sort=[("ts", -1)],
+        )
+        r2_archives = await list_r2_backup_archives(prefix="backups/auto-90d/")
+        latest_r2 = r2_archives[0] if r2_archives else None
+        latest_r2_filename = None
+        if latest_r2:
+            latest_r2_filename = latest_r2.get("filename") or str(latest_r2.get("key") or "").rsplit("/", 1)[-1] or None
+        drift_row = await db.backup_drift_history.find_one({}, {"_id": 0, "recorded_at": 1, "captured_collections": 1, "total_records": 1, "explicit_exclusions": 1}, sort=[("recorded_at", -1)])
+
+        captured: List[str] = []
+        collection_counts: Optional[Dict[str, int]] = None
+        document_count: Optional[int] = None
+        last_at = None
+        last_object_key = latest_r2.get("key") if latest_r2 else None
+        archive_size_bytes = None
+        manifest_source = "unavailable"
+        manifest_explicit_exclusions: List[str] = []
+        manifest_bundle = None
+        latest_r2_with_manifest = None
+        latest_r2_matching_runtime_with_manifest = None
+        manifest_reads = 0
+        manifest_read_started = time.perf_counter()
+        for archive in r2_archives:
+            key = archive.get("key")
+            if not key:
+                continue
+            bundle = await read_r2_backup_manifest(key)
+            manifest_reads += 1
+            if not bundle or not isinstance(bundle.get("manifest"), dict):
+                continue
+            if manifest_bundle is None:
+                manifest_bundle = bundle
+                latest_r2_with_manifest = archive
+            manifest = bundle.get("manifest") or {}
+            manifest_env = {"app_env": manifest.get("app_env") or manifest.get("environment"), "db_name": manifest.get("db_name") or manifest.get("database_name")}
+            if manifest_env["app_env"] == env_identity["app_env"] and manifest_env["db_name"] == env_identity["db_name"]:
+                latest_r2_matching_runtime_with_manifest = archive
+                manifest_bundle = bundle
+                break
+        manifest_read_duration_ms = int((time.perf_counter() - manifest_read_started) * 1000)
+        if latest_r2_matching_runtime_with_manifest or latest_r2_with_manifest:
+            latest_r2 = latest_r2_matching_runtime_with_manifest or latest_r2_with_manifest
+            latest_r2_filename = latest_r2.get("filename") or str(latest_r2.get("key") or "").rsplit("/", 1)[-1] or None
+            last_object_key = latest_r2.get("key")
+        if manifest_bundle and isinstance(manifest_bundle.get("manifest"), dict):
+            m = manifest_bundle["manifest"]
+            captured = sorted(m.get("captured_collections") or m.get("all_db_collections_at_backup_time") or [])
+            counts = m.get("per_kind")
+            collection_counts = counts if isinstance(counts, dict) else None
+            raw_exclusions = m.get("explicit_exclusions") or []
+            if isinstance(raw_exclusions, list):
+                manifest_explicit_exclusions = [str(it) for it in raw_exclusions if str(it)]
+            raw_total_records = m.get("total_records")
+            try:
+                document_count = int(raw_total_records) if raw_total_records is not None else None
+            except Exception:
+                document_count = None
+            last_at = m.get("generated_at") or manifest_bundle.get("last_modified_iso")
+            archive_size_bytes = manifest_bundle.get("content_length")
+            manifest_source = f"r2:{manifest_bundle.get('manifest_name')}"
+        recent_backups: List[Dict[str, Any]] = []
+        recent_backup_rows: List[Dict[str, Any]] = []
+        try:
+            recent_backup_rows = await db.backup_health.find(
+                {"mode": "complete-r2", "ok": True, "filename": {"$nin": [None, ""]}},
+                {"_id": 0, "filename": 1, "size_bytes": 1, "records": 1, "ts": 1},
+                sort=[("ts", -1)],
+            ).to_list(length=5)
+        except Exception as e:
+            logger.warning(f"integrity-check: recent lineage read failed: {e}")
+        if not captured and drift_row:
+            captured = sorted(drift_row.get("captured_collections") or [])
+            raw_total_records = drift_row.get("total_records")
+            try:
+                document_count = int(raw_total_records) if raw_total_records is not None else document_count
+            except Exception:
+                pass
+            if getattr(drift_row.get("recorded_at"), "isoformat", None):
+                last_at = last_at or drift_row["recorded_at"].isoformat()
+            manifest_source = "backup_drift_history"
+        if latest_r2:
+            archive_size_bytes = archive_size_bytes or latest_r2.get("size_bytes")
+            last_at = last_at or latest_r2.get("last_modified_iso")
+        if latest_row:
+            archive_size_bytes = archive_size_bytes or latest_row.get("size_bytes")
+            document_count = document_count if document_count is not None else latest_row.get("records")
+            last_at = last_at or latest_row.get("ts")
+        top_manifest = manifest_bundle.get("manifest") if manifest_bundle else None
+        top_contract = _evaluate_backup_manifest_contract(
+            top_manifest or {"captured_collections": captured, "explicit_exclusions": manifest_explicit_exclusions, "total_records": document_count},
+            live_collections=live,
+        )
+        missing = top_contract["missing_from_backup"]
+        integrity_result = top_contract["integrity_result"]
+        finished = datetime.now(timezone.utc)
+        duration_ms = int((finished - started).total_seconds() * 1000)
+        result = {
+            "job_id": job_id,
+            "job_type": "integrity_check",
+            "state": "completed",
+            "started_at": started.isoformat(),
+            "completed_at": finished.isoformat(),
+            "duration_ms": duration_ms,
+            "duration_s": round(duration_ms / 1000, 2),
+            "manifest_count_evaluated": manifest_reads,
+            "manifest_read_duration_ms": manifest_read_duration_ms,
+            "last_backup_filename": (latest_r2_filename or (latest_row.get("filename") if latest_row else None) or (last.get("filename") if last else None)),
+            "last_backup_object_key": last_object_key,
+            "last_backup_at": last_at,
+            "archive_size_bytes": archive_size_bytes,
+            "live_collections": live,
+            "captured_collections": captured,
+            "captured_collection_count": len(captured),
+            "collection_counts": collection_counts,
+            "document_count": document_count,
+            "missing_from_backup": missing,
+            "integrity_result": integrity_result,
+            "verification_timestamp": top_contract["verification_timestamp"],
+            "verifier_version": top_contract["verifier_version"],
+            "manifest_version": (top_manifest or {}).get("manifest_version") or (top_manifest or {}).get("version"),
+            "expected_collection_count": top_contract["expected_collection_count"],
+            "expected_collections": top_contract["expected_collections"],
+            "unavailable_fields": top_contract["unavailable_fields"],
+            "unavailable_reason": top_contract["unavailable_reason"],
+            "classification_reason_code": top_contract["classification_reason_code"],
+            "classification": top_contract["classification"],
+            "environment_identity": env_identity,
+            "evidence_source": manifest_source,
+            "evidence_mode": top_contract["evidence_mode"],
+            "ok": top_contract["integrity_result"] == "PASS",
+            "actor_email": actor_email,
+            "correlation_id": correlation_id,
+        }
+        await db.backup_integrity_jobs.update_one({"job_id": job_id}, {"$set": result}, upsert=True)
+        await db.admin_audit.insert_one({
+            "ts": finished.isoformat(), "actor_email": actor_email, "action": "backup_integrity_check_completed",
+            "target_email": None, "ip": None, "user_agent": None,
+            "diff": {"job_id": job_id, "state": "completed", "integrity_result": integrity_result, "duration_ms": duration_ms, "manifest_count_evaluated": manifest_reads},
+        })
+        await emit_stage(db, workflow="backup-integrity", stage=STAGE_AUDIT_WRITTEN, correlation_id=correlation_id, record_id=job_id, module="server.py", status="ok", duration_ms=duration_ms)
+        await emit_stage(db, workflow="backup-integrity", stage=STAGE_COMPLETED, correlation_id=correlation_id, record_id=job_id, module="server.py", status="ok", duration_ms=duration_ms)
+    except Exception as e:  # noqa: BLE001
+        finished = datetime.now(timezone.utc)
+        duration_ms = int((finished - started).total_seconds() * 1000)
+        error = str(e)[:500]
+        await db.backup_integrity_jobs.update_one(
+            {"job_id": job_id},
+            {"$set": {"state": "failed", "completed_at": finished.isoformat(), "duration_ms": duration_ms, "duration_s": round(duration_ms / 1000, 2), "error": error}},
+            upsert=True,
+        )
+        try:
+            await db.admin_audit.insert_one({
+                "ts": finished.isoformat(), "actor_email": actor_email, "action": "backup_integrity_check_failed",
+                "target_email": None, "ip": None, "user_agent": None,
+                "diff": {"job_id": job_id, "state": "failed", "error": error, "duration_ms": duration_ms},
+            })
+        except Exception:
+            pass
+        try:
+            await emit_stage(db, workflow="backup-integrity", stage=STAGE_COMPLETED, correlation_id=correlation_id, record_id=job_id, module="server.py", status="failed", duration_ms=duration_ms, failure_reason=error, remediation="Review persisted failure reason and retry deliberately.")
+        except Exception:
+            pass
+
+
+@api_router.post("/admin/backups/integrity-check/start")
+async def admin_backup_integrity_check_start(request: Request, _: bool = Depends(require_admin_strict)):
+    now = datetime.now(timezone.utc)
+    active = await db.backup_integrity_jobs.find_one(
+        {"job_type": "integrity_check", "state": {"$in": ["queued", "running"]}},
+        {"_id": 0},
+        sort=[("created_at", -1)],
+    )
+    if active:
+        return JSONResponse(status_code=409, content=active)
+    stale_cutoff = (now - timedelta(minutes=20)).isoformat()
+    await db.backup_integrity_jobs.update_many(
+        {"job_type": "integrity_check", "state": {"$in": ["queued", "running"]}, "created_at": {"$lt": stale_cutoff}},
+        {"$set": {"state": "stale", "completed_at": now.isoformat(), "error": "Marked stale before new retry."}},
+    )
+    job_id = f"bic-{uuid.uuid4().hex}"
+    actor_email = (request.headers.get("x-actor-email") or request.headers.get("x-forwarded-user") or "admin")[:160]
+    job = {
+        "job_id": job_id,
+        "job_type": "integrity_check",
+        "state": "queued",
+        "created_at": now.isoformat(),
+        "started_at": None,
+        "completed_at": None,
+        "duration_ms": None,
+        "duration_s": None,
+        "manifest_count_evaluated": 0,
+        "manifest_read_duration_ms": 0,
+        "error": None,
+        "actor_email": actor_email,
+    }
+    await db.backup_integrity_jobs.insert_one(dict(job))
+    asyncio.create_task(_run_backup_integrity_job(job_id, actor_email))
+    return JSONResponse(status_code=202, content=job)
+
+
+@api_router.get("/admin/backups/integrity-check/status")
+async def admin_backup_integrity_check_status(_: bool = Depends(require_admin_strict)):
+    row = await db.backup_integrity_jobs.find_one({"job_type": "integrity_check"}, {"_id": 0}, sort=[("created_at", -1)])
+    if not row:
+        raise HTTPException(404, "No integrity check job found")
+    if row.get("state") in {"queued", "running"}:
+        return JSONResponse(status_code=202, content=row)
+    return row
+
+
+@api_router.get("/admin/backups/integrity-check/latest")
+async def admin_backup_integrity_check_latest(_: bool = Depends(require_admin_strict)):
+    row = await db.backup_integrity_jobs.find_one(
+        {"job_type": "integrity_check", "state": {"$in": ["completed", "failed", "stale"]}},
+        {"_id": 0},
+        sort=[("created_at", -1)],
+    )
+    if not row:
+        raise HTTPException(404, "No completed integrity check found")
+    return row
 
 
 @api_router.get("/admin/backups/{filename}")

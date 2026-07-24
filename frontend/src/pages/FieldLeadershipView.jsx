@@ -13,8 +13,8 @@ import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { isAdmin } from "@/lib/adminAuth";
 import { getPmToken } from "@/lib/pmAuth";
+import { getFlToken } from "@/lib/flAuth";
 import { resolvePhotoSrc } from "@/lib/photoSrc";
-import { getLeadershipToken } from "@/lib/leadershipAuth";
 import { FIELD_LEADERSHIP_FORMS } from "@/lib/fieldLeadershipSchemas";
 import { MasciLogo } from "@/components/MasciLogo";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
@@ -29,7 +29,7 @@ export default function FieldLeadershipView() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!getLeadershipToken() && !isAdmin() && !getPmToken()) {
+    if (!getFlToken() && !isAdmin() && !getPmToken()) {
       navigate("/leadership", { replace: true });
       return;
     }

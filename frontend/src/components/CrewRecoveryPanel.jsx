@@ -35,6 +35,9 @@ import AdminPasswordConfirm from "@/components/AdminPasswordConfirm";
 export default function CrewRecoveryPanel() {
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [integrityState, setIntegrityState] = useState(null);
+  const [integrityLoading, setIntegrityLoading] = useState(false);
+  const [integrityStarting, setIntegrityStarting] = useState(false);
   const [reseedConfirmOpen, setReseedConfirmOpen] = useState(false);
   const [reseedPasswordOpen, setReseedPasswordOpen] = useState(false);
   const [reseedRunning, setReseedRunning] = useState(false);
@@ -54,6 +57,53 @@ export default function CrewRecoveryPanel() {
   useEffect(() => {
     refresh();
   }, []);
+
+  const refreshIntegrity = async () => {
+    setIntegrityLoading(true);
+    try {
+      const [statusRes, latestRes] = await Promise.allSettled([
+        api.get("/admin/backups/integrity-check/status"),
+        api.get("/admin/backups/integrity-check/latest"),
+      ]);
+      const current = statusRes.status === "fulfilled" ? statusRes.value.data : null;
+      const latest = latestRes.status === "fulfilled" ? latestRes.value.data : null;
+      setIntegrityState(current || latest || null);
+    } catch (e) {
+      toast.error(operationalError(e, "Failed to load integrity status"));
+    } finally {
+      setIntegrityLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    refreshIntegrity();
+  }, []);
+
+  useEffect(() => {
+    if (!integrityState || !["queued", "running"].includes(integrityState.state)) return undefined;
+    const id = setInterval(refreshIntegrity, 4000);
+    return () => clearInterval(id);
+  }, [integrityState?.state]);
+
+  const startIntegrity = async () => {
+    if (integrityStarting || ["queued", "running"].includes(integrityState?.state)) return;
+    setIntegrityStarting(true);
+    try {
+      const r = await api.post("/admin/backups/integrity-check/start");
+      setIntegrityState(r.data);
+      toast.success("Integrity check started.");
+    } catch (e) {
+      const data = e?.response?.data;
+      if (e?.response?.status === 409 && data) {
+        setIntegrityState(data);
+        toast.info("Integrity check already running — showing current job.");
+      } else {
+        toast.error(operationalError(e, "Integrity check failed to start"));
+      }
+    } finally {
+      setIntegrityStarting(false);
+    }
+  };
 
   const runReseed = async () => {
     setReseedRunning(true);
@@ -158,6 +208,56 @@ export default function CrewRecoveryPanel() {
             JSON seed files.
           </div>
         )}
+      </div>
+
+      <div className="border-2 border-blue-300 bg-blue-50 rounded p-3 mb-5" data-testid="backup-integrity-panel">
+        <div className="flex items-start justify-between gap-3 flex-wrap">
+          <div>
+            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-blue-800 font-bold mb-2">
+              Backup integrity verification
+            </div>
+            <p className="text-xs text-slate-700 mb-2.5">
+              Runs the R2 manifest integrity verification as an asynchronous operator job. This prevents false PASS states and avoids browser-edge timeouts.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={refreshIntegrity}
+              disabled={integrityLoading}
+              className="h-9 text-xs font-mono uppercase tracking-wide"
+              data-testid="backup-integrity-refresh"
+            >
+              {integrityLoading ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <RefreshCcw className="w-3.5 h-3.5 mr-1" />}
+              Refresh
+            </Button>
+            <Button
+              onClick={startIntegrity}
+              disabled={integrityStarting || ["queued", "running"].includes(integrityState?.state)}
+              className="bg-blue-700 hover:bg-blue-800 text-white font-bold uppercase tracking-wide text-xs h-10 px-4 border-b-2 border-blue-900"
+              data-testid="backup-integrity-start"
+            >
+              {(integrityStarting || ["queued", "running"].includes(integrityState?.state)) ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Running…</> : <>Start integrity check</>}
+            </Button>
+          </div>
+        </div>
+        <div className="mt-3 rounded border border-blue-200 bg-white p-3 text-xs text-slate-700" data-testid="backup-integrity-status-card">
+          <div><strong>State:</strong> {integrityState?.state || "never run"}</div>
+          <div><strong>Job ID:</strong> {integrityState?.job_id || "—"}</div>
+          <div><strong>Started:</strong> {integrityState?.started_at || integrityState?.created_at || "—"}</div>
+          <div><strong>Completed:</strong> {integrityState?.completed_at || "—"}</div>
+          <div><strong>Duration:</strong> {integrityState?.duration_s != null ? `${integrityState.duration_s}s` : "—"}</div>
+          <div><strong>Manifest count:</strong> {integrityState?.manifest_count_evaluated ?? "—"}</div>
+          <div><strong>Integrity result:</strong> {integrityState?.integrity_result || "not complete"}</div>
+          {integrityState?.classification && <div><strong>Classification:</strong> {integrityState.classification}</div>}
+          {integrityState?.error && <div className="text-red-700"><strong>Failure:</strong> {integrityState.error}</div>}
+          {integrityState?.state === "completed" && Array.isArray(integrityState?.missing_from_backup) && (
+            <div><strong>Missing from backup:</strong> {integrityState.missing_from_backup.length}</div>
+          )}
+          {["queued", "running"].includes(integrityState?.state) && (
+            <div className="text-blue-700 font-semibold mt-2">Verification is still running. PASS/FAIL is not final until the job completes.</div>
+          )}
+        </div>
       </div>
 
       {/* ===== Force re-seed ===== */}

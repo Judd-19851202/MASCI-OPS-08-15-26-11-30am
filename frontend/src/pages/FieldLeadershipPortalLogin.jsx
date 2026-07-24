@@ -325,15 +325,6 @@ export default function FieldLeadershipPortalLogin() {
 
             <PortalLoginHelp portal="leadership" />
 
-            <div className="mt-6 pt-4 border-t border-slate-200 text-center">
-              <Link
-                to="/leadership/legacy-login"
-                className="inline-flex items-center min-h-[44px] px-2 py-1 text-[11px] text-slate-500 hover:text-slate-800 underline-offset-2 hover:underline"
-                data-testid="fl-legacy-login-link"
-              >
-                {t("Crew using a shared leadership code? Use the legacy gate →")}
-              </Link>
-            </div>
           </div>
     </PortalLoginShell>
   );

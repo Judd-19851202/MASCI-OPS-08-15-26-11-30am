@@ -21,7 +21,7 @@ import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { isAdmin } from "@/lib/adminAuth";
 import { getPmToken } from "@/lib/pmAuth";
-import { getLeadershipToken } from "@/lib/leadershipAuth";
+import { getFlToken } from "@/lib/flAuth";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { SignaturePad } from "@/components/SignaturePad";
 import { EquipmentLines } from "@/components/EquipmentLines";
@@ -306,7 +306,7 @@ export default function FieldLeadershipFormPage() {
 
   // Bail if no token (gate will redirect)
   useEffect(() => {
-    if (!getLeadershipToken() && !isAdmin() && !getPmToken()) {
+    if (!getFlToken() && !isAdmin() && !getPmToken()) {
       navigate("/leadership", { replace: true });
     }
   }, [navigate]);

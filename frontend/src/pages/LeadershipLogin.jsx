@@ -1,63 +1,30 @@
-// LeadershipLogin.jsx — Pass 4 of the Operational Inventory initiative.
+// LeadershipLogin.jsx — retired legacy shared-secret Field Leadership gate.
 //
 // First-class /leadership/login URL parallel to /hr/login · /pm/login ·
 // /shop/login · /safety-portal/login · /dispatch-portal/login. This is
 // the dedicated portal door for Field Leadership (Superintendents,
 // Foremen, Field Leaders, Operations Oversight).
 //
-// Field Leadership uses a SHARED LEADERSHIP PASSWORD by design — same
-// model as a crew dispatch code or shop key. This is an operational
-// choice, not a security shortcut: supervisors share the leadership
-// gate, but every record produced inside the portal is individually
-// signed (employee_signature, supervisor_signature). Accountability
-// happens at the record level, not the door.
-//
-// Token persistence: sessionStorage with 12h server-side TTL.
-// Same `loginLeadership()` helper as the previous inline gate uses.
-//
-// PREVIEW-ONLY — strict.
+// Shared-secret access is no longer permitted.
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Loader2, ArrowLeft, Lock, KeyRound, ShieldCheck, HardHat } from "lucide-react";
+import { ArrowLeft, ShieldCheck, HardHat } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { PasswordInput } from "@/components/PasswordInput";
 import { MasciLogo } from "@/components/MasciLogo";
 import { LangToggle } from "@/components/LangToggle";
 import { CompanyInfoDialog } from "@/components/CompanyInfoDialog";
 import { ForgedOpsAttribution } from "@/components/ForgedOpsAttribution";
 import { useT } from "@/lib/i18n";
-import { isLeadershipAuthed, loginLeadership } from "@/lib/leadershipAuth";
-import { toast } from "sonner";
+import { isLeadershipAuthed } from "@/lib/leadershipAuth";
 
 export default function LeadershipLogin() {
   const { t } = useT();
   const navigate = useNavigate();
-  const [password, setPassword] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-
-  // If already authed, hop straight to the leadership hub.
   useEffect(() => {
     if (isLeadershipAuthed()) {
       navigate("/leadership", { replace: true });
     }
   }, [navigate]);
-
-  const onSubmit = async (e) => {
-    e.preventDefault();
-    if (!password.trim()) return;
-    setSubmitting(true);
-    try {
-      await loginLeadership(password.trim());
-      toast.success(t("Access granted"));
-      navigate("/leadership", { replace: true });
-    } catch {
-      toast.error(t("Incorrect password"));
-      setPassword("");
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   return (
     <div className="min-h-screen blueprint-bg flex flex-col" data-testid="leadership-login-page">
@@ -99,45 +66,19 @@ export default function LeadershipLogin() {
 
           {/* Operational identity statement — explains WHO this is for and WHY */}
           <p className="text-slate-700 text-sm mt-3 mb-2 leading-relaxed">
-            {t("Field Leadership is the operational portal for Superintendents, Foremen, Field Leaders, and Operations Oversight — the people running crews on the ground.")}
+            {t("This shared-password Field Leadership entry has been retired for security reasons.")}
           </p>
           <p className="text-slate-600 text-xs mb-4 leading-relaxed">
-            {t("Uses a shared leadership password — every record you submit is individually signed inside the form (your name, your signature). Accountability is at the record, not the door.")}
+            {t("Use the canonical Field Leadership portal sign-in with your assigned account. Shared access codes no longer grant entry.")}
           </p>
-
-          <form onSubmit={onSubmit} className="space-y-4" data-testid="leadership-login-form">
-            <div>
-              <Label htmlFor="leadership-password-input" className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700">
-                {t("Leadership Password")}
-              </Label>
-              <PasswordInput
-                id="leadership-password-input"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoFocus
-                autoComplete="current-password"
-                className="mt-2 h-12 text-base border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-red-700"
-                data-testid="leadership-login-pw-input"
-                toggleTestId="leadership-login-pw-toggle"
-              />
-            </div>
-            <Button
-              type="submit"
-              disabled={submitting || !password.trim()}
-              className="w-full h-12 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
-              data-testid="leadership-login-submit"
-            >
-              {submitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t("Verifying…")}
-                </>
-              ) : (
-                <>
-                  <KeyRound className="w-4 h-4 mr-2" /> {t("Sign In")}
-                </>
-              )}
-            </Button>
-          </form>
+          <Button
+            type="button"
+            onClick={() => navigate("/leadership/login", { replace: true })}
+            className="w-full h-12 bg-red-700 hover:bg-red-800 text-white font-bold uppercase tracking-wide text-sm border-b-2 border-red-900"
+            data-testid="leadership-login-retired-redirect"
+          >
+            {t("Go to Canonical Sign In")}
+          </Button>
 
           {/* Discoverability — pre-login guidance entry points */}
           <div className="mt-6 pt-5 border-t border-slate-200 space-y-2">

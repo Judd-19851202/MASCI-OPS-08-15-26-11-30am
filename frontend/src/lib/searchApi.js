@@ -8,16 +8,9 @@ import { getHrToken } from "@/lib/hrAuth";
 import { getPmToken } from "@/lib/pmAuth";
 import { getShopToken } from "@/lib/shopAuth";
 import { getDispatchToken } from "@/lib/dispatchAuth";
+import { getFlToken } from "@/lib/flAuth";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-
-function leadershipToken() {
-  try {
-    return sessionStorage.getItem("masci.leadership.token")
-      || localStorage.getItem("masci.leadership.token")
-      || null;
-  } catch { return null; }
-}
 
 function authHeaders() {
   const h = {};
@@ -27,7 +20,7 @@ function authHeaders() {
   const p = getPmToken(); if (p) h["X-PM-Token"] = p;
   const sh = getShopToken(); if (sh) h["X-Shop-Token"] = sh;
   const d = getDispatchToken(); if (d) h["X-Dispatch-Token"] = d;
-  const fl = leadershipToken(); if (fl) h["X-Leadership-Token"] = fl;
+  const fl = getFlToken(); if (fl) h["X-FL-Token"] = fl;
   return h;
 }
 

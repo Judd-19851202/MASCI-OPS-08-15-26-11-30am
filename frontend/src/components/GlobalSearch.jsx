@@ -53,7 +53,7 @@ function recentKey() {
   const candidates = [
     "masci.admin.token", "masci.safety.token", "masci.hr.token",
     "masci.pm.token", "masci.shop.token", "masci.dispatch.token",
-    "masci.leadership.token",
+    "masci.fl.token",
   ];
   for (const k of candidates) {
     let v = null;

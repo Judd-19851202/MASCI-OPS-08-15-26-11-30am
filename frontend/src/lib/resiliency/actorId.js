@@ -29,7 +29,6 @@ import { getShopToken } from "@/lib/shopAuth";
 import { getHrToken } from "@/lib/hrAuth";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import { getDispatchToken } from "@/lib/dispatchAuth";
-import { getLeadershipToken } from "@/lib/leadershipAuth";
 import { getFlToken } from "@/lib/flAuth";
 import { getDirectoryUser } from "@/lib/directoryAuth";
 import { getFlUser } from "@/lib/flAuth";
@@ -45,7 +44,6 @@ const _TOKEN_PROBES = [
   ["p", getPmToken],
   ["sh", getShopToken],
   ["d", getDispatchToken],
-  ["l", getLeadershipToken],
   ["fl", getFlToken],
 ];
 

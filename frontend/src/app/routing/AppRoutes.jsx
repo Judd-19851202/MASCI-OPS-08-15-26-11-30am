@@ -1107,12 +1107,8 @@ export function AppRoutes() {
                 email+password portal (was iter314's FieldLeadershipPortalLogin,
                 previously only reachable via /field-leadership/portal/login).
                 This makes Field Leadership feel like part of the same platform
-                family as HR / Safety / PM / Shop / Dispatch.
-                Legacy shared-password gate is preserved at /leadership/legacy-login
-                for crews that still know only the shared MASCIGC code; the
-                backend /api/field-leadership/login route is untouched. */}
+                family as HR / Safety / PM / Shop / Dispatch. */}
             <Route path="/leadership/login" element={<FieldLeadershipPortalLogin />} />
-            <Route path="/leadership/legacy-login" element={<LeadershipLogin />} />
             <Route path="/dispatch-portal/forgot-password" element={<DispatchForgotPassword />} />
             <Route path="/dispatch-portal/reset/:token" element={<DispatchResetPassword />} />
             <Route path="/dispatch-portal/change-password" element={DP(<DispatchChangePassword />)} />

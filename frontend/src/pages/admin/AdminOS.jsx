@@ -48,6 +48,7 @@ import SideNavV3 from "@/components/admin/sidebar/SideNavV3";
 import { buildPortalAuthHeaders } from "@/lib/authHeaders";
 import { formatRelativeTime } from "@/lib/platformTime";
 import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
+import CrewRecoveryPanel from "@/components/CrewRecoveryPanel";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -793,6 +794,10 @@ export default function AdminOS() {
               </div>
             </div>
           </div>
+        </section>
+
+        <section className="mb-6" data-testid="admin-os-backup-integrity-section">
+          <CrewRecoveryPanel />
         </section>
 
         {/* ── 10 domain cards ────────────────────────────────── */}

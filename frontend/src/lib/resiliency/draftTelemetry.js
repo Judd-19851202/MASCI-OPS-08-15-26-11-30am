@@ -25,7 +25,6 @@ import { getPmToken } from "@/lib/pmAuth";
 import { getHrToken } from "@/lib/hrAuth";
 import { getSafetyToken } from "@/lib/safetyAuth";
 import { getDispatchToken } from "@/lib/dispatchAuth";
-import { getLeadershipToken } from "@/lib/leadershipAuth";
 import { getShopToken } from "@/lib/shopAuth";
 import { getFlToken } from "@/lib/flAuth";
 
@@ -50,7 +49,6 @@ function _portalToken() {
       ["hr", getHrToken],
       ["safety", getSafetyToken],
       ["dispatch", getDispatchToken],
-      ["leadership", getLeadershipToken],
       ["shop", getShopToken],
       ["fl", getFlToken],
     ];
@@ -73,7 +71,6 @@ function _tokenHeader() {
     hr: "X-HR-Token",
     safety: "X-Safety-Token",
     dispatch: "X-Dispatch-Token",
-    leadership: "X-Leadership-Token",
     shop: "X-Shop-Token",
     fl: "X-FL-Token",
   }[k];

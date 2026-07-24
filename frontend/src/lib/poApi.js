@@ -6,7 +6,7 @@ import { getSafetyToken } from "@/lib/safetyAuth";
 import { getPmToken } from "@/lib/pmAuth";
 import { getShopToken } from "@/lib/shopAuth";
 import { getDispatchToken } from "@/lib/dispatchAuth";
-import { getLeadershipToken } from "@/lib/leadershipAuth";
+import { getFlToken } from "@/lib/flAuth";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -18,7 +18,7 @@ function authHeaders() {
   const p = getPmToken(); if (p) h["X-PM-Token"] = p;
   const sh = getShopToken(); if (sh) h["X-Shop-Token"] = sh;
   const d = getDispatchToken(); if (d) h["X-Dispatch-Token"] = d;
-  const l = getLeadershipToken(); if (l) h["X-Leadership-Token"] = l;
+  const l = getFlToken(); if (l) h["X-FL-Token"] = l;
   return h;
 }
 

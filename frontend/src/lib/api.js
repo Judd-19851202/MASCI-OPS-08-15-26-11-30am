@@ -5,7 +5,6 @@ import { getPmToken, clearPmToken } from "@/lib/pmAuth";
 import { getDevToken, clearDevToken } from "@/lib/devAuth";
 import { getJwt, clearJwt } from "@/lib/jwtAuth";
 import { getSafetyFormsToken, clearSafetyFormsToken } from "@/lib/safetyFormsAuth";
-import { getLeadershipToken, clearLeadershipToken } from "@/lib/leadershipAuth";
 import { getHrToken, clearHrToken } from "@/lib/hrAuth";
 import { getFlToken, clearFlToken } from "@/lib/flAuth";
 import { getSafetyToken, clearSafetyToken } from "@/lib/safetyAuth";
@@ -72,10 +71,6 @@ api.interceptors.request.use((config) => {
   const sfTok = getSafetyFormsToken();
   if (sfTok && String(config?.url || "").includes("/safety-forms/")) {
     config.headers["X-Safety-Forms-Token"] = sfTok;
-  }
-  const leadTok = getLeadershipToken();
-  if (leadTok && String(config?.url || "").startsWith("/leadership/")) {
-    config.headers["X-Leadership-Token"] = leadTok;
   }
   const jwt = getJwt();
   if (jwt && !config.headers.Authorization) {
@@ -286,7 +281,7 @@ api.interceptors.response.use(
         if (authFailure.shouldClearDirectory && getDirectoryToken()) clearDirectorySession();
         _namespacedHandled = true;
       } else if (isLeadershipNamespace) {
-        if (authFailure.shouldClearPortal && cfg.headers?.["X-Leadership-Token"]) clearLeadershipToken();
+        if (authFailure.shouldClearPortal && cfg.headers?.["X-FL-Token"]) clearFlToken();
         if (authFailure.shouldClearDirectory && getDirectoryToken()) clearDirectorySession();
         _namespacedHandled = true;
       } else if (isSafetyFormsNamespace) {
@@ -357,7 +352,6 @@ api.interceptors.response.use(
           if (authFailure.shouldClearPortal && cfg.headers?.["X-PM-Token"]) clearPmToken();
           if (authFailure.shouldClearPortal && cfg.headers?.["X-Dev-Token"]) clearDevToken();
           if (authFailure.shouldClearPortal && cfg.headers?.["X-Safety-Forms-Token"]) clearSafetyFormsToken();
-          if (authFailure.shouldClearPortal && cfg.headers?.["X-Leadership-Token"]) clearLeadershipToken();
           if (authFailure.shouldClearPortal && cfg.headers?.["X-HR-Token"]) clearHrToken();
           if (authFailure.shouldClearPortal && cfg.headers?.["X-Safety-Token"]) clearSafetyToken();
           if (authFailure.shouldClearPortal && cfg.headers?.["X-Dispatch-Token"]) clearDispatchToken();

@@ -10,16 +10,16 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getAdminToken } from "@/lib/adminAuth";
-import { getLeadershipToken } from "@/lib/leadershipAuth";
+import { getFlToken } from "@/lib/flAuth";
 import { PortalShell, StatusChip, Card, EmptyState } from "../design-system";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
 function h() {
   const out = { "Content-Type": "application/json" };
-  const a = getAdminToken(); const lt = getLeadershipToken();
+  const a = getAdminToken(); const lt = getFlToken();
   if (a) out["X-Admin-Token"] = a;
-  if (lt) out["X-Leadership-Token"] = lt;
+  if (lt) out["X-FL-Token"] = lt;
   return out;
 }
 async function j(p) {

@@ -8,8 +8,8 @@ Single collection `field_leadership_records` keyed by `kind`:
 (safety_equipment_issuance is a SEPARATE existing flow — Field Leadership
 links to it but does not duplicate.)
 
-Every endpoint requires the Field Leadership password gate (`X-Leadership-Token`)
-OR an admin token. Supervisor Notes additionally require admin.
+Every endpoint requires canonical Field Leadership portal auth (`X-FL-Token`)
+or Super Admin authority. Legacy shared-secret auth has been retired.
 
 PDF + email routing reuses the existing `pdf_render.py` / Resend pattern.
 """
@@ -17,7 +17,6 @@ PDF + email routing reuses the existing `pdf_render.py` / Resend pattern.
 from __future__ import annotations
 
 import csv
-import hmac
 import io
 import logging
 import os
@@ -293,27 +292,56 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
     """
     router = APIRouter(prefix="/api/field-leadership", tags=["field-leadership"])
 
-    # The shared password — simple env override, defaults to MASCIGC.
-    LEADERSHIP_PASSWORD = os.environ.get("LEADERSHIP_PASSWORD", "MASCIGC")
-
     async def _is_authed(
+        request: Request,
         x_leadership_token: Optional[str] = Header(default=None, alias="X-Leadership-Token"),
         x_fl_token: Optional[str] = Header(default=None, alias="X-FL-Token"),
         x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
         x_pm_token: Optional[str] = Header(default=None, alias="X-PM-Token"),
     ) -> Dict[str, Any]:
-        """Returns {role: 'admin' | 'pm' | 'leadership'} — raises 401 otherwise.
-        Admin and PM tokens implicitly satisfy the leadership gate."""
-        # Cheap check for admin token via the shared validator
+        """Returns {role: 'admin' | 'leadership'} — raises 401/403 otherwise."""
+        if x_leadership_token:
+            raise HTTPException(
+                status_code=410,
+                detail="Legacy Field Leadership shared-secret authentication has been retired. Use the canonical Field Leadership portal login.",
+            )
         if x_admin_token and await _admin_token_valid(x_admin_token):
             return {"role": "admin", "token": x_admin_token}
         if x_pm_token:
             pm = await _pm_token_valid(x_pm_token)
-            if pm:
-                return {"role": "pm", "token": x_pm_token, "pm": pm}
-        leadership_token = x_leadership_token or x_fl_token
-        if _check_leadership_token(leadership_token):
-            return {"role": "leadership", "token": leadership_token}
+            if pm and pm.get("user", {}).get("is_admin"):
+                return {"role": "admin", "token": x_pm_token, "pm": pm}
+        if x_fl_token:
+            try:
+                from field_leadership_users import is_valid_fl_user_token_async  # noqa: PLC0415
+                from auth_must_change import enforce_password_change_required  # noqa: PLC0415
+                user = await is_valid_fl_user_token_async(db, x_fl_token)
+                if user:
+                    enforce_password_change_required(request, user)
+                    return {
+                        "role": "leadership",
+                        "token": x_fl_token,
+                        "user_id": user.get("id"),
+                        "email": user.get("email"),
+                        "name": user.get("name") or user.get("email"),
+                        "disabled": bool(user.get("disabled")),
+                    }
+                import user_directory as _ud  # noqa: PLC0415
+                row = await _ud.session_user(db, token=x_fl_token)
+                if row and not row.get("disabled") and "field_leadership" in (row.get("portals") or []):
+                    enforce_password_change_required(request, row)
+                    return {
+                        "role": "leadership",
+                        "token": x_fl_token,
+                        "user_id": row.get("id"),
+                        "email": row.get("email"),
+                        "name": row.get("name") or row.get("email"),
+                        "disabled": bool(row.get("disabled")),
+                    }
+            except HTTPException:
+                raise
+            except Exception:
+                pass
         raise HTTPException(status_code=401, detail="Field Leadership access required")
 
     async def _admin_token_valid(tok: str) -> bool:
@@ -351,24 +379,10 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
 
     @router.post("/login")
     async def login(body: LoginBody):
-        if not hmac.compare_digest(body.password or "", LEADERSHIP_PASSWORD):
-            raise HTTPException(status_code=401, detail="Invalid password")
-        _sweep_expired()
-        tok = _gen_token()
-        _LEADERSHIP_TOKENS[tok] = datetime.now(timezone.utc) + _TOKEN_TTL
-        try:
-            from session_timeout import reset_session_activity  # noqa: PLC0415
-
-            await reset_session_activity(
-                db,
-                tok,
-                "FIELD",
-                user_id="field-leadership",
-                actor_label="field_leadership",
-            )
-        except Exception:
-            pass
-        return {"token": tok, "expires_in_s": int(_TOKEN_TTL.total_seconds())}
+        raise HTTPException(
+            status_code=410,
+            detail="The legacy Field Leadership shared-secret login has been retired. Use /field-leadership/portal/login.",
+        )
 
     @router.get("/check")
     async def check(auth: Dict[str, Any] = Depends(_is_authed)):
