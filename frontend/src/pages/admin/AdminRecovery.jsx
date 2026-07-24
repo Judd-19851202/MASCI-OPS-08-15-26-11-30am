@@ -163,6 +163,32 @@ export default function AdminRecovery() {
       )}
       {snap && (
         <div className="space-y-4">
+          {(() => {
+            const lineage = snap.archive_lineage || {};
+            return (
+              <div className="rounded-lg border border-slate-200 bg-white p-4" data-testid="archive-lineage-summary">
+                <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Archive lineage</div>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-sm">
+                  <div data-testid="archive-lineage-authoritative-time">
+                    <div className="text-slate-500 text-xs">Authoritative point</div>
+                    <div className="font-semibold">{fmtTs(lineage.authoritative_recovery_point_time)}</div>
+                  </div>
+                  <div data-testid="archive-lineage-time-source">
+                    <div className="text-slate-500 text-xs">Timestamp source</div>
+                    <div className="font-semibold">{lineage.authoritative_time_source || "UNKNOWN"}</div>
+                  </div>
+                  <div data-testid="archive-lineage-confidence">
+                    <div className="text-slate-500 text-xs">Lineage confidence</div>
+                    <div className="font-semibold">{lineage.lineage_confidence || "LOW"}</div>
+                  </div>
+                  <div data-testid="archive-lineage-integrity">
+                    <div className="text-slate-500 text-xs">Integrity / completeness</div>
+                    <div className="font-semibold">{lineage.integrity_status || "UNKNOWN"} · {lineage.completeness_status || "UNKNOWN"}</div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
           {/* Hero pill */}
           <div
             className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-base font-semibold ${
@@ -197,7 +223,7 @@ export default function AdminRecovery() {
                     records · ok={String(snap.last_backup.ok)}
                   </div>
                   <div className="text-xs text-slate-500">
-                    inlined_photos = {snap.last_backup.inlined_photos} · {fmtTs(snap.last_backup.ts)}
+                    inlined_photos = {snap.last_backup.inlined_photos} · {fmtTs(snap.last_backup.ts)} · source={snap.last_backup.source}
                   </div>
                 </div>
               ) : (

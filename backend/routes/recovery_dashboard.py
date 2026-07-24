@@ -17,6 +17,8 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from lib.archive_lineage import build_canonical_archive_lineage, consumer_freshness_status, public_archive_lineage_payload
+
 
 logger = logging.getLogger(__name__)
 
@@ -164,17 +166,15 @@ async def build_canonical_scheduler_snapshot(
 ) -> Dict[str, Any]:
     if backup_fallback_ts is None:
         try:
-            newest_r2 = await _newest_r2_backup_summary()
-        except Exception:
-            newest_r2 = None
-        backup_fallback_ts = (newest_r2 or {}).get("ts")
-        if backup_fallback_ts is None:
-            latest_ok = await db.backup_health.find_one(
-                {"mode": "complete-r2", "ok": True, "filename": {"$nin": [None, ""]}},
-                {"_id": 0, "ts": 1},
-                sort=[("ts", -1)],
+            from server import _canonical_app_env, _canonical_db_name  # noqa: PLC0415
+            lineage = await build_canonical_archive_lineage(
+                db,
+                current_env=_canonical_app_env(),
+                current_db=_canonical_db_name(),
             )
-            backup_fallback_ts = (latest_ok or {}).get("ts")
+            backup_fallback_ts = lineage.get("authoritative_recovery_point_time") or ((lineage.get("newest_observed_artifact") or {}).get("observed_time"))
+        except Exception:
+            backup_fallback_ts = None
 
     if lock_row is None:
         lock_row = await db.scheduler_locks.find_one(
@@ -324,58 +324,34 @@ def build_recovery_dashboard_router(
         age_target = int(os.environ.get("BACKUP_AGE_TARGET_HOURS", "24") or "24") * 60
         warn_gb = float(os.environ.get("R2_USAGE_WARN_GB", "350") or "350")
         alert_gb = float(os.environ.get("R2_USAGE_ALERT_GB", "450") or "450")
-
-        # --- last successful complete-r2 backup ---
-        # TRACK 27.05 · P0-1 · Recovery Snapshot ↔ R2 Reality Divergence.
-        # Query R2 directly for the newest archive and treat it as ground
-        # truth if it disagrees with the local `backup_health` marker.
-        # This fixes the case where the scheduler dies (no new health
-        # rows written) but the R2 hourly writer either recovers or an
-        # external process keeps landing archives — the snapshot must
-        # never lie to the operator that "last backup was 28 days ago"
-        # when R2 has one from an hour ago.
-        last_backup_row = await db.backup_health.find_one(
-            {"mode": "complete-r2", "ok": True},
-            {"_id": 0},
-            sort=[("ts", -1)],
+        from server import _canonical_app_env, _canonical_db_name  # noqa: PLC0415
+        archive_lineage = await build_canonical_archive_lineage(
+            db,
+            current_env=_canonical_app_env(),
+            current_db=_canonical_db_name(),
         )
+        authoritative_artifact = archive_lineage.get("authoritative_artifact") or {}
+        newest_observed = archive_lineage.get("newest_observed_artifact") or {}
+        freshness = consumer_freshness_status(archive_lineage, threshold_minutes=float(age_target))
+
         last_backup: Optional[Dict[str, Any]] = None
-        backup_age_minutes: Optional[float] = None
-        if last_backup_row:
-            ts = _parse_ts(last_backup_row.get("ts"))
-            backup_age_minutes = _minutes_since(ts)
+        backup_age_minutes: Optional[float] = archive_lineage.get("freshness_age_minutes")
+        if authoritative_artifact or newest_observed:
+            display = authoritative_artifact or newest_observed
             last_backup = {
-                "filename": last_backup_row.get("filename"),
-                "size_mb": round((last_backup_row.get("size_bytes") or 0) / (1024 * 1024), 2),
-                "records": last_backup_row.get("records") or 0,
-                "ok": last_backup_row.get("ok"),
-                "ts": last_backup_row.get("ts"),
-                "inlined_photos": last_backup_row.get("inlined_photos") or 0,
-                "source": "backup_health",
+                "filename": display.get("filename"),
+                "size_mb": round(((display.get("archive_size_bytes") or 0) / (1024 * 1024)), 2),
+                "records": 0,
+                "ok": bool(authoritative_artifact),
+                "ts": display.get("authoritative_time") or display.get("observed_time"),
+                "inlined_photos": 0,
+                "source": "canonical_archive_lineage",
+                "authoritative_time_source": display.get("authoritative_time_source"),
+                "lineage_confidence": display.get("lineage_confidence"),
+                "integrity_status": display.get("integrity_status"),
+                "completeness_status": display.get("completeness_status"),
+                "availability_status": display.get("availability_status"),
             }
-
-        # TRACK 27.05 · P0-1 · consult R2 for the newest archive.
-        r2_backup_snapshot: Optional[Dict[str, Any]] = None
-        try:
-            r2_backup_snapshot = await _newest_r2_backup_summary()
-        except Exception as e:  # noqa: BLE001
-            logger.warning(f"[recovery-snapshot] R2 direct probe failed: {e}")
-
-        if r2_backup_snapshot:
-            r2_ts = _parse_ts(r2_backup_snapshot.get("ts"))
-            local_ts = _parse_ts(last_backup_row.get("ts")) if last_backup_row else None
-            # If R2 is strictly newer, promote R2 as the authoritative view.
-            if r2_ts and (local_ts is None or r2_ts > local_ts):
-                backup_age_minutes = _minutes_since(r2_ts)
-                last_backup = {
-                    "filename": r2_backup_snapshot.get("filename"),
-                    "size_mb": r2_backup_snapshot.get("size_mb"),
-                    "records": (last_backup_row.get("records") if last_backup_row else 0) or 0,
-                    "ok": True,
-                    "ts": r2_backup_snapshot.get("ts"),
-                    "inlined_photos": 0,
-                    "source": "r2_direct",
-                }
 
         # --- most recent backup_health row (any outcome) — drives RED if it's a failure ---
         most_recent_row = await db.backup_health.find_one(
@@ -438,6 +414,8 @@ def build_recovery_dashboard_router(
             if ts >= cutoff_30d_dt:
                 last_30d += 1
         archive_count = {"r2_total": len(all_trend), "last_7d": last_7d, "last_30d": last_30d}
+        if newest_observed and newest_observed.get("artifact_key") not in {None, ""}:
+            archive_count["candidate_count"] = len(archive_lineage.get("all_candidates") or [])
 
         # --- bucket usage (read last r2-usage-alert/warn row) ---
         usage_row = await db.backup_health.find_one(
@@ -503,7 +481,7 @@ def build_recovery_dashboard_router(
             canonical_scheduler = await build_canonical_scheduler_snapshot(
                 db,
                 dict(_BACKUP_SCHEDULER_STATE or {}),
-                backup_fallback_ts=(last_backup or {}).get("ts"),
+                backup_fallback_ts=archive_lineage.get("authoritative_recovery_point_time") or (newest_observed or {}).get("observed_time"),
             )
         except Exception:
             pass
@@ -526,9 +504,17 @@ def build_recovery_dashboard_router(
             failures_7d=len(failures_7d),
             bucket_usage_status=usage_status,
         )
+        if freshness.get("status") == "UNKNOWN":
+            pill = "RED"
 
         # --- active warnings (derived) ---
         warnings: List[Dict[str, str]] = []
+        if archive_lineage.get("degradation_reasons"):
+            warnings.append({
+                "kind": "archive-lineage",
+                "severity": "amber" if authoritative_artifact else "red",
+                "message": ", ".join(archive_lineage.get("degradation_reasons") or []),
+            })
         if usage_status in {"AMBER", "RED"}:
             warnings.append({
                 "kind": "bucket-usage",
@@ -575,12 +561,13 @@ def build_recovery_dashboard_router(
             "last_drill": last_drill,
             "backup_age_minutes": backup_age_minutes,
             "backup_age_target_minutes": age_target,
+            "archive_lineage": public_archive_lineage_payload(archive_lineage),
             "rpo": {
                 "target_min": rpo_target,
                 "actual_min": backup_age_minutes,
                 "status": (
-                    "GREEN" if (backup_age_minutes is not None and backup_age_minutes <= rpo_target)
-                    else ("AMBER" if backup_age_minutes is not None else "RED")
+                    "GREEN" if freshness.get("status") == "CURRENT" and backup_age_minutes is not None and backup_age_minutes <= rpo_target
+                    else ("AMBER" if freshness.get("status") == "AGING" and backup_age_minutes is not None else "RED")
                 ),
             },
             "rto": {

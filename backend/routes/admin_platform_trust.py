@@ -26,6 +26,7 @@ from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends
 
+from lib.archive_lineage import backup_recent_truth, build_canonical_archive_lineage
 from lib.canonical_truth import canonical_truth_surface, derived_truth_payload
 from lib.runtime_identity import runtime_identity_public_payload
 
@@ -90,8 +91,12 @@ def make_router(db, require_admin_only_dep, get_runtime_identity=None) -> APIRou
             ) or "unknown",
         }
         try:
-            from system_audit import probe_recent_backup  # noqa: PLC0415
-            backup_recent = await probe_recent_backup(db)
+            lineage = await build_canonical_archive_lineage(
+                db,
+                current_env=identity.get("app_env"),
+                current_db=identity.get("db_name"),
+            )
+            backup_recent = backup_recent_truth(lineage).get("ok")
         except Exception:
             backup_recent = None
         system_block["backup_recent"] = backup_recent

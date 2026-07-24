@@ -373,6 +373,12 @@ from lib.backup_runtime import (  # noqa: E402
 )
 from lib.scheduler_runs import claim_slot as scheduler_claim_slot, mark_completed as scheduler_mark_completed, mark_failed as scheduler_mark_failed
 from lib.hourly_activation import build_hourly_activation_state, classify_capacity_state  # noqa: E402
+from lib.archive_lineage import (
+    PUBLIC_HEALTH_THRESHOLD_HOURS,
+    backup_recent_truth,
+    build_canonical_archive_lineage,
+    public_archive_lineage_payload,
+)
 
 # Session-timeout middleware (Phase 2 Initiative 4) — env-gated.
 # Default disabled. Installed during startup after db handle is ready.
@@ -1559,50 +1565,12 @@ def _parse_backup_ts(ts_val: Any) -> Optional[datetime]:
 
 
 async def _evaluate_backup_recent_truth() -> Dict[str, Any]:
-    threshold_s = 26 * 3600
-    latest_ok = await _latest_successful_backup_row()
-    latest_ok_dt = _parse_backup_ts((latest_ok or {}).get("ts"))
-    latest_ok_age_s = (
-        (datetime.now(timezone.utc) - latest_ok_dt).total_seconds()
-        if latest_ok_dt is not None else None
+    lineage = await build_canonical_archive_lineage(
+        db,
+        current_env=_canonical_app_env(),
+        current_db=_canonical_db_name(),
     )
-    r2_age_s = await _r2_backup_age_seconds_cached()
-    scheduler_prefers_backup_health = bool(
-        _BACKUP_SCHEDULER_STATE.get("r2_hourly_locked_off")
-        or _BACKUP_SCHEDULER_STATE.get("lite_mode_only_env")
-        or not _BACKUP_SCHEDULER_STATE.get("r2_hourly_effective")
-    )
-    if scheduler_prefers_backup_health and latest_ok_age_s is not None:
-        return {
-            "ok": latest_ok_age_s < threshold_s,
-            "signal_source": f"backup_health:{(latest_ok or {}).get('mode') or 'unknown'}",
-            "evidence_ts": latest_ok_dt.isoformat(),
-            "age_s": latest_ok_age_s,
-            "filename": (latest_ok or {}).get("filename"),
-        }
-    if r2_age_s is not None:
-        return {
-            "ok": r2_age_s < threshold_s,
-            "signal_source": "r2:auto-90d",
-            "evidence_ts": (datetime.now(timezone.utc) - timedelta(seconds=r2_age_s)).isoformat(),
-            "age_s": r2_age_s,
-            "filename": None,
-        }
-    if latest_ok_age_s is not None:
-        return {
-            "ok": latest_ok_age_s < threshold_s,
-            "signal_source": f"backup_health:{(latest_ok or {}).get('mode') or 'unknown'}",
-            "evidence_ts": latest_ok_dt.isoformat(),
-            "age_s": latest_ok_age_s,
-            "filename": (latest_ok or {}).get("filename"),
-        }
-    return {
-        "ok": False,
-        "signal_source": "unavailable",
-        "evidence_ts": None,
-        "age_s": None,
-        "filename": None,
-    }
+    return backup_recent_truth(lineage, threshold_hours=PUBLIC_HEALTH_THRESHOLD_HOURS)
 
 
 async def _compute_public_full_health_snapshot() -> Dict[str, Any]:
@@ -11685,6 +11653,13 @@ async def admin_complete_r2_state(_: bool = Depends(require_admin_strict)):
     """Live status of the most recent manual complete-archive-to-R2 run.
     Route uses dashes (not slashes) so it doesn't collide with the
     parameterized ``/admin/backups/{filename}`` download/delete route."""
+    lineage = await build_canonical_archive_lineage(
+        db,
+        current_env=_canonical_app_env(),
+        current_db=_canonical_db_name(),
+    )
+    authoritative_artifact = lineage.get("authoritative_artifact") or {}
+    newest_observed = lineage.get("newest_observed_artifact") or {}
     nightly_last = _BACKUP_SCHEDULER_STATE.get("last_r2_complete")
     nightly_last_date = _BACKUP_SCHEDULER_STATE.get("last_r2_complete_date")
     nightly_last_hour = _BACKUP_SCHEDULER_STATE.get("last_r2_complete_hour")
@@ -11699,20 +11674,50 @@ async def admin_complete_r2_state(_: bool = Depends(require_admin_strict)):
         except Exception as e:  # noqa: BLE001
             logger.warning(f"[backups-complete-r2-state] fallback probe failed: {e}")
             latest_r2 = None
+
+        fallback_artifact = None
         if latest_r2:
-            ts_value = str(latest_r2.get("ts") or "")
+            fallback_artifact = {
+                "filename": latest_r2.get("filename"),
+                "archive_size_bytes": latest_r2.get("size_bytes"),
+                "object_key": f"backups/auto-90d/{latest_r2.get('filename')}",
+                "authoritative_time": latest_r2.get("ts"),
+                "observed_time": latest_r2.get("ts"),
+            }
+        elif authoritative_artifact or newest_observed:
+            fallback_artifact = authoritative_artifact or newest_observed
+
+        if fallback_artifact:
+            ts_value = str(fallback_artifact.get("authoritative_time") or fallback_artifact.get("observed_time") or "")
             hour_bucket = ts_value[:13] if len(ts_value) >= 13 else None
             date_bucket = ts_value[:10] if len(ts_value) >= 10 else None
             nightly_last = {
-                "filename": latest_r2.get("filename"),
-                "size_bytes": latest_r2.get("size_bytes"),
-                "r2_key": f"backups/auto-90d/{latest_r2.get('filename')}",
-                "ts": latest_r2.get("ts"),
+                "filename": fallback_artifact.get("filename"),
+                "size_bytes": fallback_artifact.get("archive_size_bytes"),
+                "r2_key": fallback_artifact.get("object_key") or f"backups/auto-90d/{fallback_artifact.get('filename')}",
+                "ts": fallback_artifact.get("authoritative_time") or fallback_artifact.get("observed_time"),
             }
             nightly_last_date = date_bucket
             nightly_last_hour = hour_bucket
 
-    activation_state = await _build_hourly_activation_state(db)
+    try:
+        activation_state = await _build_hourly_activation_state(db)
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[backups-complete-r2-state] hourly activation fallback used: {e}")
+        activation_state = {
+            "r2_hourly_requested": False,
+            "r2_hourly_effective": False,
+            "r2_hourly_locked_off": False,
+            "hourly_cadence_enabled": False,
+            "activation_status": "UNKNOWN — ACTIVATION EVIDENCE UNAVAILABLE",
+            "environment": _canonical_app_env(),
+            "next_eligible_hourly_slot": None,
+        }
+    try:
+        backup_runtime = await _collect_backup_runtime_state(db)
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[backups-complete-r2-state] backup runtime fallback used: {e}")
+        backup_runtime = {}
     return {
         "in_progress": _COMPLETE_R2_IN_PROGRESS,
         "last": dict(_COMPLETE_R2_LAST),
@@ -11725,7 +11730,8 @@ async def admin_complete_r2_state(_: bool = Depends(require_admin_strict)):
         "r2_hourly_locked_off": bool(activation_state.get("r2_hourly_locked_off")),
         "hourly_cadence_enabled": bool(activation_state.get("hourly_cadence_enabled")),
         "hourly_activation": activation_state,
-        "backup_runtime": await _collect_backup_runtime_state(db),
+        "archive_lineage": public_archive_lineage_payload(lineage),
+        "backup_runtime": backup_runtime,
     }
 
 
@@ -11963,15 +11969,13 @@ async def admin_backups_trust_score(_: bool = Depends(require_admin_strict)):
                 return None
         return None
 
-    latest_complete = await db.backup_health.find_one(
-        {"mode": "complete-r2", "ok": True, "filename": {"$nin": [None, ""]}},
-        {"_id": 0, "ts": 1, "filename": 1, "size_bytes": 1},
-        sort=[("ts", -1)],
+    lineage = await build_canonical_archive_lineage(
+        db,
+        current_env=_canonical_app_env(),
+        current_db=_canonical_db_name(),
     )
-    newest_r2_age_hours = None
-    latest_ts = _coerce_iso_dt((latest_complete or {}).get("ts"))
-    if latest_ts:
-        newest_r2_age_hours = round((datetime.now(timezone.utc) - latest_ts).total_seconds() / 3600.0, 2)
+    latest_complete = (lineage.get("authoritative_artifact") or {})
+    newest_r2_age_hours = lineage.get("freshness_age_hours")
 
     last_drill = await db.drill_runs.find_one({"state": "done"}, {"_id": 0}, sort=[("started_at", -1)])
     drill_ts = _coerce_iso_dt((last_drill or {}).get("finished_at") or (last_drill or {}).get("started_at"))
@@ -11987,11 +11991,11 @@ async def admin_backups_trust_score(_: bool = Depends(require_admin_strict)):
         "mode": {"$regex": "complete-r2|restore|verification|retention", "$options": "i"},
     })
     bucket_state = classify_capacity_state(
-        total_bytes=((latest_complete or {}).get("size_bytes") or 0),
+        total_bytes=((latest_complete or {}).get("archive_size_bytes") or 0),
         warn_gb=float(os.environ.get("R2_USAGE_WARN_GB", "700") or "700"),
         alert_gb=float(os.environ.get("R2_USAGE_ALERT_GB", "820") or "820"),
         probe_state="ok" if latest_complete else "missing",
-        as_of=(latest_complete or {}).get("ts"),
+        as_of=(latest_complete or {}).get("authoritative_time") or (latest_complete or {}).get("observed_time"),
     )
     bucket_usage_status = bucket_state.get("status", "AMBER")
 
@@ -12012,6 +12016,7 @@ async def admin_backups_trust_score(_: bool = Depends(require_admin_strict)):
         "evidence": {
             "latest_complete_backup": latest_complete,
             "newest_r2_age_hours": newest_r2_age_hours,
+            "archive_lineage": public_archive_lineage_payload(lineage),
             "last_restore_drill": last_drill,
             "restore_drill_age_days": restore_drill_age_days,
             "runtime": runtime,

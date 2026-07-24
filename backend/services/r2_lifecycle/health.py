@@ -31,6 +31,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
+from lib.archive_lineage import build_canonical_archive_lineage
 from .classification import CLASSIFICATIONS
 
 
@@ -130,11 +131,8 @@ async def compute_storage_health(
     lifecycle_pct = 100.0 * (total / (inv_row or {}).get("total_objects", 1)) if inv_row and inv_row.get("total_objects") else 0.0
 
     # 4) Backup freshness.
-    bh_row = await db.backup_health.find_one(
-        {"mode": {"$in": ["complete", "complete-r2", "complete-nightly"]}},
-        {"_id": 0}, sort=[("ts", -1)],
-    )
-    backup_age_min = _minutes_since((bh_row or {}).get("ts"), now)
+    archive_lineage = await build_canonical_archive_lineage(db)
+    backup_age_min = archive_lineage.get("freshness_age_minutes")
 
     # ── Sub-scores ─────────────────────────────────────────────────────
     capacity_score = _capacity_score(gb, warn_gb, alert_gb)
@@ -184,6 +182,11 @@ async def compute_storage_health(
         "freshness": {
             "inventory_age_minutes": inv_age_min,
             "backup_age_minutes": backup_age_min,
+            "archive_lineage": {
+                "authoritative_recovery_point_time": archive_lineage.get("authoritative_recovery_point_time"),
+                "authoritative_time_source": archive_lineage.get("authoritative_time_source"),
+                "lineage_confidence": archive_lineage.get("lineage_confidence"),
+            },
         },
         "generated_at": now.isoformat(),
     }

@@ -22,6 +22,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+from lib.archive_lineage import build_canonical_archive_lineage, consumer_freshness_status
 from lib.runtime_identity import runtime_identity_public_payload
 
 logger = logging.getLogger(__name__)
@@ -144,33 +145,29 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
         # the `backup_health` write-path is briefly broken — a real
         # source of post-restart alert spam.
         try:
-            from server import _r2_backup_age_seconds_cached  # noqa: PLC0415
-            r2_age_s = await _r2_backup_age_seconds_cached()
-        except Exception:
-            r2_age_s = None
-        try:
-            if r2_age_s is not None:
-                hrs = r2_age_s / 3600.0
-                status = "VERIFIED" if hrs < 24 else "DEGRADED" if hrs < 72 else "MISMATCH"
-                cards.append({"key": "backup", "label": "Last backup",
-                              "status": status,
-                              "detail": f"R2 newest object {hrs:.1f}h ago"})
+            from server import _canonical_app_env, _canonical_db_name  # noqa: PLC0415
+            lineage = await build_canonical_archive_lineage(
+                db,
+                current_env=_canonical_app_env(),
+                current_db=_canonical_db_name(),
+            )
+            freshness = consumer_freshness_status(lineage, threshold_minutes=24 * 60.0, warning_minutes=24 * 60.0)
+            hrs = lineage.get("freshness_age_hours")
+            status = "VERIFIED" if freshness.get("status") == "CURRENT" else "DEGRADED" if freshness.get("status") == "AGING" else "MISMATCH"
+            if hrs is not None:
+                cards.append({
+                    "key": "backup",
+                    "label": "Last backup",
+                    "status": status,
+                    "detail": f"Canonical recoverable point {hrs:.1f}h ago · {lineage.get('authoritative_time_source') or 'UNKNOWN'}",
+                })
             else:
-                last = await db.backup_health.find_one(
-                    {"ok": True, "filename": {"$nin": [None, ""]}},
-                    {"_id": 0}, sort=[("ts", -1)],
-                )
-                if last:
-                    started_at = last.get("ts")
-                    dt = _parse_iso(started_at)
-                    hrs = (now - dt).total_seconds() / 3600.0 if dt else 999
-                    status = "VERIFIED" if hrs < 24 else "DEGRADED" if hrs < 72 else "MISMATCH"
-                    cards.append({"key": "backup", "label": "Last backup",
-                                  "status": status,
-                                  "detail": f"{started_at} ({hrs:.1f}h ago)"})
-                else:
-                    cards.append({"key": "backup", "label": "Last backup",
-                                  "status": "UNVERIFIABLE", "detail": "No backup runs recorded"})
+                cards.append({
+                    "key": "backup",
+                    "label": "Last backup",
+                    "status": "UNVERIFIABLE",
+                    "detail": "Authoritative recovery point unknown",
+                })
         except Exception:  # noqa: BLE001
             cards.append({"key": "backup", "label": "Last backup",
                           "status": "UNVERIFIABLE", "detail": "Backup state unknown"})

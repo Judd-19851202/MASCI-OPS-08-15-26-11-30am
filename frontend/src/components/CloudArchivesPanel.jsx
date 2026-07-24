@@ -111,6 +111,9 @@ export default function CloudArchivesPanel() {
   const overlap = runtime?.overlap || {};
   const recentJobs = runtime?.recent_complete_jobs || [];
   const hourly = state?.hourly_activation || {};
+  const lineage = state?.archive_lineage || {};
+  const authoritative = lineage?.newest_valid_recoverable_artifact || {};
+  const observed = lineage?.newest_observed_artifact || {};
 
   return (
     <section
@@ -221,6 +224,32 @@ export default function CloudArchivesPanel() {
             <div className="font-mono uppercase tracking-[0.15em] text-slate-500">Environment / next slot</div>
             <div className="mt-1 text-slate-900 font-semibold">
               {(hourly.environment || "unknown").toUpperCase()} · {hourly.next_eligible_hourly_slot || "—"}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {!r2Disabled && (
+        <div
+          className="mt-3 bg-white border border-slate-200 rounded-md px-4 py-3 grid gap-3 md:grid-cols-2 text-xs"
+          data-testid="cloud-archives-lineage-state"
+        >
+          <div>
+            <div className="font-mono uppercase tracking-[0.15em] text-slate-500">Authoritative recoverable point</div>
+            <div className="mt-1 text-slate-900 font-semibold" data-testid="cloud-archives-authoritative-time">
+              {lineage.authoritative_recovery_point_time ? fmtDate(lineage.authoritative_recovery_point_time) : "—"}
+            </div>
+            <div className="mt-1 text-slate-600" data-testid="cloud-archives-authoritative-meta">
+              {(lineage.authoritative_time_source || "UNKNOWN")} · {(lineage.lineage_confidence || "LOW")} confidence
+            </div>
+          </div>
+          <div>
+            <div className="font-mono uppercase tracking-[0.15em] text-slate-500">Selected artifact</div>
+            <div className="mt-1 text-slate-900 font-semibold break-all" data-testid="cloud-archives-authoritative-filename">
+              {authoritative.filename || observed.filename || "No artifact selected"}
+            </div>
+            <div className="mt-1 text-slate-600" data-testid="cloud-archives-authoritative-status">
+              integrity={authoritative.integrity_status || lineage.integrity_status || "UNKNOWN"} · completeness={authoritative.completeness_status || lineage.completeness_status || "UNKNOWN"}
             </div>
           </div>
         </div>

@@ -114,6 +114,7 @@ export default function AdminBackupVerificationPanel() {
   const ledger = report?.ledger || {};
   const jobs = report?.backup_jobs || {};
   const issues = [...(r2.issues || []), ...(ledger.issues || [])];
+  const lineage = report?.archive_lineage || r2?.archive_lineage || {};
 
   return (
     <Card
@@ -241,7 +242,7 @@ export default function AdminBackupVerificationPanel() {
                 <strong>{r2.total_size_human || "0 B"}</strong>
               </div>
               <div className="text-xs text-slate-600">
-                Newest: {r2.newest_age_hrs != null ? `${r2.newest_age_hrs.toFixed(1)}h ago` : "—"}
+                Authoritative: {r2.authoritative_age_hrs != null ? `${r2.authoritative_age_hrs.toFixed(1)}h ago` : "—"}
               </div>
             </div>
             <div>
@@ -254,12 +255,12 @@ export default function AdminBackupVerificationPanel() {
               </div>
             </div>
             <div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold">Records</div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold">Lineage</div>
               <div className="text-slate-900 mt-1">
-                <strong>{(report.data?.total_records || 0).toLocaleString()}</strong> total
+                <strong>{lineage.authoritative_time_source || "UNKNOWN"}</strong>
               </div>
               <div className="text-xs text-slate-600">
-                {Object.keys(report.data?.per_collection_counts || {}).length} collections
+                {lineage.lineage_confidence || "LOW"} confidence · {lineage.integrity_status || "UNKNOWN"}
               </div>
             </div>
           </div>

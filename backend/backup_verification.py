@@ -42,6 +42,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from operational_footer import render_operational_footer_html
+from lib.archive_lineage import build_canonical_archive_lineage, public_archive_lineage_payload, threshold_inventory
 from lib.backup_runtime import backup_slot_key_for_day, claim_backup_job, complete_backup_job, fail_backup_job, list_backup_jobs, start_backup_job
 from lib.scheduler_runs import claim_slot as scheduler_claim_slot, mark_completed as scheduler_mark_completed, mark_failed as scheduler_mark_failed
 
@@ -319,6 +320,11 @@ async def build_verification_report(db) -> Dict[str, Any]:
 
     max_age_hours = _env_int("BACKUP_VERIFICATION_MAX_AGE_HOURS", DEFAULT_MAX_AGE_HOURS)
     now = datetime.now(timezone.utc)
+    lineage = await build_canonical_archive_lineage(db)
+    authoritative = lineage.get("authoritative_artifact") or {}
+    newest_valid = lineage.get("newest_valid_recoverable_artifact") or {}
+    newest_observed = lineage.get("newest_observed_artifact") or {}
+    threshold_meta = threshold_inventory().get("verification_max_age_hours") or {}
 
     # ── 1. R2 archives ─────────────────────────────────────────────
     archives = await list_r2_backup_archives()
@@ -341,13 +347,13 @@ async def build_verification_report(db) -> Dict[str, Any]:
     elif not archives:
         r2_status = "empty"
         r2_issues.append("R2 bucket has zero objects under backups/.")
-    elif newest_age_hrs is None:
+    elif lineage.get("authoritative_recovery_point_time") is None:
         r2_status = "warn"
-        r2_issues.append("Newest R2 archive has no last-modified timestamp.")
-    elif newest_age_hrs > max_age_hours:
+        r2_issues.append("Canonical archive lineage could not prove an authoritative recovery point.")
+    elif (lineage.get("freshness_age_hours") or 0) > max_age_hours:
         r2_status = "stale"
         r2_issues.append(
-            f"Newest R2 archive is {newest_age_hrs:.1f}h old "
+            f"Authoritative recoverable archive is {lineage.get('freshness_age_hours'):.1f}h old "
             f"(threshold: {max_age_hours}h)."
         )
 
@@ -391,11 +397,10 @@ async def build_verification_report(db) -> Dict[str, Any]:
     if last_full is None:
         ledger_status = "warn"
         ledger_issues.append("No successful full backup recorded in last 20 runs.")
-    elif _hours_since(last_full.get("ts")) and _hours_since(last_full["ts"]) > max_age_hours:
+    elif lineage.get("freshness_age_hours") is not None and lineage.get("freshness_age_hours") > max_age_hours:
         ledger_status = "stale"
         ledger_issues.append(
-            f"Last successful full/lite backup was "
-            f"{_hours_since(last_full['ts']):.1f}h ago."
+            f"Canonical authoritative recoverable archive is {lineage.get('freshness_age_hours'):.1f}h old."
         )
 
     # ── 3. MongoDB record counts (proves the data we're backing up exists) ──
@@ -443,9 +448,17 @@ async def build_verification_report(db) -> Dict[str, Any]:
             "archive_count": len(archives),
             "newest": newest,
             "newest_age_hrs": newest_age_hrs,
+            "authoritative_recovery_point_time": lineage.get("authoritative_recovery_point_time"),
+            "authoritative_age_hrs": lineage.get("freshness_age_hours"),
+            "authoritative_artifact": authoritative,
+            "newest_valid_recoverable_artifact": newest_valid,
+            "newest_observed_artifact": newest_observed,
+            "archive_lineage": public_archive_lineage_payload(lineage),
             "total_size_bytes": total_size_bytes,
             "total_size_human": _humanize_size(total_size_bytes),
             "max_age_threshold_hrs": max_age_hours,
+            "max_age_threshold_source": threshold_meta.get("source"),
+            "max_age_threshold_authority": threshold_meta.get("authority"),
             "all_archives": archives[:25],   # cap for emails
             "all_archives_truncated": len(archives) > 25,
         },
@@ -456,6 +469,7 @@ async def build_verification_report(db) -> Dict[str, Any]:
             "last_r2": last_r2,
             "last_failure": last_failure,
             "recent_runs_count": len(recent_runs),
+            "canonical_authoritative_recovery_point_time": lineage.get("authoritative_recovery_point_time"),
         },
         "backup_jobs": {
             "recent_complete_jobs": recent_complete_jobs,
@@ -464,6 +478,7 @@ async def build_verification_report(db) -> Dict[str, Any]:
             "per_collection_counts": per_collection_counts,
             "total_records": total_records,
         },
+        "archive_lineage": public_archive_lineage_payload(lineage),
     }
 
 
