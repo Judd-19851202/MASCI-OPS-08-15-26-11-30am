@@ -239,3 +239,16 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - `/app/final_coverage_report.json`
 - `/app/final_coverage_report.md`
 - `/app/final_verdict.md`
+
+## 2026-07-24 — PM Portal Data-Scoping Forensic Diagnosis (Read-only Preview)
+- Scope honored: no application code changed; diagnosis only. Preview-side DB fixtures were added solely to reproduce PM assignment scoping with explicit assigned vs unassigned projects.
+- Verdict reached: `ROOT CAUSE VERIFIED — REPAIR READY FOR AUTHORIZATION`.
+- Verified backend root cause: shared PM-readable routes using `Depends(require_admin)` pass a raw `project_managers` PM doc into `compute_pm_scope()`. That raw actor lacks the PM markers (`_actor`, `_actor_kind`, `role`) that `compute_pm_scope()` requires to resolve PM assignments, so valid PMs fail closed to an empty scope on list/read paths.
+- Verified super-admin variant: when a Super Admin operates inside the PM portal and the request is sent with `X-PM-Token` (PM-context routing), `compute_pm_scope()` does not recover `is_super_admin` from the linked directory identity, so unrestricted PM-portal visibility is lost on shared scoped routes.
+- Verified frontend Job Photos variant: `/api/job-photos` is missing from `frontend/src/lib/portalAuthScope.js` shared PM-route inference, so PM browser requests on `/pm/photos` send only `X-Directory-Token` and omit `X-PM-Token`, producing the explicit `Could not load photos` failure. Even when a PM token is supplied manually, the backend scope bug still empties/denies results.
+- Reproduction evidence created:
+  - `/app/test_reports/pm_scoping_forensic_report.md`
+  - `/app/test_reports/pm_scoping_forensic_report.json`
+  - `/app/test_reports/pm_scoping_route_api_matrix.json`
+  - `/app/test_reports/pm_scoping_role_matrix.json`
+- Exact Preview commit audited: `06d3737fa35188c9348a4f92bfbc22a015bb26f8`
