@@ -1,0 +1,12 @@
+{
+  "test_timestamp": "2026-07-24T03:34:44.527211Z",
+  "incident_routes": {
+    "superadmin_admin_incidents": "ACCESSIBLE - Incidents & Near Misses",
+    "superadmin_safety_incidents": "BLOCKED_403",
+    "superadmin_incidents": "ACCESSIBLE - Incidents & Near Misses",
+    "safety_safety_incidents": "BLOCKED_403",
+    "safety_admin_incidents": "CORRECTLY_BLOCKED_403",
+    "admin_only_admin_incidents": "BLOCKED_403",
+    "admin_only_safety_incidents": "CORRECTLY_BLOCKED_403"
+  }
+}

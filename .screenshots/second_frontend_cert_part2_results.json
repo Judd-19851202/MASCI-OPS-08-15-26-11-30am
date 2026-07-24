@@ -1,0 +1,76 @@
+{
+  "test_timestamp": "2026-07-24T03:32:21.587603Z",
+  "incident_authorization_detailed": {
+    "superadmin_/admin/incidents": {
+      "url": "/admin/incidents",
+      "status": "ERROR",
+      "error": "Page.screenshot: options.quality is unsupported for the png screenshots"
+    },
+    "superadmin_/safety-portal/incidents": {
+      "url": "/safety-portal/incidents",
+      "status": "ERROR",
+      "error": "Page.screenshot: options.quality is unsupported for the png screenshots"
+    },
+    "superadmin_/incidents": {
+      "url": "/incidents",
+      "status": "ERROR",
+      "error": "Page.screenshot: options.quality is unsupported for the png screenshots"
+    },
+    "superadmin_/hr/incidents": {
+      "url": "/hr/incidents",
+      "status": "ERROR",
+      "error": "Page.screenshot: options.quality is unsupported for the png screenshots"
+    },
+    "safety_/safety-portal/incidents": {
+      "url": "/safety-portal/incidents",
+      "status": "ERROR",
+      "error": "Page.screenshot: options.quality is unsupported for the png screenshots"
+    },
+    "safety_/incidents": {
+      "url": "/incidents",
+      "status": "ERROR",
+      "error": "Page.screenshot: options.quality is unsupported for the png screenshots"
+    }
+  },
+  "loading_empty_error_states": {
+    "hr_daily_reports": {
+      "status": "ERROR",
+      "error": "Locator.count: Unexpected token \"=\" while parsing css selector \"[data-testid*='empty'], [class*='empty-state'], text=/no.*reports/i\". Did you mean to CSS.escape it?"
+    }
+  },
+  "pagination_filter_search": {
+    "hr_daily_reports": {
+      "pagination_controls": 0,
+      "filter_controls": 1,
+      "search_inputs": 2,
+      "status": "EXERCISED"
+    }
+  },
+  "testid_discovery": {
+    "admin_audit_log": {
+      "testid_count": 174,
+      "sample_testids": [
+        "env-banner",
+        "admin-audit-log-root",
+        "ds-portal-shell",
+        "ds-portal-shell-header",
+        "masci-logo-home-link",
+        "masci-logo-mark",
+        "masci-logo-home-link",
+        "masci-logo-mark",
+        "ds-portal-shell-portal-name",
+        "ds-portal-shell-page-name",
+        "ds-portal-shell-search",
+        "global-search-trigger",
+        "ds-portal-shell-notifications",
+        "notification-bell",
+        "notification-bell-badge",
+        "ds-portal-shell-portal-switcher",
+        "portal-switcher-trigger",
+        "ds-portal-shell-local-time",
+        "ds-portal-shell-lang-toggle",
+        "lang-toggle"
+      ]
+    }
+  }
+}
