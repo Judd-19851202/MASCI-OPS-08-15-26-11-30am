@@ -276,5 +276,5 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
   - `/app/test_reports/pm_scoping_role_matrix.json`
   - `/app/test_reports/pm_scoping_shared_caller_regression.json`
 - Production code repair commit: `2c5b4a7638477f7fff898299a87a37d3ae5d2e7f`
-- Test/evidence correction commit: `UNCOMMITTED_LOCAL_CORRECTIONS`
-- Deploy candidate SHA: `UNRESOLVED_NO_COMMITTED_SHA`
+- Release finalization commit purpose: record corrected release traceability after the bounded PM-scope repair and added fail-closed regression coverage.
+- Deploy candidate SHA: repository HEAD created by the release-finalization commit (capture exact SHA from git after finalization; do not infer from earlier evidence placeholders).

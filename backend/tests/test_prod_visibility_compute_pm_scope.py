@@ -230,7 +230,10 @@ def test_password_hash_mismatch_does_not_recover_super_admin_or_broaden_scope():
     )
     assert scope.is_admin is False
     assert scope.project_numbers == set()
-    assert scope.filter({"status": "open"}) == {"status": "open", "__pm_empty_scope__": True}
+    assert scope.filter({"status": "open"}) == {
+        "status": "open",
+        "__pm_empty_scope__": True,
+    }
     assert scope.allows("99-01") is False
 
 
