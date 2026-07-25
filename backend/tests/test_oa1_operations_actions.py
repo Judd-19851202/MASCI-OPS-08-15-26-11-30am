@@ -1,8 +1,4 @@
-import io
-import json
 import os
-import urllib.error
-import urllib.request
 import uuid
 from typing import Any, Dict, Optional
 
@@ -24,25 +20,21 @@ def _req(
     token_header: str = "X-Admin-Token",
 ) -> Dict[str, Any]:
     url = f"{API}{path}"
-    data = None
     headers = {
         "Content-Type": "application/json",
         token_header: token,
         "X-Directory-Token": directory_token,
     }
-    if body is not None:
-        data = json.dumps(body).encode()
-    req = urllib.request.Request(url, data=data, method=method, headers=headers)
     try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            return {"status": resp.status, "json": json.loads(resp.read().decode())}
-    except urllib.error.HTTPError as e:
-        payload = e.read().decode() if getattr(e, "fp", None) else ""
+        resp = requests.request(method, url, headers=headers, json=body, timeout=15)
+        return {"status": resp.status_code, "json": resp.json()}
+    except requests.HTTPError as e:
+        payload = e.response.text if getattr(e, "response", None) else ""
         try:
-            parsed = json.loads(payload) if payload else {"detail": str(e)}
+            parsed = resp.json() if payload else {"detail": str(e)}
         except Exception:
             parsed = {"detail": payload or str(e)}
-        return {"status": e.code, "json": parsed}
+        return {"status": e.response.status_code if e.response else 500, "json": parsed}
 
 
 @pytest.fixture(scope="module")
@@ -103,14 +95,12 @@ def test_invalid_token_rejected():
 
 def test_directory_token_required(auth_bundle):
     token = auth_bundle["portal_tokens"]["admin"]
-    req = urllib.request.Request(
+    r = requests.get(
         f"{API}/operations-actions",
-        method="GET",
         headers={"X-Admin-Token": token},
+        timeout=10,
     )
-    with pytest.raises(urllib.error.HTTPError) as exc:
-        urllib.request.urlopen(req, timeout=10)
-    assert exc.value.code in (401, 403)
+    assert r.status_code in (401, 403)
 
 
 def test_list_returns_shape(admin_token, directory_token):
@@ -341,27 +331,16 @@ def test_list_filter_invalid_status_rejected(admin_token, directory_token):
 
 
 def test_photo_upload_rejects_non_image(admin_token, directory_token, created_oa):
-    boundary = "----PYBND" + uuid.uuid4().hex[:8]
-    body = (
-        f"--{boundary}\r\n"
-        'Content-Disposition: form-data; name="file"; filename="fake.jpg"\r\n'
-        "Content-Type: image/jpeg\r\n\r\n"
-        "THIS IS NOT AN IMAGE — plain text masquerading as jpeg\r\n"
-        f"--{boundary}--\r\n"
-    ).encode()
-    req = urllib.request.Request(
+    r = requests.post(
         f"{API}/operations-actions/{created_oa['id']}/photos",
-        data=body,
-        method="POST",
         headers={
             "X-Admin-Token": admin_token,
             "X-Directory-Token": directory_token,
-            "Content-Type": f"multipart/form-data; boundary={boundary}",
         },
+        files={"file": ("fake.jpg", b"THIS IS NOT AN IMAGE", "image/jpeg")},
+        timeout=10,
     )
-    with pytest.raises(urllib.error.HTTPError) as exc:
-        urllib.request.urlopen(req, timeout=10)
-    assert exc.value.code == 422
+    assert r.status_code == 422
 
 
 def test_assign_same_owner_is_noop_and_does_not_duplicate_notif(admin_token, directory_token, mongo_db, created_oa):
