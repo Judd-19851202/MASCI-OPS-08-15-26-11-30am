@@ -635,3 +635,7 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - Backend health passed: `/api/health`, `/api/version`, `/api/health/full`
 - Bounded browser smoke passed for `/admin/recovery`, `/admin/storage-recovery`, `/admin/deploy-recovery`
 - Checkpoint 5 implementation verified and ready for final adoption closeout
+
+## 2026-07-25 — Architectural Milestone
+- Operational Truth Spine v1.0 Constitutional Reference Baseline established.
+- See: `/app/memory/OTS_v1_0_CONSTITUTIONAL_REFERENCE_BASELINE.md`
