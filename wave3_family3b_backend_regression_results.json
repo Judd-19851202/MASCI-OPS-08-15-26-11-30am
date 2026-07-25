@@ -1,0 +1,104 @@
+{
+  "timestamp": "2026-07-25T23:15:23.829274Z",
+  "test_suite": "Wave 3 Family 3B Operations Actions - Final Backend Regression Sweep",
+  "total_tests": 19,
+  "passed": 19,
+  "failed": 0,
+  "tests": [
+    {
+      "name": "VP1: Valid admin token + directory token succeeds",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "VP2: Missing directory token fails 401",
+      "passed": true,
+      "details": "Status: 401, Expected: 401"
+    },
+    {
+      "name": "VP3: Missing portal token fails 401",
+      "passed": true,
+      "details": "Status: 401, Expected: 401"
+    },
+    {
+      "name": "VP4: Multiple portal tokens (admin + pm) fail 401",
+      "passed": true,
+      "details": "Status: 401, Expected: 401"
+    },
+    {
+      "name": "VP5: Invalid directory token fails 401",
+      "passed": true,
+      "details": "Status: 401, Expected: 401"
+    },
+    {
+      "name": "VP6: Mismatched PM token + admin directory token fails 401",
+      "passed": true,
+      "details": "Status: 401, Expected: 401"
+    },
+    {
+      "name": "VP7.1: Create action succeeds",
+      "passed": true,
+      "details": "Created action OA-2026-000300 with ID 88a495e1c33743618aa69212538eb83b"
+    },
+    {
+      "name": "VP7.2: Patch action succeeds",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "VP7.3: Assign owner succeeds",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "VP7.4: Change status succeeds",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "VP7.5: Add note succeeds",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "VP7.6: Photo upload endpoint accessible (auth working)",
+      "passed": true,
+      "details": "Status: 422 (not 401 means auth is working)"
+    },
+    {
+      "name": "VP8: Assigning same owner twice is no-op (no duplicate notification)",
+      "passed": true,
+      "details": "Assign events before: 1, after: 1"
+    },
+    {
+      "name": "VP9: Status assigned without owner fails (409 or 400)",
+      "passed": true,
+      "details": "Status: 409, Expected: 409 or 400"
+    },
+    {
+      "name": "VP10.1: History preserves all event kinds",
+      "passed": true,
+      "details": "Event kinds found: ['created', 'updated', 'assigned', 'status_changed', 'note_added']"
+    },
+    {
+      "name": "VP10.2: Owner correctly assigned",
+      "passed": true,
+      "details": "Owner: jaymn.judd@mascigc.com"
+    },
+    {
+      "name": "VP10.3: Status correctly updated",
+      "passed": true,
+      "details": "Status: in_progress"
+    },
+    {
+      "name": "Sanity: Family 3A admin check endpoint still works",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Sanity: Family 3A deployment-readiness endpoint still works",
+      "passed": true,
+      "details": "Status: 200"
+    }
+  ]
+}
