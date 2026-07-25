@@ -7,7 +7,7 @@ The artifact does not establish a separate BCSS-only truth architecture.
 
 Date: 2026-07-25
 
-Status: IMPLEMENTATION IN PROGRESS
+Status: IMPLEMENTATION COMPLETE
 
 ---
 
@@ -17,4 +17,4 @@ Status: IMPLEMENTATION IN PROGRESS
 | Recovery Snapshot | `/api/admin/recovery/snapshot` | `/admin/recovery` | `bcss_recovery_posture` | claim ceiling bound to `CORRELATED`; compact disclosure added |
 | Backup Verification | `/api/admin/backup-verification/state`, `/preview`, report/email | Admin Backup Verification panel, report/email | `bcss_backup_archive_lineage` | state separated from validation; report/email bound to OTS truth card |
 | Backup Trust | `/api/admin/backup-trust-score` | Recovery UI + downstream aggregators | `bcss_recovery_trust` | derived confidence bounded to `CORRELATED` |
-| Deployment Readiness | `/api/admin/deployment-readiness`, `/history` | `/admin/deploy-recovery` and deploy history consumers | `bcss_recovery_certification` (bounded deployment scope only) | deployment-vs-recovery boundary preserved with OTS truth card |
+| Deployment Readiness | `/api/admin/deployment-readiness`, `/history`, `/api/admin/deploy-recovery` | `/admin/deploy-recovery` and deploy history consumers | `bcss_recovery_certification` (bounded deployment scope only) | deployment-vs-recovery boundary preserved with OTS truth card |
