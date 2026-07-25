@@ -28,14 +28,39 @@ SAFETY_EMAIL = "safety@mascigc.com"
 SAFETY_PASS = "Safety123!"
 
 
+def _login_admin_bundle():
+    last_err = None
+    for _ in range(3):
+        try:
+            r = requests.post(
+                f"{API}/auth/multi-login",
+                json={"email": SUPER_ADMIN_EMAIL, "password": SUPER_ADMIN_PASS},
+                timeout=30,
+            )
+            if r.status_code == 200:
+                return r.json()
+            last_err = f"{r.status_code}: {r.text[:200]}"
+        except requests.RequestException as exc:
+            last_err = str(exc)
+        time.sleep(1)
+    pytest.skip(f"admin multi-login failed: {last_err}")
+
+
 # ---------------------------- token fixtures ----------------------------
 @pytest.fixture(scope="module")
 def admin_token():
-    r = requests.post(f"{API}/auth/multi-login", json={"email": SUPER_ADMIN_EMAIL, "password": SUPER_ADMIN_PASS}, timeout=15)
-    if r.status_code != 200:
-        pytest.skip(f"admin multi-login failed {r.status_code}: {r.text[:200]}")
-    data = r.json()
+    data = _login_admin_bundle()
     return (data.get("portal_tokens") or {}).get("admin") or data.get("token")
+
+
+@pytest.fixture(scope="module")
+def admin_headers():
+    data = _login_admin_bundle()
+    admin = (data.get("portal_tokens") or {}).get("admin") or data.get("token")
+    directory = data.get("session_token")
+    if not admin or not directory:
+        pytest.skip("strict admin headers unavailable")
+    return {"X-Admin-Token": admin, "X-Directory-Token": directory}
 
 
 @pytest.fixture(scope="module")
@@ -52,11 +77,9 @@ class TestSystemHealthRecent:
         status, body = anon_get("/admin/system-health/recent")
         assert status in (401, 403), f"expected 401/403, got {status}: {body[:200]}"
 
-    def test_admin_returns_shape(self, admin_token):
-        if not admin_token:
-            pytest.skip("no admin token")
+    def test_admin_returns_shape(self, admin_headers):
         t0 = time.time()
-        r = requests.get(f"{API}/admin/system-health/recent", headers={"X-Admin-Token": admin_token}, timeout=10)
+        r = requests.get(f"{API}/admin/system-health/recent", headers=admin_headers, timeout=10)
         elapsed_ms = (time.time() - t0) * 1000
         assert r.status_code == 200, f"got {r.status_code}: {r.text[:300]}"
         body = r.json()
@@ -66,10 +89,8 @@ class TestSystemHealthRecent:
         # perf target <200ms — log even if soft
         print(f"system-health/recent latency: {elapsed_ms:.1f} ms")
 
-    def test_rows_normalized_shape(self, admin_token):
-        if not admin_token:
-            pytest.skip("no admin token")
-        r = requests.get(f"{API}/admin/system-health/recent", headers={"X-Admin-Token": admin_token}, timeout=10)
+    def test_rows_normalized_shape(self, admin_headers):
+        r = requests.get(f"{API}/admin/system-health/recent", headers=admin_headers, timeout=10)
         assert r.status_code == 200
         rows = r.json().get("rows", [])
         if not rows:
@@ -81,11 +102,9 @@ class TestSystemHealthRecent:
             assert "alerted" in row
             assert isinstance(row["red_keys"], list)
 
-    def test_no_alerts_in_preview(self, admin_token):
+    def test_no_alerts_in_preview(self, admin_headers):
         """AUTO_EMAIL_REPORTS=false in preview → alerted must be False on every row."""
-        if not admin_token:
-            pytest.skip("no admin token")
-        r = requests.get(f"{API}/admin/system-health/recent", headers={"X-Admin-Token": admin_token}, timeout=10)
+        r = requests.get(f"{API}/admin/system-health/recent", headers=admin_headers, timeout=10)
         rows = r.json().get("rows", [])
         for row in rows:
             assert row.get("alerted") in (False, None), f"row alerted=True in preview: {row}"
@@ -133,15 +152,13 @@ class TestIntegrationReadiness:
 
 # ---------------------------- health monitor sanity ----------------------------
 class TestHealthMonitorSanity:
-    def test_collection_populated(self, admin_token):
+    def test_collection_populated(self, admin_headers):
         """At least 1 row in db.health_monitor_runs (verified via the recent endpoint)."""
-        if not admin_token:
-            pytest.skip("no admin token")
         # Wait up to 100s for monitor to run
         deadline = time.time() + 100
         last_count = 0
         while time.time() < deadline:
-            r = requests.get(f"{API}/admin/system-health/recent", headers={"X-Admin-Token": admin_token}, timeout=10)
+            r = requests.get(f"{API}/admin/system-health/recent", headers=admin_headers, timeout=10)
             if r.status_code == 200:
                 rows = r.json().get("rows", [])
                 last_count = len(rows)

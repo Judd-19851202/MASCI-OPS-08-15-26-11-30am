@@ -29,7 +29,8 @@ export default function SystemHealth() {
   useEffect(() => { load(); }, []);
 
   const overall = data?.overall || "yellow";
-  const ov = STATUS[overall];
+  const overallCanonical = data?.overall_canonical || "UNVERIFIABLE";
+  const ov = STATUS[overall] || STATUS.yellow;
 
   return (
     <LegacyAdminModernShell
@@ -68,6 +69,9 @@ export default function SystemHealth() {
           <div>
             <div className="font-mono text-[10px] uppercase tracking-[0.18em] font-bold">Overall</div>
             <div className="font-display text-xl font-black">{ov.label}</div>
+            <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-slate-700 mt-0.5" data-testid="health-overall-canonical">
+              Canonical {overallCanonical}
+            </div>
           </div>
           <div className="ml-auto text-xs text-slate-600 font-mono">
             Checked {formatUtcForAudit(data?.checked_at)}
@@ -90,6 +94,9 @@ export default function SystemHealth() {
                     </span>
                   </div>
                   <div className="text-sm text-slate-800 font-medium leading-snug">{c.detail}</div>
+                  <div className="mt-2 text-[10px] font-mono uppercase tracking-[0.18em] text-slate-500" data-testid={`health-card-canonical-${c.key}`}>
+                    Canonical {c.canonical_status || "UNVERIFIABLE"}
+                  </div>
                   {Array.isArray(c.children) && c.children.length > 0 && (
                     <ul className="mt-2 pt-2 border-t border-slate-200 space-y-1">
                       {c.children.map((ch) => (
@@ -97,6 +104,9 @@ export default function SystemHealth() {
                           <span className={`w-1.5 h-1.5 rounded-full ${STATUS[ch.status]?.chip || "bg-slate-400"}`} />
                           <span className="font-mono uppercase tracking-wide">{ch.provider}</span>
                           <span className="text-slate-600">— {ch.detail}</span>
+                          <span className="ml-auto text-[9px] font-mono uppercase tracking-[0.15em] text-slate-500">
+                            {ch.canonical_status || "UNVERIFIABLE"}
+                          </span>
                         </li>
                       ))}
                     </ul>

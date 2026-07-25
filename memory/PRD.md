@@ -827,3 +827,37 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 ### Disposition
 - **Wave 3 Family 2 Phase B implementation verified and ready for formal adoption recommendation**
 - Do not begin the next roadmap family without explicit user authorization
+
+## 2026-07-25 — BCSS Release 2 / Program 2 / Wave 3 Family 3 Re-Scope
+- Repository-backed constitutional discovery retired the previous assumption that Wave 3 Family 3 is one unified Admin Operations family.
+- Repository-backed roadmap split recorded as:
+  - `3A — Core Admin Operations` → owner: `/app/backend/routes/admin_ops.py`
+  - `3B — Operations Actions` → repository owner: `/app/backend/routes/operations_actions/api.py`
+  - `3C — Operational Events` → repository owner: `/app/backend/routes/operational_events.py`
+  - `3D — Asset Mapping & Reconciliation` → repository owner: `/app/backend/routes/asset_mapping_recon.py`
+- Only **Wave 3 Family 3A Phase B** is currently authorized.
+- Families `3B`, `3C`, and `3D` remain separate future discovery tracks only; no readiness or implementation authority is recorded for them before their own discovery.
+
+## 2026-07-25 — BCSS Release 2 / Program 2 / Wave 3 / Family 3A Phase B
+- Bounded Family 3A implementation is limited to the strict-admin, read-only Core Admin Operations surface and its direct consumers/tests/documentation only.
+- Approved runtime owner remains `/app/backend/routes/admin_ops.py`.
+- Approved direct consumers remain:
+  - `/app/frontend/src/pages/admin/SystemHealth.jsx`
+  - `/app/frontend/src/pages/admin/AdminAuditLog.jsx`
+  - `/app/frontend/src/pages/admin/DeployRecovery.jsx`
+  - search / lookup consumers inside the bounded admin surface
+- Adjacent families remain out of scope and unchanged in this track:
+  - `3B Operations Actions`
+  - `3C Operational Events`
+  - `3D Asset Mapping & Reconciliation`
+
+### Family 3A bounded repair goals
+- preserve the strict-admin boundary
+- preserve read-only behavior
+- preserve administrative authority separation from operational-truth ownership
+- normalize Family 3A response / consumer contracts only inside the bounded family
+- keep documentation aligned with the Family 3A / 3B / 3C / 3D constitutional split
+
+### Locked roadmap
+- Complete Wave 3 families → Wave 3 Formal Closeout → Platform Survivability Program → Production Readiness Review → Wave 1 Deployment
+- Platform Survivability Program remains the absolute pre-PRR and pre-deployment gate.

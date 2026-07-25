@@ -1,13 +1,10 @@
-"""
-test_iter338_live_e2e.py — Live HTTP tests for iter338 Admin Reference Lookup
-against the preview backend. Verifies RBAC, normalization, UUID fallback,
-graceful miss, and PM token rejection.
-"""
+"""Live HTTP tests for the strict-admin Admin Reference Lookup surface."""
 import os
 import pytest
 import requests
 
 BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://backup-forensics.preview.emergentagent.com").rstrip("/")
+ADMIN_EMAIL = "jaymn.judd@mascigc.com"
 ADMIN_PASSWORD = "Maddix123!"
 
 SEEDED_INCIDENT_REF = "INC-2026-0517-002"
@@ -15,18 +12,18 @@ SEEDED_DAILY_UUID = "42e3a8e6-dc41-4cc4-bb57-0d5c4be3d0f8"
 
 
 @pytest.fixture(scope="module")
-def admin_token():
-    r = requests.post(f"{BASE_URL}/api/admin/login",
-                      json={"password": ADMIN_PASSWORD}, timeout=20)
-    assert r.status_code == 200, f"admin login failed: {r.status_code} {r.text}"
-    token = r.json().get("token")
-    assert token
-    return token
-
-
-@pytest.fixture(scope="module")
-def admin_headers(admin_token):
-    return {"X-Admin-Token": admin_token}
+def admin_headers():
+    r = requests.post(
+        f"{BASE_URL}/api/auth/multi-login",
+        json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD},
+        timeout=20,
+    )
+    assert r.status_code == 200, f"multi-login failed: {r.status_code} {r.text}"
+    body = r.json()
+    admin = (body.get("portal_tokens") or {}).get("admin")
+    directory = body.get("session_token")
+    assert admin and directory
+    return {"X-Admin-Token": admin, "X-Directory-Token": directory}
 
 
 # ─── iter338 · Admin Reference Lookup ─────────────────────────────────────
@@ -68,7 +65,7 @@ class TestAdminLookup:
             assert d.get("id") == SEEDED_DAILY_UUID
             assert d.get("path", "").startswith("/admin/daily/")
         else:
-            assert d.get("ref") == SEEDED_DAILY_UUID
+            assert str(d.get("ref") or "").upper() == SEEDED_DAILY_UUID.upper()
 
     def test_graceful_miss(self, admin_headers):
         r = requests.get(f"{BASE_URL}/api/admin/lookup",

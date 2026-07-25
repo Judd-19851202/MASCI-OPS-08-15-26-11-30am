@@ -32,7 +32,7 @@ SUPER_PASSWORD = "Maddix123!"
 
 # ----- Fixtures -----
 @pytest.fixture(scope="module")
-def portal_tokens():
+def auth_bundle():
     r = requests.post(
         f"{BASE_URL}/api/auth/multi-login",
         json={"email": SUPER_EMAIL, "password": SUPER_PASSWORD},
@@ -42,17 +42,21 @@ def portal_tokens():
     data = r.json()
     tokens = data.get("portal_tokens") or {}
     assert tokens.get("admin"), "missing admin token"
-    return tokens
+    assert data.get("session_token"), "missing directory session token"
+    return data
 
 
 @pytest.fixture(scope="module")
-def admin_headers(portal_tokens):
-    return {"X-Admin-Token": portal_tokens["admin"]}
+def admin_headers(auth_bundle):
+    return {
+        "X-Admin-Token": auth_bundle["portal_tokens"]["admin"],
+        "X-Directory-Token": auth_bundle["session_token"],
+    }
 
 
 @pytest.fixture(scope="module")
-def pm_headers(portal_tokens):
-    return {"X-PM-Token": portal_tokens["pm"]}
+def pm_headers(auth_bundle):
+    return {"X-PM-Token": auth_bundle["portal_tokens"]["pm"]}
 
 
 # ----- /api/admin/system-health -----
@@ -75,6 +79,7 @@ class TestSystemHealth:
         assert r.status_code == 200, r.text
         data = r.json()
         assert data["overall"] in ("green", "yellow", "red")
+        assert data["overall_canonical"] in ("VERIFIED", "DEGRADED", "MISMATCH", "UNVERIFIABLE", "NOT_APPLICABLE")
         assert "checked_at" in data
         assert isinstance(data["cards"], list)
         keys = {c["key"] for c in data["cards"]}
@@ -84,8 +89,9 @@ class TestSystemHealth:
         assert not missing, f"missing health card keys: {missing}"
         # Each card has required attributes
         for c in data["cards"]:
-            assert {"key", "label", "status", "detail"}.issubset(c.keys()), c
+            assert {"key", "label", "status", "detail", "canonical_status"}.issubset(c.keys()), c
             assert c["status"] in ("green", "yellow", "red")
+            assert c["canonical_status"] in ("VERIFIED", "DEGRADED", "MISMATCH", "UNVERIFIABLE", "NOT_APPLICABLE")
         print(f"system-health latency: {elapsed:.0f}ms")
         assert elapsed < 1500, f"too slow: {elapsed}ms"
 

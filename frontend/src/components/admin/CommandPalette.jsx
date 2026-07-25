@@ -23,25 +23,12 @@ import {
   DOMAINS_V3,
   buildSearchIndex,
 } from "@/app/admin/domainMapV3";
+import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
-function adminToken() {
-  try {
-    return (
-      localStorage.getItem("masci.admin.token") ||
-      localStorage.getItem("adminToken") ||
-      localStorage.getItem("admin_token") ||
-      ""
-    );
-  } catch {
-    return "";
-  }
-}
-
 function authHeaders() {
-  const t = adminToken();
-  return t ? { "X-Admin-Token": t, "Content-Type": "application/json" } : { "Content-Type": "application/json" };
+  return buildScopedPortalAuthHeaders(["admin"], { "Content-Type": "application/json" });
 }
 
 // Lightweight scoring: substring on label/desc/keywords + domain match.

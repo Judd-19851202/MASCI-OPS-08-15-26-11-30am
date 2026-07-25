@@ -47,6 +47,14 @@ def _iso(dt: Optional[datetime]) -> Optional[str]:
 def build_admin_ops_router(db, require_admin) -> APIRouter:
     router = APIRouter(prefix="/api/admin", tags=["admin-ops"])
 
+    def _ui_status_from_canonical(state: Any) -> str:
+        canon = str(state or "").strip().upper()
+        if canon == "VERIFIED":
+            return "green"
+        if canon == "MISMATCH":
+            return "red"
+        return "yellow"
+
     def _runtime_identity_summary() -> Dict[str, Any]:
         bundle_getter = getattr(router, "_get_runtime_identity", None)
         bundle = bundle_getter() if callable(bundle_getter) else None
@@ -220,7 +228,7 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
                     )
                 elif snap_status == "degraded":
                     detail_bits.append(snap["message"])
-                elif colour == "not_applicable":
+                elif colour == "NOT_APPLICABLE":
                     detail_bits.append("Not applicable — MASCI does not use this integration.")
                 else:
                     detail_bits.append("Stubbed" if snap["mocked"] else snap["message"])
@@ -319,12 +327,23 @@ def build_admin_ops_router(db, require_admin) -> APIRouter:
                 applicable=c.get("applicable", True),
                 enabled=c.get("enabled", True),
             )
+            for child in c.get("children") or []:
+                child_canonical = to_canonical(
+                    child.get("status"),
+                    mocked=bool(child.get("mocked")),
+                    applicable=child.get("applicable", True),
+                    enabled=child.get("enabled", True),
+                )
+                child["canonical_status"] = child_canonical
+                child["status"] = _ui_status_from_canonical(child_canonical)
+            c["status"] = _ui_status_from_canonical(c["canonical_status"])
         canonical_summary = summarize(cards)
-        overall = canonical_summary["highest"]
+        overall_canonical = canonical_summary["highest"]
+        overall = _ui_status_from_canonical(overall_canonical)
 
         return {
             "overall": overall,
-            "overall_canonical": canonical_summary["highest"],
+            "overall_canonical": overall_canonical,
             "cards": cards,
             "counts": {
                 "verified": canonical_summary["verified"],
