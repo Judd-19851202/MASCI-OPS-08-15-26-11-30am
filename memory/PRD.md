@@ -571,3 +571,32 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - No runtime behavior changes
 - No API behavior changes
 - No UI behavior changes
+
+## 2026-07-25 — BCSS Release 2 Preparation / Program 2 Foundation / Checkpoint 4 Operational Truth Spine
+
+### Scope
+- Completed the repository-backed **design/documentation-only** adoption blueprint for the Operational Truth Spine.
+- Checkpoint 3 remained authoritative and was not rewritten.
+
+### Implemented
+- Created the Checkpoint 4 master governing artifact:
+  - `/app/memory/BCSS_RELEASE2_PROGRAM2_CHECKPOINT4_OPERATIONAL_TRUTH_SPINE.md`
+- Created companion artifacts:
+  - `/app/memory/BCSS_RELEASE2_PROGRAM2_CHECKPOINT4_SURFACE_CLAIM_MATRIX.md`
+  - `/app/memory/BCSS_RELEASE2_PROGRAM2_CHECKPOINT4_TRUTH_SUBJECT_INVENTORY.md`
+  - `/app/memory/BCSS_RELEASE2_PROGRAM2_CHECKPOINT4_MIGRATION_WAVES.md`
+  - `/app/memory/BCSS_RELEASE2_PROGRAM2_CHECKPOINT4_IMPLEMENTATION_GAP_REGISTER.md`
+- Defined the Operational Truth Spine pipeline from reality → observation → evidence → quality → confidence → truth subject → evaluation → claim → surface → automation → AI → audit.
+- Established the repository-backed surface adoption map, claim ladder, wave model, gap register, and coverage report.
+
+### Verified
+- Repository discovery completed across BCSS-facing operator surfaces, supporting APIs, and adjacent truth surfaces.
+- Backend smoke and frontend lightweight smoke will be re-run for this checkpoint before closeout.
+
+### Current BCSS result
+- Checkpoint 4 now serves as the implementation bridge between the Checkpoint 3 constitutional foundation and future bounded adoption waves.
+
+### Remaining BCSS backlog
+- P1: Checkpoint 5 bounded Wave 1 + Wave 3 starter adoption plan
+- P1: `BCSS-R13` recovery certification class adoption
+- P2: wave-based platform convergence after claim binding is implemented
