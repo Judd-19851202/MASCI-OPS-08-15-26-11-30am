@@ -200,7 +200,7 @@ export default function AdminRecovery() {
             Truth subject=<span className="font-semibold">{snap?.ots_truth?.truth_subject || "bcss_recovery_posture"}</span> · permitted claim=<span className="font-semibold">{snap?.ots_truth?.permitted_claim || "UNKNOWN"}</span> · confidence=<span className="font-semibold">{snap?.ots_truth?.evidence_confidence || "UNKNOWN"}</span> · does not prove recovery certification.
           </div>
           {(() => {
-            const lineage = snap.archive_lineage || {};
+            const lineage = snap?.archive_lineage || {};
             return (
               <div className="rounded-lg border border-slate-200 bg-white p-4" data-testid="archive-lineage-summary">
                 <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Archive lineage</div>
