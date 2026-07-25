@@ -1,0 +1,418 @@
+{
+  "generated_at": "2026-07-25T20:40:39.553691+00:00",
+  "counts": {
+    "info": 23,
+    "warning": 3,
+    "critical": 0
+  },
+  "by_kind": {
+    "deploy_blocker": 3,
+    "auth": 10,
+    "scheduler": 3,
+    "ops_audit": 10
+  },
+  "auth_failures_in_window": 0,
+  "unresolved_blockers": [],
+  "events": [
+    {
+      "ts": "2026-07-25T20:40:42.266894+00:00",
+      "kind": "deploy_blocker",
+      "severity": "warning",
+      "summary": "deploy \u00b7 pm_missing_route \u00b7 warning",
+      "source_endpoint": "/api/admin/deployment-readiness",
+      "evidence": {
+        "id": "pm_missing_route",
+        "category": "master_data",
+        "summary": "5 active project(s) have no resolvable PM or Co-PM email \u2014 every notification on these projects will dead-letter.",
+        "evidence": "samples=['22-08', '24-08', '26-04', '26-07', 'ZZ-FOR-UNASSIGN-01']",
+        "remediation": "Open Admin \u2192 People & Access \u2192 Multi-Portal Directory and assign a PM in project_team_assignments for each project listed below. (Legacy fallback: set pm_email on the jobs_master row.)",
+        "status": "warning"
+      }
+    },
+    {
+      "ts": "2026-07-25T20:40:42.266894+00:00",
+      "kind": "deploy_blocker",
+      "severity": "warning",
+      "summary": "deploy \u00b7 equipment_missing_unit_number \u00b7 warning",
+      "source_endpoint": "/api/admin/deployment-readiness",
+      "evidence": {
+        "id": "equipment_missing_unit_number",
+        "category": "master_data",
+        "summary": "247 equipment row(s) missing canonical unit_number \u2014 display label is being used as identity.",
+        "evidence": "samples=['100adffe', '4f24b870', '536a1cbd', '1b9783ae', 'a8d1552a']",
+        "remediation": "Go to Admin \u2192 Equipment & Suppliers \u2192 Status Board and assign a unit_number to each piece of equipment, or remove inactive rows via the Asset Administration \u2192 Canonical Taxonomy review queue.",
+        "status": "warning"
+      }
+    },
+    {
+      "ts": "2026-07-25T20:40:42.266894+00:00",
+      "kind": "deploy_blocker",
+      "severity": "warning",
+      "summary": "deploy \u00b7 employee_missing_id \u00b7 warning",
+      "source_endpoint": "/api/admin/deployment-readiness",
+      "evidence": {
+        "id": "employee_missing_id",
+        "category": "master_data",
+        "summary": "200 active employee(s) saved without a canonical employee_id.",
+        "evidence": "samples=['Alec Perkins', 'Alejandro Escobedo', 'Alex Stansbury', 'Alfonso Flores-rosas', 'Allen Smathers']",
+        "remediation": "Open Admin \u2192 People & Access \u2192 Employee Master and assign the canonical employee_id to each row below.",
+        "status": "warning"
+      }
+    },
+    {
+      "ts": "2026-07-25T20:40:39.233004+00:00",
+      "kind": "auth",
+      "severity": "info",
+      "summary": "jaymn.judd@mascigc.com \u00b7 multi_login",
+      "source_endpoint": "/api/admin/audit",
+      "evidence": {
+        "actor_email": "jaymn.judd@mascigc.com",
+        "action": "multi_login",
+        "diff": {
+          "portals_granted": [
+            "admin",
+            "dispatch",
+            "field_leadership",
+            "fl",
+            "hr",
+            "pm",
+            "safety",
+            "shop"
+          ]
+        },
+        "ip": "34.170.12.145"
+      }
+    },
+    {
+      "ts": "2026-07-25T20:39:47.884756+00:00",
+      "kind": "auth",
+      "severity": "info",
+      "summary": "jaymn.judd@mascigc.com \u00b7 multi_login",
+      "source_endpoint": "/api/admin/audit",
+      "evidence": {
+        "actor_email": "jaymn.judd@mascigc.com",
+        "action": "multi_login",
+        "diff": {
+          "portals_granted": [
+            "admin",
+            "dispatch",
+            "field_leadership",
+            "fl",
+            "hr",
+            "pm",
+            "safety",
+            "shop"
+          ]
+        },
+        "ip": "34.170.12.145"
+      }
+    },
+    {
+      "ts": "2026-07-25T20:36:35.586707+00:00",
+      "kind": "auth",
+      "severity": "info",
+      "summary": "jaymn.judd@mascigc.com \u00b7 multi_login",
+      "source_endpoint": "/api/admin/audit",
+      "evidence": {
+        "actor_email": "jaymn.judd@mascigc.com",
+        "action": "multi_login",
+        "diff": {
+          "portals_granted": [
+            "admin",
+            "dispatch",
+            "field_leadership",
+            "fl",
+            "hr",
+            "pm",
+            "safety",
+            "shop"
+          ]
+        },
+        "ip": "34.170.12.145"
+      }
+    },
+    {
+      "ts": "2026-07-25T20:35:47.703139+00:00",
+      "kind": "auth",
+      "severity": "info",
+      "summary": "jaymn.judd@mascigc.com \u00b7 multi_login",
+      "source_endpoint": "/api/admin/audit",
+      "evidence": {
+        "actor_email": "jaymn.judd@mascigc.com",
+        "action": "multi_login",
+        "diff": {
+          "portals_granted": [
+            "admin",
+            "dispatch",
+            "field_leadership",
+            "fl",
+            "hr",
+            "pm",
+            "safety",
+            "shop"
+          ]
+        },
+        "ip": "34.170.12.145"
+      }
+    },
+    {
+      "ts": "2026-07-25T20:35:30.226226+00:00",
+      "kind": "auth",
+      "severity": "info",
+      "summary": "jaymn.judd@mascigc.com \u00b7 multi_login",
+      "source_endpoint": "/api/admin/audit",
+      "evidence": {
+        "actor_email": "jaymn.judd@mascigc.com",
+        "action": "multi_login",
+        "diff": {
+          "portals_granted": [
+            "admin",
+            "dispatch",
+            "field_leadership",
+            "fl",
+            "hr",
+            "pm",
+            "safety",
+            "shop"
+          ]
+        },
+        "ip": "34.170.12.145"
+      }
+    },
+    {
+      "ts": "2026-07-25T20:34:28.422433+00:00",
+      "kind": "auth",
+      "severity": "info",
+      "summary": "jaymn.judd@mascigc.com \u00b7 multi_login",
+      "source_endpoint": "/api/admin/audit",
+      "evidence": {
+        "actor_email": "jaymn.judd@mascigc.com",
+        "action": "multi_login",
+        "diff": {
+          "portals_granted": [
+            "admin",
+            "dispatch",
+            "field_leadership",
+            "fl",
+            "hr",
+            "pm",
+            "safety",
+            "shop"
+          ]
+        },
+        "ip": "34.170.12.145"
+      }
+    },
+    {
+      "ts": "2026-07-25T20:33:19.340357+00:00",
+      "kind": "auth",
+      "severity": "info",
+      "summary": "jaymn.judd@mascigc.com \u00b7 multi_login",
+      "source_endpoint": "/api/admin/audit",
+      "evidence": {
+        "actor_email": "jaymn.judd@mascigc.com",
+        "action": "multi_login",
+        "diff": {
+          "portals_granted": [
+            "admin",
+            "dispatch",
+            "field_leadership",
+            "fl",
+            "hr",
+            "pm",
+            "safety",
+            "shop"
+          ]
+        },
+        "ip": "34.170.12.145"
+      }
+    }
+  ],
+  "probe_errors": {},
+  "duplicate_suppression_count": 0,
+  "truth_surface": {
+    "surface_id": "occ_trust_events",
+    "surface_name": "OCC Trust Events Aggregator",
+    "role": "AGGREGATOR",
+    "owner_type": "derived",
+    "canonical_owner_id": "trust_spine",
+    "upstream_owner_ids": [
+      "trust_spine",
+      "shared_auth_session",
+      "bcss_backup_slot_execution",
+      "bcss_recovery_certification"
+    ],
+    "owner_endpoint": "/api/admin/occ/trust-events",
+    "owner_module": "backend/routes/occ_trust_events.py",
+    "truth_subject": "shared_operational_trust_event_feed",
+    "status_authority": "derived_from_upstream_owners",
+    "kpi_authority": "occ_trust_events",
+    "threshold_authority": "occ_trust_events",
+    "freshness_authority": "occ_trust_events",
+    "evidence_sources": [
+      "/api/admin/trust-spine",
+      "/api/admin/audit",
+      "/api/admin/scheduler-runs",
+      "/api/admin/operations-control/audit",
+      "/api/admin/deployment-readiness"
+    ],
+    "derived_fields": [
+      "counts",
+      "by_kind",
+      "auth_failures_in_window",
+      "unresolved_blockers",
+      "duplicate_suppression_count"
+    ],
+    "derivation_formula": "read_only_event_fan_in_with_exact_duplicate_suppression_and_owner_anchoring",
+    "allowed_status_outputs": [
+      "VERIFIED",
+      "DEGRADED",
+      "MISMATCH",
+      "UNVERIFIABLE"
+    ],
+    "operator_surfaces": [
+      "frontend/src/pages/admin/AdminGovernanceTrust.jsx",
+      "frontend/src/pages/admin/AdminIdentitySecurity.jsx"
+    ],
+    "environment_scope": "preview_and_production",
+    "runtime_reachability": "reachable",
+    "production_reachability": "reachable",
+    "registered_at": "2026-07-25T00:00:00Z",
+    "contract_version": "C2.11",
+    "deprecation_state": "active",
+    "audit_reference": "C2-R2-OCC-TRUST-EVENTS",
+    "contract": "Read-only OCC event aggregator over existing canonical and audit sources. Never authoritative over event identity, event ownership, or child truth.",
+    "duplicate_derivation_keys": [],
+    "ui_consumer_routes": [
+      "/admin/governance-trust",
+      "/admin/identity-security"
+    ],
+    "capability_ids": [],
+    "notes": [
+      "Aggregator only. It may consume and correlate upstream evidence but may not emit canonical events.",
+      "Trust Spine remains the canonical lifecycle event architecture for workflow event truth.",
+      "Canonical deployment-readiness evidence must be consumed via /api/admin/deployment-readiness, not the legacy deploy-readiness route."
+    ]
+  },
+  "truth_relationship": {
+    "is_canonical": false,
+    "role": "AGGREGATOR",
+    "canonical_owner_id": "trust_spine",
+    "canonical_owner_route": "/api/admin/trust-spine",
+    "upstream_owner_ids": [
+      "trust_spine",
+      "shared_auth_session",
+      "bcss_backup_slot_execution",
+      "bcss_recovery_certification"
+    ],
+    "canonical_status": "VERIFIED",
+    "derived_status": "VERIFIED",
+    "derivation_explanation": "OCC Trust Events is a read-only aggregator over existing audit and event evidence. It references Trust Spine as canonical event architecture and preserves child-source authority.",
+    "conflicts": [],
+    "has_conflict": false,
+    "evidence_age_source": "2026-07-25T20:40:42.266894+00:00",
+    "stale_evidence": false
+  },
+  "ots_truth": {
+    "truth_subject": "shared_operational_trust_event_feed",
+    "canonical_owner": "trust_spine",
+    "truth_surface": {
+      "surface_id": "occ_trust_events",
+      "surface_name": "OCC Trust Events Aggregator",
+      "role": "AGGREGATOR",
+      "owner_type": "derived",
+      "canonical_owner_id": "trust_spine",
+      "upstream_owner_ids": [
+        "trust_spine",
+        "shared_auth_session",
+        "bcss_backup_slot_execution",
+        "bcss_recovery_certification"
+      ],
+      "owner_endpoint": "/api/admin/occ/trust-events",
+      "owner_module": "backend/routes/occ_trust_events.py",
+      "truth_subject": "shared_operational_trust_event_feed",
+      "status_authority": "derived_from_upstream_owners",
+      "kpi_authority": "occ_trust_events",
+      "threshold_authority": "occ_trust_events",
+      "freshness_authority": "occ_trust_events",
+      "evidence_sources": [
+        "/api/admin/trust-spine",
+        "/api/admin/audit",
+        "/api/admin/scheduler-runs",
+        "/api/admin/operations-control/audit",
+        "/api/admin/deployment-readiness"
+      ],
+      "derived_fields": [
+        "counts",
+        "by_kind",
+        "auth_failures_in_window",
+        "unresolved_blockers",
+        "duplicate_suppression_count"
+      ],
+      "derivation_formula": "read_only_event_fan_in_with_exact_duplicate_suppression_and_owner_anchoring",
+      "allowed_status_outputs": [
+        "VERIFIED",
+        "DEGRADED",
+        "MISMATCH",
+        "UNVERIFIABLE"
+      ],
+      "operator_surfaces": [
+        "frontend/src/pages/admin/AdminGovernanceTrust.jsx",
+        "frontend/src/pages/admin/AdminIdentitySecurity.jsx"
+      ],
+      "environment_scope": "preview_and_production",
+      "runtime_reachability": "reachable",
+      "production_reachability": "reachable",
+      "registered_at": "2026-07-25T00:00:00Z",
+      "contract_version": "C2.11",
+      "deprecation_state": "active",
+      "audit_reference": "C2-R2-OCC-TRUST-EVENTS",
+      "contract": "Read-only OCC event aggregator over existing canonical and audit sources. Never authoritative over event identity, event ownership, or child truth.",
+      "duplicate_derivation_keys": [],
+      "ui_consumer_routes": [
+        "/admin/governance-trust",
+        "/admin/identity-security"
+      ],
+      "capability_ids": [],
+      "notes": [
+        "Aggregator only. It may consume and correlate upstream evidence but may not emit canonical events.",
+        "Trust Spine remains the canonical lifecycle event architecture for workflow event truth.",
+        "Canonical deployment-readiness evidence must be consumed via /api/admin/deployment-readiness, not the legacy deploy-readiness route."
+      ]
+    },
+    "evidence_state": "observed",
+    "evidence_quality": "OBSERVED",
+    "evidence_confidence": "MEDIUM",
+    "truth_evaluation": "VERIFIED",
+    "permitted_claim": "OBSERVED",
+    "claim_ceiling": "OBSERVED",
+    "claim_basis": [
+      "/api/admin/trust-spine",
+      "/api/admin/audit",
+      "/api/admin/scheduler-runs",
+      "/api/admin/operations-control/audit",
+      "/api/admin/deployment-readiness"
+    ],
+    "prohibited_claims": [
+      "canonical event ownership",
+      "event engine authority",
+      "deployment certification authority",
+      "platform attestation authority",
+      "trust spine replacement"
+    ],
+    "degradation_reasons": [],
+    "unknowns": [],
+    "contradictory_evidence": [],
+    "evidence_timestamp": "2026-07-25T20:40:42.266894+00:00",
+    "evaluation_timestamp": "2026-07-25T20:40:39.553691+00:00",
+    "source_version": "OTS-C5.1",
+    "audit_reference": "C2-R2-OCC-TRUST-EVENTS"
+  },
+  "compatibility": {
+    "preserved_fields": 7,
+    "deprecated_fields": 0,
+    "new_additive_fields": 5,
+    "legacy_aliases_retained": [],
+    "breaking_api_changes": 0
+  }
+}
