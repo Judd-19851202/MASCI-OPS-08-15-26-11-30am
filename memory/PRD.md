@@ -678,3 +678,12 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - Formal adoption artifact created: `/app/memory/BCSS_RELEASE2_PROGRAM2_CHECKPOINT6_FORMAL_ADOPTION.md`
 - Stop Rule history preserved in the final constitutional record
 - Repository-backed closure uses a documentation-only adoption head after the final independently reviewed implementation commit
+
+## 2026-07-25 — BCSS Release 2 / Program 2 / Checkpoint 7 Phase A Discovery
+
+- Discovery-only Phase A completed for the next Wave 3 candidate family
+- Repository-backed candidate remains the platform trust validator family:
+  - backend route candidate: `/app/backend/routes/admin_platform_trust.py`
+  - frontend projection candidate: `/app/frontend/src/components/PlatformTrustValidator.jsx`
+- Discovery artifact created: `/app/memory/BCSS_RELEASE2_PROGRAM2_CHECKPOINT7_PHASEA_DISCOVERY.md`
+- Phase A result: **GO RECOMMENDED** for the bounded validator family, pending explicit user approval for Phase B
