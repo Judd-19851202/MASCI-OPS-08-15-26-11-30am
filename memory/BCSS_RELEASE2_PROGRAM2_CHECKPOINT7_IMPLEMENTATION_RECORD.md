@@ -4,7 +4,7 @@
 
 Date: 2026-07-25
 
-Status: IMPLEMENTED · VERIFIED · READY FOR FORMAL ADOPTION DECISION
+Status: IMPLEMENTED · VERIFIED · FORMALLY ADOPTED
 
 ---
 
@@ -149,3 +149,34 @@ Implemented in `/app/frontend/src/components/PlatformTrustValidator.jsx`:
 - out-of-scope `/admin/email` page-level overflow from non-validator tables
 
 Checkpoint 7 Phase B is complete and independently verified.
+
+---
+
+## 8. Owner-consumer constitutional record
+
+### Canonical owner
+- establishes authoritative truth
+- owns the canonical subject identity
+- owns the authoritative evaluation lifecycle
+- publishes the authoritative truth projection
+
+### Canonical consumer / validator
+- consumes upstream truth
+- evaluates a bounded relationship
+- may constrain or downgrade claims
+- may expose unknowns and contradictions
+- may not replace the owner
+- may not strengthen the owner claim
+- may not imply certification
+- may not create a second canonical owner
+
+### Checkpoint 7 governing classification
+- `platform_attestation` remains the canonical owner
+- `platform_trust_validator` is the canonical consumer / validator
+- `platform_validation_truth` remains the bounded validator Truth Subject
+- no owner migration occurred
+- no owner duplication was introduced
+
+### Formal closure note
+- Formal adoption artifact created: `/app/memory/BCSS_RELEASE2_PROGRAM2_CHECKPOINT7_FORMAL_ADOPTION.md`
+- Formally adopted OTS families after Checkpoint 7 closure: **7**

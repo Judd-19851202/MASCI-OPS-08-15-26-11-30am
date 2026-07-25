@@ -695,3 +695,5 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - New focused tests added: `/app/backend/tests/test_bcss_checkpoint7_platform_trust_ots.py` and `/app/frontend/src/components/__tests__/PlatformTrustValidator.ots.test.jsx`.
 - Verification passed: focused Jest tests, backend deep verification, frontend independent verification, and backend QA report `/app/test_reports/iteration_38.json`.
 - Checkpoint 7 implementation artifact created: `/app/memory/BCSS_RELEASE2_PROGRAM2_CHECKPOINT7_IMPLEMENTATION_RECORD.md`.
+- Formal adoption artifact created: `/app/memory/BCSS_RELEASE2_PROGRAM2_CHECKPOINT7_FORMAL_ADOPTION.md`.
+- **CHECKPOINT 7 FORMALLY VERIFIED, ADOPTED, AND CLOSED**. Formally adopted OTS families: **6 → 7**.
