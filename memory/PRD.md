@@ -687,3 +687,11 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
   - frontend projection candidate: `/app/frontend/src/components/PlatformTrustValidator.jsx`
 - Discovery artifact created: `/app/memory/BCSS_RELEASE2_PROGRAM2_CHECKPOINT7_PHASEA_DISCOVERY.md`
 - Phase A result: **GO RECOMMENDED** for the bounded validator family, pending explicit user approval for Phase B
+
+## 2026-07-25 — BCSS Release 2 / Program 2 / Checkpoint 7 Phase B
+- Implemented bounded OTS adoption for `platform_trust_validator` without changing family ownership, routing, or permissions.
+- Backend now preserves all 13 legacy fields while additively projecting `ots_truth` + `compatibility` from `/api/admin/platform-trust/validate`.
+- Frontend now renders bounded validator wording, canonical OTS disclosure, visible unknowns/contradictions, and mobile-safe workflow cards inside `/admin/email`.
+- New focused tests added: `/app/backend/tests/test_bcss_checkpoint7_platform_trust_ots.py` and `/app/frontend/src/components/__tests__/PlatformTrustValidator.ots.test.jsx`.
+- Verification passed: focused Jest tests, backend deep verification, frontend independent verification, and backend QA report `/app/test_reports/iteration_38.json`.
+- Checkpoint 7 implementation artifact created: `/app/memory/BCSS_RELEASE2_PROGRAM2_CHECKPOINT7_IMPLEMENTATION_RECORD.md`.
