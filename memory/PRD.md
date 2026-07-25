@@ -777,3 +777,53 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 ### Disposition
 - **Wave 3 Family 1 Phase B implementation verified and ready for formal adoption recommendation**
 - Do not begin the next roadmap family without explicit user authorization
+
+## 2026-07-25 — BCSS Release 2 / Program 2 / Wave 3 / Family 2 Phase B
+- Completed bounded constitutional hardening for the OCC Trust Events family only.
+- Repository evidence proved runtime changes were constitutionally necessary: the family had no OTS binding, no canonical owner route, no claim ceiling, no Trust Spine anchoring, no feed-level duplicate suppression, and it still consumed legacy `/api/admin/deploy-readiness` despite repository evidence already flagging `BCSS-R18`.
+
+### Scope honored
+- Runtime files changed only within the approved family:
+  - `/app/backend/routes/occ_trust_events.py`
+  - `/app/backend/lib/canonical_truth.py`
+- Focused tests added/updated only for this family:
+  - `/app/backend/tests/test_track_25_sprint_7_8_trust_events.py`
+  - `/app/frontend/src/pages/admin/__tests__/OccTrustEventsConsumer.contract.test.jsx`
+- Existing consumer files were verified for compatibility but not rewritten:
+  - `/app/frontend/src/pages/admin/AdminGovernanceTrust.jsx`
+  - `/app/frontend/src/pages/admin/AdminIdentitySecurity.jsx`
+
+### Smallest safe repair applied
+- Registered `occ_trust_events` as role `AGGREGATOR` under upstream canonical owner `trust_spine` with truth subject `shared_operational_trust_event_feed`.
+- Added additive route metadata only: `truth_surface`, `truth_relationship`, `ots_truth`, `compatibility`, `duplicate_suppression_count`.
+- Bound the family to Trust Spine authority through `canonical_owner_id=trust_spine` and `canonical_owner_route=/api/admin/trust-spine` without converting the family into an owner.
+- Switched child deployment-readiness consumption from legacy `/api/admin/deploy-readiness` to canonical `/api/admin/deployment-readiness`.
+- Added exact duplicate suppression and contradiction / unknown disclosure while preserving the legacy consumer envelope.
+
+### Verified
+- Focused backend pytest: `6 passed`
+- Focused frontend Jest: `2 passed`
+- Independent QA report: `/app/test_reports/iteration_40.json` → PASS
+- Independent backend verification: PASS (`deep_testing_backend_v2`)
+- Independent frontend verification: PASS (`auto_frontend_testing_agent`)
+- Preview live API verification confirmed:
+  - `role=AGGREGATOR`
+  - `canonical_owner_id=trust_spine`
+  - `canonical_owner_route=/api/admin/trust-spine`
+  - `truth_subject=shared_operational_trust_event_feed`
+  - `claim_ceiling=OBSERVED`
+
+### Constitutional result
+- OCC Trust Events remains an `AGGREGATOR`
+- no event engine was created
+- no truth engine was created
+- no canonical owner was improperly introduced
+- Trust Spine remains the canonical event architecture
+- claim boundaries remain enforced through `claim_ceiling=OBSERVED`
+- no duplicate event ownership exists in the repaired family
+- legacy consumer contract was preserved for `AdminGovernanceTrust` and `AdminIdentitySecurity`
+- no OCC Health Aggregator / Operations Trust Center / Platform Attestation / Platform Survivability / Backup / Recovery / DR / BC / Rollback / PRR / Wave 1 Deployment work was modified
+
+### Disposition
+- **Wave 3 Family 2 Phase B implementation verified and ready for formal adoption recommendation**
+- Do not begin the next roadmap family without explicit user authorization
