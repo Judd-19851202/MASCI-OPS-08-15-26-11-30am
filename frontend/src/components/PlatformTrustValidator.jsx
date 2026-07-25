@@ -119,28 +119,28 @@ function TruthDisclosure({ ots, testidPrefix = "platform-trust-ots-disclosure" }
         className="grid gap-2 rounded-xl border border-slate-200 bg-white p-3 text-xs text-slate-700 sm:grid-cols-2 lg:grid-cols-4"
         data-testid={testidPrefix}
       >
-        <div data-testid={`${testidPrefix}-subject`}>
+        <div className="break-words" data-testid={`${testidPrefix}-subject`}>
           <span className="font-semibold text-slate-900">Truth subject:</span> {ots.truth_subject || "UNKNOWN"}
         </div>
-        <div data-testid={`${testidPrefix}-claim`}>
+        <div className="break-words" data-testid={`${testidPrefix}-claim`}>
           <span className="font-semibold text-slate-900">Permitted claim:</span> {ots.permitted_claim || "UNKNOWN"}
         </div>
-        <div data-testid={`${testidPrefix}-ceiling`}>
+        <div className="break-words" data-testid={`${testidPrefix}-ceiling`}>
           <span className="font-semibold text-slate-900">Claim ceiling:</span> {ots.claim_ceiling || "UNKNOWN"}
         </div>
-        <div data-testid={`${testidPrefix}-confidence`}>
+        <div className="break-words" data-testid={`${testidPrefix}-confidence`}>
           <span className="font-semibold text-slate-900">Confidence:</span> {ots.evidence_confidence || "UNKNOWN"}
         </div>
-        <div data-testid={`${testidPrefix}-state`}>
+        <div className="break-words" data-testid={`${testidPrefix}-state`}>
           <span className="font-semibold text-slate-900">Evidence state:</span> {ots.evidence_state || "unknown"}
         </div>
-        <div data-testid={`${testidPrefix}-quality`}>
+        <div className="break-words" data-testid={`${testidPrefix}-quality`}>
           <span className="font-semibold text-slate-900">Evidence quality:</span> {ots.evidence_quality || "UNKNOWN"}
         </div>
-        <div data-testid={`${testidPrefix}-basis`}>
+        <div className="break-words" data-testid={`${testidPrefix}-basis`}>
           <span className="font-semibold text-slate-900">Evidence basis:</span> {(ots.claim_basis || []).join(" · ") || "—"}
         </div>
-        <div data-testid={`${testidPrefix}-audit`}>
+        <div className="break-words" data-testid={`${testidPrefix}-audit`}>
           <span className="font-semibold text-slate-900">Audit reference:</span> {ots.audit_reference || "—"}
         </div>
       </div>
@@ -407,7 +407,33 @@ export default function PlatformTrustValidator() {
             Per-Workflow Delivery (last 24h)
           </h4>
         </div>
-        <div className="overflow-x-auto">
+        <div className="space-y-3 p-3 sm:hidden">
+          {wfRows.map((w) => (
+            <div
+              key={w.calling_module}
+              data-testid={`trust-workflow-mobile-${w.calling_module}`}
+              className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="font-mono text-[11px] text-slate-900 break-words">
+                    {w.calling_module.replace("auto_email_dispatch:", "")}
+                  </div>
+                  <div className="mt-1 text-slate-600 break-words">{w.reason}</div>
+                </div>
+                <Badge band={w.band} />
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-2 text-[11px]">
+                <div data-testid={`trust-workflow-mobile-sent-${w.calling_module}`}>sent: {w.sent_24h}</div>
+                <div data-testid={`trust-workflow-mobile-failed-${w.calling_module}`}>failed: {w.failed_24h}</div>
+                <div data-testid={`trust-workflow-mobile-dead-${w.calling_module}`}>dead-letter: {w.dead_letter_24h}</div>
+                <div data-testid={`trust-workflow-mobile-submissions-${w.calling_module}`}>submissions: {w.recent_submissions_24h}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="hidden overflow-x-auto sm:block">
           <table className="w-full text-sm">
             <thead className="text-xs uppercase tracking-wide bg-slate-50 text-slate-500">
               <tr>
@@ -468,7 +494,7 @@ export default function PlatformTrustValidator() {
       {data.compatibility && (
         <div
           data-testid="platform-trust-compatibility"
-          className="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600"
+          className="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600 break-words"
         >
           <span className="font-semibold text-slate-900">Compatibility:</span>{" "}
           preserved {data.compatibility.preserved_fields} fields · additive {data.compatibility.new_additive_fields} fields · breaking changes {data.compatibility.breaking_api_changes}
