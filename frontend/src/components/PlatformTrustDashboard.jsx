@@ -38,20 +38,20 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { TruthOwnerPanel } from "@/components/admin/trust/TrustPrimitives";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
-import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
+import { formatPlatformTime } from "@/lib/platformTime";
 
 const BAND = {
   green: {
     tone: "bg-emerald-50 border-emerald-200",
     pill: "bg-emerald-100 text-emerald-800 border-emerald-300",
     Icon: ShieldCheck,
-    label: "Trusted",
+    label: "Evidence complete",
   },
   amber: {
     tone: "bg-amber-50 border-amber-200",
     pill: "bg-amber-100 text-amber-800 border-amber-300",
     Icon: AlertTriangle,
-    label: "Missing evidence",
+    label: "Incomplete evidence",
   },
   "amber-no-activity": {
     tone: "bg-slate-50 border-slate-200",
@@ -63,7 +63,7 @@ const BAND = {
     tone: "bg-rose-50 border-rose-200",
     pill: "bg-rose-100 text-rose-800 border-rose-300",
     Icon: XCircle,
-    label: "Failing",
+    label: "Failure observed",
   },
 };
 
@@ -105,6 +105,92 @@ function TruthOwnerBanner({ surface, relationship, canonicalStatus, checkedAt })
       checkedAt={fmtTs(checkedAt)}
       testidPrefix="trust-spine-owner-banner"
     />
+  );
+}
+
+function boundedHeadline(ots) {
+  const claim = ots?.permitted_claim || "UNKNOWN";
+  const evaluation = ots?.truth_evaluation || "UNVERIFIABLE";
+  if (evaluation === "MISMATCH") {
+    return "Lifecycle evidence shows at least one failing workflow.";
+  }
+  if (evaluation === "DEGRADED") {
+    return "Lifecycle evidence is incomplete or stale for at least one workflow.";
+  }
+  if (claim === "VALIDATED") {
+    return "Lifecycle evidence validated in scope.";
+  }
+  if (claim === "VERIFIED") {
+    return "Lifecycle evidence verified in scope, with bounded gaps.";
+  }
+  if (claim === "OBSERVED") {
+    return "Lifecycle activity observed, but not fully validated in scope.";
+  }
+  return "Lifecycle evidence is available with a bounded claim.";
+}
+
+function TruthDisclosure({ ots, testidPrefix }) {
+  if (!ots) return null;
+  const unknowns = ots.unknowns || [];
+  const contradictions = ots.contradictory_evidence || [];
+  return (
+    <div className="space-y-2" data-testid={`${testidPrefix}-wrapper`}>
+      <div
+        className="grid gap-2 rounded-xl border border-slate-200 bg-white/80 p-3 text-xs text-slate-700 sm:grid-cols-2 lg:grid-cols-4"
+        data-testid={testidPrefix}
+      >
+        <div data-testid={`${testidPrefix}-subject`}>
+          <span className="font-semibold text-slate-900">Truth subject:</span> {ots.truth_subject || "UNKNOWN"}
+        </div>
+        <div data-testid={`${testidPrefix}-claim`}>
+          <span className="font-semibold text-slate-900">Permitted claim:</span> {ots.permitted_claim || "UNKNOWN"}
+        </div>
+        <div data-testid={`${testidPrefix}-ceiling`}>
+          <span className="font-semibold text-slate-900">Claim ceiling:</span> {ots.claim_ceiling || "UNKNOWN"}
+        </div>
+        <div data-testid={`${testidPrefix}-confidence`}>
+          <span className="font-semibold text-slate-900">Confidence:</span> {ots.evidence_confidence || "UNKNOWN"}
+        </div>
+        <div data-testid={`${testidPrefix}-state`}>
+          <span className="font-semibold text-slate-900">Evidence state:</span> {ots.evidence_state || "unknown"}
+        </div>
+        <div data-testid={`${testidPrefix}-quality`}>
+          <span className="font-semibold text-slate-900">Evidence quality:</span> {ots.evidence_quality || "UNKNOWN"}
+        </div>
+        <div data-testid={`${testidPrefix}-basis`}>
+          <span className="font-semibold text-slate-900">Evidence basis:</span> {(ots.claim_basis || []).join(" · ") || "—"}
+        </div>
+        <div data-testid={`${testidPrefix}-audit`}>
+          <span className="font-semibold text-slate-900">Audit reference:</span> {ots.audit_reference || "—"}
+        </div>
+      </div>
+      {unknowns.length > 0 && (
+        <div
+          className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900"
+          data-testid={`${testidPrefix}-unknowns`}
+        >
+          <div className="font-semibold">Unknowns / gaps</div>
+          <ul className="mt-1 list-disc space-y-1 pl-4">
+            {unknowns.map((item, index) => (
+              <li key={`${testidPrefix}-unknown-${index}`}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {contradictions.length > 0 && (
+        <div
+          className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-900"
+          data-testid={`${testidPrefix}-contradictions`}
+        >
+          <div className="font-semibold">Contradictions</div>
+          <ul className="mt-1 list-disc space-y-1 pl-4">
+            {contradictions.map((item, index) => (
+              <li key={`${testidPrefix}-contradiction-${index}`}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -202,6 +288,10 @@ function WorkflowRow({ row, expanded, onToggle, drill }) {
                   )}
                 </div>
               )}
+              <TruthDisclosure
+                ots={row.ots_truth}
+                testidPrefix={`trust-spine-workflow-truth-${row.workflow}`}
+              />
               <DrillTable drill={drill} workflow={row.workflow} />
             </div>
           </td>
@@ -414,8 +504,14 @@ export default function PlatformTrustDashboard() {
                 Platform Trust Spine
               </h3>
               <p className="text-xs text-slate-500">
-                Zero-drift operational verification ·{" "}
+                Workflow lifecycle evidence across the last 24 hours ·{" "}
                 {lastRun && `last refresh ${lastRun}`}
+              </p>
+              <p
+                className="mt-1 text-xs font-medium text-slate-700"
+                data-testid="trust-spine-bounded-headline"
+              >
+                {boundedHeadline(data?.ots_truth)}
               </p>
             </div>
           </div>
@@ -499,6 +595,8 @@ export default function PlatformTrustDashboard() {
             <Clock size={12} /> {data.generated_at && fmtTs(data.generated_at)}
           </span>
         </div>
+
+        <TruthDisclosure ots={data?.ots_truth} testidPrefix="trust-spine-ots-disclosure" />
 
         <TruthOwnerBanner
           surface={data.truth_surface}

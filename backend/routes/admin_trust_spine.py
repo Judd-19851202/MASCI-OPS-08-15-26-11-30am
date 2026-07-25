@@ -20,12 +20,293 @@ Band rules (no fake-green):
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends
 
-from lib.canonical_truth import canonical_truth_surface, derived_truth_payload
+from lib.canonical_truth import canonical_truth_surface
+from lib.ots_truth import (
+    CORRELATED,
+    OBSERVED,
+    VALIDATED,
+    VERIFIED,
+    canonical_truth_card,
+    compatibility_projection,
+    projected_truth_relationship,
+    public_ots_projection,
+)
 from lib.trust_spine import WORKFLOW_EXPECTED_STAGES
+
+
+def _parse_iso(ts: Optional[str]) -> Optional[datetime]:
+    if not ts:
+        return None
+    try:
+        return datetime.fromisoformat(ts)
+    except Exception:
+        return None
+
+
+def _latest_timestamp(*timestamps: Optional[str]) -> Optional[str]:
+    latest: Optional[datetime] = None
+    latest_raw: Optional[str] = None
+    for ts in timestamps:
+        dt = _parse_iso(ts)
+        if dt and (latest is None or dt > latest):
+            latest = dt
+            latest_raw = ts
+    return latest_raw
+
+
+def _workflow_truth_projection(slot: Dict[str, Any], *, now_iso: str) -> Dict[str, Any]:
+    contradictions: List[str] = []
+    if slot.get("delivery_path") == "contradictory":
+        contradictions.append(
+            "Conflicting delivery-path evidence observed in the evaluation window: both provider acceptance and preview capture were recorded."
+        )
+    if slot.get("band") == "green" and slot.get("missing_stages"):
+        contradictions.append(
+            "Workflow was marked green while expected stages were still missing."
+        )
+    if slot.get("band") == "green" and int(slot.get("failed_24h") or 0) > 0:
+        contradictions.append(
+            "Workflow was marked green while failed lifecycle events were present."
+        )
+
+    latest_ts = _latest_timestamp(
+        (slot.get("latest") or {}).get("ts"),
+        (slot.get("last_success") or {}).get("ts"),
+        (slot.get("last_failure") or {}).get("ts"),
+    )
+
+    failed_24h = int(slot.get("failed_24h") or 0)
+    events_24h = int(slot.get("events_24h") or 0)
+    missing_stages = list(slot.get("missing_stages") or [])
+
+    if contradictions:
+        evidence_state = "contradicted"
+        evidence_quality = "CORRELATED"
+        evidence_confidence = "MEDIUM"
+        truth_evaluation = "MISMATCH"
+        permitted_claim = CORRELATED
+    elif failed_24h > 0:
+        evidence_state = "validated_failure"
+        evidence_quality = "VALIDATED"
+        evidence_confidence = "HIGH"
+        truth_evaluation = "MISMATCH"
+        permitted_claim = VALIDATED
+    elif events_24h == 0 and latest_ts:
+        evidence_state = "stale"
+        evidence_quality = "DURABLE_OBSERVED"
+        evidence_confidence = "LOW"
+        truth_evaluation = "DEGRADED"
+        permitted_claim = OBSERVED
+    elif events_24h == 0:
+        evidence_state = "unavailable"
+        evidence_quality = "UNAVAILABLE"
+        evidence_confidence = "UNKNOWN"
+        truth_evaluation = "DEGRADED"
+        permitted_claim = OBSERVED
+    elif missing_stages:
+        evidence_state = "partial"
+        evidence_quality = "VALIDATED"
+        evidence_confidence = "MEDIUM"
+        truth_evaluation = "DEGRADED"
+        permitted_claim = VERIFIED
+    else:
+        evidence_state = "validated"
+        evidence_quality = "VALIDATED"
+        evidence_confidence = "HIGH"
+        truth_evaluation = "VERIFIED"
+        permitted_claim = VALIDATED
+
+    degradation_reasons: List[str] = []
+    if slot.get("band") in {"red", "amber", "amber-no-activity"}:
+        degradation_reasons.append(str(slot.get("reason") or "Lifecycle evidence is degraded."))
+
+    unknowns: List[str] = []
+    if events_24h == 0:
+        unknowns.append("No lifecycle events were observed for this workflow in the last 24 hours.")
+    elif missing_stages:
+        unknowns.append("The expected-stage contract is incomplete in the current evaluation window.")
+
+    claim_basis = [
+        "trust_spine_events",
+        "expected_stage_contract",
+        "events_24h",
+    ]
+    if slot.get("delivery_path"):
+        claim_basis.append(f"delivery_path:{slot['delivery_path']}")
+    if latest_ts:
+        claim_basis.append("latest_workflow_event")
+    if failed_24h > 0:
+        claim_basis.append("failed_lifecycle_event")
+
+    truth_card = canonical_truth_card(
+        truth_subject="workflow_lifecycle_truth",
+        canonical_owner="trust_spine",
+        truth_surface_id="trust_spine",
+        evidence_state=evidence_state,
+        evidence_quality=evidence_quality,
+        evidence_confidence=evidence_confidence,
+        truth_evaluation=truth_evaluation,
+        permitted_claim=permitted_claim,
+        claim_ceiling=VALIDATED,
+        claim_basis=claim_basis,
+        prohibited_claims=[
+            "platform-wide health",
+            "recovery readiness",
+            "deployment readiness",
+            "operational certification",
+            "CERTIFIED",
+        ],
+        degradation_reasons=degradation_reasons,
+        unknowns=unknowns,
+        contradictory_evidence=contradictions,
+        evidence_timestamp=latest_ts or now_iso,
+        evaluation_timestamp=now_iso,
+        audit_reference="OTS-C6-TRUST-SPINE-WORKFLOW",
+        evidence_required_to_raise_claim=[
+            "independent certification decision evidence for any broader operational claim",
+            "cross-domain evidence outside workflow lifecycle scope",
+        ],
+        notes=[
+            "This workflow projection validates lifecycle evidence only.",
+            "Expected-stage completion does not imply platform health, recovery readiness, or deployment readiness.",
+        ],
+    )
+    return {
+        "ots_truth": public_ots_projection(truth_card),
+        "truth_relationship": projected_truth_relationship(
+            surface_id="trust_spine",
+            card=truth_card,
+            canonical_owner_route="/api/admin/trust-spine",
+            derivation_explanation=f"{slot.get('workflow') or 'workflow'} lifecycle truth is projected from trust_spine_events and the expected-stage contract.",
+            derived_status=truth_card["truth_evaluation"],
+        ),
+    }
+
+
+def _route_truth_projection(
+    *,
+    rows: List[Dict[str, Any]],
+    total_events_24h: int,
+    total_failed_24h: int,
+    platform_band: str,
+    canonical_status: str,
+    now_iso: str,
+) -> Dict[str, Any]:
+    contradictions: List[str] = []
+    idle_count = 0
+    partial_count = 0
+    failed_count = 0
+    latest_ts: Optional[str] = None
+    for row in rows:
+        row_truth = row.get("ots_truth") or {}
+        contradictions.extend(list(row_truth.get("contradictory_evidence") or []))
+        latest_ts = _latest_timestamp(latest_ts, row_truth.get("evidence_timestamp"))
+        if row.get("band") == "amber-no-activity":
+            idle_count += 1
+        elif row.get("band") == "amber":
+            partial_count += 1
+        elif row.get("band") == "red":
+            failed_count += 1
+
+    if platform_band == "green" and (idle_count or partial_count or failed_count):
+        contradictions.append(
+            "Aggregate platform band was green while one or more workflows were degraded or failing."
+        )
+
+    if contradictions:
+        evidence_state = "contradicted"
+        evidence_quality = "CORRELATED"
+        evidence_confidence = "MEDIUM"
+        permitted_claim = CORRELATED
+    elif total_events_24h == 0:
+        evidence_state = "observed"
+        evidence_quality = "DURABLE_OBSERVED"
+        evidence_confidence = "LOW"
+        permitted_claim = OBSERVED
+    elif partial_count or idle_count:
+        evidence_state = "partial"
+        evidence_quality = "VALIDATED"
+        evidence_confidence = "MEDIUM"
+        permitted_claim = VERIFIED
+    else:
+        evidence_state = "validated"
+        evidence_quality = "VALIDATED"
+        evidence_confidence = "HIGH"
+        permitted_claim = VALIDATED
+
+    degradation_reasons: List[str] = []
+    if failed_count:
+        degradation_reasons.append(f"{failed_count} workflow(s) emitted failed lifecycle evidence in the current window.")
+    if partial_count:
+        degradation_reasons.append(f"{partial_count} workflow(s) are missing one or more expected stages.")
+    if idle_count:
+        degradation_reasons.append(f"{idle_count} workflow(s) emitted no lifecycle events in the last 24 hours.")
+
+    unknowns: List[str] = []
+    if total_events_24h == 0:
+        unknowns.append("No workflow emitted lifecycle evidence in the last 24 hours.")
+    elif idle_count:
+        unknowns.append("Idle workflows are evidence gaps, not proof of workflow health.")
+
+    truth_card = canonical_truth_card(
+        truth_subject="workflow_lifecycle_truth",
+        canonical_owner="trust_spine",
+        truth_surface_id="trust_spine",
+        evidence_state=evidence_state,
+        evidence_quality=evidence_quality,
+        evidence_confidence=evidence_confidence,
+        truth_evaluation=canonical_status,
+        permitted_claim=permitted_claim,
+        claim_ceiling=VALIDATED,
+        claim_basis=[
+            "trust_spine_events",
+            "expected_stage_contract",
+            "per_workflow_rollup_24h",
+            "workflow_band_summary",
+        ],
+        prohibited_claims=[
+            "platform-wide health",
+            "recovery readiness",
+            "deployment readiness",
+            "operational certification",
+            "CERTIFIED",
+        ],
+        degradation_reasons=degradation_reasons,
+        unknowns=unknowns,
+        contradictory_evidence=sorted(set(contradictions)),
+        evidence_timestamp=latest_ts or now_iso,
+        evaluation_timestamp=now_iso,
+        audit_reference="OTS-C6-TRUST-SPINE",
+        evidence_required_to_raise_claim=[
+            "independent certification decision evidence for any broader operational claim",
+            "cross-domain owner evidence outside workflow lifecycle scope",
+        ],
+        notes=[
+            "Trust Spine validates workflow lifecycle evidence only.",
+            "Completed expected-stage rollups do not imply recovery readiness, deployment readiness, or platform-wide health.",
+        ],
+    )
+    return {
+        "ots_truth": public_ots_projection(truth_card),
+        "truth_relationship": projected_truth_relationship(
+            surface_id="trust_spine",
+            card=truth_card,
+            canonical_owner_route="/api/admin/trust-spine",
+            derivation_explanation="Workflow lifecycle truth is evaluated from trust_spine_events and the expected-stage contract without upgrading broader operational claims.",
+            derived_status=truth_card["truth_evaluation"],
+        ),
+        "compatibility": compatibility_projection(
+            preserved_fields=11,
+            deprecated_fields=0,
+            new_fields=2,
+            alias_fields=[],
+            breaking_changes=0,
+        ),
+    }
 
 
 def make_router(db, require_admin_only_dep) -> APIRouter:
@@ -108,14 +389,19 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
                 preview_ok = slot["stages_seen"].get("delivery_captured_preview", 0) - slot["stages_failed"].get("delivery_captured_preview", 0) > 0
                 completed_ok = slot["stages_seen"].get("completed", 0) - slot["stages_failed"].get("completed", 0) > 0
                 completed_env_ok = slot["stages_seen"].get("completed_for_environment", 0) - slot["stages_failed"].get("completed_for_environment", 0) > 0
-                if provider_ok:
+                if provider_ok and preview_ok:
+                    expected = [*expected, "provider_accepted", "delivery_captured_preview", "completed", "completed_for_environment"]
+                elif provider_ok:
                     expected = [*expected, "provider_accepted", "completed"]
                 elif preview_ok:
                     expected = [*expected, "delivery_captured_preview", "completed_for_environment"]
                 else:
                     expected = [*expected, "provider_accepted"]
                 slot["delivery_path"] = (
-                    "provider_live" if provider_ok else "preview_capture" if preview_ok else "unresolved"
+                    "contradictory" if provider_ok and preview_ok else
+                    "provider_live" if provider_ok else
+                    "preview_capture" if preview_ok else
+                    "unresolved"
                 )
                 slot["delivery_terminal_stage_ok"] = provider_ok or preview_ok or completed_ok or completed_env_ok
             # A stage is "satisfied" only if we have at least one ok
@@ -172,6 +458,8 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
                 )
                 slot["remediation"] = None
 
+            slot.update(_workflow_truth_projection(slot, now_iso=now.isoformat()))
+
         # Sort rows: red first, then amber-no-activity, then amber, then green.
         band_order = {"red": 0, "amber": 1, "amber-no-activity": 2, "green": 3}
         rows: List[Dict[str, Any]] = sorted(
@@ -199,22 +487,24 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
             platform_band = "green"
             canonical_status = "VERIFIED"
 
+        route_truth = _route_truth_projection(
+            rows=rows,
+            total_events_24h=total_events_24h,
+            total_failed_24h=total_failed_24h,
+            platform_band=platform_band,
+            canonical_status=canonical_status,
+            now_iso=now.isoformat(),
+        )
+
         return {
             "track": "15.76",
             "generated_at": now.isoformat(),
             "platform_band": platform_band,
             "canonical_status": canonical_status,
             "truth_surface": canonical_truth_surface("trust_spine"),
-            "truth_relationship": derived_truth_payload(
-                "trust_spine",
-                canonical_owner_route="/api/admin/trust-spine",
-                derivation_explanation="Workflow lifecycle truth comes directly from trust_spine_events rollups.",
-                canonical_status=canonical_status,
-                derived_status=canonical_status,
-                conflicts=[],
-                evidence_age_source="generated_at",
-                stale_evidence=False,
-            )["relationship"],
+            "ots_truth": route_truth["ots_truth"],
+            "truth_relationship": route_truth["truth_relationship"],
+            "compatibility": route_truth["compatibility"],
             "total_events_24h": total_events_24h,
             "total_failed_24h": total_failed_24h,
             "workflow_count": len(rows),
