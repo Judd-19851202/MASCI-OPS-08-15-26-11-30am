@@ -424,7 +424,7 @@ _SURFACES: Dict[str, TruthSurface] = {
         contract="BCSS canonical owner for archive presence, origin linkage, and freshness-bounded lineage truth.",
         ui_consumer_routes=["/admin/recovery", "/admin/system"],
         capability_ids=["bcss.archive.lineage"],
-        notes=["Registration does not resolve the separate BCSS-R02 precedence-convergence gap."],
+        notes=["Canonical ownership registration is complete. BCSS-R02 bounded resolver implementation is complete for Checkpoint 2 adoption scope only; broader evidence taxonomy (R08/R12), recovery certification (R13), and future registration automation (R15) remain open."],
     ),
     "bcss_restore_execution": TruthSurface(
         surface_id="bcss_restore_execution",

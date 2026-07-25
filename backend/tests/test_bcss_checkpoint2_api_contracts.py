@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from types import SimpleNamespace
 
 from lib.archive_lineage import public_archive_lineage_payload
+from backup_verification import render_verification_email_html
 from routes.recovery_dashboard import build_recovery_dashboard_router
 
 
@@ -138,3 +139,101 @@ def test_recovery_snapshot_includes_archive_lineage(monkeypatch):
     assert "archive_lineage" in snapshot
     assert snapshot["archive_lineage"]["authoritative_time_source"] == "VERIFIED_LOGICAL_RECOVERY_POINT"
     assert snapshot["last_backup"]["source"] == "canonical_archive_lineage"
+
+
+def _email_report(*, authoritative=True, observed=True, partial=False, corrupt=False, unknown=False):
+    lineage = _lineage_payload()
+    if unknown:
+        lineage.update({
+            "authoritative_recovery_point_time": None,
+            "authoritative_time_source": "UNKNOWN",
+            "freshness_age_hours": None,
+            "lineage_confidence": "LOW",
+            "integrity_status": "UNKNOWN",
+            "completeness_status": "UNKNOWN",
+            "availability_status": "AVAILABLE" if observed else "ABSENT",
+            "degradation_reasons": ["authoritative_recoverable_artifact_absent"],
+            "newest_valid_recoverable_artifact": None,
+        })
+    if partial:
+        lineage.update({
+            "authoritative_recovery_point_time": None,
+            "authoritative_time_source": "UNKNOWN",
+            "integrity_status": "UNKNOWN",
+            "completeness_status": "PARTIAL",
+            "degradation_reasons": ["authoritative_recoverable_artifact_absent"],
+            "newest_valid_recoverable_artifact": None,
+        })
+    if corrupt:
+        lineage.update({
+            "authoritative_recovery_point_time": None,
+            "authoritative_time_source": "UNKNOWN",
+            "integrity_status": "FAIL",
+            "completeness_status": "PARTIAL",
+            "degradation_reasons": ["newer_invalid_artifact_rejected"],
+            "newest_valid_recoverable_artifact": None,
+        })
+    if not observed:
+        lineage["newest_observed_artifact"] = None
+        lineage["availability_status"] = "ABSENT"
+    if not authoritative:
+        lineage["newest_valid_recoverable_artifact"] = None
+
+    return {
+        "ts": datetime.now(timezone.utc).isoformat(),
+        "verdict": "warn",
+        "r2": {
+            "archive_count": 2 if observed else 0,
+            "total_size_human": "2 GB",
+            "all_archives": [
+                {"key": "backups/auto-90d/obs.zip", "size_bytes": 1000, "last_modified_iso": datetime.now(timezone.utc).isoformat()}
+            ] if observed else [],
+            "all_archives_truncated": False,
+            "newest": {"key": "backups/auto-90d/obs.zip", "filename": "obs.zip", "last_modified_iso": datetime.now(timezone.utc).isoformat()} if observed else None,
+            "newest_age_hrs": 0.1 if observed else None,
+            "authoritative_artifact": lineage.get("newest_valid_recoverable_artifact"),
+            "archive_lineage": lineage,
+            "issues": [],
+        },
+        "ledger": {"last_full": {}, "last_r2": {}, "last_failure": {}, "issues": []},
+        "data": {"per_collection_counts": {}, "total_records": 0},
+        "archive_lineage": lineage,
+    }
+
+
+def test_email_uses_authoritative_recoverable_point_not_newest_object_age():
+    html = render_verification_email_html(_email_report())
+    assert "Authoritative Recoverable Point" in html
+    assert "Newest Observed Archive Object (Secondary Diagnostic Evidence Only)" in html
+    assert "authoritative recoverable point" in html.lower()
+
+
+def test_email_does_not_label_newest_age_as_authoritative():
+    html = render_verification_email_html(_email_report())
+    assert "· newest:" not in html
+
+
+def test_email_reports_no_authoritative_recoverable_point_when_only_observed_exists():
+    html = render_verification_email_html(_email_report(authoritative=False, observed=True, unknown=True))
+    assert "No authoritative recoverable point is currently proven" in html
+
+
+def test_email_reports_no_archive_evidence_when_none_exists():
+    html = render_verification_email_html(_email_report(authoritative=False, observed=False, unknown=True))
+    assert "No archive evidence is currently available" in html
+
+
+def test_email_renders_partial_lineage_truthfully():
+    html = render_verification_email_html(_email_report(authoritative=False, observed=True, partial=True))
+    assert "completeness=PARTIAL" in html
+
+
+def test_email_renders_corrupt_or_failed_truthfully():
+    html = render_verification_email_html(_email_report(authoritative=False, observed=True, corrupt=True))
+    assert "integrity=FAIL" in html
+
+
+def test_email_does_not_imply_restore_certification_or_deployment_readiness():
+    html = render_verification_email_html(_email_report())
+    assert "does not prove restore certification" in html
+    assert "deployment readiness" in html

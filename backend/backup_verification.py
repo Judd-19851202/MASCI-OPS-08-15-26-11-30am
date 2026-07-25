@@ -536,6 +536,17 @@ def render_verification_email_html(report: Dict[str, Any]) -> str:
     r2 = report["r2"]
     ledger = report["ledger"]
     data = report["data"]
+    archive_lineage = report.get("archive_lineage") or r2.get("archive_lineage") or {}
+    authoritative_time = archive_lineage.get("authoritative_recovery_point_time")
+    authoritative_age_hrs = archive_lineage.get("freshness_age_hours")
+    authoritative_source = archive_lineage.get("authoritative_time_source") or "UNKNOWN"
+    lineage_confidence = archive_lineage.get("lineage_confidence") or "LOW"
+    integrity_status = archive_lineage.get("integrity_status") or "UNKNOWN"
+    completeness_status = archive_lineage.get("completeness_status") or "UNKNOWN"
+    availability_status = archive_lineage.get("availability_status") or "ABSENT"
+    degradation_reasons = list(archive_lineage.get("degradation_reasons") or [])
+    authoritative_artifact = r2.get("authoritative_artifact") or archive_lineage.get("newest_valid_recoverable_artifact") or {}
+    newest_observed = r2.get("newest") or archive_lineage.get("newest_observed_artifact") or {}
 
     # ── R2 archive list rows ──
     archive_rows = ""
@@ -577,6 +588,45 @@ def render_verification_email_html(report: Dict[str, Any]) -> str:
             f"<strong>Issues detected:</strong>"
             f"<ul style='margin:6px 0 0 0;padding-left:18px'>{items}</ul>"
             f"</div>"
+        )
+
+    authoritative_summary = "No archive evidence is currently available"
+    authoritative_detail = "No authoritative recoverable point is currently proven"
+    if authoritative_time:
+        age_label = f"{authoritative_age_hrs:.1f}h ago" if authoritative_age_hrs is not None else "age unknown"
+        authoritative_summary = f"Authoritative recoverable point: {authoritative_time} · {age_label}"
+        authoritative_detail = (
+            f"Source={authoritative_source} · confidence={lineage_confidence} · "
+            f"integrity={integrity_status} · completeness={completeness_status} · availability={availability_status}"
+        )
+    elif newest_observed:
+        authoritative_summary = "No authoritative recoverable point is currently proven"
+        authoritative_detail = (
+            f"Observed object exists, but recoverable-point proof is insufficient · "
+            f"integrity={integrity_status} · completeness={completeness_status} · availability={availability_status}"
+        )
+
+    degradation_html = ""
+    if degradation_reasons:
+        degradation_items = "".join(f"<li style='margin:4px 0'>{_esc(reason)}</li>" for reason in degradation_reasons)
+        degradation_html = (
+            "<div style='margin-top:10px;font-size:12px;color:#7c2d12'>"
+            "<strong>Degradation reasons</strong>"
+            f"<ul style='margin:6px 0 0 0;padding-left:18px'>{degradation_items}</ul>"
+            "</div>"
+        )
+
+    newest_observed_html = "No archive evidence is currently available"
+    if newest_observed:
+        newest_key = newest_observed.get("object_key") or newest_observed.get("key") or newest_observed.get("filename") or "unknown"
+        newest_age = newest_observed.get("freshness_age_minutes")
+        if newest_age is None and r2.get("newest_age_hrs") is not None:
+            newest_age = round(float(r2.get("newest_age_hrs") or 0.0) * 60.0, 2)
+        newest_age_label = f"{(float(newest_age) / 60.0):.1f}h ago" if newest_age is not None else "age unknown"
+        newest_observed_html = (
+            f"Newest observed archive object: <code style='font-size:11px'>{_esc(str(newest_key))}</code>"
+            f" · {newest_age_label} · integrity={_esc(str(newest_observed.get('integrity_status') or 'UNKNOWN'))}"
+            f" · completeness={_esc(str(newest_observed.get('completeness_status') or 'UNKNOWN'))}"
         )
 
     # ── Recent runs summary ──
@@ -637,7 +687,16 @@ def render_verification_email_html(report: Dict[str, Any]) -> str:
       <div style="margin-top:6px;font-size:13px;color:#0f172a">
         <strong>{r2['archive_count']}</strong> archives ·
         <strong>{r2['total_size_human']}</strong> total
-        {'· newest: ' + f"{r2['newest_age_hrs']:.1f}h ago" if r2['newest_age_hrs'] is not None else ''}
+      </div>
+      <div style="margin-top:12px;padding:12px 14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;">
+        <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:#475569;font-weight:bold">Authoritative Recoverable Point</div>
+        <div style="margin-top:6px;font-size:13px;color:#0f172a;font-weight:700">{_esc(authoritative_summary)}</div>
+        <div style="margin-top:4px;font-size:12px;color:#475569">{_esc(authoritative_detail)}</div>
+        {degradation_html}
+      </div>
+      <div style="margin-top:10px;padding:10px 12px;background:#ffffff;border:1px dashed #cbd5e1;border-radius:6px;">
+        <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:#64748b;font-weight:bold">Newest Observed Archive Object (Secondary Diagnostic Evidence Only)</div>
+        <div style="margin-top:6px;font-size:12px;color:#475569">{newest_observed_html}</div>
       </div>
       <table style="margin-top:10px;width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:4px">
         <thead>
@@ -664,6 +723,10 @@ def render_verification_email_html(report: Dict[str, Any]) -> str:
         <strong>{data.get('total_records', 0):,}</strong> total records across {len(counts)} collections.
       </div>
       <div style="margin-top:8px">{counts_chips}</div>
+
+      <div style="margin-top:18px;padding:10px 12px;background:#fff7ed;border:1px solid #fdba74;border-radius:6px;font-size:12px;color:#9a3412;line-height:1.5;">
+        <strong>Claim boundary:</strong> This verification report describes archive lineage, integrity, completeness, and recoverable-point freshness only. It does not prove restore certification, deployment readiness, or BCSS recovery-class certification.
+      </div>
 
       <hr style="border:0;border-top:1px solid #e2e8f0;margin:24px 0 18px 0" />
       {render_operational_footer_html(portal="Admin", doc_id=f"backup-{report.get('verdict','info')}")}
