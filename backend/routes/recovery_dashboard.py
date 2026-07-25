@@ -18,6 +18,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 
 from lib.archive_lineage import build_canonical_archive_lineage, consumer_freshness_status, public_archive_lineage_payload
+from lib.ots_truth import CORRELATED, canonical_truth_card, compatibility_projection, projected_truth_relationship, public_ots_projection
 
 
 logger = logging.getLogger(__name__)
@@ -616,6 +617,44 @@ def build_recovery_dashboard_router(
             },
             "cached": False,
         }
+
+        truth_card = canonical_truth_card(
+            truth_subject="bcss_recovery_posture",
+            canonical_owner="bcss_recovery_posture",
+            truth_surface_id="bcss_recovery_posture",
+            evidence_state="correlated",
+            evidence_quality="CORRELATED",
+            evidence_confidence="HIGH" if authoritative_artifact and last_drill else ("MEDIUM" if authoritative_artifact or newest_observed else "LOW"),
+            truth_evaluation="VERIFIED" if pill == "GREEN" else ("DEGRADED" if pill == "AMBER" else "MISMATCH"),
+            permitted_claim=CORRELATED,
+            claim_ceiling=CORRELATED,
+            claim_basis=["archive_lineage", "scheduler", "last_drill", "bucket_usage", "hourly_activation"],
+            prohibited_claims=["VALIDATED", "CERTIFIED"],
+            degradation_reasons=[warning.get("message") for warning in warnings],
+            unknowns=[] if (authoritative_artifact or newest_observed) else ["No archive evidence is currently available."],
+            contradictory_evidence=[],
+            evidence_timestamp=archive_lineage.get("authoritative_recovery_point_time") or (newest_observed or {}).get("observed_time") or snapshot["computed_at"],
+            evaluation_timestamp=snapshot["computed_at"],
+            audit_reference="OTS-C5-RECOVERY-SNAPSHOT",
+            evidence_required_to_raise_claim=["BCSS-R13 class-bound recovery certification", "full-platform restore exercise evidence"],
+            notes=["Recovery Snapshot is an aggregator only.", "This surface does not certify recovery."],
+        )
+        compatibility = compatibility_projection(
+            preserved_fields=17,
+            deprecated_fields=0,
+            new_fields=3,
+            alias_fields=["pill"],
+            breaking_changes=0,
+        )
+        snapshot["ots_truth"] = public_ots_projection(truth_card)
+        snapshot["truth_relationship"] = projected_truth_relationship(
+            surface_id="bcss_recovery_posture",
+            card=truth_card,
+            canonical_owner_route="/api/admin/recovery/snapshot",
+            derivation_explanation="Recovery Snapshot is a bounded BCSS aggregator and may not imply recovery certification.",
+            derived_status=truth_card["truth_evaluation"],
+        )
+        snapshot["compatibility"] = compatibility
 
         _CACHE["snapshot"] = snapshot
         _CACHE["computed_at"] = now_wall

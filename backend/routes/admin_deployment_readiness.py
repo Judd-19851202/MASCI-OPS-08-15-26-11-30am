@@ -40,6 +40,7 @@ from fastapi import APIRouter, Depends
 from lib.trust_score_v2 import compute_categorized_score
 from lib.master_data_trust import collect_findings
 from lib.notification_delivery import delivery_contract, DELIVERY_MODE_PROVIDER_LIVE, DELIVERY_MODE_SAFE_CAPTURE
+from lib.ots_truth import CERTIFIED, VALIDATED, canonical_truth_card, compatibility_projection, projected_truth_relationship, public_ots_projection
 
 
 # ──────────────────────────────────────────────────────────────────
@@ -361,7 +362,7 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
 
         decision = "fail" if blocking else "pass"
 
-        return {
+        payload = {
             "track": "15.78",
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "decision": decision,
@@ -391,6 +392,44 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
             "trust_band": score["score_band"],
             "regression_gate_count": _count_regression_gates(),
         }
+        truth_card = canonical_truth_card(
+            truth_subject="bcss_recovery_certification",
+            canonical_owner="bcss_recovery_certification",
+            truth_surface_id="bcss_recovery_certification",
+            evidence_state="independently_verified",
+            evidence_quality="DECISION_RECORDED" if decision == "pass" else "VALIDATED",
+            evidence_confidence="HIGH",
+            truth_evaluation="VERIFIED" if decision == "pass" else "DEGRADED",
+            permitted_claim=CERTIFIED if decision == "pass" else VALIDATED,
+            claim_ceiling=CERTIFIED,
+            claim_basis=["deployment readiness findings", "notification delivery contract", "trust spine rollup", "master data findings"],
+            prohibited_claims=["BCSS recovery certification", "full-platform recovery certification"],
+            degradation_reasons=[entry.get("summary") for entry in blocking],
+            unknowns=[] if decision == "pass" else ["Deployment readiness does not prove recovery readiness or BCSS recovery certification."],
+            contradictory_evidence=[],
+            evidence_timestamp=payload["generated_at"],
+            evaluation_timestamp=payload["generated_at"],
+            audit_reference="OTS-C5-DEPLOYMENT-READINESS",
+            evidence_required_to_raise_claim=["BCSS-R13 class-bound recovery certification evidence"],
+            notes=["Deployment readiness remains bounded to deployment scope."],
+        )
+        compatibility = compatibility_projection(
+            preserved_fields=9,
+            deprecated_fields=0,
+            new_fields=3,
+            alias_fields=[],
+            breaking_changes=0,
+        )
+        payload["ots_truth"] = public_ots_projection(truth_card)
+        payload["truth_relationship"] = projected_truth_relationship(
+            surface_id="bcss_recovery_certification",
+            card=truth_card,
+            canonical_owner_route="/api/admin/deployment-readiness",
+            derivation_explanation="Deployment readiness is a bounded decision surface and is not equivalent to BCSS recovery certification.",
+            derived_status=truth_card["truth_evaluation"],
+        )
+        payload["compatibility"] = compatibility
+        return payload
 
     return router
 

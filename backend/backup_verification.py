@@ -44,6 +44,7 @@ from typing import Any, Dict, List, Optional
 from operational_footer import render_operational_footer_html
 from lib.archive_lineage import build_canonical_archive_lineage, public_archive_lineage_payload, threshold_inventory
 from lib.backup_runtime import backup_slot_key_for_day, claim_backup_job, complete_backup_job, fail_backup_job, list_backup_jobs, start_backup_job
+from lib.ots_truth import OBSERVED, VALIDATED, canonical_truth_card, compatibility_projection, projected_truth_relationship, public_ots_projection
 from lib.scheduler_runs import claim_slot as scheduler_claim_slot, mark_completed as scheduler_mark_completed, mark_failed as scheduler_mark_failed
 
 logger = logging.getLogger(__name__)
@@ -438,7 +439,7 @@ async def build_verification_report(db) -> Dict[str, Any]:
     else:
         verdict = "warn"
 
-    return {
+    report = {
         "ts": now.isoformat(),
         "verdict": verdict,                  # pass | warn | fail
         "r2": {
@@ -480,6 +481,44 @@ async def build_verification_report(db) -> Dict[str, Any]:
         },
         "archive_lineage": public_archive_lineage_payload(lineage),
     }
+    truth_card = canonical_truth_card(
+        truth_subject="bcss_backup_archive_lineage",
+        canonical_owner="bcss_backup_archive_lineage",
+        truth_surface_id="bcss_backup_archive_lineage",
+        evidence_state="independently_verified" if authoritative else "observed",
+        evidence_quality="VALIDATED" if authoritative else "DIRECT_OBSERVED",
+        evidence_confidence=lineage.get("lineage_confidence") or "LOW",
+        truth_evaluation="VERIFIED" if authoritative else "UNVERIFIABLE",
+        permitted_claim=VALIDATED if authoritative else OBSERVED,
+        claim_ceiling=VALIDATED,
+        claim_basis=["archive_lineage", "backup_health ledger", "R2 archive facts", "verification report"],
+        prohibited_claims=["CERTIFIED"],
+        degradation_reasons=list(lineage.get("degradation_reasons") or []) + list(r2_issues or []) + list(ledger_issues or []),
+        unknowns=[] if (authoritative or newest_observed) else ["No archive evidence is currently available."],
+        contradictory_evidence=[],
+        evidence_timestamp=lineage.get("authoritative_recovery_point_time") or (newest_observed or {}).get("observed_time") or now.isoformat(),
+        evaluation_timestamp=now.isoformat(),
+        audit_reference="OTS-C5-BACKUP-VERIFICATION",
+        evidence_required_to_raise_claim=["restore execution evidence", "BCSS-R13 recovery certification evidence"],
+        notes=["Backup Verification validates archive-lineage truth only.", "This surface does not prove restore or recovery certification."],
+    )
+    compatibility = compatibility_projection(
+        preserved_fields=9,
+        deprecated_fields=0,
+        new_fields=3,
+        alias_fields=["verdict"],
+        breaking_changes=0,
+    )
+    report["ots_truth"] = public_ots_projection(truth_card)
+    report["truth_relationship"] = projected_truth_relationship(
+        surface_id="bcss_backup_archive_lineage",
+        card=truth_card,
+        canonical_owner_route="/api/admin/backup-verification/preview",
+        derivation_explanation="Backup Verification is a bounded validation/report projection over canonical archive-lineage evidence.",
+        derived_status=truth_card["truth_evaluation"],
+    )
+    report["compatibility"] = compatibility
+    return report
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -547,6 +586,7 @@ def render_verification_email_html(report: Dict[str, Any]) -> str:
     degradation_reasons = list(archive_lineage.get("degradation_reasons") or [])
     authoritative_artifact = r2.get("authoritative_artifact") or archive_lineage.get("newest_valid_recoverable_artifact") or {}
     newest_observed = r2.get("newest") or archive_lineage.get("newest_observed_artifact") or {}
+    ots_truth = report.get("ots_truth") or {}
 
     # ── R2 archive list rows ──
     archive_rows = ""
@@ -726,6 +766,9 @@ def render_verification_email_html(report: Dict[str, Any]) -> str:
 
       <div style="margin-top:18px;padding:10px 12px;background:#fff7ed;border:1px solid #fdba74;border-radius:6px;font-size:12px;color:#9a3412;line-height:1.5;">
         <strong>Claim boundary:</strong> This verification report describes archive lineage, integrity, completeness, and recoverable-point freshness only. It does not prove restore certification, deployment readiness, or BCSS recovery-class certification.
+      </div>
+      <div style="margin-top:10px;padding:10px 12px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;font-size:12px;color:#334155;line-height:1.5;">
+        <strong>Operational Truth Spine:</strong> Truth subject={_esc(str(ots_truth.get('truth_subject') or 'bcss_backup_archive_lineage'))} · permitted claim={_esc(str(ots_truth.get('permitted_claim') or 'UNKNOWN'))} · confidence={_esc(str(ots_truth.get('evidence_confidence') or 'UNKNOWN'))}. This surface does not prove restore certification or BCSS recovery certification.
       </div>
 
       <hr style="border:0;border-top:1px solid #e2e8f0;margin:24px 0 18px 0" />

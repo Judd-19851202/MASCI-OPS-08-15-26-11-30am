@@ -600,3 +600,32 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - P1: Checkpoint 5 bounded Wave 1 + Wave 3 starter adoption plan
 - P1: `BCSS-R13` recovery certification class adoption
 - P2: wave-based platform convergence after claim binding is implemented
+
+## 2026-07-25 — BCSS Release 2 / Program 2 / Checkpoint 5 Starter Adoption
+
+### Scope
+- Began bounded runtime adoption for the first five OTS surface families only.
+- Using one canonical OTS evaluation helper and one canonical projection layer.
+
+### In progress
+- Added shared backend helper: `backend/lib/ots_truth.py`
+- Started additive OTS contract exposure for:
+  - `/api/platform/data-truth`
+  - `/api/admin/recovery/snapshot`
+  - `/api/admin/backup-trust-score`
+  - `/api/admin/backup-verification/state`
+  - backup verification preview/report/email
+  - `/api/admin/deployment-readiness`
+  - `/api/admin/deployment-readiness/history`
+  - `/api/admin/integrations/truth-status` (directly coupled truth-preservation consumer)
+- Added compact operator disclosure wiring for:
+  - `/admin/recovery`
+  - `/admin/deploy-recovery`
+  - Admin Backup Verification panel
+- Added initial focused Checkpoint 5 backend tests.
+
+### Boundary reminders
+- No R13 implementation
+- No R15 implementation
+- No unrelated domain work
+- No platform-wide OTS rollout

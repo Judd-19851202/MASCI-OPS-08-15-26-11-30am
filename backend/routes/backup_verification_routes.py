@@ -23,6 +23,7 @@ from backup_verification import (
     DEFAULT_DAY_OF_WEEK,
     DEFAULT_HOUR_UTC,
 )
+from lib.ots_truth import OBSERVED, canonical_truth_card, compatibility_projection, projected_truth_relationship, public_ots_projection
 
 
 def build_backup_verification_router(db, require_admin_strict_dep: Callable) -> APIRouter:
@@ -78,6 +79,34 @@ def build_backup_verification_router(db, require_admin_strict_dep: Callable) -> 
         last_run_iso = (marker or {}).get("ts")
         last_was_manual = bool((marker or {}).get("manual"))
 
+        truth_card = canonical_truth_card(
+            truth_subject="bcss_backup_archive_lineage",
+            canonical_owner="bcss_backup_archive_lineage",
+            truth_surface_id="bcss_backup_archive_lineage",
+            evidence_state="historical" if marker and marker.get("ts") else "declared",
+            evidence_quality="HISTORICAL" if marker and marker.get("ts") else "DECLARED",
+            evidence_confidence="MEDIUM" if marker and marker.get("ts") else "LOW",
+            truth_evaluation="UNVERIFIABLE",
+            permitted_claim=OBSERVED,
+            claim_ceiling=OBSERVED,
+            claim_basis=["verification scheduler config", "backup_health marker", "recipient configuration"],
+            prohibited_claims=["CORRELATED", "VERIFIED", "VALIDATED", "CERTIFIED"],
+            degradation_reasons=[],
+            unknowns=[] if _enabled() else ["Verification schedule is disabled or absent."],
+            contradictory_evidence=[],
+            evidence_timestamp=last_run_iso or next_fire.isoformat(),
+            evaluation_timestamp=datetime.now(timezone.utc).isoformat(),
+            audit_reference="OTS-C5-BACKUP-VERIFICATION-STATE",
+            evidence_required_to_raise_claim=["executed preview/report validation evidence"],
+            notes=["State route exposes scheduler/config state only."],
+        )
+        compatibility = compatibility_projection(
+            preserved_fields=8,
+            deprecated_fields=0,
+            new_fields=3,
+            alias_fields=[],
+            breaking_changes=0,
+        )
         return {
             "ok": True,
             "enabled": _enabled(),
@@ -91,6 +120,15 @@ def build_backup_verification_router(db, require_admin_strict_dep: Callable) -> 
             "last_was_manual": last_was_manual,
             "recipients": _verification_recipients(),
             "max_age_threshold_hrs": _env_int("BACKUP_VERIFICATION_MAX_AGE_HOURS", 36),
+            "ots_truth": public_ots_projection(truth_card),
+            "truth_relationship": projected_truth_relationship(
+                surface_id="bcss_backup_archive_lineage",
+                card=truth_card,
+                canonical_owner_route="/api/admin/backup-verification/state",
+                derivation_explanation="Backup Verification state is a scheduler/config projection only. It is not the validation report truth itself.",
+                derived_status="UNVERIFIABLE",
+            ),
+            "compatibility": compatibility,
         }
 
     return router

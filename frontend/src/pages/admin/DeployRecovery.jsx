@@ -11,6 +11,7 @@ import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { operationalError } from "@/lib/errors";
+import { TruthOwnerPanel } from "@/components/admin/trust/TrustPrimitives";
 
 const STATUS_CLS = {
   green:  "bg-emerald-50 border-emerald-300 text-emerald-900",
@@ -60,6 +61,21 @@ export default function DeployRecovery() {
             {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCcw className="w-3.5 h-3.5" />}
           </Button>
         </div>
+
+        {data?.ots_truth && data?.truth_relationship ? (
+          <div className="mb-4" data-testid="deploy-recovery-ots-wrapper">
+            <TruthOwnerPanel
+              title="Operational Truth Spine"
+              surface={data.ots_truth.truth_surface}
+              relationship={data.truth_relationship}
+              checkedAt={data.ots_truth.evaluation_timestamp || data?.checked_at}
+              testidPrefix="deploy-recovery-ots-panel"
+            />
+            <div className="mt-2 text-xs text-slate-500" data-testid="deploy-recovery-ots-disclosure">
+              Permitted claim=<span className="font-semibold">{data.ots_truth.permitted_claim}</span> · confidence=<span className="font-semibold">{data.ots_truth.evidence_confidence}</span> · this page does not prove recovery readiness or BCSS recovery certification.
+            </div>
+          </div>
+        ) : null}
 
         {/* Current state probe */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-8 gap-y-4 mb-4">

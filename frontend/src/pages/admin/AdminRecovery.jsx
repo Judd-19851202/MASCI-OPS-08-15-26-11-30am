@@ -9,6 +9,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import { api } from "@/lib/api";
+import { TruthOwnerPanel } from "@/components/admin/trust/TrustPrimitives";
 const POLL_MS = 30000;
 
 const PILL_STYLES = {
@@ -163,6 +164,15 @@ export default function AdminRecovery() {
       )}
       {snap && (
         <div className="space-y-4">
+          {snap.ots_truth && snap.truth_relationship ? (
+            <TruthOwnerPanel
+              title="Operational Truth Spine"
+              surface={snap.ots_truth.truth_surface}
+              relationship={snap.truth_relationship}
+              checkedAt={fmtTs(snap.ots_truth.evaluation_timestamp)}
+              testidPrefix="recovery-ots-truth-panel"
+            />
+          ) : null}
           {(() => {
             const lineage = snap.archive_lineage || {};
             return (
@@ -411,6 +421,11 @@ export default function AdminRecovery() {
             cached={String(snap.cached)} ·
             overlap_blocked={String(snap.scheduler?.backup_runtime?.overlap?.overlap_blocked || false)}
           </div>
+          {snap.ots_truth ? (
+            <div className="text-xs text-slate-500" data-testid="recovery-ots-disclosure">
+              Truth subject=<span className="font-semibold">{snap.ots_truth.truth_subject}</span> · permitted claim=<span className="font-semibold">{snap.ots_truth.permitted_claim}</span> · confidence=<span className="font-semibold">{snap.ots_truth.evidence_confidence}</span> · does not prove recovery certification.
+            </div>
+          ) : null}
         </div>
       )}
     </LegacyAdminModernShell>

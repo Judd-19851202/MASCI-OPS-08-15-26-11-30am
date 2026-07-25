@@ -36,6 +36,7 @@ logger = logging.getLogger(__name__)
 
 from lib.canonical_truth import canonical_truth_surface, derived_truth_payload
 from lib.canonical_status import DEGRADED, MISMATCH, NOT_APPLICABLE, UNVERIFIABLE, VERIFIED, to_canonical
+from lib.ots_truth import CORRELATED, canonical_truth_card, compatibility_projection, projected_truth_relationship, public_ots_projection
 from lib.runtime_identity import runtime_identity_public_payload
 
 
@@ -514,7 +515,7 @@ async def _integrations_truth_payload(db, runtime_identity_payload: Optional[Dic
         overall = VERIFIED
     else:
         overall = NOT_APPLICABLE
-    return {
+    payload = {
         "checked_at": _now_iso(),
         "overall": overall,
         "truth_surface": canonical_truth_surface("integration_truth"),
@@ -536,6 +537,44 @@ async def _integrations_truth_payload(db, runtime_identity_payload: Optional[Dic
             "successful activity — not just credentials."
         ),
     }
+    truth_card = canonical_truth_card(
+        truth_subject="bcss_external_dependency_continuity",
+        canonical_owner="bcss_external_dependency_continuity",
+        truth_surface_id="bcss_external_dependency_continuity",
+        evidence_state="correlated",
+        evidence_quality="CORRELATED",
+        evidence_confidence="HIGH" if overall == VERIFIED else ("MEDIUM" if overall == DEGRADED else "LOW"),
+        truth_evaluation=overall,
+        permitted_claim=CORRELATED,
+        claim_ceiling=CORRELATED,
+        claim_basis=["integration truth payload", "provider probes", "recent operational activity", "runtime identity"],
+        prohibited_claims=["VERIFIED", "VALIDATED", "CERTIFIED"],
+        degradation_reasons=[],
+        unknowns=[] if integrations else ["No dependency rows were produced."],
+        contradictory_evidence=[],
+        evidence_timestamp=payload["checked_at"],
+        evaluation_timestamp=payload["checked_at"],
+        audit_reference="OTS-C5-EXTERNAL-DEPENDENCY-CONTINUITY",
+        evidence_required_to_raise_claim=["provider-level explicit claim binding adoption"],
+        notes=["Overall dependency posture is a correlated surface."],
+    )
+    compatibility = compatibility_projection(
+        preserved_fields=5,
+        deprecated_fields=0,
+        new_fields=3,
+        alias_fields=["overall"],
+        breaking_changes=0,
+    )
+    payload["ots_truth"] = public_ots_projection(truth_card)
+    payload["truth_relationship"] = projected_truth_relationship(
+        surface_id="bcss_external_dependency_continuity",
+        card=truth_card,
+        canonical_owner_route="/api/admin/integrations/truth-status",
+        derivation_explanation="Dependency continuity extends the existing integration truth system without creating a second dependency engine.",
+        derived_status=overall,
+    )
+    payload["compatibility"] = compatibility
+    return payload
 
 
 # ─────────────────── DR-V2 alias telemetry ────────────────────────

@@ -16,6 +16,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from lib.ots_truth import CERTIFIED, canonical_truth_card, public_ots_projection
 
 
 COLLECTION = "deployment_decisions"
@@ -81,6 +82,28 @@ async def write_snapshot_doc(db, body: Dict[str, Any]) -> Dict[str, Any]:
         "verification_source": str(body.get("verification_source") or "")[:64],
         "runtime_identity_status": str(body.get("runtime_identity_status") or "")[:64],
     }
+    truth_card = canonical_truth_card(
+        truth_subject="bcss_recovery_certification",
+        canonical_owner="bcss_recovery_certification",
+        truth_surface_id="bcss_recovery_certification",
+        evidence_state="historical",
+        evidence_quality="DECISION_RECORDED",
+        evidence_confidence="HIGH",
+        truth_evaluation="VERIFIED" if decision == "pass" else "DEGRADED",
+        permitted_claim=CERTIFIED,
+        claim_ceiling=CERTIFIED,
+        claim_basis=["deployment_decisions ledger"],
+        prohibited_claims=["current recovery certification"],
+        degradation_reasons=[] if decision == "pass" else [str(body.get("failure_reason") or "deployment decision failed")],
+        unknowns=["Historical decision records do not prove current deployment or recovery state."],
+        contradictory_evidence=[],
+        evidence_timestamp=doc["ts"],
+        evaluation_timestamp=doc["ts"],
+        audit_reference="OTS-C5-DEPLOYMENT-HISTORY",
+        evidence_required_to_raise_claim=["current decision context for present-tense claims"],
+        notes=["Historical ledger is decision-recorded evidence only."],
+    )
+    doc["ots_truth"] = public_ots_projection(truth_card)
     if verification_id:
         doc["verification_id"] = verification_id
         await db[COLLECTION].update_one(
@@ -143,6 +166,29 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
             {}, {"_id": 0, "ts_dt": 0}, sort=[("ts", -1)], limit=limit,
         )
         async for r in cursor:
+            if "ots_truth" not in r:
+                truth_card = canonical_truth_card(
+                    truth_subject="bcss_recovery_certification",
+                    canonical_owner="bcss_recovery_certification",
+                    truth_surface_id="bcss_recovery_certification",
+                    evidence_state="historical",
+                    evidence_quality="DECISION_RECORDED",
+                    evidence_confidence="HIGH",
+                    truth_evaluation="VERIFIED" if r.get("decision") == "pass" else "DEGRADED",
+                    permitted_claim=CERTIFIED,
+                    claim_ceiling=CERTIFIED,
+                    claim_basis=["deployment_decisions ledger"],
+                    prohibited_claims=["current recovery certification"],
+                    degradation_reasons=[] if r.get("decision") == "pass" else [str(r.get("failure_reason") or "deployment decision failed")],
+                    unknowns=["Historical decision records do not prove current deployment or recovery state."],
+                    contradictory_evidence=[],
+                    evidence_timestamp=r.get("ts"),
+                    evaluation_timestamp=r.get("ts"),
+                    audit_reference="OTS-C5-DEPLOYMENT-HISTORY",
+                    evidence_required_to_raise_claim=["current decision context for present-tense claims"],
+                    notes=["Historical ledger is decision-recorded evidence only."],
+                )
+                r["ots_truth"] = public_ots_projection(truth_card)
             rows.append(r)
         total = await db[COLLECTION].count_documents({})
         pass_count = await db[COLLECTION].count_documents({"decision": "pass"})

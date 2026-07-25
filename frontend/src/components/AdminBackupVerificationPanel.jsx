@@ -19,6 +19,7 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 // TRACK 27.03 · Final Completion · canonical platform time formatter.
 import { formatPlatformTime, formatPlatformDate, formatPlatformTimeOnly } from "@/lib/platformTime";
+import { TruthOwnerPanel } from "@/components/admin/trust/TrustPrimitives";
 
 const VERDICT_TONE = {
   pass: { color: "text-green-700", bg: "bg-green-50", border: "border-green-300", label: "HEALTHY" },
@@ -115,6 +116,8 @@ export default function AdminBackupVerificationPanel() {
   const jobs = report?.backup_jobs || {};
   const issues = [...(r2.issues || []), ...(ledger.issues || [])];
   const lineage = report?.archive_lineage || r2?.archive_lineage || {};
+  const activeTruth = report?.ots_truth || state?.ots_truth || null;
+  const activeRelationship = report?.truth_relationship || state?.truth_relationship || null;
 
   return (
     <Card
@@ -142,6 +145,21 @@ export default function AdminBackupVerificationPanel() {
           ITER79
         </div>
       </div>
+
+      {activeTruth && activeRelationship ? (
+        <div className="mb-4" data-testid="backup-verification-ots-wrapper">
+          <TruthOwnerPanel
+            title="Operational Truth Spine"
+            surface={activeTruth.truth_surface}
+            relationship={activeRelationship}
+            checkedAt={activeTruth.evaluation_timestamp || state?.last_run_iso}
+            testidPrefix="backup-verification-ots-panel"
+          />
+          <div className="mt-2 text-xs text-slate-500" data-testid="backup-verification-ots-disclosure">
+            Truth subject=<span className="font-semibold">{activeTruth.truth_subject}</span> · permitted claim=<span className="font-semibold">{activeTruth.permitted_claim}</span> · confidence=<span className="font-semibold">{activeTruth.evidence_confidence}</span> · this surface does not prove restore certification or BCSS recovery certification.
+          </div>
+        </div>
+      ) : null}
 
       {loadingState ? (
         <div className="flex items-center gap-2 text-slate-600 py-3">

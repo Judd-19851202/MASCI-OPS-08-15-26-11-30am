@@ -379,6 +379,7 @@ from lib.archive_lineage import (
     build_canonical_archive_lineage,
     public_archive_lineage_payload,
 )
+from lib.ots_truth import CORRELATED, canonical_truth_card, compatibility_projection, projected_truth_relationship, public_ots_projection  # noqa: E402
 
 # Session-timeout middleware (Phase 2 Initiative 4) — env-gated.
 # Default disabled. Installed during startup after db handle is ready.
@@ -12009,7 +12010,7 @@ async def admin_backups_trust_score(_: bool = Depends(require_admin_strict)):
         active_failures_7d=int(failures_7d or 0),
         bucket_usage_status=bucket_usage_status,
     )
-    return {
+    payload = {
         **score,
         "production_activation_disabled": not bool(activation_state.get("r2_hourly_effective")),
         "hourly_activation": activation_state,
@@ -12024,6 +12025,44 @@ async def admin_backups_trust_score(_: bool = Depends(require_admin_strict)):
             "hourly_activation": activation_state,
         },
     }
+    truth_card = canonical_truth_card(
+        truth_subject="bcss_recovery_trust",
+        canonical_owner="bcss_recovery_trust",
+        truth_surface_id="bcss_recovery_trust",
+        evidence_state="calculated",
+        evidence_quality="CALCULATED",
+        evidence_confidence="MEDIUM" if latest_complete else "LOW",
+        truth_evaluation={"green": "VERIFIED", "amber": "DEGRADED", "red": "MISMATCH"}.get(score.get("score_band"), "UNVERIFIABLE"),
+        permitted_claim=CORRELATED,
+        claim_ceiling=CORRELATED,
+        claim_basis=["compute_backup_trust_score", "archive_lineage", "restore drill evidence", "backup runtime", "bucket usage"],
+        prohibited_claims=["VERIFIED", "VALIDATED", "CERTIFIED"],
+        degradation_reasons=[entry.get("reason") for entry in score.get("score_inputs") or []],
+        unknowns=[] if latest_complete else ["No authoritative archive-lineage evidence is currently available."],
+        contradictory_evidence=[],
+        evidence_timestamp=(latest_complete or {}).get("authoritative_time") or (latest_complete or {}).get("observed_time"),
+        evaluation_timestamp=datetime.now(timezone.utc).isoformat(),
+        audit_reference="OTS-C5-BACKUP-TRUST",
+        evidence_required_to_raise_claim=["underlying canonical owner verification on source truth"],
+        notes=["Trust score is a derived confidence surface only."],
+    )
+    compatibility = compatibility_projection(
+        preserved_fields=6,
+        deprecated_fields=0,
+        new_fields=3,
+        alias_fields=[],
+        breaking_changes=0,
+    )
+    payload["ots_truth"] = public_ots_projection(truth_card)
+    payload["truth_relationship"] = projected_truth_relationship(
+        surface_id="bcss_recovery_trust",
+        card=truth_card,
+        canonical_owner_route="/api/admin/backup-trust-score",
+        derivation_explanation="Backup Trust is a derived confidence surface and may not upgrade archive, restore, or certification claims.",
+        derived_status=truth_card["truth_evaluation"],
+    )
+    payload["compatibility"] = compatibility
+    return payload
 
 
 @api_router.post("/admin/data-fixes/run")

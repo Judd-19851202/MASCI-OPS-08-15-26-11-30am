@@ -28,6 +28,7 @@ from typing import Any, Dict
 from fastapi import APIRouter
 
 from lib.canonical_status import DEGRADED, NOT_APPLICABLE, VERIFIED
+from lib.ots_truth import CORRELATED, canonical_truth_card, compatibility_projection, projected_truth_relationship, public_ots_projection
 from lib.runtime_identity import runtime_identity_public_payload
 
 
@@ -56,6 +57,34 @@ def build_platform_data_truth_router(db=None, *, get_runtime_identity=None) -> A
 
         identity_status = (runtime_identity_payload or {}).get("status") or "UNVERIFIABLE"
         integration_status = identity_status if identity_status in {VERIFIED, DEGRADED, NOT_APPLICABLE} else DEGRADED
+        truth_card = canonical_truth_card(
+            truth_subject="bcss_runtime_state_authority",
+            canonical_owner="bcss_runtime_state_authority",
+            truth_surface_id="bcss_runtime_state_authority",
+            evidence_state="observed",
+            evidence_quality="DIRECT_OBSERVED",
+            evidence_confidence="HIGH" if validation.get("valid", False) else "LOW",
+            truth_evaluation=identity_status,
+            permitted_claim=CORRELATED,
+            claim_ceiling=CORRELATED,
+            claim_basis=["runtime_identity_public_payload", "environment", "database", "ui_banner"],
+            prohibited_claims=["VERIFIED", "VALIDATED", "CERTIFIED"],
+            degradation_reasons=list(validation.get("errors") or []),
+            unknowns=[] if validation.get("valid", False) else ["Runtime identity is not fully validated for public operator truth."],
+            contradictory_evidence=[],
+            evidence_timestamp=(runtime_identity_payload or {}).get("generated_at") or datetime.now(timezone.utc).isoformat(),
+            evaluation_timestamp=datetime.now(timezone.utc).isoformat(),
+            audit_reference="OTS-C5-PLATFORM-DATA-TRUTH",
+            evidence_required_to_raise_claim=["admin platform status validation", "cross-surface release-identity verification"],
+            notes=["Public environment/data-source truth only.", "HTTP success is not proof of platform health or recovery posture."],
+        )
+        compatibility = compatibility_projection(
+            preserved_fields=10,
+            deprecated_fields=0,
+            new_fields=3,
+            alias_fields=["verified"],
+            breaking_changes=0,
+        )
 
         return {
             "status": identity_status,
@@ -87,6 +116,15 @@ def build_platform_data_truth_router(db=None, *, get_runtime_identity=None) -> A
                     "status": integration_status,
                 },
             },
+            "ots_truth": public_ots_projection(truth_card),
+            "truth_relationship": projected_truth_relationship(
+                surface_id="bcss_runtime_state_authority",
+                card=truth_card,
+                canonical_owner_route="/api/admin/platform/status",
+                derivation_explanation="Platform Data Truth is a bounded public projection of runtime identity and data-source evidence.",
+                derived_status=identity_status,
+            ),
+            "compatibility": compatibility,
 
             # ── Doctrine pointer ─────────────────────────────────────
             "doctrine": {
@@ -94,6 +132,7 @@ def build_platform_data_truth_router(db=None, *, get_runtime_identity=None) -> A
                 "production_must_not_backfill_from_preview": True,
                 "one_body_rule": True,
                 "status_vocabulary": [VERIFIED, "MISMATCH", "UNVERIFIABLE", DEGRADED, NOT_APPLICABLE],
+                "claim_ladder": ["UNKNOWN", "OBSERVED", "CORRELATED", "VERIFIED", "VALIDATED", "CERTIFIED"],
                 "data_truth_correction_ref": (
                     "docs/recovery/LIVE_VS_RECOVERY_RECONCILIATION.md"),
             },
