@@ -728,3 +728,52 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - Corrected unsupported OTC runtime claim semantics by separating operational score from bounded canonical claim, making unknowns/contradictions first-class, and removing unconditional `Trusted` / verification-style wording inside the approved family.
 - Focused implementation artifact created: `/app/memory/BCSS_RELEASE2_PROGRAM2_CHECKPOINT8_IMPLEMENTATION_RECORD.md`.
 - Verification is in progress for this checkpoint; Checkpoint 8 is **not** yet formally adopted or closed.
+
+## 2026-07-25 — BCSS Release 2 / Program 2 / Wave 3 / Family 1 Phase B
+- Completed the bounded constitutional hardening review for the OCC Health Aggregator family only.
+- Repository evidence proved one constitutional deficiency and one user-facing contract drift, so a runtime repair was warranted.
+
+### Scope honored
+- Runtime files changed only within the approved family:
+  - `/app/backend/routes/occ_health_aggregator.py`
+  - `/app/frontend/src/pages/OperationsControlCenter.jsx`
+- Focused tests added/updated only for this family:
+  - `/app/backend/tests/test_track_25_sprint_2_occ_trust_layer.py`
+  - `/app/frontend/src/pages/__tests__/OperationsControlCenter.ots.test.jsx`
+- Independent verification also added a live API contract test file:
+  - `/app/backend/tests/test_occ_health_aggregator_api_contract.py`
+
+### Repository-proven deficiency
+- `truth_relationship.canonical_owner_route` for `occ_health_aggregator` was being emitted as the aggregator's own route (`/api/admin/occ/health`) instead of the upstream canonical owner route for `platform_attestation` (`/api/admin/platform/status`).
+- The OCC frontend trust layer was still interpreting backend canonical statuses through an older green/yellow/red/unknown contract, which could misread live aggregator output and falsely suggest snapshot unavailability.
+
+### Smallest safe repair applied
+- Backend now resolves OCC `canonical_owner_route` from the canonical owner surface endpoint while preserving:
+  - role: `AGGREGATOR`
+  - truth subject: `shared_operational_posture`
+  - canonical owner id: `platform_attestation`
+- Frontend now:
+  - normalizes canonical backend statuses into the existing operator color vocabulary
+  - renders a bounded aggregate disclosure for the OCC trust layer
+  - renders the OCC aggregator truth relationship explicitly
+  - preserves the existing maintenance console and routing behavior
+
+### Verified
+- Focused backend pytest: `39 passed`
+- Focused frontend Jest: `4 suites passed`, `10 tests passed`
+- Independent QA report: `/app/test_reports/iteration_39.json` → PASS
+- Independent backend verification: PASS (`deep_testing_backend_v2`)
+- Independent frontend verification: PASS (`auto_frontend_testing_agent`)
+- Preview smoke verified bounded disclosure on `/admin/operations-control`
+
+### Constitutional result
+- OCC Health Aggregator remains an `AGGREGATOR`
+- canonical ownership remains `platform_attestation`
+- truth subject remains `shared_operational_posture`
+- no duplicate owner, truth engine, health engine, or aggregation engine was introduced
+- unknown / unverifiable handling remains honest and visible
+- no Platform Survivability / Backup / Recovery / DR / Business Continuity / Rollback / Production Readiness / Wave 1 Deployment surfaces were modified in this bounded repair
+
+### Disposition
+- **Wave 3 Family 1 Phase B implementation verified and ready for formal adoption recommendation**
+- Do not begin the next roadmap family without explicit user authorization
