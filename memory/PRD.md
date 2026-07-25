@@ -697,3 +697,20 @@ Goal: fix the Daily Report so field crews can complete it top-to-bottom reliably
 - Checkpoint 7 implementation artifact created: `/app/memory/BCSS_RELEASE2_PROGRAM2_CHECKPOINT7_IMPLEMENTATION_RECORD.md`.
 - Formal adoption artifact created: `/app/memory/BCSS_RELEASE2_PROGRAM2_CHECKPOINT7_FORMAL_ADOPTION.md`.
 - **CHECKPOINT 7 FORMALLY VERIFIED, ADOPTED, AND CLOSED**. Formally adopted OTS families: **6 → 7**.
+
+## 2026-07-25 — BCSS Release 2 / Program 2 / Checkpoint 8 Phase A Discovery
+- Completed strict read-only repository discovery for the Operations Trust Center candidate family.
+- Candidate pair confirmed live and bounded:
+  - `/app/backend/routes/admin_operations_trust_center.py`
+  - `/app/frontend/src/components/OperationsTrustCenter.jsx`
+- Repository-backed classification confirmed:
+  - family role: `DERIVED_CONSUMER`
+  - truth subject: `shared_operational_trust_score`
+  - primary canonical owner: `trust_spine`
+- Discovery artifact created: `/app/memory/BCSS_RELEASE2_PROGRAM2_CHECKPOINT8_PHASEA_DISCOVERY.md`.
+- Phase A verdict: **PHASE A COMPLETE — GO RECOMMENDED** for the bounded family only, pending explicit user approval for any future Phase B.
+- No runtime code, tests, routes, schemas, auth boundaries, navigation, configuration, or deployment artifacts were changed in this checkpoint.
+- Primary bounded future target, if later approved:
+  - preserve derived-consumer role
+  - preserve trust-spine ownership
+  - tighten claim-boundary semantics in the candidate route and component only
